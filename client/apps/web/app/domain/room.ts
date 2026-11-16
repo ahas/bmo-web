@@ -1180,10 +1180,13 @@ function lookOf(message: ArchivedMessage, avatars: AvatarIndex, mine: readonly n
   };
 }
 
-// The name a message's row stands under: the agent's own where its answer went out in the owner's account, which
-// the archive files under the owner's name, or where an agent's words stand under no number of their own — the record
-// road's — whatever name the send was filed with; and the name it was filed with otherwise.
-function shownSender(message: Pick<ArchivedMessage, "senderName" | "senderId" | "voicedBy" | "speaker">): string {
+// The name a message's row stands under, and the name the room's find reads (docs/web.md, 「A message stands under the
+// agent that said it」): an agent's words by the agent's label as the agency holds it, which the row carries for every
+// reader whatever sections they hold. Where the agency gives none, the agent's own where its answer went out in the
+// owner's account, which the archive files under the owner's name, or where an agent's words stand under no number of
+// their own — the record road's — whatever name the send was filed with; and the name it was filed with otherwise.
+export function messageSenderName(message: Pick<ArchivedMessage, "senderName" | "senderId" | "voicedBy" | "speaker" | "speakerLabel">): string {
+  if (message.speakerLabel !== undefined) return message.speakerLabel;
   if (message.voicedBy !== undefined) return agentRowName(message.voicedBy);
 
   return message.speaker !== undefined && message.senderId === null ? agentRowName(message.speaker) : message.senderName;
@@ -1192,18 +1195,17 @@ function shownSender(message: Pick<ArchivedMessage, "senderName" | "senderId" | 
 // The picture a message's row wears: an agent's words its own face in every room, an answer that went out in the
 // owner's account among them, and a person's words their own picture (docs/web.md, 「An agent's words wear the agent's
 // face in every room」).
-function faceOf(message: Pick<ArchivedMessage, "senderId" | "senderName" | "voicedBy" | "speaker">, avatars: AvatarIndex): AvatarProps {
+function faceOf(message: Pick<ArchivedMessage, "senderId" | "senderName" | "voicedBy" | "speaker" | "speakerLabel">, avatars: AvatarIndex): AvatarProps {
   const agent = message.voicedBy ?? message.speaker;
 
-  return agent === undefined ? avatarFor(avatars, "person", message.senderId, message.senderName) : agentAvatar(avatars, agent);
+  return agent === undefined ? avatarFor(avatars, "person", message.senderId, message.senderName) : agentAvatar(avatars, agent, message.speakerLabel);
 }
 
 // A chat agent's face by its registration name, where the index holds one under it, and otherwise its label's letter
 // as everyone's (docs/web.md, 「Profile photos」): the one lookup an agent's finished rows and its running turn's row
-// both wear.
-export function agentAvatar(avatars: AvatarIndex, name: string): AvatarProps {
+// both wear. The label is the one a row carries where it carries one.
+export function agentAvatar(avatars: AvatarIndex, name: string, label: string = agentRowName(name)): AvatarProps {
   const picture = avatars.get(agentKey(name));
-  const label = agentRowName(name);
 
   return picture === undefined ? avatarFor(avatars, "person", null, label) : { src: picture, alt: label };
 }
@@ -1309,7 +1311,7 @@ export interface Speaker {
 export function botSpeaker(messages: readonly ArchivedMessage[]): Speaker {
   const said = lastAnswer(messages);
 
-  return { id: said?.senderId ?? null, name: said === undefined ? chatAgent().label : shownSender(said) };
+  return { id: said?.senderId ?? null, name: said === undefined ? chatAgent().label : messageSenderName(said) };
 }
 
 function lastAnswer(messages: readonly ArchivedMessage[]): ArchivedMessage | undefined {
@@ -1672,7 +1674,7 @@ function feedItemOf(
     key: `m${message.messageId}`,
     messageId: message.messageId,
     senderId: message.senderId,
-    senderName: shownSender(message),
+    senderName: messageSenderName(message),
     sentAt: message.sentAt,
     text: message.text,
     shownText: deleted ? "" : shown.text,

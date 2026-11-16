@@ -324,6 +324,9 @@ export interface ArchivedMessage {
   // The registration name of the agent whose words an agent's message is, wherever it went out — a notice said in
   // the room's voice the room's answering agent's — so its row wears that agent's face; absent on a person's words.
   speaker?: string;
+  // What the agent whose words these are (`voicedBy`, else `speaker`) is called, as the agency holds its label: the
+  // name its row stands under for every reader, whatever sections they hold. Absent where the agency gives no label.
+  speakerLabel?: string;
   // Whether the bot sent this message as the service rather than as the chat agent — a system notice, which a
   // screen stands as a system line rather than an answer. Absent where the server did not say.
   notice?: boolean;

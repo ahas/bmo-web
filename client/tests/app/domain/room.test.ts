@@ -37,8 +37,10 @@ import {
   skippedLine,
   withoutMediaMark,
   withRoundFigures,
-  atFoot
+  atFoot,
+  messageSenderName
 } from "../../../apps/web/app/domain/room";
+import { foundMessages } from "../../../apps/web/app/domain/room-find";
 import { outboxOf, withChecking, withFailed, withSent } from "../../../apps/web/app/domain/outbox";
 import { listeningRuns } from "../../../apps/web/app/domain/room-window";
 
@@ -266,6 +268,37 @@ describe("an answer sent in the owner's own account", () => {
 
     expect(row?.voice).toBeUndefined();
     expect(row?.senderName).toBe("agent-a");
+  });
+});
+
+// A person's own BMO answering in its room, read by a member who holds no agents table: the row carries the label the
+// agency holds for the agent, and stands under it (docs/web.md, 「A message stands under the agent that said it」).
+describe("an agent's row read without the agents table", () => {
+  const answer = (over: Partial<ArchivedMessage> = {}): ArchivedMessage => ({
+    ...archived(1, "an answer in its own room", "agent-b"),
+    agent: true,
+    senderId: 4_218_991,
+    voicedBy: "agent-b",
+    speaker: "agent-b",
+    ...over
+  });
+
+  test("stands under the label the agency holds for the agent, in the feed, its face and the room's find", () => {
+    holdCatalogue([]);
+
+    const labelled = answer({ speakerLabel: "Person B's BMO" });
+    const [row] = buildDays(wording, [labelled], new Map(), imageUrl, avatars).flatMap((day) => day.items);
+
+    expect(messageSenderName(labelled)).toBe("Person B's BMO");
+    expect(row).toMatchObject({ senderName: "Person B's BMO" });
+    expect(row?.look.avatar).toMatchObject({ alt: "Person B's BMO" });
+    expect(foundMessages([labelled], "Person B's")).toEqual([labelled.messageId]);
+  });
+
+  test("stands under the agent's own name where the agency gives it no label", () => {
+    holdCatalogue([]);
+
+    expect(messageSenderName(answer())).toBe("agent-b");
   });
 });
 

@@ -3,6 +3,7 @@ import { isSystemNotice } from "#shared/text-marks";
 import { readingStateOf } from "#shared/voice-briefings";
 import { wording } from "#shared/wording";
 
+import { agentLabels } from "./agent-labels";
 import { draftSummaries } from "./drafting";
 import { roomBriefings } from "./voice";
 import { figuresOf } from "./runfigures";
@@ -354,7 +355,8 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
   const room = await answererNumbers(chatId).catch(() => ({ numbers: new Map<number, string>(), voice: null }));
   const answerers = room.numbers;
   const agents = new Map(received.map((message) => [senderKey(message), message.agentName !== null || (message.senderId !== null && answerers.has(message.senderId))]));
-  const voiced = await ownerVoices(chatId, received, answerers);
+  // What each agent is called, as the agency holds it, so an agent's row stands under its label for every reader.
+  const [voiced, labels] = await Promise.all([ownerVoices(chatId, received, answerers), agentLabels()]);
   // Each message's files are read once, and a reply to a message the page holds quotes it from the page. A row
   // draws its words from the metadata it arrived with unless it is an agent's answer, which stands as its markdown.
   const media = new Map(received.map((message) => [message.messageId, mediaOf(chatId, message, message.text !== "" && agents.get(senderKey(message)) !== true)]));
@@ -379,6 +381,8 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
       const agent = agents.get(senderKey(message)) === true;
       const voicedBy = accountAgent(message, voiced);
       const speaker = speakerOf(message, agent, answerers, room.voice);
+      const named = voicedBy ?? speaker;
+      const speakerLabel = named === undefined ? undefined : labels.get(named);
       const files = await media.get(message.messageId)!;
 
       return {
@@ -396,6 +400,7 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
         agent,
         ...(voicedBy === undefined ? {} : { voicedBy }),
         ...(speaker === undefined ? {} : { speaker }),
+        ...(speakerLabel === undefined ? {} : { speakerLabel }),
         notice: agent && isSystemNotice(message.text),
         ...(agent && message.kind === THINKING ? { thinking: true } : {}),
         attachments: files.attachments,

@@ -71,6 +71,11 @@ const voiced = [
   message(21, { room: -9, senderId: 33, senderName: "person-owner", agentName: "agent-a", voice: "bot-account" }),
   message(22, { room: -9, senderId: 33, senderName: "person-owner", round: "round:-9:1:2" })
 ];
+// A room two supervisors answer under numbers of their own: one the agency gives a label, one it gives none.
+const labelled = [
+  message(30, { room: -13, senderId: 44, senderName: "u44", agentName: "agent-a" }),
+  message(31, { room: -13, senderId: 45, senderName: "u45", agentName: "agent-b" })
+];
 const keptFile = (place: number, kind: string, name: string, type: string | null, size: number | null, kept = true) => ({ place, kind, name, type, size, kept });
 
 function room(id: number, over: Record<string, unknown> = {}): Record<string, unknown> {
@@ -124,6 +129,8 @@ const receiver = standIn("RECEIVER", (one) => {
   if (path === "/rooms/-9/messages") return answer({ items: voiced, more: false });
   if (path === "/rooms/-12/messages") return answer({ items: numberedHigh.map((id) => message(0, { id: rawNumber(id), room: -12, text: "" })), more: false });
   if (path === "/rooms/-9/messages/22/sender-is-owner") return answer({ owner: true });
+  if (path === "/rooms/-13/answerers") return answer({ default: "", voice: "", items: [], more: false });
+  if (path === "/rooms/-13/messages") return answer({ items: labelled, more: false });
 
   if (path === "/rooms") return answer({ items: rooms, more: false });
 
@@ -164,6 +171,8 @@ const agency = standIn("AGENCY", (one) => {
     return answer({ items: [{ id: 1, runId: 41, kind: "tool", text: "read a file", fields: { name: "read" }, at: 1 }], more: false });
   }
   if (url.pathname === "/log-lines") return answer({ items: [], more: false });
+  // What each supervisor is called: one with a label, and one the agency gives none.
+  if (url.pathname === "/supervisors") return answer({ items: [{ name: "agent-a", label: "Agent A" }, { name: "agent-b", label: null }], more: false });
 
   return answer({ code: "no-route", error: "no route" }, 404);
 });
@@ -238,12 +247,22 @@ describe("a page of a room", () => {
       ["4", false, false]
     ]);
     expect(read.messages[1]).toMatchObject({ answerSeconds: 4, round: "round:-7:1:1", spend: null, actions: null });
-    // What the round spent and did is read apart from the page, so the page asks the agency nothing.
-    expect(agency.asked).toEqual([]);
+    // What the round spent and did is read apart from the page, so the page asks the agency for nothing but its agents'
+    // labels.
+    expect(agency.asked.filter((one) => one.path !== "/supervisors")).toEqual([]);
     // The agent's number is not the owner's here, so no answer is said to have gone out in the owner's account.
     expect(read.messages.some((one) => one.voicedBy !== undefined)).toBe(false);
     // Where a forwarded message came from, on the row the record marks and no other.
     expect(read.messages.map((one) => one.forwardedFrom ?? null)).toEqual([{ room: -5, messageId: "3", senderName: "person-b" }, null, null, null]);
+  });
+
+  test("hands each agent's row the label the agency holds for it, and none where the agency gives none", async () => {
+    const read = await readMessagePage(-13, null, 50);
+
+    expect(read.messages.map((one) => [one.messageId, one.voicedBy, one.speakerLabel])).toEqual([
+      ["30", "agent-a", "Agent A"],
+      ["31", "agent-b", undefined]
+    ]);
   });
 
   test("names the agent of an answer sent in the owner's own account from the send itself, and asks the number's owner only where the send names no agent", async () => {

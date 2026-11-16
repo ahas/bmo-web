@@ -1,6 +1,8 @@
 import { countLocale } from "bmo-ui/app/domain/numbers";
 import { searchHits, searchPhrase } from "bmo-ui/shared/search";
 
+import { messageSenderName } from "./room";
+
 import type { ArchivedMessage, ExactMessageId } from "#shared/types";
 
 // Finding a phrase in a room (docs/web.md, the room screen's find): the console's list search over what each loaded message
@@ -13,9 +15,9 @@ export const FOUND_CURRENT = "room-found-current";
 
 /** What a message shows that a search reads. */
 function shownTexts(message: ArchivedMessage): string[] {
-  // What the bubble stands, which is what a reader can see to find: a voice note's words among them, read out of the
-  // record and drawn under its player (docs/web.md, the room screen's sound messages).
-  return [message.text, message.senderName, message.transcript ?? "", ...(message.attachments ?? []).map((file) => file.name)];
+  // What the bubble stands, which is what a reader can see to find: the name its row stands under, and a voice note's
+  // words, read out of the record and drawn under its player (docs/web.md, the room screen's sound messages).
+  return [message.text, messageSenderName(message), message.transcript ?? "", ...(message.attachments ?? []).map((file) => file.name)];
 }
 
 /** The messages holding the phrase, oldest first, by their numbers; none for an empty phrase. */

@@ -1536,11 +1536,15 @@ Four groups.
     A session registered for a room is that agent serving that room: it stands as the agent's own name and picture, with
     the room it serves its own line under it.
   - **A message stands under the agent that said it.** The room view names a sender by the agent the record carries on
-    the message — its `agentName` — wherever that name is, whichever voice the words went out in: a supervisor answering
-    in a room that names it stands under its own name there, and the default answerer under its own label. A person's message keeps the
-    person's own label, and a row the record names no agent on falls back to the name it does carry rather than being
-    guessed at another agent's. One function names a row for every screen that draws one — the room list's preview, the
-    room view, an item's notes and a search.
+    the message — its `agentName` — wherever that name is, whichever voice the words went out in, and an agent's words
+    the record names no agent on by the agent whose own number they went out under. That agent's row stands under its
+    label as the agency holds it (the agency's `GET /supervisors`, `label`), which the server reads and hands on with the
+    row, so every reader sees the same name whatever console sections they hold: a person's own BMO answers in its room
+    under its label, not its registration name. An agent the agency gives no label stands under its own name, the
+    default answerer under the chat agent's label. A person's message keeps the person's own label, and a row the
+    record names no agent on falls back to the name it does carry rather than being guessed at another agent's. One
+    function names a row wherever one is drawn and for the room's find, so the name a row stands under is the name a
+    search finds.
   - **A room's name and picture in the list follow what kind of room it is.** A group room stands under the title it
     was set with, in the list as everywhere else, and wears the picture set for it; no agent's label replaces either, so
     a group titled AHAS Lab lists as AHAS Lab. A one-to-one room stands under the other party's name and wears the other

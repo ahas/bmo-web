@@ -10,6 +10,15 @@ import { DEPLOY_ICON } from "../../apps/web/app/domain/deploy";
 import type { Browser } from "playwright-core";
 import type { DeployView } from "../../apps/web/shared/types";
 
+declare global {
+  interface Window {
+    // The page's measuring tool, once its script is installed.
+    measure?: typeof import("./measure");
+    // The hover's tint as the last poll read it, so a settled tint is told from one still fading in.
+    hoverGround?: string;
+  }
+}
+
 // The deployment's mark in the title bar through a run (docs/web.md, 「Deployment in the title bar」): while a run
 // is under way the mark is the one spinning progress mark, read after read as the console's word moves it; the run
 // ended stands its outcome; a page older than the console stands the deploy icon, trading places with the spinner as
@@ -242,7 +251,7 @@ describe.skipIf(!origin || !touchReady())("the deployment's mark", () => {
         const head = "[data-deploy-status] > span:last-child";
         // The lowest ratio the words matched are drawn at.
         const lowest = (selector: string): Promise<number> =>
-          page.evaluate((selector) => Math.min(...(window as unknown as { measure: typeof import("./measure") }).measure.contrast(selector).map((one) => one.ratio)), selector);
+          page.evaluate((selector) => Math.min(...window.measure!.contrast(selector).map((one) => one.ratio)), selector);
 
         await page.goto(`${origin}/`, { waitUntil: "load" });
         await page.addScriptTag({ type: "module", content: `${measureSource()}\ninstall();` });
@@ -263,7 +272,7 @@ describe.skipIf(!origin || !touchReady())("the deployment's mark", () => {
           // The hover's tint fades in, so it is read once two reads a tenth of a second apart agree.
           await page.waitForFunction(
             (selector) => {
-              const scope = window as unknown as { hoverGround?: string };
+              const scope = window;
               const now = getComputedStyle(document.querySelector(selector)!).backgroundColor;
               const settled = now === scope.hoverGround && now !== "rgba(0, 0, 0, 0)";
 

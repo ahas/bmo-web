@@ -6,10 +6,12 @@
     <dl class="pair-list gap-x-4 gap-y-2 py-3 text-sm">
       <template v-for="one in skeletonRows" :key="one.label">
         <dt class="text-muted">{{ one.label }}</dt>
-        <dd class="flex items-center gap-2" :class="one.beside === undefined ? 'h-5' : 'h-8'">
-          <SkeletonBar v-if="one.beside === 'picture'" class="size-8 shrink-0 rounded-full" />
-          <SkeletonBar class="h-4 w-1/2" />
-          <SkeletonBar v-if="one.beside === 'button'" class="h-8 w-12 shrink-0 rounded-md" />
+        <dd class="flex flex-col">
+          <span class="flex items-center gap-2" :class="one.beside === undefined ? 'h-5' : 'h-8'">
+            <SkeletonBar v-if="one.beside === 'picture'" class="size-8 shrink-0 rounded-full" />
+            <SkeletonBar class="h-4 w-1/2" />
+          </span>
+          <span v-if="one.under" class="flex h-5 items-center"><SkeletonBar class="h-3 w-1/3" /></span>
         </dd>
       </template>
     </dl>

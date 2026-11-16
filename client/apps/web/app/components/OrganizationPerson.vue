@@ -374,12 +374,15 @@ function groupRead<T>(load: () => Promise<T>, failed: string): GroupRead<T> {
 
 const bmo = groupRead(() => $fetch<RosterBmo>(`${base.value}/bmo`), t("roster.error.bmo_read_failed"));
 
+// The BMO group's place while it is read, sized for the case met most: every part of the profile the deployment's, so
+// no line says where a part came from and no persona stands to open, and the permission following the person's unit,
+// whose line stands.
 const bmoLabels = computed<PairSkeleton[]>(() => [
   { label: t("bmo_profile.label.name") },
   { label: t("bmo_profile.label.call_names") },
   { label: t("bmo_profile.label.picture"), beside: "picture" },
-  { label: t("bmo_profile.label.persona"), beside: "button" },
-  { label: t("bmo_profile.label.permission") },
+  { label: t("bmo_profile.label.persona") },
+  { label: t("bmo_profile.label.permission"), under: true },
   { label: t("agents.label.column_road") }
 ]);
 

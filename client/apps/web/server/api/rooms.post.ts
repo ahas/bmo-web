@@ -74,16 +74,15 @@ export default defineEventHandler(async (event): Promise<RoomAdded> => {
   }
 
   // A start goes out in the account its contacts were listed in: the signed-in person's own where the model gives
-  // them a user, else the service's own.
-  const account = chatAccountOf(signed);
+  // them a user, else the service's own, which is the owner's too.
   let room;
 
   if (isId(body.roomId)) {
     room = await receiverCall(receiver().POST("/rooms", { body: { provider, roomId: body.roomId, mode, title } }));
   } else if (isId(body.contactId)) {
-    room = await receiverCall(receiver().POST("/rooms", { body: { provider, contactId: body.contactId, mode, ...account, ...(title === null ? {} : { title }) } }));
+    room = await receiverCall(receiver().POST("/rooms", { body: { provider, contactId: body.contactId, mode, ...(await chatAccountOf(signed)), ...(title === null ? {} : { title }) } }));
   } else if (groupContacts !== null) {
-    room = await receiverCall(receiver().POST("/rooms", { body: { provider, contactIds: groupContacts, mode, title, ...account } }));
+    room = await receiverCall(receiver().POST("/rooms", { body: { provider, contactIds: groupContacts, mode, title, ...(await chatAccountOf(signed)) } }));
   } else {
     return refused();
   }

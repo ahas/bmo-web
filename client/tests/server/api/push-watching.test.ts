@@ -23,6 +23,9 @@ globals.roomWatchers = roomWatchers;
 
 const watching = await routeOf<{ ok: true }>("../../apps/web/server/api/push/watching.post");
 
+// What the tab's report changed on the account service; the reads that ask who the login is change nothing.
+const reported = () => accounts.asked.filter((one) => one.method !== "GET");
+
 // The member reads the one room, as their room list holds it before the route runs.
 const report = async (chatId: number | null) =>
   await asked(watching, { body: { tab: "tab-a", chatId, visible: true }, context: { readableRooms: new Set([READ]) } });
@@ -33,7 +36,7 @@ describe("a tab's report of the room it shows", () => {
 
     expect((await report(READ)).answer).toEqual({ ok: true });
     expect(roomWatchers.seeing(READ, Date.now())).toEqual(new Set(["member-a"]));
-    expect(accounts.asked.map((one) => [one.method, one.path, one.body])).toEqual([["PUT", "/watching", { rooms: [READ] }]]);
+    expect(reported().map((one) => [one.method, one.path, one.body])).toEqual([["PUT", "/watching", { rooms: [READ] }]]);
   });
 
   test("is refused as absent for a room the account does not read, and moves nothing", async () => {
@@ -42,7 +45,7 @@ describe("a tab's report of the room it shows", () => {
     expect((await report(UNREAD)).status).toBe(404);
     expect(roomWatchers.seeing(UNREAD, Date.now())).toEqual(new Set());
     expect(roomWatchers.lastLooked(UNREAD, Date.now())).toBeNull();
-    expect(accounts.asked).toEqual([]);
+    expect(reported()).toEqual([]);
     // The tab's earlier report stands as it was.
     expect(roomWatchers.seeing(READ, Date.now())).toEqual(new Set(["member-a"]));
   });

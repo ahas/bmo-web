@@ -3,7 +3,7 @@ import { wording } from "#shared/wording";
 import { linkSender, listUsers } from "./account-service";
 import { fail } from "./fail";
 import { onOwnersRoad } from "./owner";
-import { administratorKey } from "./owner-key";
+import { moveAdministratorKey } from "./owner-key";
 import { MESSAGE_IDS, receiverRoute } from "./receiver";
 
 import type { SignedIn } from "./accounts";
@@ -263,7 +263,7 @@ export interface IdentitiesStood {
  * and the rest go on; a list that cannot be read fails the pass whole. Before the account model names an
  * administrator there is no account to stand.
  */
-export async function standRecordIdentities(administrator: () => Promise<string | null> = administratorKey): Promise<IdentitiesStood> {
+export async function standRecordIdentities(administrator: () => Promise<string | null> = moveAdministratorKey): Promise<IdentitiesStood> {
   const key = await administrator();
 
   if (key === null) return { linked: 0, failed: 0 };

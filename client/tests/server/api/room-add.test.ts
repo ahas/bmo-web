@@ -7,9 +7,18 @@ import { answer, standIn } from "../../support/units";
 // A room added from a chat service (the receiver's docs/api.md, 「Rooms」): the services that take a mode with what
 // each lists and starts, a page of one service's rooms with the ones the receiver holds, a page of its contacts,
 // and the add itself, from a room or from a conversation started, each refusal said in the pack's sentence for
-// its code.
+// its code. The administrator the routes stand in is the owner, whose account is the deployment's own: the owner's sender
+// stands linked to it.
+
+const OWNER_SENDER = 900;
+
+standIn("WEB_SERVER", (call) =>
+  call.path === "/senders/users" ? answer({ links: [{ sender: OWNER_SENDER, user: "1", signsIn: true }] }) : answer({ code: "failed", error: "Not served here." }, 500)
+);
 
 const receiver = standIn("RECEIVER", (call) => {
+  if (call.path === "/owner") return answer({ room: -1, senderId: OWNER_SENDER });
+
   if (call.path === "/providers") {
     return answer({
       items: [
@@ -86,7 +95,7 @@ describe("adding a room", () => {
     expect(receiver.asked.at(-1)?.path).toBe("/providers/service-a/rooms?after=5&limit=50");
   });
 
-  test("reads a page of the deployment's own account's contacts for the administrator, each with its one-to-one held or not", async () => {
+  test("reads a page of the deployment's own account's contacts for the owner, each with its one-to-one held or not", async () => {
     const read = await asked(contacts, { params: { key: "service-a" }, query: { limit: "200", accountId: "5" } });
 
     expect(read.answer).toEqual({
@@ -96,7 +105,7 @@ describe("adding a room", () => {
       ],
       more: false
     });
-    // The administrator's account is the deployment's own, so the listing names none, whatever the query says.
+    // The owner's account is the deployment's own, so the listing names none, whatever the query says.
     expect(receiver.asked.at(-1)?.path).toBe("/providers/service-a/contacts?limit=200");
   });
 
@@ -114,7 +123,7 @@ describe("adding a room", () => {
     expect(receiver.asked.at(-1)?.body).toEqual({ provider: "service-a", roomId: 7, mode: "record-only", title: null });
   });
 
-  test("starts a one-to-one with a contact in the deployment's own account for the administrator and answers the room it came to", async () => {
+  test("starts a one-to-one with a contact in the deployment's own account for the owner and answers the room it came to", async () => {
     const read = await asked(add, { body: { provider: "service-a", contactId: 52, mode: "record-only", title: "" } });
 
     expect(read.answer).toEqual({ chatId: 52, title: "Contact" });
@@ -143,6 +152,27 @@ describe("adding a room", () => {
       expect(receiver.asked.at(-1)?.body).toEqual({ provider: "service-a", contactId: 52, mode: "record-only" });
     } finally {
       globals.requireAdministrator = administrator;
+    }
+  });
+
+  test("names another administrator's own account, never the owner's, for the contacts and a start", async () => {
+    const globals: Record<string, unknown> = globalThis;
+    const administrator = globals.requireAdministrator;
+    const signed = globals.signedInUser;
+    const second = async () => ({ id: 6, name: "second", administrator: true });
+
+    globals.requireAdministrator = second;
+    globals.signedInUser = second;
+
+    try {
+      await asked(contacts, { params: { key: "service-a" }, query: { limit: "200" } });
+      expect(receiver.asked.at(-1)?.path).toBe("/providers/service-a/contacts?limit=200&accountId=6");
+
+      await asked(add, { body: { provider: "service-a", contactId: 52, mode: "record-only" } });
+      expect(receiver.asked.at(-1)?.body).toEqual({ provider: "service-a", contactId: 52, mode: "record-only", accountId: 6 });
+    } finally {
+      globals.requireAdministrator = administrator;
+      globals.signedInUser = signed;
     }
   });
 

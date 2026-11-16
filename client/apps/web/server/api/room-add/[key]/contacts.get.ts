@@ -6,7 +6,8 @@ import type { RoomAddContactPage } from "#shared/types";
 // the one-to-one the account already has with it and whether the receiver holds that room, for the administrator
 // starting a conversation to add; `after` and `limit` go as they came (the receiver's `docs/api.md`, 「Rooms」). They
 // are the signed-in person's own account's, named by their user id where the model gives them one and never by
-// anything the request says; with none, the service answers its own account's.
+// anything the request says; with none, and for the owner, whose account is the deployment's own, the service answers
+// its own account's.
 export default defineEventHandler(async (event): Promise<RoomAddContactPage> => {
   const signed = await requireAdministrator(event);
 
@@ -24,7 +25,7 @@ export default defineEventHandler(async (event): Promise<RoomAddContactPage> => 
         query: {
           ...(Number.isSafeInteger(after) && query.after !== undefined ? { after } : {}),
           ...(Number.isSafeInteger(limit) && limit > 0 ? { limit } : {}),
-          ...chatAccountOf(signed)
+          ...(await chatAccountOf(signed))
         }
       }
     })

@@ -1,5 +1,5 @@
 import { linkSender, senderLinks } from "./account-service";
-import { administratorKey } from "./owner-key";
+import { moveAdministratorKey } from "./owner-key";
 import { receiver, receiverCall } from "./receiver";
 
 import type { SignedIn } from "./accounts";
@@ -37,7 +37,7 @@ export interface OwnerStanding {
   linked: boolean;
 }
 
-export async function ownerStanding(administrator: () => Promise<string | null> = administratorKey): Promise<OwnerStanding> {
+export async function ownerStanding(administrator: () => Promise<string | null> = moveAdministratorKey): Promise<OwnerStanding> {
   const moved = async (): Promise<number | null> => {
     const key = await administrator().catch(() => null);
 

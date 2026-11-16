@@ -1,20 +1,23 @@
 import { withoutBase } from "ufo";
 
 import { readSupervisors } from "../utils/axes";
+import { signedInOf } from "../utils/accounts";
 import { attachedService, readerMay } from "../utils/console-manifests";
 import { openedRoute } from "../utils/opened-routes";
 import { sectionAccessOf } from "../utils/section-access";
 import { mayRead, mayWrite } from "#shared/sections";
 
+import type { Sealed } from "../utils/accounts";
 import type { Reader } from "../utils/console-manifests";
 
-// A user other than the platform administrator reaches only the routes opened to them, each read under its
+// A user other than a platform administrator reaches only the routes opened to them, each read under its
 // scope and its console section (docs/web.md, 「Access」); every other route answers them as if nothing stood
 // there. The administrator, a console login and a request nobody signed pass on to the route itself, which
-// refuses the last as it always has. A route is named by its path under the console's base, as its file names
-// it. The relay of a service a manifest names opens to every reader the manifest's role and owner key allow,
-// since the service guards each of its own routes by the role it is handed (docs/web.md, 「Screens a unit
-// brings」).
+// refuses the last as it always has. Whether the login is the administrator is the account service's word, read
+// as every route reads it, so a platform administrator the seal did not record passes and one the service no
+// longer names does not. A route is named by its path under the console's base, as its file names it. The relay
+// of a service a manifest names opens to every reader the manifest's role and owner key allow, since the service
+// guards each of its own routes by the role it is handed (docs/web.md, 「Screens a unit brings」).
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event);
   const path = withoutBase(event.path.split("?")[0] ?? "", config.app.baseURL);
@@ -25,7 +28,7 @@ export default defineEventHandler(async (event) => {
 
   const session = await getUserSession(event);
 
-  if (session.sid === undefined || session.administrator === true) {
+  if (session.sid === undefined || (session.user !== undefined && (await signedInOf(session as Sealed)).administrator)) {
     return;
   }
 

@@ -1,9 +1,9 @@
 //! The secret store (docs/accounts.md, 「The secret store」; docs/boundary.md, 「The secret store」): the files under
-//! the data root's `env/` every unit reads a secret from by its name, one space to each person. The platform
-//! administrator's space is the folder itself and every other person's a folder of their own under `users/`. The
-//! store writes a value under a name in a space and answers the name, its size and its time; no route reads a
-//! value back, and nothing here logs one. The list reads only the keys of a file's lines, to name the kind it
-//! reads as. A space is its own person's alone, the administrator's included.
+//! the data root's `env/` every unit reads a secret from by its name, the platform's space and one to each other
+//! person. The platform's space is the folder itself, held by every platform administrator, and every other
+//! person's a folder of their own under `users/`. The store writes a value under a name in a space and answers the
+//! name, its size and its time; no route reads a value back, and nothing here logs one. The list reads only the keys
+//! of a file's lines, to name the kind it reads as. A space is its own holders' alone, the platform's included.
 
 use std::fs::{self, DirBuilder, File, Metadata, OpenOptions, Permissions};
 use std::io::{self, ErrorKind, Read, Write};
@@ -20,9 +20,11 @@ use axum::{Json, Router};
 use base64::Engine;
 use base64::engine::general_purpose::STANDARD;
 use bmo_web_client::{OWNER_KEY, Secret, SecretAsk, SecretEncoding, SecretKind, Secrets};
+use sumida::api::authz::Authz;
 
 use crate::routes::user_in;
 use crate::secret_kinds;
+use crate::users::user_subject;
 use crate::{Refusal, Service, one};
 
 /// What the value a name held before is kept under: the name, then this.
@@ -49,8 +51,8 @@ pub struct Store {
   writing: Mutex<()>,
 }
 
-/// Whose secrets a call reaches: the platform administrator's, the store's own folder, which every unit reads the
-/// deployment's secrets from, or another person's, by their user.
+/// Whose secrets a call reaches: the platform's, the store's own folder, which every platform administrator holds
+/// and every unit reads the deployment's secrets from, or another person's, by their user.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Space {
   Administrator,
@@ -347,8 +349,8 @@ pub fn administrator(headers: &HeaderMap, what: &str) -> Result<(), Refusal> {
 }
 
 /// The space the path's user holds, for a call made by that user alone, as the console hands on the login's
-/// user: the administrator's where the service names them the platform administrator, their own under the
-/// people's folder otherwise. A user the service holds none of is absent.
+/// user: the platform's where sumida names them a platform administrator now, their own under the people's folder
+/// otherwise. A user the service holds none of is absent.
 async fn space_of(service: &Service, headers: &HeaderMap, user: &str) -> Result<Space, Refusal> {
   let user = user_in(user)?;
   let key = headers.get(OWNER_KEY).and_then(|key| key.to_str().ok()).and_then(crate::ids::parsed);
@@ -367,15 +369,9 @@ async fn space_of(service: &Service, headers: &HeaderMap, user: &str) -> Result<
     return Err(Refusal::absent(format!("no user {user}")));
   }
 
-  let named = one(
-    &service.db,
-    r#"SELECT 1 AS "one" FROM "settings" WHERE "key" = $1 AND TRIM("value") = $2"#,
-    vec![crate::data_move::ADMINISTRATOR.into(), user.to_string().into()],
-  )
-  .await?
-  .is_some();
+  let administrator = Authz::is_superuser(&user_subject(&service.db, user).await?, &service.db).await?;
 
-  Ok(if named { Space::Administrator } else { Space::Person(user) })
+  Ok(if administrator { Space::Administrator } else { Space::Person(user) })
 }
 
 /// The bytes a value carries under its encoding. A value that does not decode is refused naming nothing of it.

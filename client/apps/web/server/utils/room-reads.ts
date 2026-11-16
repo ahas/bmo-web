@@ -1,6 +1,7 @@
 import { userOf } from "./account-service";
 
 import { useWebSql } from "./db";
+import { isOwnerLogin } from "./owner";
 import { exactMessage, exactMessages } from "./receiver";
 
 import type { SignedIn } from "./accounts";
@@ -49,11 +50,12 @@ interface Received {
   sentAt: number;
 }
 
-/** The senders that are the account's own: the owner's own identity for the administrator, and every identity linked to the user. */
+/** The senders that are the account's own: the owner's own identity for the owner's login, and every identity linked to
+ * the user. The owner is a platform administrator, so only an administrator is asked whether they are the owner. */
 export async function ownSenders(signed: SignedIn, owner: number | null): Promise<number[]> {
   const own = new Set<number>();
 
-  if (signed.administrator && owner !== null) own.add(owner);
+  if (owner !== null && signed.administrator && (await isOwnerLogin(signed))) own.add(owner);
 
   if (signed.id !== null) {
     for (const sender of (await userOf(signed.id))?.senders ?? []) own.add(Number(sender));

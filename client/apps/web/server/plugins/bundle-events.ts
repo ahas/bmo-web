@@ -3,7 +3,7 @@ import { createParser } from "eventsource-parser";
 import { ring } from "../utils/push";
 import { ringsFromThisServer } from "../utils/pushnews";
 import { onBundlesRead } from "../utils/console-manifests";
-import { OWNER_KEY_HEADER, OWNER_ROLE_HEADER, administratorKey } from "../utils/owner-key";
+import { OWNER_KEY_HEADER, OWNER_ROLE_HEADER, moveAdministratorKey } from "../utils/owner-key";
 import { unitHeaders } from "../utils/units";
 
 import type { AttachedBundle } from "../utils/console-manifests";
@@ -96,9 +96,9 @@ async function follow(attached: AttachedBundle, words: Words, letGo: AbortSignal
 
   while (!stopping()) {
     try {
-      // Nobody is signed in to this read, so it is the platform's: the administrator's owner key, in the
+      // Nobody is signed in to this read, so it is the platform's: the move's administrator's owner key, in the
       // administrator's role.
-      const owner = await administratorKey();
+      const owner = await moveAdministratorKey();
       const response = await fetch(`${unit.address}/events`, {
         headers: { ...unitHeaders(unit), ...(owner === null ? {} : { [OWNER_KEY_HEADER]: owner }), [OWNER_ROLE_HEADER]: "administrator", accept: "text/event-stream" },
         signal: letGo

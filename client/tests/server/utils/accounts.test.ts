@@ -2,7 +2,7 @@ import { afterAll, describe, expect, test } from "bun:test";
 import { createApp, eventHandler, toWebHandler } from "h3";
 
 import { signIn } from "../../../apps/web/server/utils/account-service";
-import { browserAddress, proxiedAddress, sealState, signedInOf } from "../../../apps/web/server/utils/accounts";
+import { administratorStanding, browserAddress, forgetSession, proxiedAddress, sealState, signedInOf } from "../../../apps/web/server/utils/accounts";
 import { standInAccountService } from "../../support/account-service";
 
 // What the console hands the account service of a browser, and whether a seal's login stands (docs/accounts.md,
@@ -77,14 +77,61 @@ describe("whether a seal's login stands", () => {
     expect(await sealState({ remember: false, loggedInAt: at }, "127.0.0.1", at)).toBe("gone");
   });
 
-  test("a sumida login is the administrator while the model names its user so, whatever the seal recorded", async () => {
+  test("a sumida login is the administrator while the account service names it a platform administrator, whatever the seal recorded", async () => {
     const sealed = { user: { name: "boss", id: 1 }, sid: "bmo.sid=boss", administrator: false };
+    const asked: [string, number][] = [];
+    const naming = (named: boolean | null) => async (sid: string, user: number) => {
+      asked.push([sid, user]);
 
-    expect((await signedInOf(sealed, async () => "1")).administrator).toBe(true);
-    expect((await signedInOf(sealed, async () => "2")).administrator).toBe(false);
-    expect((await signedInOf(sealed, async () => null)).administrator).toBe(false);
-    expect((await signedInOf({ ...sealed, administrator: true }, async () => null)).administrator).toBe(true);
-    expect((await signedInOf({ ...sealed, administrator: true }, async () => "2")).administrator).toBe(false);
+      return named;
+    };
+
+    expect((await signedInOf(sealed, naming(true))).administrator).toBe(true);
+    expect((await signedInOf({ ...sealed, administrator: true }, naming(false))).administrator).toBe(false);
+    // Where the service cannot say, the seal's own word stands.
+    expect((await signedInOf(sealed, naming(null))).administrator).toBe(false);
+    expect((await signedInOf({ ...sealed, administrator: true }, naming(null))).administrator).toBe(true);
+    expect((await signedInOf({ ...sealed, administrator: true }, async () => Promise.reject(new Error("down")))).administrator).toBe(true);
+    expect(asked).toEqual([["bmo.sid=boss", 1], ["bmo.sid=boss", 1], ["bmo.sid=boss", 1], ["bmo.sid=boss", 1]]);
+  });
+
+  test("every platform administrator the service names is one, held for a session's window and asked again after it", async () => {
+    service.users.push({ id: 6, name: "second-administrator", administrator: true });
+    const at = later();
+
+    try {
+      expect(await administratorStanding("bmo.sid=second", 6, at)).toBe(true);
+      // A seal that recorded no administrator reads as one all the same.
+      expect((await signedInOf({ user: { name: "second-administrator", id: 6 }, sid: "bmo.sid=second-sealed", administrator: false })).administrator).toBe(true);
+
+      // The standing taken away: the window's word holds, and the next read after it says so.
+      service.users.find((user) => user.id === 6)!.administrator = false;
+
+      expect(await administratorStanding("bmo.sid=second", 6, at + 1_000)).toBe(true);
+      expect(await administratorStanding("bmo.sid=second", 6, at + 30_000)).toBe(false);
+
+      // A member stays one, and a user the service holds none of says nothing.
+      expect(await administratorStanding("bmo.sid=member", 2, at)).toBe(false);
+      expect(await administratorStanding("bmo.sid=nobody", 99, at)).toBeNull();
+    } finally {
+      service.users.splice(service.users.findIndex((user) => user.id === 6), 1);
+      for (const sid of ["bmo.sid=second", "bmo.sid=second-sealed", "bmo.sid=member"]) forgetSession(sid);
+    }
+  });
+
+  test("a service that does not answer names nobody an administrator, and its silence is held nowhere", async () => {
+    const at = later();
+
+    process.env.WEB_SERVER_ADDRESS = "";
+
+    try {
+      expect(await administratorStanding("bmo.sid=member-down", 2, at)).toBeNull();
+    } finally {
+      process.env.WEB_SERVER_ADDRESS = service.address;
+    }
+
+    expect(await administratorStanding("bmo.sid=member-down", 2, at)).toBe(false);
+    forgetSession("bmo.sid=member-down");
   });
 
   test("a seal holding no sumida session stands as the administrator's before the model", async () => {

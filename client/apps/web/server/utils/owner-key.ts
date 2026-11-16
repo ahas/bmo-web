@@ -28,9 +28,13 @@ export function ownerKeyOf(signed: SignedIn): string | null {
   return signed.id === null ? null : String(signed.id);
 }
 
-/** The platform administrator's owner key, for a read the console makes for nobody signed in; null before the
- * account model names an administrator. */
-export async function administratorKey(): Promise<string | null> {
+/**
+ * The move's administrator's owner key: the one user the data move made the administrator, written once and changed by
+ * no route (docs/accounts.md, 「The platform administrators」); null before the account model names one. It anchors the
+ * owner's account and stands for the console's own reads made for nobody signed in. Whether a signed-in user is a
+ * platform administrator is never read off it: that is the account service's word for each user.
+ */
+export async function moveAdministratorKey(): Promise<string | null> {
   const row = await useWebSql().get("SELECT bmo_administrator() AS id") as { id: number | string | null } | null;
 
   return row === null || row.id === null ? null : String(row.id);

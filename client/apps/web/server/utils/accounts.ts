@@ -1,7 +1,7 @@
 import { getRequestHeader } from "h3";
 
-import { AccountServiceDown, modelState, sessionUser } from "./account-service";
-import { administratorKey } from "./owner-key";
+import { AccountServiceDown, modelState, sessionUser, userOf } from "./account-service";
+import { isOwnerLogin } from "./owner";
 import { sessionLapsed } from "./session-life";
 import { wording } from "#shared/wording";
 
@@ -72,24 +72,23 @@ export interface Sealed {
   touchedAt?: unknown;
 }
 
+/** Whether a session's user is a platform administrator, as the account service says; null where it cannot say. */
+export type AdministratorStanding = (sid: string, user: number) => Promise<boolean | null>;
+
 /**
  * Who a session's seal says is signed in, read the same way wherever the seal is opened. A seal holding no
  * sumida session is a console login, the administrator's. Whether the seal still stands is `sealState`'s to
  * say, asked before the seal is read: by the session middleware for a request, by the relay for a socket.
- * Whether a sumida login is the administrator is the account model's word each time (docs/web.md, 「Access」):
- * the user the seal names is the administrator while the model names them so, whatever the seal recorded
- * at sign-in; where the model names nobody, or cannot be asked, the seal's own word stands.
+ * Whether a sumida login is the administrator is the account service's word each time (docs/web.md, 「Access」):
+ * every platform administrator is, whatever the seal recorded at sign-in; where the service cannot say, the
+ * seal's own word stands.
  */
-export async function signedInOf(
-  session: Sealed,
-  administrator: () => Promise<string | null> = administratorKey
-): Promise<SignedIn> {
+export async function signedInOf(session: Sealed, standing: AdministratorStanding = administratorStanding): Promise<SignedIn> {
   if (session.sid !== undefined) {
     const id = session.user.id ?? null;
-    const sealed = session.administrator === true;
-    const named = id === null ? null : await administrator().catch(() => null);
+    const named = id === null ? null : await standing(session.sid, id).catch(() => null);
 
-    return { name: session.user.name, id, administrator: named === null ? sealed : String(id) === named };
+    return { name: session.user.name, id, administrator: named ?? session.administrator === true };
   }
 
   return { name: session.user.name, id: null, administrator: true };
@@ -97,11 +96,14 @@ export async function signedInOf(
 
 /**
  * The account a chat service's call is for, as bmo-chat's contract names it: the signed-in person's user id, or none
- * for the administrator, whose account is the deployment's own, and for a login the account model names no user for,
- * so the service's own account answers (docs/web.md, the room add's contacts).
+ * for the owner, whose account is the deployment's own, and for a login the account model names no user for, so the
+ * service's own account answers (docs/web.md, the room add's contacts). The owner is a platform administrator, so only
+ * an administrator is asked whether they are the owner; any other administrator's call is for their own account.
  */
-export function chatAccountOf(signed: SignedIn): { accountId?: number } {
-  return signed.id === null || signed.administrator ? {} : { accountId: signed.id };
+export async function chatAccountOf(signed: SignedIn): Promise<{ accountId?: number }> {
+  if (signed.id === null || (signed.administrator && (await isOwnerLogin(signed)))) return {};
+
+  return { accountId: signed.id };
 }
 
 /** The signed-in user where they are the platform administrator; anyone else is refused. */
@@ -116,6 +118,30 @@ export async function requireAdministrator(event: H3Event): Promise<SignedIn> {
 // The sessions asked about lately, so a screen's burst of requests asks the service once.
 const sessionHoldMs = 30_000;
 const asked = new Map<string, { at: number; user: { id: string; name: string } | null }>();
+
+// What the service said lately of whether a session's user is a platform administrator, held as a session's standing
+// is, and for the service and the user it was read of alone.
+const standings = new Map<string, { at: number; address: string; user: number; administrator: boolean }>();
+
+/**
+ * Whether the account service names a session's user a platform administrator (docs/accounts.md, 「The platform
+ * administrators」), asked at most once a window for a session. A service that does not answer, or holds no such
+ * user, says nothing: null, held nowhere, and asked again on the next request.
+ */
+export async function administratorStanding(sid: string, user: number, now: number = Date.now()): Promise<boolean | null> {
+  const address = process.env.WEB_SERVER_ADDRESS ?? "";
+  const held = standings.get(sid);
+
+  if (held !== undefined && held.address === address && held.user === user && now - held.at < sessionHoldMs) return held.administrator;
+
+  const named = await userOf(user).catch(() => null);
+
+  if (named === null) return null;
+
+  standings.set(sid, { at: now, address, user, administrator: named.administrator });
+
+  return named.administrator;
+}
 
 export type SessionState = "stands" | "gone" | "unanswered";
 
@@ -162,4 +188,5 @@ export async function sealState(session: Omit<Sealed, "user">, address: string, 
 /** A session the console signed out of, forgotten at once. */
 export function forgetSession(cookie: string): void {
   asked.delete(cookie);
+  standings.delete(cookie);
 }

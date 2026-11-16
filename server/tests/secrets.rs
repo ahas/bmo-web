@@ -1,8 +1,8 @@
 //! The secret store (docs/accounts.md, 「The secret store」; docs/boundary.md, 「The secret store」) on a temporary
 //! folder standing in for the data root's `env/`: the modes a write leaves, the value kept before, the names
 //! refused, a base64 value written as its bytes, the kind each listed file reads as, and that no answer and no
-//! refusal carries a value; each person's space apart from the administrator's; the store by itself, and its routes
-//! as a caller asks them, with the user the console hands on.
+//! refusal carries a value; each person's space apart from the platform's, which every platform administrator holds
+//! while they are one; the store by itself, and its routes as a caller asks them, with the user the console hands on.
 
 use crate::support;
 
@@ -17,9 +17,11 @@ use base64::Engine;
 use base64::engine::general_purpose::STANDARD;
 use bmo_web_server::data_move::{MoveAsk, run_move};
 use bmo_web_server::secrets::{self, Space, Store, Written, named};
-use bmo_web_server::users::user_for_sender;
+use bmo_web_server::users::{set_sign_in, user_for_sender};
 use http_body_util::BodyExt;
 use serde_json::{Value, json};
+use sumida::api::authz::Authz;
+use sumida::api::authz::write::{SubjectKey, TupleFilter};
 use support::{OWNER, ROOM, Scratch, console_hash};
 use tower::ServiceExt;
 
@@ -428,6 +430,92 @@ async fn a_member_writes_into_their_own_space_and_neither_lists_the_other_s() {
 
   assert_eq!(read(&theirs)["secrets"][0]["name"], "own.token");
   assert_eq!(read(&deployment), json!({ "secrets": [] }));
+}
+
+#[tokio::test]
+async fn every_platform_administrator_holds_the_platform_s_space_while_they_are_one() {
+  let (_root, env) = folder();
+  let (scratch, app, boss, _) = app(&env).await;
+  let second = set_sign_in(scratch.db(), "second-administrator", "the password", true)
+    .await
+    .unwrap()
+    .user;
+  let ask = json!({ "value": VALUE }).to_string();
+
+  // The move's administrator writes; the administrator the account command made reads the same names and writes
+  // beside them, into the folder every unit reads.
+  let (status, _) = asked(
+    &app,
+    Method::PUT,
+    &format!("/users/{boss}/secrets/agent-a.token"),
+    Some(ask.clone()),
+    Some(boss),
+  )
+  .await;
+
+  assert_eq!(status, StatusCode::CREATED);
+
+  let (status, made) = asked(
+    &app,
+    Method::PUT,
+    &format!("/users/{second}/secrets/agent-b.token"),
+    Some(ask.clone()),
+    Some(second),
+  )
+  .await;
+
+  assert_eq!(status, StatusCode::CREATED, "{made}");
+  assert_eq!(fs::read_to_string(env.join("agent-b.token")).unwrap(), VALUE);
+  assert!(!env.join("users").join(second.to_string()).exists());
+
+  let names = |listed: &str| -> Vec<String> {
+    read(listed)["secrets"]
+      .as_array()
+      .unwrap()
+      .iter()
+      .map(|secret| secret["name"].as_str().unwrap().to_owned())
+      .collect()
+  };
+  let (_, theirs) = asked(&app, Method::GET, &format!("/users/{second}/secrets"), None, Some(second)).await;
+  let (_, moved) = asked(&app, Method::GET, &format!("/users/{boss}/secrets"), None, Some(boss)).await;
+
+  assert_eq!(names(&theirs), ["agent-a.token", "agent-b.token"]);
+  assert_eq!(names(&moved), names(&theirs));
+
+  // Each still names only themselves.
+  let (status, _) = asked(&app, Method::GET, &format!("/users/{boss}/secrets"), None, Some(second)).await;
+
+  assert_eq!(status, StatusCode::FORBIDDEN);
+
+  // The standing taken away, the next call writes into their own folder, and the platform's names are no longer theirs.
+  Authz::revoke_unchecked(
+    TupleFilter::object("platform", "root")
+      .relations(&["admin"])
+      .subject(SubjectKey::user(second)),
+    scratch.db(),
+  )
+  .await
+  .unwrap();
+
+  let (status, _) = asked(
+    &app,
+    Method::PUT,
+    &format!("/users/{second}/secrets/own.token"),
+    Some(ask),
+    Some(second),
+  )
+  .await;
+
+  assert_eq!(status, StatusCode::CREATED);
+  assert_eq!(
+    fs::read_to_string(env.join("users").join(second.to_string()).join("own.token")).unwrap(),
+    VALUE
+  );
+  assert!(!env.join("own.token").exists());
+
+  let (_, own) = asked(&app, Method::GET, &format!("/users/{second}/secrets"), None, Some(second)).await;
+
+  assert_eq!(names(&own), ["own.token"]);
 }
 
 #[tokio::test]

@@ -142,7 +142,9 @@
   {n}초 뒤로; 밝기 {n}%; the player itself → 플레이어. Never 풀스크린, 배속 for the setting, 캡션 for subtitles,
   돌리기, 건너뛰기.
 - machine → 기기: 이 기기, 기기 여유, 기기 이름. An account bound to a machine → 기기 연결: 기기 연결, 다른 기기로
-  연결, 기기 연결 해제, 연결됨, 연결 대기 중. Never 기계, and never 바인딩, 묶기 or 풀기 for the binding.
+  연결, 기기 연결 해제, 연결됨, 연결 대기 중. Never 기계, and never 바인딩, 묶기 or 풀기 for the binding. A machine
+  several accounts are connected to → 공유 기기: 공유 기기, 공유, 공유 해제; the choice made as a machine is
+  connected → 여러 계정이 함께 쓰는 기기. Never 공용 기기, 같이 쓰기.
 - the console's desktop app → 데스크톱 앱; its pairing with an account → 앱 연결: 앱 연결, 연결 코드, 승인, 거부,
   승인했습니다, 거부했습니다, 연결하는 중, 연결됨. Never 데스크탑, 페어링, 허용 or 거절.
 - render → 렌더링: 렌더링하지 않는 기간. Never 그리다.

@@ -765,6 +765,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users/{user}/node/shared": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** An account's machine declared shared with other accounts, or no longer shared, by the administrator. */
+        put: operations["shareNode"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/{user}/password": {
         parameters: {
             query?: never;
@@ -1282,6 +1299,10 @@ export interface components {
             agent?: string | null;
             /** @description Whether the machine is one several accounts share; a binding that does not say so is the account's alone. */
             shared?: boolean;
+        };
+        /** @description The administrator's declaration that an account's machine is shared with other accounts, or no longer shared. */
+        NodeSharing: {
+            shared: boolean;
         };
         /** @description A relation asked of a user on an object of the rules. */
         ObjectCheckAsk: {
@@ -3598,6 +3619,46 @@ export interface operations {
                 };
             };
             /** @description A refusal or failure: bad-request, no-hub, upstream-failed, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    shareNode: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NodeSharing"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserNode"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, forbidden, not-found, node-taken, no-hub, upstream-failed, unauthorized, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;

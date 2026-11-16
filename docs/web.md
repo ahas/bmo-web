@@ -6992,8 +6992,11 @@ research screen (「Research screen」).
     기기 이름, or to a fresh name where it is left empty, and as a machine several accounts share where 여러 계정이
     함께 쓰는 기기 is turned on; a machine not yet connected shows its one-line installs, Linux or WSL and Windows,
     each with its copy mark, and is asked after every few seconds, 확인하기 asking at once, until it connects and is
-    set as the person's node. 기기 연결 해제 takes the machine away, asked first with what it does (`docs/accounts.md`,
-    「Invitations and a person's machine」).
+    set as the person's node. A machine bound shared carries 공유 기기 beside its state; 공유 declares the machine
+    already bound shared where it stands, so another account can be connected to it too, and 공유 해제 takes the
+    declaration back while no other account is connected there, each at once. 기기 연결 해제 takes the machine away,
+    asked first with what it does. A change agency refuses leaves the machine as it was and is said in the dialog
+    (`docs/accounts.md`, 「Invitations and a person's machine」).
   - The leave mark marks the person left, asked first with what it does and that it is not undone
     (`docs/accounts.md`, 「A person who leaves」); a person who left stands on in the list.
 - Each mark is an icon button with its name as its tooltip. A head or a person taken away or added, and a person

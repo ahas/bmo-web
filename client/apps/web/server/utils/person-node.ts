@@ -1,6 +1,7 @@
-import { proveNode } from "./account-service";
+import { proveNode, rebindNode, unbindNode, userNode } from "./account-service";
 import { agency, agencyCall } from "./agency";
 
+import type { ProfileCaller } from "./account-service";
 import type { UserNode } from "@web/server-client";
 
 // Agency's record of the node an account's runs stand on (agency's `docs/person-nodes.md`, 「Which node is a
@@ -8,7 +9,7 @@ import type { UserNode } from "@web/server-client";
 // once the hub holds it, and taken away as the account is bound to none.
 
 // Agency's codes on its person-node routes, each with the pack's key for its sentence.
-const PERSON_NODE_CODES = { "not-a-hub-node": "organization.error.not_a_hub_node" };
+const PERSON_NODE_CODES = { "not-a-hub-node": "organization.error.not_a_hub_node", "node-taken": "organization.error.agency_node_taken" };
 
 /**
  * The machine set as the node the account's runs stand on, said to be shared where the administrator bound it so; a
@@ -43,4 +44,33 @@ export async function settleMachine(user: number | string): Promise<UserNode> {
   if (typeof machine.agent === "string" && machine.attached) await setPersonNode(user, machine.agent, machine.shared);
 
   return machine;
+}
+
+/**
+ * A change to the account's binding that agency's record follows, held together across the two units: the account
+ * service's word first, since it judges the account, its leaving, the machine's name and who else is bound there;
+ * then agency's, asked by `follow`; and where agency refuses, the binding is put back as it stood before the change,
+ * so a refused change leaves nothing behind in either unit. The refusal is answered as agency said it.
+ */
+export async function heldTogether<T>(user: string, caller: ProfileCaller, change: () => Promise<T>, follow: (changed: T) => Promise<void>): Promise<T> {
+  const before = await userNode(user);
+  const changed = await change();
+
+  try {
+    await follow(changed);
+  } catch (refusal) {
+    await putBack(user, before, caller).catch((error: unknown) => console.error(`account ${user}: its binding could not be put back: ${String(error)}`));
+    throw refusal;
+  }
+
+  return changed;
+}
+
+// The binding as it stood: the same machine with the same declaration, or none.
+async function putBack(user: string, before: UserNode, caller: ProfileCaller): Promise<void> {
+  if (typeof before.agent === "string") {
+    await rebindNode(user, before.agent, before.shared, caller);
+  } else {
+    await unbindNode(user, caller);
+  }
 }

@@ -1,13 +1,14 @@
 //! An account's machine bound again or taken away by the administrator (docs/accounts.md, 「Invitations and a
 //! person's machine」; docs/boundary.md, 「Invitations」): the binding an invitation made moved to another machine,
-//! with that machine's credential and installs, proven once the hub holds it, or removed.
+//! with that machine's credential and installs, proven once the hub holds it, declared shared where it stands, or
+//! removed.
 
 use axum::Json;
 use axum::Router;
 use axum::extract::{Path, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::routing::{post, put};
-use bmo_web_client::{Installs, NodeBinding, Rebound, UserNode};
+use bmo_web_client::{Installs, NodeBinding, NodeSharing, Rebound, UserNode};
 use rand::RngCore;
 use sea_orm::ConnectionTrait;
 
@@ -24,6 +25,7 @@ pub fn routes() -> Router<Service> {
   Router::new()
     .route("/users/{user}/node", put(rebind_route).delete(unbind_route))
     .route("/users/{user}/node/proof", post(proof_route))
+    .route("/users/{user}/node/shared", put(share_route))
 }
 
 /// A machine name an administrator named: letters, digits, `-` and `_`, as an install line carries it unquoted.
@@ -125,6 +127,48 @@ pub async fn rebind<C: ConnectionTrait>(
   })
 }
 
+/// The account's machine declared shared with other accounts, or no longer shared, where it stands: the machine and
+/// its proof are kept. Refused where the account is bound to none, and a declaration taken back while another account
+/// is bound to the machine is refused `node-taken`, since that account's binding stands only beside a shared one.
+pub async fn share<C: ConnectionTrait>(
+  db: &C,
+  nodes: &Nodes,
+  user: i32,
+  sharing: &NodeSharing,
+) -> Result<UserNode, Refusal> {
+  let agent = node_of(db, None, user)
+    .await?
+    .agent
+    .ok_or_else(|| Refusal::absent(format!("user {user} is bound to no machine")))?;
+
+  if !sharing.shared
+    && one(
+      db,
+      r#"SELECT 1 AS "one" FROM "user_nodes" WHERE "agent" = $1 AND "user_id" <> $2::bigint"#,
+      vec![agent.clone().into(), user.into()],
+    )
+    .await?
+    .is_some()
+  {
+    return Err(
+      Refusal::new(
+        StatusCode::CONFLICT,
+        format!("another account is bound to the machine {agent}, so it stays shared"),
+      )
+      .coded("node-taken"),
+    );
+  }
+
+  run(
+    db,
+    r#"UPDATE "user_nodes" SET "shared" = $1 WHERE "user_id" = $2::bigint"#,
+    vec![sharing.shared.into(), user.into()],
+  )
+  .await?;
+
+  node_of(db, Some(nodes), user).await
+}
+
 /// An account bound to no machine any more; refused where it is bound to none.
 pub async fn unbind<C: ConnectionTrait>(db: &C, user: i32) -> Result<(), Refusal> {
   let removed = one(
@@ -175,6 +219,18 @@ async fn rebind_route(
   let nodes = hub(&service)?;
 
   Ok(Json(rebind(&service.db, nodes, user_in(&user)?, &binding).await?))
+}
+
+async fn share_route(
+  State(service): State<Service>,
+  headers: HeaderMap,
+  Path(user): Path<String>,
+  Body(sharing): Body<NodeSharing>,
+) -> Answer<UserNode> {
+  administrator(&headers)?;
+  let nodes = hub(&service)?;
+
+  Ok(Json(share(&service.db, nodes, user_in(&user)?, &sharing).await?))
 }
 
 async fn unbind_route(

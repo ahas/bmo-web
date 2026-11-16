@@ -380,15 +380,28 @@ section states what each does.
   so is made where every other account bound to that name was bound shared as well; a binding that does not say so,
   or one naming a machine another account holds unshared, is refused 409 `node-taken` as above, so no account comes
   to share a machine its binding never declared shared. The binding keeps whether it is shared and answers it on
-  every read of the account's machine. Each account on a shared machine works in a root of its own there, out of
-  reach of the others' (agency's `docs/person-nodes.md`, 「Several accounts on one node」). An invitation never binds
-  a shared machine: acceptance always binds the person's own `u<user>`.
+  every read of the account's machine. Each account on a shared machine works in a root of its own there, and its
+  programs still read the other accounts' roots (agency's `docs/person-nodes.md`, 「Several accounts on one node」).
+  An invitation never binds a shared machine: acceptance always binds the person's own `u<user>`.
+- **The account already on a machine is declared shared where it stands,** with no new binding: the administrator
+  declares it from the organisation screen (`PUT /users/{user}/node/shared`), and a second account can be bound to
+  the machine shared from then on. The declaration keeps the machine, its credential and its proof, and is taken
+  back only while no other account is bound to the machine, 409 `node-taken` otherwise; an account bound to none
+  has nothing to declare, 404.
 - **Agency's record follows the binding.** The console's server sets the new machine as the account's node in
   agency once it is proven, with whether the binding is shared, and not before, since agency takes only a hub node
-  the node service keeps; until then the record names the machine it was bound to before. Taken away, the binding is removed and the console's server
-  takes agency's record away with it (`DELETE /person-nodes/{ownerAccount}`), so the account is held to no machine
-  and its runs are placed as any run of no node is. A refusal by agency is said on the organisation screen; at a
-  sign-in it is written to the console's log.
+  the node service keeps; until then the record names the machine it was bound to before. A declaration of sharing
+  is set in agency the same way. Taken away, the binding is removed and the console's server takes agency's record
+  away with it (`DELETE /person-nodes/{ownerAccount}`), so the account is held to no machine and its runs are placed
+  as any run of no node is.
+- **The account service's word comes first, and agency's refusal takes the change back.** A binding, a declaration
+  of sharing and a removal made from the organisation screen are written in the account service first, since it
+  judges the account, its leaving, the machine's name and who else is bound there; agency is asked next, where the
+  machine is attached. Where agency refuses — 409 `node-taken`, a node another account's record names and not shared
+  by both, among them — the console's server puts the account's binding back as it stood before, the same machine
+  with the same declaration or none, and answers agency's refusal, so a refused change leaves nothing in either
+  unit. A refusal at a proof, where the binding was made earlier, leaves the binding standing and agency's record as
+  it was: on the organisation screen it is said, and at a sign-in it is written to the console's log.
 - **An account whose machine is gone cannot be used until it is proven again:** the console refuses its sign-in
   while the hub holds no agent of its machine's name, and lets it in again once one attaches. An account bound to
   no machine — the administrator's, and every account made before invitations — is held to none of this.

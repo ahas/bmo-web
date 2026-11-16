@@ -623,6 +623,60 @@ async fn the_administrator_binds_several_accounts_to_a_machine_declared_shared()
   assert_eq!(said["code"], "node-taken");
 }
 
+#[tokio::test]
+async fn the_account_already_on_a_machine_is_declared_shared_where_it_stands() {
+  ready();
+  let stood = stood().await;
+  let member_path = format!("/users/{}/node", stood.member);
+  let head_path = format!("/users/{}/node", stood.head);
+  let share = |path: &str, shared: bool| {
+    asked_as_administrator(&stood.app, Method::PUT, format!("{path}/shared"), json!({ "shared": shared }))
+  };
+  stood.hub.0.lock().unwrap().push("desk-a".into());
+  let (status, _) =
+    asked_as_administrator(&stood.app, Method::PUT, member_path.clone(), json!({ "agent": "desk-a" }))
+      .await;
+  assert_eq!(status, StatusCode::OK);
+  let (_, before) = asked(&stood.app, Method::GET, &member_path, None, None).await;
+
+  // Only the administrator declares it.
+  let (status, _) = asked(
+    &stood.app,
+    Method::PUT,
+    &format!("{member_path}/shared"),
+    Some(json!({ "shared": true })),
+    Some((stood.head, "member")),
+  )
+  .await;
+  assert_eq!(status, StatusCode::FORBIDDEN);
+
+  // Declared, the machine and its proof stand as they were, and a second account is bound to it shared.
+  let (status, node) = share(&member_path, true).await;
+  assert_eq!(status, StatusCode::OK, "{node}");
+  assert_eq!(
+    (node["agent"].clone(), node["shared"].clone(), node["provenAt"].clone()),
+    (json!("desk-a"), json!(true), before["provenAt"].clone())
+  );
+  let (status, _) = asked_as_administrator(
+    &stood.app,
+    Method::PUT,
+    head_path.clone(),
+    json!({ "agent": "desk-a", "shared": true }),
+  )
+  .await;
+  assert_eq!(status, StatusCode::OK);
+
+  // Taken back only while no other account is bound there; an account bound to none has nothing to declare.
+  let (status, said) = share(&member_path, false).await;
+  assert_eq!((status, said["code"].clone()), (StatusCode::CONFLICT, json!("node-taken")));
+  let (status, _) = asked(&stood.app, Method::DELETE, &head_path, None, Some((1, "administrator"))).await;
+  assert_eq!(status, StatusCode::NO_CONTENT);
+  let (status, node) = share(&member_path, false).await;
+  assert_eq!((status, node["shared"].clone()), (StatusCode::OK, json!(false)));
+  let (status, _) = share(&head_path, true).await;
+  assert_eq!(status, StatusCode::NOT_FOUND);
+}
+
 /// One request as the platform administrator.
 async fn asked_as_administrator(
   app: &Router,

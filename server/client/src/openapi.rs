@@ -626,6 +626,19 @@ pub fn openapi() -> Value {
     security: bearer()
   );
   add!(
+    "PUT",
+    "/users/{user}/node/shared",
+    "shareNode",
+    "Invitations",
+    "An account's machine declared shared with other accounts, or no longer shared, by the administrator.",
+    params: vec![string_path("user"), owner_key(), owner_role()],
+    body: Some(json!(generator.subschema_for::<NodeSharing>())),
+    answers: vec![(200, json_answer::<UserNode>(&mut generator))],
+    codes: vec!["bad-request", "forbidden", "not-found", "node-taken", "no-hub", "upstream-failed", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
     "DELETE",
     "/users/{user}/node",
     "unbindNode",

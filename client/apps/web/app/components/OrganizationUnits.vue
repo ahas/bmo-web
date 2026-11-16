@@ -217,7 +217,8 @@
     </SettingsDialog>
 
     <!-- A person's machine (docs/accounts.md, 「Invitations and a person's machine」): the one their account is bound
-         to, bound to another — the one named, or a fresh name — with its installs until it attaches, or taken away. -->
+         to, bound to another — the one named, or a fresh name — with its installs until it attaches, declared shared
+         where it stands so other accounts may be bound to it too, or taken away. -->
     <SettingsDialog v-model:open="machineOpen" :title="machineUser === null ? '' : $t('organization.label.machine', { name: nameOf(machineUser) })" :dirty="false">
       <div class="flex flex-col gap-4">
         <ContentSkeleton v-if="machine === null && machineFailure === ''" :rows="1" :label="$t('organization.status.loading')">
@@ -228,6 +229,7 @@
             <template v-if="machine.agent !== undefined && machine.agent !== null">
               <code class="text-sm">{{ machine.agent }}</code>
               <UBadge :color="machine.attached ? 'success' : 'warning'" variant="subtle" :label="machine.attached ? $t('organization.status.attached') : $t('organization.status.waiting')" />
+              <UBadge v-if="machine.shared" color="neutral" variant="subtle" :label="$t('organization.status.shared')" data-machine-shared-state />
             </template>
             <span v-else class="text-sm text-muted">{{ $t("organization.label.machine_none") }}</span>
           </div>
@@ -257,6 +259,16 @@
 
       <template #footer>
         <UButton v-if="bound" color="error" variant="ghost" :label="$t('organization.action.unbind')" :loading="machineBusy === 'unbind'" :disabled="machineBusy !== null" @click="unbind" />
+        <UButton
+          v-if="bound"
+          color="neutral"
+          variant="ghost"
+          :label="machine?.shared ? $t('organization.action.unshare') : $t('organization.action.share')"
+          :loading="machineBusy === 'share'"
+          :disabled="machineBusy !== null"
+          data-machine-share
+          @click="share"
+        />
         <UButton v-if="waiting" color="neutral" variant="subtle" :label="$t('organization.action.check')" :loading="machineBusy === 'check'" :disabled="machineBusy !== null" @click="check" />
         <UButton :label="bound ? $t('organization.action.rebind') : $t('organization.action.bind')" :loading="machineBusy === 'bind'" :disabled="machineBusy !== null || machine === null" @click="bind" />
       </template>
@@ -753,7 +765,7 @@ const machineName = ref("");
 const machineShared = ref(false);
 const rebound = ref<Rebound | null>(null);
 const machineFailure = ref("");
-const machineBusy = ref<"bind" | "unbind" | "check" | null>(null);
+const machineBusy = ref<"bind" | "unbind" | "check" | "share" | null>(null);
 let machineTimer: ReturnType<typeof setInterval> | undefined;
 
 const bound = computed(() => typeof machine.value?.agent === "string");
@@ -830,6 +842,20 @@ async function bind(): Promise<void> {
     machineBusy.value = null;
   }
   await readMachine();
+}
+
+// The machine already bound declared shared where it stands, so other accounts may be bound to it too, or no longer
+// shared; agency's record follows where the machine is attached.
+async function share(): Promise<void> {
+  machineBusy.value = "share";
+  machineFailure.value = "";
+  try {
+    machine.value = await $fetch<UserNode>(`${machinePath()}/shared`, { method: "PUT", body: { shared: machine.value?.shared !== true } });
+  } catch (error) {
+    machineFailure.value = failureText(error, t("organization.error.failed"));
+  } finally {
+    machineBusy.value = null;
+  }
 }
 
 async function unbind(): Promise<void> {

@@ -363,20 +363,30 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
 
       // The machine an account is bound to again or taken away, by the administrator alone, and proven once the hub
       // holds it.
-      const bindRoute = path.match(/^\/users\/([^/]+)\/node(\/proof)?$/);
+      const bindRoute = path.match(/^\/users\/([^/]+)\/node(\/proof|\/shared)?$/);
 
       if (bindRoute !== null) {
         const user = userNamed(decodeURIComponent(bindRoute[1]!));
 
-        if (bindRoute[2] === undefined && request.headers.get("owner-role") !== "administrator") return refused(403, "forbidden", "a machine is bound by the administrator");
+        if (bindRoute[2] !== "/proof" && request.headers.get("owner-role") !== "administrator") return refused(403, "forbidden", "a machine is bound by the administrator");
         if (user === undefined) return refused(404, "not-found", "no such user");
 
-        if (bindRoute[2] !== undefined && request.method === "POST") {
+        if (bindRoute[2] === "/shared" && request.method === "PUT") {
+          if (user.node === undefined) return refused(404, "not-found", "bound to no machine");
+
+          const shared = body?.shared === true;
+
+          if (!shared && users.some((other) => other !== user && other.node?.agent === user.node?.agent)) return refused(409, "node-taken", "another account is bound to it");
+          user.node = { ...user.node, shared, attached: user.node.attached || hub.has(user.node.agent) };
+
+          return json({ agent: user.node.agent, shared, attached: user.node.attached, provenAt: user.node.provenAt ?? null, left: false });
+        }
+        if (bindRoute[2] === "/proof" && request.method === "POST") {
           if (user.node !== undefined && (user.node.attached || hub.has(user.node.agent))) user.node = { ...user.node, attached: true, provenAt: Date.now() };
 
           return json({ agent: user.node?.agent ?? null, shared: user.node?.shared ?? false, attached: user.node?.attached ?? false, provenAt: user.node?.provenAt ?? null, left: false });
         }
-        if (request.method === "PUT") {
+        if (bindRoute[2] === undefined && request.method === "PUT") {
           const agent = body?.agent ?? `u${user.id}-fresh`;
           const shared = body?.shared === true;
 

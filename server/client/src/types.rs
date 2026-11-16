@@ -546,6 +546,12 @@ pub struct NodeBinding {
   pub shared: bool,
 }
 
+/// The administrator's declaration that an account's machine is shared with other accounts, or no longer shared.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct NodeSharing {
+  pub shared: bool,
+}
+
 /// An account bound to another machine: the machine, how to install it, and whether the hub holds it already.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]

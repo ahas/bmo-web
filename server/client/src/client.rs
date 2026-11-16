@@ -443,6 +443,17 @@ impl AccountClient {
     .await
   }
 
+  /// `PUT /users/{user}/node/shared`, asked as the login `key` acts for in `role`.
+  pub async fn share_node(&self, user: &str, ask: &NodeSharing, key: &str, role: &str) -> Answer<UserNode> {
+    Self::answered(
+      self
+        .send(Method::PUT, &["users", user, "node", "shared"], ask)
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
   /// `DELETE /users/{user}/node`, asked as the login `key` acts for in `role`.
   pub async fn unbind_node(&self, user: &str, key: &str, role: &str) -> Answer<()> {
     Self::nothing(

@@ -47,6 +47,7 @@ export type Accepted = Schemas["Accepted"];
 export type Proof = Schemas["Proof"];
 export type UserNode = Schemas["UserNode"];
 export type NodeBinding = Schemas["NodeBinding"];
+export type NodeSharing = Schemas["NodeSharing"];
 export type Rebound = Schemas["Rebound"];
 export type PairingMade = Schemas["PairingMade"];
 export type PairingCredential = Schemas["PairingCredential"];

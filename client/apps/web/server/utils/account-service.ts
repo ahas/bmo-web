@@ -889,6 +889,20 @@ export async function unbindNode(user: UserId, caller: ProfileCaller, options: S
   if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
 }
 
+/** The account's machine declared shared with other accounts, or no longer shared, by the administrator. */
+export async function shareNode(user: UserId, shared: boolean, caller: ProfileCaller, options: ServiceOptions = {}): Promise<UserNode> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.PUT("/users/{user}/node/shared", {
+      params: { path: { user }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } },
+      body: { shared }
+    })
+  );
+
+  return answered(reply);
+}
+
 /** The account's machine as the hub holds it now, recorded as proven where it does. */
 export async function proveNode(id: UserId | number, options: ServiceOptions = {}): Promise<UserNode> {
   const client = clientOf(options);

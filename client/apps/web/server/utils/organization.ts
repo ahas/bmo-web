@@ -29,6 +29,9 @@ export const MACHINE_CODES: Readonly<Record<string, string>> = {
   "no-hub": "organization.error.no_hub"
 };
 
+/** The codes of a machine declared shared or no longer shared, over the machine's own. */
+export const SHARING_CODES: Readonly<Record<string, string>> = { ...MACHINE_CODES, "node-taken": "organization.error.shared_in_use" };
+
 /** The codes of a move of several people (docs/boundary.md, 「Organisation units」), over the section's own. */
 export const MOVE_CODES: Readonly<Record<string, string>> = {
   left: "organization.error.move_left",

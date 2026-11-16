@@ -50,8 +50,7 @@
 <script setup lang="ts">
 import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
 
-import { useAdministrator } from "~/domain/access";
-import { ORGANIZATION_TABS, organizationAddress, organizationMovedAway, organizationTabOf, organizationTabsFor } from "~/domain/organization";
+import { ORGANIZATION_TABS, organizationAddress, organizationMovedAway, organizationTabOf, organizationTabsFor, useOrganizationReader } from "~/domain/organization";
 import { TAB_ADD_ICON } from "~/domain/tab-create";
 import { revealOpenTab } from "~/domain/tab-row";
 
@@ -65,17 +64,19 @@ definePageMeta({ member: true });
 const route = useRoute();
 const router = useRouter();
 const { t } = useI18n();
-const administrator = useAdministrator();
+// Each tab says which readers it stands for; who reads is known at once for the administrator, and for a member once
+// the people roster has said whether they look through a company.
+const reader = useOrganizationReader();
 
-const tabs = computed(() => organizationTabsFor(administrator.value));
+const tabs = computed(() => organizationTabsFor(reader.value));
 const tab = computed(() => organizationTabOf(route.query.tab ?? ORGANIZATION_TABS[0]!.value, tabs.value));
 const tabItems = computed(() => tabs.value.map((one) => ({ value: one.value, icon: one.icon, label: t(one.label) })));
 
 // An address naming a tab that moved away is taken to where its section stands now, and one naming a tab the reader
-// may not open to the first one they may, each with no step of the history.
+// may not open to the first one they may, each with no step of the history; the second waits until who reads is known.
 watch(
-  tabs,
-  (list) => {
+  () => [tabs.value, reader.value.known] as const,
+  ([list]) => {
     if (!import.meta.client) return;
 
     const asked = route.query.tab;
@@ -87,7 +88,7 @@ watch(
       return;
     }
 
-    if (asked === undefined || list.some((one) => one.value === asked)) return;
+    if (asked === undefined || !reader.value.known || list.some((one) => one.value === asked)) return;
 
     void router.replace(organizationAddress(list[0]!.value, route.query));
   },

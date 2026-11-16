@@ -189,7 +189,7 @@ describe("a console route as another user meets it", () => {
     for (const route of routes.filter((one) => openedRoute(one.method, one.path)?.scope === "room")) {
       const source = await Bun.file(join(apiRoot, route.file)).text();
 
-      expect({ route: route.file, scoped: /\b(requireReadableRoom|requireWritableRoom|readableRooms|messageToActOn)\(/.test(source) }).toEqual({ route: route.file, scoped: true });
+      expect({ route: route.file, scoped: /\b(requireReadableRoom|requireWritableRoom|readableRooms|listedRooms|messageToActOn)\(/.test(source) }).toEqual({ route: route.file, scoped: true });
     }
   });
 

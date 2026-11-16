@@ -33,7 +33,7 @@
             :disabled="saving || rows === null"
             :aria-label="$t('permissions.label.user')"
             data-permissions-user
-            @update:model-value="(value: string) => void choose(value)"
+            @update:model-value="(value: string) => pick(value)"
           />
         </SettingsRow>
       </SettingsGroup>
@@ -103,6 +103,8 @@ interface PermissionRow extends SectionRow {
 }
 
 const { t } = useI18n();
+const route = useRoute();
+const router = useRouter();
 
 const users = ref<UserSummary[] | null>(null);
 const chosen = ref("");
@@ -130,15 +132,37 @@ async function read(): Promise<void> {
     users.value = await $fetch<UserSummary[]>("/api/users");
     failure.value = "";
 
-    const first = users.value[0];
+    const first = askedUser() ?? users.value[0]?.user;
 
-    if (first !== undefined) await choose(first.user);
+    if (first !== undefined) await choose(first);
   } catch (error) {
     failure.value = failureText(error, t("permissions.error.users_read_failed"));
   } finally {
     reading.value = false;
   }
 }
+
+// The person the address names, among those read (docs/web.md, 「Organisation」, the permissions tab): the people
+// tab's section permission opens the tab at that person.
+function askedUser(): string | undefined {
+  const asked = route.query.user;
+
+  return users.value?.find((user) => user.user === asked)?.user;
+}
+
+// A person chosen stands in the address in place of the one before, so a shared link opens the same person.
+function pick(value: string): void {
+  void router.replace({ query: { ...route.query, user: value } });
+}
+
+watch(
+  () => route.query.user,
+  () => {
+    const asked = askedUser();
+
+    if (asked !== undefined && asked !== chosen.value) void choose(asked);
+  }
+);
 
 async function choose(value: string): Promise<void> {
   chosen.value = value;

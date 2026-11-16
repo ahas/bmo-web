@@ -15,7 +15,7 @@ import {
   unitPath
 } from "../../../apps/web/app/domain/organization";
 
-import type { UnitBranch, UnitPlace, UnitStanding } from "../../../apps/web/app/domain/organization";
+import type { OrganizationReader, UnitBranch, UnitPlace, UnitStanding } from "../../../apps/web/app/domain/organization";
 import { ADMIN_PATH } from "../../../apps/web/app/domain/administration";
 import { SETTINGS_SECTIONS, sectionsFor } from "../../../apps/web/app/domain/settings-dialog";
 import { SCREENS, tabAddress } from "../../../apps/web/app/domain/screens";
@@ -54,9 +54,13 @@ describe("the settings dialog", () => {
   });
 });
 
+const ADMINISTRATOR: OrganizationReader = { administrator: true, roster: true, known: true };
+const COMPANY_HEAD: OrganizationReader = { administrator: false, roster: true, known: true };
+const MEMBER: OrganizationReader = { administrator: false, roster: false, known: true };
+
 describe("the organisation screen", () => {
   test("stands its tabs in order, the units first", () => {
-    expect(ORGANIZATION_TABS.map((tab) => tab.value)).toEqual(["organization", "invites", "permissions", "agent"]);
+    expect(ORGANIZATION_TABS.map((tab) => tab.value)).toEqual(["organization", "people", "invites", "permissions", "agent"]);
   });
 
   test("leads the keys of the sections that moved away to where they stand now, and no other key", () => {
@@ -69,20 +73,30 @@ describe("the organisation screen", () => {
     }
   });
 
-  test("opens every tab to the administrator, and the invitations and BMO tabs to a member", () => {
-    expect(organizationTabsFor(true)).toHaveLength(ORGANIZATION_TABS.length);
-    expect(organizationTabsFor(false).map((tab) => tab.value)).toEqual(["invites", "agent"]);
+  test("opens every tab to the administrator, the people tab to a member who heads a company, and the invitations and BMO tabs to every member", () => {
+    expect(organizationTabsFor(ADMINISTRATOR)).toHaveLength(ORGANIZATION_TABS.length);
+    expect(organizationTabsFor(COMPANY_HEAD).map((tab) => tab.value)).toEqual(["people", "invites", "agent"]);
+    expect(organizationTabsFor(MEMBER).map((tab) => tab.value)).toEqual(["invites", "agent"]);
   });
 
   test("opens the first tab a reader may for a key naming none of theirs", () => {
-    expect(organizationTabOf("permissions", organizationTabsFor(true)).value).toBe("permissions");
-    expect(organizationTabOf("permissions", organizationTabsFor(false)).value).toBe("invites");
-    expect(organizationTabOf(undefined, organizationTabsFor(true)).value).toBe("organization");
+    expect(organizationTabOf("permissions", organizationTabsFor(ADMINISTRATOR)).value).toBe("permissions");
+    expect(organizationTabOf("permissions", organizationTabsFor(MEMBER)).value).toBe("invites");
+    expect(organizationTabOf(undefined, organizationTabsFor(ADMINISTRATOR)).value).toBe("organization");
   });
 
-  test("keeps a tab in the address, the first being the screen's own, and lets the chosen unit go with the tab it stood on", () => {
+  test("keeps a tab in the address, the first being the screen's own, and lets the keys of the tab left go with it", () => {
     expect(organizationAddress("organization", { unit: "3" })).toEqual({ path: ORGANIZATION_PATH, query: {} });
     expect(organizationAddress("permissions", { unit: "3", tab: "invites" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "permissions" } });
+    expect(organizationAddress("invites", { tab: "people", q: "a", company: "1", unit: "2", role: "head", state: "left", user: "7", settings: "theme" })).toEqual({
+      path: ORGANIZATION_PATH,
+      query: { tab: "invites", settings: "theme" }
+    });
+  });
+
+  test("carries the keys a deliberate open hands the tab entered", () => {
+    expect(organizationAddress("permissions", { tab: "people", user: "7", q: "a" }, { user: "7" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "permissions", user: "7" } });
+    expect(organizationAddress("agent", { tab: "people", user: "7" }, { company: "1", unit: "2" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "agent", company: "1", unit: "2" } });
   });
 
   test("stands in the sidebar and the search with its tabs, under the administrator services beside the administrator's", () => {
@@ -91,7 +105,7 @@ describe("the organisation screen", () => {
 
     expect(screen.to).toBe(ORGANIZATION_PATH);
     expect(screen.inviters).toBe(true);
-    expect(screen.tabs?.map((tab) => tabAddress(screen, tab))).toEqual(["/organization", "/organization?tab=invites", "/organization?tab=permissions", "/organization?tab=agent"]);
+    expect(screen.tabs?.map((tab) => tabAddress(screen, tab))).toEqual(["/organization", "/organization?tab=people", "/organization?tab=invites", "/organization?tab=permissions", "/organization?tab=agent"]);
     expect(admin.to).toBe(ADMIN_PATH);
     expect(admin.administrator).toBe(true);
     expect(admin.tabs?.map((tab) => tabAddress(admin, tab))).toEqual(["/admin", "/admin?tab=secret-kinds"]);

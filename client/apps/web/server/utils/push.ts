@@ -203,9 +203,16 @@ export async function devicesToRing(payload: Pick<PushPayload, "kind">, user?: s
 }
 
 // Rings every device that has not refused this kind of news, save those of the accounts named as
-// already looking at what it is about.
-export async function ring(payload: PushPayload, looking: ReadonlySet<string> = new Set()): Promise<{ sent: number; gone: number }> {
-  return await deliver((await devicesToRing(payload)).filter((row) => !looking.has(row.user)), payload);
+// already looking at what it is about and, where `hears` is named, those of the accounts it says the news is not for.
+export async function ring(
+  payload: PushPayload,
+  looking: ReadonlySet<string> = new Set(),
+  hears: (user: string) => Promise<boolean> = async () => true
+): Promise<{ sent: number; gone: number }> {
+  const devices = (await devicesToRing(payload)).filter((row) => !looking.has(row.user));
+  const heard = await Promise.all(devices.map(async (row) => await hears(row.user).catch(() => false)));
+
+  return await deliver(devices.filter((_, at) => heard[at]), payload);
 }
 
 // Rings every device of one account with the test notification.

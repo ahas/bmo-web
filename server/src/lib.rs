@@ -22,6 +22,7 @@ pub mod people;
 pub mod phones;
 pub mod profiles;
 pub mod receiver;
+pub mod roster;
 pub mod routes;
 pub mod rules;
 pub mod secret_kinds;

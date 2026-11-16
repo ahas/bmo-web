@@ -418,6 +418,31 @@ console page. No answer says which framework drew it. Strict transport is the re
   route file to it. A route whose answer the account service decides by who is asking stands open to every signed-in
   login and leaves the refusal to the service: the invitations, and a company's BMO default and who may personalise
   under a unit (`docs/accounts.md`, 「A person's BMO profile」); one's own BMO profile stands with the account section.
+- **What the administrator reaches is not what his everyday screens list.** His reach stands as this section says:
+  he reads every room and every agent by its address. The lists he works from day to day hold what is his and what
+  is the deployment's, and nothing of another account's, so the rooms and BMOs of the people the platform holds never
+  crowd them. Looking up a person, and what is theirs, is 조직's 사용자 tab (「사용자」).
+  - **A room is the reader's own** where they read it by their account, the three below; **a room is the
+    deployment's** where it is no account's: it was added from 추가 (it carries a mode) or the owner allowed it with
+    his allow command (it is listened), and it is neither another account's private room nor sealed. The
+    administrator's room list holds his own rooms and the deployment's; a member's holds their own. A room he opens
+    by its address or from 사용자 without its being either stands in no list of his.
+  - **An agent is the reader's own** where the account it is filed under is theirs: a supervisor by
+    `docs/accounts.md`, 「Whose BMO a supervisor is」, a role agent and a repository by the `ownerAccount` the
+    agency answers for it. **An agent is the deployment's** where it is filed under no account. Every list and
+    every choice of agents the console draws holds the reader's own and the deployment's alone, for every reader
+    alike: the sidebar's 감독관, 역할 and 저장소 branches and the rooms and runs under them, agent management's
+    에이전트 and 저장소 tabs and a role's agents, the home screen's lines, the search palette, the choices of
+    기본 응답 감독관 and 리서치 감독관, and an item's 에이전트 on the TODO panel. A session list follows its agent: a
+    supervisor's room sessions and a role's sessions stand only where the agent does.
+  - **Whose a room or an agent is is judged on the console's server,** where every list is read, so a tab is never
+    handed another account's rows to hide. The rooms under a supervisor are those of the reader's room list.
+  - **Another account's conversation moves nothing on his screens.** His stream still carries every room, since his
+    reach and the deployment's live picture read them, but a message landing in another account's room neither reads
+    his list again nor counts, and his devices are rung only for the rooms his list holds (「Notifications」).
+  - **What is the deployment's running stays whole:** the queue and its items on the TODO panel, the questions, the
+    title bar's usage and deployment, the monitor and the roles themselves. They are the deployment's, not any
+    account's list.
 - **A person reads rooms by their account, never by a messenger identity** (`STRUCTURE.md`, 「Accounts,
   companies and units」: in the console a person is their account). The rooms an account reads are the union of
   three, and nobody needs a chat service's identity for any of them:
@@ -1414,8 +1439,9 @@ edit to that file alone, once the guide below carries the word.
     internal name and its address too.
   - **It finds the people of the reader's organisation as well.** The account service answers them as typing
     stops, by name, organisation and job title, and by the contact details the reader may see
-    (`docs/accounts.md`, 「The people directory」); a result opens that person's page. An empty box lists no
-    people, and an answer to words already typed past is dropped.
+    (`docs/accounts.md`, 「The people directory」); a result opens that person's page. A reader who opens 조직's
+    사용자 tab finds there instead every person that tab reaches, by its search (「사용자」), and a result opens the
+    person on that tab. An empty box lists no people, and an answer to words already typed past is dropped.
   - The typed phrase is matched through the console's shared list search, the same way every list matches.
     What a row shows — its name and the group it stands in — is marked where it matched; an agent's internal
     name, a room's chat number and a screen tab's key are matched too, and a hit only there shows as one line
@@ -1470,7 +1496,8 @@ Four groups.
     o'clock instead, as the rooms' dots do, with the number itself in a pill there, placed from the row's centre
     so the folded column keeps one centre. The console reads the counts when the sidebar stands and again on its
     own pacing clock while the tab is open and shown.
-- **Rooms** — the rooms stand in the order the receiver's room list gives them, the pinned first. The owner's private
+- **Rooms** — the reader's own rooms and, for the administrator, the deployment's (「Access」), never another
+  account's. The rooms stand in the order the receiver's room list gives them, the pinned first. The owner's private
   chat is the room the receiver's `GET /owner` names — a room the console made on the record road as readily as a chat
   service's one-to-one — and stands under the chat agent's label; every other room, the owner's chat-service
   one-to-one among them once it is not that room, stands under its own title. A one-to-one with no title of its own is
@@ -1557,8 +1584,10 @@ Four groups.
   naming no agent (the agency's `docs/agents.md`, 「Two axes」). Choosing an entry shows that agent's screen
   (「Agent screen」). Nothing here is held by this app: a supervisor, a role or a repository the owner adds stands
   here the moment the agency lists it, under its own label. Each entry stands as 「Profile photos」 says — a
-  supervisor as its face, a role with the role mark, a repository with the repository mark.
-  - **감독관** — every supervisor the agency's `GET /supervisors` lists, side by side, each under its own label. Under
+  supervisor as its face, a role with the role mark, a repository with the repository mark. Of the agents and
+  repositories, only the reader's own and the deployment's stand (「Access」).
+  - **감독관** — every supervisor the agency's `GET /supervisors` lists that is the reader's own or the deployment's,
+    side by side, each under its own label. Under
     each stand the rooms it answers, one entry per room, as the receiver names them (its `docs/api.md`,
     「Supervisors」, `GET /supervisors/{name}/rooms`): every room whose `supervisors` names it, and for the default
     answerer every room that names none as well, each only while it stands in the room list above, so a room never
@@ -1574,11 +1603,13 @@ Four groups.
     is.
   - **역할** — every role the agency's `GET /roles` lists, in its order: the runners, the doppelganger, the worker,
     the co-workers and every other role alike, each by its name alone (「역할」 under the agent screen). A role with runs going carries the spinning mark and, at the
-    line's end, how many go as a count badge (「Count badges」); under it stand its runs now, one line each, read from
-    the agency's `GET /slots` — the repository whose checkout the run works in by its label, or the folder's last
+    line's end, how many go as a count badge (「Count badges」); under it stand its runs now on the reader's own agents
+    and the deployment's, one line each, read from the agency's `GET /slots` — the repository whose checkout the run
+    works in by its label, or the folder's last
     part where the path is no repository's — each opening the role's log at that run. A role with none going stands
     alone.
-  - **저장소** — every repository the agency's `GET /repositories` lists, in its order, the external ones among them.
+  - **저장소** — every repository the agency's `GET /repositories` lists that is the reader's own or the deployment's,
+    in its order, the external ones among them.
     A repository a job works in now carries the spinning mark.
   - The rows the agency keeps for nothing a person runs — a supervisor's gate session, a run of a retired kind — never
     stand here, and the same holds for the agent management screen's lists. A gate stands on the home screen's gate
@@ -2288,7 +2319,8 @@ queue's button and the usage meters — so the front door opens on the groups th
   and what they spent. A group that names no `unsplitJobs` reads as wholly unsplit.
 
 The gate, runner and job worker groups are stood by reading the agency's lists as they are, so a repository or a
-role the owner adds stands here at once under its own name. If a branch has nobody, no empty group is stood and the
+role the owner adds stands here at once under its own name. A repository or an agent of another account stands in
+none of them (「Access」). If a branch has nobody, no empty group is stood and the
 group itself does not stand.
 
 The room lines, gate lines, runner lines and worker lines stand with **what that agent is doing now and
@@ -3105,7 +3137,8 @@ archive and this week's tokens remain. That is all that can actually be known th
 #### 에이전트
 
 The tab holds every agent of the screen: the supervisors, which answer rooms, and the agents of the roles, each
-a seat of its role.
+a seat of its role. Both tables, and a role's agents its dialog opens, hold the reader's own and the deployment's
+alone (「Access」); another account's agents are reached from 조직's 사용자 tab.
 
 - **One table of every supervisor** (the agency's `docs/supervisors.md`), one row each in the order the agency lists
   them: 감독관, its mark, its label and its name, the title column; 상태, what it is doing now (「What each agent is
@@ -3321,7 +3354,8 @@ a seat of its role.
 
 #### 저장소
 
-- **One table of the repositories** (the agency's `docs/repositories.md`), one row each in the order the agency lists
+- **One table of the repositories** that are the reader's own or the deployment's (「Access」; the agency's
+  `docs/repositories.md`), one row each in the order the agency lists
   them: 저장소, its mark, its label and its name, the title column; 경로, its base checkout, with the node it stands on
   where it stands on one; 체크아웃, how many support checkouts stand beside the base and how many of all its checkouts
   a job holds now; 프리픽스 문서, how many; 고정 모델, the provider and model it pins, named short, or 역할 에이전트 where it
@@ -7087,15 +7121,16 @@ person sees their own space and nobody else's, the administrator included.
 
 ### Organisation
 
-조직 is the screen of the organisation and the people in it: its units and who stands in them, the invitations
-into them and each person's sections. What is set for the platform itself — the providers and the Claude accounts
+조직 is the screen of the organisation and the people in it: its units and who stands in them, every person looked
+up one at a time, the invitations into the units and each person's sections. What is set for the platform itself —
+the providers and the Claude accounts
 every run goes out on, and the kinds every person's secret form asks in — is the administrator's screen, 관리자
 (「Administration」). What a person sets for themselves alone, their secrets and the voice briefing among it, is the
 settings dialog's (「Settings」), and the research supervisor stands with the research unit's settings on the
 research screen (「Research screen」).
 
-- **It stands at `/organization`, a tab to a section.** The tabs are 조직도, 초대, 권한 and BMO, keyed in the address as
-  `?tab=` with `invites`, `permissions` and `agent`, 조직도 being the screen's own address; a shared link opens the same tab, moving between tabs is a step of the history, and a key naming no tab
+- **It stands at `/organization`, a tab to a section.** The tabs are 조직도, 사용자, 초대, 권한 and BMO, keyed in the
+  address as `?tab=` with `people`, `invites`, `permissions` and `agent`, 조직도 being the screen's own address; a shared link opens the same tab, moving between tabs is a step of the history, and a key naming no tab
   the reader may open opens the first they may. The console search finds each tab as it finds every screen's.
 - **A key of a section that moved away leads to where it stands now,** so a link made before it moved still lands
   on it: `research` to the research screen's 설정 tab, `briefing` to the settings dialog's 보이스브리핑 and `secrets`
@@ -7103,7 +7138,7 @@ research screen (「Research screen」).
 - **Who opens it.** The administrator opens every tab, and the sidebar lists 조직 for them after the console's
   own screens. A member who heads a unit may invite into it (`docs/accounts.md`, 「Invitations and a person's
   machine」) and sets who under it may personalise their BMO (`docs/accounts.md`, 「A person's BMO profile」), so
-  their shell lists 조직 too and the screen holds 초대 and BMO; a member who heads none is listed no entry, and the
+  their shell lists 조직 too and the screen holds 초대 and BMO, and 사용자 where they head a company (「사용자」); a member who heads none is listed no entry, and the
   address shows them 초대 saying they may invite into no unit.
 - **The tab row** stands under the title bar, the tabs filling it and the open tab's own add at its right end
   where the tab has one, the row's grey icon on a phone too (「The title bar」): 조직 추가 on 조직도 and 초대 링크
@@ -7193,6 +7228,86 @@ research screen (「Research screen」).
     (`docs/accounts.md`, 「A person who leaves」); a person who left stands on in the list.
 - Each mark is an icon button with its name as its tooltip. A head or a person taken away or added, and a person
   marked left, takes effect as it is done, each being a record of its own; a refusal is said under the list.
+
+#### 사용자
+
+The administrator's viewer of the people the platform holds: every person found by a search on the server, and one
+person opened with what is theirs. It is where a person is looked up; no everyday list of the console lists another
+account's rooms or agents (「Access」).
+
+- **Who opens it.** The administrator, over every company; and a member who heads a company, the company's own unit,
+  over the companies they head (`docs/accounts.md`, 「The people roster」). A head of a unit below a company does
+  not. The tab stands only for a reader it is for, and its routes answer anyone else as if nothing stood there.
+- **The list and the person stand side by side,** as 조직도's two regions do: the list at the left, the person chosen
+  at the right, parted by a splitter whose widths this browser keeps, each region scrolling on its own. With nobody
+  chosen the right region says in one line to choose a person. On a narrow screen the list fills the body, and a
+  person chosen opens over it, filling the screen, with a back arrow at its head; the arrow and the back gesture
+  return to the list as it was left, its search, its scroll and the rows already read.
+- **The address carries what is shown:** `?q=` the words, `company=`, `unit=`, `role=` and `state=` the filters, and
+  `user=` the person, so a shared link opens the same view. Choosing a person is a step of the history; the words
+  and the filters replace the address as they change. The list is not built again when a person opens or closes.
+- **The list's head** holds the search box, the filters and how many people match, a neutral count badge.
+  - **The search** is asked of the account service as typing stops, never worked through in the tab: it matches
+    the name, the login, the unit, the job title and, for the administrator, the contact details. What a row shows
+    is marked where it matched, by the console's shared list search; a hit only in a field the row does not show,
+    such as the job title or an email, stands as one line under the row. An answer to words already typed past is
+    dropped.
+  - **The filters:** 회사, for a reader who looks through more than one, every company they may; 조직, a unit of the
+    company chosen and every unit under it, chosen from that company's tree as 초대's 조직 is; 역할, 전체, 조직장 or
+    구성원; and 상태, 전체, 활성, 기기 연결 대기 or 탈퇴. On a narrow screen the search box stands alone in the head with
+    one 필터 button beside it, carrying how many filters are set, which opens the four in a bottom drawer.
+- **The list is the console's shared data table,** its head stuck to the top and every column's width dragged, one
+  row a person in the order of their names: 이름, the person's mark of initials and their name, (탈퇴) beside a
+  person who left; 아이디; 회사; 조직, the unit they stand in; 역할, 조직장 or 구성원; 상태, an icon in its colour with
+  its name as the tooltip; 기기, the machine their account is bound to, or a dash; and 최근 로그인. On a narrow screen
+  a row is two lines with no head of names: the mark, the name and the state, then the unit and the role. A row's
+  hit only in a field it does not show stands as one more line under it, as the list head says.
+  - **It is read a page at a time,** fifty people, the next page asked as the reader nears the list's end, with
+    skeleton rows where it will land while it comes and 목록 끝 once a list that took more than one page has no
+    more. The list is never read whole, so it stays as quick with thousands of people as with ten.
+  - Pressing a row opens that person, and the row stands marked while they are open. Where nobody matches the list
+    says 검색 결과 없음, and where the reader's companies hold nobody, 사용자 없음. A read that failed says its reason in
+    the list's place with 새로고침.
+- **One person stands read-only.** Nothing on the page changes anything by itself; every change is one of the acts
+  below, each opening the dialog it opens on its own tab.
+  - **The head** carries the mark and the name with the login under it on a row of their own, and on the row under
+    it 관리자 for a platform administrator and the state as a chip with its words, and at its right end 관리, a menu
+    of the acts the reader may do for this person:
+    조직 이동, the move dialog of 조직도 at its first step for this person alone; 기기 연결, the machine dialog of
+    조직도; 프로필 변경, the profile form of 계정 for this person; 섹션 권한, which opens 권한 with the person chosen;
+    BMO 설정 권한, which opens the BMO tab at the person's company with their unit open; and 탈퇴 처리, asked first as
+    on 조직도. An act stands only where the route behind it lets the reader do it, and a person who left keeps
+    only what still applies to them. Once an act goes through, the person is read again, and the list row with them.
+  - **The groups** stand under small headings as a name and value list, each name over its value on a narrow
+    screen, and each group is read on its own: skeletons shaped like its rows while it comes, and a read that
+    failed says its reason in its place with 새로고침 while the others stand.
+  - **계정:** 아이디, 이름, 직함, then 유선 전화, 휴대전화 and 이메일 for the administrator alone; 상태, with when the
+    person left and who marked it; 만든 날짜; and 최근 로그인, or 기록 없음.
+  - **조직:** 회사; 조직, the unit's path from the company down, whole; 역할; and 조직장인 조직, the units they head
+    directly, where they head any.
+  - **BMO:** the person's own BMO as its profile stands for them (「A person's BMO profile on the agency and the
+    receiver」): 이름, 부르는 이름, 프로필 사진 and 페르소나, each with where it came from, 직접 정함 or 회사에서 정함, the
+    deployment's wearing its `(기본값)` mark; 페르소나 reads its length in characters, and 보기 opens the text in a
+    dialog that only reads; BMO 설정 권한, 허용 or 막음 as it resolves for them, with what it follows; and 공급자 · 모델,
+    the road of their supervisor as the agency answers it, in the words of agent management's cell. A person with no BMO says
+    BMO 없음.
+  - **방**, the administrator's alone: the rooms the person reads by their account (「Access」), the latest first, one
+    row each with the room's picture and name, its kind, 개인 대화 for their BMO's private room or 그룹, its message
+    count and its last message's time. A row opens the room's screen, read as the administrator reads any room not
+    his own: read-only in a private room, and nothing he reads there reaches its people.
+  - **에이전트**, the administrator's alone: the agents filed under the person's account, their supervisors and their
+    role agents, one row each with its face or mark, its label, 감독관 or its role's name, its road and whether it is
+    on. A row opens the agent's page, where its settings stand for the administrator as they do on agent
+    management.
+  - **세션**, the administrator's alone: the sessions of those agents, as the agency answers them, one row each with
+    the agent, the room it serves or its scope, its road and how much context it held at its last turn.
+  - **최근 활동**, the administrator's alone: the person's last twenty runs, those of the agents filed under their
+    account as the agency's run ledger holds them, the newest first, one row each with when it began, the agent,
+    the room it ran for or, where it ran for none, the run's name, how long it took and how it ended. A row opens that agent's log at the
+    run.
+- **A head reads their people's 계정 without the contact details, 조직 and BMO,** and nothing of their rooms, agents,
+  sessions or runs: those quote what a person said in their own rooms, which nobody but the person and the
+  administrator reads (「Access」).
 
 #### 초대
 
@@ -7316,7 +7431,8 @@ research screen (「Research screen」).
 
 #### 권한
 
-- **사용자** chooses one person the console's users, by their name.
+- **사용자** chooses one person the console's users, by their name. `?user=` in the address names the person chosen,
+  so 사용자's 섹션 권한 opens the tab at that person.
 - **섹션** is a table of every console section in the navigation's order, from 실시간 상태 down to 브레인 (`docs/accounts.md`, 「Console sections」),
   with 방 and 계정 among them, and a 읽기 switch and a 쓰기 switch for each. A change is saved as it is made;
   a 쓰기 turned on turns its 읽기 on, and a 읽기 turned off turns its 쓰기 off.
@@ -7329,7 +7445,8 @@ research screen (「Research screen」).
 - **It sets what a company's people's BMOs stand as, and who may make their own** (`docs/accounts.md`, 「A person's BMO
   profile」). The administrator opens it, and so does every member who heads a unit.
 - **회사** chooses the company, among the companies of the units the reader heads, the first chosen at first; the
-  administrator chooses among them all.
+  administrator chooses among them all. `?company=` in the address names the company chosen and `?unit=` a unit of
+  its tree to open with its people, so 사용자's BMO 설정 권한 opens the tab at that person's unit.
 - **기본 BMO** stands for the administrator and the company's own heads alone: 이름, the name its people's BMOs stand
   with, `BMO (기본값)` where none is set; 부르는 이름, the names that call one in a room, or 부르는 이름 없음; and its
   picture. 변경 on the name's row opens the form of the name and the call names (「Forms」): each call name a chip with
@@ -7875,6 +7992,9 @@ by the administrator. Every login reads them, since every person's form asks in 
   the same test the room screen uses to stand a row as an agent's, so an agent added later rings with nothing changed
   here. A person's own words never ring, and neither does a voice message: it speaks a line that rang on its own.
   Only what was said after this console started listening rings, so the stream replaying what it kept rings nothing.
+- **A room message rings only on the devices of an account whose room list holds the room:** its own rooms and,
+  for the administrator, the deployment's (「Access」). Another account's conversation rings none of his devices,
+  whatever he may read.
 - **A room message is not sent while they are looking at that room.** Every open console tab of the administrator tells this server which
   room it shows and whether it is visible: on opening a room, on being hidden or shown, and every half minute while it
   is visible. A tab gone silent for longer than a few of those reports is taken as gone. While a visible tab of an

@@ -151,6 +151,120 @@ pub struct Members {
   pub members: Vec<Member>,
 }
 
+/// The companies the reader looks through in the people roster (docs/accounts.md, 「The people roster」), in
+/// name order; empty for a reader who looks through none.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct RosterCompanies {
+  pub companies: Vec<UnitRef>,
+}
+
+/// Where an account stands in the people roster: in use, made by an invitation and not yet enabled, or
+/// marked left.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum RosterState {
+  Active,
+  Pending,
+  Left,
+}
+
+/// One person as a page of the people roster answers them (docs/accounts.md, 「The people roster」).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct RosterPerson {
+  pub user: String,
+  pub login: String,
+  /// The person's name, the login where none stands.
+  pub name: String,
+  pub company: UnitRef,
+  pub unit: UnitRef,
+  /// Whether they are granted head of the unit they stand in.
+  pub head: bool,
+  /// Whether they are the platform administrator.
+  pub administrator: bool,
+  pub state: RosterState,
+  /// The machine the account is bound to, by its name; none where it is bound to none.
+  pub machine: Option<String>,
+  /// When the account was made.
+  pub made_at: i64,
+  /// When the user last signed in; none where they never have since the service kept it.
+  pub last_sign_in_at: Option<i64>,
+  /// The job title, empty where none is kept.
+  pub job_title: String,
+  /// The email, for the administrator alone.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub email: Option<String>,
+}
+
+/// One page of the people roster: its people, how many people match the whole ask, and the place to ask the
+/// next page from in `after`, none where nothing stands past it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct RosterPage {
+  pub people: Vec<RosterPerson>,
+  pub total: i64,
+  pub next: Option<String>,
+}
+
+/// When a person in the roster left, and who marked it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct RosterLeft {
+  pub at: i64,
+  /// The user who marked it.
+  pub by: String,
+  /// That user's name, the login where none stands.
+  pub by_name: String,
+}
+
+/// The machine a person in the roster is bound to: its name, whether it is shared, when it was last proven.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct RosterMachine {
+  pub name: String,
+  pub shared: bool,
+  pub proven_at: Option<i64>,
+}
+
+/// One person of the people roster opened (docs/accounts.md, 「The people roster」): what a page answers
+/// of them, with their landline and mobile for the administrator alone, their unit's path from the company
+/// down, the units they are granted head of directly, their departure and their machine.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct RosterDetail {
+  #[serde(flatten)]
+  pub person: RosterPerson,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub landline: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub mobile: Option<String>,
+  pub path: Vec<UnitRef>,
+  pub head_of: Vec<UnitRef>,
+  pub left: Option<RosterLeft>,
+  pub machine_standing: Option<RosterMachine>,
+}
+
+/// What a page of the people roster is asked for; every field absent asks for everyone, the first page
+/// and 50 people.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct RosterAsk {
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub q: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub company: Option<i64>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub unit: Option<i64>,
+  /// `head` or `member`.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub role: Option<String>,
+  /// `active`, `pending` or `left`.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub state: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub after: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub limit: Option<i64>,
+}
+
 /// A user's sections, in the console's navigation order; every write is also a read.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct Sections {

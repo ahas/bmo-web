@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 
-import { unreadShown, withNewestReads } from "../../../apps/web/app/domain/room-list";
+import { movesRoomList, unreadShown, withNewestReads } from "../../../apps/web/app/domain/room-list";
 
 import type { ListedRoom, ReadPlace, RoomRead } from "../../../apps/web/shared/types";
 import KO from "../../fixtures/app/domain/room-list.test.ko.json";
@@ -38,4 +38,15 @@ test("the room open and read at its end carries no count, and any other room kee
   expect(unreadShown(counting, { chatId: 1, atEnd: false })).toBe(2);
   expect(unreadShown(counting, { chatId: 2, atEnd: true })).toBe(2);
   expect(unreadShown(counting, null)).toBe(2);
+});
+
+// The administrator's stream carries every room, and only a message in a room his list holds reads it again
+// (docs/web.md, 「Access」); a member's stream carries their own rooms alone, so every word of it does.
+test("another account's message moves nothing of the administrator's list, and every word moves a member's", () => {
+  const held = [{ chatId: 1 }];
+
+  expect(movesRoomList({ type: "message", chatId: 1 }, held, true)).toBe(true);
+  expect(movesRoomList({ type: "message", chatId: 2 }, held, true)).toBe(false);
+  expect(movesRoomList({ type: "room-removed", chatId: 2 }, held, true)).toBe(true);
+  expect(movesRoomList({ type: "message", chatId: 2 }, held, false)).toBe(true);
 });

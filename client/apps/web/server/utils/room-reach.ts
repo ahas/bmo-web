@@ -211,6 +211,43 @@ export class LiveRooms {
   }
 }
 
+/** What of a room tells whether it is the deployment's own: the mode it was added in from the add dialog, none where
+ * it was not, and whether the owner allowed it with his allow command. */
+export interface DeploymentMarks {
+  mode: string | null;
+  listened: boolean;
+}
+
+/** Whether a room is the deployment's own rather than any account's (docs/web.md, 「Access」): added in a mode or
+ * allowed by the owner's allow command, and neither someone's private room nor sealed. */
+export function isDeploymentRoom(room: DeploymentMarks, privacy: RoomPrivacy): boolean {
+  return (room.mode !== null || room.listened) && privacy.privateOf === null && !privacy.sealed;
+}
+
+/** The rooms the administrator's everyday lists hold (docs/web.md, 「Access」): his own and the deployment's, never a
+ * room he reaches only as the administrator. */
+export async function administratorsRooms(signed: SignedIn): Promise<ReadonlySet<number>> {
+  const [own, every, privacies] = await Promise.all([ownRooms(signed), receiverCall(receiver().GET("/rooms")), roomPrivacies()]);
+  const deployment = every.items.filter((room) => isDeploymentRoom(room, privacies.get(room.id) ?? SHARED)).map((room) => room.id);
+
+  return new Set([...own, ...deployment]);
+}
+
+/** The rooms a reader's lists hold: a member's are the rooms they read, the administrator's his own and the
+ * deployment's. Held for the request. */
+export async function listedRooms(event: H3Event): Promise<ReadonlySet<number>> {
+  const held = event.context.listedRooms as ReadonlySet<number> | undefined;
+
+  if (held !== undefined) return held;
+
+  const rooms = await readableRooms(event);
+  const listed = rooms === "all" ? await administratorsRooms(await signedInUser(event)) : rooms;
+
+  event.context.listedRooms = listed;
+
+  return listed;
+}
+
 export async function readableRooms(event: H3Event): Promise<ReadableRooms> {
   const held = event.context.readableRooms as ReadableRooms | undefined;
 

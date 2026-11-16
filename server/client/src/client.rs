@@ -181,6 +181,21 @@ impl AccountClient {
     .await
   }
 
+  /// `GET /people/companies`, asked as the login `key` acts for.
+  pub async fn roster_companies(&self, key: &str) -> Answer<RosterCompanies> {
+    Self::answered(self.request(Method::GET, &["people", "companies"]).header(OWNER_KEY, key)).await
+  }
+
+  /// `GET /people`: one page of the people roster, asked as the login `key` acts for.
+  pub async fn roster(&self, ask: &RosterAsk, key: &str) -> Answer<RosterPage> {
+    Self::answered(self.get(&["people"], ask).header(OWNER_KEY, key)).await
+  }
+
+  /// `GET /people/{user}`: one person of the people roster, asked as the login `key` acts for.
+  pub async fn roster_person(&self, user: &str, key: &str) -> Answer<RosterDetail> {
+    Self::answered(self.request(Method::GET, &["people", user]).header(OWNER_KEY, key)).await
+  }
+
   /// `GET /users`, asked as the login `key` acts for in `role`.
   pub async fn users(&self, key: &str, role: &str) -> Answer<UserList> {
     Self::answered(self.request(Method::GET, &["users"]).header(OWNER_KEY, key).header(OWNER_ROLE, role))

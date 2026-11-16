@@ -65,6 +65,11 @@ export const openedRoutes: readonly OpenedRoute[] = [
   { method: "DELETE", path: /^\/api\/organization\/companies\/\d+\/agent\/picture$/, scope: "user" },
   { method: "GET", path: /^\/api\/organization\/units\/\d+\/agent-permissions$/, scope: "user" },
   { method: "PUT", path: /^\/api\/organization\/(?:units|users)\/\d+\/agent-permission$/, scope: "user" },
+  // The people roster, its companies, a page of it, a person and their BMO: every signed-in login asks, and the account
+  // service decides whom each looks through (docs/accounts.md, 「The people roster」). A person's rooms, agents, sessions
+  // and runs are the administrator's alone.
+  { method: "GET", path: /^\/api\/organization\/people(?:\/companies)?$/, scope: "user" },
+  { method: "GET", path: /^\/api\/organization\/people\/\d+(?:\/bmo(?:\/picture)?)?$/, scope: "user" },
   { method: "GET", path: /^\/api\/join\/[0-9a-f]+$/, scope: "user" },
   { method: "POST", path: /^\/api\/join\/[0-9a-f]+\/(accept|proof)$/, scope: "user" },
   // The desktop app's pairing, asked and read with or without a session; its code read and answered by every

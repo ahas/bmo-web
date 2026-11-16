@@ -1,7 +1,9 @@
 import type { Component, ComputedRef } from "vue";
 import type { LocationQuery } from "vue-router";
 
-import { adminAddress, adminTabNamed } from "./administration";
+import { useAdministrator } from "./access";
+import { adminAddress, adminTabNamed, administratorOpens } from "./administration";
+import { useRosterCompanies } from "./roster";
 import { SETTINGS_QUERY } from "./settings-dialog";
 
 // The organisation screen (docs/web.md, 「Organisation」): the organisation and the people in it, a tab to a
@@ -10,14 +12,25 @@ import { SETTINGS_QUERY } from "./settings-dialog";
 
 export const ORGANIZATION_PATH = "/organization";
 
+/** Who reads the screen, as far as which tabs stand for them: the platform administrator, and whether the people
+ * roster answers them any company to look through (docs/accounts.md, 「The people roster」). `known` is false until
+ * what decides it has been read, so an address naming a tab not yet known to stand is not taken away. */
+export interface OrganizationReader {
+  administrator: boolean;
+  roster: boolean;
+  known: boolean;
+}
+
 export interface OrganizationTab {
   // Its key in the address, `?tab=<value>`; the first tab is the screen's own address.
   value: string;
   // Its name in the language pack.
   label: string;
   icon: string;
-  // Whether a member who heads a unit opens it as well as the administrator.
-  inviters: boolean;
+  // Whether a reader opens it: each tab says so for itself.
+  opens: (reader: OrganizationReader) => boolean;
+  // The keys of the address the tab owns besides `tab`, which go when the reader moves to another tab.
+  keys: readonly string[];
   // Whether its content is laid across the whole body, unpadded and scrolling its own regions, rather than standing in
   // the body's centred reading column.
   wide: boolean;
@@ -25,11 +38,23 @@ export interface OrganizationTab {
   load: () => Promise<{ default: Component }>;
 }
 
+// Every reader the screen stands for: the administrator, and a member who heads a unit, whose invitations tab says so
+// where they head none.
+function everyReaderOpens(): boolean {
+  return true;
+}
+
+// The administrator, and a member who heads a company (docs/web.md, 「Organisation」, the people tab).
+function rosterReaderOpens(reader: OrganizationReader): boolean {
+  return reader.administrator || reader.roster;
+}
+
 export const ORGANIZATION_TABS: readonly OrganizationTab[] = [
-  { value: "organization", label: "organization.label.chart", icon: "i-material-symbols-account-tree-outline", inviters: false, wide: true, load: () => import("~/components/OrganizationUnits.vue") },
-  { value: "invites", label: "settings.label.invites", icon: "i-material-symbols-person-add-outline", inviters: true, wide: false, load: () => import("~/components/OrganizationInvites.vue") },
-  { value: "permissions", label: "settings.label.permissions", icon: "i-material-symbols-admin-panel-settings-outline", inviters: false, wide: false, load: () => import("~/components/OrganizationPermissions.vue") },
-  { value: "agent", label: "settings.label.bmo", icon: "i-material-symbols-face-outline", inviters: true, wide: false, load: () => import("~/components/OrganizationBmo.vue") }
+  { value: "organization", label: "organization.label.chart", icon: "i-material-symbols-account-tree-outline", opens: administratorOpens, keys: ["unit"], wide: true, load: () => import("~/components/OrganizationUnits.vue") },
+  { value: "people", label: "roster.label.tab", icon: "i-material-symbols-group-outline", opens: rosterReaderOpens, keys: ["q", "company", "unit", "role", "state", "user"], wide: true, load: () => import("~/components/OrganizationPeople.vue") },
+  { value: "invites", label: "settings.label.invites", icon: "i-material-symbols-person-add-outline", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationInvites.vue") },
+  { value: "permissions", label: "settings.label.permissions", icon: "i-material-symbols-admin-panel-settings-outline", opens: administratorOpens, keys: ["user"], wide: false, load: () => import("~/components/OrganizationPermissions.vue") },
+  { value: "agent", label: "settings.label.bmo", icon: "i-material-symbols-face-outline", opens: everyReaderOpens, keys: ["company", "unit"], wide: false, load: () => import("~/components/OrganizationBmo.vue") }
 ];
 
 // Where a section that once stood here as a tab stands now, by the key its tab had, so a link made before it moved
@@ -51,9 +76,9 @@ export function organizationMovedAway(key: unknown): { path: string; query: Loca
   return typeof key === "string" && Object.hasOwn(MOVED_AWAY, key) ? MOVED_AWAY[key]! : null;
 }
 
-/** The tabs a reader opens: every one for the administrator, the inviters' for a member. */
-export function organizationTabsFor(administrator: boolean): OrganizationTab[] {
-  return ORGANIZATION_TABS.filter((tab) => administrator || tab.inviters);
+/** The tabs a reader opens, each by its own say. */
+export function organizationTabsFor(reader: OrganizationReader): OrganizationTab[] {
+  return ORGANIZATION_TABS.filter((tab) => tab.opens(reader));
 }
 
 /** The tab an address asks for among those a reader opens, the first of them where it names none. */
@@ -61,11 +86,19 @@ export function organizationTabOf(asked: unknown, tabs: readonly OrganizationTab
   return tabs.find((tab) => tab.value === asked) ?? tabs[0] ?? ORGANIZATION_TABS[0]!;
 }
 
-/** The address of one tab: the screen's own for the first, `?tab=` for the rest. */
-export function organizationAddress(value: string, query: LocationQuery = {}): { path: string; query: LocationQuery } {
-  const rest = Object.fromEntries(Object.entries(query).filter(([key]) => key !== "tab" && key !== "unit"));
+// Every key a tab owns, so whichever tab the address stood on, its keys go as the reader moves to another.
+const TAB_KEYS = new Set(ORGANIZATION_TABS.flatMap((tab) => tab.keys));
 
-  return { path: ORGANIZATION_PATH, query: value === ORGANIZATION_TABS[0]!.value ? rest : { ...rest, tab: value } };
+/**
+ * The address of one tab: the screen's own for the first, `?tab=` for the rest. What the tab left owned goes, and
+ * every other key of the address stays; `carried` names the keys a deliberate open hands the tab entered, such as
+ * the person its permissions tab opens at.
+ */
+export function organizationAddress(value: string, query: LocationQuery = {}, carried: LocationQuery = {}): { path: string; query: LocationQuery } {
+  const rest = Object.fromEntries(Object.entries(query).filter(([key]) => key !== "tab" && !TAB_KEYS.has(key)));
+  const kept = { ...rest, ...carried };
+
+  return { path: ORGANIZATION_PATH, query: value === ORGANIZATION_TABS[0]!.value ? kept : { ...kept, tab: value } };
 }
 
 /** The tab of the organisation screen a key names, where it names one. */
@@ -82,6 +115,22 @@ export function useMayInvite(): ComputedRef<boolean> {
   const { data } = useFetch<{ id: number; name: string }[]>("/api/invites/units", { key: "invite-units", lazy: true, server: false, default: () => [] });
 
   return computed(() => (data.value ?? []).length > 0);
+}
+
+/**
+ * Who reads the organisation screen, for the tabs that stand for them: the administrator at once, and a member once
+ * the people roster has said whether they look through any company. A read that failed leaves them as one who looks
+ * through none.
+ */
+export function useOrganizationReader(): ComputedRef<OrganizationReader> {
+  const administrator = useAdministrator();
+  const { companies, status } = useRosterCompanies();
+
+  return computed(() => ({
+    administrator: administrator.value,
+    roster: companies.value.length > 0,
+    known: administrator.value || status.value === "success" || status.value === "error"
+  }));
 }
 
 // The units tab's tree (docs/web.md, 「Organisation」, its chart): companies at its top, each unit under its

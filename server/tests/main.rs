@@ -17,6 +17,7 @@ mod profiles;
 // workspace and holds no package, so this crate runs them.
 #[path = "../../tests/repository.rs"]
 mod repository;
+mod roster;
 mod routes;
 mod secret_kinds;
 mod secrets;

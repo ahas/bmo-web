@@ -292,10 +292,11 @@ export function roleViewOf(role: Role): RoleView {
   };
 }
 
-export async function readRoles(): Promise<RolesView> {
+/** Every role, each as `listed` keeps it of what the agency answers: whole where none is named. */
+export async function readRoles(listed: (role: Role) => Role = (role) => role): Promise<RolesView> {
   const answer = await agencyCall(agency().GET("/roles"));
 
-  return { roles: answer.roles.map(roleViewOf), bundles: answer.bundles.map(bundleOf), skills: answer.skills ?? [], lines: answer.lines };
+  return { roles: answer.roles.map((role) => roleViewOf(listed(role))), bundles: answer.bundles.map(bundleOf), skills: answer.skills ?? [], lines: answer.lines };
 }
 
 const SESSIONS = ["keep", "fresh"] as const;
@@ -619,10 +620,11 @@ export function repositoryViewOf(repository: Repository): RepositoryView {
   };
 }
 
-export async function readRepositories(): Promise<RepositoryView[]> {
+/** Every repository `listed` keeps of what the agency answers: all of them where none is named. */
+export async function readRepositories(listed: (rows: Repository[]) => Repository[] = (rows) => rows): Promise<RepositoryView[]> {
   const page = await agencyCall(agency().GET("/repositories"));
 
-  return page.items.map(repositoryViewOf);
+  return listed(page.items).map(repositoryViewOf);
 }
 
 /** A repository's fields as a screen sent them, each of its own shape; null where any is not. */

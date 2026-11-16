@@ -3,7 +3,7 @@
        every column at the width its content asks, up to its ceiling, and the table never narrower than its box, the
        room left over standing as one empty column at its right edge that the stylesheet draws in every row. Until a
        drag holds the widths they are laid out again as what the rows say changes; once held, the shared table keeps
-       them as dragged. Every slot the screen gives is handed on as it stands. -->
+       them as dragged. Every slot the screen gives is handed on as it stands, and so is a row pressed. -->
   <DataTable
     ref="table"
     data-settings-table
@@ -14,6 +14,9 @@
     :columns="laidColumns"
     :layout="props.layout"
     :row-key="props.rowKey"
+    :selectable="props.selectable"
+    :row-class="props.rowClass"
+    @select="(row: T, index: number) => emit('select', row, index)"
   >
     <template v-for="name in Object.keys(slots)" :key="name" #[name]="scope">
       <slot :name="name" v-bind="scope ?? {}" />
@@ -27,10 +30,19 @@ import { columnWidths } from "~/domain/settings-columns";
 import type { TableColumn } from "@nuxt/ui";
 import type { ColumnAsk, SettingsColumn } from "~/domain/settings-columns";
 
-const props = withDefaults(defineProps<{ data: T[]; columns: SettingsColumn<T>[]; layout?: "fill" | "own"; rowKey?: (row: T) => string }>(), {
-  layout: "own",
-  rowKey: undefined
-});
+const props = withDefaults(
+  defineProps<{
+    data: T[];
+    columns: SettingsColumn<T>[];
+    layout?: "fill" | "own";
+    rowKey?: (row: T) => string;
+    // Whether a row is pressed as a whole, and a row's own classes, as the shared table takes them.
+    selectable?: boolean;
+    rowClass?: (row: T) => string;
+  }>(),
+  { layout: "own", rowKey: undefined, selectable: false, rowClass: undefined }
+);
+const emit = defineEmits<{ select: [row: T, index: number] }>();
 
 const slots = useSlots();
 const table = useTemplateRef<{ $el?: HTMLElement }>("table");

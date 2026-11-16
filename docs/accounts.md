@@ -557,6 +557,40 @@ section states what each does.
   (`docs/web.md`, 「Sidebar」 and 「Person's page」). The page and its calls are the account section's, so a
   console route that the account section's read does not open answers as if nothing stood there.
 
+### The people roster
+
+- **The roster is the administrator's view of the people across companies,** read by the console's 조직 screen,
+  its 사용자 tab (`docs/web.md`, 「사용자」). Beside the directory, which answers the reader's own company to
+  anyone in it, the roster answers every company the reader looks after, with each person's account standing.
+- **Who reads it.** The reader is named by `Owner-Key`. A platform administrator looks through every company; a
+  user granted head of a company's own unit, the unit with no parent, looks through that company, every unit under
+  it included. A head of a unit below a company looks through none, and neither does anyone else: every route below
+  but the list of companies refuses them 403 `forbidden`.
+- **`GET /people/companies`** — the companies the reader looks through, each by its id and name, in name order;
+  empty for a reader who looks through none, so the console tells from it whether the tab stands.
+- **`GET /people?q=&company=&unit=&role=&state=&after=&limit=`** — one page of the people the reader looks through,
+  in the order of their names, case set aside, then their user ids:
+  - each person's user id, login, person's name (the login where none stands), company and unit, each an id and a
+    name, `head`, whether they are granted head of the unit they stand in, `administrator`, `state`, `active`,
+    `pending` for an account not yet enabled that has not left, or `left`, the machine their account is bound to
+    or none, when the account was made, when they last signed in or none, their job title, and their email for
+    the administrator alone, so a row can show a search's hit in a field it does not otherwise show;
+  - `total`, how many people match the whole ask, and `next`, the place past the last person answered to ask the
+    next page from in `after`, or none where nothing stands past it.
+  - `q` matches as the directory's search does, by words held anywhere in the login, the person's name, the unit's
+    name and the job title, and for the administrator in the contact details too, so a refused field never
+    answers. `company` narrows to one company, `unit` to a unit and every unit under it, `role` to `head` or
+    `member` and `state` to one state; a company or a unit the reader does not look through is 404 `not-found`.
+  - `limit` is 50 where none is named and never more than 100. The page is read from the database as a page,
+    after the place `after` names, so no ask reads every user into the service.
+- **`GET /people/{user}`** — one person the reader looks through: what a page answers of them, with their landline
+  and mobile for the administrator alone, their unit's path from the company down, the units they are granted head
+  of directly, when they left and who marked it where they did, and their machine's standing, its name, whether it
+  is shared and when it was last proven. 404 `not-found` where the person stands in no company the reader looks
+  through.
+- **The service keeps when each user last signed in:** the moment a `POST /sumida/auth/session` answered with a
+  session, one row a user, written over at each sign-in. Nothing else of a sign-in is kept, its address among it.
+
 ### Phones
 
 - **`POST /phones`** — a user; answers a new secured key of theirs, once, and the hash sumida keeps it by.
@@ -697,6 +731,7 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 | `user_invites` | each invitation: its token, its unit, whether it makes a head, the person's name it was made for (empty where none was given), who made it, when it closes, and who used it and when |
 | `user_nodes` | the machine each invited account is bound to, whether the administrator bound it shared, and when it was last proven |
 | `user_departures` | each account marked left: when, and by whom |
+| `user_sign_ins` | when each user last signed in (「The people roster」) |
 | `company_agents` | each company's default for its people's BMOs: the name, the call names and the picture with its type, and who set it and when (「A person's BMO profile」) |
 | `own_agents` | each person's own BMO profile: the name, the call names, the persona and the picture with its type, kept whether or not they may use it |
 | `agent_permissions` | each `allow` or `deny` set on a unit or on a person for personalising one's BMO, who set it and when; `inherit` is no row |

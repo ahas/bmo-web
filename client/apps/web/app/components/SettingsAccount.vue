@@ -54,36 +54,7 @@
       </template>
     </SettingsDialog>
 
-    <SettingsDialog v-model:open="editingProfile" :title="$t('account.title.profile')" :dirty="profileDirty">
-      <UForm id="profile-form" :state="profileForm" class="flex flex-col gap-4" @submit="saveProfile">
-        <UFormField :label="$t('account.label.full_name')" name="fullName">
-          <UInput v-model="profileForm.fullName" class="w-full" autocomplete="name" />
-        </UFormField>
-
-        <UFormField :label="$t('account.label.job_title')" name="jobTitle">
-          <UInput v-model="profileForm.jobTitle" class="w-full" autocomplete="organization-title" />
-        </UFormField>
-
-        <UFormField :label="$t('account.label.landline')" name="landline">
-          <UInput v-model="profileForm.landline" class="w-full" type="tel" autocomplete="tel" />
-        </UFormField>
-
-        <UFormField :label="$t('account.label.mobile')" name="mobile">
-          <UInput v-model="profileForm.mobile" class="w-full" type="tel" autocomplete="tel" />
-        </UFormField>
-
-        <UFormField :label="$t('account.label.email')" name="email">
-          <UInput v-model="profileForm.email" class="w-full" inputmode="email" autocomplete="email" />
-        </UFormField>
-
-        <UAlert v-if="profileFailure" color="error" variant="subtle" :description="profileFailure" />
-      </UForm>
-
-      <template #footer="{ close }">
-        <UButton color="neutral" variant="ghost" :label="$t('common.action.cancel')" @click="close()" />
-        <UButton type="submit" form="profile-form" :label="$t('common.action.save')" :loading="profilePending" :disabled="profilePending || !profileDirty" />
-      </template>
-    </SettingsDialog>
+    <ProfileDialog v-if="account !== undefined" v-model:open="editingProfile" :user="account" :profile="profile" @saved="profileSaved" />
   </div>
 </template>
 
@@ -129,10 +100,6 @@ const profile = ref<UserProfile | null>(null);
 const profileReading = ref(false);
 const profileFailed = ref("");
 const editingProfile = ref(false);
-const profilePending = ref(false);
-const profileFailure = ref<string | null>(null);
-const profileForm = reactive<UserProfile>({ fullName: "", jobTitle: "", landline: "", mobile: "", email: "" });
-const PROFILE_FIELDS: (keyof UserProfile)[] = ["fullName", "jobTitle", "landline", "mobile", "email"];
 // The row's line: the person's name and the job title, those the account keeps.
 const profileLine = computed(() => (profile.value === null ? "" : [profile.value.fullName, profile.value.jobTitle].filter((part) => part !== "").join(" · ")));
 
@@ -157,40 +124,16 @@ async function readProfile(): Promise<void> {
 function openProfile(): void {
   if (profile.value === null) return;
 
-  Object.assign(profileForm, profile.value);
-  profileFailure.value = null;
   done.value = false;
   editingProfile.value = true;
 }
 
-const profileDirty = computed(() => {
-  const saved = profile.value;
-
-  return saved !== null && PROFILE_FIELDS.some((field) => profileForm[field] !== saved[field]);
-});
-
-async function saveProfile(): Promise<void> {
-  const id = account.value;
-
-  if (!profileDirty.value || id === undefined) return;
-
-  profilePending.value = true;
-  profileFailure.value = null;
-
-  try {
-    const saved = await $fetch<UserProfile>(`/api/users/${id}/profile`, { method: "PUT", body: { ...profileForm } });
-
-    profile.value = saved;
-    Object.assign(profileForm, saved);
-    // The user menu reads the person's name from the session, which the save wrote again.
-    await refreshSession();
-    editingProfile.value = false;
-    done.value = true;
-  } catch (error) {
-    profileFailure.value = failureText(error, t("account.error.profile_write_failed"));
-  } finally {
-    profilePending.value = false;
-  }
+// A profile saved stands as the service answered it, and the user menu reads the person's name from the session, which
+// the save wrote again.
+async function profileSaved(saved: UserProfile): Promise<void> {
+  profile.value = saved;
+  await refreshSession();
+  done.value = true;
 }
 
 // The session's user may land after this section is drawn, so the read waits for the account it is made for.

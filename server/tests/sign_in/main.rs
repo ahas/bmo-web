@@ -1,6 +1,7 @@
 //! Signing in through the service as the console does: the moved account's hash, made the way the console
-//! makes it, signs in with the same password, and the session it is handed names that user. The sessions
-//! stand on the machine's Valkey, in a database of the tests' own.
+//! makes it, signs in with the same password, and the session it is handed names that user; the moment of a
+//! sign-in that answered with a session is kept and the people roster reports it, and a refused one keeps
+//! nothing. The sessions stand on the machine's Valkey, in a database of the tests' own.
 
 // A target of its own (bmo-chat's docs/conventions.md, 「Rust builds」): sumida reads its settings once per
 // process, at its first reading, and this test sets them to its own database and Valkey database before that
@@ -58,10 +59,38 @@ async fn the_moved_account_signs_in_with_its_own_password() {
   let refused = app.clone().oneshot(sign_in("boss", "not the password")).await.unwrap();
 
   assert_eq!(refused.status(), StatusCode::UNAUTHORIZED);
+  // A refused sign-in keeps no moment.
+  assert_eq!(scratch.count(r#"SELECT count(*) FROM "user_sign_ins""#, vec![]).await, 0);
 
   let signed = app.clone().oneshot(sign_in("boss", "the password")).await.unwrap();
 
   assert_eq!(signed.status(), StatusCode::OK);
+
+  // The sign-in that answered with a session keeps its moment, and the roster reports it.
+  let boss = scratch
+    .count(r#"SELECT "id"::bigint FROM "users" WHERE "username" = 'boss'"#, vec![])
+    .await;
+  let kept = scratch
+    .count(r#"SELECT "signed_in_at" FROM "user_sign_ins" WHERE "user_id" = $1"#, vec![boss.into()])
+    .await;
+  let roster = app
+    .clone()
+    .oneshot(
+      Request::get(format!("/people/{boss}"))
+        .header(header::AUTHORIZATION, "Bearer a token")
+        .header("owner-key", boss.to_string())
+        .body(Body::empty())
+        .unwrap(),
+    )
+    .await
+    .unwrap();
+
+  assert_eq!(roster.status(), StatusCode::OK);
+
+  let body = roster.into_body().collect().await.unwrap().to_bytes();
+  let said: serde_json::Value = serde_json::from_slice(&body).unwrap();
+
+  assert_eq!(said["lastSignInAt"], kept, "{said}");
 
   let cookie = signed
     .headers()

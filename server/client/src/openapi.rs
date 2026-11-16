@@ -418,6 +418,64 @@ pub fn openapi() -> Value {
   );
   add!(
     "GET",
+    "/people/companies",
+    "rosterCompanies",
+    "People roster",
+    "The companies the reader looks through, each by its id and name, in name order: every company for the administrator, the companies whose own unit the reader is granted head of otherwise, and none for anyone else.",
+    params: vec![owner_key()],
+    body: None,
+    answers: vec![(200, json_answer::<RosterCompanies>(&mut generator))],
+    codes: vec!["unauthorized", "forbidden", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/people",
+    "roster",
+    "People roster",
+    "One page of the people the reader looks through, in the order of their names, case set aside, then their user ids, each with their job title and, for the administrator alone, their email, with how many match the whole ask and the place the next page starts; 50 where no limit is named and never more than 100.",
+    params: vec![
+      parameter("q", "string", false),
+      parameter("company", "integer", false),
+      parameter("unit", "integer", false),
+      json!({
+        "name": "role",
+        "in": "query",
+        "required": false,
+        "schema": { "type": "string", "enum": ["head", "member"] },
+      }),
+      json!({
+        "name": "state",
+        "in": "query",
+        "required": false,
+        "schema": { "type": "string", "enum": ["active", "pending", "left"] },
+      }),
+      parameter("after", "string", false),
+      parameter("limit", "integer", false),
+      owner_key(),
+    ],
+    body: None,
+    answers: vec![(200, json_answer::<RosterPage>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/people/{user}",
+    "rosterPerson",
+    "People roster",
+    "One person the reader looks through, as a page answers them, with their landline and mobile for the administrator alone, their unit's path, the units they are granted head of, their departure and their machine's standing.",
+    params: vec![string_path("user"), owner_key()],
+    body: None,
+    answers: vec![(200, json_answer::<RosterDetail>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
     "/users/{user}",
     "user",
     "Users and senders",

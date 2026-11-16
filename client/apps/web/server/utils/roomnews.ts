@@ -62,7 +62,8 @@ export interface RoomRingerDeps {
   seeing: (chatId: number) => ReadonlySet<string>;
   // When the room was last looked at, in epoch milliseconds.
   lastLooked: (chatId: number) => number | null;
-  ring: (payload: PushPayload, looking: ReadonlySet<string>) => Promise<unknown>;
+  // Rings for the room every device whose account's room list holds it, save the accounts looking at it.
+  ring: (payload: PushPayload, looking: ReadonlySet<string>, chatId: number) => Promise<unknown>;
   now: () => number;
   later: (run: () => void, ms: number) => () => void;
   failed: (error: unknown) => void;
@@ -159,7 +160,7 @@ export class RoomRinger {
     this.rung.set(chatId, { count: this.deps.seeing(chatId).size > 0 ? 0 : count, at: now });
 
     try {
-      await this.deps.ring(roomPush({ base: this.deps.base, chatId, room: await this.deps.title(chatId), latest: gathered.latest, count }), looking);
+      await this.deps.ring(roomPush({ base: this.deps.base, chatId, room: await this.deps.title(chatId), latest: gathered.latest, count }), looking, chatId);
     } catch (error) {
       this.deps.failed(error);
     }

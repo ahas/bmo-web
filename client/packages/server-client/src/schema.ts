@@ -368,6 +368,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/people": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One page of the people the reader looks through, in the order of their names, case set aside, then their user ids, each with their job title and, for the administrator alone, their email, with how many match the whole ask and the place the next page starts; 50 where no limit is named and never more than 100. */
+        get: operations["roster"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/people/companies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The companies the reader looks through, each by its id and name, in name order: every company for the administrator, the companies whose own unit the reader is granted head of otherwise, and none for anyone else. */
+        get: operations["rosterCompanies"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/people/{user}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One person the reader looks through, as a page answers them, with their landline and mobile for the administrator alone, their unit's path, the units they are granted head of, their departure and their machine's standing. */
+        get: operations["rosterPerson"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/phones": {
         parameters: {
             query?: never;
@@ -1733,6 +1784,115 @@ export interface components {
             subject: number;
             words: string;
         };
+        /**
+         * @description The companies the reader looks through in the people roster (docs/accounts.md, 「The people roster」), in
+         *     name order; empty for a reader who looks through none.
+         */
+        RosterCompanies: {
+            companies: components["schemas"]["UnitRef"][];
+        };
+        /**
+         * @description One person of the people roster opened (docs/accounts.md, 「The people roster」): what a page answers
+         *     of them, with their landline and mobile for the administrator alone, their unit's path from the company
+         *     down, the units they are granted head of directly, their departure and their machine.
+         */
+        RosterDetail: {
+            /** @description Whether they are the platform administrator. */
+            administrator: boolean;
+            company: components["schemas"]["UnitRef"];
+            /** @description The email, for the administrator alone. */
+            email?: string | null;
+            /** @description Whether they are granted head of the unit they stand in. */
+            head: boolean;
+            headOf: components["schemas"]["UnitRef"][];
+            /** @description The job title, empty where none is kept. */
+            jobTitle: string;
+            landline?: string | null;
+            /**
+             * Format: int64
+             * @description When the user last signed in; none where they never have since the service kept it.
+             */
+            lastSignInAt: number | null;
+            left: components["schemas"]["RosterLeft"] | null;
+            login: string;
+            /** @description The machine the account is bound to, by its name; none where it is bound to none. */
+            machine: string | null;
+            machineStanding: components["schemas"]["RosterMachine"] | null;
+            /**
+             * Format: int64
+             * @description When the account was made.
+             */
+            madeAt: number;
+            mobile?: string | null;
+            /** @description The person's name, the login where none stands. */
+            name: string;
+            path: components["schemas"]["UnitRef"][];
+            state: components["schemas"]["RosterState"];
+            unit: components["schemas"]["UnitRef"];
+            user: string;
+        };
+        /** @description When a person in the roster left, and who marked it. */
+        RosterLeft: {
+            /** Format: int64 */
+            at: number;
+            /** @description The user who marked it. */
+            by: string;
+            /** @description That user's name, the login where none stands. */
+            byName: string;
+        };
+        /** @description The machine a person in the roster is bound to: its name, whether it is shared, when it was last proven. */
+        RosterMachine: {
+            name: string;
+            /** Format: int64 */
+            provenAt: number | null;
+            shared: boolean;
+        };
+        /**
+         * @description One page of the people roster: its people, how many people match the whole ask, and the place to ask the
+         *     next page from in `after`, none where nothing stands past it.
+         */
+        RosterPage: {
+            next: string | null;
+            people: components["schemas"]["RosterPerson"][];
+            /** Format: int64 */
+            total: number;
+        };
+        /** @description One person as a page of the people roster answers them (docs/accounts.md, 「The people roster」). */
+        RosterPerson: {
+            /** @description Whether they are the platform administrator. */
+            administrator: boolean;
+            company: components["schemas"]["UnitRef"];
+            /** @description The email, for the administrator alone. */
+            email?: string | null;
+            /** @description Whether they are granted head of the unit they stand in. */
+            head: boolean;
+            /** @description The job title, empty where none is kept. */
+            jobTitle: string;
+            /**
+             * Format: int64
+             * @description When the user last signed in; none where they never have since the service kept it.
+             */
+            lastSignInAt: number | null;
+            login: string;
+            /** @description The machine the account is bound to, by its name; none where it is bound to none. */
+            machine: string | null;
+            /**
+             * Format: int64
+             * @description When the account was made.
+             */
+            madeAt: number;
+            /** @description The person's name, the login where none stands. */
+            name: string;
+            state: components["schemas"]["RosterState"];
+            unit: components["schemas"]["UnitRef"];
+            user: string;
+        };
+        /**
+         * @description Where an account stands in the people roster: in use, made by an invitation and not yet enabled, or
+         *     marked left.
+         * @enum {string}
+         */
+        RosterState: "active" | "pending" | "left";
         /** @description A secret the store holds, by its name: its size and when it last changed, never its value. */
         Secret: {
             /** Format: int64 */
@@ -2924,6 +3084,112 @@ export interface operations {
                 };
             };
             /** @description A refusal or failure: not-found, invite-open, no-hub, upstream-failed, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    roster: {
+        parameters: {
+            query?: {
+                q?: string;
+                company?: number;
+                unit?: number;
+                role?: "head" | "member";
+                state?: "active" | "pending" | "left";
+                after?: string;
+                limit?: number;
+            };
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RosterPage"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    rosterCompanies: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RosterCompanies"];
+                };
+            };
+            /** @description A refusal or failure: unauthorized, forbidden, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    rosterPerson: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RosterDetail"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;

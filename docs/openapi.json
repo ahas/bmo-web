@@ -1997,6 +1997,308 @@
         ],
         "type": "object"
       },
+      "RosterCompanies": {
+        "description": "The companies the reader looks through in the people roster (docs/accounts.md, 「The people roster」), in\nname order; empty for a reader who looks through none.",
+        "properties": {
+          "companies": {
+            "items": {
+              "$ref": "#/components/schemas/UnitRef"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "companies"
+        ],
+        "type": "object"
+      },
+      "RosterDetail": {
+        "description": "One person of the people roster opened (docs/accounts.md, 「The people roster」): what a page answers\nof them, with their landline and mobile for the administrator alone, their unit's path from the company\ndown, the units they are granted head of directly, their departure and their machine.",
+        "properties": {
+          "administrator": {
+            "description": "Whether they are the platform administrator.",
+            "type": "boolean"
+          },
+          "company": {
+            "$ref": "#/components/schemas/UnitRef"
+          },
+          "email": {
+            "description": "The email, for the administrator alone.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "head": {
+            "description": "Whether they are granted head of the unit they stand in.",
+            "type": "boolean"
+          },
+          "headOf": {
+            "items": {
+              "$ref": "#/components/schemas/UnitRef"
+            },
+            "type": "array"
+          },
+          "jobTitle": {
+            "description": "The job title, empty where none is kept.",
+            "type": "string"
+          },
+          "landline": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lastSignInAt": {
+            "description": "When the user last signed in; none where they never have since the service kept it.",
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "left": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RosterLeft"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "login": {
+            "type": "string"
+          },
+          "machine": {
+            "description": "The machine the account is bound to, by its name; none where it is bound to none.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "machineStanding": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RosterMachine"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "madeAt": {
+            "description": "When the account was made.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "mobile": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "description": "The person's name, the login where none stands.",
+            "type": "string"
+          },
+          "path": {
+            "items": {
+              "$ref": "#/components/schemas/UnitRef"
+            },
+            "type": "array"
+          },
+          "state": {
+            "$ref": "#/components/schemas/RosterState"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/UnitRef"
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user",
+          "login",
+          "name",
+          "company",
+          "unit",
+          "head",
+          "administrator",
+          "state",
+          "machine",
+          "madeAt",
+          "lastSignInAt",
+          "jobTitle",
+          "path",
+          "headOf",
+          "left",
+          "machineStanding"
+        ],
+        "type": "object"
+      },
+      "RosterLeft": {
+        "description": "When a person in the roster left, and who marked it.",
+        "properties": {
+          "at": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "by": {
+            "description": "The user who marked it.",
+            "type": "string"
+          },
+          "byName": {
+            "description": "That user's name, the login where none stands.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "at",
+          "by",
+          "byName"
+        ],
+        "type": "object"
+      },
+      "RosterMachine": {
+        "description": "The machine a person in the roster is bound to: its name, whether it is shared, when it was last proven.",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "provenAt": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "shared": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "shared",
+          "provenAt"
+        ],
+        "type": "object"
+      },
+      "RosterPage": {
+        "description": "One page of the people roster: its people, how many people match the whole ask, and the place to ask the\nnext page from in `after`, none where nothing stands past it.",
+        "properties": {
+          "next": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "people": {
+            "items": {
+              "$ref": "#/components/schemas/RosterPerson"
+            },
+            "type": "array"
+          },
+          "total": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "people",
+          "total",
+          "next"
+        ],
+        "type": "object"
+      },
+      "RosterPerson": {
+        "description": "One person as a page of the people roster answers them (docs/accounts.md, 「The people roster」).",
+        "properties": {
+          "administrator": {
+            "description": "Whether they are the platform administrator.",
+            "type": "boolean"
+          },
+          "company": {
+            "$ref": "#/components/schemas/UnitRef"
+          },
+          "email": {
+            "description": "The email, for the administrator alone.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "head": {
+            "description": "Whether they are granted head of the unit they stand in.",
+            "type": "boolean"
+          },
+          "jobTitle": {
+            "description": "The job title, empty where none is kept.",
+            "type": "string"
+          },
+          "lastSignInAt": {
+            "description": "When the user last signed in; none where they never have since the service kept it.",
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "login": {
+            "type": "string"
+          },
+          "machine": {
+            "description": "The machine the account is bound to, by its name; none where it is bound to none.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "madeAt": {
+            "description": "When the account was made.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "name": {
+            "description": "The person's name, the login where none stands.",
+            "type": "string"
+          },
+          "state": {
+            "$ref": "#/components/schemas/RosterState"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/UnitRef"
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user",
+          "login",
+          "name",
+          "company",
+          "unit",
+          "head",
+          "administrator",
+          "state",
+          "machine",
+          "madeAt",
+          "lastSignInAt",
+          "jobTitle"
+        ],
+        "type": "object"
+      },
+      "RosterState": {
+        "description": "Where an account stands in the people roster: in use, made by an invitation and not yet enabled, or\nmarked left.",
+        "enum": [
+          "active",
+          "pending",
+          "left"
+        ],
+        "type": "string"
+      },
       "Secret": {
         "description": "A secret the store holds, by its name: its size and when it last changed, never its value.",
         "properties": {
@@ -4477,6 +4779,245 @@
           "no-hub",
           "upstream-failed",
           "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/people": {
+      "get": {
+        "operationId": "roster",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "company",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "unit",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "role",
+            "required": false,
+            "schema": {
+              "enum": [
+                "head",
+                "member"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "state",
+            "required": false,
+            "schema": {
+              "enum": [
+                "active",
+                "pending",
+                "left"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "after",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterPage"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "One page of the people the reader looks through, in the order of their names, case set aside, then their user ids, each with their job title and, for the administrator alone, their email, with how many match the whole ask and the place the next page starts; 50 where no limit is named and never more than 100.",
+        "tags": [
+          "People roster"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/people/companies": {
+      "get": {
+        "operationId": "rosterCompanies",
+        "parameters": [
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterCompanies"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: unauthorized, forbidden, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The companies the reader looks through, each by its id and name, in name order: every company for the administrator, the companies whose own unit the reader is granted head of otherwise, and none for anyone else.",
+        "tags": [
+          "People roster"
+        ],
+        "x-codes": [
+          "unauthorized",
+          "forbidden",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/people/{user}": {
+      "get": {
+        "operationId": "rosterPerson",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterDetail"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "One person the reader looks through, as a page answers them, with their landline and mobile for the administrator alone, their unit's path, the units they are granted head of, their departure and their machine's standing.",
+        "tags": [
+          "People roster"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
           "not-in-force",
           "database",
           "failed"

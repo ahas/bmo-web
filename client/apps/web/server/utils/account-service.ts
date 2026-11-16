@@ -10,6 +10,7 @@ import {
   type Members,
   type PersonMove,
   type People as WirePeople,
+  type RosterPerson as WireRosterPerson,
   type Person as WirePerson,
   type SectionRow,
   type Sections,
@@ -40,6 +41,7 @@ import type { PersonView } from "#shared/people";
 import type { SecretFile, SecretKind } from "#shared/secret-kinds";
 import type { KeptSecret } from "#shared/types";
 import type { CompanyBmoView, OwnBmoParts, OwnBmoView, PermissionSetting, PermissionTree } from "#shared/bmo-profile";
+import type { RosterAsk, RosterDetail, RosterPage, RosterPerson, RosterUnit } from "#shared/roster";
 
 /** The server's base address; `WEB_SERVER_ADDRESS` where none is given. */
 export interface ServiceOptions {
@@ -376,6 +378,66 @@ export async function personOf(
   if (reply.response.status === 404) return null;
 
   return personView(answered<WirePerson>(reply));
+}
+
+/** The companies the reader looks through on the people roster (docs/accounts.md, 「The people roster」); none for a
+ * reader who looks through none. */
+export async function rosterCompanies(caller: ProfileCaller, options: ServiceOptions = {}): Promise<RosterUnit[]> {
+  const reply = await sent(options, clientOf(options).GET("/people/companies", { params: { header: profileHeaders(caller) } }));
+
+  return answered(reply).companies.map(unitOf);
+}
+
+/** One page of the people the reader looks through, as `ask` narrows them. */
+export async function rosterPage(ask: RosterAsk, caller: ProfileCaller, options: ServiceOptions = {}): Promise<RosterPage> {
+  const reply = await sent(options, clientOf(options).GET("/people", { params: { query: ask, header: profileHeaders(caller) } }));
+  const page = answered(reply);
+
+  return { people: page.people.map(rosterPersonOf), total: page.total, next: page.next ?? null };
+}
+
+/** One person the reader looks through, or null where they stand in no company the reader looks through. */
+export async function rosterPerson(user: UserId | number, caller: ProfileCaller, options: ServiceOptions = {}): Promise<RosterDetail | null> {
+  const reply = await sent(options, clientOf(options).GET("/people/{user}", { params: { path: { user: userPath(user) }, header: profileHeaders(caller) } }));
+
+  if (reply.response.status === 404) return null;
+
+  const person = answered(reply);
+
+  return {
+    ...rosterPersonOf(person),
+    landline: person.landline ?? undefined,
+    mobile: person.mobile ?? undefined,
+    path: person.path.map(unitOf),
+    headOf: person.headOf.map(unitOf),
+    left: person.left === undefined || person.left === null ? null : { at: person.left.at, byName: person.left.byName },
+    machineStanding:
+      person.machineStanding === undefined || person.machineStanding === null
+        ? null
+        : { name: person.machineStanding.name, shared: person.machineStanding.shared, provenAt: person.machineStanding.provenAt ?? null }
+  };
+}
+
+function unitOf(unit: { id: number; name: string }): RosterUnit {
+  return { id: unit.id, name: unit.name };
+}
+
+function rosterPersonOf(person: WireRosterPerson): RosterPerson {
+  return {
+    user: person.user,
+    login: person.login,
+    name: person.name,
+    company: unitOf(person.company),
+    unit: unitOf(person.unit),
+    head: person.head,
+    administrator: person.administrator,
+    state: person.state,
+    machine: person.machine ?? null,
+    madeAt: person.madeAt,
+    lastSignInAt: person.lastSignInAt ?? null,
+    jobTitle: person.jobTitle,
+    email: person.email ?? undefined
+  };
 }
 
 /** Every user, for the administrator's screen that sets one person's sections. */

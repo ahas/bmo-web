@@ -1802,6 +1802,68 @@ people:
   error:
     read_failed: 사람 정보를 불러오지 못했습니다.
     not_found: 사람을 찾을 수 없습니다.
+roster:
+  label:
+    tab: 사용자
+    state: 상태
+    machine: 기기
+    last_sign_in: 최근 로그인
+    made_at: 만든 날짜
+    administrator: 관리자
+    head_of: 조직장인 조직
+    left_by: "{time} · {name} 처리"
+    choose: 사용자를 선택해 주세요.
+    no_bmo: BMO 없음
+    persona_length: "{count}자"
+    runs: 최근 활동
+    private_room: 개인 대화
+    group_room: 그룹
+    message_count: "메시지 {count}개"
+    context: "{carried}/{window} {share}%"
+    no_rooms: 방 없음
+    no_agents: 에이전트 없음
+    no_sessions: 세션 없음
+    no_runs: 최근 활동 없음
+  placeholder:
+    search: 이름, 아이디, 조직으로 찾기
+  action:
+    filter: 필터
+    manage: 관리
+    profile: 프로필 변경
+    sections: 섹션 권한
+  aria:
+    count: "찾은 사용자 {count}명"
+  status:
+    active: 활성
+    pending: 기기 연결 대기
+    left: 탈퇴
+    on: 켜짐
+    off: 꺼짐
+    loading: 사용자 불러오는 중…
+    more_loading: 사용자 더 불러오는 중…
+    person_loading: 사용자 정보 불러오는 중…
+    bmo_loading: BMO 불러오는 중…
+    rooms_loading: 방 불러오는 중…
+    agents_loading: 에이전트 불러오는 중…
+    sessions_loading: 세션 불러오는 중…
+    runs_loading: 최근 활동 불러오는 중…
+    none: 사용자 없음
+    no_results: 검색 결과 없음
+    end: 목록 끝
+    run_running: 실행 중
+    run_completed: 완료
+    run_failed: 실패
+    run_stopped: 중지
+    run_ended: 끝
+    run_ended_as: "끝 · {outcome}"
+  error:
+    read_failed: 사용자 목록을 불러오지 못했습니다.
+    person_read_failed: 사용자 정보를 불러오지 못했습니다.
+    bmo_read_failed: BMO를 불러오지 못했습니다.
+    rooms_read_failed: 방을 불러오지 못했습니다.
+    agents_read_failed: 에이전트를 불러오지 못했습니다.
+    sessions_read_failed: 세션을 불러오지 못했습니다.
+    runs_read_failed: 최근 활동을 불러오지 못했습니다.
 permissions:
   label:
     administrator: 플랫폼 관리자는 모든 섹션을 읽고 쓸 수 있습니다.

@@ -128,6 +128,23 @@ types; `server/client/` is the Rust crate the server answers with and that docum
   A person coming from another unit is no longer granted head of the unit they leave; a grant above it stays
   (`docs/accounts.md`, 「Companies and organisation units」).
 
+### The people roster
+
+| Route | Request | Answer |
+|---|---|---|
+| `GET /people/companies` | the login's user in `Owner-Key` | `companies`: the companies the reader looks through, each a unit reference (`id`, `name`), in name order; empty for a reader who looks through none; 403 where the call names no user of the deployment |
+| `GET /people?q=&company=&unit=&role=&state=&after=&limit=` | the same | `people`: each `user`, `login`, `name` (the person's name, the login where none stands), `company` and `unit` (unit references), `head` (granted head of the unit they stand in), `administrator`, `state` (`active`, `pending` or `left`), `machine` (the machine's name, or null), `madeAt` and `lastSignInAt` (or null), `jobTitle` (empty where none is kept) and `email?` for the administrator alone; `total`, how many people match the whole ask; `next`, the place to ask the next page from in `after`, or null past the last; 400 for a `role` but `head` or `member`, a `state` but the three, a number that is none or an `after` that names no place; 403 `forbidden` for a reader who looks through no company; 404 `not-found` for a `company` or a `unit` the reader does not look through |
+| `GET /people/{user}` | the same | one person in the same shape as a page row, with `landline?` and `mobile?` for the administrator alone, `path` (unit references from the company down to their unit), `headOf` (the units they are granted head of directly), `left` (`at`, `by`, the user who marked it, and `byName`, or null) and `machineStanding` (`name`, `shared`, `provenAt` or null; or null where no machine is bound); 400 where the user is no id; 403 `forbidden` for a reader who looks through no company; 404 `not-found` where the person stands in no company the reader looks through |
+
+- **Who looks through what.** The platform administrator looks through every company; a user granted head of a
+  company's own unit directly looks through that company and every unit under it; anyone else looks through none
+  (`docs/accounts.md`, 「The people roster」).
+- **A page** is in the order of the people's names, case set aside, then their user ids, 50 people where no `limit`
+  is named and never more than 100. `after` is the opaque place a page's `next` names, the last person's name as
+  the roster orders it and their user id, written in URL-safe base64; a caller hands it on as it stands. `q` is
+  matched as the people directory's search is, the contact details for the administrator alone; `unit` takes in
+  every unit under it.
+
 ### BMO profiles
 
 | Route | Request | Answer |
@@ -398,7 +415,7 @@ bans read (`docs/accounts.md`, 「sumida's own routes」).
 
 | Route | What it is |
 |---|---|
-| `POST /sumida/auth/session` | sign-in, with the name and the password; answers the session cookie, `bmo.sid`, or 401 |
+| `POST /sumida/auth/session` | sign-in, with the name and the password; answers the session cookie, `bmo.sid`, or 401; the moment of a sign-in that answers with a session is kept for the people roster below |
 | `DELETE /sumida/auth/session` | sign-out, with the cookie |
 | `GET /sumida/me` | who a session is, with the cookie; 401 where it is no live session |
 

@@ -25,7 +25,7 @@ use crate::{Refusal, Service, all, one, run};
 pub const UNIT: &str = "organization";
 const HEADS: &str = "manage";
 /// The relation a head is granted under.
-const HEAD_GRANT: &str = "manager";
+pub const HEAD_GRANT: &str = "manager";
 
 /// The routes of this module.
 pub fn routes() -> Router<Service> {

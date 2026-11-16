@@ -216,104 +216,9 @@
       </template>
     </SettingsDialog>
 
-    <!-- A person's machine (docs/accounts.md, 「Invitations and a person's machine」): the one their account is bound
-         to, bound to another — the one named, or a fresh name — with its installs until it attaches, declared shared
-         where it stands so other accounts may be bound to it too, or taken away. -->
-    <SettingsDialog v-model:open="machineOpen" :title="machineUser === null ? '' : $t('organization.label.machine', { name: nameOf(machineUser) })" :dirty="false">
-      <div class="flex flex-col gap-4">
-        <ContentSkeleton v-if="machine === null && machineFailure === ''" :rows="1" :label="$t('organization.status.loading')">
-          <SkeletonLine width="w-1/2" />
-        </ContentSkeleton>
-        <template v-else>
-          <div v-if="machine !== null" class="flex items-center gap-2" data-machine>
-            <template v-if="machine.agent !== undefined && machine.agent !== null">
-              <code class="text-sm">{{ machine.agent }}</code>
-              <UBadge :color="machine.attached ? 'success' : 'warning'" variant="subtle" :label="machine.attached ? $t('organization.status.attached') : $t('organization.status.waiting')" />
-              <UBadge v-if="machine.shared" color="neutral" variant="subtle" :label="$t('organization.status.shared')" data-machine-shared-state />
-            </template>
-            <span v-else class="text-sm text-muted">{{ $t("organization.label.machine_none") }}</span>
-          </div>
-
-          <UFormField :label="$t('organization.label.machine_name')">
-            <UInput v-model="machineName" :placeholder="$t('organization.label.machine_name_placeholder')" class="w-full" />
-          </UFormField>
-
-          <USwitch v-model="machineShared" :label="$t('organization.label.machine_shared')" :description="$t('organization.label.machine_shared_help')" data-machine-shared />
-
-          <div v-if="installs.length > 0" class="flex flex-col gap-2">
-            <p class="whitespace-pre-line text-sm">{{ $t("organization.message.install") }}</p>
-            <div v-for="install in installs" :key="install.label" class="flex flex-col gap-1">
-              <span class="text-sm font-medium">{{ install.label }}</span>
-              <div class="flex items-start gap-2">
-                <code class="min-w-0 flex-1 break-all rounded-md bg-elevated p-2 text-sm">{{ install.line }}</code>
-                <UTooltip :text="$t('common.action.copy')">
-                  <UButton color="neutral" variant="ghost" icon="i-material-symbols-content-copy-outline" :aria-label="$t('common.action.copy')" @click="copy(install.line)" />
-                </UTooltip>
-              </div>
-            </div>
-          </div>
-
-          <UAlert v-if="machineFailure !== ''" color="error" variant="subtle" :description="machineFailure" />
-        </template>
-      </div>
-
-      <template #footer>
-        <UButton v-if="bound" color="error" variant="ghost" :label="$t('organization.action.unbind')" :loading="machineBusy === 'unbind'" :disabled="machineBusy !== null" @click="unbind" />
-        <UButton
-          v-if="bound"
-          color="neutral"
-          variant="ghost"
-          :label="machine?.shared ? $t('organization.action.unshare') : $t('organization.action.share')"
-          :loading="machineBusy === 'share'"
-          :disabled="machineBusy !== null"
-          data-machine-share
-          @click="share"
-        />
-        <UButton v-if="waiting" color="neutral" variant="subtle" :label="$t('organization.action.check')" :loading="machineBusy === 'check'" :disabled="machineBusy !== null" @click="check" />
-        <UButton :label="bound ? $t('organization.action.rebind') : $t('organization.action.bind')" :loading="machineBusy === 'bind'" :disabled="machineBusy !== null || machine === null" @click="bind" />
-      </template>
-    </SettingsDialog>
-
-    <!-- A move of the people chosen (docs/web.md, 「Organisation settings」, the units tab): the unit they go to and
-         the role each takes there, then who goes where, shown once before the one act writes the whole set. Closing
-         it at either step writes nothing. -->
-    <SettingsDialog v-model:open="moving" :title="moveStep === 'form' ? $t('organization.action.move') : $t('organization.action.preview')" :dirty="moveDirty">
-      <UForm v-if="moveStep === 'form'" id="unit-move-form" :state="moveDraft" class="flex flex-col gap-4" @submit="previewMove">
-        <UFormField :label="$t('organization.label.move_to')" name="to" required>
-          <USelect v-model="moveDraft.to" :items="destinations" class="w-full" data-move-to />
-        </UFormField>
-        <SettingsGroup :title="$t('organization.label.role')">
-          <SettingsRow v-for="user in moveDraft.people" :key="user" :label="nameOf(user)" data-move-person>
-            <USelect v-model="moveDraft.roles[user]" :items="roleItems" class="w-28" :aria-label="$t('organization.label.role_of', { name: nameOf(user) })" data-move-role />
-          </SettingsRow>
-        </SettingsGroup>
-      </UForm>
-
-      <div v-else class="flex flex-col divide-y divide-default" data-move-preview>
-        <div v-for="row in plan" :key="row.user" class="flex flex-col gap-1 py-3" data-move-row>
-          <span class="text-sm font-medium text-highlighted">{{ nameOf(row.user) }}</span>
-          <span v-if="row.unchanged" class="text-sm text-muted">{{ $t("organization.label.unchanged") }}</span>
-          <template v-else>
-            <span class="text-sm text-muted" data-move-units>{{ row.from === row.to ? pathText(row.to, true) : `${pathText(row.from, true)} → ${pathText(row.to, true)}` }}</span>
-            <span class="text-sm" data-move-roles>{{ row.wasHead === row.head ? roleName(row.head) : `${roleName(row.wasHead)} → ${roleName(row.head)}` }}</span>
-            <span v-if="row.headDropped" class="flex items-center gap-1 text-sm font-medium text-highlighted" data-move-head-dropped><UIcon name="i-material-symbols-person-remove-outline" class="size-4 shrink-0 text-muted" />{{ $t("organization.label.head_dropped", { unit: unitOf(row.from)?.name ?? "" }) }}</span>
-          </template>
-        </div>
-      </div>
-
-      <UAlert v-if="moveFailure !== ''" color="error" variant="subtle" :description="moveFailure" class="whitespace-pre-line" />
-
-      <template #footer="{ close }">
-        <UButton color="neutral" variant="ghost" :label="$t('common.action.cancel')" data-move-cancel @click="close()" />
-        <template v-if="moveStep === 'form'">
-          <UButton type="submit" form="unit-move-form" :label="$t('organization.action.preview')" :disabled="moveDraft.to === ''" data-move-preview-open />
-        </template>
-        <template v-else>
-          <UButton color="neutral" variant="subtle" :label="$t('common.action.back')" :disabled="moveBusy" data-move-back @click="moveStep = 'form'" />
-          <UButton :label="$t('organization.action.move_confirm')" :loading="moveBusy" :disabled="moveBusy || plan.every((row) => row.unchanged)" data-move-apply @click="applyMove" />
-        </template>
-      </template>
-    </SettingsDialog>
+    <!-- A person's machine, and a move of the people chosen, each a dialog of its own the people tab opens too. -->
+    <OrganizationMachineDialog v-model:open="machineOpen" :user="machineUser" :name="machineUser === null ? '' : nameOf(machineUser)" />
+    <OrganizationMoveDialog ref="moveDialog" v-model:open="moving" :units="units ?? []" :name-of="nameOf" @moved="chooseAll(false)" @settled="read" />
   </div>
 </template>
 
@@ -326,12 +231,12 @@ import { SPLIT_HANDLE } from "bmo-ui/app/domain/side-parts";
 
 import { useConfirm } from "~/domain/confirm";
 import { countText } from "~/domain/numbers";
-import { branchesAbove, branchesOpenAtFirst, isCompany, movePlan, unitPath } from "~/domain/organization";
+import { branchesAbove, branchesOpenAtFirst, isCompany, unitPath } from "~/domain/organization";
 import { shownName } from "~/domain/people";
 
 import type { SplitterItem } from "@nuxt/ui";
 import type { Ref } from "vue";
-import type { Rebound, UnitRow, UserNode, UserSummary } from "@web/server-client";
+import type { UnitRow, UserSummary } from "@web/server-client";
 
 const { t } = useI18n();
 const route = useRoute();
@@ -583,38 +488,13 @@ function memberRowClass(member: string): string[] {
   return classes;
 }
 
-// A move of the people chosen: the unit they go to, every unit offered by its path, and the role each takes there,
-// then the preview of who goes where, read off the units as last read, and the one act that writes it.
+// A move of the people chosen, in its own dialog: the unit they go to and the role each takes there, then the preview
+// of who goes where and the one act that writes it.
 const moving = ref(false);
-const moveStep = ref<"form" | "preview">("form");
-const moveBusy = ref(false);
-const moveFailure = ref("");
-const moveDraft = reactive<{ to: string; people: string[]; roles: Record<string, "member" | "head"> }>({ to: "", people: [], roles: {} });
-const moveDirty = computed(() => moveDraft.to !== "" || Object.values(moveDraft.roles).includes("head"));
-const destinations = computed(() => (units.value ?? []).map((unit) => ({ label: pathText(unit.id, true), value: String(unit.id) })));
-const roleItems = computed(() => [
-  { label: t("organization.label.role_member"), value: "member" },
-  { label: t("organization.label.role_head"), value: "head" }
-]);
-const plan = computed(() =>
-  movePlan(
-    units.value ?? [],
-    moveDraft.people.map((user) => ({ user, head: moveDraft.roles[user] === "head" })),
-    Number(moveDraft.to)
-  )
-);
-
-function roleName(head: boolean): string {
-  return head ? t("organization.label.role_head") : t("organization.label.role_member");
-}
+const moveDialog = useTemplateRef<{ start: (people: readonly string[], to?: number | null) => void }>("moveDialog");
 
 function openMove(): void {
-  const people = choosable.value.filter((member) => selected.value.has(member));
-
-  Object.assign(moveDraft, { to: "", people, roles: Object.fromEntries(people.map((user) => [user, "member"])) });
-  moveStep.value = "form";
-  moveFailure.value = "";
-  moving.value = true;
+  moveDialog.value?.start(choosable.value.filter((member) => selected.value.has(member)));
 }
 
 // --- People carried by the pointer onto a unit of the tree ---
@@ -672,36 +552,7 @@ function peopleDropped(event: DragEvent): void {
   if (unit === null || !(event.dataTransfer?.types.includes(PEOPLE_DRAG) ?? false)) return;
 
   event.preventDefault();
-  openMove();
-  moveDraft.to = String(unit);
-  previewMove();
-}
-
-function previewMove(): void {
-  if (moveDraft.to === "") return;
-
-  moveFailure.value = "";
-  moveStep.value = "preview";
-}
-
-// The whole set in one act, each person named with the unit they stood in when it was shown; a refusal moves nobody
-// and reads the units again, so the preview shows where everyone now stands.
-async function applyMove(): Promise<void> {
-  const people = plan.value.map((row) => ({ user: row.user, from: row.from, head: row.head }));
-
-  moveBusy.value = true;
-  moveFailure.value = "";
-  try {
-    await $fetch(`/api/organization/units/${Number(moveDraft.to)}/members`, { method: "POST", body: { people } });
-    moving.value = false;
-    selected.value = new Set();
-    anchor.value = null;
-  } catch (error) {
-    moveFailure.value = failureText(error, t("organization.error.failed"));
-  } finally {
-    moveBusy.value = false;
-  }
-  await read();
+  moveDialog.value?.start(choosable.value.filter((member) => selected.value.has(member)), unit);
 }
 
 // A person picker's words name its action rather than hint at a value, so they read at the words' own colour.
@@ -759,144 +610,16 @@ async function saveEdit(): Promise<void> {
   if (await acting(() => $fetch(`/api/organization/units/${unit.id}`, { method: "PATCH", body }), formFailure)) editing.value = false;
 }
 
-// The person whose machine is open, what the service says of it, and the installs of the machine just bound while
-// it has not attached.
+// The person whose machine is open in its dialog.
 const machineOpen = ref(false);
 const machineUser = ref<string | null>(null);
-const machine = ref<UserNode | null>(null);
-const machineName = ref("");
-const machineShared = ref(false);
-const rebound = ref<Rebound | null>(null);
-const machineFailure = ref("");
-const machineBusy = ref<"bind" | "unbind" | "check" | "share" | null>(null);
-let machineTimer: ReturnType<typeof setInterval> | undefined;
-
-const bound = computed(() => typeof machine.value?.agent === "string");
-const waiting = computed(() => bound.value && machine.value?.attached === false);
-const installs = computed(() =>
-  rebound.value === null || !waiting.value || rebound.value.agent !== machine.value?.agent
-    ? []
-    : [
-        { label: t("organization.label.linux"), line: rebound.value.install.linux },
-        { label: t("organization.label.windows"), line: rebound.value.install.windows }
-      ]
-);
-
-function machinePath(): string {
-  return `/api/organization/users/${encodeURIComponent(machineUser.value ?? "")}/node`;
-}
-
-function stopWatching(): void {
-  if (machineTimer !== undefined) clearInterval(machineTimer);
-  machineTimer = undefined;
-}
-
-async function readMachine(): Promise<void> {
-  try {
-    machine.value = await $fetch<UserNode>(machinePath());
-  } catch (error) {
-    machineFailure.value = failureText(error, t("organization.error.failed"));
-  }
-}
 
 function openMachine(user: string): void {
-  stopWatching();
   machineUser.value = user;
-  machine.value = null;
-  machineName.value = "";
-  machineShared.value = false;
-  rebound.value = null;
-  machineFailure.value = "";
   machineOpen.value = true;
-  void readMachine();
 }
-
-// The machine just bound is asked after every few seconds until it attaches, and at once when the check is pressed;
-// attached, the console's server sets it as the person's node in agency.
-async function check(): Promise<void> {
-  machineBusy.value = "check";
-  machineFailure.value = "";
-  try {
-    machine.value = await $fetch<UserNode>(`${machinePath()}/proof`, { method: "POST" });
-    if (machine.value.attached) stopWatching();
-  } catch (error) {
-    machineFailure.value = failureText(error, t("organization.error.failed"));
-  } finally {
-    machineBusy.value = null;
-  }
-}
-
-async function bind(): Promise<void> {
-  stopWatching();
-  machineBusy.value = "bind";
-  machineFailure.value = "";
-  try {
-    const name = machineName.value.trim();
-
-    const binding = { ...(name === "" ? {} : { agent: name }), ...(machineShared.value ? { shared: true } : {}) };
-
-    rebound.value = await $fetch<Rebound>(machinePath(), { method: "PUT", body: binding });
-    machineName.value = "";
-    machineShared.value = false;
-    if (!rebound.value.attached) machineTimer = setInterval(() => void check(), MACHINE_CHECK_MS);
-  } catch (error) {
-    machineFailure.value = failureText(error, t("organization.error.failed"));
-  } finally {
-    machineBusy.value = null;
-  }
-  await readMachine();
-}
-
-// The machine already bound declared shared where it stands, so other accounts may be bound to it too, or no longer
-// shared; agency's record follows where the machine is attached.
-async function share(): Promise<void> {
-  machineBusy.value = "share";
-  machineFailure.value = "";
-  try {
-    machine.value = await $fetch<UserNode>(`${machinePath()}/shared`, { method: "PUT", body: { shared: machine.value?.shared !== true } });
-  } catch (error) {
-    machineFailure.value = failureText(error, t("organization.error.failed"));
-  } finally {
-    machineBusy.value = null;
-  }
-}
-
-async function unbind(): Promise<void> {
-  const taken = await confirm({
-    title: t("organization.title.unbind"),
-    item: machine.value?.agent ?? "",
-    effect: t("organization.message.unbind"),
-    confirm: t("organization.action.unbind_confirm")
-  });
-
-  if (!taken) return;
-  stopWatching();
-  machineBusy.value = "unbind";
-  machineFailure.value = "";
-  try {
-    await $fetch(machinePath(), { method: "DELETE" });
-    rebound.value = null;
-  } catch (error) {
-    machineFailure.value = failureText(error, t("organization.error.failed"));
-  } finally {
-    machineBusy.value = null;
-  }
-  await readMachine();
-}
-
-// How often a machine just bound is asked after while it has not attached.
-const MACHINE_CHECK_MS = 5_000;
-
-async function copy(text: string): Promise<void> {
-  await navigator.clipboard?.writeText(text).catch(() => undefined);
-}
-
-watch(machineOpen, (now) => {
-  if (!now) stopWatching();
-});
 
 onMounted(() => void read());
-onBeforeUnmount(stopWatching);
 
 // The tab's create: a unit, by its form.
 defineExpose({ addLabel: computed(() => t("organization.action.add")), openAdd });

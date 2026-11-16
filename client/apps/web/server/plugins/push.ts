@@ -2,6 +2,7 @@ import { createParser } from "eventsource-parser";
 
 import { exactJson } from "../utils/exact-json";
 import { EVENT_IDS, exactMessage } from "../utils/receiver";
+import { roomHearers } from "../utils/room-hearers";
 
 import type { BotEvent, ExactMessageId } from "#shared/types";
 
@@ -66,7 +67,9 @@ export default defineNitroPlugin((nitro) => {
   let run: string | null = null;
 
   // What any agent has just said in any room: both words the stream says of a room's message reach
-  // the one ringer, which reads the message off the receiver and rings only an agent's.
+  // the one ringer, which reads the message off the receiver and rings only an agent's, on the devices of the accounts
+  // whose room list holds the room.
+  const hearers = roomHearers();
   const rooms = new RoomRinger({
     base: useRuntimeConfig().app.baseURL,
     read: async (chatId, messageId) => {
@@ -79,7 +82,7 @@ export default defineNitroPlugin((nitro) => {
     lookingAt: (chatId) => roomWatchers.lookingAt(chatId, Date.now()),
     seeing: (chatId) => roomWatchers.seeing(chatId, Date.now()),
     lastLooked: (chatId) => roomWatchers.lastLooked(chatId, Date.now()),
-    ring,
+    ring: async (payload, looking, chatId) => await ring(payload, looking, async (user) => await hearers.hears(user, chatId)),
     now: Date.now,
     later: (run, ms) => {
       const timer = setTimeout(run, ms);

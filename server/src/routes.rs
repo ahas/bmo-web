@@ -94,7 +94,13 @@ pub async fn in_force(service: Service, token: String) -> Result<Router, Refusal
 
   Ok(
     Router::new()
-      .nest(SUMIDA_ROOT, Sumida::new(RULES).set_state(&service).router())
+      .nest(
+        SUMIDA_ROOT,
+        Sumida::new(RULES)
+          .set_state(&service)
+          .router()
+          .layer(from_fn_with_state(service.clone(), crate::roster::sign_ins)),
+      )
       .merge(guarded)
       .route("/health", get(health))
       .layer(sessions)
@@ -203,6 +209,7 @@ fn own() -> Router<Service> {
     .merge(crate::profiles::routes())
     .merge(crate::agents::routes())
     .merge(crate::people::routes())
+    .merge(crate::roster::routes())
     .merge(crate::sections::routes())
     .merge(crate::secrets::routes())
     .merge(crate::secret_kinds::routes())

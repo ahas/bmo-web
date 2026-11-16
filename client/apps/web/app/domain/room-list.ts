@@ -1,9 +1,10 @@
 import { isPast } from "#shared/read-place";
 
+import { useAdministrator } from "./access";
 import { useBotEvents, useLiveRefresh } from "./events";
 import { removedRoom } from "./room-removal";
 
-import type { ExactMessageId, ListedRoom, RoomRead } from "#shared/types";
+import type { BotEvent, ExactMessageId, ListedRoom, RoomRead } from "#shared/types";
 import type { ComputedRef, Ref } from "vue";
 
 // The sidebar's rooms as the signed-in reader has them: each with how many of its messages that
@@ -62,8 +63,17 @@ export function useNewestReads(rooms: Ref<ListedRoom[] | undefined>): ComputedRe
 }
 
 /**
- * The room list every shell stands in its sidebar. A message landing in any room the reader reads
- * moves that room's count and its place, so the list is read again on that news; a room whose
+ * Whether a word of the stream moves the room list (docs/web.md, 「Access」). A member's stream carries their own rooms
+ * alone, so every word does; the administrator's carries every room, so a message moves his list only where it landed
+ * in a room the list holds, and another account's conversation reads nothing again.
+ */
+export function movesRoomList(event: Pick<BotEvent, "type" | "chatId">, rooms: readonly Pick<ListedRoom, "chatId">[], administrator: boolean): boolean {
+  return !administrator || event.type !== "message" || rooms.some((room) => room.chatId === event.chatId);
+}
+
+/**
+ * The room list every shell stands in its sidebar. A message landing in a room the list holds moves
+ * that room's count and its place, so the list is read again on that news; a room whose
  * registration was removed leaves it at once, before the list is read again.
  */
 export function useRoomList() {
@@ -81,7 +91,12 @@ export function useRoomList() {
       data.value = data.value.filter((room) => room.chatId !== removed);
     }
   });
-  useLiveRefresh(() => void refresh({ dedupe: "defer" }), { on: ["message", "room-removed", "room-read"] });
+  const administrator = useAdministrator();
+
+  useLiveRefresh(() => void refresh({ dedupe: "defer" }), {
+    on: ["message", "room-removed", "room-read"],
+    where: (event) => movesRoomList(event, data.value, administrator.value)
+  });
 
   return { data: useNewestReads(data), status, error, refresh };
 }

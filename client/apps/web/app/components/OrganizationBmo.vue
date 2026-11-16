@@ -23,7 +23,7 @@
     <template v-else>
       <SettingsGroup>
         <SettingsRow :label="$t('bmo_profile.label.company')">
-          <USelect :model-value="company" :items="companyItems" class="w-48" :aria-label="$t('bmo_profile.label.company')" data-bmo-company @update:model-value="(value: string) => (company = value)" />
+          <USelect :model-value="company" :items="companyItems" class="w-48" :aria-label="$t('bmo_profile.label.company')" data-bmo-company @update:model-value="(value: string) => pickCompany(value)" />
         </SettingsRow>
       </SettingsGroup>
 
@@ -117,6 +117,8 @@ import type { InviteUnit } from "@web/server-client";
 import type { AvatarProps } from "@nuxt/ui";
 
 const { t } = useI18n();
+const route = useRoute();
+const router = useRouter();
 
 // The same read the shell's invitations entry makes, so the tab opens on what it already holds.
 const { data: unitData, status: unitsStatus, error: unitsError, pending: unitsPending, refresh: refreshUnits } = useFetch<InviteUnit[]>("/api/invites/units", { key: "invite-units", server: false, lazy: true, default: () => [] });
@@ -146,14 +148,51 @@ const defaultPicture = computed<AvatarProps>(() => ({
   alt: nameShown(t, companyDefault.value?.name ?? null)
 }));
 
-// The first company is chosen as soon as the list stands, and kept while it is still one of them.
+// The company the address names where it is one of them (docs/web.md, 「Organisation」, the BMO tab), else the first as
+// soon as the list stands, kept while it is still one of them.
+function askedCompany(): string | null {
+  const asked = route.query.company;
+
+  return companies.value.some((one) => String(one.id) === asked) ? String(asked) : null;
+}
+
 watch(
-  companies,
-  (listed) => {
-    if (!listed.some((one) => String(one.id) === company.value)) company.value = listed[0] === undefined ? "" : String(listed[0].id);
+  [companies, () => route.query.company],
+  ([listed]) => {
+    const asked = askedCompany();
+
+    if (asked !== null) company.value = asked;
+    else if (!listed.some((one) => String(one.id) === company.value)) company.value = listed[0] === undefined ? "" : String(listed[0].id);
   },
   { immediate: true }
 );
+
+// A company chosen stands in the address in place of the one before, and the unit opened under the one before goes.
+function pickCompany(value: string): void {
+  const { unit: _unit, ...rest } = route.query;
+
+  company.value = value;
+  void router.replace({ query: { ...rest, company: value } });
+}
+
+// The unit the address names is opened with its people once its company's tree stands, and brought into view: the
+// people tab's BMO permission opens the tab at a person's unit. Each unit asked is opened once, so the tree read again
+// after a choice leaves the reader where they are.
+let openedAsked = "";
+
+async function openAsked(): Promise<void> {
+  const unit = Number(route.query.unit);
+  const asked = `${company.value}:${unit}`;
+
+  if (tree.value === null || asked === openedAsked || !tree.value.units.some((one) => one.id === unit)) return;
+
+  openedAsked = asked;
+  open.value = new Set([...open.value, unit]);
+  await nextTick();
+  document.querySelector(`[data-bmo-permission="unit:${unit}"]`)?.scrollIntoView({ block: "center" });
+}
+
+watch([tree, () => route.query.unit], () => void openAsked());
 
 watch(company, () => void readCompany(), { immediate: true });
 

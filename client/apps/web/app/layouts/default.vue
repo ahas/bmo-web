@@ -175,7 +175,9 @@ import { useBotEvents, useLiveRefresh, useSupervisorsAnswering } from "~/domain/
 import { COUNT_BADGE, countText } from "~/domain/numbers";
 import { POLL_INTERVAL_MS } from "#shared/config";
 import { jumpGroups, screenGroup } from "~/domain/jump";
-import { peopleGroup } from "~/domain/people";
+import { organizationTabNamed, useOrganizationReader } from "~/domain/organization";
+import { peopleGroup, rosterGroup } from "~/domain/people";
+import { ROSTER_TAB } from "~/domain/roster";
 import { useModelNames } from "~/domain/model-names";
 import { SCREEN_FRAME, useNarrow } from "bmo-ui/app/domain/screen";
 import { useVisibleShell } from "~/domain/overlay";
@@ -188,6 +190,7 @@ import { useAskedTodo } from "~/domain/todo-address";
 
 import type { LiveRun, RoomAdded, StatusView } from "#shared/types";
 import type { PersonView } from "#shared/people";
+import type { RosterPage, RosterPerson } from "#shared/roster";
 import type { NavigationMenuItem } from "@nuxt/ui";
 import type { AgentGroup, AgentMeta, AgentRun, AgentSession } from "~/domain/agents";
 import type { JumpGroup } from "~/domain/jump";
@@ -382,9 +385,16 @@ function runEntry(agent: AgentMeta, run: AgentRun): NavigationMenuItem {
 const searchTerm = ref("");
 
 // The people the account service finds in the reader's organisation (docs/accounts.md, 「The people
-// directory」). The search asks once typing stops, and an answer to words already typed past is dropped.
+// directory」), or, for a reader who opens the organisation screen's people tab, every person that tab reaches, found
+// by its search and opening on it (docs/web.md, 「Sidebar」). The search asks once typing stops, and an answer to words
+// already typed past is dropped.
+const organizationReader = useOrganizationReader();
+const searchesRoster = computed(() => organizationTabNamed(ROSTER_TAB)?.opens(organizationReader.value) === true);
 const people = ref<PersonView[]>([]);
+const rosterPeople = ref<RosterPerson[]>([]);
 let peopleTimer: ReturnType<typeof setTimeout> | null = null;
+// How many people the palette lists of a search, as the people directory's search answers.
+const PALETTE_PEOPLE = 20;
 let peopleAsked = 0;
 
 watch(searchTerm, (term) => {
@@ -395,11 +405,24 @@ watch(searchTerm, (term) => {
 
   if (words === "") {
     people.value = [];
+    rosterPeople.value = [];
 
     return;
   }
 
   peopleTimer = setTimeout(async () => {
+    if (searchesRoster.value) {
+      try {
+        const page = await $fetch<RosterPage>("/api/organization/people", { query: { q: words, limit: PALETTE_PEOPLE } });
+
+        if (asked === peopleAsked) rosterPeople.value = page.people;
+      } catch {
+        if (asked === peopleAsked) rosterPeople.value = [];
+      }
+
+      return;
+    }
+
     try {
       const found = await $fetch<PersonView[]>("/api/people/search", { query: { q: words } });
 
@@ -416,7 +439,7 @@ onBeforeUnmount(() => {
 
 const jumpSources = computed<JumpGroup[]>((before) => sameKept(before, [
   screenGroup(t, screens),
-  peopleGroup(t, people.value),
+  searchesRoster.value ? rosterGroup(t, rosterPeople.value) : peopleGroup(t, people.value),
   {
     id: "rooms",
     label: t("common.label.room"),

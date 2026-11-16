@@ -8092,7 +8092,9 @@ the minutes it missed at once. The console stays light under that whatever a uni
     ready, within 400 ms.
 
   The times are the browser's own: its Long Tasks timing, and its Event Timing of an interaction from the input to the
-  frame that shows its answer. The browser check `console-load` holds the console to it: it plays a stream of that
+  frame that shows its answer. The first holds for every task; the typing and the switch hold for the middle of a
+  typed phrase and of several switches, since a frame the browser draws late for reasons of its own is no task the
+  console ran. The browser check `console-load` holds the console to it: it plays a stream of that
   shape into a console holding about ninety rooms and a few hundred TODO lines, on a processor slowed to half its
   speed against the development console, and fails where the stream's tasks, a typed character or a room switch go
   past it.

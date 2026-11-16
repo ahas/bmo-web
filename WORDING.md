@@ -175,6 +175,10 @@
 - page → 페이지. Never 쪽.
 - table → 테이블; row → 행; query → 쿼리, wherever the text is about a database. Never 표, 줄, 질의.
 - default → 기본값, standing only as the mark after the default value (above). Never 처음 값.
+- a value that is not set, standing alone in a table's cell or in a name and value list → `—`, the dash alone, as every
+  table of the console writes it; a moment that was never recorded → 기록 없음. The dash never stands between words, at
+  the end of a line of words or in a sentence: a line of words leaves out a part it does not have. Never 미설정, N/A or
+  a hyphen for an empty cell.
 - section → 섹션. Never 구역.
 - organisation → 조직: 조직, 같은 조직, 조직 이름. Never 단체, 기관.
 - an organisation unit, one of the tree a deployment's people stand in → 조직: 조직 추가, 상위 조직, 하위 조직; the

@@ -12,3 +12,10 @@ export interface PairRow {
   // A muted line under the value.
   under?: string;
 }
+
+/** A name whose value is still being read, and what stands beside the value's words where it is more than one line of
+ * them: a picture before the words, or a button after them. */
+export interface PairSkeleton {
+  label: string;
+  beside?: "picture" | "button";
+}

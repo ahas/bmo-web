@@ -965,6 +965,12 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       .map((one) => ({ ...one, ...privacyOf(one.id) }));
 
     if (path === "/rooms") return Response.json({ items: every, more: false });
+    // The rooms each account reads by its console memberships: the private room for its account alone, none for any
+    // other, so the fixture administrators read the rooms on the listen list as the deployment's (docs/web.md,
+    // 「Access」).
+    const member = /^\/accounts\/(\d+)\/rooms$/.exec(path);
+
+    if (member !== null) return Response.json({ rooms: Number(member[1]) === PRIVATE_ACCOUNT ? [PRIVATE_CHAT] : [] });
     if (path === `/rooms/${PRIVATE_CHAT}/messages`) {
       const after = new URL(request.url).searchParams.get("after");
 

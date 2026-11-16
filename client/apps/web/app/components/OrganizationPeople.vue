@@ -6,9 +6,16 @@
        filling the screen; the back arrow and the back gesture return to the list as it was left, which never goes
        away beneath. -->
   <div class="flex min-h-0 min-w-0 flex-1 flex-col">
-    <USplitter id="organization-people-splitter" auto-save-id="bmo-organization-people-splitter" :items="regions" :ui="{ handle: SPLIT_HANDLE }" class="min-h-0 flex-1">
+    <USplitter
+      id="organization-people-splitter"
+      auto-save-id="bmo-organization-people-splitter"
+      :items="regions"
+      :ui="{ handle: SPLIT_HANDLE }"
+      :inert="covered"
+      class="min-h-0 flex-1"
+    >
       <template #list>
-        <section class="flex min-h-0 min-w-0 flex-1 flex-col" :aria-label="$t('roster.label.tab')" data-roster-list>
+        <section ref="listRegion" class="flex min-h-0 min-w-0 flex-1 flex-col" :aria-label="$t('roster.label.tab')" data-roster-list>
           <!-- The list's head: the search box, the filters, and how many people match. -->
           <div class="flex shrink-0 flex-col gap-2 border-b border-default p-4" data-roster-head>
             <div class="flex min-w-0 items-center gap-2">
@@ -68,7 +75,7 @@
                 <span class="flex min-w-0 flex-col">
                   <SearchText class="truncate text-sm font-medium text-highlighted" :text="shownName(row.original)" :query="view.q" />
                   <!-- A hit only in a field the row does not show, said under the name. -->
-                  <span v-if="hiddenHit(row.original, true) !== null" class="truncate text-xs text-muted" data-roster-hidden-hit>
+                  <span v-if="hiddenHit(row.original, true) !== null" class="truncate text-sm text-muted" data-roster-hidden-hit>
                     {{ hiddenHit(row.original, true)!.label }} · <SearchText :text="hiddenHit(row.original, true)!.snippet" :query="view.q" />
                   </span>
                 </span>
@@ -89,7 +96,9 @@
             <template #state-cell="{ row }">
               <span :class="CELL_TEXT_LINE">
                 <HintTip :text="$t(ROSTER_STATE_FACES[row.original.state].label)" press class="inline-flex">
-                  <UIcon :name="ROSTER_STATE_FACES[row.original.state].icon" class="size-5" :class="ROSTER_STATE_FACES[row.original.state].tone" :aria-label="$t(ROSTER_STATE_FACES[row.original.state].label)" />
+                  <span role="img" class="inline-flex" :aria-label="$t(ROSTER_STATE_FACES[row.original.state].label)" data-roster-state>
+                    <UIcon :name="ROSTER_STATE_FACES[row.original.state].icon" class="size-5" :class="['badge-ink', ROSTER_STATE_FACES[row.original.state].tone]" />
+                  </span>
                 </HintTip>
               </span>
             </template>
@@ -108,11 +117,17 @@
                   <td v-for="(column, index) in columns" :key="String(column.id)" class="p-0"><div class="flex h-12 items-center px-2" :class="index === 0 ? 'ps-4' : ''"><SkeletonBar class="h-4 w-4/5" /></div></td>
                 </tr>
               </template>
+              <!-- The failure and the list's end stand in the part of the table in view, however far it is scrolled sideways:
+                   held to the region's leading edge, their cell lets them past its own clip. -->
               <tr v-else-if="moreFailure !== ''">
-                <td :colspan="columns.length" class="p-4"><FailedRead :message="moreFailure" :reading="reading" @retry="retryMore" /></td>
+                <td :colspan="columns.length" class="overflow-visible! p-0">
+                  <div class="sticky start-0 p-4" :style="{ width: `${listWidth}px` }"><FailedRead :message="moreFailure" :reading="reading" @retry="retryMore" /></div>
+                </td>
               </tr>
               <tr v-else-if="ended">
-                <td :colspan="columns.length" class="py-3 text-center text-sm text-muted" data-roster-end>{{ $t("roster.status.end") }}</td>
+                <td :colspan="columns.length" class="overflow-visible! p-0">
+                  <p class="sticky start-0 py-3 text-center text-sm text-muted" :style="{ width: `${listWidth}px` }" data-roster-end>{{ $t("roster.status.end") }}</p>
+                </td>
               </tr>
               <tr ref="foot" aria-hidden="true"><td :colspan="columns.length" class="h-px p-0" /></tr>
             </template>
@@ -132,7 +147,9 @@
                     <UAvatar v-bind="faceOf(one)" size="2xs" class="shrink-0" />
                     <SearchText class="min-w-0 flex-1 truncate text-sm font-medium text-highlighted" :text="shownName(one)" :query="view.q" />
                     <HintTip :text="$t(ROSTER_STATE_FACES[one.state].label)" press class="inline-flex shrink-0">
-                      <UIcon :name="ROSTER_STATE_FACES[one.state].icon" class="size-5" :class="ROSTER_STATE_FACES[one.state].tone" :aria-label="$t(ROSTER_STATE_FACES[one.state].label)" />
+                      <span role="img" class="inline-flex" :aria-label="$t(ROSTER_STATE_FACES[one.state].label)" data-roster-state>
+                        <UIcon :name="ROSTER_STATE_FACES[one.state].icon" class="size-5" :class="['badge-ink', ROSTER_STATE_FACES[one.state].tone]" />
+                      </span>
                     </HintTip>
                   </span>
                   <span class="flex min-w-0 items-center gap-2 text-sm text-muted">
@@ -140,7 +157,7 @@
                     <span class="shrink-0">·</span>
                     <span class="shrink-0">{{ $t(ROSTER_ROLE_LABELS[rosterRoleOf(one)]) }}</span>
                   </span>
-                  <span v-if="hiddenHit(one, false) !== null" class="truncate text-xs text-muted" data-roster-hidden-hit>
+                  <span v-if="hiddenHit(one, false) !== null" class="truncate text-sm text-muted" data-roster-hidden-hit>
                     {{ hiddenHit(one, false)!.label }} · <SearchText :text="hiddenHit(one, false)!.snippet" :query="view.q" />
                   </span>
                 </button>
@@ -173,8 +190,9 @@
       </template>
     </USplitter>
 
-    <!-- On a narrow screen the person stands over the list, the whole screen, the list kept beneath as it was. -->
-    <div v-if="narrow && user !== null" class="fixed inset-x-0 z-40 flex flex-col bg-default" :style="SCREEN_FRAME" data-roster-person-sheet>
+    <!-- On a narrow screen the person stands over the list, the whole screen, the list kept beneath as it was and out of
+         the keyboard's reach while it is covered. -->
+    <div v-if="covered && user !== null" ref="sheet" tabindex="-1" class="fixed inset-x-0 z-40 flex flex-col bg-default outline-none" :style="SCREEN_FRAME" data-roster-person-sheet>
       <div class="min-h-0 flex-1 overflow-y-auto p-4">
         <OrganizationPerson :key="user" :user="user" back @back="closePerson" @changed="personChanged" />
       </div>
@@ -182,7 +200,7 @@
 
     <UDrawer v-if="narrow" v-model:open="filtersOpen" :title="$t('roster.action.filter')">
       <template #body>
-        <OrganizationPeopleFilters stacked :view="view" :companies="companies" :units="units" @change="setView" />
+        <OrganizationPeopleFilters stacked :view="drafted ?? view" :companies="companies" :units="units" @change="(next: RosterView) => (drafted = next)" />
       </template>
     </UDrawer>
   </div>
@@ -192,7 +210,7 @@
 import { tableHeaders } from "bmo-ui/app/domain/column-widths";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useFootInView } from "bmo-ui/app/domain/foot";
-import { SCREEN_FRAME, useNarrow } from "bmo-ui/app/domain/screen";
+import { SCREEN_FRAME, useNarrow, useWidth } from "bmo-ui/app/domain/screen";
 import { SPLIT_HANDLE } from "bmo-ui/app/domain/side-parts";
 import { formatStamp, toUnixSeconds } from "bmo-ui/app/domain/time";
 
@@ -227,7 +245,16 @@ const router = useRouter();
 const narrow = useNarrow();
 
 // The companies the reader looks through, and the units the unit filter chooses among, as the invitations read them.
-const { companies } = useRosterCompanies();
+// The companies stand once this screen is in the browser's hands: the server draws none, and the shell may have read
+// them before the screen takes over what the server drew, which must match it.
+const { companies: readCompanies } = useRosterCompanies();
+const mounted = ref(false);
+const companies = computed(() => (mounted.value ? readCompanies.value : []));
+
+onMounted(() => {
+  mounted.value = true;
+});
+
 const { data: unitData } = useFetch<InviteUnit[]>("/api/invites/units", { key: "invite-units", server: false, lazy: true, default: () => [] });
 const units = computed(() => unitData.value ?? []);
 
@@ -253,6 +280,10 @@ const columns = computed<SettingsColumn<RosterPerson>[]>(() => [
   { id: "machine", header: t("roster.label.machine"), ceiling: 200 },
   { id: "signIn", header: t("roster.label.last_sign_in") }
 ]);
+
+// How wide the list's region stands, which a line across the whole table keeps to so it stays in view.
+const listRegion = useTemplateRef<HTMLElement>("listRegion");
+const listWidth = useWidth(() => listRegion.value, 0);
 
 // How many rows the next page's place stands while it comes.
 const NEXT_SKELETON_ROWS = 3;
@@ -313,6 +344,17 @@ onBeforeUnmount(() => {
 function setView(next: RosterView): void {
   void router.replace({ query: withRosterView(route.query, next) });
 }
+
+// The filters chosen in the narrow screen's drawer, held while it stands and set once it has closed, however it closed.
+// The drawer holds an entry of the history for the back gesture; an address replaced beneath it would leave the entry
+// under it on the address before, and the back gesture that closes the drawer would take the filters back with it.
+// What was chosen stays in the drawer while it slides away, and is let go as it opens again.
+const drafted = ref<RosterView | null>(null);
+
+watch(filtersOpen, (open) => {
+  if (open) drafted.value = null;
+  else if (drafted.value !== null) setView({ ...drafted.value, q: view.value.q });
+});
 
 // --- The list, a page at a time ---
 
@@ -401,10 +443,33 @@ const { adding } = useNextPages({
 
 // --- The person open ---
 
+// On a narrow screen a person chosen covers the list. The focus a row held as it opened them is handed to the person,
+// and taken back by that row as the person closes, however it closed; a person opened otherwise leaves the focus where
+// it falls.
+const covered = computed(() => narrow.value && user.value !== null);
+const sheet = useTemplateRef<HTMLElement>("sheet");
+let openedFrom: HTMLElement | null = null;
+
+watch(covered, (now) => {
+  const row = openedFrom;
+
+  if (now) {
+    if (row !== null) void nextTick(() => sheet.value?.focus({ preventScroll: true }));
+
+    return;
+  }
+
+  openedFrom = null;
+  if (row?.isConnected === true) void nextTick(() => row.focus({ preventScroll: true }));
+});
+
 // Opening a person is a step of the history, so the back gesture returns to the list.
 function openPerson(chosen: string): void {
   if (chosen === user.value) return;
 
+  const focused = document.activeElement;
+
+  openedFrom = focused instanceof HTMLElement && focused.closest("[data-roster-row], [data-roster-table] tr") !== null ? focused : null;
   void router.push({ query: { ...route.query, user: chosen } });
 }
 

@@ -38,6 +38,10 @@
           />
         </UDropdownMenu>
       </div>
+      <!-- The marks' row keeps its place while the person is read, the state's chip standing as a bar. -->
+      <div v-else-if="personFailure === ''" class="flex min-h-8 items-center">
+        <SkeletonBar class="h-7 w-16 rounded-sm" />
+      </div>
       <p v-if="actFailure !== ''" role="alert" class="text-sm break-words whitespace-pre-line text-error">{{ actFailure }}</p>
     </header>
 
@@ -75,11 +79,13 @@
     <template v-if="administrator">
       <SettingsGroup :title="$t('common.label.room')">
         <FailedRead v-if="rooms.failure.value !== ''" class="py-3" :message="rooms.failure.value" :reading="rooms.reading.value" @retry="rooms.read" />
-        <ContentSkeleton v-else-if="rooms.data.value === null" :rows="2" listClass="flex flex-col" :label="$t('roster.status.rooms_loading')">
-          <div class="flex min-h-12 items-center gap-3 py-2">
+        <ContentSkeleton v-else-if="rooms.data.value === null" :rows="2" listClass="flex flex-col py-1" :label="$t('roster.status.rooms_loading')">
+          <div class="flex items-center gap-3 py-2">
             <SkeletonBar class="size-8 shrink-0 rounded-full" />
-            <SkeletonBar class="h-4 w-1/3" />
-            <SkeletonBar class="ms-auto h-4 w-24" />
+            <span class="flex min-w-0 flex-1 flex-col">
+              <SkeletonLine width="w-1/2" />
+              <SkeletonLine width="w-1/3" />
+            </span>
           </div>
         </ContentSkeleton>
         <p v-else-if="rooms.data.value.length === 0" class="py-3 text-sm text-muted">{{ $t("roster.label.no_rooms") }}</p>
@@ -87,10 +93,15 @@
           <li v-for="room in rooms.data.value" :key="room.chatId">
             <NuxtLink :to="`/rooms/${room.chatId}`" :class="ROW_LINK">
               <UAvatar v-bind="avatarFor(avatars, 'room', room.chatId, room.title)" size="md" class="shrink-0" />
-              <HintTip :text="room.title" cut press class="min-w-0 flex-1 truncate text-sm text-highlighted">{{ room.title }}</HintTip>
-              <span class="shrink-0 text-sm text-muted">{{ $t(room.kind === "private" ? "roster.label.private_room" : "roster.label.group_room") }}</span>
-              <span class="shrink-0 text-sm text-muted tabular-nums">{{ $t("roster.label.message_count", { count: countText(room.messageCount) }) }}</span>
-              <span class="w-36 shrink-0 text-end text-sm text-muted tabular-nums">{{ room.lastMessageAt === null ? "—" : formatStamp(toUnixSeconds(room.lastMessageAt)) }}</span>
+              <span :class="ROW_LINES">
+                <span :class="ROW_LINE">
+                  <HintTip :text="room.title" cut press class="min-w-0 flex-1 truncate text-highlighted">{{ room.title }}</HintTip>
+                  <span v-if="room.lastMessageAt !== null" class="shrink-0 text-muted tabular-nums">{{ formatStamp(toUnixSeconds(room.lastMessageAt)) }}</span>
+                </span>
+                <span :class="ROW_LINE" class="text-muted">
+                  <span class="truncate tabular-nums">{{ [$t(room.kind === "private" ? "roster.label.private_room" : "roster.label.group_room"), $t("roster.label.message_count", { count: countText(room.messageCount) })].join(" · ") }}</span>
+                </span>
+              </span>
             </NuxtLink>
           </li>
         </ul>
@@ -98,24 +109,37 @@
 
       <SettingsGroup :title="$t('agents.label.column_agent')">
         <FailedRead v-if="agents.failure.value !== ''" class="py-3" :message="agents.failure.value" :reading="agents.reading.value" @retry="agents.read" />
-        <ContentSkeleton v-else-if="agents.data.value === null" :rows="2" listClass="flex flex-col" :label="$t('roster.status.agents_loading')">
-          <div class="flex min-h-12 items-center gap-3 py-2">
+        <ContentSkeleton v-else-if="agents.data.value === null" :rows="2" listClass="flex flex-col py-1" :label="$t('roster.status.agents_loading')">
+          <div class="flex items-center gap-3 py-2">
             <SkeletonBar class="size-6 shrink-0 rounded-full" />
-            <SkeletonBar class="h-4 w-1/3" />
-            <SkeletonBar class="ms-auto h-4 w-32" />
+            <span class="flex min-w-0 flex-1 flex-col">
+              <SkeletonLine width="w-1/3" />
+              <SkeletonLine width="w-1/2" />
+            </span>
           </div>
         </ContentSkeleton>
         <p v-else-if="agents.data.value.length === 0" class="py-3 text-sm text-muted">{{ $t("roster.label.no_agents") }}</p>
         <ul v-else class="flex flex-col py-1" data-roster-agents>
           <li v-for="agent in agents.data.value" :key="agent.name">
             <NuxtLink :to="agentLink(agent.name)" :class="ROW_LINK">
-              <AgentMark :agent="markOf(agent)" />
-              <span class="flex min-w-0 flex-1 flex-col">
-                <HintTip :text="agent.label" cut press class="min-w-0 truncate text-sm text-highlighted">{{ agent.label }}</HintTip>
-                <span class="truncate text-sm text-muted">{{ agent.kind === "supervisor" ? $t("agents.label.column_supervisor") : agent.role }}</span>
+              <AgentMark :agent="markOf(agent)" icon-class="size-6" aria-hidden="true" />
+              <span :class="ROW_LINES">
+                <span :class="ROW_LINE">
+                  <HintTip :text="agent.label" cut press class="min-w-0 flex-1 truncate text-highlighted">{{ agent.label }}</HintTip>
+                  <HintTip :text="$t(agent.enabled ? 'roster.status.on' : 'roster.status.off')" press class="inline-flex shrink-0">
+                    <span role="img" class="inline-flex" :aria-label="$t(agent.enabled ? 'roster.status.on' : 'roster.status.off')" data-roster-agent-state>
+                      <UIcon
+                        :name="agent.enabled ? 'i-material-symbols-toggle-on' : 'i-material-symbols-toggle-off-outline'"
+                        class="size-5"
+                        :class="agent.enabled ? 'badge-ink text-success' : 'text-muted'"
+                      />
+                    </span>
+                  </HintTip>
+                </span>
+                <span :class="ROW_LINE" class="text-muted">
+                  <span class="truncate">{{ agentLine(agent) }}</span>
+                </span>
               </span>
-              <span class="shrink-0 text-sm text-toned">{{ agent.road === null ? "—" : (roadText(providers, agent.road) ?? "—") }}</span>
-              <span class="w-12 shrink-0 text-end text-sm" :class="agent.enabled ? 'text-success' : 'text-muted'">{{ $t(agent.enabled ? "roster.status.on" : "roster.status.off") }}</span>
             </NuxtLink>
           </li>
         </ul>
@@ -123,20 +147,20 @@
 
       <SettingsGroup :title="$t('agents.label.column_sessions')">
         <FailedRead v-if="sessions.failure.value !== ''" class="py-3" :message="sessions.failure.value" :reading="sessions.reading.value" @retry="sessions.read" />
-        <ContentSkeleton v-else-if="sessions.data.value === null" :rows="2" listClass="flex flex-col" :label="$t('roster.status.sessions_loading')">
-          <div class="flex min-h-12 flex-col justify-center gap-1 py-2">
+        <ContentSkeleton v-else-if="sessions.data.value === null" :rows="2" listClass="flex flex-col py-1" :label="$t('roster.status.sessions_loading')">
+          <div class="flex flex-col py-2">
             <SkeletonLine width="w-1/3" />
             <SkeletonLine width="w-1/2" />
           </div>
         </ContentSkeleton>
         <p v-else-if="sessions.data.value.length === 0" class="py-3 text-sm text-muted">{{ $t("roster.label.no_sessions") }}</p>
         <ul v-else class="flex flex-col py-1" data-roster-sessions>
-          <li v-for="session in sessions.data.value" :key="session.id" class="flex min-h-12 min-w-0 flex-col justify-center py-2">
-            <span class="flex min-w-0 items-center gap-3">
-              <span class="min-w-0 flex-1 truncate text-sm text-highlighted">{{ session.agent }}</span>
-              <span v-if="session.context !== null" class="shrink-0 text-sm text-muted tabular-nums">{{ contextText(session.context) }}</span>
+          <li v-for="session in sessions.data.value" :key="session.id" class="py-2" :class="ROW_LINES">
+            <span :class="ROW_LINE">
+              <span class="min-w-0 flex-1 truncate text-highlighted">{{ session.agent }}</span>
+              <span v-if="session.context !== null" class="shrink-0 text-muted tabular-nums">{{ contextText(session.context) }}</span>
             </span>
-            <span class="flex min-w-0 items-center gap-3 text-sm text-muted">
+            <span :class="ROW_LINE" class="text-muted">
               <span class="min-w-0 flex-1 truncate">{{ session.roomTitle ?? session.scope }}</span>
               <span class="shrink-0 text-toned">{{ [providerWord(providers, session.provider), session.model].join(" · ") }}</span>
             </span>
@@ -146,8 +170,8 @@
 
       <SettingsGroup :title="$t('roster.label.runs')">
         <FailedRead v-if="runs.failure.value !== ''" class="py-3" :message="runs.failure.value" :reading="runs.reading.value" @retry="runs.read" />
-        <ContentSkeleton v-else-if="runs.data.value === null" :rows="3" listClass="flex flex-col" :label="$t('roster.status.runs_loading')">
-          <div class="flex min-h-12 flex-col justify-center gap-1 py-2">
+        <ContentSkeleton v-else-if="runs.data.value === null" :rows="3" listClass="flex flex-col py-1" :label="$t('roster.status.runs_loading')">
+          <div class="flex flex-col py-2">
             <SkeletonLine width="w-1/2" />
             <SkeletonLine width="w-1/3" />
           </div>
@@ -155,15 +179,17 @@
         <p v-else-if="runs.data.value.length === 0" class="py-3 text-sm text-muted">{{ $t("roster.label.no_runs") }}</p>
         <ul v-else class="flex flex-col py-1" data-roster-runs>
           <li v-for="run in runs.data.value" :key="run.id">
-            <NuxtLink :to="momentLink(run.agent, toUnixSeconds(run.startedAt))" :class="[ROW_LINK, 'flex-col items-stretch justify-center gap-0 py-2']">
-              <span class="flex min-w-0 items-center gap-3">
-                <span class="min-w-0 flex-1 truncate text-sm text-highlighted">{{ run.agent }}</span>
-                <span class="shrink-0 text-sm text-muted tabular-nums">{{ formatStamp(toUnixSeconds(run.startedAt)) }}</span>
-              </span>
-              <span class="flex min-w-0 items-center gap-3 text-sm text-muted">
-                <span class="min-w-0 flex-1 truncate">{{ run.roomTitle ?? run.name }}</span>
-                <span v-if="run.endedAt !== null" class="shrink-0 tabular-nums">{{ tookText(run.startedAt, run.endedAt) }}</span>
-                <span class="shrink-0">{{ endingText(run) }}</span>
+            <NuxtLink :to="momentLink(run.agent, toUnixSeconds(run.startedAt))" :class="ROW_LINK">
+              <span :class="ROW_LINES">
+                <span :class="ROW_LINE">
+                  <span class="min-w-0 flex-1 truncate text-highlighted">{{ run.agent }}</span>
+                  <span class="shrink-0 text-muted tabular-nums">{{ formatStamp(toUnixSeconds(run.startedAt)) }}</span>
+                </span>
+                <span :class="ROW_LINE" class="text-muted">
+                  <span class="min-w-0 flex-1 truncate">{{ run.roomTitle ?? run.name }}</span>
+                  <span v-if="run.endedAt !== null" class="shrink-0 tabular-nums">{{ tookText(run.startedAt, run.endedAt) }}</span>
+                  <span class="shrink-0">{{ endingText(run) }}</span>
+                </span>
               </span>
             </NuxtLink>
           </li>
@@ -196,7 +222,7 @@ import { organizationAddress } from "~/domain/organization";
 import { ROSTER_ROLE_LABELS, ROSTER_STATE_FACES, rosterActs, rosterRoleOf, runEnding } from "~/domain/roster";
 import { agentLink, momentLink } from "~/domain/status";
 
-import type { PairRow } from "~/domain/pair-rows";
+import type { PairRow, PairSkeleton } from "~/domain/pair-rows";
 import type { AgentMarkSubject } from "~/domain/agent-face";
 import type { RosterAct } from "~/domain/roster";
 import type { RosterAgent, RosterBmo, RosterDetail, RosterRoom, RosterRun, RosterSession } from "#shared/roster";
@@ -226,8 +252,12 @@ const { data: providers } = useProviders();
 
 const base = computed(() => `/api/organization/people/${encodeURIComponent(props.user)}`);
 
-// A row of a group that opens what it names: the row's own box, pressed as a whole.
-const ROW_LINK = "-mx-2 flex min-h-12 min-w-0 items-center gap-3 rounded-md px-2 transition-colors hover:bg-elevated active:bg-accented";
+// A row of a group that opens what it names: the row's own box, pressed as a whole, its mark centred beside its two
+// lines. A row is two lines at every width, the words that say which item it is first and cut last, so a narrow region
+// never squeezes them out for the cells beside them.
+const ROW_LINK = "-mx-2 flex min-w-0 items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-elevated active:bg-accented";
+const ROW_LINES = "flex min-w-0 flex-1 flex-col text-sm";
+const ROW_LINE = "flex min-w-0 items-center gap-3";
 
 // --- The person ---
 
@@ -344,13 +374,13 @@ function groupRead<T>(load: () => Promise<T>, failed: string): GroupRead<T> {
 
 const bmo = groupRead(() => $fetch<RosterBmo>(`${base.value}/bmo`), t("roster.error.bmo_read_failed"));
 
-const bmoLabels = computed(() => [
-  t("bmo_profile.label.name"),
-  t("bmo_profile.label.call_names"),
-  t("bmo_profile.label.picture"),
-  t("bmo_profile.label.persona"),
-  t("bmo_profile.label.permission"),
-  t("agents.label.column_road")
+const bmoLabels = computed<PairSkeleton[]>(() => [
+  { label: t("bmo_profile.label.name") },
+  { label: t("bmo_profile.label.call_names") },
+  { label: t("bmo_profile.label.picture"), beside: "picture" },
+  { label: t("bmo_profile.label.persona"), beside: "button" },
+  { label: t("bmo_profile.label.permission") },
+  { label: t("agents.label.column_road") }
 ]);
 
 const persona = computed(() => bmo.data.value?.standing.persona.value ?? null);
@@ -395,6 +425,14 @@ function markOf(agent: RosterAgent): AgentMarkSubject {
   const group = agent.kind === "supervisor" ? "supervisor" : "role";
 
   return { name: agent.name, label: agent.label, chatId: null, group, icon: groupIcon(group) };
+}
+
+// An agent's second line: whose seat it is, its supervisor's word or its role, and its road where it has one.
+function agentLine(agent: RosterAgent): string {
+  const kind = agent.kind === "supervisor" ? t("agents.label.column_supervisor") : (agent.role ?? "");
+  const road = agent.road === null ? null : roadText(providers.value, agent.road);
+
+  return [kind, road].filter((one) => one !== null && one !== "").join(" · ");
 }
 
 function contextText(context: { carried: number; window: number }): string {

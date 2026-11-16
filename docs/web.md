@@ -7242,7 +7242,9 @@ account's rooms or agents (「Access」).
   at the right, parted by a splitter whose widths this browser keeps, each region scrolling on its own. With nobody
   chosen the right region says in one line to choose a person. On a narrow screen the list fills the body, and a
   person chosen opens over it, filling the screen, with a back arrow at its head; the arrow and the back gesture
-  return to the list as it was left, its search, its scroll and the rows already read.
+  return to the list as it was left, its search, its scroll and the rows already read. While the person covers the
+  list the keyboard does not reach it; a row that held the focus hands it to the person and takes it back as they
+  close.
 - **The address carries what is shown:** `?q=` the words, `company=`, `unit=`, `role=` and `state=` the filters, and
   `user=` the person, so a shared link opens the same view. Choosing a person is a step of the history; the words
   and the filters replace the address as they change. The list is not built again when a person opens or closes.
@@ -7255,7 +7257,8 @@ account's rooms or agents (「Access」).
   - **The filters:** 회사, for a reader who looks through more than one, every company they may; 조직, a unit of the
     company chosen and every unit under it, chosen from that company's tree as 초대's 조직 is; 역할, 전체, 조직장 or
     구성원; and 상태, 전체, 활성, 기기 연결 대기 or 탈퇴. On a narrow screen the search box stands alone in the head with
-    one 필터 button beside it, carrying how many filters are set, which opens the four in a bottom drawer.
+    one 필터 button beside it, carrying how many filters are set, which opens the four in a bottom drawer; what is
+    chosen there is set as the drawer closes, however it closes, so the back gesture that closes it keeps the choice.
 - **The list is the console's shared data table,** its head stuck to the top and every column's width dragged, one
   row a person in the order of their names: 이름, the person's mark of initials and their name, (탈퇴) beside a
   person who left; 아이디; 회사; 조직, the unit they stand in; 역할, 조직장 or 구성원; 상태, an icon in its colour with
@@ -7280,7 +7283,9 @@ account's rooms or agents (「Access」).
     only what still applies to them. Once an act goes through, the person is read again, and the list row with them.
   - **The groups** stand under small headings as a name and value list, each name over its value on a narrow
     screen, and each group is read on its own: skeletons shaped like its rows while it comes, and a read that
-    failed says its reason in its place with 새로고침 while the others stand.
+    failed says its reason in its place with 새로고침 while the others stand. The lists among them, 방, 에이전트, 세션
+    and 최근 활동, stand a row as two lines at every width, the words that say which item it is cut last, and a row
+    that opens something is pressed as a whole. A value that is not set stands as a dash alone in its place.
   - **계정:** 아이디, 이름, 직함, then 유선 전화, 휴대전화 and 이메일 for the administrator alone; 상태, with when the
     person left and who marked it; 만든 날짜; and 최근 로그인, or 기록 없음.
   - **조직:** 회사; 조직, the unit's path from the company down, whole; 역할; and 조직장인 조직, the units they head
@@ -7292,13 +7297,14 @@ account's rooms or agents (「Access」).
     the road of their supervisor as the agency answers it, in the words of agent management's cell. A person with no BMO says
     BMO 없음.
   - **방**, the administrator's alone: the rooms the person reads by their account (「Access」), the latest first, one
-    row each with the room's picture and name, its kind, 개인 대화 for their BMO's private room or 그룹, its message
-    count and its last message's time. A row opens the room's screen, read as the administrator reads any room not
-    his own: read-only in a private room, and nothing he reads there reaches its people.
+    row each with the room's picture beside two lines, its name and its last message's time, then its kind, 개인 대화
+    for their BMO's private room or 그룹, and its message count. A row opens the room's screen, read as the
+    administrator reads any room not his own: read-only in a private room, and nothing he reads there reaches its
+    people.
   - **에이전트**, the administrator's alone: the agents filed under the person's account, their supervisors and their
-    role agents, one row each with its face or mark, its label, 감독관 or its role's name, its road and whether it is
-    on. A row opens the agent's page, where its settings stand for the administrator as they do on agent
-    management.
+    role agents, one row each with its face or mark beside two lines, its label and whether it is on, a mark with
+    its word as the tooltip, then 감독관 or its role's name and its road where it has one. A row opens the agent's
+    page, where its settings stand for the administrator as they do on agent management.
   - **세션**, the administrator's alone: the sessions of those agents, as the agency answers them, one row each with
     the agent, the room it serves or its scope, its road and how much context it held at its last turn.
   - **최근 활동**, the administrator's alone: the person's last twenty runs, those of the agents filed under their

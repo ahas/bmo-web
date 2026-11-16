@@ -288,8 +288,21 @@ export function readDeployCommits(reading: DeployReading): DeployCommits {
   }
 
   const carried = commitsUpTo(root, previous, current, deployed, entries);
+  // What a run brings is reckoned from the last deploy written before it began, never from an earlier line of its own
+  // commit: a run that writes no line of its own, under way, failed or a deploy of the commit already live, would
+  // otherwise bring again what that earlier deploy put live. A deploy read from its record alone has no start, and its
+  // own line is the one the log names it by.
+  const started = reading.record?.startedAt ?? null;
+  const since = started === null ? before : (entries.findLast((entry) => Date.parse(entry.at) < started) ?? null);
 
-  return { carried, brings: previous === before ? carried : commitsUpTo(root, before, current, deployed, entries) };
+  if (since !== null && sameCommitName(since.commit, current)) return { carried, brings: [] };
+
+  return { carried, brings: since === previous ? carried : commitsUpTo(root, since, current, deployed, entries) };
+}
+
+// Whether two names of a commit, either of them shortened, name the same one.
+function sameCommitName(one: string, other: string): boolean {
+  return one.startsWith(other) || other.startsWith(one);
 }
 
 /**
@@ -302,7 +315,7 @@ export function readWaitingBrings(root: string, commit: string): DeployCommit[] 
   const deployed = readDeployedRecord(root);
 
   // A deployment of the commit already live brings nothing.
-  if (deployed !== null && (deployed.commit.startsWith(commit) || commit.startsWith(deployed.commit))) return [];
+  if (deployed !== null && sameCommitName(deployed.commit, commit)) return [];
 
   const live = deployed === null ? null : { at: "", commit: deployed.commit, subject: deployed.subject };
 

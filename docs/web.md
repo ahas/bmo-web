@@ -6306,9 +6306,9 @@ Four bounds keep it from growing forever.
     run carries the item where one of the commits it brings live names the item by its number, or is the commit the
     item's label `close-commit` names — the row says 배포 중 and the run's unit as the title bar names it,
     「배포 중 · bmo-drive」, through every stage of that run, its 검사·테스트 stage among them, until the run ends. The
-    commits a run brings live are those since the deploy before it in its root's deployed log, its own commit
-    last, not the whole release its popover lists: an item whose commit an earlier deploy of the same release put
-    live is not carried again, and the unit named is the repository the item's commit goes live in, which need not be
+    commits a run brings live are those since the last deploy its root's deployed log wrote before the run began, its
+    own commit last, not the whole release its popover lists: an item whose commit an earlier deploy of the same
+    release put live is not carried again, a run of the commit already live brings nothing, and the unit named is the repository the item's commit goes live in, which need not be
     the repository the item is assigned to. Where no run under way carries it but a deployment waiting in the
     line brings it — the commits from the release its root has live to the commit the waiting deployment's command
     names, read from the same build tree — the row says 「배포 순서 대기 · bmo-job」 in the info colour and counts under

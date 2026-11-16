@@ -161,6 +161,43 @@ describe("what a deploy carries", () => {
     expect(readDeployCommits({ unitName: "unit-first", record: null, writtenAt: null, root })).toEqual({ carried: one, brings: one });
   });
 
+  // A run writes its own line only once it is live, so the deploy before it is the last line written before it began:
+  // a run of the commit already live brings nothing again, and a run of a later commit brings only what is new.
+  test("a run under way brings what is new since the last deploy before it began, nothing where its commit is live", () => {
+    const root = join(scratch, "unit-again");
+    const tree = join(root, "deploy-expand");
+    const git = (...args: string[]): string => execFileSync("git", ["-C", tree, ...args], { encoding: "utf8" });
+    const commit = (subject: string): string => {
+      writeFileSync(join(tree, "work.txt"), `${subject}\n`);
+      git("add", ".");
+      git("commit", "-q", "-m", subject);
+
+      return git("rev-parse", "HEAD").trim();
+    };
+
+    mkdirSync(tree, { recursive: true });
+    git("init", "-q");
+    git("config", "user.email", "agent-a@example.invalid");
+    git("config", "user.name", "agent-a");
+
+    const older = commit("fix(console): an older release (#60)");
+    commit("fix(console): live before (#61)");
+    const live = commit("fix(console): live now (#62)");
+    const next = commit("fix(console): the next change (#63)");
+
+    writeFileSync(join(root, "deployed.json"), JSON.stringify({ commit: live, subject: "fix(console): live now (#62)", version: null }));
+    writeFileSync(join(root, "deployed.log"), [
+      `2026-10-24T00:00:00.000Z ${older}  fix(console): an older release (#60)`,
+      `2026-10-24T00:01:00.000Z ${live}  fix(console): live now (#62)`,
+      ""
+    ].join("\n"));
+
+    const running = (at: string, commit: string) => ({ unitName: "unit-again", record: { ...record, commit, startedAt: Date.parse(at), ending: null }, writtenAt: null, root });
+
+    expect(readDeployCommits(running("2026-10-24T00:05:00.000Z", live)).brings).toEqual([]);
+    expect(readDeployCommits(running("2026-10-24T00:05:00.000Z", next)).brings).toEqual([{ commit: next, subject: "fix(console): the next change (#63)", todoId: 63 }]);
+  });
+
   test("a deployment waiting in the line would bring the commits from the release live to its own, none it cannot read", () => {
     const root = join(scratch, "unit-waiting");
     const tree = join(root, "deploy-expand");

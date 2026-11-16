@@ -297,8 +297,8 @@ describe("an item on its way live", () => {
   // A run of the same release carries the release whole for its popover, but brings live only what is new since the
   // deploy before it: an item an earlier deploy put live is not being put live again.
   test("is carried by what a run brings live, not by the whole release it lists", () => {
-    expect(itemDeployPhase(view({ run: run({ brings: carried, brings: [] }) }), item(1203, { closing: waiting("c".repeat(40)) }))).toBe("waiting-live");
-    expect(itemDeployPhase(view({ run: run({ brings: carried, brings: [] }) }), item(1201))).toBeNull();
+    expect(itemDeployPhase(view({ run: run({ carried, brings: [] }) }), item(1203, { closing: waiting("c".repeat(40)) }))).toBe("waiting-live");
+    expect(itemDeployPhase(view({ run: run({ carried, brings: [] }) }), item(1201))).toBeNull();
   });
 
   // An item's commit may go live in another repository than the one the item is assigned to: the row names the

@@ -6813,8 +6813,11 @@ Four bounds keep it from growing forever.
 - **A reason is taken but not required.** Resolving an unfinished-item requires one line — that being the whole record of why it is no longer
   unfinished. A hold differs. It is reversible, and most setting-aside has no reason worth a sentence. Requiring one line each time only piles up
   lines nobody means. Written, it is kept as the item's 보류 사유 report (bmo-job's `docs/api.md`, 「Reports」), which bmo-job takes only
-  with words in it, so a hold with none writes no report. The hold's time and reason are read off the latest such report and only while the
-  item is held, so a released item says nothing of a hold.
+  with words in it, so a hold with none writes no report. A hold from this console also writes the moment bmo-job set the item aside on its
+  `held-since` label, in epoch milliseconds, after the state and the report. The hold's reason is the latest such report no older than that
+  moment, so a hold given no reason never shows the reason of an earlier one, and its time is that report's, or the label's where no report
+  stands for it. A hold its own job made writes no label and reads its latest report. Both are read only while the item is held, so a released
+  item says nothing of a hold.
 - **Nothing is placed above a running line.** Placing over a running line or where it would be above it stands the line right below the running line —
   the highest a waiting line can stand. The saved order gets the same top applied, so wherever it was aimed, the list on screen and the list to the bot
   are one.

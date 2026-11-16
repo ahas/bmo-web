@@ -19,6 +19,7 @@ import {
   requireCandidateOfLabels,
   requireModelCandidate
 } from "../utils/todo-assignment";
+import { HELD_SINCE_LABEL } from "../utils/todos";
 
 import type { Item } from "bmo-job-client";
 import type { TodoAction, TodoActionResult } from "#shared/types";
@@ -205,8 +206,7 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
       await patchItem(id, { state: "dropped" });
       break;
     case "hold":
-      if (typeof why === "string" && why.trim() !== "") await heldReport(id, why.trim(), signed.name);
-      await patchItem(id, { state: "held" });
+      await holdItem(id, typeof why === "string" ? why.trim() : "", signed.name);
       break;
     case "release":
       await patchItem(id, { state: "open" });
@@ -237,8 +237,7 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
         params: { path: { itemId: id } },
         body: { text: why as string, actorName: signed.name, labels: { kind: "stop" } }
       }));
-      await heldReport(id, (why as string).trim(), signed.name);
-      await patchItem(id, { state: "held" });
+      await holdItem(id, (why as string).trim(), signed.name);
 
       return { ok: true, stopped: 1 };
     case "raise": {
@@ -266,18 +265,26 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
   return { ok: true };
 });
 
-// Why an item is set aside, as the held report the opened item reads its hold's time and reason off (docs/web.md, the
-// TODO panel's section).
-async function heldReport(id: number, why: string, actorName: string): Promise<void> {
-  await jobCall(job().POST("/items/{itemId}/reports", {
-    params: { path: { itemId: id } },
-    body: { kind: "held", body: why, actorName }
-  }));
+// Setting an item aside: its state first, then the reason where one was given, as the held report the opened item reads
+// the hold's reason off, then the moment bmo-job set it aside on its labels, so a report older than this hold — an
+// earlier hold's reason — never stands for it (docs/web.md, the TODO panel's section). bmo-job takes a report only with
+// words in it, so a hold given none writes none.
+async function holdItem(id: number, why: string, actorName: string): Promise<void> {
+  const held = await patchItem(id, { state: "held" });
+
+  if (why !== "") {
+    await jobCall(job().POST("/items/{itemId}/reports", {
+      params: { path: { itemId: id } },
+      body: { kind: "held", body: why, actorName }
+    }));
+  }
+
+  await patchItem(id, { labels: { ...held.labels, [HELD_SINCE_LABEL]: String(held.changedAt) } });
 }
 
-async function patchItem(id: number, change: { state?: "open" | "held" | "done" | "dropped"; approval?: Record<string, never> | null; assigneeName?: string | null; position?: number; labels?: Record<string, string> }): Promise<void> {
+async function patchItem(id: number, change: { state?: "open" | "held" | "done" | "dropped"; approval?: Record<string, never> | null; assigneeName?: string | null; position?: number; labels?: Record<string, string> }): Promise<Item> {
   try {
-    await jobCall(job().PATCH("/items/{itemId}", {
+    return await jobCall(job().PATCH("/items/{itemId}", {
       params: { path: { itemId: id } },
       body: change
     }));

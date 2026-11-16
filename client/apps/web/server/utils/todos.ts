@@ -97,14 +97,27 @@ export function reportRows(reports: readonly Report[]): TodoReport[] {
   return [...rows.filter((row) => row.kind === "final").reverse(), ...rows.filter((row) => row.kind !== "final")];
 }
 
-// What the panel reads of an item's own reports: every one of them, and the reason a held item was set aside.
-function reportsOf(reports: readonly Report[]): { reports: TodoReport[]; heldReason: string | null; heldAt: number | null } {
-  const held = reports.filter((report) => report.kind === "held").at(-1);
+/** The label the console's hold writes on an item: the moment bmo-job set it aside, in epoch milliseconds. */
+export const HELD_SINCE_LABEL = "held-since";
+
+// The moment a hold from the console set the item aside, where its label says one.
+function heldSince(labels: Record<string, string>): number | null {
+  const since = Number(labels[HELD_SINCE_LABEL]);
+
+  return Number.isFinite(since) && since > 0 ? since : null;
+}
+
+// What the panel reads of an item's own reports: every one of them, and the reason a held item was set aside, which is
+// its latest held report written for the hold standing now — none older than the moment the console set it aside. An
+// item held with no reason says when, where its label says it, and nothing of why.
+function reportsOf(reports: readonly Report[], since: number | null): { reports: TodoReport[]; heldReason: string | null; heldAt: number | null } {
+  const held = reports.filter((report) => report.kind === "held" && (since === null || report.createdAt >= since)).at(-1);
+  const at = held?.createdAt ?? since;
 
   return {
     reports: reportRows(reports),
     heldReason: held?.body ?? null,
-    heldAt: held === undefined ? null : Math.floor(held.createdAt / 1000)
+    heldAt: at === null ? null : Math.floor(at / 1000)
   };
 }
 
@@ -149,7 +162,7 @@ function closingOf(labels: Record<string, string>): TodoItem["closing"] {
 // One item as the row the panel shows, with its reports where they were read, the last note where a screen opens
 // it, and the state the job of it stands in where one is under way.
 function itemOf(item: Item, reports: readonly Report[] = [], note: string | null = null, live: LiveJobOf | null = null, stopped = false): TodoItem {
-  const said = reportsOf(reports);
+  const said = reportsOf(reports, heldSince(item.labels));
   const liveState = live?.state ?? null;
 
   return {
@@ -409,18 +422,27 @@ function meets(item: Item, conditions: TodoConditions): boolean {
   return true;
 }
 
+// The list a line stands in as its row reads it: an item held by a stop whose run is still ending stands in the queue
+// under its own word until the run has ended, and joins the holds after (docs/web.md, the TODO panel's section).
+function rowList(item: Item, row: TodoItem | undefined): "queue" | "pending" | "held" | "done" {
+  const list = listOf(item);
+
+  return list === "held" && row?.holdPending === true ? "queue" : list;
+}
+
 // A queue line counts as running where its row reads so: its job starting or working, waiting for nothing
 // (docs/web.md, the TODO panel's section).
-function standingOf(items: readonly Item[], live: ReadonlyMap<number, LiveJobOf>): TodoStanding {
+function standingOf(items: readonly Item[], live: ReadonlyMap<number, LiveJobOf>, rows: ReadonlyMap<number, TodoItem>): TodoStanding {
   const going = (item: Item) => live.get(item.id)?.state === "starting" || live.get(item.id)?.state === "running";
+  const inList = (item: Item, list: "queue" | "pending" | "held") => rowList(item, rows.get(item.id)) === list;
 
   return {
-    queue: items.filter((item) => listOf(item) === "queue").length,
-    running: items.filter((item) => listOf(item) === "queue" && going(item)).length,
-    deploy: items.filter((item) => listOf(item) === "queue" && !going(item) && waitsToGoLive(item.labels["close-phase"])).length,
+    queue: items.filter((item) => inList(item, "queue")).length,
+    running: items.filter((item) => inList(item, "queue") && going(item)).length,
+    deploy: items.filter((item) => inList(item, "queue") && !going(item) && waitsToGoLive(item.labels["close-phase"])).length,
     deploying: 0,
-    pending: items.filter((item) => listOf(item) === "pending").length,
-    held: items.filter((item) => listOf(item) === "held").length,
+    pending: items.filter((item) => inList(item, "pending")).length,
+    held: items.filter((item) => inList(item, "held")).length,
     merged: 0
   };
 }
@@ -456,7 +478,7 @@ export async function readBoardRows(ids: readonly number[]): Promise<TodoBoardRo
   return page.items.flatMap((item) => {
     const row = rows.get(item.id);
 
-    return row === undefined ? [] : [{ list: listOf(item), item: row }];
+    return row === undefined ? [] : [{ list: rowList(item, row), item: row }];
   });
 }
 
@@ -482,7 +504,7 @@ export async function readTodoBoard(
   const rows = await boardRows(matching, [...page, ...held], live);
   const found = (row: TodoItem) => query === null || filterRecords([row], (one) => todoSearchFields(wording, one, []), query).length > 0;
   const listed = (name: "queue" | "pending" | "held", from: readonly Item[]) =>
-    from.filter((item) => listOf(item) === name).flatMap((item) => rows.get(item.id) ?? []).filter(found);
+    from.filter((item) => rowList(item, rows.get(item.id)) === name).flatMap((item) => rows.get(item.id) ?? []).filter(found);
   const choices: TodoChoices = {
     workers: [...new Set(items.map((item) => item.assigneeName ?? WORKER_AGENT))],
     chats: [],
@@ -499,7 +521,7 @@ export async function readTodoBoard(
     doneTotal: finishedFound.length,
     standingNotes: [],
     choices,
-    standing: standingOf(matching, live),
+    standing: standingOf(matching, live, rows),
     paused: queues.length > 0 && queues.every((queue) => queue.state === "paused"),
     deployHold: holds.length === 0 ? null : holdOf(holds[0])
   };

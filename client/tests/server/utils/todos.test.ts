@@ -226,6 +226,25 @@ describe("the lists each item stands in", () => {
     expect((await readTodoItems([1, 5])).map((row) => row.liveState)).toEqual([null, "running"]);
   });
 
+  test("an item the owner stopped stands in the queue until its run has ended, and among the holds after", async () => {
+    stand([item(6, { state: "held" })]);
+    held.notes.set(6, [{ id: 3, itemId: 6, actorName: "owner", text: "wrong direction", createdAt: 1_790_000_000_000, labels: { kind: "stop" } }]);
+    held.jobs = [{ itemId: 6, state: "running", heldFor: null }];
+
+    let board = await readTodoBoard();
+
+    expect(ids(board.queue)).toEqual([6]);
+    expect(board.held).toEqual([]);
+    expect(board.queue[0]).toMatchObject({ holdPending: true, heldKind: "stop" });
+    expect(board.standing).toMatchObject({ queue: 1, running: 1, held: 0 });
+
+    held.jobs = [];
+    board = await readTodoBoard();
+    expect(ids(board.queue)).toEqual([]);
+    expect(ids(board.held)).toEqual([6]);
+    held.notes.delete(6);
+  });
+
   test("a running job's row names the agent the job runs on, never the item's label", async () => {
     stand([
       item(1, { state: "leased", leaseId: 1, labels: { agent: "agent-b" } }),
@@ -314,6 +333,21 @@ describe("what a row carries", () => {
 
     stand([item(9, { state: "open" })]);
     expect(await readTodoItem(9)).toMatchObject({ status: "open", heldAt: null, heldReason: null, heldKind: null });
+
+    held.reports.delete(9);
+  });
+
+  test("a hold given no reason never shows an earlier hold's reason, and says when it was set aside", async () => {
+    held.reports.set(9, [{ id: 4, itemId: 9, actorName: "owner", kind: "held", body: "earlier hold", createdAt: 1_790_000_030_000, labels: {} }]);
+    stand([item(9, { state: "held", labels: { "held-since": "1790000060000" } })]);
+    expect(await readTodoItem(9)).toMatchObject({ heldAt: 1_790_000_060, heldReason: null });
+
+    // A reason written for this hold is no older than the moment it was set aside.
+    held.reports.set(9, [
+      { id: 4, itemId: 9, actorName: "owner", kind: "held", body: "earlier hold", createdAt: 1_790_000_030_000, labels: {} },
+      { id: 5, itemId: 9, actorName: "owner", kind: "held", body: "this hold", createdAt: 1_790_000_060_000, labels: {} }
+    ]);
+    expect(await readTodoItem(9)).toMatchObject({ heldAt: 1_790_000_060, heldReason: "this hold" });
 
     held.reports.delete(9);
   });

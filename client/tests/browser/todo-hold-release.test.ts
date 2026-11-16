@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 
 import { wording } from "../../apps/web/shared/wording";
-import { BROWSER_HOOK_MS, touchReady } from "./touch";
+import { BROWSER_HOOK_MS, fingerOn, touchReady } from "./touch";
 
 import type { Browser, BrowserContext, Page } from "playwright-core";
 import type { TodoBoard, TodoItem } from "../../apps/web/shared/types";
@@ -32,8 +32,9 @@ const LOOKS = [
   { name: "phone dark", viewport: { width: 384, height: 832 }, scheme: "dark" }
 ] as const;
 
-// An approved row in the queue, or the same row as bmo-job holds it.
-function item(id: number, held: boolean): TodoItem {
+// An approved row in the queue, or the same row as bmo-job holds it: a plain hold, or the owner's stop whose run is
+// still ending.
+function item(id: number, held: boolean, stopping = false): TodoItem {
   return {
     id,
     title: `item-title-${id}`,
@@ -45,8 +46,8 @@ function item(id: number, held: boolean): TodoItem {
     awaitingApproval: false,
     recommended: false,
     done: false,
-    running: false,
-    liveState: null,
+    running: stopping,
+    liveState: stopping ? "running" : null,
     worker: null,
     priority: id,
     status: held ? "held" : "open",
@@ -61,7 +62,7 @@ function item(id: number, held: boolean): TodoItem {
     unfinishedResolution: null,
     heldAt: null,
     heldReason: null,
-    heldKind: null,
+    heldKind: stopping ? "stop" : null,
     mergedInto: null,
     mergedAt: null,
     mergedIntoTitle: null,
@@ -74,7 +75,7 @@ function item(id: number, held: boolean): TodoItem {
     deployWaits: false,
     closing: null,
     deployHeld: false,
-    holdPending: false,
+    holdPending: stopping,
     orderActive: false,
     seconds: null,
     spans: [],
@@ -83,9 +84,11 @@ function item(id: number, held: boolean): TodoItem {
   };
 }
 
-// What the routes stand for bmo-job: which rows are held, the acts asked, and whether the next act is refused.
+// What the routes stand for bmo-job: which rows are held and which of those are stops still ending, the acts asked,
+// and whether the next act is refused.
 interface Job {
   held: Set<number>;
+  stopping: Set<number>;
   acts: string[];
   refuse: boolean;
 }
@@ -113,8 +116,15 @@ afterAll(async () => {
   await browser?.close();
 }, BROWSER_HOOK_MS);
 
-async function open(look: (typeof LOOKS)[number], job: Job): Promise<BrowserContext> {
-  const context = await browser!.newContext({ viewport: look.viewport, colorScheme: look.scheme, serviceWorkers: "block", reducedMotion: "reduce" });
+async function open(look: (typeof LOOKS)[number], job: Job, touch = false): Promise<BrowserContext> {
+  const context = await browser!.newContext({
+    viewport: look.viewport,
+    colorScheme: look.scheme,
+    serviceWorkers: "block",
+    reducedMotion: "reduce",
+    hasTouch: touch,
+    isMobile: touch
+  });
   const at = cookie.indexOf("=");
 
   await context.addCookies([
@@ -134,15 +144,19 @@ async function open(look: (typeof LOOKS)[number], job: Job): Promise<BrowserCont
       }
 
       if (action === "hold") job.held.add(id);
-      if (action === "release") job.held.delete(id);
+      if (action === "release") {
+        job.held.delete(id);
+        job.stopping.delete(id);
+      }
 
       return await route.fulfill({ json: { ok: true } });
     }
 
     const board = (await (await route.fetch()).json()) as TodoBoard;
-    const rows = [1, ROW, 3].map((id) => item(id, job.held.has(id)));
-    const queue = rows.filter((row) => row.status !== "held");
-    const held = rows.filter((row) => row.status === "held");
+    const rows = [1, ROW, 3].map((id) => item(id, job.held.has(id), job.stopping.has(id)));
+    // A stop whose run still ends stands in the queue until the run has ended, as the board hands it over.
+    const queue = rows.filter((row) => row.status !== "held" || row.holdPending);
+    const held = rows.filter((row) => row.status === "held" && !row.holdPending);
 
     await route.fulfill({
       json: { ...board, queue, held, pending: [], standing: { ...board.standing, queue: queue.length, running: 0, held: held.length, pending: 0 } }
@@ -197,6 +211,26 @@ async function settle(page: Page): Promise<void> {
 
 const pill = (page: Page) => page.locator(".bmo-island");
 
+// Where an element stands once it has stopped moving: the same box two frames running. A finger that lands while the
+// list still slides in under it is a finger on a moving list, which the console reads as a scroll, never a hold.
+async function steadyBox(page: Page, selector: string): Promise<{ x: number; y: number; width: number; height: number }> {
+  const handle = await page.waitForFunction((css) => {
+    const shown = [...document.querySelectorAll<HTMLElement>(css)].find((one) => one.offsetParent !== null);
+
+    if (shown === undefined) return false;
+
+    const now = shown.getBoundingClientRect();
+    const box = { x: now.x, y: now.y, width: now.width, height: now.height };
+    const was = (window as unknown as { lastBox?: string }).lastBox;
+
+    (window as unknown as { lastBox?: string }).lastBox = JSON.stringify(box);
+
+    return was === JSON.stringify(box) ? box : false;
+  }, selector, { polling: "raf", timeout: 10_000 });
+
+  return (await handle.jsonValue()) as { x: number; y: number; width: number; height: number };
+}
+
 // Anything on the screen naming the row by its number, once the row itself has left the list: a line saying what was
 // just done to it, in the pill or anywhere else.
 async function namedAfterRowLeft(page: Page, id: number): Promise<number> {
@@ -206,7 +240,7 @@ async function namedAfterRowLeft(page: Page, id: number): Promise<number> {
 describe.skipIf(!origin || !touchReady())("a TODO row's hold and its release", () => {
   for (const look of LOOKS) {
     test(`follow the item's state on its menu and in the opened item, ${look.name}`, async () => {
-      const job: Job = { held: new Set(), acts: [], refuse: false };
+      const job: Job = { held: new Set(), stopping: new Set(), acts: [], refuse: false };
       const context = await open(look, job);
       const hold = wording("todo.action.hold");
       const release = wording("todo.action.unhold");
@@ -276,6 +310,83 @@ describe.skipIf(!origin || !touchReady())("a TODO row's hold and its release", (
         expect(await rowOf(page, ROW).isVisible()).toBe(true);
         await page.clock.fastForward(PILL_PAST_MS);
         await pill(page).waitFor({ state: "detached", timeout: 10_000 });
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+  }
+});
+
+describe.skipIf(!origin || !touchReady())("a held TODO row's release, by a held finger and while its stop still ends", () => {
+  const phones = LOOKS.filter((look) => look.viewport.width < 600);
+
+  for (const look of phones) {
+    test(`a held finger opens the held row's menu with its release in the hold's place, ${look.name}`, async () => {
+      const job: Job = { held: new Set([ROW]), stopping: new Set(), acts: [], refuse: false };
+      const context = await open(look, job, true);
+      const release = wording("todo.action.unhold");
+
+      try {
+        const page = await context.newPage();
+
+        await page.goto(`${origin}/`, { waitUntil: "load" });
+        await showList(page);
+        await chooseTab(page, wording("todo.label.state_held"));
+
+        await rowOf(page, ROW).waitFor({ timeout: 10_000 });
+
+        const box = await steadyBox(page, `li[data-todo-id="${ROW}"] button`);
+        const finger = await fingerOn(page);
+
+        await finger.press({ x: box.x + box.width / 2, y: box.y + box.height / 2 });
+        await page.getByRole("menuitem").first().waitFor({ timeout: 10_000 });
+
+        const acts = (await page.getByRole("menuitem").allInnerTexts()).map((text) => text.trim());
+
+        expect(acts).toContain(release);
+        expect(acts).not.toContain(wording("todo.action.hold"));
+
+        const item = (await page.getByRole("menuitem", { name: release }).boundingBox())!;
+
+        await finger.tap({ x: item.x + item.width / 2, y: item.y + item.height / 2 });
+        await rowOf(page, ROW).waitFor({ state: "detached", timeout: 10_000 });
+        expect(job.acts).toEqual(["release"]);
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+  }
+
+  for (const look of [LOOKS[0], LOOKS[3]]) {
+    test(`a row stopped while its run still ends offers the release, which puts it back in the queue, ${look.name}`, async () => {
+      const job: Job = { held: new Set([ROW]), stopping: new Set([ROW]), acts: [], refuse: false };
+      const context = await open(look, job);
+      const hold = wording("todo.action.hold");
+      const release = wording("todo.action.unhold");
+
+      try {
+        const page = await context.newPage();
+
+        await page.goto(`${origin}/`, { waitUntil: "load" });
+        await showList(page);
+
+        // Until its run has ended it stands in the queue under its own word, not with the holds.
+        const stopping = rowOf(page, ROW).getByText(wording("todo.label.held_stopping"), { exact: true });
+
+        await stopping.waitFor({ timeout: 10_000 });
+
+        let acts = await menuOf(page, ROW);
+
+        expect(acts).toContain(release);
+        expect(acts).not.toContain(hold);
+        await page.getByRole("menuitem", { name: release }).click();
+        await stopping.waitFor({ state: "detached", timeout: 10_000 });
+        expect(job.acts).toEqual(["release"]);
+
+        acts = await menuOf(page, ROW);
+        expect(acts).toContain(hold);
+        expect(acts).not.toContain(release);
+        await closeMenu(page);
       } finally {
         await context.close();
       }

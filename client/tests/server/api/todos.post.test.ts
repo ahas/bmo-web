@@ -30,7 +30,7 @@ const job = standIn("JOB", (one) => {
 
   if (one.method === "DELETE") return new Response(null, { status: 204 });
 
-  return answer({ id: 7, itemId: 7, title: "Item 7", brief: "do it", queueName: "default", priority: 0, state: "open", assigneeName: null, requesterName: "tester", labels: itemLabels, approvals: [], createdAt: 0, changedAt: 0, endedAt: null, leaseId: null, mergedInto: null, position: 0, scope: null });
+  return answer({ id: 7, itemId: 7, title: "Item 7", brief: "do it", queueName: "default", priority: 0, state: "open", assigneeName: null, requesterName: "tester", labels: itemLabels, approvals: [], createdAt: 0, changedAt: 1_790_000_050_000, endedAt: null, leaseId: null, mergedInto: null, position: 0, scope: null });
 });
 
 // The jobs the agency answers as running.
@@ -109,20 +109,24 @@ describe("adding words to an item that already stands", () => {
 // Setting an item aside. Its reason is kept as the item's held report, which bmo-job takes only with words in it, so a
 // hold given none writes the state alone (docs/web.md, the TODO panel's section).
 describe("holding an item from the console", () => {
-  test("a hold with no reason moves the state alone", async () => {
+  test("a hold with no reason moves the state and marks when, writing no report", async () => {
     fresh();
+    itemLabels = { agent: "agent-a" };
 
     expect(await post({ action: "hold", id: 7 })).toEqual({ status: 200, message: "" });
-    expect(job.asked.map((one) => `${one.method} ${one.path}`)).toEqual(["PATCH /items/7"]);
+    expect(job.asked.map((one) => `${one.method} ${one.path}`)).toEqual(["PATCH /items/7", "PATCH /items/7"]);
     expect(job.asked[0]?.body).toEqual({ state: "held" });
+    // The moment is bmo-job's own, off the item the state's move answered, and every other label is kept.
+    expect(job.asked[1]?.body).toEqual({ labels: { agent: "agent-a", "held-since": "1790000050000" } });
+    itemLabels = {};
   });
 
-  test("a hold with a reason writes it as the held report before the state", async () => {
+  test("a hold with a reason writes it as the held report after the state, so the report is the hold's own", async () => {
     fresh();
 
     expect(await post({ action: "hold", id: 7, why: "  not this week  " })).toEqual({ status: 200, message: "" });
-    expect(job.asked.map((one) => `${one.method} ${one.path}`)).toEqual(["POST /items/7/reports", "PATCH /items/7"]);
-    expect(job.asked[0]?.body).toEqual({ kind: "held", body: "not this week", actorName: "tester" });
+    expect(job.asked.map((one) => `${one.method} ${one.path}`)).toEqual(["PATCH /items/7", "POST /items/7/reports", "PATCH /items/7"]);
+    expect(job.asked[1]?.body).toEqual({ kind: "held", body: "not this week", actorName: "tester" });
   });
 
   test("a reason past its limit is refused without calling bmo-job", async () => {
@@ -132,11 +136,12 @@ describe("holding an item from the console", () => {
     expect(job.asked).toEqual([]);
   });
 
-  test("a stop keeps its reason as the held report too", async () => {
+  test("a stop keeps its reason as the held report too, and marks when", async () => {
     fresh();
 
     await post({ action: "stop", id: 7, why: "wrong direction" });
-    expect(job.asked.find((one) => one.path === "/items/7/reports")?.body).toEqual({ kind: "held", body: "wrong direction", actorName: "tester" });
+    expect(job.asked.map((one) => `${one.method} ${one.path}`)).toEqual(["POST /items/7/notes", "PATCH /items/7", "POST /items/7/reports", "PATCH /items/7"]);
+    expect(job.asked[2]?.body).toEqual({ kind: "held", body: "wrong direction", actorName: "tester" });
   });
 
   // bmo-job closes an item only from the lease of the job doing it, and keeps an approval once given (its

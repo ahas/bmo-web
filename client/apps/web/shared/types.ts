@@ -3065,8 +3065,10 @@ export interface DeployRunView {
   /** How it ended; null while it runs. */
   end: DeployEnd | null;
   commit: string | null;
-  /** The commits this deployment carries, oldest first, beside the commit itself. */
+  /** The commits this deployment carries, oldest first, beside the commit itself: the whole release, for its popover. */
   carried: DeployCommit[];
+  /** The commits it brings live, oldest first: those since the deploy line before it, which a TODO row is carried by. */
+  brings: DeployCommit[];
   /** Every stage the run means to pass, in order. */
   plan: DeployStage[];
   stages: { stage: DeployStage; at: number }[];
@@ -3085,9 +3087,25 @@ export interface DeployView {
   release: string;
   detailed: boolean;
   run: DeployRunView | null;
-  /** Every run under way, each with the commits it carries, for the rows whose item one of them carries. */
+  /** Every run under way, each with the commits it brings live, for the rows whose item one of them carries. */
   runs?: DeployRunView[];
+  /** The deployments waiting their turn in the testbed's deployment line, the one begun first first. */
+  line?: DeployWaiting[];
   hold: DeployHold | null;
+}
+
+/** A deployment started and waiting its turn in the testbed's deployment line, before it writes its progress record. */
+export interface DeployWaiting {
+  /** The unit it deploys, by its deploy root's folder name, as a run is named. */
+  unitName: string;
+  /** The user unit it stands in, whose journal says where it waits. */
+  unit: string;
+  /** The commit its command names, as given; none where it names none. */
+  commit: string | null;
+  /** When its unit began, in milliseconds. */
+  since: number;
+  /** The commits it would bring live, oldest first: from the release its root has live to its commit. */
+  brings: DeployCommit[];
 }
 
 /** One line of the deployment unit's journal. */

@@ -1,7 +1,7 @@
 import { countText } from "./numbers";
 import { formatClock, spanClock } from "bmo-ui/app/domain/time";
 
-import type { DeployCommit, DeployHold, DeployRunView, DeployView, TodoBoard, TodoItem } from "#shared/types";
+import type { DeployCommit, DeployHold, DeployRunView, DeployView, DeployWaiting, TodoBoard, TodoItem } from "#shared/types";
 import type { Translate } from "#shared/wording";
 import type { DeployPart, DeployStage, DeployStep, DeployStepAhead } from "#shared/deploy-progress";
 
@@ -17,10 +17,11 @@ export const ENDING_SHOWN_MS = 120_000;
  */
 export const DEPLOY_ICON = "i-material-symbols-deployed-code-update-outline";
 
-/** Which state the mark stands in: a run under way, the hold, a run just ended, or a page older than the console. */
-export type DeployMarkKind = "running" | "hold" | "ended" | "newer";
+/** Which state the mark stands in: a run under way, the hold, deployments waiting in the line, a run just ended, or a
+ * page older than the console. */
+export type DeployMarkKind = "running" | "hold" | "line" | "ended" | "newer";
 
-export type DeployTone = "neutral" | "warning" | "success" | "error" | "primary";
+export type DeployTone = "neutral" | "warning" | "success" | "error" | "primary" | "info";
 
 export interface DeployMark {
   kind: DeployMarkKind;
@@ -231,15 +232,31 @@ export function holdWaits(t: Translate, hold: DeployHold): string {
   return hold.waitingOn.length === 0 ? t("todo.status.deploy_hold_no_jobs") : t("todo.status.deploy_hold_jobs", { n: countText(hold.waitingOn.length) });
 }
 
+// What the line says after its state: the first in the line, and how many stand behind it.
+export function lineWaits(t: Translate, line: readonly DeployWaiting[]): string {
+  const first = line[0]?.unitName ?? "";
+
+  return line.length > 1 ? t("deploy.label.line_more", { unit: first, n: countText(line.length - 1) }) : first;
+}
+
+/** The run that stands in the popover: one under way, or one ended within the two minutes its end stands. */
+export function standingRun(view: DeployView | null | undefined, now: number): DeployRunView | null {
+  const run = view?.run ?? null;
+
+  if (run === null) return null;
+
+  return run.phase === "running" || (run.endedAt !== null && now - run.endedAt < ENDING_SHOWN_MS) ? run : null;
+}
+
 // The hold's limit as the clock time it falls at: what happens then, rather than how long is left.
 export function holdLimit(t: Translate, hold: DeployHold): string {
   return t("todo.status.deploy_hold_limit", { time: formatClock(hold.until) });
 }
 
 /**
- * The mark the bar stands, or null where it stands none. A run under way comes first, then the hold, then a run
- * that ended within the last two minutes, then a page older than the console it was read from. Times are
- * milliseconds.
+ * The mark the bar stands, or null where it stands none. A run under way comes first, then the hold, then the
+ * deployments waiting in the line, then a run that ended within the last two minutes, then a page older than the
+ * console it was read from. Times are milliseconds.
  */
 export function deployMarkOf(t: Translate, view: DeployView | null, pageRelease: string, now: number): DeployMark | null {
   if (view === null) return null;
@@ -264,6 +281,12 @@ export function deployMarkOf(t: Translate, view: DeployView | null, pageRelease:
     return { kind: "running", tone: "primary", icon: "i-material-symbols-progress-activity", spin: true, label: t("deploy.status.running"), detail: runDetail(run, stageLabel(t, currentStage(run)), elapsed) };
   }
 
+  const line = view.line ?? [];
+
+  if (line.length > 0 && view.detailed) {
+    return { kind: "line", tone: "info", icon: "i-material-symbols-hourglass-empty", spin: false, label: t("deploy.status.line"), detail: lineWaits(t, line) };
+  }
+
   if (run !== null && run.endedAt !== null && now - run.endedAt < ENDING_SHOWN_MS && view.detailed) {
     return endedMark(t, run);
   }
@@ -276,13 +299,20 @@ export function deployMarkOf(t: Translate, view: DeployView | null, pageRelease:
 }
 
 /** What a TODO row says beside its state of where the item's work stands on its way live. */
-export type ItemDeployPhase = "waiting-live" | "deploying" | "deploy-failed";
+export type ItemDeployPhase = "waiting-live" | "in-line" | "deploying" | "deploy-failed";
 
 export const ITEM_DEPLOY_LABELS: Record<ItemDeployPhase, string> = {
   "waiting-live": "todo.label.deploy_waiting_live",
+  "in-line": "todo.label.deploy_in_line",
   deploying: "todo.label.deploy_deploying",
   "deploy-failed": "todo.label.deploy_failed",
 };
+
+/** Where an item's work stands on its way live, with the unit whose deployment it stands in, where one does. */
+export interface ItemWayLive {
+  phase: ItemDeployPhase;
+  unitName: string | null;
+}
 
 /** What of an item its way live is read from. */
 export type ItemOnItsWayLive = Pick<TodoItem, "id" | "done" | "liveState" | "closing">;
@@ -299,46 +329,69 @@ function sameCommit(one: string, other: string): boolean {
   return one.startsWith(other) || other.startsWith(one);
 }
 
-// Whether a carried commit names the item: the item its record names, a `#NNNN` in its subject, or the commit
-// the item's close handed over.
+// Whether a commit a deployment brings names the item: the item its record names, a `#NNNN` in its subject, or the
+// commit the item's close handed over.
 function commitNames(commit: DeployCommit, item: ItemOnItsWayLive): boolean {
   if (commit.todoId === item.id || [...commit.subject.matchAll(ITEM_MENTION)].some((match) => Number(match[1]) === item.id)) return true;
 
   return item.closing?.commit != null && sameCommit(commit.commit, item.closing.commit);
 }
 
+function brought(commits: readonly DeployCommit[], item: ItemOnItsWayLive): boolean {
+  return commits.some((commit) => commitNames(commit, item));
+}
+
 /**
- * Where one item's work stands on its way live (docs/web.md, the TODO panel's section). A deployment under way one
- * of whose carried commits names the item is testing while its check stage is under way — or before its first
- * stage, where the plan opens with the check — and deploying through every later stage. Else the item's own close
- * says it: testing while a job of the item runs its close, waiting to go live once the close merged its commit,
- * waiting for its repository's batch deployment, whether or not its job still runs, and failed where the run the title bar reads carried that
- * commit and ended failed or rolled back. None for a finished item, or one that says neither.
+ * Where one item's work stands on its way live (docs/web.md, the TODO panel's section), by the commits each
+ * deployment brings live rather than the whole release its popover lists. A run under way that brings the item puts
+ * it live through every stage, its check and suite among them; else a deployment waiting in the line that brings it
+ * has it waiting its turn. Else the item's own close says it: waiting for its repository's batch deployment once the
+ * close merged its commit, whether or not its job still runs, and failed where the run the title bar reads brought
+ * that commit and ended failed or rolled back. None for a finished item, or one that says neither. The unit is the
+ * deploy root the deployment is of, which need not be the repository the item is assigned to.
  */
-export function itemDeployPhase(view: DeployView | null | undefined, item: ItemOnItsWayLive): ItemDeployPhase | null {
+export function itemWayLive(view: DeployView | null | undefined, item: ItemOnItsWayLive): ItemWayLive | null {
   if (item.done) return null;
 
   const run = view?.run ?? null;
-  const carried = run !== null && run.carried.some((commit) => commitNames(commit, item));
-  // Several units deploy at once: any run under way that carries the item says so, not only the one the bar stands.
-  const under = [...(view?.runs ?? []), ...(run !== null ? [run] : [])].find(
-    (one) => one.phase === "running" && one.carried.some((commit) => commitNames(commit, item))
-  );
+  // Several units deploy at once: any run under way that brings the item says so, not only the one the bar stands.
+  const under = [...(view?.runs ?? []), ...(run !== null ? [run] : [])].find((one) => one.phase === "running" && brought(one.brings, item));
 
-  // A run that carries the item puts it live through every stage, its check and suite among them.
-  if (under !== undefined) return "deploying";
+  if (under !== undefined) return { phase: "deploying", unitName: under.unitName };
+
+  const waiting = (view?.line ?? []).find((one) => brought(one.brings, item));
+
+  if (waiting !== undefined) return { phase: "in-line", unitName: waiting.unitName };
 
   // A close checking its change before the merge has no chip: the row's testbed line says what it runs.
   // A close ends at the merge and its commit waits for its repository's batch deployment, as one an older close
   // handed over waits to go live.
   if (item.closing?.phase !== "waiting-batch" && item.closing?.phase !== "waiting-live") return null;
 
-  return carried && (run?.end === "failed" || run?.end === "rolled-back") ? "deploy-failed" : "waiting-live";
+  if (run !== null && (run.end === "failed" || run.end === "rolled-back") && brought(run.brings, item)) {
+    return { phase: "deploy-failed", unitName: run.unitName };
+  }
+
+  return { phase: "waiting-live", unitName: null };
 }
 
-/** The colour a row's way-live chip wears: waiting for its deployment, being put live, or its deployment failed. */
+/** Where one item's work stands on its way live, without the unit. */
+export function itemDeployPhase(view: DeployView | null | undefined, item: ItemOnItsWayLive): ItemDeployPhase | null {
+  return itemWayLive(view, item)?.phase ?? null;
+}
+
+/** The words a row's way-live chip says: the phase, then the unit whose deployment it stands in, where one does. */
+export function itemWayLiveLabel(t: Translate, way: ItemWayLive): string {
+  const label = t(ITEM_DEPLOY_LABELS[way.phase]);
+
+  return way.unitName === null ? label : `${label} · ${way.unitName}`;
+}
+
+/** The colour a row's way-live chip wears: waiting for its deployment or its turn, being put live, or its deployment
+ * failed. Both waits wear one colour, told apart by their words. */
 export const ITEM_DEPLOY_COLOURS: Record<ItemDeployPhase, "info" | "secondary" | "error"> = {
   "waiting-live": "info",
+  "in-line": "info",
   deploying: "secondary",
   "deploy-failed": "error"
 };

@@ -15,7 +15,7 @@ describe("the deployment popover", () => {
   });
 
   test("reads the run's log only while it is shown", () => {
-    expect(mark).toContain("() => [shown.value, view.value?.run?.phase ?? null");
+    expect(mark).toContain("() => [shown.value, run.value?.phase ?? null");
   });
 });
 

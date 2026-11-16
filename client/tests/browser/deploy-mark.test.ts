@@ -38,6 +38,7 @@ const run = (phase: "running" | "ended", stage: string, unitName = "unit-a"): No
   end: phase === "ended" ? "live" : null,
   commit: null,
   carried: [],
+  brings: [],
   plan: [],
   stages: [{ stage: stage as never, at: Date.now() }],
   steps: [],

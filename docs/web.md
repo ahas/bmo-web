@@ -1213,9 +1213,23 @@ edit to that file alone, once the guide below carries the word.
     several run at once; with none under way, the one that ended last. For the administrator the run is
     named by its unit, the deploy root's own folder name, at the head of what the mark says after its
     state: 「배포 중 · bmo-web · 빌드 · 2분 14초」; a member hears nothing of a run (「Access」).
+  - **What stands first.** A run under way, then the deployment's hold, then the deployments waiting in the line,
+    then a run ended within its two minutes, then a page older than the console.
+  - **A deployment waiting its turn stands too.** The testbed starts every deployment in a unit of its own,
+    `bmo-deploy-<stamp>` in `bmo-deploy.slice`, and one waiting for its turn in the machine's deployment line has
+    written nothing into its progress record yet (the testbed's `docs/deploy.md`, 「The deployment line」). So the
+    console reads every such unit still active whose progress record, the file its `BMO_DEPLOY_PROGRESS` names,
+    stands under a listed deploy root and does not name that unit as its run: each is a deployment waiting in the
+    line, named by its deploy root's folder name as a run is, with the commit its command names and when its unit
+    began, the one begun first first, as the line takes them in the order they asked. With no run under way and no
+    hold standing, the mark stands them in the info colour behind an hourglass, the first in the line named:
+    「배포 순서 대기 · bmo-job」, or 「배포 순서 대기 · bmo-job 외 4」 for several. The popover of any mark lists them
+    under 순서 대기, each by its unit, its commit's short hash and how long it has waited. A member hears nothing of
+    them. The testbed serves no reading of its line (`docs/boundary.md`, 「Gaps the console meets」).
   - Wide, it is a spinning mark, 「배포 중」, the stage and the time since the deployment began,
     ticking each second in tabular figures. At phone width it is the spinning mark alone, its words
-    in its tooltip.
+    in its tooltip. Whatever its state, its words and its icon take the badges' darker step of its colour, so they
+    read at 4.5:1 on the bar in both themes.
   - Pressed, it opens a popover: the stages first, then what the deploy carries — every commit since the deploy
     that put the release before this one live, oldest first, each by its short hash and subject, and the commit
     itself — then the last lines of the deployment unit's journal, read with `journalctl` again every few seconds
@@ -1223,6 +1237,8 @@ edit to that file alone, once the guide below carries the word.
     the hold's items do. The carried commits are read from the deployed log and from the build tree's own git log
     between the two deploys; the release's version commit is its marker rather than work it carries, so it is left
     off, and a deploy that carries only that one still shows it.
+  - **The stages, what goes up and the journal are the standing run's alone:** a run under way, or one ended within
+    the two minutes its end stands. Under a hold or the line with no such run, the popover shows no run's.
   - **The mark's own words head the popover at phone width alone.** Wide, the bar already says them beside the
     mark, so the popover opens on the stages; at phone width, where the bar folds them into the tooltip, they stand
     at the popover's head with the mark, in its tone. The same holds for the hold and for the end.
@@ -1287,8 +1303,8 @@ edit to that file alone, once the guide below carries the word.
   It is read every time the stream opens, which it does again once
   bmo-web is back from a deployment's restart.
 - **It is told live, and stands through the units' restarts.** The console server looks at the progress
-  record and the run's process every second and tells every open tab's stream a `deploy` word when
-  either changed; a tab reads the deployment again on that word and every time its stream opens. None
+  records, the runs' processes and the deployment units standing every second and tells every open tab's stream a
+  `deploy` word when any changed; a tab reads the deployment again on that word and every time its stream opens. None
   of this goes through a unit, so a unit's restart leaves the mark as it was; bmo-web's own restart
   breaks the stream for a moment, and the stream that opens again reads it afresh.
 - **One mark opens at a time.** The popover opens on the mark of the screen standing, and only there. A screen
@@ -6287,12 +6303,20 @@ Four bounds keep it from growing forever.
     in the queue as waiting, never as held, and carries the same words, until its hold is let go once the commit is
     live and a job of it runs again. While any deployment under way carries the item — several units deploy at
     once, so every run under way is read, not only the one the title bar stands (「Deployment in the title bar」); a
-    run carries the item where one of its carried commits names the item by its number, or is the commit the item's
-    label `close-commit` names — the row says 배포 중 through every stage of that run, its 검사·테스트 stage among them,
-    until the run ends; where the run the title bar reads ended 「배포 실패」 or 「배포 실패 · 롤백」 — a gate that
-    did not pass among them — the row of an item still waiting on its commit says 배포 실패 until a job of the item
-    runs again or another run stands in the bar, while a run refused or withdrawn leaves it 배포 대기, its commit
-    still waiting. They take no place in the order of their own, and a finished row carries none. A reporting line stays at the top with
+    run carries the item where one of the commits it brings live names the item by its number, or is the commit the
+    item's label `close-commit` names — the row says 배포 중 and the run's unit as the title bar names it,
+    「배포 중 · bmo-drive」, through every stage of that run, its 검사·테스트 stage among them, until the run ends. The
+    commits a run brings live are those since the deploy before it in its root's deployed log, its own commit
+    last, not the whole release its popover lists: an item whose commit an earlier deploy of the same release put
+    live is not carried again, and the unit named is the repository the item's commit goes live in, which need not be
+    the repository the item is assigned to. Where no run under way carries it but a deployment waiting in the
+    line brings it — the commits from the release its root has live to the commit the waiting deployment's command
+    names, read from the same build tree — the row says 「배포 순서 대기 · bmo-job」 in the info colour and counts under
+    the 배포 대기 chip; a waiting deployment whose commit that tree does not hold yet brings nothing, and the row stays
+    배포 대기. Where the run the title bar reads brought the item's commit and ended 「배포 실패」 or 「배포 실패 · 롤백」
+    — a gate that did not pass among them — the row of an item still waiting on its commit says 배포 실패 and that
+    run's unit, until a job of the item runs again or another run stands in the bar, while a run refused or withdrawn
+    leaves it 배포 대기, its commit still waiting. They take no place in the order of their own, and a finished row carries none. A reporting line stays at the top with
     the running ones, where it stood while running, until its job has ended; the 진행 중 filter shows it and its badge counts
     it. Being unfinished work its tag colour is like 진행 중's, and being a completed line it carries no drag handle, has no
     place in the order a drop saves, and opening it has no button to press.

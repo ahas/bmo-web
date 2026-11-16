@@ -258,6 +258,11 @@
   stage and the step that failed it, `{step} 종료 코드 {code}` or `{step} 중지 · 출력 없음` for a step ended as hung;
   배포 실패 · 롤백 where the release before it was put back; 배포 거부됨 for a run refused before it began; 배포 중단됨
   for a run withdrawn before it ended. Never 배포 안 함, which reads as a choice not to deploy, nor 배포 취소.
+- where a change stands on its way live, in the title bar and on a TODO row → 배포 대기 for a merged commit waiting
+  for its repository's batch deployment, and for the deployment's hold on the queue; 배포 순서 대기 for a deployment
+  started and waiting its turn in the testbed's deployment line; 배포 중 for a deployment under way. Each names its
+  repository after ` · ` where one is known: 배포 중 · bmo-drive, 배포 순서 대기 · bmo-job 외 4. The list of the
+  deployments waiting in the line → 순서 대기. Never 줄 서는 중, 대기열 or 배포 큐 for the line.
 - the research unit's words → 리서치, 분류 (a category), 대기열 (its queue), 제외 (dismissing an item), 보류 (a hold on its
   runs), 해당 (a document marked for the owner's word), 브리핑 (a brief), 보안 권고 (an advisory). Never 카테고리, 큐, 기각.
 - set by hand → 수동 지정. Never 손으로 정함.

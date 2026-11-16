@@ -81,16 +81,17 @@
   </MovingList>
 
   <div class="mt-1 flex flex-wrap items-center gap-1">
-    <!-- Where the item's work stands on its way live — waiting to go live, being put live, or its deployment
-         failed — is what its state chip says while it applies, in the colour of that phase. -->
+    <!-- Where the item's work stands on its way live — waiting for its batch, waiting its turn in the deployment
+         line, being put live, or its deployment failed — is what its state chip says while it applies, in the colour
+         of that phase, with the unit whose deployment it stands in, as the title bar names it. -->
     <UBadge
-      v-if="deployPhase !== null"
-      :color="ITEM_DEPLOY_COLOURS[deployPhase]"
+      v-if="wayLive !== null"
+      :color="ITEM_DEPLOY_COLOURS[wayLive.phase]"
       variant="subtle"
       size="sm"
       icon="i-material-symbols-rocket-launch-outline"
       data-item-deploy
-    ><SearchText :text="$t(ITEM_DEPLOY_LABELS[deployPhase])" :query="query" /></UBadge>
+    ><SearchText :text="itemWayLiveLabel($t, wayLive)" :query="query" /></UBadge>
     <UBadge v-else :color="stateColour(item)" variant="subtle" size="sm" :icon="stateIcon(item)"><SearchText :text="stateLabel($t, item)" :query="query" /></UBadge>
 
     <!-- A job standing still behind a question it asked, which reads the panel's clock on its own. -->
@@ -166,7 +167,7 @@
 // What one row of the TODO panel's list holds, drawn from what it is handed alone, so a panel drawn again draws again
 // only the rows handed something new (docs/web.md, the TODO panel's section).
 import { countText } from "~/domain/numbers";
-import { ITEM_DEPLOY_COLOURS, ITEM_DEPLOY_LABELS } from "~/domain/deploy";
+import { ITEM_DEPLOY_COLOURS, itemWayLiveLabel } from "~/domain/deploy";
 import {
   canResolve,
   deployWaitsLine,
@@ -185,7 +186,7 @@ import {
 } from "~/domain/todos";
 
 import type { ItemTestbedTurn, JobQuestion, RoomSummary, TodoItem } from "#shared/types";
-import type { ItemDeployPhase } from "~/domain/deploy";
+import type { ItemWayLive } from "~/domain/deploy";
 import type { SearchMatch } from "bmo-ui/shared/search";
 
 defineProps<{
@@ -196,7 +197,7 @@ defineProps<{
   narrow: boolean;
   // Whether its handle can carry it.
   draggable: boolean;
-  deployPhase: ItemDeployPhase | null;
+  wayLive: ItemWayLive | null;
   testbedTurn: ItemTestbedTurn | null;
   // The questions its job asked and has not had settled.
   questions: JobQuestion[] | null;

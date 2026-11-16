@@ -10,13 +10,14 @@
        the title bar」). Wide, the words stand beside the mark; at phone width the mark alone, its
        words in its tooltip. Pressed, what stands behind it opens. It is the library's own button in
        the mark's tone, its hover on its own shape; standing alone it is the library's square, the one
-       every icon button of the bar is. -->
+       every icon button of the bar is. Its words and its icon take the badges' darker step of that tone, so they
+       read on the bar in every theme. -->
   <UPopover v-else-if="mark !== null" v-model:open="shown" :content="{ align: 'end' }" :ui="{ content: 'w-96 max-w-[calc(100vw-1rem)] p-3' }">
     <UTooltip :text="markWords" :disabled="!narrow">
       <UButton
         :color="mark.tone"
         variant="ghost"
-        class="min-w-0 shrink-0 tabular-nums sm:shrink"
+        class="badge-ink min-w-0 shrink-0 tabular-nums sm:shrink"
         :square="narrow"
         :aria-label="markWords"
         data-deploy-mark
@@ -29,7 +30,7 @@
     <template #content>
       <div ref="body" class="flex flex-col gap-3 text-sm">
         <!-- The mark's own words, at phone width alone: wide, the bar already says them beside the mark. -->
-        <p class="flex items-center gap-2 font-medium sm:hidden" :class="toneClass(mark.tone)" data-deploy-status>
+        <p class="badge-ink flex items-center gap-2 font-medium sm:hidden" :class="toneClass(mark.tone)" data-deploy-status>
           <UIcon :name="mark.icon" class="size-5 shrink-0" :class="mark.spin ? 'animate-spin' : ''" />
           <span class="tabular-nums">{{ mark.label }}<template v-if="mark.detail !== ''"> · {{ mark.detail }}</template></span>
         </p>
@@ -154,8 +155,22 @@
             <p class="tabular-nums">{{ holdLimit($t, view.hold) }}</p>
           </template>
 
+          <!-- The deployments waiting their turn in the testbed's deployment line, the one begun first first: each by
+               its unit, its commit's short hash and how long it has waited. -->
+          <div v-if="line.length > 0" class="flex flex-col gap-1" data-deploy-line>
+            <p class="text-muted">{{ $t("deploy.label.line") }}</p>
+            <ol class="flex flex-col gap-1">
+              <li v-for="one in line" :key="one.unit" class="flex min-w-0 items-center gap-2" data-deploy-waiting>
+                <UIcon name="i-material-symbols-hourglass-empty" class="size-4 shrink-0 text-info" aria-hidden="true" />
+                <span class="min-w-0 flex-1 truncate">{{ one.unitName }}</span>
+                <span v-if="one.commit !== null" class="shrink-0 font-mono text-muted">{{ one.commit.slice(0, 12) }}</span>
+                <span class="shrink-0 tabular-nums text-muted">{{ spanClock($t, Math.max(0, (now - one.since) / 1000)) }}</span>
+              </li>
+            </ol>
+          </div>
+
           <!-- The run's own log, its unit's journal, read again every few seconds while the run goes. -->
-          <div v-if="view?.run" class="flex flex-col gap-1">
+          <div v-if="run !== null" class="flex flex-col gap-1">
             <p class="text-muted">{{ $t("deploy.label.log") }}</p>
             <p v-if="logFailed" class="text-error">{{ $t("deploy.error.log_failed") }}</p>
             <ContentSkeleton v-else-if="log === null" :rows="3" listClass="flex flex-col gap-1" :label="$t('deploy.label.log')">
@@ -179,7 +194,7 @@
 </template>
 
 <script setup lang="ts">
-import { DEPLOY_ICON, ENDING_SHOWN_MS, currentStage, deployMarkOf, holdLimit, stageLabel, stageRows, stepLabel } from "~/domain/deploy";
+import { DEPLOY_ICON, ENDING_SHOWN_MS, currentStage, deployMarkOf, holdLimit, stageLabel, stageRows, standingRun, stepLabel } from "~/domain/deploy";
 import { useIsland } from "bmo-ui/app/domain/island";
 import { useConfirm } from "~/domain/confirm";
 import { useDeployEvents } from "~/domain/events";
@@ -249,17 +264,17 @@ useDeployEvents(() => {
   void refresh();
 });
 
-// The clock the elapsed time and the ending's two minutes are read against, moved each second while
-// a run, a hold or an ending stands, and still otherwise.
+// The clock the elapsed time, the line's waits and the ending's two minutes are read against, moved each second
+// while a run, a hold, the line or an ending stands, and still otherwise.
 const now = ref(Date.now());
 let ticking: ReturnType<typeof setInterval> | null = null;
 
 const moving = computed(() => {
-  const run = view.value?.run ?? null;
+  const latest = view.value?.run ?? null;
 
-  if ((view.value?.hold ?? null) !== null || run?.phase === "running") return true;
+  if ((view.value?.hold ?? null) !== null || (view.value?.line ?? []).length > 0 || latest?.phase === "running") return true;
 
-  return run !== null && run.endedAt !== null && now.value - run.endedAt < ENDING_SHOWN_MS;
+  return latest !== null && latest.endedAt !== null && now.value - latest.endedAt < ENDING_SHOWN_MS;
 });
 
 watch(
@@ -286,8 +301,12 @@ const detailed = computed(() => view.value?.detailed === true);
 const newer = computed(() => view.value !== null && view.value !== undefined && view.value.release !== pageRelease);
 // The items the commits a hold waits to put live carry; the progress record names none.
 const items = computed(() => view.value?.hold?.commits.flatMap((one) => (one.todoId === null ? [] : [one.todoId])) ?? []);
-const carried = computed(() => view.value?.run?.carried ?? []);
-const commit = computed(() => view.value?.run?.commit ?? null);
+// The run the popover's stages, what goes up and the log are of: one under way or just ended, never one long gone
+// under a hold or the line.
+const run = computed(() => standingRun(view.value, now.value));
+const line = computed(() => view.value?.line ?? []);
+const carried = computed(() => run.value?.carried ?? []);
+const commit = computed(() => run.value?.commit ?? null);
 
 // What goes up, as one list: the hold's items, then the commits the run carries.
 type Entry = { key: string; kind: "item"; id: number } | { key: string; kind: "commit"; one: DeployCommit };
@@ -319,7 +338,7 @@ function pressFold(event: MouseEvent): void {
 
   toggleFold();
 }
-const rows = computed(() => (view.value?.run ? stageRows(view.value.run, now.value) : []));
+const rows = computed(() => (run.value !== null ? stageRows(run.value, now.value) : []));
 
 // A popover left open on a mark that has gone closes with it.
 watch(mark, (shown) => {
@@ -332,6 +351,7 @@ const TONES: Record<DeployTone, string> = {
   warning: "text-warning",
   success: "text-success",
   error: "text-error",
+  info: "text-info",
 };
 
 // How a stage or a step is marked by where it stands, and the words its mark is read by.
@@ -433,7 +453,7 @@ function stopReading(): void {
 }
 
 watch(
-  () => [shown.value, view.value?.run?.phase ?? null, view.value?.run ? currentStage(view.value.run) : null] as const,
+  () => [shown.value, run.value?.phase ?? null, run.value !== null ? currentStage(run.value) : null] as const,
   ([shown, phase]) => {
     stopReading();
 

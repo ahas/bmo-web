@@ -1,15 +1,17 @@
 import type { DeployView } from "#shared/types";
 
 // The deployment as the title bar reads it (docs/web.md, 「Deployment in the title bar」). Every tab
-// asks on the stream's `deploy` word and whenever its stream opens; a member is handed only that a
-// run is under way.
+// asks on the stream's `deploy` word and whenever its stream opens; a member is handed nothing of a
+// run, the hold or the line, only the release.
 export default defineEventHandler(async (event): Promise<DeployView> => {
   const signed = await signedInUser(event);
   const readings = readDeployReadings();
   const reading = shownReading(readings);
-  const hold = signed.administrator ? await readDeployHoldRow() : null;
-  const carried = signed.administrator ? readDeployCarried(reading) : [];
-  const runs = signed.administrator ? runningDeployRuns(readings) : [];
+  const release = useRuntimeConfig().app.buildId;
 
-  return deployViewFor(reading, hold, useRuntimeConfig().app.buildId, signed.administrator, processAlive, carried, runs);
+  if (!signed.administrator) return deployViewFor(reading, release, null);
+
+  const [hold, line] = await Promise.all([readDeployHoldRow(), readDeployLine(readings)]);
+
+  return deployViewFor(reading, release, { hold, commits: readDeployCommits(reading), runs: runningDeployRuns(readings), line });
 });

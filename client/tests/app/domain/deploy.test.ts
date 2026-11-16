@@ -2,11 +2,11 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-import { deployMarkOf, ENDING_SHOWN_MS, holdLimit, holdWaits, ITEM_DEPLOY_COLOURS, itemDeployPhase, stageRows, stageSpans, stepLabel, withDeploying } from "../../../apps/web/app/domain/deploy";
+import { deployMarkOf, ENDING_SHOWN_MS, holdLimit, holdWaits, ITEM_DEPLOY_COLOURS, itemDeployPhase, itemWayLive, itemWayLiveLabel, stageRows, stageSpans, standingRun, stepLabel, withDeploying } from "../../../apps/web/app/domain/deploy";
 import type { TodoBoard, TodoItem } from "../../../apps/web/shared/types";
 import type { ItemOnItsWayLive } from "../../../apps/web/app/domain/deploy";
 
-import type { DeployRunView, DeployView } from "../../../apps/web/shared/types";
+import type { DeployRunView, DeployView, DeployWaiting } from "../../../apps/web/shared/types";
 import type { DeployStep } from "../../../apps/web/shared/deploy-progress";
 
 // The deployment mark of the title bar (docs/web.md, 「Deployment in the title bar」): which state
@@ -30,6 +30,7 @@ function run(over: Partial<DeployRunView> = {}): DeployRunView {
     end: null,
     commit: "c".repeat(40),
     carried: [],
+    brings: [],
     plan: [],
     stages: [{ stage: "check", at: NOW - 754_000 }, { stage: "build", at: NOW - 60_000 }],
     steps: [],
@@ -209,43 +210,43 @@ describe("an item on its way live", () => {
   test("marks the board's rows a run under way carries as being put live, and counts them, each phase in a colour of its own", () => {
     const row = (id: number, commit: string) => item(id, { closing: waiting(commit) }) as TodoItem;
     const board = { queue: [row(1201, "x".repeat(40)), row(1203, "d".repeat(40))], standing: { queue: 2, running: 0, deploy: 2, deploying: 0, pending: 0, held: 0, merged: 0 } } as TodoBoard;
-    const marked = withDeploying(board, view({ run: run({ carried }) }));
+    const marked = withDeploying(board, view({ run: run({ brings: carried }) }));
 
     expect(marked.queue.map((one) => one.deploying === true)).toEqual([true, false]);
     expect(marked.standing.deploying).toBe(1);
     // Read again, a row hands back the one marked item it handed before, so its row is handed nothing new.
-    expect(withDeploying(board, view({ run: run({ carried }) })).queue[0]).toBe(marked.queue[0]!);
+    expect(withDeploying(board, view({ run: run({ brings: carried }) })).queue[0]).toBe(marked.queue[0]!);
     expect(withDeploying(board, null).standing.deploying).toBe(0);
     expect(new Set(Object.values(ITEM_DEPLOY_COLOURS)).size).toBe(3);
   });
 
   test("is being put live while the run's check stage is under way, and before the first stage of a plan that opens with it", () => {
-    const checking = view({ run: run({ carried, stages: [{ stage: "check", at: NOW - 1_000 }] }) });
+    const checking = view({ run: run({ brings: carried, stages: [{ stage: "check", at: NOW - 1_000 }] }) });
 
     expect(itemDeployPhase(checking, item(1201))).toBe("deploying");
     expect(itemDeployPhase(checking, item(1202))).toBe("deploying");
-    expect(itemDeployPhase(view({ run: run({ carried, plan: ["check", "build"], stages: [] }) }), item(1201))).toBe("deploying");
+    expect(itemDeployPhase(view({ run: run({ brings: carried, plan: ["check", "build"], stages: [] }) }), item(1201))).toBe("deploying");
   });
 
   test("is being put live through every later stage until the run ends", () => {
-    expect(itemDeployPhase(view({ run: run({ carried }) }), item(1201))).toBe("deploying");
-    expect(itemDeployPhase(view({ run: run({ carried, stages: [{ stage: "restart", at: NOW }] }) }), item(1202))).toBe("deploying");
+    expect(itemDeployPhase(view({ run: run({ brings: carried }) }), item(1201))).toBe("deploying");
+    expect(itemDeployPhase(view({ run: run({ brings: carried, stages: [{ stage: "restart", at: NOW }] }) }), item(1202))).toBe("deploying");
   });
 
   // Several units deploy at once: a run under way that the title bar does not stand still says it carries the item.
   test("is being put live by any run under way that carries it, not only the one the bar stands", () => {
-    const other = run({ carried: [{ commit: "e".repeat(40), subject: "Keep the toolbar small", todoId: null }] });
-    const behind = run({ carried, stages: [{ stage: "restart", at: NOW }] });
+    const other = run({ brings: [{ commit: "e".repeat(40), subject: "Keep the toolbar small", todoId: null }] });
+    const behind = run({ brings: carried, stages: [{ stage: "restart", at: NOW }] });
 
     expect(itemDeployPhase(view({ run: other, runs: [other, behind] }), item(1201))).toBe("deploying");
     expect(itemDeployPhase(view({ run: other, runs: [other] }), item(1201, { closing: waiting("a".repeat(40)) }))).toBe("waiting-live");
   });
 
   test("is carried by a run whose commit is the one its close handed over, named whole or shortened", () => {
-    expect(itemDeployPhase(view({ run: run({ carried }) }), item(1203, { closing: waiting("c".repeat(40)) }))).toBe("deploying");
-    expect(itemDeployPhase(view({ run: run({ carried }) }), item(1203, { closing: waiting("c".repeat(12)) }))).toBe("deploying");
-    expect(itemDeployPhase(view({ run: run({ carried }) }), item(1203, { closing: waiting("d".repeat(40)) }))).toBe("waiting-live");
-    expect(itemDeployPhase(view({ run: run({ carried }) }), item(1203, { closing: waiting("ccc") }))).toBe("waiting-live");
+    expect(itemDeployPhase(view({ run: run({ brings: carried }) }), item(1203, { closing: waiting("c".repeat(40)) }))).toBe("deploying");
+    expect(itemDeployPhase(view({ run: run({ brings: carried }) }), item(1203, { closing: waiting("c".repeat(12)) }))).toBe("deploying");
+    expect(itemDeployPhase(view({ run: run({ brings: carried }) }), item(1203, { closing: waiting("d".repeat(40)) }))).toBe("waiting-live");
+    expect(itemDeployPhase(view({ run: run({ brings: carried }) }), item(1203, { closing: waiting("ccc") }))).toBe("waiting-live");
   });
 
   test("says nothing while a close checks its change before the merge, the row's testbed line saying it", () => {
@@ -261,35 +262,95 @@ describe("an item on its way live", () => {
 
     expect(itemDeployPhase(view(), item(1203, { closing: batch("c".repeat(40)) }))).toBe("waiting-live");
     expect(itemDeployPhase(view(), item(1203, { closing: batch(null), liveState: "running" }))).toBe("waiting-live");
-    expect(itemDeployPhase(view({ run: run({ carried }) }), item(1203, { closing: batch("c".repeat(40)) }))).toBe("deploying");
-    expect(itemDeployPhase(view({ run: run({ carried, phase: "ended", endedAt: NOW, end: "failed" }) }), item(1203, { closing: batch("c".repeat(40)) }))).toBe("deploy-failed");
+    expect(itemDeployPhase(view({ run: run({ brings: carried }) }), item(1203, { closing: batch("c".repeat(40)) }))).toBe("deploying");
+    expect(itemDeployPhase(view({ run: run({ brings: carried, phase: "ended", endedAt: NOW, end: "failed" }) }), item(1203, { closing: batch("c".repeat(40)) }))).toBe("deploy-failed");
   });
 
   test("waits to go live once its close handed its commit over, its job waiting on it or ended", () => {
     expect(itemDeployPhase(view(), item(1203, { closing: waiting("c".repeat(40)) }))).toBe("waiting-live");
     expect(itemDeployPhase(view(), item(1203, { closing: waiting(null) }))).toBe("waiting-live");
     expect(itemDeployPhase(view(), item(1203, { closing: waiting("c".repeat(40)), liveState: "running" }))).toBe("waiting-live");
-    expect(itemDeployPhase(view({ run: run({ carried, phase: "ended", endedAt: NOW, end: "live" }) }), item(1203, { closing: waiting("c".repeat(40)) }))).toBe("waiting-live");
+    expect(itemDeployPhase(view({ run: run({ brings: carried, phase: "ended", endedAt: NOW, end: "live" }) }), item(1203, { closing: waiting("c".repeat(40)) }))).toBe("waiting-live");
   });
 
   test("says its deployment failed where the run that carried its commit ended failed or rolled back, and not where it was refused or withdrawn", () => {
-    const failed = view({ run: run({ carried, phase: "ended", endedAt: NOW, end: "failed" }) });
-    const rolledBack = view({ run: run({ carried, phase: "ended", endedAt: NOW, end: "rolled-back" }) });
+    const failed = view({ run: run({ brings: carried, phase: "ended", endedAt: NOW, end: "failed" }) });
+    const rolledBack = view({ run: run({ brings: carried, phase: "ended", endedAt: NOW, end: "rolled-back" }) });
 
     expect(itemDeployPhase(failed, item(1203, { closing: waiting("c".repeat(40)) }))).toBe("deploy-failed");
     expect(itemDeployPhase(rolledBack, item(1203, { closing: waiting("c".repeat(40)) }))).toBe("deploy-failed");
     expect(itemDeployPhase(failed, item(1203, { closing: waiting("d".repeat(40)) }))).toBe("waiting-live");
     expect(itemDeployPhase(failed, item(1203, { closing: waiting("c".repeat(40)), liveState: "running" }))).toBe("deploy-failed");
-    expect(itemDeployPhase(view({ run: run({ carried, phase: "ended", endedAt: NOW, end: "refused" }) }), item(1203, { closing: waiting("c".repeat(40)) }))).toBe("waiting-live");
-    expect(itemDeployPhase(view({ run: run({ carried, phase: "cut", endedAt: NOW, end: "withdrawn" }) }), item(1203, { closing: waiting("c".repeat(40)) }))).toBe("waiting-live");
+    expect(itemDeployPhase(view({ run: run({ brings: carried, phase: "ended", endedAt: NOW, end: "refused" }) }), item(1203, { closing: waiting("c".repeat(40)) }))).toBe("waiting-live");
+    expect(itemDeployPhase(view({ run: run({ brings: carried, phase: "cut", endedAt: NOW, end: "withdrawn" }) }), item(1203, { closing: waiting("c".repeat(40)) }))).toBe("waiting-live");
   });
 
   test("says nothing of an item no commit names, of a run that ended, of a finished item, or with no run", () => {
-    expect(itemDeployPhase(view({ run: run({ carried }) }), item(1204))).toBeNull();
-    expect(itemDeployPhase(view({ run: run({ carried, phase: "ended", endedAt: NOW, end: "live" }) }), item(1201))).toBeNull();
-    expect(itemDeployPhase(view({ run: run({ carried }) }), item(1201, { done: true }))).toBeNull();
+    expect(itemDeployPhase(view({ run: run({ brings: carried }) }), item(1204))).toBeNull();
+    expect(itemDeployPhase(view({ run: run({ brings: carried, phase: "ended", endedAt: NOW, end: "live" }) }), item(1201))).toBeNull();
+    expect(itemDeployPhase(view({ run: run({ brings: carried }) }), item(1201, { done: true }))).toBeNull();
     expect(itemDeployPhase(view(), item(1201, { done: true, closing: waiting("c".repeat(40)) }))).toBeNull();
     expect(itemDeployPhase(view(), item(1201))).toBeNull();
     expect(itemDeployPhase(null, item(1201))).toBeNull();
+  });
+
+  // A run of the same release carries the release whole for its popover, but brings live only what is new since the
+  // deploy before it: an item an earlier deploy put live is not being put live again.
+  test("is carried by what a run brings live, not by the whole release it lists", () => {
+    expect(itemDeployPhase(view({ run: run({ brings: carried, brings: [] }) }), item(1203, { closing: waiting("c".repeat(40)) }))).toBe("waiting-live");
+    expect(itemDeployPhase(view({ run: run({ brings: carried, brings: [] }) }), item(1201))).toBeNull();
+  });
+
+  // An item's commit may go live in another repository than the one the item is assigned to: the row names the
+  // unit whose deployment brings it, as the title bar does.
+  test("names the unit whose deployment it stands in", () => {
+    const drive = run({ unitName: "unit-b", brings: carried });
+
+    expect(itemWayLive(view({ run: drive, runs: [drive] }), item(1203, { closing: waiting("c".repeat(40)) }))).toEqual({ phase: "deploying", unitName: "unit-b" });
+    expect(itemWayLive(view(), item(1203, { closing: waiting("c".repeat(40)) }))).toEqual({ phase: "waiting-live", unitName: null });
+    expect(itemWayLiveLabel(wording, { phase: "deploying", unitName: "unit-b" })).toBe(`${wording("todo.label.deploy_deploying")} · unit-b`);
+    expect(itemWayLiveLabel(wording, { phase: "waiting-live", unitName: null })).toBe(wording("todo.label.deploy_waiting_live"));
+  });
+
+  test("waits its turn where a deployment waiting in the line brings it, and a run under way bringing it comes first", () => {
+    const line: DeployWaiting[] = [{ unitName: "unit-c", unit: "deploy-c.service", commit: "c".repeat(12), since: NOW - 5_000, brings: carried }];
+    const merged = item(1203, { closing: waiting("c".repeat(40)) });
+
+    expect(itemWayLive(view({ line }), merged)).toEqual({ phase: "in-line", unitName: "unit-c" });
+    expect(itemWayLive(view({ line }), item(1201))).toEqual({ phase: "in-line", unitName: "unit-c" });
+    expect(itemWayLive(view({ line: [{ ...line[0]!, commit: null, brings: [] }] }), merged)).toEqual({ phase: "waiting-live", unitName: null });
+
+    const under = run({ unitName: "unit-c", brings: carried });
+
+    expect(itemWayLive(view({ run: under, runs: [under], line }), merged)).toEqual({ phase: "deploying", unitName: "unit-c" });
+  });
+});
+
+// The deployments waiting their turn in the testbed's deployment line (docs/web.md, 「Deployment in the title bar」).
+describe("the line", () => {
+  const waiting = (unitName: string): DeployWaiting => ({ unitName, unit: `deploy-${unitName}.service`, commit: null, since: NOW - 60_000, brings: [] });
+  const line = [waiting("unit-a"), waiting("unit-b"), waiting("unit-c")];
+
+  test("stands with no run under way and no hold, the first in the line named and how many stand behind it", () => {
+    expect(deployMarkOf(wording, view({ line: [waiting("unit-a")] }), RELEASE, NOW)).toMatchObject({ kind: "line", tone: "info", spin: false, label: wording("deploy.status.line"), detail: "unit-a" });
+    expect(deployMarkOf(wording, view({ line }), RELEASE, NOW)?.detail).toBe(wording("deploy.label.line_more", { unit: "unit-a", n: "2" }));
+  });
+
+  test("stands behind a run under way and the hold, and before a run that ended", () => {
+    const hold = { since: NOW, until: NOW + 60_000, commits: [], breaks: [], waitingOn: [], waitingFor: [1389], passing: [] };
+
+    expect(deployMarkOf(wording, view({ line, run: run() }), RELEASE, NOW)?.kind).toBe("running");
+    expect(deployMarkOf(wording, view({ line, hold }), RELEASE, NOW)?.kind).toBe("hold");
+    expect(deployMarkOf(wording, view({ line, run: run({ phase: "ended", end: "live", endedAt: NOW - 1_000 }) }), RELEASE, NOW)?.kind).toBe("line");
+    expect(deployMarkOf(wording, view({ line, detailed: false }), RELEASE, NOW)).toBeNull();
+  });
+
+  test("leaves the popover no run but one under way or ended within its two minutes", () => {
+    const ended = run({ phase: "ended", end: "live", endedAt: NOW - 1_000 });
+
+    expect(standingRun(view({ run: run() }), NOW)).not.toBeNull();
+    expect(standingRun(view({ run: ended }), NOW)).toBe(ended);
+    expect(standingRun(view({ run: ended }), NOW + ENDING_SHOWN_MS)).toBeNull();
+    expect(standingRun(view(), NOW)).toBeNull();
   });
 });

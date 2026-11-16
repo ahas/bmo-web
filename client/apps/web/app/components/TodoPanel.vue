@@ -284,7 +284,7 @@
                 :query="searched"
                 :narrow="narrow"
                 :draggable="canDrag(item, view, searched !== '')"
-                :deploy-phase="itemDeployPhase(deployView, item)"
+                :way-live="itemWayLive(deployView, item)"
                 :testbed-turn="testbedTurns.get(item.id) ?? null"
                 :questions="askedOf.get(item.id) ?? null"
                 :match="rowMatches.get(item.id) ?? null"
@@ -354,7 +354,7 @@ import { provideTodoClock } from "~/domain/todo-clock";
 import { useTodoPanelLayout, useTodoView } from "~/domain/todo-settings";
 import { toUnixSeconds } from "bmo-ui/app/domain/time";
 import { holdWaits } from "~/domain/queue-place";
-import { itemDeployPhase, withDeploying } from "~/domain/deploy";
+import { itemWayLive, withDeploying } from "~/domain/deploy";
 import { useIsland } from "bmo-ui/app/domain/island";
 import { useConfirm } from "~/domain/confirm";
 import { matchFields } from "bmo-ui/shared/search";

@@ -143,10 +143,10 @@ async fn a_user_made_is_given_the_defaults_in_force() {
 
   assert_eq!(status, StatusCode::OK, "{said}");
 
-  // Their rooms, which they read, their own account, which they keep, and the screens units bring that a
+  // Their rooms, which they read and speak in, their own account, which they keep, and the screens units bring that a
   // member could open before this surface did.
   assert_eq!(section(&said, "rooms")["read"], true, "{said}");
-  assert_eq!(section(&said, "rooms")["write"], false, "{said}");
+  assert_eq!(section(&said, "rooms")["write"], true, "{said}");
   assert_eq!(section(&said, "account")["read"], true, "{said}");
   assert_eq!(section(&said, "account")["write"], true, "{said}");
   assert_eq!(section(&said, "mail")["read"], true, "{said}");
@@ -161,7 +161,7 @@ async fn a_user_made_is_given_the_defaults_in_force() {
   }
 
   assert!(check(&app, &user, "read", "rooms").await);
-  assert!(!check(&app, &user, "write", "rooms").await);
+  assert!(check(&app, &user, "write", "rooms").await);
   assert!(!check(&app, &user, "read", "live").await);
 }
 
@@ -306,6 +306,68 @@ async fn an_old_agent_management_grant_is_moved_to_the_five_parts() {
   assert!(!check(&app, &user, "read", "agents").await);
   bmo_web_server::sections::split_agents(scratch.db()).await.unwrap();
   assert!(check(&app, &user, "read", "supervisors").await);
+}
+
+#[tokio::test]
+async fn a_user_given_the_earlier_defaults_is_given_the_rooms_write_once() {
+  ready();
+  let scratch = fresh().await;
+  let app = app(&scratch).await;
+  let boss = owner(&app).await;
+  let earlier = set_sign_in(scratch.db(), "member-earlier", "the password", false)
+    .await
+    .unwrap()
+    .user
+    .to_string();
+  let set = set_sign_in(scratch.db(), "member-set", "the password", false)
+    .await
+    .unwrap()
+    .user
+    .to_string();
+
+  // What the earlier defaults left: the rooms' read alone.
+  scratch
+    .run(
+      r#"DELETE FROM "relation_tuples"
+         WHERE "resource_type" = 'bmo_section' AND "resource_id" = 'rooms' AND "relation" = 'write'"#,
+      vec![],
+    )
+    .await;
+  // One whose rooms an administrator set to read alone, by hand.
+  let (status, said) = asked(
+    &app,
+    Method::PUT,
+    &format!("/users/{set}/sections"),
+    Some(json!({ "sections": [{ "section": "rooms", "read": true, "write": false }] })),
+    Some(&boss),
+    Some("administrator"),
+  )
+  .await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert!(!check(&app, &earlier, "write", "rooms").await);
+
+  scratch
+    .run(
+      r#"DELETE FROM "settings" WHERE "key" = $1"#,
+      vec!["sections_rooms_write_seeded_at".into()],
+    )
+    .await;
+  bmo_web_server::sections::backfill_rooms_write(scratch.db()).await.unwrap();
+
+  assert!(check(&app, &earlier, "write", "rooms").await);
+  assert!(!check(&app, &set, "write", "rooms").await, "what an administrator set stays as set");
+
+  // The mark keeps it from running again: a write taken away afterwards stays away.
+  scratch
+    .run(
+      r#"DELETE FROM "relation_tuples"
+         WHERE "resource_type" = 'bmo_section' AND "resource_id" = 'rooms' AND "relation" = 'write'"#,
+      vec![],
+    )
+    .await;
+  bmo_web_server::sections::backfill_rooms_write(scratch.db()).await.unwrap();
+  assert!(!check(&app, &earlier, "write", "rooms").await);
 }
 
 #[tokio::test]

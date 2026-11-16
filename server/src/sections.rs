@@ -58,10 +58,13 @@ pub const SECTIONS: [&str; 19] = [
 pub const DEFAULT_READ: [&str; 8] =
   ["mail", "files", "artifact", "code", "remote", "brain", "rooms", "account"];
 /// The default sections a reader may write.
-pub const DEFAULT_WRITE: [&str; 1] = ["account"];
+pub const DEFAULT_WRITE: [&str; 2] = ["account", "rooms"];
 
 /// The settings key the one-time default seeding is marked under.
 const SEEDED: &str = "sections_seeded_at";
+
+/// The settings key the one-time grant of the rooms' write to users given the earlier defaults is marked under.
+const ROOMS_WRITE_SEEDED: &str = "sections_rooms_write_seeded_at";
 
 /// The name a default or an administrator's write is recorded under in the tuple's `created_by`.
 const DEFAULTS: &str = "section-defaults";
@@ -136,7 +139,7 @@ pub async fn of<C: ConnectionTrait>(db: &C, user: i32) -> Result<Vec<SectionRow>
   Ok(rows)
 }
 
-/// A user given the defaults in force: their rooms read, their account read and written.
+/// A user given the defaults in force: their rooms and their account read and written.
 pub async fn seed_defaults<C: ConnectionTrait>(db: &C, user: i32, granter: &str) -> Result<(), Refusal> {
   let subject = SubjectKey::user(user);
 
@@ -411,4 +414,63 @@ pub fn routes() -> Router<Service> {
   Router::new()
     .route("/users", get(users))
     .route("/users/{user}/sections", get(read).put(write))
+}
+
+/// The rooms' write given once to the users the earlier defaults gave the rooms' read alone: each user whose rooms
+/// read was written as a default, by whichever road made the user, and who holds no rooms write. What an administrator set by hand stays as set, and the
+/// grant is marked so it is never run again.
+pub async fn backfill_rooms_write<C: ConnectionTrait + TransactionTrait>(db: &C) -> Result<(), Refusal> {
+  if one(
+    db,
+    r#"SELECT 1 AS "held" FROM "settings" WHERE "key" = $1"#,
+    vec![ROOMS_WRITE_SEEDED.into()],
+  )
+  .await?
+  .is_some()
+  {
+    return Ok(());
+  }
+
+  let txn = db.begin().await?;
+  let users = crate::all(
+    &txn,
+    r#"SELECT u."id" FROM "users" u
+       WHERE EXISTS (
+         SELECT 1 FROM "relation_tuples" t
+         WHERE t."resource_type" = $1 AND t."resource_id" = 'rooms' AND t."relation" = 'read'
+           AND t."subject_key" = 'user:' || u."id" AND t."created_by" <> $2
+       )
+       AND NOT EXISTS (
+         SELECT 1 FROM "relation_tuples" t
+         WHERE t."resource_type" = $1 AND t."resource_id" = 'rooms' AND t."relation" = 'write'
+           AND t."subject_key" = 'user:' || u."id"
+       )
+       ORDER BY u."id""#,
+    vec![KIND.into(), SETTINGS.into()],
+  )
+  .await?;
+
+  // A database with no user yet keeps no mark, as the defaults' own seeding keeps none: the users made after it
+  // are given the write as they are made, and a store still empty of them is one an import may write.
+  if one(&txn, r#"SELECT 1 AS "held" FROM "users" LIMIT 1"#, vec![]).await?.is_none() {
+    txn.rollback().await?;
+
+    return Ok(());
+  }
+
+  for row in &users {
+    let subject = SubjectKey::user(row.try_get("", "id")?);
+
+    Authz::write_unchecked(TupleWrite::new(KIND, "rooms", "write", subject), DEFAULTS, &txn).await?;
+  }
+
+  run(
+    &txn,
+    r#"INSERT INTO "settings" ("key", "value") VALUES ($1, $2) ON CONFLICT ("key") DO NOTHING"#,
+    vec![ROOMS_WRITE_SEEDED.into(), crate::now_ms().to_string().into()],
+  )
+  .await?;
+  txn.commit().await?;
+
+  Ok(())
 }

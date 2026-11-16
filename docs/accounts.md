@@ -286,13 +286,18 @@ section states what each does.
 - **Every platform administrator passes every section.**
 - **A user's grants are sumida's relation tuples,** so the service keeps no table of them. An administrator
   writes one user's set whole, and a section named no more is taken away.
-- **The defaults in force are the console as it stood before this surface:** `rooms` read, `account` read and
+- **The defaults in force let a person use the console as a messenger of its own:** `rooms` read and written,
+  so a person reads their rooms, speaks in them and in their own BMO's private room, and opens a room, with no
+  grant asked of anyone; `account` read and
   written, and the sections of the screens units bring that a member could open — `mail`, `files`, `artifact`,
   `code`, `remote` and `brain` — read. A screen whose manifest names the administrator alone stays closed to a
   member by that manifest, whatever its section says. A user made by the account command or linked to a sender
   is given the defaults, and the users who stood before this surface did are given them once, as the service
   starts against a database where that seeding has not run. A user whose administrator has since taken every
   section away keeps none.
+- **A user given the defaults before they held the rooms' write is given it once,** as the service starts
+  against a database where that has not run: every user whose rooms read was written as a default, by whichever
+  road made the user, and who holds no rooms write. A user an administrator set by hand keeps what was set.
 - **The console reads them for its navigation and its route guard.** A reader sees only the sections they may
   read, and a route of a section they may not read or write answers them as if nothing stood there. A screen a
   unit brings is held to its manifest's role as well, so a section alone never opens a screen the unit keeps
@@ -576,7 +581,7 @@ section states what each does.
 - **The server's binary makes the user a name signs in as, or gives one standing a new password,** with the
   password read from standard input so it stands in no process listing.
   - A user made is enabled, in the first company with the default role (「The data move」), and given the
-    console sections in force — their rooms read and their account read and written — holding nothing else
+    console sections in force — their rooms and their account read and written — holding nothing else
     until it is granted; `--administrator` also makes it a platform administrator,
     one more beside those that stand (「The platform administrators」).
   - A user standing is enabled again with the new password, and keeps its grants and its links.

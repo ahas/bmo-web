@@ -54,6 +54,7 @@ pub async fn stand(
   // A user who stood before the console's sections did is given the defaults in force, once, and agent
   // management's old single section is moved to its five parts.
   crate::sections::backfill(&db).await?;
+  crate::sections::backfill_rooms_write(&db).await?;
   crate::sections::split_agents(&db).await?;
 
   Ok(Service {

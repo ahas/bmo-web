@@ -58,6 +58,13 @@ export const openedRoutes: readonly OpenedRoute[] = [
   { method: "GET", path: /^\/api\/invites(?:\/units)?$/, scope: "user" },
   { method: "POST", path: /^\/api\/invites$/, scope: "user" },
   { method: "DELETE", path: /^\/api\/invites\/[0-9a-f]+$/, scope: "user" },
+  // A company's default for its people's BMOs and who under a unit may personalise theirs: every signed-in login asks,
+  // and the account service decides who heads what (docs/accounts.md, 「A person's BMO profile」).
+  { method: "GET", path: /^\/api\/organization\/companies\/\d+\/agent(?:\/picture)?$/, scope: "user" },
+  { method: "PUT", path: /^\/api\/organization\/companies\/\d+\/agent(?:\/picture)?$/, scope: "user" },
+  { method: "DELETE", path: /^\/api\/organization\/companies\/\d+\/agent\/picture$/, scope: "user" },
+  { method: "GET", path: /^\/api\/organization\/units\/\d+\/agent-permissions$/, scope: "user" },
+  { method: "PUT", path: /^\/api\/organization\/(?:units|users)\/\d+\/agent-permission$/, scope: "user" },
   { method: "GET", path: /^\/api\/join\/[0-9a-f]+$/, scope: "user" },
   { method: "POST", path: /^\/api\/join\/[0-9a-f]+\/(accept|proof)$/, scope: "user" },
   // The desktop app's pairing, asked and read with or without a session; its code read and answered by every
@@ -76,6 +83,10 @@ export const openedRoutes: readonly OpenedRoute[] = [
   section(ACCOUNT, "POST", /^\/api\/account$/),
   section(ACCOUNT, "GET", /^\/api\/account\/(palette|theme)$/),
   section(ACCOUNT, "PUT", /^\/api\/account\/(palette|theme)$/),
+  // One's own BMO's profile, which the account service opens only to a person who may personalise it.
+  section(ACCOUNT, "GET", /^\/api\/account\/agent(?:\/picture)?$/),
+  section(ACCOUNT, "PUT", /^\/api\/account\/agent(?:\/picture)?$/),
+  section(ACCOUNT, "DELETE", /^\/api\/account\/agent(?:\/picture)?$/),
   section(ACCOUNT, "GET", /^\/api\/users\/\d+\/profile$/),
   section(ACCOUNT, "PUT", /^\/api\/users\/\d+\/profile$/),
   // The reader's own secrets, in their own space, and the kinds every person's form asks in; changing a kind is the

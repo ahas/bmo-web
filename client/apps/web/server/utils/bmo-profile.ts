@@ -125,9 +125,10 @@ export async function standOwnBmo(user: number, options: { before?: string; prof
   const callNames = standing?.callNames.value ?? [];
 
   if (standing !== null && callNamesOn(own.aliases).join(",") !== callNames.join(",")) {
-    // The agency's change takes the call names as it keeps them (its `docs/supervisors.md`, 「What a supervisor row
-    // holds」), beside the label rather than with it, so a refusal of one leaves the other standing.
-    const change: Schemas["SupervisorChange"] & { aliases: string } = { aliases: callNames.join(",") };
+    // The agency's change takes the whole list of call names, and its read serves them back as one comma-separated
+    // line (its `docs/supervisors.md`, 「Its call names」); they go beside the label rather than with it, so a refusal of
+    // one leaves the other standing.
+    const change: Schemas["SupervisorChange"] & { aliases: string[] } = { aliases: callNames };
 
     await logged(user, "call names", () => agencyCall(agency().PATCH("/supervisors/{supervisorName}", { params: { path: { supervisorName: own.name } }, body: change })));
   }

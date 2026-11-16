@@ -84,7 +84,7 @@ describe("a company's default applied to a person's BMO", () => {
 
     expect(writes(agency)).toEqual([
       ["PATCH", "/supervisors/u12", { label: ownTitles("Person D", "Dear").label }],
-      ["PATCH", "/supervisors/u12", { aliases: "Dear,dear-b" }]
+      ["PATCH", "/supervisors/u12", { aliases: ["Dear", "dear-b"] }]
     ]);
     expect(ownTitles("Person D", "Dear").label).toBe(wording("account.label.own_bmo", { name: "Person D", agent: "Dear" }));
     expect(receiver.asked.filter((one) => one.path === "/avatars/agent/u12").map((one) => one.method)).toEqual(["PUT"]);

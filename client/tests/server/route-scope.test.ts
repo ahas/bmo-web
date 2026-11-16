@@ -122,6 +122,25 @@ describe("a console route as another user meets it", () => {
     }
   });
 
+  // docs/accounts.md, 「A person's BMO profile」: the account service decides who may change a BMO profile, so the
+  // console's scope lets every member with the account section reach their own and every member reach a company's.
+  test("a member reaches their own BMO profile and asks of a company's, the account service deciding", async () => {
+    session = { user: { name: "member", id: 2 }, sid: "bmo.sid=member", administrator: false };
+
+    for (const route of [
+      { file: "account/agent.get", method: "GET", path: "/api/account/agent" },
+      { file: "account/agent.put", method: "PUT", path: "/api/account/agent" },
+      { file: "account/agent.delete", method: "DELETE", path: "/api/account/agent" },
+      { file: "account/agent/picture.put", method: "PUT", path: "/api/account/agent/picture" },
+      { file: "organization/companies/[company]/agent.put", method: "PUT", path: "/api/organization/companies/1/agent" },
+      { file: "organization/companies/[company]/agent/picture.delete", method: "DELETE", path: "/api/organization/companies/1/agent/picture" },
+      { file: "organization/units/[unit]/agent-permissions.get", method: "GET", path: "/api/organization/units/1/agent-permissions" },
+      { file: "organization/users/[user]/agent-permission.put", method: "PUT", path: "/api/organization/users/2/agent-permission" }
+    ]) {
+      expect({ route: route.file, status: await answer(route) }).toEqual({ route: route.file, status: 200 });
+    }
+  });
+
   test("a grant of one agent-management part opens that part's reads alone", async () => {
     service.sections.set(3, new Map([["supervisors", { read: true, write: false }]]));
     session = { user: { name: "agent-reader", id: 3 }, sid: "bmo.sid=agent-reader", administrator: false };

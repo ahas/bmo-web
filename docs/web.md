@@ -415,7 +415,9 @@ console page. No answer says which framework drew it. Strict transport is the re
   permission reads, and each route of those sections under its scope: their own account, their phones and
   their tabs, and the rooms they read (below). A route of a section they may not read or write answers them as
   if nothing stood there; the routes and the section each serves are kept in one place, and a test holds every
-  route file to it.
+  route file to it. A route whose answer the account service decides by who is asking stands open to every signed-in
+  login and leaves the refusal to the service: the invitations, and a company's BMO default and who may personalise
+  under a unit (`docs/accounts.md`, 「A person's BMO profile」); one's own BMO profile stands with the account section.
 - **A person reads rooms by their account, never by a messenger identity** (`STRUCTURE.md`, 「Accounts,
   companies and units」: in the console a person is their account). The rooms an account reads are the union of
   three, and nobody needs a chat service's identity for any of them:

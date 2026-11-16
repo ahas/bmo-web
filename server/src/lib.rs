@@ -3,6 +3,7 @@
 //! (docs/boundary.md). It stands on its own database and holds the decisions; what a screen or a room does
 //! with an answer is its caller's.
 
+pub mod agents;
 pub mod callers;
 pub mod checks;
 pub mod data_move;

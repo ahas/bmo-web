@@ -1708,7 +1708,8 @@ account:
     new_password: 새 비밀번호
     nothing_subscribed: 받는 알림 없음
     other_devices: "다른 기기 {n}개"
-    own_bmo: "{name}의 BMO"
+    own_bmo: "{name}의 {agent}"
+    bmo_name: BMO
     own_bmo_room: "{name}"
     palette: 팔레트
     palette_description: 대화방 색
@@ -1768,11 +1769,13 @@ settings:
     settings: 설정
   label:
     account: 계정
+    agent: 내 BMO
     briefing: 보이스브리핑
     notifications: 알림
     palette: 대화방
     permissions: 권한
     invites: 초대
+    bmo: BMO
     providers: 공급자
     secrets: 비밀 보관함
     supervisor_none: 감독관 없음
@@ -3509,3 +3512,52 @@ picture:
 admin:
   aria:
     tabs: 관리자 탭
+bmo_profile:
+  label:
+    company: 회사
+    company_default: 기본 BMO
+    name: 이름
+    call_names: 부르는 이름
+    call_name_new: 추가할 이름
+    picture: 프로필 사진
+    persona: 페르소나
+    permission: BMO 설정 권한
+    default_value: "{value} (기본값)"
+    from_own: 직접 정함
+    from_company: 회사에서 정함
+    allow: 허용
+    deny: 막음
+    inherit: 상위 조직 따름
+    follows_allowed: 상위 조직을 따라 허용
+    follows_denied: 상위 조직을 따라 막음
+    persona_count: "{count}/{max}자"
+    no_companies: 설정할 수 있는 회사가 없습니다.
+    no_call_names: 부르는 이름 없음
+    company_picture_note: 저장하면 이 사진이 회사 사람들의 BMO 사진이 됩니다.
+    own_picture_note: 저장하면 이 사진이 내 BMO 사진이 됩니다.
+    reset_title: 내 BMO를 초기화할까요?
+    reset_description: 직접 정한 이름, 부르는 이름, 사진, 페르소나를 지우고 회사 설정을 따릅니다.
+  aria:
+    call_name_remove: "{name} 지우기"
+    tree: BMO 설정 권한 조직도
+  action:
+    reset: 초기화
+    picture_remove: 사진 지우기
+    picture_company: 회사 사진으로 되돌리기
+  status:
+    loading: BMO 설정 불러오는 중…
+  message:
+    saved: 저장했습니다.
+    reset: 초기화했습니다.
+    picture_removed: 사진을 지웠습니다.
+    picture_company: 회사 사진으로 되돌렸습니다.
+  error:
+    withheld: BMO를 직접 설정할 권한이 없습니다.
+    bad_profile: 이름, 부르는 이름이나 페르소나의 형식이 맞지 않습니다.
+    call_name_taken: 이미 있는 이름입니다.
+    call_name_comma: 부르는 이름에는 쉼표를 쓸 수 없습니다.
+    call_names_full: 부르는 이름은 10개까지 둘 수 있습니다.
+    forbidden: 이 설정을 바꿀 권한이 없습니다.
+    not_found: 회사나 조직을 찾을 수 없습니다.
+    read_failed: BMO 설정을 불러오지 못했습니다.
+    failed: BMO 설정을 저장하지 못했습니다.

@@ -41,6 +41,8 @@ struct Route {
   summary: &'static str,
   parameters: Vec<Value>,
   body: Option<Value>,
+  /// The media type the body is sent in: JSON, or a picture's own bytes.
+  media: &'static str,
   answers: Vec<(u16, Option<Value>)>,
   codes: Vec<&'static str>,
   refusal: Refusal,
@@ -136,6 +138,17 @@ fn no_answer() -> Option<Value> {
   None
 }
 
+/// What a BMO's picture is sent and answered as: the bytes of a PNG, JPEG, WebP or GIF, by their own type.
+const PICTURE: &str = "image/*";
+
+fn picture() -> Value {
+  json!({ "type": "string", "format": "binary" })
+}
+
+fn picture_answer() -> Option<Value> {
+  Some(json!({ PICTURE: { "schema": picture() } }))
+}
+
 impl Route {
   fn operation(self, wire: &Schema, session: &Schema) -> Value {
     let mut responses = Map::new();
@@ -183,7 +196,7 @@ impl Route {
     if let Some(body) = self.body {
       operation["requestBody"] = json!({
         "required": true,
-        "content": { "application/json": { "schema": body } },
+        "content": { self.media: { "schema": body } },
       });
     }
     if let Some(security) = self.security {
@@ -223,6 +236,17 @@ pub fn openapi() -> Value {
       params: $params:expr, body: $body:expr, answers: $answers:expr, codes: $codes:expr,
       refusal: $refusal:expr, security: $security:expr
     ) => {{
+      add!(
+        $method, $path, $id, $tag, $summary,
+        params: $params, body: $body, media: "application/json", answers: $answers, codes: $codes,
+        refusal: $refusal, security: $security
+      )
+    }};
+    (
+      $method:literal, $path:literal, $id:literal, $tag:literal, $summary:literal,
+      params: $params:expr, body: $body:expr, media: $media:expr, answers: $answers:expr, codes: $codes:expr,
+      refusal: $refusal:expr, security: $security:expr
+    ) => {{
       let security = match $security {
         Value::Null => None,
         ref other => Some(other.clone()),
@@ -233,6 +257,7 @@ pub fn openapi() -> Value {
         summary: $summary,
         parameters: $params,
         body: $body,
+        media: $media,
         answers: $answers,
         codes: $codes,
         refusal: $refusal,
@@ -478,6 +503,177 @@ pub fn openapi() -> Value {
     params: vec![string_path("user"), owner_key(), owner_role()],
     body: Some(json!(generator.subschema_for::<UserProfile>())),
     answers: vec![(200, json_answer::<UserProfile>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/companies/{company}/agent",
+    "companyAgent",
+    "BMO profiles",
+    "A company's default for its people's BMOs: its name, call names and whether it keeps a picture; for the administrator and anyone of the company.",
+    params: vec![integer_path("company"), owner_key(), owner_role()],
+    body: None,
+    answers: vec![(200, json_answer::<CompanyAgent>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PUT",
+    "/companies/{company}/agent",
+    "setCompanyAgent",
+    "BMO profiles",
+    "Replaces a company's default name and call names, by the administrator or the company's heads; answers the default as it stands.",
+    params: vec![integer_path("company"), owner_key(), owner_role()],
+    body: Some(json!(generator.subschema_for::<CompanyAgentAsk>())),
+    answers: vec![(200, json_answer::<CompanyAgent>(&mut generator))],
+    codes: vec!["bad-request", "bad-agent-profile", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/companies/{company}/agent/picture",
+    "companyAgentPicture",
+    "BMO profiles",
+    "The bytes of a company's default picture with their type, for the callers of the default's read; 404 where none is kept.",
+    params: vec![integer_path("company"), owner_key(), owner_role()],
+    body: None,
+    answers: vec![(200, picture_answer())],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PUT",
+    "/companies/{company}/agent/picture",
+    "setCompanyAgentPicture",
+    "BMO profiles",
+    "Sets a company's default picture from the body's bytes, a PNG, JPEG, WebP or GIF of at most 10 MB, by the administrator or the company's heads.",
+    params: vec![integer_path("company"), owner_key(), owner_role()],
+    body: Some(picture()),
+    media: PICTURE,
+    answers: vec![(204, no_answer())],
+    codes: vec!["bad-request", "not-a-picture", "picture-too-large", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "DELETE",
+    "/companies/{company}/agent/picture",
+    "deleteCompanyAgentPicture",
+    "BMO profiles",
+    "Takes a company's default picture away, by the administrator or the company's heads.",
+    params: vec![integer_path("company"), owner_key(), owner_role()],
+    body: None,
+    answers: vec![(204, no_answer())],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/users/{user}/agent",
+    "userAgent",
+    "BMO profiles",
+    "The BMO profile standing for a user, each part with where it came from, whether they may personalise it, and their own parts as kept; for the user themselves, the administrator and a head of the user's unit.",
+    params: vec![string_path("user"), owner_key(), owner_role()],
+    body: None,
+    answers: vec![(200, json_answer::<AgentProfile>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PUT",
+    "/users/{user}/agent",
+    "setUserAgent",
+    "BMO profiles",
+    "Replaces a person's own name, call names and persona for their BMO, by the user themselves where they may personalise it; answers the profile as it stands.",
+    params: vec![string_path("user"), owner_key(), owner_role()],
+    body: Some(json!(generator.subschema_for::<OwnAgentAsk>())),
+    answers: vec![(200, json_answer::<AgentProfile>(&mut generator))],
+    codes: vec!["bad-request", "bad-agent-profile", "unauthorized", "forbidden", "personalize-withheld", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/users/{user}/agent/picture",
+    "userAgentPicture",
+    "BMO profiles",
+    "The bytes of the picture standing for a user's BMO, their own or their company's, with their type; 404 where the deployment's stands.",
+    params: vec![string_path("user"), owner_key(), owner_role()],
+    body: None,
+    answers: vec![(200, picture_answer())],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PUT",
+    "/users/{user}/agent/picture",
+    "setUserAgentPicture",
+    "BMO profiles",
+    "Sets a person's own picture for their BMO from the body's bytes, a PNG, JPEG, WebP or GIF of at most 10 MB, by the user themselves where they may personalise it.",
+    params: vec![string_path("user"), owner_key(), owner_role()],
+    body: Some(picture()),
+    media: PICTURE,
+    answers: vec![(204, no_answer())],
+    codes: vec!["bad-request", "not-a-picture", "picture-too-large", "unauthorized", "forbidden", "personalize-withheld", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "DELETE",
+    "/users/{user}/agent/picture",
+    "deleteUserAgentPicture",
+    "BMO profiles",
+    "Takes a person's own picture for their BMO away, by the user themselves where they may personalise it.",
+    params: vec![string_path("user"), owner_key(), owner_role()],
+    body: None,
+    answers: vec![(204, no_answer())],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "personalize-withheld", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/units/{unit}/agent-permissions",
+    "agentPermissions",
+    "BMO profiles",
+    "The permission to personalise one's BMO across a unit: the unit and every unit below it, each after its parent, and every person standing in one of them, each with its setting and what it resolves to; for the administrator and a head of the unit.",
+    params: vec![integer_path("unit"), owner_key(), owner_role()],
+    body: None,
+    answers: vec![(200, json_answer::<AgentPermissions>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PUT",
+    "/units/{unit}/agent-permission",
+    "setUnitAgentPermission",
+    "BMO profiles",
+    "Sets the permission to personalise one's BMO on a unit, inherit removing it; for the administrator and a head of the unit.",
+    params: vec![integer_path("unit"), owner_key(), owner_role()],
+    body: Some(json!(generator.subschema_for::<AgentPermissionAsk>())),
+    answers: vec![(204, no_answer())],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PUT",
+    "/users/{user}/agent-permission",
+    "setUserAgentPermission",
+    "BMO profiles",
+    "Sets the permission to personalise one's BMO on a person, inherit removing it; for the administrator and a head of the person's unit.",
+    params: vec![string_path("user"), owner_key(), owner_role()],
+    body: Some(json!(generator.subschema_for::<AgentPermissionAsk>())),
+    answers: vec![(204, no_answer())],
     codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
     refusal: Refusal::Wire,
     security: bearer()

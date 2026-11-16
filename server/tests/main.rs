@@ -3,6 +3,7 @@
 
 mod support;
 
+mod agents;
 mod callers;
 mod document_talk;
 mod grants;

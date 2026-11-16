@@ -26,7 +26,7 @@ import { SCREENS, tabAddress } from "../../../apps/web/app/domain/screens";
 
 describe("the settings dialog", () => {
   test("holds the personal sections alone, the voice briefing under its own name", () => {
-    expect(SETTINGS_SECTIONS.map((section) => section.key)).toEqual(["account", "secrets", "theme", "palette", "notifications", "briefing"]);
+    expect(SETTINGS_SECTIONS.map((section) => section.key)).toEqual(["account", "agent", "secrets", "theme", "palette", "notifications", "briefing"]);
     expect(SETTINGS_SECTIONS.find((section) => section.key === "briefing")?.label).toBe("settings.label.briefing");
   });
 
@@ -56,7 +56,7 @@ describe("the settings dialog", () => {
 
 describe("the organisation screen", () => {
   test("stands its tabs in order, the units first", () => {
-    expect(ORGANIZATION_TABS.map((tab) => tab.value)).toEqual(["organization", "invites", "permissions"]);
+    expect(ORGANIZATION_TABS.map((tab) => tab.value)).toEqual(["organization", "invites", "permissions", "agent"]);
   });
 
   test("leads the keys of the sections that moved away to where they stand now, and no other key", () => {
@@ -69,9 +69,9 @@ describe("the organisation screen", () => {
     }
   });
 
-  test("opens every tab to the administrator and the invitations tab alone to a member", () => {
+  test("opens every tab to the administrator, and the invitations and BMO tabs to a member", () => {
     expect(organizationTabsFor(true)).toHaveLength(ORGANIZATION_TABS.length);
-    expect(organizationTabsFor(false).map((tab) => tab.value)).toEqual(["invites"]);
+    expect(organizationTabsFor(false).map((tab) => tab.value)).toEqual(["invites", "agent"]);
   });
 
   test("opens the first tab a reader may for a key naming none of theirs", () => {
@@ -91,7 +91,7 @@ describe("the organisation screen", () => {
 
     expect(screen.to).toBe(ORGANIZATION_PATH);
     expect(screen.inviters).toBe(true);
-    expect(screen.tabs?.map((tab) => tabAddress(screen, tab))).toEqual(["/organization", "/organization?tab=invites", "/organization?tab=permissions"]);
+    expect(screen.tabs?.map((tab) => tabAddress(screen, tab))).toEqual(["/organization", "/organization?tab=invites", "/organization?tab=permissions", "/organization?tab=agent"]);
     expect(admin.to).toBe(ADMIN_PATH);
     expect(admin.administrator).toBe(true);
     expect(admin.tabs?.map((tab) => tabAddress(admin, tab))).toEqual(["/admin", "/admin?tab=secret-kinds"]);

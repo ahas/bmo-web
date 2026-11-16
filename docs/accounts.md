@@ -374,25 +374,37 @@ section states what each does.
 - **Who sets it:** the platform administrator anywhere; a unit's head on that unit and every unit below it, and on every
   person standing in one of them, by sumida's `manage` on the unit. A setting is taken away by setting it to follow
   the unit above, which removes it.
-- **The routes:**
-  - **`GET /companies/{company}/agent`** answers the company's default: `name`, `callNames` and whether it keeps a
-    picture, each empty where none is set; **`PUT`** replaces the name and the call names, for the administrator and
-    the company's heads alone, 403 `forbidden` to anyone else and 404 where the company is no company.
-  - **`GET`, `PUT` and `DELETE /companies/{company}/agent/picture`**: the default picture's bytes, set from a form's
-    `picture` and taken away, held to the same callers. A file that is no PNG, JPEG, WebP or GIF is refused 400
-    `not-a-picture`, and one over 10 MB 413 `picture-too-large`.
-  - **`GET /users/{user}/agent`** answers the profile standing for the user, each part with where it came from
-    (`own`, `company` or `deployment`), whether the user may personalise their BMO, and the person's own parts as
-    kept; for the user themselves, the administrator and a head of the user's unit.
-  - **`PUT /users/{user}/agent`** replaces the person's own name, call names and persona, and **`PUT` and `DELETE
-    /users/{user}/agent/picture`** their own picture, for the user themselves alone; 403 `personalize-withheld` where
-    they may not personalise their BMO, so nothing is kept for a person who may not.
-  - **`GET /units/{unit}/agent-permission`** answers the setting on the unit and on every person standing in it, and
-    what each resolves to; **`PUT /units/{unit}/agent-permission`** and **`PUT /users/{user}/agent-permission`** set
-    `allow`, `deny` or `inherit`, for the callers above, 403 `forbidden` to anyone else.
-  - A name is one line of 1 to 40 characters, a call name 1 to 40 with no comma, at most 10 of them, and a persona
-    at most the agency's ceiling for a supervisor's persona; a value out of shape is refused 400 `bad-agent-profile`
-    with the field it names.
+- **The routes.** Each takes the login it is made for in `Owner-Key` and `Owner-Role`, as the profile's routes do; a
+  caller the route does not name is refused 403 `forbidden`, a company or unit that does not stand 404 `not-found`,
+  and a unit that is no company where a company is named 404 `not-found` as well.
+  - **`GET /companies/{company}/agent`** answers the company's default, `name?`, `callNames` and `picture` (whether
+    one is kept), for the administrator and anyone of the company; **`PUT`** with `name?` and `callNames` replaces
+    them and answers the default as it stands, for the administrator and the company's heads.
+  - **`GET`, `PUT` and `DELETE /companies/{company}/agent/picture`**: the default picture's bytes with their type, 404
+    `not-found` where none is kept, read by the callers of the default's `GET`; set from the request's body, the
+    bytes as they are, and taken away by the callers of its `PUT`, both answering 204. Bytes that are no PNG, JPEG, WebP or GIF are
+    refused 400 `not-a-picture`, and more than 10 MB 413 `picture-too-large`.
+  - **`GET /users/{user}/agent`** answers the profile standing for the user: `personalize`, whether they may
+    personalise their BMO; `company?`, their company as a unit reference; `name`, `callNames`, `persona` and `picture`, each with `from`,
+    `own`, `company` or `deployment`, and the value where it is text (`name?`, `callNames`, `persona?`; the
+    deployment's name is null, for the console's pack to say); and `own`, the person's own parts as kept, `name?`,
+    `callNames`, `persona?` and `picture`. For the user themselves, the administrator and a head of the user's unit.
+  - **`GET /users/{user}/agent/picture`** answers the bytes of the picture standing for the user, their own or their
+    company's, 404 `not-found` where the deployment's stands, for the same callers.
+  - **`PUT /users/{user}/agent`** with `name?`, `callNames` and `persona?` replaces the person's own parts and answers
+    the profile as it stands; **`PUT` and `DELETE /users/{user}/agent/picture`** set and take away their own picture
+    as the company's are. For the user themselves alone, 403 `personalize-withheld` where they may not personalise
+    their BMO, so nothing is kept for a person who may not.
+  - **`GET /units/{unit}/agent-permissions`** answers `units`, the unit and every unit below it, each after its
+    parent, each with its `id`, `name`, `parent?` (absent for a company alone), `setting` (`allow`, `deny` or
+    `inherit`) and `allowed`, what a person standing in it with no setting of their own resolves to; and `people`,
+    every person standing in one of them, each with `user`, `name` (the person's name, the login where none
+    stands), `unit`, the unit they stand in, `setting` and `allowed`. For the administrator and a head of the unit.
+  - **`PUT /units/{unit}/agent-permission`** and **`PUT /users/{user}/agent-permission`** with `setting` set it, `inherit`
+    removing it, and answer 204; for the administrator and a head of the unit, or of the person's unit.
+  - A name is one line of 1 to 40 characters, a call name 1 to 40 with no comma, at most 10 of them and no two the same
+    but for case, and a persona at most 100,000 characters, the agency's ceiling for a supervisor's persona; an empty
+    name or persona is none. A value out of shape is refused 400 `bad-agent-profile`.
 
 ### Invitations and a person's machine
 
@@ -728,6 +740,14 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 - **The organisation tests** make a company and units under it as the administrator, rename and move one, refuse
   a move into another company and under itself, grant and take away a head, place a user, and refuse every one
   of these to a member.
+- **The BMO profile tests** stand a company with units under it, its heads and a member, and read each part of the
+  member's profile from the deployment, then the company's default, then their own once permitted, the company's
+  again once the permission is withdrawn with their own kept, and their own once it is given back; the permission
+  set on the company, a unit, the unit below it and the person, each read nearest first, none set withheld, and the
+  administrator always permitted; the list of a company's units and people with each setting and what it resolves
+  to; each refusal, a member setting what they may not, a head setting their unit and below and not above, a value
+  out of shape, bytes that are no picture and a picture over 10 MB; and the company's picture standing for the
+  member until their own takes its place while permitted.
 - **The unit tests** stand a company with units under it, read a user's unit, company and path, read a unit's
   children, heads and members, and check that a head of a unit heads the units below it and not the one above.
 - **Every route of `docs/boundary.md`'s 「What the server serves」 answers in a test.**

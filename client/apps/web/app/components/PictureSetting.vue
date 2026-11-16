@@ -1,12 +1,12 @@
 <template>
   <!-- One picture the console sets (docs/web.md, 「Profile photos」, a picture set in the console): the one standing
-       now, a file picked and shown in its place until it is saved or let go, and the way back to the provider's.
-       What it saves goes to the receiver's kept pictures through the console's relay. -->
+       now, a file picked and shown in its place until it is saved or let go, and the way back: to the provider's for a
+       picture the receiver keeps, and for a BMO profile's to the company's or to none. -->
   <div class="flex min-w-0 items-center gap-4" :data-picture-setting="props.kind">
     <UAvatar v-bind="shown" size="3xl" class="shrink-0" />
 
     <div class="flex min-w-0 flex-1 flex-col gap-2">
-      <p v-if="picked !== null" class="text-sm text-muted">{{ $t("picture.label.preview_note") }}</p>
+      <p v-if="picked !== null" class="text-sm text-muted">{{ $t(words.note) }}</p>
       <div class="flex flex-wrap items-center gap-2">
         <template v-if="picked === null">
           <UButton
@@ -24,7 +24,7 @@
             color="neutral"
             variant="ghost"
             icon="i-material-symbols-undo"
-            :label="$t('picture.action.clear')"
+            :label="$t(words.clear)"
             :loading="busy === 'clear'"
             :disabled="busy !== null"
             data-picture-clear
@@ -49,14 +49,14 @@
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
 
-import { pictureRoute } from "~/domain/picture-setting";
+import { pictureReads, pictureRoute, pictureWords } from "~/domain/picture-setting";
 
 import type { PictureKind } from "~/domain/picture-setting";
 import type { AvatarProps } from "@nuxt/ui";
 
 interface Props {
   kind: PictureKind;
-  // The room's or the person's number, or the agent's registration name.
+  // The room's or the person's number, the agent's registration name, or the company whose default it is.
   subject: number | string;
   // The picture standing now, or the letter where none stands.
   avatar: AvatarProps;
@@ -72,6 +72,7 @@ const busy = ref<"save" | "clear" | null>(null);
 const said = ref("");
 const failure = ref("");
 
+const words = computed(() => pictureWords(props.kind));
 const shown = computed<AvatarProps>(() => (previewSrc.value === null ? props.avatar : { ...props.avatar, src: previewSrc.value }));
 
 function release(): void {
@@ -108,7 +109,7 @@ function refused(error: unknown): string {
 
 // Every screen reads its pictures again, this one at once; the others as the receiver tells of the change.
 async function reread(): Promise<void> {
-  await refreshNuxtData(["avatars", "agent-faces"]);
+  await refreshNuxtData(pictureReads(props.kind));
 }
 
 async function save(): Promise<void> {
@@ -140,7 +141,7 @@ async function clear(): Promise<void> {
   try {
     await $fetch(pictureRoute(props.kind, props.subject), { method: "DELETE" });
     await reread();
-    said.value = t("picture.message.cleared");
+    said.value = t(words.value.cleared);
   } catch (error) {
     failure.value = refused(error);
   } finally {

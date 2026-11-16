@@ -51,6 +51,230 @@
         ],
         "type": "object"
       },
+      "AgentCallNames": {
+        "description": "The names that call a person's BMO and where they came from; none where the deployment's stand.",
+        "properties": {
+          "callNames": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "from": {
+            "$ref": "#/components/schemas/AgentSource"
+          }
+        },
+        "required": [
+          "from",
+          "callNames"
+        ],
+        "type": "object"
+      },
+      "AgentName": {
+        "description": "The name standing for a person's BMO and where it came from; absent where the deployment's stands, for the\nconsole's language pack to say.",
+        "properties": {
+          "from": {
+            "$ref": "#/components/schemas/AgentSource"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "from"
+        ],
+        "type": "object"
+      },
+      "AgentPermissionAsk": {
+        "description": "A setting of the permission to personalise one's BMO.",
+        "properties": {
+          "setting": {
+            "$ref": "#/components/schemas/AgentSetting"
+          }
+        },
+        "required": [
+          "setting"
+        ],
+        "type": "object"
+      },
+      "AgentPermissionPerson": {
+        "description": "One person under a unit's permissions: the unit they stand in, their own setting and what it resolves to.",
+        "properties": {
+          "allowed": {
+            "type": "boolean"
+          },
+          "name": {
+            "description": "The person's name, the login where none stands.",
+            "type": "string"
+          },
+          "setting": {
+            "$ref": "#/components/schemas/AgentSetting"
+          },
+          "unit": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user",
+          "name",
+          "unit",
+          "setting",
+          "allowed"
+        ],
+        "type": "object"
+      },
+      "AgentPermissionUnit": {
+        "description": "One unit under a unit's permissions: where it stands, its own setting and what it resolves to for a person\nstanding in it with none of their own.",
+        "properties": {
+          "allowed": {
+            "type": "boolean"
+          },
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "parent": {
+            "description": "The unit it stands under, absent for a company.",
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "setting": {
+            "$ref": "#/components/schemas/AgentSetting"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "setting",
+          "allowed"
+        ],
+        "type": "object"
+      },
+      "AgentPermissions": {
+        "description": "The permission to personalise one's BMO across a unit: the unit and every unit below it, each after its\nparent, and every person standing in one of them.",
+        "properties": {
+          "people": {
+            "items": {
+              "$ref": "#/components/schemas/AgentPermissionPerson"
+            },
+            "type": "array"
+          },
+          "units": {
+            "items": {
+              "$ref": "#/components/schemas/AgentPermissionUnit"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "units",
+          "people"
+        ],
+        "type": "object"
+      },
+      "AgentPersona": {
+        "description": "The persona standing for a person's BMO and where it came from; absent where the deployment's stands.",
+        "properties": {
+          "from": {
+            "$ref": "#/components/schemas/AgentSource"
+          },
+          "persona": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "from"
+        ],
+        "type": "object"
+      },
+      "AgentPicture": {
+        "description": "Where the picture standing for a person's BMO came from; its bytes are `GET /users/{user}/agent/picture`.",
+        "properties": {
+          "from": {
+            "$ref": "#/components/schemas/AgentSource"
+          }
+        },
+        "required": [
+          "from"
+        ],
+        "type": "object"
+      },
+      "AgentProfile": {
+        "description": "The BMO profile standing for a person (docs/accounts.md, 「A person's BMO profile」): whether they may\npersonalise it, their company, each part with where it came from, and their own parts as kept.",
+        "properties": {
+          "callNames": {
+            "$ref": "#/components/schemas/AgentCallNames"
+          },
+          "company": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UnitRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "$ref": "#/components/schemas/AgentName"
+          },
+          "own": {
+            "$ref": "#/components/schemas/OwnAgent"
+          },
+          "persona": {
+            "$ref": "#/components/schemas/AgentPersona"
+          },
+          "personalize": {
+            "type": "boolean"
+          },
+          "picture": {
+            "$ref": "#/components/schemas/AgentPicture"
+          }
+        },
+        "required": [
+          "personalize",
+          "name",
+          "callNames",
+          "persona",
+          "picture",
+          "own"
+        ],
+        "type": "object"
+      },
+      "AgentSetting": {
+        "description": "The permission to personalise one's BMO as set on a unit or a person: allowed, denied, or following the unit\nabove, which is no setting.",
+        "enum": [
+          "allow",
+          "deny",
+          "inherit"
+        ],
+        "type": "string"
+      },
+      "AgentSource": {
+        "description": "Where a part of a person's BMO profile came from: their own, their company's default, or the deployment's.",
+        "enum": [
+          "own",
+          "company",
+          "deployment"
+        ],
+        "type": "string"
+      },
       "CheckAnswer": {
         "description": "What a check answered.",
         "properties": {
@@ -77,6 +301,53 @@
         "required": [
           "allowed",
           "grant"
+        ],
+        "type": "object"
+      },
+      "CompanyAgent": {
+        "description": "A company's default for its people's BMOs (docs/accounts.md, 「A person's BMO profile」): its name, the names\nthat call it and whether it keeps a picture. A name absent and no call names are none set.",
+        "properties": {
+          "callNames": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "picture": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "callNames",
+          "picture"
+        ],
+        "type": "object"
+      },
+      "CompanyAgentAsk": {
+        "description": "A company's default name and call names, replaced whole; an empty name is none.",
+        "properties": {
+          "callNames": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "callNames"
         ],
         "type": "object"
       },
@@ -1169,6 +1440,65 @@
         "required": [
           "room",
           "id"
+        ],
+        "type": "object"
+      },
+      "OwnAgent": {
+        "description": "A person's own parts as kept, whether or not they may use them; `picture` says whether one is kept.",
+        "properties": {
+          "callNames": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "persona": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "picture": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "callNames",
+          "picture"
+        ],
+        "type": "object"
+      },
+      "OwnAgentAsk": {
+        "description": "A person's own name, call names and persona for their BMO, replaced whole; an empty name or persona is none.",
+        "properties": {
+          "callNames": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "persona": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "callNames"
         ],
         "type": "object"
       },
@@ -2812,6 +3142,401 @@
         "x-codes": [
           "bad-request",
           "unauthorized",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/companies/{company}/agent": {
+      "get": {
+        "operationId": "companyAgent",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyAgent"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A company's default for its people's BMOs: its name, call names and whether it keeps a picture; for the administrator and anyone of the company.",
+        "tags": [
+          "BMO profiles"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "put": {
+        "operationId": "setCompanyAgent",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompanyAgentAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyAgent"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, bad-agent-profile, unauthorized, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Replaces a company's default name and call names, by the administrator or the company's heads; answers the default as it stands.",
+        "tags": [
+          "BMO profiles"
+        ],
+        "x-codes": [
+          "bad-request",
+          "bad-agent-profile",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/companies/{company}/agent/picture": {
+      "delete": {
+        "operationId": "deleteCompanyAgentPicture",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done; no content."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Takes a company's default picture away, by the administrator or the company's heads.",
+        "tags": [
+          "BMO profiles"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "get": {
+        "operationId": "companyAgentPicture",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "image/*": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The bytes of a company's default picture with their type, for the callers of the default's read; 404 where none is kept.",
+        "tags": [
+          "BMO profiles"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "put": {
+        "operationId": "setCompanyAgentPicture",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "image/*": {
+              "schema": {
+                "format": "binary",
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Done; no content."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, not-a-picture, picture-too-large, unauthorized, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Sets a company's default picture from the body's bytes, a PNG, JPEG, WebP or GIF of at most 10 MB, by the administrator or the company's heads.",
+        "tags": [
+          "BMO profiles"
+        ],
+        "x-codes": [
+          "bad-request",
+          "not-a-picture",
+          "picture-too-large",
+          "unauthorized",
+          "forbidden",
           "not-found",
           "not-in-force",
           "database",
@@ -4979,6 +5704,165 @@
         ]
       }
     },
+    "/units/{unit}/agent-permission": {
+      "put": {
+        "operationId": "setUnitAgentPermission",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "unit",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentPermissionAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Done; no content."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Sets the permission to personalise one's BMO on a unit, inherit removing it; for the administrator and a head of the unit.",
+        "tags": [
+          "BMO profiles"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/units/{unit}/agent-permissions": {
+      "get": {
+        "operationId": "agentPermissions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "unit",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentPermissions"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The permission to personalise one's BMO across a unit: the unit and every unit below it, each after its parent, and every person standing in one of them, each with its setting and what it resolves to; for the administrator and a head of the unit.",
+        "tags": [
+          "BMO profiles"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
     "/units/{unit}/heads/{user}": {
       "delete": {
         "operationId": "revokeHead",
@@ -5490,6 +6374,479 @@
         "x-codes": [
           "bad-request",
           "unauthorized",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/users/{user}/agent": {
+      "get": {
+        "operationId": "userAgent",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentProfile"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The BMO profile standing for a user, each part with where it came from, whether they may personalise it, and their own parts as kept; for the user themselves, the administrator and a head of the user's unit.",
+        "tags": [
+          "BMO profiles"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "put": {
+        "operationId": "setUserAgent",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OwnAgentAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentProfile"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, bad-agent-profile, unauthorized, forbidden, personalize-withheld, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Replaces a person's own name, call names and persona for their BMO, by the user themselves where they may personalise it; answers the profile as it stands.",
+        "tags": [
+          "BMO profiles"
+        ],
+        "x-codes": [
+          "bad-request",
+          "bad-agent-profile",
+          "unauthorized",
+          "forbidden",
+          "personalize-withheld",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/users/{user}/agent-permission": {
+      "put": {
+        "operationId": "setUserAgentPermission",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentPermissionAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Done; no content."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Sets the permission to personalise one's BMO on a person, inherit removing it; for the administrator and a head of the person's unit.",
+        "tags": [
+          "BMO profiles"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/users/{user}/agent/picture": {
+      "delete": {
+        "operationId": "deleteUserAgentPicture",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done; no content."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, personalize-withheld, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Takes a person's own picture for their BMO away, by the user themselves where they may personalise it.",
+        "tags": [
+          "BMO profiles"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "personalize-withheld",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "get": {
+        "operationId": "userAgentPicture",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "image/*": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The bytes of the picture standing for a user's BMO, their own or their company's, with their type; 404 where the deployment's stands.",
+        "tags": [
+          "BMO profiles"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "put": {
+        "operationId": "setUserAgentPicture",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "image/*": {
+              "schema": {
+                "format": "binary",
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Done; no content."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, not-a-picture, picture-too-large, unauthorized, forbidden, personalize-withheld, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Sets a person's own picture for their BMO from the body's bytes, a PNG, JPEG, WebP or GIF of at most 10 MB, by the user themselves where they may personalise it.",
+        "tags": [
+          "BMO profiles"
+        ],
+        "x-codes": [
+          "bad-request",
+          "not-a-picture",
+          "picture-too-large",
+          "unauthorized",
+          "forbidden",
+          "personalize-withheld",
           "not-found",
           "not-in-force",
           "database",

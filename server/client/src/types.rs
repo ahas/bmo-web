@@ -169,6 +169,154 @@ pub struct UserProfile {
   pub email: String,
 }
 
+/// A company's default for its people's BMOs (docs/accounts.md, 「A person's BMO profile」): its name, the names
+/// that call it and whether it keeps a picture. A name absent and no call names are none set.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct CompanyAgent {
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub name: Option<String>,
+  pub call_names: Vec<String>,
+  pub picture: bool,
+}
+
+/// A company's default name and call names, replaced whole; an empty name is none.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct CompanyAgentAsk {
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub name: Option<String>,
+  #[serde(default)]
+  pub call_names: Vec<String>,
+}
+
+/// A person's own name, call names and persona for their BMO, replaced whole; an empty name or persona is none.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct OwnAgentAsk {
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub name: Option<String>,
+  #[serde(default)]
+  pub call_names: Vec<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub persona: Option<String>,
+}
+
+/// Where a part of a person's BMO profile came from: their own, their company's default, or the deployment's.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum AgentSource {
+  Own,
+  Company,
+  Deployment,
+}
+
+/// The name standing for a person's BMO and where it came from; absent where the deployment's stands, for the
+/// console's language pack to say.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct AgentName {
+  pub from: AgentSource,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub name: Option<String>,
+}
+
+/// The names that call a person's BMO and where they came from; none where the deployment's stand.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct AgentCallNames {
+  pub from: AgentSource,
+  pub call_names: Vec<String>,
+}
+
+/// The persona standing for a person's BMO and where it came from; absent where the deployment's stands.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct AgentPersona {
+  pub from: AgentSource,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub persona: Option<String>,
+}
+
+/// Where the picture standing for a person's BMO came from; its bytes are `GET /users/{user}/agent/picture`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct AgentPicture {
+  pub from: AgentSource,
+}
+
+/// A person's own parts as kept, whether or not they may use them; `picture` says whether one is kept.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct OwnAgent {
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub name: Option<String>,
+  pub call_names: Vec<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub persona: Option<String>,
+  pub picture: bool,
+}
+
+/// The BMO profile standing for a person (docs/accounts.md, 「A person's BMO profile」): whether they may
+/// personalise it, their company, each part with where it came from, and their own parts as kept.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct AgentProfile {
+  pub personalize: bool,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub company: Option<UnitRef>,
+  pub name: AgentName,
+  pub call_names: AgentCallNames,
+  pub persona: AgentPersona,
+  pub picture: AgentPicture,
+  pub own: OwnAgent,
+}
+
+/// The permission to personalise one's BMO as set on a unit or a person: allowed, denied, or following the unit
+/// above, which is no setting.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum AgentSetting {
+  Allow,
+  Deny,
+  Inherit,
+}
+
+/// A setting of the permission to personalise one's BMO.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct AgentPermissionAsk {
+  pub setting: AgentSetting,
+}
+
+/// One unit under a unit's permissions: where it stands, its own setting and what it resolves to for a person
+/// standing in it with none of their own.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct AgentPermissionUnit {
+  pub id: i64,
+  pub name: String,
+  /// The unit it stands under, absent for a company.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub parent: Option<i64>,
+  pub setting: AgentSetting,
+  pub allowed: bool,
+}
+
+/// One person under a unit's permissions: the unit they stand in, their own setting and what it resolves to.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct AgentPermissionPerson {
+  pub user: String,
+  /// The person's name, the login where none stands.
+  pub name: String,
+  pub unit: i64,
+  pub setting: AgentSetting,
+  pub allowed: bool,
+}
+
+/// The permission to personalise one's BMO across a unit: the unit and every unit below it, each after its
+/// parent, and every person standing in one of them.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct AgentPermissions {
+  pub units: Vec<AgentPermissionUnit>,
+  pub people: Vec<AgentPermissionPerson>,
+}
+
 /// The rooms the console has open, as the receiver reads them, and when the console last said so.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]

@@ -17,12 +17,16 @@ export interface SettingsSection {
   administrator: boolean;
   // Whether only a reader with a user of the account service is shown it, what it sets standing against that user.
   user: boolean;
+  // Whether only a reader who may personalise their own BMO, and owns one, is shown it (docs/web.md, 「Settings」,
+  // the own-BMO section).
+  personalize?: boolean;
   // The section's own component, loaded when it is first opened.
   load: () => Promise<{ default: Component }>;
 }
 
 export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   { key: "account", label: "settings.label.account", icon: "i-material-symbols-person-outline", administrator: false, user: false, load: () => import("~/components/SettingsAccount.vue") },
+  { key: "agent", label: "settings.label.agent", icon: "i-material-symbols-face-outline", administrator: false, user: true, personalize: true, load: () => import("~/components/SettingsBmo.vue") },
   { key: "secrets", label: "settings.label.secrets", icon: "i-material-symbols-key-outline", administrator: false, user: true, load: () => import("~/components/SettingsSecrets.vue") },
   { key: "theme", label: "settings.label.theme", icon: "i-material-symbols-contrast", administrator: false, user: false, load: () => import("~/components/SettingsTheme.vue") },
   { key: "palette", label: "settings.label.palette", icon: "i-material-symbols-chat-bubble-outline", administrator: false, user: false, load: () => import("~/components/SettingsPalette.vue") },
@@ -33,10 +37,10 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
 // The key an address opens the dialog by.
 export const SETTINGS_QUERY = "settings";
 
-// The sections a reader may open, in the list's order: by whether they are the administrator and whether they have a
-// user of the account service.
-export function sectionsFor(administrator: boolean, user: boolean): SettingsSection[] {
-  return SETTINGS_SECTIONS.filter((section) => (administrator || !section.administrator) && (user || !section.user));
+// The sections a reader may open, in the list's order: by whether they are the administrator, whether they have a
+// user of the account service, and whether they may personalise a BMO of their own.
+export function sectionsFor(administrator: boolean, user: boolean, personalize = false): SettingsSection[] {
+  return SETTINGS_SECTIONS.filter((section) => (administrator || !section.administrator) && (user || !section.user) && (personalize || section.personalize !== true));
 }
 
 // The section a key names among those a reader may open, the first of them where it names none.

@@ -39,6 +39,7 @@ import {
 import type { PersonView } from "#shared/people";
 import type { SecretFile, SecretKind } from "#shared/secret-kinds";
 import type { KeptSecret } from "#shared/types";
+import type { CompanyBmoView, OwnBmoParts, OwnBmoView, PermissionSetting, PermissionTree } from "#shared/bmo-profile";
 
 /** The server's base address; `WEB_SERVER_ADDRESS` where none is given. */
 export interface ServiceOptions {
@@ -969,6 +970,158 @@ export async function approvePairing(code: string, key: string, options: Service
 export async function refusePairing(code: string, key: string, options: ServiceOptions = {}): Promise<void> {
   const client = clientOf(options);
   const reply = await sent(options, client.POST("/desktop/pairings/code/{code}/refuse", { params: { path: { code }, header: { "Owner-Key": key } } }));
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}
+
+// A person's BMO profile (docs/accounts.md, 「A person's BMO profile」): a company's default, a person's own, the
+// profile standing for a person, and who may personalise their BMO. The profile's own reads and writes go through the
+// generated client; a picture's bytes are asked on the route's address, the generated client carrying no bytes.
+
+type Wire = import("@web/server-client").components["schemas"];
+
+/** The caller a profile is read as where the console applies it to a BMO: the administrator's role, which every
+ * profile route answers. */
+const APPLYING: ProfileCaller = { key: "", role: "administrator" };
+
+function profileHeaders(caller: ProfileCaller): { "Owner-Key": string; "Owner-Role": ProfileCaller["role"] } {
+  return { "Owner-Key": caller.key, "Owner-Role": caller.role };
+}
+
+// The profile as the console's screens and its apply read it, with the deployment's own name left null for the pack.
+function standingOf(wire: Wire["AgentProfile"]): Omit<OwnBmoView, "hasBmo"> {
+  return {
+    personalize: wire.personalize,
+    name: { value: wire.name.name ?? null, from: wire.name.from },
+    callNames: { value: wire.callNames.callNames, from: wire.callNames.from },
+    persona: { value: wire.persona.persona ?? null, from: wire.persona.from },
+    picture: { from: wire.picture.from },
+    own: { name: wire.own.name ?? null, callNames: wire.own.callNames, persona: wire.own.persona ?? null, picture: wire.own.picture }
+  };
+}
+
+/** A picture's bytes and their type, as the service keeps them. */
+export interface PictureBytes {
+  bytes: Uint8Array;
+  type: string;
+}
+
+// A picture route asked on its address: its bytes read back, set from bytes, or taken away. A refusal is read as every
+// other route's.
+async function pictureCall(path: string, caller: ProfileCaller, init: { method: "GET" | "PUT" | "DELETE"; picture?: PictureBytes }, options: ServiceOptions = {}): Promise<PictureBytes | null> {
+  const address = addressOf(options);
+
+  if (address === "") throw new AccountServiceDown("(no address)", "no address is set for the server");
+
+  let response: Response;
+
+  try {
+    response = await fetch(`${address}${path}`, {
+      method: init.method,
+      headers: {
+        authorization: `Bearer ${options.token ?? process.env.WEB_SERVER_TOKEN ?? ""}`,
+        ...profileHeaders(caller),
+        ...(init.picture === undefined ? {} : { "content-type": init.picture.type })
+      },
+      ...(init.picture === undefined ? {} : { body: new Blob([new Uint8Array(init.picture.bytes)], { type: init.picture.type }) })
+    });
+  } catch (error) {
+    throw new AccountServiceDown(address, error instanceof Error ? error.message : "the call did not carry");
+  }
+
+  if (!response.ok) {
+    const body = (await response.json().catch(() => undefined)) as RefusalBody | undefined;
+
+    throw refusalOf(response, body);
+  }
+
+  if (init.method !== "GET") return null;
+
+  return { bytes: new Uint8Array(await response.arrayBuffer()), type: response.headers.get("content-type") ?? "application/octet-stream" };
+}
+
+/** A company's default for its people's BMOs. */
+export async function companyBmoOf(company: number, caller: ProfileCaller, options: ServiceOptions = {}): Promise<CompanyBmoView> {
+  const reply = await sent(options, clientOf(options).GET("/companies/{company}/agent", { params: { path: { company }, header: profileHeaders(caller) } }));
+  const answer = answered(reply);
+
+  return { name: answer.name ?? null, callNames: answer.callNames, picture: answer.picture };
+}
+
+/** A company's default name and call names replaced, answered as they now stand. */
+export async function setCompanyBmo(company: number, ask: { name: string | null; callNames: string[] }, caller: ProfileCaller, options: ServiceOptions = {}): Promise<CompanyBmoView> {
+  const reply = await sent(options, clientOf(options).PUT("/companies/{company}/agent", { params: { path: { company }, header: profileHeaders(caller) }, body: ask }));
+  const answer = answered(reply);
+
+  return { name: answer.name ?? null, callNames: answer.callNames, picture: answer.picture };
+}
+
+/** A company's default picture. */
+export async function companyBmoPictureOf(company: number, caller: ProfileCaller, options: ServiceOptions = {}): Promise<PictureBytes> {
+  return (await pictureCall(`/companies/${company}/agent/picture`, caller, { method: "GET" }, options))!;
+}
+
+/** A company's default picture set from its bytes. */
+export async function setCompanyBmoPicture(company: number, picture: PictureBytes, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  await pictureCall(`/companies/${company}/agent/picture`, caller, { method: "PUT", picture }, options);
+}
+
+/** A company's default picture taken away. */
+export async function dropCompanyBmoPicture(company: number, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  await pictureCall(`/companies/${company}/agent/picture`, caller, { method: "DELETE" }, options);
+}
+
+/** The profile standing for a person, read as the administrator where no caller is named. */
+export async function standingBmoOf(user: UserId | number, caller: ProfileCaller = APPLYING, options: ServiceOptions = {}): Promise<Omit<OwnBmoView, "hasBmo">> {
+  const reply = await sent(options, clientOf(options).GET("/users/{user}/agent", { params: { path: { user: userPath(user) }, header: profileHeaders(caller) } }));
+
+  return standingOf(answered(reply));
+}
+
+/** A person's own text parts replaced, answered as the profile now stands. */
+export async function setOwnBmo(user: UserId | number, parts: OwnBmoParts, caller: ProfileCaller, options: ServiceOptions = {}): Promise<Omit<OwnBmoView, "hasBmo">> {
+  const reply = await sent(options, clientOf(options).PUT("/users/{user}/agent", { params: { path: { user: userPath(user) }, header: profileHeaders(caller) }, body: parts }));
+
+  return standingOf(answered(reply));
+}
+
+/** The picture standing for a person, their own or their company's, read as the administrator where no caller is
+ * named. */
+export async function bmoPictureOf(user: UserId | number, caller: ProfileCaller = APPLYING, options: ServiceOptions = {}): Promise<PictureBytes> {
+  return (await pictureCall(`/users/${encodeURIComponent(userPath(user))}/agent/picture`, caller, { method: "GET" }, options))!;
+}
+
+/** A person's own picture set from its bytes. */
+export async function setOwnBmoPicture(user: UserId | number, picture: PictureBytes, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  await pictureCall(`/users/${encodeURIComponent(userPath(user))}/agent/picture`, caller, { method: "PUT", picture }, options);
+}
+
+/** A person's own picture taken away. */
+export async function dropOwnBmoPicture(user: UserId | number, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  await pictureCall(`/users/${encodeURIComponent(userPath(user))}/agent/picture`, caller, { method: "DELETE" }, options);
+}
+
+/** Who under a unit may personalise their BMO, read as the administrator where no caller is named. */
+export async function permissionTreeOf(unit: number, caller: ProfileCaller = APPLYING, options: ServiceOptions = {}): Promise<PermissionTree> {
+  const reply = await sent(options, clientOf(options).GET("/units/{unit}/agent-permissions", { params: { path: { unit }, header: profileHeaders(caller) } }));
+  const answer = answered(reply);
+
+  return {
+    units: answer.units.map((one) => ({ id: one.id, name: one.name, parent: one.parent ?? null, setting: one.setting, allowed: one.allowed })),
+    people: answer.people.map((one) => ({ user: one.user, name: one.name, unit: one.unit, setting: one.setting, allowed: one.allowed }))
+  };
+}
+
+/** The personalisation setting on a unit. */
+export async function setUnitPermission(unit: number, setting: PermissionSetting, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  const reply = await sent(options, clientOf(options).PUT("/units/{unit}/agent-permission", { params: { path: { unit }, header: profileHeaders(caller) }, body: { setting } }));
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}
+
+/** The personalisation setting on one person. */
+export async function setUserPermission(user: UserId | number, setting: PermissionSetting, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  const reply = await sent(options, clientOf(options).PUT("/users/{user}/agent-permission", { params: { path: { user: userPath(user) }, header: profileHeaders(caller) }, body: { setting } }));
 
   if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
 }

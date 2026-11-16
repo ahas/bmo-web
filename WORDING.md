@@ -85,9 +85,16 @@
 - the supervisor that answers every room naming none → 기본 응답 감독관; the supervisor a search or browse run no
   supervisor delegated writes its brain for → 리서치 감독관; the supervisor a group room is added with, one of the
   person adding it owns or 감독관 없음 → 그룹 감독관.
-- a person's own supervisor, as it is titled → `{name}의 BMO`, the person's name with BMO; its private room → the
-  person's name alone, `{name}`. The person's name stands there, the login only where none stands; never the
-  login with BMO beside a name, nor 비서, 개인 감독관 or 전용 BMO. The person themselves calls it 내 BMO.
+- a person's own supervisor, as it is titled → `{name}의 BMO`, the person's name with BMO, or with the name its
+  profile stands with where a company or the person set one (`{name}의 Dear`); its private room → the person's name
+  alone, `{name}`. The person's name stands there, the login only where none stands; never the login with BMO beside
+  a name, nor 비서, 개인 감독관 or 전용 BMO. The person themselves calls it 내 BMO, and its settings section is 내 BMO.
+- the names that call a BMO in a room → 부르는 이름: 부르는 이름, 부르는 이름 없음, 추가할 이름. Never 호출 이름, 웨이크
+  워드, 별칭; 호출 stays the mention's never-word.
+- a company's default for its people's BMOs → 기본 BMO; who may set their own BMO → BMO 설정 권한, each row 허용, 막음
+  or 상위 조직 따름, a following row saying 상위 조직을 따라 허용 or 상위 조직을 따라 막음. Never 개인화 권한, 커스터마이즈.
+- where a part of a BMO's profile came from → 직접 정함, 회사에서 정함; the deployment's own wears the default's mark,
+  `BMO (기본값)`. How a BMO speaks and behaves, as text → 페르소나. Never 성격, 말투 설정, 프롬프트.
 - a role's slot, one of the runs its agents let in at once → 역할 슬롯, 슬롯; a slot kept by a reservation → 예약, counted
   as `1 예약`. Never 자리, 칸, 풀.
 - what an agent is doing now → 상태, its column's name: an agent with nothing going → 유휴; a supervisor answering in

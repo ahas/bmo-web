@@ -194,7 +194,10 @@ describe("a person's own BMO titled by their name", () => {
   });
 
   test("takes the titles the pack makes: the name with BMO for the supervisor, the name alone for the room", () => {
-    expect(ownTitles("Person D")).toEqual({ label: wording("account.label.own_bmo", { name: "Person D" }), room: wording("account.label.own_bmo_room", { name: "Person D" }) });
+    expect(ownTitles("Person D")).toEqual({
+      label: wording("account.label.own_bmo", { name: "Person D", agent: wording("account.label.bmo_name") }),
+      room: wording("account.label.own_bmo_room", { name: "Person D" })
+    });
     expect(ownTitles("Person D").label).toContain("Person D");
     expect(ownTitles("Person D").label).not.toBe(ownTitles("Person D").room);
   });

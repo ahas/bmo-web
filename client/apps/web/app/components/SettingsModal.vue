@@ -63,6 +63,7 @@ import { organizationAddress, organizationMovedAway, organizationTabNamed } from
 import { SETTINGS_SECTIONS, openSettings, sectionOf, sectionsFor, settingsAsked, useSettings } from "~/domain/settings-dialog";
 import { useNarrow } from "bmo-ui/app/domain/screen";
 
+import type { OwnBmoView } from "#shared/bmo-profile";
 import type { NavigationMenuItem } from "@nuxt/ui";
 import type { Component } from "vue";
 
@@ -98,7 +99,18 @@ function focusing(region: () => HTMLElement | null): { onOpenAutoFocus: (event: 
 const DIALOG = focusing(() => (narrow.value ? listBody.value : sectionBody.value));
 const SHEET = focusing(() => sheetBody.value);
 
-const sections = computed(() => sectionsFor(administrator.value, signedUser.value !== null));
+// Whether the reader may personalise a BMO of their own, read whenever the dialog opens, so the own-BMO section
+// stands only for them (docs/web.md, 「Settings」, the own-BMO section).
+const { data: ownBmo, refresh: readOwnBmo } = useFetch<OwnBmoView | null>("/api/account/agent", { key: "bmo-profile", server: false, lazy: true, default: () => null, immediate: false });
+
+watch(
+  () => state.value.open,
+  (opened) => {
+    if (opened && signedUser.value !== null) void readOwnBmo();
+  },
+  { immediate: true }
+);
+const sections = computed(() => sectionsFor(administrator.value, signedUser.value !== null, ownBmo.value?.personalize === true && ownBmo.value.hasBmo));
 const section = computed(() => sectionOf(state.value.section, sections.value));
 const sectionLabel = computed(() => t(section.value.label));
 
@@ -170,6 +182,10 @@ async function answerAddress(): Promise<void> {
   }
 
   await router.replace({ path: route.path, query: asked.rest, hash: route.hash });
+
+  // A section shown only to a reader who may personalise their BMO waits for that read before it is chosen.
+  if (SETTINGS_SECTIONS.some((one) => one.key === asked.key && one.personalize === true) && signedUser.value !== null) await readOwnBmo();
+
   openSettings(state, sectionOf(asked.key, sections.value).key);
 }
 

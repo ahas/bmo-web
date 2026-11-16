@@ -1290,6 +1290,10 @@ edit to that file alone, once the guide below carries the word.
     its name, for the administrator — the picture standing under every number the agent's words stand under;
   - **a room's,** from the room's menu, 방 사진, for the administrator;
   - **one's own,** in 설정 › 계정, 프로필 사진: the sender linked to the account, the owner's for the administrator.
+  Two more stand in the same shape but are kept by the account service rather than the receiver (`docs/accounts.md`,
+  「A person's BMO profile」): a company's default for its people's BMOs, on 조직's BMO tab, its way back 사진 지우기, and
+  one's own BMO's, on 설정 › 내 BMO, its way back 회사 사진으로 되돌리기. Neither is a receiver's picture until the
+  console's server applies it to a person's BMO (「A person's BMO profile on the agency and the receiver」).
   Each is one shape: the picture standing now, 사진 고르기 picking a file, the picked one shown in its place with
   저장 and 취소, and 제공자 사진으로 되돌리기, which drops the console's picture so the provider's stands again (the
   receiver's `DELETE`). A refusal is said in the pack's words for its code — too large, not a picture, an agent
@@ -6790,15 +6794,16 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
 #### 내 BMO
 
 - **It is shown to a person who may personalise their BMO** (`docs/accounts.md`, 「A person's BMO profile」) and owns
-  one, and it is the only place they change it; for anyone else it is no section, and the console's routes behind it
-  refuse with the pack's sentence for `personalize-withheld`.
-- **이름, 부르는 이름, 프로필 사진 and 페르소나**, each showing what stands now and where it comes from, muted under
-  it: the person's own, the company's default or the deployment's. 이름 and 부르는 이름 stand as 기본 BMO's on 조직's
-  BMO tab; 페르소나 is a text of several lines saying how the BMO speaks and behaves, held to the agency's ceiling with
-  the count shown as it nears it. The text parts are saved by 저장 at the group's foot, open only while one differs,
-  and the picture as the picture shape saves it.
-- **초기화** empties the person's own parts, so the company's default stands for each again, after the console's
-  question dialog asks (「Messages」).
+  one, read each time the dialog opens; for anyone else it is no section, and the console's routes behind it refuse
+  with the pack's sentence for `personalize-withheld`.
+- **이름, 부르는 이름 and 페르소나** each stand as a row with what stands now and, muted under it, where it came from:
+  직접 정함 or 회사에서 정함, nothing for the deployment's own, whose name wears its `(기본값)` mark. 변경 on the name's
+  row opens one form of the three (「Forms」), the call names as on 기본 BMO and 페르소나 a text of several lines held to
+  the agency's ceiling, its count shown as it nears it; 저장 is open only while one differs.
+- **프로필 사진** is set in the picture shape, its way back 회사 사진으로 되돌리기, which drops the person's own picture
+  so the company's, or none, stands again.
+- **초기화** empties the person's own parts and picture after the console's question dialog asks (「Messages」), so
+  the company's default stands for each again; it stands off while the person has set nothing.
 
 #### 비밀 보관함
 
@@ -7114,17 +7119,22 @@ research screen (「Research screen」).
 
 - **The console's server applies the profile standing for a person to that person's own BMO** (`docs/accounts.md`,
   「A person's BMO profile」): the name into the agency's label, as `{person}의 {name}`, the person's name with the
-  profile's name; the call names into the agency's call names for the supervisor; the persona into the agency's persona
-  setting for the supervisor, emptied where none stands; and the picture into the receiver's picture for the agent,
-  taken away where none stands. The owner's own BMO and every supervisor of no account are never touched.
-- **It applies it whenever what stands may have moved:** as the account is made ready, at every sign-in, as the
-  person's name or their own profile is saved, as a company's default is saved, for every person of the company, and
-  as a permission is set, for every person it reaches. Each part already standing as it should is not written again.
-- **A label someone chose by hand is left as it stands,** as the titles' rule above says: the label is written only
-  while it stands as one the console made — the account's key, the login, or a title made from the person's name with
-  any profile's name or with the pack's word.
-- **A part the agency or the receiver refuses is written to the console's log,** and the act that set it off goes
-  on; the next of those moments applies it again.
+  profile's name, BMO where the deployment's stands; the call names into the call names the agency keeps for the
+  supervisor; the person's own persona into the agency's persona setting for it; and the picture into the receiver's
+  picture for the agent. The owner's own BMO and every supervisor of no account are never touched.
+- **The label, the call names and the private room's title follow at every moment the person's name may have moved:**
+  as the account is made ready, at every sign-in and as the person's name is saved, and with the profile whenever it
+  moves. Each is written only where it differs, and the label and the title only where the console made them (the
+  titles' rule above, a label made from any of the person's names with any profile's name being one the console made).
+- **The persona and the picture follow the profile alone:** as the account is made ready, and as the person's own
+  profile, the company's default or a permission reaching them is saved. The persona is written where the person's own
+  stands, and emptied where the one the console put there from it no longer stands; a persona someone set on the
+  agency by hand otherwise stays. The picture is the profile's: set from the person's own or the company's, and taken
+  away where the deployment's stands, so a picture set on the agent's own page gives way to the profile's at the next
+  of those moments.
+- **A part the agency or the receiver refuses is written to the console's log,** and the act that set it off goes on;
+  the call names and the label are written apart, so a refusal of one leaves the other standing. The next of those
+  moments applies it again.
 
 #### The desktop pairing page
 
@@ -7161,21 +7171,22 @@ research screen (「Research screen」).
 
 - **It sets what a company's people's BMOs stand as, and who may make their own** (`docs/accounts.md`, 「A person's BMO
   profile」). The administrator opens it, and so does every member who heads a unit.
-- **회사** chooses the company, among the companies the reader heads a unit of, the first chosen at first; the
+- **회사** chooses the company, among the companies of the units the reader heads, the first chosen at first; the
   administrator chooses among them all.
 - **기본 BMO** stands for the administrator and the company's own heads alone: 이름, the name its people's BMOs stand
-  with; 부르는 이름, the names that call one in a room, each a chip with its own remove and a field that adds one on
-  Enter; and 프로필 사진, the picture, in the one shape every picture of the console is set in (「Profile photos」),
-  with 기본 사진으로 되돌리기 in place of the provider's. The name and the call names are saved by 저장 at the group's
-  foot, open only while one differs; the picture as the picture shape saves it. An empty name says the deployment's
-  own, `BMO (기본값)`, as its placeholder.
-- **BMO 설정 권한** is the company's tree as 조직도 draws it, each unit a row and, opened, the people standing in it a
-  row each, every row with a choice of 허용, 막음 and 상위 조직 따름 (the company's own row: 허용 and 막음, 막음 at
-  first), and what the row resolves to written muted under its name where it follows. A head sees the tree from their
-  own unit down. A change is saved as it is made; a refusal is said under the row, which goes back to what stood.
-- **What a change does is followed at once** for every person it reaches: their BMO takes the profile now standing
-  for them (「A person's BMO profile on the agency and the receiver」), and a person's 설정 shows or drops 내 BMO
-  the next time it opens.
+  with, `BMO (기본값)` where none is set; 부르는 이름, the names that call one in a room, or 부르는 이름 없음; and its
+  picture. 변경 on the name's row opens the form of the name and the call names (「Forms」): each call name a chip with
+  its own remove and a field adding the name typed on Enter, a name refused there said under the field, and 저장 at the
+  form's foot open only while one differs. The picture is set in the one shape every picture of the console is set in
+  (「Profile photos」), its way back 사진 지우기.
+- **BMO 설정 권한** is the company's tree from each of the highest units the reader heads in it down, the whole of it
+  for the administrator and the company's heads: each unit a row indented under its parent, with a press opening the
+  people standing in it as rows under it, and every row a choice of 허용, 막음 and 상위 조직 따름, the company's own row
+  허용 and 막음 alone, `막음 (기본값)` being what nothing set runs on. A row that follows says under its name what it comes to, 상위 조직을
+  따라 허용 or 상위 조직을 따라 막음. A choice is saved as it is made and the tree read again, since a unit's choice
+  moves every row under it; a refusal is said under the row, which goes back to what stood.
+- **A saved default, picture or choice is applied at once** to the BMO of every person it reaches (「A person's BMO
+  profile on the agency and the receiver」), and a person's 설정 shows or drops 내 BMO the next time it opens.
 
 ### Administration
 

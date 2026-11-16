@@ -123,6 +123,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/companies/{company}/agent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A company's default for its people's BMOs: its name, call names and whether it keeps a picture; for the administrator and anyone of the company. */
+        get: operations["companyAgent"];
+        /** Replaces a company's default name and call names, by the administrator or the company's heads; answers the default as it stands. */
+        put: operations["setCompanyAgent"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{company}/agent/picture": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The bytes of a company's default picture with their type, for the callers of the default's read; 404 where none is kept. */
+        get: operations["companyAgentPicture"];
+        /** Sets a company's default picture from the body's bytes, a PNG, JPEG, WebP or GIF of at most 10 MB, by the administrator or the company's heads. */
+        put: operations["setCompanyAgentPicture"];
+        post?: never;
+        /** Takes a company's default picture away, by the administrator or the company's heads. */
+        delete: operations["deleteCompanyAgentPicture"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/desktop/pairings": {
         parameters: {
             query?: never;
@@ -592,6 +629,40 @@ export interface paths {
         patch: operations["changeUnit"];
         trace?: never;
     };
+    "/units/{unit}/agent-permission": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Sets the permission to personalise one's BMO on a unit, inherit removing it; for the administrator and a head of the unit. */
+        put: operations["setUnitAgentPermission"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/units/{unit}/agent-permissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The permission to personalise one's BMO across a unit: the unit and every unit below it, each after its parent, and every person standing in one of them, each with its setting and what it resolves to; for the administrator and a head of the unit. */
+        get: operations["agentPermissions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/units/{unit}/heads/{user}": {
         parameters: {
             query?: never;
@@ -690,6 +761,60 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{user}/agent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The BMO profile standing for a user, each part with where it came from, whether they may personalise it, and their own parts as kept; for the user themselves, the administrator and a head of the user's unit. */
+        get: operations["userAgent"];
+        /** Replaces a person's own name, call names and persona for their BMO, by the user themselves where they may personalise it; answers the profile as it stands. */
+        put: operations["setUserAgent"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{user}/agent-permission": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Sets the permission to personalise one's BMO on a person, inherit removing it; for the administrator and a head of the person's unit. */
+        put: operations["setUserAgentPermission"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{user}/agent/picture": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The bytes of the picture standing for a user's BMO, their own or their company's, with their type; 404 where the deployment's stands. */
+        get: operations["userAgentPicture"];
+        /** Sets a person's own picture for their BMO from the body's bytes, a PNG, JPEG, WebP or GIF of at most 10 MB, by the user themselves where they may personalise it. */
+        put: operations["setUserAgentPicture"];
+        post?: never;
+        /** Takes a person's own picture for their BMO away, by the user themselves where they may personalise it. */
+        delete: operations["deleteUserAgentPicture"];
         options?: never;
         head?: never;
         patch?: never;
@@ -995,6 +1120,90 @@ export interface components {
             install: components["schemas"]["Installs"];
             user: string;
         };
+        /** @description The names that call a person's BMO and where they came from; none where the deployment's stand. */
+        AgentCallNames: {
+            callNames: string[];
+            from: components["schemas"]["AgentSource"];
+        };
+        /**
+         * @description The name standing for a person's BMO and where it came from; absent where the deployment's stands, for the
+         *     console's language pack to say.
+         */
+        AgentName: {
+            from: components["schemas"]["AgentSource"];
+            name?: string | null;
+        };
+        /** @description A setting of the permission to personalise one's BMO. */
+        AgentPermissionAsk: {
+            setting: components["schemas"]["AgentSetting"];
+        };
+        /** @description One person under a unit's permissions: the unit they stand in, their own setting and what it resolves to. */
+        AgentPermissionPerson: {
+            allowed: boolean;
+            /** @description The person's name, the login where none stands. */
+            name: string;
+            setting: components["schemas"]["AgentSetting"];
+            /** Format: int64 */
+            unit: number;
+            user: string;
+        };
+        /**
+         * @description One unit under a unit's permissions: where it stands, its own setting and what it resolves to for a person
+         *     standing in it with none of their own.
+         */
+        AgentPermissionUnit: {
+            allowed: boolean;
+            /** Format: int64 */
+            id: number;
+            name: string;
+            /**
+             * Format: int64
+             * @description The unit it stands under, absent for a company.
+             */
+            parent?: number | null;
+            setting: components["schemas"]["AgentSetting"];
+        };
+        /**
+         * @description The permission to personalise one's BMO across a unit: the unit and every unit below it, each after its
+         *     parent, and every person standing in one of them.
+         */
+        AgentPermissions: {
+            people: components["schemas"]["AgentPermissionPerson"][];
+            units: components["schemas"]["AgentPermissionUnit"][];
+        };
+        /** @description The persona standing for a person's BMO and where it came from; absent where the deployment's stands. */
+        AgentPersona: {
+            from: components["schemas"]["AgentSource"];
+            persona?: string | null;
+        };
+        /** @description Where the picture standing for a person's BMO came from; its bytes are `GET /users/{user}/agent/picture`. */
+        AgentPicture: {
+            from: components["schemas"]["AgentSource"];
+        };
+        /**
+         * @description The BMO profile standing for a person (docs/accounts.md, 「A person's BMO profile」): whether they may
+         *     personalise it, their company, each part with where it came from, and their own parts as kept.
+         */
+        AgentProfile: {
+            callNames: components["schemas"]["AgentCallNames"];
+            company?: components["schemas"]["UnitRef"] | null;
+            name: components["schemas"]["AgentName"];
+            own: components["schemas"]["OwnAgent"];
+            persona: components["schemas"]["AgentPersona"];
+            personalize: boolean;
+            picture: components["schemas"]["AgentPicture"];
+        };
+        /**
+         * @description The permission to personalise one's BMO as set on a unit or a person: allowed, denied, or following the unit
+         *     above, which is no setting.
+         * @enum {string}
+         */
+        AgentSetting: "allow" | "deny" | "inherit";
+        /**
+         * @description Where a part of a person's BMO profile came from: their own, their company's default, or the deployment's.
+         * @enum {string}
+         */
+        AgentSource: "own" | "company" | "deployment";
         /** @description What a check answered. */
         CheckAnswer: {
             allowed: boolean;
@@ -1002,6 +1211,21 @@ export interface components {
             /** Format: int64 */
             sender?: number | null;
             user?: string | null;
+        };
+        /**
+         * @description A company's default for its people's BMOs (docs/accounts.md, 「A person's BMO profile」): its name, the names
+         *     that call it and whether it keeps a picture. A name absent and no call names are none set.
+         */
+        CompanyAgent: {
+            callNames: string[];
+            name?: string | null;
+            picture: boolean;
+        };
+        /** @description A company's default name and call names, replaced whole; an empty name is none. */
+        CompanyAgentAsk: {
+            /** @default [] */
+            callNames: string[];
+            name?: string | null;
         };
         /** @description What a draw asked, by its shape. */
         DrawAsked: {
@@ -1333,6 +1557,20 @@ export interface components {
             id: number;
             /** Format: int64 */
             room: number;
+        };
+        /** @description A person's own parts as kept, whether or not they may use them; `picture` says whether one is kept. */
+        OwnAgent: {
+            callNames: string[];
+            name?: string | null;
+            persona?: string | null;
+            picture: boolean;
+        };
+        /** @description A person's own name, call names and persona for their BMO, replaced whole; an empty name or persona is none. */
+        OwnAgentAsk: {
+            /** @default [] */
+            callNames: string[];
+            name?: string | null;
+            persona?: string | null;
         };
         /** @description A desktop pairing approved: the machine it was bound to. */
         PairingApproved: {
@@ -1978,6 +2216,190 @@ export interface operations {
                 };
             };
             /** @description A refusal or failure: bad-request, unauthorized, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    companyAgent: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                company: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyAgent"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    setCompanyAgent: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                company: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompanyAgentAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyAgent"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, bad-agent-profile, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    companyAgentPicture: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                company: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/*": string;
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    setCompanyAgentPicture: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                company: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "image/*": string;
+            };
+        };
+        responses: {
+            /** @description Done; no content. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: bad-request, not-a-picture, picture-too-large, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    deleteCompanyAgentPicture: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                company: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Done; no content. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -3204,6 +3626,80 @@ export interface operations {
             };
         };
     };
+    setUnitAgentPermission: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                unit: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AgentPermissionAsk"];
+            };
+        };
+        responses: {
+            /** @description Done; no content. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    agentPermissions: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                unit: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentPermissions"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
     grantHead: {
         parameters: {
             query?: never;
@@ -3440,6 +3936,228 @@ export interface operations {
                 };
             };
             /** @description A refusal or failure: bad-request, unauthorized, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    userAgent: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentProfile"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    setUserAgent: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OwnAgentAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentProfile"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, bad-agent-profile, unauthorized, forbidden, personalize-withheld, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    setUserAgentPermission: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AgentPermissionAsk"];
+            };
+        };
+        responses: {
+            /** @description Done; no content. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    userAgentPicture: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/*": string;
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    setUserAgentPicture: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "image/*": string;
+            };
+        };
+        responses: {
+            /** @description Done; no content. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: bad-request, not-a-picture, picture-too-large, unauthorized, forbidden, personalize-withheld, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    deleteUserAgentPicture: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Done; no content. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, personalize-withheld, not-found, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;

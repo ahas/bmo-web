@@ -28,7 +28,8 @@ export interface OrganizationTab {
 export const ORGANIZATION_TABS: readonly OrganizationTab[] = [
   { value: "organization", label: "organization.label.chart", icon: "i-material-symbols-account-tree-outline", inviters: false, wide: true, load: () => import("~/components/OrganizationUnits.vue") },
   { value: "invites", label: "settings.label.invites", icon: "i-material-symbols-person-add-outline", inviters: true, wide: false, load: () => import("~/components/OrganizationInvites.vue") },
-  { value: "permissions", label: "settings.label.permissions", icon: "i-material-symbols-admin-panel-settings-outline", inviters: false, wide: false, load: () => import("~/components/OrganizationPermissions.vue") }
+  { value: "permissions", label: "settings.label.permissions", icon: "i-material-symbols-admin-panel-settings-outline", inviters: false, wide: false, load: () => import("~/components/OrganizationPermissions.vue") },
+  { value: "agent", label: "settings.label.bmo", icon: "i-material-symbols-face-outline", inviters: true, wide: false, load: () => import("~/components/OrganizationBmo.vue") }
 ];
 
 // Where a section that once stood here as a tab stands now, by the key its tab had, so a link made before it moved

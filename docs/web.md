@@ -6487,10 +6487,12 @@ Four bounds keep it from growing forever.
 - **The recommendation is the job's own, and the card draws it as the job gives it.** A question carries the answer the
   job would take by itself and one line saying why. Where that answer is one of the choices, only that choice wears the
   mark; where it is words the choices do not hold, or the job named none, no choice wears it and the card says plainly
-  that a person is waited for. The wait the question has is the service's due time, read as the countdown; when it runs
-  out the service settles the question on its recommendation, and the card says so in the recommendation's own words,
-  told apart from a person's answer. A question read from the archive's older rows carries its own recommended choice
-  and reason, and draws the same way.
+  that a person is waited for. The wait the question has is the service's due time, read as the countdown. The due time
+  paces the one notice of a question left unanswered and settles nothing (bmo-job's `docs/api.md`, 「The due time」): the
+  recommendation is taken only where a person answers with it, and a question whose time has run out stays open, its
+  card standing where it stood and saying 시간 초과 in place of the time left, until he answers it or its job takes it
+  back. A question read from the archive's older rows carries its own recommended choice and reason, and draws the same
+  way.
 - **Choosing and sending are different presses.** Pressing a choice only chooses it, not sends. A chosen one stands in a full
   colour so what is on the line is read on screen, and the button below says by name what will be sent, like 「2번으로 답하기」. Only
   pressing that button sends. With nothing chosen the button stands 「답하기」 and is not pressable. It is split so because it cannot
@@ -6504,16 +6506,21 @@ Four bounds keep it from growing forever.
   keeps them from standing together. Conversely choosing a choice clears written words.
 - **The deadline can be stopped.** A question has one minute on it. It keeps a job from standing long while the owner is not watching,
   but it is short for reading the choices slowly while watching. So beside the card's remaining time stands 「타이머 정지」. Pressing
-  it moves the question to stopped in bmo-job, which keeps the time it had left and reads no due time while it stands stopped, so
-  nothing is adopted on its own while stopped. The console reads the stopped questions with the open ones, so a stopped card
-  stays where it stood, and the card and band say it is stopped and name the recommendation without counting, there being no due
-  time to count to. Answering by number in Telegram, and choosing or writing in the console, stay open while stopped. 「타이머 재개」
-  opens it again, counting from the time it had left. Stopping and resuming, like an answer, are bmo-job's to write on that
-  question, and neither changes an already-decided one.
+  it moves that question alone to stopped in bmo-job, which keeps the time it had left and reads no due time while it stands
+  stopped. A stop belongs to its one question: the console keeps no stop of its own, every card says what bmo-job holds for its
+  own question, and a question asked after a stopped one counts its own time. The console reads the stopped questions with the
+  open ones, so a stopped card stays where it stood, and the card and band say it is stopped and name the recommendation without
+  counting, there being no due time to count to. Answering by number in Telegram, and choosing or writing in the console, stay
+  open while stopped. 「타이머 재개」 opens it again, counting from the time it had left, and the card stays where it stood with
+  its countdown running; one stopped after its time had run out has none left, so it stands again as 시간 초과. Stopping and
+  resuming, like an answer, are bmo-job's to write on that question, and neither changes an already-decided one.
+  - A word is a stop too. A word sent in the talk (「Talking a question over」) stops the question's timer, and so does one the
+    owner writes in his own chat while a question stands open there: bmo-receiver takes it as talk on the question asked last
+    (bmo-receiver's `docs/bmo-window.md`). So a question he never stopped by hand stands stopped once he has written in his
+    chat after it was asked, and 「타이머 재개」 starts it again.
 - The same question is aimed at by chat, console and time together. The three decide the same line with the same conditional write, so
   the first to reach stays and a later one overwrites nothing and hears what it was already decided by. A decided question stays with
-  the item that asked and is read on opening that line. Answered by the owner, gone to the recommendation on no answer, and missed with nobody
-  answering read differently at a glance.
+  the item that asked and is read on opening that line, in the words it was settled on.
 - **There is one place to answer.** The queue beside keeps per item a record of what the question was and how it was decided, but it
   cannot be answered there. Two answering places would make two things to keep for one question, and which is real would split per
   screen. So the card stands once, in the questions window over the conversation, and the queue only reads.
@@ -6522,16 +6529,16 @@ Four bounds keep it from growing forever.
   once. The time left its own seconds clock counts. The answer is written on that line through the bot after a send press. If a question
   awaits an answer, the panel header and the folded panel's vertical band say the count.
 - **It is seen on whatever screen.** The card stands only on the owner's private chat's screen, so if only that screen said a question came, one on
-  another screen would have no way to know. A question has one minute and with no answer goes to the recommendation, so passing it by
-  unaware decides for the owner without the owner. So while a question awaits an answer, **one band stands at the top of every console screen.** The
+  another screen would have no way to know. A job stands still behind a question however long it waits, so passing it by unaware
+  leaves the job standing with nobody knowing it waits. So while a question awaits an answer, **one band stands at the top of every console screen.** The
   place the play bar stands and for the same reason — walking to another screen must not remove what happens on the other side.
-- The band stands which item asked, what it asks, and **how much is left and what number it goes to if left**. The time left drops per
-  second, and if stopped the fact that it is stopped and the time left until the stop ends stand — the deadline being the whole of this
+- The band stands which item asked, what it asks, and **how much is left and which number the job recommends**. The time left drops per
+  second, once it has run out the band says 시간 초과, and if stopped the fact that it is stopped stands — the deadline being the whole of this
   display, it cannot be done by a disappearing alert or an uncounting badge. Pressing the band goes to where that question stands, the
   owner's private chat. The card standing there ends it — where the band takes you and where you answer are one place. However many ways to notice,
   there is one place to answer. Making one more set of choices, reason and write box on the band would split the two.
-- **With nothing to wait for, there is nothing.** The band exists only while a question awaits an answer. When the owner answered, or the
-  deadline passed and it went to the recommendation, or it was missed with nobody answering, it disappears on the spot leaving no place.
+- **With nothing to wait for, there is nothing.** The band exists only while a question awaits an answer, its time run out or not. When
+  the owner answered, or the job took the question back, it disappears on the spot leaving no place.
   That is why it is not an ever-present obstruction — it stands only while a job really stands stopped on the other side, and then
   interrupting is right. If several wait, the nearest deadline stands on the band and the rest attach only as a count. The question list
   is read by the whole console as one — the band, card and panel see the same reading so the three cannot say different things.

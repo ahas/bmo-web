@@ -1267,18 +1267,13 @@ function settledQuestionsOf(todoId: number): QuestionCard[] {
   return questionsOf(todoId).filter((card) => card.state !== "open");
 }
 
-// How a question reads at a glance once it is answered: his own answer, the recommendation the
-// silence took, and the one whose job is no longer there to read an answer at all.
+// How a question reads at a glance: still waiting, his own answer, or the recommendation an older row's deadline took.
 function questionTone(card: QuestionCard): string {
   if (card.state === "open") {
     return "border-warning/40 bg-warning/5 text-warning";
   }
 
-  if (card.state === "owner") {
-    return "border-primary/30 bg-primary/5 text-primary";
-  }
-
-  return card.state === "missed" ? "border-error/30 bg-error/5 text-error" : "border-default text-muted";
+  return card.state === "owner" ? "border-primary/30 bg-primary/5 text-primary" : "border-default text-muted";
 }
 
 // The panel has just opened a row or let go of one. Opening brings up whatever word is already on

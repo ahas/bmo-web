@@ -41,7 +41,7 @@ function question(over: Partial<JobQuestion> = {}): JobQuestion {
 }
 
 describe("how a question reads on the screen", () => {
-  test("one still waiting says which item asked, how long is left and what the silence would take", () => {
+  test("one still waiting says which item asked, how long is left and which choice the job recommends", () => {
     const card = questionCard(wording, question(), askedAt + 60);
 
     expect(card.state).toBe("open");
@@ -57,7 +57,16 @@ describe("how a question reads on the screen", () => {
 
   test("the last minute of the wait is counted in seconds, as the chat's own question is", () => {
     expect(questionCard(wording, question(), askedAt + 570).status).toBe(wording("question.status.running", { time: KO.line_55, number: "2" }));
-    expect(questionCard(wording, question(), askedAt + 600).status).toBe(KO.line_56);
+  });
+
+  // The due time settles nothing (bmo-job's `docs/api.md`, 「The due time」): the job still stands behind the question.
+  test("one whose time has run out still waits on him, and says its time is over", () => {
+    const card = questionCard(wording, question(), askedAt + 600);
+
+    expect(questionState(question())).toBe("open");
+    expect(card.answerable).toBe(true);
+    expect(card.status).toBe(wording("question.status.overdue", { number: "2" }));
+    expect(questionCard(wording, question({ recommended: null }), askedAt + 900).status).toBe(wording("question.status.overdue_alone"));
   });
 
   test("one he settled himself says so and carries the option he took", () => {
@@ -99,10 +108,6 @@ describe("how a question reads on the screen", () => {
     expect(card.answer).toBe(options[1] as string);
   });
 
-  test("one nobody settled and nobody is waiting on any more is not answered at all", () => {
-    expect(questionState(question(), askedAt + 601)).toBe("missed");
-    expect(questionCard(wording, question(), askedAt + 601).answerable).toBe(false);
-  });
 });
 
 describe("what the service's recommendation says", () => {
@@ -135,9 +140,9 @@ describe("which questions the panel puts in front of him", () => {
     expect(questionSummary(wording, asked, askedAt + 60)).toBe(wording("question.label.summary", { n: "2" }));
   });
 
-  test("a wait that has run out leaves nothing standing in front of him", () => {
-    expect(openQuestions(wording, asked, askedAt + 601)).toEqual([]);
-    expect(questionSummary(wording, asked, askedAt + 601)).toBeNull();
+  test("a wait that has run out still stands in front of him", () => {
+    expect(openQuestions(wording, asked, askedAt + 601).map((card) => card.id)).toEqual([3, 2]);
+    expect(questionSummary(wording, asked, askedAt + 601)).toBe(wording("question.label.summary", { n: "2" }));
   });
 
   test("an item's own questions stay with the item, answered or not", () => {
@@ -147,10 +152,8 @@ describe("which questions the panel puts in front of him", () => {
   });
 });
 
-// The strip that stands over every screen while a job is waiting. What it is held to is the
-// deadline: it is on the screen only while an answer would still reach somebody, so a question
-// that was answered and one whose wait ran out both take it away, and neither leaves a
-// notice standing over a job that has already gone on without him.
+// The strip that stands over every screen while a job is waiting. It is on the screen while a job stands still
+// behind a question, its time run out or not, and a question that was answered takes it away.
 describe("what stands over every screen while a job waits", () => {
   const now = 1_700_000_000;
 
@@ -184,11 +187,13 @@ describe("what stands over every screen while a job waits", () => {
     expect(openQuestions(wording, [asked({ settledAt: now - 5, settledBy: "deadline" })], now)).toEqual([]);
   });
 
-  test("and so does one whose wait simply ran out with nobody there to close it", () => {
-    // The launcher settles its own row within the second of the deadline; a row still open past
-    // it is one whose job is gone, and there is nobody left for an answer to reach.
-    expect(openQuestions(wording, [asked({ dueAt: now - 1 })], now)).toEqual([]);
-    expect(questionState(asked({ dueAt: now - 1 }), now)).toBe("missed");
+  // A question opened again with no time left, as bmo-job opens one stopped after its time ran out, still stands.
+  test("but one whose wait ran out stays, ahead of one still counting", () => {
+    const counting = asked({ id: 1, todoId: 10, dueAt: now + 50 });
+    const over = asked({ id: 2, todoId: 11, dueAt: now });
+
+    expect(openQuestions(wording, [counting, over], now).map((card) => card.todoId)).toEqual([11, 10]);
+    expect(openQuestions(wording, [over], now)[0]?.status).toBe(wording("question.status.overdue", { number: "2" }));
   });
 
   test("a stopped question still stands with no due time, and says it is stopped and what it recommends", () => {

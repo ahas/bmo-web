@@ -7,10 +7,10 @@ import { elapsedText, toUnixSeconds } from "bmo-ui/app/domain/time";
 import type { OwnerChat, JobQuestion, QuestionTalk } from "#shared/types";
 import type { Translate } from "#shared/wording";
 
-// How one question reads at a glance. The three the owner has to tell apart are the one still
-// waiting on him, the one he settled himself, and the one his silence settled; a fourth is the
-// row nobody answered and no launcher closed either, which is a question whose job is gone.
-export type QuestionState = "open" | "owner" | "deadline" | "missed";
+// How one question reads at a glance: still waiting on him, settled by him, or settled on its recommendation by
+// an older row's deadline. A question's due time settles nothing (bmo-job's `docs/api.md`, 「The due time」), so an
+// unsettled question is waiting on him whether its time has run out or not.
+export type QuestionState = "open" | "owner" | "deadline";
 
 // One of a question's options as the panel offers it: the number the chat also shows, the
 // option's own words, whether the job recommends it, and whether it is what the question was
@@ -41,8 +41,8 @@ export interface QuestionCard {
   answer: string | null;
   // Whether answering it now would reach anybody. Only an open question does.
   answerable: boolean;
-  // Whether he has stopped its clock from the console. A stopped question is still open: the
-  // recommendation waits for the end of the stop instead of the end of the minute.
+  // Whether this question's clock stands stopped in bmo-job. A stop is the one question's: the console keeps none of
+  // its own, so a card says only what the job service holds for its own row.
   paused: boolean;
 }
 
@@ -50,26 +50,18 @@ export interface QuestionCard {
 const STATE_LABELS: Record<QuestionState, string> = {
   open: "question.status.open",
   owner: "question.status.owner",
-  deadline: "question.status.deadline",
-  missed: "question.status.missed"
+  deadline: "question.status.deadline"
 };
 
-export function questionState(question: JobQuestion, now: number = toUnixSeconds(Date.now())): QuestionState {
-  if (question.settledAt !== null) {
-    return question.settledBy === "deadline" ? "deadline" : "owner";
-  }
+export function questionState(question: JobQuestion): QuestionState {
+  if (question.settledAt === null) return "open";
 
-  // A stopped question waits however long he takes, so it stays open whatever its due time.
-  if (question.pausedLeft !== null) return "open";
-
-  // A question whose wait has run out is settled by its own launcher within the second, so a
-  // row still open past its due time is one whose job is no longer there to read an answer.
-  return question.dueAt > now ? "open" : "missed";
+  return question.settledBy === "deadline" ? "deadline" : "owner";
 }
 
 export function questionCard(t: Translate, question: JobQuestion, now: number = toUnixSeconds(Date.now())): QuestionCard {
-  const state = questionState(question, now);
-  const settled = state === "open" || state === "missed" ? null : questionAnswerText(question);
+  const state = questionState(question);
+  const settled = state === "open" ? null : questionAnswerText(question);
 
   return {
     id: question.id,
@@ -91,16 +83,16 @@ export function questionCard(t: Translate, question: JobQuestion, now: number = 
   };
 }
 
-// The questions still waiting on him, the nearest deadline first. A job is standing still behind
-// each one, and the order that matters is which will be taken out of his hands soonest — it is
-// sorted here rather than left to the order they arrived in, because the strip over every screen
-// carries the first of them and that choice has to be the urgent one however the list was read. A
-// stopped question waits however long he takes, so it stands behind every running minute.
+// The questions still waiting on him, the one longest past its time or nearest it first. A job is standing still
+// behind each one, and the order that matters is which has waited on him longest against its own wait — it is
+// sorted here rather than left to the order they arrived in, because the strip over every screen carries the first
+// of them and that choice has to be the urgent one however the list was read. A stopped question waits however long
+// he takes, so it stands behind every running minute.
 export function openQuestions(t: Translate, questions: JobQuestion[], now: number = toUnixSeconds(Date.now())): QuestionCard[] {
   const stopped = (question: JobQuestion): number => Number(question.pausedLeft !== null);
 
   return questions
-    .filter((question) => questionState(question, now) === "open")
+    .filter((question) => questionState(question) === "open")
     .sort((left, right) => stopped(left) - stopped(right) || left.dueAt - right.dueAt || left.id - right.id)
     .map((question) => questionCard(t, question, now));
 }
@@ -123,29 +115,30 @@ export function questionSummary(t: Translate, questions: JobQuestion[], now: num
   return open === 0 ? null : t("question.label.summary", { n: open });
 }
 
-// The line beside the question. An open one says how long is left and what the silence would
-// take, since that is the whole of what he is deciding by not answering; a stopped one says it is
-// stopped and how long the stop still holds.
+// The line beside the question. An open one says where its clock stands (stopped, counting down, or run out) and
+// which choice the job recommends, or that a person is waited for where it recommends none.
 function statusLine(t: Translate, question: JobQuestion, state: QuestionState, now: number): string {
-  if (state === "open" && question.pausedLeft !== null) {
-    return question.recommended === null
-      ? t("question.status.paused_alone")
-      : t("question.status.paused", { number: question.recommended + 1 });
+  if (state !== "open") return t(STATE_LABELS[state]);
+
+  const number = question.recommended === null ? null : question.recommended + 1;
+
+  if (question.pausedLeft !== null) {
+    return number === null ? t("question.status.paused_alone") : t("question.status.paused", { number });
   }
 
-  if (state === "open") {
-    return question.recommended === null
-      ? t("question.status.running_alone", { time: remainingLabel(t, question.dueAt - now) })
-      : t("question.status.running", { time: remainingLabel(t, question.dueAt - now), number: question.recommended + 1 });
+  if (question.dueAt <= now) {
+    return number === null ? t("question.status.overdue_alone") : t("question.status.overdue", { number });
   }
 
-  return t(STATE_LABELS[state]);
+  const time = remainingLabel(t, question.dueAt - now);
+
+  return number === null ? t("question.status.running_alone", { time }) : t("question.status.running", { time, number });
 }
 
 // How long is left, in the units the chat's own question uses: minutes while there are any,
 // seconds at the end.
 function remainingLabel(t: Translate, seconds: number): string {
-  return seconds >= 60 ? t("common.label.minutes", { m: Math.ceil(seconds / 60) }) : t("common.label.seconds", { n: Math.max(0, seconds) });
+  return seconds >= 60 ? t("common.label.minutes", { m: Math.ceil(seconds / 60) }) : t("common.label.seconds", { n: seconds });
 }
 
 // How often the countdown is redrawn. It is a clock and nothing else: what the questions say is

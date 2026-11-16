@@ -13,12 +13,13 @@ const room = await read("app/pages/rooms/[chatId].vue");
 const window = await read("app/components/QuestionWindow.vue");
 
 describe("a job standing on a question", () => {
-  // The badge is a part of its own, which reads the panel's clock itself (docs/web.md, the TODO panel's section).
+  // The badge is a part of its own, standing while a question of the item is unsettled, its time run out or not
+  // (docs/web.md, the TODO panel's section).
   test("marks its row in the list and on the board", () => {
     expect(row).toContain('<TodoQuestionBadge v-if="questions !== null" :questions="questions" />');
     expect(badge).toContain("data-awaiting-question");
     expect(badge).toContain('$t("todo.label.awaiting_question")');
-    expect(badge).toContain('questionState(question, clock.value) === "open"');
+    expect(badge).toContain('questionState(question) === "open"');
   });
 
   test("stands the one answering card inside the item, not a quiet line", () => {

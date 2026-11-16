@@ -90,6 +90,26 @@ interface Stand {
   sent: { path: string; body: Record<string, unknown> }[];
   // The questions somebody else answered first: an answer to one is refused as the job service refuses it.
   settledElsewhere: Set<number>;
+  // The seconds each stopped question had left, as bmo-job keeps them; one stopped with none kept has none.
+  left: Map<number, number>;
+}
+
+// A stop or a resume, played as bmo-job plays it on the one question named (bmo-job's `docs/api.md`, 「The due
+// time」): a stop keeps the time left and reads no due time, and a resume counts from what was kept.
+function paused(stand: Stand, body: { id: number; paused: boolean }): void {
+  const at = Math.floor(Date.now() / 1000);
+
+  stand.questions = stand.questions.map((question) => {
+    if (question.id !== body.id) return question;
+
+    if (body.paused) {
+      stand.left.set(question.id, Math.max(0, question.dueAt - at));
+
+      return { ...question, pausedLeft: 0, dueAt: 0 };
+    }
+
+    return { ...question, pausedLeft: null, dueAt: at + (stand.left.get(question.id) ?? 0) };
+  });
 }
 
 async function open(viewport: { width: number; height: number }, scheme: (typeof SCHEMES)[number], stand: Stand): Promise<BrowserContext> {
@@ -128,7 +148,14 @@ async function open(viewport: { width: number; height: number }, scheme: (typeof
 
     return await route.fulfill({ json: stand.questions });
   });
-  await context.route(api("question-pause"), (route) => route.fulfill({ json: { ok: true, pausedLeft: null, dueAt: now + 3_600 } }));
+  await context.route(api("question-pause"), async (route) => {
+    const body = route.request().postDataJSON() as { id: number; paused: boolean };
+
+    stand.sent.push({ path: "question-pause", body });
+    paused(stand, body);
+
+    return await route.fulfill({ json: { ok: true, pausedLeft: null, dueAt: 0 } });
+  });
   await context.route(api("question-talk"), async (route) => {
     if (route.request().method() === "POST") {
       const body = route.request().postDataJSON() as { id: number; say: string };
@@ -213,7 +240,7 @@ async function expectCardOrder(page: Page, todoId: number, sendLabel: string = A
 }
 
 function stood(talk: Partial<QuestionTalk> = {}): Stand {
-  return { questions: [], talks: new Map(), sent: [], settledElsewhere: new Set(), ...talk } as Stand;
+  return { questions: [], talks: new Map(), sent: [], settledElsewhere: new Set(), left: new Map(), ...talk } as Stand;
 }
 
 describe.skipIf(!origin || !touchReady())("the questions window on a desk", () => {
@@ -415,4 +442,76 @@ describe.skipIf(!origin || !touchReady())("the questions sheet on a phone", () =
       }
     }, TEST_MS);
   }
+});
+
+// A question's timer stopped and started again from its card (docs/web.md, 「The deadline can be stopped」): the stop is
+// the one question's, a question asked after it counts its own time, and starting it again keeps the window standing
+// with the countdown running — or, for one stopped after its time had run out, standing as run out.
+describe.skipIf(!origin || !touchReady())("a question's timer in the questions window", () => {
+  const PAUSE = wording("question.action.pause");
+  const RESUME = wording("question.action.resume");
+  // What the running line says after its time, which the time itself does not change.
+  const RUNNING = wording("question.status.running", { time: "\u0000", number: 1 }).split("\u0000")[1]!;
+
+  const card = (page: Page, todoId: number) => page.locator(`${WINDOW} section[aria-label="${wording("question.label.asked", { id: todoId })}"]`);
+  const clock = (page: Page, todoId: number) => card(page, todoId).locator("p.tabular-nums");
+
+  test("keeps a stop on its own question, and a new one counts its own time", async () => {
+    const stand = stood();
+
+    stand.questions = [asked(1, 41), asked(2, 42)];
+
+    const context = await open(DESK, "light", stand);
+    const page = await context.newPage();
+
+    try {
+      await openRoom(page);
+      await page.locator(WINDOW).waitFor({ timeout: 30_000 });
+
+      await card(page, 41).getByRole("button", { name: PAUSE }).click();
+      await card(page, 41).getByRole("button", { name: RESUME }).waitFor({ timeout: 10_000 });
+
+      expect(stand.sent.filter((sent) => sent.path === "question-pause").map((sent) => sent.body)).toEqual([{ id: 1, paused: true }]);
+      expect(await clock(page, 41).textContent()).toBe(wording("question.status.paused", { number: 1 }));
+      expect(await card(page, 42).getByRole("button", { name: PAUSE }).getAttribute("aria-pressed")).toBe("false");
+      expect(await clock(page, 42).textContent()).toEndWith(RUNNING);
+
+      // A job asks again while the first stands stopped; the read the resume brings stands it running.
+      stand.questions = [...stand.questions, asked(3, 43)];
+      await card(page, 41).getByRole("button", { name: RESUME }).click();
+      await card(page, 43).waitFor({ timeout: 10_000 });
+      await card(page, 41).getByRole("button", { name: PAUSE }).waitFor({ timeout: 10_000 });
+
+      expect(await page.locator(`${WINDOW} section`).count()).toBe(3);
+      expect(await card(page, 43).getByRole("button", { name: PAUSE }).getAttribute("aria-pressed")).toBe("false");
+      expect(await clock(page, 43).textContent()).toEndWith(RUNNING);
+      expect(await clock(page, 41).textContent()).toEndWith(RUNNING);
+    } finally {
+      await context.close();
+    }
+  }, TEST_MS);
+
+  test("keeps the window standing when a question stopped after its time ran out is started again", async () => {
+    const stand = stood();
+
+    // Stopped once its time had run out, so bmo-job kept nothing and opens it again due at once.
+    stand.questions = [asked(1, 41, { pausedLeft: 0, dueAt: 0 })];
+
+    const context = await open(DESK, "light", stand);
+    const page = await context.newPage();
+
+    try {
+      await openRoom(page);
+      await page.locator(WINDOW).waitFor({ timeout: 30_000 });
+
+      await card(page, 41).getByRole("button", { name: RESUME }).click();
+      await card(page, 41).getByRole("button", { name: PAUSE }).waitFor({ timeout: 10_000 });
+
+      expect(await page.locator(WINDOW).count()).toBe(1);
+      expect(await clock(page, 41).textContent()).toBe(wording("question.status.overdue", { number: 1 }));
+      await shoot(page, `${DESK.width}-light-overdue`);
+    } finally {
+      await context.close();
+    }
+  }, TEST_MS);
 });

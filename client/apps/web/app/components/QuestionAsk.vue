@@ -43,8 +43,8 @@
         <p class="text-sm text-muted">{{ card.asked }}</p>
 
         <!-- The clock, and the one press that stops it. A minute is short for reading while he is
-             here, and stopping it is how he says he is: the recommendation then waits for the end
-             of the stop, and the same press starts the countdown again from what it had left. -->
+             here, and stopping it is how he says he is. The stop is this question's alone, and the
+             same press starts its countdown again from what it had left; the card stays either way. -->
         <div class="flex flex-wrap items-center gap-1">
           <p class="text-sm tabular-nums text-warning">{{ card.status }}</p>
 
@@ -246,8 +246,8 @@ function sendLabel(card: QuestionCard): string {
   return questionSendLabel(t, picked.value[card.id] ?? null, words.value[card.id] ?? "");
 }
 
-// Stopping the clock, or starting it again. The bot writes it on the row, and the job waiting on
-// the question reads the row, so what the card shows after the re-read is what the job follows.
+// Stopping this question's clock, or starting it again. bmo-job writes it on the question's own row, and the card
+// shows what the re-read brings, so a stop never reaches another question.
 async function togglePause(card: QuestionCard): Promise<void> {
   pausing.value = card.id;
 

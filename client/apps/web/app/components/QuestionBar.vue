@@ -1,9 +1,9 @@
 <template>
   <!-- A job standing still, said on every screen. It stands where the playing bar stands and for
        the same reason: walking off to another screen must not take away the one thing that says
-       something is going on. What it is here for is the deadline — a question settles itself on
-       the recommendation a minute after it was put unless he stops the clock, so a notice that vanished, or one that
-       could not count down, would let the owner watch the choice being made for him.
+       something is going on. What it is here for is the wait — a job stands still behind the question until he
+       answers, its time run out or not, so a notice that vanished, or one that could not count down, would leave
+       the job standing with nobody knowing it waits.
 
        It is nothing at all while nothing is waiting, so it is never in the way: it exists only
        while a job has stopped and cannot go on without an answer, which is exactly when being

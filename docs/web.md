@@ -3839,7 +3839,11 @@ Four bounds keep it from growing forever.
   - A picture it holds stands whole, at its own ratio: as wide as a bubble may be at the most and no taller
     than the picture's cap, scaled to whichever bounds it first, so no edge of it is cut away; the bubble is at
     least as wide as the picture, and wider only where what stands with it — a caption, a name, a quote — is
-    wider. In a bubble wider than its picture the picture stands in the middle of the bubble's width, and the
+    wider. A bubble holding a picture, an album or a video's still is at most 20rem wide, and narrower where the
+    room leaves less: there the picture shrinks to the bubble's width at its own ratio rather than running past it.
+    The row asks for no more width than its bubble takes, so a picture's bubble stands one photo-to-bubble step
+    from its photo as a bubble of words does, however long its caption, on either side. In a bubble wider than
+    its picture the picture stands in the middle of the bubble's width, and the
     room on either side of it is filled with the picture itself, enlarged and blurred, as a chat app fills it,
     never left bare with the picture pushed to one side. An album's mosaic fills a bubble's full width, and its
     tiles fill their squares.

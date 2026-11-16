@@ -3339,6 +3339,8 @@ deploy:
     running: 배포 중
     stopped: 배포 안 함
   action:
+    collapse_items: 항목 축소
+    expand_items: 항목 확장
     reload: 새로고침
   error:
     log_failed: 로그를 읽지 못했습니다.
@@ -3350,6 +3352,7 @@ deploy:
     part_check: 확인
     part_pack: 압축
     part_snapshot: 스냅샷
+    rest: "외 {n}"
     stage_after: 마무리
     stage_backup: 백업
     stage_before: 전환 전 단계

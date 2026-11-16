@@ -127,4 +127,75 @@ describe.skipIf(!origin || !touchReady())("the deployment's mark", () => {
       await context.close();
     }
   }, 90_000);
+
+  // The popover opens on the stages, the mark's own words heading it at phone width alone, since a wide bar already
+  // says them; what goes up stands folded to its first three entries and how many more, a press opening it whole in
+  // place and the next closing it again.
+  for (const viewport of [{ width: 1280, height: 800 }, { width: 360, height: 780 }]) {
+    test(`opens on the stages with what goes up folded at ${viewport.width}`, async () => {
+      const context = await browser!.newContext({ viewport, serviceWorkers: "block" });
+      const at = cookie.indexOf("=");
+      const carried = Array.from({ length: 6 }, (_, index) => ({ commit: `${index}`.repeat(40), subject: `Change number ${index + 1}`, todoId: index === 0 ? 1001 : null }));
+      const view: DeployView = { release: "release-a", detailed: true, hold: null, run: { ...run("running", "build"), plan: ["tree", "backup", "build", "restart"] as never, carried, commit: "f".repeat(40) } };
+
+      await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
+      await context.route(/\/api\/deploy$/, (route) => route.fulfill({ json: view }));
+      await context.route(/\/api\/deploy\/log$/, (route) => route.fulfill({ json: [] }));
+
+      try {
+        const page = await context.newPage();
+
+        await page.goto(`${origin}/`, { waitUntil: "load" });
+        await page.locator("[data-title-bar-actions] [data-deploy-mark]").click({ timeout: 20_000 });
+
+        const stages = page.locator("[data-deploy-stages]");
+        const status = page.locator("[data-deploy-status]");
+        const fold = page.locator("[data-deploy-items]");
+
+        await stages.waitFor();
+
+        // The status line stands at phone width alone, and above the stages; the stages stand above what goes up.
+        expect(await status.isVisible()).toBe(viewport.width < 640);
+
+        const top = async (locator: typeof stages): Promise<number> => (await locator.boundingBox())!.y;
+
+        if (viewport.width < 640) expect(await top(status)).toBeLessThan(await top(stages));
+        expect(await top(stages)).toBeLessThan(await top(fold));
+
+        // Folded: the first three, how many more, and a press that opens it whole and the next that closes it.
+        const entries = fold.locator("[data-deploy-entry]");
+
+        expect(await entries.count()).toBe(3);
+        expect(await fold.getAttribute("aria-expanded")).toBe("false");
+        // The rest is counted, whatever words the pack puts round the count.
+        expect(await fold.locator("[data-deploy-rest]").textContent()).toMatch(/(^|\D)3(\D|$)/);
+
+        await fold.locator("[data-deploy-rest]").click();
+        await entries.nth(5).waitFor();
+        expect(await entries.count()).toBe(6);
+        expect(await fold.getAttribute("aria-expanded")).toBe("true");
+        // The count of the rest is a row of the list, which folds away as the rest unfold.
+        await fold.locator("[data-deploy-rest]").waitFor({ state: "detached" });
+
+        const box = (await fold.boundingBox())!;
+
+        await fold.click({ position: { x: box.width - 8, y: box.height - 8 } });
+        await entries.nth(3).waitFor({ state: "detached" });
+        expect(await entries.count()).toBe(3);
+        expect(await fold.getAttribute("aria-expanded")).toBe("false");
+
+        // Left open, closed and opened again, it stands folded.
+        await fold.locator("[data-deploy-rest]").click();
+        await entries.nth(5).waitFor();
+        await page.keyboard.press("Escape");
+        await fold.waitFor({ state: "detached" });
+        await page.locator("[data-title-bar-actions] [data-deploy-mark]").click();
+        await fold.waitFor();
+        expect(await entries.count()).toBe(3);
+        expect(await fold.getAttribute("aria-expanded")).toBe("false");
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+  }
 });

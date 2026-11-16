@@ -28,40 +28,95 @@
 
     <template #content>
       <div ref="body" class="flex flex-col gap-3 text-sm">
-        <p class="flex items-center gap-2 font-medium" :class="toneClass(mark.tone)">
+        <!-- The mark's own words, at phone width alone: wide, the bar already says them beside the mark. -->
+        <p class="flex items-center gap-2 font-medium sm:hidden" :class="toneClass(mark.tone)" data-deploy-status>
           <UIcon :name="mark.icon" class="size-5 shrink-0" :class="mark.spin ? 'animate-spin' : ''" />
           <span class="tabular-nums">{{ mark.label }}<template v-if="mark.detail !== ''"> · {{ mark.detail }}</template></span>
         </p>
 
         <template v-if="detailed">
-          <!-- What goes live: the items a hold waits for, and every commit the deploy carries, oldest
-               first. A commit whose subject names an item opens that item in the TODO panel. -->
-          <div v-if="items.length > 0 || carried.length > 0 || commit !== null" class="flex flex-col gap-1">
-            <div v-if="items.length > 0 || carried.length > 0" class="flex flex-col gap-1">
-              <span class="text-muted">{{ $t("deploy.label.items") }}</span>
-              <ul v-if="items.length > 0" class="flex flex-col gap-1">
-                <li v-for="item in items" :key="item" class="flex min-w-0">
-                  <ItemTip v-slot="{ item: read, settled }" :id="item" eager press class="flex min-w-0">
-                    <ULink :to="{ query: { ...route.query, todo: item } }" class="flex min-w-0 items-start gap-2 text-primary" @click="open = false">
-                      <span class="shrink-0 tabular-nums">#{{ item }}</span>
-                      <span v-if="read !== null" class="min-w-0 break-words">{{ read.title }}</span>
-                      <SkeletonBar v-else-if="!settled" class="h-4 w-48" />
-                    </ULink>
-                  </ItemTip>
-                </li>
-              </ul>
-              <ul v-if="carried.length > 0" class="flex flex-col gap-1">
-                <li v-for="one in carried" :key="one.commit" class="flex min-w-0">
-                  <ULink v-if="one.todoId !== null" :to="{ query: { ...route.query, todo: one.todoId } }" class="flex min-w-0 items-start gap-2 text-primary" @click="open = false">
-                    <span class="shrink-0 font-mono">{{ one.commit.slice(0, 12) }}</span>
-                    <span class="min-w-0 break-words">{{ one.subject }}</span>
-                  </ULink>
-                  <span v-else class="flex min-w-0 items-start gap-2">
-                    <span class="shrink-0 font-mono text-muted">{{ one.commit.slice(0, 12) }}</span>
-                    <span class="min-w-0 break-words">{{ one.subject }}</span>
+          <!-- Every stage of the run from its first moment, in the order of its plan: one passed with a
+               check and how long it took, the one under way turning with its time ticking, those still
+               to come an empty circle in muted words. Under each stage its heavy steps the same three ways, a part of the stage
+               by the part alone, a failed one in the error colour with its exit code, in from the mark
+               so they line up with its words. -->
+          <div v-if="rows.length > 0" class="flex flex-col gap-1" data-deploy-stages>
+            <p class="text-muted">{{ $t("deploy.label.stages") }}</p>
+            <!-- The lists move their items only once the popover stands where it opens (docs/web.md, 「Floating
+                 things」); until then they are plain lists, so nothing slides in from where it was drawn first. -->
+            <component :is="settled ? MovingList : 'ol'" tag="ol" class="flex flex-col gap-1">
+              <li v-for="row in rows" :key="row.key" class="flex flex-col gap-1">
+                <div class="flex items-center gap-2" :class="row.state === 'ahead' ? 'text-muted' : ''">
+                  <UIcon :name="STATE_ICONS[row.state]" class="size-4 shrink-0" :class="[STATE_TONES[row.state], row.state === 'current' ? 'animate-spin' : '']" :aria-label="$t(STATE_WORDS[row.state])" role="img" />
+                  <span class="min-w-0 flex-1 truncate">{{ stageLabel($t, row.stage) }}</span>
+                  <span v-if="row.seconds !== null" class="tabular-nums text-muted">
+                    <RollingNumber v-if="row.state === 'current'" :value="Math.floor(row.seconds)" :text="spanClock($t, row.seconds)" />
+                    <template v-else>{{ spanClock($t, row.seconds) }}</template>
                   </span>
-                </li>
-              </ul>
+                </div>
+                <component :is="settled ? MovingList : 'ul'" v-if="row.steps.length > 0" class="flex flex-col gap-1 pl-6">
+                  <li v-for="one in row.steps" :key="one.key" class="flex items-center gap-2" :class="one.code !== null ? 'text-error' : STEP_WORDS_TONES[one.state]">
+                    <UIcon
+                      :name="one.code !== null ? 'i-material-symbols-close' : STATE_ICONS[one.state]"
+                      class="size-4 shrink-0"
+                      :class="[one.code !== null ? '' : STATE_TONES[one.state], one.state === 'current' ? 'animate-spin' : '']"
+                      :aria-label="$t(one.code !== null ? 'deploy.label.state_failed' : STATE_WORDS[one.state])"
+                      role="img"
+                    />
+                    <span class="min-w-0 flex-1 truncate">{{ stepLabel($t, one.step) }}</span>
+                    <span v-if="one.code !== null" class="tabular-nums">{{ $t("deploy.label.exit_code", { code: one.code }) }}</span>
+                    <span v-if="one.seconds !== null" class="tabular-nums">
+                      <RollingNumber v-if="one.state === 'current'" :value="Math.floor(one.seconds)" :text="spanClock($t, one.seconds)" />
+                      <template v-else>{{ spanClock($t, one.seconds) }}</template>
+                    </span>
+                  </li>
+                </component>
+              </li>
+            </component>
+          </div>
+
+          <!-- What goes live: the items a hold waits to put up, or every commit the deploy carries, oldest
+               first, then the commit itself. A commit whose subject names an item opens that item in the TODO
+               panel. Past three entries the list stands folded as a long quote of a Telegram message does: the
+               first three and how many more, a press on the list opening it whole in place and the next closing
+               it again, a press on an entry's link being the link's own. -->
+          <div v-if="entries.length > 0 || commit !== null" class="flex flex-col gap-1">
+            <div v-if="entries.length > 0" class="flex flex-col gap-1">
+              <span class="text-muted">{{ $t("deploy.label.items") }}</span>
+              <div
+                class="deploy-fold"
+                :class="foldable ? 'deploy-fold--press' : ''"
+                :role="foldable ? 'button' : undefined"
+                :tabindex="foldable ? 0 : undefined"
+                :aria-expanded="foldable ? unfolded : undefined"
+                :aria-label="foldable ? $t(unfolded ? 'deploy.action.collapse_items' : 'deploy.action.expand_items') : undefined"
+                data-deploy-items
+                @click="pressFold"
+                @keydown.enter.space.self.prevent="toggleFold"
+              >
+                <component :is="settled ? MovingList : 'ul'" class="flex flex-col gap-1">
+                  <li v-for="entry in shownEntries" :key="entry.key" class="flex min-w-0" data-deploy-entry>
+                    <ItemTip v-if="entry.kind === 'item'" v-slot="{ item: read, settled: known }" :id="entry.id" eager press class="flex min-w-0">
+                      <ULink :to="{ query: { ...route.query, todo: entry.id } }" class="flex min-w-0 items-start gap-2 text-primary" @click="open = false">
+                        <span class="shrink-0 tabular-nums">#{{ entry.id }}</span>
+                        <span v-if="read !== null" class="min-w-0 break-words">{{ read.title }}</span>
+                        <SkeletonBar v-else-if="!known" class="h-4 w-48" />
+                      </ULink>
+                    </ItemTip>
+                    <ULink v-else-if="entry.one.todoId !== null" :to="{ query: { ...route.query, todo: entry.one.todoId } }" class="flex min-w-0 items-start gap-2 text-primary" @click="open = false">
+                      <span class="shrink-0 font-mono">{{ entry.one.commit.slice(0, 12) }}</span>
+                      <span class="min-w-0 break-words">{{ entry.one.subject }}</span>
+                    </ULink>
+                    <span v-else class="flex min-w-0 items-start gap-2">
+                      <span class="shrink-0 font-mono text-muted">{{ entry.one.commit.slice(0, 12) }}</span>
+                      <span class="min-w-0 break-words">{{ entry.one.subject }}</span>
+                    </span>
+                  </li>
+                  <!-- How many more, a row of the list itself, so it folds away as the rest unfold in its place. -->
+                  <li v-if="foldable && !unfolded" key="rest" class="tabular-nums text-muted" data-deploy-rest>{{ $t("deploy.label.rest", { n: (entries.length - FOLDED_ENTRIES).toLocaleString() }) }}</li>
+                </component>
+                <UIcon v-if="foldable" :name="unfolded ? 'i-material-symbols-expand-less-rounded' : 'i-material-symbols-expand-more-rounded'" class="deploy-fold-mark size-4" aria-hidden="true" />
+              </div>
             </div>
             <p v-if="commit !== null" class="flex items-center gap-2">
               <span class="text-muted">{{ $t("deploy.label.commit") }}</span>
@@ -99,46 +154,6 @@
             <p class="tabular-nums">{{ holdLimit($t, view.hold) }}</p>
           </template>
 
-          <!-- Every stage of the run from its first moment, in the order of its plan: one passed with a
-               check and how long it took, the one under way turning with its time ticking, those still
-               to come an empty circle in muted words. Under each stage its heavy steps the same three ways, a part of the stage
-               by the part alone, a failed one in the error colour with its exit code, in from the mark
-               so they line up with its words. -->
-          <div v-if="rows.length > 0" class="flex flex-col gap-1">
-            <p class="text-muted">{{ $t("deploy.label.stages") }}</p>
-            <!-- The lists move their items only once the popover stands where it opens (docs/web.md, 「Floating
-                 things」); until then they are plain lists, so nothing slides in from where it was drawn first. -->
-            <component :is="settled ? MovingList : 'ol'" tag="ol" class="flex flex-col gap-1">
-              <li v-for="row in rows" :key="row.key" class="flex flex-col gap-1">
-                <div class="flex items-center gap-2" :class="row.state === 'ahead' ? 'text-muted' : ''">
-                  <UIcon :name="STATE_ICONS[row.state]" class="size-4 shrink-0" :class="[STATE_TONES[row.state], row.state === 'current' ? 'animate-spin' : '']" :aria-label="$t(STATE_WORDS[row.state])" role="img" />
-                  <span class="min-w-0 flex-1 truncate">{{ stageLabel($t, row.stage) }}</span>
-                  <span v-if="row.seconds !== null" class="tabular-nums text-muted">
-                    <RollingNumber v-if="row.state === 'current'" :value="Math.floor(row.seconds)" :text="spanClock($t, row.seconds)" />
-                    <template v-else>{{ spanClock($t, row.seconds) }}</template>
-                  </span>
-                </div>
-                <component :is="settled ? MovingList : 'ul'" v-if="row.steps.length > 0" class="flex flex-col gap-1 pl-6">
-                  <li v-for="one in row.steps" :key="one.key" class="flex items-center gap-2" :class="one.code !== null ? 'text-error' : STEP_WORDS_TONES[one.state]">
-                    <UIcon
-                      :name="one.code !== null ? 'i-material-symbols-close' : STATE_ICONS[one.state]"
-                      class="size-4 shrink-0"
-                      :class="[one.code !== null ? '' : STATE_TONES[one.state], one.state === 'current' ? 'animate-spin' : '']"
-                      :aria-label="$t(one.code !== null ? 'deploy.label.state_failed' : STATE_WORDS[one.state])"
-                      role="img"
-                    />
-                    <span class="min-w-0 flex-1 truncate">{{ stepLabel($t, one.step) }}</span>
-                    <span v-if="one.code !== null" class="tabular-nums">{{ $t("deploy.label.exit_code", { code: one.code }) }}</span>
-                    <span v-if="one.seconds !== null" class="tabular-nums">
-                      <RollingNumber v-if="one.state === 'current'" :value="Math.floor(one.seconds)" :text="spanClock($t, one.seconds)" />
-                      <template v-else>{{ spanClock($t, one.seconds) }}</template>
-                    </span>
-                  </li>
-                </component>
-              </li>
-            </component>
-          </div>
-
           <!-- The run's own log, its unit's journal, read again every few seconds while the run goes. -->
           <div v-if="view?.run" class="flex flex-col gap-1">
             <p class="text-muted">{{ $t("deploy.label.log") }}</p>
@@ -171,7 +186,7 @@ import { useDeployEvents } from "~/domain/events";
 import { useNarrow } from "bmo-ui/app/domain/screen";
 import { spanClock } from "bmo-ui/app/domain/time";
 
-import type { DeployLogLine, DeployView } from "#shared/types";
+import type { DeployCommit, DeployLogLine, DeployView } from "#shared/types";
 import type { DeployTone, ProgressState } from "~/domain/deploy";
 
 // How often the run's log is read again while its popover stands.
@@ -273,6 +288,37 @@ const newer = computed(() => view.value !== null && view.value !== undefined && 
 const items = computed(() => view.value?.hold?.commits.flatMap((one) => (one.todoId === null ? [] : [one.todoId])) ?? []);
 const carried = computed(() => view.value?.run?.carried ?? []);
 const commit = computed(() => view.value?.run?.commit ?? null);
+
+// What goes up, as one list: the hold's items, then the commits the run carries.
+type Entry = { key: string; kind: "item"; id: number } | { key: string; kind: "commit"; one: DeployCommit };
+
+const entries = computed<Entry[]>(() => [
+  ...items.value.map((id) => ({ key: `item-${id}`, kind: "item" as const, id })),
+  ...carried.value.map((one) => ({ key: `commit-${one.commit}`, kind: "commit" as const, one }))
+]);
+
+// How many entries the list shows while it stands folded, as a long quote of a Telegram message shows its first
+// lines; a list no longer than that has nothing to fold.
+const FOLDED_ENTRIES = 3;
+const unfolded = ref(false);
+const foldable = computed(() => entries.value.length > FOLDED_ENTRIES);
+const shownEntries = computed(() => (foldable.value && !unfolded.value ? entries.value.slice(0, FOLDED_ENTRIES) : entries.value));
+
+// The popover opens folded every time.
+watch(shown, (now) => {
+  if (now) unfolded.value = false;
+});
+
+function toggleFold(): void {
+  if (foldable.value) unfolded.value = !unfolded.value;
+}
+
+// A press on the list folds or unfolds it; a press on an entry's link is the link's own.
+function pressFold(event: MouseEvent): void {
+  if (event.target instanceof Element && event.target.closest("a") !== null) return;
+
+  toggleFold();
+}
 const rows = computed(() => (view.value?.run ? stageRows(view.value.run, now.value) : []));
 
 // A popover left open on a mark that has gone closes with it.
@@ -401,3 +447,35 @@ watch(
 
 onScopeDispose(stopReading);
 </script>
+
+<style>
+/* What goes up stands under a leading rule, as a quote of a message does (docs/web.md, 「Deployment in the title
+   bar」); folded, the chevron in its corner says it opens, and the whole list is the press. */
+.deploy-fold {
+  position: relative;
+  padding: 4px 24px 4px 12px;
+  border-inline-start: 2px solid var(--ui-border-accented);
+}
+
+.deploy-fold--press {
+  cursor: pointer;
+  border-radius: var(--ui-radius);
+}
+
+.deploy-fold--press:hover {
+  background-color: var(--ui-bg-elevated);
+}
+
+.deploy-fold--press:active {
+  background-color: var(--ui-bg-accented);
+}
+
+/* The chevron rides in the corner, centred on the list's last line: the fold's own 4px under that line, and half of
+   what the line holds past the mark. */
+.deploy-fold-mark {
+  position: absolute;
+  inset-inline-end: 4px;
+  bottom: calc(4px + (1lh - 1rem) / 2);
+  color: var(--ui-text-muted);
+}
+</style>

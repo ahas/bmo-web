@@ -1197,17 +1197,26 @@ edit to that file alone, once the guide below carries the word.
   - **Which run stands.** A run under way stands before any that has ended, the one begun last where
     several run at once; with none under way, the one that ended last. For the administrator the run is
     named by its unit, the deploy root's own folder name, at the head of what the mark says after its
-    state: 「배포 중 · bmo-web · 빌드 · 2:14」; a member hears nothing of a run (「Access」).
+    state: 「배포 중 · bmo-web · 빌드 · 2분 14초」; a member hears nothing of a run (「Access」).
   - Wide, it is a spinning mark, 「배포 중」, the stage and the time since the deployment began,
     ticking each second in tabular figures. At phone width it is the spinning mark alone, its words
     in its tooltip.
-  - Pressed, it opens a popover: the commit and what it carries — every commit since the deploy that put the
-    release before this one live, oldest first, each by its short hash and subject — then the stages, and the last
-    lines of the deployment unit's journal, read with `journalctl` again every few seconds while the popover
-    stands. A commit whose subject names an item (`#NNNN`) opens that item in the TODO panel, as the hold's items
-    do. The carried commits are read from the deployed log and from the build tree's own git log between the two
-    deploys; the release's version commit is its marker rather than work it carries, so it is left off, and a
-    deploy that carries only that one still shows it.
+  - Pressed, it opens a popover: the stages first, then what the deploy carries — every commit since the deploy
+    that put the release before this one live, oldest first, each by its short hash and subject, and the commit
+    itself — then the last lines of the deployment unit's journal, read with `journalctl` again every few seconds
+    while the popover stands. A commit whose subject names an item (`#NNNN`) opens that item in the TODO panel, as
+    the hold's items do. The carried commits are read from the deployed log and from the build tree's own git log
+    between the two deploys; the release's version commit is its marker rather than work it carries, so it is left
+    off, and a deploy that carries only that one still shows it.
+  - **The mark's own words head the popover at phone width alone.** Wide, the bar already says them beside the
+    mark, so the popover opens on the stages; at phone width, where the bar folds them into the tooltip, they stand
+    at the popover's head with the mark, in its tone. The same holds for the hold and for the end.
+  - **What goes up stands folded, as a long quote of a Telegram message does.** The list under 항목 — the carried
+    commits, or the items a hold puts up — stands under a leading rule, and past three entries it opens closed: the
+    first three, then 「외 {n}」 for the rest, with a chevron in its corner. A press on the list opens it whole in
+    place, the entries that were left out unfolding where they land as 「외 {n}」 folds away, and the next press closes
+    it to its three again; a press on an entry's link is the link's own. The press is named 항목 확장 or 항목 축소 for the reader
+    who cannot see the chevron. The popover opens closed every time.
   - The stages stand whole from the run's first moment, in the order of the run's plan — 검사·테스트, 백업,
     릴리스 준비, 빌드, 전환 전 단계, 서비스 재시작, 헬스 체크, 마무리, and 롤백 where one is put back
     (the testbed's `docs/deploy.md`, 「What a deployment says of itself as it runs」) — so what is done, what is under way and what is
@@ -1228,7 +1237,8 @@ edit to that file alone, once the guide below carries the word.
   many Jobs where their items could not be read. The hold is bmo-job's, read from its `GET /queue/holds`
   as the TODO panel reads it. How long it may wait is not a time the deployment ends, so the mark never
   says it.
-  - Its popover is the one place the hold stands whole: what goes up, each item by number and title; the
+  - Its popover is the one place the hold stands whole: what goes up, each item by number and title, folded past
+    three as the carried commits are; the
     Jobs it waits for, by their items' numbers and titles and each with why; what the batch takes away;
     the limit, said as what happens then — 「02:37까지 끝나지 않으면 대기를 해제합니다.」 — and the 해제
     button, which lets the hold go. A hold standing with no run behind it is shown the same way.
@@ -1237,7 +1247,7 @@ edit to that file alone, once the guide below carries the word.
   run's unit after it. The record says why a
   run put nothing live in the testbed's own English sentence and with no code, so the mark says the outcome
   alone. Its
-  popover is the same as the run's, with the outcome at its head.
+  popover is the same as the run's, with the outcome at its head at phone width.
 - **A page older than the console being served says so.** Where the build the console server runs
   differs from the page's own, the mark is the deploy icon, Material Symbols' updated deployed code, as an icon
   button in the accent colour at every width — the title bar's own icon button, its words 「새 버전 · 새로고침」 in

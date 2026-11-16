@@ -27,7 +27,7 @@ function run(over: Partial<DeployRunView> = {}): DeployRunView {
     phase: "running",
     startedAt: NOW - 754_000,
     endedAt: null,
-    outcome: null,
+    end: null,
     commit: "c".repeat(40),
     carried: [],
     plan: [],
@@ -56,13 +56,13 @@ describe("the deployment mark", () => {
 
   test("names the unit whose run it is ahead of the rest, under way and ended alike", () => {
     expect(deployMarkOf(wording, view({ run: run({ unitName: "unit-a" }) }), RELEASE, NOW)?.detail).toBe(`unit-a · ${wording("deploy.label.stage_build")} · ${CLOCK}`);
-    expect(deployMarkOf(wording, view({ run: run({ unitName: "unit-a", phase: "ended", outcome: "live", endedAt: NOW - 1_000 }) }), RELEASE, NOW)?.detail).toBe("unit-a");
-    expect(deployMarkOf(wording, view({ run: run({ unitName: "unit-a", phase: "cut", endedAt: NOW - 1_000 }) }), RELEASE, NOW)?.detail).toBe(`unit-a · ${wording("deploy.label.stage_build")}`);
+    expect(deployMarkOf(wording, view({ run: run({ unitName: "unit-a", phase: "ended", end: "live", endedAt: NOW - 1_000 }) }), RELEASE, NOW)?.detail).toBe("unit-a");
+    expect(deployMarkOf(wording, view({ run: run({ unitName: "unit-a", phase: "cut", end: "withdrawn", endedAt: NOW - 1_000 }) }), RELEASE, NOW)?.detail).toBe(`unit-a · ${wording("deploy.label.stage_build")}`);
   });
 
   test("a hold with no run under way stands as the hold, named by the items it goes up after, and a run under way stands before it", () => {
     const hold = { since: 0, until: NOW / 1000 + 3 * 3600 + 5, commits: [], breaks: [], waitingOn: ["w1", "w2"], waitingFor: [1389], passing: [] };
-    const ended = run({ phase: "ended", outcome: "live", endedAt: NOW - 1_000 });
+    const ended = run({ phase: "ended", end: "live", endedAt: NOW - 1_000 });
 
     expect(deployMarkOf(wording, view({ hold }), RELEASE, NOW)).toMatchObject({ kind: "hold", label: wording("deploy.status.hold"), detail: wording("todo.status.deploy_hold_after", { items: "#1389" }) });
     expect(deployMarkOf(wording, view({ run: ended, hold }), RELEASE, NOW)?.kind).toBe("hold");
@@ -79,15 +79,31 @@ describe("the deployment mark", () => {
   });
 
   test("an ending stands two minutes with its outcome, then gives way to a page older than the console", () => {
-    const rolled = run({ phase: "ended", outcome: "rolled-back", endedAt: NOW - 1_000 });
-    const stopped = run({ phase: "ended", outcome: "stopped", endedAt: NOW - 1_000 });
-    const cut = run({ phase: "cut", endedAt: NOW - 1_000 });
+    const rolled = run({ phase: "ended", end: "rolled-back", endedAt: NOW - 1_000 });
+    const refused = run({ phase: "ended", end: "refused", stages: [], endedAt: NOW - 1_000 });
+    const withdrawn = run({ phase: "cut", end: "withdrawn", endedAt: NOW - 1_000 });
 
     expect(deployMarkOf(wording, view({ run: rolled }), RELEASE, NOW)).toMatchObject({ kind: "ended", tone: "error", label: wording("deploy.status.rolled_back") });
-    expect(deployMarkOf(wording, view({ run: stopped }), RELEASE, NOW)).toMatchObject({ tone: "warning", label: wording("deploy.status.stopped"), detail: "" });
-    expect(deployMarkOf(wording, view({ run: cut }), RELEASE, NOW)).toMatchObject({ label: wording("deploy.status.cut"), detail: wording("deploy.label.stage_build") });
+    expect(deployMarkOf(wording, view({ run: refused }), RELEASE, NOW)).toMatchObject({ tone: "warning", label: wording("deploy.status.refused"), detail: "" });
+    expect(deployMarkOf(wording, view({ run: withdrawn }), RELEASE, NOW)).toMatchObject({ tone: "neutral", label: wording("deploy.status.withdrawn"), detail: wording("deploy.label.stage_build") });
     expect(deployMarkOf(wording, view({ run: rolled }), RELEASE, NOW + ENDING_SHOWN_MS)).toBeNull();
     expect(deployMarkOf(wording, view({ run: rolled }), "build-old", NOW + ENDING_SHOWN_MS)).toMatchObject({ kind: "newer", label: wording("deploy.status.newer") });
+  });
+
+  // A gate that did not pass, a stage after it, a run gone unasked: each a failure at its stage, and why where a step says it.
+  test("a failed run names the stage it failed at and the step that failed it, a hung step by what hung it", () => {
+    const step = (name: string, code: number, stage: DeployStep["stage"]): DeployStep => ({ name, code, waitedSeconds: 0, ranSeconds: 1, at: NOW - 2_000, stage });
+    const gate = run({ phase: "ended", end: "failed", endedAt: NOW - 1_000, stages: [{ stage: "check", at: NOW - 9_000 }], steps: [step("quick", 0, "check"), step("tests", 124, "check")] });
+    const build = run({ phase: "ended", end: "failed", endedAt: NOW - 1_000, steps: [step("release", 101, "build")] });
+    const rolled = run({ phase: "ended", end: "rolled-back", endedAt: NOW - 1_000, stages: [{ stage: "restart", at: NOW - 9_000 }, { stage: "rollback", at: NOW - 2_000 }] });
+    const gone = run({ unitName: "unit-a", phase: "cut", end: "failed", endedAt: NOW - 1_000 });
+
+    expect(deployMarkOf(wording, view({ run: gate }), RELEASE, NOW)).toMatchObject({ kind: "ended", tone: "error", label: wording("deploy.status.failed"), detail: `${wording("deploy.label.stage_check")} · ${wording("deploy.label.step_hung", { step: "tests" })}` });
+    expect(deployMarkOf(wording, view({ run: build }), RELEASE, NOW)?.detail).toBe(`${wording("deploy.label.stage_build")} · ${wording("deploy.label.step_failed", { step: "release", code: 101 })}`);
+    expect(deployMarkOf(wording, view({ run: rolled }), RELEASE, NOW)?.detail).toBe(wording("deploy.label.stage_restart"));
+    // A step that failed in a stage the run went on past is not why it failed.
+    expect(deployMarkOf(wording, view({ run: run({ phase: "ended", end: "failed", endedAt: NOW - 1_000, steps: [step("tests", 1, "check")] }) }), RELEASE, NOW)?.detail).toBe(wording("deploy.label.stage_build"));
+    expect(deployMarkOf(wording, view({ run: gone }), RELEASE, NOW)).toMatchObject({ tone: "error", label: wording("deploy.status.failed"), detail: `unit-a · ${wording("deploy.label.stage_build")}` });
   });
 
   test("each stage lasts until the next began, and the last one until now while the run goes", () => {
@@ -161,7 +177,7 @@ describe("the deployment mark", () => {
   });
 
   test("a run that ended or was cut off shows only what happened", () => {
-    const ended = run({ phase: "ended", outcome: "stopped", endedAt: NOW, plan: ["check", "build", "after"], ahead: [{ name: "tests" }], running: { name: "quick", at: NOW - 1_000 } });
+    const ended = run({ phase: "ended", end: "failed", endedAt: NOW, plan: ["check", "build", "after"], ahead: [{ name: "tests" }], running: { name: "quick", at: NOW - 1_000 } });
 
     expect(stageRows(ended, NOW).map((row) => [row.stage, row.state, row.steps.length])).toEqual([["check", "done", 0], ["build", "done", 0]]);
   });
@@ -246,30 +262,31 @@ describe("an item on its way live", () => {
     expect(itemDeployPhase(view(), item(1203, { closing: batch("c".repeat(40)) }))).toBe("waiting-live");
     expect(itemDeployPhase(view(), item(1203, { closing: batch(null), liveState: "running" }))).toBe("waiting-live");
     expect(itemDeployPhase(view({ run: run({ carried }) }), item(1203, { closing: batch("c".repeat(40)) }))).toBe("deploying");
-    expect(itemDeployPhase(view({ run: run({ carried, phase: "ended", endedAt: NOW, outcome: "failed" }) }), item(1203, { closing: batch("c".repeat(40)) }))).toBe("deploy-failed");
+    expect(itemDeployPhase(view({ run: run({ carried, phase: "ended", endedAt: NOW, end: "failed" }) }), item(1203, { closing: batch("c".repeat(40)) }))).toBe("deploy-failed");
   });
 
   test("waits to go live once its close handed its commit over, its job waiting on it or ended", () => {
     expect(itemDeployPhase(view(), item(1203, { closing: waiting("c".repeat(40)) }))).toBe("waiting-live");
     expect(itemDeployPhase(view(), item(1203, { closing: waiting(null) }))).toBe("waiting-live");
     expect(itemDeployPhase(view(), item(1203, { closing: waiting("c".repeat(40)), liveState: "running" }))).toBe("waiting-live");
-    expect(itemDeployPhase(view({ run: run({ carried, phase: "ended", endedAt: NOW, outcome: "live" }) }), item(1203, { closing: waiting("c".repeat(40)) }))).toBe("waiting-live");
+    expect(itemDeployPhase(view({ run: run({ carried, phase: "ended", endedAt: NOW, end: "live" }) }), item(1203, { closing: waiting("c".repeat(40)) }))).toBe("waiting-live");
   });
 
-  test("says its deployment failed where the run that carried its commit ended failed or rolled back", () => {
-    const failed = view({ run: run({ carried, phase: "ended", endedAt: NOW, outcome: "failed" }) });
-    const rolledBack = view({ run: run({ carried, phase: "ended", endedAt: NOW, outcome: "rolled-back" }) });
+  test("says its deployment failed where the run that carried its commit ended failed or rolled back, and not where it was refused or withdrawn", () => {
+    const failed = view({ run: run({ carried, phase: "ended", endedAt: NOW, end: "failed" }) });
+    const rolledBack = view({ run: run({ carried, phase: "ended", endedAt: NOW, end: "rolled-back" }) });
 
     expect(itemDeployPhase(failed, item(1203, { closing: waiting("c".repeat(40)) }))).toBe("deploy-failed");
     expect(itemDeployPhase(rolledBack, item(1203, { closing: waiting("c".repeat(40)) }))).toBe("deploy-failed");
     expect(itemDeployPhase(failed, item(1203, { closing: waiting("d".repeat(40)) }))).toBe("waiting-live");
     expect(itemDeployPhase(failed, item(1203, { closing: waiting("c".repeat(40)), liveState: "running" }))).toBe("deploy-failed");
-    expect(itemDeployPhase(view({ run: run({ carried, phase: "ended", endedAt: NOW, outcome: "stopped" }) }), item(1203, { closing: waiting("c".repeat(40)) }))).toBe("waiting-live");
+    expect(itemDeployPhase(view({ run: run({ carried, phase: "ended", endedAt: NOW, end: "refused" }) }), item(1203, { closing: waiting("c".repeat(40)) }))).toBe("waiting-live");
+    expect(itemDeployPhase(view({ run: run({ carried, phase: "cut", endedAt: NOW, end: "withdrawn" }) }), item(1203, { closing: waiting("c".repeat(40)) }))).toBe("waiting-live");
   });
 
   test("says nothing of an item no commit names, of a run that ended, of a finished item, or with no run", () => {
     expect(itemDeployPhase(view({ run: run({ carried }) }), item(1204))).toBeNull();
-    expect(itemDeployPhase(view({ run: run({ carried, phase: "ended", endedAt: NOW, outcome: "live" }) }), item(1201))).toBeNull();
+    expect(itemDeployPhase(view({ run: run({ carried, phase: "ended", endedAt: NOW, end: "live" }) }), item(1201))).toBeNull();
     expect(itemDeployPhase(view({ run: run({ carried }) }), item(1201, { done: true }))).toBeNull();
     expect(itemDeployPhase(view(), item(1201, { done: true, closing: waiting("c".repeat(40)) }))).toBeNull();
     expect(itemDeployPhase(view(), item(1201))).toBeNull();

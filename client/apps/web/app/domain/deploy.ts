@@ -179,20 +179,39 @@ function runDetail(run: DeployRunView, ...rest: string[]): string {
   return [run.unitName ?? "", ...rest].filter((part) => part !== "").join(" · ");
 }
 
-function endedMark(t: Translate, run: DeployRunView): DeployMark {
-  if (run.phase === "cut") {
-    return { kind: "ended", tone: "error", icon: "i-material-symbols-link-off", spin: false, label: t("deploy.status.cut"), detail: runDetail(run, stageLabel(t, currentStage(run))) };
-  }
+// The exit code the testbed ends a heavy step with where it wrote nothing for its silence limit and was ended as hung
+// (the testbed's docs/deploy.md, 「What a deployment says of itself as it runs」).
+const HUNG_EXIT_CODE = 124;
 
-  switch (run.outcome) {
+// How a failed heavy step ended: hung, or with its exit code.
+function stepFailure(t: Translate, step: DeployStep): string {
+  if (step.code === HUNG_EXIT_CODE) return t("deploy.label.step_hung", { step: stepLabel(t, step) });
+
+  return t("deploy.label.step_failed", { step: stepLabel(t, step), code: step.code });
+}
+
+// What the mark says of a failed run after its unit: the stage it failed at, the last it reached short of its
+// rollback, and why, where a heavy step of that stage failed it: the last such step and how it ended. A stage that
+// failed outside any step, as a service that did not come up does, stands alone.
+function failedDetail(t: Translate, run: DeployRunView): string {
+  const span = stageSpans(run, run.endedAt ?? Date.now()).findLast((one) => one.stage !== "rollback");
+  const step = span?.steps.findLast((one) => one.code !== 0);
+
+  return runDetail(run, stageLabel(t, span?.stage ?? null), step === undefined ? "" : stepFailure(t, step));
+}
+
+function endedMark(t: Translate, run: DeployRunView): DeployMark {
+  switch (run.end) {
     case "live":
       return { kind: "ended", tone: "success", icon: "i-material-symbols-check-circle-outline", spin: false, label: t("deploy.status.live"), detail: runDetail(run) };
     case "rolled-back":
-      return { kind: "ended", tone: "error", icon: "i-material-symbols-undo", spin: false, label: t("deploy.status.rolled_back"), detail: runDetail(run) };
-    case "stopped":
-      return { kind: "ended", tone: "warning", icon: "i-material-symbols-do-not-disturb-on-outline", spin: false, label: t("deploy.status.stopped"), detail: runDetail(run) };
+      return { kind: "ended", tone: "error", icon: "i-material-symbols-undo", spin: false, label: t("deploy.status.rolled_back"), detail: failedDetail(t, run) };
+    case "refused":
+      return { kind: "ended", tone: "warning", icon: "i-material-symbols-do-not-disturb-on-outline", spin: false, label: t("deploy.status.refused"), detail: runDetail(run) };
+    case "withdrawn":
+      return { kind: "ended", tone: "neutral", icon: "i-material-symbols-stop-circle-outline", spin: false, label: t("deploy.status.withdrawn"), detail: runDetail(run, stageLabel(t, currentStage(run))) };
     default:
-      return { kind: "ended", tone: "error", icon: "i-material-symbols-error-outline", spin: false, label: t("deploy.status.failed"), detail: runDetail(run, stageLabel(t, currentStage(run))) };
+      return { kind: "ended", tone: "error", icon: "i-material-symbols-error-outline", spin: false, label: t("deploy.status.failed"), detail: failedDetail(t, run) };
   }
 }
 
@@ -314,7 +333,7 @@ export function itemDeployPhase(view: DeployView | null | undefined, item: ItemO
   // handed over waits to go live.
   if (item.closing?.phase !== "waiting-batch" && item.closing?.phase !== "waiting-live") return null;
 
-  return carried && (run?.outcome === "failed" || run?.outcome === "rolled-back") ? "deploy-failed" : "waiting-live";
+  return carried && (run?.end === "failed" || run?.end === "rolled-back") ? "deploy-failed" : "waiting-live";
 }
 
 /** The colour a row's way-live chip wears: waiting for its deployment, being put live, or its deployment failed. */

@@ -250,6 +250,10 @@
 - a job's command in the testbed's queue, on its TODO row → 테스트 중 while it holds a seat, 테스트 대기 <n>번째 while it
   waits, each followed by ` · ` and the command as the testbed names it. Never 검사 중, 차례 대기, 줄 서는 중. It is the
   one place a row says 테스트 중: the state chip never does, a deployment's check and suite reading 배포 중.
+- how a deployment ended → 배포 완료; 배포 실패 for every run something failed, its gate among them, followed by the
+  stage and the step that failed it, `{step} 종료 코드 {code}` or `{step} 중지 · 출력 없음` for a step ended as hung;
+  배포 실패 · 롤백 where the release before it was put back; 배포 거부됨 for a run refused before it began; 배포 중단됨
+  for a run withdrawn before it ended. Never 배포 안 함, which reads as a choice not to deploy, nor 배포 취소.
 - the research unit's words → 리서치, 분류 (a category), 대기열 (its queue), 제외 (dismissing an item), 보류 (a hold on its
   runs), 해당 (a document marked for the owner's word), 브리핑 (a brief), 보안 권고 (an advisory). Never 카테고리, 큐, 기각.
 - set by hand → 수동 지정. Never 손으로 정함.

@@ -1242,12 +1242,25 @@ edit to that file alone, once the guide below carries the word.
     Jobs it waits for, by their items' numbers and titles and each with why; what the batch takes away;
     the limit, said as what happens then — 「02:37까지 끝나지 않으면 대기를 해제합니다.」 — and the 해제
     button, which lets the hold go. A hold standing with no run behind it is shown the same way.
-- **The end stands for two minutes, then goes:** 「배포 완료」, 「배포 실패 · 롤백」, 「배포 실패」,
-  「배포 안 함」, or 「배포 중단됨」 for a run whose process went without ending its record, each with the
-  run's unit after it. The record says why a
-  run put nothing live in the testbed's own English sentence and with no code, so the mark says the outcome
-  alone. Its
-  popover is the same as the run's, with the outcome at its head at phone width.
+- **The end stands for two minutes, then goes,** with the run's unit after it, in one of five words. Its popover is
+  the same as the run's, with the end at its head at phone width.
+  - 「배포 완료」 in the success colour, for a run that went live.
+  - 「배포 실패」 in the error colour, for every run that stopped because something failed: a gate that did not
+    pass, which the testbed writes as stopped rather than failed; a stage after it that failed; and a run whose
+    process went without ending its record while nobody asked its unit to stop. After the unit stand the stage it
+    failed at and, where a heavy step failed it, that step and how it ended: 「배포 실패 · bmo-agency · 검사·테스트 ·
+    tests 중지 · 출력 없음」 for a step the testbed ended as hung (its exit code 124), 「… · tests 종료 코드 1」 for any
+    other. A stage that failed outside any step, as a service that did not come up, stands alone. The testbed's own
+    sentence of why stands in the log below, in its English.
+  - 「배포 실패 · 롤백」 in the error colour, for a run that failed and put the release before it back, with the
+    stage it failed at.
+  - 「배포 거부됨」 in the warning colour, for a run the testbed refused before it began: the record ends stopped
+    with its refusal marked, and nothing changed.
+  - 「배포 중단됨」 in the quiet neutral colour, since nothing failed, for a run withdrawn before it ended: its process went without ending its
+    record, and the deployment unit's journal holds the service manager's stop job for that unit, which only a stop
+    asked for writes. It names the stage it reached.
+  - A deployment withdrawn while it waited in the testbed's deployment line wrote no record, so no mark stands for
+    it; the mark keeps the run that ended before it.
 - **A page older than the console being served says so.** Where the build the console server runs
   differs from the page's own, the mark is the deploy icon, Material Symbols' updated deployed code, as an icon
   button in the accent colour at every width — the title bar's own icon button, its words 「새 버전 · 새로고침」 in
@@ -6260,9 +6273,10 @@ Four bounds keep it from growing forever.
     once, so every run under way is read, not only the one the title bar stands (「Deployment in the title bar」); a
     run carries the item where one of its carried commits names the item by its number, or is the commit the item's
     label `close-commit` names — the row says 배포 중 through every stage of that run, its 검사·테스트 stage among them,
-    until the run ends; where the run the title bar reads ended failed or rolled back,
-    the row of an item still waiting on its commit says 배포 실패, until a job of the item runs again or another run
-    stands in the bar. They take no place in the order of their own, and a finished row carries none. A reporting line stays at the top with
+    until the run ends; where the run the title bar reads ended 「배포 실패」 or 「배포 실패 · 롤백」 — a gate that
+    did not pass among them — the row of an item still waiting on its commit says 배포 실패 until a job of the item
+    runs again or another run stands in the bar, while a run refused or withdrawn leaves it 배포 대기, its commit
+    still waiting. They take no place in the order of their own, and a finished row carries none. A reporting line stays at the top with
     the running ones, where it stood while running, until its job has ended; the 진행 중 filter shows it and its badge counts
     it. Being unfinished work its tag colour is like 진행 중's, and being a completed line it carries no drag handle, has no
     place in the order a drop saves, and opening it has no button to press.

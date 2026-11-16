@@ -17,6 +17,30 @@ console's typecheck and then every test file under `client/tests` in one `bun te
   address from `BMO_CONSOLE_TEST_URL`, except `skeleton`, which reads it from `BMO_SKELETON_TEST_URL`. The suite
   stands up no console, so without those variables they skip; every other browser file runs.
 
+### The scratch databases
+
+Every test that needs PostgreSQL makes a database of its own on the server `BMO_TEST_POSTGRES` names, else the
+machine's own socket's `bmo_test`, and every name carries the process that made it:
+
+- **The server's tests:** the first test of a binary migrates a template, `bmo_web_tmpl_` followed by the
+  binary's process id; each test gets a copy of it, `bmo_web_copy_` followed by the process id and a count; and
+  a module whose tests share one database seeds it once, `bmo_web_shared_` followed by the process id and a count.
+- **The client's tests:** a test file gets a database of its own, `bmo_web_console_` followed by the process id
+  and a count, and the browser harness one for its console, `bmo_web_browser_console_` followed by its process id.
+- **A drop that fails fails the test.** A copy is dropped when its test ends and a client file's database when
+  its file is done; the browser harness drops its own when it stops and exits with a failure where it cannot. The
+  drop first ends the suite role's own sessions on the database and then drops it without forcing: forcing needs
+  the right to end other roles' processes, an autovacuum worker's among them, which the suite's role need not
+  hold, while the plain drop stops an autovacuum worker itself.
+- **A template and a shared database outlive their binary,** since a test binary ends without dropping what its
+  tests share, and so does any database of a process that was killed.
+- **The sweep drops what a dead process left.** Before a server test binary makes its first database, it drops
+  every database of the server's three names; before a client test process makes its first, every one of
+  `bmo_web_console_`; and before the browser harness makes its own, every one of `bmo_web_browser_console_`. Each
+  drops only a database whose process no longer runs on this machine and that no client's session is on, so a
+  run of another checkout against the same server keeps its own, and reads no name but its own. A database it
+  cannot drop is named on the error stream and left for the next run.
+
 ### Running the console-driven browser files
 
 `client/tests/support/browser-console.ts` stands up the console they drive:
@@ -45,6 +69,7 @@ console's typecheck and then every test file under `client/tests` in one `bun te
 - **What it prints:** the console's address, once it answers.
 - **When it stops:** on an interrupt, stopping everything it started, dropping the database and removing its scratch
   directory; where it failed to start it stops the same way but keeps that directory, whose logs the failure names.
+  Where the database cannot be dropped it says so and exits with a failure, keeping the directory too.
 
 The tests serve the rest of what they measure through the page's own routes. The files run one at a time,
 through the testbed, with the address the script printed:

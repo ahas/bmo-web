@@ -21,7 +21,7 @@ import { rawNumber } from "./raw-number";
 import { roleLogAnswer } from "./role-log";
 import { HIGH_ALBUM, HIGH_ANSWERED, HIGH_FILE, HIGH_FILE_NAME, HIGH_FILE_WORDS, HIGH_LINE, HIGH_PICTURE, HIGH_ROOM, highSent, highWords } from "./high-room";
 import { UNREAD_LINE, UNREAD_ROOM } from "./unread-room";
-import { addressOf, dropScratchDatabase } from "./web-database";
+import { addressOf, BROWSER_CONSOLE_PREFIX, dropScratchDatabase, sweepScratchDatabases } from "./web-database";
 
 const CLIENT = new URL("../..", import.meta.url).pathname;
 const CONSOLE_DIR = join(CLIENT, "apps/web");
@@ -308,7 +308,7 @@ if (binary === "") {
 const scratch = mkdtempSync(join(tmpdir(), "bmo-web-browser-console-"));
 const children: ChildProcess[] = [];
 const servers: { stop: (force?: boolean) => void }[] = [];
-const database = `bmo_web_browser_console_${process.pid}`;
+const database = `${BROWSER_CONSOLE_PREFIX}${process.pid}`;
 const databaseUrl = addressOf(database);
 
 // A port nothing listens on now, taken by listening once and letting go.
@@ -1233,7 +1233,13 @@ async function stop(keepScratch = false): Promise<void> {
     }
   }
 
-  await dropScratchDatabase(database);
+  try {
+    await dropScratchDatabase(database);
+  } catch (error) {
+    console.error(`the scratch database ${database} is left: ${error}`);
+    process.exit(1);
+  }
+
   if (!keepScratch) rmSync(scratch, { recursive: true, force: true });
   process.exit(0);
 }
@@ -1265,6 +1271,8 @@ try {
     units[`${unit}_ADDRESS`] = `http://127.0.0.1:${server.port}`;
     units[`${unit}_TOKEN`] = TOKEN;
   }
+
+  await sweepScratchDatabases(BROWSER_CONSOLE_PREFIX);
 
   const admin = new SQL(connectionOf(addressOf("postgres")) as SQL.Options);
 

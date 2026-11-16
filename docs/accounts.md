@@ -344,6 +344,56 @@ section states what each does.
 - **The console's organisation screen,** 조직's 조직도 tab, draws the units as a tree and does each of these for
   the administrator (`docs/web.md`, 「조직도」).
 
+### A person's BMO profile
+
+- **Every account's own BMO stands under a profile:** the name it is called, the names that call it in a room, its
+  picture and its persona. The account's own BMO is the supervisor the account owns (「Whose BMO a supervisor is」),
+  the one a person calls 내 BMO. The owner's own BMO, the supervisor that answers rooms naming none and every
+  supervisor of no account hold no profile here and keep the name, picture and persona they stand with.
+- **The service is where the profile is decided.** It keeps a company's default, each person's own choice and who
+  may make one, and answers the profile that stands for a person. The agency keeps the supervisor's label, call
+  names and persona, and the receiver its picture, as the console applies them from this answer (`docs/web.md`,
+  「A person's BMO profile on the agency and the receiver」); neither decides one.
+- **A company sets a default for its people's BMOs:** a name, the names that call it, and a picture. A company is a
+  unit with no parent (「Companies and organisation units」), and the default stands for every person of that company.
+  Any part of it may stand empty. The platform administrator and the company's heads set it: a head of the company
+  unit itself, by sumida's `manage` on it, so a head of a unit below the company does not.
+- **A person may set their own,** where they may personalise their BMO: a name, the names that call it, a picture and
+  a persona. Each part may stand empty. What they set is kept whether or not they may use it, so a permission taken
+  away and given back finds it as it was.
+- **Each part of the profile stands by one order:**
+  1. the person's own part, where they may personalise their BMO and the part is set;
+  2. the company's default part, where it is set;
+  3. the deployment's own: the name the language pack gives a BMO, the label alone and no further names to call it by, no
+     picture of the console's (the receiver's own or the initials stand), and no persona of the person's (the
+     agency's own composition stands).
+  The account's administrators are no exception for their own BMO, and nothing of one person's profile reaches another.
+- **Whether a person may personalise their BMO is set as 허용 or 막음 on a person or on a unit.** It is read nearest
+  first: the person's own setting, then their unit's, then each unit above it up to the company. Where none of them
+  is set it is withheld: nothing is open until it is granted. A platform administrator may always.
+- **Who sets it:** the platform administrator anywhere; a unit's head on that unit and every unit below it, and on every
+  person standing in one of them, by sumida's `manage` on the unit. A setting is taken away by setting it to follow
+  the unit above, which removes it.
+- **The routes:**
+  - **`GET /companies/{company}/agent`** answers the company's default: `name`, `callNames` and whether it keeps a
+    picture, each empty where none is set; **`PUT`** replaces the name and the call names, for the administrator and
+    the company's heads alone, 403 `forbidden` to anyone else and 404 where the company is no company.
+  - **`GET`, `PUT` and `DELETE /companies/{company}/agent/picture`**: the default picture's bytes, set from a form's
+    `picture` and taken away, held to the same callers. A file that is no PNG, JPEG, WebP or GIF is refused 400
+    `not-a-picture`, and one over 10 MB 413 `picture-too-large`.
+  - **`GET /users/{user}/agent`** answers the profile standing for the user, each part with where it came from
+    (`own`, `company` or `deployment`), whether the user may personalise their BMO, and the person's own parts as
+    kept; for the user themselves, the administrator and a head of the user's unit.
+  - **`PUT /users/{user}/agent`** replaces the person's own name, call names and persona, and **`PUT` and `DELETE
+    /users/{user}/agent/picture`** their own picture, for the user themselves alone; 403 `personalize-withheld` where
+    they may not personalise their BMO, so nothing is kept for a person who may not.
+  - **`GET /units/{unit}/agent-permission`** answers the setting on the unit and on every person standing in it, and
+    what each resolves to; **`PUT /units/{unit}/agent-permission`** and **`PUT /users/{user}/agent-permission`** set
+    `allow`, `deny` or `inherit`, for the callers above, 403 `forbidden` to anyone else.
+  - A name is one line of 1 to 40 characters, a call name 1 to 40 with no comma, at most 10 of them, and a persona
+    at most the agency's ceiling for a supervisor's persona; a value out of shape is refused 400 `bad-agent-profile`
+    with the field it names.
+
 ### Invitations and a person's machine
 
 - **An invitation is a link that makes one account in one unit,** made by the platform administrator for any unit,
@@ -633,6 +683,9 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 | `user_invites` | each invitation: its token, its unit, whether it makes a head, the person's name it was made for (empty where none was given), who made it, when it closes, and who used it and when |
 | `user_nodes` | the machine each invited account is bound to, whether the administrator bound it shared, and when it was last proven |
 | `user_departures` | each account marked left: when, and by whom |
+| `company_agents` | each company's default for its people's BMOs: the name, the call names and the picture with its type, and who set it and when (「A person's BMO profile」) |
+| `own_agents` | each person's own BMO profile: the name, the call names, the persona and the picture with its type, kept whether or not they may use it |
+| `agent_permissions` | each `allow` or `deny` set on a unit or on a person for personalising one's BMO, who set it and when; `inherit` is no row |
 | `secret_kinds` | each secret kind: its key, name, description and fields, and the order kinds were added in |
 | `settings` | the service's own keys: the mark that the move is written, and the move's administrator's user (「The platform administrators」) |
 | `web_users` | the console's own accounts, the sign-in that stands before the model is in force |

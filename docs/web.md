@@ -6737,9 +6737,9 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
   the dialog's left under the title 설정, each section one line of an icon and its name; the open one
   is marked. The section's own name heads the right, with the dialog's close mark at its right end,
   and its content scrolls under it.
-  - The sections are 계정, 비밀 보관함, 테마, 대화방, 알림 and 보이스브리핑. A member is shown 계정, 비밀 보관함,
+  - The sections are 계정, 내 BMO, 비밀 보관함, 테마, 대화방, 알림 and 보이스브리핑. A member is shown 계정, 비밀 보관함,
     테마 and 대화방; 알림 and 보이스브리핑 are the administrator's, since the console rings and plays briefings for
-    the administrator alone. A login with no user of the account service, which holds no secret space, is not
+    the administrator alone. 내 BMO is shown to a person who may personalise their BMO and owns one (「내 BMO」). A login with no user of the account service, which holds no secret space, is not
     shown 비밀 보관함.
   - A section's content stands in groups under small headings, each group a column of rows parted by
     hairlines. A row carries its name and, where the name needs it, one muted line under it at the
@@ -6752,7 +6752,7 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
 - **On a narrow screen the dialog fills the screen** and opens on the list of sections alone, over the
   sidebar drawer it was opened from (「Floating things」). A tap on one goes into it: the head then carries
   a back arrow before the section's name, and the arrow or the back gesture returns to the list. The close mark stands at the head's right end on both.
-- **An address opens it at one section:** `?settings=` and a section's key — `account`, `secrets`, `theme`,
+- **An address opens it at one section:** `?settings=` and a section's key — `account`, `agent`, `secrets`, `theme`,
   `palette`, `notifications`, `briefing` — on any address of the console opens the dialog at that
   section, gone into on a narrow screen, and at the first section the reader may open where the key
   names none of them. A key that names none of the dialog's sections but a tab of 조직 — `organization`,
@@ -6777,6 +6777,19 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
   and role to the service, and another login's call is refused.
 - **A changed person's name is followed at once:** the person's own BMO and its private room take the titles
   made from it (「The join page」), and the reader's own session takes it, so the user menu names them by it.
+
+#### 내 BMO
+
+- **It is shown to a person who may personalise their BMO** (`docs/accounts.md`, 「A person's BMO profile」) and owns
+  one, and it is the only place they change it; for anyone else it is no section, and the console's routes behind it
+  refuse with the pack's sentence for `personalize-withheld`.
+- **이름, 부르는 이름, 프로필 사진 and 페르소나**, each showing what stands now and where it comes from, muted under
+  it: the person's own, the company's default or the deployment's. 이름 and 부르는 이름 stand as 기본 BMO's on 조직's
+  BMO tab; 페르소나 is a text of several lines saying how the BMO speaks and behaves, held to the agency's ceiling with
+  the count shown as it nears it. The text parts are saved by 저장 at the group's foot, open only while one differs,
+  and the picture as the picture shape saves it.
+- **초기화** empties the person's own parts, so the company's default stands for each again, after the console's
+  question dialog asks (「Messages」).
 
 #### 비밀 보관함
 
@@ -6935,16 +6948,17 @@ every run goes out on, and the kinds every person's secret form asks in — is t
 settings dialog's (「Settings」), and the research supervisor stands with the research unit's settings on the
 research screen (「Research screen」).
 
-- **It stands at `/organization`, a tab to a section.** The tabs are 조직도, 초대 and 권한, keyed in the address as
-  `?tab=` with `invites` and `permissions`, 조직도 being the screen's own address; a shared link opens the same tab, moving between tabs is a step of the history, and a key naming no tab
+- **It stands at `/organization`, a tab to a section.** The tabs are 조직도, 초대, 권한 and BMO, keyed in the address as
+  `?tab=` with `invites`, `permissions` and `agent`, 조직도 being the screen's own address; a shared link opens the same tab, moving between tabs is a step of the history, and a key naming no tab
   the reader may open opens the first they may. The console search finds each tab as it finds every screen's.
 - **A key of a section that moved away leads to where it stands now,** so a link made before it moved still lands
   on it: `research` to the research screen's 설정 tab, `briefing` to the settings dialog's 보이스브리핑 and `secrets`
   to its 비밀 보관함, each over this screen, and `providers` and `secret-kinds` to those tabs of 관리자. The address is replaced rather than stepped, so the back gesture does not return to the old key.
 - **Who opens it.** The administrator opens every tab, and the sidebar lists 조직 for them after the console's
   own screens. A member who heads a unit may invite into it (`docs/accounts.md`, 「Invitations and a person's
-  machine」), so their shell lists 조직 too and the screen holds 초대 alone; a member who heads none is listed
-  no entry, and the address shows them 초대 saying they may invite into no unit.
+  machine」) and sets who under it may personalise their BMO (`docs/accounts.md`, 「A person's BMO profile」), so
+  their shell lists 조직 too and the screen holds 초대 and BMO; a member who heads none is listed no entry, and the
+  address shows them 초대 saying they may invite into no unit.
 - **The tab row** stands under the title bar, the tabs filling it and the open tab's own add at its right end
   where the tab has one, the row's grey icon on a phone too (「The title bar」): 조직 추가 on 조직도 and 초대 링크
   만들기 on 초대. On a narrow screen the tabs keep one line and scroll
@@ -7076,7 +7090,8 @@ research screen (「Research screen」).
   at every proof that answers it active (`docs/accounts.md`, 「Invitations and a person's machine」). A part that
   cannot be made is written to the console's log and the account stands ready all the same.
 - **A person's own BMO and its private room are titled by the name people read the person by,** their person's
-  name, else their login: the BMO's label is that name with BMO, `{name}의 BMO`, and the room's title the name
+  name, else their login: the BMO's label is that name with the name the BMO's profile stands with, `{name}의 BMO`
+  where nothing else stands (「A person's BMO profile on the agency and the receiver」), and the room's title the name
   alone, each in the language pack's words (WORDING.md). The titles follow the name: as the account is made
   ready, at every sign-in, and as the person's name is saved on 계정's 프로필, the console's server sets the BMO's
   label through the agency and the room's title through the receiver wherever either still stands as a title the
@@ -7085,6 +7100,22 @@ research screen (「Research screen」).
   A title that cannot be set is written to the console's log, and the sign-in or the save goes on.
 - **An account bound to a machine signs in only while its machine is attached;** the login refuses it, saying the
   machine is not connected, until it attaches again.
+
+#### A person's BMO profile on the agency and the receiver
+
+- **The console's server applies the profile standing for a person to that person's own BMO** (`docs/accounts.md`,
+  「A person's BMO profile」): the name into the agency's label, as `{person}의 {name}`, the person's name with the
+  profile's name; the call names into the agency's call names for the supervisor; the persona into the agency's persona
+  setting for the supervisor, emptied where none stands; and the picture into the receiver's picture for the agent,
+  taken away where none stands. The owner's own BMO and every supervisor of no account are never touched.
+- **It applies it whenever what stands may have moved:** as the account is made ready, at every sign-in, as the
+  person's name or their own profile is saved, as a company's default is saved, for every person of the company, and
+  as a permission is set, for every person it reaches. Each part already standing as it should is not written again.
+- **A label someone chose by hand is left as it stands,** as the titles' rule above says: the label is written only
+  while it stands as one the console made — the account's key, the login, or a title made from the person's name with
+  any profile's name or with the pack's word.
+- **A part the agency or the receiver refuses is written to the console's log,** and the act that set it off goes
+  on; the next of those moments applies it again.
 
 #### The desktop pairing page
 
@@ -7116,6 +7147,26 @@ research screen (「Research screen」).
 - **The platform administrator's row stands with every switch on and nothing to change,** since they pass
   every section; the note above the table says so. A section's defaults and what they mean stand in
   `docs/accounts.md`, 「Console sections」.
+
+#### BMO
+
+- **It sets what a company's people's BMOs stand as, and who may make their own** (`docs/accounts.md`, 「A person's BMO
+  profile」). The administrator opens it, and so does every member who heads a unit.
+- **회사** chooses the company, among the companies the reader heads a unit of, the first chosen at first; the
+  administrator chooses among them all.
+- **기본 BMO** stands for the administrator and the company's own heads alone: 이름, the name its people's BMOs stand
+  with; 부르는 이름, the names that call one in a room, each a chip with its own remove and a field that adds one on
+  Enter; and 프로필 사진, the picture, in the one shape every picture of the console is set in (「Profile photos」),
+  with 기본 사진으로 되돌리기 in place of the provider's. The name and the call names are saved by 저장 at the group's
+  foot, open only while one differs; the picture as the picture shape saves it. An empty name says the deployment's
+  own, `BMO (기본값)`, as its placeholder.
+- **BMO 설정 권한** is the company's tree as 조직도 draws it, each unit a row and, opened, the people standing in it a
+  row each, every row with a choice of 허용, 막음 and 상위 조직 따름 (the company's own row: 허용 and 막음, 막음 at
+  first), and what the row resolves to written muted under its name where it follows. A head sees the tree from their
+  own unit down. A change is saved as it is made; a refusal is said under the row, which goes back to what stood.
+- **What a change does is followed at once** for every person it reaches: their BMO takes the profile now standing
+  for them (「A person's BMO profile on the agency and the receiver」), and a person's 설정 shows or drops 내 BMO
+  the next time it opens.
 
 ### Administration
 

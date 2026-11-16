@@ -1,7 +1,7 @@
 import { CONTROL_UNREACHABLE } from "#shared/config";
 import { wording } from "#shared/wording";
 
-import type { UnitCall } from "./units";
+import type { UnitCall, UnitRefusal } from "./units";
 
 // One call made through a unit's published client (docs/boundary.md, 「Calls the console makes」). The client
 // hands back the route's answer beside its response, and a non-2xx answer is the unit's own `{code, error}`
@@ -48,7 +48,13 @@ export async function answered<T, E extends RefusalBody>(asked: Promise<UnitResu
     const coded = typeof held?.code === "string" ? call.codes?.[held.code] : undefined;
     const reason = coded !== undefined ? wording(coded, fieldsOf(held)) : reasonIn(body, result.response.status, carries(call, result.response.status));
 
-    throw createError({ statusCode: status, message: reason, data: { field: typeof held?.field === "string" ? held.field : null, code: typeof held?.code === "string" ? held.code : null } });
+    // The unit's own status and words stay on the server as the error's cause, as `unitFetch` keeps them.
+    throw createError({
+      statusCode: status,
+      message: reason,
+      data: { field: typeof held?.field === "string" ? held.field : null, code: typeof held?.code === "string" ? held.code : null },
+      cause: { status: result.response.status, said: typeof body?.error === "string" ? body.error : null } satisfies UnitRefusal
+    });
   }
 
   return result.data as T;

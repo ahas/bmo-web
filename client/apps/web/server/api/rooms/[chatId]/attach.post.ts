@@ -4,6 +4,7 @@ import { wording } from "#shared/wording";
 import { sayFilesAsAccount, speakerOf } from "../../../utils/console-rooms";
 import { exactAnswer, receiver } from "../../../utils/receiver";
 import { requireWritableRoom } from "../../../utils/room-reach";
+import { unitRefusalOf } from "../../../utils/units";
 
 import type { ExactMessageId, SentAttachments } from "#shared/types";
 
@@ -63,6 +64,7 @@ export default defineEventHandler(async (event): Promise<SentAttachments> => {
 
     if (file.data.length > MAX_ATTACHMENT_BYTES) {
       failed.push({ name, reason: wording("room.error.file_too_large_named", { name }) });
+      logUnsent(chatId, name, `was not sent: ${file.data.length} bytes, past the ${MAX_ATTACHMENT_BYTES} one file may be`);
     } else {
       going.push({ name, data: file.data, type: file.type });
     }
@@ -89,7 +91,11 @@ export default defineEventHandler(async (event): Promise<SentAttachments> => {
 
   // A try of a send still going under its key may well have gone; its files are watched for rather than
   // failed, so none is sent twice.
-  const watched = (): SentAttachments => ({ sent: [], failed, checking: going.map(({ name }) => ({ name })) });
+  const watched = (): SentAttachments => {
+    for (const { name } of going) logUnsent(chatId, name, "is not known to have gone: another try of its send key is still carrying it");
+
+    return { sent: [], failed, checking: going.map(({ name }) => ({ name })) };
+  };
   const key = sendKeyOf(new TextDecoder().decode(parts.find((part) => part.name === "key")?.data ?? new Uint8Array()));
 
   return sendOnce<SentAttachments>(
@@ -103,6 +109,9 @@ export default defineEventHandler(async (event): Promise<SentAttachments> => {
             ? ((await exactAnswer<unknown>(receiver().POST("/owner/message-files", { body, parseAs: "text" }))) as ReceivedAttachments)
             : await sayFilesAsAccount<ReceivedAttachments>(chatId, speaker, body);
 
+        for (const one of answer.failed) logUnsent(chatId, one.name, `was not sent: the receiver answered ${JSON.stringify(one.reason)}`);
+        for (const one of answer.checking) logUnsent(chatId, one.name, "is not known to have gone: the receiver is still drawing on it");
+
         return {
           sent: answer.sent.map((one) => ({ name: one.name, messageId: one.id })),
           failed: [...failed, ...answer.failed.map((one) => ({ name: one.name, reason: unsentReason(one) }))],
@@ -112,12 +121,16 @@ export default defineEventHandler(async (event): Promise<SentAttachments> => {
         // A receiver that did not take the call has sent none of them: the send waits on the screen and goes again
         // once the receiver answers.
         if ((error as { statusCode?: unknown }).statusCode === 503) {
+          for (const { name } of going) logUnsent(chatId, name, "was not sent: the receiver took no call, so the send waits to go again");
+
           throw error;
         }
 
-        const reason = reasonOfSend(error);
+        const why = refusalWords(error);
 
-        return { sent: [], failed: [...failed, ...going.map(({ name }) => ({ name, reason: `${name}: ${reason}` }))], checking: [] };
+        for (const { name } of going) logUnsent(chatId, name, why);
+
+        return { sent: [], failed: [...failed, ...going.map(({ name }) => ({ name, reason: refusedReason(name, error) }))], checking: [] };
       }
     },
     watched
@@ -142,8 +155,31 @@ function unsentReason(one: { name: string; reason: unknown }): string {
   return typeof reason.reason === "string" && reason.reason !== "" ? `${one.name}: ${reason.reason}` : wording("common.error.not_sent");
 }
 
-function reasonOfSend(error: unknown): string {
-  const said = (error as { statusMessage?: string; message?: string }).statusMessage;
+// Why a file in a send the receiver refused as a whole did not go, in a sentence that names the file once: a request
+// past the receiver's ceiling for one send, which names no file, is said as the console's own ceiling, and any
+// other refusal in the pack's sentence for it, or in this app's own words where the call never reached an answer.
+function refusedReason(name: string, error: unknown): string {
+  const failure = error as { statusCode?: unknown; statusMessage?: string; message?: string; data?: { code?: unknown } | null };
+  const said =
+    failure.statusCode === 413 && failure.data?.code !== "too-large"
+      ? wording("common.error.attachments_too_large", { n: MAX_ATTACHMENTS })
+      : failure.statusMessage || failure.message || wording("common.error.not_sent");
 
-  return said ?? (error as Error).message ?? wording("common.error.not_sent");
+  return said.includes(name) ? said : `${name}: ${said}`;
+}
+
+// What the log says of a send the receiver refused as a whole: the receiver's own status and words where it
+// answered, and the error itself where it never did.
+function refusalWords(error: unknown): string {
+  const refusal = unitRefusalOf(error);
+
+  if (refusal === null) return `was not sent: the send failed before the receiver answered: ${String(error)}`;
+
+  return `was not sent: the receiver refused the send with ${refusal.status}${refusal.said === null ? "" : `: ${refusal.said}`}`;
+}
+
+// Every file that does not go, or is not yet known to have gone, is written to this server's log, one line each,
+// since the screen only shows its row's reason (docs/web.md, the room screen's attachments).
+function logUnsent(chatId: number, name: string, what: string): void {
+  console.warn(`room ${chatId}: file ${JSON.stringify(name)} ${what}`);
 }

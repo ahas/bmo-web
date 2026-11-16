@@ -393,18 +393,20 @@
                           <span v-if="message" data-clock>{{ clock }}</span>
                           <!-- Where a message of the reader's own stands on its way, one mark in a column
                                of its own width beside the time, so a change of state changes the mark and
-                               nothing beside or under it. A failed one is pressed for why and what next,
-                               and one that waits for a bot or is being checked for deleting. -->
+                               nothing beside or under it. A failed one says why it did not go on hover and is
+                               pressed for why and what next, and one that waits for a bot or is being checked
+                               for deleting. -->
                           <span v-if="markShown" data-send-mark class="inline-flex size-5 items-center justify-center" @pointerdown.stop @click.stop>
                             <UDropdownMenu v-if="mark === 'failed'" :items="failedItems" :content="{ align: 'end' }">
-                              <UTooltip :text="$t('room.status.not_sent')">
+                              <UTooltip :text="failedReason">
                                 <UButton
+                                  data-send-failure
                                   size="xs"
                                   color="error"
                                   variant="ghost"
                                   icon="i-material-symbols-error"
                                   class="size-5 justify-center p-0"
-                                  :aria-label="$t('room.status.not_sent')"
+                                  :aria-label="`${$t('room.status.not_sent')}: ${failedReason}`"
                                 />
                               </UTooltip>
                             </UDropdownMenu>
@@ -723,9 +725,12 @@ const MARK_WORDS: Record<Exclude<SendMark, "failed">, string> = {
 };
 const markWord = computed<string>(() => t(mark.value === null || mark.value === "failed" ? "room.status.sending" : MARK_WORDS[mark.value]));
 
+// Why a failed message did not go, as its send answered for it: a file's own reason where it was one of several.
+const failedReason = computed<string>(() => props.item.pending?.reason ?? t("common.error.not_sent"));
+
 // A failed message is pressed for why it did not go, and sent again or dropped from there.
 const failedItems = computed<DropdownMenuItem[][]>(() => [
-  [{ type: "label", label: props.item.pending?.reason ?? t("common.error.not_sent") }],
+  [{ type: "label", label: failedReason.value }],
   [
     { label: t("room.action.resend"), icon: "i-material-symbols-undo", onSelect: () => emit("retry", props.item.key) },
     { label: t("common.action.delete"), icon: "i-material-symbols-delete-outline", onSelect: () => emit("discard", props.item.key) }

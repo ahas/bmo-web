@@ -5144,7 +5144,12 @@ Four bounds keep it from growing forever.
   outcome returns on its own, an album that did not go answering for every file in it, so an uploaded line becomes
   an ordinary message, the pictures of one album gathering into one 앨범 row, and only an un-uploaded line stays
   with its reason and 다시 보내기. So if one of several sticks, only that one goes again, and a file already in the
-  room never goes up twice. A photo, voice, audio or ordinary file stays as the message the receive update
+  room never goes up twice. The line's failed mark names its own file's reason on hover and on press. A send the
+  receiver refuses as a whole hands every file in it the refusal's sentence, naming the file once, and a request
+  past the receiver's ceiling for one send is said as the console's own ceiling. Every file that does not go, or
+  is not yet known to have gone, is written to the console server's log, one line each with the room, the file's
+  name and why: the receiver's own status and words where it refused the send, and its own reason where it
+  answered for that file. A photo, voice, audio or ordinary file stays as the message the receive update
   recorded in the archive. When the file's storage finishes, the same message's attachment mark is updated.
 - **지금 하는 일** — from the moment that room's session received something to the moment that turn ends, a line
   flows below the conversation. The received moment, not the model-asking moment — in between stand waiting on a
@@ -7969,6 +7974,10 @@ its people directory and the members of the reader's company.
   owner's words and the live board; each console bundle for its own
   screen, its share page and its notices; the cache siren and the cache warmer for their screens; bmo-research for
   the searcher tab's settings and the research screen.
+- **A refusal is said in the pack's words and kept in the unit's.** The screen is handed the sentence its code
+  stands for, and the unit's own status and English words stay on the server beside it, for a route that writes
+  them to its log; the browser is handed neither. A unit's 400, 404, 409, 413 and 503 travel on as they are, and
+  a 429 too where the call goes through the unit's published client; any other refusal is this app's 502.
 - **A bundle's screen reaches its service through one relay.** The bundle calls the console's relay base, the
   service's name and the path the service's own API writes; the console hands it on to the address of the
   unit that answered the bundle's manifest with the service's token and the owner key and role of the person signed in — their

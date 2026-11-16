@@ -79,8 +79,14 @@ export async function unitFetch<T>(name: string, path: string, init?: RequestIni
     const reason = coded !== undefined ? wording(coded, fieldsOf(held)) : reasonIn(body, response.status, carries(asked, response.status));
 
     // A refusal about one field names it, so the screen can say it under that field; its code travels too, for
-    // the caller that tells refusals apart.
-    throw createError({ statusCode: status, message: reason, data: { field: typeof body?.field === "string" ? body.field : null, code: typeof held?.code === "string" ? held.code : null } });
+    // the caller that tells refusals apart. The unit's own status and words stay on the server as the error's
+    // cause, for a caller that writes them to the log; the browser is handed neither.
+    throw createError({
+      statusCode: status,
+      message: reason,
+      data: { field: typeof body?.field === "string" ? body.field : null, code: typeof held?.code === "string" ? held.code : null },
+      cause: { status: response.status, said: typeof body?.error === "string" ? body.error : null } satisfies UnitRefusal
+    });
   }
 
   // An answer with no body — a 204, or a turn taken to be answered later — answers nothing.
@@ -148,6 +154,20 @@ interface Refusal {
   field?: unknown;
 }
 
+/** What a unit answered a refused call with, as it answered it: its status and its own words, which are English
+ * and for the log, never for a person's screen. */
+export interface UnitRefusal {
+  status: number;
+  said: string | null;
+}
+
+/** The unit's own answer behind an error `unitFetch` threw, or null for any other error. */
+export function unitRefusalOf(error: unknown): UnitRefusal | null {
+  const cause = (error as { cause?: unknown } | null)?.cause as Partial<UnitRefusal> | null | undefined;
+
+  return typeof cause?.status === "number" && (typeof cause.said === "string" || cause.said === null) ? { status: cause.status, said: cause.said } : null;
+}
+
 // A refusal's own fields, which fill the marks of the sentence its code is said in: a word or a number as it
 // stands, and a list of them joined into one.
 function fieldsOf(body: Refusal | null): Record<string, string | number> {
@@ -173,7 +193,7 @@ export function carries(call: UnitCall, status: number): boolean {
 // A unit that refused the call refused it for a reason of its own, and the caller has something to say about
 // each of those, so they travel on as they are. Anything else is this app's own gateway failure.
 function statusOf(status: number): number {
-  return status === 400 || status === 404 || status === 409 || status === 503 ? status : 502;
+  return status === 400 || status === 404 || status === 409 || status === 413 || status === 503 ? status : 502;
 }
 
 // A refusal a unit wrote for a person is the whole of what they need, and saying "the unit answered 400" in

@@ -3,7 +3,7 @@
 // code (docs/boundary.md, 「Calls the console makes」). Each screen's group adds the shapes it reads.
 
 import type { PushKind } from "./config";
-import type { DeployEnding, DeployStage, DeployStep, DeployStepAhead, DeployStepUnderWay } from "./deploy-progress";
+import type { DeployStage, DeployStep, DeployStepAhead, DeployStepUnderWay } from "./deploy-progress";
 import type { DraftSummary } from "./drafting";
 
 // bmo-job's shapes (bmo-job's `docs/api.md`).
@@ -3043,6 +3043,13 @@ export interface DeployCommit {
   todoId: number | null;
 }
 
+/**
+ * How a run ended, as the console tells it (docs/web.md, 「Deployment in the title bar」): live; put back after it
+ * failed; failed, at a stage the testbed judged or with its process gone unasked; refused before it began; or
+ * withdrawn, its unit stopped on request before it ended.
+ */
+export type DeployEnd = "live" | "rolled-back" | "failed" | "refused" | "withdrawn";
+
 // A deployment as the title bar reads it (docs/web.md, 「Deployment in the title bar」), out of the testbed's
 // progress record. A run whose process went without ending its record is cut off, and its end is the record's
 // last write.
@@ -3052,7 +3059,8 @@ export interface DeployRunView {
   phase: "running" | "ended" | "cut";
   startedAt: number;
   endedAt: number | null;
-  outcome: DeployEnding | null;
+  /** How it ended; null while it runs. */
+  end: DeployEnd | null;
   commit: string | null;
   /** The commits this deployment carries, oldest first, beside the commit itself. */
   carried: DeployCommit[];

@@ -48,6 +48,7 @@ const record: DeployProgress = {
   ahead: [{ name: "after-step" }],
   running: { name: "wait", stage: "restart", at: 2_100 },
   rolledBack: false,
+  refused: false,
   ending: null
 };
 const hold = { since: 1, until: 2, commits: [], breaks: [], waitingOn: [], waitingFor: [], passing: [] };
@@ -189,13 +190,30 @@ describe("the deployment a tab is handed", () => {
       release: "r1",
       detailed: true,
       hold,
-      run: { unitName: "unit-a", phase: "running", startedAt: 1_000, endedAt: null, outcome: null, commit: record.commit, carried: [], plan: record.plan, stages: record.stages, steps: record.steps, ahead: record.ahead, running: record.running },
+      run: { unitName: "unit-a", phase: "running", startedAt: 1_000, endedAt: null, end: null, commit: record.commit, carried: [], plan: record.plan, stages: record.stages, steps: record.steps, ahead: record.ahead, running: record.running },
       runs: []
     });
   });
 
   test("a run whose process went without ending is cut off at the record's last write", () => {
-    expect(deployViewFor({ unitName: "unit-a", record, writtenAt: 3_000 }, null, "r1", true, () => false).run).toMatchObject({ phase: "cut", endedAt: 3_000 });
+    expect(deployViewFor({ unitName: "unit-a", record, writtenAt: 3_000 }, null, "r1", true, () => false, [], [], () => false).run).toMatchObject({ phase: "cut", endedAt: 3_000 });
+  });
+
+  // The testbed writes a gate that did not pass and a refusal alike as stopped (its docs/deploy.md, 「What a
+  // deployment says of itself as it runs」); a run cut off is withdrawn only where its unit was stopped on request.
+  test("a run stopped at its gate failed, a refused one never began, and a cut one was withdrawn only where its unit was asked to stop", () => {
+    const ended = (over: Partial<DeployProgress>, alive = false, asked = false) => deployViewFor({ unitName: "unit-a", record: { ...record, ...over }, writtenAt: 3_000 }, null, "r1", true, () => alive, [], [], (unit) => asked && unit === record.unit).run?.end;
+    const stopped = { outcome: "stopped" as const, at: 4_000, why: "the gate did not pass" };
+
+    expect(ended({ ending: stopped })).toBe("failed");
+    expect(ended({ ending: stopped, refused: true })).toBe("refused");
+    expect(ended({ ending: { ...stopped, outcome: "failed" } })).toBe("failed");
+    expect(ended({ ending: { ...stopped, outcome: "rolled-back" } })).toBe("rolled-back");
+    expect(ended({ ending: { ...stopped, outcome: "live" } })).toBe("live");
+    expect(ended({}, false, true)).toBe("withdrawn");
+    expect(ended({}, false, false)).toBe("failed");
+    expect(ended({ unit: null }, false, true)).toBe("failed");
+    expect(ended({}, true, true)).toBeNull();
   });
 
   test("a member is handed nothing of a run, under way or ended, nor of the hold", () => {

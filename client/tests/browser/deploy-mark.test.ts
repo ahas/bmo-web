@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 
+import { wording } from "../../apps/web/shared/wording";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import { DEPLOY_ICON } from "../../apps/web/app/domain/deploy";
@@ -33,7 +34,7 @@ const run = (phase: "running" | "ended", stage: string, unitName = "unit-a"): No
   phase,
   startedAt: Date.now() - 60_000,
   endedAt: phase === "ended" ? Date.now() : null,
-  outcome: phase === "ended" ? "live" : null,
+  end: phase === "ended" ? "live" : null,
   commit: null,
   carried: [],
   plan: [],
@@ -108,21 +109,95 @@ describe.skipIf(!origin || !touchReady())("the deployment's mark", () => {
         return `${name}${drawn.spins ? "*" : ""}`;
       };
 
-      // Each step is read once the stream has said the deployment moved and the console answered it.
+      const rest = DEPLOY_ICON.replace("i-material-symbols-", "");
+      // What each step stands: the run's spinner, its outcome, then — the page older than the console after the run —
+      // the deploy icon, still, trading places with the spinner.
+      const expected = [...Array(6).fill("progress-activity*"), "check-circle-outline", rest, "progress-activity*", rest];
+      // Every glyph drawn on the way, so an arrow drawn between two steps is caught too; a frame drawing no glyph while
+      // one mark gives way to the next is no arrow.
+      const seen: string[] = [];
+
+      // Each step is read once the stream has said the deployment moved and the console answered it: the mark is
+      // looked at until it stands the step's glyph or the bound passes, and the last glyph read is the step's.
       for (step = 0; step < views.length; step++) {
-        await page.waitForTimeout(900);
-        marks.push(await mark());
+        const bound = Date.now() + 10_000;
+        let drawn = await mark();
+
+        seen.push(drawn);
+
+        while (drawn !== expected[step] && Date.now() < bound) {
+          await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(resolve)));
+          drawn = await mark();
+          seen.push(drawn);
+        }
+
+        marks.push(drawn);
       }
 
-      const running = marks.slice(0, 6);
+      expect(marks).toEqual(expected);
+      expect(seen.some((one) => /refresh|autorenew|sync|cached/.test(one))).toBe(false);
+    } finally {
+      await context.close();
+    }
+  }, 90_000);
 
-      const rest = DEPLOY_ICON.replace("i-material-symbols-", "");
+  // A run the testbed stopped at its gate reads as failed, with the stage and the step that failed it; a run whose unit
+  // was stopped on request keeps its own word. The console's own reading of the record stands in the server's tests;
+  // what is read here is what the bar and the popover's head say of each end the console hands them.
+  test("says a run failed at its check with the step that failed it, and a withdrawn run in its own word", async () => {
+    const context = await browser!.newContext({ viewport: { width: 1280, height: 800 }, serviceWorkers: "block" });
+    const at = cookie.indexOf("=");
+    const ended = (end: "failed" | "withdrawn"): DeployView => ({
+      release: "release-a",
+      detailed: true,
+      hold: null,
+      run: {
+        ...run(end === "failed" ? "ended" : "running", "check"),
+        phase: end === "failed" ? "ended" : "cut",
+        endedAt: Date.now(),
+        end,
+        stages: [{ stage: "check", at: Date.now() - 60_000 }],
+        steps: [
+          { name: "quick", code: 0, waitedSeconds: 0, ranSeconds: 3, at: Date.now() - 2_000, stage: "check" },
+          ...(end === "failed" ? [{ name: "tests", code: 124, waitedSeconds: 0, ranSeconds: 900, at: Date.now() - 1_000, stage: "check" as const }] : [])
+        ]
+      }
+    });
+    let shown = ended("failed");
+    const stage = wording("deploy.label.stage_check");
 
-      expect(running).toEqual(Array(6).fill("progress-activity*"));
-      expect(marks[6]).toBe("check-circle-outline");
-      // The page is older than the console after the run: the deploy icon, still, trading places with the spinner.
-      expect(marks.slice(7)).toEqual([rest, "progress-activity*", rest]);
-      expect(marks.some((one) => /refresh|autorenew|sync|cached|nothing|unknown/.test(one))).toBe(false);
+    await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
+    await context.route(/\/api\/deploy$/, (route) => route.fulfill({ json: shown }));
+    await context.route(/\/api\/deploy\/log$/, (route) => route.fulfill({ json: [] }));
+    await context.route(/\/api\/events(\?|$)/, (route) =>
+      route.fulfill({ contentType: "text/event-stream", body: `retry: 300\n\nevent: deploy\ndata: {}\n\n` })
+    );
+
+    try {
+      const page = await context.newPage();
+      const mark = page.locator("[data-title-bar-actions] [data-deploy-mark]");
+      const failed = [wording("deploy.status.failed"), "unit-a", stage, wording("deploy.label.step_hung", { step: "tests" })].join(" · ");
+
+      await page.goto(`${origin}/`, { waitUntil: "load" });
+      await page.locator(`[data-title-bar-actions] [data-deploy-mark][aria-label="${failed}"]`).waitFor({ timeout: 20_000 });
+      await mark.click();
+
+      const head = page.locator("[data-deploy-head]");
+
+      await head.waitFor({ timeout: 10_000 });
+      expect((await head.innerText()).trim()).toBe(failed);
+      expect(await head.evaluate((node) => node.className)).toContain("text-error");
+
+      await page.keyboard.press("Escape");
+      shown = ended("withdrawn");
+
+      const withdrawn = [wording("deploy.status.withdrawn"), "unit-a", stage].join(" · ");
+
+      await page.locator(`[data-title-bar-actions] [data-deploy-mark][aria-label="${withdrawn}"]`).waitFor({ timeout: 20_000 });
+      await mark.click();
+      await head.waitFor({ timeout: 10_000 });
+      expect((await head.innerText()).trim()).toBe(withdrawn);
+      expect(await head.evaluate((node) => node.className)).toContain("text-muted");
     } finally {
       await context.close();
     }

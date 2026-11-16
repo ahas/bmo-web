@@ -28,7 +28,7 @@
 
     <template #content>
       <div ref="body" class="flex flex-col gap-3 text-sm">
-        <p class="flex items-center gap-2 font-medium" :class="toneClass(mark.tone)">
+        <p class="flex items-center gap-2 font-medium" :class="toneClass(mark.tone)" data-deploy-head>
           <UIcon :name="mark.icon" class="size-5 shrink-0" :class="mark.spin ? 'animate-spin' : ''" />
           <span class="tabular-nums">{{ mark.label }}<template v-if="mark.detail !== ''"> · {{ mark.detail }}</template></span>
         </p>

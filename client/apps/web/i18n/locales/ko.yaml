@@ -3330,14 +3330,14 @@ job:
     worker_needs_name: 워커를 지정하거나 지정을 풀어야 합니다.
 deploy:
   status:
-    cut: 배포 중단됨
     failed: 배포 실패
     hold: 배포 대기
     live: 배포 완료
     newer: 새 버전
+    refused: 배포 거부됨
     rolled_back: 배포 실패 · 롤백
     running: 배포 중
-    stopped: 배포 안 함
+    withdrawn: 배포 중단됨
   action:
     reload: 새로고침
   error:
@@ -3365,6 +3365,8 @@ deploy:
     state_current: 진행 중
     state_done: 완료
     state_failed: 실패
+    step_failed: "{step} 종료 코드 {code}"
+    step_hung: "{step} 중지 · 출력 없음"
   message:
     log_empty: 로그 없음
 documents:

@@ -5,7 +5,7 @@ import { deployPhase, readDeployProgress } from "#shared/deploy-progress";
 
 import { holdOf, readQueues } from "./todos";
 
-import type { DeployCommit, DeployLogLine, DeployRunView, DeployView } from "#shared/types";
+import type { DeployCommit, DeployEnd, DeployLogLine, DeployRunView, DeployView } from "#shared/types";
 import type { DeployProgress } from "#shared/deploy-progress";
 
 // The deployment as the title bar reads it (docs/web.md, 「Deployment in the title bar」): the testbed's progress
@@ -275,8 +275,39 @@ export function readDeployCarried(reading: DeployReading): DeployCommit[] {
   }));
 }
 
+/**
+ * Whether the service manager was asked to stop a deployment unit: its journal holds the stop job systemd writes,
+ * which a unit whose process ended on its own — a crash, the kernel's kill for memory — never gets.
+ */
+export function unitStopAsked(unit: string): boolean {
+  const done = Bun.spawnSync(["journalctl", "--user", "-u", unit, "-o", "json", "-n", "1", "--no-pager", "JOB_TYPE=stop"], { stdout: "pipe", stderr: "ignore", stdin: "ignore" });
+
+  return done.exitCode === 0 && done.stdout.toString().trim() !== "";
+}
+
+/**
+ * How a run ended, as the console tells it (docs/web.md, 「Deployment in the title bar」). The testbed writes a gate
+ * that did not pass and a refusal alike as stopped, and only the refusal is a run that never began; a run whose
+ * process went without ending its record was withdrawn where its unit was stopped on request, and failed otherwise.
+ */
+export function runEnd(record: DeployProgress, phase: DeployRunView["phase"], stopAsked: (unit: string) => boolean = unitStopAsked): DeployEnd | null {
+  if (phase === "running") return null;
+  if (phase === "cut") return record.unit !== null && stopAsked(record.unit) ? "withdrawn" : "failed";
+
+  switch (record.ending!.outcome) {
+    case "live":
+      return "live";
+    case "rolled-back":
+      return "rolled-back";
+    case "stopped":
+      return record.refused ? "refused" : "failed";
+    default:
+      return "failed";
+  }
+}
+
 /** The run as a tab reads it. A run cut off ends at the record's last write, the latest moment known of it. */
-export function deployRunView(record: DeployProgress, writtenAt: number | null, unitName: string | null, alive: (pid: number) => boolean = processAlive, carried: DeployCommit[] = []): DeployRunView {
+export function deployRunView(record: DeployProgress, writtenAt: number | null, unitName: string | null, alive: (pid: number) => boolean = processAlive, carried: DeployCommit[] = [], stopAsked: (unit: string) => boolean = unitStopAsked): DeployRunView {
   const phase = deployPhase(record, alive);
 
   return {
@@ -284,7 +315,7 @@ export function deployRunView(record: DeployProgress, writtenAt: number | null, 
     phase,
     startedAt: record.startedAt,
     endedAt: record.ending?.at ?? (phase === "cut" ? (writtenAt ?? record.startedAt) : null),
-    outcome: record.ending?.outcome ?? null,
+    end: runEnd(record, phase, stopAsked),
     commit: record.commit,
     carried,
     plan: record.plan,
@@ -299,12 +330,12 @@ export function deployRunView(record: DeployProgress, writtenAt: number | null, 
  * What a tab is handed. A member hears nothing of a run — not that one goes, what goes live, how far it is or how it
  * ended — nor the hold, and reads only the release, for the new-version mark (docs/web.md, 「Access」).
  */
-export function deployViewFor(reading: DeployReading, hold: DeployView["hold"], release: string, detailed: boolean, alive: (pid: number) => boolean = processAlive, carried: DeployCommit[] = [], runs: DeployRunView[] = []): DeployView {
-  const run = reading.record === null ? null : deployRunView(reading.record, reading.writtenAt, reading.unitName, alive, carried);
+export function deployViewFor(reading: DeployReading, hold: DeployView["hold"], release: string, detailed: boolean, alive: (pid: number) => boolean = processAlive, carried: DeployCommit[] = [], runs: DeployRunView[] = [], stopAsked: (unit: string) => boolean = unitStopAsked): DeployView {
+  if (!detailed) return { release, detailed, run: null, hold: null };
 
-  if (detailed) return { release, detailed, run, runs, hold };
+  const run = reading.record === null ? null : deployRunView(reading.record, reading.writtenAt, reading.unitName, alive, carried, stopAsked);
 
-  return { release, detailed, run: null, hold: null };
+  return { release, detailed, run, runs, hold };
 }
 
 /** The deployment's hold as bmo-job keeps it; none where bmo-job does not answer, since the mark then knows of none. */

@@ -13,7 +13,10 @@ export const DEPLOY_PARTS = ["snapshot", "pack", "check"] as const;
 
 export type DeployPart = (typeof DEPLOY_PARTS)[number];
 
-/** How a run ended: live, put back, failed, or stopped by its own judgement before anything went. */
+/**
+ * How a run ended, as the testbed writes it: live, put back, failed, or stopped where nothing went live by its own
+ * judgement — a gate that did not pass, or a refusal, which `refused` tells apart.
+ */
 export type DeployEnding = "live" | "rolled-back" | "failed" | "stopped";
 
 /** A step written before it runs, as one of its stage's steps still to come. */
@@ -67,6 +70,8 @@ export interface DeployProgress {
   running: DeployStepUnderWay | null;
   /** Whether the commit that was live before was put back. */
   rolledBack: boolean;
+  /** Whether it ended on a refusal, before it stood in the deployment line and before anything changed. */
+  refused: boolean;
   /** How it ended, null while it runs. */
   ending: { outcome: DeployEnding; at: number; why: string | null } | null;
 }
@@ -139,6 +144,7 @@ export function readDeployProgress(text: string | null): DeployProgress | null {
     ahead: Array.isArray(said.ahead) ? said.ahead.flatMap((one) => readAhead(one) ?? []) : [],
     running: readUnderWay(said.running),
     rolledBack: said.rolledBack === true,
+    refused: said.refused === true,
     ending:
       ending !== null && typeof ending === "object" && ENDINGS.includes(ending.outcome) && typeof ending.at === "number"
         ? { outcome: ending.outcome, at: ending.at, why: typeof ending.why === "string" ? ending.why : null }

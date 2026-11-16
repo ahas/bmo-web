@@ -6877,8 +6877,9 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
   and role to the service, and another login's call is refused.
 - **A changed person's name is followed at once:** the person's own BMO and its private room take the titles
   made from it (「The join page」), and the reader's own session takes it, so the user menu names them by it. The
-  receiver's sender of the account takes it with the account's next words or forward, since the receiver states no
-  route that names a sender apart from words (`docs/boundary.md`, 「Gaps the console meets」).
+  account's identity on the record road takes the name it is now shown by, the person's name or the login where
+  none stands (`docs/accounts.md`, 「Users and senders」), so the people of a room and a forward name the person by it
+  before their next words.
 
 #### 내 BMO
 

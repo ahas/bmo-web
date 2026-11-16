@@ -11,7 +11,8 @@ import type { UserProfile } from "../../../apps/web/shared/types";
 // A user's person's name, job title and contact details (docs/accounts.md, 「Users and senders」): the account's
 // holder or an administrator reads and writes them, the login's own user and role handed to the service with the
 // call, and every other login refused before the service hears of it. A changed name is followed by the person's own
-// BMO and its room, and by the reader's own session (docs/web.md, 「Settings」, the account section).
+// BMO and its room, by the account's identity on the record road, and by the reader's own session (docs/web.md,
+// 「Settings」, the account section).
 
 const service = standInAccountService({
   users: [
@@ -42,6 +43,7 @@ const receiver = standIn("RECEIVER", (call) => {
   if (call.method === "GET" && call.path === "/default-answerer") return answer({ supervisor: "agent-a" });
   if (call.method === "GET" && call.path === "/supervisors/u2/rooms") return answer({ items: [{ id: 42, title: "member", named: true, alone: true }], more: false });
   if (call.method === "PUT" && call.path === "/rooms/42/title") return answer({ title: call.body?.title ?? null });
+  if (call.method === "PUT" && call.path === "/accounts/2/identity") return answer({ account: 2, sender: 9_000_000_000_002 });
 
   return answer({ code: "no-route", error: "no route" }, 404);
 });
@@ -88,7 +90,7 @@ describe("an account's profile", () => {
     expect((await asked(read, { params: { user: "2" } })).answer).toEqual(PROFILE);
   });
 
-  test("a name the holder sets is followed by their own BMO, its room and their session", async () => {
+  test("a name the holder sets is followed by their own BMO, its room, their record identity and their session", async () => {
     signedAs(2, false);
     agency.asked.length = 0;
     receiver.asked.length = 0;
@@ -97,7 +99,10 @@ describe("an account's profile", () => {
 
     expect((await asked(write, { params: { user: "2" }, body: named })).answer).toEqual(named);
     expect(agency.asked.filter((call) => call.method === "PATCH").map((call) => call.body)).toEqual([{ label: ownTitles("Person B").label }]);
-    expect(receiver.asked.filter((call) => call.method === "PUT").map((call) => call.body)).toEqual([{ title: ownTitles("Person B").room }]);
+    expect(receiver.asked.filter((call) => call.method === "PUT").map((call) => [call.path, call.body])).toEqual([
+      ["/rooms/42/title", { title: ownTitles("Person B").room }],
+      ["/accounts/2/identity", { name: "Person B" }]
+    ]);
     expect(session.user).toEqual({ name: "member", id: 2, fullName: "Person B" });
 
     // The same name saved again changes nothing beyond the profile.
@@ -106,6 +111,16 @@ describe("an account's profile", () => {
     await asked(write, { params: { user: "2" }, body: { ...named, jobTitle: "Lead" } });
 
     expect(agency.asked.filter((call) => call.method === "PATCH")).toEqual([]);
+  });
+
+  test("a name cleared names the record identity by the login", async () => {
+    signedAs(2, false);
+    await asked(write, { params: { user: "2" }, body: { ...PROFILE, fullName: "Person B" } });
+    receiver.asked.length = 0;
+
+    await asked(write, { params: { user: "2" }, body: PROFILE });
+
+    expect(receiver.asked.filter((call) => call.path === "/accounts/2/identity").map((call) => call.body)).toEqual([{ name: "member" }]);
   });
 
   test("is refused to another login before the service is asked", async () => {

@@ -174,7 +174,9 @@ section states what each does.
   (the receiver's `PUT /accounts/{account}/identity`), since a message the account says in the console is filed
   under a sender as every message is. It is linked to the account in `user_senders` exactly as any identity is, so
   everything keyed by an account's senders — its own words, what it has read, its acts on a message — reads it as
-  one of them.
+  one of them. The console names it by the name the account is shown by, the person's name or the login where none
+  stands, handed as the identity's `name` as an account is made ready, once each time the console starts and as a
+  person's name is changed, so every reading of the person on the receiver names them by it with no words sent.
 - **`PUT /users/{user}/senders/{sender}`** — a sender linked to the user where it is linked to none, by the
   administrator, `Owner-Role: administrator`; answers 204, and the same again where the link already stands. A
   sender linked to another user is refused 409 `sender-linked`, since a link is the person and moving it would move

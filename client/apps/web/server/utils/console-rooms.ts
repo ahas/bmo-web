@@ -47,9 +47,10 @@ function unserved(error: unknown): boolean {
 // A change the receiver refuses in a private room, 403 `private-room`, is said as the refusal it is.
 const CHANGES = { passStatus: [403] };
 
-/** The account's identity on the record road, made where it does not stand and the same one ever after. */
-export async function recordIdentity(account: number): Promise<number> {
-  const said = await receiverRoute<{ sender?: unknown } | null>(`/accounts/${account}/identity`, { method: "PUT" });
+/** The account's identity on the record road, made where it does not stand and the same one ever after; a name given
+ * is the name it goes by from then on every reading of the person, and none leaves the name it goes by as it stands. */
+export async function recordIdentity(account: number, name: string | null = null): Promise<number> {
+  const said = await receiverRoute<{ sender?: unknown } | null>(`/accounts/${account}/identity`, { method: "PUT", ...(name === null ? {} : { body: { name } }) });
 
   if (typeof said?.sender !== "number" || !Number.isSafeInteger(said.sender)) {
     throw new Error(`the receiver answered no identity for account ${account}`);
@@ -58,9 +59,10 @@ export async function recordIdentity(account: number): Promise<number> {
   return said.sender;
 }
 
-/** The account's identity on the record road, stood and linked to the account; a link already standing stays. */
-export async function standRecordIdentity(account: number): Promise<number> {
-  const sender = await recordIdentity(account);
+/** The account's identity on the record road, stood with the name given and linked to the account; a link already
+ * standing stays. */
+export async function standRecordIdentity(account: number, name: string | null): Promise<number> {
+  const sender = await recordIdentity(account, name);
 
   await linkSender(account, sender);
 
@@ -224,6 +226,23 @@ export async function accountShownName(account: number, login: string): Promise<
   }
 }
 
+/** The name the account is shown by now, read from the account service, for its identity on the record road; none
+ * for an account the service does not hold. */
+export async function recordNameOf(account: number): Promise<string | null> {
+  const user = await userOf(account);
+
+  return user === null ? null : shownName(user);
+}
+
+/** The account's identity on the record road named by the name the account is shown by now, so the receiver's every
+ * reading of the person names them by it with no words sent; an account the service does not hold is left as it
+ * stands. */
+export async function nameRecordIdentity(account: number): Promise<void> {
+  const name = await recordNameOf(account);
+
+  if (name !== null) await recordIdentity(account, name);
+}
+
 /** Whose words a console send stands under: the signed-in account with the name it is shown by, or the owner's own
  * route for a console login standing before the account model, which is the owner's alone and has no account, and for
  * the owner's account while the owner's sender stands linked to none (docs/web.md, the room screen's input box). Any
@@ -274,9 +293,9 @@ export interface IdentitiesStood {
 }
 
 /**
- * Every account's identity on the record road, stood and linked (docs/accounts.md, 「Users and senders」): the users the
- * account service holds, read as the administrator, each given its identity where it has none and linked where it is
- * not; both calls are idempotent, so a pass repeats nothing that stands. One account that fails is written to the log
+ * Every account's identity on the record road, stood, named and linked (docs/accounts.md, 「Users and senders」): the
+ * users the account service holds, read as the administrator, each given its identity where it has none, named by the
+ * name it is shown by and linked where it is not; every call is idempotent, so a pass repeats nothing that stands. One account that fails is written to the log
  * and the rest go on; a list that cannot be read fails the pass whole. Before the account model names an
  * administrator there is no account to stand.
  */
@@ -290,7 +309,7 @@ export async function standRecordIdentities(administrator: () => Promise<string 
 
   for (const user of users) {
     try {
-      await standRecordIdentity(Number(user.user));
+      await standRecordIdentity(Number(user.user), shownName(user));
       stood.linked += 1;
     } catch (error) {
       stood.failed += 1;

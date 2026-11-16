@@ -1,6 +1,6 @@
 import { shownName, userNode, userOf } from "./account-service";
 import { agency, agencyCall } from "./agency";
-import { standRecordIdentity } from "./console-rooms";
+import { recordNameOf, standRecordIdentity } from "./console-rooms";
 import { readSupervisors } from "./axes";
 import { ownTitles, standOwnBmo } from "./bmo-profile";
 import { defaultAnswerer } from "./owner";
@@ -24,17 +24,29 @@ type TakenOver = Schemas["RoleAgentChange"] & { role: string; name: string; owne
 /**
  * An account made ready, given its own BMO and its agents (docs/web.md, 「The join page」): a supervisor of the account
  * on the provider and model of the default answerer's road, titled by the person's name, its identity on the record
- * road linked to it (docs/accounts.md, 「Users and senders」), one agent of the account for every role with an agent of
+ * road named by the name it is shown by and linked to it (docs/accounts.md, 「Users and senders」), one agent of the account for every role with an agent of
  * no account, and its machine as the node its runs stand on. The BMO and the agents are made once, the identity is the
  * same one every time, and the BMO's titles and the node are set every time; a part that cannot be made is written to
  * the log and the rest goes on.
  */
 export async function standAccount(user: number): Promise<void> {
   await standSupervisor(user).catch((error: unknown) => console.error(`account ${user}: its BMO could not be made: ${String(error)}`));
-  await standRecordIdentity(user).catch((error: unknown) => console.error(`account ${user}: its record identity could not be linked: ${String(error)}`));
+  await standNamedRecordIdentity(user).catch((error: unknown) => console.error(`account ${user}: its record identity could not be linked: ${String(error)}`));
   await standOwnBmo(user, { profile: true }).catch((error: unknown) => console.error(`account ${user}: its BMO could not take its name and profile: ${String(error)}`));
   await standAgents(user).catch((error: unknown) => console.error(`account ${user}: its agents could not be made: ${String(error)}`));
   await standNode(user).catch((error: unknown) => console.error(`account ${user}: its node could not be set: ${String(error)}`));
+}
+
+// The account's identity on the record road, stood with the name it is shown by; a name the account service cannot
+// say now leaves the name as it stands, since the identity is what the account speaks under.
+async function standNamedRecordIdentity(user: number): Promise<void> {
+  const name = await recordNameOf(user).catch((error: unknown) => {
+    console.warn(`account ${user}: its shown name could not be read for its record identity: ${String(error)}`);
+
+    return null;
+  });
+
+  await standRecordIdentity(user, name);
 }
 
 // The machine the account is bound to, set in agency as the node its runs stand on (docs/accounts.md, 「Invitations and

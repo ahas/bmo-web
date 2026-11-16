@@ -3,7 +3,7 @@ import { chromium } from "playwright-core";
 
 import { DEFAULT_PALETTE, PALETTES, paletteDeclarations } from "bmo-ui/shared/palettes";
 import { DEFAULT_THEME, THEMES, themeDeclarations } from "bmo-ui/shared/themes";
-import { CONSOLE_CSS, TONES, libraryTokens } from "./library-tokens";
+import { CONSOLE_CSS, TONES, libraryTokens, word } from "./library-tokens";
 import { measureSource } from "./measure-source";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
@@ -34,11 +34,11 @@ function bubble(side: string, ground: string): string {
   const marks = ["success", "error"].map((key) => read(`mark on chip ${key}`, `var(--chat-mark-${key})`)).join("")
     + read("mark on chip neutral", "var(--ui-text-dimmed)");
   const badges = TONES.map((key) =>
-    `<span class="wash" style="color: var(--ui-${key})"><span data-read="${side} badge ${key}${KO.line_61}`).join("");
+    `<span class="wash" style="color: ${word(key)}"><span data-read="${side} badge ${key}${KO.line_61}`).join("");
 
   return `<div class="chat-bubble ${ground}" data-surface="${side} ground">
     ${read("words", "var(--ui-text)")}${read("muted", "var(--ui-text-muted)")}${read("dimmed", "var(--ui-text-dimmed)")}
-    ${TONES.map((key) => read(key, `var(--ui-${key})`)).join("")}
+    ${TONES.map((key) => read(key, word(key))).join("")}
     <span class="wash" style="color: var(--ui-text-muted)"><span data-read="${side} chip letters">1</span>${marks}</span>
     ${badges}
     <span class="surface" data-surface="${side} raised" style="background: var(--ui-bg-elevated)">${read("panel words", "var(--ui-text)")}${read("panel muted", "var(--ui-text-muted)")}${read("panel dot icon", "var(--ui-text-dimmed)")}</span>

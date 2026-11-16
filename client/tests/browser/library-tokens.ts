@@ -17,6 +17,10 @@ const shades = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950] as const;
 // Every coloured token, the neutral grey left out.
 export const TONES = Object.keys(colors).filter((key) => key !== "neutral");
 
+// A coloured word as the layer's theme draws it: the colour's word token where one is stated, and the
+// colour itself where none is.
+export const word = (key: string): string => `var(--bmo-ink-${key}, var(--ui-${key}))`;
+
 export function libraryTokens(): string {
   const scale = Object.entries(colors)
     .flatMap(([key, name]) => shades.map((shade) => `--ui-color-${key}-${shade}: ${(tailwind as any)[name][shade]};`))

@@ -125,24 +125,37 @@
   --chat-page: var(--ui-bg);
 }
 
-/* The warning's and the error's steps (docs/web.md, 「Colour」). The library paints both from their 500 in the
-   light theme, and as words those read at about 1.9:1 (the warning's bright yellow) and 3.8:1 (the error's red) on
-   white, less on their own tints. So the light theme paints both from their 800, at which their words read at
-   4.5:1 or better on every surface and under every tint of their own colour, hovered included, and a white word
-   reads on their fill. In the dark theme the warning's 400 reads, and the error's 400 falls short under its hover
-   tint on a muted or raised surface, so the error takes its 300. The token itself takes the step, so words, edges,
-   tints and fills follow it together, and so does a screen a unit brings. The dark rule stands after the light
-   one, so the dark root, which both match, takes it, and each mode states it on its own class so a box drawn in
-   a mode the page is not in reads it for itself. */
+/* The step each colour's words are drawn at (docs/web.md, 「Colour」). The library paints every colour from its 500 in
+   the light theme, and as words those read between about 1.9:1 (the warning's bright yellow) and 3.8:1 (the blue)
+   on white, less on their own tints. The warning and the error take the step their words read at on the token
+   itself, so their words, edges, tints and fills all follow it and a white word reads on their fill: the 800 in
+   the light theme, and in the dark the warning's 400 and the error's 300, the error's 400 falling short under its
+   hover tint on a muted or raised surface. The primary, the secondary, the success and the info keep the
+   library's step for their fills, edges and tints, the look of the account's theme, and take a darker step for
+   their words alone through the layer's word token, which every text utility of the colour reads: the 700 for the
+   blue of the secondary and the info and the 800 for the primary and the success in the light theme, the 300 for
+   the primary, the secondary and the info in the dark, where the violet accent's 400 and the blue's fall short
+   under their hover tint. The primary is the theme's accent and takes one step under every theme, the one every
+   accent reads at. A screen a unit brings is drawn on the console's page and reads the same tokens. The dark rule
+   stands after the light one, so the dark root, which both match, takes it, and each mode states it on its own
+   class so a box drawn in a mode the page is not in reads it for itself. */
 :root,
 .light {
   --ui-warning: var(--ui-color-warning-800);
   --ui-error: var(--ui-color-error-800);
+  --bmo-ink-primary: var(--ui-color-primary-800);
+  --bmo-ink-secondary: var(--ui-color-secondary-700);
+  --bmo-ink-success: var(--ui-color-success-800);
+  --bmo-ink-info: var(--ui-color-info-700);
 }
 
 .dark {
   --ui-warning: var(--ui-color-warning-400);
   --ui-error: var(--ui-color-error-300);
+  --bmo-ink-primary: var(--ui-color-primary-300);
+  --bmo-ink-secondary: var(--ui-color-secondary-300);
+  --bmo-ink-success: var(--ui-color-success-400);
+  --bmo-ink-info: var(--ui-color-info-300);
 }
 
 /* The console's ANSI palette (docs/web.md, 「A tool call」): the terminal colours a tool call's prompt is drawn in,
@@ -209,7 +222,8 @@
    way to the far end, and its hue and chroma from its own colour: a colour with only the lightness
    and one with only the hue and chroma, mixed, give the one with all three, since a mix fills a
    channel one side leaves out with the other side's. A theme colour's chroma is held to what still
-   fits on the screen at an ink's lightness. The verdict mark's passing and failing colours take a
+   fits on the screen at an ink's lightness, and a theme colour's words take that ink too, over the step
+   the page states for them. The verdict mark's passing and failing colours take a
    mark's ink, the green at its own chroma and the red held to what fits at a mark's lightness. Every
    surface inside a bubble — a panel, a press, a badge's ground and edge, a hairline — is a step of the
    ground itself, its lightness moved its share and its hue and chroma the ground's, so it stays of
@@ -234,6 +248,10 @@
   --ui-info: color-mix(in oklch, var(--chat-ink-tone-lightness), oklch(from var(--ui-color-info-500) none min(c, var(--chat-ink-chroma)) h));
   --ui-warning: color-mix(in oklch, var(--chat-ink-tone-lightness), oklch(from var(--ui-color-warning-500) none min(c, var(--chat-ink-chroma)) h));
   --ui-error: color-mix(in oklch, var(--chat-ink-tone-lightness), oklch(from var(--ui-color-error-500) none min(c, var(--chat-ink-chroma)) h));
+  --bmo-ink-primary: var(--ui-primary);
+  --bmo-ink-secondary: var(--ui-secondary);
+  --bmo-ink-success: var(--ui-success);
+  --bmo-ink-info: var(--ui-info);
   --chat-mark-success: color-mix(in oklch, var(--chat-ink-mark-lightness), oklch(from var(--ui-color-success-500) none c h));
   --chat-mark-error: color-mix(in oklch, var(--chat-ink-mark-lightness), oklch(from var(--ui-color-error-500) none min(c, var(--chat-ink-mark-chroma)) h));
   --ui-bg: color-mix(in oklch, oklch(from var(--chat-page) l none none), oklch(from var(--bubble) none min(c, var(--chat-well-chroma)) h));
@@ -461,8 +479,9 @@
   margin: 0.25em 0;
 }
 
+/* A link is a primary word, drawn at the step the primary's words take (docs/web.md, 「Colour」). */
 .markdown a {
-  color: var(--ui-primary);
+  color: var(--bmo-ink-primary, var(--ui-primary));
   text-decoration: underline;
   text-underline-offset: 2px;
 }

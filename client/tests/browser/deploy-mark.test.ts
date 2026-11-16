@@ -207,18 +207,24 @@ describe.skipIf(!origin || !touchReady())("the deployment's mark", () => {
     }
   }, 90_000);
 
-  // The mark's words in the warning's and the error's tone read at 4.5:1 or better in both themes (docs/web.md,
-  // 「Colour」): wide, beside the mark on the bar, at rest and hovered, where the ghost button lays its tint under
-  // them; at phone width, heading the popover the mark opens. A run the testbed refused stands the warning's tone and
-  // one that failed the error's.
-  test("reads its warning and error words at 4.5:1 or better on the bar and the popover's head in both themes", async () => {
+  // The mark's words in each tone it stands read at 4.5:1 or better in both themes (docs/web.md, 「Colour」): wide,
+  // beside the mark on the bar, at rest and hovered, where the ghost button lays its tint under them; at phone width,
+  // heading the popover the mark opens. A run under way stands the primary's tone, one gone live the success's, one
+  // the testbed refused the warning's and one that failed the error's.
+  test("reads its words in every tone at 4.5:1 or better on the bar and the popover's head in both themes", async () => {
     const at = cookie.indexOf("=");
-    const ended = (end: "refused" | "failed"): DeployView => ({ release: "release-a", detailed: true, hold: null, run: { ...run("ended", "check"), end } });
+    const ended = (end: "live" | "refused" | "failed"): DeployView => ({ release: "release-a", detailed: true, hold: null, run: { ...run("ended", "check"), end } });
+    const marks = [
+      ["running", "primary", { release: "release-a", detailed: true, hold: null, run: run("running", "build") }],
+      ["live", "success", ended("live")],
+      ["refused", "warning", ended("refused")],
+      ["failed", "error", ended("failed")]
+    ] as const;
     const short: string[] = [];
 
     for (const scheme of ["light", "dark"] as const) {
       const context = await browser!.newContext({ viewport: { width: 1280, height: 800 }, colorScheme: scheme, serviceWorkers: "block" });
-      let shown = ended("refused");
+      let shown: DeployView = marks[0][2];
 
       await context.addCookies([
         { name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! },
@@ -242,11 +248,11 @@ describe.skipIf(!origin || !touchReady())("the deployment's mark", () => {
         await page.addScriptTag({ type: "module", content: `${measureSource()}\ninstall();` });
         await page.waitForFunction(() => "measure" in window);
 
-        for (const [end, tone] of [["refused", "warning"], ["failed", "error"]] as const) {
-          shown = ended(end);
+        for (const [status, tone, view] of marks) {
+          shown = view;
           await page.setViewportSize({ width: 1280, height: 800 });
 
-          const mark = page.locator(`[data-title-bar-actions] [data-deploy-mark][aria-label^="${wording(`deploy.status.${end}`)}"]`);
+          const mark = page.locator(`[data-title-bar-actions] [data-deploy-mark][aria-label^="${wording(`deploy.status.${status}`)}"]`);
 
           await mark.waitFor({ timeout: 20_000 });
           expect(await mark.evaluate((node) => node.className)).toContain(`text-${tone}`);
@@ -291,7 +297,7 @@ describe.skipIf(!origin || !touchReady())("the deployment's mark", () => {
     }
 
     expect(short).toEqual([]);
-  }, 120_000);
+  }, 240_000);
 
   // The popover opens on the stages, the mark's own words heading it at phone width alone, since a wide bar already
   // says them; what goes up stands folded to its first three entries and how many more, a press opening it whole in

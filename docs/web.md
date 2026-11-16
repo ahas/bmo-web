@@ -936,31 +936,48 @@ edit to that file alone, once the guide below carries the word.
 ### Colour
 
 - **The colours are the library's semantic tokens** — primary, secondary, success, info, warning, error
-  and a neutral grey, the primary and the neutral named by the account's theme (「Themes」). A light
-  theme paints each from its 500 shade and a dark one from its 400, the warning and the error excepted.
-- **The warning and the error are painted from the step at which their words read, everywhere they are
-  drawn:** the 800 of each in the light theme, and in the dark theme the warning's 400 and the error's 300.
-  Both are drawn as words on every screen — a state line, a timer running out, a question waiting, a run that
-  failed, a button's label — and the light theme's 500 is a fill colour that reads as a word on white at about
-  1.9:1 for the warning's yellow and 3.8:1 for the error's red, less on their own tints; the dark theme's red
-  400 falls short only under its hover tint on a muted or raised surface. So the step is set once on each
-  token itself, and its words, its edges, its tints and its fill all take it: the words read at 4.5:1 or
-  better on the page, the muted surface and the elevated one a card or a popover stands on, bare and under
-  each tint of their own colour a screen or the library lays beneath them (5% for a quiet panel, 10% for the
-  soft and subtle shapes and a ghost's hover, 15% for the soft shape's hover), and a white word reads on
-  their fill. A screen a unit brings is drawn on the console's page and takes the same steps.
-- A check paints each colour's words on each of those grounds, and a white word on its fill, under every
-  console theme in both themes, and measures them as the browser drew them. The title bar's deployment mark
-  and the head of its popover are measured on the console itself, in the warning's and the error's tone, in
-  both themes.
-- **A coloured badge's words read at 4.5:1 or better in both themes.** The 500 shade the light theme
-  paints with is a fill colour: as text on white or on its own tint it reads at 1.8 to 3.3, and a white
-  word on it at under 4. So in the light theme every badge takes its colour tokens from a darker shade
-  instead — the 800, the step at which every colour still reads on the elevated surface under its own
-  tint — set once on the class every badge carries rather than badge by badge. Each of the four shapes
-  — solid, outline, soft and subtle — stays the shape it is: the solid badge's fill darkens under its
-  white word, the others' words darken on their own tint. The dark theme's steps already read and are
-  left as they are.
+  and a neutral grey, the primary and the neutral named by the account's theme (「Themes」). The library
+  paints each from its 500 shade in a light theme and its 400 in a dark one, and that step is a fill
+  colour: as a word on white it reads between about 1.9:1 (the warning's yellow) and 3.8:1 (the blue of
+  the secondary and the info), less on its own tints.
+- **Every colour's words are drawn from the step at which they read, everywhere they are drawn:** the
+  step nearest the library's own at which they read at 4.5:1 or better on the page, the muted surface and
+  the elevated one a card or a popover stands on, bare and under each tint of their own colour a screen
+  or the library lays beneath them (5% for a quiet panel, 10% for the soft and subtle shapes and a
+  ghost's hover, 15% for the soft shape's hover).
+
+  | Colour | Light theme | Dark theme | Where the step is set |
+  | --- | --- | --- | --- |
+  | primary | 800 | 300 | its words |
+  | secondary | 700 | 300 | its words |
+  | success | 800 | 400 | its words |
+  | info | 700 | 300 | its words |
+  | warning | 800 | 400 | the token |
+  | error | 800 | 300 | the token |
+
+- **The primary, the secondary, the success and the info darken their words alone.** Their fills,
+  edges, rings and tints keep the library's step, so a solid button, a tab's marker, a chart's line and
+  the account theme's accent look as they do anywhere else; their words take the layer's word token for
+  the colour, which every text utility of the colour reads, a link, a run under way and a deployment gone
+  live among them. The primary is the theme's accent and takes one step under every theme, the one every
+  accent reads at: in the light theme the 700 of four of the five accents falls short under the soft
+  shape's hover, and in the dark theme the violet accent's 400 does.
+- **The warning and the error take the step on the token itself,** so their words, edges, tints and
+  fills all follow it and a white word reads on their fill: a state line, a timer running out, a
+  question waiting, a run that failed and a destructive button's label alike.
+- Inside a bubble every colour's words take the bubble's own ink instead (「The conversation's measures」).
+  A screen a unit brings is drawn on the console's page and takes the same steps.
+- A check paints each colour's words on each of those grounds, over the tints its fills lay, and a white
+  word on the warning's and the error's fill, under every console theme in both themes, and measures them
+  as the browser drew them. The title bar's deployment mark and the head of its popover are measured on
+  the console itself in each tone the mark stands in, the primary's of a run under way, the success's of
+  a run gone live, the warning's and the error's, in both themes.
+- **A coloured badge's words read at 4.5:1 or better in both themes.** Every badge carries the layer's
+  badge class, which in the light theme takes the colour and its words to its 800, the step at which every
+  colour still reads on the elevated surface under its own tint, over the word steps above. Each of the
+  four shapes — solid, outline, soft and subtle — stays the shape it is: the solid badge's fill darkens
+  under its white word, the others' words darken on their own tint. The dark theme's steps already read
+  and are left as they are.
 - A check paints every colour in every shape on each surface a badge is read on — the page, the muted
   one and the elevated one a card or a hovered row lays under it — in both themes, and measures the words
   as the browser drew them. The accented surface is only a press, and no badge is read on it.

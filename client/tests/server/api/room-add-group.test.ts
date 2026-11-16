@@ -8,8 +8,10 @@ import type { RoomAdded } from "../../../apps/web/shared/types";
 
 // A group started from a chat service's contacts (docs/web.md, 「Sidebar」): it carries only the supervisor the
 // person adding it owns, named on the room as the room stands, or none at all. A supervisor another person owns
-// is refused before the receiver is asked, so no room stands on it.
+// is refused before the receiver is asked, so no room stands on it. The person adding it is the owner, whose
+// account is the deployment's own: the owner's sender stands linked to it.
 
+const OWNER_SENDER = 900;
 const GROUP = { provider: "service-a", contactIds: [51, 52], mode: "record-only", title: "Plans" };
 
 const agency = standIn("AGENCY", (call) => {
@@ -26,7 +28,13 @@ const agency = standIn("AGENCY", (call) => {
   return answer({ code: "not-found", error: "no such route" }, 404);
 });
 
+standIn("WEB_SERVER", (call) =>
+  call.path === "/senders/users" ? answer({ links: [{ sender: OWNER_SENDER, user: "1", signsIn: true }] }) : answer({ code: "failed", error: "Not served here." }, 500)
+);
+
 const receiver = standIn("RECEIVER", (call) => {
+  if (call.method === "GET" && call.path === "/owner") return answer({ room: -1, senderId: OWNER_SENDER });
+
   if (call.method === "POST" && call.path === "/rooms") {
     return answer({ id: 7, title: "Plans", messageCount: 0, lastMessageAt: null, pinned: false, senders: [], supervisors: [], ownerRoom: false, registered: true, workRoom: null, mode: "record-only" }, 201);
   }
@@ -40,6 +48,9 @@ const receiver = standIn("RECEIVER", (call) => {
 
 const add = await routeOf<RoomAdded>("../../apps/web/server/api/rooms.post");
 
+// What the add asked the receiver to change; the read of whose the owner's account is changes nothing.
+const changes = () => receiver.asked.filter((one) => one.method !== "GET");
+
 describe("a group room's supervisor", () => {
   test("names the creator's own supervisor on the room as it stands", async () => {
     receiver.asked.length = 0;
@@ -48,7 +59,7 @@ describe("a group room's supervisor", () => {
     const read = await asked(add, { body: { ...GROUP, supervisor: "agent-a" } });
 
     expect(read.answer).toEqual({ chatId: 7, title: "Plans" });
-    expect(receiver.asked.map((one) => [one.method, one.path, one.body])).toEqual([
+    expect(changes().map((one) => [one.method, one.path, one.body])).toEqual([
       ["POST", "/rooms", GROUP],
       ["PUT", "/rooms/7/supervisors", { supervisors: ["agent-a"], account: 1 }]
     ]);
@@ -62,7 +73,7 @@ describe("a group room's supervisor", () => {
     const read = await asked(add, { body: GROUP });
 
     expect(read.answer).toEqual({ chatId: 7, title: "Plans" });
-    expect(receiver.asked.map((one) => [one.method, one.path])).toEqual([["POST", "/rooms"]]);
+    expect(changes().map((one) => [one.method, one.path])).toEqual([["POST", "/rooms"]]);
     expect(agency.asked).toEqual([]);
   });
 

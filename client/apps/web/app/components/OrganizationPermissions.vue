@@ -89,6 +89,7 @@
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
 
+import { shownName } from "~/domain/people";
 import { permissionSections } from "~/domain/permissions";
 import { useConsoleScreens } from "~/domain/console-screens";
 
@@ -112,7 +113,7 @@ const failure = ref("");
 const reading = ref(false);
 
 const target = computed(() => users.value?.find((user) => user.user === chosen.value) ?? null);
-const items = computed(() => (users.value ?? []).map((user) => ({ label: user.name, value: user.user })));
+const items = computed(() => (users.value ?? []).map((user) => ({ label: shownName(user), value: user.user })));
 const columns = computed<SettingsColumn<PermissionRow>[]>(() => [
   { id: "section", header: t("permissions.label.section") },
   { id: "read", header: t("permissions.label.read") },

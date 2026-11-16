@@ -50,7 +50,7 @@ describe("sessions", () => {
     const cookie = await signIn("member-a", "a password", BROWSER, options);
 
     expect(cookie).toStartWith("bmo.sid=");
-    expect(await sessionUser(cookie!, BROWSER, options)).toEqual({ id: "2", name: "member-a" });
+    expect(await sessionUser(cookie!, BROWSER, options)).toEqual({ id: "2", name: "member-a", fullName: "" });
 
     await signOut(cookie!, BROWSER, options);
 
@@ -90,7 +90,7 @@ describe("the model", () => {
 
 describe("users", () => {
   test("a user reads with their senders, and one that is not there is none", async () => {
-    expect(await userOf("2", options)).toEqual({ id: "2", name: "member-a", administrator: false, senders: [MEMBER] });
+    expect(await userOf("2", options)).toEqual({ id: "2", name: "member-a", fullName: "", administrator: false, senders: [MEMBER] });
     expect(await userOf(99, options)).toBeNull();
   });
 

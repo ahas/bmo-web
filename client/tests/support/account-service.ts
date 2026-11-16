@@ -10,6 +10,8 @@ import type { SecretKind } from "../../apps/web/shared/secret-kinds";
 export interface StandInUser {
   id: number;
   name: string;
+  // The person's name people read the user by, where one stands; `name` is the login.
+  fullName?: string;
   password?: string;
   administrator?: boolean;
   senders?: number[];
@@ -272,7 +274,7 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
       if (path === "/sumida/me") {
         const user = users.find((one) => one.id === sessions.get(cookieOf(request) ?? ""));
 
-        return user === undefined ? refused(401, "unauthorized", "no live session") : json({ id: user.id, username: user.name });
+        return user === undefined ? refused(401, "unauthorized", "no live session") : json({ id: user.id, username: user.name, ...(user.fullName === undefined ? {} : { fullName: user.fullName }) });
       }
 
       if (path === "/health") return json({ ok: true, version: "0.0.0", inForce: state.inForce });
@@ -291,7 +293,7 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
       if (path === "/users" && request.method === "GET") {
         if (request.headers.get("owner-role") !== "administrator") return refused(403, "forbidden", "the users are the administrator's");
 
-        return json({ users: users.map((user) => ({ user: String(user.id), name: user.name, administrator: user.administrator === true })) });
+        return json({ users: users.map((user) => ({ user: String(user.id), name: user.name, fullName: user.fullName ?? "", administrator: user.administrator === true })) });
       }
 
       // The desktop pairings: asked by an address, past the tenth from one address refused; read once approved; read,
@@ -468,7 +470,7 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
 
         return user === undefined
           ? refused(404, "not-found", "no such user")
-          : json({ user: String(user.id), name: user.name, administrator: user.administrator === true, senders: user.senders ?? [] });
+          : json({ user: String(user.id), name: user.name, fullName: user.fullName ?? "", administrator: user.administrator === true, senders: user.senders ?? [] });
       }
 
       const passwordRoute = path.match(/^\/users\/([^/]+)\/password$/);
@@ -511,8 +513,10 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
         }
 
         if (request.method === "GET") {
-          return json(profiles.get(user.id) ?? { jobTitle: "", landline: "", mobile: "", email: "" });
+          return json({ fullName: user.fullName ?? "", ...(profiles.get(user.id) ?? { jobTitle: "", landline: "", mobile: "", email: "" }) });
         }
+
+        user.fullName = String((body as { fullName?: unknown } | undefined)?.fullName ?? "").trim();
 
         const profile = {
           jobTitle: String(body?.jobTitle ?? ""),
@@ -523,7 +527,7 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
 
         profiles.set(user.id, profile);
 
-        return json(profile);
+        return json({ fullName: user.fullName, ...profile });
       }
 
       if (path === "/checks/room") {

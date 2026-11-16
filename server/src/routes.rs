@@ -284,21 +284,27 @@ async fn senders_of(service: &Service, user: i32) -> Result<Vec<i64>, Refusal> {
   .collect()
 }
 
-/// A user as the console reads them: their name, whether they are the platform administrator, and the
-/// sender ids linked to them.
+/// A user as the console reads them: their login, the person's name, whether they are the platform
+/// administrator, and the sender ids linked to them.
 async fn user_route(State(service): State<Service>, Path(user): Path<String>) -> Answer<WireUser> {
   let user = user_in(&user)?;
   let db = &service.db;
-  let row = one(db, r#"SELECT "username" FROM "users" WHERE "id" = $1"#, vec![user.into()])
-    .await?
-    .ok_or_else(|| Refusal::absent(format!("no user {user}")))?;
+  let row = one(
+    db,
+    r#"SELECT "username", COALESCE("full_name", '') AS "full_name" FROM "users" WHERE "id" = $1"#,
+    vec![user.into()],
+  )
+  .await?
+  .ok_or_else(|| Refusal::absent(format!("no user {user}")))?;
   let name: String = row.try_get("", "username")?;
+  let full_name: String = row.try_get("", "full_name")?;
   let administrator = Authz::is_superuser(&user_subject(db, user).await?, db).await?;
   let senders = senders_of(&service, user).await?;
 
   Ok(Json(WireUser {
     user: shown(user),
     name,
+    full_name,
     administrator,
     senders,
   }))

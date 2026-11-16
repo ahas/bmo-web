@@ -1,4 +1,5 @@
 import { sessionUser, signIn, userNode, userOf } from "../../utils/account-service";
+import { followPersonName } from "../../utils/account-standing";
 import { settleMachine } from "../../utils/person-node";
 
 import { wording } from "#shared/wording";
@@ -62,7 +63,11 @@ export default defineEventHandler(async (event): Promise<{ user: AccountUser }> 
       }
     }
 
-    await setUserSession(event, { user: { name, id: Number(user.id) }, sid, administrator: user.administrator, loggedInAt: Date.now(), remember }, sessionLife(remember));
+    void followPersonName(Number(user.id)).catch((error: unknown) => console.error(`account ${user.id}: its BMO could not follow its name: ${String(error)}`));
+
+    const fullName = user.fullName === "" ? {} : { fullName: user.fullName };
+
+    await setUserSession(event, { user: { name, id: Number(user.id), ...fullName }, sid, administrator: user.administrator, loggedInAt: Date.now(), remember }, sessionLife(remember));
 
     return { user: { name } };
   }

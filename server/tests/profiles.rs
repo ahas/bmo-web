@@ -91,9 +91,13 @@ async fn a_profile_reads_empty_where_nothing_is_kept_and_its_holder_writes_it_wh
   let (status, held) = asked(&app, Method::GET, &path, None, Some(member), Some("member")).await;
 
   assert_eq!(status, StatusCode::OK, "{held}");
-  assert_eq!(held, json!({ "jobTitle": "", "landline": "", "mobile": "", "email": "" }));
+  assert_eq!(
+    held,
+    json!({ "fullName": "", "jobTitle": "", "landline": "", "mobile": "", "email": "" })
+  );
 
   let kept = json!({
+    "fullName": "Person A",
     "jobTitle": "Field engineer",
     "landline": "office 12",
     "mobile": "mobile 34",
@@ -110,11 +114,34 @@ async fn a_profile_reads_empty_where_nothing_is_kept_and_its_holder_writes_it_wh
   assert_eq!(status, StatusCode::OK);
   assert_eq!(again, kept);
 
-  let cleared = json!({ "jobTitle": "", "landline": "", "mobile": "", "email": "" });
+  // The person's name is the one every answer reads the user by, and the login stays as it was.
+  let (_, user) = asked(&app, Method::GET, &format!("/users/{member}"), None, None, None).await;
+
+  assert_eq!(user["fullName"], "Person A", "{user}");
+  assert_ne!(user["name"], "Person A");
+
+  let (_, users) = asked(&app, Method::GET, "/users", None, Some(member), Some("administrator")).await;
+  let key = member.to_string();
+  let listed = users["users"].as_array().unwrap().iter().find(|row| row["user"] == key.as_str());
+
+  assert_eq!(listed.unwrap()["fullName"], "Person A", "{users}");
+
+  // A name is kept trimmed.
+  let mut padded = kept.clone();
+  padded["fullName"] = json!("  Person A  ");
+  let (status, saved) = asked(&app, Method::POST, &path, Some(padded), Some(member), Some("member")).await;
+
+  assert_eq!(status, StatusCode::OK);
+  assert_eq!(saved, kept);
+
+  let cleared = json!({ "fullName": "", "jobTitle": "", "landline": "", "mobile": "", "email": "" });
   let (status, empty) = asked(&app, Method::POST, &path, Some(cleared), Some(member), Some("member")).await;
 
   assert_eq!(status, StatusCode::OK);
-  assert_eq!(empty, json!({ "jobTitle": "", "landline": "", "mobile": "", "email": "" }));
+  assert_eq!(
+    empty,
+    json!({ "fullName": "", "jobTitle": "", "landline": "", "mobile": "", "email": "" })
+  );
 }
 
 #[tokio::test]
@@ -125,6 +152,7 @@ async fn an_administrator_keeps_anothers_profile_and_another_login_is_refused() 
   let path = format!("/users/{member}/profile");
   let bosses = format!("/users/{boss}/profile");
   let kept = json!({
+    "fullName": "Person A",
     "jobTitle": "Field engineer",
     "landline": "office 12",
     "mobile": "mobile 34",
@@ -151,7 +179,10 @@ async fn an_administrator_keeps_anothers_profile_and_another_login_is_refused() 
   let (status, held) = asked(&app, Method::GET, &bosses, None, Some(boss), Some("administrator")).await;
 
   assert_eq!(status, StatusCode::OK);
-  assert_eq!(held, json!({ "jobTitle": "", "landline": "", "mobile": "", "email": "" }));
+  assert_eq!(
+    held,
+    json!({ "fullName": "", "jobTitle": "", "landline": "", "mobile": "", "email": "" })
+  );
 
   let (status, saved) =
     asked(&app, Method::POST, &path, Some(kept.clone()), Some(boss), Some("administrator")).await;

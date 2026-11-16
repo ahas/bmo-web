@@ -54,7 +54,7 @@ export function provideConsolePeople(): void {
 
       if (id === undefined || id === null) return null;
 
-      return (await person(String(id))) ?? { user: String(id), name: user.value?.name ?? String(id), organization: "", jobTitle: "" };
+      return (await person(String(id))) ?? { user: String(id), name: (user.value?.fullName || user.value?.name) ?? String(id), organization: "", jobTitle: "" };
     }
   });
 }

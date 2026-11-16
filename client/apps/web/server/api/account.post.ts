@@ -71,7 +71,11 @@ export default defineEventHandler(async (event): Promise<{ user: AccountUser }> 
   const remember = sessionRemembers(session);
 
   await replaceUserSession(event, {
-    user: { name: nextName, ...(session.user.id === undefined ? {} : { id: session.user.id }) },
+    user: {
+      name: nextName,
+      ...(session.user.id === undefined ? {} : { id: session.user.id }),
+      ...(session.user.fullName === undefined ? {} : { fullName: session.user.fullName })
+    },
     ...(session.sid === undefined ? {} : { sid: session.sid, administrator: session.administrator === true }),
     loggedInAt: Date.now(),
     remember,

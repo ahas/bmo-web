@@ -30,7 +30,7 @@
         <SettingsSegment v-model="previewScheme" :items="schemeItems" :label="$t('account.label.preview')" />
       </template>
 
-      <PalettePreview class="my-3" :palette="paletteOf(preview.shown.value)" :scheme="previewScheme" :reader-name="user?.name ?? ''" />
+      <PalettePreview class="my-3" :palette="paletteOf(preview.shown.value)" :scheme="previewScheme" :reader-name="(user?.fullName || user?.name) ?? ''" />
     </SettingsGroup>
 
     <UAlert v-if="failure" color="error" variant="subtle" :description="failure" />

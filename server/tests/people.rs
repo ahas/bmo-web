@@ -33,6 +33,7 @@ async fn moved(name: &str) -> Scratch {
   .unwrap();
   let user = set_sign_in(scratch.db(), name, "the password", false).await.unwrap().user;
   let profile = UserProfile {
+    full_name: String::new(),
     job_title: "Engineer".into(),
     landline: "landline-a".into(),
     mobile: "mobile-a".into(),
@@ -151,6 +152,7 @@ async fn a_person_outside_the_organisation_is_never_found() {
     scratch.db(),
     outside,
     &UserProfile {
+      full_name: String::new(),
       job_title: "Engineer".into(),
       landline: "landline-c".into(),
       mobile: "mobile-c".into(),
@@ -188,6 +190,7 @@ async fn a_member_sees_no_contact_detail_and_matches_none_but_their_own() {
     scratch.db(),
     other,
     &UserProfile {
+      full_name: String::new(),
       job_title: "Designer".into(),
       landline: "landline-b".into(),
       mobile: "mobile-b".into(),

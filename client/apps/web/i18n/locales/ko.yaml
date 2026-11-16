@@ -1700,12 +1700,15 @@ account:
     current_password: 현재 비밀번호
     device_since: "{time}부터 · {kinds}"
     email: 이메일
+    full_name: 이름
     job_title: 직함
     landline: 유선 전화
     mobile: 휴대전화
     new_password: 새 비밀번호
     nothing_subscribed: 받는 알림 없음
     other_devices: "다른 기기 {n}개"
+    own_bmo: "{name}의 BMO"
+    own_bmo_room: "{name}"
     palette: 팔레트
     palette_description: 대화방 색
     preview: 미리보기
@@ -1892,6 +1895,7 @@ organization:
 invites:
   label:
     make: 초대 링크 만들기
+    full_name: 이름
     company: 회사
     unit: 조직
     role: 역할
@@ -1910,6 +1914,7 @@ invites:
     loading: 초대 불러오는 중…
   message:
     text: "{place}에 초대합니다. 아래 링크에서 계정을 만들고 안내에 따라 PC에 jake를 설치하면 계정이 활성화됩니다. {link} (유효 기간: {time}까지)"
+    text_named: "{name}님을 {place}에 초대합니다. 아래 링크에서 계정을 만들고 안내에 따라 PC에 jake를 설치하면 계정이 활성화됩니다. {link} (유효 기간: {time}까지)"
   error:
     bad_request: 조직이나 값이 올바르지 않습니다.
     closed: 만료되었거나 이미 사용된 초대입니다.
@@ -1982,6 +1987,7 @@ join:
   title:
     create: 초대받은 계정 만들기
   label:
+    full_name: 이름
     linux: Linux·WSL
     windows: Windows
   action:
@@ -1997,6 +2003,8 @@ join:
     install: 계정을 만들었습니다. 이 계정을 쓸 PC에서 아래 명령 중 하나를 실행해 jake를 설치하세요. 설치되어 연결되면 계정이 활성화됩니다.
     waiting: 기기 연결을 기다리는 중입니다…
     active: 기기가 연결되어 계정이 활성화되었습니다. 이제 로그인할 수 있습니다.
+  error:
+    full_name_empty: 이름을 입력해 주세요.
 pairing:
   title:
     page: 데스크톱 앱 연결

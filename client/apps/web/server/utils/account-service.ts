@@ -201,7 +201,7 @@ export async function sessionUser(
   cookie: string,
   address: string,
   options: ServiceOptions = {}
-): Promise<{ id: UserId; name: string } | null> {
+): Promise<{ id: UserId; name: string; fullName: string } | null> {
   const client = sumidaClientOf(options);
   const reply = await sent(
     options,
@@ -213,7 +213,7 @@ export async function sessionUser(
 
   const session: WireSession | undefined = reply.data;
 
-  return session === undefined ? null : { id: String(session.id), name: session.username };
+  return session === undefined ? null : { id: String(session.id), name: session.username, fullName: session.fullName?.trim() ?? "" };
 }
 
 /** A session ended; one already gone is ended too. */
@@ -226,10 +226,12 @@ export async function signOut(cookie: string, address: string, options: ServiceO
   );
 }
 
-/** A user as the console reads them. */
+/** A user as the console reads them: `name` is the login, `fullName` the person's name, empty where none stands
+ * (docs/accounts.md, 「Users and senders」). */
 export interface ServiceUser {
   id: UserId;
   name: string;
+  fullName: string;
   administrator: boolean;
   senders: number[];
 }
@@ -248,7 +250,7 @@ export async function userOf(id: UserId | number, options: ServiceOptions = {}):
 
   const said = answered(reply);
 
-  return { id: said.user, name: said.name, administrator: said.administrator, senders: said.senders };
+  return { id: said.user, name: said.name, fullName: said.fullName ?? "", administrator: said.administrator, senders: said.senders };
 }
 
 /** The senders among `senders` linked to a user, each with that user and whether they may sign in; a sender linked
@@ -416,7 +418,7 @@ export async function setSections(
   return answered<Sections>(reply).sections;
 }
 
-/** A user's job title and contact details, empty where the account keeps none. */
+/** A user's person's name, job title and contact details, empty where the account keeps none. */
 export async function profileOf(
   id: UserId | number,
   caller: ProfileCaller,
@@ -433,7 +435,7 @@ export async function profileOf(
   return answered(reply);
 }
 
-/** A user's job title and contact details written whole, answered as they now stand. */
+/** A user's person's name, job title and contact details written whole, answered as they now stand. */
 export async function setProfile(
   id: UserId | number,
   profile: WireProfile,
@@ -792,12 +794,23 @@ export async function movePeople(unit: number, people: PersonMove[], caller: Pro
   return answered(reply);
 }
 
+/** What an invitation is made with: its unit, whether it makes the unit's head, how many hours it stands open, and
+ * the person's name, empty where the maker gives none. */
+export interface InviteMaking {
+  unit: number;
+  head: boolean;
+  hours: number;
+  fullName: string;
+}
+
 /** An invitation made into a unit by the login `caller` acts for. */
-export async function makeInvite(unit: number, head: boolean, hours: number, caller: ProfileCaller, options: ServiceOptions = {}): Promise<Invite> {
+export async function makeInvite(making: InviteMaking, caller: ProfileCaller, options: ServiceOptions = {}): Promise<Invite> {
   const client = clientOf(options);
+  const { unit, head, hours, fullName } = making;
+  const body = fullName === "" ? { unit, head, hours } : { unit, head, hours, fullName };
   const reply = await sent(
     options,
-    client.POST("/invites", { params: { header: { "Owner-Key": caller.key, "Owner-Role": caller.role } }, body: { unit, head, hours } })
+    client.POST("/invites", { params: { header: { "Owner-Key": caller.key, "Owner-Role": caller.role } }, body })
   );
 
   return answered(reply);
@@ -840,10 +853,17 @@ export async function inviteView(token: string, options: ServiceOptions = {}): P
   return answered(reply);
 }
 
-/** An invitation accepted with a name and a password. */
-export async function acceptInvite(token: string, name: string, password: string, options: ServiceOptions = {}): Promise<Accepted> {
+/** What an invitation is accepted with: the login, the password and the person's name. */
+export interface Acceptance {
+  name: string;
+  password: string;
+  fullName: string;
+}
+
+/** An invitation accepted with a login, a password and the person's name. */
+export async function acceptInvite(token: string, acceptance: Acceptance, options: ServiceOptions = {}): Promise<Accepted> {
   const client = clientOf(options);
-  const reply = await sent(options, client.POST("/invites/{token}/accept", { params: { path: { token } }, body: { name, password } }));
+  const reply = await sent(options, client.POST("/invites/{token}/accept", { params: { path: { token } }, body: acceptance }));
 
   return answered(reply);
 }

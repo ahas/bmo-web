@@ -1631,7 +1631,8 @@ Four groups.
     its middle, so the line and its name stay where they are as the number changes; the name is cut before
     it, and the number turns as it changes (「Motion」).
 - The drawer closes on an outside press. Swiping horizontally does not drag the drawer along — a panel dragged whenever a
-  hand skimming the list flows sideways cannot be read. At the bottom is the user menu: open the settings
+  hand skimming the list flows sideways cannot be read. At the bottom is the user menu, its button and its head
+  naming the reader by their person's name, their login where none stands: open the settings
   (「Settings」), change the screen mode to light, dark or system, or log out. A reader who never chose a mode reads dark, and the mode is
   kept in a cookie for a year (「Themes」), so the server paints the first frame in it and knows it for a page it sends (bmo-artifact's `docs/artifact.md`, 「How a
   document is drawn」). The menu opens above its button, aligned to
@@ -3056,8 +3057,10 @@ a seat of its role.
   - **기본값으로** stands beside the block's title where the supervisor has a process of its own, and puts the two
     lists and the bound back to the policy's.
   - **Every change of the block waits for the dialog's one save,** which sends the texts set, then the process, then
-    the texts taken away, so a list never names a question the receiver does not yet hold or no longer holds. A
-    process put back to the policy's takes the supervisor's own row away. What the receiver refuses is said under
+    the texts taken away, so a list never names a question the receiver does not yet hold or no longer holds. The
+    process is sent with the stages after the message the supervisor's row switches off as they stand, since the
+    block does not set them and a row sent without them would switch them all on. A process put back to the
+    policy's takes the supervisor's own row away. What the receiver refuses is said under
     the block in the pack's sentence for its code, every field kept as written.
 - **기본 응답 감독관** stands above the table, a row of its own: the supervisor that answers every room naming none,
   as the receiver's setting holds it (its `docs/api.md`, 「Supervisors」, `GET` and `PUT /default-answerer`). A list
@@ -6737,16 +6740,18 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
 
 #### 계정
 
-- **로그인 정보** carries the account's name as its line and 변경, which opens the form: the current
-  password, the new name and the new password, which may be left empty. The current password must be
+- **로그인 정보** carries the account's login as its line and 변경, which opens the form: the current
+  password, the new login and the new password, which may be left empty. The current password must be
   entered for either change, and 저장 is open only while the name or the password differs; closing
   with a change asks first (「Forms」).
-- A changed name takes everything the account holds with it — the devices it rings, the phones that
+- A changed login takes everything the account holds with it — the devices it rings, the phones that
   play its briefings, the tabs each screen stands with, its theme and its palette.
-- **프로필** carries the account's job title, landline, mobile and email, each empty where the account keeps
-  none, with 변경 opening the form: the four fields and 저장, open only while one differs. The account's holder
-  or an administrator reads and writes it; the console hands the login's own user and role to the service, and
-  another login's call is refused.
+- **프로필** carries the person's name and the job title as its line, and 변경 opens the form: 이름, the name
+  people read the person by, then the job title, landline, mobile and email, each empty where the account keeps none, and 저장, open only while one
+  differs. The account's holder or an administrator reads and writes it; the console hands the login's own user
+  and role to the service, and another login's call is refused.
+- **A changed person's name is followed at once:** the person's own BMO and its private room take the titles
+  made from it (「The join page」), and the reader's own session takes it, so the user menu names them by it.
 
 #### 비밀 보관함
 
@@ -6961,6 +6966,8 @@ research screen (「Research screen」).
   and opens the unit's form: its name and, for a unit under a company, its parent among the units of its company that do not
   stand under it, with one 저장 at its foot, open only while a field differs from what is saved. A refusal — a
   parent in another company, a parent under the unit itself — is said under the form in words.
+- **Every person on this screen is named by their person's name,** their login where none stands: the heads,
+  the members, the pickers, the machine dialog, the move dialog and the 권한 tab's list.
 - **조직장** lists the unit's heads, one row each with its name and a mark that takes the head away, and 조직장 지정
   at the right end of its heading, a list of every person searched by name; a person chosen is made a head as they
   are chosen.
@@ -7004,8 +7011,9 @@ research screen (「Research screen」).
 
 #### 초대
 
-- **초대 링크 만들기**, the tab row's add, opens a dialog of 회사, 조직, 역할 and 유효 기간, with 링크 만들고
-  복사 at its foot; it stands off while the reader may invite into no unit.
+- **초대 링크 만들기**, the tab row's add, opens a dialog of 이름, 회사, 조직, 역할 and 유효 기간, with 링크 만들고
+  복사 at its foot; it stands off while the reader may invite into no unit. 이름 is the person's name, which the
+  maker may give and may leave empty; the join page offers it for the person to correct.
 - **회사 chooses the company,** among the companies of the units the reader may invite into, the first of them
   chosen at first. **조직 is that company's tree** of the units the reader may invite into, drawn as the 조직도
   tab draws its tree: the company itself at its top for the administrator, a head's own unit at its top for a
@@ -7015,9 +7023,10 @@ research screen (「Research screen」).
 - **역할 is the person's role in the unit,** 구성원 or 조직장, 구성원 at first. 조직장 is the administrator's alone
   to give, so for a head it stands in the list and cannot be chosen.
 - **A link is made into the unit and role chosen** for the span of hours. Made, it is copied at once with its
-  words: who invites into what, the link, and when it closes (`docs/accounts.md`, 「Invitations and a person's
+  words: who invites whom, where the link names the person, into what, the link, and when it closes (`docs/accounts.md`, 「Invitations and a person's
   machine」), and the dialog closes; a refusal is said in the dialog.
-- **The open ones are listed,** each by where it leads, the role it gives and when it closes, copied again or taken
+- **The open ones are listed,** each by the person's name where it was made with one, where it leads, the role
+  it gives and when it closes, copied again or taken
   back by its two marks; the copy mark turns to a check once the link is copied. A reader who may invite into no unit
   is told so.
 - **Where an invitation leads is said as the company, then the unit under it;** a unit that is the company itself is
@@ -7028,17 +7037,27 @@ research screen (「Research screen」).
 - **`/join/<token>` stands on no shell and asks for no sign-in,** as the login does. It shows the unit and its
   company the invitation is for, and whether it makes the unit's head; an invitation expired or used says so and
   takes nothing.
-- **A name and a password make the account,** and the page then shows the person's machine's one-line installs,
+- **The person's name, a login and a password make the account.** 이름 comes first, filled with the name the
+  invitation was made with for the person to correct; the page does not take the account without it. 아이디 and
+  비밀번호 follow. A call that gives no name, as a script may, leaves the account the invitation's name. The page then shows the person's machine's one-line installs,
   Linux or WSL and Windows, each with its copy mark, and asks every few seconds whether the machine has attached;
   설치했어요, 확인하기 asks at once. Attached, the account is ready and the page leads to the login.
 - **An account made ready is given its own BMO and its agents,** by the console's server as the account turns
-  active, each once: a supervisor of the account, named `u<user>` and shown by the person's name, on the provider
+  active, each once: a supervisor of the account, named `u<user>` and titled by the person's name, on the provider
   and model of the road of the supervisor that answers rooms naming none, with a console room of its own and one
   session across its rooms; and, for every role that has an agent of no account, one agent of the account on that
   agent's road and settings, switched on. An account that already holds a supervisor, or an agent of a role, is
   given none again there. The machine the account is bound to is set as the node its runs stand on in agency,
   at every proof that answers it active (`docs/accounts.md`, 「Invitations and a person's machine」). A part that
   cannot be made is written to the console's log and the account stands ready all the same.
+- **A person's own BMO and its private room are titled by the name people read the person by,** their person's
+  name, else their login: the BMO's label is that name with BMO, `{name}의 BMO`, and the room's title the name
+  alone, each in the language pack's words (WORDING.md). The titles follow the name: as the account is made
+  ready, at every sign-in, and as the person's name is saved on 계정's 프로필, the console's server sets the BMO's
+  label through the agency and the room's title through the receiver wherever either still stands as a title the
+  console made itself — the account's key `u<user>`, the login, or the titles made from the login or from the
+  name until now. A title someone chose by hand is left as it stands, and one already right is not written again.
+  A title that cannot be set is written to the console's log, and the sign-in or the save goes on.
 - **An account bound to a machine signs in only while its machine is attached;** the login refuses it, saying the
   machine is not connected, until it attaches again.
 

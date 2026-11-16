@@ -187,20 +187,26 @@ section states what each does.
   may sign in. A user made for a sender by a grant, an invitation not yet accepted and an account that has left
   cannot; the console marks a room's member as a console user only where they can (`docs/web.md`, the room
   screen's 대화상대).
-- **`GET /users`** — every user, with their name and whether they are a platform administrator, for an
-  administrator alone.
-- **`GET /users/{user}`** — a user's name, whether they are a platform administrator (「The platform
-  administrators」), and the sender ids linked to them; the console asks it for the signed-in user's standing.
-  **`GET /users/{user}/senders`** answers the sender ids alone.
+- **A user has a login and a person's name.** The login, sumida's user name, is what the person signs in with
+  and what the routes below call `name`; the person's name, sumida's full name, is what people read them by, and
+  every answer carries it as `fullName`, an empty string where none stands. A screen shows the person's name
+  and the login only where none stands; the console's sign-in form and its 로그인 정보 show the login itself.
+- **`GET /users`** — every user, with their login, their person's name and whether they are a platform
+  administrator, for an administrator alone.
+- **`GET /users/{user}`** — a user's login, their person's name, whether they are a platform administrator
+  (「The platform administrators」), and the sender ids linked to them; the console asks it for the signed-in user's
+  standing. **`GET /users/{user}/senders`** answers the sender ids alone.
 - **`POST /users/{user}/password`** — the current password and the next; refused with 401 where the current one
   does not match, and hashed as sumida hashes every password.
 - **`POST /users/{user}/name`** — another name; refused with 409 where another user holds it.
-- **`GET /users/{user}/profile`** — a user's job title, landline, mobile and email, each an empty string where
-  the account keeps none; **`POST /users/{user}/profile`** writes all four whole, an empty value clearing it,
-  and answers the profile as it now stands. Both are the account's holder's or an administrator's: the console
-  hands on the login it acts for in `Owner-Key` and `Owner-Role`, and any other login is refused 403 before a
-  row is read or written. The profile is kept in the service's own table, so sumida's `users` stays as sumida
-  made it; an account that keeps no profile has no row, and every account that stood before reads empty values.
+- **`GET /users/{user}/profile`** — a user's person's name, job title, landline, mobile and email, each an
+  empty string where the account keeps none; **`POST /users/{user}/profile`** writes all five whole, an empty
+  value clearing it, the name trimmed, and answers the profile as it now stands. Both are the account's
+  holder's or an administrator's: the console hands on the login it acts for in `Owner-Key` and `Owner-Role`,
+  and any other login is refused 403 before a row is read or written. The person's name is sumida's own full
+  name on `users`, so the directory and every answer above read the same one; the job title and the contact
+  details are kept in the service's own table, so sumida's `users` keeps the columns sumida made, and an
+  account that keeps no profile has no row there and reads empty values.
 - **`GET /users/{user}/sections`** — one user's console sections, each with whether they may read and write
   it: the account's holder's or an administrator's. **`PUT /users/{user}/sections`** writes one user's set
   whole, by an administrator alone (「Console sections」).
@@ -343,14 +349,17 @@ section states what each does.
 - **An invitation is a link that makes one account in one unit,** made by the platform administrator for any unit,
   or by a head for their unit or one below it. The unit is a company itself or a unit under it at any depth. It
   names the person's role there, the unit's head or a member, the head being the administrator's alone to give,
-  and how many hours it stands open; past them, or once used, it opens nothing.
+  how many hours it stands open, and, where its maker gives one, the person's name; past those hours, or once
+  used, it opens nothing. The open invitations are listed with the name each was made for.
 - **The units a login may invite into are answered with their parents and their company,** each unit after its
   parent, so the maker chooses a company and then a unit of its tree. A head reads their own unit and those below
   it, their own unit standing at the top of what they read under its company.
-- **The link is opened with no sign-in.** It shows the unit and its company and asks for a name and a password.
-  Accepting it makes the account disabled, in the unit, a head where the invitation says so, with the console
-  sections every user is given, and binds it to the machine name `u<user>`.
-- **Acceptance needs the invitation open, the name free and the default role standing.** The account's
+- **The link is opened with no sign-in.** It shows the unit and its company and the person's name the invitation
+  was made for, and asks for a login, the person's name and a password, the name standing as the invitation gave
+  it for the person to correct. Accepting it makes the account disabled, in the unit, a head where the invitation
+  says so, with the person's name as its full name (the invitation's where the acceptance gives none), the
+  console sections every user is given, and binds it to the machine name `u<user>`.
+- **Acceptance needs the invitation open, the login free and the default role standing.** The account's
   organisation is the invitation's unit, so no unit's or company's name is read, and a company renamed after
   the invitation was made takes it in just the same. Where the default role does not stand, acceptance is refused 409
   `not-ready`, and the console says the deployment is not ready to make accounts.
@@ -621,7 +630,7 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 | `user_senders` | the link from a chat service's sender to a user |
 | `user_profiles` | a user's job title and contact details, keyed by sumida's user; an account keeping none has no row and reads empty |
 | `grant_words` | the words a grant was made with, beside the grant |
-| `user_invites` | each invitation: its token, its unit, whether it makes a head, who made it, when it closes, and who used it and when |
+| `user_invites` | each invitation: its token, its unit, whether it makes a head, the person's name it was made for (empty where none was given), who made it, when it closes, and who used it and when |
 | `user_nodes` | the machine each invited account is bound to, whether the administrator bound it shared, and when it was last proven |
 | `user_departures` | each account marked left: when, and by whom |
 | `secret_kinds` | each secret kind: its key, name, description and fields, and the order kinds were added in |
@@ -649,16 +658,20 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 - **The invitation tests** stand a stand-in hub: a head invites a member into their unit and not a head, reads
   the units they may invite into with their parents and their company, an invitation into a unit three levels
   down makes its head there and one into the company itself a member of it, an invitation already standing in the
-  table is listed, viewed and accepted into its unit and role as it was made, an expired or used invitation opens
-  nothing, acceptance makes a disabled account bound to its machine with a credential the hub's key verifies,
-  proof enables it once the hub holds the agent, and the machine check says gone where the hub holds none. A
-  binding to a machine another account holds is refused unless both bindings are declared shared, and two shared
-  bindings to one machine stand side by side, each read back as shared.
+  table is listed, viewed and accepted into its unit and role as it was made, an invitation made with a person's
+  name shows it on its link and in the list and gives it to the account, a name given at acceptance standing in its
+  place, an expired or used invitation opens nothing, acceptance makes a disabled account bound to its machine with
+  a credential the hub's key verifies, proof enables it once the hub holds the agent, and the machine check says
+  gone where the hub holds none. A binding to a machine another account holds is refused unless both bindings are
+  declared shared, and two shared bindings to one machine stand side by side, each read back as shared.
 - **The pairing tests** stand the same stand-in hub and a clock of their own: a pairing asked, read as waiting,
   approved by a person bound to a machine and read once with a credential the hub's key verifies for that machine,
   then gone; a person bound to none given a fresh binding; a refused pairing and an expired one answering 410 and
   approved no more; a second approver refused; an approver bound elsewhere or marked left before the read answering
   410 and no credential; and an address refused past its tenth pairing until its window passes.
+- **The profile tests** read an account's profile empty where it keeps none, have its holder and an
+  administrator write it whole, the person's name among it, see that name answered by the user's own route,
+  the users list and the directory, and refuse any other login.
 - **The organisation tests** make a company and units under it as the administrator, rename and move one, refuse
   a move into another company and under itself, grant and take away a head, place a user, and refuse every one
   of these to a member.

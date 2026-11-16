@@ -1,7 +1,7 @@
 <template>
   <!-- Invitations (docs/web.md, 「Organisation settings」, the invitations tab): a link made into a unit the reader
        heads, or any for the administrator, chosen as a company and then a unit of its tree, with the role the person
-       takes there, in a dialog the tab row's add opens; copied with its words and when it closes; the open
+       takes there and, where the maker gives it, the person's name, in a dialog the tab row's add opens; copied with its words and when it closes; the open
        ones listed, each copied again or taken back by its two marks. While they are first read the list keeps its
        place with a skeleton, and a read that failed says why in its place. -->
   <div class="flex flex-col gap-4">
@@ -26,7 +26,7 @@
       <SettingsRow
         v-for="invite in invites"
         :key="invite.token"
-        :label="`${placeOf(invite)} · ${$t(invite.head ? 'organization.label.role_head' : 'organization.label.role_member')}`"
+        :label="inviteLine(invite)"
         :description="$t('invites.label.until', { time: formatStamp(invite.expiresAt / 1000) })"
         data-invite
       >
@@ -44,6 +44,10 @@
 
     <SettingsDialog v-model:open="making" :title="$t('invites.label.make')">
       <form id="invite-form" class="flex flex-col gap-4" @submit.prevent="make">
+        <UFormField :label="$t('invites.label.full_name')" name="fullName" :hint="$t('common.label.optional')">
+          <UInput v-model="fullName" class="w-full" autocomplete="off" data-invite-name />
+        </UFormField>
+
         <UFormField :label="$t('invites.label.company')" name="company">
           <USelect :model-value="company" :items="companyItems" class="w-full" :aria-label="$t('invites.label.company')" data-invite-company @update:model-value="chooseCompany" />
         </UFormField>
@@ -97,6 +101,8 @@ const role = ref<"member" | "head">("member");
 // The keys of the tree's branches standing open.
 const expanded = ref<string[]>([]);
 const hours = ref("72");
+// The person's name the invitation is made for, empty where the maker gives none.
+const fullName = ref("");
 const busy = ref(false);
 // Whether the units and the open links have been read, a read under way, and why the last read failed.
 const loaded = ref(false);
@@ -151,9 +157,17 @@ async function load(): Promise<void> {
   }
 }
 
-// The words copied with a link: who invites into what, the link, and when it closes.
+// An open invitation's line: the person it was made for where it names one, where it leads and the role it gives.
+function inviteLine(invite: Invite): string {
+  const parts = [placeOf(invite), t(invite.head ? "organization.label.role_head" : "organization.label.role_member")];
+
+  return (invite.fullName ? [invite.fullName, ...parts] : parts).join(" · ");
+}
+
+// The words copied with a link: who invites whom into what, the link, and when it closes.
 async function copy(invite: Invite): Promise<void> {
-  const text = t("invites.message.text", { place: placeOf(invite), link: link(invite.token), time: formatStamp(invite.expiresAt / 1000) });
+  const words = { place: placeOf(invite), link: link(invite.token), time: formatStamp(invite.expiresAt / 1000) };
+  const text = invite.fullName ? t("invites.message.text_named", { ...words, name: invite.fullName }) : t("invites.message.text", words);
 
   await navigator.clipboard?.writeText(text).catch(() => undefined);
   copied.value = invite.token;
@@ -161,6 +175,7 @@ async function copy(invite: Invite): Promise<void> {
 
 function openMake(): void {
   makeFailure.value = "";
+  fullName.value = "";
   making.value = true;
 }
 
@@ -168,7 +183,7 @@ async function make(): Promise<void> {
   busy.value = true;
   makeFailure.value = "";
   try {
-    const made = await $fetch<Invite>("/api/invites", { method: "POST", body: { unit: unit.value, head: role.value === "head", hours: Number(hours.value) } });
+    const made = await $fetch<Invite>("/api/invites", { method: "POST", body: { unit: unit.value, head: role.value === "head", hours: Number(hours.value), fullName: fullName.value.trim() } });
 
     invites.value = [made, ...invites.value];
     await copy(made);

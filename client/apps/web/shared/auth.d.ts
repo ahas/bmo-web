@@ -3,6 +3,9 @@ declare module "#auth-utils" {
     name: string;
     // The user sumida knows them by, once the multi-user model is in force (docs/web.md, 「Access」).
     id?: number;
+    // The person's name people read them by, where one stands; `name` is the login (docs/accounts.md, 「Users and
+    // senders」).
+    fullName?: string;
   }
 
   interface UserSession {

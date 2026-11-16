@@ -304,6 +304,7 @@ async fn an_invitation_the_table_already_holds_is_taken_as_it_was_made() {
   assert_eq!(listed["invites"][0]["token"], "standing", "{listed}");
   assert_eq!(listed["invites"][0]["unit"]["id"], stood.team);
   assert_eq!(listed["invites"][0]["head"], true);
+  assert_eq!(listed["invites"][0]["fullName"], "");
   let (_, view) = asked(&stood.app, Method::GET, "/invites/standing", None, None).await;
   assert_eq!(view["state"], "open", "{view}");
   assert_eq!(view["company"]["id"], stood.company);
@@ -368,6 +369,77 @@ async fn a_renamed_company_still_takes_in_invited_and_made_accounts() {
   .try_get("", "organization_id")
   .unwrap();
   assert_eq!(organization, first);
+}
+
+/// The person's name a user is read by, as the user's own route answers it.
+async fn full_name_of(stood: &Stood, user: i32) -> Value {
+  let (status, read) = asked(&stood.app, Method::GET, &format!("/users/{user}"), None, None).await;
+  assert_eq!(status, StatusCode::OK, "{read}");
+
+  read["fullName"].clone()
+}
+
+#[tokio::test]
+async fn an_invitation_made_with_a_persons_name_gives_it_to_the_account_unless_acceptance_corrects_it() {
+  ready();
+  let stood = stood().await;
+  let made = |name: &'static str| {
+    let app = stood.app.clone();
+    let team = stood.team;
+    let head = stood.head;
+
+    async move {
+      let (status, invite) = asked(
+        &app,
+        Method::POST,
+        "/invites",
+        Some(json!({ "unit": team, "fullName": name })),
+        Some((head, "member")),
+      )
+      .await;
+      assert_eq!(status, StatusCode::CREATED, "{invite}");
+      assert_eq!(invite["fullName"], name.trim());
+
+      invite["token"].as_str().unwrap().to_owned()
+    }
+  };
+
+  let kept = made("  Person A ").await;
+  let (_, listed) = asked(&stood.app, Method::GET, "/invites", None, Some((stood.head, "member"))).await;
+  assert_eq!(listed["invites"][0]["fullName"], "Person A", "{listed}");
+  let (_, view) = asked(&stood.app, Method::GET, &format!("/invites/{kept}"), None, None).await;
+  assert_eq!(view["fullName"], "Person A", "{view}");
+
+  let user = accepted_as(&stood, &kept, "person-a").await;
+  assert_eq!(full_name_of(&stood, user).await, "Person A");
+
+  let corrected = made("Person B").await;
+  let (status, accepted) = asked(
+    &stood.app,
+    Method::POST,
+    &format!("/invites/{corrected}/accept"),
+    Some(json!({ "name": "person-b", "password": "pw", "fullName": " Person Bee " })),
+    None,
+  )
+  .await;
+  assert_eq!(status, StatusCode::CREATED, "{accepted}");
+  let user: i32 = accepted["user"].as_str().unwrap().parse().unwrap();
+  assert_eq!(full_name_of(&stood, user).await, "Person Bee");
+
+  let unnamed = asked(
+    &stood.app,
+    Method::POST,
+    "/invites",
+    Some(json!({ "unit": stood.team })),
+    Some((stood.head, "member")),
+  )
+  .await
+  .1["token"]
+    .as_str()
+    .unwrap()
+    .to_owned();
+  let user = accepted_as(&stood, &unnamed, "person-c").await;
+  assert_eq!(full_name_of(&stood, user).await, "");
 }
 
 #[tokio::test]

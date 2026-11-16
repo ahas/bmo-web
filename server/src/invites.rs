@@ -84,6 +84,7 @@ struct Stored {
   token: String,
   unit: i32,
   head: bool,
+  full_name: String,
   made_by: i32,
   expires_at: i64,
   used_by: Option<i32>,
@@ -92,7 +93,8 @@ struct Stored {
 async fn stored<C: ConnectionTrait>(db: &C, token: &str) -> Result<Stored, Refusal> {
   let row = one(
     db,
-    r#"SELECT "token", "unit_id", "head", "made_by", "expires_at", "used_by" FROM "user_invites" WHERE "token" = $1"#,
+    r#"SELECT "token", "unit_id", "head", "full_name", "made_by", "expires_at", "used_by" FROM "user_invites"
+       WHERE "token" = $1"#,
     vec![token.into()],
   )
   .await?
@@ -102,6 +104,7 @@ async fn stored<C: ConnectionTrait>(db: &C, token: &str) -> Result<Stored, Refus
     token: row.try_get("", "token")?,
     unit: i32::try_from(row.try_get::<i64>("", "unit_id")?).unwrap_or_default(),
     head: row.try_get("", "head")?,
+    full_name: row.try_get("", "full_name")?,
     made_by: i32::try_from(row.try_get::<i64>("", "made_by")?).unwrap_or_default(),
     expires_at: row.try_get("", "expires_at")?,
     used_by: row.try_get::<Option<i64>>("", "used_by")?.and_then(|user| i32::try_from(user).ok()),
@@ -126,6 +129,7 @@ async fn as_invite<C: ConnectionTrait>(db: &C, invite: &Stored) -> Result<Invite
     unit,
     company,
     head: invite.head,
+    full_name: invite.full_name.clone(),
     expires_at: invite.expires_at,
   })
 }
@@ -157,12 +161,13 @@ pub async fn make<C: ConnectionTrait>(
 
   run(
     db,
-    r#"INSERT INTO "user_invites" ("token", "unit_id", "head", "made_by", "created_at", "expires_at")
-       VALUES ($1, $2::bigint, $3, $4::bigint, $5, $6)"#,
+    r#"INSERT INTO "user_invites" ("token", "unit_id", "head", "full_name", "made_by", "created_at", "expires_at")
+       VALUES ($1, $2::bigint, $3, $4, $5::bigint, $6, $7)"#,
     vec![
       token.clone().into(),
       unit.into(),
       ask.head.into(),
+      ask.full_name.as_deref().unwrap_or_default().trim().into(),
       by.into(),
       now.into(),
       (now + hours * 3_600_000).into(),
@@ -183,7 +188,7 @@ pub async fn accept<C: ConnectionTrait + TransactionTrait>(
   let name = ask.name.trim();
 
   if name.is_empty() || ask.password.is_empty() {
-    return Err(Refusal::bad("an account needs a name and a password"));
+    return Err(Refusal::bad("an account needs a login and a password"));
   }
 
   let txn = db.begin().await?;
@@ -213,6 +218,9 @@ pub async fn accept<C: ConnectionTrait + TransactionTrait>(
   .ok_or_else(|| Refusal::bad("the account was not made"))?
   .try_get("", "id")?;
 
+  let full_name = ask.full_name.as_deref().map(str::trim).filter(|given| !given.is_empty());
+
+  crate::users::set_full_name(&txn, user, full_name.unwrap_or(&invite.full_name)).await?;
   crate::sections::seed_defaults(&txn, user, GRANTER).await?;
 
   if invite.head {
@@ -416,6 +424,7 @@ async fn view_route(State(service): State<Service>, Path(token): Path<String>) -
     unit,
     company,
     head: invite.head,
+    full_name: invite.full_name.clone(),
     expires_at: invite.expires_at,
     state: state_of(&invite).to_owned(),
   }))

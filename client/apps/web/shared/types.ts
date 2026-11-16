@@ -1386,9 +1386,10 @@ export interface AccountUser {
   name: string;
 }
 
-// A user's job title and contact details (docs/accounts.md, 「Users and senders」); every field is empty where the
-// account keeps none.
+// A user's person's name, job title and contact details (docs/accounts.md, 「Users and senders」); every field is
+// empty where the account keeps none.
 export interface UserProfile {
+  fullName: string;
   jobTitle: string;
   landline: string;
   mobile: string;

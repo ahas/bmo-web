@@ -34,7 +34,8 @@ const props = withDefaults(defineProps<Props>(), { collapsed: false });
 const colorMode = useColorMode();
 const settings = useSettings();
 const { user, clear } = useUserSession();
-const name = computed(() => user.value?.name ?? t("app.label.account"));
+// The person's name people read the account by, its login where none stands (docs/accounts.md, 「Users and senders」).
+const name = computed(() => (user.value?.fullName || user.value?.name) ?? t("app.label.account"));
 
 async function logout(): Promise<void> {
   await $fetch("/api/auth/logout", { method: "POST" });
@@ -57,7 +58,7 @@ function appearance(label: string, icon: string, preference: string): DropdownMe
 }
 
 const items = computed<DropdownMenuItem[][]>(() => [
-  [{ type: "label", label: user.value?.name ?? "" }],
+  [{ type: "label", label: user.value === null ? "" : name.value }],
   [
     { label: t("settings.title.settings"), icon: "i-material-symbols-settings-outline", onSelect: () => openSettings(settings) },
     {

@@ -25,3 +25,9 @@ export function peopleGroup(t: Translate, people: readonly PersonView[]): JumpGr
     }))
   };
 }
+
+/** The name a person is shown by: their person's name, their login where none stands (docs/accounts.md, 「Users and
+ * senders」). */
+export function shownName(user: { name: string; fullName?: string | null }): string {
+  return user.fullName ? user.fullName : user.name;
+}

@@ -1,7 +1,7 @@
 <template>
-  <!-- The account section (docs/web.md, 「Settings」): the account's name and the way to its form, the name and the
-       password, which is a dialog of its own with its own save; the profile, its job title and contact details in
-       a dialog of their own; and one's own picture, the sender's linked to the account, set in the console
+  <!-- The account section (docs/web.md, 「Settings」): the account's login and the way to its form, the login and
+       the password, which is a dialog of its own with its own save; the profile, the person's name, job title and
+       contact details in a dialog of their own; and one's own picture, the sender's linked to the account, set in the console
        (「Profile photos」). -->
   <div class="flex flex-col gap-6">
     <SettingsGroup>
@@ -17,7 +17,7 @@
             <SkeletonBar class="block h-4 w-32" />
           </SkeletonStatus>
           <span v-else-if="profileFailed !== ''" class="text-sm text-error">{{ profileFailed }}</span>
-          <span v-else-if="profile !== null && profile.jobTitle !== ''" class="text-sm text-muted">{{ profile.jobTitle }}</span>
+          <span v-else-if="profileLine !== ''" class="text-sm text-muted">{{ profileLine }}</span>
         </template>
         <UButton v-if="profileFailed !== ''" color="neutral" variant="outline" :label="$t('account.action.retry')" @click="void readProfile()" />
         <UButton v-else color="neutral" variant="outline" :label="$t('account.action.change')" :disabled="profile === null" @click="openProfile()" />
@@ -56,6 +56,10 @@
 
     <SettingsDialog v-model:open="editingProfile" :title="$t('account.title.profile')" :dirty="profileDirty">
       <UForm id="profile-form" :state="profileForm" class="flex flex-col gap-4" @submit="saveProfile">
+        <UFormField :label="$t('account.label.full_name')" name="fullName">
+          <UInput v-model="profileForm.fullName" class="w-full" autocomplete="name" />
+        </UFormField>
+
         <UFormField :label="$t('account.label.job_title')" name="jobTitle">
           <UInput v-model="profileForm.jobTitle" class="w-full" autocomplete="organization-title" />
         </UFormField>
@@ -96,7 +100,7 @@ const { user, fetch: refreshSession } = useUserSession();
 const { data: owner } = useFetch<OwnerChat>("/api/owner", { key: "owner", default: () => ({ chatId: null, senderId: null, senders: [], administrator: false, owner: false }) });
 const ownSender = computed<number | null>(() => ownSenderOf(owner.value));
 const avatars = useAvatars();
-const ownPicture = computed(() => avatarFor(avatars.value, "person", ownSender.value, user.value?.name ?? ""));
+const ownPicture = computed(() => avatarFor(avatars.value, "person", ownSender.value, (user.value?.fullName || user.value?.name) ?? ""));
 
 const editing = ref(false);
 const failure = ref<string | null>(null);
@@ -118,8 +122,8 @@ watch(editing, (open) => {
 // asks first (docs/web.md, 「Forms」).
 const dirty = computed(() => form.name !== (user.value?.name ?? "") || form.password !== "");
 
-// The account's profile (docs/accounts.md, 「Users and senders」): the job title and contact details its holder or an
-// administrator keeps. A console login before the model names no user, and keeps none.
+// The account's profile (docs/accounts.md, 「Users and senders」): the person's name, job title and contact details
+// its holder or an administrator keeps. A console login before the model names no user, and keeps none.
 const account = computed(() => user.value?.id);
 const profile = ref<UserProfile | null>(null);
 const profileReading = ref(false);
@@ -127,8 +131,10 @@ const profileFailed = ref("");
 const editingProfile = ref(false);
 const profilePending = ref(false);
 const profileFailure = ref<string | null>(null);
-const profileForm = reactive<UserProfile>({ jobTitle: "", landline: "", mobile: "", email: "" });
-const PROFILE_FIELDS: (keyof UserProfile)[] = ["jobTitle", "landline", "mobile", "email"];
+const profileForm = reactive<UserProfile>({ fullName: "", jobTitle: "", landline: "", mobile: "", email: "" });
+const PROFILE_FIELDS: (keyof UserProfile)[] = ["fullName", "jobTitle", "landline", "mobile", "email"];
+// The row's line: the person's name and the job title, those the account keeps.
+const profileLine = computed(() => (profile.value === null ? "" : [profile.value.fullName, profile.value.jobTitle].filter((part) => part !== "").join(" · ")));
 
 async function readProfile(): Promise<void> {
   const id = account.value;
@@ -176,6 +182,8 @@ async function saveProfile(): Promise<void> {
 
     profile.value = saved;
     Object.assign(profileForm, saved);
+    // The user menu reads the person's name from the session, which the save wrote again.
+    await refreshSession();
     editingProfile.value = false;
     done.value = true;
   } catch (error) {

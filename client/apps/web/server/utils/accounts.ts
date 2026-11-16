@@ -2,7 +2,7 @@ import { getRequestHeader } from "h3";
 
 import { AccountServiceDown, modelState, sessionUser, userOf } from "./account-service";
 import { isOwnerLogin } from "./owner";
-import { sessionLapsed } from "./session-life";
+import { sessionLapsed, sessionLife, sessionRemembers } from "./session-life";
 import { wording } from "#shared/wording";
 
 import type { H3Event } from "h3";
@@ -66,7 +66,7 @@ export async function signedInUser(event: H3Event): Promise<SignedIn> {
 export interface Sealed {
   sid?: string;
   administrator?: boolean;
-  user: { name: string; id?: number };
+  user: { name: string; id?: number; fullName?: string };
   remember?: unknown;
   loggedInAt?: unknown;
   touchedAt?: unknown;
@@ -189,4 +189,23 @@ export async function sealState(session: Omit<Sealed, "user">, address: string, 
 export function forgetSession(cookie: string): void {
   asked.delete(cookie);
   standings.delete(cookie);
+}
+
+/** The reader's own session written again with the person's name they now read by, empty for none; everything else
+ * it holds, its life among it, stands as it was (docs/web.md, 「Settings」, the account section). */
+export async function followSessionName(event: H3Event, fullName: string): Promise<void> {
+  const session = await getUserSession(event);
+
+  if (session.user === undefined) return;
+
+  const { name, id } = session.user;
+  const remember = sessionRemembers(session);
+
+  await replaceUserSession(event, {
+    user: { name, ...(id === undefined ? {} : { id }), ...(fullName === "" ? {} : { fullName }) },
+    ...(session.sid === undefined ? {} : { sid: session.sid, administrator: session.administrator === true }),
+    loggedInAt: session.loggedInAt ?? Date.now(),
+    remember,
+    ...(session.touchedAt === undefined ? {} : { touchedAt: session.touchedAt })
+  }, sessionLife(remember));
 }

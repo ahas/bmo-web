@@ -118,7 +118,12 @@ export async function writeSupervisorDraft(agentName: string, save: SupervisorDr
   if (save.process === null) {
     await receiverCall(asking.DELETE("/draft-processes/{provider}/{tier}/{agentName}", { params: { path: key } }), { codes: PROCESS_CODES });
   } else if (save.process !== undefined) {
-    await receiverCall(asking.PUT("/draft-processes/{provider}/{tier}/{agentName}", { params: { path: key }, body: { ...save.process } }), { codes: PROCESS_CODES });
+    // The stages after the message switched off are not the console's to set, and a write that left them out would
+    // switch them all on again, so the row's own are handed back as they stand.
+    const standing = (await receiverCall(asking.GET("/draft-processes", { params: { query: { agentName } } }))).items[0];
+    const stagesOff = standing === undefined ? [] : standing.stagesOff;
+
+    await receiverCall(asking.PUT("/draft-processes/{provider}/{tier}/{agentName}", { params: { path: key }, body: { ...save.process, stagesOff } }), { codes: PROCESS_CODES });
   }
 
   for (const name of save.removed ?? []) {

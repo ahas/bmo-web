@@ -1,6 +1,6 @@
 <template>
   <!-- The join page (docs/web.md, 「The join page」): an invitation's link, opened with no sign-in. It shows the unit
-       and its company, takes a name and a password, hands back the one-line install of the person's machine, and
+       and its company, takes the person's name, a login and a password, hands back the one-line install of the person's machine, and
        says the account is ready once the machine has attached. Like the login, it stands on no shell. -->
   <div class="relative flex overflow-y-auto bg-default p-4 text-default" :style="{ top: 'var(--bmo-screen-top)', height: 'var(--bmo-screen)' }">
     <UCard class="m-auto w-full max-w-lg">
@@ -18,7 +18,10 @@
         <template v-else-if="view && accepted === null">
           <p>{{ $t(view.head ? "join.message.invited_head" : "join.message.invited", { place: placeOf(view) }) }}</p>
           <p class="text-sm text-muted">{{ $t("join.message.until", { time: formatStamp(view.expiresAt / 1000) }) }}</p>
-          <UForm id="join-form" :state="form" class="flex flex-col gap-4" @submit="accept">
+          <UForm id="join-form" :state="form" :validate="validate" class="flex flex-col gap-4" @submit="accept">
+            <UFormField :label="$t('join.label.full_name')" name="fullName" required>
+              <UInput v-model="form.fullName" class="w-full" autocomplete="name" />
+            </UFormField>
             <UFormField :label="$t('app.label.user_id')" name="name" required>
               <UInput v-model="form.name" class="w-full" autocomplete="username" />
             </UFormField>
@@ -62,6 +65,7 @@ import { placeOf } from "~/domain/invites";
 
 import { useVisibleShell } from "~/domain/overlay";
 
+import type { FormError } from "@nuxt/ui";
 import type { Accepted, InviteView } from "@web/server-client";
 
 definePageMeta({ layout: false });
@@ -77,7 +81,7 @@ const accepted = ref<Accepted | null>(null);
 const active = ref(false);
 const failure = ref("");
 const pending = ref(false);
-const form = reactive({ name: "", password: "" });
+const form = reactive({ fullName: "", name: "", password: "" });
 const installs = computed(() =>
   accepted.value === null
     ? []
@@ -88,9 +92,16 @@ const installs = computed(() =>
 );
 let timer: ReturnType<typeof setInterval> | undefined;
 
+// The account is not taken without the person's name, so everyone made through an invitation has one.
+function validate(state: typeof form): FormError[] {
+  return state.fullName.trim() === "" ? [{ name: "fullName", message: t("join.error.full_name_empty") }] : [];
+}
+
 async function read(): Promise<void> {
   try {
     view.value = await $fetch<InviteView>(`/api/join/${token.value}`);
+    // The name the invitation was made for stands for the person to correct.
+    form.fullName = view.value.fullName ?? "";
   } catch (error) {
     failure.value = failureText(error, t("invites.error.not_found"));
   }
@@ -100,7 +111,7 @@ async function accept(): Promise<void> {
   pending.value = true;
   failure.value = "";
   try {
-    accepted.value = await $fetch<Accepted>(`/api/join/${token.value}/accept`, { method: "POST", body: { name: form.name.trim(), password: form.password } });
+    accepted.value = await $fetch<Accepted>(`/api/join/${token.value}/accept`, { method: "POST", body: { fullName: form.fullName.trim(), name: form.name.trim(), password: form.password } });
     form.password = "";
     timer = setInterval(() => void prove(), 5000);
   } catch (error) {

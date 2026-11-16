@@ -349,14 +349,19 @@ fn administrator(headers: &HeaderMap) -> bool {
   caller(headers).1.as_deref() == Some("administrator")
 }
 
-/// Every user, with their name and whether they are the platform administrator, for the administrator alone.
+/// Every user, with their login, the person's name and whether they are the platform administrator, for the
+/// administrator alone.
 async fn users(State(service): State<Service>, headers: HeaderMap) -> Answer<UserList> {
   if !administrator(&headers) {
     return Err(Refusal::forbidden("the users are the administrator's"));
   }
 
-  let rows =
-    crate::all(&service.db, r#"SELECT "id", "username" FROM "users" ORDER BY "id""#, vec![]).await?;
+  let rows = crate::all(
+    &service.db,
+    r#"SELECT "id", "username", COALESCE("full_name", '') AS "full_name" FROM "users" ORDER BY "id""#,
+    vec![],
+  )
+  .await?;
   let mut listed = Vec::new();
 
   for row in &rows {
@@ -364,6 +369,7 @@ async fn users(State(service): State<Service>, headers: HeaderMap) -> Answer<Use
     listed.push(UserSummary {
       user: crate::ids::shown(user),
       name: row.try_get("", "username")?,
+      full_name: row.try_get("", "full_name")?,
       administrator: Authz::is_superuser(&user_subject(&service.db, user).await?, &service.db).await?,
     });
   }

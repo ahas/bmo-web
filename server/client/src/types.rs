@@ -77,21 +77,26 @@ pub struct SenderLinks {
   pub links: Vec<SenderLink>,
 }
 
-/// A user as the console reads them.
+/// A user as the console reads them: their login as `name`, and the person's name people read them by as
+/// `fullName`, empty where none stands (docs/accounts.md, 「Users and senders」).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct UserView {
   pub user: String,
   pub name: String,
+  #[serde(rename = "fullName", default)]
+  pub full_name: String,
   pub administrator: bool,
   pub senders: Vec<i64>,
 }
 
-/// One user as the users list names them: their id, their name and whether they are the platform
-/// administrator.
+/// One user as the users list names them: their id, their login, the person's name (empty where none stands)
+/// and whether they are the platform administrator.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct UserSummary {
   pub user: String,
   pub name: String,
+  #[serde(rename = "fullName", default)]
+  pub full_name: String,
   pub administrator: bool,
 }
 
@@ -152,11 +157,12 @@ pub struct Sections {
   pub sections: Vec<SectionRow>,
 }
 
-/// A user's job title and contact details, which the account's holder or an administrator keeps
+/// A user's person's name, job title and contact details, which the account's holder or an administrator keeps
 /// (docs/accounts.md, 「Users and senders」). Every field is a string, empty where the account keeps none.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct UserProfile {
+  pub full_name: String,
   pub job_title: String,
   pub landline: String,
   pub mobile: String,
@@ -438,6 +444,9 @@ pub struct InviteAsk {
   pub head: bool,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub hours: Option<i64>,
+  /// The person's name the account is made with, where the maker gives one.
+  #[serde(rename = "fullName", default, skip_serializing_if = "Option::is_none")]
+  pub full_name: Option<String>,
 }
 
 /// One invitation, as the one who made it reads it.
@@ -448,6 +457,9 @@ pub struct Invite {
   pub unit: UnitRef,
   pub company: UnitRef,
   pub head: bool,
+  /// The person's name the invitation was made for, empty where none was given.
+  #[serde(default)]
+  pub full_name: String,
   pub expires_at: i64,
 }
 
@@ -480,15 +492,21 @@ pub struct InviteView {
   pub unit: UnitRef,
   pub company: UnitRef,
   pub head: bool,
+  /// The person's name the invitation was made for, empty where none was given.
+  #[serde(default)]
+  pub full_name: String,
   pub expires_at: i64,
   pub state: String,
 }
 
-/// The name and the password an invitation is accepted with.
+/// The login and the password an invitation is accepted with, and the person's name, the invitation's where
+/// it is absent or empty.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct AcceptAsk {
   pub name: String,
   pub password: String,
+  #[serde(rename = "fullName", default, skip_serializing_if = "Option::is_none")]
+  pub full_name: Option<String>,
 }
 
 /// The one-line installs of a machine.

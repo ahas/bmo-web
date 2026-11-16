@@ -5,12 +5,14 @@ import { globalsRestoredAfter } from "../../support/globals";
 import { answer, standIn } from "../../support/units";
 
 import { userOf } from "../../../apps/web/server/utils/account-service";
-import { standAccount } from "../../../apps/web/server/utils/account-standing";
+import { followPersonName, ownTitles, standAccount } from "../../../apps/web/server/utils/account-standing";
 import { standRecordIdentities } from "../../../apps/web/server/utils/console-rooms";
+import { wording } from "../../../apps/web/shared/wording";
 
 // An account made ready (docs/web.md, 「The join page」): it is given a supervisor of its own, named after the account
-// and shown by the person's name, on the default answerer's road's provider and model, its identity on the record road
-// linked to it (docs/accounts.md, 「Users and senders」), and one agent of its own for every role with an
+// and titled by the person's name, their login where none stands, on the default answerer's road's provider and
+// model, its identity on the record road linked to it (docs/accounts.md, 「Users and senders」), and one agent of its
+// own for every role with an
 // agent of no account, taking that agent's road; an account that holds one already is given none again. Its machine,
 // where the hub holds it, is set in agency as the node its runs stand on (docs/accounts.md, 「Invitations and a
 // person's machine」), and a node agency refuses leaves the account ready.
@@ -42,6 +44,12 @@ const agency = standIn("AGENCY", (call) => {
     });
   }
   if (call.method === "POST" && call.path === "/role-agents") return answer({ ...AGENT, ...call.body }, 201);
+  if (call.method === "PATCH" && call.path.startsWith("/supervisors/")) {
+    const name = call.path.slice("/supervisors/".length);
+    const held = (supervisors as { name: string }[]).find((one) => one.name === name);
+
+    return answer({ ...ANSWERER, ...held, ...call.body });
+  }
   if (call.method === "PUT" && call.path === "/person-nodes/11") return answer({ code: "not-a-hub-node", error: "no hub node is named u11" }, 422);
   if (call.method === "PUT" && call.path.startsWith("/person-nodes/")) {
     return answer({ ownerAccount: call.path.slice("/person-nodes/".length), node: call.body?.node, setAt: 1 });
@@ -50,11 +58,18 @@ const agency = standIn("AGENCY", (call) => {
   return answer({ code: "no-route", error: "no route" }, 404);
 });
 
+// The rooms each supervisor answers, the first its private room.
+let rooms: Record<string, { id: number; title: string | null; named: boolean; alone: boolean }[]> = {};
+
 const receiver = standIn("RECEIVER", (call) => {
   if (call.method === "GET" && call.path === "/default-answerer") return answer({ supervisor: "agent-a" });
   const identity = call.path.match(/^\/accounts\/(\d+)\/identity$/)?.[1];
 
   if (call.method === "PUT" && identity !== undefined) return answer({ account: identity, sender: 9_000_000_000_000 + Number(identity) });
+  if (call.method === "GET" && call.path.startsWith("/supervisors/") && call.path.endsWith("/rooms")) {
+    return answer({ items: rooms[call.path.split("/")[2]!] ?? [], more: false });
+  }
+  if (call.method === "PUT" && /^\/rooms\/\d+\/title$/.test(call.path)) return answer({ title: call.body?.title ?? null });
   if (call.method === "POST" && call.path === "/supervisors") {
     return answer({ brain: "made", room: { id: 42, takenBack: false, said: null }, supervisor: { name: call.body?.name } }, 201);
   }
@@ -66,7 +81,8 @@ const service = standInAccountService({
   users: [
     { id: 9, name: "member-a", node: { agent: "u9", attached: true } },
     { id: 10, name: "member-b", node: { agent: "u10", attached: false } },
-    { id: 11, name: "member-c", node: { agent: "u11", attached: true } }
+    { id: 11, name: "member-c", node: { agent: "u11", attached: true } },
+    { id: 12, name: "member-d", fullName: "Person D" }
   ]
 });
 
@@ -88,8 +104,9 @@ describe("an account made ready", () => {
     const added = receiver.asked.filter((call) => call.method === "POST");
 
     expect(added).toHaveLength(1);
-    // The receiver's add takes a road's provider and model alone.
-    expect(added[0]?.body).toEqual({ name: "u9", label: "member-a", room: "member-a", provider: "codex", model: "model-a", repository: null, ownerAccount: 9, sessionScope: "agent" });
+    // The receiver's add takes a road's provider and model alone; a person with no name of their own is titled by
+    // their login.
+    expect(added[0]?.body).toEqual({ name: "u9", label: ownTitles("member-a").label, room: ownTitles("member-a").room, provider: "codex", model: "model-a", repository: null, ownerAccount: 9, sessionScope: "agent" });
 
     const agents = agency.asked.filter((call) => call.method === "POST" && call.path === "/role-agents");
 
@@ -160,11 +177,83 @@ describe("an account made ready", () => {
 
 describe("every account standing before the record road", () => {
   test("is linked to its identity there by one pass over the accounts, which a second pass repeats harmlessly", async () => {
-    expect(await standRecordIdentities(async () => "9")).toEqual({ linked: 3, failed: 0 });
-    expect(await standRecordIdentities(async () => "9")).toEqual({ linked: 3, failed: 0 });
+    expect(await standRecordIdentities(async () => "9")).toEqual({ linked: 4, failed: 0 });
+    expect(await standRecordIdentities(async () => "9")).toEqual({ linked: 4, failed: 0 });
 
-    for (const user of [9, 10, 11]) {
+    for (const user of [9, 10, 11, 12]) {
       expect((await userOf(user))?.senders).toEqual([9_000_000_000_000 + user]);
+    }
+  });
+});
+
+describe("a person's own BMO titled by their name", () => {
+  const own = (label: string) => ({ ...ANSWERER, name: "u12", label, ownerAccount: 12 });
+  const changes = () => ({
+    labels: agency.asked.filter((call) => call.method === "PATCH").map((call) => [call.path, call.body]),
+    titles: receiver.asked.filter((call) => call.method === "PUT" && call.path.endsWith("/title")).map((call) => [call.path, call.body])
+  });
+
+  test("takes the titles the pack makes: the name with BMO for the supervisor, the name alone for the room", () => {
+    expect(ownTitles("Person D")).toEqual({ label: wording("account.label.own_bmo", { name: "Person D" }), room: wording("account.label.own_bmo_room", { name: "Person D" }) });
+    expect(ownTitles("Person D").label).toContain("Person D");
+    expect(ownTitles("Person D").label).not.toBe(ownTitles("Person D").room);
+  });
+
+  test("is made with the person's name where one stands", async () => {
+    receiver.asked.length = 0;
+
+    await standAccount(12);
+
+    const added = receiver.asked.find((call) => call.method === "POST");
+
+    expect(added?.body).toMatchObject({ name: "u12", label: ownTitles("Person D").label, room: ownTitles("Person D").room });
+  });
+
+  test("titled by the login before the person had a name, follows the name once one stands", async () => {
+    supervisors = [ANSWERER, own("member-d")];
+    rooms = { u12: [{ id: 42, title: "member-d", named: true, alone: true }] };
+    agency.asked.length = 0;
+    receiver.asked.length = 0;
+
+    try {
+      await followPersonName(12);
+
+      expect(changes()).toEqual({ labels: [["/supervisors/u12", { label: ownTitles("Person D").label }]], titles: [["/rooms/42/title", { title: ownTitles("Person D").room }]] });
+    } finally {
+      supervisors = [ANSWERER];
+      rooms = {};
+    }
+  });
+
+  test("titled by the name until now, follows a name changed", async () => {
+    supervisors = [ANSWERER, own(ownTitles("Old name").label)];
+    rooms = { u12: [{ id: 7, title: "group", named: true, alone: false }, { id: 42, title: ownTitles("Old name").room, named: true, alone: true }] };
+    agency.asked.length = 0;
+    receiver.asked.length = 0;
+
+    try {
+      await followPersonName(12, "Old name");
+
+      expect(changes()).toEqual({ labels: [["/supervisors/u12", { label: ownTitles("Person D").label }]], titles: [["/rooms/42/title", { title: ownTitles("Person D").room }]] });
+    } finally {
+      supervisors = [ANSWERER];
+      rooms = {};
+    }
+  });
+
+  test("a title chosen by hand, or one already right, is left as it stands", async () => {
+    supervisors = [ANSWERER, own("Helper")];
+    rooms = { u12: [{ id: 42, title: ownTitles("Person D").room, named: true, alone: true }] };
+    agency.asked.length = 0;
+    receiver.asked.length = 0;
+
+    try {
+      await followPersonName(12, "Old name");
+
+      expect(changes()).toEqual({ labels: [], titles: [] });
+    } finally {
+      supervisors = [ANSWERER];
+      rooms = {};
     }
   });
 });

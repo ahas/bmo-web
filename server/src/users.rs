@@ -446,16 +446,17 @@ pub async fn link<C: ConnectionTrait>(db: &C, sender: i64, user: i32) -> Result<
   Ok(())
 }
 
-/// A user's job title and contact details, every field empty where the account keeps no profile
+/// A user's person's name, job title and contact details, every field empty where the account keeps none
 /// (docs/accounts.md, 「Users and senders」). A user that does not stand is answered absent.
 pub async fn profile_of<C: ConnectionTrait>(db: &C, user: i32) -> Result<UserProfile, Refusal> {
-  let stands = one(db, r#"SELECT 1 AS "one" FROM "users" WHERE "id" = $1"#, vec![user.into()])
-    .await?
-    .is_some();
-
-  if !stands {
-    return Err(Refusal::absent(format!("no user {user}")));
-  }
+  let full_name: String = one(
+    db,
+    r#"SELECT COALESCE("full_name", '') AS "full_name" FROM "users" WHERE "id" = $1"#,
+    vec![user.into()],
+  )
+  .await?
+  .ok_or_else(|| Refusal::absent(format!("no user {user}")))?
+  .try_get("", "full_name")?;
 
   let held = one(
     db,
@@ -465,10 +466,14 @@ pub async fn profile_of<C: ConnectionTrait>(db: &C, user: i32) -> Result<UserPro
   .await?;
 
   let Some(row) = held else {
-    return Ok(UserProfile::default());
+    return Ok(UserProfile {
+      full_name,
+      ..UserProfile::default()
+    });
   };
 
   Ok(UserProfile {
+    full_name,
     job_title: row.try_get("", "job_title")?,
     landline: row.try_get("", "landline")?,
     mobile: row.try_get("", "mobile")?,
@@ -476,8 +481,8 @@ pub async fn profile_of<C: ConnectionTrait>(db: &C, user: i32) -> Result<UserPro
   })
 }
 
-/// A user's profile written whole, an empty field clearing it. The user must stand, so a profile is never
-/// kept for nobody.
+/// A user's profile written whole, an empty field clearing it: the person's name onto sumida's own full name,
+/// the rest into the service's table. The user must stand, so a profile is never kept for nobody.
 pub async fn set_profile<C: ConnectionTrait>(
   db: &C,
   user: i32,
@@ -490,6 +495,8 @@ pub async fn set_profile<C: ConnectionTrait>(
   if !stands {
     return Err(Refusal::absent(format!("no user {user}")));
   }
+
+  set_full_name(db, user, &profile.full_name).await?;
 
   run(
     db,
@@ -505,6 +512,22 @@ pub async fn set_profile<C: ConnectionTrait>(
       profile.email.clone().into(),
       now_ms().into(),
     ],
+  )
+  .await?;
+
+  Ok(())
+}
+
+/// The person's name a user is read by, trimmed, an empty one kept as none (docs/accounts.md, 「Users and
+/// senders」).
+pub async fn set_full_name<C: ConnectionTrait>(db: &C, user: i32, full_name: &str) -> Result<(), Refusal> {
+  let full_name = full_name.trim();
+  let kept: Option<String> = (!full_name.is_empty()).then(|| full_name.to_owned());
+
+  run(
+    db,
+    r#"UPDATE "users" SET "full_name" = $1, "updated_at" = now() WHERE "id" = $2"#,
+    vec![kept.into(), user.into()],
   )
   .await?;
 

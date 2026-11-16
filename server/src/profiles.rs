@@ -1,7 +1,7 @@
-//! A user's profile (docs/accounts.md, 「Users and senders」; docs/boundary.md, 「Users and senders」): the job
-//! title and contact details an account keeps, read and written whole. Its holder or an administrator keeps it;
-//! the call names the login it is made for in `Owner-Key` and `Owner-Role`, and any other login is refused
-//! before a row is read or written.
+//! A user's profile (docs/accounts.md, 「Users and senders」; docs/boundary.md, 「Users and senders」): the
+//! person's name, job title and contact details an account keeps, read and written whole. Its holder or an
+//! administrator keeps it; the call names the login it is made for in `Owner-Key` and `Owner-Role`, and any
+//! other login is refused before a row is read or written.
 
 use axum::Json;
 use axum::Router;
@@ -59,7 +59,7 @@ async fn write(
   allowed(&headers, user)?;
   crate::users::set_profile(&service.db, user, &profile).await?;
 
-  Ok(Json(profile))
+  Ok(Json(crate::users::profile_of(&service.db, user).await?))
 }
 
 /// The profile's routes, mounted with the service's own.

@@ -978,8 +978,12 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** @description The name and the password an invitation is accepted with. */
+        /**
+         * @description The login and the password an invitation is accepted with, and the person's name, the invitation's where
+         *     it is absent or empty.
+         */
         AcceptAsk: {
+            fullName?: string | null;
             name: string;
             password: string;
         };
@@ -1194,12 +1198,19 @@ export interface components {
             company: components["schemas"]["UnitRef"];
             /** Format: int64 */
             expiresAt: number;
+            /**
+             * @description The person's name the invitation was made for, empty where none was given.
+             * @default
+             */
+            fullName: string;
             head: boolean;
             token: string;
             unit: components["schemas"]["UnitRef"];
         };
         /** @description An invitation to make. */
         InviteAsk: {
+            /** @description The person's name the account is made with, where the maker gives one. */
+            fullName?: string | null;
             /** @default false */
             head: boolean;
             /** Format: int64 */
@@ -1225,6 +1236,11 @@ export interface components {
             company: components["schemas"]["UnitRef"];
             /** Format: int64 */
             expiresAt: number;
+            /**
+             * @description The person's name the invitation was made for, empty where none was given.
+             * @default
+             */
+            fullName: string;
             head: boolean;
             state: string;
             unit: components["schemas"]["UnitRef"];
@@ -1678,21 +1694,24 @@ export interface components {
             shared: boolean;
         };
         /**
-         * @description A user's job title and contact details, which the account's holder or an administrator keeps
+         * @description A user's person's name, job title and contact details, which the account's holder or an administrator keeps
          *     (docs/accounts.md, 「Users and senders」). Every field is a string, empty where the account keeps none.
          */
         UserProfile: {
             email: string;
+            fullName: string;
             jobTitle: string;
             landline: string;
             mobile: string;
         };
         /**
-         * @description One user as the users list names them: their id, their name and whether they are the platform
-         *     administrator.
+         * @description One user as the users list names them: their id, their login, the person's name (empty where none stands)
+         *     and whether they are the platform administrator.
          */
         UserSummary: {
             administrator: boolean;
+            /** @default  */
+            fullName: string;
             name: string;
             user: string;
         };
@@ -1703,9 +1722,14 @@ export interface components {
             unit: components["schemas"]["UnitRef"];
             user: string;
         };
-        /** @description A user as the console reads them. */
+        /**
+         * @description A user as the console reads them: their login as `name`, and the person's name people read them by as
+         *     `fullName`, empty where none stands (docs/accounts.md, 「Users and senders」).
+         */
         UserView: {
             administrator: boolean;
+            /** @default  */
+            fullName: string;
             name: string;
             senders: number[];
             user: string;

@@ -327,6 +327,7 @@ import { SPLIT_HANDLE } from "bmo-ui/app/domain/side-parts";
 import { useConfirm } from "~/domain/confirm";
 import { countText } from "~/domain/numbers";
 import { branchesAbove, branchesOpenAtFirst, isCompany, movePlan, unitPath } from "~/domain/organization";
+import { shownName } from "~/domain/people";
 
 import type { SplitterItem } from "@nuxt/ui";
 import type { Ref } from "vue";
@@ -424,7 +425,9 @@ function choose(unit: number): void {
 }
 
 function nameOf(user: string): string {
-  return users.value.find((one) => one.user === user)?.name ?? user;
+  const found = users.value.find((one) => one.user === user);
+
+  return found === undefined ? user : shownName(found);
 }
 
 function gone(user: string): boolean {
@@ -432,7 +435,7 @@ function gone(user: string): boolean {
 }
 
 function people(except: string[]): { label: string; value: string }[] {
-  return users.value.filter((one) => !except.includes(one.user)).map((one) => ({ label: one.name, value: one.user }));
+  return users.value.filter((one) => !except.includes(one.user)).map((one) => ({ label: shownName(one), value: one.user }));
 }
 
 // The parents a unit may stand under, each by its path from its company: for a new unit any unit; for a unit

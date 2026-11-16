@@ -85,6 +85,9 @@
 - the supervisor that answers every room naming none → 기본 응답 감독관; the supervisor a search or browse run no
   supervisor delegated writes its brain for → 리서치 감독관; the supervisor a group room is added with, one of the
   person adding it owns or 감독관 없음 → 그룹 감독관.
+- a person's own supervisor, as it is titled → `{name}의 BMO`, the person's name with BMO; its private room → the
+  person's name alone, `{name}`. The person's name stands there, the login only where none stands; never the
+  login with BMO beside a name, nor 비서, 개인 감독관 or 전용 BMO. The person themselves calls it 내 BMO.
 - a role's slot, one of the runs its agents let in at once → 역할 슬롯, 슬롯; a slot kept by a reservation → 예약, counted
   as `1 예약`. Never 자리, 칸, 풀.
 - what an agent is doing now → 상태, its column's name: an agent with nothing going → 유휴; a supervisor answering in
@@ -186,6 +189,9 @@
 - the account on a chat service a contact listing and a started conversation are for → 계정: 내 계정, 채팅 서비스
   계정, 내 계정 연락처, 채팅 서비스 계정 연락처. Never 어카운트, 아이디.
 - a person in the console's directory → 사람: 사람, 같은 조직의 사람. Never 사용자 for a person found by search; 사용자 stays for a login or an account.
+- the name people read a person by → 이름: 이름, 이름을 입력해 주세요. The sign-in name is 아이디. A screen names a person
+  by their 이름 and shows the 아이디 only where no 이름 stands or where the sign-in itself is meant. Never 실명, 성명,
+  표시 이름 or 닉네임.
 - what another person shared with the reader → 공유받은 항목: 공유받은 항목, 공유받은 항목 없음; the person who
   shared it → 공유한 사람: 공유한 사람, 공유한 사람: {name}. Never 공유된 항목, 받은 공유.
 - the people a thing is shared with → 공유 대상: 공유 대상, 공유 대상 없음. Never 공유한 사람, which is the

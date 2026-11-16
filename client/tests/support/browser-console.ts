@@ -89,7 +89,8 @@ const ACCOUNTS: readonly [string, string][] = [
   ["supervisor-road", "fixture-password-2921"],
   ["builder-model", "fixture-password-2926"],
   ["sidebar-rooms", "fixture-password-2941"],
-  ["room-head", "fixture-password-3051"]
+  ["room-head", "fixture-password-3051"],
+  ["person-name", "fixture-password-3096"]
 ];
 
 // The member accounts a test signs in with to read a section by its permission rather than as the administrator,
@@ -116,6 +117,15 @@ const MEMBERS: readonly { name: string; password: string; sections: readonly { s
   {
     name: "room-reader",
     password: "fixture-password-2402",
+    sections: [
+      { section: "rooms", read: true, write: false },
+      { section: "account", read: true, write: true }
+    ]
+  },
+  // The person who gives their own name on their account's profile.
+  {
+    name: "name-member",
+    password: "fixture-password-3097",
     sections: [
       { section: "rooms", read: true, write: false },
       { section: "account", read: true, write: true }

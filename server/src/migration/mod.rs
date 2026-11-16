@@ -14,6 +14,7 @@ pub mod m20261111_000002_departures;
 pub mod m20261112_000001_secret_kinds;
 pub mod m20261115_000001_card_and_delivery_kinds;
 pub mod m20261116_000001_shared_nodes;
+pub mod m20261116_000002_invite_names;
 mod secret_kind_seeds;
 
 pub struct Migrator;
@@ -34,6 +35,7 @@ impl MigratorTrait for Migrator {
       Box::new(m20261112_000001_secret_kinds::Migration),
       Box::new(m20261115_000001_card_and_delivery_kinds::Migration),
       Box::new(m20261116_000001_shared_nodes::Migration),
+      Box::new(m20261116_000002_invite_names::Migration),
     ]
   }
 }

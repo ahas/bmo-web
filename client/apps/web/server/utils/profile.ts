@@ -31,12 +31,13 @@ export function profileAsked(body: unknown): UserProfile | null {
 
   const held = body as Record<string, unknown>;
   const text = (name: string): string | null => (typeof held[name] === "string" ? (held[name] as string).trim() : null);
+  const fullName = text("fullName");
   const jobTitle = text("jobTitle");
   const landline = text("landline");
   const mobile = text("mobile");
   const email = text("email");
 
-  if (jobTitle === null || landline === null || mobile === null || email === null) return null;
+  if (fullName === null || jobTitle === null || landline === null || mobile === null || email === null) return null;
 
-  return { jobTitle, landline, mobile, email };
+  return { fullName, jobTitle, landline, mobile, email };
 }

@@ -15,6 +15,8 @@ export interface RouteEvent {
   method?: string;
   headers?: Record<string, string>;
   rawBody?: string | Uint8Array;
+  // A body arriving in pieces, as a browser's upload streams in, so the stream carries no length of its own.
+  streamed?: Uint8Array[];
   // The parts of a multipart body, where a route reads a form.
   parts?: { name?: string; filename?: string; type?: string; data: Uint8Array }[];
   // What a route keeps of the request while it runs, such as the rooms it may read.
@@ -38,8 +40,20 @@ globals.getMethod = (event: RouteEvent) => event.method ?? "GET";
 globals.getRequestHeader = (event: RouteEvent, name: string) => event.headers?.[name.toLowerCase()];
 globals.setResponseStatus = () => {};
 globals.readRawBody = async (event: RouteEvent) => event.rawBody;
-globals.getRequestWebStream = (event: RouteEvent) =>
-  event.rawBody === undefined ? undefined : new Response(event.rawBody as BodyInit).body;
+globals.getRequestWebStream = (event: RouteEvent) => {
+  const pieces = event.streamed;
+
+  if (pieces !== undefined) {
+    return new ReadableStream<Uint8Array>({
+      start(controller) {
+        pieces.forEach((piece) => controller.enqueue(piece));
+        controller.close();
+      }
+    });
+  }
+
+  return event.rawBody === undefined ? undefined : new Response(event.rawBody as BodyInit).body;
+};
 // A route that answers with a web response hands it back as it is, which a test reads whole.
 globals.sendWebResponse = (_event: RouteEvent, response: Response) => response;
 

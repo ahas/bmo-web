@@ -42,13 +42,16 @@ describe("the relay's path", () => {
     expect(unit.asked.at(-1)?.path).toBe(`/${written}`);
   });
 
-  test("hands a body on byte for byte, whatever it holds", async () => {
+  // A service that reads a body by its stated length, as a file's upload does, refuses one sent in chunks.
+  test("hands a body on byte for byte, whatever it holds, with the length the browser named", async () => {
     let heard: Uint8Array | undefined;
+    let framing: { length: string | null; chunked: string | null } | undefined;
     const bytes = new Uint8Array([0x00, 0xff, 0xfe, 0xc0, 0x80, 0xb0, 0xa1, 0x7f]);
     const binary = Bun.serve({
       port: 0,
       async fetch(request) {
         heard = new Uint8Array(await request.arrayBuffer());
+        framing = { length: request.headers.get("content-length"), chunked: request.headers.get("transfer-encoding") };
 
         return answer({ ok: true });
       }
@@ -56,11 +59,12 @@ describe("the relay's path", () => {
 
     // A change goes to a service a manifest names; one the console calls directly is relayed for a read alone.
     attachBundles([{ manifest: manifestOf("binary", { apiPrefix: "/files" }), unit: { address: `http://127.0.0.1:${binary.port}`, token: null }, words: {} }]);
-    await handler({ params: { path: "binary/files" }, method: "POST", rawBody: bytes, node: {} } as RouteEvent);
+    await handler({ params: { path: "binary/files" }, method: "POST", headers: { "content-length": String(bytes.length) }, streamed: [bytes.slice(0, 3), bytes.slice(3)], node: {} } as RouteEvent);
     attachBundles([]);
     await binary.stop(true);
 
     expect(heard).toEqual(bytes);
+    expect(framing).toEqual({ length: String(bytes.length), chunked: null });
   });
 
   test("of a unit the console calls directly is a read alone: a change asked of it is absent, and reaches no unit", async () => {

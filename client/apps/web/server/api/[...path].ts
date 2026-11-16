@@ -39,8 +39,10 @@ import { unitAt } from "../utils/units";
 // A socket a bundle declares stands at the same path, and the route carries the relay's socket hooks for it
 // (`utils/bundle-relay.ts`).
 
-/** The headers a request is handed on with, and an answer's headers a browser reads. */
-const ASKED_HEADERS = ["accept", "content-type", "range", "if-none-match", "if-modified-since", "last-event-id", "cache-control"];
+/** The headers a request is handed on with, and an answer's headers a browser reads. A streamed body goes with the
+ * length the browser named, since without it the fetch sends the stream in chunks, which a service reading a body by
+ * its stated length refuses. */
+const ASKED_HEADERS = ["accept", "content-type", "content-length", "range", "if-none-match", "if-modified-since", "last-event-id", "cache-control"];
 
 const ANSWERED_HEADERS = [
   "content-type",

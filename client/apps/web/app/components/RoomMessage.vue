@@ -137,7 +137,7 @@
                   ref="bubble"
                   data-bubble
                   class="relative"
-                  :class="[bubbleClass, albumed ? 'w-80 max-w-full' : pictured ? 'w-fit max-w-[min(100%,20rem)]' : 'w-fit max-w-full', props.arriving ? 'bubble-rise' : '']"
+                  :class="[bubbleClass, albumed ? 'w-80 max-w-full' : pictured ? 'w-fit max-w-80' : 'w-fit max-w-full', props.arriving ? 'bubble-rise' : '']"
                 >
                   <div class="relative flex flex-col overflow-hidden rounded-inherit">
                     <!-- The sender's name, once at the head of the run's first bubble, and the

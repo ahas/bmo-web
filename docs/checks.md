@@ -59,7 +59,8 @@ machine's own socket's `bmo_test`, and every name carries the process that made 
     administrator from the account model each time, and the data move names only one user there, so the harness
     removes that name: each login then stands as its seal recorded it, every account a file signs in with being
     the administrator its file waits for, and the members, made without the flag, staying members, whose console
-    sections are written whole as the administrator's screen writes them;
+    sections are written whole as the administrator's screen writes them; the account the media room's files sign
+    in with has a sender of its own linked to it, so what it said in that room stands on the right;
   - the console's development server, under the base path `/console/`, with a build folder of its own,
     `.nuxt-browser-tests`. Only the development server serves the screen-measuring module `console-ids` reads.
     The app's own type settings still stand in `.nuxt`, so a checkout the app was never prepared in is prepared

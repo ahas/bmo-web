@@ -188,7 +188,8 @@ const RECORD_CHAT = -9_000_000_000_099;
 // A room whose messages carry what a messenger sends besides words: an album of three tall pictures, an animated
 // sticker, an animation, reactions of several people with their pictures, two videos, and three kept files that stand
 // as file lines: a document under a caption, a sound in a form no browser plays, and a document that could not be
-// received.
+// received; then a lone square picture under a caption of several lines from person-b, and one from the account that reads
+// the room.
 const MEDIA_CHAT = 44;
 // A room a chat service numbered and listed, which the owner speaks in but never added, allowed or gave an agent: the
 // console leaves it out of the room list until it is added from the room add dialog, and once its registration is removed
@@ -255,6 +256,12 @@ async function privateRefusal(path: string, request: Request): Promise<Response 
 const high: { said: { id: string; text: string; replyTo: string | null }[]; reactions: Map<string, string> } = { said: [], reactions: new Map() };
 // A tall picture, as a phone's screenshot stands: drawn as an SVG of that size.
 const TALL = new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg" width="591" height="1280"><rect width="591" height="1280" fill="#3a6"/></svg>');
+// A square picture, as a profile picture or a drawing stands, larger than a bubble may be.
+const SQUARE = new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024"><rect width="1024" height="1024" fill="#36a"/></svg>');
+// The lone pictures of the media room, each square.
+const SQUARE_PICTURES = [16, 17];
+// The sender linked to the account the media room's file signs in with, so the picture it sent stands on the right.
+const PICTURES_SENDER = 9;
 // An animated sticker: a one-second Lottie scene of one square, gzipped as Telegram keeps it.
 const STICKER = Bun.gzipSync(new TextEncoder().encode(JSON.stringify({
   v: "5.5.2", fr: 30, ip: 0, op: 30, w: 512, h: 512, layers: [{
@@ -869,7 +876,11 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
           text: id === 13 ? "the notes from the review" : "",
           files: [{ kind: file.kind, source: file.name, storedPath: file.kept ? "kept" : null, collectedAt: LINE_AT }]
         });
-      })
+      }),
+      ...SQUARE_PICTURES.map((id) => shown(id, {
+        text: "a caption under the picture, long enough to wrap onto several lines in a bubble as wide as its picture", imagePath: `images/${MEDIA_CHAT}/${id}.jpg`,
+        ...(id === 17 ? { senderId: PICTURES_SENDER, senderName: "pictures" } : {})
+      }))
     ];
     const formats: Record<number, { text: string; entities: Record<string, unknown>[] }> = {
       8: { text: inlineWords, entities: inlineEntities },
@@ -888,7 +899,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     if (mediaAsked !== null) {
       const id = Number(mediaAsked[1]);
 
-      if (mediaAsked[2] === "/picture") return new Response(TALL, { headers: { "content-type": "image/svg+xml" } });
+      if (mediaAsked[2] === "/picture") return new Response(SQUARE_PICTURES.includes(id) ? SQUARE : TALL, { headers: { "content-type": "image/svg+xml" } });
       if (mediaAsked[2] === "/metadata") return Response.json({ metadata: id === 4 ? { sticker: { emoji: "\u{1F600}" } } : VIDEOS[id] ? { attachment: VIDEOS[id].shape } : (formats[id] ?? null) });
       if (mediaAsked[2] === "/files" && mediaAsked[3] === undefined) {
         const files = id === 4
@@ -1384,6 +1395,18 @@ try {
 
     if (!written.ok) throw new Error(`${member.name}'s sections were refused: ${written.status}`);
   }
+
+  // The media room's reader has a sender of its own, linked as the administrator links one.
+  const reader = users.find((user) => user.name === "pictures");
+
+  if (reader === undefined) throw new Error("pictures stands in no users list");
+
+  const linked = await fetch(`http://127.0.0.1:${serverPort}/users/${reader.user}/senders/${PICTURES_SENDER}`, {
+    method: "PUT",
+    headers: { authorization: `Bearer ${TOKEN}`, "owner-role": "administrator" }
+  });
+
+  if (!linked.ok) throw new Error(`the pictures sender link was refused: ${linked.status} ${await linked.text()}`);
 
   console.log(origin);
 } catch (error) {

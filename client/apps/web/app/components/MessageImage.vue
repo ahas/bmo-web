@@ -7,7 +7,7 @@
        the picture runs to the bubble's edges with no corners or edge of its own, cut by the bubble's
        own corners. In a room, the viewer is the room's own and walks every picture the room
        holds; a picture with no archived message behind it, or shown outside a room, opens alone. -->
-  <button type="button" class="block max-w-full cursor-zoom-in transition-opacity hover:opacity-85 active:opacity-70" :class="props.flush ? (backed ? 'relative size-full overflow-hidden' : 'size-full') : 'rounded-lg'" :style="frame" :aria-label="$t('common.aria.enlarge_named', { name: props.title })" @click.stop="enlarge">
+  <button type="button" class="block max-w-full cursor-zoom-in transition-opacity hover:opacity-85 active:opacity-70" :class="props.flush ? (backed ? 'relative w-full overflow-hidden' : 'size-full') : 'rounded-lg'" :style="frame" :aria-label="$t('common.aria.enlarge_named', { name: props.title })" @click.stop="enlarge">
     <span v-if="backed" aria-hidden="true" data-picture-backdrop class="pointer-events-none absolute inset-0 scale-125 bg-cover bg-center blur-xl" :style="{ backgroundImage: backdrop }" />
     <LoadingImage
       :src="props.src"
@@ -71,28 +71,28 @@ const backed = computed<boolean>(() => props.flush === true && props.tile !== tr
 // The copy is the picture as a background, so the bubble holds one image element, the picture itself.
 const backdrop = computed<string>(() => `url(${JSON.stringify(props.src)})`);
 
-const frame = computed<{ width: string; minWidth: string; height: string } | undefined>(() => {
+// The picture's width stands on the image element itself, which a narrower bubble shrinks at its ratio without the
+// bubble's width having to be known first. So the bubble asks its row for the picture's width and no more, the row is
+// never wider than the bubble it holds, and where the room is narrower the picture fits it whole.
+const frame = computed<{ "--picture-width": string } | undefined>(() => {
   if (!props.flush || props.tile || shape.value === null || shape.value.width <= 0 || shape.value.height <= 0) {
     return undefined;
   }
 
   const ratio = shape.value.width / shape.value.height;
-  let height = Math.min(PICTURE_CAP_PX, shape.value.height);
-  let width = height * ratio;
+  const width = Math.min(Math.min(PICTURE_CAP_PX, shape.value.height) * ratio, BUBBLE_WIDEST_PX);
 
-  if (width > BUBBLE_WIDEST_PX) {
-    width = BUBBLE_WIDEST_PX;
-    height = width / ratio;
-  }
-
-  // The bubble is never narrower than the picture, and the picture's box is as wide as the bubble: the picture
-  // is drawn contained in it, so it stands in the middle of whatever width is left over.
-  return { width: "100%", minWidth: `${Math.round(width)}px`, height: `${Math.round(height)}px` };
+  return { "--picture-width": `${Math.round(width)}px` };
 });
 
 const imageClass = computed<string>(() => {
   if (props.flush) {
-    return props.tile ? "size-full object-cover" : frame.value === undefined ? "mx-auto max-h-128 w-auto max-w-80 object-contain" : "size-full object-contain";
+    if (props.tile) {
+      return "size-full object-cover";
+    }
+
+    // The button is as wide as the bubble, and the picture stands in its middle at its own width.
+    return frame.value === undefined ? "mx-auto max-h-128 w-auto max-w-80 object-contain" : "mx-auto block h-auto w-(--picture-width) max-w-full object-contain";
   }
 
   return props.tile ? "aspect-square w-full rounded-lg border border-default object-cover" : "max-h-128 w-auto max-w-full rounded-lg border border-default";

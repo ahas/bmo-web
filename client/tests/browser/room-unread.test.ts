@@ -14,6 +14,8 @@ import type { Browser, BrowserContext, Page } from "playwright-core";
 // count that rounded one would leave the room counting. The room list names a room's last message by its second and
 // the marks keep the receiver's milliseconds; read in one unit for the other, every room would count nothing. It
 // drives the console tests/support/browser-console.ts stands up; the suite stands up no console, so there it skips.
+// Each account meets the room for the first time, and a mark only moves forward, so the file runs once on a console
+// freshly stood: run again on the same console, every account but the first finds the room already read.
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 
@@ -40,12 +42,27 @@ async function contextFor(cookie: string, size: { width: number; height: number 
   return context;
 }
 
+// Every finite animation or transition on the page run to its end, or two seconds, whichever comes first.
+async function settled(page: Page): Promise<void> {
+  await page.evaluate(async () => {
+    const moving = document.getAnimations().filter((one) => one.effect?.getComputedTiming().iterations !== Infinity);
+
+    await Promise.race([Promise.all(moving.map((one) => one.finished.catch(() => undefined))), new Promise((done) => setTimeout(done, 2_000))]);
+  });
+}
+
 // The room's line in the sidebar as it reads, a phone's drawer opened first.
 async function roomLine(page: Page, phone: boolean): Promise<string> {
   const link = page.getByRole("navigation", { name: wording("common.label.room") }).getByRole("link", { name: /unread-room/ });
 
-  // The title bar's toggle answers only once the page has hydrated, so a tap that opened nothing is made again.
-  for (let tap = 0; phone && tap < 10 && !(await link.isVisible()); tap += 1) {
+  // The title bar's toggle answers only once the page has hydrated, so a tap that opened nothing is made again; and a
+  // drawer still sliding shut from the move before shows its link until it comes to rest, so the link is trusted only
+  // once the page's motion has ended.
+  for (const end = Date.now() + 20_000; phone && Date.now() < end; ) {
+    await settled(page);
+
+    if (await link.isVisible()) break;
+
     await page.locator("[data-title-bar] [data-slot='toggle']").tap();
     await link.waitFor({ timeout: 2_000 }).catch(() => undefined);
   }

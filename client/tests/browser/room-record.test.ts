@@ -11,7 +11,9 @@ import type { Browser } from "playwright-core";
 // console tests/support/browser-console.ts stands up; the suite stands up no console, so there it skips.
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
-const ACCOUNT = { name: "room-record", password: "fixture-password-2260" };
+// The owner's account, the harness's first, to which the owner's sender is linked: the owner's sender is the reader's
+// own for that account alone.
+const ACCOUNT = { name: "agent-topbar", password: "fixture-password-1558" };
 const RECORD_CHAT = -9_000_000_000_099;
 
 let browser: Browser | null = null;

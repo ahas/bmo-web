@@ -3830,8 +3830,9 @@ Four bounds keep it from growing forever.
     in no round stands under the account's own name and picture.
   - **Which messages stand on the right.** A message is the signed-in person's, and stands on the right, when
     its sender is any of the senders linked to their account on the account service (`docs/accounts.md`, 「Users
-    and senders」), or, for the platform administrator, the sender the receiver names as the owner's (its
-    `GET /owner`), under which the receiver archives every message the owner sends from the console. It holds in
+    and senders」), or, for the owner's account alone (`docs/accounts.md`, 「The owner's account」), the sender the
+    receiver names as the owner's (its `GET /owner`), under which the receiver archives every message the owner sends
+    from the console; another platform administrator's own are their linked senders alone. It holds in
     every room alike, one a chat service carries and one the console made on the record road. Where no sender is
     known as theirs the room reads down the left.
   Times are all Seoul time. A date mark goes

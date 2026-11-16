@@ -55,12 +55,12 @@ machine's own socket's `bmo_test`, and every name carries the process that made 
     another account's private room with two lines said in it, `private-room`, and the owner's room, sealed where the
     script runs with `BROWSER_CONSOLE_SEALED_OWNER=1`; a write naming an account in another account's private room, or
     any account in a sealed room, is refused 403 `private-room` as the receiver refuses it;
-  - the fixture accounts each file signs in with, made by the console's own `user` script. The console reads the
-    administrator from the account model each time, and the data move names only one user there, so the harness
-    removes that name: each login then stands as its seal recorded it, every account a file signs in with being
-    the administrator its file waits for, and the members, made without the flag, staying members, whose console
-    sections are written whole as the administrator's screen writes them; the account the media room's files sign
-    in with has a sender of its own linked to it, so what it said in that room stands on the right;
+  - the fixture accounts each file signs in with, made by the console's own `user` script. Every account made
+    with the administrator flag is a platform administrator by the account service's word, and the members, made
+    without it, stay members, whose console sections are written whole as the administrator's screen writes them.
+    The first account is the data move's administrator, and the move links the owner's sender to it, so it is the
+    owner's account: a file that reads the owner's words as the reader's own signs in with it. The account the media
+    room's files sign in with has a sender of its own linked to it, so what it said in that room stands on the right;
   - the console's development server, under the base path `/console/`, with a build folder of its own,
     `.nuxt-browser-tests`. Only the development server serves the screen-measuring module `console-ids` reads.
     The app's own type settings still stand in `.nuxt`, so a checkout the app was never prepared in is prepared

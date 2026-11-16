@@ -18,7 +18,9 @@ import type { ArchivedMessage } from "../../apps/web/shared/types";
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 // Where the frames the run passes through are kept, when it is asked to keep them.
 const shots = process.env.BMO_ROOM_SENDING_SHOTS?.trim() ?? "";
-const ACCOUNT = { name: "room-sending", password: "fixture-password-2257" };
+// The owner's account, the harness's first, to which the owner's sender is linked: what is archived under that sender
+// stands as the reader's own, on the right, for that account alone.
+const ACCOUNT = { name: "agent-topbar", password: "fixture-password-1558" };
 const ROOM = 43;
 // The owner's number, the one the receiver's stand-in names: the owner's words are archived under it.
 const OWNER = 42;

@@ -28,8 +28,10 @@ const CONSOLE_DIR = join(CLIENT, "apps/web");
 const SERVER_DIR = join(CLIENT, "../server");
 const TOKEN = "browser-console-token-0123456789";
 
-// The accounts the console-driven tests sign in with, each by the name and password its file names. Each is the
-// platform administrator, so its screen reaches every section.
+// The accounts the console-driven tests sign in with, each by the name and password its file names. Each is a
+// platform administrator, so its screen reaches every section. The first is the owner's account too: the data move
+// takes it as the move's administrator and links the owner's sender to it, so a file that reads the owner's words as
+// the reader's own signs in with it (docs/accounts.md, 「The owner's account」).
 const ACCOUNTS: readonly [string, string][] = [
   ["agent-topbar", "fixture-password-1558"],
   ["home-repository", "fixture-password-3052"],
@@ -47,12 +49,10 @@ const ACCOUNTS: readonly [string, string][] = [
   ["room-members", "fixture-password-2995"],
   ["agents-listed", "fixture-password-2255"],
   ["briefing-chip", "fixture-password-2256"],
-  ["room-sending", "fixture-password-2257"],
   ["bundle-bar", "fixture-password-2258"],
   ["draft-close", "fixture-password-2259"],
   ["prompt-wrap", "fixture-password-1575"],
   ["room-feed", "fixture-password-1457"],
-  ["room-record", "fixture-password-2260"],
   ["room-find", "fixture-password-2261"],
   ["room-past", "fixture-password-2943"],
   ["pictures", "fixture-password-2262"],
@@ -252,10 +252,14 @@ async function privateRefusal(path: string, request: Request): Promise<Response 
 
   return null;
 }
-// What the owner said into the KakaoTalk-sized room (tests/support/high-room.ts), each with the message it answers, and
-// the reaction each of the room's messages carries, kept for as long as the console stands. A reaction stands as the
-// room's other person's, so a press always sets it and a run of a file again finds the same.
-const high: { said: { id: string; text: string; replyTo: string | null }[]; reactions: Map<string, string> } = { said: [], reactions: new Map() };
+// What an account said into the KakaoTalk-sized room (tests/support/high-room.ts), each with the name it is shown by
+// and the message it answers, and the reaction each of the room's messages carries, kept for as long as the console
+// stands. A reaction stands as the room's other person's, so a press always sets it and a run of a file again finds
+// the same.
+const high: { said: { id: string; name: string; text: string; replyTo: string | null }[]; reactions: Map<string, string> } = { said: [], reactions: new Map() };
+// The sender the receiver's stand-in files an account's words in that room under, a number no other fixture sender
+// stands under.
+const HIGH_SPEAKER = 9;
 // A tall picture, as a phone's screenshot stands: drawn as an SVG of that size.
 const TALL = new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg" width="591" height="1280"><rect width="591" height="1280" fill="#3a6"/></svg>');
 // A square picture, as a profile picture or a drawing stands, larger than a bubble may be.
@@ -1035,7 +1039,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
         })),
         ...high.said.map((one, nth) => ({
           id: one.id,
-          message: kept(one.id, HIGH_LINE.length + nth, { senderId: 1, senderName: "owner", text: one.text, replyToMessageId: one.replyTo === null ? null : rawNumber(one.replyTo) })
+          message: kept(one.id, HIGH_LINE.length + nth, { senderId: HIGH_SPEAKER, senderName: one.name, text: one.text, replyToMessageId: one.replyTo === null ? null : rawNumber(one.replyTo) })
         }))
       ];
     };
@@ -1103,23 +1107,23 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
           return Response.json(found.message);
       }
     }
-    if (path === "/owner/messages" && request.method === "POST") {
+    // Words an account says in that room, the owner's account among them, which the receiver files under the
+    // account's own sender with the name it is shown by.
+    if (path === `/rooms/${HIGH_ROOM}/words` && request.method === "POST") {
       // The message a reply answers is read from the digits the console wrote, as the receiver reads a 64-bit id.
       const body = JSON.parse(await request.clone().text(), (key: string, value: unknown, context?: { source?: string }) =>
         key === "replyTo" && typeof value === "number" ? context?.source : value
-      ) as { chatId?: number; text?: string; replyTo?: string | null };
+      ) as { name?: string; text?: string; replyTo?: string | null };
 
-      if (body.chatId === HIGH_ROOM) {
-        if (body.replyTo != null && !highLine().some((one) => one.id === body.replyTo)) {
-          return Response.json({ code: "reply-missing", error: "the archive holds no such message" }, { status: 409 });
-        }
-
-        const id = highSent(high.said.length);
-
-        high.said.push({ id, text: body.text ?? "", replyTo: body.replyTo ?? null });
-
-        return Response.json({ id: rawNumber(id) });
+      if (body.replyTo != null && !highLine().some((one) => one.id === body.replyTo)) {
+        return Response.json({ code: "reply-missing", error: "the archive holds no such message" }, { status: 409 });
       }
+
+      const id = highSent(high.said.length);
+
+      high.said.push({ id, name: body.name ?? "", text: body.text ?? "", replyTo: body.replyTo ?? null });
+
+      return Response.json({ id: rawNumber(id) });
     }
     if (path === "/people") return Response.json({ items: [], more: false });
 
@@ -1358,16 +1362,6 @@ try {
   for (const { name, password } of MEMBERS) {
     await run("bun", ["scripts/user.ts", "set", name, password], userEnv, CONSOLE_DIR);
   }
-
-  // The console reads whether a login is the administrator from the account model each time (docs/web.md,
-  // 「Access」): the model names the one account the data move made the platform administrator's, while every
-  // fixture account made with --administrator carries that in its seal. Removing the model's name leaves each
-  // login standing as its seal recorded it, so every account a file signs in with is the administrator its file
-  // waits for, and the members, made without the flag, stay members.
-  const fixture = new SQL(connectionOf(databaseUrl) as SQL.Options);
-
-  await fixture.unsafe('DELETE FROM "settings" WHERE "key" = $1', ["users_administrator"]);
-  await fixture.close();
 
   start("bun", ["--bun", "nuxi", "dev", "--port", String(consolePort), "--host", "127.0.0.1"], consoleEnv, CONSOLE_DIR, "console");
 

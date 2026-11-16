@@ -260,9 +260,9 @@ falls away after two minutes without one.
 - **The store is the folder the server's `secrets.dir` setting names,** the data root's `env/`, where every unit
   reads a secret by its file name (`docs/accounts.md`, 「The secret store」). A server whose setting names no folder
   answers 503 `no-secret-store`.
-- **A person's space** is `env/` itself for the platform administrator, as the service's `settings` names them at
-  the call, and `env/users/<user>/` for any other user, `<user>` the path's decimal id; a user the service holds
-  none of is refused 404. A secret's address is its name in the administrator's space and `users/<user>/<name>` in
+- **A person's space** is `env/` itself, the platform's, for every platform administrator, as sumida names them
+  at the call, and `env/users/<user>/` for any other user, `<user>` the path's decimal id; a user the service holds
+  none of is refused 404. A secret's address is its name in the platform's space and `users/<user>/<name>` in
   anyone else's, relative to `env/`.
 - **A name is a plain file name:** one or more of `A`–`Z`, `a`–`z`, `0`–`9`, `.`, `_` and `-`, at most 200 bytes,
   beginning with no dot and not ending in `.previous`; any other is refused 400 `bad-name`. A name that stands in the
@@ -280,7 +280,7 @@ falls away after two minutes without one.
   one. A delete moves the file to `<name>.previous` the same way. A folder that does not stand yet is made, mode
   700.
 - **What is listed** is the space's regular files whose names are names as above; a `.previous` file, a hidden
-  file and anything not a regular file are not, so another person's space never stands in the administrator's
+  file and anything not a regular file are not, so another person's space never stands in the platform's
   list. A space whose folder does not stand yet lists none.
 - **The store's routes answer 503 `not-in-force`** while the account model is not in force, as every route of the
   server's own does.
@@ -471,7 +471,7 @@ data root's `env/web-console.env`, which its unit reads and its build reads for 
 | server | `receiver.base`, `receiver.token` | the receiver, set together or not at all; with neither, a check or a grant on a message is refused 503 |
 | server | `names.chat_agent` | the name the chat agent goes by in a room, which a fixed line says it as; the server does not stand without one, and a deployment must set it |
 | server | `jake.hub_url`, `jake.install_base`, `jake.agent_key`, `jake.control`, `jake.control_token` | the jake hub an invited machine attaches to, the folder its install scripts are served under, the key its credentials are made with, and the hub's loopback control address and token the service asks which machines are attached; with none, no invitation is made and every machine reads as gone |
-| server | `secrets.dir` | the folder the secret store writes, the data root's `env/`, the platform administrator's space and the folder every other person's stands under; a leading `~/` stands for the home of the user the server runs as, and `settings.toml` names the data root's `env/` under it |
+| server | `secrets.dir` | the folder the secret store writes, the data root's `env/`, the platform's space every platform administrator holds and the folder every other person's stands under; a leading `~/` stands for the home of the user the server runs as, and `settings.toml` names the data root's `env/` under it |
 | console | `PORT` | the port the console listens on |
 | console | `BMO_WEB_BASE_URL` | the base path every road of the console stands under, fixed as the console is built |
 | console | `WEB_SERVER_ADDRESS`, `WEB_SERVER_TOKEN` | the server |

@@ -100,7 +100,7 @@ section states what each does.
   acting may let that person into the room (「A room's callers」), the decision asked for named as
   `bmo_room:<chat id>#entry`, and the person it was asked for.
 - **What a check builds:** the sender's user where their identity is linked, and the room's members, always.
-  The platform administrator passes every check but the entry check's company bound.
+  Every platform administrator passes every check but the entry check's company bound.
 
 ### Grants
 
@@ -152,6 +152,21 @@ section states what each does.
   at the deployment's defaults, the rules' grants and their words, and a user's id on the console's own tables
   that are keyed by user. A table of another unit is that unit's to key.
 
+### The platform administrators
+
+- **A platform administrator is a user holding sumida's `admin` on the platform's root.** The data move writes
+  it for the console's one account, and the account command for every user it names `--administrator`
+  (「The account command」), so a deployment may hold several. That one relation is the whole of the standing:
+  each of them passes every check, every section and every secret kind, heads every unit, reads every contact
+  detail and holds the platform's secret space, and every route that answers `administrator` of a user reads it,
+  `GET /users` and `GET /users/{user}` among them. The relation taken away, the user is an administrator no more
+  at the next call that asks.
+- **The move's administrator is a fact of its own:** the one user the data move made the administrator, written
+  once in the service's `settings` and changed by no route, and readable in SQL as `bmo_administrator()`. It is
+  the anchor the owner's account is linked to (「The owner's account」), and the user the console's own reads
+  stand under where nobody is signed in. It says nothing of who administers the platform now: the move's
+  administrator is one while the relation stands, and no other administrator becomes the owner by holding it.
+
 ### Users and senders
 
 - **Every account has an identity on the record road,** the console's own, beside whatever chat services' identities
@@ -172,10 +187,11 @@ section states what each does.
   may sign in. A user made for a sender by a grant, an invitation not yet accepted and an account that has left
   cannot; the console marks a room's member as a console user only where they can (`docs/web.md`, the room
   screen's 대화상대).
-- **`GET /users`** — every user, with their name and whether they are the platform administrator, for the
+- **`GET /users`** — every user, with their name and whether they are a platform administrator, for an
   administrator alone.
-- **`GET /users/{user}`** — a user's name, whether they are the platform administrator, and the sender ids
-  linked to them; **`GET /users/{user}/senders`** the sender ids alone.
+- **`GET /users/{user}`** — a user's name, whether they are a platform administrator (「The platform
+  administrators」), and the sender ids linked to them; the console asks it for the signed-in user's standing.
+  **`GET /users/{user}/senders`** answers the sender ids alone.
 - **`POST /users/{user}/password`** — the current password and the next; refused with 401 where the current one
   does not match, and hashed as sumida hashes every password.
 - **`POST /users/{user}/name`** — another name; refused with 409 where another user holds it.
@@ -218,6 +234,10 @@ section states what each does.
   start with nothing for him to do. A link that stands is never moved: the service refuses one sender linked to two
   users. Where the receiver names no owner's sender, no move names an administrator or the service does not answer,
   the console writes so to its log and the request goes on.
+- **Being a platform administrator makes nobody the owner.** The console links the owner's sender to the move's
+  administrator alone, never to another administrator, and everything the owner holds — his private chat as his own
+  room, his own road, his sender's words as his own, the deployment's own account on a chat service — hangs on his
+  account, whatever administrators the platform holds beside it.
 - **Until the link stands the move's administrator keeps the owner's own road:** the console sends his words on the
   receiver's owner routes, holds the owner's private chat as his own room, and takes him for the owner's login, as it
   did before accounts had rooms of their own. On that road he writes in his own private chat always and in no
@@ -263,7 +283,7 @@ section states what each does.
 - **A section's permission is two relations of the deployment's rules,** `read` and `write`, on a
   `bmo_section` object named by the section. They are checked through sumida's point check as every other
   relation is (`server/src/bmo.sz`); a write is also a read, so nobody changes what they may not see.
-- **The platform administrator passes every section.**
+- **Every platform administrator passes every section.**
 - **A user's grants are sumida's relation tuples,** so the service keeps no table of them. An administrator
   writes one user's set whole, and a section named no more is taken away.
 - **The defaults in force are the console as it stood before this surface:** `rooms` read, `account` read and
@@ -291,7 +311,7 @@ section states what each does.
   sections」).
 - **A unit's head is a `manager` of it in sumida's rules,** granted as a relation tuple on the unit. sumida's
   `manage` permission reads the tuple on the unit and on every unit above it, so a head heads their own unit and
-  everything below it, and the platform administrator heads every unit.
+  everything below it, and every platform administrator heads every unit.
 - **`GET /users/{user}/unit`** answers the user's unit, its company and the path between them, from the company
   down to the unit, so a caller tells whether one unit stands under another without a call of its own.
 - **`GET /units/{unit}`** answers a unit: its name, its parent, its company, its path, the units directly under
@@ -468,23 +488,25 @@ section states what each does.
 
 - **The store is the data root's `env/` folder,** the one the server's `secrets.dir` setting names, and its whole
   work is to write a file under a name; agents and settings are then given the name, never the value.
-- **A secret is a person's.** The store holds one space for each person, and a space is listed, written and
-  emptied by its own person alone: the console hands on the signed-in login's user in `Owner-Key`, and every route
-  of the store refuses a call whose key is not the space's user. Nobody lists another person's names, the
-  administrator included; a login with no user holds no space.
+- **A secret is a person's, or the platform's.** The store holds the platform's space and one space for each other
+  person, and a space is listed, written and emptied by those it is held by alone: the console hands on the
+  signed-in login's user in `Owner-Key`, and every route of the store refuses a call whose key is not the space's
+  user. Nobody lists another person's names, an administrator included; a login with no user holds no space.
 - **Where a space stands:**
-  - **The platform administrator's space is `env/` itself.** The platform's own work runs on the administrator's
-    accounts (「The data move」), every unit reads the deployment's secrets there by the file name its own settings
-    carry, and every secret the store wrote before people held spaces of their own stands there; so it is all the
-    administrator's, read where it always was, and nothing moves.
+  - **The platform's space is `env/` itself, and every platform administrator holds it** (「The platform
+    administrators」). The platform's own work runs on the administrators' accounts, every unit reads the
+    deployment's secrets there by the file name its own settings carry, and every secret the store wrote before
+    people held spaces of their own stands there; so it is the platform's, read where it always was, and each
+    administrator lists, writes and empties the same names there under their own user.
   - **Every other person's space is `users/<user>/` under it,** `<user>` being their user's id written as a decimal
     number, the key `Owner-Key` carries and the one their supervisor `u<user>` is named by. The login name, which a
     person may change, names no space. The folder is made, mode 700, at the person's first write, and `users` itself
     is no secret's name in `env/`, since a folder stands there under it.
-  - **The space follows the administrator's place,** read from the service's `settings` at each call: a user who
-    stops being the platform administrator writes into `users/<user>/` from then on, and what they wrote in `env/`
-    stays the deployment's, with the user who is made the administrator.
-- **A secret's address** is its space and its name, relative to `env/`: `<name>` for the administrator's, and
+  - **The space follows the administrator's standing,** asked of sumida at each call: a user who stops being a
+    platform administrator writes into `users/<user>/` from then on, and what they wrote in `env/` stays the
+    platform's, with the administrators who remain; a user made an administrator writes into `env/` from then on,
+    and what stands in their own folder stays there, listed by nobody while they are one.
+- **A secret's address** is its space and its name, relative to `env/`: `<name>` for the platform's, and
   `users/<user>/<name>` for anyone else's.
 - **Who reads a secret:**
   - **A unit reads the deployment's secrets** by the path its own settings name under `env/`, as it always has.
@@ -501,7 +523,7 @@ section states what each does.
 - **A person who leaves keeps their space as it stood,** sealed with their other private records (「A person who
   leaves」): their sign-in disabled, nobody lists it, and nothing reads it for them.
 - **`GET /users/{user}/secrets`** lists the names standing in the person's space, each with its size, the time it
-  last changed and the kind its file reads as, and never what a file holds. The administrator's lists `env/`'s own
+  last changed and the kind its file reads as, and never what a file holds. The platform's lists `env/`'s own
   files, never a folder under it.
 - **A secret's kind is read off its file's shape,** since the store keeps no kind: a file of at most 16 KiB made of
   `KEY=VALUE` lines alone, each key one field of a kind of several fields, none twice and every required one
@@ -555,7 +577,8 @@ section states what each does.
   password read from standard input so it stands in no process listing.
   - A user made is enabled, in the first company with the default role (「The data move」), and given the
     console sections in force — their rooms read and their account read and written — holding nothing else
-    until it is granted; `--administrator` also makes it the platform administrator.
+    until it is granted; `--administrator` also makes it a platform administrator,
+    one more beside those that stand (「The platform administrators」).
   - A user standing is enabled again with the new password, and keeps its grants and its links.
   - The password is hashed as sumida hashes every password.
 - **It writes the database the service reads,** the one its settings name, and refuses where the data move has
@@ -584,7 +607,7 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 | `user_nodes` | the machine each invited account is bound to, whether the administrator bound it shared, and when it was last proven |
 | `user_departures` | each account marked left: when, and by whom |
 | `secret_kinds` | each secret kind: its key, name, description and fields, and the order kinds were added in |
-| `settings` | the service's own keys: the mark that the move is written, and the platform administrator's user |
+| `settings` | the service's own keys: the mark that the move is written, and the move's administrator's user (「The platform administrators」) |
 | `web_users` | the console's own accounts, the sign-in that stands before the model is in force |
 | `web_push_devices` | a user's browsers that take push notices |
 | `web_tab_states` | a user's open tabs per screen |
@@ -626,9 +649,10 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 - **Every route of `docs/boundary.md`'s 「What the server serves」 answers in a test.**
 - **The secret store's tests stand on a temporary folder** in place of the data root's `env/`: the modes a write
   leaves, the value kept before, the names refused, a base64 value written as its bytes, and that no answer and no
-  refusal carries a value; the administrator's space at the folder and a member's under `users/<user>/`, neither
-  listing the other's, and every route refused to a key that is not its space's user, the administrator's
-  included.
+  refusal carries a value; the platform's space at the folder and a member's under `users/<user>/`, neither
+  listing the other's; an administrator the account command made writing into and listing the folder the move's
+  administrator does, and their own folder again once their standing is taken away; and every route refused to a
+  key that is not its space's user, an administrator's included.
 - **The secret kind tests** read the seeded defaults with their fields, migrate a store made before the card and
   delivery-address kinds and see it gain both once after every kind it keeps, the owner's changes and a kind of its
   own under a seeded key left as they stand, add, change and remove a kind as the administrator, refuse each

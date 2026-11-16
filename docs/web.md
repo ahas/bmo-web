@@ -386,7 +386,8 @@ console page. No answer says which framework drew it. Strict transport is the re
 (`docs/accounts.md`).
 
 - **Signing in** posts the name and the password to the service, and the seal this app keeps holds
-  the sumida session it is handed, the user and whether that user is the platform administrator.
+  the sumida session it is handed, the user and whether the service named that user a platform administrator
+  then.
   Every request carrying such a seal asks the service whether its session still stands, at most once
   every thirty seconds, and a session gone clears the seal. A relayed call is such a request like any
   other.
@@ -410,7 +411,7 @@ console page. No answer says which framework drew it. Strict transport is the re
   ended, as one whose session is gone, and the next login is the service's. Where the service does not
   answer whether the model is in force, the request is refused as the service being down and the seal
   stays.
-- **The administrator reaches every screen and route.** Anyone else reaches the console sections their
+- **The administrator reaches every screen and route,** every platform administrator alike. Anyone else reaches the console sections their
   permission reads, and each route of those sections under its scope: their own account, their phones and
   their tabs, and the rooms they read (below). A route of a section they may not read or write answers them as
   if nothing stood there; the routes and the section each serves are kept in one place, and a test holds every
@@ -463,9 +464,12 @@ console page. No answer says which framework drew it. Strict transport is the re
 - **The owner is his account** (`docs/accounts.md`, 「The owner's account」): the user the owner's sender is linked
   to, linked at this server's start, or at the first request that needs it, to the user the data move made the
   platform administrator where it stands linked to none. What is granted to the owner — words to a worker, the talk
-  about a document — hangs on that account, and so does the owner's private chat as his own room. While the link
-  cannot be made, the move's administrator keeps the owner's own road: his words go on the owner's routes, his private
-  chat is his own and writable to him, and he is the owner's login.
+  about a document, a job's questions — hangs on that account, and so does the owner's private chat as his own room,
+  his sender's words as his own and the deployment's own account on a chat service. While the link cannot be made,
+  the move's administrator keeps the owner's own road: his words go on the owner's routes, his private chat is his
+  own and writable to him, and he is the owner's login. Being a platform administrator is none of this: any other
+  administrator reads the owner's private chat as he reads every room not his own, and holds nothing of the
+  owner's.
 - **The administrator's read of a room that is not his own leaves nothing its people or its BMO can see.** His
   own rooms are those he reads by his account as any person does (above); the owner's private chat is his own only
   where his account is the owner's, as the receiver's memberships of his account say. In any other
@@ -511,12 +515,15 @@ console page. No answer says which framework drew it. Strict transport is the re
 permission reads.** The routes refuse them either way; what this adds is that no screen opens onto
 nothing.
 
-- **Whether the one signed in is the administrator is read from the account model each time,** for the
-  user the session's seal names: they are the administrator while the model names their user as its
-  administrator, whatever the seal recorded at sign-in, so a login kept across a change of the model reads as
-  what they are now. A seal naming a user the model does not place stands as the seal recorded it. A seal
-  that names no sumida session is a console login, which stands only before the model and is the
-  administrator's, as the routes read it.
+- **Whether the one signed in is the administrator is the account service's word, asked each time** for the
+  user the session's seal names (its `GET /users/{user}`; `docs/accounts.md`, 「The platform administrators」):
+  every platform administrator is the administrator here, the user the data move made and every one made since
+  alike, and a user stops being it once the service says so, whatever the seal recorded at sign-in. The route
+  guard asks it as every route does, so the guard and the route never read two answers. The word is held for a
+  session thirty seconds, as the session's own standing is, so a screen's burst of requests asks once and a
+  change reaches the first request after the window. Where the service cannot be asked, or holds no such user,
+  the seal's own word stands. A seal that names no sumida session is a console login, which stands only before
+  the model and is the administrator's, as the routes read it.
 - **Each screen says which section it belongs to, and a member opens the ones their permission reads.** A
   console screen belongs to the section its address names, agent management's and the monitor's as their parts
   stand, and a member opens every one of them whose section they read, each screen holding back by itself what
@@ -1426,9 +1433,10 @@ Four groups.
       account already has a one-to-one with it, marked as that room is. The contacts are the signed-in person's
       own account's: the listing and a start from it name that person's user id as the account they are for
       (bmo-chat's `docs/contract.md`, 「The account a call is for」), taken from the session and never from the
-      dialog. The administrator's account is the deployment's own, as agency holds it (its
-      `docs/person-nodes.md`), so the administrator's listing and start name none, as a person the account model
-      names no user for names none, and the service's own account answers. A service that holds its own account alone answers that account's whichever is named. Under its
+      dialog. The owner's account is the deployment's own, as agency holds it (its
+      `docs/person-nodes.md`), so the owner's listing and start name none, as a person the account model names no
+      user for names none, and the service's own account answers; any other administrator's name their own user,
+      as a member's do (`docs/accounts.md`, 「The owner's account」). A service that holds its own account alone answers that account's whichever is named. Under its
       label the list says in a few words whose contacts these are, the reader's own (내 계정 연락처) or, where
       the reader has no user, the chat service's own (채팅 서비스 계정 연락처). Choosing one contact starts a
       one-to-one where the service starts one (`startsChats`); where it starts groups (`startsGroups`), several may be

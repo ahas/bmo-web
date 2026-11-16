@@ -114,6 +114,10 @@
 - a role → its name alone, the kebab-case key the agency holds it under (`worker`, `doppelganger`, `voyager`,
   `seeker`, `producer` …): never translated and never the row's label, on every screen that names one.
 - a supervisor whose road cannot take a turn now → 답할 수 없음.
+- a supervisor's tool limit, the capabilities its sessions may hold → 도구 제한; a capability stands by its own name
+  (`program.files`), never translated. Never 도구 한도, 허용 도구 목록.
+- the operating system's user a program runs as → 시스템 사용자: 소유자의 시스템 사용자. Never 계정 for it, which stays
+  for a login. The folder the units keep their data under → 데이터 루트. Never 데이터 폴더, 루트 폴더.
 - what an agent left waiting for a room → 진행 중: a watch → 감시, a reminder → 알림.
 - the answers one turn of a round wrote, before the one it went on with → 쓴 답, each opened by 받은 말 (words handed
   over) or 작업 알림 (the program's own notice); never 판, which reads as 판정.

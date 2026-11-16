@@ -1,7 +1,7 @@
 import { wording } from "#shared/wording";
 
 import { agency, agencyCall } from "./agency";
-import { defaultAnswerer } from "./owner";
+import { defaultAnswerer, ownerStanding } from "./owner";
 import { bundleWordOf, providerLabelOf, roadReasonOf } from "./agency-words";
 
 import type { Provider, Repository, Role, Supervisor } from "@agency/client";
@@ -62,7 +62,8 @@ export function providerViewOf(provider: Provider): ProviderView {
     reason: said.reason,
     reasonEnglish: said.reasonEnglish,
     foldRatioDefault: number(held.foldRatioDefault),
-    keyFile: text(held.keyFile)
+    keyFile: text(held.keyFile),
+    ownersEngine: provider.registered || !provider.gateway
   };
 }
 
@@ -118,8 +119,25 @@ export function supervisorOwner(supervisor: { name: string; ownerAccount?: numbe
   return user === undefined ? null : Number(user);
 }
 
-/** One supervisor as the screen reads it, marked as the default answerer where the receiver's setting names it. */
-export function supervisorViewOf(supervisor: Supervisor, answerer: string | null): SupervisorView {
+/** The owner's account, as the console's account standing names it; none where it cannot be told. */
+async function ownersAccount(): Promise<number | null> {
+  return ownerStanding().then((standing) => standing.account, () => null);
+}
+
+/**
+ * Whether a supervisor's program runs as the owner's own user on this machine (the agency's `docs/supervisors.md`,
+ * 「What confines a session allowed files」): the account the agency itself files it under is none or the owner's. The
+ * name of a person's BMO is not read here, since the agency confines a supervisor by its filed account alone.
+ */
+function runsAsOwner(supervisor: Supervisor, owner: number | null): boolean {
+  const filed = supervisor.ownerAccount ?? null;
+
+  return filed === null || filed === owner;
+}
+
+/** One supervisor as the screen reads it, marked as the default answerer where the receiver's setting names it, and
+ * as running as the owner's own user by the owner's account `owner`. */
+export function supervisorViewOf(supervisor: Supervisor, answerer: string | null, owner: number | null): SupervisorView {
   const warming: Record<string, boolean> = {};
 
   for (const [provider, on] of Object.entries(record(supervisor.warming))) {
@@ -130,6 +148,7 @@ export function supervisorViewOf(supervisor: Supervisor, answerer: string | null
     name: supervisor.name,
     label: supervisor.label ?? supervisor.name,
     ownerAccount: supervisorOwner(supervisor),
+    runsAsOwner: runsAsOwner(supervisor, owner),
     icon: supervisor.icon,
     aliases: supervisor.aliases,
     sessionScope: supervisor.sessionScope,
@@ -144,15 +163,15 @@ export function supervisorViewOf(supervisor: Supervisor, answerer: string | null
 }
 
 export async function readSupervisors(): Promise<SupervisorView[]> {
-  const [page, answerer] = await Promise.all([agencyCall(agency().GET("/supervisors")), defaultAnswerer()]);
+  const [page, answerer, owner] = await Promise.all([agencyCall(agency().GET("/supervisors")), defaultAnswerer(), ownersAccount()]);
 
-  return page.items.map((supervisor) => supervisorViewOf(supervisor, answerer));
+  return page.items.map((supervisor) => supervisorViewOf(supervisor, answerer, owner));
 }
 
 export async function readSupervisor(name: string): Promise<SupervisorView> {
-  const [supervisor, answerer] = await Promise.all([agencyCall(agency().GET("/supervisors/{supervisorName}", { params: { path: { supervisorName: name } } })), defaultAnswerer()]);
+  const [supervisor, answerer, owner] = await Promise.all([agencyCall(agency().GET("/supervisors/{supervisorName}", { params: { path: { supervisorName: name } } })), defaultAnswerer(), ownersAccount()]);
 
-  return supervisorViewOf(supervisor, answerer);
+  return supervisorViewOf(supervisor, answerer, owner);
 }
 
 /** The supervisors the account owns, by name and label, in the agency's order: the first is the account's own BMO. */
@@ -206,9 +225,9 @@ export function supervisorChangeOf(body: unknown): Schemas["SupervisorChange"] |
 }
 
 export async function changeSupervisor(name: string, change: Schemas["SupervisorChange"]): Promise<SupervisorView> {
-  const [supervisor, answerer] = await Promise.all([agencyCall(agency().PATCH("/supervisors/{supervisorName}", { params: { path: { supervisorName: name } }, body: change })), defaultAnswerer()]);
+  const [supervisor, answerer, owner] = await Promise.all([agencyCall(agency().PATCH("/supervisors/{supervisorName}", { params: { path: { supervisorName: name } }, body: change })), defaultAnswerer(), ownersAccount()]);
 
-  return supervisorViewOf(supervisor, answerer);
+  return supervisorViewOf(supervisor, answerer, owner);
 }
 
 // A bundle is worded by its code, the name with each dot a hyphen (the agency's `docs/api.md`, 「roles」).

@@ -41,6 +41,10 @@ export interface ProviderView {
   foldRatioDefault: number | null;
   // The file under the data root's env/ the provider reads its own key from, or null for one that reads none.
   keyFile: string | null;
+  // Whether its engine is the owner's own: the registry's provider, or the one the agency's gateway does not serve,
+  // Claude Code on the owner's own logins (the agency's `docs/supervisors.md`, 「What confines a session allowed
+  // files」). Every other provider sends what a session reads to an outside party.
+  ownersEngine: boolean;
 }
 
 // One model a road may name on a provider: its id, the effort levels a road on it takes (none listed is every
@@ -69,6 +73,9 @@ export interface SupervisorView {
   // The account whose BMO it is: the one the agency files it under, else the user its name `u<user>` names, else none,
   // the administrator's (docs/accounts.md, 「Whose BMO a supervisor is」).
   ownerAccount: number | null;
+  // Whether its program runs as the owner's own user on this machine: the agency files it under no account or under
+  // the owner's account (the agency's `docs/supervisors.md`, 「What confines a session allowed files」).
+  runsAsOwner: boolean;
   icon: string | null;
   aliases: string | null;
   sessionScope: string;

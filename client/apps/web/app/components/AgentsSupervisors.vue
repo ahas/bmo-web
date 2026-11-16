@@ -58,7 +58,7 @@
       </template>
 
       <template #road-cell="{ row }">
-        <SupervisorRoadCell :road="row.original.road" :name="row.original.label" :disabled="props.readonly" :save="(road) => change(row.original.name, { road })" />
+        <SupervisorRoadCell :road="row.original.road" :name="row.original.label" :disabled="props.readonly" :runs-as-owner="row.original.runsAsOwner" :save="(road) => change(row.original.name, { road })" />
       </template>
 
       <!-- Its road's provider where its prefix is kept warm there; pressed, that provider's switch, taking effect as it
@@ -145,7 +145,7 @@
           <UInput v-model="draft.room" class="w-full" :aria-label="$t('agents.label.room_title')" />
         </UFormField>
 
-        <RoadField v-model="draft.road" :line="SUPERVISOR_LINE" :whole="false" :refusal="addRefusal" :disabled="addBusy" />
+        <RoadField v-model="draft.road" :line="SUPERVISOR_LINE" :whole="false" :refusal="addRefusal" :disabled="addBusy" :runs-as-owner="owner.owner" />
 
         <UFormField :label="$t('agents.label.work_repository')" name="repository" :error="addErrorAt('repository')">
           <USelect v-model="draft.repository" :items="repositoryItems" value-key="value" class="w-full sm:w-1/2" :aria-label="$t('agents.label.work_repository')" />
@@ -182,6 +182,7 @@ import { useRoomList } from "~/domain/room-list";
 import { CELL_TEXT } from "~/domain/settings-cells";
 
 import type { DefaultAnswererView, RepositoryView, RoadView, SupervisorAddedView, SupervisorView } from "#shared/axes";
+import type { OwnerChat } from "#shared/types";
 import type { DropdownMenuItem } from "@nuxt/ui";
 import type { AgentDoing } from "~/domain/agent-state";
 import type { LogPlace } from "~/domain/log";
@@ -197,6 +198,9 @@ const SUPERVISOR_ICON = "i-material-symbols-chat-bubble-outline";
 
 // The page's search reads the same answers under the same keys.
 const { data: supervisors, error, refresh, status } = useFetch<SupervisorView[]>("/api/supervisors", { key: "supervisors", lazy: true, server: false });
+// Whether the one signed in is the owner's login: a supervisor they add is filed under the owner's account, or under
+// none, and so runs as the owner's own user.
+const { data: owner } = useFetch<OwnerChat>("/api/owner", { key: "owner", default: () => ({ chatId: null, senderId: null, senders: [], administrator: false, owner: false }) });
 // A supervisor's repository chooser reads the repositories tab, which this reader may not read.
 const access = useSectionAccess();
 const { data: repositories } = useFetch<RepositoryView[]>("/api/repositories", { key: "repositories", lazy: true, server: false, immediate: mayRead(access.value, "repositories") });

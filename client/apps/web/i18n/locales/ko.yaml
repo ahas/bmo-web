@@ -2556,6 +2556,7 @@ agents:
     agent_delete_confirm: 이 에이전트를 삭제할까요?
     document_to_file: 저장하면 파일 내용으로 돌아갑니다.
     pin_waits: 고정 모델이 응답할 수 없으면 이 저장소의 작업이 기다립니다.
+    road_outside_owner: "이 감독관은 이 기기에서 소유자의 시스템 사용자로 실행됩니다.\n도구 제한이 없거나 program.files, program.shell, room.tools 중 하나라도 허용하면 그 사용자가 읽을 수 있는 모든 것이 {provider}에 전달될 수 있습니다.\n데이터 루트와 env/ 아래 모든 유닛의 토큰과 설정 파일도 포함됩니다.\n등록 모델이나 소유자 계정의 Claude Code가 아닌 공급자는 소유자가 직접 정한 경우에만 쓰거나, 도구 제한에서 이 세 가지를 빼 주세요."
     repository_delete_confirm: 이 저장소를 삭제할까요?
   placeholder:
     sign_in_code: 코드 붙여 넣기

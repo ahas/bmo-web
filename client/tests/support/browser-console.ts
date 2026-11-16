@@ -695,8 +695,8 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       return Response.json({
         items: [
           provider("claude-code", "Claude Code"),
-          provider("deepseek", "DeepSeek", { quota: { left: null, window: null, balance: 12.5, resetsAt: null } }),
-          provider("registered", "Registered models", { registered: true, lines: ["chat", "worker"], quota: null })
+          provider("deepseek", "DeepSeek", { gateway: true, quota: { left: null, window: null, balance: 12.5, resetsAt: null } }),
+          provider("registered", "Registered models", { registered: true, gateway: true, lines: ["chat", "worker"], quota: null })
         ],
         more: false
       });

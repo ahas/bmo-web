@@ -69,6 +69,10 @@
       </template>
     </div>
 
+    <!-- A supervisor that runs as the owner's own user, on a provider whose engine is not the owner's: what its files
+         and shell read can go to that provider (the agency's docs/supervisors.md, 「What confines a session allowed
+         files」). A state of the form, which holds nothing back from its save. -->
+    <p v-if="outsideProvider !== null" role="note" class="whitespace-pre-line break-words break-keep text-sm text-warning">{{ $t("agents.message.road_outside_owner", { provider: outsideProvider }) }}</p>
     <p v-if="staleText !== ''" class="text-sm text-muted">{{ staleText }}</p>
     <p v-if="models.failure !== null" role="alert" class="break-words text-sm text-error">{{ models.failure }}</p>
   </div>
@@ -90,9 +94,11 @@ interface Props {
   // A refusal the last save brought back, under the field it names.
   refusal?: { field: string | null; text: string } | null;
   disabled?: boolean;
+  // Whether the supervisor the road is for runs as the owner's own user on this machine.
+  runsAsOwner?: boolean;
 }
 
-const props = withDefaults(defineProps<Props>(), { whole: true, refusal: null, disabled: false });
+const props = withDefaults(defineProps<Props>(), { whole: true, refusal: null, disabled: false, runsAsOwner: false });
 // A road whose provider is empty names none yet.
 const road = defineModel<RoadView>({ required: true });
 
@@ -103,6 +109,9 @@ const held = useProviderModels();
 const models = computed(() => held.stateOf(road.value.provider).value);
 const provider = computed(() => providers.value?.find((one) => one.name === road.value.provider));
 const registered = computed(() => provider.value?.registered === true);
+// The word of the provider picked where its engine is not the owner's own and the supervisor runs as the owner's user;
+// none otherwise, and none while the provider list is not read.
+const outsideProvider = computed(() => (props.runsAsOwner && provider.value !== undefined && !provider.value.ownersEngine ? provider.value.label : null));
 
 function errorAt(field: string): string | undefined {
   return props.refusal?.field === field ? props.refusal.text : undefined;

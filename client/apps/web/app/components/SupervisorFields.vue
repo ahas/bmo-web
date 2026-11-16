@@ -8,7 +8,7 @@
       <UInput v-model="draft.label" class="w-full" :disabled="busy" :aria-label="$t('agents.label.display_name')" />
     </UFormField>
 
-    <RoadField v-model="draft.road" :line="SUPERVISOR_LINE" :refusal="refusal" :disabled="busy" />
+    <RoadField v-model="draft.road" :line="SUPERVISOR_LINE" :refusal="refusal" :disabled="busy" :runs-as-owner="props.supervisor.runsAsOwner" />
 
     <UFormField :label="$t('agents.label.column_warming')" name="warming" :error="errorAt('warming')">
       <div class="flex flex-col divide-y divide-default">

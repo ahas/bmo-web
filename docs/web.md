@@ -3013,6 +3013,18 @@ archive and this week's tokens remain. That is all that can actually be known th
     and answer ceiling, each null the road leaves to the provider or the registration — so a changed provider or
     model never carries a level, a switch or a ceiling over from the one before. A refusal keeps every field as
     written with the pack's sentence for the agency's code under the field its `field` names.
+- **A road whose engine is not the owner's own carries a warning under the road's fields for a supervisor that runs as the
+  owner's own user** (the agency's `docs/supervisors.md`, 「What confines a session allowed files」). Such a supervisor
+  is one the agency files under no account or under the owner's account (「The owner's account」 in
+  `docs/accounts.md`); an account's supervisor works on its own node and carries none. The owner's own engines are
+  the registry's provider (`registered`) and the one provider the agency's gateway does not serve (`gateway` false),
+  Claude Code on the owner's own logins; every other provider is an outside road. While such a supervisor's road
+  stands on an outside road the warning says, in the pack's words, that it runs as the owner's user on this machine;
+  that with `program.files`, `program.shell` or `room.tools` in its tool limit, or no limit, everything that user
+  reads, the data root and every unit's token and settings files under `env/` among them, can go to that provider;
+  and that such a supervisor stands on an outside road only on the owner's word, or with a tool limit leaving those
+  three out. It stands in the road's own dialog, in the settings dialog's road and in 감독관 추가, follows the
+  provider as it is picked, and is a state of the form, never a notice; it holds nothing back from a save.
 - **No introduction stands above a section.** What a setting does is its label and its place; the reasons behind
   the settings are in the agency's documents named here, not on the screen.
 - **A supervisor's, a role's and a repository's settings are also opened on their own screens** (「Agent screen」),
@@ -3096,7 +3108,9 @@ a seat of its role.
   organisation member, so the supervisor's brain and ownership are filed under them; for such a person it names
   `sessionScope` `agent` beside it, so one session answers every room their supervisor speaks in (the agency's
   `docs/supervisors.md`, 「Adding and removing a supervisor」), while the console's own account and an add naming
-  no account leave the field out and keep the agency's `room` scope. A supervisor already standing keeps the
+  no account leave the field out and keep the agency's `room` scope. The supervisor an add makes runs as the
+  owner's own user where the one adding it is the owner's login, so for that login alone the road carries the
+  warning a road on an outside engine carries (「A road whose engine is not the owner's own」 above). A supervisor already standing keeps the
   account its row holds, and no row is written again. It is one action: where any part is refused, nothing
   of it stands and the refusal stands under the field it names, in the pack's sentence for the receiver's code. An
   added supervisor stands as a row at once, and its room in the sidebar's rooms. Where the receiver took back a

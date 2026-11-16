@@ -7,7 +7,7 @@
   </button>
 
   <SettingsDialog v-model:open="open" wide :title="$t('agents.label.column_road')" :description="props.name" :dirty="dirty">
-    <RoadField v-model="road" :line="SUPERVISOR_LINE" :refusal="refusal" :disabled="saving" />
+    <RoadField v-model="road" :line="SUPERVISOR_LINE" :refusal="refusal" :disabled="saving" :runs-as-owner="props.runsAsOwner" />
     <p v-if="refusal !== null && !ROAD_FIELDS.has(refusal.field ?? '')" role="alert" class="mt-2 break-words text-sm text-error">{{ refusal.text }}</p>
 
     <template #footer="{ close }">
@@ -28,11 +28,13 @@ interface Props {
   // What the row is called, which the form is titled by.
   name: string;
   disabled?: boolean;
+  // Whether the supervisor runs as the owner's own user on this machine, which a road on an outside engine warns of.
+  runsAsOwner?: boolean;
   // Saves the road whole; the refusal with the field it names, or null once it took it.
   save: (road: RoadView) => Promise<{ field: string | null; text: string } | null>;
 }
 
-const props = withDefaults(defineProps<Props>(), { disabled: false });
+const props = withDefaults(defineProps<Props>(), { disabled: false, runsAsOwner: false });
 const { data: providers } = useProviders();
 
 const open = ref(false);

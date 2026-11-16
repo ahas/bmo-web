@@ -46,8 +46,31 @@ const REPOSITORY = {
 const DOPPELGANGER = { ...ROLE, name: "doppelganger", code: "doppelganger", label: "Doppelganger" };
 const OWN_ROLE = { ...ROLE, name: "role-own", code: "role-own", label: "Own role" };
 
+// The owner's account is user 5: the receiver names the owner's sender, and the account service links it to that user.
+const OWNER_ACCOUNT = 5;
+const OWNER_SENDER = 900;
+
+standIn("RECEIVER", (call) => {
+  if (call.path === "/owner") return answer({ room: -1, senderId: OWNER_SENDER });
+  if (call.path === "/default-answerer") return answer({ supervisor: "" });
+
+  return answer({ code: "not-found", error: "no such route" }, 404);
+});
+standIn("WEB_SERVER", (call) => {
+  if (call.path === "/senders/users") return answer({ links: [{ sender: OWNER_SENDER, user: String(OWNER_ACCOUNT), signsIn: true }] });
+
+  return answer({ code: "failed", error: "Not served here." }, 500);
+});
+
+// Supervisors filed under the owner's account, under another account, and under none while named as a person's BMO.
+const FILED = [
+  { ...SUPERVISOR, name: "agent-c", ownerAccount: OWNER_ACCOUNT },
+  { ...SUPERVISOR, name: "agent-d", ownerAccount: 7 },
+  { ...SUPERVISOR, name: "u7", ownerAccount: null }
+];
+
 const agency = standIn("AGENCY", (call) => {
-  if (call.path === "/supervisors") return answer({ items: [SUPERVISOR, { ...SUPERVISOR, name: "agent-b", provider: null, model: null, effort: null }], more: false });
+  if (call.path === "/supervisors") return answer({ items: [SUPERVISOR, { ...SUPERVISOR, name: "agent-b", provider: null, model: null, effort: null }, ...FILED], more: false });
   if (call.path === "/supervisors/agent-a" && call.method === "PATCH") return answer({ ...SUPERVISOR, ...call.body });
   if (call.path === "/roles/worker" && call.method === "PATCH") return answer({ ...ROLE, ...call.body });
   if (call.path === "/roles" && call.method === "POST") return answer({ ...ROLE, ...call.body }, 201);
@@ -75,7 +98,16 @@ const agency = standIn("AGENCY", (call) => {
     return answer({ provider: "deepseek", models: [{ id: "deepseek-v4-pro", efforts: ["low"], inService: true, thinking: true, answerTokens: 8192, contextTokens: 65536 }, { nothing: true }], staleReadAt: null });
   }
   if (call.path === "/providers") {
-    return answer({ items: [{ name: "deepseek", code: "deepseek", label: "DeepSeek", enabled: true, registered: false, coworker: true, lines: ["chat"], quota: { left: 0.5, window: "week", balance: null, resetsAt: null }, reason: null, reasonCode: null, foldRatioDefault: 0.85, keyFile: "deepseek.key" }], more: false });
+    const held = { enabled: true, coworker: true, lines: ["chat"], quota: null, reason: null, reasonCode: null, foldRatioDefault: 0.85, keyFile: null };
+
+    return answer({
+      items: [
+        { ...held, name: "deepseek", code: "deepseek", label: "DeepSeek", registered: false, gateway: true, quota: { left: 0.5, window: "week", balance: null, resetsAt: null }, keyFile: "deepseek.key" },
+        { ...held, name: "claude-code", code: "claude-code", label: "Claude Code", registered: false, gateway: false },
+        { ...held, name: "registered", code: "registered", label: "Registered models", registered: true, gateway: true }
+      ],
+      more: false
+    });
   }
 
   return answer({ code: "not-found", error: "no such route" }, 404);
@@ -105,13 +137,23 @@ describe("the supervisors", () => {
 
     expect(got.status).toBe(200);
     expect(got.answer?.[0]).toEqual({
-      name: "agent-a", label: "agent-a", ownerAccount: null, icon: null, aliases: null, sessionScope: "agent", turnShape: "window", defaultAnswerer: false,
+      name: "agent-a", label: "agent-a", ownerAccount: null, runsAsOwner: true, icon: null, aliases: null, sessionScope: "agent", turnShape: "window", defaultAnswerer: false,
       seeded: false, repository: "repo-a", road: ENTRY, warming: { "claude-code": true }, foldRatio: 0.8
     });
   });
 
   test("stand on no road where their row names none", async () => {
     expect((await asked(supervisors, {})).answer?.[1]).toMatchObject({ name: "agent-b", road: null });
+  });
+
+  test("run as the owner's own user where the agency files them under no account or the owner's, a person's BMO's name aside", async () => {
+    const got = (await asked(supervisors, {})).answer ?? [];
+
+    expect(got.slice(2).map((one) => ({ name: one.name, ownerAccount: one.ownerAccount, runsAsOwner: one.runsAsOwner }))).toEqual([
+      { name: "agent-c", ownerAccount: OWNER_ACCOUNT, runsAsOwner: true },
+      { name: "agent-d", ownerAccount: 7, runsAsOwner: false },
+      { name: "u7", ownerAccount: 7, runsAsOwner: true }
+    ]);
   });
 
   test("carry a road whole, so a changed provider keeps nothing of the one before it, and name no order, share or force", async () => {
@@ -344,6 +386,12 @@ describe("the providers and the models they hold", () => {
     const got = await asked(providers, {});
 
     expect(got.answer?.[0]).toMatchObject({ name: "deepseek", label: wording("agents.label.provider_deepseek"), lines: ["chat"], quota: { left: 0.5, window: "week" }, reason: null, foldRatioDefault: 0.85, keyFile: "deepseek.key" });
+  });
+
+  test("hold the registry's provider and the one the gateway does not serve as the owner's own engines, and no other", async () => {
+    const got = await asked(providers, {});
+
+    expect(got.answer?.map((one) => [one.name, one.ownersEngine])).toEqual([["deepseek", false], ["claude-code", true], ["registered", true]]);
   });
 
   test("read a provider's models, a member that is no model left out", async () => {

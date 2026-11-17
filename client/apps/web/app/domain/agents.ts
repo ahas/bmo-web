@@ -119,12 +119,12 @@ export function groupIcon(key: AgentGroupKey): string {
   return GROUP_ICONS[key];
 }
 
-// Which of the sidebar's groups the owner has left folded. A group they have never touched is not
-// in here at all, and that reads as open: the point of the block is that the whole catalogue is
-// in view, so a group only ever closes because they closed it.
-export type GroupFolds = Record<string, boolean>;
+// Which of the sidebar's folding rows — its groups, and the agents nested under them — the owner has left folded,
+// by each row's key. A row they have never touched is not in here at all, and that reads as open: the point of the
+// block is that the whole catalogue is in view, so a row only ever closes because they closed it.
+export type Folds = Record<string, boolean>;
 
-export function isGroupOpen(folds: GroupFolds, key: string): boolean {
+export function isUnfolded(folds: Folds, key: string): boolean {
   return folds[key] ?? true;
 }
 
@@ -132,7 +132,7 @@ export function isGroupOpen(folds: GroupFolds, key: string): boolean {
 // a group name against a yes or no is dropped rather than trusted, so a value somebody wrote by
 // hand, or one left over from a shape this console no longer keeps, leaves the sidebar open
 // instead of folding it on nonsense.
-export function readGroupFolds(stored: unknown): GroupFolds {
+export function readGroupFolds(stored: unknown): Folds {
   if (stored === null || typeof stored !== "object" || Array.isArray(stored)) {
     return {};
   }
@@ -144,10 +144,10 @@ export function readGroupFolds(stored: unknown): GroupFolds {
   );
 }
 
-// The folds after the sidebar has said which groups it is showing and which of those are open.
-// Only the groups on the screen are written; a group that is not there right now — the chat
-// sessions before the bot has answered — keeps whatever was remembered of it.
-export function withGroupFolds(folds: GroupFolds, shown: readonly string[], open: readonly string[]): GroupFolds {
+// The folds after the sidebar has said which rows it is showing and which of those are open. Only the rows on the
+// screen are written; a row that is not there right now — a group before its unit has answered, an agent whose lines
+// have ended — keeps whatever was remembered of it.
+export function withFolds(folds: Folds, shown: readonly string[], open: readonly string[]): Folds {
   return { ...folds, ...Object.fromEntries(shown.map((key) => [key, open.includes(key)])) };
 }
 

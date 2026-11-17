@@ -18,7 +18,7 @@ import {
   groupLabel,
   holdCatalogue,
   isAgentRunning,
-  isGroupOpen,
+  isUnfolded,
   launchableAgent,
   metaOf,
   movedOrder,
@@ -28,7 +28,7 @@ import {
   runOfAgent,
   runPlaceLabel,
   sessionLink,
-  withGroupFolds,
+  withFolds,
   workUnitLabel
 } from "../../../apps/web/app/domain/agents";
 import { stageLabel } from "../../../apps/web/app/domain/judgements";
@@ -231,19 +231,19 @@ describe("chatAgentMeta", () => {
 // have never touched is not remembered at all.
 describe("the remembered folds of the sidebar", () => {
   test("a branch they folded stays folded and one they opened stays open", () => {
-    const folds = withGroupFolds({}, ["supervisor", "role", "repository"], ["supervisor"]);
+    const folds = withFolds({}, ["supervisor", "role", "repository"], ["supervisor"]);
 
-    expect(isGroupOpen(folds, "supervisor")).toBe(true);
-    expect(isGroupOpen(folds, "role")).toBe(false);
-    expect(isGroupOpen(folds, "repository")).toBe(false);
+    expect(isUnfolded(folds, "supervisor")).toBe(true);
+    expect(isUnfolded(folds, "role")).toBe(false);
+    expect(isUnfolded(folds, "repository")).toBe(false);
   });
 
   test("a branch nothing was ever remembered of stands open", () => {
-    expect(isGroupOpen({}, "role")).toBe(true);
+    expect(isUnfolded({}, "role")).toBe(true);
   });
 
   test("a branch that is not on the screen keeps what was remembered of it", () => {
-    expect(withGroupFolds({ supervisor: false }, ["role", "repository"], ["role"])).toEqual({ supervisor: false, role: true, repository: false });
+    expect(withFolds({ supervisor: false }, ["role", "repository"], ["role"])).toEqual({ supervisor: false, role: true, repository: false });
   });
 
   test("a stored value that is nonsense is dropped rather than trusted", () => {
@@ -251,7 +251,7 @@ describe("the remembered folds of the sidebar", () => {
     expect(readGroupFolds("role")).toEqual({});
     expect(readGroupFolds(["role"])).toEqual({});
     expect(readGroupFolds({ role: KO.line_311, supervisor: 0, repository: false })).toEqual({ repository: false });
-    expect(isGroupOpen(readGroupFolds({ role: KO.line_315 }), "role")).toBe(true);
+    expect(isUnfolded(readGroupFolds({ role: KO.line_315 }), "role")).toBe(true);
   });
 });
 

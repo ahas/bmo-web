@@ -1599,8 +1599,8 @@ Four groups.
     「Supervisors」, `GET /supervisors/{name}/rooms`): every room whose `supervisors` names it, and for the default
     answerer every room that names none as well, each only while it stands in the room list above, so a room never
     added stands under no supervisor either. The three branches therefore wait for the room list's first answer as
-    well as the agency's, so a supervisor first stands with its rooms already under it, unfolded; the menu reads
-    whether a row stands open only as the row first stands. Which rooms a supervisor answers is the receiver's word,
+    well as the agency's, so a supervisor first stands with its rooms already under it rather than growing them a
+    moment later. Which rooms a supervisor answers is the receiver's word,
     read there
     and never worked out here; the agency's `GET /supervisors/{name}/rooms` names only the rooms its turns went into,
     and is read for when its last run in each began. Each is named by its room's name, in the order the rooms stand,
@@ -1677,6 +1677,11 @@ Four groups.
   the branch above it, and that branch opening again shows the row in the state it was left in this visit. What
   is remembered across visits is the three branches; a nested row keeps its state while its branch is folded
   and opened again.
+  - **A nested row stands open until it is folded.** A role whose first run starts and a supervisor whose
+    first room comes while the sidebar stands open their lines under them, as a row that had lines from the
+    start does. A row folded stays folded for the visit, through its lines ending and coming again.
+  - **A nested row's state is its agent's,** held by the console under the agent's name, so the agents
+    standing in another order move no row's state onto another row.
 - **A branch is one control.** The row naming a branch and the chevron at its end are one button, so the
   branch's id stands once on the page and the list its `aria-controls` names is that branch's own — a
   screen reader and keyboard movement reach the branch they were sent to.
@@ -1684,7 +1689,10 @@ Four groups.
     for this under `client/patches/`: one of `reka-ui`, by which a collapsible region's id is made with the
     region's root rather than with its list, so a button drawn before its list already names it, and one of
     `@nuxt/ui`, by which a nested region keeps its own open set instead of handing it back to the menu that
-    holds it, so folding one nested row moves no branch.
+    holds it, so folding one nested row moves no branch. The same patch lets an item hold its children's open
+    set itself: a nested region whose item carries the set stands as it says and hands each move back to that
+    item, where the menu would otherwise read its rows' openness once, as the region first stands. The agent
+    branches carry it, so the console decides which agent rows stand open.
   - No id stands twice anywhere on a console screen. `client/tests/browser/console-ids.test.ts` holds home,
     every screen the sidebar lists and the first room and agent to that at a desktop width and at a
     phone's with the drawer open, and holds each branch's button, its chevron and the keyboard to

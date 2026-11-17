@@ -167,7 +167,7 @@ import { useBriefings } from "~/domain/briefing";
 import { useInitialRead } from "bmo-ui/app/domain/loading";
 import { consoleName } from "#shared/agent-names";
 import { useAgentFolds } from "~/domain/agent-folds";
-import { agentGroups, groupIcon, isAgentRunning, isGroupOpen, runLink, sessionLink, withGroupFolds } from "~/domain/agents";
+import { agentGroups, groupIcon, isAgentRunning, isUnfolded, runLink, sessionLink, withFolds } from "~/domain/agents";
 import { useAgentFace } from "~/domain/agent-face";
 import { avatarFor, useAvatars } from "~/domain/avatars";
 import { useAgentCatalogue } from "~/domain/catalogue";
@@ -193,7 +193,7 @@ import type { LiveRun, RoomAdded, StatusView } from "#shared/types";
 import type { PersonView } from "#shared/people";
 import type { RosterPage, RosterPerson } from "#shared/roster";
 import type { NavigationMenuItem } from "@nuxt/ui";
-import type { AgentGroup, AgentMeta, AgentRun, AgentSession } from "~/domain/agents";
+import type { AgentGroup, AgentGroupKey, AgentMeta, AgentRun, AgentSession, Folds } from "~/domain/agents";
 import type { JumpGroup } from "~/domain/jump";
 import type { SectionMenu } from "~/domain/screens";
 
@@ -288,7 +288,7 @@ const roomEntries = computed<NavigationMenuItem[]>((before) =>
 const live = ref<LiveRun[]>([]);
 
 // The branches wait for the room list's first answer as well as the agency's: a supervisor's rooms are the ones the
-// list holds, and the menu reads whether a row stands open only as the row first stands (docs/web.md, 「Sidebar」).
+// list holds, so a supervisor first stands with its rooms under it rather than growing them (docs/web.md, 「Sidebar」).
 const agentsWaiting = computed<boolean>(() => agentsInitial.value || roomsInitial.value);
 // The groups stay the ones in hand while a read of the agents or the rooms leaves them as they were, so a room's
 // message draws nothing of the agents' menu again (docs/web.md, 「What the stream costs a tab」).
@@ -299,6 +299,27 @@ const answering = useSupervisorsAnswering();
 // Which groups the owner has folded away, and which are left open. The choice stays in this browser, so the
 // sidebar stands as it was left however many times the console is opened.
 const { folds, setFolds } = useAgentFolds();
+
+// Which agents nested under the groups the owner has folded this visit, by name (docs/web.md, 「Sidebar」). A row
+// never folded stands open, one whose lines first come while the sidebar stands among them; a row folded stays
+// folded through its lines ending and coming again; and a row's state is its agent's wherever the agent stands.
+const rowFolds = ref<Folds>({});
+
+// The agents of a group that hold lines under them: the rows of it that fold.
+function foldingRows(group: AgentGroup): string[] {
+  return group.agents.filter(holdsLines).map((agent) => agent.name);
+}
+
+function holdsLines(agent: AgentMeta): boolean {
+  return agent.sessions.length > 0 || agent.runs.length > 0;
+}
+
+// The menu says which of a group's agents stand open after one is folded or unfolded.
+function foldRows(key: AgentGroupKey, open: string[]): void {
+  const group = groups.value.find((one) => one.key === key);
+
+  if (group !== undefined) rowFolds.value = withFolds(rowFolds.value, foldingRows(group), open);
+}
 
 // Every agent, in its groups. A group never touched is unfolded: the point of the block is that the whole
 // catalogue is in view. Each group is named by its own key so that what the menu hands back is a list of groups
@@ -321,15 +342,18 @@ const agentItems = computed<NavigationMenuItem[]>((before) => sameKept(before, [
     value: group.key,
     // Folded, a group is a row of its own mark, and its agents open beside it on hover.
     icon: sidebarFolded.value ? groupIcon(group.key) : undefined,
-    children: group.agents.map(agentEntry)
+    children: group.agents.map(agentEntry),
+    // The group holds which of its agents stand open, so the menu never reads that once and keeps it.
+    childrenOpen: foldingRows(group).filter((name) => isUnfolded(rowFolds.value, name)),
+    onUpdateChildrenOpen: (open: string[]) => foldRows(group.key, open)
   }))
 ]));
 
 // The menu is told which groups stand open and says so back when one is folded or unfolded. Only the groups on
 // the screen are written down; what was remembered of a group not yet listed waits for it.
 const openGroups = computed<string[]>({
-  get: (before) => sameKept(before, groups.value.filter((group) => isGroupOpen(folds.value, group.key)).map((group) => group.key)),
-  set: (open) => setFolds(withGroupFolds(folds.value, groups.value.map((group) => group.key), open))
+  get: (before) => sameKept(before, groups.value.filter((group) => isUnfolded(folds.value, group.key)).map((group) => group.key)),
+  set: (open) => setFolds(withFolds(folds.value, groups.value.map((group) => group.key), open))
 });
 
 // Whether an entry is at work (docs/web.md, 「Sidebar」): a supervisor whose turn runs, a role whose runs go, and a
@@ -350,6 +374,8 @@ function agentEntry(agent: AgentMeta): NavigationMenuItem {
 
   return {
     label: agent.label,
+    // Named by the agent, so the open rows its group holds follow the agent rather than a place in the list.
+    value: agent.name,
     to: `/agents/${encodeURIComponent(agent.name)}`,
     // A supervisor wears its face, a role and a repository their branch's mark (docs/web.md, 「Profile photos」).
     icon: agentFace.value(agent) === undefined ? agent.icon : undefined,
@@ -360,7 +386,7 @@ function agentEntry(agent: AgentMeta): NavigationMenuItem {
     busy: busy(agent),
     ...(agent.group === "role" && agent.running > 0 ? { badge: { ...COUNT_BADGE, color: "neutral" as const, label: countText(agent.running) } } : {}),
     // A supervisor's room sessions and a role's runs stand under it (docs/web.md, 「Sidebar」).
-    ...(children.length === 0 ? {} : { defaultOpen: true, children })
+    ...(children.length === 0 ? {} : { children })
   };
 }
 

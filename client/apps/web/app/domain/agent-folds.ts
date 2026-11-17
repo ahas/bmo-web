@@ -1,6 +1,6 @@
 import { readGroupFolds } from "./agents";
 
-import type { GroupFolds } from "./agents";
+import type { Folds } from "./agents";
 import type { Ref } from "vue";
 
 // Which of the sidebar's agent groups the owner has folded away. Every group is remembered, not only the ones
@@ -11,21 +11,21 @@ import type { Ref } from "vue";
 const FOLDS_KEY = "bmo-web.agent-folds";
 
 export interface AgentFoldSettings {
-  folds: Ref<GroupFolds>;
-  setFolds: (next: GroupFolds) => void;
+  folds: Ref<Folds>;
+  setFolds: (next: Folds) => void;
 }
 
 let restoredFolds = false;
 
 export function useAgentFolds(): AgentFoldSettings {
-  const folds = useState<GroupFolds>("bmo-agent-folds", () => ({}));
+  const folds = useState<Folds>("bmo-agent-folds", () => ({}));
 
   if (import.meta.client && !restoredFolds) {
     restoredFolds = true;
     folds.value = readFolds();
   }
 
-  function setFolds(next: GroupFolds): void {
+  function setFolds(next: Folds): void {
     folds.value = next;
 
     if (import.meta.client) {
@@ -40,7 +40,7 @@ export function useAgentFolds(): AgentFoldSettings {
   return { folds, setFolds };
 }
 
-function readFolds(): GroupFolds {
+function readFolds(): Folds {
   try {
     const raw = window.localStorage.getItem(FOLDS_KEY);
 

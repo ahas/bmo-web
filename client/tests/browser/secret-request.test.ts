@@ -327,6 +327,7 @@ describe.skipIf(!origin || !touchReady())("a secret handed to an agent", () => {
 
       await line.waitFor({ timeout: 20_000 });
       expect(await line.getAttribute("data-saved")).toBeNull();
+      const waitingHeight = (await line.boundingBox())!.height;
       await page.screenshot({ path: "/tmp/secret-request-line.png" });
 
       const before = page.url();
@@ -346,10 +347,113 @@ describe.skipIf(!origin || !touchReady())("a secret handed to an agent", () => {
       expect(await until(() => room.said.length > 0)).toBe(true);
       expect(room.said).toEqual([wording("secrets.message.request_saved", { name: `req-${RUN}.token`, kind: await kindName("api-key") })]);
       await page.locator(`[data-secret-request="req-${RUN}.token"][data-saved]`).waitFor({ timeout: 10_000 });
+      expect((await line.boundingBox())!.height).toBe(waitingHeight);
       await expectNoValueOutside(page, sent);
     } finally {
       await context.close();
     }
+  }, TEST_MS);
+
+  test("a request's card stands inside its bubble in three lines of one height at every width, while its list is read and after, and its button opens the form", async () => {
+    const room = new Room();
+    const sent: Sent[] = [];
+    const purpose = "the house listing collector, the service key of the public data portal for every nationwide notice";
+    const long = `long-${RUN}.portal`;
+    const short = `short-${RUN}.portal`;
+
+    room.say(
+      [
+        "The collector reads the nationwide listings from the public data portal, and it needs a service key to go on.",
+        "Every other source is already wired, and the next run starts as soon as the key is stored.",
+        `[Store the key](${requestLink(`secret=${long}&fields=PORTAL_DATA_SERVICE_KEY%2A&for=${encodeURIComponent(purpose)}`)})`
+      ].join("\n\n"),
+      false
+    );
+    room.say(`Key: ${requestLink(`secret=${short}&fields=PORTAL_DATA_SERVICE_KEY%2A&for=${encodeURIComponent(purpose)}`)}`, false);
+
+    const heights: number[] = [];
+
+    for (const viewport of [{ width: 1280, height: 900, phone: false }, { width: 360, height: 780, phone: true }]) {
+      const context = await open(room, sent, viewport);
+      // The reader's list is held back on the wide screen, so the cards are measured while it is read, and refused on
+      // the phone, so they are measured reading why.
+      let release = (): void => undefined;
+      const held = new Promise<void>((done) => {
+        release = done;
+      });
+
+      await context.route(/\/api\/secrets$/, async (route) => {
+        if (route.request().method() !== "GET") return route.fallback();
+        if (viewport.phone) return route.fulfill({ status: 500, json: { message: "fixture refusal" } });
+        await held;
+        await route.fallback();
+      });
+
+      try {
+        const page = await context.newPage();
+
+        await visit(page, `/rooms/${CHAT}`);
+
+        if (!viewport.phone) {
+          for (const name of [long, short]) {
+            const reading = page.locator(`[data-secret-request="${name}"]`);
+
+            await reading.locator("[data-secret-request-reading]").waitFor({ timeout: 20_000 });
+            heights.push((await reading.boundingBox())!.height);
+          }
+
+          release();
+        }
+
+        for (const name of [long, short]) {
+          const card = page.locator(`[data-secret-request="${name}"]`);
+
+          await card.waitFor({ timeout: 20_000 });
+          await card.locator("[data-secret-request-open]").focus();
+          if (viewport.phone) expect(await card.innerText()).toContain(wording("secrets.error.read_failed"));
+
+          // What the card stands in, measured as the browser laid it: its own box and its three rows against the
+          // bubble's, and how far the focus scrolled anything between the two sideways.
+          const laid = await card.evaluate((element) => {
+            const bubble = element.closest<HTMLElement>("[data-bubble]")!;
+            const box = (part: Element): { left: number; right: number; top: number; bottom: number } => {
+              const rect = part.getBoundingClientRect();
+
+              return { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom };
+            };
+            const shifted: number[] = [];
+
+            for (let part: Element | null = element; part !== null && part !== bubble; part = part.parentElement) {
+              shifted.push(part.scrollLeft);
+            }
+
+            return { bubble: box(bubble), card: box(element), rows: [...element.children].map(box), shifted };
+          });
+
+          expect(laid.card.left).toBeGreaterThanOrEqual(laid.bubble.left);
+          expect(laid.card.right).toBeLessThanOrEqual(laid.bubble.right);
+          expect(laid.shifted.every((step) => step === 0)).toBe(true);
+          expect(laid.rows.length).toBe(3);
+
+          for (const [at, row] of laid.rows.entries()) {
+            expect(row.right).toBeLessThanOrEqual(laid.card.right);
+            if (at > 0) expect(row.top).toBeGreaterThanOrEqual(laid.rows[at - 1]!.bottom);
+          }
+
+          heights.push(laid.card.bottom - laid.card.top);
+        }
+
+        await page.screenshot({ path: `/tmp/secret-request-card-${viewport.width}.png` });
+
+        await page.locator(`[data-secret-request="${short}"] [data-secret-request-open]`).click();
+        await page.locator("[data-secret-form]").waitFor({ timeout: 10_000 });
+        expect(await page.locator("[data-secret-name]").inputValue()).toBe(short);
+      } finally {
+        await context.close();
+      }
+    }
+
+    expect(new Set(heights).size).toBe(1);
   }, TEST_MS);
 
   test("a request arriving in the room open in front opens the form once by itself", async () => {

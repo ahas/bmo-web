@@ -4050,7 +4050,8 @@ Four bounds keep it from growing forever.
   a wrapped bubble.
   - Each line wraps where it wrapped before; only the empty room past the longest line is taken away.
   - A bubble holding anything but words and its meta line under its head — a picture, a link card, a
-    file, a running turn, a chip's spread standing open — keeps the width its contents ask for; one holding a
+    secret request's card, a file, a running turn, a chip's spread standing open — keeps the width its contents ask
+    for, never more than the most a bubble may take; one holding a
     sound player is as wide as the player or its words (「소리 듣기」).
   - The width is read again whenever the room for the bubble or what stands in it changes.
 - **One photo to a run, beside its last bubble.** The photo stands on the run's outer side, its foot level with
@@ -7155,17 +7156,28 @@ person sees their own space and nobody else's, the administrator included.
     opens; a login with no user is told it holds no secret space.
 - **A request in a room stands as a request.** A message whose words carry a link to such an address — under the
   console's public address or the address the console is being read at — stands each one under its words as a
-  highlighted line: a key mark, 비밀 요청, the name, the kind's name or the fields' keys, and the purpose where the link
-  carries one. Pressing the line, or the link among the words, opens the form in place, with no navigation.
-  - Once the space the request is for holds the name, changed at or after the message's time, the line reads 저장됨
-    for that space's person; a press opens the form again, with replacing chosen. For any other reader the line never
-    reads saved, and a press answers the refusal.
+  card of three lines, told apart from the bubble by a tint of the accent alone, with no border, in the large corner
+  tier as a box holding a button (「Corners」): a key mark and the name; the purpose, or the kind's name or the
+  fields' keys where the link carries no purpose; and 비밀 요청 at the start of the last line with the card's one
+  button, 저장, at its end. Pressing the button, or the link among the words, opens the form in place, with no
+  navigation.
+  - **The card stays inside its bubble at every width.** It takes the bubble's width and no more; a name or a purpose
+    longer than its line is cut with an ellipsis and shows whole in the tooltip every cut line gets (「Tooltips」),
+    never wrapping and never pushing past the bubble's edge. Each line is one line high whatever it holds and
+    whatever the request's state, so the card's height is the same from its first drawing to after a save.
+  - **Whether it was answered is read from the reader's list.** For the reader the request is for, the last line
+    stands as a skeleton of its words and its button while the list is read the first time in the tab, and a list
+    that could not be read leaves the line reading why, with 저장 beside it. Any other reader's card reads 비밀 요청
+    at once.
+  - Once the space the request is for holds the name, changed at or after the message's time, the last line reads
+    저장됨 for that space's person in place of 비밀 요청, and the button reads 교체 and opens the form again, with
+    replacing chosen. For any other reader the card never reads saved, and a press answers the refusal.
   - **A request arriving opens the form by itself, once.** A message carrying one that arrives at the end of a room
     whose screen is open and in front — the tab shown, nothing open over the screen — opens the form for its first
-    request. Closing the form leaves the line to press later, and the same message never opens it again in this tab;
+    request. Closing the form leaves the card to press later, and the same message never opens it again in this tab;
     a message read in by opening the room, paging or going to it opens nothing.
   - **A save answers the room.** A save from a request opened over a room's screen puts the pack's line naming the
-    secret and its kind in that room, by the room's own road as words typed there, and the request's line then
+    secret and its kind in that room, by the room's own road as words typed there, and the request's card then
     reads 저장됨. A save from the composer leaves its chip (「첨부」), and one from this section puts nothing in any
     room.
 - **The value goes nowhere but the store.** It is never put in the address, the tab's kept state, the browser's

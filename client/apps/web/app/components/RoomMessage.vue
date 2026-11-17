@@ -275,10 +275,11 @@
                         </template>
                       </div>
 
-                      <!-- An agent's request for a secret stands under the words as a line of its own (docs/web.md,
-                           the secret store section). -->
-                      <div v-if="secretRequests.length > 0" class="flex basis-full flex-col gap-2" data-secret-requests>
-                        <SecretRequestLine
+                      <!-- An agent's request for a secret stands under the words as a card of its own (docs/web.md,
+                           the secret store section). Its floor at nought lets the cards' cut lines give way to the
+                           bubble's width instead of holding the bubble open to their whole length. -->
+                      <div v-if="secretRequests.length > 0" class="flex min-w-0 basis-full flex-col gap-2" data-secret-requests>
+                        <SecretRequestCard
                           v-for="request in secretRequests"
                           :key="request.name"
                           :request="request"
@@ -586,6 +587,7 @@ const wordsLast = computed<boolean>(
     props.item.run === null &&
     worded.value &&
     !(props.item.pending === null && links.value.length > 0) &&
+    secretRequests.value.length === 0 &&
     filed.value.length === 0 &&
     reactions.value.length === 0
 );

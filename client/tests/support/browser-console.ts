@@ -210,7 +210,8 @@ const MEDIA_CHAT = 44;
 // A room of stickers and emoticons from two chat services, each standing as the picture alone (docs/web.md, the room screen's
 // wordless messages): a still sticker and a video sticker kept as files, a moving emoticon kept as the message's picture whose
 // file plays it once, a GIF sticker kept as a file that plays once, the same emoticon sent with words, an animated
-// sticker's scene, and the emoticon sent with a word by the account that reads the room, so it stands on the right.
+// sticker's scene, the emoticon sent with a word by the account that reads the room, so it stands on the right, and an
+// APNG sticker kept as a file that plays once.
 const STICKER_CHAT = 45;
 // A room a chat service numbered and listed, which the owner speaks in but never added, allowed or gave an agent: the
 // console leaves it out of the room list until it is added from the room add dialog, and once its registration is removed
@@ -313,7 +314,8 @@ const STICKER_FILES: Record<number, { name: string; type: string; bytes: Uint8Ar
   1: { name: "sticker-still.webp", type: "image/webp", bytes: await fixture("room-sticker-still.webp") },
   2: { name: "sticker-video.webm", type: "video/webm", bytes: await fixture("room-sticker.webm") },
   4: { name: "sticker-once.gif", type: "image/gif", bytes: await fixture("room-sticker-once.gif") },
-  6: { name: "sticker-scene.tgs", type: "application/x-tgsticker", bytes: STICKER }
+  6: { name: "sticker-scene.tgs", type: "application/x-tgsticker", bytes: STICKER },
+  8: { name: "sticker-once.png", type: "image/png", bytes: await fixture("room-sticker-once.png") }
 };
 const EMOTICON = await fixture("room-emoticon-once.webp");
 const EMOTICON_MESSAGES = [3, 5, 7];
@@ -968,7 +970,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     }
 
     const stickerRoom = { ...room, id: STICKER_CHAT, title: "sticker-room", ownerRoom: false, workRoom: STICKER_CHAT, lastMessageAt: LINE_AT - 400 };
-    const stickerLine = [1, 2, 3, 4, 5, 6, 7].map((id) => ({
+    const stickerLine = [1, 2, 3, 4, 5, 6, 7, 8].map((id) => ({
       id, room: STICKER_CHAT, sentAt: LINE_AT - 3_000 + id, kind: "sticker",
       ...(id === 7 ? { senderId: STICKERS_SENDER, senderName: "stickers" } : { senderId: 7, senderName: "person-b" }),
       text: id === 5 ? "words sent with the emoticon" : id === 7 ? "ok" : "", imagePath: EMOTICON_MESSAGES.includes(id) ? `images/${STICKER_CHAT}/${id}.webp` : null,

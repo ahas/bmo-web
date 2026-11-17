@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { chromium } from "playwright-core";
+import { chromium, firefox, webkit } from "playwright-core";
 
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
@@ -9,8 +9,9 @@ import type { Browser, BrowserContext, Page } from "playwright-core";
 // the count its own file holds, or stands still on its first frame where the reader asked for less movement
 // (docs/web.md, the room screen's wordless messages). The room holds a still sticker, a video sticker, a moving emoticon kept as the
 // message's picture whose file plays it once, a GIF sticker that plays once, the emoticon sent with words, an
-// animated sticker's scene, and the emoticon sent with a word by the reader, on the right. It drives the console tests/support/browser-console.ts stands up; the suite stands up no
-// console, so there it skips.
+// animated sticker's scene, the emoticon sent with a word by the reader, on the right, and an APNG sticker that plays
+// once. An APNG's loop is held in each browser engine, which plays the file itself. It drives the console
+// tests/support/browser-console.ts stands up; the suite stands up no console, so there it skips.
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "stickers", password: "fixture-password-3303" };
@@ -23,10 +24,17 @@ const GIF = "m4";
 const WORDED = "m5";
 const SCENE = "m6";
 const OWN = "m7";
+const APNG = "m8";
+// The browser engines an APNG's loop is held in, and the widths it is read at.
+const ENGINES = { chromium, firefox, webkit } as const;
+const WIDTHS = [{ width: 1280, height: 1000 }, { width: 360, height: 780 }] as const;
+// How many times a picture is looked at, a step apart, before it is taken to have stopped or to keep moving.
+const LOOKS = 20;
+const LOOK_STEP_MS = 120;
 // How long the browser is given to play what plays: a short clip and a one-second scene play through in far less.
 const PLAYED_MS = 15_000;
 
-let browser: Browser | null = null;
+const browsers: Partial<Record<keyof typeof ENGINES, Browser>> = {};
 let cookie = "";
 
 beforeAll(async () => {
@@ -36,11 +44,13 @@ beforeAll(async () => {
 
   expect(login.ok).toBe(true);
   cookie = login.headers.get("set-cookie")!.split(";")[0]!;
-  browser = await chromium.launch({ args: ["--use-angle=swiftshader"] });
+  for (const [name, engine] of Object.entries(ENGINES)) {
+    browsers[name as keyof typeof ENGINES] = await engine.launch(name === "chromium" ? { args: ["--use-angle=swiftshader"] } : {});
+  }
 }, BROWSER_HOOK_MS);
 
 afterAll(async () => {
-  await browser?.close();
+  await Promise.all(Object.values(browsers).map((one) => one.close()));
 }, BROWSER_HOOK_MS);
 
 // The sticker room opened in a context of its own, every picture of it drawn.
@@ -59,7 +69,7 @@ async function opened(context: BrowserContext): Promise<Page> {
 
       return img !== null && img.complete && img.naturalWidth > 0;
     }),
-    [STILL, EMOTICON, GIF, WORDED, OWN],
+    [STILL, EMOTICON, GIF, WORDED, OWN, APNG],
     { timeout: 30_000 }
   );
 
@@ -88,7 +98,7 @@ function servedPictures(page: Page): Promise<Record<string, { frames: number; re
     };
 
     return Object.fromEntries(await Promise.all(rows.map(read)));
-  }, [STILL, EMOTICON, GIF, WORDED]);
+  }, [STILL, EMOTICON, GIF, WORDED, APNG]);
 }
 
 // The scene's drawing now, which changes from frame to frame while it plays.
@@ -98,7 +108,7 @@ function sceneDrawn(page: Page): Promise<string> {
 
 describe.skipIf(!origin || !touchReady())("a room's stickers", () => {
   test("every sticker stands as the picture alone and a moving one plays on past its own count", async () => {
-    const context = await browser!.newContext({ viewport: { width: 1280, height: 1000 }, serviceWorkers: "block" });
+    const context = await browsers.chromium!.newContext({ viewport: { width: 1280, height: 1000 }, serviceWorkers: "block" });
 
     try {
       const page = await opened(context);
@@ -137,7 +147,7 @@ describe.skipIf(!origin || !touchReady())("a room's stickers", () => {
             trailing: own.end
           };
         },
-        { rows: [STILL, VIDEO, EMOTICON, GIF, WORDED, SCENE, OWN], worded: [WORDED, OWN] }
+        { rows: [STILL, VIDEO, EMOTICON, GIF, WORDED, SCENE, OWN, APNG], worded: [WORDED, OWN] }
       );
 
       expect(stood).toEqual({ grounded: [], steps: [true, true], leading: 0, trailing: 0 });
@@ -147,7 +157,7 @@ describe.skipIf(!origin || !touchReady())("a room's stickers", () => {
 
       expect(served[STILL]!.frames).toBe(1);
 
-      for (const row of [EMOTICON, GIF, WORDED]) {
+      for (const row of [EMOTICON, GIF, WORDED, APNG]) {
         expect(served[row]!.frames).toBeGreaterThan(1);
         expect(served[row]!.repeats).toBe(Infinity);
       }
@@ -190,7 +200,7 @@ describe.skipIf(!origin || !touchReady())("a room's stickers", () => {
   }, 120_000);
 
   test("a reader who asked for less movement sees every sticker still on its first frame, on a phone", async () => {
-    const context = await browser!.newContext({
+    const context = await browsers.chromium!.newContext({
       viewport: { width: 360, height: 780 }, isMobile: true, hasTouch: true, reducedMotion: "reduce", serviceWorkers: "block"
     });
 
@@ -198,7 +208,7 @@ describe.skipIf(!origin || !touchReady())("a room's stickers", () => {
       const page = await opened(context);
       const served = await servedPictures(page);
 
-      for (const row of [STILL, EMOTICON, GIF, WORDED]) {
+      for (const row of [STILL, EMOTICON, GIF, WORDED, APNG]) {
         expect(served[row]!.frames).toBe(1);
       }
 
@@ -226,4 +236,63 @@ describe.skipIf(!origin || !touchReady())("a room's stickers", () => {
       await context.close();
     }
   }, 120_000);
+
+  // The APNG as the room shows it beside the same file as it was kept, both in view: once the kept file has stood still
+  // on its last frame, its single play over, the room's one still changes.
+  for (const [name] of Object.entries(ENGINES)) {
+    for (const viewport of WIDTHS) {
+      test(`an APNG that plays once keeps playing past its own play, in ${name} at ${viewport.width}px`, async () => {
+        const context = await browsers[name as keyof typeof ENGINES]!.newContext({ viewport, serviceWorkers: "block" });
+
+        try {
+          const page = await opened(context);
+          const shown = page.locator(`[data-message="${APNG}"] [data-sticker] img`);
+
+          await shown.scrollIntoViewIfNeeded();
+          await page.evaluate((row) => {
+            const img = document.querySelector<HTMLImageElement>(`[data-message="${row}"] [data-sticker] img`)!;
+            const kept = new Image();
+
+            kept.id = "kept-apng";
+            kept.style.cssText = "position:fixed;top:0;left:0;z-index:9999;width:64px;height:64px";
+            kept.src = img.currentSrc.replace(/[?&]frames=loop/, "");
+            document.body.append(kept);
+          }, APNG);
+
+          const kept = page.locator("#kept-apng");
+
+          await page.waitForFunction(() => document.querySelector<HTMLImageElement>("#kept-apng")!.complete);
+
+          // The kept file's play is over once two looks a step apart find it the same.
+          let last = await kept.screenshot();
+          let stopped = false;
+
+          for (let look = 0; look < LOOKS && !stopped; look += 1) {
+            await page.waitForTimeout(LOOK_STEP_MS);
+
+            const now = await kept.screenshot();
+
+            stopped = now.equals(last);
+            last = now;
+          }
+
+          expect(stopped).toBe(true);
+
+          // The room's one still moves after that.
+          const first = await shown.screenshot();
+          let moved = false;
+
+          for (let look = 0; look < LOOKS && !moved; look += 1) {
+            await page.waitForTimeout(LOOK_STEP_MS);
+            moved = !(await shown.screenshot()).equals(first);
+          }
+
+          expect(moved).toBe(true);
+          expect((await kept.screenshot()).equals(last)).toBe(true);
+        } finally {
+          await context.close();
+        }
+      }, 120_000);
+    }
+  }
 });

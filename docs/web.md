@@ -4436,11 +4436,11 @@ Four bounds keep it from growing forever.
     quote, the words and the meta line, and the sticker nothing but itself. The two arrive as one, rising together.
   - A still sticker stands still. A moving one plays over and over for as long as it stands, whatever its file
     says, with no sound and no player:
-    - An animated WebP or GIF goes out from the console's server with its loop count set to forever, its frames
-      and their timing as they came: a file that already loops forever, or holds one frame, goes out as it is, and
-      one whose count is finite is written again, a WebP losslessly and a GIF on its own palette. An APNG goes out
-      as it is and plays as many times as it says, since the image library the server reads pictures with reads
-      only an APNG's first frame.
+    - An animated WebP, GIF or APNG goes out from the console's server with its loop count set to forever, its
+      frames and their timing as they came: a file that already loops forever, or holds one frame, goes out as it
+      is. A WebP or GIF whose count is finite is written again, a WebP losslessly and a GIF on its own palette. An
+      APNG whose count is finite keeps every byte but the play count in its animation control and that chunk's
+      checksum, since the image library the server reads pictures with reads only an APNG's first frame.
     - A video sticker, a `.webm` file, plays muted, inline and looping.
     - An animated sticker, a `.tgs` file, is unpacked in the browser and its scene played looping.
   - A reader who asked for less movement sees every sticker stand still on its first frame: a moving picture goes

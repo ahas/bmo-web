@@ -649,6 +649,28 @@ export default { routes: [{ path: "/${name}", name: ${JSON.stringify(name)}, com
   return null;
 }
 
+// A unit that brings a screen and is released while the console runs (docs/web.md, 「Screens a unit brings」): its
+// module carries its release in its name, as a content-hashed file does, and a release serves its own module alone.
+// A `POST /release` releases it once more, as a deployment would between two of the console's readings of its
+// manifest.
+let release = 1;
+
+function releasedUnit(name: string, path: string, request: Request): Response | null {
+  const module = `/console/bundle-${release}.js`;
+
+  if (path === "/release" && request.method === "POST") {
+    release += 1;
+
+    return Response.json({ release });
+  }
+
+  if (path === "/console-manifest") return Response.json(manifestFields(name, { icon: "i-material-symbols-widgets", bundle: module }));
+  if (path === module) return screenUnit(name, "/console/bundle.js");
+  if (path === "/console/bundle.js") return null;
+
+  return screenUnit(name, path);
+}
+
 const catalogueView = () => ({ entries: [...entries.values()], uses });
 const notFound = () => Response.json({ code: "not-found", error: "not served by this stand-in" }, { status: 404 });
 
@@ -1317,9 +1339,11 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     }
   },
   BRAIN: () => null,
-  // The first screen names the console's own members service under `calls`, and the second names nothing.
+  // The first screen names the console's own members service under `calls`, and the second names nothing; the third
+  // is released while the console runs.
   SCREEN_A: (path) => screenUnit(HARNESS_SCREEN_UNITS[0], path, ["people"]),
   SCREEN_B: (path) => screenUnit(HARNESS_SCREEN_UNITS[1], path),
+  SCREEN_RELEASED: (path, request) => releasedUnit(HARNESS_SCREEN_UNITS[2], path, request),
   ARTIFACT: () => null,
   TELEGRAM: () => null,
   CACHE_SIREN: () => null,

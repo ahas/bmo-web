@@ -1,6 +1,8 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 
+import { wording } from "../../apps/web/shared/wording";
+
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, Page } from "playwright-core";
@@ -87,6 +89,33 @@ describe.skipIf(!origin || !touchReady())("a screen a unit brings standing at it
 
       expect(await standing(page, "screen-a")).toEqual({ build: "production", absent: false, errors: [] });
       expect(new URL(page.url()).pathname.endsWith("/screen-a")).toBe(true);
+    } finally {
+      await page.context().close();
+    }
+  }, 180_000);
+
+  // The unit is released after the page read the list, so the list names a module the unit no longer serves. The
+  // console reads the unit's manifest again on that file's 404 and the page reads the list again, so the screen of
+  // the new release stands well inside the minute the console's own reading of the manifests waits.
+  test("stands the new release of a unit released since the list was read, without the page saying it does not answer", async () => {
+    const page = await openPage();
+    const listed = async () => (await (await fetch(`${origin}/api/console-bundles`, { headers: { cookie } })).json()) as { name: string; module: string }[];
+    const module = async () => (await listed()).find((screen) => screen.name === "screen-released")?.module;
+
+    try {
+      await page.goto(`${origin}/siren`, { waitUntil: "load" });
+      await page.waitForFunction("document.querySelector('#__nuxt')?.__vue_app__ !== undefined", undefined, { timeout: 30_000 });
+
+      const before = await module();
+      const released = await fetch(`${origin}/api/screen-released/release`, { method: "POST", headers: { cookie } });
+
+      expect(released.status).toBe(200);
+      expect(before).toBeDefined();
+      await go(page, "/screen-released");
+
+      expect(await standing(page, "screen-released")).toMatchObject({ absent: false, errors: [] });
+      expect(await page.getByText(wording("screens.error.screen_unreachable")).count()).toBe(0);
+      expect(await module()).not.toBe(before);
     } finally {
       await page.context().close();
     }

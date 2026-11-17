@@ -8,7 +8,7 @@ import { CONTROL_UNREACHABLE } from "#shared/config";
 import { shareRead } from "bmo-ui/shared/console-manifest";
 
 import { relayedRest, socketRelay } from "../utils/bundle-relay";
-import { attachedService, bundleFile, bundleOfPage, pageReaches, readerMay, readerOf, relayedCall } from "../utils/console-manifests";
+import { attachedService, bundleFile, bundleFiles, bundleOfPage, pageReaches, readManifestAgain, readerMay, readerOf, relayedCall } from "../utils/console-manifests";
 import { ownerHeaders } from "../utils/owner-key";
 import { requestStream } from "../utils/streamed-forms";
 import { unitAt } from "../utils/units";
@@ -36,6 +36,10 @@ import { unitAt } from "../utils/units";
 // is relayed without a session and, whoever is signed in, with no owner key and no role, so every holder of the
 // token reads the same (bmo-ui's `docs/console-bundles.md`, 「Share pages」). The bundle's module and stylesheet
 // the page is drawn by are relayed without a session as well. Nothing else is.
+//
+// A bundle's files carry their content in their names, so a read of one its unit answers 404 is a unit released
+// since its manifest was last read: the unit is asked for it again before the 404 goes back, and the list the
+// browser reads after it names the release the unit serves (docs/web.md, 「Screens a unit brings」).
 //
 // A socket a bundle declares stands at the same path, and the route carries the relay's socket hooks for it
 // (`utils/bundle-relay.ts`).
@@ -162,6 +166,10 @@ async function relayed(event: H3Event): Promise<Response> {
   // A stream the browser lets go of is a call to the service let go of too, so a closed tab leaves no
   // stream open on the unit.
   event.node.res?.on("close", () => waiting.abort());
+
+  if (reading && attached !== null && response.status === 404 && bundleFiles(attached.manifest, `/${rest}`)) {
+    await readManifestAgain(attached).catch((error: unknown) => console.error("console bundles: the manifest was not read again:", error));
+  }
 
   const answered = new Headers();
 

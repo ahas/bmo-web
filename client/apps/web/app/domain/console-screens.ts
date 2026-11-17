@@ -6,11 +6,37 @@ import type { RouteLocationNormalizedLoaded, Router } from "vue-router";
 // The screens units bring that the reader may open (docs/web.md, 「Screens a unit brings」): read once per page from
 // the console's own list, their words merged into the pack, and each bundle's module loaded the first time its
 // screen path is opened, its routes then standing under the console's frame in place of a console page at the
-// same address.
+// same address. A screen that does not load has the list read again, and is loaded once more where the list now
+// names it at other files.
 
 /** The screens the reader may open, as the page read them. */
 export function useConsoleScreens() {
   return useState<ConsoleScreen[]>("console-screens", () => []);
+}
+
+/** Reads the list of screens the reader may open, at the address a page stands at. */
+export type ScreensReader = (path: string) => Promise<ConsoleScreen[] | null>;
+
+/** What reads the list again: the list it reads stands as the page's and its words are merged into the pack; a list
+ * that cannot be read leaves the page's as it was and reads as null. With no session the list is asked for the
+ * address the page stands at, since only a share page's own bundle is answered then, and only there. */
+export function useScreensReader(): ScreensReader {
+  const screens = useConsoleScreens();
+  const fetching = useRequestFetch();
+  const { loggedIn } = useUserSession();
+  const i18n = useNuxtApp().$i18n as { mergeLocaleMessage: (locale: string, words: Record<string, unknown>) => void };
+
+  return async (path) => {
+    const query = loggedIn.value ? {} : { path };
+    const read = await fetching<ConsoleScreen[]>("/api/console-bundles", { query }).catch(() => null);
+
+    if (read !== null) {
+      screens.value = read;
+      mergeWords((locale, words) => i18n.mergeLocaleMessage(locale, words), read);
+    }
+
+    return read;
+  };
 }
 
 /** The attributes the page area carries while the path open is a bundle's screen: the mark that holds the bundle's
@@ -70,8 +96,8 @@ export function screenOpened(screen: ConsoleScreen): boolean {
   return opened.has(screen.module);
 }
 
-/** Loads a screen's bundle and stands its routes, in place of any console page at or below its screen path. */
-export function openScreen(router: Router, screen: ConsoleScreen): Promise<void> {
+// Loads a screen's bundle and stands its routes, in place of any console page at or below its screen path.
+function standScreen(router: Router, screen: ConsoleScreen): Promise<void> {
   let held = opening.get(screen.module);
 
   if (held === undefined) {
@@ -92,6 +118,25 @@ export function openScreen(router: Router, screen: ConsoleScreen): Promise<void>
   }
 
   return held;
+}
+
+/**
+ * Loads a screen's bundle and stands its routes, in place of any console page at or below its screen path. Where it
+ * does not load, the list is read again with `reread`, and where it now names the screen at another module or
+ * stylesheet the screen is loaded once more from those: a unit released since the list was read serves its files
+ * under new names, which the console has read by the time the old ones failed (docs/web.md, 「Screens a unit
+ * brings」). Rejects where the screen still does not load.
+ */
+export async function openScreen(router: Router, screen: ConsoleScreen, reread: () => Promise<ConsoleScreen[] | null>): Promise<void> {
+  try {
+    await standScreen(router, screen);
+  } catch (error) {
+    const named = (await reread())?.find((one) => one.name === screen.name);
+
+    if (named === undefined || (named.module === screen.module && named.stylesheet === screen.stylesheet)) throw error;
+
+    await standScreen(router, named);
+  }
 }
 
 /** Merges every screen's words into the console's pack, under each bundle's own namespace. */

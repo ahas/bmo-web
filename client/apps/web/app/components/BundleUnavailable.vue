@@ -9,11 +9,12 @@
 </template>
 
 <script setup lang="ts">
-import { openScreen, screenAt, useConsoleScreens } from "~/domain/console-screens";
+import { openScreen, screenAt, useConsoleScreens, useScreensReader } from "~/domain/console-screens";
 
 const route = useRoute();
 const router = useRouter();
 const screens = useConsoleScreens();
+const reader = useScreensReader();
 const trying = ref(false);
 
 async function tryAgain(): Promise<void> {
@@ -24,7 +25,7 @@ async function tryAgain(): Promise<void> {
   trying.value = true;
 
   try {
-    await openScreen(router, screen);
+    await openScreen(router, screen, () => reader(route.path));
     await navigateTo(route.fullPath, { replace: true });
   } catch {
     // Still not answering: the page stays, and the key is pressed again.

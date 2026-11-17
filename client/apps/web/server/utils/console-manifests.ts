@@ -20,11 +20,11 @@ export interface AttachedBundle {
   words: ConsoleWords;
 }
 
-// Each unit's bundle as its last answer brought it, and the units whose ask is still out. An ask waits for its
-// unit's answer, so a unit still answering keeps what it last brought and is not asked again until it has
-// answered, and no unit taking its time holds up another's screens.
+// Each unit's bundle as its last answer brought it, and each unit's ask still out. An ask waits for its unit's
+// answer, so a unit still answering keeps what it last brought and is not asked again until it has answered, and no
+// unit taking its time holds up another's screens.
 const brought = new Map<string, AttachedBundle | null>();
-const asking = new Set<string>();
+const asking = new Map<string, Promise<void>>();
 
 let attached: readonly AttachedBundle[] = [];
 const listeners = new Set<(bundles: readonly AttachedBundle[]) => void>();
@@ -181,6 +181,32 @@ export function withoutConflicts(found: readonly AttachedBundle[]): AttachedBund
   });
 }
 
+// Stands what every unit last brought as the attached bundles.
+function standBrought(): void {
+  attachBundles(withoutConflicts([...brought.values()].filter((bundle): bundle is AttachedBundle => bundle !== null)));
+}
+
+// Asks one unit for its manifest and stands what it brings once it answers; a unit whose ask is still out is not
+// asked twice, and the ask out is what is waited on.
+function ask(name: string, unit: UnitAddress): Promise<void> {
+  const out = asking.get(name);
+
+  if (out !== undefined) return out;
+
+  const asked = askedBundle(name, unit)
+    .then((bundle) => {
+      brought.set(name, bundle);
+    })
+    .finally(() => {
+      asking.delete(name);
+      standBrought();
+    });
+
+  asking.set(name, asked);
+
+  return asked;
+}
+
 /**
  * Asks every unit the settings name for its manifest, but one whose last ask is still out, and stands what reads
  * as the attached bundles each time a unit answers; settles once every ask it made has.
@@ -193,26 +219,22 @@ export async function readManifests(environment: Record<string, string | undefin
     if (!named.has(name)) brought.delete(name);
   }
 
-  const stand = () => attachBundles(withoutConflicts([...brought.values()].filter((bundle): bundle is AttachedBundle => bundle !== null)));
-
-  await Promise.all(
-    units
-      .filter(({ name }) => !asking.has(name))
-      .map(async ({ name, unit }) => {
-        asking.add(name);
-
-        try {
-          brought.set(name, await askedBundle(name, unit));
-        } finally {
-          asking.delete(name);
-        }
-
-        stand();
-      })
-  );
-  stand();
+  await Promise.all(units.filter(({ name }) => !asking.has(name)).map(({ name, unit }) => ask(name, unit)));
+  standBrought();
 
   return attached;
+}
+
+/**
+ * Asks the unit that brought a bundle for its manifest again at once, or waits on its ask still out, and settles
+ * once what it answers is attached (docs/web.md, 「Screens a unit brings」): a unit released since its last ask
+ * serves its bundle's files under new names. A bundle that no unit's last answer still holds is already read again,
+ * and asks nothing.
+ */
+export async function readManifestAgain(bundle: AttachedBundle): Promise<void> {
+  for (const [name, held] of brought) {
+    if (held === bundle) return ask(name, bundle.unit);
+  }
 }
 
 /** What a reader holds, as a bundle's role and owner key are read against it. */

@@ -8453,6 +8453,13 @@ its people directory and the members of the reader's company.
   unit's answer; a unit still answering keeps the screens its last answer brought, and is not asked again until
   it has answered. Which answers leave a unit out is the contract's (「How a console finds the services」), and a
   unit nothing answers, or that answers anything but a 200, is left out with nothing said on a screen.
+- **A bundle's file its unit no longer serves has the unit asked again at once.** A bundle's files carry their
+  content in their names, so a unit released between two asks serves new names while the console still hands out
+  the old ones. Where a read of a bundle's own files through the relay — its module, its stylesheet or a file in
+  its module's folder — is answered 404 by the unit, the console asks that unit for its manifest again before it
+  hands the 404 on, and attaches what the answer brings, so the list read after that 404 names the release the
+  unit serves. Two such reads at once share one ask, and a unit whose ask is still out is waited on rather than
+  asked twice.
 - **What the console left out, and why, is in its log.** A manifest that does not read through bmo-ui's
   `consoleManifest`, one built on a layer outside the console's range, one whose words do not answer, one whose
   service bears the name the console answers its company's members under (below), and two that clash are each
@@ -8524,6 +8531,14 @@ its people directory and the members of the reader's company.
     the screen's addresses open onto the console's own page under the screen's title, saying its service is not
     answering, with a key that reads the module again. Once it loads, its own routes stand in that page's place
     and the address opens as it was asked. The address is never left with nothing drawn at it.
+  - **A screen that does not load reads the list again first.** Where a screen's module or a file it imports is
+    not answered, as it is first opened and at each press of that key, the browser reads the list of screens
+    again, its words merged as at any reading, and where the list now names the screen at another module or
+    stylesheet, the screen is loaded once more from those; the page saying it is not answering stands only where
+    that load fails too. A unit released
+    since the list was read is therefore opened at its new release, which the console has asked for by then
+    (above), rather than met with the page saying it is not answering; a list naming the same files tries
+    nothing again.
   - **A bundle's module reads one `process` the console stands.** A unit builds its bundle for a browser and a
     library inside that build can still read `process.env` or `process.argv` where the built code stands, and the
     console's own browser build names no `process`, so on a page the console draws in the browser nothing would

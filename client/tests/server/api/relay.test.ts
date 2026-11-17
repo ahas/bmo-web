@@ -2,8 +2,8 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 
 import { globalsRestoredAfter } from "../../support/globals";
 
-import { attachBundles } from "../../../apps/web/server/utils/console-manifests";
-import { manifestOf } from "../../support/console-manifest";
+import { attachBundles, attachedService, readManifests } from "../../../apps/web/server/utils/console-manifests";
+import { manifestFields, manifestOf } from "../../support/console-manifest";
 import { routeOf } from "../../support/nitro";
 import { answer, standIn } from "../../support/units";
 
@@ -511,5 +511,61 @@ describe("the relay of a share read", () => {
       expect(await call("plain/shares/Ab3_x")).toBe(401);
       expect(await call("plain/shares/Ab3_x/content")).toBe(401);
     });
+  });
+});
+
+// A unit released between two reads of its manifest: its bundle's files carry their content in their names, and the
+// new release no longer serves the old ones. The read of an old file the unit answers 404 has the console ask that
+// unit for its manifest again before the 404 goes back, so the list read next names the new release without waiting
+// for the next minute's reading (docs/web.md, 「Screens a unit brings」).
+describe("a bundle's file its unit no longer serves", () => {
+  let release = 1;
+  const asked: string[] = [];
+  const files = (at: number) => ({ module: `/console/module-${at}.js`, stylesheet: `/console/style-${at}.css` });
+  const released = Bun.serve({
+    hostname: "127.0.0.1",
+    port: 0,
+    fetch(request) {
+      const path = new URL(request.url).pathname;
+      const { module, stylesheet } = files(release);
+
+      asked.push(path);
+
+      if (path === "/console-manifest") return Response.json(manifestFields("released", { bundle: module, stylesheet }));
+      if (path === "/console/words") return Response.json({ ko: { released: { title: "released" } } });
+      if (path === module || path === stylesheet) return new Response("export default { routes: [] };", { headers: { "content-type": "text/javascript" } });
+
+      return Response.json({ code: "not-found" }, { status: 404 });
+    }
+  });
+  const settings = { RELEASED_ADDRESS: `http://127.0.0.1:${released.port}` };
+  const manifestAsks = () => asked.filter((path) => path === "/console-manifest").length;
+  const read = (path: string) => handler({ params: { path: `released${path}` }, node: {} } as RouteEvent).then((response) => response.status);
+
+  beforeAll(async () => {
+    await readManifests(settings);
+  });
+  afterAll(async () => {
+    await readManifests({});
+    attachBundles([]);
+    await released.stop(true);
+  });
+
+  test("has the unit's manifest read again at once, the module and stylesheet asked at once sharing one ask", async () => {
+    expect(attachedService("released")?.manifest.bundle).toBe(files(1).module);
+
+    release = 2;
+
+    expect(await Promise.all([read(files(1).module), read(files(1).stylesheet)])).toEqual([404, 404]);
+    expect(manifestAsks()).toBe(2);
+    expect(attachedService("released")?.manifest.bundle).toBe(files(2).module);
+    expect(await read(files(2).module)).toBe(200);
+  });
+
+  test("asks nothing again for a path of the service's API that is no file of its bundle", async () => {
+    const before = manifestAsks();
+
+    expect(await read("/items/7")).toBe(404);
+    expect(manifestAsks()).toBe(before);
   });
 });

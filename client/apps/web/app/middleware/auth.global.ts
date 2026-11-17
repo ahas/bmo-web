@@ -1,5 +1,5 @@
 import { MEMBER_HOME, MEMBER_LAYOUT, isAdministrator } from "~/domain/access";
-import { openScreen, screenAt, screenOpened, sharePath, useConsoleScreens } from "~/domain/console-screens";
+import { openScreen, screenAt, screenOpened, sharePath, useConsoleScreens, useScreensReader } from "~/domain/console-screens";
 import { standUnavailable, unavailableRoute } from "~/domain/screen-unavailable";
 import { loginRoute, returnPath } from "~/domain/login-end";
 import { ensureSectionAccess } from "~/domain/section-access";
@@ -18,7 +18,8 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   if (import.meta.client && screen !== null && !screenOpened(screen)) {
     const router = useRouter();
-    const loaded = await openScreen(router, screen).then(() => true, () => false);
+    const reader = useScreensReader();
+    const loaded = await openScreen(router, screen, () => reader(to.path)).then(() => true, () => false);
 
     if (loaded) return navigateTo(to.fullPath, { replace: true });
 

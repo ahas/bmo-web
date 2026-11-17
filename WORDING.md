@@ -332,7 +332,9 @@
 - the boxes a person and a unit read documents in → 결재함: 결재 대기 (with its count, 결재 대기 {n}), 기안함, 처리함,
   참조함; a unit's 완료함, 수신함, 참조함. Never 받은편지함, 대기열.
 - a company's kinds of document → 양식: 양식, 새 양식, 양식 없음; the default set → 품의서, 내부 결재, 사내공문, 업무 협조, 휴가
-  신청, 변경 보고. Never 템플릿, 서식.
+  신청, 변경 보고; how a form numbers its completed documents → 번호 방식, its values 번호 없음, 양식별, 조직 약칭별; the number a
+  document is given → 문서 번호. Keeping the forms and rules is 편집, as a setting's is; a document's own words are 수정. Never
+  템플릿, 서식, 채번.
 - a company's job authority table and one row of it → 전결 규칙: 전결 규칙, 새 전결 규칙, 전결 규칙 편집, 일반 (a rule naming no
   matter); its matter → 사안; an amount band → 구간 ({n}구간 never, 구간 {n}), its bound → 상한 금액, the last 상한 없음. A drafter
   deciding alone → 전결 권한. Never 위임 규칙, 결재 규칙, 조건.

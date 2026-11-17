@@ -539,7 +539,7 @@ data root's `env/web-console.env`, which its unit reads and its build reads for 
 | console | `NUXT_PUBLIC_CONSOLE_ADDRESS` | the console's public address, its scheme, public name and base path, which a link to one of its screens is written under; the console reads a link under it as its own (`docs/web.md`, 「비밀 보관함」), and a unit that writes such a link, the chat agent asking for a secret among them, is given the same address in its own settings |
 | console | `AGENCY_ADDRESS`, `AGENCY_TOKEN` | the agency |
 | console | `JOB_ADDRESS`, `JOB_TOKEN` | bmo-job |
-| console | `RECEIVER_ADDRESS`, `RECEIVER_TOKEN` | the receiver |
+| console | `RECEIVER_ADDRESS`, `RECEIVER_TOKEN` | the receiver; the token is the console's own credential the receiver's settings name for it (`[console] token`), not the receiver's service token, so the receiver takes from it the routes that file a person's words, which it refuses under its service token |
 | console | `GATE_ADDRESS`, `GATE_TOKEN` | the gate, for the verdicts a room's messages were judged by |
 | console | `VOICE_ADDRESS`, `VOICE_TOKEN` | the voice engine, for a line's briefings, their sound and the stream that says one ended; a console that names none stands every chip as never made and plays nothing |
 | console | `BRAIN_ADDRESS`, `BRAIN_TOKEN` | the brain, which the console asks for its manifest and relays as any unit that brings a screen; the token is the console's own credential the brain's settings name for it (`[console] token`), not the brain's service token |

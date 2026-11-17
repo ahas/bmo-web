@@ -1614,7 +1614,7 @@ Four groups.
     agency's route names it — or at the log's end where that route names no run there. The owner's private chat stands not as a chat number but as the name the language pack gives it. A room
     name is the same everywhere on screen, so nowhere — sidebar, an agent's state, log header — does a number come up as
     is.
-  - **역할** — every role the agency's `GET /roles` lists, in its order: the runners, the doppelganger, the worker,
+  - **역할** — every role the agency's `GET /roles` lists, in its order: the runners, the worker,
     the co-workers and every other role alike, each by its name alone (「역할」 under the agent screen). A role with runs going carries the spinning mark and, at the
     line's end, how many go as a count badge (「Count badges」); under it stand its runs now on the reader's own agents
     and the deployment's, one line each, read from the agency's `GET /slots` — the repository whose checkout the run
@@ -3299,7 +3299,7 @@ alone (「Access」); another account's agents are reached from 조직's 사용�
     a turn naming no speaker being the default answerer's. Until the stream has handed that picture the cell holds a
     dash, since a record not yet told of any turn says nothing of whether one runs.
   - **An agent with nothing going reads 유휴**, muted, under a resting mark. An agent at work carries the spinning
-    mark and one line: for a role's agent, the source that asked its run by the pack's word — Job, 위임, 협업, 요청,
+    mark and one line: for a role's agent, the source that asked its run by the pack's word — Job, 협업, 요청,
     검색 and the rest — then what it works on, the item's number as `#n` for a job of an item, else the line naming
     the work where its asker named one, else the repository or folder it works in; for a supervisor, 답변 중 and the
     rooms its turns run in by their names. The line ends with how long it has been at it, in tabular figures, ticking
@@ -5666,32 +5666,6 @@ Four bounds keep it from growing forever.
   the watch itself above the log, with its detail already open: how often it looks and how long is left, how
   the last look went, the whole of the note, the condition, and the deadline or the timer's moment. A check that wrote no log is the ordinary case, so what the
   watch says stands whether there is a log under it or not.
-- **The work of a supervisor's double stands in the owner's own chat.** One task a supervisor delegated to its double,
-  while it waits for a slot or runs, stands a centred line at the conversation's foot, muted like a passing word and
-  carrying a turning mark: the role that runs it by its name, what it is at (대기 중 or 작업 중), and what it was asked
-  to do — the delegation's title, or, where it has none, the agent its slot names it bound to. Every run waiting or
-  running stands a line of its own, in the order the agency asked them. A run this screen watched end says what it came to for ten
-  seconds, and is then gone; a run that had already ended when the room opened stands nothing at all, so a finished
-  run never hangs in the conversation. The agency keeps the ended run's record — this is the room screen's view and
-  nothing of the service is taken away. Only the owner's own chat, read by the platform administrator, stands the
-  line, and only for the runs its answerers asked for; another room stands none.
-  - **It is read from the agency, never from a copy.** The line is the agency's `GET /delegations` — the waiting and
-    running rows and the latest ended one — read when the room opens and again whenever the agency's stream says a
-    slot request moved, and on the catch-up read a reopened stream brings. Each read replaces the whole list, so a run
-    the agency no longer carries leaves no line behind, and a read that failed clears the line rather than standing an
-    old marker. The room runs no clock of its own while the stream stands; while it is broken the screen's own
-    fallback clock reads the line, as it reads the rest of the screen. The ended row is read only to say what a run
-    this screen watched end came to; the notice is timed to go, and that is the only clock the line keeps.
-  - **A line opens its run's log.** A line whose run is known carries one icon button at its end, 로그, which opens
-    that run's lines alone, followed while it goes, in the same log dialog a room's run line opens. The run is the
-    one the delegation itself names in the agency's answer, its `runName` with its `runId`, the run its turn writes
-    under, which the agency keeps once the run has ended; only where the delegation names none yet does the line
-    take the run the agency's `GET /slots` names for the delegation's slot by its token, read with the delegations
-    on every read. A waiting run, and a running one whose turn has not started, has none yet and carries no button;
-    a running line that neither names between two of its turns keeps the run it was last seen as. The notice of a
-    run this screen watched end opens the run its ended row names, so a run that started and ended between two
-    reads keeps its log, else the run it was last seen running as, beside what it came to; a log dialog already
-    open stays open when the notice goes.
 
 #### 대화에서 찾기
 

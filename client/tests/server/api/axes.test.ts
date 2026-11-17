@@ -43,7 +43,7 @@ const REPOSITORY = {
   ]
 };
 // A seeded role the pack words by its code, and one the owner added that it does not.
-const DOPPELGANGER = { ...ROLE, name: "doppelganger", code: "doppelganger", label: "Doppelganger" };
+const SEEKER = { ...ROLE, name: "seeker", code: "seeker", label: "Seeker" };
 const OWN_ROLE = { ...ROLE, name: "role-own", code: "role-own", label: "Own role" };
 
 // The owner's account is user 5: the receiver names the owner's sender, and the account service links it to that user.
@@ -74,7 +74,7 @@ const agency = standIn("AGENCY", (call) => {
   if (call.path === "/supervisors/agent-a" && call.method === "PATCH") return answer({ ...SUPERVISOR, ...call.body });
   if (call.path === "/roles/worker" && call.method === "PATCH") return answer({ ...ROLE, ...call.body });
   if (call.path === "/roles" && call.method === "POST") return answer({ ...ROLE, ...call.body }, 201);
-  if (call.path === "/roles") return answer({ roles: [ROLE, DOPPELGANGER, { ...OWN_ROLE, skills: ["skill-b"], providerPrompts: { codex: "text-a" } }], bundles: ROLE.bundles, skills: ["skill-a", "skill-b"], lines: ["worker"] });
+  if (call.path === "/roles") return answer({ roles: [ROLE, SEEKER, { ...OWN_ROLE, skills: ["skill-b"], providerPrompts: { codex: "text-a" } }], bundles: ROLE.bundles, skills: ["skill-a", "skill-b"], lines: ["worker"] });
   if (call.path === "/role-agents" && call.method === "POST") return answer({ ...AGENT, name: "worker-04", carries: false, ...call.body });
   if (call.path === "/role-agents/worker-01" && call.method === "PATCH") return answer({ ...AGENT, ...call.body });
   if (call.path === "/role-agents/worker-01" && call.method === "DELETE") return answer({ code: "conflict", error: "The agent carries a run." }, 409);
@@ -198,7 +198,7 @@ describe("the roles", () => {
     // Whether a run keeps its session and its threshold are its agent's, and no role's.
     for (const field of ["sessions", "foldRatio"]) expect(got.answer?.roles[0]).not.toHaveProperty(field);
     expect(got.answer?.roles[0]?.agents[0]).toMatchObject({ sessions: "keep", foldRatio: null });
-    expect(got.answer?.roles[1]).toMatchObject({ name: "doppelganger", label: "Doppelganger" });
+    expect(got.answer?.roles[1]).toMatchObject({ name: "seeker", label: "Seeker" });
     expect(got.answer?.roles[2]).toMatchObject({ name: "role-own", label: "Own role" });
     expect(got.answer?.roles[0]).not.toHaveProperty("shown");
     expect(got.answer?.roles[0]?.agents.map((one) => [one.name, one.enabled, one.followsSupervisor, one.carries])).toEqual([

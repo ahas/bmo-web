@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
-import { DELEGATION_LOG } from "../support/delegation-log";
+import { ASKED_RUN } from "../support/asked-run";
 import { POLL_INTERVAL_MS } from "../../apps/web/shared/config";
 
 import type { Browser, Locator, Page } from "playwright-core";
@@ -13,7 +13,7 @@ import type { AgentList, AgentSummary } from "../../apps/web/shared/types";
 // 「Sidebar」). The console's agent list is rewritten on its way to the page, so the lines and the order change
 // between two reads while the sidebar stands, and the page's clock is moved on to the next read rather than waited
 // for. A role's row with runs going keeps its name whole at the sidebar's opening width. It drives the console
-// tests/support/browser-console.ts stands up, whose roles hold a worker and a doppelganger with runs going; the
+// tests/support/browser-console.ts stands up, whose roles hold a worker and a seeker with runs going; the
 // suite stands up no console, so there it skips.
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
@@ -37,20 +37,20 @@ afterAll(async () => {
   await browser?.close();
 }, BROWSER_HOOK_MS);
 
-// What the test makes of the agent list the console serves: whether the doppelganger's runs stand, and whether it
+// What the test makes of the agent list the console serves: whether the seeker's runs stand, and whether it
 // stands before the worker.
 interface Shape {
-  doppelgangerRuns: boolean;
-  doppelgangerFirst: boolean;
+  seekerRuns: boolean;
+  seekerFirst: boolean;
 }
 
 function reshaped(list: AgentList, shape: Shape): AgentList {
   const isRole = (name: string) => (agent: AgentSummary) => agent.kind === "role" && agent.name === name;
-  const doppelganger = list.agents.find(isRole("doppelganger"))!;
-  const shaped = shape.doppelgangerRuns ? doppelganger : { ...doppelganger, running: 0, runs: [] };
-  const others = list.agents.filter((agent) => !isRole("doppelganger")(agent));
+  const seeker = list.agents.find(isRole(ASKED_RUN.role))!;
+  const shaped = shape.seekerRuns ? seeker : { ...seeker, running: 0, runs: [] };
+  const others = list.agents.filter((agent) => !isRole(ASKED_RUN.role)(agent));
   const worker = others.findIndex(isRole("worker"));
-  const at = shape.doppelgangerFirst ? worker : worker + 1;
+  const at = shape.seekerFirst ? worker : worker + 1;
 
   return { ...list, agents: [...others.slice(0, at), shaped, ...others.slice(at)] };
 }
@@ -93,7 +93,7 @@ describe.skipIf(!origin || !touchReady())("the agent rows nested under the sideb
 
     try {
       const page = await context.newPage();
-      const shape: Shape = { doppelgangerRuns: false, doppelgangerFirst: false };
+      const shape: Shape = { seekerRuns: false, seekerFirst: false };
 
       // The stream is down, so the sidebar's clock is what reads the agents again.
       await page.route(/\/api\/events/, (route) => route.abort());
@@ -106,35 +106,35 @@ describe.skipIf(!origin || !touchReady())("the agent rows nested under the sideb
       await page.goto(`${origin}/`, { waitUntil: "load" });
 
       const worker = roleRow(page, "worker");
-      const doppelganger = roleRow(page, "doppelganger");
+      const seeker = roleRow(page, ASKED_RUN.role);
 
       await worker.waitFor({ timeout: 10_000 });
-      expect(await linesControl(doppelganger).count()).toBe(0);
+      expect(await linesControl(seeker).count()).toBe(0);
 
       // Its first run comes while the sidebar stands: the row opens on it as the worker's did from the start.
-      shape.doppelgangerRuns = true;
+      shape.seekerRuns = true;
       await readAgain(page);
-      await linesControl(doppelganger, "true").waitFor({ timeout: 5_000 });
-      expect(await page.locator(`[id="${await linesControl(doppelganger).getAttribute("aria-controls")}"]`).innerText()).toContain(DELEGATION_LOG.title);
+      await linesControl(seeker, "true").waitFor({ timeout: 5_000 });
+      expect(await page.locator(`[id="${await linesControl(seeker).getAttribute("aria-controls")}"]`).innerText()).toContain(ASKED_RUN.title);
       expect(await linesControl(worker).getAttribute("aria-expanded")).toBe("true");
 
-      // Folded, then standing before the worker: the fold stays with the doppelganger and the worker stays open.
-      await linesControl(doppelganger).click();
-      await linesControl(doppelganger, "false").waitFor({ timeout: 5_000 });
-      shape.doppelgangerFirst = true;
+      // Folded, then standing before the worker: the fold stays with the seeker and the worker stays open.
+      await linesControl(seeker).click();
+      await linesControl(seeker, "false").waitFor({ timeout: 5_000 });
+      shape.seekerFirst = true;
       await readAgain(page);
-      await standInOrder(page, "doppelganger", "worker");
-      expect(await linesControl(doppelganger).getAttribute("aria-expanded")).toBe("false");
+      await standInOrder(page, ASKED_RUN.role, "worker");
+      expect(await linesControl(seeker).getAttribute("aria-expanded")).toBe("false");
       expect(await linesControl(worker).getAttribute("aria-expanded")).toBe("true");
 
       // Its run ends and another comes: the row comes back folded, as it was left.
-      shape.doppelgangerRuns = false;
+      shape.seekerRuns = false;
       await readAgain(page);
-      await linesControl(doppelganger).waitFor({ state: "detached", timeout: 5_000 });
-      shape.doppelgangerRuns = true;
+      await linesControl(seeker).waitFor({ state: "detached", timeout: 5_000 });
+      shape.seekerRuns = true;
       await readAgain(page);
-      await linesControl(doppelganger).waitFor({ timeout: 5_000 });
-      expect(await linesControl(doppelganger).getAttribute("aria-expanded")).toBe("false");
+      await linesControl(seeker).waitFor({ timeout: 5_000 });
+      expect(await linesControl(seeker).getAttribute("aria-expanded")).toBe("false");
       expect(await linesControl(worker).getAttribute("aria-expanded")).toBe("true");
     } finally {
       await context.close();
@@ -155,7 +155,7 @@ describe.skipIf(!origin || !touchReady())("the agent rows nested under the sideb
 
       await page.goto(`${origin}/`, { waitUntil: "load" });
 
-      for (const name of ["worker", "doppelganger"]) {
+      for (const name of ["worker", ASKED_RUN.role]) {
         const link = roleRow(page, name).locator('[data-slot="link"]').first();
 
         await link.locator('[data-slot="busyMark"]').waitFor({ timeout: 10_000 });

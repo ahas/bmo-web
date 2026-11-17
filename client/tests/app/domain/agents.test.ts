@@ -54,8 +54,8 @@ const CATALOGUE: AgentSummary[] = [
     line: "worker",
     running: 2,
     runs: [
-      { token: null, role: "worker", path: "/srv/repo-a/places/1", provider: "codex", model: "model-a", source: "job", since: 1_788_000_000_000, session: null, runName: null, jobId: null, title: null, agent: null, roomId: null },
-      { token: null, role: "worker", path: "/tmp/scratch/loose", provider: "codex", model: "model-a", source: "ask", since: null, session: null, runName: null, jobId: null, title: null, agent: null, roomId: null }
+      { role: "worker", path: "/srv/repo-a/places/1", provider: "codex", model: "model-a", source: "job", since: 1_788_000_000_000, session: null, runName: null, jobId: null, title: null, agent: null, roomId: null },
+      { role: "worker", path: "/tmp/scratch/loose", provider: "codex", model: "model-a", source: "ask", since: null, session: null, runName: null, jobId: null, title: null, agent: null, roomId: null }
     ]
   }),
   catalogueEntry("repo-a", "repository", "Repository A", {
@@ -167,12 +167,12 @@ describe("a role's runs", () => {
   });
 
   test("a run no job carries whose asker named its work stands by that line, then the room it works for where the list holds it", () => {
-    const delegated = { ...CATALOGUE[3]!.runs[0]!, path: null, jobId: null, title: "Check the plan", runName: "run-a", roomId: -1 };
+    const titled = { ...CATALOGUE[3]!.runs[0]!, path: null, jobId: null, title: "Check the plan", runName: "run-a", roomId: -1 };
     const rooms = [room(-1, "Room One")];
 
-    expect(runLabel(wording, delegated, CATALOGUE, rooms)).toBe(wording("agents.label.run_work_room", { work: "Check the plan", room: "Room One" }));
-    expect(runLabel(wording, { ...delegated, roomId: -9 }, CATALOGUE, rooms)).toBe("Check the plan");
-    expect(runLabel(wording, { ...delegated, jobId: 7, path: "/srv/repo-b" }, CATALOGUE, rooms)).toBe("repo-b");
+    expect(runLabel(wording, titled, CATALOGUE, rooms)).toBe(wording("agents.label.run_work_room", { work: "Check the plan", room: "Room One" }));
+    expect(runLabel(wording, { ...titled, roomId: -9 }, CATALOGUE, rooms)).toBe("Check the plan");
+    expect(runLabel(wording, { ...titled, jobId: 7, path: "/srv/repo-b" }, CATALOGUE, rooms)).toBe("repo-b");
   });
 
   test("a path that is a repository's own folder is that repository's, and no path is said as such", () => {

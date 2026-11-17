@@ -98,7 +98,7 @@
 - a role's slot, one of the runs its agents let in at once → 역할 슬롯, 슬롯; a slot kept by a reservation → 예약, counted
   as `1 예약`. Never 자리, 칸, 풀.
 - what an agent is doing now → 상태, its column's name: an agent with nothing going → 유휴; a supervisor answering in
-  rooms → 답변 중; a run of a role's agent → the pack's word for the source that asked it (Job, 위임, 협업, 요청 …)
+  rooms → 답변 중; a run of a role's agent → the pack's word for the source that asked it (Job, 협업, 요청 …)
   and what it works on. Never 쉬는 중, 대기 or 비어 있음 for an idle agent: 대기 is a run waiting in its role's line.
 - a repository the agency runs jobs in → 저장소: 저장소, 저장소 추가. Never 리포지토리, 레포, 워커 for the place.
 - a supervisor's road, the one provider and model its turns go out on → 공급자 · 모델, its fields 공급자, 모델, 강도,
@@ -111,7 +111,7 @@
 - a value equal to the default a service states → `<value> (기본값)`, after the value and never in its place; a
   setting a service leaves to its own default without naming the value stands empty with `(기본값)` as its
   placeholder; a setting whose default no service states stands empty, with no word.
-- a role → its name alone, the kebab-case key the agency holds it under (`worker`, `doppelganger`, `voyager`,
+- a role → its name alone, the kebab-case key the agency holds it under (`worker`, `scout`, `voyager`,
   `seeker`, `producer` …): never translated and never the row's label, on every screen that names one.
 - a supervisor whose road cannot take a turn now → 답할 수 없음.
 - a supervisor's tool limit, the capabilities its sessions may hold → 도구 제한; a capability stands by its own name

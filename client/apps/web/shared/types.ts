@@ -1017,41 +1017,6 @@ export interface LiveSnapshot {
   queued?: QueuedMessage[];
 }
 
-// Where a task a supervisor delegated to its double stands: waiting for a slot, running on one, or ended.
-export type DelegationStage = "waiting" | "running" | "ended";
-
-// A task a supervisor delegated to its double, as the agency lists it (its `docs/api.md`, `GET /delegations`): what it
-// was asked to do, which role's run carries it, who asked, and what it came to once it ended.
-export interface DelegationView {
-  token: string;
-  title: string | null;
-  askedBy: string | null;
-  stage: DelegationStage;
-  // The agent its turn runs on, as its slot names it; null before it is bound and once it has left its slot.
-  agentName: string | null;
-  role: string;
-  askedAt: number;
-  runningSince: number | null;
-  endedAt: number | null;
-  outcome: string | null;
-  // The run its turn writes under, once the delegation or its slot names one.
-  run: DelegationRun | null;
-}
-
-// The run a delegated task's turn writes under: the agent whose log holds it, the run's own name, and its id in the
-// agency's run ledger, none until its turn opens it.
-export interface DelegationRun {
-  agent: string;
-  name: string;
-  id: number | null;
-}
-
-// The agency's page of delegations: the ones still waiting or running in the order they were asked, then the latest
-// ended.
-export interface DelegationPage {
-  items: DelegationView[];
-}
-
 export type BotEventType =
   | "avatars-updated"
   | "queued"
@@ -1567,8 +1532,6 @@ export type AgentAxis = "supervisor" | "role" | "repository";
 // that session's turn while one runs —, the job whose run it is, and the line naming its work. A field the answer
 // does not carry stands as none.
 export interface RoleSlotRun {
-  // The slot request's own token, which a delegated task's names as well.
-  token: string | null;
   role: string;
   path: string | null;
   provider: string | null;

@@ -142,7 +142,6 @@ export function slotRunsOf(answer: unknown): RoleSlotRun[] {
       return run === null || name === null
         ? []
         : [{
-            token: text(run.token),
             role: name,
             path: text(run.path),
             provider: text(run.provider),

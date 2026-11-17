@@ -439,12 +439,6 @@ room:
     situation_none: 상황 노트 없음
     agent_waiting_engine_item: "{subject} 같은 모델을 쓰는 #{item} Job이 끝나기를 기다리는 중"
     agent_writing: "{subject} 답을 쓰는 중"
-    delegation_ended: "{role} 작업 끝"
-    delegation_ended_outcome: "{role} 작업 끝 · {outcome}"
-    delegation_running: "{role} 작업 중 · {title}"
-    delegation_running_untitled: "{role} 작업 중"
-    delegation_waiting: "{role} 대기 중 · {title}"
-    delegation_waiting_untitled: "{role} 대기 중"
     step_thinking: 생각하는 중
     step_tool: 툴 사용 중
     step_tool_named: "{tool} 사용 중"
@@ -627,7 +621,6 @@ room:
     attach_file: 파일 첨부
     attach_media: 사진·동영상
     brain_read_page: 브레인에서 보기
-    delegation_log: 로그
     situation: 방의 상황 보기
     callers: 호출 권한
     members: 대화상대
@@ -2795,7 +2788,6 @@ live:
     slot_source_ask: 요청
     slot_source_browse: 브라우징
     slot_source_cowork: 협업
-    slot_source_delegate: 위임
     slot_source_job: Job
     slot_source_native: 네이티브
     slot_source_none: 출처 없음

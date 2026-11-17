@@ -317,11 +317,6 @@
           <!-- A passing word about the turn stands at the conversation's foot. The word is no
                message, so it keeps room of its own from the conversation above it. -->
           <p v-if="passing !== null" class="mt-4 self-center text-sm text-muted">{{ outcomeLine(t, passing) }}</p>
-
-          <!-- The work of a supervisor's double, under the conversation as a passing word is: one line a
-               delegated run, saying that it waits or works and what it was asked to do, and once it ended,
-               what it came to (docs/web.md, the room screen's delegated-run marker). -->
-          <DelegationMarker v-if="!group && administrator" :lines="delegationMarkers" />
         </UChatMessages>
 
         <!-- Where a flight is put: the layer's last child, of no box of its own, so a flight coming
@@ -559,14 +554,12 @@ import { formatClock, toUnixSeconds, useNowSeconds } from "bmo-ui/app/domain/tim
 import { presenceWords, roomPresence, usePresence, useTypingTeller } from "~/domain/presence";
 import { imageUrl } from "~/domain/urls";
 import { outcomeLine, useHeldRuns } from "~/domain/working";
-import { useDelegationReading } from "~/domain/delegations";
 import { groupRoom, listeningRuns, shownOutcome, useRoomWindow } from "~/domain/room-window";
 import { clearFound, foundMessages, markFound, steppedHit } from "~/domain/room-find";
 import { scrollWithin } from "bmo-ui/app/domain/scroll-within";
 
 import type {
   ArchivedMessage,
-  DelegationPage,
   ExactMessageId,
   Judgement,
   JudgementMark,
@@ -1229,36 +1222,6 @@ const mentionAgents = computed<MentionAgent[]>(() => {
   }));
 });
 const mentionSources = computed(() => ({ people: mentionPeople.value, agents: mentionAgents.value }));
-
-// The tasks a supervisor delegated to its double, as the agency lists them (docs/web.md, the room screen's
-// delegated-run marker). The owner's own chat stands them, and another room stands none. Every read replaces the whole
-// list, so a run the agency no longer carries leaves no line behind; a read that failed clears what the last one stood
-// rather than leaving a marker that may have ended. An ended run says what it came to for a moment only where this
-// screen watched it end, and is then gone.
-const { lines: delegationMarkers, take: takeDelegations, clear: clearDelegations } = useDelegationReading(t);
-
-// The agents answering this room, the default answerer where it names none: a delegated run stands here when one of
-// them asked for it.
-const answererNames = computed(() => [
-  ...new Set([roomAnswerers.value.default, ...roomAnswerers.value.agents.map((answerer) => answerer.name), catalogue.value.defaultAnswerer ?? ""])
-]);
-
-async function readDelegations(): Promise<void> {
-  if (group.value || !administrator.value) {
-    clearDelegations();
-
-    return;
-  }
-
-  try {
-    takeDelegations((await $fetch<DelegationPage>("/api/delegations")).items, answererNames.value);
-  } catch {
-    clearDelegations();
-  }
-}
-
-// The owner's chat is known a moment after the room opens, and a room that turned out to be a group stands none.
-watch(group, () => void readDelegations());
 
 // Whom the console speaks as here: the owner, under the sender and the name their own messages are archived
 // with, so a message on its way reads as the one that replaces it.
@@ -2901,7 +2864,6 @@ onMounted(async () => {
   }
 
   await readLive();
-  await readDelegations();
 });
 
 // A message the address comes to name while the room stands — the playing bar pressed in its own
@@ -2931,11 +2893,6 @@ function letGoOfAsked(): void {
 // A job beside the chat is the agency's, not the receiver's, so the live picture the receiver sends says nothing
 // of one starting or ending. The agency's job events name it, and the board is read again when one comes.
 useLiveRefresh(() => void readLive(), { on: ["worker-run"], everyMs: POLL_INTERVAL_MS });
-
-// A delegated run standing the owner's own chat moves when the agency says a role's slot request was asked, let in or
-// given back; that is its stream's only word on one, so the marker is read on it and on the catch-up read a reopened
-// stream brings, never on a clock of its own while the stream stands.
-useLiveRefresh(() => void readDelegations(), { on: ["agency-catalogue"], everyMs: POLL_INTERVAL_MS });
 
 async function readLive(): Promise<void> {
   // The work running anywhere is the administrator's to see.

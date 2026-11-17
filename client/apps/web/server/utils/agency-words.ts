@@ -70,7 +70,6 @@ function wordOr(table: Readonly<Record<string, string>>, code: unknown, name: st
 const SLOT_SOURCES: Readonly<Record<string, string>> = {
   job: "live.label.slot_source_job",
   ask: "live.label.slot_source_ask",
-  delegate: "live.label.slot_source_delegate",
   cowork: "live.label.slot_source_cowork",
   native: "live.label.slot_source_native",
   search: "live.label.slot_source_search",

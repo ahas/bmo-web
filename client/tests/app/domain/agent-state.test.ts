@@ -38,9 +38,9 @@ describe("a role's agent at work", () => {
   });
 
   test("reads the line naming its work where it is no job of an item, else the place it works in", () => {
-    expect(runDoing(t, run({ source: "delegate" })).line).toBe("delegate · Title A");
-    expect(runDoing(t, run({ source: "delegate" })).item).toBeNull();
-    expect(runDoing(t, run({ source: "delegate" })).note).toBeNull();
+    expect(runDoing(t, run({ source: "Ask" })).line).toBe("Ask · Title A");
+    expect(runDoing(t, run({ source: "Ask" })).item).toBeNull();
+    expect(runDoing(t, run({ source: "Ask" })).note).toBeNull();
     expect(runDoing(t, run({ title: null })).line).toBe("Job · repo-a");
   });
 

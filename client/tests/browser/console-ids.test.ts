@@ -3,7 +3,7 @@ import { chromium } from "playwright-core";
 
 import { wording } from "../../apps/web/shared/wording";
 import { harnessScreens } from "./harness-screens";
-import { DELEGATION_LOG } from "../support/delegation-log";
+import { ASKED_RUN } from "../support/asked-run";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
@@ -209,9 +209,9 @@ describe.skipIf(!origin || !touchReady())("ids on a console screen", () => {
         await visit(page, "/");
 
         const within = await sidebar(page, viewport.phone);
-        // The doppelganger stands under the roles with its delegated run named by the work it was asked for, so the
-        // row and the list under it are the reported shape: a branch with a nested branch under it.
-        const label = within.locator('nav [data-slot="linkLabel"]').filter({ hasText: /^\s*doppelganger\s*$/ }).first();
+        // The seeker stands under the roles with its run named by the work it was asked for, so the row and the list
+        // under it are the reported shape: a branch with a nested branch under it.
+        const label = within.locator('nav [data-slot="linkLabel"]').filter({ hasText: new RegExp(`^\\s*${ASKED_RUN.role}\\s*$`) }).first();
         const row = label.locator("xpath=ancestor::li[1]");
         const nested = row.locator('[data-slot="linkTrailing"][aria-controls]').first();
         const controls = (await nested.getAttribute("aria-controls"))!;
@@ -222,7 +222,7 @@ describe.skipIf(!origin || !touchReady())("ids on a console screen", () => {
         expect(await parent.count()).toBe(1);
         expect(await parent.getAttribute("aria-expanded")).toBe("true");
         expect(await nested.getAttribute("aria-expanded")).toBe("true");
-        expect(await page.locator(`[id="${controls}"]`).innerText()).toContain(DELEGATION_LOG.title);
+        expect(await page.locator(`[id="${controls}"]`).innerText()).toContain(ASKED_RUN.title);
 
         // Closing the nested row moves its own list alone: the branch above it stays as it stood.
         await nested.click();

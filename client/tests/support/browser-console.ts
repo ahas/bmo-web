@@ -18,10 +18,10 @@ import { manifestFields } from "./console-manifest";
 import { HARNESS_SCREEN_UNITS } from "./harness-screens";
 import { jobLogAnswer } from "./job-log";
 import { rawNumber } from "./raw-number";
-import { DELEGATION_LOG, delegationLogAnswer } from "./delegation-log";
 import { roleLogAnswer } from "./role-log";
 import { HIGH_ALBUM, HIGH_ANSWERED, HIGH_FILE, HIGH_FILE_NAME, HIGH_FILE_WORDS, HIGH_LINE, HIGH_PICTURE, HIGH_ROOM, highSent, highWords } from "./high-room";
 import { UNREAD_LINE, UNREAD_ROOM } from "./unread-room";
+import { ASKED_RUN } from "./asked-run";
 import { addressOf, BROWSER_CONSOLE_PREFIX, dropScratchDatabase, sweepScratchDatabases } from "./web-database";
 
 const CLIENT = new URL("../..", import.meta.url).pathname;
@@ -81,7 +81,6 @@ const ACCOUNTS: readonly [string, string][] = [
   ["work-view", "fixture-password-2311"],
   ["tool-clock", "fixture-password-3071"],
   ["record-verdicts", "fixture-password-3145"],
-  ["delegation-marker", "fixture-password-2373"],
   ["screen-stands", "fixture-password-2411"],
   ["hidden-inputs", "fixture-password-2412"],
   ["secret-request", "fixture-password-2649"],
@@ -525,7 +524,7 @@ function provider(name: string, label: string, extra: Record<string, unknown> = 
 
 const ROLES = [
   role("worker", "Worker", { running: 2, waiting: 1, agents: seats("worker", 3, ["claude-code", "claude-opus-5-5", "high"], 2) }),
-  role("doppelganger", "Doppelganger", { running: 1, agents: seats("doppelganger", 2, null, 1) }),
+  role(ASKED_RUN.role, "Seeker", { running: 1, agents: seats(ASKED_RUN.role, 2, null, 1) }),
   role("producer", "Producer", { agents: [] }),
   role("builder", "Builder", { agents: seats("builder", 8, ["claude-code", "claude-sonnet-5", "medium"]) }),
   role("scout", "Scout", { agents: seats("scout", 12, ["claude-code", "claude-sonnet-5", "medium"]).map((one) => ({ ...one, sessions: "fresh" })) }),
@@ -635,10 +634,6 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
     if (roleLog !== null) return roleLog;
 
-    const delegationLog = delegationLogAnswer(new URL(request.url), OWNER_CHAT);
-
-    if (delegationLog !== null) return delegationLog;
-
     // The two axes and the places: two supervisors, a handful of roles with runs going and waiting, and three
     // repositories, one with a job holding a checkout.
     if (path === "/supervisors") return Response.json({ items: [heldSupervisor("agent-a"), heldSupervisor("agent-c")], more: false });
@@ -669,40 +664,21 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     }
     if (path === "/slots") {
       // The worker's runs, each on the agent of the role it was let in on: a job's, which opens by the job's run, and
-      // one its binding names. The doppelganger's run is the delegated task the owner's own chat stands, under the
-      // delegation's token, and is named by what it was asked to do and the room it was asked in. The worker keeps one
-      // slot more by a reservation.
+      // one its asker named the work of. The seeker's run is one no job carries, named by what it was asked to do. The
+      // worker keeps one slot more by a reservation.
       const runs = (name: string): Record<string, unknown>[] =>
         name === "worker"
           ? [
               { token: "slot-a", role: "worker", path: "/srv/checkouts/repo-a", provider: "claude-code", model: "claude-opus-5-5", source: "job", since: Date.now() - 90_000, runName: "job-7", session: null, jobId: 7, title: "Item 12", agent: "worker-01" },
-              { token: "slot-b", role: "worker", path: "/srv/checkouts/repo-a-w2", provider: "claude-code", model: "claude-opus-5-5", source: "delegate", since: Date.now() - 30_000, runName: "delegate-b", session: null, jobId: null, title: "Look into a thing", agent: "worker-02" }
+              { token: "slot-b", role: "worker", path: "/srv/checkouts/repo-a-w2", provider: "claude-code", model: "claude-opus-5-5", source: "ask", since: Date.now() - 30_000, runName: "ask-b", session: null, jobId: null, title: "Look into a thing", agent: "worker-02" }
             ]
-          : name === "doppelganger"
+          : name === ASKED_RUN.role
             ? [
-                { token: DELEGATION_LOG.token, role: "doppelganger", path: "/srv/scratch", provider: "claude-code", model: "claude-opus-5-5", source: "delegate", since: Date.now() - 20_000, runName: DELEGATION_LOG.run, session: null, jobId: null, title: DELEGATION_LOG.title, agent: DELEGATION_LOG.agent }
+                { token: "slot-c", role: ASKED_RUN.role, path: "/srv/scratch", provider: "claude-code", model: "claude-opus-5-5", source: "ask", since: Date.now() - 20_000, runName: ASKED_RUN.run, session: null, jobId: null, title: ASKED_RUN.title, agent: ASKED_RUN.agent }
               ]
             : [];
 
       return Response.json({ items: ROLES.map((one) => ({ role: one.name, maxConcurrent: one.maxConcurrent, active: one.running, reserved: one.name === "worker" ? 1 : 0, waiting: one.waiting, runs: runs(String(one.name)) })) });
-    }
-    // The tasks a supervisor delegated to its double, as the agency lists them for the room's marker: one still
-    // running under the owner's own chat agent, and one that has ended with what it came to.
-    if (path === "/delegations") {
-      return Response.json({
-        items: [
-          {
-            token: DELEGATION_LOG.token, title: DELEGATION_LOG.title, askedBy: "agent-a", stage: "running", role: "doppelganger",
-            provider: "claude-code", model: "claude-opus-5-5", session: null, askedAt: Date.now() - 60_000, runningSince: Date.now() - 30_000,
-            endedAt: null, runName: DELEGATION_LOG.run, runId: DELEGATION_LOG.ledgerRun, outcome: null
-          },
-          {
-            token: "delegation-ended", title: "Retire the old marker", askedBy: "agent-a", stage: "ended", role: "doppelganger",
-            provider: "claude-code", model: "claude-opus-5-5", session: null, askedAt: Date.now() - 600_000, runningSince: Date.now() - 600_000,
-            endedAt: Date.now() - 300_000, runName: "delegate-agent-a-0", runId: 950, outcome: "all checks passed"
-          }
-        ]
-      });
     }
     // The rooms a supervisor spoke in.
     if (/^\/supervisors\/[^/]+\/rooms$/.test(path)) {

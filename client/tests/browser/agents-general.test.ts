@@ -75,7 +75,7 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
 
         await page.goto(`${origin}/agents?tab=roles`, { waitUntil: "load" });
         await page.locator("#setting-role-worker").waitFor({ timeout: 15_000 });
-        for (const name of ["doppelganger", "producer", "builder", "scout", "voyager"]) expect(await page.locator(`#setting-role-${name}`).count()).toBe(1);
+        for (const name of ["seeker", "producer", "builder", "scout", "voyager"]) expect(await page.locator(`#setting-role-${name}`).count()).toBe(1);
 
         await page.goto(`${origin}/agents?tab=repositories`, { waitUntil: "load" });
         await page.locator("#setting-repository-repo-a").waitFor({ timeout: 15_000 });

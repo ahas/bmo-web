@@ -11,7 +11,7 @@ import type { Browser } from "playwright-core";
 // item is stopped from its row's more-menu and reads stopping after; a supervisor holds a dash until the stream has
 // handed the bot's picture, and reads its turns from it after; the roles tab counts the slots a reservation keeps;
 // and the old live address leads here. It drives the console tests/support/browser-console.ts stands up, whose agency
-// lets the worker's first two agents in on a job of item 12 and on a delegated task, and keeps one worker slot by a
+// lets the worker's first two agents in on a job of item 12 and on an ask naming its work, and keeps one worker slot by a
 // reservation; the suite stands up no console, so there it skips.
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
@@ -64,11 +64,11 @@ describe.skipIf(!origin || !touchReady())("what each agent is doing now", () => 
 
         await working.waitFor({ timeout: 15_000 });
 
-        // A job's run reads its source and its item's number with how long; a delegated task reads its line; an agent
+        // A job's run reads its source and its item's number with how long; an ask reads its line; an agent
         // with nothing let in on it reads idle.
         expect(await working.innerText()).toContain(`Job · ${wording("live.label.run_item", { id: 12 })}`);
         expect(await working.locator(".tabular-nums").count()).toBe(1);
-        expect(await row("worker-02").locator('[data-agent-state="working"]').innerText()).toContain(`${wording("live.label.slot_source_delegate")} · Look into a thing`);
+        expect(await row("worker-02").locator('[data-agent-state="working"]').innerText()).toContain(`${wording("live.label.slot_source_ask")} · Look into a thing`);
         expect(await row("worker-03").locator('[data-agent-state="idle"]').innerText()).toContain(wording("live.label.agent_idle"));
         // The stand-in's stream hands no picture of the bot's turns, so no supervisor is said to be idle: each holds a
         // dash until the stream has answered.

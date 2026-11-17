@@ -7,6 +7,7 @@ import { appFile } from "../../support/render-page";
 
 import type { Component } from "vue";
 import type { AvatarIndex } from "../../../apps/web/app/domain/avatars";
+import type { MemberPresence } from "../../../apps/web/app/domain/presence";
 import type { RoomMember } from "../../../apps/web/shared/types";
 
 // A room's members as a person reads them (docs/web.md, the room screen's members entry): each row their face, name
@@ -33,8 +34,8 @@ const UBadge = defineComponent({
   }
 });
 
-async function rendered(member: RoomMember, avatars: AvatarIndex = new Map()): Promise<string> {
-  const app = createSSRApp({ render: () => h(Line, { member, avatars }) });
+async function rendered(member: RoomMember, avatars: AvatarIndex = new Map(), presence?: MemberPresence): Promise<string> {
+  const app = createSSRApp({ render: () => h(Line, { member, avatars, presence }) });
 
   app.component("UAvatar", UAvatar);
   app.component("UBadge", UBadge);
@@ -44,6 +45,15 @@ async function rendered(member: RoomMember, avatars: AvatarIndex = new Map()): P
 }
 
 describe("a member of a room", () => {
+  test("says their presence under their name where it is shown, and nothing where it is not", async () => {
+    const member: RoomMember = { person: 9_000_000_000_103, name: "member-c", status: "status-c", account: null, inConsole: false };
+    const shown = await rendered(member, new Map(), { chip: { show: true, color: "success", position: "bottom-right", size: "md" }, line: "presence-line" });
+
+    expect(shown).toMatch(/<span[^>]*data-member-presence[^>]*>presence-line<\/span>/);
+    expect(shown.indexOf("presence-line")).toBeLessThan(shown.indexOf("status-c"));
+    expect(await rendered(member, new Map(), { chip: { show: false, color: "success", position: "bottom-right", size: "md" }, line: null })).not.toContain("data-member-presence");
+  });
+
   test("known as an account carries the console user's mark beside their name and status line", async () => {
     const html = await rendered({ person: 9_000_000_000_101, name: "member-a", status: "status-a", account: "7", inConsole: false });
 

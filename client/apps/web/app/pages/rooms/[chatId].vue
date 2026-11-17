@@ -40,22 +40,32 @@
           >
             <!-- The room's picture opens whole when pressed, as a face beside a bubble does; a room
                  standing as its letter has nothing to open. It stands where every other page's mark
-                 stands, at that mark's size. The dot on its corner is the room's people's presence, said in words
-                 by its tooltip (docs/web.md, 「Presence and typing」). -->
+                 stands, at that mark's size. The dot on its corner is the room's people's presence, a button of its
+                 own on every room: its tooltip says it in words, and it opens the room's people, each with their own
+                 (docs/web.md, 「Presence and typing」). Its press reaches a little past the dot, so a finger finds it. -->
             <template #leading>
-              <UTooltip :text="presenceLine ?? undefined" :disabled="presenceLine === null">
+              <span class="relative me-1.5 flex shrink-0">
                 <button
                   v-if="roomAvatar.src"
                   type="button"
-                  class="me-1.5 flex shrink-0 cursor-zoom-in rounded-full transition-shadow hover:ring-2 hover:ring-primary/40 active:ring-2 active:ring-primary/60"
+                  class="flex shrink-0 cursor-zoom-in rounded-full transition-shadow hover:ring-2 hover:ring-primary/40 active:ring-2 active:ring-primary/60"
                   :aria-label="$t('room.aria.avatar_enlarge', { name: title })"
-                  :aria-description="presenceLine ?? undefined"
                   @click="roomFaceOpen = true"
                 >
-                  <UAvatar v-bind="headAvatar" size="2xs" />
+                  <UAvatar v-bind="roomAvatar" size="2xs" />
                 </button>
-                <UAvatar v-else v-bind="headAvatar" size="2xs" class="me-1.5" :aria-description="presenceLine ?? undefined" />
-              </UTooltip>
+                <UAvatar v-else v-bind="roomAvatar" size="2xs" />
+                <UTooltip v-if="presenceHere.best !== null" :text="presenceLine ?? undefined" :disabled="presenceLine === null">
+                  <button
+                    type="button"
+                    data-room-presence
+                    class="absolute -end-0.5 -bottom-0.5 size-2 rounded-full ring ring-bg transition-colors before:absolute before:-inset-2 before:content-['']"
+                    :class="presenceDot"
+                    :aria-label="$t('room.aria.presence_open', { state: presenceLine ?? '' })"
+                    @click="membersOpen = true"
+                  />
+                </UTooltip>
+              </span>
               <ImageViewer v-if="roomAvatar.src" v-model:open="roomFaceOpen" :src="roomAvatar.src" :title="$t('room.label.avatar_of', { name: title })" />
               <RoomPictureViewer ref="pictureViewer" :chat-id="chatId" @show="showPictureMessage" />
             </template>
@@ -544,7 +554,7 @@ import {
 } from "~/domain/room";
 import { SCROLL_BOTTOM_THRESHOLD_PX, SCROLL_TOP_THRESHOLD_PX } from "~/domain/polling";
 import { formatClock, toUnixSeconds, useNowSeconds } from "bmo-ui/app/domain/time";
-import { presenceChip, presenceWords, roomPresence, usePresence, useTypingTeller } from "~/domain/presence";
+import { presenceWords, roomPresence, usePresence, useTypingTeller } from "~/domain/presence";
 import { imageUrl } from "~/domain/urls";
 import { outcomeLine, useHeldRuns } from "~/domain/working";
 import { useDelegationReading } from "~/domain/delegations";
@@ -1014,7 +1024,10 @@ const roomAvatar = computed(() => avatarFor(avatars.value, "room", chatId, title
 const presenceHeld = usePresence();
 const { now: presenceNow } = useNowSeconds(60_000);
 const presenceHere = computed(() => roomPresence(presenceHeld.value.get(chatId), signedUser.value));
-const headAvatar = computed(() => ({ ...roomAvatar.value, chip: presenceChip(presenceHere.value) }));
+// The head's dot in the colour of its state, a step lighter under the pointer and lighter again pressed.
+const presenceDot = computed<string>(() =>
+  presenceHere.value.best === "away" ? "bg-warning hover:bg-warning/75 active:bg-warning/60" : "bg-success hover:bg-success/75 active:bg-success/60"
+);
 const presenceLine = computed<string | null>(() => presenceWords(t, presenceHere.value, presenceNow.value * 1000));
 const roomFaceOpen = ref(false);
 

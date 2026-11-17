@@ -45,10 +45,10 @@
             :class="[ROW, 'min-w-0 flex-1 transition-colors hover:bg-elevated active:bg-accented focus-inset']"
             :data-console-user="member.account"
           >
-            <RoomMemberLine :member="member" :avatars="props.avatars" />
+            <RoomMemberLine :member="member" :avatars="props.avatars" :presence="presenceOf(member)" />
           </NuxtLink>
           <div v-else :class="[ROW, 'min-w-0 flex-1']" :data-console-user="member.account ?? undefined">
-            <RoomMemberLine :member="member" :avatars="props.avatars" />
+            <RoomMemberLine :member="member" :avatars="props.avatars" :presence="presenceOf(member)" />
           </div>
           <IconButton
             v-if="member.inConsole && member.account !== null && member.account === mine"
@@ -82,10 +82,13 @@ import { UDrawer, USlideover } from "#components";
 
 import { useReadFailure } from "~/domain/events";
 import { useSignedUser } from "~/domain/access";
+import { memberPresence, memberPresenceLook, usePresence } from "~/domain/presence";
+import { useNowSeconds } from "bmo-ui/app/domain/time";
 import { useSectionAccess } from "~/domain/section-access";
 import { mayRead } from "#shared/sections";
 
 import type { AvatarIndex } from "~/domain/avatars";
+import type { MemberPresence } from "~/domain/presence";
 import type { RoomMember, RoomMembersView } from "#shared/types";
 
 interface Props {
@@ -119,6 +122,14 @@ const busy = ref<string | null>(null);
 const actFailure = ref("");
 const signedUser = useSignedUser();
 const mine = computed<string | null>(() => (signedUser.value === null ? null : String(signedUser.value)));
+// Each member's presence in the room, as the stream tells it (docs/web.md, 「Presence and typing」); the reader's own
+// row carries none.
+const presence = usePresence();
+const { now } = useNowSeconds(60_000);
+
+function presenceOf(member: RoomMember): MemberPresence {
+  return memberPresenceLook(t, memberPresence(presence.value.get(props.chatId), member, signedUser.value), now.value * 1000);
+}
 const memberAccounts = computed<string[]>(() => members.value.flatMap((member) => member.account ?? []));
 const loaded = ref(false);
 const pending = ref(false);

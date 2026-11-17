@@ -145,6 +145,43 @@ describe.skipIf(!origin || !touchReady())("who is here and who writes in a room"
     }, BROWSER_HOOK_MS);
   }
 
+  for (const viewport of WIDTHS) {
+    test(`the head's dot answers the pointer and opens the room's people with their presence, ${viewport.width}px`, async () => {
+      const context = await open(viewport, true);
+
+      try {
+        const page = await context.newPage();
+        const dot = page.locator("[data-room-presence]");
+        const colour = async (): Promise<string> => await dot.evaluate((element) => getComputedStyle(element).backgroundColor);
+
+        await page.goto(`${origin}/rooms/${CHAT}`, { waitUntil: "networkidle" });
+        await dot.waitFor();
+
+        const rest = await colour();
+
+        if (!viewport.phone) {
+          await dot.hover();
+          expect(await colour()).not.toBe(rest);
+        }
+
+        // The press reaches past the dot, so a finger finds it.
+        const box = (await dot.evaluate((element) => {
+          const before = getComputedStyle(element, "::before");
+
+          return { inset: before.top };
+        })) as { inset: string };
+
+        expect(box.inset).toBe("-8px");
+
+        await dot.click();
+        await page.locator("[data-member-presence]").waitFor();
+        expect((await page.locator("[data-member-presence]").textContent())?.trim()).not.toBe("");
+      } finally {
+        await context.close();
+      }
+    }, BROWSER_HOOK_MS);
+  }
+
   test("the account's switch turns its presence off and on again, kept as it is switched", async () => {
     const context = await open(WIDTHS[0], false);
 

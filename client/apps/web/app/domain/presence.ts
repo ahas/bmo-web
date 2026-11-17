@@ -124,17 +124,57 @@ export function presenceChip(presence: RoomPresence): { show: boolean; color: "s
 export function presenceWords(t: Translate, presence: RoomPresence, now: number): string | null {
   const [one] = presence.people;
 
-  if (presence.people.length === 1 && one !== undefined) {
-    if (one.state === "online") return t("room.label.presence_online");
-    if (one.state === "away") return t("room.label.presence_away");
-
-    return one.lastSeenAt === null ? null : t("room.label.presence_last_seen", { ago: elapsedText(t, (now - one.lastSeenAt) / 1000) });
-  }
+  if (presence.people.length === 1 && one !== undefined) return personPresenceWords(t, one, now);
 
   if (presence.online > 0) return t("room.label.presence_online_count", { n: countText(presence.online) });
   if (presence.best === "away") return t("room.label.presence_away");
 
   return null;
+}
+
+/** One person's presence in words: their state, or for one offline the last moment seen; null where nothing is known
+ * of when. */
+export function personPresenceWords(t: Translate, entry: PresenceEntry, now: number): string | null {
+  if (entry.state === "online") return t("room.label.presence_online");
+  if (entry.state === "away") return t("room.label.presence_away");
+
+  return entry.lastSeenAt === null ? null : t("room.label.presence_last_seen", { ago: elapsedText(t, (now - entry.lastSeenAt) / 1000) });
+}
+
+/** One member of a room as the room's presence names them: by their account where the platform knows one, else by
+ * their person number on the room's chat service; the reader's own row is never drawn for them. */
+export function memberPresence(
+  room: ReadonlyMap<string, PresenceEntry> | undefined,
+  member: { person: number | null; account: string | null },
+  me: number | null
+): PresenceEntry | null {
+  const account = member.account === null ? null : Number(member.account);
+
+  if (account !== null && account === me) return null;
+
+  for (const entry of room?.values() ?? []) {
+    if (account !== null && entry.who.kind === "account" && entry.who.account === account) return entry;
+    if (account === null && entry.who.kind === "person" && entry.who.personId === member.person) return entry;
+  }
+
+  return null;
+}
+
+/** The dot of one person's presence, as the room's own dot draws it. */
+export function personChip(entry: PresenceEntry | null): ReturnType<typeof presenceChip> {
+  const state = entry?.state ?? null;
+
+  return presenceChip({ best: state === "online" || state === "away" ? state : null, online: 0, people: [] });
+}
+
+/** One member's presence as their row draws it: the dot on their face and their presence in words, or none. */
+export interface MemberPresence {
+  chip: ReturnType<typeof presenceChip>;
+  line: string | null;
+}
+
+export function memberPresenceLook(t: Translate, entry: PresenceEntry | null, now: number): MemberPresence {
+  return { chip: personChip(entry), line: entry === null ? null : personPresenceWords(t, entry, now) };
 }
 
 /** Who writes in a room now, other than the reader and the room's answerer. */

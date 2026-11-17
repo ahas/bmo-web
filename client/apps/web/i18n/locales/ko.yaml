@@ -957,6 +957,7 @@ room:
     go_to_quote: "{name}의 메시지로 이동"
     jump_to_date: "{name}, 날짜로 이동"
     pinned_open: "고정된 메시지 {n}개"
+    presence_open: "{state}, 대화상대 보기"
     reaction: "{emoji} {n}명"
     remove_named: "{name} 삭제"
     sticker_send: "{emoji} 스티커 보내기"

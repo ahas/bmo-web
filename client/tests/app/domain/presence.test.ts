@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { expireTyping, nextExpiry, presenceChip, presenceWords, roomPresence, stepPresence, stepTyping, typingPeople, typingWords } from "../../../apps/web/app/domain/presence";
+import { expireTyping, memberPresence, nextExpiry, personChip, presenceChip, presenceWords, roomPresence, stepPresence, stepTyping, typingPeople, typingWords } from "../../../apps/web/app/domain/presence";
 
 import type { PresenceEvent, TypingEvent } from "../../../apps/web/shared/types";
 
@@ -41,6 +41,22 @@ describe("a room's presence", () => {
 
     expect(presenceWords(t, roomPresence(several.get(ROOM), ME), 0)).toBe('room.label.presence_online_count {"n":"2"}');
     expect(presenceWords(t, roomPresence(stepPresence(new Map(), presence(2, "offline")).get(ROOM), ME), 0)).toBeNull();
+  });
+});
+
+describe("a room's member", () => {
+  test("is found by their account where the platform knows one, else by their number, and the reader by nobody", () => {
+    let held = stepPresence(new Map(), presence(2, "away"));
+
+    held = stepPresence(held, { id: null, type: "presence", chatId: ROOM, who: { kind: "person", via: "chat-a", personId: 9 }, state: "online", lastSeenAt: null });
+    held = stepPresence(held, presence(ME, "online"));
+
+    expect(memberPresence(held.get(ROOM), { person: 50, account: "2" }, ME)?.state).toBe("away");
+    expect(memberPresence(held.get(ROOM), { person: 9, account: null }, ME)?.state).toBe("online");
+    expect(memberPresence(held.get(ROOM), { person: 9, account: "7" }, ME)).toBeNull();
+    expect(memberPresence(held.get(ROOM), { person: 1, account: String(ME) }, ME)).toBeNull();
+    expect(personChip(null).show).toBe(false);
+    expect(personChip({ who: { kind: "account", account: 2 }, state: "away", lastSeenAt: null })).toMatchObject({ show: true, color: "warning" });
   });
 });
 

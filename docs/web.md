@@ -5774,8 +5774,8 @@ Four bounds keep it from growing forever.
   service's members says nothing there. Nothing of them is kept in the
   console. While the first read runs, the place of one row stands as its skeleton: every room holds at least the
   account that reads it, so the list that lands is never shorter.
-- **Each member is a row:** their face, their name, and under it the status line their chat service read where it
-  read one. The face is the picture the archive keeps for the member's person number, by the rule every face
+- **Each member is a row:** their face, their name, and under it their presence where it is shown (「Presence and
+  typing」) and the status line their chat service read where it read one. The face is the picture the archive keeps for the member's person number, by the rule every face
   follows (「Profile photos」); a member with no person number, or no picture kept, stands as their letter. A
   name or a status line too long for the row is cut and shown whole in the tooltip every cut line gets.
 - **A member the platform knows as an account carries 콘솔 사용자.** The console's server asks the account
@@ -8198,6 +8198,11 @@ in a table.
   - `away` while its tabs are open and none is visible;
   - `offline` once no tab reports, a tab silent for longer than a few of its reports being taken as gone;
   - its last moment seen is the last moment a visible tab of it reported.
+- **A hidden tab reports every half minute as a visible one does.** This is the console's own rule, apart from
+  bmo-chat's `docs/presence.md`, whose tab reports every half minute only while visible: a hidden tab that said
+  nothing more would be taken as gone after a few of those intervals, and its account would turn `offline` while
+  its tabs still stand open, where `away` is what holds. A browser that freezes a tab in the background stops its
+  reports with it, and that tab is taken as gone.
 - **It is told to the receiver as it changes** (`PUT /accounts/{account}/presence`), one source among the account's,
   on a report that changes it and on a look made every report interval, which finds the tabs gone silent. Going
   offline is told by that look alone, so a tab that reloads, saying it is gone and reporting again at once, never
@@ -8256,9 +8261,13 @@ in a table.
   success colour for `online` and the warning colour for `away`, standing folded as spread; and while somebody writes
   in the room, a typing mark at the row's trailing end, before its unread count, said to a screen reader with the
   row.
-- **The room's head:** the same dot on the room's picture, whose tooltip says it in words: one other person's state,
-  온라인 or 자리 비움, or for an offline person the last moment seen, as 최근 접속 and the time since; several people's
-  as 온라인 and how many.
+- **The room's head:** the same dot on the corner of the room's picture, a button of its own on every room, whose
+  tooltip says it in words: one other person's state, 온라인 or 자리 비움, or for an offline person the last moment
+  seen, as 최근 접속 and the time since; several people's as 온라인 and how many. Pressing it opens the room's
+  대화상대 (「대화상대」), where each member's own presence stands; the picture beside it keeps its own press.
+- **The room's 대화상대:** each member's face carries the same dot, and the line under their name says their presence
+  in words, 온라인, 자리 비움 or 최근 접속 and the time since, before the status line their chat service read. The
+  reader's own row says nothing of their own.
 - **Under the line being written:** one line under the input box, inside the input bar, naming who is writing — one
   name, two names, or the first name and how many more, and 누군가 where the room's members name nobody for the mark.
   It shimmers as a turn's state does and stands still for a reader who asked for less motion. The names are read off

@@ -7,5 +7,4 @@ node_modules/
 *.local.toml
 .env
 console.env
-.graph/*
-!.graph/settings.toml
+.graph/

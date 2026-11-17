@@ -27,8 +27,6 @@
     "eventsource-parser": "4.1.1",
     "form-data-encoder": "4.1.0",
     "h3": "^1.15.0",
-    "htmlparser2": "12.0.0",
-    "ipaddr.js": "2.5.0",
     "lottie-web": "5.12.2",
     "marked": "14.0.0",
     "motion-v": "^2.6.0",

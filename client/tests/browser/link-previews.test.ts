@@ -9,8 +9,9 @@ import type { Browser, Page } from "playwright-core";
 // title, description, site and picture, the picture served by the console itself, in a card whose shape does not
 // change as it fills, on either side of the room and at a desk's and a phone's width. The harness
 // browser-console.ts seeds two link messages into MEDIA_CHAT: person-b's to a page declaring its sharing tags (m30)
-// and the reader's own to a page with only a document title and a meta description (m31), each served by the
-// receiver's stand-in. It drives the console that harness stands up, so the suite skips this where none is served.
+// and the reader's own to a page declaring a title and a description alone (m31), each read through the harness's
+// stand-in for the tool host as bmo-explorer's link preview answers it. It drives the console that harness stands
+// up, so the suite skips this where none is served.
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "pictures", password: "fixture-password-2262" };
@@ -83,13 +84,13 @@ describe.skipIf(!origin || !touchReady())("a link's card", () => {
 
         expect(filled).toMatchObject({ site: "Example Site", title: "A page worth reading", description: "What the page says of itself, in a sentence or two.", inside: true });
         expect(filled.href).toEndWith("/link-page");
-        // The picture comes from the console's own route, redrawn as the card's square, never from the page's site.
+        // The picture comes from the console's own route, cut to the card's square, never from the page's site.
         expect(filled.picture!.src).toBe(`${origin}/api/rooms/${MEDIA_CHAT}/links/30/0/image`);
         expect(filled.picture!.width).toBe(240);
         // The card kept the shape it stood with before its page was read.
         expect(filled.height).toBe(before);
 
-        // The reader's own message: a page with no sharing tags stands its document title and meta description, its
+        // The reader's own message: a page declaring no site and no picture stands its title and description, its
         // host for a site and no picture, in a card of the same shape.
         const mine = await card(page, "m31");
 

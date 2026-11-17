@@ -1,9 +1,9 @@
 import { wording } from "#shared/wording";
 
-// The picture the page of one address in a room's message names, redrawn as the card's square by this server, so
-// the reader's browser loads no picture from another site (docs/web.md, the link previews rule). The address is the one the
-// archived message carries at that place; where its page names no picture or the picture could not be read, the
-// card stands without one.
+// The picture the page of one address in a room's message names, cut to the card's square by bmo-explorer and
+// served by this server, so the reader's browser loads no picture from another site (docs/web.md, the link previews
+// rule). The address is the one the archived message carries at that place; where its page names no picture or the
+// picture could not be read, the card stands without one.
 export default defineEventHandler(async (event) => {
   await requireUserSession(event);
 

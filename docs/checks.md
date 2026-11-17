@@ -57,9 +57,10 @@ machine's own socket's `bmo_test`, and every name carries the process that made 
     any account in a sealed room, is refused 403 `private-room` as the receiver refuses it; and, on its event stream
     as it opens, three members online in a room no fixture account stands in: one of the fixture's company, one of it
     who turned their presence off, and one the script moves into a company of its own;
-  - also in the receiver's stand-in, on its own loopback address, the pages the media room's link messages lead to and
-    the picture one of them names, and the console started letting a link card's read through to loopback
-    (`docs/boundary.md`, 「Settings」), so a card fills from a page with no outside site asked;
+  - a stand-in for the tool host's control socket on a Unix socket in the scratch directory, with the console's tool
+    session token in a file beside it, answering bmo-explorer's link preview for the pages the media room's link
+    messages lead to and its card picture for the picture one of them names (`docs/boundary.md`, 「The web beyond the
+    units」), so a card fills with no outside site asked;
   - the fixture accounts each file signs in with, made by the console's own `user` script. Every account made
     with the administrator flag is a platform administrator by the account service's word, and the members, made
     without it, stay members, whose console sections are written whole as the administrator's screen writes them.

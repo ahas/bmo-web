@@ -4555,15 +4555,16 @@ Four bounds keep it from growing forever.
     not load leaves the card without it.
   - **It stands inside the bubble as a reply's quote does:** a step of ground over the bubble's under a leading rule
     in the accent, with no border, a step further on hover and press.
-  - **The console's server reads the page and its picture itself,** so the reader's browser calls no outside server
-    for a card. The address is taken from the archived message, never from the request. The read follows at most
-    five redirects and checks the address before every request: only `http` and `https`, and never a loopback,
-    private, link-local, shared, documentation, multicast or otherwise reserved address, the check made on the
-    addresses the host's name resolves to and the connection made to the address checked. A page is read for at
-    most a few seconds and its first 512 KiB, and a picture for a few seconds more and at most 5 MiB, in one of the
-    common raster formats; a slow or oversized answer leaves the plain card.
-  - **The picture is served through the console,** redrawn as a small square for the card, so its bytes come from
-    the console's own route.
+  - **The console's server has bmo-explorer read the page and its picture,** so the reader's browser calls no
+    outside server for a card. The address is taken from the archived message, never from the request. The page is
+    read through bmo-explorer's link preview entry and the picture through its picture entry, each one call on the
+    tool host under the console's own tool session (`docs/boundary.md`, 「The web beyond the units」). bmo-explorer
+    reads the page as a link previewer, checks the address and each redirect as public, reads at most 512 KiB of a
+    page and 5 MiB of a picture, and cuts a title and a description that run long. It bounds no call by a clock, so
+    the console waits at most five seconds for a page and eight for a picture; a slow, refused or failed call leaves
+    the plain card.
+  - **The picture is served through the console,** cut by bmo-explorer from its middle to the card's square, at most
+    240 pixels on a side and never enlarged, as JPEG, so its bytes come from the console's own route.
   - **What is read is kept per address,** a page's head and a picture's small form alike, in the server's memory for
     six hours, and a page that could not be read for fifteen minutes, so a room scrolled back and forth asks a page
     once.

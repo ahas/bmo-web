@@ -7,7 +7,7 @@
 // Usage, from `client/`: `BMO_WEB_SERVER_BIN=<the bmo-web-server binary> bun tests/support/browser-console.ts`.
 
 import { spawn, type ChildProcess } from "node:child_process";
-import { appendFileSync, mkdtempSync, rmSync } from "node:fs";
+import { appendFileSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -298,16 +298,18 @@ const SQUARE = new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg"
 const SQUARE_PICTURES = [16, 17];
 // The sender linked to the account the media room's file signs in with, so the picture it sent stands on the right.
 const PICTURES_SENDER = 9;
-// The pages the media room's link messages lead to, served by the receiver's stand-in on its own loopback address,
-// which the console's link reading is let through to (docs/web.md, the link previews rule): one declaring its title,
-// description, site and picture for sharing, and one with no sharing tags but its document title and meta description.
-const LINK_PAGE = `<!doctype html><html><head><meta charset="utf-8"><title>document title</title>
-<meta property="og:title" content="A page worth reading"><meta property="og:description" content="What the page says of itself, in a sentence or two.">
-<meta property="og:site_name" content="Example Site"><meta property="og:image" content="/link-page/picture.png"></head><body>body</body></html>`;
-const PLAIN_LINK_PAGE = `<!doctype html><html><head><title>Plain page title</title>
-<meta name="description" content="The page's meta description."></head><body>body</body></html>`;
-// The picture the first page names: a landscape raster, as a page's sharing picture usually stands.
-const LINK_PICTURE = await sharp({ create: { width: 1200, height: 630, channels: 3, background: "#3366aa" } }).png().toBuffer();
+// What bmo-explorer's link preview answers for the pages the media room's link messages lead to, by the path of the
+// address on the receiver's stand-in (docs/web.md, the link previews rule): one page declaring its title, description,
+// site and picture for sharing, and one declaring its title and description alone.
+const LINK_PREVIEWS: Record<string, (origin: string) => Record<string, string | null>> = {
+  "/link-page": (origin) => ({
+    title: "A page worth reading", description: "What the page says of itself, in a sentence or two.", siteName: "Example Site", image: `${origin}/link-page/picture.png`
+  }),
+  "/link-page/plain": () => ({ title: "Plain page title", description: "The page's meta description.", siteName: null, image: null })
+};
+// The picture the first page names, as bmo-explorer's picture entry answers it cut to a card's square: a JPEG of that
+// square.
+const LINK_PICTURE = await sharp({ create: { width: 240, height: 240, channels: 3, background: "#3366aa" } }).jpeg().toBuffer();
 // An animated sticker: a one-second Lottie scene of one square turning at an even pace, gzipped as Telegram keeps it.
 const STICKER = Bun.gzipSync(new TextEncoder().encode(JSON.stringify({
   v: "5.5.2", fr: 30, ip: 0, op: 30, w: 512, h: 512, layers: [{
@@ -955,10 +957,6 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       10: { text: quoteWords, entities: quoteEntities }
     };
 
-    if (path === "/link-page") return new Response(LINK_PAGE, { headers: { "content-type": "text/html; charset=utf-8" } });
-    if (path === "/link-page/plain") return new Response(PLAIN_LINK_PAGE, { headers: { "content-type": "text/html; charset=utf-8" } });
-    if (path === "/link-page/picture.png") return new Response(LINK_PICTURE, { headers: { "content-type": "image/png" } });
-
     if (path === `/rooms/${MEDIA_CHAT}/messages`) {
       const after = new URL(request.url).searchParams.get("after");
 
@@ -1444,6 +1442,36 @@ try {
     units[`${unit}_TOKEN`] = TOKEN;
   }
 
+  // The tool host's control socket, answering bmo-explorer's link preview and card picture for the console's tool
+  // session, whose token stands in a file beside it (docs/boundary.md, 「The web beyond the units」).
+  const toolSocket = join(scratch, "mcp-host.sock");
+  const toolToken = join(scratch, "web-console.token");
+
+  writeFileSync(toolToken, `${TOKEN}\n`);
+  servers.push(Bun.serve({
+    unix: toolSocket,
+    fetch: async (request) => {
+      if (request.headers.get("authorization") !== `Bearer ${TOKEN}`) return Response.json({ code: "unauthorized", error: "no session" }, { status: 401 });
+
+      const call = (await request.json()) as { namespace: string; name: string; input: { address: string } };
+      const address = new URL(call.input.address);
+      const answer = (result: Record<string, unknown>) => Response.json({ namespace: call.namespace, name: call.name, result, spentMs: 1 });
+      const failed = answer({ content: [{ type: "text", text: "upstream-failed" }], isError: true });
+
+      if (call.name === "link_preview") {
+        const preview = LINK_PREVIEWS[address.pathname];
+
+        return preview === undefined ? failed : answer({ content: [], structuredContent: { url: address.href, ...preview(address.origin) } });
+      }
+
+      if (call.name === "fetch_raster" && address.pathname === "/link-page/picture.png") {
+        return answer({ content: [{ type: "image", data: LINK_PICTURE.toString("base64"), mimeType: "image/jpeg" }] });
+      }
+
+      return failed;
+    }
+  }));
+
   await sweepScratchDatabases(BROWSER_CONSOLE_PREFIX);
 
   const admin = new SQL(connectionOf(addressOf("postgres")) as SQL.Options);
@@ -1475,8 +1503,8 @@ try {
     WEB_DATA_DIR: join(scratch, "data"),
     NUXT_PUBLIC_CHAT_AGENT_NAME: "agent-a",
     NUXT_PUBLIC_CHAT_AGENT_LABEL: "Agent A",
-    // The stand-ins stand on loopback, so a link card's read is let through to the pages the receiver's serves.
-    LINK_PREVIEW_OPEN_RANGES: "127.0.0.0/8",
+    BMO_MCP_HOST_SOCKET: toolSocket,
+    POCKET_SESSION_TOKEN_FILE: toolToken,
     // The translator the screens ask, the gate's translating route relayed; the tests that read a translation answer
     // it through the page's own routes.
     NUXT_PUBLIC_BMO_UI_TRANSLATOR_SERVICE: "gate",

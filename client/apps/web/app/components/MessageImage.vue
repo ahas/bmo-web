@@ -25,7 +25,7 @@
 
 <script setup lang="ts">
 import { ROOM_PICTURES } from "~/domain/gallery";
-import { messagePicture, releaseStandIn, rememberShape, shapeOf, standInOf } from "~/domain/picture-shapes";
+import { messagePicture, pictureWidth, releaseStandIn, rememberShape, shapeOf, standInOf } from "~/domain/picture-shapes";
 
 import type { ExactMessageId } from "#shared/types";
 import type { PictureShape } from "~/domain/picture-shapes";
@@ -38,13 +38,15 @@ interface Props {
   tile?: boolean;
   // Whether the picture runs to the edges of the bubble it stands in.
   flush?: boolean;
+  // The shape the console's server read the picture to have, where it read one.
+  known?: PictureShape | null;
 }
 
 const props = defineProps<Props>();
 
-// The picture keeps the room its shape asks for before it has loaded, where the console has seen it
-// — the owner's own preview of it, or the picture itself on an earlier drawing.
-const shape = computed<PictureShape | null>(() => shapeOf(props.src, props.messageId === undefined ? null : messagePicture(props.messageId)));
+// The picture keeps the room its shape asks for before it has loaded, where the console has seen it — the owner's own
+// preview of it, or the picture itself on an earlier drawing — or where the server read its shape with the page.
+const shape = computed<PictureShape | null>(() => shapeOf(props.src, props.messageId === undefined ? null : messagePicture(props.messageId)) ?? props.known ?? null);
 
 // A picture just sent stands as the preview it was sent from until its archived copy has loaded,
 // which then lets the preview go.
@@ -58,12 +60,6 @@ function remember(seen: PictureShape): void {
     releaseStandIn(messagePicture(props.messageId));
   }
 }
-
-// The room a lone picture in a bubble takes: its own ratio, no taller than the cap and no wider than a
-// bubble may be, scaled to whichever bounds it first. Known from the picture's shape before it has loaded,
-// so the bubble stands at the picture's size from the start; unknown, the picture sizes itself as it loads.
-const PICTURE_CAP_PX = 512;
-const BUBBLE_WIDEST_PX = 320;
 
 // A lone picture in a bubble stands over its own blurred copy, which shows wherever the bubble is wider than
 // the picture.
@@ -79,10 +75,7 @@ const frame = computed<{ "--picture-width": string } | undefined>(() => {
     return undefined;
   }
 
-  const ratio = shape.value.width / shape.value.height;
-  const width = Math.min(Math.min(PICTURE_CAP_PX, shape.value.height) * ratio, BUBBLE_WIDEST_PX);
-
-  return { "--picture-width": `${Math.round(width)}px` };
+  return { "--picture-width": `${pictureWidth(shape.value)}px` };
 });
 
 const imageClass = computed<string>(() => {

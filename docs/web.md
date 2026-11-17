@@ -3991,8 +3991,9 @@ Four bounds keep it from growing forever.
   follow Telegram; the corners, colours, buttons, the input and the top bar are the console's own shared style
   (「The conversation's measures」).
 - **Every message is a bubble.** Someone else's words, an agent's answer among them, stand on the raised
-  ground; the owner's own stand on mint (「The conversation's measures」). A picture, an album and a file stand in a bubble
-  too; only a sticker stands with no bubble (「말 없는 메시지」). Everything a message says of itself
+  ground; the owner's own stand on mint (「The conversation's measures」). A picture with words, an album and a file stand
+  in a bubble too; only a message that is one picture and nothing else, a sticker, an emoticon, a photo or an
+  animation, stands with no bubble (「말 없는 메시지」). Everything a message says of itself
   stands inside its bubble: the sender's name at its head, the meta line at its foot (「메타 줄」), and what the
   meta line's chips spread, under it (「칩 줄」).
   - A bubble's words break where they have a space, so a Korean word never folds a syllable onto a line of its
@@ -4410,14 +4411,30 @@ Four bounds keep it from growing forever.
   nothing outside the room's folder of its picture store.
 - **사진이 있는 말풍선** — a picture runs to the bubble's edges, with no inner room or corners of its own: the
   bubble's own corners cut it. The run's name and a quote stand over it inside the bubble's inner room, and the
-  caption under it, with the bubble's inner room on its top, sides and foot. A video's still stands the same way
-  (「첨부와 Telegram 표현」). A picture with nothing under it
+  caption under it, with the bubble's inner room on its top, sides and foot. A video's still and an animation stand
+  the same way (「첨부와 Telegram 표현」, 「애니메이션」). A picture with nothing under it
   carries its meta line over its own foot at the trailing end, on a dark translucent ground in light letters, so
   it reads on any picture.
-- **말 없는 메시지** — a sticker or an emoticon, from any sender and any chat service, stands as the picture alone, as
-  Telegram stands a sticker: beside the run's photo, with no bubble, no ground, no inner room, no border, no name line
-  and no tail, and without the archive's mark for it (`[스티커 …]`), which stays in the archive and in what an agent
-  reads.
+  - A picture keeps its room before it has loaded, so nothing under it moves when it lands. The console's server
+    reads each kept picture's width and height from the head of its file as it reads the page, by a ranged read of
+    the receiver's picture of that message, and the row stands at that shape from the start; a size read once is
+    kept for as long as the server runs. A video and an animation stand at the shape the chat service said they
+    have. A picture whose head says no size sizes itself as it loads.
+- **말 없는 메시지** — a message that is one picture and nothing else, from any sender, on either side and from any
+  chat service or the console itself, stands as the picture alone, as Telegram stands a sticker: beside the run's
+  photo, with no bubble, no ground, no inner room, no border, no name line and no tail, and without the archive's
+  mark for it (`[스티커 …]`, `[사진]`, `[GIF 0:01]`), which stays in the archive and in what an agent reads. A
+  sticker or an emoticon is such a picture, and so is a photo or an animation sent with no words.
+  - A photo or an animation alone stands at its own shape within the bounds it has in a bubble, at most 20rem wide
+    and no taller than the picture's cap, in the large tier's corners of its own, its meta line laid over its own
+    foot as the image overlay chip (「사진이 있는 말풍선」). Its room stands before it has loaded, at the shape the
+    server read or the chat service said. A photo opens in the picture viewer when pressed, as one in a bubble does.
+  - A picture a chat service handed over as a plain photo with no words stands this way whatever it shows, so an
+    emoticon KakaoTalk passed on unmarked stands alone as well, at its own shape.
+  - A message whose picture comes with anything else keeps its bubble: words or a caption, a quote of the message
+    it answers or the mark of where it was forwarded from (both stand in the bubble's head), several pictures sent
+    as one album, a file beside it, a video with sound, which keeps its player, and a picture or an animation not
+    kept, which keeps its mark.
   - The sticker stands in a fixed 160px square box, drawn contained in it, so its row is its full height before
     the file has loaded and nothing under it moves when it lands.
   - Its meta line stands outside the box, beside its trailing edge at its foot, as the image overlay chip; where
@@ -4449,7 +4466,8 @@ Four bounds keep it from growing forever.
   - One whose file cannot be read stands as its mark.
 - **애니메이션** — a GIF or an animation a messenger sent plays where it stands as soon as it stands, over and over and
   without sound, with no player, no play button and no file line under it, at its own shape within the bubble's
-  widest. A file kept as a plain video keeps its player.
+  widest. It runs to the bubble's edges as a picture does, the caption under it, and its mark (`[GIF 0:01]`) is not
+  shown; one with no words stands alone (「말 없는 메시지」). A file kept as a plain video keeps its player.
   - Every other message keeps its bubble, and one that carried nothing at all keeps the bubble with its
     empty-message mark.
 - **앨범** — the pictures of one send stand as one row: the row of the first picture, carrying the send's caption
@@ -5990,8 +6008,8 @@ Four bounds keep it from growing forever.
   ground or corners of its own, since the bubble is already the box that holds it; the mark stands centred beside the
   name and its size. The archive's mark for it — `[파일 <name>]` at the head
   of the message — is not shown again above that line, since the line says the same; a caption after the mark stays,
-  and a message that is the file alone stands the line in its bubble all the same, since only a sticker stands with
-  no bubble (**말 없는 메시지**).
+  and a message that is the file alone stands the line in its bubble all the same, since only a message that is one
+  picture stands with no bubble (**말 없는 메시지**).
   Copying still takes the archived text as it is. An attachment that cannot be received stands the same line, dim,
   with 「받을 수 없음」 in place of the button. An ordinary file is offered to a logged-in user as a forced download, and HTML and SVG are not run as console documents. Stored audio in
   an unsupported playback format can be downloaded as a file too. A download failure, size overrun and lost file stay

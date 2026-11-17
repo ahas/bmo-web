@@ -78,3 +78,15 @@ export async function measurePicture(src: string): Promise<PictureShape | null> 
 
   return { width: picture.naturalWidth, height: picture.naturalHeight };
 }
+
+// The width a lone picture or an animation stands at, in a bubble or alone: its own ratio, no taller than the
+// picture's cap and no wider than a bubble may be, scaled to whichever bounds it first (docs/web.md, the room screen's
+// bubble with pictures). Known from the shape before the picture has loaded, so its room stands from the start.
+const PICTURE_CAP_PX = 512;
+const BUBBLE_WIDEST_PX = 320;
+
+export function pictureWidth(shape: PictureShape): number {
+  const ratio = shape.width / shape.height;
+
+  return Math.round(Math.min(Math.min(PICTURE_CAP_PX, shape.height) * ratio, BUBBLE_WIDEST_PX));
+}

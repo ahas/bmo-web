@@ -17,6 +17,7 @@ import type {
   Situation,
   Judgement,
   JudgementMark,
+  MediaShape,
   MessageAttachment,
   MessageBriefing,
   MessagePage,
@@ -147,7 +148,7 @@ export function runPlace(first: boolean, last: boolean): RunPlace {
 // same ground, so the two match exactly. Every corner takes the shared radius every box of the console takes; where two bubbles of a run meet, the corners on the photo's side take the small tier, so the
 // run reads as one block, and the last bubble's foot on that side is square where its tail hangs. The
 // bubble keeps no inner room of its own: its parts keep it, since a picture runs to its edges. A row
-// that is a sticker alone has no bubble at all.
+// that is one picture alone has no bubble at all, a picture or an animation taking the corners on itself.
 export function bubbleLook(look: Pick<MessageLook, "side" | "variant">, place: RunPlace): string {
   if (look.variant === "naked") {
     return "";
@@ -282,6 +283,9 @@ export interface FeedItem {
   // Whether that picture is the sticker the message was sent as, standing in the sticker's box rather than as a
   // photo. Absent on every other row.
   stickerPicture?: boolean;
+  // The picture's shape as the console's server read it, which keeps its room before it has loaded. Absent where none
+  // was read.
+  imageShape?: MediaShape;
   // Every picture of the album this row stands for, its own first, where it stands for a send of
   // several pictures; the other pictures of that send are not rows of their own. Absent otherwise.
   album?: AlbumPicture[];
@@ -450,7 +454,7 @@ function mediaMarks(media: CarriedMedia): RegExp[] {
     .map((attachment) => new RegExp(`^\\[${markWords(MEDIA_MARKS.file)} ${escaped(attachment.name)}\\]`));
   const sounds = media.attachments.filter((attachment) => attachment.kind === "audio");
   const played = [
-    ...(media.attachments.some((attachment) => attachment.kind === "video") ? [VIDEO_MARK] : []),
+    ...(media.attachments.some((attachment) => attachment.kind === "video" || attachment.kind === "animation") ? [VIDEO_MARK] : []),
     ...(sounds.length > 0 ? [VOICE_MARK, new RegExp(`^\\[${markWords(MEDIA_MARKS.audio)}${LENGTH}\\]`)] : []),
     ...sounds.map((sound) => new RegExp(`^\\[${markWords(MEDIA_MARKS.audio)} ${escaped(sound.name)}${LENGTH}\\]`))
   ];
@@ -1230,12 +1234,27 @@ export function agentAvatar(avatars: AvatarIndex, name: string, label: string = 
   return picture === undefined ? avatarFor(avatars, "person", null, label) : { src: picture, alt: label };
 }
 
-// Whether a message stands what it carried with no bubble round it: a sticker sent alone, which is a
-// picture drawn to stand on the conversation's own ground. A picture, an album and a file stand in a
-// bubble, running to its edges, and a message that carried nothing at all keeps its bubble, which
-// holds the mark saying it is empty.
-export function bareMedia(shownText: string, kinds: readonly string[]): boolean {
-  return shownText === "" && kinds.length > 0 && kinds.every((kind) => kind === "sticker");
+// What a message carried, each by the kind it stands as: its picture, as a sticker or a picture, and every file it
+// kept, an animation whose file is not kept standing as a file, since only its mark can stand for it.
+export function carriedKinds(pictured: "sticker" | "picture" | null, attachments: readonly Pick<MessageAttachment, "kind" | "available">[]): string[] {
+  return [
+    ...(pictured === null ? [] : [pictured]),
+    ...attachments.map((attachment) => (attachment.kind === "animation" && !attachment.available ? "document" : attachment.kind))
+  ];
+}
+
+// The kinds of picture that stand alone when a message is that one picture and nothing else.
+const LONE_PICTURES: readonly string[] = ["picture", "animation"];
+
+// Whether a message stands what it carried with no bubble round it (docs/web.md, the room screen's wordless messages):
+// a sticker sent alone, or one picture or animation with no words, no quote at its head and no mark of where it was
+// forwarded from, since those stand in a bubble's head. Each is drawn to stand on the conversation's own ground. An
+// album, a file, a video and a picture with words stand in a bubble, and a message that carried nothing at all keeps
+// its bubble, which holds the mark saying it is empty.
+export function bareMedia(shownText: string, kinds: readonly string[], headed = false): boolean {
+  if (shownText !== "" || kinds.length === 0) return false;
+
+  return kinds.every((kind) => kind === "sticker") || (!headed && kinds.length === 1 && LONE_PICTURES.includes(kinds[0]!));
 }
 
 // Which side one message stands on, which is the one rule the feed has: the signed-in person's own — a sender linked to
@@ -1259,6 +1278,7 @@ export function pendingItems(outbox: readonly OutboxItem[], speaker: Speaker, av
 
     if (preview !== null && gathered?.pending != null) {
       gathered.album = [...(gathered.album ?? []), { messageId: null, src: preview }];
+      gathered.look = { ...gathered.look, variant: "soft" };
       gathered.pending = {
         state: gathered.pending.state === "sending" ? held.state : gathered.pending.state,
         reason: null,
@@ -1282,6 +1302,9 @@ export function pendingItems(outbox: readonly OutboxItem[], speaker: Speaker, av
 
 function pendingItem(held: OutboxItem, speaker: Speaker, avatars: AvatarIndex): FeedItem {
   const voice = held.file?.voice !== undefined;
+  const imageUrl = voice ? null : (held.file?.previewUrl ?? null);
+  // A picture sent with no words stands alone on its way, as the archived message taking its place will.
+  const bare = bareMedia(held.text.trim(), carriedKinds(imageUrl === null ? null : "picture", []), held.reply !== null);
 
   return {
     key: held.key,
@@ -1292,14 +1315,14 @@ function pendingItem(held: OutboxItem, speaker: Speaker, avatars: AvatarIndex): 
     text: held.text,
     shownText: held.text,
     quote: held.reply,
-    imageUrl: voice ? null : (held.file?.previewUrl ?? null),
+    imageUrl,
     fileName: held.file !== null && (voice || held.file.previewUrl === null) ? held.file.file.name : null,
     // Nothing the owner says is an answer, so no row of theirs is measured.
     answerSeconds: null,
     look: {
       role: "user",
       side: "right",
-      variant: "soft",
+      variant: bare ? "naked" : "soft",
       avatar: avatarFor(avatars, "person", speaker.id, speaker.name),
       markdown: false
     },
@@ -1545,6 +1568,8 @@ export function archivedRows(
 
     if (gathered !== undefined && message.imagePath !== null) {
       gathered.album = [...(gathered.album ?? []), { messageId: message.messageId, src: imageUrlFor(message.chatId, message.messageId) }];
+      // Several pictures stand as one album in a bubble, even where the first of them would stand alone.
+      gathered.look = { ...gathered.look, variant: "soft" };
       // A turn reads the whole send and is pinned to its last picture, which stands in this row.
       gathered.skipped += skipLines ? skippedTurns(judgements.get(message.messageId) ?? []) : 0;
       gathered.skipReasons = skipLines ? [...new Set([...gathered.skipReasons, ...skipReasons(judgements.get(message.messageId) ?? [])])] : [];
@@ -1694,7 +1719,8 @@ function feedItemOf(
   // A picture the message was sent as a sticker stands as a sticker, never as a photo.
   const sticker = pictured && message.sticker === true;
   const shown = withoutMediaMark(message.text, { attachments, pictured, sticker }, { expressions: message.expressions ?? [], formats: message.formats ?? [] });
-  const bare = !deleted && bareMedia(shown.text, pictured ? [sticker ? "sticker" : "picture"] : attachments.map((attachment) => attachment.kind));
+  const headed = message.replyQuote != null || message.forwardedFrom != null;
+  const bare = !deleted && bareMedia(shown.text, carriedKinds(pictured ? (sticker ? "sticker" : "picture") : null, attachments), headed);
 
   return {
     key: `m${message.messageId}`,
@@ -1708,6 +1734,7 @@ function feedItemOf(
     quote: deleted ? null : (message.replyQuote ?? null),
     imageUrl: !pictured ? null : imageUrlFor(message.chatId, message.messageId),
     ...(sticker ? { stickerPicture: true } : {}),
+    ...(!pictured || message.imageShape === undefined ? {} : { imageShape: message.imageShape }),
     attachments: deleted ? [] : message.attachments,
     expressions: shown.expressions,
     ...(shown.formats.length === 0 ? {} : { formats: shown.formats }),

@@ -55,10 +55,15 @@ import type { PickedFile } from "../../../apps/web/app/domain/attachments";
 import { OWNER_ID as owner, MESSAGE_ID, ROOM_ID } from "../../support/ids";
 import KO from "../../fixtures/app/domain/room.test.ko.json";
 import { registerChatAgent } from "../../../apps/web/shared/agent-names";
+import { globalsRestoredAfter } from "../../support/globals";
 
 // The chat agent as the deployment's settings name it, which a room falls back to where no agent has spoken.
 registerChatAgent({ name: "agent-a", label: "agent-a" });
 afterAll(() => registerChatAgent({ name: "", label: "" }));
+
+// The host's zone and locale the days of a feed are read in, as the app's settings carry them.
+globalsRestoredAfter(["useAppConfig"]);
+Object.assign(globalThis, { useAppConfig: () => ({ bmoUi: { zone: "Asia/Seoul", locale: "ko-KR", dateLocale: "ko" } }) });
 
 const avatars: AvatarIndex = new Map();
 const speaker = { id: owner, name: "owner" };
@@ -764,10 +769,44 @@ describe("a message that is only what it carried", () => {
     return buildDays(wording, [message], new Map(), imageUrl, avatars, [], [owner]).flatMap((day) => day.items)[0];
   }
 
-  test("stands a picture and a file in a bubble, and only a sticker sent alone with none", () => {
+  test("stands a file in a bubble, and a sticker or a picture sent alone with none", () => {
     expect(rowOf({ ...archived(1, KO.line_611), attachments: [document] })?.look.variant).toBe("soft");
-    expect(rowOf({ ...archived(2, KO.line_612), imagePath: "/kept/2.jpg" })?.look.variant).toBe("soft");
+    expect(rowOf({ ...archived(2, KO.line_612), imagePath: "/kept/2.jpg" })?.look.variant).toBe("naked");
     expect(rowOf({ ...archived(3, ""), attachments: [sticker] })?.look.variant).toBe("naked");
+    expect(rowOf({ ...archived(4, ""), imagePath: "/kept/4.jpg" })?.look.variant).toBe("naked");
+  });
+
+  test("stands an animation sent alone with none, its mark left out, and one not kept in a bubble with its mark", () => {
+    const animation = { id: 3, kind: "animation" as const, name: "clip.mp4", bytes: 3, type: "video/mp4", available: true };
+    const alone = rowOf({ ...archived(1, "[GIF 0:01]"), attachments: [animation] });
+    const lost = rowOf({ ...archived(2, "[GIF 0:01]"), attachments: [{ ...animation, available: false }] });
+    const captioned = rowOf({ ...archived(3, "[GIF 0:01] look"), attachments: [animation] });
+
+    expect(alone?.look.variant).toBe("naked");
+    expect(alone?.shownText).toBe("");
+    expect(lost?.look.variant).toBe("soft");
+    expect(captioned?.look.variant).toBe("soft");
+    expect(captioned?.shownText).toBe("look");
+  });
+
+  test("keeps the bubble round a picture answering a message, forwarded, beside a file or one of an album", () => {
+    const quote = { messageId: "1", senderName: "agent-a", text: "earlier words" };
+    const forwarded = { room: ROOM_ID, messageId: "1", senderName: "agent-a" };
+
+    expect(rowOf({ ...archived(5, ""), imagePath: "/kept/5.jpg", replyToMessageId: "1", replyQuote: quote })?.look.variant).toBe("soft");
+    expect(rowOf({ ...archived(6, ""), imagePath: "/kept/6.jpg", forwardedFrom: forwarded })?.look.variant).toBe("soft");
+    expect(rowOf({ ...archived(7, ""), imagePath: "/kept/7.jpg", attachments: [document] })?.look.variant).toBe("soft");
+
+    const album = buildDays(wording, [8, 9].map((id) => ({ ...archived(id, ""), imagePath: `/kept/${id}.jpg`, album: "8" })), new Map(), imageUrl, avatars, [], [owner])
+      .flatMap((day) => day.items);
+
+    expect(album).toHaveLength(1);
+    expect(album[0]?.look.variant).toBe("soft");
+  });
+
+  test("carries the shape the server read of its picture onto the row", () => {
+    expect(rowOf({ ...archived(1, ""), imagePath: "/kept/1.jpg", imageShape: { width: 1280, height: 960 } })?.imageShape).toEqual({ width: 1280, height: 960 });
+    expect(rowOf({ ...archived(2, ""), imageShape: { width: 1280, height: 960 } })?.imageShape).toBeUndefined();
   });
 
   test("stands a drawn sticker without the archive's mark for it, which a sticker not kept keeps", () => {
@@ -836,11 +875,14 @@ describe("a message that is only what it carried", () => {
     expect(rowOf({ ...archived(1, KO.line_635), imagePath: "/kept/1.jpg" })?.look.side).toBe("right");
   });
 
-  test("going out, a picture stands in its bubble, with or without a caption", () => {
+  test("going out, a picture stands alone with no caption and in its bubble with one", () => {
     const [bare] = pendingItems(outboxOf("", [picked("a.jpg", "blob:a")], 1), speaker, avatars);
     const [captioned] = pendingItems(outboxOf(KO.line_640, [picked("a.jpg", "blob:a")], 1), speaker, avatars);
+    const album = pendingItems(outboxOf("", [picked("a.jpg", "blob:a"), picked("b.jpg", "blob:b")], 1), speaker, avatars);
 
-    expect(bare?.look.variant).toBe("soft");
+    expect(bare?.look.variant).toBe("naked");
+    expect(album).toHaveLength(1);
+    expect(album[0]?.look.variant).toBe("soft");
     expect(captioned?.look.variant).toBe("soft");
   });
 });

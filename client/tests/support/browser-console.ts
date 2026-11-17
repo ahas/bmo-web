@@ -212,6 +212,9 @@ const MEDIA_CHAT = 44;
 // sticker's scene, the emoticon sent with a word by the account that reads the room, so it stands on the right, and an
 // APNG sticker kept as a file that plays once.
 const STICKER_CHAT = 45;
+// A room of messages that are one picture and nothing else, each standing alone, and pictures that keep their bubbles
+// beside them (docs/web.md, the room screen's wordless messages; LONE_PICTURES).
+const LONE_CHAT = 46;
 // A room a chat service numbered and listed, which the owner speaks in but never added, allowed or gave an agent: the
 // console leaves it out of the room list until it is added from the room add dialog, and once its registration is removed
 // it is a room never added again, so a file adding and removing it runs again on the same console. Its mode is what
@@ -317,9 +320,25 @@ const STICKER_FILES: Record<number, { name: string; type: string; bytes: Uint8Ar
   8: { name: "sticker-once.png", type: "image/png", bytes: await fixture("room-sticker-once.png") }
 };
 const EMOTICON = await fixture("room-emoticon-once.webp");
-const EMOTICON_MESSAGES = [3, 5, 7];
 // The sender linked to the account the sticker room's file signs in with.
 const STICKERS_SENDER = 10;
+// The lone picture room's messages, by message: an emoticon a chat service handed over as a plain square picture with
+// no words, a photo under its mark alone, a GIF under its mark with the shape the chat service said, a photo with no
+// words from the account that reads the room, so it stands on the right, a photo with a caption, a photo with no words
+// answering another message, and words from the reader. Each picture is an SVG of its size, and the GIF is a short
+// WebM clip.
+const svgPicture = (width: number, height: number, fill: string): Uint8Array<ArrayBuffer> =>
+  new TextEncoder().encode(`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><rect width="${width}" height="${height}" fill="${fill}"/></svg>`);
+const LONE_PICTURES: Record<number, { text: string; picture?: Uint8Array<ArrayBuffer>; animation?: { width: number; height: number }; senderId?: number; replyTo?: number }> = {
+  9: { text: "", picture: svgPicture(360, 360, "#e94") },
+  10: { text: "[Photo]", picture: svgPicture(1280, 960, "#49e") },
+  11: { text: "[GIF 0:01]", animation: { width: 800, height: 600 } },
+  12: { text: "", picture: svgPicture(600, 1280, "#4a6"), senderId: STICKERS_SENDER },
+  13: { text: "[Photo] a caption under the photo", picture: svgPicture(1280, 960, "#a4e") },
+  14: { text: "[Photo]", picture: svgPicture(1280, 960, "#e4a"), replyTo: 10 },
+  15: { text: "ok", senderId: STICKERS_SENDER }
+};
+const EMOTICON_MESSAGES = [3, 5, 7];
 // The kept files that stand as file lines, by message, as the receiver lists each.
 const FILE_LINES: Record<number, { kind: string; name: string; size: number; type: string; kept: boolean }> = {
   13: { kind: "document", name: "meeting-notes-and-follow-up-actions.pdf", size: 1_258_291, type: "application/pdf", kept: true },
@@ -981,6 +1000,42 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       return Response.json(stickerLine.find((one) => one.id === id) ?? stickerLine[0]);
     }
 
+    const loneRoom = { ...room, id: LONE_CHAT, title: "pictures-room", ownerRoom: false, workRoom: LONE_CHAT, lastMessageAt: LINE_AT - 300 };
+    const loneLine = Object.entries(LONE_PICTURES).map(([key, lone]) => {
+      const id = Number(key);
+
+      return {
+        id, room: LONE_CHAT, sentAt: LINE_AT - 2_000 + id, kind: null,
+        ...(lone.senderId === undefined ? { senderId: 7, senderName: "person-b" } : { senderId: lone.senderId, senderName: "stickers" }),
+        text: lone.text, imagePath: lone.picture === undefined ? null : `images/${LONE_CHAT}/${id}.svg`,
+        replyToMessageId: lone.replyTo ?? null, answerSeconds: null, round: null, album: null, via: null,
+        files: lone.animation === undefined ? [] : [{ kind: "animation", source: "gif.mp4", storedPath: "kept", collectedAt: LINE_AT }]
+      };
+    });
+
+    if (path === `/rooms/${LONE_CHAT}/messages`) {
+      const after = new URL(request.url).searchParams.get("after");
+
+      return Response.json({ items: after === null ? loneLine : loneLine.filter((one) => one.id > Number(after)), more: false });
+    }
+
+    const loneAsked = new RegExp(`^/rooms/${LONE_CHAT}/messages/(\\d+)(/[a-z]+)?(/\\d+)?$`).exec(path);
+
+    if (loneAsked !== null) {
+      const id = Number(loneAsked[1]);
+      const lone = LONE_PICTURES[id];
+
+      if (loneAsked[2] === "/picture" && lone?.picture !== undefined) return new Response(lone.picture, { headers: { "content-type": "image/svg+xml" } });
+      if (loneAsked[2] === "/picture") return Response.json({ code: "not-found", error: "no picture is kept" }, { status: 404 });
+      if (loneAsked[2] === "/metadata") return Response.json({ metadata: lone?.animation === undefined ? null : { attachment: lone.animation } });
+      if (loneAsked[2] === "/files" && loneAsked[3] === undefined) {
+        return Response.json({ items: lone?.animation === undefined ? [] : [{ place: 0, kind: "animation", name: "gif.mp4", size: VIDEOS[11]!.bytes.byteLength, type: "video/webm", kept: true }], more: false });
+      }
+      if (loneAsked[2] === "/files") return new Response(VIDEOS[11]!.bytes, { headers: { "content-type": "video/webm" } });
+
+      return Response.json(loneLine.find((one) => one.id === id) ?? loneLine[0]);
+    }
+
     const listed = { ...room, id: NUMBERED_CHAT, title: "numbered-room", ownerRoom: false, listened: false, workRoom: NUMBERED_CHAT, lastMessageAt: LINE_AT - 100, messageCount: 1, senders: [1], mode: numbered.mode };
 
     // The one chat service rooms are added from, listing its account's rooms and the contacts of the account a listing
@@ -1019,7 +1074,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       return Response.json({ goes: [], stays: [], pictures: [], settings: [], folders: [], warned: [], units: [], taken: [], cleared: [], holders: [], couldNot: [] });
     }
     // Every room the receiver reads carries whose private room it is.
-    const every = [room, listed, behind, recorded, media, stickerRoom, { ...room, id: HIGH_ROOM, title: "high-room", ownerRoom: false, workRoom: HIGH_ROOM, lastMessageAt: LINE_AT - 200 }, privateRoom]
+    const every = [room, listed, behind, recorded, media, stickerRoom, loneRoom, { ...room, id: HIGH_ROOM, title: "high-room", ownerRoom: false, workRoom: HIGH_ROOM, lastMessageAt: LINE_AT - 200 }, privateRoom]
       .map((one) => ({ ...one, ...privacyOf(one.id) }));
 
     if (path === "/rooms") return Response.json({ items: every, more: false });

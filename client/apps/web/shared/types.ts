@@ -210,11 +210,12 @@ export interface MessageAttachment {
   bytes: number | null;
   type: string | null;
   available: boolean;
-  // The shape a video stands in, where Telegram said what it was.
-  shape?: VideoShape;
+  // The shape a video or an animation stands in, where the chat service said what it was.
+  shape?: MediaShape;
 }
 
-export interface VideoShape {
+// A picture's, a video's or an animation's width and height, in its own pixels.
+export interface MediaShape {
   width: number;
   height: number;
 }
@@ -299,6 +300,8 @@ export interface ArchivedMessage {
   sentAt: number;
   text: string;
   imagePath: string | null;
+  // The kept picture's shape, as the console's server read it from the head of its file; absent where none was read.
+  imageShape?: MediaShape;
   replyToMessageId: ExactMessageId | null;
   // The answered message as a reply shows it, when this message is a reply.
   replyQuote?: ReplyQuote | null;

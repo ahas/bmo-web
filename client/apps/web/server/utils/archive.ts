@@ -11,6 +11,7 @@ import { judgementsWithin, markOf } from "./gate";
 import { withOpenings } from "./openings";
 import { ownerChat } from "./owner";
 import { carriesFiles, messageMedia } from "./message-media";
+import { pictureShape } from "./picture-sizes";
 import { exactAnswer, exactMessage, exactMessages, receiver, receiverCall } from "./receiver";
 
 import type { ArchivedMessage, ExactMessageId, ForwardedFrom, Judgement, JudgementMark, MessageAttachment, MessageBriefing, MessagePage, MessageReaction, ReplyQuote, RoomSummary, RoundFiguresOf, Situation, TelegramExpression, TelegramFormat, VoiceBriefing } from "#shared/types";
@@ -364,6 +365,8 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
   // draws its words from the metadata it arrived with unless it is an agent's answer, which stands as its markdown.
   const media = new Map(received.map((message) => [message.messageId, mediaOf(chatId, message, message.text !== "" && agents.get(senderKey(message)) !== true)]));
   const onPage = new Map(received.map((message) => [message.messageId, message]));
+  // Each kept picture's size is read as the page is, so its row keeps the picture's room before it has loaded.
+  const shapes = new Map(received.map((message) => [message.messageId, message.imagePath === null || message.deletedAt !== null ? Promise.resolve(null) : pictureShape(chatId, message.messageId)]));
   // Several replies of a page often answer one message; what it said and carried is read once.
   const quoted = new Map<ExactMessageId, Promise<ReplyQuote>>();
   const quote = (messageId: ExactMessageId): Promise<ReplyQuote> => {
@@ -387,6 +390,7 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
       const named = voicedBy ?? speaker;
       const speakerLabel = named === undefined ? undefined : labels.get(named);
       const files = await media.get(message.messageId)!;
+      const imageShape = await shapes.get(message.messageId)!;
 
       return {
         chatId: message.chatId,
@@ -396,6 +400,7 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
         sentAt: message.sentAt,
         text: message.text,
         imagePath: message.imagePath,
+        ...(imageShape === null ? {} : { imageShape }),
         replyToMessageId: message.replyToMessageId,
         answerSeconds: message.answerSeconds,
         round: message.round,

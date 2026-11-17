@@ -127,7 +127,7 @@
                      run's step above it in place of the step the message's parts keep, rising with it (docs/web.md,
                      the room screen's wordless messages). On the reader's own side both hold to the trailing edge. -->
                 <div
-                  v-if="!sticker && stuck"
+                  v-if="!bare && stuck"
                   class="flex mb-(--chat-message-gap)"
                   :class="[props.item.look.side === 'right' ? 'justify-end' : '', props.arriving ? 'bubble-rise' : '']"
                 >
@@ -148,7 +148,7 @@
                   ref="bubble"
                   data-bubble
                   class="relative"
-                  :class="[bubbleClass, albumed ? 'w-80 max-w-full' : pictured ? 'w-fit max-w-80' : 'w-fit max-w-full', props.arriving ? 'bubble-rise' : '', !sticker && stuck && props.item.look.side === 'right' ? 'ms-auto' : '']"
+                  :class="[bubbleClass, albumed ? 'w-80 max-w-full' : pictured ? 'w-fit max-w-80' : 'w-fit max-w-full', props.arriving ? 'bubble-rise' : '', !bare && stuck && props.item.look.side === 'right' ? 'ms-auto' : '', bare && pictured ? 'rounded-(--chat-radius)' : '']"
                 >
                   <div class="relative flex flex-col overflow-hidden rounded-inherit">
                     <!-- The sender's name, once at the head of the run's first bubble, and the
@@ -192,6 +192,7 @@
                       :src="props.item.imageUrl"
                       :message-id="props.item.messageId ?? undefined"
                       flush
+                      :known="props.item.imageShape ?? null"
                       :title="`${props.item.senderName} · ${stamp}`"
                     />
 
@@ -201,6 +202,16 @@
                       v-for="video in stills"
                       :key="video.id"
                       :attachment="video"
+                      :chat-id="props.chatId"
+                      :message-id="archivedId"
+                    />
+
+                    <!-- An animation stands as a picture does, playing over and over where it stands with no player and no
+                         file line, and the caption under it (docs/web.md, the room screen's animations). -->
+                    <MessageAnimation
+                      v-for="animation in moving"
+                      :key="animation.id"
+                      :attachment="animation"
                       :chat-id="props.chatId"
                       :message-id="archivedId"
                     />
@@ -215,7 +226,7 @@
                       :style="wordsLast && metaRoom !== null ? { '--chat-meta-room': `${metaRoom}px` } : undefined"
                     >
                       <!-- A sticker sent alone stands as the picture alone in its fixed box, its time beside its foot. -->
-                      <MessageSticker v-if="sticker && stuck" :src="stickerPicture" :attachment="stickerFile" :chat-id="props.chatId" :message-id="archivedId" :alt="$t('room.label.sticker_preview')" />
+                      <MessageSticker v-if="bare && stuck" :src="stickerPicture" :attachment="stickerFile" :chat-id="props.chatId" :message-id="archivedId" :alt="$t('room.label.sticker_preview')" />
 
                       <!-- A row standing for a turn still running holds what that turn is at; every
                            other row holds what was said. Nothing around the two differs, because
@@ -315,20 +326,12 @@
                           <p v-if="transcript !== null" data-transcript class="min-w-0 text-sm break-words whitespace-pre-wrap text-toned">{{ transcript }}</p>
                           <p v-else-if="voiceFailed" data-voice-failed class="text-sm text-dimmed">{{ $t("room.label.voice_failed") }}</p>
                         </div>
-                        <!-- An animation plays where it stands, over and over and without sound, as the messenger
-                             shows one: no player and no file line (docs/web.md, the room screen's animations). -->
-                        <MessageAnimation
-                          v-else-if="attachment.kind === 'animation' && attachment.available"
-                          :attachment="attachment"
-                          :chat-id="props.chatId"
-                          :message-id="archivedId"
-                        />
                         <!-- A kept file stands as a line of its own on the bubble's ground, as the messenger
                              stands one, with no frame of its own: its mark, its name over its size, and the way
                              to take it at the trailing end. The name wraps rather than being cut, since it is
                              the file's own. -->
                         <div
-                          v-if="attachment.kind !== 'sticker' && !(attachment.kind === 'animation' && attachment.available) && !heard(attachment)"
+                          v-if="attachment.kind !== 'sticker' && !heard(attachment)"
                           data-attachment
                           class="flex max-w-full items-center gap-3"
                           :class="attachment.available ? '' : 'text-muted'"
@@ -376,7 +379,7 @@
                         :sent-at="props.item.sentAt"
                         :judging="message && props.judging"
                         :over-picture="overPicture"
-                        :beside-picture="sticker"
+                        :beside-picture="bare && stuck"
                         :clock="message"
                         :after-words="wordsLast || playerLast"
                         :answer="props.item.look.role === 'assistant'"
@@ -647,8 +650,11 @@ const stickerFile = computed<MessageAttachment | null>(() =>
 );
 const stuck = computed<boolean>(() => stickerPicture.value !== null || stickerFile.value !== null);
 
-// The files that stand in the bubble: every one but the sticker.
-const filed = computed<MessageAttachment[]>(() => attachments.value.filter((attachment) => attachment !== stickerFile.value));
+// The animations the message carried whose files are kept, each standing as a picture does.
+const moving = computed<MessageAttachment[]>(() => attachments.value.filter((attachment) => attachment.kind === "animation" && attachment.available));
+
+// The files that stand in the bubble: every one but the sticker and the animations standing as pictures.
+const filed = computed<MessageAttachment[]>(() => attachments.value.filter((attachment) => attachment !== stickerFile.value && !moving.value.includes(attachment)));
 
 // Whether the bubble names its sender: the head of a run of someone else's, since the right side is
 // the reader's own and needs no name.
@@ -680,17 +686,20 @@ const markLine = computed<string>(() => {
   return "top-(--chat-pad-y)";
 });
 
-// Whether the row is a sticker alone, standing as Telegram stands it: no bubble, name line or tail.
-const sticker = computed<boolean>(() => props.item.look.variant === "naked");
+// Whether the row is one picture alone, standing as Telegram stands a sticker: no bubble, name line or tail (docs/web.md,
+// the room screen's wordless messages). A sticker stands in its own box; a picture or an animation in its own corners.
+const bare = computed<boolean>(() => props.item.look.variant === "naked");
 
 // The videos the message carried that the browser plays, each standing as the shared player's still.
 const stills = computed<MessageAttachment[]>(() => attachments.value.filter((attachment) => attachment.kind === "video" && playable(attachment)));
 
-// Whether the bubble holds a picture, an album or a video's still, which runs to its edges. An album's mosaic fills a
+// Whether the bubble holds a picture, an album, a video's still or an animation, which runs to its edges. An album's mosaic fills a
 // picture's width; one picture or still stands at its own width, the bubble as wide as it unless what stands under it is
 // wider, and never wider than a lone picture's widest.
 const albumed = computed<boolean>(() => (props.item.album ?? []).length > 1);
-const pictured = computed<boolean>(() => albumed.value || (props.item.imageUrl !== null && props.item.stickerPicture !== true) || stills.value.length > 0);
+const pictured = computed<boolean>(
+  () => albumed.value || (props.item.imageUrl !== null && props.item.stickerPicture !== true) || stills.value.length > 0 || moving.value.length > 0
+);
 
 // A picture with nothing under it carries the meta line over its own foot.
 const overPicture = computed<boolean>(
@@ -709,7 +718,7 @@ const bodyLook = computed<string>(() => {
 
   const flow = voiced.value ? "relative flex flex-col gap-y-(--chat-meta-gap)" : "relative flex flex-wrap items-end gap-x-2 gap-y-(--chat-meta-gap)";
 
-  if (sticker.value) {
+  if (bare.value) {
     return "relative flex flex-wrap items-end gap-x-1 gap-y-(--chat-meta-gap)";
   }
 

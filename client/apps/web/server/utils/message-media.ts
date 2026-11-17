@@ -4,7 +4,7 @@ import { fileOut, messageFiles, playedKind } from "./media";
 import { receiver, receiverCall } from "./receiver";
 
 import type { ReceivedFile } from "./media";
-import type { ExactMessageId, MessageAttachment, TelegramExpression, TelegramFormat, TelegramFormatKind, VideoShape } from "#shared/types";
+import type { ExactMessageId, MediaShape, MessageAttachment, TelegramExpression, TelegramFormat, TelegramFormatKind } from "#shared/types";
 
 // What a message carried, as the room screen draws it: its files, each with its size and type and whether it can be
 // received, and its words read over the metadata the chat service handed over beside it (the receiver's
@@ -14,6 +14,9 @@ import type { ExactMessageId, MessageAttachment, TelegramExpression, TelegramFor
 
 // The kinds of file a message's line stands, in the order its files stand.
 const ATTACHED: readonly string[] = ["audio", "video", "animation", "document", "sticker"];
+
+// The kinds of file that stand at the shape the chat service said they have, before they have loaded.
+const SHAPED: readonly string[] = ["video", "animation"];
 
 // A file the chat agent's own voice made is kept under a name of the deployment's, not one a person gave it.
 const OWN_NAME = "bmo:";
@@ -68,13 +71,13 @@ export async function messageMedia(chatId: number, messageId: ExactMessageId, te
   ]);
   const assets = files.filter((file) => ATTACHED.includes(file.kind)).map(assetOf);
   const described = typeof metadata === "object" && metadata !== null ? (metadata as Record<string, unknown>) : null;
-  const shape = videoShape(described?.attachment);
+  const shape = mediaShape(described?.attachment);
   // A sticker file is the message's sticker, whichever provider kept it, unless it is a custom emoji's picture; where a
   // message kept several, the last stands.
   const latestSticker = assets.filter((asset) => asset.file.kind === "sticker" && !asset.file.name.startsWith(EXPRESSION_NAME)).at(-1);
   const attachments = assets
     .filter((asset) => asset.file.kind !== "sticker" || asset === latestSticker)
-    .map((asset) => (asset.attachment.kind === "video" && shape !== null ? { ...asset.attachment, shape } : asset.attachment));
+    .map((asset) => (SHAPED.includes(asset.attachment.kind) && shape !== null ? { ...asset.attachment, shape } : asset.attachment));
 
   return { attachments, expressions: expressionsOf(text, described, assets), formats: formatsOf(text, described) };
 }
@@ -174,10 +177,10 @@ function formatsOf(text: string, metadata: Record<string, unknown> | null): Tele
   return formats;
 }
 
-// The shape a video stands in, as the chat service described it when it arrived: its own size, a round note's side,
-// or failing both its thumbnail's, which is the same shape smaller. It is what lets the player hold its place before
+// The shape a video or an animation stands in, as the chat service described it when it arrived: its own size, a round note's side,
+// or failing both its thumbnail's, which is the same shape smaller. It is what lets the player or the animation hold its place before
 // the file has said anything of itself.
-function videoShape(described: unknown): VideoShape | null {
+function mediaShape(described: unknown): MediaShape | null {
   if (typeof described !== "object" || described === null) return null;
 
   const { length, thumbnail } = described as { length?: unknown; thumbnail?: unknown };
@@ -185,7 +188,7 @@ function videoShape(described: unknown): VideoShape | null {
   return sized(described) ?? (typeof length === "number" && length > 0 ? { width: length, height: length } : null) ?? sized(thumbnail);
 }
 
-function sized(one: unknown): VideoShape | null {
+function sized(one: unknown): MediaShape | null {
   if (typeof one !== "object" || one === null) return null;
 
   const { width, height } = one as { width?: unknown; height?: unknown };

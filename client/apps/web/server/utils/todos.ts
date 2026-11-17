@@ -128,15 +128,68 @@ export function approvedItem(item: Pick<Item, "approvals">): boolean {
   return item.approvals.some((approval) => approval.kind === "approval");
 }
 
+type ClosePhase = NonNullable<TodoItem["closing"]>["phase"];
+
+// The labels bmo-job's close writes (its docs/cli.md, 「`bmo-job job close`」): a pair for each repository, the
+// repository after the colon, beside a pair with no repository that sums them up.
+const CLOSE_PHASE = "close-phase";
+const CLOSE_COMMIT = "close-commit";
+
 // Whether a close's phase says its commit waits to go live: merged and waiting for its repository's batch deployment,
 // or handed over by an older close.
 function waitsToGoLive(phase: string | undefined): boolean {
   return phase === "waiting-batch" || phase === "waiting-live";
 }
 
-// Held by its job only until its close's commit goes live: the hold names that deploy, and the commit waits for it.
+function closePhase(value: string | undefined): ClosePhase | null {
+  return value === "testing" || value === "waiting-batch" || value === "waiting-live" ? value : null;
+}
+
+function closeCommit(value: string | undefined): string | null {
+  return (value ?? "").trim() || null;
+}
+
+// The repositories the item's labels carry a pair of, in name order.
+function pairRepositories(labels: Record<string, string>): string[] {
+  return Object.keys(labels)
+    .filter((key) => key.startsWith(`${CLOSE_PHASE}:`) && key.length > CLOSE_PHASE.length + 1)
+    .map((key) => key.slice(CLOSE_PHASE.length + 1))
+    .sort();
+}
+
+// Where the item's close stands (docs/web.md, the TODO panel's section): read from the pair of each repository where
+// the item carries one, checking while any of them checks and else waiting on every commit they leave waiting, and
+// otherwise from the pair with no repository, its one commit of no named repository. None where the labels say
+// neither; a repository's pair whose phase says neither is passed over.
+function closingOf(labels: Record<string, string>): TodoItem["closing"] {
+  const repositories = pairRepositories(labels);
+
+  if (repositories.length === 0) {
+    const phase = closePhase(labels[CLOSE_PHASE]);
+
+    if (phase === null) return null;
+
+    return { phase, waiting: waitsToGoLive(phase) ? [{ repository: null, commit: closeCommit(labels[CLOSE_COMMIT]) }] : [] };
+  }
+
+  const phaseOf = (repository: string) => labels[`${CLOSE_PHASE}:${repository}`];
+  const waiting = repositories
+    .filter((repository) => waitsToGoLive(phaseOf(repository)))
+    .map((repository) => ({ repository, commit: closeCommit(labels[`${CLOSE_COMMIT}:${repository}`]) }));
+
+  if (repositories.some((repository) => phaseOf(repository) === "testing")) return { phase: "testing", waiting };
+
+  return waiting.length === 0 ? null : { phase: "waiting-batch", waiting };
+}
+
+// Whether the item's close merged its commits and waits for them all to go live, no repository's check under way.
+function waitsForDeploy(item: Item): boolean {
+  return waitsToGoLive(closingOf(item.labels)?.phase);
+}
+
+// Held by its job only until its close's commits go live: the hold names that deploy, and the commits wait for it.
 function heldForDeploy(item: Item): boolean {
-  return item.state === "held" && (item.labels["hold-after-deploy"] ?? "").trim() !== "" && waitsToGoLive(item.labels["close-phase"]);
+  return item.state === "held" && (item.labels["hold-after-deploy"] ?? "").trim() !== "" && waitsForDeploy(item);
 }
 
 function listOf(item: Item): "queue" | "pending" | "held" | "done" {
@@ -147,16 +200,6 @@ function listOf(item: Item): "queue" | "pending" | "held" | "done" {
   if (item.state === "draft") return "pending";
 
   return "queue";
-}
-
-// Where the item's close stands, out of the two labels bmo-job's close writes (its docs/cli.md, 「`bmo-job job
-// close`」); none where the phase label is absent or says anything else.
-function closingOf(labels: Record<string, string>): TodoItem["closing"] {
-  const phase = labels["close-phase"];
-
-  if (phase !== "testing" && phase !== "waiting-batch" && phase !== "waiting-live") return null;
-
-  return { phase, commit: (labels["close-commit"] ?? "").trim() || null };
 }
 
 // One item as the row the panel shows, with its reports where they were read, the last note where a screen opens
@@ -439,7 +482,7 @@ function standingOf(items: readonly Item[], live: ReadonlyMap<number, LiveJobOf>
   return {
     queue: items.filter((item) => inList(item, "queue")).length,
     running: items.filter((item) => inList(item, "queue") && going(item)).length,
-    deploy: items.filter((item) => inList(item, "queue") && !going(item) && waitsToGoLive(item.labels["close-phase"])).length,
+    deploy: items.filter((item) => inList(item, "queue") && !going(item) && waitsForDeploy(item)).length,
     deploying: 0,
     pending: items.filter((item) => inList(item, "pending")).length,
     held: items.filter((item) => inList(item, "held")).length,

@@ -72,7 +72,7 @@ function item(id: number, commit: string): TodoItem {
     holding: null,
     waiting: null,
     deployWaits: false,
-    closing: { phase: "waiting-batch", commit },
+    closing: { phase: "waiting-batch", waiting: [{ repository: null, commit }] },
     deployHeld: false,
     holdPending: false,
     orderActive: false,
@@ -129,10 +129,12 @@ const ON_ROW = {
   line: wording("todo.label.deploy_in_line"),
   batch: wording("todo.label.deploy_waiting_live")
 };
+// Each row's chip ends on the short name of the commit it waits on.
+const [A, B, C] = COMMITS.map((commit) => commit.slice(0, 12));
 const EXPECTED: { bar: string; rows: string[] }[] = [
-  { bar: `${RUNNING} · unit-b`, rows: [`${ON_ROW.running} · unit-b`, `${ON_ROW.line} · unit-c`, ON_ROW.batch] },
-  { bar: `${LINE} · unit-c`, rows: [ON_ROW.batch, `${ON_ROW.line} · unit-c`, ON_ROW.batch] },
-  { bar: `${RUNNING} · unit-c`, rows: [ON_ROW.batch, `${ON_ROW.running} · unit-c`, ON_ROW.batch] }
+  { bar: `${RUNNING} · unit-b`, rows: [`${ON_ROW.running} · unit-b · ${A}`, `${ON_ROW.line} · unit-c · ${B}`, `${ON_ROW.batch} · ${C}`] },
+  { bar: `${LINE} · unit-c`, rows: [`${ON_ROW.batch} · ${A}`, `${ON_ROW.line} · unit-c · ${B}`, `${ON_ROW.batch} · ${C}`] },
+  { bar: `${RUNNING} · unit-c`, rows: [`${ON_ROW.batch} · ${A}`, `${ON_ROW.running} · unit-c · ${B}`, `${ON_ROW.batch} · ${C}`] }
 ];
 
 let browser: Browser | null = null;

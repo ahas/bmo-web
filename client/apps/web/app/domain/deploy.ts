@@ -1,7 +1,7 @@
 import { countText } from "./numbers";
 import { formatClock, spanClock } from "bmo-ui/app/domain/time";
 
-import type { DeployCommit, DeployHold, DeployRunView, DeployView, DeployWaiting, TodoBoard, TodoItem } from "#shared/types";
+import type { DeployCommit, DeployHold, DeployRunView, DeployView, DeployWaiting, TodoBoard, TodoItem, WaitingCommit } from "#shared/types";
 import type { Translate } from "#shared/wording";
 import type { DeployPart, DeployStage, DeployStep, DeployStepAhead } from "#shared/deploy-progress";
 
@@ -308,10 +308,14 @@ export const ITEM_DEPLOY_LABELS: Record<ItemDeployPhase, string> = {
   "deploy-failed": "todo.label.deploy_failed",
 };
 
-/** Where an item's work stands on its way live, with the unit whose deployment it stands in, where one does. */
+/** Where one commit an item waits on stands on its way live, or a deployment that carries the item by none of them:
+ * the unit whose deployment it stands in, where one does, and the repository and the commit it is of, where it is
+ * of one. */
 export interface ItemWayLive {
   phase: ItemDeployPhase;
   unitName: string | null;
+  repository: string | null;
+  commit: string | null;
 }
 
 /** What of an item its way live is read from. */
@@ -322,6 +326,9 @@ const ITEM_MENTION = /#(\d+)/g;
 // The fewest letters of a commit two names of it are compared by.
 const COMMIT_LETTERS = 7;
 
+// The letters of a commit a chip shows, as the deployment's popover names one.
+const COMMIT_SHOWN = 12;
+
 // Whether two names of a commit, either of them shortened, name the same one.
 function sameCommit(one: string, other: string): boolean {
   if (one.length < COMMIT_LETTERS || other.length < COMMIT_LETTERS) return false;
@@ -329,62 +336,89 @@ function sameCommit(one: string, other: string): boolean {
   return one.startsWith(other) || other.startsWith(one);
 }
 
-// Whether a commit a deployment brings names the item: the item its record names, a `#NNNN` in its subject, or the
-// commit the item's close handed over.
-function commitNames(commit: DeployCommit, item: ItemOnItsWayLive): boolean {
-  if (commit.todoId === item.id || [...commit.subject.matchAll(ITEM_MENTION)].some((match) => Number(match[1]) === item.id)) return true;
-
-  return item.closing?.commit != null && sameCommit(commit.commit, item.closing.commit);
+// Whether a commit a deployment brings names the item: the item its record names, or a `#NNNN` in its subject.
+function namesItem(commit: DeployCommit, item: ItemOnItsWayLive): boolean {
+  return commit.todoId === item.id || [...commit.subject.matchAll(ITEM_MENTION)].some((match) => Number(match[1]) === item.id);
 }
 
-function brought(commits: readonly DeployCommit[], item: ItemOnItsWayLive): boolean {
-  return commits.some((commit) => commitNames(commit, item));
+// Whether a deployment's commits carry one commit the item waits on: that commit, named whole or shortened, and for
+// the one commit of an item that names no repository, any commit naming the item as well.
+function carries(commits: readonly DeployCommit[], item: ItemOnItsWayLive, waiting: WaitingCommit): boolean {
+  return commits.some((one) => (waiting.commit !== null && sameCommit(one.commit, waiting.commit)) || (waiting.repository === null && namesItem(one, item)));
 }
+
+// No way live, one list for every item that has none, so a row handed it again is handed nothing new.
+const NO_WAYS: readonly ItemWayLive[] = Object.freeze([]);
 
 /**
- * Where one item's work stands on its way live (docs/web.md, the TODO panel's section), by the commits each
- * deployment brings live rather than the whole release its popover lists. A run under way that brings the item puts
- * it live through every stage, its check and suite among them; else a deployment waiting in the line that brings it
- * has it waiting its turn. Else the item's own close says it: waiting for its repository's batch deployment once the
- * close merged its commit, whether or not its job still runs, and failed where the run the title bar reads brought
- * that commit and ended failed or rolled back. None for a finished item, or one that says neither. The unit is the
- * deploy root the deployment is of, which need not be the repository the item is assigned to.
+ * Where an item's work stands on its way live (docs/web.md, the TODO panel's section): one way for each commit its
+ * close left waiting, in name order of the repository, its work live only once each of them is. A commit a run under
+ * way brings is being put live through every stage of that run, its check and suite among them; else a deployment
+ * waiting in the line that brings it has it waiting its turn. Else, once the close merged, it waits for its
+ * repository's batch deployment, whether or not the item's job still runs, and its deployment failed where the run
+ * the title bar reads brought it and ended failed or rolled back. A run under way, else a waiting deployment, that
+ * carries the item by a commit naming it but none it waits on is a way of its own after them. None for a finished
+ * item. The unit is the deploy root the deployment is of, which need not be the repository the item is assigned to.
+ * What a deployment brings is what it brings live, not the whole release its popover lists.
  */
-export function itemWayLive(view: DeployView | null | undefined, item: ItemOnItsWayLive): ItemWayLive | null {
-  if (item.done) return null;
+export function itemWaysLive(view: DeployView | null | undefined, item: ItemOnItsWayLive): readonly ItemWayLive[] {
+  if (item.done) return NO_WAYS;
 
   const run = view?.run ?? null;
-  // Several units deploy at once: any run under way that brings the item says so, not only the one the bar stands.
-  const under = [...(view?.runs ?? []), ...(run !== null ? [run] : [])].find((one) => one.phase === "running" && brought(one.brings, item));
+  // Several units deploy at once: any run under way says so, not only the one the bar stands.
+  const under = [...(view?.runs ?? []), ...(run !== null ? [run] : [])].filter((one) => one.phase === "running");
+  const line = view?.line ?? [];
+  const waiting = item.closing?.waiting ?? [];
+  // A close checking a change before the merge has no chip of a commit only waiting: the row's testbed line says what
+  // it runs.
+  const merged = item.closing?.phase === "waiting-batch" || item.closing?.phase === "waiting-live";
+  const failed = run !== null && (run.end === "failed" || run.end === "rolled-back") ? run : null;
 
-  if (under !== undefined) return { phase: "deploying", unitName: under.unitName };
+  const ways = waiting.flatMap((one): ItemWayLive[] => {
+    const way = (phase: ItemDeployPhase, unitName: string | null): ItemWayLive[] => [{ phase, unitName, repository: one.repository, commit: one.commit }];
+    const deploying = under.find((deployment) => carries(deployment.brings, item, one));
 
-  const waiting = (view?.line ?? []).find((one) => brought(one.brings, item));
+    if (deploying !== undefined) return way("deploying", deploying.unitName);
 
-  if (waiting !== undefined) return { phase: "in-line", unitName: waiting.unitName };
+    const inLine = line.find((deployment) => carries(deployment.brings, item, one));
 
-  // A close checking its change before the merge has no chip: the row's testbed line says what it runs.
-  // A close ends at the merge and its commit waits for its repository's batch deployment, as one an older close
-  // handed over waits to go live.
-  if (item.closing?.phase !== "waiting-batch" && item.closing?.phase !== "waiting-live") return null;
+    if (inLine !== undefined) return way("in-line", inLine.unitName);
+    if (!merged) return [];
+    if (failed !== null && carries(failed.brings, item, one)) return way("deploy-failed", failed.unitName);
 
-  if (run !== null && (run.end === "failed" || run.end === "rolled-back") && brought(run.brings, item)) {
-    return { phase: "deploy-failed", unitName: run.unitName };
-  }
+    return way("waiting-live", null);
+  });
 
-  return { phase: "waiting-live", unitName: null };
+  const apart = (commits: readonly DeployCommit[]) => commits.some((one) => namesItem(one, item)) && !waiting.some((one) => carries(commits, item, one));
+  const deploying = under.find((deployment) => apart(deployment.brings));
+
+  if (deploying !== undefined) return [...ways, { phase: "deploying", unitName: deploying.unitName, repository: null, commit: null }];
+
+  const inLine = line.find((deployment) => apart(deployment.brings));
+
+  if (inLine !== undefined) return [...ways, { phase: "in-line", unitName: inLine.unitName, repository: null, commit: null }];
+
+  return ways.length === 0 ? NO_WAYS : ways;
 }
 
-/** Where one item's work stands on its way live, without the unit. */
+// The phases of an item's ways, the furthest on first: what the item as a whole is said to stand in.
+const ITEM_DEPLOY_ORDER: readonly ItemDeployPhase[] = ["deploying", "deploy-failed", "in-line", "waiting-live"];
+
+/** Where an item's work as a whole stands on its way live: being put live while any of its commits is, without the
+ * unit. */
 export function itemDeployPhase(view: DeployView | null | undefined, item: ItemOnItsWayLive): ItemDeployPhase | null {
-  return itemWayLive(view, item)?.phase ?? null;
+  const ways = itemWaysLive(view, item);
+
+  return ITEM_DEPLOY_ORDER.find((phase) => ways.some((way) => way.phase === phase)) ?? null;
 }
 
-/** The words a row's way-live chip says: the phase, then the unit whose deployment it stands in, where one does. */
+/** The words a way-live chip says: the phase, then the unit whose deployment it stands in, else the repository it
+ * waits in, then its commit, each where it has one. */
 export function itemWayLiveLabel(t: Translate, way: ItemWayLive): string {
-  const label = t(ITEM_DEPLOY_LABELS[way.phase]);
+  const place = way.unitName ?? way.repository;
+  const commit = way.commit?.slice(0, COMMIT_SHOWN) ?? null;
 
-  return way.unitName === null ? label : `${label} · ${way.unitName}`;
+  return [t(ITEM_DEPLOY_LABELS[way.phase]), place, commit].filter((part) => part !== null).join(" · ");
 }
 
 /** The colour a row's way-live chip wears: waiting for its deployment or its turn, being put live, or its deployment

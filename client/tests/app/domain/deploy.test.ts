@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-import { deployMarkOf, ENDING_SHOWN_MS, holdLimit, holdWaits, ITEM_DEPLOY_COLOURS, itemDeployPhase, itemWayLive, itemWayLiveLabel, stageRows, stageSpans, standingRun, stepLabel, withDeploying } from "../../../apps/web/app/domain/deploy";
+import { deployMarkOf, ENDING_SHOWN_MS, holdLimit, holdWaits, ITEM_DEPLOY_COLOURS, itemDeployPhase, itemWaysLive, itemWayLiveLabel, stageRows, stageSpans, standingRun, stepLabel, withDeploying } from "../../../apps/web/app/domain/deploy";
 import type { TodoBoard, TodoItem } from "../../../apps/web/shared/types";
 import type { ItemOnItsWayLive } from "../../../apps/web/app/domain/deploy";
 
@@ -205,7 +205,7 @@ describe("an item on its way live", () => {
     { commit: "c".repeat(40), subject: "Name no item", todoId: null }
   ];
   const item = (id: number, over: Partial<ItemOnItsWayLive> = {}): ItemOnItsWayLive => ({ id, done: false, liveState: null, closing: null, ...over });
-  const waiting = (commit: string | null): ItemOnItsWayLive["closing"] => ({ phase: "waiting-live", commit });
+  const waiting = (commit: string | null): ItemOnItsWayLive["closing"] => ({ phase: "waiting-live", waiting: [{ repository: null, commit }] });
 
   test("marks the board's rows a run under way carries as being put live, and counts them, each phase in a colour of its own", () => {
     const row = (id: number, commit: string) => item(id, { closing: waiting(commit) }) as TodoItem;
@@ -250,7 +250,7 @@ describe("an item on its way live", () => {
   });
 
   test("says nothing while a close checks its change before the merge, the row's testbed line saying it", () => {
-    const closing: ItemOnItsWayLive["closing"] = { phase: "testing", commit: null };
+    const closing: ItemOnItsWayLive["closing"] = { phase: "testing", waiting: [] };
 
     expect(itemDeployPhase(view(), item(1203, { closing, liveState: "running" }))).toBeNull();
     expect(itemDeployPhase(null, item(1203, { closing, liveState: "running" }))).toBeNull();
@@ -258,7 +258,7 @@ describe("an item on its way live", () => {
   });
 
   test("waits to go live once its close merged its commit for its repository's batch deployment", () => {
-    const batch = (commit: string | null): ItemOnItsWayLive["closing"] => ({ phase: "waiting-batch", commit });
+    const batch = (commit: string | null): ItemOnItsWayLive["closing"] => ({ phase: "waiting-batch", waiting: [{ repository: null, commit }] });
 
     expect(itemDeployPhase(view(), item(1203, { closing: batch("c".repeat(40)) }))).toBe("waiting-live");
     expect(itemDeployPhase(view(), item(1203, { closing: batch(null), liveState: "running" }))).toBe("waiting-live");
@@ -306,23 +306,73 @@ describe("an item on its way live", () => {
   test("names the unit whose deployment it stands in", () => {
     const drive = run({ unitName: "unit-b", brings: carried });
 
-    expect(itemWayLive(view({ run: drive, runs: [drive] }), item(1203, { closing: waiting("c".repeat(40)) }))).toEqual({ phase: "deploying", unitName: "unit-b" });
-    expect(itemWayLive(view(), item(1203, { closing: waiting("c".repeat(40)) }))).toEqual({ phase: "waiting-live", unitName: null });
-    expect(itemWayLiveLabel(wording, { phase: "deploying", unitName: "unit-b" })).toBe(`${wording("todo.label.deploy_deploying")} · unit-b`);
-    expect(itemWayLiveLabel(wording, { phase: "waiting-live", unitName: null })).toBe(wording("todo.label.deploy_waiting_live"));
+    expect(itemWaysLive(view({ run: drive, runs: [drive] }), item(1203, { closing: waiting("c".repeat(40)) }))).toEqual([{ phase: "deploying", unitName: "unit-b", repository: null, commit: "c".repeat(40) }]);
+    expect(itemWaysLive(view(), item(1203, { closing: waiting("c".repeat(40)) }))).toEqual([{ phase: "waiting-live", unitName: null, repository: null, commit: "c".repeat(40) }]);
+    expect(itemWayLiveLabel(wording, { phase: "deploying", unitName: "unit-b", repository: "repo-a", commit: "c".repeat(40) })).toBe(`${wording("todo.label.deploy_deploying")} · unit-b · ${"c".repeat(12)}`);
+    expect(itemWayLiveLabel(wording, { phase: "waiting-live", unitName: null, repository: "repo-a", commit: null })).toBe(`${wording("todo.label.deploy_waiting_live")} · repo-a`);
+    expect(itemWayLiveLabel(wording, { phase: "waiting-live", unitName: null, repository: null, commit: null })).toBe(wording("todo.label.deploy_waiting_live"));
   });
 
   test("waits its turn where a deployment waiting in the line brings it, and a run under way bringing it comes first", () => {
     const line: DeployWaiting[] = [{ unitName: "unit-c", unit: "deploy-c.service", commit: "c".repeat(12), since: NOW - 5_000, brings: carried }];
     const merged = item(1203, { closing: waiting("c".repeat(40)) });
 
-    expect(itemWayLive(view({ line }), merged)).toEqual({ phase: "in-line", unitName: "unit-c" });
-    expect(itemWayLive(view({ line }), item(1201))).toEqual({ phase: "in-line", unitName: "unit-c" });
-    expect(itemWayLive(view({ line: [{ ...line[0]!, commit: null, brings: [] }] }), merged)).toEqual({ phase: "waiting-live", unitName: null });
+    expect(itemDeployPhase(view({ line }), merged)).toBe("in-line");
+    expect(itemWaysLive(view({ line }), item(1201))).toEqual([{ phase: "in-line", unitName: "unit-c", repository: null, commit: null }]);
+    expect(itemDeployPhase(view({ line: [{ ...line[0]!, commit: null, brings: [] }] }), merged)).toBe("waiting-live");
 
     const under = run({ unitName: "unit-c", brings: carried });
 
-    expect(itemWayLive(view({ run: under, runs: [under], line }), merged)).toEqual({ phase: "deploying", unitName: "unit-c" });
+    expect(itemDeployPhase(view({ run: under, runs: [under], line }), merged)).toBe("deploying");
+  });
+
+  // An item whose work spans repositories waits on a commit of each, and is live only once every one of them is.
+  describe("whose work spans repositories", () => {
+    const spanning = (phase: "testing" | "waiting-batch" = "waiting-batch"): ItemOnItsWayLive["closing"] => ({
+      phase,
+      waiting: [{ repository: "repo-a", commit: "c".repeat(40) }, { repository: "repo-b", commit: "d".repeat(40) }]
+    });
+
+    test("says where each of its commits stands, in its repository's order, and stands on its way live while any waits", () => {
+      const drive = run({ unitName: "unit-b", brings: carried });
+
+      expect(itemWaysLive(view(), item(1203, { closing: spanning() })).map((way) => [way.phase, way.repository])).toEqual([["waiting-live", "repo-a"], ["waiting-live", "repo-b"]]);
+      expect(itemWaysLive(view({ run: drive, runs: [drive] }), item(1203, { closing: spanning() })).map((way) => [way.phase, way.unitName, way.commit])).toEqual([
+        ["deploying", "unit-b", "c".repeat(40)],
+        ["waiting-live", null, "d".repeat(40)]
+      ]);
+      expect(itemDeployPhase(view({ run: drive, runs: [drive] }), item(1203, { closing: spanning() }))).toBe("deploying");
+      expect(itemDeployPhase(view({ run: run({ brings: carried, phase: "ended", endedAt: NOW, end: "live" }) }), item(1203, { closing: spanning() }))).toBe("waiting-live");
+    });
+
+    test("fails only the commit the failed run brought", () => {
+      const failed = view({ run: run({ unitName: "unit-b", brings: carried, phase: "ended", endedAt: NOW, end: "failed" }) });
+
+      expect(itemWaysLive(failed, item(1203, { closing: spanning() })).map((way) => way.phase)).toEqual(["deploy-failed", "waiting-live"]);
+    });
+
+    // A named repository's commit is carried by itself alone; a run that names the item by its number but brings
+    // none of its commits says so apart.
+    test("says a run carrying the item by its number alone apart from the commits it waits on", () => {
+      const named = run({ unitName: "unit-c", brings: [carried[0]!] });
+
+      expect(itemWaysLive(view({ run: named, runs: [named] }), item(1201, { closing: spanning() }))).toEqual([
+        { phase: "waiting-live", unitName: null, repository: "repo-a", commit: "c".repeat(40) },
+        { phase: "waiting-live", unitName: null, repository: "repo-b", commit: "d".repeat(40) },
+        { phase: "deploying", unitName: "unit-c", repository: null, commit: null }
+      ]);
+    });
+
+    test("keeps a commit only waiting off the row while a repository's close checks, and a run bringing it on", () => {
+      const drive = run({ unitName: "unit-b", brings: carried });
+
+      expect(itemWaysLive(view(), item(1203, { closing: spanning("testing") }))).toEqual([]);
+      expect(itemWaysLive(view({ run: drive, runs: [drive] }), item(1203, { closing: spanning("testing") })).map((way) => way.repository)).toEqual(["repo-a"]);
+    });
+
+    test("hands an item standing on no way the one empty list, so its row is handed nothing new", () => {
+      expect(itemWaysLive(view(), item(1204))).toBe(itemWaysLive(null, item(1205, { done: true })));
+    });
   });
 });
 

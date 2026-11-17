@@ -629,6 +629,14 @@ export interface TodoReview {
   at: number;
 }
 
+// One commit an item's close merged and left waiting for its repository's batch deployment, with that repository
+// as its testbed declaration names it, or none where the item carries no pair of labels for one. The commit is
+// none where the close named none.
+export interface WaitingCommit {
+  repository: string | null;
+  commit: string | null;
+}
+
 // One piece of work the owner is owed, as the archive's todos table holds it. The instruction
 // is the owner's words and the chat agent's reply verbatim, which is why an item is worth keeping at all.
 export interface TodoItem {
@@ -701,9 +709,9 @@ export interface TodoItem {
   // Whether a backlog deployment holding the queue is waiting for this item's job to end.
   deployWaits: boolean;
   // Where the job's close stands, as bmo-job's close writes it on the item (its docs/cli.md, 「`bmo-job job
-  // close`」): its check and suite under way, or its commit handed over and waiting to go live, with that commit.
-  // Null where the item's labels say neither.
-  closing: { phase: "testing" | "waiting-batch" | "waiting-live"; commit: string | null } | null;
+  // close`」): a repository's check under way, else its commits handed over and waiting to go live; with every
+  // commit the item still waits on, its work live only once each of them is. Null where the labels say neither.
+  closing: { phase: "testing" | "waiting-batch" | "waiting-live"; waiting: WaitingCommit[] } | null;
   // Held by its job only until its close's commit goes live, its last check needing that commit (docs/web.md, the
   // TODO panel's section): it stands in the queue as waiting with the words of its way live, never as held.
   deployHeld: boolean;

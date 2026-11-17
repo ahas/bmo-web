@@ -318,13 +318,13 @@ describe("moving an item within the queue", () => {
 // Work merged and waiting for its deployment, or being put live by one, stands apart from the queue's own: a state,
 // a filter, a count and a colour of its own (docs/web.md, the TODO panel's section).
 describe("an item whose close merged its commit", () => {
-  const merged = (id: number, over: Partial<TodoItem> = {}) => item(id, { closing: { phase: "waiting-batch", commit: "abc" }, ...over });
+  const merged = (id: number, over: Partial<TodoItem> = {}) => item(id, { closing: { phase: "waiting-batch", waiting: [{ repository: null, commit: "abc" }] }, ...over });
 
   test("waits for its deployment, is being put live while one carries it, and runs while a job of it goes", () => {
     expect(todoState(merged(31))).toBe("deploy");
     expect(todoState(merged(32, { deploying: true }))).toBe("deploying");
     expect(todoState(merged(33, { liveState: "running" }))).toBe("running");
-    expect(todoState(item(34, { closing: { phase: "testing", commit: null } }))).toBe("waiting");
+    expect(todoState(item(34, { closing: { phase: "testing", waiting: [] } }))).toBe("waiting");
     expect(stateColour(merged(31))).toBe("info");
     expect(stateColour(merged(32, { deploying: true }))).toBe("secondary");
     expect(stateColour(item(35))).toBe("neutral");
@@ -360,7 +360,7 @@ describe("where an item stands", () => {
     // One that opened by itself under an unattended label carries no approval and is past approval all the same.
     expect(todoState(item(10, { approved: false, awaitingApproval: false }))).toBe("waiting");
     // Held by its job only until its commit goes live: its work is merged and waits for the deployment.
-    expect(todoState(item(12, { status: "held", deployHeld: true, closing: { phase: "waiting-live", commit: "abc" } }))).toBe("deploy");
+    expect(todoState(item(12, { status: "held", deployHeld: true, closing: { phase: "waiting-live", waiting: [{ repository: null, commit: "abc" }] } }))).toBe("deploy");
     expect(todoState(item(13, { status: "held" }))).toBe("held");
     expect(todoState(item(11, { approved: false, awaitingApproval: false, running: true }))).toBe("running");
     expect(approvalLabel(wording, item(10, { approved: false, awaitingApproval: false }))).toBe(wording("todo.label.opened_unattended"));
@@ -741,8 +741,8 @@ describe("what a row's menu offers", () => {
   });
 
   test("a row whose job ended with its commit on its way live still opens that job's log", () => {
-    expect(rowVerbs(item(2, { closing: { phase: "waiting-live", commit: "abc" } }), queue).at(0)).toBe("log");
-    expect(rowVerbs(item(2, { closing: { phase: "testing", commit: null } }), queue).at(0)).toBe("log");
+    expect(rowVerbs(item(2, { closing: { phase: "waiting-live", waiting: [{ repository: null, commit: "abc" }] } }), queue).at(0)).toBe("log");
+    expect(rowVerbs(item(2, { closing: { phase: "testing", waiting: [] } }), queue).at(0)).toBe("log");
     expect(rowVerbs(item(2), queue)).not.toContain("log");
   });
 
@@ -759,7 +759,7 @@ describe("what a row's menu offers", () => {
   });
 
   test("a row its own job holds until its commit goes live offers neither the hold nor its release", () => {
-    const verbs = rowVerbs(item(2, { status: "held", deployHeld: true, closing: { phase: "waiting-batch", commit: "abc" } }), queue);
+    const verbs = rowVerbs(item(2, { status: "held", deployHeld: true, closing: { phase: "waiting-batch", waiting: [{ repository: null, commit: "abc" }] } }), queue);
 
     expect(verbs).not.toContain("hold");
     expect(verbs).not.toContain("release");

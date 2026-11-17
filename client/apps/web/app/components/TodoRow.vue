@@ -81,17 +81,21 @@
   </MovingList>
 
   <div class="mt-1 flex flex-wrap items-center gap-1">
-    <!-- Where the item's work stands on its way live — waiting for its batch, waiting its turn in the deployment
-         line, being put live, or its deployment failed — is what its state chip says while it applies, in the colour
-         of that phase, with the unit whose deployment it stands in, as the title bar names it. -->
-    <UBadge
-      v-if="wayLive !== null"
-      :color="ITEM_DEPLOY_COLOURS[wayLive.phase]"
-      variant="subtle"
-      size="sm"
-      icon="i-material-symbols-rocket-launch-outline"
-      data-item-deploy
-    ><SearchText :text="itemWayLiveLabel($t, wayLive)" :query="query" /></UBadge>
+    <!-- Where the item's work stands on its way live is what its state chips say while it applies: a chip for each
+         commit it waits on, waiting for its batch, waiting its turn in the deployment line, being put live, or its
+         deployment failed, in the colour of that phase, with the unit whose deployment it stands in, as the title bar
+         names it, else its repository, and the commit. -->
+    <template v-if="waysLive.length > 0">
+      <UBadge
+        v-for="(way, index) in waysLive"
+        :key="index"
+        :color="ITEM_DEPLOY_COLOURS[way.phase]"
+        variant="subtle"
+        size="sm"
+        icon="i-material-symbols-rocket-launch-outline"
+        data-item-deploy
+      ><SearchText :text="itemWayLiveLabel($t, way)" :query="query" /></UBadge>
+    </template>
     <UBadge v-else :color="stateColour(item)" variant="subtle" size="sm" :icon="stateIcon(item)"><SearchText :text="stateLabel($t, item)" :query="query" /></UBadge>
 
     <!-- A job standing still behind a question it asked, which reads the panel's clock on its own. -->
@@ -187,7 +191,8 @@ defineProps<{
   narrow: boolean;
   // Whether its handle can carry it.
   draggable: boolean;
-  wayLive: ItemWayLive | null;
+  // Where each commit the item waits on stands on its way live; none where it stands on none.
+  waysLive: readonly ItemWayLive[];
   testbedTurn: ItemTestbedTurn | null;
   // The questions its job asked and has not had settled.
   questions: JobQuestion[] | null;

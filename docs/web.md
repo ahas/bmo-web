@@ -6363,34 +6363,47 @@ Four bounds keep it from growing forever.
     the title bar reads (「Deployment in the title bar」), since the board carries no deployment. The strip counts
     them apart from the queue's own, and the 대기 chip counts neither. **배포 실패** is the chip's word, in the
     error colour, on a row still waiting on its commit whose deployment failed. The chip says each with the rocket
-    mark. A job's own close checking its change before the merge, the item's label `close-phase`
-    reading `testing` (bmo-job's `docs/cli.md`, 「`bmo-job job close`」), changes no chip: the row stays 진행 중, and its
+    mark. Where an item's close stands is read from the labels bmo-job's close writes on it (bmo-job's
+    `docs/cli.md`, 「`bmo-job job close`」): a pair for each repository its work spans, `close-phase:<repository>` and
+    `close-commit:<repository>`, the repository being the name its testbed declaration gives. The close checks
+    while any repository's phase reads `testing`, and its commits wait to go live while any reads `waiting-batch`,
+    each such repository with the commit its own pair names. An item carrying no such pair is read from the pair
+    with no repository, `close-phase` and `close-commit`, as one waiting commit of no named repository; on an item
+    that carries both, the pair with no repository only sums the others up and is not read. A job's own close
+    checking its change before the merge changes no chip: the row stays 진행 중, and its
     testbed line says the check it runs, as every command of the job's in the testbed's queue is said there
     (the running line's testbed words below). 배포 대기 stands once the close
-    merged its commit, `close-phase` reading `waiting-batch` — or `waiting-live` on an item an older close left —
+    merged its commit, its phase reading `waiting-batch` — or `waiting-live` on an item an older close left —
     whether or not its job still runs: the close ends at the merge and the commit waits for its repository's batch
     deployment (bmo-job's `docs/deploy.md`, 「A job closes」), not live yet, and the item stays in the queue until it
-    is. An item its job held until that
-    commit goes live — held with the label `hold-after-deploy` beside `close-phase` reading `waiting-batch` or
-    `waiting-live`, its
+    is. The item's work is live only once every commit it waits on is live, so it stays on its way live while any
+    one is left, however many of its other repositories' commits have gone live. The row says each commit it waits
+    on in a chip of its own, in name order of the repository, the repository and the commit's first twelve letters,
+    as the deployment's popover names a commit, after the chip's words, 「배포 대기 · bmo-job · 46da4c906ce5」, and each chip says where its own commit stands on its
+    way live, as the rest of this paragraph says of one. An item its job held until that
+    commit goes live — held with the label `hold-after-deploy` while its close's commits wait, its
     last check needing the commit live (bmo-job's `docs/cli.md`, 「`bmo-job todo`」) — is not set aside: it stands
     in the queue as waiting, never as held, and carries the same words, until its hold is let go once the commit is
-    live and a job of it runs again. While any deployment under way carries the item — several units deploy at
-    once, so every run under way is read, not only the one the title bar stands (「Deployment in the title bar」); a
-    run carries the item where one of the commits it brings live names the item by its number, or is the commit the
-    item's label `close-commit` names — the row says 배포 중 and the run's unit as the title bar names it,
-    「배포 중 · bmo-drive」, through every stage of that run, its 검사·테스트 stage among them, until the run ends. The
+    live and a job of it runs again. While any deployment under way carries a commit the item waits on — several
+    units deploy at once, so every run under way is read, not only the one the title bar stands (「Deployment in the
+    title bar」); a run carries the commit where it brings it live, and the one commit of an item read from the pair
+    with no repository also where one of the commits it brings names the item by its number — that commit's chip
+    says 배포 중 and the run's unit as the title bar names it in place of the repository, 「배포 중 · bmo-drive ·
+    46da4c906ce5」, through every stage of that run, its 검사·테스트 stage among them, until the run ends. A run under way
+    that brings a commit naming the item by its number but none the item waits on, an item whose close has not
+    merged among them, says so in a chip of its own, 「배포 중 · bmo-drive」, and so does a waiting deployment of that
+    kind. An item counts under the 배포 중 chip while any of its commits is being put live. The
     commits a run brings live are those since the last deploy its root's deployed log wrote before the run began, its
     own commit last, not the whole release its popover lists: an item whose commit an earlier deploy of the same
     release put live is not carried again, a run of the commit already live brings nothing, and the unit named is the repository the item's commit goes live in, which need not be
-    the repository the item is assigned to. Where no run under way carries it but a deployment waiting in the
+    the repository the item is assigned to. Where no run under way carries a commit but a deployment waiting in the
     line brings it — the commits from the release its root has live to the commit the waiting deployment's command
-    names, read from the same build tree — the row says 「배포 순서 대기 · bmo-job」 in the info colour and counts under
-    the 배포 대기 chip; a waiting deployment whose commit that tree does not hold yet brings nothing, and the row stays
-    배포 대기. Where the run the title bar reads brought the item's commit and ended 「배포 실패」 or 「배포 실패 · 롤백」
-    — a gate that did not pass among them — the row of an item still waiting on its commit says 배포 실패 and that
-    run's unit, until a job of the item runs again or another run stands in the bar, while a run refused or withdrawn
-    leaves it 배포 대기, its commit still waiting. They take no place in the order of their own, and a finished row carries none. A reporting line stays at the top with
+    names, read from the same build tree — its chip says 「배포 순서 대기 · bmo-job」 in the info colour, and an item
+    none of whose commits is being put live counts under the 배포 대기 filter chip; a waiting deployment whose commit
+    that tree does not hold yet brings nothing, and the chip stays 배포 대기. Where the run the title bar reads brought
+    a commit the item still waits on and ended 「배포 실패」 or 「배포 실패 · 롤백」 — a gate that did not pass among
+    them — that commit's chip says 배포 실패 and that run's unit, until a job of the item runs again or another run
+    stands in the bar, while a run refused or withdrawn leaves it 배포 대기, its commit still waiting. They take no place in the order of their own, and a finished row carries none. A reporting line stays at the top with
     the running ones, where it stood while running, until its job has ended; the 진행 중 filter shows it and its badge counts
     it. Being unfinished work its tag colour is like 진행 중's, and being a completed line it carries no drag handle, has no
     place in the order a drop saves, and opening it has no button to press.

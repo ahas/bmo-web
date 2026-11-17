@@ -142,20 +142,23 @@ describe("the lists each item stands in", () => {
     const board = await readTodoBoard();
 
     expect(ids(board.queue)).toEqual([33]);
-    expect(board.queue[0]).toMatchObject({ deployHeld: true, closing: { phase: "waiting-batch", commit: "def456" } });
+    expect(board.queue[0]).toMatchObject({ deployHeld: true, closing: { phase: "waiting-batch", waiting: [{ repository: null, commit: "def456" }] } });
   });
 
   test("an open item whose close merged its commit is counted apart as waiting for its deployment", async () => {
     stand([
       item(34, { state: "open", labels: { "close-phase": "waiting-batch", "close-commit": "aaa111" } }),
       item(35, { state: "open", labels: { "close-phase": "waiting-live", "close-commit": "bbb222" } }),
-      item(36, { state: "open" })
+      item(36, { state: "open" }),
+      // Read from its repositories' pairs: one still checking keeps it from waiting, whatever the sum says.
+      item(37, { state: "open", labels: { "close-phase": "waiting-batch", "close-phase:repo-a": "testing" } }),
+      item(38, { state: "open", labels: { "close-phase:repo-a": "waiting-batch", "close-commit:repo-a": "ccc333" } })
     ]);
 
     const board = await readTodoBoard();
 
-    expect(ids(board.queue)).toEqual([34, 35, 36]);
-    expect(board.standing).toMatchObject({ queue: 3, running: 0, deploy: 2, deploying: 0 });
+    expect(ids(board.queue)).toEqual([34, 35, 36, 37, 38]);
+    expect(board.standing).toMatchObject({ queue: 5, running: 0, deploy: 3, deploying: 0 });
   });
 
   test("an item its job held only until its commit goes live stands in the queue as waiting, never set aside", async () => {
@@ -167,7 +170,7 @@ describe("the lists each item stands in", () => {
 
     expect(ids(board.queue)).toEqual([31]);
     expect(ids(board.held)).toEqual([32]);
-    expect(board.queue[0]).toMatchObject({ deployHeld: true, heldKind: null, closing: { phase: "waiting-live", commit: "abc123" } });
+    expect(board.queue[0]).toMatchObject({ deployHeld: true, heldKind: null, closing: { phase: "waiting-live", waiting: [{ repository: null, commit: "abc123" }] } });
   });
 
   test("a draft waits on the owner, one the chat agent recommended among them; an approved one stands in the queue", async () => {
@@ -367,11 +370,29 @@ describe("what a row carries", () => {
       item(13)
     ]);
 
-    expect((await readTodoItem(9))?.closing).toEqual({ phase: "testing", commit: null });
-    expect((await readTodoItem(10))?.closing).toEqual({ phase: "waiting-live", commit: "0123abcd" });
-    expect((await readTodoItem(11))?.closing).toEqual({ phase: "waiting-live", commit: null });
+    expect((await readTodoItem(9))?.closing).toEqual({ phase: "testing", waiting: [] });
+    expect((await readTodoItem(10))?.closing).toEqual({ phase: "waiting-live", waiting: [{ repository: null, commit: "0123abcd" }] });
+    expect((await readTodoItem(11))?.closing).toEqual({ phase: "waiting-live", waiting: [{ repository: null, commit: null }] });
     expect((await readTodoItem(12))?.closing).toBeNull();
     expect((await readTodoItem(13))?.closing).toBeNull();
+  });
+
+  // An item whose work spans repositories carries a pair for each; the pair with no repository only sums them up.
+  test("where its job's close stands, out of the pair of each repository, over the pair that sums them up", async () => {
+    const summed = { "close-phase": "waiting-batch", "close-commit": "aaa111" };
+
+    stand([
+      item(14, { labels: { ...summed, "close-phase:repo-b": "waiting-batch", "close-commit:repo-b": "bbb222", "close-phase:repo-a": "waiting-batch", "close-commit:repo-a": "aaa111" } }),
+      item(15, { state: "leased", leaseId: 7, labels: { "close-phase": "testing", "close-phase:repo-a": "waiting-batch", "close-commit:repo-a": "aaa111", "close-phase:repo-b": "testing" } }),
+      item(16, { labels: { ...summed, "close-phase:repo-a": "elsewhere" } })
+    ]);
+
+    expect((await readTodoItem(14))?.closing).toEqual({
+      phase: "waiting-batch",
+      waiting: [{ repository: "repo-a", commit: "aaa111" }, { repository: "repo-b", commit: "bbb222" }]
+    });
+    expect((await readTodoItem(15))?.closing).toEqual({ phase: "testing", waiting: [{ repository: "repo-a", commit: "aaa111" }] });
+    expect((await readTodoItem(16))?.closing).toBeNull();
   });
 
   test("the words added to an item are its notes, oldest first", async () => {

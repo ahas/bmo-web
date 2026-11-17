@@ -225,7 +225,20 @@ export function supervisorChangeOf(body: unknown): Schemas["SupervisorChange"] |
 }
 
 export async function changeSupervisor(name: string, change: Schemas["SupervisorChange"]): Promise<SupervisorView> {
-  const [supervisor, answerer, owner] = await Promise.all([agencyCall(agency().PATCH("/supervisors/{supervisorName}", { params: { path: { supervisorName: name } }, body: change })), defaultAnswerer(), ownersAccount()]);
+  // The two reads the answer needs go beside the change, and a refused change waits for them before it is said, so
+  // no read is still running on the receiver once the call has answered.
+  const reads = Promise.all([defaultAnswerer(), ownersAccount()]);
+  let supervisor: Supervisor;
+
+  try {
+    supervisor = await agencyCall(agency().PATCH("/supervisors/{supervisorName}", { params: { path: { supervisorName: name } }, body: change }));
+  } catch (error) {
+    await reads.catch(() => undefined);
+
+    throw error;
+  }
+
+  const [answerer, owner] = await reads;
 
   return supervisorViewOf(supervisor, answerer, owner);
 }

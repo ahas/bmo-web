@@ -253,6 +253,8 @@
   닫기 and unfolding it 열기, as a panel's; a sheet's two heights are set by 확장 and 축소. Never 윈도우, 팝업.
 - a row of cards paged sideways → 이전, 다음, and the link that opens the row whole → 모두 보기. The next video offered
   near a video's end → 지금 재생, and its count to playing on its own → {n}초 후 재생.
+- the card under a message showing the page a link leads to → 링크 미리보기: 링크 미리보기 불러오는 중…. Never 링크 카드,
+  오픈그래프, OG.
 - collapse, expand a panel → 닫기, 열기; collapse, expand in place → 축소, 확장. Never 접기, 펴기, 펼치기.
 - the way back to the screen the reader came from → 뒤로. Never 돌아가기, 이전 화면.
 - reach a limit → 도달; a match → 일치, 해당; tied to → 연결된. Never 걸리다, 걸린 곳.

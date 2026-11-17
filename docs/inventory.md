@@ -278,7 +278,7 @@ How the receiver screens stand here:
 - **A message's files and photos, a room's pictures, its figures and the chat agent's window there** come from the
   receiver's console routes: a file's bytes and a photo handed on whole through `unitBytes` in
   `server/utils/units.ts`, under the types `server/utils/media.ts` holds each kind to.
-- **What no unit serves stands empty** (`docs/boundary.md`, 「Gaps the console meets」): a link's preview, the
+- **What no unit serves stands empty** (`docs/boundary.md`, 「Gaps the console meets」): the
   judgements beside a page, a round's figures and actions, a line's voice briefing, and an agent's runs and tokens
   in a room. A room is pinned and let go from its screen's menu, which the old console did not offer, through the
   receiver's routes for the pinned order.

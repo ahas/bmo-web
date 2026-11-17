@@ -4540,13 +4540,33 @@ Four bounds keep it from growing forever.
   - A block entity standing inside another stands as a block within the one holding it: a pre inside a quote
     keeps its own block there, and a nested quote its own rule one step in.
   - Copying a message copies its words as the archive holds them, formatting aside.
-- **링크 미리보기** — under the words, each distinct address of a message stands a card, up to three a message: the site's
-  name, the page's title and what the page says of itself, and the page's picture, from the page's own sharing tags. A
-  card is a link to the page and opens in a new tab. Until the page has been read, and where it could not be, the card
-  stands the address's site alone. A card is asked for only once its message comes near the screen. The console's
-  server reads the page and its picture itself — the address is taken from the archived message, never from the
-  request — the way a search's source previews are read, with the same address checks, bounds and cache, so the
-  reader's browser calls no outside server for a card.
+- **링크 미리보기** — under the words, each distinct address of a message stands a card, up to three a message, the same
+  for a message from any chat service and for either side of the room. A card is a link to the page and opens in a
+  new tab. A card is asked for only once its message comes near the screen.
+  - **What it shows** is what the page's head declares for sharing: the site's name, the page's title, what the page
+    says of itself and the page's picture, each its Open Graph tag. A page that declares no title has its document
+    title instead, and one that declares no description its meta description; a page naming no site stands its
+    address's host. Until the page has been read, and where it could not be, the card stands the host and the
+    address.
+  - **Its shape is fixed before it is read,** so nothing moves when it fills: one width, capped by the bubble's,
+    and one height — the site's line and three lines the title and the description share, the description taking
+    what the title leaves — whatever the page declared. The picture stands as a square at the card's trailing edge,
+    inside that height. While the page is being read those three lines stand as skeleton lines; a picture that does
+    not load leaves the card without it.
+  - **It stands inside the bubble as a reply's quote does:** a step of ground over the bubble's under a leading rule
+    in the accent, with no border, a step further on hover and press.
+  - **The console's server reads the page and its picture itself,** so the reader's browser calls no outside server
+    for a card. The address is taken from the archived message, never from the request. The read follows at most
+    five redirects and checks the address before every request: only `http` and `https`, and never a loopback,
+    private, link-local, shared, documentation, multicast or otherwise reserved address, the check made on the
+    addresses the host's name resolves to and the connection made to the address checked. A page is read for at
+    most a few seconds and its first 512 KiB, and a picture for a few seconds more and at most 5 MiB, in one of the
+    common raster formats; a slow or oversized answer leaves the plain card.
+  - **The picture is served through the console,** redrawn as a small square for the card, so its bytes come from
+    the console's own route.
+  - **What is read is kept per address,** a page's head and a picture's small form alike, in the server's memory for
+    six hours, and a page that could not be read for fifteen minutes, so a room scrolled back and forth asks a page
+    once.
   - An address standing inside code — a fenced block or inline code, as markdown reads them — is something to copy,
     not a page to visit, and gets no card. An address in the words around it keeps its card.
 - **메타 줄** — the foot of every bubble is one line, the same for a message and for the turn still running

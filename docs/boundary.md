@@ -490,6 +490,15 @@ carries neither.
   failure: the region shows the failure and a way to ask again (`docs/skeleton-loading.md`), and every other
   region stands.
 
+### The web beyond the units
+
+Outside the units, the console's server reads one thing: the page an address in a room's message leads to, and
+the picture that page names, for the message's link cards (`docs/web.md`, 「링크 미리보기」). It reads them itself,
+since no unit serves a page's preview to another unit: bmo-explorer reads one only for a harness over MCP, and the
+tool host reaches its placed page and picture reads only under a session the console holds none of. The address
+is always one the archived message carries, every request goes to an address checked as public, and the page and
+picture are bounded in time and size and kept per address, as that section states.
+
 ## Settings
 
 The server reads `settings.toml` in the directory it starts in, overridden by `settings.local.toml` beside it
@@ -520,6 +529,7 @@ data root's `env/web-console.env`, which its unit reads and its build reads for 
 | console | `WEB_SERVER_ADDRESS`, `WEB_SERVER_TOKEN` | the server |
 | console | `WEB_DATABASE_URL` | the server's PostgreSQL database, where the console's own tables stand |
 | console | `NUXT_PUBLIC_CHAT_AGENT_NAME`, `NUXT_PUBLIC_CHAT_AGENT_LABEL` | the name the chat agent's messages stand under, and the label a room calls it by |
+| console | `LINK_PREVIEW_OPEN_RANGES` | address ranges, comma separated, each an address with its prefix length, that a link card's read reaches although the address check refuses them; a deployment names none, and a test console names the loopback range its own stand-in pages stand on |
 | console | `NUXT_PUBLIC_CONSOLE_ADDRESS` | the console's public address, its scheme, public name and base path, which a link to one of its screens is written under; the console reads a link under it as its own (`docs/web.md`, 「비밀 보관함」), and a unit that writes such a link, the chat agent asking for a secret among them, is given the same address in its own settings |
 | console | `AGENCY_ADDRESS`, `AGENCY_TOKEN` | the agency |
 | console | `JOB_ADDRESS`, `JOB_TOKEN` | bmo-job |
@@ -637,8 +647,6 @@ for it, and no file or table of that unit is read meanwhile.
   by its number being both an agent's and the owner's and by its carrying a round, and its agent is taken to be the
   room's voice. A line an agent sent there in no round reads as the owner's own, and another supervisor speaking in that
   voice reads as the voice agent.
-- **A link's preview.** Reading a page for its title, description and picture is no unit's to serve the console, so
-  a link in a message stands as a plain card naming where it goes.
 - **An order within one second.** The receiver walks a room's line by when each message was sent and the order it
   took them in, and hands no such order with a message, so a read mark's place is when its message was sent and
   the marked message itself.

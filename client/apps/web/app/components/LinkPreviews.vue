@@ -1,33 +1,49 @@
 <template>
-  <!-- The pages a message's addresses lead to, a card each under the words: the page's picture, the
-       site, the title and what the page says of itself. A card is a link out of this console and
-       opens in a tab of its own. The cards are asked for only once the message comes near the
-       screen, and an address whose page said nothing stands as its site and address alone. -->
-  <ul ref="list" class="mt-2 flex flex-col gap-2">
+  <!-- The pages a message's addresses lead to, a card each under the words (docs/web.md, the link previews rule): the
+       site, the title and what the page says of itself, and the page's picture as a square at the trailing edge.
+       A card is a link out of this console and opens in a tab of its own. It stands inside the bubble as a reply's
+       quote does, told apart by a step of ground and its leading rule, with no border. Its width and height are
+       fixed before the page is read, so nothing moves when it fills: the title and the description share three
+       lines, the description taking what the title leaves. The cards are asked for only once the message comes
+       near the screen, and an address whose page said nothing stands as its site and address alone. -->
+  <ul ref="list" class="mt-2 flex min-w-0 flex-col gap-2">
     <li v-for="card in cards" :key="card.url">
       <a
         :href="card.url"
         target="_blank"
         rel="noopener noreferrer"
         data-link-preview
-        class="group flex max-w-full overflow-hidden rounded-lg border border-default bg-default transition-colors hover:bg-elevated active:bg-accented"
+        class="group flex h-26 w-80 max-w-full overflow-hidden rounded-lg border-s-2 border-primary bg-default/60 transition-colors hover:bg-default active:bg-accented"
         @click.stop
       >
-        <span class="w-1 shrink-0 bg-primary" aria-hidden="true" />
-        <span class="flex min-w-0 flex-1 flex-col gap-1 px-3 py-2">
-          <span class="truncate text-sm text-muted">{{ card.siteName ?? card.host }}</span>
-          <span v-if="card.title !== null" class="line-clamp-2 text-sm font-medium break-words text-highlighted group-hover:underline">{{ card.title }}</span>
-          <span v-if="card.description !== null" class="line-clamp-3 text-sm break-words text-toned">{{ card.description }}</span>
-          <img
-            v-if="card.image && !broken.has(card.index)"
-            :src="imagePath(card.index)"
-            alt=""
-            loading="lazy"
-            class="mt-1 max-h-48 w-full rounded-md border border-default object-cover"
-            @error="broken = new Set([...broken, card.index])"
-          >
-          <span class="sr-only">{{ $t("common.aria.opens_new_tab") }}</span>
+        <span class="flex min-w-0 flex-1 flex-col gap-2 px-3 py-2">
+          <span data-link-site class="truncate text-sm text-muted">{{ card.siteName ?? card.host }}</span>
+          <SkeletonStatus v-if="reading" as="span" class="flex flex-col" :label="$t('common.status.link_preview_loading')">
+            <SkeletonLine width="w-3/4" />
+            <SkeletonLine />
+            <SkeletonLine width="w-1/2" />
+          </SkeletonStatus>
+          <span v-else-if="card.title !== null" class="line-clamp-3 text-sm break-words">
+            <span data-link-title class="font-medium text-highlighted group-hover:underline">{{ card.title }}</span>
+            <template v-if="card.description !== null">
+              <!-- The space keeps the two apart where the words are read as one line, as the tooltip of a clamped
+                   box reads them. -->
+              {{ " " }}<br>
+              <span data-link-description class="text-toned">{{ card.description }}</span>
+            </template>
+          </span>
+          <span v-else class="line-clamp-3 text-sm break-all text-toned group-hover:underline">{{ card.url }}</span>
         </span>
+        <img
+          v-if="card.image && !broken.has(card.index)"
+          data-link-picture
+          :src="imagePath(card.index)"
+          alt=""
+          loading="lazy"
+          class="me-3 size-20 shrink-0 self-center rounded-md object-cover"
+          @error="broken = new Set([...broken, card.index])"
+        >
+        <span class="sr-only">{{ $t("common.aria.opens_new_tab") }}</span>
       </a>
     </li>
   </ul>
@@ -48,6 +64,7 @@ interface Props {
 const props = defineProps<Props>();
 
 const previews = ref<LinkPreview[] | null>(null);
+const reading = ref(false);
 const broken = ref<Set<number>>(new Set());
 
 // What stands before the server has answered: the addresses themselves, by their site.
@@ -70,10 +87,14 @@ function imagePath(index: number): string {
 }
 
 async function read(): Promise<void> {
+  reading.value = true;
+
   try {
     previews.value = await $fetch<LinkPreview[]>(`/api/rooms/${props.chatId}/links/${props.messageId}`);
   } catch {
     // An address whose page could not be read keeps its plain card.
+  } finally {
+    reading.value = false;
   }
 }
 

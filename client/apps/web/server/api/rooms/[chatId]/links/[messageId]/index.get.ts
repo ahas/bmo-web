@@ -1,8 +1,8 @@
 import type { LinkPreview } from "#shared/types";
 
 // What the addresses in one message of a room show of themselves: title, description, site and
-// whether the page names a picture. The addresses are read from the archived message, never from
-// the request.
+// whether the page names a picture, as the server reads each page (docs/web.md, the link previews rule). The
+// addresses are read from the archived message, never from the request.
 export default defineEventHandler(async (event): Promise<LinkPreview[]> => {
   await requireUserSession(event);
 

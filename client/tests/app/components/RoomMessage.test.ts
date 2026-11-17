@@ -130,7 +130,7 @@ describe("a voice bubble", () => {
   });
 
   test("lays its meta line at the end of the last player's line, and the words keep no blank for it then", () => {
-    expect(source).toContain(':trail-room="playerLast && index === attachments.length - 1 ? metaRoom : null"');
+    expect(source).toContain(':trail-room="playerLast && index === filed.length - 1 ? metaRoom : null"');
     expect(template).toContain(':after-words="wordsLast || playerLast"');
     expect(template).toContain(':data-meta-room="wordsLast && metaRoom !== null ? \'\' : undefined"');
   });

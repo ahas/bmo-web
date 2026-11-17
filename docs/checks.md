@@ -61,8 +61,9 @@ machine's own socket's `bmo_test`, and every name carries the process that made 
     with the administrator flag is a platform administrator by the account service's word, and the members, made
     without it, stay members, whose console sections are written whole as the administrator's screen writes them.
     The first account is the data move's administrator, and the move links the owner's sender to it, so it is the
-    owner's account: a file that reads the owner's words as the reader's own signs in with it. The account the media
-    room's files sign in with has a sender of its own linked to it, so what it said in that room stands on the right;
+    owner's account: a file that reads the owner's words as the reader's own signs in with it. The accounts the media
+    room's and the sticker room's files sign in with each have a sender of their own linked to them, so what each said
+    in its room stands on the right;
   - the console's development server, under the base path `/console/`, with a build folder of its own,
     `.nuxt-browser-tests`. Only the development server serves the screen-measuring module `console-ids` reads.
     The app's own type settings still stand in `.nuxt`, so a checkout the app was never prepared in is prepared

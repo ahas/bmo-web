@@ -3992,7 +3992,7 @@ Four bounds keep it from growing forever.
   (「The conversation's measures」).
 - **Every message is a bubble.** Someone else's words, an agent's answer among them, stand on the raised
   ground; the owner's own stand on mint (「The conversation's measures」). A picture, an album and a file stand in a bubble
-  too; only a sticker sent alone stands with no bubble (「말 없는 메시지」). Everything a message says of itself
+  too; only a sticker stands with no bubble (「말 없는 메시지」). Everything a message says of itself
   stands inside its bubble: the sender's name at its head, the meta line at its foot (「메타 줄」), and what the
   meta line's chips spread, under it (「칩 줄」).
   - A bubble's words break where they have a space, so a Korean word never folds a syllable onto a line of its
@@ -4045,8 +4045,7 @@ Four bounds keep it from growing forever.
     choosing column, so it keeps that clear too.
 - **A bubble is as wide as its widest line.** Words that wrap, a meta line that drops under them and a
   chip line that wraps leave the bubble as wide as the longest line they actually stand on — a line of
-  the words with any blank kept at its end, a line of the meta line, the sender's name, the quote and a
-  sticker at its head — never as wide as the room it could have taken, so no blank stands at the trailing side of
+  the words with any blank kept at its end, a line of the meta line, the sender's name and the quote — never as wide as the room it could have taken, so no blank stands at the trailing side of
   a wrapped bubble.
   - Each line wraps where it wrapped before; only the empty room past the longest line is taken away.
   - A bubble holding anything but words and its meta line under its head — a picture, a link card, a
@@ -4415,9 +4414,10 @@ Four bounds keep it from growing forever.
   (「첨부와 Telegram 표현」). A picture with nothing under it
   carries its meta line over its own foot at the trailing end, on a dark translucent ground in light letters, so
   it reads on any picture.
-- **말 없는 메시지** — a sticker sent alone stands as Telegram stands it: the sticker beside the run's photo, with no
-  bubble, no name line and no tail, and without the archive's mark for it (`[스티커 …]`), which stays in the archive
-  and in what an agent reads.
+- **말 없는 메시지** — a sticker or an emoticon, from any sender and any chat service, stands as the picture alone, as
+  Telegram stands a sticker: beside the run's photo, with no bubble, no ground, no inner room, no border, no name line
+  and no tail, and without the archive's mark for it (`[스티커 …]`), which stays in the archive and in what an agent
+  reads.
   - The sticker stands in a fixed 160px square box, drawn contained in it, so its row is its full height before
     the file has loaded and nothing under it moves when it lands.
   - Its meta line stands outside the box, beside its trailing edge at its foot, as the image overlay chip; where
@@ -4431,12 +4431,22 @@ Four bounds keep it from growing forever.
     draws that picture in the sticker's box rather than as a photo. Its mark, `[<sticker word>]` or
     `[<sticker word>: <what it shows>]` at the head of the words, is not shown, the sticker words being the data
     file's beside the language pack. A press on it opens no picture viewer, as a press on any sticker opens none.
-  - A sticker sent with words keeps them, in a bubble: the sticker in its box at the bubble's head inside its
-    inner room, never running to the edges, and the words under it.
-  - A sticker plays as the messenger plays it: a picture stands still, an animated WebP or GIF plays over and over
-    as the browser plays a picture, a video sticker plays over and over without sound, and an animated sticker, a
-    `.tgs` file, is unpacked in the browser and played over and over as its scene. One whose file cannot be read
-    stands as its mark.
+  - A sticker sent with words stands the same way, with no bubble, and its words stand under it in a bubble of
+    their own, a run's step below, as KakaoTalk stands an emoticon sent with words: the bubble carries the name, the
+    quote, the words and the meta line, and the sticker nothing but itself. The two arrive as one, rising together.
+  - A still sticker stands still. A moving one plays over and over for as long as it stands, whatever its file
+    says, with no sound and no player:
+    - An animated WebP or GIF goes out from the console's server with its loop count set to forever, its frames
+      and their timing as they came: a file that already loops forever, or holds one frame, goes out as it is, and
+      one whose count is finite is written again, a WebP losslessly and a GIF on its own palette. An APNG goes out
+      as it is and plays as many times as it says, since the image library the server reads pictures with reads
+      only an APNG's first frame.
+    - A video sticker, a `.webm` file, plays muted, inline and looping.
+    - An animated sticker, a `.tgs` file, is unpacked in the browser and its scene played looping.
+  - A reader who asked for less movement sees every sticker stand still on its first frame: a moving picture goes
+    out from the server as its first frame alone, a video sticker is not started and shows its first frame, and a
+    scene stands at its start. A custom emoji drawn among the words follows the same two rules.
+  - One whose file cannot be read stands as its mark.
 - **애니메이션** — a GIF or an animation a messenger sent plays where it stands as soon as it stands, over and over and
   without sound, with no player, no play button and no file line under it, at its own shape within the bubble's
   widest. A file kept as a plain video keeps its player.
@@ -6001,8 +6011,8 @@ Four bounds keep it from growing forever.
   ground or corners of its own, since the bubble is already the box that holds it; the mark stands centred beside the
   name and its size. The archive's mark for it — `[파일 <name>]` at the head
   of the message — is not shown again above that line, since the line says the same; a caption after the mark stays,
-  and a message that is the file alone stands the line in its bubble all the same, since only a sticker sent alone
-  stands with no bubble (**말 없는 메시지**).
+  and a message that is the file alone stands the line in its bubble all the same, since only a sticker stands with
+  no bubble (**말 없는 메시지**).
   Copying still takes the archived text as it is. An attachment that cannot be received stands the same line, dim,
   with 「받을 수 없음」 in place of the button. An ordinary file is offered to a logged-in user as a forced download, and HTML and SVG are not run as console documents. Stored audio in
   an unsupported playback format can be downloaded as a file too. A download failure, size overrun and lost file stay
@@ -6046,10 +6056,9 @@ Four bounds keep it from growing forever.
   separately. A message the chat agent sent too — the message Telegram returned is recorded as is, so the custom emoji the chat agent wrote
   has an asset for the screen to restore. Not only room answers and stickers but alerts, reminders, job reports, search
   results, photos and voice — every road the chat agent speaks stays that way. Another bot's custom emoji the reader receives has
-  its identifier preserved too, and static and WEBM stickers are stored. The reader's TGS stickers store the original
-  but currently stay as a description on screen. A static sticker and custom emoji show as the original picture, a WEBM
-  as a silent video. A TGS the browser cannot play directly, so a Telegram thumbnail if present gives a still preview.
-  Without a thumbnail or supporting asset, the original emoji/sticker description stays. An ordinary Unicode emoji uses
+  its identifier preserved too, and static, WEBM and TGS stickers are stored. A static sticker and custom emoji show
+  as the original picture, a WEBM as a silent looping video and a TGS as its scene unpacked and played in the browser
+  (**말 없는 메시지**). Without a supporting asset, the original emoji/sticker description stays. An ordinary Unicode emoji uses
   the browser font as before. This is web display and does not change custom-emoji sending eligibility. Entities and
   sticker IDs lost from an earlier record are not guessed as a description string.
 

@@ -13,7 +13,7 @@
   >
     <img
       v-if="look.media?.kind === 'picture'"
-      :src="imageUrl(props.chatId, props.quote.messageId)"
+      :src="look.media.sticker ? framedAddress(imageUrl(props.chatId, props.quote.messageId), frames) : imageUrl(props.chatId, props.quote.messageId)"
       alt=""
       loading="lazy"
       class="size-10 shrink-0"
@@ -53,7 +53,10 @@
 <script setup lang="ts">
 import { mediaUrl } from "~/domain/player";
 import { quoteText } from "~/domain/room";
+import { useStickerFrames } from "~/domain/sticker-play";
 import { imageUrl } from "~/domain/urls";
+
+import { framedAddress } from "#shared/sticker-frames";
 
 import type { ExactMessageId, ReplyQuote } from "#shared/types";
 import type { QuoteMedia } from "~/domain/room";
@@ -64,6 +67,8 @@ const emit = defineEmits<{ jump: [messageId: ExactMessageId] }>();
 
 const { t } = useI18n();
 const look = computed(() => quoteText(t, props.quote));
+// A sticker the answered message was sent as plays as it does in its own row (docs/web.md, the room screen's wordless messages).
+const frames = useStickerFrames();
 
 // The mark a carried thing with no picture of its own stands as.
 function mediaIcon(kind: Exclude<QuoteMedia["kind"], "picture">): string {

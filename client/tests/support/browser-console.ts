@@ -57,6 +57,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["room-find", "fixture-password-2261"],
   ["room-past", "fixture-password-2943"],
   ["pictures", "fixture-password-2262"],
+  ["stickers", "fixture-password-3303"],
   ["skeleton259", "fixture-password-259"],
   ["stepper", "fixture-password-2206"],
   ["title-bar", "fixture-password-2318"],
@@ -206,6 +207,11 @@ const RECORD_CHAT = -9_000_000_000_099;
 // received; then a lone square picture under a caption of several lines from person-b, and one from the account that reads
 // the room.
 const MEDIA_CHAT = 44;
+// A room of stickers and emoticons from two chat services, each standing as the picture alone (docs/web.md, the room screen's
+// wordless messages): a still sticker and a video sticker kept as files, a moving emoticon kept as the message's picture whose
+// file plays it once, a GIF sticker kept as a file that plays once, the same emoticon sent with words, an animated
+// sticker's scene, and the emoticon sent with a word by the account that reads the room, so it stands on the right.
+const STICKER_CHAT = 45;
 // A room a chat service numbered and listed, which the owner speaks in but never added, allowed or gave an agent: the
 // console leaves it out of the room list until it is added from the room add dialog, and once its registration is removed
 // it is a room never added again, so a file adding and removing it runs again on the same console. Its mode is what
@@ -288,10 +294,10 @@ const SQUARE = new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg"
 const SQUARE_PICTURES = [16, 17];
 // The sender linked to the account the media room's file signs in with, so the picture it sent stands on the right.
 const PICTURES_SENDER = 9;
-// An animated sticker: a one-second Lottie scene of one square, gzipped as Telegram keeps it.
+// An animated sticker: a one-second Lottie scene of one square turning at an even pace, gzipped as Telegram keeps it.
 const STICKER = Bun.gzipSync(new TextEncoder().encode(JSON.stringify({
   v: "5.5.2", fr: 30, ip: 0, op: 30, w: 512, h: 512, layers: [{
-    ty: 4, ind: 1, ip: 0, op: 30, st: 0, ks: { o: { a: 0, k: 100 }, r: { a: 1, k: [{ t: 0, s: [0] }, { t: 30, s: [360] }] }, p: { a: 0, k: [256, 256] }, a: { a: 0, k: [0, 0] }, s: { a: 0, k: [100, 100] } },
+    ty: 4, ind: 1, ip: 0, op: 30, st: 0, ks: { o: { a: 0, k: 100 }, r: { a: 1, k: [{ t: 0, s: [0], i: { x: [1], y: [1] }, o: { x: [0], y: [0] } }, { t: 30, s: [360] }] }, p: { a: 0, k: [256, 256] }, a: { a: 0, k: [0, 0] }, s: { a: 0, k: [100, 100] } },
     shapes: [{ ty: "rc", p: { a: 0, k: [0, 0] }, s: { a: 0, k: [200, 200] }, r: { a: 0, k: 0 } }, { ty: "fl", c: { a: 0, k: [0.2, 0.6, 0.9, 1] }, o: { a: 0, k: 100 } }]
   }]
 })));
@@ -301,6 +307,18 @@ const VIDEOS: Record<number, { name: string; bytes: Uint8Array<ArrayBuffer>; sha
   11: { name: "clip-wide.webm", bytes: new Uint8Array(await Bun.file(new URL("./room-video-wide.webm", import.meta.url)).arrayBuffer()), shape: { width: 1280, height: 720 } },
   12: { name: "clip-tall.webm", bytes: new Uint8Array(await Bun.file(new URL("./room-video-tall.webm", import.meta.url)).arrayBuffer()), shape: { width: 720, height: 1280 } }
 };
+// The sticker room's sticker files, by message, and the emoticon two of its messages keep as their picture.
+const fixture = async (name: string): Promise<Uint8Array<ArrayBuffer>> => new Uint8Array(await Bun.file(new URL(`./${name}`, import.meta.url)).arrayBuffer());
+const STICKER_FILES: Record<number, { name: string; type: string; bytes: Uint8Array<ArrayBuffer> }> = {
+  1: { name: "sticker-still.webp", type: "image/webp", bytes: await fixture("room-sticker-still.webp") },
+  2: { name: "sticker-video.webm", type: "video/webm", bytes: await fixture("room-sticker.webm") },
+  4: { name: "sticker-once.gif", type: "image/gif", bytes: await fixture("room-sticker-once.gif") },
+  6: { name: "sticker-scene.tgs", type: "application/x-tgsticker", bytes: STICKER }
+};
+const EMOTICON = await fixture("room-emoticon-once.webp");
+const EMOTICON_MESSAGES = [3, 5, 7];
+// The sender linked to the account the sticker room's file signs in with.
+const STICKERS_SENDER = 10;
 // The kept files that stand as file lines, by message, as the receiver lists each.
 const FILE_LINES: Record<number, { kind: string; name: string; size: number; type: string; kept: boolean }> = {
   13: { kind: "document", name: "meeting-notes-and-follow-up-actions.pdf", size: 1_258_291, type: "application/pdf", kept: true },
@@ -949,6 +967,37 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       return Response.json(mediaLine.find((one) => one.id === id) ?? mediaLine[0]);
     }
 
+    const stickerRoom = { ...room, id: STICKER_CHAT, title: "sticker-room", ownerRoom: false, workRoom: STICKER_CHAT, lastMessageAt: LINE_AT - 400 };
+    const stickerLine = [1, 2, 3, 4, 5, 6, 7].map((id) => ({
+      id, room: STICKER_CHAT, sentAt: LINE_AT - 3_000 + id, kind: "sticker",
+      ...(id === 7 ? { senderId: STICKERS_SENDER, senderName: "stickers" } : { senderId: 7, senderName: "person-b" }),
+      text: id === 5 ? "words sent with the emoticon" : id === 7 ? "ok" : "", imagePath: EMOTICON_MESSAGES.includes(id) ? `images/${STICKER_CHAT}/${id}.webp` : null,
+      replyToMessageId: null, answerSeconds: null, round: null, album: null, via: null,
+      files: STICKER_FILES[id] ? [{ kind: "sticker", source: STICKER_FILES[id].name, storedPath: "kept", collectedAt: LINE_AT }] : []
+    }));
+
+    if (path === `/rooms/${STICKER_CHAT}/messages`) {
+      const after = new URL(request.url).searchParams.get("after");
+
+      return Response.json({ items: after === null ? stickerLine : stickerLine.filter((one) => one.id > Number(after)), more: false });
+    }
+
+    const stickerAsked = new RegExp(`^/rooms/${STICKER_CHAT}/messages/(\\d+)(/[a-z]+)?(/\\d+)?$`).exec(path);
+
+    if (stickerAsked !== null) {
+      const id = Number(stickerAsked[1]);
+      const file = STICKER_FILES[id];
+
+      if (stickerAsked[2] === "/picture") return new Response(EMOTICON, { headers: { "content-type": "image/webp" } });
+      if (stickerAsked[2] === "/metadata") return Response.json({ metadata: null });
+      if (stickerAsked[2] === "/files" && stickerAsked[3] === undefined) {
+        return Response.json({ items: file ? [{ place: 0, kind: "sticker", name: file.name, size: file.bytes.byteLength, type: file.type, kept: true }] : [], more: false });
+      }
+      if (stickerAsked[2] === "/files" && file) return new Response(file.bytes, { headers: { "content-type": file.type } });
+
+      return Response.json(stickerLine.find((one) => one.id === id) ?? stickerLine[0]);
+    }
+
     const listed = { ...room, id: NUMBERED_CHAT, title: "numbered-room", ownerRoom: false, listened: false, workRoom: NUMBERED_CHAT, lastMessageAt: LINE_AT - 100, messageCount: 1, senders: [1], mode: numbered.mode };
 
     // The one chat service rooms are added from, listing its account's rooms and the contacts of the account a listing
@@ -987,7 +1036,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       return Response.json({ goes: [], stays: [], pictures: [], settings: [], folders: [], warned: [], units: [], taken: [], cleared: [], holders: [], couldNot: [] });
     }
     // Every room the receiver reads carries whose private room it is.
-    const every = [room, listed, behind, recorded, media, { ...room, id: HIGH_ROOM, title: "high-room", ownerRoom: false, workRoom: HIGH_ROOM, lastMessageAt: LINE_AT - 200 }, privateRoom]
+    const every = [room, listed, behind, recorded, media, stickerRoom, { ...room, id: HIGH_ROOM, title: "high-room", ownerRoom: false, workRoom: HIGH_ROOM, lastMessageAt: LINE_AT - 200 }, privateRoom]
       .map((one) => ({ ...one, ...privacyOf(one.id) }));
 
     if (path === "/rooms") return Response.json({ items: every, more: false });
@@ -1400,7 +1449,7 @@ try {
   const move = await fetch(`http://127.0.0.1:${serverPort}/accounts/move`, {
     method: "POST",
     headers: { "content-type": "application/json", authorization: `Bearer ${TOKEN}` },
-    body: JSON.stringify({ ownerSenders: [1], rooms: [OWNER_CHAT, UNREAD_CHAT, RECORD_CHAT, MEDIA_CHAT] })
+    body: JSON.stringify({ ownerSenders: [1], rooms: [OWNER_CHAT, UNREAD_CHAT, RECORD_CHAT, MEDIA_CHAT, STICKER_CHAT] })
   });
 
   if (!move.ok) throw new Error(`the data move was refused: ${move.status} ${await move.text()}`);
@@ -1488,17 +1537,20 @@ try {
     })
     .join("");
 
-  // The media room's reader has a sender of its own, linked as the administrator links one.
-  const reader = users.find((user) => user.name === "pictures");
+  // The media room's reader and the sticker room's each have a sender of their own, linked as the administrator links
+  // one.
+  for (const [name, sender] of [["pictures", PICTURES_SENDER], ["stickers", STICKERS_SENDER]] as const) {
+    const reader = users.find((user) => user.name === name);
 
-  if (reader === undefined) throw new Error("pictures stands in no users list");
+    if (reader === undefined) throw new Error(`${name} stands in no users list`);
 
-  const linked = await fetch(`http://127.0.0.1:${serverPort}/users/${reader.user}/senders/${PICTURES_SENDER}`, {
-    method: "PUT",
-    headers: { authorization: `Bearer ${TOKEN}`, "owner-role": "administrator" }
-  });
+    const linked = await fetch(`http://127.0.0.1:${serverPort}/users/${reader.user}/senders/${sender}`, {
+      method: "PUT",
+      headers: { authorization: `Bearer ${TOKEN}`, "owner-role": "administrator" }
+    });
 
-  if (!linked.ok) throw new Error(`the pictures sender link was refused: ${linked.status} ${await linked.text()}`);
+    if (!linked.ok) throw new Error(`the ${name} sender link was refused: ${linked.status} ${await linked.text()}`);
+  }
 
   console.log(origin);
 } catch (error) {

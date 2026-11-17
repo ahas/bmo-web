@@ -123,6 +123,17 @@
               </template>
 
               <template #content>
+                <!-- A sticker sent with words stands as the picture alone over the bubble its words stand in, a
+                     run's step above it in place of the step the message's parts keep, rising with it (docs/web.md,
+                     the room screen's wordless messages). On the reader's own side both hold to the trailing edge. -->
+                <div
+                  v-if="!sticker && stuck"
+                  class="flex mb-(--chat-message-gap)"
+                  :class="[props.item.look.side === 'right' ? 'justify-end' : '', props.arriving ? 'bubble-rise' : '']"
+                >
+                  <MessageSticker :src="stickerPicture" :attachment="stickerFile" :chat-id="props.chatId" :message-id="archivedId" :alt="$t('room.label.sticker_preview')" />
+                </div>
+
                 <!-- Everything the message says of itself stands inside its bubble (docs/web.md,
                      「Every message is a bubble」): the run's name at its head, a quote, a picture
                      running to its edges, the words, and the meta line at its foot with whatever
@@ -137,7 +148,7 @@
                   ref="bubble"
                   data-bubble
                   class="relative"
-                  :class="[bubbleClass, albumed ? 'w-80 max-w-full' : pictured ? 'w-fit max-w-80' : 'w-fit max-w-full', props.arriving ? 'bubble-rise' : '']"
+                  :class="[bubbleClass, albumed ? 'w-80 max-w-full' : pictured ? 'w-fit max-w-80' : 'w-fit max-w-full', props.arriving ? 'bubble-rise' : '', !sticker && stuck && props.item.look.side === 'right' ? 'ms-auto' : '']"
                 >
                   <div class="relative flex flex-col overflow-hidden rounded-inherit">
                     <!-- The sender's name, once at the head of the run's first bubble, and the
@@ -176,12 +187,6 @@
                       :stamp="stamp"
                     />
 
-                    <!-- A sticker kept as the message's picture, sent with words, stands at the bubble's head in its
-                         inner room, never running to the edges, and the words under it. -->
-                    <div v-else-if="headSticker" class="px-(--chat-pad-x)" :class="head ? 'pt-(--chat-meta-gap)' : 'pt-(--chat-pad-y)'">
-                      <MessageSticker :src="props.item.imageUrl!" :alt="$t('room.label.sticker_preview')" />
-                    </div>
-
                     <MessageImage
                       v-else-if="props.item.imageUrl !== null && !props.item.stickerPicture"
                       :src="props.item.imageUrl"
@@ -209,9 +214,8 @@
                       :data-meta-room="wordsLast && metaRoom !== null ? '' : undefined"
                       :style="wordsLast && metaRoom !== null ? { '--chat-meta-room': `${metaRoom}px` } : undefined"
                     >
-                      <!-- A sticker kept as the message's picture and sent alone stands as any sticker alone does, its
-                           time beside its foot. -->
-                      <MessageSticker v-if="sticker && props.item.stickerPicture && props.item.imageUrl !== null" :src="props.item.imageUrl" :alt="$t('room.label.sticker_preview')" />
+                      <!-- A sticker sent alone stands as the picture alone in its fixed box, its time beside its foot. -->
+                      <MessageSticker v-if="sticker && stuck" :src="stickerPicture" :attachment="stickerFile" :chat-id="props.chatId" :message-id="archivedId" :alt="$t('room.label.sticker_preview')" />
 
                       <!-- A row standing for a turn still running holds what that turn is at; every
                            other row holds what was said. Nothing around the two differs, because
@@ -282,16 +286,15 @@
 
                       <!-- A file's line takes the bubble's whole width and no more: without its floor
                            at nought the player's own 320 px would push past a narrower bubble. -->
-                      <!-- A sticker alone stands in a fixed box of its own, its time beside its foot. A
-                           player keeps from whatever stands above it the room a picture keeps from its
-                           caption. -->
+                      <!-- A player keeps from whatever stands above it the room a picture keeps from its caption. -->
                       <div
-                        v-for="(attachment, index) in attachments"
+                        v-for="(attachment, index) in filed"
                         :key="attachment.id"
                         class="flex min-w-0 flex-col gap-1 text-sm"
-                        :class="[sticker ? 'shrink-0' : voiced ? '' : 'basis-full', heard(attachment) && (worded || links.length > 0 || index > 0) ? 'mt-(--chat-media-step)' : '']"
+                        :class="[voiced ? '' : 'basis-full', heard(attachment) && (worded || links.length > 0 || index > 0) ? 'mt-(--chat-media-step)' : '']"
                       >
-                        <TelegramAsset v-if="attachment.kind === 'sticker'" :class="sticker ? 'size-(--chat-sticker)' : ''" :attachment="attachment" :chat-id="props.chatId" :message-id="archivedId" :fallback="$t('room.label.sticker_preview')" />
+                        <!-- A sticker whose file is not kept stands as its words. -->
+                        <TelegramAsset v-if="attachment.kind === 'sticker'" :attachment="attachment" :chat-id="props.chatId" :message-id="archivedId" :fallback="$t('room.label.sticker_preview')" />
                         <!-- A sound the browser can play stands as the player, which carries its size and download
                              itself; a video's still stands over the inner room, and its file line here. -->
                         <!-- A sound stands as its player, the recording's length beside it and, on a voice note, the words
@@ -305,7 +308,7 @@
                               :download="`${mediaUrl(attachment.kind, props.chatId, archivedId)}?item=${attachment.id}&as=download`"
                               :name="attachment.name"
                               :size="attachment.bytes === null ? null : fileSizeText(attachment.bytes)"
-                              :trail-room="playerLast && index === attachments.length - 1 ? metaRoom : null"
+                              :trail-room="playerLast && index === filed.length - 1 ? metaRoom : null"
                             />
                             <span v-if="voiceSeconds !== null" data-voice-seconds class="shrink-0 text-xs tabular-nums text-dimmed">{{ playClock(voiceSeconds) }}</span>
                           </div>
@@ -580,7 +583,7 @@ const wordsLast = computed<boolean>(
     props.item.run === null &&
     worded.value &&
     !(props.item.pending === null && links.value.length > 0) &&
-    (props.item.attachments ?? []).length === 0 &&
+    filed.value.length === 0 &&
     reactions.value.length === 0
 );
 const metaRoom = ref<number | null>(null);
@@ -588,9 +591,9 @@ const metaRoom = ref<number | null>(null);
 // Whether the bubble holds a sound player, which sets its width (docs/web.md, the room screen's sound section); and whether
 // that player is the last thing before the meta line, so the line may stand at the end of the player's
 // own meta line, which keeps the blank for it there.
-const voiced = computed<boolean>(() => (props.item.attachments ?? []).some(heard));
+const voiced = computed<boolean>(() => filed.value.some(heard));
 const playerLast = computed<boolean>(() => {
-  const last = (props.item.attachments ?? []).at(-1);
+  const last = filed.value.at(-1);
 
   return props.item.run === null && last !== undefined && heard(last) && reactions.value.length === 0;
 });
@@ -635,6 +638,18 @@ const tailed = computed<boolean>(() => message.value && props.item.look.variant 
 
 const attachments = computed<MessageAttachment[]>(() => props.item.attachments ?? []);
 
+// The sticker the message was sent as, which stands as the picture alone outside any bubble (docs/web.md, the room screen's
+// wordless messages): the message's picture where it was kept so, else the sticker file it kept. A sticker whose file is not kept
+// stands among the files as its words.
+const stickerPicture = computed<string | null>(() => (props.item.stickerPicture === true ? props.item.imageUrl : null));
+const stickerFile = computed<MessageAttachment | null>(() =>
+  stickerPicture.value === null ? (attachments.value.find((attachment) => attachment.kind === "sticker" && attachment.available) ?? null) : null
+);
+const stuck = computed<boolean>(() => stickerPicture.value !== null || stickerFile.value !== null);
+
+// The files that stand in the bubble: every one but the sticker.
+const filed = computed<MessageAttachment[]>(() => attachments.value.filter((attachment) => attachment !== stickerFile.value));
+
 // Whether the bubble names its sender: the head of a run of someone else's, since the right side is
 // the reader's own and needs no name.
 const named = computed<boolean>(() => props.place.first && props.item.look.side === "left" && props.item.look.variant === "soft");
@@ -677,12 +692,9 @@ const stills = computed<MessageAttachment[]>(() => attachments.value.filter((att
 const albumed = computed<boolean>(() => (props.item.album ?? []).length > 1);
 const pictured = computed<boolean>(() => albumed.value || (props.item.imageUrl !== null && props.item.stickerPicture !== true) || stills.value.length > 0);
 
-// Whether a sticker kept as the message's picture stands at the bubble's head over the words it was sent with.
-const headSticker = computed<boolean>(() => !sticker.value && props.item.stickerPicture === true && props.item.imageUrl !== null);
-
 // A picture with nothing under it carries the meta line over its own foot.
 const overPicture = computed<boolean>(
-  () => pictured.value && props.item.run === null && !worded.value && attachments.value.length === 0 && links.value.length === 0
+  () => pictured.value && props.item.run === null && !worded.value && filed.value.length === 0 && links.value.length === 0
 );
 
 // The words and the meta line under a head or a picture: in the bubble's inner room, a small step
@@ -701,7 +713,7 @@ const bodyLook = computed<string>(() => {
     return "relative flex flex-wrap items-end gap-x-1 gap-y-(--chat-meta-gap)";
   }
 
-  return `${flow} px-(--chat-pad-x) pb-(--chat-pad-y) ${(head.value || headSticker.value) && !pictured.value ? "pt-(--chat-meta-gap)" : "pt-(--chat-pad-y)"}`;
+  return `${flow} px-(--chat-pad-x) pb-(--chat-pad-y) ${head.value && !pictured.value ? "pt-(--chat-meta-gap)" : "pt-(--chat-pad-y)"}`;
 });
 
 // A bubble of words is held to the widest line they and its meta line stand on, so wrapping leaves no

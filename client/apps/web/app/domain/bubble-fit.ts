@@ -124,7 +124,7 @@ function widestLine(bubble: HTMLElement): number | null {
     widest = Math.max(widest, ...lineWidths(meta));
   }
 
-  for (const part of bubble.querySelectorAll<HTMLElement>("[data-name], [data-quote], [data-sticker]")) {
+  for (const part of bubble.querySelectorAll<HTMLElement>("[data-name], [data-quote]")) {
     widest = Math.max(widest, headReach(part, start));
   }
 
@@ -222,8 +222,8 @@ function partWidth(part: Element): number {
 }
 
 // How far a part of the head would reach on one line of its own, where it may be cut short to the
-// bubble — the name, the line of the message answered, and a sticker standing over the words: its letters
-// and pictures, and the room the part keeps after them.
+// bubble — the name, and the line of the message answered: its letters and pictures, and the room the
+// part keeps after them.
 function headReach(part: HTMLElement, start: number): number {
   const look = getComputedStyle(part);
   const after = Number.parseFloat(look.paddingRight) + Number.parseFloat(look.borderRightWidth);

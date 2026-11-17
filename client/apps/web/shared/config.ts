@@ -129,12 +129,16 @@ export function newDevicePushKinds(): PushKind[] {
   return PUSH_KIND_LIST.filter((kind) => kind.onForNewDevice).map((kind) => kind.id);
 }
 
-// How often an open tab tells the server which room it shows while it is visible, and how long the
+// How often an open tab tells the server which room it shows, hidden or not, and how long the
 // server takes one that has said nothing for as still standing there (docs/web.md, 「Notifications」).
 // A tab is hidden or closed without a word as often as with one — a phone locked, a browser killed —
 // so a report is only good for a few of its own intervals.
 export const WATCH_REPORT_MS = 30_000;
 export const WATCH_STALE_MS = 3 * WATCH_REPORT_MS;
+
+// How often a room's box tells the receiver again that its reader is still writing, while they go on typing: well
+// inside the base's six seconds a mark stands for (docs/web.md, 「Presence and typing」).
+export const TYPING_RENEW_MS = 4_000;
 
 // How often an open stream of a reader of some rooms reads those rooms again (docs/web.md, 「Access」). A room the
 // reader's account is let into, leaves or is taken out of through the console reaches the stream at once; this is for

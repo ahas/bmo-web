@@ -2,18 +2,20 @@ import { TURN_ENDED } from "#shared/types";
 
 import { frameEvent } from "./sse-frames";
 
-import type { BotEventType, ChatTurn, ExactMessageId, LiveSnapshot, TurnReceived, TurnSpeaker } from "#shared/types";
+import type { BotEventType, ChatTurn, ExactMessageId, LiveSnapshot, PresenceWho, TurnReceived, TurnSpeaker } from "#shared/types";
 import type { RelayFilter } from "./bot-relay";
 
 // What the bot's stream carries to a user who reads only some rooms (docs/web.md, 「Access」): a
-// message arriving, a turn beginning and the way it ended, and a room's registration removed, in the rooms they read, and of the bot's
+// message arriving, a turn beginning and the way it ended, a room's registration removed, and who is writing and who is
+// reachable (docs/web.md, 「Presence and typing」), in the rooms they read, and of the bot's
 // picture the turns going there and the message queued there. Each is written afresh with only what their room screen reads of
 // it, so what a turn is doing step by step, the verdicts, the work running anywhere, the queue, the
 // console's own events but the deployment's word and everything of another room never reach them. The word that the bot's run
 // changed and the word that it is stopping pass as they are, since the reader counts by them.
 
 interface RoomEvent {
-  id: number;
+  // Null for an event of the present, which no cursor counts.
+  id: number | null;
   at: number;
   type: BotEventType;
   chatId: number;
@@ -21,13 +23,18 @@ interface RoomEvent {
   speaker?: TurnSpeaker;
   received?: TurnReceived;
   live?: LiveSnapshot;
+  who?: PresenceWho;
+  on?: boolean;
+  lastsMs?: number | null;
+  state?: string | null;
+  lastSeenAt?: number | null;
 }
 
 /** The rooms a reader reads, asked one at a time as each frame passes, so a set kept up to date while the stream is
  * open (`LiveRooms`) is read as it stands now. */
 export type ReadRooms = Pick<ReadonlySet<number>, "has">;
 
-const CARRIED: readonly BotEventType[] = ["message", "run-started", ...TURN_ENDED, "room-removed"];
+const CARRIED: readonly BotEventType[] = ["message", "run-started", ...TURN_ENDED, "room-removed", "typing", "presence"];
 
 /** The relay's filter for a user who reads these rooms. */
 export function roomStreamFilter(rooms: ReadRooms): RelayFilter {
@@ -68,7 +75,9 @@ export function roomFrame(frame: string, rooms: ReadRooms): string | null {
 
   const cut = roomEvent(data as RoomEvent, rooms);
 
-  return cut === null ? null : `id: ${cut.id}\nevent: bot\ndata: ${JSON.stringify(cut)}\n\n`;
+  if (cut === null) return null;
+
+  return `${cut.id === null ? "" : `id: ${cut.id}\n`}event: bot\ndata: ${JSON.stringify(cut)}\n\n`;
 }
 
 function roomEvent(event: RoomEvent, rooms: ReadRooms): RoomEvent | null {
@@ -82,6 +91,8 @@ function roomEvent(event: RoomEvent, rooms: ReadRooms): RoomEvent | null {
     ...head,
     ...(event.speaker === undefined ? {} : { speaker: event.speaker }),
     ...(event.type === "run-started" && event.received !== undefined ? { received: event.received } : {}),
+    ...(event.type === "typing" ? { who: event.who, on: event.on, lastsMs: event.lastsMs ?? null } : {}),
+    ...(event.type === "presence" ? { who: event.who, state: event.state ?? null, lastSeenAt: event.lastSeenAt ?? null } : {}),
   };
 }
 

@@ -1,4 +1,6 @@
 import { relayBotStream } from "../utils/bot-relay";
+import { maskedPresence } from "../utils/presence-frames";
+import { presenceSwitches } from "../utils/presence-switches";
 import { roomStreamFilter } from "../utils/room-stream";
 
 // The units' live streams — the receiver's, bmo-job's and the agency's — relayed event by event, with the
@@ -6,7 +8,8 @@ import { roomStreamFilter } from "../utils/room-stream";
 // checked here and the tokens are added on this side. A receiver that is not there ends the stream, and the
 // browser opens it again on its own. A user who reads only some rooms hears only those rooms' news, and
 // nothing of bmo-job's or the agency's, which name no room (docs/web.md, 「Access」), those rooms and the login itself
-// read again while the stream is open.
+// read again while the stream is open. Every reader is handed an account's presence only where the account shows it
+// (docs/web.md, 「Presence and typing」).
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event);
   const address = browserAddress(event);
@@ -51,6 +54,10 @@ export default defineEventHandler(async (event) => {
 
   return sendStream(
     event,
-    relayBotStream(cursors, aborted, { ...filter, consoleEvent: (said) => ownRead(said) ?? filter.consoleEvent?.(said) ?? true })
+    relayBotStream(cursors, aborted, {
+      ...filter,
+      shape: (frame) => maskedPresence(frame, presenceSwitches.hidden()),
+      consoleEvent: (said) => ownRead(said) ?? filter.consoleEvent?.(said) ?? true
+    })
   );
 });

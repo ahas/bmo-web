@@ -15,8 +15,10 @@ import type { ConsoleEvent } from "./console-events";
 // also write frames of its own worked out of the receiver's: `derived` makes one reader for each stream, which
 // sees every whole receiver event — passed on or not — and answers with the frames to write after it. `units`
 // says whether bmo-job's and the agency's streams are relayed beside the receiver's, which is every stream's
-// but a reader of some rooms alone: neither carries the room an event belongs to.
+// but a reader of some rooms alone: neither carries the room an event belongs to. `shape` writes each whole receiver
+// event again before anything else reads it, as every reader of the stream is to be handed it.
 export interface RelayFilter {
+  shape?: (frame: string) => string;
   frame?: (frame: string) => boolean;
   consoleEvent?: (event: ConsoleEvent) => boolean;
   derived?: () => (frame: string) => string[];
@@ -242,7 +244,8 @@ export function relayBotStream(cursors: RelayCursors, aborted: AbortController, 
 
       // Everything written here is whole: a unit's events only once all of each has come, and this app's own
       // frames at any moment between them.
-      const output = new RelayOutput(write, filter.frame, filter.derived?.(), exactFrame);
+      const { shape } = filter;
+      const output = new RelayOutput(write, filter.frame, filter.derived?.(), shape === undefined ? exactFrame : (frame) => shape(exactFrame(frame)));
 
       keepalive = setInterval(() => output.own(KEEPALIVE_FRAME), STREAM_KEEPALIVE_MS);
       // Held while it is open, so a stop of this app is said on it before it ends.

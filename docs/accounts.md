@@ -221,6 +221,15 @@ section states what each does.
 - **`GET /users/members`** — every person of the reader's own company who has not left, by user id and name
   alone, with no limit (「The people directory」).
 
+### Showing one's presence
+
+- **Each account has one switch, to show its presence,** on unless the account turns it off. Off, nobody sees the
+  account's presence or its last moment seen, every reader included, and typing stays shown (bmo-chat's
+  `docs/presence.md`, 「Who sees what」).
+- **The console keeps it,** in its own table `web_presence_hidden`, one row for each account that turned it off; it
+  reads and writes the table and holds every reader's stream to it (`docs/web.md`, 「Presence and typing」). No route
+  of the service carries it.
+
 ### Whose BMO a supervisor is
 
 - **A supervisor is the BMO of the account the agency files it under** (its `ownerAccount`). Where the agency names
@@ -749,6 +758,7 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 | `web_tab_states` | a user's open tabs per screen |
 | `web_palettes` | the bubble palette each user reads rooms in |
 | `web_themes` | the theme each user reads the console in |
+| `web_presence_hidden` | each account that turned its presence off, by its user, and when; an account showing its presence has no row (「Showing one's presence」) |
 | `web_room_reads` | how far each user has read each room |
 | `document_talk` | the console's threads about a document: each word said over one, by whom, with the passage, heading and version it was said over (`docs/documents-viewer.md`, 「The record」) |
 

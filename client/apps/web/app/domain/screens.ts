@@ -5,9 +5,11 @@ import { ORGANIZATION_PATH, ORGANIZATION_TABS } from "./organization";
 
 import { avatarFor } from "./avatars";
 import { COUNT_BADGE, countText } from "./numbers";
+import { presenceChip, roomPresence, typingPeople } from "./presence";
 import { unreadLabel, unreadShown } from "./room-list";
 
 import type { AvatarIndex } from "./avatars";
+import type { RoomsPresent } from "./presence";
 import type { RoomReading } from "./room-list";
 import type { ConsoleScreen } from "#shared/console-bundles";
 import type { ListedRoom } from "#shared/types";
@@ -243,31 +245,37 @@ function foldedItem(item: NavigationMenuItem): NavigationMenuItem {
   return folded;
 }
 
-// A room of the sidebar: its name and picture, and how many of its messages the reader has not read, as a badge
-// spread and a dot folded (docs/web.md, 「Sidebar」).
+// A room of the sidebar: its name and picture, how many of its messages the reader has not read, as a badge spread
+// and a dot folded, and its people's presence on the picture's corner and a mark while somebody writes there
+// (docs/web.md, 「Sidebar」, 「Presence and typing」).
 export function roomItems(
   t: Translate,
   rooms: readonly ListedRoom[],
   avatars: AvatarIndex,
   path: string,
   folded = false,
-  reading: RoomReading | null = null
+  reading: RoomReading | null = null,
+  present: RoomsPresent | null = null
 ): NavigationMenuItem[] {
   return rooms.map((room) => {
+    const picture = avatarFor(avatars, "room", room.chatId, room.title);
+    const writing = present !== null && typingPeople(present.typing.get(room.chatId), present.me).length > 0;
     const entry = {
       label: room.title,
       to: `/rooms/${room.chatId}`,
-      avatar: avatarFor(avatars, "room", room.chatId, room.title),
-      active: path === `/rooms/${room.chatId}`
+      avatar: present === null ? picture : { ...picture, chip: presenceChip(roomPresence(present.presence.get(room.chatId), present.me)) },
+      active: path === `/rooms/${room.chatId}`,
+      ...(writing ? { typing: true } : {})
     };
     const count = unreadShown(room, reading);
     const label = unreadLabel(count);
+    const typingSaid = writing ? t("screens.aria.room_typing") : null;
 
     if (label === null) {
-      return entry;
+      return typingSaid === null ? entry : { ...entry, "aria-description": typingSaid };
     }
 
-    const said = t("screens.aria.room_unread", { count: countText(count) });
+    const said = [t("screens.aria.room_unread", { count: countText(count) }), typingSaid].filter((part) => part !== null).join(", ");
 
     // Folded, the row is its picture alone, and the count stands as a dot on its corner.
     return folded

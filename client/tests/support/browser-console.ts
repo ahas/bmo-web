@@ -94,7 +94,8 @@ const ACCOUNTS: readonly [string, string][] = [
   ["room-head", "fixture-password-3051"],
   ["person-name", "fixture-password-3096"],
   ["console-load", "fixture-password-3127"],
-  ["deploy-truth", "fixture-password-3187"]
+  ["deploy-truth", "fixture-password-3187"],
+  ["room-presence", "fixture-password-3124"]
 ];
 
 // The member accounts a test signs in with to read a section by its permission rather than as the administrator,

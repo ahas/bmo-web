@@ -177,6 +177,14 @@ describe("a console route as another user meets it", () => {
     expect(await answer({ file: "people/members.get", method: "GET", path: "/api/people/members" })).toBe(404);
   });
 
+  // docs/web.md, 「Presence and typing」: a tab's report is its account's presence, whatever the account may read.
+  test("a reader with no section still says what its tab shows", async () => {
+    service.sections.set(4, new Map());
+    session = { user: { name: "no-account", id: 4 }, sid: "bmo.sid=no-account", administrator: false };
+
+    expect(await answer({ file: "push/watching.post", method: "POST", path: "/api/push/watching" })).toBe(200);
+  });
+
   test("the administrator and a console login reach every route", async () => {
     for (const standing of [{ user: { name: "boss", id: 1 }, sid: "bmo.sid=boss", administrator: true }, { user: { name: "boss" } }]) {
       session = standing;

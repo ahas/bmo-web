@@ -36,6 +36,19 @@ describe("the bot's stream cut to the rooms a user reads", () => {
       .toEqual({ id: 10, at: 1, type: "room-removed", chatId: ROOM_ID, messageId: null });
   });
 
+  test("who writes and who is here pass in the rooms read with no id, and never from another room", () => {
+    const present = (event: Record<string, unknown>): string => `event: bot\ndata: ${JSON.stringify(event)}\n\n`;
+    const typing = { id: null, at: 1, type: "typing", chatId: ROOM_ID, messageId: null, who: { kind: "account", account: 4 }, on: true, lastsMs: 6000 };
+    const presence = { id: null, at: 1, type: "presence", chatId: ROOM_ID, messageId: null, who: { kind: "person", via: "chat-a", personId: 7 }, state: "away", lastSeenAt: 900 };
+    const typed = roomFrame(present(typing), rooms);
+
+    expect(typed).not.toMatch(/^id:/m);
+    expect(data(typed)).toEqual(typing);
+    expect(data(roomFrame(present(presence), rooms))).toEqual(presence);
+    expect(roomFrame(present({ ...typing, chatId: -200 }), rooms)).toBeNull();
+    expect(roomFrame(present({ ...presence, chatId: -200 }), rooms)).toBeNull();
+  });
+
   test("another room's news, a turn's steps, the verdicts and the queue never pass", () => {
     for (const event of [
       { id: 6, at: 1, type: "message", chatId: -200, messageId: 1 },

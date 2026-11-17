@@ -505,7 +505,8 @@ console page. No answer says which framework drew it. Strict transport is the re
   account service (`PUT /watching`) leave it out, so nothing the receiver serves moves either. A tab saying it
   shows a room its account does not read is refused as if the room did not stand, so nobody's looking moves the
   count of a room they cannot read. His read mark there is his own row of the console's table, read by his own tabs
-  alone, and nothing he reads reaches the receiver as a read.
+  alone, and nothing he reads reaches the receiver as a read. Nor does his writing: his tab there tells no typing,
+  and his presence is told only in the rooms he stands in (「Presence and typing」).
 - **A section's read opens its screen and its reads; its write opens its changes.** The sections and the
   defaults a user is made with stand in `docs/accounts.md`, 「Console sections」; a user's routes are read
   against the permission the account service holds, never the tab's own memory of it.
@@ -1505,7 +1506,8 @@ Four groups.
   called by the person whose number it is, as the receiver names that person, and a room with no name either comes up
   as a chat number. A room the console made itself — one made for the supervisors it names — stands from the moment it is made, before any
   word is said in it; until then it stands after every room that has words. Choosing a room shows that room's
-  conversation.
+  conversation. A room's row carries the presence of its people and a mark while somebody writes in it
+  (「Presence and typing」).
   - **A room stands only once it has been added,** as the receiver's own record of the room says and never by
     which chat service it is on: it is his private chat (`ownerRoom`), which always stands; it was added from 추가
     and so carries the mode it was added in (`mode`); the console made it for the supervisors it names — a supervisor's
@@ -4093,6 +4095,8 @@ Four bounds keep it from growing forever.
     line written in an input box keeps its breaks while the writing goes on」). Once sent they stand at a
     bubble's breaks, between words and at the bubble's narrower width, and the flight shows them at those
     breaks from its first frame (「What arrives comes in at the end, and nothing standing moves」).
+  - Under the box stands the line naming who is writing in the room, in every room but the owner's own private chat,
+    keeping its height whether or not anybody writes (「Presence and typing」).
   - Choosing opens no bar of its own: the top bar grows downward and the choosing row unfolds inside it, on the
     same ground, under the same edge, and folds back the same way when choosing ends (「선택」). The grown bar lies over
     the conversation, which keeps only the resting bar's height as its room at the top, so no message moves by a pixel
@@ -7001,6 +7005,9 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
   account's identity on the record road takes the name it is now shown by, the person's name or the login where
   none stands (`docs/accounts.md`, 「Users and senders」), so the people of a room and a forward name the person by it
   before their next words.
+- **접속 상태 공개** is the account's presence switch (「Presence and typing」, 「The switch」): one row with its switch,
+  on unless the account turned it off, and one muted line saying what turning it off hides. It takes effect as it
+  is switched. A console login standing before the account model, which has no account, is shown no such row.
 
 #### 내 BMO
 
@@ -8057,12 +8064,14 @@ by the administrator. Every login reads them, since every person's form asks in 
 - **A room message rings only on the devices of an account whose room list holds the room:** its own rooms and,
   for the administrator, the deployment's (「Access」). Another account's conversation rings none of his devices,
   whatever he may read.
-- **A room message is not sent while they are looking at that room.** Every open console tab of the administrator tells this server which
-  room it shows and whether it is visible: on opening a room, on being hidden or shown, and every half minute while it
-  is visible. A tab gone silent for longer than a few of those reports is taken as gone. While a visible tab of an
-  account shows a room, that room's messages go to none of that account's devices; another room, a hidden tab, an app
-  in the background or no tab at all, and they go. The service worker's own check stays behind it as a second guard,
-  for the moment between a tab opening a room and its report arriving.- **The rooms open are also told to the account service.** The same report carries the visible rooms to the
+- **A room message is not sent while they are looking at that room.** Every open console tab of a signed-in
+  account, whatever the account may read, tells this server which room it shows and whether it is visible: on
+  opening a room, on being hidden or shown, and every half minute while it is open, hidden or not. A tab gone
+  silent for longer than a few of those reports is taken as gone. While a visible tab of an account shows a room, that room's messages
+  go to none of that account's devices; another room, a hidden tab, an app in the background or no tab at all, and
+  they go. The service worker's own check stays behind it as a second guard, for the moment between a tab opening a
+  room and its report arriving. The same report is the account's presence in the console (「Presence and typing」).
+- **The rooms open are also told to the account service.** The same report carries the visible rooms to the
   account service's `PUT /watching`, which keeps them for two minutes; the receiver reads `GET /watching` as it
   starts and serves each open room's unread lines to the chat agent, one room at a time and in room order. A room
   whose window closes before its turn waits, and a line already served is not served again. The agent never asks
@@ -8156,6 +8165,90 @@ by the administrator. Every login reads them, since every person's form asks in 
   and the two lines go in the console's environment. The public side goes to each subscribing browser and the secret side never leaves this
   machine so it is not put in the repository. Without keys the console says on the spot it cannot send notifications and the
   rest runs as usual. Making new keys invalidates every subscription made with the old, and each device must reattach.
+
+## Presence and typing
+
+Who is writing in a room now, and who is reachable now, as bmo-chat's `docs/presence.md` designs them. The console is
+a messenger of its own among the chat services: it tells the receiver its accounts' presence and typing, and hands
+each reader what the receiver tells back of the rooms they read. Neither is a message, and nothing of either is kept
+in a table.
+
+### An account's presence
+
+- **It is read off the tabs' reports** (「Notifications」), which every signed-in account's tabs make:
+  - `online` while a tab of the account is open and visible;
+  - `away` while its tabs are open and none is visible;
+  - `offline` once no tab reports, a tab silent for longer than a few of its reports being taken as gone;
+  - its last moment seen is the last moment a visible tab of it reported.
+- **It is told to the receiver as it changes** (`PUT /accounts/{account}/presence`), one source among the account's,
+  on a report that changes it and on a look made every report interval, which finds the tabs gone silent. Going
+  offline is told by that look alone, so a tab that reloads, saying it is gone and reporting again at once, never
+  shows its account leaving. A console login standing before the account model has no account and tells none.
+- **A tab reading a room unseen still counts for its account's presence,** since the person is at the console, and
+  its report leaves the room out as every unseen read does (「Access」); the receiver tells an account's presence only
+  in the rooms it stands in, so the room read unseen hears nothing of the reader.
+- **This server holds the tabs in memory alone.** As it starts it takes back the console's word for every account the
+  account service holds and no tab has reported yet (`state` null), so no account stands online from before a
+  restart; the next reports stand it again within half a minute.
+- **An account whose switch is off tells nothing:** the console's word for it is taken back once, and no presence of
+  it is told while the switch stays off (「The switch」).
+
+### An account's typing
+
+- **It is the line being written in a room's input box:** on as the person types into a box that holds words, told
+  again every few seconds while they go on typing, and off when they send, empty the box, leave the room or hide the
+  tab. A tab that closes without saying so leaves the mark to end by its life, the base's six seconds.
+- **The box tells this server,** which tells the receiver (`POST /rooms/{roomId}/typing`, the account and `on`) and
+  answers at once; the receiver shows it to the room's readers and hands it to the room's chat services in the
+  writer's own voice, and a refusal anywhere is let go.
+- **Only a reader who may write in the room tells typing,** since only they stand a box there. The administrator's
+  tab in a room that is not his own tells nothing, whatever box it stands, and a console login standing before the
+  account model, which has no account, tells none.
+
+### What each reader is handed
+
+- **Both ride the receiver's stream as `typing` and `presence`,** each naming one room and carrying no id: neither
+  moves a tab's cursor nor is replayed, and what stands is handed after the replay each time the stream opens. A tab
+  drops what it held of either as its stream opens, and stands on what it is handed then.
+- **A member hears the marks and the presence of the rooms they read and nothing else,** held as every event of the
+  stream is (「Access」). The administrator reads every room, and hears every room's as its readers do.
+- **Never across companies.** A room stands in one company, and the receiver tells an account's presence only in the
+  rooms it stands in, so it reaches only the people sharing a room with it, all of its own company. A person's
+  presence is drawn nowhere outside a room: a person's page, a list of people and a picker of members show none.
+- **An account that turned its presence off is handed with neither state nor last moment seen,** to every reader,
+  the administrator and the account itself included, whichever source the receiver gathered it from. Until this
+  server has read the switches, every account's presence is handed that way.
+- **The reader's own typing and presence are drawn nowhere for them,** and neither is the room's answerer's mark:
+  its turn at work already stands on the row where its answer will (「Room screen」).
+
+### The switch
+
+- **Each account has one switch, 접속 상태 공개, in 설정's 계정 (「계정」), on unless the account turns it off.** Off,
+  nobody sees the account's presence or its last moment seen, which are drawn as nothing and never as offline; the
+  account still sees the presence of others. Typing is not covered by it: a mark is told only in the room being
+  written into, to the people who will read what is sent there.
+- **It is kept in the console's table of accounts that turned it off** (`docs/accounts.md`, 「The tables」), and a
+  change takes effect on every stream at once.
+
+### Where it is drawn
+
+- **A room's presence is the best state among its people other than the reader:** `online` over `away`. `offline`,
+  and a presence nobody told, draw nothing, so a room is quiet unless somebody in it is here.
+- **The room list,** the sidebar's and a member's 방 screen: a dot on the corner of the room's picture, the
+  success colour for `online` and the warning colour for `away`, standing folded as spread; and while somebody writes
+  in the room, a typing mark at the row's trailing end, before its unread count, said to a screen reader with the
+  row.
+- **The room's head:** the same dot on the room's picture, whose tooltip says it in words: one other person's state,
+  온라인 or 자리 비움, or for an offline person the last moment seen, as 최근 접속 and the time since; several people's
+  as 온라인 and how many.
+- **Under the line being written:** one line under the input box, inside the input bar, naming who is writing — one
+  name, two names, or the first name and how many more, and 누군가 where the room's members name nobody for the mark.
+  It shimmers as a turn's state does and stands still for a reader who asked for less motion. The names are read off
+  the room's members (「대화상대」) once, when a mark first stands in the room.
+- **Nothing moves the screen's layout.** The line under the box keeps its height whether or not anybody writes, in
+  every room but the owner's own private chat, where nobody else writes; the dot rides the picture's corner and the
+  typing mark takes room the row's name gives up. Each stands and goes at once, with no fade.
+- **A reader with no box** sees who writes by the room list's typing mark.
 
 ## Screens a unit brings
 
@@ -8472,8 +8565,8 @@ the minutes it missed at once. The console stays light under that whatever a uni
 ## Tables
 
 - **The console's own tables are the server's** (`docs/accounts.md`, 「The tables」): the console accounts, the push
-  devices, the tab states, the palettes and themes, how far each user has read each room, and the threads about a
-  document. The console reads and writes those and no other unit's.
+  devices, the tab states, the palettes and themes, the accounts that turned their presence off, how far each user
+  has read each room, and the threads about a document. The console reads and writes those and no other unit's.
 - **Everything else a screen shows is another unit's,** read through that unit's routes (`docs/boundary.md`): the
   agents, their log and their runs are the agency's; the TODO items, their talk, the questions, the jobs and the
   work orders are bmo-job's; the rooms, the messages, the judgements and the message files are the receiver's; the

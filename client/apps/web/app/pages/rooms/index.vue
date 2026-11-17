@@ -29,8 +29,17 @@
             class="flex items-start gap-3 rounded-lg border border-default px-4 py-3 transition-colors hover:bg-elevated active:bg-accented"
             :to="`/rooms/${room.chatId}`"
           >
-            <UAvatar v-bind="avatarFor(pictures, 'room', room.chatId, room.title)" size="sm" />
+            <UAvatar v-bind="{ ...avatarFor(pictures, 'room', room.chatId, room.title), chip: presenceChip(roomPresence(present.presence.get(room.chatId), present.me)) }" size="sm" />
             <p class="min-w-0 grow truncate text-sm font-medium">{{ room.title }}</p>
+            <!-- While somebody writes in the room, a still mark after its name (docs/web.md, 「Presence and typing」). -->
+            <UIcon
+              v-if="typingPeople(present.typing.get(room.chatId), present.me).length > 0"
+              name="i-material-symbols-more-horiz"
+              class="size-5 shrink-0 text-muted"
+              data-room-typing
+              role="img"
+              :aria-label="$t('screens.aria.room_typing')"
+            />
             <div class="shrink-0 text-right text-sm text-muted">
               <RollingSentence tag="p" :keypath="'common.label.count'" :figures="{ n: room.messageCount }" />
               <p>{{ room.lastMessageAt === null ? $t("common.label.no_record") : formatStamp(room.lastMessageAt) }}</p>
@@ -45,6 +54,7 @@
 <script setup lang="ts">
 import { useAdministrator } from "~/domain/access";
 import { avatarFor, useAvatars } from "~/domain/avatars";
+import { presenceChip, roomPresence, typingPeople, useRoomsPresent } from "~/domain/presence";
 import { formatStamp } from "bmo-ui/app/domain/time";
 
 import type { RoomSummary } from "#shared/types";
@@ -65,6 +75,8 @@ const loaded = ref(status.value === "success");
 watch(status, (value) => { if (value === "success") loaded.value = true; });
 
 const rooms = computed<RoomSummary[]>(() => data.value ?? []);
+// Who is here and who writes in each room, as the stream tells it.
+const present = useRoomsPresent();
 
 // The pictures are read off a route a member is not opened to, so for a member every room wears its
 // letter. Who is signed in does not change while the page stands, so the read is asked or not once.

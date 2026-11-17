@@ -515,6 +515,7 @@ room:
     room_add_no_contacts: 이 계정에 연락처가 없습니다.
     room_add_no_match: 찾는 이름이 없습니다.
   error:
+    bad_typing: 입력 중 표시의 형식이 올바르지 않습니다.
     actions_read_failed: 실행 기록을 불러오지 못했습니다.
     attachment_empty: "{name}: 빈 파일이라 첨부하지 않았습니다."
     attachment_too_large: "{by}에서 보낼 수 있는 크기({limit})보다 큰 파일이라 첨부하지 않았습니다."
@@ -659,6 +660,14 @@ room:
     to_latest: 최신 메시지로
     unpin: 고정 해제
   label:
+    presence_away: 자리 비움
+    presence_last_seen: "최근 접속 {ago} 전"
+    presence_online: 온라인
+    presence_online_count: "온라인 {n}명"
+    typing_many: "{name} 외 {n}명 입력 중…"
+    typing_one: "{name} 입력 중…"
+    typing_someone: 누군가 입력 중…
+    typing_two: "{first}, {second} 입력 중…"
     room_open_title: 방 이름
     answer_took: "{time} 소요"
     avatar_of: "{name} 프로필 사진"
@@ -1205,6 +1214,7 @@ screens:
     screen_unreachable: 이 화면의 서비스가 응답하지 않아 화면을 불러오지 못했습니다.
     tab_state_too_large: 탭 상태가 너무 큽니다.
   aria:
+    room_typing: 입력 중
     room_unread: "안읽은 메시지 {count}개"
     screen_unread: "{name} 안읽음 {count}건"
 
@@ -1677,6 +1687,8 @@ account:
     login: 로그인 정보
     profile: 프로필
   label:
+    presence_shown: 접속 상태 공개
+    presence_shown_description: 끄면 아무도 내 접속 상태와 최근 접속을 볼 수 없습니다.
     current_password: 현재 비밀번호
     device_since: "{time}부터 · {kinds}"
     email: 이메일
@@ -1709,6 +1721,7 @@ account:
     not_subscribed: 이 기기는 아직 알림을 받지 않습니다.
     notifications_loading: 알림 설정 불러오는 중…
     profile_loading: 프로필 불러오는 중
+    presence_loading: 접속 상태 공개 불러오는 중…
   message:
     preview_answer: "7시예요. 회의록은 https://example.com/notes 에 있어요."
     preview_ask: 오늘 회의 몇 시였지?
@@ -1725,6 +1738,10 @@ account:
     user_service_unset: "계정 모델이 쓰이고 있지만 서버의 실행 파일과 설정 폴더가 지정되지 않아 계정 서비스의 사용자는 저장하지 않았습니다. 서버의 user 명령으로 저장해 주세요."
     user_usage: "사용법: bun scripts/user.ts set <아이디> <비밀번호> [--administrator]"
   error:
+    bad_presence: 접속 상태 공개 값이 올바르지 않습니다.
+    presence_failed: 접속 상태 공개 설정을 저장하지 못했습니다.
+    presence_no_account: 계정이 없는 로그인은 접속 상태를 공개하거나 숨길 수 없습니다.
+    presence_read_failed: 접속 상태 공개 설정을 불러오지 못했습니다.
     bad_new_password: 새 비밀번호가 너무 짧거나 깁니다.
     user_name_shape: "아이디는 {min}~{max}자의 영문, 숫자, 점, 밑줄, 하이픈이어야 합니다."
     user_password_short: "비밀번호는 {min}자 이상이어야 합니다."

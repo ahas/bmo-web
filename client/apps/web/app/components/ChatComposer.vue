@@ -10,7 +10,7 @@
     @dragleave="dragging = false"
     @drop.prevent.stop="onDrop"
     @keydown.capture="mentionKeydown"
-    @input="mentionTrack"
+    @input="onInput"
     @keyup="mentionTrack"
     @click="mentionTrack"
     @focusout="onFocusOut"
@@ -241,7 +241,8 @@ const props = withDefaults(defineProps<Props>(), {
   secrets: false
 });
 
-const emit = defineEmits<{ submit: [message: ComposedMessage]; escape: [event: KeyboardEvent] }>();
+// `typing` says, as the reader types, whether the box holds words, for a place that tells others its reader is writing.
+const emit = defineEmits<{ submit: [message: ComposedMessage]; escape: [event: KeyboardEvent]; typing: [holdsWords: boolean] }>();
 
 const { t } = useI18n();
 const island = useIsland(t);
@@ -256,6 +257,12 @@ const { open: mentionOpen, items: mentionItems, active: mentionActive, track: me
   () => props.mention ?? { people: [], agents: [] },
   () => props.mention !== undefined
 );
+
+// What the reader typed moves the mention and says whether the box holds words.
+function onInput(): void {
+  mentionTrack();
+  emit("typing", typed.value.trim() !== "");
+}
 
 // A key the open list takes never reaches the box or the screen behind it, so Enter picks a name rather than sending
 // the words, and the arrows never move the caret.

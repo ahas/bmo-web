@@ -40,18 +40,22 @@
           >
             <!-- The room's picture opens whole when pressed, as a face beside a bubble does; a room
                  standing as its letter has nothing to open. It stands where every other page's mark
-                 stands, at that mark's size. -->
+                 stands, at that mark's size. The dot on its corner is the room's people's presence, said in words
+                 by its tooltip (docs/web.md, 「Presence and typing」). -->
             <template #leading>
-              <button
-                v-if="roomAvatar.src"
-                type="button"
-                class="me-1.5 flex shrink-0 cursor-zoom-in rounded-full transition-shadow hover:ring-2 hover:ring-primary/40 active:ring-2 active:ring-primary/60"
-                :aria-label="$t('room.aria.avatar_enlarge', { name: title })"
-                @click="roomFaceOpen = true"
-              >
-                <UAvatar v-bind="roomAvatar" size="2xs" />
-              </button>
-              <UAvatar v-else v-bind="roomAvatar" size="2xs" class="me-1.5" />
+              <UTooltip :text="presenceLine ?? undefined" :disabled="presenceLine === null">
+                <button
+                  v-if="roomAvatar.src"
+                  type="button"
+                  class="me-1.5 flex shrink-0 cursor-zoom-in rounded-full transition-shadow hover:ring-2 hover:ring-primary/40 active:ring-2 active:ring-primary/60"
+                  :aria-label="$t('room.aria.avatar_enlarge', { name: title })"
+                  :aria-description="presenceLine ?? undefined"
+                  @click="roomFaceOpen = true"
+                >
+                  <UAvatar v-bind="headAvatar" size="2xs" />
+                </button>
+                <UAvatar v-else v-bind="headAvatar" size="2xs" class="me-1.5" :aria-description="presenceLine ?? undefined" />
+              </UTooltip>
               <ImageViewer v-if="roomAvatar.src" v-model:open="roomFaceOpen" :src="roomAvatar.src" :title="$t('room.label.avatar_of', { name: title })" />
               <RoomPictureViewer ref="pictureViewer" :chat-id="chatId" @show="showPictureMessage" />
             </template>
@@ -382,6 +386,7 @@
             :secrets="signedUser !== null"
             @escape="onEscape"
             @submit="send"
+            @typing="typingTeller.typed"
           >
 
             <!-- What the next message answers: who said it and how it began, until it is sent or
@@ -404,6 +409,9 @@
               </div>
             </template>
           </ChatComposer>
+          <!-- Who else is writing here, on a line of its own that is always there; the owner's own chat has nobody
+               else to write in it (docs/web.md, 「Presence and typing」). -->
+          <RoomTypingLine v-if="!ownersOwnChat" class="mt-1" :chat-id="chatId" />
         </UContainer>
       </div>
     </template>
@@ -535,7 +543,8 @@ import {
   withLives
 } from "~/domain/room";
 import { SCROLL_BOTTOM_THRESHOLD_PX, SCROLL_TOP_THRESHOLD_PX } from "~/domain/polling";
-import { formatClock, toUnixSeconds } from "bmo-ui/app/domain/time";
+import { formatClock, toUnixSeconds, useNowSeconds } from "bmo-ui/app/domain/time";
+import { presenceChip, presenceWords, roomPresence, usePresence, useTypingTeller } from "~/domain/presence";
 import { imageUrl } from "~/domain/urls";
 import { outcomeLine, useHeldRuns } from "~/domain/working";
 import { useDelegationReading } from "~/domain/delegations";
@@ -1001,6 +1010,12 @@ const title = computed<string>(() => roomsInitial.value ? t("room.status.room_lo
 // The index names every room and person, so a member's feed draws its faces by their initials.
 const avatars = administrator.value ? useAgentAvatars() : computed<AvatarIndex>(() => new Map());
 const roomAvatar = computed(() => avatarFor(avatars.value, "room", chatId, title.value));
+// The room's people's presence, on the head's picture and in words (docs/web.md, 「Presence and typing」).
+const presenceHeld = usePresence();
+const { now: presenceNow } = useNowSeconds(60_000);
+const presenceHere = computed(() => roomPresence(presenceHeld.value.get(chatId), signedUser.value));
+const headAvatar = computed(() => ({ ...roomAvatar.value, chip: presenceChip(presenceHere.value) }));
+const presenceLine = computed<string | null>(() => presenceWords(t, presenceHere.value, presenceNow.value * 1000));
 const roomFaceOpen = ref(false);
 
 // Every picture of the feed opens in the room's own viewer, which walks the whole room's pictures.
@@ -1028,6 +1043,10 @@ const passing = computed(() => shownOutcome(outcome.value, group.value));
 
 // Asking a worker a question remains available in the owner room.
 const ownsTodo = computed<boolean>(() => owner.value.chatId === chatId);
+// The owner's own private chat, where nobody but him and his BMO writes.
+const ownersOwnChat = computed<boolean>(() => (owner.value.chatId ?? control.value?.ownerChatId ?? null) === chatId);
+// The reader's own writing in the box, told to the room's other readers (docs/web.md, 「Presence and typing」).
+const typingTeller = useTypingTeller(chatId, writable);
 
 // The part of the screen the conversation is read in: under the top bar and over the input bar, across the room.
 function questionArea(): WindowFrame | null {
@@ -2227,6 +2246,8 @@ onScopeDispose(release);
 // because what was in them is standing in the conversation now. Words the console puts in the room
 // itself go the same road and leave the box, and the reply it holds, as they stand.
 async function send(message: ComposedMessage, fromBox = true): Promise<void> {
+  typingTeller.stopped();
+
   if (message.files.some((file) => file.voice !== undefined) && message.files.length > 1) {
     island.say({ title: t("room.error.voice_with_files"), tone: "warning" });
 

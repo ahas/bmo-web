@@ -88,8 +88,8 @@ export const openedRoutes: readonly OpenedRoute[] = [
 
   // The account's own surface.
   section(ACCOUNT, "POST", /^\/api\/account$/),
-  section(ACCOUNT, "GET", /^\/api\/account\/(palette|theme)$/),
-  section(ACCOUNT, "PUT", /^\/api\/account\/(palette|theme)$/),
+  section(ACCOUNT, "GET", /^\/api\/account\/(palette|theme|presence)$/),
+  section(ACCOUNT, "PUT", /^\/api\/account\/(palette|theme|presence)$/),
   // One's own BMO's profile, which the account service opens only to a person who may personalise it.
   section(ACCOUNT, "GET", /^\/api\/account\/agent(?:\/picture)?$/),
   section(ACCOUNT, "PUT", /^\/api\/account\/agent(?:\/picture)?$/),
@@ -138,7 +138,9 @@ export const openedRoutes: readonly OpenedRoute[] = [
   { ...section(ROOM, "GET", /^\/api\/images\/-?\d+\/-?\d+$/), scope: "room" },
   { ...section(ROOM, "GET", /^\/api\/media\/[^/]+\/-?\d+\/-?\d+$/), scope: "room" },
   section(ROOM, "GET", /^\/api\/avatars(?:\/[^/]+\/[^/]+)?$/),
-  { ...section(ROOM, "POST", /^\/api\/push\/watching$/), access: "read" },
+  // A tab saying what it shows, which is every signed-in account's presence whatever it may read; the route refuses a
+  // room the account does not read.
+  { method: "POST", path: /^\/api\/push\/watching$/, scope: "room", access: "read" },
   // The receiver's stream carries the news of what runs now as well.
   { method: "GET", path: /^\/api\/events$/, scope: "room", sections: ["rooms", "live"], access: "read" },
 

@@ -76,6 +76,7 @@ import { useInitialRead } from "bmo-ui/app/domain/loading";
 import { SCREEN_FRAME } from "bmo-ui/app/domain/screen";
 import { useVisibleShell } from "~/domain/overlay";
 import { useRoomList, useRoomReading } from "~/domain/room-list";
+import { useRoomsPresent } from "~/domain/presence";
 import { useConsoleScreens } from "~/domain/console-screens";
 import { useSectionAccess, useSectionAccessReady } from "~/domain/section-access";
 import { namedWhenFolded, roomItems, screensWithBundles, sectionItems } from "~/domain/screens";
@@ -111,11 +112,13 @@ const sidebarFolded = ref(false);
 const { data: rooms, status: roomsStatus, error: roomsError } = useRoomList();
 const roomsInitial = useInitialRead(roomsStatus);
 const reading = useRoomReading();
+// Who is here and who writes in each room, as the stream tells it (docs/web.md, 「Presence and typing」).
+const present = useRoomsPresent();
 
 // The pictures are read off a route a member is not opened to, so every room wears its letter.
 const pictures: AvatarIndex = new Map();
 
-const roomEntries = computed<NavigationMenuItem[]>(() => roomItems(t, rooms.value, pictures, route.path, sidebarFolded.value, reading.value));
+const roomEntries = computed<NavigationMenuItem[]>(() => roomItems(t, rooms.value, pictures, route.path, sidebarFolded.value, reading.value, present.value));
 
 // The screens this reader may open: the console's own whose section their permission reads, and the screens units
 // bring whose manifest opens to them (docs/web.md, 「Access」). A screen unit-brought and not one of the console's

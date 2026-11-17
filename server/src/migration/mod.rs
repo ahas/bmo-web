@@ -17,6 +17,7 @@ pub mod m20261116_000001_shared_nodes;
 pub mod m20261116_000002_invite_names;
 pub mod m20261116_000003_agent_profiles;
 pub mod m20261116_000004_sign_ins;
+pub mod m20261117_000001_presence_hidden;
 mod secret_kind_seeds;
 
 pub struct Migrator;
@@ -40,6 +41,7 @@ impl MigratorTrait for Migrator {
       Box::new(m20261116_000002_invite_names::Migration),
       Box::new(m20261116_000003_agent_profiles::Migration),
       Box::new(m20261116_000004_sign_ins::Migration),
+      Box::new(m20261117_000001_presence_hidden::Migration),
     ]
   }
 }

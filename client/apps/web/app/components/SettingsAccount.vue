@@ -1,8 +1,8 @@
 <template>
   <!-- The account section (docs/web.md, 「Settings」): the account's login and the way to its form, the login and
        the password, which is a dialog of its own with its own save; the profile, the person's name, job title and
-       contact details in a dialog of their own; and one's own picture, the sender's linked to the account, set in the console
-       (「Profile photos」). -->
+       contact details in a dialog of their own; the switch to show one's presence (「Presence and typing」); and one's own
+       picture, the sender's linked to the account, set in the console (「Profile photos」). -->
   <div class="flex flex-col gap-6">
     <SettingsGroup>
       <SettingsRow :label="$t('account.title.login')" :description="user?.name">
@@ -21,6 +21,27 @@
         </template>
         <UButton v-if="profileFailed !== ''" color="neutral" variant="outline" :label="$t('account.action.retry')" @click="void readProfile()" />
         <UButton v-else color="neutral" variant="outline" :label="$t('account.action.change')" :disabled="profile === null" @click="openProfile()" />
+      </SettingsRow>
+    </SettingsGroup>
+
+    <SettingsGroup v-if="account !== undefined">
+      <SettingsRow data-presence-row :label="$t('account.label.presence_shown')">
+        <template #description>
+          <span v-if="presenceFailed !== ''" class="text-sm text-error">{{ presenceFailed }}</span>
+          <span v-else class="text-sm text-muted">{{ $t("account.label.presence_shown_description") }}</span>
+        </template>
+        <SkeletonStatus v-if="presenceShown === null && presenceBusy" :label="$t('account.status.presence_loading')">
+          <SkeletonBar class="block h-5 w-9 rounded-full" />
+        </SkeletonStatus>
+        <UButton v-else-if="presenceShown === null" color="neutral" variant="outline" :label="$t('account.action.retry')" @click="void readPresence()" />
+        <USwitch
+          v-else
+          :model-value="presenceShown ?? true"
+          :loading="presenceBusy"
+          :disabled="presenceBusy"
+          :aria-label="$t('account.label.presence_shown')"
+          @update:model-value="(on: boolean) => void setPresence(on)"
+        />
       </SettingsRow>
     </SettingsGroup>
 
@@ -136,8 +157,46 @@ async function profileSaved(saved: UserProfile): Promise<void> {
   done.value = true;
 }
 
-// The session's user may land after this section is drawn, so the read waits for the account it is made for.
-watch(account, () => void readProfile(), { immediate: true });
+// Whether the account shows its presence (docs/web.md, 「Presence and typing」), read with the profile and set as it is
+// switched; null until it is read.
+const presenceShown = ref<boolean | null>(null);
+const presenceBusy = ref(false);
+const presenceFailed = ref("");
+
+async function readPresence(): Promise<void> {
+  if (account.value === undefined) return;
+
+  presenceBusy.value = true;
+  presenceFailed.value = "";
+
+  try {
+    presenceShown.value = (await $fetch<{ shown: boolean }>("/api/account/presence")).shown;
+  } catch (error) {
+    presenceShown.value = null;
+    presenceFailed.value = failureText(error, t("account.error.presence_read_failed"));
+  } finally {
+    presenceBusy.value = false;
+  }
+}
+
+async function setPresence(shown: boolean): Promise<void> {
+  presenceBusy.value = true;
+  presenceFailed.value = "";
+
+  try {
+    presenceShown.value = (await $fetch<{ shown: boolean }>("/api/account/presence", { method: "PUT", body: { shown } })).shown;
+  } catch (error) {
+    presenceFailed.value = failureText(error, t("account.error.presence_failed"));
+  } finally {
+    presenceBusy.value = false;
+  }
+}
+
+// The session's user may land after this section is drawn, so the reads wait for the account they are made for.
+watch(account, () => {
+  void readProfile();
+  void readPresence();
+}, { immediate: true });
 
 async function submit(): Promise<void> {
   if (!dirty.value) return;

@@ -284,6 +284,18 @@ export async function isOwnRoom(event: H3Event, chatId: number): Promise<boolean
   return own.has(chatId);
 }
 
+/** Whether the signed-in user looks at a room unseen: the administrator in a room that is not his own, whose read leaves
+ * nothing its people can see (docs/web.md, 「Access」); a console login standing before the account model is the owner's,
+ * with no other person's room beside his. A room whose ownership cannot be told is looked at unseen, so no trace is left
+ * by mistake. */
+export async function looksUnseen(event: H3Event, chatId: number): Promise<boolean> {
+  const signed = await signedInUser(event);
+
+  if (!signed.administrator || signed.id === null) return false;
+
+  return !(await isOwnRoom(event, chatId).catch(() => false));
+}
+
 /** The account a signed-in login changes a room as: its own, or for a console login standing before the account model,
  * which writes on the owner's own road, the owner's account where the owner's sender stands linked to one, and none
  * where it stands linked to none — the same account the receiver takes the owner's road to act for. */

@@ -1109,7 +1109,44 @@ export type BotEventType =
   | "worker-run"
   // A supervisor, a role or a repository changed or went, or a role's slot was asked, let in or given back, as the
   // agency publishes it: what the agent lists and the agents' state read again on.
-  | "agency-catalogue";
+  | "agency-catalogue"
+  // Somebody started or stopped writing in a room, as the receiver tells it with no id (docs/web.md, 「Presence and
+  // typing」). A tab holds it apart from the numbered events: `TypingEvent`.
+  | "typing"
+  // Somebody's presence in a room, told the same way: `PresenceEvent`.
+  | "presence";
+
+// Whether a person is reachable now (bmo-chat's docs/presence.md, 「Presence」).
+export type PresenceState = "online" | "away" | "offline";
+
+// Who writes or is reachable, as the receiver's stream names them: a console account, a chat service's person linked to
+// no account, or the room's answerer.
+export type PresenceWho =
+  | { kind: "account"; account: number }
+  | { kind: "person"; via: string; personId: number }
+  | { kind: "answerer" };
+
+// A typing mark as the stream tells it: on for `lastsMs` unless told again, null for a mark that stands until told
+// off. Like every event of the present it carries no id.
+export interface TypingEvent {
+  id: null;
+  type: "typing";
+  chatId: number;
+  who: PresenceWho;
+  on: boolean;
+  lastsMs: number | null;
+}
+
+// A presence as the stream tells it in one room: the state, null where unknown or hidden, and the last moment seen,
+// in epoch milliseconds.
+export interface PresenceEvent {
+  id: null;
+  type: "presence";
+  chatId: number;
+  who: PresenceWho;
+  state: PresenceState | null;
+  lastSeenAt: number | null;
+}
 
 // The ways a turn ends: the bot answered, it held its peace, its run failed, somebody stopped it,
 // or it did nothing but wait for the rest of what someone is typing. Whatever a turn moves — a

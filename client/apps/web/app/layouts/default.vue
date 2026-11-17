@@ -182,6 +182,7 @@ import { useModelNames } from "~/domain/model-names";
 import { SCREEN_FRAME, useNarrow } from "bmo-ui/app/domain/screen";
 import { useVisibleShell } from "~/domain/overlay";
 import { useRoomList, useRoomReading } from "~/domain/room-list";
+import { useRoomsPresent } from "~/domain/presence";
 import { useConsoleScreens } from "~/domain/console-screens";
 import { namedWhenFolded, roomItems, screensWithBundles, sectionItems } from "~/domain/screens";
 import { useSidebarUnread } from "~/domain/sidebar-unread";
@@ -273,11 +274,13 @@ async function roomAdded(added: RoomAdded): Promise<void> {
   await navigateTo(`/rooms/${added.chatId}`);
 }
 const reading = useRoomReading();
+// Who is here and who writes in each room, as the stream tells it (docs/web.md, 「Presence and typing」).
+const present = useRoomsPresent();
 const roomsInitial = useInitialRead(roomsStatus);
 // Each room's entry stays the one in hand while what it shows is the same, so a room switch or a room's message draws
 // again the rows that changed and no other (docs/web.md, 「What the stream costs a tab」).
 const roomEntries = computed<NavigationMenuItem[]>((before) =>
-  sameRowsKept(before, roomItems(t, rooms.value, avatars.value, route.path, sidebarFolded.value, reading.value), (entry) => String(entry.to))
+  sameRowsKept(before, roomItems(t, rooms.value, avatars.value, route.path, sidebarFolded.value, reading.value, present.value), (entry) => String(entry.to))
 );
 
 // Which agents are at work right now. The picture is asked for once and replaced by the one the live events

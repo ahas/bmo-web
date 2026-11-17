@@ -33,7 +33,9 @@ describe("the composer's mention list", () => {
   test("reads the caret from the box and follows what is typed, clicked and moved", () => {
     expect(composer).toContain("() => box.value?.textarea() ?? null");
     expect(input).toContain("textarea: () => prompt.value?.textareaRef ?? null");
-    expect(template).toContain('@input="mentionTrack"');
+    // What is typed moves the mention and, beside it, says whether the box holds words (docs/web.md, 「Presence and typing」).
+    expect(template).toContain('@input="onInput"');
+    expect(composer).toMatch(/function onInput\(\): void \{\n  mentionTrack\(\);\n  emit\("typing", /);
     expect(template).toContain('@keyup="mentionTrack"');
     expect(template).toContain('@click="mentionTrack"');
   });

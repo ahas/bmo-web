@@ -3,10 +3,11 @@ import { TURN_ENDED } from "#shared/types";
 import { otherAnswererOf, defaultAnswererName } from "./agents";
 import { askWhetherLoginEnded } from "./login-end";
 import { toUnixSeconds } from "bmo-ui/app/domain/time";
+import { forgetPresent, heardPresent } from "./presence";
 import { appUrl } from "./urls";
 import { agencyEvent, jobEvent, voiceEvent } from "./unit-events";
 
-import type { BotEvent, BotEventType, ChatTurn, ExactMessageId, Judgement, LiveSnapshot, RunProgress, TurnReceived, TurnSpeaker } from "#shared/types";
+import type { BotEvent, BotEventType, ChatTurn, ExactMessageId, Judgement, LiveSnapshot, PresenceEvent, RunProgress, TurnReceived, TurnSpeaker, TypingEvent } from "#shared/types";
 import type { InjectionKey, Ref } from "vue";
 
 export interface RunState {
@@ -395,6 +396,8 @@ function open(): void {
     }
 
     run = named.run;
+    // Who writes and who is here stand as this stream hands them after its replay, whatever was held before.
+    forgetPresent();
 
     // The bot spoke, so this is a connection and not merely an open socket. The app answers a
     // request for the stream whether or not the bot is behind it — it opens, relays nothing and
@@ -437,11 +440,18 @@ function open(): void {
   source.addEventListener("bot", (message) => {
     heard = true;
 
-    let event: BotEvent;
+    let event: BotEvent | TypingEvent | PresenceEvent;
 
     try {
-      event = JSON.parse((message as MessageEvent<string>).data) as BotEvent;
+      event = JSON.parse((message as MessageEvent<string>).data) as BotEvent | TypingEvent | PresenceEvent;
     } catch {
+      return;
+    }
+
+    // An event of the present carries no id: it moves no cursor and is held apart from the numbered events.
+    if (event.type === "typing" || event.type === "presence") {
+      heardPresent(event as TypingEvent | PresenceEvent);
+
       return;
     }
 
@@ -674,6 +684,7 @@ function close(): void {
   setTurns(new Map());
   endedNow = new Map();
   setPictured(null);
+  forgetPresent();
 }
 
 // The bot's live stream. It carries the session cookie on its own, and it reopens itself

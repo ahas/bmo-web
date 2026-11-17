@@ -191,6 +191,12 @@
 - the people of a room, the accounts let into it and the people its chat service reads → 대화상대: 대화상대,
   대화상대 없음, 대화상대를 불러오지 못했습니다. Never 멤버, 참여자, 인원, and never 구성원, which is a unit's people; a
   member the account service knows as an account → 콘솔 사용자.
+- whether a person is reachable now → 접속 상태: 온라인, 자리 비움, and for one who is not here the last moment seen,
+  최근 접속 {time} 전; several people's → 온라인 {n}명; the account's switch to show it → 접속 상태 공개. Nobody is
+  ever written offline: one who is not here is drawn as nothing. Never 접속 중, 부재 중, 마지막 접속, which stays the
+  users tab's never-word for a sign-in.
+- somebody writing in a room now → 입력 중: `{name} 입력 중…`, `{first}, {second} 입력 중…`, `{name} 외 {n}명 입력
+  중…`, and 누군가 입력 중… where the room names nobody for them. Never 타이핑 중, 작성 중, 쓰는 중.
 - letting an account into a room → 대화상대 추가: 대화상대 추가, 추가했습니다, 추가하지 못했습니다. Never 초대, which is
   the link that makes an account, nor 들이기, 입장.
 - taking a member out of a room → 내보내기: 내보내기, 내보냈습니다, 내보내지 못했습니다; a member taking themselves

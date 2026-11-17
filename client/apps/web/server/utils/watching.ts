@@ -6,12 +6,16 @@ import { WATCH_STALE_MS } from "#shared/config";
 // It is held in this server's memory alone: a report is good for a minute or two, and a server
 // that restarts hears every open tab again within one interval. A tab that looks unseen — the administrator's on a
 // room that is not his own (docs/web.md, 「Access」) — keeps its own account's devices quiet and nothing more: nobody
-// else's count starts afresh for it, and it is in no report of the rooms open.
+// else's count starts afresh for it, and it is in no report of the rooms open. The same reports are each account's
+// presence in the console (docs/web.md, 「Presence and typing」): whether a tab of it is open, whether one is visible,
+// and when a visible one last reported.
 
 export interface TabReport {
   // The tab's own name for itself, made when it opened.
   tab: string;
   user: string;
+  // The account the login stands for, or none for a console login standing before the account model.
+  account?: number | null;
   // The room it shows, or null for any screen that is not a room.
   chatId: number | null;
   visible: boolean;
@@ -21,14 +25,22 @@ export interface TabReport {
 
 interface Standing {
   user: string;
+  account: number | null;
   chatId: number | null;
   visible: boolean;
   unseen: boolean;
   at: number;
 }
 
+/** An account's tabs as they stand now: whether one of them is visible. */
+export interface AccountTabs {
+  visible: boolean;
+}
+
 export class RoomWatchers {
   private readonly tabs = new Map<string, Standing>();
+  // When a visible tab of each account last reported, kept once its tabs are gone.
+  private readonly seen = new Map<number, number>();
   // When a visible tab last showed each room, so the ringer knows a room has been looked at.
   private readonly looked = new Map<number, number>();
 
@@ -45,8 +57,13 @@ export class RoomWatchers {
     }
 
     const unseen = report.unseen === true;
+    const account = report.account ?? null;
 
-    this.tabs.set(report.tab, { user: report.user, chatId: report.chatId, visible: report.visible, unseen, at: now });
+    this.tabs.set(report.tab, { user: report.user, account, chatId: report.chatId, visible: report.visible, unseen, at: now });
+
+    if (report.visible && account !== null) {
+      this.seen.set(account, now);
+    }
 
     if (report.visible && report.chatId !== null && !unseen) {
       this.looked.set(report.chatId, now);
@@ -86,6 +103,24 @@ export class RoomWatchers {
     }
 
     return [...rooms].sort((one, other) => one - other);
+  }
+
+  // Every account with a tab reporting now, and whether one of its tabs is visible.
+  accountTabs(now: number): Map<number, AccountTabs> {
+    const accounts = new Map<number, AccountTabs>();
+
+    for (const standing of this.tabs.values()) {
+      if (standing.account === null || now - standing.at > this.staleMs) continue;
+
+      accounts.set(standing.account, { visible: (accounts.get(standing.account)?.visible ?? false) || standing.visible });
+    }
+
+    return accounts;
+  }
+
+  // When a visible tab of the account last reported, or null where none has since this server started.
+  lastSeen(account: number): number | null {
+    return this.seen.get(account) ?? null;
   }
 
   // When the room was last shown on a visible tab, or null where it has not been since this server

@@ -96,6 +96,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["console-load", "fixture-password-3127"],
   ["deploy-truth", "fixture-password-3187"],
   ["room-presence", "fixture-password-3124"],
+  ["people-presence", "fixture-password-3293"],
   ["sidebar-agent-rows", "fixture-password-3165"]
 ];
 
@@ -158,6 +159,13 @@ const MEMBERS: readonly { name: string; password: string; sections: readonly { s
       { section: "account", read: true, write: false }
     ]
   },
+  // The people whose presence the receiver's stand-in tells in a room nobody else stands in: one of the fixture's
+  // company, one of it who turned their presence off, and one moved into a company of their own.
+  ...["presence-here", "presence-hidden", "presence-other"].map((name, at) => ({
+    name,
+    password: `fixture-password-329${at}`,
+    sections: [{ section: "account", read: true, write: true }]
+  })),
   // The research screen opened to a member, research the first section they read.
   {
     name: "research-reader",
@@ -220,6 +228,11 @@ const PAGED_LINE = Array.from({ length: 70 }, (_, at) => String(at + 1));
 // room, is refused 403 `private-room`, as the receiver refuses it.
 const PRIVATE_CHAT = -9_003_000_000_001;
 const PRIVATE_ACCOUNT = 9_003_001;
+// A room only the presence fixture's people stand in, whose presence the receiver's stand-in tells as its stream opens:
+// each of the three online, written once their accounts stand. No fixture account shares the room with them.
+const PRESENCE_CHAT = -9_004_000_000_001;
+const PRESENCE_PEOPLE = ["presence-here", "presence-hidden", "presence-other"] as const;
+const presence = { frames: "" };
 const SEALED_OWNER = process.env.BROWSER_CONSOLE_SEALED_OWNER === "1";
 
 function privacyOf(chat: number): { privateOf: number | null; sealed: boolean } {
@@ -396,9 +409,9 @@ async function answering(what: string, address: string, seconds: number): Promis
   throw new Error(`${what} did not answer at ${address} within ${seconds}s; its log is in ${scratch}`);
 }
 
-// An event stream that stays open and says nothing.
-function silentStream(): Response {
-  return new Response(new ReadableStream({ start: (controller) => controller.enqueue(new TextEncoder().encode(": open\n\n")) }), {
+// An event stream that stays open, says what stands of the present where it is given, and nothing more.
+function silentStream(present = ""): Response {
+  return new Response(new ReadableStream({ start: (controller) => controller.enqueue(new TextEncoder().encode(`: open\n\n${present}`)) }), {
     headers: { "content-type": "text/event-stream", "cache-control": "no-cache" }
   });
 }
@@ -846,9 +859,9 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       kept(-3, LINE_AT - 4_000, { text: "", deletedAt: LINE_AT - 3_000 })
     ];
 
-    // The receiver's stream stands open and says nothing, so a tab's stream stays open and carries the console's own
-    // words between the units' silences.
-    if (path === "/events") return silentStream();
+    // The receiver's stream stands open and says nothing but the presence it tells as it opens (the presence fixture), so
+    // a tab's stream stays open and carries the console's own words between the units' silences.
+    if (path === "/events") return silentStream(presence.frames);
     if (path === "/owner") return Response.json({ room: OWNER_CHAT, senderId: 1 });
     if (path === "/live") return Response.json({ at: now, compacting: [], queued: [], turns: [] });
     const media = { ...room, id: MEDIA_CHAT, title: "media-room", ownerRoom: false, workRoom: MEDIA_CHAT, lastMessageAt: LINE_AT - 500 };
@@ -1420,6 +1433,52 @@ try {
 
     if (!written.ok) throw new Error(`${member.name}'s sections were refused: ${written.status}`);
   }
+
+  // The presence fixture: one of its people moved into a company of their own, one who turned their presence off, and
+  // the receiver's stand-in telling all three online in a room no fixture account shares.
+  const service = (path: string, init: RequestInit = {}): Promise<Response> =>
+    fetch(`http://127.0.0.1:${serverPort}${path}`, {
+      ...init,
+      headers: {
+        authorization: `Bearer ${TOKEN}`,
+        "owner-key": users.find((user) => user.name === ACCOUNTS[0]![0])!.user,
+        "owner-role": "administrator",
+        "content-type": "application/json"
+      }
+    });
+  const presenceIds = PRESENCE_PEOPLE.map((name) => {
+    const one = users.find((user) => user.name === name);
+
+    if (one === undefined) throw new Error(`${name} stands in no users list`);
+
+    return Number(one.user);
+  });
+  const company = await service("/units", { method: "POST", body: JSON.stringify({ name: "presence-company" }) });
+
+  if (!company.ok) throw new Error(`the other company was refused: ${company.status} ${await company.text()}`);
+
+  const moved = await service(`/users/${presenceIds[2]}/unit`, { method: "PUT", body: JSON.stringify({ unit: ((await company.json()) as { id: number }).id }) });
+
+  if (!moved.ok) throw new Error(`the move into the other company was refused: ${moved.status} ${await moved.text()}`);
+
+  const hidden = await fetch(`${origin}/api/account/presence`, {
+    method: "PUT",
+    headers: { cookie: await signIn("presence-hidden", "fixture-password-3291", origin), "content-type": "application/json" },
+    body: JSON.stringify({ shown: false })
+  });
+
+  if (!hidden.ok) throw new Error(`the presence switch was refused: ${hidden.status}`);
+
+  // Told last, the fixture's own person comes after the other two, so a reader who sees them has been handed whatever
+  // the stream was to hand of the others.
+  presence.frames = [...presenceIds]
+    .reverse()
+    .map((account) => {
+      const told = { id: null, at: LINE_AT, type: "presence", chatId: PRESENCE_CHAT, messageId: null, who: { kind: "account", account }, state: "online", lastSeenAt: LINE_AT };
+
+      return `event: bot\ndata: ${JSON.stringify(told)}\n\n`;
+    })
+    .join("");
 
   // The media room's reader has a sender of its own, linked as the administrator links one.
   const reader = users.find((user) => user.name === "pictures");

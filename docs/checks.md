@@ -54,7 +54,9 @@ machine's own socket's `bmo_test`, and every name carries the process that made 
   - in the receiver's stand-in, whose private room each room is, `privateOf` and `sealed` on every room it reads:
     another account's private room with two lines said in it, `private-room`, and the owner's room, sealed where the
     script runs with `BROWSER_CONSOLE_SEALED_OWNER=1`; a write naming an account in another account's private room, or
-    any account in a sealed room, is refused 403 `private-room` as the receiver refuses it;
+    any account in a sealed room, is refused 403 `private-room` as the receiver refuses it; and, on its event stream
+    as it opens, three members online in a room no fixture account stands in: one of the fixture's company, one of it
+    who turned their presence off, and one the script moves into a company of its own;
   - the fixture accounts each file signs in with, made by the console's own `user` script. Every account made
     with the administrator flag is a platform administrator by the account service's word, and the members, made
     without it, stay members, whose console sections are written whole as the administrator's screen writes them.

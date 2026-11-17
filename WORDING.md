@@ -349,6 +349,15 @@
 - acting for a unit's head for a period → 직무대행: 직무대행 지정, 대행자, 종료일, `{date}까지`, and the mark 대행. Never 대리,
   which is a rank, nor 권한 위임.
 - the record of changes to a person's place → 이력: 이력 없음. Never 히스토리, 로그, 발령 내역.
+- a project's work on the projects screen → 단계 (a stage) and 게이트 (what ends it); an approver's rejection of a gate →
+  반려, with its 반려 사유, as an approval document's; the approval forms a gate waits on → 결재 양식; a task → 임무, its
+  due date → 기한, `{n}일 남음` while it is still to come, 오늘 마감 on the day, 기한 지남 once past; a project's planned
+  period → 계획 기간, its 시작일 and 종료일; a progress entry → 진척, its share → 진척률, its outlook → 전망, with 순조,
+  주의, 위험; a recurring stage's reporting period → 보고 주기, with 매주, 매월, 분기마다, 반기마다, the project it reports
+  to → 보고 대상, and a period that ended with no report → 보고 누락 {n}건; one project asking another, or a unit, for
+  work → 업무 요청, answered 인수, 거절, then 완료; a report waiting for its unit's head to send it → 초안; how long a
+  relation waited → 대기 {span} while it waits, 응답 경과 {span} once answered. Never 거절 for a gate's rejection,
+  마감일 or 데드라인 for a due date, 진행률 for 진척률.
 - what a board or a record belongs to, a unit or a project, and the company a person belongs to → 소속: 소속, 보드
   소속, 소속 조직 구성원, 소속 회사가 없습니다; a board or a record that belongs to none shows 없음. Never 소속
   없음, and never 담당 or 담당자 for it, which is who keeps or approves a thing.

@@ -12,7 +12,7 @@ import type { Later } from "../../../apps/web/app/domain/delegations";
 // screen watched end says what it came to for a moment and is then gone, and a run that had already ended when the
 // room opened stands nothing.
 
-const RUN = { agent: "doppelganger-a", name: "delegate-agent-a-1700000030000" };
+const RUN = { agent: "doppelganger-a", name: "delegate-agent-a-1700000030000", id: 7 };
 
 function delegation(over: Partial<DelegationView> = {}): DelegationView {
   return {
@@ -147,6 +147,17 @@ describe("the notice of a run this screen watched end", () => {
 
     reading.take([delegation({ run: RUN })], ["agent-a"]);
     reading.take([delegation({ stage: "ended", outcome: "Done" })], ["agent-a"]);
+
+    expect(reading.lines.value.map((one) => one.run)).toEqual([RUN]);
+
+    reading.stop();
+  });
+
+  test("an ended run's notice opens the run its ended row names, though it was never seen running as one", () => {
+    const reading = useDelegationReading(wording, { later: noticeClock().later });
+
+    reading.take([delegation({ stage: "waiting", runningSince: null })], ["agent-a"]);
+    reading.take([delegation({ stage: "ended", outcome: "Done", run: RUN })], ["agent-a"]);
 
     expect(reading.lines.value.map((one) => one.run)).toEqual([RUN]);
 

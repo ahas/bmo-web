@@ -9,7 +9,7 @@ import type { ComputedRef } from "vue";
 // the screen watched a run end, its line says what it came to for a moment and then goes; a run that had already ended
 // when the room opened stands nothing. The role names the run and its title says what it was asked to do; a run the
 // agency no longer carries stands no line at all. A line whose run is known opens that run's log, and the notice of an
-// ended run opens the run it was last seen running as, since the agency names a run only while its slot holds it.
+// ended run opens the run its ended row names, else the run it was last seen running as.
 
 const WAITING = "room.status.delegation_waiting";
 const WAITING_UNTITLED = "room.status.delegation_waiting_untitled";
@@ -123,8 +123,8 @@ export function useDelegationReading(t: Translate, options: DelegationReadingOpt
   // The tokens waiting or running at the last answer, which is how a run this screen watched end is told apart from
   // one that had already ended when it opened.
   let seen = new Set<string>();
-  // The run each of those was last seen running as, which an ended one's notice opens once the agency names it no
-  // longer.
+  // The run each of those was last seen running as, which an ended one's notice opens where its ended row names
+  // none.
   let runs = new Map<string, DelegationRun>();
   let cancel: (() => void) | null = null;
 

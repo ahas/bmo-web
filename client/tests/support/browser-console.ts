@@ -672,12 +672,14 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       return Response.json({
         items: [
           {
-            token: DELEGATION_LOG.token, title: DELEGATION_LOG.title, askedBy: "agent-a", stage: "running", agentName: "doppelganger-a",
-            role: "doppelganger", askedAt: Date.now() - 60_000, runningSince: Date.now() - 30_000, endedAt: null, outcome: null
+            token: DELEGATION_LOG.token, title: DELEGATION_LOG.title, askedBy: "agent-a", stage: "running", role: "doppelganger",
+            provider: "claude-code", model: "claude-opus-5-5", session: null, askedAt: Date.now() - 60_000, runningSince: Date.now() - 30_000,
+            endedAt: null, runName: DELEGATION_LOG.run, runId: DELEGATION_LOG.ledgerRun, outcome: null
           },
           {
-            token: "delegation-ended", title: "Retire the old marker", askedBy: "agent-a", stage: "ended", agentName: "doppelganger-a",
-            role: "doppelganger", askedAt: Date.now() - 600_000, runningSince: Date.now() - 600_000, endedAt: Date.now() - 300_000, outcome: "all checks passed"
+            token: "delegation-ended", title: "Retire the old marker", askedBy: "agent-a", stage: "ended", role: "doppelganger",
+            provider: "claude-code", model: "claude-opus-5-5", session: null, askedAt: Date.now() - 600_000, runningSince: Date.now() - 600_000,
+            endedAt: Date.now() - 300_000, runName: "delegate-agent-a-0", runId: 950, outcome: "all checks passed"
           }
         ]
       });

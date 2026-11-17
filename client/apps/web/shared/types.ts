@@ -1021,21 +1021,23 @@ export interface DelegationView {
   title: string | null;
   askedBy: string | null;
   stage: DelegationStage;
-  // The agent its turn runs on; null before it is bound.
+  // The agent its turn runs on, as its slot names it; null before it is bound and once it has left its slot.
   agentName: string | null;
   role: string;
   askedAt: number;
   runningSince: number | null;
   endedAt: number | null;
   outcome: string | null;
-  // The run its turn writes under, while the slot names one.
+  // The run its turn writes under, once the delegation or its slot names one.
   run: DelegationRun | null;
 }
 
-// The run a delegated task's turn writes under: the agent whose log holds it and the run's own name.
+// The run a delegated task's turn writes under: the agent whose log holds it, the run's own name, and its id in the
+// agency's run ledger, none until its turn opens it.
 export interface DelegationRun {
   agent: string;
   name: string;
+  id: number | null;
 }
 
 // The agency's page of delegations: the ones still waiting or running in the order they were asked, then the latest

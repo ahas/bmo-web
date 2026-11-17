@@ -5654,8 +5654,8 @@ Four bounds keep it from growing forever.
 - **The work of a supervisor's double stands in the owner's own chat.** One task a supervisor delegated to its double,
   while it waits for a slot or runs, stands a centred line at the conversation's foot, muted like a passing word and
   carrying a turning mark: the role that runs it by its name, what it is at (대기 중 or 작업 중), and what it was asked
-  to do — the delegation's title, or the agent it was bound to where it has none. Every run waiting or running stands
-  a line of its own, in the order the agency asked them. A run this screen watched end says what it came to for ten
+  to do — the delegation's title, or, where it has none, the agent its slot names it bound to. Every run waiting or
+  running stands a line of its own, in the order the agency asked them. A run this screen watched end says what it came to for ten
   seconds, and is then gone; a run that had already ended when the room opened stands nothing at all, so a finished
   run never hangs in the conversation. The agency keeps the ended run's record — this is the room screen's view and
   nothing of the service is taken away. Only the owner's own chat, read by the platform administrator, stands the
@@ -5669,12 +5669,14 @@ Four bounds keep it from growing forever.
     this screen watched end came to; the notice is timed to go, and that is the only clock the line keeps.
   - **A line opens its run's log.** A line whose run is known carries one icon button at its end, 로그, which opens
     that run's lines alone, followed while it goes, in the same log dialog a room's run line opens. The run is the
-    one the agency's `GET /slots` names for the delegation's slot by its token, the run its turn writes under; it is
-    read with the delegations on every read. A waiting run, and a running one whose turn has not started, has none
-    yet and carries no button; a running line whose slot names none between two of its turns keeps the run it was
-    last seen as. A run that ends leaves the slots, so the notice of one this screen watched end opens
-    the run it was last seen running as, beside what it came to; a log dialog already open stays open when the
-    notice goes.
+    one the delegation itself names in the agency's answer, its `runName` with its `runId`, the run its turn writes
+    under, which the agency keeps once the run has ended; only where the delegation names none yet does the line
+    take the run the agency's `GET /slots` names for the delegation's slot by its token, read with the delegations
+    on every read. A waiting run, and a running one whose turn has not started, has none yet and carries no button;
+    a running line that neither names between two of its turns keeps the run it was last seen as. The notice of a
+    run this screen watched end opens the run its ended row names, so a run that started and ended between two
+    reads keeps its log, else the run it was last seen running as, beside what it came to; a log dialog already
+    open stays open when the notice goes.
 
 #### 대화에서 찾기
 

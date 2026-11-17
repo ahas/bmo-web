@@ -1,7 +1,7 @@
 // A delegated task's run as the agency holds it (the agency's `docs/api.md`, 「runs」 and 「log-lines」), for the browser
-// check that opens it from the owner's own chat's marker (tests/browser/delegation-marker.test.ts): the slot holding
-// the task names the run under the delegation's token, the run ledger holds it open for the room it was asked in, and
-// its agent's log holds a few lines of it among another run's.
+// check that opens it from the owner's own chat's marker (tests/browser/delegation-marker.test.ts): the delegation names
+// the run, as the slot holding the task does under its token, the run ledger holds it open for the room it was asked
+// in, and its agent's log holds a few lines of it among another run's.
 
 export const DELEGATION_LOG = {
   token: "delegation-running",

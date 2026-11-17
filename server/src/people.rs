@@ -1,8 +1,9 @@
 //! The people directory (docs/accounts.md, 「The people directory」; docs/boundary.md, 「Users and senders」):
-//! the users of the reader's own company, whatever unit of it they stand in, found by their name, their unit and
-//! the contact details the reader may see. The contact details stand only for the platform administrator and for the person
-//! themselves, and a search matches only the fields its reader may see, so a refused field is not an answer
-//! either. The members list answers the whole company, each person by key and name alone.
+//! the users of the reader's own company, whatever unit of it they stand in, and of every company for the platform
+//! administrator, found by their name, their unit and the contact details the reader may see. The contact details
+//! stand only for the platform administrator and for the person themselves, and a search matches only the fields
+//! its reader may see, so a refused field is not an answer either. The members list answers the reader's whole
+//! company, each person by key and name alone.
 
 use axum::Json;
 use axum::Router;
@@ -39,6 +40,14 @@ struct Caller {
 /// The users a company holds: those whose unit stands under it.
 const IN_COMPANY: &str =
   r#"u."organization_id" IN (SELECT "descendant_id" FROM "org_closure" WHERE "ancestor_id" = $1)"#;
+
+impl Caller {
+  /// The users the reader's search and person lookup reach: every company's for the administrator, the reader's
+  /// own company's, bound as `$1`, for anyone else.
+  fn reach(&self) -> &'static str {
+    if self.administrator { "TRUE" } else { IN_COMPANY }
+  }
+}
 
 /// The columns one person is read by.
 const COLUMNS: &str = r#"
@@ -101,7 +110,7 @@ fn person_of(row: &QueryResult, reader: &Caller) -> Result<Person, Refusal> {
   })
 }
 
-/// The users of the reader's company whose name, unit, job title or permitted contact details hold the words,
+/// The users the reader reaches whose name, unit, job title or permitted contact details hold the words,
 /// in the directory's order. Words that are empty, and a search that finds none, answer no
 /// one.
 async fn search<C: ConnectionTrait>(
@@ -133,7 +142,7 @@ async fn search<C: ConnectionTrait>(
   };
   let sql = format!(
     r#"SELECT {COLUMNS} {FROM}
-       WHERE {IN_COMPANY} AND (
+       WHERE {reach} AND (
          strpos(lower(u."username"), lower($2)) > 0
          OR strpos(lower(COALESCE(u."full_name", '')), lower($2)) > 0
          OR strpos(lower(o."name"), lower($2)) > 0
@@ -141,7 +150,8 @@ async fn search<C: ConnectionTrait>(
          {contact}
        )
        {ORDER}
-       LIMIT $3"#
+       LIMIT $3"#,
+    reach = reader.reach(),
   );
   let rows = all(
     db,
@@ -175,13 +185,13 @@ async fn members<C: ConnectionTrait>(db: &C, reader: &Caller) -> Result<Vec<Memb
     .collect()
 }
 
-/// One person of the reader's company, or nothing found where the user does not stand or stands in another
-/// company.
+/// One person the reader reaches, or nothing found where the user does not stand or stands beyond the reader's
+/// reach.
 async fn of<C: ConnectionTrait>(db: &C, reader: &Caller, user: i32) -> Result<Person, Refusal> {
-  let sql = format!(r#"SELECT {COLUMNS} {FROM} WHERE {IN_COMPANY} AND u."id" = $2"#);
+  let sql = format!(r#"SELECT {COLUMNS} {FROM} WHERE {reach} AND u."id" = $2"#, reach = reader.reach());
   let row = one(db, &sql, vec![reader.company.into(), user.into()])
     .await?
-    .ok_or_else(|| Refusal::absent(format!("no person {user} stands in this company")))?;
+    .ok_or_else(|| Refusal::absent(format!("no person {user} stands in the reader's directory")))?;
 
   person_of(&row, reader)
 }
@@ -207,7 +217,7 @@ async fn members_route(State(service): State<Service>, headers: HeaderMap) -> An
   }))
 }
 
-/// `GET /users/{user}/person`: one person of the reader's company.
+/// `GET /users/{user}/person`: one person the reader reaches.
 async fn person_route(
   State(service): State<Service>,
   Path(user): Path<String>,

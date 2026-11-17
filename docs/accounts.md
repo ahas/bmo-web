@@ -212,10 +212,12 @@ section states what each does.
 - **`GET /users/{user}/sections`** — one user's console sections, each with whether they may read and write
   it: the account's holder's or an administrator's. **`PUT /users/{user}/sections`** writes one user's set
   whole, by an administrator alone (「Console sections」).
-- **`GET /users/search?q=&limit=`** — the people of the reader's own company whose name, unit, job title or
-  permitted contact details hold the words; at most 20 without a `limit`, and never more than 50.
-- **`GET /users/{user}/person`** — one person of the reader's own company; 404 where the user does not stand or
-  stands in another company (「The people directory」).
+- **`GET /users/search?q=&limit=`** — the people of the reader's own company, of every company for the platform
+  administrator, whose name, unit, job title or permitted contact details hold the words; at most 20 without a
+  `limit`, and never more than 50.
+- **`GET /users/{user}/person`** — one person of the reader's own company, of any company for the platform
+  administrator; 404 where the user does not stand or, for any other reader, stands in another company
+  (「The people directory」).
 - **`GET /users/members`** — every person of the reader's own company who has not left, by user id and name
   alone, with no limit (「The people directory」).
 
@@ -539,6 +541,11 @@ section states what each does.
 - **The directory is the users of the reader's own company:** every user whose unit stands under the company
   the reader's unit belongs to. The reader is named by `Owner-Key`; a call naming no user of the deployment is
   refused 403, and a search never answers a user of another company.
+- **The platform administrator's directory is every company's.** A reader sumida names a platform administrator
+  (「The platform administrators」) finds the people of every company through the search and reads any of them
+  through the person lookup, each with their unit's name, so a person of another company is told apart by it.
+  The members list stays the reader's own company. Whether the reader is the administrator is the service's own
+  reading of sumida for the user `Owner-Key` names, never `Owner-Role`.
 - **A person answers these fields:** their user id, their name (their full name where they keep one, their
   user name otherwise), their unit's name, their job title, and their landline, mobile and email.
 - **The contact details are read by the platform administrator and by the person themselves.** Everyone else

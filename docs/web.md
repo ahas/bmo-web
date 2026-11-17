@@ -1437,7 +1437,8 @@ edit to that file alone, once the guide below carries the word.
     that screen, the rooms, every agent in its branch and every node under 노드 — so a worker the owner adds is
     found the moment it stands in the sidebar. A folded branch is found all the same. A node is found by its
     internal name and its address too.
-  - **It finds the people of the reader's organisation as well.** The account service answers them as typing
+  - **It finds the people of the reader's organisation as well,** of every company for the platform
+    administrator, each row carrying the person's unit. The account service answers them as typing
     stops, by name, organisation and job title, and by the contact details the reader may see
     (`docs/accounts.md`, 「The people directory」); a result opens that person's page. A reader who opens 조직's
     사용자 tab finds there instead every person that tab reaches, by its search (「사용자」), and a result opens the
@@ -2122,7 +2123,8 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
 - **A screen a unit brings finds the people of the reader's organization** through the console's people
   directory, offered as bmo-ui's `docs/console-bundles.md` states it (「How a bundle mounts」, the people
   directory); each of its reads is the account service's own read of the directory for the signed-in login
-  (`docs/accounts.md`, 「The people directory」).
+  (`docs/accounts.md`, 「The people directory」). For the platform administrator that directory is every
+  company's (「Screens a unit brings」).
 - **What concerns one screen stands in its own row directly under the title bar, never in the bar.** An action
   on the screen as a whole stands at the row's right end, the screen's status at its left, and the way back to
   where the reader came from at its left end, before the status. Where the screen already has a row there — its
@@ -5723,7 +5725,7 @@ Four bounds keep it from growing forever.
   the people who may call their own BMO into the room by name, the grant of `ask` on the room (the account
   service's `docs/accounts.md`, 「A room's callers」).
 - **Each caller stands as a row** with their name and a switch that stands on; turning it off takes the grant away
-  and the row goes. Below the list, a person picked from the directory of the reader's company is added with a
+  and the row goes. Below the list, a person picked from the reader's directory is added with a
   switch 호출 허용 that stands on, so the permission is set as the person is added; added with it off, nothing is
   written. Letting a person into the room sets the same grant at the same moment (「방 만들기와 대화상대 추가」).
 - **Who changes it is the account service's to say:** the administrator, the room's leader (the owner of a BMO the
@@ -5777,7 +5779,7 @@ Four bounds keep it from growing forever.
   own is told so and nothing is made; the console goes to the room once it stands.
 - **대화상대 추가 lets a person in.** The 대화상대 sheet carries it for a reader who may let people in: the room's
   opener, a head of the opener's unit, or the administrator, as the account service answers it (`POST /checks/entry`).
-  It opens a dialog: a person picked from the directory of the reader's company, a switch 호출 허용 standing on,
+  It opens a dialog: a person picked from the reader's directory, a switch 호출 허용 standing on,
   and 추가. The console's server asks the account service whether the reader may let that person in — a person of
   another company than the room's is refused, the administrator's choice among them — then tells the receiver the
   account is let in by the reader (`PUT /rooms/{roomId}/accounts/{account}`), which writes a line into the room
@@ -6918,8 +6920,8 @@ Four bounds keep it from growing forever.
 
 ### Person's page
 
-- **`/people/<user>` is one person of the reader's organisation,** reached from a result of the console search
-  or from an address. It reads the person's name, organisation and job title, and the landline, mobile and
+- **`/people/<user>` is one person of the reader's organisation,** of any company for the platform
+  administrator, reached from a result of the console search or from an address. It reads the person's name, organisation and job title, and the landline, mobile and
   email the reader may see: those stand for the platform administrator and for the person themselves, and a
   member's page holds no contact row (`docs/accounts.md`, 「The people directory」).
 - **It is the account section's.** A reader whose account section is not read is taken to the first section
@@ -8191,6 +8193,12 @@ its people directory and the members of the reader's company.
   fixed paths under `/api/<unit>/` behind the administrator's sign-in, and every change of one is made through a
   route of the console's own, held to the rules of what it changes (「Access」), so a change asked of the relay is
   absent and no change goes around those rules.
+- **The people directory is every company's for the platform administrator,** the console's own addition to the
+  contract's 「How a bundle mounts」 (the people directory). Its `search` and `person` read the account service's
+  directory for the signed-in login, which for the platform administrator holds the people of every company
+  (`docs/accounts.md`, 「The people directory」), so a screen a unit brings names and picks a person of another
+  company, as one of a board or a project that company's people stand on, and each found person carries their
+  unit as `organization`. Every other reader's directory stays their own company.
 - **The members of the reader's company are a service the console answers itself,** as the contract's 「How a
   bundle mounts」 (the company's members) and 「What a console owes」 state it: its name, its one read, what it
   answers, to whom, and to which bundle's page. What the console adds of its own:

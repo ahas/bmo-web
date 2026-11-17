@@ -1,6 +1,7 @@
 //! The people directory (docs/accounts.md, 「The people directory」): the users of the reader's own
-//! organisation found by name, organisation and the contact details the reader may see. A member's search
-//! matches no contact detail but their own, and a person outside the organisation is not found.
+//! company, and of every company for the platform administrator, found by name, organisation and the contact
+//! details the reader may see. A member's search matches no contact detail but their own, and a member neither
+//! finds nor reads a person of another company.
 
 use crate::support::{OWNER, ROOM, Scratch, console_hash, ready};
 use axum::Router;
@@ -124,12 +125,8 @@ async fn an_administrator_finds_people_of_the_organisation_by_name_organisation_
   assert!(people(&said).is_empty(), "{said}");
 }
 
-#[tokio::test]
-async fn a_person_outside_the_organisation_is_never_found() {
-  ready();
-  let scratch = moved("member-b").await;
-  let app = app(&scratch).await;
-  let boss = owner(&app).await;
+/// A user standing in a unit of a company of its own, with contact details, and their id.
+async fn outsider(scratch: &Scratch) -> i32 {
   let outside = set_sign_in(scratch.db(), "outsider", "the password", false).await.unwrap().user;
   let other = one(
     scratch.db(),
@@ -162,13 +159,52 @@ async fn a_person_outside_the_organisation_is_never_found() {
   .await
   .unwrap();
 
+  outside
+}
+
+#[tokio::test]
+async fn the_administrator_finds_and_reads_a_person_of_another_company() {
+  ready();
+  let scratch = moved("member-b").await;
+  let app = app(&scratch).await;
+  let boss = owner(&app).await;
+  let outside = outsider(&scratch).await;
+
   let (status, said) = asked(&app, "/users/search?q=outsider", Some(&boss), Some("administrator")).await;
 
   assert_eq!(status, StatusCode::OK, "{said}");
-  assert!(!names(&said).contains(&"outsider"), "{said}");
+  assert_eq!(names(&said), vec!["outsider"], "{said}");
+  assert_eq!(people(&said)[0]["organization"], "elsewhere", "{said}");
 
   let (status, said) =
     asked(&app, &format!("/users/{outside}/person"), Some(&boss), Some("administrator")).await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert_eq!(said["name"], "outsider", "{said}");
+  assert_eq!(said["organization"], "elsewhere", "{said}");
+}
+
+#[tokio::test]
+async fn a_member_neither_finds_nor_reads_a_person_of_another_company() {
+  ready();
+  let scratch = moved("member-g").await;
+  let app = app(&scratch).await;
+  let member = one(scratch.db(), r#"SELECT "id" FROM "users" WHERE "username" = 'member-g'"#, vec![])
+    .await
+    .unwrap()
+    .unwrap()
+    .try_get::<i32>("", "id")
+    .unwrap()
+    .to_string();
+  let outside = outsider(&scratch).await;
+
+  let (status, said) = asked(&app, "/users/search?q=outsider", Some(&member), Some("member")).await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert!(people(&said).is_empty(), "{said}");
+
+  let (status, said) =
+    asked(&app, &format!("/users/{outside}/person"), Some(&member), Some("member")).await;
 
   assert_eq!(status, StatusCode::NOT_FOUND, "{said}");
 }

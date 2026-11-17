@@ -51,7 +51,9 @@ async function rewritten(bytes: Uint8Array, frames: StickerFrames): Promise<Writ
 
   switch (format) {
     case "webp":
-      return { bytes: await bytesOf(moving.webp({ loop: 0, lossless: true })), type: "image/webp" };
+      // The encoder's lowest search but one: a KakaoTalk emoticon is written in about a third of the default's time,
+      // under a second at the slowest, at the same size, since the picture waits on it the first time it is read.
+      return { bytes: await bytesOf(moving.webp({ loop: 0, lossless: true, effort: 1 })), type: "image/webp" };
     case "gif":
       return { bytes: await bytesOf(moving.gif({ loop: 0, reuse: true })), type: "image/gif" };
     default:

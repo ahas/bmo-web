@@ -1,13 +1,13 @@
 import { EVENT_FIRST_RETRY_MS, EVENT_RETRY_MS, RESTART_GRACE_MS, STREAM_KEEPALIVE_MS, STREAM_SILENCE_MS } from "#shared/config";
-import { TURN_ENDED } from "#shared/types";
+import { ACCOUNT_PRESENCE_EVENT, TURN_ENDED } from "#shared/types";
 import { otherAnswererOf, defaultAnswererName } from "./agents";
 import { askWhetherLoginEnded } from "./login-end";
 import { toUnixSeconds } from "bmo-ui/app/domain/time";
-import { forgetPresent, heardPresent } from "./presence";
+import { forgetPresent, heardAccountPresence, heardPresent } from "./presence";
 import { appUrl } from "./urls";
 import { agencyEvent, jobEvent, voiceEvent } from "./unit-events";
 
-import type { BotEvent, BotEventType, ChatTurn, ExactMessageId, Judgement, LiveSnapshot, PresenceEvent, RunProgress, TurnReceived, TurnSpeaker, TypingEvent } from "#shared/types";
+import type { AccountPresenceEvent, BotEvent, BotEventType, ChatTurn, ExactMessageId, Judgement, LiveSnapshot, PresenceEvent, RunProgress, TurnReceived, TurnSpeaker, TypingEvent } from "#shared/types";
 import type { InjectionKey, Ref } from "vue";
 
 export interface RunState {
@@ -461,6 +461,18 @@ function open(): void {
 
     lastId = event.id;
     hand(event);
+  });
+
+  // The presence of a person of the reader's company, handed by account with no room and no id, for the screens that show
+  // a person outside a room (docs/web.md, 「Presence and typing」).
+  source.addEventListener(ACCOUNT_PRESENCE_EVENT, (message) => {
+    heard = true;
+
+    try {
+      heardAccountPresence(JSON.parse((message as MessageEvent<string>).data) as AccountPresenceEvent);
+    } catch {
+      // A frame that does not read is passed over, as every frame of the stream is.
+    }
   });
 
   // bmo-job's run, named first on its stream as the receiver's is. A run its cursor cannot be read against

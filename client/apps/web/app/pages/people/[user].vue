@@ -28,6 +28,9 @@
           <SettingsRow :label="$t('people.label.job_title')">
             <span class="text-sm text-highlighted">{{ person.jobTitle === "" ? "—" : person.jobTitle }}</span>
           </SettingsRow>
+          <SettingsRow v-if="presenceLine !== null" :label="$t('people.label.presence')">
+            <UBadge :label="presenceLine" :color="presenceColor" variant="subtle" size="sm" data-person-presence />
+          </SettingsRow>
           <SettingsRow v-if="person.landline !== undefined" :label="$t('people.label.landline')">
             <span class="text-sm text-highlighted">{{ person.landline === "" ? "—" : person.landline }}</span>
           </SettingsRow>
@@ -45,7 +48,10 @@
 
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
+import { useNowSeconds } from "bmo-ui/app/domain/time";
 
+import { useSignedUser } from "~/domain/access";
+import { accountEntry, personPresenceWords, useAccountsPresence } from "~/domain/presence";
 import { screenKey } from "~/domain/route-key";
 
 import type { PersonView } from "#shared/people";
@@ -72,6 +78,14 @@ async function read(): Promise<void> {
     reading.value = false;
   }
 }
+
+// The person's presence, where they are of the reader's company and it is known (docs/web.md, 「Presence and typing」).
+const accounts = useAccountsPresence();
+const signedUser = useSignedUser();
+const { now } = useNowSeconds(60_000);
+const presence = computed(() => (person.value === null ? null : accountEntry(accounts.value, Number(person.value.user), signedUser.value)));
+const presenceLine = computed<string | null>(() => (presence.value === null ? null : personPresenceWords(t, presence.value, now.value * 1000)));
+const presenceColor = computed(() => (presence.value?.state === "online" ? "success" : presence.value?.state === "away" ? "warning" : "neutral"));
 
 watch(() => route.params.user, () => void read(), { immediate: true });
 </script>

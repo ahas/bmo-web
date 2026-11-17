@@ -1153,6 +1153,18 @@ export interface PresenceEvent {
   lastSeenAt: number | null;
 }
 
+// The name of the console's own frame an account's presence is handed under, by account and with no room, to the
+// readers of the account's company (docs/web.md, 「Presence and typing」).
+export const ACCOUNT_PRESENCE_EVENT = "account-presence";
+
+// An account's presence as the console hands it by account: the account's presence gathered from all its sources, the
+// state null where unknown or hidden. Like every event of the present it carries no id.
+export interface AccountPresenceEvent {
+  account: number;
+  state: PresenceState | null;
+  lastSeenAt: number | null;
+}
+
 // The ways a turn ends: the bot answered, it held its peace, its run failed, somebody stopped it,
 // or it did nothing but wait for the rest of what someone is typing. Whatever a turn moves — a
 // session's context, a usage window, the archive of a room — stands still again by the time one

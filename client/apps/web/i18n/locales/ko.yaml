@@ -1786,6 +1786,7 @@ people:
     name: 이름
     organization: 조직
     job_title: 직함
+    presence: 접속 상태
     landline: 유선 전화
     mobile: 휴대전화
     email: 이메일

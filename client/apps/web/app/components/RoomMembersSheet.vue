@@ -82,7 +82,7 @@ import { UDrawer, USlideover } from "#components";
 
 import { useReadFailure } from "~/domain/events";
 import { useSignedUser } from "~/domain/access";
-import { memberPresence, memberPresenceLook, usePresence } from "~/domain/presence";
+import { memberPresence, memberPresenceLook, useAccountsPresence, usePresence } from "~/domain/presence";
 import { useNowSeconds } from "bmo-ui/app/domain/time";
 import { useSectionAccess } from "~/domain/section-access";
 import { mayRead } from "#shared/sections";
@@ -122,13 +122,14 @@ const busy = ref<string | null>(null);
 const actFailure = ref("");
 const signedUser = useSignedUser();
 const mine = computed<string | null>(() => (signedUser.value === null ? null : String(signedUser.value)));
-// Each member's presence in the room, as the stream tells it (docs/web.md, 「Presence and typing」); the reader's own
-// row carries none.
+// Each member's presence in the room, as the stream tells it, and for an account the room tells nothing of, as the
+// stream hands it by account (docs/web.md, 「Presence and typing」); the reader's own row carries none.
 const presence = usePresence();
+const accountsPresence = useAccountsPresence();
 const { now } = useNowSeconds(60_000);
 
 function presenceOf(member: RoomMember): MemberPresence {
-  return memberPresenceLook(t, memberPresence(presence.value.get(props.chatId), member, signedUser.value), now.value * 1000);
+  return memberPresenceLook(t, memberPresence(presence.value.get(props.chatId), member, signedUser.value, accountsPresence.value), now.value * 1000);
 }
 const memberAccounts = computed<string[]>(() => members.value.flatMap((member) => member.account ?? []));
 const loaded = ref(false);

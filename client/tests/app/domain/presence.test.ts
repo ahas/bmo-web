@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { expireTyping, memberPresence, nextExpiry, personChip, presenceChip, presenceWords, roomPresence, stepPresence, stepTyping, typingPeople, typingWords } from "../../../apps/web/app/domain/presence";
+import { accountEntry, expireTyping, memberPresence, nextExpiry, personChip, presenceChip, presenceWords, roomPresence, stepAccountPresence, stepPresence, stepTyping, typingPeople, typingWords } from "../../../apps/web/app/domain/presence";
 
 import type { PresenceEvent, TypingEvent } from "../../../apps/web/shared/types";
 
@@ -15,6 +15,29 @@ const presence = (account: number, state: PresenceEvent["state"], lastSeenAt: nu
   ({ id: null, type: "presence", chatId: ROOM, who: { kind: "account", account }, state, lastSeenAt });
 const typing = (account: number, on: boolean, lastsMs: number | null = 6_000): TypingEvent =>
   ({ id: null, type: "typing", chatId: ROOM, who: { kind: "account", account }, on, lastsMs });
+
+describe("an account's presence outside a room", () => {
+  test("is held by account, unknown taking it away, and never drawn for the reader", () => {
+    let accounts = stepAccountPresence(new Map(), { account: 2, state: "away", lastSeenAt: null });
+
+    accounts = stepAccountPresence(accounts, { account: ME, state: "online", lastSeenAt: null });
+    expect(accountEntry(accounts, 2, ME)?.state).toBe("away");
+    expect(accountEntry(accounts, ME, ME)).toBeNull();
+
+    accounts = stepAccountPresence(accounts, { account: 2, state: null, lastSeenAt: null });
+    expect(accountEntry(accounts, 2, ME)).toBeNull();
+  });
+
+  test("stands for a member the room tells nothing of, and gives way to the room's where it tells", () => {
+    const accounts = stepAccountPresence(new Map(), { account: 2, state: "away", lastSeenAt: null });
+    const room = stepPresence(new Map(), presence(2, "online")).get(ROOM);
+    const member = { person: null, account: "2" };
+
+    expect(memberPresence(room, member, ME, accounts)?.state).toBe("online");
+    expect(memberPresence(new Map(), member, ME, accounts)?.state).toBe("away");
+    expect(memberPresence(new Map(), { person: 5, account: null }, ME, accounts)).toBeNull();
+  });
+});
 
 describe("a room's presence", () => {
   test("is the best state among the people other than the reader, and unknown takes a person away", () => {

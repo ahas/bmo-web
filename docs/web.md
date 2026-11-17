@@ -591,7 +591,8 @@ nothing.
   - It carries a message arriving, a turn beginning and the way it ended, each with the room, the
     message and who answered, and the word that a room's registration was removed; of the bot's
     picture, the turns going in those rooms and how much each was handed, and the message each holds
-    queued for a turn.
+    queued for a turn. Beside the rooms, it carries the presence of the people of their own company, by
+    account and with no room (「Presence and typing」).
   - What a turn is doing step by step, the verdicts, the other work running anywhere, the queue, the
     console's own events, bmo-job's and the agency's events, which name no room, and anything of a room
     they do not read never reach them. The one console
@@ -6974,6 +6975,8 @@ Four bounds keep it from growing forever.
 - **It is the account section's.** A reader whose account section is not read is taken to the first section
   they may open, as any other screen of that section is. The administrator's page of anyone stands with the
   contact rows, a member's page of another without them, and a member's own page with them.
+- **A person of the reader's company carries 접속 상태** while their presence is known, as 「Presence and typing」
+  draws it; the row stands and goes with the presence, and a page of another company's person carries none.
 
 ### Settings
 
@@ -8244,8 +8247,21 @@ in a table.
 - **A member hears the marks and the presence of the rooms they read and nothing else,** held as every event of the
   stream is (「Access」). The administrator reads every room, and hears every room's as its readers do.
 - **Never across companies.** A room stands in one company, and the receiver tells an account's presence only in the
-  rooms it stands in, so it reaches only the people sharing a room with it, all of its own company. A person's
-  presence is drawn nowhere outside a room: a person's page, a list of people and a picker of members show none.
+  rooms it stands in, so it reaches only the people sharing a room with it, all of its own company.
+- **The presence of the reader's company's people is handed by account as well,** for the screens that show a person
+  outside a room. Each `presence` the receiver tells of an account, in any room it holds, is the account's presence
+  gathered from all its sources, the same in every room; this server hands it on, with no room, as its own
+  `account-presence` frame of the account, its state and its last moment seen, to every reader of the account's
+  company, whether or not they read that room, and to nobody else. The administrator is handed his own company's,
+  as every reader is: his reading every room and every company's directory hands him no other company's people by
+  account. A stream hands an account's presence again only where it changed, and hands it after the replay as it
+  hands the rest of the present.
+  - The company's people are read from the account service's members list (`docs/accounts.md`, 「The people
+    directory」) as the stream opens, and read again each minute while it is open: a person who joins is handed from
+    their next change on, and one who stands no longer among them ends the stream, which the browser opens again
+    with their presence gone. A login with no account is handed no presence by account, and neither is a stream
+    until a read of its company's people has landed.
+  - An account the receiver tells of in no room is told of nowhere, and so is handed by account to nobody.
 - **An account that turned its presence off is handed with neither state nor last moment seen,** to every reader,
   the administrator and the account itself included, whichever source the receiver gathered it from. Until this
   server has read the switches, every account's presence is handed that way.
@@ -8284,6 +8300,16 @@ in a table.
   every room but the owner's own private chat, where nobody else writes; the dot rides the picture's corner and the
   typing mark takes room the row's name gives up. Each stands and goes at once, with no fade.
 - **A reader with no box** sees who writes by the room list's typing mark.
+- **A person of the reader's company outside a room** wears the presence handed by account, and a person of another
+  company, or one whose presence nobody told, wears nothing:
+  - **a person's page** (「Person's page」) carries a row 접속 상태 under the job title while the person is here or
+    was last seen at a known moment: a badge of 온라인 in the success colour, 자리 비움 in the warning colour, or
+    최근 접속 and the time since in the neutral one;
+  - **대화상대** (「대화상대」): a member who is an account the room tells nothing of wears the presence handed by
+    account, as its dot and its line under their name;
+  - **the picker of 대화상대 추가**: each person found wears their letter with the dot on it, and the words of the dot
+    after their organisation under their name.
+  The reader's own page, row and entry carry none.
 
 ## Screens a unit brings
 

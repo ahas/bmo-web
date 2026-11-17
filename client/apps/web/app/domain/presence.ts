@@ -3,14 +3,16 @@ import { TYPING_RENEW_MS } from "#shared/config";
 import { elapsedText } from "bmo-ui/app/domain/time";
 import { countText } from "./numbers";
 
-import type { PresenceEvent, PresenceState, PresenceWho, TypingEvent } from "#shared/types";
+import type { AccountPresenceEvent, PresenceEvent, PresenceState, PresenceWho, TypingEvent } from "#shared/types";
 import type { Translate } from "#shared/wording";
 import type { ComputedRef, Ref, ShallowRef } from "vue";
 
 // Who is writing in a room now, and who is reachable now, as the stream hands them (docs/web.md, 「Presence and
 // typing」): held by room and by who, dropped each time the stream opens, since what stands is handed again then, and
-// drawn quietly where the room is shown. The reader's own typing and presence are never drawn for them, and neither is
-// the answerer's mark, whose turn at work already stands where its answer will.
+// drawn quietly where the room is shown. The presence of the people of the reader's company is held by account as well,
+// as the stream hands it with no room, for the screens that show a person outside a room. The reader's own typing and
+// presence are never drawn for them, and neither is the answerer's mark, whose turn at work already stands where its
+// answer will.
 
 /** A presence told in a room. A presence told as unknown or hidden is no entry. */
 export interface PresenceEntry {
@@ -113,6 +115,12 @@ export function roomPresence(room: ReadonlyMap<string, PresenceEntry> | undefine
   return { best, online, people };
 }
 
+/** A person of the reader's company as the stream hands their presence by account, outside any room; none for the
+ * reader themselves, nor for an account the stream handed nothing of. */
+export function accountEntry(accounts: ReadonlyMap<number, PresenceEntry>, account: number, me: number | null): PresenceEntry | null {
+  return account === me ? null : (accounts.get(account) ?? null);
+}
+
 /** The dot a room's picture wears for its presence: always the same chip, shown only while somebody is here, so the
  * picture never changes its box as people come and go. */
 export function presenceChip(presence: RoomPresence): { show: boolean; color: "success" | "warning"; position: "bottom-right"; size: "md" } {
@@ -142,11 +150,13 @@ export function personPresenceWords(t: Translate, entry: PresenceEntry, now: num
 }
 
 /** One member of a room as the room's presence names them: by their account where the platform knows one, else by
- * their person number on the room's chat service; the reader's own row is never drawn for them. */
+ * their person number on the room's chat service; an account the room tells nothing of as the stream hands it by
+ * account, where it is of the reader's company. The reader's own row is never drawn for them. */
 export function memberPresence(
   room: ReadonlyMap<string, PresenceEntry> | undefined,
   member: { person: number | null; account: string | null },
-  me: number | null
+  me: number | null,
+  accounts: ReadonlyMap<number, PresenceEntry> = new Map()
 ): PresenceEntry | null {
   const account = member.account === null ? null : Number(member.account);
 
@@ -157,7 +167,7 @@ export function memberPresence(
     if (account === null && entry.who.kind === "person" && entry.who.personId === member.person) return entry;
   }
 
-  return null;
+  return account === null ? null : accountEntry(accounts, account, me);
 }
 
 /** The dot of one person's presence, as the room's own dot draws it. */
@@ -200,13 +210,14 @@ export function typingWords(t: Translate, names: readonly (string | null)[]): st
 interface Held {
   presence: ShallowRef<RoomHeld<PresenceEntry>>;
   typing: ShallowRef<RoomHeld<TypingEntry>>;
+  accounts: ShallowRef<ReadonlyMap<number, PresenceEntry>>;
 }
 
 let held: Held | null = null;
 let expiry: ReturnType<typeof setTimeout> | null = null;
 
 function store(): Held {
-  held ??= { presence: shallowRef(new Map()), typing: shallowRef(new Map()) };
+  held ??= { presence: shallowRef(new Map()), typing: shallowRef(new Map()), accounts: shallowRef(new Map()) };
 
   return held;
 }
@@ -243,18 +254,46 @@ export function heardPresent(event: TypingEvent | PresenceEvent): void {
   watchExpiry();
 }
 
+/** The accounts' presence with one handed by account; an unknown or hidden one takes the entry away. */
+export function stepAccountPresence(
+  accounts: ReadonlyMap<number, PresenceEntry>,
+  event: AccountPresenceEvent
+): ReadonlyMap<number, PresenceEntry> {
+  if (event.state === null && !accounts.has(event.account)) return accounts;
+
+  const next = new Map(accounts);
+
+  if (event.state === null) next.delete(event.account);
+  else next.set(event.account, { who: { kind: "account", account: event.account }, state: event.state, lastSeenAt: event.lastSeenAt });
+
+  return next;
+}
+
+/** One account's presence the stream handed by account. */
+export function heardAccountPresence(event: AccountPresenceEvent): void {
+  const { accounts } = store();
+
+  accounts.value = stepAccountPresence(accounts.value, event);
+}
+
 /** Everything held let go, as the stream opens again and hands what stands, or closes. */
 export function forgetPresent(): void {
   if (held === null) return;
 
   held.presence.value = new Map();
   held.typing.value = new Map();
+  held.accounts.value = new Map();
   watchExpiry();
 }
 
 /** Every room's presence as the stream tells it. The stream is held open by whoever reads the bot's events. */
 export function usePresence(): Readonly<Ref<RoomHeld<PresenceEntry>>> {
   return readonly(store().presence);
+}
+
+/** The presence of the reader's company's people, by account, as the stream hands it. */
+export function useAccountsPresence(): Readonly<Ref<ReadonlyMap<number, PresenceEntry>>> {
+  return readonly(store().accounts);
 }
 
 /** Every room's typing marks as the stream tells them. */

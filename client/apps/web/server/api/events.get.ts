@@ -1,5 +1,6 @@
 import { relayBotStream } from "../utils/bot-relay";
-import { maskedPresence } from "../utils/presence-frames";
+import { companyPeopleOf } from "../utils/company-people";
+import { accountPresenceFrames, maskedPresence } from "../utils/presence-frames";
 import { presenceSwitches } from "../utils/presence-switches";
 import { roomStreamFilter } from "../utils/room-stream";
 
@@ -8,8 +9,9 @@ import { roomStreamFilter } from "../utils/room-stream";
 // checked here and the tokens are added on this side. A receiver that is not there ends the stream, and the
 // browser opens it again on its own. A user who reads only some rooms hears only those rooms' news, and
 // nothing of bmo-job's or the agency's, which name no room (docs/web.md, 「Access」), those rooms and the login itself
-// read again while the stream is open. Every reader is handed an account's presence only where the account shows it
-// (docs/web.md, 「Presence and typing」).
+// read again while the stream is open. Every reader is handed an account's presence only where the account shows it,
+// and the presence of the people of their own company by account as well, those people read again while the stream
+// is open (docs/web.md, 「Presence and typing」).
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event);
   const address = browserAddress(event);
@@ -28,6 +30,10 @@ export default defineEventHandler(async (event) => {
   const ownRead = (said: { name: string; data: unknown }): boolean | null =>
     said.name === "room-read" ? (said.data as { user?: unknown } | null)?.user === signed.name : null;
   const filter = readable === "all" ? {} : roomStreamFilter(rooms);
+  // Read before the stream opens, so the present handed after the replay already finds them.
+  const company = companyPeopleOf(signed);
+
+  await company.read();
 
   const query = getQuery(event);
   // Where the receiver's and bmo-job's streams resume from, each with the run of that unit its number was
@@ -44,6 +50,7 @@ export default defineEventHandler(async (event) => {
   event.web?.request?.signal?.addEventListener("abort", () => aborted.abort());
 
   aborted.signal.addEventListener("abort", rooms.follow(() => aborted.abort()));
+  aborted.signal.addEventListener("abort", company.follow(() => aborted.abort()));
 
   setResponseHeaders(event, {
     "content-type": "text/event-stream",
@@ -57,6 +64,12 @@ export default defineEventHandler(async (event) => {
     relayBotStream(cursors, aborted, {
       ...filter,
       shape: (frame) => maskedPresence(frame, presenceSwitches.hidden()),
+      derived: () => {
+        const roomFrames = filter.derived?.();
+        const people = accountPresenceFrames(company);
+
+        return (frame) => [...(roomFrames?.(frame) ?? []), ...people(frame)];
+      },
       consoleEvent: (said) => ownRead(said) ?? filter.consoleEvent?.(said) ?? true
     })
   );

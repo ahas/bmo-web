@@ -321,6 +321,26 @@
 - the name a unit's letters are numbered by → 약칭. Never 약어, 단축명, 코드.
 - the unit a unit's approvals go up through → 결재 상위 조직, its parent marked `(기본값)` among the choices; the chain itself → 결재선. Never
   보고 라인, 상신 조직.
+- the approval screen and a decision made in writing → 결재; a document's line → 결재선; its steps → 기안, 검토, 협의, 승인,
+  and the people beside it → 참조, 통보, the pair together 참조·통보. These are the owner's own words. Never 결재 라인, 리뷰,
+  합의 for 협의, 결재 for the approve step, 공유 for 참조.
+- the acts on an approval document → 상신 (submit), 승인, 반려 (reject, with its 반려 사유), 회수 (the drafter takes it back),
+  재기안 (drafted again), 접수 (a member of the handling unit takes it); each in every inflection, 상신했습니다,
+  반려하지 못했습니다. A document not yet submitted → 임시저장; one whose line runs → 진행 중; one approved → 완료; one waiting
+  for its handling unit → 접수 대기, then 처리 중. 반려 is the same word a job review takes, each on its own screen. Never
+  제출, 거절, 철회, 취소 for these.
+- the boxes a person and a unit read documents in → 결재함: 결재 대기 (with its count, 결재 대기 {n}), 기안함, 처리함,
+  참조함; a unit's 완료함, 수신함, 참조함. Never 받은편지함, 대기열.
+- a company's kinds of document → 양식: 양식, 새 양식, 양식 없음; the default set → 품의서, 내부 결재, 사내공문, 업무 협조, 휴가
+  신청, 변경 보고. Never 템플릿, 서식.
+- a company's job authority table and one row of it → 전결 규칙: 전결 규칙, 새 전결 규칙, 전결 규칙 편집, 일반 (a rule naming no
+  matter); its matter → 사안; an amount band → 구간 ({n}구간 never, 구간 {n}), its bound → 상한 금액, the last 상한 없음. A drafter
+  deciding alone → 전결 권한. Never 위임 규칙, 결재 규칙, 조건.
+- the unit a two-phase request arrives at → 처리 조직; the units a letter goes to → 수신처; the unit a document is drafted in →
+  기안 조직. Never 처리 부서, 수신 부서, 기안 부서: a unit is 조직.
+- a completed document filed in the archive → 아카이브 등록. Never 보관, which is retiring a thing.
+- how long a step or a document took → 경과, the summary of them → 경과시간, with 건수, 중앙값 and 최소 ~ 최대. Never 소요 시간, 처리
+  시간.
 - a post a person holds beside their home unit → 겸직: 겸직 추가, 겸직 편집, 겸직 해제, 겸직 없음, 대상자, 조직장 겸임. Never
   겸임 for the post itself, 파견, 소속 추가.
 - acting for a unit's head for a period → 직무대행: 직무대행 지정, 대행자, 종료일, `{date}까지`, and the mark 대행. Never 대리,

@@ -10,9 +10,11 @@ marks:
   voice: ["음성", "Voice"]
   notice: "[봇 알림]"
   # What a message carried, as it is marked at the head of its text: a kept file with its name, a kept picture, a
-  # kept video or round video note, and a kept sound with its name.
+  # sticker kept as its picture, alone or with what it shows after a colon or a space, a kept video or round video
+  # note, and a kept sound with its name.
   file: ["파일", "File"]
   picture: ["사진", "Photo"]
+  sticker: ["스티커", "Sticker", "Emoticon"]
   video: ["동영상", "Video"]
   video_note: ["동영상 메모", "Video note"]
   audio: ["오디오", "Audio"]

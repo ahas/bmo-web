@@ -278,6 +278,9 @@ export interface FeedItem {
   // The message this one answers, when it is a reply.
   quote: ReplyQuote | null;
   imageUrl: string | null;
+  // Whether that picture is the sticker the message was sent as, standing in the sticker's box rather than as a
+  // photo. Absent on every other row.
+  stickerPicture?: boolean;
   // Every picture of the album this row stands for, its own first, where it stands for a send of
   // several pictures; the other pictures of that send are not rows of their own. Absent otherwise.
   album?: AlbumPicture[];
@@ -410,10 +413,12 @@ export function skippedLine(t: Translate, count: number): string {
 }
 
 // What a message carried besides its words, as far as the marks the archive wrote for it go: the
-// files kept with it, whether each can be drawn, and whether its picture is kept.
+// files kept with it, whether each can be drawn, whether its picture is kept, and whether that picture is
+// the sticker the message was sent as.
 export interface CarriedMedia {
   attachments: readonly { kind: string; name: string; available: boolean }[];
   pictured: boolean;
+  sticker?: boolean;
 }
 
 // The marks the receiver writes at the head of a message for what it carried, where the row stands the thing
@@ -421,8 +426,11 @@ export interface CarriedMedia {
 // as a line of its own; the picture word for a kept picture, which stands in place; the video word, the round
 // note's or `GIF`, each with its length, for a kept video; and the voice word with its length, or the audio word
 // with its name and length, for a kept sound, whose player shows it and its length and whose file line shows its
-// name. A sound's mark naming what the file line does not — a performer and a title — stays.
+// name. A sound's mark naming what the file line does not — a performer and a title — stays. A sticker kept as its
+// picture is marked by the sticker word, alone or with what it shows after a colon or a space, and its box shows it.
 const LENGTH = String.raw`(?: \d+:\d{2})?`;
+const PICTURE_MARK = new RegExp(`^\\[${markWords(MEDIA_MARKS.picture)}\\]`);
+const STICKER_MARK = new RegExp(`^\\[${markWords(MEDIA_MARKS.sticker)}(?:[: ][^\\]]*)?\\]`);
 const VIDEO_MARK = new RegExp(`^\\[(?:${markWords(MEDIA_MARKS.videoNote)}|${markWords(MEDIA_MARKS.video)}|GIF)${LENGTH}\\]`);
 
 function mediaMarks(media: CarriedMedia): RegExp[] {
@@ -436,7 +444,7 @@ function mediaMarks(media: CarriedMedia): RegExp[] {
     ...sounds.map((sound) => new RegExp(`^\\[${markWords(MEDIA_MARKS.audio)} ${escaped(sound.name)}${LENGTH}\\]`))
   ];
 
-  return [...(media.pictured ? [new RegExp(`^\\[${markWords(MEDIA_MARKS.picture)}\\]`)] : []), ...files, ...played];
+  return [...(media.pictured ? [media.sticker === true ? STICKER_MARK : PICTURE_MARK] : []), ...files, ...played];
 }
 
 function escaped(text: string): string {
@@ -480,10 +488,11 @@ export function withoutMediaMark(
   return { text, expressions: [...words.expressions], formats: [...words.formats] };
 }
 
-// What a quote shows a small preview of: the picture the answered message kept, or the first file it
-// kept — a sticker and a video by themselves, a sound and any other file by their mark.
+// What a quote shows a small preview of: the picture the answered message kept, which may be the sticker it
+// was sent as, or the first file it kept — a sticker and a video by themselves, a sound and any other file by
+// their mark.
 export type QuoteMedia =
-  | { kind: "picture" }
+  | { kind: "picture"; sticker: boolean }
   | { kind: "sticker" | "video" | "voice" | "file"; attachment: MessageAttachment };
 
 export interface QuoteLook {
@@ -496,7 +505,7 @@ function quoteMedia(quote: ReplyQuote): QuoteMedia | null {
   const attachment = quote.attachment ?? null;
 
   if (quote.pictured === true) {
-    return { kind: "picture" };
+    return { kind: "picture", sticker: quote.sticker === true };
   }
 
   if (attachment === null) {
@@ -519,7 +528,7 @@ function carriedWords(t: Translate, media: QuoteMedia, text: string): string {
 
   switch (media.kind) {
     case "picture":
-      return t("room.label.quote_picture");
+      return t(media.sticker ? "room.label.quote_sticker" : "room.label.quote_picture");
     case "sticker":
       return t("room.label.quote_sticker");
     case "video":
@@ -540,7 +549,7 @@ export function quoteText(t: Translate, quote: ReplyQuote): QuoteLook {
   }
 
   const media = quoteMedia(quote);
-  const carried: CarriedMedia = { attachments: quote.attachment ? [quote.attachment] : [], pictured: quote.pictured === true };
+  const carried: CarriedMedia = { attachments: quote.attachment ? [quote.attachment] : [], pictured: quote.pictured === true, sticker: quote.sticker === true };
   const caption = withoutMediaMark(quote.text, carried, { expressions: [], formats: [] }).text.replaceAll(/\s+/g, " ").trim();
 
   return { name: quote.senderName, words: caption === "" && media !== null ? carriedWords(t, media, quote.text) : caption, media };
@@ -1667,8 +1676,10 @@ function feedItemOf(
   const deleted = message.deletedAt != null;
   const attachments = deleted ? [] : (message.attachments ?? []);
   const pictured = !deleted && message.imagePath !== null;
-  const shown = withoutMediaMark(message.text, { attachments, pictured }, { expressions: message.expressions ?? [], formats: message.formats ?? [] });
-  const bare = !deleted && bareMedia(shown.text, pictured ? ["picture"] : attachments.map((attachment) => attachment.kind));
+  // A picture the message was sent as a sticker stands as a sticker, never as a photo.
+  const sticker = pictured && message.sticker === true;
+  const shown = withoutMediaMark(message.text, { attachments, pictured, sticker }, { expressions: message.expressions ?? [], formats: message.formats ?? [] });
+  const bare = !deleted && bareMedia(shown.text, pictured ? [sticker ? "sticker" : "picture"] : attachments.map((attachment) => attachment.kind));
 
   return {
     key: `m${message.messageId}`,
@@ -1681,6 +1692,7 @@ function feedItemOf(
     ...(deleted && shown.text.trim() !== "" ? { deletedText: shown.text } : {}),
     quote: deleted ? null : (message.replyQuote ?? null),
     imageUrl: !pictured ? null : imageUrlFor(message.chatId, message.messageId),
+    ...(sticker ? { stickerPicture: true } : {}),
     attachments: deleted ? [] : message.attachments,
     expressions: shown.expressions,
     ...(shown.formats.length === 0 ? {} : { formats: shown.formats }),

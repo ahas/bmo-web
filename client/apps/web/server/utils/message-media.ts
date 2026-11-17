@@ -18,6 +18,10 @@ const ATTACHED: readonly string[] = ["audio", "video", "animation", "document", 
 // A file the chat agent's own voice made is kept under a name of the deployment's, not one a person gave it.
 const OWN_NAME = "bmo:";
 
+// The head of the name a custom emoji's picture is kept under, its number after it: a file the words draw in place,
+// never the message's sticker.
+const EXPRESSION_NAME = "emoji-";
+
 /** Whether a message's page names any file the line would stand, so its files are worth asking for. */
 export function carriesFiles(files: readonly { kind: string }[]): boolean {
   return files.some((file) => ATTACHED.includes(file.kind));
@@ -65,9 +69,11 @@ export async function messageMedia(chatId: number, messageId: ExactMessageId, te
   const assets = files.filter((file) => ATTACHED.includes(file.kind)).map(assetOf);
   const described = typeof metadata === "object" && metadata !== null ? (metadata as Record<string, unknown>) : null;
   const shape = videoShape(described?.attachment);
-  const latestSticker = assets.filter((asset) => asset.file.kind === "sticker" && /^sticker[.-]/.test(asset.file.name)).at(-1);
+  // A sticker file is the message's sticker, whichever provider kept it, unless it is a custom emoji's picture; where a
+  // message kept several, the last stands.
+  const latestSticker = assets.filter((asset) => asset.file.kind === "sticker" && !asset.file.name.startsWith(EXPRESSION_NAME)).at(-1);
   const attachments = assets
-    .filter((asset) => asset.file.kind !== "sticker" || (described?.sticker != null && asset === latestSticker))
+    .filter((asset) => asset.file.kind !== "sticker" || asset === latestSticker)
     .map((asset) => (asset.attachment.kind === "video" && shape !== null ? { ...asset.attachment, shape } : asset.attachment));
 
   return { attachments, expressions: expressionsOf(text, described, assets), formats: formatsOf(text, described) };
@@ -101,7 +107,7 @@ function expressionsOf(text: string, metadata: Record<string, unknown> | null, a
     if (entity.type !== "custom_emoji" || !/^\d+$/.test(emoji) || !Number.isSafeInteger(offset) || !Number.isSafeInteger(length) ||
       offset < end || length <= 0 || offset + length > words.length) continue;
 
-    const asset = assets.find((one) => one.file.name.startsWith(`emoji-${emoji}.`));
+    const asset = assets.find((one) => one.file.name.startsWith(`${EXPRESSION_NAME}${emoji}.`));
 
     if (asset?.attachment.available === true) {
       expressions.push({ offset: base + offset, length, attachment: asset.attachment });

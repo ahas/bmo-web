@@ -176,8 +176,14 @@
                       :stamp="stamp"
                     />
 
+                    <!-- A sticker kept as the message's picture, sent with words, stands at the bubble's head in its
+                         inner room, never running to the edges, and the words under it. -->
+                    <div v-else-if="headSticker" class="px-(--chat-pad-x)" :class="head ? 'pt-(--chat-meta-gap)' : 'pt-(--chat-pad-y)'">
+                      <MessageSticker :src="props.item.imageUrl!" :alt="$t('room.label.sticker_preview')" />
+                    </div>
+
                     <MessageImage
-                      v-else-if="props.item.imageUrl !== null"
+                      v-else-if="props.item.imageUrl !== null && !props.item.stickerPicture"
                       :src="props.item.imageUrl"
                       :message-id="props.item.messageId ?? undefined"
                       flush
@@ -203,6 +209,10 @@
                       :data-meta-room="wordsLast && metaRoom !== null ? '' : undefined"
                       :style="wordsLast && metaRoom !== null ? { '--chat-meta-room': `${metaRoom}px` } : undefined"
                     >
+                      <!-- A sticker kept as the message's picture and sent alone stands as any sticker alone does, its
+                           time beside its foot. -->
+                      <MessageSticker v-if="sticker && props.item.stickerPicture && props.item.imageUrl !== null" :src="props.item.imageUrl" :alt="$t('room.label.sticker_preview')" />
+
                       <!-- A row standing for a turn still running holds what that turn is at; every
                            other row holds what was said. Nothing around the two differs, because
                            there is nothing around them but this one row. -->
@@ -665,7 +675,10 @@ const stills = computed<MessageAttachment[]>(() => attachments.value.filter((att
 // picture's width; one picture or still stands at its own width, the bubble as wide as it unless what stands under it is
 // wider, and never wider than a lone picture's widest.
 const albumed = computed<boolean>(() => (props.item.album ?? []).length > 1);
-const pictured = computed<boolean>(() => albumed.value || props.item.imageUrl !== null || stills.value.length > 0);
+const pictured = computed<boolean>(() => albumed.value || (props.item.imageUrl !== null && props.item.stickerPicture !== true) || stills.value.length > 0);
+
+// Whether a sticker kept as the message's picture stands at the bubble's head over the words it was sent with.
+const headSticker = computed<boolean>(() => !sticker.value && props.item.stickerPicture === true && props.item.imageUrl !== null);
 
 // A picture with nothing under it carries the meta line over its own foot.
 const overPicture = computed<boolean>(
@@ -688,7 +701,7 @@ const bodyLook = computed<string>(() => {
     return "relative flex flex-wrap items-end gap-x-1 gap-y-(--chat-meta-gap)";
   }
 
-  return `${flow} px-(--chat-pad-x) pb-(--chat-pad-y) ${head.value && !pictured.value ? "pt-(--chat-meta-gap)" : "pt-(--chat-pad-y)"}`;
+  return `${flow} px-(--chat-pad-x) pb-(--chat-pad-y) ${(head.value || headSticker.value) && !pictured.value ? "pt-(--chat-meta-gap)" : "pt-(--chat-pad-y)"}`;
 });
 
 // A bubble of words is held to the widest line they and its meta line stand on, so wrapping leaves no

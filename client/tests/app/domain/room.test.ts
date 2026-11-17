@@ -674,7 +674,7 @@ describe("a reply and the message it answers", () => {
     const voice = { id: 3, kind: "audio" as const, name: "voice.ogg", bytes: 10, type: "audio/ogg", available: true };
     const sheet = { id: 4, kind: "document" as const, name: KO.line_528, bytes: 10, type: null, available: true };
 
-    expect(quoteText(wording, { messageId: "1", senderName: KO.line_530, text: KO.line_530_2, pictured: true })).toEqual({ name: KO.line_530, words: KO.line_530_3, media: { kind: "picture" } });
+    expect(quoteText(wording, { messageId: "1", senderName: KO.line_530, text: KO.line_530_2, pictured: true })).toEqual({ name: KO.line_530, words: KO.line_530_3, media: { kind: "picture", sticker: false } });
     expect(quoteText(wording, { messageId: "1", senderName: KO.line_531, text: KO.line_531_2, pictured: true }).words).toBe(KO.line_531_3);
     expect(quoteText(wording, { messageId: "2", senderName: KO.line_532, text: KO.line_532_2, attachment: voice })).toEqual({ name: KO.line_532, words: KO.line_532_3, media: { kind: "voice", attachment: voice } });
     expect(quoteText(wording, { messageId: "3", senderName: KO.line_533, text: KO.line_533_2, attachment: sheet }).words).toBe(KO.line_533_3);
@@ -770,6 +770,32 @@ describe("a message that is only what it carried", () => {
     expect(drawn === undefined ? null : copyItemOf(drawn).text).toBe(mark);
     expect(missing?.look.variant).toBe("soft");
     expect(missing?.shownText).toBe(mark);
+  });
+
+  // A provider may hand a sticker over as a picture, which the receiver keeps as the message's picture under the
+  // sticker kind.
+  test("stands a sticker kept as its picture as a sticker, its mark left out and the words sent with it kept", () => {
+    const alone = rowOf({ ...archived(11, "[Emoticon: a waving cat]"), imagePath: "/kept/11.webp", sticker: true });
+    const worded = rowOf({ ...archived(12, "[Emoticon] see you"), imagePath: "/kept/12.webp", sticker: true });
+    const lost = rowOf({ ...archived(13, "[Emoticon]"), sticker: true });
+
+    expect(alone?.look.variant).toBe("naked");
+    expect(alone?.stickerPicture).toBe(true);
+    expect(alone?.shownText).toBe("");
+    expect(alone === undefined ? null : copyItemOf(alone).text).toBe("[Emoticon: a waving cat]");
+    expect(worded?.look.variant).toBe("soft");
+    expect(worded?.stickerPicture).toBe(true);
+    expect(worded?.shownText).toBe("see you");
+    expect(lost?.look.variant).toBe("soft");
+    expect(lost?.shownText).toBe("[Emoticon]");
+  });
+
+  test("quotes a sticker kept as its picture as a sticker", () => {
+    expect(quoteText(wording, { messageId: "1", senderName: "agent-a", text: "[Sticker]", pictured: true, sticker: true })).toEqual({
+      name: "agent-a",
+      words: wording("room.label.quote_sticker"),
+      media: { kind: "picture", sticker: true }
+    });
   });
 
   // A chat service marks what a message carried in the words of its own policy, which are not the pack's language,

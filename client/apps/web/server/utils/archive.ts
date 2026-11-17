@@ -37,9 +37,11 @@ interface KeptFile {
 // own bot account, or a person's account speaking for it.
 type SentVoice = "bot-account" | "human-avatar" | "human-reader";
 
-// The kind the receiver's record holds a thinking block under where it holds one as a message (its `docs/api.md`,
-// 「Messages」).
+// The kinds the receiver's record holds a message under where it is more than a plain message (its `docs/api.md`,
+// 「Messages」): a thinking block it holds as a message, and a sticker, whether the record sent it or a chat service
+// handed its picture over as one.
 const THINKING = "thinking";
+const STICKER = "sticker";
 
 interface ReceivedMessage {
   chatId: number;
@@ -340,6 +342,7 @@ async function replyQuoteOf(chatId: number, messageId: ExactMessageId, held?: { 
         senderName: answered.senderName,
         text: answered.text,
         pictured: answered.imagePath !== null,
+        ...(answered.kind === STICKER ? { sticker: true } : {}),
         attachment: (await (held?.media ?? mediaOf(chatId, answered, false))).attachments[0] ?? null
       };
     }
@@ -403,6 +406,7 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
         ...(speakerLabel === undefined ? {} : { speakerLabel }),
         notice: agent && isSystemNotice(message.text),
         ...(agent && message.kind === THINKING ? { thinking: true } : {}),
+        ...(message.kind === STICKER ? { sticker: true } : {}),
         attachments: files.attachments,
         expressions: files.expressions,
         formats: files.formats,

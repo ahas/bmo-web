@@ -16,7 +16,8 @@
       :src="imageUrl(props.chatId, props.quote.messageId)"
       alt=""
       loading="lazy"
-      class="size-10 shrink-0 rounded-sm object-cover"
+      class="size-10 shrink-0"
+      :class="look.media.sticker ? 'object-contain' : 'rounded-sm object-cover'"
     />
     <TelegramAsset
       v-else-if="look.media?.kind === 'sticker'"

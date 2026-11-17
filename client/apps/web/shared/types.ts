@@ -256,6 +256,8 @@ export interface ReplyQuote {
   senderName: string | null;
   text: string;
   pictured?: boolean;
+  // Whether that picture is the sticker the answered message was sent as rather than a photo.
+  sticker?: boolean;
   attachment?: MessageAttachment | null;
 }
 
@@ -333,6 +335,9 @@ export interface ArchivedMessage {
   // Whether the receiver's record holds the message under the thinking kind: an agent's line that is no answer, which
   // a screen stands under its own label. Absent on every other message.
   thinking?: boolean;
+  // Whether the receiver's record holds the message under the sticker kind, so a picture it kept is the sticker it
+  // was sent as rather than a photo. Absent on every other message.
+  sticker?: boolean;
   // How long the room waited for this answer, in whole seconds, on messages an agent answered with.
   // Null for everything anybody else said, and for an answer the archive holds no measurement
   // of.

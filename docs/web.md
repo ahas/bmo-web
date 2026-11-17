@@ -4027,8 +4027,8 @@ Four bounds keep it from growing forever.
     choosing column, so it keeps that clear too.
 - **A bubble is as wide as its widest line.** Words that wrap, a meta line that drops under them and a
   chip line that wraps leave the bubble as wide as the longest line they actually stand on — a line of
-  the words with any blank kept at its end, a line of the meta line, the sender's name and the quote at
-  its head — never as wide as the room it could have taken, so no blank stands at the trailing side of
+  the words with any blank kept at its end, a line of the meta line, the sender's name, the quote and a
+  sticker at its head — never as wide as the room it could have taken, so no blank stands at the trailing side of
   a wrapped bubble.
   - Each line wraps where it wrapped before; only the empty room past the longest line is taken away.
   - A bubble holding anything but words and its meta line under its head — a picture, a link card, a
@@ -4406,9 +4406,19 @@ Four bounds keep it from growing forever.
     the line carries more than the time and its marks, or spreads anything, it stands under the sticker instead.
   - The same holds for a sticker from any sender and any provider that keeps the sticker's file, a moving one
     included; a sticker whose file is not kept keeps its mark in a bubble.
-  - A sticker plays as the messenger plays it: a picture stands still, a video sticker plays over and over without
-    sound, and an animated sticker, a `.tgs` file, is unpacked in the browser and played over and over as its
-    scene. One whose file cannot be read stands as its mark.
+  - A sticker kept as a file stands as one whatever it is named; only a custom emoji's picture, which its words
+    draw in place, stands among the words instead. Where the message kept several, the last stands.
+  - A sticker a provider handed over as a picture stands the same way: the receiver keeps it as the message's
+    picture and marks the message a sticker (its `docs/pictures.md`, 「Pictures received」), and the room screen
+    draws that picture in the sticker's box rather than as a photo. Its mark, `[<sticker word>]` or
+    `[<sticker word>: <what it shows>]` at the head of the words, is not shown, the sticker words being the data
+    file's beside the language pack. A press on it opens no picture viewer, as a press on any sticker opens none.
+  - A sticker sent with words keeps them, in a bubble: the sticker in its box at the bubble's head inside its
+    inner room, never running to the edges, and the words under it.
+  - A sticker plays as the messenger plays it: a picture stands still, an animated WebP or GIF plays over and over
+    as the browser plays a picture, a video sticker plays over and over without sound, and an animated sticker, a
+    `.tgs` file, is unpacked in the browser and played over and over as its scene. One whose file cannot be read
+    stands as its mark.
 - **애니메이션** — a GIF or an animation a messenger sent plays where it stands as soon as it stands, over and over and
   without sound, with no player, no play button and no file line under it, at its own shape within the bubble's
   widest. A file kept as a plain video keeps its player.

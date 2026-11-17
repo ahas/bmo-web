@@ -1741,6 +1741,7 @@ function startReply(key: string): void {
     senderName: item.senderName,
     text: item.text,
     pictured: item.imageUrl !== null,
+    ...(item.stickerPicture === true ? { sticker: true } : {}),
     attachment: item.attachments?.[0] ?? null
   };
   void nextTick(() => composer.value?.focus());

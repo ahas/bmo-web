@@ -62,7 +62,11 @@ const drawn = [
       { kind: "video", source: "clip.mp4", storedPath: "/kept/c.mp4", summary: null, collectedAt: 3 }
     ]
   }),
-  message(7, { room: -8, files: [{ kind: "document", source: "lost.pdf", storedPath: null, summary: null, collectedAt: 4 }] })
+  message(7, { room: -8, files: [{ kind: "document", source: "lost.pdf", storedPath: null, summary: null, collectedAt: 4 }] }),
+  // A sticker another chat service kept as a file under a name of its own, with no metadata, and one it handed over as
+  // the message's picture under the sticker kind.
+  message(8, { room: -8, text: "[Sticker]", kind: "sticker", files: [{ kind: "sticker", source: "item-1.emot_001.gif", storedPath: "/kept/g.gif", summary: null, collectedAt: 5 }] }),
+  message(9, { room: -8, text: "[Sticker]", kind: "sticker", imagePath: "/kept/9.webp" })
 ];
 // In the owner's own account: an answer the receiver named the agent and the voice on, one it named in the agent's own
 // bot account, and one written before it named either and so read by the number it went out under.
@@ -121,6 +125,9 @@ const receiver = standIn("RECEIVER", (one) => {
       }
     });
   }
+  if (path === "/rooms/-8/messages/8/files") return answer({ items: [keptFile(0, "sticker", "item-1.emot_001.gif", null, 70)], more: false });
+  if (path === "/rooms/-8/messages/8/metadata") return answer({ metadata: null });
+  if (path === "/rooms/-8/messages/9/metadata") return answer({ metadata: null });
   if (path === "/rooms/-8/messages/7/files") return answer({ code: "upstream-failed", error: "the store did not answer" }, 503);
   if (path === "/rooms/-8/answerers") return answer({ default: "", voice: "", items: [], more: false });
   // A room answered in the owner's own account: the voice agent's number there is the owner's.
@@ -303,7 +310,7 @@ describe("a page of a room", () => {
   });
 
   test("draws a custom emoji over the words it stands for, the latest sticker alone, and a video in the shape it arrived in", async () => {
-    const [shown, unlisted] = (await readMessagePage(-8, null, 100)).messages;
+    const [shown, unlisted, other, pictured] = (await readMessagePage(-8, null, 100)).messages;
     const emoji = { id: 0, kind: "sticker" as const, name: "emoji-123.webp", bytes: 40, type: "image/webp", available: true };
 
     expect(shown!.expressions).toEqual([{ offset: 3, length: 2, attachment: emoji }]);
@@ -313,6 +320,10 @@ describe("a page of a room", () => {
     ]);
     // A list the receiver could not give leaves the files named and unavailable, and the page stands.
     expect(unlisted!.attachments).toEqual([{ id: 0, kind: "document", name: "lost.pdf", bytes: null, type: null, available: false }]);
+    // A sticker file stands whatever chat service kept it and whatever it is named, a GIF among them, and a message the
+    // record keeps under the sticker kind says so.
+    expect(other!.attachments).toEqual([{ id: 0, kind: "sticker", name: "item-1.emot_001.gif", bytes: 70, type: "image/gif", available: true }]);
+    expect([shown!.sticker, other!.sticker, pictured!.sticker]).toEqual([undefined, true, true]);
   });
 
   test("a thinking message is told by the kind the record names, and carries no voice briefing chip", async () => {

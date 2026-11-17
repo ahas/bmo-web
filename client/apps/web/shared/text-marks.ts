@@ -9,6 +9,7 @@ interface TextMarks {
     notice: string;
     file: string[];
     picture: string[];
+    sticker: string[];
     video: string[];
     video_note: string[];
     audio: string[];
@@ -20,11 +21,12 @@ interface TextMarks {
 
 const MARKS = (data as TextMarks).marks;
 
-/** The words a message's text opens with for what it carried — a file, a picture, a video, a round video note, a sound —
- * each kind's every word. */
+/** The words a message's text opens with for what it carried — a file, a picture, a sticker kept as its picture, a video,
+ * a round video note, a sound — each kind's every word. */
 export const MEDIA_MARKS = {
   file: MARKS.file,
   picture: MARKS.picture,
+  sticker: MARKS.sticker,
   video: MARKS.video,
   videoNote: MARKS.video_note,
   audio: MARKS.audio

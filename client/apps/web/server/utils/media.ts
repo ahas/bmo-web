@@ -34,7 +34,14 @@ export interface FileOut {
 // served as something the browser has to guess at.
 const TYPES: Record<string, Record<string, string>> = {
   document: {},
-  sticker: { ".webp": "image/webp", ".jpg": "image/jpeg", ".png": "image/png", ".webm": "video/webm", ".tgs": "application/x-tgsticker" },
+  sticker: {
+    ".webp": "image/webp",
+    ".gif": "image/gif",
+    ".jpg": "image/jpeg",
+    ".png": "image/png",
+    ".webm": "video/webm",
+    ".tgs": "application/x-tgsticker"
+  },
   // What a room's animation plays as: a short looping video without sound.
   animation: { ".mp4": "video/mp4", ".m4v": "video/mp4", ".mov": "video/mp4", ".webm": "video/webm" },
   // What a room's video plays as. A QuickTime file from a phone is the MPEG-4 family inside, so it

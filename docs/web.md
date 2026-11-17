@@ -5405,6 +5405,11 @@ Four bounds keep it from growing forever.
   session answered `<<SKIP>>` — leaves a line 「〈이름〉가 이번에는 답하지 않았습니다.」
   under the last message that turn read, and it stands there for good rather than fading. Only the chat agent's turns end
   this way, so the line names the chat agent, by the same name its running row wears.
+  - **The line says why.** Under it stands the reason the turn's skip named, in the same faint centred look, read
+    in the reader's language as any text an agent wrote is (「The original, and its translation in its place」):
+    translated as it opens where 자동 번역 is on, with the original a press away. The reason is the skipped
+    judgement's detail, which the room's page carries on that judgement's mark alone; a skip that named none
+    leaves the line by itself, and several silent turns over one message stand each different reason once.
   - **A group room stands no such line,** and no passing reason for a silent turn either. There the chat agent staying out
     of an exchange is the ordinary course, one line per message passed over is noise, and the listening row
     (「The listening row」) already says it is there. The judgement is still written and still rides on the message's chip

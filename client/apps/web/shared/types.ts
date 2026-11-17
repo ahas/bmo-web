@@ -505,6 +505,9 @@ export interface TurnRoad extends JudgementRoad {
 
 // A verdict as a room's page carries it: what places it under a message, colours its mark and names its round, and
 // nothing only its card stands (docs/web.md, 「The first frame waits on the messages alone」).
+// A turn that went silent is written down as a judgement of this stage on the message it read.
+export const SKIPPED_STAGE = "skipped";
+
 export interface JudgementMark {
   id: number;
   chatId: number;
@@ -514,6 +517,9 @@ export interface JudgementMark {
   createdAt: number;
   // The round of the chat agent's session the decision was made in, where the record names one.
   round?: string | null;
+  // Why a round that ended in silence passed its message over, in the words its skip named: a mark of the stage
+  // `skipped` alone carries it, and none where the skip named no reason.
+  detail?: string | null;
 }
 
 // A verdict whole, as an answer's opened record reads it and the live stream announces it.

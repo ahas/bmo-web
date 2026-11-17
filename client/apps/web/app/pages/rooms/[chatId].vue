@@ -301,10 +301,12 @@
               <!-- A turn the chat agent passed the run's last message over in stays as a line under it, worded
                    and placed like the passing reason at the foot: centred, with no photo, so the chat agent is
                    not seen to have said anything. It is not a row, so nothing chooses, copies or
-                   focuses it. It ends the run, and stands between it and the next. -->
-              <p v-if="lastOf(run).skipped > 0" class="my-4 self-center text-sm text-muted" :data-skipped="lastOf(run).key">
-                {{ skippedLine(t, lastOf(run).skipped) }}
-              </p>
+                   focuses it. It ends the run, and stands between it and the next. Under it stands why, each
+                   reason the skips named once, read in the reader's language as any text an agent wrote is. -->
+              <div v-if="lastOf(run).skipped > 0" class="my-4 flex max-w-prose flex-col items-center gap-1 self-center text-center text-sm text-muted" :data-skipped="lastOf(run).key">
+                <p>{{ skippedLine(t, lastOf(run).skipped) }}</p>
+                <TranslatedText v-for="reason in lastOf(run).skipReasons" :key="reason" :text="reason" class="items-center" textClass="text-sm text-muted" data-skip-reason />
+              </div>
             </template>
           </template>
 

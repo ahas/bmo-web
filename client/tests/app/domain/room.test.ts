@@ -34,6 +34,7 @@ import {
   turnAnswer,
   sideLayout,
   sideOf,
+  skipReasons,
   skippedLine,
   withoutMediaMark,
   withRoundFigures,
@@ -143,6 +144,15 @@ describe("the line under a message the chat agent did not answer", () => {
       .flatMap((day) => day.items);
 
     expect(rows.map((row) => [row.messageId, row.skipped])).toEqual([["20", 1]]);
+  });
+
+  test("says why, each reason the skips named once and nothing for a skip that named none", () => {
+    const reasoned = (id: number, detail: string | null): Judgement => ({ ...skip(id, 2), detail });
+    const judgements = new Map([["2", [{ ...chat(1, 2), detail: "a stage's own words" }, reasoned(2, "they are talking to each other"), reasoned(3, null), reasoned(4, " they are talking to each other "), reasoned(5, "nobody asked")]]]);
+    const rows = buildDays(wording, [archived(1, KO.line_117), archived(2, KO.line_117_2)], judgements, imageUrl, avatars).flatMap((day) => day.items);
+
+    expect(rows.map((row) => row.skipReasons)).toEqual([[], ["they are talking to each other", "nobody asked"]]);
+    expect(skipReasons([skip(6, 2)])).toEqual([]);
   });
 
   test("says the words once, and counts silent turns over the same message", () => {

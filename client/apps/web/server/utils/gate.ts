@@ -1,5 +1,5 @@
 import { PAGING } from "#shared/config";
-import { gateConditions } from "#shared/types";
+import { SKIPPED_STAGE, gateConditions } from "#shared/types";
 
 import { unitAt, unitFetch } from "./units";
 
@@ -93,11 +93,15 @@ function asJudgement(row: GateJudgement): Judgement {
   };
 }
 
-/** A judgement as a room's page carries it: what places it and colours its mark, without what only its card stands. */
+/**
+ * A judgement as a room's page carries it: what places it and colours its mark, without what only its card stands.
+ * A silent ending keeps the reason its skip named, since the room says it on the line under the message.
+ */
 export function markOf(judgement: Judgement): JudgementMark {
-  const { id, chatId, messageId, stage, verdict, createdAt, round } = judgement;
+  const { id, chatId, messageId, stage, verdict, createdAt, round, detail } = judgement;
+  const reason = stage === SKIPPED_STAGE && detail !== null && detail.trim() !== "" ? { detail } : {};
 
-  return { id, chatId, messageId, stage, verdict, createdAt, round };
+  return { id, chatId, messageId, stage, verdict, createdAt, round, ...reason };
 }
 
 // A row of the offers record in the room screen's words. A count the gate does not hand is none kept.

@@ -74,25 +74,26 @@ const tabItems = computed(() => tabs.value.map((one) => ({ value: one.value, ico
 
 // An address naming a tab that moved away is taken to where its section stands now, and one naming a tab the reader
 // may not open to the first one they may, each with no step of the history; the second waits until who reads is known.
-watch(
-  () => [tabs.value, reader.value.known] as const,
-  ([list]) => {
-    if (!import.meta.client) return;
+// Both wait until the page stands in the browser: an address replaced while the page is still taking over what the
+// server drew would leave the page on the address before it.
+onMounted(() =>
+  watch(
+    () => [route.query.tab, tabs.value, reader.value.known] as const,
+    ([asked, list]) => {
+      const moved = organizationMovedAway(asked, route.query);
 
-    const asked = route.query.tab;
-    const moved = organizationMovedAway(asked);
+      if (moved !== null) {
+        void router.replace(moved);
 
-    if (moved !== null) {
-      void router.replace(moved);
+        return;
+      }
 
-      return;
-    }
+      if (asked === undefined || !reader.value.known || list.some((one) => one.value === asked)) return;
 
-    if (asked === undefined || !reader.value.known || list.some((one) => one.value === asked)) return;
-
-    void router.replace(organizationAddress(list[0]!.value, route.query));
-  },
-  { immediate: true }
+      void router.replace(organizationAddress(list[0]!.value, route.query));
+    },
+    { immediate: true }
+  )
 );
 
 // The tab stands in the address, and moving to another is a step of the history; the first is the screen's own.

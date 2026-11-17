@@ -1,229 +1,80 @@
 <template>
-  <!-- One person on the people tab (docs/web.md, 「Organisation」, the people tab), read-only: the head with the person's
-       picture, name, login, marks and the management menu at its right end, then the groups, each read on its own with
-       skeletons shaped like its rows and a failure said in its place. Nothing here changes anything by itself; every
-       change is an act of the menu, opening the dialog it opens on its own tab. -->
-  <article class="mx-auto flex w-full min-w-0 max-w-3xl flex-col gap-4" :data-roster-person="props.user">
-    <header class="flex flex-col gap-2">
-      <div class="flex min-h-10 min-w-0 items-center gap-3">
-        <IconButton v-if="props.back" icon="i-material-symbols-arrow-back" :label="$t('common.action.back')" data-roster-back @click="emit('back')" />
-        <template v-if="person !== null">
-          <UAvatar v-bind="face" size="xl" class="shrink-0" />
-          <div class="flex min-w-0 flex-col">
-            <h2 class="text-lg font-semibold break-words text-highlighted">{{ person.name }}</h2>
-            <span class="text-sm break-all text-muted">{{ person.login }}</span>
-          </div>
-        </template>
-        <SkeletonStatus v-else-if="personFailure === ''" as="div" class="flex min-w-0 flex-1 items-center gap-3" :label="$t('roster.status.person_loading')">
-          <SkeletonBar class="size-10 shrink-0 rounded-full" />
-          <span class="flex min-w-0 flex-1 flex-col">
-            <SkeletonLine size="lg" width="w-1/2" />
-            <SkeletonLine width="w-1/3" />
-          </span>
-        </SkeletonStatus>
-      </div>
-
-      <div v-if="person !== null" class="flex min-h-8 flex-wrap items-center gap-2" data-roster-person-marks>
-        <UBadge v-if="person.administrator" color="primary" variant="subtle" :label="$t('roster.label.administrator')" />
-        <UBadge :color="stateFace.color" variant="subtle" :icon="stateFace.icon" :label="$t(stateFace.label)" data-roster-person-state />
-        <UDropdownMenu v-if="menu.length > 0" :items="menu" :content="{ align: 'end' }">
-          <UButton
-            class="ms-auto"
-            color="neutral"
-            variant="outline"
-            :label="$t('roster.action.manage')"
-            trailing-icon="i-material-symbols-keyboard-arrow-down"
-            :loading="acting"
-            data-roster-manage
-          />
-        </UDropdownMenu>
-      </div>
-      <!-- The marks' row keeps its place while the person is read, the state's chip standing as a bar. -->
-      <div v-else-if="personFailure === ''" class="flex min-h-8 items-center">
-        <SkeletonBar class="h-7 w-16 rounded-sm" />
-      </div>
-      <p v-if="actFailure !== ''" role="alert" class="text-sm break-words whitespace-pre-line text-error">{{ actFailure }}</p>
-    </header>
-
-    <!-- The account and the organisation groups are the one read of the person; a failure of it stands in the
-         account group's place. -->
-    <SettingsGroup :title="$t('settings.label.account')">
-      <FailedRead v-if="person === null && personFailure !== ''" class="py-3" :message="personFailure" :reading="personReading" @retry="readPerson" />
-      <PairRows v-else :rows="accountRows" :skeleton="accountLabels" :label="$t('roster.status.person_loading')" />
-    </SettingsGroup>
-
-    <SettingsGroup v-if="person !== null || personFailure === ''" :title="$t('people.label.organization')">
-      <PairRows :rows="organizationRows" :skeleton="organizationLabels" :label="$t('roster.status.person_loading')" />
-    </SettingsGroup>
-
-    <!-- The person's posts and the history of their place (docs/accounts.md, 「Concurrent posts」, 「A person's
-         history」), read with the person. -->
-    <SettingsGroup v-if="person !== null" :title="$t('roster.label.posts')" data-roster-posts>
-      <SettingsRow v-if="person.posts.length === 0" :label="$t('roster.label.no_posts')" />
-      <SettingsRow v-for="post in person.posts" :key="post.unit.id" :label="post.path.map((unit) => unit.name).join(' › ')" data-roster-post-row>
-        <template #description>
-          <span v-if="post.role || post.head" class="flex flex-wrap items-center gap-1">
-            <span v-if="post.role">{{ post.role.name }}</span>
-            <UBadge v-if="post.head" :label="$t('organization.label.role_head')" color="neutral" variant="subtle" size="sm" />
-          </span>
-        </template>
-      </SettingsRow>
-    </SettingsGroup>
-
-    <SettingsGroup v-if="person !== null" :title="$t('roster.label.history')" data-roster-history>
-      <SettingsRow v-if="person.history.length === 0" :label="$t('roster.label.no_history')" />
-      <ul v-else class="flex flex-col divide-y divide-default">
-        <li v-for="(entry, at) in person.history" :key="at" class="flex min-w-0 flex-col gap-1 py-3" data-roster-history-row>
-          <span class="text-sm break-words text-highlighted">{{ historyLine(entry) }}</span>
-          <span class="text-sm text-muted tabular-nums">{{ entry.byName === null ? formatStamp(toUnixSeconds(entry.at)) : $t("roster.label.history_by", { time: formatStamp(toUnixSeconds(entry.at)), name: entry.byName }) }}</span>
-        </li>
-      </ul>
-    </SettingsGroup>
-
-    <SettingsGroup :title="$t('settings.label.bmo')">
-      <FailedRead v-if="bmo.failure.value !== ''" class="py-3" :message="bmo.failure.value" :reading="bmo.reading.value" @retry="bmo.read" />
-      <p v-else-if="bmo.data.value !== null && !bmo.data.value.hasBmo" class="py-3 text-sm text-muted">{{ $t("roster.label.no_bmo") }}</p>
-      <PairRows v-else :rows="bmoRows" :skeleton="bmoLabels" :label="$t('roster.status.bmo_loading')">
-        <template #picture>
-          <span class="flex items-center gap-2">
-            <UAvatar v-if="bmoPicture !== null" :src="bmoPicture" :alt="$t('bmo_profile.label.picture')" size="md" />
-            <BmoMark v-else class="size-8" />
-            <span v-if="bmoPicture === null" class="text-highlighted">{{ $t("bmo_profile.label.default_value", { value: $t("account.label.bmo_name") }) }}</span>
-          </span>
-        </template>
-        <template #persona>
-          <span class="flex flex-wrap items-center gap-2">
-            <span class="text-highlighted tabular-nums">{{ personaText }}</span>
-            <UButton v-if="persona !== null" size="sm" color="neutral" variant="outline" :label="$t('common.label.view')" data-roster-persona @click="personaOpen = true" />
-          </span>
-        </template>
-      </PairRows>
-    </SettingsGroup>
-
-    <template v-if="administrator">
-      <SettingsGroup :title="$t('common.label.room')">
-        <FailedRead v-if="rooms.failure.value !== ''" class="py-3" :message="rooms.failure.value" :reading="rooms.reading.value" @retry="rooms.read" />
-        <ContentSkeleton v-else-if="rooms.data.value === null" :rows="2" listClass="flex flex-col py-1" :label="$t('roster.status.rooms_loading')">
-          <div class="flex items-center gap-3 py-2">
-            <SkeletonBar class="size-8 shrink-0 rounded-full" />
+  <!-- One person on the people tab (docs/web.md, 「Organisation」, the people tab): the head with the person's picture,
+       name, login, marks and the management menu at its right end, over a row of tabs, one tab a part of what is the
+       person's. The head scrolls away with the content and the row stays at the top of the region once it reaches it,
+       its hairline running the region from edge to edge; the head, the row's tabs and the tab open stand in one reading
+       column. Each tab is loaded and read as it is first opened and kept while the person stays open. Every change but
+       the sections of the permissions tab is an act of the menu, opening the dialog it opens on its own tab. -->
+  <article ref="article" class="flex w-full min-w-0 flex-col" :data-roster-person="props.user">
+    <div class="p-4">
+      <header class="mx-auto flex w-full min-w-0 max-w-3xl flex-col gap-2">
+        <div class="flex min-h-10 min-w-0 items-center gap-3">
+          <IconButton v-if="props.back" icon="i-material-symbols-arrow-back" :label="$t('common.action.back')" data-roster-back @click="emit('back')" />
+          <template v-if="person !== null">
+            <UAvatar v-bind="face" size="xl" class="shrink-0" />
+            <div class="flex min-w-0 flex-col">
+              <h2 class="text-lg font-semibold break-words text-highlighted">{{ person.name }}</h2>
+              <span class="text-sm break-all text-muted">{{ person.login }}</span>
+            </div>
+          </template>
+          <SkeletonStatus v-else-if="personFailure === ''" as="div" class="flex min-w-0 flex-1 items-center gap-3" :label="$t('roster.status.person_loading')">
+            <SkeletonBar class="size-10 shrink-0 rounded-full" />
             <span class="flex min-w-0 flex-1 flex-col">
-              <SkeletonLine width="w-1/2" />
+              <SkeletonLine size="lg" width="w-1/2" />
               <SkeletonLine width="w-1/3" />
             </span>
-          </div>
-        </ContentSkeleton>
-        <p v-else-if="rooms.data.value.length === 0" class="py-3 text-sm text-muted">{{ $t("roster.label.no_rooms") }}</p>
-        <ul v-else class="flex flex-col py-1" data-roster-rooms>
-          <li v-for="room in rooms.data.value" :key="room.chatId">
-            <NuxtLink :to="`/rooms/${room.chatId}`" :class="ROW_LINK">
-              <UAvatar v-bind="avatarFor(avatars, 'room', room.chatId, room.title)" size="md" class="shrink-0" />
-              <span :class="ROW_LINES">
-                <span :class="ROW_LINE">
-                  <HintTip :text="room.title" cut press class="min-w-0 flex-1 truncate text-highlighted">{{ room.title }}</HintTip>
-                  <span v-if="room.lastMessageAt !== null" class="shrink-0 text-muted tabular-nums">{{ formatStamp(toUnixSeconds(room.lastMessageAt)) }}</span>
-                </span>
-                <span :class="ROW_LINE" class="text-muted">
-                  <span class="truncate tabular-nums">{{ [$t(room.kind === "private" ? "roster.label.private_room" : "roster.label.group_room"), $t("roster.label.message_count", { count: countText(room.messageCount) })].join(" · ") }}</span>
-                </span>
-              </span>
-            </NuxtLink>
-          </li>
-        </ul>
-      </SettingsGroup>
+          </SkeletonStatus>
+        </div>
 
-      <SettingsGroup :title="$t('agents.label.column_agent')">
-        <FailedRead v-if="agents.failure.value !== ''" class="py-3" :message="agents.failure.value" :reading="agents.reading.value" @retry="agents.read" />
-        <ContentSkeleton v-else-if="agents.data.value === null" :rows="2" listClass="flex flex-col py-1" :label="$t('roster.status.agents_loading')">
-          <div class="flex items-center gap-3 py-2">
-            <SkeletonBar class="size-6 shrink-0 rounded-full" />
-            <span class="flex min-w-0 flex-1 flex-col">
-              <SkeletonLine width="w-1/3" />
-              <SkeletonLine width="w-1/2" />
-            </span>
-          </div>
-        </ContentSkeleton>
-        <p v-else-if="agents.data.value.length === 0" class="py-3 text-sm text-muted">{{ $t("roster.label.no_agents") }}</p>
-        <ul v-else class="flex flex-col py-1" data-roster-agents>
-          <li v-for="agent in agents.data.value" :key="agent.name">
-            <NuxtLink :to="agentLink(agent.name)" :class="ROW_LINK">
-              <AgentMark :agent="markOf(agent)" icon-class="size-6" aria-hidden="true" />
-              <span :class="ROW_LINES">
-                <span :class="ROW_LINE">
-                  <HintTip :text="agent.label" cut press class="min-w-0 flex-1 truncate text-highlighted">{{ agent.label }}</HintTip>
-                  <HintTip :text="$t(agent.enabled ? 'roster.status.on' : 'roster.status.off')" press class="inline-flex shrink-0">
-                    <span role="img" class="inline-flex" :aria-label="$t(agent.enabled ? 'roster.status.on' : 'roster.status.off')" data-roster-agent-state>
-                      <UIcon
-                        :name="agent.enabled ? 'i-material-symbols-toggle-on' : 'i-material-symbols-toggle-off-outline'"
-                        class="size-5"
-                        :class="agent.enabled ? 'badge-ink text-success' : 'text-muted'"
-                      />
-                    </span>
-                  </HintTip>
-                </span>
-                <span :class="ROW_LINE" class="text-muted">
-                  <span class="truncate">{{ agentLine(agent) }}</span>
-                </span>
-              </span>
-            </NuxtLink>
-          </li>
-        </ul>
-      </SettingsGroup>
+        <div v-if="person !== null" class="flex min-h-8 flex-wrap items-center gap-2" data-roster-person-marks>
+          <UBadge v-if="person.administrator" color="primary" variant="subtle" :label="$t('roster.label.administrator')" />
+          <UBadge :color="stateFace.color" variant="subtle" :icon="stateFace.icon" :label="$t(stateFace.label)" data-roster-person-state />
+          <UDropdownMenu v-if="menu.length > 0" :items="menu" :content="{ align: 'end' }">
+            <UButton
+              class="ms-auto"
+              color="neutral"
+              variant="outline"
+              :label="$t('roster.action.manage')"
+              trailing-icon="i-material-symbols-keyboard-arrow-down"
+              :loading="acting"
+              data-roster-manage
+            />
+          </UDropdownMenu>
+        </div>
+        <!-- The marks' row keeps its place while the person is read, the state's chip standing as a bar. -->
+        <div v-else-if="personFailure === ''" class="flex min-h-8 items-center">
+          <SkeletonBar class="h-7 w-16 rounded-sm" />
+        </div>
+        <p v-if="actFailure !== ''" role="alert" class="text-sm break-words whitespace-pre-line text-error">{{ actFailure }}</p>
+      </header>
+    </div>
 
-      <SettingsGroup :title="$t('agents.label.column_sessions')">
-        <FailedRead v-if="sessions.failure.value !== ''" class="py-3" :message="sessions.failure.value" :reading="sessions.reading.value" @retry="sessions.read" />
-        <ContentSkeleton v-else-if="sessions.data.value === null" :rows="2" listClass="flex flex-col py-1" :label="$t('roster.status.sessions_loading')">
-          <div class="flex flex-col py-2">
-            <SkeletonLine width="w-1/3" />
-            <SkeletonLine width="w-1/2" />
-          </div>
-        </ContentSkeleton>
-        <p v-else-if="sessions.data.value.length === 0" class="py-3 text-sm text-muted">{{ $t("roster.label.no_sessions") }}</p>
-        <ul v-else class="flex flex-col py-1" data-roster-sessions>
-          <li v-for="session in sessions.data.value" :key="session.id" class="py-2" :class="ROW_LINES">
-            <span :class="ROW_LINE">
-              <span class="min-w-0 flex-1 truncate text-highlighted">{{ session.agent }}</span>
-              <span v-if="session.context !== null" class="shrink-0 text-muted tabular-nums">{{ contextText(session.context) }}</span>
-            </span>
-            <span :class="ROW_LINE" class="text-muted">
-              <span class="min-w-0 flex-1 truncate">{{ session.roomTitle ?? session.scope }}</span>
-              <span class="shrink-0 text-toned">{{ [providerWord(providers, session.provider), session.model].join(" · ") }}</span>
-            </span>
-          </li>
-        </ul>
-      </SettingsGroup>
+    <!-- The tabs' words start on the column's edge, as the head's and the tab's content do: the row is pulled out by
+         a tab's own inner padding. -->
+    <div ref="paneRow" :class="['sticky top-0 z-10 h-12 shrink-0 bg-default px-4', TAB_ROW_LINE]" data-person-tabs>
+      <div class="mx-auto flex h-full w-full min-w-0 max-w-3xl">
+        <UTabs
+          :model-value="pane.value"
+          :items="paneItems"
+          :content="false"
+          color="neutral"
+          variant="link"
+          size="sm"
+          class="-ms-2.5 min-w-0 flex-1 self-stretch"
+          :ui="TAB_ROW_UI"
+          :aria-label="$t('roster.aria.person_tabs')"
+          @update:model-value="(value: string | number) => setPane(String(value))"
+        />
+      </div>
+    </div>
 
-      <SettingsGroup :title="$t('roster.label.runs')">
-        <FailedRead v-if="runs.failure.value !== ''" class="py-3" :message="runs.failure.value" :reading="runs.reading.value" @retry="runs.read" />
-        <ContentSkeleton v-else-if="runs.data.value === null" :rows="3" listClass="flex flex-col py-1" :label="$t('roster.status.runs_loading')">
-          <div class="flex flex-col py-2">
-            <SkeletonLine width="w-1/2" />
-            <SkeletonLine width="w-1/3" />
-          </div>
-        </ContentSkeleton>
-        <p v-else-if="runs.data.value.length === 0" class="py-3 text-sm text-muted">{{ $t("roster.label.no_runs") }}</p>
-        <ul v-else class="flex flex-col py-1" data-roster-runs>
-          <li v-for="run in runs.data.value" :key="run.id">
-            <NuxtLink :to="momentLink(run.agent, toUnixSeconds(run.startedAt))" :class="ROW_LINK">
-              <span :class="ROW_LINES">
-                <span :class="ROW_LINE">
-                  <span class="min-w-0 flex-1 truncate text-highlighted">{{ run.agent }}</span>
-                  <span class="shrink-0 text-muted tabular-nums">{{ formatStamp(toUnixSeconds(run.startedAt)) }}</span>
-                </span>
-                <span :class="ROW_LINE" class="text-muted">
-                  <span class="min-w-0 flex-1 truncate">{{ run.roomTitle ?? run.name }}</span>
-                  <span v-if="run.endedAt !== null" class="shrink-0 tabular-nums">{{ tookText(run.startedAt, run.endedAt) }}</span>
-                  <span class="shrink-0">{{ endingText(run) }}</span>
-                </span>
-              </span>
-            </NuxtLink>
-          </li>
-        </ul>
-      </SettingsGroup>
-    </template>
-
-    <SettingsDialog v-model:open="personaOpen" :title="$t('bmo_profile.label.persona')" :description="person?.name">
-      <p class="text-sm break-words whitespace-pre-wrap text-default" data-roster-persona-text>{{ persona ?? "" }}</p>
-    </SettingsDialog>
+    <div class="p-4">
+      <div class="mx-auto flex w-full min-w-0 max-w-3xl flex-col" :data-person-pane="pane.value">
+        <KeepAlive>
+          <component :is="paneComponent" :key="pane.value" :user="props.user" :person="person" :failure="personFailure" :reading="personReading" :administrator="targetAdministrator" @retry="readPerson" />
+        </KeepAlive>
+      </div>
+    </div>
 
     <OrganizationMoveDialog ref="moveDialog" v-model:open="moving" :units="units" :name-of="nameOf" :roles-of="rolesOfUnit" @moved="actDone" />
     <OrganizationPostDialog
@@ -242,37 +93,32 @@
 
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
-import { elapsedText, formatStamp, toUnixSeconds } from "bmo-ui/app/domain/time";
+import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
 
 import { useAdministrator, useSignedUser } from "~/domain/access";
-import { groupIcon } from "~/domain/agents";
-import { avatarFor, identityMark, useAvatars } from "~/domain/avatars";
-import { percentOf, providerWord, roadText, useProviders } from "~/domain/axes";
-import { followsLine, nameShown, sourceLine } from "~/domain/bmo-profile";
+import { identityMark } from "~/domain/avatars";
 import { useConfirm } from "~/domain/confirm";
-import { countText } from "~/domain/numbers";
 import { organizationAddress } from "~/domain/organization";
-import { ROSTER_ROLE_LABELS, ROSTER_STATE_FACES, rosterActs, rosterRoleOf, runEnding } from "~/domain/roster";
-import { dayKey } from "bmo-ui/app/domain/time";
-import { agentLink, momentLink } from "~/domain/status";
+import { PERSON_PANES, personAdministrator, personBase, personPaneOf, personPaneRefused, personPanesFor, withPersonPane } from "~/domain/person-panes";
+import { ROSTER_STATE_FACES, rosterActs } from "~/domain/roster";
+import { revealOpenTab } from "~/domain/tab-row";
 
-import type { PairRow, PairSkeleton } from "~/domain/pair-rows";
-import type { AgentMarkSubject } from "~/domain/agent-face";
 import type { RosterAct } from "~/domain/roster";
-import type { HistoryView, RoleView, RosterAgent, RosterBmo, RosterDetail, RosterRoom, RosterRun, RosterSession } from "#shared/roster";
-import type { InviteUnit } from "@web/server-client";
+import type { RoleView, RosterDetail, RosterPerson } from "#shared/roster";
+import type { InviteUnit, UnitRow } from "@web/server-client";
 import type { UserProfile } from "#shared/types";
 import type { DropdownMenuItem } from "@nuxt/ui";
-import type { UnitRow } from "@web/server-client";
-import type { Ref } from "vue";
+import type { Component } from "vue";
 
 interface Props {
   user: string;
+  // The person's row in the list they were opened from, where it holds them, which says some of what their read will.
+  listed?: RosterPerson | null;
   // Whether the person stands over the list on a narrow screen, with the way back at the head.
   back?: boolean;
 }
 
-const props = withDefaults(defineProps<Props>(), { back: false });
+const props = withDefaults(defineProps<Props>(), { back: false, listed: null });
 // `back` asks for the list again; `changed` hands on the person as read again after an act, for their row.
 const emit = defineEmits<{ back: []; changed: [person: RosterDetail] }>();
 
@@ -282,17 +128,8 @@ const router = useRouter();
 const confirm = useConfirm();
 const administrator = useAdministrator();
 const signed = useSignedUser();
-const avatars = useAvatars();
-const { data: providers } = useProviders();
 
-const base = computed(() => `/api/organization/people/${encodeURIComponent(props.user)}`);
-
-// A row of a group that opens what it names: the row's own box, pressed as a whole, its mark centred beside its two
-// lines. A row is two lines at every width, the words that say which item it is first and cut last, so a narrow region
-// never squeezes them out for the cells beside them.
-const ROW_LINK = "-mx-2 flex min-w-0 items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-elevated active:bg-accented";
-const ROW_LINES = "flex min-w-0 flex-1 flex-col text-sm";
-const ROW_LINE = "flex min-w-0 items-center gap-3";
+const base = computed(() => personBase(props.user));
 
 // --- The person ---
 
@@ -314,186 +151,9 @@ async function readPerson(): Promise<void> {
   }
 }
 
+const targetAdministrator = computed(() => personAdministrator(person.value, props.listed));
 const face = computed(() => identityMark(`user:${props.user}`, person.value?.name ?? ""));
 const stateFace = computed(() => ROSTER_STATE_FACES[person.value?.state ?? "active"]);
-
-function stamp(at: number | null): string {
-  return at === null ? t("common.label.no_record") : formatStamp(toUnixSeconds(at));
-}
-
-// The account group: the login, the name, the job title, the contact details for the administrator alone, the state with who
-// marked the person left and when, when the account was made and when they last signed in.
-const accountLabels = computed(() => [
-  t("account.label.user_id"),
-  t("account.label.full_name"),
-  t("account.label.job_title"),
-  t("account.label.rank"),
-  t("account.label.duty"),
-  ...(administrator.value ? [t("account.label.landline"), t("account.label.mobile"), t("account.label.email")] : []),
-  t("roster.label.state"),
-  t("roster.label.made_at"),
-  t("roster.label.last_sign_in")
-]);
-
-const accountRows = computed<PairRow[] | null>(() => {
-  const one = person.value;
-
-  if (one === null) return null;
-
-  const contact = (label: string, value: string | undefined): PairRow[] => (value === undefined ? [] : [{ key: label, label, value: value === "" ? "—" : value }]);
-
-  return [
-    { key: "login", label: t("account.label.user_id"), value: one.login },
-    { key: "name", label: t("account.label.full_name"), value: one.name },
-    { key: "job", label: t("account.label.job_title"), value: one.jobTitle === "" ? "—" : one.jobTitle },
-    { key: "rank", label: t("account.label.rank"), value: one.rank === "" ? "—" : one.rank },
-    { key: "duty", label: t("account.label.duty"), value: one.duty === "" ? "—" : one.duty },
-    ...contact(t("account.label.landline"), one.landline),
-    ...contact(t("account.label.mobile"), one.mobile),
-    ...contact(t("account.label.email"), one.email),
-    {
-      key: "state",
-      label: t("roster.label.state"),
-      value: t(ROSTER_STATE_FACES[one.state].label),
-      under: one.left === null ? undefined : t("roster.label.left_by", { time: formatStamp(toUnixSeconds(one.left.at)), name: one.left.byName })
-    },
-    { key: "made", label: t("roster.label.made_at"), value: formatStamp(toUnixSeconds(one.madeAt)) },
-    { key: "sign-in", label: t("roster.label.last_sign_in"), value: stamp(one.lastSignInAt) }
-  ];
-});
-
-// The organisation group: the company, the unit's path from the company down, the role and the units the person heads directly.
-const organizationLabels = computed(() => [t("invites.label.company"), t("invites.label.unit"), t("organization.label.role"), t("roster.label.position")]);
-
-const organizationRows = computed<PairRow[] | null>(() => {
-  const one = person.value;
-
-  if (one === null) return null;
-
-  return [
-    { key: "company", label: t("invites.label.company"), value: one.company.name },
-    { key: "unit", label: t("invites.label.unit"), value: one.path.map((unit) => unit.name).join(" › ") },
-    { key: "role", label: t("organization.label.role"), value: t(ROSTER_ROLE_LABELS[rosterRoleOf(one)]) },
-    { key: "position", label: t("roster.label.position"), value: one.role?.name ?? "—" },
-    ...(one.headOf.length === 0 ? [] : [{ key: "head-of", label: t("roster.label.head_of"), value: one.headOf.map((unit) => unit.name).join(", ") }]),
-    ...(one.actingFor.length === 0
-      ? []
-      : [{ key: "acting-for", label: t("roster.label.acting_for"), value: one.actingFor.map((acting) => t("roster.label.acting_until", { unit: acting.unit.name, date: lastDay(acting.until) })).join(", ") }])
-  ];
-});
-
-// --- A group read on its own ---
-
-interface GroupRead<T> {
-  data: Ref<T | null>;
-  failure: Ref<string>;
-  reading: Ref<boolean>;
-  read: () => Promise<void>;
-}
-
-// One group's read: what it holds once read, and a failure said in its place until a read goes through.
-function groupRead<T>(load: () => Promise<T>, failed: string): GroupRead<T> {
-  const data = ref<T | null>(null) as Ref<T | null>;
-  const failure = ref("");
-  const reading = ref(false);
-
-  async function read(): Promise<void> {
-    reading.value = true;
-
-    try {
-      data.value = await load();
-      failure.value = "";
-    } catch (error) {
-      failure.value = failureText(error, failed);
-    } finally {
-      reading.value = false;
-    }
-  }
-
-  return { data, failure, reading, read };
-}
-
-// --- BMO ---
-
-const bmo = groupRead(() => $fetch<RosterBmo>(`${base.value}/bmo`), t("roster.error.bmo_read_failed"));
-
-// The BMO group's place while it is read, sized for the case met most: every part of the profile the deployment's, so
-// no line says where a part came from and no persona stands to open, and the permission following the person's unit,
-// whose line stands.
-const bmoLabels = computed<PairSkeleton[]>(() => [
-  { label: t("bmo_profile.label.name") },
-  { label: t("bmo_profile.label.call_names") },
-  { label: t("bmo_profile.label.picture"), beside: "picture" },
-  { label: t("bmo_profile.label.persona") },
-  { label: t("bmo_profile.label.permission"), under: true },
-  { label: t("agents.label.column_road") }
-]);
-
-const persona = computed(() => bmo.data.value?.standing.persona.value ?? null);
-const personaText = computed(() =>
-  persona.value === null ? t("bmo_profile.label.default_value", { value: t("common.label.none") }) : t("roster.label.persona_length", { count: countText([...persona.value].length) })
-);
-const personaOpen = ref(false);
-const bmoPicture = computed(() => (bmo.data.value?.picture === true ? `${base.value}/bmo/picture` : null));
-
-const bmoRows = computed<PairRow[] | null>(() => {
-  const one = bmo.data.value;
-
-  if (one === null) return null;
-
-  const { name, callNames, persona: personaPart, picture } = one.standing;
-  const from = (source: typeof name.from) => sourceLine(t, source) ?? undefined;
-
-  return [
-    { key: "name", label: t("bmo_profile.label.name"), value: nameShown(t, name.value), under: from(name.from) },
-    { key: "call-names", label: t("bmo_profile.label.call_names"), value: callNames.value.length > 0 ? callNames.value.join(", ") : t("bmo_profile.label.no_call_names"), under: from(callNames.from) },
-    { key: "picture", label: t("bmo_profile.label.picture"), under: from(picture.from) },
-    { key: "persona", label: t("bmo_profile.label.persona"), under: from(personaPart.from) },
-    {
-      key: "permission",
-      label: t("bmo_profile.label.permission"),
-      value: t(one.standing.personalize ? "bmo_profile.label.allow" : "bmo_profile.label.deny"),
-      under: followsLine(t, { setting: one.personalizeSetting, allowed: one.standing.personalize, company: false }) ?? undefined
-    },
-    // The road of their supervisor, in the words agent management's road cell reads it in.
-    { key: "road", label: t("agents.label.column_road"), value: one.road === null ? "—" : (roadText(providers.value, one.road) ?? "—") }
-  ];
-});
-
-// --- The administrator's groups ---
-
-const rooms = groupRead(() => $fetch<RosterRoom[]>(`${base.value}/rooms`), t("roster.error.rooms_read_failed"));
-const agents = groupRead(() => $fetch<RosterAgent[]>(`${base.value}/agents`), t("roster.error.agents_read_failed"));
-const sessions = groupRead(() => $fetch<RosterSession[]>(`${base.value}/sessions`), t("roster.error.sessions_read_failed"));
-const runs = groupRead(() => $fetch<RosterRun[]>(`${base.value}/runs`), t("roster.error.runs_read_failed"));
-
-function markOf(agent: RosterAgent): AgentMarkSubject {
-  const group = agent.kind === "supervisor" ? "supervisor" : "role";
-
-  return { name: agent.name, label: agent.label, chatId: null, group, icon: groupIcon(group) };
-}
-
-// An agent's second line: whose seat it is, its supervisor's word or its role, and its road where it has one.
-function agentLine(agent: RosterAgent): string {
-  const kind = agent.kind === "supervisor" ? t("agents.label.column_supervisor") : (agent.role ?? "");
-  const road = agent.road === null ? null : roadText(providers.value, agent.road);
-
-  return [kind, road].filter((one) => one !== null && one !== "").join(" · ");
-}
-
-function contextText(context: { carried: number; window: number }): string {
-  return t("roster.label.context", { carried: countText(context.carried), window: countText(context.window), share: percentOf(context.window === 0 ? 0 : context.carried / context.window) });
-}
-
-function tookText(startedAt: number, endedAt: number): string {
-  return elapsedText(t, toUnixSeconds(endedAt) - toUnixSeconds(startedAt));
-}
-
-function endingText(run: RosterRun): string {
-  const ending = runEnding(run);
-
-  return ending.outcome === null ? t(ending.key) : t(ending.key, { outcome: ending.outcome });
-}
 
 // --- The management menu ---
 
@@ -506,7 +166,6 @@ const ACT_ITEMS: Readonly<Record<RosterAct, { label: string; icon: string; color
   post: { label: "roster.action.add_post", icon: "i-material-symbols-group-add-outline" },
   machine: { label: "organization.action.bind", icon: "i-material-symbols-computer-outline" },
   profile: { label: "roster.action.profile", icon: "i-material-symbols-badge-outline" },
-  sections: { label: "roster.action.sections", icon: "i-material-symbols-admin-panel-settings-outline" },
   bmo: { label: "bmo_profile.label.permission", icon: "i-material-symbols-face-outline" },
   leave: { label: "organization.action.mark_left_confirm", icon: "i-material-symbols-person-off-outline", color: "error" }
 };
@@ -522,7 +181,6 @@ async function take(act: RosterAct): Promise<void> {
   else if (act === "post") await startPost();
   else if (act === "machine") machineOpen.value = true;
   else if (act === "profile") await openProfile();
-  else if (act === "sections") void router.push(organizationAddress("permissions", route.query, { user: props.user }));
   else if (act === "bmo") openBmoPermission();
   else await markLeft();
 }
@@ -621,40 +279,6 @@ async function startPost(): Promise<void> {
   postOpen.value = true;
 }
 
-// The last day an appointment runs: its end is the start of the day after.
-function lastDay(until: number): string {
-  return dayKey(toUnixSeconds(until - 1));
-}
-
-// One change of the person's place in words: what changed, the units by name, a role by the name it had then.
-function historyLine(entry: HistoryView): string {
-  const unit = entry.unit?.name ?? "";
-  const role = (mark: { name: string } | null): string => mark?.name ?? t("organization.label.no_position");
-
-  switch (entry.change) {
-    case "placed":
-      return entry.from === null ? t("roster.label.history_placed", { unit }) : t("roster.label.history_placed_from", { from: entry.from.name, unit });
-    case "role":
-      return t("roster.label.history_role", { unit, before: role(entry.before), after: role(entry.after) });
-    case "head-granted":
-      return t("roster.label.history_head_granted", { unit });
-    case "head-taken":
-      return t("roster.label.history_head_taken", { unit });
-    case "acting":
-      return t("roster.label.history_acting", { unit, date: entry.until === null ? "" : lastDay(entry.until) });
-    case "acting-ended":
-      return t("roster.label.history_acting_ended", { unit });
-    case "post-given":
-      return t("roster.label.history_post_given", { unit, role: role(entry.after) });
-    case "post-changed":
-      return t("roster.label.history_post_changed", { unit, before: role(entry.before), after: role(entry.after) });
-    case "post-taken":
-      return t("roster.label.history_post_taken", { unit });
-    case "left":
-      return t("roster.label.history_left");
-  }
-}
-
 // The machine: the chart's machine dialog.
 const machineOpen = ref(false);
 
@@ -694,16 +318,63 @@ async function markLeft(): Promise<void> {
   if (done !== null) await actDone();
 }
 
-// Every group is read as the person opens, the administrator's alone asked by the administrator alone.
-onMounted(() => {
-  void readPerson();
-  void bmo.read();
+// --- The tabs ---
 
-  if (administrator.value) {
-    void rooms.read();
-    void agents.read();
-    void sessions.read();
-    void runs.read();
-  }
+// Each tab says which readers it stands for, and the address names the one open.
+const panes = computed(() => personPanesFor({ administrator: administrator.value }));
+const pane = computed(() => personPaneOf(route.query, panes.value));
+const paneItems = computed(() => panes.value.map((one) => ({ value: one.value, label: t(one.label) })));
+
+// A tab the address names that the reader may not open, or that is no tab, is taken off it with no step of the
+// history, the person opening at their first tab.
+// It waits until the person stands in the browser, as the screen's own tabs do.
+onMounted(() =>
+  watch(
+    () => route.query,
+    (query) => {
+      if (personPaneRefused(query, panes.value)) void router.replace({ query: withPersonPane(query, PERSON_PANES[0]!.value) });
+    },
+    { immediate: true }
+  )
+);
+
+// Moving to another tab is a step of the history, as the screen's tabs are.
+function setPane(next: string): void {
+  if (next !== pane.value.value) void router.push({ query: withPersonPane(route.query, next) });
+}
+
+// Each tab's component, made once and loaded the first time it is opened.
+const components = new Map<string, Component>();
+const paneComponent = computed(() => {
+  const { value, load } = pane.value;
+
+  if (!components.has(value)) components.set(value, defineAsyncComponent(load));
+
+  return components.get(value)!;
 });
+
+// The open tab brought into the row's view on a narrow region where the row scrolls sideways, and, where the head has
+// scrolled away, the region brought back to the tab's start, which the row stays over: the person is the whole of the
+// region it scrolls in.
+const article = useTemplateRef<HTMLElement>("article");
+const paneRow = useTemplateRef<HTMLElement>("paneRow");
+
+watch(
+  () => [pane.value.value, paneRow.value] as const,
+  () => void nextTick(() => revealOpenTab(paneRow.value)),
+  { immediate: true, flush: "post" }
+);
+
+watch(
+  () => pane.value.value,
+  () => {
+    const region = article.value?.parentElement;
+    const start = paneRow.value?.previousElementSibling;
+
+    if (region instanceof HTMLElement && start instanceof HTMLElement && region.scrollTop > start.offsetHeight) region.scrollTop = start.offsetHeight;
+  },
+  { flush: "post" }
+);
+
+onMounted(() => void readPerson());
 </script>

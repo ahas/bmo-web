@@ -30,7 +30,7 @@ const RUN = Date.now().toString(36);
 const PERSONAL = ["settings.label.account", "settings.label.secrets", "settings.label.theme", "settings.label.palette"];
 const ADMINISTRATOR_PERSONAL = [...PERSONAL, "settings.label.notifications", "settings.label.briefing"];
 const MOVED = ["settings.label.invites", "settings.label.permissions", "settings.label.providers", "secrets.label.kinds", "research.title.supervisor"];
-const TABS = ["organization.label.chart", "roster.label.tab", "catalogue.label.tab", "settings.label.invites", "settings.label.permissions", "settings.label.bmo"];
+const TABS = ["organization.label.chart", "roster.label.tab", "catalogue.label.tab", "settings.label.invites", "settings.label.bmo"];
 const ADMIN_TABS = ["settings.label.providers", "secrets.label.kinds"];
 
 let browser: Browser | null = null;
@@ -432,7 +432,6 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
         // padding on every side outside it; the administrator's screen lays its tabs out the same way.
         const columned = [
           { tab: "invites", path: "/organization?tab=invites", screen: "organization" },
-          { tab: "permissions", path: "/organization?tab=permissions", screen: "organization" },
           { tab: "providers", path: "/admin", screen: "admin" },
           { tab: "secret-kinds", path: "/admin?tab=secret-kinds", screen: "admin" }
         ];
@@ -516,7 +515,7 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
             expect({ old, open: (await page.locator(`[aria-label="${wording("admin.aria.tabs")}"] [role="tab"][data-state="active"]`).innerText()).trim() }).toEqual({ old, open: wording(label) });
           }
 
-          // The organisation screen keeps the chart, the people, the invitations, the permissions and the BMO.
+          // The organisation screen keeps the chart, the people, the roles and kinds, the invitations and the BMO.
           await page.goto(`${origin}/organization`, { waitUntil: "load" });
           await standing(page);
           expect(await tabNames(page)).toEqual(TABS.map((key) => wording(key)));

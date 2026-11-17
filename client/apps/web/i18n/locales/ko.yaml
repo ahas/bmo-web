@@ -1830,6 +1830,8 @@ roster:
     no_bmo: BMO 없음
     persona_length: "{count}자"
     runs: 최근 활동
+    activity: 활동
+    belonging: 소속
     private_room: 개인 대화
     group_room: 그룹
     message_count: "메시지 {count}개"
@@ -1845,9 +1847,9 @@ roster:
     manage: 관리
     profile: 프로필 변경
     add_post: 겸직 추가
-    sections: 섹션 권한
   aria:
     count: "찾은 사용자 {count}명"
+    person_tabs: 사용자 정보 탭
   status:
     active: 활성
     pending: 기기 연결 대기
@@ -1882,18 +1884,14 @@ roster:
 permissions:
   label:
     administrator: 플랫폼 관리자는 모든 섹션을 읽고 쓸 수 있습니다.
-    none: 설정할 사용자가 없습니다.
     read: 읽기
     section: 섹션
-    user: 사용자
     write: 쓰기
   status:
     sections_loading: 권한 불러오는 중…
-    users_loading: 사용자 목록 불러오는 중…
   error:
     sections_read_failed: 권한을 불러오지 못했습니다.
     sections_write_failed: 권한을 저장하지 못했습니다.
-    users_read_failed: 사용자 목록을 불러오지 못했습니다.
   aria:
     read_of: "{name} 읽기"
     write_of: "{name} 쓰기"

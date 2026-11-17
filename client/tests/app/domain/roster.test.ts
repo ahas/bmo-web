@@ -103,7 +103,7 @@ describe("the filters", () => {
 
 describe("a person's management menu", () => {
   test("offers the administrator every act, and none that marks himself left", () => {
-    expect(rosterActs({ administrator: true, user: "1" }, PERSON)).toEqual(["move", "post", "machine", "profile", "sections", "bmo", "leave"]);
+    expect(rosterActs({ administrator: true, user: "1" }, PERSON)).toEqual(["move", "post", "machine", "profile", "bmo", "leave"]);
     expect(rosterActs({ administrator: true, user: "7" }, PERSON)).not.toContain("leave");
   });
 

@@ -99,7 +99,8 @@ const ACCOUNTS: readonly [string, string][] = [
   ["deploy-truth", "fixture-password-3187"],
   ["room-presence", "fixture-password-3124"],
   ["people-presence", "fixture-password-3293"],
-  ["sidebar-agent-rows", "fixture-password-3165"]
+  ["sidebar-agent-rows", "fixture-password-3165"],
+  ["person-tabs", "fixture-password-3363"]
 ];
 
 // The member accounts a test signs in with to read a section by its permission rather than as the administrator,
@@ -150,6 +151,12 @@ const MEMBERS: readonly { name: string; password: string; sections: readonly { s
   ...["org-move-a", "org-move-b", "org-move-c"].map((name, at) => ({
     name,
     password: `fixture-password-286${at}`,
+    sections: [{ section: "account", read: true, write: true }]
+  })),
+  // The head of a company who reads one of its people's tabs, and that person, who never signs in.
+  ...["person-tabs-head", "person-tabs-subject"].map((name, at) => ({
+    name,
+    password: `fixture-password-336${at + 4}`,
     sections: [{ section: "account", read: true, write: true }]
   })),
   // The members of the company, read by a member who reads their account section.
@@ -244,7 +251,22 @@ const PRIVATE_ACCOUNT = 9_003_001;
 const PRESENCE_CHAT = -9_004_000_000_001;
 const PRESENCE_PEOPLE = ["presence-here", "presence-hidden", "presence-other"] as const;
 const presence = { frames: "" };
+// The person whose activity a person's tabs show (docs/web.md, 「Organisation」, the people tab): one room they read, the
+// last scout seat filed under their account, and one run and one session of that seat, written once their account
+// stands. No other account reads the room by membership, and the seat's other agents keep their rows as they were.
+const ACTIVITY_PERSON = "person-tabs-subject";
+const ACTIVITY_AGENT = "scout-12";
+const activity = { account: 0 };
 const SEALED_OWNER = process.env.BROWSER_CONSOLE_SEALED_OWNER === "1";
+
+// The activity person's run, ended an hour after it began, and its seat's session in the room they read.
+function activityRun(): Record<string, unknown> {
+  return { id: 9_005_001, name: "scheduled-check", agentName: ACTIVITY_AGENT, startedAt: LINE_AT - 3_600_000, endedAt: LINE_AT - 3_540_000, roomId: UNREAD_CHAT, state: "closed", outcome: "ok" };
+}
+
+function activitySession(): Record<string, unknown> {
+  return { id: "session-activity", agentName: ACTIVITY_AGENT, scope: "room", roomId: UNREAD_CHAT, provider: "claude-code", model: "claude-sonnet-5", context: { carried: 12_000, window: 200_000 } };
+}
 
 function privacyOf(chat: number): { privateOf: number | null; sealed: boolean } {
   return { privateOf: chat === PRIVATE_CHAT ? PRIVATE_ACCOUNT : null, sealed: chat === OWNER_CHAT && SEALED_OWNER };
@@ -795,8 +817,11 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
       return Response.json({ provider: named, models: ids.map((id, at) => ({ id, efforts: [], free: false, inService: at === 0, ...declared(at) })), staleReadAt: null });
     }
-    if (path === "/sessions") return Response.json({ items: [], more: false });
-    if (path === "/runs") return Response.json({ items: [], more: false });
+    if (path === "/sessions" || path === "/runs") {
+      const mine = activity.account !== 0 && new URL(request.url).searchParams.get("agentName") === ACTIVITY_AGENT;
+
+      return Response.json({ items: mine ? [path === "/runs" ? activityRun() : activitySession()] : [], more: false });
+    }
     if (path === "/jobs") return Response.json({ items: [], more: false });
     if (path === "/log-lines") return Response.json({ items: [], more: false });
     if (path === "/prompt-documents") return Response.json({ items: [], more: false });
@@ -1121,7 +1146,11 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     // 「Access」).
     const member = /^\/accounts\/(\d+)\/rooms$/.exec(path);
 
-    if (member !== null) return Response.json({ rooms: Number(member[1]) === PRIVATE_ACCOUNT ? [PRIVATE_CHAT] : [] });
+    if (member !== null) {
+      const account = Number(member[1]);
+
+      return Response.json({ rooms: account === PRIVATE_ACCOUNT ? [PRIVATE_CHAT] : account === activity.account ? [UNREAD_CHAT] : [] });
+    }
     if (path === `/rooms/${PRIVATE_CHAT}/messages`) {
       const after = new URL(request.url).searchParams.get("after");
 
@@ -1600,6 +1629,19 @@ try {
 
     if (!written.ok) throw new Error(`${member.name}'s sections were refused: ${written.status}`);
   }
+
+  // The activity person's seat filed under their account.
+  const activityPerson = users.find((user) => user.name === ACTIVITY_PERSON);
+
+  if (activityPerson === undefined) throw new Error(`${ACTIVITY_PERSON} stands in no users list`);
+
+  activity.account = Number(activityPerson.user);
+
+  const seat = ROLES.flatMap((one) => (one.agents as Record<string, unknown>[] | undefined) ?? []).find((agent) => agent.name === ACTIVITY_AGENT);
+
+  if (seat === undefined) throw new Error(`${ACTIVITY_AGENT} stands in no role`);
+
+  seat.ownerAccount = activity.account;
 
   // The presence fixture: one of its people moved into a company of their own, one who turned their presence off, and
   // the receiver's stand-in telling all three online in a room no fixture account shares.

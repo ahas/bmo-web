@@ -140,7 +140,7 @@ export function rosterRoleOf(person: Pick<RosterPerson, "head">): RosterRole {
 }
 
 /** One act of a person's management menu. */
-export type RosterAct = "move" | "post" | "machine" | "profile" | "sections" | "bmo" | "leave";
+export type RosterAct = "move" | "post" | "machine" | "profile" | "bmo" | "leave";
 
 /** Who asks, as far as what the routes behind the acts let them do. */
 export interface RosterActor {
@@ -157,14 +157,13 @@ export interface RosterActor {
  */
 export function rosterActs(actor: RosterActor, person: Pick<RosterPerson, "user" | "state">): RosterAct[] {
   const own = actor.user !== null && actor.user === person.user;
-  const offered: RosterAct[] = person.state === "left" ? ["profile"] : ["move", "post", "machine", "profile", "sections", "bmo", "leave"];
+  const offered: RosterAct[] = person.state === "left" ? ["profile"] : ["move", "post", "machine", "profile", "bmo", "leave"];
   const may: Record<RosterAct, boolean> = {
     move: actor.administrator,
     // A reader of a person on the roster heads their company or is the administrator, so may give them a post.
     post: true,
     machine: actor.administrator,
     profile: actor.administrator || own,
-    sections: actor.administrator,
     bmo: true,
     leave: actor.administrator && !own
   };

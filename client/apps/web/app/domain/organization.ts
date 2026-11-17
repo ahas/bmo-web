@@ -3,6 +3,7 @@ import type { LocationQuery } from "vue-router";
 
 import { useAdministrator } from "./access";
 import { adminAddress, adminTabNamed, administratorOpens } from "./administration";
+import { PERSON_PANE_KEY } from "./person-panes";
 import { useRosterCompanies } from "./roster";
 import { SETTINGS_QUERY } from "./settings-dialog";
 
@@ -49,32 +50,41 @@ function rosterReaderOpens(reader: OrganizationReader): boolean {
   return reader.administrator || reader.roster;
 }
 
+// The people tab's key, which a section moved into one person's tab leads to.
+const PEOPLE_TAB = "people";
+
 export const ORGANIZATION_TABS: readonly OrganizationTab[] = [
   { value: "organization", label: "organization.label.chart", icon: "i-material-symbols-account-tree-outline", opens: administratorOpens, keys: ["unit", "kind"], wide: true, load: () => import("~/components/OrganizationUnits.vue") },
-  { value: "people", label: "roster.label.tab", icon: "i-material-symbols-group-outline", opens: rosterReaderOpens, keys: ["q", "company", "unit", "kind", "role", "state", "user"], wide: true, load: () => import("~/components/OrganizationPeople.vue") },
+  { value: PEOPLE_TAB, label: "roster.label.tab", icon: "i-material-symbols-group-outline", opens: rosterReaderOpens, keys: ["q", "company", "unit", "kind", "role", "state", "user", PERSON_PANE_KEY], wide: true, load: () => import("~/components/OrganizationPeople.vue") },
   { value: "catalogue", label: "catalogue.label.tab", icon: "i-material-symbols-category-outline", opens: rosterReaderOpens, keys: ["company"], wide: false, load: () => import("~/components/OrganizationCatalogue.vue") },
   { value: "invites", label: "settings.label.invites", icon: "i-material-symbols-person-add-outline", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationInvites.vue") },
-  { value: "permissions", label: "settings.label.permissions", icon: "i-material-symbols-admin-panel-settings-outline", opens: administratorOpens, keys: ["user"], wide: false, load: () => import("~/components/OrganizationPermissions.vue") },
   { value: "agent", label: "settings.label.bmo", icon: "i-material-symbols-face-outline", opens: everyReaderOpens, keys: ["company", "unit"], wide: false, load: () => import("~/components/OrganizationBmo.vue") }
 ];
 
 // Where a section that once stood here as a tab stands now, by the key its tab had, so a link made before it moved
 // still lands on it: the research supervisor with the research unit's settings, the voice briefing and a person's own
-// secrets in the settings dialog over this screen, and the providers and the secret kinds on the administrator's
-// screen.
-const MOVED_AWAY: Readonly<Record<string, { path: string; query: LocationQuery }>> = {
+// secrets in the settings dialog over this screen, the providers and the secret kinds on the administrator's screen,
+// and a person's sections on that person's own tab of the people tab. `carries` names the keys of the old address the
+// new one keeps, such as the person it was open at.
+const MOVED_AWAY: Readonly<Record<string, { path: string; query: LocationQuery; carries?: readonly string[] }>> = {
   research: { path: "/research", query: { tab: "settings" } },
   briefing: { path: ORGANIZATION_PATH, query: { [SETTINGS_QUERY]: "briefing" } },
-  secrets: { path: ORGANIZATION_PATH, query: { [SETTINGS_QUERY]: "secrets" } }
+  secrets: { path: ORGANIZATION_PATH, query: { [SETTINGS_QUERY]: "secrets" } },
+  permissions: { path: ORGANIZATION_PATH, query: { tab: PEOPLE_TAB, [PERSON_PANE_KEY]: "permissions" }, carries: ["user"] }
 };
 
-/** The address a key of a tab that moved away from this screen now leads to, where it names one. */
-export function organizationMovedAway(key: unknown): { path: string; query: LocationQuery } | null {
+/** The address a key of a tab that moved away from this screen now leads to, where it names one, read off the address it was asked on. */
+export function organizationMovedAway(key: unknown, query: LocationQuery = {}): { path: string; query: LocationQuery } | null {
   const admin = adminTabNamed(key);
 
   if (admin !== null) return adminAddress(admin.value);
 
-  return typeof key === "string" && Object.hasOwn(MOVED_AWAY, key) ? MOVED_AWAY[key]! : null;
+  if (typeof key !== "string" || !Object.hasOwn(MOVED_AWAY, key)) return null;
+
+  const { path, query: lands, carries = [] } = MOVED_AWAY[key]!;
+  const carried = Object.fromEntries(carries.flatMap((one) => (query[one] === undefined ? [] : [[one, query[one]]])));
+
+  return { path, query: { ...carried, ...lands } };
 }
 
 /** The tabs a reader opens, each by its own say. */
@@ -93,7 +103,7 @@ const TAB_KEYS = new Set(ORGANIZATION_TABS.flatMap((tab) => tab.keys));
 /**
  * The address of one tab: the screen's own for the first, `?tab=` for the rest. What the tab left owned goes, and
  * every other key of the address stays; `carried` names the keys a deliberate open hands the tab entered, such as
- * the person its permissions tab opens at.
+ * the company and the unit the BMO tab opens at.
  */
 export function organizationAddress(value: string, query: LocationQuery = {}, carried: LocationQuery = {}): { path: string; query: LocationQuery } {
   const rest = Object.fromEntries(Object.entries(query).filter(([key]) => key !== "tab" && !TAB_KEYS.has(key)));

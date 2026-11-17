@@ -1,7 +1,7 @@
 <template>
   <!-- The people tab (docs/web.md, 「Organisation」, the people tab): the people the reader looks through, found by a
        search on the server and narrowed by four filters, beside the person chosen, two regions across the whole body
-       parted by a splitter whose widths this browser keeps. The address carries the words, the filters and the person.
+       parted by a splitter whose widths this browser keeps. The address carries the words, the filters, the person and their tab.
        On a narrow screen the list fills the body, its filters in a bottom drawer, and a person chosen opens over it,
        filling the screen; the back arrow and the back gesture return to the list as it was left, which never goes
        away beneath. -->
@@ -194,11 +194,11 @@
         </section>
       </template>
 
-      <!-- The person chosen, in a reading column of its region, or one line asking for one. -->
+      <!-- The person chosen, the whole of its region, which scrolls; or one line asking for one. -->
       <template #person>
-        <div class="min-h-0 min-w-0 flex-1 overflow-y-auto p-4 [scrollbar-width:thin]" data-roster-person-region>
-          <OrganizationPerson v-if="user !== null" :key="user" :user="user" @changed="personChanged" />
-          <div v-else class="flex h-full items-center justify-center">
+        <div class="min-h-0 min-w-0 flex-1 overflow-y-auto [scrollbar-width:thin]" data-roster-person-region>
+          <OrganizationPerson v-if="user !== null" :key="user" :user="user" :listed="listedPerson" @changed="personChanged" />
+          <div v-else class="flex h-full items-center justify-center p-4">
             <p class="text-sm text-muted">{{ $t("roster.label.choose") }}</p>
           </div>
         </div>
@@ -208,8 +208,8 @@
     <!-- On a narrow screen the person stands over the list, the whole screen, the list kept beneath as it was and out of
          the keyboard's reach while it is covered. -->
     <div v-if="covered && user !== null" ref="sheet" tabindex="-1" class="fixed inset-x-0 z-40 flex flex-col bg-default outline-none" :style="SCREEN_FRAME" data-roster-person-sheet>
-      <div class="min-h-0 flex-1 overflow-y-auto p-4">
-        <OrganizationPerson :key="user" :user="user" back @back="closePerson" @changed="personChanged" />
+      <div class="min-h-0 flex-1 overflow-y-auto">
+        <OrganizationPerson :key="user" :user="user" :listed="listedPerson" back @back="closePerson" @changed="personChanged" />
       </div>
     </div>
 
@@ -465,6 +465,8 @@ const { adding } = useNextPages({
 // and taken back by that row as the person closes, however it closed; a person opened otherwise leaves the focus where
 // it falls.
 const covered = computed(() => narrow.value && user.value !== null);
+// The person's row where the list holds them, which says some of what the person's read will before it does.
+const listedPerson = computed(() => people.value?.find((one) => one.user === user.value) ?? null);
 const sheet = useTemplateRef<HTMLElement>("sheet");
 let openedFrom: HTMLElement | null = null;
 

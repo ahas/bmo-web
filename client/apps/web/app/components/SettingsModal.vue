@@ -173,7 +173,7 @@ async function answerAddress(): Promise<void> {
   // screen among them — the dialog staying shut (docs/web.md, 「Settings」).
   const own = SETTINGS_SECTIONS.some((one) => one.key === asked.key);
   const tab = own ? null : organizationTabNamed(asked.key);
-  const moved = own ? null : tab !== null ? organizationAddress(tab.value) : organizationMovedAway(asked.key);
+  const moved = own ? null : tab !== null ? organizationAddress(tab.value) : organizationMovedAway(asked.key, asked.rest);
 
   if (moved !== null) {
     await router.replace(moved);

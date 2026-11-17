@@ -3,7 +3,7 @@ import { screensWithBundles } from "./screens";
 
 import type { ConsoleScreen } from "#shared/console-bundles";
 
-// The sections the administrator's permission screen lists (docs/web.md, 「Access」): the console's navigation in
+// The sections a person's permissions tab lists (docs/web.md, 「Access」): the console's navigation in
 // its own order, each named by the screen it opens, and every screen a unit brings that the console's own list
 // does not name, after them. A screen's section is the first part of its path.
 
@@ -38,7 +38,7 @@ const NAMED: Record<string, { label: string; icon: string }> = {
   account: { label: "settings.label.account", icon: "i-material-symbols-person-outline" }
 };
 
-/** The sections the permission screen lists, each with the name and mark its screen wears. */
+/** The sections a person's permissions tab lists, each with the name and mark its screen wears. */
 export function permissionSections(bundles: readonly ConsoleScreen[]): PermissionSection[] {
   const bySection = new Map<string, PermissionSection>();
 

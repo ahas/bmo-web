@@ -40,7 +40,7 @@ describe("the settings dialog", () => {
   });
 
   test("leads every key that moved to its tab of the organisation screen or the administrator's, and keeps its own keys", () => {
-    for (const key of ["organization", "invites", "permissions"]) {
+    for (const key of ["organization", "invites"]) {
       expect({ key, moved: organizationTabNamed(key)?.value ?? null }).toEqual({ key, moved: key });
     }
 
@@ -51,6 +51,7 @@ describe("the settings dialog", () => {
     expect(organizationTabNamed("research")).toBeNull();
     expect(organizationTabNamed("briefing")).toBeNull();
     expect(organizationTabNamed("secrets")).toBeNull();
+    expect(organizationTabNamed("permissions")).toBeNull();
   });
 });
 
@@ -60,17 +61,23 @@ const MEMBER: OrganizationReader = { administrator: false, roster: false, known:
 
 describe("the organisation screen", () => {
   test("stands its tabs in order, the units first", () => {
-    expect(ORGANIZATION_TABS.map((tab) => tab.value)).toEqual(["organization", "people", "catalogue", "invites", "permissions", "agent"]);
+    expect(ORGANIZATION_TABS.map((tab) => tab.value)).toEqual(["organization", "people", "catalogue", "invites", "agent"]);
   });
 
   test("leads the keys of the sections that moved away to where they stand now, and no other key", () => {
     expect(organizationMovedAway("research")).toEqual({ path: "/research", query: { tab: "settings" } });
     expect(organizationMovedAway("briefing")).toEqual({ path: ORGANIZATION_PATH, query: { settings: "briefing" } });
     expect(organizationMovedAway("secrets")).toEqual({ path: ORGANIZATION_PATH, query: { settings: "secrets" } });
+    expect(organizationMovedAway("secrets", { user: "7" })).toEqual({ path: ORGANIZATION_PATH, query: { settings: "secrets" } });
 
     for (const key of [...ORGANIZATION_TABS.map((tab) => tab.value), "account", "toString", undefined, ["research"]]) {
       expect({ key, moved: organizationMovedAway(key) }).toEqual({ key, moved: null });
     }
+  });
+
+  test("leads the permissions key to the person it named on the people tab, at their permissions tab", () => {
+    expect(organizationMovedAway("permissions", { tab: "permissions", user: "7", q: "a" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "people", user: "7", pane: "permissions" } });
+    expect(organizationMovedAway("permissions")).toEqual({ path: ORGANIZATION_PATH, query: { tab: "people", pane: "permissions" } });
   });
 
   test("opens every tab to the administrator, the people and the roles and kinds tabs to a member who heads a company, and the invitations and BMO tabs to every member", () => {
@@ -80,22 +87,21 @@ describe("the organisation screen", () => {
   });
 
   test("opens the first tab a reader may for a key naming none of theirs", () => {
-    expect(organizationTabOf("permissions", organizationTabsFor(ADMINISTRATOR)).value).toBe("permissions");
-    expect(organizationTabOf("permissions", organizationTabsFor(MEMBER)).value).toBe("invites");
+    expect(organizationTabOf("people", organizationTabsFor(ADMINISTRATOR)).value).toBe("people");
+    expect(organizationTabOf("people", organizationTabsFor(MEMBER)).value).toBe("invites");
     expect(organizationTabOf(undefined, organizationTabsFor(ADMINISTRATOR)).value).toBe("organization");
   });
 
   test("keeps a tab in the address, the first being the screen's own, and lets the keys of the tab left go with it", () => {
     expect(organizationAddress("organization", { unit: "3" })).toEqual({ path: ORGANIZATION_PATH, query: {} });
-    expect(organizationAddress("permissions", { unit: "3", tab: "invites" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "permissions" } });
-    expect(organizationAddress("invites", { tab: "people", q: "a", company: "1", unit: "2", role: "head", state: "left", user: "7", settings: "theme" })).toEqual({
+    expect(organizationAddress("catalogue", { unit: "3", tab: "invites" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "catalogue" } });
+    expect(organizationAddress("invites", { tab: "people", q: "a", company: "1", unit: "2", role: "head", state: "left", user: "7", pane: "bmo", settings: "theme" })).toEqual({
       path: ORGANIZATION_PATH,
       query: { tab: "invites", settings: "theme" }
     });
   });
 
   test("carries the keys a deliberate open hands the tab entered", () => {
-    expect(organizationAddress("permissions", { tab: "people", user: "7", q: "a" }, { user: "7" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "permissions", user: "7" } });
     expect(organizationAddress("agent", { tab: "people", user: "7" }, { company: "1", unit: "2" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "agent", company: "1", unit: "2" } });
   });
 
@@ -105,7 +111,7 @@ describe("the organisation screen", () => {
 
     expect(screen.to).toBe(ORGANIZATION_PATH);
     expect(screen.inviters).toBe(true);
-    expect(screen.tabs?.map((tab) => tabAddress(screen, tab))).toEqual(["/organization", "/organization?tab=people", "/organization?tab=catalogue", "/organization?tab=invites", "/organization?tab=permissions", "/organization?tab=agent"]);
+    expect(screen.tabs?.map((tab) => tabAddress(screen, tab))).toEqual(["/organization", "/organization?tab=people", "/organization?tab=catalogue", "/organization?tab=invites", "/organization?tab=agent"]);
     expect(admin.to).toBe(ADMIN_PATH);
     expect(admin.administrator).toBe(true);
     expect(admin.tabs?.map((tab) => tabAddress(admin, tab))).toEqual(["/admin", "/admin?tab=secret-kinds"]);

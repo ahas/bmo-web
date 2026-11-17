@@ -238,8 +238,9 @@
 - the organisation screen's tab where accounts are looked up across companies → 사용자: 사용자, 사용자 없음, 사용자를
   선택해 주세요, 찾은 사용자 {n}명; where an account stands → 상태: 활성, 기기 연결 대기, 탈퇴; when it was made → 만든
   날짜; when it last signed in → 최근 로그인; a person's latest runs → 최근 활동; the menu of what may be done for one →
-  관리, its acts 조직 이동, 기기 연결, 프로필 변경, 섹션 권한, BMO 설정 권한, 탈퇴 처리. Never 회원, 계정 목록, 마지막 접속,
-  활동 내역.
+  관리, its acts 조직 이동, 기기 연결, 프로필 변경, BMO 설정 권한, 탈퇴 처리; one person's tabs → 계정, 조직, 권한, BMO and
+  활동, 조직 holding the groups 소속, 겸직 and 이력, and 활동 holding their rooms, agents, sessions and latest runs.
+  Never 회원, 계정 목록, 마지막 접속, 활동 내역.
 - a person in the console's directory → 사람: 사람, 같은 조직의 사람. Never 사용자 for a person found by search; 사용자 stays for a login or an account.
 - the name people read a person by → 이름: 이름, 이름을 입력해 주세요. The sign-in name is 아이디. A screen names a person
   by their 이름 and shows the 아이디 only where no 이름 stands or where the sign-in itself is meant. Never 실명, 성명,

@@ -344,6 +344,23 @@
 - a completed document filed in the archive → 아카이브 등록. Never 보관, which is retiring a thing.
 - how long a step or a document took → 경과, the summary of them → 경과시간, with 건수, 중앙값 and 최소 ~ 최대. Never 소요 시간, 처리
   시간.
+- the attendance screen → 근태; its views → 근무계획, 휴가, 업무 기록, 조직 근무계획 (a head's view of a unit), 설정. Never
+  출퇴근, 근무 관리.
+- a month's plan of one person → 근무계획: 작성 전, 작성 중, 제출됨, and its act 제출, since it has no approver; its changes →
+  근무계획 이력. A day the plan does not cover yet → 빈 날, 빈 날 {n}일, and writing them all → 빈 날 채우기. Never 상신 for a
+  plan, 미입력, 누락일.
+- the kind of a planned day → 업무구분: 근무, 시차출퇴근, 출장, 휴무, 대휴, 공휴일, 휴가; half a day of leave → 반차, 오전 반차, 오후
+  반차, and a whole day → 종일. Never 근무유형, 근무형태, 반일 휴가.
+- a working day's hours → 근무시간: 출근, 퇴근, 휴게 (휴게 {n} 시작, 휴게 {n} 끝, 휴게 없음); a unit's own → 조직 근무시간, one
+  taken from above → 상위 조직 따름. Never 근무 패턴, 패턴, 쉬는 시간.
+- a week on the person's own hours → 탄력근무; planned extra hours → 연장근무, the most a month may plan → 연장근무 한도, 한도
+  없음. Never 유연근무 for 탄력근무, 초과근무, 잔업, 시간외 근무.
+- a leave request → 휴가 신청, 새 휴가 신청; it runs as an approval document, so its acts and states are 결재's: 상신, 회수,
+  임시저장, 진행 중, 승인, 반려. Never 제출 or 취소 for leave.
+- one entry of what a day's hours went to → 업무 기록, its fields 시작, 시간, 업무코드, 업무명; the company's catalogue of codes →
+  업무코드, 새 업무코드, 업무코드 없음, a code no longer used → 보관, 보관됨, and back → 복원; the hours of a day by code → 업무코드별 시간. An entry the
+  person's BMO drafted → 초안, waiting ones → 확정할 초안 {n}건, keeping one → 확정. Never 작업 기록, 업무일지, 작업명, 승인 for
+  확정.
 - a post a person holds beside their home unit → 겸직: 겸직 추가, 겸직 편집, 겸직 해제, 겸직 없음, 대상자, 조직장 겸임. Never
   겸임 for the post itself, 파견, 소속 추가.
 - acting for a unit's head for a period → 직무대행: 직무대행 지정, 대행자, 종료일, `{date}까지`, and the mark 대행. Never 대리,

@@ -209,8 +209,8 @@ describe.skipIf(!origin || !touchReady())("ids on a console screen", () => {
         await visit(page, "/");
 
         const within = await sidebar(page, viewport.phone);
-        // The doppelganger stands under the roles with its run named by the folder's last part, so the row
-        // and the list under it are the reported shape: a branch with a nested branch under it.
+        // The doppelganger stands under the roles with its delegated run named by the work it was asked for, so the
+        // row and the list under it are the reported shape: a branch with a nested branch under it.
         const label = within.locator('nav [data-slot="linkLabel"]').filter({ hasText: /^\s*doppelganger\s*$/ }).first();
         const row = label.locator("xpath=ancestor::li[1]");
         const nested = row.locator('[data-slot="linkTrailing"][aria-controls]').first();

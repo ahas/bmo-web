@@ -1427,8 +1427,13 @@ edit to that file alone, once the guide below carries the word.
 
 ### Sidebar
 
+- **The sidebar opens 17rem wide, in the unit of the text it holds rather than a share of the window,** so a
+  nested row's name keeps the same readable width whatever the window: a role's name stands whole beside its
+  count badge and its chevron at the desktop's narrowest width as at its widest. The member's shell opens at the
+  same width. The width a browser dragged it to is remembered by that browser together with whether it was
+  folded.
 - Dragging the sidebar border to adjust its width does not cap the maximum. Even on a narrow window it can be
-  widened past a fixed proportion of the screen width, unbound.
+  widened past a fixed proportion of the screen width, unbound. It narrows no further than 12rem.
 - **Search stands at the top of the sidebar, under the console's mark** — Nuxt UI's `ContentSearchButton`, opening
   `ContentSearch` as a command palette. Ctrl+K (⌘K on a Mac) opens and closes it from anywhere, in a text box
   too; nothing else in the console takes that key. Folded to icons, the button is the search icon alone with
@@ -1661,9 +1666,12 @@ Four groups.
     picture stands only where a room is what is shown: a room's header, a message's room, the room list. An agent that
     has a picture never stands without one, and one that has none stands its mark rather than nothing.
 - The three branches stand only while the agency answers, and a branch whose list is empty does not stand. An entry
-  carries its name and, at the line's end, only a role's count badge, so the name is never crowded out. A
+  carries its name and, at the line's end, only a role's count badge and the chevron of a row with lines under
+  it, so the name is never crowded out. A
   supervisor whose turn runs, a role whose runs go and a repository a job works in get a spinning circle — so that
-  seeing the list alone tells what is alive, it carries a turning mark, not a stopped dot.
+  seeing the list alone tells what is alive, it carries a turning mark, not a stopped dot. The circle turns around
+  the entry's own picture or mark rather than taking a place of its own in the line, so a face stays seen inside
+  it, the name loses no width to it, and the name stands where it stood whether the circle turns or not.
 - **The branches each fold and unfold, and how each branch stood is remembered by that browser.** Not
   only the folded but the unfolded is remembered, so a branch deliberately left open is open next time too. A
   branch never touched has nothing to remember and stands open — the reason this group exists is to have the

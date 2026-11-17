@@ -44,7 +44,7 @@ describe.skipIf(!origin || !touchReady())("the agents listed", () => {
 
       await page.goto(`${origin}/`, { waitUntil: "load" });
 
-      const sidebar = page.locator("#dashboard-sidebar-default, [data-slot='sidebar'], aside").first();
+      const sidebar = page.locator("#console-sidebar-default, [data-slot='sidebar'], aside").first();
       const branches = BRANCH_KEYS.map((key) => wording(key));
 
       await sidebar.getByText(branches[0]!, { exact: true }).first().waitFor({ timeout: 20_000 });

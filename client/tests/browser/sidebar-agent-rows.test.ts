@@ -11,8 +11,9 @@ import type { AgentList, AgentSummary } from "../../apps/web/shared/types";
 // sidebar stands among them, and its state is its agent's wherever the agent stands in the list (docs/web.md,
 // 「Sidebar」). The console's agent list is rewritten on its way to the page, so the lines and the order change
 // between two reads while the sidebar stands, and the page's clock is moved on to the next read rather than waited
-// for. It drives the console tests/support/browser-console.ts stands up, whose roles hold a worker and a
-// doppelganger with runs going; the suite stands up no console, so there it skips.
+// for. A role's row with runs going keeps its name whole at the sidebar's opening width. It drives the console
+// tests/support/browser-console.ts stands up, whose roles hold a worker and a doppelganger with runs going; the
+// suite stands up no console, so there it skips.
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "sidebar-agent-rows", password: "fixture-password-3165" };
@@ -134,6 +135,36 @@ describe.skipIf(!origin || !touchReady())("the agent rows nested under the sideb
       await linesControl(doppelganger).waitFor({ timeout: 5_000 });
       expect(await linesControl(doppelganger).getAttribute("aria-expanded")).toBe("false");
       expect(await linesControl(worker).getAttribute("aria-expanded")).toBe("true");
+    } finally {
+      await context.close();
+    }
+  }, 60_000);
+
+  // A role with runs going stands its name whole beside its count badge and its chevron at the width the sidebar
+  // opens at, on the desktop's narrowest window as on a wider one, and its turning mark goes around its own mark
+  // rather than taking a place at the line's end (docs/web.md, 「Sidebar」).
+  test.each([1024, 1280])("a running role's name stands whole at the sidebar's opening width on a %ipx window", async (width) => {
+    const context = await browser!.newContext({ viewport: { ...WIDE, width }, serviceWorkers: "block", reducedMotion: "reduce" });
+    const at = cookie.indexOf("=");
+
+    await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
+
+    try {
+      const page = await context.newPage();
+
+      await page.goto(`${origin}/`, { waitUntil: "load" });
+
+      for (const name of ["worker", "doppelganger"]) {
+        const link = roleRow(page, name).locator('[data-slot="link"]').first();
+
+        await link.locator('[data-slot="busyMark"]').waitFor({ timeout: 10_000 });
+        expect(await link.locator('[data-slot="linkTrailing"] [data-slot="busyMark"]').count()).toBe(0);
+
+        const label = await link.locator('[data-slot="linkLabel"]').evaluate((element) => ({ shown: element.clientWidth, needed: element.scrollWidth }));
+
+        expect(label.needed).toBeGreaterThan(0);
+        expect(label.shown).toBeGreaterThanOrEqual(label.needed);
+      }
     } finally {
       await context.close();
     }

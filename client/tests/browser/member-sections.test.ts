@@ -18,7 +18,7 @@ const SECTION_READER = { name: "section-reader", password: "fixture-password-288
 // The console's own screens the section reader reads, one section each.
 const SCREENS = ["/siren", "/db", "/documents", "/agents", "/research", "/monitor"];
 // The member's shell, by the sidebar it stands.
-const MEMBER_SHELL = "#dashboard-sidebar-member";
+const MEMBER_SHELL = "#console-sidebar-member";
 
 let browser: Browser | null = null;
 const cookies = new Map<string, string>();

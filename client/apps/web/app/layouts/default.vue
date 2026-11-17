@@ -1,12 +1,12 @@
 <template>
-  <UDashboardGroup :style="shell">
+  <UDashboardGroup :style="shell" v-bind="SIDEBAR_GROUP">
     <UDashboardSidebar
       id="default"
       v-model:open="open"
       v-model:collapsed="sidebarFolded"
       collapsible
       resizable
-      :max-size="Infinity"
+      v-bind="SIDEBAR_WIDTH"
       mode="drawer"
       :menu="{ direction: 'left', handle: false, handleOnly: true }"
       :ui="{ content: 'flex-col w-4/5 max-w-xs' }"
@@ -75,10 +75,15 @@
           orientation="vertical"
           :unmount-on-hide="false"
         >
-          <!-- An entry at work turns a mark at its line's end, beside a role's count of its runs and the chevron of an
-               entry that holds lines under it, so a spinning mark never stands where the chevron is pressed. -->
+          <!-- An entry at work turns its mark around its own picture, so the name loses no width to it and a face
+               stays seen inside it; the line's end keeps a role's count of its runs and the chevron alone. -->
+          <template #item-leading="{ item, ui, active }">
+            <SidebarBusyMark v-if="item.avatar || item.icon" :busy="item.busy === true" :folded="collapsed">
+              <UAvatar v-if="item.avatar" :size="ui.linkLeadingAvatarSize() as AvatarProps['size']" v-bind="item.avatar" data-slot="linkLeadingAvatar" :class="ui.linkLeadingAvatar({ active })" />
+              <UIcon v-else-if="item.icon" :name="item.icon" data-slot="linkLeadingIcon" :class="ui.linkLeadingIcon({ active })" />
+            </SidebarBusyMark>
+          </template>
           <template #item-trailing="{ item, ui, active }">
-            <UIcon v-if="item.busy === true" name="i-material-symbols-progress-activity" class="size-5 shrink-0 animate-spin text-primary" />
             <UBadge v-if="typeof item.badge === 'object'" v-bind="item.badge" />
             <UIcon v-if="item.children?.length" :name="appConfig.ui.icons.chevronDown" data-slot="linkTrailingIcon" :class="ui.linkTrailingIcon({ active })" />
           </template>
@@ -185,6 +190,7 @@ import { useRoomList, useRoomReading } from "~/domain/room-list";
 import { useRoomsPresent } from "~/domain/presence";
 import { useConsoleScreens } from "~/domain/console-screens";
 import { namedWhenFolded, roomItems, screensWithBundles, sectionItems } from "~/domain/screens";
+import { SIDEBAR_GROUP, SIDEBAR_WIDTH } from "~/domain/sidebar-width";
 import { useSidebarUnread } from "~/domain/sidebar-unread";
 import { sameKept, sameRowsKept } from "~/domain/same-kept";
 import { useAskedTodo } from "~/domain/todo-address";
@@ -192,7 +198,7 @@ import { useAskedTodo } from "~/domain/todo-address";
 import type { LiveRun, RoomAdded, StatusView } from "#shared/types";
 import type { PersonView } from "#shared/people";
 import type { RosterPage, RosterPerson } from "#shared/roster";
-import type { NavigationMenuItem } from "@nuxt/ui";
+import type { AvatarProps, NavigationMenuItem } from "@nuxt/ui";
 import type { AgentGroup, AgentGroupKey, AgentMeta, AgentRun, AgentSession, Folds } from "~/domain/agents";
 import type { JumpGroup } from "~/domain/jump";
 import type { SectionMenu } from "~/domain/screens";

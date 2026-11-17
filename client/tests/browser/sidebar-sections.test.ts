@@ -82,7 +82,7 @@ async function sidebar(page: Page, phone: boolean): Promise<Locator> {
   await page.goto(`${origin}/`, { waitUntil: "load" });
   await page.waitForFunction(() => window.useNuxtApp?.().isHydrating === false, null, { timeout: 30_000 });
 
-  if (!phone) return page.locator("[id^='dashboard-sidebar-']").first();
+  if (!phone) return page.locator("[id^='console-sidebar-']").first();
 
   await page.getByRole("button", { name: KO.open_sidebar }).click();
 

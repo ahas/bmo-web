@@ -1,12 +1,12 @@
 <template>
-  <UDashboardGroup :style="shell">
+  <UDashboardGroup :style="shell" v-bind="SIDEBAR_GROUP">
     <UDashboardSidebar
       id="member"
       v-model:open="open"
       v-model:collapsed="sidebarFolded"
       collapsible
       resizable
-      :max-size="Infinity"
+      v-bind="SIDEBAR_WIDTH"
       mode="drawer"
       :menu="{ direction: 'left', handle: false, handleOnly: true }"
       :ui="{ content: 'flex-col w-4/5 max-w-xs' }"
@@ -80,6 +80,7 @@ import { useRoomsPresent } from "~/domain/presence";
 import { useConsoleScreens } from "~/domain/console-screens";
 import { useSectionAccess, useSectionAccessReady } from "~/domain/section-access";
 import { namedWhenFolded, roomItems, screensWithBundles, sectionItems } from "~/domain/screens";
+import { SIDEBAR_GROUP, SIDEBAR_WIDTH } from "~/domain/sidebar-width";
 import { useSidebarUnread } from "~/domain/sidebar-unread";
 import { useMayInvite } from "~/domain/organization";
 import { accessOf, homeFor, screenMayRead, sectionsOfPath } from "#shared/sections";

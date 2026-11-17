@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
+import { DELEGATION_LOG } from "../support/delegation-log";
 import { POLL_INTERVAL_MS } from "../../apps/web/shared/config";
 
 import type { Browser, Locator, Page } from "playwright-core";
@@ -114,7 +115,7 @@ describe.skipIf(!origin || !touchReady())("the agent rows nested under the sideb
       shape.doppelgangerRuns = true;
       await readAgain(page);
       await linesControl(doppelganger, "true").waitFor({ timeout: 5_000 });
-      expect(await page.locator(`[id="${await linesControl(doppelganger).getAttribute("aria-controls")}"]`).innerText()).toContain("scratch");
+      expect(await page.locator(`[id="${await linesControl(doppelganger).getAttribute("aria-controls")}"]`).innerText()).toContain(DELEGATION_LOG.title);
       expect(await linesControl(worker).getAttribute("aria-expanded")).toBe("true");
 
       // Folded, then standing before the worker: the fold stays with the doppelganger and the worker stays open.

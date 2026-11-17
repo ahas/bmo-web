@@ -1619,8 +1619,9 @@ Four groups.
     line's end, how many go as a count badge (「Count badges」); under it stand its runs now on the reader's own agents
     and the deployment's, one line each, read from the agency's `GET /slots` — the repository whose checkout the run
     works in by its label, or the folder's last
-    part where the path is no repository's — each opening the role's log at that run. A role with none going stands
-    alone.
+    part where the path is no repository's, or, for a run no job carries whose asker named its work, that line,
+    then the title of the room the agency's run ledger says it runs for where it names one (`GET /runs` by the
+    runs' names) — each opening the role's log at that run. A role with none going stands alone.
   - **저장소** — every repository the agency's `GET /repositories` lists that is the reader's own or the deployment's,
     in its order, the external ones among them.
     A repository a job works in now carries the spinning mark.
@@ -5666,6 +5667,14 @@ Four bounds keep it from growing forever.
     old marker. The room runs no clock of its own while the stream stands; while it is broken the screen's own
     fallback clock reads the line, as it reads the rest of the screen. The ended row is read only to say what a run
     this screen watched end came to; the notice is timed to go, and that is the only clock the line keeps.
+  - **A line opens its run's log.** A line whose run is known carries one icon button at its end, 로그, which opens
+    that run's lines alone, followed while it goes, in the same log dialog a room's run line opens. The run is the
+    one the agency's `GET /slots` names for the delegation's slot by its token, the run its turn writes under; it is
+    read with the delegations on every read. A waiting run, and a running one whose turn has not started, has none
+    yet and carries no button; a running line whose slot names none between two of its turns keeps the run it was
+    last seen as. A run that ends leaves the slots, so the notice of one this screen watched end opens
+    the run it was last seen running as, beside what it came to; a log dialog already open stays open when the
+    notice goes.
 
 #### 대화에서 찾기
 

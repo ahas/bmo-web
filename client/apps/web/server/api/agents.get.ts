@@ -3,11 +3,13 @@ import { receiver, receiverCall } from "../utils/receiver";
 import { repositorySummary, roleSummary, roleViewsOf, slotRunsOf, supervisorRooms, supervisorSummary } from "../utils/agent-list";
 import { agentOwners, listedRole, listedRows, listedRuns, listedSupervisors } from "../utils/agent-ownership";
 import { listedRooms } from "../utils/room-reach";
+import { withRunRooms } from "../utils/run-rooms";
 
 import type { AgentList } from "#shared/types";
 
 // The console's agent list as the agency answers it (docs/web.md, 「Sidebar」): its supervisors with the rooms they
-// answer as the receiver names them, its roles with the runs their slots hold now, and its repositories with their checkouts, and the
+// answer as the receiver names them, its roles with the runs their slots hold now and the room each works for as the
+// run ledger names it, and its repositories with their checkouts, and the
 // roles with the bundles each gives. Of the supervisors, the role agents and their runs, and the repositories, only the
 // reader's own and the deployment's stand, and of a supervisor's rooms only those the reader's room list holds
 // (「Access」). An agency that does not answer leaves the list empty and says so. Beside it
@@ -32,7 +34,7 @@ export default defineEventHandler(async (event): Promise<AgentList> => {
       listedRooms(event).catch((): ReadonlySet<number> => new Set())
     ]);
     const supervisors = { items: listedSupervisors(every.items, reader) };
-    const runs = listedRuns(slotRunsOf(slots), agentOwners(every.items, roles.roles), reader);
+    const runs = await withRunRooms(listedRuns(slotRunsOf(slots), agentOwners(every.items, roles.roles), reader));
     // The rooms each supervisor answers, as the receiver names them, and the rooms its turns went into, as the agency's
     // run ledger names them, read for each one; a list that does not answer leaves its part empty.
     const [answered, spoken] = await Promise.all([

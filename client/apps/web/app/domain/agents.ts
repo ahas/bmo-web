@@ -401,11 +401,24 @@ export function isAgentRunning<Run extends { agent: string; chatId: number | nul
   return runOfAgent(agent, live) !== null;
 }
 
+/** What one run of a role stands as in the sidebar (docs/web.md, 「Sidebar」): a job's run, or a run whose asker named
+ * no work, by the place it works in; any other by the line naming its work, then the title of the room it works for
+ * where the reader's room list holds it. */
+export function runLabel(t: Translate, run: RoleSlotRun, catalogue: readonly AgentSummary[], rooms: readonly RoomSummary[]): string {
+  const work = run.title?.trim() ?? "";
+
+  if (run.jobId !== null || work === "") return runPlaceLabel(t, run.path, catalogue);
+
+  const room = run.roomId === null ? undefined : rooms.find((one) => one.chatId === run.roomId);
+
+  return room === undefined ? work : t("agents.label.run_work_room", { work, room: room.title });
+}
+
 // One run of a role as the sidebar lists it.
-function runOf(t: Translate, run: RoleSlotRun, index: number, catalogue: readonly AgentSummary[]): AgentRun {
+function runOf(t: Translate, run: RoleSlotRun, index: number, catalogue: readonly AgentSummary[], rooms: readonly RoomSummary[]): AgentRun {
   const since = run.since === null ? null : Math.floor(run.since / 1000);
 
-  return { key: `${run.path ?? ""}#${run.since ?? index}`, label: runPlaceLabel(t, run.path, catalogue), since };
+  return { key: `${run.path ?? ""}#${run.since ?? index}`, label: runLabel(t, run, catalogue, rooms), since };
 }
 
 // One catalogue entry as a screen shows it. Its room sessions are the rooms of the list in hand, in its order: a room
@@ -426,7 +439,7 @@ export function metaOf(t: Translate, agent: AgentSummary, rooms: RoomSummary[], 
     path: agent.path,
     sessions,
     running: agent.running,
-    runs: agent.runs.map((run, index) => runOf(t, run, index, catalogue)),
+    runs: agent.runs.map((run, index) => runOf(t, run, index, catalogue, rooms)),
     working: agent.checkouts.some((checkout) => checkout.jobId !== null)
   };
 }

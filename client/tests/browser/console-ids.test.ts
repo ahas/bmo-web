@@ -3,6 +3,7 @@ import { chromium } from "playwright-core";
 
 import { wording } from "../../apps/web/shared/wording";
 import { harnessScreens } from "./harness-screens";
+import { DELEGATION_LOG } from "../support/delegation-log";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
@@ -221,7 +222,7 @@ describe.skipIf(!origin || !touchReady())("ids on a console screen", () => {
         expect(await parent.count()).toBe(1);
         expect(await parent.getAttribute("aria-expanded")).toBe("true");
         expect(await nested.getAttribute("aria-expanded")).toBe("true");
-        expect(await page.locator(`[id="${controls}"]`).innerText()).toContain("scratch");
+        expect(await page.locator(`[id="${controls}"]`).innerText()).toContain(DELEGATION_LOG.title);
 
         // Closing the nested row moves its own list alone: the branch above it stays as it stood.
         await nested.click();

@@ -18,6 +18,7 @@ import { manifestFields } from "./console-manifest";
 import { HARNESS_SCREEN_UNITS } from "./harness-screens";
 import { jobLogAnswer } from "./job-log";
 import { rawNumber } from "./raw-number";
+import { DELEGATION_LOG, delegationLogAnswer } from "./delegation-log";
 import { roleLogAnswer } from "./role-log";
 import { HIGH_ALBUM, HIGH_ANSWERED, HIGH_FILE, HIGH_FILE_NAME, HIGH_FILE_WORDS, HIGH_LINE, HIGH_PICTURE, HIGH_ROOM, highSent, highWords } from "./high-room";
 import { UNREAD_LINE, UNREAD_ROOM } from "./unread-room";
@@ -614,6 +615,10 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
     if (roleLog !== null) return roleLog;
 
+    const delegationLog = delegationLogAnswer(new URL(request.url), OWNER_CHAT);
+
+    if (delegationLog !== null) return delegationLog;
+
     // The two axes and the places: two supervisors, a handful of roles with runs going and waiting, and three
     // repositories, one with a job holding a checkout.
     if (path === "/supervisors") return Response.json({ items: [heldSupervisor("agent-a"), heldSupervisor("agent-c")], more: false });
@@ -644,8 +649,9 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     }
     if (path === "/slots") {
       // The worker's runs, each on the agent of the role it was let in on: a job's, which opens by the job's run, and
-      // one its binding names. The doppelganger's run works in no repository, so it is named by the folder's last
-      // part. The worker keeps one slot more by a reservation.
+      // one its binding names. The doppelganger's run is the delegated task the owner's own chat stands, under the
+      // delegation's token, and is named by what it was asked to do and the room it was asked in. The worker keeps one
+      // slot more by a reservation.
       const runs = (name: string): Record<string, unknown>[] =>
         name === "worker"
           ? [
@@ -654,7 +660,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
             ]
           : name === "doppelganger"
             ? [
-                { token: "slot-c", role: "doppelganger", path: "/srv/scratch", provider: "claude-code", model: "claude-opus-5-5", source: "delegate", since: Date.now() - 20_000, runName: "delegate-c", session: null, jobId: null, title: "Scratch the surface", agent: "doppelganger-01" }
+                { token: DELEGATION_LOG.token, role: "doppelganger", path: "/srv/scratch", provider: "claude-code", model: "claude-opus-5-5", source: "delegate", since: Date.now() - 20_000, runName: DELEGATION_LOG.run, session: null, jobId: null, title: DELEGATION_LOG.title, agent: DELEGATION_LOG.agent }
               ]
             : [];
 
@@ -666,7 +672,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       return Response.json({
         items: [
           {
-            token: "delegation-running", title: "Check the room marker", askedBy: "agent-a", stage: "running", agentName: "doppelganger-a",
+            token: DELEGATION_LOG.token, title: DELEGATION_LOG.title, askedBy: "agent-a", stage: "running", agentName: "doppelganger-a",
             role: "doppelganger", askedAt: Date.now() - 60_000, runningSince: Date.now() - 30_000, endedAt: null, outcome: null
           },
           {

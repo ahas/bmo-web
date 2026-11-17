@@ -8,19 +8,19 @@ import { catalogueEntry } from "../../support/catalogue";
 // meets」): a field not found stands as none, and a member that does not read as one is left out.
 
 describe("the slots' runs", () => {
-  test("are every active run of every role, each with its role, path, provider, model, source, since when, session, run, job and title", () => {
+  test("are every active run of every role, each with its token, role, path, provider, model, source, since when, session, run, job and title", () => {
     expect(
       slotRunsOf({
         items: [
-          { role: "role-a", runs: [{ role: "role-a", path: "/srv/a", provider: "codex", model: "model-a", source: "job", since: 5, agent: "role-a-01", session: "session-a", runName: "run-a", jobId: 7, title: "Title A" }] },
+          { role: "role-a", runs: [{ token: "slot-a", role: "role-a", path: "/srv/a", provider: "codex", model: "model-a", source: "job", since: 5, agent: "role-a-01", session: "session-a", runName: "run-a", jobId: 7, title: "Title A" }] },
           { role: "role-b", runs: [{ path: null }] },
           { role: "role-c" },
           "nonsense"
         ]
       })
     ).toEqual([
-      { role: "role-a", path: "/srv/a", provider: "codex", model: "model-a", source: "job", since: 5, session: "session-a", runName: "run-a", jobId: 7, title: "Title A", agent: "role-a-01" },
-      { role: "role-b", path: null, provider: null, model: null, source: null, since: null, session: null, runName: null, jobId: null, title: null, agent: null }
+      { token: "slot-a", role: "role-a", path: "/srv/a", provider: "codex", model: "model-a", source: "job", since: 5, session: "session-a", runName: "run-a", jobId: 7, title: "Title A", agent: "role-a-01", roomId: null },
+      { token: null, role: "role-b", path: null, provider: null, model: null, source: null, since: null, session: null, runName: null, jobId: null, title: null, agent: null, roomId: null }
     ]);
   });
 

@@ -1,6 +1,6 @@
 import { computed, getCurrentScope, onScopeDispose, ref } from "vue";
 
-import type { DelegationView } from "#shared/types";
+import type { DelegationRun, DelegationView } from "#shared/types";
 import type { Translate } from "#shared/wording";
 import type { ComputedRef } from "vue";
 
@@ -8,7 +8,8 @@ import type { ComputedRef } from "vue";
 // marker): a task the supervisor delegated is one line under the conversation while it waits for a slot or runs. When
 // the screen watched a run end, its line says what it came to for a moment and then goes; a run that had already ended
 // when the room opened stands nothing. The role names the run and its title says what it was asked to do; a run the
-// agency no longer carries stands no line at all.
+// agency no longer carries stands no line at all. A line whose run is known opens that run's log, and the notice of an
+// ended run opens the run it was last seen running as, since the agency names a run only while its slot holds it.
 
 const WAITING = "room.status.delegation_waiting";
 const WAITING_UNTITLED = "room.status.delegation_waiting_untitled";
@@ -26,6 +27,8 @@ export interface DelegationLine {
   key: string;
   stage: DelegationView["stage"];
   text: string;
+  // The run whose log the line opens; none while it is not known.
+  run: DelegationRun | null;
 }
 
 // What the run was asked to do, or the agent it was bound to where it carries no title of its own.
@@ -55,7 +58,8 @@ export function delegationLine(t: Translate, delegation: DelegationView): Delega
     return {
       key: delegation.token,
       stage: "ended",
-      text: outcome === "" ? t(ENDED, { role: delegation.role }) : t(ENDED_OUTCOME, { role: delegation.role, outcome })
+      text: outcome === "" ? t(ENDED, { role: delegation.role }) : t(ENDED_OUTCOME, { role: delegation.role, outcome }),
+      run: delegation.run
     };
   }
 
@@ -66,7 +70,8 @@ export function delegationLine(t: Translate, delegation: DelegationView): Delega
   return {
     key: delegation.token,
     stage: delegation.stage,
-    text: asked === "" ? t(key, { role: delegation.role }) : t(key, { role: delegation.role, title: asked })
+    text: asked === "" ? t(key, { role: delegation.role }) : t(key, { role: delegation.role, title: asked }),
+    run: delegation.run
   };
 }
 
@@ -118,6 +123,9 @@ export function useDelegationReading(t: Translate, options: DelegationReadingOpt
   // The tokens waiting or running at the last answer, which is how a run this screen watched end is told apart from
   // one that had already ended when it opened.
   let seen = new Set<string>();
+  // The run each of those was last seen running as, which an ended one's notice opens once the agency names it no
+  // longer.
+  let runs = new Map<string, DelegationRun>();
   let cancel: (() => void) | null = null;
 
   function stop(): void {
@@ -130,6 +138,7 @@ export function useDelegationReading(t: Translate, options: DelegationReadingOpt
     notice.value = null;
     standing.value = [];
     seen = new Set();
+    runs = new Map();
   }
 
   function announce(line: DelegationLine): void {
@@ -151,7 +160,7 @@ export function useDelegationReading(t: Translate, options: DelegationReadingOpt
 
       const ended = relevant.find((item) => item.token === token && item.stage === "ended");
 
-      if (ended !== undefined) announce(delegationLine(t, ended));
+      if (ended !== undefined) announce(delegationLine(t, { ...ended, run: ended.run ?? runs.get(token) ?? null }));
     }
 
     // A run that waits or runs again is no longer an ending to announce.
@@ -160,7 +169,13 @@ export function useDelegationReading(t: Translate, options: DelegationReadingOpt
       notice.value = null;
     }
 
-    standing.value = delegationLines(t, active);
+    // A run keeps the run it was seen as while the slot names none between two of its turns.
+    runs = new Map(active.flatMap((item) => {
+      const run = item.run ?? runs.get(item.token);
+
+      return run === undefined ? [] : [[item.token, run] as const];
+    }));
+    standing.value = delegationLines(t, active.map((item) => ({ ...item, run: runs.get(item.token) ?? null })));
     seen = tokens;
   }
 

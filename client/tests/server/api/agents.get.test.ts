@@ -90,10 +90,15 @@ standIn("AGENCY", (call) => {
   if (call.path.startsWith("/slots")) {
     return answer({
       items: [
-        { role: "worker", maxConcurrent: 3, active: 1, reserved: 0, waiting: 0, runs: [{ role: "worker", path: "/srv/repo-a", provider: "codex", model: "model-a", source: "job", since: 1_000, agent: "worker-01" }, { role: "worker", path: "/srv/repo-b", provider: "codex", model: "model-b", source: "job", since: 2_000, agent: "worker-other" }] },
+        { role: "worker", maxConcurrent: 3, active: 1, reserved: 0, waiting: 0, runs: [{ role: "worker", path: "/srv/repo-a", provider: "codex", model: "model-a", source: "job", since: 1_000, agent: "worker-01", runName: "run-a" }, { role: "worker", path: "/srv/repo-b", provider: "codex", model: "model-b", source: "job", since: 2_000, agent: "worker-other" }] },
         { role: "role-x", maxConcurrent: 2, active: 0, reserved: 0, waiting: 0, runs: [] }
       ]
     });
+  }
+
+  // The run ledger names the room the open run works for.
+  if (call.path.startsWith("/runs?") && call.path.includes("names=run-a")) {
+    return answer({ items: [{ id: 5, name: "run-a", agentName: "worker", unitName: "run-a", roomId: -7, state: "open" }], more: false });
   }
 
   if (call.path.startsWith("/jobs")) return answer({ items: [{ id: 7, roleName: "worker" }], more: false });
@@ -138,7 +143,7 @@ describe("the agent list", () => {
       ["repo-a", "repository"]
     ]);
     expect(list.agents[0]).toMatchObject({ label: "Agent A", defaultAnswerer: true, provider: "codex", model: "model-a", sessions: [{ chatId: 42, lastAt: 1_700_000_005 }, { chatId: -7, lastAt: null }] });
-    expect(list.agents[1]).toMatchObject({ running: 1, model: "model-a", effort: "high", runs: [{ role: "worker", path: "/srv/repo-a", source: "job", since: 1_000, agent: "worker-01" }] });
+    expect(list.agents[1]).toMatchObject({ running: 1, model: "model-a", effort: "high", runs: [{ role: "worker", path: "/srv/repo-a", source: "job", since: 1_000, agent: "worker-01", roomId: -7 }] });
     expect(list.agents[1]?.runs).toHaveLength(1);
     expect(list.agents[2]).toMatchObject({ provider: null, waitingFor: "no quota", runs: [] });
     expect(list.agents[3]?.checkouts).toEqual([

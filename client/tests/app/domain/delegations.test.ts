@@ -12,6 +12,8 @@ import type { Later } from "../../../apps/web/app/domain/delegations";
 // screen watched end says what it came to for a moment and is then gone, and a run that had already ended when the
 // room opened stands nothing.
 
+const RUN = { agent: "doppelganger-a", name: "delegate-agent-a-1700000030000" };
+
 function delegation(over: Partial<DelegationView> = {}): DelegationView {
   return {
     token: "delegation-a",
@@ -24,6 +26,7 @@ function delegation(over: Partial<DelegationView> = {}): DelegationView {
     runningSince: 1_700_000_030_000,
     endedAt: null,
     outcome: null,
+    run: null,
     ...over
   };
 }
@@ -66,8 +69,13 @@ describe("the marker a delegated run stands", () => {
     expect(delegationLine(wording, delegation())).toEqual({
       key: "delegation-a",
       stage: "running",
-      text: wording("room.status.delegation_running", { role: "doppelganger", title: "Check the plan" })
+      text: wording("room.status.delegation_running", { role: "doppelganger", title: "Check the plan" }),
+      run: null
     });
+  });
+
+  test("a line carries the run whose log it opens, where the agency names one", () => {
+    expect(delegationLine(wording, delegation({ run: RUN })).run).toEqual(RUN);
   });
 
   test("a waiting run says it waits for a slot, in the same line", () => {
@@ -133,6 +141,29 @@ describe("the lines the room stands", () => {
 });
 
 describe("the notice of a run this screen watched end", () => {
+  test("an ended run's notice opens the run it was last seen running as, which the agency no longer names", () => {
+    const clock = noticeClock();
+    const reading = useDelegationReading(wording, { later: clock.later });
+
+    reading.take([delegation({ run: RUN })], ["agent-a"]);
+    reading.take([delegation({ stage: "ended", outcome: "Done" })], ["agent-a"]);
+
+    expect(reading.lines.value.map((one) => one.run)).toEqual([RUN]);
+
+    reading.stop();
+  });
+
+  test("a running line keeps its run while the slot names none between two of its turns", () => {
+    const reading = useDelegationReading(wording, { later: noticeClock().later });
+
+    reading.take([delegation({ run: RUN })], ["agent-a"]);
+    reading.take([delegation()], ["agent-a"]);
+
+    expect(reading.lines.value.map((one) => one.run)).toEqual([RUN]);
+
+    reading.stop();
+  });
+
   test("a run waiting or running stands its line, and an ended run says what it came to for the notice's length", () => {
     const clock = noticeClock();
     const reading = useDelegationReading(wording, { later: clock.later });

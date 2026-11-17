@@ -627,6 +627,7 @@ room:
     attach_file: 파일 첨부
     attach_media: 사진·동영상
     brain_read_page: 브레인에서 보기
+    delegation_log: 로그
     situation: 방의 상황 보기
     callers: 호출 권한
     members: 대화상대
@@ -2495,6 +2496,7 @@ agents:
     run_cache_read: "캐시 읽기 {n}"
     run_context: "컨텍스트 ~{tokens}"
     run_no_place: 경로 없음
+    run_work_room: "{work} · {room}"
     run_requests: "요청 {n}회"
     sampling: 샘플링
     search_tab: 탭

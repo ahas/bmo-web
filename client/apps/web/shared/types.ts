@@ -1028,6 +1028,14 @@ export interface DelegationView {
   runningSince: number | null;
   endedAt: number | null;
   outcome: string | null;
+  // The run its turn writes under, while the slot names one.
+  run: DelegationRun | null;
+}
+
+// The run a delegated task's turn writes under: the agent whose log holds it and the run's own name.
+export interface DelegationRun {
+  agent: string;
+  name: string;
 }
 
 // The agency's page of delegations: the ones still waiting or running in the order they were asked, then the latest
@@ -1551,6 +1559,8 @@ export type AgentAxis = "supervisor" | "role" | "repository";
 // that session's turn while one runs —, the job whose run it is, and the line naming its work. A field the answer
 // does not carry stands as none.
 export interface RoleSlotRun {
+  // The slot request's own token, which a delegated task's names as well.
+  token: string | null;
   role: string;
   path: string | null;
   provider: string | null;
@@ -1563,6 +1573,8 @@ export interface RoleSlotRun {
   title: string | null;
   // The agent of the role the run was let in on; none where the agency names none.
   agent: string | null;
+  // The room the run ledger says the run works for, where it names one; read only where a list stands it.
+  roomId: number | null;
 }
 
 // One checkout of a repository, as the agency answers it: its name, path and node, and the job holding it where one

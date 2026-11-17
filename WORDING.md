@@ -195,6 +195,9 @@
   the link that makes an account, nor 들이기, 입장.
 - taking a member out of a room → 내보내기: 내보내기, 내보냈습니다, 내보내지 못했습니다; a member taking themselves
   out → 나가기: 나가기, 나갔습니다, 나가지 못했습니다. Never 강퇴, 추방, 퇴장.
+- the sidebar's one entry that brings a room in, however the reader may → 새 채팅. Its menu names each way by what it
+  brings: a room added from a chat service → 채팅 서비스 방 추가, its dialog 방 추가; a group room opened in the console →
+  콘솔 방 만들기. Never 새 방, 대화 시작, 방 가져오기.
 - opening a group room in the console → 방 만들기: 방 만들기, 방 이름, 만들기. Never 방 개설, 방 생성, 방 열기.
 - the people standing in a unit → 구성원: 구성원 추가, 구성원 n명. Never 배치 for placing a person in a unit.
 - people moved into another unit in one act → 조직 이동: 조직 이동, 이동할 조직, 이동. Never 옮기기, 발령 or 배치 for

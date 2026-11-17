@@ -619,6 +619,8 @@ room:
     room_add_supervisor: 그룹의 감독관은 내 감독관 가운데에서만 고를 수 있습니다.
   action:
     room_open: 만들기
+    new_chat_add: 채팅 서비스 방 추가
+    new_chat_open: 콘솔 방 만들기
     attach_document: 파일
     attach_secret: 비밀
     attach_file: 파일 첨부
@@ -933,6 +935,7 @@ room:
     forward: 메시지 전달
     room_add: 방 추가
     room_open: 방 만들기
+    new_chat: 새 채팅
     session_info: 세션 정보
   aria:
     avatar_enlarge: "{name} 프로필 사진 크게 보기"

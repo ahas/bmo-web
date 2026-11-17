@@ -1519,11 +1519,15 @@ Four groups.
     does. Adding it from 추가 records its mode on the receiver's record, and it stands at the next read of the
     list. Whether its registration stands decides nothing, since the receiver answers `registered` for every room
     its list holds.
-  - **The 방 만들기 button beside the group's name opens a group room in the console,** for every reader whose rooms
-    section writes, the administrator among them (the room screen's 「방 만들기와 대화상대 추가」). A member's list is
-    the rooms they read (「Access」), so the room they opened, a room they were let into and their own BMO's private
-    room stand in it as any room does.
-  - **The 추가 button beside the group's name adds a room,** the heading's grey icon in the phone's drawer as on a wide screen (「The title bar」), for the administrator, in a dialog of choices made in
+  - **새 채팅 beside the group's name brings a room in,** one icon button, the heading's grey icon in the phone's drawer
+    as on a wide screen (「The title bar」), for every reader whose rooms section writes, the administrator among them.
+    Where the reader has more than one way to bring a room in it opens a menu aligned to its end, one item a way:
+    채팅 서비스 방 추가, the administrator's alone, opens the add dialog below, and 콘솔 방 만들기 opens a group room in
+    the console (the room screen's 「방 만들기와 대화상대 추가」). Where the reader has one way, as a member whose rooms
+    section writes has, 새 채팅 opens that way's dialog at once, with no menu. A dialog opened from the menu keeps the
+    focus it takes as the menu closes. A member's list is the rooms they read (「Access」), so the room they opened, a
+    room they were let into and their own BMO's private room stand in it as any room does.
+  - **채팅 서비스 방 추가 adds a room** for the administrator, in a dialog of choices made in
     turn, each offered by what the chat service declares and never by its name (the receiver's `docs/api.md`,
     「Rooms」):
     - **A chat service:** every one the receiver names that takes a mode, each with the modes it states said
@@ -5770,9 +5774,9 @@ Four bounds keep it from growing forever.
 #### 방 만들기와 대화상대 추가
 
 - **Anyone with an account opens a group room in the console,** with no chat service and no head's say
-  (`STRUCTURE.md`, 「Accounts, companies and units」). The sidebar's 방 만들기, beside the rooms' heading for every
-  reader whose rooms section writes, opens a dialog with one field, 방 이름, and 만들기. The console's server asks
-  the receiver for a room on the record alone (`POST /rooms` with no provider): titled as typed, naming the opener's
+  (`STRUCTURE.md`, 「Accounts, companies and units」). The sidebar's 새 채팅, beside the rooms' heading for every
+  reader whose rooms section writes, opens, at once or through its 콘솔 방 만들기 (「Sidebar」), a dialog with one
+  field, 방 이름, and 만들기. The console's server asks the receiver for a room on the record alone (`POST /rooms` with no provider): titled as typed, naming the opener's
   own BMO, their first supervisor, as the one that answers it, and `openedBy` the opener's account, its first
   member. The room stands in the opener's company and belongs to the opener's unit, since a room belongs to its
   leader's unit and its leader is the opener (`docs/accounts.md`, 「A room's callers」). A reader with no BMO of their

@@ -8,7 +8,7 @@ import type { Browser, BrowserContext, Page } from "playwright-core";
 
 // An add that belongs to a row stays in that row at every width (docs/web.md, 「The title bar」): a tab row's add is
 // the row's grey icon last in the row, named by its tooltip, on a desk's width and on a phone alike, with nothing
-// floating over the screen for it and no room kept for a floating button at the body's foot; the sidebar's room add
+// floating over the screen for it and no room kept for a floating button at the body's foot; the sidebar's new chat
 // stays beside the rooms' heading in the phone's drawer. Each is read at both widths, in light and in dark.
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up.
@@ -115,13 +115,13 @@ async function readEveryScreen(page: Page): Promise<number[]> {
   return heights;
 }
 
-// The sidebar's room add beside the rooms' heading: the heading's grey icon, centred on its line, never floating.
+// The sidebar's new chat button beside the rooms' heading: the heading's grey icon, centred on its line, never floating.
 async function roomAddBesideHeading(page: Page): Promise<void> {
   // A phone keeps the desk's sidebar in the page, hidden, beside the drawer it opens, so the add read is the one shown.
-  const add = page.locator("[data-room-add]:visible");
+  const add = page.locator("[data-new-chat]:visible");
 
   await add.waitFor({ timeout: 20_000 });
-  expect(await add.getAttribute("aria-label")).toBe(wording("room.title.room_add"));
+  expect(await add.getAttribute("aria-label")).toBe(wording("room.title.new_chat"));
   expect(
     await add.evaluate((button) => {
       const mark = button.getBoundingClientRect();
@@ -193,7 +193,7 @@ describe.skipIf(!origin)("the row adds", () => {
         // One size on every screen, the row's own small button.
         expect(new Set(await readEveryScreen(page)).size).toBe(1);
 
-        // The room add stands beside the rooms' heading in the drawer the title bar's toggle opens.
+        // The new chat button stands beside the rooms' heading in the drawer the title bar's toggle opens.
         await page.locator("[data-title-bar] [data-slot='toggle']").tap();
         await roomAddBesideHeading(page);
       } finally {

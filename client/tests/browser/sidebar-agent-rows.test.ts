@@ -3,6 +3,7 @@ import { chromium } from "playwright-core";
 
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 import { ASKED_RUN } from "../support/asked-run";
+import KO from "../fixtures/browser/sidebar-agent-rows.test.ko.json";
 import { POLL_INTERVAL_MS } from "../../apps/web/shared/config";
 
 import type { Browser, Locator, Page } from "playwright-core";
@@ -12,7 +13,8 @@ import type { AgentList, AgentSummary } from "../../apps/web/shared/types";
 // sidebar stands among them, and its state is its agent's wherever the agent stands in the list (docs/web.md,
 // 「Sidebar」). The console's agent list is rewritten on its way to the page, so the lines and the order change
 // between two reads while the sidebar stands, and the page's clock is moved on to the next read rather than waited
-// for. A role's row with runs going keeps its name whole at the sidebar's opening width. It drives the console
+// for. A role's row with runs going keeps its name whole at the sidebar's opening width, and a run under it opens the
+// role's log at that run, on a wide window and in a phone's drawer. It drives the console
 // tests/support/browser-console.ts stands up, whose roles hold a worker and a seeker with runs going; the
 // suite stands up no console, so there it skips.
 
@@ -55,8 +57,8 @@ function reshaped(list: AgentList, shape: Shape): AgentList {
   return { ...list, agents: [...others.slice(0, at), shaped, ...others.slice(at)] };
 }
 
-// A role's row in the sidebar, by the name it stands under.
-function roleRow(page: Page, name: string): Locator {
+// A role's row in the sidebar, by the name it stands under, on the page or in the drawer a phone opens it in.
+function roleRow(page: Page | Locator, name: string): Locator {
   return page.locator('nav [data-slot="linkLabel"]').filter({ hasText: new RegExp(`^\\s*${name}\\s*$`) }).first().locator("xpath=ancestor::li[1]");
 }
 
@@ -166,6 +168,36 @@ describe.skipIf(!origin || !touchReady())("the agent rows nested under the sideb
         expect(label.needed).toBeGreaterThan(0);
         expect(label.shown).toBeGreaterThanOrEqual(label.needed);
       }
+    } finally {
+      await context.close();
+    }
+  }, 60_000);
+
+  // A run under a role's row opens the role's log at that run: the address names the moment the run was let in, and
+  // the log read there stands the run's own first line (docs/web.md, 「Sidebar」). A phone opens the sidebar as a
+  // drawer first.
+  test.each([{ width: 1280, phone: false }, { width: 360, phone: true }])("a role's run opens the role's log at that run at $width px", async ({ width, phone }) => {
+    const context = await browser!.newContext({ viewport: { width, height: phone ? 780 : WIDE.height }, serviceWorkers: "block", reducedMotion: "reduce" });
+    const at = cookie.indexOf("=");
+
+    await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
+
+    try {
+      // The moment the run was let in, as the console's own agent list names it.
+      const list = (await (await fetch(`${origin}/api/agents`, { headers: { cookie } })).json()) as AgentList;
+      const since = list.agents.find((agent) => agent.kind === "role" && agent.name === ASKED_RUN.role)!.runs[0]!.since!;
+      const page = await context.newPage();
+
+      await page.goto(`${origin}/`, { waitUntil: "load" });
+      await page.waitForFunction(() => window.useNuxtApp?.().isHydrating === false, null, { timeout: 30_000 });
+
+      if (phone) await page.getByRole("button", { name: KO.open_sidebar }).click();
+
+      const sidebar = phone ? page.getByRole("dialog") : page.locator("body");
+
+      await roleRow(sidebar, ASKED_RUN.role).locator("a, button").filter({ hasText: ASKED_RUN.title }).first().click({ timeout: 10_000 });
+      await page.waitForURL(new RegExp(`/agents/${ASKED_RUN.role}\\?at=${Math.floor(since / 1000)}$`), { timeout: 10_000 });
+      await page.locator("[data-agent-log]").getByText(ASKED_RUN.header, { exact: true }).waitFor({ timeout: 15_000 });
     } finally {
       await context.close();
     }

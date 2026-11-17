@@ -21,7 +21,7 @@ import { rawNumber } from "./raw-number";
 import { roleLogAnswer } from "./role-log";
 import { HIGH_ALBUM, HIGH_ANSWERED, HIGH_FILE, HIGH_FILE_NAME, HIGH_FILE_WORDS, HIGH_LINE, HIGH_PICTURE, HIGH_ROOM, highSent, highWords } from "./high-room";
 import { UNREAD_LINE, UNREAD_ROOM } from "./unread-room";
-import { ASKED_RUN } from "./asked-run";
+import { ASKED_RUN, askedRunLogAnswer } from "./asked-run";
 import { addressOf, BROWSER_CONSOLE_PREFIX, dropScratchDatabase, sweepScratchDatabases } from "./web-database";
 
 const CLIENT = new URL("../..", import.meta.url).pathname;
@@ -634,6 +634,11 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
     if (roleLog !== null) return roleLog;
 
+    // The seeker role's log, which its asked run in the sidebar opens at that run (tests/support/asked-run.ts).
+    const askedLog = askedRunLogAnswer(new URL(request.url));
+
+    if (askedLog !== null) return askedLog;
+
     // The two axes and the places: two supervisors, a handful of roles with runs going and waiting, and three
     // repositories, one with a job holding a checkout.
     if (path === "/supervisors") return Response.json({ items: [heldSupervisor("agent-a"), heldSupervisor("agent-c")], more: false });
@@ -674,7 +679,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
             ]
           : name === ASKED_RUN.role
             ? [
-                { token: "slot-c", role: ASKED_RUN.role, path: "/srv/scratch", provider: "claude-code", model: "claude-opus-5-5", source: "ask", since: Date.now() - 20_000, runName: ASKED_RUN.run, session: null, jobId: null, title: ASKED_RUN.title, agent: ASKED_RUN.agent }
+                { token: "slot-c", role: ASKED_RUN.role, path: "/srv/scratch", provider: "claude-code", model: "claude-opus-5-5", source: "ask", since: ASKED_RUN.since, runName: ASKED_RUN.run, session: null, jobId: null, title: ASKED_RUN.title, agent: ASKED_RUN.agent }
               ]
             : [];
 

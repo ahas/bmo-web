@@ -126,6 +126,21 @@
 - a room's situation note → 상황: 상황, 방의 상황, 방의 상황 보기, 이 방의 지금 상황, 갱신, 상황 노트 없음. Never 현황,
   상태 노트, 컨텍스트 노트.
 - the calendar → 캘린더 (the screen, and one calendar in it); an event → 일정, as in 내 일정, 조직 일정; a reminder → 알림; a recurrence → 반복.
+- a booking of a company's resource, and the act of making one → 예약: 예약, 새 예약, 내 예약, 예약 취소, 예약을
+  취소할까요, 이 예약만, 반복 예약, 예약 {n}건, 예약 없음; the person who made it → 예약자. It is the same word a role's
+  slot kept by a reservation takes (above), each on its own screen. Never 예매, 대여, 부킹, 신청.
+- a thing a company books, a room or anything else → 자원: 자원, 자원 추가, 자원 없음, 자원이 없습니다; its fields →
+  종류, 위치 (위치 없음 where none is set), 좌석 with its count `{n}석`, 승인 필요, 담당자; the company it is booked in →
+  회사, the reader's own `{name} (내 회사)`. Never 리소스, 시설, 설비, 비품, and never 유형 or 타입 for its kind.
+- taking a resource out of use, which cancels its standing bookings and has no way back → 삭제: 삭제, 자원을
+  삭제할까요. Never 보관, which keeps a thing to be brought back by 복원.
+- the people who approve a resource's bookings → 담당자: 담당자, 담당자 {names}, 이 자원의 담당자. Never 관리자, which
+  names the administrator's screen, nor 승인자 or 책임자; and never 소속, which is what a thing belongs to (below).
+- a booking that waits on a resource's 담당자 → 승인 필요 on the resource; a booking's state → 승인 대기 while it waits,
+  예약됨 once it holds, 거부됨 once refused; the 담당자's acts → 승인, 거부, 승인되었습니다, 거부되었습니다, 예약을
+  거부할까요, the pair the desktop app's pairing takes (below); why it was refused → 사유 (선택) as the field and
+  `거부 사유: {reason}` where it is shown; the 담당자's tab of waiting bookings → 요청: 승인 대기 중인 요청이 없습니다.
+  Never 허용, 거절, 반려, which stays a job review's word, nor 신청 for a booking that waits.
 - the theater → 극장: 작품 (a title), 에피소드, 보관함 (the screen of titles), 내 극장, 조직 극장, 플레이리스트, 이어 보기,
   자막, 자막 굽기, 라이브러리 (a folder registered), 색인 and 재색인 (a scan), 업로드, 대사.
 - turn into (a text block's kind) → 종류 변경: 종류 변경, 종류를 변경했습니다, 변경하지 못했습니다; the kinds it
@@ -311,6 +326,9 @@
 - acting for a unit's head for a period → 직무대행: 직무대행 지정, 대행자, 종료일, `{date}까지`, and the mark 대행. Never 대리,
   which is a rank, nor 권한 위임.
 - the record of changes to a person's place → 이력: 이력 없음. Never 히스토리, 로그, 발령 내역.
+- what a board or a record belongs to, a unit or a project, and the company a person belongs to → 소속: 소속, 보드
+  소속, 소속 조직 구성원, 소속 회사가 없습니다; a board or a record that belongs to none shows 없음. Never 소속
+  없음, and never 담당 or 담당자 for it, which is who keeps or approves a thing.
 - **One screen speaks in one style.** A notice, a guidance line and an error end in 합니다 and
   했습니다 throughout; 어요 is never mixed into them.
 - **No dash between words.** A range is written `{min}~{max}`; a caveat on a title stands on its

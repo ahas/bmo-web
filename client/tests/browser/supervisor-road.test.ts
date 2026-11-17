@@ -165,7 +165,7 @@ describe.skipIf(!origin || !touchReady())("a supervisor's road", () => {
 
       await page.goto(`${origin}/agents?tab=supervisors`, { waitUntil: "load" });
 
-      // Agent C, filed under no account, stands on DeepSeek, which the agency's gateway serves.
+      // Agent C, filed under no account, stands on DeepSeek, which declares its engine not the owner's own.
       const cellC = page.getByRole("button", { name: wording("agents.aria.road_of", { name: "Agent C" }), exact: true });
 
       await cellC.waitFor({ timeout: 15_000 });

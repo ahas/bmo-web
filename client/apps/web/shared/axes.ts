@@ -41,9 +41,8 @@ export interface ProviderView {
   foldRatioDefault: number | null;
   // The file under the data root's env/ the provider reads its own key from, or null for one that reads none.
   keyFile: string | null;
-  // Whether its engine is the owner's own: the registry's provider, or the one the agency's gateway does not serve,
-  // Claude Code on the owner's own logins (the agency's `docs/supervisors.md`, 「What confines a session allowed
-  // files」). Every other provider sends what a session reads to an outside party.
+  // Whether its engine is the owner's own, as the provider declares it (the agency's `docs/supervisors.md`, 「What
+  // confines a session allowed files」). A provider whose engine is not sends what a session reads to an outside party.
   ownersEngine: boolean;
 }
 

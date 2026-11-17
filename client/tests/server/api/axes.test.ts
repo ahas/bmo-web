@@ -102,9 +102,10 @@ const agency = standIn("AGENCY", (call) => {
 
     return answer({
       items: [
-        { ...held, name: "deepseek", code: "deepseek", label: "DeepSeek", registered: false, gateway: true, quota: { left: 0.5, window: "week", balance: null, resetsAt: null }, keyFile: "deepseek.key" },
-        { ...held, name: "claude-code", code: "claude-code", label: "Claude Code", registered: false, gateway: false },
-        { ...held, name: "registered", code: "registered", label: "Registered models", registered: true, gateway: true }
+        { ...held, name: "deepseek", code: "deepseek", label: "DeepSeek", registered: false, gateway: true, ownersEngine: false, quota: { left: 0.5, window: "week", balance: null, resetsAt: null }, keyFile: "deepseek.key" },
+        { ...held, name: "claude-code", code: "claude-code", label: "Claude Code", registered: false, gateway: false, ownersEngine: true },
+        { ...held, name: "outside", code: "outside", label: "Outside", registered: false, gateway: false, ownersEngine: false },
+        { ...held, name: "registered", code: "registered", label: "Registered models", registered: true, gateway: true, ownersEngine: true }
       ],
       more: false
     });
@@ -396,10 +397,10 @@ describe("the providers and the models they hold", () => {
     expect(got.answer?.[0]).toMatchObject({ name: "deepseek", label: wording("agents.label.provider_deepseek"), lines: ["chat"], quota: { left: 0.5, window: "week" }, reason: null, foldRatioDefault: 0.85, keyFile: "deepseek.key" });
   });
 
-  test("hold the registry's provider and the one the gateway does not serve as the owner's own engines, and no other", async () => {
+  test("hold a provider's engine as the owner's own as the provider declares it, whatever serves it", async () => {
     const got = await asked(providers, {});
 
-    expect(got.answer?.map((one) => [one.name, one.ownersEngine])).toEqual([["deepseek", false], ["claude-code", true], ["registered", true]]);
+    expect(got.answer?.map((one) => [one.name, one.ownersEngine])).toEqual([["deepseek", false], ["claude-code", true], ["outside", false], ["registered", true]]);
   });
 
   test("read a provider's models, a member that is no model left out", async () => {

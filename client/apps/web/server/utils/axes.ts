@@ -63,7 +63,7 @@ export function providerViewOf(provider: Provider): ProviderView {
     reasonEnglish: said.reasonEnglish,
     foldRatioDefault: number(held.foldRatioDefault),
     keyFile: text(held.keyFile),
-    ownersEngine: provider.registered || !provider.gateway
+    ownersEngine: provider.ownersEngine
   };
 }
 

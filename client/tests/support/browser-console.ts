@@ -482,7 +482,7 @@ function repository(name: string, label: string, extra: Record<string, unknown> 
 // One provider as the agency's provider resource serves it, with its switch, its lines and its quota.
 function provider(name: string, label: string, extra: Record<string, unknown> = {}): Record<string, unknown> {
   return {
-    name, code: name, label, enabled: true, registered: false, coworker: true, gateway: false, lines: ["chat", "worker", "search", "browse"],
+    name, code: name, label, enabled: true, registered: false, coworker: true, gateway: false, ownersEngine: true, lines: ["chat", "worker", "search", "browse"],
     quota: { left: 0.6, window: "week", balance: null, resetsAt: null }, reason: null, reasonCode: null, foldRatioDefault: 0.85, ...extra
   };
 }
@@ -699,7 +699,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       return Response.json({
         items: [
           provider("claude-code", "Claude Code"),
-          provider("deepseek", "DeepSeek", { gateway: true, quota: { left: null, window: null, balance: 12.5, resetsAt: null } }),
+          provider("deepseek", "DeepSeek", { gateway: true, ownersEngine: false, quota: { left: null, window: null, balance: 12.5, resetsAt: null } }),
           provider("registered", "Registered models", { registered: true, gateway: true, lines: ["chat", "worker"], quota: null })
         ],
         more: false

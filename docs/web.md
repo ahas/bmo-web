@@ -3114,9 +3114,10 @@ archive and this week's tokens remain. That is all that can actually be known th
 - **A road whose engine is not the owner's own carries a warning under the road's fields for a supervisor that runs as the
   owner's own user** (the agency's `docs/supervisors.md`, 「What confines a session allowed files」). Such a supervisor
   is one the agency files under no account or under the owner's account (「The owner's account」 in
-  `docs/accounts.md`); an account's supervisor works on its own node and carries none. The owner's own engines are
-  the registry's provider (`registered`) and the one provider the agency's gateway does not serve (`gateway` false),
-  Claude Code on the owner's own logins; every other provider is an outside road. While such a supervisor's road
+  `docs/accounts.md`); an account's supervisor works on its own node and carries none. Whether a provider's engine
+  is the owner's own is the provider's own declaration, its `ownersEngine` in `GET /providers` (the agency's
+  `docs/api.md`, 「providers, models and model files」), read as it stands and never worked out from `registered` or
+  `gateway`; a provider that declares it false is an outside road. While such a supervisor's road
   stands on an outside road the warning says, in the pack's words, that it runs as the owner's user on this machine;
   that with `program.files`, `program.shell` or `room.tools` in its tool limit, or no limit, everything that user
   reads, the data root and every unit's token and settings files under `env/` among them, can go to that provider;

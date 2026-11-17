@@ -149,11 +149,14 @@ describe("each account's windows", () => {
 });
 
 describe("each worker's week", () => {
+  const unsplit = (tokens: number, jobs: number) => ({
+    tokens, jobs, inputTokens: null, outputTokens: null, cacheReadTokens: null, cacheWriteTokens: null, unsplitJobs: jobs, unsplitTokens: tokens
+  });
   const usage = {
     groups: [
-      { key: "agent-a", tokens: 120_000, jobs: 3, firstAt: 1, lastAt: 2, contextTokens: 40_000 },
-      { key: "agent-b", tokens: 0, jobs: 14, firstAt: 1, lastAt: 2, contextTokens: null },
-      { tokens: 5 }
+      { key: "agent-a", ...unsplit(120_000, 3), firstAt: 1, lastAt: 2, contextTokens: 40_000 },
+      { key: "agent-b", ...unsplit(0, 14), firstAt: 1, lastAt: 2, contextTokens: null },
+      { key: "", ...unsplit(5, 1), firstAt: 1, lastAt: 2, contextTokens: null }
     ],
     after: 0,
     before: 1

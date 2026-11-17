@@ -60,7 +60,7 @@ const MEMBER: OrganizationReader = { administrator: false, roster: false, known:
 
 describe("the organisation screen", () => {
   test("stands its tabs in order, the units first", () => {
-    expect(ORGANIZATION_TABS.map((tab) => tab.value)).toEqual(["organization", "people", "invites", "permissions", "agent"]);
+    expect(ORGANIZATION_TABS.map((tab) => tab.value)).toEqual(["organization", "people", "catalogue", "invites", "permissions", "agent"]);
   });
 
   test("leads the keys of the sections that moved away to where they stand now, and no other key", () => {
@@ -73,9 +73,9 @@ describe("the organisation screen", () => {
     }
   });
 
-  test("opens every tab to the administrator, the people tab to a member who heads a company, and the invitations and BMO tabs to every member", () => {
+  test("opens every tab to the administrator, the people and the roles and kinds tabs to a member who heads a company, and the invitations and BMO tabs to every member", () => {
     expect(organizationTabsFor(ADMINISTRATOR)).toHaveLength(ORGANIZATION_TABS.length);
-    expect(organizationTabsFor(COMPANY_HEAD).map((tab) => tab.value)).toEqual(["people", "invites", "agent"]);
+    expect(organizationTabsFor(COMPANY_HEAD).map((tab) => tab.value)).toEqual(["people", "catalogue", "invites", "agent"]);
     expect(organizationTabsFor(MEMBER).map((tab) => tab.value)).toEqual(["invites", "agent"]);
   });
 
@@ -105,7 +105,7 @@ describe("the organisation screen", () => {
 
     expect(screen.to).toBe(ORGANIZATION_PATH);
     expect(screen.inviters).toBe(true);
-    expect(screen.tabs?.map((tab) => tabAddress(screen, tab))).toEqual(["/organization", "/organization?tab=people", "/organization?tab=invites", "/organization?tab=permissions", "/organization?tab=agent"]);
+    expect(screen.tabs?.map((tab) => tabAddress(screen, tab))).toEqual(["/organization", "/organization?tab=people", "/organization?tab=catalogue", "/organization?tab=invites", "/organization?tab=permissions", "/organization?tab=agent"]);
     expect(admin.to).toBe(ADMIN_PATH);
     expect(admin.administrator).toBe(true);
     expect(admin.tabs?.map((tab) => tabAddress(admin, tab))).toEqual(["/admin", "/admin?tab=secret-kinds"]);
@@ -161,18 +161,19 @@ describe("the units tab's tree", () => {
 });
 
 // A move of several people shows who goes where before anything is written (docs/web.md, 「Organisation settings」,
-// its chart): each person from the unit they stand in, their role before and after, and the head grant the move takes.
+// its chart): each person from the unit they stand in, their role before and after, the head grant the move takes and
+// the post it ends where a person moves into the unit they hold one in.
 describe("a move of several people", () => {
   const units: UnitStanding[] = [
     { id: 1, name: "company-a", parent: null, heads: [], members: [] },
     { id: 2, name: "team-a", parent: 1, heads: ["10"], members: ["10", "11"] },
-    { id: 3, name: "team-b", parent: 1, heads: ["12"], members: ["12"] }
+    { id: 3, name: "team-b", parent: 1, heads: ["12"], members: ["12"], concurrent: ["11"] }
   ];
 
   test("moves each person from the unit they stand in, and takes away the head grant of the unit a head leaves", () => {
     expect(movePlan(units, [{ user: "10", head: false }, { user: "11", head: true }], 3)).toEqual([
-      { user: "10", from: 2, to: 3, wasHead: true, head: false, headDropped: true, unchanged: false },
-      { user: "11", from: 2, to: 3, wasHead: false, head: true, headDropped: false, unchanged: false }
+      { user: "10", from: 2, to: 3, wasHead: true, head: false, headDropped: true, postDropped: false, unchanged: false },
+      { user: "11", from: 2, to: 3, wasHead: false, head: true, headDropped: false, postDropped: true, unchanged: false }
     ]);
   });
 

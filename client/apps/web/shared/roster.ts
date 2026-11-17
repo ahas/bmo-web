@@ -12,6 +12,49 @@ export interface RosterUnit {
   name: string;
 }
 
+/** One role of a company's catalogue, by its key, its name and its place counted from 1 for the lowest
+ * (docs/accounts.md, 「Roles and unit kinds」). */
+export interface RoleView {
+  key: string;
+  name: string;
+  place: number;
+}
+
+/** One post of a person's: its unit and path, its role, whether it carries the unit's head, and since when
+ * (docs/accounts.md, 「Concurrent posts」). */
+export interface PostView {
+  unit: RosterUnit;
+  path: RosterUnit[];
+  role: RoleView | null;
+  head: boolean;
+  since: number;
+}
+
+/** What one change of a person's place was (docs/accounts.md, 「A person's history」). */
+export type HistoryChange =
+  | "placed"
+  | "role"
+  | "head-granted"
+  | "head-taken"
+  | "acting"
+  | "acting-ended"
+  | "post-given"
+  | "post-changed"
+  | "post-taken"
+  | "left";
+
+/** One change of a person's place, the units by the names they have now and a role by the name it had then. */
+export interface HistoryView {
+  at: number;
+  byName: string | null;
+  change: HistoryChange;
+  unit: RosterUnit | null;
+  from: RosterUnit | null;
+  before: { key: string; name: string } | null;
+  after: { key: string; name: string } | null;
+  until: number | null;
+}
+
 /** Where an account stands: in use, made by an invitation and not yet enabled, or marked left. */
 export type RosterState = "active" | "pending" | "left";
 
@@ -27,6 +70,8 @@ export interface RosterAsk {
   q?: string;
   company?: number;
   unit?: number;
+  // A unit kind's key.
+  kind?: string;
   role?: RosterRole;
   state?: RosterState;
   after?: string;
@@ -41,6 +86,8 @@ export interface RosterPerson {
   company: RosterUnit;
   unit: RosterUnit;
   head: boolean;
+  // Whether that head grant is an acting appointment's.
+  acting: boolean;
   administrator: boolean;
   state: RosterState;
   // The machine the account is bound to, by its name; none where it is bound to none.
@@ -50,6 +97,12 @@ export interface RosterPerson {
   // Fields a row does not show but its search matches, so a hit only there is said under the row; the email for the
   // administrator alone.
   jobTitle: string;
+  rank: string;
+  role: RoleView | null;
+  duty: string;
+  // The unit of the post through which they count where the page is narrowed by a unit or a kind their home unit
+  // does not match.
+  post: RosterUnit | null;
   email?: string;
 }
 
@@ -68,6 +121,11 @@ export interface RosterDetail extends RosterPerson {
   path: RosterUnit[];
   // The units they are granted head of directly.
   headOf: RosterUnit[];
+  // The units they act for while an appointment runs, each with its end.
+  actingFor: { unit: RosterUnit; until: number }[];
+  posts: PostView[];
+  // Every change of their place kept, the newest first.
+  history: HistoryView[];
   left: { at: number; byName: string } | null;
   machineStanding: { name: string; shared: boolean; provenAt: number | null } | null;
 }

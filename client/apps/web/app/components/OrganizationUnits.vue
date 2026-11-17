@@ -34,7 +34,13 @@
               </div>
             </template>
           </ContentSkeleton>
-          <OrganizationUnitTree v-else v-model:expanded="expanded" class="w-max min-w-full p-2" :units="units" :chosen="chosen?.id ?? null" :dropping="dropUnit" @choose="choose" />
+          <template v-else>
+            <div v-if="kindItems.length > 1" class="px-2 pt-2" data-unit-kind-filter>
+              <USelect :model-value="kindFilter" :items="kindItems" size="sm" class="w-full" :aria-label="$t('organization.label.kind')" @update:model-value="(value: string) => setKindFilter(value)" />
+            </div>
+            <OrganizationUnitTree v-if="kindFilter === KIND_ALL" v-model:expanded="expanded" class="w-max min-w-full p-2" :units="units" :chosen="chosen?.id ?? null" :dropping="dropUnit" @choose="choose" />
+            <OrganizationKindUnits v-else class="p-2" :units="unitsOfKind" :chosen="chosen?.id ?? null" @choose="choose" />
+          </template>
         </nav>
       </template>
 
@@ -83,6 +89,11 @@
                   <HintTip :text="chosen.name" cut press class="block min-w-0 truncate" data-unit-name>{{ chosen.name }}</HintTip>
                 </UButton>
                 <h2 v-else class="max-w-full text-lg font-semibold break-keep text-highlighted [overflow-wrap:anywhere]">{{ chosen.name }}</h2>
+                <div v-if="chosen.kind || chosen.shortName || reportsToOf(chosen) !== null" class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted" data-unit-attributes>
+                  <UBadge v-if="chosen.kind" :label="chosen.kind.name" color="neutral" variant="subtle" size="sm" data-unit-kind />
+                  <span v-if="chosen.shortName" data-unit-short-name>{{ $t("organization.label.short_name_line", { name: chosen.shortName }) }}</span>
+                  <ULink v-if="reportsToOf(chosen) !== null" class="text-start text-sm break-keep [overflow-wrap:anywhere]" data-unit-reports-to @click="choose(reportsToOf(chosen)!)">{{ $t("organization.label.reports_to_line", { path: pathText(reportsToOf(chosen)!, true) }) }}</ULink>
+                </div>
               </div>
               <div class="flex justify-end">
                 <UButton color="neutral" variant="subtle" icon="i-material-symbols-edit-outline" :label="$t('organization.action.edit')" data-unit-edit @click="openEdit" />
@@ -109,10 +120,28 @@
               </template>
               <SettingsRow v-if="chosen.heads.length === 0" :label="$t('organization.label.no_heads')" />
               <SettingsRow v-for="head in chosen.heads" :key="head" :label="nameOf(head)" data-unit-head>
-                <UTooltip :text="$t('organization.action.remove_head', { name: nameOf(head) })">
+                <template #description>
+                  <span v-if="actingUser === head || postHeads.has(head)" class="flex gap-1">
+                    <UBadge v-if="actingUser === head" :label="$t('organization.label.acting_mark')" color="neutral" variant="subtle" size="sm" data-unit-head-acting />
+                    <UBadge v-if="postHeads.has(head)" :label="$t('organization.label.post_mark')" color="neutral" variant="subtle" size="sm" data-unit-head-post />
+                  </span>
+                </template>
+                <UTooltip v-if="actingUser !== head" :text="$t('organization.action.remove_head', { name: nameOf(head) })">
                   <UButton color="neutral" variant="ghost" icon="i-material-symbols-person-remove-outline" :aria-label="$t('organization.action.remove_head', { name: nameOf(head) })" :loading="working === `head:${head}`" :disabled="busy" @click="setHead(head, false)" />
                 </UTooltip>
               </SettingsRow>
+            </SettingsGroup>
+
+            <!-- The person acting for the unit's head while an appointment runs (docs/accounts.md, 「Acting」). -->
+            <SettingsGroup :title="$t('organization.label.acting')" data-unit-acting>
+              <template #aside>
+                <UButton color="neutral" variant="subtle" size="sm" icon="i-material-symbols-person-add-outline" :label="$t('organization.action.appoint')" :disabled="busy || view === null" data-unit-appoint @click="actingOpen = true" />
+              </template>
+              <div v-if="view === null" class="flex h-14 items-center"><SkeletonBar class="h-4 w-1/3" /></div>
+              <SettingsRow v-else-if="view.acting" :label="nameOf(view.acting.user)" :description="$t('organization.label.acting_until', { date: lastDay(view.acting.until) })" data-unit-acting-row>
+                <UButton color="neutral" variant="outline" :label="$t('organization.action.end_acting')" :aria-label="$t('organization.action.end_acting_of', { name: nameOf(view.acting.user) })" :loading="working === 'acting'" :disabled="busy" data-unit-end-acting @click="endActing" />
+              </SettingsRow>
+              <SettingsRow v-else :label="$t('organization.label.acting_none')" />
             </SettingsGroup>
 
             <!-- Several people are chosen at once, a run of them by Shift or a held finger, and moved into another unit
@@ -157,7 +186,21 @@
                     <UCheckbox :model-value="selected.has(member)" :aria-label="$t('organization.action.choose_person', { name: nameOf(member) })" />
                   </div>
                   <div v-else :class="CHOOSE_CELL" />
-                  <span class="min-w-0 flex-1 text-sm break-words text-highlighted">{{ gone(member) ? $t("organization.label.left_member", { name: nameOf(member) }) : nameOf(member) }}</span>
+                  <div class="flex min-w-0 flex-1 flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
+                    <span class="min-w-0 flex-1 text-sm break-words text-highlighted">{{ gone(member) ? $t("organization.label.left_member", { name: nameOf(member) }) : nameOf(member) }}</span>
+                    <USelect
+                      v-if="!gone(member) && chosenRoles.length > 0 && view !== null"
+                      :model-value="roleOfMember(member)"
+                      :items="roleItems"
+                      size="sm"
+                      class="w-36 shrink-0"
+                      :disabled="busy"
+                      :loading="working === `role:${member}`"
+                      :aria-label="$t('organization.label.position_of', { name: nameOf(member) })"
+                      data-member-position
+                      @update:model-value="(value: string) => setRole(member, value)"
+                    />
+                  </div>
                   <div v-if="!gone(member)" class="flex shrink-0 items-center gap-1" data-member-marks>
                     <UTooltip :text="$t('organization.label.machine', { name: nameOf(member) })">
                       <UButton color="neutral" variant="ghost" icon="i-material-symbols-computer-outline" :aria-label="$t('organization.label.machine', { name: nameOf(member) })" @click="openMachine(member)" />
@@ -170,6 +213,32 @@
               </SettingsGroup>
             </div>
 
+            <!-- The people holding a post in the unit, beside the people whose home unit it is (docs/accounts.md,
+                 「Concurrent posts」). -->
+            <SettingsGroup :title="$t('organization.label.posts', { count: countText(view?.concurrent.length ?? 0) })" data-unit-posts>
+              <template #aside>
+                <UButton color="neutral" variant="subtle" size="sm" icon="i-material-symbols-group-add-outline" :label="$t('organization.action.add_post')" :disabled="busy || view === null" data-unit-add-post @click="openPost(null)" />
+              </template>
+              <div v-if="view === null" class="flex h-14 items-center"><SkeletonBar class="h-4 w-1/3" /></div>
+              <SettingsRow v-else-if="view.concurrent.length === 0" :label="$t('organization.label.no_posts')" />
+              <SettingsRow v-for="post in view?.concurrent ?? []" v-else :key="post.user" :label="nameOf(post.user)" data-unit-post>
+                <template #description>
+                  <span v-if="post.role || post.head" class="flex flex-wrap items-center gap-1">
+                    <span v-if="post.role">{{ post.role.name }}</span>
+                    <UBadge v-if="post.head" :label="$t('organization.label.role_head')" color="neutral" variant="subtle" size="sm" />
+                  </span>
+                </template>
+                <div class="flex shrink-0 items-center gap-1">
+                  <UTooltip :text="$t('organization.action.edit_post', { name: nameOf(post.user) })">
+                    <UButton color="neutral" variant="ghost" icon="i-material-symbols-edit-outline" :aria-label="$t('organization.action.edit_post', { name: nameOf(post.user) })" :disabled="busy" data-unit-edit-post @click="openPost(post.user)" />
+                  </UTooltip>
+                  <UTooltip :text="$t('organization.action.remove_post', { name: nameOf(post.user) })">
+                    <UButton color="neutral" variant="ghost" icon="i-material-symbols-person-remove-outline" :aria-label="$t('organization.action.remove_post', { name: nameOf(post.user) })" :loading="working === `post:${post.user}`" :disabled="busy" data-unit-remove-post @click="removePost(post.user)" />
+                  </UTooltip>
+                </div>
+              </SettingsRow>
+            </SettingsGroup>
+
             <p v-if="failure !== ''" role="alert" class="text-sm text-error">{{ failure }}</p>
           </section>
         </div>
@@ -178,9 +247,13 @@
 
     <UDrawer v-if="narrow" v-model:open="treeOpen" :title="$t('organization.label.chart')">
       <template #body>
-        <div class="overflow-x-auto [scrollbar-width:thin]">
+        <div v-if="kindItems.length > 1" class="pb-2">
+          <USelect :model-value="kindFilter" :items="kindItems" size="sm" class="w-full" :aria-label="$t('organization.label.kind')" @update:model-value="(value: string) => setKindFilter(value)" />
+        </div>
+        <div v-if="kindFilter === KIND_ALL" class="overflow-x-auto [scrollbar-width:thin]">
           <OrganizationUnitTree v-model:expanded="expanded" class="w-max min-w-full" :units="units ?? []" :chosen="chosen?.id ?? null" @choose="choose" />
         </div>
+        <OrganizationKindUnits v-else :units="unitsOfKind" :chosen="chosen?.id ?? null" @choose="choose" />
       </template>
     </UDrawer>
 
@@ -208,6 +281,15 @@
         <UFormField v-if="editOf !== null && !isCompany(editOf)" :label="$t('organization.label.parent')" name="parent">
           <USelect v-model="edit.parent" :items="parents(editOf.id)" class="w-full" />
         </UFormField>
+        <UFormField :label="$t('organization.label.kind')" name="kind">
+          <USelect v-model="edit.kind" :items="editKindItems" class="w-full" data-unit-edit-kind />
+        </UFormField>
+        <UFormField :label="$t('organization.label.short_name')" name="shortName">
+          <UInput v-model="edit.shortName" class="w-full" :maxlength="20" data-unit-edit-short-name />
+        </UFormField>
+        <UFormField v-if="editOf !== null && !isCompany(editOf)" :label="$t('organization.label.reports_to')" name="reportsTo">
+          <USelect v-model="edit.reportsTo" :items="reportsToItems(editOf.id)" class="w-full" data-unit-edit-reports-to />
+        </UFormField>
         <UAlert v-if="formFailure !== ''" color="error" variant="subtle" :description="formFailure" />
       </UForm>
       <template #footer="{ close }">
@@ -218,7 +300,19 @@
 
     <!-- A person's machine, and a move of the people chosen, each a dialog of its own the people tab opens too. -->
     <OrganizationMachineDialog v-model:open="machineOpen" :user="machineUser" :name="machineUser === null ? '' : nameOf(machineUser)" />
-    <OrganizationMoveDialog ref="moveDialog" v-model:open="moving" :units="units ?? []" :name-of="nameOf" @moved="chooseAll(false)" @settled="read" />
+    <OrganizationMoveDialog ref="moveDialog" v-model:open="moving" :units="units ?? []" :name-of="nameOf" :roles-of="rolesOf" @moved="chooseAll(false)" @settled="read" />
+    <OrganizationActingDialog v-if="chosen !== null" v-model:open="actingOpen" :unit="chosen.id" :people="companyPeople(chosen.id, [])" :acting="view?.acting ? nameOf(view.acting.user) : null" @saved="read" />
+    <OrganizationPostDialog
+      v-if="chosen !== null"
+      v-model:open="postOpen"
+      :title="postUser === null ? $t('organization.action.add_post') : $t('organization.action.edit_post', { name: nameOf(postUser) })"
+      :unit="chosen.id"
+      :user="postUser"
+      :people="companyPeople(chosen.id, [...chosen.members, ...(view?.concurrent ?? []).map((post) => post.user)])"
+      :roles="chosenRoles"
+      :saved="postSaved"
+      @saved="read"
+    />
   </div>
 </template>
 
@@ -228,6 +322,7 @@ import { draggedSelection, useDragSelect } from "bmo-ui/app/domain/dragselect";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useNarrow } from "bmo-ui/app/domain/screen";
 import { SPLIT_HANDLE } from "bmo-ui/app/domain/side-parts";
+import { dayKey, toUnixSeconds } from "bmo-ui/app/domain/time";
 
 import { useConfirm } from "~/domain/confirm";
 import { countText } from "~/domain/numbers";
@@ -236,7 +331,8 @@ import { shownName } from "~/domain/people";
 
 import type { SplitterItem } from "@nuxt/ui";
 import type { Ref } from "vue";
-import type { UnitRow, UserSummary } from "@web/server-client";
+import type { RoleView } from "#shared/roster";
+import type { Unit, UnitRow, UserSummary } from "@web/server-client";
 
 const { t } = useI18n();
 const route = useRoute();
@@ -360,17 +456,190 @@ function parents(of: number | null): { label: string; value: string }[] {
 }
 
 // The units and the people read; a failure stands until a read goes through, so a read asked again from it spins
-// on its button rather than giving way to the skeleton.
+// on its button rather than giving way to the skeleton. The unit chosen is read whole beside them, and each company's
+// own lists with them.
 async function read(): Promise<void> {
   reading.value = true;
   try {
     [units.value, users.value] = await Promise.all([$fetch<UnitRow[]>("/api/organization/units"), $fetch<UserSummary[]>("/api/users")]);
     failure.value = "";
+    await Promise.all([readView(), readCatalogues()]);
   } catch (error) {
     failure.value = failureText(error, t("organization.error.failed"));
   } finally {
     reading.value = false;
   }
+}
+
+// --- The unit chosen read whole: the roles its people carry, the people holding a post in it, the appointment ---
+
+const view = ref<Unit | null>(null);
+
+async function readView(): Promise<void> {
+  const id = chosen.value?.id;
+
+  if (id === undefined) return;
+
+  const read = await $fetch<Unit>(`/api/organization/units/${id}`);
+
+  if (chosen.value?.id === id) view.value = read;
+}
+
+watch(
+  () => chosen.value?.id,
+  (id, before) => {
+    if (id === before || units.value === null) return;
+
+    view.value = null;
+    readView().catch((error: unknown) => (failure.value = failureText(error, t("organization.error.failed"))));
+  }
+);
+
+// The person acting for the unit's head, and the people heading it through a post.
+const actingUser = computed(() => view.value?.acting?.user ?? null);
+const postHeads = computed(() => new Set((view.value?.concurrent ?? []).filter((post) => post.head).map((post) => post.user)));
+
+// The last day an appointment runs: its end is the start of the day after.
+function lastDay(until: number): string {
+  return dayKey(toUnixSeconds(until - 1));
+}
+
+// --- Each company's own lists: its roles, lowest first, and its unit kinds ---
+
+const catalogues = ref<Record<number, { roles: RoleView[]; kinds: { key: string; name: string }[] }>>({});
+
+async function readCatalogues(): Promise<void> {
+  const companies = (units.value ?? []).filter(isCompany);
+  const read = await Promise.all(
+    companies.map(async (company) => {
+      const [roles, kinds] = await Promise.all([
+        $fetch<RoleView[]>(`/api/organization/companies/${company.id}/roles`),
+        $fetch<{ key: string; name: string }[]>(`/api/organization/companies/${company.id}/unit-kinds`)
+      ]);
+
+      return [company.id, { roles, kinds }] as const;
+    })
+  );
+
+  catalogues.value = Object.fromEntries(read);
+}
+
+function companyOf(unit: number): number | undefined {
+  return pathOf(unit)[0]?.id;
+}
+
+/** The roles of the company a unit stands in, lowest first. */
+function rolesOf(unit: number): RoleView[] {
+  return catalogues.value[companyOf(unit) ?? -1]?.roles ?? [];
+}
+
+// The people of a unit's company but those named, for a picker.
+function companyPeople(unit: number, except: string[]): { label: string; value: string }[] {
+  const company = companyOf(unit);
+  const homes = new Map((units.value ?? []).flatMap((one) => one.members.map((member) => [member, one.id] as const)));
+
+  return users.value
+    .filter((one) => !except.includes(one.user) && !gone(one.user) && companyOf(homes.get(one.user) ?? -1) === company)
+    .map((one) => ({ label: shownName(one), value: one.user }));
+}
+
+// --- A person's role in the unit chosen, set as it is chosen ---
+
+// No role is a value of its own, since a select item's value is never empty.
+const NO_ROLE = "none";
+const chosenRoles = computed(() => (chosen.value === null ? [] : rolesOf(chosen.value.id)));
+const roleItems = computed(() => [{ label: t("organization.label.no_position"), value: NO_ROLE }, ...[...chosenRoles.value].reverse().map((role) => ({ label: role.name, value: role.key }))]);
+
+function roleOfMember(user: string): string {
+  return view.value?.roles.find((one) => one.user === user)?.role.key ?? NO_ROLE;
+}
+
+// The role written by the move that keeps the person where they stand, their place in the unit as it is.
+function setRole(user: string, role: string): void {
+  const unit = chosen.value;
+
+  if (unit === null || role === roleOfMember(user)) return;
+
+  const head = unit.heads.includes(user) && actingUser.value !== user;
+  const people = [{ user, from: unit.id, head, role: role === NO_ROLE ? null : role }];
+
+  void acting(() => $fetch(`/api/organization/units/${unit.id}/members`, { method: "POST", body: { people } }), failure, `role:${user}`);
+}
+
+// --- The appointment and the posts ---
+
+const actingOpen = ref(false);
+
+async function endActing(): Promise<void> {
+  const unit = chosen.value;
+  const who = view.value?.acting?.user;
+
+  if (unit === null || who === undefined) return;
+
+  const taken = await confirm({ title: t("organization.title.end_acting"), item: nameOf(who), effect: t("organization.message.end_acting"), confirm: t("organization.action.end_acting") });
+
+  if (taken) await acting(() => $fetch(`/api/organization/units/${unit.id}/acting`, { method: "DELETE" }), failure, "acting");
+}
+
+const postOpen = ref(false);
+const postUser = ref<string | null>(null);
+const postSaved = computed(() => {
+  const post = view.value?.concurrent.find((one) => one.user === postUser.value);
+
+  return post === undefined ? null : { role: post.role?.key ?? null, head: post.head };
+});
+
+function openPost(user: string | null): void {
+  postUser.value = user;
+  postOpen.value = true;
+}
+
+async function removePost(user: string): Promise<void> {
+  const unit = chosen.value;
+
+  if (unit === null) return;
+
+  const taken = await confirm({ title: t("organization.title.remove_post"), item: nameOf(user), effect: t("organization.message.remove_post"), confirm: t("organization.action.remove_post_confirm") });
+
+  if (taken) await acting(() => $fetch(`/api/organization/units/${unit.id}/posts/${encodeURIComponent(user)}`, { method: "DELETE" }), failure, `post:${user}`);
+}
+
+// --- The tree narrowed by kind ---
+
+// The whole tree is a value of its own, since a select item's value is never empty; a kind is named with its company,
+// `<company>:<key>`, as each company keeps its own.
+const KIND_ALL = "all";
+const kindFilter = computed(() => {
+  const asked = String(route.query.kind ?? "");
+
+  return kindItems.value.some((item) => "value" in item && item.value === asked) ? asked : KIND_ALL;
+});
+const kindItems = computed(() => [
+  { label: t("organization.label.kind_all"), value: KIND_ALL },
+  ...(units.value ?? []).filter(isCompany).flatMap((company) => {
+    const kinds = catalogues.value[company.id]?.kinds ?? [];
+
+    return kinds.length === 0 ? [] : [{ type: "label" as const, label: company.name }, ...kinds.map((kind) => ({ label: kind.name, value: `${company.id}:${kind.key}` }))];
+  })
+]);
+const unitsOfKind = computed(() => {
+  const [company, key] = kindFilter.value.split(":");
+
+  return (units.value ?? [])
+    .filter((unit) => unit.kind?.key === key && String(companyOf(unit.id)) === company)
+    .map((unit) => ({ id: unit.id, name: unit.name, path: pathText(unit.id, false) }));
+});
+
+// The kind chosen stands in the address in place of the one before.
+function setKindFilter(value: string): void {
+  const { kind: _, ...rest } = route.query;
+
+  void router.replace({ query: value === KIND_ALL ? rest : { ...rest, kind: value } });
+}
+
+// The unit a unit's matters go up through, where it reports to one.
+function reportsToOf(unit: UnitRow): number | null {
+  return unit.reportsTo ?? null;
 }
 
 // A record of the unit changed as it is done, a head or a person; the units read again so the lists say so, and a
@@ -583,8 +852,45 @@ async function add(): Promise<void> {
 const editing = ref(false);
 const editId = ref<number | null>(null);
 const editOf = computed(() => (editId.value === null ? null : unitOf(editId.value)));
-const edit = reactive({ name: "", parent: "" });
-const editChanged = computed(() => editOf.value !== null && (edit.name.trim() !== editOf.value.name || (!isCompany(editOf.value) && edit.parent !== String(editOf.value.parent))));
+const NO_KIND = "none";
+const edit = reactive({ name: "", parent: "", kind: NO_KIND, shortName: "", reportsTo: "" });
+const editKindItems = computed(() => [
+  { label: t("organization.label.no_kind"), value: NO_KIND },
+  ...(editOf.value === null ? [] : (catalogues.value[companyOf(editOf.value.id) ?? -1]?.kinds ?? []).map((kind) => ({ label: kind.name, value: kind.key })))
+]);
+
+// The units a unit's matters may go up through: those of its company but itself, its parent marked as the default,
+// which it reports to where none is set.
+function reportsToItems(of: number): { label: string; value: string }[] {
+  const unit = unitOf(of);
+  const company = companyOf(of);
+  const parent = unit === null ? undefined : String(unit.parent ?? "");
+
+  return (units.value ?? [])
+    .filter((one) => one.id !== of && companyOf(one.id) === company)
+    .map((one) => {
+      const label = pathText(one.id, true);
+
+      return { label: String(one.id) === parent ? t("organization.label.default_mark", { label }) : label, value: String(one.id) };
+    });
+}
+
+// What the unit's form holds as saved: its reports-to the parent where none is set.
+function savedEdit(unit: UnitRow): typeof edit {
+  const parent = isCompany(unit) ? "" : String(unit.parent);
+
+  return { name: unit.name, parent, kind: unit.kind?.key ?? NO_KIND, shortName: unit.shortName ?? "", reportsTo: unit.reportsTo === undefined || unit.reportsTo === null ? parent : String(unit.reportsTo) };
+}
+
+const editChanged = computed(() => {
+  const unit = editOf.value;
+
+  if (unit === null) return false;
+
+  const saved = savedEdit(unit);
+
+  return edit.name.trim() !== saved.name || edit.parent !== saved.parent || edit.kind !== saved.kind || edit.shortName.trim() !== saved.shortName || edit.reportsTo !== saved.reportsTo;
+});
 
 function openEdit(): void {
   const unit = chosen.value;
@@ -592,7 +898,7 @@ function openEdit(): void {
   if (unit === null) return;
 
   editId.value = unit.id;
-  Object.assign(edit, { name: unit.name, parent: isCompany(unit) ? "" : String(unit.parent) });
+  Object.assign(edit, savedEdit(unit));
   formFailure.value = "";
   editing.value = true;
 }
@@ -602,10 +908,15 @@ async function saveEdit(): Promise<void> {
 
   if (unit === null || !editChanged.value) return;
 
-  const body: { name?: string; parent?: number } = {};
+  const saved = savedEdit(unit);
+  const body: { name?: string; parent?: number; kind?: string | null; shortName?: string | null; reportsTo?: number | null } = {};
 
-  if (edit.name.trim() !== unit.name) body.name = edit.name.trim();
-  if (!isCompany(unit) && edit.parent !== String(unit.parent)) body.parent = Number(edit.parent);
+  if (edit.name.trim() !== saved.name) body.name = edit.name.trim();
+  if (edit.parent !== saved.parent) body.parent = Number(edit.parent);
+  if (edit.kind !== saved.kind) body.kind = edit.kind === NO_KIND ? null : edit.kind;
+  if (edit.shortName.trim() !== saved.shortName) body.shortName = edit.shortName.trim() === "" ? null : edit.shortName.trim();
+  // Reporting to the unit's own parent is reporting to none: the line goes up through the parent then.
+  if (edit.reportsTo !== saved.reportsTo) body.reportsTo = edit.reportsTo === edit.parent ? null : Number(edit.reportsTo);
 
   if (await acting(() => $fetch(`/api/organization/units/${unit.id}`, { method: "PATCH", body }), formFailure)) editing.value = false;
 }

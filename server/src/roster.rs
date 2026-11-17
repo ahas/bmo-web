@@ -22,7 +22,9 @@ use sea_orm::{ConnectionTrait, QueryResult, Value};
 use serde::Deserialize;
 use sumida::api::authz::Authz;
 
+use crate::acting::acting_grant;
 use crate::ids::shown;
+use crate::people::role_of;
 use crate::routes::{Answer, user_in};
 use crate::units::{HEAD_GRANT, UNIT, company_of, path_of};
 use crate::users::user_subject;
@@ -108,22 +110,63 @@ const FROM: &str = r#"
   JOIN "org_closure" cc ON cc."descendant_id" = u."organization_id"
   JOIN "organizations" c ON c."id" = cc."ancestor_id" AND c."parent_id" IS NULL
   LEFT JOIN "user_profiles" p ON p."user_id" = u."id"
+  LEFT JOIN "user_roles" ur ON ur."user_id" = u."id"
+  LEFT JOIN "company_roles" r ON r."id" = ur."role_id"
   LEFT JOIN "user_departures" d ON d."user_id" = u."id"
   LEFT JOIN "user_nodes" n ON n."user_id" = u."id"
   LEFT JOIN "user_sign_ins" s ON s."user_id" = u."id"
 "#;
 
-/// The columns a page reads of one person.
-fn columns() -> String {
+/// The columns a page reads of one person, `post` the SQL naming the unit of the post through which they count,
+/// or null.
+fn columns(post: &str) -> String {
   format!(
     r#"u."id", u."username", {NAME} AS "name", lower({NAME}) AS "sort_name",
        c."id" AS "company_id", c."name" AS "company_name", o."id" AS "unit_id", o."name" AS "unit_name",
-       {head} AS "head", {STATE} AS "state", n."agent",
+       {head} AS "head", ({head} AND {acting}) AS "acting", {STATE} AS "state", n."agent",
        (extract(epoch FROM u."created_at") * 1000)::bigint AS "made_at", s."signed_in_at",
        COALESCE(p."job_title", '') AS "job_title",
+       COALESCE(p."rank", '') AS "rank",
+       COALESCE(p."duty", '') AS "duty",
+       r."key" AS "role_key", r."name" AS "role_name", r."place" AS "role_place",
+       ({post})::bigint AS "post_id",
        COALESCE(NULLIF(p."email", ''), NULLIF(u."email", ''), '') AS "email""#,
-    head = head()
+    head = head(),
+    acting = acting_grant(r#"u."organization_id""#, r#"u."id""#),
   )
+}
+
+/// The units a page is narrowed to, as conditions on the unit `{x}` stands for: each unit under one named, and
+/// each of one kind.
+struct Narrowing(Vec<String>);
+
+impl Narrowing {
+  /// The condition that the unit `unit` names matches, none where the page is not narrowed.
+  fn on(&self, unit: &str) -> Option<String> {
+    (!self.0.is_empty())
+      .then(|| self.0.iter().map(|one| one.replace("{x}", unit)).collect::<Vec<_>>().join(" AND "))
+  }
+
+  /// The condition that a person counts: their home unit matches, or a unit they hold a post in does.
+  fn counts(&self) -> Option<String> {
+    let home = self.on(r#"u."organization_id""#)?;
+    let post = self.on(r#"up."unit_id""#)?;
+
+    Some(format!(
+      r#"({home} OR EXISTS (SELECT 1 FROM "unit_posts" up WHERE up."user_id" = u."id" AND {post}))"#
+    ))
+  }
+
+  /// The unit of the post through which a person counts where their home unit does not match, or null.
+  fn post(&self) -> String {
+    match (self.on(r#"u."organization_id""#), self.on(r#"up."unit_id""#)) {
+      (Some(home), Some(post)) => format!(
+        r#"CASE WHEN {home} THEN NULL ELSE (SELECT min(up."unit_id") FROM "unit_posts" up
+             WHERE up."user_id" = u."id" AND {post}) END"#
+      ),
+      _ => "NULL".to_owned(),
+    }
+  }
 }
 
 /// One statement's conditions and the values they are bound to, the reader's two first.
@@ -194,6 +237,7 @@ pub struct PageAsk {
   q: Option<String>,
   company: Option<String>,
   unit: Option<String>,
+  kind: Option<String>,
   role: Option<String>,
   state: Option<String>,
   after: Option<String>,
@@ -241,6 +285,20 @@ async fn person_of<C: ConnectionTrait>(
 ) -> Result<RosterPerson, Refusal> {
   let user: i32 = row.try_get("", "id")?;
   let state: String = row.try_get("", "state")?;
+  let rank: String = row.try_get("", "rank")?;
+  let role = role_of(row)?;
+  let kept: String = row.try_get("", "job_title")?;
+  let post = match row.try_get::<Option<i64>>("", "post_id")? {
+    Some(id) => Some(UnitRef {
+      id,
+      name: one(db, r#"SELECT "name" FROM "organizations" WHERE "id" = $1::bigint"#, vec![id.into()])
+        .await?
+        .map(|row| row.try_get::<String>("", "name"))
+        .transpose()?
+        .unwrap_or_default(),
+    }),
+    None => None,
+  };
 
   Ok(RosterPerson {
     user: shown(user),
@@ -255,6 +313,7 @@ async fn person_of<C: ConnectionTrait>(
       name: row.try_get("", "unit_name")?,
     },
     head: row.try_get("", "head")?,
+    acting: row.try_get("", "acting")?,
     administrator: Authz::is_superuser(&user_subject(db, user).await?, db).await?,
     state: state_of(&state).ok_or_else(|| {
       Refusal::new(StatusCode::INTERNAL_SERVER_ERROR, format!("`{state}` is no account's state"))
@@ -262,7 +321,11 @@ async fn person_of<C: ConnectionTrait>(
     machine: row.try_get("", "agent")?,
     made_at: row.try_get("", "made_at")?,
     last_sign_in_at: row.try_get("", "signed_in_at")?,
-    job_title: row.try_get("", "job_title")?,
+    job_title: crate::lang::job_titles::shown(&rank, role.as_ref().map(|role| role.name.as_str()), &kept),
+    rank,
+    role,
+    duty: row.try_get("", "duty")?,
+    post,
     email: reader.administrator.then(|| row.try_get::<String>("", "email")).transpose()?,
   })
 }
@@ -296,6 +359,9 @@ async fn page<C: ConnectionTrait>(db: &C, reader: &Reader, ask: &PageAsk) -> Res
           OR strpos(lower(COALESCE(u."full_name", '')), lower({words})) > 0
           OR strpos(lower(o."name"), lower({words})) > 0
           OR strpos(lower(COALESCE(p."job_title", '')), lower({words})) > 0
+          OR strpos(lower(COALESCE(p."rank", '')), lower({words})) > 0
+          OR strpos(lower(COALESCE(p."duty", '')), lower({words})) > 0
+          OR strpos(lower(COALESCE(r."name", '')), lower({words})) > 0
           {contact})"#
     ));
   }
@@ -309,15 +375,29 @@ async fn page<C: ConnectionTrait>(db: &C, reader: &Reader, ask: &PageAsk) -> Res
     statement.and(format!(r#"c."id" = {company}"#));
   }
 
+  let mut narrowing = Narrowing(Vec::new());
+
   if let Some(unit) = number::<i32>(&ask.unit, "unit's number")? {
     if !company_of(db, unit).await?.is_some_and(looks_through) {
       return Err(Refusal::absent(format!("no unit {unit} the reader looks through")));
     }
 
     let unit = statement.bind(unit);
-    statement.and(format!(
-      r#"u."organization_id" IN (SELECT "descendant_id" FROM "org_closure" WHERE "ancestor_id" = {unit})"#
+    narrowing.0.push(format!(
+      r#"{{x}} IN (SELECT "descendant_id" FROM "org_closure" WHERE "ancestor_id" = {unit})"#
     ));
+  }
+
+  if let Some(kind) = given(&ask.kind) {
+    let kind = statement.bind(kind.to_owned());
+    narrowing.0.push(format!(
+      r#"{{x}} IN (SELECT a."unit_id" FROM "unit_attributes" a JOIN "unit_kinds" k ON k."id" = a."kind_id"
+                   WHERE k."key" = {kind})"#
+    ));
+  }
+
+  if let Some(counts) = narrowing.counts() {
+    statement.and(counts);
   }
 
   match given(&ask.role) {
@@ -352,7 +432,7 @@ async fn page<C: ConnectionTrait>(db: &C, reader: &Reader, ask: &PageAsk) -> Res
   let bound = statement.bind(limit + 1);
   let sql = format!(
     r#"SELECT {columns} {FROM} WHERE {condition} ORDER BY lower({NAME}), u."id" LIMIT {bound}"#,
-    columns = columns(),
+    columns = columns(&narrowing.post()),
     condition = statement.condition(),
   );
   let mut rows = all(db, &sql, statement.values).await?;
@@ -395,7 +475,7 @@ async fn detail<C: ConnectionTrait>(db: &C, reader: &Reader, user: i32) -> Resul
        {FROM}
        LEFT JOIN "users" lb ON lb."id" = d."left_by"
        WHERE {condition}"#,
-    columns = columns(),
+    columns = columns("NULL"),
     condition = statement.condition(),
   );
   let row = one(db, &sql, statement.values).await?.ok_or_else(|| {
@@ -429,6 +509,9 @@ async fn detail<C: ConnectionTrait>(db: &C, reader: &Reader, user: i32) -> Resul
     mobile: contact("mobile")?,
     path: path_of(db, unit).await?,
     head_of: head_of(db, user).await?,
+    acting_for: crate::acting::acting_for(db, user).await?,
+    posts: crate::posts::posts_of(db, user).await?,
+    history: crate::history::of(db, user).await?,
     left,
     machine_standing,
     person,

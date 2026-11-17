@@ -160,6 +160,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/companies/{company}/roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A company's roles, lowest first, for anyone of the company. */
+        get: operations["companyRoles"];
+        /** A company's roles written whole, lowest first, by the administrator or a head of the company's own unit. */
+        put: operations["setCompanyRoles"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{company}/unit-kinds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A company's unit kinds, in its order, for anyone of the company. */
+        get: operations["unitKinds"];
+        /** A company's unit kinds written whole, by the administrator or a head of the company's own unit. */
+        put: operations["setUnitKinds"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/desktop/pairings": {
         parameters: {
             query?: never;
@@ -375,7 +411,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** One page of the people the reader looks through, in the order of their names, case set aside, then their user ids, each with their job title and, for the administrator alone, their email, with how many match the whole ask and the place the next page starts; 50 where no limit is named and never more than 100. */
+        /** One page of the people the reader looks through, in the order of their names, case set aside, then their user ids, each with their title, rank, role and duty and, for the administrator alone, their email, with how many match the whole ask and the place the next page starts; 50 where no limit is named and never more than 100. A unit or a kind counts the people holding a post in a unit it names, marked with the post. */
         get: operations["roster"];
         put?: never;
         post?: never;
@@ -409,7 +445,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** One person the reader looks through, as a page answers them, with their landline and mobile for the administrator alone, their unit's path, the units they are granted head of, their departure and their machine's standing. */
+        /** One person the reader looks through, as a page answers them, with their landline and mobile for the administrator alone, their unit's path, the units they are granted head of and act for, their posts, their history, their departure and their machine's standing. */
         get: operations["rosterPerson"];
         put?: never;
         post?: never;
@@ -651,7 +687,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Every unit, companies first and each unit after its parent, for the administrator alone. */
+        /** Every unit, or the units of one kind, companies first and each unit after its parent, for the administrator alone. */
         get: operations["units"];
         put?: never;
         /** A unit made under a parent, or a new company where none is named, by the administrator. */
@@ -669,15 +705,33 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** One organisation unit: its parent, company and path, the units directly under it, its heads and its members. */
+        /** One organisation unit: its parent, company and path, the units directly under it, its heads and its members, its kind, short name and the unit it reports to, the roles its people carry, the people holding a post in it and the acting appointment running. */
         get: operations["unit"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /** A unit renamed, or moved under another parent of its company, by the administrator. */
+        /** A unit renamed, moved under another parent of its company, or given its kind, short name and the unit it reports to, by the administrator. */
         patch: operations["changeUnit"];
+        trace?: never;
+    };
+    "/units/{unit}/acting": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** A person named to act for a unit's head until a moment still to come, by the administrator or a head of a unit above. */
+        put: operations["appoint"];
+        post?: never;
+        /** The acting appointment running on a unit ended, by the administrator or a head of a unit above. */
+        delete: operations["endAppointment"];
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/units/{unit}/agent-permission": {
@@ -732,6 +786,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/units/{unit}/line": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A unit's line, the unit first and its company last, following the unit it reports to where set and its parent otherwise, each step with its heads and the people holding each role there, for anyone of the unit's company. */
+        get: operations["unitLine"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/units/{unit}/line/{role}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Who stands for one role for a unit: the holders nearest on its line, else the holders of the next lower role, marked acting with the reason. */
+        get: operations["roleStand"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/units/{unit}/members": {
         parameters: {
             query?: never;
@@ -741,9 +829,27 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Several people moved into a unit in one act, each its head or a member, by the administrator. */
+        /** Several people moved into a unit in one act, each its head or a member and with the role named, by the administrator. */
         post: operations["movePeople"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/units/{unit}/posts/{user}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** A post given to a person in a unit of their company other than their home unit, with a role or none and the unit's head or not, by the administrator or a head of the unit or of one above. */
+        put: operations["givePost"];
+        post?: never;
+        /** A post and the head grant it carried taken away, by the administrator or a head of the unit or of one above. */
+        delete: operations["takePost"];
         options?: never;
         head?: never;
         patch?: never;
@@ -982,8 +1088,25 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** One person of the reader's organisation, with the contact details only an administrator or the person themselves may see. */
+        /** One person of the reader's organisation, with their posts and the contact details only an administrator or the person themselves may see. */
         get: operations["person"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{user}/posts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A person's posts, each with its unit, path and role, whether it carries the unit's head, and when and by whom it was given, for anyone of the person's company. */
+        get: operations["userPosts"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1002,7 +1125,7 @@ export interface paths {
         /** A user's job title and contact details, read by the account's holder or an administrator. */
         get: operations["userProfile"];
         put?: never;
-        /** Writes a user's job title and contact details whole, by the account's holder or an administrator. */
+        /** Writes a user's job title and contact details whole, and their rank and duty where named, by the account's holder or an administrator. */
         post: operations["setUserProfile"];
         delete?: never;
         options?: never;
@@ -1171,6 +1294,12 @@ export interface components {
             install: components["schemas"]["Installs"];
             user: string;
         };
+        /** @description An appointment of a person's running: the unit they act for and until when. */
+        ActingFor: {
+            unit: components["schemas"]["UnitRef"];
+            /** Format: int64 */
+            until: number;
+        };
         /** @description The names that call a person's BMO and where they came from; none where the deployment's stand. */
         AgentCallNames: {
             callNames: string[];
@@ -1255,6 +1384,26 @@ export interface components {
          * @enum {string}
          */
         AgentSource: "own" | "company" | "deployment";
+        /** @description An acting appointment running: who acts, until when, who named them and when. */
+        Appointment: {
+            /** Format: int64 */
+            at: number;
+            by: string | null;
+            /** Format: int64 */
+            until: number;
+            user: string;
+        };
+        /** @description An acting appointment asked: the person and the moment it ends. */
+        AppointmentAsk: {
+            /** Format: int64 */
+            until: number;
+            user: string;
+        };
+        /** @description One entry of a catalogue as it is written: its key and its name, its place being where the list stands it. */
+        CatalogueEntry: {
+            key: string;
+            name: string;
+        };
         /** @description What a check answered. */
         CheckAnswer: {
             allowed: boolean;
@@ -1277,6 +1426,20 @@ export interface components {
             /** @default [] */
             callNames: string[];
             name?: string | null;
+        };
+        /** @description A company's roles, lowest first. */
+        CompanyRoles: {
+            roles: components["schemas"]["RoleRef"][];
+        };
+        /** @description A company's roles written whole, lowest first. */
+        CompanyRolesAsk: {
+            roles: components["schemas"]["CatalogueEntry"][];
+        };
+        /** @description A person holding a post in a unit: the post's role and whether it carries the unit's head. */
+        ConcurrentPost: {
+            head: boolean;
+            role?: components["schemas"]["RoleRef"] | null;
+            user: string;
         };
         /** @description What a draw asked, by its shape. */
         DrawAsked: {
@@ -1445,6 +1608,25 @@ export interface components {
             ok: boolean;
             version: string;
         };
+        /**
+         * @description What one change of a person's place was.
+         * @enum {string}
+         */
+        HistoryChange: "placed" | "role" | "head-granted" | "head-taken" | "acting" | "acting-ended" | "post-given" | "post-changed" | "post-taken" | "left";
+        /** @description One change of a person's place. */
+        HistoryEntry: {
+            after?: components["schemas"]["RoleMark"] | null;
+            /** Format: int64 */
+            at: number;
+            before?: components["schemas"]["RoleMark"] | null;
+            by?: string | null;
+            byName?: string | null;
+            change: components["schemas"]["HistoryChange"];
+            from?: components["schemas"]["UnitRef"] | null;
+            unit?: components["schemas"]["UnitRef"] | null;
+            /** Format: int64 */
+            until?: number | null;
+        };
         /** @description Whom a grant is to: a sender, a user, or every member of the room. */
         Holder: {
             members?: boolean;
@@ -1524,6 +1706,43 @@ export interface components {
         Invites: {
             invites: components["schemas"]["Invite"][];
         };
+        /** @description One unit kind of a company's list: its key and its name. */
+        KindRef: {
+            key: string;
+            name: string;
+        };
+        /** @description A head of a step of a line. */
+        LineHead: {
+            /** @description Whether the grant is an acting appointment's. */
+            acting: boolean;
+            /** @description Whether they head it through a post. */
+            concurrent: boolean;
+            name: string;
+            user: string;
+        };
+        /** @description A person holding a role at a step of a line. */
+        LineHolder: {
+            /** @description Whether they hold it through a post. */
+            concurrent: boolean;
+            name: string;
+            user: string;
+        };
+        /** @description One role at a step of a line and the people holding it there. */
+        LineRole: {
+            holders: components["schemas"]["LineHolder"][];
+            role: components["schemas"]["RoleRef"];
+        };
+        /** @description One step of a unit's line. */
+        LineStep: {
+            heads: components["schemas"]["LineHead"][];
+            kind?: components["schemas"]["KindRef"] | null;
+            roles: components["schemas"]["LineRole"][];
+            shortName?: string | null;
+            unit: components["schemas"]["UnitRef"];
+            via: components["schemas"]["LineVia"];
+        };
+        /** @description How a step of a line was reached from the one before it. */
+        LineVia: "start" | "reports-to" | "parent";
         /** @description A sign-in's name and password. */
         LoginAsk: {
             password: string;
@@ -1537,6 +1756,11 @@ export interface components {
          */
         Member: {
             name: string;
+            user: string;
+        };
+        /** @description A person of a unit's members carrying a role there. */
+        MemberRole: {
+            role: components["schemas"]["RoleRef"];
             user: string;
         };
         /** @description Every member of the reader's company who has not left, in the directory's order. */
@@ -1578,11 +1802,18 @@ export interface components {
             id: number;
             name: string;
         };
-        /** @description A unit to make: a company where it names no parent. */
+        /**
+         * @description A unit to make: a company where it names no parent; its kind by key, its short name and the unit it reports
+         *     to where named.
+         */
         NewUnit: {
+            kind?: string | null;
             name: string;
             /** Format: int64 */
             parent?: number | null;
+            /** Format: int64 */
+            reportsTo?: number | null;
+            shortName?: string | null;
         };
         /** @description The machine the administrator binds an account to. */
         NodeBinding: {
@@ -1673,12 +1904,55 @@ export interface components {
          *     directory」). The contact fields stand only for the platform administrator and for the person themselves.
          */
         Person: {
+            /**
+             * @description The duty kept, empty where none is.
+             * @default
+             */
+            duty: string;
             email?: string | null;
+            /**
+             * @description The title as one line: composed from the rank and the role where either is set, the job title kept
+             *     otherwise.
+             */
             jobTitle: string;
             landline?: string | null;
             mobile?: string | null;
             name: string;
             organization: string;
+            /**
+             * @description The rank kept, empty where none is.
+             * @default
+             */
+            rank: string;
+            /** @description The role carried in the home unit. */
+            role?: components["schemas"]["RoleRef"] | null;
+            user: string;
+        };
+        /** @description One person of the directory looked up: what a search row answers, and their posts. */
+        PersonDetail: {
+            /**
+             * @description The duty kept, empty where none is.
+             * @default
+             */
+            duty: string;
+            email?: string | null;
+            /**
+             * @description The title as one line: composed from the rank and the role where either is set, the job title kept
+             *     otherwise.
+             */
+            jobTitle: string;
+            landline?: string | null;
+            mobile?: string | null;
+            name: string;
+            organization: string;
+            posts: components["schemas"]["PersonPost"][];
+            /**
+             * @description The rank kept, empty where none is.
+             * @default
+             */
+            rank: string;
+            /** @description The role carried in the home unit. */
+            role?: components["schemas"]["RoleRef"] | null;
             user: string;
         };
         /**
@@ -1689,7 +1963,17 @@ export interface components {
             /** Format: int64 */
             from: number;
             head: boolean;
+            /**
+             * @description The role carried in the unit, by key: null for none, and where absent kept by a person who stays and none
+             *     for one who comes.
+             */
+            role?: string | null;
             user: string;
+        };
+        /** @description One post of a person as the directory answers it: the unit by its reference and the post's role. */
+        PersonPost: {
+            role?: components["schemas"]["RoleRef"] | null;
+            unit: components["schemas"]["UnitRef"];
         };
         /** @description A token issued before the model, carried onto a key of the same text. */
         PhoneAdoptAsk: {
@@ -1718,6 +2002,42 @@ export interface components {
         /** @description A key asked after. */
         PhoneWhoAsk: {
             key: string;
+        };
+        /**
+         * @description One post of a person: its unit and path, its role, whether it carries the unit's head, and when and by whom
+         *     it was given.
+         */
+        Post: {
+            by: string | null;
+            head: boolean;
+            path: components["schemas"]["UnitRef"][];
+            role?: components["schemas"]["RoleRef"] | null;
+            /** Format: int64 */
+            since: number;
+            unit: components["schemas"]["UnitRef"];
+        };
+        /** @description A post given: its role by key, null for none, and whether it carries the unit's head. */
+        PostAsk: {
+            /** @default false */
+            head: boolean;
+            role?: string | null;
+        };
+        /** @description A person's posts, in the order of their units' paths. */
+        Posts: {
+            posts: components["schemas"]["Post"][];
+        };
+        /**
+         * @description A user's profile written: the name, the job title and the contact details whole, and the rank and the duty
+         *     where named, each left as it stands where absent.
+         */
+        ProfileAsk: {
+            duty?: string | null;
+            email: string;
+            fullName: string;
+            jobTitle: string;
+            landline: string;
+            mobile: string;
+            rank?: string | null;
         };
         /** @description Whether an invited account's machine is attached and the account enabled. */
         Proof: {
@@ -1754,6 +2074,36 @@ export interface components {
             grant: string;
             /** Format: int64 */
             revoked: number;
+        };
+        /** @description A person standing for a role for a unit: where they hold it and whether through a post. */
+        RoleHolder: {
+            concurrent: boolean;
+            name: string;
+            unit: components["schemas"]["UnitRef"];
+            user: string;
+        };
+        /** @description A role as a change of a person's place kept it: its key and the name it had then. */
+        RoleMark: {
+            key: string;
+            name: string;
+        };
+        /** @description One role of a company's catalogue: its key, its name and its place, counted from 1 for the lowest. */
+        RoleRef: {
+            key: string;
+            name: string;
+            /** Format: int32 */
+            place: number;
+        };
+        /** @description Who stands for one role for a unit. */
+        RoleStand: {
+            /** @description Whether the holders hold a lower role than the one asked. */
+            acting: boolean;
+            holders: components["schemas"]["RoleHolder"][];
+            reason: components["schemas"]["StandReason"] | null;
+            /** @description The role asked. */
+            role: components["schemas"]["RoleRef"];
+            /** @description The role the holders hold; none where nobody stands. */
+            standing: components["schemas"]["RoleRef"] | null;
         };
         /** @description One caller of a room: a user granted `ask` on it. */
         RoomCaller: {
@@ -1797,15 +2147,26 @@ export interface components {
          *     down, the units they are granted head of directly, their departure and their machine.
          */
         RosterDetail: {
+            /**
+             * @description Whether that grant is an acting appointment's.
+             * @default false
+             */
+            acting: boolean;
+            /** @description The appointments of theirs running. */
+            actingFor: components["schemas"]["ActingFor"][];
             /** @description Whether they are the platform administrator. */
             administrator: boolean;
             company: components["schemas"]["UnitRef"];
+            /** @default  */
+            duty: string;
             /** @description The email, for the administrator alone. */
             email?: string | null;
             /** @description Whether they are granted head of the unit they stand in. */
             head: boolean;
             headOf: components["schemas"]["UnitRef"][];
-            /** @description The job title, empty where none is kept. */
+            /** @description Every change of their place kept, the newest first. */
+            history: components["schemas"]["HistoryEntry"][];
+            /** @description The title as one line, empty where nothing is kept. */
             jobTitle: string;
             landline?: string | null;
             /**
@@ -1827,6 +2188,16 @@ export interface components {
             /** @description The person's name, the login where none stands. */
             name: string;
             path: components["schemas"]["UnitRef"][];
+            /**
+             * @description The unit of the post through which they count in a page narrowed by unit or kind, where their home unit
+             *     does not match it.
+             */
+            post?: components["schemas"]["UnitRef"] | null;
+            posts: components["schemas"]["Post"][];
+            /** @default  */
+            rank: string;
+            /** @description The role carried in the home unit. */
+            role?: components["schemas"]["RoleRef"] | null;
             state: components["schemas"]["RosterState"];
             unit: components["schemas"]["UnitRef"];
             user: string;
@@ -1859,14 +2230,21 @@ export interface components {
         };
         /** @description One person as a page of the people roster answers them (docs/accounts.md, 「The people roster」). */
         RosterPerson: {
+            /**
+             * @description Whether that grant is an acting appointment's.
+             * @default false
+             */
+            acting: boolean;
             /** @description Whether they are the platform administrator. */
             administrator: boolean;
             company: components["schemas"]["UnitRef"];
+            /** @default  */
+            duty: string;
             /** @description The email, for the administrator alone. */
             email?: string | null;
             /** @description Whether they are granted head of the unit they stand in. */
             head: boolean;
-            /** @description The job title, empty where none is kept. */
+            /** @description The title as one line, empty where nothing is kept. */
             jobTitle: string;
             /**
              * Format: int64
@@ -1883,6 +2261,15 @@ export interface components {
             madeAt: number;
             /** @description The person's name, the login where none stands. */
             name: string;
+            /**
+             * @description The unit of the post through which they count in a page narrowed by unit or kind, where their home unit
+             *     does not match it.
+             */
+            post?: components["schemas"]["UnitRef"] | null;
+            /** @default  */
+            rank: string;
+            /** @description The role carried in the home unit. */
+            role?: components["schemas"]["RoleRef"] | null;
             state: components["schemas"]["RosterState"];
             unit: components["schemas"]["UnitRef"];
             user: string;
@@ -2015,30 +2402,38 @@ export interface components {
             /** Format: uint16 */
             statusCode: number;
         };
-        /** @description One organisation unit: where it stands, what stands directly under it, who heads it and who stands in it. */
-        Unit: {
-            children: components["schemas"]["UnitRef"][];
-            company: components["schemas"]["UnitRef"];
-            heads: string[];
-            /** Format: int64 */
-            id: number;
-            members: string[];
-            name: string;
-            /** Format: int64 */
-            parent?: number | null;
-            path: components["schemas"]["UnitRef"][];
-        };
-        /** @description A unit renamed or moved under another parent of its company. */
+        /** @description Why the people standing for a role hold another one. */
+        StandReason: "no-holder";
+        /**
+         * @description A unit renamed or moved under another parent of its company, its kind, short name and the unit it reports to
+         *     set: each of the last three left as it stands where absent and taken away where null.
+         */
         UnitChange: {
+            kind?: string | null;
             name?: string | null;
             /** Format: int64 */
             parent?: number | null;
+            /** Format: int64 */
+            reportsTo?: number | null;
+            shortName?: string | null;
         };
         /** @description Whether a user heads a unit, asked. */
         UnitCheckAsk: {
             /** Format: int64 */
             unit: number;
             user: string;
+        };
+        /** @description A company's unit kinds, in its order. */
+        UnitKinds: {
+            kinds: components["schemas"]["KindRef"][];
+        };
+        /** @description A company's unit kinds written whole, in its order. */
+        UnitKindsAsk: {
+            kinds: components["schemas"]["CatalogueEntry"][];
+        };
+        /** @description A unit's line, the unit first and its company last. */
+        UnitLine: {
+            steps: components["schemas"]["LineStep"][];
         };
         /** @description The unit a user is placed in. */
         UnitPlacement: {
@@ -2053,9 +2448,20 @@ export interface components {
         };
         /** @description One unit of the whole tree, as the administrator reads it. */
         UnitRow: {
+            /**
+             * @description The users among `heads` whose grant is an acting appointment's.
+             * @default []
+             */
+            acting: string[];
+            /**
+             * @description The users holding a post in it.
+             * @default []
+             */
+            concurrent: string[];
             heads: string[];
             /** Format: int64 */
             id: number;
+            kind?: components["schemas"]["KindRef"] | null;
             /**
              * @description The members whose accounts have left.
              * @default []
@@ -2065,6 +2471,34 @@ export interface components {
             name: string;
             /** Format: int64 */
             parent?: number | null;
+            /**
+             * Format: int64
+             * @description The unit it reports to, by its number.
+             */
+            reportsTo?: number | null;
+            shortName?: string | null;
+        };
+        /**
+         * @description One organisation unit read whole: what `Unit` answers, and beside it the unit's kind, short name and the unit
+         *     it reports to, the roles its people carry, the people holding a post in it and the appointment running.
+         */
+        UnitView: {
+            acting: components["schemas"]["Appointment"] | null;
+            children: components["schemas"]["UnitRef"][];
+            company: components["schemas"]["UnitRef"];
+            concurrent: components["schemas"]["ConcurrentPost"][];
+            heads: string[];
+            /** Format: int64 */
+            id: number;
+            kind?: components["schemas"]["KindRef"] | null;
+            members: string[];
+            name: string;
+            /** Format: int64 */
+            parent?: number | null;
+            path: components["schemas"]["UnitRef"][];
+            reportsTo?: components["schemas"]["UnitRef"] | null;
+            roles: components["schemas"]["MemberRole"][];
+            shortName?: string | null;
         };
         /** @description Every unit, companies first and each unit after its parent. */
         Units: {
@@ -2092,15 +2526,21 @@ export interface components {
             shared: boolean;
         };
         /**
-         * @description A user's person's name, job title and contact details, which the account's holder or an administrator keeps
-         *     (docs/accounts.md, 「Users and senders」). Every field is a string, empty where the account keeps none.
+         * @description A user's person's name, job title, rank, duty and contact details, which the account's holder or an
+         *     administrator keeps (docs/accounts.md, 「Users and senders」). Every field is a string, empty where the account
+         *     keeps none.
          */
         UserProfile: {
+            /** @default  */
+            duty: string;
             email: string;
             fullName: string;
+            /** @description The job title kept, as free text. */
             jobTitle: string;
             landline: string;
             mobile: string;
+            /** @default  */
+            rank: string;
         };
         /**
          * @description One user as the users list names them: their id, their login, the person's name (empty where none stands)
@@ -2560,6 +3000,150 @@ export interface operations {
                 content?: never;
             };
             /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    companyRoles: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                company: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyRoles"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    setCompanyRoles: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                company: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompanyRolesAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyRoles"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, bad-catalogue, unauthorized, forbidden, not-found, role-held, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    unitKinds: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                company: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnitKinds"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    setUnitKinds: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                company: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UnitKindsAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnitKinds"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, bad-catalogue, unauthorized, forbidden, not-found, kind-held, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -3100,6 +3684,7 @@ export interface operations {
                 q?: string;
                 company?: number;
                 unit?: number;
+                kind?: string;
                 role?: "head" | "member";
                 state?: "active" | "pending" | "left";
                 after?: string;
@@ -3751,7 +4336,9 @@ export interface operations {
     };
     units: {
         parameters: {
-            query?: never;
+            query?: {
+                kind?: string;
+            };
             header: {
                 /** @description The user of the login the call is made for, its id written as a decimal number. */
                 "Owner-Key": string;
@@ -3807,10 +4394,10 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Unit"];
+                    "application/json": components["schemas"]["UnitView"];
                 };
             };
-            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, other-company, cycle, short-name-taken, no-such-kind, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -3838,7 +4425,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Unit"];
+                    "application/json": components["schemas"]["UnitView"];
                 };
             };
             /** @description A refusal or failure: bad-request, unauthorized, not-found, not-in-force, database, failed */
@@ -3878,10 +4465,80 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Unit"];
+                    "application/json": components["schemas"]["UnitView"];
                 };
             };
-            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, other-company, cycle, not-in-force, database, failed */
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, other-company, cycle, short-name-taken, no-such-kind, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    appoint: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                unit: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AppointmentAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Appointment"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, bad-period, unauthorized, forbidden, not-found, other-company, left, already-head, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    endAppointment: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                unit: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Done; no content. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -4036,6 +4693,75 @@ export interface operations {
             };
         };
     };
+    unitLine: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                unit: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnitLine"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    roleStand: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                unit: number;
+                role: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoleStand"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
     movePeople: {
         parameters: {
             query?: never;
@@ -4062,10 +4788,82 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Unit"];
+                    "application/json": components["schemas"]["UnitView"];
                 };
             };
-            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, left, moved, not-in-force, database, failed */
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, left, moved, no-such-role, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    givePost: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                unit: number;
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PostAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Post"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, home-unit, other-company, left, no-such-role, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    takePost: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                unit: number;
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Done; no content. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -4732,7 +5530,41 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Person"];
+                    "application/json": components["schemas"]["PersonDetail"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    userPosts: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Posts"];
                 };
             };
             /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
@@ -4798,7 +5630,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["UserProfile"];
+                "application/json": components["schemas"]["ProfileAsk"];
             };
         };
         responses: {

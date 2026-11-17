@@ -56,6 +56,30 @@
       <PairRows :rows="organizationRows" :skeleton="organizationLabels" :label="$t('roster.status.person_loading')" />
     </SettingsGroup>
 
+    <!-- The person's posts and the history of their place (docs/accounts.md, 「Concurrent posts」, 「A person's
+         history」), read with the person. -->
+    <SettingsGroup v-if="person !== null" :title="$t('roster.label.posts')" data-roster-posts>
+      <SettingsRow v-if="person.posts.length === 0" :label="$t('roster.label.no_posts')" />
+      <SettingsRow v-for="post in person.posts" :key="post.unit.id" :label="post.path.map((unit) => unit.name).join(' › ')" data-roster-post-row>
+        <template #description>
+          <span v-if="post.role || post.head" class="flex flex-wrap items-center gap-1">
+            <span v-if="post.role">{{ post.role.name }}</span>
+            <UBadge v-if="post.head" :label="$t('organization.label.role_head')" color="neutral" variant="subtle" size="sm" />
+          </span>
+        </template>
+      </SettingsRow>
+    </SettingsGroup>
+
+    <SettingsGroup v-if="person !== null" :title="$t('roster.label.history')" data-roster-history>
+      <SettingsRow v-if="person.history.length === 0" :label="$t('roster.label.no_history')" />
+      <ul v-else class="flex flex-col divide-y divide-default">
+        <li v-for="(entry, at) in person.history" :key="at" class="flex min-w-0 flex-col gap-1 py-3" data-roster-history-row>
+          <span class="text-sm break-words text-highlighted">{{ historyLine(entry) }}</span>
+          <span class="text-sm text-muted tabular-nums">{{ entry.byName === null ? formatStamp(toUnixSeconds(entry.at)) : $t("roster.label.history_by", { time: formatStamp(toUnixSeconds(entry.at)), name: entry.byName }) }}</span>
+        </li>
+      </ul>
+    </SettingsGroup>
+
     <SettingsGroup :title="$t('settings.label.bmo')">
       <FailedRead v-if="bmo.failure.value !== ''" class="py-3" :message="bmo.failure.value" :reading="bmo.reading.value" @retry="bmo.read" />
       <p v-else-if="bmo.data.value !== null && !bmo.data.value.hasBmo" class="py-3 text-sm text-muted">{{ $t("roster.label.no_bmo") }}</p>
@@ -201,7 +225,16 @@
       <p class="text-sm break-words whitespace-pre-wrap text-default" data-roster-persona-text>{{ persona ?? "" }}</p>
     </SettingsDialog>
 
-    <OrganizationMoveDialog ref="moveDialog" v-model:open="moving" :units="units" :name-of="nameOf" @moved="actDone" />
+    <OrganizationMoveDialog ref="moveDialog" v-model:open="moving" :units="units" :name-of="nameOf" :roles-of="rolesOfUnit" @moved="actDone" />
+    <OrganizationPostDialog
+      v-model:open="postOpen"
+      :title="$t('organization.action.add_post')"
+      :unit="null"
+      :user="props.user"
+      :units="postUnits"
+      :roles="personRoles"
+      @saved="actDone"
+    />
     <OrganizationMachineDialog v-model:open="machineOpen" :user="props.user" :name="person?.name ?? ''" @changed="actDone" />
     <ProfileDialog v-model:open="profileOpen" :user="props.user" :profile="profile" :description="person?.name" @saved="actDone" />
   </article>
@@ -220,12 +253,14 @@ import { useConfirm } from "~/domain/confirm";
 import { countText } from "~/domain/numbers";
 import { organizationAddress } from "~/domain/organization";
 import { ROSTER_ROLE_LABELS, ROSTER_STATE_FACES, rosterActs, rosterRoleOf, runEnding } from "~/domain/roster";
+import { dayKey } from "bmo-ui/app/domain/time";
 import { agentLink, momentLink } from "~/domain/status";
 
 import type { PairRow, PairSkeleton } from "~/domain/pair-rows";
 import type { AgentMarkSubject } from "~/domain/agent-face";
 import type { RosterAct } from "~/domain/roster";
-import type { RosterAgent, RosterBmo, RosterDetail, RosterRoom, RosterRun, RosterSession } from "#shared/roster";
+import type { HistoryView, RoleView, RosterAgent, RosterBmo, RosterDetail, RosterRoom, RosterRun, RosterSession } from "#shared/roster";
+import type { InviteUnit } from "@web/server-client";
 import type { UserProfile } from "#shared/types";
 import type { DropdownMenuItem } from "@nuxt/ui";
 import type { UnitRow } from "@web/server-client";
@@ -292,6 +327,8 @@ const accountLabels = computed(() => [
   t("account.label.user_id"),
   t("account.label.full_name"),
   t("account.label.job_title"),
+  t("account.label.rank"),
+  t("account.label.duty"),
   ...(administrator.value ? [t("account.label.landline"), t("account.label.mobile"), t("account.label.email")] : []),
   t("roster.label.state"),
   t("roster.label.made_at"),
@@ -309,6 +346,8 @@ const accountRows = computed<PairRow[] | null>(() => {
     { key: "login", label: t("account.label.user_id"), value: one.login },
     { key: "name", label: t("account.label.full_name"), value: one.name },
     { key: "job", label: t("account.label.job_title"), value: one.jobTitle === "" ? "—" : one.jobTitle },
+    { key: "rank", label: t("account.label.rank"), value: one.rank === "" ? "—" : one.rank },
+    { key: "duty", label: t("account.label.duty"), value: one.duty === "" ? "—" : one.duty },
     ...contact(t("account.label.landline"), one.landline),
     ...contact(t("account.label.mobile"), one.mobile),
     ...contact(t("account.label.email"), one.email),
@@ -324,7 +363,7 @@ const accountRows = computed<PairRow[] | null>(() => {
 });
 
 // The organisation group: the company, the unit's path from the company down, the role and the units the person heads directly.
-const organizationLabels = computed(() => [t("invites.label.company"), t("invites.label.unit"), t("organization.label.role")]);
+const organizationLabels = computed(() => [t("invites.label.company"), t("invites.label.unit"), t("organization.label.role"), t("roster.label.position")]);
 
 const organizationRows = computed<PairRow[] | null>(() => {
   const one = person.value;
@@ -335,7 +374,11 @@ const organizationRows = computed<PairRow[] | null>(() => {
     { key: "company", label: t("invites.label.company"), value: one.company.name },
     { key: "unit", label: t("invites.label.unit"), value: one.path.map((unit) => unit.name).join(" › ") },
     { key: "role", label: t("organization.label.role"), value: t(ROSTER_ROLE_LABELS[rosterRoleOf(one)]) },
-    ...(one.headOf.length === 0 ? [] : [{ key: "head-of", label: t("roster.label.head_of"), value: one.headOf.map((unit) => unit.name).join(", ") }])
+    { key: "position", label: t("roster.label.position"), value: one.role?.name ?? "—" },
+    ...(one.headOf.length === 0 ? [] : [{ key: "head-of", label: t("roster.label.head_of"), value: one.headOf.map((unit) => unit.name).join(", ") }]),
+    ...(one.actingFor.length === 0
+      ? []
+      : [{ key: "acting-for", label: t("roster.label.acting_for"), value: one.actingFor.map((acting) => t("roster.label.acting_until", { unit: acting.unit.name, date: lastDay(acting.until) })).join(", ") }])
   ];
 });
 
@@ -460,6 +503,7 @@ const actFailure = ref("");
 
 const ACT_ITEMS: Readonly<Record<RosterAct, { label: string; icon: string; color?: "error" }>> = {
   move: { label: "organization.action.move", icon: "i-material-symbols-move-item-outline" },
+  post: { label: "roster.action.add_post", icon: "i-material-symbols-group-add-outline" },
   machine: { label: "organization.action.bind", icon: "i-material-symbols-computer-outline" },
   profile: { label: "roster.action.profile", icon: "i-material-symbols-badge-outline" },
   sections: { label: "roster.action.sections", icon: "i-material-symbols-admin-panel-settings-outline" },
@@ -475,6 +519,7 @@ async function take(act: RosterAct): Promise<void> {
   actFailure.value = "";
 
   if (act === "move") await startMove();
+  else if (act === "post") await startPost();
   else if (act === "machine") machineOpen.value = true;
   else if (act === "profile") await openProfile();
   else if (act === "sections") void router.push(organizationAddress("permissions", route.query, { user: props.user }));
@@ -513,12 +558,101 @@ function nameOf(user: string): string {
 }
 
 async function startMove(): Promise<void> {
-  const read = await prepared(() => $fetch<UnitRow[]>("/api/organization/units"));
+  const read = await prepared(async () => {
+    const all = await $fetch<UnitRow[]>("/api/organization/units");
+    const companies = all.filter((unit) => unit.parent === undefined || unit.parent === null);
+    const roles = await Promise.all(companies.map(async (company) => [company.id, await $fetch<RoleView[]>(`/api/organization/companies/${company.id}/roles`)] as const));
+
+    return { all, roles: new Map(roles) };
+  });
 
   if (read === null) return;
 
-  units.value = read;
+  units.value = read.all;
+  companyRoles.value = read.roles;
   moveDialog.value?.start([props.user]);
+}
+
+// Each company's roles, lowest first, for the move's choice of the role a person carries where they go.
+const companyRoles = ref(new Map<number, RoleView[]>());
+
+function rolesOfUnit(unit: number): RoleView[] {
+  const byId = new Map(units.value.map((one) => [one.id, one]));
+  let at = byId.get(unit);
+
+  while (at !== undefined && at.parent !== undefined && at.parent !== null) at = byId.get(at.parent);
+
+  return at === undefined ? [] : (companyRoles.value.get(at.id) ?? []);
+}
+
+// A post given to the person: the units of their company the reader may give one in, but their home unit, and the
+// company's roles.
+const postOpen = ref(false);
+const postUnits = ref<{ label: string; value: string }[]>([]);
+const personRoles = ref<RoleView[]>([]);
+
+async function startPost(): Promise<void> {
+  const one = person.value;
+
+  if (one === null) return;
+
+  const read = await prepared(() =>
+    Promise.all([$fetch<InviteUnit[]>("/api/invites/units"), $fetch<RoleView[]>(`/api/organization/companies/${one.company.id}/roles`)])
+  );
+
+  if (read === null) return;
+
+  const [mayGive, roles] = read;
+  const byId = new Map(mayGive.map((unit) => [unit.id, unit]));
+  const path = (unit: InviteUnit): string => {
+    const names: string[] = [];
+    let at: InviteUnit | undefined = unit;
+
+    while (at !== undefined && !names.includes(at.name)) {
+      names.unshift(at.name);
+      at = at.parent === undefined || at.parent === null ? undefined : byId.get(at.parent);
+    }
+
+    return names.join(" › ");
+  };
+
+  postUnits.value = mayGive.filter((unit) => unit.company.id === one.company.id && unit.id !== one.unit.id).map((unit) => ({ label: path(unit), value: String(unit.id) }));
+  personRoles.value = roles;
+  postOpen.value = true;
+}
+
+// The last day an appointment runs: its end is the start of the day after.
+function lastDay(until: number): string {
+  return dayKey(toUnixSeconds(until - 1));
+}
+
+// One change of the person's place in words: what changed, the units by name, a role by the name it had then.
+function historyLine(entry: HistoryView): string {
+  const unit = entry.unit?.name ?? "";
+  const role = (mark: { name: string } | null): string => mark?.name ?? t("organization.label.no_position");
+
+  switch (entry.change) {
+    case "placed":
+      return entry.from === null ? t("roster.label.history_placed", { unit }) : t("roster.label.history_placed_from", { from: entry.from.name, unit });
+    case "role":
+      return t("roster.label.history_role", { unit, before: role(entry.before), after: role(entry.after) });
+    case "head-granted":
+      return t("roster.label.history_head_granted", { unit });
+    case "head-taken":
+      return t("roster.label.history_head_taken", { unit });
+    case "acting":
+      return t("roster.label.history_acting", { unit, date: entry.until === null ? "" : lastDay(entry.until) });
+    case "acting-ended":
+      return t("roster.label.history_acting_ended", { unit });
+    case "post-given":
+      return t("roster.label.history_post_given", { unit, role: role(entry.after) });
+    case "post-changed":
+      return t("roster.label.history_post_changed", { unit, before: role(entry.before), after: role(entry.after) });
+    case "post-taken":
+      return t("roster.label.history_post_taken", { unit });
+    case "left":
+      return t("roster.label.history_left");
+  }
 }
 
 // The machine: the chart's machine dialog.

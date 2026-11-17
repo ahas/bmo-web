@@ -18,17 +18,19 @@ export const ROSTER_PAGE = 50;
 /** The tab's own key in the address. */
 export const ROSTER_TAB = "people";
 
-/** What the list shows, as the address carries it: the words and the four filters. None set shows everyone. */
+/** What the list shows, as the address carries it: the words and the five filters. None set shows everyone. */
 export interface RosterView {
   q: string;
   company: number | null;
   unit: number | null;
+  // A unit kind's key, of the company whose tree the unit filter offers.
+  kind: string | null;
   role: RosterRole | null;
   state: RosterState | null;
 }
 
 /** The keys of the address the list is read by; the person open is `user`, which reads nothing of the list. */
-export const ROSTER_LIST_KEYS = ["q", "company", "unit", "role", "state"] as const;
+export const ROSTER_LIST_KEYS = ["q", "company", "unit", "kind", "role", "state"] as const;
 
 function first(value: LocationQuery[string] | undefined): string {
   const one = Array.isArray(value) ? value[0] : value;
@@ -51,6 +53,7 @@ export function rosterViewOf(query: LocationQuery): RosterView {
     q: first(query.q).trim(),
     company: whole(query.company),
     unit: whole(query.unit),
+    kind: first(query.kind).trim() || null,
     role: ROSTER_ROLES.find((one) => one === role) ?? null,
     state: ROSTER_STATES.find((one) => one === state) ?? null
   };
@@ -69,6 +72,7 @@ export function rosterQueryOf(view: RosterView): LocationQueryRaw {
     ...(view.q === "" ? {} : { q: view.q }),
     ...(view.company === null ? {} : { company: String(view.company) }),
     ...(view.unit === null ? {} : { unit: String(view.unit) }),
+    ...(view.kind === null ? {} : { kind: view.kind }),
     ...(view.role === null ? {} : { role: view.role }),
     ...(view.state === null ? {} : { state: view.state })
   };
@@ -87,6 +91,7 @@ export function rosterAsk(view: RosterView, after: string | null = null): Roster
     ...(view.q === "" ? {} : { q: view.q }),
     ...(view.company === null ? {} : { company: view.company }),
     ...(view.unit === null ? {} : { unit: view.unit }),
+    ...(view.kind === null ? {} : { kind: view.kind }),
     ...(view.role === null ? {} : { role: view.role }),
     ...(view.state === null ? {} : { state: view.state }),
     ...(after === null ? {} : { after }),
@@ -96,12 +101,12 @@ export function rosterAsk(view: RosterView, after: string | null = null): Roster
 
 /** One key the list is read by, so the list is read again only as the words or a filter change. */
 export function rosterListKey(view: RosterView): string {
-  return JSON.stringify([view.q, view.company, view.unit, view.role, view.state]);
+  return JSON.stringify([view.q, view.company, view.unit, view.kind, view.role, view.state]);
 }
 
-/** How many of the four filters are set, which the narrow screen's filter button carries. */
+/** How many of the five filters are set, which the narrow screen's filter button carries. */
 export function rosterFiltersSet(view: RosterView): number {
-  return [view.company, view.unit, view.role, view.state].filter((one) => one !== null).length;
+  return [view.company, view.unit, view.kind, view.role, view.state].filter((one) => one !== null).length;
 }
 
 /** The company whose tree the unit filter offers: the one chosen, or the reader's only company. */
@@ -111,9 +116,9 @@ export function rosterTreeCompany(view: RosterView, companies: readonly RosterUn
   return companies.length === 1 ? companies[0]!.id : null;
 }
 
-/** The view with one filter changed. A company changed takes the unit chosen under the one before with it. */
+/** The view with one filter changed. A company changed takes the unit and the kind chosen under the one before with it. */
 export function withRosterFilter<Key extends keyof Omit<RosterView, "q">>(view: RosterView, key: Key, value: RosterView[Key]): RosterView {
-  return key === "company" ? { ...view, company: value as number | null, unit: null } : { ...view, [key]: value };
+  return key === "company" ? { ...view, company: value as number | null, unit: null, kind: null } : { ...view, [key]: value };
 }
 
 /** The pack's word for a state, a state's mark in the list and its colour. */
@@ -135,7 +140,7 @@ export function rosterRoleOf(person: Pick<RosterPerson, "head">): RosterRole {
 }
 
 /** One act of a person's management menu. */
-export type RosterAct = "move" | "machine" | "profile" | "sections" | "bmo" | "leave";
+export type RosterAct = "move" | "post" | "machine" | "profile" | "sections" | "bmo" | "leave";
 
 /** Who asks, as far as what the routes behind the acts let them do. */
 export interface RosterActor {
@@ -152,9 +157,11 @@ export interface RosterActor {
  */
 export function rosterActs(actor: RosterActor, person: Pick<RosterPerson, "user" | "state">): RosterAct[] {
   const own = actor.user !== null && actor.user === person.user;
-  const offered: RosterAct[] = person.state === "left" ? ["profile"] : ["move", "machine", "profile", "sections", "bmo", "leave"];
+  const offered: RosterAct[] = person.state === "left" ? ["profile"] : ["move", "post", "machine", "profile", "sections", "bmo", "leave"];
   const may: Record<RosterAct, boolean> = {
     move: actor.administrator,
+    // A reader of a person on the roster heads their company or is the administrator, so may give them a post.
+    post: true,
     machine: actor.administrator,
     profile: actor.administrator || own,
     sections: actor.administrator,
@@ -176,12 +183,18 @@ export function withRosterRow(people: readonly RosterPerson[], person: RosterDet
           company: person.company,
           unit: person.unit,
           head: person.head,
+          acting: person.acting,
           administrator: person.administrator,
           state: person.state,
           machine: person.machine,
           madeAt: person.madeAt,
           lastSignInAt: person.lastSignInAt,
           jobTitle: person.jobTitle,
+          rank: person.rank,
+          role: person.role,
+          duty: person.duty,
+          // The post a row counts through is the list's narrowing, which a person read alone does not carry.
+          post: one.post,
           ...(person.email === undefined ? {} : { email: person.email })
         }
       : one
@@ -230,12 +243,14 @@ export function rosterHiddenHit(
   person: RosterPerson,
   q: string,
   shown: readonly string[],
-  labels: { jobTitle: string; email: string }
+  labels: { jobTitle: string; email: string; rank?: string; duty?: string }
 ): { label: string; snippet: string } | null {
   const match = matchFields(
     [
       ...shown.map((text) => ({ label: "", text, shown: true })),
       { label: labels.jobTitle, text: person.jobTitle, shown: false },
+      { label: labels.rank ?? labels.jobTitle, text: person.rank ?? "", shown: false },
+      { label: labels.duty ?? labels.jobTitle, text: person.duty ?? "", shown: false },
       { label: labels.email, text: person.email ?? "", shown: false }
     ],
     q

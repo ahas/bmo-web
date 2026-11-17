@@ -201,20 +201,31 @@ section states what each does.
 - **`POST /users/{user}/password`** — the current password and the next; refused with 401 where the current one
   does not match, and hashed as sumida hashes every password.
 - **`POST /users/{user}/name`** — another name; refused with 409 where another user holds it.
-- **`GET /users/{user}/profile`** — a user's person's name, job title, landline, mobile and email, each an
-  empty string where the account keeps none; **`POST /users/{user}/profile`** writes all five whole, an empty
-  value clearing it, the name trimmed, and answers the profile as it now stands. Both are the account's
-  holder's or an administrator's: the console hands on the login it acts for in `Owner-Key` and `Owner-Role`,
-  and any other login is refused 403 before a row is read or written. The person's name is sumida's own full
-  name on `users`, so the directory and every answer above read the same one; the job title and the contact
-  details are kept in the service's own table, so sumida's `users` keeps the columns sumida made, and an
-  account that keeps no profile has no row there and reads empty values.
+- **`GET /users/{user}/profile`** — a user's person's name, job title, rank, duty, landline, mobile and email,
+  each an empty string where the account keeps none; **`POST /users/{user}/profile`** writes the name, the job
+  title and the three contact details whole, an empty value clearing it, the name trimmed, writes the rank and
+  the duty where the body names them and leaves them as they stand where it does not, and answers the profile as
+  it now stands. Both are the account's holder's or an administrator's: the console hands on the login it acts
+  for in `Owner-Key` and `Owner-Role`, and any other login is refused 403 before a row is read or written. The
+  person's name is sumida's own full name on `users`, so the directory and every answer above read the same one;
+  the rest is kept in the service's own table, so sumida's `users` keeps the columns sumida made, and an account
+  that keeps no profile has no row there and reads empty values.
+- **A person's title is three things kept apart** (「Roles and unit kinds」):
+  - **the rank,** one line of free text the profile keeps, such as a grade in the company's pay scale;
+  - **the role,** one of the company's catalogue the person carries in their unit, set by the organisation and
+    never by the profile;
+  - **the duty,** free text of what the person is in charge of, one line or a few.
+  The job title the profile keeps stands beside them as free text. **The one line a reader is shown as the
+  person's title,** the `jobTitle` the directory and the roster answer, is composed from the rank and the role
+  where either is set, the rank and then the role, joined as the server's language pack writes them; where
+  neither is set it is the job title kept. The profile's own `jobTitle` is the text kept, so a form writes back
+  what it read.
 - **`GET /users/{user}/sections`** — one user's console sections, each with whether they may read and write
   it: the account's holder's or an administrator's. **`PUT /users/{user}/sections`** writes one user's set
   whole, by an administrator alone (「Console sections」).
 - **`GET /users/search?q=&limit=`** — the people of the reader's own company, of every company for the platform
-  administrator, whose name, unit, job title or permitted contact details hold the words; at most 20 without a
-  `limit`, and never more than 50.
+  administrator, whose name, unit, title, rank, role, duty or permitted contact details hold the words; at most
+  20 without a `limit`, and never more than 50.
 - **`GET /users/{user}/person`** — one person of the reader's own company, of any company for the platform
   administrator; 404 where the user does not stand or, for any other reader, stands in another company
   (「The people directory」).
@@ -328,34 +339,162 @@ section states what each does.
   them. A unit standing at the top of the tree, with no parent, is a **company**; every other unit belongs to the
   company at the top of its branch, and a company holds units under units to any depth. The words a company calls its units by — division, centre, team, part — are
   their names alone, and nothing here reads a meaning into them (`STRUCTURE.md`, 「Terms」).
-- **A user stands in exactly one unit,** the organisation sumida keeps on the user, at any depth of the tree, and
-  belongs to that unit's company.
-- **A person's role in their unit is its head or a member,** the two places a move and an invitation name. What a
-  person may open in the console is not a role's: it is their own sections, set one person at a time (「Console
-  sections」).
+- **A user has one home unit,** the organisation sumida keeps on the user, at any depth of the tree. It alone
+  decides their company, their path and what gathers their own projects, and `GET /users/{user}/unit` answers it.
+  Beside it a person may hold posts in other units of the same company (「Concurrent posts」).
+- **A person's place in their unit is its head or a member,** the two places a move and an invitation name, and
+  it is the one authority a unit gives. Beside it a person may carry one role of their company's catalogue in
+  their home unit, and one in each post (「Roles and unit kinds」); a role is a fact others read, such as an
+  approval rule naming the holder of a role, and it opens nothing by itself. What a person may open in the console
+  is neither's: it is their own sections, set one person at a time (「Console sections」).
+- **A unit may carry three attributes beside its name and parent:** a kind of its company's list, a short name, and
+  the unit it reports to.
+  - **The kind** is a label in the company's own words, such as site, branch or task force. It is shown and may
+    narrow a list, and no permission, check or behaviour of any unit reads it (`STRUCTURE.md`, 「Terms」).
+  - **The short name** is what the company numbers a unit's letters by: one line of 1 to 20 characters, no two
+    units of one company holding the same, case set aside.
+  - **The unit it reports to** is the unit of the same company its matters go up through, where that is not its
+    parent: a site standing under its division whose matters a head-office team reviews. Where none is set the
+    parent stands in its place. It changes nothing of the tree: who heads the unit, what stands under it and every
+    check read the tree as they did.
 - **A unit's head is a `manager` of it in sumida's rules,** granted as a relation tuple on the unit. sumida's
   `manage` permission reads the tuple on the unit and on every unit above it, so a head heads their own unit and
   everything below it, and every platform administrator heads every unit.
 - **`GET /users/{user}/unit`** answers the user's unit, its company and the path between them, from the company
   down to the unit, so a caller tells whether one unit stands under another without a call of its own.
 - **`GET /units/{unit}`** answers a unit: its name, its parent, its company, its path, the units directly under
-  it, the users granted head of it directly, and the users standing in it.
+  it, the users granted head of it directly, and the users standing in it; and beside them its kind, its short
+  name and the unit it reports to, the roles its people carry, the people holding a post in it, and the person
+  acting for its head while an appointment runs. The fields it answered before keep their shape: `heads` and
+  `members` stay lists of user ids, so a reader that reads them reads what it read.
 - **`POST /checks/unit`** answers whether a user heads a unit: sumida's point check of `manage` on the unit, so a
-  head of a unit above it is a head of it too.
-- **Making, naming and moving units, granting and taking away their heads, and placing users in them** are the
-  platform administrator's, on the routes `docs/boundary.md` lists under 「Organisation units」. A unit stays in its
-  company: a move under a parent of another company, or under the unit itself or one below it, is refused, and a
-  unit with no parent is a new company. sumida rebuilds its tree as the units change, so every check reads the
-  tree as it now stands.
-- **Several people are moved into one unit in one act,** each with their place in it: its head or a member. The
-  act names, for each person, the unit they stood in when it was shown, and is written in one transaction, so a
-  person moved by someone else since, an account that has left, or a person or unit that does not stand refuses
-  it whole and nobody is moved. A person coming from another unit is no longer granted head of the unit they
-  leave, since heading a unit one has left would keep its permissions; a grant on a unit above it is the higher
-  unit's and stays. A person already standing in the unit keeps standing there and takes the place named, so one
-  act also changes a role without a move.
+  head of a unit above it is a head of it too, and so is a person whose acting appointment runs (「Acting」).
+- **Making, naming and moving units, setting their kind, short name and the unit they report to, granting and
+  taking away their heads, and placing users in them** are the platform administrator's, on the routes
+  `docs/boundary.md` lists under 「Organisation units」. A unit stays in its company: a move under a parent of
+  another company, or under the unit itself or one below it, is refused, and a unit with no parent is a new
+  company. A unit reports to a unit of its own company alone, and never so that its line passes one unit twice
+  (「The line of a unit」): a unit to report to of another company is refused as a parent of another company is,
+  and one that would make the line come round, or a parent move that would, as a move under itself is. sumida
+  rebuilds its tree as the units change, so every check reads the tree as it now stands.
+- **Several people are moved into one unit in one act,** each with their place in it, its head or a member, and
+  where the act names one, their role there. The act names, for each person, the unit they stood in when it was
+  shown, and is written in one transaction, so a person moved by someone else since, an account that has left, a
+  role their new unit's company does not keep, or a person or unit that does not stand refuses it whole and
+  nobody is moved. A person coming from another unit is no longer granted head of the unit they leave, since
+  heading a unit one has left would keep its permissions; a grant on a unit above it is the higher unit's and
+  stays, and so does the grant a post carries. They carry no role there until the act names one. A person
+  already standing in the unit keeps standing there and takes the place named, and keeps their role where the
+  act names none, so one act also changes a place or a role without a move. A person moved into a unit where
+  they hold a post loses the post, the unit being their home now; a person moved into another company loses
+  every post, since a post stands in the home unit's company alone. Placing one person in a unit
+  (`PUT /users/{user}/unit`) moves them as a move does, but for heads, which it leaves as they stand: the role
+  they carried stood in the unit they left and goes with it, and their posts end as above.
 - **The console's organisation screen,** 조직's 조직도 tab, draws the units as a tree and does each of these for
   the administrator (`docs/web.md`, 「조직도」).
+
+### Roles and unit kinds
+
+- **Each company keeps two lists in its own words:** its roles, ordered lowest first, and its unit kinds. An
+  entry is a key, which stays as long as the entry does and is what other units name it by, and a name, which a
+  person reads and the company may change. A role also has its place in the order, counted from 1 for the lowest.
+  The company's words are its data: no code here or in any unit names a role or a kind, and an approval rule that
+  names a role names it by its key.
+- **A key** is 1 to 40 characters of lowercase letters, digits and hyphens, beginning with a letter; **a name** one
+  line of 1 to 40 characters. A list holds at most 100 entries, no two of one key and no two of one name, case set
+  aside. A list out of that shape is refused 400 `bad-catalogue`.
+- **A list is written whole,** in its order, so a reorder, a rename, an addition and a removal are one act. An
+  entry still in use is never removed: a role a person carries in their home unit or in a post is refused 409
+  `role-held`, and a kind a unit carries 409 `kind-held`, so whoever edits the list moves those people or units
+  first.
+- **Who keeps them:** the platform administrator and a head of the company's own unit, the unit with no parent,
+  write them. Anyone standing in the company reads them, and a unit acting for one of them, which calls with that
+  person in `Owner-Key`, as bmo-project and the approval service do; anyone of another company is answered as if
+  no such company stood.
+- **A role is carried in a unit:** at most one in a person's home unit, set by the move that places them
+  (「Companies and organisation units」), and at most one in each post (「Concurrent posts」). It is always one of
+  the catalogue of the unit's company; a key the catalogue does not hold is refused 400 `no-such-role`.
+- **A kind is carried by a unit,** at most one, of its company's list, set on the unit's form; a key the list does
+  not hold is refused 400 `no-such-kind`. Two answers change with it and no other: the units listed by kind and the
+  roster narrowed by kind (「The people roster」). A test holds every other answer the same with a unit's kind set,
+  changed and taken away.
+
+### Concurrent posts
+
+- **A post is a person's standing in a unit other than their home unit,** of the same company, with a role of the
+  catalogue or none, and with the unit's head granted or not. A person holds at most one post in a unit and none in
+  their home unit.
+- **What a post does:**
+  - it lists the person in that unit, marked concurrent, apart from the unit's members, so `members` stays the
+    people whose home unit it is;
+  - it puts them in that unit's line, holding their post's role there (「The line of a unit」);
+  - it counts, marked, where the roster is narrowed by unit or by kind (「The people roster」);
+  - it may carry a head grant on the unit, which a move of the person's home unit leaves standing and taking the
+    post takes away.
+- **What a post does not do:** it decides nothing of the person's company, path or own projects, which are their
+  home unit's, and gives no authority but the head grant it carries. Reading what is shared to a unit through a
+  post, the documents another unit shares with it among them, is not provided: such a unit reads a person's home
+  unit (`GET /users/{user}/unit`), so a post opens nothing shared to its unit.
+- **Who gives and takes a post:** the platform administrator, and a head of the unit or of a unit above it, by
+  sumida's `manage` on the unit. Giving a post that stands again changes its role and its head grant.
+- **A post ends** when it is taken away, when the person is moved into its unit as their home, when they are moved
+  into another company, and when they leave (「A person who leaves」): a person who leaves loses every post.
+- **`GET /users/{user}/posts`** answers a person's posts, each with its unit and path, its role, whether it carries
+  the unit's head, and when and by whom it was given; for anyone of the person's company, the administrator, and as
+  if nothing stood there for anyone of another.
+
+### Acting
+
+- **A person may be named to act for a unit's head for a period.** While the appointment runs they pass the unit
+  check as a head does (`manage` on the unit and every unit below it) and are marked acting wherever heads are
+  listed: the unit's own answer, the administrator's list of units, the line of a unit and the roster. When its end
+  passes the standing ends with no further act.
+- **An appointment is a head grant with an end and a mark.** The grant is sumida's `manager` tuple on the unit
+  with its `expires_at` at the appointment's end, which sumida's check reads, so the check needs nothing of its own;
+  the mark is the service's own record of the appointment, which says the grant is an acting one, who named it and
+  when.
+- **It starts as it is made** and runs to the end it names, a moment still to come. A unit has at most one
+  appointment running: naming another person ends the one that runs, and naming the same person again moves its
+  end. It may be ended before its end by the same callers who make it.
+- **Who appoints:** the platform administrator, and a head of a unit above the unit, by sumida's `manage` on its
+  parent; a company's own unit, having none above it, is the administrator's alone. The person named stands in the
+  unit's company and has not left.
+- **A person already granted the unit's head lastingly is not appointed** (409 `already-head`), and a lasting head
+  grant on the unit ends a running appointment of the same person, the lasting grant taking its place. A move out
+  of their home unit that takes its head grant away ends an appointment on that unit as well, and so does leaving.
+
+### The line of a unit
+
+- **A unit's line is the chain its matters go up:** from the unit, to the unit it reports to where one is set and
+  to its parent otherwise, and so on up to its company. No line passes one unit twice; setting a unit to report to,
+  or moving a unit, so that one would is refused 409 `cycle`.
+- **`GET /units/{unit}/line`** answers the chain, the unit first, each step with its unit, its kind and short
+  name, how it was reached (the unit it reports to or its parent), its heads with the acting one marked, and the
+  people holding each role there: those whose home unit it is with that role, and those whose post there carries
+  it, marked concurrent.
+- **`GET /units/{unit}/line/{role}`** answers who stands for one role for the unit:
+  1. the holders of that role at the nearest step of the line holding any, all of them where several do;
+  2. where no step holds it, the holders of the next lower role of the catalogue, read the same way along the
+     line, then of the role below that, down to the lowest; the answer is then marked acting, with its reason,
+     `no-holder`, that nobody on the line holds the role asked, and the role the holders hold;
+  3. nobody, where no step holds that role or any lower one.
+  It answers the rule that where a unit holds nobody in a role, the holder of the next lower role acts. An acting
+  appointment gives head standing and no role, so it answers the first read's heads and not this
+  one.
+- **Both read for anyone of the unit's company and the administrator,** with the reader in `Owner-Key`; a unit of
+  another company, and a role key its catalogue does not hold, is answered 404 as if nothing stood there.
+
+### A person's history
+
+- **Every change of a person's place is kept:** a move of their home unit, a role set or taken away, a head granted
+  or taken away, an acting appointment made or ended early, a post given, changed or taken away, and leaving. Each
+  entry holds who it was of, what changed, the unit it changed in and the unit they came from where they moved, the
+  role before and after by its key and the name it had then, an appointment's end, who did it and when. A change made
+  where no person stands behind the call, as the account command's, keeps no one as its doer.
+- **The history holds what was done since the service kept it;** an appointment that runs to its end adds nothing
+  as it ends, its entry naming the end.
+- **Nothing in it is changed or removed.** It is read on the roster's person read (「The people roster」), by the
+  administrator and a head of the company's own unit.
 
 ### A person's BMO profile
 
@@ -538,7 +677,8 @@ section states what each does.
 
 - **A person who leaves is marked so, never removed:** the administrator, or a head of the unit the person stands
   in, marks the account left. Its sign-in is disabled for good, the moment and who marked it are kept, and the
-  account stays in its unit with everything it held, so what it did stays where it was done.
+  account stays in its unit with everything it held, so what it did stays where it was done. Its posts end, with
+  the head grants they carried, and an acting appointment of theirs ends, each kept in their history.
 - **What stays readable is what was public:** the person's public projects and their records go on being read by
   the heads above, as any public project is (bmo-project's `docs/design.md`). Their private projects, their private
   conversations and their supervisor's memory are sealed: nobody is given them.
@@ -556,10 +696,12 @@ section states what each does.
   The members list stays the reader's own company. Whether the reader is the administrator is the service's own
   reading of sumida for the user `Owner-Key` names, never `Owner-Role`.
 - **A person answers these fields:** their user id, their name (their full name where they keep one, their
-  user name otherwise), their unit's name, their job title, and their landline, mobile and email.
+  user name otherwise), their unit's name, their title as one line (「Users and senders」), their rank, their role
+  in their home unit, their duty, and their landline, mobile and email. The person lookup answers their posts as
+  well, each unit by its name with its role.
 - **The contact details are read by the platform administrator and by the person themselves.** Everyone else
-  in the company reads the name, the unit and the job title alone; the three contact fields are absent from the
-  answer, not empty.
+  in the company reads the name, the unit, the title, the rank, the role, the duty and the posts alone; the three
+  contact fields are absent from the answer, not empty.
 - **The members list is every person of the reader's company who has not left,** the users of the company at the
   top of the reader's branch of the tree but those marked left (「A person who leaves」), each by their user id and
   their name alone, in the directory's order and with no limit: what a picker needs to find a person and show
@@ -567,7 +709,7 @@ section states what each does.
   It is refused as a search is, for a call naming no user of the deployment or a reader whose unit stands in no
   company. The console hands it to the screens a unit brings (`docs/web.md`, 「Screens a unit brings」).
 - **A search matches only the fields its reader may see.** A member's words are matched against the name, the
-  organisation, the job title and their own contact details; the administrator's against every contact detail
+  organisation, the job title kept, the rank, the role's name, the duty and their own contact details; the administrator's against every contact detail
   as well, so a refused field is never an answer to a search.
 - **The console's search reads it** as typing stops, and a result opens the person's page at `/people/<user>`
   (`docs/web.md`, 「Sidebar」 and 「Person's page」). The page and its calls are the account section's, so a
@@ -584,26 +726,32 @@ section states what each does.
   but the list of companies refuses them 403 `forbidden`.
 - **`GET /people/companies`** — the companies the reader looks through, each by its id and name, in name order;
   empty for a reader who looks through none, so the console tells from it whether the tab stands.
-- **`GET /people?q=&company=&unit=&role=&state=&after=&limit=`** — one page of the people the reader looks through,
-  in the order of their names, case set aside, then their user ids:
+- **`GET /people?q=&company=&unit=&kind=&role=&state=&after=&limit=`** — one page of the people the reader looks
+  through, in the order of their names, case set aside, then their user ids:
   - each person's user id, login, person's name (the login where none stands), company and unit, each an id and a
-    name, `head`, whether they are granted head of the unit they stand in, `administrator`, `state`, `active`,
-    `pending` for an account not yet enabled that has not left, or `left`, the machine their account is bound to
-    or none, when the account was made, when they last signed in or none, their job title, and their email for
-    the administrator alone, so a row can show a search's hit in a field it does not otherwise show;
+    name, `head`, whether they are granted head of the unit they stand in, `acting`, whether that grant is an
+    acting appointment's, `administrator`, `state`, `active`, `pending` for an account not yet enabled that has
+    not left, or `left`, the machine their account is bound to or none, when the account was made, when they last
+    signed in or none, their title as one line, their rank, role and duty, the post through which they stand in
+    the page where the page is narrowed to a unit or a kind and they count through a post alone, and their email
+    for the administrator alone, so a row can show a search's hit in a field it does not otherwise show;
   - `total`, how many people match the whole ask, and `next`, the place past the last person answered to ask the
     next page from in `after`, or none where nothing stands past it.
   - `q` matches as the directory's search does, by words held anywhere in the login, the person's name, the unit's
-    name and the job title, and for the administrator in the contact details too, so a refused field never
-    answers. `company` narrows to one company, `unit` to a unit and every unit under it, `role` to `head` or
-    `member` and `state` to one state; a company or a unit the reader does not look through is 404 `not-found`.
+    name, the job title kept, the rank, the role's name and the duty, and for the administrator in the contact
+    details too, so a refused field never answers. `company` narrows to one company; `unit` to a unit and every
+    unit under it, and `kind` to the units of one kind, each counting the people whose home unit it is and, marked
+    with their post, the people holding a post there; `role` to `head` or `member` and `state` to one state, both
+    read of the home unit. A company or a unit the reader does not look through is 404 `not-found`, and a kind no
+    company the reader looks through keeps answers nobody.
   - `limit` is 50 where none is named and never more than 100. The page is read from the database as a page,
     after the place `after` names, so no ask reads every user into the service.
 - **`GET /people/{user}`** — one person the reader looks through: what a page answers of them, with their landline
   and mobile for the administrator alone, their unit's path from the company down, the units they are granted head
-  of directly, when they left and who marked it where they did, and their machine's standing, its name, whether it
-  is shared and when it was last proven. 404 `not-found` where the person stands in no company the reader looks
-  through.
+  of directly, the units they act for with each appointment's end, their posts (「Concurrent posts」), their
+  history, the newest first (「A person's history」), when they left and who marked it where they did, and their
+  machine's standing, its name, whether it is shared and when it was last proven. 404 `not-found` where the person
+  stands in no company the reader looks through.
 - **The service keeps when each user last signed in:** the moment a `POST /sumida/auth/session` answered with a
   session, one row a user, written over at each sign-in. Nothing else of a sign-in is kept, its address among it.
 
@@ -742,7 +890,14 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 | Table | What it holds |
 |---|---|
 | `user_senders` | the link from a chat service's sender to a user |
-| `user_profiles` | a user's job title and contact details, keyed by sumida's user; an account keeping none has no row and reads empty |
+| `user_profiles` | a user's job title, rank, duty and contact details, keyed by sumida's user; an account keeping none has no row and reads empty |
+| `company_roles` | each company's roles: key, name and place, lowest first (「Roles and unit kinds」) |
+| `unit_kinds` | each company's unit kinds: key, name and their order |
+| `unit_attributes` | a unit's kind, short name and the unit it reports to, with its company so a short name is held once in it; a unit setting none has no row |
+| `user_roles` | the role a person carries in their home unit; one carrying none has no row |
+| `unit_posts` | each post: the person, the unit, its role or none, who gave it and when (「Concurrent posts」) |
+| `unit_appointments` | each acting appointment: the unit, the person, its end, who made it and when, and who ended it early and when; the grant itself is sumida's tuple (「Acting」) |
+| `org_history` | each change of a person's place (「A person's history」) |
 | `grant_words` | the words a grant was made with, beside the grant |
 | `user_invites` | each invitation: its token, its unit, whether it makes a head, the person's name it was made for (empty where none was given), who made it, when it closes, and who used it and when |
 | `user_nodes` | the machine each invited account is bound to, whether the administrator bound it shared, and when it was last proven |
@@ -790,7 +945,9 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
   410 and no credential; and an address refused past its tenth pairing until its window passes.
 - **The profile tests** read an account's profile empty where it keeps none, have its holder and an
   administrator write it whole, the person's name among it, see that name answered by the user's own route,
-  the users list and the directory, and refuse any other login.
+  the users list and the directory, and refuse any other login. A body of the five fields alone leaves the rank
+  and the duty as they stand; the directory and the roster answer the title composed from the rank and the role
+  where either is set, and the job title kept where neither is.
 - **The organisation tests** make a company and units under it as the administrator, rename and move one, refuse
   a move into another company and under itself, grant and take away a head, place a user, and refuse every one
   of these to a member.
@@ -804,6 +961,31 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
   member until their own takes its place while permitted.
 - **The unit tests** stand a company with units under it, read a user's unit, company and path, read a unit's
   children, heads and members, and check that a head of a unit heads the units below it and not the one above.
+- **The role and kind tests** write a company's roles and kinds whole as the administrator and as a head of the
+  company's own unit, read them as a member and as a unit calling for one, refuse a head of a unit below, a member
+  and anyone of another company, refuse a list out of shape, and refuse removing a role a person carries or a kind
+  a unit carries. A move sets a role, keeps it where it names none for a person who stays, and drops it for one
+  coming from another unit; `GET /units/{unit}` answers it beside `members`, whose shape stays.
+- **The unit attribute tests** set a kind, a short name and a unit to report to, refuse a short name the company
+  already holds, a unit to report to of another company and one that makes the line come round, and refuse a
+  parent move that would.
+- **The kind test** sets, changes and takes away a unit's kind and reads every route of 「What the server serves」
+  that a unit's kind could reach before and after: only the list of units narrowed by kind and the roster
+  narrowed by kind change.
+- **The line tests** read a line through a unit it reports to and up its parents, each step's heads and role
+  holders; who stands for a role at the nearest step; the next lower role's holders marked acting with the reason
+  where no step holds it; nobody where none stands; and a reader of another company answered 404.
+- **The acting tests** stand an appointment and, rather than wait for its end, move the end into the past in the
+  database: the person passes the unit check and is listed acting while it runs, and neither once its end has
+  passed, with no act between; a second
+  appointment ends the first; a lasting head is refused one; ending it early takes the standing away; a head of a
+  unit above appoints and a head of the unit itself does not.
+- **The post tests** give a person a post with a role and a head grant: they are listed concurrent in the unit and
+  hold its role in its line, `GET /users/{user}/unit` answers as before, the roster narrowed to the unit counts
+  them marked, a move of their home unit leaves the post's head grant standing, a move into the post's unit ends
+  the post, and leaving ends every post.
+- **The history tests** read a person's moves, roles, head grants, appointments and posts back on the roster's
+  person read, newest first, with who did each.
 - **Every route of `docs/boundary.md`'s 「What the server serves」 answers in a test.**
 - **The secret store's tests stand on a temporary folder** in place of the data root's `env/`: the modes a write
   leaves, the value kept before, the names refused, a base64 value written as its bytes, and that no answer and no

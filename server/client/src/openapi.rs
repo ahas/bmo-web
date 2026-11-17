@@ -9,6 +9,7 @@ use schemars::Schema;
 use schemars::generate::{SchemaGenerator, SchemaSettings};
 use serde_json::{Map, Value, json};
 
+use crate::organisation::*;
 use crate::types::*;
 use crate::wire::{SessionError, WireError};
 
@@ -408,10 +409,10 @@ pub fn openapi() -> Value {
     "/users/{user}/person",
     "person",
     "Users and senders",
-    "One person of the reader's organisation, with the contact details only an administrator or the person themselves may see.",
+    "One person of the reader's organisation, with their posts and the contact details only an administrator or the person themselves may see.",
     params: vec![string_path("user"), owner_key(), owner_role()],
     body: None,
-    answers: vec![(200, json_answer::<Person>(&mut generator))],
+    answers: vec![(200, json_answer::<PersonDetail>(&mut generator))],
     codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
     refusal: Refusal::Wire,
     security: bearer()
@@ -434,11 +435,12 @@ pub fn openapi() -> Value {
     "/people",
     "roster",
     "People roster",
-    "One page of the people the reader looks through, in the order of their names, case set aside, then their user ids, each with their job title and, for the administrator alone, their email, with how many match the whole ask and the place the next page starts; 50 where no limit is named and never more than 100.",
+    "One page of the people the reader looks through, in the order of their names, case set aside, then their user ids, each with their title, rank, role and duty and, for the administrator alone, their email, with how many match the whole ask and the place the next page starts; 50 where no limit is named and never more than 100. A unit or a kind counts the people holding a post in a unit it names, marked with the post.",
     params: vec![
       parameter("q", "string", false),
       parameter("company", "integer", false),
       parameter("unit", "integer", false),
+      parameter("kind", "string", false),
       json!({
         "name": "role",
         "in": "query",
@@ -466,7 +468,7 @@ pub fn openapi() -> Value {
     "/people/{user}",
     "rosterPerson",
     "People roster",
-    "One person the reader looks through, as a page answers them, with their landline and mobile for the administrator alone, their unit's path, the units they are granted head of, their departure and their machine's standing.",
+    "One person the reader looks through, as a page answers them, with their landline and mobile for the administrator alone, their unit's path, the units they are granted head of and act for, their posts, their history, their departure and their machine's standing.",
     params: vec![string_path("user"), owner_key()],
     body: None,
     answers: vec![(200, json_answer::<RosterDetail>(&mut generator))],
@@ -557,9 +559,9 @@ pub fn openapi() -> Value {
     "/users/{user}/profile",
     "setUserProfile",
     "Users and senders",
-    "Writes a user's job title and contact details whole, by the account's holder or an administrator.",
+    "Writes a user's job title and contact details whole, and their rank and duty where named, by the account's holder or an administrator.",
     params: vec![string_path("user"), owner_key(), owner_role()],
-    body: Some(json!(generator.subschema_for::<UserProfile>())),
+    body: Some(json!(generator.subschema_for::<ProfileAsk>())),
     answers: vec![(200, json_answer::<UserProfile>(&mut generator))],
     codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
     refusal: Refusal::Wire,
@@ -1066,8 +1068,8 @@ pub fn openapi() -> Value {
     "/units",
     "units",
     "Organisation units",
-    "Every unit, companies first and each unit after its parent, for the administrator alone.",
-    params: vec![owner_key(), owner_role()],
+    "Every unit, or the units of one kind, companies first and each unit after its parent, for the administrator alone.",
+    params: vec![parameter("kind", "string", false), owner_key(), owner_role()],
     body: None,
     answers: vec![(200, json_answer::<Units>(&mut generator))],
     codes: vec!["unauthorized", "forbidden", "not-in-force", "database", "failed"],
@@ -1082,8 +1084,8 @@ pub fn openapi() -> Value {
     "A unit made under a parent, or a new company where none is named, by the administrator.",
     params: vec![owner_key(), owner_role()],
     body: Some(json!(generator.subschema_for::<NewUnit>())),
-    answers: vec![(201, json_answer::<Unit>(&mut generator))],
-    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    answers: vec![(201, json_answer::<UnitView>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "other-company", "cycle", "short-name-taken", "no-such-kind", "not-in-force", "database", "failed"],
     refusal: Refusal::Wire,
     security: bearer()
   );
@@ -1092,11 +1094,11 @@ pub fn openapi() -> Value {
     "/units/{unit}",
     "changeUnit",
     "Organisation units",
-    "A unit renamed, or moved under another parent of its company, by the administrator.",
+    "A unit renamed, moved under another parent of its company, or given its kind, short name and the unit it reports to, by the administrator.",
     params: vec![integer_path("unit"), owner_key(), owner_role()],
     body: Some(json!(generator.subschema_for::<UnitChange>())),
-    answers: vec![(200, json_answer::<Unit>(&mut generator))],
-    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "other-company", "cycle", "not-in-force", "database", "failed"],
+    answers: vec![(200, json_answer::<UnitView>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "other-company", "cycle", "short-name-taken", "no-such-kind", "not-in-force", "database", "failed"],
     refusal: Refusal::Wire,
     security: bearer()
   );
@@ -1196,11 +1198,11 @@ pub fn openapi() -> Value {
     "/units/{unit}/members",
     "movePeople",
     "Organisation units",
-    "Several people moved into a unit in one act, each its head or a member, by the administrator.",
+    "Several people moved into a unit in one act, each its head or a member and with the role named, by the administrator.",
     params: vec![integer_path("unit"), owner_key(), owner_role()],
     body: Some(json!(generator.subschema_for::<PeopleMove>())),
-    answers: vec![(200, json_answer::<Unit>(&mut generator))],
-    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "left", "moved", "not-in-force", "database", "failed"],
+    answers: vec![(200, json_answer::<UnitView>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "left", "moved", "no-such-role", "not-in-force", "database", "failed"],
     refusal: Refusal::Wire,
     security: bearer()
   );
@@ -1209,11 +1211,154 @@ pub fn openapi() -> Value {
     "/units/{unit}",
     "unit",
     "Organisation units",
-    "One organisation unit: its parent, company and path, the units directly under it, its heads and its members.",
+    "One organisation unit: its parent, company and path, the units directly under it, its heads and its members, its kind, short name and the unit it reports to, the roles its people carry, the people holding a post in it and the acting appointment running.",
     params: vec![integer_path("unit")],
     body: None,
-    answers: vec![(200, json_answer::<Unit>(&mut generator))],
+    answers: vec![(200, json_answer::<UnitView>(&mut generator))],
     codes: vec!["bad-request", "unauthorized", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/units/{unit}/line",
+    "unitLine",
+    "Organisation units",
+    "A unit's line, the unit first and its company last, following the unit it reports to where set and its parent otherwise, each step with its heads and the people holding each role there, for anyone of the unit's company.",
+    params: vec![integer_path("unit"), owner_key()],
+    body: None,
+    answers: vec![(200, json_answer::<UnitLine>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/units/{unit}/line/{role}",
+    "roleStand",
+    "Organisation units",
+    "Who stands for one role for a unit: the holders nearest on its line, else the holders of the next lower role, marked acting with the reason.",
+    params: vec![integer_path("unit"), string_path("role"), owner_key()],
+    body: None,
+    answers: vec![(200, json_answer::<RoleStand>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PUT",
+    "/units/{unit}/acting",
+    "appoint",
+    "Organisation units",
+    "A person named to act for a unit's head until a moment still to come, by the administrator or a head of a unit above.",
+    params: vec![integer_path("unit"), owner_key()],
+    body: Some(json!(generator.subschema_for::<AppointmentAsk>())),
+    answers: vec![(200, json_answer::<Appointment>(&mut generator))],
+    codes: vec!["bad-request", "bad-period", "unauthorized", "forbidden", "not-found", "other-company", "left", "already-head", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "DELETE",
+    "/units/{unit}/acting",
+    "endAppointment",
+    "Organisation units",
+    "The acting appointment running on a unit ended, by the administrator or a head of a unit above.",
+    params: vec![integer_path("unit"), owner_key()],
+    body: None,
+    answers: vec![(204, no_answer())],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PUT",
+    "/units/{unit}/posts/{user}",
+    "givePost",
+    "Organisation units",
+    "A post given to a person in a unit of their company other than their home unit, with a role or none and the unit's head or not, by the administrator or a head of the unit or of one above.",
+    params: vec![integer_path("unit"), string_path("user"), owner_key()],
+    body: Some(json!(generator.subschema_for::<PostAsk>())),
+    answers: vec![(200, json_answer::<Post>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "home-unit", "other-company", "left", "no-such-role", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "DELETE",
+    "/units/{unit}/posts/{user}",
+    "takePost",
+    "Organisation units",
+    "A post and the head grant it carried taken away, by the administrator or a head of the unit or of one above.",
+    params: vec![integer_path("unit"), string_path("user"), owner_key()],
+    body: None,
+    answers: vec![(204, no_answer())],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/users/{user}/posts",
+    "userPosts",
+    "Organisation units",
+    "A person's posts, each with its unit, path and role, whether it carries the unit's head, and when and by whom it was given, for anyone of the person's company.",
+    params: vec![string_path("user"), owner_key()],
+    body: None,
+    answers: vec![(200, json_answer::<Posts>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/companies/{company}/roles",
+    "companyRoles",
+    "Organisation units",
+    "A company's roles, lowest first, for anyone of the company.",
+    params: vec![integer_path("company"), owner_key()],
+    body: None,
+    answers: vec![(200, json_answer::<CompanyRoles>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PUT",
+    "/companies/{company}/roles",
+    "setCompanyRoles",
+    "Organisation units",
+    "A company's roles written whole, lowest first, by the administrator or a head of the company's own unit.",
+    params: vec![integer_path("company"), owner_key()],
+    body: Some(json!(generator.subschema_for::<CompanyRolesAsk>())),
+    answers: vec![(200, json_answer::<CompanyRoles>(&mut generator))],
+    codes: vec!["bad-request", "bad-catalogue", "unauthorized", "forbidden", "not-found", "role-held", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/companies/{company}/unit-kinds",
+    "unitKinds",
+    "Organisation units",
+    "A company's unit kinds, in its order, for anyone of the company.",
+    params: vec![integer_path("company"), owner_key()],
+    body: None,
+    answers: vec![(200, json_answer::<UnitKinds>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PUT",
+    "/companies/{company}/unit-kinds",
+    "setUnitKinds",
+    "Organisation units",
+    "A company's unit kinds written whole, by the administrator or a head of the company's own unit.",
+    params: vec![integer_path("company"), owner_key()],
+    body: Some(json!(generator.subschema_for::<UnitKindsAsk>())),
+    answers: vec![(200, json_answer::<UnitKinds>(&mut generator))],
+    codes: vec!["bad-request", "bad-catalogue", "unauthorized", "forbidden", "not-found", "kind-held", "not-in-force", "database", "failed"],
     refusal: Refusal::Wire,
     security: bearer()
   );

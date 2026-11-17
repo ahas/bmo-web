@@ -40,7 +40,7 @@ const accounts = standIn(
     if (!looksThrough(key)) return answer({ code: "forbidden", error: "looks through no company" }, 403);
     if (path === "/people") return answer({ people: [ROW], total: 1, next: null });
     if (path === `/people/${PERSON}`) {
-      return answer({ ...ROW, path: [COMPANY, UNIT], headOf: [], left: null, machineStanding: null, ...(key === String(ADMIN) ? { email: "person-a@example.com" } : {}) });
+      return answer({ ...ROW, path: [COMPANY, UNIT], headOf: [], actingFor: [], posts: [], history: [], left: null, machineStanding: null, ...(key === String(ADMIN) ? { email: "person-a@example.com" } : {}) });
     }
     if (/^\/people\/\d+$/.test(path)) return answer({ code: "not-found", error: "no such person here" }, 404);
 

@@ -93,12 +93,14 @@ async fn a_profile_reads_empty_where_nothing_is_kept_and_its_holder_writes_it_wh
   assert_eq!(status, StatusCode::OK, "{held}");
   assert_eq!(
     held,
-    json!({ "fullName": "", "jobTitle": "", "landline": "", "mobile": "", "email": "" })
+    json!({ "fullName": "", "jobTitle": "", "rank": "", "duty": "", "landline": "", "mobile": "", "email": "" })
   );
 
   let kept = json!({
     "fullName": "Person A",
     "jobTitle": "Field engineer",
+    "rank": "",
+    "duty": "",
     "landline": "office 12",
     "mobile": "mobile 34",
     "email": "engineer@example.com"
@@ -134,13 +136,13 @@ async fn a_profile_reads_empty_where_nothing_is_kept_and_its_holder_writes_it_wh
   assert_eq!(status, StatusCode::OK);
   assert_eq!(saved, kept);
 
-  let cleared = json!({ "fullName": "", "jobTitle": "", "landline": "", "mobile": "", "email": "" });
+  let cleared = json!({ "fullName": "", "jobTitle": "", "rank": "", "duty": "", "landline": "", "mobile": "", "email": "" });
   let (status, empty) = asked(&app, Method::POST, &path, Some(cleared), Some(member), Some("member")).await;
 
   assert_eq!(status, StatusCode::OK);
   assert_eq!(
     empty,
-    json!({ "fullName": "", "jobTitle": "", "landline": "", "mobile": "", "email": "" })
+    json!({ "fullName": "", "jobTitle": "", "rank": "", "duty": "", "landline": "", "mobile": "", "email": "" })
   );
 }
 
@@ -154,6 +156,8 @@ async fn an_administrator_keeps_anothers_profile_and_another_login_is_refused() 
   let kept = json!({
     "fullName": "Person A",
     "jobTitle": "Field engineer",
+    "rank": "",
+    "duty": "",
     "landline": "office 12",
     "mobile": "mobile 34",
     "email": "engineer@example.com"
@@ -181,7 +185,7 @@ async fn an_administrator_keeps_anothers_profile_and_another_login_is_refused() 
   assert_eq!(status, StatusCode::OK);
   assert_eq!(
     held,
-    json!({ "fullName": "", "jobTitle": "", "landline": "", "mobile": "", "email": "" })
+    json!({ "fullName": "", "jobTitle": "", "rank": "", "duty": "", "landline": "", "mobile": "", "email": "" })
   );
 
   let (status, saved) =

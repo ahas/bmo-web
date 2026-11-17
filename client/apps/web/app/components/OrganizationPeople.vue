@@ -88,10 +88,19 @@
               <span :class="CELL_TEXT"><SearchText class="truncate text-sm text-toned" :text="row.original.company.name" :query="view.q" /></span>
             </template>
             <template #unit-cell="{ row }">
-              <span :class="CELL_TEXT"><SearchText class="truncate text-sm text-toned" :text="row.original.unit.name" :query="view.q" /></span>
+              <span :class="CELL_TEXT_LINE">
+                <SearchText class="truncate text-sm text-toned" :text="(row.original.post ?? row.original.unit).name" :query="view.q" />
+                <UBadge v-if="row.original.post" :label="$t('organization.label.post_mark')" color="neutral" variant="subtle" size="sm" class="shrink-0" data-roster-post />
+              </span>
+            </template>
+            <template #position-cell="{ row }">
+              <span :class="[CELL_TEXT, row.original.role ? 'text-toned' : 'text-muted']" class="truncate text-sm"><SearchText :text="row.original.role?.name ?? '—'" :query="view.q" /></span>
             </template>
             <template #role-cell="{ row }">
-              <span :class="CELL_TEXT" class="text-sm text-toned">{{ $t(ROSTER_ROLE_LABELS[rosterRoleOf(row.original)]) }}</span>
+              <span :class="CELL_TEXT_LINE" class="text-sm text-toned">
+                {{ $t(ROSTER_ROLE_LABELS[rosterRoleOf(row.original)]) }}
+                <UBadge v-if="row.original.acting" :label="$t('organization.label.acting_mark')" color="neutral" variant="subtle" size="sm" class="shrink-0" data-roster-acting />
+              </span>
             </template>
             <template #state-cell="{ row }">
               <span :class="CELL_TEXT_LINE">
@@ -153,9 +162,15 @@
                     </HintTip>
                   </span>
                   <span class="flex min-w-0 items-center gap-2 text-sm text-muted">
-                    <SearchText class="min-w-0 truncate" :text="one.unit.name" :query="view.q" />
+                    <SearchText class="min-w-0 truncate" :text="(one.post ?? one.unit).name" :query="view.q" />
+                    <UBadge v-if="one.post" :label="$t('organization.label.post_mark')" color="neutral" variant="subtle" size="sm" class="shrink-0" />
                     <span class="shrink-0">·</span>
                     <span class="shrink-0">{{ $t(ROSTER_ROLE_LABELS[rosterRoleOf(one)]) }}</span>
+                    <UBadge v-if="one.acting" :label="$t('organization.label.acting_mark')" color="neutral" variant="subtle" size="sm" class="shrink-0" />
+                    <template v-if="one.role">
+                      <span class="shrink-0">·</span>
+                      <SearchText class="min-w-0 truncate" :text="one.role.name" :query="view.q" />
+                    </template>
                   </span>
                   <span v-if="hiddenHit(one, false) !== null" class="truncate text-sm text-muted" data-roster-hidden-hit>
                     {{ hiddenHit(one, false)!.label }} · <SearchText :text="hiddenHit(one, false)!.snippet" :query="view.q" />
@@ -275,6 +290,7 @@ const columns = computed<SettingsColumn<RosterPerson>[]>(() => [
   { id: "login", header: t("account.label.user_id"), ceiling: 200 },
   { id: "company", header: t("invites.label.company"), ceiling: 200 },
   { id: "unit", header: t("invites.label.unit"), ceiling: 240 },
+  { id: "position", header: t("roster.label.position"), ceiling: 160 },
   { id: "role", header: t("organization.label.role") },
   { id: "state", header: t("roster.label.state") },
   { id: "machine", header: t("roster.label.machine"), ceiling: 200 },
@@ -295,9 +311,11 @@ function shownName(person: RosterPerson): string {
 // A search hit only in a field the row does not show: the table shows the name, the login, the company and the unit,
 // and a phone's row the name and the unit.
 function hiddenHit(person: RosterPerson, wide: boolean): { label: string; snippet: string } | null {
-  const shown = wide ? [person.name, person.login, person.company.name, person.unit.name] : [person.name, person.unit.name];
+  const unit = (person.post ?? person.unit).name;
+  const position = person.role?.name ?? "";
+  const shown = wide ? [person.name, person.login, person.company.name, unit, position] : [person.name, unit, position];
 
-  return rosterHiddenHit(person, view.value.q, shown, { jobTitle: t("account.label.job_title"), email: t("account.label.email") });
+  return rosterHiddenHit(person, view.value.q, shown, { jobTitle: t("account.label.job_title"), email: t("account.label.email"), rank: t("account.label.rank"), duty: t("account.label.duty") });
 }
 
 function faceOf(person: RosterPerson): ReturnType<typeof identityMark> {

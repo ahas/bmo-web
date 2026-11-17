@@ -7,7 +7,7 @@ use crate::support::{OWNER, ROOM, Scratch, SharedDatabase, console_hash, ready};
 use axum::Router;
 use axum::body::Body;
 use axum::http::{Method, Request, StatusCode, header};
-use bmo_web_client::UserProfile;
+use bmo_web_client::ProfileAsk;
 use bmo_web_server::data_move::{MoveAsk, run_move};
 use bmo_web_server::one;
 use bmo_web_server::routes::in_force;
@@ -60,12 +60,13 @@ async fn placed(scratch: &Scratch, login: &str, name: &str, unit: i32) -> i32 {
   set_profile(
     scratch.db(),
     user,
-    &UserProfile {
+    &ProfileAsk {
       full_name: name.into(),
       job_title: "Engineer".into(),
       landline: String::new(),
       mobile: String::new(),
       email: format!("{login}@example.com"),
+      ..ProfileAsk::default()
     },
   )
   .await

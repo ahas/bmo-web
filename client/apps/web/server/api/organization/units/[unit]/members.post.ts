@@ -6,8 +6,8 @@ import { wording } from "#shared/wording";
 
 import type { PersonMove, Unit } from "@web/server-client";
 
-// Several people moved into a unit in one act, each its head or a member, each named with the unit they stood in when
-// the move was shown (docs/web.md, 「Organisation settings」, the units tab).
+// Several people moved into a unit in one act, each its head or a member and with the role named, each named with the
+// unit they stood in when the move was shown (docs/web.md, 「Organisation settings」, the units tab).
 export default defineEventHandler(async (event): Promise<Unit> => {
   const signed = await requireAdministrator(event);
   const unit = unitNumber(getRouterParam(event, "unit"));
@@ -23,9 +23,11 @@ export default defineEventHandler(async (event): Promise<Unit> => {
 function peopleOf(asked: unknown): PersonMove[] {
   if (!Array.isArray(asked) || asked.length === 0) throw fail(400, wording("organization.error.bad_request"));
 
-  return asked.map((person: { user?: unknown; from?: unknown; head?: unknown } | null) => {
+  return asked.map((person: { user?: unknown; from?: unknown; head?: unknown; role?: unknown } | null) => {
     if (typeof person?.user !== "string" || typeof person.head !== "boolean") throw fail(400, wording("organization.error.bad_request"));
+    if (!(person.role === undefined || person.role === null || typeof person.role === "string")) throw fail(400, wording("organization.error.bad_request"));
 
-    return { user: person.user, from: unitNumber(person.from), head: person.head };
+    // A role left out keeps a person who stays as they are; null takes it away.
+    return { user: person.user, from: unitNumber(person.from), head: person.head, ...(person.role === undefined ? {} : { role: person.role }) };
   });
 }

@@ -33,6 +33,7 @@ import {
   type UnitRow,
   type UserUnit,
   type UserList,
+  type ProfileAsk as WireProfileAsk,
   type UserProfile as WireProfile,
   type WireError
 } from "@web/server-client";
@@ -41,7 +42,7 @@ import type { PersonView } from "#shared/people";
 import type { SecretFile, SecretKind } from "#shared/secret-kinds";
 import type { KeptSecret } from "#shared/types";
 import type { CompanyBmoView, OwnBmoParts, OwnBmoView, PermissionSetting, PermissionTree } from "#shared/bmo-profile";
-import type { RosterAsk, RosterDetail, RosterPage, RosterPerson, RosterUnit } from "#shared/roster";
+import type { HistoryView, PostView, RoleView, RosterAsk, RosterDetail, RosterPage, RosterPerson, RosterUnit } from "#shared/roster";
 
 /** The server's base address; `WEB_SERVER_ADDRESS` where none is given. */
 export interface ServiceOptions {
@@ -410,6 +411,9 @@ export async function rosterPerson(user: UserId | number, caller: ProfileCaller,
     mobile: person.mobile ?? undefined,
     path: person.path.map(unitOf),
     headOf: person.headOf.map(unitOf),
+    actingFor: person.actingFor.map((one) => ({ unit: unitOf(one.unit), until: one.until })),
+    posts: person.posts.map(postOf),
+    history: person.history.map(historyOf),
     left: person.left === undefined || person.left === null ? null : { at: person.left.at, byName: person.left.byName },
     machineStanding:
       person.machineStanding === undefined || person.machineStanding === null
@@ -430,13 +434,35 @@ function rosterPersonOf(person: WireRosterPerson): RosterPerson {
     company: unitOf(person.company),
     unit: unitOf(person.unit),
     head: person.head,
+    acting: person.acting ?? false,
     administrator: person.administrator,
     state: person.state,
     machine: person.machine ?? null,
     madeAt: person.madeAt,
     lastSignInAt: person.lastSignInAt ?? null,
     jobTitle: person.jobTitle,
+    rank: person.rank ?? "",
+    role: person.role ?? null,
+    duty: person.duty ?? "",
+    post: person.post === undefined || person.post === null ? null : unitOf(person.post),
     email: person.email ?? undefined
+  };
+}
+
+function postOf(post: Wire["Post"]): PostView {
+  return { unit: unitOf(post.unit), path: post.path.map(unitOf), role: post.role ?? null, head: post.head, since: post.since };
+}
+
+function historyOf(entry: Wire["HistoryEntry"]): HistoryView {
+  return {
+    at: entry.at,
+    byName: entry.byName ?? null,
+    change: entry.change,
+    unit: entry.unit === undefined || entry.unit === null ? null : unitOf(entry.unit),
+    from: entry.from === undefined || entry.from === null ? null : unitOf(entry.from),
+    before: entry.before ?? null,
+    after: entry.after ?? null,
+    until: entry.until ?? null
   };
 }
 
@@ -507,7 +533,7 @@ export async function profileOf(
 /** A user's person's name, job title and contact details written whole, answered as they now stand. */
 export async function setProfile(
   id: UserId | number,
-  profile: WireProfile,
+  profile: WireProfileAsk,
   caller: ProfileCaller,
   options: ServiceOptions = {}
 ): Promise<WireProfile> {
@@ -772,7 +798,7 @@ export async function makeUnit(name: string, parent: number | null, caller: Prof
 /** A unit renamed, or moved under another parent of its company. */
 export async function changeUnit(
   unit: number,
-  change: { name?: string; parent?: number },
+  change: { name?: string; parent?: number; kind?: string | null; shortName?: string | null; reportsTo?: number | null },
   caller: ProfileCaller,
   options: ServiceOptions = {}
 ): Promise<Unit> {
@@ -792,6 +818,69 @@ export async function setHead(unit: number, user: UserId, head: boolean, caller:
   const reply = await sent(options, head ? client.PUT("/units/{unit}/heads/{user}", { params }) : client.DELETE("/units/{unit}/heads/{user}", { params }));
 
   if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}
+
+/** One unit read whole: its heads and members, its kind, short name and the unit it reports to, the roles its
+ * people carry, the people holding a post in it and the appointment running (docs/boundary.md, 「Organisation units」). */
+export async function unitView(unit: number, options: ServiceOptions = {}): Promise<Unit> {
+  return answered(await sent(options, clientOf(options).GET("/units/{unit}", { params: { path: { unit } } })));
+}
+
+/** A person named to act for a unit's head until a moment still to come. */
+export async function appoint(unit: number, user: UserId, until: number, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  const reply = await sent(options, clientOf(options).PUT("/units/{unit}/acting", { params: { path: { unit }, header: { "Owner-Key": caller.key } }, body: { user, until } }));
+
+  answered(reply);
+}
+
+/** The appointment running on a unit ended. */
+export async function endAppointment(unit: number, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  const reply = await sent(options, clientOf(options).DELETE("/units/{unit}/acting", { params: { path: { unit }, header: { "Owner-Key": caller.key } } }));
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}
+
+/** A post given to a person in a unit, or changed: its role by key, none for no role, and the unit's head or not. */
+export async function givePost(unit: number, user: UserId, ask: { role: string | null; head: boolean }, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  const body = ask.role === null ? { head: ask.head } : { role: ask.role, head: ask.head };
+  const reply = await sent(options, clientOf(options).PUT("/units/{unit}/posts/{user}", { params: { path: { unit, user }, header: { "Owner-Key": caller.key } }, body }));
+
+  answered(reply);
+}
+
+/** A person's post in a unit taken away, with the head grant it carried. */
+export async function takePost(unit: number, user: UserId, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  const reply = await sent(options, clientOf(options).DELETE("/units/{unit}/posts/{user}", { params: { path: { unit, user }, header: { "Owner-Key": caller.key } } }));
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}
+
+/** A company's roles, lowest first (docs/accounts.md, 「Roles and unit kinds」). */
+export async function companyRoles(company: number, caller: ProfileCaller, options: ServiceOptions = {}): Promise<RoleView[]> {
+  const reply = await sent(options, clientOf(options).GET("/companies/{company}/roles", { params: { path: { company }, header: { "Owner-Key": caller.key } } }));
+
+  return answered(reply).roles;
+}
+
+/** A company's roles written whole, lowest first, answered as they now stand. */
+export async function setCompanyRoles(company: number, roles: Wire["CatalogueEntry"][], caller: ProfileCaller, options: ServiceOptions = {}): Promise<RoleView[]> {
+  const reply = await sent(options, clientOf(options).PUT("/companies/{company}/roles", { params: { path: { company }, header: { "Owner-Key": caller.key } }, body: { roles } }));
+
+  return answered(reply).roles;
+}
+
+/** A company's unit kinds, in its order. */
+export async function unitKinds(company: number, caller: ProfileCaller, options: ServiceOptions = {}): Promise<Wire["CatalogueEntry"][]> {
+  const reply = await sent(options, clientOf(options).GET("/companies/{company}/unit-kinds", { params: { path: { company }, header: { "Owner-Key": caller.key } } }));
+
+  return answered(reply).kinds;
+}
+
+/** A company's unit kinds written whole, answered as they now stand. */
+export async function setUnitKinds(company: number, kinds: Wire["CatalogueEntry"][], caller: ProfileCaller, options: ServiceOptions = {}): Promise<Wire["CatalogueEntry"][]> {
+  const reply = await sent(options, clientOf(options).PUT("/companies/{company}/unit-kinds", { params: { path: { company }, header: { "Owner-Key": caller.key } }, body: { kinds } }));
+
+  return answered(reply).kinds;
 }
 
 /** A room's callers, and whether the login may change them, asked as the login `key` acts for. */

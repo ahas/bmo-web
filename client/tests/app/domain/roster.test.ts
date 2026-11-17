@@ -25,7 +25,7 @@ import type { RosterDetail, RosterPerson } from "../../../apps/web/shared/roster
 // the four filters and the person open; the list asks the roster a page at a time for what the address shows; each
 // person's management menu offers only what the routes behind it let the reader do.
 
-const NOTHING: RosterView = { q: "", company: null, unit: null, role: null, state: null };
+const NOTHING: RosterView = { q: "", company: null, unit: null, kind: null, role: null, state: null };
 
 const PERSON: RosterPerson = {
   user: "7",
@@ -34,17 +34,22 @@ const PERSON: RosterPerson = {
   company: { id: 1, name: "company-a" },
   unit: { id: 2, name: "team-a" },
   head: false,
+  acting: false,
   administrator: false,
   state: "active",
   machine: null,
   madeAt: 1_700_000_000_000,
   lastSignInAt: null,
-  jobTitle: "planner"
+  jobTitle: "planner",
+  rank: "",
+  role: null,
+  duty: "",
+  post: null
 };
 
 describe("the people tab's address", () => {
-  test("reads the words and the four filters, and none for a key that does not read as its kind", () => {
-    expect(rosterViewOf({ q: " team ", company: "1", unit: "2", role: "head", state: "left" })).toEqual({ q: "team", company: 1, unit: 2, role: "head", state: "left" });
+  test("reads the words and the five filters, and none for a key that does not read as its kind", () => {
+    expect(rosterViewOf({ q: " team ", company: "1", unit: "2", kind: "site", role: "head", state: "left" })).toEqual({ q: "team", company: 1, unit: 2, kind: "site", role: "head", state: "left" });
     expect(rosterViewOf({ company: "one", unit: "0", role: "owner", state: ["pending"] })).toEqual({ ...NOTHING, state: "pending" });
   });
 
@@ -61,7 +66,16 @@ describe("the people tab's address", () => {
 
 describe("a page of the roster", () => {
   test("asks for every filter set, fifty a page, after the place the page before ended", () => {
-    expect(rosterAsk({ q: "a", company: 1, unit: 2, role: "member", state: "active" }, "cursor-1")).toEqual({ q: "a", company: 1, unit: 2, role: "member", state: "active", after: "cursor-1", limit: ROSTER_PAGE });
+    expect(rosterAsk({ q: "a", company: 1, unit: 2, kind: "site", role: "member", state: "active" }, "cursor-1")).toEqual({
+      q: "a",
+      company: 1,
+      unit: 2,
+      kind: "site",
+      role: "member",
+      state: "active",
+      after: "cursor-1",
+      limit: ROSTER_PAGE
+    });
     expect(rosterAsk(NOTHING)).toEqual({ limit: 50 });
   });
 });
@@ -69,11 +83,11 @@ describe("a page of the roster", () => {
 describe("the filters", () => {
   test("count those set, the words aside", () => {
     expect(rosterFiltersSet({ ...NOTHING, q: "a" })).toBe(0);
-    expect(rosterFiltersSet({ q: "", company: 1, unit: 2, role: "head", state: null })).toBe(3);
+    expect(rosterFiltersSet({ q: "", company: 1, unit: 2, kind: "site", role: "head", state: null })).toBe(4);
   });
 
-  test("let the unit chosen go with the company it stood under", () => {
-    expect(withRosterFilter({ ...NOTHING, company: 1, unit: 2 }, "company", 3)).toEqual({ ...NOTHING, company: 3 });
+  test("let the unit and the kind chosen go with the company they stood under", () => {
+    expect(withRosterFilter({ ...NOTHING, company: 1, unit: 2, kind: "site" }, "company", 3)).toEqual({ ...NOTHING, company: 3 });
     expect(withRosterFilter({ ...NOTHING, company: 1, unit: 2 }, "role", "head")).toEqual({ ...NOTHING, company: 1, unit: 2, role: "head" });
   });
 
@@ -89,13 +103,13 @@ describe("the filters", () => {
 
 describe("a person's management menu", () => {
   test("offers the administrator every act, and none that marks himself left", () => {
-    expect(rosterActs({ administrator: true, user: "1" }, PERSON)).toEqual(["move", "machine", "profile", "sections", "bmo", "leave"]);
+    expect(rosterActs({ administrator: true, user: "1" }, PERSON)).toEqual(["move", "post", "machine", "profile", "sections", "bmo", "leave"]);
     expect(rosterActs({ administrator: true, user: "7" }, PERSON)).not.toContain("leave");
   });
 
-  test("offers a company head the BMO permission, and their own profile", () => {
-    expect(rosterActs({ administrator: false, user: "9" }, PERSON)).toEqual(["bmo"]);
-    expect(rosterActs({ administrator: false, user: "7" }, PERSON)).toEqual(["profile", "bmo"]);
+  test("offers a company head a post, the BMO permission, and their own profile", () => {
+    expect(rosterActs({ administrator: false, user: "9" }, PERSON)).toEqual(["post", "bmo"]);
+    expect(rosterActs({ administrator: false, user: "7" }, PERSON)).toEqual(["post", "profile", "bmo"]);
   });
 
   test("keeps a person who left only their profile", () => {
@@ -107,7 +121,7 @@ describe("a person's management menu", () => {
 describe("a person read again after an act", () => {
   test("stands as they now are in their row, the rest left as they were", () => {
     const other = { ...PERSON, user: "8", name: "Member B" };
-    const detail: RosterDetail = { ...PERSON, state: "left", jobTitle: "", path: [], headOf: [], left: { at: 1, byName: "Admin" }, machineStanding: null };
+    const detail: RosterDetail = { ...PERSON, state: "left", jobTitle: "", path: [], headOf: [], actingFor: [], posts: [], history: [], left: { at: 1, byName: "Admin" }, machineStanding: null };
     const rows = withRosterRow([PERSON, other], detail);
 
     expect(rows.map((row) => row.state)).toEqual(["left", "active"]);

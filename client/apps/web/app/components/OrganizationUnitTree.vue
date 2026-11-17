@@ -18,6 +18,7 @@
     <!-- A unit's name marks its row for people carried over the tree, and stands lit while they would land there. -->
     <template #item-label="{ item }">
       <span :data-unit-drop="item.id" class="rounded-sm" :class="props.dropping === item.id ? 'bg-primary/15 ring-1 ring-primary' : ''">{{ item.label }}</span>
+      <UBadge v-if="item.kind" :label="item.kind" color="neutral" variant="subtle" size="sm" class="ms-1.5" data-unit-tree-kind />
     </template>
     <!-- The chevron's own box overhangs the row's line rather than making a branch's row taller than a leaf's. -->
     <template #item-trailing="{ item, expanded: open, handleToggle }">
@@ -46,26 +47,30 @@ import { isCompany, unitBranches } from "~/domain/organization";
 import type { TreeItem } from "@nuxt/ui";
 import type { UnitBranch, UnitPlace } from "~/domain/organization";
 
+// A unit as the tree draws it: where it stands, and the kind it carries in its company's words, shown after its name.
+type TreeUnit = UnitPlace & { kind?: { name: string } | null };
+
 interface Props {
-  units: readonly UnitPlace[];
+  units: readonly TreeUnit[];
   chosen: number | null;
   // The unit people carried from the unit chosen would be moved into, lit while they stand over it.
   dropping?: number | null;
 }
 
-type UnitItem = TreeItem & { id: number; label: string; children?: UnitItem[] };
+type UnitItem = TreeItem & { id: number; label: string; kind?: string; children?: UnitItem[] };
 
 const props = withDefaults(defineProps<Props>(), { dropping: null });
 const emit = defineEmits<{ choose: [unit: number] }>();
 // The keys of the branches standing open, kept by the screen.
 const expanded = defineModel<string[]>("expanded", { required: true });
 
-function itemOf(branch: UnitBranch<UnitPlace>): UnitItem {
+function itemOf(branch: UnitBranch<TreeUnit>): UnitItem {
   const { unit, children } = branch;
 
   return {
     id: unit.id,
     label: unit.name,
+    kind: unit.kind?.name,
     icon: isCompany(unit) ? "i-material-symbols-domain" : "i-material-symbols-groups-outline",
     children: children.length === 0 ? undefined : children.map(itemOf)
   };

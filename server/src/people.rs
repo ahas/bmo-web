@@ -10,7 +10,9 @@ use axum::Router;
 use axum::extract::{Path, Query, State};
 use axum::http::HeaderMap;
 use axum::routing::get;
-use bmo_web_client::{Member, Members, OWNER_KEY, People as WirePeople, Person};
+use bmo_web_client::{
+  Member, Members, OWNER_KEY, People as WirePeople, Person, PersonDetail, PersonPost, RoleRef,
+};
 use sea_orm::{ConnectionTrait, QueryResult};
 use serde::Deserialize;
 use sumida::api::authz::Authz;
@@ -55,6 +57,9 @@ const COLUMNS: &str = r#"
   COALESCE(NULLIF(u."full_name", ''), u."username") AS "name",
   o."name" AS "organization",
   COALESCE(p."job_title", '') AS "job_title",
+  COALESCE(p."rank", '') AS "rank",
+  COALESCE(p."duty", '') AS "duty",
+  r."key" AS "role_key", r."name" AS "role_name", r."place" AS "role_place",
   COALESCE(p."landline", '') AS "landline",
   COALESCE(p."mobile", '') AS "mobile",
   COALESCE(NULLIF(p."email", ''), NULLIF(u."email", ''), '') AS "email"
@@ -64,6 +69,8 @@ const FROM: &str = r#"
   FROM "users" u
   JOIN "organizations" o ON o."id" = u."organization_id"
   LEFT JOIN "user_profiles" p ON p."user_id" = u."id"
+  LEFT JOIN "user_roles" ur ON ur."user_id" = u."id"
+  LEFT JOIN "company_roles" r ON r."id" = ur."role_id"
 "#;
 
 /// The order the directory answers people in: by name, then by user id.
@@ -94,16 +101,35 @@ async fn caller<C: ConnectionTrait>(db: &C, headers: &HeaderMap) -> Result<Calle
   })
 }
 
+/// The role a row's person carries in their home unit, where they carry one.
+pub fn role_of(row: &QueryResult) -> Result<Option<RoleRef>, Refusal> {
+  match row.try_get::<Option<String>>("", "role_key")? {
+    Some(key) => Ok(Some(RoleRef {
+      key,
+      name: row.try_get("", "role_name")?,
+      place: row.try_get("", "role_place")?,
+    })),
+    None => Ok(None),
+  }
+}
+
 /// One row as the reader may see it: the contact details only for the administrator and the person themselves.
 fn person_of(row: &QueryResult, reader: &Caller) -> Result<Person, Refusal> {
   let user: i32 = row.try_get("", "id")?;
   let contact = reader.administrator || user == reader.user;
 
+  let rank: String = row.try_get("", "rank")?;
+  let role = role_of(row)?;
+  let kept: String = row.try_get("", "job_title")?;
+
   Ok(Person {
     user: crate::ids::shown(user),
     name: row.try_get("", "name")?,
     organization: row.try_get("", "organization")?,
-    job_title: row.try_get("", "job_title")?,
+    job_title: crate::lang::job_titles::shown(&rank, role.as_ref().map(|role| role.name.as_str()), &kept),
+    rank,
+    role,
+    duty: row.try_get("", "duty")?,
     landline: contact.then(|| row.try_get::<String>("", "landline")).transpose()?,
     mobile: contact.then(|| row.try_get::<String>("", "mobile")).transpose()?,
     email: contact.then(|| row.try_get::<String>("", "email")).transpose()?,
@@ -147,6 +173,9 @@ async fn search<C: ConnectionTrait>(
          OR strpos(lower(COALESCE(u."full_name", '')), lower($2)) > 0
          OR strpos(lower(o."name"), lower($2)) > 0
          OR strpos(lower(COALESCE(p."job_title", '')), lower($2)) > 0
+         OR strpos(lower(COALESCE(p."rank", '')), lower($2)) > 0
+         OR strpos(lower(COALESCE(p."duty", '')), lower($2)) > 0
+         OR strpos(lower(COALESCE(r."name", '')), lower($2)) > 0
          {contact}
        )
        {ORDER}
@@ -185,15 +214,25 @@ async fn members<C: ConnectionTrait>(db: &C, reader: &Caller) -> Result<Vec<Memb
     .collect()
 }
 
-/// One person the reader reaches, or nothing found where the user does not stand or stands beyond the reader's
-/// reach.
-async fn of<C: ConnectionTrait>(db: &C, reader: &Caller, user: i32) -> Result<Person, Refusal> {
+/// One person the reader reaches with their posts, or nothing found where the user does not stand or stands
+/// beyond the reader's reach.
+async fn of<C: ConnectionTrait>(db: &C, reader: &Caller, user: i32) -> Result<PersonDetail, Refusal> {
   let sql = format!(r#"SELECT {COLUMNS} {FROM} WHERE {reach} AND u."id" = $2"#, reach = reader.reach());
   let row = one(db, &sql, vec![reader.company.into(), user.into()])
     .await?
     .ok_or_else(|| Refusal::absent(format!("no person {user} stands in the reader's directory")))?;
 
-  person_of(&row, reader)
+  Ok(PersonDetail {
+    person: person_of(&row, reader)?,
+    posts: crate::posts::posts_of(db, user)
+      .await?
+      .into_iter()
+      .map(|post| PersonPost {
+        unit: post.unit,
+        role: post.role,
+      })
+      .collect(),
+  })
 }
 
 /// `GET /users/search`: the people the words find.
@@ -222,7 +261,7 @@ async fn person_route(
   State(service): State<Service>,
   Path(user): Path<String>,
   headers: HeaderMap,
-) -> Answer<Person> {
+) -> Answer<PersonDetail> {
   let reader = caller(&service.db, &headers).await?;
   let user = user_in(&user)?;
 

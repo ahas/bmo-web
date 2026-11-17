@@ -255,7 +255,7 @@ impl AccountClient {
   pub async fn set_profile(
     &self,
     user: &str,
-    profile: &UserProfile,
+    profile: &ProfileAsk,
     key: &str,
     role: &str,
   ) -> Answer<UserProfile> {

@@ -10,14 +10,15 @@ use axum::extract::{Path, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::routing::{get, post};
 use bmo_web_client::{
-  AcceptAsk, Accepted, Installs, Invite, InviteAsk, InviteUnit, InviteUnits, InviteView, Invites,
-  OWNER_KEY, OWNER_ROLE, Proof, UnitRef, UserNode,
+  AcceptAsk, Accepted, HistoryChange, Installs, Invite, InviteAsk, InviteUnit, InviteUnits, InviteView,
+  Invites, OWNER_KEY, OWNER_ROLE, Proof, UnitRef, UserNode,
 };
 use rand::RngCore;
 use sea_orm::{ConnectionTrait, TransactionTrait};
 use sumida::api::authz::Authz;
 use sumida::api::authz::write::{SubjectKey, TupleWrite};
 
+use crate::history::{Change, record};
 use crate::ids::shown;
 use crate::nodes::{Nodes, agent_of};
 use crate::routes::{Answer, Body, user_in};
@@ -223,6 +224,10 @@ pub async fn accept<C: ConnectionTrait + TransactionTrait>(
   crate::users::set_full_name(&txn, user, full_name.unwrap_or(&invite.full_name)).await?;
   crate::sections::seed_defaults(&txn, user, GRANTER).await?;
 
+  let maker = Some(invite.made_by).filter(|maker| *maker > 0);
+
+  record(&txn, maker, Change::new(user, HistoryChange::Placed).unit(invite.unit)).await?;
+
   if invite.head {
     Authz::write_unchecked(
       TupleWrite::new(UNIT, &invite.unit.to_string(), "manager", SubjectKey::user(user)),
@@ -230,6 +235,7 @@ pub async fn accept<C: ConnectionTrait + TransactionTrait>(
       &txn,
     )
     .await?;
+    record(&txn, maker, Change::new(user, HistoryChange::HeadGranted).unit(invite.unit)).await?;
   }
 
   let agent = agent_of(user);

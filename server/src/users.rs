@@ -1,7 +1,7 @@
 //! Users as the service meets them: a chat identity linked to its user, the subjects a check is made for,
 //! and the users the model makes for a person who has none (docs/accounts.md).
 
-use bmo_web_client::UserProfile;
+use bmo_web_client::{ProfileAsk, UserProfile};
 use rand::Rng;
 use rand::distr::Alphanumeric;
 use sea_orm::{ConnectionTrait, TransactionTrait};
@@ -460,7 +460,7 @@ pub async fn profile_of<C: ConnectionTrait>(db: &C, user: i32) -> Result<UserPro
 
   let held = one(
     db,
-    r#"SELECT "job_title", "landline", "mobile", "email" FROM "user_profiles" WHERE "user_id" = $1"#,
+    r#"SELECT "job_title", "rank", "duty", "landline", "mobile", "email" FROM "user_profiles" WHERE "user_id" = $1"#,
     vec![user.into()],
   )
   .await?;
@@ -475,18 +475,21 @@ pub async fn profile_of<C: ConnectionTrait>(db: &C, user: i32) -> Result<UserPro
   Ok(UserProfile {
     full_name,
     job_title: row.try_get("", "job_title")?,
+    rank: row.try_get("", "rank")?,
+    duty: row.try_get("", "duty")?,
     landline: row.try_get("", "landline")?,
     mobile: row.try_get("", "mobile")?,
     email: row.try_get("", "email")?,
   })
 }
 
-/// A user's profile written whole, an empty field clearing it: the person's name onto sumida's own full name,
-/// the rest into the service's table. The user must stand, so a profile is never kept for nobody.
+/// A user's profile written, an empty field clearing it: the person's name onto sumida's own full name, the rest
+/// into the service's table, the rank and the duty only where the ask names them. The user must stand, so a
+/// profile is never kept for nobody.
 pub async fn set_profile<C: ConnectionTrait>(
   db: &C,
   user: i32,
-  profile: &UserProfile,
+  profile: &ProfileAsk,
 ) -> Result<(), Refusal> {
   let stands = one(db, r#"SELECT 1 AS "one" FROM "users" WHERE "id" = $1"#, vec![user.into()])
     .await?
@@ -500,10 +503,12 @@ pub async fn set_profile<C: ConnectionTrait>(
 
   run(
     db,
-    r#"INSERT INTO "user_profiles" ("user_id", "job_title", "landline", "mobile", "email", "updated_at")
-       VALUES ($1, $2, $3, $4, $5, $6)
+    r#"INSERT INTO "user_profiles"
+         ("user_id", "job_title", "landline", "mobile", "email", "updated_at", "rank", "duty")
+       VALUES ($1, $2, $3, $4, $5, $6, COALESCE($7, ''), COALESCE($8, ''))
        ON CONFLICT ("user_id") DO UPDATE SET
-         "job_title" = $2, "landline" = $3, "mobile" = $4, "email" = $5, "updated_at" = $6"#,
+         "job_title" = $2, "landline" = $3, "mobile" = $4, "email" = $5, "updated_at" = $6,
+         "rank" = COALESCE($7, "user_profiles"."rank"), "duty" = COALESCE($8, "user_profiles"."duty")"#,
     vec![
       user.into(),
       profile.job_title.clone().into(),
@@ -511,6 +516,8 @@ pub async fn set_profile<C: ConnectionTrait>(
       profile.mobile.clone().into(),
       profile.email.clone().into(),
       now_ms().into(),
+      profile.rank.as_deref().map(|rank| rank.trim().to_owned()).into(),
+      profile.duty.as_deref().map(|duty| duty.trim().to_owned()).into(),
     ],
   )
   .await?;

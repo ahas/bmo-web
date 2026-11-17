@@ -3,6 +3,8 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+use crate::organisation::{ActingFor, HistoryEntry, KindRef, Post, RoleRef, absent_or_null};
+
 /// Whether the service is up, its version, and whether the account model is in force.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -122,13 +124,40 @@ pub struct Person {
   pub user: String,
   pub name: String,
   pub organization: String,
+  /// The title as one line: composed from the rank and the role where either is set, the job title kept
+  /// otherwise.
   pub job_title: String,
+  /// The rank kept, empty where none is.
+  #[serde(default)]
+  pub rank: String,
+  /// The role carried in the home unit.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub role: Option<RoleRef>,
+  /// The duty kept, empty where none is.
+  #[serde(default)]
+  pub duty: String,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub landline: Option<String>,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub mobile: Option<String>,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub email: Option<String>,
+}
+
+/// One post of a person as the directory answers it: the unit by its reference and the post's role.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct PersonPost {
+  pub unit: UnitRef,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub role: Option<RoleRef>,
+}
+
+/// One person of the directory looked up: what a search row answers, and their posts.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct PersonDetail {
+  #[serde(flatten)]
+  pub person: Person,
+  pub posts: Vec<PersonPost>,
 }
 
 /// The people a search found, in the organisation's own order.
@@ -180,6 +209,9 @@ pub struct RosterPerson {
   pub unit: UnitRef,
   /// Whether they are granted head of the unit they stand in.
   pub head: bool,
+  /// Whether that grant is an acting appointment's.
+  #[serde(default)]
+  pub acting: bool,
   /// Whether they are the platform administrator.
   pub administrator: bool,
   pub state: RosterState,
@@ -189,8 +221,19 @@ pub struct RosterPerson {
   pub made_at: i64,
   /// When the user last signed in; none where they never have since the service kept it.
   pub last_sign_in_at: Option<i64>,
-  /// The job title, empty where none is kept.
+  /// The title as one line, empty where nothing is kept.
   pub job_title: String,
+  #[serde(default)]
+  pub rank: String,
+  /// The role carried in the home unit.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub role: Option<RoleRef>,
+  #[serde(default)]
+  pub duty: String,
+  /// The unit of the post through which they count in a page narrowed by unit or kind, where their home unit
+  /// does not match it.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub post: Option<UnitRef>,
   /// The email, for the administrator alone.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub email: Option<String>,
@@ -239,6 +282,11 @@ pub struct RosterDetail {
   pub mobile: Option<String>,
   pub path: Vec<UnitRef>,
   pub head_of: Vec<UnitRef>,
+  /// The appointments of theirs running.
+  pub acting_for: Vec<ActingFor>,
+  pub posts: Vec<Post>,
+  /// Every change of their place kept, the newest first.
+  pub history: Vec<HistoryEntry>,
   pub left: Option<RosterLeft>,
   pub machine_standing: Option<RosterMachine>,
 }
@@ -253,6 +301,9 @@ pub struct RosterAsk {
   pub company: Option<i64>,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub unit: Option<i64>,
+  /// A kind's key.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub kind: Option<String>,
   /// `head` or `member`.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub role: Option<String>,
@@ -271,16 +322,38 @@ pub struct Sections {
   pub sections: Vec<SectionRow>,
 }
 
-/// A user's person's name, job title and contact details, which the account's holder or an administrator keeps
-/// (docs/accounts.md, 「Users and senders」). Every field is a string, empty where the account keeps none.
+/// A user's person's name, job title, rank, duty and contact details, which the account's holder or an
+/// administrator keeps (docs/accounts.md, 「Users and senders」). Every field is a string, empty where the account
+/// keeps none.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct UserProfile {
+  pub full_name: String,
+  /// The job title kept, as free text.
+  pub job_title: String,
+  #[serde(default)]
+  pub rank: String,
+  #[serde(default)]
+  pub duty: String,
+  pub landline: String,
+  pub mobile: String,
+  pub email: String,
+}
+
+/// A user's profile written: the name, the job title and the contact details whole, and the rank and the duty
+/// where named, each left as it stands where absent.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct ProfileAsk {
   pub full_name: String,
   pub job_title: String,
   pub landline: String,
   pub mobile: String,
   pub email: String,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub rank: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub duty: Option<String>,
 }
 
 /// A company's default for its people's BMOs (docs/accounts.md, 「A person's BMO profile」): its name, the names
@@ -652,6 +725,19 @@ pub struct UnitRow {
   /// The members whose accounts have left.
   #[serde(default)]
   pub left: Vec<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub kind: Option<KindRef>,
+  #[serde(rename = "shortName", default, skip_serializing_if = "Option::is_none")]
+  pub short_name: Option<String>,
+  /// The unit it reports to, by its number.
+  #[serde(rename = "reportsTo", default, skip_serializing_if = "Option::is_none")]
+  pub reports_to: Option<i64>,
+  /// The users holding a post in it.
+  #[serde(default)]
+  pub concurrent: Vec<String>,
+  /// The users among `heads` whose grant is an acting appointment's.
+  #[serde(default)]
+  pub acting: Vec<String>,
 }
 
 /// Every unit, companies first and each unit after its parent.
@@ -660,21 +746,45 @@ pub struct Units {
   pub units: Vec<UnitRow>,
 }
 
-/// A unit to make: a company where it names no parent.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+/// A unit to make: a company where it names no parent; its kind by key, its short name and the unit it reports
+/// to where named.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct NewUnit {
   pub name: String,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub parent: Option<i64>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub kind: Option<String>,
+  #[serde(rename = "shortName", default, skip_serializing_if = "Option::is_none")]
+  pub short_name: Option<String>,
+  #[serde(rename = "reportsTo", default, skip_serializing_if = "Option::is_none")]
+  pub reports_to: Option<i64>,
 }
 
-/// A unit renamed or moved under another parent of its company.
+/// A unit renamed or moved under another parent of its company, its kind, short name and the unit it reports to
+/// set: each of the last three left as it stands where absent and taken away where null.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct UnitChange {
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub name: Option<String>,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub parent: Option<i64>,
+  #[serde(default, deserialize_with = "absent_or_null", skip_serializing_if = "Option::is_none")]
+  pub kind: Option<Option<String>>,
+  #[serde(
+    rename = "shortName",
+    default,
+    deserialize_with = "absent_or_null",
+    skip_serializing_if = "Option::is_none"
+  )]
+  pub short_name: Option<Option<String>>,
+  #[serde(
+    rename = "reportsTo",
+    default,
+    deserialize_with = "absent_or_null",
+    skip_serializing_if = "Option::is_none"
+  )]
+  pub reports_to: Option<Option<i64>>,
 }
 
 /// The unit a user is placed in.
@@ -690,6 +800,10 @@ pub struct PersonMove {
   pub user: String,
   pub from: i64,
   pub head: bool,
+  /// The role carried in the unit, by key: null for none, and where absent kept by a person who stays and none
+  /// for one who comes.
+  #[serde(default, deserialize_with = "absent_or_null", skip_serializing_if = "Option::is_none")]
+  pub role: Option<Option<String>>,
 }
 
 /// Several people moved into one unit in one act.

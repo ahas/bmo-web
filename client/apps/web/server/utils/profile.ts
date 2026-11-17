@@ -2,7 +2,7 @@ import { ownerKeyOf, ownerRoleOf } from "./owner-key";
 
 import type { SignedIn } from "./accounts";
 import type { ProfileCaller } from "./account-service";
-import type { UserProfile } from "#shared/types";
+import type { ProfileAsk } from "#shared/types";
 
 /** The user a profile route names, or null where its path is no user's id. */
 export function profileUser(param: string | undefined): number | null {
@@ -25,8 +25,11 @@ export function profileCaller(signed: SignedIn): ProfileCaller {
   return { key: ownerKeyOf(signed) ?? "", role: ownerRoleOf(signed) };
 }
 
-/** A profile as a request sent it, each field a string that may be empty; null where one does not read as one. */
-export function profileAsked(body: unknown): UserProfile | null {
+/**
+ * A profile as a request sent it, each field a string that may be empty, the rank and the duty only where sent;
+ * null where one does not read as one.
+ */
+export function profileAsked(body: unknown): ProfileAsk | null {
   if (typeof body !== "object" || body === null) return null;
 
   const held = body as Record<string, unknown>;
@@ -39,5 +42,16 @@ export function profileAsked(body: unknown): UserProfile | null {
 
   if (fullName === null || jobTitle === null || landline === null || mobile === null || email === null) return null;
 
-  return { fullName, jobTitle, landline, mobile, email };
+  const asked: ProfileAsk = { fullName, jobTitle, landline, mobile, email };
+
+  for (const name of ["rank", "duty"] as const) {
+    if (held[name] === undefined) continue;
+
+    const value = text(name);
+
+    if (value === null) return null;
+    asked[name] = value;
+  }
+
+  return asked;
 }

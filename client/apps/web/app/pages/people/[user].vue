@@ -28,6 +28,18 @@
           <SettingsRow :label="$t('people.label.job_title')">
             <span class="text-sm text-highlighted">{{ person.jobTitle === "" ? "—" : person.jobTitle }}</span>
           </SettingsRow>
+          <SettingsRow v-if="person.rank" :label="$t('people.label.rank')">
+            <span class="text-sm text-highlighted" data-person-rank>{{ person.rank }}</span>
+          </SettingsRow>
+          <SettingsRow v-if="person.role" :label="$t('people.label.position')">
+            <span class="text-sm text-highlighted" data-person-position>{{ person.role.name }}</span>
+          </SettingsRow>
+          <SettingsRow v-if="person.duty" :label="$t('people.label.duty')">
+            <span class="text-sm break-words whitespace-pre-line text-highlighted" data-person-duty>{{ person.duty }}</span>
+          </SettingsRow>
+          <SettingsRow v-if="(person.posts ?? []).length > 0" :label="$t('people.label.posts')">
+            <span class="text-sm text-highlighted" data-person-posts>{{ postsText }}</span>
+          </SettingsRow>
           <SettingsRow v-if="presenceLine !== null" :label="$t('people.label.presence')">
             <UBadge :label="presenceLine" :color="presenceColor" variant="subtle" size="sm" data-person-presence />
           </SettingsRow>
@@ -62,6 +74,10 @@ const { t } = useI18n();
 const route = useRoute();
 
 const person = ref<PersonView | null>(null);
+// The units the person holds a post in, each with the post's role where it carries one.
+const postsText = computed(() =>
+  (person.value?.posts ?? []).map((post) => (post.role ? `${post.unit.name} · ${post.role.name}` : post.unit.name)).join(", ")
+);
 const failure = ref("");
 const reading = ref(false);
 

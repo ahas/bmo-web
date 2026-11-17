@@ -50,8 +50,9 @@ function rosterReaderOpens(reader: OrganizationReader): boolean {
 }
 
 export const ORGANIZATION_TABS: readonly OrganizationTab[] = [
-  { value: "organization", label: "organization.label.chart", icon: "i-material-symbols-account-tree-outline", opens: administratorOpens, keys: ["unit"], wide: true, load: () => import("~/components/OrganizationUnits.vue") },
-  { value: "people", label: "roster.label.tab", icon: "i-material-symbols-group-outline", opens: rosterReaderOpens, keys: ["q", "company", "unit", "role", "state", "user"], wide: true, load: () => import("~/components/OrganizationPeople.vue") },
+  { value: "organization", label: "organization.label.chart", icon: "i-material-symbols-account-tree-outline", opens: administratorOpens, keys: ["unit", "kind"], wide: true, load: () => import("~/components/OrganizationUnits.vue") },
+  { value: "people", label: "roster.label.tab", icon: "i-material-symbols-group-outline", opens: rosterReaderOpens, keys: ["q", "company", "unit", "kind", "role", "state", "user"], wide: true, load: () => import("~/components/OrganizationPeople.vue") },
+  { value: "catalogue", label: "catalogue.label.tab", icon: "i-material-symbols-category-outline", opens: rosterReaderOpens, keys: ["company"], wide: false, load: () => import("~/components/OrganizationCatalogue.vue") },
   { value: "invites", label: "settings.label.invites", icon: "i-material-symbols-person-add-outline", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationInvites.vue") },
   { value: "permissions", label: "settings.label.permissions", icon: "i-material-symbols-admin-panel-settings-outline", opens: administratorOpens, keys: ["user"], wide: false, load: () => import("~/components/OrganizationPermissions.vue") },
   { value: "agent", label: "settings.label.bmo", icon: "i-material-symbols-face-outline", opens: everyReaderOpens, keys: ["company", "unit"], wide: false, load: () => import("~/components/OrganizationBmo.vue") }
@@ -204,6 +205,8 @@ export function branchesOpenAtFirst(units: readonly UnitPlace[], chosen: number 
 export interface UnitStanding extends UnitPlace {
   heads: string[];
   members: string[];
+  // The people holding a post in it.
+  concurrent?: string[];
 }
 
 /** One person of a move: where they stand now and go, and whether they head the one and will head the other. */
@@ -216,6 +219,8 @@ export interface MoveRow {
   head: boolean;
   // Whether the act takes away their head grant on the unit they leave.
   headDropped: boolean;
+  // Whether the act ends the post they hold in the unit they go to, which becomes their home.
+  postDropped: boolean;
   // Whether the act leaves them as they stand.
   unchanged: boolean;
 }
@@ -230,6 +235,8 @@ export function movePlan(units: readonly UnitStanding[], people: readonly { user
     const wasHead = from.heads.includes(user);
     const moving = from.id !== to;
 
-    return [{ user, from: from.id, to, wasHead, head, headDropped: moving && wasHead, unchanged: !moving && wasHead === head }];
+    const postDropped = moving && (units.find((unit) => unit.id === to)?.concurrent ?? []).includes(user);
+
+    return [{ user, from: from.id, to, wasHead, head, headDropped: moving && wasHead, postDropped, unchanged: !moving && wasHead === head }];
   });
 }

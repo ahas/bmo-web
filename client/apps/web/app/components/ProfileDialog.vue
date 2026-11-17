@@ -1,6 +1,6 @@
 <template>
-  <!-- An account's profile (docs/accounts.md, 「Users and senders」): the person's name, job title and contact details,
-       held until its one save writes them whole. Settings' account section opens it for the reader's own account, and
+  <!-- An account's profile (docs/accounts.md, 「Users and senders」): the person's name, job title, rank, duty and
+       contact details, held until its one save writes them whole. The role is set on the chart, never here. Settings' account section opens it for the reader's own account, and
        the people tab for a person the administrator looks up. -->
   <SettingsDialog v-model:open="open" :title="$t('account.title.profile')" :description="props.description" :dirty="dirty">
     <UForm id="profile-form" :state="form" class="flex flex-col gap-4" @submit="save">
@@ -10,6 +10,14 @@
 
       <UFormField :label="$t('account.label.job_title')" name="jobTitle">
         <UInput v-model="form.jobTitle" class="w-full" autocomplete="organization-title" />
+      </UFormField>
+
+      <UFormField :label="$t('account.label.rank')" name="rank">
+        <UInput v-model="form.rank" class="w-full" data-profile-rank />
+      </UFormField>
+
+      <UFormField :label="$t('account.label.duty')" name="duty">
+        <UTextarea v-model="form.duty" :rows="2" autoresize class="w-full" data-profile-duty />
       </UFormField>
 
       <UFormField :label="$t('account.label.landline')" name="landline">
@@ -54,8 +62,8 @@ const open = defineModel<boolean>("open", { default: false });
 
 const { t } = useI18n();
 
-const form = reactive<UserProfile>({ fullName: "", jobTitle: "", landline: "", mobile: "", email: "" });
-const FIELDS: (keyof UserProfile)[] = ["fullName", "jobTitle", "landline", "mobile", "email"];
+const form = reactive<UserProfile>({ fullName: "", jobTitle: "", rank: "", duty: "", landline: "", mobile: "", email: "" });
+const FIELDS: (keyof UserProfile)[] = ["fullName", "jobTitle", "rank", "duty", "landline", "mobile", "email"];
 const pending = ref(false);
 const failure = ref<string | null>(null);
 

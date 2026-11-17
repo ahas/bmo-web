@@ -1455,14 +1455,28 @@ export interface AccountUser {
   name: string;
 }
 
-// A user's person's name, job title and contact details (docs/accounts.md, 「Users and senders」); every field is
-// empty where the account keeps none.
+// A user's person's name, job title, rank, duty and contact details (docs/accounts.md, 「Users and senders」); every
+// field is empty where the account keeps none.
 export interface UserProfile {
+  fullName: string;
+  jobTitle: string;
+  rank: string;
+  duty: string;
+  landline: string;
+  mobile: string;
+  email: string;
+}
+
+// A profile as it is written: the name, the job title and the contact details whole, and the rank and the duty
+// where named, each left as it stands where absent.
+export interface ProfileAsk {
   fullName: string;
   jobTitle: string;
   landline: string;
   mobile: string;
   email: string;
+  rank?: string;
+  duty?: string;
 }
 
 // The sorts of thing a `context` line carries, as its name: which of the things put in front of a

@@ -44,6 +44,7 @@ export function rosterAskOf(query: Record<string, unknown>): RosterAsk {
     q: word(query.q),
     company: whole(query.company),
     unit: whole(query.unit),
+    kind: word(query.kind),
     role: ROSTER_ROLES.find((one): one is RosterRole => one === role),
     state: ROSTER_STATES.find((one): one is RosterState => one === state),
     after: word(query.after),

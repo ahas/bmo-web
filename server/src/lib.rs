@@ -3,16 +3,21 @@
 //! (docs/boundary.md). It stands on its own database and holds the decisions; what a screen or a room does
 //! with an answer is its caller's.
 
+pub mod acting;
 pub mod agents;
+pub mod attributes;
 pub mod callers;
+pub mod catalogue;
 pub mod checks;
 pub mod data_move;
 pub mod grants;
+pub mod history;
 pub mod holdings;
 pub mod ids;
 pub mod import;
 pub mod invites;
 pub mod lang;
+pub mod lines;
 pub mod machines;
 pub mod marks;
 pub mod migration;
@@ -20,7 +25,9 @@ pub mod nodes;
 pub mod pairings;
 pub mod people;
 pub mod phones;
+pub mod posts;
 pub mod profiles;
+pub mod readers;
 pub mod receiver;
 pub mod roster;
 pub mod routes;

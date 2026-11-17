@@ -7,7 +7,7 @@ use crate::support::{OWNER, ROOM, Scratch, console_hash, ready};
 use axum::Router;
 use axum::body::Body;
 use axum::http::{Method, Request, StatusCode, header};
-use bmo_web_client::UserProfile;
+use bmo_web_client::ProfileAsk;
 use bmo_web_server::data_move::{MoveAsk, run_move};
 use bmo_web_server::one;
 use bmo_web_server::routes::in_force;
@@ -33,12 +33,13 @@ async fn moved(name: &str) -> Scratch {
   .await
   .unwrap();
   let user = set_sign_in(scratch.db(), name, "the password", false).await.unwrap().user;
-  let profile = UserProfile {
+  let profile = ProfileAsk {
     full_name: String::new(),
     job_title: "Engineer".into(),
     landline: "landline-a".into(),
     mobile: "mobile-a".into(),
     email: "member@example.com".into(),
+    ..ProfileAsk::default()
   };
 
   set_profile(scratch.db(), user, &profile).await.unwrap();
@@ -148,12 +149,13 @@ async fn outsider(scratch: &Scratch) -> i32 {
   set_profile(
     scratch.db(),
     outside,
-    &UserProfile {
+    &ProfileAsk {
       full_name: String::new(),
       job_title: "Engineer".into(),
       landline: "landline-c".into(),
       mobile: "mobile-c".into(),
       email: "outsider@example.com".into(),
+      ..ProfileAsk::default()
     },
   )
   .await
@@ -225,12 +227,13 @@ async fn a_member_sees_no_contact_detail_and_matches_none_but_their_own() {
   set_profile(
     scratch.db(),
     other,
-    &UserProfile {
+    &ProfileAsk {
       full_name: String::new(),
       job_title: "Designer".into(),
       landline: "landline-b".into(),
       mobile: "mobile-b".into(),
       email: "other@example.com".into(),
+      ..ProfileAsk::default()
     },
   )
   .await

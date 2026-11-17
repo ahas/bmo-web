@@ -9,11 +9,13 @@
 
 mod client;
 mod openapi;
+mod organisation;
 mod types;
 mod wire;
 
 pub use client::{AccountClient, OWNER_KEY, OWNER_ROLE};
 pub use openapi::{openapi, openapi_json};
+pub use organisation::*;
 pub use types::*;
 pub use wire::{Answer, ClientFailure, SessionError, WireError};
 

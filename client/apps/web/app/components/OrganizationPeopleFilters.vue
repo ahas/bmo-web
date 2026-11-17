@@ -1,7 +1,7 @@
 <template>
-  <!-- The people tab's four filters (docs/web.md, 「Organisation」, the people tab): the company, for a reader who
+  <!-- The people tab's five filters (docs/web.md, 「Organisation」, the people tab): the company, for a reader who
        looks through more than one; the unit, from the chosen company's tree as the invitations' unit is chosen; the
-       role and the state. A filter set nowhere shows its own name, and the choice of every value sets it back. In the list's head they stand side by side, and in the
+       kind, where the company keeps any; the role and the state. A filter set nowhere shows its own name, and the choice of every value sets it back. In the list's head they stand side by side, and in the
        narrow screen's drawer one under another, each under its name. -->
   <div :class="props.stacked ? 'flex flex-col gap-4' : 'flex flex-wrap items-center gap-2'" data-roster-filters>
     <component :is="props.stacked ? UFormField : 'div'" v-if="props.companies.length > 1" v-bind="props.stacked ? { label: $t('invites.label.company') } : {}">
@@ -37,6 +37,18 @@
           </div>
         </template>
       </UPopover>
+    </component>
+
+    <component :is="props.stacked ? UFormField : 'div'" v-if="kinds.length > 0" v-bind="props.stacked ? { label: $t('roster.label.kind') } : {}">
+      <USelect
+        :model-value="props.view.kind ?? undefined"
+        :items="kindItems"
+        :placeholder="$t('roster.label.kind')"
+        :aria-label="$t('roster.label.kind')"
+        :class="props.stacked ? 'w-full' : 'w-28'"
+        data-roster-filter="kind"
+        @update:model-value="(value: string) => change('kind', value === ALL ? null : value)"
+      />
     </component>
 
     <component :is="props.stacked ? UFormField : 'div'" v-bind="props.stacked ? { label: $t('organization.label.role') } : {}">
@@ -107,6 +119,24 @@ const treeCompany = computed(() => rosterTreeCompany(props.view, props.companies
 const treeUnits = computed(() => (treeCompany.value === null ? [] : companyUnits(props.units, treeCompany.value)));
 const unitOpen = ref(false);
 const expanded = ref<string[]>([]);
+
+// The chosen company's unit kinds, read as the company the unit filter offers changes; none where it keeps none, or a
+// read failed, and then the filter does not stand.
+const kinds = ref<{ key: string; name: string }[]>([]);
+const kindItems = computed(() => [{ label: t("common.label.all"), value: ALL }, ...kinds.value.map((kind) => ({ label: kind.name, value: kind.key }))]);
+
+watch(
+  treeCompany,
+  async (company) => {
+    kinds.value = [];
+    if (company === null) return;
+
+    const read = await $fetch<{ key: string; name: string }[]>(`/api/organization/companies/${company}/unit-kinds`).catch(() => []);
+
+    if (treeCompany.value === company) kinds.value = read;
+  },
+  { immediate: true }
+);
 
 // Every company's branch is open at first, and every one down to the unit chosen, as the chart's are.
 watch(

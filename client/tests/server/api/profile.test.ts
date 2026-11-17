@@ -70,8 +70,8 @@ afterEach(() => {
   globals.signedInUser = standing;
 });
 
-const PROFILE: UserProfile = { fullName: "", jobTitle: "Field engineer", landline: "office 12", mobile: "mobile 34", email: "engineer@example.com" };
-const EMPTY: UserProfile = { fullName: "", jobTitle: "", landline: "", mobile: "", email: "" };
+const PROFILE: UserProfile = { fullName: "", jobTitle: "Field engineer", rank: "", duty: "", landline: "office 12", mobile: "mobile 34", email: "engineer@example.com" };
+const EMPTY: UserProfile = { fullName: "", jobTitle: "", rank: "", duty: "", landline: "", mobile: "", email: "" };
 
 describe("an account's profile", () => {
   test("reads empty and is written whole by its holder, the login's user and role handed on", async () => {

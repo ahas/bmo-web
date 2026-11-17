@@ -7008,8 +7008,9 @@ Four bounds keep it from growing forever.
 ### Person's page
 
 - **`/people/<user>` is one person of the reader's organisation,** of any company for the platform
-  administrator, reached from a result of the console search or from an address. It reads the person's name, organisation and job title, and the landline, mobile and
-  email the reader may see: those stand for the platform administrator and for the person themselves, and a
+  administrator, reached from a result of the console search or from an address. It reads the person's name,
+  organisation and title, their 직위, 직책 and 담당업무 where kept, their 겸직, each unit by its name with the post's
+  직책, and the landline, mobile and email the reader may see: those stand for the platform administrator and for the person themselves, and a
   member's page holds no contact row (`docs/accounts.md`, 「The people directory」).
 - **It is the account section's.** A reader whose account section is not read is taken to the first section
   they may open, as any other screen of that section is. The administrator's page of anyone stands with the
@@ -7065,8 +7066,9 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
 - A changed login takes everything the account holds with it — the devices it rings, the phones that
   play its briefings, the tabs each screen stands with, its theme and its palette.
 - **프로필** carries the person's name and the job title as its line, and 변경 opens the form: 이름, the name
-  people read the person by, then the job title, landline, mobile and email, each empty where the account keeps none, and 저장, open only while one
-  differs. The account's holder or an administrator reads and writes it; the console hands the login's own user
+  people read the person by, then 직함, 직위, 담당업무, of a few lines, and the landline, mobile and email, each empty
+  where the account keeps none, and 저장, open only while one differs. The person's 직책 is set on 조직도, never here
+  (`docs/accounts.md`, 「Users and senders」). The account's holder or an administrator reads and writes it; the console hands the login's own user
   and role to the service, and another login's call is refused.
 - **A changed person's name is followed at once:** the person's own BMO and its private room take the titles
   made from it (「The join page」), and the reader's own session takes it, so the user menu names them by it. The
@@ -7260,8 +7262,9 @@ every run goes out on, and the kinds every person's secret form asks in — is t
 settings dialog's (「Settings」), and the research supervisor stands with the research unit's settings on the
 research screen (「Research screen」).
 
-- **It stands at `/organization`, a tab to a section.** The tabs are 조직도, 사용자, 초대, 권한 and BMO, keyed in the
-  address as `?tab=` with `people`, `invites`, `permissions` and `agent`, 조직도 being the screen's own address; a shared link opens the same tab, moving between tabs is a step of the history, and a key naming no tab
+- **It stands at `/organization`, a tab to a section.** The tabs are 조직도, 사용자, 직책·종류, 초대, 권한 and BMO, keyed in
+  the address as `?tab=` with `people`, `catalogue`, `invites`, `permissions` and `agent`, 조직도 being the screen's own
+  address; a shared link opens the same tab, moving between tabs is a step of the history, and a key naming no tab
   the reader may open opens the first they may. The console search finds each tab as it finds every screen's.
 - **A key of a section that moved away leads to where it stands now,** so a link made before it moved still lands
   on it: `research` to the research screen's 설정 tab, `briefing` to the settings dialog's 보이스브리핑 and `secrets`
@@ -7269,7 +7272,8 @@ research screen (「Research screen」).
 - **Who opens it.** The administrator opens every tab, and the sidebar lists 조직 for them after the console's
   own screens. A member who heads a unit may invite into it (`docs/accounts.md`, 「Invitations and a person's
   machine」) and sets who under it may personalise their BMO (`docs/accounts.md`, 「A person's BMO profile」), so
-  their shell lists 조직 too and the screen holds 초대 and BMO, and 사용자 where they head a company (「사용자」); a member who heads none is listed no entry, and the
+  their shell lists 조직 too and the screen holds 초대 and BMO, and 사용자 and 직책·종류 where they head a company (「사용자」,
+  「직책·종류」); a member who heads none is listed no entry, and the
   address shows them 초대 saying they may invite into no unit.
 - **The tab row** stands under the title bar, the tabs filling it and the open tab's own add at its right end
   where the tab has one, the row's grey icon on a phone too (「The title bar」): 조직 추가 on 조직도 and 초대 링크
@@ -7292,7 +7296,13 @@ research screen (「Research screen」).
   the one above; at the right the unit chosen. Choosing one is a step of the history and stands in the address as
   `?unit=` and its number, so a shared link opens the same unit; where the address names none, the first company is
   chosen with no step. What a unit is called — 본부, 센터, 팀, 파트 — is its name alone (`docs/accounts.md`,
-  「Companies and organisation units」).
+  「Companies and organisation units」); a unit carrying a kind wears it as a small neutral badge after its name in the
+  tree, the kind in its company's words.
+- **The tree narrows by kind.** Where any company keeps a kind, a 종류 select stands at the tree's head: 전체, then each
+  company's kinds under the company's name. A kind chosen lists the units of that kind alone, flat, each with its
+  path from its company muted under its name, a press choosing it as a press on the tree does; 전체 brings the tree
+  back as it was left. The choice stands in the address as `?kind=`, the company's number and the kind's key, beside
+  `?unit=`, and replaces the address rather than stepping it.
 - **The two are regions of their own across the whole body,** parted by a splitter whose hairline is dragged to widen
   either, the widths kept in this browser. Each scrolls on its own, its scrollbar on its own edge. The tree reaches
   its region's edges, its rows keeping their own inner padding, and every unit's name stands whole: where the tree
@@ -7314,16 +7324,32 @@ research screen (「Research screen」).
   path from its company; with no parent, 없음 (새 회사), the unit is a new company. It has one 저장 at its foot.
 - **The unit chosen** is headed by its name on a row of its own, with the path above it standing whole, wrapping onto
   more lines between its steps where the row is too narrow. 편집 stands on the row under the name, at its right end,
-  and opens the unit's form: its name and, for a unit under a company, its parent among the units of its company that do not
-  stand under it, with one 저장 at its foot, open only while a field differs from what is saved. A refusal — a
-  parent in another company, a parent under the unit itself — is said under the form in words.
+  and opens the unit's form: its name; for a unit under a company, its parent among the units of its company that do not
+  stand under it; 종류, 없음 or one of its company's kinds; 약칭, one line of at most 20 characters; and, for a unit
+  under a company, 결재 상위 조직, a unit of its company offered by its path, its parent marked `(기본값)`, which it
+  reports to where none is set, so choosing the parent sets none. One 저장 stands at its foot, open only while a field differs
+  from what is saved. A refusal — a parent in another company, a parent under the unit itself, an approval line that
+  comes back round, a short name another unit holds — is said under the form in words.
+- **The unit's attributes stand under its name,** each only where set: its kind as the tree's badge, 약칭 and the short
+  name, and 결재 상위 조직 with that unit's path, a link that chooses it. The unit chosen is read whole beside the
+  tree, for its people's roles, its posts and its appointment.
 - **Every person on this screen is named by their person's name,** their login where none stands: the heads,
   the members, the pickers, the machine dialog, the move dialog and the 권한 tab's list.
 - **조직장** lists the unit's heads, one row each with its name and a mark that takes the head away, and 조직장 지정
   at the right end of its heading, a list of every person searched by name; a person chosen is made a head as they
-  are chosen.
+  are chosen. A head whose grant is an acting appointment's wears 대행, and one heading through a post 겸직, each a
+  small badge after the name; an acting head's row carries no mark of its own, since 직무대행 ends it.
+- **직무대행** names the person acting for the unit's head while an appointment runs, one row with the name and
+  `{date}까지`, the last day it runs, and 해제 at its end, asked first; with none running it says 없음. 직무대행 지정 at
+  the right end of its heading opens a form: 대행자, the company's people searched by name, and 종료일, a date from
+  today on, the appointment running to the end of that day in this browser's time zone, with one 저장. A person named while another acts takes
+  their place, which the form says before it is saved. A refusal, a person already the unit's head among them, is
+  said under the form (`docs/accounts.md`, 「Acting」).
 - **구성원** lists the people standing in the unit, its heading carrying how many, one row each: the name, (탈퇴)
-  beside a person who left, and two marks at the row's end for a person who has not. 구성원 추가 at the right end of
+  beside a person who left, the person's 직책 picker, and two marks at the row's end for a person who has not. The
+  picker is a small select of 직책 없음 and the company's roles, highest first, set as it is chosen, a person keeping
+  their place and unit; where the company keeps no role it stands as nothing. On a narrow screen it stands on the
+  row's second line, under the name. 구성원 추가 at the right end of
   its heading is the same searched list, and a person chosen is placed in the unit as they are chosen. A heading's
   list keeps the room its words need and shrinks with the heading on a narrow screen.
   - Every person who has not left carries a checkbox at the row's start, so several are chosen at once. A press
@@ -7334,10 +7360,14 @@ research screen (「Research screen」).
     choice belongs to the unit chosen: choosing another unit gives it up.
   - 조직 이동 opens a dialog of two steps. The first asks for 이동할 조직, every unit offered by its path from its
     company, the unit chosen among them so a role alone can change, and the 역할 each person takes there, 구성원
-    or 조직장, 구성원 at first; 미리 보기 at its foot, open once a unit is chosen, goes on. The second shows who
+    or 조직장, 구성원 at first, and, where the unit's company keeps roles, one 직책 for every person moved, 지금 직책 유지
+    at first, which keeps a person who stays as they are and leaves one who comes with none, or 직책 없음 or one of the
+    company's roles, the highest first; 미리 보기 at its foot, open once a unit is chosen, goes on. The second shows who
     goes where before anything is written, a row each: the name, the unit they stand in now and the unit they go
     to, each by its path, their role before and after, 조직장 해제 with the unit they leave where they headed it,
-    and 변경 없음 for a person whom the act leaves as they stand. 뒤로 goes back to the first step, and 이동
+    겸직 해제 with the unit where they move into a unit they hold a post in, 변경 없음 for a person whom the act leaves
+    where they stand, and under each the 직책 the act names, where it names one. A 직책 named is a change on its own,
+    so 이동 is open for it while nobody moves. 뒤로 goes back to the first step, and 이동
     writes the whole set in one act (`docs/accounts.md`, 「Companies and organisation units」); closing the
     dialog at either step writes nothing. Once written, the dialog closes, the choice is given up and the units
     are read again. A refusal is said in the dialog and nobody is moved; where someone moved a person meanwhile,
@@ -7355,8 +7385,14 @@ research screen (「Research screen」).
     declaration back while no other account is connected there, each at once. 기기 연결 해제 takes the machine away,
     asked first with what it does. A change agency refuses leaves the machine as it was and is said in the dialog
     (`docs/accounts.md`, 「Invitations and a person's machine」).
-  - The leave mark marks the person left, asked first with what it does and that it is not undone
-    (`docs/accounts.md`, 「A person who leaves」); a person who left stands on in the list.
+  - The leave mark marks the person left, asked first with what it does and that it is not undone, their posts
+    ending with it (`docs/accounts.md`, 「A person who leaves」); a person who left stands on in the list.
+- **겸직** lists the people holding a post in the unit, its heading carrying how many, one row each: the name, the
+  post's 직책, 조직장 as a small badge where the post carries the head, and two marks at the row's end, 겸직 편집 and
+  겸직 해제, the second asked first with what it takes away. 겸직 추가 at the right end of its heading opens the post
+  form: 대상자, the company's people but those whose home unit it is, searched by name; 직책, 직책 없음 or a role of the
+  company; and 조직장 겸임, a switch; with one 저장. 겸직 편집 opens the same form on the post, its person fixed. With
+  nobody holding a post the list says 겸직 없음 (`docs/accounts.md`, 「Concurrent posts」).
 - Each mark is an icon button with its name as its tooltip. A head or a person taken away or added, and a person
   marked left, takes effect as it is done, each being a record of its own; a refusal is said under the list.
 
@@ -7376,23 +7412,28 @@ account's rooms or agents (「Access」).
   return to the list as it was left, its search, its scroll and the rows already read. While the person covers the
   list the keyboard does not reach it; a row that held the focus hands it to the person and takes it back as they
   close.
-- **The address carries what is shown:** `?q=` the words, `company=`, `unit=`, `role=` and `state=` the filters, and
+- **The address carries what is shown:** `?q=` the words, `company=`, `unit=`, `kind=`, `role=` and `state=` the filters, and
   `user=` the person, so a shared link opens the same view. Choosing a person is a step of the history; the words
   and the filters replace the address as they change. The list is not built again when a person opens or closes.
 - **The list's head** holds the search box, the filters and how many people match, a neutral count badge.
   - **The search** is asked of the account service as typing stops, never worked through in the tab: it matches
-    the name, the login, the unit, the job title and, for the administrator, the contact details. What a row shows
+    the name, the login, the unit, the title, the rank, the role, the duty and, for the administrator, the contact
+    details. What a row shows
     is marked where it matched, by the console's shared list search; a hit only in a field the row does not show,
     such as the job title or an email, stands as one line under the row. An answer to words already typed past is
     dropped.
   - **The filters:** 회사, for a reader who looks through more than one, every company they may; 조직, a unit of the
-    company chosen and every unit under it, chosen from that company's tree as 초대's 조직 is; 역할, 전체, 조직장 or
-    구성원; and 상태, 전체, 활성, 기기 연결 대기 or 탈퇴. On a narrow screen the search box stands alone in the head with
-    one 필터 button beside it, carrying how many filters are set, which opens the four in a bottom drawer; what is
+    company chosen and every unit under it, chosen from that company's tree as 초대's 조직 is; 종류, 전체 or a kind
+    of the company chosen, standing only where it keeps any; 역할, 전체, 조직장 or 구성원; and 상태, 전체, 활성, 기기 연결
+    대기 or 탈퇴. A person counted under 조직 or 종류 through a post stands in the list as well, marked. On a narrow
+    screen the search box stands alone in the head with one 필터 button beside it, carrying how many filters are set,
+    which opens the five in a bottom drawer; what is
     chosen there is set as the drawer closes, however it closes, so the back gesture that closes it keeps the choice.
 - **The list is the console's shared data table,** its head stuck to the top and every column's width dragged, one
   row a person in the order of their names: 이름, the person's mark of initials and their name, (탈퇴) beside a
-  person who left; 아이디; 회사; 조직, the unit they stand in; 역할, 조직장 or 구성원; 상태, an icon in its colour with
+  person who left; 아이디; 회사; 조직, the unit they stand in, or for a person counted through a post that unit with
+  a small 겸직 badge; 직책, the role they carry there, or a dash; 역할, 조직장 or 구성원, 조직장 wearing 대행 where the
+  grant is an acting appointment's; 상태, an icon in its colour with
   its name as the tooltip; 기기, the machine their account is bound to, or a dash; and 최근 로그인. On a narrow screen
   a row is two lines with no head of names: the mark, the name and the state, then the unit and the role. A row's
   hit only in a field it does not show stands as one more line under it, as the list head says.
@@ -7407,8 +7448,9 @@ account's rooms or agents (「Access」).
   - **The head** carries the mark and the name with the login under it on a row of their own, and on the row under
     it 관리자 for a platform administrator and the state as a chip with its words, and at its right end 관리, a menu
     of the acts the reader may do for this person:
-    조직 이동, the move dialog of 조직도 at its first step for this person alone; 기기 연결, the machine dialog of
-    조직도; 프로필 변경, the profile form of 계정 for this person; 섹션 권한, which opens 권한 with the person chosen;
+    조직 이동, the move dialog of 조직도 at its first step for this person alone; 겸직 추가, 조직도's post form with this
+    person fixed and the unit chosen in it, the units of their company the reader heads, but their home unit, offered
+    by their path; 기기 연결, the machine dialog of 조직도; 프로필 변경, the profile form of 계정 for this person; 섹션 권한, which opens 권한 with the person chosen;
     BMO 설정 권한, which opens the BMO tab at the person's company with their unit open; and 탈퇴 처리, asked first as
     on 조직도. An act stands only where the route behind it lets the reader do it, and a person who left keeps
     only what still applies to them. Once an act goes through, the person is read again, and the list row with them.
@@ -7417,10 +7459,17 @@ account's rooms or agents (「Access」).
     failed says its reason in its place with 새로고침 while the others stand. The lists among them, 방, 에이전트, 세션
     and 최근 활동, stand a row as two lines at every width, the words that say which item it is cut last, and a row
     that opens something is pressed as a whole. A value that is not set stands as a dash alone in its place.
-  - **계정:** 아이디, 이름, 직함, then 유선 전화, 휴대전화 and 이메일 for the administrator alone; 상태, with when the
+  - **계정:** 아이디, 이름, 직함, 직위, 담당업무, then 유선 전화, 휴대전화 and 이메일 for the administrator alone; 상태, with when the
     person left and who marked it; 만든 날짜; and 최근 로그인, or 기록 없음.
-  - **조직:** 회사; 조직, the unit's path from the company down, whole; 역할; and 조직장인 조직, the units they head
-    directly, where they head any.
+  - **조직:** 회사; 조직, the unit's path from the company down, whole; 역할; 직책; 조직장인 조직, the units they head
+    directly, where they head any; and 직무대행, each unit they act for by its path with `{date}까지`, where they act
+    for any.
+  - **겸직:** the person's posts, one row each with the unit's path, the post's 직책 and 조직장 as a small badge where
+    the post carries the head; 겸직 없음 where they hold none.
+  - **이력:** the person's history, the newest first (`docs/accounts.md`, 「A person's history」), one row as two lines
+    at every width: what changed, in words of the pack for its kind — the units by name, a role by the name it had
+    then — and under it when and by whom, muted; a change nobody stands behind names no one. 이력 없음 where nothing is
+    kept.
   - **BMO:** the person's own BMO as its profile stands for them (「A person's BMO profile on the agency and the
     receiver」): 이름, 부르는 이름, 프로필 사진 and 페르소나, each with where it came from, 직접 정함 or 회사에서 정함, the
     deployment's wearing its `(기본값)` mark; 페르소나 reads its length in characters, and 보기 opens the text in a
@@ -7442,9 +7491,29 @@ account's rooms or agents (「Access」).
     account as the agency's run ledger holds them, the newest first, one row each with when it began, the agent,
     the room it ran for or, where it ran for none, the run's name, how long it took and how it ended. A row opens that agent's log at the
     run.
-- **A head reads their people's 계정 without the contact details, 조직 and BMO,** and nothing of their rooms, agents,
+- **A head reads their people's 계정 without the contact details, 조직, 겸직, 이력 and BMO,** and nothing of their rooms, agents,
   sessions or runs: those quote what a person said in their own rooms, which nobody but the person and the
   administrator reads (「Access」).
+
+#### 직책·종류
+
+Where a company's own words for its roles and its unit kinds are kept (`docs/accounts.md`, 「Roles and unit kinds」).
+
+- **Who opens it.** The administrator, over every company, and a member who heads a company's own unit, over the
+  companies they head. The tab stands only for a reader it is for.
+- **회사** stands at the head for a reader of more than one company, every company they may, the first at first; the
+  choice stands in the address as `?company=`.
+- **직책** lists the company's roles, the highest first, one row each with its name and its key muted beside it. With
+  none it says 직책 없음. 편집 at the right end of its heading opens the list's form, the rows standing in the same
+  order.
+- **조직 종류** lists the company's kinds in its order, one row each with its name and its key muted beside it; 조직
+  종류 없음 with none, and 편집 as 직책's.
+- **The list's form** is a dialog holding every entry as a row: a handle that drags it to another place, by the
+  mouse, the pen and the finger, 키 and 이름, and a mark that takes it away. 추가 at its foot adds an empty row at the bottom. A key saved before stands
+  read-only, since other units name the entry by it; a row added takes a key and a name. One 저장 stands at the foot,
+  open only while the list differs from what is saved, and closing with a change asks first (「Forms」). A refusal —
+  a key out of shape, two entries of one name, a role a person still carries or a kind a unit still carries — is said
+  under the form in words, naming the entry, and nothing is written.
 
 #### 초대
 

@@ -24,6 +24,7 @@ fn every_part_reads_as_its_type() {
   assert!(!agents::AGENTS.node_checkout.busy.is_empty());
   assert!(!branch_split::BRANCH_SPLIT.clock.hours.is_empty());
   assert!(!archive_docs::ARCHIVE_DOCS.kinds.is_empty());
+  assert!(job_titles::JOB_TITLES.both.contains("{rank}") && job_titles::JOB_TITLES.both.contains("{role}"));
   assert!(!search::SEARCH.parts.is_empty());
   for field in [
     "ADDRESS",

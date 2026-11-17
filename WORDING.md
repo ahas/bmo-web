@@ -297,7 +297,20 @@
   group a unit stands in → 분류: 전체, 서비스, 백업, 배포, 테스트, 정기 작업; a line's priority → 수준: 오류, 경고, 그 외; a
   value taken out of a line → 가려진 값. Never 카테고리, 레벨, 기록 for the tab, 마스킹.
 - a job's review → 보고 턴; its entries → 검수 시작, 보고, 질의, 답변, 반려, 통과, 소유자 보고, 소유자 결정, 수락; its checks → 약속 이행, 결정 근거. Never 리젝, 거절, 컨펌.
-- a user's job title and contact details → 프로필: 직함, 유선 전화, 휴대전화, 이메일. Never 직책, 유선번호, 핸드폰, 메일.
+- a user's job title and contact details → 프로필: 직함, 유선 전화, 휴대전화, 이메일. Never 유선번호, 핸드폰, 메일, and never
+  직책 for the free job title, which is 직함.
+- a person's grade in the company's scale → 직위; what they are in charge of → 담당업무. Never 직급, 담당 업무, 업무.
+- one of a company's roles, carried in a unit → 직책: 직책, 직책 없음, 지금 직책 유지; the company's list of them on its
+  own tab → 직책·종류. Never 역할 for it, which stays the 조직장 or 구성원 place, nor 포지션.
+- a unit's kind in its company's words → 종류, the list 조직 종류: 조직 종류 없음. Never 유형, 타입, 구분.
+- the name a unit's letters are numbered by → 약칭. Never 약어, 단축명, 코드.
+- the unit a unit's approvals go up through → 결재 상위 조직, its parent marked `(기본값)` among the choices; the chain itself → 결재선. Never
+  보고 라인, 상신 조직.
+- a post a person holds beside their home unit → 겸직: 겸직 추가, 겸직 편집, 겸직 해제, 겸직 없음, 대상자, 조직장 겸임. Never
+  겸임 for the post itself, 파견, 소속 추가.
+- acting for a unit's head for a period → 직무대행: 직무대행 지정, 대행자, 종료일, `{date}까지`, and the mark 대행. Never 대리,
+  which is a rank, nor 권한 위임.
+- the record of changes to a person's place → 이력: 이력 없음. Never 히스토리, 로그, 발령 내역.
 - **One screen speaks in one style.** A notice, a guidance line and an error end in 합니다 and
   했습니다 throughout; 어요 is never mixed into them.
 - **No dash between words.** A range is written `{min}~{max}`; a caveat on a title stands on its

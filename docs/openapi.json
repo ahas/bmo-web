@@ -51,6 +51,23 @@
         ],
         "type": "object"
       },
+      "ActingFor": {
+        "description": "An appointment of a person's running: the unit they act for and until when.",
+        "properties": {
+          "unit": {
+            "$ref": "#/components/schemas/UnitRef"
+          },
+          "until": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "unit",
+          "until"
+        ],
+        "type": "object"
+      },
       "AgentCallNames": {
         "description": "The names that call a person's BMO and where they came from; none where the deployment's stand.",
         "properties": {
@@ -275,6 +292,68 @@
         ],
         "type": "string"
       },
+      "Appointment": {
+        "description": "An acting appointment running: who acts, until when, who named them and when.",
+        "properties": {
+          "at": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "by": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "until": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user",
+          "until",
+          "by",
+          "at"
+        ],
+        "type": "object"
+      },
+      "AppointmentAsk": {
+        "description": "An acting appointment asked: the person and the moment it ends.",
+        "properties": {
+          "until": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user",
+          "until"
+        ],
+        "type": "object"
+      },
+      "CatalogueEntry": {
+        "description": "One entry of a catalogue as it is written: its key and its name, its place being where the list stands it.",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "name"
+        ],
+        "type": "object"
+      },
       "CheckAnswer": {
         "description": "What a check answered.",
         "properties": {
@@ -348,6 +427,62 @@
         },
         "required": [
           "callNames"
+        ],
+        "type": "object"
+      },
+      "CompanyRoles": {
+        "description": "A company's roles, lowest first.",
+        "properties": {
+          "roles": {
+            "items": {
+              "$ref": "#/components/schemas/RoleRef"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "roles"
+        ],
+        "type": "object"
+      },
+      "CompanyRolesAsk": {
+        "description": "A company's roles written whole, lowest first.",
+        "properties": {
+          "roles": {
+            "items": {
+              "$ref": "#/components/schemas/CatalogueEntry"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "roles"
+        ],
+        "type": "object"
+      },
+      "ConcurrentPost": {
+        "description": "A person holding a post in a unit: the post's role and whether it carries the unit's head.",
+        "properties": {
+          "head": {
+            "type": "boolean"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RoleRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user",
+          "head"
         ],
         "type": "object"
       },
@@ -947,6 +1082,98 @@
         ],
         "type": "object"
       },
+      "HistoryChange": {
+        "description": "What one change of a person's place was.",
+        "enum": [
+          "placed",
+          "role",
+          "head-granted",
+          "head-taken",
+          "acting",
+          "acting-ended",
+          "post-given",
+          "post-changed",
+          "post-taken",
+          "left"
+        ],
+        "type": "string"
+      },
+      "HistoryEntry": {
+        "description": "One change of a person's place.",
+        "properties": {
+          "after": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RoleMark"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "at": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "before": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RoleMark"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "by": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "byName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "change": {
+            "$ref": "#/components/schemas/HistoryChange"
+          },
+          "from": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UnitRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UnitRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "until": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "at",
+          "change"
+        ],
+        "type": "object"
+      },
       "Holder": {
         "description": "Whom a grant is to: a sender, a user, or every member of the room.",
         "properties": {
@@ -1178,6 +1405,154 @@
         ],
         "type": "object"
       },
+      "KindRef": {
+        "description": "One unit kind of a company's list: its key and its name.",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "name"
+        ],
+        "type": "object"
+      },
+      "LineHead": {
+        "description": "A head of a step of a line.",
+        "properties": {
+          "acting": {
+            "description": "Whether the grant is an acting appointment's.",
+            "type": "boolean"
+          },
+          "concurrent": {
+            "description": "Whether they head it through a post.",
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user",
+          "name",
+          "acting",
+          "concurrent"
+        ],
+        "type": "object"
+      },
+      "LineHolder": {
+        "description": "A person holding a role at a step of a line.",
+        "properties": {
+          "concurrent": {
+            "description": "Whether they hold it through a post.",
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user",
+          "name",
+          "concurrent"
+        ],
+        "type": "object"
+      },
+      "LineRole": {
+        "description": "One role at a step of a line and the people holding it there.",
+        "properties": {
+          "holders": {
+            "items": {
+              "$ref": "#/components/schemas/LineHolder"
+            },
+            "type": "array"
+          },
+          "role": {
+            "$ref": "#/components/schemas/RoleRef"
+          }
+        },
+        "required": [
+          "role",
+          "holders"
+        ],
+        "type": "object"
+      },
+      "LineStep": {
+        "description": "One step of a unit's line.",
+        "properties": {
+          "heads": {
+            "items": {
+              "$ref": "#/components/schemas/LineHead"
+            },
+            "type": "array"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/KindRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "roles": {
+            "items": {
+              "$ref": "#/components/schemas/LineRole"
+            },
+            "type": "array"
+          },
+          "shortName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "unit": {
+            "$ref": "#/components/schemas/UnitRef"
+          },
+          "via": {
+            "$ref": "#/components/schemas/LineVia"
+          }
+        },
+        "required": [
+          "unit",
+          "via",
+          "heads",
+          "roles"
+        ],
+        "type": "object"
+      },
+      "LineVia": {
+        "description": "How a step of a line was reached from the one before it.",
+        "oneOf": [
+          {
+            "const": "start",
+            "description": "The unit the line is read for.",
+            "type": "string"
+          },
+          {
+            "const": "reports-to",
+            "description": "The unit the step before reports to.",
+            "type": "string"
+          },
+          {
+            "const": "parent",
+            "description": "The parent of the step before.",
+            "type": "string"
+          }
+        ]
+      },
       "LoginAsk": {
         "description": "A sign-in's name and password.",
         "properties": {
@@ -1214,6 +1589,22 @@
         "required": [
           "user",
           "name"
+        ],
+        "type": "object"
+      },
+      "MemberRole": {
+        "description": "A person of a unit's members carrying a role there.",
+        "properties": {
+          "role": {
+            "$ref": "#/components/schemas/RoleRef"
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user",
+          "role"
         ],
         "type": "object"
       },
@@ -1354,8 +1745,14 @@
         "type": "object"
       },
       "NewUnit": {
-        "description": "A unit to make: a company where it names no parent.",
+        "description": "A unit to make: a company where it names no parent; its kind by key, its short name and the unit it reports\nto where named.",
         "properties": {
+          "kind": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "name": {
             "type": "string"
           },
@@ -1363,6 +1760,19 @@
             "format": "int64",
             "type": [
               "integer",
+              "null"
+            ]
+          },
+          "reportsTo": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "shortName": {
+            "type": [
+              "string",
               "null"
             ]
           }
@@ -1639,6 +2049,11 @@
       "Person": {
         "description": "One person of the reader's organisation in the console's directory (docs/accounts.md, 「The people\ndirectory」). The contact fields stand only for the platform administrator and for the person themselves.",
         "properties": {
+          "duty": {
+            "default": "",
+            "description": "The duty kept, empty where none is.",
+            "type": "string"
+          },
           "email": {
             "type": [
               "string",
@@ -1646,6 +2061,7 @@
             ]
           },
           "jobTitle": {
+            "description": "The title as one line: composed from the rank and the role where either is set, the job title kept\notherwise.",
             "type": "string"
           },
           "landline": {
@@ -1666,6 +2082,22 @@
           "organization": {
             "type": "string"
           },
+          "rank": {
+            "default": "",
+            "description": "The rank kept, empty where none is.",
+            "type": "string"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RoleRef"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The role carried in the home unit."
+          },
           "user": {
             "type": "string"
           }
@@ -1674,7 +2106,82 @@
           "user",
           "name",
           "organization",
-          "jobTitle"
+          "jobTitle",
+          "rank",
+          "duty"
+        ],
+        "type": "object"
+      },
+      "PersonDetail": {
+        "description": "One person of the directory looked up: what a search row answers, and their posts.",
+        "properties": {
+          "duty": {
+            "default": "",
+            "description": "The duty kept, empty where none is.",
+            "type": "string"
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "jobTitle": {
+            "description": "The title as one line: composed from the rank and the role where either is set, the job title kept\notherwise.",
+            "type": "string"
+          },
+          "landline": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "mobile": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "posts": {
+            "items": {
+              "$ref": "#/components/schemas/PersonPost"
+            },
+            "type": "array"
+          },
+          "rank": {
+            "default": "",
+            "description": "The rank kept, empty where none is.",
+            "type": "string"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RoleRef"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The role carried in the home unit."
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user",
+          "name",
+          "organization",
+          "jobTitle",
+          "rank",
+          "duty",
+          "posts"
         ],
         "type": "object"
       },
@@ -1688,6 +2195,13 @@
           "head": {
             "type": "boolean"
           },
+          "role": {
+            "description": "The role carried in the unit, by key: null for none, and where absent kept by a person who stays and none\nfor one who comes.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "user": {
             "type": "string"
           }
@@ -1696,6 +2210,28 @@
           "user",
           "from",
           "head"
+        ],
+        "type": "object"
+      },
+      "PersonPost": {
+        "description": "One post of a person as the directory answers it: the unit by its reference and the post's role.",
+        "properties": {
+          "role": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RoleRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "unit": {
+            "$ref": "#/components/schemas/UnitRef"
+          }
+        },
+        "required": [
+          "unit"
         ],
         "type": "object"
       },
@@ -1784,6 +2320,125 @@
         },
         "required": [
           "key"
+        ],
+        "type": "object"
+      },
+      "Post": {
+        "description": "One post of a person: its unit and path, its role, whether it carries the unit's head, and when and by whom\nit was given.",
+        "properties": {
+          "by": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "head": {
+            "type": "boolean"
+          },
+          "path": {
+            "items": {
+              "$ref": "#/components/schemas/UnitRef"
+            },
+            "type": "array"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RoleRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "since": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/UnitRef"
+          }
+        },
+        "required": [
+          "unit",
+          "path",
+          "head",
+          "since",
+          "by"
+        ],
+        "type": "object"
+      },
+      "PostAsk": {
+        "description": "A post given: its role by key, null for none, and whether it carries the unit's head.",
+        "properties": {
+          "head": {
+            "default": false,
+            "type": "boolean"
+          },
+          "role": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "head"
+        ],
+        "type": "object"
+      },
+      "Posts": {
+        "description": "A person's posts, in the order of their units' paths.",
+        "properties": {
+          "posts": {
+            "items": {
+              "$ref": "#/components/schemas/Post"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "posts"
+        ],
+        "type": "object"
+      },
+      "ProfileAsk": {
+        "description": "A user's profile written: the name, the job title and the contact details whole, and the rank and the duty\nwhere named, each left as it stands where absent.",
+        "properties": {
+          "duty": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "email": {
+            "type": "string"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "jobTitle": {
+            "type": "string"
+          },
+          "landline": {
+            "type": "string"
+          },
+          "mobile": {
+            "type": "string"
+          },
+          "rank": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "fullName",
+          "jobTitle",
+          "landline",
+          "mobile",
+          "email"
         ],
         "type": "object"
       },
@@ -1907,6 +2562,115 @@
         ],
         "type": "object"
       },
+      "RoleHolder": {
+        "description": "A person standing for a role for a unit: where they hold it and whether through a post.",
+        "properties": {
+          "concurrent": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/UnitRef"
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user",
+          "name",
+          "unit",
+          "concurrent"
+        ],
+        "type": "object"
+      },
+      "RoleMark": {
+        "description": "A role as a change of a person's place kept it: its key and the name it had then.",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "name"
+        ],
+        "type": "object"
+      },
+      "RoleRef": {
+        "description": "One role of a company's catalogue: its key, its name and its place, counted from 1 for the lowest.",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "place": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "key",
+          "name",
+          "place"
+        ],
+        "type": "object"
+      },
+      "RoleStand": {
+        "description": "Who stands for one role for a unit.",
+        "properties": {
+          "acting": {
+            "description": "Whether the holders hold a lower role than the one asked.",
+            "type": "boolean"
+          },
+          "holders": {
+            "items": {
+              "$ref": "#/components/schemas/RoleHolder"
+            },
+            "type": "array"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StandReason"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "role": {
+            "$ref": "#/components/schemas/RoleRef",
+            "description": "The role asked."
+          },
+          "standing": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RoleRef"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The role the holders hold; none where nobody stands."
+          }
+        },
+        "required": [
+          "role",
+          "holders",
+          "standing",
+          "acting",
+          "reason"
+        ],
+        "type": "object"
+      },
       "RoomCaller": {
         "description": "One caller of a room: a user granted `ask` on it.",
         "properties": {
@@ -2015,12 +2779,28 @@
       "RosterDetail": {
         "description": "One person of the people roster opened (docs/accounts.md, 「The people roster」): what a page answers\nof them, with their landline and mobile for the administrator alone, their unit's path from the company\ndown, the units they are granted head of directly, their departure and their machine.",
         "properties": {
+          "acting": {
+            "default": false,
+            "description": "Whether that grant is an acting appointment's.",
+            "type": "boolean"
+          },
+          "actingFor": {
+            "description": "The appointments of theirs running.",
+            "items": {
+              "$ref": "#/components/schemas/ActingFor"
+            },
+            "type": "array"
+          },
           "administrator": {
             "description": "Whether they are the platform administrator.",
             "type": "boolean"
           },
           "company": {
             "$ref": "#/components/schemas/UnitRef"
+          },
+          "duty": {
+            "default": "",
+            "type": "string"
           },
           "email": {
             "description": "The email, for the administrator alone.",
@@ -2039,8 +2819,15 @@
             },
             "type": "array"
           },
+          "history": {
+            "description": "Every change of their place kept, the newest first.",
+            "items": {
+              "$ref": "#/components/schemas/HistoryEntry"
+            },
+            "type": "array"
+          },
           "jobTitle": {
-            "description": "The job title, empty where none is kept.",
+            "description": "The title as one line, empty where nothing is kept.",
             "type": "string"
           },
           "landline": {
@@ -2108,6 +2895,38 @@
             },
             "type": "array"
           },
+          "post": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UnitRef"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The unit of the post through which they count in a page narrowed by unit or kind, where their home unit\ndoes not match it."
+          },
+          "posts": {
+            "items": {
+              "$ref": "#/components/schemas/Post"
+            },
+            "type": "array"
+          },
+          "rank": {
+            "default": "",
+            "type": "string"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RoleRef"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The role carried in the home unit."
+          },
           "state": {
             "$ref": "#/components/schemas/RosterState"
           },
@@ -2125,14 +2944,20 @@
           "company",
           "unit",
           "head",
+          "acting",
           "administrator",
           "state",
           "machine",
           "madeAt",
           "lastSignInAt",
           "jobTitle",
+          "rank",
+          "duty",
           "path",
           "headOf",
+          "actingFor",
+          "posts",
+          "history",
           "left",
           "machineStanding"
         ],
@@ -2215,12 +3040,21 @@
       "RosterPerson": {
         "description": "One person as a page of the people roster answers them (docs/accounts.md, 「The people roster」).",
         "properties": {
+          "acting": {
+            "default": false,
+            "description": "Whether that grant is an acting appointment's.",
+            "type": "boolean"
+          },
           "administrator": {
             "description": "Whether they are the platform administrator.",
             "type": "boolean"
           },
           "company": {
             "$ref": "#/components/schemas/UnitRef"
+          },
+          "duty": {
+            "default": "",
+            "type": "string"
           },
           "email": {
             "description": "The email, for the administrator alone.",
@@ -2234,7 +3068,7 @@
             "type": "boolean"
           },
           "jobTitle": {
-            "description": "The job title, empty where none is kept.",
+            "description": "The title as one line, empty where nothing is kept.",
             "type": "string"
           },
           "lastSignInAt": {
@@ -2264,6 +3098,32 @@
             "description": "The person's name, the login where none stands.",
             "type": "string"
           },
+          "post": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UnitRef"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The unit of the post through which they count in a page narrowed by unit or kind, where their home unit\ndoes not match it."
+          },
+          "rank": {
+            "default": "",
+            "type": "string"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RoleRef"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The role carried in the home unit."
+          },
           "state": {
             "$ref": "#/components/schemas/RosterState"
           },
@@ -2281,12 +3141,15 @@
           "company",
           "unit",
           "head",
+          "acting",
           "administrator",
           "state",
           "machine",
           "madeAt",
           "lastSignInAt",
-          "jobTitle"
+          "jobTitle",
+          "rank",
+          "duty"
         ],
         "type": "object"
       },
@@ -2663,65 +3526,25 @@
         ],
         "type": "object"
       },
-      "Unit": {
-        "description": "One organisation unit: where it stands, what stands directly under it, who heads it and who stands in it.",
-        "properties": {
-          "children": {
-            "items": {
-              "$ref": "#/components/schemas/UnitRef"
-            },
-            "type": "array"
-          },
-          "company": {
-            "$ref": "#/components/schemas/UnitRef"
-          },
-          "heads": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array"
-          },
-          "id": {
-            "format": "int64",
-            "type": "integer"
-          },
-          "members": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array"
-          },
-          "name": {
+      "StandReason": {
+        "description": "Why the people standing for a role hold another one.",
+        "oneOf": [
+          {
+            "const": "no-holder",
+            "description": "Nobody on the line holds the role asked, so the holders of the next lower role found stand for it.",
             "type": "string"
-          },
-          "parent": {
-            "format": "int64",
+          }
+        ]
+      },
+      "UnitChange": {
+        "description": "A unit renamed or moved under another parent of its company, its kind, short name and the unit it reports to\nset: each of the last three left as it stands where absent and taken away where null.",
+        "properties": {
+          "kind": {
             "type": [
-              "integer",
+              "string",
               "null"
             ]
           },
-          "path": {
-            "items": {
-              "$ref": "#/components/schemas/UnitRef"
-            },
-            "type": "array"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "company",
-          "path",
-          "children",
-          "heads",
-          "members"
-        ],
-        "type": "object"
-      },
-      "UnitChange": {
-        "description": "A unit renamed or moved under another parent of its company.",
-        "properties": {
           "name": {
             "type": [
               "string",
@@ -2732,6 +3555,19 @@
             "format": "int64",
             "type": [
               "integer",
+              "null"
+            ]
+          },
+          "reportsTo": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "shortName": {
+            "type": [
+              "string",
               "null"
             ]
           }
@@ -2752,6 +3588,51 @@
         "required": [
           "unit",
           "user"
+        ],
+        "type": "object"
+      },
+      "UnitKinds": {
+        "description": "A company's unit kinds, in its order.",
+        "properties": {
+          "kinds": {
+            "items": {
+              "$ref": "#/components/schemas/KindRef"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "kinds"
+        ],
+        "type": "object"
+      },
+      "UnitKindsAsk": {
+        "description": "A company's unit kinds written whole, in its order.",
+        "properties": {
+          "kinds": {
+            "items": {
+              "$ref": "#/components/schemas/CatalogueEntry"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "kinds"
+        ],
+        "type": "object"
+      },
+      "UnitLine": {
+        "description": "A unit's line, the unit first and its company last.",
+        "properties": {
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/LineStep"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "steps"
         ],
         "type": "object"
       },
@@ -2788,6 +3669,22 @@
       "UnitRow": {
         "description": "One unit of the whole tree, as the administrator reads it.",
         "properties": {
+          "acting": {
+            "default": [],
+            "description": "The users among `heads` whose grant is an acting appointment's.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "concurrent": {
+            "default": [],
+            "description": "The users holding a post in it.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
           "heads": {
             "items": {
               "type": "string"
@@ -2797,6 +3694,16 @@
           "id": {
             "format": "int64",
             "type": "integer"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/KindRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "left": {
             "default": [],
@@ -2821,6 +3728,20 @@
               "integer",
               "null"
             ]
+          },
+          "reportsTo": {
+            "description": "The unit it reports to, by its number.",
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "shortName": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [
@@ -2828,7 +3749,116 @@
           "name",
           "heads",
           "members",
-          "left"
+          "left",
+          "concurrent",
+          "acting"
+        ],
+        "type": "object"
+      },
+      "UnitView": {
+        "description": "One organisation unit read whole: what `Unit` answers, and beside it the unit's kind, short name and the unit\nit reports to, the roles its people carry, the people holding a post in it and the appointment running.",
+        "properties": {
+          "acting": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Appointment"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "children": {
+            "items": {
+              "$ref": "#/components/schemas/UnitRef"
+            },
+            "type": "array"
+          },
+          "company": {
+            "$ref": "#/components/schemas/UnitRef"
+          },
+          "concurrent": {
+            "items": {
+              "$ref": "#/components/schemas/ConcurrentPost"
+            },
+            "type": "array"
+          },
+          "heads": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/KindRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "members": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "name": {
+            "type": "string"
+          },
+          "parent": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "path": {
+            "items": {
+              "$ref": "#/components/schemas/UnitRef"
+            },
+            "type": "array"
+          },
+          "reportsTo": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UnitRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "roles": {
+            "items": {
+              "$ref": "#/components/schemas/MemberRole"
+            },
+            "type": "array"
+          },
+          "shortName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "company",
+          "path",
+          "children",
+          "heads",
+          "members",
+          "roles",
+          "concurrent",
+          "acting"
         ],
         "type": "object"
       },
@@ -2900,8 +3930,12 @@
         "type": "object"
       },
       "UserProfile": {
-        "description": "A user's person's name, job title and contact details, which the account's holder or an administrator keeps\n(docs/accounts.md, 「Users and senders」). Every field is a string, empty where the account keeps none.",
+        "description": "A user's person's name, job title, rank, duty and contact details, which the account's holder or an\nadministrator keeps (docs/accounts.md, 「Users and senders」). Every field is a string, empty where the account\nkeeps none.",
         "properties": {
+          "duty": {
+            "default": "",
+            "type": "string"
+          },
           "email": {
             "type": "string"
           },
@@ -2909,6 +3943,7 @@
             "type": "string"
           },
           "jobTitle": {
+            "description": "The job title kept, as free text.",
             "type": "string"
           },
           "landline": {
@@ -2916,11 +3951,17 @@
           },
           "mobile": {
             "type": "string"
+          },
+          "rank": {
+            "default": "",
+            "type": "string"
           }
         },
         "required": [
           "fullName",
           "jobTitle",
+          "rank",
+          "duty",
           "landline",
           "mobile",
           "email"
@@ -3840,6 +4881,286 @@
           "unauthorized",
           "forbidden",
           "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/companies/{company}/roles": {
+      "get": {
+        "operationId": "companyRoles",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyRoles"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A company's roles, lowest first, for anyone of the company.",
+        "tags": [
+          "Organisation units"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "put": {
+        "operationId": "setCompanyRoles",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompanyRolesAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyRoles"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, bad-catalogue, unauthorized, forbidden, not-found, role-held, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A company's roles written whole, lowest first, by the administrator or a head of the company's own unit.",
+        "tags": [
+          "Organisation units"
+        ],
+        "x-codes": [
+          "bad-request",
+          "bad-catalogue",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "role-held",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/companies/{company}/unit-kinds": {
+      "get": {
+        "operationId": "unitKinds",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnitKinds"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A company's unit kinds, in its order, for anyone of the company.",
+        "tags": [
+          "Organisation units"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "put": {
+        "operationId": "setUnitKinds",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UnitKindsAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnitKinds"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, bad-catalogue, unauthorized, forbidden, not-found, kind-held, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A company's unit kinds written whole, by the administrator or a head of the company's own unit.",
+        "tags": [
+          "Organisation units"
+        ],
+        "x-codes": [
+          "bad-request",
+          "bad-catalogue",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "kind-held",
           "not-in-force",
           "database",
           "failed"
@@ -4815,6 +6136,14 @@
           },
           {
             "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
             "name": "role",
             "required": false,
             "schema": {
@@ -4891,7 +6220,7 @@
             "bearerAuth": []
           }
         ],
-        "summary": "One page of the people the reader looks through, in the order of their names, case set aside, then their user ids, each with their job title and, for the administrator alone, their email, with how many match the whole ask and the place the next page starts; 50 where no limit is named and never more than 100.",
+        "summary": "One page of the people the reader looks through, in the order of their names, case set aside, then their user ids, each with their title, rank, role and duty and, for the administrator alone, their email, with how many match the whole ask and the place the next page starts; 50 where no limit is named and never more than 100. A unit or a kind counts the people holding a post in a unit it names, marked with the post.",
         "tags": [
           "People roster"
         ],
@@ -5009,7 +6338,7 @@
             "bearerAuth": []
           }
         ],
-        "summary": "One person the reader looks through, as a page answers them, with their landline and mobile for the administrator alone, their unit's path, the units they are granted head of, their departure and their machine's standing.",
+        "summary": "One person the reader looks through, as a page answers them, with their landline and mobile for the administrator alone, their unit's path, the units they are granted head of and act for, their posts, their history, their departure and their machine's standing.",
         "tags": [
           "People roster"
         ],
@@ -5963,6 +7292,14 @@
         "operationId": "units",
         "parameters": [
           {
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "description": "The user of the login the call is made for, its id written as a decimal number.",
             "in": "header",
             "name": "Owner-Key",
@@ -6012,7 +7349,7 @@
             "bearerAuth": []
           }
         ],
-        "summary": "Every unit, companies first and each unit after its parent, for the administrator alone.",
+        "summary": "Every unit, or the units of one kind, companies first and each unit after its parent, for the administrator alone.",
         "tags": [
           "Organisation units"
         ],
@@ -6065,7 +7402,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Unit"
+                  "$ref": "#/components/schemas/UnitView"
                 }
               }
             },
@@ -6079,7 +7416,7 @@
                 }
               }
             },
-            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed"
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, other-company, cycle, short-name-taken, no-such-kind, not-in-force, database, failed"
           }
         },
         "security": [
@@ -6096,6 +7433,10 @@
           "unauthorized",
           "forbidden",
           "not-found",
+          "other-company",
+          "cycle",
+          "short-name-taken",
+          "no-such-kind",
           "not-in-force",
           "database",
           "failed"
@@ -6121,7 +7462,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Unit"
+                  "$ref": "#/components/schemas/UnitView"
                 }
               }
             },
@@ -6143,7 +7484,7 @@
             "bearerAuth": []
           }
         ],
-        "summary": "One organisation unit: its parent, company and path, the units directly under it, its heads and its members.",
+        "summary": "One organisation unit: its parent, company and path, the units directly under it, its heads and its members, its kind, short name and the unit it reports to, the roles its people carry, the people holding a post in it and the acting appointment running.",
         "tags": [
           "Organisation units"
         ],
@@ -6206,7 +7547,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Unit"
+                  "$ref": "#/components/schemas/UnitView"
                 }
               }
             },
@@ -6220,7 +7561,7 @@
                 }
               }
             },
-            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, other-company, cycle, not-in-force, database, failed"
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, other-company, cycle, short-name-taken, no-such-kind, not-in-force, database, failed"
           }
         },
         "security": [
@@ -6228,7 +7569,7 @@
             "bearerAuth": []
           }
         ],
-        "summary": "A unit renamed, or moved under another parent of its company, by the administrator.",
+        "summary": "A unit renamed, moved under another parent of its company, or given its kind, short name and the unit it reports to, by the administrator.",
         "tags": [
           "Organisation units"
         ],
@@ -6239,6 +7580,143 @@
           "not-found",
           "other-company",
           "cycle",
+          "short-name-taken",
+          "no-such-kind",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/units/{unit}/acting": {
+      "delete": {
+        "operationId": "endAppointment",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "unit",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done; no content."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The acting appointment running on a unit ended, by the administrator or a head of a unit above.",
+        "tags": [
+          "Organisation units"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "put": {
+        "operationId": "appoint",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "unit",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppointmentAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Appointment"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, bad-period, unauthorized, forbidden, not-found, other-company, left, already-head, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A person named to act for a unit's head until a moment still to come, by the administrator or a head of a unit above.",
+        "tags": [
+          "Organisation units"
+        ],
+        "x-codes": [
+          "bad-request",
+          "bad-period",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "other-company",
+          "left",
+          "already-head",
           "not-in-force",
           "database",
           "failed"
@@ -6560,6 +8038,144 @@
         ]
       }
     },
+    "/units/{unit}/line": {
+      "get": {
+        "operationId": "unitLine",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "unit",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnitLine"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A unit's line, the unit first and its company last, following the unit it reports to where set and its parent otherwise, each step with its heads and the people holding each role there, for anyone of the unit's company.",
+        "tags": [
+          "Organisation units"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/units/{unit}/line/{role}": {
+      "get": {
+        "operationId": "roleStand",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "unit",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "role",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleStand"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Who stands for one role for a unit: the holders nearest on its line, else the holders of the next lower role, marked acting with the reason.",
+        "tags": [
+          "Organisation units"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
     "/units/{unit}/members": {
       "post": {
         "operationId": "movePeople",
@@ -6611,7 +8227,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Unit"
+                  "$ref": "#/components/schemas/UnitView"
                 }
               }
             },
@@ -6625,7 +8241,7 @@
                 }
               }
             },
-            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, left, moved, not-in-force, database, failed"
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, left, moved, no-such-role, not-in-force, database, failed"
           }
         },
         "security": [
@@ -6633,7 +8249,7 @@
             "bearerAuth": []
           }
         ],
-        "summary": "Several people moved into a unit in one act, each its head or a member, by the administrator.",
+        "summary": "Several people moved into a unit in one act, each its head or a member and with the role named, by the administrator.",
         "tags": [
           "Organisation units"
         ],
@@ -6644,6 +8260,158 @@
           "not-found",
           "left",
           "moved",
+          "no-such-role",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/units/{unit}/posts/{user}": {
+      "delete": {
+        "operationId": "takePost",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "unit",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done; no content."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A post and the head grant it carried taken away, by the administrator or a head of the unit or of one above.",
+        "tags": [
+          "Organisation units"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "put": {
+        "operationId": "givePost",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "unit",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Post"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, home-unit, other-company, left, no-such-role, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A post given to a person in a unit of their company other than their home unit, with a role or none and the unit's head or not, by the administrator or a head of the unit or of one above.",
+        "tags": [
+          "Organisation units"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "home-unit",
+          "other-company",
+          "left",
+          "no-such-role",
           "not-in-force",
           "database",
           "failed"
@@ -7978,7 +9746,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Person"
+                  "$ref": "#/components/schemas/PersonDetail"
                 }
               }
             },
@@ -8000,9 +9768,73 @@
             "bearerAuth": []
           }
         ],
-        "summary": "One person of the reader's organisation, with the contact details only an administrator or the person themselves may see.",
+        "summary": "One person of the reader's organisation, with their posts and the contact details only an administrator or the person themselves may see.",
         "tags": [
           "Users and senders"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/users/{user}/posts": {
+      "get": {
+        "operationId": "userPosts",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Posts"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A person's posts, each with its unit, path and role, whether it carries the unit's head, and when and by whom it was given, for anyone of the person's company.",
+        "tags": [
+          "Organisation units"
         ],
         "x-codes": [
           "bad-request",
@@ -8129,7 +9961,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UserProfile"
+                "$ref": "#/components/schemas/ProfileAsk"
               }
             }
           },
@@ -8162,7 +9994,7 @@
             "bearerAuth": []
           }
         ],
-        "summary": "Writes a user's job title and contact details whole, by the account's holder or an administrator.",
+        "summary": "Writes a user's job title and contact details whole, and their rank and duty where named, by the account's holder or an administrator.",
         "tags": [
           "Users and senders"
         ],

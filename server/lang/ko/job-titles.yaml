@@ -1,0 +1,4 @@
+# The one line a person's title is shown as where both their rank and their role are set (docs/accounts.md,
+# 「Users and senders」): {rank} and {role} are filled in with them. Where only one of the two is set, the line is
+# that one alone; where neither is, the job title the person keeps.
+both: "{rank}, {role}"

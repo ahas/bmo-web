@@ -28,6 +28,7 @@ pub mod gate_eval;
 pub mod generation;
 pub mod job_ask;
 pub mod job_questions;
+pub mod job_titles;
 pub mod job_wait;
 pub mod laya_agreement;
 pub mod machine_stand_in;

@@ -91,6 +91,8 @@ interface StandInBody {
   encoding?: unknown;
   // A user's profile.
   jobTitle?: string;
+  rank?: string;
+  duty?: string;
   landline?: string;
   mobile?: string;
   email?: string;
@@ -98,9 +100,11 @@ interface StandInBody {
   sections?: { section?: string; read?: boolean; write?: boolean }[];
 }
 
-/** A user's job title and contact details, as the stand-in keeps them. */
+/** A user's job title, rank, duty and contact details, as the stand-in keeps them. */
 export interface StandInProfile {
   jobTitle: string;
+  rank: string;
+  duty: string;
   landline: string;
   mobile: string;
   email: string;
@@ -513,13 +517,17 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
         }
 
         if (request.method === "GET") {
-          return json({ fullName: user.fullName ?? "", ...(profiles.get(user.id) ?? { jobTitle: "", landline: "", mobile: "", email: "" }) });
+          return json({ fullName: user.fullName ?? "", ...(profiles.get(user.id) ?? { jobTitle: "", rank: "", duty: "", landline: "", mobile: "", email: "" }) });
         }
 
         user.fullName = String((body as { fullName?: unknown } | undefined)?.fullName ?? "").trim();
 
+        const kept = profiles.get(user.id);
+        // The rank and the duty are left as they stand where the body names neither, as the service leaves them.
         const profile = {
           jobTitle: String(body?.jobTitle ?? ""),
+          rank: body?.rank === undefined ? (kept?.rank ?? "") : String(body.rank),
+          duty: body?.duty === undefined ? (kept?.duty ?? "") : String(body.duty),
           landline: String(body?.landline ?? ""),
           mobile: String(body?.mobile ?? ""),
           email: String(body?.email ?? "")

@@ -16,6 +16,9 @@ import type { SignedIn } from "./accounts";
 const ORGANIZATION_CODES: Record<string, string> = {
   "other-company": "organization.error.other_company",
   cycle: "organization.error.cycle",
+  "short-name-taken": "organization.error.short_name_taken",
+  "no-such-kind": "organization.error.no_such_kind",
+  "no-such-role": "organization.error.no_such_role",
   "not-found": "organization.error.not_found",
   "bad-request": "organization.error.bad_request",
   forbidden: "common.error.administrator_only"
@@ -35,7 +38,22 @@ export const SHARING_CODES: Readonly<Record<string, string>> = { ...MACHINE_CODE
 /** The codes of a move of several people (docs/boundary.md, 「Organisation units」), over the section's own. */
 export const MOVE_CODES: Readonly<Record<string, string>> = {
   left: "organization.error.move_left",
+  "no-such-role": "organization.error.no_such_role",
   moved: "organization.error.moved"
+};
+
+/** The codes of the calls a head of a unit may make as well as the administrator — a post, an acting appointment, a
+ * company's lists (docs/boundary.md, 「Organisation units」, 「Roles and unit kinds」) — over the section's own. */
+export const HEAD_CODES: Readonly<Record<string, string>> = {
+  forbidden: "organization.error.head_only",
+  left: "organization.error.post_left",
+  "home-unit": "organization.error.home_unit",
+  "already-head": "organization.error.already_head",
+  "bad-period": "organization.error.bad_period",
+  "bad-catalogue": "organization.error.bad_catalogue",
+  "role-held": "organization.error.role_held",
+  "kind-held": "organization.error.kind_held",
+  "other-company": "organization.error.post_other_company"
 };
 
 /** The login a section's call is made for. */

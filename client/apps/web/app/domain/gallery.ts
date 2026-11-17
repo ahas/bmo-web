@@ -1,4 +1,4 @@
-import { fileSizeText } from "./attachments";
+import { fileSizeText } from "#shared/file-sizes";
 import { countText } from "./numbers";
 import { withoutMediaMark } from "./room";
 import { formatStamp } from "bmo-ui/app/domain/time";

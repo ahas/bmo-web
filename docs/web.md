@@ -3784,7 +3784,9 @@ alone (「Access」); another account's agents are reached from 조직's 사용�
   403 before anything reaches the agency, whatever sections it holds.
 - **This box is the room's own box** (「Room screen」): the same Enter rule, growth, draft, long-paste marks and
   attachment tray, from one component. On a worker's screen it takes files too — by the clip, a paste or a drop,
-  up to ten at 50MB each — and words may be left out when files are there. Its clip hands the reader's own
+  up to ten at 8 MiB each, the most the agency takes with one word (its `policy/worker-words.toml`), a file past
+  that turned away on the spot as a room's box turns one away — and words may be left out when files are there.
+  Its clip hands the reader's own
   secrets as a room's does (「첨부」): the chip goes in as the pack's line naming the secret and its kind, at the end of
   the word, and the worker uses the stored secret by that name, read where its space stands (`docs/accounts.md`,
   「The secret store」). The bot writes a word's files
@@ -5266,22 +5268,32 @@ Four bounds keep it from growing forever.
     no microphone button; one whose microphone permission is refused says so when a recording is asked for.
   - **The kind** is split by the file's MIME. JPEG and PNG are photos, GIF a moving image, other images files so
     the original is not damaged, video a video, sound audio, and everything else a file. A photo-bound file with no
-    extension is uploaded with one attached — the name must be so to stand as a photo in Telegram. One file is up
-    to 50MB, ten at once. A larger file does not attach and says so on the spot with its name and size, and choosing over ten says which was dropped. The reader's actual limit is
-  far larger, but this line is not exceeded as the road carries it whole from the browser through the app to the
-  bot. The proxies in front of the console — NPM and this machine's nginx site — put no ceiling of their own on a
-  request's size, so the app's ceiling is the one that holds. Pressing send moves the attached from the list above the input box to the conversation's end, standing one
-  line per file to show what is going up. A photo stands a preview there, and other files stand a name. Each file's
-  outcome returns on its own, an album that did not go answering for every file in it, so an uploaded line becomes
-  an ordinary message, the pictures of one album gathering into one 앨범 row, and only an un-uploaded line stays
-  with its reason and 다시 보내기. So if one of several sticks, only that one goes again, and a file already in the
-  room never goes up twice. The line's failed mark names its own file's reason on hover and on press. A send the
-  receiver refuses as a whole hands every file in it the refusal's sentence, naming the file once, and a request
-  past the receiver's ceiling for one send is said as the console's own ceiling. Every file that does not go, or
-  is not yet known to have gone, is written to the console server's log, one line each with the room, the file's
-  name and why: the receiver's own status and words where it refused the send, and its own reason where it
-  answered for that file. A photo, voice, audio or ordinary file stays as the message the receive update
-  recorded in the archive. When the file's storage finishes, the same message's attachment mark is updated.
+    extension is uploaded with one attached — the name must be so to stand as a photo in Telegram.
+  - **The console sets no limit of its own** on a file's size or on how many files one send carries. The one limit
+    is the room's: the largest file it takes, which the receiver answers for the room as the smallest any chat
+    service on its list declares, with the chat service declaring it (the receiver's `docs/api.md`, 「Sends」). The
+    screen reads it as the room opens; a file past it does not attach and says so on the spot with its name, its
+    size, the chat service and the largest it takes. A room none of whose chat services declares a limit, a room on
+    the record alone among them, takes a file of any size, and so does the box while the limit has not been read,
+    the receiver then turning such a file away on its own. The proxies in front of the console — NPM and this
+    machine's nginx site — put no ceiling of their own on a request's size.
+  - **A file is never held whole in the console's memory.** The attach and voice routes read the form as it
+    arrives, each file written as its bytes come to a scratch file in the console's data folder (「Settings」), and
+    hand the receiver its form as a stream read back from those files; the scratch files are removed once the
+    receiver answers or the send fails.
+  - **Pressing send** moves the attached from the list above the input box to the conversation's end, standing one
+    line per file to show what is going up. A photo stands a preview there, and other files stand a name. Each
+    file's outcome returns on its own, an album that did not go answering for every file in it, so an uploaded
+    line becomes an ordinary message, the pictures of one album gathering into one 앨범 row, and only an un-uploaded
+    line stays with its reason and 다시 보내기. So if one of several sticks, only that one goes again, and a file
+    already in the room never goes up twice. The line's failed mark names its own file's reason on hover and on
+    press. A send the receiver refuses as a whole hands every file in it the refusal's sentence, naming the file
+    once, and a file the receiver turns away as past the room's limit says the chat service and the largest it
+    takes, as the box says it. Every file that does not go, or is not yet known to have gone, is written to the
+    console server's log, one line each with the room, the file's name and why: the receiver's own status and
+    words where it refused the send, and its own reason where it answered for that file. A photo, voice, audio or
+    ordinary file stays as the message the receive update recorded in the archive. When the file's storage
+    finishes, the same message's attachment mark is updated.
 - **지금 하는 일** — from the moment that room's session received something to the moment that turn ends, a line
   flows below the conversation. The received moment, not the model-asking moment — in between stand waiting on a
   context being folded, the summary opening a new session, the reference gates and the sanitiser lined up, so
@@ -8460,7 +8472,7 @@ The console reads its settings from its environment: the units' addresses and to
 | `BMO_VAPID_PRIVATE_KEY` | Its secret side. Never leaves the machine. Without either, notifications cannot be sent |
 | `BMO_VAPID_SUBJECT` | Where to contact about this server's push. A `mailto:` or `https:` address, and the default points at no person |
 | `BMO_PUSH_IN_DEV` | Makes the dev server send notifications too (`1`, `true`, `yes`). A built server always sends regardless |
-| `WEB_DATA_DIR` | The console's own data folder: the keys a send is held once by. Inside no checkout; `~/.local/share/bmo-web/data` where it is not set |
+| `WEB_DATA_DIR` | The console's own data folder: the keys a send is held once by, and the scratch files a room's file is written to on its way to the receiver. Inside no checkout; `~/.local/share/bmo-web/data` where it is not set |
 | `BMO_WEB_BASE_URL` | The base path every page and road stands under; `/bmo/` where none is named |
 | `BMO_WEB_OUTPUT_DIR` | Where a build writes its release; `.output` where none is named. The deployment names a release's own directory |
 | `BMO_WEB_BUILD_DIR` | Where Nuxt writes its generated project; `.nuxt` where none is named. A standing dev console names its own, beginning `.nuxt-`, which the checkout ignores, so a typecheck in the same checkout leaves what it serves alone |
@@ -8574,8 +8586,11 @@ The console stands as the systemd user unit this repository's `deploy/` holds, `
   takes longer to answer (a supervisor's removal waits out a person-book run's stop) and cut an event stream a unit
   keeps quiet. So the limit is off: a request waits until its unit answers, and a relayed stream or socket stands
   until its unit or the browser ends it. Nitro's Bun entry reads the limit only as a number of seconds and cannot
-  turn it off, so the console's production build starts from an entry of its own, the Bun entry with the limit off
-  and nothing else changed.
+  turn it off, so the console's production build starts from an entry of its own, the Bun entry with the limit off.
+- **A request's body reaches the console's routes as it arrives.** Nitro's Bun entry reads every body whole before
+  a route sees it, so the console's own entry hands Nitro the body as the stream it comes in as, and a relayed body
+  or a room's file goes on as its bytes come rather than being held whole in memory (「Screens a unit brings」,
+  「Room screen」). Everything else is Nitro's entry as it stands.
 - **A build takes a larger heap than Node gives by default.** Bundling the server runs past the default heap
   limit, so the build script raises it to six gigabytes (`NODE_OPTIONS=--max-old-space-size=6144`).
 - **Each deployment is a release of its own.** The testbed builds a release into a directory of its own and flips

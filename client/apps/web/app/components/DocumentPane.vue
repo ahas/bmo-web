@@ -148,7 +148,7 @@
 </template>
 
 <script setup lang="ts">
-import { fileSizeText } from "~/domain/attachments";
+import { fileSizeText } from "#shared/file-sizes";
 import { translationFailureLine } from "#shared/translation";
 
 import { bmoLabel } from "~/domain/agents";

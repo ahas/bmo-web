@@ -48,7 +48,7 @@ export interface ChosenFile {
 <script setup lang="ts">
 import { useIsland } from "bmo-ui/app/domain/island";
 
-import { fileSizeText } from "~/domain/attachments";
+import { fileSizeText } from "#shared/file-sizes";
 
 import type { SecretField } from "#shared/secret-kinds";
 

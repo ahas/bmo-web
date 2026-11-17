@@ -1,4 +1,5 @@
-import { MAX_ATTACHMENT_BYTES, MAX_ATTACHMENTS, MAX_RUN_PROMPT_LENGTH } from "#shared/config";
+import { MAX_RUN_PROMPT_LENGTH, WORKER_WORD_FILE_BYTES, WORKER_WORD_FILES } from "#shared/config";
+import { fileSizeText } from "#shared/file-sizes";
 import { wording } from "#shared/wording";
 
 import type { H3Event } from "h3";
@@ -15,10 +16,6 @@ interface WordFile {
   data: Uint8Array<ArrayBuffer>;
 }
 
-// The agency takes at most this much in one file said to a worker. The console's own road carries more, so a file
-// it allows is refused here rather than sent to be refused there (the agency's `docs/api.md`).
-const WORD_FILE_BYTES = 8 * 1024 * 1024;
-
 // The agency's answer: the words were delivered, are waiting for the worker's session, or were refused. A refusal's
 // reason is written for an agent; a person is told the pack's sentence.
 interface WordAnswer {
@@ -26,9 +23,15 @@ interface WordAnswer {
   reason?: string | null;
 }
 
-// What a body may weigh before it is even read: every file at its ceiling, and a little for the
-// words and the multipart's own frame.
-const MAX_BODY_BYTES = MAX_ATTACHMENT_BYTES * MAX_ATTACHMENTS + 1024 * 1024;
+// What a body may weigh before it is even read: as many files as the agency takes in one word, each at the most it
+// takes, and a little for the words and the multipart's own frame. The word goes on to the agency whole, so it is
+// read whole here, within that bound.
+const MAX_BODY_BYTES = WORKER_WORD_FILE_BYTES * WORKER_WORD_FILES + 1024 * 1024;
+
+// The sentence a word past the agency's bound is refused with.
+function boundWords(): string {
+  return wording("common.error.attachments_too_large", { n: WORKER_WORD_FILES, size: fileSizeText(WORKER_WORD_FILE_BYTES) });
+}
 
 // A word comes as JSON, or as a form when the box carries files with it.
 async function readWord(event: H3Event): Promise<{ body: WordBody; files: WordFile[] }> {
@@ -39,7 +42,7 @@ async function readWord(event: H3Event): Promise<{ body: WordBody; files: WordFi
   const declared = Number.parseInt(getRequestHeader(event, "content-length") ?? "", 10);
 
   if (Number.isSafeInteger(declared) && declared > MAX_BODY_BYTES) {
-    throw fail(413, wording("common.error.attachments_too_large", { n: MAX_ATTACHMENTS }));
+    throw fail(413, boundWords());
   }
 
   const parts = (await readMultipartFormData(event)) ?? [];
@@ -72,12 +75,12 @@ export default defineEventHandler(async (event): Promise<WorkerWordSent> => {
     throw fail(400, wording("agents.error.bad_word_worker"));
   }
 
-  if (files.length > MAX_ATTACHMENTS) {
-    throw fail(400, wording("common.error.attachments_too_many", { n: MAX_ATTACHMENTS }));
+  if (files.length > WORKER_WORD_FILES) {
+    throw fail(400, wording("common.error.attachments_too_many", { n: WORKER_WORD_FILES }));
   }
 
-  if (files.some((file) => file.data.length > WORD_FILE_BYTES)) {
-    throw fail(413, wording("common.error.file_too_large"));
+  if (files.some((file) => file.data.length > WORKER_WORD_FILE_BYTES)) {
+    throw fail(413, boundWords());
   }
 
   if (text === "" && files.length === 0) {

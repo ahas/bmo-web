@@ -1,3 +1,7 @@
+import { rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
 import { createError } from "h3";
 
 import { chatAccountOf } from "../../apps/web/server/utils/accounts";
@@ -25,6 +29,41 @@ export interface RouteEvent {
 
 const globals: Record<string, unknown> = globalThis;
 
+// The console's data folder for this run of the tests, where a route writes the scratch files of a form it carries;
+// never the machine's own, and taken away as the run ends.
+const dataRoot = join(tmpdir(), `bmo-route-data-${process.pid}`);
+
+process.env.WEB_DATA_DIR = dataRoot;
+process.on("exit", () => rmSync(dataRoot, { recursive: true, force: true }));
+
+// The parts of a multipart body framed as a browser sends them, once for each event, so the type a route reads and
+// the stream it reads carry the same form. The type is read as the form is framed, since the runtime drops it from a
+// framed form whose body was taken first.
+const forms = new WeakMap<RouteEvent, { type: string; body: ReadableStream<Uint8Array> }>();
+
+function formOf(event: RouteEvent): { type: string; body: ReadableStream<Uint8Array> } | undefined {
+  if (event.parts === undefined) return undefined;
+
+  const held = forms.get(event);
+
+  if (held !== undefined) return held;
+
+  const form = new FormData();
+
+  for (const part of event.parts) {
+    if (part.filename === undefined) form.append(part.name ?? "", new TextDecoder().decode(part.data));
+    else form.append(part.name ?? "", new File([part.data as Uint8Array<ArrayBuffer>], part.filename, { type: part.type ?? "" }));
+  }
+
+  const response = new Response(form);
+  const type = response.headers.get("content-type") ?? "";
+  const framed = { type, body: response.body! };
+
+  forms.set(event, framed);
+
+  return framed;
+}
+
 globals.defineEventHandler = (handler: unknown) => handler;
 globals.createError = createError;
 globals.fail = fail;
@@ -37,10 +76,15 @@ globals.readMultipartFormData = async (event: RouteEvent) => event.parts ?? null
 globals.getQuery = (event: RouteEvent) => event.query ?? {};
 globals.getRouterParam = (event: RouteEvent, name: string) => event.params?.[name];
 globals.getMethod = (event: RouteEvent) => event.method ?? "GET";
-globals.getRequestHeader = (event: RouteEvent, name: string) => event.headers?.[name.toLowerCase()];
+globals.getRequestHeader = (event: RouteEvent, name: string) =>
+  name.toLowerCase() === "content-type" && event.parts !== undefined ? formOf(event)?.type : event.headers?.[name.toLowerCase()];
 globals.setResponseStatus = () => {};
 globals.readRawBody = async (event: RouteEvent) => event.rawBody;
 globals.getRequestWebStream = (event: RouteEvent) => {
+  const framed = formOf(event);
+
+  if (framed !== undefined) return framed.body;
+
   const pieces = event.streamed;
 
   if (pieces !== undefined) {

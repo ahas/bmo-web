@@ -7,10 +7,11 @@ import { exactJson, exactJsonText } from "./exact-json";
 import { unitAt, unitFetch } from "./units";
 import { answered } from "./unit-answer";
 
-import type { ExactMessageId, RoomMode, RoomModeView, RoomProvidersView } from "#shared/types";
+import type { ExactMessageId, FileLimit, RoomMode, RoomModeView, RoomProvidersView } from "#shared/types";
 import type { components, paths } from "@bmo/receiver-client/schema";
 import type { WithExactIds } from "./exact-json";
 import type { UnitAnswerCall } from "./unit-answer";
+import type { StreamedForm } from "./streamed-forms";
 import type { UnitCall } from "./units";
 
 // The receiver's fixed API as its published package states it (the receiver's `docs/api.md`, 「The wire」): one
@@ -196,14 +197,22 @@ export async function receiverCall<T, E extends { code?: string; error?: string;
  */
 export async function receiverRoute<T>(path: string, init: Omit<RequestInit, "body"> & { body?: unknown } = {}, call: UnitCall = {}): Promise<T> {
   const { body, ...rest } = init;
+  const headers = (rest.headers as Record<string, string> | undefined) ?? {};
   const sending: RequestInit =
     body === undefined
       ? rest
       : body instanceof FormData
         ? { ...rest, body }
-        : { ...rest, body: exactJsonText(body, BODY_IDS), headers: { "content-type": "application/json", ...((rest.headers as Record<string, string> | undefined) ?? {}) } };
+        : isStreamedForm(body)
+          ? ({ ...rest, body: body.body, headers: { ...body.headers, ...headers }, duplex: "half" } as RequestInit)
+          : { ...rest, body: exactJsonText(body, BODY_IDS), headers: { "content-type": "application/json", ...headers } };
 
   return await unitFetch<T>("RECEIVER", path, sending, { ...call, codes: { ...RECEIVER_CODES, ...call.codes } });
+}
+
+// A form handed as the stream it is sent as, which goes with its own frame's headers.
+function isStreamedForm(value: unknown): value is StreamedForm {
+  return typeof value === "object" && value !== null && Reflect.get(value, "body") instanceof ReadableStream;
 }
 
 /** One call on the receiver asked for its answer as text, read with every message id in it exact (`exactJson`), its
@@ -247,6 +256,22 @@ export async function roomPastReaders(roomId: number): Promise<string[]> {
 
     return provider?.can.includes(HISTORY) === true ? [provider.label] : [];
   });
+}
+
+/** The largest file a room takes and the chat service declaring it, by the label the receiver gives it: the smallest
+ * limit any chat service on the room's list declares, or none where none declares one (the receiver's `docs/api.md`,
+ * 「Sends」). */
+export async function roomFileLimit(roomId: number): Promise<FileLimit | null> {
+  const asking = receiver();
+  const [listed, room] = await Promise.all([
+    receiverCall(asking.GET("/providers")),
+    receiverCall(asking.GET("/rooms/{roomId}/providers", { params: { path: { roomId } } }))
+  ]);
+  const limit = room.fileLimit ?? null;
+
+  if (limit === null) return null;
+
+  return { bytes: limit.bytes, by: listed.items.find((provider) => provider.key === limit.provider)?.label ?? limit.provider };
 }
 
 /** A room's chat providers as its dialog reads them: every provider the receiver names, and the ones the room is on. */

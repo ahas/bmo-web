@@ -10,6 +10,7 @@ import { shareRead } from "bmo-ui/shared/console-manifest";
 import { relayedRest, socketRelay } from "../utils/bundle-relay";
 import { attachedService, bundleFile, bundleOfPage, pageReaches, readerMay, readerOf, relayedCall } from "../utils/console-manifests";
 import { ownerHeaders } from "../utils/owner-key";
+import { requestStream } from "../utils/streamed-forms";
 import { unitAt } from "../utils/units";
 
 // One service's own paths, handed on whole (bmo-ui's `docs/console-bundles.md`, 「How a bundle mounts」;
@@ -146,7 +147,7 @@ async function relayed(event: H3Event): Promise<Response> {
 
   // The body goes as the bytes it came as and as they come, so a bundle's file upload is neither read as text on the
   // way nor held whole in this process.
-  const body = reading ? undefined : getRequestWebStream(event);
+  const body = reading ? undefined : requestStream(event);
   // The call waits for the service's answer however long it takes to begin; it ends only on that answer or on
   // its connection refused or broken (docs/web.md, 「Screens a unit brings」).
   const waiting = new AbortController();

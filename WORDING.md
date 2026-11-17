@@ -165,6 +165,10 @@
   an installer → 설치 파일, or its format's own name, AppImage, deb 패키지; a file's size → 크기, written `{size}
   ({bytes}바이트)`; its digest → SHA-256; the steps of using it → 사용 방법. A warning Windows shows is named by the
   words Windows itself shows: Windows의 PC 보호, 추가 정보, 실행. Never 인스톨러, 셋업 파일, 릴리스, 배포일 or 해시값.
+- the largest file a place takes, which a room's chat service or the agency declares → 보낼 수 있는 크기: in the
+  box `{by}에서 보낼 수 있는 크기({limit})보다 큰 파일이라 첨부하지 않았습니다`, the file named beneath it; for a send
+  `{name} 파일이 {by}에서 보낼 수 있는 크기({limit})보다 커서 보내지 않았습니다`; with no chat service named, 이 방에서
+  보낼 수 있는 크기. Never 용량 제한, 업로드 한도, 최대 용량, 너무 큽니다.
 - render → 렌더링: 렌더링하지 않는 기간. Never 그리다.
 - message, words → 메시지: 메시지를 보내다, 보낼 메시지. A conversation is 대화, an instruction added
   to an item is 지시. Never 말, 할 말, 이야기, 말을 걸다.

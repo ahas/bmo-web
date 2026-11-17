@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
+import { WORKER_WORD_FILE_BYTES, WORKER_WORD_FILES } from "../../../apps/web/shared/config";
+import { fileSizeText } from "../../../apps/web/shared/file-sizes";
 import { wording } from "../../../apps/web/shared/wording";
 import { asked, routeOf } from "../../support/nitro";
 import { answer, standIn } from "../../support/units";
@@ -82,9 +84,9 @@ describe("a word from the console to one worker", () => {
       parts: [
         { name: "worker", data: text("worker-b") },
         { name: "text", data: text("look at this") },
-        { name: "file", filename: "big.bin", type: "application/octet-stream", data: new Uint8Array(8 * 1024 * 1024 + 1) }
+        { name: "file", filename: "big.bin", type: "application/octet-stream", data: new Uint8Array(WORKER_WORD_FILE_BYTES + 1) }
       ]
-    })).toMatchObject({ status: 413, message: wording("common.error.file_too_large") });
+    })).toMatchObject({ status: 413, message: wording("common.error.attachments_too_large", { n: WORKER_WORD_FILES, size: fileSizeText(WORKER_WORD_FILE_BYTES) }) });
     expect(agency.asked).toEqual([]);
   });
 

@@ -183,7 +183,8 @@
 </template>
 
 <script setup lang="ts">
-import { attachmentLabel, fileSizeText, isPreviewable, pickFiles } from "~/domain/attachments";
+import { attachmentLabel, isPreviewable, pickFiles, refusalFor } from "~/domain/attachments";
+import { fileSizeText } from "#shared/file-sizes";
 import { useDraft, useDraftPastes } from "~/domain/drafts";
 import { useMentions } from "~/domain/mentions";
 import { useIsland } from "bmo-ui/app/domain/island";
@@ -197,6 +198,7 @@ import { recordingType, voiceFileName } from "~/domain/voice";
 import type { ComposedMessage, PickedFile } from "~/domain/attachments";
 import type { MentionSources } from "~/domain/mentions";
 import type { DraftKind } from "~/domain/drafts";
+import type { AttachLimits } from "#shared/types";
 import type { PastedText } from "~/domain/pasted";
 import type { HandedSecret } from "~/domain/secret-form";
 import type { RecordingType } from "~/domain/voice";
@@ -214,6 +216,9 @@ interface Props {
   // Whether what is sent from here may carry files. A place that cannot take them never offers
   // the clip, and a file pasted or dropped on it is left to the browser.
   attachable?: boolean;
+  // What the place it sends to holds a file to: the largest one may be and how many one send carries, each with none
+  // where the place declares none, so the box turns away on the spot what the place would refuse.
+  attachLimits?: AttachLimits;
   // Whether the box is one line, its buttons on the words' last line (see ChatInput).
   inline?: boolean;
   // Who the room offers an @, where the place offers one at all: the people who spoke there and the agents answering
@@ -230,6 +235,7 @@ const props = withDefaults(defineProps<Props>(), {
   busy: false,
   split: false,
   attachable: false,
+  attachLimits: () => ({ largest: null, most: null }),
   inline: false,
   mention: undefined,
   secrets: false
@@ -501,6 +507,15 @@ function finishRecording(): void {
 
   const name = voiceFileName(at, type);
   const file = new File([blob], name, { type });
+  // A recording past the largest the place takes is turned away as a picked file is.
+  const refusal = refusalFor(t, file, props.attachLimits.largest);
+
+  if (refusal !== null) {
+    island.say({ ...refusal, tone: "warning" });
+
+    return;
+  }
+
   const picked: PickedFile = {
     key: `voice-${at}-${Math.random().toString(16).slice(2)}`,
     file,
@@ -537,12 +552,12 @@ function attach(files: readonly File[]): void {
     return;
   }
 
-  const picked = pickFiles(t, attached.value, files, previewOf);
+  const picked = pickFiles(t, attached.value, files, previewOf, props.attachLimits);
 
   attached.value = picked.files;
 
   for (const refusal of picked.refusals) {
-    island.say({ title: refusal, tone: "warning" });
+    island.say({ ...refusal, tone: "warning" });
   }
 }
 

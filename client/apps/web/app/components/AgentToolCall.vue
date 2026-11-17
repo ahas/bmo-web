@@ -110,7 +110,7 @@ import { changesView, shownPath } from "~/domain/patch";
 import { SHELL_COLOURS, shellTokens, writtenFiles } from "~/domain/shell-colour";
 import { clockTopLine, commandGist } from "~/domain/tool-clock";
 import { callArguments, callCommand, callDescription, callTopLine, isShell, paneSettled, resultLook, toolName } from "~/domain/tool-view";
-import { fileSizeText } from "~/domain/attachments";
+import { fileSizeText } from "#shared/file-sizes";
 import { formatTime } from "bmo-ui/app/domain/time";
 
 import type { AgentLogLine } from "#shared/types";

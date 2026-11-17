@@ -224,14 +224,15 @@ common:
     preview_note: 회의록
   error:
     administrator_only: 관리자만 할 수 있습니다.
-    attachments_too_large: "한 파일에 50MB까지, 한 번에 {n}개까지 보낼 수 있습니다."
+    attachments_too_large: "한 파일에 {size}까지, 한 번에 {n}개까지 보낼 수 있습니다."
     attachments_too_many: "한 번에 {n}개까지 보낼 수 있습니다."
     bad_action: 요청한 동작이 올바르지 않습니다.
     bad_cursor: 커서 값이 올바르지 않습니다.
     bad_limit: 개수 값이 올바르지 않습니다.
     copy_failed: 복사하지 못했습니다.
     editor_failed: 코드 편집기를 불러오지 못했습니다.
-    file_too_large: 한 파일에 50MB까지 보낼 수 있습니다.
+    file_too_large: 보낼 수 있는 크기보다 큰 파일이 있습니다.
+    form_broken: 보낸 파일을 끝까지 받지 못했습니다.
     image_unavailable: 이미지를 불러올 수 없습니다.
     link_copy_failed: 링크를 복사하지 못했습니다.
     member_change_failed: 권한을 바꾸지 못했습니다.
@@ -516,7 +517,7 @@ room:
   error:
     actions_read_failed: 실행 기록을 불러오지 못했습니다.
     attachment_empty: "{name}: 빈 파일이라 첨부하지 않았습니다."
-    attachment_too_large: "{name}: {size}는 너무 큽니다. 한 파일에 50MB까지 보낼 수 있습니다."
+    attachment_too_large: "{by}에서 보낼 수 있는 크기({limit})보다 큰 파일이라 첨부하지 않았습니다."
     situation_failed: 상황 노트를 읽지 못했습니다.
     attachment_too_many: "한 번에 {max}개까지 첨부할 수 있습니다. {name}은 제외하고 보냅니다."
     avatar_not_found: 프로필 사진을 찾을 수 없습니다.
@@ -549,7 +550,8 @@ room:
     unknown_sticker: 기록이 모르는 스티커입니다.
     file_empty_named: "{name} 파일이 비어 있어 보내지 않았습니다."
     file_not_found: 파일을 찾을 수 없습니다.
-    file_too_large_named: "{name}: 한 파일에 50MB까지 보낼 수 있습니다."
+    file_too_large_named: "{name} 파일이 이 방에서 보낼 수 있는 크기보다 커서 보내지 않았습니다."
+    file_over_limit_named: "{name} 파일이 {by}에서 보낼 수 있는 크기({limit})보다 커서 보내지 않았습니다."
     file_with_voice: 음성 메모를 보내기 전에는 파일을 첨부할 수 없습니다.
     instruction_read_failed: 지시 원문을 읽지 못했습니다.
     forward_failed: 메시지를 전달하지 못했습니다.
@@ -591,7 +593,6 @@ room:
     reply_missing: 답장할 메시지가 기록에 없습니다.
     voice_denied: 마이크를 쓸 수 없습니다. 브라우저에서 마이크 권한을 허용해 주세요.
     voice_empty: 녹음된 소리가 없습니다. 다시 녹음해 주세요.
-    voice_too_large: 음성 메모가 너무 큽니다.
     voice_unsupported: 이 브라우저에서는 음성 메모를 녹음할 수 없습니다.
     voice_with_files: 음성 메모는 파일과 함께 보낼 수 없습니다.
     say_empty: 보낼 메시지를 입력해 주세요.
@@ -2337,6 +2338,7 @@ agents:
     draft_unsound: 드래프트 설정에 고칠 곳이 있습니다.
     secret_settings_read_failed: 공급자 비밀을 불러오지 못했습니다.
   label:
+    agency: 에이전시
     account_kind_sign_in: 여기서 로그인
     sign_in_code: 인증 코드
     account_chosen: 선택한 계정

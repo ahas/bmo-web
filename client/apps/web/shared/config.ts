@@ -220,14 +220,12 @@ export const TELEGRAM_CAPTION_LENGTH = 1024;
 // as one entry instead of filling the box.
 export const PASTE_ENTRY_CHARS = 2_000;
 
-// How large one attachment may be. The account the file goes out on would take far more; this
-// is what the road from the browser through this app to the bot carries whole, and the bot
-// holds the same ceiling on its own side.
-export const MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024;
-
-// How many files one send may carry, which is also as many as one Telegram album holds. It keeps a
-// dropped folder from starting a hundred uploads.
-export const MAX_ATTACHMENTS = 10;
+// How many files one word said to a worker may carry, and how large one may be: the agency's own bound on a word
+// (its `policy/worker-words.toml`), which it serves on no route, so the worker's box and the word's route hold a file
+// to it before anything is sent. A room's box holds no limit of the console's own (docs/web.md, the room screen's
+// input box).
+export const WORKER_WORD_FILES = 10;
+export const WORKER_WORD_FILE_BYTES = 8 * 1024 * 1024;
 
 export const MIN_NAME_LENGTH = 2;
 export const MAX_NAME_LENGTH = 64;

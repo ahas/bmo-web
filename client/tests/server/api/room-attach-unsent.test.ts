@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 
-import { MAX_ATTACHMENTS } from "../../../apps/web/shared/config";
+import { fileSizeText } from "../../../apps/web/shared/file-sizes";
 import { wording } from "../../../apps/web/shared/wording";
 import { globalsRestoredAfter } from "../../support/globals";
 import { asked, routeOf } from "../../support/nitro";
@@ -15,12 +15,16 @@ import type { SentAttachments } from "../../../apps/web/shared/types";
 const GROUP = -7;
 
 let filesAnswer: () => Response = () => answer({ sent: [], checking: [], failed: [] });
+// The room's providers as the receiver answers them: one chat service declaring the largest file it takes, three bytes.
+let providersAnswer: () => Response = () => answer({ providers: ["chat-a"], chosen: false, fileLimit: { provider: "chat-a", bytes: 3 } });
 
 standIn("RECEIVER", (one) => {
   const path = one.path.split("?")[0] ?? "";
 
   if (path === "/owner") return answer({ room: -1, senderId: 900 });
   if (path === `/rooms/${GROUP}/word-files`) return filesAnswer();
+  if (path === `/rooms/${GROUP}/providers`) return providersAnswer();
+  if (path === "/providers") return answer({ items: [{ key: "chat-a", label: "Chat A", can: [] }] });
   if (/^\/accounts\/\d+\/rooms$/.test(path)) return answer({ rooms: [] });
   if (/^\/rooms\/-?\d+$/.test(path)) return answer({ id: Number(path.split("/")[2]), title: null, privateOf: null });
 
@@ -65,7 +69,11 @@ async function sentTwo(): Promise<{ answer: SentAttachments | null; logged: stri
 
 afterEach(() => {
   filesAnswer = () => answer({ sent: [], checking: [], failed: [] });
+  providersAnswer = () => answer({ providers: ["chat-a"], chosen: false, fileLimit: { provider: "chat-a", bytes: 3 } });
 });
+
+// The sentence a file past the room's limit is said with.
+const overLimit = (name: string) => wording("room.error.file_over_limit_named", { name, by: "Chat A", limit: fileSizeText(3) });
 
 describe("files the receiver refuses as one send", () => {
   test("each fail with a reason naming the file once, and the log carries the receiver's own words for each", async () => {
@@ -87,20 +95,20 @@ describe("files the receiver refuses as one send", () => {
     ]);
   });
 
-  test("past the receiver's ceiling for one request are said as the console's ceiling", async () => {
-    filesAnswer = () => answer({ code: "payload-too-large", error: "The request is past the ceiling." }, 413);
+  test("as past the room's limit say, for each file past it, the chat service and the largest it takes", async () => {
+    filesAnswer = () => answer({ code: "too-large", error: "a.png is too large.", name: "a.png", size_bytes: 4, largest_bytes: 3, provider: "chat-a" }, 413);
 
     const { answer: sent } = await sentTwo();
-    const ceiling = wording("common.error.attachments_too_large", { n: MAX_ATTACHMENTS });
 
     expect(sent?.failed).toEqual([
-      { name: "a.png", reason: `a.png: ${ceiling}` },
-      { name: "b.png", reason: `b.png: ${ceiling}` }
+      { name: "a.png", reason: overLimit("a.png") },
+      { name: "b.png", reason: overLimit("b.png") }
     ]);
   });
 
-  test("for one file past the ceiling say that file's sentence without naming it twice", async () => {
-    filesAnswer = () => answer({ code: "too-large", error: "a.png is too large.", name: "a.png", size_bytes: 60_000_000, largest_bytes: 52_428_800 }, 413);
+  test("as past a limit the room's providers no longer answer say each file is past the room's, naming it once", async () => {
+    filesAnswer = () => answer({ code: "too-large", error: "a.png is too large.", name: "a.png", size_bytes: 4, largest_bytes: 3, provider: "chat-a" }, 413);
+    providersAnswer = () => answer({ code: "failed", error: "Not now." }, 500);
 
     const { answer: sent } = await sentTwo();
 
@@ -109,6 +117,15 @@ describe("files the receiver refuses as one send", () => {
 });
 
 describe("a file the receiver answers as not sent", () => {
+  test("past the room's limit is said with the chat service and the largest it takes", async () => {
+    filesAnswer = () =>
+      answer({ sent: [{ name: "a.png", id: 11 }], checking: [], failed: [{ name: "b.png", reason: { kind: "too-large", name: "b.png", size_bytes: 4, largest_bytes: 3, provider: "chat-a" } }] });
+
+    const { answer: sent } = await sentTwo();
+
+    expect(sent?.failed).toEqual([{ name: "b.png", reason: overLimit("b.png") }]);
+  });
+
   test("is written to the log with the receiver's reason as it gave it", async () => {
     filesAnswer = () => answer({ sent: [], checking: [], failed: [{ name: "b.png", reason: { kind: "refused", reason: "the road is down" } }] });
 

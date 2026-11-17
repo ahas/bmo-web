@@ -13,6 +13,7 @@
     :disabled="!reachable"
     :busy="sending"
     :attachable="props.agent === 'worker'"
+    :attach-limits="wordLimits"
     :secrets="signedUser !== null"
     @submit="launch"
   >
@@ -33,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import { SEARCH_DEPTHS } from "#shared/config";
+import { SEARCH_DEPTHS, WORKER_WORD_FILE_BYTES, WORKER_WORD_FILES } from "#shared/config";
 import { useSignedUser } from "~/domain/access";
 import { controlLine } from "~/domain/control";
 import { useIsland } from "bmo-ui/app/domain/island";
@@ -41,7 +42,7 @@ import { depthLabel } from "~/domain/status";
 
 import type { LaunchAgent, SearchDepth } from "#shared/config";
 import type { ComposedMessage } from "~/domain/attachments";
-import type { LaunchResult, WorkerWordSent } from "#shared/types";
+import type { AttachLimits, LaunchResult, WorkerWordSent } from "#shared/types";
 
 import type { ControlLink } from "~/domain/control";
 
@@ -78,6 +79,10 @@ const sending = ref(false);
 const depth = ref<SearchDepth>("basic");
 
 const depthItems = SEARCH_DEPTHS.map((value) => ({ value, label: depthLabel(t, value) }));
+
+// A word to a worker carries what the agency takes in one word, so the box turns away on the spot a file it would
+// refuse.
+const wordLimits = computed<AttachLimits>(() => ({ largest: { bytes: WORKER_WORD_FILE_BYTES, by: t("agents.label.agency") }, most: WORKER_WORD_FILES }));
 
 // Where what is written here goes. A runner is launched; a worker is handed the words for its own
 // session, which is not a launch at all and takes no job place.

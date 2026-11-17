@@ -5,8 +5,10 @@ import { fail } from "./fail";
 import { onOwnersRoad } from "./owner";
 import { moveAdministratorKey } from "./owner-key";
 import { MESSAGE_IDS, receiverRoute } from "./receiver";
+import { streamedForm } from "./streamed-forms";
 
 import type { SignedIn } from "./accounts";
+import type { SpooledFile } from "./streamed-forms";
 import type { ExactMessageId } from "#shared/types";
 
 // The rooms of the console (docs/web.md, 「Access」 and the room screen's section on opening a room and letting people
@@ -270,20 +272,20 @@ export async function sayAsAccount(room: number, speaker: { account: string; nam
   return said.id;
 }
 
-/** Files said in a room by an account, the form as the owner's files route takes it — but for the room, which the
- * path names — with the account and the name it is shown by beside it; the receiver's answer of each file comes back
- * with its message ids exact. */
-export async function sayFilesAsAccount<T>(room: number, speaker: { account: string; name: string }, form: FormData): Promise<T> {
-  const sent = new FormData();
+/** Files said in a room by the signed-in account, as one send: the owner's on the owner's files route, which the room
+ * is named on, and every other account's on the room's own with the account and the name it is shown by. The form
+ * goes as a stream read back from the files' scratch copies (docs/web.md, the room screen's input box), and the
+ * receiver's answer of each file comes back with its message ids exact. */
+export async function sayRoomFiles<T>(room: number, speaker: Speaker, fields: readonly [string, string][], files: readonly SpooledFile[]): Promise<T> {
+  if (speaker === "owner") {
+    const form = streamedForm([["chatId", String(room)], ...fields], files, "file");
 
-  for (const [field, value] of form.entries()) {
-    if (field !== "chatId") sent.append(field, value);
+    return await receiverRoute<T>("/owner/message-files", { method: "POST", body: form }, { exactIds: MESSAGE_IDS });
   }
 
-  sent.set("account", speaker.account);
-  sent.set("name", speaker.name);
+  const form = streamedForm([...fields, ["account", speaker.account], ["name", speaker.name]], files, "file");
 
-  return await receiverRoute<T>(`/rooms/${room}/word-files`, { method: "POST", body: sent }, { ...CHANGES, exactIds: MESSAGE_IDS });
+  return await receiverRoute<T>(`/rooms/${room}/word-files`, { method: "POST", body: form }, { ...CHANGES, exactIds: MESSAGE_IDS });
 }
 
 /** What a pass over every account came to: the accounts whose identity stands linked, and those that failed. */

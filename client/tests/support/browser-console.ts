@@ -208,6 +208,8 @@ const numbered: { mode: string | null } = { mode: null };
 const PAST_CHAT = -9_002_000_000_002;
 const PAST_LINE = Array.from({ length: 75 }, (_, at) => String(3_973_000_000_000_000_177n + BigInt(at) * 1_000n));
 const PAGED_CHAT = -9_002_000_000_003;
+// The largest file the second chat service declares it takes, a million bytes.
+const CHAT_B_FILE_BYTES = 1_000_000;
 const PAGED_LINE = Array.from({ length: 70 }, (_, at) => String(at + 1));
 // Whose private room each room is, as the receiver keeps it (its `docs/api.md`, 「Rooms」): another account's private room
 // with its own BMO, which the fixture administrator reads and changes nothing of, and the owner's private chat, sealed
@@ -933,7 +935,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       return Response.json({
         items: [
           { key: "chat-a", label: "Chat A", can: ["text", "history"], listsRooms: true, listsContacts: true, startsChats: false, startsGroups: false, roomModes: ["record-only"] },
-          { key: "chat-b", label: "Chat B", can: ["text"], listsRooms: false, listsContacts: false, startsChats: false, startsGroups: false, roomModes: [] }
+          { key: "chat-b", label: "Chat B", can: ["text"], listsRooms: false, listsContacts: false, startsChats: false, startsGroups: false, roomModes: [], fileBytes: CHAT_B_FILE_BYTES }
         ],
         more: false
       });
@@ -981,6 +983,22 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       const after = new URL(request.url).searchParams.get("after");
 
       return Response.json({ items: after === null ? record : record.filter((one) => one.id > Number(after)), more: false });
+    }
+    // The record room is on the record alone, which declares no limit on a file, so it takes a file of any size.
+    if (path === `/rooms/${RECORD_CHAT}/providers`) return Response.json({ providers: ["record"], chosen: true, fileLimit: null });
+    // Files said there, kept as the receiver keeps them: each named for the bytes it should carry (`<n>.bin`), and
+    // answered sent where that many came, or not sent with how many did, so the screen says a file cut on its way.
+    if ((path === `/rooms/${RECORD_CHAT}/word-files` || path === "/owner/message-files") && request.method === "POST") {
+      const form = await request.formData();
+      const files = form.getAll("file").filter((one): one is File => one instanceof File);
+      const sent = files.filter((one) => one.size === Number(one.name.split(".")[0]));
+      const cut = files.filter((one) => !sent.includes(one));
+
+      return Response.json({
+        sent: sent.map((one, index) => ({ name: one.name, id: 70_000 + index })),
+        checking: [],
+        failed: cut.map((one) => ({ name: one.name, reason: { kind: "refused", reason: `${one.size} bytes came` } }))
+      });
     }
     // The record room's pinned message, for the top bar's pinned button.
     if (path === `/rooms/${RECORD_CHAT}/pins`) {
@@ -1216,7 +1234,8 @@ function pagedRoom(path: string, query: URLSearchParams): Response | null {
       return Response.json(end === -1 ? { items: [], more: false } : { items: line.slice(start, end).map(message), more: start > 0 });
     }
     case "/providers":
-      return Response.json({ providers: chat === PAST_CHAT ? ["chat-b", "chat-a"] : ["chat-b"], chosen: false });
+      // The second chat service declares the largest file it takes, so both rooms take a file up to its limit.
+      return Response.json({ providers: chat === PAST_CHAT ? ["chat-b", "chat-a"] : ["chat-b"], chosen: false, fileLimit: { provider: "chat-b", bytes: CHAT_B_FILE_BYTES } });
     case "/title":
       return Response.json({ title: chat === PAST_CHAT ? "past-room" : "paged-room" });
     default: {

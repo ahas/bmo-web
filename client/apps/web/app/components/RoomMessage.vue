@@ -448,7 +448,7 @@
 import { messageLinks } from "#shared/links";
 import { secretRequestOfLink } from "#shared/secret-kinds";
 
-import { fileSizeText } from "~/domain/attachments";
+import { fileSizeText } from "#shared/file-sizes";
 import { keepFitted } from "~/domain/bubble-fit";
 import { messageMenu, reactionStrip } from "~/domain/messagemenu";
 import { mineReaction } from "~/domain/message-acts";

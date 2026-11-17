@@ -125,7 +125,7 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { TAB_ROW_LINE } from "bmo-ui/app/domain/tabs";
 import { formatClock, formatDay } from "bmo-ui/app/domain/time";
 
-import { fileSizeText } from "~/domain/attachments";
+import { fileSizeText } from "#shared/file-sizes";
 import { screenKey } from "~/domain/route-key";
 
 import type { DesktopRelease, DesktopReleaseFile, DesktopReleaseRead } from "#shared/desktop-release";

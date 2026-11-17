@@ -375,6 +375,7 @@
             split
             inline
             :attachable="true"
+            :attach-limits="attachLimits"
             :label="$t('room.label.messages')"
             :placeholder="composerPlaceholder"
             :mention="mentionSources"
@@ -569,7 +570,7 @@ import type { RunState } from "~/domain/events";
 import type { LandedPicture, OutboxItem, SendOutcome } from "~/domain/outbox";
 import type { ArchivedItem, DayGroup, FeedItem, SenderRun, Speaker, StoodTurn } from "~/domain/room";
 import type { MentionAgent } from "~/domain/mentions";
-import type { PinnedMessage, RoomAnswerers, RoomPast } from "#shared/types";
+import type { AttachLimits, PinnedMessage, RoomAnswerers, RoomFileLimit, RoomPast } from "#shared/types";
 import type { Point, Rect } from "~/domain/flight";
 
 // Another room is another screen; the rest of the address is not the room's, and a message it names is
@@ -1160,6 +1161,16 @@ const { agents: catalogue } = useAgentCatalogue();
 // The room's agents for the mention list, by the names the receiver gives its answerers (docs/web.md, the room screen's
 // mention section): each is called by the agent's own label and wears the picture the catalogue gives it, never by a
 // room's own title — a chat session registered for one room is labeled by that room, and the agent is not.
+// The largest file the room takes, by the chat service declaring it (docs/web.md, the room screen's input box): the
+// console holds no limit of its own, so a file past the room's is turned away in the box, and any file goes where the
+// room's chat services declare none or the read has not come back, the receiver then holding a file to it itself.
+const { data: roomFileLimit } = useFetch<RoomFileLimit>(() => `/api/rooms/${chatId}/file-limit`, {
+  key: `room-file-limit-${chatId}`,
+  lazy: true,
+  server: false,
+  default: () => ({ limit: null })
+});
+const attachLimits = computed<AttachLimits>(() => ({ largest: roomFileLimit.value.limit, most: null }));
 const { data: roomAnswerers } = useFetch<RoomAnswerers>(() => `/api/rooms/${chatId}/answerers`, {
   key: `room-answerers-${chatId}`,
   lazy: true,

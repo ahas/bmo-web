@@ -29,7 +29,7 @@ const SWEEP_EVERY_MS = 60 * 60 * 1000;
 const KEY_SHAPE = /^[A-Za-z0-9-]{16,64}$/;
 
 // The console's own data folder, which `WEB_DATA_DIR` names (docs/web.md, 「Settings」), inside no checkout.
-function consoleDataRoot(): string {
+export function consoleDataRoot(): string {
   const named = process.env.WEB_DATA_DIR?.trim() ?? "";
 
   return named === "" ? join(homedir(), ".local", "share", "bmo-web", "data") : resolve(named);

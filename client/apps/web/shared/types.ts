@@ -2646,6 +2646,25 @@ export interface RoomAdded {
   title: string | null;
 }
 
+// The largest file a place takes, and who declares it, by the name a person reads: for a room, the chat service on
+// its list whose limit is the smallest (the receiver's `fileLimit`, docs/web.md, the room screen's input box).
+export interface FileLimit {
+  bytes: number;
+  by: string;
+}
+
+// A room's limit as its input box reads it, none where none of its chat services declares one.
+export interface RoomFileLimit {
+  limit: FileLimit | null;
+}
+
+// What an input box holds the files attached to: the largest one file may be, and how many one send carries, each
+// null where the place it sends to declares none.
+export interface AttachLimits {
+  largest: FileLimit | null;
+  most: number | null;
+}
+
 export interface RoomProvidersView {
   providers: { key: string; label: string }[];
   on: string[];

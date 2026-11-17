@@ -113,7 +113,11 @@ describe.skipIf(!origin || !touchReady())("a person's presence outside a shared 
 
       // Moved to within the same tab, so the stream that handed the first person's presence stands.
       for (const who of ["hidden", "other"] as const) {
-        await page.evaluate((to) => (window as unknown as { useNuxtApp: () => { $router: { push: (to: string) => Promise<void> } } }).useNuxtApp().$router.push(to), `/people/${ids[who]}`);
+        await page.evaluate((to) => {
+          const root: (Element & { __vue_app__?: { config: { globalProperties: { $router: { push: (to: string) => Promise<unknown> } } } } }) | null = document.querySelector("#__nuxt");
+
+          void root!.__vue_app__!.config.globalProperties.$router.push(to);
+        }, `/people/${ids[who]}`);
         await page.getByText(NAMES[who], { exact: true }).first().waitFor();
         expect(await badge.count()).toBe(0);
       }

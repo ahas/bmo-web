@@ -20,7 +20,7 @@ use sumida::api::authz::write::{SubjectKey, TupleWrite};
 
 use crate::history::{Change, record};
 use crate::ids::shown;
-use crate::nodes::{Nodes, agent_of};
+use crate::nodes::{AttachedAgent, Nodes, agent_of, attached_named};
 use crate::routes::{Answer, Body, user_in};
 use crate::units::{UNIT, every_unit, heads, path_of};
 use crate::users::{default_role, hashed};
@@ -242,8 +242,8 @@ pub async fn accept<C: ConnectionTrait + TransactionTrait>(
 
   run(
     &txn,
-    r#"INSERT INTO "user_nodes" ("user_id", "agent") VALUES ($1::bigint, $2)"#,
-    vec![user.into(), agent.clone().into()],
+    r#"INSERT INTO "user_nodes" ("user_id", "agent", "bound_at") VALUES ($1::bigint, $2, $3)"#,
+    vec![user.into(), agent.clone().into(), now_ms().into()],
   )
   .await?;
   run(
@@ -273,7 +273,7 @@ pub async fn node_of<C: ConnectionTrait>(
 ) -> Result<UserNode, Refusal> {
   let row = one(
     db,
-    r#"SELECT "agent", "shared", "proven_at" FROM "user_nodes" WHERE "user_id" = $1::bigint"#,
+    r#"SELECT "agent", "shared", "proven_at", "bound_at" FROM "user_nodes" WHERE "user_id" = $1::bigint"#,
     vec![user.into()],
   )
   .await?;
@@ -289,21 +289,25 @@ pub async fn node_of<C: ConnectionTrait>(
       agent: None,
       shared: false,
       attached: false,
+      kind: None,
       proven_at: None,
+      bound_at: None,
       left,
     });
   };
   let agent: String = row.try_get("", "agent")?;
-  let attached = match nodes {
-    Some(nodes) => nodes.hub.attached().await?.contains(&agent),
-    None => false,
+  let kind = match nodes {
+    Some(nodes) => attached_named(&nodes.hub.attached().await?, &agent).map(AttachedAgent::kind),
+    None => None,
   };
 
   Ok(UserNode {
     agent: Some(agent),
     shared: row.try_get("", "shared")?,
-    attached,
+    attached: kind.is_some(),
+    kind,
     proven_at: row.try_get("", "proven_at")?,
+    bound_at: row.try_get("", "bound_at")?,
     left,
   })
 }

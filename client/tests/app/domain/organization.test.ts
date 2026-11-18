@@ -26,17 +26,18 @@ import { SCREENS, tabAddress } from "../../../apps/web/app/domain/screens";
 
 describe("the settings dialog", () => {
   test("holds the personal sections alone, the voice briefing under its own name", () => {
-    expect(SETTINGS_SECTIONS.map((section) => section.key)).toEqual(["account", "agent", "secrets", "theme", "palette", "notifications", "briefing"]);
+    expect(SETTINGS_SECTIONS.map((section) => section.key)).toEqual(["account", "agent", "machine", "secrets", "theme", "palette", "notifications", "briefing"]);
     expect(SETTINGS_SECTIONS.find((section) => section.key === "briefing")?.label).toBe("settings.label.briefing");
   });
 
-  test("shows a member their account, secrets, theme and palette, and the administrator the notifications and the player too", () => {
-    expect(sectionsFor(false, true).map((section) => section.key)).toEqual(["account", "secrets", "theme", "palette"]);
-    expect(sectionsFor(true, true).map((section) => section.key)).toEqual(["account", "secrets", "theme", "palette", "notifications", "briefing"]);
+  test("shows a member their account, machine, secrets, theme and palette, and the administrator the notifications and the player too", () => {
+    expect(sectionsFor(false, true).map((section) => section.key)).toEqual(["account", "machine", "secrets", "theme", "palette"]);
+    expect(sectionsFor(true, true).map((section) => section.key)).toEqual(["account", "machine", "secrets", "theme", "palette", "notifications", "briefing"]);
   });
 
-  test("shows no secrets to a login with no user, which holds no space", () => {
+  test("shows no secrets and no machine to a login with no user, which holds no space and no machine", () => {
     expect(sectionsFor(true, false).map((section) => section.key)).not.toContain("secrets");
+    expect(sectionsFor(true, false).map((section) => section.key)).not.toContain("machine");
   });
 
   test("leads every key that moved to its tab of the organisation screen or the administrator's, and keeps its own keys", () => {

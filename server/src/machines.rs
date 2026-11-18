@@ -13,7 +13,7 @@ use rand::RngCore;
 use sea_orm::ConnectionTrait;
 
 use crate::invites::node_of;
-use crate::nodes::{Nodes, agent_of};
+use crate::nodes::{Nodes, agent_of, attached_named};
 use crate::routes::{Answer, Body, user_in};
 use crate::units::administrator;
 use crate::{Refusal, Service, now_ms, one, run};
@@ -103,15 +103,25 @@ pub async fn rebind<C: ConnectionTrait>(
     );
   }
 
-  let attached = nodes.hub.attached().await?.contains(&agent);
+  let attached = attached_named(&nodes.hub.attached().await?, &agent).is_some();
   let proven_at = attached.then(now_ms);
 
+  // Bound again to the machine it stands on, the account keeps the moment it was first connected to it.
   run(
     db,
-    r#"INSERT INTO "user_nodes" ("user_id", "agent", "shared", "proven_at") VALUES ($1::bigint, $2, $3, $4)
+    r#"INSERT INTO "user_nodes" ("user_id", "agent", "shared", "proven_at", "bound_at")
+       VALUES ($1::bigint, $2, $3, $4, $5)
        ON CONFLICT ("user_id") DO UPDATE SET "agent" = EXCLUDED."agent", "shared" = EXCLUDED."shared",
-       "proven_at" = EXCLUDED."proven_at""#,
-    vec![user.into(), agent.clone().into(), binding.shared.into(), proven_at.into()],
+       "proven_at" = EXCLUDED."proven_at",
+       "bound_at" = CASE WHEN "user_nodes"."agent" = EXCLUDED."agent" THEN "user_nodes"."bound_at"
+                         ELSE EXCLUDED."bound_at" END"#,
+    vec![
+      user.into(),
+      agent.clone().into(),
+      binding.shared.into(),
+      proven_at.into(),
+      now_ms().into(),
+    ],
   )
   .await?;
 

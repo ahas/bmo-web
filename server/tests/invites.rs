@@ -13,22 +13,35 @@ use axum::body::Body;
 use axum::http::{Method, Request, StatusCode, header};
 use bmo_web_server::Refusal;
 use bmo_web_server::data_move::{MoveAsk, run_move};
-use bmo_web_server::nodes::{NodeHub, Nodes};
-use bmo_web_server::one;
+use bmo_web_server::nodes::{AttachedAgent, NodeHub, Nodes};
 use bmo_web_server::routes::in_force;
 use bmo_web_server::users::{ORGANIZATION, set_sign_in};
+use bmo_web_server::{one, run};
 use http_body_util::BodyExt;
 use serde_json::{Value, json};
 use tower::ServiceExt;
 
 const TOKEN: &str = "the server's token";
 
+// The versions an installed agent and the desktop app's built-in agent announce in their hello.
+const INSTALLED: &str = "0.2.1+gabc1234";
+const DESKTOP: &str = "desktop-0.2.1";
+
 #[derive(Default)]
-struct StandInHub(Mutex<Vec<String>>);
+struct StandInHub(Mutex<Vec<AttachedAgent>>);
+
+impl StandInHub {
+  fn attach(&self, name: &str, version: &str) {
+    self.0.lock().unwrap().push(AttachedAgent {
+      name: name.to_owned(),
+      version: version.to_owned(),
+    });
+  }
+}
 
 #[async_trait::async_trait]
 impl NodeHub for StandInHub {
-  async fn attached(&self) -> Result<Vec<String>, Refusal> {
+  async fn attached(&self) -> Result<Vec<AttachedAgent>, Refusal> {
     Ok(self.0.lock().unwrap().clone())
   }
 }
@@ -508,7 +521,7 @@ async fn an_accepted_invitation_makes_a_disabled_account_enabled_once_its_machin
   // Not proven while the hub holds no such machine; proven and enabled once it does.
   let (_, proof) = asked(&stood.app, Method::POST, &format!("/invites/{token}/proof"), None, None).await;
   assert_eq!(proof["active"], false, "{proof}");
-  stood.hub.0.lock().unwrap().push(agent.clone());
+  stood.hub.attach(&agent, INSTALLED);
   let (_, proof) = asked(&stood.app, Method::POST, &format!("/invites/{token}/proof"), None, None).await;
   assert_eq!(proof["active"], true, "{proof}");
   let row = one(
@@ -521,13 +534,18 @@ async fn an_accepted_invitation_makes_a_disabled_account_enabled_once_its_machin
   .unwrap();
   assert!(row.try_get::<bool>("", "is_enabled").unwrap());
 
-  // The machine reads attached; gone, it reads gone.
+  // The machine reads attached, with how it is connected and when the account was connected to it; gone, it
+  // reads gone, and how it was connected with it.
   let (_, node) = asked(&stood.app, Method::GET, &format!("/users/{user}/node"), None, None).await;
   assert_eq!(node["agent"], agent);
   assert_eq!(node["attached"], true);
+  assert_eq!(node["kind"], "installed");
+  assert!(node["boundAt"].is_i64(), "{node}");
   stood.hub.0.lock().unwrap().clear();
   let (_, node) = asked(&stood.app, Method::GET, &format!("/users/{user}/node"), None, None).await;
   assert_eq!(node["attached"], false);
+  assert!(node.get("kind").is_none(), "{node}");
+  assert!(node["boundAt"].is_i64(), "{node}");
   // An account bound to no machine reads none.
   let (_, node) =
     asked(&stood.app, Method::GET, &format!("/users/{}/node", stood.member), None, None).await;
@@ -595,13 +613,13 @@ async fn the_administrator_binds_an_account_to_another_machine_and_takes_it_away
   assert_eq!(node["agent"], fresh.as_str());
   assert_eq!(node["attached"], false);
   assert!(node.get("provenAt").is_none(), "{node}");
-  stood.hub.0.lock().unwrap().push(fresh.clone());
+  stood.hub.attach(&fresh, INSTALLED);
   let (_, node) = asked(&stood.app, Method::POST, &proof_path, None, None).await;
   assert_eq!(node["attached"], true);
   assert!(node["provenAt"].is_i64(), "{node}");
 
   // A machine the hub holds already is proven as it is bound; one another account holds is refused.
-  stood.hub.0.lock().unwrap().push("desk-a".into());
+  stood.hub.attach("desk-a", INSTALLED);
   let (_, rebound) = asked(
     &stood.app,
     Method::PUT,
@@ -613,6 +631,41 @@ async fn the_administrator_binds_an_account_to_another_machine_and_takes_it_away
   assert_eq!(rebound["attached"], true, "{rebound}");
   let (_, node) = asked(&stood.app, Method::GET, &node_path, None, None).await;
   assert!(node["provenAt"].is_i64(), "{node}");
+
+  // Held as the desktop app's agent, the machine reads so. Bound again to the machine it stands on, the account
+  // keeps when it was connected to it; bound to another, it is connected anew.
+  stood.hub.0.lock().unwrap().retain(|agent| agent.name != "desk-a");
+  stood.hub.attach("desk-a", DESKTOP);
+  run(
+    stood.scratch.db(),
+    r#"UPDATE "user_nodes" SET "bound_at" = 1 WHERE "user_id" = $1"#,
+    vec![stood.member.into()],
+  )
+  .await
+  .unwrap();
+  let bind_desk_a = asked(
+    &stood.app,
+    Method::PUT,
+    &node_path,
+    Some(json!({ "agent": "desk-a" })),
+    Some((1, "administrator")),
+  );
+  assert_eq!(bind_desk_a.await.0, StatusCode::OK);
+  let (_, node) = asked(&stood.app, Method::GET, &node_path, None, None).await;
+  assert_eq!((node["kind"].clone(), node["boundAt"].clone()), (json!("desktop"), json!(1)), "{node}");
+  let bind_fresh = asked(&stood.app, Method::PUT, &node_path, Some(json!({})), Some((1, "administrator")));
+  assert_eq!(bind_fresh.await.0, StatusCode::OK);
+  let (_, node) = asked(&stood.app, Method::GET, &node_path, None, None).await;
+  assert!(node["boundAt"].as_i64().is_some_and(|at| at > 1), "{node}");
+  let bind_desk_a = asked(
+    &stood.app,
+    Method::PUT,
+    &node_path,
+    Some(json!({ "agent": "desk-a" })),
+    Some((1, "administrator")),
+  );
+  assert_eq!(bind_desk_a.await.0, StatusCode::OK);
+
   let (status, said) = asked(
     &stood.app,
     Method::PUT,
@@ -664,7 +717,7 @@ async fn the_administrator_binds_several_accounts_to_a_machine_declared_shared()
   let member_path = format!("/users/{}/node", stood.member);
   let head_path = format!("/users/{}/node", stood.head);
   let bind = |path: String, binding: Value| asked_as_administrator(&stood.app, Method::PUT, path, binding);
-  stood.hub.0.lock().unwrap().push("desk-shared".into());
+  stood.hub.attach("desk-shared", INSTALLED);
 
   // A machine bound shared reads back as shared.
   let (status, rebound) =
@@ -687,7 +740,7 @@ async fn the_administrator_binds_several_accounts_to_a_machine_declared_shared()
   assert_eq!((node["agent"].as_str(), node["shared"].as_bool()), (Some("desk-shared"), Some(true)));
 
   // A machine one account holds unshared is not taken by a binding declaring it shared.
-  stood.hub.0.lock().unwrap().push("desk-own".into());
+  stood.hub.attach("desk-own", INSTALLED);
   let (status, _) = bind(member_path, json!({ "agent": "desk-own" })).await;
   assert_eq!(status, StatusCode::OK);
   let (status, said) = bind(head_path, json!({ "agent": "desk-own", "shared": true })).await;
@@ -704,7 +757,7 @@ async fn the_account_already_on_a_machine_is_declared_shared_where_it_stands() {
   let share = |path: &str, shared: bool| {
     asked_as_administrator(&stood.app, Method::PUT, format!("{path}/shared"), json!({ "shared": shared }))
   };
-  stood.hub.0.lock().unwrap().push("desk-a".into());
+  stood.hub.attach("desk-a", INSTALLED);
   let (status, _) =
     asked_as_administrator(&stood.app, Method::PUT, member_path.clone(), json!({ "agent": "desk-a" }))
       .await;

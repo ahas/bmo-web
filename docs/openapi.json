@@ -1576,6 +1576,14 @@
         ],
         "type": "object"
       },
+      "MachineKind": {
+        "description": "How the agent the hub holds for a machine is connected: the desktop app's built-in agent, or one installed apart.",
+        "enum": [
+          "desktop",
+          "installed"
+        ],
+        "type": "string"
+      },
       "Member": {
         "description": "One member of the reader's company as a picker finds and shows them (docs/accounts.md, 「The people\ndirectory」): the account key and the name, nothing more.",
         "properties": {
@@ -3903,6 +3911,25 @@
           },
           "attached": {
             "type": "boolean"
+          },
+          "boundAt": {
+            "description": "When the account was connected to the machine, none where it was not recorded.",
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MachineKind"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "How the agent the hub holds is connected, while it holds one."
           },
           "left": {
             "default": false,

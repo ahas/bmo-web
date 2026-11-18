@@ -16,6 +16,7 @@
       <UForm id="login-form" :state="form" @submit="submit">
         <div class="flex flex-col gap-4">
           <UAlert v-if="ended && !failure" color="warning" variant="subtle" :title="$t('app.message.session_ended')" :description="$t('app.message.login_again')" />
+          <UAlert v-else-if="pairing" data-login-pairing color="neutral" variant="subtle" icon="i-material-symbols-computer-outline" :description="$t('pairing.message.sign_in')" :ui="{ description: 'break-keep' }" />
 
           <UFormField :label="$t('app.label.user_id')" name="name" required>
             <UInput v-model="form.name" class="w-full" autocomplete="username" />
@@ -47,6 +48,7 @@
 import { failureText } from "bmo-ui/app/domain/errors";
 import { consoleName } from "#shared/agent-names";
 import { returnPath } from "~/domain/login-end";
+import { isPairingPath } from "#shared/desktop-pairing";
 import { useVisibleShell } from "~/domain/overlay";
 
 const { t } = useI18n();
@@ -59,6 +61,8 @@ const route = useRoute();
 
 // Sent here by a login that ended, which the screen says until a try of the login says otherwise.
 const ended = computed(() => route.query.ended === "1");
+// Sent here by the desktop pairing page, which the screen names so a person the app sent knows why.
+const pairing = computed(() => isPairingPath(returnPath(route.query.to)));
 
 const failure = ref<string | null>(null);
 const pending = ref(false);

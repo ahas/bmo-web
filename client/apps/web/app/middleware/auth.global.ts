@@ -2,6 +2,7 @@ import { MEMBER_HOME, MEMBER_LAYOUT, isAdministrator } from "~/domain/access";
 import { openScreen, screenAt, screenOpened, sharePath, useConsoleScreens, useScreensReader } from "~/domain/console-screens";
 import { standUnavailable, unavailableRoute } from "~/domain/screen-unavailable";
 import { loginRoute, returnPath } from "~/domain/login-end";
+import { settingsKept } from "~/domain/settings-dialog";
 import { ensureSectionAccess } from "~/domain/section-access";
 import { screensWithBundles } from "~/domain/screens";
 import { homeFor, inConsoleSections, screenMayRead } from "#shared/sections";
@@ -72,8 +73,9 @@ export default defineNuxtRouteMiddleware(async (to) => {
     const opens = screenMayRead(access, to.path) && (page || screen !== null);
     const home = homeFor(access, screensWithBundles(screens).map((one) => one.to));
 
-    // The way to the first screen they may open never leads back to the address refused, which stands instead.
-    if (!opens && home !== to.path) return navigateTo(home);
+    // The way to the first screen they may open never leads back to the address refused, which stands instead; a
+  // settings section the address asked for opens there.
+    if (!opens && home !== to.path) return navigateTo({ path: home, query: settingsKept(to.query) });
 
     setPageLayout(MEMBER_LAYOUT);
 
@@ -83,7 +85,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   // A member opens only the screens that say a member may, and the screens units bring whose manifest opens to
   // them, each in the member's own shell; any other address would open onto routes that answer them as absent
   // (docs/web.md, 「Access」).
-  if (to.meta.member !== true && screen === null) return navigateTo(MEMBER_HOME);
+  if (to.meta.member !== true && screen === null) return navigateTo({ path: MEMBER_HOME, query: settingsKept(to.query) });
 
   setPageLayout(MEMBER_LAYOUT);
 });

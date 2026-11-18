@@ -1,5 +1,7 @@
+import { MEMBER_HOME } from "~/domain/access";
+
 import type { Component, Ref } from "vue";
-import type { LocationQuery } from "vue-router";
+import type { LocationQuery, RouteLocationRaw } from "vue-router";
 
 // The settings dialog (docs/web.md, 「Settings」): one dialog over whatever screen is open, a list of sections beside
 // the open one, each what a person sets for themselves alone, their own secrets and the voice briefing spoken to the
@@ -27,6 +29,7 @@ export interface SettingsSection {
 export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   { key: "account", label: "settings.label.account", icon: "i-material-symbols-person-outline", administrator: false, user: false, load: () => import("~/components/SettingsAccount.vue") },
   { key: "agent", label: "settings.label.agent", icon: "i-material-symbols-face-outline", administrator: false, user: true, personalize: true, load: () => import("~/components/SettingsBmo.vue") },
+  { key: "machine", label: "settings.label.machine", icon: "i-material-symbols-computer-outline", administrator: false, user: true, load: () => import("~/components/SettingsMachine.vue") },
   { key: "secrets", label: "settings.label.secrets", icon: "i-material-symbols-key-outline", administrator: false, user: true, load: () => import("~/components/SettingsSecrets.vue") },
   { key: "theme", label: "settings.label.theme", icon: "i-material-symbols-contrast", administrator: false, user: false, load: () => import("~/components/SettingsTheme.vue") },
   { key: "palette", label: "settings.label.palette", icon: "i-material-symbols-chat-bubble-outline", administrator: false, user: false, load: () => import("~/components/SettingsPalette.vue") },
@@ -48,6 +51,11 @@ export function sectionOf(key: unknown, sections: readonly SettingsSection[]): S
   return sections.find((section) => section.key === key) ?? sections[0]!;
 }
 
+// The address that opens the dialog at a section: the reader's home, the administrator's or a member's, with the key.
+export function settingsRoute(administrator: boolean, key: string): RouteLocationRaw {
+  return { path: administrator ? "/" : MEMBER_HOME, query: { [SETTINGS_QUERY]: key } };
+}
+
 // What an address asks of the dialog: the section key it carries, empty where it names none, and
 // the query the address stands at once the key is taken off it. Nothing where it carries no key.
 export function settingsAsked(query: LocationQuery): { key: string; rest: LocationQuery } | null {
@@ -59,6 +67,11 @@ export function settingsAsked(query: LocationQuery): { key: string; rest: Locati
   const key = Array.isArray(asked) ? asked[0] : asked;
 
   return { key: key ?? "", rest };
+}
+
+// The part of a query that asks for a settings section, kept as an address is sent to another screen.
+export function settingsKept(query: LocationQuery): LocationQuery {
+  return SETTINGS_QUERY in query ? { [SETTINGS_QUERY]: query[SETTINGS_QUERY]! } : {};
 }
 
 export interface SettingsState {

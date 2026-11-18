@@ -3,6 +3,7 @@ import { joinURL } from "ufo";
 import { AccountRefusal, AccountServiceDown } from "./account-service";
 import { fail } from "./fail";
 
+import { appPairingPath } from "#shared/desktop-pairing";
 import { wording } from "#shared/wording";
 
 import type { H3Event } from "h3";
@@ -10,9 +11,6 @@ import type { H3Event } from "h3";
 // The desktop app's pairing as the console hands it on (docs/web.md, 「Access」 and 「The desktop pairing page」;
 // docs/accounts.md, 「Desktop pairing」): the address of the page a pairing is approved on, and the account service's
 // codes said in the pack's words.
-
-/** The path of the page a pairing is approved on, under the console's base. */
-export const PAIRING_PAGE = "/desktop/pair";
 
 // The account service's codes on the pairing routes (docs/boundary.md, 「Desktop pairing」), each with its sentence.
 const PAIRING_CODES: Readonly<Record<string, string>> = {
@@ -37,12 +35,12 @@ export function pairingFailure(error: unknown): Error {
 }
 
 /**
- * The address of the page a pairing's code is approved on: under the console's public address where its settings
- * name one, and under the address the request reached otherwise.
+ * The address of the page a pairing's code is approved on, marked as the app's own window opens it: under the
+ * console's public address where its settings name one, and under the address the request reached otherwise.
  */
 export function approveUrl(event: H3Event, code: string): string {
   const configured = String(useRuntimeConfig(event).public.consoleAddress ?? "").trim();
   const base = configured !== "" ? configured : joinURL(getRequestURL(event, { xForwardedHost: true, xForwardedProto: true }).origin, useRuntimeConfig(event).app.baseURL);
 
-  return `${joinURL(base, PAIRING_PAGE)}?code=${encodeURIComponent(code)}`;
+  return joinURL(base, appPairingPath(code));
 }

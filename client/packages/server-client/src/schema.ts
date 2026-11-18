@@ -1751,6 +1751,11 @@ export interface components {
             username: string;
         };
         /**
+         * @description How the agent the hub holds for a machine is connected: the desktop app's built-in agent, or one installed apart.
+         * @enum {string}
+         */
+        MachineKind: "desktop" | "installed";
+        /**
          * @description One member of the reader's company as a picker finds and shows them (docs/accounts.md, 「The people
          *     directory」): the account key and the name, nothing more.
          */
@@ -2512,6 +2517,13 @@ export interface components {
         UserNode: {
             agent?: string | null;
             attached: boolean;
+            /**
+             * Format: int64
+             * @description When the account was connected to the machine, none where it was not recorded.
+             */
+            boundAt?: number | null;
+            /** @description How the agent the hub holds is connected, while it holds one. */
+            kind?: components["schemas"]["MachineKind"] | null;
             /**
              * @description Whether the account has left.
              * @default false

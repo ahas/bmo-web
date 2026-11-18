@@ -19,7 +19,9 @@ import type { PairingApproved, PairingCredential, PairingView, UserNode } from "
 const service = standInAccountService({
   users: [
     { id: 2, name: "member-a", node: { agent: "u2", attached: false } },
-    { id: 3, name: "member-b" }
+    { id: 3, name: "member-b" },
+    { id: 4, name: "member-c", node: { agent: "u4", attached: true, kind: "desktop", boundAt: 1_700_000_000_000 } },
+    { id: 5, name: "member-d" }
   ]
 });
 
@@ -62,6 +64,7 @@ const view = await routeOf<PairingView>("../../apps/web/server/api/desktop/pair/
 const approve = await routeOf<PairingApproved>("../../apps/web/server/api/desktop/pair/[code]/approve.post");
 const refuse = await routeOf<null>("../../apps/web/server/api/desktop/pair/[code]/refuse.post");
 const prove = await routeOf<UserNode>("../../apps/web/server/api/me/machine/proof.post");
+const ownMachine = await routeOf<UserNode>("../../apps/web/server/api/me/machine/index.get");
 
 beforeEach(() => {
   status = 200;
@@ -85,13 +88,13 @@ describe("the desktop app's pairing", () => {
     const made = await paired("192.0.2.7");
 
     expect(service.pairingAddresses.at(-1)).toBe("192.0.2.7");
-    expect(made.approveUrl).toBe(`https://console.invalid/console/desktop/pair?code=${made.code}`);
+    expect(made.approveUrl).toBe(`https://console.invalid/console/desktop/pair?code=${made.code}&in=app`);
     expect(made).toMatchObject({ pollAfterSeconds: 3 });
 
     consoleAddress = "";
     const reached = await paired("192.0.2.7");
 
-    expect(reached.approveUrl).toBe(`https://reached.invalid/console/desktop/pair?code=${reached.code}`);
+    expect(reached.approveUrl).toBe(`https://reached.invalid/console/desktop/pair?code=${reached.code}&in=app`);
   });
 
   test("an address past its share is refused in the pack's words", async () => {
@@ -157,5 +160,18 @@ describe("the desktop app's pairing", () => {
 
     expect((await asked(prove, {})).answer).toMatchObject({ agent: "u2", attached: true });
     expect(agency.asked.map((call) => [call.method, call.path, call.body])).toEqual([["PUT", "/person-nodes/2", { node: "u2" }]]);
+  });
+
+  test("reads the reader's own machine as the service answers it, and records no proof", async () => {
+    agency.asked.length = 0;
+    reader = 4;
+
+    expect((await asked(ownMachine, {})).answer).toMatchObject({ agent: "u4", attached: true, kind: "desktop", boundAt: 1_700_000_000_000 });
+    expect(service.users.find((user) => user.id === 4)?.node?.provenAt).toBeUndefined();
+    expect(agency.asked).toEqual([]);
+
+    // A reader connected to no machine reads none.
+    reader = 5;
+    expect((await asked(ownMachine, {})).answer?.agent ?? null).toBeNull();
   });
 });

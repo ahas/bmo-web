@@ -19,6 +19,7 @@ pub mod m20261116_000003_agent_profiles;
 pub mod m20261116_000004_sign_ins;
 pub mod m20261117_000001_presence_hidden;
 pub mod m20261118_000001_organisation_roles;
+pub mod m20261118_000002_node_bound_at;
 mod secret_kind_seeds;
 
 pub struct Migrator;
@@ -44,6 +45,7 @@ impl MigratorTrait for Migrator {
       Box::new(m20261116_000004_sign_ins::Migration),
       Box::new(m20261117_000001_presence_hidden::Migration),
       Box::new(m20261118_000001_organisation_roles::Migration),
+      Box::new(m20261118_000002_node_bound_at::Migration),
     ]
   }
 }

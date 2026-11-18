@@ -5,14 +5,43 @@ use std::sync::Arc;
 
 use hmac::{Hmac, Mac};
 
+use bmo_web_client::MachineKind;
+
 use crate::Refusal;
 use crate::settings::Jake;
+
+/// The version the desktop app's built-in agent announces in its hello begins with this (jake's `docs/desktop.md`,
+/// 「Pairing」); every other agent is one installed apart.
+const DESKTOP_VERSION: &str = "desktop-";
+
+/// An agent the hub holds now: its name, and the version it announced in its hello.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AttachedAgent {
+  pub name: String,
+  pub version: String,
+}
+
+impl AttachedAgent {
+  /// How the agent is connected, read from the version it announced.
+  pub fn kind(&self) -> MachineKind {
+    if self.version.starts_with(DESKTOP_VERSION) {
+      MachineKind::Desktop
+    } else {
+      MachineKind::Installed
+    }
+  }
+}
 
 /// The hub as the service asks it.
 #[async_trait::async_trait]
 pub trait NodeHub: Send + Sync {
-  /// The names of the agents attached now.
-  async fn attached(&self) -> Result<Vec<String>, Refusal>;
+  /// The agents attached now.
+  async fn attached(&self) -> Result<Vec<AttachedAgent>, Refusal>;
+}
+
+/// The agent of a name among those attached, where the hub holds one.
+pub fn attached_named<'a>(agents: &'a [AttachedAgent], name: &str) -> Option<&'a AttachedAgent> {
+  agents.iter().find(|agent| agent.name == name)
 }
 
 /// The hub's loopback control API.
@@ -24,7 +53,7 @@ pub struct HubClient {
 
 #[async_trait::async_trait]
 impl NodeHub for HubClient {
-  async fn attached(&self) -> Result<Vec<String>, Refusal> {
+  async fn attached(&self) -> Result<Vec<AttachedAgent>, Refusal> {
     let answer: serde_json::Value = self
       .http
       .get(format!("{}/status", self.control.trim_end_matches('/')))
@@ -46,7 +75,17 @@ impl NodeHub for HubClient {
     Ok(
       answer["agents"]
         .as_array()
-        .map(|agents| agents.iter().filter_map(|agent| agent["name"].as_str().map(str::to_owned)).collect())
+        .map(|agents| {
+          agents
+            .iter()
+            .filter_map(|agent| {
+              Some(AttachedAgent {
+                name: agent["name"].as_str()?.to_owned(),
+                version: agent["agentVersion"].as_str().unwrap_or_default().to_owned(),
+              })
+            })
+            .collect()
+        })
         .unwrap_or_default(),
     )
   }

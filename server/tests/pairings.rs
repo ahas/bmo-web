@@ -12,7 +12,7 @@ use axum::body::Body;
 use axum::http::{Method, Request, StatusCode, header};
 use bmo_web_server::Refusal;
 use bmo_web_server::data_move::{MoveAsk, run_move};
-use bmo_web_server::nodes::{NodeHub, Nodes};
+use bmo_web_server::nodes::{AttachedAgent, NodeHub, Nodes};
 use bmo_web_server::one;
 use bmo_web_server::pairings::{LIFETIME_MS, PER_ADDRESS};
 use bmo_web_server::routes::in_force;
@@ -30,7 +30,7 @@ struct NoAgents;
 
 #[async_trait::async_trait]
 impl NodeHub for NoAgents {
-  async fn attached(&self) -> Result<Vec<String>, Refusal> {
+  async fn attached(&self) -> Result<Vec<AttachedAgent>, Refusal> {
     Ok(Vec::new())
   }
 }

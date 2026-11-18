@@ -365,7 +365,8 @@ this rule alone and goes nowhere else.
 - **The desktop app's two pairing calls are taken with no sign-in too** (`docs/accounts.md`, 「Desktop pairing」).
   `POST api/desktop/pairings` asks the account service for a pairing for the address the proxy names, as a sign-in
   hands it on, and answers it with `approveUrl`, the pairing page's address under the console's public address,
-  `NUXT_PUBLIC_CONSOLE_ADDRESS`, or the address the request reached where none is set. `GET
+  `NUXT_PUBLIC_CONSOLE_ADDRESS`, or the address the request reached where none is set, carrying the code and the
+  mark `in=app` that tells the page it fills the app's window (「The desktop pairing page」). `GET
   api/desktop/pairings/<pairing>` hands the service's read on as it answers it, the one answer carrying the
   credential marked `Cache-Control: no-store`. The console's server logs neither call's body or answer, and the
   credential reaches the app alone, never a page.
@@ -625,6 +626,9 @@ nothing.
     still reads as the bot not answering and never as a login ended.
 - **The login screen says the login ended** when a tab was sent to it by one, in the warning colour
   above the fields, and says nothing when it was simply opened.
+- **The login screen says the desktop app is being connected** where the address it carries is the desktop pairing
+  page's (「The desktop pairing page」), in one neutral line above the fields, so a person the app sent to sign in
+  knows why.
 - **The next login returns to the screen the tab was on,** its address carried in the login screen's
   own; an address outside this app is never followed, and with none the login goes home.
 
@@ -7031,10 +7035,10 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
   the dialog's left under the title 설정, each section one line of an icon and its name; the open one
   is marked. The section's own name heads the right, with the dialog's close mark at its right end,
   and its content scrolls under it.
-  - The sections are 계정, 내 BMO, 비밀 보관함, 테마, 대화방, 알림 and 보이스브리핑. A member is shown 계정, 비밀 보관함,
-    테마 and 대화방; 알림 and 보이스브리핑 are the administrator's, since the console rings and plays briefings for
-    the administrator alone. 내 BMO is shown to a person who may personalise their BMO and owns one (「내 BMO」). A login with no user of the account service, which holds no secret space, is not
-    shown 비밀 보관함.
+  - The sections are 계정, 내 BMO, 기기, 비밀 보관함, 테마, 대화방, 알림 and 보이스브리핑. A member is shown 계정, 기기,
+    비밀 보관함, 테마 and 대화방; 알림 and 보이스브리핑 are the administrator's, since the console rings and plays briefings for
+    the administrator alone. 내 BMO is shown to a person who may personalise their BMO and owns one (「내 BMO」). A login with no user of the account service, which holds no secret space and no machine, is not
+    shown 기기 or 비밀 보관함.
   - A section's content stands in groups under small headings, each group a column of rows parted by
     hairlines. A row carries its name and, where the name needs it, one muted line under it at the
     left, and its control at the right: a choice of two or three a segmented control, a longer one a
@@ -7046,10 +7050,11 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
 - **On a narrow screen the dialog fills the screen** and opens on the list of sections alone, over the
   sidebar drawer it was opened from (「Floating things」). A tap on one goes into it: the head then carries
   a back arrow before the section's name, and the arrow or the back gesture returns to the list. The close mark stands at the head's right end on both.
-- **An address opens it at one section:** `?settings=` and a section's key — `account`, `agent`, `secrets`, `theme`,
+- **An address opens it at one section:** `?settings=` and a section's key — `account`, `agent`, `machine`, `secrets`, `theme`,
   `palette`, `notifications`, `briefing` — on any address of the console opens the dialog at that
   section, gone into on a narrow screen, and at the first section the reader may open where the key
-  names none of them. A key that names none of the dialog's sections but a tab of 조직 — `organization`,
+  names none of them. A member sent on from an address they may not open to their own home is sent with the key, so
+  the dialog opens there. A key that names none of the dialog's sections but a tab of 조직 — `organization`,
   `invites` — or of 관리자 — `providers`, `secret-kinds` — takes the reader to that tab instead, `permissions` to 조직's
   사용자 with the person's 권한 tab open, and `research` to the research screen's 설정 tab, so a link made before a
   section moved still lands where it stands now. The key is
@@ -7093,6 +7098,23 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
   so the company's, or none, stands again.
 - **초기화** empties the person's own parts and picture after the console's question dialog asks (「Messages」), so
   the company's default stands for each again; it stands off while the person has set nothing.
+
+#### 기기
+
+- **It lists the machines connected to the reader's account,** read from the account service each time the section
+  opens through the console's server (`GET /api/me/machine`, the reader's own machine alone; `docs/accounts.md`,
+  「Invitations and a person's machine」). An account is connected to one machine at most, so it shows that one or
+  none.
+- **The machine stands as a name and value list** (「Name and value lists」): 기기 이름, the machine's name in the
+  monospace face, with 공유 기기 muted under it where the administrator declared it shared; 상태, 연결됨 or 연결 대기
+  중 as a chip, by whether the hub holds it now; 연결 방식, 데스크톱 앱 or 설치형 프로그램 while the hub holds it and
+  `—` while it does not; and 연결한 날짜, the moment the account was connected to it, 기록 없음 where none was
+  recorded. While it is read, the names stand and the values wait as bars.
+- **No machine says 연결된 기기 없음,** with one line that opening the desktop app connects one and 데스크톱 앱 leading to
+  the download page (「The desktop app's download page」).
+- **It changes nothing.** A person connects their machine through the desktop app; connecting an account to another
+  machine or to none is the administrator's, on 조직 (「Organisation」).
+- A read that fails says so in the section with 새로고침.
 
 #### 비밀 보관함
 
@@ -7656,20 +7678,33 @@ Where a company's own words for its roles and its unit kinds are kept (`docs/acc
 #### The desktop pairing page
 
 - **`/desktop/pair?code=<code>` is where a signed-in person approves the desktop app's pairing**
-  (`docs/accounts.md`, 「Desktop pairing」). The app opens it in its own window. It stands on no shell, as the join
-  page does, and opens to every signed-in person whatever sections they hold; a person not signed in is sent to the
-  login and brought back to it.
-- **It shows the code,** large, in the monospace face, so it is read against the code the app shows, **and the
-  machine the app will run as:** the name of the machine the reader's account is bound to, or, where it is bound to
-  none, that a new machine is made for them.
+  (`docs/accounts.md`, 「Desktop pairing」). It stands on no shell, as the join page does, and opens to every
+  signed-in person whatever sections they hold; a person not signed in is sent to the login, which says the app is
+  being connected (「Access」), and brought back to it with its whole address.
+- **The app opens it in its own window, marked `in=app`.** The address the console answers a pairing with carries
+  `in=app` beside the code, and only the app asks for a pairing, so the page knows it fills the app's window. A link
+  can carry the mark too, so it changes only where the page says the app's code is, never whether the code is
+  compared.
+- **The app shows its code in its window's title bar,** the one place it stays in view while the page fills the
+  window (jake's `docs/desktop.md`, 「Pairing」). The page's own title never carries the code, so a browser tab
+  opened from a link never shows a code that would seem to match.
+- **It says what approving does, then the code, then where to compare it.** First one line naming the act: in the
+  app's window, that this PC's desktop app is connected to the reader's account; elsewhere, that the desktop app is.
+  Then the code, large, in the monospace face. Under it, where the same code stands: in the app's window, the title
+  bar at the top of this window, and only matching codes are to be approved; elsewhere, the title bar at the top of
+  the desktop app's window, and a link received from someone else is never to be approved.
+- **It names the machine the app will run as:** 연결할 기기, the name of the machine the reader's account is bound
+  to, or, where it is bound to none, that a new machine is made for them, with one muted line that the account's
+  work may then run on the PC the app is on.
 - **승인 asks first,** in the console's question dialog (「Messages」): whether to connect the app to their account,
-  the code under it, and what going through does, that the app showing this code runs as their machine, so it must
-  be the code their own app shows. 승인 in the dialog approves. **거부** refuses at once with no question, since it
-  gives nothing.
+  the code under it, and what going through does, that the app showing this code connects as their machine, so the
+  code must be the one the app's title bar shows. 승인 in the dialog approves. **거부** refuses at once with no
+  question, since it gives nothing.
 - **Approved, the page says the app is connecting,** and asks every few seconds whether the reader's machine has
   attached, as the organisation screen's check does (`POST /api/me/machine/proof`, the reader's own machine alone),
-  which records it as proven and sets it as their node in agency. Attached, it says the app is connected and stops
-  asking.
+  which records it as proven and sets it as their node in agency, the machine standing as 기기 이름 from then on.
+  Attached, it says the app is connected and stops asking. Either way it says where the machines connected to the account are listed, with 설정의 기기 as the link
+  that opens the settings at that section (「Settings」, 「기기」).
 - **Opened with no code,** as a person reaching it from a browser does, it says the app must try again and leads to
   the download page (「The desktop app's download page」).
 - **A code expired, refused, approved before or unknown says so** and offers nothing to press. A refusal of the

@@ -592,6 +592,12 @@ section states what each does.
   proof that answers active sets it again, so opening the invitation's link once more sets a record that did not
   land. A refusal — 422 `not-a-hub-node`, where the node service keeps no hub node of that name free of every
   service, or agency out of reach — is written to the console's log, and the account stands active all the same.
+- **A binding keeps when the account was connected to its machine,** set as the binding is made, by an invitation's
+  acceptance, by a pairing's approval for an account bound to none, or by the administrator binding it to another
+  machine, and kept while the binding stays on the same machine; a binding made before the moment was kept answers
+  none. **A machine the hub holds is answered with how it is connected:** `desktop` where the agent it holds
+  announced itself as the desktop app's built-in agent, its version beginning `desktop-` (jake's `docs/desktop.md`,
+  「Pairing」), and `installed` for any other agent; nothing while the hub holds none.
 - **The administrator binds an account to another machine or takes its machine away.** Bound again, the account
   is given the machine the administrator names, or a fresh name of its own (`u<user>` and a random tail), so the
   credential of the machine it was bound to before proves nothing now; the answer carries the new machine's
@@ -900,7 +906,7 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 | `org_history` | each change of a person's place (「A person's history」) |
 | `grant_words` | the words a grant was made with, beside the grant |
 | `user_invites` | each invitation: its token, its unit, whether it makes a head, the person's name it was made for (empty where none was given), who made it, when it closes, and who used it and when |
-| `user_nodes` | the machine each invited account is bound to, whether the administrator bound it shared, and when it was last proven |
+| `user_nodes` | the machine each invited account is bound to, whether the administrator bound it shared, when the account was connected to it, and when it was last proven |
 | `user_departures` | each account marked left: when, and by whom |
 | `user_sign_ins` | when each user last signed in (「The people roster」) |
 | `company_agents` | each company's default for its people's BMOs: the name, the call names and the picture with its type, and who set it and when (「A person's BMO profile」) |

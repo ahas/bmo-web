@@ -120,7 +120,7 @@ async fn a_documents_talk_reads_back_in_the_order_it_was_said() {
 async fn the_last_migrations_taken_down_drop_their_tables() {
   let scratch = Scratch::new().await;
 
-  Migrator::down(scratch.db(), Some(12)).await.expect("the last migrations go down");
+  Migrator::down(scratch.db(), Some(13)).await.expect("the last migrations go down");
 
   for table in [
     "document_talk",

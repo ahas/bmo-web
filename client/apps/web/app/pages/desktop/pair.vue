@@ -1,7 +1,8 @@
 <template>
-  <!-- The desktop pairing page (docs/web.md, 「The desktop pairing page」): the desktop app's code, read by a signed-in
-       person against the code the app shows, approved for their own machine or refused. Approved, it waits for the
-       app's agent to attach. Like the join page, it stands on no shell; the credential never reaches it. -->
+  <!-- The desktop pairing page (docs/web.md, 「The desktop pairing page」): what approving does, the desktop app's code,
+       where the app shows the same code, read by a signed-in person against it and approved for their own machine or
+       refused. Approved, it waits for the app's agent to attach and says where the machine is listed. Like the join
+       page, it stands on no shell; the credential never reaches it. -->
   <div class="relative flex overflow-y-auto bg-default p-4 text-default" :style="{ top: 'var(--bmo-screen-top)', height: 'var(--bmo-screen)' }">
     <UCard class="m-auto w-full max-w-md">
       <template #header>
@@ -16,6 +17,9 @@
             <UButton to="/desktop" color="neutral" variant="subtle" icon="i-material-symbols-download" :label="$t('pairing.action.download')" data-pairing-download />
           </div>
         </template>
+
+        <!-- What approving does, said from the address alone, so it stands from the first paint. -->
+        <p v-if="code !== '' && !failed" data-pairing-lead class="break-keep text-balance text-center text-highlighted">{{ inApp ? $t("pairing.message.lead_app") : $t("pairing.message.lead_link") }}</p>
 
         <!-- The code's label is drawn at once; the code's place is kept at its size, empty on the server and a
              skeleton once the read has begun, until the code lands. -->
@@ -35,20 +39,28 @@
         <template v-else-if="view">
 
           <template v-if="answer === null && view.state === 'waiting'">
-            <p class="text-center text-sm text-toned">{{ $t("pairing.message.check") }}</p>
+            <p data-pairing-compare class="whitespace-pre-line break-keep text-balance text-center text-sm text-toned">{{ inApp ? $t("pairing.message.compare_app") : $t("pairing.message.compare_link") }}</p>
             <dl class="pair-list gap-x-4 gap-y-1 text-sm">
               <dt class="text-muted">{{ $t("pairing.label.machine") }}</dt>
-              <dd class="break-words font-mono text-toned">{{ view.machine ?? $t("pairing.label.machine_new") }}</dd>
+              <dd class="flex min-w-0 flex-col">
+                <span class="break-words font-mono text-highlighted">{{ view.machine ?? $t("pairing.label.machine_new") }}</span>
+                <span class="break-keep text-muted">{{ $t("pairing.message.machine_effect") }}</span>
+              </dd>
             </dl>
           </template>
 
           <template v-else-if="answer === 'approved'">
             <dl class="pair-list gap-x-4 gap-y-1 text-sm">
-              <dt class="text-muted">{{ $t("pairing.label.machine") }}</dt>
-              <dd class="break-words font-mono text-toned">{{ machine }}</dd>
+              <dt class="text-muted">{{ $t("machines.label.name") }}</dt>
+              <dd class="break-words font-mono text-highlighted">{{ machine }}</dd>
             </dl>
             <UAlert v-if="attached" color="success" variant="subtle" :description="$t('pairing.message.connected')" />
             <p v-else class="text-sm text-muted">{{ $t("pairing.message.connecting") }}</p>
+            <i18n-t :keypath="'pairing.message.machines'" tag="p" scope="global" data-pairing-machines class="break-keep text-sm text-toned">
+              <template #link>
+                <ULink :to="machinesAt" class="font-medium text-primary underline underline-offset-4 transition-colors hover:text-highlighted active:text-highlighted">{{ $t("pairing.label.machines_link") }}</ULink>
+              </template>
+            </i18n-t>
           </template>
 
           <p v-else-if="answer === 'refused'" class="text-sm text-toned">{{ $t("pairing.message.refused") }}</p>
@@ -78,8 +90,11 @@
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
 
+import { useAdministrator } from "~/domain/access";
 import { useConfirm } from "~/domain/confirm";
 import { useVisibleShell } from "~/domain/overlay";
+import { settingsRoute } from "~/domain/settings-dialog";
+import { openedInApp } from "#shared/desktop-pairing";
 
 import type { PairingApproved, PairingView, UserNode } from "@web/server-client";
 
@@ -96,6 +111,12 @@ const PROOF_EVERY_MS = 3000;
 const PROOF_FOR_MS = 10 * 60_000;
 
 const code = computed(() => (typeof route.query.code === "string" ? route.query.code.trim() : ""));
+// Whether the page fills the desktop app's own window, which says only where the app's code is shown: a link can
+// carry the mark too, so the code is compared either way.
+const inApp = computed(() => openedInApp(route.query));
+const administrator = useAdministrator();
+// Where the machines connected to the reader's account are listed: the settings' machine section.
+const machinesAt = computed(() => settingsRoute(administrator.value, "machine"));
 const view = ref<PairingView | null>(null);
 // Whether the code's read is under way, which the server never draws, and whether it failed.
 const loading = ref(false);

@@ -175,9 +175,13 @@
 - machine → 기기: 이 기기, 기기 여유, 기기 이름. An account bound to a machine → 기기 연결: 기기 연결, 다른 기기로
   연결, 기기 연결 해제, 연결됨, 연결 대기 중. Never 기계, and never 바인딩, 묶기 or 풀기 for the binding. A machine
   several accounts are connected to → 공유 기기: 공유 기기, 공유, 공유 해제; the choice made as a machine is
-  connected → 여러 계정이 함께 쓰는 기기. Never 공용 기기, 같이 쓰기.
+  connected → 여러 계정이 함께 쓰는 기기. Never 공용 기기, 같이 쓰기. The machine an approval connects → 연결할 기기;
+  when the account was connected to it → 연결한 날짜; how its program is connected → 연결 방식, 데스크톱 앱 or
+  설치형 프로그램 for one installed by its command; the machines in a person's own settings → 설정의 기기. Never 에이전트
+  for the installed program, which stays a role's seat, nor 페어링 날짜 or 설치 방식.
 - the console's desktop app → 데스크톱 앱; its pairing with an account → 앱 연결: 앱 연결, 연결 코드, 승인, 거부,
-  승인했습니다, 거부했습니다, 연결하는 중, 연결됨. Never 데스크탑, 페어링, 허용 or 거절.
+  승인했습니다, 거부했습니다, 연결하는 중, 연결됨. The app's own window → 앱 창, and the line at its top that shows the
+  code → 제목 표시줄, as Windows names it. Never 데스크탑, 페어링, 허용 or 거절, nor 타이틀 바 or 창 제목.
 - the app's download page → 데스크톱 앱: a version published → 버전, when it was → 공개일, none yet → 공개된 버전 없음;
   an installer → 설치 파일, or its format's own name, AppImage, deb 패키지; a file's size → 크기, written `{size}
   ({bytes}바이트)`; its digest → SHA-256; the steps of using it → 사용 방법. A warning Windows shows is named by the

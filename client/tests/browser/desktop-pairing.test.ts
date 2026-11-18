@@ -6,10 +6,12 @@ import { wording } from "../../apps/web/shared/wording";
 
 import type { Browser, BrowserContext, Page, Route } from "playwright-core";
 
-// The desktop pairing page (docs/web.md, 「The desktop pairing page」): a person not signed in is sent to the login and
-// back; signed in, a member who holds no section but their account reads the code and the machine on no shell, approves
-// through the question dialog and sees the app connect, or refuses at once; a closed code offers nothing to press.
-// Each is read at a desk's width and a phone's, in light and in dark, with nothing wider than the window. The test
+// The desktop pairing page (docs/web.md, 「The desktop pairing page」): a person not signed in is sent to the login, which
+// says why, and back; signed in, a member who holds no section but their account reads what approving does, the code,
+// where the app shows it and the machine on no shell, approves through the question dialog, sees the app connect and is
+// led to the settings' machine section, or refuses at once; a closed code offers nothing to press. The page is opened as the app
+// opens it, marked `in=app`, and as a link a browser opens. The settings' machine section lists the reader's machine, or
+// says there is none. Each is read at a desk's width and a phone's, with nothing wider than the window. The test
 // console stands no jake hub, so the page's own calls are answered here; what the service decides of a pairing is its
 // own tests'.
 //
@@ -18,6 +20,9 @@ import type { Browser, BrowserContext, Page, Route } from "playwright-core";
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const MEMBER = { name: "pair-member", password: "fixture-password-3080" };
 const CODE = "ABCD-2345";
+// The page's address as the app opens it, and as a link opened in a browser.
+const AS_APP = `/desktop/pair?code=${CODE}&in=app`;
+const AS_LINK = `/desktop/pair?code=${CODE}`;
 
 let browser: Browser | null = null;
 let cookie = "";
@@ -91,9 +96,10 @@ describe.skipIf(!origin || !touchReady())("the desktop pairing page", () => {
     try {
       const page = await context.newPage();
 
-      await page.goto(`${origin}/desktop/pair?code=${CODE}`, { waitUntil: "load" });
+      await page.goto(`${origin}${AS_APP}`, { waitUntil: "load" });
       await page.waitForURL(/\/login\?/, { timeout: 20_000 });
-      expect(new URL(page.url()).searchParams.get("to")).toBe(`/desktop/pair?code=${CODE}`);
+      expect(new URL(page.url()).searchParams.get("to")).toBe(AS_APP);
+      await page.locator("[data-login-pairing]").getByText(wording("pairing.message.sign_in"), { exact: true }).waitFor({ timeout: 20_000 });
     } finally {
       await context.close();
     }
@@ -108,15 +114,21 @@ describe.skipIf(!origin || !touchReady())("the desktop pairing page", () => {
           const page = await context.newPage();
           const seen = await answered(page, "waiting", "u9");
 
-          await page.goto(`${origin}/desktop/pair?code=${CODE}`, { waitUntil: "load" });
+          await page.goto(`${origin}${AS_APP}`, { waitUntil: "load" });
           await standing(page);
 
-          // On no shell: the card alone, with the code and the machine, and no sidebar or title bar around it.
+          // On no shell: the card alone, with what approving does, the code, the title bar of this window as where the
+          // app shows it, and the machine, and no sidebar or title bar around it. The page's own title never carries the
+          // code, so no tab shows one that would seem to match.
           const code = page.locator("[data-pairing-code]");
 
           await code.waitFor({ timeout: 20_000 });
           expect(await code.textContent()).toBe(CODE);
+          expect(await page.locator("[data-pairing-lead]").textContent()).toBe(wording("pairing.message.lead_app"));
+          expect(await page.locator("[data-pairing-compare]").textContent()).toBe(wording("pairing.message.compare_app"));
+          expect(await page.title()).not.toContain(CODE);
           await page.getByText("u9", { exact: true }).waitFor();
+          await page.getByText(wording("pairing.message.machine_effect"), { exact: true }).waitFor();
           expect(await page.locator("aside, nav").count()).toBe(0);
           expect(await overflow(page)).toBeLessThanOrEqual(0);
 
@@ -154,6 +166,9 @@ describe.skipIf(!origin || !touchReady())("the desktop pairing page", () => {
           await page.getByRole("dialog").getByRole("button", { name: wording("pairing.action.approve"), exact: true }).click();
           await page.getByText(wording("pairing.message.connected"), { exact: true }).waitFor({ timeout: 20_000 });
           expect(seen.approved).toBe(1);
+          const machines = page.locator("[data-pairing-machines]").getByRole("link", { name: wording("pairing.label.machines_link"), exact: true });
+
+          expect(new URL(await machines.getAttribute("href") ?? "", origin).searchParams.get("settings")).toBe("machine");
           expect(await page.getByRole("button", { name: wording("pairing.action.refuse"), exact: true }).count()).toBe(0);
           expect(await overflow(page)).toBeLessThanOrEqual(0);
         } finally {
@@ -169,9 +184,13 @@ describe.skipIf(!origin || !touchReady())("the desktop pairing page", () => {
         const page = await context.newPage();
         const seen = await answered(page, "waiting", null);
 
-        await page.goto(`${origin}/desktop/pair?code=${CODE}`, { waitUntil: "load" });
+        // Opened as a link, it names the desktop app's window as where the code stands, and warns of a link from another.
+        await page.goto(`${origin}${AS_LINK}`, { waitUntil: "load" });
         await standing(page);
         await page.getByText(wording("pairing.label.machine_new"), { exact: true }).waitFor({ timeout: 20_000 });
+        expect(await page.locator("[data-pairing-lead]").textContent()).toBe(wording("pairing.message.lead_link"));
+        expect(await page.locator("[data-pairing-compare]").textContent()).toBe(wording("pairing.message.compare_link"));
+        expect(await overflow(page)).toBeLessThanOrEqual(0);
         await page.getByRole("button", { name: wording("pairing.action.refuse"), exact: true }).click();
         await page.getByText(wording("pairing.message.refused"), { exact: true }).waitFor({ timeout: 10_000 });
         expect(seen).toEqual({ approved: 0, refused: 1 });
@@ -180,11 +199,42 @@ describe.skipIf(!origin || !touchReady())("the desktop pairing page", () => {
         const closed = await context.newPage();
 
         await answered(closed, "expired", null);
-        await closed.goto(`${origin}/desktop/pair?code=${CODE}`, { waitUntil: "load" });
+        await closed.goto(`${origin}${AS_LINK}`, { waitUntil: "load" });
         await standing(closed);
         await closed.getByText(wording("pairing.message.expired"), { exact: true }).waitFor({ timeout: 20_000 });
         expect(await closed.getByRole("button", { name: wording("pairing.action.approve"), exact: true }).count()).toBe(0);
         expect(await overflow(closed)).toBeLessThanOrEqual(0);
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+
+    test(`the settings list the reader's machine, and say none where there is none, at ${width}px`, async () => {
+      const context = await contextFor(width, height, "light", true);
+
+      try {
+        const page = await context.newPage();
+        let machine: Record<string, unknown> = { agent: "u9", shared: true, attached: true, kind: "desktop", boundAt: Date.UTC(2026, 10, 18, 2, 47), left: false };
+
+        await page.route(/\/api\/me\/machine$/, (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(machine) }));
+
+        // Opened where the pairing page leads, at an address the member may not open, the key goes along to their home.
+        await page.goto(`${origin}/rooms?settings=machine`, { waitUntil: "load" });
+        await standing(page);
+        const section = page.locator("[data-machines]");
+
+        await section.locator('[data-pair="name"]').getByText("u9", { exact: true }).waitFor({ timeout: 30_000 });
+        await section.locator('[data-pair="name"]').getByText(wording("machines.label.shared"), { exact: true }).waitFor();
+        await section.locator('[data-pair="state"]').getByText(wording("machines.status.attached"), { exact: true }).waitFor();
+        expect(await section.locator('[data-pair="kind"]').textContent()).toBe(wording("machines.label.desktop"));
+        expect(await section.locator('[data-pair="bound"]').textContent()).not.toBe(wording("common.label.no_record"));
+        expect(await overflow(page)).toBeLessThanOrEqual(0);
+
+        machine = { shared: false, attached: false, left: false };
+        await page.goto(`${origin}/rooms?settings=machine`, { waitUntil: "load" });
+        await standing(page);
+        await page.locator("[data-machines-none]").getByText(wording("machines.label.none"), { exact: true }).waitFor({ timeout: 30_000 });
+        await page.getByRole("link", { name: wording("machines.action.desktop"), exact: true }).waitFor();
       } finally {
         await context.close();
       }

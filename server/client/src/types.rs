@@ -912,6 +912,14 @@ pub struct Proof {
   pub user: Option<String>,
 }
 
+/// How the agent the hub holds for a machine is connected: the desktop app's built-in agent, or one installed apart.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub enum MachineKind {
+  Desktop,
+  Installed,
+}
+
 /// The machine an account is bound to and whether it is attached.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -922,8 +930,14 @@ pub struct UserNode {
   #[serde(default)]
   pub shared: bool,
   pub attached: bool,
+  /// How the agent the hub holds is connected, while it holds one.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub kind: Option<MachineKind>,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub proven_at: Option<i64>,
+  /// When the account was connected to the machine, none where it was not recorded.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub bound_at: Option<i64>,
   /// Whether the account has left.
   #[serde(default)]
   pub left: bool,

@@ -16,7 +16,7 @@ export interface StandInUser {
   administrator?: boolean;
   senders?: number[];
   // The machine the account is bound to, whether the hub holds it now, and when it was last proven.
-  node?: { agent: string; shared?: boolean; attached: boolean; provenAt?: number };
+  node?: { agent: string; shared?: boolean; attached: boolean; kind?: "desktop" | "installed"; provenAt?: number; boundAt?: number };
 }
 
 export interface StandInGrant {
@@ -364,7 +364,7 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
 
         if (user === undefined) return refused(404, "not-found", "no such user");
 
-        return json({ agent: user.node?.agent ?? null, shared: user.node?.shared ?? false, attached: user.node?.attached ?? false, provenAt: user.node?.provenAt ?? null, left: false });
+        return json({ agent: user.node?.agent ?? null, shared: user.node?.shared ?? false, attached: user.node?.attached ?? false, kind: user.node?.kind ?? null, provenAt: user.node?.provenAt ?? null, boundAt: user.node?.boundAt ?? null, left: false });
       }
 
       // The machine an account is bound to again or taken away, by the administrator alone, and proven once the hub

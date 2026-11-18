@@ -30,7 +30,7 @@ app:
   message:
     new_build: 새 버전이 배포됐습니다.
     manifest_description: 방 대화와 에이전트 판정을 보고, 방의 에이전트에게 메시지를 보냅니다.
-    login_again: 다시 로그인해 주세요.
+    login_again: 다시 로그인해야 합니다.
     session_ended: 로그인이 만료되었습니다.
   error:
     login_failed: 로그인하지 못했습니다.
@@ -1777,6 +1777,7 @@ settings:
     invites: 초대
     bmo: BMO
     providers: 공급자
+    machine: 기기
     secrets: 비밀 보관함
     supervisor_none: 감독관 없음
     theme: 테마
@@ -2170,16 +2171,23 @@ pairing:
     confirm: 이 앱을 내 계정에 연결할까요?
   label:
     code: 연결 코드
-    machine: 기기
+    machine: 연결할 기기
     machine_new: 새로 만들어 연결
+    machines_link: 설정의 기기
   action:
     approve: 승인
     download: 데스크톱 앱 다운로드
     refuse: 거부
   message:
-    check: 앱에 보이는 연결 코드와 같은지 확인하세요.
-    effect: "이 코드를 보여 주는 앱이 {machine} 기기로 동작하니, 내 앱에 보이는 코드일 때만 승인하세요."
-    effect_new: 이 코드를 보여 주는 앱이 새로 만든 내 기기로 동작하니, 내 앱에 보이는 코드일 때만 승인하세요.
+    lead_app: 이 PC의 BMO 데스크톱 앱을 내 계정에 연결합니다.
+    lead_link: BMO 데스크톱 앱을 내 계정에 연결합니다.
+    compare_app: "이 창 맨 위 제목 표시줄에도 연결 코드가 표시됩니다.\n두 코드가 같을 때만 승인해야 합니다."
+    compare_link: "데스크톱 앱 창 맨 위 제목 표시줄의 연결 코드와 같을 때만 승인해야 합니다.\n다른 사람에게 받은 링크라면 승인하면 안 됩니다."
+    machine_effect: 승인하면 내 계정의 작업이 앱이 설치된 PC에서 실행될 수 있습니다.
+    effect: "이 연결 코드를 보여 주는 앱이 {machine} 기기로 연결됩니다.\n앱 창 제목 표시줄의 코드와 같을 때만 승인해야 합니다."
+    effect_new: "이 연결 코드를 보여 주는 앱이 새로 만든 내 기기로 연결됩니다.\n앱 창 제목 표시줄의 코드와 같을 때만 승인해야 합니다."
+    machines: "연결된 기기는 {link}에서 볼 수 있습니다."
+    sign_in: 데스크톱 앱을 연결하려면 로그인해야 합니다.
     connecting: 앱이 연결하는 중입니다…
     connected: 앱이 연결되었습니다.
     refused: 거부했습니다.
@@ -2196,6 +2204,28 @@ pairing:
     not_found: 연결 코드를 찾을 수 없습니다.
     too_many: 연결 요청이 너무 많아 잠시 후 다시 시도해야 합니다.
     unreachable: 계정 서비스에 연결되지 않았습니다.
+machines:
+  label:
+    name: 기기 이름
+    state: 상태
+    kind: 연결 방식
+    desktop: 데스크톱 앱
+    installed: 설치형 프로그램
+    shared: 공유 기기
+    bound_at: 연결한 날짜
+    none: 연결된 기기 없음
+  action:
+    desktop: 데스크톱 앱
+  message:
+    none: 데스크톱 앱을 열면 이 계정에 기기를 연결할 수 있습니다.
+  status:
+    loading: 기기 불러오는 중…
+    attached: 연결됨
+    waiting: 연결 대기 중
+  error:
+    no_account: 계정 서비스의 사용자가 아닌 로그인에는 연결된 기기가 없습니다.
+    unreachable: 계정 서비스에 연결되지 않았습니다.
+    failed: 기기를 불러오지 못했습니다.
 desktop:
   title:
     page: 데스크톱 앱
@@ -2216,8 +2246,8 @@ desktop:
     download: 다운로드
   message:
     step_install: 설치 파일을 다운로드해 설치합니다.
-    step_open: 데스크톱 앱을 열면 앱이 연결 코드를 보여 주고 콘솔의 앱 연결 페이지를 엽니다.
-    step_approve: 앱 연결 페이지의 연결 코드가 앱에 보이는 코드와 같은지 확인하고 승인합니다.
+    step_open: 데스크톱 앱을 열면 앱 창 제목 표시줄에 연결 코드가 표시되고 앱 연결 페이지가 열립니다.
+    step_approve: 앱 연결 페이지의 연결 코드가 앱 창 제목 표시줄의 코드와 같은지 확인하고 승인합니다.
     unsigned: "코드 서명이 없는 설치 파일이라 Windows가 처음 실행할 때 경고할 수 있습니다.\nWindows의 PC 보호 창이 나오면 추가 정보를 누르고 실행을 누르면 설치됩니다."
   status:
     loading: 데스크톱 앱 정보 불러오는 중…

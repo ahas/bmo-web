@@ -501,7 +501,7 @@ describe.skipIf(!origin || !touchReady())("a console dialog holds a change only 
         // The support count, at the two the repository holds: auto chosen and the count chosen back is no change.
         // The select stands inside the screen, and its list is placed on the screen once it has measured its field.
         await open();
-        const support = dialog.getByRole("combobox", { name: wording("agents.label.support_count"), exact: true });
+        const support = dialog.locator("[data-support-count]");
         const auto = wording("agents.label.default_marked", { value: wording("common.label.auto") });
 
         expect((await support.textContent())?.trim()).toBe("2");

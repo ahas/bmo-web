@@ -33,7 +33,7 @@
           <ChoiceSelect v-model="form.node" :items="nodeItems" value-key="value" class="w-full" :disabled="busy" :aria-label="$t('agents.label.exec_node')" />
         </UFormField>
         <UFormField :label="$t('agents.label.support_count')" name="supportCount" :error="errorAt('supportCount')">
-          <ChoiceSelect v-model="supportCountChoice" :items="supportCountItems" value-key="value" class="w-full" :disabled="busy" :aria-label="$t('agents.label.support_count')" />
+          <ChoiceSelect v-model="supportCountChoice" :items="supportCountItems" value-key="value" class="w-full" data-support-count :disabled="busy" :aria-label="$t('agents.label.support_count')" />
         </UFormField>
       </div>
 

@@ -226,17 +226,30 @@ function load(): void {
   refusal.value = null;
 }
 
+// Every opening and closing is counted, so a read knows whether the opening it was made for still stands.
+let turns = 0;
+
 watch(open, async (now) => {
+  const turn = ++turns;
+
   if (!now) return;
 
   load();
   failed.value = false;
 
+  let read = true;
+
   try {
     await refresh();
   } catch {
-    failed.value = true;
+    read = false;
   }
+
+  // A read that lands once the dialog has closed, or has opened again, belongs to no form standing now (docs/web.md,
+  // 「Forms」).
+  if (turn !== turns) return;
+
+  failed.value = !read;
 
   // A form nobody has changed takes what was read; one being written keeps what was written, read against what it
   // opened with.

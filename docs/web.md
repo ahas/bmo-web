@@ -8055,11 +8055,13 @@ by the administrator. Every login reads them, since every person's form asks in 
 - **A form holds a change only while its values differ from what it opened with,** read by bmo-ui's
   opened-with snapshot (`useOpenedWith`, bmo-ui's docs/components.md, its forms) and by nothing of the
   screen's own: the screen hands the values a reader would tell apart, and the snapshot is taken once the
-  dialog stands open with its data in it. A dialog opened and closed untouched holds no change, a new
-  record's empty form among them, and neither does one whose change was put back: text is read trimmed, every
-  kind of nothing alike, a number as its value. Where two writings mean the same to a screen, as a
-  number box's text and its number or a field standing in for a saved text it shows, the screen hands
-  the meaning.
+  dialog stands open with its data in it. What a dialog reads as it opens belongs to that opening alone: a
+  read that lands once the dialog has closed, or has opened again, fills no form and takes no snapshot, so
+  the next opening, of the same record or another, starts from its own. A dialog opened and closed
+  untouched holds no change, a new record's empty form among them, and neither does one whose change was
+  put back: text is read trimmed, every kind of nothing alike, a number as its value. Where two writings
+  mean the same to a screen, as a number box's text and its number or a field standing in for a saved
+  text it shows, the screen hands the meaning.
 - **저장 is on only while the form holds a change;** with nothing changed it stands disabled.
 - **저장 saves at once.** No question stands between the press and the save, whatever the save sets off;
   what a field's change sets off — a room's session starting afresh, an engine loading another model —

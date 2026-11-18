@@ -11,8 +11,9 @@ import type { Browser, BrowserContext, Locator, Page, Route } from "playwright-c
 // untouched, or one whose change was put back, closes at once on Esc and on the back gesture, while one holding a
 // change asks before it is thrown away, and Esc on that question keeps the dialog. A form whose data lands after the
 // reader began reads its change against what it opened with, and one the reader left alone takes what landed and still
-// holds no change. The dialogs read are an organisation post, opened from the chart and from a person's manage menu; a
-// supervisor's persona; a machine's CPU limit; and a role's and a repository's settings. A desktop's width and a phone's.
+// holds no change; a read that lands once its dialog has closed leaves the next opening its own. The dialogs read are
+// an organisation post, opened from the chart and from a person's manage menu; a supervisor's persona; a machine's CPU
+// limit; and a role's and a repository's settings. A desktop's width and a phone's.
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up, and serves
 // what the console's stand-ins do not answer — a supervisor's settings, a machine's reading — through the page's own
@@ -154,6 +155,23 @@ function heldAnswer(change: (body: unknown) => unknown): { armed: { on: boolean 
       await route.fulfill({ response: answer, json: body }).catch(() => undefined);
     }
   };
+}
+
+// A new record's form opened from a settings tab and closed untouched while the list it read as it opened is held,
+// that read let land only once the form has closed, and what landed drawn in the tab, where the record the change
+// names shows the text `landed`.
+async function addClosedBeforeItsReadLands(page: Page, list: RegExp, change: (body: unknown) => unknown, field: Locator, landed: string): Promise<void> {
+  const held = heldAnswer(change);
+
+  await page.context().route(list, held.handle);
+  held.armed.on = true;
+  await page.locator("[data-tab-add]").click({ timeout: 30_000 });
+  await field.waitFor({ timeout: 10_000 });
+  await closesAtOnce(page, field);
+  held.armed.on = false;
+  held.land();
+  await page.getByText(landed, { exact: true }).first().waitFor({ timeout: 10_000 });
+  await page.context().unroute(list, held.handle);
 }
 
 // A machine's reading with no CPU limit of its own and none its chip names.
@@ -459,6 +477,33 @@ describe.skipIf(!origin || !touchReady())("a console dialog holds a change only 
       }
     }, 90_000);
 
+    test(`a role's dialog opened after a new role's form closed before its read landed holds no change, at ${width}px`, async () => {
+      const context = await contextAt(width, height);
+      const page = await context.newPage();
+      const dialog = page.getByRole("dialog");
+      const name = dialog.getByRole("textbox", { name: wording("common.label.name"), exact: true });
+      const description = dialog.getByRole("textbox", { name: wording("agents.label.description"), exact: true });
+      const skill = "landed-skill";
+      const changed = (body: unknown): unknown => {
+        const view = body as { roles: { name: string }[] };
+
+        return { ...view, roles: view.roles.map((one) => (one.name === "worker" ? { ...one, skills: [skill] } : one)) };
+      };
+
+      try {
+        await visit(page, `/agents?tab=roles`);
+        await page.locator("#setting-role-worker").waitFor({ timeout: 20_000 });
+        await addClosedBeforeItsReadLands(page, /\/api\/roles$/, changed, name, skill);
+
+        await page.locator("#setting-role-worker").click({ timeout: 30_000 });
+        await description.waitFor({ timeout: 10_000 });
+        await saveIs(page, "disabled");
+        await closesAtOnce(page, description);
+      } finally {
+        await context.close();
+      }
+    }, 90_000);
+
     test(`a repository's dialog asks only for a change still standing, at ${width}px`, async () => {
       const context = await contextAt(width, height);
       const page = await context.newPage();
@@ -528,6 +573,26 @@ describe.skipIf(!origin || !touchReady())("a console dialog holds a change only 
         await preamble.click();
         await page.keyboard.type("abc");
         await asksThenDiscards(page, preamble);
+      } finally {
+        await context.close();
+      }
+    }, 90_000);
+
+    test(`a repository's dialog opened after a new repository's form closed before its read landed holds no change, at ${width}px`, async () => {
+      const context = await contextAt(width, height);
+      const page = await context.newPage();
+      const preamble = page.getByRole("dialog").getByRole("textbox", { name: wording("agents.label.preamble"), exact: true });
+      const changed = (body: unknown): unknown => (body as { name: string }[]).map((one) => (one.name === "repo-a" ? { ...one, label: LANDED } : one));
+
+      try {
+        await visit(page, `/agents?tab=repositories`);
+        await page.locator("#setting-repository-repo-a").waitFor({ timeout: 20_000 });
+        await addClosedBeforeItsReadLands(page, /\/api\/repositories$/, changed, preamble, LANDED);
+
+        await page.locator("#setting-repository-repo-a").click({ timeout: 30_000 });
+        await preamble.waitFor({ timeout: 10_000 });
+        await saveIs(page, "disabled");
+        await closesAtOnce(page, preamble);
       } finally {
         await context.close();
       }

@@ -612,13 +612,14 @@ section states what each does.
   machine and declaring sharing stay the administrator's alone.
 - **A machine taken away is told to leave, so its credential works no more.** A machine's credential is made from its
   name alone and the hub keeps no list of names it refuses, so once the binding is removed the console's server has
-  the node service send the machine a leave through its hub (`DELETE /nodes/{nodeName}` with `leave=true`). The
-  desktop app answers a leave by deleting its credential and offering pairing again, and an installed agent by
-  uninstalling itself; a later pairing binds a fresh name. The leave goes only where the hub holds the machine at that
-  moment and the binding was not declared shared, since a shared machine stays for the other accounts on it. A
-  machine the hub does not hold keeps its credential and attaches again under its old name, bound to no account,
-  until jake's hub can refuse a name. A leave the node service or the hub refuses leaves the machine taken away all
-  the same and is written to the console's log.
+  the node service send the machine a leave through its hub: the hub node whose `agentName` is the machine's name is
+  found in the node service's list, since a node's own name may differ from its agent's, and removed with
+  `leave=true`. The desktop app answers a leave by deleting its credential and offering pairing again, and an
+  installed agent by uninstalling itself; a later pairing binds a fresh name. The leave goes only where the hub holds
+  the machine at that moment and the binding was not declared shared, since a shared machine stays for the other
+  accounts on it. A machine the hub does not hold keeps its credential and attaches again under its old name, bound to
+  no account, until jake's hub can refuse a name. A leave the node service or the hub refuses, and a machine no node of
+  the list stands for, leave the machine taken away all the same and are written to the console's log.
 - **The administrator may declare a machine shared,** binding several accounts to one machine. A binding that says
   so is made where every other account bound to that name was bound shared as well; a binding that does not say so,
   or one naming a machine another account holds unshared, is refused 409 `node-taken` as above, so no account comes

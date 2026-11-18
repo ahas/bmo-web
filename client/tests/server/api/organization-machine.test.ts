@@ -46,7 +46,9 @@ const agency = standIn("AGENCY", (call) => {
   return answer({ code: "no-route", error: "no route" }, 404);
 });
 
-const nodes = standIn("NODE", () => new Response(null, { status: 204 }));
+const nodes = standIn("NODE", (call) =>
+  call.method === "GET" ? answer({ items: [{ name: "desk-a", label: "desk-a", kind: "hub", agentName: "desk-a" }], more: false }) : new Response(null, { status: 204 })
+);
 
 const rebind = await routeOf<Rebound>("../../apps/web/server/api/organization/users/[user]/node.put");
 const unbind = await routeOf<void>("../../apps/web/server/api/organization/users/[user]/node.delete");
@@ -108,7 +110,7 @@ describe("a person's machine", () => {
     expect((await asked(unbind, { params: { user: "4" } })).status).toBe(200);
     expect(agency.asked.filter((call) => call.method === "DELETE").map((call) => call.path)).toEqual(["/person-nodes/3", "/person-nodes/4"]);
     expect(service.users.find((user) => user.id === 3)?.node).toBeUndefined();
-    expect(nodes.asked.map((call) => call.path)).toEqual(["/nodes/desk-a?leave=true"]);
+    expect(nodes.asked.filter((call) => call.method === "DELETE").map((call) => call.path)).toEqual(["/nodes/desk-a?leave=true"]);
   });
 
   test("a machine agency refuses leaves the account bound as it was, or bound to none", async () => {

@@ -8,8 +8,9 @@ import { answer, standIn } from "../../support/units";
 
 // The reader's own machine taken away from the settings (docs/accounts.md, 「Invitations and a person's machine」;
 // docs/web.md, 「Settings」, the machine section): a member who is not the administrator takes their own away, agency's
-// record with it, and a machine the hub holds that nobody shares is sent a leave through the node service; a refused
-// leave leaves the machine taken away all the same. The route names no user, so it reaches the reader's own alone.
+// record with it, and a machine the hub holds that nobody shares is sent a leave through the node standing for it in
+// the node service's list, found by its agent; a refused leave, or no node standing for it, leaves the machine taken
+// away all the same. The route names no user, so it reaches the reader's own alone.
 
 const globals: Record<string, unknown> = globalThis;
 
@@ -18,11 +19,12 @@ globalsRestoredAfter(["signedInUser"]);
 const service = standInAccountService({
   users: [
     { id: 1, name: "boss", administrator: true },
-    { id: 2, name: "member-a", node: { agent: "u2", attached: true, kind: "desktop", provenAt: 1 } },
+    { id: 2, name: "member-a", node: { agent: "Desk_A", attached: true, kind: "desktop", provenAt: 1 } },
     { id: 3, name: "member-b", node: { agent: "u3", attached: false, provenAt: 1 } },
     { id: 4, name: "member-c", node: { agent: "desk-shared", shared: true, attached: true, provenAt: 1 } },
     { id: 5, name: "member-d", node: { agent: "u5", attached: true, kind: "installed", provenAt: 1 } },
-    { id: 6, name: "member-e" }
+    { id: 6, name: "member-e" },
+    { id: 7, name: "member-f", node: { agent: "u7", attached: true, kind: "desktop", provenAt: 1 } }
   ]
 });
 
@@ -35,9 +37,20 @@ afterAll(() => {
 });
 
 const agency = standIn("AGENCY", () => new Response(null, { status: 204 }));
-const nodes = standIn("NODE", (call) =>
-  call.path.startsWith("/nodes/u5") ? answer({ code: "conflict", error: "the hub did not take the leave" }, 409) : new Response(null, { status: 204 })
-);
+// The node service's list names a node apart from its agent where the agent's name is not one a node name may be; no
+// node stands for u7 yet.
+const LISTED = [
+  { name: "this-machine", label: "this-machine", kind: "ssh", thisMachine: true },
+  { name: "-esk--", label: "Desk_A", kind: "hub", agentName: "Desk_A" },
+  { name: "u5", label: "u5", kind: "hub", agentName: "u5" }
+];
+const nodes = standIn("NODE", (call) => {
+  if (call.method === "GET") return answer({ items: LISTED, more: false });
+  if (call.path.startsWith("/nodes/u5")) return answer({ code: "conflict", error: "the hub did not take the leave" }, 409);
+
+  return new Response(null, { status: 204 });
+});
+const removals = () => nodes.asked.filter((call) => call.method === "DELETE").map((call) => call.path);
 
 const unlink = await routeOf<void>("../../apps/web/server/api/me/machine/index.delete");
 
@@ -55,7 +68,7 @@ describe("the reader's own machine taken away", () => {
     expect(await unlinkedBy(2)).toMatchObject({ status: 200 });
     expect(machineOf(2)).toBeUndefined();
     expect(agency.asked.filter((call) => call.method === "DELETE").map((call) => call.path)).toContain("/person-nodes/2");
-    expect(nodes.asked.map((call) => [call.method, call.path])).toEqual([["DELETE", "/nodes/u2?leave=true"]]);
+    expect(removals()).toEqual(["/nodes/-esk--?leave=true"]);
   });
 
   test("sends no leave to a machine the hub does not hold, nor to a shared one", async () => {
@@ -64,13 +77,16 @@ describe("the reader's own machine taken away", () => {
     expect(await unlinkedBy(3)).toMatchObject({ status: 200 });
     expect(await unlinkedBy(4)).toMatchObject({ status: 200 });
     expect([machineOf(3), machineOf(4)]).toEqual([undefined, undefined]);
-    expect(nodes.asked).toEqual([]);
+    expect(removals()).toEqual([]);
   });
 
-  test("stands taken away where the leave is refused", async () => {
+  test("stands taken away where the leave is refused, or no node stands for the machine", async () => {
+    nodes.asked.length = 0;
+
     expect(await unlinkedBy(5)).toMatchObject({ status: 200 });
-    expect(machineOf(5)).toBeUndefined();
-    expect(nodes.asked.map((call) => call.path)).toEqual(["/nodes/u5?leave=true"]);
+    expect(await unlinkedBy(7)).toMatchObject({ status: 200 });
+    expect([machineOf(5), machineOf(7)]).toEqual([undefined, undefined]);
+    expect(removals()).toEqual(["/nodes/u5?leave=true"]);
   });
 
   test("says so where the reader has no machine", async () => {

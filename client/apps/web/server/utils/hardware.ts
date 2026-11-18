@@ -29,6 +29,7 @@ interface NodeAnswer {
   kind: MonitorNode["kind"];
   thisMachine?: boolean;
   state?: string;
+  agentName?: string | null;
 }
 
 interface MachineAnswer {
@@ -61,9 +62,9 @@ function path(name: string): string {
   return `/machines/${encodeURIComponent(name)}`;
 }
 
-/** The node list, in its order, as far as the monitor reads it. */
-export async function listNodes(): Promise<MonitorNode[]> {
-  const nodes: MonitorNode[] = [];
+// Every node of the list, page after page, as the node service answers it.
+async function nodeAnswers(): Promise<NodeAnswer[]> {
+  const nodes: NodeAnswer[] = [];
   let after: string | null = null;
 
   for (;;) {
@@ -71,12 +72,23 @@ export async function listNodes(): Promise<MonitorNode[]> {
     const page: Page<NodeAnswer> = await unitFetch<Page<NodeAnswer>>(UNIT, `/nodes${query}`);
     const items = page.items ?? [];
 
-    nodes.push(...items.map((node) => ({ name: node.name, label: node.label, kind: node.kind, thisMachine: node.thisMachine === true, connected: node.state === "connected" })));
+    nodes.push(...items);
 
     if (page.more !== true || items.length === 0) return nodes;
 
     after = items.at(-1)!.name;
   }
+}
+
+/** The node list, in its order, as far as the monitor reads it. */
+export async function listNodes(): Promise<MonitorNode[]> {
+  return (await nodeAnswers()).map((node) => ({ name: node.name, label: node.label, kind: node.kind, thisMachine: node.thisMachine === true, connected: node.state === "connected" }));
+}
+
+/** The name of the hub node whose agent the hub knows by `agent`, which may differ from the agent's own name; none
+ * where no node of the list stands for it (the node service's `docs/nodes.md`, 「What a row holds」). */
+export async function hubNodeOf(agent: string): Promise<string | null> {
+  return (await nodeAnswers()).find((node) => node.kind === "hub" && node.agentName === agent)?.name ?? null;
 }
 
 /** A node taken off the list; with `leave`, a hub node's agent is first sent a leave through its hub, so it uninstalls

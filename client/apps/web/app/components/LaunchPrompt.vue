@@ -18,11 +18,12 @@
     @submit="launch"
   >
     <template #tools>
-      <USelect
+      <ChoiceSelect
         v-if="props.agent === 'search'"
         :content="{ align: 'start' }"
         :model-value="depth"
         :items="depthItems"
+        value-key="value"
         size="sm"
         color="neutral"
         variant="subtle"

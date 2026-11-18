@@ -8,7 +8,7 @@
       <p v-if="props.ask.purpose !== ''" class="text-sm text-muted" data-secret-purpose>{{ $t("secrets.label.purpose", { purpose: props.ask.purpose }) }}</p>
 
       <UFormField :label="$t('secrets.label.kind')" name="kind" :description="chosenKind?.description || undefined">
-        <USelect v-model="form.kind" :items="kindItems" class="w-full" :placeholder="$t('secrets.label.kind')" data-secret-kind @update:model-value="kindChosen = true" />
+        <ChoiceSelect v-model="form.kind" :items="kindItems" value-key="value" class="w-full" :placeholder="$t('secrets.label.kind')" data-secret-kind @update:model-value="kindChosen = true" />
       </UFormField>
 
       <UFormField :label="$t('secrets.label.name')" name="name" required :hint="$t('secrets.label.name_hint')" :error="nameError">
@@ -30,7 +30,7 @@
               <UInput v-model="field.key" class="w-full" autocomplete="off" autocapitalize="off" spellcheck="false" data-secret-field-key />
             </UFormField>
             <UFormField :label="$t('secrets.label.field_input')" class="shrink-0">
-              <USelect v-model="field.input" :items="inputItems" class="w-28" />
+              <ChoiceSelect v-model="field.input" :items="inputItems" value-key="value" class="w-28" />
             </UFormField>
             <UTooltip :text="$t('secrets.action.field_remove')">
               <UButton icon="i-material-symbols-close" color="neutral" variant="ghost" :aria-label="$t('secrets.action.field_remove')" @click="removeComposed(at)" />

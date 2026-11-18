@@ -14,7 +14,7 @@
           {{ generationUse($t, one.name) }}<span v-if="!one.switch" class="tabular-nums"> · {{ generationBounds(one) }}</span>
         </span>
       </label>
-      <USelect
+      <ChoiceSelect
         v-if="one.switch"
         :id="`${idPrefix}-${one.name}`"
         :model-value="draft[one.name] === '' ? undefined : draft[one.name]"

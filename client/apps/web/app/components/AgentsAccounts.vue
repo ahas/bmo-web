@@ -87,7 +87,7 @@
         </UFormField>
 
         <UFormField :label="$t('agents.label.credential')" name="kind">
-          <USelect v-model="editKind" :items="adding ? ADD_KIND_ITEMS : KIND_ITEMS" value-key="value" class="w-full" :aria-label="$t('agents.label.credential')" />
+          <ChoiceSelect v-model="editKind" :items="adding ? ADD_KIND_ITEMS : KIND_ITEMS" value-key="value" class="w-full" :aria-label="$t('agents.label.credential')" />
         </UFormField>
 
         <UFormField v-if="editKind !== 'sign-in'" :label="$t('common.label.path')" name="path" :help="editKind === 'token' ? $t('agents.placeholder.token_path') : $t('agents.placeholder.directory_path')">

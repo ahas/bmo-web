@@ -52,7 +52,7 @@
             <div class="flex flex-wrap items-center gap-2">
               <h2 id="research-queue-title" class="me-auto text-base font-semibold text-highlighted">{{ $t("research.title.queue") }}</h2>
 
-              <USelect
+              <ChoiceSelect
                 :model-value="category"
                 :items="categoryChoices"
                 value-key="value"
@@ -65,7 +65,7 @@
                 @update:model-value="(value: string) => setCategory(value)"
               />
 
-              <USelect
+              <ChoiceSelect
                 :model-value="itemState"
                 :items="stateChoices"
                 value-key="value"

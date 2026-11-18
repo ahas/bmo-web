@@ -667,7 +667,7 @@ describe("the model chip and the agent chooser", () => {
     expect(rowTemplate).toContain('<ItemModelChip :item="item" :query="query" press />');
     expect(chipTemplate).toMatch(/<HintTip [^>]*:press="props.press">/);
     expect(detailTemplate).toContain('<ItemModelChip :item="ranItem ?? openedItem" />');
-    expect(chipTemplate).not.toContain("<USelect");
+    expect(chipTemplate).not.toContain("<ChoiceSelect");
     expect(chipTemplate).toMatch(/<UBadge[^>]*data-item-model/);
     expect(chip).toContain("itemModelTip(t, props.item)");
   });
@@ -675,7 +675,7 @@ describe("the model chip and the agent chooser", () => {
   test("the agent is chosen in the head among every agent the agency registers, grouped by role, with no automatic choice", () => {
     expect(detailTemplate).toContain('<ItemAgentChip');
     expect(detailTemplate).toContain(':editable="!openedItem.done && openedItem.mergedInto === null"');
-    expect(agentTemplate).toContain('<USelect\n    v-else-if="props.editable"');
+    expect(agentTemplate).toContain('<ChoiceSelect\n    v-else-if="props.editable"');
     expect(agentScript).toContain('$fetch<RolesView>("/api/roles")');
     expect(agentScript).not.toContain("AUTO");
     expect(agentTemplate).toContain(":placeholder=\"$t('todo.label.agent_unnamed')\"");

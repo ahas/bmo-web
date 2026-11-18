@@ -110,10 +110,10 @@ describe.skipIf(!origin || !touchReady())("a supervisor's road", () => {
 
       const form = page.getByRole("dialog");
 
-      await form.getByRole("combobox", { name: wording("agents.label.agent_provider"), exact: true }).click();
+      await form.getByRole("button", { name: wording("agents.label.agent_provider"), exact: true }).click();
       await page.getByRole("option", { name: DEEPSEEK }).click();
 
-      const model = form.getByRole("combobox", { name: wording("common.label.model"), exact: true });
+      const model = form.getByRole("button", { name: wording("common.label.model"), exact: true });
 
       expect(await until(async () => (await model.innerText()).trim(), (text) => text.includes("deepseek-v4-pro"))).toContain("deepseek-v4-pro");
       await form.getByRole("button", { name: wording("common.action.save"), exact: true }).click();
@@ -184,7 +184,7 @@ describe.skipIf(!origin || !touchReady())("a supervisor's road", () => {
       await page.getByRole("button", { name: wording("agents.aria.road_of", { name: "Agent A" }), exact: true }).click();
 
       const form = page.getByRole("dialog");
-      const provider = form.getByRole("combobox", { name: wording("agents.label.agent_provider"), exact: true });
+      const provider = form.getByRole("button", { name: wording("agents.label.agent_provider"), exact: true });
 
       await provider.waitFor({ timeout: 10_000 });
       expect(await warning.count()).toBe(0);
@@ -214,7 +214,7 @@ describe.skipIf(!origin || !touchReady())("a supervisor's road", () => {
         await page.getByRole("button", { name: wording("agents.title.supervisor_add"), exact: true }).click();
 
         const form = page.getByRole("dialog");
-        const provider = form.getByRole("combobox", { name: wording("agents.label.agent_provider"), exact: true });
+        const provider = form.getByRole("button", { name: wording("agents.label.agent_provider"), exact: true });
 
         // The dialog opens on the default answerer's road, Claude Code, which never warns.
         await provider.waitFor({ timeout: 15_000 });
@@ -223,7 +223,7 @@ describe.skipIf(!origin || !touchReady())("a supervisor's road", () => {
         await provider.click();
         await page.getByRole("option", { name: DEEPSEEK }).click();
 
-        const model = form.getByRole("combobox", { name: wording("common.label.model"), exact: true });
+        const model = form.getByRole("button", { name: wording("common.label.model"), exact: true });
 
         await until(async () => (await model.innerText()).trim(), (text) => text.includes("deepseek-v4-pro"));
 

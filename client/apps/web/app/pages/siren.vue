@@ -9,7 +9,7 @@
       <UDashboardToolbar>
         <template #left>
           <div class="hidden items-center gap-2 sm:flex">
-            <USelect :content="{ align: 'start' }"
+            <ChoiceSelect :content="{ align: 'start' }"
               :model-value="agent"
               :items="agentChoices"
               value-key="value"
@@ -21,7 +21,7 @@
               @update:model-value="setAgent"
             />
 
-            <USelect :content="{ align: 'start' }"
+            <ChoiceSelect :content="{ align: 'start' }"
               :model-value="kind"
               :items="kindChoices"
               value-key="value"
@@ -33,7 +33,7 @@
               @update:model-value="setKind"
             />
 
-            <USelect :content="{ align: 'start' }"
+            <ChoiceSelect :content="{ align: 'start' }"
               :model-value="model"
               :items="modelChoices"
               value-key="value"
@@ -58,7 +58,7 @@
             />
 
             <template #content>
-              <USelect :content="{ align: 'start' }"
+              <ChoiceSelect :content="{ align: 'start' }"
                 :model-value="agent"
                 :items="agentChoices"
                 value-key="value"
@@ -70,7 +70,7 @@
                 @update:model-value="setAgent"
               />
 
-              <USelect :content="{ align: 'start' }"
+              <ChoiceSelect :content="{ align: 'start' }"
                 :model-value="kind"
                 :items="kindChoices"
                 value-key="value"
@@ -82,7 +82,7 @@
                 @update:model-value="setKind"
               />
 
-              <USelect :content="{ align: 'start' }"
+              <ChoiceSelect :content="{ align: 'start' }"
                 :model-value="model"
                 :items="modelChoices"
                 value-key="value"

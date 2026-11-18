@@ -19,7 +19,7 @@
       <UFormField :label="$t('research.label.topic_period')" name="gatherMinutes">
         <div class="flex flex-wrap items-center gap-2">
           <NumberInput v-model="draft.count" :min="1" :digits="4" :disabled="busy" :aria-label="$t('research.label.topic_period')" />
-          <USelect v-model="draft.unit" :items="unitItems" value-key="value" class="w-28" :disabled="busy" :aria-label="$t('research.label.period_unit')" />
+          <ChoiceSelect v-model="draft.unit" :items="unitItems" value-key="value" class="w-28" :disabled="busy" :aria-label="$t('research.label.period_unit')" />
         </div>
       </UFormField>
 
@@ -27,7 +27,7 @@
         <div class="flex flex-col gap-3">
           <USwitch v-model="draft.writes" :label="$t('research.label.calendar_writes')" :description="$t('research.message.calendar_help')" :disabled="busy" data-topic-calendar />
           <div v-if="draft.writes" class="grid gap-3 sm:grid-cols-2">
-            <USelect v-model="draft.realm" :items="realmItems" value-key="value" class="w-full" :disabled="busy" :aria-label="$t('research.label.calendar_realm')" />
+            <ChoiceSelect v-model="draft.realm" :items="realmItems" value-key="value" class="w-full" :disabled="busy" :aria-label="$t('research.label.calendar_realm')" />
             <UInput v-model="draft.calendarId" class="w-full font-mono" :placeholder="$t('research.label.calendar_id')" :disabled="busy" :aria-label="$t('research.label.calendar_id')" />
           </div>
         </div>

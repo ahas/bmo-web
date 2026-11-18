@@ -7,13 +7,11 @@
   <SettingsDialog v-model:open="open" :title="$t('members.title.let_in')" :description="props.title">
     <form id="room-let-in-form" class="flex min-w-0 flex-col gap-3" @submit.prevent="void letIn()">
       <UFormField :label="$t('members.label.person')" name="person">
-        <USelectMenu
+        <ChoiceSelect
           v-model="picked"
-          v-model:search-term="term"
-          :items="offered"
+          :items="chosen"
+          :find="findPeople"
           value-key="value"
-          ignore-filter
-          :loading="finding"
           class="w-full"
           :placeholder="$t('members.label.find')"
           :aria-label="$t('members.label.person')"
@@ -62,9 +60,6 @@ const emit = defineEmits<{ added: [] }>();
 
 const { t } = useI18n();
 
-const term = ref("");
-const found = ref<PersonView[]>([]);
-const finding = ref(false);
 const picked = ref<string | undefined>(undefined);
 const caller = ref(true);
 const busy = ref(false);
@@ -96,53 +91,51 @@ const { now } = useNowSeconds(60_000);
 // The directory carries no person number, so each person found wears their letter.
 const noPictures: AvatarIndex = new Map();
 
-const offered = computed<Offered[]>(() =>
-  found.value.map((person) => {
-    const presence = memberPresenceLook(t, accountEntry(accounts.value, Number(person.user), signedUser.value), now.value * 1000);
-    const description = [person.organization, presence.line ?? ""].filter((part) => part !== "").join(" · ");
+// A person as the select offers them. Their presence is read as the list draws, so it stays as it stands now while
+// the list is open.
+function offer(person: PersonView): Offered {
+  const presence = () => memberPresenceLook(t, accountEntry(accounts.value, Number(person.user), signedUser.value), now.value * 1000);
 
-    return {
-      label: person.name,
-      ...(description === "" ? {} : { description }),
-      avatar: { ...avatarFor(noPictures, "person", null, person.name), chip: presence.chip },
-      value: person.user
-    };
-  })
-);
+  return {
+    label: person.name,
+    value: person.user,
+    get description() {
+      const line = [person.organization, presence().line ?? ""].filter((part) => part !== "").join(" · ");
 
-let asked = 0;
+      return line === "" ? undefined : line;
+    },
+    get avatar() {
+      return { ...avatarFor(noPictures, "person", null, person.name), chip: presence().chip };
+    }
+  };
+}
 
-watch(term, async (words) => {
-  const mine = ++asked;
+// Everyone a search found since the dialog opened, so the field goes on naming the person picked once the list
+// closes, whichever search found them.
+const seen = new Map<string, PersonView>();
+const chosen = computed<Offered[]>(() => {
+  const person = picked.value === undefined ? undefined : seen.get(picked.value);
 
-  if (words.trim() === "") {
-    found.value = [];
-    return;
-  }
-
-  finding.value = true;
-
-  try {
-    const people = await $fetch<PersonView[]>("/api/people/search", { query: { q: words } });
-
-    if (mine !== asked) return;
-
-    const standing = new Set(props.members);
-
-    found.value = people.filter((person) => !standing.has(person.user));
-  } catch {
-    if (mine === asked) found.value = [];
-  } finally {
-    if (mine === asked) finding.value = false;
-  }
+  return person === undefined ? [] : [offer(person)];
 });
+
+// The people the directory finds for the words typed, the room's members left out.
+async function findPeople(words: string): Promise<Offered[]> {
+  const people = await $fetch<PersonView[]>("/api/people/search", { query: { q: words } });
+  const standing = new Set(props.members);
+  const offered = people.filter((person) => !standing.has(person.user));
+
+  for (const person of offered) seen.set(person.user, person);
+
+  return offered.map(offer);
+}
 
 // Each opening starts empty, the switch standing on.
 watch(open, (standing) => {
   if (!standing) return;
 
   picked.value = undefined;
-  term.value = "";
+  seen.clear();
   caller.value = true;
   failure.value = "";
 });

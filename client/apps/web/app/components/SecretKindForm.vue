@@ -28,7 +28,7 @@
                 <UInput v-model="field.label" class="w-full" autocomplete="off" data-kind-field-label />
               </UFormField>
               <UFormField :label="$t('secrets.label.field_input')" class="shrink-0" :error="fieldFault(at, ['field_alone'])">
-                <USelect v-model="field.input" :items="inputItems" class="w-28" />
+                <ChoiceSelect v-model="field.input" :items="inputItems" value-key="value" class="w-28" />
               </UFormField>
               <UTooltip :text="$t('secrets.action.field_remove')">
                 <UButton class="mt-6" icon="i-material-symbols-close" color="neutral" variant="ghost" :aria-label="$t('secrets.action.field_remove')" @click="removeField(at)" />

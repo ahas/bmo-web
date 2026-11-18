@@ -103,9 +103,10 @@
                  before there was more than one. -->
             <span v-if="!openedItem.done" class="flex min-w-0 flex-wrap items-center gap-1">
               <span class="text-muted">{{ $t("todo.label.field_worker") }}</span>
-              <USelect :content="{ align: 'start' }"
+              <ChoiceSelect :content="{ align: 'start' }"
                 :model-value="openedItem.worker ?? UNASSIGNED"
                 :items="workerOptions"
+                value-key="value"
                 class="min-w-40"
                 size="sm"
                 :aria-label="$t('todo.aria.item_worker')"
@@ -275,16 +276,14 @@
                       <span class="text-sm text-muted">{{ $t("todo.label.sources") }}</span>
                       <UBadge color="neutral" variant="subtle" size="sm" :label="`#${openedItem.id}`" />
 
-                      <USelectMenu
+                      <ChoiceSelect
                         v-model="raiseSources"
                         :content="{ align: 'start' }"
                         :items="otherNotes(openedItem.id)"
                         value-key="value"
                         multiple
-                        searchable
                         size="sm"
                         class="min-w-40"
-                        :search-input="{ placeholder: $t('todo.placeholder.source_search') }"
                         :placeholder="$t('todo.placeholder.more_sources')"
                         :aria-label="$t('todo.aria.more_sources')"
                       />

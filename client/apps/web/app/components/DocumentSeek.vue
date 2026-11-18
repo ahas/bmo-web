@@ -2,9 +2,10 @@
   <!-- Asking where something is. The question goes to the document seeker; its first answer is
        opened, and the rest stand as chips under the box. -->
   <form class="flex flex-col gap-2" role="search" :aria-label="$t('documents.title.seek')" @submit.prevent="seek">
-    <USelect :content="{ align: 'start' }"
+    <ChoiceSelect :content="{ align: 'start' }"
       v-model="scope"
       :items="SCOPES"
+      value-key="value"
       :disabled="props.document === null"
       size="sm"
       class="self-start"

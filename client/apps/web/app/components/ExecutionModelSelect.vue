@@ -1,7 +1,7 @@
 <template>
   <div class="flex min-w-0 flex-wrap gap-2">
-    <USelect :content="{ align: 'start' }" v-model="provider" :items="providers" value-key="value" class="w-full min-w-0 sm:w-36" :aria-label="$t('agents.aria.provider_of', { name: label ?? $t('common.label.model') })" />
-    <USelectMenu :content="{ align: 'start' }" v-if="provider !== 'auto'" :model-value="selected" :items="items" value-key="value" class="w-full min-w-0 sm:w-64" :loading="loading" :disabled="providerOff" :aria-label="label ?? $t('common.label.model')" :placeholder="$t('agents.aria.choose_model')" @update:model-value="choose($event as string)" />
+    <ChoiceSelect :content="{ align: 'start' }" v-model="provider" :items="providers" value-key="value" class="w-full min-w-0 sm:w-36" :aria-label="$t('agents.aria.provider_of', { name: label ?? $t('common.label.model') })" />
+    <ChoiceSelect :content="{ align: 'start' }" v-if="provider !== 'auto'" :model-value="selected" :items="items" value-key="value" class="w-full min-w-0 sm:w-64" :loading="loading" :disabled="providerOff" :aria-label="label ?? $t('common.label.model')" :placeholder="$t('agents.aria.choose_model')" @update:model-value="choose($event as string)" />
     <span v-if="providerOff" class="w-full text-sm text-toned">{{ $t("agents.error.provider_off") }}</span>
     <span v-if="error" class="w-full text-sm text-error">{{ error }}</span>
   </div>

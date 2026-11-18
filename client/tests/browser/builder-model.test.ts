@@ -77,7 +77,7 @@ describe.skipIf(!origin || !touchReady())("a work order's builder model", () => 
     try {
       const page = await context.newPage();
       const dialog = page.getByRole("dialog").filter({ hasText: "item-title" }).last();
-      const chooser = dialog.getByRole("combobox", { name: wording("agents.aria.provider_of", { name: wording("todo.label.builder_model") }), exact: true });
+      const chooser = dialog.getByRole("button", { name: wording("agents.aria.provider_of", { name: wording("todo.label.builder_model") }), exact: true });
 
       await page.goto(`${origin}/?todo=${ITEM}`, { waitUntil: "load" });
       await dialog.waitFor({ timeout: 20_000 });

@@ -5,20 +5,19 @@
   <SettingsDialog v-model:open="open" :title="props.title" :dirty="changes">
     <UForm id="post-form" :state="draft" class="flex flex-col gap-4" @submit="save">
       <UFormField v-if="props.user === null" :label="$t('organization.label.post_person')" name="user" required>
-        <USelectMenu
+        <ChoiceSelect
           v-model="draft.user"
           :items="props.people"
           value-key="value"
-          :search-input="{ placeholder: $t('organization.placeholder.find_person') }"
           class="w-full"
           data-post-person
         />
       </UFormField>
       <UFormField v-if="props.unit === null" :label="$t('organization.label.post_unit')" name="unit" required>
-        <USelect v-model="draft.unit" :items="props.units" class="w-full" data-post-unit />
+        <ChoiceSelect v-model="draft.unit" :items="props.units" value-key="value" class="w-full" data-post-unit />
       </UFormField>
       <UFormField :label="$t('organization.label.position')" name="role">
-        <USelect v-model="draft.role" :items="roleItems" class="w-full" data-post-role />
+        <ChoiceSelect v-model="draft.role" :items="roleItems" value-key="value" class="w-full" data-post-role />
       </UFormField>
       <UFormField :label="$t('organization.label.post_head')" name="head">
         <USwitch v-model="draft.head" data-post-head />

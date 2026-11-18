@@ -25,7 +25,7 @@
              its effort. -->
         <div class="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start">
           <UFormField :label="$t('agents.label.agent_provider')" :name="`agent-${agent.name}-provider`" class="min-w-0 sm:w-48 sm:shrink-0">
-            <USelect
+            <ChoiceSelect
               :model-value="agent.provider ?? FOLLOWS"
               :items="providerItems"
               value-key="value"
@@ -36,7 +36,7 @@
             />
           </UFormField>
           <UFormField v-if="agent.provider !== null" :label="$t('common.label.model')" :name="`agent-${agent.name}-model`" class="min-w-0 sm:flex-1">
-            <USelect
+            <ChoiceSelect
               :model-value="agent.model ?? undefined"
               :items="modelItems(agent)"
               value-key="value"
@@ -48,7 +48,7 @@
             />
           </UFormField>
           <UFormField v-if="agent.provider !== null && effortItems(agent).length > 0" :label="$t('agents.label.effort')" :name="`agent-${agent.name}-effort`" class="sm:w-28 sm:shrink-0">
-            <USelect
+            <ChoiceSelect
               :model-value="agent.effort ?? undefined"
               :items="effortItems(agent)"
               value-key="value"
@@ -87,7 +87,7 @@
                 />
               </UFormField>
               <UFormField :label="$t('agents.label.agent_bundles')" :name="`agent-${agent.name}-bundles`" :hint="$t('agents.label.agent_inherits')">
-                <USelectMenu
+                <ChoiceSelect
                   :model-value="agent.bundles ?? []"
                   :items="props.bundles"
                   value-key="value"

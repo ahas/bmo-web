@@ -5,7 +5,7 @@
        Every change waits for the form's one save, and a refusal stands under the field it names. -->
   <div class="flex min-w-0 flex-col gap-2">
     <UFormField :label="$t('agents.label.agent_provider')" name="provider" :error="errorAt('provider')" class="min-w-0 sm:w-1/2">
-      <USelect
+      <ChoiceSelect
         :model-value="road.provider === '' ? undefined : road.provider"
         :items="providerItems"
         value-key="value"
@@ -20,7 +20,7 @@
          side by side from the small breakpoint up. -->
     <div v-if="road.provider !== ''" class="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start">
       <UFormField :label="$t('common.label.model')" name="model" :error="errorAt('model')" class="min-w-0 sm:flex-1">
-        <USelect
+        <ChoiceSelect
           :model-value="road.model === '' ? undefined : road.model"
           :items="modelItems"
           value-key="value"
@@ -33,7 +33,7 @@
       </UFormField>
       <template v-if="props.whole">
         <UFormField v-if="effortItems.length > 0" :label="$t('agents.label.effort')" name="effort" :error="errorAt('effort')" class="sm:w-28 sm:shrink-0">
-          <USelect
+          <ChoiceSelect
             :model-value="road.effort ?? undefined"
             :items="effortItems"
             value-key="value"
@@ -44,7 +44,7 @@
           />
         </UFormField>
         <UFormField :label="$t('agents.label.thinking')" name="thinking" :error="errorAt('thinking')" class="sm:w-32 sm:shrink-0">
-          <USelect
+          <ChoiceSelect
             :model-value="thinkingShown"
             :items="thinkingItems"
             value-key="value"

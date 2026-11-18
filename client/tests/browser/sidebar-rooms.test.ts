@@ -115,7 +115,7 @@ describe.skipIf(!origin || !touchReady())("the sidebar's rooms", () => {
 
       const dialog = page.getByRole("dialog", { name: wording("room.title.room_add") });
 
-      await dialog.getByRole("combobox", { name: wording("room.label.room_add_service") }).click();
+      await dialog.getByRole("button", { name: wording("room.label.room_add_service") }).click();
       await page.getByRole("option", { name: "Chat A" }).click();
       await dialog.getByRole("option", { name: /numbered-room/ }).locator("button").click();
       await dialog.getByRole("button", { name: wording("common.action.add") }).click();
@@ -144,7 +144,7 @@ describe.skipIf(!origin || !touchReady())("the sidebar's rooms", () => {
 
       const dialog = page.getByRole("dialog", { name: wording("room.title.room_add") });
 
-      await dialog.getByRole("combobox", { name: wording("room.label.room_add_service") }).click();
+      await dialog.getByRole("button", { name: wording("room.label.room_add_service") }).click();
       await page.getByRole("option", { name: "Chat A" }).click();
       await dialog.getByRole("tab", { name: wording("room.label.room_add_tab_contacts") }).click();
 

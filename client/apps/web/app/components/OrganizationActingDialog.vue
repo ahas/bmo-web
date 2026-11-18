@@ -5,11 +5,10 @@
   <SettingsDialog v-model:open="open" :title="$t('organization.action.appoint')" :dirty="changes">
     <UForm id="acting-form" :state="draft" class="flex flex-col gap-4" @submit="save">
       <UFormField :label="$t('organization.label.acting_person')" name="user" required>
-        <USelectMenu
+        <ChoiceSelect
           v-model="draft.user"
           :items="props.people"
           value-key="value"
-          :search-input="{ placeholder: $t('organization.placeholder.find_person') }"
           class="w-full"
           data-acting-person
         />

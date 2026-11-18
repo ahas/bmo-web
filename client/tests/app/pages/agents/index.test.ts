@@ -137,7 +137,7 @@ describe("every table of the screen", () => {
   });
 
   test("edits a cell in a dropdown aligned to the cell, never in a dialog of the row", () => {
-    expect(templateOf(choice)).toContain("<USelect");
+    expect(templateOf(choice)).toContain("<ChoiceSelect");
     expect(templateOf(choice)).toContain("align: 'start'");
     expect(templateOf(popover)).toContain("<UPopover");
     expect(templateOf(input)).toContain("<SettingsPopoverCell");

@@ -28,7 +28,7 @@
 
       <div class="grid gap-4 sm:grid-cols-2">
         <UFormField :label="$t('agents.label.exec_node')" name="nodeName" :error="errorAt('nodeName')">
-          <USelect v-model="form.node" :items="nodeItems" value-key="value" class="w-full" :disabled="busy" :aria-label="$t('agents.label.exec_node')" />
+          <ChoiceSelect v-model="form.node" :items="nodeItems" value-key="value" class="w-full" :disabled="busy" :aria-label="$t('agents.label.exec_node')" />
         </UFormField>
         <UFormField :label="$t('agents.label.support_count')" name="supportCount" :error="errorAt('supportCount')">
           <NumberInput v-model="form.supportCount" :min="0" :step="1" :digits="2" :disabled="busy" :aria-label="$t('agents.label.support_count')" />
@@ -56,7 +56,7 @@
           </ul>
           <p v-else class="text-sm text-muted">{{ $t("agents.status.no_node_checkouts") }}</p>
           <div v-if="form.node === HERE" class="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
-            <USelect
+            <ChoiceSelect
               v-model="addingCheckout.node"
               :items="checkoutNodeItems"
               value-key="value"
@@ -137,8 +137,8 @@
       <!-- The model every job here runs on instead of its role's order, or the role's order. -->
       <UFormField :label="$t('agents.label.pinned_model')" name="pin" :error="errorAt('pin')" :help="form.pinProvider === ROLE_ORDER ? undefined : $t('agents.message.pin_waits')">
         <div class="grid gap-2 sm:grid-cols-2">
-          <USelect v-model="form.pinProvider" :items="pinProviderItems" value-key="value" class="w-full" :disabled="busy" :aria-label="$t('agents.label.pinned_provider')" @update:model-value="() => (form.pinModel = '')" />
-          <USelect
+          <ChoiceSelect v-model="form.pinProvider" :items="pinProviderItems" value-key="value" class="w-full" :disabled="busy" :aria-label="$t('agents.label.pinned_provider')" @update:model-value="() => (form.pinModel = '')" />
+          <ChoiceSelect
             v-if="form.pinProvider !== ROLE_ORDER"
             :model-value="form.pinModel === '' ? undefined : form.pinModel"
             :items="pinModelItems"

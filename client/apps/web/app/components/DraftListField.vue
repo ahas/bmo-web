@@ -50,7 +50,7 @@
       <li v-if="list.length === 0" class="text-sm text-dimmed">{{ $t("agents.label.draft_no_questions") }}</li>
     </ol>
 
-    <USelect
+    <ChoiceSelect
       :model-value="undefined"
       :items="addable"
       value-key="value"

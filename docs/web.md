@@ -2263,6 +2263,18 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   fixed minimum the component library gives a menu — and an item's trailing column, where a check, a key or a
   submenu's arrow stands, takes no room on a row that has none of them. A list that drops for a value it
   shows — a select, an input with a list — is floored at its control's width, so it lines up under it.
+- **A value is chosen from a list in bmo-ui's one select,** `ChoiceSelect` (bmo-ui's `docs/components.md`,
+  「Choosing a value」), wherever the console lets a value be picked: a form's field, a filter, a table cell's
+  setting, a person to add. No screen stands the component library's select, select menu or input menu bare, nor a
+  dropdown menu of choices in its place, and none decides whether its list searches: the layer gives a search field
+  at the top of the opened list once it holds more than seven choices, and never with seven or fewer, so a list
+  read from data takes its search as it grows. A list found on the server, such as the people a room's let-in and
+  callers dialogs find by name, hands the select the road that finds them and always searches. Its words — the
+  search field's placeholder, no match, no choices and a refused find — are the language pack's
+  `common.placeholder.search`, `common.status.no_match`, `common.status.no_choices` and
+  `common.error.choices_find_failed`, the same on every screen. A list a preview stands beside, the theme's and
+  the palette's in the settings, stays the library's select: bmo-ui's list preview hears the focus move onto the
+  item a pointer or a key rests on, and the select menu highlights an item while the focus stays where it was.
 - **The toolbar** binds the info and buttons for one target — an editor, a document — in one line, attached to
   that target with no gutter. It fills the container end to end, its top and bottom borders continuing the tab
   bar's, view switch's and editor's, and its items have no border each but are split by dividers. Overflow
@@ -2522,8 +2534,8 @@ archive and this week's tokens remain. That is all that can actually be known th
   screen has going at once: the read's process asks the database to cancel its statement and ends, so a query
   missing a join condition stops burning a core the moment the owner says so, and what stood on the screen before
   stays.
-- **Skimming a table.** Choosing a table stands its rows fifty at a time. The table choice is a dropdown with a
-  search box, so a table is found by typing part of its name. The choices carry how many rows each table holds, and
+- **Skimming a table.** Choosing a table stands its rows fifty at a time. The table choice is the shared select, so
+  once the database holds more than seven tables one is found by typing part of its name. The choices carry how many rows each table holds, and
   the last-opened table is remembered by that browser. The order is the table's own, newest row first. Pressing a
   column name sorts ascending by that column, pressing again descending, pressing a third time returns to the
   table's own order. The search box searches the whole table, not the loaded page — it searches the typed characters

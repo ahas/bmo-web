@@ -5,9 +5,10 @@
        narrow screen's drawer one under another, each under its name. -->
   <div :class="props.stacked ? 'flex flex-col gap-4' : 'flex flex-wrap items-center gap-2'" data-roster-filters>
     <component :is="props.stacked ? UFormField : 'div'" v-if="props.companies.length > 1" v-bind="props.stacked ? { label: $t('invites.label.company') } : {}">
-      <USelect
+      <ChoiceSelect
         :model-value="props.view.company === null ? undefined : String(props.view.company)"
         :items="companyItems"
+        value-key="value"
         :placeholder="$t('invites.label.company')"
         :aria-label="$t('invites.label.company')"
         :class="props.stacked ? 'w-full' : 'w-36'"
@@ -40,9 +41,10 @@
     </component>
 
     <component :is="props.stacked ? UFormField : 'div'" v-if="kinds.length > 0" v-bind="props.stacked ? { label: $t('roster.label.kind') } : {}">
-      <USelect
+      <ChoiceSelect
         :model-value="props.view.kind ?? undefined"
         :items="kindItems"
+        value-key="value"
         :placeholder="$t('roster.label.kind')"
         :aria-label="$t('roster.label.kind')"
         :class="props.stacked ? 'w-full' : 'w-28'"
@@ -52,9 +54,10 @@
     </component>
 
     <component :is="props.stacked ? UFormField : 'div'" v-bind="props.stacked ? { label: $t('organization.label.role') } : {}">
-      <USelect
+      <ChoiceSelect
         :model-value="props.view.role ?? undefined"
         :items="roleItems"
+        value-key="value"
         :placeholder="$t('organization.label.role')"
         :aria-label="$t('organization.label.role')"
         :class="props.stacked ? 'w-full' : 'w-28'"
@@ -64,9 +67,10 @@
     </component>
 
     <component :is="props.stacked ? UFormField : 'div'" v-bind="props.stacked ? { label: $t('roster.label.state') } : {}">
-      <USelect
+      <ChoiceSelect
         :model-value="props.view.state ?? undefined"
         :items="stateItems"
+        value-key="value"
         :placeholder="$t('roster.label.state')"
         :aria-label="$t('roster.label.state')"
         :class="props.stacked ? 'w-full' : 'w-36'"

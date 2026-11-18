@@ -24,7 +24,7 @@
         <span v-if="refusals[setting.field]" class="text-sm text-error">{{ refusals[setting.field] }}</span>
         <span v-else class="text-sm text-muted">{{ $t("agents.label.secret_of_kind", { kind: kindName(setting.kind) }) }}</span>
       </template>
-      <USelect
+      <ChoiceSelect
         :model-value="held.settings[setting.field] ?? NONE"
         :items="choicesOf(setting.kind, held.settings[setting.field] ?? null)"
         value-key="value"

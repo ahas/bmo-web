@@ -13,7 +13,7 @@
         name="service"
         :help="service === null || service.modes.length === 0 ? undefined : $t('room.label.room_add_modes', { modes: service.modes.map(modeLabel).join(', ') })"
       >
-        <USelect
+        <ChoiceSelect
           v-model="serviceKey"
           :items="serviceItems"
           value-key="value"
@@ -101,7 +101,7 @@
 
       <div v-if="chosen" class="grid gap-4 sm:grid-cols-2">
         <UFormField :label="$t('room.label.room_add_mode')" name="mode" :help="mode === undefined ? undefined : modeHelp(mode)">
-          <USelect v-model="mode" :items="modeItems" value-key="value" class="w-full" :aria-label="$t('room.label.room_add_mode')" />
+          <ChoiceSelect v-model="mode" :items="modeItems" value-key="value" class="w-full" :aria-label="$t('room.label.room_add_mode')" />
         </UFormField>
         <UFormField :label="group ? $t('room.label.room_add_group_title') : $t('room.label.room_add_title')" name="title" :required="group">
           <UInput v-model="title" class="w-full" :placeholder="chosenTitle" :aria-label="group ? $t('room.label.room_add_group_title') : $t('room.label.room_add_title')" />
@@ -109,7 +109,7 @@
       </div>
 
       <UFormField v-if="group" :label="$t('room.label.room_add_supervisor')" name="supervisor" :help="$t('room.message.room_add_supervisor')">
-        <USelect v-model="supervisorName" :items="supervisorItems" value-key="value" class="w-full" :aria-label="$t('room.label.room_add_supervisor')" />
+        <ChoiceSelect v-model="supervisorName" :items="supervisorItems" value-key="value" class="w-full" :aria-label="$t('room.label.room_add_supervisor')" />
       </UFormField>
 
       <p v-if="failed !== ''" role="alert" class="break-words text-sm text-error">{{ failed }}</p>

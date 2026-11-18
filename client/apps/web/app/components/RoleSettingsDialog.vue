@@ -22,7 +22,7 @@
         </UFormField>
 
         <UFormField :label="$t('agents.label.run_line')" name="line" :error="errorAt('line')">
-          <USelect v-model="form.line" :items="lineItems" value-key="value" class="w-full sm:w-64" :disabled="busy" :aria-label="$t('agents.label.run_line')" />
+          <ChoiceSelect v-model="form.line" :items="lineItems" value-key="value" class="w-full sm:w-64" :disabled="busy" :aria-label="$t('agents.label.run_line')" />
         </UFormField>
 
         <UFormField :label="$t('agents.label.column_bundles')" name="bundles" :error="errorAt('bundles')">

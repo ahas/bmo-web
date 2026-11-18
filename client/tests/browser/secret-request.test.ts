@@ -220,6 +220,8 @@ async function fillFields(page: Page, kind: SecretKind): Promise<void> {
 async function chooseKind(page: Page, name: string): Promise<void> {
   await page.locator("[data-secret-kind]").click();
   await page.getByRole("option", { name, exact: true }).click();
+  // The list closes on the choice, so what is typed next goes to the form rather than to the list's search.
+  await page.getByRole("listbox").waitFor({ state: "detached", timeout: 10_000 });
 }
 
 async function clipMenu(page: Page): Promise<string[]> {

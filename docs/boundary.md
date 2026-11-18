@@ -794,7 +794,7 @@ shown as.
 |---|---|---|
 | the receiver | its refusals, each by the table beside its calls — every route's, the owner's sends, the voice briefing, removing a room and the draft process's; a file a send did not take, by its kind; the fixed lines through `POST /words/render`. Its facts are an agent's to say, and no screen shows them | the receiver's `docs/codes.md` |
 | bmo-job | its refusals, each by the table beside its calls; the answers a screen says, a queue told and an unanswered turn; the kinds a row is laid out by, the held words, the line and model marks, and the phases a job's time is divided into | bmo-job's `docs/api.md`, 「Codes」 and 「Routes」; its `docs/jobs.md`, 「Where a job's time went」 |
-| bmo-ui | the 126 keys the layer reads | bmo-ui's `docs/boundary.md`, 「Wording keys」 |
+| bmo-ui | the 141 keys the layer reads | bmo-ui's `docs/boundary.md`, 「Wording keys」 |
 
 ## The public address
 

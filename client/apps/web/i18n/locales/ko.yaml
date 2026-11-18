@@ -143,7 +143,10 @@ common:
     move_down: 아래로
     move_up: 위로
     mute: 음소거
+    next_month: 다음 달
     next_picture: 다음 사진
+    next_year: 다음 연도
+    next_years: 다음 연도 범위
     open: 열기
     page_back: 이전
     page_forward: 다음
@@ -151,7 +154,10 @@ common:
     pin: 고정
     play: 재생
     play_now: 지금 재생
+    previous_month: 이전 달
     previous_picture: 이전 사진
+    previous_year: 이전 연도
+    previous_years: 이전 연도 범위
     refresh: 새로고침
     retry_translation: 다시 요청
     save: 저장

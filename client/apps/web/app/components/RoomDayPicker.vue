@@ -12,7 +12,7 @@
     </button>
 
     <template #content>
-      <UCalendar
+      <DateCalendar
         :model-value="shown"
         :max-value="today"
         class="p-2"

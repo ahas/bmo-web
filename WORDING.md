@@ -126,6 +126,8 @@
 - a room's situation note → 상황: 상황, 방의 상황, 방의 상황 보기, 이 방의 지금 상황, 갱신, 상황 노트 없음. Never 현황,
   상태 노트, 컨텍스트 노트.
 - the calendar → 캘린더 (the screen, and one calendar in it); an event → 일정, as in 내 일정, 조직 일정; a reminder → 알림; a recurrence → 반복.
+- a date picker's paging buttons → 이전 달, 다음 달 among the days; 이전 연도, 다음 연도 among the months and on the
+  outer pair; 이전 연도 범위, 다음 연도 범위 among a run of years. Never 지난달, 저번 달, 전년, 다음 해, 이전 연대.
 - a booking of a company's resource, and the act of making one → 예약: 예약, 새 예약, 내 예약, 예약 취소, 예약을
   취소할까요, 이 예약만, 반복 예약, 예약 {n}건, 예약 없음; the person who made it → 예약자. It is the same word a role's
   slot kept by a reservation takes (above), each on its own screen. Never 예매, 대여, 부킹, 신청.

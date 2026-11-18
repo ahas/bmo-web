@@ -38,10 +38,19 @@ index bf5a45a58fe3c590548394eff6b7b584ed3aa0e8..c4f25db59d44aa71f9455d22765b03e4
  			open,
  			unmountOnHide,
 diff --git a/dist/Tooltip/TooltipContentImpl.cjs b/dist/Tooltip/TooltipContentImpl.cjs
-index c76d4c1..d94261e 100644
+index c76d4c159fc68f160e315f049faa78e2b27ce5de..21f5ed28e79dc06bc099ef4d5227a389f4b69b21 100644
 --- a/dist/Tooltip/TooltipContentImpl.cjs
 +++ b/dist/Tooltip/TooltipContentImpl.cjs
-@@ -111,6 +111,7 @@ var TooltipContentImpl_vue_vue_type_script_setup_true_lang_default = /* @__PURE_
+@@ -105,12 +105,15 @@ var TooltipContentImpl_vue_vue_type_script_setup_true_lang_default = /* @__PURE_
+ 				const target = event.target;
+ 				if (target?.contains(rootContext.trigger.value)) rootContext.onClose();
+ 			}, { capture: true });
+-			(0, __vueuse_core.useEventListener)(document, require_Tooltip_utils.TOOLTIP_OPEN, rootContext.onClose);
++			(0, __vueuse_core.useEventListener)(document, require_Tooltip_utils.TOOLTIP_OPEN, (event) => {
++				if (event.detail !== rootContext.open) rootContext.onClose();
++			});
+ 		});
+ 		return (_ctx, _cache) => {
  			return (0, vue.openBlock)(), (0, vue.createBlock)((0, vue.unref)(require_DismissableLayer_DismissableLayer.DismissableLayer_default), {
  				"as-child": "",
  				"disable-outside-pointer-events": false,
@@ -50,10 +59,19 @@ index c76d4c1..d94261e 100644
  				onPointerDownOutside: _cache[1] || (_cache[1] = (event) => {
  					if ((0, vue.unref)(rootContext).disableClosingTrigger.value && (0, vue.unref)(rootContext).trigger.value?.contains(event.target)) event.preventDefault();
 diff --git a/dist/Tooltip/TooltipContentImpl.js b/dist/Tooltip/TooltipContentImpl.js
-index 23c910a..d409694 100644
+index 23c910a05689ebb114fb623edcddfd3c13a909ec..c097ff3d65d86dbba73d397342b4611e5de36a47 100644
 --- a/dist/Tooltip/TooltipContentImpl.js
 +++ b/dist/Tooltip/TooltipContentImpl.js
-@@ -110,6 +110,7 @@ var TooltipContentImpl_vue_vue_type_script_setup_true_lang_default = /* @__PURE_
+@@ -104,12 +104,15 @@ var TooltipContentImpl_vue_vue_type_script_setup_true_lang_default = /* @__PURE_
+ 				const target = event.target;
+ 				if (target?.contains(rootContext.trigger.value)) rootContext.onClose();
+ 			}, { capture: true });
+-			useEventListener(document, TOOLTIP_OPEN, rootContext.onClose);
++			useEventListener(document, TOOLTIP_OPEN, (event) => {
++				if (event.detail !== rootContext.open) rootContext.onClose();
++			});
+ 		});
+ 		return (_ctx, _cache) => {
  			return openBlock(), createBlock(unref(DismissableLayer_default), {
  				"as-child": "",
  				"disable-outside-pointer-events": false,
@@ -61,3 +79,53 @@ index 23c910a..d409694 100644
  				onEscapeKeyDown: _cache[0] || (_cache[0] = ($event) => emits("escapeKeyDown", $event)),
  				onPointerDownOutside: _cache[1] || (_cache[1] = (event) => {
  					if (unref(rootContext).disableClosingTrigger.value && unref(rootContext).trigger.value?.contains(event.target)) event.preventDefault();
+diff --git a/dist/Tooltip/TooltipRoot.cjs b/dist/Tooltip/TooltipRoot.cjs
+index dd36a9868e992e195ad94caedf2741073b1ba05b..c4e51049439e0509f79e87d60eb481477657608f 100644
+--- a/dist/Tooltip/TooltipRoot.cjs
++++ b/dist/Tooltip/TooltipRoot.cjs
+@@ -67,7 +67,7 @@ var TooltipRoot_vue_vue_type_script_setup_true_lang_default = /* @__PURE__ */ (0
+ 			if (!providerContext.onClose) return;
+ 			if (isOpen) {
+ 				providerContext.onOpen();
+-				document.dispatchEvent(new CustomEvent(require_Tooltip_utils.TOOLTIP_OPEN));
++				document.dispatchEvent(new CustomEvent(require_Tooltip_utils.TOOLTIP_OPEN, { detail: open }));
+ 			} else providerContext.onClose();
+ 		});
+ 		const wasOpenDelayedRef = (0, vue.ref)(false);
+diff --git a/dist/Tooltip/TooltipRoot.js b/dist/Tooltip/TooltipRoot.js
+index e773fb5ea0a71a2132b200f8baacdc95c39546e0..121efae18ba2370137ec3dd8bfe61cb03554889b 100644
+--- a/dist/Tooltip/TooltipRoot.js
++++ b/dist/Tooltip/TooltipRoot.js
+@@ -66,7 +66,7 @@ var TooltipRoot_vue_vue_type_script_setup_true_lang_default = /* @__PURE__ */ de
+ 			if (!providerContext.onClose) return;
+ 			if (isOpen) {
+ 				providerContext.onOpen();
+-				document.dispatchEvent(new CustomEvent(TOOLTIP_OPEN));
++				document.dispatchEvent(new CustomEvent(TOOLTIP_OPEN, { detail: open }));
+ 			} else providerContext.onClose();
+ 		});
+ 		const wasOpenDelayedRef = ref(false);
+diff --git a/dist/date/useDateField.cjs b/dist/date/useDateField.cjs
+index b5f576dcc147e27a6d2bf841b858ce4716f8afe9..ba656a07771e05f2e491cf7a92b220c5c5b6b371 100644
+--- a/dist/date/useDateField.cjs
++++ b/dist/date/useDateField.cjs
+@@ -676,6 +676,7 @@ function useDateField(props) {
+ 	}
+ 	function handleSegmentKeydown(e) {
+ 		if (e.isComposing || e.key === "Process") return;
++		if (e.key === kbd.ESCAPE) return;
+ 		const disabled = props.disabled.value;
+ 		const readonly = props.readonly.value;
+ 		if (disabled || readonly) return;
+diff --git a/dist/date/useDateField.js b/dist/date/useDateField.js
+index 32d94e40b33821f3a4ff460f5317083b406c193a..3121e8951f28b6e8561bb345577ee71de3033a6f 100644
+--- a/dist/date/useDateField.js
++++ b/dist/date/useDateField.js
+@@ -675,6 +675,7 @@ function useDateField(props) {
+ 	}
+ 	function handleSegmentKeydown(e) {
+ 		if (e.isComposing || e.key === "Process") return;
++		if (e.key === kbd.ESCAPE) return;
+ 		const disabled = props.disabled.value;
+ 		const readonly = props.readonly.value;
+ 		if (disabled || readonly) return;

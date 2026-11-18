@@ -121,7 +121,8 @@
               {{ searched === null ? $t("db.status.no_rows") : $t("db.status.no_rows_found") }}
             </p>
 
-            <!-- The paging, flush at the foot of the window whatever the table's length. -->
+            <!-- The paging, flush at the foot of the window whatever the table's length: the four buttons
+                 together and the page after them, so the page number changing never moves a button. -->
             <div class="mt-auto flex shrink-0 items-center gap-1 border-t border-default px-2 py-1">
               <UTooltip :text="$t('db.action.first_page')">
                 <UButton size="sm" color="neutral" variant="ghost" icon="i-material-symbols-keyboard-double-arrow-left" :aria-label="$t('db.action.first_page')" :disabled="page.page <= 1" @click="goTo(1)" />
@@ -130,7 +131,6 @@
                 <UButton size="sm" color="neutral" variant="ghost" icon="i-material-symbols-chevron-left" :aria-label="$t('db.action.previous_page')" :disabled="page.page <= 1" @click="goTo(page.page - 1)" />
               </UTooltip>
 
-              <span class="min-w-0 truncate px-1 text-sm tabular-nums text-muted">{{ pageLabel($t, page.page, page.total) }}</span>
 
               <UTooltip :text="$t('db.action.next_page')">
                 <UButton size="sm" color="neutral" variant="ghost" icon="i-material-symbols-chevron-right" :aria-label="$t('db.action.next_page')" :disabled="page.page >= pages" @click="goTo(page.page + 1)" />
@@ -138,6 +138,8 @@
               <UTooltip :text="$t('db.action.last_page')">
                 <UButton size="sm" color="neutral" variant="ghost" icon="i-material-symbols-keyboard-double-arrow-right" :aria-label="$t('db.action.last_page')" :disabled="page.page >= pages" @click="goTo(pages)" />
               </UTooltip>
+
+              <span class="min-w-0 truncate px-1 text-sm tabular-nums text-muted">{{ pageLabel($t, page.page, page.total) }}</span>
 
               <span class="ms-auto truncate text-sm tabular-nums text-muted sm:hidden">{{ read }}</span>
             </div>
@@ -193,13 +195,18 @@
 
         <template #body>
           <div v-if="page !== null" class="flex flex-col gap-3">
-            <ul class="flex flex-col gap-1">
-              <li v-for="column in page.columns" :key="column.name" class="flex flex-wrap items-center gap-2 text-sm">
-                <span class="font-mono text-highlighted">{{ column.name }}</span>
-                <span class="text-muted">{{ column.type === "" ? "—" : column.type }}</span>
-                <UBadge v-if="column.primaryKey" color="primary" variant="subtle" size="sm" :label="$t('db.label.primary_key')" />
-                <UBadge v-if="column.required" color="neutral" variant="subtle" size="sm" :label="$t('db.label.required')" />
-                <UBadge v-if="column.masked" color="warning" variant="subtle" size="sm" :label="$t('db.label.masked_badge')" />
+            <!-- Each column's name and type on a line of their own, and what it is marked as on a row under it. -->
+            <ul class="flex flex-col gap-2">
+              <li v-for="column in page.columns" :key="column.name" class="flex flex-col gap-1 text-sm">
+                <p class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span class="min-w-0 font-mono break-all text-highlighted">{{ column.name }}</span>
+                  <span class="text-muted">{{ column.type === "" ? "—" : column.type }}</span>
+                </p>
+                <div v-if="column.primaryKey || column.required || column.masked" class="flex flex-wrap items-center gap-2">
+                  <UBadge v-if="column.primaryKey" color="primary" variant="subtle" size="sm" :label="$t('db.label.primary_key')" />
+                  <UBadge v-if="column.required" color="neutral" variant="subtle" size="sm" :label="$t('db.label.required')" />
+                  <UBadge v-if="column.masked" color="warning" variant="subtle" size="sm" :label="$t('db.label.masked_badge')" />
+                </div>
               </li>
             </ul>
 

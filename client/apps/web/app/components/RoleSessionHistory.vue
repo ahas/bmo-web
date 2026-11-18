@@ -19,7 +19,9 @@
         <div class="flex min-w-0 items-center gap-2">
           <UIcon :name="session.valid ? 'i-material-symbols-check-circle-outline' : 'i-material-symbols-history'" class="size-4 shrink-0" :class="session.valid ? 'text-success' : 'text-muted'" />
           <span class="min-w-0 flex-1 truncate font-mono text-sm text-highlighted">{{ session.path }}</span>
-          <UBadge :color="session.valid ? 'success' : 'neutral'" variant="subtle" size="sm" class="shrink-0" :label="$t(session.valid ? 'agents.status.session_valid' : 'agents.status.session_expired')" />
+        </div>
+        <div class="flex flex-wrap items-center gap-1 ps-6">
+          <UBadge :color="session.valid ? 'success' : 'neutral'" variant="subtle" size="sm" :label="$t(session.valid ? 'agents.status.session_valid' : 'agents.status.session_expired')" />
         </div>
         <div class="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 ps-6 text-sm text-muted">
           <span class="text-toned">{{ roadText(session) }}</span>

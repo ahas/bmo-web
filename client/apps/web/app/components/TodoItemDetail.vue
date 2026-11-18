@@ -46,7 +46,10 @@
             </UTooltip>
           </div>
 
-          <div v-if="openedItem !== null" class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
+          <!-- Where the item stands now: its state and its approval on a line of their own, and under it a name and
+               value list of who asked, the model, the agent, the priority and the worker, so no value's length moves
+               another (docs/web.md, the item's modal). -->
+          <div v-if="openedItem !== null" class="mt-2 flex flex-wrap items-center gap-2 text-sm">
             <!-- A running item's state is pressed for its job's log, as the line's job log entry is (docs/web.md, the TODO panel). -->
             <UTooltip v-if="openedItem.running" :text="$t('todo.action.job_log')">
               <UButton
@@ -68,59 +71,48 @@
             <span v-if="todoState(openedItem) !== 'pending'" :class="openedItem.awaitingApproval ? 'text-warning' : 'text-highlighted'">
               {{ approvalLabel($t, openedItem) }}
             </span>
+          </div>
 
-            <span class="flex min-w-0 items-center gap-1">
-              <span class="text-muted">{{ $t("todo.label.field_requester") }}</span>
-              <span class="break-words text-highlighted">{{ requesterLine(openedItem, rooms) }}</span>
-            </span>
-
-            <span class="flex items-center gap-1">
-              <span class="text-muted">{{ $t("todo.label.field_model") }}</span>
-              <ItemModelChip :item="ranItem ?? openedItem" />
-            </span>
+          <PairRows v-if="openedItem !== null" :rows="standing" :skeleton="[]" label="">
+            <template #model>
+              <span class="flex items-center">
+                <ItemModelChip :item="ranItem ?? openedItem" />
+              </span>
+            </template>
 
             <!-- Whom the item names its work for: any agent the agency registers, of any role, or a model and a role
                  whose free agent takes it at the launch, chosen here while the item is not finished (the agency's
                  docs/repositories.md, 「An agent an item names」). -->
-            <span class="flex min-w-0 flex-wrap items-center gap-1">
-              <span class="text-muted">{{ $t("todo.label.field_agent") }}</span>
-              <ItemAgentChip
-                :item="openedItem"
-                :editable="!openedItem.done && openedItem.mergedInto === null"
-                :busy="busy.has(busyKey(openedItem.id, 'agent')) || busy.has(busyKey(openedItem.id, 'model'))"
-                @pick="(assignment: ItemAssignment) => void setAgent(openedItem!.id, assignment)"
-              />
-            </span>
-
-            <span v-if="!openedItem.done" class="flex items-center gap-1">
-              <span class="text-muted">{{ $t("todo.label.priority") }}</span>
-              <span class="text-highlighted">{{ openedItem.priority }}</span>
-            </span>
+            <template #agent>
+              <span class="flex min-w-0 items-center">
+                <ItemAgentChip
+                  :item="openedItem"
+                  :editable="!openedItem.done && openedItem.mergedInto === null"
+                  :busy="busy.has(busyKey(openedItem.id, 'agent')) || busy.has(busyKey(openedItem.id, 'model'))"
+                  @pick="(assignment: ItemAssignment) => void setAgent(openedItem!.id, assignment)"
+                />
+              </span>
+            </template>
 
             <!-- Which worker is to do it. It is an assignment and not a record: the queue reads
                  it to decide whose turn the item is, and the job is launched on the worker it
                  names. No assignment means the built-in worker, which is what the whole queue was
-                 before there was more than one. -->
-            <span v-if="!openedItem.done" class="flex min-w-0 flex-wrap items-center gap-1">
-              <span class="text-muted">{{ $t("todo.label.field_worker") }}</span>
-              <ChoiceSelect :content="{ align: 'start' }"
-                :model-value="openedItem.worker ?? UNASSIGNED"
-                :items="workerOptions"
-                value-key="value"
-                class="min-w-40"
-                size="sm"
-                :aria-label="$t('todo.aria.item_worker')"
-                :loading="busy.has(busyKey(openedItem.id, 'worker'))"
-                @update:model-value="assignWorker(openedItem.id, $event as string)"
-              />
-              <span class="break-all text-muted">{{ workerNote(openedItem) }}</span>
-            </span>
-
-            <span v-else-if="openedItem.worker !== null" class="flex items-center gap-1">
-              <span class="text-muted">{{ $t("todo.label.field_worker") }}</span>
-              <span class="text-highlighted">{{ openedItem.worker }}</span>
-            </span>
-          </div>
+                 before there was more than one. Its repository path stands under the choice. -->
+            <template v-if="!openedItem.done" #worker>
+              <span class="flex min-w-0 items-center">
+                <ChoiceSelect :content="{ align: 'start' }"
+                  :model-value="openedItem.worker ?? UNASSIGNED"
+                  :items="workerOptions"
+                  value-key="value"
+                  class="min-w-40"
+                  size="sm"
+                  :aria-label="$t('todo.aria.item_worker')"
+                  :loading="busy.has(busyKey(openedItem.id, 'worker'))"
+                  @update:model-value="assignWorker(openedItem.id, $event as string)"
+                />
+              </span>
+            </template>
+          </PairRows>
 
           <!-- A stopped order at the head of its worker's queue, whole: what stopped it, its turn and
                why it waits, and how many times it failed. The card in the queue says the turn alone. -->
@@ -355,10 +347,15 @@
                       <p class="mt-1 text-sm text-muted">{{ mergedLine($t, openedItem, formatStamp) }}</p>
                     </template>
                     <ul v-if="openedItem.mergedFrom.length > 0" class="mt-1 flex flex-col gap-2">
-                      <li v-for="one in openedItem.mergedFrom" :key="one.id" class="flex min-w-0 items-start gap-2 text-sm">
-                        <UButton size="sm" variant="link" class="shrink-0 p-0 tabular-nums" :label="`#${one.id}`" @click="openLinked(one.id)" />
-                        <span class="min-w-0 flex-1 break-words text-highlighted">{{ one.title }}</span>
-                        <UBadge :color="one.done ? 'success' : 'neutral'" variant="subtle" size="sm">{{ one.done ? $t("todo.title.section_done") : $t("todo.title.section_merged") }}</UBadge>
+                      <!-- Each merged item's number and title on a line of their own, and how it stands on a row under it. -->
+                      <li v-for="one in openedItem.mergedFrom" :key="one.id" class="flex min-w-0 flex-col gap-1 text-sm">
+                        <p class="flex min-w-0 items-start gap-2">
+                          <UButton size="sm" variant="link" class="shrink-0 p-0 tabular-nums" :label="`#${one.id}`" @click="openLinked(one.id)" />
+                          <span class="min-w-0 flex-1 break-words text-highlighted">{{ one.title }}</span>
+                        </p>
+                        <div class="flex">
+                          <UBadge :color="one.done ? 'success' : 'neutral'" variant="subtle" size="sm">{{ one.done ? $t("todo.title.section_done") : $t("todo.title.section_merged") }}</UBadge>
+                        </div>
                       </li>
                     </ul>
                   </div>
@@ -909,6 +906,7 @@ import {
 } from "~/domain/todos";
 import { usePolling } from "~/domain/polling";
 import type { ItemAssignment } from "~/domain/item-assignment";
+import type { PairRow } from "~/domain/pair-rows";
 import type { TodoActFields } from "~/domain/todos";
 
 import type { Ref } from "vue";
@@ -983,6 +981,26 @@ const workerOptions = computed(() => [
 function workerNote(item: TodoItem): string {
   return workers.value.find((agent) => agent.name === item.worker)?.path ?? "";
 }
+
+// Who asked, the model, the agent, the priority and the worker of the open item, as a name and value list: the
+// model, the agent and an unfinished item's worker are drawn by the screen, the rest stand as words.
+const standing = computed<PairRow[]>(() => {
+  const item = openedItem.value;
+
+  if (item === null) return [];
+
+  const worker: PairRow[] = !item.done
+    ? [{ key: "worker", label: t("todo.label.field_worker"), under: workerNote(item) || undefined }]
+    : item.worker !== null ? [{ key: "worker", label: t("todo.label.field_worker"), value: item.worker }] : [];
+
+  return [
+    { key: "requester", label: t("todo.label.field_requester"), value: requesterLine(item, rooms.value) },
+    { key: "model", label: t("todo.label.field_model") },
+    { key: "agent", label: t("todo.label.field_agent") },
+    ...(!item.done ? [{ key: "priority", label: t("todo.label.priority"), value: String(item.priority) }] : []),
+    ...worker
+  ];
+});
 
 
 const route = useRoute();

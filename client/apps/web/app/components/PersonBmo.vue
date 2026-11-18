@@ -14,9 +14,11 @@
           </span>
         </template>
         <template #persona>
-          <span class="flex flex-wrap items-center gap-2">
-            <span class="text-highlighted tabular-nums">{{ personaText }}</span>
-            <UButton v-if="persona !== null" size="sm" color="neutral" variant="outline" :label="$t('common.label.view')" data-roster-persona @click="personaOpen = true" />
+          <!-- The persona's words take the room and the way to read it whole stands at the line's end, so the words
+               changing never move it. -->
+          <span class="flex items-center gap-2">
+            <span class="min-w-0 flex-1 break-words text-highlighted tabular-nums">{{ personaText }}</span>
+            <UButton v-if="persona !== null" size="sm" color="neutral" variant="outline" class="shrink-0" :label="$t('common.label.view')" data-roster-persona @click="personaOpen = true" />
           </span>
         </template>
       </PairRows>

@@ -16,7 +16,8 @@
     >
       <template #list>
         <section ref="listRegion" class="flex min-h-0 min-w-0 flex-1 flex-col" :aria-label="$t('roster.label.tab')" data-roster-list>
-          <!-- The list's head: the search box, the filters, and how many people match. -->
+          <!-- The list's head: the search box, how many people match, and the filters, their button last on a narrow
+               screen so the count changing never moves it. -->
           <div class="flex shrink-0 flex-col gap-2 border-b border-default p-4" data-roster-head>
             <div class="flex min-w-0 items-center gap-2">
               <UInput
@@ -28,12 +29,12 @@
                 class="min-w-0 flex-1"
                 data-roster-search
               />
+              <UBadge v-if="total !== null" v-bind="COUNT_BADGE" color="neutral" class="shrink-0" :label="countText(total)" :aria-label="$t('roster.aria.count', { count: countText(total) })" data-roster-count />
               <UButton v-if="narrow" color="neutral" variant="outline" icon="i-material-symbols-filter-list" :label="$t('roster.action.filter')" class="shrink-0" data-roster-filter-open @click="filtersOpen = true">
                 <template v-if="filtersSet > 0" #trailing>
                   <UBadge v-bind="COUNT_BADGE" color="neutral" :label="countText(filtersSet)" />
                 </template>
               </UButton>
-              <UBadge v-if="total !== null" v-bind="COUNT_BADGE" color="neutral" class="shrink-0" :label="countText(total)" :aria-label="$t('roster.aria.count', { count: countText(total) })" data-roster-count />
             </div>
             <OrganizationPeopleFilters v-if="!narrow" :view="view" :companies="companies" :units="units" @change="setView" />
           </div>

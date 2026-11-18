@@ -7,8 +7,10 @@
     <span class="truncate text-sm text-highlighted">{{ props.member.name }}</span>
     <span v-if="props.presence?.line" class="truncate text-sm text-muted" data-member-presence>{{ props.presence.line }}</span>
     <span v-if="props.member.status !== null" class="truncate text-sm text-muted" data-member-status>{{ props.member.status }}</span>
+    <div v-if="props.member.account !== null" class="flex flex-wrap items-center gap-1 pt-1">
+      <UBadge :label="$t('members.label.console_user')" color="primary" variant="subtle" />
+    </div>
   </div>
-  <UBadge v-if="props.member.account !== null" :label="$t('members.label.console_user')" color="primary" variant="subtle" class="shrink-0" />
 </template>
 
 <script setup lang="ts">

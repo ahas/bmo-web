@@ -2133,11 +2133,13 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
 
 - **Every screen carries the one title bar, with the same buttons in the same places.** It is one component:
   the sidebar button, the screen's name and mark, and at its right end the one set of buttons — the
-  deployment's mark, and for the administrator the TODO button and the usage figures. Nothing but the screen's
+  deployment's mark first, then for the administrator the usage figures and the TODO button last. The set stands
+  at the bar's right end, so words that grow move only what stands before them, and the mark's ticking time moves
+  nothing. Nothing but the screen's
   name and mark stands beside the name: no action, no way back and no switch, not even one that concerns that
   screen alone, which stands in the screen's own row under the bar (below). No screen composes a bar of its own
   or leaves a button of the set out. The one difference a screen may make is the room's: its bar is the same bar
-  on the translucent ground the room's bars lie over the conversation on, and it carries the room's menu, its
+  on the translucent ground the room's bars lie over the conversation on, and it carries the room's menu, 진행 중, its
   pinned button and its window's time left beside the room's name, with no row of the room's own under it
   (「The top bar and the input bar lie over the conversation」).
 - **The set of buttons is one instance, held by the layout,** and laid into the bar of whichever screen
@@ -2531,7 +2533,8 @@ archive and this week's tokens remain. That is all that can actually be known th
   many rows were read in how many milliseconds when and the button that reads again.
 - **The table fills the panel.** The table's toolbar — the table choice, the search and the schema button — stands
   flush over the rows, the rows fill what is left edge to edge with tight cells, and the paging stands flush at the
-  foot of the window whatever the table's length.
+  foot of the window whatever the table's length: its four buttons, first, previous, next and last, together, and
+  the page it stands at after them, so the page number changing never moves a button.
 - **It cannot write.** This screen's reading does not use the app's own connection at all. Each read runs on a
   connection of its own in a read-only transaction, so a statement changing a row is refused not by a word list this
   app recognises but by the database itself. A directly typed query has one more layer: the query is wrapped whole
@@ -2633,7 +2636,7 @@ archive and this week's tokens remain. That is all that can actually be known th
   which the longest-unseen tab closes. The tab belongs to that visit, so it is empty when newly opened.
 - **The document's toolbar.** Under the tab bar stands one toolbar, and it stands with no document open too. On
   its left: the list's button — folding the list on a wide screen, opening it on a phone — then, with a document
-  open, the view switch (rendering, source, split), the translation toggle, and, while a translation is coming in, its progress. On its right: 「〈이름〉에게 질문」, the chat agent's label filled in, reading
+  open, the view switch (rendering, source, split), the place of a translation's progress, which shows it while one is coming in and stands kept and empty otherwise, and the translation toggle, so neither the progress coming and going nor the toggle's language name moves the other. On its right: 「〈이름〉에게 질문」, the chat agent's label filled in, reading
   again and the properties, and last the contents' fold on a wide screen. On a phone the actions and the contents fold into one vertical-dots menu, the view switch shows its
   icons alone, and the toolbar is one compact row.
 - **One document.** Nothing stands above the body but the toolbar. Its path, branch, writer, size, original
@@ -3280,8 +3283,9 @@ alone (「Access」); another account's agents are reached from 조직's 사용�
     kept session is pinged before its cache cools; and 사용, the switch that turns it on and off.
   - **Pressing an agent's name opens its role's agents,** a dialog titled with the role (「역할」 above gives the
     role its preset): one block per agent of that role, by name, saved as each is changed.
-    - **A block's head:** a switch that turns the agent on and off; its name; 실행 중 while it carries a run; and
-      its removal, which stands disabled while it carries a run. No agent stands before another: which one does a
+    - **A block's head:** a switch that turns the agent on and off; its name; and its removal, which stands
+      disabled while it carries a run. While it carries a run, 실행 중 stands as a chip on a row of its own under
+      the head. No agent stands before another: which one does a
       job is named by the supervisor that orders it.
     - **Its road under them:** 공급자, a choice of 요청한 감독관을 따름 — no road — and every provider whose program
       carries the role's line; and, under a provider, 모델, what `GET /provider-models/{provider}` answers for it,
@@ -4122,7 +4126,7 @@ Four bounds keep it from growing forever.
   | Inks inside a bubble | every secondary colour drawn inside a bubble is derived from that bubble's own ground, the owner's teal and the raised ground of everyone else's alike: its lightness is the ground's, moved a set share of the way to black in the light theme and to white in the dark, and its hue and chroma are its own — the text's for the muted and dimmed letters, the theme colour's for the accent and the success, error, warning, info and secondary colours. So the muted and dimmed letters, a link, a quote's strip, a chip's letters and icon, a verdict's mark and the send mark read at 4.5:1 or better, on the bubble and on the wash an open chip or a soft badge lays over it, in both themes, and keep it when a ground changes colour. The verdict mark's passing and failing colours are a mark's, read at 3:1, so they take a mark ink of their own, moved a smaller share than the letters' inks so their colour stays vivid: the passing green keeps its own chroma, as much of it as the screen shows, in both themes, and only the failing red is held to a chroma the screen still shows at the dark theme's light mark, where a strong red does not fit. They read at 3:1 or better on the same grounds and washes, and keep it when a ground changes colour | |
   | Meta line over a picture | 4px in from the picture's corner, 4px corners, 8px sides | 6px sides |
   | Top bar | 48px, the height every page's top bar has, a 20px picture | |
-  | Picture, name and menu | 12px from the picture to the name; 8px from the name's end to the menu button's own box, the gap every heading row stands between its title and its button, so the button's hover and press never reach under the name; the menu stays beside the name, all three on one centre line, the pinned button and the window's time left after it | |
+  | Picture, name and menu | 12px from the picture to the name; 8px from the name's end to the menu button's own box, the gap every heading row stands between its title and its button, so the button's hover and press never reach under the name; the menu stays beside the name, all three on one centre line, then 진행 중, the pinned button and the window's time left last | |
   | Input bar | 8px above and below the input box; the box 4px round its controls, 32px buttons with 4px corners | |
   | Photo and way down above the input bar | 8px | |
 - **The top bar and the input bar lie over the conversation.** Each runs the panel's full width with no
@@ -4132,9 +4136,11 @@ Four bounds keep it from growing forever.
   panel's top and foot underneath them. Only the room's bars are translucent: every other page's top bar stays
   opaque.
   - What acts on the room stands in the title bar beside the room's name (「The title bar」), and no row of the
-    room's own stands under it: the room's menu, its vertical-dots button, right after the name, then the pinned
-    button (「What was done to a message」) and the window's time left (「The window's time left stands in the top
-    bar」). The right end keeps only what every screen carries.
+    room's own stands under it: the room's menu, its vertical-dots button, right after the name, then 진행 중
+    (「진행 중」), the pinned button (「What was done to a message」) and last the window's time left (「The window's
+    time left stands in the top bar」). Only the time left stands after the pinned button, so the pinned message it
+    names changing moves no button. The right end keeps only what every
+    screen carries.
   - An entry of the room's menu that opens a sheet or a dialog leaves the keyboard in it: the menu gives the
     keyboard back to its button as it closes only where nothing opened over the screen, so it never takes it from
     a field being typed in.
@@ -5250,9 +5256,9 @@ Four bounds keep it from growing forever.
     closes the menu. Each emoji is the library's own square ghost button, the reader's own standing pressed in the
     accent's soft wash; the strip is as wide as its buttons with one even gap between them, never spread across the
     menu, and a hover colours the one button under the pointer and not the menu's row.
-  - **A pinned message** wears a pin mark on its meta line, and the room's top bar carries a pinned button beside the
-    room's menu while the room holds one: the pin mark and, from the sm width, the first line of the pinned message it
-    stands at, cut, with that message's words whole in its tooltip and how many are pinned where there are several.
+  - **A pinned message** wears a pin mark on its meta line, and the room's top bar carries a pinned button after the
+    room's menu and 진행 중 while the room holds one: the pin mark and, from the sm width, the first line of the pinned
+    message it stands at, cut, with that message's words whole in its tooltip and how many are pinned where there are several.
     The room's pinned messages are the receiver's answer to `GET /rooms/{roomId}/pins` (the receiver's
     `docs/api.md`, 「Messages」), newest pin first and never a deleted one, read when the room opens, when the record
     says a message changed, and once a pin is set or taken off. Pressing the button brings that message into view —
@@ -5656,7 +5662,7 @@ Four bounds keep it from growing forever.
     never closes anything itself.
   - The owner's own chat stands no listening row: every message there reaches the chat agent with no window at all.
 - **The window's time left stands in the top bar.** While the chat agent's window in a group room is open, the
-  room's top bar carries how long it has left, beside the room's name, its menu and the pinned button, whether a turn
+  room's top bar carries how long it has left, last after the room's name, its menu, 진행 중 and the pinned button, whether a turn
   is running or the listening row stands, so how long the conversation still has is read without going to the room's end. It is
   a listening mark and the time left as a timer reads it, counting down by the second in tabular figures that turn
   as every changing number does, and its tooltip and the name a screen reader hears say that the chat agent
@@ -5832,7 +5838,8 @@ Four bounds keep it from growing forever.
   tool host's asynchronous calls that stand running with their wake for this room (the tool host's
   `GET /uses`, read on its console face) — a watch an agent set, a reminder, a call still running. A call that names
   no room wakes in the owner's private chat, as the receiver queues a wake naming none, so it stands there. It stands as a
-  button with how many beside the window's clock, and nowhere while none waits.
+  button with how many right after the room's menu, before the pinned button and the window's clock, and nowhere
+  while none waits.
 - **Pressing it opens a list, one line a call, oldest first:** what it is — 감시 for a watch, with how often its
   check runs, 알림 for a reminder, with the moment it waits for, and the tool's own name for any other call — the
   note it was set with, the agent it wakes, and since when it has stood. A call with no note stands its tool's name
@@ -6322,10 +6329,11 @@ Four bounds keep it from growing forever.
 - **The modal is built as a screen to read one item.** The list line's shape is not carried over — a line shape fitted to
   a narrow column only lines up cell by cell in a wide place. The head stands the number and title uncut, with
   **항목 만들기** before the close mark on an item carrying an unfinished-item (the dialog's contained create button,
-  「An add that belongs to a row stays in that row at every width」), and one line
-  below gathers where this item stands now: state, approval (approved or awaiting, and who asked), worker, model,
-  priority. For an unfinished item the worker and the model are cells changed right there, and for a
-  finished item read-only tags. The body is two sets of tabs, in one order across both: 결과 (only where there is one), 보고 턴
+  「An add that belongs to a row stays in that row at every width」), and under it where this item stands now:
+  its state and its approval (approved or awaiting) on a line of their own, and under that line a name and value
+  list (「Name and value lists」) of who asked, the model, the agent, the priority and the worker, so no value's
+  length moves another. For an unfinished item the worker and the model are cells changed right there, the
+  worker's repository path under its cell, and for a finished item read-only tags. The body is two sets of tabs, in one order across both: 결과 (only where there is one), 보고 턴
   (only where there is one), 상태, 지시 and 요청 원문 on the left, 의논 and 관리 on the right.
   - **Left: 결과, 상태, 지시 and 요청 원문** — how the item ended, what became of it and what it says.
     - **결과** stands only on an item that carries a report or unfinished-items, and it is the first tab of
@@ -6393,8 +6401,9 @@ Four bounds keep it from growing forever.
     them back at once, while the answer sent is always the option as it was written. A text in another language
     than the reader's carries one line above it. Where 자동 번역 is on (「테마」 under the settings), the default, the reading is asked as the text
     opens and takes its place the moment it comes; where it is off the text opens as it was written, the line
-    offering **번역 보기**, which, pressed, asks the reading, and the reading takes the original's place whole; the line then says the language it was translated from and offers
-    **원문 보기**, which puts the original back — 영어에서 번역됨 · 원문 보기. The reading is never set under the
+    offering **번역 보기** at its right end, which, pressed, asks the reading, and the reading takes the original's place whole; the line then says the language it was translated from — 영어에서 번역됨 — and
+    offers **원문 보기** at the same right end, which puts the original back. The line's one button stands at its
+    right end in every state, so neither its words changing nor a press moves it. The reading is never set under the
     original, and a text in the reader's language carries no line.
     - **The road** is the gate's translating route, `POST /translations`, which the gate's `gate/translate` tool
       and a bundle's screens also take. The console asks it through a route of its own, `POST /api/translations`,
@@ -6408,7 +6417,7 @@ Four bounds keep it from growing forever.
       another item quoting the same words, asks the translator nothing again.
     - **While it is asked,** the line says it is being translated and the original stands; the reading takes its
       place the moment it comes.
-    - **What did not come says so,** on the same line with **다시 요청**, the original standing: a translator that
+    - **What did not come says so,** on the same line with **다시 요청** at its right end, the original standing: a translator that
       refused or failed, or one still too busy after its waits. A reading the translator could not render every part
       of says that some parts stand in the original.
   - **Right: 의논 and 관리** — the talk about the item and what the owner does to it.
@@ -6463,7 +6472,7 @@ Four bounds keep it from growing forever.
   The second holds the models, which take the free width and slide where they do not fit, then at the right end the
   progress as `n/m p%` for a step of more than one task. A step of several tasks holds them as its sub-stages, a line
   each, and pressing a step or a sub-stage opens the co-work step dialog at it.
-  A step whose work its review sent back carries how many times beside its name, **반려 n회**: the rejection entries of
+  A step whose work its review sent back carries how many times as a chip on a row under its name, **반려 n회**: the rejection entries of
   the item's review written under that step's stage (bmo-job's `docs/api.md`, 「Reviews」), so a step handed over
   again after a later stage sent the work back to it says so.
 - **Boxes grow with their text.** On a phone no box in the modal has a ceiling, so the modal's own scroll is never caught
@@ -6717,9 +6726,9 @@ Four bounds keep it from growing forever.
   the list they were looking at as is — the one taking rank 1 is a running line, and that line is not a candidate to assign while
   running and was at the front anyway when assigned. When the job ends that line leaves the queue and the rest stay in the order
   they gave. A 완료 보고 중 line does not count here.
-- **Which worker does it is decided by opening the line.** Opening a line stands a worker-choosing cell in the modal head's tag
-  line, and every worker on this machine stands in the list — the list is the agency's, so if the owner makes one more
-  worker it stands here at once. Beside the chosen worker stands its repository path, since the name alone does not say where the
+- **Which worker does it is decided by opening the line.** Opening a line stands a worker-choosing cell in the modal head's list of
+  where the item stands, and every worker on this machine stands in the list — the list is the agency's, so if the owner makes one more
+  worker it stands here at once. Under the chosen worker stands its repository path, since the name alone does not say where the
   work happens. Choosing **배정 없음** releases the assignment and that item becomes the Built-in worker's. This value is not a
   past record but a future assignment — it is what bmo-job reads on assigning, and the session launches the job on the worker it
   points at. Changing the assignment leaves the item's place, approval and rest unchanged.
@@ -6828,7 +6837,8 @@ Four bounds keep it from growing forever.
   anything in the write box releases a chosen one — the two are one answer and the bot refuses a body carrying both, so the screen
   keeps them from standing together. Conversely choosing a choice clears written words.
 - **The deadline can be stopped.** A question has one minute on it. It keeps a job from standing long while the owner is not watching,
-  but it is short for reading the choices slowly while watching. So beside the card's remaining time stands 「타이머 정지」. Pressing
+  but it is short for reading the choices slowly while watching. So the card's remaining time stands on a line of its own under who
+  asked, with 「타이머 정지」 at that line's right end, and the line's words changing never move the button. Pressing
   it moves that question alone to stopped in bmo-job, which keeps the time it had left and reads no due time while it stands
   stopped. A stop belongs to its one question: the console keeps no stop of its own, every card says what bmo-job holds for its
   own question, and a question asked after a stopped one counts its own time. The console reads the stopped questions with the
@@ -7411,8 +7421,8 @@ research screen (「Research screen」).
   the one above; at the right the unit chosen. Choosing one is a step of the history and stands in the address as
   `?unit=` and its number, so a shared link opens the same unit; where the address names none, the first company is
   chosen with no step. What a unit is called — 본부, 센터, 팀, 파트 — is its name alone (`docs/accounts.md`,
-  「Companies and organisation units」); a unit carrying a kind wears it as a small neutral badge after its name in the
-  tree, the kind in its company's words.
+  「Companies and organisation units」); a unit carrying a kind wears it as a small neutral badge on a row under its
+  name, inside the unit's row in the tree, the kind in its company's words.
 - **The tree narrows by kind.** Where any company keeps a kind, a 종류 select stands at the tree's head: 전체, then each
   company's kinds under the company's name. A kind chosen lists the units of that kind alone, flat, each with its
   path from its company muted under its name, a press choosing it as a press on the tree does; 전체 brings the tree
@@ -7549,7 +7559,8 @@ account's rooms or agents (「Access」).
     company chosen and every unit under it, chosen from that company's tree as 초대's 조직 is; 종류, 전체 or a kind
     of the company chosen, standing only where it keeps any; 역할, 전체, 조직장 or 구성원; and 상태, 전체, 활성, 기기 연결
     대기 or 탈퇴. A person counted under 조직 or 종류 through a post stands in the list as well, marked. On a narrow
-    screen the search box stands alone in the head with one 필터 button beside it, carrying how many filters are set,
+    screen the search box stands alone in the head with how many people match and then, at the head's right end, one
+    필터 button, so the count changing never moves it, carrying how many filters are set,
     which opens the five in a bottom drawer; what is
     chosen there is set as the drawer closes, however it closes, so the back gesture that closes it keeps the choice.
 - **The list is the console's shared data table,** its head stuck to the top and every column's width dragged, one

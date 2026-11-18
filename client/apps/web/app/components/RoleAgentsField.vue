@@ -15,10 +15,20 @@
             @update:model-value="(on: boolean) => void save(agent, { enabled: on })"
           />
           <span class="min-w-0 flex-1 truncate font-mono text-sm font-medium" :class="agent.enabled ? 'text-highlighted' : 'text-muted'">{{ agent.name }}</span>
-          <UBadge v-if="agent.carries" color="primary" variant="subtle" size="sm">{{ $t("agents.label.agent_carries") }}</UBadge>
           <UTooltip :text="$t('agents.aria.agent_remove', { name: agent.name })">
-            <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-close" :aria-label="$t('agents.aria.agent_remove', { name: agent.name })" :disabled="locked || agent.carries" @click="void remove(agent)" />
+            <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-close" class="shrink-0" :aria-label="$t('agents.aria.agent_remove', { name: agent.name })" :disabled="locked || agent.carries" @click="void remove(agent)" />
           </UTooltip>
+        </div>
+
+        <div v-if="agent.carries" class="flex flex-wrap items-center gap-1">
+          <UBadge
+            color="primary"
+            variant="subtle"
+            size="sm"
+            icon="i-material-symbols-progress-activity"
+            :ui="{ leadingIcon: 'animate-spin motion-reduce:animate-none' }"
+            :label="$t('agents.label.agent_carries')"
+          />
         </div>
 
         <!-- Its road: the provider, or none where it follows the one that asks it, and under a provider its model and

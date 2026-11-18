@@ -18,9 +18,11 @@
         block
         class="justify-between font-medium text-highlighted"
       >
-        <span class="flex min-w-0 items-center gap-2">
-          <span class="truncate">{{ watchTitle($t, watch) }}</span>
-          <UBadge v-if="watch.memoryId === null" color="neutral" variant="subtle" size="sm" :label="$t('live.label.watch_no_memory')" class="shrink-0" />
+        <span class="flex min-w-0 flex-col items-start gap-1">
+          <span class="max-w-full truncate">{{ watchTitle($t, watch) }}</span>
+          <span v-if="watch.memoryId === null" class="flex flex-wrap items-center gap-1">
+            <UBadge color="neutral" variant="subtle" size="sm" :label="$t('live.label.watch_no_memory')" />
+          </span>
         </span>
       </UButton>
 

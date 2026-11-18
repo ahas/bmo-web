@@ -87,6 +87,25 @@ export interface ChipLook {
   color: ChipColor;
 }
 
+// A state chip's look: besides its words and colour, the icon an item in a list carries for its state, which spins
+// while the state is work under way.
+export interface StateChipLook extends ChipLook {
+  icon: string;
+  spins: boolean;
+}
+
+type StateLook = { key: string; color: ChipColor; icon: string; spins?: boolean };
+
+const UNKNOWN_ICON = "i-material-symbols-help-outline";
+
+function lookOf(t: Translate, looks: Record<string, StateLook>, state: string): StateChipLook {
+  const look = looks[state];
+
+  return look === undefined
+    ? { label: t("research.label.unknown_value", { value: state }), color: "neutral", icon: UNKNOWN_ICON, spins: false }
+    : { label: t(look.key), color: look.color, icon: look.icon, spins: look.spins === true };
+}
+
 // The research screen's tabs, the queue first (docs/web.md, 「Research screen」).
 export const RESEARCH_TABS = [
   { value: "queue", label: "research.label.tab_queue", icon: "i-material-symbols-format-list-bulleted" },
@@ -104,21 +123,19 @@ export function isResearchTab(value: unknown): value is ResearchTab {
 // An item's states, in the order the state choice offers them.
 export const ITEM_STATES: readonly string[] = ["waiting", "running", "finishing", "reported", "fit", "stuck", "taken", "dismissed"];
 
-const ITEM_STATE_LOOKS: Record<string, { key: string; color: ChipColor }> = {
-  waiting: { key: "research.label.item_state_waiting", color: "neutral" },
-  running: { key: "research.label.item_state_running", color: "info" },
-  finishing: { key: "research.label.item_state_finishing", color: "info" },
-  reported: { key: "research.label.item_state_reported", color: "success" },
-  fit: { key: "research.label.item_state_fit", color: "primary" },
-  stuck: { key: "research.label.item_state_stuck", color: "error" },
-  taken: { key: "research.label.item_state_taken", color: "success" },
-  dismissed: { key: "research.label.item_state_dismissed", color: "neutral" }
+const ITEM_STATE_LOOKS: Record<string, StateLook> = {
+  waiting: { key: "research.label.item_state_waiting", color: "neutral", icon: "i-material-symbols-schedule-outline" },
+  running: { key: "research.label.item_state_running", color: "info", icon: "i-material-symbols-progress-activity", spins: true },
+  finishing: { key: "research.label.item_state_finishing", color: "info", icon: "i-material-symbols-progress-activity", spins: true },
+  reported: { key: "research.label.item_state_reported", color: "success", icon: "i-material-symbols-description-outline" },
+  fit: { key: "research.label.item_state_fit", color: "primary", icon: "i-material-symbols-thumb-up-outline" },
+  stuck: { key: "research.label.item_state_stuck", color: "error", icon: "i-material-symbols-error-outline" },
+  taken: { key: "research.label.item_state_taken", color: "success", icon: "i-material-symbols-check-circle-outline" },
+  dismissed: { key: "research.label.item_state_dismissed", color: "neutral", icon: "i-material-symbols-block" }
 };
 
-export function itemStateLook(t: Translate, state: string): ChipLook {
-  const look = ITEM_STATE_LOOKS[state];
-
-  return look === undefined ? { label: t("research.label.unknown_value", { value: state }), color: "neutral" } : { label: t(look.key), color: look.color };
+export function itemStateLook(t: Translate, state: string): StateChipLook {
+  return lookOf(t, ITEM_STATE_LOOKS, state);
 }
 
 /** Whether the unit still dismisses an item: in every state but taken and dismissed. */
@@ -159,15 +176,13 @@ export function shapeLabel(t: Translate, shape: string): string {
   return said(t, SHAPE_LABELS, shape);
 }
 
-const CATEGORY_STATE_LOOKS: Record<string, { key: string; color: ChipColor }> = {
-  running: { key: "research.label.state_running", color: "success" },
-  stopped: { key: "research.label.state_stopped", color: "neutral" }
+const CATEGORY_STATE_LOOKS: Record<string, StateLook> = {
+  running: { key: "research.label.state_running", color: "success", icon: "i-material-symbols-play-circle-outline" },
+  stopped: { key: "research.label.state_stopped", color: "neutral", icon: "i-material-symbols-pause-circle-outline" }
 };
 
-export function categoryStateLook(t: Translate, state: string): ChipLook {
-  const look = CATEGORY_STATE_LOOKS[state];
-
-  return look === undefined ? { label: t("research.label.unknown_value", { value: state }), color: "neutral" } : { label: t(look.key), color: look.color };
+export function categoryStateLook(t: Translate, state: string): StateChipLook {
+  return lookOf(t, CATEGORY_STATE_LOOKS, state);
 }
 
 const LANGUAGE_LABELS: Record<string, string> = {

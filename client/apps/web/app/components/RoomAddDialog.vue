@@ -46,14 +46,18 @@
           <li v-for="room in rooms" :key="room.id" role="option" :aria-selected="room.id === roomId" :aria-disabled="room.mode !== null">
             <button
               type="button"
-              class="flex w-full items-center gap-3 px-3 py-2 text-start text-sm transition-colors enabled:hover:bg-elevated disabled:opacity-60"
+              class="flex w-full flex-col gap-1 px-3 py-2 text-start text-sm transition-colors enabled:hover:bg-elevated disabled:opacity-60"
               :class="room.id === roomId ? 'bg-elevated' : ''"
               :disabled="room.mode !== null"
               @click="chooseRoom(room)"
             >
-              <span class="min-w-0 flex-1 truncate text-highlighted">{{ room.title ?? $t("room.label.room_add_untitled", { id: room.id }) }}</span>
-              <span class="shrink-0 text-muted">{{ kindLabel(room.kind) }}</span>
-              <UBadge v-if="heldLabel(room) !== null" color="neutral" variant="subtle" size="sm" :label="heldLabel(room) ?? ''" />
+              <span class="flex w-full min-w-0 items-center gap-3">
+                <span class="min-w-0 flex-1 truncate text-highlighted">{{ room.title ?? $t("room.label.room_add_untitled", { id: room.id }) }}</span>
+                <span class="shrink-0 text-muted">{{ kindLabel(room.kind) }}</span>
+              </span>
+              <span v-if="heldLabel(room) !== null" class="flex flex-wrap items-center gap-1">
+                <UBadge color="neutral" variant="subtle" size="sm" icon="i-material-symbols-check-circle-outline" :label="heldLabel(room) ?? ''" />
+              </span>
             </button>
           </li>
           <!-- The foot: reaching it reads the next page, its rows standing as skeletons while it comes, and once the
@@ -85,14 +89,24 @@
           <li v-for="contact in found" :key="contact.id" role="option" :aria-selected="contactIds.includes(contact.id)" :aria-disabled="!starts">
             <button
               type="button"
-              class="flex w-full items-center gap-3 px-3 py-2 text-start text-sm transition-colors enabled:hover:bg-elevated disabled:opacity-60"
+              class="flex w-full flex-col gap-1 px-3 py-2 text-start text-sm transition-colors enabled:hover:bg-elevated disabled:opacity-60"
               :class="contactIds.includes(contact.id) ? 'bg-elevated' : ''"
               :disabled="!starts"
               @click="chooseContact(contact)"
             >
-              <span class="min-w-0 flex-1 truncate text-highlighted">{{ contact.name }}</span>
-              <span class="shrink-0 text-muted">{{ contactKindLabel(contact.kind) }}</span>
-              <UBadge v-if="contactMark(contact) !== null" color="neutral" variant="subtle" size="sm" :label="contactMark(contact) ?? ''" />
+              <span class="flex w-full min-w-0 items-center gap-3">
+                <span class="min-w-0 flex-1 truncate text-highlighted">{{ contact.name }}</span>
+                <span class="shrink-0 text-muted">{{ contactKindLabel(contact.kind) }}</span>
+              </span>
+              <span v-if="contactMark(contact) !== null" class="flex flex-wrap items-center gap-1">
+                <UBadge
+                  color="neutral"
+                  variant="subtle"
+                  size="sm"
+                  :icon="heldLabel(contact) === null ? 'i-material-symbols-chat-outline' : 'i-material-symbols-check-circle-outline'"
+                  :label="contactMark(contact) ?? ''"
+                />
+              </span>
             </button>
           </li>
         </ul>

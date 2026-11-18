@@ -70,17 +70,22 @@
               <RoomPictureViewer ref="pictureViewer" :chat-id="chatId" @show="showPictureMessage" />
             </template>
 
-            <!-- What acts on this room alone stands beside its name; the right end keeps what every
-                 screen carries. The menu button's own box stands 8px from the name's end, the gap every
-                 heading row keeps between its title and its button: the bar's own 6px and 2px more. -->
+            <!-- What acts on this room alone stands beside its name: its menu, what waits, the pinned button
+                 and the window's time left last; the right end keeps what every screen carries. The menu
+                 button's own box stands 8px from the name's end, the gap every heading row keeps between its
+                 title and its button: the bar's own 6px and 2px more. -->
             <template #trailing>
               <UDropdownMenu :items="menuItems" :content="roomMenuContent">
                 <UTooltip :text="$t('common.action.more')">
                   <UButton icon="i-material-symbols-more-vert" color="neutral" variant="ghost" class="ms-0.5" :aria-label="$t('common.action.more')" data-room-menu />
                 </UTooltip>
               </UDropdownMenu>
+              <!-- What an agent left waiting for this room, for the administrator alone (docs/web.md, the room screen's
+                   list of what waits). -->
+              <RoomBackground v-if="administrator" :chat-id="chatId" />
               <!-- The room's pinned messages, one press a message, newest first (docs/web.md, 「What was done to a
-                   message」). -->
+                   message」). Only the window's time left stands after it, so the message it names changing moves no
+                   button. -->
               <UTooltip v-if="pinnedShown !== null" :text="pinnedTip">
                 <UButton
                   icon="i-material-symbols-keep"
@@ -98,8 +103,6 @@
                    turn runs or the listening row stands (docs/web.md, 「The window's time left stands in
                    the top bar」). -->
               <RoomWindowClock v-if="listeningWindow !== null" :closes-at="listeningWindow.closesAt" />
-              <!-- What an agent left waiting for this room, for the administrator alone (docs/web.md, the room screen's list of what waits). -->
-              <RoomBackground v-if="administrator" :chat-id="chatId" />
               <RoomProvidersDialog v-if="manages" v-model:open="providersOpen" :chat-id="chatId" :title="title" />
               <RoomSituationDialog v-model:open="situationOpen" :chat-id="chatId" :title="title" />
               <RoomCallersDialog v-model:open="callersOpen" :chat-id="chatId" :title="title" :read-only="!roomWritable" />

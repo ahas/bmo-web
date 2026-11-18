@@ -39,13 +39,11 @@
 
     <ul v-else class="flex flex-col gap-3">
       <li v-for="category in props.view.categories" :key="category.name" class="flex min-w-0 flex-col gap-1 rounded-md border border-default p-3">
-        <div class="flex min-w-0 flex-wrap items-center gap-2">
-          <span class="font-mono font-medium text-highlighted">{{ category.name }}</span>
-          <UBadge :color="categoryStateLook($t, category.state).color" variant="subtle" size="sm" :label="categoryStateLook($t, category.state).label" />
-          <UBadge v-if="holdsOf(props.view.holds, category.name).length > 0" color="warning" variant="subtle" size="sm" :label="$t('research.label.held')" />
+        <div class="flex min-w-0 items-center gap-2">
+          <span class="min-w-0 flex-1 break-words font-mono font-medium text-highlighted">{{ category.name }}</span>
 
           <UButton
-            class="ms-auto"
+            class="shrink-0"
             size="xs"
             color="neutral"
             variant="ghost"
@@ -56,6 +54,17 @@
             :disabled="props.changing !== null"
             @click="emit('change', category.name, category.state === 'running' ? 'stopped' : 'running')"
           />
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <UBadge
+            :color="categoryStateLook($t, category.state).color"
+            variant="subtle"
+            size="sm"
+            :icon="categoryStateLook($t, category.state).icon"
+            :label="categoryStateLook($t, category.state).label"
+          />
+          <UBadge v-if="holdsOf(props.view.holds, category.name).length > 0" color="warning" variant="subtle" size="sm" :label="$t('research.label.held')" />
         </div>
 
         <p class="break-words text-sm text-toned">{{ category.purpose }}</p>

@@ -5,10 +5,19 @@
      Shown whole; nothing folds. -->
 <template>
   <div class="flex min-w-0 flex-col gap-4 rounded-lg border border-default bg-default p-4">
-    <div class="flex min-w-0 items-center gap-2">
-      <UAvatar v-bind="identityMark(`node:${node.name}`, label, { icon: NODE_ICON })" size="sm" />
-      <span class="min-w-0 flex-1 truncate font-medium">{{ label }}</span>
-      <UBadge :label="linkText" :color="node.link.state === 'connected' ? 'success' : 'error'" variant="subtle" class="shrink-0" />
+    <div class="flex min-w-0 flex-col gap-2">
+      <div class="flex min-w-0 items-center gap-2">
+        <UAvatar v-bind="identityMark(`node:${node.name}`, label, { icon: NODE_ICON })" size="sm" />
+        <span class="min-w-0 flex-1 truncate font-medium">{{ label }}</span>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <UBadge
+          :icon="node.link.state === 'connected' ? 'i-material-symbols-link' : 'i-material-symbols-link-off'"
+          :label="linkText"
+          :color="node.link.state === 'connected' ? 'success' : 'error'"
+          variant="subtle"
+        />
+      </div>
     </div>
 
     <div class="flex flex-wrap items-center gap-2 text-sm">

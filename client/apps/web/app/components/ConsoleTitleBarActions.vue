@@ -1,13 +1,13 @@
 <template>
-  <!-- The title bar's one set of buttons, the same on every screen and in the same places: the deployment's mark,
-       and for the administrator the TODO button and the usage figures (docs/web.md, 「The title bar」). The layout
+  <!-- The title bar's one set of buttons, the same on every screen and in the same places: the deployment's mark
+       first, then for the administrator the usage figures and the TODO button last. The set stands at the bar's right
+       end, so words that grow move only what stands before them: the mark's ticking time moves nothing (docs/web.md,
+       「The title bar」). The layout
        holds this one instance, so a page change neither stands it up again nor reads its figures again. -->
   <span class="flex shrink-0 items-center gap-1.5" data-title-bar-actions>
     <DeployMark />
-    <template v-if="administrator">
-      <TodoOpenButton />
-      <UsageMeters />
-    </template>
+    <UsageMeters v-if="administrator" />
+    <TodoOpenButton v-if="administrator" />
   </span>
 </template>
 

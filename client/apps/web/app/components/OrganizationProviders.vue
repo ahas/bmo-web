@@ -34,11 +34,12 @@
           <HintTip v-if="one.reason !== null" :text="one.reasonEnglish ?? undefined" :disabled="one.reasonEnglish === null" class="min-w-0">
             <span class="break-words text-sm text-warning">{{ one.reason }}</span>
           </HintTip>
-          <!-- Where its own key is read from a file, whether that file stands and the way to set it. -->
-          <span v-if="one.keyFile !== null" class="flex min-w-0 flex-wrap items-center gap-x-2 text-sm text-muted" :data-provider-key="one.keyFile">
-            <span v-if="keyOf(one.keyFile) !== null" class="tabular-nums">{{ $t("agents.label.key_held", { time: formatStamp(Math.floor(keyOf(one.keyFile)!.changedAt / 1000)) }) }}</span>
-            <span v-else class="text-warning">{{ $t("agents.label.key_missing") }}</span>
-            <UButton size="xs" color="neutral" variant="link" class="px-0" :label="$t('agents.action.key_set')" @click="keyFor = one" />
+          <!-- Where its own key is read from a file, whether that file stands and the way to set it: the words take
+               the room and the way to set it stands at the line's end, so the words changing never move it. -->
+          <span v-if="one.keyFile !== null" class="flex min-w-0 items-center gap-2 text-sm text-muted" :data-provider-key="one.keyFile">
+            <span v-if="keyOf(one.keyFile) !== null" class="min-w-0 flex-1 break-words tabular-nums">{{ $t("agents.label.key_held", { time: formatStamp(Math.floor(keyOf(one.keyFile)!.changedAt / 1000)) }) }}</span>
+            <span v-else class="min-w-0 flex-1 break-words text-warning">{{ $t("agents.label.key_missing") }}</span>
+            <UButton size="xs" color="neutral" variant="link" class="shrink-0 px-0" :label="$t('agents.action.key_set')" @click="keyFor = one" />
           </span>
         </div>
         <USwitch

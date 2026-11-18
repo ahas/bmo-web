@@ -29,7 +29,7 @@
           <UIcon name="i-material-symbols-drag-indicator" class="size-5" />
         </span>
 
-        <span class="flex min-w-0 flex-col py-1">
+        <span class="flex min-w-0 flex-col gap-1 py-1">
           <span class="flex min-w-0 items-center gap-2">
             <span class="text-sm tabular-nums text-muted">{{ index + 1 }}</span>
             <UIcon :name="accountMark(one).icon" class="size-4 shrink-0" :class="accountMark(one).tone" />
@@ -37,7 +37,9 @@
             <UTooltip v-if="one.chosen" :text="$t('agents.label.account_chosen')">
               <UIcon name="i-material-symbols-keep" class="size-4 shrink-0 text-primary" role="img" :aria-label="$t('agents.label.account_chosen')" />
             </UTooltip>
-            <UBadge v-if="one.serving" color="primary" variant="subtle" size="sm" class="shrink-0" :label="$t('agents.label.account_serving')" />
+          </span>
+          <span v-if="one.serving || loginText(one) !== ''" class="flex flex-wrap items-center gap-2">
+            <UBadge v-if="one.serving" color="primary" variant="subtle" size="sm" :label="$t('agents.label.account_serving')" />
             <UBadge v-if="loginText(one) !== ''" :color="one.login === 'gone' ? 'error' : 'warning'" variant="subtle" size="sm" :label="loginText(one)" />
           </span>
           <!-- A path is allowed to run past its width and scrolls inside itself, as a worker's

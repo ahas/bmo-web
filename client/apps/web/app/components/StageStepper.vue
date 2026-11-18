@@ -26,15 +26,19 @@
     <template #title="{ item }">
       <button
         type="button"
-        class="flex min-h-8 w-full min-w-0 items-center gap-2 rounded-md px-2 py-1 text-start text-sm transition-colors hover:bg-elevated active:bg-accented"
+        class="flex min-h-8 w-full min-w-0 flex-col justify-center gap-1 rounded-md px-2 py-1 text-start text-sm transition-colors hover:bg-elevated active:bg-accented"
         :data-stage="stageOf(item).state"
         :aria-label="`${stageOf(item).stateLabel} · ${stageOf(item).title}`"
         @click="emit('open', stageOf(item).key)"
       >
-        <span class="min-w-0 flex-1 truncate font-medium text-highlighted" :class="{ 'text-muted': stageOf(item).state === 'skipped' }">{{ stageOf(item).title }}</span>
+        <span class="flex w-full min-w-0 items-center gap-2">
+          <span class="min-w-0 flex-1 truncate font-medium text-highlighted" :class="{ 'text-muted': stageOf(item).state === 'skipped' }">{{ stageOf(item).title }}</span>
+          <span v-if="stageOf(item).seconds !== null" class="shrink-0 tabular-nums text-muted">{{ spanClock($t, stageOf(item).seconds!) }}</span>
+        </span>
         <!-- How many times its review sent it back (docs/web.md, the TODO modal's work order steps). -->
-        <UBadge v-if="stageOf(item).rejections > 0" color="warning" variant="subtle" size="sm" class="shrink-0" :label="$t('todo.label.step_rejections', { n: stageOf(item).rejections })" data-stage-rejections />
-        <span v-if="stageOf(item).seconds !== null" class="shrink-0 tabular-nums text-muted">{{ spanClock($t, stageOf(item).seconds!) }}</span>
+        <span v-if="stageOf(item).rejections > 0" class="flex flex-wrap items-center gap-1">
+          <UBadge color="warning" variant="subtle" size="sm" :label="$t('todo.label.step_rejections', { n: stageOf(item).rejections })" data-stage-rejections />
+        </span>
       </button>
     </template>
 

@@ -468,8 +468,22 @@ describe.skipIf(!origin || !touchReady())("a question's timer in the questions w
       await openRoom(page);
       await page.locator(WINDOW).waitFor({ timeout: 30_000 });
 
+      // The stop stands at the right end of the time-left line, the edge the answer box shares, and the line's words
+      // changing between running and stopped never move it.
+      const stopEdge = async (name: string): Promise<number> => {
+        const button = await card(page, 41).getByRole("button", { name }).boundingBox();
+        const box = await card(page, 41).locator("textarea").last().boundingBox();
+
+        expect(button && box).toBeTruthy();
+        expect(Math.abs(button!.x + button!.width - (box!.x + box!.width))).toBeLessThanOrEqual(1);
+        return button!.x + button!.width;
+      };
+      const running = await stopEdge(PAUSE);
+
       await card(page, 41).getByRole("button", { name: PAUSE }).click();
       await card(page, 41).getByRole("button", { name: RESUME }).waitFor({ timeout: 10_000 });
+
+      expect(Math.abs((await stopEdge(RESUME)) - running)).toBeLessThanOrEqual(1);
 
       expect(stand.sent.filter((sent) => sent.path === "question-pause").map((sent) => sent.body)).toEqual([{ id: 1, paused: true }]);
       expect(await clock(page, 41).textContent()).toBe(wording("question.status.paused", { number: 1 }));
@@ -482,6 +496,9 @@ describe.skipIf(!origin || !touchReady())("a question's timer in the questions w
       await card(page, 43).waitFor({ timeout: 10_000 });
       await card(page, 41).getByRole("button", { name: PAUSE }).waitFor({ timeout: 10_000 });
 
+      // A third card may give the window's body a scrollbar, which narrows every card alike, so here the stop is held
+      // to the box's edge alone.
+      await stopEdge(PAUSE);
       expect(await page.locator(`${WINDOW} section`).count()).toBe(3);
       expect(await card(page, 43).getByRole("button", { name: PAUSE }).getAttribute("aria-pressed")).toBe("false");
       expect(await clock(page, 43).textContent()).toEndWith(RUNNING);

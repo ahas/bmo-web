@@ -33,20 +33,9 @@
       <template v-if="props.document !== null">
         <TabSwitch :model-value="props.view" :items="views" :label="$t('common.label.view')" :compact="tight" @update:model-value="emit('view', $event)" />
 
-        <div>
-          <UTooltip :text="$t('documents.message.translation_unavailable')" :disabled="props.translatable">
-            <USwitch
-              size="sm"
-              :model-value="props.translated"
-              :label="translationLabel"
-              :loading="props.asking"
-              :disabled="!props.translatable"
-              @update:model-value="emit('language', $event)"
-            />
-          </UTooltip>
-        </div>
-
-        <div v-if="translating" role="status">
+        <!-- That a translation is still going stands before the switch, in a place kept for it while none is, so
+             neither its coming and going nor the switch's language name changing moves the other. -->
+        <div role="status" :class="translating ? '' : 'invisible'" :aria-hidden="!translating">
           <UTooltip :text="$t('documents.status.translating')">
             <UButton
               color="neutral"
@@ -56,6 +45,19 @@
               icon="i-material-symbols-progress-activity"
               :aria-label="$t('documents.status.translating')"
               @click="goToWaiting"
+            />
+          </UTooltip>
+        </div>
+
+        <div>
+          <UTooltip :text="$t('documents.message.translation_unavailable')" :disabled="props.translatable">
+            <USwitch
+              size="sm"
+              :model-value="props.translated"
+              :label="translationLabel"
+              :loading="props.asking"
+              :disabled="!props.translatable"
+              @update:model-value="emit('language', $event)"
             />
           </UTooltip>
         </div>
@@ -90,9 +92,9 @@
       <UButton v-if="props.narrow" size="sm" color="neutral" variant="subtle" :icon="props.listTool.icon" :label="$t('documents.action.list')" @click="props.listTool.onSelect()" />
     </div>
 
-    <div v-else-if="props.failure !== ''" role="alert" class="flex flex-wrap items-center gap-2 p-4">
-      <p class="text-sm text-error">{{ props.failure }}</p>
-      <UButton class="ms-auto" size="sm" color="neutral" variant="subtle" icon="i-material-symbols-refresh" :label="$t('common.action.refresh')" @click="emit('retry')" />
+    <div v-else-if="props.failure !== ''" role="alert" class="flex items-center gap-2 p-4">
+      <p class="min-w-0 flex-1 text-sm break-words text-error">{{ props.failure }}</p>
+      <UButton class="shrink-0" size="sm" color="neutral" variant="subtle" icon="i-material-symbols-refresh" :label="$t('common.action.refresh')" @click="emit('retry')" />
     </div>
 
     <ContentSkeleton v-else-if="props.document === null" class="p-4" :label="$t('documents.status.loading')">
@@ -105,10 +107,10 @@
       <div v-if="props.translated && trouble" class="flex shrink-0 flex-col gap-1 border-b border-default px-4 py-2 text-sm">
         <p v-if="props.translationFailure !== ''" role="alert" class="text-error">{{ props.translationFailure }}</p>
         <template v-else-if="props.translation !== null">
-          <div v-if="props.translation.failure !== null" role="alert" class="flex flex-wrap items-center gap-2 text-error">
-            <span>{{ failureLine }}</span>
+          <div v-if="props.translation.failure !== null" role="alert" class="flex items-center gap-2 text-error">
+            <span class="min-w-0 flex-1 break-words">{{ failureLine }}</span>
             <UButton
-              class="ms-auto"
+              class="shrink-0"
               size="sm"
               color="neutral"
               variant="subtle"
@@ -118,12 +120,14 @@
               @click="emit('translate', false)"
             />
           </div>
-          <div v-if="failedParts > 0" role="status" class="flex flex-wrap items-center gap-2 text-warning">
-            <span class="tabular-nums">{{ $t("documents.status.translation_failed_parts", { n: countText(failedParts) }) }}</span>
-            <!-- What the translator said of the parts it could not carry, each different sentence once, in its own
-                 words. -->
-            <span v-for="said in failureSentences" :key="said" class="min-w-0 break-words text-muted">{{ said }}</span>
-            <UButton class="ms-auto" size="sm" color="neutral" variant="subtle" :label="$t('documents.action.retry_translation')" :loading="props.asking" @click="emit('translate', true)" />
+          <div v-if="failedParts > 0" role="status" class="flex items-center gap-2 text-warning">
+            <span class="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+              <span class="tabular-nums">{{ $t("documents.status.translation_failed_parts", { n: countText(failedParts) }) }}</span>
+              <!-- What the translator said of the parts it could not carry, each different sentence once, in its own
+                   words. -->
+              <span v-for="said in failureSentences" :key="said" class="min-w-0 break-words text-muted">{{ said }}</span>
+            </span>
+            <UButton class="shrink-0" size="sm" color="neutral" variant="subtle" :label="$t('documents.action.retry_translation')" :loading="props.asking" @click="emit('translate', true)" />
           </div>
         </template>
       </div>

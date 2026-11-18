@@ -13,23 +13,25 @@
 
     <template v-else>
       <div v-for="document in documents" :key="document.name" data-chat-document :data-document="document.name" class="flex flex-col gap-2">
-        <div class="flex min-h-8 flex-wrap items-center gap-2">
-          <span class="text-sm font-medium text-highlighted">{{ documentLabel(document.name) }}</span>
-          <UBadge
-            :color="shownSource(document) === 'stored' ? 'primary' : 'neutral'"
-            variant="subtle"
-            size="sm"
-            :label="$t(shownSource(document) === 'stored' ? 'agents.status.chat_document_stored' : 'agents.status.chat_document_file')"
-          />
+        <div class="flex min-h-8 items-center gap-2">
+          <span class="min-w-0 flex-1 break-words text-sm font-medium text-highlighted">{{ documentLabel(document.name) }}</span>
           <UButton
             v-if="shownSource(document) === 'stored'"
-            class="ms-auto"
+            class="shrink-0"
             :label="$t('agents.action.reset_document')"
             size="sm"
             color="neutral"
             variant="ghost"
             :disabled="busy"
             @click="toFile(document)"
+          />
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <UBadge
+            :color="shownSource(document) === 'stored' ? 'primary' : 'neutral'"
+            variant="subtle"
+            size="sm"
+            :label="$t(shownSource(document) === 'stored' ? 'agents.status.chat_document_stored' : 'agents.status.chat_document_file')"
           />
         </div>
 

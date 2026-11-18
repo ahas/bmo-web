@@ -101,7 +101,7 @@ describe("the bar over the home screen", () => {
 
     expect(template).toContain('<ConsoleTitleBar :ui="{ title: \'hidden\' }" />');
     expect(template).not.toContain("<UsageMeters");
-    expect(actions).toContain("<TodoOpenButton />");
-    expect(actions).toContain("<UsageMeters />");
+    expect(actions).toContain('<TodoOpenButton v-if="administrator" />');
+    expect(actions).toContain('<UsageMeters v-if="administrator" />');
   });
 });

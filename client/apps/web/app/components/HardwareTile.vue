@@ -11,28 +11,33 @@
 <template>
   <div data-machine-tile class="relative rounded-lg border border-default bg-default p-4 transition-colors has-[a:hover]:bg-elevated/50 has-[a:active]:bg-elevated">
     <div class="flex flex-col gap-4">
-      <div class="flex items-center gap-2">
-        <UAvatar v-bind="avatar" size="sm" />
-        <NuxtLink :to="machine.to" class="min-w-0 flex-1 truncate font-medium after:absolute after:inset-0 after:rounded-lg focus-visible:outline-none focus-visible:after:outline-solid focus-visible:after:outline-offset-(--bmo-focus-gap)">
-          <template v-if="name !== null">{{ name }}</template>
-          <SkeletonStatus v-else :label="$t('hardware.status.name_loading')" class="flex">
-            <SkeletonBar class="h-5 w-24" />
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center gap-2">
+          <UAvatar v-bind="avatar" size="sm" />
+          <NuxtLink :to="machine.to" class="min-w-0 flex-1 truncate font-medium after:absolute after:inset-0 after:rounded-lg focus-visible:outline-none focus-visible:after:outline-solid focus-visible:after:outline-offset-(--bmo-focus-gap)">
+            <template v-if="name !== null">{{ name }}</template>
+            <SkeletonStatus v-else :label="$t('hardware.status.name_loading')" class="flex">
+              <SkeletonBar class="h-5 w-24" />
+            </SkeletonStatus>
+          </NuxtLink>
+          <USwitch
+            v-if="reading !== null"
+            class="relative z-10 shrink-0"
+            :model-value="tracking.on.value"
+            :label="$t('hardware.title.live')"
+            :aria-label="$t('hardware.label.tracking')"
+            :loading="tracking.busy.value"
+            :disabled="tracking.busy.value"
+            @update:model-value="tracking.set($event as boolean)"
+          />
+          <SkeletonStatus v-else-if="failure === null && !failed" :label="$t('hardware.status.tracking_loading')" class="flex shrink-0">
+            <SkeletonBar class="h-5 w-20" />
           </SkeletonStatus>
-        </NuxtLink>
-        <USwitch
-          v-if="reading !== null"
-          class="relative z-10 shrink-0"
-          :model-value="tracking.on.value"
-          :label="$t('hardware.title.live')"
-          :aria-label="$t('hardware.label.tracking')"
-          :loading="tracking.busy.value"
-          :disabled="tracking.busy.value"
-          @update:model-value="tracking.set($event as boolean)"
-        />
-        <SkeletonStatus v-else-if="failure === null && !failed" :label="$t('hardware.status.tracking_loading')" class="flex shrink-0">
-          <SkeletonBar class="h-5 w-20" />
-        </SkeletonStatus>
-        <UBadge :icon="machineIcon(machine.kind)" :label="machineKindWord($t, machine.kind)" color="neutral" variant="subtle" class="shrink-0" />
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <UBadge :icon="machineIcon(machine.kind)" :label="machineKindWord($t, machine.kind)" color="neutral" variant="subtle" />
+        </div>
       </div>
 
       <p v-if="tracking.failed.value !== null" role="alert" class="relative z-10 text-sm text-error">{{ tracking.failed.value }}</p>

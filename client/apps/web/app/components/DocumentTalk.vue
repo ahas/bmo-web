@@ -11,9 +11,9 @@
             <SkeletonText :lines="2" size="sm" lastWidth="w-2/3" />
           </div>
         </ContentSkeleton>
-        <div v-if="failure !== ''" role="alert" class="flex flex-wrap items-center gap-2">
-          <p class="text-sm text-error">{{ failure }}</p>
-          <UButton class="ms-auto" size="sm" color="neutral" variant="subtle" :label="$t('common.action.refresh')" :loading="loading" @click="load" />
+        <div v-if="failure !== ''" role="alert" class="flex items-center gap-2">
+          <p class="min-w-0 flex-1 text-sm break-words text-error">{{ failure }}</p>
+          <UButton class="shrink-0" size="sm" color="neutral" variant="subtle" :label="$t('common.action.refresh')" :loading="loading" @click="load" />
         </div>
         <p v-if="!loading && turns.length === 0 && failure === ''" class="text-sm text-muted">
           {{ $t("documents.status.no_talk") }}

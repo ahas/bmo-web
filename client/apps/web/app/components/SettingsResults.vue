@@ -12,8 +12,10 @@
       @click="emit('go', hit)"
     >
       <span class="flex w-full min-w-0 items-center gap-2 text-sm">
-        <UBadge color="neutral" variant="subtle" size="sm" :label="agentTabLabel($t, hit.entry.tab)" class="shrink-0" />
-        <SearchText class="min-w-0 truncate text-highlighted" :text="hit.entry.label" :query="props.query" />
+        <SearchText class="min-w-0 flex-1 truncate text-highlighted" :text="hit.entry.label" :query="props.query" />
+      </span>
+      <span class="flex flex-wrap items-center gap-1">
+        <UBadge color="neutral" variant="subtle" size="sm" :label="agentTabLabel($t, hit.entry.tab)" />
       </span>
       <SearchHit class="w-full" :match="hit.match" :query="props.query" />
     </button>

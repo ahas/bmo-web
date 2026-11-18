@@ -39,27 +39,28 @@
         <template #default="{ item }">{{ $t("question.label.job", { id: card.todoId }) }}<template v-if="item !== null"> · {{ item.title }}</template></template>
       </ItemTip>
 
-      <div class="mt-1 flex flex-wrap items-center justify-between gap-1">
-        <p class="text-sm text-muted">{{ card.asked }}</p>
+      <p class="mt-1 text-sm text-muted">{{ card.asked }}</p>
 
-        <!-- The clock, and the one press that stops it. A minute is short for reading while he is
-             here, and stopping it is how he says he is. The stop is this question's alone, and the
-             same press starts its countdown again from what it had left; the card stays either way. -->
-        <div class="flex flex-wrap items-center gap-1">
-          <p class="text-sm tabular-nums text-warning">{{ card.status }}</p>
+      <!-- The clock, and the one press that stops it, on a line of their own: the time left takes the room
+           and the press stands at the line's right end, so the words changing never move it. A minute is
+           short for reading while he is here, and stopping it is how he says he is. The stop is this
+           question's alone, and the same press starts its countdown again from what it had left; the card
+           stays either way. -->
+      <div class="mt-1 flex items-center gap-2">
+        <p class="min-w-0 flex-1 text-sm break-words tabular-nums text-warning">{{ card.status }}</p>
 
-          <UButton
-            size="xs"
-            color="warning"
-            variant="ghost"
-            :icon="card.paused ? 'i-material-symbols-play-arrow' : 'i-material-symbols-pause'"
-            :label="card.paused ? $t('question.action.resume') : $t('question.action.pause')"
-            :aria-pressed="card.paused"
-            :loading="pausing === card.id"
-            :disabled="answering === card.id"
-            @click="togglePause(card)"
-          />
-        </div>
+        <UButton
+          class="shrink-0"
+          size="xs"
+          color="warning"
+          variant="ghost"
+          :icon="card.paused ? 'i-material-symbols-play-arrow' : 'i-material-symbols-pause'"
+          :label="card.paused ? $t('question.action.resume') : $t('question.action.pause')"
+          :aria-pressed="card.paused"
+          :loading="pausing === card.id"
+          :disabled="answering === card.id"
+          @click="togglePause(card)"
+        />
       </div>
 
       <!-- An agent asks in its own language; the question, its reason and its options are read in the reader's

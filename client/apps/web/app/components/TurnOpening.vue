@@ -10,18 +10,22 @@
       <li v-for="instruction in props.instructions" :key="instruction.id" class="flex min-w-0 flex-col gap-1">
         <button
           type="button"
-          class="flex w-full min-w-0 items-start gap-2 rounded-md bg-elevated px-2 py-1 text-start transition-colors select-none hover:bg-accented active:bg-accented"
+          class="flex w-full min-w-0 flex-col gap-1 rounded-md bg-elevated px-2 py-1 text-start transition-colors select-none hover:bg-accented active:bg-accented"
           :aria-expanded="isOpen(instruction.id)"
           :aria-label="`${sortOf(instruction)} ${instruction.summary} ${isOpen(instruction.id) ? $t('common.action.collapse') : $t('common.action.expand')}`"
           @click="toggle(instruction.id)"
         >
-          <UBadge color="neutral" variant="subtle" size="sm" :label="sortOf(instruction)" class="max-w-40 shrink-0" />
-          <span class="min-w-0 flex-1 text-sm text-muted" :class="isOpen(instruction.id) ? 'wrap-anywhere' : 'truncate'">{{ instruction.summary }}</span>
-          <UIcon
-            :name="loading.has(instruction.id) ? 'i-material-symbols-progress-activity' : isOpen(instruction.id) ? 'i-material-symbols-expand-less' : 'i-material-symbols-expand-more'"
-            class="my-0.5 size-4 shrink-0 text-dimmed"
-            :class="loading.has(instruction.id) ? 'animate-spin motion-reduce:animate-none' : ''"
-          />
+          <span class="flex w-full min-w-0 items-start gap-2">
+            <span class="min-w-0 flex-1 text-sm text-muted" :class="isOpen(instruction.id) ? 'wrap-anywhere' : 'truncate'">{{ instruction.summary }}</span>
+            <UIcon
+              :name="loading.has(instruction.id) ? 'i-material-symbols-progress-activity' : isOpen(instruction.id) ? 'i-material-symbols-expand-less' : 'i-material-symbols-expand-more'"
+              class="my-0.5 size-4 shrink-0 text-dimmed"
+              :class="loading.has(instruction.id) ? 'animate-spin motion-reduce:animate-none' : ''"
+            />
+          </span>
+          <span class="flex flex-wrap items-center gap-1">
+            <UBadge color="neutral" variant="subtle" size="sm" :label="sortOf(instruction)" class="max-w-40" />
+          </span>
         </button>
 
         <!-- The whole text never runs past the bubble: a long unbroken run of it, a path or a record,

@@ -4,23 +4,19 @@
        repair job, its document, its follow-up, its dismissal, and for a stuck item its ask again and its move to the
        front. -->
   <article class="flex min-w-0 flex-col gap-1 rounded-md border border-default p-3">
-    <div class="flex min-w-0 flex-wrap items-center gap-2">
+    <div class="flex min-w-0 items-center gap-2">
       <button
         v-if="props.item.runId !== null"
         type="button"
-        class="min-w-0 break-words text-start font-medium text-highlighted underline-offset-2 hover:underline focus-visible:underline"
+        class="min-w-0 flex-1 break-words text-start font-medium text-highlighted underline-offset-2 hover:underline focus-visible:underline"
         :aria-label="$t('research.aria.open_run_named', { name: props.item.name })"
         @click="emit('open-run')"
       >
         {{ props.item.name }}
       </button>
-      <span v-else class="min-w-0 break-words font-medium text-highlighted">{{ props.item.name }}</span>
+      <span v-else class="min-w-0 flex-1 break-words font-medium text-highlighted">{{ props.item.name }}</span>
 
-      <UBadge v-if="props.item.fit" color="primary" variant="soft" size="sm" :label="fitText" />
-      <UBadge v-if="props.item.asked" color="neutral" variant="outline" size="sm" :label="$t('research.label.asked')" />
-      <UBadge :color="stateLook.color" variant="subtle" size="sm" :label="stateLook.label" />
-
-      <div class="ms-auto flex shrink-0 items-center gap-1">
+      <div class="flex shrink-0 items-center gap-1">
         <template v-if="isStuck(props.item.state)">
           <UTooltip :text="$t('research.action.reask')">
             <UButton
@@ -73,6 +69,19 @@
           />
         </UTooltip>
       </div>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <UBadge v-if="props.item.fit" color="primary" variant="soft" size="sm" :label="fitText" />
+      <UBadge v-if="props.item.asked" color="neutral" variant="outline" size="sm" :label="$t('research.label.asked')" />
+      <UBadge
+        :color="stateLook.color"
+        variant="subtle"
+        size="sm"
+        :icon="stateLook.icon"
+        :label="stateLook.label"
+        :ui="stateLook.spins ? { leadingIcon: 'animate-spin motion-reduce:animate-none' } : undefined"
+      />
     </div>
 
     <ResearchOriginLine :origin="props.item.origin" />

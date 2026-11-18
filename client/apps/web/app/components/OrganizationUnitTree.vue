@@ -11,14 +11,18 @@
     :get-key="(item: UnitItem) => String(item.id)"
     :as="{ link: 'div' }"
     color="neutral"
-    :ui="{ linkLabel: 'flex-1 overflow-visible text-clip whitespace-nowrap' }"
+    :ui="{ link: 'items-start', linkLabel: 'flex-1 overflow-visible text-clip whitespace-nowrap' }"
     :on-toggle="keepOnPress"
     @update:model-value="(item: unknown) => choose(item as UnitItem | undefined)"
   >
     <!-- A unit's name marks its row for people carried over the tree, and stands lit while they would land there. -->
     <template #item-label="{ item }">
-      <span :data-unit-drop="item.id" class="rounded-sm" :class="props.dropping === item.id ? 'bg-primary/15 ring-1 ring-primary' : ''">{{ item.label }}</span>
-      <UBadge v-if="item.kind" :label="item.kind" color="neutral" variant="subtle" size="sm" class="ms-1.5" data-unit-tree-kind />
+      <span class="flex flex-col items-start gap-1">
+        <span :data-unit-drop="item.id" class="rounded-sm" :class="props.dropping === item.id ? 'bg-primary/15 ring-1 ring-primary' : ''">{{ item.label }}</span>
+        <span v-if="item.kind" class="flex flex-wrap items-center gap-1">
+          <UBadge :label="item.kind" color="neutral" variant="subtle" size="sm" data-unit-tree-kind />
+        </span>
+      </span>
     </template>
     <!-- The chevron's own box overhangs the row's line rather than making a branch's row taller than a leaf's. -->
     <template #item-trailing="{ item, expanded: open, handleToggle }">

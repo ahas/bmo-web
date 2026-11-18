@@ -89,9 +89,10 @@
                serving: each login keeps its own limit, so each keeps its own figures, and the one the chat runs
                on now is marked. A slot on a provider with no login stands ahead of them, marked the same way. -->
           <div v-for="group in groups" :key="group.id" class="flex flex-col gap-1">
-            <div class="flex min-w-0 items-center gap-2 text-sm">
-              <span class="min-w-0 truncate font-medium text-muted">{{ slotName(group) }}<template v-if="group.name !== null"> · {{ group.name }}</template></span>
-              <UBadge v-if="group.inUse" size="sm" color="primary" variant="subtle" :label="$t('usage.label.in_use')" class="shrink-0" />
+            <!-- The group's name on a line of its own, and the mark of the one in use on a row under it. -->
+            <p class="min-w-0 truncate text-sm font-medium text-muted">{{ slotName(group) }}<template v-if="group.name !== null"> · {{ group.name }}</template></p>
+            <div v-if="group.inUse" class="flex">
+              <UBadge size="sm" color="primary" variant="subtle" :label="$t('usage.label.in_use')" />
             </div>
 
             <div v-for="window in group.windows" :key="window.name" class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">

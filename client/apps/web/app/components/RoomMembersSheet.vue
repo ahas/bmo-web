@@ -36,7 +36,7 @@
         <li
           v-for="member in members"
           :key="member.person ?? `account:${member.account ?? member.name}`"
-          class="flex min-w-0 items-center gap-1"
+          class="flex min-w-0 items-start gap-1"
           :data-room-member="member.person ?? ''"
         >
           <NuxtLink
@@ -53,6 +53,7 @@
           <IconButton
             v-if="member.inConsole && member.account !== null && member.account === mine"
             icon="i-material-symbols-logout"
+            class="mt-2"
             :label="$t('members.action.leave')"
             :loading="busy === member.account"
             data-room-leave
@@ -61,6 +62,7 @@
           <IconButton
             v-else-if="member.inConsole && member.account !== null && mayLetIn"
             icon="i-material-symbols-person-remove-outline"
+            class="mt-2"
             :label="$t('members.action.take_out')"
             :loading="busy === member.account"
             data-room-take-out
@@ -98,9 +100,11 @@ interface Props {
   administrator: boolean;
 }
 
-// The list and each row share one shape, so the skeleton's rows stand where the members land.
+// The list and each row share one shape, so the skeleton's rows stand where the members land. A row holds its picture
+// and its button to its top, each 8px in, so a member of several lines keeps them beside the name's line, and a row of
+// one line still stands them on its centre.
 const LIST = "flex flex-col gap-1";
-const ROW = "flex min-h-12 min-w-0 items-center gap-3 rounded-md px-2 py-2";
+const ROW = "flex min-h-12 min-w-0 items-start gap-3 rounded-md px-2 py-2";
 
 const props = defineProps<Props>();
 const open = defineModel<boolean>("open", { required: true });

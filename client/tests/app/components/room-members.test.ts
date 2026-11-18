@@ -54,7 +54,7 @@ describe("a member of a room", () => {
     expect(await rendered(member, new Map(), { chip: { show: false, color: "success", position: "bottom-right", size: "md" }, line: null })).not.toContain("data-member-presence");
   });
 
-  test("known as an account carries the console user's mark beside their name and status line", async () => {
+  test("known as an account carries the console user's mark under their name and status line", async () => {
     const html = await rendered({ person: 9_000_000_000_101, name: "member-a", status: "status-a", account: "7", inConsole: false });
 
     expect(html).toContain("member-a");

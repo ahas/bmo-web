@@ -347,8 +347,8 @@
 - the attendance screen → 근태; its views → 근무계획, 휴가, 업무 기록, 조직 근무계획 (a head's view of a unit), 설정. Never
   출퇴근, 근무 관리.
 - a month's plan of one person → 근무계획: 작성 전, 작성 중, 제출됨, and its act 제출, since it has no approver; its changes →
-  근무계획 이력. A day the plan does not cover yet → 빈 날, 빈 날 {n}일, and writing them all → 빈 날 채우기. Never 상신 for a
-  plan, 미입력, 누락일.
+  근무계획 이력. A day the plan does not cover yet → 미설정, a state of the day rather than an empty cell: 미설정, 미설정 {n}일,
+  미설정인 날 in a sentence, and writing them all → 미설정 채우기. Never 상신 for a plan, 빈 날, 미입력, 누락일.
 - the kind of a planned day → 업무구분: 근무, 시차출퇴근, 출장, 휴무, 대휴, 공휴일, 휴가; half a day of leave → 반차, 오전 반차, 오후
   반차, and a whole day → 종일. Never 근무유형, 근무형태, 반일 휴가.
 - a working day's hours → 근무시간: 출근, 퇴근, 휴게 (휴게 {n} 시작, 휴게 {n} 끝, 휴게 없음); a unit's own → 조직 근무시간, one

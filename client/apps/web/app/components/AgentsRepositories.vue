@@ -94,7 +94,7 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { useIsland } from "bmo-ui/app/domain/island";
 
 import { settingsAnchor } from "~/domain/agent-settings";
-import { providerWord, refusalOf, shortOnProvider, useProviders } from "~/domain/axes";
+import { DEFAULT_SUPPORT_COUNT, markedDefault, providerWord, refusalOf, shortOnProvider, useProviders } from "~/domain/axes";
 import { useConfirm } from "~/domain/confirm";
 import { useReadFailure } from "~/domain/events";
 import { countText } from "~/domain/numbers";
@@ -133,9 +133,12 @@ function nodeLabel(name: string): string {
   return nodes.value?.find((node) => node.name === name)?.label ?? name;
 }
 
-// Its support count: auto where the agency grows its support checkouts as launches find them held, or the count fixed.
+// Its support count: auto where the agency grows its support checkouts as launches find them held, or the count fixed;
+// the default marked as such.
 function supportText(repository: RepositoryView): string {
-  return repository.supportCount === "auto" ? t("common.label.auto") : countText(repository.supportCount);
+  const count = repository.supportCount;
+
+  return markedDefault(t, count === "auto" ? t("common.label.auto") : countText(count), count === DEFAULT_SUPPORT_COUNT);
 }
 
 function heldCount(repository: RepositoryView): number {

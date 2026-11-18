@@ -299,17 +299,18 @@ describe("the agents tab", () => {
 
 describe("the repositories tab", () => {
   test("keeps the whole of a repository in one form", () => {
-    for (const field of ["form.path", "form.node", "form.supportCount", "form.prefixDocuments", "form.preamble", "form.rules", "form.devCommand", "form.pinProvider", "form.downgradeHeal"]) {
+    for (const field of ["form.path", "form.node", "form.value.supportCount", "form.prefixDocuments", "form.preamble", "form.rules", "form.devCommand", "form.pinProvider", "form.downgradeHeal"]) {
       expect(repositoryDialog).toContain(field);
     }
     expect(templateOf(repositoryDialog)).toContain("form.downgradeHeal === DEFAULT_DOWNGRADE_HEAL");
   });
 
-  test("offers a support count of auto, the agency's default, or a fixed count, and shows auto in the row", () => {
-    expect(templateOf(repositoryDialog)).toContain('<USelect v-model="form.supportCount" :items="supportCountItems"');
+  test("offers a support count of auto, the agency's default, or a fixed count, and shows auto in the row marked as the default", () => {
+    expect(templateOf(repositoryDialog)).toContain('<ChoiceSelect v-model="supportCountChoice" :items="supportCountItems"');
     expect(scriptOf(repositoryDialog)).toContain("supportCount: DEFAULT_SUPPORT_COUNT");
     expect(scriptOf(repositoryDialog)).toContain("value === DEFAULT_SUPPORT_COUNT");
-    expect(scriptOf(repositories)).toContain('repository.supportCount === "auto" ? t("common.label.auto")');
+    expect(scriptOf(repositories)).toContain('count === "auto" ? t("common.label.auto")');
+    expect(scriptOf(repositories)).toContain("count === DEFAULT_SUPPORT_COUNT");
   });
 
   test("offers no removal while a job holds one of its checkouts", () => {

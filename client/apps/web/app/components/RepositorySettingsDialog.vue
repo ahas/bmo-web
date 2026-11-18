@@ -27,11 +27,13 @@
       </UFormField>
 
       <div class="grid gap-4 sm:grid-cols-2">
-        <UFormField :label="$t('agents.label.exec_node')" name="nodeName" :error="errorAt('nodeName')">
+        <!-- Named apart from the refusal's field: a control named `nodeName` would stand as the form's own `nodeName`,
+             which the select's list reads to place itself. -->
+        <UFormField :label="$t('agents.label.exec_node')" name="node" :error="errorAt('nodeName')">
           <ChoiceSelect v-model="form.node" :items="nodeItems" value-key="value" class="w-full" :disabled="busy" :aria-label="$t('agents.label.exec_node')" />
         </UFormField>
         <UFormField :label="$t('agents.label.support_count')" name="supportCount" :error="errorAt('supportCount')">
-          <USelect v-model="form.supportCount" :items="supportCountItems" value-key="value" class="w-full" :disabled="busy" :aria-label="$t('agents.label.support_count')" />
+          <ChoiceSelect v-model="supportCountChoice" :items="supportCountItems" value-key="value" class="w-full" :disabled="busy" :aria-label="$t('agents.label.support_count')" />
         </UFormField>
       </div>
 
@@ -316,7 +318,16 @@ const supportCountItems = computed(() => {
   const held = form.value.supportCount;
   const values: SupportCount[] = ["auto", ...counts, ...(held === "auto" || counts.includes(held) ? [] : [held])];
 
-  return values.map((value) => ({ label: markedDefault(t, value === "auto" ? t("common.label.auto") : countText(value), value === DEFAULT_SUPPORT_COUNT), value }));
+  return values.map((value) => ({ label: markedDefault(t, value === "auto" ? t("common.label.auto") : countText(value), value === DEFAULT_SUPPORT_COUNT), value: String(value) }));
+});
+
+// The select holds its choices as text, since the browser's own select under it hands a choice back as text; the form
+// holds the count as a number.
+const supportCountChoice = computed({
+  get: () => String(form.value.supportCount),
+  set: (choice: string) => {
+    form.value.supportCount = choice === "auto" ? "auto" : Number(choice);
+  }
 });
 
 const nodeItems = computed(() => {

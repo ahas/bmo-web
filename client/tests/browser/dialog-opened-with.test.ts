@@ -498,6 +498,32 @@ describe.skipIf(!origin || !touchReady())("a console dialog holds a change only 
         await saveIs(page, "disabled");
         await closesAtOnce(page, preamble);
 
+        // The support count, at the two the repository holds: auto chosen and the count chosen back is no change.
+        // The select stands inside the screen, and its list is placed on the screen once it has measured its field.
+        await open();
+        const support = dialog.getByRole("combobox", { name: wording("agents.label.support_count"), exact: true });
+        const auto = wording("agents.label.default_marked", { value: wording("common.label.auto") });
+
+        expect((await support.textContent())?.trim()).toBe("2");
+        const field = await support.boundingBox();
+
+        expect(field && field.x >= 0 && field.x + field.width <= width).toBe(true);
+        await support.click();
+        await page.waitForFunction(() => (document.querySelector("[role=listbox]")?.getBoundingClientRect().top ?? -1) >= 0, undefined, { timeout: 10_000 });
+        const list = await page.getByRole("listbox").boundingBox();
+
+        expect(list && list.x >= 0 && list.x + list.width <= width && list.y + list.height <= height).toBe(true);
+        await page.getByRole("option", { name: auto, exact: true }).click();
+        await page.getByRole("listbox").waitFor({ state: "detached", timeout: 10_000 });
+        await saveIs(page, "enabled");
+        await choose(page, support, "2");
+        await saveIs(page, "disabled");
+        await closesAtOnce(page, preamble);
+
+        await open();
+        await choose(page, support, "3");
+        await asksThenDiscards(page, preamble);
+
         await open();
         await preamble.click();
         await page.keyboard.type("abc");

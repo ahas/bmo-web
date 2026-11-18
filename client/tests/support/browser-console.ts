@@ -563,7 +563,7 @@ function role(name: string, label: string, extra: Record<string, unknown> = {}):
 // One repository as the agency's repository resource serves it, with its checkouts and the job holding one.
 function repository(name: string, label: string, extra: Record<string, unknown> = {}): Record<string, unknown> {
   return {
-    name, label, icon: null, ownerAccount: null, path: `/srv/checkouts/${name}`, nodeName: null, supportCount: 0,
+    name, label, icon: null, ownerAccount: null, path: `/srv/checkouts/${name}`, nodeName: null, supportCount: "auto",
     prefixDocuments: [], preamble: null, rules: null, devCommand: null, pin: null, downgradeHeal: true, sampling: null,
     samplingSettings: [
       { name: "temperature", min: 0, max: 2 }, { name: "top_p", min: 0, max: 1, aboveMin: true }, { name: "top_k", min: 0, max: null, whole: true },

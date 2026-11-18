@@ -423,7 +423,7 @@ async function openRecorded(width: number): Promise<Page> {
 }
 
 // Every screen that fetches, read from its first frame to the moment its skeletons are gone.
-const SCREENS = ['', 'monitor', 'mail/', 'archive', 'siren', 'documents', 'db', 'agents', 'graph', 'account'];
+const SCREENS = ['', 'monitor', 'mail/', 'archive', 'siren', 'documents', 'db', 'agents', 'account'];
 
 describe.skipIf(!origin || !touchReady())('a skeleton stands once, from the read to its answer', () => {
   for (const width of [1440, 390]) {

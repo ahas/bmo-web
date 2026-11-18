@@ -40,8 +40,8 @@ console runs, from the manifest that unit answers (「Screens a unit brings」).
     text still stands 768 wide. A box drawn around an item — a message hovered, chosen or brought
     into view — keeps 12 pixels of room of its own on each side, outside the item's content, so the
     content keeps its full width and never touches the box's edge.
-  - **Only thirteen screens stand outside this width, read horizontally,** and all thirteen release the width in
-    their own panel: the DB screen reads a table by scanning across, the code graph, document viewer,
+  - **Only twelve screens stand outside this width, read horizontally,** and all twelve release the width in
+    their own panel: the DB screen reads a table by scanning across, the document viewer,
     code review and mail screen read splitter-divided parts side by side, one search reads its findings and their source
     list side by side, agent management stands its settings tables edge to edge, and the remote screen
     gives a terminal or a desktop the whole panel, and the three monitor screens — the monitor overview, this
@@ -96,8 +96,8 @@ console runs, from the manifest that unit answers (「Screens a unit brings」).
   the same on all four sides — 16 on a phone, 24 wider. No per-screen bottom gutter is written.
 - **The only screens that remove it are those that stand something at the foot or fill to the edge.**
   Room, gate and agent-log screens have an input box below that box, so a gutter would open a gap in the
-  middle of the screen rather than at its foot. The DB screen stands its paging flush at the foot. The code
-  graph, document viewer, code review, mail screen and one search are bodies split into splitter sections,
+  middle of the screen rather than at its foot. The DB screen stands its paging flush at the foot. The
+  document viewer, code review, mail screen and one search are bodies split into splitter sections,
   and a section must fill to its end for its border to stand. Agent management's tables fill the section edge to
   edge. The remote screen's terminal and desktop fill the panel to its edges. There are no others but
   those twelve.
@@ -1472,7 +1472,7 @@ Four groups.
   keep the deployment running, and **애플리케이션**, every other screen.
   - **관리자 서비스** holds the console's own cache siren, DB, document viewer, agent management (에이전시),
     리서치, monitor, 조직 and 관리자, and every screen a unit brings whose manifest names it: the brain's (브레인),
-    code review's, BMO's face (비모 얼굴), the code graph's (코드 그래프), the tool host's (도구) and the remote
+    code review's, BMO's face (비모 얼굴), the tool host's (도구) and the remote
     machines' (원격) among them.
   - **애플리케이션** holds every other screen a unit brings: mail, 파일, 아티팩트, 캘린더, 노트, 일정 관리,
     프로젝트 and 극장 among them.
@@ -1959,7 +1959,6 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
 - **A job's question** — the question and its reason on a question card, and the question bar's question over
   every screen.
 - **Gate screen** — the gate's answer.
-- **Code graph** — markdown files.
 - **Archive screen** — a document's findings.
 - **Document viewer** — the markdown documents the chat agent reads, their translation, and the turns of talk about a
   passage.
@@ -1973,9 +1972,7 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   conversation is text written a line at a time. HTML written in it is not parsed into tags but shown as
   literal characters — an angle bracket a model wrote or words someone sent do not become an element inside
   the console. Image syntax does not load the image but stands as a link to its address, so one line someone
-  wrote does not call the browser that opened the console out to an outside server. A file the code graph
-  opens is a document line-wrapped by hand, so continued lines merge into one paragraph, and HTML and images
-  written in the document stand as part of the document. Text standing in one line — the flowing question bar,
+  wrote does not call the browser that opened the console out to an outside server. Text standing in one line — the flowing question bar,
   a question's reason continuing after a label — takes only in-line formatting: bold and inline code stand as
   formatting, and block syntax like a heading or list and line breaks fold into that one line. A link and an
   image stand as their own characters. The question bar's line is read, not pressed — its one way to the
@@ -1986,7 +1983,7 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   that image does not call the outside address as is; only when it is an image recorded in that search record
   does it point at the copy the console server fetched. An image at an address not in the record stands as a
   link, as in archive text. The rule that an image stands as a link elsewhere is unchanged. A document
-  viewer's document merges continued lines into one paragraph like a code-graph document, but written HTML
+  viewer's document is line-wrapped by hand, so continued lines merge into one paragraph, and written HTML
   stands as characters and images as links. A library document is what an editor transcribed from a room's
   conversation, so that one address someone wrote does not call the browser that opened the console out to an
   outside server. In a viewer document each heading carries the contents' anchor, and each top-level block
@@ -2096,7 +2093,7 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   tab, and the opened page cannot touch the console window.
 - **There is one renderer.** Every place uses the same renderer and the same formatting. The formatting's look
   is written by the console itself with its own tokens and monospace face, so it reads the same in light and
-  dark. A code-graph document stands at document size, a search's findings stand at a reading scale of their
+  dark. A search's findings stand at a reading scale of their
   own (「아카이브 screen」), and other places' body follows that place's letter size and colour with
   narrow gaps between paragraphs. A code block is scrolled sideways in a document, and so is a block in other
   places' body whose fence names a language other than plain text: code keeps its lines as written, as a
@@ -2120,9 +2117,8 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
 - **A hit only in hidden data is said under the line.** When nothing the line shows matched, one line under it names
   the field it matched in and the words around the hit.
 - **Where it is used.** The TODO panel reads it in full, and so do agent management's settings search and the 아카이브 list. The
-  document viewer's tree and its found lines, the DB screen's cells, the code graph's node
-  table and agent management's tables mark their hits with it; the graph matches with it too, and its match
-  badges say which hidden field a node was found by.
+  document viewer's tree and its found lines, the DB screen's cells
+  and agent management's tables mark their hits with it.
 
 ### The title bar
 
@@ -2228,7 +2224,7 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   - A screen may add choices of its own to a tab's menu, under the closings and the pin.
 - **A read-only tab bar** shows, switches and pins. It has no close mark and no dragging, its menu holds the pin
   alone, and it does not listen to Delete. It is used where the tab list is set by something other than that
-  screen — the code graph's node files.
+  screen.
 - **Tabs are kept for the account on the server.** Each screen that uses the tab bar keeps its tabs — which are
   open, in what order, which are pinned and which stands — in the console's own table of tab states, under the
   logged-in account and a key the screen names for itself, and never in the browser.
@@ -2239,8 +2235,6 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
     with no file in the address, stands that file.
   - The document viewer keeps its open documents and the one standing; the screen opened with no document in the
     address stands that one.
-  - The code graph's code panel keeps the files pinned in each project, and the file each node last stood on,
-    which the node opens at while it still names that file.
   - The remote screen keeps its tabs as 「Remote screen」 says.
 - **Actions are one group.** Work on what the standing tab shows — showing reviews among code, a review on a
   file, asking the chat agent, reading again — is not scattered but gathered as one group: at the right end of the toolbar
@@ -6878,8 +6872,7 @@ Four bounds keep it from growing forever.
   the header button leaves one vertical band, and pressing that band unfolds it. Width and fold stay in that browser, so entering next it is as
   left — in the same place as the verdict chip setting or the cache siren's filters. A panel stood as a drawer has no width or fold. What is
   inside is as when it stands beside, and it closes by the header's close button or an outside press.
-- **One line per border.** That line is drawn by the panel in front at its end — the same as the line splitting the sidebar and the screen, and
-  the line splitting the code graph's sections — and the panel behind draws nothing at its head. Drawing one more where the front already drew
+- **One line per border.** That line is drawn by the panel in front at its end — the same as the line splitting the sidebar and the screen — and the panel behind draws nothing at its head. Drawing one more where the front already drew
   puts two 1-pixels side by side reading as one twice-thick line. The line inside a handle is absent before dragging, and dragging stands it over
   that border colouring that line — not standing a new line beside it. The panel drawing its end is also only when something really stands behind.
   At a width where the panel does not stand, the panel is still a sibling, so otherwise one line dividing nothing would stay along the window edge.

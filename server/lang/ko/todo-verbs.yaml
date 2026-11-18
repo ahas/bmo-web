@@ -210,7 +210,7 @@ usage: |-
          bmo todo --worker <id|title> <worker name | ->
          bmo todo --repairs <id|title> <id of the item it repairs | ->   (this item was filed to repair the other's failure; repairs chain in one line, up to 3)
          bmo todo --cowork <id|title> <on|off>
-         bmo todo --impact <id|title> '<grounds JSON>'   (the graph nodes the change reaches and the outward contract that changes on each; docs/todo.md)
+         bmo todo --impact <id|title> '<grounds JSON>'   (the parts of the code the change reaches and the outward contract that changes on each; docs/todo.md)
          bmo todo --impact-check <id|title> '<grounds JSON>'   (a job's own grounds, weighed again before it changes anything; the chat agent is told where they come to another verdict than the co-work setting)
          bmo todo --priority <id|title> <n>
          bmo todo --drop <id>

@@ -524,15 +524,6 @@ export const DB_VIEW = {
 // the value alone, and it says so.
 export const DB_MASKED_TEXT = "db.label.masked";
 
-// What the graph screen holds itself to. How much of one file the code panel carries, since a
-// file past this is read at its head and said to be; and the width at and below which the three
-// parts stand one at a time behind tabs instead of side by side, because two panels sharing a
-// phone's width are one panel and one nobody can read.
-export const GRAPH_VIEW = {
-  fileCap: 200_000,
-  tabsMaxPx: 1023
-} as const;
-
 // What the code review holds itself to (the review unit's `docs/code-review.md`). How much of a file the viewer
 // carries before it says the rest was cut, how far into a file it looks for a NUL before calling it
 // binary, how many entries of one commit's tree come over at once, how many commits the picker
@@ -567,48 +558,6 @@ export const CODE_VIEW = {
 export const CODE_REVIEW_TITLE_LIMIT = 200;
 export const CODE_REVIEW_TODO_LIMIT = 8_000;
 export const CODE_REVIEW_CONCLUSION_LIMIT = 4_000;
-
-// The space the code graph is drawn in. A drawing is laid out at a size of its own rather than
-// squeezed into the panel, and the panel moves a view over it; these are the distances it keeps.
-// A box is one fixed size, the gaps between columns and rows leave air around every box, and the
-// padding is the margin the drawing keeps on every side.
-//
-// The neighbourhood is three columns — what needs the open node on one side and what it needs on
-// the other — with a row for each neighbour. The whole graph is as many columns as it has layers,
-// with a row for each node of a layer, folded into several columns where a layer is long, spaced wider apart because every edge of the graph runs
-// through the gaps between them.
-export const GRAPH_DRAWING = {
-  columnGap: 100,
-  rowGap: 72,
-  padding: 40,
-  wholeColumnGap: 240,
-  wholeRowGap: 64,
-  // A layer folded into several columns keeps them closer than two layers; the whole graph's
-  // columns never hold fewer rows than the least, and are sized for this width over height.
-  wholeFoldGap: 80,
-  wholeLeastRows: 8,
-  wholeAspect: 1.6,
-  // The passes of averaging that order a layer of the whole graph to cross fewer edges.
-  orderPasses: 6,
-  // The box one node stands in, and the room an arrowhead is given in front of the box it
-  // points at. An edge is drawn between two boxes rather than between two middles: a line that
-  // ran to the middle would run under the name written there, and the head that says which way
-  // the edge runs would be under the box entirely.
-  nodeWidth: 200,
-  nodeHeight: 40,
-  arrowGap: 6
-} as const;
-
-// How far the view over a drawing zooms. The floor lets the whole graph fit a phone, the ceiling
-// is past any need to read a name, one step of the buttons is this factor, and the opening view of
-// a neighbourhood is never smaller than the readable share. A drag shorter than the slop is a press.
-export const GRAPH_ZOOM = {
-  least: 0.05,
-  most: 3,
-  step: 1.25,
-  readable: 0.85,
-  slopPx: 6
-} as const;
 
 // How the remote desktop is drawn (the remote unit's docs/remote.md, 「Connection settings」): the quality the owner
 // picks, which the relay turns into the RDP performance flags it asks for.

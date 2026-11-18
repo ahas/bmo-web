@@ -64,7 +64,6 @@ export const JOB_CODES: Readonly<Record<string, string>> = {
   filing_parts_missing: "job.error.filing_parts_missing",
   from_todo_unread: "job.error.from_todo_unread",
   gate: "job.error.gate",
-  graph: "job.error.graph",
   has_support: "job.error.has_support",
   history_edit: "job.error.history_edit",
   history_rerun: "job.error.history_rerun",

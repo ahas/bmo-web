@@ -3353,7 +3353,6 @@ job:
     filing_parts_missing: 항목을 이루는 부분이 빠져 있습니다.
     from_todo_unread: 출처를 항목과 갈래 번호로 읽을 수 없습니다.
     gate: bmo-job이 게이트를 부르지 못했습니다.
-    graph: bmo-job이 그래프를 부르지 못했습니다.
     has_support: 지원 워커나 노드 체크아웃이 있는 워커는 노드에 둘 수 없습니다.
     history_edit: 지난 회차의 태스크는 고칠 수 없습니다.
     history_rerun: 지난 회차의 태스크는 다시 돌릴 수 없습니다.

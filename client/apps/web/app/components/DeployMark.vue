@@ -7,30 +7,30 @@
   </UTooltip>
 
   <!-- While a deployment runs, holds the queue, or has just ended (docs/web.md, 「Deployment in
-       the title bar」). Wide, the words stand beside the mark; at phone width the mark alone, its
-       words in its tooltip. Pressed, what stands behind it opens. It is the library's own button in
-       the mark's tone, its hover on its own shape; standing alone it is the library's square, the one
+       the title bar」). The words stand beside the mark; on a short bar the mark alone, its words in
+       its tooltip (docs/web.md, 「The title bar」). Pressed, what stands behind it opens. It is the
+       library's own button in the mark's tone, its hover on its own shape; standing alone it is the library's square, the one
        every icon button of the bar is. Its words and its icon take the badges' darker step of that tone, so they
        read on the bar in every theme. -->
   <UPopover v-else-if="mark !== null" v-model:open="shown" :content="{ align: 'end' }" :ui="{ content: 'w-96 max-w-[calc(100vw-1rem)] p-3' }">
-    <UTooltip :text="markWords" :disabled="!narrow">
+    <UTooltip :text="markWords" :disabled="!short">
       <UButton
         :color="mark.tone"
         variant="ghost"
-        class="badge-ink min-w-0 shrink-0 tabular-nums sm:shrink"
-        :square="narrow"
+        class="badge-ink min-w-0 shrink-0 tabular-nums @3xl/title-bar:shrink"
+        :square="short"
         :aria-label="markWords"
         data-deploy-mark
       >
         <UIcon :name="mark.icon" class="size-5 shrink-0" :class="mark.spin ? 'animate-spin' : ''" />
-        <span class="hidden min-w-0 truncate sm:inline">{{ mark.label }}<template v-if="mark.detail !== ''"> · {{ mark.detail }}</template></span>
+        <span class="hidden min-w-0 truncate @3xl/title-bar:inline">{{ mark.label }}<template v-if="mark.detail !== ''"> · {{ mark.detail }}</template></span>
       </UButton>
     </UTooltip>
 
     <template #content>
       <div ref="body" class="flex flex-col gap-3 text-sm">
-        <!-- The mark's own words, at phone width alone: wide, the bar already says them beside the mark. -->
-        <p class="badge-ink flex items-center gap-2 font-medium sm:hidden" :class="toneClass(mark.tone)" data-deploy-status>
+        <!-- The mark's own words, on a short bar alone: otherwise the bar already says them beside the mark. -->
+        <p v-if="short" class="badge-ink flex items-center gap-2 font-medium" :class="toneClass(mark.tone)" data-deploy-status>
           <UIcon :name="mark.icon" class="size-5 shrink-0" :class="mark.spin ? 'animate-spin' : ''" />
           <span class="tabular-nums">{{ mark.label }}<template v-if="mark.detail !== ''"> · {{ mark.detail }}</template></span>
         </p>
@@ -197,8 +197,8 @@
 import { DEPLOY_ICON, ENDING_SHOWN_MS, currentStage, deployMarkOf, holdLimit, stageLabel, stageRows, standingRun, stepLabel } from "~/domain/deploy";
 import { useIsland } from "bmo-ui/app/domain/island";
 import { useConfirm } from "~/domain/confirm";
+import { useTitleBarShort } from "~/domain/title-bar";
 import { useDeployEvents } from "~/domain/events";
-import { useNarrow } from "bmo-ui/app/domain/screen";
 import { spanClock } from "bmo-ui/app/domain/time";
 
 import type { DeployCommit, DeployLogLine, DeployView } from "#shared/types";
@@ -209,7 +209,7 @@ const LOG_EVERY_MS = 3_000;
 
 const { t } = useI18n();
 const route = useRoute();
-const narrow = useNarrow();
+const short = useTitleBarShort();
 // Whether the popover stands open: shared, so the TODO panel's band for the hold opens this one
 // rather than a window of its own.
 const open = useState<boolean>("deploy-open", () => false);

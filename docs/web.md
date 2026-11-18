@@ -1168,9 +1168,9 @@ edit to that file alone, once the guide below carries the word.
   another slot.
 - **There is one axis.** Standing a token count beside the percent would have that count read as a
   percent too, so no tokens stand in the title bar or in its panel.
-- **At phone width the two fold into one meter icon.** Standing both percents would eat enough room to cut
-  the room name off. The folding boundary is the width where this display used to hide its label (sm), not
-  a newly made number. Even folded, what should be known is told — the icon stands in the loudest of the
+- **On a short bar the two fold into one meter icon.** Standing both percents would eat enough room to cut
+  the room name off. The fold follows the bar's own width, the one every part of the bar folds by (「The title
+  bar」). Even folded, what should be known is told — the icon stands in the loudest of the
   two windows' colours, so if either is red the icon is red. Pressing that place opens the same panel
   whether folded or not. Folded, the login the figures are of is named in the mark's own tooltip, since
   there is nowhere else on the bar to say it.
@@ -1290,8 +1290,8 @@ edit to that file alone, once the guide below carries the word.
     how long it has waited. A member hears nothing of
     them. The testbed serves no reading of its line (`docs/boundary.md`, 「Gaps the console meets」).
   - Wide, it is a spinning mark, 「배포 중」, the stage and the time since the deployment began,
-    ticking each second in tabular figures. At phone width it is the spinning mark alone, its words
-    in its tooltip. Whatever its state, its words and its icon take the badges' darker step of its colour, so they
+    ticking each second in tabular figures. On a short bar (「The title bar」) it is the spinning mark alone, its
+    words in its tooltip. Whatever its state, its words and its icon take the badges' darker step of its colour, so they
     read at 4.5:1 on the bar in both themes.
   - Pressed, it opens a popover: the stages first, then what the deploy brings live — every commit since the deploy
     before it, oldest first, each by its short hash and subject, and the commit itself, the very commits a TODO
@@ -1302,9 +1302,9 @@ edit to that file alone, once the guide below carries the word.
     off, and a deploy that brings only that one still shows it.
   - **The stages, what goes up and the journal are the standing run's alone:** a run under way, or one ended within
     the two minutes its end stands. Under a hold or the line with no such run, the popover shows no run's.
-  - **The mark's own words head the popover at phone width alone.** Wide, the bar already says them beside the
-    mark, so the popover opens on the stages; at phone width, where the bar folds them into the tooltip, they stand
-    at the popover's head with the mark, in its tone. The same holds for the hold and for the end.
+  - **The mark's own words head the popover on a short bar alone.** On a bar that is not short they already stand
+    beside the mark, so the popover opens on the stages; on a short bar, which folds them into the tooltip, they
+    stand at the popover's head with the mark, in its tone. The same holds for the hold and for the end.
   - **What goes up stands folded, as a long quote of a Telegram message does.** The list under 항목 — the carried
     commits, or the items a hold puts up — stands under a leading rule, and past three entries it opens closed: the
     first three, then 「외 {n}」 for the rest, with a chevron in its corner. A press on the list opens it whole in
@@ -1337,7 +1337,7 @@ edit to that file alone, once the guide below carries the word.
     the limit, said as what happens then — 「02:37까지 끝나지 않으면 대기를 해제합니다.」 — and the 해제
     button, which lets the hold go. A hold standing with no run behind it is shown the same way.
 - **The end stands for two minutes, then goes,** with the run's unit after it, in one of five words. Its popover is
-  the same as the run's, with the end at its head at phone width.
+  the same as the run's, with the end at its head on a short bar.
   - 「배포 완료」 in the success colour, for a run that went live.
   - 「배포 실패」 in the error colour, for every run that stopped because something failed: a gate that did not
     pass, which the testbed writes as stopped rather than failed; a stage after it that failed; and a run whose
@@ -2148,6 +2148,14 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   on the translucent ground the room's bars lie over the conversation on, and it carries the room's menu, 진행 중, its
   pinned button and its window's time left beside the room's name, with no row of the room's own under it
   (「The top bar and the input bar lie over the conversation」).
+- **The bar folds by its own width, never by the screen's.** A bar narrower than 48rem (768px) is short: every
+  phone's bar, and a wide screen's whose docked panels narrow it, as a 1280px window with the TODO panel docked
+  leaves its bar 688px. On a short bar the set's words fold away, the deployment's mark and the usage figures each
+  standing as the library's square with its words in its tooltip, and the room's bar folds its own buttons as well
+  (「The top bar and the input bar lie over the conversation」), so the screen's name keeps its room. What a folded
+  button opens over the screen — a popover over its button, or a sheet from the screen's foot — still follows the
+  screen's width, as every overlay does. `client/tests/browser/room-head.test.ts` holds the room's name to 40px or
+  more on a 1280px window with the TODO panel docked while a deployment runs.
 - **The set of buttons is one instance, held by the layout,** and laid into the bar of whichever screen
   stands. A page change moves it into the next screen's bar: nothing in it is stood up again, read again or
   drawn as loading, a button that has its figures keeps showing them, and none of it blinks.
@@ -2199,7 +2207,7 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   library's icon size with the same padding on every side, so every button in the bar that shows only a mark
   is one size. Every button of the set at its right end is the library's own button at its default size — a
   ghost one, its hover and press filling its own rounded shape and nothing round it — never a bare element
-  dressed as one. A mark whose words fold away at phone width — the deployment's, the usage figures — is the
+  dressed as one. A mark whose words fold away on a short bar — the deployment's, the usage figures — is the
   library's square button from the moment it stands alone, so it is that same square.
   `client/tests/browser/topbar-square.test.ts` measures every
   button in the title bar that shows only a mark, at a desktop width and a phone's, in light and dark.
@@ -4150,6 +4158,11 @@ Four bounds keep it from growing forever.
     time left stands in the top bar」). Only the time left stands after the pinned button, so the pinned message it
     names changing moves no button. The right end keeps only what every
     screen carries.
+  - On a short bar (「The title bar」) the room's own buttons fold as the set's do: the pinned button into the
+    room's menu and the window's time left to its mark alone, and on a narrow screen 진행 중 into the menu as well,
+    since its list opens there as a sheet from the screen's foot; on a wide screen 진행 중 keeps its button, its list
+    opening over it. So the menu, what still stands of the room's buttons and the set share the bar's one line with
+    the room's name, which keeps 40px or more on a 1280px window with the TODO panel docked while a deployment runs.
   - An entry of the room's menu that opens a sheet or a dialog leaves the keyboard in it: the menu gives the
     keyboard back to its button as it closes only where nothing opened over the screen, so it never takes it from
     a field being typed in.
@@ -5266,9 +5279,9 @@ Four bounds keep it from growing forever.
     accent's soft wash; the strip is as wide as its buttons with one even gap between them, never spread across the
     menu, and a hover colours the one button under the pointer and not the menu's row.
   - **A pinned message** wears a pin mark on its meta line, and the room's top bar carries a pinned button after the
-    room's menu and 진행 중 while the room holds one: the pin mark and, from the sm width, the first line of the pinned
-    message it stands at, cut, with that message's words whole in its tooltip and how many are pinned where there are several.
-    Under the sm width it folds into the room's menu as its first entry, naming how many are pinned, and a press
+    room's menu and 진행 중 while the room holds one: the pin mark and, on a bar that is not short, the first line of
+    the pinned message it stands at, cut, with that message's words whole in its tooltip and how many are pinned
+    where there are several. On a short bar (「The title bar」) it folds into the room's menu as its first entry, naming how many are pinned, and a press
     there does what the button's does, so the bar keeps room for the room's name.
     The room's pinned messages are the receiver's answer to `GET /rooms/{roomId}/pins` (the receiver's
     `docs/api.md`, 「Messages」), newest pin first and never a deleted one, read when the room opens, when the record
@@ -5680,11 +5693,11 @@ Four bounds keep it from growing forever.
   listens. It counts down from the same answer the listening row counts from and is read on the same occasions
   (above); it goes once the time it counts reaches nought, and stands nowhere while the window is shut, so the
   owner's own chat never carries it.
-  - Under the sm width it is the listening mark alone, the title bar's square icon button, and pressing it opens
-    a popover holding the time left as it counts down, with the same words its tooltip says. 진행 중 and the pinned
-    button fold into the room's menu there (「진행 중」, 「What was done to a message」), so the menu and the time left
-    stand with the set at the right end on the bar's one line, the room's name still read beside them, cut where it
-    must be.
+  - On a short bar (「The title bar」) it is the listening mark alone, the title bar's square icon button, and
+    pressing it opens a popover holding the time left as it counts down, with the same words its tooltip says. The
+    pinned button folds into the room's menu there, and on a narrow screen 진행 중 too (「진행 중」, 「What was done to
+    a message」), so the menu and the time left stand with the set at the right end on the bar's one line, the room's
+    name still read beside them, cut where it must be.
 - **What the turn did** — spread from the record press on the running block's meta line, inside the bubble, stand
   the things the turn has done, oldest first, one line each, as the agent's log draws them: what it was handed —
   the documents put in front of it, the stretch of the room it read back — and every tool it has called. They
@@ -5856,8 +5869,9 @@ Four bounds keep it from growing forever.
   no room wakes in the owner's private chat, as the receiver queues a wake naming none, so it stands there. It stands as a
   button with how many right after the room's menu, before the pinned button and the window's clock, and nowhere
   while none waits.
-- **Under the sm width it folds into the room's menu,** as an entry after the pinned one naming how many wait, and the
-  entry opens the same list as a drawer from the screen's foot, so the bar keeps room for the room's name.
+- **On a narrow screen it folds into the room's menu,** as an entry after the pinned one naming how many wait, and the
+  entry opens the same list as a drawer from the screen's foot, so the bar keeps room for the room's name. On a
+  wide screen it keeps its button however short the bar stands (「The title bar」), since its list opens over it.
 - **Pressing it opens a list, one line a call, oldest first:** what it is — 감시 for a watch, with how often its
   check runs, 알림 for a reminder, with the moment it waits for, and the tool's own name for any other call — the
   note it was set with, the agent it wakes, and since when it has stood. A call with no note stands its tool's name

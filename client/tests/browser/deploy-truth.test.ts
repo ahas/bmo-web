@@ -125,7 +125,8 @@ const RUNNING = wording("deploy.status.running");
 const LINE = wording("deploy.status.line");
 const ON_ROW = {
   running: wording("todo.label.deploy_deploying"),
-  line: wording("todo.label.deploy_in_line"),
+  // unit-c stands first in the line, and a row waiting in it names its place (docs/web.md, the TODO panel's deploy chip).
+  line: wording("todo.label.deploy_in_line_at", { n: "1" }),
   batch: wording("todo.label.deploy_waiting_live")
 };
 // Each row's chip ends on the short name of the commit it waits on.
@@ -182,7 +183,7 @@ async function signedIn(options: Parameters<Browser["newContext"]>[0], current: 
 describe.skipIf(!origin || !touchReady())("one deployment truth on the title bar and the TODO panel", () => {
   test("the running one is running, a queued one waits its turn, and a finished one is marked nowhere", async () => {
     let step = 0;
-    const context = await signedIn({ viewport: { width: 1280, height: 900 } }, () => VIEWS[step]!);
+    const context = await signedIn({ viewport: { width: 1600, height: 900 } }, () => VIEWS[step]!);
 
     try {
       await context.route(/\/api\/todos(\?|$)/, async (route) => {

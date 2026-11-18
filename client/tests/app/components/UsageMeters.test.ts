@@ -29,11 +29,10 @@ describe("the mark the figures fold into", () => {
     expect(template).toContain("shareText(liveWindow(session, now))");
   });
 
-  test("stands only below the width this console folds at, and the figures only above it", () => {
-    // sm is the console's own fold for this bar: it is where the words beside the figures used
-    // to appear, so nothing new is being made up here.
-    expect(tagOf("i-material-symbols-speed")).toContain("sm:hidden");
-    expect(template).toContain('<span v-else class="hidden sm:contents">');
+  test("stands only on a short bar, and the figures only on a bar that is not", () => {
+    // The fold is the bar's own width, the one every part of the bar folds by (docs/web.md, 「The title bar」).
+    expect(tagOf("i-material-symbols-speed")).toContain("@3xl/title-bar:hidden");
+    expect(template).toContain('<span v-else class="hidden @3xl/title-bar:contents">');
   });
 
   // Folded there is nowhere on the bar to name the login, and the mark is named on hover like
@@ -60,7 +59,7 @@ describe("the mark the figures fold into", () => {
 
     expect(press.startsWith("<UButton")).toBe(true);
     expect(press).toContain('variant="ghost"');
-    expect(press).toContain(':square="narrow"');
+    expect(press).toContain(':square="short"');
     expect(template).not.toContain("<button");
     expect(template).not.toContain("hover:");
   });
@@ -70,7 +69,7 @@ describe("the mark the figures fold into", () => {
 // another percentage, so the counts stand with the totals in the popover instead.
 describe("what the wide bar carries", () => {
   // The wide shape of the bar: what stands where the fold is not in force.
-  const wide = template.slice(template.indexOf('<span v-else class="hidden sm:contents">'), template.indexOf("</UButton>"));
+  const wide = template.slice(template.indexOf('<span v-else class="hidden @3xl/title-bar:contents">'), template.indexOf("</UButton>"));
 
   test("the two limit windows, by name and as shares", () => {
     expect(wide).toContain('$t("usage.label.window_session")');

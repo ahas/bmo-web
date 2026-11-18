@@ -12,22 +12,22 @@
          The letters here are the interface's own face, not a typewriter's: only the digits want
          a fixed width, and they get it from the figures being tabular rather than from dragging
          the Korean along into a monospace stack that has no Korean in it. -->
-    <!-- The library's own button at the bar's size, its hover on its own shape. On a phone it is an
-         icon alone, the library's square icon button like every icon button of the bar, named on
-         hover. The login it stands for is named there too, since the folded mark has nowhere else to
+    <!-- The library's own button at the bar's size, its hover on its own shape. On a short bar it is an
+         icon alone (docs/web.md, 「The title bar」), the library's square icon button like every icon
+         button of the bar, named on hover. The login it stands for is named there too, since the folded mark has nowhere else to
          say it. -->
-    <UTooltip :text="accountName === null ? $t('usage.title.remaining') : $t('usage.title.remaining_of', { name: accountName })" :disabled="!narrow">
+    <UTooltip :text="accountName === null ? $t('usage.title.remaining') : $t('usage.title.remaining_of', { name: accountName })" :disabled="!short">
       <UButton
         color="neutral"
         variant="ghost"
-        class="shrink-0 tabular-nums sm:shrink"
-        :square="narrow"
+        class="shrink-0 tabular-nums @3xl/title-bar:shrink"
+        :square="short"
         :aria-label="$t('usage.title.remaining')"
       >
-        <UIcon name="i-material-symbols-speed" class="size-5 shrink-0 sm:hidden" :class="toneClass(loudest)" />
+        <UIcon name="i-material-symbols-speed" class="size-5 shrink-0 @3xl/title-bar:hidden" :class="toneClass(loudest)" />
 
-        <SkeletonStatus v-if="usageInitial" class="hidden sm:block" :label="$t('usage.status.loading')"><SkeletonBar class="h-4 w-32" /></SkeletonStatus>
-        <span v-else class="hidden sm:contents">
+        <SkeletonStatus v-if="usageInitial" class="hidden @3xl/title-bar:block" :label="$t('usage.status.loading')"><SkeletonBar class="h-4 w-32" /></SkeletonStatus>
+        <span v-else class="hidden @3xl/title-bar:contents">
           <!-- The slot the chat runs on, under its provider's name: the agency's answer, never the screen's pick. -->
           <template v-if="usage.active !== null">
             <span class="max-w-32 truncate text-sm text-muted">{{ slotName(usage.active) }}</span>
@@ -143,7 +143,7 @@ import { useInitialRead, useLastRead } from "bmo-ui/app/domain/loading";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { elapsedText } from "bmo-ui/app/domain/time";
 import { useReadFailure } from "~/domain/events";
-import { useNarrow } from "bmo-ui/app/domain/screen";
+import { useTitleBarShort } from "~/domain/title-bar";
 import { usePolling } from "~/domain/polling";
 import { modeLabel } from "~/domain/status";
 import {
@@ -171,7 +171,7 @@ import type { FallbackView, UsageView } from "#shared/types";
 import type { UsageTone } from "~/domain/usage";
 
 const { t } = useI18n();
-const narrow = useNarrow();
+const short = useTitleBarShort();
 
 // The figures are the agency's, so the same numbers stand on every screen and every screen reads them from one
 // place.

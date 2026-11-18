@@ -12,9 +12,12 @@ import type { Browser, BrowserContext, Page } from "playwright-core";
 // note a call waiting in the room was set with stands in its original with its translation in its place (docs/web.md,
 // the room screen's list of what waits and 「The original, and its translation in its place」). Each is read at a
 // desk's width and a phone's, in the light theme and the dark. A group room carrying every button of its own — the
-// menu, the waiting calls, the pinned button and the window's time left — stands them on the bar's one line beside a
-// name still read, the time left last of them, and under the sm width as a button whose popover holds it, the waiting
-// calls and the pinned button folded into the menu (docs/web.md, 「The window's time left stands in the top bar」).
+// menu, the waiting calls, the pinned button and the window's time left — while a deployment runs stands them on the
+// bar's one line beside a name still read, the time left last of them. The bar folds by its own width (docs/web.md,
+// 「The title bar」): on a short one, a phone's or a 1280px window's beside the docked TODO panel, the time left is a
+// button whose popover holds it, the pinned button folds into the menu and the set's words fold into its squares, the
+// name keeping 40px or more; on a phone the waiting calls fold into the menu too (docs/web.md, 「The window's time left
+// stands in the top bar」).
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up, and serves
 // the room's waiting calls and the translator through the page's own routes.
@@ -31,6 +34,12 @@ const WIDTHS = [
   { width: 360, height: 780, phone: true }
 ] as const;
 const SCHEMES = ["light", "dark"] as const;
+// The bar at its widest, at a desk's width beside the docked TODO panel, where it stands short, and on a phone.
+const BARS = [
+  { width: 1600, height: 900, phone: false, short: false },
+  { width: 1280, height: 900, phone: false, short: true },
+  { width: 360, height: 780, phone: true, short: true }
+] as const;
 
 let browser: Browser | null = null;
 let cookie = "";
@@ -51,7 +60,7 @@ afterAll(async () => {
 
 // The room with one reminder waiting, its note in English, and a translator that reads it. The press is what is
 // driven, so the browser's own translation on opening is off.
-async function open(viewport: (typeof WIDTHS)[number], scheme: (typeof SCHEMES)[number]): Promise<BrowserContext> {
+async function open(viewport: { width: number; height: number; phone: boolean }, scheme: (typeof SCHEMES)[number]): Promise<BrowserContext> {
   const context = await browser!.newContext({
     viewport: { width: viewport.width, height: viewport.height },
     isMobile: viewport.phone,
@@ -148,7 +157,7 @@ describe.skipIf(!origin || !touchReady())("the room's head", () => {
 });
 
 // The room's own buttons and the set at the bar's right end, as they stand: each one's box, left to right.
-async function barParts(page: Page): Promise<{ bar: number; title: number; own: { name: string; left: number; right: number }[]; set: number }> {
+async function barParts(page: Page): Promise<{ bar: number; width: number; title: number; own: { name: string; left: number; right: number }[]; set: number; mark: { width: number; height: number } }> {
   return await page.evaluate(() => {
     const bar = document.querySelector("[data-title-bar]")!;
     const shown = (one: Element) => one.getBoundingClientRect().width > 0;
@@ -157,25 +166,29 @@ async function barParts(page: Page): Promise<{ bar: number; title: number; own: 
       .flatMap((mark) => [...bar.querySelectorAll(`[${mark}]`)].filter(shown).map((one) => ({ name: mark, left: one.getBoundingClientRect().left, right: one.getBoundingClientRect().right })))
       .sort((a, b) => a.left - b.left);
 
+    const mark = bar.querySelector("[data-deploy-mark]")!.getBoundingClientRect();
+
     return {
       bar: bar.getBoundingClientRect().height,
+      width: bar.getBoundingClientRect().width,
       title: bar.querySelector("[data-slot=title]")!.getBoundingClientRect().width,
       own,
-      set: bar.querySelector("[data-title-bar-actions]")!.getBoundingClientRect().left
+      set: bar.querySelector("[data-title-bar-actions]")!.getBoundingClientRect().left,
+      mark: { width: mark.width, height: mark.height }
     };
   });
 }
 
 describe.skipIf(!origin || !touchReady())("a group room's bar holding every button of its own", () => {
-  for (const viewport of WIDTHS) {
-    test(`stands on one line beside the room's name, the time left last, ${viewport.width}px wide`, async () => {
+  for (const viewport of BARS) {
+    test(`stands on one line beside the room's name while a deployment runs, the time left last, ${viewport.width}px wide`, async () => {
       const context = await open(viewport, "dark");
       const page = await context.newPage();
 
       await context.route(new RegExp(`/api/rooms/${GROUP_CHAT}/window$`), (route) => route.fulfill({ json: { openFor: 1_800 } }));
-      // On a phone, a deployment running, so the set at the right end stands whole, its mark beside TODO and the usage
-      // figures, as an administrator's does at its widest there.
-      if (viewport.phone) await context.route(/\/api\/deploy$/, (route) =>
+      // A deployment running, so the set at the right end stands at its widest: its mark beside the usage figures, and
+      // TODO on a phone, where the panel does not stand docked.
+      await context.route(/\/api\/deploy$/, (route) =>
         route.fulfill({
           json: {
             release: "release-a",
@@ -191,31 +204,39 @@ describe.skipIf(!origin || !touchReady())("a group room's bar holding every butt
 
       try {
         await page.goto(`${origin}/rooms/${GROUP_CHAT}`, { waitUntil: "load" });
-        await page.locator(`[data-title-bar] ${viewport.phone ? "[data-window-clock-button]" : "[data-window-clock]"}`).waitFor({ timeout: 30_000 });
-        if (!viewport.phone) {
-          await page.locator("[data-title-bar] [data-pinned-button]").waitFor({ timeout: 30_000 });
-          await page.locator("[data-title-bar] [data-room-background]").waitFor({ timeout: 30_000 });
-        }
+        await page.locator(`[data-title-bar] ${viewport.short ? "[data-window-clock-button]" : "[data-window-clock]"}`).waitFor({ timeout: 30_000 });
+        if (!viewport.short) await page.locator("[data-title-bar] [data-pinned-button]").waitFor({ timeout: 30_000 });
+        if (!viewport.phone) await page.locator("[data-title-bar] [data-room-background]").waitFor({ timeout: 30_000 });
 
-        // On a phone the set at the right end stands whole, as an administrator's does with a deployment running: its
-        // mark, TODO and the usage figures. A desk's TODO panel stands docked beside the room instead of its button.
-        if (viewport.phone) await page.waitForFunction(() => [...document.querySelector("[data-title-bar] [data-title-bar-actions]")!.children].filter((part) => part.getBoundingClientRect().width > 0).length === 3, undefined, { timeout: 30_000 });
+        // The set at the right end stands whole: the deployment's mark and the usage figures, and TODO on a phone; a
+        // desk's TODO panel stands docked beside the room instead of its button.
+        const setParts = viewport.phone ? 3 : 2;
+
+        await page.waitForFunction((count) => [...document.querySelector("[data-title-bar] [data-title-bar-actions]")!.children].filter((part) => part.getBoundingClientRect().width > 0).length === count, setParts, { timeout: 30_000 });
 
         const parts = await barParts(page);
+        const own = viewport.phone
+          ? ["data-room-menu", "data-window-clock-button"]
+          : viewport.short
+            ? ["data-room-menu", "data-room-background", "data-window-clock-button"]
+            : ["data-room-menu", "data-room-background", "data-pinned-button", "data-window-clock"];
 
         expect(parts.bar).toBe(48);
+        expect(parts.width < 768).toBe(viewport.short);
         expect(parts.title).toBeGreaterThanOrEqual(40);
-        expect(parts.own.map((part) => part.name)).toEqual(
-          viewport.phone ? ["data-room-menu", "data-window-clock-button"] : ["data-room-menu", "data-room-background", "data-pinned-button", "data-window-clock"]
-        );
+        expect(parts.own.map((part) => part.name)).toEqual(own);
         expect(parts.own.at(-1)!.right).toBeLessThanOrEqual(parts.set);
+        // The deployment's mark stands as its square on a short bar, its words folded into its tooltip.
+        expect(parts.mark.width === parts.mark.height).toBe(viewport.short);
 
-        if (viewport.phone) {
-          // The pinned button and the waiting calls stand first in the room's menu.
+        if (viewport.short) {
+          // The pinned button stands first in the room's menu, and on a phone the waiting calls after it.
+          const folded = [wording("room.label.pinned_count", { n: "1" }), ...(viewport.phone ? [wording("room.label.background_count", { n: "1" })] : [])];
+
           await page.locator("[data-title-bar] [data-room-menu]").click();
           await page.getByRole("menuitem", { name: wording("room.label.pinned_count", { n: "1" }), exact: true }).waitFor({ timeout: 10_000 });
-          await page.getByRole("menuitem", { name: wording("room.label.background_count", { n: "1" }), exact: true }).waitFor({ timeout: 10_000 });
-          expect((await page.getByRole("menuitem").allInnerTexts()).slice(0, 2)).toEqual([wording("room.label.pinned_count", { n: "1" }), wording("room.label.background_count", { n: "1" })]);
+          expect((await page.getByRole("menuitem").allInnerTexts()).slice(0, folded.length)).toEqual(folded);
+          expect(await page.getByRole("menuitem", { name: wording("room.label.background_count", { n: "1" }), exact: true }).count()).toBe(viewport.phone ? 1 : 0);
           await page.keyboard.press("Escape");
           await page.getByRole("menu").waitFor({ state: "detached", timeout: 10_000 });
 

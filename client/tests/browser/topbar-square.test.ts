@@ -11,7 +11,7 @@ import KO from "../fixtures/browser/topbar-square.test.ko.json";
 
 // Every button in a title bar that shows only a mark is the bar's own icon button: a square, and
 // the same square as every other one (docs/web.md, 「Tab bar and toolbar」). A mark whose words fold
-// away at phone width is held to it from the moment it stands alone, and the deployment's
+// away on a short bar is held to it from the moment it stands alone, and the deployment's
 // mark for a newer release is held to it at every width. Each is measured as the browser lays it out, in both
 // themes, since a size read off the source says nothing about what the library's styles made of it.
 //
@@ -23,7 +23,9 @@ import KO from "../fixtures/browser/topbar-square.test.ko.json";
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "topbar-square", password: "fixture-password-1444" };
 // A desktop, and a Galaxy S25 held upright, where every folding mark stands alone.
-const WIDTHS = [{ width: 1280, height: 800, phone: false }, { width: 360, height: 780, phone: true }];
+// A desk's width whose bar stands wide beside the docked TODO panel, and a phone's, whose bar is short (docs/web.md,
+// 「The title bar」).
+const WIDTHS = [{ width: 1600, height: 800, phone: false }, { width: 360, height: 780, phone: true }];
 const SCHEMES = ["light", "dark"] as const;
 
 // The deployment as the bar is told of it: a page older than the console, and a run under way.

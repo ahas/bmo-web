@@ -28,7 +28,7 @@ describe("the running mark", () => {
     const press = template.slice(template.lastIndexOf("<", template.indexOf(":aria-label=\"markWords\"", template.indexOf("<UPopover"))));
 
     expect(press.startsWith("<UButton")).toBe(true);
-    expect(press.slice(0, press.indexOf(">"))).toContain(":square=\"narrow\"");
+    expect(press.slice(0, press.indexOf(">"))).toContain(":square=\"short\"");
     expect(template).not.toContain("<button");
     expect(template).not.toContain("hover:");
   });

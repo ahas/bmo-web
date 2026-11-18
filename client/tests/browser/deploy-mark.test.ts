@@ -189,10 +189,11 @@ describe.skipIf(!origin || !touchReady())("the deployment's mark", () => {
       const status = page.locator("[data-deploy-status]");
       const failed = [wording("deploy.status.failed"), "unit-a", stage, wording("deploy.label.step_hung", { step: "tests" })].join(" · ");
       const withdrawn = [wording("deploy.status.withdrawn"), "unit-a", stage].join(" · ");
-      // What the mark says of the end standing: wide, its words beside it on the bar; at phone width, the mark alone
-      // and its words heading the popover it opens, in the end's colour.
+      // What the mark says of the end standing: on a bar that is not short, its words beside it; on a phone's short
+      // bar, the mark alone and its words heading the popover it opens, in the end's colour. A desk's bar stands wide
+      // at 1600px beside the docked TODO panel (docs/web.md, 「The title bar」).
       const says = async (words: string, tone: string): Promise<void> => {
-        await page.setViewportSize({ width: 1280, height: 800 });
+        await page.setViewportSize({ width: 1600, height: 800 });
         await page.locator(`[data-title-bar-actions] [data-deploy-mark][aria-label="${words}"]`).waitFor({ timeout: 20_000 });
         expect((await mark.innerText()).trim()).toBe(words);
 
@@ -231,7 +232,7 @@ describe.skipIf(!origin || !touchReady())("the deployment's mark", () => {
     const short: string[] = [];
 
     for (const scheme of ["light", "dark"] as const) {
-      const context = await browser!.newContext({ viewport: { width: 1280, height: 800 }, colorScheme: scheme, serviceWorkers: "block" });
+      const context = await browser!.newContext({ viewport: { width: 1600, height: 800 }, colorScheme: scheme, serviceWorkers: "block" });
       let shown: DeployView = marks[0][2];
 
       await context.addCookies([
@@ -258,7 +259,7 @@ describe.skipIf(!origin || !touchReady())("the deployment's mark", () => {
 
         for (const [status, tone, view] of marks) {
           shown = view;
-          await page.setViewportSize({ width: 1280, height: 800 });
+          await page.setViewportSize({ width: 1600, height: 800 });
 
           const mark = page.locator(`[data-title-bar-actions] [data-deploy-mark][aria-label^="${wording(`deploy.status.${status}`)}"]`);
 
@@ -307,12 +308,12 @@ describe.skipIf(!origin || !touchReady())("the deployment's mark", () => {
     expect(short).toEqual([]);
   }, 240_000);
 
-  // The popover opens on the stages, the mark's own words heading it at phone width alone, since a wide bar already
-  // says them; what goes up stands folded to its first three entries and how many more, a press opening it whole in
+  // The popover opens on the stages, the mark's own words heading it on a short bar alone, since a bar that is not
+  // short already says them; what goes up stands folded to its first three entries and how many more, a press opening it whole in
   // place and the next closing it again.
-  for (const viewport of [{ width: 1280, height: 800 }, { width: 360, height: 780 }]) {
+  for (const viewport of [{ width: 1600, height: 800, short: false }, { width: 360, height: 780, short: true }]) {
     test(`opens on the stages with what goes up folded at ${viewport.width}`, async () => {
-      const context = await browser!.newContext({ viewport, serviceWorkers: "block" });
+      const context = await browser!.newContext({ viewport: { width: viewport.width, height: viewport.height }, serviceWorkers: "block" });
       const at = cookie.indexOf("=");
       const brings = Array.from({ length: 6 }, (_, index) => ({ commit: `${index}`.repeat(40), subject: `Change number ${index + 1}`, todoId: index === 0 ? 1001 : null }));
       const view: DeployView = { release: "release-a", detailed: true, hold: null, run: { ...run("running", "build"), plan: ["tree", "backup", "build", "restart"] as never, brings, commit: "f".repeat(40) } };
@@ -333,8 +334,8 @@ describe.skipIf(!origin || !touchReady())("the deployment's mark", () => {
 
         await stages.waitFor();
 
-        // The status line stands at phone width alone, and above the stages; the stages stand above what goes up.
-        expect(await status.isVisible()).toBe(viewport.width < 640);
+        // The status line stands on a short bar alone, and above the stages; the stages stand above what goes up.
+        expect(await status.isVisible()).toBe(viewport.short);
 
         const top = async (locator: typeof stages): Promise<number> => (await locator.boundingBox())!.y;
 

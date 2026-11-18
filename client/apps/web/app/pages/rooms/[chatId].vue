@@ -73,8 +73,10 @@
             <!-- What acts on this room alone stands beside its name: its menu, what waits, the pinned button
                  and the window's time left last; the right end keeps what every screen carries. The menu
                  button's own box stands 8px from the name's end, the gap every heading row keeps between its
-                 title and its button: the bar's own 4px and 4px more. Under the sm width what waits and the pinned
-                 button fold into the menu, so the menu and the time left stand beside the name. -->
+                 title and its button: the bar's own 4px and 4px more. On a short bar, by the bar's own width, the
+                 pinned button folds into the menu and the time left to its mark, and on a narrow screen what waits
+                 folds into the menu too, so the menu and the time left stand beside the name (docs/web.md, 「The
+                 title bar」). -->
             <template #trailing>
               <UDropdownMenu :items="menuItems" :content="roomMenuContent">
                 <UTooltip :text="$t('common.action.more')">
@@ -92,12 +94,12 @@
                   icon="i-material-symbols-keep"
                   color="neutral"
                   variant="ghost"
-                  class="hidden min-w-0 sm:inline-flex"
+                  class="hidden min-w-0 @3xl/title-bar:inline-flex"
                   :aria-label="$t('room.aria.pinned_open', { n: countText(pins.length) })"
                   data-pinned-button
                   @click="stepPinned"
                 >
-                  <span class="hidden max-w-48 truncate text-sm sm:inline">{{ pinnedLine }}</span>
+                  <span class="max-w-48 truncate text-sm">{{ pinnedLine }}</span>
                 </UButton>
               </UTooltip>
               <!-- How long the chat agent's window here has left, for as long as it is open, whether a
@@ -519,6 +521,7 @@ import { useConfirm } from "~/domain/confirm";
 import { homedJudgements, judgedNow, judgementsByMessage } from "~/domain/judgements";
 import { CHOOSE_GUTTER, chosenRuns } from "bmo-ui/app/domain/chooseall";
 import { NARROW_MAX_PX, STABLE_GUTTER, useNarrow, useScrollGutter } from "bmo-ui/app/domain/screen";
+import { useTitleBarShort } from "~/domain/title-bar";
 import { stepsLanded, useBackClose } from "bmo-ui/app/domain/layers";
 import { ROOM_PICTURES } from "~/domain/gallery";
 import { isBackEscape } from "bmo-ui/app/domain/overlays";
@@ -1111,14 +1114,16 @@ function questionArea(): WindowFrame | null {
 const roomMenuContent = { align: "start" as const, onCloseAutoFocus: keepDialogFocus };
 
 const narrow = useNarrow();
-// What waits for this room: whether its list stands open, and how many, for the menu's entry under the sm width.
+const short = useTitleBarShort();
+// What waits for this room: whether its list stands open, and how many, for the menu's entry on a narrow screen.
 const backgroundOpen = ref(false);
 const backgroundCount = ref(0);
 const menuItems = computed<DropdownMenuItem[][]>(() => [
   [
-    // Under the sm width the pinned button and what waits stand here, first, so the bar keeps room for the room's
-    // name (docs/web.md, 「What was done to a message」 and the room screen's list of what waits).
-    ...(narrow.value && pinnedShown.value !== null ? [{ label: t("room.label.pinned_count", { n: countText(pins.value.length) }), icon: "i-material-symbols-keep", onSelect: stepPinned }] : []),
+    // On a short bar the pinned button stands here, first, and on a narrow screen what waits after it, so the bar
+    // keeps room for the room's name (docs/web.md, 「What was done to a message」 and the room screen's list of what
+    // waits).
+    ...(short.value && pinnedShown.value !== null ? [{ label: t("room.label.pinned_count", { n: countText(pins.value.length) }), icon: "i-material-symbols-keep", onSelect: stepPinned }] : []),
     ...(narrow.value && backgroundCount.value > 0
       ? [{ label: t("room.label.background_count", { n: countText(backgroundCount.value) }), icon: "i-material-symbols-pending-actions", onSelect: () => { backgroundOpen.value = true; } }]
       : []),

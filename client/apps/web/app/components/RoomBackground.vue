@@ -1,8 +1,9 @@
 <template>
   <!-- What waits for this room, for the administrator alone (docs/web.md, the room screen's list of what waits): a watch, a reminder or a call
        an agent left running, read as the screen opens, every minute and at each opening. It stands nowhere while
-       none waits. From the sm width it is a button with how many, opening the list over it; under it the room's menu
-       opens the list, as a drawer from the screen's foot, so the bar keeps room for the room's name. -->
+       none waits. On a wide screen it is a button with how many, opening the list over it, however short the bar
+       stands; on a narrow screen the room's menu opens the list, as a drawer from the screen's foot, so the bar keeps
+       room for the room's name. -->
   <template v-if="calls.length > 0">
     <UPopover v-if="!narrow" v-model:open="open" :content="{ align: 'end' }">
       <UTooltip :text="$t('room.label.background')">
@@ -43,9 +44,9 @@ interface Props {
 const props = defineProps<Props>();
 
 const calls = ref<BackgroundCall[]>([]);
-// Whether the list stands open; the room's menu opens it under the sm width.
+// Whether the list stands open; the room's menu opens it on a narrow screen.
 const open = defineModel<boolean>("open", { default: false });
-// How many wait, for the room's menu that stands the entry under the sm width.
+// How many wait, for the room's menu that stands the entry on a narrow screen.
 const count = defineModel<number>("count", { default: 0 });
 const narrow = useNarrow();
 

@@ -8,10 +8,10 @@ import type { UnitRow } from "@web/server-client";
 
 // The organisations a room's let-in search offers beside people (docs/web.md, the room screen's section on opening a
 // room and letting people in): the units of the reader's company, each standing for the people the receiver lets in
-// for it, those whose home unit it is and those holding a post in it. The account service lists units to the
-// administrator alone, so they are read under the administrator's role and only the reader's own company is handed on
-// (docs/boundary.md, 「Calls the console makes」); a login with no user of the model reads none, and the administrator
-// reads every company's.
+// for it, those whose home unit it is and those holding a post in it who have not left. The account service lists
+// units to the administrator alone, so they are read under the administrator's role and only the reader's own
+// company is handed on (docs/boundary.md, 「Calls the console makes」); a login with no user of the model reads none,
+// and the administrator reads every company's.
 
 // The most organisations one search offers.
 const OFFERED = 20;
@@ -54,9 +54,12 @@ class UnitTree {
   }
 }
 
-// The people a unit lets into a room, once each: those whose home unit it is, then those holding a post in it.
+// The people a unit lets into a room, once each: those whose home unit it is, then those holding a post in it, each
+// whose account has not left (docs/accounts.md, 「A person who leaves」), as the receiver lets them in.
 function people(row: UnitRow): string[] {
-  return [...new Set([...row.members, ...row.concurrent])];
+  const left = new Set(row.left);
+
+  return [...new Set([...row.members, ...row.concurrent])].filter((user) => !left.has(user));
 }
 
 // The units the reader may offer: every unit of the reader's company, every company's for the administrator.

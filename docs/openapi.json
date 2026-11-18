@@ -3764,7 +3764,7 @@
         "type": "object"
       },
       "UnitView": {
-        "description": "One organisation unit read whole: what `Unit` answers, and beside it the unit's kind, short name and the unit\nit reports to, the roles its people carry, the people holding a post in it and the appointment running.",
+        "description": "One organisation unit read whole: what `Unit` answers, and beside it the unit's kind, short name and the unit\nit reports to, the members whose accounts have left, the roles its people carry, the people holding a post in it\nand the appointment running.",
         "properties": {
           "acting": {
             "anyOf": [
@@ -3810,6 +3810,14 @@
                 "type": "null"
               }
             ]
+          },
+          "left": {
+            "default": [],
+            "description": "The members whose accounts have left.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
           },
           "members": {
             "items": {
@@ -3864,6 +3872,7 @@
           "children",
           "heads",
           "members",
+          "left",
           "roles",
           "concurrent",
           "acting"

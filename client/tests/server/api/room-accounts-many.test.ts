@@ -8,8 +8,9 @@ import type { UnitChoice } from "../../../apps/web/shared/people";
 
 // Several people let into a room at once (docs/web.md, the room screen's section on opening a room and letting people
 // in): the people chosen and the people of each organisation chosen — those whose home unit it is and those holding a
-// post in it, the units under it not taken in — those already members passed over. One refused refuses the whole; the
-// receiver is told each organisation in a call of its own and the people beside them in one more.
+// post in it, the units under it not taken in — those already members and those whose accounts have left passed
+// over. One refused refuses the whole; the receiver is told each organisation in a call of its own and the people
+// beside them in one more.
 
 const READER = 3;
 const COLLEAGUE = 4;
@@ -35,7 +36,8 @@ const units = [
 
 const members = new Set([String(READER)]);
 
-// The receiver lets in whoever is not a member yet and answers whom it let in.
+// The receiver lets in whoever is not a member yet and answers whom it let in; for an organisation it passes over
+// the accounts that have left.
 function letIn(keys: readonly string[]): number[] {
   const fresh = keys.filter((key) => !members.has(key));
 
@@ -57,7 +59,7 @@ const receiver = standIn("RECEIVER", (one) => {
   if (path === `/rooms/${GROUP}/unit-accounts` && one.method === "POST") {
     const unit = units.find((row) => row.id === one.body?.unit)!;
 
-    return answer({ unit: unit.id, unitName: unit.name, accounts: [], letIn: letIn([...unit.members, ...unit.concurrent]) });
+    return answer({ unit: unit.id, unitName: unit.name, accounts: [], letIn: letIn([...unit.members, ...unit.concurrent].filter((key) => !new Set<string>(unit.left).has(key))) });
   }
   if (path === `/rooms/${GROUP}/accounts`) return answer({ accounts: [...members].map((key) => ({ account: key })) });
 
@@ -72,7 +74,8 @@ const accounts = standIn("WEB_SERVER", (one) => {
   if (user !== undefined) return answer({ user, name: `account-${user}`, administrator: false, senders: [] });
   if (one.path === "/units") return answer({ units });
   if (one.path === "/checks/entry") {
-    const allowed = one.body?.actor === String(READER) && String(one.body?.user) !== String(OUTSIDER);
+    // The outsider stands in another company, and an account that has left is let in nowhere.
+    const allowed = one.body?.actor === String(READER) && ![String(OUTSIDER), String(GONE)].includes(String(one.body?.user));
 
     return answer({ allowed, grant: `bmo_room:${String(one.body?.room)}#entry`, user: one.body?.user });
   }
@@ -103,10 +106,10 @@ const reset = () => {
 const callersSet = () => accounts.asked.filter((one) => one.method === "PUT").map((one) => one.path).sort();
 
 describe("people let into a room at once", () => {
-  test("finds the organisations of the reader's company alone, each with the units above it and its people", async () => {
+  test("finds the organisations of the reader's company alone, each with the units above it and its people who have not left", async () => {
     expect((await asked(findUnits, { query: { q: "-a" } })).answer).toEqual([
       { id: COMPANY, name: "company-a", shortName: null, path: [], people: 1 },
-      { id: TEAM, name: "team-a", shortName: null, path: ["company-a"], people: 3 },
+      { id: TEAM, name: "team-a", shortName: null, path: ["company-a"], people: 2 },
       { id: PART, name: "part-a", shortName: "zq", path: ["company-a", "team-a"], people: 1 }
     ]);
   });
@@ -115,12 +118,12 @@ describe("people let into a room at once", () => {
     expect((await asked(findUnits, { query: { q: "ZQ" } })).answer).toEqual([{ id: PART, name: "part-a", shortName: "zq", path: ["company-a", "team-a"], people: 1 }]);
   });
 
-  test("an organisation goes to the receiver in a call of its own, and each person it let in is granted the call", async () => {
+  test("an organisation goes to the receiver in a call of its own, its departed account never asked about, and each person it let in is granted the call", async () => {
     reset();
 
     expect((await asked(letInMany, { params: { chatId: String(GROUP) }, body: { units: [TEAM], caller: true } })).status).toBe(200);
     expect(writes()).toEqual([["POST", `/rooms/${GROUP}/unit-accounts`, { unit: TEAM, by: READER }]]);
-    expect(callersSet()).toEqual([`/rooms/${GROUP}/callers/${TEAMMATE}`, `/rooms/${GROUP}/callers/${GONE}`].sort());
+    expect(callersSet()).toEqual([`/rooms/${GROUP}/callers/${TEAMMATE}`]);
   });
 
   test("people beside an organisation go in one more call, those it already took in left out", async () => {

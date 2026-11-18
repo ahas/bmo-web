@@ -2485,7 +2485,8 @@ export interface components {
         };
         /**
          * @description One organisation unit read whole: what `Unit` answers, and beside it the unit's kind, short name and the unit
-         *     it reports to, the roles its people carry, the people holding a post in it and the appointment running.
+         *     it reports to, the members whose accounts have left, the roles its people carry, the people holding a post in it
+         *     and the appointment running.
          */
         UnitView: {
             acting: components["schemas"]["Appointment"] | null;
@@ -2496,6 +2497,11 @@ export interface components {
             /** Format: int64 */
             id: number;
             kind?: components["schemas"]["KindRef"] | null;
+            /**
+             * @description The members whose accounts have left.
+             * @default []
+             */
+            left: string[];
             members: string[];
             name: string;
             /** Format: int64 */

@@ -5907,8 +5907,9 @@ Four bounds keep it from growing forever.
     row found by what it does not show — a person's title, rank, position, duty or contact, an organisation's short
     name — names that field at the end of the line under it, the match marked.
   - An organisation stands for the people whose home unit it is and those holding a post in it then, who are not
-    members yet; the organisations under it are chosen on their own. A person who comes to it later is not let in
-    by it, and one who leaves it stays a member.
+    members yet and whose accounts have not left (`docs/accounts.md`, 「A person who leaves」); its 구성원 count is
+    theirs, and the account service is asked about them alone. The organisations under it are chosen on their own.
+    A person who comes to it later is not let in by it, and one who leaves it stays a member.
   - 추가 lets the whole choice in at once. The console's server asks the account service whether the reader may let
     each person in — a person of another company than the room's is refused, the administrator's choice among them —
     and one refused refuses the whole: nobody is let in and the refusal is said in the dialog.

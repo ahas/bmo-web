@@ -96,7 +96,8 @@ pub struct AppointmentAsk {
 }
 
 /// One organisation unit read whole: what `Unit` answers, and beside it the unit's kind, short name and the unit
-/// it reports to, the roles its people carry, the people holding a post in it and the appointment running.
+/// it reports to, the members whose accounts have left, the roles its people carry, the people holding a post in it
+/// and the appointment running.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct UnitView {
@@ -108,6 +109,9 @@ pub struct UnitView {
   pub short_name: Option<String>,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub reports_to: Option<UnitRef>,
+  /// The members whose accounts have left.
+  #[serde(default)]
+  pub left: Vec<String>,
   pub roles: Vec<MemberRole>,
   pub concurrent: Vec<ConcurrentPost>,
   pub acting: Option<Appointment>,

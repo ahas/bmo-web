@@ -704,6 +704,8 @@ section states what each does.
   in, marks the account left. Its sign-in is disabled for good, the moment and who marked it are kept, and the
   account stays in its unit with everything it held, so what it did stays where it was done. Its posts end, with
   the head grants they carried, and an acting appointment of theirs ends, each kept in their history.
+- **A unit marks who among its members has left:** `GET /units/{unit}` and the administrator's list of units answer
+  them beside the members, so a caller acting on a unit's people passes them over with no call for each person.
 - **What stays readable is what was public:** the person's public projects and their records go on being read by
   the heads above, as any public project is (bmo-project's `docs/design.md`). Their private projects, their private
   conversations and their supervisor's memory are sealed: nobody is given them.

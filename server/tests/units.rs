@@ -432,6 +432,9 @@ async fn a_head_marks_a_person_of_their_unit_left_and_nobody_else_does() {
   let (_, units) = asked_as(&app, Method::GET, "/units", None, Some("administrator")).await;
   let team = units["units"].as_array().unwrap().iter().find(|one| one["id"] == tree.team).unwrap();
   assert_eq!(team["left"], json!([tree.in_team.to_string()]), "{team}");
+  let (_, team) = asked(&app, Method::GET, &format!("/units/{}", tree.team), None).await;
+  assert_eq!(team["left"], json!([tree.in_team.to_string()]), "{team}");
+  assert!(team["members"].as_array().unwrap().contains(&json!(tree.in_team.to_string())), "{team}");
 
   // Marking again changes nothing.
   assert_eq!(

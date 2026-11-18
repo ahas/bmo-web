@@ -279,8 +279,24 @@ async fn member_roles<C: ConnectionTrait>(db: &C, unit: i32) -> Result<Vec<Membe
   .collect()
 }
 
-/// One unit read whole: what `unit` answers, and its kind, short name and the unit it reports to, the roles its
-/// people carry, the people holding a post in it and the appointment running.
+/// The members of a unit whose accounts have left, in their user ids' order (docs/accounts.md, 「A person who
+/// leaves」).
+async fn departed_members<C: ConnectionTrait>(db: &C, unit: i32) -> Result<Vec<String>, Refusal> {
+  all(
+    db,
+    r#"SELECT u."id" FROM "users" u JOIN "user_departures" d ON d."user_id" = u."id"
+       WHERE u."organization_id" = $1 ORDER BY u."id""#,
+    vec![unit.into()],
+  )
+  .await?
+  .iter()
+  .map(|row| Ok(shown(row.try_get::<i32>("", "id")?)))
+  .collect()
+}
+
+/// One unit read whole: what `unit` answers, and its kind, short name and the unit it reports to, the members
+/// whose accounts have left, the roles its people carry, the people holding a post in it and the appointment
+/// running.
 pub async fn unit_view<C: ConnectionTrait>(db: &C, asked: i32) -> Result<UnitView, Refusal> {
   let unit = unit(db, asked).await?;
   let attributes = attributes::of(db, asked).await?;
@@ -290,6 +306,7 @@ pub async fn unit_view<C: ConnectionTrait>(db: &C, asked: i32) -> Result<UnitVie
     kind: attributes.kind,
     short_name: attributes.short_name,
     reports_to: attributes.reports_to,
+    left: departed_members(db, asked).await?,
     roles: member_roles(db, asked).await?,
     concurrent: posts::concurrent_in(db, asked).await?,
     acting: acting::running_on(db, asked).await?,

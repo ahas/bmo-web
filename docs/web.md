@@ -7426,6 +7426,15 @@ research screen (「Research screen」).
   their shell lists 조직 too and the screen holds 초대 and BMO, and 사용자 and 직책·종류 where they head a company (「사용자」,
   「직책·종류」); a member who heads none is listed no entry, and the
   address shows them 초대 saying they may invite into no unit.
+- **A tab is drawn once the reader is known to open it.** The administrator is known at once. Whether a member heads
+  a company is known once the people roster has answered, which the browser asks after it takes the page over, so
+  the server draws the page before it knows; once answered it stays known, a later read of the roster leaving the
+  open tab standing. Until then the row holds the tabs every member opens, with the tab the
+  address names among them and chosen; the body draws a tab only where every member opens it, and otherwise keeps
+  its place empty, as the server draws it, and the tab's own lists bring up their skeletons once it stands. Where
+  the address names no tab, it waits the same way, the first tab being one a member may not open. Once the reader
+  is known, the tab asked for stands where they open it, the first they open where it names none, and the address
+  naming one they may not open is replaced. So the page never holds a tab the reader did not ask for.
 - **The tab row** stands under the title bar, the tabs filling it and the open tab's own add at its right end
   where the tab has one, the row's grey icon on a phone too (「The title bar」): 조직 추가 on 조직도 and 초대 링크
   만들기 on 초대. On a narrow screen the tabs keep one line and scroll

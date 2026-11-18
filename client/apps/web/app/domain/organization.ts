@@ -15,7 +15,7 @@ export const ORGANIZATION_PATH = "/organization";
 
 /** Who reads the screen, as far as which tabs stand for them: the platform administrator, and whether the people
  * roster answers them any company to look through (docs/accounts.md, 「The people roster」). `known` is false until
- * what decides it has been read, so an address naming a tab not yet known to stand is not taken away. */
+ * what decides it has been read, so a tab not yet known to stand is neither drawn nor taken away from the address. */
 export interface OrganizationReader {
   administrator: boolean;
   roster: boolean;
@@ -92,9 +92,24 @@ export function organizationTabsFor(reader: OrganizationReader): OrganizationTab
   return ORGANIZATION_TABS.filter((tab) => tab.opens(reader));
 }
 
-/** The tab an address asks for among those a reader opens, the first of them where it names none. */
-export function organizationTabOf(asked: unknown, tabs: readonly OrganizationTab[]): OrganizationTab {
-  return tabs.find((tab) => tab.value === asked) ?? tabs[0] ?? ORGANIZATION_TABS[0]!;
+/**
+ * The tabs the row holds: those the reader opens, and while who reads is still read, the one the address names as
+ * well, so the tab asked for stands chosen from the server's picture on.
+ */
+export function organizationRowTabs(reader: OrganizationReader, asked: unknown): OrganizationTab[] {
+  return ORGANIZATION_TABS.filter((tab) => tab.opens(reader) || (!reader.known && tab.value === asked));
+}
+
+/**
+ * The tab drawn for the tab an address asks for, the screen's own where it names none: that tab where the reader opens
+ * it, else the first they open once who reads is known. None while who reads is still read and the tab is not yet
+ * known to stand for them, so the server's picture never holds a tab the browser then takes away.
+ */
+export function organizationTabOf(asked: unknown, reader: OrganizationReader): OrganizationTab | null {
+  const tabs = organizationTabsFor(reader);
+  const named = tabs.find((tab) => tab.value === (asked ?? ORGANIZATION_TABS[0]!.value));
+
+  return named ?? (reader.known ? (tabs[0] ?? null) : null);
 }
 
 // Every key a tab owns, so whichever tab the address stood on, its keys go as the reader moves to another.
@@ -131,16 +146,26 @@ export function useMayInvite(): ComputedRef<boolean> {
 /**
  * Who reads the organisation screen, for the tabs that stand for them: the administrator at once, and a member once
  * the people roster has said whether they look through any company. A read that failed leaves them as one who looks
- * through none.
+ * through none. Once the roster has answered they stay known: a tab that reads the roster itself asks it again as it
+ * opens, and that read must not make the reader unknown and take the tab away.
  */
 export function useOrganizationReader(): ComputedRef<OrganizationReader> {
   const administrator = useAdministrator();
   const { companies, status } = useRosterCompanies();
+  const answered = ref(false);
+
+  watch(
+    status,
+    (now) => {
+      if (now === "success" || now === "error") answered.value = true;
+    },
+    { immediate: true }
+  );
 
   return computed(() => ({
     administrator: administrator.value,
     roster: companies.value.length > 0,
-    known: administrator.value || status.value === "success" || status.value === "error"
+    known: administrator.value || answered.value
   }));
 }
 

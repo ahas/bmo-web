@@ -421,6 +421,50 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
       }
     }, 120_000);
 
+    // The server draws the page before it knows the reader heads a company, so the tab asked for is drawn only once
+    // who reads is known, and the page then holds that tab alone (docs/web.md, 「Organisation」).
+    test(`a company head opening the roles and kinds tab by its address finds that tab alone, at ${width}px`, async () => {
+      await administer(`/api/organization/units/${company}/heads/${encodeURIComponent(member)}`, "PUT");
+
+      const context = await contextFor(MEMBER.name, width, height, "light");
+      const column = (page: Page) => page.locator("[data-organization-column]");
+
+      try {
+        const page = await context.newPage();
+
+        await page.goto(`${origin}/organization?tab=catalogue`, { waitUntil: "load" });
+
+        for (const pass of ["opened", "reloaded"]) {
+          if (pass === "reloaded") await page.reload({ waitUntil: "load" });
+
+          await standing(page);
+          await column(page).getByText(wording("catalogue.label.kinds"), { exact: true }).waitFor({ timeout: 20_000 });
+          expect({ pass, tabs: await tabNames(page) }).toEqual({ pass, tabs: ["roster.label.tab", "catalogue.label.tab", "settings.label.invites", "settings.label.bmo"].map((key) => wording(key)) });
+          expect(await page.locator('[role="tab"][aria-selected="true"]').allInnerTexts()).toEqual([wording("catalogue.label.tab")]);
+
+          // The row's underline stands under the chosen tab, though a tab came in before it once the head was known.
+          const chosen = (await page.locator('[role="tab"][aria-selected="true"]').boundingBox())!;
+
+          await page.waitForFunction(
+            (left) => Math.abs((document.querySelector('[data-slot="indicator"]')?.getBoundingClientRect().left ?? -1) - left) <= 1,
+            chosen.x,
+            { timeout: 10_000 }
+          );
+          expect({ pass, invites: await column(page).getByText(wording("invites.label.open"), { exact: true }).count() }).toEqual({ pass, invites: 0 });
+        }
+
+        // With no tab named, the first the head opens stands once they are known, and stays as it reads the roster again.
+        await page.goto(`${origin}/organization`, { waitUntil: "load" });
+        await standing(page);
+        await page.locator("[data-roster-search]").waitFor({ timeout: 20_000 });
+        expect(await page.locator("[data-organization-waiting]").count()).toBe(0);
+        expect(await page.locator('[role="tab"][aria-selected="true"]').allInnerTexts()).toEqual([wording("roster.label.tab")]);
+      } finally {
+        await context.close();
+        await administer(`/api/organization/units/${company}/heads/${encodeURIComponent(member)}`, "DELETE").catch(() => null);
+      }
+    }, 120_000);
+
     for (const scheme of ["light", "dark"] as const) {
       test(`the administrator's, at ${width}px in ${scheme}`, async () => {
         const context = await contextFor(ADMINISTRATOR.name, width, height, scheme);

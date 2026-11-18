@@ -10,7 +10,8 @@
 
       <div ref="tabRow" :class="['flex h-12 shrink-0 items-center gap-2 ps-2 pe-4 sm:ps-4', TAB_ROW_LINE]">
         <UTabs
-          :model-value="tab.value"
+          :key="rowKey"
+          :model-value="chosen"
           :items="tabItems"
           :content="false"
           color="neutral"
@@ -35,7 +36,8 @@
     </template>
 
     <template #body>
-      <div v-if="tab.wide" class="flex min-h-0 min-w-0 flex-1 flex-col" data-organization-body>
+      <div v-if="tab === null" class="flex min-h-0 min-w-0 flex-1 flex-col" aria-busy="true" data-organization-body data-organization-waiting />
+      <div v-else-if="tab.wide" class="flex min-h-0 min-w-0 flex-1 flex-col" data-organization-body>
         <component :is="tabComponent" ref="section" />
       </div>
       <div v-else class="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto p-4" data-organization-body>
@@ -50,7 +52,7 @@
 <script setup lang="ts">
 import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
 
-import { ORGANIZATION_TABS, organizationAddress, organizationMovedAway, organizationTabOf, organizationTabsFor, useOrganizationReader } from "~/domain/organization";
+import { organizationAddress, organizationMovedAway, organizationRowTabs, organizationTabOf, organizationTabsFor, useOrganizationReader } from "~/domain/organization";
 import { TAB_ADD_ICON } from "~/domain/tab-create";
 import { revealOpenTab } from "~/domain/tab-row";
 
@@ -65,12 +67,18 @@ const route = useRoute();
 const router = useRouter();
 const { t } = useI18n();
 // Each tab says which readers it stands for; who reads is known at once for the administrator, and for a member once
-// the people roster has said whether they look through a company.
+// the people roster has said whether they look through a company. Until then the row holds the tab the address names
+// as well, chosen, and the body draws no tab not yet known to stand for the reader: the server draws the page before
+// it knows, and a tab it drew that the browser then took away would leave the server's markup behind on the page.
 const reader = useOrganizationReader();
 
 const tabs = computed(() => organizationTabsFor(reader.value));
-const tab = computed(() => organizationTabOf(route.query.tab ?? ORGANIZATION_TABS[0]!.value, tabs.value));
-const tabItems = computed(() => tabs.value.map((one) => ({ value: one.value, icon: one.icon, label: t(one.label) })));
+const tab = computed(() => organizationTabOf(route.query.tab, reader.value));
+const chosen = computed(() => tab.value?.value ?? String(route.query.tab ?? ""));
+const tabItems = computed(() => organizationRowTabs(reader.value, route.query.tab).map((one) => ({ value: one.value, icon: one.icon, label: t(one.label) })));
+// The row is drawn again whenever the tabs it holds change, so its underline is measured afresh under the chosen tab
+// where a tab came in before it.
+const rowKey = computed(() => tabItems.value.map((one) => one.value).join(" "));
 
 // An address naming a tab that moved away is taken to where its section stands now, and one naming a tab the reader
 // may not open to the first one they may, each with no step of the history; the second waits until who reads is known.
@@ -98,24 +106,26 @@ onMounted(() =>
 
 // The tab stands in the address, and moving to another is a step of the history; the first is the screen's own.
 function setTab(next: string): void {
-  if (next === tab.value.value) return;
+  if (next === chosen.value) return;
 
   void router.push(organizationAddress(next, route.query));
 }
 
-// The open tab brought into the row's view as it changes and as the row first stands, on a phone where the row
-// scrolls sideways.
+// The open tab brought into the row's view as it changes, as the row first stands and as it is drawn again, on a phone
+// where the row scrolls sideways.
 const tabRow = useTemplateRef<HTMLElement>("tabRow");
 
 watch(
-  () => [tab.value.value, tabRow.value] as const,
+  () => [chosen.value, rowKey.value, tabRow.value] as const,
   () => void nextTick(() => revealOpenTab(tabRow.value)),
   { immediate: true, flush: "post" }
 );
 
-// Each tab's component, made once and loaded the first time it is opened.
+// Each tab's component, made once and loaded the first time it is opened; none while no tab is drawn.
 const components = new Map<string, Component>();
 const tabComponent = computed(() => {
+  if (tab.value === null) return null;
+
   const { value, load } = tab.value;
 
   if (!components.has(value)) components.set(value, defineAsyncComponent(load));

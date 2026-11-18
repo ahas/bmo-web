@@ -8,6 +8,7 @@ import {
   movePlan,
   organizationAddress,
   organizationMovedAway,
+  organizationRowTabs,
   organizationTabNamed,
   organizationTabOf,
   organizationTabsFor,
@@ -59,6 +60,8 @@ describe("the settings dialog", () => {
 const ADMINISTRATOR: OrganizationReader = { administrator: true, roster: true, known: true };
 const COMPANY_HEAD: OrganizationReader = { administrator: false, roster: true, known: true };
 const MEMBER: OrganizationReader = { administrator: false, roster: false, known: true };
+// A member before the people roster has answered, as the server and the browser's first frame see them.
+const UNKNOWN_MEMBER: OrganizationReader = { administrator: false, roster: false, known: false };
 
 describe("the organisation screen", () => {
   test("stands its tabs in order, the units first", () => {
@@ -88,9 +91,22 @@ describe("the organisation screen", () => {
   });
 
   test("opens the first tab a reader may for a key naming none of theirs", () => {
-    expect(organizationTabOf("people", organizationTabsFor(ADMINISTRATOR)).value).toBe("people");
-    expect(organizationTabOf("people", organizationTabsFor(MEMBER)).value).toBe("invites");
-    expect(organizationTabOf(undefined, organizationTabsFor(ADMINISTRATOR)).value).toBe("organization");
+    expect(organizationTabOf("people", ADMINISTRATOR)?.value).toBe("people");
+    expect(organizationTabOf("people", MEMBER)?.value).toBe("invites");
+    expect(organizationTabOf(undefined, ADMINISTRATOR)?.value).toBe("organization");
+    expect(organizationTabOf(undefined, COMPANY_HEAD)?.value).toBe("people");
+  });
+
+  test("draws no tab a member is not yet known to open, and the one they are, before the roster answers", () => {
+    expect(organizationTabOf("catalogue", UNKNOWN_MEMBER)).toBeNull();
+    expect(organizationTabOf(undefined, UNKNOWN_MEMBER)).toBeNull();
+    expect(organizationTabOf("invites", UNKNOWN_MEMBER)?.value).toBe("invites");
+  });
+
+  test("holds the tab the address names in the row while who reads is read, and only the reader's once known", () => {
+    expect(organizationRowTabs(UNKNOWN_MEMBER, "catalogue").map((tab) => tab.value)).toEqual(["catalogue", "invites", "agent"]);
+    expect(organizationRowTabs(UNKNOWN_MEMBER, undefined).map((tab) => tab.value)).toEqual(["invites", "agent"]);
+    expect(organizationRowTabs(MEMBER, "catalogue").map((tab) => tab.value)).toEqual(["invites", "agent"]);
   });
 
   test("keeps a tab in the address, the first being the screen's own, and lets the keys of the tab left go with it", () => {

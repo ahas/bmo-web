@@ -50,7 +50,7 @@ async function elements(): Promise<Found[]> {
   for await (const path of new Glob("{pages,components,layouts}/**/*.vue").scan({ cwd: app })) {
     const { descriptor } = parse(await Bun.file(`${app}${path}`).text(), { filename: path });
 
-    if (descriptor.template?.ast) found.push(...every(descriptor.template.ast as unknown as Node, []).map((node) => ({ path, node })));
+    if (descriptor.template?.ast) found.push(...every(descriptor.template.ast as Node, []).map((node) => ({ path, node })));
   }
 
   return found;

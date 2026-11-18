@@ -1,9 +1,12 @@
 import { TYPING_RENEW_MS } from "#shared/config";
 
 import { elapsedText } from "bmo-ui/app/domain/time";
+import { avatarFor } from "./avatars";
 import { countText } from "./numbers";
 
-import type { AccountPresenceEvent, PresenceEvent, PresenceState, PresenceWho, TypingEvent } from "#shared/types";
+import type { AvatarIndex } from "./avatars";
+import type { AccountPresenceEvent, PresenceEvent, PresenceState, PresenceWho, RoomMember, TypingEvent } from "#shared/types";
+import type { AvatarProps } from "@nuxt/ui";
 import type { Translate } from "#shared/wording";
 import type { ComputedRef, Ref, ShallowRef } from "vue";
 
@@ -192,18 +195,51 @@ export function typingPeople(room: ReadonlyMap<string, TypingEntry> | undefined,
   return [...(room?.values() ?? [])].filter((entry) => isOther(entry.who, me)).map((entry) => entry.who);
 }
 
-/** Who writes, in words: one name, two, or the first and how many more; somebody the room names nobody for is said
- * as someone. */
-export function typingWords(t: Translate, names: readonly (string | null)[]): string | null {
-  const named = names.filter((name): name is string => name !== null);
-  const [first, second] = named;
+/** The height of the band a room's typing picture floats in, its 28px picture with 8px on each side. */
+export const TYPING_BAND_PX = 44;
 
-  if (names.length === 0) return null;
-  if (first === undefined) return t("room.label.typing_someone");
-  if (names.length === 1) return t("room.label.typing_one", { name: first });
-  if (names.length === 2 && second !== undefined) return t("room.label.typing_two", { first, second });
+/** How many faces the typing picture stands; past them, the rest stand as a count (docs/web.md, 「Presence and
+ * typing」, the room's typing picture). */
+export const TYPING_FACES_MOST = 3;
 
-  return t("room.label.typing_many", { name: first, n: countText(names.length - 1) });
+/** One person writing in a room as the typing picture draws them: their name, null where the room's members name
+ * nobody for them, and their face. */
+export interface Typist {
+  key: string;
+  name: string | null;
+  face: AvatarProps;
+}
+
+/** The member a writer stands as: an account by its account, a chat service's person by their person number. */
+export function writerMember(who: PresenceWho, members: readonly RoomMember[]): RoomMember | null {
+  if (who.kind === "account") return members.find((member) => member.account !== null && Number(member.account) === who.account) ?? null;
+  if (who.kind === "person") return members.find((member) => member.person === who.personId) ?? null;
+
+  return null;
+}
+
+/** The writers as the typing picture draws them: each found among the room's members wears their name and the face
+ * their row among the room's people wears, and one not found an unnamed face. */
+export function typistsOf(writers: readonly PresenceWho[], members: readonly RoomMember[], avatars: AvatarIndex): Typist[] {
+  return writers.map((who) => {
+    const member = writerMember(who, members);
+
+    return {
+      key: whoKey(who),
+      name: member?.name ?? null,
+      face: member === null ? avatarFor(avatars, "person", null, "") : avatarFor(avatars, "person", member.person, member.name)
+    };
+  });
+}
+
+/** Who writes, in words: every writer named before the typing words, one the room names nobody for said as someone; null
+ * where nobody writes. */
+export function typingWords(t: Translate, typists: readonly Pick<Typist, "name">[]): string | null {
+  if (typists.length === 0) return null;
+
+  const names = typists.map((typist) => typist.name ?? t("room.label.typing_unnamed"));
+
+  return t("room.label.typing_names", { names: names.join(", ") });
 }
 
 // What the stream told, held for every screen of the tab, made the first time anything asks for it.

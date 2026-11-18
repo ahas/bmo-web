@@ -1518,8 +1518,8 @@ Four groups.
   called by the person whose number it is, as the receiver names that person, and a room with no name either comes up
   as a chat number. A room the console made itself — one made for the supervisors it names — stands from the moment it is made, before any
   word is said in it; until then it stands after every room that has words. Choosing a room shows that room's
-  conversation. A room's row carries the presence of its people and a mark while somebody writes in it
-  (「Presence and typing」).
+  conversation. A room's row carries the presence of its people and a mark while somebody writes in it, but for the
+  room open beside it, whose own typing picture says so (「Presence and typing」).
   - **A room stands only once it has been added,** as the receiver's own record of the room says and never by
     which chat service it is on: it is his private chat (`ownerRoom`), which always stands; it was added from 추가
     and so carries the mode it was added in (`mode`); the console made it for the supervisors it names — a supervisor's
@@ -4082,9 +4082,10 @@ Four bounds keep it from growing forever.
 - **One photo to a run, beside its last bubble.** The photo stands on the run's outer side, its foot level with
   the foot of the run's last bubble.
   - While the run goes on below the visible part of the conversation, the photo holds to the foot of that part,
-    a small step above the input bar's top edge, and follows that edge as the bar grows or shrinks — a second
-    line of words, a picture waiting to go — sliding with the scroll until it meets the last bubble, where it
-    stops. It never stands behind the input bar.
+    a small step above the top edge of the typing band over the input bar, or of the input bar in a room with no
+    band, and follows that edge as the bar grows or shrinks — a second line of words, a picture waiting to go —
+    sliding with the scroll until it meets the last bubble, where it stops. It never stands behind the input bar,
+    and never meets the room's typing picture (「Presence and typing」).
   - Each run has its own photo, and it never leaves its run: scrolled past the run's head, it goes up with it.
   - Whose photo stands is what 「Profile photos」 says, the owner's own included: the run only decides where it
     stands.
@@ -4142,8 +4143,8 @@ Four bounds keep it from growing forever.
     line written in an input box keeps its breaks while the writing goes on」). Once sent they stand at a
     bubble's breaks, between words and at the bubble's narrower width, and the flight shows them at those
     breaks from its first frame (「What arrives comes in at the end, and nothing standing moves」).
-  - Under the box stands the line naming who is writing in the room, in every room but the owner's own private chat,
-    keeping its height whether or not anybody writes (「Presence and typing」).
+  - Over the bar stands the band the room's typing picture floats in, in every room but the owner's own private
+    chat, keeping its height whether or not anybody writes (「Presence and typing」).
   - Choosing opens no bar of its own: the top bar grows downward and the choosing row unfolds inside it, on the
     same ground, under the same edge, and folds back the same way when choosing ends (「선택」). The grown bar lies over
     the conversation, which keeps only the resting bar's height as its room at the top, so no message moves by a pixel
@@ -7967,8 +7968,8 @@ by the administrator. Every login reads them, since every person's form asks in 
     stands apart from a dark page too, and the words, the marks and the buttons' hover and press on it are that
     theme's own colours and read on it as they read on a dark page.
   - **Where it stands:** at first at the bottom right of the page area, on the content's gutter, above whatever
-    bar stands at the screen's foot — a room's input bar, the remote screen's row of keys, any bar a screen marks
-    as its foot (bmo-ui's `docs/console-bundles.md`, 「How a bundle mounts」) — so nothing it covers by default is
+    bar stands at the screen's foot — a room's input bar and the band its typing picture floats in, the remote
+    screen's row of keys, any bar a screen marks as its foot (bmo-ui's `docs/console-bundles.md`, 「How a bundle mounts」) — so nothing it covers by default is
     a bar a screen acts from; it reads that bar again while it stands, so one that grows lifts it. It is moved by dragging it with a mouse or a finger: it follows the pointer and cannot leave the page
     area, staying on the gutter at each side and at the foot, below the screen's title row at the top and above
     its foot's bar; let go, it settles on the nearer side, left or right, at the height it was let go at, and a
@@ -8560,7 +8561,8 @@ in a table.
 - **The room list,** the sidebar's and a member's 방 screen: a dot on the corner of the room's picture, the
   success colour for `online` and the warning colour for `away`, standing folded as spread; and while somebody writes
   in the room, a typing mark at the row's trailing end, before its unread count, said to a screen reader with the
-  row.
+  row. The sidebar's row of the room open beside it carries no typing mark, since the room's typing picture tells
+  the same in the same view.
 - **The room's head:** the same dot on the corner of the room's picture, a button of its own on every room, whose
   tooltip says it in words: one other person's state, 온라인 or 자리 비움, or for an offline person the last moment
   seen, as 최근 접속 and the time since; several people's as 온라인 and how many. Pressing it opens the room's
@@ -8568,14 +8570,32 @@ in a table.
 - **The room's 대화상대:** each member's face carries the same dot, and the line under their name says their presence
   in words, 온라인, 자리 비움 or 최근 접속 and the time since, before the status line their chat service read. The
   reader's own row says nothing of their own.
-- **Under the line being written:** one line under the input box, inside the input bar, naming who is writing — one
-  name, two names, or the first name and how many more, and 누군가 where the room's members name nobody for the mark.
-  It shimmers as a turn's state does and stands still for a reader who asked for less motion. The names are read off
-  the room's members (「대화상대」) once, when a mark first stands in the room.
-- **Nothing moves the screen's layout.** The line under the box keeps its height whether or not anybody writes, in
-  every room but the owner's own private chat, where nobody else writes; the dot rides the picture's corner and the
-  typing mark takes room the row's name gives up. Each stands and goes at once, with no fade.
-- **A reader with no box** sees who writes by the room list's typing mark.
+- **The room's typing picture:** while somebody writes in the room, a small picture floats over the foot of the
+  conversation the way the briefing's player does (「Messages」, the briefing's player), on the same dark surface
+  that player wears. It is the one place the room screen tells who writes: the input bar carries no line of its own.
+  - **What it shows:** the faces of the people writing as one overlapping series, the library's avatar group, then
+    입력 중…. Up to three faces stand; past three, the first three stand with a count of the rest, +N, after them.
+    A face is the picture the archive keeps for the person, else their letter on their own hue, as their row in
+    대화상대 wears it.
+  - **Every writer is named,** in a tooltip on the picture and in its accessible name, the whole list of names
+    before 입력 중…, the count included in neither. A screen reader hears the same words from a status line that
+    stands whether or not anybody writes, so each change is announced.
+  - **The names and faces are the room's members'** (「대화상대」), read when a mark first stands in the room and read
+    again when a mark stands for somebody the read does not hold, and a writer it looks for joins the picture once
+    it has ended, so nobody stands unnamed while their name is on its way. A writer still not found after that
+    wears an unnamed face, and is named 누군가 in the tooltip and the accessible name alone; the others stand by
+    their names.
+  - **Where it stands:** in a band of its own over the input bar, the conversation's foot for a reader with no
+    box, at the leading gutter, where the lines of the others stand. The band keeps its height whether or not anybody
+    writes, and the conversation's end stands above it, so the picture covers neither the box nor the newest line.
+    The band is a bar at the screen's foot to the briefing's player, which stands above it, so the two never
+    overlap at any width. The picture is not dragged and leads nowhere: a pointer resting on it or a tap brings
+    up its tooltip, and the band around it takes no press.
+  - **It comes and goes by fading,** having no press behind it, and a reader who asked for less motion sees it
+    stand and go at once.
+- **Nothing moves the screen's layout.** The typing band keeps its height whether or not anybody writes, in every
+  room but the owner's own private chat, where nobody else writes; the dot rides the picture's corner and the
+  typing mark takes room the row's name gives up, each standing and going at once.
 - **A person of the reader's company outside a room** wears the presence handed by account, and a person of another
   company, or one whose presence nobody told, wears nothing:
   - **a person's page** (「Person's page」) carries a row 접속 상태 under the job title while the person is here or

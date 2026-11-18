@@ -90,7 +90,8 @@ describe.skipIf(!origin || !touchReady())("a room's write controls", () => {
       const { page, box } = await open(context);
 
       await box.waitFor({ timeout: 60_000 });
-      expect(await page.locator("[data-screen-foot]").count()).toBe(1);
+      // The input bar is the one foot of the room besides the band its typing picture floats in.
+      expect(await page.locator("[data-screen-foot]:not([data-typing-band])").count()).toBe(1);
 
       await box.fill(LINE);
       await box.press("Enter");
@@ -117,7 +118,7 @@ describe.skipIf(!origin || !touchReady())("a room's write controls", () => {
 
       expect(await page.locator(`[data-message="m${EARLIER.messageId}"]`).count()).toBe(1);
       expect(await box.count()).toBe(0);
-      expect(await page.locator("[data-screen-foot]").count()).toBe(0);
+      expect(await page.locator("[data-screen-foot]:not([data-typing-band])").count()).toBe(0);
       expect(said).toEqual([]);
 
       // The menu still copies and chooses, and offers none of the writes.

@@ -2,21 +2,18 @@
   <!-- The voice briefing playing, as a small player floating over the page area like a picture-in-picture window,
        first at the bottom right on the content's gutter above whatever bar stands at the screen's foot, and dragged
        from there (docs/web.md, 「Messages」, the briefing's player). Its press pauses the sound or plays one waiting,
-       its title leads to the line it speaks over how far it has played, and its close mark stops the listening. It
-       stands inside the layout rather than over it, so what opens over the screen covers it like the rest. Its dark
-       surface is a layer of its own behind the presses, so the swell with the sound moves the surface alone.
-
-       It stands in the dark theme whatever the page's: its surface is a shade darker than that theme's ground, so it
-       stands apart from a dark page, and its words, marks and the library's buttons on it take that theme's own
-       colours, so a ghost button's hover and press read on it. -->
+       its title leads to the line it speaks over how far it has played, and its close mark stops the listening. Its
+       surface swells with the sound, and its words, marks and the library's buttons take the dark theme the frame
+       stands in, so a ghost button's hover and press read on it. -->
   <Transition name="bmo-briefing" type="animation">
-    <div
+    <PipFrame
       v-if="shown !== null"
-      ref="player"
+      ref="pip"
       data-briefing-popup
       role="group"
       :aria-label="$t('briefing.label.title')"
-      class="dark absolute z-30 flex w-72 max-w-[calc(100%-2*var(--bmo-gutter))] touch-none items-center gap-2 p-1.5 select-none [--bmo-gutter:1rem] sm:[--bmo-gutter:1.5rem]"
+      :surface-scale="swell"
+      class="absolute z-30 w-72 max-w-[calc(100%-2*var(--bmo-gutter))] touch-none gap-2 p-1.5 [--bmo-gutter:1rem] sm:[--bmo-gutter:1.5rem]"
       :class="dragAt === null ? '' : 'cursor-grabbing'"
       :style="placed"
       @pointerdown="grab"
@@ -24,13 +21,6 @@
     >
       <!-- Back puts it away as it puts away anything floating over the screen: it stops the listening. -->
       <BriefingBack @back="shown.stop()" />
-
-      <span
-        data-briefing-surface
-        aria-hidden="true"
-        class="absolute inset-0 -z-10 rounded-2xl bg-neutral-950 shadow-lg shadow-black/40 ring-1 ring-white/15"
-        :style="{ scale: swell }"
-      />
 
       <!-- The library's square icon button, the visualiser drawn at the library's icon size in the play mark's place. -->
       <HintTip :text="pressLabel" press class="shrink-0">
@@ -72,7 +62,7 @@
           @click="shown.stop()"
         />
       </HintTip>
-    </div>
+    </PipFrame>
   </Transition>
 </template>
 
@@ -80,6 +70,8 @@
 import { barsOf, BRIEFING_BARS, BRIEFING_FFT, briefingState, swayingBars, swellOf } from "~/domain/briefing";
 import { type BriefingBounds, clampTo, footClearance, isDrag, SCREEN_FOOT, settledSide, useBriefingPosition } from "~/domain/briefing-position";
 import { useNarrow } from "bmo-ui/app/domain/screen";
+
+import type { ComponentPublicInstance } from "vue";
 
 const { t } = useI18n();
 const shown = briefingState();
@@ -198,7 +190,8 @@ async function go(): Promise<void> {
 // screen's foot, so a page area that shrinks shows it as low as it allows without losing the height kept for a
 // taller one.
 const { position, keep } = useBriefingPosition();
-const player = ref<HTMLElement | null>(null);
+const pip = ref<ComponentPublicInstance | null>(null);
+const player = computed<HTMLElement | null>(() => (pip.value?.$el instanceof HTMLElement ? pip.value.$el : null));
 const dragAt = ref<{ left: number; top: number } | null>(null);
 const height = ref(0);
 // How far up from the page area's foot it keeps, over the bar standing there.
@@ -419,16 +412,10 @@ onScopeDispose(() => {
 
 <style scoped>
 /* It comes out of its own middle, past its size and back, and goes back into it; the size alone
-   shows it coming and going, so nothing fades. Its swell with the sound is the surface's scale
-   alone, eased from one frame to the next, so the presses keep their size and place while it plays
-   and no frame lays anything out again. */
-[data-briefing-popup],
-[data-briefing-surface] {
+   shows it coming and going, so nothing fades. Its swell with the sound is the frame's surface
+   alone, so the presses keep their size and place while it plays. */
+[data-briefing-popup] {
   transform-origin: center;
-}
-
-[data-briefing-surface] {
-  transition: scale 120ms ease-out;
 }
 
 .bmo-briefing-enter-active {
@@ -482,10 +469,6 @@ onScopeDispose(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  [data-briefing-surface] {
-    transition: none;
-  }
-
   .bmo-briefing-enter-active,
   .bmo-briefing-leave-active {
     animation: none;

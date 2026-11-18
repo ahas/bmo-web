@@ -672,10 +672,9 @@ room:
     presence_last_seen: "최근 접속 {ago} 전"
     presence_online: 온라인
     presence_online_count: "온라인 {n}명"
-    typing_many: "{name} 외 {n}명 입력 중…"
-    typing_one: "{name} 입력 중…"
-    typing_someone: 누군가 입력 중…
-    typing_two: "{first}, {second} 입력 중…"
+    typing: 입력 중…
+    typing_names: "{names} 입력 중…"
+    typing_unnamed: 누군가
     room_open_title: 방 이름
     answer_took: "{time} 소요"
     avatar_of: "{name} 프로필 사진"

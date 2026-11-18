@@ -1,8 +1,9 @@
 import { describe, expect, test } from "bun:test";
 
-import { accountEntry, expireTyping, memberPresence, nextExpiry, personChip, presenceChip, presenceWords, roomPresence, stepAccountPresence, stepPresence, stepTyping, typingPeople, typingWords } from "../../../apps/web/app/domain/presence";
+import { avatarKey } from "../../../apps/web/app/domain/avatars";
+import { accountEntry, expireTyping, memberPresence, nextExpiry, personChip, presenceChip, presenceWords, roomPresence, stepAccountPresence, stepPresence, stepTyping, typingPeople, typingWords, typistsOf } from "../../../apps/web/app/domain/presence";
 
-import type { PresenceEvent, TypingEvent } from "../../../apps/web/shared/types";
+import type { PresenceEvent, RoomMember, TypingEvent } from "../../../apps/web/shared/types";
 
 // Who writes in a room and who is here, as the stream hands them and the room draws them (docs/web.md, 「Presence and
 // typing」). Words are read by their keys, the figures beside them.
@@ -84,7 +85,7 @@ describe("a room's member", () => {
 });
 
 describe("who writes in a room", () => {
-  test("stands for its life, is renewed by a new telling and ends by off", () => {
+  test("stands for its life, is renewed by a new telling, and ends by off, as the receiver tells once a message of theirs lands", () => {
     let held = stepTyping(new Map(), typing(2, true), 1_000);
 
     expect(nextExpiry(held)).toBe(7_000);
@@ -104,12 +105,58 @@ describe("who writes in a room", () => {
     held = stepTyping(held, { id: null, type: "typing", chatId: ROOM, who: { kind: "person", via: "chat-a", personId: 9 }, on: true, lastsMs: 6_000 }, 0);
     expect(typingPeople(held.get(ROOM), ME)).toEqual([{ kind: "person", via: "chat-a", personId: 9 }]);
   });
+});
 
-  test("is said by one name, two, the first and how many more, or nobody named", () => {
-    expect(typingWords(t, [])).toBeNull();
-    expect(typingWords(t, [null])).toBe("room.label.typing_someone");
-    expect(typingWords(t, ["agent-a"])).toBe('room.label.typing_one {"name":"agent-a"}');
-    expect(typingWords(t, ["agent-a", "agent-b"])).toBe('room.label.typing_two {"first":"agent-a","second":"agent-b"}');
-    expect(typingWords(t, ["agent-a", null, "agent-b"])).toBe('room.label.typing_many {"name":"agent-a","n":"2"}');
+describe("the room's typing picture", () => {
+  const members: RoomMember[] = [
+    { person: 501, name: "agent-a", status: null, account: "2", inConsole: true },
+    { person: 502, name: "agent-b", status: null, account: null, inConsole: false },
+    { person: 503, name: "agent-c", status: null, account: "3", inConsole: true },
+    { person: 504, name: "agent-d", status: null, account: "4", inConsole: true },
+    { person: 505, name: "agent-e", status: null, account: "5", inConsole: true }
+  ];
+  const avatars = new Map([[avatarKey("person", 502), "/avatars/person-502"]]);
+  const writersOf = (held: ReturnType<typeof stepTyping>) => typistsOf(typingPeople(held.get(ROOM), ME), members, avatars);
+  const person = (personId: number, on: boolean): TypingEvent =>
+    ({ id: null, type: "typing", chatId: ROOM, who: { kind: "person", via: "chat-a", personId }, on, lastsMs: 6_000 });
+
+  test("names one writer and wears the face their row in the room's people wears", () => {
+    const [one, ...rest] = writersOf(stepTyping(new Map(), person(502, true), 0));
+
+    expect(rest).toEqual([]);
+    expect(one?.name).toBe("agent-b");
+    expect(one?.face.src).toBe("/avatars/person-502");
+    expect(typingWords(t, one === undefined ? [] : [one])).toBe('room.label.typing_names {"names":"agent-b"}');
+  });
+
+  test("names every one of several writers, past the faces the picture stands, and never as a count", () => {
+    let held = stepTyping(new Map(), person(502, true), 0);
+
+    for (const account of [2, 3, 4, 5]) held = stepTyping(held, typing(account, true), 0);
+
+    const writers = writersOf(held);
+
+    expect(writers.map((writer) => writer.name)).toEqual(["agent-b", "agent-a", "agent-c", "agent-d", "agent-e"]);
+    expect(writers.every((writer) => writer.face.text !== undefined || writer.face.src !== undefined)).toBe(true);
+    expect(typingWords(t, writers)).toBe('room.label.typing_names {"names":"agent-b, agent-a, agent-c, agent-d, agent-e"}');
+  });
+
+  test("says a writer the room's people do not hold as someone, beside the others by their names", () => {
+    const writers = writersOf(stepTyping(stepTyping(new Map(), typing(2, true), 0), person(999, true), 0));
+
+    expect(writers.map((writer) => writer.name)).toEqual(["agent-a", null]);
+    expect(writers[1]?.face.src).toBeUndefined();
+    expect(typingWords(t, writers)).toBe('room.label.typing_names {"names":"agent-a, room.label.typing_unnamed"}');
+  });
+
+  test("drops a writer whose mark ends, by off or by its life, and says nothing once nobody writes", () => {
+    let held = stepTyping(stepTyping(new Map(), typing(2, true), 0), typing(3, true, 2_000), 0);
+
+    held = stepTyping(held, typing(2, false), 1_000);
+    expect(writersOf(held).map((writer) => writer.name)).toEqual(["agent-c"]);
+
+    held = expireTyping(held, 2_000);
+    expect(writersOf(held)).toEqual([]);
+    expect(typingWords(t, writersOf(held))).toBeNull();
   });
 });

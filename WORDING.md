@@ -225,8 +225,9 @@
   최근 접속 {time} 전; several people's → 온라인 {n}명; the account's switch to show it → 접속 상태 공개. Nobody is
   ever written offline: one who is not here is drawn as nothing. Never 접속 중, 부재 중, 마지막 접속, which stays the
   users tab's never-word for a sign-in.
-- somebody writing in a room now → 입력 중: `{name} 입력 중…`, `{first}, {second} 입력 중…`, `{name} 외 {n}명 입력
-  중…`, and 누군가 입력 중… where the room names nobody for them. Never 타이핑 중, 작성 중, 쓰는 중.
+- somebody writing in a room now → 입력 중: 입력 중… after the writers' faces, and every writer named before it,
+  `{names} 입력 중…`, the names joined by a comma; a writer the room names nobody for is 누군가 among them. Never
+  타이핑 중, 작성 중, 쓰는 중, and never a count of people in place of their names.
 - letting an account into a room → 대화상대 추가: 대화상대 추가, 추가했습니다, 추가하지 못했습니다; several people at once
   → `{name}님 외 {n}명을 대화상대로 추가했습니다`, an organisation's people → `{unit}을(를) 대화상대로 추가했습니다`, the particle the name's last sound takes; the
   picker's field that finds both → 사람·조직, 이름이나 조직으로 찾기. Never 초대, which is the link that makes an account,

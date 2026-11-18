@@ -259,12 +259,14 @@ export function roomItems(
 ): NavigationMenuItem[] {
   return rooms.map((room) => {
     const picture = avatarFor(avatars, "room", room.chatId, room.title);
-    const writing = present !== null && typingPeople(present.typing.get(room.chatId), present.me).length > 0;
+    const active = path === `/rooms/${room.chatId}`;
+    // The room open beside the list tells who writes in its own typing picture, so its row says nothing of it.
+    const writing = !active && present !== null && typingPeople(present.typing.get(room.chatId), present.me).length > 0;
     const entry = {
       label: room.title,
       to: `/rooms/${room.chatId}`,
       avatar: present === null ? picture : { ...picture, chip: presenceChip(roomPresence(present.presence.get(room.chatId), present.me)) },
-      active: path === `/rooms/${room.chatId}`,
+      active,
       ...(writing ? { typing: true } : {})
     };
     const count = unreadShown(room, reading);

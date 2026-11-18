@@ -8,9 +8,9 @@
   <UDashboardPanel
     id="room"
     :ui="{
-      body: `p-0 sm:p-0 pt-(--room-head) pb-[calc(var(--room-foot)+var(--bmo-foot-lift,0px))] sm:pt-(--room-head) sm:pb-[calc(var(--room-foot)+var(--bmo-foot-lift,0px))] ${barGrown ? 'scroll-pt-[calc(var(--room-head)+var(--room-choose))]' : 'scroll-pt-(--room-head)'} scroll-pb-[calc(var(--room-foot)+var(--bmo-foot-lift,0px))] overscroll-none ${STABLE_GUTTER} ${TRACK_BETWEEN_BARS}`
+      body: `p-0 sm:p-0 pt-(--room-head) pb-[calc(var(--room-foot)+var(--room-typing)+var(--bmo-foot-lift,0px))] sm:pt-(--room-head) sm:pb-[calc(var(--room-foot)+var(--room-typing)+var(--bmo-foot-lift,0px))] ${barGrown ? 'scroll-pt-[calc(var(--room-head)+var(--room-choose))]' : 'scroll-pt-(--room-head)'} scroll-pb-[calc(var(--room-foot)+var(--room-typing)+var(--bmo-foot-lift,0px))] overscroll-none ${STABLE_GUTTER} ${TRACK_BETWEEN_BARS}`
     }"
-    :style="{ '--room-head': `${headHeight}px`, '--room-choose': `${chooseHeight}px`, '--room-foot': `${footHeight}px`, '--feed-gutter': `${feedGutter}px` }"
+    :style="{ '--room-head': `${headHeight}px`, '--room-choose': `${chooseHeight}px`, '--room-foot': `${footHeight}px`, '--room-typing': `${typingBand}px`, '--feed-gutter': `${feedGutter}px` }"
     @dragover.prevent="dragging = true"
     @dragleave="dragging = false"
     @drop.prevent="onDrop"
@@ -368,6 +368,15 @@
         </Transition>
       </div>
 
+      <!-- Who else is writing here, floating in a band of its own over the input bar, or at the conversation's foot for a
+           reader with no box; the owner's own chat has nobody else to write in it (docs/web.md, 「Presence and typing」,
+           the room's typing picture). -->
+      <RoomTypingPicture
+        v-if="!ownersOwnChat"
+        :chat-id="chatId"
+        class="absolute inset-x-0 z-20 h-(--room-typing) pe-(--feed-gutter)"
+        :style="{ bottom: 'calc(var(--room-foot) + var(--bmo-foot-lift, 0px))' }"
+      />
       <!-- The foot of the room is a column that can be squeezed, and what gives way in it is the
            question stack rather than the box they type in: the foot takes whatever the conversation
            above it does not need, and on a phone with the keyboard up that can be less than the
@@ -424,9 +433,6 @@
               </div>
             </template>
           </ChatComposer>
-          <!-- Who else is writing here, on a line of its own that is always there; the owner's own chat has nobody
-               else to write in it (docs/web.md, 「Presence and typing」). -->
-          <RoomTypingLine v-if="!ownersOwnChat" class="mt-1" :chat-id="chatId" />
         </UContainer>
       </div>
     </template>
@@ -560,7 +566,7 @@ import {
 } from "~/domain/room";
 import { SCROLL_BOTTOM_THRESHOLD_PX, SCROLL_TOP_THRESHOLD_PX } from "~/domain/polling";
 import { formatClock, toUnixSeconds, useNowSeconds } from "bmo-ui/app/domain/time";
-import { presenceWords, roomPresence, usePresence, useTypingTeller } from "~/domain/presence";
+import { presenceWords, roomPresence, TYPING_BAND_PX, usePresence, useTypingTeller } from "~/domain/presence";
 import { imageUrl } from "~/domain/urls";
 import { outcomeLine, useHeldRuns } from "~/domain/working";
 import { newestSkipped, skipReasonLine, useLatestSkipReason, useSkipReasons } from "~/domain/skip-reasons";
@@ -1077,6 +1083,9 @@ function rowSkipReason(item: FeedItem): SkipReason | null {
 const ownsTodo = computed<boolean>(() => owner.value.chatId === chatId);
 // The owner's own private chat, where nobody but him and his BMO writes.
 const ownersOwnChat = computed<boolean>(() => (owner.value.chatId ?? control.value?.ownerChatId ?? null) === chatId);
+// The height of the band the room's typing picture floats in, kept whether or not anybody writes, and none in the
+// owner's own chat, where nobody else writes (docs/web.md, 「Presence and typing」).
+const typingBand = computed<number>(() => (ownersOwnChat.value ? 0 : TYPING_BAND_PX));
 // The reader's own writing in the box, told to the room's other readers (docs/web.md, 「Presence and typing」).
 const typingTeller = useTypingTeller(chatId, writable);
 

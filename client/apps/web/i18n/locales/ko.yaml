@@ -487,6 +487,8 @@ room:
     outcome_run_stopped: "{name}의 실행을 중지했습니다."
     outcome_skipped: "{subject} 이번에는 답하지 않았습니다."
     outcome_skipped_times: "{subject} {n}번 답하지 않았습니다."
+    outcome_skipped_reason: "사유: {reason}"
+    outcome_skipped_reason_none: 사유를 밝히지 않았습니다.
     outcome_waited: "{subject} 메시지가 더 이어질 것 같아 기다렸습니다."
     received_both: "메시지 {messages}개 · 조용한 지시 {instructions}개 받음"
     received_instructions: "조용한 지시 {instructions}개 받음"
@@ -529,6 +531,7 @@ room:
     bad_instruction_id: 지시 번호가 올바르지 않습니다.
     bad_judgement_ids: 판정 번호가 올바르지 않습니다.
     bad_judgement_span: 판정을 읽을 시간 범위가 올바르지 않습니다.
+    bad_language: 언어가 올바르지 않습니다.
     bad_message_id: 메시지 번호가 올바르지 않습니다.
     bad_reply_id: 답장할 메시지 번호가 올바르지 않습니다.
     bad_send_key: 전송 키가 올바르지 않습니다.

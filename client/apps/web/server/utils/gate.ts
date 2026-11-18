@@ -1,5 +1,5 @@
 import { PAGING } from "#shared/config";
-import { SKIPPED_STAGE, gateConditions } from "#shared/types";
+import { gateConditions } from "#shared/types";
 
 import { unitAt, unitFetch } from "./units";
 
@@ -93,15 +93,12 @@ function asJudgement(row: GateJudgement): Judgement {
   };
 }
 
-/**
- * A judgement as a room's page carries it: what places it and colours its mark, without what only its card stands.
- * A silent ending keeps the reason its skip named, since the room says it on the line under the message.
- */
+/** A judgement as a room's page carries it: what places it and colours its mark, without what only its card stands. A
+ * silent turn's reason is read after the page, in the reader's language (the skip-reasons module). */
 export function markOf(judgement: Judgement): JudgementMark {
-  const { id, chatId, messageId, stage, verdict, createdAt, round, detail } = judgement;
-  const reason = stage === SKIPPED_STAGE && detail !== null && detail.trim() !== "" ? { detail } : {};
+  const { id, chatId, messageId, stage, verdict, createdAt, round } = judgement;
 
-  return { id, chatId, messageId, stage, verdict, createdAt, round, ...reason };
+  return { id, chatId, messageId, stage, verdict, createdAt, round };
 }
 
 // A row of the offers record in the room screen's words. A count the gate does not hand is none kept.
@@ -126,12 +123,20 @@ export interface JudgementSpan {
 
 const OPEN: JudgementSpan = { from: null, to: null };
 
-/** A room's judgements newest first, the page before `before` where it is given, written within `span`. */
-export async function judgementsOf(chatId: number, before: number | null, limit: number, span: JudgementSpan = OPEN): Promise<JudgementPage> {
+/** A room's judgements newest first, the page before `before` where it is given, written within `span`, of one stage
+ * where `stage` names it. */
+export async function judgementsOf(
+  chatId: number,
+  before: number | null,
+  limit: number,
+  span: JudgementSpan = OPEN,
+  stage: string | null = null
+): Promise<JudgementPage> {
   if (unitAt("GATE") === null) return { judgements: [], hasMore: false };
 
   const query = new URLSearchParams({ roomId: String(chatId), limit: String(Math.min(limit, PAGING.maxSize)) });
 
+  if (stage !== null) query.set("gateName", stage);
   if (before !== null) query.set("before", String(before));
   if (span.from !== null) query.set("from", String(span.from * 1000));
   if (span.to !== null) query.set("to", String(span.to * 1000));
@@ -145,13 +150,14 @@ export async function judgementsOf(chatId: number, before: number | null, limit:
 // thousand judgements; a stretch past this many pages keeps its newest.
 const SPAN_PAGES = 10;
 
-/** Every judgement of a room written within `span`, newest first, read page after page. */
-export async function judgementsWithin(chatId: number, span: JudgementSpan): Promise<Judgement[]> {
+/** Every judgement of a room written within `span`, of one stage where `stage` names it, newest first, read page after
+ * page. */
+export async function judgementsWithin(chatId: number, span: JudgementSpan, stage: string | null = null): Promise<Judgement[]> {
   const held: Judgement[] = [];
   let before: number | null = null;
 
   for (let read = 0; read < SPAN_PAGES; read++) {
-    const page = await judgementsOf(chatId, before, PAGING.maxSize, span);
+    const page = await judgementsOf(chatId, before, PAGING.maxSize, span, stage);
     const last = page.judgements.at(-1);
 
     held.push(...page.judgements);
@@ -162,6 +168,29 @@ export async function judgementsWithin(chatId: number, span: JudgementSpan): Pro
   }
 
   return held;
+}
+
+// One reading the gate's translator made of an original (the gate's `docs/api.md`, 「Translations」): its words, and
+// whether every part of it was translated.
+export interface GateReading {
+  text: string;
+  whole: boolean;
+}
+
+// The most originals one call to the translator carries, the gate's own bound.
+export const READINGS_PER_CALL = 16;
+
+/** The gate's readings of `originals` in `language`, one for each in order, asked for a reader of `role`. The gate's
+ * own 503, a translator too busy, passes on as it is; any other refusal as the console's. */
+export async function gateReadings(language: string, originals: readonly string[], role: string): Promise<GateReading[]> {
+  const answer = await unitFetch<{ readings?: { text?: unknown; whole?: unknown }[] }>(
+    "GATE",
+    "/translations",
+    { method: "POST", headers: { "content-type": "application/json", "owner-role": role }, body: JSON.stringify({ language, originals }) },
+    { passStatus: [503] }
+  );
+
+  return (answer?.readings ?? []).map((one, at) => ({ text: typeof one.text === "string" ? one.text : originals[at]!, whole: one.whole === true }));
 }
 
 // The gate order as the gate unit serves it (the gate unit's `docs/api.md`, 「Gates」): each gate's part, step and

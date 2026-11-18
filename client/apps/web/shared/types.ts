@@ -506,11 +506,11 @@ export interface TurnRoad extends JudgementRoad {
   stage: string;
 }
 
-// A verdict as a room's page carries it: what places it under a message, colours its mark and names its round, and
-// nothing only its card stands (docs/web.md, 「The first frame waits on the messages alone」).
 // A turn that went silent is written down as a judgement of this stage on the message it read.
 export const SKIPPED_STAGE = "skipped";
 
+// A verdict as a room's page carries it: what places it under a message, colours its mark and names its round, and
+// nothing only its card stands (docs/web.md, 「The first frame waits on the messages alone」).
 export interface JudgementMark {
   id: number;
   chatId: number;
@@ -520,9 +520,22 @@ export interface JudgementMark {
   createdAt: number;
   // The round of the chat agent's session the decision was made in, where the record names one.
   round?: string | null;
-  // Why a round that ended in silence passed its message over, in the words its skip named: a mark of the stage
-  // `skipped` alone carries it, and none where the skip named no reason.
-  detail?: string | null;
+}
+
+// Why a silent turn sent nothing, as a reader reads it (docs/web.md, 「A turn the chat agent chose not to answer」): the
+// reason its skip named, in the reader's language where the translator put it there and as the turn wrote it where it
+// could not; or that it named none.
+export type SkipReason = { kind: "named"; text: string } | { kind: "unnamed" };
+
+// The reasons of the silent turns a screen asked about, by their verdicts' numbers; a verdict carrying no reason is
+// left out.
+export interface SkipReasonPage {
+  reasons: Record<string, SkipReason>;
+}
+
+// The reason of a room's newest silent turn, with its verdict's number, or none where that turn carries none.
+export interface LatestSkipReason {
+  latest: { id: number; reason: SkipReason } | null;
 }
 
 // A verdict whole, as an answer's opened record reads it and the live stream announces it.

@@ -5446,14 +5446,9 @@ Four bounds keep it from growing forever.
   that supervisor failed. That reason is not a bubble but a line standing centred like a date mark, with no photo,
   so the agent does not appear to have said what it did not. It stands at the conversation's foot.
 - **A turn the chat agent chose not to answer stays in the owner's own chat.** There a turn that ended in silence — the
-  session answered `<<SKIP>>` — leaves a line 「〈이름〉가 이번에는 답하지 않았습니다.」
+  session answered `<<SKIP: <reason>>>` — leaves a line 「〈이름〉가 이번에는 답하지 않았습니다.」
   under the last message that turn read, and it stands there for good rather than fading. Only the chat agent's turns end
   this way, so the line names the chat agent, by the same name its running row wears.
-  - **The line says why.** Under it stands the reason the turn's skip named, in the same faint centred look, read
-    in the reader's language as any text an agent wrote is (「The original, and its translation in its place」):
-    translated as it opens where 자동 번역 is on, with the original a press away. The reason is the skipped
-    judgement's detail, which the room's page carries on that judgement's mark alone; a skip that named none
-    leaves the line by itself, and several silent turns over one message stand each different reason once.
   - **A group room stands no such line,** and no passing reason for a silent turn either. There the chat agent staying out
     of an exchange is the ordinary course, one line per message passed over is noise, and the listening row
     (「The listening row」) already says it is there. The judgement is still written and still rides on the message's chip
@@ -5473,6 +5468,22 @@ Four bounds keep it from growing forever.
     one line that counts them.
   - **A turn that read nothing of the room leaves no line.** A round run for an instruction alone has no message of
     the room it passed over, so its ending is written with no message and shows as the passing reason instead.
+  - **Why it sent nothing stands under it,** on a second line of the same faint look: 「사유: 〈이유〉」, the reason the
+    turn's skip named, in the language the console reads in, breaking between words as a message's words do. Read
+    after the rows stand, it unfolds into place under the first line as a list's new item does. Where the turn named
+    none — the receiver's `none given` — the line says 「사유를 밝히지 않았습니다.」 in the pack's own words; a judgement
+    carrying no reason at all, as a quiet turn's does, stands no second line. Two silent turns over one message
+    stand the newer one's reason alone. The passing reason for a silent turn that read nothing of the room carries
+    the same second line, for the newest silent turn of the room.
+  - **The reason is translated on the console's server and read after the page.** The page carries each
+    verdict's mark alone (「The first frame waits on the messages alone」), so once the rows stand, the screen asks
+    `api/rooms/<room>/skip-reasons` for the reasons of the `skipped` marks it shows, naming them by their numbers,
+    the stretch of time they were written in and the reader's language; the passing reason asks
+    `api/rooms/<room>/skip-reasons/latest` the same way. The server reads those judgements from the gate, hands each
+    reason to the gate's translating route in that language, and keeps every whole translation by its text and
+    language for as long as it runs, so a reason is translated once. A translation that fails, or comes back not
+    whole, stands as the English line the turn wrote, and is asked for again on the next read. The reasons are the
+    verdicts' words, so a member who reads the room but not its verdicts (「Access」) is answered none.
 - **A system notice stands as a system line, not a bubble.** A line the bot sent as the service —
   filed under the bot's own sender name, its words opening with the system notice mark
   (the receiver's `docs/voiced-notices.md`, 「System notices」) — is the server's answer `notice` on that message.

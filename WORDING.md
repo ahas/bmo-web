@@ -297,6 +297,8 @@
 - a thing a unit stopped before it was made, a voice briefing among them → 중지됨; asking for it again → 다시
   요청: 보이스브리핑 중지됨 · 다시 요청 가능. Never 재요청, 멈춤.
 - leave the queue → 대기열에서 제외. Never 대기열에서 빠지다.
+- why a supervisor's turn sent nothing to a room → 사유: `사유: {reason}` on its own line under the line saying it did
+  not answer, and 사유를 밝히지 않았습니다 where the turn named none. Never 까닭, 이유 없음.
 - set a TODO item aside → 보류, taking the hold back → 보류 해제: 보류, 보류 해제, 보류 사유, 보류 항목. The act and the
   state mark are the same word, and a held item's menu shows 보류 해제 in place of 보류. Never 보류 풀기, 재개, 대기로 돌리기
   for the release; 재개 stays a stopped work order's own word.

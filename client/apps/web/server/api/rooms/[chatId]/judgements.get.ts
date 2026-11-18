@@ -1,6 +1,3 @@
-import { PAGING } from "#shared/config";
-import { wording } from "#shared/wording";
-
 import { readWholeJudgements } from "../../../utils/archive";
 
 import type { Judgement } from "#shared/types";
@@ -17,13 +14,8 @@ export default defineEventHandler(async (event): Promise<{ judgements: Judgement
   await requireReadableRoom(event, chatId);
 
   const query = getQuery(event);
-  const ids = idsOf(query.ids);
-  const from = Number(query.from);
-  const to = Number(query.to);
-
-  if (!Number.isSafeInteger(from) || !Number.isSafeInteger(to) || from > to) {
-    throw fail(400, wording("room.error.bad_judgement_span"));
-  }
+  const ids = requireJudgementIds(query.ids);
+  const { from, to } = requireJudgementSpan(query.from, query.to);
 
   // A member reads the conversation; the verdicts recorded on it are the administrator's (docs/web.md, 「Access」).
   if ((await readableRooms(event)) !== "all") return { judgements: [] };
@@ -31,14 +23,3 @@ export default defineEventHandler(async (event): Promise<{ judgements: Judgement
   // A verdict's time is held in whole seconds, so the second after the last is read too.
   return { judgements: await readWholeJudgements(chatId, ids, { from, to: to + 1 }) };
 });
-
-// The verdicts asked for, a comma list of their numbers, at most a page of them.
-function idsOf(value: unknown): number[] {
-  const ids = typeof value === "string" && value !== "" ? value.split(",").map(Number) : [];
-
-  if (ids.length === 0 || ids.length > PAGING.maxSize || !ids.every((id) => Number.isSafeInteger(id))) {
-    throw fail(400, wording("room.error.bad_judgement_ids"));
-  }
-
-  return ids;
-}

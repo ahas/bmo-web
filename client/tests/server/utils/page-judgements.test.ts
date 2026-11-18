@@ -160,17 +160,3 @@ describe("a page's verdicts", () => {
     });
   });
 });
-
-// A silent ending's mark keeps why (docs/web.md, the line under a message the chat agent did not answer): the
-// room says the reason under the line, so it rides on the page, while every other stage's detail stays its card's.
-describe("a mark of a silent ending", () => {
-  test("keeps the reason its skip named, and a mark of any other stage keeps none", async () => {
-    const { markOf } = await import("../../../apps/web/server/utils/gate");
-    const judged = (stage: string, detail: string | null) => ({ id: 1, chatId: ROOM, messageId: "31", stage, verdict: "SKIP", detail, createdAt: 1_790_000_000 });
-
-    expect(markOf(judged("skipped", "they are talking to each other")).detail).toBe("they are talking to each other");
-    expect("detail" in markOf(judged("skipped", null))).toBe(false);
-    expect("detail" in markOf(judged("skipped", "  "))).toBe(false);
-    expect("detail" in markOf(judged("chat", "the stage's own words"))).toBe(false);
-  });
-});

@@ -55,6 +55,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["draft-close", "fixture-password-2259"],
   ["prompt-wrap", "fixture-password-1575"],
   ["room-feed", "fixture-password-1457"],
+  ["skip-reason", "fixture-password-3444"],
   ["room-find", "fixture-password-2261"],
   ["room-past", "fixture-password-2943"],
   ["pictures", "fixture-password-2262"],

@@ -301,12 +301,17 @@
               <!-- A turn the chat agent passed the run's last message over in stays as a line under it, worded
                    and placed like the passing reason at the foot: centred, with no photo, so the chat agent is
                    not seen to have said anything. It is not a row, so nothing chooses, copies or
-                   focuses it. It ends the run, and stands between it and the next. Under it stands why, each
-                   reason the skips named once, read in the reader's language as any text an agent wrote is. -->
-              <div v-if="lastOf(run).skipped > 0" class="my-4 flex max-w-prose flex-col items-center gap-1 self-center text-center text-sm text-muted" :data-skipped="lastOf(run).key">
-                <p>{{ skippedLine(t, lastOf(run).skipped) }}</p>
-                <TranslatedText v-for="reason in lastOf(run).skipReasons" :key="reason" :text="reason" class="items-center" textClass="text-sm text-muted" data-skip-reason />
-              </div>
+                   focuses it. It ends the run, and stands between it and the next. Why the turn sent nothing
+                   stands under it, in the same look, and unfolds into place when it is read after the rows. -->
+              <MovingList
+                v-if="lastOf(run).skipped > 0"
+                tag="div"
+                :class="['my-4 flex flex-col items-center self-center text-center text-sm text-muted', wordsWrap]"
+                :data-skipped="lastOf(run).key"
+              >
+                <p key="said">{{ skippedLine(t, lastOf(run).skipped) }}</p>
+                <p v-if="rowSkipReason(lastOf(run)) !== null" key="why" data-skip-reason>{{ skipReasonLine(t, rowSkipReason(lastOf(run))!) }}</p>
+              </MovingList>
             </template>
           </template>
 
@@ -316,7 +321,10 @@
 
           <!-- A passing word about the turn stands at the conversation's foot. The word is no
                message, so it keeps room of its own from the conversation above it. -->
-          <p v-if="passing !== null" class="mt-4 self-center text-sm text-muted">{{ outcomeLine(t, passing) }}</p>
+          <MovingList v-if="passing !== null" tag="div" :class="['mt-4 flex flex-col items-center self-center text-center text-sm text-muted', wordsWrap]" data-passing>
+            <p key="said">{{ outcomeLine(t, passing) }}</p>
+            <p v-if="passingReason !== null" key="why" data-skip-reason>{{ skipReasonLine(t, passingReason) }}</p>
+          </MovingList>
         </UChatMessages>
 
         <!-- Where a flight is put: the layer's last child, of no box of its own, so a flight coming
@@ -547,13 +555,16 @@ import {
   turnAnswer,
   useHandOver,
   useRoomFeed,
-  withLives
+  withLives,
+  wordsWrap
 } from "~/domain/room";
 import { SCROLL_BOTTOM_THRESHOLD_PX, SCROLL_TOP_THRESHOLD_PX } from "~/domain/polling";
 import { formatClock, toUnixSeconds, useNowSeconds } from "bmo-ui/app/domain/time";
 import { presenceWords, roomPresence, usePresence, useTypingTeller } from "~/domain/presence";
 import { imageUrl } from "~/domain/urls";
 import { outcomeLine, useHeldRuns } from "~/domain/working";
+import { newestSkipped, skipReasonLine, useLatestSkipReason, useSkipReasons } from "~/domain/skip-reasons";
+import { readerLanguage } from "~/domain/text-reading";
 import { groupRoom, listeningRuns, shownOutcome, useRoomWindow } from "~/domain/room-window";
 import { clearFound, foundMessages, markFound, steppedHit } from "~/domain/room-find";
 import { scrollWithin } from "bmo-ui/app/domain/scroll-within";
@@ -574,6 +585,7 @@ import type {
   SentAttachments,
   SentMessage,
   Situation,
+  SkipReason,
   StatusView
 } from "#shared/types";
 import type { DropdownMenuItem } from "@nuxt/ui";
@@ -600,7 +612,7 @@ let releaseFullscreen: (() => void) | null = null;
 
 const route = useRoute();
 const router = useRouter();
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const island = useIsland(t);
 const askFirst = useConfirm();
 
@@ -1048,6 +1060,18 @@ async function showPictureMessage(messageId: ExactMessageId): Promise<void> {
 const group = computed<boolean>(() => groupRoom(chatId, owner.value.chatId ?? control.value?.ownerChatId ?? null));
 const listeningWindow = useRoomWindow(chatId, () => group.value);
 const passing = computed(() => shownOutcome(outcome.value, group.value));
+// Why a silent turn sent nothing, in the language the console reads in (docs/web.md, 「A turn the chat agent chose not
+// to answer」): read for the lines the owner's chat stands, and for the passing reason, by the administrator alone,
+// since the reasons are the verdicts' words.
+const reasonLanguage = (): string => readerLanguage(locale.value);
+const skipReasons = useSkipReasons(chatId, reasonLanguage, () => (administrator.value && !group.value ? roomFeed.judgements.value : []));
+const passingReason = useLatestSkipReason(chatId, reasonLanguage, () => (administrator.value ? passing.value : null));
+
+function rowSkipReason(item: FeedItem): SkipReason | null {
+  const mark = newestSkipped(item.judgements);
+
+  return mark === null ? null : (skipReasons.value.get(mark.id) ?? null);
+}
 
 // Asking a worker a question remains available in the owner room.
 const ownsTodo = computed<boolean>(() => owner.value.chatId === chatId);

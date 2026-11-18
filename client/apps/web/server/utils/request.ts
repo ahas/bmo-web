@@ -125,3 +125,36 @@ export function requireBriefingId(event: H3Event): number {
 
   return id;
 }
+
+/** The verdicts a query names, a comma list of their numbers, at most a page of them; anything else is refused. */
+export function requireJudgementIds(value: unknown): number[] {
+  const ids = typeof value === "string" && value !== "" ? value.split(",").map(Number) : [];
+
+  if (ids.length === 0 || ids.length > PAGING.maxSize || !ids.every((id) => Number.isSafeInteger(id))) {
+    throw fail(400, wording("room.error.bad_judgement_ids"));
+  }
+
+  return ids;
+}
+
+/** The seconds a query names verdicts were written in, `from` to `to`, in unix seconds; anything else is refused. */
+export function requireJudgementSpan(fromValue: unknown, toValue: unknown): { from: number; to: number } {
+  const from = Number(fromValue);
+  const to = Number(toValue);
+
+  if (!Number.isSafeInteger(from) || !Number.isSafeInteger(to) || from > to) {
+    throw fail(400, wording("room.error.bad_judgement_span"));
+  }
+
+  return { from, to };
+}
+
+// A language tag as the gate's translator reads one: a primary subtag of letters, and any subtags after it.
+const LANGUAGE_TAG = /^[a-z]{2,3}(?:-[A-Za-z0-9]{1,8})*$/;
+
+/** The language a query names a reader reads, as a language tag; anything else is refused. */
+export function requireLanguage(value: unknown): string {
+  if (typeof value !== "string" || !LANGUAGE_TAG.test(value)) throw fail(400, wording("room.error.bad_language"));
+
+  return value;
+}

@@ -325,8 +325,6 @@ export interface FeedItem {
   // How many of the chat agent's turns read this message last and ended in silence. The room stands a line
   // for them under the row, which is not a row of its own and nothing chooses or copies.
   skipped: number;
-  // Why those turns passed it over, each reason once, as their skips named them; the line says them under itself.
-  skipReasons: string[];
   // What the room's record keeps done to the message (docs/web.md, 「What was done to a message」): whether it was
   // deleted, when it was edited and pinned, in unix seconds, and its reactions as the row stands them.
   deleted?: boolean;
@@ -405,17 +403,6 @@ export function reactionViews(
 
 export function skippedTurns(judgements: readonly JudgementMark[]): number {
   return judgements.filter((judgement) => judgement.stage === SKIPPED_STAGE).length;
-}
-
-// Why the silent turns over a message passed it over, each reason once, in the order the turns ended: the words
-// their skips named, and nothing for a skip that named none.
-export function skipReasons(judgements: readonly JudgementMark[]): string[] {
-  const reasons = judgements
-    .filter((judgement) => judgement.stage === SKIPPED_STAGE)
-    .map((judgement) => (judgement.detail ?? "").trim())
-    .filter((reason) => reason !== "");
-
-  return [...new Set(reasons)];
 }
 
 // The line standing under a message the chat agent passed over. Silent turns never stand next to each other —
@@ -1336,7 +1323,6 @@ function pendingItem(held: OutboxItem, speaker: Speaker, avatars: AvatarIndex): 
     pending: { state: held.state, reason: held.reason, sent: held.messageId !== null },
     run: null,
     skipped: 0,
-    skipReasons: [],
     notice: false,
     thinking: false
   };
@@ -1401,7 +1387,6 @@ export function runItem(run: RunState, speaker: Speaker, avatar: AvatarProps): F
     pending: null,
     run,
     skipped: 0,
-    skipReasons: [],
     notice: false,
     thinking: false
   };
@@ -1572,7 +1557,6 @@ export function archivedRows(
       gathered.look = { ...gathered.look, variant: "soft" };
       // A turn reads the whole send and is pinned to its last picture, which stands in this row.
       gathered.skipped += skipLines ? skippedTurns(judgements.get(message.messageId) ?? []) : 0;
-      gathered.skipReasons = skipLines ? [...new Set([...gathered.skipReasons, ...skipReasons(judgements.get(message.messageId) ?? [])])] : [];
       gathered.judgements = [...gathered.judgements, ...(judgements.get(message.messageId) ?? [])];
       continue;
     }
@@ -1581,7 +1565,6 @@ export function archivedRows(
 
     if (!skipLines) {
       item.skipped = 0;
-      item.skipReasons = [];
     }
 
     if (album !== null && item.imageUrl !== null) {
@@ -1759,7 +1742,6 @@ function feedItemOf(
     pending: null,
     run: null,
     skipped: skippedTurns(judgements.get(message.messageId) ?? []),
-    skipReasons: skipReasons(judgements.get(message.messageId) ?? []),
     notice: message.notice === true,
     thinking: !deleted && message.thinking === true,
     ...(message.voicedBy === undefined ? {} : { voice: message.senderName })

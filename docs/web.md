@@ -8242,7 +8242,9 @@ by the administrator. Every login reads them, since every person's form asks in 
 
 - **A dialog's close stands in its head's row,** at the row's trailing end and on the head's one centre line with
   the title, or with the title and its description taken as one block, never held at a fixed distance from the
-  dialog's top; the title takes the rest of the row, so a long one stops short of the close.
+  dialog's top; the title takes the rest of the row, so a long one stops short of the close, 8px clear of it.
+  The bmo-ui layer stands every dialog's close so, through its own theme (its `docs/components.md`, 「Floating
+  things」); the console's own theme sets nothing of the dialog head.
 - With something floating over the screen, back clears that first. On a phone, back is a gesture to close what is
   being looked at, not to leave the page, and if the page changes leaving something floating, the reading place is
   lost. Only with nothing to clear does the page move. With several stacked, one at a time from the top.

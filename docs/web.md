@@ -2275,8 +2275,8 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   search field's placeholder, no match, no choices and a refused find — are the language pack's
   `common.placeholder.search`, `common.status.no_match`, `common.status.no_choices` and
   `common.error.choices_find_failed`, the same on every screen. A list a preview stands beside, the theme's and
-  the palette's in the settings, stays the library's select: bmo-ui's list preview hears the focus move onto the
-  item a pointer or a key rests on, and the select menu highlights an item while the focus stays where it was.
+  the palette's in the settings, is the same select: bmo-ui's list preview hears the item the select highlights,
+  so the preview follows the choice a pointer or a key rests on and stands in the chosen one once the list closes.
 - **The toolbar** binds the info and buttons for one target — an editor, a document — in one line, attached to
   that target with no gutter. It fills the container end to end, its top and bottom borders continuing the tab
   bar's, view switch's and editor's, and its items have no border each but are split by dividers. Overflow

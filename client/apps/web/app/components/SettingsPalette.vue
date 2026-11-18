@@ -4,14 +4,14 @@
   <div class="flex flex-col gap-6">
     <SettingsGroup>
       <SettingsRow :label="$t('account.label.palette')" :description="$t('account.label.palette_description')">
-        <USelect
+        <ChoiceSelect
           v-model="choice"
           :items="items"
           value-key="value"
           class="w-36"
           :ui="{ base: 'ps-12' }"
-          :content="preview.list"
           :aria-label="$t('account.label.palette')"
+          @highlight="preview.onHighlight"
           @update:open="preview.onOpen"
         >
           <template #leading>
@@ -21,7 +21,7 @@
           <template #item-leading="{ item }">
             <PaletteSwatch :palette="item.palette" :scheme="pageScheme" :[PREVIEW_ITEM]="item.value" />
           </template>
-        </USelect>
+        </ChoiceSelect>
       </SettingsRow>
     </SettingsGroup>
 

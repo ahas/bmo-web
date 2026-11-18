@@ -11,8 +11,10 @@ import type { TodoBoard, TodoItem } from "../../apps/web/shared/types";
 // opens with a search field above them, and one of seven or fewer opens with none. Read off a TODO item's agent
 // chooser, which lists every agent the agency registers, and the TODO panel's filter of whether an item's unfinished
 // strands remain, which holds three choices. Opened by a pointer the search field takes the focus at once; opened by a
-// finger it does not, so the phone's keyboard covers nothing until the field is pressed. A desktop's width and a
-// phone's.
+// finger it does not, so the phone's keyboard covers nothing until the field is pressed. The theme's list in the
+// settings dialog stands against an edge of its control inside the screen, its preview follows the choice a pointer
+// rests on, and a press away from it, a finger's included, closes the list and leaves the dialog. A desktop's width
+// and a phone's. The secret form's kind chooser goes on naming the kind chosen while the words typed leave it out.
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up, whose
 // agency stand-in lists `worker-01` to `worker-03` and `builder-01` to `builder-08`, and serves the board through the
@@ -182,5 +184,92 @@ describe("a list searches once it holds more than seven choices, and only then",
         await context.close();
       }
     }, 120_000);
+
+    test(`the theme's list in the settings follows its preview and closes alone on a press away, at ${width.width}px`, async () => {
+      if (!browser) return;
+
+      const context = await opened(width);
+
+      try {
+        const page = await context.newPage();
+
+        await page.goto(`${origin}/?settings=theme`, { waitUntil: "load" });
+
+        const chooser = page.locator(`button[aria-haspopup="listbox"][aria-label="${wording("account.label.theme")}"]`);
+        const preview = page.locator("[data-theme-preview]");
+        const list = page.locator("[data-reka-popper-content-wrapper]");
+
+        await chooser.waitFor({ timeout: 30_000 });
+
+        const chosenLook = await preview.getAttribute("style");
+
+        await press(chooser, width.phone);
+
+        const options = page.getByRole("option");
+
+        await options.nth(1).waitFor({ timeout: 10_000 });
+        expect(await searchOf(page).count()).toBe(0);
+
+        // The list stands against one edge of its control, inside the screen.
+        const control = (await chooser.boundingBox())!;
+        const box = (await list.boundingBox())!;
+
+        expect(Math.abs(box.x - control.x) < 1 || Math.abs(box.x + box.width - (control.x + control.width)) < 1).toBe(true);
+        expect(box.x).toBeGreaterThanOrEqual(0);
+        expect(box.x + box.width).toBeLessThanOrEqual(width.width);
+
+        if (!width.phone) {
+          // The preview stands in the choice the pointer rests on, and in the chosen one once the list has closed.
+          await options.nth(1).hover();
+          await page.waitForFunction((look) => document.querySelector("[data-theme-preview]")?.getAttribute("style") !== look, chosenLook, { timeout: 10_000 });
+        }
+
+        // A press on the dialog's heading, which does nothing of its own, closes the list and leaves the dialog.
+        const heading = page.locator("h2:visible").filter({ hasText: wording(width.phone ? "settings.label.theme" : "settings.title.settings") }).first();
+        const at = (await heading.boundingBox())!;
+
+        if (width.phone) await page.touchscreen.tap(at.x + at.width / 2, at.y + at.height / 2);
+        else await page.mouse.click(at.x + at.width / 2, at.y + at.height / 2);
+
+        await options.first().waitFor({ state: "detached", timeout: 10_000 });
+        expect(await chooser.isVisible()).toBe(true);
+        expect(await preview.getAttribute("style")).toBe(chosenLook);
+      } finally {
+        await context.unrouteAll({ behavior: "ignoreErrors" });
+        await context.close();
+      }
+    }, 120_000);
   }
+
+  test("the control names the kind chosen while the words typed leave it out of the list", async () => {
+    if (!browser) return;
+
+    const context = await opened(WIDTHS[0]!);
+
+    try {
+      const page = await context.newPage();
+
+      await page.goto(`${origin}/?settings=secrets`, { waitUntil: "load" });
+      await page.locator("[data-secret-add]").click({ timeout: 30_000 });
+
+      const chooser = page.locator("[data-secret-kind]");
+
+      await chooser.click({ timeout: 10_000 });
+
+      const first = page.getByRole("option").first();
+      const label = ((await first.textContent()) ?? "").trim();
+
+      await first.click();
+      await page.getByRole("listbox").waitFor({ state: "detached", timeout: 10_000 });
+      expect(((await chooser.textContent()) ?? "").trim()).toBe(label);
+
+      await chooser.click();
+      await page.keyboard.type("no-such-kind");
+      await page.locator("[data-reka-popper-content-wrapper]").getByText(wording("common.status.no_match"), { exact: true }).waitFor({ timeout: 10_000 });
+      expect(((await chooser.textContent()) ?? "").trim()).toBe(label);
+    } finally {
+      await context.unrouteAll({ behavior: "ignoreErrors" });
+      await context.close();
+    }
+  }, 120_000);
 });

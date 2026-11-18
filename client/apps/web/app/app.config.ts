@@ -215,10 +215,8 @@ export default defineAppConfig({
       slots: dropdown("min-w-[min(var(--reka-select-trigger-width),calc(100vw-1rem))]"),
       variants: { position: { popper: { content: GROWS } }, size: HEADINGS_AT_CAPTION }
     },
-    // A select menu's control is a field, whose focus is the accent on its own edge, but stands as a
-    // plain button the stylesheet's own field rule does not tell from one, so it says no ring itself.
     selectMenu: {
-      slots: { ...dropdown("min-w-[min(var(--reka-combobox-trigger-width),calc(100vw-1rem))]"), base: "focus-visible:outline-none" },
+      slots: dropdown("min-w-[min(var(--reka-combobox-trigger-width),calc(100vw-1rem))]"),
       variants: { position: { popper: { content: GROWS } }, size: HEADINGS_AT_CAPTION }
     },
     inputMenu: { slots: dropdown("min-w-[min(var(--reka-combobox-trigger-width),calc(100vw-1rem))]") },

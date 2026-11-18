@@ -7,10 +7,6 @@ import { parse } from "vue/compiler-sfc";
 // decides whether its list searches, since the layer gives the search once a list holds more than seven choices and
 // always where a road finds them. That is read here off the files that ship, by the template compiler that reads them
 // for the build; how the select itself searches is the layer's own tests'.
-//
-// A list a preview stands beside (bmo-ui's list preview) stays the library's select: the preview hears the focus move
-// onto the item a pointer or a key rests on, and only the select moves its focus so; the select menu highlights an
-// item where the focus stays.
 
 const app = new URL("../../apps/web/app/", import.meta.url).pathname;
 
@@ -24,14 +20,12 @@ interface Node {
 
 interface Found {
   path: string;
-  script: string;
   node: Node;
 }
 
 const ELEMENT = 1;
 const ATTRIBUTE = 6;
 const BARE = new Set(["USelect", "USelectMenu", "UInputMenu", "u-select", "u-select-menu", "u-input-menu"]);
-const SELECT = new Set(["USelect", "u-select"]);
 const CHOICE = new Set(["ChoiceSelect", "choice-select"]);
 // What the layer settles for every list, so a screen hands none of it.
 const SETTLED = new Set(["search-input", "searchInput", "searchable", "ignore-filter", "ignoreFilter", "search-term", "searchTerm"]);
@@ -55,22 +49,11 @@ async function elements(): Promise<Found[]> {
 
   for await (const path of new Glob("{pages,components,layouts}/**/*.vue").scan({ cwd: app })) {
     const { descriptor } = parse(await Bun.file(`${app}${path}`).text(), { filename: path });
-    const script = descriptor.scriptSetup?.content ?? descriptor.script?.content ?? "";
 
-    if (descriptor.template?.ast) found.push(...every(descriptor.template.ast as unknown as Node, []).map((node) => ({ path, script, node })));
+    if (descriptor.template?.ast) found.push(...every(descriptor.template.ast as unknown as Node, []).map((node) => ({ path, node })));
   }
 
   return found;
-}
-
-// A library select whose list a list preview hears: its content is handed the preview's list.
-function previewed(one: Found): boolean {
-  if (!SELECT.has(one.node.tag ?? "")) return false;
-
-  const content = (one.node.props ?? []).find((prop) => prop.type !== ATTRIBUTE && prop.arg?.content === "content")?.exp?.content ?? "";
-  const holder = /^(\w+)\.list$/.exec(content.trim())?.[1];
-
-  return holder !== undefined && new RegExp(`const ${holder} = useListPreview\\(`).test(one.script);
 }
 
 describe("choosing a value", async () => {
@@ -79,7 +62,7 @@ describe("choosing a value", async () => {
 
   test("every list a value is chosen from stands in the one select", () => {
     expect(choices.length).toBeGreaterThan(0);
-    expect(all.filter((one) => BARE.has(one.node.tag ?? "") && !previewed(one)).map((one) => `${one.path}: ${one.node.tag}`)).toEqual([]);
+    expect(all.filter((one) => BARE.has(one.node.tag ?? "")).map((one) => `${one.path}: ${one.node.tag}`)).toEqual([]);
   });
 
   test("no screen decides whether its list searches", () => {

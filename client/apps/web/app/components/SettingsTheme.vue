@@ -12,14 +12,14 @@
       </SettingsRow>
 
       <SettingsRow :label="$t('account.label.theme')" :description="$t('account.label.theme_description')">
-        <USelect
+        <ChoiceSelect
           v-model="choice"
           :items="items"
           value-key="value"
           class="w-36"
           :ui="{ base: 'ps-12' }"
-          :content="preview.list"
           :aria-label="$t('account.label.theme')"
+          @highlight="preview.onHighlight"
           @update:open="preview.onOpen"
         >
           <template #leading>
@@ -29,7 +29,7 @@
           <template #item-leading="{ item }">
             <ThemeSwatch :theme="item.theme" :scheme="pageScheme" :[PREVIEW_ITEM]="item.value" />
           </template>
-        </USelect>
+        </ChoiceSelect>
       </SettingsRow>
     </SettingsGroup>
 

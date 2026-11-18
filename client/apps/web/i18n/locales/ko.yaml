@@ -119,6 +119,7 @@ common:
     show_translation: 번역 보기
     show_original: 원문 보기
     add: 추가
+    add_choice: '"{value}" 추가'
     back: 뒤로
     cancel: 취소
     choose_all: 전체 선택

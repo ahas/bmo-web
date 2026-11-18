@@ -1,13 +1,29 @@
 <template>
   <!-- How long the chat agent's window in the room has left, in the room's top bar for as long as it is open
        (docs/web.md, 「The window's time left stands in the top bar」): a listening mark and the time left
-       turning down by the second, named by its tooltip. It goes once the time it counts reaches nought. -->
-  <UTooltip v-if="left > 0" :text="lines.state">
-    <span class="flex shrink-0 items-center gap-1 text-sm text-muted tabular-nums" role="timer" :aria-label="lines.state" data-window-clock>
-      <UIcon name="i-material-symbols-hearing" class="size-4 shrink-0" />
-      <RollingSentence tag="span" class="whitespace-nowrap" :keypath="lines.left.keypath" :figures="lines.left.figures" />
-    </span>
-  </UTooltip>
+       turning down by the second, named by its tooltip. Under the sm width it is the listening mark alone, a
+       square button whose popover holds the time left. It goes once the time it counts reaches nought. -->
+  <template v-if="left > 0">
+    <UTooltip :text="lines.state">
+      <span class="hidden shrink-0 items-center gap-1 text-sm text-muted tabular-nums sm:flex" role="timer" :aria-label="lines.state" data-window-clock>
+        <UIcon name="i-material-symbols-hearing" class="size-4 shrink-0" />
+        <RollingSentence tag="span" class="whitespace-nowrap" :keypath="lines.left.keypath" :figures="lines.left.figures" />
+      </span>
+    </UTooltip>
+    <UPopover :content="{ align: 'end' }">
+      <UTooltip :text="lines.state">
+        <UButton icon="i-material-symbols-hearing" color="neutral" variant="ghost" class="sm:hidden" :aria-label="lines.state" data-window-clock-button />
+      </UTooltip>
+      <template #content>
+        <div class="flex flex-col gap-1 p-3 text-sm" data-window-clock-popover>
+          <span class="text-highlighted">{{ lines.state }}</span>
+          <span class="text-muted tabular-nums" role="timer">
+            <RollingSentence tag="span" class="whitespace-nowrap" :keypath="lines.left.keypath" :figures="lines.left.figures" />
+          </span>
+        </div>
+      </template>
+    </UPopover>
+  </template>
 </template>
 
 <script setup lang="ts">

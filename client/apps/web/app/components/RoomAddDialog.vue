@@ -263,7 +263,7 @@ function contactKindLabel(kind: string): string {
 
 // A room the receiver already holds: by its mode where it was added, as held where it never was.
 function heldLabel(room: { held: boolean; mode: RoomAddMode | null }): string | null {
-  if (room.mode !== null) return t("room.label.room_add_added_as", { mode: modeLabel(room.mode) });
+  if (room.mode !== null) return t(room.mode === "avatar" ? "room.label.room_add_added_avatar" : "room.label.room_add_added_record_only");
 
   return room.held ? t("room.label.room_add_held") : null;
 }

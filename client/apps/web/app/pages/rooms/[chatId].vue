@@ -44,7 +44,7 @@
                  own on every room: its tooltip says it in words, and it opens the room's people, each with their own
                  (docs/web.md, 「Presence and typing」). Its press reaches a little past the dot, so a finger finds it. -->
             <template #leading>
-              <span class="relative me-1.5 flex shrink-0">
+              <span class="relative me-2 flex shrink-0">
                 <button
                   v-if="roomAvatar.src"
                   type="button"
@@ -73,16 +73,17 @@
             <!-- What acts on this room alone stands beside its name: its menu, what waits, the pinned button
                  and the window's time left last; the right end keeps what every screen carries. The menu
                  button's own box stands 8px from the name's end, the gap every heading row keeps between its
-                 title and its button: the bar's own 6px and 2px more. -->
+                 title and its button: the bar's own 4px and 4px more. Under the sm width what waits and the pinned
+                 button fold into the menu, so the menu and the time left stand beside the name. -->
             <template #trailing>
               <UDropdownMenu :items="menuItems" :content="roomMenuContent">
                 <UTooltip :text="$t('common.action.more')">
-                  <UButton icon="i-material-symbols-more-vert" color="neutral" variant="ghost" class="ms-0.5" :aria-label="$t('common.action.more')" data-room-menu />
+                  <UButton icon="i-material-symbols-more-vert" color="neutral" variant="ghost" class="ms-1" :aria-label="$t('common.action.more')" data-room-menu />
                 </UTooltip>
               </UDropdownMenu>
               <!-- What an agent left waiting for this room, for the administrator alone (docs/web.md, the room screen's
                    list of what waits). -->
-              <RoomBackground v-if="administrator" :chat-id="chatId" />
+              <RoomBackground v-if="administrator" v-model:open="backgroundOpen" v-model:count="backgroundCount" :chat-id="chatId" />
               <!-- The room's pinned messages, one press a message, newest first (docs/web.md, 「What was done to a
                    message」). Only the window's time left stands after it, so the message it names changing moves no
                    button. -->
@@ -91,7 +92,7 @@
                   icon="i-material-symbols-keep"
                   color="neutral"
                   variant="ghost"
-                  class="min-w-0"
+                  class="hidden min-w-0 sm:inline-flex"
                   :aria-label="$t('room.aria.pinned_open', { n: countText(pins.length) })"
                   data-pinned-button
                   @click="stepPinned"
@@ -482,6 +483,7 @@ import { MotionConfig } from "motion-v";
 
 import { countText } from "~/domain/numbers";
 import { roomMayWrite, useAdministrator, useSignedUser } from "~/domain/access";
+import { keepDialogFocus } from "~/domain/menu-focus";
 import { useSectionAccess, useSectionAccessReady } from "~/domain/section-access";
 import { useInitialRead } from "bmo-ui/app/domain/loading";
 import { POLL_INTERVAL_MS } from "#shared/config";
@@ -516,7 +518,7 @@ import { useIsland } from "bmo-ui/app/domain/island";
 import { useConfirm } from "~/domain/confirm";
 import { homedJudgements, judgedNow, judgementsByMessage } from "~/domain/judgements";
 import { CHOOSE_GUTTER, chosenRuns } from "bmo-ui/app/domain/chooseall";
-import { NARROW_MAX_PX, STABLE_GUTTER, useScrollGutter } from "bmo-ui/app/domain/screen";
+import { NARROW_MAX_PX, STABLE_GUTTER, useNarrow, useScrollGutter } from "bmo-ui/app/domain/screen";
 import { stepsLanded, useBackClose } from "bmo-ui/app/domain/layers";
 import { ROOM_PICTURES } from "~/domain/gallery";
 import { isBackEscape } from "bmo-ui/app/domain/overlays";
@@ -1106,15 +1108,20 @@ function questionArea(): WindowFrame | null {
 // The room's menu gives the keyboard back to its button as it closes, a moment after it has gone; an entry that opened a
 // sheet or a dialog keeps it instead, so the hand-back never takes it from a field typed in there (docs/web.md, the
 // room screen's title bar).
-const roomMenuContent = {
-  align: "start" as const,
-  onCloseAutoFocus: (event: Event) => {
-    if (document.querySelector('[role="dialog"][data-state="open"]') !== null) event.preventDefault();
-  }
-};
+const roomMenuContent = { align: "start" as const, onCloseAutoFocus: keepDialogFocus };
 
+const narrow = useNarrow();
+// What waits for this room: whether its list stands open, and how many, for the menu's entry under the sm width.
+const backgroundOpen = ref(false);
+const backgroundCount = ref(0);
 const menuItems = computed<DropdownMenuItem[][]>(() => [
   [
+    // Under the sm width the pinned button and what waits stand here, first, so the bar keeps room for the room's
+    // name (docs/web.md, 「What was done to a message」 and the room screen's list of what waits).
+    ...(narrow.value && pinnedShown.value !== null ? [{ label: t("room.label.pinned_count", { n: countText(pins.value.length) }), icon: "i-material-symbols-keep", onSelect: stepPinned }] : []),
+    ...(narrow.value && backgroundCount.value > 0
+      ? [{ label: t("room.label.background_count", { n: countText(backgroundCount.value) }), icon: "i-material-symbols-pending-actions", onSelect: () => { backgroundOpen.value = true; } }]
+      : []),
     ...(administrator.value ? [{ label: t("room.title.session_info"), icon: "i-material-symbols-bar-chart", onSelect: openStats }] : []),
     { label: t("room.action.find"), icon: "i-material-symbols-search", onSelect: openFind },
     // The room's situation note as it stands (docs/web.md, the room screen's situation entry).

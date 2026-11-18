@@ -27,7 +27,10 @@ const WIDTHS = [
   { width: 360, height: 780, phone: true }
 ] as const;
 
-type Writing = "nobody" | "one" | "five";
+type Writing = "nobody" | "one" | "five" | "first-stops";
+
+// How long the first writer's mark lasts where it stops by itself: long enough for the picture to stand first.
+const FIRST_STOPS_MS = 4_000;
 
 let browser: Browser | null = null;
 let cookie = "";
@@ -56,6 +59,15 @@ const whoOf = (person: number) => ({ kind: "person", via: "chat-a", personId: pe
 // the other room as well, whose row in the sidebar carries the mark.
 function stream(writing: Writing): string {
   const run = `event: run\ndata: ${JSON.stringify({ run: "presence-run" })}\n\n`;
+  if (writing === "first-stops") {
+    return (
+      run +
+      [PEOPLE[0]!, PEOPLE[1]!]
+        .map(({ person }, at) => frame({ id: null, at: 1, type: "typing", chatId: CHAT, messageId: null, who: whoOf(person), on: true, lastsMs: at === 0 ? FIRST_STOPS_MS : null }))
+        .join("")
+    );
+  }
+
   const writers = writing === "nobody" ? [] : PEOPLE.slice(0, writing === "one" ? 1 : PEOPLE.length);
 
   if (writers.length === 0) return run;
@@ -100,6 +112,35 @@ async function open(
     await membersHeld;
     await route.fulfill({ json: { members: PEOPLE.map(({ person, name }) => ({ person, name, status: null, account: null, inConsole: false })), mayLetIn: false } });
   });
+  // Every frame, each face's place and what the picture's faces and surface are drawn at, so a face going is read as it
+  // moves.
+  await context.addInitScript(() => {
+    const ids = new WeakMap<Element, number>();
+    const samples: { faces: { id: number; left: number; opacity: number }[]; width: number }[] = [];
+    let next = 0;
+
+    Reflect.set(window, "typingSamples", samples);
+
+    const sample = (): void => {
+      const picture = document.querySelector<HTMLElement>("[data-typing-picture]");
+
+      if (picture !== null && picture.style.display !== "none") {
+        const faces = [...picture.querySelectorAll("[data-typing-faces] > [data-face]")].map((face) => {
+          if (!ids.has(face)) ids.set(face, next++);
+
+          const opacity = Math.min(...[face, ...face.querySelectorAll("*")].map((part) => Number(getComputedStyle(part).opacity)));
+
+          return { id: ids.get(face)!, left: Math.round(face.getBoundingClientRect().left * 10) / 10, opacity };
+        });
+
+        samples.push({ faces, width: Math.round(picture.getBoundingClientRect().width * 10) / 10 });
+      }
+
+      requestAnimationFrame(sample);
+    };
+
+    requestAnimationFrame(sample);
+  });
   // The moment the picture first stands, what its transition is, read before any frame of it is drawn.
   await context.addInitScript(() => {
     new MutationObserver((_, observer) => {
@@ -130,6 +171,8 @@ interface Drawn {
   label: string | null;
   said: string;
   faces: string[];
+  // What a screen reader hears of the cap, the count of the rest.
+  rest: string;
   menuLeft: number;
   headDot: boolean;
 }
@@ -156,7 +199,10 @@ async function drawn(page: Page): Promise<Drawn> {
       picture: picture === null ? null : box(picture),
       label: picture?.getAttribute("aria-label") ?? null,
       said: (document.querySelector("[data-typing-said]")?.textContent ?? "").trim(),
-      faces: [...(picture?.querySelectorAll("[data-typing-faces] > *") ?? [])].map((face) => (face.textContent ?? "").trim()),
+      faces: [...(picture?.querySelectorAll("[data-typing-faces] > :is([data-face], [data-face-cap])") ?? [])].map((face) =>
+        ((face.hasAttribute("data-face-cap") ? face.querySelector("[aria-hidden=true]") : face)?.textContent ?? "").trim()
+      ),
+      rest: (picture?.querySelector("[data-typing-faces] [data-face-cap] .sr-only")?.textContent ?? "").trim(),
       menuLeft: menu.getBoundingClientRect().left,
       headDot: bar.querySelector(".bg-success") !== null
     };
@@ -210,6 +256,7 @@ describe.skipIf(!origin || !touchReady())("who is here and who writes in a room"
         // Five writers stand as three faces and a count of the other two, and every one of them is named.
         expect(five!.drawn.faces).toHaveLength(4);
         expect(five!.drawn.faces).toContain("+2");
+        expect(five!.drawn.rest).toBe(wording("common.aria.others_count", { n: "2" }));
         expect(five!.drawn.label).toBe(said(5));
 
         for (const busy of [one!, five!]) {
@@ -352,4 +399,60 @@ describe.skipIf(!origin || !touchReady())("who is here and who writes in a room"
       await still.close();
     }
   }, BROWSER_HOOK_MS);
+});
+
+describe.skipIf(!origin || !touchReady())("the typing picture's faces as writers come and go", () => {
+  for (const motion of ["no-preference", "reduce"] as const) {
+    test(`a writer stopping moves the face after it sideways with no fade and the picture's width follows, motion ${motion}`, async () => {
+      const context = await open(WIDTHS[0], "first-stops", motion);
+
+      try {
+        const page = await context.newPage();
+
+        await page.goto(`${origin}/rooms/${CHAT}`, { waitUntil: "load" });
+        await page.locator("[data-typing-faces] [data-face]").nth(1).waitFor({ timeout: 30_000 });
+        // The first writer's mark ends, its face goes, and the one after it comes to rest in its place.
+        await page.waitForFunction(
+          () => {
+            const samples = Reflect.get(window, "typingSamples") as { faces: unknown[] }[];
+            const last = samples.slice(-10);
+
+            return last.length === 10 && last.every((one) => one.faces.length === 1);
+          },
+          undefined,
+          { timeout: 30_000 }
+        );
+
+        const samples = (await page.evaluate(() => Reflect.get(window, "typingSamples"))) as { faces: { id: number; left: number; opacity: number }[]; width: number }[];
+        const both = samples.findLastIndex((one) => one.faces.length === 2);
+        const stayer = samples.at(-1)!.faces[0]!.id;
+        // The face that stays slides while the one going still stands where it was, so its places and the picture's
+        // widths are read over every frame from the picture's first.
+        const places = new Set(samples.map((one) => one.faces.find((face) => face.id === stayer)?.left).filter((left) => left !== undefined));
+        const widths = new Set(samples.map((one) => one.width));
+
+        expect(both).toBeGreaterThanOrEqual(0);
+        // The writer who stopped stood first, so the one who stays had a place to move into.
+        expect(samples.find((one) => one.faces.length === 2)!.faces.map((face) => face.id).indexOf(stayer)).toBe(1);
+        // Every face is drawn whole at every frame: a face comes and goes by its place alone.
+        expect(samples.flatMap((one) => one.faces).every((face) => face.opacity === 1)).toBe(true);
+
+        if (motion === "reduce") {
+          // For a reader who asked for less motion, the face and the width stand at once in their new place: from the
+          // last frame before the face moved, one step each.
+          const first = samples.find((one) => one.faces.some((face) => face.id === stayer))!.faces.find((face) => face.id === stayer)!.left;
+          const moved = samples.findIndex((one) => one.faces.some((face) => face.id === stayer && face.left !== first));
+
+          expect(places.size).toBe(2);
+          expect(new Set(samples.slice(moved - 1).map((one) => one.width)).size).toBe(2);
+        } else {
+          // The face slides through the places between, and the surface narrows with it.
+          expect(places.size).toBeGreaterThan(2);
+          expect(widths.size).toBeGreaterThan(2);
+        }
+      } finally {
+        await context.close();
+      }
+    }, BROWSER_HOOK_MS);
+  }
 });

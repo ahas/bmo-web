@@ -29,7 +29,7 @@
         <div v-if="person !== null" class="flex min-h-8 flex-wrap items-center gap-2" data-roster-person-marks>
           <UBadge v-if="person.administrator" color="primary" variant="subtle" :label="$t('roster.label.administrator')" />
           <UBadge :color="stateFace.color" variant="subtle" :icon="stateFace.icon" :label="$t(stateFace.label)" data-roster-person-state />
-          <UDropdownMenu v-if="menu.length > 0" :items="menu" :content="{ align: 'end' }">
+          <UDropdownMenu v-if="menu.length > 0" :items="menu" :content="{ align: 'end', onCloseAutoFocus: keepDialogFocus }">
             <UButton
               class="ms-auto"
               color="neutral"
@@ -98,6 +98,7 @@ import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
 import { useAdministrator, useSignedUser } from "~/domain/access";
 import { identityMark } from "~/domain/avatars";
 import { useConfirm } from "~/domain/confirm";
+import { keepDialogFocus } from "~/domain/menu-focus";
 import { organizationAddress } from "~/domain/organization";
 import { PERSON_PANES, personAdministrator, personBase, personPaneOf, personPaneRefused, personPanesFor, withPersonPane } from "~/domain/person-panes";
 import { ROSTER_STATE_FACES, rosterActs } from "~/domain/roster";

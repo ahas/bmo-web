@@ -404,6 +404,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/machines/{agent}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A machine name bound to no account revoked at the hub, so the machine under it is told to leave. */
+        post: operations["revokeMachine"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/people": {
         parameters: {
             query?: never;
@@ -1774,6 +1791,11 @@ export interface components {
          * @enum {string}
          */
         MachineKind: "desktop" | "installed";
+        /** @description A machine name revoked at the hub: the name, and whether the hub sent a leave to a machine attached under it. */
+        MachineRevoked: {
+            agent: string;
+            left: boolean;
+        };
         /**
          * @description One member of the reader's company as a picker finds and shows them (docs/accounts.md, 「The people
          *     directory」): the account key and the name, nothing more.
@@ -3705,6 +3727,37 @@ export interface operations {
                 };
             };
             /** @description A refusal or failure: not-found, invite-open, no-hub, upstream-failed, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    revokeMachine: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                agent: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MachineRevoked"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, node-taken, no-hub, upstream-failed, unauthorized, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;

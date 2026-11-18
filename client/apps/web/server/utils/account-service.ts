@@ -25,6 +25,7 @@ import {
   type SenderLink,
   type Unit,
   type Rebound,
+  type MachineRevoked,
   type Rendered,
   type PairingApproved,
   type PairingCredential,
@@ -1119,6 +1120,17 @@ export async function shareNode(user: UserId, shared: boolean, caller: ProfileCa
 export async function proveNode(id: UserId | number, options: ServiceOptions = {}): Promise<UserNode> {
   const client = clientOf(options);
   const reply = await sent(options, client.POST("/users/{user}/node/proof", { params: { path: { user: userPath(id) } } }));
+
+  return answered(reply);
+}
+
+/**
+ * A machine name bound to no account revoked at the hub, so the machine under it is told to leave now or at its next
+ * hello (docs/accounts.md, 「Invitations and a person's machine」).
+ */
+export async function revokeMachine(agent: string, options: ServiceOptions = {}): Promise<MachineRevoked> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.POST("/machines/{agent}/revoke", { params: { path: { agent } } }));
 
   return answered(reply);
 }

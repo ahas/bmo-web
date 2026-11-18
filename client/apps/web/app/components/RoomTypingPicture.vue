@@ -21,15 +21,16 @@
       >
         <!-- The faces stand 4px inside its rounded ends, so their curves are concentric with the picture's. -->
         <PipFrame v-show="writing" data-typing-picture role="img" :aria-label="shownSaid" class="pointer-events-auto relative h-7 ps-1 pe-3">
-          <HintTip :text="shownSaid" class="flex min-w-0 items-center gap-2" aria-hidden="true" data-typing-tip>
-            <!-- The library's group overlaps the faces; the count of the rest is the console's own, so it carries the
-                 count's separators and tabular figures. -->
-            <UAvatarGroup size="2xs" :ui="{ base: 'ring-neutral-950' }" data-typing-faces>
-              <UAvatar v-for="typist in faces" :key="typist.key" v-bind="typist.face" />
-              <UAvatar v-if="rest > 0" :text="`+${countText(rest)}`" class="tabular-nums" />
-            </UAvatarGroup>
-            <span class="shrink-0 text-sm text-highlighted">{{ $t("room.label.typing") }}</span>
-          </HintTip>
+          <!-- What the picture holds stands in a box held to its size, so the surface follows a face unfolding
+               frame by frame and moves at the unfold token when the words or the cap change at once. -->
+          <UnfoldingBox data-typing-box>
+            <HintTip :text="shownSaid" class="flex min-w-0 items-center gap-2" aria-hidden="true" data-typing-tip>
+              <!-- The layer's group: faces moving by place alone, each ringed in the picture's own ground, and the
+                   cap with the count of the rest in the count's separators and tabular figures. -->
+              <AvatarGroup :faces="faces" :max="TYPING_FACES_MOST" size="2xs" :ui="{ ground: 'bg-neutral-950' }" data-typing-faces />
+              <span class="shrink-0 text-sm text-highlighted">{{ $t("room.label.typing") }}</span>
+            </HintTip>
+          </UnfoldingBox>
         </PipFrame>
       </Transition>
     </UContainer>
@@ -39,9 +40,9 @@
 <script setup lang="ts">
 import { useSignedUser } from "~/domain/access";
 import { useAvatars } from "~/domain/avatars";
-import { countText } from "~/domain/numbers";
 import { TYPING_FACES_MOST, typingPeople, typingWords, typistsOf, useTyping, whoKey, writerMember } from "~/domain/presence";
 
+import type { AvatarFace } from "bmo-ui/app/domain/avatar-group";
 import type { Typist } from "~/domain/presence";
 import type { PresenceWho, RoomMember, RoomMembersView } from "#shared/types";
 
@@ -122,6 +123,5 @@ watch(
 );
 
 const shownSaid = computed<string>(() => typingWords(t, shown.value) ?? "");
-const faces = computed<readonly Typist[]>(() => shown.value.slice(0, TYPING_FACES_MOST));
-const rest = computed<number>(() => Math.max(0, shown.value.length - TYPING_FACES_MOST));
+const faces = computed<readonly AvatarFace[]>(() => shown.value.map((typist) => ({ id: typist.key, avatar: typist.face })));
 </script>

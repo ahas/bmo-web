@@ -480,6 +480,11 @@ impl AccountClient {
     .await
   }
 
+  /// `POST /machines/{agent}/revoke`.
+  pub async fn revoke_machine(&self, agent: &str) -> Answer<MachineRevoked> {
+    Self::answered(self.send(Method::POST, &["machines", agent, "revoke"], &serde_json::json!({}))).await
+  }
+
   /// `POST /users/{user}/node/proof`.
   pub async fn prove_node(&self, user: &str) -> Answer<UserNode> {
     Self::answered(self.send(Method::POST, &["users", user, "node", "proof"], &serde_json::json!({}))).await

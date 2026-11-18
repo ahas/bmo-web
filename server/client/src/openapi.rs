@@ -909,6 +909,19 @@ pub fn openapi() -> Value {
   );
   add!(
     "POST",
+    "/machines/{agent}/revoke",
+    "revokeMachine",
+    "Invitations",
+    "A machine name bound to no account revoked at the hub, so the machine under it is told to leave.",
+    params: vec![string_path("agent")],
+    body: None,
+    answers: vec![(200, json_answer::<MachineRevoked>(&mut generator))],
+    codes: vec!["bad-request", "node-taken", "no-hub", "upstream-failed", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "POST",
     "/users/{user}/node/proof",
     "proveNode",
     "Invitations",

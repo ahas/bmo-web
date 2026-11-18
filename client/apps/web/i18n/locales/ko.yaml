@@ -188,6 +188,7 @@ common:
     move_up_named: "{name} 위로"
     open_list: 목록 열기
     opens_new_tab: (새 탭에서 열림)
+    others_count: "외 {n}명"
     pinned_named: "{name} 고정됨"
     play_named: "{name} 재생"
     player_named: "{name} 플레이어"
@@ -742,6 +743,7 @@ room:
     draft_version_program: 작업 알림
     draft_versions: "쓴 답 {n}개"
     background: 진행 중
+    background_count: "진행 중 {n}개"
     background_reminder: 알림
     background_watch: 감시
     mode_avatar: 아바타 모드
@@ -787,6 +789,7 @@ room:
     picture_size: 파일 크기
     pinned: 고정됨
     pinned_at: "{time}에 고정됨"
+    pinned_count: "고정된 메시지 {n}개"
     pinned_of: "고정된 메시지 {at}/{n} · {words}"
     quiet_instruction: 조용한 지시
     quote_picture: 사진
@@ -823,7 +826,8 @@ room:
     road_timeout: 시간 초과
     road_too_large: 크기 초과로 거부
     road_unavailable: 없음
-    room_add_added_as: "{mode}로 추가됨"
+    room_add_added_avatar: 아바타로 추가됨
+    room_add_added_record_only: 기록 전용으로 추가됨
     room_add_group_title: 그룹 이름
     room_add_has_chat: 대화 있음
     room_add_held: 이미 있는 방

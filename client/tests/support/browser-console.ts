@@ -6,8 +6,7 @@
 //
 // Usage, from `client/`: `BMO_WEB_SERVER_BIN=<the bmo-web-server binary> bun tests/support/browser-console.ts`.
 
-import { spawn, type ChildProcess } from "node:child_process";
-import { appendFileSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -15,6 +14,7 @@ import { SQL } from "bun";
 import sharp from "sharp";
 
 import { connectionOf } from "../../apps/web/server/utils/db";
+import { WatchedChildren } from "./children";
 import { manifestFields } from "./console-manifest";
 import { HARNESS_SCREEN_UNITS } from "./harness-screens";
 import { jobLogAnswer } from "./job-log";
@@ -258,6 +258,14 @@ const PRIVATE_ACCOUNT = 9_003_001;
 const PRESENCE_CHAT = -9_004_000_000_001;
 const PRESENCE_PEOPLE = ["presence-here", "presence-hidden", "presence-other"] as const;
 const presence = { frames: "" };
+// Every fixture room stands under a number of its own: the receiver's stand-in answers a room's reads by its number, so
+// two rooms on one number would hand one of them the other's line. The harness refuses to stand where two share one.
+const FIXTURE_ROOMS: Record<string, number> = { OWNER_CHAT, UNREAD_CHAT, RECORD_CHAT, MEDIA_CHAT, STICKER_CHAT, LONE_CHAT, NUMBERED_CHAT, PAST_CHAT, PAGED_CHAT, PRIVATE_CHAT, PRESENCE_CHAT, HIGH_ROOM };
+const sharedRooms = Object.entries(FIXTURE_ROOMS).filter(([, id], at, all) => all.findIndex(([, other]) => other === id) !== at);
+
+if (sharedRooms.length > 0) {
+  throw new Error(`fixture rooms share a number: ${sharedRooms.map(([name, id]) => `${name} on ${id}`).join(", ")}`);
+}
 // The person whose activity a person's tabs show (docs/web.md, 「Organisation」, the people tab): one room they read, the
 // last scout seat filed under their account, and one run and one session of that seat, written once their account
 // stands. No other account reads the room by membership, and the seat's other agents keep their rows as they were.
@@ -419,7 +427,6 @@ if (binary === "") {
 }
 
 const scratch = mkdtempSync(join(tmpdir(), "bmo-web-browser-console-"));
-const children: ChildProcess[] = [];
 const servers: { stop: (force?: boolean) => void }[] = [];
 const database = `${BROWSER_CONSOLE_PREFIX}${process.pid}`;
 const databaseUrl = addressOf(database);
@@ -438,17 +445,15 @@ function freePort(): number {
   return port;
 }
 
-// Each process heads a group of its own, so stopping it stops what it started; what it says goes to a log of
-// its own in the scratch folder.
-function start(command: string, args: string[], env: Record<string, string>, cwd: string, name: string): ChildProcess {
-  const log = join(scratch, `${name}.log`);
-  const child = spawn(command, args, { cwd, env: { ...process.env, ...env }, detached: true, stdio: ["ignore", "pipe", "pipe"] });
+// A process that ends before the harness stops leaves the console unable to answer, so the harness stops
+// everything with a failure naming it, keeping the scratch folder whose logs say why.
+const children = new WatchedChildren(({ name, code, signal }) => {
+  console.error(`the ${name} process ended (${signal ?? `exit ${code}`}); its log is in ${join(scratch, `${name}.log`)}`);
+  void stop(true, 1);
+});
 
-  child.stdout?.on("data", (chunk) => appendFileSync(log, chunk));
-  child.stderr?.on("data", (chunk) => appendFileSync(log, chunk));
-  children.push(child);
-
-  return child;
+function start(command: string, args: string[], env: Record<string, string>, cwd: string, name: string): void {
+  children.start({ command, args, env, cwd, name, log: join(scratch, `${name}.log`) });
 }
 
 async function run(command: string, args: string[], env: Record<string, string>, cwd: string): Promise<void> {
@@ -1465,8 +1470,9 @@ function pagedRoom(path: string, query: URLSearchParams): Response | null {
 
 let stopping = false;
 
-// Stops everything it started; the scratch folder goes with it unless a failed start named the logs kept there.
-async function stop(keepScratch = false): Promise<void> {
+// Stops everything it started; the scratch folder goes with it unless a failure named the logs kept there. It ends
+// with `code`, or with a failure where the database cannot be dropped.
+async function stop(keepScratch = false, code = 0): Promise<void> {
   if (stopping) {
     return;
   }
@@ -1474,23 +1480,7 @@ async function stop(keepScratch = false): Promise<void> {
   stopping = true;
 
   for (const server of servers) server.stop(true);
-  for (const child of children) {
-    try {
-      process.kill(-child.pid!, "SIGTERM");
-    } catch {
-      // Already gone.
-    }
-  }
-
-  await Bun.sleep(1500);
-
-  for (const child of children) {
-    try {
-      process.kill(-child.pid!, "SIGKILL");
-    } catch {
-      // Already gone.
-    }
-  }
+  await children.stop();
 
   try {
     await dropScratchDatabase(database);
@@ -1500,7 +1490,7 @@ async function stop(keepScratch = false): Promise<void> {
   }
 
   if (!keepScratch) rmSync(scratch, { recursive: true, force: true });
-  process.exit(0);
+  process.exit(code);
 }
 
 process.on("SIGINT", () => void stop());
@@ -1743,5 +1733,5 @@ try {
   console.log(origin);
 } catch (error) {
   console.error(error);
-  await stop(true);
+  await stop(true, 1);
 }

@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use hmac::{Hmac, Mac};
 
-use bmo_web_client::MachineKind;
+use bmo_web_client::{MachineKind, MachineRevoked};
 
 use crate::Refusal;
 use crate::settings::Jake;
@@ -37,6 +37,10 @@ impl AttachedAgent {
 pub trait NodeHub: Send + Sync {
   /// The agents attached now.
   async fn attached(&self) -> Result<Vec<AttachedAgent>, Refusal>;
+
+  /// A machine name revoked: the machine attached under it sent a leave, and every later hello under it answered
+  /// with one (jake's hub control, `POST /revoke`).
+  async fn revoke(&self, agent: &str) -> Result<MachineRevoked, Refusal>;
 }
 
 /// The agent of a name among those attached, where the hub holds one.
@@ -88,6 +92,34 @@ impl NodeHub for HubClient {
         })
         .unwrap_or_default(),
     )
+  }
+
+  async fn revoke(&self, agent: &str) -> Result<MachineRevoked, Refusal> {
+    let failed = |why: String| {
+      Refusal::new(axum::http::StatusCode::BAD_GATEWAY, format!("the jake hub's revoke: {why}"))
+        .coded("upstream-failed")
+    };
+    let answer: serde_json::Value = self
+      .http
+      .post(format!("{}/revoke", self.control.trim_end_matches('/')))
+      .query(&[("agent", agent)])
+      .bearer_auth(&self.token)
+      .send()
+      .await
+      .and_then(reqwest::Response::error_for_status)
+      .map_err(|why| failed(why.to_string()))?
+      .json()
+      .await
+      .map_err(|why| failed(why.to_string()))?;
+
+    if answer["ok"] != serde_json::Value::Bool(true) {
+      return Err(failed(format!("it answered {answer}")));
+    }
+
+    Ok(MachineRevoked {
+      agent: answer["agent"].as_str().unwrap_or(agent).to_owned(),
+      left: answer["left"].as_bool().unwrap_or(false),
+    })
   }
 }
 

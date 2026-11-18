@@ -11,6 +11,7 @@ use crate::support::{OWNER, ROOM, Scratch, console_hash, ready};
 use axum::Router;
 use axum::body::Body;
 use axum::http::{Method, Request, StatusCode, header};
+use bmo_web_client::MachineRevoked;
 use bmo_web_server::Refusal;
 use bmo_web_server::data_move::{MoveAsk, run_move};
 use bmo_web_server::nodes::{AttachedAgent, NodeHub, Nodes};
@@ -27,8 +28,9 @@ const TOKEN: &str = "the server's token";
 const INSTALLED: &str = "0.2.1+gabc1234";
 const DESKTOP: &str = "desktop-0.2.1";
 
+/// The agents attached, and the names revoked, in the order they were.
 #[derive(Default)]
-struct StandInHub(Mutex<Vec<AttachedAgent>>);
+struct StandInHub(Mutex<Vec<AttachedAgent>>, Mutex<Vec<String>>);
 
 impl StandInHub {
   fn attach(&self, name: &str, version: &str) {
@@ -43,6 +45,19 @@ impl StandInHub {
 impl NodeHub for StandInHub {
   async fn attached(&self) -> Result<Vec<AttachedAgent>, Refusal> {
     Ok(self.0.lock().unwrap().clone())
+  }
+
+  async fn revoke(&self, agent: &str) -> Result<MachineRevoked, Refusal> {
+    let mut attached = self.0.lock().unwrap();
+    let left = attached.iter().any(|one| one.name == agent);
+
+    attached.retain(|one| one.name != agent);
+    self.1.lock().unwrap().push(agent.to_owned());
+
+    Ok(MachineRevoked {
+      agent: agent.to_owned(),
+      left,
+    })
   }
 }
 
@@ -737,6 +752,60 @@ async fn a_person_takes_their_own_machine_away_and_no_one_elses() {
   // The administrator still takes anyone's away.
   let (status, _) = asked(&stood.app, Method::DELETE, &head_path, None, Some((1, "administrator"))).await;
   assert_eq!(status, StatusCode::NO_CONTENT);
+}
+
+#[tokio::test]
+async fn a_machine_name_is_revoked_at_the_hub_once_no_account_is_bound_to_it() {
+  ready();
+  let stood = stood().await;
+  let member_path = format!("/users/{}/node", stood.member);
+  let head_path = format!("/users/{}/node", stood.head);
+  let shared = json!({ "agent": "desk-b", "shared": true });
+  let revoke = |agent: &str| {
+    let (app, path) = (stood.app.clone(), format!("/machines/{agent}/revoke"));
+    async move { asked(&app, Method::POST, &path, None, None).await }
+  };
+
+  stood.hub.attach("desk-b", DESKTOP);
+  assert_eq!(
+    asked_as_administrator(&stood.app, Method::PUT, member_path.clone(), shared.clone())
+      .await
+      .0,
+    StatusCode::OK
+  );
+  assert_eq!(
+    asked_as_administrator(&stood.app, Method::PUT, head_path.clone(), shared).await.0,
+    StatusCode::OK
+  );
+
+  // While an account is bound to the name, shared or not, the hub is not asked.
+  let (status, said) = revoke("desk-b").await;
+  assert_eq!((status, said["code"].clone()), (StatusCode::CONFLICT, json!("node-taken")), "{said}");
+  assert_eq!(
+    asked(&stood.app, Method::DELETE, &member_path, None, Some((1, "administrator")))
+      .await
+      .0,
+    StatusCode::NO_CONTENT
+  );
+  let (status, said) = revoke("desk-b").await;
+  assert_eq!((status, said["code"].clone()), (StatusCode::CONFLICT, json!("node-taken")), "{said}");
+  assert!(stood.hub.1.lock().unwrap().is_empty());
+
+  // Once the last binding goes, the name is revoked and the machine attached under it is told to leave; a name no
+  // machine stands under is revoked all the same, so it is refused when it comes back.
+  assert_eq!(
+    asked(&stood.app, Method::DELETE, &head_path, None, Some((1, "administrator"))).await.0,
+    StatusCode::NO_CONTENT
+  );
+  let (status, revoked) = revoke("desk-b").await;
+  assert_eq!((status, revoked), (StatusCode::OK, json!({ "agent": "desk-b", "left": true })));
+  let (status, revoked) = revoke("desk-c").await;
+  assert_eq!((status, revoked), (StatusCode::OK, json!({ "agent": "desk-c", "left": false })));
+  assert_eq!(*stood.hub.1.lock().unwrap(), vec!["desk-b".to_owned(), "desk-c".to_owned()]);
+
+  // A name the bindings never take is refused before the hub is asked.
+  assert_eq!(revoke("desk%20b%3Btrue").await.0, StatusCode::BAD_REQUEST);
+  assert_eq!(stood.hub.1.lock().unwrap().len(), 2);
 }
 
 #[tokio::test]

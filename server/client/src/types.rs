@@ -960,6 +960,14 @@ pub struct NodeSharing {
   pub shared: bool,
 }
 
+/// A machine name revoked at the hub: the name, and whether the hub sent a leave to a machine attached under it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct MachineRevoked {
+  pub agent: String,
+  pub left: bool,
+}
+
 /// An account bound to another machine: the machine, how to install it, and whether the hub holds it already.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]

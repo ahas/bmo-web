@@ -102,7 +102,7 @@ describe.skipIf(!origin || !touchReady())("the sidebar's rooms", () => {
     }, 90_000);
   }
 
-  test("the room added from the room add dialog stands at once, and leaves once its registration is removed", async () => {
+  test("the room added from the room add dialog stands at once, says the mode it was added in, and leaves once its registration is removed", async () => {
     const context = await contextFor(WIDE);
 
     try {
@@ -124,6 +124,24 @@ describe.skipIf(!origin || !touchReady())("the sidebar's rooms", () => {
       const rooms = page.getByRole("navigation", { name: wording("common.label.room") });
 
       await rooms.getByRole("link", { name: /numbered-room/ }).waitFor({ timeout: 20_000 });
+
+      // Opened again, the dialog says which mode the room was added in, by that mode's own sentence.
+      await newChatMenu(page);
+      await page.getByRole("menuitem", { name: wording("room.action.new_chat_add") }).click();
+      await dialog.getByRole("button", { name: wording("room.label.room_add_service") }).click();
+      await page.getByRole("option", { name: "Chat A" }).click();
+
+      const added = [wording("room.label.room_add_added_avatar"), wording("room.label.room_add_added_record_only")];
+      const line = dialog.getByRole("option", { name: /numbered-room/ });
+
+      await line.getByText(new RegExp(added.join("|"))).waitFor({ timeout: 20_000 });
+      // Closed by its corner close; where the service chosen counts as a change, leaving asks first and is discarded.
+      await dialog.getByRole("button", { name: wording("common.action.close"), exact: true }).first().click();
+
+      const discard = page.getByRole("button", { name: wording("common.action.discard"), exact: true });
+
+      await Promise.race([discard.waitFor({ timeout: 20_000 }).then(() => discard.click()), dialog.waitFor({ state: "hidden", timeout: 20_000 })]);
+      await dialog.waitFor({ state: "hidden", timeout: 20_000 });
 
       expect((await page.request.post(`${origin}/api/rooms/${NUMBERED_CHAT}/remove`)).ok()).toBe(true);
       expect((await shownRooms(page, false)).some((name) => name.includes("numbered-room"))).toBe(false);

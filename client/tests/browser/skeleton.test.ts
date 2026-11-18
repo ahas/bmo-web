@@ -509,7 +509,8 @@ describe.skipIf(!origin || !touchReady())('the database screen keeps its dense t
         expect(login.ok).toBe(true);
         const cookie = login.headers.get('set-cookie')!.split(';')[0]!;
         await page.context().addCookies([{ name: cookie.slice(0, cookie.indexOf('=')), value: cookie.slice(cookie.indexOf('=') + 1), url: origin! }]);
-        // The fixture account's own row stands in web_users, so the screen opens on a table whose row can be measured.
+        // The screen opens on web_users, whose rows are the fixture's accounts, so it holds a row to measure; the table is
+        // found by that table's own column, since which accounts its first page shows turns on how many the fixture makes.
         await page.addInitScript(() => window.localStorage.setItem('bmo-web.db-view', JSON.stringify({ table: 'web_users', mode: 'table' })));
 
         // Browsing: the table list is held, so the first placeholder is caught standing.
@@ -521,7 +522,7 @@ describe.skipIf(!origin || !touchReady())('the database screen keeps its dense t
         await browse.waitFor();
         const browsePlaceholder = await heights(browse);
         release();
-        const rows = page.locator('table').filter({ hasText: 'skeleton259' }).filter({ visible: true }).first();
+        const rows = page.locator('table').filter({ has: page.locator('thead', { hasText: 'password_hash' }) }).filter({ visible: true }).first();
         await rows.waitFor();
         const browseTable = await heights(rows);
         console.log(`db ${width} browse skeleton head=${browsePlaceholder.head.height} row=${browsePlaceholder.row.height} table head=${browseTable.head.height} row=${browseTable.row.height}`);

@@ -735,11 +735,9 @@ edit to that file alone, once the guide below carries the word.
   - Nuxt UI's own words — the command palette, the empty table, a close button — come from its `ko`
     locale; the few keys that locale lacks are supplied from the pack in `app/app.vue`.
     - **An input menu's open button is named from the locale,** by the key `inputMenu.trigger`, which the
-      pack answers with the console's word for it. The Nuxt UI release the console runs leaves that button
-      unnamed, so the combobox library's English default would be read out; the console's patch of
-      `@nuxt/ui` under `client/patches/` hands the button the key, as later releases of the library do
-      themselves. The library draws a unit's screens too, so an input menu on a bundle's screen is named
-      the same way.
+      pack answers with the console's word for it. The Nuxt UI release the console runs hands the button
+      that key itself, so the combobox library's English default is never read out. The library draws a
+      unit's screens too, so an input menu on a bundle's screen is named the same way.
 - **A key is `<domain>.<role>.<key>`, in lower snake case.**
   - The domain is the screen or the feature the words belong to — `todo`, `research`, `agents`,
     `archive`, `live`, `siren`, `usage`, `app` and their kin. A word two or more domains share stands once under `common`.
@@ -1095,6 +1093,10 @@ edit to that file alone, once the guide below carries the word.
   finger draws nothing; one the keyboard reached — Tab, an arrow along a list, a dialog handing focus
   back after a key closed it — draws the focus ring. The browser's own `:focus-visible` tells the two
   apart, and nothing in the console draws a ring on `:focus` alone.
+- **A menu whose item opened a dialog hands its trigger no focus.** A menu gives the focus back to the button that
+  opened it once its leaving is drawn, which on a phone comes after the dialog its item opened has taken the focus;
+  so while a dialog stands open the menu keeps its focus to itself, and the focus stays in the dialog, where a
+  question the dialog asks hands it back as it closes.
 - **The ring is one style for the whole console,** three custom properties on the root of the
   console's stylesheet.
 
@@ -2186,6 +2188,9 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   right end of the screen's row on a wide screen and floating at the screen's bottom right on a phone, with the
   screen's scrolling body ending in the layer's `--bmo-create-room`. The console's own screens make nothing of
   that kind: every add they stand belongs to a row, so none of them stands a create button that floats.
+- **The bar's parts stand 4px apart,** the set's buttons among themselves too, as every spacing is a multiple of
+  4px; the screen's mark stands 12px from its name, as a room's picture does, and a room's menu 8px from the name's
+  end.
 - **A title bar's icon button is a square**, the component library's own icon button: its mark at the
   library's icon size with the same padding on every side, so every button in the bar that shows only a mark
   is one size. Every button of the set at its right end is the library's own button at its default size — a
@@ -2778,8 +2783,8 @@ archive and this week's tokens remain. That is all that can actually be known th
     in the order a service's parts first stand), then the memory in use that no unit accounts for, one block for
     each share named below: a share the card's processes put on a service in that service's colour, and a share
     no service accounts for in a neutral tone; the node's name and card on the left, or over the bar where the
-    chart is narrower than a phone's landscape, and on the right its memory used and in all with the free room
-    under it; a slider under the chart widens a stretch of the scale, so a block of a few MiB can be seen, and
+    chart is narrower than a phone's landscape, cut with an ellipsis where it would reach the figures, and on the
+    right its memory used and in all with the free room under it, which keep their place; a slider under the chart widens a stretch of the scale, so a block of a few MiB can be seen, and
     touching or hovering a block names it with its size;
   - each service wears one colour on the board and the tiles below alike, given in the order the services
     stand, so no two of the first ten share one;
@@ -5259,6 +5264,8 @@ Four bounds keep it from growing forever.
   - **A pinned message** wears a pin mark on its meta line, and the room's top bar carries a pinned button after the
     room's menu and 진행 중 while the room holds one: the pin mark and, from the sm width, the first line of the pinned
     message it stands at, cut, with that message's words whole in its tooltip and how many are pinned where there are several.
+    Under the sm width it folds into the room's menu as its first entry, naming how many are pinned, and a press
+    there does what the button's does, so the bar keeps room for the room's name.
     The room's pinned messages are the receiver's answer to `GET /rooms/{roomId}/pins` (the receiver's
     `docs/api.md`, 「Messages」), newest pin first and never a deleted one, read when the room opens, when the record
     says a message changed, and once a pin is set or taken off. Pressing the button brings that message into view —
@@ -5669,6 +5676,11 @@ Four bounds keep it from growing forever.
   listens. It counts down from the same answer the listening row counts from and is read on the same occasions
   (above); it goes once the time it counts reaches nought, and stands nowhere while the window is shut, so the
   owner's own chat never carries it.
+  - Under the sm width it is the listening mark alone, the title bar's square icon button, and pressing it opens
+    a popover holding the time left as it counts down, with the same words its tooltip says. 진행 중 and the pinned
+    button fold into the room's menu there (「진행 중」, 「What was done to a message」), so the menu and the time left
+    stand with the set at the right end on the bar's one line, the room's name still read beside them, cut where it
+    must be.
 - **What the turn did** — spread from the record press on the running block's meta line, inside the bubble, stand
   the things the turn has done, oldest first, one line each, as the agent's log draws them: what it was handed —
   the documents put in front of it, the stretch of the room it read back — and every tool it has called. They
@@ -5840,6 +5852,8 @@ Four bounds keep it from growing forever.
   no room wakes in the owner's private chat, as the receiver queues a wake naming none, so it stands there. It stands as a
   button with how many right after the room's menu, before the pinned button and the window's clock, and nowhere
   while none waits.
+- **Under the sm width it folds into the room's menu,** as an entry after the pinned one naming how many wait, and the
+  entry opens the same list as a drawer from the screen's foot, so the bar keeps room for the room's name.
 - **Pressing it opens a list, one line a call, oldest first:** what it is — 감시 for a watch, with how often its
   check runs, 알림 for a reminder, with the moment it waits for, and the tool's own name for any other call — the
   note it was set with, the agent it wakes, and since when it has stood. A call with no note stands its tool's name
@@ -8214,6 +8228,9 @@ by the administrator. Every login reads them, since every person's form asks in 
 
 ### Floating things
 
+- **A dialog's close stands in its head's row,** at the row's trailing end and on the head's one centre line with
+  the title, or with the title and its description taken as one block, never held at a fixed distance from the
+  dialog's top; the title takes the rest of the row, so a long one stops short of the close.
 - With something floating over the screen, back clears that first. On a phone, back is a gesture to close what is
   being looked at, not to leave the page, and if the page changes leaving something floating, the reading place is
   lost. Only with nothing to clear does the page move. With several stacked, one at a time from the top.
@@ -8606,10 +8623,18 @@ in a table.
 - **The room's typing picture:** while somebody writes in the room, a small picture floats over the foot of the
   conversation the way the briefing's player does (「Messages」, the briefing's player), on the same dark surface
   that player wears. It is the one place the room screen tells who writes: the input bar carries no line of its own.
-  - **What it shows:** the faces of the people writing as one overlapping series, the library's avatar group, then
-    입력 중…. Up to three faces stand; past three, the first three stand with a count of the rest, +N, after them.
-    A face is the picture the archive keeps for the person, else their letter on their own hue, as their row in
-    대화상대 wears it.
+  - **What it shows:** the faces of the people writing as one overlapping series, bmo-ui's avatar group
+    (`AvatarGroup`, bmo-ui's `docs/components.md`, 「Avatar groups」), each face ringed in the picture's own dark
+    ground, then 입력 중…. Up to three faces stand; past three, the first three stand with the group's cap after
+    them, +N with the count's separators in tabular figures, which a screen reader hears as 외 N명
+    (`common.aria.others_count`). A face is the picture the archive keeps for the person, else their letter on
+    their own hue, as their row in 대화상대 wears it.
+  - **The faces move by place alone.** A writer starting, stopping or changing place in the series moves the faces
+    sideways, as a moving list moves, with no fade, and the cap unfolds and folds the same way. What the picture
+    holds stands in bmo-ui's unfolding box (`UnfoldingBox`, 「A box that follows what it holds」), so the picture's
+    width follows a face unfolding frame by frame and moves at the unfold token when the words or the cap's width
+    change at once, its contents at their final size throughout. A reader who asked for less motion sees every
+    face and the width stand at once.
   - **Every writer is named,** in a tooltip on the picture and in its accessible name, the whole list of names
     before 입력 중…, the count included in neither. A screen reader hears the same words from a status line that
     stands whether or not anybody writes, so each change is announced.

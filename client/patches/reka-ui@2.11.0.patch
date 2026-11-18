@@ -1,5 +1,5 @@
 diff --git a/dist/Collapsible/CollapsibleRoot.cjs b/dist/Collapsible/CollapsibleRoot.cjs
-index 9fb6f87d336d4550d55e62413b491b607d21baaa..47296e2e12690fcb2e6fa3629191458c6ae3f1df 100644
+index 1b6be5ac33abc8a2a07af457877f92c6c8998f91..b19e861ab153426a19d1b6783465a009f2a15db5 100644
 --- a/dist/Collapsible/CollapsibleRoot.cjs
 +++ b/dist/Collapsible/CollapsibleRoot.cjs
 @@ -1,5 +1,6 @@
@@ -19,7 +19,7 @@ index 9fb6f87d336d4550d55e62413b491b607d21baaa..47296e2e12690fcb2e6fa3629191458c
  			open,
  			unmountOnHide,
 diff --git a/dist/Collapsible/CollapsibleRoot.js b/dist/Collapsible/CollapsibleRoot.js
-index bf5a45a58fe3c590548394eff6b7b584ed3aa0e8..c4f25db59d44aa71f9455d22765b03e45d25aeb0 100644
+index aeae95620ae16e9394c13d45f20b55d46ad79ca6..cc8d6f1879e7103c4de7d7805d8d45230114fc22 100644
 --- a/dist/Collapsible/CollapsibleRoot.js
 +++ b/dist/Collapsible/CollapsibleRoot.js
 @@ -1,4 +1,5 @@

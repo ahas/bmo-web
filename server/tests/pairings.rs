@@ -10,6 +10,7 @@ use crate::support::{OWNER, ROOM, Scratch, console_hash, ready};
 use axum::Router;
 use axum::body::Body;
 use axum::http::{Method, Request, StatusCode, header};
+use bmo_web_client::MachineRevoked;
 use bmo_web_server::Refusal;
 use bmo_web_server::data_move::{MoveAsk, run_move};
 use bmo_web_server::nodes::{AttachedAgent, NodeHub, Nodes};
@@ -32,6 +33,13 @@ struct NoAgents;
 impl NodeHub for NoAgents {
   async fn attached(&self) -> Result<Vec<AttachedAgent>, Refusal> {
     Ok(Vec::new())
+  }
+
+  async fn revoke(&self, agent: &str) -> Result<MachineRevoked, Refusal> {
+    Ok(MachineRevoked {
+      agent: agent.to_owned(),
+      left: false,
+    })
   }
 }
 

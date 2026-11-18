@@ -1,0 +1,228 @@
+diff --git a/node_modules/@nuxt/ui/.bun-tag-1ce13f31942f0457 b/.bun-tag-1ce13f31942f0457
+new file mode 100644
+index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
+diff --git a/node_modules/@nuxt/ui/.bun-tag-35a353ce867273e8 b/.bun-tag-35a353ce867273e8
+new file mode 100644
+index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
+diff --git a/node_modules/@nuxt/ui/.bun-tag-747f8ed61424ef87 b/.bun-tag-747f8ed61424ef87
+new file mode 100644
+index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
+diff --git a/node_modules/@nuxt/ui/.bun-tag-e45751dd9a488020 b/.bun-tag-e45751dd9a488020
+new file mode 100644
+index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
+diff --git a/dist/runtime/components/SelectMenu.d.vue.ts b/dist/runtime/components/SelectMenu.d.vue.ts
+index a5f714618d7fd50505c2a9536a61e95cfe6cc42a..caa045d9f9b68eea8b099cca4fd8ae559b0606fe 100644
+--- a/dist/runtime/components/SelectMenu.d.vue.ts
++++ b/dist/runtime/components/SelectMenu.d.vue.ts
+@@ -1,5 +1,5 @@
+ import type { ComboboxRootProps, ComboboxRootEmits, ComboboxContentProps, ComboboxContentEmits, ComboboxArrowProps } from 'reka-ui';
+-import type { VNode } from 'vue';
++import type { TransitionGroupProps, VNode } from 'vue';
+ import type { AppConfig } from '@nuxt/schema';
+ import theme from '#build/ui/select-menu';
+ import type { UseComponentIconsProps } from '../composables/useComponentIcons';
+@@ -121,6 +121,12 @@ export interface SelectMenuProps<T extends ArrayOrNested<SelectMenuItem> = Array
+          */
+         estimateSize?: number | ((index: number) => number);
+     };
++    /**
++     * Move the list by what it holds: the transition group's props (its name and hooks) the groups and
++     * the items inside each are drawn with, each item keyed by its value and each group by its place
++     * among the groups handed in, an emptied group going rather than drawn empty. Unused with `virtualize`.
++     */
++    listTransition?: TransitionGroupProps;
+     /**
+      * When `items` is an array of objects, select the field to use as the value instead of the object itself.
+      * @defaultValue undefined
+diff --git a/dist/runtime/components/SelectMenu.vue b/dist/runtime/components/SelectMenu.vue
+index d9cdfa141988d7f8fab29e06501d879995d6a63c..7185c52f89453838f215b8a2206ab1dd5beda1b5 100644
+--- a/dist/runtime/components/SelectMenu.vue
++++ b/dist/runtime/components/SelectMenu.vue
+@@ -3,7 +3,7 @@ import theme from "#build/ui/select-menu";
+ </script>
+ 
+ <script setup>
+-import { useTemplateRef, useId, computed, ref, onMounted, onScopeDispose, toRef, toRaw, watch, nextTick } from "vue";
++import { useTemplateRef, useId, computed, ref, onMounted, onScopeDispose, toRef, toRaw, watch, nextTick, TransitionGroup } from "vue";
+ import { ComboboxRoot, ComboboxArrow, ComboboxAnchor, ComboboxInput, ComboboxTrigger, ComboboxCancel, ComboboxPortal, ComboboxContent, ComboboxEmpty, ComboboxGroup, ComboboxVirtualizer, ComboboxLabel, ComboboxSeparator, ComboboxItem, ComboboxItemIndicator, FocusScope } from "reka-ui";
+ import { useForwardProps } from "../composables/useForwardProps";
+ import { defu } from "defu";
+@@ -41,6 +41,7 @@ const _props = defineProps({
+   arrow: { type: [Boolean, Object], required: false },
+   portal: { type: [Boolean, String], required: false, skipCheck: true, default: true },
+   virtualize: { type: [Boolean, Object], required: false, default: false },
++  listTransition: { type: Object, required: false },
+   valueKey: { type: null, required: false },
+   labelKey: { type: null, required: false, default: "label" },
+   descriptionKey: { type: null, required: false, default: "description" },
+@@ -166,6 +167,16 @@ const filteredGroups = computed(() => {
+   });
+ });
+ const filteredItems = computed(() => filteredGroups.value.flatMap((group) => group));
++// Under a list transition the list moves by what it holds: each group is keyed by its place among the
++// groups handed in and drawn only while it holds an item, so a group emptied by the search goes
++// without the groups after it taking its key, and each entry is keyed by the value it is chosen by.
++const movingGroups = computed(() => filteredGroups.value.map((group, index) => ({ key: `group-${index}`, items: group })).filter((group) => group.items.length > 0));
++function itemKey(item) {
++  if (!isSelectItem(item) || item.type === "label" || item.type === "separator") {
++    return item;
++  }
++  return props.valueKey ? get(item, props.valueKey) : item;
++}
+ const createItem = computed(() => {
+   if (!props.createItem || !searchTerm.value) {
+     return false;
+@@ -303,6 +314,66 @@ const selectMenuId = useId();
+ const triggerId = computed(() => id.value ?? `select-menu-${selectMenuId}`);
+ const listboxId = `select-menu-listbox-${selectMenuId}`;
+ const comboboxRootRef = useTemplateRef("comboboxRootRef");
++// An entry that goes under a list transition stays drawn while it folds, though it is no longer the
++// list's: it takes no pointer, and the click Enter hands the highlighted entry is swallowed. A highlight
++// it held moves to the first entry left once it has gone, since highlighting scrolls to the entry and
++// the entries are still moving until then; one the keyboard moved on meanwhile stays where it went.
++let highlightGone = null;
++function swallowClick(event) {
++  event.preventDefault();
++  event.stopImmediatePropagation();
++}
++// While entries come or go the others move with them, so a scroll to an entry the highlight asks for
++// then would aim at where it stands before the movement ends: it is held until the last entry has come
++// or gone, and made then where the entry stands.
++let entriesMoving = 0;
++let heldScroll = null;
++function holdScroll(entry) {
++  entry.scrollIntoView = (options) => {
++    if (entriesMoving > 0) {
++      heldScroll = { entry, options };
++    } else {
++      Element.prototype.scrollIntoView.call(entry, options);
++    }
++  };
++}
++function onEntryMoving(el) {
++  entriesMoving += 1;
++  holdScroll(el);
++  viewportRef.value?.querySelectorAll('[data-slot="item"]').forEach(holdScroll);
++}
++function onEntrySettled() {
++  entriesMoving = Math.max(0, entriesMoving - 1);
++  if (entriesMoving > 0 || !heldScroll) {
++    return;
++  }
++  const { entry, options } = heldScroll;
++  heldScroll = null;
++  if (entry.isConnected) {
++    Element.prototype.scrollIntoView.call(entry, options);
++  }
++}
++function onEntryLeaving(el) {
++  onEntryMoving(el);
++  el.inert = true;
++  el.addEventListener("click", swallowClick, true);
++  const highlighted = comboboxRootRef.value?.highlightedElement;
++  if (highlighted && el.contains(highlighted)) {
++    highlighted.removeAttribute("data-highlighted");
++    highlightGone = highlighted;
++  }
++}
++function onEntryGone(el) {
++  onEntrySettled();
++  if (!highlightGone || !el.contains(highlightGone)) {
++    return;
++  }
++  const stayed = comboboxRootRef.value?.highlightedElement === highlightGone;
++  highlightGone = null;
++  if (stayed) {
++    comboboxRootRef.value?.highlightFirstItem?.();
++  }
++}
+ watch(() => props.items, async () => {
+   if (!isOpen.value || !props.createItem) {
+     return;
+@@ -518,6 +589,22 @@ defineExpose({
+                 <ReuseCreateItemTemplate v-if="createItem && createItemPosition === 'bottom'" />
+               </template>
+ 
++              <TransitionGroup v-else-if="props.listTransition" v-bind="props.listTransition" @before-enter="onEntryMoving" @after-enter="onEntrySettled" @enter-cancelled="onEntrySettled" @before-leave="onEntryLeaving" @after-leave="onEntryGone" @leave-cancelled="onEntrySettled">
++                <ComboboxGroup v-if="createItem && createItemPosition === 'top'" key="create-top" data-slot="group" :class="ui.group({ class: props.ui?.group })">
++                  <ReuseCreateItemTemplate />
++                </ComboboxGroup>
++
++                <ComboboxGroup v-for="group in movingGroups" :key="group.key" data-slot="group" :class="ui.group({ class: props.ui?.group })">
++                  <TransitionGroup v-bind="props.listTransition" @before-enter="onEntryMoving" @after-enter="onEntrySettled" @enter-cancelled="onEntrySettled" @before-leave="onEntryLeaving" @after-leave="onEntryGone" @leave-cancelled="onEntrySettled">
++                    <ReuseItemTemplate v-for="(item, index) in group.items" :key="itemKey(item)" :item="item" :index="index" />
++                  </TransitionGroup>
++                </ComboboxGroup>
++
++                <ComboboxGroup v-if="createItem && createItemPosition === 'bottom'" key="create-bottom" data-slot="group" :class="ui.group({ class: props.ui?.group })">
++                  <ReuseCreateItemTemplate />
++                </ComboboxGroup>
++              </TransitionGroup>
++
+               <template v-else>
+                 <ComboboxGroup v-if="createItem && createItemPosition === 'top'" data-slot="group" :class="ui.group({ class: props.ui?.group })">
+                   <ReuseCreateItemTemplate />
+diff --git a/dist/runtime/components/SelectMenu.vue.d.ts b/dist/runtime/components/SelectMenu.vue.d.ts
+index a5f714618d7fd50505c2a9536a61e95cfe6cc42a..caa045d9f9b68eea8b099cca4fd8ae559b0606fe 100644
+--- a/dist/runtime/components/SelectMenu.vue.d.ts
++++ b/dist/runtime/components/SelectMenu.vue.d.ts
+@@ -1,5 +1,5 @@
+ import type { ComboboxRootProps, ComboboxRootEmits, ComboboxContentProps, ComboboxContentEmits, ComboboxArrowProps } from 'reka-ui';
+-import type { VNode } from 'vue';
++import type { TransitionGroupProps, VNode } from 'vue';
+ import type { AppConfig } from '@nuxt/schema';
+ import theme from '#build/ui/select-menu';
+ import type { UseComponentIconsProps } from '../composables/useComponentIcons';
+@@ -121,6 +121,12 @@ export interface SelectMenuProps<T extends ArrayOrNested<SelectMenuItem> = Array
+          */
+         estimateSize?: number | ((index: number) => number);
+     };
++    /**
++     * Move the list by what it holds: the transition group's props (its name and hooks) the groups and
++     * the items inside each are drawn with, each item keyed by its value and each group by its place
++     * among the groups handed in, an emptied group going rather than drawn empty. Unused with `virtualize`.
++     */
++    listTransition?: TransitionGroupProps;
+     /**
+      * When `items` is an array of objects, select the field to use as the value instead of the object itself.
+      * @defaultValue undefined
+diff --git a/dist/runtime/components/NavigationMenu.vue b/dist/runtime/components/NavigationMenu.vue
+index 09a31be..920fa33 100644
+--- a/dist/runtime/components/NavigationMenu.vue
++++ b/dist/runtime/components/NavigationMenu.vue
+@@ -70,6 +70,23 @@ const rootProps = useForwardProps(computed(() => ({
+   unmountOnHide: props.unmountOnHide
+ })), emits);
+ const accordionProps = useForwardProps(reactivePick(props, "collapsible", "disabled", "type", "unmountOnHide"), emits);
++// A nested region keeps its own open set. Only the menu's own root hands its moves back to the v-model
++// that names the branches; a nested region handed its moves back as well would rewrite that set with
++// its own values, so closing one nested row would close every branch the menu holds.
++const nestedAccordionProps = computed(() => {
++  const { "onUpdate:modelValue": _ownOpenSet, ...rest } = accordionProps.value;
++  return rest;
++});
++// An item may hold its children's open set itself: `childrenOpen`, the values of its children standing open,
++// and `onUpdateChildrenOpen`, handed the set each time a child opens or closes. Its nested region then stands
++// as that set says for as long as it stands, so a child that comes later stands as the item says too. A region
++// whose item holds no set reads its children's `defaultOpen` once, as it first stands.
++function getNestedAccordionProps(item, level, listIndex) {
++  if (Array.isArray(item.childrenOpen)) {
++    return { ...nestedAccordionProps.value, modelValue: item.childrenOpen, "onUpdate:modelValue": item.onUpdateChildrenOpen };
++  }
++  return { ...nestedAccordionProps.value, defaultValue: getAccordionDefaultValue(item.children, level + 1, listIndex) };
++}
+ const contentProps = toRef(() => props.content);
+ const viewportProps = toRef(() => props.viewport);
+ const tooltipProps = toRef(() => defu(typeof props.tooltip === "boolean" ? {} : props.tooltip, { ...props.orientation === "vertical" && { delayDuration: 0, content: { side: "right" } } }));
+@@ -277,10 +294,7 @@ function onLinkClick(e) {
+ 
+       <AccordionContent v-if="props.orientation === 'vertical' && item.children?.length && !props.collapsed" data-slot="content" :class="ui.content({ class: [props.ui?.content, item.ui?.content] })">
+         <AccordionRoot
+-          v-bind="{
+-  ...accordionProps,
+-  defaultValue: getAccordionDefaultValue(item.children, level + 1, listIndex)
+-}"
++          v-bind="getNestedAccordionProps(item, level, listIndex)"
+           as="ul"
+           data-slot="childList"
+           :class="ui.childList({ class: [props.ui?.childList, item.ui?.childList] })"

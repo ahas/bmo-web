@@ -13,7 +13,8 @@ import type { Browser, BrowserContext, Locator, Page, Route } from "playwright-c
 // reader began reads its change against what it opened with, and one the reader left alone takes what landed and still
 // holds no change; a read that lands once its dialog has closed leaves the next opening its own. The dialogs read are
 // an organisation post, opened from the chart and from a person's manage menu; a supervisor's persona; a machine's CPU
-// limit; and a role's and a repository's settings. A desktop's width and a phone's.
+// limit; and a role's and a repository's settings. A desktop's width and a phone's. The post dialog's close is read
+// too, standing on its head's centre line at the head's trailing end.
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up, and serves
 // what the console's stand-ins do not answer — a supervisor's settings, a machine's reading — through the page's own
@@ -128,6 +129,18 @@ async function asksThenDiscards(page: Page, field: Locator): Promise<void> {
   await field.waitFor({ state: "detached", timeout: 10_000 });
 }
 
+// How far the open dialog's close stands from its head's centre line, where the title, or the title and its
+// description, stand as one block (docs/web.md, 「Floating things」), and whether it ends the head's row.
+async function closeOffCentre(page: Page): Promise<{ off: number; trailing: boolean }> {
+  return await page.getByRole("dialog").locator("[data-slot=header]").evaluate((head) => {
+    const block = head.querySelector("[data-slot=wrapper]")!.getBoundingClientRect();
+    const close = head.querySelector("[data-slot=close], button[aria-label]")!.getBoundingClientRect();
+    const padding = parseFloat(getComputedStyle(head).paddingRight);
+
+    return { off: Math.abs((close.top + close.bottom) / 2 - (block.top + block.bottom) / 2), trailing: Math.abs(head.getBoundingClientRect().right - padding - close.right) <= 1 };
+  });
+}
+
 // One choice of a select or a select menu, the list closed after it.
 async function choose(page: Page, select: Locator, option: string | RegExp): Promise<void> {
   await select.click();
@@ -210,6 +223,9 @@ describe.skipIf(!origin || !touchReady())("a console dialog holds a change only 
         await visit(page, `/organization?unit=${subunit.id}`);
 
         await open();
+        // The close stands on the head's centre line at the head's trailing end.
+        expect(await closeOffCentre(page)).toEqual({ off: expect.any(Number), trailing: true });
+        expect((await closeOffCentre(page)).off).toBeLessThanOrEqual(1);
         await closesAtOnce(page, role);
         await open();
         await closesAtOnce(page, role, "back");
@@ -232,8 +248,9 @@ describe.skipIf(!origin || !touchReady())("a console dialog holds a change only 
       }
     }, 90_000);
 
-    // The manage menu hands the focus back to its button only once its leaving is drawn, after the dialog has opened
-    // and the unit is chosen; that refused outside focus raises no discard question.
+    // The manage menu's leaving is drawn after the dialog its item opened has taken the focus, so the menu hands its
+    // button no focus while the dialog stands (docs/web.md, 「Focus」): the focus stays in the dialog, and the question
+    // hands it back to the unit as it closes.
     test(`a post opened from a person's manage menu asks only once a unit is chosen, at ${width}px`, async () => {
       const context = await contextAt(width, height);
       const page = await context.newPage();
@@ -256,6 +273,11 @@ describe.skipIf(!origin || !touchReady())("a console dialog holds a change only 
         await choose(page, unit, new RegExp(`${subunit.name}$`));
         await saveIs(page, "enabled");
         expect(await discard(page).count()).toBe(0);
+        await page.getByRole("menu").waitFor({ state: "detached", timeout: 10_000 });
+        expect(await page.evaluate(() => document.activeElement?.closest("[role=dialog]") !== null)).toBe(true);
+        // At a phone's width the chosen path stands cut, so its tooltip is up when the discard question hands the
+        // focus back, and the next Esc must still ask.
+        if (width === 360) expect(await unit.evaluate((select) => [...select.querySelectorAll("span")].some((one) => one.scrollWidth > one.clientWidth))).toBe(true);
         await asksThenDiscards(page, unit);
       } finally {
         await context.close();

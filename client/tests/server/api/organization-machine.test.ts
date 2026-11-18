@@ -9,7 +9,7 @@ import type { Rebound, UserNode } from "../../../packages/server-client/src/inde
 
 // A person's machine on the organisation screen (docs/accounts.md, 「Invitations and a person's machine」): the
 // administrator binds an account to another machine or to none, and agency's record of the account's node follows,
-// set once the new machine is proven and taken away with the binding, the machine the hub holds sent a leave; a node
+// set once the new machine is proven and taken away with the binding, the machine's name revoked at the hub; a node
 // agency refuses is said in the pack's words and leaves the account bound as it was; the machine already bound is
 // declared shared where it stands.
 
@@ -45,10 +45,6 @@ const agency = standIn("AGENCY", (call) => {
 
   return answer({ code: "no-route", error: "no route" }, 404);
 });
-
-const nodes = standIn("NODE", (call) =>
-  call.method === "GET" ? answer({ items: [{ name: "desk-a", label: "desk-a", kind: "hub", agentName: "desk-a" }], more: false }) : new Response(null, { status: 204 })
-);
 
 const rebind = await routeOf<Rebound>("../../apps/web/server/api/organization/users/[user]/node.put");
 const unbind = await routeOf<void>("../../apps/web/server/api/organization/users/[user]/node.delete");
@@ -101,16 +97,17 @@ describe("a person's machine", () => {
     expect(taken.message).toBe(wording("organization.error.node_taken"));
   });
 
-  test("taken away is taken out of agency too, an account agency holds no record of passing, and the machine the hub holds is sent a leave", async () => {
+  test("taken away is taken out of agency too, an account agency holds no record of passing, and the machine's name is revoked", async () => {
     // Bound to a machine that has not attached, the account has no record in agency yet.
     expect((await asked(rebind, { params: { user: "4" }, body: {} })).answer).toMatchObject({ attached: false });
     agency.asked.length = 0;
+    service.revoked.length = 0;
 
     expect((await asked(unbind, { params: { user: "3" } })).status).toBe(200);
     expect((await asked(unbind, { params: { user: "4" } })).status).toBe(200);
     expect(agency.asked.filter((call) => call.method === "DELETE").map((call) => call.path)).toEqual(["/person-nodes/3", "/person-nodes/4"]);
     expect(service.users.find((user) => user.id === 3)?.node).toBeUndefined();
-    expect(nodes.asked.filter((call) => call.method === "DELETE").map((call) => call.path)).toEqual(["/nodes/desk-a?leave=true"]);
+    expect(service.revoked).toEqual(["desk-a", "u4-fresh"]);
   });
 
   test("a machine agency refuses leaves the account bound as it was, or bound to none", async () => {

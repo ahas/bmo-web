@@ -282,7 +282,8 @@
 - template → 템플릿; coverage → 커버리지; cap → 상한; cooldown → 쿨다운. Never 틀, 덮음, 천장, 휴식.
 - output tokens → 출력; context window → 컨텍스트. Never 답, 창.
 - a model's reasoning effort → 강도; an answer's token ceiling → 답변 상한. Never 노력, 답 천장.
-- the rest of a list a line leaves unshown → 외 {n}: `Claude Code 외 2`. Never 그 밖에, +{n}.
+- the rest of a list a line leaves unshown → 외 {n}: `Claude Code 외 2`; people → 외 {n}명, which a row of faces'
+  count of the rest is heard as. Never 그 밖에, +{n}.
 - brain (what a turn read from the agent's memory store) → 브레인. Never 기억 저장소, 두뇌, 읽은 문서.
 - a room's due memories (its promise, follow-up and check memories whose time or event has come) → 이 방에서 지금
   할 약속. Never 때가 된 기억, 만기된 기억, 예정된 메모리.

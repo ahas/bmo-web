@@ -2,6 +2,8 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
+import { wording } from "../../apps/web/shared/wording";
+import { UNREAD_ROOM } from "../support/unread-room";
 
 import type { Browser, BrowserContext, Page } from "playwright-core";
 
@@ -9,7 +11,10 @@ import type { Browser, BrowserContext, Page } from "playwright-core";
 // keeps between its title and its button (docs/web.md, the room screen's measures, 「Picture, name and menu」), and the
 // note a call waiting in the room was set with stands in its original with its translation in its place (docs/web.md,
 // the room screen's list of what waits and 「The original, and its translation in its place」). Each is read at a
-// desk's width and a phone's, in the light theme and the dark.
+// desk's width and a phone's, in the light theme and the dark. A group room carrying every button of its own — the
+// menu, the waiting calls, the pinned button and the window's time left — stands them on the bar's one line beside a
+// name still read, the time left last of them, and under the sm width as a button whose popover holds it, the waiting
+// calls and the pinned button folded into the menu (docs/web.md, 「The window's time left stands in the top bar」).
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up, and serves
 // the room's waiting calls and the translator through the page's own routes.
@@ -17,6 +22,8 @@ import type { Browser, BrowserContext, Page } from "playwright-core";
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "room-head", password: "fixture-password-3051" };
 const CHAT = 42;
+// A room that is not the owner's own, so the chat agent's window there is counted in its bar.
+const GROUP_CHAT = UNREAD_ROOM;
 const NOTE = "Check the nightly build and report what failed.";
 const READING = "Nightly build checked, failures reported.";
 const WIDTHS = [
@@ -60,7 +67,7 @@ async function open(viewport: (typeof WIDTHS)[number], scheme: (typeof SCHEMES)[
     { name: "console_auto_translate", value: "false", url: origin! },
     { name: "nuxt-color-mode", value: scheme, url: origin! }
   ]);
-  await context.route(new RegExp(`/api/rooms/${CHAT}/background$`), (route) =>
+  await context.route(new RegExp(`/api/rooms/(${CHAT}|${GROUP_CHAT})/background$`), (route) =>
     route.fulfill({
       json: {
         calls: [
@@ -104,20 +111,25 @@ describe.skipIf(!origin || !touchReady())("the room's head", () => {
 
           // The waiting call's note opens as the agent wrote it, under its line, and the press stands its reading in its
           // place; the show-original press puts the note back.
-          const opener = page.locator("[data-room-background]");
-
-          await opener.waitFor({ timeout: 30_000 });
-          await opener.click();
+          // From the sm width the waiting calls' own button opens the list; under it the room's menu does, as a drawer.
+          const opener = viewport.phone ? page.locator("[data-title-bar] [data-room-menu]") : page.locator("[data-room-background]");
+          const openList = async (): Promise<void> => {
+            await opener.click();
+            if (viewport.phone) await page.getByRole("menuitem", { name: wording("room.label.background_count", { n: "1" }), exact: true }).click({ timeout: 10_000 });
+          };
 
           const note = page.locator("[data-room-background-list] [data-background-note]");
 
-          try {
-            await note.waitFor({ timeout: 5_000 });
-          } catch {
-            // A press made before the page's handlers land is lost, so the list is opened once more.
-            await opener.click();
-            await note.waitFor({ timeout: 10_000 });
+          await opener.waitFor({ timeout: 30_000 });
+
+          // A press made before the page's handlers land is lost, so the list is opened again, a bounded number of times.
+          for (let tries = 0; tries < 3 && !(await note.isVisible()); tries += 1) {
+            if (tries > 0) await page.keyboard.press("Escape");
+            await openList().catch(() => undefined);
+            await note.waitFor({ timeout: 5_000 }).catch(() => undefined);
           }
+
+          await note.waitFor({ timeout: 5_000 });
 
           expect((await note.innerText()).trim()).toBe(NOTE);
           // Every line of the entry, the reading's own among them, is drawn at the caption size, 14px.
@@ -132,5 +144,89 @@ describe.skipIf(!origin || !touchReady())("the room's head", () => {
         }
       }, 120_000);
     }
+  }
+});
+
+// The room's own buttons and the set at the bar's right end, as they stand: each one's box, left to right.
+async function barParts(page: Page): Promise<{ bar: number; title: number; own: { name: string; left: number; right: number }[]; set: number }> {
+  return await page.evaluate(() => {
+    const bar = document.querySelector("[data-title-bar]")!;
+    const shown = (one: Element) => one.getBoundingClientRect().width > 0;
+    const marks = ["data-room-menu", "data-pinned-button", "data-room-background", "data-window-clock", "data-window-clock-button"];
+    const own = marks
+      .flatMap((mark) => [...bar.querySelectorAll(`[${mark}]`)].filter(shown).map((one) => ({ name: mark, left: one.getBoundingClientRect().left, right: one.getBoundingClientRect().right })))
+      .sort((a, b) => a.left - b.left);
+
+    return {
+      bar: bar.getBoundingClientRect().height,
+      title: bar.querySelector("[data-slot=title]")!.getBoundingClientRect().width,
+      own,
+      set: bar.querySelector("[data-title-bar-actions]")!.getBoundingClientRect().left
+    };
+  });
+}
+
+describe.skipIf(!origin || !touchReady())("a group room's bar holding every button of its own", () => {
+  for (const viewport of WIDTHS) {
+    test(`stands on one line beside the room's name, the time left last, ${viewport.width}px wide`, async () => {
+      const context = await open(viewport, "dark");
+      const page = await context.newPage();
+
+      await context.route(new RegExp(`/api/rooms/${GROUP_CHAT}/window$`), (route) => route.fulfill({ json: { openFor: 1_800 } }));
+      // On a phone, a deployment running, so the set at the right end stands whole, its mark beside TODO and the usage
+      // figures, as an administrator's does at its widest there.
+      if (viewport.phone) await context.route(/\/api\/deploy$/, (route) =>
+        route.fulfill({
+          json: {
+            release: "release-a",
+            detailed: true,
+            hold: null,
+            run: { unitName: "unit-a", phase: "running", startedAt: Date.now() - 60_000, endedAt: null, end: null, commit: null, brings: [], plan: [], stages: [{ stage: "build", at: Date.now() }], steps: [], ahead: [], running: null }
+          }
+        })
+      );
+      await context.route(new RegExp(`/api/rooms/${GROUP_CHAT}/pins$`), (route) =>
+        route.fulfill({ json: { items: [{ messageId: "1", senderName: "person-b", text: "A pinned line long enough to be cut", pinnedAt: 1 }] } })
+      );
+
+      try {
+        await page.goto(`${origin}/rooms/${GROUP_CHAT}`, { waitUntil: "load" });
+        await page.locator(`[data-title-bar] ${viewport.phone ? "[data-window-clock-button]" : "[data-window-clock]"}`).waitFor({ timeout: 30_000 });
+        if (!viewport.phone) {
+          await page.locator("[data-title-bar] [data-pinned-button]").waitFor({ timeout: 30_000 });
+          await page.locator("[data-title-bar] [data-room-background]").waitFor({ timeout: 30_000 });
+        }
+
+        // On a phone the set at the right end stands whole, as an administrator's does with a deployment running: its
+        // mark, TODO and the usage figures. A desk's TODO panel stands docked beside the room instead of its button.
+        if (viewport.phone) await page.waitForFunction(() => [...document.querySelector("[data-title-bar] [data-title-bar-actions]")!.children].filter((part) => part.getBoundingClientRect().width > 0).length === 3, undefined, { timeout: 30_000 });
+
+        const parts = await barParts(page);
+
+        expect(parts.bar).toBe(48);
+        expect(parts.title).toBeGreaterThanOrEqual(40);
+        expect(parts.own.map((part) => part.name)).toEqual(
+          viewport.phone ? ["data-room-menu", "data-window-clock-button"] : ["data-room-menu", "data-room-background", "data-pinned-button", "data-window-clock"]
+        );
+        expect(parts.own.at(-1)!.right).toBeLessThanOrEqual(parts.set);
+
+        if (viewport.phone) {
+          // The pinned button and the waiting calls stand first in the room's menu.
+          await page.locator("[data-title-bar] [data-room-menu]").click();
+          await page.getByRole("menuitem", { name: wording("room.label.pinned_count", { n: "1" }), exact: true }).waitFor({ timeout: 10_000 });
+          await page.getByRole("menuitem", { name: wording("room.label.background_count", { n: "1" }), exact: true }).waitFor({ timeout: 10_000 });
+          expect((await page.getByRole("menuitem").allInnerTexts()).slice(0, 2)).toEqual([wording("room.label.pinned_count", { n: "1" }), wording("room.label.background_count", { n: "1" })]);
+          await page.keyboard.press("Escape");
+          await page.getByRole("menu").waitFor({ state: "detached", timeout: 10_000 });
+
+          // The time left is read in the popover its button opens.
+          await page.locator("[data-title-bar] [data-window-clock-button]").click();
+          await page.locator("[data-window-clock-popover] [role=timer]").waitFor({ timeout: 10_000 });
+          expect(await page.locator("[data-window-clock-popover] [role=timer]").textContent()).toMatch(/\d+:\d{2}/);
+        }
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
   }
 });

@@ -236,6 +236,13 @@ export default defineAppConfig({
     // dialog out of its own middle: here it grows out of the control pressed to open it, and only
     // fades where nothing was (`~/domain/dialog-origin`).
     modal: {
+      // The close stands in the head's row at its trailing end, on the head's one centre line with the title block,
+      // which takes the rest of the row (docs/web.md, 「Floating things」); the library holds it at a fixed distance
+      // from the dialog's top instead.
+      slots: {
+        wrapper: "min-w-0 flex-1",
+        close: "static ms-auto shrink-0"
+      },
       variants: {
         transition: {
           true: {
@@ -313,6 +320,16 @@ export default defineAppConfig({
           }
         }
       ]
+    },
+    // The title bar's parts stand 4px apart, as every spacing is a multiple of 4px, and the screen's mark 12px from its
+    // name (docs/web.md, 「The title bar」).
+    dashboardNavbar: {
+      slots: {
+        root: "gap-1",
+        left: "gap-1",
+        icon: "me-2",
+        right: "gap-1"
+      }
     },
     dashboardPanel: {
       slots: {

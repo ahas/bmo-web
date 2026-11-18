@@ -4,7 +4,7 @@
 // message or none (docs/web.md, 「A message's id」). The line is longer than a page, its newest message answers one
 // on the page before, two of its pictures went out as one album and a third alone, and one carries a kept file.
 
-export const HIGH_ROOM = 45;
+export const HIGH_ROOM = 47;
 
 const FIRST = 3_973_025_898_369_061_000n;
 

@@ -85,12 +85,6 @@ export async function listNodes(): Promise<MonitorNode[]> {
   return (await nodeAnswers()).map((node) => ({ name: node.name, label: node.label, kind: node.kind, thisMachine: node.thisMachine === true, connected: node.state === "connected" }));
 }
 
-/** The name of the hub node whose agent the hub knows by `agent`, which may differ from the agent's own name; none
- * where no node of the list stands for it (the node service's `docs/nodes.md`, 「What a row holds」). */
-export async function hubNodeOf(agent: string): Promise<string | null> {
-  return (await nodeAnswers()).find((node) => node.kind === "hub" && node.agentName === agent)?.name ?? null;
-}
-
 /** A node taken off the list; with `leave`, a hub node's agent is first sent a leave through its hub, so it uninstalls
  * itself and departs rather than coming back on the next pass (the node service's `docs/nodes.md`). */
 export async function removeNode(name: string, leave: boolean): Promise<void> {

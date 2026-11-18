@@ -78,8 +78,11 @@ machine's own socket's `bmo_test`, and every name carries the process that made 
     name them, since one it met only once a page stood would reload every open page and lose what a test built.
 - **What it prints:** the console's address, once it answers.
 - **When it stops:** on an interrupt, stopping everything it started, dropping the database and removing its scratch
-  directory; where it failed to start it stops the same way but keeps that directory, whose logs the failure names.
-  Where the database cannot be dropped it says so and exits with a failure, keeping the directory too.
+  directory. It watches every process it started: where one ends while it stands, the account service or the
+  development server alike, it names that process and how it ended, stops the rest the same way, keeps the scratch
+  directory, whose logs the failure names, and exits with a failure, so a later browser file never meets a console
+  that is gone. Where it failed to start it does the same. Where the database cannot be dropped it says so and
+  exits with a failure, keeping the directory too.
 
 The tests serve the rest of what they measure through the page's own routes. The files run one at a time,
 through the testbed, with the address the script printed:

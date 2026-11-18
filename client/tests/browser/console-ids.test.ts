@@ -113,7 +113,12 @@ async function sidebar(page: Page, phone: boolean): Promise<Locator> {
   if (phone) {
     await page.getByRole("button", { name: KO.line_104 }).click();
 
-    return page.getByRole("dialog");
+    const drawer = page.getByRole("dialog");
+
+    // The component library loads the drawer on its first opening, so it stands a moment after the press.
+    await drawer.locator("nav button[aria-controls]").first().waitFor({ timeout: 10_000 });
+
+    return drawer;
   }
 
   return page.locator("body");
@@ -259,9 +264,12 @@ describe.skipIf(!origin || !touchReady())("ids on a console screen", () => {
         held = await sidebar(page, viewport.phone);
         branches = held.locator("nav button[aria-controls]");
 
+        // The ids are made anew as the page stands again, so the folded branch is found by its name once more.
+        const rolesAgain = (await branches.filter({ hasText: wording("agents.label.group_role") }).first().getAttribute("aria-controls"))!;
+
         for (let at = 0; at < await branches.count(); at += 1) {
           const id = (await branches.nth(at).getAttribute("aria-controls"))!;
-          const folded = id === roleControls;
+          const folded = id === rolesAgain;
 
           expect(await branches.nth(at).getAttribute("aria-expanded")).toBe(folded ? "false" : "true");
           expect(await page.locator(`[id="${id}"]`).getAttribute("data-state")).toBe(folded ? "closed" : "open");

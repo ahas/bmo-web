@@ -1,14 +1,14 @@
 //! An account's machine bound again or taken away (docs/accounts.md, 「Invitations and a person's machine」;
 //! docs/boundary.md, 「Invitations」): the binding an invitation made moved to another machine by the administrator,
 //! with that machine's credential and installs, proven once the hub holds it, declared shared where it stands, or
-//! removed by the administrator or by the account itself.
+//! removed by the administrator or by the account itself, and a machine name bound to no account revoked at the hub.
 
 use axum::Json;
 use axum::Router;
 use axum::extract::{Path, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::routing::{post, put};
-use bmo_web_client::{Installs, NodeBinding, NodeSharing, OWNER_KEY, Rebound, UserNode};
+use bmo_web_client::{Installs, MachineRevoked, NodeBinding, NodeSharing, OWNER_KEY, Rebound, UserNode};
 use rand::RngCore;
 use sea_orm::ConnectionTrait;
 
@@ -26,6 +26,7 @@ pub fn routes() -> Router<Service> {
     .route("/users/{user}/node", put(rebind_route).delete(unbind_route))
     .route("/users/{user}/node/proof", post(proof_route))
     .route("/users/{user}/node/shared", put(share_route))
+    .route("/machines/{agent}/revoke", post(revoke_route))
 }
 
 /// A machine name an administrator named: letters, digits, `-` and `_`, as an install line carries it unquoted.
@@ -193,6 +194,32 @@ pub async fn unbind<C: ConnectionTrait>(db: &C, user: i32) -> Result<(), Refusal
     .ok_or_else(|| Refusal::absent(format!("user {user} is bound to no machine")))
 }
 
+/// A machine name revoked at the hub once no account is bound to it, so the machine under it is told to leave now or
+/// at its next hello; refused `node-taken` while any account is still bound to the name, a shared binding among them.
+pub async fn revoke<C: ConnectionTrait>(
+  db: &C,
+  nodes: &Nodes,
+  agent: &str,
+) -> Result<MachineRevoked, Refusal> {
+  let agent = named(agent)?;
+
+  if one(
+    db,
+    r#"SELECT 1 AS "one" FROM "user_nodes" WHERE "agent" = $1"#,
+    vec![agent.clone().into()],
+  )
+  .await?
+  .is_some()
+  {
+    return Err(
+      Refusal::new(StatusCode::CONFLICT, format!("an account is still bound to the machine {agent}"))
+        .coded("node-taken"),
+    );
+  }
+
+  nodes.hub.revoke(&agent).await
+}
+
 /// The account's machine as the hub holds it now, the moment recorded as its proof where the hub holds it.
 pub async fn prove<C: ConnectionTrait>(db: &C, nodes: &Nodes, user: i32) -> Result<UserNode, Refusal> {
   let mut node = node_of(db, Some(nodes), user).await?;
@@ -278,4 +305,10 @@ async fn proof_route(State(service): State<Service>, Path(user): Path<String>) -
   let nodes = hub(&service)?;
 
   Ok(Json(prove(&service.db, nodes, user_in(&user)?).await?))
+}
+
+async fn revoke_route(State(service): State<Service>, Path(agent): Path<String>) -> Answer<MachineRevoked> {
+  let nodes = hub(&service)?;
+
+  Ok(Json(revoke(&service.db, nodes, &agent).await?))
 }

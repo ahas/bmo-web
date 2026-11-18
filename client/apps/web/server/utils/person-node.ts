@@ -1,6 +1,5 @@
-import { proveNode, rebindNode, unbindNode, userNode } from "./account-service";
+import { proveNode, rebindNode, revokeMachine, unbindNode, userNode } from "./account-service";
 import { agency, agencyCall } from "./agency";
-import { hubNodeOf, removeNode } from "./hardware";
 
 import type { ProfileCaller } from "./account-service";
 import type { UserNode } from "@web/server-client";
@@ -80,10 +79,9 @@ async function putBack(user: string, before: UserNode, caller: ProfileCaller): P
  * The account's machine taken away, by the administrator or by the account itself (docs/accounts.md, 「Invitations
  * and a person's machine」). Agency's record goes first and the binding next, so a refusal from either leaves both
  * as they stood: a binding put back would be the administrator's to make, while agency's record is set back for any
- * account, as the proof sets it. Then, where the hub held the machine and it was not shared, the node standing for
- * it is found by its agent and sent a leave through the node service, so its credential works no more and the
- * desktop app asks to be connected again; the binding is gone whatever the leave meets, so a refused leave, or no
- * node standing for the machine, goes to the log.
+ * account, as the proof sets it. Then, where the binding was not shared, its name is revoked at the hub through the
+ * account service, so the machine is told to leave now or at its next hello and the desktop app asks to be connected
+ * again; the binding is gone whatever the revoke meets, so a refused revoke goes to the log.
  */
 export async function unlinkMachine(user: string, caller: ProfileCaller): Promise<void> {
   const machine = await userNode(user);
@@ -99,16 +97,9 @@ export async function unlinkMachine(user: string, caller: ProfileCaller): Promis
     throw refusal;
   }
 
-  if (held === null || machine.shared) return;
+  if (typeof machine.agent !== "string" || machine.shared) return;
 
-  await sendLeave(held).catch((error: unknown) => console.error(`account ${user}: its machine ${held} was not sent a leave: ${String(error)}`));
-}
+  const agent = machine.agent;
 
-// The machine sent a leave through the node standing for it in the node service's list.
-async function sendLeave(agent: string): Promise<void> {
-  const node = await hubNodeOf(agent);
-
-  if (node === null) throw new Error("no node of the node service's list stands for it");
-
-  await removeNode(node, true);
+  await revokeMachine(agent).catch((error: unknown) => console.error(`account ${user}: its machine ${agent} was not revoked: ${String(error)}`));
 }

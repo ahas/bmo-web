@@ -610,16 +610,16 @@ section states what each does.
   account, and the account's own for itself: the person signed in as that account, named in `Owner-Key`, takes it
   from the settings' machine section (`docs/web.md`, 「Settings」). Anyone else is refused 403. Binding to another
   machine and declaring sharing stay the administrator's alone.
-- **A machine taken away is told to leave, so its credential works no more.** A machine's credential is made from its
-  name alone and the hub keeps no list of names it refuses, so once the binding is removed the console's server has
-  the node service send the machine a leave through its hub: the hub node whose `agentName` is the machine's name is
-  found in the node service's list, since a node's own name may differ from its agent's, and removed with
-  `leave=true`. The desktop app answers a leave by deleting its credential and offering pairing again, and an
-  installed agent by uninstalling itself; a later pairing binds a fresh name. The leave goes only where the hub holds
-  the machine at that moment and the binding was not declared shared, since a shared machine stays for the other
-  accounts on it. A machine the hub does not hold keeps its credential and attaches again under its old name, bound to
-  no account, until jake's hub can refuse a name. A leave the node service or the hub refuses, and a machine no node of
-  the list stands for, leave the machine taken away all the same and are written to the console's log.
+- **A machine taken away is revoked, so its credential works no more.** A machine's credential is made from its name
+  alone, so once the binding is removed the console's server asks the service to revoke the name
+  (`POST /machines/{agent}/revoke`), and the service asks the hub through its own control (`POST /revoke`, jake's
+  hub control): the hub records the name as revoked and sends a leave to the machine where it is attached, and
+  answers any later hello under that name with a leave, so a machine that is off at that moment is told as it comes
+  back. The desktop app answers a leave by deleting its credential and offering pairing again, and an installed agent
+  by uninstalling itself; a later pairing binds a fresh name. The revoke goes only where the binding was not
+  declared shared, since a shared machine stays for the other accounts on it, and the service refuses it 409
+  `node-taken` while any account is still bound to the name. A revoke the service or the hub refuses leaves the
+  machine taken away all the same and is written to the console's log.
 - **The administrator may declare a machine shared,** binding several accounts to one machine. A binding that says
   so is made where every other account bound to that name was bound shared as well; a binding that does not say so,
   or one naming a machine another account holds unshared, is refused 409 `node-taken` as above, so no account comes

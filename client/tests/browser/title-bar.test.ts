@@ -10,7 +10,7 @@ import type { Browser, Page } from "playwright-core";
 // and the set is one instance the layout holds, so a page change moves it into the next screen's bar rather than
 // standing it up again. Read between every pair of the console's own screens, at both widths. Nothing stands beside the
 // screen's name but on a room's: what concerns one screen stands in its own row under the bar, and a room stands its
-// menu beside its name. It drives the console
+// menu beside its name. The set's buttons stand apart by one gap, a multiple of 4px as every spacing is. It drives the console
 // tests/support/browser-console.ts stands up; the suite stands up no console, so there it skips.
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
@@ -166,6 +166,45 @@ describe.skipIf(!origin || !touchReady())("the screen's name alone in the bar", 
         await page.goto(`${origin}/rooms/42`, { waitUntil: "load" });
         await page.locator("[data-title-bar] [data-room-menu]").waitFor({ timeout: 30_000 });
         expect(await page.locator("[data-room-row]").count()).toBe(0);
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+  }
+});
+
+describe.skipIf(!origin || !touchReady())("the set's spacing", () => {
+  for (const viewport of WIDTHS) {
+    test(`the set's parts stand one 4px-multiple gap apart, ${viewport.width}px wide`, async () => {
+      const context = await browser!.newContext({ viewport: { width: viewport.width, height: viewport.height }, isMobile: viewport.phone, hasTouch: viewport.phone, serviceWorkers: "block", reducedMotion: "reduce" });
+      const at = cookie.indexOf("=");
+
+      await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
+
+      try {
+        const page = await context.newPage();
+
+        await page.goto(`${origin}/`, { waitUntil: "load" });
+        const set = page.locator("[data-title-bar] [data-title-bar-actions]");
+
+        await set.waitFor({ timeout: 30_000 });
+
+        // The gaps the bar and its set lay between their parts, and the room between each pair of the set's parts that
+        // stand; which of the set's parts stand turns on what the units answer.
+        const spacing = await page.locator("[data-title-bar]").first().evaluate((bar) => {
+          const set = bar.querySelector("[data-title-bar-actions]")!;
+          const boxes = [...set.children].map((one) => one.getBoundingClientRect()).filter((box) => box.width > 0).sort((a, b) => a.left - b.left);
+          const gapOf = (element: Element | null) => (element === null ? 0 : parseFloat(getComputedStyle(element).columnGap));
+
+          return {
+            gaps: [gapOf(bar), gapOf(bar.querySelector("[data-slot=left]")), gapOf(bar.querySelector("[data-slot=right]")), gapOf(set)],
+            set: gapOf(set),
+            between: boxes.slice(1).map((box, place) => Math.round(box.left - boxes[place]!.right))
+          };
+        });
+
+        expect(spacing.gaps.every((gap) => gap > 0 && gap % 4 === 0)).toBe(true);
+        expect(spacing.between.every((room) => room === spacing.set)).toBe(true);
       } finally {
         await context.close();
       }

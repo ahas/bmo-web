@@ -126,14 +126,15 @@ function option(): Record<string, unknown> {
     const shape = graphic.clipRectByRect({ x: start[0]!, y: top, width: end[0]! - start[0]!, height: over ? BAR : band * 0.6 }, params.coordSys as Area);
     return shape ? { type: "rect", transition: ["shape"], shape, style: { fill, stroke, lineWidth: 1, ...(decal ? { decal } : {}) } } : null;
   };
-  // Where the chart is narrow, the card's name stands over its frame, from the frame's left edge.
+  // Where the chart is narrow, the card's name stands over its frame, from the frame's left edge, and is cut with an
+  // ellipsis at the plot's right edge, so the figures beyond it keep their place.
   const named = (params: { coordSys: unknown; dataIndex: number }, api: RenderApi) => {
     const frame = bar(params, api, theme.free, theme.border, null);
     if (!over) return frame;
     const [name, model] = names[params.dataIndex]!;
     const area = params.coordSys as Area;
     const top = api.coord([0, api.value(0)])[1]! - api.size([0, 1])[1]! / 2 + 4;
-    const label = { type: "text", x: area.x, y: top, style: { text: model ? `${name} · ${model}` : name, fill: theme.text, font: `14px ${font}`, align: "left", verticalAlign: "top" } };
+    const label = { type: "text", x: area.x, y: top, style: { text: model ? `${name} · ${model}` : name, fill: theme.text, font: `14px ${font}`, align: "left", verticalAlign: "top", width: area.width, overflow: "truncate", ellipsis: "…" } };
     return { type: "group", children: frame ? [frame, label] : [label] };
   };
   return {

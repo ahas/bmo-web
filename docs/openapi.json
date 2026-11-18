@@ -1658,6 +1658,22 @@
         ],
         "type": "string"
       },
+      "MachineRevoked": {
+        "description": "A machine name revoked at the hub: the name, and whether the hub sent a leave to a machine attached under it.",
+        "properties": {
+          "agent": {
+            "type": "string"
+          },
+          "left": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "agent",
+          "left"
+        ],
+        "type": "object"
+      },
       "Member": {
         "description": "One member of the reader's company as a picker finds and shows them (docs/accounts.md, 「The people\ndirectory」): the account key and the name, nothing more.",
         "properties": {
@@ -6207,6 +6223,62 @@
         "x-codes": [
           "not-found",
           "invite-open",
+          "no-hub",
+          "upstream-failed",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/machines/{agent}/revoke": {
+      "post": {
+        "operationId": "revokeMachine",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "agent",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MachineRevoked"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, node-taken, no-hub, upstream-failed, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A machine name bound to no account revoked at the hub, so the machine under it is told to leave.",
+        "tags": [
+          "Invitations"
+        ],
+        "x-codes": [
+          "bad-request",
+          "node-taken",
           "no-hub",
           "upstream-failed",
           "unauthorized",

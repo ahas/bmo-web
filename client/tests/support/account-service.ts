@@ -37,6 +37,8 @@ export interface StandInSeed {
   sections?: StandInSection[];
   // The machines the hub holds beside those the seeded users are bound to and attached.
   hub?: string[];
+  // The machine names whose revoke the hub refuses.
+  refusedRevokes?: string[];
   // The messages a check on a message reads: room, message, sender.
   messages?: [number, number, number | null][];
 }
@@ -163,6 +165,8 @@ export interface StandIn {
   profiles: Map<number, StandInProfile>;
   // The machines the hub holds beside those the seeded users are bound to and attached.
   hub: Set<string>;
+  // The machine names revoked at the hub, in the order they were.
+  revoked: string[];
   stop(): void;
 }
 
@@ -218,6 +222,7 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
   const kinds = new Map<string, SecretKind>();
   const profiles = new Map<number, StandInProfile>();
   const hub = new Set(seed.hub ?? []);
+  const revoked: string[] = [];
   const pairings = new Map<string, StandInPairing>();
   const pairingAddresses: string[] = [];
   const userOfSender = (sender: number | null): StandInUser | undefined =>
@@ -412,6 +417,19 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
 
           return done();
         }
+      }
+
+      // A machine name revoked at the hub once no account is bound to it; the hub refuses the names the seed names.
+      const revokeRoute = path.match(/^\/machines\/([^/]+)\/revoke$/);
+
+      if (revokeRoute !== null && request.method === "POST") {
+        const agent = decodeURIComponent(revokeRoute[1]!);
+
+        if (users.some((user) => user.node?.agent === agent)) return refused(409, "node-taken", "an account is still bound to it");
+        if (seed.refusedRevokes?.includes(agent)) return refused(502, "upstream-failed", "the hub refused the revoke");
+        revoked.push(agent);
+
+        return json({ agent, left: hub.delete(agent) });
       }
 
       // A user's sections, read by their holder or the administrator and written by the administrator alone.
@@ -747,6 +765,7 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
     kinds,
     profiles,
     hub,
+    revoked,
     pairings,
     pairingAddresses,
     stop() {

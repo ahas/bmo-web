@@ -223,6 +223,13 @@ export function todoState(item: TodoItem): TodoState {
     return "pending";
   }
 
+  // A close that merged its commit leaves its work done and the item waiting for its repository's deployment
+  // alone, which is no work for the queue to take, whether or not its job still goes on past the close: the row
+  // says where its commit stands, never two states at once.
+  if (closeMerged(item)) {
+    return item.deploying === true ? "deploying" : "deploy";
+  }
+
   // A job that waits for its agent's seat, a road or a card launches nothing yet, so its item waits as one nobody
   // has taken; a job whose worker is being launched has started but is not doing the work yet. The item's lease
   // says nothing here: a launch leases its item before the agency writes its job, so an item leased with no job
@@ -235,13 +242,12 @@ export function todoState(item: TodoItem): TodoState {
     return "running";
   }
 
-  // A close that merged its commit leaves its work done and the item waiting for its repository's deployment
-  // alone, which is no work for the queue to take.
-  if (item.closing?.phase !== "waiting-batch" && item.closing?.phase !== "waiting-live") {
-    return "waiting";
-  }
+  return "waiting";
+}
 
-  return item.deploying === true ? "deploying" : "deploy";
+// Whether the item's close merged its commit, which then waits to go live.
+function closeMerged(item: Pick<TodoItem, "closing">): boolean {
+  return item.closing?.phase === "waiting-batch" || item.closing?.phase === "waiting-live";
 }
 
 // Whether a job is still going on for a row in this state: under way, winding down on its way to
@@ -1154,14 +1160,14 @@ export function sameItemsKept(before: TodoBoard, answer: TodoBoard): TodoBoard {
   };
 }
 
-// Whether a queue line counts as running, and whether it waits for its commit's deployment with no run going, as the
-// board's standing counts them.
-function runsNow(item: TodoItem): boolean {
-  return item.liveState === "starting" || item.liveState === "running";
+// Whether a queue line waits for its commit's deployment, and whether it counts as running, which one whose close
+// merged no longer does, as the board's standing counts them.
+function waitsForDeploy(item: TodoItem): boolean {
+  return closeMerged(item);
 }
 
-function waitsForDeploy(item: TodoItem): boolean {
-  return !runsNow(item) && (item.closing?.phase === "waiting-batch" || item.closing?.phase === "waiting-live");
+function runsNow(item: TodoItem): boolean {
+  return !waitsForDeploy(item) && (item.liveState === "starting" || item.liveState === "running");
 }
 
 // The board with the lines a word named read again put in where they stand, each that came back as it was kept as the

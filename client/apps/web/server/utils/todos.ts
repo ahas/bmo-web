@@ -580,8 +580,8 @@ function standingOf(
 
   return {
     queue: items.filter((item) => inList(item, "queue")).length,
-    running: items.filter((item) => inList(item, "queue") && going(item)).length,
-    deploy: items.filter((item) => inList(item, "queue") && !going(item) && waitsForDeploy(item)).length,
+    running: items.filter((item) => inList(item, "queue") && going(item) && !waitsForDeploy(item)).length,
+    deploy: items.filter((item) => inList(item, "queue") && waitsForDeploy(item)).length,
     deploying: 0,
     pending: items.filter((item) => inList(item, "pending")).length,
     held: items.filter((item) => inList(item, "held")).length,

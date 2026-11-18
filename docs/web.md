@@ -1280,19 +1280,20 @@ edit to that file alone, once the guide below carries the word.
     began, the one begun first first, as the line takes them in the order they asked. With no run under way and no
     hold standing, the mark stands them in the info colour behind an hourglass, the first in the line named:
     「배포 순서 대기 · bmo-job」, or 「배포 순서 대기 · bmo-job 외 4」 for several. The popover of any mark lists them
-    under 순서 대기, each by its unit, its commit's short hash and how long it has waited. A member hears nothing of
+    under 순서 대기, each by its place in the line, the first to go being 1, its unit, its commit's short hash and
+    how long it has waited. A member hears nothing of
     them. The testbed serves no reading of its line (`docs/boundary.md`, 「Gaps the console meets」).
   - Wide, it is a spinning mark, 「배포 중」, the stage and the time since the deployment began,
     ticking each second in tabular figures. At phone width it is the spinning mark alone, its words
     in its tooltip. Whatever its state, its words and its icon take the badges' darker step of its colour, so they
     read at 4.5:1 on the bar in both themes.
-  - Pressed, it opens a popover: the stages first, then what the deploy carries — every commit since the deploy
-    that put the release before this one live, oldest first, each by its short hash and subject, and the commit
-    itself — then the last lines of the deployment unit's journal, read with `journalctl` again every few seconds
+  - Pressed, it opens a popover: the stages first, then what the deploy brings live — every commit since the deploy
+    before it, oldest first, each by its short hash and subject, and the commit itself, the very commits a TODO
+    row's 배포 중 is read from, so the popover and the panel name the same items — then the last lines of the deployment unit's journal, read with `journalctl` again every few seconds
     while the popover stands. A commit whose subject names an item (`#NNNN`) opens that item in the TODO panel, as
-    the hold's items do. The carried commits are read from the deployed log and from the build tree's own git log
-    between the two deploys; the release's version commit is its marker rather than work it carries, so it is left
-    off, and a deploy that carries only that one still shows it.
+    the hold's items do. The commits are read from the deployed log and from the build tree's own git log
+    between the two deploys; a version commit is a marker rather than work, so it is left
+    off, and a deploy that brings only that one still shows it.
   - **The stages, what goes up and the journal are the standing run's alone:** a run under way, or one ended within
     the two minutes its end stands. Under a hold or the line with no such run, the popover shows no run's.
   - **The mark's own words head the popover at phone width alone.** Wide, the bar already says them beside the
@@ -6514,7 +6515,9 @@ Four bounds keep it from growing forever.
     that takes; the agency keeps the job's lease through the close (its `docs/role-slots.md`, 「The line」), so the line
     never falls back to 대기 on its way out. **배포 대기** and **배포 중** are states of their own, each with its own
     filter chip, count and colour, apart from 대기: an item whose close merged its commit has its work done, and no
-    queue would take it again. 배포 대기 (the console's info colour) stands for such an item no job runs on, and
+    queue would take it again. 배포 대기 (the console's info colour) stands for such an item, whether or not its job still goes on past
+    its close: a row says one state, so one whose close merged is never 진행 중, and neither the 진행 중 chip nor its
+    count takes it; and
     배포 중 (its secondary colour) for one a deployment under way carries, which the panel reads from the deploy view
     the title bar reads (「Deployment in the title bar」), since the board carries no deployment. The strip counts
     them apart from the queue's own, and the 대기 chip counts neither. **배포 실패** is the chip's word, in the
@@ -6550,11 +6553,12 @@ Four bounds keep it from growing forever.
     merged among them, says so in a chip of its own, 「배포 중 · bmo-drive」, and so does a waiting deployment of that
     kind. An item counts under the 배포 중 chip while any of its commits is being put live. The
     commits a run brings live are those since the last deploy its root's deployed log wrote before the run began, its
-    own commit last, not the whole release its popover lists: an item whose commit an earlier deploy of the same
-    release put live is not carried again, a run of the commit already live brings nothing, and the unit named is the repository the item's commit goes live in, which need not be
+    own commit last, as its popover lists them: an item whose commit an earlier deploy
+    put live is not carried again, a run of the commit already live brings nothing, and the unit named is the repository the item's commit goes live in, which need not be
     the repository the item is assigned to. Where no run under way carries a commit but a deployment waiting in the
     line brings it — the commits from the release its root has live to the commit the waiting deployment's command
-    names, read from the same build tree — its chip says 「배포 순서 대기 · bmo-job」 in the info colour, and an item
+    names, read from the same build tree — its chip says 「배포 순서 대기 3번 · bmo-job」 in the info colour, the number the place that
+    deployment stands at in the line, the first to go being 1, and an item
     none of whose commits is being put live counts under the 배포 대기 filter chip; a waiting deployment whose commit
     that tree does not hold yet brings nothing, and the chip stays 배포 대기. Where the run the title bar reads brought
     a commit the item still waits on and ended 「배포 실패」 or 「배포 실패 · 롤백」 — a gate that did not pass among

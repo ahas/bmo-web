@@ -67,7 +67,7 @@ export function shownReading(readings: readonly DeployReading[], alive: (pid: nu
   return latest(running, (reading) => reading.record!.startedAt) ?? latest(held, endOf) ?? { unitName: null, record: null, writtenAt: null, root: null };
 }
 
-/** Every run under way, each read with the commits it carries and brings live: several units deploy at once. */
+/** Every run under way, each read with the commits it brings live: several units deploy at once. */
 export function runningDeployRuns(readings: readonly DeployReading[], alive: (pid: number) => boolean = processAlive): DeployRunView[] {
   return readings
     .filter((reading) => reading.record !== null && deployPhase(reading.record, alive) === "running")
@@ -182,20 +182,6 @@ function gitIn(root: string, args: readonly string[]): string | null {
   return done.exitCode === 0 ? done.stdout.toString() : null;
 }
 
-// The version a commit's `VERSION` file held.
-function versionAtCommit(root: string, commit: string): string | null {
-  const version = gitIn(root, ["show", `${commit}:VERSION`])?.trim() ?? "";
-
-  return version === "" ? null : version;
-}
-
-// The version a deploy line was at: the version its own subject names, or the one its commit's `VERSION` file held.
-function versionOf(root: string, entry: DeployLogEntry): string | null {
-  const named = /^chore\([^)]*\): version (\d+\.\d+\.\d+)$/.exec(entry.subject);
-
-  return named === null ? versionAtCommit(root, entry.commit) : (named[1] ?? null);
-}
-
 // The commits between two deploys, oldest first, each with its subject.
 function carriedBetween(root: string, from: string | null, to: string): { commit: string; subject: string }[] {
   const out = gitIn(root, from === null
@@ -215,12 +201,6 @@ function itemInSubject(subject: string): number | null {
   const named = /#(\d+)\b/.exec(subject);
 
   return named === null ? null : Number(named[1]);
-}
-
-/** What a deployment carries for the popover, the whole release, and what it brings live of its own. */
-export interface DeployCommits {
-  carried: DeployCommit[];
-  brings: DeployCommit[];
 }
 
 // The commits from one deploy line to a commit, oldest first, as a tab reads them: a version bump is the release's
@@ -249,45 +229,24 @@ function commitsUpTo(root: string, from: DeployLogEntry | null, current: string,
 }
 
 /**
- * What a deployment carries and what it brings live. It carries the commits from the deploy before the release it
- * puts live to its own commit, oldest first: a second deploy of the same version is still that release's deploy, so
- * the popover lists the release whole. It brings live only the commits since the deploy line before it, which the
- * release live before it did not hold, and that is what a TODO row is carried by. The deployed log names the deploys
- * and their commits; the build tree the root keeps carries the commits in between.
+ * What a deployment brings live, oldest first: the commits since the deploy line before it, which the release live
+ * before it did not hold. It is what the popover lists and what a TODO row is carried by. The deployed log names the
+ * deploys and their commits; the build tree the root keeps carries the commits in between.
  */
-export function readDeployCommits(reading: DeployReading): DeployCommits {
+export function readDeployCommits(reading: DeployReading): DeployCommit[] {
   const root = reading.root ?? null;
   const deployed = root === null ? null : readDeployedRecord(root);
   // A run under way has its own commit already in its progress record, while the deployed record still names the
   // release before it.
   const current = reading.record?.commit ?? deployed?.commit ?? null;
 
-  if (root === null || current === null) return { carried: [], brings: [] };
+  if (root === null || current === null) return [];
 
-  // A run under way carries the version its own commit names; a finished one carries the version its record names.
-  const version = versionAtCommit(root, current) ?? deployed?.version ?? null;
   const entries = readDeployLog(root);
   const at = entries.findLastIndex((entry) => entry.commit === current);
   // The deploy before this one: the line before it where the log names it, or the last line where the run has not
   // written its own yet.
   const before = at < 0 ? (entries.at(-1) ?? null) : (at > 0 ? entries[at - 1]! : null);
-  let previous = before;
-
-  // The release's boundary is the last deploy of another version, so what the release carried is not cut to the
-  // tip. Where no other version stands, the line before is the boundary.
-  if (version !== null) {
-    for (let index = (at < 0 ? entries.length : at) - 1; index >= 0; index--) {
-      const known = versionOf(root, entries[index]!);
-
-      if (known === null) break;
-      if (known !== version) {
-        previous = entries[index]!;
-        break;
-      }
-    }
-  }
-
-  const carried = commitsUpTo(root, previous, current, deployed, entries);
   // What a run brings is reckoned from the last deploy written before it began, never from an earlier line of its own
   // commit: a run that writes no line of its own, under way, failed or a deploy of the commit already live, would
   // otherwise bring again what that earlier deploy put live. A deploy read from its record alone has no start, and its
@@ -295,9 +254,9 @@ export function readDeployCommits(reading: DeployReading): DeployCommits {
   const started = reading.record?.startedAt ?? null;
   const since = started === null ? before : (entries.findLast((entry) => Date.parse(entry.at) < started) ?? null);
 
-  if (since !== null && sameCommitName(since.commit, current)) return { carried, brings: [] };
+  if (since !== null && sameCommitName(since.commit, current)) return [];
 
-  return { carried, brings: since === previous ? carried : commitsUpTo(root, since, current, deployed, entries) };
+  return commitsUpTo(root, since, current, deployed, entries);
 }
 
 // Whether two names of a commit, either of them shortened, name the same one.
@@ -354,7 +313,7 @@ export function runEnd(record: DeployProgress, phase: DeployRunView["phase"], st
 }
 
 /** The run as a tab reads it. A run cut off ends at the record's last write, the latest moment known of it. */
-export function deployRunView(record: DeployProgress, writtenAt: number | null, unitName: string | null, alive: (pid: number) => boolean = processAlive, commits: DeployCommits = { carried: [], brings: [] }, stopAsked: (unit: string) => boolean = unitStopAsked): DeployRunView {
+export function deployRunView(record: DeployProgress, writtenAt: number | null, unitName: string | null, alive: (pid: number) => boolean = processAlive, brings: DeployCommit[] = [], stopAsked: (unit: string) => boolean = unitStopAsked): DeployRunView {
   const phase = deployPhase(record, alive);
 
   return {
@@ -364,8 +323,7 @@ export function deployRunView(record: DeployProgress, writtenAt: number | null, 
     endedAt: record.ending?.at ?? (phase === "cut" ? (writtenAt ?? record.startedAt) : null),
     end: runEnd(record, phase, stopAsked),
     commit: record.commit,
-    carried: commits.carried,
-    brings: commits.brings,
+    brings,
     plan: record.plan,
     stages: record.stages,
     steps: record.steps,
@@ -374,11 +332,10 @@ export function deployRunView(record: DeployProgress, writtenAt: number | null, 
   };
 }
 
-/** What the administrator is handed beside the run that stands: the deployment's hold, what that run carries and
- * brings live, every run under way and the deployments waiting in the line. */
+/** What the administrator is handed beside the run that stands: the deployment's hold, what that run brings live, every run under way and the deployments waiting in the line. */
 export interface DeployDetail {
   hold: DeployView["hold"];
-  commits: DeployCommits;
+  brings: DeployCommit[];
   runs: DeployRunView[];
   line: DeployWaiting[];
 }
@@ -391,7 +348,7 @@ export interface DeployDetail {
 export function deployViewFor(reading: DeployReading, release: string, detail: DeployDetail | null, alive: (pid: number) => boolean = processAlive, stopAsked: (unit: string) => boolean = unitStopAsked): DeployView {
   if (detail === null) return { release, detailed: false, run: null, hold: null };
 
-  const run = reading.record === null ? null : deployRunView(reading.record, reading.writtenAt, reading.unitName, alive, detail.commits, stopAsked);
+  const run = reading.record === null ? null : deployRunView(reading.record, reading.writtenAt, reading.unitName, alive, detail.brings, stopAsked);
 
   return { release, detailed: true, run, runs: detail.runs, line: detail.line, hold: detail.hold };
 }

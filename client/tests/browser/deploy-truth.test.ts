@@ -93,7 +93,6 @@ function run(unitName: string, commit: string, ended: boolean): DeployRunView {
     endedAt: ended ? NOW - 300_000 : null,
     end: ended ? "live" : null,
     commit,
-    carried: brought(commit),
     brings: brought(commit),
     plan: ["check", "build", "restart"],
     stages: [{ stage: "build", at: NOW - 60_000 }],
@@ -276,8 +275,9 @@ describe.skipIf(!origin || !touchReady())("one deployment truth on the title bar
           }));
 
           expect(await listed.count()).toBe(1);
-          expect(entry.words.slice(0, 2)).toEqual(["unit-c", COMMITS[1].slice(0, 12)]);
-          expect(entry.words[2]).not.toBe("");
+          // Its place in the line first, the first to go being 1, then its unit and its commit.
+          expect(entry.words.slice(0, 3)).toEqual(["1", "unit-c", COMMITS[1].slice(0, 12)]);
+          expect(entry.words[3]).not.toBe("");
           expect(entry.figures).toContain("tabular-nums");
           // No run stands in the popover: the one that finished long ago is no part of it.
           expect(await page.locator("[data-deploy-stages]:visible").count()).toBe(0);

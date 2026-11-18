@@ -3156,9 +3156,8 @@ export interface DeployRunView {
   /** How it ended; null while it runs. */
   end: DeployEnd | null;
   commit: string | null;
-  /** The commits this deployment carries, oldest first, beside the commit itself: the whole release, for its popover. */
-  carried: DeployCommit[];
-  /** The commits it brings live, oldest first: those since the deploy line before it, which a TODO row is carried by. */
+  /** The commits it brings live, oldest first: those since the deploy line before it, which its popover lists and a
+   * TODO row is carried by. */
   brings: DeployCommit[];
   /** Every stage the run means to pass, in order. */
   plan: DeployStage[];

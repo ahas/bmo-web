@@ -13,5 +13,5 @@ export default defineEventHandler(async (event): Promise<DeployView> => {
 
   const [hold, line] = await Promise.all([readDeployHoldRow(), readDeployLine(readings)]);
 
-  return deployViewFor(reading, release, { hold, commits: readDeployCommits(reading), runs: runningDeployRuns(readings), line });
+  return deployViewFor(reading, release, { hold, brings: readDeployCommits(reading), runs: runningDeployRuns(readings), line });
 });

@@ -320,10 +320,13 @@ describe("moving an item within the queue", () => {
 describe("an item whose close merged its commit", () => {
   const merged = (id: number, over: Partial<TodoItem> = {}) => item(id, { closing: { phase: "waiting-batch", waiting: [{ repository: null, commit: "abc" }] }, ...over });
 
-  test("waits for its deployment, is being put live while one carries it, and runs while a job of it goes", () => {
+  test("waits for its deployment or is being put live while one carries it, whether or not a job of it still goes", () => {
     expect(todoState(merged(31))).toBe("deploy");
     expect(todoState(merged(32, { deploying: true }))).toBe("deploying");
-    expect(todoState(merged(33, { liveState: "running" }))).toBe("running");
+    // A row says one state: one whose close merged is never running, so the running filter does not take it.
+    expect(todoState(merged(33, { liveState: "running" }))).toBe("deploy");
+    expect(todoState(merged(33, { liveState: "running", deploying: true }))).toBe("deploying");
+    expect(jobGoingOn(todoState(merged(33, { liveState: "running" })))).toBe(false);
     expect(todoState(item(34, { closing: { phase: "testing", waiting: [] } }))).toBe("waiting");
     expect(stateColour(merged(31))).toBe("info");
     expect(stateColour(merged(32, { deploying: true }))).toBe("secondary");

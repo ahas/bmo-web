@@ -130,14 +130,10 @@ describe("what a deploy carries", () => {
     ].join("\n"));
     writeFileSync(join(root, "deployed.json"), JSON.stringify({ commit: final, subject: "fix(console): another change", version: "2.19.1", at: "2026-10-24T00:02:00.000Z" }));
 
-    // The popover lists the release whole; a TODO row is carried only by what this deploy brought past the one before.
-    expect(readDeployCommits({ unitName: "unit-carried", record: null, writtenAt: null, root })).toEqual({
-      carried: [
-        { commit: feature, subject: "fix(console): an item (#41)", todoId: 41 },
-        { commit: final, subject: "fix(console): another change", todoId: null }
-      ],
-      brings: [{ commit: final, subject: "fix(console): another change", todoId: null }]
-    });
+    // What the deploy brought past the one before it, which the popover lists and a TODO row is carried by.
+    expect(readDeployCommits({ unitName: "unit-carried", record: null, writtenAt: null, root })).toEqual([
+      { commit: final, subject: "fix(console): another change", todoId: null }
+    ]);
   });
 
   test("a deploy with no earlier line shows its own commit, so a deploy of one says one", () => {
@@ -158,7 +154,7 @@ describe("what a deploy carries", () => {
 
     const one = [{ commit: only, subject: "feat(console): the first change", todoId: null }];
 
-    expect(readDeployCommits({ unitName: "unit-first", record: null, writtenAt: null, root })).toEqual({ carried: one, brings: one });
+    expect(readDeployCommits({ unitName: "unit-first", record: null, writtenAt: null, root })).toEqual(one);
   });
 
   // A run writes its own line only once it is live, so the deploy before it is the last line written before it began:
@@ -194,8 +190,8 @@ describe("what a deploy carries", () => {
 
     const running = (at: string, commit: string) => ({ unitName: "unit-again", record: { ...record, commit, startedAt: Date.parse(at), ending: null }, writtenAt: null, root });
 
-    expect(readDeployCommits(running("2026-10-24T00:05:00.000Z", live)).brings).toEqual([]);
-    expect(readDeployCommits(running("2026-10-24T00:05:00.000Z", next)).brings).toEqual([{ commit: next, subject: "fix(console): the next change (#63)", todoId: 63 }]);
+    expect(readDeployCommits(running("2026-10-24T00:05:00.000Z", live))).toEqual([]);
+    expect(readDeployCommits(running("2026-10-24T00:05:00.000Z", next))).toEqual([{ commit: next, subject: "fix(console): the next change (#63)", todoId: 63 }]);
   });
 
   test("a deployment waiting in the line would bring the commits from the release live to its own, none it cannot read", () => {
@@ -258,21 +254,21 @@ describe("the run the mark stands", () => {
 
 describe("the deployment a tab is handed", () => {
   test("the administrator is handed the run and the hold as they stand, with every heavy step the run ended", () => {
-    const detail = { hold, commits: { carried: [], brings: [] }, runs: [], line: [] };
+    const detail = { hold, brings: [], runs: [], line: [] };
     const view = deployViewFor({ unitName: "unit-a", record, writtenAt: 3_000 }, "r1", detail, () => true);
 
     expect(view).toEqual({
       release: "r1",
       detailed: true,
       hold,
-      run: { unitName: "unit-a", phase: "running", startedAt: 1_000, endedAt: null, end: null, commit: record.commit, carried: [], brings: [], plan: record.plan, stages: record.stages, steps: record.steps, ahead: record.ahead, running: record.running },
+      run: { unitName: "unit-a", phase: "running", startedAt: 1_000, endedAt: null, end: null, commit: record.commit, brings: [], plan: record.plan, stages: record.stages, steps: record.steps, ahead: record.ahead, running: record.running },
       runs: [],
       line: []
     });
   });
 
   test("a run whose process went without ending is cut off at the record's last write", () => {
-    const detail = { hold: null, commits: { carried: [], brings: [] }, runs: [], line: [] };
+    const detail = { hold: null, brings: [], runs: [], line: [] };
 
     expect(deployViewFor({ unitName: "unit-a", record, writtenAt: 3_000 }, "r1", detail, () => false, () => false).run).toMatchObject({ phase: "cut", endedAt: 3_000 });
   });
@@ -280,7 +276,7 @@ describe("the deployment a tab is handed", () => {
   // The testbed writes a gate that did not pass and a refusal alike as stopped (its docs/deploy.md, 「What a
   // deployment says of itself as it runs」); a run cut off is withdrawn only where its unit was stopped on request.
   test("a run stopped at its gate failed, a refused one never began, and a cut one was withdrawn only where its unit was asked to stop", () => {
-    const detail = { hold: null, commits: { carried: [], brings: [] }, runs: [], line: [] };
+    const detail = { hold: null, brings: [], runs: [], line: [] };
     const ended = (over: Partial<DeployProgress>, alive = false, asked = false) => deployViewFor({ unitName: "unit-a", record: { ...record, ...over }, writtenAt: 3_000 }, "r1", detail, () => alive, (unit) => asked && unit === record.unit).run?.end;
     const stopped = { outcome: "stopped" as const, at: 4_000, why: "the gate did not pass" };
 

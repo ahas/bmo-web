@@ -160,8 +160,8 @@
           <div v-if="line.length > 0" class="flex flex-col gap-1" data-deploy-line>
             <p class="text-muted">{{ $t("deploy.label.line") }}</p>
             <ol class="flex flex-col gap-1">
-              <li v-for="one in line" :key="one.unit" class="flex min-w-0 items-center gap-2" data-deploy-waiting>
-                <UIcon name="i-material-symbols-hourglass-empty" class="size-4 shrink-0 text-info" aria-hidden="true" />
+              <li v-for="(one, index) in line" :key="one.unit" class="flex min-w-0 items-center gap-2" data-deploy-waiting>
+                <span class="w-4 shrink-0 text-end tabular-nums text-info" data-deploy-place>{{ index + 1 }}</span>
                 <span class="min-w-0 flex-1 truncate">{{ one.unitName }}</span>
                 <span v-if="one.commit !== null" class="shrink-0 font-mono text-muted">{{ one.commit.slice(0, 12) }}</span>
                 <span class="shrink-0 tabular-nums text-muted">{{ spanClock($t, Math.max(0, (now - one.since) / 1000)) }}</span>
@@ -305,15 +305,15 @@ const items = computed(() => view.value?.hold?.commits.flatMap((one) => (one.tod
 // under a hold or the line.
 const run = computed(() => standingRun(view.value, now.value));
 const line = computed(() => view.value?.line ?? []);
-const carried = computed(() => run.value?.carried ?? []);
+const brings = computed(() => run.value?.brings ?? []);
 const commit = computed(() => run.value?.commit ?? null);
 
-// What goes up, as one list: the hold's items, then the commits the run carries.
+// What goes up, as one list: the hold's items, then the commits the run brings live, the ones a TODO row is carried by.
 type Entry = { key: string; kind: "item"; id: number } | { key: string; kind: "commit"; one: DeployCommit };
 
 const entries = computed<Entry[]>(() => [
   ...items.value.map((id) => ({ key: `item-${id}`, kind: "item" as const, id })),
-  ...carried.value.map((one) => ({ key: `commit-${one.commit}`, kind: "commit" as const, one }))
+  ...brings.value.map((one) => ({ key: `commit-${one.commit}`, kind: "commit" as const, one }))
 ]);
 
 // How many entries the list shows while it stands folded, as a long quote of a Telegram message shows its first

@@ -46,7 +46,6 @@ const run = (phase: "running" | "ended", stage: string, unitName = "unit-a"): No
   endedAt: phase === "ended" ? Date.now() : null,
   end: phase === "ended" ? "live" : null,
   commit: null,
-  carried: [],
   brings: [],
   plan: [],
   stages: [{ stage: stage as never, at: Date.now() }],
@@ -315,8 +314,8 @@ describe.skipIf(!origin || !touchReady())("the deployment's mark", () => {
     test(`opens on the stages with what goes up folded at ${viewport.width}`, async () => {
       const context = await browser!.newContext({ viewport, serviceWorkers: "block" });
       const at = cookie.indexOf("=");
-      const carried = Array.from({ length: 6 }, (_, index) => ({ commit: `${index}`.repeat(40), subject: `Change number ${index + 1}`, todoId: index === 0 ? 1001 : null }));
-      const view: DeployView = { release: "release-a", detailed: true, hold: null, run: { ...run("running", "build"), plan: ["tree", "backup", "build", "restart"] as never, carried, commit: "f".repeat(40) } };
+      const brings = Array.from({ length: 6 }, (_, index) => ({ commit: `${index}`.repeat(40), subject: `Change number ${index + 1}`, todoId: index === 0 ? 1001 : null }));
+      const view: DeployView = { release: "release-a", detailed: true, hold: null, run: { ...run("running", "build"), plan: ["tree", "backup", "build", "restart"] as never, brings, commit: "f".repeat(40) } };
 
       await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
       await context.route(/\/api\/deploy$/, (route) => route.fulfill({ json: view }));

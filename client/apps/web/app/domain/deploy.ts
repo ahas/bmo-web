@@ -316,6 +316,8 @@ export interface ItemWayLive {
   unitName: string | null;
   repository: string | null;
   commit: string | null;
+  /** The place its deployment stands at in the line, the first to go being 1; none for a way not waiting its turn. */
+  place: number | null;
 }
 
 /** What of an item its way live is read from. */
@@ -375,14 +377,16 @@ export function itemWaysLive(view: DeployView | null | undefined, item: ItemOnIt
   const failed = run !== null && (run.end === "failed" || run.end === "rolled-back") ? run : null;
 
   const ways = waiting.flatMap((one): ItemWayLive[] => {
-    const way = (phase: ItemDeployPhase, unitName: string | null): ItemWayLive[] => [{ phase, unitName, repository: one.repository, commit: one.commit }];
+    const way = (phase: ItemDeployPhase, unitName: string | null, place: number | null = null): ItemWayLive[] => [
+      { phase, unitName, repository: one.repository, commit: one.commit, place }
+    ];
     const deploying = under.find((deployment) => carries(deployment.brings, item, one));
 
     if (deploying !== undefined) return way("deploying", deploying.unitName);
 
-    const inLine = line.find((deployment) => carries(deployment.brings, item, one));
+    const inLine = line.findIndex((deployment) => carries(deployment.brings, item, one));
 
-    if (inLine !== undefined) return way("in-line", inLine.unitName);
+    if (inLine !== -1) return way("in-line", line[inLine]!.unitName, inLine + 1);
     if (!merged) return [];
     if (failed !== null && carries(failed.brings, item, one)) return way("deploy-failed", failed.unitName);
 
@@ -392,11 +396,11 @@ export function itemWaysLive(view: DeployView | null | undefined, item: ItemOnIt
   const apart = (commits: readonly DeployCommit[]) => commits.some((one) => namesItem(one, item)) && !waiting.some((one) => carries(commits, item, one));
   const deploying = under.find((deployment) => apart(deployment.brings));
 
-  if (deploying !== undefined) return [...ways, { phase: "deploying", unitName: deploying.unitName, repository: null, commit: null }];
+  if (deploying !== undefined) return [...ways, { phase: "deploying", unitName: deploying.unitName, repository: null, commit: null, place: null }];
 
-  const inLine = line.find((deployment) => apart(deployment.brings));
+  const inLine = line.findIndex((deployment) => apart(deployment.brings));
 
-  if (inLine !== undefined) return [...ways, { phase: "in-line", unitName: inLine.unitName, repository: null, commit: null }];
+  if (inLine !== -1) return [...ways, { phase: "in-line", unitName: line[inLine]!.unitName, repository: null, commit: null, place: inLine + 1 }];
 
   return ways.length === 0 ? NO_WAYS : ways;
 }
@@ -418,7 +422,9 @@ export function itemWayLiveLabel(t: Translate, way: ItemWayLive): string {
   const place = way.unitName ?? way.repository;
   const commit = way.commit?.slice(0, COMMIT_SHOWN) ?? null;
 
-  return [t(ITEM_DEPLOY_LABELS[way.phase]), place, commit].filter((part) => part !== null).join(" · ");
+  const phase = way.place === null ? t(ITEM_DEPLOY_LABELS[way.phase]) : t("todo.label.deploy_in_line_at", { n: way.place });
+
+  return [phase, place, commit].filter((part) => part !== null).join(" · ");
 }
 
 /** The colour a row's way-live chip wears: waiting for its deployment or its turn, being put live, or its deployment
@@ -449,7 +455,7 @@ function deployingItem(item: TodoItem): TodoItem {
  * board does not carry: what tells the panel's rows being put live from those waiting for a deployment. */
 export function withDeploying(board: TodoBoard, view: DeployView | null | undefined): TodoBoard {
   const queue = board.queue.map((item) => (itemDeployPhase(view, item) === "deploying" ? deployingItem(item) : item));
-  const deploying = queue.filter((item) => item.deploying === true && item.liveState == null).length;
+  const deploying = queue.filter((item) => item.deploying === true).length;
 
   return { ...board, queue, standing: { ...board.standing, deploying } };
 }

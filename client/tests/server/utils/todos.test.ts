@@ -169,6 +169,19 @@ describe("the lists each item stands in", () => {
     expect(board.standing).toMatchObject({ queue: 5, running: 0, deploy: 3, deploying: 0 });
   });
 
+  test("an item whose close merged counts as waiting for its deployment while its job still goes, never as running", async () => {
+    stand([
+      item(34, { state: "leased", labels: { "close-phase": "waiting-batch", "close-commit": "aaa111" } }),
+      item(36, { state: "leased" })
+    ]);
+    held.jobs = [
+      { id: 1, itemId: 34, state: "reviewing", heldFor: null },
+      { id: 2, itemId: 36, state: "running", heldFor: null }
+    ];
+
+    expect((await readTodoBoard()).standing).toMatchObject({ queue: 2, running: 1, deploy: 1 });
+  });
+
   test("an item its job held only until its commit goes live stands in the queue as waiting, never set aside", async () => {
     const waitingLive = { "close-phase": "waiting-live", "close-commit": "abc123", "hold-after-deploy": "abc123" };
 

@@ -305,6 +305,13 @@ describe("the repositories tab", () => {
     expect(templateOf(repositoryDialog)).toContain("form.downgradeHeal === DEFAULT_DOWNGRADE_HEAL");
   });
 
+  test("offers a support count of auto, the agency's default, or a fixed count, and shows auto in the row", () => {
+    expect(templateOf(repositoryDialog)).toContain('<USelect v-model="form.supportCount" :items="supportCountItems"');
+    expect(scriptOf(repositoryDialog)).toContain("supportCount: DEFAULT_SUPPORT_COUNT");
+    expect(scriptOf(repositoryDialog)).toContain("value === DEFAULT_SUPPORT_COUNT");
+    expect(scriptOf(repositories)).toContain('repository.supportCount === "auto" ? t("common.label.auto")');
+  });
+
   test("offers no removal while a job holds one of its checkouts", () => {
     expect(scriptOf(repositories)).toContain("disabled: held || removing.value !== \"\"");
   });

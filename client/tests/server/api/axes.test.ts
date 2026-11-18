@@ -342,6 +342,7 @@ describe("the repositories", () => {
       name: "repo-a",
       label: "repo-a",
       ownLabel: null,
+      supportCount: 1,
       sampling: { temperature: 0.7 },
       samplingSettings: [{ name: "temperature", min: 0, max: 2 }, { name: "top_k", min: 0, max: null, whole: true }, { name: "preserve_thinking", switch: true }],
       checkouts: [
@@ -362,6 +363,23 @@ describe("the repositories", () => {
     expect(calls).toMatchObject([{ method: "PATCH", path: "/repositories/repo-a", body }]);
     expect(await asked(repositoryChange, { params: { name: "repo-a" }, body: { nodeCheckouts: [{ path: "/x" }] } })).toMatchObject({ status: 400 });
     expect(await asked(repositoryChange, { params: { name: "repo-a" }, body: { sampling: { temperature: "warm" } } })).toMatchObject({ status: 400 });
+  });
+
+  test("carry a support count of auto or a whole number, and refuse one of any other shape before the agency", async () => {
+    for (const supportCount of ["auto", 0, 3] as const) {
+      calls.length = 0;
+
+      const got = await asked(repositoryChange, { params: { name: "repo-a" }, body: { supportCount } });
+
+      expect(got).toMatchObject({ status: 200, answer: { supportCount } });
+      expect(calls).toMatchObject([{ method: "PATCH", path: "/repositories/repo-a", body: { supportCount } }]);
+    }
+
+    calls.length = 0;
+    for (const supportCount of [-1, 1.5, "2", "manual", null]) {
+      expect(await asked(repositoryChange, { params: { name: "repo-a" }, body: { supportCount } })).toMatchObject({ status: 400 });
+    }
+    expect(calls).toHaveLength(0);
   });
 });
 

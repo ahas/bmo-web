@@ -2,7 +2,7 @@ import { ref } from "vue";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { shortModel } from "#shared/model-short";
 
-import type { ProviderModelsView, ProviderView, QuotaView, RoadView, RoleSessions } from "#shared/axes";
+import type { ProviderModelsView, ProviderView, QuotaView, RoadView, RoleSessions, SupportCount } from "#shared/axes";
 import type { Translate } from "#shared/wording";
 import type { Ref } from "vue";
 
@@ -15,6 +15,10 @@ import type { Ref } from "vue";
 export const DEFAULT_ROLE_SESSIONS: RoleSessions = "keep";
 // A repository's downgrade heal unless the owner turns it off (the agency's `docs/repositories.md`).
 export const DEFAULT_DOWNGRADE_HEAL = true;
+// A repository's support count unless the owner fixes one, and the most it may fix (the agency's
+// `docs/repositories.md`).
+export const DEFAULT_SUPPORT_COUNT: SupportCount = "auto";
+export const SUPPORT_COUNT_MOST = 8;
 
 // The one effort scale a road names a level on, lowest first (the agency's `docs/provider-order.md`, 「Effort and
 // thinking」).

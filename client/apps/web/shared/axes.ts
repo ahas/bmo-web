@@ -193,6 +193,10 @@ export interface CheckoutView {
   job: { jobId: number | null; itemId: number | null; role: string | null } | null;
 }
 
+// How many support checkouts a repository keeps beside its base (the agency's `docs/repositories.md`): `auto`, a
+// checkout grown whenever a launch finds every one held, or that many fixed, none at 0.
+export type SupportCount = "auto" | number;
+
 // One repository as its row holds it, with its checkouts (the agency's `docs/repositories.md`).
 export interface RepositoryView {
   name: string;
@@ -201,7 +205,7 @@ export interface RepositoryView {
   icon: string | null;
   path: string;
   nodeName: string | null;
-  supportCount: number;
+  supportCount: SupportCount;
   prefixDocuments: string[];
   preamble: string | null;
   rules: string | null;

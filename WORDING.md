@@ -106,6 +106,9 @@
   a role's sessions kept or opened anew → 유지, 새로. Never 라우트, 라우팅, 우선순위 목록.
 - a repository, where executing work runs → 저장소: 저장소, 저장소 추가, 작업 저장소; the model a repository pins →
   고정 모델; no pin → 역할 에이전트. A deployment's own model → 등록 모델; a file its engine serves → 모델 파일.
+- the checkouts a repository keeps beside its base for jobs to run in at once → 추가지원 체크아웃: 추가지원 체크아웃 수,
+  추가지원 {n} in a row; a count the service grows itself rather than one fixed → 자동, `자동 (기본값)` among the
+  choices. Never 오토, 알아서.
 - the road a role's next run goes out on → 지금. What chose a job's road → 항목 지정 (the
   item's own model), 강제 지정, 고정 모델 or 공급자 순서. Never 고정 for a force, which is a repository's pin.
 - a value equal to the default a service states → `<value> (기본값)`, after the value and never in its place; a

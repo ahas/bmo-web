@@ -44,7 +44,7 @@
 
       <template #checkouts-cell="{ row }">
         <span :class="CELL_TEXT" class="whitespace-nowrap text-sm tabular-nums text-highlighted">
-          {{ $t("agents.label.checkouts_value", { support: countText(row.original.supportCount), held: countText(heldCount(row.original)), all: countText(row.original.checkouts.length) }) }}
+          {{ $t("agents.label.checkouts_value", { support: supportText(row.original), held: countText(heldCount(row.original)), all: countText(row.original.checkouts.length) }) }}
         </span>
       </template>
 
@@ -131,6 +131,11 @@ const columns = computed<SettingsColumn<RepositoryView>[]>(() => [
 
 function nodeLabel(name: string): string {
   return nodes.value?.find((node) => node.name === name)?.label ?? name;
+}
+
+// Its support count: auto where the agency grows its support checkouts as launches find them held, or the count fixed.
+function supportText(repository: RepositoryView): string {
+  return repository.supportCount === "auto" ? t("common.label.auto") : countText(repository.supportCount);
 }
 
 function heldCount(repository: RepositoryView): number {

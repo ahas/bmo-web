@@ -7,7 +7,7 @@ import { bundleWordOf, providerLabelOf, roadReasonOf } from "./agency-words";
 import type { Provider, Repository, Role, Supervisor } from "@agency/client";
 import type { components } from "@agency/client/schema";
 import type { GenerationSetting } from "#shared/agency";
-import type { CheckoutView, NodeCheckoutAsk, ProviderModelsView, ProviderModelView, ProviderView, QuotaView, RepositoryView, RoadView, RoleAgentView, RoleBundleView, RoleSessionPage, RoleSessionView, RolesView, RoleView, SupervisorRoadStateView, SupervisorRoomView, SupervisorView, WorkNodeView } from "#shared/axes";
+import type { CheckoutView, NodeCheckoutAsk, ProviderModelsView, ProviderModelView, ProviderView, QuotaView, RepositoryView, RoadView, RoleAgentView, RoleBundleView, RoleSessionPage, RoleSessionView, RolesView, RoleView, SupervisorRoadStateView, SupervisorRoomView, SupervisorView, SupportCount, WorkNodeView } from "#shared/axes";
 
 type Schemas = components["schemas"];
 
@@ -611,7 +611,18 @@ function nodeCheckoutsAsked(value: unknown): NodeCheckoutAsk[] | null {
   return asked.every((one) => one !== null) ? (asked as NodeCheckoutAsk[]) : null;
 }
 
-/** One repository as the screen reads it. */
+// A support count as the agency answers or takes it, `auto` or a whole number; null where it is neither. Whether the
+// number stands within the agency's bound is the agency's to say.
+function supportCountOf(value: unknown): SupportCount | null {
+  return value === "auto" || wholeFrom(value, 0) ? value : null;
+}
+
+// A repository's change as the agency takes it. The published client still types a support count as a number alone,
+// where the agency takes `auto` as well (docs/boundary.md, 「Gaps the console meets」).
+type RepositoryAsk = Omit<Schemas["RepositoryAsk"], "supportCount"> & { supportCount?: SupportCount | null };
+
+/** One repository as the screen reads it; a support count that does not read as one stands as `auto`, the agency's
+ * default. */
 export function repositoryViewOf(repository: Repository): RepositoryView {
   return {
     name: repository.name,
@@ -620,7 +631,7 @@ export function repositoryViewOf(repository: Repository): RepositoryView {
     icon: repository.icon,
     path: repository.path,
     nodeName: repository.nodeName,
-    supportCount: repository.supportCount,
+    supportCount: supportCountOf(repository.supportCount) ?? "auto",
     prefixDocuments: repository.prefixDocuments,
     preamble: repository.preamble,
     rules: repository.rules,
@@ -641,9 +652,9 @@ export async function readRepositories(listed: (rows: Repository[]) => Repositor
 }
 
 /** A repository's fields as a screen sent them, each of its own shape; null where any is not. */
-export function repositoryChangeOf(body: unknown, adding: boolean): Schemas["RepositoryAsk"] | null {
+export function repositoryChangeOf(body: unknown, adding: boolean): RepositoryAsk | null {
   const held = record(body);
-  const change: Schemas["RepositoryAsk"] = {};
+  const change: RepositoryAsk = {};
 
   if (adding) {
     if (text(held.name) === null) return null;
@@ -659,9 +670,11 @@ export function repositoryChangeOf(body: unknown, adding: boolean): Schemas["Rep
   }
 
   if ("supportCount" in held) {
-    if (!wholeFrom(held.supportCount, 0)) return null;
+    const supportCount = supportCountOf(held.supportCount);
 
-    change.supportCount = held.supportCount;
+    if (supportCount === null) return null;
+
+    change.supportCount = supportCount;
   }
 
   if ("prefixDocuments" in held) {
@@ -707,12 +720,12 @@ export function repositoryChangeOf(body: unknown, adding: boolean): Schemas["Rep
   return change;
 }
 
-export async function addRepository(change: Schemas["RepositoryAsk"]): Promise<RepositoryView> {
-  return repositoryViewOf(await agencyCall(agency().POST("/repositories", { body: change })));
+export async function addRepository(change: RepositoryAsk): Promise<RepositoryView> {
+  return repositoryViewOf(await agencyCall(agency().POST("/repositories", { body: change as Schemas["RepositoryAsk"] })));
 }
 
-export async function changeRepository(name: string, change: Schemas["RepositoryAsk"]): Promise<RepositoryView> {
-  return repositoryViewOf(await agencyCall(agency().PATCH("/repositories/{repositoryName}", { params: { path: { repositoryName: name } }, body: change })));
+export async function changeRepository(name: string, change: RepositoryAsk): Promise<RepositoryView> {
+  return repositoryViewOf(await agencyCall(agency().PATCH("/repositories/{repositoryName}", { params: { path: { repositoryName: name } }, body: change as Schemas["RepositoryAsk"] })));
 }
 
 // A repository a job holds a checkout of is not removed.

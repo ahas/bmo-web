@@ -3396,9 +3396,10 @@ alone (「Access」); another account's agents are reached from 조직's 사용�
 - **One table of the repositories** that are the reader's own or the deployment's (「Access」; the agency's
   `docs/repositories.md`), one row each in the order the agency lists
   them: 저장소, its mark, its label and its name, the title column; 경로, its base checkout, with the node it stands on
-  where it stands on one; 체크아웃, how many support checkouts stand beside the base and how many of all its checkouts
-  a job holds now; 프리픽스 문서, how many; 고정 모델, the provider and model it pins, named short, or 역할 에이전트 where it
-  pins none; and 강등 복원, a switch. Under a repository whose checkout a job holds stands the job's item and role.
+  where it stands on one; 체크아웃, how many support checkouts it keeps beside the base, 자동 where the agency grows
+  them itself, and how many of all its checkouts a job holds now; 프리픽스 문서, how many; 고정 모델, the provider and
+  model it pins, named short, or 역할 에이전트 where it pins none; and 강등 복원, a switch. Under a repository whose
+  checkout a job holds stands the job's item and role.
   Pressing a row's name opens the repository's dialog; its more-menu holds 편집, 로그 and 삭제.
 - **The repository's dialog** is one form with one 저장 at its foot: 이름 (fixed once made), 표시 이름, 경로, 실행
   노드 — 이 기계 or a node that takes jobs — 추가지원 체크아웃 수, 노드 체크아웃, 프리픽스 문서, 머리말, 규칙 폴더, 개발
@@ -3407,6 +3408,9 @@ alone (「Access」); another account's agents are reached from 조직's 사용�
     (the agency's `docs/work-nodes.md`, 「Which nodes take jobs」), each by its label with the pack's word for how it is
     reached — SSH, or Jake for a node reached through a hub. A node the repository already names that takes no jobs
     now still stands as its own choice.
+  - **추가지원 체크아웃 수** is a choice of 자동, marked `(기본값)` as the agency's default, under which a launch that
+    finds every checkout of the repository held grows the next support checkout itself, or a fixed count from 0 to 8,
+    0 for none (the agency's `docs/repositories.md`). A new repository opens on 자동.
   - **노드 체크아웃** lists the checkouts kept on the work nodes, each with its node and path and a button taking it
     away; under it a node select of the nodes that take jobs and no checkout of this repository yet, and a path field —
     from the node's home or absolute, left empty with no placeholder for the agency's own place beside the base — add

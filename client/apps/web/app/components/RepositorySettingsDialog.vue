@@ -31,7 +31,7 @@
           <ChoiceSelect v-model="form.node" :items="nodeItems" value-key="value" class="w-full" :disabled="busy" :aria-label="$t('agents.label.exec_node')" />
         </UFormField>
         <UFormField :label="$t('agents.label.support_count')" name="supportCount" :error="errorAt('supportCount')">
-          <NumberInput v-model="form.supportCount" :min="0" :step="1" :digits="2" :disabled="busy" :aria-label="$t('agents.label.support_count')" />
+          <USelect v-model="form.supportCount" :items="supportCountItems" value-key="value" class="w-full" :disabled="busy" :aria-label="$t('agents.label.support_count')" />
         </UFormField>
       </div>
 
@@ -178,14 +178,15 @@
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 
-import { DEFAULT_DOWNGRADE_HEAL, JOB_LINE, markedDefault, refusalOf, useProviderModels, useProviders } from "~/domain/axes";
+import { DEFAULT_DOWNGRADE_HEAL, DEFAULT_SUPPORT_COUNT, JOB_LINE, markedDefault, refusalOf, SUPPORT_COUNT_MOST, useProviderModels, useProviders } from "~/domain/axes";
 import { sameValue } from "~/domain/form-values";
 import { generationChange, generationMeaning, settingsDraft } from "~/domain/generation";
 import { movedOrder } from "~/domain/agents";
+import { countText } from "~/domain/numbers";
 import { useRowDrag } from "~/domain/row-drag";
 
 import type { GenerationSetting } from "#shared/agency";
-import type { NodeCheckoutAsk, RepositoryView, WorkNodeView } from "#shared/axes";
+import type { NodeCheckoutAsk, RepositoryView, SupportCount, WorkNodeView } from "#shared/axes";
 
 interface Props {
   // The repository to edit; none opens the dialog for a new one.
@@ -225,7 +226,7 @@ interface RepositoryForm {
   label: string;
   path: string;
   node: string;
-  supportCount: number;
+  supportCount: SupportCount;
   prefixDocuments: string[];
   preamble: string;
   rules: string;
@@ -246,7 +247,7 @@ function emptyForm(): RepositoryForm {
     label: "",
     path: "",
     node: HERE,
-    supportCount: 0,
+    supportCount: DEFAULT_SUPPORT_COUNT,
     prefixDocuments: [],
     preamble: "",
     rules: "",
@@ -308,6 +309,15 @@ function errorAt(place: string): string | undefined {
 function nodeLabel(name: string): string {
   return nodes.value?.find((node) => node.name === name)?.label ?? name;
 }
+
+// Auto or a fixed count up to the agency's most; a count the repository holds beyond it still stands as its own choice.
+const supportCountItems = computed(() => {
+  const counts = Array.from({ length: SUPPORT_COUNT_MOST + 1 }, (_, count) => count);
+  const held = form.value.supportCount;
+  const values: SupportCount[] = ["auto", ...counts, ...(held === "auto" || counts.includes(held) ? [] : [held])];
+
+  return values.map((value) => ({ label: markedDefault(t, value === "auto" ? t("common.label.auto") : countText(value), value === DEFAULT_SUPPORT_COUNT), value }));
+});
 
 const nodeItems = computed(() => {
   const items = [{ label: t("agents.label.this_machine"), value: HERE }, ...(nodes.value ?? []).map((node) => ({ label: node.label, value: node.name, description: node.kind }))];

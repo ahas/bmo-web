@@ -636,7 +636,9 @@ for it, and no file or table of that unit is read meanwhile.
   console reads; where a field is typed as an open value — a supervisor's `sampling`, a repository's `sampling` — the
   console reads it as the agency's `docs/api.md` states it, a field it does not find standing as none. The client names
   no `roleName` filter on `GET /jobs`, which that document states, so the console asks it as written there; nor does
-  it name a job's `reviewing` state, which the console reads as that document states it.
+  it name a job's `reviewing` state, which the console reads as that document states it. It types a repository's
+  `supportCount` as a number alone, where the agency answers and takes `auto` as well, so the console reads and sends
+  it as that document states it.
 - **An engine's own sampling values.** The agency answers which sampling settings a repository may hold and their
   bounds, and says a setting left out is the engine's own default, whose value no route answers; so such a box stands
   empty with `(기본값)` as its placeholder (「The default among choices」 in `docs/web.md`).

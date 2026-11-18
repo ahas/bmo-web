@@ -8,8 +8,9 @@ import type { Browser, Page } from "playwright-core";
 // A link in a room's message stands a card filled from its page (docs/web.md, the link previews rule): the page's
 // title, description, site and picture, the picture served by the console itself, in a card whose shape does not
 // change as it fills, on either side of the room and at a desk's and a phone's width. The harness
-// browser-console.ts seeds two link messages into MEDIA_CHAT: person-b's to a page declaring its sharing tags (m30)
-// and the reader's own to a page declaring a title and a description alone (m31), each read through the harness's
+// browser-console.ts seeds link messages into MEDIA_CHAT: person-b's to a page declaring its sharing tags (m30), the
+// reader's own to a page declaring a title and a description alone (m31) and person-b's long words around a link
+// (m32), each read through the harness's
 // stand-in for the tool host as bmo-explorer's link preview answers it. It drives the console that harness stands
 // up, so the suite skips this where none is served.
 
@@ -34,7 +35,11 @@ afterAll(async () => {
   await browser?.close();
 }, BROWSER_HOOK_MS);
 
-// One message's card as drawn: its words, its box, its row's box, and its picture's source and loaded width.
+// The least width a card asks of its bubble, in CSS pixels.
+const CARD_LEAST = 320;
+
+// One message's card as drawn: its words, its box, its row's box, the room its bubble gives its cards, and its
+// picture's source and loaded width.
 async function card(page: Page, message: string) {
   return page.evaluate((id) => {
     const row = document.querySelector(`[data-message="${id}"]`)!;
@@ -42,6 +47,9 @@ async function card(page: Page, message: string) {
     const picture = link.querySelector<HTMLImageElement>("[data-link-picture]");
     const box = link.getBoundingClientRect();
     const rowBox = row.getBoundingClientRect();
+    // What the card list stands in, whose content box is the room the bubble gives its cards.
+    const holder = link.closest("ul")!.parentElement!;
+    const ground = getComputedStyle(holder);
 
     return {
       href: link.href,
@@ -50,6 +58,8 @@ async function card(page: Page, message: string) {
       description: link.querySelector("[data-link-description]")?.textContent?.trim() ?? null,
       picture: picture === null ? null : { src: picture.currentSrc, width: picture.naturalWidth },
       height: box.height,
+      width: box.width,
+      room: holder.clientWidth - parseFloat(ground.paddingLeft) - parseFloat(ground.paddingRight),
       inside: box.left >= rowBox.left && box.right <= rowBox.right
     };
   }, message);
@@ -67,6 +77,10 @@ describe.skipIf(!origin || !touchReady())("a link's card", () => {
         const page = await context.newPage();
 
         await page.goto(`${origin}/rooms/${MEDIA_CHAT}`, { waitUntil: "load" });
+
+        // A card is drawn once its message comes near the screen, and the long message under it keeps it further
+        // from the end on a phone.
+        await page.locator('[data-message="m30"]').scrollIntoViewIfNeeded();
 
         const theirs = page.locator('[data-message="m30"] [data-link-preview]');
         const before = await theirs.evaluate((element) => element.getBoundingClientRect().height);
@@ -96,6 +110,22 @@ describe.skipIf(!origin || !touchReady())("a link's card", () => {
 
         expect(mine).toMatchObject({ site: "127.0.0.1", title: "Plain page title", description: "The page's meta description.", picture: null, inside: true });
         expect(mine.height).toBe(filled.height);
+
+        // A card takes the whole room its bubble gives it, never past it: at its least width where the words are
+        // short and the row has the room, as wide as the bubble where long words widened it, and the bubble's room
+        // where a phone's bubble holds less.
+        const wide = await card(page, "m32");
+
+        for (const drawn of [filled, mine, wide]) expect(Math.abs(drawn.width - drawn.room)).toBeLessThan(1);
+        if (label === "desk") {
+          // The reader's own message is its address alone, narrower than a card: its bubble stands as wide as the
+          // card's least width asks, the card at exactly that width.
+          expect(Math.abs(mine.width - CARD_LEAST)).toBeLessThan(1);
+          expect(filled.width).toBeGreaterThanOrEqual(CARD_LEAST - 1);
+          expect(wide.width).toBeGreaterThan(CARD_LEAST + 40);
+        } else {
+          for (const drawn of [filled, mine, wide]) expect(drawn.width).toBeLessThanOrEqual(CARD_LEAST);
+        }
       } finally {
         await context.close();
       }

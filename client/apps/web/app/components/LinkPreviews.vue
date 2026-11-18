@@ -3,17 +3,21 @@
        site, the title and what the page says of itself, and the page's picture as a square at the trailing edge.
        A card is a link out of this console and opens in a tab of its own. It stands inside the bubble as a reply's
        quote does, told apart by a step of ground and its leading rule, with no border. Its width and height are
-       fixed before the page is read, so nothing moves when it fills: the title and the description share three
-       lines, the description taking what the title leaves. The cards are asked for only once the message comes
-       near the screen, and an address whose page said nothing stands as its site and address alone. -->
+       fixed before the page is read, so nothing moves when it fills: it asks the bubble for its least width, and
+       stands as wide as the bubble, whether the bubble's words made it wider or its room keeps it narrower; the
+       title and the description share three lines, the description taking what the title leaves. The cards are
+       asked for only once the message comes near the screen, and an address whose page said nothing stands as its
+       site and address alone. -->
   <ul ref="list" class="mt-2 flex min-w-0 flex-col gap-2">
-    <li v-for="card in cards" :key="card.url">
+    <!-- Each card is a flex item of its row: its own width is what it asks the bubble for — its words, contained,
+         ask for nothing — and it grows to the room the bubble gives and shrinks to a narrower one. -->
+    <li v-for="card in cards" :key="card.url" class="flex">
       <a
         :href="card.url"
         target="_blank"
         rel="noopener noreferrer"
         data-link-preview
-        class="group flex h-26 w-80 max-w-full overflow-hidden rounded-lg border-s-2 border-primary bg-default/60 transition-colors hover:bg-default active:bg-accented"
+        class="group flex h-26 w-80 max-w-full min-w-0 grow overflow-hidden [contain:inline-size] rounded-lg border-s-2 border-primary bg-default/60 transition-colors hover:bg-default active:bg-accented"
         @click.stop
       >
         <span class="flex min-w-0 flex-1 flex-col gap-2 px-3 py-2">

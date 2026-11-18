@@ -225,8 +225,10 @@
   users tab's never-word for a sign-in.
 - somebody writing in a room now → 입력 중: `{name} 입력 중…`, `{first}, {second} 입력 중…`, `{name} 외 {n}명 입력
   중…`, and 누군가 입력 중… where the room names nobody for them. Never 타이핑 중, 작성 중, 쓰는 중.
-- letting an account into a room → 대화상대 추가: 대화상대 추가, 추가했습니다, 추가하지 못했습니다. Never 초대, which is
-  the link that makes an account, nor 들이기, 입장.
+- letting an account into a room → 대화상대 추가: 대화상대 추가, 추가했습니다, 추가하지 못했습니다; several people at once
+  → `{name}님 외 {n}명을 대화상대로 추가했습니다`, an organisation's people → `{unit}을(를) 대화상대로 추가했습니다`, the particle the name's last sound takes; the
+  picker's field that finds both → 사람·조직, 이름이나 조직으로 찾기. Never 초대, which is the link that makes an account,
+  nor 들이기, 입장, and never 일괄 추가 or 단체 초대 for letting several in.
 - taking a member out of a room → 내보내기: 내보내기, 내보냈습니다, 내보내지 못했습니다; a member taking themselves
   out → 나가기: 나가기, 나갔습니다, 나가지 못했습니다. Never 강퇴, 추방, 퇴장.
 - the sidebar's one entry that brings a room in, however the reader may → 새 채팅. Its menu names each way by what it

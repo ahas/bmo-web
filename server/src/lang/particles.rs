@@ -15,6 +15,7 @@ pub struct Particle {
 #[serde(deny_unknown_fields)]
 pub struct Particles {
   pub subject: Particle,
+  pub object: Particle,
 }
 
 crate::part!(pub PARTICLES: Particles = "particles");

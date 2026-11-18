@@ -437,4 +437,28 @@ async fn an_account_line_names_each_account_by_its_shown_name_and_one_not_held_b
     said("account-left", json!({ "account": 9999 })).await,
     fill_marks(&FIXED_LINES.account_left, &[("account", "9999")])
   );
+  // Several accounts at once name the first and count the rest; one alone reads as the single line.
+  assert_eq!(
+    said("accounts-let-in", json!({ "accounts": [colleague, 9998, 9999], "by": opener })).await,
+    fill_marks(
+      &FIXED_LINES.accounts_let_in,
+      &[("account", "Colleague A"), ("others", "2"), ("by", "opener-a")]
+    )
+  );
+  assert_eq!(
+    said("accounts-let-in", json!({ "accounts": [colleague], "by": opener })).await,
+    fill_marks(&FIXED_LINES.account_let_in, &[("account", "Colleague A"), ("by", "opener-a")])
+  );
+  // An organisation stands by its name with the object particle, both forms where its last sound cannot be read.
+  assert_eq!(
+    said(
+      "unit-let-in",
+      json!({ "unit": 7, "unitName": "unit-a", "accounts": [colleague], "by": opener })
+    )
+    .await,
+    fill_marks(
+      &FIXED_LINES.unit_let_in,
+      &[("unit", &format!("unit-a{}", PARTICLES.object.unknown)), ("by", "opener-a")]
+    )
+  );
 }

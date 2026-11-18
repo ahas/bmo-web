@@ -19,3 +19,13 @@ export interface PersonView {
   mobile?: string;
   email?: string;
 }
+
+/** An organisation offered to let into a room: its number, its name and short name, the names of the units above it
+ * from its company down, and how many people it lets in. */
+export interface UnitChoice {
+  id: number;
+  name: string;
+  shortName: string | null;
+  path: string[];
+  people: number;
+}

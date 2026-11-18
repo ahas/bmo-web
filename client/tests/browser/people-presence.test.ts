@@ -157,7 +157,9 @@ describe.skipIf(!origin || !touchReady())("a person's presence outside a shared 
 
       await sheet(page);
       await page.locator("[data-room-let-in]").click();
-      await page.getByLabel(wording("members.label.person")).first().click();
+      // The field is typed in once the dialog stands, as its opening moves the focus into it.
+      await page.getByRole("dialog", { name: wording("members.title.let_in") }).waitFor({ timeout: 10_000 });
+      await page.getByLabel(wording("members.label.choice")).first().click();
       await page.keyboard.type("presence-");
       await option("other").waitFor({ timeout: 30_000 });
       await option("here").filter({ hasText: wording("room.label.presence_online") }).waitFor({ timeout: 30_000 });

@@ -4118,6 +4118,9 @@ Four bounds keep it from growing forever.
     room's own stands under it: the room's menu, its vertical-dots button, right after the name, then the pinned
     button (「What was done to a message」) and the window's time left (「The window's time left stands in the top
     bar」). The right end keeps only what every screen carries.
+  - An entry of the room's menu that opens a sheet or a dialog leaves the keyboard in it: the menu gives the
+    keyboard back to its button as it closes only where nothing opened over the screen, so it never takes it from
+    a field being typed in.
   - What the conversation holds to its top — a date mark, a new part's first line — is held under the top bar,
     and its end stands above the input bar: the conversation keeps the measured height of each bar as room at
     its top and foot, so nothing — the last message — is left behind either bar when
@@ -4565,9 +4568,12 @@ Four bounds keep it from growing forever.
     title instead, and one that declares no description its meta description; a page naming no site stands its
     address's host. Until the page has been read, and where it could not be, the card stands the host and the
     address.
-  - **Its shape is fixed before it is read,** so nothing moves when it fills: one width, capped by the bubble's,
+  - **Its shape is fixed before it is read,** so nothing moves when it fills: a least width the card never
+    narrows past, which the bubble's own width caps, filling the bubble where the bubble's words make it wider,
     and one height — the site's line and three lines the title and the description share, the description taking
-    what the title leaves — whatever the page declared. The picture stands as a square at the card's trailing edge,
+    what the title leaves — whatever the page declared. A bubble holding cards stacks its words, its cards and its
+    meta line, so it is as wide as the widest of them, its longest line of words or a card's least width: a short
+    message stands its card at that least width. The picture stands as a square at the card's trailing edge,
     inside that height. While the page is being read those three lines stand as skeleton lines; a picture that does
     not load leaves the card without it.
   - **It stands inside the bubble as a reply's quote does:** a step of ground over the bubble's under a leading rule
@@ -5501,10 +5507,19 @@ Four bounds keep it from growing forever.
   (the receiver's `docs/voiced-notices.md`, 「System notices」) — is the server's answer `notice` on that message.
   - It stands centred and muted like the date mark, its time after its words, with no photo, no name
     line and no bubble, so the chat agent is not seen to have said it.
+  - Its words break where they have a space, as a bubble's do, so a Korean word never folds a syllable onto a
+    line of its own.
   - It is still a message of the room: choosing, copying, replying and arrow movement reach it as
     any row.
   - It is not an agent's answer: it carries no chip line and no full reading, since it is never read
     in the chat agent's voice.
+- **A fixed line stands as a system line too.** A message the receiver keeps under the kind `fixed-line` — a line
+  it said into the room itself, from a code the server's pack renders (`docs/boundary.md`, 「Fixed lines」), such as
+  an account let in, leaving or taken out, people or an organisation let in together, or a room shut — is the
+  server's answer `notice`, read from that kind alone and never from its words or its sender, and stands as the
+  system notice does. A message carrying the same words under no kind stands as the words of the sender it is filed
+  under. A member a chat service says joined or left reaches the receiver as words alone, so it stands as the words
+  of the one the service filed it under.
 - **A screen opened mid-turn sees that line too.** The notice standing the line goes out once at turn start, so
   one not watching then cannot hear it, and if that notice was pushed out of what the bot holds while the stream
   broke and resumed, it does not come again. So this line is read not only from the notice but from the picture the
@@ -5879,14 +5894,32 @@ Four bounds keep it from growing forever.
   member. The room stands in the opener's company and belongs to the opener's unit, since a room belongs to its
   leader's unit and its leader is the opener (`docs/accounts.md`, 「A room's callers」). A reader with no BMO of their
   own is told so and nothing is made; the console goes to the room once it stands.
-- **대화상대 추가 lets a person in.** The 대화상대 sheet carries it for a reader who may let people in: the room's
-  opener, a head of the opener's unit, or the administrator, as the account service answers it (`POST /checks/entry`).
-  It opens a dialog: a person picked from the reader's directory, a switch 호출 허용 standing on,
-  and 추가. The console's server asks the account service whether the reader may let that person in — a person of
-  another company than the room's is refused, the administrator's choice among them — then tells the receiver the
-  account is let in by the reader (`PUT /rooms/{roomId}/accounts/{account}`), which writes a line into the room
-  saying who let whom in, and, with the switch on, grants the person the call into the room at the same moment
-  (「호출 권한」). The person reads the room from its first line on, as a chat service's group would show it.
+- **대화상대 추가 lets people in, several at once.** The 대화상대 sheet carries it for a reader who may let people
+  in: the room's opener, a head of the opener's unit, or the administrator, as the account service answers it
+  (`POST /checks/entry`). It opens a dialog with one select of several values, the console's one select, whose
+  search finds both the people of the reader's directory and the organisations of the reader's company, a switch
+  호출 허용 standing on, and 추가.
+  - What the search found stands in two groups under their headings, 사람 and then 조직, an organisation with the
+    names of the organisations above it and 구성원 and its count. Each pressed joins the choice, which stands in the
+    field as a chip each, an organisation's wearing its mark; pressing a chosen one again lets it go. A person
+    already a member is not offered.
+  - The words searched for are marked where a row shows them, as every list's search marks them (「List search」), and a
+    row found by what it does not show — a person's title, rank, position, duty or contact, an organisation's short
+    name — names that field at the end of the line under it, the match marked.
+  - An organisation stands for the people whose home unit it is and those holding a post in it then, who are not
+    members yet; the organisations under it are chosen on their own. A person who comes to it later is not let in
+    by it, and one who leaves it stays a member.
+  - 추가 lets the whole choice in at once. The console's server asks the account service whether the reader may let
+    each person in — a person of another company than the room's is refused, the administrator's choice among them —
+    and one refused refuses the whole: nobody is let in and the refusal is said in the dialog.
+  - It then tells the receiver each organisation is let in by the reader (`POST /rooms/{roomId}/unit-accounts`),
+    and the people chosen beside them who are not among its people (`POST /rooms/{roomId}/accounts`). The receiver
+    writes one line for each call into the room: who let the organisation in, or who let whom in, the first person
+    named and the rest counted. An organisation or a choice of people with nobody new in it is not told at all.
+  - Closing the dialog while it holds a choice, or with the switch turned off, asks first whether to throw it away,
+    as every form's dialog does; one holding nothing closes at once.
+  - With the switch on, each person let in is granted the call into the room at the same moment (「호출 권한」).
+    They read the room from its first line on, as a chat service's group would show it.
 - **A member leaves by themselves, and one who may let people in takes a member out.** A console member's row
   carries 나가기 for the reader's own row and 내보내기 for the others where the reader may let people in. Taken out
   (`DELETE /rooms/{roomId}/accounts/{account}`), the receiver writes who took whom out, or that a person left,

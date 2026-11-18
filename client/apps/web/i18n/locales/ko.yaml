@@ -2113,7 +2113,10 @@ members:
     console_user: 콘솔 사용자
     none: 대화상대 없음
     person: 사람
-    find: 이름으로 찾기
+    unit: 조직
+    unit_people: "구성원 {count}명"
+    choice: 사람·조직
+    find: 이름이나 조직으로 찾기
   status:
     loading: 대화상대 불러오는 중…
   action:

@@ -998,6 +998,10 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       // A person's link and the reader's own, each to a page the stand-in serves at its own address.
       shown(30, { text: `the page ${new URL(request.url).origin}/link-page is worth a look` }),
       shown(31, { text: `${new URL(request.url).origin}/link-page/plain`, senderId: PICTURES_SENDER, senderName: "pictures" }),
+      // A link inside words long enough to widen the bubble past the card's least width.
+      shown(32, {
+        text: `a longer note about the page, running on well past the width a card asks for on its own, ${new URL(request.url).origin}/link-page/plain and then some words after it`
+      }),
       ...SQUARE_PICTURES.map((id) => shown(id, {
         text: "a caption under the picture, long enough to wrap onto several lines in a bubble as wide as its picture", imagePath: `images/${MEDIA_CHAT}/${id}.jpg`,
         ...(id === 17 ? { senderId: PICTURES_SENDER, senderName: "pictures" } : {})

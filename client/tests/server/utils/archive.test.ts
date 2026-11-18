@@ -75,6 +75,12 @@ const voiced = [
   message(21, { room: -9, senderId: 33, senderName: "person-owner", agentName: "agent-a", voice: "bot-account" }),
   message(22, { room: -9, senderId: 33, senderName: "person-owner", round: "round:-9:1:2" })
 ];
+// A room's change in its members as the record files it, a fixed line under no sender of the room, and a person's
+// words that read the same under no kind.
+const membership = [
+  message(50, { room: -14, senderId: null, senderName: "agent-a", kind: "fixed-line", line: { code: "account-let-in", fields: { account: 4, by: 3 } }, text: "person-a let person-b in" }),
+  message(51, { room: -14, text: "person-a let person-b in" })
+];
 // A room two supervisors answer under numbers of their own: one the agency gives a label, one it gives none.
 const labelled = [
   message(30, { room: -13, senderId: 44, senderName: "u44", agentName: "agent-a" }),
@@ -138,6 +144,7 @@ const receiver = standIn("RECEIVER", (one) => {
   if (path === "/rooms/-9/messages/22/sender-is-owner") return answer({ owner: true });
   if (path === "/rooms/-13/answerers") return answer({ default: "", voice: "", items: [], more: false });
   if (path === "/rooms/-13/messages") return answer({ items: labelled, more: false });
+  if (path === "/rooms/-14/messages") return answer({ items: membership, more: false });
 
   if (path === "/rooms") return answer({ items: rooms, more: false });
 
@@ -334,6 +341,15 @@ describe("a page of a room", () => {
       ["6", true, true]
     ]);
     expect(read[1]!.briefing ?? null).toBeNull();
+  });
+
+  test("a fixed line stands as a system line by its kind, never by its words", async () => {
+    const read = (await readMessagePage(-14, null, 50)).messages;
+
+    expect(read.map((one) => [one.messageId, one.notice])).toEqual([
+      ["50", true],
+      ["51", false]
+    ]);
   });
 
   test("a message numbered past 2^53 carries its exact id", async () => {

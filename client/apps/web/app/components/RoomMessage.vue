@@ -102,7 +102,7 @@
                  the date mark: centred and muted, its time after it, with no photo, name line or
                  bubble, so the chat agent is not seen to have said it. It is still a message of the room, so
                  the row around it is chosen, copied and answered as any other. -->
-            <p v-if="props.item.notice" :id="props.item.key" data-notice data-words class="px-(--chat-choose-room) text-center text-sm text-muted">
+            <p v-if="props.item.notice" :id="props.item.key" data-notice data-words class="px-(--chat-choose-room) text-center text-sm text-muted" :class="wordsWrap">
               {{ props.item.shownText }}
               <span class="ms-1 text-dimmed tabular-nums">{{ clock }}</span>
             </p>
@@ -289,7 +289,7 @@
                       </div>
 
                       <LinkPreviews
-                        v-if="props.item.run === null && props.item.pending === null && links.length > 0"
+                        v-if="carded"
                         class="basis-full"
                         :chat-id="props.chatId"
                         :message-id="archivedId"
@@ -597,6 +597,8 @@ const metaRoom = ref<number | null>(null);
 // that player is the last thing before the meta line, so the line may stand at the end of the player's
 // own meta line, which keeps the blank for it there.
 const voiced = computed<boolean>(() => filed.value.some(heard));
+// Whether the message stands its link cards under its words.
+const carded = computed<boolean>(() => props.item.run === null && props.item.pending === null && links.value.length > 0);
 const playerLast = computed<boolean>(() => {
   const last = filed.value.at(-1);
 
@@ -718,7 +720,10 @@ const bodyLook = computed<string>(() => {
     return "contents";
   }
 
-  const flow = voiced.value ? "relative flex flex-col gap-y-(--chat-meta-gap)" : "relative flex flex-wrap items-end gap-x-2 gap-y-(--chat-meta-gap)";
+  // A body that stands a player or a link card stacks its parts, so the bubble is as wide as the widest of them —
+  // the words, a card's least width, the meta line — rather than all of them laid end to end, as a wrapping row
+  // is measured (docs/web.md, the link previews rule).
+  const flow = voiced.value || carded.value ? "relative flex flex-col gap-y-(--chat-meta-gap)" : "relative flex flex-wrap items-end gap-x-2 gap-y-(--chat-meta-gap)";
 
   if (bare.value) {
     return "relative flex flex-wrap items-end gap-x-1 gap-y-(--chat-meta-gap)";

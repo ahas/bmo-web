@@ -4,7 +4,7 @@ import { linkSender, listUsers, shownName, userOf } from "./account-service";
 import { fail } from "./fail";
 import { onOwnersRoad } from "./owner";
 import { moveAdministratorKey } from "./owner-key";
-import { MESSAGE_IDS, receiverRoute } from "./receiver";
+import { MESSAGE_IDS, receiver, receiverCall, receiverRoute } from "./receiver";
 import { streamedForm } from "./streamed-forms";
 
 import type { SignedIn } from "./accounts";
@@ -194,6 +194,22 @@ export async function roomAccounts(room: number): Promise<RoomAccount[]> {
 /** An account let into a room by another; the receiver writes who let whom in, and letting in again changes nothing. */
 export async function letIntoRoom(room: number, account: string, by: string): Promise<void> {
   await receiverRoute(`/rooms/${room}/accounts/${account}`, { method: "PUT", body: { by: Number(by) } }, CHANGES);
+}
+
+/** Several accounts let into a room by another at once, the receiver writing one line for all it let in (its
+ * `docs/api.md`, 「Rooms」); the keys it let in, those already members left out. */
+export async function letSeveralIntoRoom(room: number, accounts: readonly string[], by: string): Promise<string[]> {
+  const said = await receiverCall(receiver().POST("/rooms/{roomId}/accounts", { params: { path: { roomId: room } }, body: { accounts: accounts.map(Number), by: Number(by) } }), CHANGES);
+
+  return said.letIn.map(String);
+}
+
+/** An organisation's people let into a room by another, as they stand in it now, the receiver writing one line naming
+ * the organisation; the keys it let in, those already members left out. */
+export async function letUnitIntoRoom(room: number, unit: number, by: string): Promise<string[]> {
+  const said = await receiverCall(receiver().POST("/rooms/{roomId}/unit-accounts", { params: { path: { roomId: room } }, body: { unit, by: Number(by) } }), CHANGES);
+
+  return said.letIn.map(String);
 }
 
 /** A member taken out of a room by an account, themselves where they leave; the receiver writes who did it. */

@@ -74,7 +74,7 @@
                  screen carries. The menu button's own box stands 8px from the name's end, the gap every
                  heading row keeps between its title and its button: the bar's own 6px and 2px more. -->
             <template #trailing>
-              <UDropdownMenu :items="menuItems" :content="{ align: 'start' }">
+              <UDropdownMenu :items="menuItems" :content="roomMenuContent">
                 <UTooltip :text="$t('common.action.more')">
                   <UButton icon="i-material-symbols-more-vert" color="neutral" variant="ghost" class="ms-0.5" :aria-label="$t('common.action.more')" data-room-menu />
                 </UTooltip>
@@ -1090,6 +1090,16 @@ function questionArea(): WindowFrame | null {
   return { left: foot.left, top: head.bottom, width: foot.width, height: Math.max(0, foot.top - head.bottom) };
 }
 
+
+// The room's menu gives the keyboard back to its button as it closes, a moment after it has gone; an entry that opened a
+// sheet or a dialog keeps it instead, so the hand-back never takes it from a field typed in there (docs/web.md, the
+// room screen's title bar).
+const roomMenuContent = {
+  align: "start" as const,
+  onCloseAutoFocus: (event: Event) => {
+    if (document.querySelector('[role="dialog"][data-state="open"]') !== null) event.preventDefault();
+  }
+};
 
 const menuItems = computed<DropdownMenuItem[][]>(() => [
   [

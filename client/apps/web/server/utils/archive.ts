@@ -39,10 +39,12 @@ interface KeptFile {
 type SentVoice = "bot-account" | "human-avatar" | "human-reader";
 
 // The kinds the receiver's record holds a message under where it is more than a plain message (its `docs/api.md`,
-// 「Messages」): a thinking block it holds as a message, and a sticker, whether the record sent it or a chat service
-// handed its picture over as one.
+// 「Messages」): a thinking block it holds as a message, a sticker, whether the record sent it or a chat service
+// handed its picture over as one, and a fixed line the receiver said into the room itself, which stands as a system
+// line whoever it is filed under (docs/web.md, 「A fixed line stands as a system line too」).
 const THINKING = "thinking";
 const STICKER = "sticker";
+const FIXED_LINE = "fixed-line";
 
 interface ReceivedMessage {
   chatId: number;
@@ -61,7 +63,8 @@ interface ReceivedMessage {
   // are null on a message a provider carried in.
   agentName: string | null;
   voice: SentVoice | null;
-  // What the record keeps the message as, where it is more than a plain message: a sticker, or a thinking block.
+  // What the record keeps the message as, where it is more than a plain message: a sticker, a thinking block, or a
+  // fixed line.
   kind: string | null;
   files: KeptFile[];
   // Where the record says the message was forwarded from, on a message kept as a forward.
@@ -409,7 +412,7 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
         ...(voicedBy === undefined ? {} : { voicedBy }),
         ...(speaker === undefined ? {} : { speaker }),
         ...(speakerLabel === undefined ? {} : { speakerLabel }),
-        notice: agent && isSystemNotice(message.text),
+        notice: message.kind === FIXED_LINE || (agent && isSystemNotice(message.text)),
         ...(agent && message.kind === THINKING ? { thinking: true } : {}),
         ...(message.kind === STICKER ? { sticker: true } : {}),
         attachments: files.attachments,

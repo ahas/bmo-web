@@ -6,3 +6,9 @@ subject:
   closed: "이"
   open: "가"
   unknown: "이(가)"
+
+# The object particle, chosen the same way.
+object:
+  closed: "을"
+  open: "를"
+  unknown: "을(를)"

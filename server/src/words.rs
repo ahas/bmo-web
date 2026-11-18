@@ -13,7 +13,7 @@ use crate::lang::LANGUAGE;
 use crate::lang::chat_health::CHAT_HEALTH_WORDS;
 use crate::lang::draws::DRAWS;
 use crate::lang::fixed_lines::FIXED_LINES;
-use crate::lang::particles::PARTICLES;
+use crate::lang::particles::{PARTICLES, Particle};
 use crate::lang::roads::ROAD_WORDS;
 use crate::lang::supervisors::SUPERVISOR_WORDS;
 use crate::marks::fill_marks;
@@ -64,6 +64,18 @@ pub enum FixedLine {
   /// An account taken out of a room in the console by another.
   AccountTakenOut {
     account: AccountKey,
+    by: AccountKey,
+  },
+  /// Several accounts let into a room in the console by another, at once.
+  AccountsLetIn {
+    accounts: Vec<AccountKey>,
+    by: AccountKey,
+  },
+  /// An organisation's people let into a room in the console by another, the organisation by its name; the unit's
+  /// number and the accounts let in, which it also carries, are not read.
+  UnitLetIn {
+    #[serde(rename = "unitName")]
+    unit_name: String,
     by: AccountKey,
   },
   /// A code the pack holds no sentence for.
@@ -175,6 +187,12 @@ pub async fn rendered<C: ConnectionTrait>(
   let line = serde_json::from_value::<FixedLine>(Value::Object(asked))
     .map_err(|why| Refusal::bad(format!("the `{code}` line does not read: {why}")))?;
 
+  if let FixedLine::AccountsLetIn { accounts, .. } = &line
+    && accounts.is_empty()
+  {
+    return Err(Refusal::bad(format!("the `{code}` line names no account")));
+  }
+
   let accounts = shown_names(db, &line.accounts()).await?;
 
   line.text(names, &accounts).ok_or_else(|| {
@@ -213,6 +231,10 @@ impl FixedLine {
         [account.key(), by.key()].into_iter().flatten().collect()
       }
       Self::AccountLeft { account } => account.key().into_iter().collect(),
+      Self::AccountsLetIn { accounts, by } => {
+        accounts.iter().chain([by]).filter_map(AccountKey::key).collect()
+      }
+      Self::UnitLetIn { by, .. } => by.key().into_iter().collect(),
       _ => Vec::new(),
     }
   }
@@ -262,6 +284,28 @@ impl FixedLine {
       Self::AccountTakenOut { account, by } => fill_marks(
         &FIXED_LINES.account_taken_out,
         &[("account", &account.shown(accounts)), ("by", &by.shown(accounts))],
+      ),
+      Self::AccountsLetIn {
+        accounts: let_in,
+        by,
+      } => match let_in.as_slice() {
+        [] => return None,
+        [account] => fill_marks(
+          &FIXED_LINES.account_let_in,
+          &[("account", &account.shown(accounts)), ("by", &by.shown(accounts))],
+        ),
+        [first, rest @ ..] => fill_marks(
+          &FIXED_LINES.accounts_let_in,
+          &[
+            ("account", &first.shown(accounts)),
+            ("others", &rest.len().to_string()),
+            ("by", &by.shown(accounts)),
+          ],
+        ),
+      },
+      Self::UnitLetIn { unit_name, by, .. } => fill_marks(
+        &FIXED_LINES.unit_let_in,
+        &[("unit", &as_object(unit_name)), ("by", &by.shown(accounts))],
       ),
       Self::Unknown => return None,
     })
@@ -394,7 +438,15 @@ impl DrawResult {
 /// A name with its subject particle from the pack, chosen by whether the name's last sound closes on a
 /// consonant; both particles where its spelling does not say.
 pub fn as_subject(name: &str) -> String {
-  let words = &PARTICLES.subject;
+  with_particle(name, &PARTICLES.subject)
+}
+
+/// A name with the object particle its last sound takes.
+pub fn as_object(name: &str) -> String {
+  with_particle(name, &PARTICLES.object)
+}
+
+fn with_particle(name: &str, words: &Particle) -> String {
   let particle = match final_sound(name) {
     Some(false) => &words.open,
     Some(true) => &words.closed,

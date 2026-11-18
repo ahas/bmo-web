@@ -120,7 +120,7 @@ describe("a voice bubble", () => {
   const player = tagOf('v-else-if="heard(attachment)"');
 
   test("stands its parts in one column, so it asks for its widest part rather than all of them side by side", () => {
-    expect(source).toContain('voiced.value ? "relative flex flex-col gap-y-(--chat-meta-gap)"');
+    expect(source).toContain('voiced.value || carded.value ? "relative flex flex-col gap-y-(--chat-meta-gap)"');
   });
 
   test("hands the player the bubble's whole width, asking for 320 px", () => {

@@ -22,6 +22,10 @@ pub struct FixedLines {
   pub account_left: String,
   /// An account taken out of a room in the console by another.
   pub account_taken_out: String,
+  /// Several accounts let into a room in the console by another, at once.
+  pub accounts_let_in: String,
+  /// An organisation's people let into a room in the console by another.
+  pub unit_let_in: String,
 }
 
 crate::part!(pub FIXED_LINES: FixedLines = "fixed-lines");

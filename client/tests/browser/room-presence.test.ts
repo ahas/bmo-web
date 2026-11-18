@@ -107,7 +107,7 @@ async function open(
 
       if (picture === null || picture.style.display === "none") return;
 
-      (window as unknown as { pictureTransition: string }).pictureTransition = getComputedStyle(picture).transitionProperty;
+      Reflect.set(window, "pictureTransition", getComputedStyle(picture).transitionProperty);
       observer.disconnect();
     }).observe(document, { childList: true, subtree: true, attributes: true, attributeFilter: ["style"] });
   });
@@ -342,11 +342,11 @@ describe.skipIf(!origin || !touchReady())("who is here and who writes in a room"
 
       expect(await page.locator(`a[href$="/rooms/${OTHER_CHAT}"] [data-room-typing]`).count()).toBeGreaterThan(0);
       expect(await page.locator(`a[href$="/rooms/${CHAT}"] [data-room-typing]`).count()).toBe(0);
-      expect(await page.evaluate(() => (window as unknown as { pictureTransition: string }).pictureTransition)).toBe("opacity");
+      expect(await page.evaluate(() => Reflect.get(window, "pictureTransition"))).toBe("opacity");
 
       const { page: stillPage } = await visit(still, "one");
 
-      expect(await stillPage.evaluate(() => (window as unknown as { pictureTransition: string }).pictureTransition)).toBe("none");
+      expect(await stillPage.evaluate(() => Reflect.get(window, "pictureTransition"))).toBe("none");
     } finally {
       await welcome.close();
       await still.close();

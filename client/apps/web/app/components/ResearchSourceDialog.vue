@@ -6,10 +6,10 @@
     <form id="research-source-form" class="flex flex-col gap-4" @submit.prevent="void save()">
       <div v-if="props.source === null" class="grid gap-4 sm:grid-cols-2">
         <UFormField :label="$t('research.label.category')" name="categoryName">
-          <USelect v-model="draft.categoryName" :items="categoryItems" value-key="value" class="w-full" :aria-label="$t('research.label.category')" />
+          <ChoiceSelect v-model="draft.categoryName" :items="categoryItems" value-key="value" class="w-full" :aria-label="$t('research.label.category')" />
         </UFormField>
         <UFormField :label="$t('research.label.kind')" name="kind">
-          <USelect v-model="draft.kind" :items="kindItems" value-key="value" class="w-full" :aria-label="$t('research.label.kind')" />
+          <ChoiceSelect v-model="draft.kind" :items="kindItems" value-key="value" class="w-full" :aria-label="$t('research.label.kind')" />
         </UFormField>
       </div>
 

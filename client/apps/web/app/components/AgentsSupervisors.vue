@@ -18,7 +18,7 @@
          every supervisor offered, the one it names chosen; a choice is saved as it is made. -->
     <div v-if="supervisors !== undefined && supervisors.length > 0" class="px-4">
       <SettingsRow :label="$t('agents.label.default_answerer')">
-        <USelect
+        <ChoiceSelect
           :model-value="answerer"
           :items="answererItems"
           value-key="value"
@@ -148,7 +148,7 @@
         <RoadField v-model="draft.road" :line="SUPERVISOR_LINE" :whole="false" :refusal="addRefusal" :disabled="addBusy" :runs-as-owner="owner.owner" />
 
         <UFormField :label="$t('agents.label.work_repository')" name="repository" :error="addErrorAt('repository')">
-          <USelect v-model="draft.repository" :items="repositoryItems" value-key="value" class="w-full sm:w-1/2" :aria-label="$t('agents.label.work_repository')" />
+          <ChoiceSelect v-model="draft.repository" :items="repositoryItems" value-key="value" class="w-full sm:w-1/2" :aria-label="$t('agents.label.work_repository')" />
         </UFormField>
 
         <p v-if="addRefusal !== null && !ADD_FIELDS.has(addRefusal.field ?? '')" role="alert" class="break-words text-sm text-error">{{ addRefusal.text }}</p>

@@ -146,7 +146,7 @@
 
         <div class="grid gap-4 sm:grid-cols-3">
           <UFormField :label="$t('agents.label.thinking')" name="thinking" :error="errorAt('thinking')">
-            <USelect :model-value="form.thinking === '' ? undefined : form.thinking" :items="thinkingItems" value-key="value" class="w-full" :aria-label="$t('agents.label.thinking')" @update:model-value="(value: string) => (form.thinking = value === 'on' ? 'on' : 'off')" />
+            <ChoiceSelect :model-value="form.thinking === '' ? undefined : form.thinking" :items="thinkingItems" value-key="value" class="w-full" :aria-label="$t('agents.label.thinking')" @update:model-value="(value: string) => (form.thinking = value === 'on' ? 'on' : 'off')" />
           </UFormField>
           <UFormField v-for="one in GENERATION_FIELDS" :key="one.field" :label="one.label" :name="one.field" :error="errorAt(one.field)">
             <NumberInput

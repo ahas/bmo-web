@@ -23,7 +23,7 @@
     <template v-else>
       <SettingsGroup>
         <SettingsRow :label="$t('bmo_profile.label.company')">
-          <USelect :model-value="company" :items="companyItems" class="w-48" :aria-label="$t('bmo_profile.label.company')" data-bmo-company @update:model-value="(value: string) => pickCompany(value)" />
+          <ChoiceSelect :model-value="company" :items="companyItems" value-key="value" class="w-48" :aria-label="$t('bmo_profile.label.company')" data-bmo-company @update:model-value="(value: string) => pickCompany(value)" />
         </SettingsRow>
       </SettingsGroup>
 
@@ -77,9 +77,10 @@
                 <span class="truncate text-sm text-highlighted">{{ row.name }}</span>
                 <span v-if="followsLine(t, row) !== null" class="text-sm text-muted">{{ followsLine(t, row) }}</span>
               </div>
-              <USelect
+              <ChoiceSelect
                 :model-value="shownSetting(row)"
                 :items="settingItems(t, row.company)"
+                value-key="value"
                 size="sm"
                 class="w-36 shrink-0"
                 :aria-label="row.name"

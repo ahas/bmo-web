@@ -49,7 +49,7 @@
         </UFormField>
 
         <UFormField :label="$t('invites.label.company')" name="company">
-          <USelect :model-value="company" :items="companyItems" class="w-full" :aria-label="$t('invites.label.company')" data-invite-company @update:model-value="chooseCompany" />
+          <ChoiceSelect :model-value="company" :items="companyItems" value-key="value" class="w-full" :aria-label="$t('invites.label.company')" data-invite-company @update:model-value="chooseCompany" />
         </UFormField>
 
         <!-- The chosen company's tree, as the units tab draws it; the path down to the unit chosen reads above it. -->
@@ -60,11 +60,11 @@
         </UFormField>
 
         <UFormField :label="$t('invites.label.role')" name="role">
-          <USelect v-model="role" :items="roleItems" class="w-full" :aria-label="$t('invites.label.role')" data-invite-role />
+          <ChoiceSelect v-model="role" :items="roleItems" value-key="value" class="w-full" :aria-label="$t('invites.label.role')" data-invite-role />
         </UFormField>
 
         <UFormField :label="$t('invites.label.hours')" name="hours">
-          <USelect v-model="hours" :items="spans" class="w-full" :aria-label="$t('invites.label.hours')" />
+          <ChoiceSelect v-model="hours" :items="spans" value-key="value" class="w-full" :aria-label="$t('invites.label.hours')" />
         </UFormField>
 
         <p v-if="makeFailure !== ''" role="alert" class="break-words text-sm text-error">{{ makeFailure }}</p>

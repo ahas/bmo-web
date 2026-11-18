@@ -38,7 +38,7 @@
         />
       </UFormField>
       <UFormField :label="$t('agents.label.work_repository')" name="repository" :error="errorAt('repository')">
-        <USelect v-model="draft.repository" :items="repositoryItems" value-key="value" class="w-full" :disabled="busy" :aria-label="$t('agents.label.work_repository')" />
+        <ChoiceSelect v-model="draft.repository" :items="repositoryItems" value-key="value" class="w-full" :disabled="busy" :aria-label="$t('agents.label.work_repository')" />
       </UFormField>
     </div>
 

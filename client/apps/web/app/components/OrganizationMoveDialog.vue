@@ -5,14 +5,14 @@
   <SettingsDialog v-model:open="open" :title="step === 'form' ? $t('organization.action.move') : $t('organization.action.preview')" :dirty="changes">
     <UForm v-if="step === 'form'" id="unit-move-form" :state="draft" class="flex flex-col gap-4" @submit="preview">
       <UFormField :label="$t('organization.label.move_to')" name="to" required>
-        <USelect v-model="draft.to" :items="destinations" class="w-full" data-move-to />
+        <ChoiceSelect v-model="draft.to" :items="destinations" value-key="value" class="w-full" data-move-to />
       </UFormField>
       <UFormField v-if="positionItems.length > 2" :label="$t('organization.label.position')" name="position">
-        <USelect v-model="draft.position" :items="positionItems" class="w-full" data-move-position />
+        <ChoiceSelect v-model="draft.position" :items="positionItems" value-key="value" class="w-full" data-move-position />
       </UFormField>
       <SettingsGroup :title="$t('organization.label.role')">
         <SettingsRow v-for="user in draft.people" :key="user" :label="props.nameOf(user)" data-move-person>
-          <USelect v-model="draft.roles[user]" :items="roleItems" class="w-28" :aria-label="$t('organization.label.role_of', { name: props.nameOf(user) })" data-move-role />
+          <ChoiceSelect v-model="draft.roles[user]" :items="roleItems" value-key="value" class="w-28" :aria-label="$t('organization.label.role_of', { name: props.nameOf(user) })" data-move-role />
         </SettingsRow>
       </SettingsGroup>
     </UForm>

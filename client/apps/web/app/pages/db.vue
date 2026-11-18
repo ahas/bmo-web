@@ -58,11 +58,10 @@
             <!-- Each cell keeps the toolbar's own room and is as wide as what it holds: the table choice its
                  own width, at most a share a phone can carry, and the search a phone's short box. -->
             <div>
-              <USelectMenu :content="{ align: 'start' }"
+              <ChoiceSelect :content="{ align: 'start' }"
                 :model-value="table ?? undefined"
                 :items="choices"
                 value-key="value"
-                :search-input="{ placeholder: $t('db.placeholder.find_table'), icon: 'i-material-symbols-search' }"
                 class="max-w-36 sm:w-64 sm:max-w-none"
                 size="sm"
                 color="neutral"

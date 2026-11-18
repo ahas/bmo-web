@@ -8,7 +8,7 @@
   <HintTip v-if="running !== null" :text="$t('todo.label.agent_job_running')">
     <UBadge color="neutral" variant="outline" size="sm" icon="i-material-symbols-lock-outline" data-item-agent data-item-agent-running>{{ running }}</UBadge>
   </HintTip>
-  <USelect
+  <ChoiceSelect
     v-else-if="props.editable"
     :model-value="chosen"
     :items="items"

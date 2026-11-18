@@ -24,13 +24,11 @@
         </ul>
 
         <div v-if="!props.readOnly" class="flex min-w-0 flex-wrap items-center gap-2 border-t border-default pt-3">
-          <USelectMenu
+          <ChoiceSelect
             v-model="picked"
-            v-model:search-term="term"
-            :items="found"
+            :items="chosen"
+            :find="findPeople"
             value-key="value"
-            ignore-filter
-            :loading="finding"
             class="min-w-0 flex-1"
             :placeholder="$t('callers.label.find')"
             :aria-label="$t('callers.label.person')"
@@ -77,10 +75,15 @@ const loadFailed = ref(false);
 const busy = ref(false);
 const failure = ref("");
 
-const term = ref("");
-const found = ref<Found[]>([]);
-const finding = ref(false);
 const picked = ref<string | undefined>(undefined);
+// Everyone a search found since the dialog opened, so the field goes on naming the person picked once the list
+// closes, whichever search found them.
+const seen = new Map<string, Found>();
+const chosen = computed<Found[]>(() => {
+  const one = picked.value === undefined ? undefined : seen.get(picked.value);
+
+  return one === undefined ? [] : [one];
+});
 const allow = ref(true);
 
 async function read(): Promise<void> {
@@ -124,46 +127,29 @@ async function add(): Promise<void> {
   if (user === undefined) return;
 
   if (allow.value) await change(user, true);
-  if (failure.value === "") {
-    picked.value = undefined;
-    term.value = "";
-  }
+  if (failure.value === "") picked.value = undefined;
 }
 
-let asked = 0;
+// The people the directory finds for the words typed, those already allowed left out.
+async function findPeople(words: string): Promise<Found[]> {
+  const people = await $fetch<PersonView[]>("/api/people/search", { query: { q: words } });
+  const standing = new Set(held.value?.callers.map((caller) => caller.user) ?? []);
+  const offered = people
+    .filter((person) => !standing.has(person.user))
+    .map((person) => ({ label: person.organization === "" ? person.name : `${person.name} · ${person.organization}`, value: person.user }));
 
-watch(term, async (words) => {
-  const mine = ++asked;
+  for (const one of offered) seen.set(one.value, one);
 
-  if (words.trim() === "") {
-    found.value = [];
-    return;
-  }
-
-  finding.value = true;
-
-  try {
-    const people = await $fetch<PersonView[]>("/api/people/search", { query: { q: words } });
-
-    if (mine !== asked) return;
-
-    const standing = new Set(held.value?.callers.map((caller) => caller.user) ?? []);
-
-    found.value = people
-      .filter((person) => !standing.has(person.user))
-      .map((person) => ({ label: person.organization === "" ? person.name : `${person.name} · ${person.organization}`, value: person.user }));
-  } catch {
-    if (mine === asked) found.value = [];
-  } finally {
-    if (mine === asked) finding.value = false;
-  }
-});
+  return offered;
+}
 
 // Each opening reads the list afresh, since someone else may have changed it since the last look.
 watch(open, (standing) => {
   if (!standing) return;
 
   failure.value = "";
+  picked.value = undefined;
+  seen.clear();
   void read();
 });
 </script>

@@ -6,7 +6,7 @@
   <div class="flex flex-col gap-4">
     <SettingsGroup v-if="companies.length > 1">
       <SettingsRow :label="$t('catalogue.label.company')">
-        <USelect :model-value="company" :items="companyItems" class="w-48" :aria-label="$t('catalogue.label.company')" data-catalogue-company @update:model-value="(value: string) => pickCompany(value)" />
+        <ChoiceSelect :model-value="company" :items="companyItems" value-key="value" class="w-48" :aria-label="$t('catalogue.label.company')" data-catalogue-company @update:model-value="(value: string) => pickCompany(value)" />
       </SettingsRow>
     </SettingsGroup>
 

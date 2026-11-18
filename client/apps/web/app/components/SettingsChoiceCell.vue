@@ -2,7 +2,7 @@
   <!-- A cell whose value is one of a list: pressing it drops the list down from the cell, and the
        value picked is saved at once. A long list stands in groups, each under its head. A refused save
        says why in a notice and the cell stays as the bot holds it. -->
-  <USelect
+  <ChoiceSelect
     :model-value="props.value ?? undefined"
     :items="props.items"
     value-key="value"
@@ -21,7 +21,7 @@
         <slot />
       </span>
     </template>
-  </USelect>
+  </ChoiceSelect>
 </template>
 
 <script setup lang="ts">

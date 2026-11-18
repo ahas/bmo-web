@@ -166,6 +166,8 @@ describe.skipIf(!origin || !touchReady())("an item assigned by a model and a rol
       await page.locator(`li[data-todo-id="${FREE.id}"] [data-item-agent-free]:visible`).first().hover();
       await tooltip(page).waitFor({ timeout: 5_000 });
     } finally {
+      // A poll of the board still in flight would otherwise fail on a closed context.
+      await context.unrouteAll({ behavior: "ignoreErrors" });
       await context.close();
     }
   }, 120_000);
@@ -185,6 +187,7 @@ describe.skipIf(!origin || !touchReady())("an item assigned by a model and a rol
       expect(new URL(touch.page.url()).searchParams.get("todo")).toBeNull();
       expect(await touch.page.locator("[data-item-agent]:visible").count()).toBe(0);
     } finally {
+      await touch.context.unrouteAll({ behavior: "ignoreErrors" });
       await touch.close();
     }
   }, 120_000);
@@ -218,10 +221,13 @@ describe.skipIf(!origin || !touchReady())("an item assigned by a model and a rol
       expect(sent[0]).toEqual({ action: "model", id: FREE.id, model: "claude-sonnet-5", role: "builder" });
 
       await chooser.click();
-      await page.getByRole("option", { name: "worker-03" }).first().click();
+      // An option is named by all it shows, so the agent is found by its own label rather than inside a model's line of agents.
+      await page.getByRole("option").filter({ has: page.getByText("worker-03", { exact: true }) }).first().click();
       await sentCount(sent, 2);
       expect(sent[1]).toEqual({ action: "agent", id: FREE.id, agent: "worker-03" });
     } finally {
+      // A poll of the board still in flight would otherwise fail on a closed context.
+      await context.unrouteAll({ behavior: "ignoreErrors" });
       await context.close();
     }
   }, 120_000);

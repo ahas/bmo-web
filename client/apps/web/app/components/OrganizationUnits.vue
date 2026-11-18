@@ -36,7 +36,7 @@
           </ContentSkeleton>
           <template v-else>
             <div v-if="kindItems.length > 1" class="px-2 pt-2" data-unit-kind-filter>
-              <USelect :model-value="kindFilter" :items="kindItems" size="sm" class="w-full" :aria-label="$t('organization.label.kind')" @update:model-value="(value: string) => setKindFilter(value)" />
+              <ChoiceSelect :model-value="kindFilter" :items="kindItems" value-key="value" size="sm" class="w-full" :aria-label="$t('organization.label.kind')" @update:model-value="(value: string) => setKindFilter(value)" />
             </div>
             <OrganizationUnitTree v-if="kindFilter === KIND_ALL" v-model:expanded="expanded" class="w-max min-w-full p-2" :units="units" :chosen="chosen?.id ?? null" :dropping="dropUnit" @choose="choose" />
             <OrganizationKindUnits v-else class="p-2" :units="unitsOfKind" :chosen="chosen?.id ?? null" @choose="choose" />
@@ -102,14 +102,13 @@
 
             <SettingsGroup :title="$t('organization.label.heads')">
               <template #aside>
-                <USelectMenu
+                <ChoiceSelect
                   :model-value="undefined"
                   :items="people(chosen.heads)"
                   value-key="value"
                   icon="i-material-symbols-person-add-outline"
                   size="sm"
                   :placeholder="$t('organization.action.add_head')"
-                  :search-input="{ placeholder: $t('organization.placeholder.find_person') }"
                   :disabled="busy"
                   class="w-56 min-w-0 shrink"
                   :ui="PICKER_UI"
@@ -149,14 +148,13 @@
             <div ref="memberList">
               <SettingsGroup :title="$t('organization.label.members', { count: countText(chosen.members.length) })">
                 <template #aside>
-                  <USelectMenu
+                  <ChoiceSelect
                     :model-value="undefined"
                     :items="people(chosen.members)"
                     value-key="value"
                     icon="i-material-symbols-group-add-outline"
                     size="sm"
                     :placeholder="$t('organization.action.place')"
-                    :search-input="{ placeholder: $t('organization.placeholder.find_person') }"
                     :disabled="busy"
                     class="w-56 min-w-0 shrink"
                     :ui="PICKER_UI"
@@ -188,10 +186,11 @@
                   <div v-else :class="CHOOSE_CELL" />
                   <div class="flex min-w-0 flex-1 flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
                     <span class="min-w-0 flex-1 text-sm break-words text-highlighted">{{ gone(member) ? $t("organization.label.left_member", { name: nameOf(member) }) : nameOf(member) }}</span>
-                    <USelect
+                    <ChoiceSelect
                       v-if="!gone(member) && chosenRoles.length > 0 && view !== null"
                       :model-value="roleOfMember(member)"
                       :items="roleItems"
+                      value-key="value"
                       size="sm"
                       class="w-36 shrink-0"
                       :disabled="busy"
@@ -248,7 +247,7 @@
     <UDrawer v-if="narrow" v-model:open="treeOpen" :title="$t('organization.label.chart')">
       <template #body>
         <div v-if="kindItems.length > 1" class="pb-2">
-          <USelect :model-value="kindFilter" :items="kindItems" size="sm" class="w-full" :aria-label="$t('organization.label.kind')" @update:model-value="(value: string) => setKindFilter(value)" />
+          <ChoiceSelect :model-value="kindFilter" :items="kindItems" value-key="value" size="sm" class="w-full" :aria-label="$t('organization.label.kind')" @update:model-value="(value: string) => setKindFilter(value)" />
         </div>
         <div v-if="kindFilter === KIND_ALL" class="overflow-x-auto [scrollbar-width:thin]">
           <OrganizationUnitTree v-model:expanded="expanded" class="w-max min-w-full" :units="units ?? []" :chosen="chosen?.id ?? null" @choose="choose" />
@@ -263,7 +262,7 @@
           <UInput v-model="draft.name" class="w-full" />
         </UFormField>
         <UFormField :label="$t('organization.label.parent')" name="parent">
-          <USelect v-model="draft.parent" :items="[{ label: $t('organization.label.new_company'), value: NEW_COMPANY }, ...parents(null)]" class="w-full" />
+          <ChoiceSelect v-model="draft.parent" :items="[{ label: $t('organization.label.new_company'), value: NEW_COMPANY }, ...parents(null)]" value-key="value" class="w-full" />
         </UFormField>
         <UAlert v-if="formFailure !== ''" color="error" variant="subtle" :description="formFailure" />
       </UForm>
@@ -279,16 +278,16 @@
           <UInput v-model="edit.name" class="w-full" />
         </UFormField>
         <UFormField v-if="editOf !== null && !isCompany(editOf)" :label="$t('organization.label.parent')" name="parent">
-          <USelect v-model="edit.parent" :items="parents(editOf.id)" class="w-full" />
+          <ChoiceSelect v-model="edit.parent" :items="parents(editOf.id)" value-key="value" class="w-full" />
         </UFormField>
         <UFormField :label="$t('organization.label.kind')" name="kind">
-          <USelect v-model="edit.kind" :items="editKindItems" class="w-full" data-unit-edit-kind />
+          <ChoiceSelect v-model="edit.kind" :items="editKindItems" value-key="value" class="w-full" data-unit-edit-kind />
         </UFormField>
         <UFormField :label="$t('organization.label.short_name')" name="shortName">
           <UInput v-model="edit.shortName" class="w-full" :maxlength="20" data-unit-edit-short-name />
         </UFormField>
         <UFormField v-if="editOf !== null && !isCompany(editOf)" :label="$t('organization.label.reports_to')" name="reportsTo">
-          <USelect v-model="edit.reportsTo" :items="reportsToItems(editOf.id)" class="w-full" data-unit-edit-reports-to />
+          <ChoiceSelect v-model="edit.reportsTo" :items="reportsToItems(editOf.id)" value-key="value" class="w-full" data-unit-edit-reports-to />
         </UFormField>
         <UAlert v-if="formFailure !== ''" color="error" variant="subtle" :description="formFailure" />
       </UForm>

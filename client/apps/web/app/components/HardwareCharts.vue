@@ -36,7 +36,7 @@
       <section class="@container flex min-w-0 flex-col gap-2" :aria-label="$t('hardware.title.record')">
         <div class="flex h-9 items-center justify-between gap-3">
           <h3 class="text-sm font-medium text-muted">{{ $t("hardware.title.record") }}</h3>
-          <USelect v-model="span" :items="spanItems" value-key="value" :content="{ align: 'end' }" size="sm" color="neutral" variant="subtle" class="w-24" :aria-label="$t('hardware.aria.span')" />
+          <ChoiceSelect v-model="span" :items="spanItems" value-key="value" :content="{ align: 'end' }" size="sm" color="neutral" variant="subtle" class="w-24" :aria-label="$t('hardware.aria.span')" />
         </div>
 
         <div class="grid gap-x-4 gap-y-2" :class="figures.length > 1 ? '@sm:grid-cols-2' : ''">

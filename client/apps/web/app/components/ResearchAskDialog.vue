@@ -10,7 +10,7 @@
       </p>
 
       <UFormField :label="$t('research.label.category')" name="categoryName">
-        <USelect v-model="draft.categoryName" :items="categoryItems" value-key="value" class="w-full" :aria-label="$t('research.label.category')" />
+        <ChoiceSelect v-model="draft.categoryName" :items="categoryItems" value-key="value" class="w-full" :aria-label="$t('research.label.category')" />
       </UFormField>
 
       <UFormField :label="$t('common.label.name')" name="name">

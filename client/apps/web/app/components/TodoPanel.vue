@@ -191,7 +191,7 @@
           </div>
 
           <UFormField v-for="field in conditionFields" :key="field.key" :label="field.label" size="sm">
-            <USelect :content="{ align: 'start' }"
+            <ChoiceSelect :content="{ align: 'start' }"
               :model-value="view.conditions[field.key] ?? ANY"
               :items="field.items"
               value-key="value"

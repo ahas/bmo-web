@@ -204,6 +204,8 @@ common:
     members_loading: 공유 대상 불러오는 중…
     muted: 음소거됨
     next_in: "{n}초 후 재생"
+    no_choices: 항목 없음
+    no_match: 찾은 항목 없음
     no_members: 공유 대상 없음
     no_rooms: 기록된 방 없음
     picture_loading: 사진 불러오는 중…
@@ -236,6 +238,7 @@ common:
     bad_action: 요청한 동작이 올바르지 않습니다.
     bad_cursor: 커서 값이 올바르지 않습니다.
     bad_limit: 개수 값이 올바르지 않습니다.
+    choices_find_failed: 검색하지 못했습니다.
     copy_failed: 복사하지 못했습니다.
     editor_failed: 코드 편집기를 불러오지 못했습니다.
     file_too_large: 보낼 수 있는 크기보다 큰 파일이 있습니다.
@@ -262,6 +265,7 @@ common:
 
   placeholder:
     member_search: 이름으로 찾기
+    search: 검색
 control:
   status:
     checking: API 로드 중
@@ -316,7 +320,6 @@ db:
     table_failed: 테이블을 읽지 못했습니다.
     tables_failed: 테이블 목록을 읽지 못했습니다.
   placeholder:
-    find_table: 테이블 찾기
     query: SELECT * FROM web_users ORDER BY created_at DESC
   status:
     no_result: 결과 없음
@@ -1630,7 +1633,6 @@ todo:
     resolve_reason: 해소 사유
     say_to_bmo: 채팅 에이전트에게 메시지 보내기
     search: 검색
-    source_search: 항목 번호나 제목
   status:
     approvals_loading: 결재 기록 불러오는 중…
     auto_paused_hint: 자동 진행 일시정지 중 · 재개해야 다음 단계가 시작됨
@@ -1905,8 +1907,6 @@ permissions:
 organization:
   aria:
     tabs: 조직 탭
-  placeholder:
-    find_person: 이름으로 찾기
   label:
     chart: 조직도
     none: 조직 없음

@@ -4,11 +4,10 @@
 <template>
   <div class="flex min-w-0 items-center gap-2">
     <div class="hidden items-center gap-2 sm:flex">
-      <USelectMenu
+      <ChoiceSelect
         :model-value="source"
         :items="sources"
         value-key="value"
-        :search-input="{ placeholder: $t('monitor_logs.label.category') }"
         :content="{ align: 'end' }"
         class="w-44"
         size="sm"
@@ -17,7 +16,7 @@
         :aria-label="$t('monitor_logs.label.category')"
         @update:model-value="setSource"
       />
-      <USelect
+      <ChoiceSelect
         :model-value="level"
         :items="levels"
         value-key="value"
@@ -54,11 +53,10 @@
       />
 
       <template #content>
-        <USelectMenu
+        <ChoiceSelect
           :model-value="source"
           :items="sources"
           value-key="value"
-          :search-input="{ placeholder: $t('monitor_logs.label.category') }"
           :content="{ align: 'start' }"
           class="w-full"
           size="sm"
@@ -67,7 +65,7 @@
           :aria-label="$t('monitor_logs.label.category')"
           @update:model-value="setSource"
         />
-        <USelect
+        <ChoiceSelect
           :model-value="level"
           :items="levels"
           value-key="value"

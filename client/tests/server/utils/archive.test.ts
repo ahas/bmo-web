@@ -384,13 +384,15 @@ describe("a page of a room", () => {
       ["64", false, "welcome"]
     ]);
     expect(read[4]!.replyQuote?.text).toBe("said people-joined");
-    // Each line is asked once a page, as its code and fields in the pack's language.
+    // Each line is asked once a page, as its code and fields in the pack's language. The page asks its lines at
+    // once, so the stand-in hears them in whatever order they arrive.
     const renders = accounts.asked.filter((one) => one.path === "/words/render" && one.body?.code !== "account-let-in");
+    const byCode = (one: unknown): string => String((one as { code?: unknown }).code);
 
-    expect(renders.map((one) => one.body)).toEqual([
+    expect(renders.map((one) => one.body).toSorted((a, b) => byCode(a).localeCompare(byCode(b)))).toEqual([
+      { code: "no-such-line", language: "ko" },
       { ...joinedLine.fields, code: "people-joined", language: "ko" },
-      { person: { senderId: 11, name: "person-a" }, code: "person-left", language: "ko" },
-      { code: "no-such-line", language: "ko" }
+      { person: { senderId: 11, name: "person-a" }, code: "person-left", language: "ko" }
     ]);
   });
 

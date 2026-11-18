@@ -11,8 +11,8 @@ import type { Browser, BrowserContext, Locator, Page, Route } from "playwright-c
 // untouched, or one whose change was put back, closes at once on Esc and on the back gesture, while one holding a
 // change asks before it is thrown away, and Esc on that question keeps the dialog. A form whose data lands after the
 // reader began reads its change against what it opened with, and one the reader left alone takes what landed and still
-// holds no change. The dialogs read are an organisation post, opened from the chart; a supervisor's
-// persona; a machine's CPU limit; and a role's and a repository's settings. A desktop's width and a phone's.
+// holds no change. The dialogs read are an organisation post, opened from the chart and from a person's manage menu; a
+// supervisor's persona; a machine's CPU limit; and a role's and a repository's settings. A desktop's width and a phone's.
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up, and serves
 // what the console's stand-ins do not answer — a supervisor's settings, a machine's reading — through the page's own
@@ -207,6 +207,38 @@ describe.skipIf(!origin || !touchReady())("a console dialog holds a change only 
         await discard(page).waitFor({ state: "detached", timeout: 10_000 });
         await choose(page, role, wording("organization.label.no_position"));
         await closesAtOnce(page, role);
+      } finally {
+        await context.close();
+      }
+    }, 90_000);
+
+    // The manage menu hands the focus back to its button only once its leaving is drawn, after the dialog has opened
+    // and the unit is chosen; bmo-ui refuses that focus as a dismissal, but its settings dialog still asks the discard
+    // question for it while it holds a change, and asks again for the focus the question hands back. It stays a todo
+    // until the vendored bmo-ui leaves a refused outside focus unasked.
+    test.todo(`a post opened from a person's manage menu asks only once a unit is chosen, at ${width}px`, async () => {
+      const context = await contextAt(width, height);
+      const page = await context.newPage();
+      const unit = page.locator("[data-post-unit]");
+      const open = async (): Promise<void> => {
+        await page.locator("[data-roster-manage]:visible").click({ timeout: 30_000 });
+        await page.getByRole("menuitem", { name: wording("roster.action.add_post"), exact: true }).click();
+        await unit.waitFor({ timeout: 10_000 });
+      };
+
+      try {
+        await visit(page, `/organization?tab=people&user=${encodeURIComponent(self)}`);
+
+        await open();
+        await closesAtOnce(page, unit);
+        await open();
+        await closesAtOnce(page, unit, "back");
+
+        await open();
+        await choose(page, unit, new RegExp(`${subunit.name}$`));
+        await saveIs(page, "enabled");
+        expect(await discard(page).count()).toBe(0);
+        await asksThenDiscards(page, unit);
       } finally {
         await context.close();
       }

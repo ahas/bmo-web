@@ -22,10 +22,10 @@
           <UInput v-model="machineName" :placeholder="$t('organization.label.machine_name_placeholder')" class="w-full" />
         </UFormField>
 
-        <USwitch v-model="machineShared" :label="$t('organization.label.machine_shared')" :description="$t('organization.label.machine_shared_help')" data-machine-shared />
+        <USwitch v-model="machineShared" :label="$t('organization.label.machine_shared')" :description="$t('organization.label.machine_shared_help')" :ui="{ description: 'break-keep' }" data-machine-shared />
 
         <div v-if="installs.length > 0" class="flex flex-col gap-2">
-          <p class="whitespace-pre-line text-sm">{{ $t("organization.message.install") }}</p>
+          <p class="whitespace-pre-line break-keep break-words text-sm">{{ $t("organization.message.install") }}</p>
           <div v-for="install in installs" :key="install.label" class="flex flex-col gap-1">
             <span class="text-sm font-medium">{{ install.label }}</span>
             <div class="flex items-start gap-2">
@@ -45,19 +45,56 @@
     </div>
 
     <template #footer>
-      <UButton v-if="bound" color="error" variant="ghost" :label="$t('organization.action.unbind')" :loading="machineBusy === 'unbind'" :disabled="machineBusy !== null" @click="unbind" />
-      <UButton
-        v-if="bound"
-        color="neutral"
-        variant="ghost"
-        :label="machine?.shared ? $t('organization.action.unshare') : $t('organization.action.share')"
-        :loading="machineBusy === 'share'"
-        :disabled="machineBusy !== null"
-        data-machine-share
-        @click="share"
-      />
-      <UButton v-if="waiting" color="neutral" variant="subtle" :label="$t('organization.action.check')" :loading="machineBusy === 'check'" :disabled="machineBusy !== null" @click="check" />
-      <UButton :label="bound ? $t('organization.action.rebind') : $t('organization.action.bind')" :loading="machineBusy === 'bind'" :disabled="machineBusy !== null || machine === null" @click="bind" />
+      <!-- Taking the machine away is asked where its button stands, the foot holding the question alone while it
+           stands: the machine named and what becomes of it, the way out first and the way through last. -->
+      <div
+        v-if="asking && bound"
+        role="group"
+        :aria-label="$t('organization.title.unbind', { name: machine?.agent })"
+        class="flex w-full flex-col gap-2 border-s-2 border-error ps-3 text-sm"
+        data-machine-unbind-ask
+      >
+        <i18n-t keypath="organization.title.unbind" tag="p" scope="global" class="break-keep break-words text-highlighted">
+          <template #name>
+            <span class="font-mono">{{ machine?.agent }}</span>
+          </template>
+        </i18n-t>
+        <p class="whitespace-pre-line break-keep break-words text-toned">{{ unbindEffect }}</p>
+        <div class="flex flex-wrap items-center justify-end gap-2">
+          <UButton ref="cancelButton" color="neutral" variant="ghost" :label="$t('common.action.cancel')" :disabled="machineBusy === 'unbind'" @click="void cancel()" />
+          <UButton color="error" :label="$t('organization.action.unbind_confirm')" :loading="machineBusy === 'unbind'" data-machine-unbind-confirm @click="void unbind()" />
+        </div>
+      </div>
+      <template v-else>
+        <UButton
+          v-if="bound"
+          ref="unbindButton"
+          color="error"
+          variant="ghost"
+          :label="$t('organization.action.unbind')"
+          :disabled="machineBusy !== null"
+          data-machine-unbind
+          @click="void ask()"
+        />
+        <UButton
+          v-if="bound"
+          color="neutral"
+          variant="ghost"
+          :label="machine?.shared ? $t('organization.action.unshare') : $t('organization.action.share')"
+          :loading="machineBusy === 'share'"
+          :disabled="machineBusy !== null"
+          data-machine-share
+          @click="share"
+        />
+        <UButton v-if="waiting" color="neutral" variant="subtle" :label="$t('organization.action.check')" :loading="machineBusy === 'check'" :disabled="machineBusy !== null" @click="check" />
+        <UButton
+          ref="bindButton"
+          :label="bound ? $t('organization.action.rebind') : $t('organization.action.bind')"
+          :loading="machineBusy === 'bind'"
+          :disabled="machineBusy !== null || machine === null"
+          @click="bind"
+        />
+      </template>
     </template>
   </SettingsDialog>
 </template>
@@ -66,7 +103,6 @@
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useIsland } from "bmo-ui/app/domain/island";
 
-import { useConfirm } from "~/domain/confirm";
 import { copyText } from "~/domain/copy";
 import { leaveEffectKey } from "~/domain/machine-unlink";
 
@@ -84,7 +120,6 @@ const emit = defineEmits<{ changed: [] }>();
 const open = defineModel<boolean>("open", { default: false });
 
 const { t } = useI18n();
-const confirm = useConfirm();
 const island = useIsland(t);
 
 // What the service says of the machine, and the installs of the machine just bound while it has not attached.
@@ -95,6 +130,11 @@ const rebound = ref<Rebound | null>(null);
 const machineFailure = ref("");
 const machineBusy = ref<"bind" | "unbind" | "check" | "share" | null>(null);
 const copied = ref<string | null>(null);
+// Whether the foot stands as the question of taking the machine away, and the buttons the keyboard's place moves among.
+const asking = ref(false);
+const unbindButton = useTemplateRef<{ $el: HTMLElement }>("unbindButton");
+const cancelButton = useTemplateRef<{ $el: HTMLElement }>("cancelButton");
+const bindButton = useTemplateRef<{ $el: HTMLElement }>("bindButton");
 let machineTimer: ReturnType<typeof setInterval> | undefined;
 
 const bound = computed(() => typeof machine.value?.agent === "string");
@@ -138,6 +178,7 @@ watch(
     machineShared.value = false;
     rebound.value = null;
     machineFailure.value = "";
+    asking.value = false;
     void readMachine();
   },
   { immediate: true }
@@ -198,16 +239,30 @@ async function share(): Promise<void> {
   }
 }
 
-async function unbind(): Promise<void> {
+// What taking the machine away does: the person's BMO and agents leave it, and, where it is sent a leave, how its
+// program ends, each sentence on its own line.
+const unbindEffect = computed(() => {
   const leave = leaveEffectKey(machine.value);
-  const taken = await confirm({
-    title: t("organization.title.unbind"),
-    item: machine.value?.agent ?? "",
-    effect: [t("organization.message.unbind"), ...(leave === null ? [] : [t(leave)])].join("\n"),
-    confirm: t("organization.action.unbind_confirm")
-  });
 
-  if (!taken) return;
+  return [t("organization.message.unbind"), ...(leave === null ? [] : [t(leave)])].join("\n");
+});
+
+// The question opened where its button stands, the keyboard's place handed to its way out; closed, it goes back to the
+// button, or to binding once the machine is gone.
+async function ask(): Promise<void> {
+  machineFailure.value = "";
+  asking.value = true;
+  await nextTick();
+  cancelButton.value?.$el.focus();
+}
+
+async function cancel(): Promise<void> {
+  asking.value = false;
+  await nextTick();
+  unbindButton.value?.$el.focus();
+}
+
+async function unbind(): Promise<void> {
   stopWatching();
   machineBusy.value = "unbind";
   machineFailure.value = "";
@@ -221,6 +276,9 @@ async function unbind(): Promise<void> {
     machineBusy.value = null;
   }
   await readMachine();
+  asking.value = false;
+  await nextTick();
+  (bound.value ? unbindButton : bindButton).value?.$el.focus();
 }
 
 // How often a machine just bound is asked after while it has not attached.

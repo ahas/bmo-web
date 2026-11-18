@@ -1967,7 +1967,7 @@ organization:
     post_head: 조직장 겸임
   title:
     mark_left: 탈퇴 처리할까요?
-    unbind: 기기 연결을 해제할까요?
+    unbind: "{name} 기기 연결을 해제할까요?"
     end_acting: 직무대행을 해제할까요?
     remove_post: 겸직을 해제할까요?
   message:

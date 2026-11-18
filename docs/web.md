@@ -7495,9 +7495,14 @@ research screen (「Research screen」).
     set as the person's node. A machine bound shared carries 공유 기기 beside its state; 공유 declares the machine
     already bound shared where it stands, so another account can be connected to it too, and 공유 해제 takes the
     declaration back while no other account is connected there, each at once. 기기 연결 해제 takes the machine away,
-    asked first with what it does, the leave the machine is sent among it as the settings' machine section says it
-    (「Settings」). A change agency refuses leaves the machine as it was and is said in the dialog
-    (`docs/accounts.md`, 「Invitations and a person's machine」).
+    asked first in the dialog where the button stands, as a step its foot grows rather than a second dialog over it
+    (「Messages」, what is not the pill): while it stands the foot holds the question alone, marked on its leading
+    edge in the error colour, `<name> 기기 연결을 해제할까요?` with the name in the monospace face, then what it does,
+    each sentence on its own line, the leave the machine is sent among it as the settings' machine section says it
+    (「Settings」). 취소 and then 연결 해제, the way through in the error colour with a spinner while it goes, stand at
+    its trailing edge, the keyboard's place handed to 취소 as it opens and back to 기기 연결 해제 as it closes, or to
+    기기 연결 once the machine is taken away. A change agency refuses leaves the machine as it was and is said in the
+    dialog (`docs/accounts.md`, 「Invitations and a person's machine」).
   - The leave mark marks the person left, asked first with what it does and that it is not undone, their posts
     ending with it (`docs/accounts.md`, 「A person who leaves」); a person who left stands on in the list.
 - **겸직** lists the people holding a post in the unit, its heading carrying how many, one row each: the name, the

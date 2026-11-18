@@ -80,6 +80,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["todo-row-unfold", "fixture-password-2784"],
   ["org-settings", "fixture-password-2666"],
   ["copy-marks", "fixture-password-3291"],
+  ["machine-unbind", "fixture-password-3583"],
   ["todo-run-figures", "fixture-password-2826"],
   ["work-view", "fixture-password-2311"],
   ["tool-clock", "fixture-password-3071"],

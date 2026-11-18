@@ -213,10 +213,8 @@ describe.skipIf(!origin || !touchReady())("a console dialog holds a change only 
     }, 90_000);
 
     // The manage menu hands the focus back to its button only once its leaving is drawn, after the dialog has opened
-    // and the unit is chosen; bmo-ui refuses that focus as a dismissal, but its settings dialog still asks the discard
-    // question for it while it holds a change, and asks again for the focus the question hands back. It stays a todo
-    // until the vendored bmo-ui leaves a refused outside focus unasked.
-    test.todo(`a post opened from a person's manage menu asks only once a unit is chosen, at ${width}px`, async () => {
+    // and the unit is chosen; that refused outside focus raises no discard question.
+    test(`a post opened from a person's manage menu asks only once a unit is chosen, at ${width}px`, async () => {
       const context = await contextAt(width, height);
       const page = await context.newPage();
       const unit = page.locator("[data-post-unit]");

@@ -284,6 +284,15 @@ describe.skipIf(!origin || !touchReady())("the desktop pairing page", () => {
         await page.locator("[data-machines-none]").getByText(wording("machines.label.none"), { exact: true }).waitFor({ timeout: 20_000 });
         expect(removals).toBe(1);
         expect(await row.count()).toBe(0);
+
+        // The member reaches the console's own route, its scope and the account service behind it: connected to no
+        // machine in the test console, they are told so in the section's words rather than answered as if nothing
+        // stood there.
+        await page.unroute(/\/api\/me\/machine$/);
+        const real = await page.request.delete(`${origin}/api/me/machine`);
+
+        expect(real.status()).toBe(404);
+        expect(((await real.json()) as { message?: string }).message).toBe(wording("machines.error.none_bound"));
       } finally {
         await context.close();
       }

@@ -8626,7 +8626,10 @@ its people directory and the members of the reader's company.
   changes, never once a minute for a reason that stands, and a unit whose manifest reads again is attached again
   with no further line.
 - **The service is relayed under the name its manifest gives,** at the address and with the token of the unit
-  that answered it, and nothing of it the contract does not let through. A relayed call waits for the service's
+  that answered it, and nothing of it the contract does not let through: a call under its API prefix, a route its
+  manifest names under `relays`, and a read, a `GET` or a `HEAD`, of the bundle's own files, which are its module,
+  its stylesheet and every file in its module's folder or below it. The chunks a module imports stand in that
+  folder, so they are relayed with it, wherever the API prefix stands. A relayed call waits for the service's
   answer however long it takes to begin, and ends only when the service answers or its connection is refused or
   breaks, which is a 503. Its event stream and its socket are relayed where the manifest asks for them, and the
   notices it names are rung (「Notifications」).

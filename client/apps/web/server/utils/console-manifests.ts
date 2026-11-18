@@ -301,10 +301,22 @@ export function relayedPath(manifest: ConsoleManifest, path: string): boolean {
   return prefix === "" || path === prefix || path.startsWith(`${prefix}/`);
 }
 
-/** Whether a call of a service's API is one the relay hands on: a path `relayedPath` lets through, or a route the
- * manifest names under `relays` by its method and path. */
+/** Whether a call of a service's API is one the relay hands on: a path `relayedPath` lets through, a route the
+ * manifest names under `relays` by its method and path, or a read of a file `bundleFiles` names, as a chunk its
+ * module imports is. */
 export function relayedCall(manifest: ConsoleManifest, method: string, path: string): boolean {
-  return relayedPath(manifest, path) || (!walksOut(path) && relaysRoute(manifest, method, path));
+  if (relayedPath(manifest, path)) return true;
+
+  if (walksOut(path)) return false;
+
+  return relaysRoute(manifest, method, path) || (reads(method) && bundleFiles(manifest, path));
+}
+
+// Whether a method only reads.
+function reads(method: string): boolean {
+  const asked = method.toUpperCase();
+
+  return asked === "GET" || asked === "HEAD";
 }
 
 /** The bundle whose screen path a page address stands under, read from the console's base path, or null where none. */
@@ -369,7 +381,7 @@ export function pageNames(page: AttachedBundle | null, serviceName: string): boo
 export function pageReaches(page: AttachedBundle | null, called: AttachedBundle, method: string, path: string): boolean {
   if (pageNames(page, called.manifest.serviceName)) return true;
 
-  return (method === "GET" || method === "HEAD") && bundleFiles(called.manifest, path);
+  return reads(method) && bundleFiles(called.manifest, path);
 }
 
 /** Whether a path is a bundle's module or stylesheet, which the relay hands on to a reader not signed in as well. */

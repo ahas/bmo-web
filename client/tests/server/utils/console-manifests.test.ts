@@ -229,6 +229,16 @@ test("the relay lets through a route the manifest relays by its method and path,
   expect(relayedCall(manifest, "GET", "/screen/items")).toBe(true);
 });
 
+test("the relay lets through a read of a file below the module's folder alone, never a change, a walk out or a file beside it", () => {
+  const manifest = consoleManifest(manifestOf({ bundle: "/console/module-a.js", apiPrefix: "/screen" }));
+
+  expect(relayedCall(manifest, "HEAD", "/console/chunks/chunk-a.js")).toBe(true);
+  expect(relayedCall(manifest, "POST", "/console/chunks/chunk-a.js")).toBe(false);
+  expect(relayedCall(manifest, "GET", "/console/chunks/../../secrets")).toBe(false);
+  expect(relayedCall(manifest, "GET", "/consoles/chunk-a.js")).toBe(false);
+  expect(relayedCall(manifest, "GET", "/chunk-a.js")).toBe(false);
+});
+
 test("the relay lets through no path that names a `.` or `..` segment or two slashes in a row", () => {
   const manifest = consoleManifest(manifestOf({ apiPrefix: "/screen", relays: [{ method: "POST", path: "/readings" }] }));
   const whole = consoleManifest(manifestOf({ apiPrefix: "/" }));

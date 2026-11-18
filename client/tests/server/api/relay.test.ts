@@ -184,8 +184,9 @@ describe("the relay's owner key and role", () => {
   });
 });
 
-// A service a manifest names: relayed at the unit that answered it, only under its API prefix and for its module and
-// stylesheet, the two of which a share page reads with no session, and to a reader the manifest's role allows.
+// A service a manifest names: relayed at the unit that answered it, only under its API prefix and for its module, its
+// stylesheet and the files of its module's folder, the module and the stylesheet of which a share page reads with no
+// session, and to a reader the manifest's role allows.
 describe("the relay of a service a manifest names", () => {
   const heard: string[] = [];
   const served = Bun.serve({
@@ -216,10 +217,11 @@ describe("the relay of a service a manifest names", () => {
     expect(heard.at(-1)).toBe("/screen/items");
   });
 
-  test("hands on the module and the stylesheet outside the prefix, and nothing else", async () => {
+  test("hands on the module, the stylesheet and a chunk in the module's folder outside the prefix, and nothing else", async () => {
     expect(await call("screened/console/bundle.js")).toBe(200);
     expect(await call("screened/console/bundle.css")).toBe(200);
-    expect(await call("screened/console/words")).toBe(404);
+    expect(await call("screened/console/chunks/chunk-a.js")).toBe(200);
+    expect(heard.at(-1)).toBe("/console/chunks/chunk-a.js");
     expect(await call("screened/elsewhere")).toBe(404);
   });
 

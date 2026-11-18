@@ -34,14 +34,14 @@ export function doneLimit(value: unknown): number {
 const seconds = (ms: number | null | undefined): number | null => (ms === null || ms === undefined ? null : Math.floor(ms / 1000));
 
 // Every item, a page at a time, in the queue's order.
-async function allItems(query: { q?: string } = {}): Promise<Item[]> {
+async function allItems(query: { q?: string; state?: string } = {}): Promise<Item[]> {
   const found: Item[] = [];
   let after: number | undefined;
 
   for (;;) {
     const page = await jobCall(
       job().GET("/items", {
-        params: { query: { limit: 500, ...(after === undefined ? {} : { after }), ...(query.q === undefined ? {} : { q: query.q }) } }
+        params: { query: { limit: 500, ...(after === undefined ? {} : { after }), ...(query.q === undefined ? {} : { q: query.q }), ...(query.state === undefined ? {} : { state: query.state }) } }
       })
     );
 
@@ -192,8 +192,51 @@ function heldForDeploy(item: Item): boolean {
   return item.state === "held" && (item.labels["hold-after-deploy"] ?? "").trim() !== "" && waitsForDeploy(item);
 }
 
-function listOf(item: Item): "queue" | "pending" | "held" | "done" {
-  if (item.state === "done" || item.state === "dropped" || item.state === "merged" || item.mergedInto !== null) return "done";
+// The items a merged one is read against, by number: the item carrying it and the ones merged into it.
+type Items = ReadonlyMap<number, Item>;
+
+const NO_ITEMS: Items = new Map();
+
+const byNumber = (items: readonly Item[]): Items => new Map(items.map((item) => [item.id, item]));
+
+const isMerged = (item: Item): boolean => item.state === "merged" || item.mergedInto !== null;
+
+// The item carrying a merged one: the first along its merges that is not merged itself. Null where a merge names an
+// item not among those read, or the merges turn back on themselves.
+function carrierOf(item: Item, items: Items): Item | null {
+  const seen = new Set<number>([item.id]);
+  let at = item;
+
+  while (isMerged(at)) {
+    const next = at.mergedInto === null ? undefined : items.get(at.mergedInto);
+
+    if (next === undefined || seen.has(next.id)) return null;
+
+    seen.add(next.id);
+    at = next;
+  }
+
+  return at;
+}
+
+// Whether a merged item still waits on the item carrying it: that item stands unfinished. One whose carrier is
+// finished, or cannot be read, is finished with it (docs/web.md, the TODO panel's section).
+function waitsOnCarrier(item: Item, items: Items): boolean {
+  if (!isMerged(item)) return false;
+
+  const carrier = carrierOf(item, items);
+
+  return carrier !== null && carrier.state !== "done" && carrier.state !== "dropped";
+}
+
+const isFinished = (item: Item, items: Items): boolean =>
+  item.state === "done" || item.state === "dropped" || (isMerged(item) && !waitsOnCarrier(item, items));
+
+type List = "queue" | "pending" | "held" | "merged" | "done";
+
+function listOf(item: Item, items: Items): List {
+  if (isFinished(item, items)) return "done";
+  if (isMerged(item)) return "merged";
   if (item.state === "held" && !heldForDeploy(item)) return "held";
   // A draft waits on the owner wherever it was filed; every other state is past approval, an item opened by itself
   // under an unattended label among them (bmo-job's `docs/api.md`, 「Unattended labels」).
@@ -204,7 +247,14 @@ function listOf(item: Item): "queue" | "pending" | "held" | "done" {
 
 // One item as the row the panel shows, with its reports where they were read, the last note where a screen opens
 // it, and the state the job of it stands in where one is under way.
-function itemOf(item: Item, reports: readonly Report[] = [], note: string | null = null, live: LiveJobOf | null = null, stopped = false): TodoItem {
+function itemOf(
+  item: Item,
+  reports: readonly Report[] = [],
+  note: string | null = null,
+  live: LiveJobOf | null = null,
+  stopped = false,
+  items: Items = NO_ITEMS
+): TodoItem {
   const said = reportsOf(reports, heldSince(item.labels));
   const liveState = live?.state ?? null;
 
@@ -218,7 +268,7 @@ function itemOf(item: Item, reports: readonly Report[] = [], note: string | null
     approved: approvedItem(item),
     awaitingApproval: item.state === "draft",
     recommended: item.approvals.some((approval) => approval.kind === "recommendation"),
-    done: item.state === "done" || item.state === "dropped" || item.state === "merged" || item.mergedInto !== null,
+    done: isFinished(item, items),
     running: item.state === "leased",
     liveState,
     // Done in bmo-job while the agency's job for it still goes: its report is still going out, until the agency says
@@ -261,9 +311,13 @@ function itemOf(item: Item, reports: readonly Report[] = [], note: string | null
     // the TODO panel's section).
     heldKind: item.state === "held" && !heldForDeploy(item) && stopped ? "stop" : null,
     mergedInto: item.mergedInto,
-    mergedAt: null,
-    mergedIntoTitle: null,
-    mergedFrom: [],
+    // bmo-job ends an item as it merges it, so the moment it ended is the moment of its merge.
+    mergedAt: isMerged(item) ? seconds(item.endedAt) : null,
+    mergedIntoTitle: item.mergedInto === null ? null : (items.get(item.mergedInto)?.title ?? null),
+    mergedFrom: [...items.values()]
+      .filter((one) => one.mergedInto === item.id)
+      .sort((one, other) => one.id - other.id)
+      .map((one) => ({ id: one.id, title: one.title, done: isFinished(one, items) })),
     createdAt: Math.floor(item.createdAt / 1000),
     doneAt: seconds(item.endedAt)
   };
@@ -331,10 +385,48 @@ export async function readTodoItem(id: number): Promise<TodoItem | null> {
 
     keptReports.set(id, { changedAt: item.changedAt, readAt: Date.now(), reports });
 
-    return itemOf(item, reports, notes.map((note) => note.text).at(-1) ?? null, live, notes.at(-1)?.labels.kind === "stop");
+    return itemOf(
+      item,
+      reports,
+      notes.map((note) => note.text).at(-1) ?? null,
+      live,
+      notes.at(-1)?.labels.kind === "stop",
+      await mergesAround(item)
+    );
   } catch (error) {
     if ((error as { statusCode?: number }).statusCode === 404) return null;
     throw error;
+  }
+}
+
+// The items several items' merges are read against, read once where any of them is merged or may carry one.
+async function mergesAmong(items: readonly Item[]): Promise<Items> {
+  const found = new Map<number, Item>();
+
+  for (const item of items) {
+    for (const [id, one] of await mergesAround(item)) found.set(id, one);
+  }
+
+  return found;
+}
+
+// The items one item's merges are read against: every merged item, among which those merged into it stand, and the
+// items its own merges lead through to the one carrying it. A merge that cannot be read leaves the item read alone.
+async function mergesAround(item: Item): Promise<Items> {
+  try {
+    const found = new Map<number, Item>((await allItems({ state: "merged" })).map((one) => [one.id, one]));
+    let at: Item = item;
+
+    found.set(item.id, item);
+
+    while (at.mergedInto !== null && !found.has(at.mergedInto)) {
+      at = await jobCall(job().GET("/items/{itemId}", { params: { path: { itemId: at.mergedInto } } }));
+      found.set(at.id, at);
+    }
+
+    return found;
+  } catch {
+    return byNumber([item]);
   }
 }
 
@@ -347,7 +439,9 @@ export async function readTodoItems(ids: readonly number[]): Promise<TodoItem[]>
     liveStates()
   ]);
 
-  return page.items.map((item) => itemOf(item, [], null, live.get(item.id) ?? null));
+  const all = await mergesAmong(page.items);
+
+  return page.items.map((item) => itemOf(item, [], null, live.get(item.id) ?? null, false, all));
 }
 
 async function notesOf(todoId: number): Promise<Note[]> {
@@ -467,17 +561,22 @@ function meets(item: Item, conditions: TodoConditions): boolean {
 
 // The list a line stands in as its row reads it: an item held by a stop whose run is still ending stands in the queue
 // under its own word until the run has ended, and joins the holds after (docs/web.md, the TODO panel's section).
-function rowList(item: Item, row: TodoItem | undefined): "queue" | "pending" | "held" | "done" {
-  const list = listOf(item);
+function rowList(item: Item, row: TodoItem | undefined, items: Items): List {
+  const list = listOf(item, items);
 
   return list === "held" && row?.holdPending === true ? "queue" : list;
 }
 
 // A queue line counts as running where its row reads so: its job starting or working, waiting for nothing
 // (docs/web.md, the TODO panel's section).
-function standingOf(items: readonly Item[], live: ReadonlyMap<number, LiveJobOf>, rows: ReadonlyMap<number, TodoItem>): TodoStanding {
+function standingOf(
+  items: readonly Item[],
+  live: ReadonlyMap<number, LiveJobOf>,
+  rows: ReadonlyMap<number, TodoItem>,
+  all: Items
+): TodoStanding {
   const going = (item: Item) => live.get(item.id)?.state === "starting" || live.get(item.id)?.state === "running";
-  const inList = (item: Item, list: "queue" | "pending" | "held") => rowList(item, rows.get(item.id)) === list;
+  const inList = (item: Item, list: List) => rowList(item, rows.get(item.id), all) === list;
 
   return {
     queue: items.filter((item) => inList(item, "queue")).length,
@@ -486,22 +585,27 @@ function standingOf(items: readonly Item[], live: ReadonlyMap<number, LiveJobOf>
     deploying: 0,
     pending: items.filter((item) => inList(item, "pending")).length,
     held: items.filter((item) => inList(item, "held")).length,
-    merged: 0
+    merged: items.filter((item) => inList(item, "merged")).length
   };
 }
 
 // Each item as its line on the board reads it: the reports of the ones given, which are the finished and the held,
 // and why a held one was set aside, by its last note: the owner's stop, or a plain hold.
-async function boardRows(items: readonly Item[], reported: readonly Item[], live: ReadonlyMap<number, LiveJobOf>): Promise<Map<number, TodoItem>> {
+async function boardRows(
+  items: readonly Item[],
+  reported: readonly Item[],
+  live: ReadonlyMap<number, LiveJobOf>,
+  all: Items
+): Promise<Map<number, TodoItem>> {
   const reports = await boardReports(reported);
   const stopped = new Map(
     await Promise.all(
-      items.filter((item) => listOf(item) === "held").map(async (item) => [item.id, (await notesOf(item.id)).at(-1)?.labels.kind === "stop"] as const)
+      items.filter((item) => listOf(item, all) === "held").map(async (item) => [item.id, (await notesOf(item.id)).at(-1)?.labels.kind === "stop"] as const)
     )
   );
 
   return new Map(
-    items.map((item) => [item.id, itemOf(item, reports.get(item.id) ?? [], null, live.get(item.id) ?? null, stopped.get(item.id) ?? false)])
+    items.map((item) => [item.id, itemOf(item, reports.get(item.id) ?? [], null, live.get(item.id) ?? null, stopped.get(item.id) ?? false, all)])
   );
 }
 
@@ -516,12 +620,14 @@ export async function readBoardRows(ids: readonly number[]): Promise<TodoBoardRo
     jobCall(job().GET("/items", { params: { query: { ids: [...new Set(ids)].sort((one, other) => one - other).join(","), limit: 500 } } })),
     liveStates()
   ]);
-  const rows = await boardRows(page.items, page.items.filter((item) => listOf(item) === "done" || listOf(item) === "held"), live);
+  const all = await mergesAmong(page.items);
+  const reported = page.items.filter((item) => listOf(item, all) === "done" || listOf(item, all) === "held");
+  const rows = await boardRows(page.items, reported, live, all);
 
   return page.items.flatMap((item) => {
     const row = rows.get(item.id);
 
-    return row === undefined ? [] : [{ list: rowList(item, row), item: row }];
+    return row === undefined ? [] : [{ list: rowList(item, row, all), item: row }];
   });
 }
 
@@ -537,17 +643,18 @@ export async function readTodoBoard(
   const query = input.query ?? null;
   const conditions = input.conditions ?? NO_CONDITIONS;
   const [items, queues, live] = await Promise.all([allItems(), readQueues(), liveStates()]);
+  const all = byNumber(items);
   const matching = items.filter((item) => meets(item, conditions));
-  const finished = matching.filter((item) => listOf(item) === "done").sort((one, other) => other.id - one.id);
+  const finished = matching.filter((item) => listOf(item, all) === "done").sort((one, other) => other.id - one.id);
   const finishedFound = query === null
     ? finished
     : filterRecords(finished, (item) => [{ label: "", text: `#${item.id} ${item.title} ${item.state}`, shown: true }], query);
   const page = finishedFound.slice(0, limit);
-  const held = matching.filter((item) => listOf(item) === "held");
-  const rows = await boardRows(matching, [...page, ...held], live);
+  const held = matching.filter((item) => listOf(item, all) === "held");
+  const rows = await boardRows(matching, [...page, ...held], live, all);
   const found = (row: TodoItem) => query === null || filterRecords([row], (one) => todoSearchFields(wording, one, []), query).length > 0;
-  const listed = (name: "queue" | "pending" | "held", from: readonly Item[]) =>
-    from.filter((item) => rowList(item, rows.get(item.id)) === name).flatMap((item) => rows.get(item.id) ?? []).filter(found);
+  const listed = (name: List, from: readonly Item[]) =>
+    from.filter((item) => rowList(item, rows.get(item.id), all) === name).flatMap((item) => rows.get(item.id) ?? []).filter(found);
   const choices: TodoChoices = {
     workers: [...new Set(items.map((item) => item.assigneeName ?? WORKER_AGENT))],
     chats: [],
@@ -559,12 +666,12 @@ export async function readTodoBoard(
     queue: listed("queue", matching),
     pending: listed("pending", matching),
     held: listed("held", matching),
-    merged: [],
+    merged: listed("merged", matching),
     done: page.flatMap((item) => rows.get(item.id) ?? []),
     doneTotal: finishedFound.length,
     standingNotes: [],
     choices,
-    standing: standingOf(matching, live, rows),
+    standing: standingOf(matching, live, rows, all),
     paused: queues.length > 0 && queues.every((queue) => queue.state === "paused"),
     deployHold: holds.length === 0 ? null : holdOf(holds[0])
   };

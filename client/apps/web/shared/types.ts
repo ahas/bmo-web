@@ -842,7 +842,7 @@ export interface TodoBoard {
 // One line of the board as the board reads it, with the list it stands in: what a word naming one item reads in place of
 // the whole board.
 export interface TodoBoardRow {
-  list: "queue" | "pending" | "held" | "done";
+  list: "queue" | "pending" | "held" | "merged" | "done";
   item: TodoItem;
 }
 

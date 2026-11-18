@@ -1169,7 +1169,7 @@ function waitsForDeploy(item: TodoItem): boolean {
 // Null where a line is not on the board in hand or now stands in another list: the lines the board holds changed, and
 // only the whole board says how.
 export function patchedBoard(board: TodoBoard, rows: readonly TodoBoardRow[]): TodoBoard | null {
-  const lists = { queue: board.queue, pending: board.pending, held: board.held, done: board.done };
+  const lists = { queue: board.queue, pending: board.pending, held: board.held, merged: board.merged, done: board.done };
   let { running, deploy } = board.standing;
 
   for (const row of rows) {

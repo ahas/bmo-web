@@ -116,7 +116,10 @@ describe("the lists each item stands in", () => {
       item(1),
       item(2, { state: "draft", approvals: [] }),
       item(3, { state: "done" }),
-      item(4, { state: "merged", mergedInto: 1 }),
+      item(4, { state: "merged", mergedInto: 1, endedAt: 1_790_000_030_000 }),
+      // Merged into an item already finished, and so finished with it; and merged into one that was merged on.
+      item(8, { state: "merged", mergedInto: 3 }),
+      item(9, { state: "merged", mergedInto: 4 }),
       item(5, { state: "dropped", endedAt: 1_790_000_060_000 }),
       item(6, { state: "held" }),
       // An item that opened by itself under an unattended label carries no approval and is past approval all the same.
@@ -128,11 +131,16 @@ describe("the lists each item stands in", () => {
     expect(ids(board.queue)).toEqual([1, 7]);
     expect(ids(board.pending)).toEqual([2]);
     expect(ids(board.held)).toEqual([6]);
-    // An item merged into another is finished, and the fixed item carries no list of its own for merging ones.
-    expect(ids(board.merged)).toEqual([]);
-    expect(ids(board.done)).toEqual([5, 4, 3]);
+    // An item merged into an unfinished one waits on it, through every merge between them; one whose carrier is
+    // finished is finished with it.
+    expect(ids(board.merged)).toEqual([4, 9]);
+    expect(board.merged.map((row) => row.done)).toEqual([false, false]);
+    expect(board.merged[0]).toMatchObject({ mergedInto: 1, mergedIntoTitle: "Item 1", mergedAt: 1_790_000_030 });
+    expect(board.queue[0]!.mergedFrom).toEqual([{ id: 4, title: "Item 4", done: false }]);
+    expect(ids(board.done)).toEqual([8, 5, 3]);
+    expect(board.done[0]).toMatchObject({ done: true, mergedInto: 3 });
     expect(board.doneTotal).toBe(3);
-    expect(board.standing).toEqual({ queue: 2, running: 0, deploy: 0, deploying: 0, pending: 1, held: 1, merged: 0 });
+    expect(board.standing).toEqual({ queue: 2, running: 0, deploy: 0, deploying: 0, pending: 1, held: 1, merged: 2 });
     expect(board.queue.find((one) => one.id === 7)).toMatchObject({ approved: false, awaitingApproval: false });
   });
 
@@ -287,6 +295,22 @@ describe("the lists each item stands in", () => {
     expect(ids(board.done)).toEqual([4, 3]);
     expect(board.doneTotal).toBe(4);
     expect(job.asked.some((one) => one.path === "/items?limit=500")).toBe(true);
+  });
+});
+
+describe("an item read by its number among its merges", () => {
+  test("a merged item waits on the unfinished item carrying it, and that item lists what was merged into it", async () => {
+    stand([item(1), item(4, { state: "merged", mergedInto: 1, endedAt: 1_790_000_030_000 }), item(5, { state: "merged", mergedInto: 4 })]);
+
+    expect(await readTodoItem(5)).toMatchObject({ done: false, mergedInto: 4, mergedIntoTitle: "Item 4" });
+    expect((await readTodoItem(1))!.mergedFrom).toEqual([{ id: 4, title: "Item 4", done: false }]);
+  });
+
+  test("a merged item is finished once the item carrying it is", async () => {
+    stand([item(1, { state: "done" }), item(4, { state: "merged", mergedInto: 1 })]);
+
+    expect(await readTodoItem(4)).toMatchObject({ done: true, mergedInto: 1 });
+    expect((await readTodoItem(1))!.mergedFrom).toEqual([{ id: 4, title: "Item 4", done: true }]);
   });
 });
 

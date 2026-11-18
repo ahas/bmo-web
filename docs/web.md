@@ -418,8 +418,11 @@ console page. No answer says which framework drew it. Strict transport is the re
   if nothing stood there; the routes and the section each serves are kept in one place, and a test holds every
   route file to it. A route whose answer the account service decides by who is asking stands open to every signed-in
   login and leaves the refusal to the service: the invitations, a company's BMO default and who may personalise
-  under a unit (`docs/accounts.md`, 「A person's BMO profile」), and a person marked left (`docs/accounts.md`, 「A
-  person who leaves」); one's own BMO profile stands with the account section.
+  under a unit (`docs/accounts.md`, 「A person's BMO profile」), a person marked left (`docs/accounts.md`, 「A
+  person who leaves」), a post given or taken (`docs/accounts.md`, 「Concurrent posts」), an acting head named or
+  ended (`docs/accounts.md`, 「Acting」), and a company's roles and unit kinds read and written (`docs/accounts.md`,
+  「Roles and unit kinds」), the service's refusal said in the pack's words; one's own BMO profile stands with the
+  account section.
 - **What the administrator reaches is not what his everyday screens list.** His reach stands as this section says:
   he reads every room and every agent by its address. The lists he works from day to day hold what is his and what
   is the deployment's, and nothing of another account's, so the rooms and BMOs of the people the platform holds never
@@ -7429,7 +7432,11 @@ research screen (「Research screen」).
   address shows them 초대 saying they may invite into no unit. A head marks a person of their unit left as well
   (`docs/accounts.md`, 「A person who leaves」): the route stands open to every signed-in login and the account
   service refuses anyone but the person's heads, and the screen offers the act on 사용자, so a head of a unit below a
-  company marks a person left through the route alone.
+  company marks a person left through the route alone. A head gives and takes a post in a unit they head, and names
+  or ends an acting head for a unit under theirs, the same way (`docs/accounts.md`, 「Concurrent posts」, 「Acting」):
+  those routes stand open to every signed-in login and the account service refuses anyone else, the screen offering
+  겸직 추가 on 사용자 to a company's head and the appointment on 조직도 alone, so a head reaches the appointment
+  through the route alone. A company's head reads and writes its roles and unit kinds on 직책·종류 the same way.
 - **A tab is drawn once the reader is known to open it.** The administrator is known at once. Whether a member heads
   a company is known once the people roster has answered, which the browser asks after it takes the page over, so
   the server draws the page before it knows; once answered it stays known, a later read of the roster leaving the
@@ -7624,7 +7631,9 @@ account's rooms or agents (「Access」).
     of the acts the reader may do for this person:
     조직 이동, the move dialog of 조직도 at its first step for this person alone; 겸직 추가, 조직도's post form with this
     person fixed and the unit chosen in it, the units of their company the reader heads, but their home unit, offered
-    by their path; 기기 연결, the machine dialog of 조직도; 프로필 변경, the profile form of 계정 for this person;
+    by their path, for the administrator and a company's head alike, a refusal of it saying that only the
+    administrator and a head of the unit or a unit above give a post; 기기 연결, the machine dialog of 조직도; 프로필
+    변경, the profile form of 계정 for this person;
     BMO 설정 권한, which opens the BMO tab at the person's company with their unit open; and 탈퇴 처리, asked first as
     on 조직도, for the administrator and a company's head alike and never for the reader themselves, a refusal of it
     saying that only the administrator and the person's heads mark them left. An act stands only where the route
@@ -7711,7 +7720,9 @@ account's rooms or agents (「Access」).
 Where a company's own words for its roles and its unit kinds are kept (`docs/accounts.md`, 「Roles and unit kinds」).
 
 - **Who opens it.** The administrator, over every company, and a member who heads a company's own unit, over the
-  companies they head. The tab stands only for a reader it is for.
+  companies they head. The tab stands only for a reader it is for. Its reads and its writes are the account
+  service's to refuse (「Access」), so a head reads and writes the lists of the companies they head as the
+  administrator does.
 - **회사** stands at the head for a reader of more than one company, every company they may, the first at first; the
   choice stands in the address as `?company=`.
 - **직책** lists the company's roles, the highest first, one row each with its name and its key muted beside it. With

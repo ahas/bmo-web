@@ -68,6 +68,14 @@ export const openedRoutes: readonly OpenedRoute[] = [
   // A person marked left: every signed-in login asks, and the account service lets the administrator and the person's
   // heads alone (docs/accounts.md, 「A person who leaves」).
   { method: "POST", path: /^\/api\/organization\/users\/\d+\/leave$/, scope: "user" },
+  // A post given or taken and an acting head named or ended: every signed-in login asks, and the account service lets
+  // the administrator and the unit's heads alone (docs/accounts.md, 「Concurrent posts」 and 「Acting」).
+  { method: "PUT", path: /^\/api\/organization\/units\/\d+\/(?:posts\/\d+|acting)$/, scope: "user" },
+  { method: "DELETE", path: /^\/api\/organization\/units\/\d+\/(?:posts\/\d+|acting)$/, scope: "user" },
+  // A company's roles and unit kinds: every signed-in login asks, and the account service lets anyone of the company
+  // read them and the administrator and the company's heads write them (docs/accounts.md, 「Roles and unit kinds」).
+  { method: "GET", path: /^\/api\/organization\/companies\/\d+\/(?:roles|unit-kinds)$/, scope: "user" },
+  { method: "PUT", path: /^\/api\/organization\/companies\/\d+\/(?:roles|unit-kinds)$/, scope: "user" },
   // The people roster, its companies, a page of it, a person and their BMO: every signed-in login asks, and the account
   // service decides whom each looks through (docs/accounts.md, 「The people roster」). A person's rooms, agents, sessions
   // and runs are the administrator's alone.

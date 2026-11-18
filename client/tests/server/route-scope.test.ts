@@ -149,6 +149,27 @@ describe("a console route as another user meets it", () => {
     expect(await answer({ file: "organization/users/[user]/leave.post", method: "POST", path: "/api/organization/users/3/leave" })).toBe(200);
   });
 
+  // docs/accounts.md, 「Concurrent posts」, 「Acting」 and 「Roles and unit kinds」: the account service decides who gives
+  // a post, names an acting head and keeps a company's roles and unit kinds, so the console's scope lets every member
+  // ask, whatever sections they hold.
+  test("a member asks for a head's writes and a company's lists, the account service deciding", async () => {
+    service.sections.set(4, new Map());
+    session = { user: { name: "no-account", id: 4 }, sid: "bmo.sid=no-account", administrator: false };
+
+    for (const route of [
+      { file: "organization/units/[unit]/posts/[user].put", method: "PUT", path: "/api/organization/units/1/posts/3" },
+      { file: "organization/units/[unit]/posts/[user].delete", method: "DELETE", path: "/api/organization/units/1/posts/3" },
+      { file: "organization/units/[unit]/acting.put", method: "PUT", path: "/api/organization/units/1/acting" },
+      { file: "organization/units/[unit]/acting.delete", method: "DELETE", path: "/api/organization/units/1/acting" },
+      { file: "organization/companies/[company]/roles.get", method: "GET", path: "/api/organization/companies/1/roles" },
+      { file: "organization/companies/[company]/roles.put", method: "PUT", path: "/api/organization/companies/1/roles" },
+      { file: "organization/companies/[company]/unit-kinds.get", method: "GET", path: "/api/organization/companies/1/unit-kinds" },
+      { file: "organization/companies/[company]/unit-kinds.put", method: "PUT", path: "/api/organization/companies/1/unit-kinds" }
+    ]) {
+      expect({ route: route.file, status: await answer(route) }).toEqual({ route: route.file, status: 200 });
+    }
+  });
+
   test("a grant of one agent-management part opens that part's reads alone", async () => {
     service.sections.set(3, new Map([["supervisors", { read: true, write: false }]]));
     session = { user: { name: "agent-reader", id: 3 }, sid: "bmo.sid=agent-reader", administrator: false };

@@ -38,7 +38,9 @@ const LANDED = "Read after opening";
 let browser: Browser | null = null;
 let cookie = "";
 let self = "";
-let subunit = { id: 0, name: `post-${RUN}` };
+// Long enough that a phone's post dialog cuts its path in the unit select, so the line's tooltip stands
+// ready for every focus that select takes, the one the discard question hands back among them.
+let subunit = { id: 0, name: `post-${RUN}-of-the-second-floor` };
 
 async function call<T>(path: string, method: string, body?: unknown): Promise<T> {
   const answer = await fetch(`${origin}${path}`, {

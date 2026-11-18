@@ -186,6 +186,7 @@ common:
     more_notices: "알림 {n}건 더 있음"
     move_down_named: "{name} 아래로"
     move_up_named: "{name} 위로"
+    open_list: 목록 열기
     opens_new_tab: (새 탭에서 열림)
     pinned_named: "{name} 고정됨"
     play_named: "{name} 재생"

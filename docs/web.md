@@ -734,6 +734,12 @@ edit to that file alone, once the guide below carries the word.
     reach, so none is kept, and the browser's own language is never asked.
   - Nuxt UI's own words — the command palette, the empty table, a close button — come from its `ko`
     locale; the few keys that locale lacks are supplied from the pack in `app/app.vue`.
+    - **An input menu's open button is named from the locale,** by the key `inputMenu.trigger`, which the
+      pack answers with the console's word for it. The Nuxt UI release the console runs leaves that button
+      unnamed, so the combobox library's English default would be read out; the console's patch of
+      `@nuxt/ui` under `client/patches/` hands the button the key, as later releases of the library do
+      themselves. The library draws a unit's screens too, so an input menu on a bundle's screen is named
+      the same way.
 - **A key is `<domain>.<role>.<key>`, in lower snake case.**
   - The domain is the screen or the feature the words belong to — `todo`, `research`, `agents`,
     `archive`, `live`, `siren`, `usage`, `app` and their kin. A word two or more domains share stands once under `common`.

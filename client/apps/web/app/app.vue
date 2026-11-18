@@ -26,11 +26,14 @@ const { loggedIn } = useUserSession();
 
 // The sidebar's drawer names itself with keys Nuxt UI's own locales do not carry, so a screen
 // reader would read the key; the console supplies them. Its fold button is named as the console
-// names every fold button, and that name is the tooltip it wears.
+// names every fold button, and that name is the tooltip it wears. An input menu's open button, on
+// the console's screens and on a bundle's alike, is named by the console's word (docs/web.md,
+// 「Wording and the language pack」).
 const locale = extendLocale(ko, {
   messages: {
     dashboardSidebar: { title: t("app.label.sidebar"), description: t("app.label.sidebar_description") },
-    dashboardSidebarCollapse: { collapse: t("common.action.collapse"), expand: t("common.action.expand") }
+    dashboardSidebarCollapse: { collapse: t("common.action.collapse"), expand: t("common.action.expand") },
+    inputMenu: { trigger: t("common.aria.open_list") }
   }
 });
 

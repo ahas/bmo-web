@@ -137,6 +137,8 @@
   없음; a list holding nothing → 항목 없음, unless the screen's own word for its list is given here; a search the
   server refused → 검색하지 못했습니다; words typed that no choice holds, offered as a new value → "{value}" 추가.
   Never 검색어 입력, 결과 없음, 데이터 없음.
+- the button at the end of a field typed into that opens its list of choices, an input menu's → 목록 열기, the name
+  a screen reader reads for it on every screen. Never 옵션 표시, 팝업 표시, Show popup.
 - a booking of a company's resource, and the act of making one → 예약: 예약, 새 예약, 내 예약, 예약 취소, 예약을
   취소할까요, 이 예약만, 반복 예약, 예약 {n}건, 예약 없음; the person who made it → 예약자. It is the same word a role's
   slot kept by a reservation takes (above), each on its own screen. Never 예매, 대여, 부킹, 신청.

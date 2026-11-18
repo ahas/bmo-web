@@ -105,7 +105,8 @@ const ACCOUNTS: readonly [string, string][] = [
   ["person-tabs", "fixture-password-3363"],
   ["date-escape", "fixture-password-3374"],
   ["opened-with", "fixture-password-3376"],
-  ["choice-select", "fixture-password-3413"]
+  ["choice-select", "fixture-password-3413"],
+  ["input-menu-name", "fixture-password-3562"]
 ];
 
 // The member accounts a test signs in with to read a section by its permission rather than as the administrator,
@@ -640,8 +641,10 @@ const uses: Record<string, unknown>[] = [];
 // `process.env` where it stands, as a library inside a unit's build does, so the module ends before its routes
 // stand unless the console owes a `process` to it. Opened with `?styles=on` it also lays a plain rule for the
 // `input` element on the page as it runs, unlayered, as an editor library inside a unit's bundle does: what a
-// console control hidden by an attribute is measured against (docs/web.md, 「Screens a unit brings」). The services its
-// manifest names under `calls` are the ones its pages reach besides its own.
+// console control hidden by an attribute is measured against (docs/web.md, 「Screens a unit brings」). Opened with
+// `?menu=on` it also draws an input menu from the console's own copy of Nuxt UI, imported by the path a unit's bundle
+// imports it by (docs/web.md, 「Wording and the language pack」). The services its manifest names under `calls` are the
+// ones its pages reach besides its own.
 function screenUnit(name: string, path: string, calls: readonly string[] = []): Response | null {
   if (path === "/console-manifest") {
     return Response.json(manifestFields(name, { icon: "i-material-symbols-widgets", calls }));
@@ -651,6 +654,7 @@ function screenUnit(name: string, path: string, calls: readonly string[] = []): 
 
   if (path === "/console/bundle.js") {
     const source = `import { defineComponent, h, inject, onBeforeUnmount, onMounted, ref } from "vue";
+import InputMenu from "@nuxt/ui/components/InputMenu.vue";
 
 // What a library inside a unit's build reads at the top of its module, before any of its own code runs.
 const built = process.env.NODE_ENV;
@@ -679,9 +683,12 @@ const Screen = defineComponent({
     });
     onBeforeUnmount(() => clearInterval(timer));
 
+    const menu = new URLSearchParams(window.location.search).get("menu") === "on";
+
     return () => h("div", { "data-screen": ${JSON.stringify(name)}, "data-build": String(built) }, [
       h("div", { "data-screen-row": ${JSON.stringify(name)} }, [h("button", { type: "button", "data-screen-action": ${JSON.stringify(name)} }, "act " + ticks.value)]),
-      h("p", ${JSON.stringify(name)} + " " + ticks.value)
+      h("p", ${JSON.stringify(name)} + " " + ticks.value),
+      menu ? h("div", { "data-screen-menu": ${JSON.stringify(name)} }, [h(InputMenu, { items: ["choice-a", "choice-b"], "aria-label": "choice" })]) : null
     ]);
   }
 });

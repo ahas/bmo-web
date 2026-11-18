@@ -2,7 +2,7 @@
   <!-- The text parts of a BMO profile changed in one form (docs/web.md, 「Organisation」, its BMO tab, and
        「Settings」, its own-BMO section): the name, the call names and, for one's own BMO, the persona with its count as
        it nears the ceiling; the save at its foot, open only while a part differs, and the refusal said in the form. -->
-  <SettingsDialog v-model:open="open" :title="props.title" :dirty="changed">
+  <SettingsDialog v-model:open="open" :title="props.title" :dirty="changes">
     <form :id="formId" class="flex flex-col gap-4" @submit.prevent="save">
       <UFormField :label="$t('bmo_profile.label.name')" name="name">
         <UInput v-model="name" class="w-full" :placeholder="nameShown(t, null)" :maxlength="PROFILE_LIMITS.name" autocomplete="off" data-bmo-name />
@@ -21,15 +21,16 @@
 
     <template #footer="{ close }">
       <UButton :label="$t('common.action.cancel')" color="neutral" variant="ghost" :disabled="busy" @click="close()" />
-      <UButton type="submit" :form="formId" :label="$t('common.action.save')" :loading="busy" :disabled="busy || !changed" />
+      <UButton type="submit" :form="formId" :label="$t('common.action.save')" :loading="busy" :disabled="busy || !changes.dirty.value" />
     </template>
   </SettingsDialog>
 </template>
 
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
+import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 
-import { nameShown, sameCallNames } from "~/domain/bmo-profile";
+import { nameShown } from "~/domain/bmo-profile";
 import { countText } from "~/domain/numbers";
 
 import { PROFILE_LIMITS } from "#shared/bmo-profile";
@@ -70,9 +71,8 @@ const asked = computed<OwnBmoParts>(() => ({
   persona: props.persona && persona.value.trim() !== "" ? persona.value : props.persona ? null : props.parts.persona
 }));
 
-const changed = computed(
-  () => asked.value.name !== props.parts.name || !sameCallNames(asked.value.callNames, props.parts.callNames) || (props.persona && asked.value.persona !== props.parts.persona)
-);
+// What the form asks for, the persona only where the form carries it.
+const changes = useOpenedWith(() => ({ ...asked.value, persona: props.persona ? asked.value.persona : null }), { open });
 
 watch(
   open,
@@ -88,7 +88,7 @@ watch(
 );
 
 async function save(): Promise<void> {
-  if (!changed.value) return;
+  if (!changes.dirty.value) return;
 
   busy.value = true;
   failure.value = "";

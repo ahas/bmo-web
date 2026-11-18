@@ -2,7 +2,7 @@
   <!-- A post given or changed (docs/web.md, 「Organisation」, its chart and the people tab; docs/accounts.md, 「Concurrent
        posts」): the person, or the unit, where the opener has not fixed it, the post's role and whether it carries the
        unit's head, written by its one save. -->
-  <SettingsDialog v-model:open="open" :title="props.title" :dirty="dirty">
+  <SettingsDialog v-model:open="open" :title="props.title" :dirty="changes">
     <UForm id="post-form" :state="draft" class="flex flex-col gap-4" @submit="save">
       <UFormField v-if="props.user === null" :label="$t('organization.label.post_person')" name="user" required>
         <USelectMenu
@@ -28,13 +28,14 @@
 
     <template #footer="{ close }">
       <UButton color="neutral" variant="ghost" :label="$t('common.action.cancel')" @click="close()" />
-      <UButton type="submit" form="post-form" :label="$t('common.action.save')" :loading="busy" :disabled="busy || !ready || !dirty" data-post-save />
+      <UButton type="submit" form="post-form" :label="$t('common.action.save')" :loading="busy" :disabled="busy || !ready || !changes.dirty.value" data-post-save />
     </template>
   </SettingsDialog>
 </template>
 
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
+import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 
 import type { RoleView } from "#shared/roster";
 
@@ -66,13 +67,7 @@ const failure = ref("");
 
 const roleItems = computed(() => [{ label: t("organization.label.no_position"), value: NO_ROLE }, ...[...props.roles].reverse().map((role) => ({ label: role.name, value: role.key }))]);
 const ready = computed(() => (props.user !== null || draft.user !== "") && (props.unit !== null || draft.unit !== ""));
-const dirty = computed(() => {
-  const saved = props.saved;
-
-  if (saved === null) return ready.value;
-
-  return draft.role !== (saved.role ?? NO_ROLE) || draft.head !== saved.head;
-});
+const changes = useOpenedWith(() => draft, { open });
 
 // Every opening starts from the post as it stands, or from nothing for a new one.
 watch(open, (now) => {
@@ -83,7 +78,7 @@ watch(open, (now) => {
 });
 
 async function save(): Promise<void> {
-  if (!ready.value || !dirty.value) return;
+  if (!ready.value || !changes.dirty.value) return;
 
   const unit = props.unit ?? Number(draft.unit);
   const user = props.user ?? draft.user;

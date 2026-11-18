@@ -7920,8 +7920,15 @@ by the administrator. Every login reads them, since every person's form asks in 
   together, and a dialog closes once its save has gone through.
 - **A foot's buttons stand at their own width at its right end,** never stretched to the foot's width: a card's
   one action — the login's 로그인, the join page's 계정 만들기 and what follows it — stands there the same way.
-- **저장 is on only while something differs** from what is saved; with nothing changed it stands
-  disabled.
+- **A form holds a change only while its values differ from what it opened with,** read by bmo-ui's
+  opened-with snapshot (`useOpenedWith`, bmo-ui's docs/components.md, its forms) and by nothing of the
+  screen's own: the screen hands the values a reader would tell apart, and the snapshot is taken once the
+  dialog stands open with its data in it. A dialog opened and closed untouched holds no change, a new
+  record's empty form among them, and neither does one whose change was put back: text is read trimmed, every
+  kind of nothing alike, a number as its value. Where two writings mean the same to a screen, as a
+  number box's text and its number or a field standing in for a saved text it shows, the screen hands
+  the meaning.
+- **저장 is on only while the form holds a change;** with nothing changed it stands disabled.
 - **저장 saves at once.** No question stands between the press and the save, whatever the save sets off;
   what a field's change sets off — a room's session starting afresh, an engine loading another model —
   is said beside that field before the press.
@@ -7930,8 +7937,8 @@ by the administrator. Every login reads them, since every person's form asks in 
   save is done: 저장 goes back to disabled, and closing or leaving asks nothing.
 - **Leaving with changes asks first.** Closing a dialog whose form holds changes — its close button,
   Esc, a press outside, the back gesture — and leaving a page or a tab that holds them ask first, in
-  a dialog, whether to throw them away: 버리기 drops them and goes, 취소 stays with them. With
-  nothing changed it goes at once.
+  a dialog, whether to throw them away: 버리기 drops them and goes, and every other way out of the question,
+  취소, Esc and the back gesture among them, stays with them. With nothing changed it goes at once.
 - **A refused save keeps every change as written,** with the reason under the field it names. A save
   that goes to the bot by several paths stops at the first refusal, and what went through before it
   stands as saved.

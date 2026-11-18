@@ -3,7 +3,7 @@
        docs/repositories.md): one form with one save at its foot holding every field of a repository. The
        repositories tab and the repository's own screen open this one dialog; with no name it adds a repository. Its
        name is what its checkouts and its jobs are kept under, so it never moves once made. -->
-  <SettingsDialog v-model:open="open" wide :title="adding ? $t('agents.title.repository_add') : (held?.label ?? props.name ?? '')" :description="adding || held?.label === props.name ? undefined : (props.name ?? undefined)" :dirty="dirty">
+  <SettingsDialog v-model:open="open" wide :title="adding ? $t('agents.title.repository_add') : (held?.label ?? props.name ?? '')" :description="adding || held?.label === props.name ? undefined : (props.name ?? undefined)" :dirty="changes">
     <p v-if="failed" role="alert" class="text-sm text-error">{{ $t("agents.error.repositories_read_failed") }}</p>
     <ContentSkeleton v-else-if="!adding && held === null" :rows="3" :label="$t('agents.status.repositories_loading')">
       <div class="flex flex-col gap-2">
@@ -169,16 +169,18 @@
 
     <template #footer="{ close }">
       <UButton :label="$t('common.action.cancel')" color="neutral" variant="ghost" :disabled="busy" @click="close()" />
-      <UButton type="submit" :form="formId" :label="adding ? $t('common.action.add') : $t('common.action.save')" :loading="busy" :disabled="busy || !dirty || !complete" />
+      <UButton type="submit" :form="formId" :label="adding ? $t('common.action.add') : $t('common.action.save')" :loading="busy" :disabled="busy || !changes.dirty.value || !complete" />
     </template>
   </SettingsDialog>
 </template>
 
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
+import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 
 import { DEFAULT_DOWNGRADE_HEAL, JOB_LINE, markedDefault, refusalOf, useProviderModels, useProviders } from "~/domain/axes";
-import { generationChange, settingsDraft } from "~/domain/generation";
+import { sameValue } from "~/domain/form-values";
+import { generationChange, generationMeaning, settingsDraft } from "~/domain/generation";
 import { movedOrder } from "~/domain/agents";
 import { useRowDrag } from "~/domain/row-drag";
 
@@ -277,12 +279,18 @@ function formOf(repository: RepositoryView): RepositoryForm {
 }
 
 const form = ref<RepositoryForm>(emptyForm());
-const opened = ref<RepositoryForm>(emptyForm());
+// The repository as the agency holds it now, which a save is read against.
+const saved = computed<RepositoryForm>(() => (held.value === null ? emptyForm() : formOf(held.value)));
 const addingPrefix = ref("");
 const busy = ref(false);
 const refusal = ref<{ field: string | null; text: string } | null>(null);
 
-const dirty = computed(() => JSON.stringify(form.value) !== JSON.stringify(opened.value));
+// The form is filled once the repository it edits, or for a new one the list its sampling settings come from, has
+// been read; the sampling boxes are read as the values they send.
+const changes = useOpenedWith(() => ({ ...form.value, sampling: generationMeaning(form.value.sampling) }), {
+  open,
+  ready: () => (adding.value ? (repositories.value ?? null) !== null : held.value !== null)
+});
 const complete = computed(() => form.value.name.trim() !== "" && (form.value.pinProvider === ROLE_ORDER || form.value.pinModel !== ""));
 
 const FIELDS = ["name", "label", "path", "nodeName", "supportCount", "nodeCheckouts", "prefixDocuments", "preamble", "rules", "devCommand", "pin", "sampling", "downgradeHeal"];
@@ -385,7 +393,6 @@ function dropPrefix(at: number): void {
 // Every opening starts from what the agency holds now.
 function load(): void {
   form.value = held.value === null ? emptyForm() : formOf(held.value);
-  opened.value = structuredClone(toRaw(form.value));
   addingPrefix.value = "";
   addingCheckout.value = { node: "", path: "" };
   refusal.value = null;
@@ -399,15 +406,20 @@ watch(open, async (now) => {
   await refresh();
   failed.value = !adding.value && held.value === null;
 
-  if (!dirty.value) load();
+  // A form nobody has changed takes what was read; one being written keeps what was written, read against what it
+  // opened with.
+  if (!changes.dirty.value) {
+    load();
+    await changes.take();
+  }
 }, { immediate: true });
 
 // What a save sends: a new repository every field it holds, an edited one the fields that differ, an emptied text as
 // none.
 function body(): Record<string, unknown> {
   const now = form.value;
-  const before = opened.value;
-  const changed = (key: keyof RepositoryForm): boolean => adding.value || JSON.stringify(now[key]) !== JSON.stringify(before[key]);
+  const before = saved.value;
+  const changed = (key: keyof RepositoryForm): boolean => adding.value || !sameValue(now[key], before[key]);
   const textOrNone = (text: string): string | null => (text.trim() === "" ? null : text);
   const sent: Record<string, unknown> = {};
 
@@ -439,13 +451,12 @@ async function save(): Promise<void> {
   refusal.value = null;
 
   try {
-    const saved = adding.value
+    const answered = adding.value
       ? await $fetch<RepositoryView>("/api/repositories", { method: "POST", body: body() })
       : await $fetch<RepositoryView>(`/api/repositories/${encodeURIComponent(form.value.name)}`, { method: "PATCH", body: body() });
 
-    opened.value = structuredClone(toRaw(form.value));
     open.value = false;
-    emit("saved", saved);
+    emit("saved", answered);
     await refresh();
   } catch (failure) {
     refusal.value = refusalOf(t, failure);

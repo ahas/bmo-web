@@ -6,7 +6,7 @@
     <UButton icon="i-material-symbols-device-thermostat" color="neutral" variant="ghost" :aria-label="$t('hardware.title.cpu_limit')" @click="opened" />
   </UTooltip>
 
-  <SettingsDialog v-model:open="open" :title="$t('hardware.title.cpu_limit')" :dirty="dirty">
+  <SettingsDialog v-model:open="open" :title="$t('hardware.title.cpu_limit')" :dirty="changes">
     <p class="text-sm break-keep text-muted">{{ temperatureCriteria($t, control.limit.value) }}</p>
 
     <form :id="formId" @submit.prevent="void save(draft)">
@@ -25,12 +25,14 @@
         :disabled="control.busy.value"
         @click="void save(null)"
       />
-      <UButton type="submit" :form="formId" :label="$t('common.action.save')" :loading="pressed === 'save'" :disabled="draft === null || !dirty || control.busy.value" />
+      <UButton type="submit" :form="formId" :label="$t('common.action.save')" :loading="pressed === 'save'" :disabled="draft == null || !changes.dirty.value || control.busy.value" />
     </template>
   </SettingsDialog>
 </template>
 
 <script setup lang="ts">
+import { useOpenedWith } from "bmo-ui/app/domain/form-save";
+
 import { temperatureCriteria } from "~/domain/hardware";
 
 import type { HardwareCpuLimit } from "~/domain/hardware";
@@ -42,13 +44,12 @@ const open = ref(false);
 const draft = ref<number | null>(null);
 const pressed = ref<"save" | "clear" | null>(null);
 
-// The field opens on the limit in use, set or the chip's, and holds a change once it differs from that.
-const opening = ref<number | null>(null);
-const dirty = computed(() => draft.value !== opening.value);
+// The field opens on the limit in use, set or the chip's, and holds a change once it differs from that; a field
+// emptied is alike to one that opened on none.
+const changes = useOpenedWith(() => draft.value, { open });
 
 function opened(): void {
-  opening.value = props.control.limit.value?.celsius ?? null;
-  draft.value = opening.value;
+  draft.value = props.control.limit.value?.celsius ?? null;
   open.value = true;
 }
 
@@ -57,7 +58,6 @@ async function save(celsius: number | null): Promise<void> {
 
   try {
     if (await props.control.set(celsius)) {
-      opening.value = draft.value;
       open.value = false;
     }
   } finally {

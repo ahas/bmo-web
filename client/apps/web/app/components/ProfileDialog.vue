@@ -2,7 +2,7 @@
   <!-- An account's profile (docs/accounts.md, 「Users and senders」): the person's name, job title, rank, duty and
        contact details, held until its one save writes them whole. The role is set on the chart, never here. Settings' account section opens it for the reader's own account, and
        the people tab for a person the administrator looks up. -->
-  <SettingsDialog v-model:open="open" :title="$t('account.title.profile')" :description="props.description" :dirty="dirty">
+  <SettingsDialog v-model:open="open" :title="$t('account.title.profile')" :description="props.description" :dirty="changes">
     <UForm id="profile-form" :state="form" class="flex flex-col gap-4" @submit="save">
       <UFormField :label="$t('account.label.full_name')" name="fullName">
         <UInput v-model="form.fullName" class="w-full" autocomplete="name" />
@@ -37,13 +37,14 @@
 
     <template #footer="{ close }">
       <UButton color="neutral" variant="ghost" :label="$t('common.action.cancel')" @click="close()" />
-      <UButton type="submit" form="profile-form" :label="$t('common.action.save')" :loading="pending" :disabled="pending || !dirty" />
+      <UButton type="submit" form="profile-form" :label="$t('common.action.save')" :loading="pending" :disabled="pending || !changes.dirty.value" />
     </template>
   </SettingsDialog>
 </template>
 
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
+import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 
 import type { UserProfile } from "#shared/types";
 
@@ -63,7 +64,6 @@ const open = defineModel<boolean>("open", { default: false });
 const { t } = useI18n();
 
 const form = reactive<UserProfile>({ fullName: "", jobTitle: "", rank: "", duty: "", landline: "", mobile: "", email: "" });
-const FIELDS: (keyof UserProfile)[] = ["fullName", "jobTitle", "rank", "duty", "landline", "mobile", "email"];
 const pending = ref(false);
 const failure = ref<string | null>(null);
 
@@ -79,14 +79,11 @@ watch(
   { immediate: true }
 );
 
-const dirty = computed(() => {
-  const saved = props.profile;
-
-  return saved !== null && FIELDS.some((field) => form[field] !== saved[field]);
-});
+// The form is filled once the profile it edits has been read.
+const changes = useOpenedWith(() => form, { open, ready: () => props.profile !== null });
 
 async function save(): Promise<void> {
-  if (!dirty.value) return;
+  if (!changes.dirty.value) return;
 
   pending.value = true;
   failure.value = null;

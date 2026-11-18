@@ -47,9 +47,10 @@
 </template>
 
 <script setup lang="ts">
-import { useFormPart } from "bmo-ui/app/domain/form-save";
+import { useFormPart, useOpenedWith } from "bmo-ui/app/domain/form-save";
 
 import { defaultThreshold, emptyRoad, fractionOf, isDefaultThreshold, markedDefault, percentOf, providerWord, refusalOf, ROAD_FIELDS, SUPERVISOR_LINE, useProviders } from "~/domain/axes";
+import { sameValue } from "~/domain/form-values";
 
 import type { RepositoryView, RoadView, SupervisorView } from "#shared/axes";
 
@@ -96,7 +97,7 @@ function errorAt(field: string): string | undefined {
   return refusal.value?.field === field ? refusal.value.text : undefined;
 }
 
-const same = (a: unknown, b: unknown): boolean => JSON.stringify(a) === JSON.stringify(b);
+const changes = useOpenedWith(() => draft.value);
 
 // What differs from what is saved, as the agency takes it.
 function changed(): Record<string, unknown> {
@@ -104,8 +105,8 @@ function changed(): Record<string, unknown> {
 
   if (draft.value.label.trim() !== saved.value.label) body.label = draft.value.label.trim();
   // A road is sent whole once it names its provider and model.
-  if (!same(draft.value.road, saved.value.road) && draft.value.road.model !== "") body.road = draft.value.road;
-  if (!same(draft.value.warming, saved.value.warming)) body.warming = draft.value.warming;
+  if (!sameValue(draft.value.road, saved.value.road) && draft.value.road.model !== "") body.road = draft.value.road;
+  if (!sameValue(draft.value.warming, saved.value.warming)) body.warming = draft.value.warming;
   if (draft.value.threshold !== saved.value.threshold) body.foldRatio = fractionOf(draft.value.threshold);
   if (draft.value.repository !== saved.value.repository) body.repository = draft.value.repository === "" ? null : draft.value.repository;
 
@@ -133,7 +134,7 @@ async function save(): Promise<boolean> {
 }
 
 useFormPart({
-  dirty: () => Object.keys(changed()).length > 0,
+  dirty: changes,
   save,
   discard: () => {
     draft.value = draftOf(props.supervisor);

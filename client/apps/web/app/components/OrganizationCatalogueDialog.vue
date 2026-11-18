@@ -3,7 +3,7 @@
        row of its key and its name, carried to another place by its handle, taken away by its mark, and added at the
        foot; a key saved before stands read-only, since other units name the entry by it. Nothing is written until its
        one save. -->
-  <SettingsDialog v-model:open="open" :title="props.title" :dirty="dirty">
+  <SettingsDialog v-model:open="open" :title="props.title" :dirty="changes">
     <UForm id="catalogue-form" :state="rows" class="flex flex-col gap-4" @submit="save">
       <div ref="list" class="flex flex-col gap-2" data-catalogue-rows>
         <div v-for="(row, at) in rows" :key="row.id" :data-order-index="at" class="flex min-w-0 items-center gap-2 rounded-md" :class="drag.mark(at)" data-catalogue-row>
@@ -32,13 +32,14 @@
 
     <template #footer="{ close }">
       <UButton color="neutral" variant="ghost" :label="$t('common.action.cancel')" @click="close()" />
-      <UButton type="submit" form="catalogue-form" :label="$t('common.action.save')" :loading="busy" :disabled="busy || !dirty" data-catalogue-save />
+      <UButton type="submit" form="catalogue-form" :label="$t('common.action.save')" :loading="busy" :disabled="busy || !changes.dirty.value" data-catalogue-save />
     </template>
   </SettingsDialog>
 </template>
 
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
+import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 
 import { movedOrder } from "~/domain/agents";
 import { useRowDrag } from "~/domain/row-drag";
@@ -75,7 +76,7 @@ const failure = ref("");
 let made = 0;
 
 const written = computed(() => rows.value.map((row) => ({ key: row.key.trim(), name: row.name.trim() })));
-const dirty = computed(() => JSON.stringify(written.value) !== JSON.stringify(props.saved.map((entry) => ({ key: entry.key, name: entry.name }))));
+const changes = useOpenedWith(() => written.value, { open });
 
 // Every opening starts from the list as saved.
 watch(open, (now) => {
@@ -100,7 +101,7 @@ const drag = useRowDrag({
 
 // The list written whole; a refusal keeps every row as written, with the reason under it.
 async function save(): Promise<void> {
-  if (!dirty.value) return;
+  if (!changes.dirty.value) return;
 
   busy.value = true;
   failure.value = "";

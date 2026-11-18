@@ -2,7 +2,7 @@
   <!-- A move of people into a unit (docs/web.md, 「Organisation」, its chart): the unit they go to and the role each
        takes there, then who goes where, shown once before the one act writes the whole set. Closing it at either step
        writes nothing. The chart opens it for the people chosen, and the people tab for one person. -->
-  <SettingsDialog v-model:open="open" :title="step === 'form' ? $t('organization.action.move') : $t('organization.action.preview')" :dirty="dirty">
+  <SettingsDialog v-model:open="open" :title="step === 'form' ? $t('organization.action.move') : $t('organization.action.preview')" :dirty="changes">
     <UForm v-if="step === 'form'" id="unit-move-form" :state="draft" class="flex flex-col gap-4" @submit="preview">
       <UFormField :label="$t('organization.label.move_to')" name="to" required>
         <USelect v-model="draft.to" :items="destinations" class="w-full" data-move-to />
@@ -48,6 +48,7 @@
 
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
+import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 
 import { movePlan, unitPath } from "~/domain/organization";
 
@@ -78,7 +79,7 @@ const failure = ref("");
 const KEEP_POSITION = "keep";
 const NO_POSITION = "none";
 const draft = reactive<{ to: string; people: string[]; roles: Record<string, "member" | "head">; position: string }>({ to: "", people: [], roles: {}, position: KEEP_POSITION });
-const dirty = computed(() => draft.to !== "" || Object.values(draft.roles).includes("head") || draft.position !== KEEP_POSITION);
+const changes = useOpenedWith(() => draft, { open });
 const positionRoles = computed(() => (draft.to === "" ? [] : props.rolesOf(Number(draft.to))));
 const positionItems = computed(() => [
   { label: t("organization.label.keep_position"), value: KEEP_POSITION },

@@ -4,7 +4,6 @@ import { wording } from "../../../apps/web/shared/wording";
 import {
   draftAsked,
   draftChange,
-  draftChanges,
   draftFormOf,
   draftListFault,
   draftOutcomeText,
@@ -127,7 +126,7 @@ describe("a supervisor's draft block", () => {
     const form = draftFormOf(view());
 
     expect(draftOwn(form, POLICY)).toBe(false);
-    expect(draftChanges(draftChange(view(), form))).toBe(false);
+    expect(draftChange(view(), form)).toEqual({});
 
     form.rounds = ["facts", "final"];
 
@@ -149,7 +148,7 @@ describe("a supervisor's draft block", () => {
     const same = view({ source: "set" });
 
     expect(draftOwn(draftFormOf(same), POLICY)).toBe(true);
-    expect(draftChanges(draftChange(same, draftFormOf(same)))).toBe(false);
+    expect(draftChange(same, draftFormOf(same))).toEqual({});
 
     const back = draftToPolicy(draftFormOf(held), POLICY);
 

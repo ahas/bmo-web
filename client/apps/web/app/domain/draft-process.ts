@@ -239,11 +239,6 @@ export function draftChange(view: SupervisorDraftView, form: DraftForm): Supervi
   return save;
 }
 
-/** Whether a save sends anything. */
-export function draftChanges(save: SupervisorDraftSave): boolean {
-  return save.process !== undefined || save.texts !== undefined || save.removed !== undefined;
-}
-
 // The chip of a message's draft process.
 
 /** The gate's rows of the process among a message's verdicts, and the verdicts that are not. */

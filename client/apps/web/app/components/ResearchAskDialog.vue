@@ -2,7 +2,7 @@
   <!-- One thing asked of the research unit by its category, its name and the address of its maker's page, with the
        owner's words for why, and, for a follow-up, the research it follows from named above the fields (docs/web.md,
        「Research screen」). The unit queues it at once; its refusal stands under the dialog. -->
-  <SettingsDialog v-model:open="open" :title="$t(props.follows === null ? 'research.title.ask' : 'research.title.follow_up')" :dirty="dirty">
+  <SettingsDialog v-model:open="open" :title="$t(props.follows === null ? 'research.title.ask' : 'research.title.follow_up')" :dirty="changes">
     <form id="research-ask-form" class="flex flex-col gap-4" @submit.prevent="void ask()">
       <p v-if="props.follows !== null" class="flex min-w-0 items-start gap-1 text-sm text-muted">
         <UIcon name="i-material-symbols-subdirectory-arrow-right" class="mt-0.5 size-4 shrink-0" />
@@ -37,6 +37,7 @@
 
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
+import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 import { followFields, parentText } from "~/domain/research";
 
 import type { ResearchAsk, ResearchItem } from "#shared/research";
@@ -67,7 +68,7 @@ const draft = ref<ResearchAsk>(emptyDraft());
 const because = ref("");
 const busy = ref(false);
 const refusal = ref<string | null>(null);
-const dirty = computed(() => draft.value.name.trim() !== "" || draft.value.address.trim() !== (props.follows?.address ?? "") || because.value.trim() !== "");
+const changes = useOpenedWith(() => ({ ...draft.value, because: because.value }), { open });
 const complete = computed(() => draft.value.categoryName !== "" && draft.value.name.trim() !== "" && draft.value.address.trim() !== "");
 const categoryItems = computed(() => props.categories.map((name) => ({ value: name, label: name })));
 

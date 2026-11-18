@@ -3,7 +3,7 @@
        and one save that writes the store at once. The values stand in this form's boxes and nowhere else: they go to
        the console's route in the body, and the boxes are emptied as soon as the answer comes and as the dialog
        closes, however it closes. -->
-  <SettingsDialog v-model:open="open" :title="props.ask.replace ? $t('secrets.title.replace') : $t('secrets.title.add')" :dirty="dirty">
+  <SettingsDialog v-model:open="open" :title="props.ask.replace ? $t('secrets.title.replace') : $t('secrets.title.add')" :dirty="changes">
     <UForm id="secret-form" :state="form" class="flex flex-col gap-4" autocomplete="off" data-secret-form @submit="submit">
       <p v-if="props.ask.purpose !== ''" class="text-sm text-muted" data-secret-purpose>{{ $t("secrets.label.purpose", { purpose: props.ask.purpose }) }}</p>
 
@@ -77,6 +77,7 @@
 
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
+import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 
 import { useAdministrator } from "~/domain/access";
 import { INPUT_LABELS, faultText, kindWords } from "~/domain/secret-form";
@@ -173,8 +174,6 @@ const ready = computed(
     && (!standing.value || form.replace)
     && (!composing.value || !form.saveAsKind || kindFaults(newKind.value).length === 0)
 );
-const holdsValue = computed(() => Object.values(texts).some((text) => text !== "") || files.size > 0);
-const dirty = computed(() => holdsValue.value || form.name !== props.ask.name || (composing.value && composed.value.length > 0 && props.ask.fields === null));
 
 function forgetValues(): void {
   for (const key of Object.keys(texts)) delete texts[key];
@@ -230,6 +229,16 @@ function begin(): void {
   });
   composed.value = (asked ?? []).map((field) => ({ id: composedIds++, key: field.key, input: field.input, masked: field.masked }));
 }
+
+// What the form holds: the kind where it is not the one asked for, so kinds that land after it opened change nothing,
+// the fields composed, the values written, and each file chosen by its name and size.
+const changes = useOpenedWith(() => ({
+  ...form,
+  kind: form.kind === askedKind() ? null : form.kind,
+  composed: composed.value.map(({ key, input, masked }) => ({ key, input, masked })),
+  texts,
+  files: Object.fromEntries([...files].map(([key, file]) => [key, `${file.name} ${file.bytes.length}`]))
+}), { open });
 
 watch(open, (opened) => {
   if (opened) begin();

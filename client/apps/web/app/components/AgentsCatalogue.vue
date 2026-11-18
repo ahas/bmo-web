@@ -107,7 +107,7 @@
 
     <p v-if="actionFailed !== ''" role="alert" class="px-4 py-2 break-words text-sm text-error">{{ actionFailed }}</p>
 
-    <SettingsDialog v-model:open="editing" :title="adding ? $t('agents.title.catalogue_add') : form.label || form.name" :description="adding || form.label === '' || form.label === form.name ? undefined : form.name" :dirty="formDirty">
+    <SettingsDialog v-model:open="editing" :title="adding ? $t('agents.title.catalogue_add') : form.label || form.name" :description="adding || form.label === '' || form.label === form.name ? undefined : form.name" :dirty="changes">
       <form id="catalogue-form" class="flex flex-col gap-4" @submit.prevent="save">
         <div class="grid gap-4 sm:grid-cols-2">
           <UFormField :label="$t('common.label.name')" name="name" :error="errorAt('name')">
@@ -171,13 +171,14 @@
 
       <template #footer="{ close }">
         <UButton :label="$t('common.action.cancel')" color="neutral" variant="ghost" :disabled="busy" @click="close()" />
-        <UButton type="submit" form="catalogue-form" :label="adding ? $t('common.action.add') : $t('common.action.save')" :loading="busy" :disabled="busy || !formDirty" />
+        <UButton type="submit" form="catalogue-form" :label="adding ? $t('common.action.add') : $t('common.action.save')" :loading="busy" :disabled="busy || !changes.dirty.value" />
       </template>
     </SettingsDialog>
   </section>
 </template>
 
 <script setup lang="ts">
+import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 import { tableHeaders } from "bmo-ui/app/domain/column-widths";
 import { failureText } from "bmo-ui/app/domain/errors";
 
@@ -249,8 +250,7 @@ const editing = ref(false);
 const adding = ref(false);
 const form = ref<CatalogueForm>(emptyCatalogueForm());
 // The box as it opened; its Save button is on only while it differs (docs/web.md, 「Forms」).
-const formOpened = ref(JSON.stringify(form.value));
-const formDirty = computed(() => JSON.stringify(form.value) !== formOpened.value);
+const changes = useOpenedWith(() => form.value, { open: editing });
 const refusal = ref<{ place: string; text: string } | null>(null);
 const actionFailed = ref("");
 
@@ -275,7 +275,6 @@ function menuOf(entry: CatalogueEntryView): DropdownMenuItem[] {
 function openAdd(): void {
   adding.value = true;
   form.value = emptyCatalogueForm();
-  formOpened.value = JSON.stringify(form.value);
   refusal.value = null;
   editing.value = true;
 }
@@ -283,7 +282,6 @@ function openAdd(): void {
 function openEdit(entry: CatalogueEntryView): void {
   adding.value = false;
   form.value = catalogueForm(entry);
-  formOpened.value = JSON.stringify(form.value);
   refusal.value = null;
   editing.value = true;
 }
@@ -295,7 +293,7 @@ async function save(): Promise<void> {
   try {
     catalogue.value = await $fetch<CatalogueView>("/api/model-catalogue", { method: "POST", body: catalogueSave(form.value) });
     // What was saved is the box's saved value from here on, so closing asks nothing (docs/web.md, 「Forms」).
-    formOpened.value = JSON.stringify(form.value);
+    await changes.take();
     editing.value = false;
   } catch (error) {
     const { field, text } = refusalOf(error);

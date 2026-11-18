@@ -257,7 +257,7 @@
       </template>
     </UDrawer>
 
-    <SettingsDialog v-model:open="adding" :title="$t('organization.action.add')" :dirty="draft.name.trim() !== '' || draft.parent !== NEW_COMPANY">
+    <SettingsDialog v-model:open="adding" :title="$t('organization.action.add')" :dirty="addChanges">
       <UForm id="unit-add-form" :state="draft" class="flex flex-col gap-4" @submit="add">
         <UFormField :label="$t('organization.label.name')" name="name" required>
           <UInput v-model="draft.name" class="w-full" />
@@ -273,7 +273,7 @@
       </template>
     </SettingsDialog>
 
-    <SettingsDialog v-model:open="editing" :title="editOf?.name ?? ''" :dirty="editChanged">
+    <SettingsDialog v-model:open="editing" :title="editOf?.name ?? ''" :dirty="editChanges">
       <UForm id="unit-edit-form" :state="edit" class="flex flex-col gap-4" @submit="saveEdit">
         <UFormField :label="$t('organization.label.name')" name="name" required>
           <UInput v-model="edit.name" class="w-full" />
@@ -294,7 +294,7 @@
       </UForm>
       <template #footer="{ close }">
         <UButton color="neutral" variant="ghost" :label="$t('common.action.cancel')" @click="close()" />
-        <UButton type="submit" form="unit-edit-form" :label="$t('common.action.save')" :loading="busy" :disabled="busy || !editChanged || edit.name.trim() === ''" />
+        <UButton type="submit" form="unit-edit-form" :label="$t('common.action.save')" :loading="busy" :disabled="busy || !editChanges.dirty.value || edit.name.trim() === ''" />
       </template>
     </SettingsDialog>
 
@@ -320,6 +320,7 @@
 import { CHOOSE_CELL } from "bmo-ui/app/domain/chooseall";
 import { draggedSelection, useDragSelect } from "bmo-ui/app/domain/dragselect";
 import { failureText } from "bmo-ui/app/domain/errors";
+import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 import { useNarrow } from "bmo-ui/app/domain/screen";
 import { SPLIT_HANDLE } from "bmo-ui/app/domain/side-parts";
 import { dayKey, toUnixSeconds } from "bmo-ui/app/domain/time";
@@ -832,6 +833,7 @@ const PICKER_UI = { placeholder: "text-default" };
 const NEW_COMPANY = "company";
 const adding = ref(false);
 const draft = reactive({ name: "", parent: NEW_COMPANY });
+const addChanges = useOpenedWith(() => draft, { open: adding });
 
 function openAdd(): void {
   Object.assign(draft, { name: "", parent: NEW_COMPANY });
@@ -882,15 +884,7 @@ function savedEdit(unit: UnitRow): typeof edit {
   return { name: unit.name, parent, kind: unit.kind?.key ?? NO_KIND, shortName: unit.shortName ?? "", reportsTo: unit.reportsTo === undefined || unit.reportsTo === null ? parent : String(unit.reportsTo) };
 }
 
-const editChanged = computed(() => {
-  const unit = editOf.value;
-
-  if (unit === null) return false;
-
-  const saved = savedEdit(unit);
-
-  return edit.name.trim() !== saved.name || edit.parent !== saved.parent || edit.kind !== saved.kind || edit.shortName.trim() !== saved.shortName || edit.reportsTo !== saved.reportsTo;
-});
+const editChanges = useOpenedWith(() => edit, { open: editing });
 
 function openEdit(): void {
   const unit = chosen.value;
@@ -906,7 +900,7 @@ function openEdit(): void {
 async function saveEdit(): Promise<void> {
   const unit = editOf.value;
 
-  if (unit === null || !editChanged.value) return;
+  if (unit === null || !editChanges.dirty.value) return;
 
   const saved = savedEdit(unit);
   const body: { name?: string; parent?: number; kind?: string | null; shortName?: string | null; reportsTo?: number | null } = {};

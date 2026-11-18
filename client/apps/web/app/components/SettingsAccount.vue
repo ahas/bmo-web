@@ -52,7 +52,7 @@
 
     <UAlert v-if="done" color="success" variant="subtle" :description="$t('account.message.saved')" />
 
-    <SettingsDialog v-model:open="editing" :title="$t('account.title.login')" :dirty="dirty">
+    <SettingsDialog v-model:open="editing" :title="$t('account.title.login')" :dirty="changes">
       <UForm id="account-form" :state="form" class="flex flex-col gap-4" @submit="submit">
         <UFormField :label="$t('account.label.current_password')" name="currentPassword" required>
           <UInput v-model="form.currentPassword" class="w-full" type="password" autocomplete="current-password" />
@@ -71,7 +71,7 @@
 
       <template #footer="{ close }">
         <UButton color="neutral" variant="ghost" :label="$t('common.action.cancel')" @click="close()" />
-        <UButton type="submit" form="account-form" :label="$t('common.action.save')" :loading="pending" :disabled="pending || !dirty" />
+        <UButton type="submit" form="account-form" :label="$t('common.action.save')" :loading="pending" :disabled="pending || !changes.dirty.value" />
       </template>
     </SettingsDialog>
 
@@ -85,6 +85,7 @@ import { ownSenderOf } from "~/domain/picture-setting";
 
 import type { AccountUser, OwnerChat, UserProfile } from "#shared/types";
 import { failureText } from "bmo-ui/app/domain/errors";
+import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 
 const { t } = useI18n();
 const { user, fetch: refreshSession } = useUserSession();
@@ -112,7 +113,7 @@ watch(editing, (open) => {
 
 // The current password only vouches for a change, so it is no change of its own; closing with one
 // asks first (docs/web.md, 「Forms」).
-const dirty = computed(() => form.name !== (user.value?.name ?? "") || form.password !== "");
+const changes = useOpenedWith(() => ({ name: form.name, password: form.password }), { open: editing });
 
 // The account's profile (docs/accounts.md, 「Users and senders」): the person's name, job title and contact details
 // its holder or an administrator keeps. A console login before the model names no user, and keeps none.
@@ -199,7 +200,7 @@ watch(account, () => {
 }, { immediate: true });
 
 async function submit(): Promise<void> {
-  if (!dirty.value) return;
+  if (!changes.dirty.value) return;
 
   pending.value = true;
   failure.value = null;

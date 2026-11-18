@@ -80,7 +80,7 @@
 
     <p v-if="failed !== ''" role="alert" class="break-words text-sm text-error">{{ failed }}</p>
 
-    <SettingsDialog v-model:open="editing" :title="adding ? $t('agents.title.account_add') : editName" :description="adding ? undefined : editId" :dirty="formDirty">
+    <SettingsDialog v-model:open="editing" :title="adding ? $t('agents.title.account_add') : editName" :description="adding ? undefined : editId" :dirty="changes">
       <form id="account-form" class="flex flex-col gap-4" @submit.prevent="save">
         <UFormField :label="$t('common.label.name')" name="name">
           <UInput v-model="editName" class="w-full" :placeholder="$t('agents.placeholder.account_name')" :aria-label="$t('common.label.name')" />
@@ -99,14 +99,14 @@
 
       <template #footer="{ close }">
         <UButton :label="$t('common.action.cancel')" color="neutral" variant="ghost" :disabled="busy !== ''" @click="close()" />
-        <UButton type="submit" form="account-form" :label="adding ? $t('common.action.add') : $t('common.action.save')" :loading="busy === 'save'" :disabled="busy !== '' || (!formDirty && editKind !== 'sign-in')" />
+        <UButton type="submit" form="account-form" :label="adding ? $t('common.action.add') : $t('common.action.save')" :loading="busy === 'save'" :disabled="busy !== '' || (!changes.dirty.value && editKind !== 'sign-in')" />
       </template>
     </SettingsDialog>
 
     <!-- The sign-in the agency runs for an account (the agency's docs/cache-fallback.md, 「Signing an account in from
          the console」): the address opens in the administrator's own browser, and the code that page shows is pasted
          back. Closing the box gives the sign-in up. Neither the address nor the code is kept by this screen. -->
-    <SettingsDialog v-model:open="signingIn" :title="$t('agents.title.sign_in', { name: signInName })" :dirty="signInCode.trim() !== ''" @update:open="(open: boolean) => { if (!open) void giveUpSignIn(); }">
+    <SettingsDialog v-model:open="signingIn" :title="$t('agents.title.sign_in', { name: signInName })" :dirty="signInChanges" @update:open="(open: boolean) => { if (!open) void giveUpSignIn(); }">
       <form id="sign-in-form" class="flex flex-col gap-4" data-sign-in @submit.prevent="finishSignIn">
         <p class="text-sm text-toned">{{ $t("agents.message.sign_in_steps") }}</p>
         <UButton :to="signInUrl" target="_blank" rel="noopener noreferrer" external color="neutral" variant="outline" icon="i-material-symbols-open-in-new" class="self-start" :label="$t('agents.action.open_sign_in')" data-sign-in-open />
@@ -134,6 +134,7 @@
 </template>
 
 <script setup lang="ts">
+import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 import { ACCOUNT_KINDS, SIGN_IN_KIND, accountChoiceNote, accountLoginText, accountMark, nextAccountName } from "~/domain/accounts";
 import { movedOrder } from "~/domain/agents";
 import { failureText } from "bmo-ui/app/domain/errors";
@@ -175,6 +176,7 @@ const signInId = ref("");
 const signInName = ref("");
 const signInUrl = ref("");
 const signInCode = ref("");
+const signInChanges = useOpenedWith(() => signInCode.value, { open: signingIn });
 const signInFailed = ref("");
 
 // The order while a drop is on its way: the rows stand in the new order at once, and a refusal
@@ -237,9 +239,7 @@ function menuOf(account: ClaudeAccountView): DropdownMenuItem[] {
 
 // The box's fields as they stand, and as they opened; its Save button is on only while they differ
 // (docs/web.md, 「Forms」).
-const formFields = (): string => JSON.stringify([editName.value, editKind.value, editPath.value]);
-const formOpened = ref(formFields());
-const formDirty = computed(() => formFields() !== formOpened.value);
+const changes = useOpenedWith(() => ({ name: editName.value, kind: editKind.value, path: editPath.value }), { open: editing });
 
 function openAdd(): void {
   adding.value = true;
@@ -248,7 +248,6 @@ function openAdd(): void {
   editName.value = nextAccountName(props.accounts.map((one) => one.name));
   editKind.value = "sign-in";
   editPath.value = "";
-  formOpened.value = formFields();
   formFailed.value = "";
   editing.value = true;
 }
@@ -259,7 +258,6 @@ function openEdit(account: ClaudeAccountView): void {
   editName.value = account.name;
   editKind.value = account.credentialKind;
   editPath.value = account.credentialPath;
-  formOpened.value = formFields();
   formFailed.value = "";
   editing.value = true;
 }

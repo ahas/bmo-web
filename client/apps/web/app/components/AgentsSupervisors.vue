@@ -130,7 +130,7 @@
 
     <!-- A supervisor added by its name, label, the title of the console room it answers alone, its road's provider and
          model and its repository; a refusal stands under the field it names. -->
-    <SettingsDialog v-model:open="adding" wide :title="$t('agents.title.supervisor_add')" :dirty="addDirty">
+    <SettingsDialog v-model:open="adding" wide :title="$t('agents.title.supervisor_add')" :dirty="addChanges">
       <form id="supervisor-add-form" class="flex flex-col gap-4" @submit.prevent="void add()">
         <div class="grid gap-4 sm:grid-cols-2">
           <UFormField :label="$t('common.label.name')" name="name" :error="addErrorAt('name')">
@@ -163,6 +163,7 @@
 </template>
 
 <script setup lang="ts">
+import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 import { matchFields } from "bmo-ui/shared/search";
 import { tableHeaders } from "bmo-ui/app/domain/column-widths";
 import { failureText } from "bmo-ui/app/domain/errors";
@@ -406,8 +407,7 @@ function emptyDraft(): SupervisorDraft {
 const adding = ref(false);
 const addBusy = ref(false);
 const draft = ref<SupervisorDraft>(emptyDraft());
-const opened = ref(JSON.stringify(emptyDraft()));
-const addDirty = computed(() => JSON.stringify(draft.value) !== opened.value);
+const addChanges = useOpenedWith(() => draft.value, { open: adding });
 const addComplete = computed(() =>
   draft.value.name.trim() !== "" && draft.value.label.trim() !== "" && draft.value.room.trim() !== "" && draft.value.repository !== "" && draft.value.road.provider !== "" && draft.value.road.model !== ""
 );
@@ -426,7 +426,6 @@ function openAdd(): void {
   const seed = supervisors.value?.find((one) => one.defaultAnswerer)?.road ?? null;
 
   draft.value = { ...emptyDraft(), road: seed === null ? emptyRoad() : { ...emptyRoad(), provider: seed.provider, model: seed.model } };
-  opened.value = JSON.stringify(draft.value);
   addRefusal.value = null;
   adding.value = true;
 }
@@ -441,11 +440,12 @@ async function add(): Promise<void> {
     const title = draft.value.room.trim();
     const added = await $fetch<SupervisorAddedView>("/api/supervisors", { method: "POST", body: { ...draft.value, name: draft.value.name.trim(), label, room: title } });
 
+    // What was added holds no change from here on, so nothing while the lists are read again asks to throw it away.
+    await addChanges.take();
     await rereadAll();
     // A console room already standing under the title was taken back rather than made anew, and the owner is told so.
     if (added.takenBack) island.say({ key: `room-taken-back:${added.name}`, title: t("agents.message.supervisor_room_taken_back", { label, title }) });
 
-    opened.value = JSON.stringify(draft.value);
     adding.value = false;
   } catch (failure) {
     addRefusal.value = refusalOf(t, failure);

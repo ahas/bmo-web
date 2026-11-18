@@ -2,7 +2,7 @@
   <!-- A source registered, or one changed (docs/web.md, 「Research screen」): its category and kind on registering
        alone, then its address, its search words, its filter, its cadence and how many items one reading asks for.
        Whether the kind takes them is the research unit's to say, and its refusal stands under the dialog. -->
-  <SettingsDialog v-model:open="open" :title="title" :dirty="dirty">
+  <SettingsDialog v-model:open="open" :title="title" :dirty="changes">
     <form id="research-source-form" class="flex flex-col gap-4" @submit.prevent="void save()">
       <div v-if="props.source === null" class="grid gap-4 sm:grid-cols-2">
         <UFormField :label="$t('research.label.category')" name="categoryName">
@@ -56,6 +56,7 @@
 </template>
 
 <script setup lang="ts">
+import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { SOURCE_KIND_LABELS, sourceKindLabel, wordsOf, wordsText } from "~/domain/research";
 
@@ -103,8 +104,8 @@ const busy = ref(false);
 const refusal = ref<string | null>(null);
 
 const title = computed(() => (props.source === null ? t("research.title.source_add") : t("research.title.source_edit", { id: props.source.id })));
-const dirty = computed(() => JSON.stringify(draft.value) !== JSON.stringify(draftOf(props.source)));
-const ready = computed(() => (props.source === null ? draft.value.categoryName !== "" && draft.value.kind !== "" : dirty.value));
+const changes = useOpenedWith(() => draft.value, { open });
+const ready = computed(() => (props.source === null ? draft.value.categoryName !== "" && draft.value.kind !== "" : changes.dirty.value));
 const categoryItems = computed(() => props.categories.map((one) => ({ value: one.name, label: one.name })));
 const kindItems = computed(() => Object.keys(SOURCE_KIND_LABELS).map((kind) => ({ value: kind, label: sourceKindLabel(t, kind) })));
 

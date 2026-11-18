@@ -3,7 +3,7 @@
        they are, saved or left as they were. The record keeps the new words and the moment they changed; the room
        answers by closing the box on a save it took and by handing a refusal back for the box to say, and every other
        open tab is told the message changed. -->
-  <SettingsDialog v-model:open="open" :title="$t('room.title.edit_message')" :description="props.description" :dirty="typed !== props.text">
+  <SettingsDialog v-model:open="open" :title="$t('room.title.edit_message')" :description="props.description" :dirty="changes">
     <form id="message-edit-form" class="flex flex-col gap-3" @submit.prevent="void save()">
       <UFormField :label="$t('room.label.edit_message')" name="text">
         <UTextarea v-model="typed" class="w-full" :rows="6" autoresize autofocus :maxlength="MAX_SAY_TEXT_LENGTH" :aria-label="$t('room.label.edit_message')" />
@@ -19,13 +19,15 @@
         form="message-edit-form"
         :label="$t('common.action.save')"
         :loading="saving"
-        :disabled="saving || typed.trim() === '' || typed === props.text"
+        :disabled="saving || typed.trim() === '' || !changes.dirty.value"
       />
     </template>
   </SettingsDialog>
 </template>
 
 <script setup lang="ts">
+import { useOpenedWith } from "bmo-ui/app/domain/form-save";
+
 import { MAX_SAY_TEXT_LENGTH } from "#shared/config";
 
 interface Props {
@@ -41,6 +43,7 @@ const props = defineProps<Props>();
 const open = defineModel<boolean>("open", { required: true });
 
 const typed = ref(props.text);
+const changes = useOpenedWith(() => typed.value, { open });
 const saving = ref(false);
 const failed = ref("");
 
@@ -53,7 +56,7 @@ watch(open, (now) => {
 });
 
 async function save(): Promise<void> {
-  if (saving.value || typed.value.trim() === "" || typed.value === props.text) return;
+  if (saving.value || typed.value.trim() === "" || !changes.dirty.value) return;
 
   saving.value = true;
   failed.value = "";

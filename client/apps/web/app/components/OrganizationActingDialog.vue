@@ -2,7 +2,7 @@
   <!-- An acting appointment (docs/web.md, 「Organisation」, its chart; docs/accounts.md, 「Acting」): the person who
        acts for the unit's head and the last day it runs, to the end of that day in this browser's time zone. A person
        named while another acts takes their place, which the form says before it is saved. -->
-  <SettingsDialog v-model:open="open" :title="$t('organization.action.appoint')" :dirty="draft.user !== '' || end !== null">
+  <SettingsDialog v-model:open="open" :title="$t('organization.action.appoint')" :dirty="changes">
     <UForm id="acting-form" :state="draft" class="flex flex-col gap-4" @submit="save">
       <UFormField :label="$t('organization.label.acting_person')" name="user" required>
         <USelectMenu
@@ -32,6 +32,7 @@
 import { getLocalTimeZone, today as todayIn } from "@internationalized/date";
 
 import { failureText } from "bmo-ui/app/domain/errors";
+import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 
 import type { CalendarDate } from "@internationalized/date";
 
@@ -52,6 +53,7 @@ const { t } = useI18n();
 const draft = reactive({ user: "" });
 // The last day it runs, held whole rather than unwrapped by a reactive object.
 const end = shallowRef<CalendarDate | null>(null);
+const changes = useOpenedWith(() => ({ user: draft.user, end: end.value }), { open });
 const busy = ref(false);
 const failure = ref("");
 const today = computed(() => todayIn(getLocalTimeZone()));

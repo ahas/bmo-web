@@ -2,7 +2,7 @@
   <!-- A role's dialog (docs/web.md, 「Agent management screen」, the roles tab; the agency's docs/agent-roles.md): one
        form with one save at its foot holding every field of a role, and, for a role that stands, its session history
        under the form. The roles tab and the role's own screen open this one dialog; with no name it adds a role. -->
-  <SettingsDialog v-model:open="open" wide :title="adding ? $t('agents.title.role_add') : (props.name ?? '')" :dirty="dirty">
+  <SettingsDialog v-model:open="open" wide :title="adding ? $t('agents.title.role_add') : (props.name ?? '')" :dirty="changes">
     <p v-if="failed" role="alert" class="text-sm text-error">{{ $t("agents.error.roles_read_failed") }}</p>
     <ContentSkeleton v-else-if="!adding && role === null" :rows="3" :label="$t('agents.status.roles_loading')">
       <div class="flex flex-col gap-2">
@@ -100,13 +100,16 @@
 
     <template #footer="{ close }">
       <UButton :label="$t('common.action.cancel')" color="neutral" variant="ghost" :disabled="busy" @click="close()" />
-      <UButton type="submit" :form="formId" :label="adding ? $t('common.action.add') : $t('common.action.save')" :loading="busy" :disabled="busy || !dirty || !complete" />
+      <UButton type="submit" :form="formId" :label="adding ? $t('common.action.add') : $t('common.action.save')" :loading="busy" :disabled="busy || !changes.dirty.value || !complete" />
     </template>
   </SettingsDialog>
 </template>
 
 <script setup lang="ts">
+import { useOpenedWith } from "bmo-ui/app/domain/form-save";
+
 import { providerWord, refusalOf, useProviders } from "~/domain/axes";
+import { sameValue } from "~/domain/form-values";
 
 import type { RolesView, RoleView } from "#shared/axes";
 
@@ -159,24 +162,14 @@ function formOf(held: RoleView): RoleForm {
   };
 }
 
-// The provider prompts as they would be saved: each provider that holds a text, in one order, so a box typed back to
-// what is saved, or one opened and left empty, is no change.
-function settledPrompts(prompts: Record<string, string>): [string, string][] {
-  return Object.entries(prompts)
-    .filter(([, text]) => text.trim() !== "")
-    .sort(([a], [b]) => a.localeCompare(b));
-}
-
-function settled(held: RoleForm): unknown {
-  return { ...held, providerPrompts: settledPrompts(held.providerPrompts) };
-}
-
 const form = ref<RoleForm>(emptyForm());
-const opened = ref<RoleForm>(emptyForm());
+// The role as the agency holds it now, which a save is read against.
+const saved = computed<RoleForm>(() => (role.value === null ? emptyForm() : formOf(role.value)));
 const busy = ref(false);
 const refusal = ref<{ field: string | null; text: string } | null>(null);
 
-const dirty = computed(() => JSON.stringify(settled(form.value)) !== JSON.stringify(settled(opened.value)));
+// The form is filled once the role it edits, or the lines a new one takes its first from, has been read.
+const changes = useOpenedWith(() => form.value, { open, ready: () => (adding.value ? (view.value ?? null) !== null : role.value !== null) });
 const complete = computed(() => form.value.name.trim() !== "" && form.value.line !== "");
 
 const lineItems = computed(() => {
@@ -190,7 +183,7 @@ const FIELDS = ["name", "label", "description", "line", "bundles", "skills", "pr
 // any other the role holds a text for, so that text can still be emptied.
 const promptProviders = computed<string[]>(() => {
   const carrying = (providers.value ?? []).filter((one) => one.lines.includes(form.value.line)).map((one) => one.name);
-  const held = Object.keys(opened.value.providerPrompts).filter((one) => !carrying.includes(one));
+  const held = Object.keys(saved.value.providerPrompts).filter((one) => !carrying.includes(one));
 
   return [...carrying, ...held];
 });
@@ -230,7 +223,6 @@ function load(): void {
   const held = role.value;
 
   form.value = held === null ? emptyForm() : formOf(held);
-  opened.value = structuredClone(toRaw(form.value));
   refusal.value = null;
 }
 
@@ -246,17 +238,21 @@ watch(open, async (now) => {
     failed.value = true;
   }
 
-  if (!dirty.value) load();
+  // A form nobody has changed takes what was read; one being written keeps what was written, read against what it
+  // opened with.
+  if (!changes.dirty.value) {
+    load();
+    await changes.take();
+  }
 }, { immediate: true });
 
 // What a save sends: a new role every field it holds, an edited one the fields that differ; an emptied prompt or
 // description is a cleared one.
 function body(): Record<string, unknown> {
   const now = form.value;
-  const before = opened.value;
-  const same = (a: unknown, b: unknown): boolean => JSON.stringify(a) === JSON.stringify(b);
+  const before = saved.value;
   const sent: Record<string, unknown> = {};
-  const changed = (key: keyof RoleForm): boolean => adding.value || !same(now[key], before[key]);
+  const changed = (key: keyof RoleForm): boolean => adding.value || !sameValue(now[key], before[key]);
 
   // A role is shown by its name alone; the label the agency keeps for its log is the name it is added under.
   if (adding.value) sent.name = now.name.trim();
@@ -287,13 +283,12 @@ async function save(): Promise<void> {
   refusal.value = null;
 
   try {
-    const saved = adding.value
+    const answered = adding.value
       ? await $fetch<RoleView>("/api/roles", { method: "POST", body: body() })
       : await $fetch<RoleView>(`/api/roles/${encodeURIComponent(form.value.name)}`, { method: "PATCH", body: body() });
 
-    opened.value = structuredClone(toRaw(form.value));
     open.value = false;
-    emit("saved", saved);
+    emit("saved", answered);
     await refresh();
   } catch (failure) {
     refusal.value = refusalOf(t, failure);

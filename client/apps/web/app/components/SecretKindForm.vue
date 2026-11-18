@@ -2,7 +2,7 @@
   <!-- A secret kind's form (docs/web.md, the secret store section): its key, for a kind being added alone, its name,
        its description and its fields, each a row of its key, label, input, hidden and required. A kind holds the
        fields' shapes and never a value, and the rules the server holds it to are said under the field they name. -->
-  <SettingsDialog v-model:open="open" :title="props.kind === null ? $t('secrets.title.kind_add') : $t('secrets.title.kind_edit')" :dirty="dirty" wide>
+  <SettingsDialog v-model:open="open" :title="props.kind === null ? $t('secrets.title.kind_add') : $t('secrets.title.kind_edit')" :dirty="changes" wide>
     <UForm id="secret-kind-form" :state="form" class="flex flex-col gap-4" autocomplete="off" data-secret-kind-form @submit="submit">
       <UFormField v-if="props.kind === null" :label="$t('secrets.label.kind_key')" name="key" required :hint="$t('secrets.label.kind_key_hint')" :error="faultOf('key')">
         <UInput v-model="form.key" class="w-full" autocomplete="off" autocapitalize="off" spellcheck="false" data-kind-key />
@@ -51,13 +51,14 @@
 
     <template #footer="{ close }">
       <UButton color="neutral" variant="ghost" :label="$t('common.action.cancel')" @click="close()" />
-      <UButton type="submit" form="secret-kind-form" :label="$t('common.action.save')" :loading="busy" :disabled="busy || !ready" data-kind-save />
+      <UButton type="submit" form="secret-kind-form" :label="$t('common.action.save')" :loading="busy" :disabled="busy || !ready || !changes.dirty.value" data-kind-save />
     </template>
   </SettingsDialog>
 </template>
 
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
+import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 
 import { INPUT_LABELS, faultText } from "~/domain/secret-form";
 import { SECRET_INPUTS, kindFaults } from "#shared/secret-kinds";
@@ -106,9 +107,7 @@ const kind = computed<SecretKind>(() => ({
 const faults = computed(() => kindFaults(kind.value));
 const ready = computed(() => faults.value.length === 0);
 
-// What the form was opened with, so a change is told by comparing with it.
-const opened = ref("");
-const dirty = computed(() => JSON.stringify(kind.value) !== opened.value);
+const changes = useOpenedWith(() => kind.value, { open });
 
 // A rule is said under its field once something has been written there, so an empty new form is not all red.
 function faultOf(problem: KindProblem): string | undefined {
@@ -150,13 +149,12 @@ watch(
     form.name = props.kind?.name ?? "";
     form.description = props.kind?.description ?? "";
     form.fields = (props.kind?.fields ?? [{ key: "", label: "", input: "line" as const, masked: false, required: true }]).map((field) => rowOf({ ...field }));
-    opened.value = JSON.stringify(kind.value);
   },
   { immediate: true }
 );
 
 async function submit(): Promise<void> {
-  if (!ready.value) return;
+  if (!ready.value || !changes.dirty.value) return;
 
   busy.value = true;
   failure.value = "";
@@ -166,7 +164,6 @@ async function submit(): Promise<void> {
       ? await $fetch<SecretKind>("/api/secret-kinds", { method: "POST", body: kind.value })
       : await $fetch<SecretKind>(`/api/secret-kinds/${encodeURIComponent(props.kind.key)}`, { method: "PUT", body: kind.value });
 
-    opened.value = JSON.stringify(kind.value);
     emit("saved", kept);
     open.value = false;
   } catch (error) {

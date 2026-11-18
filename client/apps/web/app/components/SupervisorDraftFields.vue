@@ -75,14 +75,13 @@
 
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
-import { useFormPart } from "bmo-ui/app/domain/form-save";
+import { useFormPart, useOpenedWith } from "bmo-ui/app/domain/form-save";
 
 import { SUPERVISOR_QUESTION } from "#shared/drafting";
 import { markedDefault } from "~/domain/axes";
 import {
   QUESTION_TEXT_MAX,
   draftChange,
-  draftChanges,
   draftFormOf,
   draftListFault,
   draftOwn,
@@ -108,6 +107,7 @@ const LIST_FIELDS = ["rounds"] as const;
 const LIST_LABELS: Record<(typeof LIST_FIELDS)[number], string> = { rounds: "agents.label.draft_rounds" };
 
 const form = ref<DraftForm>(draftFormOf(props.view));
+const changes = useOpenedWith(() => form.value);
 const busy = ref(false);
 const refusal = ref("");
 const opened = ref<string | null>(null);
@@ -173,7 +173,7 @@ async function save(): Promise<boolean> {
 }
 
 useFormPart({
-  dirty: () => draftChanges(draftChange(props.view, form.value)),
+  dirty: changes,
   save,
   discard: () => {
     form.value = draftFormOf(props.view);

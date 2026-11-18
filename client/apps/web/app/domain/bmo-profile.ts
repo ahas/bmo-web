@@ -43,11 +43,6 @@ export function nameShown(t: Translate, name: string | null): string {
   return name ?? t("bmo_profile.label.default_value", { value: t("account.label.bmo_name") });
 }
 
-/** Whether two lists of call names are the same, in the same order. */
-export function sameCallNames(one: readonly string[], other: readonly string[]): boolean {
-  return one.length === other.length && one.every((name, index) => name === other[index]);
-}
-
 /** One row of the permission tree: a unit at its depth, or a person under their unit one step deeper. */
 export interface PermissionRow {
   key: string;

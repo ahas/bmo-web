@@ -43,7 +43,7 @@
 
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
-import { useFormPart } from "bmo-ui/app/domain/form-save";
+import { useFormPart, useOpenedWith } from "bmo-ui/app/domain/form-save";
 
 import type { ChatDocumentView, ChatDocumentsView } from "#shared/agency";
 
@@ -121,8 +121,11 @@ async function save(): Promise<boolean> {
   }
 }
 
+// What the form holds of each document: its text, and whether a save puts it back to its file.
+const changes = useOpenedWith(() => ({ drafts, resets }), { ready: () => documents.value !== null });
+
 useFormPart({
-  dirty: () => changedDocuments().length > 0,
+  dirty: changes,
   save,
   discard: () => hold(documents.value ?? [])
 });

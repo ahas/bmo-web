@@ -68,6 +68,16 @@ function generationValueOf(text: string | number | null | undefined): number | b
   return Number(typed);
 }
 
+// What the boxes mean, as a form tells a change of them: each box as the value a save would send, so "0.70" and 0.7
+// are alike, and a box whose text reads as no number as that text.
+export function generationMeaning(draft: Readonly<Record<string, string | number | null | undefined>>): Record<string, number | boolean | string | null> {
+  return Object.fromEntries(Object.entries(draft).map(([name, text]): [string, number | boolean | string | null] => {
+    const value = generationValueOf(text);
+
+    return [name, typeof value === "number" && Number.isNaN(value) ? String(text).trim() : value];
+  }));
+}
+
 // What a save sends of the boxes: each one that differs from what is saved, an emptied one as null.
 export function generationChange(draft: Readonly<Record<string, string | number | null | undefined>>, saved: Readonly<Record<string, number | boolean>>): Record<string, number | boolean | null> {
   return Object.fromEntries(Object.entries(draft).flatMap(([name, text]): [string, number | boolean | null][] => {
@@ -96,8 +106,9 @@ export function piecesDraft(view: SupervisorSettingsView): PiecesDraft {
 // Whether a field differs from what is saved.
 export function draftDiffers(key: keyof PiecesDraft, draft: PiecesDraft, saved: PiecesDraft): boolean {
   if (key === "generation") return Object.keys(generationChange(draft.generation, savedGeneration(saved.generation))).length > 0;
+  if (key === "persona") return (draft.persona === null) !== (saved.persona === null) || draft.persona?.trim() !== saved.persona?.trim();
 
-  return JSON.stringify(draft[key]) !== JSON.stringify(saved[key]);
+  return draft[key] !== saved[key];
 }
 
 function savedGeneration(boxes: Readonly<Record<string, string>>): Record<string, number | boolean> {

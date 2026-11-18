@@ -2,7 +2,7 @@
   <!-- A topic registered, or one changed (docs/web.md, 「Research screen」, the topics tab): its name on registering alone, then
        its purpose, its own instruction, how often it is gathered and the calendar its dated findings are written to.
        Whether the name and the calendar stand is the research unit's to say, and its refusal stands under the form. -->
-  <SettingsDialog v-model:open="open" wide :title="title" :dirty="dirty">
+  <SettingsDialog v-model:open="open" wide :title="title" :dirty="changes">
     <form id="research-topic-form" class="flex flex-col gap-4" novalidate @submit.prevent="void save()">
       <UFormField :label="$t('common.label.name')" name="name" :error="(props.topic === null && draft.name !== '' && nameFault) || undefined" :help="props.topic === null ? $t('research.message.topic_name_help') : undefined">
         <UInput v-model="draft.name" class="w-full font-mono sm:w-64" :disabled="props.topic !== null || busy" :aria-label="$t('common.label.name')" />
@@ -44,6 +44,7 @@
 </template>
 
 <script setup lang="ts">
+import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { PERIOD_UNITS, TOPIC_NAME, periodMinutes, periodOf } from "~/domain/research";
 
@@ -96,7 +97,7 @@ const busy = ref(false);
 const refusal = ref<string | null>(null);
 
 const title = computed(() => (props.topic === null ? t("research.title.topic_add") : t("research.title.topic_edit", { name: props.topic.name })));
-const dirty = computed(() => JSON.stringify(draft.value) !== JSON.stringify(draftOf(props.topic)));
+const changes = useOpenedWith(() => draft.value, { open });
 const unitItems = computed(() => PERIOD_UNITS.map((one) => ({ value: one.value, label: t(one.label) })));
 const realmItems = computed(() => [
   { value: "mine", label: t("research.label.calendar_mine") },
@@ -119,7 +120,7 @@ const calendar = computed<ResearchCalendar | null | undefined>(() => {
 });
 
 const complete = computed(() => draft.value.purpose.trim() !== "" && draft.value.instruction.trim() !== "" && draft.value.count !== null && draft.value.count >= 1 && calendar.value !== undefined);
-const ready = computed(() => complete.value && (props.topic === null ? nameFault.value === null : dirty.value));
+const ready = computed(() => complete.value && (props.topic === null ? nameFault.value === null : changes.dirty.value));
 
 watch(open, (opened) => {
   if (!opened) return;

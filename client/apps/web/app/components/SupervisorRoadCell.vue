@@ -6,18 +6,20 @@
     <span class="max-w-full truncate text-sm" :class="shown === null ? 'text-muted' : 'text-highlighted'">{{ shown ?? "—" }}</span>
   </button>
 
-  <SettingsDialog v-model:open="open" wide :title="$t('agents.label.column_road')" :description="props.name" :dirty="dirty">
+  <SettingsDialog v-model:open="open" wide :title="$t('agents.label.column_road')" :description="props.name" :dirty="changes">
     <RoadField v-model="road" :line="SUPERVISOR_LINE" :refusal="refusal" :disabled="saving" :runs-as-owner="props.runsAsOwner" />
     <p v-if="refusal !== null && !ROAD_FIELDS.has(refusal.field ?? '')" role="alert" class="mt-2 break-words text-sm text-error">{{ refusal.text }}</p>
 
     <template #footer="{ close }">
       <UButton :label="$t('common.action.cancel')" color="neutral" variant="ghost" :disabled="saving" @click="close()" />
-      <UButton :label="$t('common.action.save')" :loading="saving" :disabled="saving || !dirty || !complete" @click="void submit()" />
+      <UButton :label="$t('common.action.save')" :loading="saving" :disabled="saving || !changes.dirty.value || !complete" @click="void submit()" />
     </template>
   </SettingsDialog>
 </template>
 
 <script setup lang="ts">
+import { useOpenedWith } from "bmo-ui/app/domain/form-save";
+
 import { emptyRoad, ROAD_FIELDS, roadText, SUPERVISOR_LINE, useProviders } from "~/domain/axes";
 import { CELL_BUTTON } from "~/domain/settings-cells";
 
@@ -43,7 +45,7 @@ const road = ref<RoadView>(emptyRoad());
 const refusal = ref<{ field: string | null; text: string } | null>(null);
 
 const shown = computed(() => (props.road === null ? null : roadText(providers.value, props.road)));
-const dirty = computed(() => JSON.stringify(road.value) !== JSON.stringify(props.road ?? emptyRoad()));
+const changes = useOpenedWith(() => road.value, { open });
 const complete = computed(() => road.value.provider !== "" && road.value.model !== "");
 
 // Every opening starts from what the agency holds now.

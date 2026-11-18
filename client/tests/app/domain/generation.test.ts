@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 import { anyRunning, catalogueSave, emptyCatalogueForm, sourceText } from "../../../apps/web/app/domain/catalogue-models";
-import { draftDiffers, generationBounds, generationChange, generationDraft, generationUse, piecesChange, piecesDraft } from "../../../apps/web/app/domain/generation";
+import { draftDiffers, generationBounds, generationChange, generationDraft, generationMeaning, generationUse, piecesChange, piecesDraft } from "../../../apps/web/app/domain/generation";
 
 import type { SupervisorSettingsView } from "../../../apps/web/shared/axes";
 
@@ -70,6 +70,20 @@ describe("a supervisor's own settings as its form holds them", () => {
 
     expect(piecesChange(draft, saved)).toEqual({});
     expect(draftDiffers("generation", draft, saved)).toBe(false);
+  });
+
+  test("reads a persona of its own typed back to its saved text, spaces aside, as no change, and one of the file's as none", () => {
+    const own = { ...saved, persona: "tester persona" };
+
+    expect(draftDiffers("persona", { ...own, persona: " tester persona " }, own)).toBe(false);
+    expect(draftDiffers("persona", { ...saved, persona: "" }, saved)).toBe(true);
+    expect(draftDiffers("persona", { ...own, persona: null }, own)).toBe(true);
+  });
+
+  test("hands the boxes as the values they send, so a writing of the same number is alike and one of no number stays text", () => {
+    expect(generationMeaning({ temperature: "0.70", top_k: "", seed: 7, preserve_thinking: "on", min_p: " x " })).toEqual({
+      temperature: 0.7, top_k: null, seed: 7, preserve_thinking: true, min_p: "x"
+    });
   });
 
   test("sends every changed setting in one change", () => {

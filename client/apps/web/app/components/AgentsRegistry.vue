@@ -69,7 +69,7 @@
 
     <p v-if="removeFailed !== ''" role="alert" class="px-4 py-2 break-words text-sm text-error">{{ removeFailed }}</p>
 
-    <SettingsDialog v-model:open="editing" :title="adding ? $t('agents.title.registry_add') : form.name" :dirty="formDirty">
+    <SettingsDialog v-model:open="editing" :title="adding ? $t('agents.title.registry_add') : form.name" :dirty="changes">
       <form id="registry-form" class="flex flex-col gap-4" @submit.prevent="save">
         <UFormField :label="$t('common.label.name')" name="name" :error="errorAt('name')">
           <UInput v-model="form.name" class="w-full font-mono" :disabled="!adding" :placeholder="$t('agents.placeholder.registry_name')" :aria-label="$t('common.label.name')" />
@@ -92,13 +92,14 @@
 
       <template #footer="{ close }">
         <UButton :label="$t('common.action.cancel')" color="neutral" variant="ghost" :disabled="busy" @click="close()" />
-        <UButton type="submit" form="registry-form" :label="adding ? $t('common.action.add') : $t('common.action.save')" :loading="busy" :disabled="busy || !formDirty" />
+        <UButton type="submit" form="registry-form" :label="adding ? $t('common.action.add') : $t('common.action.save')" :loading="busy" :disabled="busy || !changes.dirty.value" />
       </template>
     </SettingsDialog>
   </section>
 </template>
 
 <script setup lang="ts">
+import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 import { tableHeaders } from "bmo-ui/app/domain/column-widths";
 import { failureText } from "bmo-ui/app/domain/errors";
 
@@ -153,8 +154,7 @@ const editing = ref(false);
 const adding = ref(false);
 const form = ref<ModelForm>(emptyModelForm());
 // The box as it opened; its Save button is on only while it differs (docs/web.md, 「Forms」).
-const formOpened = ref(JSON.stringify(form.value));
-const formDirty = computed(() => JSON.stringify(form.value) !== formOpened.value);
+const changes = useOpenedWith(() => form.value, { open: editing });
 // The registration an edit changes, whose name is fixed once made.
 const editedName = ref("");
 // The refusal the bot gave the last save, and where in the box it stands.
@@ -186,7 +186,6 @@ function openAdd(): void {
   adding.value = true;
   editedName.value = "";
   form.value = emptyModelForm();
-  formOpened.value = JSON.stringify(form.value);
   refusal.value = null;
   editing.value = true;
 }
@@ -195,7 +194,6 @@ function openEdit(model: ModelView): void {
   adding.value = false;
   editedName.value = registrationName(model.key);
   form.value = modelForm(model);
-  formOpened.value = JSON.stringify(form.value);
   refusal.value = null;
   editing.value = true;
 }
@@ -219,7 +217,7 @@ async function save(): Promise<void> {
 
     // What was saved is the box's saved value from here on, so nothing while the list is read again asks to throw it
     // away (docs/web.md, 「Forms」).
-    formOpened.value = JSON.stringify(form.value);
+    await changes.take();
     await refresh();
     editing.value = false;
   } catch (error) {

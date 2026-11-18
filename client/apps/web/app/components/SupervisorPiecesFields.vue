@@ -29,11 +29,11 @@
     <div class="flex flex-col gap-2">
       <div class="flex min-h-8 items-center gap-2">
         <h3 class="text-sm font-medium text-highlighted">{{ $t("agents.label.piece_persona") }}</h3>
-        <UBadge v-if="draft.persona === null" color="neutral" variant="subtle" size="sm">{{ $t("agents.label.persona_file") }}</UBadge>
+        <UBadge v-if="personaOfFile" color="neutral" variant="subtle" size="sm">{{ $t("agents.label.persona_file") }}</UBadge>
       </div>
       <GrowingTextarea v-model="persona" :rows="4" :disabled="busy" :aria-label="$t('agents.label.piece_persona')" />
       <p v-if="refusalAt('persona') !== ''" role="alert" class="break-words text-sm text-error">{{ refusalAt("persona") }}</p>
-      <div v-if="draft.persona !== null" class="flex justify-end">
+      <div v-if="!personaOfFile" class="flex justify-end">
         <UButton color="neutral" variant="ghost" :label="$t('agents.action.persona_to_file')" :disabled="busy" @click="draft.persona = null" />
       </div>
     </div>
@@ -59,10 +59,10 @@
 </template>
 
 <script setup lang="ts">
-import { draftDiffers, piecesChange, piecesDraft } from "~/domain/generation";
+import { draftDiffers, generationMeaning, piecesChange, piecesDraft } from "~/domain/generation";
 import { countText } from "~/domain/numbers";
 import { failureText } from "bmo-ui/app/domain/errors";
-import { useFormPart } from "bmo-ui/app/domain/form-save";
+import { useFormPart, useOpenedWith } from "bmo-ui/app/domain/form-save";
 
 import type { SupervisorSettingsView } from "#shared/axes";
 import type { PiecesDraft } from "~/domain/generation";
@@ -79,18 +79,6 @@ const saved = computed<PiecesDraft>(() => piecesDraft(view.value));
 const draft = ref<PiecesDraft>(piecesDraft(view.value));
 const KEYS = Object.keys(draft.value) as (keyof PiecesDraft)[];
 
-// The settings are read again — after a save, on a refresh — and a field nobody touched takes what it says now, while
-// one being written keeps what was written.
-watch(() => JSON.stringify(saved.value), (_now, beforeText) => {
-  const before = JSON.parse(beforeText) as PiecesDraft;
-  const next = { ...draft.value };
-
-  for (const key of KEYS) {
-    if (JSON.stringify(draft.value[key]) === JSON.stringify(before[key])) (next as Record<string, unknown>)[key] = structuredClone(toRaw(saved.value[key]));
-  }
-  draft.value = next;
-});
-
 const persona = computed({
   get: () => draft.value.persona ?? view.value.personaFile,
   set: (text: string) => {
@@ -98,7 +86,36 @@ const persona = computed({
   },
 });
 
-const dirty = computed(() => KEYS.some((key) => draftDiffers(key, draft.value, saved.value)));
+// Whether the persona stands as its file's: none of its own, or, where none is saved, text written back to the file's.
+const personaOfFile = computed(() => {
+  const own = draft.value.persona;
+
+  return own === null || (saved.value.persona === null && own.trim() === view.value.personaFile.trim());
+});
+
+// The fields as a save sends them, a persona written back to its file's text sent as none of its own.
+const sent = computed<PiecesDraft>(() => (personaOfFile.value ? { ...draft.value, persona: null } : draft.value));
+
+// What the fields mean, as the form tells a change of them: the boxes as the values they send, and the persona as the
+// text it shows and whether it is its own.
+const changes = useOpenedWith(() => ({
+  generation: generationMeaning(draft.value.generation),
+  referenceOn: draft.value.referenceOn,
+  persona: { own: !personaOfFile.value, text: persona.value }
+}));
+
+// The settings are read again — after a save, on a refresh — and a field nobody touched takes what it says now, while
+// one being written keeps what was written. A form holding no change still holds none after.
+watch(saved, (now, before) => {
+  const unchanged = !changes.dirty.value;
+  const next = { ...draft.value };
+
+  for (const key of KEYS) {
+    if (!draftDiffers(key, draft.value, before)) (next as Record<string, unknown>)[key] = structuredClone(toRaw(now[key]));
+  }
+  draft.value = next;
+  if (unchanged) void changes.take();
+});
 
 const busy = ref(false);
 const refusal = ref<{ field: string; text: string } | null>(null);
@@ -120,7 +137,7 @@ function fieldOf(error: unknown, fallback: string): string {
 // One save of everything changed, in one change the agency checks whole. A refusal stands beside what it was about.
 // Once it went through, the fields hold what the agency answered, so they hold no change after.
 async function save(): Promise<boolean> {
-  const change = piecesChange(draft.value, saved.value);
+  const change = piecesChange(sent.value, saved.value);
   const keys = Object.keys(change);
 
   if (keys.length === 0) return true;
@@ -149,7 +166,7 @@ function discard(): void {
   refusal.value = null;
 }
 
-useFormPart({ dirty: () => dirty.value, save, discard });
+useFormPart({ dirty: changes, save, discard });
 
 const systemOpen = ref(false);
 </script>

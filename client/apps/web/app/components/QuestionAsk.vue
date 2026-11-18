@@ -74,6 +74,13 @@
         </TranslatedInline>
       </p>
 
+      <!-- A recommendation the choices do not hold wears no choice's mark, so it stands in its own words here, in the
+           recommended choice's colour: it is what the silence settles, and is read whether or not it names a choice. -->
+      <p v-if="card.recommendation !== null" class="mt-1 text-sm break-words text-primary">
+        {{ $t("question.label.recommended_words") }}
+        <TranslatedInline :text="card.recommendation" :follow="readingShown[card.id] === true" />
+      </p>
+
       <!-- The talk over this question with the job that asked it, between what the question says and what answers
            it, so the choices stand right under the talk once it has made the question clear. -->
       <QuestionTalk v-if="talksOpen.includes(card.id)" :question="card.id" :todo-id="card.todoId" class="mt-2" />
@@ -281,8 +288,8 @@ async function send(card: QuestionCard): Promise<void> {
     delete words.value[card.id];
     unpick(card);
   } catch (error) {
-    // The chat or the deadline got there first. The row says what it was settled on, and the
-    // re-read below is what puts that in the question's place.
+    // The chat, or its time running out on the recommendation, got there first. The refusal says what it was
+    // settled on, and the re-read below takes the settled question off the card.
     questionFailure.value = failureText(error, t("question.error.answer_failed"));
   } finally {
     answering.value = null;

@@ -380,8 +380,8 @@ export function questionAnswerText(question: JobQuestion): string {
 // What the console says to an answer that arrived after the question was already settled. The
 // first settlement stands, so this says what it was settled on rather than pretending to write.
 export function questionSettledNotice(t: Translate, by: QuestionSettler | null, answer: string): string {
-  return by === "deadline"
-    ? t("question.error.settled_by_deadline", { answer })
+  return by === "recommendation"
+    ? t("question.error.settled_by_recommendation", { answer })
     : t("question.error.settled_elsewhere", { answer });
 }
 

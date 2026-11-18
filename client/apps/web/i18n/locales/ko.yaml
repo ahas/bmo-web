@@ -391,7 +391,7 @@ question:
     pause_direction: 타이머를 정지할지 재개할지 정해 주세요.
     pause_failed: 타이머를 정지하지 못했습니다.
     resume_failed: 타이머를 재개하지 못했습니다.
-    settled_by_deadline: "그 사이 시간이 초과돼 추천 답으로 정해졌습니다: {answer}"
+    settled_by_recommendation: "그 사이 시간이 초과돼 추천 답으로 결정됐습니다: {answer}"
     settled_elsewhere: "그 사이 다른 곳에서 먼저 정해졌습니다: {answer}"
     bad_talk: 의논 메시지가 비었거나 너무 깁니다.
     talk_failed: 의논 메시지를 보내지 못했습니다.
@@ -419,21 +419,25 @@ question:
     job: "Job #{id}"
     talk: 의논
     recommended: (추천)
+    recommended_words: "추천 답:"
     summary: "질문 {n}건"
     why: "질문 이유:"
   placeholder:
     own_answer: 선택지에 없는 답 (직접 입력하면 Job이 그대로 읽습니다)
     talk: Job에게 보낼 메시지
   status:
-    deadline: 무응답 · 추천 답으로 결정
     open: 답 기다리는 중
-    overdue: "시간 초과 · 추천 {number}번"
+    overdue: "시간 초과 · 추천 {number}번으로 결정"
     overdue_alone: "시간 초과 · 사람의 답을 기다림"
+    overdue_words: "시간 초과 · 추천 답으로 결정"
     owner: 소유자가 답함
     paused: "타이머 정지 · 추천 {number}번"
     paused_alone: "타이머 정지 · 사람의 답을 기다림"
+    paused_words: "타이머 정지 · 추천 답"
+    recommendation: "시간 초과 · 추천 답으로 결정"
     running: "{time} 남음 · 추천 {number}번"
     running_alone: "{time} 남음 · 사람의 답을 기다림"
+    running_words: "{time} 남음 · 추천 답"
     no_talk: 질문의 뜻, 선택지별 결과, 추천 이유를 Job과 의논할 수 있습니다.
     talk_loading: 의논 불러오는 중…
     talk_unheard: Job이 아직 읽지 않았습니다.
@@ -1300,6 +1304,7 @@ siren:
 todo:
   error:
     approvals_load_failed: 결재 기록을 불러오지 못했습니다.
+    questions_load_failed: 답이 정해진 질문을 불러오지 못했습니다.
     auto_change_failed: 자동 진행을 바꾸지 못했습니다.
     bad_action: 할 수 없는 동작입니다.
     bad_direction: 옮길 방향이 올바르지 않습니다.

@@ -25,7 +25,8 @@ describe("a job standing on a question", () => {
   test("stands the one answering card inside the item, not a quiet line", () => {
     expect(item).toContain('<QuestionAsk :only="openedItem.id" />');
     expect(item).toContain("settledQuestionsOf");
-    expect(item).toContain('card.state !== "open"');
+    // The settled ones are read from bmo-job for the item, apart from the open ones the card stands.
+    expect(item).toContain("`/api/todos/${id}/questions`");
   });
 
   // The questions stand in a window over the owner's room rather than in its foot (docs/web.md, 「The questions

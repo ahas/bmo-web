@@ -1,4 +1,4 @@
-import { ANSWER_LIMIT } from "#shared/config";
+import { ANSWER_LIMIT, questionAnswerText, questionSettledNotice } from "#shared/config";
 import { wording } from "#shared/wording";
 
 import { signedInUser } from "../utils/accounts";
@@ -50,10 +50,26 @@ export default defineEventHandler(async (event): Promise<QuestionAnswerResult> =
 
   if (text === "") throw fail(400, wording("question.error.bad_option"));
 
-  await jobCall(job().POST("/questions/{questionId}/replies", {
-    params: { path: { questionId: id } },
-    body: { text, actorName: signed.name, choice: option ?? null, settles: true }
-  }));
+  try {
+    await jobCall(job().POST("/questions/{questionId}/replies", {
+      params: { path: { questionId: id } },
+      body: { text, actorName: signed.name, choice: option ?? null, settles: true }
+    }));
+  } catch (error) {
+    throw await settledInstead(question, error);
+  }
 
   return { ok: true };
 });
+
+// What an answer bmo-job refused is told as: where the question was settled in the meantime, by his answer elsewhere
+// or by its recommendation as its time ran out, what it was settled on; the refusal itself otherwise.
+async function settledInstead(question: Awaited<ReturnType<typeof ownersQuestion>>, refusal: unknown): Promise<unknown> {
+  const settling = await settlingReply(question.id).catch(() => null);
+
+  if (settling === null) return refusal;
+
+  const settled = consoleQuestion(question, settling);
+
+  return fail(409, questionSettledNotice(wording, settled.settledBy, questionAnswerText(settled)));
+}

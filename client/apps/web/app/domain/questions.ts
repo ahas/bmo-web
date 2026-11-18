@@ -7,10 +7,9 @@ import { elapsedText, toUnixSeconds } from "bmo-ui/app/domain/time";
 import type { OwnerChat, JobQuestion, QuestionTalk } from "#shared/types";
 import type { Translate } from "#shared/wording";
 
-// How one question reads at a glance: still waiting on him, settled by him, or settled on its recommendation by
-// an older row's deadline. A question's due time settles nothing (bmo-job's `docs/api.md`, 「The due time」), so an
-// unsettled question is waiting on him whether its time has run out or not.
-export type QuestionState = "open" | "owner" | "deadline";
+// How one question reads at a glance: still waiting on him, settled by him, or settled on its recommendation once
+// its time ran out with no answer (bmo-job's `docs/api.md`, 「When the due time passes」).
+export type QuestionState = "open" | "owner" | "recommendation";
 
 // One of a question's options as the panel offers it: the number the chat also shows, the
 // option's own words, whether the job recommends it, and whether it is what the question was
@@ -32,6 +31,8 @@ export interface QuestionCard {
   asked: string;
   question: string;
   why: string;
+  // The answer the job recommends where it names no choice, in its own words; null where it names one, or none.
+  recommendation: string | null;
   options: QuestionOption[];
   state: QuestionState;
   // The one line beside the question: how long is left while it is open, and who settled it and
@@ -50,13 +51,13 @@ export interface QuestionCard {
 const STATE_LABELS: Record<QuestionState, string> = {
   open: "question.status.open",
   owner: "question.status.owner",
-  deadline: "question.status.deadline"
+  recommendation: "question.status.recommendation"
 };
 
 export function questionState(question: JobQuestion): QuestionState {
   if (question.settledAt === null) return "open";
 
-  return question.settledBy === "deadline" ? "deadline" : "owner";
+  return question.settledBy === "recommendation" ? "recommendation" : "owner";
 }
 
 export function questionCard(t: Translate, question: JobQuestion, now: number = toUnixSeconds(Date.now())): QuestionCard {
@@ -69,6 +70,7 @@ export function questionCard(t: Translate, question: JobQuestion, now: number = 
     asked: t("question.label.asked_by", { asker: question.asker, since: elapsedText(t, now - question.askedAt) }),
     question: question.question,
     why: question.why,
+    recommendation: question.recommendation,
     options: question.options.map((text, index) => ({
       number: index + 1,
       text,
@@ -115,24 +117,43 @@ export function questionSummary(t: Translate, questions: JobQuestion[], now: num
   return open === 0 ? null : t("question.label.summary", { n: open });
 }
 
+// What the job recommends, as the line beside a question names it: the choice by its number, words the choices do
+// not hold, or nothing, where only a person's answer settles it.
+type Recommends = { number: number } | "words" | null;
+
+function recommends(question: JobQuestion): Recommends {
+  if (question.recommended !== null) return { number: question.recommended + 1 };
+
+  return question.recommendation === null ? null : "words";
+}
+
 // The line beside the question. An open one says where its clock stands (stopped, counting down, or run out) and
-// which choice the job recommends, or that a person is waited for where it recommends none.
+// what its silence settles: the recommendation, by its choice's number or as words, or nothing, where a person is
+// waited for. Run out with a recommendation, it says the recommendation settles it, which bmo-job is about to do.
 function statusLine(t: Translate, question: JobQuestion, state: QuestionState, now: number): string {
   if (state !== "open") return t(STATE_LABELS[state]);
 
-  const number = question.recommended === null ? null : question.recommended + 1;
+  const recommended = recommends(question);
 
   if (question.pausedLeft !== null) {
-    return number === null ? t("question.status.paused_alone") : t("question.status.paused", { number });
+    if (recommended === null) return t("question.status.paused_alone");
+
+    return recommended === "words" ? t("question.status.paused_words") : t("question.status.paused", recommended);
   }
 
   if (question.dueAt <= now) {
-    return number === null ? t("question.status.overdue_alone") : t("question.status.overdue", { number });
+    if (recommended === null) return t("question.status.overdue_alone");
+
+    return recommended === "words" ? t("question.status.overdue_words") : t("question.status.overdue", recommended);
   }
 
   const time = remainingLabel(t, question.dueAt - now);
 
-  return number === null ? t("question.status.running_alone", { time }) : t("question.status.running", { time, number });
+  if (recommended === null) return t("question.status.running_alone", { time });
+
+  return recommended === "words"
+    ? t("question.status.running_words", { time })
+    : t("question.status.running", { time, ...recommended });
 }
 
 // How long is left, in the units the chat's own question uses: minutes while there are any,

@@ -94,8 +94,13 @@ interface Stand {
   left: Map<number, number>;
 }
 
+// The wait a question is asked with where its asker names none, which bmo-job counts again for one opened with no
+// time left.
+const WAIT_S = 60;
+
 // A stop or a resume, played as bmo-job plays it on the one question named (bmo-job's `docs/api.md`, 「The due
-// time」): a stop keeps the time left and reads no due time, and a resume counts from what was kept.
+// time」): a stop keeps the time left and reads no due time, and a resume counts from what was kept, or a whole wait
+// again where nothing was left.
 function paused(stand: Stand, body: { id: number; paused: boolean }): void {
   const at = Math.floor(Date.now() / 1000);
 
@@ -108,7 +113,9 @@ function paused(stand: Stand, body: { id: number; paused: boolean }): void {
       return { ...question, pausedLeft: 0, dueAt: 0 };
     }
 
-    return { ...question, pausedLeft: null, dueAt: at + (stand.left.get(question.id) ?? 0) };
+    const left = stand.left.get(question.id) ?? 0;
+
+    return { ...question, pausedLeft: null, dueAt: at + (left > 0 ? left : WAIT_S) };
   });
 }
 
@@ -511,7 +518,7 @@ describe.skipIf(!origin || !touchReady())("a question's timer in the questions w
   test("keeps the window standing when a question stopped after its time ran out is started again", async () => {
     const stand = stood();
 
-    // Stopped once its time had run out, so bmo-job kept nothing and opens it again due at once.
+    // Stopped once its time had run out, so bmo-job kept nothing and opens it again with a whole wait.
     stand.questions = [asked(1, 41, { pausedLeft: 0, dueAt: 0 })];
 
     const context = await open(DESK, "light", stand);
@@ -525,10 +532,50 @@ describe.skipIf(!origin || !touchReady())("a question's timer in the questions w
       await card(page, 41).getByRole("button", { name: PAUSE }).waitFor({ timeout: 10_000 });
 
       expect(await page.locator(WINDOW).count()).toBe(1);
-      expect(await clock(page, 41).textContent()).toBe(wording("question.status.overdue", { number: 1 }));
-      await shoot(page, `${DESK.width}-light-overdue`);
+      expect(await clock(page, 41).textContent()).toEndWith(RUNNING);
+      await shoot(page, `${DESK.width}-light-resumed-with-a-whole-wait`);
     } finally {
       await context.close();
     }
   }, TEST_MS);
+});
+
+// A recommendation the choices do not hold, as one that is a choice with a remark beside it is, marks no choice and
+// stands on the card in its own words, so it is read on the card whether or not it names a choice (docs/web.md, 「The
+// recommendation is the job's own, and the card draws it as the job gives it」).
+describe.skipIf(!origin || !touchReady())("a recommendation in words of its own", () => {
+  const words = "Keep the index in the service's own table (recommended)";
+  const RUNNING_WORDS = wording("question.status.running_words", { time: "\u0000" }).split("\u0000")[1]!;
+
+  for (const [viewport, scheme] of [[DESK, "light"], [DESK, "dark"], [PHONE, "light"]] as const) {
+    test(`stands under the reason and names no choice, ${viewport.width} ${scheme}`, async () => {
+      const stand = stood();
+
+      stand.questions = [asked(1, 41, { recommended: null, recommendation: words })];
+
+      const context = await open(viewport, scheme, stand);
+      const page = await context.newPage();
+
+      try {
+        // A desk stands the questions in the window, a phone in the sheet beside the room.
+        const holder = viewport.width < 640 ? "[data-beside-page]" : WINDOW;
+
+        await openRoom(page);
+        await page.locator(holder).waitFor({ timeout: 30_000 });
+
+        const shown = page.locator(`${holder} section[aria-label="${wording("question.label.asked", { id: 41 })}"]`);
+
+        const line = (await shown.locator("p.text-primary").textContent()) ?? "";
+        const choices = await shown.getByRole("button", { name: /^\d\. / }).allTextContents();
+
+        expect(line.replace(/\s+/g, " ").trim()).toBe(`${wording("question.label.recommended_words")} ${words}`);
+        expect(choices.some((choice) => choice.includes(wording("question.label.recommended")))).toBe(false);
+        expect(await shown.locator("p.tabular-nums").textContent()).toEndWith(RUNNING_WORDS);
+        await expectCardOrder(page, 41);
+        await shoot(page, `${viewport.width}-${scheme}-recommended-words`);
+      } finally {
+        await context.close();
+      }
+    }, TEST_MS);
+  }
 });

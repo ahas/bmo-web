@@ -59,14 +59,15 @@ describe("how a question reads on the screen", () => {
     expect(questionCard(wording, question(), askedAt + 570).status).toBe(wording("question.status.running", { time: KO.line_55, number: "2" }));
   });
 
-  // The due time settles nothing (bmo-job's `docs/api.md`, 「The due time」): the job still stands behind the question.
-  test("one whose time has run out still waits on him, and says its time is over", () => {
-    const card = questionCard(wording, question(), askedAt + 600);
+  // bmo-job settles a question with a recommendation as its time runs out (its `docs/api.md`, 「When the due time
+  // passes」); until its news arrives the card says so, and only one with no recommendation waits on a person.
+  test("one whose time has run out says its recommendation settles it, and only one with none waits on him", () => {
+    const at = askedAt + 600;
 
     expect(questionState(question())).toBe("open");
-    expect(card.answerable).toBe(true);
-    expect(card.status).toBe(wording("question.status.overdue", { number: "2" }));
-    expect(questionCard(wording, question({ recommended: null }), askedAt + 900).status).toBe(wording("question.status.overdue_alone"));
+    expect(questionCard(wording, question(), at).status).toBe(wording("question.status.overdue", { number: "2" }));
+    expect(questionCard(wording, question({ recommended: null, recommendation: KO.line_18 }), at).status).toBe(wording("question.status.overdue_words"));
+    expect(questionCard(wording, question({ recommended: null }), at).status).toBe(wording("question.status.overdue_alone"));
   });
 
   test("one he settled himself says so and carries the option he took", () => {
@@ -95,16 +96,16 @@ describe("how a question reads on the screen", () => {
     expect(card.options.some((option) => option.chosen)).toBe(false);
   });
 
-  test("one the deadline settled says the silence took the recommendation", () => {
+  test("one its recommendation settled as its time ran out says so, never that it waits", () => {
     const card = questionCard(
       wording,
-      question({ chosen: 1, settledAt: askedAt + 600, settledBy: "deadline" }),
+      question({ chosen: 1, settledAt: askedAt + 600, settledBy: "recommendation" }),
       askedAt + 700
     );
 
-    expect(card.state).toBe("deadline");
+    expect(card.state).toBe("recommendation");
     expect(card.answerable).toBe(false);
-    expect(card.status).toBe(wording("question.status.deadline"));
+    expect(card.status).toBe(wording("question.status.recommendation"));
     expect(card.answer).toBe(options[1] as string);
   });
 
@@ -118,11 +119,15 @@ describe("what the service's recommendation says", () => {
     expect(card?.why).toBe(KO.line_27);
   });
 
-  test("a recommendation that names no choice marks none, and the card says a person is waited for", () => {
-    const [card] = questionsOfTodo(wording, [question({ recommended: null, recommendation: KO.line_18, why: KO.line_27 })], 12, askedAt + 10);
+  // A recommendation that is a choice with other words beside it, as a supervisor once marked one, names no choice.
+  test("a recommendation that names no choice marks none, and stands on the card in its own words", () => {
+    const words = `${KO.line_18} (recommended)`;
+    const [card] = questionsOfTodo(wording, [question({ recommended: null, recommendation: words, why: KO.line_27 })], 12, askedAt + 60);
+
     expect(card?.options.map((option) => option.recommended)).toEqual([false, false]);
-    // The wait still stands, and no choice is named as the one it goes to.
-    expect(card?.status).toContain(wording("question.status.running_alone", { time: card?.status ?? "" }).split(" · ").at(-1) ?? "");
+    expect(card?.recommendation).toBe(words);
+    expect(card?.status).toBe(wording("question.status.running_words", { time: KO.line_46 }));
+    expect(questionCard(wording, question({ recommended: null, recommendation: words, pausedLeft: 0 }), askedAt + 60).status).toBe(wording("question.status.paused_words"));
   });
 });
 
@@ -183,8 +188,8 @@ describe("what stands over every screen while a job waits", () => {
     expect(openQuestions(wording, [asked({ settledAt: now - 5, settledBy: "owner", chosen: 0 })], now)).toEqual([]);
   });
 
-  test("and so does one the deadline settled on the recommendation", () => {
-    expect(openQuestions(wording, [asked({ settledAt: now - 5, settledBy: "deadline" })], now)).toEqual([]);
+  test("and so does one its recommendation settled as its time ran out", () => {
+    expect(openQuestions(wording, [asked({ settledAt: now - 5, settledBy: "recommendation" })], now)).toEqual([]);
   });
 
   // A question opened again with no time left, as bmo-job opens one stopped after its time ran out, still stands.

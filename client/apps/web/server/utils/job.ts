@@ -7,6 +7,7 @@ import { JOB_CODES } from "./job-codes";
 import { unitAt } from "./units";
 import { answered } from "./unit-answer";
 
+import type { JobQuestion } from "#shared/types";
 import type { Client } from "openapi-fetch";
 import type { components, paths } from "bmo-job-client/schema";
 import type { UnitAnswerCall } from "./unit-answer";
@@ -36,7 +37,7 @@ export async function jobCall<T, E extends { code?: string; error?: string; fiel
 }
 
 /** One of bmo-job's questions, as its fixed API reads it. */
-type JobQuestionRow =components["schemas"]["Question"];
+type JobQuestionRow = components["schemas"]["Question"];
 
 /**
  * A question the owner answers, talks over or stops the clock of, read from bmo-job. A question a job's supervisor
@@ -49,6 +50,62 @@ export async function ownersQuestion(id: number): Promise<JobQuestionRow> {
   if (question.addressee !== "person") throw fail(409, wording("question.error.not_put_to_owner"));
 
   return question;
+}
+
+/** One of bmo-job's replies to a question, as its fixed API reads it. */
+type JobReplyRow = components["schemas"]["Reply"];
+
+// The most bmo-job hands in one page of a question's replies.
+const REPLY_PAGE = 500;
+
+/** The reply that settled a question, or null where none has. */
+export async function settlingReply(id: number): Promise<JobReplyRow | null> {
+  let after: number | undefined;
+
+  for (;;) {
+    const page = await jobCall(
+      job().GET("/questions/{questionId}/replies", { params: { path: { questionId: id }, query: { after, limit: REPLY_PAGE } } })
+    );
+    const settling = page.items.find((reply) => reply.settles);
+    const last = page.items.at(-1);
+
+    if (settling !== undefined) return settling;
+    if (!page.more || last === undefined) return null;
+
+    after = last.id;
+  }
+}
+
+/**
+ * One of bmo-job's questions put to the owner as the console reads it (bmo-job's `docs/api.md`, 「Questions and
+ * replies」), with the reply that settled it where one did. The recommendation marks the choice it names word for
+ * word, and stands as its own words where it names none, since bmo-job refuses one that is a choice with other words
+ * beside it (「The recommendation」); nothing is guessed. A settling reply whose source is the recommendation is the
+ * question's time running out on it (「When the due time passes」).
+ */
+export function consoleQuestion(question: JobQuestionRow, settling: JobReplyRow | null = null): JobQuestion {
+  const named = question.recommendation?.answer ?? null;
+  const at = named === null ? -1 : question.choices.indexOf(named);
+  const chosen = settling?.choice === null || settling?.choice === undefined ? -1 : question.choices.indexOf(settling.choice);
+
+  return {
+    id: question.id,
+    todoId: question.itemId ?? 0,
+    asker: question.askerName,
+    question: question.text,
+    options: question.choices,
+    recommended: at === -1 ? null : at,
+    recommendation: named !== null && at === -1 ? named : null,
+    why: question.recommendation?.why ?? "",
+    askedAt: Math.floor(question.createdAt / 1000),
+    dueAt: question.dueAt === null ? 0 : Math.floor(question.dueAt / 1000),
+    chosen: chosen === -1 ? null : chosen,
+    answer: settling === null || chosen !== -1 ? null : settling.text,
+    // bmo-job keeps a stopped question's time left to itself and reads no due time while it stands stopped.
+    pausedLeft: question.state === "paused" ? 0 : null,
+    settledAt: settling === null ? null : Math.floor(settling.createdAt / 1000),
+    settledBy: settling === null ? null : settling.source === "recommendation" ? "recommendation" : "owner"
+  };
 }
 
 /** What came of telling the agent how the queue stands, by its kind (bmo-job's `docs/api.md`, 「A queue told」). */

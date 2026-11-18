@@ -6823,7 +6823,9 @@ Four bounds keep it from growing forever.
   opening anything; the item's modal stands the same card the questions window stands, 의논 with it, at the top of what it
   reads — the question, the choices and the recommended one, one line why, the time left and the box for an answer the
   choices do not hold. The answering is one card and one press, through the same route a reply from the room takes; a settled
-  question stands under it in the words it was settled on. A question that arrived while he was away stands the same:
+  question stands under it in the words it was settled on, read from bmo-job as the item opens and again when bmo-job says a
+  question or a reply moved, with what settled it: 소유자가 답함, or 시간 초과 · 추천 답으로 결정 where its time ran out on
+  the recommendation. A question that arrived while he was away stands the same:
   the badge is read off the archive as the panel opens.
 - **The question bar says it over every administrator screen.** While a question waits, a band in the warning colour
   stands over the screen with the question waiting longest — its item, its words on one line, its time left and what
@@ -6832,13 +6834,21 @@ Four bounds keep it from growing forever.
   its hover and press colour the button's own rounded shape, never the band. Its items share one centre line.
 - **The recommendation is the job's own, and the card draws it as the job gives it.** A question carries the answer the
   job would take by itself and one line saying why. Where that answer is one of the choices, only that choice wears the
-  mark; where it is words the choices do not hold, or the job named none, no choice wears it and the card says plainly
-  that a person is waited for. The wait the question has is the service's due time, read as the countdown. The due time
-  paces the one notice of a question left unanswered and settles nothing (bmo-job's `docs/api.md`, 「The due time」): the
-  recommendation is taken only where a person answers with it, and a question whose time has run out stays open, its
-  card standing where it stood and saying 시간 초과 in place of the time left, until he answers it or its job takes it
-  back. A question read from the archive's older rows carries its own recommended choice and reason, and draws the same
-  way.
+  (추천) mark; where it is words the choices do not hold, no choice wears it and the card shows those words on a line of
+  their own, 추천 답, under the reason, so a recommendation is read on the card whether or not it names a choice. The
+  console matches a choice word for word and guesses at nothing: bmo-job refuses a recommendation that is a choice with
+  other words beside it (bmo-job's `docs/api.md`, 「The recommendation」). The wait the question has is the service's due
+  time, read as the countdown, and the line beside it says what the silence settles: 추천 {number}번 or 추천 답 where a
+  recommendation stands, 사람의 답을 기다림 where none does.
+- **Its time running out settles it on the recommendation.** Where nobody has answered by the due time, bmo-job settles
+  a question that carries a recommendation with it (bmo-job's `docs/api.md`, 「When the due time passes」): the card and
+  the band leave as they do for an answer, and the item keeps it among its settled questions as 시간 초과 · 추천 답으로
+  결정, with the answer it was settled on. In the moment between the countdown reaching nothing and bmo-job's news of
+  the settling, the card says 시간 초과 · 추천 {number}번으로 결정 or 시간 초과 · 추천 답으로 결정, never that a person is
+  waited for. An answer he sends after that is refused by bmo-job, and the card says the question was settled on its
+  recommendation in the meantime, with the answer. Only a question with no recommendation stays open once its time has
+  run out, its card standing where it stood and saying 시간 초과 · 사람의 답을 기다림 until he answers it or its job takes
+  it back.
 - **Choosing and sending are different presses.** Pressing a choice only chooses it, not sends. A chosen one stands in a full
   colour so what is on the line is read on screen, and the button below says by name what will be sent, like 「2번으로 답하기」. Only
   pressing that button sends. With nothing chosen the button stands 「답하기」 and is not pressable. It is split so because it cannot
@@ -6850,7 +6860,8 @@ Four bounds keep it from growing forever.
 - Undoing has two roads too. Pressing a chosen choice again releases it, and 「선택 취소」 beside it releases it too. Writing
   anything in the write box releases a chosen one — the two are one answer and the bot refuses a body carrying both, so the screen
   keeps them from standing together. Conversely choosing a choice clears written words.
-- **The deadline can be stopped.** A question has one minute on it. It keeps a job from standing long while the owner is not watching,
+- **The deadline can be stopped.** A question has one minute on it, after which its recommendation settles it. It keeps a job from
+  standing long while the owner is not watching,
   but it is short for reading the choices slowly while watching. So the card's remaining time stands on a line of its own under who
   asked, with 「타이머 정지」 at that line's right end, and the line's words changing never move the button. Pressing
   it moves that question alone to stopped in bmo-job, which keeps the time it had left and reads no due time while it stands
@@ -6859,7 +6870,8 @@ Four bounds keep it from growing forever.
   open ones, so a stopped card stays where it stood, and the card and band say it is stopped and name the recommendation without
   counting, there being no due time to count to. Answering by number in Telegram, and choosing or writing in the console, stay
   open while stopped. 「타이머 재개」 opens it again, counting from the time it had left, and the card stays where it stood with
-  its countdown running; one stopped after its time had run out has none left, so it stands again as 시간 초과. Stopping and
+  its countdown running; one stopped after its time had run out has none left, so bmo-job counts a whole wait again from the
+  opening (bmo-job's `docs/api.md`, 「The due time」). Stopping and
   resuming, like an answer, are bmo-job's to write on that question, and neither changes an already-decided one.
   - A word is a stop too. A word sent in the talk (「Talking a question over」) stops the question's timer, and so does one the
     owner writes in his own chat while a question stands open there: bmo-receiver takes it as talk on the question asked last

@@ -387,6 +387,11 @@
                     <p v-if="card.answer !== null" class="mt-1 text-sm break-words text-highlighted">→ {{ card.answer }}</p>
                   </div>
 
+                  <div v-if="settledFailure !== null" class="flex flex-col gap-2 rounded-md border border-default p-3">
+                    <p class="text-sm text-error">{{ settledFailure }}</p>
+                    <UButton class="self-end" size="sm" color="neutral" variant="subtle" :loading="settledLoading" @click="loadSettled(openedItem.id)">{{ $t("common.action.refresh") }}</UButton>
+                  </div>
+
                   <!-- Every time the approval was given or taken back, newest first: whose hand,
                        which road and when, so a request found waiting on him again says who put it
                        there. -->
@@ -959,7 +964,7 @@ const emit = defineEmits<{
   log: [item: TodoItem];
 }>();
 
-const { opened, busy, board, questions, now, rooms, act, reload, fetchStray } = props.panel;
+const { opened, busy, board, now, rooms, act, reload, fetchStray } = props.panel;
 
 // The repositories an item may go to, out of the one catalogue read every screen shares: the list is the agency's, so
 // this dialog holds none of its own and a repository the owner adds stands here without a change.
@@ -1243,6 +1248,7 @@ let talkGeneration = 0;
 let notesGeneration = 0;
 let reportsGeneration = 0;
 let approvalsGeneration = 0;
+let settledGeneration = 0;
 onScopeDispose(() => { detailGeneration++; });
 // Where the talk's turns scroll. A turn that has just arrived is the one he is waiting for, so the
 // list goes to its foot whenever the talk grows rather than leaving the answer below the box.
@@ -1256,16 +1262,41 @@ watch(
   })
 );
 
-function questionsOf(todoId: number): QuestionCard[] {
-  return questionsOfTodo(t, questions.value, todoId, now.value);
-}
+// The questions this item's job put to the owner that are settled, as the dialog last read them: the ones still open
+// are the card above them, from the console's one reading of the open questions.
+const settledQuestions = ref<JobQuestion[]>([]);
+const settledLoading = ref(false);
+const settledFailure = ref<string | null>(null);
 
-// The questions this item's job asked that are settled: the ones still open are the card above them.
 function settledQuestionsOf(todoId: number): QuestionCard[] {
-  return questionsOf(todoId).filter((card) => card.state !== "open");
+  return questionsOfTodo(t, settledQuestions.value, todoId, now.value);
 }
 
-// How a question reads at a glance: still waiting, his own answer, or the recommendation an older row's deadline took.
+// The open item's settled questions, read as it opens and again when bmo-job says one of its questions or replies
+// moved, so a question its time settled on the recommendation lands here as the card above lets it go. A read that
+// fails leaves what stands and says so beneath them.
+async function loadSettled(id: number): Promise<void> {
+  const generation = detailGeneration;
+  const mine = ++settledGeneration;
+  const latest = (): boolean => generation === detailGeneration && mine === settledGeneration && opened.value === id;
+
+  settledLoading.value = true;
+
+  try {
+    const answer = await $fetch<JobQuestion[]>(`/api/todos/${id}/questions`);
+
+    if (latest()) {
+      settledQuestions.value = answer;
+      settledFailure.value = null;
+    }
+  } catch (error) {
+    if (latest()) settledFailure.value = failureText(error, t("todo.error.questions_load_failed"));
+  } finally {
+    if (latest()) settledLoading.value = false;
+  }
+}
+
+// How a question reads at a glance: still waiting, his own answer, or the recommendation its time ran out on.
 function questionTone(card: QuestionCard): string {
   if (card.state === "open") {
     return "border-warning/40 bg-warning/5 text-warning";
@@ -1302,12 +1333,16 @@ function toggled(id: number, closed: boolean, word: string): void {
   approvals.value = [];
   approvalsFailure.value = null;
 
+  settledQuestions.value = [];
+  settledFailure.value = null;
+
   if (!closed) {
     void loadTalk(id);
     void loadNotes(id);
     void loadReports(id);
     void loadReviews(id);
     void loadApprovals(id);
+    void loadSettled(id);
   }
 }
 
@@ -1318,6 +1353,7 @@ async function asked(id: number, word: string): Promise<void> {
   await loadTalk(id);
   await loadNotes(id);
   await loadApprovals(id);
+  await loadSettled(id);
 }
 
 // The talk is read when the item is opened, and only then: it is about that one item, and there
@@ -1449,6 +1485,7 @@ function reread(id: number): void {
   void loadReports(id, true);
   void loadReviews(id);
   void loadApprovals(id, true);
+  void loadSettled(id);
 }
 
 // The item's review is read when it is opened and again whenever the bot says the queue moved, so an entry written

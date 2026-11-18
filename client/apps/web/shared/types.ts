@@ -874,9 +874,9 @@ export interface StandingNote {
   title: string;
 }
 
-// Who settled a question a job put to the owner: their own answer, wherever they gave it, or the
-// wait running out.
-export type QuestionSettler = "owner" | "deadline" | "recommendation";
+// Who settled a question a job put to the owner: their own answer, wherever they gave it, or the job's
+// recommendation, which bmo-job settles it with once its time runs out with no answer.
+export type QuestionSettler = "owner" | "recommendation";
 
 // One question a job stopped to ask the owner, as the console reads it. The job is standing
 // still while it is open, which is why the console shows it rather than leaving it to the chat.
@@ -888,10 +888,11 @@ export interface JobQuestion {
   asker: string;
   question: string;
   options: string[];
-  // Which option the job would take by itself, counted from zero; null where its recommendation names no choice — a
-  // free answer, or none at all — so no choice wears the mark. The wait settles on it.
+  // Which option the job would take by itself, counted from zero, where its recommendation is that option word for word;
+  // null where it names no choice, as words of its own or none at all, so no choice wears the mark.
   recommended: number | null;
-  // The free answer the job would take by itself where it names no choice; null on every other.
+  // The free answer the job would take by itself where it names no choice; null on every other. The wait settles on
+  // it, or on the recommended option, where nobody answers.
   recommendation: string | null;
   // The one line saying why the job would not decide this itself; empty where it named none.
   why: string;
@@ -899,8 +900,9 @@ export interface JobQuestion {
   // When the question settles on the recommendation if nobody answers: the end of the countdown
   // while it runs, the end of the stop while they have stopped it.
   dueAt: number;
+  // The option a settled question was settled on, counted from zero; null while open or where it was settled in words.
   chosen: number | null;
-  // What the owner wrote instead of picking, where the options covered none of what they wanted.
+  // The words a settled question was settled on where no option was taken: the owner's own, or the recommendation's.
   answer: string | null;
   // The seconds the countdown still had when they stopped it, or null while it runs.
   pausedLeft: number | null;

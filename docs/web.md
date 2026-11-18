@@ -802,7 +802,9 @@ edit to that file alone, once the guide below carries the word.
 - **Nothing is drawn under 14 pixels.** Caption, metadata, badge, table and secondary text are 14; normal
   body 16; a subtitle or a section of a screen 18; a title 20. The step below 14 is not used by any screen,
   and the stylesheet draws it at 14 as well, so a component of the library that asks for it — a badge, a
-  small button, a menu item — stands at 14 too. The code and document editors read at 14.
+  small button, a menu item — stands at 14 too. Where the library names a fixed size below it instead, as the
+  heading of a group in a small select's list, the console's theme takes it to 14. The code and document editors
+  read at 14.
 - **Icons come from Material Symbols,** served by the app's icon endpoint, and the library's own components
   are told to draw theirs from the same set. An agent's mark in the catalogue is a Material Symbols name;
   a seed mark from another set is rewritten to its Material Symbols counterpart when the bot starts. Every agent's

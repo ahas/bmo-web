@@ -19,6 +19,13 @@ function dropdown(floor: string) {
   };
 }
 
+// A list's group headings at the library's two small sizes, which name a fixed ten pixels the
+// stylesheet's own step does not reach, at the caption size.
+const HEADINGS_AT_CAPTION = {
+  xs: { label: "text-sm" },
+  sm: { label: "text-sm" }
+};
+
 // How the library's own floating things and folding regions come and go, at the console's timing
 // (docs/web.md, 「Motion」). The library's movements themselves are kept, since each already says
 // where the thing came from: a menu, a list or a tooltip grows out of the control it stands beside,
@@ -202,14 +209,17 @@ export default defineAppConfig({
     // forgot. The cap is the screen rather than the room measured beside the control: a list
     // opened near an edge is slid back inside rather than squeezed against it.
     // A select's own list stands as a popper, and its growing is said on that position rather than on
-    // the list itself, so the console's timing is said there too.
+    // the list itself, so the console's timing is said there too. The heading of a group of choices is
+    // drawn under the floor at the two small sizes, and takes the caption size instead.
     select: {
       slots: dropdown("min-w-[min(var(--reka-select-trigger-width),calc(100vw-1rem))]"),
-      variants: { position: { popper: { content: GROWS } } }
+      variants: { position: { popper: { content: GROWS } }, size: HEADINGS_AT_CAPTION }
     },
+    // A select menu's control is a field, whose focus is the accent on its own edge, but stands as a
+    // plain button the stylesheet's own field rule does not tell from one, so it says no ring itself.
     selectMenu: {
-      slots: dropdown("min-w-[min(var(--reka-combobox-trigger-width),calc(100vw-1rem))]"),
-      variants: { position: { popper: { content: GROWS } } }
+      slots: { ...dropdown("min-w-[min(var(--reka-combobox-trigger-width),calc(100vw-1rem))]"), base: "focus-visible:outline-none" },
+      variants: { position: { popper: { content: GROWS } }, size: HEADINGS_AT_CAPTION }
     },
     inputMenu: { slots: dropdown("min-w-[min(var(--reka-combobox-trigger-width),calc(100vw-1rem))]") },
     // A list that drops for a value it shows is floored at its control's width, so it lines up under

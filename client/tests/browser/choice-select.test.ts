@@ -7,7 +7,7 @@ import { wording } from "../../apps/web/shared/wording";
 import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 import type { TodoBoard, TodoItem } from "../../apps/web/shared/types";
 
-// A value is chosen from a list in bmo-ui's one select (docs/web.md, 「Dropdowns」): a list of more than seven choices
+// A value is chosen from a list in bmo-ui's one select (docs/web.md, 「Dropdowns」, 「Fonts」 and 「Focus」): a list of more than seven choices
 // opens with a search field above them, and one of seven or fewer opens with none. Read off a TODO item's agent
 // chooser, which lists every agent the agency registers, and the TODO panel's filter of whether an item's unfinished
 // strands remain, which holds three choices. Opened by a pointer the search field takes the focus at once; opened by a
@@ -103,6 +103,17 @@ describe("a list searches once it holds more than seven choices, and only then",
         const chooser = page.locator("[data-item-agent]:visible").first();
 
         await chooser.waitFor({ timeout: 30_000 });
+
+        if (!width.phone) {
+          // Reached by the keyboard, the chooser is a field: the accent on its own edge, and no ring round it.
+          await page.keyboard.press("Shift");
+          await chooser.focus();
+
+          const focus = await chooser.evaluate((one) => ({ visible: one.matches(":focus-visible"), ring: getComputedStyle(one).outlineStyle }));
+
+          expect(focus).toEqual({ visible: true, ring: "none" });
+        }
+
         await press(chooser, width.phone);
 
         const search = searchOf(page);
@@ -114,6 +125,11 @@ describe("a list searches once it holds more than seven choices, and only then",
         // A pointer types into the field at once; a finger presses it first.
         expect(await search.evaluate((field) => field === document.activeElement)).toBe(!width.phone);
         expect(await options.filter({ hasText: "builder-01" }).count()).toBeGreaterThan(0);
+        // The list is grouped by role, and a group's heading is drawn no smaller than a caption.
+        const headings = await page.locator("[data-reka-popper-content-wrapper] [data-slot=\"label\"]").evaluateAll((all) => all.map((one) => parseFloat(getComputedStyle(one).fontSize)));
+
+        expect(headings.length).toBeGreaterThan(0);
+        expect(Math.min(...headings)).toBeGreaterThanOrEqual(14);
 
         if (width.phone) await search.tap();
         await page.keyboard.type("worker-03");

@@ -7431,7 +7431,8 @@ research screen (「Research screen」).
     is connected, or none. 기기 연결, or 다른 기기로 연결 where one is bound, binds the account to the machine named in
     기기 이름, or to a fresh name where it is left empty, and as a machine several accounts share where 여러 계정이
     함께 쓰는 기기 is turned on; a machine not yet connected shows its one-line installs, Linux or WSL and Windows,
-    each with its copy mark, and is asked after every few seconds, 확인하기 asking at once, until it connects and is
+    each with its copy mark, which copies and turns to a check as the join page's does (「The join page」), and is
+    asked after every few seconds, 확인하기 asking at once, until it connects and is
     set as the person's node. A machine bound shared carries 공유 기기 beside its state; 공유 declares the machine
     already bound shared where it stands, so another account can be connected to it too, and 공유 해제 takes the
     declaration back while no other account is connected there, each at once. 기기 연결 해제 takes the machine away,
@@ -7621,10 +7622,15 @@ Where a company's own words for its roles and its unit kinds are kept (`docs/acc
   to give, so for a head it stands in the list and cannot be chosen.
 - **A link is made into the unit and role chosen** for the span of hours. Made, it is copied at once with its
   words: who invites whom, where the link names the person, into what, the link, and when it closes (`docs/accounts.md`, 「Invitations and a person's
-  machine」), and the dialog closes; a refusal is said in the dialog.
+  machine」), and the dialog closes on the list with the new link's copy mark a check; a refusal is said in the
+  dialog. The copy begins in the press of 링크 만들고 복사 itself, before the service answers, with the words
+  following once the link is made, since a browser lets a page write the clipboard only while the press that asked
+  is fresh. A browser that refuses it all the same leaves the dialog open on the link made and its words, with a
+  copy of its own that a fresh press puts on the clipboard, turning to 「복사됨」 once they land.
 - **The open ones are listed,** each by the person's name where it was made with one, where it leads, the role
   it gives and when it closes, copied again or taken
-  back by its two marks; the copy mark turns to a check once the link is copied. A reader who may invite into no unit
+  back by its two marks; the copy mark turns to a check once the link is copied, and a copy the browser refuses
+  is said on the island, as on the join page (「The join page」). A reader who may invite into no unit
   is told so.
 - **Where an invitation leads is said as the company, then the unit under it;** a unit that is the company itself is
   named once, here, in the copied words and on the join page.
@@ -7637,7 +7643,11 @@ Where a company's own words for its roles and its unit kinds are kept (`docs/acc
 - **The person's name, a login and a password make the account.** 이름 comes first, filled with the name the
   invitation was made with for the person to correct; the page does not take the account without it. 아이디 and
   비밀번호 follow. A call that gives no name, as a script may, leaves the account the invitation's name. The page then shows the person's machine's one-line installs,
-  Linux or WSL and Windows, each with its copy mark, and asks every few seconds whether the machine has attached;
+  Linux or WSL and Windows, each with its copy mark, and asks every few seconds whether the machine has attached.
+  A press of the mark puts the line on the clipboard and turns the mark to a check named 「복사됨」, in its tooltip
+  as in its name, until another line is copied. The copy reaches the clipboard on an address the browser holds insecure too, through the
+  browser's older selection copy, and one the browser refuses all the same is said on the island; a mark never
+  turns to a check for a copy that did not land.
   설치했어요, 확인하기 asks at once. Attached, the account is ready and the page leads to the login.
 - **An account made ready is given its own BMO and its agents,** by the console's server as the account turns
   active, each once: a supervisor of the account, named `u<user>` and titled by the person's name, on the provider

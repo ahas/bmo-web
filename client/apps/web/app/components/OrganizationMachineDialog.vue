@@ -30,9 +30,12 @@
             <span class="text-sm font-medium">{{ install.label }}</span>
             <div class="flex items-start gap-2">
               <code class="min-w-0 flex-1 break-all rounded-md bg-elevated p-2 text-sm">{{ install.line }}</code>
-              <UTooltip :text="$t('common.action.copy')">
-                <UButton color="neutral" variant="ghost" icon="i-material-symbols-content-copy-outline" :aria-label="$t('common.action.copy')" @click="copy(install.line)" />
-              </UTooltip>
+              <IconButton
+                :icon="copied === install.line ? 'i-material-symbols-check' : 'i-material-symbols-content-copy-outline'"
+                :label="copied === install.line ? $t('common.status.copied') : $t('common.action.copy')"
+                data-install-copy
+                @click="copy(install.line)"
+              />
             </div>
           </div>
         </div>
@@ -61,8 +64,10 @@
 
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
+import { useIsland } from "bmo-ui/app/domain/island";
 
 import { useConfirm } from "~/domain/confirm";
+import { copyText } from "~/domain/copy";
 import { leaveEffectKey } from "~/domain/machine-unlink";
 
 import type { Rebound, UserNode } from "@web/server-client";
@@ -80,6 +85,7 @@ const open = defineModel<boolean>("open", { default: false });
 
 const { t } = useI18n();
 const confirm = useConfirm();
+const island = useIsland(t);
 
 // What the service says of the machine, and the installs of the machine just bound while it has not attached.
 const machine = ref<UserNode | null>(null);
@@ -88,6 +94,7 @@ const machineShared = ref(false);
 const rebound = ref<Rebound | null>(null);
 const machineFailure = ref("");
 const machineBusy = ref<"bind" | "unbind" | "check" | "share" | null>(null);
+const copied = ref<string | null>(null);
 let machineTimer: ReturnType<typeof setInterval> | undefined;
 
 const bound = computed(() => typeof machine.value?.agent === "string");
@@ -219,8 +226,15 @@ async function unbind(): Promise<void> {
 // How often a machine just bound is asked after while it has not attached.
 const MACHINE_CHECK_MS = 5_000;
 
+// The install line copied last carries a check in place of its copy mark; a copy the browser refuses says so on the
+// island, since nothing in the dialog would show it.
 async function copy(text: string): Promise<void> {
-  await navigator.clipboard?.writeText(text).catch(() => undefined);
+  if (await copyText(text)) {
+    copied.value = text;
+  } else {
+    copied.value = null;
+    island.say({ title: t("common.error.copy_failed"), tone: "error" });
+  }
 }
 
 onBeforeUnmount(stopWatching);

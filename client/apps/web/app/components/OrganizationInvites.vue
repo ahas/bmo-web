@@ -1,7 +1,8 @@
 <template>
   <!-- Invitations (docs/web.md, 「Organisation settings」, the invitations tab): a link made into a unit the reader
        heads, or any for the administrator, chosen as a company and then a unit of its tree, with the role the person
-       takes there and, where the maker gives it, the person's name, in a dialog the tab row's add opens; copied with its words and when it closes; the open
+       takes there and, where the maker gives it, the person's name, in a dialog the tab row's add opens; copied with its words and when it closes,
+       in the press that makes it, or by a copy of its own in the dialog where the browser refused that; the open
        ones listed, each copied again or taken back by its two marks. While they are first read the list keeps its
        place with a skeleton, and a read that failed says why in its place. -->
   <div class="flex flex-col gap-4">
@@ -43,7 +44,13 @@
     <p v-if="failure !== ''" role="alert" class="text-sm text-error">{{ failure }}</p>
 
     <SettingsDialog v-model:open="making" :title="$t('invites.label.make')">
-      <form id="invite-form" class="flex flex-col gap-4" @submit.prevent="make">
+      <!-- A link made whose copy the browser refused stands in the dialog with its own copy, which a fresh press
+           puts on the clipboard. -->
+      <div v-if="made !== null" class="flex flex-col gap-3" data-invite-made>
+        <p class="whitespace-pre-line break-keep text-sm">{{ $t("invites.message.made_uncopied") }}</p>
+        <p class="whitespace-pre-line break-keep [overflow-wrap:anywhere] rounded-md bg-elevated p-2 text-sm" data-invite-made-text>{{ inviteText(made) }}</p>
+      </div>
+      <form v-else id="invite-form" class="flex flex-col gap-4" @submit.prevent="make">
         <UFormField :label="$t('invites.label.full_name')" name="fullName" :hint="$t('common.label.optional')">
           <UInput v-model="fullName" class="w-full" autocomplete="off" data-invite-name />
         </UFormField>
@@ -71,8 +78,19 @@
       </form>
 
       <template #footer="{ close }">
-        <UButton :label="$t('common.action.cancel')" color="neutral" variant="ghost" :disabled="busy" @click="close()" />
-        <UButton type="submit" form="invite-form" :label="$t('invites.action.make')" :loading="busy" :disabled="busy || unit === null" />
+        <template v-if="made !== null">
+          <UButton :label="$t('common.action.close')" color="neutral" variant="ghost" @click="close()" />
+          <UButton
+            :icon="copied === made.token ? 'i-material-symbols-check' : 'i-material-symbols-content-copy-outline'"
+            :label="copied === made.token ? $t('invites.status.copied') : $t('invites.action.copy')"
+            data-invite-made-copy
+            @click="copy(made)"
+          />
+        </template>
+        <template v-else>
+          <UButton :label="$t('common.action.cancel')" color="neutral" variant="ghost" :disabled="busy" @click="close()" />
+          <UButton type="submit" form="invite-form" :label="$t('invites.action.make')" :loading="busy" :disabled="busy || unit === null" />
+        </template>
       </template>
     </SettingsDialog>
   </div>
@@ -80,7 +98,10 @@
 
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
+import { useIsland } from "bmo-ui/app/domain/island";
 import { formatStamp } from "bmo-ui/app/domain/time";
+
+import { copyPending, copyText } from "~/domain/copy";
 
 import { companyUnits, inviteCompanies, placeOf } from "~/domain/invites";
 import { unitBranches, unitPath } from "~/domain/organization";
@@ -90,6 +111,7 @@ import { useAdministrator } from "~/domain/access";
 import type { Invite, InviteUnit } from "@web/server-client";
 
 const { t } = useI18n();
+const island = useIsland(t);
 const administrator = useAdministrator();
 const config = useRuntimeConfig();
 
@@ -111,6 +133,8 @@ const readFailure = ref("");
 const failure = ref("");
 const making = ref(false);
 const makeFailure = ref("");
+// The link just made whose copy the browser refused, which the dialog then shows with its own copy.
+const made = ref<Invite | null>(null);
 const copied = ref("");
 
 const companyItems = computed(() => inviteCompanies(units.value ?? []).map((one) => ({ label: one.name, value: String(one.id) })));
@@ -165,29 +189,51 @@ function inviteLine(invite: Invite): string {
 }
 
 // The words copied with a link: who invites whom into what, the link, and when it closes.
-async function copy(invite: Invite): Promise<void> {
+function inviteText(invite: Invite): string {
   const words = { place: placeOf(invite), link: link(invite.token), time: formatStamp(invite.expiresAt / 1000) };
-  const text = invite.fullName ? t("invites.message.text_named", { ...words, name: invite.fullName }) : t("invites.message.text", words);
 
-  await navigator.clipboard?.writeText(text).catch(() => undefined);
-  copied.value = invite.token;
+  return invite.fullName ? t("invites.message.text_named", { ...words, name: invite.fullName }) : t("invites.message.text", words);
+}
+
+// An open link's words copied again; its mark turns to a check once they land, and a copy the browser refuses is said
+// on the island.
+async function copy(invite: Invite): Promise<void> {
+  if (await copyText(inviteText(invite))) {
+    copied.value = invite.token;
+  } else {
+    copied.value = "";
+    island.say({ title: t("common.error.copy_failed"), tone: "error" });
+  }
 }
 
 function openMake(): void {
   makeFailure.value = "";
   fullName.value = "";
+  made.value = null;
   making.value = true;
 }
 
+// The link asked for and its words copied in the same press: the copy begins before the service answers, so the
+// browser still counts the press, and the words follow once the link is made. Copied, the dialog closes on the list
+// with the new link's mark a check; refused, the dialog shows the link with a copy of its own.
 async function make(): Promise<void> {
   busy.value = true;
   makeFailure.value = "";
-  try {
-    const made = await $fetch<Invite>("/api/invites", { method: "POST", body: { unit: unit.value, head: role.value === "head", hours: Number(hours.value), fullName: fullName.value.trim() } });
 
-    invites.value = [made, ...invites.value];
-    await copy(made);
-    making.value = false;
+  const asked = $fetch<Invite>("/api/invites", { method: "POST", body: { unit: unit.value, head: role.value === "head", hours: Number(hours.value), fullName: fullName.value.trim() } });
+  const copying = copyPending(asked.then(inviteText));
+
+  try {
+    const invite = await asked;
+
+    invites.value = [invite, ...invites.value];
+    if (await copying) {
+      copied.value = invite.token;
+      making.value = false;
+    } else {
+      copied.value = "";
+      made.value = invite;
+    }
   } catch (error) {
     makeFailure.value = failureText(error, t("invites.error.failed"));
   } finally {

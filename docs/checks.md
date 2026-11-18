@@ -8,7 +8,9 @@ console's typecheck and then every test file under `client/tests` in one `bun te
 
 - **The browser tests run inside the client's check,** one file after another in that one process, so no two
   browsers ever come up side by side. The check runs with the real home, so Playwright finds the browser builds
-  it pins; a file asks `touchReady()` and skips only on a machine without them.
+  it pins; a file asks `touchReady()` and skips only on a machine without them. A test that drives Firefox or
+  WebKit as it ships, with no clipboard permission granted, reads what landed by pasting it, and skips only where
+  that engine's build is missing.
 - **They are not in the testbed's browser lane.** The testbed gathers no test file inside a project of its own,
   and its layout check holds every `package.json` to a project or the root's package workspace, which this
   repository does not have. So `client/` stays a project, and its browser files run in its check rather than as

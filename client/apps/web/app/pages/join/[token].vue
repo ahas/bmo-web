@@ -12,7 +12,12 @@
         <UAlert v-if="failure" color="error" variant="subtle" :description="failure" />
 
         <template v-if="view && view.state !== 'open' && accepted === null">
-          <UAlert color="warning" variant="subtle" :description="view.state === 'used' ? $t('join.message.used') : $t('join.message.expired')" />
+          <UAlert
+            color="warning"
+            variant="subtle"
+            :description="view.state === 'used' ? $t('join.message.used') : $t('join.message.expired')"
+            :ui="{ description: 'whitespace-pre-line' }"
+          />
         </template>
 
         <template v-else-if="view && accepted === null">
@@ -32,15 +37,20 @@
         </template>
 
         <template v-else-if="accepted">
-          <p>{{ $t("join.message.install") }}</p>
+          <p class="whitespace-pre-line">{{ $t("join.message.install") }}</p>
           <div v-for="install in installs" :key="install.label" class="flex flex-col gap-1">
             <span class="text-sm font-medium">{{ install.label }}</span>
             <div class="flex items-start gap-2">
-              <code class="min-w-0 flex-1 break-all rounded-md bg-elevated p-2 text-xs">{{ install.line }}</code>
-              <UButton color="neutral" variant="ghost" size="xs" icon="i-material-symbols-content-copy-outline" :aria-label="$t('join.action.copy')" @click="copy(install.line)" />
+              <code class="min-w-0 flex-1 break-all rounded-md bg-elevated p-2 text-sm">{{ install.line }}</code>
+              <IconButton
+                :icon="copied === install.line ? 'i-material-symbols-check' : 'i-material-symbols-content-copy-outline'"
+                :label="copied === install.line ? $t('invites.status.copied') : $t('join.action.copy')"
+                data-install-copy
+                @click="copy(install.line)"
+              />
             </div>
           </div>
-          <UAlert v-if="active" color="success" variant="subtle" :description="$t('join.message.active')" />
+          <UAlert v-if="active" color="success" variant="subtle" :description="$t('join.message.active')" :ui="{ description: 'whitespace-pre-line' }" />
           <p v-else class="text-sm text-muted">{{ $t("join.message.waiting") }}</p>
         </template>
       </div>
@@ -59,7 +69,10 @@
 
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
+import { useIsland } from "bmo-ui/app/domain/island";
 import { formatStamp } from "bmo-ui/app/domain/time";
+
+import { copyText } from "~/domain/copy";
 
 import { placeOf } from "~/domain/invites";
 
@@ -81,6 +94,8 @@ const accepted = ref<Accepted | null>(null);
 const active = ref(false);
 const failure = ref("");
 const pending = ref(false);
+const copied = ref<string | null>(null);
+const island = useIsland(t);
 const form = reactive({ fullName: "", name: "", password: "" });
 const installs = computed(() =>
   accepted.value === null
@@ -131,8 +146,15 @@ async function prove(): Promise<void> {
   }
 }
 
+// The install line copied last carries a check in place of its copy mark; a copy the browser refuses says so on the
+// island, since nothing on the page would show it.
 async function copy(text: string): Promise<void> {
-  await navigator.clipboard?.writeText(text).catch(() => undefined);
+  if (await copyText(text)) {
+    copied.value = text;
+  } else {
+    copied.value = null;
+    island.say({ title: t("common.error.copy_failed"), tone: "error" });
+  }
 }
 
 onMounted(() => void read());

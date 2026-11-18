@@ -65,6 +65,9 @@ export const openedRoutes: readonly OpenedRoute[] = [
   { method: "DELETE", path: /^\/api\/organization\/companies\/\d+\/agent\/picture$/, scope: "user" },
   { method: "GET", path: /^\/api\/organization\/units\/\d+\/agent-permissions$/, scope: "user" },
   { method: "PUT", path: /^\/api\/organization\/(?:units|users)\/\d+\/agent-permission$/, scope: "user" },
+  // A person marked left: every signed-in login asks, and the account service lets the administrator and the person's
+  // heads alone (docs/accounts.md, 「A person who leaves」).
+  { method: "POST", path: /^\/api\/organization\/users\/\d+\/leave$/, scope: "user" },
   // The people roster, its companies, a page of it, a person and their BMO: every signed-in login asks, and the account
   // service decides whom each looks through (docs/accounts.md, 「The people roster」). A person's rooms, agents, sessions
   // and runs are the administrator's alone.

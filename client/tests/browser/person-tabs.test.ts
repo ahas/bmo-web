@@ -426,6 +426,17 @@ describe.skipIf(!origin || !touchReady())("one person's tabs on the people tab",
         }
 
         expect(await page.locator("[data-permissions-table]").count()).toBe(0);
+
+        // The head marks the person left from the management menu, asked first; Back on the question leaves them as
+        // they stood (docs/web.md, 「Organisation」, the people tab).
+        await page.locator("[data-roster-manage]").click();
+        await page.getByRole("menuitem", { name: wording("organization.action.mark_left_confirm") }).click();
+        const question = page.getByRole("alertdialog").or(page.getByRole("dialog")).filter({ hasText: wording("organization.title.mark_left") });
+
+        await question.waitFor({ timeout: 20_000 });
+        await page.goBack();
+        await question.waitFor({ state: "detached", timeout: 20_000 });
+        expect((await administer<{ state: string }>(`/api/organization/people/${encodeURIComponent(subject)}`, "GET")).state).not.toBe("left");
       } finally {
         await context.close();
       }

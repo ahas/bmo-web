@@ -107,8 +107,8 @@ describe("a person's management menu", () => {
     expect(rosterActs({ administrator: true, user: "7" }, PERSON)).not.toContain("leave");
   });
 
-  test("offers a company head a post, the BMO permission, and their own profile", () => {
-    expect(rosterActs({ administrator: false, user: "9" }, PERSON)).toEqual(["post", "bmo"]);
+  test("offers a company head a post, the BMO permission, marking the person left, and their own profile", () => {
+    expect(rosterActs({ administrator: false, user: "9" }, PERSON)).toEqual(["post", "bmo", "leave"]);
     expect(rosterActs({ administrator: false, user: "7" }, PERSON)).toEqual(["post", "profile", "bmo"]);
   });
 

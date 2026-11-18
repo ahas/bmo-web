@@ -141,6 +141,14 @@ describe("a console route as another user meets it", () => {
     }
   });
 
+  // docs/accounts.md, 「A person who leaves」: the account service decides who may mark a person left, the administrator
+  // or the person's heads, so the console's scope lets every member ask.
+  test("a member asks to mark a person left, the account service deciding", async () => {
+    session = { user: { name: "member", id: 2 }, sid: "bmo.sid=member", administrator: false };
+
+    expect(await answer({ file: "organization/users/[user]/leave.post", method: "POST", path: "/api/organization/users/3/leave" })).toBe(200);
+  });
+
   test("a grant of one agent-management part opens that part's reads alone", async () => {
     service.sections.set(3, new Map([["supervisors", { read: true, write: false }]]));
     session = { user: { name: "agent-reader", id: 3 }, sid: "bmo.sid=agent-reader", administrator: false };

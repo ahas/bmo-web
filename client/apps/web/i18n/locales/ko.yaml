@@ -2027,6 +2027,7 @@ organization:
     no_such_kind: 이 회사에 없는 종류입니다.
     no_such_role: 이 회사에 없는 직책입니다.
     head_only: 관리자나 상위 조직의 조직장만 할 수 있습니다.
+    leave_head_only: 관리자나 그 사람의 조직 또는 상위 조직의 조직장만 탈퇴 처리할 수 있습니다.
     post_left: 탈퇴한 사람에게는 겸직이나 직무대행을 맡길 수 없습니다.
     home_unit: 소속 조직에는 겸직을 줄 수 없습니다.
     post_other_company: 같은 회사의 사람만 지정할 수 있습니다.

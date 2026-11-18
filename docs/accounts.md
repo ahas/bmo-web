@@ -701,9 +701,11 @@ section states what each does.
 ### A person who leaves
 
 - **A person who leaves is marked so, never removed:** the administrator, or a head of the unit the person stands
-  in, marks the account left. Its sign-in is disabled for good, the moment and who marked it are kept, and the
-  account stays in its unit with everything it held, so what it did stays where it was done. Its posts end, with
-  the head grants they carried, and an acting appointment of theirs ends, each kept in their history.
+  in, marks the account left. Being a head is sumida's `manage` on that unit (「Companies and organisation units」,
+  「Acting」), so a head of a unit above it and an acting head mark the person too, and a head of a unit beside or
+  below it does not. Its sign-in is disabled for good, the moment and who marked it are kept, and the account stays
+  in its unit with everything it held, so what it did stays where it was done. Its posts end, with the head grants
+  they carried, and an acting appointment of theirs ends, each kept in their history.
 - **A unit marks who among its members has left:** `GET /units/{unit}` and the administrator's list of units answer
   them beside the members, so a caller acting on a unit's people passes them over with no call for each person.
 - **What stays readable is what was public:** the person's public projects and their records go on being read by

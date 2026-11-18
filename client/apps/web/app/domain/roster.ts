@@ -152,8 +152,8 @@ export interface RosterActor {
 /**
  * The acts the reader may do for one person, in the menu's order (docs/web.md, 「Organisation」, the people tab). The
  * administrator does every one; anyone else only what the console's routes open to them: the BMO permission of the
- * people under a unit they head, and their own profile. A person who left keeps only their profile, the one record of
- * theirs that still stands for anyone.
+ * people under a unit they head, marking them left, and their own profile. Nobody marks themselves left. A person who
+ * left keeps only their profile, the one record of theirs that still stands for anyone.
  */
 export function rosterActs(actor: RosterActor, person: Pick<RosterPerson, "user" | "state">): RosterAct[] {
   const own = actor.user !== null && actor.user === person.user;
@@ -165,7 +165,8 @@ export function rosterActs(actor: RosterActor, person: Pick<RosterPerson, "user"
     machine: actor.administrator,
     profile: actor.administrator || own,
     bmo: true,
-    leave: actor.administrator && !own
+    // So may they mark them left, the company's unit standing above every unit of it.
+    leave: !own
   };
 
   return offered.filter((act) => may[act]);

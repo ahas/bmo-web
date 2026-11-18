@@ -417,8 +417,9 @@ console page. No answer says which framework drew it. Strict transport is the re
   their tabs, and the rooms they read (below). A route of a section they may not read or write answers them as
   if nothing stood there; the routes and the section each serves are kept in one place, and a test holds every
   route file to it. A route whose answer the account service decides by who is asking stands open to every signed-in
-  login and leaves the refusal to the service: the invitations, and a company's BMO default and who may personalise
-  under a unit (`docs/accounts.md`, 「A person's BMO profile」); one's own BMO profile stands with the account section.
+  login and leaves the refusal to the service: the invitations, a company's BMO default and who may personalise
+  under a unit (`docs/accounts.md`, 「A person's BMO profile」), and a person marked left (`docs/accounts.md`, 「A
+  person who leaves」); one's own BMO profile stands with the account section.
 - **What the administrator reaches is not what his everyday screens list.** His reach stands as this section says:
   he reads every room and every agent by its address. The lists he works from day to day hold what is his and what
   is the deployment's, and nothing of another account's, so the rooms and BMOs of the people the platform holds never
@@ -7425,7 +7426,10 @@ research screen (「Research screen」).
   machine」) and sets who under it may personalise their BMO (`docs/accounts.md`, 「A person's BMO profile」), so
   their shell lists 조직 too and the screen holds 초대 and BMO, and 사용자 and 직책·종류 where they head a company (「사용자」,
   「직책·종류」); a member who heads none is listed no entry, and the
-  address shows them 초대 saying they may invite into no unit.
+  address shows them 초대 saying they may invite into no unit. A head marks a person of their unit left as well
+  (`docs/accounts.md`, 「A person who leaves」): the route stands open to every signed-in login and the account
+  service refuses anyone but the person's heads, and the screen offers the act on 사용자, so a head of a unit below a
+  company marks a person left through the route alone.
 - **A tab is drawn once the reader is known to open it.** The administrator is known at once. Whether a member heads
   a company is known once the people roster has answered, which the browser asks after it takes the page over, so
   the server draws the page before it knows; once answered it stays known, a later read of the roster leaving the
@@ -7622,8 +7626,9 @@ account's rooms or agents (「Access」).
     person fixed and the unit chosen in it, the units of their company the reader heads, but their home unit, offered
     by their path; 기기 연결, the machine dialog of 조직도; 프로필 변경, the profile form of 계정 for this person;
     BMO 설정 권한, which opens the BMO tab at the person's company with their unit open; and 탈퇴 처리, asked first as
-    on 조직도. An act stands only where the route behind it lets the reader do it, and a person who left keeps
-    only what still applies to them. Once an act goes through, the person is read again, and the list row with them.
+    on 조직도, for the administrator and a company's head alike and never for the reader themselves, a refusal of it
+    saying that only the administrator and the person's heads mark them left. An act stands only where the route
+    behind it lets the reader do it, and a person who left keeps only what still applies to them. Once an act goes through, the person is read again, and the list row with them.
     The head stands whichever tab is open, and a refusal of an act is said under it.
   - **The person's tab row** stands under the head, the tabs filling it from its left, their words starting on the
     edge of the column the head and the tab's content stand in, words alone with no icon, so

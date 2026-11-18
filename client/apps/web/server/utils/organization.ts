@@ -42,6 +42,10 @@ export const MOVE_CODES: Readonly<Record<string, string>> = {
   moved: "organization.error.moved"
 };
 
+/** The codes of a person marked left (docs/boundary.md, 「Invitations」), which the administrator and the person's heads
+ * may do, over the section's own. */
+export const LEAVE_CODES: Readonly<Record<string, string>> = { forbidden: "organization.error.leave_head_only" };
+
 /** The codes of the calls a head of a unit may make as well as the administrator — a post, an acting appointment, a
  * company's lists (docs/boundary.md, 「Organisation units」, 「Roles and unit kinds」) — over the section's own. */
 export const HEAD_CODES: Readonly<Record<string, string>> = {

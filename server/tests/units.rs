@@ -412,6 +412,14 @@ async fn a_head_marks_a_person_of_their_unit_left_and_nobody_else_does() {
     asked_by(&app, Method::POST, &format!("/users/{}/leave", tree.in_centre), tree.in_team).await;
   assert_eq!(status, StatusCode::FORBIDDEN, "{said}");
 
+  // A head of a unit beside the person's marks them no more than a person who heads nothing does.
+  let beside = unit(&tree.scratch, "team-b", Some(tree.centre)).await;
+  let in_beside = placed(&tree.scratch, "member-beside", beside).await;
+  head(&tree.scratch, in_beside, beside).await;
+  let (status, said) =
+    asked_by(&app, Method::POST, &format!("/users/{}/leave", tree.in_team), in_beside).await;
+  assert_eq!(status, StatusCode::FORBIDDEN, "{said}");
+
   // A head of a unit above the person's marks them; their sign-in is disabled and the departure is read back.
   let (status, said) =
     asked_by(&app, Method::POST, &format!("/users/{}/leave", tree.in_team), tree.in_centre).await;

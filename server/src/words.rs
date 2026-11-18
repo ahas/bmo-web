@@ -1,6 +1,7 @@
 //! A fixed line rendered from the server's pack (docs/boundary.md, 「Fixed lines」): a code another unit
 //! answers with and the fields it carries beside it, made into the sentence a room reads. A line naming accounts
-//! names each by its shown name, read from the service's own users.
+//! names each by its shown name, read from the service's own users; a line a chat service handed over names each
+//! person by the name it carries for them.
 
 use std::collections::HashMap;
 
@@ -78,6 +79,18 @@ pub enum FixedLine {
     unit_name: String,
     by: AccountKey,
   },
+  /// People came into a room of a chat service (bmo-chat's `docs/contract.md`, 「Lines」): `by` is given only where
+  /// someone other than those who came brought them in.
+  PeopleJoined {
+    people: Vec<LinePerson>,
+    by: Option<LinePerson>,
+  },
+  /// A person went out of a room of a chat service: `by` is given only where someone other than the person took
+  /// them out.
+  PersonLeft {
+    person: LinePerson,
+    by: Option<LinePerson>,
+  },
   /// A code the pack holds no sentence for.
   #[serde(other)]
   Unknown,
@@ -106,6 +119,31 @@ impl AccountKey {
       Self::Text(key) => key.clone(),
     })
   }
+}
+
+/// A person as a chat service's line names them: their number in the room's sender numbering, which is carried and
+/// not read, and the name the service shows for them.
+#[derive(Debug, Deserialize)]
+pub struct LinePerson {
+  pub name: String,
+}
+
+impl LinePerson {
+  fn shown(&self) -> String {
+    person_named(&self.name)
+  }
+}
+
+// A person a line names, by the name they are shown by.
+fn person_named(name: &str) -> String {
+  fill_marks(&FIXED_LINES.person, &[("name", name)])
+}
+
+// People a line names together, each by the name they are shown by, every one named; none where it names nobody.
+fn people_named<'a>(names: impl IntoIterator<Item = &'a str>) -> Option<String> {
+  let named = names.into_iter().map(person_named).collect::<Vec<_>>();
+
+  (!named.is_empty()).then(|| named.join(&FIXED_LINES.people_joiner))
 }
 
 /// How a supervisor's engine ended its turn.
@@ -191,6 +229,12 @@ pub async fn rendered<C: ConnectionTrait>(
     && accounts.is_empty()
   {
     return Err(Refusal::bad(format!("the `{code}` line names no account")));
+  }
+
+  if let FixedLine::PeopleJoined { people, .. } = &line
+    && people.is_empty()
+  {
+    return Err(Refusal::bad(format!("the `{code}` line names no person")));
   }
 
   let accounts = shown_names(db, &line.accounts()).await?;
@@ -294,6 +338,17 @@ impl FixedLine {
           &FIXED_LINES.account_let_in,
           &[("account", &account.shown(accounts)), ("by", &by.shown(accounts))],
         ),
+        // Two are both named, as the people a chat service brought in are.
+        [first, second] => fill_marks(
+          &FIXED_LINES.people_joined_by,
+          &[
+            (
+              "people",
+              &people_named([first.shown(accounts).as_str(), second.shown(accounts).as_str()])?,
+            ),
+            ("by", &person_named(&by.shown(accounts))),
+          ],
+        ),
         [first, rest @ ..] => fill_marks(
           &FIXED_LINES.accounts_let_in,
           &[
@@ -307,6 +362,22 @@ impl FixedLine {
         &FIXED_LINES.unit_let_in,
         &[("unit", &as_object(unit_name)), ("by", &by.shown(accounts))],
       ),
+      Self::PeopleJoined { people, by } => {
+        let people = people_named(people.iter().map(|person| person.name.as_str()))?;
+
+        match by {
+          None => fill_marks(&FIXED_LINES.people_joined, &[("people", &people)]),
+          Some(by) => {
+            fill_marks(&FIXED_LINES.people_joined_by, &[("people", &people), ("by", &by.shown())])
+          }
+        }
+      }
+      Self::PersonLeft { person, by } => match by {
+        None => fill_marks(&FIXED_LINES.person_left, &[("person", &person.shown())]),
+        Some(by) => {
+          fill_marks(&FIXED_LINES.person_taken_out, &[("person", &person.shown()), ("by", &by.shown())])
+        }
+      },
       Self::Unknown => return None,
     })
   }

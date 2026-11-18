@@ -1200,6 +1200,29 @@ pub enum FixedLineAsk {
   Draw(DrawLine),
   /// A round's draft turn ran past its bound and goes on: said once in the round.
   StillWorking,
+  /// People came into a room of a chat service (bmo-chat's `docs/contract.md`, 「Lines」): `by` is given only where
+  /// someone other than those who came brought them in.
+  PeopleJoined {
+    people: Vec<LinePerson>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    by: Option<LinePerson>,
+  },
+  /// A person went out of a room of a chat service: `by` is given only where someone other than the person took
+  /// them out.
+  PersonLeft {
+    person: LinePerson,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    by: Option<LinePerson>,
+  },
+}
+
+/// A person as a chat service's line names them: their number in the room's sender numbering, which the line
+/// carries and the sentence does not read, and the name the service shows for them.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct LinePerson {
+  pub sender_id: i64,
+  pub name: String,
 }
 
 /// How a supervisor's engine ended its turn.

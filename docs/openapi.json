@@ -938,6 +938,63 @@
               "code"
             ],
             "type": "object"
+          },
+          {
+            "description": "People came into a room of a chat service (bmo-chat's `docs/contract.md`, 「Lines」): `by` is given only where\nsomeone other than those who came brought them in.",
+            "properties": {
+              "by": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/LinePerson"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "code": {
+                "const": "people-joined",
+                "type": "string"
+              },
+              "people": {
+                "items": {
+                  "$ref": "#/components/schemas/LinePerson"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "code",
+              "people"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "A person went out of a room of a chat service: `by` is given only where someone other than the person took\nthem out.",
+            "properties": {
+              "by": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/LinePerson"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "code": {
+                "const": "person-left",
+                "type": "string"
+              },
+              "person": {
+                "$ref": "#/components/schemas/LinePerson"
+              }
+            },
+            "required": [
+              "code",
+              "person"
+            ],
+            "type": "object"
           }
         ]
       },
@@ -1465,6 +1522,23 @@
           "user",
           "name",
           "concurrent"
+        ],
+        "type": "object"
+      },
+      "LinePerson": {
+        "description": "A person as a chat service's line names them: their number in the room's sender numbering, which the line\ncarries and the sentence does not read, and the name the service shows for them.",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "senderId": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "senderId",
+          "name"
         ],
         "type": "object"
       },

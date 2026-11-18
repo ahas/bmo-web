@@ -199,6 +199,61 @@ async fn memory_tidying_is_the_fixed_lines_own() {
   assert_eq!(rendered("memory-tidying", json!({})).await, FIXED_LINES.memory_tidying);
 }
 
+// A person as a chat service's line names them, and as the line's sentence writes them.
+fn person(sender: i64, name: &str) -> Value {
+  json!({ "senderId": sender, "name": name })
+}
+
+fn shown(name: &str) -> String {
+  fill_marks(&FIXED_LINES.person, &[("name", name)])
+}
+
+#[tokio::test]
+async fn people_joined_names_who_came_and_who_brought_them_where_given() {
+  let words = &FIXED_LINES;
+  let (a, b, c) = (person(1, "person-a"), person(2, "person-b"), person(3, "person-c"));
+
+  assert_eq!(
+    rendered("people-joined", json!({ "people": [a] })).await,
+    fill_marks(&words.people_joined, &[("people", &shown("person-a"))])
+  );
+  // Every person is named, joined as the pack joins them.
+  let two = [shown("person-a"), shown("person-b")].join(&words.people_joiner);
+
+  assert_eq!(
+    rendered("people-joined", json!({ "people": [a, b], "by": c })).await,
+    fill_marks(&words.people_joined_by, &[("people", &two), ("by", &shown("person-c"))])
+  );
+  let many = [shown("person-a"), shown("person-b"), shown("person-c")].join(&words.people_joiner);
+
+  assert_eq!(
+    rendered("people-joined", json!({ "people": [a, b, c], "by": null })).await,
+    fill_marks(&words.people_joined, &[("people", &many)])
+  );
+
+  let (status, body) = render_with("people-joined", json!({ "people": [] }), LANGUAGE, Some(TOKEN)).await;
+
+  assert_eq!(
+    (status, body["code"].as_str()),
+    (StatusCode::BAD_REQUEST, Some("bad-request")),
+    "{body}"
+  );
+}
+
+#[tokio::test]
+async fn person_left_names_who_went_and_who_took_them_out_where_given() {
+  let words = &FIXED_LINES;
+
+  assert_eq!(
+    rendered("person-left", json!({ "person": person(1, "person-a") })).await,
+    fill_marks(&words.person_left, &[("person", &shown("person-a"))])
+  );
+  assert_eq!(
+    rendered("person-left", json!({ "person": person(1, "person-a"), "by": person(2, "person-b") })).await,
+    fill_marks(&words.person_taken_out, &[("person", &shown("person-a")), ("by", &shown("person-b"))])
+  );
+}
+
 #[tokio::test]
 async fn supervisor_cut_names_the_supervisor_and_the_guards_reason() {
   assert_eq!(
@@ -443,6 +498,20 @@ async fn an_account_line_names_each_account_by_its_shown_name_and_one_not_held_b
     fill_marks(
       &FIXED_LINES.accounts_let_in,
       &[("account", "Colleague A"), ("others", "2"), ("by", "opener-a")]
+    )
+  );
+  // Two are both named, as the people a chat service brought in are.
+  let two = [
+    fill_marks(&FIXED_LINES.person, &[("name", "Colleague A")]),
+    fill_marks(&FIXED_LINES.person, &[("name", "9999")]),
+  ]
+  .join(&FIXED_LINES.people_joiner);
+
+  assert_eq!(
+    said("accounts-let-in", json!({ "accounts": [colleague, 9999], "by": opener })).await,
+    fill_marks(
+      &FIXED_LINES.people_joined_by,
+      &[("people", &two), ("by", &fill_marks(&FIXED_LINES.person, &[("name", "opener-a")]))]
     )
   );
   assert_eq!(

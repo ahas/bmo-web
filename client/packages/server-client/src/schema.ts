@@ -1563,6 +1563,16 @@ export interface components {
         } | components["schemas"]["DrawLine"] | {
             /** @constant */
             code: "still-working";
+        } | {
+            by?: components["schemas"]["LinePerson"] | null;
+            /** @constant */
+            code: "people-joined";
+            people: components["schemas"]["LinePerson"][];
+        } | {
+            by?: components["schemas"]["LinePerson"] | null;
+            /** @constant */
+            code: "person-left";
+            person: components["schemas"]["LinePerson"];
         };
         /** @description A grant made: a room and a relation there, or a kind, an object and a relation. */
         GrantAsk: {
@@ -1726,6 +1736,15 @@ export interface components {
             concurrent: boolean;
             name: string;
             user: string;
+        };
+        /**
+         * @description A person as a chat service's line names them: their number in the room's sender numbering, which the line
+         *     carries and the sentence does not read, and the name the service shows for them.
+         */
+        LinePerson: {
+            name: string;
+            /** Format: int64 */
+            senderId: number;
         };
         /** @description One role at a step of a line and the people holding it there. */
         LineRole: {

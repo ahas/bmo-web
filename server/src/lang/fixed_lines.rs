@@ -26,6 +26,18 @@ pub struct FixedLines {
   pub accounts_let_in: String,
   /// An organisation's people let into a room in the console by another.
   pub unit_let_in: String,
+  /// A person a chat service's line names, by the name the service shows for them.
+  pub person: String,
+  /// What stands between the people a line names together.
+  pub people_joiner: String,
+  /// People came into a room of a chat service by themselves.
+  pub people_joined: String,
+  /// People brought into a room of a chat service by another.
+  pub people_joined_by: String,
+  /// A person went out of a room of a chat service by themselves.
+  pub person_left: String,
+  /// A person taken out of a room of a chat service by another.
+  pub person_taken_out: String,
 }
 
 crate::part!(pub FIXED_LINES: FixedLines = "fixed-lines");

@@ -37,3 +37,28 @@ accounts_let_in: "{by}님이 {account}님 외 {others}명을 대화상대로 추
 # What a room in the console is told as an organisation's people are let in at once: the organisation by its name
 # with the object particle its last sound takes, {unit}, and who let them in, {by}.
 unit_let_in: "{by}님이 {unit} 대화상대로 추가했습니다."
+
+# A person a chat service's line names, by the {name} the service shows for them. Every person the lines below name
+# stands so, and each such name ends on a closed syllable, so the particle after it is fixed.
+person: "{name}님"
+
+# What stands between the people a line names together, each as `person` writes them: every one is named, as the
+# console names the people writing in a room.
+people_joiner: ", "
+
+# What a room is told as people come into it by themselves, as a chat service tells it: the {people} who came, each
+# as `person` writes them and joined by `people_joiner`.
+people_joined: "{people}이 들어왔습니다."
+
+# What a room is told as people are brought into it by another, as a chat service tells it or as two accounts are let
+# into a room in the console at once: the {people} who came, named as `people_joined` names them, and who brought them
+# in, {by}, as `person` writes them.
+people_joined_by: "{by}이 {people}을 대화상대로 추가했습니다."
+
+# What a room is told as a person goes out of it by themselves, as a chat service tells it: the {person} as `person`
+# writes them.
+person_left: "{person}이 나갔습니다."
+
+# What a room is told as a person is taken out of it by another, as a chat service tells it: the {person} and who
+# took them out, {by}, each as `person` writes them.
+person_taken_out: "{by}이 {person}을 내보냈습니다."

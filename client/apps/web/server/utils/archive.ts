@@ -1,8 +1,9 @@
 import { PAGING, roomLabel } from "#shared/config";
 import { isSystemNotice } from "#shared/text-marks";
 import { readingStateOf } from "#shared/voice-briefings";
-import { wording } from "#shared/wording";
+import { WORDING_LANGUAGE, wording } from "#shared/wording";
 
+import { renderedLine } from "./account-service";
 import { agentLabels } from "./agent-labels";
 import { draftSummaries } from "./drafting";
 import { roomBriefings } from "./voice";
@@ -15,6 +16,7 @@ import { pictureShape } from "./picture-sizes";
 import { exactAnswer, exactMessage, exactMessages, receiver, receiverCall } from "./receiver";
 
 import type { ArchivedMessage, ExactMessageId, ForwardedFrom, Judgement, JudgementMark, MessageAttachment, MessageBriefing, MessagePage, MessageReaction, ReplyQuote, RoomSummary, RoundFiguresOf, Situation, TelegramExpression, TelegramFormat, VoiceBriefing } from "#shared/types";
+import type { KeptLine } from "./account-service";
 import type { ExactMessage, ReceiverRoom } from "./receiver";
 import type { JudgementSpan } from "./gate";
 
@@ -66,6 +68,8 @@ interface ReceivedMessage {
   // What the record keeps the message as, where it is more than a plain message: a sticker, a thinking block, or a
   // fixed line.
   kind: string | null;
+  // On a fixed line, the line it was said from, its code and its fields.
+  line: KeptLine | null;
   files: KeptFile[];
   // Where the record says the message was forwarded from, on a message kept as a forward.
   forwardedFrom: ForwardedFrom | null;
@@ -105,6 +109,7 @@ function receivedOf(message: ExactMessage): ReceivedMessage {
     agentName: sent.agentName ?? null,
     voice: sent.voice ?? null,
     kind: message.kind ?? null,
+    line: message.line ?? null,
     files: message.files,
     forwardedFrom: message.forwardedFrom ?? null,
     situation: message.situation ?? null,
@@ -334,8 +339,9 @@ function senderKey(message: ReceivedMessage): string {
   return `${message.senderId ?? ""}:${message.senderName}`;
 }
 
-// The message a reply answers, as the reply shows it; one the receiver does not hand over stands with nothing.
-async function replyQuoteOf(chatId: number, messageId: ExactMessageId, held?: { message: ReceivedMessage; media: ReturnType<typeof mediaOf> }): Promise<ReplyQuote> {
+// The message a reply answers, as the reply shows it, its words as `wordsOf` reads them; one the receiver does not hand
+// over stands with nothing.
+async function replyQuoteOf(chatId: number, messageId: ExactMessageId, wordsOf: (message: ReceivedMessage) => Promise<string>, held?: { message: ReceivedMessage; media: ReturnType<typeof mediaOf> }): Promise<ReplyQuote> {
   try {
     // A message the page itself holds is quoted from the page, its files from the read the page already made.
     const answered = held?.message ?? receivedOf(await exactMessage(chatId, messageId));
@@ -344,7 +350,7 @@ async function replyQuoteOf(chatId: number, messageId: ExactMessageId, held?: { 
       return {
         messageId,
         senderName: answered.senderName,
-        text: answered.text,
+        text: await wordsOf(answered),
         pictured: answered.imagePath !== null,
         ...(answered.kind === STICKER ? { sticker: true } : {}),
         attachment: (await (held?.media ?? mediaOf(chatId, answered, false))).attachments[0] ?? null
@@ -370,6 +376,23 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
   const onPage = new Map(received.map((message) => [message.messageId, message]));
   // Each kept picture's size is read as the page is, so its row keeps the picture's room before it has loaded.
   const shapes = new Map(received.map((message) => [message.messageId, message.imagePath === null || message.deletedAt !== null ? Promise.resolve(null) : pictureShape(chatId, message.messageId)]));
+  // A fixed line's words are the server pack's rendering of its line, each line asked once a page; where the pack
+  // holds none for its code or the server does not answer, the words it was kept with stand (docs/web.md, 「A fixed
+  // line stands as a system line too」).
+  const lines = new Map<string, Promise<string | null>>();
+  const wordsOf = async (message: ReceivedMessage): Promise<string> => {
+    if (message.kind !== FIXED_LINE || message.line === null) return message.text;
+
+    const key = JSON.stringify(message.line);
+    let rendered = lines.get(key);
+
+    if (rendered === undefined) {
+      rendered = renderedLine(message.line, WORDING_LANGUAGE);
+      lines.set(key, rendered);
+    }
+
+    return (await rendered) ?? message.text;
+  };
   // Several replies of a page often answer one message; what it said and carried is read once.
   const quoted = new Map<ExactMessageId, Promise<ReplyQuote>>();
   const quote = (messageId: ExactMessageId): Promise<ReplyQuote> => {
@@ -378,7 +401,7 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
     if (held === undefined) {
       const page = onPage.get(messageId);
 
-      held = replyQuoteOf(chatId, messageId, page === undefined ? undefined : { message: page, media: media.get(messageId)! });
+      held = replyQuoteOf(chatId, messageId, wordsOf, page === undefined ? undefined : { message: page, media: media.get(messageId)! });
       quoted.set(messageId, held);
     }
 
@@ -394,6 +417,7 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
       const speakerLabel = named === undefined ? undefined : labels.get(named);
       const files = await media.get(message.messageId)!;
       const imageShape = await shapes.get(message.messageId)!;
+      const text = await wordsOf(message);
 
       return {
         chatId: message.chatId,
@@ -401,7 +425,7 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
         senderId: message.senderId,
         senderName: message.senderName,
         sentAt: message.sentAt,
-        text: message.text,
+        text,
         imagePath: message.imagePath,
         ...(imageShape === null ? {} : { imageShape }),
         replyToMessageId: message.replyToMessageId,

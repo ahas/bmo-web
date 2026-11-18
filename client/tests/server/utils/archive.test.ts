@@ -81,6 +81,16 @@ const membership = [
   message(50, { room: -14, senderId: null, senderName: "agent-a", kind: "fixed-line", line: { code: "account-let-in", fields: { account: 4, by: 3 } }, text: "person-a let person-b in" }),
   message(51, { room: -14, text: "person-a let person-b in" })
 ];
+// Lines a chat service handed over, kept as fixed lines beside the plain sentence it wrote: two the server's pack
+// words, the first of them twice, one whose code it holds no sentence for, and a reply quoting the first.
+const joinedLine = { code: "people-joined", fields: { people: [{ senderId: 11, name: "person-a" }], by: { senderId: 12, name: "person-b" } } };
+const handedOver = [
+  message(60, { room: -15, kind: "fixed-line", line: joinedLine, text: "person-b added person-a" }),
+  message(61, { room: -15, kind: "fixed-line", line: { code: "person-left", fields: { person: { senderId: 11, name: "person-a" } } }, text: "person-a left" }),
+  message(62, { room: -15, kind: "fixed-line", line: { code: "no-such-line", fields: {} }, text: "something happened" }),
+  message(63, { room: -15, kind: "fixed-line", line: joinedLine, text: "person-b added person-a" }),
+  message(64, { room: -15, replyToMessageId: 60, text: "welcome" })
+];
 // A room two supervisors answer under numbers of their own: one the agency gives a label, one it gives none.
 const labelled = [
   message(30, { room: -13, senderId: 44, senderName: "u44", agentName: "agent-a" }),
@@ -145,6 +155,7 @@ const receiver = standIn("RECEIVER", (one) => {
   if (path === "/rooms/-13/answerers") return answer({ default: "", voice: "", items: [], more: false });
   if (path === "/rooms/-13/messages") return answer({ items: labelled, more: false });
   if (path === "/rooms/-14/messages") return answer({ items: membership, more: false });
+  if (path === "/rooms/-15/messages") return answer({ items: handedOver, more: false });
 
   if (path === "/rooms") return answer({ items: rooms, more: false });
 
@@ -189,6 +200,16 @@ const agency = standIn("AGENCY", (one) => {
   if (url.pathname === "/supervisors") return answer({ items: [{ name: "agent-a", label: "Agent A" }, { name: "agent-b", label: null }], more: false });
 
   return answer({ code: "no-route", error: "no route" }, 404);
+});
+
+// The account service, rendering the lines its pack holds a sentence for as their code, and refusing any other as
+// its pack would.
+const accounts = standIn("WEB_SERVER", (one) => {
+  const code = one.body?.code;
+
+  if (one.path === "/words/render" && (code === "people-joined" || code === "person-left")) return answer({ text: `said ${code}` });
+
+  return answer({ code: "unknown-code", error: "the pack holds no line" }, 404);
 });
 
 const { listRooms, readDayStart, readMessagePage, readMessagesAfter, readWholeJudgements, roundFigures, roomTitleOf } = await import("../../../apps/web/server/utils/archive");
@@ -349,6 +370,27 @@ describe("a page of a room", () => {
     expect(read.map((one) => [one.messageId, one.notice])).toEqual([
       ["50", true],
       ["51", false]
+    ]);
+  });
+
+  test("a fixed line's words, and a reply's quote of it, are the server's rendering of its line, and the kept words where it renders none", async () => {
+    const read = (await readMessagePage(-15, null, 50)).messages;
+
+    expect(read.map((one) => [one.messageId, one.notice, one.text])).toEqual([
+      ["60", true, "said people-joined"],
+      ["61", true, "said person-left"],
+      ["62", true, "something happened"],
+      ["63", true, "said people-joined"],
+      ["64", false, "welcome"]
+    ]);
+    expect(read[4]!.replyQuote?.text).toBe("said people-joined");
+    // Each line is asked once a page, as its code and fields in the pack's language.
+    const renders = accounts.asked.filter((one) => one.path === "/words/render" && one.body?.code !== "account-let-in");
+
+    expect(renders.map((one) => one.body)).toEqual([
+      { ...joinedLine.fields, code: "people-joined", language: "ko" },
+      { person: { senderId: 11, name: "person-a" }, code: "person-left", language: "ko" },
+      { code: "no-such-line", language: "ko" }
     ]);
   });
 

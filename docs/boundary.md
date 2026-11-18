@@ -427,13 +427,20 @@ falls away after two minutes without one.
   | `account-let-in` | `account`, `by` | `fixed-lines.account_let_in` |
   | `account-left` | `account` | `fixed-lines.account_left` |
   | `account-taken-out` | `account`, `by` | `fixed-lines.account_taken_out` |
-  | `accounts-let-in` | `accounts`, `by` | `fixed-lines.accounts_let_in` with the first account and how many others; `fixed-lines.account_let_in` where it names one |
+  | `accounts-let-in` | `accounts`, `by` | `fixed-lines.accounts_let_in` with the first account and how many others; `fixed-lines.account_let_in` where it names one; `fixed-lines.people_joined_by` with both named, each through `fixed-lines.person` and joined by `fixed-lines.people_joiner`, where it names two |
   | `unit-let-in` | `unitName`, `by` (`unit` and `accounts` are carried and not read) | `fixed-lines.unit_let_in`, the organisation's name with the object particle its last sound takes |
+  | `people-joined` | `people`, `by` where given | `fixed-lines.people_joined_by` where `by` is given, else `fixed-lines.people_joined`, the people named as a list |
+  | `person-left` | `person`, `by` where given | `fixed-lines.person_taken_out` where `by` is given, else `fixed-lines.person_left` |
 
 - **The chat agent's name** in a line is the server's `names.chat_agent` setting; no name stands in the pack.
 - **An account a line names** — `account`, each of `accounts` and `by`, each an account's key as a number or its decimal text — stands
   as its shown name, its full name where it keeps one and else its username, read from the service's own users; a
   key no user holds stands as the key.
+- **A person a chat service's line names** — each of `people`, `person` and `by` on `people-joined` and
+  `person-left`, bmo-chat's `docs/contract.md`, 「Lines」 — is a `senderId` and a `name`, and stands as its `name`
+  through `fixed-lines.person`; the `senderId` is carried and not read. A list of people names every one of them,
+  joined by `fixed-lines.people_joiner`, as the console names the people writing in a room. A `people` list naming
+  nobody is refused 400 `bad-request`.
 - **`language` names the pack's language,** `ko`; another language is refused 404 `unknown-language`. A code
   the pack does not hold is refused 404 `unknown-code`, and a line whose fields do not read as its code's
   shape 400 `bad-request`. The caller then sends the line as its code and fields, so a room is never silent.
@@ -441,6 +448,10 @@ falls away after two minutes without one.
   settings name `en`; a receiver deployed so has every fixed line refused 404 `unknown-language` and posts each
   unrendered, as its code and fields. Its deployment sets `ko`, the one language the pack holds.
 - **The route answers whether or not the account model is in force,** since it reads no account.
+- **The console's server asks it too,** for each message of the kind `fixed-line` a room's page carries with its
+  line: the line's code and fields, and `ko`. The sentence it answers stands as the message's words, and where it
+  refuses or does not answer, the words the message was kept with stand (`docs/web.md`, 「A fixed line stands as a
+  system line too」).
 
 ### The document wording file
 
@@ -802,6 +813,7 @@ shown as.
 |---|---|---|
 | the receiver | its refusals, each by the table beside its calls — every route's, the owner's sends, the voice briefing, removing a room and the draft process's; a file a send did not take, by its kind; the fixed lines through `POST /words/render`. Its facts are an agent's to say, and no screen shows them | the receiver's `docs/codes.md` |
 | bmo-job | its refusals, each by the table beside its calls; the answers a screen says, a queue told and an unanswered turn; the kinds a row is laid out by, the held words, the line and model marks, and the phases a job's time is divided into | bmo-job's `docs/api.md`, 「Codes」 and 「Routes」; its `docs/jobs.md`, 「Where a job's time went」 |
+| bmo-chat | the lines a chat service hands over, `people-joined` and `person-left`, which the receiver keeps as `fixed-line` messages and the console renders through `POST /words/render` | bmo-chat's `docs/contract.md`, 「Lines」 |
 | bmo-ui | the 146 keys the layer reads | bmo-ui's `docs/boundary.md`, 「Wording keys」 |
 
 ## The public address

@@ -230,10 +230,14 @@
 - somebody writing in a room now → 입력 중: 입력 중… after the writers' faces, and every writer named before it,
   `{names} 입력 중…`, the names joined by a comma; a writer the room names nobody for is 누군가 among them. Never
   타이핑 중, 작성 중, 쓰는 중, and never a count of people in place of their names.
-- letting an account into a room → 대화상대 추가: 대화상대 추가, 추가했습니다, 추가하지 못했습니다; several people at once
-  → `{name}님 외 {n}명을 대화상대로 추가했습니다`, an organisation's people → `{unit}을(를) 대화상대로 추가했습니다`, the particle the name's last sound takes; the
+- letting an account into a room → 대화상대 추가: 대화상대 추가, 추가했습니다, 추가하지 못했습니다; two people at once →
+  `{first}님, {second}님을 대화상대로 추가했습니다`, more at once → `{name}님 외 {n}명을 대화상대로 추가했습니다`, an organisation's people → `{unit}을(를) 대화상대로 추가했습니다`, the particle the name's last sound takes; the
   picker's field that finds both → 사람·조직, 이름이나 조직으로 찾기. Never 초대, which is the link that makes an account,
   nor 들이기, 입장, and never 일괄 추가 or 단체 초대 for letting several in.
+- a person coming into a room by themselves, as a chat service tells it → 들어오기: `{names}이 들어왔습니다`, every
+  person named as `{name}님` and the names joined by a comma, `{first}님, {second}님이 들어왔습니다`; people another
+  brought in → `{by}님이 {first}님, {second}님을 대화상대로 추가했습니다`, as letting an account in reads. Never 입장, 참여,
+  가입, and never a count of people in place of their names.
 - taking a member out of a room → 내보내기: 내보내기, 내보냈습니다, 내보내지 못했습니다; a member taking themselves
   out → 나가기: 나가기, 나갔습니다, 나가지 못했습니다. Never 강퇴, 추방, 퇴장.
 - the sidebar's one entry that brings a room in, however the reader may → 새 채팅. Its menu names each way by what it

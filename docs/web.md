@@ -5534,8 +5534,13 @@ Four bounds keep it from growing forever.
   an account let in, leaving or taken out, people or an organisation let in together, or a room shut — is the
   server's answer `notice`, read from that kind alone and never from its words or its sender, and stands as the
   system notice does. A message carrying the same words under no kind stands as the words of the sender it is filed
-  under. A member a chat service says joined or left reaches the receiver as words alone, so it stands as the words
-  of the one the service filed it under.
+  under. People a chat service says came into the room or went out of it reach the receiver as a line of their own
+  (bmo-chat's `docs/contract.md`, 「Lines」), kept under the same kind.
+  - **Its words are the console's own.** The receiver keeps the line a fixed-line message was said from, its code
+    and its fields, and the console's server renders that line from the server's pack as it reads the page
+    (`docs/boundary.md`, 「Fixed lines」), so a line a chat service handed over reads in the console's words rather
+    than the plain sentence the service wrote beside it, and a reply quoting the line quotes those words. Where the pack
+    holds no sentence for the code, or the server does not answer, the words the message was kept with stand.
 - **A screen opened mid-turn sees that line too.** The notice standing the line goes out once at turn start, so
   one not watching then cannot hear it, and if that notice was pushed out of what the bot holds while the stream
   broke and resumed, it does not come again. So this line is read not only from the notice but from the picture the

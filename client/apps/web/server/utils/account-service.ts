@@ -25,6 +25,7 @@ import {
   type SenderLink,
   type Unit,
   type Rebound,
+  type Rendered,
   type PairingApproved,
   type PairingCredential,
   type PairingMade,
@@ -140,6 +141,39 @@ export async function reportWatching(rooms: number[], options: ServiceOptions = 
       body: { rooms }
     })
   );
+}
+
+/** A fixed line as a unit keeps it: its code and the fields it carries. */
+export interface KeptLine {
+  code: string;
+  fields: Record<string, unknown>;
+}
+
+/** The sentence a kept fixed line renders as in `language` (docs/boundary.md, 「Fixed lines」), or null where the
+ * service holds no sentence for it, refuses it or does not answer. */
+export async function renderedLine(line: KeptLine, language: string, options: ServiceOptions = {}): Promise<string | null> {
+  const address = addressOf(options);
+
+  if (address === "") return null;
+
+  // The line is another unit's, its code one the service may hold no sentence for and answers refused, so it is
+  // handed on as it was kept rather than built to the codes the generated client's description lists.
+  try {
+    const response = await fetch(`${address}/words/render`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${options.token ?? process.env.WEB_SERVER_TOKEN ?? ""}`, "content-type": "application/json" },
+      body: JSON.stringify({ ...line.fields, code: line.code, language })
+    });
+
+    if (!response.ok) return null;
+
+    const answer = (await response.json()) as Partial<Rendered>;
+
+    return typeof answer.text === "string" ? answer.text : null;
+  } catch {
+    // A service that does not answer, or answers with no sentence, leaves the line's kept words standing.
+    return null;
+  }
 }
 
 /** Whether the model is in force, and why not where it is not. */

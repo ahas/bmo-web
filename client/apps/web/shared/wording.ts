@@ -16,10 +16,13 @@ export type Translate = (key: string, params?: WordingParams) => string;
 // The pack as it stands in the file: groups of groups, ending in the words.
 export type Pack = { [key: string]: string | Pack };
 
+// The language the pack is written in, as a unit asked for words names it.
+export const WORDING_LANGUAGE = "ko";
+
 // One engine over the one pack, Korean, typed by the shape the pack stands in.
 const i18n = createI18n({
   legacy: false,
-  locale: "ko",
+  locale: WORDING_LANGUAGE,
   messages: { ko: pack as Pack },
   // A key the pack does not hold is a fault in the code that asked, never a word to show: left to
   // itself the engine would answer with the key, and a reader would see `mail.error.…` on a screen.

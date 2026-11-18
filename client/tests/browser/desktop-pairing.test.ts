@@ -214,7 +214,7 @@ describe.skipIf(!origin || !touchReady())("the desktop pairing page", () => {
 
       try {
         const page = await context.newPage();
-        let machine: Record<string, unknown> = { agent: "u9", shared: true, attached: true, kind: "desktop", boundAt: Date.UTC(2026, 10, 18, 2, 47), left: false };
+        const machine = { agent: "u9", shared: true, attached: true, kind: "desktop", boundAt: Date.UTC(2026, 10, 18, 2, 47), left: false };
 
         await page.route(/\/api\/me\/machine$/, (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(machine) }));
 
@@ -230,7 +230,8 @@ describe.skipIf(!origin || !touchReady())("the desktop pairing page", () => {
         expect(await section.locator('[data-pair="bound"]').textContent()).not.toBe(wording("common.label.no_record"));
         expect(await overflow(page)).toBeLessThanOrEqual(0);
 
-        machine = { shared: false, attached: false, left: false };
+        // The member is connected to no machine, which the console's own route reads from the account service.
+        await page.unroute(/\/api\/me\/machine$/);
         await page.goto(`${origin}/rooms?settings=machine`, { waitUntil: "load" });
         await standing(page);
         await page.locator("[data-machines-none]").getByText(wording("machines.label.none"), { exact: true }).waitFor({ timeout: 30_000 });

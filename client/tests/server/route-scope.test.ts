@@ -185,6 +185,14 @@ describe("a console route as another user meets it", () => {
     expect(await answer({ file: "push/watching.post", method: "POST", path: "/api/push/watching" })).toBe(200);
   });
 
+  // docs/web.md, 「Settings」, the machine section: every signed-in person reads their own machine, whatever they may read.
+  test("a reader with no section still reads their own machine", async () => {
+    service.sections.set(4, new Map());
+    session = { user: { name: "no-account", id: 4 }, sid: "bmo.sid=no-account", administrator: false };
+
+    expect(await answer({ file: "me/machine/index.get", method: "GET", path: "/api/me/machine" })).toBe(200);
+  });
+
   test("the administrator and a console login reach every route", async () => {
     for (const standing of [{ user: { name: "boss", id: 1 }, sid: "bmo.sid=boss", administrator: true }, { user: { name: "boss" } }]) {
       session = standing;

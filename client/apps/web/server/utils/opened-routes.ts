@@ -81,6 +81,8 @@ export const openedRoutes: readonly OpenedRoute[] = [
   // The desktop app's current release, which its download page reads for every signed-in login.
   { method: "GET", path: /^\/api\/desktop\/release$/, scope: "user" },
   { method: "POST", path: /^\/api\/me\/machine\/proof$/, scope: "user" },
+  // The reader's own machine, which the settings' machine section reads.
+  { method: "GET", path: /^\/api\/me\/machine$/, scope: "user" },
   // The reader's own sections, which the navigation and the page guard read.
   { method: "GET", path: /^\/api\/me\/sections$/, scope: "user" },
   // The reader's own supervisors, whose log and turns open to them.

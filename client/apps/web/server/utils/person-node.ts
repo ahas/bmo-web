@@ -1,5 +1,6 @@
 import { proveNode, rebindNode, unbindNode, userNode } from "./account-service";
 import { agency, agencyCall } from "./agency";
+import { removeNode } from "./hardware";
 
 import type { ProfileCaller } from "./account-service";
 import type { UserNode } from "@web/server-client";
@@ -73,4 +74,31 @@ async function putBack(user: string, before: UserNode, caller: ProfileCaller): P
   } else {
     await unbindNode(user, caller);
   }
+}
+
+/**
+ * The account's machine taken away, by the administrator or by the account itself (docs/accounts.md, 「Invitations
+ * and a person's machine」). Agency's record goes first and the binding next, so a refusal from either leaves both
+ * as they stood: a binding put back would be the administrator's to make, while agency's record is set back for any
+ * account, as the proof sets it. Then, where the hub held the machine and it was not shared, the machine is sent a
+ * leave through the node service, so its credential works no more and the desktop app asks to be connected again;
+ * the binding is gone whatever the leave meets, so a refused leave goes to the log.
+ */
+export async function unlinkMachine(user: string, caller: ProfileCaller): Promise<void> {
+  const machine = await userNode(user);
+  const held = typeof machine.agent === "string" && machine.attached ? machine.agent : null;
+
+  await dropPersonNode(user);
+  try {
+    await unbindNode(user, caller);
+  } catch (refusal) {
+    if (held !== null) {
+      await setPersonNode(user, held, machine.shared).catch((error: unknown) => console.error(`account ${user}: its node could not be set back: ${String(error)}`));
+    }
+    throw refusal;
+  }
+
+  if (held === null || machine.shared) return;
+
+  await removeNode(held, true).catch((error: unknown) => console.error(`account ${user}: its machine ${held} was not sent a leave: ${String(error)}`));
 }

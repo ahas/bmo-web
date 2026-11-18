@@ -367,14 +367,16 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
         return json({ agent: user.node?.agent ?? null, shared: user.node?.shared ?? false, attached: user.node?.attached ?? false, kind: user.node?.kind ?? null, provenAt: user.node?.provenAt ?? null, boundAt: user.node?.boundAt ?? null, left: false });
       }
 
-      // The machine an account is bound to again or taken away, by the administrator alone, and proven once the hub
-      // holds it.
+      // The machine an account is bound to again by the administrator alone, taken away by the administrator or by the
+      // account itself, and proven once the hub holds it.
       const bindRoute = path.match(/^\/users\/([^/]+)\/node(\/proof|\/shared)?$/);
 
       if (bindRoute !== null) {
         const user = userNamed(decodeURIComponent(bindRoute[1]!));
 
-        if (bindRoute[2] !== "/proof" && request.headers.get("owner-role") !== "administrator") return refused(403, "forbidden", "a machine is bound by the administrator");
+        const itself = request.method === "DELETE" && bindRoute[2] === undefined && request.headers.get("owner-key") === decodeURIComponent(bindRoute[1]!);
+
+        if (bindRoute[2] !== "/proof" && !itself && request.headers.get("owner-role") !== "administrator") return refused(403, "forbidden", "a machine is bound by the administrator");
         if (user === undefined) return refused(404, "not-found", "no such user");
 
         if (bindRoute[2] === "/shared" && request.method === "PUT") {

@@ -711,6 +711,35 @@ async fn the_administrator_binds_an_account_to_another_machine_and_takes_it_away
 }
 
 #[tokio::test]
+async fn a_person_takes_their_own_machine_away_and_no_one_elses() {
+  ready();
+  let stood = stood().await;
+  let member_path = format!("/users/{}/node", stood.member);
+  let head_path = format!("/users/{}/node", stood.head);
+  let bind = |path: String| asked_as_administrator(&stood.app, Method::PUT, path, json!({}));
+  assert_eq!(bind(member_path.clone()).await.0, StatusCode::OK);
+  assert_eq!(bind(head_path.clone()).await.0, StatusCode::OK);
+
+  // Another account that is not the administrator is refused, and the machine stays.
+  let as_head = Some((stood.head, "member"));
+  let (status, _) = asked(&stood.app, Method::DELETE, &member_path, None, as_head).await;
+  assert_eq!(status, StatusCode::FORBIDDEN);
+  let (_, node) = asked(&stood.app, Method::GET, &member_path, None, None).await;
+  assert!(node["agent"].is_string(), "{node}");
+
+  // The account itself takes its own away.
+  let as_member = Some((stood.member, "member"));
+  let (status, _) = asked(&stood.app, Method::DELETE, &member_path, None, as_member).await;
+  assert_eq!(status, StatusCode::NO_CONTENT);
+  let (_, node) = asked(&stood.app, Method::GET, &member_path, None, None).await;
+  assert!(node.get("agent").is_none(), "{node}");
+
+  // The administrator still takes anyone's away.
+  let (status, _) = asked(&stood.app, Method::DELETE, &head_path, None, Some((1, "administrator"))).await;
+  assert_eq!(status, StatusCode::NO_CONTENT);
+}
+
+#[tokio::test]
 async fn the_administrator_binds_several_accounts_to_a_machine_declared_shared() {
   ready();
   let stood = stood().await;

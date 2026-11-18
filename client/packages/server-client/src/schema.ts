@@ -1023,7 +1023,7 @@ export interface paths {
         /** An account bound to another machine by the administrator: the one named, or a fresh name, with its install. */
         put: operations["rebindNode"];
         post?: never;
-        /** An account bound to no machine any more, by the administrator. */
+        /** An account bound to no machine any more, by the administrator or by the account itself. */
         delete: operations["unbindNode"];
         options?: never;
         head?: never;

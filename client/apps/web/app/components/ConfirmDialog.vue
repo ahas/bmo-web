@@ -15,7 +15,7 @@
     </template>
 
     <template v-if="props.effect" #body>
-      <p class="break-words text-sm text-toned">{{ props.effect }}</p>
+      <p class="whitespace-pre-line break-words text-sm text-toned">{{ props.effect }}</p>
     </template>
 
     <template #footer>

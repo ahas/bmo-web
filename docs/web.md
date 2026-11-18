@@ -7112,8 +7112,17 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
   recorded. While it is read, the names stand and the values wait as bars.
 - **No machine says 연결된 기기 없음,** with one line that opening the desktop app connects one and 데스크톱 앱 leading to
   the download page (「The desktop app's download page」).
-- **It changes nothing.** A person connects their machine through the desktop app; connecting an account to another
-  machine or to none is the administrator's, on 조직 (「Organisation」).
+- **기기 연결 해제 takes the reader's own machine away:** a settings row under the list while a machine is connected,
+  its 연결 해제 a ghost button in the error colour (`DELETE /api/me/machine`, the reader's own machine alone;
+  `docs/accounts.md`, 「Invitations and a person's machine」). It is asked first as a step the row grows (「Messages」,
+  what is not the pill), marked on its leading edge in the error colour: `<name> 기기 연결을 해제할까요?`, the name in
+  the monospace face; that the account's BMO and agents will no longer run there; and, where the machine is sent a
+  leave, that the desktop app will need connecting again or that the installed program is removed from it. 취소 and
+  then 연결 해제, the way through in the error colour, stand at its trailing edge, the keyboard's place handed to 취소
+  as it opens and back to the row as it closes. Once taken away the section is read again and says 연결된 기기 없음. A
+  refusal is said under the row's name in the error colour.
+- A person connects their machine through the desktop app; connecting an account to another machine, declaring it
+  shared, and taking another person's machine away are the administrator's, on 조직 (「Organisation」).
 - A read that fails says so in the section with 새로고침.
 
 #### 비밀 보관함
@@ -7408,7 +7417,8 @@ research screen (「Research screen」).
     set as the person's node. A machine bound shared carries 공유 기기 beside its state; 공유 declares the machine
     already bound shared where it stands, so another account can be connected to it too, and 공유 해제 takes the
     declaration back while no other account is connected there, each at once. 기기 연결 해제 takes the machine away,
-    asked first with what it does. A change agency refuses leaves the machine as it was and is said in the dialog
+    asked first with what it does, the leave the machine is sent among it as the settings' machine section says it
+    (「Settings」). A change agency refuses leaves the machine as it was and is said in the dialog
     (`docs/accounts.md`, 「Invitations and a person's machine」).
   - The leave mark marks the person left, asked first with what it does and that it is not undone, their posts
     ending with it (`docs/accounts.md`, 「A person who leaves」); a person who left stands on in the list.

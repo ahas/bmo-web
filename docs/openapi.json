@@ -9374,7 +9374,7 @@
             "bearerAuth": []
           }
         ],
-        "summary": "An account bound to no machine any more, by the administrator.",
+        "summary": "An account bound to no machine any more, by the administrator or by the account itself.",
         "tags": [
           "Invitations"
         ],

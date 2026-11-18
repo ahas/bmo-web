@@ -1,14 +1,14 @@
-//! An account's machine bound again or taken away by the administrator (docs/accounts.md, 「Invitations and a
-//! person's machine」; docs/boundary.md, 「Invitations」): the binding an invitation made moved to another machine,
+//! An account's machine bound again or taken away (docs/accounts.md, 「Invitations and a person's machine」;
+//! docs/boundary.md, 「Invitations」): the binding an invitation made moved to another machine by the administrator,
 //! with that machine's credential and installs, proven once the hub holds it, declared shared where it stands, or
-//! removed.
+//! removed by the administrator or by the account itself.
 
 use axum::Json;
 use axum::Router;
 use axum::extract::{Path, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::routing::{post, put};
-use bmo_web_client::{Installs, NodeBinding, NodeSharing, Rebound, UserNode};
+use bmo_web_client::{Installs, NodeBinding, NodeSharing, OWNER_KEY, Rebound, UserNode};
 use rand::RngCore;
 use sea_orm::ConnectionTrait;
 
@@ -212,6 +212,24 @@ pub async fn prove<C: ConnectionTrait>(db: &C, nodes: &Nodes, user: i32) -> Resu
   Ok(node)
 }
 
+/// The administrator, or the account itself as the console names it in `Owner-Key`: who may take an account's
+/// machine away.
+fn administrator_or_itself(headers: &HeaderMap, user: i32) -> Result<(), Refusal> {
+  let itself = headers
+    .get(OWNER_KEY)
+    .and_then(|key| key.to_str().ok())
+    .and_then(|key| key.parse::<i32>().ok())
+    == Some(user);
+
+  if itself {
+    Ok(())
+  } else {
+    administrator(headers).map_err(|_| {
+      Refusal::forbidden("an account's machine is taken away by the administrator or by the account itself")
+    })
+  }
+}
+
 fn hub(service: &Service) -> Result<&Nodes, Refusal> {
   service.nodes.as_deref().ok_or_else(|| {
     Refusal::new(StatusCode::SERVICE_UNAVAILABLE, "no jake hub is set, so no machine can be bound")
@@ -248,8 +266,10 @@ async fn unbind_route(
   headers: HeaderMap,
   Path(user): Path<String>,
 ) -> Result<StatusCode, Refusal> {
-  administrator(&headers)?;
-  unbind(&service.db, user_in(&user)?).await?;
+  let user = user_in(&user)?;
+
+  administrator_or_itself(&headers, user)?;
+  unbind(&service.db, user).await?;
 
   Ok(StatusCode::NO_CONTENT)
 }

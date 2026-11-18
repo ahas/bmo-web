@@ -598,13 +598,27 @@ section states what each does.
   none. **A machine the hub holds is answered with how it is connected:** `desktop` where the agent it holds
   announced itself as the desktop app's built-in agent, its version beginning `desktop-` (jake's `docs/desktop.md`,
   「Pairing」), and `installed` for any other agent; nothing while the hub holds none.
-- **The administrator binds an account to another machine or takes its machine away.** Bound again, the account
-  is given the machine the administrator names, or a fresh name of its own (`u<user>` and a random tail), so the
-  credential of the machine it was bound to before proves nothing now; the answer carries the new machine's
-  credential and one-line installs, as acceptance does. A name another account is bound to is refused 409
-  `node-taken`, and an account that has left is bound to no machine again, 409 `left`. The binding is proven as it
-  is made where the hub holds the machine already, and otherwise once it attaches, by the console asking again from
-  the organisation screen or by the person's first sign-in after it attaches.
+- **The administrator binds an account to another machine or takes its machine away.** Bound again, the account is
+  given the machine the administrator names, or a fresh name of its own (`u<user>` and a random tail), so the
+  credential of the machine it was bound to before proves nothing for the account now, though the hub still admits it
+  under its old name; the answer carries the new machine's credential and one-line installs, as acceptance does. A
+  name another account is bound to is refused 409 `node-taken`, and an account that has left is bound to no machine
+  again, 409 `left`. The binding is proven as it is made where the hub holds the machine already, and otherwise once
+  it attaches, by the console asking again from the organisation screen or by the person's first sign-in after it
+  attaches.
+- **A person takes their own machine away too.** Taking an account's machine away is the administrator's for any
+  account, and the account's own for itself: the person signed in as that account, named in `Owner-Key`, takes it
+  from the settings' machine section (`docs/web.md`, 「Settings」). Anyone else is refused 403. Binding to another
+  machine and declaring sharing stay the administrator's alone.
+- **A machine taken away is told to leave, so its credential works no more.** A machine's credential is made from its
+  name alone and the hub keeps no list of names it refuses, so once the binding is removed the console's server has
+  the node service send the machine a leave through its hub (`DELETE /nodes/{nodeName}` with `leave=true`). The
+  desktop app answers a leave by deleting its credential and offering pairing again, and an installed agent by
+  uninstalling itself; a later pairing binds a fresh name. The leave goes only where the hub holds the machine at that
+  moment and the binding was not declared shared, since a shared machine stays for the other accounts on it. A
+  machine the hub does not hold keeps its credential and attaches again under its old name, bound to no account,
+  until jake's hub can refuse a name. A leave the node service or the hub refuses leaves the machine taken away all
+  the same and is written to the console's log.
 - **The administrator may declare a machine shared,** binding several accounts to one machine. A binding that says
   so is made where every other account bound to that name was bound shared as well; a binding that does not say so,
   or one naming a machine another account holds unshared, is refused 409 `node-taken` as above, so no account comes
@@ -623,14 +637,18 @@ section states what each does.
   is set in agency the same way. Taken away, the binding is removed and the console's server takes agency's record
   away with it (`DELETE /person-nodes/{ownerAccount}`), so the account is held to no machine and its runs are placed
   as any run of no node is.
-- **The account service's word comes first, and agency's refusal takes the change back.** A binding, a declaration
-  of sharing and a removal made from the organisation screen are written in the account service first, since it
-  judges the account, its leaving, the machine's name and who else is bound there; agency is asked next, where the
-  machine is attached. Where agency refuses — 409 `node-taken`, a node another account's record names and not shared
-  by both, among them — the console's server puts the account's binding back as it stood before, the same machine
-  with the same declaration or none, and answers agency's refusal, so a refused change leaves nothing in either
-  unit. A refusal at a proof, where the binding was made earlier, leaves the binding standing and agency's record as
-  it was: on the organisation screen it is said, and at a sign-in it is written to the console's log.
+- **The account service's word comes first, and agency's refusal takes the change back.** A binding and a declaration
+  of sharing made from the organisation screen are written in the account service first, since it judges the account,
+  its leaving, the machine's name and who else is bound there; agency is asked next, where the machine is attached.
+  Where agency refuses — 409 `node-taken`, a node another account's record names and not shared by both, among them —
+  the console's server puts the account's binding back as it stood before, the same machine with the same declaration
+  or none, and answers agency's refusal, so a refused change leaves nothing in either unit. **A removal goes the other
+  way round,** from the organisation screen or the settings: agency's record is taken away first and the binding next,
+  since putting a binding back is the administrator's alone while agency's record is set back for any account. Where
+  agency refuses, nothing has changed; where the account service refuses, agency's record is set again as it stood,
+  and the refusal is answered. A refusal at a proof, where the binding was made earlier, leaves the binding standing
+  and agency's record as it was: on the organisation screen it is said, and at a sign-in it is written to the
+  console's log.
 - **An account whose machine is gone cannot be used until it is proven again:** the console refuses its sign-in
   while the hub holds no agent of its machine's name, and lets it in again once one attaches. An account bound to
   no machine — the administrator's, and every account made before invitations — is held to none of this.

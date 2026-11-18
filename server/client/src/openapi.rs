@@ -899,7 +899,7 @@ pub fn openapi() -> Value {
     "/users/{user}/node",
     "unbindNode",
     "Invitations",
-    "An account bound to no machine any more, by the administrator.",
+    "An account bound to no machine any more, by the administrator or by the account itself.",
     params: vec![string_path("user"), owner_key(), owner_role()],
     body: None,
     answers: vec![(204, no_answer())],

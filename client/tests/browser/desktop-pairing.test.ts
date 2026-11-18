@@ -11,7 +11,7 @@ import type { Browser, BrowserContext, Page, Route } from "playwright-core";
 // where the app shows it and the machine on no shell, approves through the question dialog, sees the app connect and is
 // led to the settings' machine section, or refuses at once; a closed code offers nothing to press. The page is opened as the app
 // opens it, marked `in=app`, and as a link a browser opens. The settings' machine section lists the reader's machine, or
-// says there is none. Each is read at a desk's width and a phone's, with nothing wider than the window. The test
+// says there is none, and takes it away once the question naming it and the app has been answered. Each is read at a desk's width and a phone's, with nothing wider than the window. The test
 // console stands no jake hub, so the page's own calls are answered here; what the service decides of a pairing is its
 // own tests'.
 //
@@ -236,6 +236,54 @@ describe.skipIf(!origin || !touchReady())("the desktop pairing page", () => {
         await standing(page);
         await page.locator("[data-machines-none]").getByText(wording("machines.label.none"), { exact: true }).waitFor({ timeout: 30_000 });
         await page.getByRole("link", { name: wording("machines.action.desktop"), exact: true }).waitFor();
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+
+    test(`the reader takes their own machine away, asked first with the machine and the app, at ${width}px`, async () => {
+      const context = await contextFor(width, height, "light", true);
+
+      try {
+        const page = await context.newPage();
+        let machine: Record<string, unknown> = { agent: "u9", shared: false, attached: true, kind: "desktop", left: false };
+        let removals = 0;
+
+        await page.route(/\/api\/me\/machine$/, (route) => {
+          if (route.request().method() === "DELETE") {
+            removals += 1;
+            machine = { shared: false, attached: false, left: false };
+
+            return route.fulfill({ status: 204 });
+          }
+
+          return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(machine) });
+        });
+
+        await page.goto(`${origin}/rooms?settings=machine`, { waitUntil: "load" });
+        await standing(page);
+        const row = page.locator("[data-machine-unbind]");
+
+        await row.getByText(wording("machines.action.unbind"), { exact: true }).waitFor({ timeout: 30_000 });
+        const press = row.getByRole("button", { name: wording("machines.action.unbind_confirm"), exact: true });
+
+        // Asked on the row, the question names the machine and the app; the way out closes it and takes nothing.
+        await press.click();
+        const question = row.locator("[data-machine-unbind-ask]");
+
+        await question.getByText(wording("machines.title.unbind", { name: "u9" }), { exact: true }).waitFor();
+        expect(await question.textContent()).toContain(wording("machines.message.unbind_desktop"));
+        expect(await overflow(page)).toBeLessThanOrEqual(0);
+        await question.getByRole("button", { name: wording("common.action.cancel"), exact: true }).click();
+        await question.waitFor({ state: "detached" });
+        expect(removals).toBe(0);
+
+        await press.click();
+        await question.locator("[data-machine-unbind-confirm]").click();
+
+        await page.locator("[data-machines-none]").getByText(wording("machines.label.none"), { exact: true }).waitFor({ timeout: 20_000 });
+        expect(removals).toBe(1);
+        expect(await row.count()).toBe(0);
       } finally {
         await context.close();
       }

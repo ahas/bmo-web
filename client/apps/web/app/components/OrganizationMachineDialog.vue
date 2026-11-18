@@ -63,6 +63,7 @@
 import { failureText } from "bmo-ui/app/domain/errors";
 
 import { useConfirm } from "~/domain/confirm";
+import { leaveEffectKey } from "~/domain/machine-unlink";
 
 import type { Rebound, UserNode } from "@web/server-client";
 
@@ -191,10 +192,11 @@ async function share(): Promise<void> {
 }
 
 async function unbind(): Promise<void> {
+  const leave = leaveEffectKey(machine.value);
   const taken = await confirm({
     title: t("organization.title.unbind"),
     item: machine.value?.agent ?? "",
-    effect: t("organization.message.unbind"),
+    effect: [t("organization.message.unbind"), ...(leave === null ? [] : [t(leave)])].join("\n"),
     confirm: t("organization.action.unbind_confirm")
   });
 

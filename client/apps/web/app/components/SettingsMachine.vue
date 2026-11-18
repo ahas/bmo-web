@@ -1,8 +1,8 @@
 <template>
   <!-- The machine section (docs/web.md, 「Settings」, the machine section): the machine the reader's account is
-       connected to, as the account service answers it, read each time the section opens. It changes nothing: a person
-       connects their machine through the desktop app, and the administrator connects an account to another machine or
-       to none. -->
+       connected to, as the account service answers it, read each time the section opens, and taken away by the reader,
+       asked first as a step the row grows. A person connects their machine through the desktop app; connecting an
+       account to another machine is the administrator's. -->
   <SettingsGroup data-machines>
     <FailedRead v-if="failure !== ''" class="py-3" :message="failure" :reading="reading" @retry="void read()" />
     <SettingsRow v-else-if="node !== null && (node.agent ?? null) === null" data-machines-none :label="$t('machines.label.none')" :description="$t('machines.message.none')">
@@ -18,12 +18,35 @@
         </span>
       </template>
     </PairRows>
+    <div v-if="typeof node?.agent === 'string' && failure === ''" class="flex flex-col" data-machine-unbind>
+      <SettingsRow :label="$t('machines.action.unbind')">
+        <template v-if="unbindFailure !== ''" #description>
+          <span role="alert" class="text-sm text-error">{{ unbindFailure }}</span>
+        </template>
+        <UButton v-if="!asking" ref="unbindButton" color="error" variant="ghost" :label="$t('machines.action.unbind_confirm')" :loading="unbinding" :disabled="unbinding" @click="ask()" />
+      </SettingsRow>
+      <!-- The question names the machine and what becomes of it, the way out first and the way through last. -->
+      <div v-if="asking" role="group" :aria-label="$t('machines.title.unbind', { name: node.agent })" class="mb-3 flex flex-col gap-2 border-s-2 border-error ps-3 text-sm" data-machine-unbind-ask>
+        <i18n-t keypath="machines.title.unbind" tag="p" scope="global" class="break-keep break-words text-highlighted">
+          <template #name>
+            <span class="font-mono">{{ node.agent }}</span>
+          </template>
+        </i18n-t>
+        <p class="whitespace-pre-line break-keep break-words text-toned">{{ effect }}</p>
+        <div class="flex flex-wrap items-center justify-end gap-2">
+          <UButton ref="cancelButton" color="neutral" variant="ghost" :label="$t('common.action.cancel')" :disabled="unbinding" @click="cancel()" />
+          <UButton color="error" :label="$t('machines.action.unbind_confirm')" :loading="unbinding" data-machine-unbind-confirm @click="void unbind()" />
+        </div>
+      </div>
+    </div>
   </SettingsGroup>
 </template>
 
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
 import { formatStamp, toUnixSeconds } from "bmo-ui/app/domain/time";
+
+import { leaveEffectKey } from "~/domain/machine-unlink";
 
 import type { PairRow } from "~/domain/pair-rows";
 import type { MachineKind, UserNode } from "@web/server-client";
@@ -33,6 +56,18 @@ const { t } = useI18n();
 const node = ref<UserNode | null>(null);
 const reading = ref(false);
 const failure = ref("");
+const asking = ref(false);
+const unbinding = ref(false);
+const unbindFailure = ref("");
+const unbindButton = useTemplateRef<{ $el: HTMLElement }>("unbindButton");
+const cancelButton = useTemplateRef<{ $el: HTMLElement }>("cancelButton");
+
+// What taking the machine away does: its BMO and agents leave it, and, where it is sent a leave, how its program ends.
+const effect = computed(() => {
+  const leave = leaveEffectKey(node.value);
+
+  return [t("machines.message.unbind"), ...(leave === null ? [] : [t(leave)])].join("\n");
+});
 
 // How the machine is connected, in the pack's words.
 const KIND_LABELS: Readonly<Record<MachineKind, string>> = {
@@ -74,6 +109,34 @@ async function read(): Promise<void> {
   } finally {
     reading.value = false;
   }
+}
+
+// The question opened under the row, the keyboard's place handed to its way out; closed, it goes back to the row.
+async function ask(): Promise<void> {
+  unbindFailure.value = "";
+  asking.value = true;
+  await nextTick();
+  cancelButton.value?.$el.focus();
+}
+
+async function cancel(): Promise<void> {
+  asking.value = false;
+  await nextTick();
+  unbindButton.value?.$el.focus();
+}
+
+// The machine taken away once the reader goes through, and the section read again; a refusal stands on the row.
+async function unbind(): Promise<void> {
+  unbinding.value = true;
+  try {
+    await $fetch("/api/me/machine", { method: "DELETE" });
+  } catch (error) {
+    unbindFailure.value = failureText(error, t("machines.error.unbind_failed"));
+  } finally {
+    unbinding.value = false;
+    asking.value = false;
+  }
+  if (unbindFailure.value === "") await read();
 }
 
 onMounted(() => void read());

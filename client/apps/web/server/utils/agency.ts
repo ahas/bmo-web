@@ -84,7 +84,7 @@ export function agency(): AgencyClient {
  * One call on an agency route the published client the console vendors names no type for, by the path the agency's
  * `docs/api.md` documents, answered and refused as every other agency call is.
  */
-export async function agencyRoute<T>(method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE", path: string, body?: unknown, call: UnitAnswerCall = {}): Promise<T> {
+export async function agencyRoute<T>(method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE", path: string, body?: unknown, call: AgencyCall = {}): Promise<T> {
   const unit = unitAt("AGENCY");
 
   if (unit === null) throw fail(503, wording(CONTROL_UNREACHABLE));
@@ -102,26 +102,33 @@ export async function agencyRoute<T>(method: "GET" | "POST" | "PUT" | "PATCH" | 
   return await agencyCall<T, { code?: string; error?: string; field?: string }>(asked, call);
 }
 
+/** How one agency call is answered: a unit call's options, and the pack's key for the sentence a refused field takes
+ * where the call has one of its own. */
+export type AgencyCall = UnitAnswerCall & { fields?: Readonly<Record<string, string>> };
+
 /** One call on the agency, its refusals said in the pack's words — a call's own codes before the agency's common
  * ones — and a refused field said under that field. */
 export async function agencyCall<T, E extends { code?: string; error?: string; field?: string }>(
   asked: Promise<{ data?: T; error?: E; response: Response }>,
-  call: UnitAnswerCall = {}
+  call: AgencyCall = {}
 ): Promise<T> {
+  const { fields = {}, ...unitCall } = call;
+
   try {
-    return await answered(asked, { ...call, codes: { ...AGENCY_CODES, ...call.codes } });
+    return await answered(asked, { ...unitCall, codes: { ...AGENCY_CODES, ...unitCall.codes } });
   } catch (error) {
-    throw error instanceof Error ? fieldRefusal(error) : error;
+    throw error instanceof Error ? fieldRefusal(error, fields) : error;
   }
 }
 
-// A refusal about one field is said by the one sentence for a refused value; the screen puts it under the
-// field the refusal names.
-function fieldRefusal(error: Error): Error {
+// A refusal about one field is said by the call's own sentence for that field, else by the one sentence for a
+// refused value; the screen puts it under the field the refusal names.
+function fieldRefusal(error: Error, fields: Readonly<Record<string, string>>): Error {
   const asked = error as Error & { statusCode?: number; data?: { field?: string } };
+  const field = asked.data?.field;
 
-  return asked.statusCode === 400 && typeof asked.data?.field === "string"
-    ? createError({ statusCode: 400, message: wording("agents.error.field_refused"), data: { field: asked.data.field } })
+  return asked.statusCode === 400 && typeof field === "string"
+    ? createError({ statusCode: 400, message: wording(fields[field] ?? "agents.error.field_refused"), data: { field } })
     : error;
 }
 

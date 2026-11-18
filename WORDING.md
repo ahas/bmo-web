@@ -106,6 +106,8 @@
   a role's sessions kept or opened anew → 유지, 새로. Never 라우트, 라우팅, 우선순위 목록.
 - a repository, where executing work runs → 저장소: 저장소, 저장소 추가, 작업 저장소; the model a repository pins →
   고정 모델; no pin → 역할 에이전트. A deployment's own model → 등록 모델; a file its engine serves → 모델 파일.
+- a repository that is a folder holding other repositories' checkouts, its own tree never written by its jobs → 우산
+  저장소: 우산 저장소, 우산 저장소는 추가지원 체크아웃을 두지 않습니다. Never 엄브렐러, 상위 저장소, 묶음 저장소.
 - the checkouts a repository keeps beside its base for jobs to run in at once → 추가지원 체크아웃: 추가지원 체크아웃 수,
   추가지원 {n} in a row; a count the service grows itself rather than one fixed → 자동, `자동 (기본값)` among the
   choices. Never 오토, 알아서.

@@ -206,6 +206,9 @@ export interface RepositoryView {
   path: string;
   nodeName: string | null;
   supportCount: SupportCount;
+  // A folder holding other repositories' checkouts, whose own tree its jobs never write; it takes no support and no
+  // node checkouts.
+  umbrella: boolean;
   prefixDocuments: string[];
   preamble: string | null;
   rules: string | null;

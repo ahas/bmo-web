@@ -617,10 +617,6 @@ function supportCountOf(value: unknown): SupportCount | null {
   return value === "auto" || wholeFrom(value, 0) ? value : null;
 }
 
-// A repository's change as the agency takes it. The published client still types a support count as a number alone,
-// where the agency takes `auto` as well (docs/boundary.md, 「Gaps the console meets」).
-type RepositoryAsk = Omit<Schemas["RepositoryAsk"], "supportCount"> & { supportCount?: SupportCount | null };
-
 /** One repository as the screen reads it; a support count that does not read as one stands as `auto`, the agency's
  * default. */
 export function repositoryViewOf(repository: Repository): RepositoryView {
@@ -632,6 +628,7 @@ export function repositoryViewOf(repository: Repository): RepositoryView {
     path: repository.path,
     nodeName: repository.nodeName,
     supportCount: supportCountOf(repository.supportCount) ?? "auto",
+    umbrella: repository.umbrella,
     prefixDocuments: repository.prefixDocuments,
     preamble: repository.preamble,
     rules: repository.rules,
@@ -652,9 +649,9 @@ export async function readRepositories(listed: (rows: Repository[]) => Repositor
 }
 
 /** A repository's fields as a screen sent them, each of its own shape; null where any is not. */
-export function repositoryChangeOf(body: unknown, adding: boolean): RepositoryAsk | null {
+export function repositoryChangeOf(body: unknown, adding: boolean): Schemas["RepositoryAsk"] | null {
   const held = record(body);
-  const change: RepositoryAsk = {};
+  const change: Schemas["RepositoryAsk"] = {};
 
   if (adding) {
     if (text(held.name) === null) return null;
@@ -675,6 +672,12 @@ export function repositoryChangeOf(body: unknown, adding: boolean): RepositoryAs
     if (supportCount === null) return null;
 
     change.supportCount = supportCount;
+  }
+
+  if ("umbrella" in held) {
+    if (typeof held.umbrella !== "boolean") return null;
+
+    change.umbrella = held.umbrella;
   }
 
   if ("prefixDocuments" in held) {
@@ -720,12 +723,17 @@ export function repositoryChangeOf(body: unknown, adding: boolean): RepositoryAs
   return change;
 }
 
-export async function addRepository(change: RepositoryAsk): Promise<RepositoryView> {
-  return repositoryViewOf(await agencyCall(agency().POST("/repositories", { body: change as Schemas["RepositoryAsk"] })));
+// An umbrella left with a support checkout or a node checkout is refused under its switch in words of its own.
+const REPOSITORY_FIELDS: Readonly<Record<string, string>> = { umbrella: "agents.error.umbrella_refused" };
+
+export async function addRepository(change: Schemas["RepositoryAsk"]): Promise<RepositoryView> {
+  return repositoryViewOf(await agencyCall(agency().POST("/repositories", { body: change }), { fields: REPOSITORY_FIELDS }));
 }
 
-export async function changeRepository(name: string, change: RepositoryAsk): Promise<RepositoryView> {
-  return repositoryViewOf(await agencyCall(agency().PATCH("/repositories/{repositoryName}", { params: { path: { repositoryName: name } }, body: change as Schemas["RepositoryAsk"] })));
+export async function changeRepository(name: string, change: Schemas["RepositoryAsk"]): Promise<RepositoryView> {
+  return repositoryViewOf(
+    await agencyCall(agency().PATCH("/repositories/{repositoryName}", { params: { path: { repositoryName: name } }, body: change }), { fields: REPOSITORY_FIELDS })
+  );
 }
 
 // A repository a job holds a checkout of is not removed.

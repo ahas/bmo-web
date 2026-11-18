@@ -32,7 +32,7 @@ const AGENT_FOLLOWING = { ...AGENT, name: "worker-03", provider: null, model: nu
 
 ROLE.agents = [AGENT, AGENT_OFF, AGENT_FOLLOWING];
 const REPOSITORY = {
-  name: "repo-a", label: null, icon: null, ownerAccount: null, path: "/srv/repo-a", nodeName: null, supportCount: 1, prefixDocuments: ["docs/a.md"],
+  name: "repo-a", label: null, icon: null, ownerAccount: null, path: "/srv/repo-a", nodeName: null, supportCount: 1, umbrella: false, prefixDocuments: ["docs/a.md"],
   preamble: null, rules: null, devCommand: null, pin: null, downgradeHeal: true, sampling: { temperature: 0.7, nonsense: "x" },
   samplingSettings: [{ name: "temperature", min: 0, max: 2 }, { name: "top_k", min: 0, max: null, whole: true }, { name: "preserve_thinking", switch: true }, { nothing: true }],
   checkouts: [
@@ -42,6 +42,9 @@ const REPOSITORY = {
     { name: "broken" }
   ]
 };
+// An umbrella, which takes no support checkouts, and a repository that grows its support checkouts as its launches need.
+const UMBRELLA = { ...REPOSITORY, name: "repo-u", supportCount: 0, umbrella: true, checkouts: [REPOSITORY.checkouts[0]] };
+const GROWING = { ...REPOSITORY, name: "repo-g", supportCount: "auto" };
 // A seeded role the pack words by its code, and one the owner added that it does not.
 const SEEKER = { ...ROLE, name: "seeker", code: "seeker", label: "Seeker" };
 const OWN_ROLE = { ...ROLE, name: "role-own", code: "role-own", label: "Own role" };
@@ -92,8 +95,13 @@ const agency = standIn("AGENCY", (call) => {
     });
   }
   if (call.path === "/repositories/repo-a" && call.method === "PATCH") return answer({ ...REPOSITORY, ...call.body });
+  if (call.path === "/repositories/repo-u" && call.method === "PATCH") {
+    const field = Object.keys(call.body as object)[0];
+
+    return answer({ code: "bad-request", error: "Refused.", field }, 400);
+  }
   if (call.path.startsWith("/roles/worker/sessions")) return answer({ items: [{ id: 2, sessionId: "s", path: "/srv/repo-a", provider: "claude-code", model: "m", effort: null, account: null, openedAt: 1, lastAnsweredAt: null, runs: 1, context: { tokens: 10, share: 0.5 }, valid: true }], more: false });
-  if (call.path === "/repositories") return answer({ items: [REPOSITORY], more: false });
+  if (call.path === "/repositories") return answer({ items: [REPOSITORY, UMBRELLA, GROWING], more: false });
   if (call.path === "/provider-models/deepseek") {
     return answer({ provider: "deepseek", models: [{ id: "deepseek-v4-pro", efforts: ["low"], inService: true, thinking: true, answerTokens: 8192, contextTokens: 65536 }, { nothing: true }], staleReadAt: null });
   }
@@ -352,6 +360,38 @@ describe("the repositories", () => {
       ]
     });
     expect(got.answer?.[0]?.checkouts).toHaveLength(3);
+  });
+
+  test("stand as an umbrella or not, with a support count of a number or auto", async () => {
+    const got = await asked(repositories, {});
+
+    expect(got.answer?.map((one) => [one.name, one.umbrella, one.supportCount])).toEqual([["repo-a", false, 1], ["repo-u", true, 0], ["repo-g", false, "auto"]]);
+  });
+
+  test("carry the umbrella switch, and refuse one of another shape before the agency", async () => {
+    calls.length = 0;
+
+    const body = { umbrella: true, supportCount: 0 };
+
+    expect(await asked(repositoryChange, { params: { name: "repo-a" }, body })).toMatchObject({ status: 200, answer: { umbrella: true } });
+    expect(calls).toMatchObject([{ method: "PATCH", path: "/repositories/repo-a", body }]);
+
+    calls.length = 0;
+    expect(await asked(repositoryChange, { params: { name: "repo-a" }, body: { umbrella: "yes" } })).toMatchObject({ status: 400 });
+    expect(calls).toHaveLength(0);
+  });
+
+  test("say an umbrella's refusal in its own words under the switch, and another field's in the common words", async () => {
+    expect(await asked(repositoryChange, { params: { name: "repo-u" }, body: { umbrella: true } })).toMatchObject({
+      status: 400,
+      message: wording("agents.error.umbrella_refused"),
+      data: { field: "umbrella" }
+    });
+    expect(await asked(repositoryChange, { params: { name: "repo-u" }, body: { path: "/srv/x" } })).toMatchObject({
+      status: 400,
+      message: wording("agents.error.field_refused"),
+      data: { field: "path" }
+    });
   });
 
   test("carry the node checkouts whole and a sampling setting given back to the engine, and refuse either of another shape", async () => {

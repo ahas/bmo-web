@@ -26,14 +26,20 @@
         <UInput v-model="form.path" class="w-full font-mono" :disabled="busy" :aria-label="$t('common.label.path')" />
       </UFormField>
 
+      <!-- An umbrella takes no support and no node checkouts: while it stands on, the count stands locked at 0 and no
+           node checkout is added, and the agency's refusal of one left standing is said under the switch. -->
+      <UFormField data-repository-umbrella name="umbrella" :error="errorAt('umbrella')" :help="$t('agents.message.umbrella_means')">
+        <USwitch v-model="form.umbrella" :label="$t('agents.label.umbrella')" :disabled="busy" />
+      </UFormField>
+
       <div class="grid gap-4 sm:grid-cols-2">
         <!-- Named apart from the refusal's field: a control named `nodeName` would stand as the form's own `nodeName`,
              which the select's list reads to place itself. -->
         <UFormField :label="$t('agents.label.exec_node')" name="node" :error="errorAt('nodeName')">
           <ChoiceSelect v-model="form.node" :items="nodeItems" value-key="value" class="w-full" :disabled="busy" :aria-label="$t('agents.label.exec_node')" />
         </UFormField>
-        <UFormField :label="$t('agents.label.support_count')" name="supportCount" :error="errorAt('supportCount')">
-          <ChoiceSelect v-model="supportCountChoice" :items="supportCountItems" value-key="value" class="w-full" data-support-count :disabled="busy" :aria-label="$t('agents.label.support_count')" />
+        <UFormField data-repository-support :label="$t('agents.label.support_count')" name="supportCount" :error="errorAt('supportCount')" :help="form.umbrella ? $t('agents.message.umbrella_no_support') : undefined">
+          <ChoiceSelect v-model="supportCountChoice" :items="supportCountItems" value-key="value" class="w-full" data-support-count :disabled="busy || form.umbrella" :aria-label="$t('agents.label.support_count')" />
         </UFormField>
       </div>
 
@@ -41,10 +47,11 @@
            new one names its path or leaves it to the agency's place beside the base. -->
       <UFormField
         v-if="!adding"
+        data-repository-node-checkouts
         :label="$t('agents.label.node_checkouts')"
         name="nodeCheckouts"
         :error="errorAt('nodeCheckouts')"
-        :help="form.node === HERE ? undefined : $t('agents.message.node_checkouts_need_here')"
+        :help="nodeCheckoutsHelp"
       >
         <div class="flex flex-col gap-2">
           <ul v-if="form.nodeCheckouts.length > 0" class="flex flex-col gap-1">
@@ -57,7 +64,7 @@
             </li>
           </ul>
           <p v-else class="text-sm text-muted">{{ $t("agents.status.no_node_checkouts") }}</p>
-          <div v-if="form.node === HERE" class="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
+          <div v-if="form.node === HERE && !form.umbrella" class="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
             <ChoiceSelect
               v-model="addingCheckout.node"
               :items="checkoutNodeItems"
@@ -228,6 +235,9 @@ interface RepositoryForm {
   label: string;
   path: string;
   node: string;
+  umbrella: boolean;
+  // The support count as the owner chose it, kept while an umbrella stands, so turning the umbrella off again brings it
+  // back.
   supportCount: SupportCount;
   prefixDocuments: string[];
   preamble: string;
@@ -249,6 +259,7 @@ function emptyForm(): RepositoryForm {
     label: "",
     path: "",
     node: HERE,
+    umbrella: false,
     supportCount: DEFAULT_SUPPORT_COUNT,
     prefixDocuments: [],
     preamble: "",
@@ -268,6 +279,7 @@ function formOf(repository: RepositoryView): RepositoryForm {
     label: repository.ownLabel ?? "",
     path: repository.path,
     node: repository.nodeName ?? HERE,
+    umbrella: repository.umbrella,
     supportCount: repository.supportCount,
     prefixDocuments: [...repository.prefixDocuments],
     preamble: repository.preamble ?? "",
@@ -296,7 +308,7 @@ const changes = useOpenedWith(() => ({ ...form.value, sampling: generationMeanin
 });
 const complete = computed(() => form.value.name.trim() !== "" && (form.value.pinProvider === ROLE_ORDER || form.value.pinModel !== ""));
 
-const FIELDS = ["name", "label", "path", "nodeName", "supportCount", "nodeCheckouts", "prefixDocuments", "preamble", "rules", "devCommand", "pin", "sampling", "downgradeHeal"];
+const FIELDS = ["name", "label", "path", "umbrella", "nodeName", "supportCount", "nodeCheckouts", "prefixDocuments", "preamble", "rules", "devCommand", "pin", "sampling", "downgradeHeal"];
 
 function errorAt(place: string): string | undefined {
   if (refusal.value === null) return undefined;
@@ -312,6 +324,17 @@ function nodeLabel(name: string): string {
   return nodes.value?.find((node) => node.name === name)?.label ?? name;
 }
 
+// The count a save sends and the select shows: 0 for an umbrella, which takes none, else the count chosen.
+function supportOf(values: RepositoryForm): SupportCount {
+  return values.umbrella ? 0 : values.supportCount;
+}
+
+const nodeCheckoutsHelp = computed(() => {
+  if (form.value.umbrella) return t("agents.message.umbrella_no_node_checkouts");
+
+  return form.value.node === HERE ? undefined : t("agents.message.node_checkouts_need_here");
+});
+
 // Auto or a fixed count up to the agency's most; a count the repository holds beyond it still stands as its own choice.
 const supportCountItems = computed(() => {
   const counts = Array.from({ length: SUPPORT_COUNT_MOST + 1 }, (_, count) => count);
@@ -324,7 +347,7 @@ const supportCountItems = computed(() => {
 // The select holds its choices as text, since the browser's own select under it hands a choice back as text; the form
 // holds the count as a number.
 const supportCountChoice = computed({
-  get: () => String(form.value.supportCount),
+  get: () => String(supportOf(form.value)),
   set: (choice: string) => {
     form.value.supportCount = choice === "auto" ? "auto" : Number(choice);
   }
@@ -448,7 +471,8 @@ function body(): Record<string, unknown> {
   if (changed("label") && (!adding.value || now.label.trim() !== "")) sent.label = textOrNone(now.label.trim());
   if (changed("path") && now.path.trim() !== "") sent.path = now.path.trim();
   if (changed("node")) sent.nodeName = now.node === HERE ? null : now.node;
-  if (changed("supportCount")) sent.supportCount = now.supportCount;
+  if (changed("umbrella")) sent.umbrella = now.umbrella;
+  if (adding.value || supportOf(now) !== supportOf(before)) sent.supportCount = supportOf(now);
   if (changed("prefixDocuments")) sent.prefixDocuments = now.prefixDocuments;
   if (changed("preamble") && (!adding.value || now.preamble.trim() !== "")) sent.preamble = textOrNone(now.preamble);
   if (changed("rules") && (!adding.value || now.rules.trim() !== "")) sent.rules = textOrNone(now.rules.trim());

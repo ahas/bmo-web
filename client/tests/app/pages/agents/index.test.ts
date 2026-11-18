@@ -299,7 +299,7 @@ describe("the agents tab", () => {
 
 describe("the repositories tab", () => {
   test("keeps the whole of a repository in one form", () => {
-    for (const field of ["form.path", "form.node", "form.value.supportCount", "form.prefixDocuments", "form.preamble", "form.rules", "form.devCommand", "form.pinProvider", "form.downgradeHeal"]) {
+    for (const field of ["form.path", "form.umbrella", "form.node", "form.value.supportCount", "form.prefixDocuments", "form.preamble", "form.rules", "form.devCommand", "form.pinProvider", "form.downgradeHeal"]) {
       expect(repositoryDialog).toContain(field);
     }
     expect(templateOf(repositoryDialog)).toContain("form.downgradeHeal === DEFAULT_DOWNGRADE_HEAL");

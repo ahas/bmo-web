@@ -563,7 +563,7 @@ function role(name: string, label: string, extra: Record<string, unknown> = {}):
 // One repository as the agency's repository resource serves it, with its checkouts and the job holding one.
 function repository(name: string, label: string, extra: Record<string, unknown> = {}): Record<string, unknown> {
   return {
-    name, label, icon: null, ownerAccount: null, path: `/srv/checkouts/${name}`, nodeName: null, supportCount: "auto",
+    name, label, icon: null, ownerAccount: null, path: `/srv/checkouts/${name}`, nodeName: null, supportCount: "auto", umbrella: false,
     prefixDocuments: [], preamble: null, rules: null, devCommand: null, pin: null, downgradeHeal: true, sampling: null,
     samplingSettings: [
       { name: "temperature", min: 0, max: 2 }, { name: "top_p", min: 0, max: 1, aboveMin: true }, { name: "top_k", min: 0, max: null, whole: true },
@@ -571,6 +571,25 @@ function repository(name: string, label: string, extra: Record<string, unknown> 
     ],
     checkouts: [{ name, path: `/srv/checkouts/${name}`, nodeName: null, kind: "base", job: null }], ...extra
   };
+}
+
+// The repositories the agency keeps: one a job holds a checkout of, with a support checkout and a node checkout; one
+// pinned; one standing on a node; and an umbrella, which takes no support checkouts.
+function heldRepositories(): Record<string, unknown>[] {
+  return [
+    repository("repo-a", "Repository A", {
+      supportCount: 2,
+      prefixDocuments: ["docs/a.md"],
+      checkouts: [
+        { name: "repo-a", path: "/srv/checkouts/repo-a", nodeName: null, kind: "base", job: { jobId: 7, itemId: 12, role: "worker" } },
+        { name: "repo-a-w2", path: "/srv/checkouts/repo-a-w2", nodeName: null, kind: "support", job: null },
+        { name: "repo-a@node-a", path: "/srv/node-a/checkouts/repo-a-node-a", nodeName: "node-a", kind: "node", job: null }
+      ]
+    }),
+    repository("repo-b", "Repository B", { pin: { provider: "registered", model: "model-a" }, downgradeHeal: false, sampling: { temperature: 0.6, preserve_thinking: true } }),
+    repository("repo-c", "Repository C", { nodeName: "node-a" }),
+    repository("repo-u", "Repository U", { supportCount: 0, umbrella: true })
+  ];
 }
 
 // One provider as the agency's provider resource serves it, with its switch, its lines and its quota.
@@ -720,8 +739,8 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
     if (askedLog !== null) return askedLog;
 
-    // The two axes and the places: two supervisors, a handful of roles with runs going and waiting, and three
-    // repositories, one with a job holding a checkout.
+    // The two axes and the places: two supervisors, a handful of roles with runs going and waiting, and the
+    // repositories.
     if (path === "/supervisors") return Response.json({ items: [heldSupervisor("agent-a"), heldSupervisor("agent-c")], more: false });
     if (path === "/roles") return Response.json({ roles: ROLES, bundles: [{ name: "web.read", code: "web-read", label: "Web reading" }, { name: "web.sites", code: "web-sites", label: "Site tools" }], lines: ["worker", "search", "browse", "translate"] });
     if (/^\/roles\/[^/]+\/sessions$/.test(path)) {
@@ -730,24 +749,24 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
         more: false
       });
     }
-    if (path === "/repositories") {
-      return Response.json({
-        items: [
-          repository("repo-a", "Repository A", {
-            supportCount: 2,
-            prefixDocuments: ["docs/a.md"],
-            checkouts: [
-              { name: "repo-a", path: "/srv/checkouts/repo-a", nodeName: null, kind: "base", job: { jobId: 7, itemId: 12, role: "worker" } },
-              { name: "repo-a-w2", path: "/srv/checkouts/repo-a-w2", nodeName: null, kind: "support", job: null },
-              { name: "repo-a@node-a", path: "/srv/node-a/checkouts/repo-a-node-a", nodeName: "node-a", kind: "node", job: null }
-            ]
-          }),
-          repository("repo-b", "Repository B", { pin: { provider: "registered", model: "model-a" }, downgradeHeal: false, sampling: { temperature: 0.6, preserve_thinking: true } }),
-          repository("repo-c", "Repository C", { nodeName: "node-a" })
-        ],
-        more: false
-      });
+    // A repository's change is answered as the agency keeps it, nothing kept past the answer; an umbrella left with a
+    // support checkout or a node checkout is refused as the agency refuses it.
+    if (/^\/repositories\/[^/]+$/.test(path) && request.method === "PATCH") {
+      const name = decodeURIComponent(path.slice("/repositories/".length));
+      const held = heldRepositories().find((one) => one.name === name);
+
+      if (held === undefined) return Response.json({ code: "not-found", error: `There is no repository ${name}.` }, { status: 404 });
+
+      const changed = { ...held, ...((await request.json()) as Record<string, unknown>) };
+      const nodeCheckouts = (held.checkouts as { kind: string }[]).some((one) => one.kind === "node");
+
+      if (changed.umbrella === true && (changed.supportCount !== 0 || nodeCheckouts)) {
+        return Response.json({ code: "bad-request", error: "An umbrella takes no support checkouts and no node checkouts.", field: "umbrella" }, { status: 400 });
+      }
+
+      return Response.json(changed);
     }
+    if (path === "/repositories") return Response.json({ items: heldRepositories(), more: false });
     if (path === "/slots") {
       // The worker's runs, each on the agent of the role it was let in on: a job's, which opens by the job's run, and
       // one its asker named the work of. The seeker's run is one no job carries, named by what it was asked to do. The

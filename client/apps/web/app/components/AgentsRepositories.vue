@@ -26,7 +26,7 @@
           :aria-label="$t('agents.aria.settings_of', { name: row.original.label })"
           @click="openEdit(row.original.name)"
         >
-          <UIcon :name="row.original.icon ?? REPOSITORY_ICON" class="mt-0.5 size-5 shrink-0 text-muted" />
+          <UIcon :name="row.original.icon ?? (row.original.umbrella ? UMBRELLA_ICON : REPOSITORY_ICON)" class="mt-0.5 size-5 shrink-0 text-muted" />
           <span class="flex min-w-0 flex-col">
             <SearchText class="truncate text-sm font-medium text-highlighted" :text="row.original.label" :query="props.query" />
             <SearchText class="truncate font-mono text-sm text-muted" :text="row.original.name" :query="props.query" />
@@ -44,7 +44,7 @@
 
       <template #checkouts-cell="{ row }">
         <span :class="CELL_TEXT" class="whitespace-nowrap text-sm tabular-nums text-highlighted">
-          {{ $t("agents.label.checkouts_value", { support: supportText(row.original), held: countText(heldCount(row.original)), all: countText(row.original.checkouts.length) }) }}
+          {{ checkoutsText(row.original) }}
         </span>
       </template>
 
@@ -110,8 +110,9 @@ const { t } = useI18n();
 const island = useIsland(t);
 const askFirst = useConfirm();
 
-// The mark a repository stands under where the agency names none of its own.
+// The mark a repository stands under where the agency names none of its own, and an umbrella's.
 const REPOSITORY_ICON = "i-material-symbols-folder-outline";
+const UMBRELLA_ICON = "i-material-symbols-beach-access-outline";
 
 // The page's search reads the same answer under the same key.
 const { data: repositories, error, refresh, status } = useFetch<RepositoryView[]>("/api/repositories", { key: "repositories", lazy: true, server: false });
@@ -143,6 +144,16 @@ function supportText(repository: RepositoryView): string {
 
 function heldCount(repository: RepositoryView): number {
   return repository.checkouts.filter((one) => one.job !== null).length;
+}
+
+// How many support checkouts stand beside the base, an umbrella saying it is one since it takes none, and how many of
+// all its checkouts a job holds.
+function checkoutsText(repository: RepositoryView): string {
+  const counts = { held: countText(heldCount(repository)), all: countText(repository.checkouts.length) };
+
+  if (repository.umbrella) return t("agents.label.checkouts_value_umbrella", counts);
+
+  return t("agents.label.checkouts_value", { support: supportText(repository), ...counts });
 }
 
 // The item and the role of each job holding one of its checkouts.

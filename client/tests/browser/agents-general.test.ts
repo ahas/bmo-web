@@ -658,3 +658,78 @@ describe.skipIf(!origin || !touchReady())("a repository's prefix document carrie
     }
   }, 120_000);
 });
+
+// An umbrella repository (docs/web.md, the repositories tab): its row says it is one in place of a support count, and
+// its dialog's switch locks the count at 0 and offers no node checkout, the agency's refusal of one left standing said
+// under the switch in the dialog's own words.
+describe.skipIf(!origin || !touchReady())("an umbrella repository", () => {
+  for (const [width, height, phone] of [[1280, 900, false], [360, 780, true]] as const) {
+    test(`stands as one on its row and is set in its dialog, ${width}px wide`, async () => {
+      const context = await browser!.newContext({ viewport: { width, height }, isMobile: phone, hasTouch: phone, serviceWorkers: "block", reducedMotion: "reduce" });
+      const at = cookie.indexOf("=");
+
+      await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
+
+      try {
+        const page = await context.newPage();
+        const rowOf = (name: string): Locator => page.locator("tr", { has: page.locator(`#setting-repository-${name}`) });
+
+        await page.goto(`${origin}/agents?tab=repositories`, { waitUntil: "load" });
+        await page.locator("#setting-repository-repo-u").waitFor({ timeout: 15_000 });
+        expect(await rowOf("repo-u").innerText()).toContain(wording("agents.label.checkouts_value_umbrella", { held: "0", all: "1" }));
+
+        await page.locator("#setting-repository-repo-a").click();
+
+        const dialog = page.getByRole("dialog");
+        const umbrella = dialog.locator("[data-repository-umbrella]");
+        const support = dialog.locator("[data-repository-support]");
+        const count = support.locator("[data-support-count]");
+        const shown = async (): Promise<string> => ((await count.textContent().catch(() => "")) ?? "").trim();
+        const locked = async (): Promise<boolean> => await count.evaluate((select) => select.matches(":disabled") || select.hasAttribute("data-disabled"));
+        const nodes = dialog.locator("[data-repository-node-checkouts]");
+        const addNode = nodes.getByRole("button", { name: wording("agents.action.node_checkout_add"), exact: true });
+
+        expect(await until(shown, (value) => value === "2", 15_000)).toBe("2");
+        expect(await addNode.count()).toBe(1);
+
+        // Turned on, the count stands locked at 0 and no node checkout is added; the one standing stays listed.
+        await umbrella.getByRole("switch").click();
+        expect(await shown()).toBe("0");
+        expect(await locked()).toBe(true);
+        expect(await support.innerText()).toContain(wording("agents.message.umbrella_no_support"));
+        expect(await addNode.count()).toBe(0);
+        expect(await nodes.innerText()).toContain(wording("agents.message.umbrella_no_node_checkouts"));
+        expect(await nodes.locator("[data-node-checkout]").count()).toBe(1);
+
+        // Saved with the node checkout still standing, the agency refuses, and the dialog says why under the switch.
+        const sent = page.waitForRequest((request) => request.method() === "PATCH" && new URL(request.url()).pathname.endsWith("/api/repositories/repo-a"));
+
+        await dialog.getByRole("button", { name: wording("common.action.save"), exact: true }).click();
+        expect((await sent).postDataJSON()).toEqual({ umbrella: true, supportCount: 0 });
+        await umbrella.getByText(wording("agents.error.umbrella_refused"), { exact: true }).waitFor({ timeout: 15_000 });
+        expect(await umbrella.getByRole("switch").getAttribute("aria-checked")).toBe("true");
+
+        // Turned off again, the count stands as it did.
+        await umbrella.getByRole("switch").click();
+        expect(await shown()).toBe("2");
+        expect(await locked()).toBe(false);
+        expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+
+        // Changed back, the dialog closes asking nothing; turned on and left, it asks before the change is thrown away.
+        const discard = page.getByRole("button", { name: wording("common.action.discard"), exact: true });
+
+        await page.keyboard.press("Escape");
+        await umbrella.waitFor({ state: "detached", timeout: 10_000 });
+        expect(await discard.count()).toBe(0);
+        await page.locator("#setting-repository-repo-a").click();
+        await until(shown, (value) => value === "2", 15_000);
+        await umbrella.getByRole("switch").click();
+        await page.keyboard.press("Escape");
+        await discard.click({ timeout: 10_000 });
+        await umbrella.waitFor({ state: "detached", timeout: 10_000 });
+      } finally {
+        await context.close();
+      }
+    }, 60_000);
+  }
+});

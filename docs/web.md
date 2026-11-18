@@ -3398,12 +3398,21 @@ alone (「Access」); another account's agents are reached from 조직's 사용�
   them: 저장소, its mark, its label and its name, the title column; 경로, its base checkout, with the node it stands on
   where it stands on one; 체크아웃, how many support checkouts it keeps beside the base, 자동 where the agency grows
   them itself, and how many of all its checkouts a job holds now; 프리픽스 문서, how many; 고정 모델, the provider and
-  model it pins, named short, or 역할 에이전트 where it pins none; and 강등 복원, a switch. Under a repository whose
-  checkout a job holds stands the job's item and role.
+  model it pins, named short, or 역할 에이전트 where it pins none; and 강등 복원, a switch. An umbrella repository (the
+  agency's `umbrella`, a folder holding other repositories' checkouts whose own tree its jobs never write) stands under
+  the umbrella mark where it names no mark of its own, and its 체크아웃 says 우산 저장소 in place of a support count,
+  since it takes none. Under a repository whose checkout a job holds stands the job's item and role.
   Pressing a row's name opens the repository's dialog; its more-menu holds 편집, 로그 and 삭제.
-- **The repository's dialog** is one form with one 저장 at its foot: 이름 (fixed once made), 표시 이름, 경로, 실행
-  노드 — 이 기계 or a node that takes jobs — 추가지원 체크아웃 수, 노드 체크아웃, 프리픽스 문서, 머리말, 규칙 폴더, 개발
-  서버 명령, 고정 모델 and 강등 복원.
+- **The repository's dialog** is one form with one 저장 at its foot: 이름 (fixed once made), 표시 이름, 경로, 우산
+  저장소, 실행 노드 — 이 기계 or a node that takes jobs — 추가지원 체크아웃 수, 노드 체크아웃, 프리픽스 문서, 머리말,
+  규칙 폴더, 개발 서버 명령, 고정 모델 and 강등 복원.
+  - **우산 저장소** is a switch, sent as `umbrella`, with a line under it saying what an umbrella is. While it stands
+    on, 추가지원 체크아웃 수 stands locked at 0 with a line saying an umbrella takes none, the save sending 0 where the
+    count held another; 노드 체크아웃 offers no add, saying an umbrella takes none, and keeps the checkouts already
+    standing, each with its button taking it away. The agency refuses an umbrella left with a support checkout or a
+    node checkout (`400` with `field` `umbrella`, its `docs/api.md`, 「repositories, prefix-checks and
+    room-holdings」), and the dialog says the pack's own sentence for that refusal under the switch. Turned off again,
+    the count stands as it was chosen.
   - **The nodes it offers are the agency's,** read from its `GET /nodes`, and only those whose `takesJobs` it answers
     (the agency's `docs/work-nodes.md`, 「Which nodes take jobs」), each by its label with the pack's word for how it is
     reached — SSH, or Jake for a node reached through a hub. A node the repository already names that takes no jobs
@@ -3435,8 +3444,8 @@ alone (「Access」); another account's agents are reached from 조직's 사용�
   - **강등 복원** is a switch whose label carries `(기본값)` while it stands on, the agency's default.
   - A refused save keeps every field as written with the pack's sentence for the agency's code under the field it
     names.
-- **추가** in the tab row opens the same dialog for a new repository, sent through `POST /repositories`; a path left
-  empty is the agency's to make (its `docs/worker-bench.md`).
+- **추가** in the tab row opens the same dialog for a new repository, sent through `POST /repositories`; the agency
+  makes no checkout for it, so a path left empty is refused under 경로.
 - **삭제** asks first, naming the repository, and stands disabled while a job holds one of its checkouts; a refusal
   says the pack's sentence under the table.
 

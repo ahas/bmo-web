@@ -2497,6 +2497,7 @@ agents:
     providers_read_failed: 공급자를 불러오지 못했습니다.
     repositories_read_failed: 저장소를 불러오지 못했습니다.
     repository_delete_refused: Job이 체크아웃을 쓰고 있어 저장소를 삭제하지 못했습니다.
+    umbrella_refused: 우산 저장소에는 추가지원 체크아웃과 노드 체크아웃을 둘 수 없습니다.
     session_history_read_failed: 세션 기록을 불러오지 못했습니다.
     supervisors_read_failed: 감독관을 불러오지 못했습니다.
     draft_unsound: 드래프트 설정에 고칠 곳이 있습니다.
@@ -2645,6 +2646,7 @@ agents:
     source_fetch: 다운로드
     source_none: 다운로드 주소 없음
     support_count: 추가지원 체크아웃 수
+    umbrella: 우산 저장소
     switch_off: 끔
     switch_on: 켬
     system_prompt_sent: 보낼 시스템 프롬프트
@@ -2687,6 +2689,7 @@ agents:
     provider_prompts: 공급자별 프롬프트
     card_service: 카드 서비스
     checkouts_value: "추가지원 {support} · {held}/{all} 사용 중"
+    checkouts_value_umbrella: "우산 저장소 · {held}/{all} 사용 중"
     column_checkouts: 체크아웃
     column_heal: 강등 복원
     column_model_defaults: 생성 파라미터
@@ -2770,6 +2773,9 @@ agents:
 
       감독관이 답하던 방은 메시지와 문서까지 그대로 남습니다."
     node_checkouts_need_here: 실행 노드가 이 기기일 때만 노드 체크아웃을 둘 수 있습니다.
+    umbrella_means: 다른 저장소의 체크아웃을 담는 폴더로, Job은 이 폴더 자체를 수정하지 않습니다.
+    umbrella_no_support: 우산 저장소는 추가지원 체크아웃을 두지 않습니다.
+    umbrella_no_node_checkouts: 우산 저장소는 노드 체크아웃을 두지 않습니다.
     generation_resets: "방 세션 {n}개가 다음 턴부터 새로 시작됩니다."
     log_of_agent: 이 에이전트의 로그
     log_of_watch: 이 워치의 대기 대상과 기록

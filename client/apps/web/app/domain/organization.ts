@@ -5,6 +5,7 @@ import { useAdministrator } from "./access";
 import { adminAddress, adminTabNamed, administratorOpens } from "./administration";
 import { PERSON_PANE_KEY } from "./person-panes";
 import { useRosterCompanies } from "./roster";
+import { useSupplyReader } from "./supply";
 import { SETTINGS_QUERY } from "./settings-dialog";
 
 // The organisation screen (docs/web.md, 「Organisation」): the organisation and the people in it, a tab to a
@@ -19,6 +20,8 @@ export const ORGANIZATION_PATH = "/organization";
 export interface OrganizationReader {
   administrator: boolean;
   roster: boolean;
+  // Whether the reader manages any unit's supply — their own read, not the roster's (the supply tab).
+  supply: boolean;
   known: boolean;
 }
 
@@ -50,6 +53,12 @@ function rosterReaderOpens(reader: OrganizationReader): boolean {
   return reader.administrator || reader.roster;
 }
 
+// The supply tab's readers: the administrator, and a member the account service has named a unit's manager or
+// credit manager for (「Organisation」, the supply tab).
+function supplyReaderOpens(reader: OrganizationReader): boolean {
+  return reader.administrator || reader.supply;
+}
+
 // The people tab's key, which a section moved into one person's tab leads to.
 const PEOPLE_TAB = "people";
 
@@ -58,7 +67,10 @@ export const ORGANIZATION_TABS: readonly OrganizationTab[] = [
   { value: PEOPLE_TAB, label: "roster.label.tab", icon: "i-material-symbols-group-outline", opens: rosterReaderOpens, keys: ["q", "company", "unit", "kind", "role", "state", "user", PERSON_PANE_KEY], wide: true, load: () => import("~/components/OrganizationPeople.vue") },
   { value: "catalogue", label: "catalogue.label.tab", icon: "i-material-symbols-category-outline", opens: rosterReaderOpens, keys: ["company"], wide: false, load: () => import("~/components/OrganizationCatalogue.vue") },
   { value: "invites", label: "settings.label.invites", icon: "i-material-symbols-person-add-outline", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationInvites.vue") },
-  { value: "agent", label: "settings.label.bmo", icon: "i-material-symbols-face-outline", opens: everyReaderOpens, keys: ["company", "unit"], wide: false, load: () => import("~/components/OrganizationBmo.vue") }
+  { value: "agent", label: "settings.label.bmo", icon: "i-material-symbols-face-outline", opens: everyReaderOpens, keys: ["company", "unit"], wide: false, load: () => import("~/components/OrganizationBmo.vue") },
+  // The supply tab stands only for a reader who manages a unit's supply — the administrator everywhere, a member for
+  // the units the account service names them (docs/web.md, 「Organisation」, the supply tab).
+  { value: "supply", label: "supply.label.tab", icon: "i-material-symbols-bolt-outline", opens: supplyReaderOpens, keys: ["unit"], wide: false, load: () => import("~/components/OrganizationSupply.vue") }
 ];
 
 // Where a section that once stood here as a tab stands now, by the key its tab had, so a link made before it moved
@@ -145,19 +157,21 @@ export function useMayInvite(): ComputedRef<boolean> {
 
 /**
  * Who reads the organisation screen, for the tabs that stand for them: the administrator at once, and a member once
- * the people roster has said whether they look through any company. A read that failed leaves them as one who looks
- * through none. Once the roster has answered they stay known: a tab that reads the roster itself asks it again as it
- * opens, and that read must not make the reader unknown and take the tab away.
+ * the people roster has said whether they look through any company and the supply read has said whether they manage
+ * any unit. A read that failed leaves them as one who looks through none and manages none. Once both have answered
+ * they stay known: a tab that reads one of them itself asks it again as it opens, and that read must not make the
+ * reader unknown and take the tab away.
  */
 export function useOrganizationReader(): ComputedRef<OrganizationReader> {
   const administrator = useAdministrator();
   const { companies, status } = useRosterCompanies();
-  const answered = ref(false);
+  const supply = useSupplyReader();
+  const rosterAnswered = ref(false);
 
   watch(
     status,
     (now) => {
-      if (now === "success" || now === "error") answered.value = true;
+      if (now === "success" || now === "error") rosterAnswered.value = true;
     },
     { immediate: true }
   );
@@ -165,7 +179,8 @@ export function useOrganizationReader(): ComputedRef<OrganizationReader> {
   return computed(() => ({
     administrator: administrator.value,
     roster: companies.value.length > 0,
-    known: administrator.value || answered.value
+    supply: supply.value.opens,
+    known: administrator.value || (rosterAnswered.value && supply.value.known)
   }));
 }
 

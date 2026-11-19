@@ -27,13 +27,13 @@ import { SCREENS, tabAddress } from "../../../apps/web/app/domain/screens";
 
 describe("the settings dialog", () => {
   test("holds the personal sections alone, the voice briefing under its own name", () => {
-    expect(SETTINGS_SECTIONS.map((section) => section.key)).toEqual(["account", "agent", "machine", "secrets", "theme", "palette", "notifications", "briefing"]);
+    expect(SETTINGS_SECTIONS.map((section) => section.key)).toEqual(["account", "agent", "machine", "secrets", "supply", "theme", "palette", "notifications", "briefing"]);
     expect(SETTINGS_SECTIONS.find((section) => section.key === "briefing")?.label).toBe("settings.label.briefing");
   });
 
   test("shows a member their account, machine, secrets, theme and palette, and the administrator the notifications and the player too", () => {
-    expect(sectionsFor(false, true).map((section) => section.key)).toEqual(["account", "machine", "secrets", "theme", "palette"]);
-    expect(sectionsFor(true, true).map((section) => section.key)).toEqual(["account", "machine", "secrets", "theme", "palette", "notifications", "briefing"]);
+    expect(sectionsFor(false, true).map((section) => section.key)).toEqual(["account", "machine", "secrets", "supply", "theme", "palette"]);
+    expect(sectionsFor(true, true).map((section) => section.key)).toEqual(["account", "machine", "secrets", "supply", "theme", "palette", "notifications", "briefing"]);
   });
 
   test("shows no secrets and no machine to a login with no user, which holds no space and no machine", () => {
@@ -57,15 +57,16 @@ describe("the settings dialog", () => {
   });
 });
 
-const ADMINISTRATOR: OrganizationReader = { administrator: true, roster: true, known: true };
-const COMPANY_HEAD: OrganizationReader = { administrator: false, roster: true, known: true };
-const MEMBER: OrganizationReader = { administrator: false, roster: false, known: true };
+const ADMINISTRATOR: OrganizationReader = { administrator: true, roster: true, supply: false, known: true };
+// A head manages the supply of the company they head, as the account service's read says (docs/web.md, the supply tab).
+const COMPANY_HEAD: OrganizationReader = { administrator: false, roster: true, supply: true, known: true };
+const MEMBER: OrganizationReader = { administrator: false, roster: false, supply: false, known: true };
 // A member before the people roster has answered, as the server and the browser's first frame see them.
-const UNKNOWN_MEMBER: OrganizationReader = { administrator: false, roster: false, known: false };
+const UNKNOWN_MEMBER: OrganizationReader = { administrator: false, roster: false, supply: false, known: false };
 
 describe("the organisation screen", () => {
   test("stands its tabs in order, the units first", () => {
-    expect(ORGANIZATION_TABS.map((tab) => tab.value)).toEqual(["organization", "people", "catalogue", "invites", "agent"]);
+    expect(ORGANIZATION_TABS.map((tab) => tab.value)).toEqual(["organization", "people", "catalogue", "invites", "agent", "supply"]);
   });
 
   test("leads the keys of the sections that moved away to where they stand now, and no other key", () => {
@@ -86,7 +87,7 @@ describe("the organisation screen", () => {
 
   test("opens every tab to the administrator, the people and the roles and kinds tabs to a member who heads a company, and the invitations and BMO tabs to every member", () => {
     expect(organizationTabsFor(ADMINISTRATOR)).toHaveLength(ORGANIZATION_TABS.length);
-    expect(organizationTabsFor(COMPANY_HEAD).map((tab) => tab.value)).toEqual(["people", "catalogue", "invites", "agent"]);
+    expect(organizationTabsFor(COMPANY_HEAD).map((tab) => tab.value)).toEqual(["people", "catalogue", "invites", "agent", "supply"]);
     expect(organizationTabsFor(MEMBER).map((tab) => tab.value)).toEqual(["invites", "agent"]);
   });
 

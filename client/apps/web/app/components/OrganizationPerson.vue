@@ -101,6 +101,7 @@ import { useConfirm } from "~/domain/confirm";
 import { keepDialogFocus } from "~/domain/menu-focus";
 import { organizationAddress } from "~/domain/organization";
 import { PERSON_PANES, personAdministrator, personBase, personPaneOf, personPaneRefused, personPanesFor, withPersonPane } from "~/domain/person-panes";
+import { useSupplyUnits } from "~/domain/supply";
 import { ROSTER_STATE_FACES, rosterActs } from "~/domain/roster";
 import { revealOpenTab } from "~/domain/tab-row";
 
@@ -321,8 +322,12 @@ async function markLeft(): Promise<void> {
 
 // --- The tabs ---
 
-// Each tab says which readers it stands for, and the address names the one open.
-const panes = computed(() => personPanesFor({ administrator: administrator.value }));
+// Each tab says which readers it stands for, and the address names the one open. The supply tab stands for the
+// administrator at once and for a member once the person's unit and the member's supply reach have both answered.
+const supplyUnits = useSupplyUnits();
+const supplyManages = computed(() => person.value !== null && supplyUnits.value.some((one) => one.id === person.value?.unit.id));
+const panesSettled = computed(() => administrator.value || person.value !== null || personFailure.value !== "");
+const panes = computed(() => personPanesFor({ administrator: administrator.value, supply: supplyManages.value }));
 const pane = computed(() => personPaneOf(route.query, panes.value));
 const paneItems = computed(() => panes.value.map((one) => ({ value: one.value, label: t(one.label) })));
 
@@ -333,6 +338,7 @@ onMounted(() =>
   watch(
     () => route.query,
     (query) => {
+      if (!panesSettled.value) return;
       if (personPaneRefused(query, panes.value)) void router.replace({ query: withPersonPane(query, PERSON_PANES[0]!.value) });
     },
     { immediate: true }

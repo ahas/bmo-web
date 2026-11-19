@@ -14,7 +14,9 @@ export function administratorOpens(reader: Pick<OrganizationReader, "administrat
 
 export const ADMIN_TABS: readonly OrganizationTab[] = [
   { value: "providers", label: "settings.label.providers", icon: "i-material-symbols-hub-outline", opens: administratorOpens, keys: [], wide: false, load: () => import("~/components/OrganizationProviders.vue") },
-  { value: "secret-kinds", label: "secrets.label.kinds", icon: "i-material-symbols-key-outline", opens: administratorOpens, keys: [], wide: false, load: () => import("~/components/OrganizationSecretKinds.vue") }
+  { value: "secret-kinds", label: "secrets.label.kinds", icon: "i-material-symbols-key-outline", opens: administratorOpens, keys: [], wide: false, load: () => import("~/components/OrganizationSecretKinds.vue") },
+  { value: "plans", label: "supply.label.plans", icon: "i-material-symbols-receipt-long-outline", opens: administratorOpens, keys: [], wide: false, load: () => import("~/components/AdminPlans.vue") },
+  { value: "credits", label: "supply.label.credits", icon: "i-material-symbols-payments-outline", opens: administratorOpens, keys: [], wide: false, load: () => import("~/components/AdminCredits.vue") }
 ];
 
 /** The tab an address asks for, the first where it names none. */

@@ -1831,6 +1831,7 @@ settings:
     providers: 공급자
     machine: 기기
     secrets: 비밀 보관함
+    supply: 공급
     supervisor_none: 감독관 없음
     theme: 테마
   action:
@@ -3844,3 +3845,173 @@ bmo_profile:
     not_found: 회사나 조직을 찾을 수 없습니다.
     read_failed: BMO 설정을 불러오지 못했습니다.
     failed: BMO 설정을 저장하지 못했습니다.
+
+# The supply screens (docs/web.md, the 공급 sections): a person's own logins, keys and order, an organisation's
+# policy, plan and wallet, and the administrator's plans and credits. Words the five sources take, the states a
+# credential stands in, and the sentences every refusal and question is said in.
+supply:
+  title:
+    logins: 공급 로그인
+    keys: 공급 키
+    order: 공급 순서
+    credits: 개인 크레딧
+    usage: 이번 달 사용량
+    policy: 공급 정책
+    plan: 플랜
+    platform_policy: 플랫폼 기본 정책
+    audit: 감사 기록
+    key_add: 공급 키 추가
+    credit_grant: 크레딧 부여
+    policy_set: 공급 정책 설정
+    plan_add: 플랜 추가
+    plan_edit: 플랜 편집
+  label:
+    note: 로그인과 키의 값은 이 화면에 나타나지 않습니다. 이름과 상태만 보입니다.
+    tab: 공급
+    plans: 플랜
+    plans_none: 플랜 없음
+    credits: 크레딧
+    unit: 조직
+    no_units: 관리할 공급이 있는 조직이 없습니다.
+    source_personal: 개인 공급
+    source_global: 전역 공급
+    source_org_credits: 조직 크레딧
+    source_personal_credits: 개인 크레딧
+    source_stop: 중단
+    reason_not_in_plan: 계획에 없음
+    reason_blocked_by_organisation: 조직에서 막음
+    reason_blocked_by_administrator: 관리자가 막힘
+    road: 공급자
+    road_claude: Claude
+    road_codex: Codex
+    road_deepseek: DeepSeek
+    road_openrouter: OpenRouter
+    secret: 비밀
+    secret_note: 값은 비밀 보관함에 있고, 여기에는 이름만 전합니다.
+    secrets_none: 내 비밀 보관함에 아직 비밀이 없습니다.
+    logins_none: 공급 로그인 없음
+    keys_none: 공급 키 없음
+    usable: 사용 가능
+    usable_off: 사용 안 함
+    login_off: 꺼짐
+    login_needed: 로그인 필요
+    window_full: 창 가득 참
+    refused: 키 거부됨
+    personal_credits_on: 개인 크레딧 사용
+    personal_credits_note: 켜면 개인 크레딧이 공급 순서에 들어옵니다.
+    personal_credit_cap: 개인 크레딧 월 상한
+    personal_credit_cap_note: 한 달에 개인 크레딧으로 보낼 수 있는 가장 큰 양입니다.
+    cap_none: 상한 없음
+    usage_none: 사용량 없음
+    global_remaining: 계획 남은 공급
+    personal_balance: 개인 크레딧 잔액
+    plan_none: 계획 없음
+    credits_count: "{n} 크레딧"
+    won: "{n}원"
+    policy: 정책
+    follows_above: 상위 조직을 따름
+    follows_unit: 조직을 따름
+    member_credit_cap: 개인 크레딧 월 상한
+    plan_name: 이름
+    price: 가격
+    price_whole: 한 주기 가격, 원 단위
+    period: 주기
+    period_day: 매일
+    period_week: 매주
+    period_month: 월간
+    period_quarter: 분기별
+    period_year: 연간
+    included: 기간 포함
+    credits_usable: 크레딧 사용 가능
+    credits_usable_on: 크레딧 사용 가능
+    credits_usable_off: 크레딧 사용 불가
+    balance: 잔액
+    rate: 전환율
+    rate_note: 비용 1 US 달러를 크레딧으로 환산하는 비율입니다.
+    reservation: 예약 크레딧
+    reservation_note: 실행마다 예약이 열리고 커지는 크기의 단위입니다.
+    enforce: 공급 제한 적용
+    enforce_note: 꺼 두면 사용량만 기록하고 아무 실행도 공급으로 막지 않습니다.
+    scope: 대상
+    scope_personal: 개인
+    scope_organisation: 조직
+    owner: 대상
+    amount: 금액
+    words: 메모
+    words_placeholder: 선택
+    kind_grant: 부여
+    kind_consume: 소비
+    kind_reserve: 예약
+    kind_capture: 사용
+    kind_refund: 환불
+    kind_debit: 차감
+    kind_policy: 정책
+    kind_settings: 설정
+    kind_plan: 플랜
+    kind_named: "알 수 없는 코드 `{kind}`"
+    owner_user: 사용자
+    owner_organisation: 조직
+    ledger_none: 기록 없음
+    audit_none: 감사 기록 없음
+    personal: 개인 공급
+    personal_none: 개인 공급 없음
+    providers: 개인 공급 제공처
+    resolved_order: 공급 순서
+  action:
+    login_add: 공급 로그인 추가
+    login_again: 로그인
+    key_add: 공급 키 추가
+    open_store: 비밀 보관함으로
+    policy_set: 정책 설정
+    policy_delete: 정책 삭제
+    credit_grant: 크레딧 부여
+    grant: 부여
+    plan_add: 플랜 추가
+    more: 더 불러오기
+  aria:
+    login_switch: "{name} 공급 로그인 켜기"
+    key_switch: "{name} 공급 키 켜기"
+    source_switch: "{name} 공급 사용"
+  status:
+    loading: 공급 정보 불러오는 중…
+    ledger_loading: 장부 불러오는 중…
+    audit_loading: 감사 기록 불러오는 중…
+  message:
+    login_delete: "{name} 공급 로그인을 삭제할까요?"
+    login_delete_effect: 이 로그인을 쓰던 실행은 공급 순서의 다음을 따릅니다.
+    key_delete: "{name} 공급 키를 삭제할까요?"
+    key_delete_effect: 비밀 자체는 보관함에 남고, 이 키로 서던 공급만 사라집니다.
+    policy_delete: 공급 정책을 삭제할까요?
+    policy_delete_effect: 이 조직은 상위 조직의 정책을 따릅니다.
+    policy_delete_effect_user: 이 사람은 소속 조직의 정책을 따릅니다.
+    plan_delete: "{name} 플랜을 삭제할까요?"
+    plan_delete_effect: 새로 이 플랜을 사는 사람은 없습니다.
+  placeholder:
+    find_person: 사람 찾기
+  error:
+    read_failed: 공급 정보를 불러오지 못했습니다.
+    logins_failed: 공급 로그인을 변경하지 못했습니다.
+    signin_failed: 로그인을 시작하지 못했습니다.
+    key_failed: 공급 키를 변경하지 못했습니다.
+    order_failed: 공급 설정을 저장하지 못했습니다.
+    policy_failed: 공급 정책을 저장하지 못했습니다.
+    grant_failed: 크레딧을 부여하지 못했습니다.
+    plan_failed: 플랜을 저장하지 못했습니다.
+    platform_failed: 플랫폼 공급 설정을 저장하지 못했습니다.
+    platform_read_failed: 플랫폼 공급 설정을 불러오지 못했습니다.
+    ledger_failed: 크레딧 장부를 불러오지 못했습니다.
+    audit_failed: 감사 기록을 불러오지 못했습니다.
+    forbidden: 이 정보를 볼 권한이 없습니다.
+    source_not_allowed: 허용되지 않은 공급원이 있습니다.
+    not_in_plan: 계획에 없는 공급원입니다.
+    blocked_by_organisation: 조직에서 허용하지 않은 공급원입니다.
+    blocked_by_administrator: 관리자가 허용하지 않은 공급원입니다.
+    not_in_force: 공급 기능이 아직 이 배포에 켜지지 않았습니다.
+    no_agency: 이 배포에는 에이전시가 지정되어 있지 않아 개인 공급을 알 수 없습니다.
+    upstream_failed: 다른 단위가 답하지 않아 공급 정보를 불러오지 못했습니다.
+    bad_request: 공급 요청을 처리할 수 없습니다.
+    unknown_road: 알 수 없는 공급처입니다.
+    key_taken: 이 공급처에는 이미 키가 있습니다.
+    key_gone: 공급 키를 찾을 수 없습니다.
+    node_off: 기기가 연결되어 있지 않아 로그인을 시작할 수 없습니다.
+    secret_name: 비밀 이름이 올바르지 않습니다.

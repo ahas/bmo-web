@@ -12,6 +12,9 @@ export const PERSON_PANE_KEY = "pane";
 /** Who reads the person, as far as which tabs stand for them. */
 export interface PersonPaneReader {
   administrator: boolean;
+  // Whether the reader may open the person's supply tab: the administrator, or whoever the account service says
+  // manages supply for the unit this person stands in (docs/web.md, 「Organisation」, the people tab).
+  supply?: boolean;
 }
 
 /** What every tab is handed: the person, and the one read of them the head stands on, which some tabs show. */
@@ -48,11 +51,18 @@ function administratorOpens(reader: PersonPaneReader): boolean {
   return reader.administrator;
 }
 
+// The supply tab stands for the administrator and for a reader who manages supply for the unit the person stands
+// in; the screen holds it where that reader's own read says so (docs/web.md, 「Organisation」, the people tab).
+function supplyReaderOpens(reader: PersonPaneReader): boolean {
+  return reader.administrator || reader.supply === true;
+}
+
 export const PERSON_PANES: readonly PersonPane[] = [
   { value: "account", label: "settings.label.account", opens: everyReaderOpens, load: () => import("~/components/PersonAccount.vue") },
   { value: "organization", label: "people.label.organization", opens: everyReaderOpens, load: () => import("~/components/PersonOrganization.vue") },
   { value: "permissions", label: "settings.label.permissions", opens: administratorOpens, load: () => import("~/components/PersonPermissions.vue") },
   { value: "bmo", label: "settings.label.bmo", opens: everyReaderOpens, load: () => import("~/components/PersonBmo.vue") },
+  { value: "supply", label: "supply.label.tab", opens: supplyReaderOpens, load: () => import("~/components/PersonSupply.vue") },
   { value: "activity", label: "roster.label.activity", opens: administratorOpens, load: () => import("~/components/PersonActivity.vue") }
 ];
 

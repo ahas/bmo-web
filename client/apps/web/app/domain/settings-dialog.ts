@@ -31,6 +31,7 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   { key: "agent", label: "settings.label.agent", icon: "i-material-symbols-face-outline", administrator: false, user: true, personalize: true, load: () => import("~/components/SettingsBmo.vue") },
   { key: "machine", label: "settings.label.machine", icon: "i-material-symbols-computer-outline", administrator: false, user: true, load: () => import("~/components/SettingsMachine.vue") },
   { key: "secrets", label: "settings.label.secrets", icon: "i-material-symbols-key-outline", administrator: false, user: true, load: () => import("~/components/SettingsSecrets.vue") },
+  { key: "supply", label: "settings.label.supply", icon: "i-material-symbols-bolt-outline", administrator: false, user: true, load: () => import("~/components/SettingsSupply.vue") },
   { key: "theme", label: "settings.label.theme", icon: "i-material-symbols-contrast", administrator: false, user: false, load: () => import("~/components/SettingsTheme.vue") },
   { key: "palette", label: "settings.label.palette", icon: "i-material-symbols-chat-bubble-outline", administrator: false, user: false, load: () => import("~/components/SettingsPalette.vue") },
   { key: "notifications", label: "settings.label.notifications", icon: "i-material-symbols-notifications-outline", administrator: true, user: false, load: () => import("~/components/SettingsNotifications.vue") },

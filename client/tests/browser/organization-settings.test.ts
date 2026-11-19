@@ -32,7 +32,7 @@ const PERSONAL = ["settings.label.account", "settings.label.secrets", "settings.
 const ADMINISTRATOR_PERSONAL = [...PERSONAL, "settings.label.notifications", "settings.label.briefing"];
 const MOVED = ["settings.label.invites", "settings.label.permissions", "settings.label.providers", "secrets.label.kinds", "research.title.supervisor"];
 const TABS = ["organization.label.chart", "roster.label.tab", "catalogue.label.tab", "settings.label.invites", "settings.label.bmo"];
-const ADMIN_TABS = ["settings.label.providers", "secrets.label.kinds"];
+const ADMIN_TABS = ["settings.label.providers", "secrets.label.kinds", "supply.label.plans", "supply.label.credits"];
 
 let browser: Browser | null = null;
 const cookies = new Map<string, string>();

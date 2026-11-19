@@ -176,7 +176,9 @@ describe.skipIf(!origin || !touchReady())("the state tab's last job", () => {
 
         const figures = await figuresOf(page);
 
-        expect((await figures.boundingBox())!.height).toBe(kept);
+        // The same height to within half a pixel: the layout measures on fractional device pixels, so a
+        // sub-pixel difference is the same block, not one re-laid out.
+        expect(Math.abs((await figures.boundingBox())!.height - kept)).toBeLessThanOrEqual(0.5);
 
         expect(await textOf(figures.locator("[data-job-time]"))).toBe(wording("agents.label.job_took", { time: wording("common.label.minutes_seconds", { m: 12, s: 34 }) }));
         expect(await textOf(figures.locator("[data-job-tools]"))).toBe(wording("agents.label.job_tools", { n: "1,234" }));

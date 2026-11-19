@@ -23,5 +23,6 @@ mod routes;
 mod secret_kinds;
 mod secrets;
 mod sections;
+mod supply;
 mod units;
 mod words;

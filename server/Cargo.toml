@@ -46,10 +46,14 @@ serde_json = "1.0.145"
 sha2 = "0.10.9"
 # PostgreSQL's client under sea-orm, taken by itself for the pool's options.
 sqlx = { version = "0.8.6", default-features = false, features = ["postgres", "runtime-tokio"] }
-# The base: users, sessions, API keys and permission layers, with sessions on Valkey and nothing of its
-# storage, mail or membership. sumida builds its token routes only with a secret store chosen, and the
-# static one is chosen; no token is ever issued here.
-sumida = { git = "https://github.com/ahas/sumida", rev = "1ecbf4e48f052ecfd1c12f936fdcb1417d8e5ae0", default-features = false, features = ["session-store-redis", "jwt-secret-store-static"] }
+# The inert session a credit grant is judged under: sumida's membership services read the acting person
+# from a session, and the supply routes hold one with no store behind it.
+tower-sessions = "0.14.0"
+# The base: users, sessions, API keys and permission layers, with sessions on Valkey, and its membership
+# domain beside them — the plans, wallets, quotas and holds the supply answers stand on (docs/accounts.md,
+# 「Supply」); mail-form because the membership schema seeds its notices' forms. sumida builds its token
+# routes only with a secret store chosen, and the static one is chosen; no token is ever issued here.
+sumida = { git = "https://github.com/ahas/sumida", rev = "b80b190a435a1224e9efd81a66c9b7643b836092", default-features = false, features = ["session-store-redis", "jwt-secret-store-static", "membership", "mail-form"] }
 thiserror = "2.0.21"
 tokio.workspace = true
 

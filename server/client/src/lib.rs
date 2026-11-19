@@ -10,12 +10,14 @@
 mod client;
 mod openapi;
 mod organisation;
+mod supply;
 mod types;
 mod wire;
 
 pub use client::{AccountClient, OWNER_KEY, OWNER_ROLE};
 pub use openapi::{openapi, openapi_json};
 pub use organisation::*;
+pub use supply::*;
 pub use types::*;
 pub use wire::{Answer, ClientFailure, SessionError, WireError};
 

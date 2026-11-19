@@ -4,9 +4,11 @@
 //! with an answer is its caller's.
 
 pub mod acting;
+pub mod agency;
 pub mod agents;
 pub mod attributes;
 pub mod callers;
+// The supply domain: what the service answers of who pays, both to the agency and to the console.
 pub mod catalogue;
 pub mod checks;
 pub mod data_move;
@@ -37,6 +39,7 @@ pub mod secrets;
 pub mod sections;
 pub mod settings;
 pub mod store;
+pub mod supply;
 pub mod units;
 pub mod users;
 pub mod watching;
@@ -76,6 +79,9 @@ pub struct Service {
   pub nodes: Option<Arc<nodes::Nodes>>,
   /// The desktop pairings standing now, held in memory alone.
   pub pairings: Arc<pairings::Pairings>,
+  /// The agency the supply hook is registered at and whose personal supply an administrator reads, one that
+  /// refuses every read where the settings name none (docs/accounts.md, 「Supply」).
+  pub agency: Arc<dyn agency::Agency>,
 }
 
 impl Service {
@@ -94,6 +100,13 @@ impl Service {
   /// The same service reading its pairings' time from `clock`.
   pub fn pairing_by(mut self, clock: pairings::Clock) -> Self {
     self.pairings = Arc::new(pairings::Pairings::new(clock));
+    self
+  }
+
+  /// The same service reaching the agency at `agency`: its own hook registration and an administrator's
+  /// read of whose personal supply serves which roads.
+  pub fn calling_agency(mut self, agency: Arc<dyn agency::Agency>) -> Self {
+    self.agency = agency;
     self
   }
 }

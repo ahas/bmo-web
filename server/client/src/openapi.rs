@@ -10,6 +10,7 @@ use schemars::generate::{SchemaGenerator, SchemaSettings};
 use serde_json::{Map, Value, json};
 
 use crate::organisation::*;
+use crate::supply::*;
 use crate::types::*;
 use crate::wire::{SessionError, WireError};
 
@@ -18,7 +19,8 @@ const SCHEMAS: &str = "/components/schemas";
 
 const DESCRIPTION: &str = "The web console's server: the account service on sumida, which holds the users, the \
   senders linked to them, the grants they hold, the account model they stand in, the room holdings the \
-  receiver asks about, the fixed lines a room says, and the secret store, which writes each person's secrets \
+  receiver asks about, the fixed lines a room says, the supply the agency asks who pays for — the sources, \
+  the policy layers, the reservations and the settled costs — and the secret store, which writes each person's secrets \
   as files in a space of their own, the administrator's the folder every unit reads the deployment's secrets \
   from, and answers no value, with the kinds its form asks a value in. Its own routes answer \
   in the common wire format: camelCase keys, times as integers of epoch milliseconds, ids as signed 64-bit \
@@ -1580,6 +1582,253 @@ pub fn openapi() -> Value {
     body: render_body(&mut generator),
     answers: vec![(200, json_answer::<Rendered>(&mut generator))],
     codes: vec!["bad-request", "not-found", "unknown-language", "unknown-code", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "POST",
+    "/supply/hook",
+    "supplyHook",
+    "Supply",
+    "The agency's supply ask, answered under `answer`: the order, or a reservation taken, extended, captured or released.",
+    params: vec![],
+    body: Some(json!(generator.subschema_for::<SupplyHookAsk>())),
+    answers: vec![(200, json_answer::<SupplyHookAnswer>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/supply/me",
+    "supplyMe",
+    "Supply",
+    "The reader's own supply: the resolved order, each source's standing and reason, this month's usage, the plan's remaining included amount and the personal credit balance.",
+    params: vec![owner_key()],
+    body: None,
+    answers: vec![(200, json_answer::<SupplyView>(&mut generator))],
+    codes: vec!["forbidden", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PUT",
+    "/supply/me",
+    "setSupplyMe",
+    "Supply",
+    "The reader's own setting written whole; a source an earlier layer closed is refused by the closer's code.",
+    params: vec![owner_key()],
+    body: Some(json!(generator.subschema_for::<SupplySettingAsk>())),
+    answers: vec![(200, json_answer::<SupplyView>(&mut generator))],
+    codes: vec!["bad-request", "forbidden", "source-not-allowed", "not-in-plan", "blocked-by-organisation", "blocked-by-administrator", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/supply/org/{unit}",
+    "supplyOrg",
+    "Supply",
+    "A unit's supply: the policy standing for it, its plan, its wallet and this month's usage per member, each read by the hand that may read it.",
+    params: vec![integer_path("unit"), owner_key(), owner_role()],
+    body: None,
+    answers: vec![(200, json_answer::<SupplyOrgView>(&mut generator))],
+    codes: vec!["bad-request", "forbidden", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PUT",
+    "/supply/org/{unit}",
+    "setSupplyOrg",
+    "Supply",
+    "A unit's supply policy written whole, by its credit manager or its head.",
+    params: vec![integer_path("unit"), owner_key(), owner_role()],
+    body: Some(json!(generator.subschema_for::<SupplyPolicyAsk>())),
+    answers: vec![(200, json_answer::<SupplyOrgView>(&mut generator))],
+    codes: vec!["bad-request", "forbidden", "source-not-allowed", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "DELETE",
+    "/supply/org/{unit}",
+    "clearSupplyOrg",
+    "Supply",
+    "A unit's supply policy taken away, the unit inheriting again.",
+    params: vec![integer_path("unit"), owner_key(), owner_role()],
+    body: None,
+    answers: vec![(200, json_answer::<SupplyOrgView>(&mut generator))],
+    codes: vec!["bad-request", "forbidden", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "POST",
+    "/supply/org/{unit}/credits",
+    "grantSupplyOrgCredits",
+    "Supply",
+    "Credits into a unit's wallet, answered the wallet as it stands after.",
+    params: vec![integer_path("unit"), owner_key(), owner_role()],
+    body: Some(json!(generator.subschema_for::<SupplyGrantAsk>())),
+    answers: vec![(200, json_answer::<SupplyGranted>(&mut generator))],
+    codes: vec!["bad-request", "forbidden", "not-in-force", "database", "upstream-failed", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/supply/user/{user}",
+    "supplyUser",
+    "Supply",
+    "A person's supply as an administrator reads it: their per-user policy, the roads their personal supply serves, and their resolved order.",
+    params: vec![string_path("user"), owner_key(), owner_role()],
+    body: None,
+    answers: vec![(200, json_answer::<SupplyUserView>(&mut generator))],
+    codes: vec!["bad-request", "forbidden", "not-in-force", "no-agency", "upstream-failed", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PUT",
+    "/supply/user/{user}",
+    "setSupplyUser",
+    "Supply",
+    "A person's per-user policy written whole, narrowing within their organisation.",
+    params: vec![string_path("user"), owner_key(), owner_role()],
+    body: Some(json!(generator.subschema_for::<SupplyPolicyAsk>())),
+    answers: vec![(200, json_answer::<SupplyUserView>(&mut generator))],
+    codes: vec!["bad-request", "forbidden", "source-not-allowed", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "DELETE",
+    "/supply/user/{user}",
+    "clearSupplyUser",
+    "Supply",
+    "A person's per-user policy taken away, the person following their organisation's again.",
+    params: vec![string_path("user"), owner_key(), owner_role()],
+    body: None,
+    answers: vec![(200, json_answer::<SupplyUserView>(&mut generator))],
+    codes: vec!["bad-request", "forbidden", "not-in-force", "no-agency", "upstream-failed", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/supply/platform",
+    "supplyPlatform",
+    "Supply",
+    "The platform's default policy and money settings.",
+    params: vec![owner_key(), owner_role()],
+    body: None,
+    answers: vec![(200, json_answer::<SupplyPlatform>(&mut generator))],
+    codes: vec!["forbidden", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PUT",
+    "/supply/platform",
+    "setSupplyPlatform",
+    "Supply",
+    "Any part of the platform's policy and money settings changed.",
+    params: vec![owner_key(), owner_role()],
+    body: Some(json!(generator.subschema_for::<SupplyPlatformAsk>())),
+    answers: vec![(200, json_answer::<SupplyPlatform>(&mut generator))],
+    codes: vec!["bad-request", "forbidden", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/supply/plans",
+    "supplyPlans",
+    "Supply",
+    "Every membership plan that stands, retired ones aside.",
+    params: vec![owner_key(), owner_role()],
+    body: None,
+    answers: vec![(200, json_answer::<SupplyPlans>(&mut generator))],
+    codes: vec!["forbidden", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "POST",
+    "/supply/plans",
+    "addSupplyPlan",
+    "Supply",
+    "A membership plan made.",
+    params: vec![owner_key(), owner_role()],
+    body: Some(json!(generator.subschema_for::<SupplyPlanAsk>())),
+    answers: vec![(201, json_answer::<SupplyPlan>(&mut generator))],
+    codes: vec!["bad-request", "forbidden", "not-in-force", "database", "upstream-failed", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PATCH",
+    "/supply/plans/{plan}",
+    "changeSupplyPlan",
+    "Supply",
+    "A membership plan changed.",
+    params: vec![integer_path("plan"), owner_key(), owner_role()],
+    body: Some(json!(generator.subschema_for::<SupplyPlanPatch>())),
+    answers: vec![(200, json_answer::<SupplyPlan>(&mut generator))],
+    codes: vec!["bad-request", "forbidden", "not-found", "not-in-force", "database", "upstream-failed", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "DELETE",
+    "/supply/plans/{plan}",
+    "retireSupplyPlan",
+    "Supply",
+    "A membership plan retired, its subscriptions standing on their snapshot.",
+    params: vec![integer_path("plan"), owner_key(), owner_role()],
+    body: None,
+    answers: vec![(200, json_answer::<SupplyPlans>(&mut generator))],
+    codes: vec!["bad-request", "forbidden", "not-found", "not-in-force", "database", "upstream-failed", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "POST",
+    "/supply/credits",
+    "grantSupplyCredits",
+    "Supply",
+    "Credits into anyone's wallet, the platform administrator's act, answered the wallet as it stands after.",
+    params: vec![owner_key(), owner_role()],
+    body: Some(json!(generator.subschema_for::<SupplyCreditAsk>())),
+    answers: vec![(200, json_answer::<SupplyGranted>(&mut generator))],
+    codes: vec!["bad-request", "forbidden", "not-in-force", "database", "upstream-failed", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/supply/credits/ledger",
+    "supplyLedger",
+    "Supply",
+    "The membership wallet ledger, newest first, paged.",
+    params: vec![owner_key(), owner_role(), parameter("after", "integer", false), parameter("limit", "integer", false)],
+    body: None,
+    answers: vec![(200, json_answer::<SupplyLedgerPage>(&mut generator))],
+    codes: vec!["forbidden", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/supply/credits/audit",
+    "supplyAudit",
+    "Supply",
+    "Every supply act an outsider must be able to name, newest first, paged.",
+    params: vec![owner_key(), owner_role(), parameter("after", "integer", false), parameter("limit", "integer", false)],
+    body: None,
+    answers: vec![(200, json_answer::<SupplyAuditPage>(&mut generator))],
+    codes: vec!["forbidden", "not-in-force", "database", "failed"],
     refusal: Refusal::Wire,
     security: bearer()
   );

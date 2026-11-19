@@ -3634,6 +3634,977 @@
           }
         ]
       },
+      "SupplyAuditEntry": {
+        "description": "One audited supply act.",
+        "properties": {
+          "at": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "by": {
+            "type": "string"
+          },
+          "byName": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "kind": {
+            "description": "`grant`, `policy`, `settings` or `plan`.",
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "at",
+          "by",
+          "byName",
+          "kind",
+          "subject",
+          "detail"
+        ],
+        "type": "object"
+      },
+      "SupplyAuditPage": {
+        "description": "A page of the audit, newest first.",
+        "properties": {
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/SupplyAuditEntry"
+            },
+            "type": "array"
+          },
+          "next": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "entries",
+          "next"
+        ],
+        "type": "object"
+      },
+      "SupplyCreditAsk": {
+        "description": "Credits granted to anyone.",
+        "properties": {
+          "amount": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "ownerId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "ownerKind": {
+            "description": "`user` or `organisation`.",
+            "type": "string"
+          },
+          "words": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "ownerKind",
+          "ownerId",
+          "amount"
+        ],
+        "type": "object"
+      },
+      "SupplyGrantAsk": {
+        "description": "Credits granted to a unit's wallet.",
+        "properties": {
+          "amount": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "words": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "amount"
+        ],
+        "type": "object"
+      },
+      "SupplyGranted": {
+        "description": "The wallet as it stands after a grant.",
+        "properties": {
+          "balance": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "debt": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "balance",
+          "debt"
+        ],
+        "type": "object"
+      },
+      "SupplyHookAnswer": {
+        "description": "The answer to a hook operation, under `answer`.",
+        "properties": {
+          "answer": {
+            "$ref": "#/components/schemas/SupplyHookReply"
+          }
+        },
+        "required": [
+          "answer"
+        ],
+        "type": "object"
+      },
+      "SupplyHookAsk": {
+        "description": "The ask posted to the supply hook: the point and the operation with its fields.",
+        "properties": {
+          "ask": {
+            "$ref": "#/components/schemas/SupplyHookOp"
+          },
+          "point": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "point",
+          "ask"
+        ],
+        "type": "object"
+      },
+      "SupplyHookOp": {
+        "description": "The ask of one hook operation. Each operation reads the fields it names; the rest stand absent.",
+        "properties": {
+          "account": {
+            "description": "The account the run stands under, as the digits of a user's id: handed as text or as a number."
+          },
+          "costUsd": {
+            "format": "double",
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "job": true,
+          "key": {
+            "description": "The idempotency key `<run>:<step>:<op>`, taken once end to end.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "kind": {
+            "description": "`job` or `turn`, for an order ask.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "model": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "op": {
+            "type": "string"
+          },
+          "provider": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reservation": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "room": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "run": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "source": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "spentUsd": {
+            "format": "double",
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "step": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "supervisor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "op"
+        ],
+        "type": "object"
+      },
+      "SupplyHookReply": {
+        "description": "What one hook operation answered.",
+        "properties": {
+          "accepted": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "amountUsd": {
+            "format": "double",
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "expiresAt": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "reopensAt": {
+            "description": "When a refused reservation may be asked again, where a moment is known.",
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "reservation": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sources": {
+            "description": "The resolved order for an `order` ask, `stop` left out.",
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "taken": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "SupplyLedgerEntry": {
+        "description": "One entry of the credits ledger.",
+        "properties": {
+          "amount": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "at": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "balanceAfter": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "debtChange": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "kind": {
+            "description": "The membership ledger kind: `grant`, `consume`, `reserve`, `capture` and the rest.",
+            "type": "string"
+          },
+          "ownerId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "ownerKind": {
+            "type": "string"
+          },
+          "words": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "at",
+          "ownerKind",
+          "ownerId",
+          "kind",
+          "amount",
+          "debtChange",
+          "balanceAfter"
+        ],
+        "type": "object"
+      },
+      "SupplyLedgerPage": {
+        "description": "A page of the credits ledger, newest first.",
+        "properties": {
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/SupplyLedgerEntry"
+            },
+            "type": "array"
+          },
+          "next": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "entries",
+          "next"
+        ],
+        "type": "object"
+      },
+      "SupplyMemberUsageRow": {
+        "description": "What one member of a unit cost this month, by source.",
+        "properties": {
+          "credits": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "source": {
+            "type": "string"
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user",
+          "source",
+          "credits"
+        ],
+        "type": "object"
+      },
+      "SupplyOrgView": {
+        "description": "A unit's supply view.",
+        "properties": {
+          "inherits": {
+            "type": "boolean"
+          },
+          "plan": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SupplyPlanCard"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "policy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SupplyPolicyView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "unit": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "usage": {
+            "items": {
+              "$ref": "#/components/schemas/SupplyMemberUsageRow"
+            },
+            "type": "array"
+          },
+          "wallet": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SupplyWallet"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "unit",
+          "inherits",
+          "usage"
+        ],
+        "type": "object"
+      },
+      "SupplyPlan": {
+        "description": "One membership plan whole, as the platform's plan screen reads and writes it.",
+        "properties": {
+          "creditsUsable": {
+            "type": "boolean"
+          },
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "includedCredits": {
+            "description": "The amount quota the plan carries for its supply action; null where it includes none.",
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "period": {
+            "description": "`day`, `week`, `month` or `year`.",
+            "type": "string"
+          },
+          "price": {
+            "description": "Whole won.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "scope": {
+            "description": "`personal` or `organisation`.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "price",
+          "scope",
+          "period",
+          "includedCredits",
+          "creditsUsable"
+        ],
+        "type": "object"
+      },
+      "SupplyPlanAsk": {
+        "description": "A plan made whole.",
+        "properties": {
+          "creditsUsable": {
+            "type": "boolean"
+          },
+          "includedCredits": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "period": {
+            "type": "string"
+          },
+          "price": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "scope": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "price",
+          "scope",
+          "period",
+          "includedCredits",
+          "creditsUsable"
+        ],
+        "type": "object"
+      },
+      "SupplyPlanCard": {
+        "description": "The plan standing for a unit, as its `subscription_manager` reads it.",
+        "properties": {
+          "creditsUsable": {
+            "type": "boolean"
+          },
+          "includedCredits": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "period": {
+            "type": "string"
+          },
+          "price": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "scope": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "price",
+          "scope",
+          "period",
+          "includedCredits",
+          "creditsUsable"
+        ],
+        "type": "object"
+      },
+      "SupplyPlanPatch": {
+        "description": "A plan changed in part.",
+        "properties": {
+          "creditsUsable": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "includedCredits": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "period": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "price": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "SupplyPlans": {
+        "description": "The plans, newest first.",
+        "properties": {
+          "plans": {
+            "items": {
+              "$ref": "#/components/schemas/SupplyPlan"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "plans"
+        ],
+        "type": "object"
+      },
+      "SupplyPlatform": {
+        "description": "The platform's policy and money settings.",
+        "properties": {
+          "allowed": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "creditsPerDollar": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "enforce": {
+            "type": "boolean"
+          },
+          "order": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "reservationCredits": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "allowed",
+          "order",
+          "creditsPerDollar",
+          "reservationCredits",
+          "enforce"
+        ],
+        "type": "object"
+      },
+      "SupplyPlatformAsk": {
+        "description": "Any part of the platform row changed.",
+        "properties": {
+          "allowed": {
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "creditsPerDollar": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "enforce": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "order": {
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "reservationCredits": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "SupplyPolicyAsk": {
+        "description": "An organisation's or a person's policy written whole.",
+        "properties": {
+          "allowed": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "memberCreditCredits": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "order": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "allowed",
+          "order"
+        ],
+        "type": "object"
+      },
+      "SupplyPolicyView": {
+        "description": "One policy as it stands for a unit or a person: whose row it is where it stands above.",
+        "properties": {
+          "allowed": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "from": {
+            "description": "The unit whose row stands, where the unit inherits one from above.",
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "memberCreditCredits": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "order": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "allowed",
+          "order"
+        ],
+        "type": "object"
+      },
+      "SupplySettingAsk": {
+        "description": "The reader's own setting written whole.",
+        "properties": {
+          "off": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "order": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "personalCreditCredits": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "personalCreditsOn": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "order",
+          "off",
+          "personalCreditsOn"
+        ],
+        "type": "object"
+      },
+      "SupplySourceState": {
+        "description": "One source as the reader's view stands it: whether the layers above allow it, whether the reader has it\nswitched off, and where it is not allowed, which layer closed it.",
+        "properties": {
+          "allowed": {
+            "type": "boolean"
+          },
+          "off": {
+            "type": "boolean"
+          },
+          "reason": {
+            "description": "`not-in-plan`, `blocked-by-organisation` or `blocked-by-administrator`.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "allowed",
+          "off"
+        ],
+        "type": "object"
+      },
+      "SupplyUsageRow": {
+        "description": "What one source cost this month, per source.",
+        "properties": {
+          "costMicros": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "credits": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "source": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "credits",
+          "costMicros"
+        ],
+        "type": "object"
+      },
+      "SupplyUserView": {
+        "description": "A person's supply as an administrator reads it.",
+        "properties": {
+          "inherits": {
+            "type": "boolean"
+          },
+          "order": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "policy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SupplyPolicyView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "providers": {
+            "description": "The roads the person's personal supply serves; never a credential, never a secret's value.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user",
+          "inherits",
+          "order",
+          "providers"
+        ],
+        "type": "object"
+      },
+      "SupplyView": {
+        "description": "The reader's own supply view.",
+        "properties": {
+          "globalRemaining": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "order": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "personalCreditCredits": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "personalCredits": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SupplySourceState"
+            },
+            "type": "array"
+          },
+          "usage": {
+            "items": {
+              "$ref": "#/components/schemas/SupplyUsageRow"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "order",
+          "sources",
+          "usage"
+        ],
+        "type": "object"
+      },
+      "SupplyWallet": {
+        "description": "What a credit wallet holds.",
+        "properties": {
+          "balance": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "debt": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "reserved": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "balance",
+          "reserved",
+          "debt"
+        ],
+        "type": "object"
+      },
       "UnitChange": {
         "description": "A unit renamed or moved under another parent of its company, its kind, short name and the unit it reports to\nset: each of the last three left as it stands where absent and taken away where null.",
         "properties": {
@@ -4248,7 +5219,7 @@
     }
   },
   "info": {
-    "description": "The web console's server: the account service on sumida, which holds the users, the senders linked to them, the grants they hold, the account model they stand in, the room holdings the receiver asks about, the fixed lines a room says, and the secret store, which writes each person's secrets as files in a space of their own, the administrator's the folder every unit reads the deployment's secrets from, and answers no value, with the kinds its form asks a value in. Its own routes answer in the common wire format: camelCase keys, times as integers of epoch milliseconds, ids as signed 64-bit integers, and every failure as a non-2xx answer carrying code and error. sumida's session routes are mounted under /sumida and take the session cookie instead of the bearer token; their refusals are sumida's own shape. A user's id is answered as the digits of sumida's whole number, a string a caller hands on as it stands.",
+    "description": "The web console's server: the account service on sumida, which holds the users, the senders linked to them, the grants they hold, the account model they stand in, the room holdings the receiver asks about, the fixed lines a room says, the supply the agency asks who pays for — the sources, the policy layers, the reservations and the settled costs — and the secret store, which writes each person's secrets as files in a space of their own, the administrator's the folder every unit reads the deployment's secrets from, and answers no value, with the kinds its form asks a value in. Its own routes answer in the common wire format: camelCase keys, times as integers of epoch milliseconds, ids as signed 64-bit integers, and every failure as a non-2xx answer carrying code and error. sumida's session routes are mounted under /sumida and take the session cookie instead of the bearer token; their refusals are sumida's own shape. A user's id is answered as the digits of sumida's whole number, a string a caller hands on as it stands.",
     "title": "bmo-web-server",
     "version": "0.1.0-rev.1"
   },
@@ -7466,6 +8437,1425 @@
         ],
         "x-codes": [
           "unauthorized"
+        ]
+      }
+    },
+    "/supply/credits": {
+      "post": {
+        "operationId": "grantSupplyCredits",
+        "parameters": [
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupplyCreditAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplyGranted"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, forbidden, not-in-force, database, upstream-failed, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Credits into anyone's wallet, the platform administrator's act, answered the wallet as it stands after.",
+        "tags": [
+          "Supply"
+        ],
+        "x-codes": [
+          "bad-request",
+          "forbidden",
+          "not-in-force",
+          "database",
+          "upstream-failed",
+          "failed"
+        ]
+      }
+    },
+    "/supply/credits/audit": {
+      "get": {
+        "operationId": "supplyAudit",
+        "parameters": [
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "after",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplyAuditPage"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: forbidden, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Every supply act an outsider must be able to name, newest first, paged.",
+        "tags": [
+          "Supply"
+        ],
+        "x-codes": [
+          "forbidden",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/supply/credits/ledger": {
+      "get": {
+        "operationId": "supplyLedger",
+        "parameters": [
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "after",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplyLedgerPage"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: forbidden, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The membership wallet ledger, newest first, paged.",
+        "tags": [
+          "Supply"
+        ],
+        "x-codes": [
+          "forbidden",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/supply/hook": {
+      "post": {
+        "operationId": "supplyHook",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupplyHookAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplyHookAnswer"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The agency's supply ask, answered under `answer`: the order, or a reservation taken, extended, captured or released.",
+        "tags": [
+          "Supply"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/supply/me": {
+      "get": {
+        "operationId": "supplyMe",
+        "parameters": [
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplyView"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: forbidden, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The reader's own supply: the resolved order, each source's standing and reason, this month's usage, the plan's remaining included amount and the personal credit balance.",
+        "tags": [
+          "Supply"
+        ],
+        "x-codes": [
+          "forbidden",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "put": {
+        "operationId": "setSupplyMe",
+        "parameters": [
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupplySettingAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplyView"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, forbidden, source-not-allowed, not-in-plan, blocked-by-organisation, blocked-by-administrator, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The reader's own setting written whole; a source an earlier layer closed is refused by the closer's code.",
+        "tags": [
+          "Supply"
+        ],
+        "x-codes": [
+          "bad-request",
+          "forbidden",
+          "source-not-allowed",
+          "not-in-plan",
+          "blocked-by-organisation",
+          "blocked-by-administrator",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/supply/org/{unit}": {
+      "delete": {
+        "operationId": "clearSupplyOrg",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "unit",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplyOrgView"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, forbidden, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A unit's supply policy taken away, the unit inheriting again.",
+        "tags": [
+          "Supply"
+        ],
+        "x-codes": [
+          "bad-request",
+          "forbidden",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "get": {
+        "operationId": "supplyOrg",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "unit",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplyOrgView"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, forbidden, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A unit's supply: the policy standing for it, its plan, its wallet and this month's usage per member, each read by the hand that may read it.",
+        "tags": [
+          "Supply"
+        ],
+        "x-codes": [
+          "bad-request",
+          "forbidden",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "put": {
+        "operationId": "setSupplyOrg",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "unit",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupplyPolicyAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplyOrgView"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, forbidden, source-not-allowed, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A unit's supply policy written whole, by its credit manager or its head.",
+        "tags": [
+          "Supply"
+        ],
+        "x-codes": [
+          "bad-request",
+          "forbidden",
+          "source-not-allowed",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/supply/org/{unit}/credits": {
+      "post": {
+        "operationId": "grantSupplyOrgCredits",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "unit",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupplyGrantAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplyGranted"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, forbidden, not-in-force, database, upstream-failed, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Credits into a unit's wallet, answered the wallet as it stands after.",
+        "tags": [
+          "Supply"
+        ],
+        "x-codes": [
+          "bad-request",
+          "forbidden",
+          "not-in-force",
+          "database",
+          "upstream-failed",
+          "failed"
+        ]
+      }
+    },
+    "/supply/plans": {
+      "get": {
+        "operationId": "supplyPlans",
+        "parameters": [
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplyPlans"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: forbidden, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Every membership plan that stands, retired ones aside.",
+        "tags": [
+          "Supply"
+        ],
+        "x-codes": [
+          "forbidden",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "post": {
+        "operationId": "addSupplyPlan",
+        "parameters": [
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupplyPlanAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplyPlan"
+                }
+              }
+            },
+            "description": "Made."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, forbidden, not-in-force, database, upstream-failed, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A membership plan made.",
+        "tags": [
+          "Supply"
+        ],
+        "x-codes": [
+          "bad-request",
+          "forbidden",
+          "not-in-force",
+          "database",
+          "upstream-failed",
+          "failed"
+        ]
+      }
+    },
+    "/supply/plans/{plan}": {
+      "delete": {
+        "operationId": "retireSupplyPlan",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "plan",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplyPlans"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, forbidden, not-found, not-in-force, database, upstream-failed, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A membership plan retired, its subscriptions standing on their snapshot.",
+        "tags": [
+          "Supply"
+        ],
+        "x-codes": [
+          "bad-request",
+          "forbidden",
+          "not-found",
+          "not-in-force",
+          "database",
+          "upstream-failed",
+          "failed"
+        ]
+      },
+      "patch": {
+        "operationId": "changeSupplyPlan",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "plan",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupplyPlanPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplyPlan"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, forbidden, not-found, not-in-force, database, upstream-failed, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A membership plan changed.",
+        "tags": [
+          "Supply"
+        ],
+        "x-codes": [
+          "bad-request",
+          "forbidden",
+          "not-found",
+          "not-in-force",
+          "database",
+          "upstream-failed",
+          "failed"
+        ]
+      }
+    },
+    "/supply/platform": {
+      "get": {
+        "operationId": "supplyPlatform",
+        "parameters": [
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplyPlatform"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: forbidden, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The platform's default policy and money settings.",
+        "tags": [
+          "Supply"
+        ],
+        "x-codes": [
+          "forbidden",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "put": {
+        "operationId": "setSupplyPlatform",
+        "parameters": [
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupplyPlatformAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplyPlatform"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, forbidden, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Any part of the platform's policy and money settings changed.",
+        "tags": [
+          "Supply"
+        ],
+        "x-codes": [
+          "bad-request",
+          "forbidden",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/supply/user/{user}": {
+      "delete": {
+        "operationId": "clearSupplyUser",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplyUserView"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, forbidden, not-in-force, no-agency, upstream-failed, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A person's per-user policy taken away, the person following their organisation's again.",
+        "tags": [
+          "Supply"
+        ],
+        "x-codes": [
+          "bad-request",
+          "forbidden",
+          "not-in-force",
+          "no-agency",
+          "upstream-failed",
+          "database",
+          "failed"
+        ]
+      },
+      "get": {
+        "operationId": "supplyUser",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplyUserView"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, forbidden, not-in-force, no-agency, upstream-failed, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A person's supply as an administrator reads it: their per-user policy, the roads their personal supply serves, and their resolved order.",
+        "tags": [
+          "Supply"
+        ],
+        "x-codes": [
+          "bad-request",
+          "forbidden",
+          "not-in-force",
+          "no-agency",
+          "upstream-failed",
+          "database",
+          "failed"
+        ]
+      },
+      "put": {
+        "operationId": "setSupplyUser",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupplyPolicyAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplyUserView"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, forbidden, source-not-allowed, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A person's per-user policy written whole, narrowing within their organisation.",
+        "tags": [
+          "Supply"
+        ],
+        "x-codes": [
+          "bad-request",
+          "forbidden",
+          "source-not-allowed",
+          "not-in-force",
+          "database",
+          "failed"
         ]
       }
     },

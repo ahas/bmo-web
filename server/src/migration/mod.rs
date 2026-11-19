@@ -1,7 +1,8 @@
 //! The service's migrations (docs/accounts.md, 「The tables」), run by sea-orm's migrator, which keeps the
-//! versions it ran in its own table. sumida's own tables are made by sumida's migrations, only the ones its
-//! users, keys and grants need; its boards, files and membership stay unmade, and its rules over them read
-//! as absent.
+//! versions it ran in its own table. sumida's own tables are made by sumida's migrations, the ones its
+//! users, keys, grants and membership domain need, its membership migrations after the service's own and its
+//! metering migration after them as sumida asks (docs/accounts.md, 「Supply」); its boards and files stay
+//! unmade, and its rules over them read as absent.
 
 use sea_orm_migration::prelude::*;
 
@@ -20,6 +21,7 @@ pub mod m20261116_000004_sign_ins;
 pub mod m20261117_000001_presence_hidden;
 pub mod m20261118_000001_organisation_roles;
 pub mod m20261118_000002_node_bound_at;
+pub mod m20261119_000001_supply;
 mod secret_kind_seeds;
 
 pub struct Migrator;
@@ -46,6 +48,11 @@ impl MigratorTrait for Migrator {
       Box::new(m20261117_000001_presence_hidden::Migration),
       Box::new(m20261118_000001_organisation_roles::Migration),
       Box::new(m20261118_000002_node_bound_at::Migration),
+      // sumida's membership schema and its metering change after it, registered after the service's own as
+      // the domain asks; the supply tables the service answers the hook from stand after them.
+      Box::new(sumida::entity::migration::membership::Migration),
+      Box::new(sumida::entity::migration::membership_metering::Migration),
+      Box::new(m20261119_000001_supply::Migration),
     ]
   }
 }

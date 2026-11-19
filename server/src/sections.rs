@@ -30,7 +30,7 @@ pub const AGENT_SECTIONS: [&str; 5] = ["supervisors", "roles", "repositories", "
 /// screen the brain brings, with agent management's five parts where its screen stands. `rooms` is the list of
 /// the reader's rooms and `account` the reader's own account, neither of which stands in the navigation's flat
 /// group.
-pub const SECTIONS: [&str; 19] = [
+pub const SECTIONS: [&str; 20] = [
   "live",
   "mail",
   "siren",
@@ -50,21 +50,25 @@ pub const SECTIONS: [&str; 19] = [
   "brain",
   "rooms",
   "account",
+  "supply",
 ];
 
 /// What a reader may use today, and so what a user made without an administrator's word is given: their rooms,
-/// their own account, and the screens units bring that a member may open. A screen whose manifest names the
-/// administrator alone stays closed to them by that manifest, whatever its section says.
-pub const DEFAULT_READ: [&str; 8] =
-  ["mail", "files", "artifact", "code", "remote", "brain", "rooms", "account"];
+/// their own account and their own supply, and the screens units bring that a member may open. A screen whose
+/// manifest names the administrator alone stays closed to them by that manifest, whatever its section says.
+pub const DEFAULT_READ: [&str; 9] =
+  ["mail", "files", "artifact", "code", "remote", "brain", "rooms", "account", "supply"];
 /// The default sections a reader may write.
-pub const DEFAULT_WRITE: [&str; 2] = ["account", "rooms"];
+pub const DEFAULT_WRITE: [&str; 3] = ["account", "rooms", "supply"];
 
 /// The settings key the one-time default seeding is marked under.
 const SEEDED: &str = "sections_seeded_at";
 
 /// The settings key the one-time grant of the rooms' write to users given the earlier defaults is marked under.
 const ROOMS_WRITE_SEEDED: &str = "sections_rooms_write_seeded_at";
+
+/// The settings key the one-time grant of the supply section to users given the defaults is marked under.
+const SUPPLY_SEEDED: &str = "sections_supply_seeded_at";
 
 /// The name a default or an administrator's write is recorded under in the tuple's `created_by`.
 const DEFAULTS: &str = "section-defaults";
@@ -474,6 +478,63 @@ pub async fn backfill_rooms_write<C: ConnectionTrait + TransactionTrait>(db: &C)
     &txn,
     r#"INSERT INTO "settings" ("key", "value") VALUES ($1, $2) ON CONFLICT ("key") DO NOTHING"#,
     vec![ROOMS_WRITE_SEEDED.into(), crate::now_ms().to_string().into()],
+  )
+  .await?;
+  txn.commit().await?;
+
+  Ok(())
+}
+
+/// The supply section given once to the users the defaults reached: every user whose account read stands —
+/// by whichever road gave it — and who holds no supply grant, read and written alike as `account` is. What
+/// an administrator takes away afterwards stays taken, the mark keeping the seeding from running again.
+pub async fn backfill_supply<C: ConnectionTrait + TransactionTrait>(db: &C) -> Result<(), Refusal> {
+  if one(db, r#"SELECT 1 AS "held" FROM "settings" WHERE "key" = $1"#, vec![SUPPLY_SEEDED.into()])
+    .await?
+    .is_some()
+  {
+    return Ok(());
+  }
+
+  let txn = db.begin().await?;
+  let users = crate::all(
+    &txn,
+    r#"SELECT u."id" FROM "users" u
+       WHERE EXISTS (
+         SELECT 1 FROM "relation_tuples" t
+         WHERE t."resource_type" = $1 AND t."resource_id" = 'account' AND t."relation" = 'read'
+           AND t."subject_key" = 'user:' || u."id"
+       )
+       AND NOT EXISTS (
+         SELECT 1 FROM "relation_tuples" t
+         WHERE t."resource_type" = $1 AND t."resource_id" = 'supply'
+           AND t."subject_key" = 'user:' || u."id"
+       )
+       ORDER BY u."id""#,
+    vec![KIND.into()],
+  )
+  .await?;
+
+  // A database with no user the defaults reached keeps no mark, as every other seeding keeps none.
+  if users.is_empty() {
+    txn.rollback().await?;
+
+    return Ok(());
+  }
+
+  for row in &users {
+    let subject = SubjectKey::user(row.try_get("", "id")?);
+
+    for relation in ["read", "write"] {
+      Authz::write_unchecked(TupleWrite::new(KIND, "supply", relation, subject.clone()), DEFAULTS, &txn)
+        .await?;
+    }
+  }
+
+  run(
+    &txn,
+    r#"INSERT INTO "settings" ("key", "value") VALUES ($1, $2) ON CONFLICT ("key") DO NOTHING"#,
+    vec![SUPPLY_SEEDED.into(), crate::now_ms().to_string().into()],
   )
   .await?;
   txn.commit().await?;

@@ -4,6 +4,7 @@ use reqwest::{Client, Method, RequestBuilder, StatusCode, Url};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 
+use crate::supply::*;
 use crate::types::*;
 use crate::wire::{Answer, ClientFailure};
 
@@ -587,6 +588,250 @@ impl AccountClient {
   /// `POST /words/render`.
   pub async fn render_line(&self, ask: &RenderAsk) -> Answer<Rendered> {
     Self::answered(self.send(Method::POST, &["words", "render"], ask)).await
+  }
+
+  /// `POST /supply/hook`: the agency's ask, answered under `answer`.
+  pub async fn supply_hook(&self, ask: &SupplyHookAsk) -> Answer<SupplyHookAnswer> {
+    Self::answered(self.send(Method::POST, &["supply", "hook"], ask)).await
+  }
+
+  /// `GET /supply/me`, asked for the login `key`.
+  pub async fn supply_me(&self, key: &str) -> Answer<SupplyView> {
+    Self::answered(self.request(Method::GET, &["supply", "me"]).header(OWNER_KEY, key)).await
+  }
+
+  /// `PUT /supply/me`, the reader's own setting written whole.
+  pub async fn set_supply_me(&self, key: &str, ask: &SupplySettingAsk) -> Answer<SupplyView> {
+    Self::answered(self.send(Method::PUT, &["supply", "me"], ask).header(OWNER_KEY, key)).await
+  }
+
+  /// `GET /supply/org/{unit}`, read by the unit's credit manager or subscription manager.
+  pub async fn supply_org(&self, unit: i64, key: &str, role: &str) -> Answer<SupplyOrgView> {
+    Self::answered(
+      self
+        .request(Method::GET, &["supply", "org", &unit.to_string()])
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
+  /// `PUT /supply/org/{unit}`.
+  pub async fn set_supply_org(
+    &self,
+    unit: i64,
+    key: &str,
+    role: &str,
+    ask: &SupplyPolicyAsk,
+  ) -> Answer<SupplyOrgView> {
+    Self::answered(
+      self
+        .send(Method::PUT, &["supply", "org", &unit.to_string()], ask)
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
+  /// `DELETE /supply/org/{unit}`: the policy taken away, the unit inheriting again.
+  pub async fn clear_supply_org(&self, unit: i64, key: &str, role: &str) -> Answer<SupplyOrgView> {
+    Self::answered(
+      self
+        .request(Method::DELETE, &["supply", "org", &unit.to_string()])
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
+  /// `POST /supply/org/{unit}/credits`.
+  pub async fn grant_org_credits(
+    &self,
+    unit: i64,
+    key: &str,
+    role: &str,
+    ask: &SupplyGrantAsk,
+  ) -> Answer<SupplyGranted> {
+    Self::answered(
+      self
+        .send(Method::POST, &["supply", "org", &unit.to_string(), "credits"], ask)
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
+  /// `GET /supply/user/{user}`.
+  pub async fn supply_user(&self, user: &str, key: &str, role: &str) -> Answer<SupplyUserView> {
+    Self::answered(
+      self
+        .request(Method::GET, &["supply", "user", user])
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
+  /// `PUT /supply/user/{user}`.
+  pub async fn set_supply_user(
+    &self,
+    user: &str,
+    key: &str,
+    role: &str,
+    ask: &SupplyPolicyAsk,
+  ) -> Answer<SupplyUserView> {
+    Self::answered(
+      self
+        .send(Method::PUT, &["supply", "user", user], ask)
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
+  /// `DELETE /supply/user/{user}`.
+  pub async fn clear_supply_user(&self, user: &str, key: &str, role: &str) -> Answer<SupplyUserView> {
+    Self::answered(
+      self
+        .request(Method::DELETE, &["supply", "user", user])
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
+  /// `GET /supply/platform`.
+  pub async fn supply_platform(&self, key: &str, role: &str) -> Answer<SupplyPlatform> {
+    Self::answered(
+      self
+        .request(Method::GET, &["supply", "platform"])
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
+  /// `PUT /supply/platform`.
+  pub async fn set_supply_platform(
+    &self,
+    key: &str,
+    role: &str,
+    ask: &SupplyPlatformAsk,
+  ) -> Answer<SupplyPlatform> {
+    Self::answered(
+      self
+        .send(Method::PUT, &["supply", "platform"], ask)
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
+  /// `GET /supply/plans`.
+  pub async fn supply_plans(&self, key: &str, role: &str) -> Answer<SupplyPlans> {
+    Self::answered(
+      self
+        .request(Method::GET, &["supply", "plans"])
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
+  /// `POST /supply/plans`.
+  pub async fn add_supply_plan(&self, key: &str, role: &str, ask: &SupplyPlanAsk) -> Answer<SupplyPlan> {
+    Self::answered(
+      self
+        .send(Method::POST, &["supply", "plans"], ask)
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
+  /// `PATCH /supply/plans/{plan}`.
+  pub async fn change_supply_plan(
+    &self,
+    plan: i64,
+    key: &str,
+    role: &str,
+    ask: &SupplyPlanPatch,
+  ) -> Answer<SupplyPlan> {
+    Self::answered(
+      self
+        .send(Method::PATCH, &["supply", "plans", &plan.to_string()], ask)
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
+  /// `DELETE /supply/plans/{plan}`.
+  pub async fn retire_supply_plan(&self, plan: i64, key: &str, role: &str) -> Answer<SupplyPlans> {
+    Self::answered(
+      self
+        .request(Method::DELETE, &["supply", "plans", &plan.to_string()])
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
+  /// `POST /supply/credits`.
+  pub async fn grant_credits(&self, key: &str, role: &str, ask: &SupplyCreditAsk) -> Answer<SupplyGranted> {
+    Self::answered(
+      self
+        .send(Method::POST, &["supply", "credits"], ask)
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
+  /// `GET /supply/credits/ledger`, newest first, after the place `after` names.
+  pub async fn supply_ledger(
+    &self,
+    key: &str,
+    role: &str,
+    after: Option<i64>,
+    limit: Option<i64>,
+  ) -> Answer<SupplyLedgerPage> {
+    let mut request = self
+      .request(Method::GET, &["supply", "credits", "ledger"])
+      .header(OWNER_KEY, key)
+      .header(OWNER_ROLE, role);
+
+    if let Some(after) = after {
+      request = request.query(&[("after", after)]);
+    }
+    if let Some(limit) = limit {
+      request = request.query(&[("limit", limit)]);
+    }
+
+    Self::answered(request).await
+  }
+
+  /// `GET /supply/credits/audit`, newest first, after the place `after` names.
+  pub async fn supply_audit(
+    &self,
+    key: &str,
+    role: &str,
+    after: Option<i64>,
+    limit: Option<i64>,
+  ) -> Answer<SupplyAuditPage> {
+    let mut request = self
+      .request(Method::GET, &["supply", "credits", "audit"])
+      .header(OWNER_KEY, key)
+      .header(OWNER_ROLE, role);
+
+    if let Some(after) = after {
+      request = request.query(&[("after", after)]);
+    }
+    if let Some(limit) = limit {
+      request = request.query(&[("limit", limit)]);
+    }
+
+    Self::answered(request).await
   }
 
   /// `POST /sumida/auth/session`: the session's cookie as `name=value`, with the answer it came with.

@@ -28,3 +28,13 @@ same_site = "strict"
 [session.cookie.expiry]
 default = "7d"
 remember_me = "7d"
+
+# The membership domain the supply answers stand on (docs/accounts.md, 「Supply」). Credits are the service's
+# own unit, priced in whole won by the plans; nothing is bought, so the payment provider stays `none`. A hold
+# the service opens names no lifetime of its own and so lives as long as this says.
+[membership]
+default-currency = "KRW"
+reservation-ttl-secs = 3600
+
+[membership.payment]
+provider = "none"

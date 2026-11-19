@@ -22,6 +22,10 @@ pub struct Settings {
   /// Nothing set here leaves the receiver unknown.
   #[serde(default)]
   pub receiver: Unit,
+  /// Nothing set here leaves the agency unknown: no supply hook is registered and no person's personal
+  /// supply roads are readable (docs/accounts.md, 「Supply」).
+  #[serde(default)]
+  pub agency: Unit,
   #[serde(default)]
   pub names: Names,
   /// Nothing set here leaves the secret store standing on no folder.

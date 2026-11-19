@@ -123,7 +123,7 @@ checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
 [[package]]
 name = "api"
 version = "0.2.0"
-source = "git+https://github.com/ahas/sumida?rev=1ecbf4e48f052ecfd1c12f936fdcb1417d8e5ae0#1ecbf4e48f052ecfd1c12f936fdcb1417d8e5ae0"
+source = "git+https://github.com/ahas/sumida?rev=b80b190a435a1224e9efd81a66c9b7643b836092#b80b190a435a1224e9efd81a66c9b7643b836092"
 dependencies = [
  "anyhow",
  "argon2",
@@ -885,6 +885,7 @@ dependencies = [
  "tokio",
  "toml 0.8.23",
  "tower",
+ "tower-sessions",
  "url",
 ]
 
@@ -1778,7 +1779,7 @@ dependencies = [
 [[package]]
 name = "entity"
 version = "0.2.0"
-source = "git+https://github.com/ahas/sumida?rev=1ecbf4e48f052ecfd1c12f936fdcb1417d8e5ae0#1ecbf4e48f052ecfd1c12f936fdcb1417d8e5ae0"
+source = "git+https://github.com/ahas/sumida?rev=b80b190a435a1224e9efd81a66c9b7643b836092#b80b190a435a1224e9efd81a66c9b7643b836092"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1809,7 +1810,7 @@ dependencies = [
 [[package]]
 name = "error"
 version = "0.2.0"
-source = "git+https://github.com/ahas/sumida?rev=1ecbf4e48f052ecfd1c12f936fdcb1417d8e5ae0#1ecbf4e48f052ecfd1c12f936fdcb1417d8e5ae0"
+source = "git+https://github.com/ahas/sumida?rev=b80b190a435a1224e9efd81a66c9b7643b836092#b80b190a435a1224e9efd81a66c9b7643b836092"
 dependencies = [
  "anyhow",
  "aws-sdk-s3",
@@ -2712,7 +2713,7 @@ dependencies = [
 [[package]]
 name = "infra"
 version = "0.2.0"
-source = "git+https://github.com/ahas/sumida?rev=1ecbf4e48f052ecfd1c12f936fdcb1417d8e5ae0#1ecbf4e48f052ecfd1c12f936fdcb1417d8e5ae0"
+source = "git+https://github.com/ahas/sumida?rev=b80b190a435a1224e9efd81a66c9b7643b836092#b80b190a435a1224e9efd81a66c9b7643b836092"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -5321,7 +5322,7 @@ checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
 [[package]]
 name = "sumida"
 version = "0.2.0"
-source = "git+https://github.com/ahas/sumida?rev=1ecbf4e48f052ecfd1c12f936fdcb1417d8e5ae0#1ecbf4e48f052ecfd1c12f936fdcb1417d8e5ae0"
+source = "git+https://github.com/ahas/sumida?rev=b80b190a435a1224e9efd81a66c9b7643b836092#b80b190a435a1224e9efd81a66c9b7643b836092"
 dependencies = [
  "api",
  "aws-smithy-types",

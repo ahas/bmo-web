@@ -10,6 +10,7 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 use std::sync::Arc;
 
+use bmo_web_server::agency::{Agency, AgencyClient, NoAgency};
 use bmo_web_server::data_move::moved;
 use bmo_web_server::receiver::{NoReceiver, Receiver, ReceiverClient};
 use bmo_web_server::routes::{in_force, stand};
@@ -157,9 +158,9 @@ fn standing(settings: &Settings) -> Result<String, String> {
   Ok(token)
 }
 
-/// The account service on its address, until the process is stopped; an error where it cannot stand. Once
-/// it listens it declares itself a holder of rooms to the receiver; a declaration that does not land is said
-/// and the service stands, declaring again at its next start.
+/// The account service on its address, until the process is stopped. Once it listens it declares itself a
+/// holder of rooms to the receiver and registers its supply hook at the agency; neither call going through
+/// is said, and the service stands, each made again at its next start (docs/accounts.md, 「Supply」).
 async fn serve(settings: Settings) -> Result<(), String> {
   let token = standing(&settings)?;
 
@@ -171,6 +172,7 @@ async fn serve(settings: Settings) -> Result<(), String> {
     .await
     .map_err(|why| format!("the service's database could not be reached: {why}"))?;
   let receiver = receiver(&settings)?;
+  let agency = agency(&settings)?;
   let service = stand(db, receiver.clone(), settings.names.clone())
     .await
     .map_err(|why| format!("the rules do not stand on the service's database: {why}"))?;
@@ -182,14 +184,28 @@ async fn serve(settings: Settings) -> Result<(), String> {
     Some(nodes) => service.with_nodes(nodes),
     None => service,
   };
-  let app = in_force(service, token).await.map_err(|why| why.to_string())?;
+  let service = service.calling_agency(agency.clone());
+  // The membership domain's expiry, renewal and notices, run hourly on this service's own state and its
+  // own advisory lock, as sumida's membership guide asks (docs/accounts.md, 「Supply」).
+  let scheduler = sumida::api::service::membership::maintenance::spawn::<bmo_web_server::Service>(
+    service.clone(),
+    std::time::Duration::from_secs(3600),
+  );
+  let app = in_force(service, token.clone()).await.map_err(|why| why.to_string())?;
   let address = settings.server.address();
 
   println!("bmo-web-server {} on {listen}", bmo_web_server::VERSION);
   let _ = io::stdout().flush();
 
+  let hook_url = format!("{address}/supply/hook");
+
   tokio::spawn(async move {
     if let Err(why) = receiver.declare_holder(holdings::UNIT, &address, &holdings::HOLDINGS).await {
+      eprintln!("bmo-web-server: {why}");
+    }
+  });
+  tokio::spawn(async move {
+    if let Err(why) = agency.register_supply(&hook_url, &token).await {
       eprintln!("bmo-web-server: {why}");
     }
   });
@@ -197,7 +213,19 @@ async fn serve(settings: Settings) -> Result<(), String> {
   axum::serve(listener, app)
     .with_graceful_shutdown(stopped())
     .await
-    .map_err(|why| why.to_string())
+    .map_err(|why| why.to_string())?;
+  scheduler.abort();
+
+  Ok(())
+}
+
+/// The agency the settings name, or one that registers nothing and refuses every read where they name none.
+fn agency(settings: &Settings) -> Result<Arc<dyn Agency>, String> {
+  match (&settings.agency.base, &settings.agency.token) {
+    (Some(base), Some(token)) => Ok(Arc::new(AgencyClient::new(base, token)?)),
+    (None, None) => Ok(Arc::new(NoAgency)),
+    _ => Err("the agency's settings name its address and its token together, or neither".to_owned()),
+  }
 }
 
 /// The account command: the user written into the database the service reads, refused where the data move

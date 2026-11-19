@@ -56,6 +56,7 @@ pub async fn stand(
   crate::sections::backfill(&db).await?;
   crate::sections::backfill_rooms_write(&db).await?;
   crate::sections::split_agents(&db).await?;
+  crate::sections::backfill_supply(&db).await?;
 
   Ok(Service {
     db,
@@ -66,6 +67,7 @@ pub async fn stand(
     secrets: None,
     nodes: None,
     pairings: Arc::default(),
+    agency: Arc::new(crate::agency::NoAgency),
   })
 }
 
@@ -222,6 +224,7 @@ fn own() -> Router<Service> {
     .merge(crate::invites::routes())
     .merge(crate::machines::routes())
     .merge(crate::pairings::routes())
+    .merge(crate::supply::routes::routes())
 }
 
 async fn health(State(service): State<Service>) -> Json<WireHealth> {

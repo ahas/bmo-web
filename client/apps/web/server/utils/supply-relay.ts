@@ -1,3 +1,5 @@
+import { withoutBase } from "ufo";
+
 import { emptyFallbackView } from "../../app/domain/agent-settings";
 
 import { policyBody, sourceList, sourceOwner, sourceScope, supplyAgency, supplyService, textValue, wholeValue } from "./supply";
@@ -64,8 +66,10 @@ import type { H3Event } from "h3";
  * guard with anything but a whole call or a silence; the refusal of a call itself belongs to its unit.
  */
 export async function supplyRelay(event: H3Event): Promise<unknown> {
-  const base = `${useRuntimeConfig(event).app.baseURL ?? "/"}api/supply/`.replace(/\/+/g, "/");
-  const rest = decodeURIComponent((event.path.split("?")[0] ?? "").slice(base.length));
+  // The request's path is read with the console's base taken off it where the mount left one on it, so the heads
+  // are found the same way whether or not the base stands in front of the path.
+  const asked = withoutBase(event.path.split("?")[0] ?? "", useRuntimeConfig(event).app.baseURL ?? "/");
+  const rest = decodeURIComponent(asked.replace(/^\/?api\/supply\//, ""));
   const parts = rest.split("/");
   const head = parts.shift() ?? "";
   const method = event.method.toUpperCase();

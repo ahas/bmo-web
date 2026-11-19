@@ -439,7 +439,9 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
 
           await standing(page);
           await column(page).getByText(wording("catalogue.label.kinds"), { exact: true }).waitFor({ timeout: 20_000 });
-          expect({ pass, tabs: await tabNames(page) }).toEqual({ pass, tabs: ["roster.label.tab", "catalogue.label.tab", "settings.label.invites", "settings.label.bmo"].map((key) => wording(key)) });
+          // A head of a company manages that company's supply, so the supply tab stands for them too (docs/web.md,
+          // 「Organisation」, the supply tab).
+          expect({ pass, tabs: await tabNames(page) }).toEqual({ pass, tabs: ["roster.label.tab", "catalogue.label.tab", "settings.label.invites", "settings.label.bmo", "supply.label.tab"].map((key) => wording(key)) });
           expect(await page.locator('[role="tab"][aria-selected="true"]').allInnerTexts()).toEqual([wording("catalogue.label.tab")]);
 
           // The row's underline stands under the chosen tab, though a tab came in before it once the head was known.

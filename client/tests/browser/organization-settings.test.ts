@@ -235,7 +235,9 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
         const boxes = await Promise.all(["company", "team", "part"].map(async (name) => (await row(name).locator('[data-slot="linkLabel"]').boundingBox())!));
         const heights = await Promise.all(["company", "team", "part"].map(async (name) => (await row(name).boundingBox())!.height));
 
-        expect(new Set(heights).size).toBe(1);
+        // The same height to within half a pixel: the layout measures on fractional device pixels, so a
+        // sub-pixel difference is the same row, not one re-laid out.
+        expect(Math.max(...heights) - Math.min(...heights)).toBeLessThanOrEqual(0.5);
         expect(boxes[0]!.x).toBeLessThan(boxes[1]!.x);
         expect(boxes[1]!.x).toBeLessThan(boxes[2]!.x);
 

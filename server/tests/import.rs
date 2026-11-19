@@ -158,9 +158,20 @@ async fn the_import_writes_its_rows_refuses_a_second_run_and_the_compare_finds_a
     1
   );
 
-  let again = import::run(&address, &export, false).await;
-  assert!(again.is_err(), "a store holding rows is refused");
-  assert!(again.unwrap_err().contains("already holds rows"));
+  // A second run is refused for holding rows of the tables the import itself writes — the accounts and
+  // their relations, the closure and the settings, and the move's own mark — and never for `mail_forms`,
+  // which sumida's mail-form feature seeds and the move no longer owns.
+  let again = import::run(&address, &export, false)
+    .await
+    .expect_err("a store holding rows is refused");
+  assert!(again.contains("already holds rows"), "{again}");
+  for owned in ["users", "relation_tuples", "org_closure", "settings"] {
+    assert!(again.contains(owned), "the refusal names the owned table {owned}: {again}");
+  }
+  assert!(
+    !again.contains("mail_forms"),
+    "a seeded mail form is not the move's to refuse over: {again}"
+  );
 
   let passes = import::verify(&address, &export).await.expect("the compare");
   assert!(passes.failures.is_empty(), "{:?}", passes.failures);

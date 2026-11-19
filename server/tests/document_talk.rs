@@ -120,7 +120,11 @@ async fn a_documents_talk_reads_back_in_the_order_it_was_said() {
 async fn the_last_migrations_taken_down_drop_their_tables() {
   let scratch = Scratch::new().await;
 
-  Migrator::down(scratch.db(), Some(13)).await.expect("the last migrations go down");
+  // The repository's own migrations stand from `document_talk` up through `supply`, with sumida's membership
+  // and metering migrations between the service's earlier ones and its last: taking this repository's block
+  // down means taking down everything above its base tables, sumida's two with it. Only the tables this
+  // repository's migrations make are checked — never one a sumida feature owns.
+  Migrator::down(scratch.db(), Some(16)).await.expect("the last migrations go down");
 
   for table in [
     "document_talk",
@@ -141,9 +145,21 @@ async fn the_last_migrations_taken_down_drop_their_tables() {
     "unit_posts",
     "unit_appointments",
     "org_history",
+    "supply_platform_policy",
+    "supply_settings",
+    "supply_org_policies",
+    "supply_user_policies",
+    "supply_user_settings",
+    "supply_reservations",
+    "supply_costs",
+    "supply_audit",
   ] {
     let counted = format!("SELECT count(*) FROM pg_tables WHERE tablename = '{table}'");
 
-    assert_eq!(scratch.count(&counted, vec![]).await, 0);
+    assert_eq!(
+      scratch.count(&counted, vec![]).await,
+      0,
+      "{table} outlived the rollback of its own migration"
+    );
   }
 }

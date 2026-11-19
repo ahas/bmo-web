@@ -144,11 +144,8 @@ pub const TABLES: &[TableMap] = &[
     target: "api_keys",
     columns: &["key", "key_prefix", "user_id", "expires_at", "is_secured", "created_at"],
   },
-  TableMap {
-    source: "mail_forms",
-    target: "mail_forms",
-    columns: &["kind", "sender", "subject", "content", "created_at", "updated_at"],
-  },
+  // mail_forms is sumida's, not the move's: its `mail-form` feature makes the table and seeds the fixed
+  // notices into it, so the import neither writes it nor counts it as a table the store must start empty of.
   TableMap {
     source: "org_closure",
     target: "org_closure",

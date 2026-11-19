@@ -457,7 +457,9 @@ describe.skipIf(!origin || !touchReady())("a secret handed to an agent", () => {
       }
     }
 
-    expect(new Set(heights).size).toBe(1);
+    // One height across every width and every read, to within half a pixel: the layout measures on fractional
+    // device pixels, so a sub-pixel difference is the same card, not one re-laid out.
+    expect(Math.max(...heights) - Math.min(...heights)).toBeLessThanOrEqual(0.5);
   }, TEST_MS);
 
   test("a request arriving in the room open in front opens the form once by itself", async () => {

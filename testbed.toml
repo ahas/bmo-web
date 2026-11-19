@@ -35,6 +35,19 @@ base_libraries = ["bmo-chat", "bmo-chat-client", "bmo-ui", "bmo-text", "@agency/
 [check.shared_versions]
 repository = "bmo-chat"
 
+# The console's production build, wherever a change reaches what decides what it bundles: the client's manifests,
+# its lock, its patches and vendored packages, the Nuxt configuration and the app's modules. The typecheck and the
+# browser files run on the dev server, which loads a module only once it is asked for, so neither stops at a module
+# the production build cannot bundle. The build writes its generated project and its output into the ignored
+# `.check-build`, leaving what a typecheck and a standing dev console use alone (docs/checks.md, 「The console's
+# production build」).
+[[check.step]]
+id = "console-build"
+dir = "client/apps/web"
+lane = "wide"
+when = ["client/package.json", "client/bun.lock", "client/patches/**", "client/vendor/**", "client/apps/web/package.json", "client/apps/web/nuxt.config.ts", "client/apps/web/modules/**"]
+command = "BMO_WEB_BUILD_DIR=.check-build/nuxt BMO_WEB_OUTPUT_DIR=.check-build/output bun run build"
+
 # No static step is declared for the server. The testbed's own Cargo workspace check formats and lints every
 # member, every target compiled, through its Cargo verb in the shared build directory, wherever a change marks a
 # crate, and the change check compiles every crate a change marks; a change that marks none has no Rust to judge.

@@ -1,8 +1,11 @@
-import { existsSync, readdirSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { pathToFileURL } from "node:url";
 
 import { CONSOLE_SHARED_LIBRARIES } from "bmo-ui/shared/console-manifest";
-import { addTemplate, defineNuxtModule, resolvePath } from "nuxt/kit";
+import { init as lexerReady, parse as parseModule } from "es-module-lexer";
+import { addTemplate, defineNuxtModule, resolvePath, tryResolveModule } from "nuxt/kit";
+import { parse as parseComponent } from "vue/compiler-sfc";
 
 // The libraries a console bundle shares with the console (docs/web.md, 「Screens a unit brings」; bmo-ui's
 // `docs/console-bundles.md`, 「What a console owes」): every path of each library bmo-ui's `CONSOLE_SHARED_LIBRARIES`
@@ -33,6 +36,52 @@ function filesOf(folder: string, prefix: string): [string, string][] {
   return files;
 }
 
+// The optional peers a package names in its manifest that the install does not hold, each resolved from the package
+// as its own imports are.
+async function absentOptionalPeers(packageDir: string): Promise<string[]> {
+  const manifest = JSON.parse(readFileSync(join(packageDir, "package.json"), "utf8")) as {
+    peerDependenciesMeta?: Record<string, { optional?: boolean }>;
+  };
+  const optional = Object.entries(manifest.peerDependenciesMeta ?? {})
+    .filter(([, meta]) => meta.optional === true)
+    .map(([name]) => name);
+  const from = pathToFileURL(join(packageDir, "package.json")).href;
+  const found = await Promise.all(optional.map((name) => tryResolveModule(name, from)));
+
+  return optional.filter((_, at) => found[at] === undefined);
+}
+
+// The script a file runs: each script block of a component, and a module whole.
+function scriptsOf(file: string): string[] {
+  const source = readFileSync(file, "utf8");
+
+  if (!file.endsWith(".vue")) return [source];
+
+  const { descriptor } = parseComponent(source, { filename: file });
+
+  return [descriptor.script, descriptor.scriptSetup].flatMap((block) => (block === null ? [] : [block.content]));
+}
+
+// The modules a file imports by name.
+async function importsOf(file: string): Promise<string[]> {
+  await lexerReady;
+
+  return scriptsOf(file).flatMap((script) => parseModule(script)[0].flatMap((entry) => (entry.n === undefined ? [] : [entry.n])));
+}
+
+// The paths of the component library a bundle may import, each with its file: the components and composables of its
+// runtime the console can load. One that imports an optional peer the console has not installed is left out, since
+// the shared module imports every file it lists and that import would stop the console's build.
+export async function nuxtUiFiles(packageDir: string): Promise<[string, string][]> {
+  const runtime = join(packageDir, "dist", "runtime");
+  const absent = await absentOptionalPeers(packageDir);
+  const needsAbsent = (name: string) => absent.some((peer) => name === peer || name.startsWith(`${peer}/`));
+  const files = ["components", "composables"].flatMap((folder) => filesOf(join(runtime, folder), `@nuxt/ui/${folder}`));
+  const loadable = await Promise.all(files.map(async ([, file]) => !(await importsOf(file)).some(needsAbsent)));
+
+  return files.filter((_, at) => loadable[at]);
+}
+
 // One line of the shared module: a path a bundle imports, and the console's own copy it loads instead.
 function line(path: string, copy: string): string {
   return `  ${JSON.stringify(path)}: () => import(${JSON.stringify(copy)}),`;
@@ -46,12 +95,8 @@ const SHARED_WAYS: Record<string, (layer: string) => Promise<string[]>> = {
   "vue-router": async () => [line("vue-router", "vue-router")],
   "vue-i18n": async () => [line("vue-i18n", "vue-i18n")],
   "nuxt/app": async () => [line("nuxt/app", "#app")],
-  "@nuxt/ui": async () => {
-    // The component library's runtime stands beside its module's entry.
-    const runtime = join(dirname(await resolvePath("@nuxt/ui")), "runtime");
-
-    return ["components", "composables"].flatMap((folder) => filesOf(join(runtime, folder), `@nuxt/ui/${folder}`).map(([path, file]) => line(path, file)));
-  },
+  // The module's entry stands in the package's `dist`.
+  "@nuxt/ui": async () => (await nuxtUiFiles(dirname(dirname(await resolvePath("@nuxt/ui"))))).map(([path, file]) => line(path, file)),
   "bmo-ui": async (layer) =>
     [
       ...["components", "domain"].flatMap((folder) => filesOf(join(layer, "app", folder), `bmo-ui/app/${folder}`)),

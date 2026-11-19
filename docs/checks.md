@@ -117,6 +117,16 @@ or removed so the next install extracts it again, and every tree linked to it th
 package removed and installs again. A change to a vendored package is made in its own repository and reaches
 the console as a new tarball, never as an edit under `node_modules`.
 
+## The console's production build
+
+The change check builds the console for production, as a deployment builds it, wherever a change reaches what
+decides what the build bundles: the client's manifests and lock, its patches, the vendored packages, the Nuxt
+configuration and the app's modules. The typecheck and the browser files run against the dev server, which loads
+a module only once a page asks for it, so a module the production build cannot bundle passes both and stops only
+the deployment. The step is the testbed declaration's `console-build`, in the testbed's wide lane. It writes
+Nuxt's generated project and the build's output into `client/apps/web/.check-build`, which the checkout ignores,
+so a typecheck and a standing dev console in the same checkout keep their own.
+
 ## The repository-wide checks
 
 The checks that span the repository stand in the root's `tests/`, in `repository.rs`. The root is a Cargo

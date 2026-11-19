@@ -228,42 +228,17 @@ export const openedRoutes: readonly OpenedRoute[] = [
   // What the provider's prompt cache did, as the siren on this machine saw it.
   section(SIREN, "GET", /^\/api\/siren$/),
 
-  // A person's own supply (docs/web.md, the settings' supply section): the reader's own view and setting at the
-  // account service, the reader's own logins and keys at the agency, each call handed on with the login's user so
-  // neither unit lets one person reach another's.
-  section(ACCOUNT, "GET", /^\/api\/supply\/me$/),
-  section(ACCOUNT, "PUT", /^\/api\/supply\/me$/),
-  section(ACCOUNT, "GET", /^\/api\/supply\/logins$/),
-  section(ACCOUNT, "POST", /^\/api\/supply\/logins$/),
-  section(ACCOUNT, "POST", /^\/api\/supply\/signin$/),
-  section(ACCOUNT, "POST", /^\/api\/supply\/signin\/[^/]+\/code$/),
-  section(ACCOUNT, "DELETE", /^\/api\/supply\/signin\/[^/]+$/),
-  section(ACCOUNT, "GET", /^\/api\/supply\/personal$/),
-  section(ACCOUNT, "POST", /^\/api\/supply\/personal$/),
-  section(ACCOUNT, "PATCH", /^\/api\/supply\/personal\/[^/]+$/),
-  section(ACCOUNT, "DELETE", /^\/api\/supply\/personal\/[^/]+$/),
-  // The organisation's supply: every signed-in login asks which units the service puts under its management and
-  // reads and writes the unit it is told about; the account service is the word for who heads and who
-  // credit-manages what (docs/web.md, 「Organisation」, the supply tab; the people tab). A refusal is the
-  // service's, said by the pack's sentence.
-  { method: "GET", path: /^\/api\/supply\/units$/, scope: "user" },
-  { method: "GET", path: /^\/api\/supply\/org\/\d+$/, scope: "user" },
-  { method: "PUT", path: /^\/api\/supply\/org\/\d+$/, scope: "user" },
-  { method: "DELETE", path: /^\/api\/supply\/org\/\d+$/, scope: "user" },
-  { method: "POST", path: /^\/api\/supply\/org\/\d+\/credits$/, scope: "user" },
-  { method: "GET", path: /^\/api\/supply\/user\/\d+$/, scope: "user" },
-  { method: "PUT", path: /^\/api\/supply\/user\/\d+$/, scope: "user" },
-  { method: "DELETE", path: /^\/api\/supply\/user\/\d+$/, scope: "user" },
-  // The platform's supply, the plans and the credits are the administrator's screen's, and the routes refuse
-  // anyone else as the service's own refusal; they stand here so the route files stay held to one place.
-  { method: "GET", path: /^\/api\/supply\/platform$/, scope: "user", administrator: true },
-  { method: "PUT", path: /^\/api\/supply\/platform$/, scope: "user", administrator: true },
-  { method: "GET", path: /^\/api\/supply\/plans$/, scope: "user", administrator: true },
-  { method: "POST", path: /^\/api\/supply\/plans$/, scope: "user", administrator: true },
-  { method: "PATCH", path: /^\/api\/supply\/plans\/[^/]+$/, scope: "user", administrator: true },
-  { method: "DELETE", path: /^\/api\/supply\/plans\/[^/]+$/, scope: "user", administrator: true },
-  { method: "POST", path: /^\/api\/supply\/credits$/, scope: "user", administrator: true },
-  { method: "GET", path: /^\/api\/supply\/credits\/(?:ledger|audit)$/, scope: "user", administrator: true }
+  // Supply (docs/web.md, the supply sections): the relay stands as one spread of route files under `/api/supply`,
+  // one method each, so no path of it stands apart to be opened apart. Every method of it is opened whole under
+  // the plain user scope, and the relay itself answers each head as absent to the login it does not belong to —
+  // the platform row, the plans and the credits to the administrator alone, the reader's own view, setting,
+  // logins and keys to the account section, and every unit and person read to the account service's own
+  // judgement of the reader.
+  { method: "GET", path: /^\/api\/supply\/.+$/, scope: "user" },
+  { method: "POST", path: /^\/api\/supply\/.+$/, scope: "user" },
+  { method: "PUT", path: /^\/api\/supply\/.+$/, scope: "user" },
+  { method: "PATCH", path: /^\/api\/supply\/.+$/, scope: "user" },
+  { method: "DELETE", path: /^\/api\/supply\/.+$/, scope: "user" }
 ];
 
 /** The opened route a request asks, or null where it asks one the administrator alone reaches. */

@@ -1,10 +1,12 @@
-import { emptyFallbackView } from "../../../app/domain/agent-settings";
+import { emptyFallbackView } from "../../app/domain/agent-settings";
 
-import { policyBody, sourceList, sourceOwner, sourceScope, supplyAgency, supplyService, textValue, wholeValue } from "../../utils/supply";
-import { rosterCompanies } from "../../utils/account-service";
-import { signedInUser } from "../../utils/accounts";
-import { callerOf } from "../../utils/organization";
-import { rosterFailure } from "../../utils/roster";
+import { policyBody, sourceList, sourceOwner, sourceScope, supplyAgency, supplyService, textValue, wholeValue } from "./supply";
+import { rosterCompanies } from "./account-service";
+import { signedInUser } from "./accounts";
+import { callerOf } from "./organization";
+import { mayRead, mayWrite } from "#shared/sections";
+import { sectionAccessOf } from "./section-access";
+import { rosterFailure } from "./roster";
 
 import { wording } from "#shared/wording";
 
@@ -52,12 +54,37 @@ import type { H3Event } from "h3";
 //   GET  credits/ledger             the ledger, newest first, after a cursor
 //   GET  credits/audit              every grant and every change of a policy, a rate or the switch, newest first
 
-export default defineEventHandler(async (event): Promise<unknown> => {
+/**
+ * Every call the supply screens make, relayed: the guard below answers each head as absent to the login it
+ * does not belong to, and what stands open passes on to the unit that owns it. The relay stands as one spread of
+ * route files under `/api/supply`, one method each (docs/web.md, 「Access」), so the guard reads the path itself
+ * rather than a route entry: the platform row, the plans and the credits are the administrator's; the reader's
+ * own supply heads are the account section's, an administrator's passing as they pass everywhere; the unit and
+ * person reads belong to any signed-in login, the account service judging each one. No path here answers the
+ * guard with anything but a whole call or a silence; the refusal of a call itself belongs to its unit.
+ */
+export async function supplyRelay(event: H3Event): Promise<unknown> {
   const base = `${useRuntimeConfig(event).app.baseURL ?? "/"}api/supply/`.replace(/\/+/g, "/");
   const rest = decodeURIComponent((event.path.split("?")[0] ?? "").slice(base.length));
   const parts = rest.split("/");
   const head = parts.shift() ?? "";
   const method = event.method.toUpperCase();
+
+  const signed = await signedInUser(event);
+
+  if (head === "platform" || head === "plans" || head === "credits") {
+    if (!signed.administrator) throw absent();
+  } else if (head === "me" || head === "logins" || head === "signin" || head === "personal") {
+    if (!signed.administrator) {
+      if (signed.id === null) throw absent();
+
+      const key = String(signed.id);
+      const access = await sectionAccessOf(key, { key, role: "member" });
+
+      if (!(method === "GET" ? mayRead(access, "account") : mayWrite(access, "account"))) throw absent();
+    }
+  }
+
   const body = method === "GET" || method === "DELETE" ? {} : ((await readBody<Record<string, unknown>>(event).catch(() => ({}))) ?? {});
 
   if (head === "me") {
@@ -78,8 +105,6 @@ export default defineEventHandler(async (event): Promise<unknown> => {
     // 「Organisation」, the supply tab): every company for the administrator, the companies whose own unit they
     // head for anyone else, none for the rest. Where the service carries a supply reach beyond that, this is the
     // one place it is drawn.
-    const signed = await signedInUser(event);
-
     try {
       return (await rosterCompanies(callerOf(signed))).map((one) => ({ id: one.id, name: one.name, parent: null }));
     } catch (error) {
@@ -97,7 +122,7 @@ export default defineEventHandler(async (event): Promise<unknown> => {
   if (head === "credits") return await credits(event, method, parts, body);
 
   throw absent();
-});
+}
 
 function absent(): Error {
   return createError({ statusCode: 404, statusMessage: "Not Found" });

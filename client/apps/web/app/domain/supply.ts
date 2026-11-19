@@ -54,7 +54,7 @@ export function sourceReasonText(t: Translate, reason: SupplyReason): string {
 // windows have filled needs waiting, an off one is only switched back on, and the rest go out.
 export function loginStatus(t: Translate, account: ClaudeAccountView, nowSeconds: number): { label: string; tone: string; icon: string } {
   if (!account.enabled) {
-    return { label: t("supply.label.login_off"), tone: "text-muted", icon: "i-material-symbols-remove-circle-outline" };
+    return { label: t("supply.label.login_off"), tone: "text-muted", icon: "i-material-symbols-block-outline" };
   }
 
   if (account.login === "gone") {
@@ -72,7 +72,7 @@ export function loginStatus(t: Translate, account: ClaudeAccountView, nowSeconds
 // that is off is only waiting to be thrown.
 export function keyStatus(t: Translate, key: PersonalSupplyKey): { label: string; tone: string; icon: string } {
   if (!key.enabled) {
-    return { label: t("supply.label.login_off"), tone: "text-muted", icon: "i-material-symbols-remove-circle-outline" };
+    return { label: t("supply.label.login_off"), tone: "text-muted", icon: "i-material-symbols-block-outline" };
   }
 
   if (key.refusedAt !== null) {

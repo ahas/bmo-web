@@ -8762,7 +8762,10 @@ its people directory and the members of the reader's company.
   built on」); a bundle built on a release older than the bound, newer than the console's or one the layer's ledger
   does not hold, a layer taken from its source among them, is left out. The libraries a bundle
   shares with it are the ones bmo-ui's `CONSOLE_SHARED_LIBRARIES` lists, and the console's build stops where that
-  list names one it does not know how to hand a bundle.
+  list names one it does not know how to hand a bundle. Of `@nuxt/ui` it hands every component and composable it
+  can load: a component that imports one of Nuxt UI's optional peers the console has not installed, its chart on
+  `@tanstack/charts` among them, is not handed, so the console's build carries none of it, and a bundle that
+  imports one is left out as a bundle that imports what is not shared.
 - **The units asked are every unit the settings name.** The server asks each unit whose `<NAME>_ADDRESS` is set
   for its manifest, with that unit's token, when it starts and once a minute after, each ask waiting for its
   unit's answer; a unit still answering keeps the screens its last answer brought, and is not asked again until
@@ -9106,8 +9109,8 @@ The console reads its settings from its environment: the units' addresses and to
 | `BMO_PUSH_IN_DEV` | Makes the dev server send notifications too (`1`, `true`, `yes`). A built server always sends regardless |
 | `WEB_DATA_DIR` | The console's own data folder: the keys a send is held once by, and the scratch files a room's file is written to on its way to the receiver. Inside no checkout; `~/.local/share/bmo-web/data` where it is not set |
 | `BMO_WEB_BASE_URL` | The base path every page and road stands under; `/bmo/` where none is named |
-| `BMO_WEB_OUTPUT_DIR` | Where a build writes its release; `.output` where none is named. The deployment names a release's own directory |
-| `BMO_WEB_BUILD_DIR` | Where Nuxt writes its generated project; `.nuxt` where none is named. A standing dev console names its own, beginning `.nuxt-`, which the checkout ignores, so a typecheck in the same checkout leaves what it serves alone |
+| `BMO_WEB_OUTPUT_DIR` | Where a build writes its release; `.output` where none is named. The deployment names a release's own directory, and the change check's production build a folder under the ignored `.check-build` |
+| `BMO_WEB_BUILD_DIR` | Where Nuxt writes its generated project; `.nuxt` where none is named. A standing dev console names its own, beginning `.nuxt-`, and the change check's production build one under `.check-build`, both of which the checkout ignores, so a typecheck in the same checkout leaves what they use alone |
 | `BMO_WEB_DEV_HOSTS` | The hosts a dev server answers beyond its own, comma-separated |
 
 A unit's address and token are read by name on the console's server, `<NAME>_ADDRESS` and `<NAME>_TOKEN`; a unit

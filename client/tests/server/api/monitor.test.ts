@@ -28,7 +28,17 @@ const node = standIn("NODE", (one) => {
     return answer({ items: [{ name: "node-a", label: "Node A", kind: "ssh", thisMachine: true, state: "connected" }], more: true });
   }
 
-  if (path === "/nodes") return answer({ items: [{ name: "node-b", label: "Node B", kind: "hub", thisMachine: false, state: "disconnected" }], more: false });
+  if (path === "/nodes") {
+    return answer({ items: [{ name: "node-b", label: "Node B", kind: "hub", thisMachine: false, state: "disconnected", tone: "unknown", ownership: "personal", account: "7" }], more: false });
+  }
+
+  if (one.method === "PATCH" && path === "/nodes/node-b") {
+    if (one.body?.account === "seven") return answer({ code: "bad-field", field: "account", error: "account must be a decimal number" }, 422);
+
+    return answer({ name: "node-b", label: "Node B", kind: "hub", thisMachine: false, state: "disconnected", tone: "bad", ownership: one.body?.ownership, account: one.body?.account ?? null });
+  }
+
+  if (one.method === "PATCH" && path === "/nodes/gone") return answer({ code: "not-found", error: "no node named gone" }, 404);
 
   if (path === "/machines") {
     return answer({
@@ -111,13 +121,15 @@ const live = await routeOf<LiveRange>("../../apps/web/server/api/hardware/machin
 const tracking = await routeOf<{ machine: string; on: boolean }>("../../apps/web/server/api/hardware/tracking.post");
 const cards = await routeOf<CardsState>("../../apps/web/server/api/cards/state.get");
 const removal = await routeOf<null>("../../apps/web/server/api/nodes/[name].delete");
+const ownership = await routeOf<MonitorNode>("../../apps/web/server/api/nodes/[name].patch");
 const cardEvents = await routeOf<Response>("../../apps/web/server/api/cards/events.get");
 
 describe("the machines", () => {
-  test("are the node list's, page after page, each by its name, label, kind, whether it is this machine and whether it is reached", async () => {
+  test("are the node list's, page after page, each by its name, label, kind, whether it is this machine, its check and whose it is", async () => {
+    // The first answer leaves out what an older node service does not send: no tone reads unchecked, no ownership shared.
     expect(await nodes({})).toEqual([
-      { name: "node-a", label: "Node A", kind: "ssh", thisMachine: true, connected: true },
-      { name: "node-b", label: "Node B", kind: "hub", thisMachine: false, connected: false }
+      { name: "node-a", label: "Node A", kind: "ssh", thisMachine: true, connected: true, state: "connected", tone: "unknown", ownership: "shared", account: null },
+      { name: "node-b", label: "Node B", kind: "hub", thisMachine: false, connected: false, state: "disconnected", tone: "unknown", ownership: "personal", account: "7" }
     ]);
   });
 
@@ -168,6 +180,34 @@ describe("the machines", () => {
     expect(await tracking({ body: { machine: "node-b", on: false } })).toEqual({ machine: "node-b", on: false });
     expect(node.asked.at(-1)).toMatchObject({ method: "PATCH", path: "/machines/node-b", body: { tracking: false } });
     expect(await asked(tracking, { body: { machine: "node-b" } })).toMatchObject({ status: 400, message: wording("hardware.error.tracking_direction") });
+  });
+});
+
+describe("a node's ownership", () => {
+  test("is sent to the node service, a shared node with no account, and its answer read back", async () => {
+    const shared = await asked(ownership, { params: { name: "node-b" }, body: { ownership: "shared", account: "7" } });
+
+    expect(node.asked.at(-1)).toMatchObject({ method: "PATCH", path: "/nodes/node-b", body: { ownership: "shared", account: null } });
+    expect(shared.answer).toMatchObject({ name: "node-b", ownership: "shared", account: null });
+  });
+
+  test("says the node service's refusal in the pack's words, and refuses an ownership that is neither", async () => {
+    const refused = await asked(ownership, { params: { name: "node-b" }, body: { ownership: "personal", account: "seven" } });
+
+    expect(refused.status).toBe(422);
+    expect(refused.message).toBe(wording("hardware.error.ownership_refused"));
+
+    const missing = await asked(ownership, { params: { name: "gone" }, body: { ownership: "shared", account: null } });
+
+    expect(missing.status).toBe(404);
+    expect(missing.message).toBe(wording("hardware.error.no_node"));
+
+    const asks = node.asked.length;
+    const shapeless = await asked(ownership, { params: { name: "node-b" }, body: { ownership: "everyone" } });
+
+    expect(shapeless.status).toBe(400);
+    expect(shapeless.message).toBe(wording("hardware.error.ownership_shape"));
+    expect(node.asked.length).toBe(asks);
   });
 });
 

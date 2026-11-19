@@ -3,6 +3,8 @@
 // the recorded and live figures and which spans they may ask for. The node service reads the machines; the console
 // reads the service and keeps no copy of either.
 
+import type { NodeState, NodeTone } from "./types";
+
 export interface SensorView {
   chip: string;
   // The device the chip belongs to — `nvme0`, `0000:00:18.3` — where the kernel names one.
@@ -168,8 +170,12 @@ export interface MachineHardware {
   cpuLimit: number | null;
 }
 
-// One node of the node service's list as the monitor reads it: its name, its label, how it is reached and whether
-// it is this machine, which then stands as this machine's tile alone.
+// Whether a node is a machine of the platform or one person's own PC (bmo-node's `docs/nodes.md`, 「A node's
+// ownership」); only a shared node is a machine the monitor reads.
+export type NodeOwnership = "shared" | "personal";
+
+// One node of the node service's list as the monitor reads it: its name, its label, how it is reached, whether it is
+// this machine, which then stands as this machine's tile alone, its last check and whose it is.
 export interface MonitorNode {
   name: string;
   label: string;
@@ -177,6 +183,18 @@ export interface MonitorNode {
   thisMachine: boolean;
   // Whether its last check reached it; a hub node's agent is sent a leave only while it is attached.
   connected: boolean;
+  state: NodeState;
+  tone: NodeTone;
+  ownership: NodeOwnership;
+  // The account a personal node belongs to, its id as a decimal number written out; null where none is known and on
+  // a shared node.
+  account: string | null;
+}
+
+// A node's ownership as the administrator sets it: a shared node takes no account.
+export interface NodeOwnershipChange {
+  ownership: NodeOwnership;
+  account: string | null;
 }
 
 // A machine's live tracking or CPU limit as the node service left it once it was changed.

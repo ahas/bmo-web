@@ -426,8 +426,9 @@ The monitor screen of bmo-node and the card board of bmo-arbiter are carried as 
 page with a machine's own monitor below it at `/monitor/<machine>`, and `/cards` sending a reader on to the
 services tab; the console's server reads the node service and the card master over their APIs instead of the old
 archive, live record and the master's old state route, and the shapes the screen draws are copied into
-`shared/hardware.ts` and `shared/cards.ts`. The node screen, the node list in the sidebar and a node's check are
-not carried.
+`shared/hardware.ts` and `shared/cards.ts`. The node list stands as the monitor's 노드 tab and a node's screen as
+its own monitor (`docs/web.md`, 「The node list」); the old node screen, the node list in the sidebar and a node's
+check are not carried.
 
 The old pages below the addresses that are not carried — a node's own page at `/nodes/{name}`, a shared
 folder's page at `/share/files/{token}` — stand as no page, and a link to one finds none.

@@ -193,6 +193,11 @@
   when the account was connected to it → 연결한 날짜; how its program is connected → 연결 방식, 데스크톱 앱 or
   설치형 프로그램 for one installed by its command; the machines in a person's own settings → 설정의 기기. Never 에이전트
   for the installed program, which stays a role's seat, nor 페어링 날짜 or 설치 방식.
+- a node, one machine of the node service's list → 노드: 노드, 노드 삭제, 노드 없음, 찾은 노드 없음. Whether it is the platform's or a
+  person's → 소유: 공용 노드, 개인 노드, 공용, 개인, 소유 변경; the account a personal node belongs to → 소유 계정, 계정 없음,
+  알 수 없는 계정 {id}. A PC several accounts share, a 공유 기기 above, is a 개인 노드. Never 공유 노드, 공유 PC, 플랫폼 노드 or
+  사설 노드 for either. Its last check → 상태: 연결됨, 연결 끊김, 인증 실패, 호스트 키 불일치, 연결할 수 없음, 오류, 확인 전;
+  how it is reached → 연결 방식: SSH, Jake. A personal node's screen says 개인 노드는 모니터링하지 않습니다.
 - the console's desktop app → 데스크톱 앱; its pairing with an account → 앱 연결: 앱 연결, 연결 코드, 승인, 거부,
   승인했습니다, 거부했습니다, 연결하는 중, 연결됨. The app's own window → 앱 창, and the line at its top that shows the
   code → 제목 표시줄, as Windows names it. Never 데스크탑, 페어링, 허용 or 거절, nor 타이틀 바 or 창 제목.

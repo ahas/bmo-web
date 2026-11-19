@@ -3,6 +3,7 @@ import { computed, onMounted, onScopeDispose, ref, shallowRef, watch } from "vue
 import { HISTORY_SPAN_NAMES, HISTORY_SPANS, historySample, LIVE_CHART_SECONDS, LIVE_PERIOD_MS } from "#shared/hardware";
 
 import { failureText } from "bmo-ui/app/domain/errors";
+import { NODE_ICON } from "./nodes";
 import { countText } from "./numbers";
 
 import type { LivePoint } from "./hardware-chart";
@@ -24,15 +25,14 @@ export const CPU_LIMIT_URL = "/api/hardware/cpu-limit";
 export const MONITOR_READINGS_URL = "/api/hardware/machines";
 
 // The monitor screen's tabs, kept in the address as `?tab=` (docs/web.md, 「Monitor screen」): every machine's
-// hardware, the screen's own address, the card arbiter's board, and what the machine's background units wrote, which only the administrator reads.
+// hardware, the screen's own address, the node list, the card arbiter's board, and what the machine's background units
+// wrote. A tab the administrator alone reads says so itself.
 export const MONITOR_TABS = [
-  { value: "devices", label: "hardware.label.tab_devices", icon: "i-material-symbols-computer-outline" },
-  { value: "services", label: "hardware.label.tab_services", icon: "i-material-symbols-memory-outline" },
-  { value: "logs", label: "hardware.label.tab_logs", icon: "i-material-symbols-receipt-long-outline" }
+  { value: "devices", label: "hardware.label.tab_devices", icon: "i-material-symbols-computer-outline", administrator: false },
+  { value: "nodes", label: "hardware.label.tab_nodes", icon: NODE_ICON, administrator: true },
+  { value: "services", label: "hardware.label.tab_services", icon: "i-material-symbols-memory-outline", administrator: false },
+  { value: "logs", label: "hardware.label.tab_logs", icon: "i-material-symbols-receipt-long-outline", administrator: true }
 ] as const;
-
-/** The tab only the administrator reads. */
-export const MONITOR_ADMINISTRATOR_TAB = "logs";
 
 export type MonitorTab = (typeof MONITOR_TABS)[number]["value"];
 
@@ -73,17 +73,23 @@ export interface MonitorMachine {
   to: string;
 }
 
-// This machine first, then the nodes in the list's order; the list is the node service's and nothing else.
-// A node that is this machine is this machine's tile, so it has none of its own.
-export function monitorMachines(nodes: readonly MonitorNode[]): MonitorMachine[] {
+// This machine first, then the machines the node service knows in the list's order: the shared nodes, since a
+// personal node is no machine it monitors. A node that is this machine is this machine's tile, so it has none of its
+// own.
+export function monitorMachines(nodes: readonly MonitorNode[], readings: readonly MachineHardware[] | null = null): MonitorMachine[] {
   const tile = (key: string, name: string, label: string | null, kind: MachineHardware["kind"]): MonitorMachine => ({
     key, name, label, kind, url: machineHardwareUrl(name), historyUrl: machineHistoryUrl(name), liveUrl: machineLiveUrl(name), to: machineMonitorPath(name)
   });
+  const thisMachine = new Set(nodes.filter((node) => node.thisMachine).map((node) => node.name));
+  const shown = ({ name, label, kind }: { name: string; label: string; kind: MachineHardware["kind"] }) => tile(`node:${name}`, name, label, kind);
 
-  return [
-    tile("local", LOCAL_MACHINE, null, "local"),
-    ...nodes.filter((node) => !node.thisMachine).map((node) => tile(`node:${node.name}`, node.name, node.label, node.kind)),
-  ];
+  // Once every machine's reading has been answered, the answer is what the monitor knows: a machine it stops naming
+  // loses its tile. Until then the shared nodes of the list stand for it.
+  const others = readings === null
+    ? nodes.filter((node) => !node.thisMachine && node.ownership === "shared").map(shown)
+    : readings.filter((machine) => machine.name !== LOCAL_MACHINE && !thisMachine.has(machine.name)).map(shown);
+
+  return [tile("local", LOCAL_MACHINE, null, "local"), ...others];
 }
 
 const KIND_ICONS: Record<MachineHardware["kind"], string> = {
@@ -385,12 +391,14 @@ export type ReadStatus = "idle" | "pending" | "success" | "error";
 
 // One address read again at an interval while the screen stands and its tab is visible. The last
 // answer stays on the screen while the next is asked; a read that fails keeps nothing stale and says
-// why. `settled` is told of every read that came back, answered or failed. A read still out at the
-// deadline is let go, so an answer that never comes cannot hold the screen past it.
-function usePolledRead<T>(url: Ref<string | null>, everyMs: number, settled?: (answer: T | null) => void, deadlineMs = 0): { value: Ref<T | null>; status: Ref<ReadStatus>; error: Ref<string | null> } {
+// why, and whether it was answered that nothing stands there. `settled` is told of every read that came
+// back, answered or failed. A read still out at the deadline is let go, so an answer that never comes
+// cannot hold the screen past it.
+function usePolledRead<T>(url: Ref<string | null>, everyMs: number, settled?: (answer: T | null) => void, deadlineMs = 0): { value: Ref<T | null>; status: Ref<ReadStatus>; error: Ref<string | null>; missing: Ref<boolean> } {
   const value = ref<T | null>(null) as Ref<T | null>;
   const status = ref<ReadStatus>("idle");
   const error = ref<string | null>(null);
+  const missing = ref(false);
   let inFlight = false;
   let timer: ReturnType<typeof setInterval> | null = null;
   let asked = 0;
@@ -413,6 +421,7 @@ function usePolledRead<T>(url: Ref<string | null>, everyMs: number, settled?: (a
       if (ask === asked) {
         value.value = answer;
         error.value = null;
+        missing.value = false;
         status.value = "success";
         settled?.(answer);
       }
@@ -420,6 +429,7 @@ function usePolledRead<T>(url: Ref<string | null>, everyMs: number, settled?: (a
       if (ask === asked) {
         value.value = null;
         error.value = caught instanceof Error ? caught.message : String(caught);
+        missing.value = (caught as { statusCode?: number } | null)?.statusCode === 404;
         status.value = "error";
         settled?.(null);
       }
@@ -448,11 +458,12 @@ function usePolledRead<T>(url: Ref<string | null>, everyMs: number, settled?: (a
     asked++;
     inFlight = false;
     value.value = null;
+    missing.value = false;
     status.value = "idle";
     void read();
   });
 
-  return { value, status, error };
+  return { value, status, error, missing };
 }
 
 // The readings a page has kept of one machine for its live drawing, and the instant its window ends
@@ -589,13 +600,14 @@ export function useMachineLive(live: LiveSource, reading?: () => MachineHardware
 
 // One machine's live reading, every period while the screen is open and visible, each answer kept
 // for the live drawing; the live record fills the drawing in on opening and on coming back.
-export function useMachineHardware(url: Ref<string | null>, live: LiveSource): { machine: Ref<MachineHardware | null>; status: Ref<ReadStatus>; error: Ref<string | null>; live: LiveKeeping } {
+// `missing` says the node service answered the machine is none it knows — a node made personal or removed.
+export function useMachineHardware(url: Ref<string | null>, live: LiveSource): { machine: Ref<MachineHardware | null>; status: Ref<ReadStatus>; error: Ref<string | null>; missing: Ref<boolean>; live: LiveKeeping } {
   const kept = useMachineLive(live);
-  const { value, status, error } = usePolledRead<MachineHardware>(url, LIVE_PERIOD_MS, (answer) => {
+  const { value, status, error, missing } = usePolledRead<MachineHardware>(url, LIVE_PERIOD_MS, (answer) => {
     keepLive(kept, answer, Math.floor(Date.now() / 1000));
   });
 
-  return { machine: value, status, error, live: kept };
+  return { machine: value, status, error, missing, live: kept };
 }
 
 // Every machine's recorded reading at once, every period while the overview stands and its tab is

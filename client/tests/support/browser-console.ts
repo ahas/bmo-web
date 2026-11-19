@@ -74,6 +74,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["agent-names", "fixture-password-2371"],
   ["sidebar-sections", "fixture-password-3051"],
   ["monitor-polling", "fixture-password-2372"],
+  ["monitor-nodes", "fixture-password-3688"],
   ["todo-models", "fixture-password-2298"],
   ["todo-assign", "fixture-password-2765"],
   ["todo-testbed", "fixture-password-2771"],

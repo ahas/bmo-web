@@ -1460,9 +1460,8 @@ edit to that file alone, once the guide below carries the word.
   its name as a tooltip; in the phone drawer it is the full-width button. The console has no `@nuxt/content`:
   the module's `content` switch registers the two components, and the palette is handed its groups directly.
   - It finds what the sidebar lists: the screens, each tab a screen keeps in its address as an entry under
-    that screen, the rooms, every agent in its branch and every node under 노드 — so a worker the owner adds is
-    found the moment it stands in the sidebar. A folded branch is found all the same. A node is found by its
-    internal name and its address too.
+    that screen, the rooms and every agent in its branch — so a worker the owner adds is found the moment it
+    stands in the sidebar. A folded branch is found all the same.
   - **It finds the people of the reader's organisation as well,** of every company for the platform
     administrator, each row carrying the person's unit. The account service answers them as typing
     stops, by name, organisation and job title, and by the contact details the reader may see
@@ -1729,14 +1728,7 @@ Four groups.
   - It drives the console given in `BMO_CONSOLE_TEST_URL`, the one `client/tests/support/browser-console.ts`
     stands up, with its fixture account made in that console's own database. The suite stands up no console,
     so it skips it there (`docs/checks.md`, 「Running the console-driven browser files」).
-- **노드** — the machines the chat agent reaches beyond this one, the same list herdr shows on its left
-  (the node unit's documents). It stands under the agents, in the list's own order, and not at all while the list
-  is empty. Each node stands as its own letter on a colour drawn from its name, since each is an identity
-  of its own — an ssh node and a jake agent stand side by side, their connection type left to the node's
-  screen and the monitor — with its state as a dot at the row's end — green connected, red disconnected
-  or any failure, grey not yet checked — and the state word as the row's accessible description. Folded,
-  the dot is drawn over the avatar's corner. The list is read again whenever the bot says it moved.
-  Choosing a node opens its screen.
+- The sidebar lists no nodes: the node list is the monitor's 노드 tab (「Monitor screen」).
 - Folded, only icons and the rooms' own photos remain — a screen is one of a kind and stands as its
   icon, a room is an identity and stands as its own picture or letter, and an agent branch stands as
   its branch's own mark, its chat agents each as its face and its workers with the worker mark — and on a narrow
@@ -2708,19 +2700,22 @@ archive and this week's tokens remain. That is all that can actually be known th
 ### Monitor screen
 
 - **`/monitor`, 모니터, is tabs under the title bar, one level deep:** 기기, every machine's hardware, which
-  bmo-node reads; 서비스, the card master's board (「Monitor's services tab」); and for the administrator alone 로그,
-  what the machine's background units wrote (「Monitor's logs tab」). The tab stands in the address (`?tab=`), 기기
-  being the screen's own address, 서비스 `?tab=services` and 로그 `?tab=logs`, so a link opens the same tab and
-  moving between them is a step of the history; a member who opens `?tab=logs` stands on 기기, and so does a tab the
-  address does not know. What each agent is doing now is read on agent management's 에이전트 tab (「에이전트」), not
+  bmo-node reads; for the administrator alone 노드, the node list (「The node list」); 서비스, the card master's board
+  (「Monitor's services tab」); and for the administrator alone 로그, what the machine's background units wrote
+  (「Monitor's logs tab」). The tab stands in the address (`?tab=`), 기기 being the screen's own address, 노드
+  `?tab=nodes`, 서비스 `?tab=services` and 로그 `?tab=logs`, so a link opens the same tab and moving between them is a
+  step of the history; a member who opens an administrator's tab stands on 기기, and so does a tab the address does
+  not know. What each agent is doing now is read on agent management's 에이전트 tab (「에이전트」), not
   here. Only the open tab reads anything. The console search finds each tab as it finds a screen. On a phone
   the tabs stand by their names alone, their marks giving way, so they fit the row.
 - `/cards` sends a reader on to `/monitor?tab=services`, so a link made to that address lands on the master's
   board, and `/live` sends a reader on to `/agents?tab=supervisors`, so a link made to that address lands on the
   agents and what each is doing.
 - **기기 shows every machine at a glance** (bmo-node's `docs/hardware.md`, 「Which machines」): this machine first,
-  then the nodes in the node list's order, one tile each; a node that is this machine is shown as this machine's
-  tile alone. It fills the panel rather than standing in the reading column, and so does each machine's own
+  then the shared nodes in the node list's order, one tile each; a node that is this machine is shown as this
+  machine's tile alone. A personal node is no machine the monitor knows and has no tile. Until the first answer of
+  every machine's reading lands, the tiles are this machine and the shared nodes of the node list; from then on the
+  answer decides, so a machine it stops naming, a node made personal or removed, loses its tile at that period. It fills the panel rather than standing in the reading column, and so does each machine's own
   monitor.
 - **A machine goes by the label its reading hands over** — this machine by its host name — on its tile and as the
   title of its own monitor; no name is written into the code. Until the first reading lands the name's place is a
@@ -2754,6 +2749,20 @@ archive and this week's tokens remain. That is all that can actually be known th
   that order; middling, the two columns share the width; narrow, one column in the order CPU, memory, GPU,
   storage, board. The system card carries the live tracking switch, and the CPU card the CPU limit, each written
   to the node service as it is set.
+- **A node's screen is its own monitor, `/monitor/<node>`, for a personal node too.** A personal node is never
+  monitored (bmo-node's `docs/nodes.md`, 「A node's ownership」), so a node's screen asks for a reading only once the
+  node list says the node is shared; a personal node's stands one calm line in the muted colour, 개인 노드는
+  모니터링하지 않습니다, in the cards' place, titled by the node's label. A machine that stops being one while its
+  screen is open — the node service answers it `not-found`, as it does a node made personal — stands the same way
+  once that answer comes: its asking stops, the node list is read again, and its cards give way to the line, a
+  personal node's, or 그런 기기가 없습니다 for any other.
+- **A node's ownership is set at the foot of its own screen,** by the administrator: a 소유 section above 노드 삭제,
+  saying 공용 노드 or 개인 노드 with the owning account's person's name after a middle dot, and a 변경 button opening a
+  dialog of two fields — 소유, 공용 노드 or 개인 노드, and for a personal node 소유 계정, a choice of every user by
+  their person's name (their login where none stands), searched as typed, with 계정 없음 first. One 저장 sends the
+  node service's `PATCH /nodes/{nodeName}` with both (`account` null for a shared node, which takes none). A refusal
+  stands in the dialog under the fields in the pack's words, every value kept as written; a saved change reads the
+  node again, and the screen and the node list follow it.
 - **A node is taken off the list at the foot of its own monitor,** by the administrator: a 노드 삭제 section under
   the cards, never on the title bar, whose button asks first. Where the node is a hub node whose agent is attached,
   the question offers, checked, to have jake removed from that machine and its connection ended — the node
@@ -2777,6 +2786,24 @@ archive and this week's tokens remain. That is all that can actually be known th
   rather than in its place (bmo-node's `docs/hardware.md`, 「Units」).
 - Every figure that ticks stands in tabular figures, and a value the machine did not answer reads 읽지 못함 rather
   than nought.
+
+### The node list
+
+- **노드, the monitor's tab for the administrator alone, is every node of the node service** (bmo-node's
+  `docs/nodes.md`), personal ones among them, in the list's order, as one table: 노드, its letter on a colour drawn
+  from its name with its label and, where it differs, its name under it; 연결 방식, SSH or Jake; 상태, the last check's
+  state as a dot and its word; 소유, 공용 or 개인; 소유 계정, the owning account's person's name, read from the
+  account service's users by the node's account id, 알 수 없는 계정 {id} for an id no user holds, and empty for a
+  shared node. Pressing a row opens the node's screen (「Monitor screen」).
+- **The state's dot is the tone the node service hands with it:** `good` the success colour, `bad` the error colour,
+  and `unknown` the neutral grey — a node never checked, and a personal node that is disconnected or unreachable,
+  since a person's PC is switched off as a matter of course. The words are the console's: 연결됨, 연결 끊김, 인증
+  실패, 호스트 키 불일치, 연결할 수 없음, 오류, 확인 전.
+- **The list is filtered by ownership** with one select at the right end of the tab row, 전체, 공용 or 개인, kept in
+  the address as `?ownership=shared` or `personal` beside the tab. A filter that leaves no row says 찾은 노드 없음.
+- **Each row's more-menu holds the node screen's own actions,** 소유 변경 and 노드 삭제, each opening the same dialog
+  the screen opens; this machine and the machine the console runs on carry no 노드 삭제, as on their screen.
+- The list is read when the tab opens and again after a change made from it or from a node's screen.
 
 ### Monitor's services tab
 

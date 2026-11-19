@@ -3,7 +3,9 @@ import { wording } from "#shared/wording";
 
 import { unitFetch } from "./units";
 
-import type { HistoryBand, HistoryMetric, HistoryRange, HistorySpan, LiveRange, MachineHardware, MonitorNode } from "#shared/hardware";
+import type {
+  HistoryBand, HistoryMetric, HistoryRange, HistorySpan, LiveRange, MachineHardware, MonitorNode, NodeOwnershipChange
+} from "#shared/hardware";
 
 // The machines and their hardware as the monitor screen reads them (docs/web.md, 「Monitor screen」), from the node
 // service at the address `NODE_ADDRESS` names (its `docs/api.md`, 「Nodes」 and 「Machines」): the node list, a
@@ -18,6 +20,12 @@ const NODE_CODES: Readonly<Record<string, string>> = {
   "bad-field": "hardware.error.cpu_limit_range"
 };
 
+// Its refusals of a node's ownership change.
+const OWNERSHIP_CODES: Readonly<Record<string, string>> = {
+  "not-found": "hardware.error.no_node",
+  "bad-field": "hardware.error.ownership_refused"
+};
+
 interface Page<T> {
   items?: T[];
   more?: boolean;
@@ -28,7 +36,10 @@ interface NodeAnswer {
   label: string;
   kind: MonitorNode["kind"];
   thisMachine?: boolean;
-  state?: string;
+  state?: MonitorNode["state"];
+  tone?: MonitorNode["tone"];
+  ownership?: MonitorNode["ownership"];
+  account?: string | null;
   agentName?: string | null;
 }
 
@@ -80,9 +91,39 @@ async function nodeAnswers(): Promise<NodeAnswer[]> {
   }
 }
 
+/** One node as the monitor reads it. A field an older node service leaves out reads as that service meant it: no
+ * state is a node never checked, and no ownership a shared node. */
+export function monitorNodeOf(node: NodeAnswer): MonitorNode {
+  const ownership = node.ownership ?? "shared";
+
+  return {
+    name: node.name,
+    label: node.label,
+    kind: node.kind,
+    thisMachine: node.thisMachine === true,
+    connected: node.state === "connected",
+    state: node.state ?? "unknown",
+    tone: node.tone ?? "unknown",
+    ownership,
+    account: ownership === "personal" ? (node.account ?? null) : null
+  };
+}
+
 /** The node list, in its order, as far as the monitor reads it. */
 export async function listNodes(): Promise<MonitorNode[]> {
-  return (await nodeAnswers()).map((node) => ({ name: node.name, label: node.label, kind: node.kind, thisMachine: node.thisMachine === true, connected: node.state === "connected" }));
+  return (await nodeAnswers()).map(monitorNodeOf);
+}
+
+/** A node's ownership and account set; a shared node is sent no account, which it takes none of. */
+export async function changeNodeOwnership(name: string, change: NodeOwnershipChange): Promise<MonitorNode> {
+  const body = { ownership: change.ownership, account: change.ownership === "shared" ? null : change.account };
+  const answer = await unitFetch<NodeAnswer>(UNIT, `/nodes/${encodeURIComponent(name)}`, {
+    method: "PATCH",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body)
+  }, { codes: OWNERSHIP_CODES, passStatus: [404, 422] });
+
+  return monitorNodeOf(answer);
 }
 
 /** A node taken off the list; with `leave`, a hub node's agent is first sent a leave through its hub, so it uninstalls

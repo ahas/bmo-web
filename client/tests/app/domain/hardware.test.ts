@@ -26,8 +26,12 @@ function hardwareView(cpu: Partial<CpuView>, memory: Partial<MemoryView> = {}): 
   };
 }
 
-function node(name: string, kind: MonitorNode["kind"], thisMachine = false): MonitorNode {
-  return { name, label: name.toUpperCase(), kind, thisMachine, connected: true };
+function node(name: string, kind: MonitorNode["kind"], thisMachine = false, ownership: MonitorNode["ownership"] = "shared"): MonitorNode {
+  return { name, label: name.toUpperCase(), kind, thisMachine, connected: true, state: "connected", tone: "good", ownership, account: ownership === "personal" ? "7" : null };
+}
+
+function recorded(name: string, kind: MachineHardware["kind"]): MachineHardware {
+  return { name, label: name.toUpperCase(), kind, hardware: null, failure: null, readAt: 1, tracking: true, cpuLimit: null };
 }
 
 describe("monitorMachines", () => {
@@ -42,6 +46,17 @@ describe("monitorMachines", () => {
 
   test("a node that is this machine has no tile beside this machine's own", () => {
     expect(monitorMachines([node("self-node", "ssh", true), node("pc-node", "ssh")]).map((machine) => machine.key)).toEqual(["local", "node:pc-node"]);
+  });
+
+  // docs/web.md, 「Monitor screen」: a personal node is no machine the monitor knows.
+  test("a personal node has no tile before every machine's reading is answered", () => {
+    expect(monitorMachines([node("pc-node", "ssh"), node("own-pc", "hub", false, "personal")]).map((machine) => machine.key)).toEqual(["local", "node:pc-node"]);
+  });
+
+  test("once answered, the machines it names are the tiles, and one it stops naming loses its tile", () => {
+    const nodes = [node("self-node", "ssh", true), node("pc-node", "ssh"), node("gone-node", "hub")];
+
+    expect(monitorMachines(nodes, [recorded("local", "local"), recorded("self-node", "ssh"), recorded("pc-node", "ssh")]).map((machine) => machine.key)).toEqual(["local", "node:pc-node"]);
   });
 });
 

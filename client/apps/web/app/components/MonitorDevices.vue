@@ -1,5 +1,5 @@
 <!-- The Monitor screen's Devices tab (docs/web.md, 「Monitor screen」): a tile per machine, this one first and the
-     nodes after it once the list is read. -->
+     shared nodes after it once the list is read; once every machine's reading is answered, the machines it names. -->
 <template>
   <div class="flex flex-col gap-4">
     <p v-if="nodesError" class="text-sm text-error">{{ $t("screens.error.nodes_failed") }}</p>
@@ -26,11 +26,12 @@ import { monitorMachines, useMonitorReadings } from "~/domain/hardware";
 import { useNodes } from "~/domain/nodes";
 
 const { nodes, error: nodesError } = useNodes();
-const machines = computed(() => monitorMachines(nodes.value));
 
 // One recorded reading for every tile each period, so every tile stands at the same moment and no
 // machine's read can hold another's. A period that fails keeps the tiles on what they last read.
 const { readings: listed, status, error: readError } = useMonitorReadings();
 const kept = useLastRead(listed, status);
 const readings = computed(() => new Map(kept.value.map((one) => [one.name, one])));
+// An answer always names this machine, so an empty one is none yet.
+const machines = computed(() => monitorMachines(nodes.value, kept.value.length > 0 ? kept.value : null));
 </script>

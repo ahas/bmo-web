@@ -1,5 +1,6 @@
-<!-- One machine's full monitor (docs/web.md, 「Monitor screen」): this machine at `/monitor/local`, a node at its
-     own name, titled by the name its reading hands over. -->
+<!-- One machine's full monitor, a node's own screen (docs/web.md, 「Monitor screen」): this machine at `/monitor/local`, a
+     node at its own name, titled by the name its reading hands over. A personal node, or a machine the node service no
+     longer knows, asks for no reading and stands one line in the cards' place. -->
 <template>
   <UDashboardPanel id="monitor-machine" :ui="{ body: '[&>*]:max-w-none' }">
     <template #header>
@@ -21,8 +22,10 @@
     </template>
 
     <template #body>
-      <HardwareMonitor :key="machine" :url="machineHardwareUrl(machine)" :history-url="machineHistoryUrl(machine)" :live-url="machineLiveUrl(machine)" @read="named" />
-      <NodeRemoval v-if="removable !== null" :node="removable" :label="name ?? removable.label" @removed="void removed()" />
+      <p v-if="unmonitored !== null" class="text-sm text-muted" data-node-unmonitored>{{ unmonitored }}</p>
+      <HardwareMonitor v-else-if="known" :key="machine" :url="machineHardwareUrl(machine)" :history-url="machineHistoryUrl(machine)" :live-url="machineLiveUrl(machine)" @read="named" />
+      <NodeOwnership v-if="editable !== null" :node="editable" :label="nodeLabel" @saved="(next: MonitorNode) => void changed(next)" />
+      <NodeRemoval v-if="removable !== null" :node="removable" :label="nodeLabel" @removed="void removed()" />
     </template>
   </UDashboardPanel>
 </template>
@@ -42,34 +45,69 @@ const route = useRoute();
 
 const machine = computed<string>(() => String(route.params.machine ?? LOCAL_MACHINE));
 
-// The last reading that came back stays while a later asking fails, so a name once read stays too.
+const { nodes, status: nodesStatus, refresh } = useNodes();
+const node = computed<MonitorNode | null>(() => (machine.value === LOCAL_MACHINE ? null : (nodes.value.find((one) => one.name === machine.value) ?? null)));
+
+// The last reading that came back stays while a later asking fails, so a name once read stays too. A machine the node
+// service answers it does not know is told apart, and its node is read again to learn whether it was made personal.
 const last = ref<MachineHardware | null>(null);
 const failed = ref(false);
-const kind = computed<MachineHardware["kind"]>(() => last.value?.kind ?? (machine.value === LOCAL_MACHINE ? "local" : "ssh"));
-const name = computed(() => machineName(t, { label: null, kind: kind.value }, last.value, failed.value));
+const missing = ref(false);
+const personal = computed(() => node.value?.ownership === "personal");
+const kind = computed<MachineHardware["kind"]>(() => last.value?.kind ?? node.value?.kind ?? (machine.value === LOCAL_MACHINE ? "local" : "ssh"));
+const name = computed(() => (personal.value || missing.value ? (node.value?.label ?? machine.value) : machineName(t, { label: null, kind: kind.value }, last.value, failed.value)));
+const nodeLabel = computed(() => name.value ?? node.value?.label ?? machine.value);
+
+// A node's reading is asked only once the node list has said whether it is a machine at all: a personal node is none.
+// The list read again later leaves the cards standing.
+const listRead = ref(false);
+const known = computed(() => machine.value === LOCAL_MACHINE || listRead.value);
+
+watch(nodesStatus, (now) => {
+  if (now === "success" || now === "error") listRead.value = true;
+}, { immediate: true });
+
+// The line standing in the cards' place: a personal node is never monitored, and a machine the node service no longer
+// knows is none. Until the node list has been read again, a machine that went missing waits for it rather than
+// guessing which it is.
+const unmonitored = computed<string | null>(() => {
+  if (personal.value) return t("hardware.message.personal_unmonitored");
+  if (!missing.value) return null;
+
+  return nodesStatus.value === "pending" ? "" : t("hardware.error.no_machine");
+});
 
 watch(machine, () => {
   last.value = null;
   failed.value = false;
+  missing.value = false;
 });
 
-// A node of the list, not this machine, may be taken off it by the administrator, at the foot of its own monitor.
+function named(reading: MachineHardware | null, didFail: boolean, gone: boolean): void {
+  if (reading !== null) last.value = reading;
+  failed.value = didFail;
+
+  if (gone && !missing.value) {
+    missing.value = true;
+    void refresh();
+  }
+}
+
+// A node of the list, not this machine, may have its ownership set and be taken off the list by the administrator, at
+// the foot of its own screen.
 const administrator = useAdministrator();
-const { nodes, refresh } = useNodes();
+const editable = computed<MonitorNode | null>(() => (administrator.value ? node.value : null));
+const removable = computed<MonitorNode | null>(() => (editable.value !== null && !editable.value.thisMachine ? editable.value : null));
 const router = useRouter();
-const removable = computed<MonitorNode | null>(() => {
-  if (!administrator.value || machine.value === LOCAL_MACHINE) return null;
 
-  return nodes.value.find((node) => node.name === machine.value && !node.thisMachine) ?? null;
-});
+async function changed(next: MonitorNode): Promise<void> {
+  // A node made shared is a machine again, so its reading is asked afresh.
+  if (next.ownership === "shared") missing.value = false;
+  await refresh();
+}
 
 async function removed(): Promise<void> {
   await refresh();
   await router.push("/monitor");
-}
-
-function named(reading: MachineHardware | null, didFail: boolean): void {
-  if (reading !== null) last.value = reading;
-  failed.value = didFail;
 }
 </script>

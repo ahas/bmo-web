@@ -12,8 +12,8 @@ import type { DraftSummary } from "./drafting";
 // A machine's hardware as the monitor screen reads it, stated once in the module that holds it.
 export type {
   BoardView, ChipView, ClusterView, CoreView, CpuView, DieView, FanView, GpuView, HardwareCpuLimitChanged, HardwareTrackingChanged,
-  HardwareView, HistoryBand, HistoryRange, HistorySpan, LiveRange, MachineHardware, MemoryView, MonitorNode, PartView, SensorView,
-  ServicesView, StorageKind, StorageView, VolumeView
+  HardwareView, HistoryBand, HistoryRange, HistorySpan, LiveRange, MachineHardware, MemoryView, MonitorNode, NodeOwnership,
+  NodeOwnershipChange, PartView, SensorView, ServicesView, StorageKind, StorageView, VolumeView
 } from "./hardware";
 
 export interface DeployHold {

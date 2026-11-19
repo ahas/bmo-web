@@ -7,7 +7,7 @@
      with what was met; a figure it did not answer is marked unreadable. It reads one machine for as long as
      it stands, so a screen that moves to another machine stands a new one. -->
 <template>
-  <div class="@container flex flex-col gap-4">
+  <div class="@container flex flex-col gap-4" data-machine-monitor>
     <!-- Half and half where the monitor has the room, one above the other where it has not; the
          system card alone takes the whole row. -->
     <div class="grid gap-4 @3xl:grid-cols-2">
@@ -80,14 +80,14 @@ import type { MonitorFact } from "~/domain/hardware";
 import type { HardwareView, MachineHardware } from "#shared/types";
 
 const props = defineProps<{ url: string; historyUrl: string; liveUrl: string }>();
-// Every reading as it lands, and whether the last asking failed outright, for a screen that names
-// the machine by what its reading says.
-const emit = defineEmits<{ read: [reading: MachineHardware | null, failed: boolean] }>();
+// Every reading as it lands, whether the last asking failed outright, and whether the node service answered the
+// machine is none it knows, for a screen that names the machine by what its reading says.
+const emit = defineEmits<{ read: [reading: MachineHardware | null, failed: boolean, missing: boolean] }>();
 const { t } = useI18n();
 
-const { machine, status, error, live } = useMachineHardware(computed(() => props.url), { url: props.liveUrl, metrics: [] });
+const { machine, status, error, missing, live } = useMachineHardware(computed(() => props.url), { url: props.liveUrl, metrics: [] });
 
-watch([machine, error], ([reading, failed]) => emit("read", reading, failed !== null));
+watch([machine, error, missing], ([reading, failed, gone]) => emit("read", reading, failed !== null, gone));
 const hardware = computed<HardwareView | null>(() => machine.value?.hardware ?? null);
 const failure = computed<string | null>(() => machine.value?.failure ?? error.value);
 const gpus = computed(() => hardware.value?.gpus ?? []);

@@ -16,7 +16,7 @@ import type { Browser, BrowserContext, Page } from "playwright-core";
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "monitor-polling", password: "fixture-password-2372" };
-const NODES = Array.from({ length: 8 }, (_, at) => ({ name: `node-${at + 1}`, label: `Node ${at + 1}`, kind: "ssh", thisMachine: false }));
+const NODES = Array.from({ length: 8 }, (_, at) => ({ name: `node-${at + 1}`, label: `Node ${at + 1}`, kind: "ssh", thisMachine: false, state: "connected", tone: "good", ownership: "shared", account: null }));
 
 function reading(name: string): Record<string, unknown> {
   return {

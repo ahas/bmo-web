@@ -1340,4 +1340,23 @@ describe("what was done to a message", () => {
     expect(views[1]?.who).toEqual(["person-b"]);
     expect(views[0]?.who[0]).toBe("1");
   });
+
+  test("a person's reaction wears the face kept for their number, and an agent's the agent's own", () => {
+    const avatars = new Map([
+      ["person:1", "/person-1.jpg"],
+      ["agent:agent-a", "/agent-a.jpg"]
+    ]);
+    const [view] = reactionViews(
+      [
+        { emoji: "\u{1F44D}", by: "1" },
+        { emoji: "\u{1F44D}", by: "agent-a" }
+      ],
+      new Map([["1", "person-a"]]),
+      [1],
+      avatars
+    );
+
+    expect(view?.who).toEqual(["person-a", "agent-a"]);
+    expect(view?.faces.map((face) => face.src)).toEqual(["/person-1.jpg", "/agent-a.jpg"]);
+  });
 });

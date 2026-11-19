@@ -101,7 +101,7 @@ import { useConfirm } from "~/domain/confirm";
 import { keepDialogFocus } from "~/domain/menu-focus";
 import { organizationAddress } from "~/domain/organization";
 import { PERSON_PANES, personAdministrator, personBase, personPaneOf, personPaneRefused, personPanesFor, withPersonPane } from "~/domain/person-panes";
-import { useSupplyUnits } from "~/domain/supply";
+import { useSupplyReader, useSupplyUnits } from "~/domain/supply";
 import { ROSTER_STATE_FACES, rosterActs } from "~/domain/roster";
 import { revealOpenTab } from "~/domain/tab-row";
 
@@ -325,21 +325,26 @@ async function markLeft(): Promise<void> {
 // Each tab says which readers it stands for, and the address names the one open. The supply tab stands for the
 // administrator at once and for a member once the person's unit and the member's supply reach have both answered.
 const supplyUnits = useSupplyUnits();
+const supplyStanding = useSupplyReader();
 const supplyManages = computed(() => person.value !== null && supplyUnits.value.some((one) => one.id === person.value?.unit.id));
-const panesSettled = computed(() => administrator.value || person.value !== null || personFailure.value !== "");
+// Who opens the tabs is known at once for the administrator, and for anyone else once the person's read and the
+// supply reach have both answered; a read that failed answers it too, and leaves its tab standing for nothing.
+const panesSettled = computed(() => administrator.value || (person.value !== null || personFailure.value !== "") && supplyStanding.value.known);
 const panes = computed(() => personPanesFor({ administrator: administrator.value, supply: supplyManages.value }));
 const pane = computed(() => personPaneOf(route.query, panes.value));
 const paneItems = computed(() => panes.value.map((one) => ({ value: one.value, label: t(one.label) })));
 
 // A tab the address names that the reader may not open, or that is no tab, is taken off it with no step of the
-// history, the person opening at their first tab.
-// It waits until the person stands in the browser, as the screen's own tabs do.
+// history, the person opening at their first tab. The watch stands on the settling and on the tabs themselves, so
+// it decides again as the reader comes to be known, as the screen's own tabs do: until then no key is cut, and a
+// tab that answers later never has its key taken away for standing unknown.
 onMounted(() =>
   watch(
-    () => route.query,
-    (query) => {
-      if (!panesSettled.value) return;
-      if (personPaneRefused(query, panes.value)) void router.replace({ query: withPersonPane(query, PERSON_PANES[0]!.value) });
+    () => [route.query, panes.value, panesSettled.value] as const,
+    ([query, list, settled]) => {
+      if (!settled) return;
+
+      if (personPaneRefused(query, list)) void router.replace({ query: withPersonPane(query, PERSON_PANES[0]!.value) });
     },
     { immediate: true }
   )

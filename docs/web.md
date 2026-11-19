@@ -7749,6 +7749,11 @@ account's rooms or agents (「Access」).
     open, so the reader goes down the list reading one part of each person, and a key naming a tab the reader may not
     open is taken to 계정 with no step of the history. `pane=` with nobody chosen is kept, and the person chosen next
     opens at that tab.
+  - **Which tabs the reader opens is settled before any key is taken:** the administrator is known at once, and anyone
+    else once the person's read and the account service's supply reach have both answered — reads the browser makes
+    after it took the page over. Until they have, no `pane=` key is cut and the person opens at the first tab the
+    screen knows the reader opens; once they have, the key stands taken only where that reader may not open the tab,
+    so a tab that answers in later never loses its place. A read that failed answers as one that went through.
   - **A tab is read as it is first opened,** each of its groups on its own: skeletons shaped like its rows while it
     comes, and a read that failed says its reason in its place with 새로고침 while the others stand. A tab opened again
     while the person stays open shows what it read; an act that goes through reads again what it changed. 계정 and

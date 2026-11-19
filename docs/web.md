@@ -7199,10 +7199,10 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
   the dialog's left under the title 설정, each section one line of an icon and its name; the open one
   is marked. The section's own name heads the right, with the dialog's close mark at its right end,
   and its content scrolls under it.
-  - The sections are 계정, 내 BMO, 기기, 비밀 보관함, 테마, 대화방, 알림 and 보이스브리핑. A member is shown 계정, 기기,
-    비밀 보관함, 테마 and 대화방; 알림 and 보이스브리핑 are the administrator's, since the console rings and plays briefings for
+  - The sections are 계정, 내 BMO, 기기, 비밀 보관함, 공급, 테마, 대화방, 알림 and 보이스브리핑. A member is shown 계정, 기기,
+    비밀 보관함, 공급, 테마 and 대화방; 알림 and 보이스브리핑 are the administrator's, since the console rings and plays briefings for
     the administrator alone. 내 BMO is shown to a person who may personalise their BMO and owns one (「내 BMO」). A login with no user of the account service, which holds no secret space and no machine, is not
-    shown 기기 or 비밀 보관함.
+    shown 기기 or 비밀 보관함, and 공급 is no section for it either, what it sets standing against that user.
   - A section's content stands in groups under small headings, each group a column of rows parted by
     hairlines. A row carries its name and, where the name needs it, one muted line under it at the
     left, and its control at the right: a choice of two or three a segmented control, a longer one a
@@ -7214,7 +7214,7 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
 - **On a narrow screen the dialog fills the screen** and opens on the list of sections alone, over the
   sidebar drawer it was opened from (「Floating things」). A tap on one goes into it: the head then carries
   a back arrow before the section's name, and the arrow or the back gesture returns to the list. The close mark stands at the head's right end on both.
-- **An address opens it at one section:** `?settings=` and a section's key — `account`, `agent`, `machine`, `secrets`, `theme`,
+- **An address opens it at one section:** `?settings=` and a section's key — `account`, `agent`, `machine`, `secrets`, `supply`, `theme`,
   `palette`, `notifications`, `briefing` — on any address of the console opens the dialog at that
   section, gone into on a narrow screen, and at the first section the reader may open where the key
   names none of them. A member sent on from an address they may not open to their own home is sent with the key, so
@@ -7390,6 +7390,48 @@ person sees their own space and nobody else's, the administrator included.
   so not even the administrator reads one. A login with no user is shown neither the section, the clip's 비밀 nor
   the form, and the routes answer it as if nothing stood there (「Access」).
 
+#### 공급
+
+What the reader's own runs go out on: the credentials they bring, the order a run falls through what the platform
+offers them, and what their supply has spent and has left. Every person with a user of the account service sees it.
+The account service holds the policy, the caps, the usage and the balances; the person's logins
+and keys stand at the agency (its `docs/api.md`, 「accounts, rest and usage」), and the section reads and changes
+them through the console's own relay of those routes (`GET`/`PUT /api/supply/me`, `/api/supply/logins`,
+`/api/supply/signin`, `/api/supply/personal`). No credential and no secret value reaches the screen from either unit: what
+a row shows of a key is the secret's name, and of a login the path it is reached by.
+
+- **공급 로그인** lists the reader's Claude logins in the order their runs walk them, one row each: the name, its
+  place in the order, its state in one word — 사용 가능, 창 가득 참, 로그인 필요 — and its switch. The arrows move
+  one row, the whole order written as it is dropped; a refusal leaves the order the agency holds. 로그인 추가 at
+  the heading's end asks a name and starts the sign-in the agency runs on the reader's own node: the box opens the
+  sign-in's address in the reader's browser, the code that page shows is pasted into 인증 코드 and handed back with
+  로그인 완료, and closing the box gives the sign-in up, each as the administrator's box does (「Administration」);
+  a reader whose node stands off is told so and nothing starts. A login that has ended carries its own 로그인
+  row-action, the same flow on the standing account. 삭제, asked first, takes one away.
+- **공급 키** lists the reader's gateway keys, one row each: the secret's name as the label, the provider's own name
+  and its state under it — 사용 가능, 키 거부됨 — and its switch, its arrows moving it within its provider and its
+  삭제 asking first. 키 추가 opens a form of provider (Codex, DeepSeek or OpenRouter) and secret, the secret chosen
+  from the names the reader's space holds and the choice standing empty with one line leading to 비밀 보관함 where
+  it holds none; the form hands the name alone, and a provider the reader already carries a key for, or one the
+  gateways serve none of, is refused in the dialog.
+- **공급 순서** stands the sources a run may fall through, in the order resolved for the reader: each usable source a
+  row with its arrows and its switch, and a source the reader themselves closed stands among them with its switch
+  off, ready back in; a source a layer above closes stands greyed under them all, its reason in one line — 계획에
+  없음, 조직에서 막힘 or 관리자가 막힘 — and it carries no control, a write that opened it back standing refused 403
+  with that closer's reason. 중단 always stands last and moves as nothing. 개인 크레딧 enters the order alone while
+  the section's own 허용 switch is on, and its 월 상한 row under it takes the credits a month may go out on it, 상한
+  없음 by default — the cap the person sets, never above what the organisation's cap leaves; the walk's row for
+  개인 크레딧 carries that same 허용 switch and never a second one, and the source reads closed while the cap is spent
+  as well as while the switch is off. Each change is written whole as it is made and answered with the view as it
+  now stands; the account service is the owner of every refusal, and a refused write leaves the section as it stood,
+  its reason under the group.
+- **이번 달 사용량** lists what went out this month, one row per source with its credits and its cost, and beneath
+  them 계획 남은 공급, the plan's included usage still left, and 개인 크레딧 잔액, the reader's own credit balance,
+  each `—` where it holds none. No top-up control stands anywhere: payments are off, and a balance low reads as a
+  figure, never as a way to fill it.
+- A read that failed says its reason in the section with 새로고침; the groups read on their own, and one that came
+  stands while another waits.
+
 #### 테마
 
 - **화면 모드** chooses 시스템, 밝게 or 어둡게 for this browser, the same choice the user menu offers.
@@ -7451,15 +7493,17 @@ person sees their own space and nobody else's, the administrator included.
 ### Organisation
 
 조직 is the screen of the organisation and the people in it: its units and who stands in them, every person looked
-up one at a time, the invitations into the units and each person's sections. What is set for the platform itself —
+up one at a time, the invitations into the units, each person's sections, and the supply of the units the reader
+manages. What is set for the platform itself —
 the providers and the Claude accounts
-every run goes out on, and the kinds every person's secret form asks in — is the administrator's screen, 관리자
+every run goes out on, the kinds every person's secret form asks in, and the platform's own supply, its plans and
+its credits — is the administrator's screen, 관리자
 (「Administration」). What a person sets for themselves alone, their secrets and the voice briefing among it, is the
 settings dialog's (「Settings」), and the research supervisor stands with the research unit's settings on the
 research screen (「Research screen」).
 
-- **It stands at `/organization`, a tab to a section.** The tabs are 조직도, 사용자, 직책·종류, 초대 and BMO, keyed in
-  the address as `?tab=` with `people`, `catalogue`, `invites` and `agent`, 조직도 being the screen's own
+- **It stands at `/organization`, a tab to a section.** The tabs are 조직도, 사용자, 직책·종류, 초대, BMO and 공급, keyed in
+  the address as `?tab=` with `people`, `catalogue`, `invites`, `agent` and `supply`, 조직도 being the screen's own
   address; a shared link opens the same tab, moving between tabs is a step of the history, and a key naming no tab
   the reader may open opens the first they may. The console search finds each tab as it finds every screen's.
 - **A key of a section that moved away leads to where it stands now,** so a link made before it moved still lands
@@ -7472,7 +7516,10 @@ research screen (「Research screen」).
   machine」) and sets who under it may personalise their BMO (`docs/accounts.md`, 「A person's BMO profile」), so
   their shell lists 조직 too and the screen holds 초대 and BMO, and 사용자 and 직책·종류 where they head a company (「사용자」,
   「직책·종류」); a member who heads none is listed no entry, and the
-  address shows them 초대 saying they may invite into no unit. A head marks a person of their unit left as well
+  address shows them 초대 saying they may invite into no unit. 공급 stands for the reader whose supply reach the
+  account service's roster read says something for — the companies it answers are the units its 공급 tab will
+  stand for (「공급」) — and for the
+  administrator wherever they stand; a reader it says nothing for is held the tab no longer than it says nothing. A head marks a person of their unit left as well
   (`docs/accounts.md`, 「A person who leaves」): the route stands open to every signed-in login and the account
   service refuses anyone but the person's heads, and the screen offers the act on 사용자, so a head of a unit below a
   company marks a person left through the route alone. A head gives and takes a post in a unit they head, and names
@@ -7481,8 +7528,9 @@ research screen (「Research screen」).
   겸직 추가 on 사용자 to a company's head and the appointment on 조직도 alone, so a head reaches the appointment
   through the route alone. A company's head reads and writes its roles and unit kinds on 직책·종류 the same way.
 - **A tab is drawn once the reader is known to open it.** The administrator is known at once. Whether a member heads
-  a company is known once the people roster has answered, which the browser asks after it takes the page over, so
-  the server draws the page before it knows; once answered it stays known, a later read of the roster leaving the
+  a company is known once the people roster has answered, and whether they manage any unit's supply once the account
+  service has said which units their supply reach covers — reads the browser asks after it takes the page over, so
+  the server draws the page before it knows; once answered they stay known, a later read of either leaving the
   open tab standing. Until then the row holds the tabs every member opens, with the tab the
   address names among them and chosen; the body draws a tab only where every member opens it, and otherwise keeps
   its place empty, as the server draws it, and the tab's own lists bring up their skeletons once it stands. Where
@@ -7690,10 +7738,12 @@ account's rooms or agents (「Access」).
     so another part is always one press away. Where the tabs are wider than the region, at a phone's width or with the
     region dragged narrow, they keep one line and scroll sideways, the open tab scrolled into view whenever it
     changes.
-  - **The tabs, in order:** 계정, 조직, 권한, BMO and 활동, five at most, so the row fits a phone's width whole. 계정,
-    조직 and BMO stand for every reader of the person; 권한 and 활동 for the administrator alone (below). With no tab
-    named the person opens at 계정.
-  - **The address carries the tab open** as `pane=`, with `organization`, `permissions`, `bmo` and `activity`,
+  - **The tabs, in order:** 계정, 조직, 권한, BMO, 공급 and 활동. 계정,
+    조직 and BMO stand for every reader of the person; 권한 and 활동 for the administrator alone; 공급 for a reader
+    who may set the person's supply — the administrator, and the head or the credit manager of the unit the person
+    stands in (below, and 「공급」 of this screen). A part the reader may not open stands as no tab at all. With no
+    tab named the person opens at 계정.
+  - **The address carries the tab open** as `pane=`, with `organization`, `permissions`, `bmo`, `supply` and `activity`,
     계정 being the person's own address, so a shared link opens the same person at the same tab. Moving
     between tabs is a step of the history, as the screen's tabs are. Choosing another person in the list keeps the tab
     open, so the reader goes down the list reading one part of each person, and a key naming a tab the reader may not
@@ -7703,8 +7753,9 @@ account's rooms or agents (「Access」).
     comes, and a read that failed says its reason in its place with 새로고침 while the others stand. A tab opened again
     while the person stays open shows what it read; an act that goes through reads again what it changed. 계정 and
     조직 stand on the one read of the person the head stands on.
-  - **Every tab but 권한 only reads.** A change is one of the head's acts, each opening the dialog it opens on its own
-    tab of the screen; 권한 changes the person's sections in place, as it says.
+  - **Every tab but 권한 and 공급 only reads.** A change is one of the head's acts, each opening the dialog it opens on its own
+    tab of the screen; 권한 changes the person's sections in place, as it says, and 공급 their per-user supply policy,
+    in place through its own form.
   - **The groups** stand under small headings as a name and value list, each name over its value on a narrow
     screen. A tab of one group leaves its heading out, the tab's name already saying what it holds. The lists among
     them, 방, 에이전트, 세션 and 최근 활동, stand a row as two lines at every width, the words that say which item it is
@@ -7740,6 +7791,15 @@ account's rooms or agents (「Access」).
   dialog that only reads; BMO 설정 권한, 허용 or 막음 as it resolves for them, with what it follows; and 공급자 · 모델,
   the road of their supervisor as the agency answers it, in the words of agent management's cell. A person with no BMO
   says BMO 없음.
+- **공급**, for a reader who may set the person's supply (`GET`/`PUT`/`DELETE /api/supply/user/{user}`, every one of
+  them answered with the person as they now stand): the per-user policy or, where none stands, one row saying the
+  person follows their organisation's — what the organisation's policy holds shows on the person only as their
+  resolved order; 정책 설정 and, of a standing policy, the 편집 and the 정책 삭제 asked first — the same form and the
+  same asking as the screen's 공급 tab (「공급」) — and a policy naming a source the layers above close refused with
+  the reason the service gives. Under it, 개인 공급: which providers the person's own credentials serve, by their
+  names alone — never a credential, a secret's name or a value — and 개인 공급 없음 where they bring nothing; where
+  the deployment names no agency the read itself is refused and the pane says so in one line rather than fail. And
+  their resolved 공급 순서 as one line of the sources in order, read only.
 - **활동**, the administrator's alone, holds four groups.
   - **방:** the rooms the person reads by their account (「Access」), the latest first, one row each with the room's
     picture beside two lines, its name and its last message's time, then its kind, 개인 대화 for their BMO's private
@@ -7944,19 +8004,59 @@ Where a company's own words for its roles and its unit kinds are kept (`docs/acc
 - **A saved default, picture or choice is applied at once** to the BMO of every person it reaches (「A person's BMO
   profile on the agency and the receiver」), and a person's 설정 shows or drops 내 BMO the next time it opens.
 
+#### 공급
+
+The supply of the units the reader may manage: what runs there go out on, the plan they stand on, and the credits
+that pay for them. The account service holds every one of these and owns every refusal (`docs/accounts.md`); the tab
+is read and written on its routes through the console's relay (`/api/supply/org/{unit}` and its `credits`, and
+`/api/supply/units` for the units the tab may stand for — the companies the account service's roster read gives the
+reader, which is every company for the administrator and the companies whose own unit they head for anyone else).
+The unit read carries the policy standing for the unit, own or inherited from above, the plan, the wallet and the
+members' spend, each of those read by the hand that may read it and none for the hand that may not; the policy
+write and the policy's taking-away are answered with the unit as it now stands. No credential and no secret value
+stands on it.
+
+- **The unit** is chosen above the column where the reader may manage more than one: the administrator chooses any
+  company, and a head one of the companies they head. The choice stands in the
+  address as `?unit=` beside the tab's key, so a shared link opens the same unit.
+- **공급 정책** stands under its heading: where the unit sets no policy of its own, the row says it follows the
+  unit above, muted under the name, and the policy actually in force from above stands as the rows' values, the
+  allowed sources in order; 정책 설정 at the heading's end opens the form (「Forms」). Where a policy stands, its
+  allowed sources and its order stand as its rows, the per-person monthly cap on organisation credits among them
+  or 상한 없음, and 편집 opens the form on it while 정책 삭제, asked first, takes it away so the unit follows the
+  unit above again. The form is the unit's policy written whole: a switch on each source it may set as it allows —
+  개인 공급, 전역 공급, 조직 크레딧, 개인 크레딧 —, the order of those allowed moved by arrows with 중단 standing last
+  and unasked for, and 월 상한; a source the layers above close is refused by the service, its reason said in the
+  dialog and no row of it switched on.
+- **플랜** holds the unit's plan, where one stands: its 이름, its price in whole won over its period, its period,
+  the 크레딧 it includes each period and whether 크레딧 may be used on it, each a row; 계획 없음 where it stands on
+  none.
+- **크레딧** is the unit's wallet: the balance whole with its thousands, and 크레딧 부여 at the heading's end — an
+  amount in credits, 한 줄 of words kept with the grant where the granter writes any, and 부여 at the dialog's foot.
+  A grant that goes through reads the balance again; a refusal is said in the dialog. No top-up control stands:
+  payments are off, and a grant here is the reader's own act, not a payment.
+- **이번 달 사용량** lists the unit's people's runs this month by source, one row each: the member as the service
+  names them, by their user id, the source's word under it, the credits spent at its end in tabular figures;
+  사용량 없음 where none went. A member spending on two sources stands on two rows.
+- The tab's groups read on their own, each keeping its place with a skeleton while it is first read and saying its
+  reason with 새로고침 where its read failed, as every tab of this screen does (「Organisation」).
+
 ### Administration
 
 관리자 is the administrator's screen of what is set for the platform itself: the providers and the Claude accounts
-every run goes out on, and the kinds every person's secret form asks in. No member opens it.
+every run goes out on, the kinds every person's secret form asks in, the plans the platform sells and the credits
+they and the platform's supply run on. No member opens it.
 
-- **It stands at `/admin`, a tab to a section.** The tabs are 공급자 and 비밀 종류, keyed in the address as `?tab=`
-  with `secret-kinds`, 공급자 being the screen's own address; a shared link opens the same tab, moving between tabs is
-  a step of the history, and a key naming no tab opens the first. The console search finds each tab as it finds
-  every screen's. A link to `/organization` naming `providers` or `secret-kinds` lands on the same tab here.
+- **It stands at `/admin`, a tab to a section.** The tabs are 공급자, 비밀 종류, 플랜 and 크레딧, keyed in the address
+  as `?tab=` with `secret-kinds`, `plans` and `credits`, 공급자 being the screen's own address; a shared link opens
+  the same tab, moving between tabs is a step of the history, and a key naming no tab opens the first. The console
+  search finds each tab as it finds every screen's. A link to `/organization` naming `providers` or `secret-kinds`
+  lands on the same tab here.
 - **Who opens it.** The administrator alone, and the sidebar lists 관리자 for them after 조직; a member is listed
   no entry, and the address takes them home as any screen they may not open does.
 - **The tab row, a tab's content and its groups** stand as 조직's do (「Organisation」): the open tab's own add at
-  the row's right end, 종류 추가 on 비밀 종류 and none on 공급자, whose add stands in its Claude 계정 heading; each tab in the centred reading column;
+  the row's right end, 종류 추가 on 비밀 종류 and 플랜 추가 on 플랜 and none on 공급자, whose add stands in its Claude 계정
+  heading, nor on 크레딧, whose grant stands in its own heading; each tab in the centred reading column;
   a kind's 편집 and 삭제 on 비밀 종류 as icon buttons named by their tooltips.
 
 #### 공급자
@@ -8027,6 +8127,55 @@ by the administrator. Every login reads them, since every person's form asks in 
   the fields, each a row of its 키, 이름, 입력 (한 줄, 여러 줄 or 파일), 값 숨김 and 필수, removed by its own mark, with
   항목 추가 under them. A rule the kind breaks is said under the field it names, and 저장 stays off while one is
   broken.
+
+#### 플랜
+
+The membership plans the platform sells (`docs/accounts.md`): who pays, for what period, and what the
+period includes. Every plan the service holds stands one row each, newest first, and the administrator writes them.
+A plan is made whole and answered as the plan it became; a change carries the fields that moved and is answered
+with the plan whole; a retirement is answered with the plans as they now stand. The tab reads `GET`/`POST
+/api/supply/plans` and `PATCH`/`DELETE /api/supply/plans/{plan}`.
+
+- **The plans stand one row each,** newest first: the plan's name as the row's label, its scope —
+  개인 or 조직 — and its period, its price in whole won and its included credits under it, — where the plan carries
+  no included amount that place stands —, whether 크레딧 may be used
+  on it, and its more-menu of 편집 and 삭제 at the row's end. 삭제 asks first, naming the plan; a plan people stand
+  on is refused and the refusal is said under the row. A platform holding none says 플랜 없음.
+- **플랜 추가**, the tab row's add, and 편집 open the plan's form, a dialog of its own (「Forms」): 이름; 가격, whole
+  won, what a period costs; 대상, 개인 or 조직; 주기, the period the plan runs on and is bought over; 기간 포함, the
+  크레딧 each period brings, none where the box is left at nothing; and 크레딧 사용 가능, a switch for whether credits
+  may pay on the plan at all. A plan's 대상 does not move once the plan is made: an edit names it and does not
+  offer it as a field. 저장 is
+  open only while a field differs from what stands, and a rule the service breaks is said in the dialog.
+- **A plan changed or added takes effect on what the service resolves from it onward** — the supply orders every
+  person's falls through — and nothing here re-reads anyone's standing.
+
+#### 크레딧
+
+The credits the platform's supply is paid in, and the numbers it runs on, all the platform administrator's. The
+tab reads and writes `GET`/`PUT /api/supply/platform`, `POST /api/supply/credits`, `/api/supply/credits/ledger`
+and `/api/supply/credits/audit`.
+
+- **플랫폼 기본 정책** stands first, above everything else on the tab: the sources allowed by default and their
+  order, edited through the same policy form 조직's 공급 tab uses (「공급」), so the platform's default is one policy
+  written like any other and stands with the numbers below.
+- **전환율 and 예약** stand under it, each a row that takes effect as it is changed: 전환율, the fixed 크레딧 one US
+  dollar of cost converts to, and 예약 크레딧, the size every reservation opens at and grows by.
+- **공급 제한 적용** is the enforcement switch, on its own row with one muted line saying what it does: while it is
+  off nothing is refused and every cost is only recorded, so no run is ever stopped by its supply. Turning it on
+  makes every limit real. The row carries it as a switch, refused at once if it is refused, its reason under the
+  name.
+- **크레딧 부여** is a group under its own heading: the owner — 한 person, found by name in the people directory, or
+  an organisation, chosen from the tree by its path — the amount in credits and 한 줄 of words kept with the grant,
+  and 부여, open once an owner and an amount stand. What goes through is said by the ledger read again.
+- **장부** lists every credit movement the service answers, newest first, the console's shared list read a page at
+  a time the way 사용자's list is (「사용자」): one row each, the owner as the ledger keeps them — 사용자 or 조직 and
+  their number —, the kind, when, and the words kept with it or nothing under it, and the amount signed at its end.
+- **감사 기록** stands under its heading: every grant, every change of a policy, of the 전환율 or the 예약 size or
+  of 공급 제한 적용, and every plan act, newest first — one row each, the act's kind — 부여, 정책, 설정 or 플랜 — and
+  its subject, then the moment, whose act and what it changed. The service audits each of these in its own table
+  as it takes the write, and this one route answers the whole record.
+- No balance is shown for anyone here, and no top-up control stands: payments are off.
 
 ### Messages
 

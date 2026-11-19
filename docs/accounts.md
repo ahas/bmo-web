@@ -303,6 +303,7 @@ section states what each does.
   | `brain` | the brain's screen |
   | `rooms` | the reader's rooms and their messages |
   | `account` | the reader's own account, its settings and its secrets |
+  | `supply` | the account screen's settings section supply |
 
 - **Agent management's screen opens on any one of its parts the reader may read,** and each tab on its own
   part alone. Its shared reads — the agent list, a provider's models, the provider switches and the fallback,
@@ -319,7 +320,8 @@ section states what each does.
 - **The defaults in force let a person use the console as a messenger of its own:** `rooms` read and written,
   so a person reads their rooms, speaks in them and in their own BMO's private room, and opens a room, with no
   grant asked of anyone; `account` read and
-  written, and the sections of the screens units bring that a member could open — `mail`, `files`, `artifact`,
+  written, `supply` read and written so every person with an account reaches their own supply settings
+  (「Supply」 below), and the sections of the screens units bring that a member could open — `mail`, `files`, `artifact`,
   `code`, `remote` and `brain` — read. A screen whose manifest names the administrator alone stays closed to a
   member by that manifest, whatever its section says. A user made by the account command or linked to a sender
   is given the defaults, and the users who stood before this surface did are given them once, as the service
@@ -889,6 +891,120 @@ section states what each does.
   stands, so a deployment made before gains the two once and keeps every kind it holds. From then on they are the
   owner's to change or remove like any other.
 
+## Supply
+
+- **Supply is who pays for a run, and on whose credential it goes out** (the agency's `docs/supply.md`). The
+  agency measures what a run costs and knows nothing of plans or credits: this service is the consumer that
+  answers, through the agency's `supply` hook point, which sources a run may take and whether a source the
+  platform pays for takes it. A run's provider and model never change with its source, and the agency is the
+  only consumer of an order.
+- **The five sources, keyed everywhere by these keys:**
+
+  | Key | What it is |
+  |---|---|
+  | `personal` | the person's own credential, paid to the provider |
+  | `global` | the platform's credential, paid from the plan's included usage |
+  | `org_credits` | the platform's credential, paid from the organisation's credit wallet |
+  | `personal_credits` | the platform's credential, paid from the person's own credit wallet |
+  | `stop` | nothing left; always last in every order, never answered to the agency |
+
+- **The service stands on sumida's membership domain for it,** with the `membership` and `mail-form` features
+  on, sumida's `membership` and `membership_metering` migrations registered after the service's own, and
+  sumida's `[membership]` settings written beside the service as sumida reads them: the default currency, a
+  one-hour lifetime for a hold the caller gives no lifetime of its own, and the payment provider `none` —
+  nothing is bought; credits arrive by a grant alone. A plan includes global supply as its amount quota on
+  the membership action `supply`, and credits stand usable for the holder of a live subscription to an
+  enabled plan whose `supply` action carries a credit cost. sumida's membership maintenance loop — the
+  releasing of expired holds, the sweeping of ended lots and the notices — runs inside the `serve` process,
+  started once as it stands, hourly; it is advisory-locked, so several instances run each pass once.
+- **What each source stands on** (「The tables」): the platform default policy and the platform's money
+  settings each in their one row, an organisation's and a person's administrator-set policy and a person's own
+  setting each in their own table, every platform reservation this service opens in `supply_reservations`,
+  and every settled cost in `supply_costs`. The seeded defaults are the platform policy of `allowed` =
+  `personal, global` and `order` = `personal, global, stop`, and the settings `credits_per_dollar` 1500,
+  `reservation_credits` 200 and `enforce` false. The first values an organisation policy takes are `allowed`
+  = `personal, global, org_credits` and that order with `stop`; they are the form's starting point, not a
+  default the service writes.
+
+### How an order is resolved
+
+- **Five layers narrow what a person may use, each only narrowing what the layers above allow:**
+  1. the platform default policy;
+  2. the plan's inclusion — the person's personal subscription where one runs, else the live subscription of
+     the nearest unit going up from theirs that holds one. A plan includes global supply with an amount quota
+     for its period and says whether credits may be used at all: `global` drops out where the plan includes
+     none or its quota is spent, and `org_credits` and `personal_credits` where the plan forbids credits;
+  3. the nearest organisation policy going up the unit tree, a unit with no row inheriting its parent's;
+  4. the administrator's per-user policy, where one stands;
+  5. the person's own setting, which reorders, switches allowed sources off, and lets personal credits in
+     only once the person switched them on.
+- **`stop` is appended to every stored order last and cannot be removed;** a hook answer leaves it out, since
+  the agency says the stop itself when no source is left. An organisation credit cap — where one stands —
+  takes `org_credits` out of a person's order once their organisation-credit spend of the calendar month has
+  reached it, and a person's own cap does the same to `personal_credits`.
+- **A write naming a source its earlier layers do not allow is refused.** A policy write closed by the
+  platform answers 403 `source-not-allowed`; a person's own write answers the code of the layer that closed
+  it — `not-in-plan`, `blocked-by-organisation` or `blocked-by-administrator` — so the screen can say the
+  reason. `GET /supply/me` answers the same reason beside each source it does not allow.
+- **The order is asked afresh for every run;** nothing of one is cached.
+
+### The hook
+
+- **One route, `POST /supply/hook`,** reached only by a caller presenting the server's bearer token — the same
+  token every deployment caller presents, no new secret. The body is `{ point, ask }` with the ask's `op`, and
+  the answer is `{ answer }`. Amounts are US dollars, times epoch milliseconds, and the `key` of every ask
+  that moves money is `<run>:<step>:<op>`, taken once end to end: the key is carried into sumida's own
+  idempotency and kept unique here, so a repeated ask answers what the first did and moves nothing twice.
+  - **`order`** answers `sources`: the resolved order of the ask's `account`, each entry `personal` or a
+    platform source's key, `stop` left out.
+  - **`reserve`** opens a reservation of `reservation_credits` credits for a platform source, at the ask's
+    `account` and `step`, and answers `accepted`, the `reservation` id opened (an opaque text the service
+    generates and keeps in `supply_reservations`), its `amountUsd` and its `expiresAt`. When it refuses it
+    answers `accepted` false and `reopensAt` where a moment is known: the period end of a spent global quota,
+    or the expiry of the standing hold that holds the room down.
+  - **`extend`** grows the standing reservation by one reservation unit at a time and answers its whole
+    `amountUsd` now and its new `expiresAt`.
+  - **`capture`** settles the ask's `costUsd` against the source, answers `taken`, and writes the cost to
+    `supply_costs`. A capture may exceed what the source holds: sumida is asked with a ceiling of one
+    reservation unit of debt, what stands over the ceiling is captured to it and the overage recorded in
+    `supply_costs` and charged nowhere, and a capture of a reservation already past its expiry is taken as a
+    direct charge of that amount. `release` answers `taken` and gives the reservation back unspent.
+- **What a reservation runs against:** `global` against the plan's amount quota on the person's subscription
+  (sumida's quota holds), `org_credits` against the wallet of the ask account's own organisation and
+  `personal_credits` against the person's own wallet (sumida's holds, captures and releases). Every platform
+  source reserves and settles in credits, converted at the standing `credits_per_dollar`.
+- **While `enforce` is false** every ask records and answers as though the source were unlimited: the order
+  is resolved and answered, a `reserve` is accepted at the full size and opens no sumida hold, nothing is ever
+  refused, and so a run is never stopped by supply. `capture` and `release` still answer taken, still move
+  their reservation's state, and still write `supply_costs`; the wallets and quotas stand untouched. Turning
+  `enforce` on is the owner's call, made on the admin screen with `PUT /supply/platform`.
+- **Registration:** as the server starts, where its settings name the agency, it answers `PUT
+  /hooks/supply` at the agency with its own address plus `/supply/hook` as the `url` and its own token as the
+  `token`, the same tolerance the receiver declaration has — a start where the agency is unknown or refuses
+  goes on, the agency's rule for that case being that a person's run then takes personal supply alone.
+  `DELETE /hooks/supply` takes the registration away. The `order` answer never names a platform source the
+  service would refuse a reservation for.
+
+### Who may change and read what
+
+- **Only sumida's existing organisation relations stand behind the supply routes;** no new relation is
+  declared. An organisation's supply policy and its credits are its `credit_manager` or its `manager`'s, a
+  head reaching down the tree as sumida's `manage` does; its plan is its `subscription_manager`'s;
+  everything platform-wide — the platform default policy, the conversion rate, the reservation size,
+  `enforce`, the plans, granting credits to anyone, the ledgers and the audit — is a platform administrator's;
+  a person's own setting is the person's alone; and a per-user policy is the `credit_manager` or `manager` of
+  the unit the person stands in, a platform administrator everywhere.
+- **Of another person's personal supply an administrator reads which providers it serves, never a credential
+  and never a secret's value:** the roads come from the agency's own administrator read (`GET
+  /personal-supply` under the person's `Owner-Key`), and the credentials stand in the agency and the secret
+  store (「The secret store」). The person's own supply screen reads and changes the logins and keys through
+  the agency's personal-supply routes directly (`docs/boundary.md`, 「Calls the console makes」); this service
+  holds no copy.
+- **The routes the console calls stand in `docs/boundary.md`, 「Supply」;** what each does is the two paragraphs
+  above, the refusals they name, and the tables below. The audit (`GET /supply/credits/audit`) is written by
+  the acts it reports: every grant, every change of a policy, the rate or `enforce`, and every change of a
+  plan.
+
 ## The account command
 
 - **The server's binary makes the user a name signs in as, or gives one standing a new password,** with the
@@ -945,6 +1061,14 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 | `web_presence_hidden` | each account that turned its presence off, by its user, and when; an account showing its presence has no row (「Showing one's presence」) |
 | `web_room_reads` | how far each user has read each room |
 | `document_talk` | the console's threads about a document: each word said over one, by whom, with the passage, heading and version it was said over (`docs/documents-viewer.md`, 「The record」) |
+| `supply_platform_policy` | the platform's one policy row (`id` = 1): `allowed` and `order` as JSON arrays of source keys, and who set them and when (「Supply」) |
+| `supply_settings` | the platform's one supply settings row (`id` = 1): `credits_per_dollar`, `reservation_credits`, `enforce`, and who set them and when (「Supply」) |
+| `supply_org_policies` | each organisation unit that set its own supply policy: `org_id`, `allowed`, `order`, `member_credit_credits` (the per-person monthly cap on organisation credits, null for none), and who set it and when; no row means the unit inherits (「Supply」) |
+| `supply_user_policies` | each per-user supply policy an administrator set: `user_id`, `allowed`, `order`, `member_credit_credits`, and who set it and when; no row means the person follows their organisation's (「Supply」) |
+| `supply_user_settings` | each person's own supply setting: `order`, `off` (allowed sources the person switched off), `personal_credits_on`, `personal_credit_credits` (their monthly cap on personal credits), and when it changed (「Supply」) |
+| `supply_reservations` | every platform reservation this service opened: its `id` as answered to the agency, `run`, `step`, `user_id`, `source`, `amount_credits`, `spent_credits`, `expires_at`, `state` (`open`, `captured`, `released`), `sumida_reference`, the `key` it was opened on (unique), and its moments (「Supply」) |
+| `supply_costs` | every settled cost, one row per accepted capture and every personal-supply cost recorded: `run`, `user_id`, `org_id`, `source`, `credits` (0 for personal supply), `cost_micros`, `settled_at` and its `period` (`YYYY-MM`) (「Supply」) |
+| `supply_audit` | every supply act an outsider must be able to name: each grant of credits, each change of a policy, the conversion rate or `enforce`, and each change of a plan — who, when, what kind, its subject and its detail (「Supply」) |
 
 ## Tests
 
@@ -1027,5 +1151,16 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
   own under a seeded key left as they stand, add, change and remove a kind as the administrator, refuse each
   rule a kind can break and a key that does not match its path, read the kinds as a member, and refuse a member
   every change.
+- **The supply tests** stand sumida's membership domain on the scratch database and resolve orders through
+  every layer: each layer only narrowing what the layers above allow, a later layer never switching a source
+  on, `stop` always last, an organisation policy inherited by walking up the tree until one stands, personal
+  credits entering an order only once the person switches them on, and the refusal of a write that names a
+  source an earlier layer closed, said by which layer closed it. They drive the hook against sumida's own
+  reservations and quotas — reserve, extend, capture and release — and hold that the same key twice moves
+  nothing, that a capture's debt is bounded by one reservation unit, and that with `enforce` off nothing is
+  ever refused while every cost still stands. They open every supply route with each relation that opens it
+  and nothing more: a `credit_manager` and a head on the unit's policy and credits, a `subscription_manager`
+  on the unit's plan alone, a member on nothing, an administrator everywhere, and a person on their own
+  setting alone.
 - **The console's side tests against a stand-in** answering these routes, so a console test needs neither the
   binary nor Valkey.

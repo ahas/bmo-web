@@ -171,6 +171,30 @@
   number, 상세주소.
 - the secrets the agency's provider tools read, each chosen by name → 공급자 비밀: 공급자 비밀, `<provider>` 결제 카드,
   `<provider>` 로그인 for the account it signs in with, `{kind}` 종류 비밀, 없음 for none. Never 시크릿 설정, 연결된 비밀.
+- what a run goes out on and what pays for it → 공급: the section, tab and pane are 공급; a policy lists its
+  공급원, the five being 개인 공급, 전역 공급, 조직 크레딧, 개인 크레딧 and the end of the fall, 중단. The order
+  a run falls through them is 공급 순서. Never 조달, 급전, 리소스 for the thing, and never 소스 for a member of
+  the list.
+- the paid standing of a source and its use → 크레딧: 잔액, 이번 달 사용량, 이번 달 개인 크레딧 상한 (the person's own
+  row) and 개인 크레딧 월 상한 (an organisation's cap on a person), 크레딧을 부여하다 and its noun 부여, the record
+  of movements 장부 and of the grants and changes 감사 기록, the fixed conversion 전환율 and the unit a reservation
+  opens and grows at 예약 크레딧. A cap that is not set stands as 상한 없음. The movements the 장부 keeps are spoken
+  부여, 소비, 예약, 사용, 환불 and 차감, and the acts the 감사 기록 keeps 부여, 정책, 설정 and 플랜; an owner the 장부
+  names stands as 사용자 or 조직 beside their number. Never 포인트, 머니, 잔고, 결제 for
+  credits — payments are off and 결제 is one — and never 이력 for the audit.
+- a membership sold on the platform → 플랜: the tab, the add and the row label are 플랜; its fields 가격, 대상
+  (개인 or 조직), 주기, 기간 포함 and the switch 크레딧 사용 가능. Nothing stands on it until the administrator sets
+  it, so a unit without one says 계획 없음. Never 요금제, 상품, 구독 (which is the standing on a plan, not the plan).
+- whether supply limits answer at all → 공급 제한 적용: on and off as 켜짐 and 꺼짐 on the switch; the switch off
+  records use but stops nothing. Never 강제, 활성화.
+- a person's own road to a provider → 공급자 (its product's own name, `Claude` and the rest, written as the
+  provider writes it), one key of it 공급 키, one sign-in of it 공급 로그인; what a row says of their standing is
+  사용 가능, 창 가득 참, 로그인 필요, 키 거부됨 or 꺼짐 alone. The key's secret is chosen as a 이름 and the value
+  never shows, as the secret store words it.
+- a unit without a policy of its own → 따름: 상위 조직을 따름 on the screen's rows and 조직을 따름 on a person's,
+  the policy in force shown as the rows' values under it; the act of ending one policy is 정책 삭제, which puts the
+  following back, and the act of writing one is 정책 설정. Never 상속, which is a name nobody here says, and never
+  적용 for the policy act, which is the platform switch's word.
 - retire, take down → 보관; bringing one back → 복원. Switching a piece in or out of use → 켜기, 끄기.
   Never 내리기, 올리기.
 - fold (a work order) → 종료. 접기 is only ever a panel folding away, and is written as below.

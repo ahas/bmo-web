@@ -377,10 +377,12 @@ export interface ArchivedMessage {
   reactions?: MessageReaction[];
 }
 
-// One reaction on a message: its emoji, and who put it there, an agent's name or a person's number.
+// One reaction on a message: its emoji, who put it there, an agent's name or a person's number, and the name the
+// receiver says that person last went by, null for an agent and for a person it names none.
 export interface MessageReaction {
   emoji: string;
   by: string;
+  name: string | null;
 }
 
 // A line's full reading (docs/web.md, the room screen's chips): nothing made yet, being made, there to play, failed

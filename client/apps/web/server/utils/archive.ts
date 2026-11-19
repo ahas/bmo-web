@@ -80,11 +80,11 @@ interface ReceivedMessage {
   transcript: string | null;
   voiceSeconds: number | null;
   voiceState: string | null;
-  // What the record keeps done to it, in unix seconds, and its reactions.
+  // What the record keeps done to it, in unix seconds, and its reactions as the record keeps them, unnamed.
   editedAt: number | null;
   deletedAt: number | null;
   pinnedAt: number | null;
-  reactions: MessageReaction[];
+  reactions: Omit<MessageReaction, "name">[];
 }
 
 // A message as the receiver's own document answers it, read into the names the room screen stands on: its
@@ -134,9 +134,10 @@ async function everyRoom(): Promise<ReceiverRoom[]> {
   return (await receiverCall(receiver().GET("/rooms"))).items;
 }
 
-// The names of the people whose numbers some rooms are, as the receiver names them (its `GET /people`): a one-to-one
-// with no title of its own is called by the person it is with (docs/web.md, 「Sidebar」). A list the receiver does not
-// answer names nobody, and the room stands under its number.
+// The names some people last went by, by their numbers, as the receiver names them (its `GET /people`): the person a
+// one-to-one with no title of its own is with (docs/web.md, 「Sidebar」), and the reactors of a page's messages
+// (docs/web.md, 「What was done to a message」). A list the receiver does not answer names nobody, and each stands under
+// its number.
 async function peopleNamed(ids: readonly number[]): Promise<Map<number, string>> {
   if (ids.length === 0) return new Map();
 
@@ -147,6 +148,24 @@ async function peopleNamed(ids: readonly number[]): Promise<Map<number, string>>
   } catch {
     return new Map();
   }
+}
+
+// A reactor's number, where a reaction names a person by one the console reads exactly; an agent's name is none.
+function reactorNumber(by: string): number | null {
+  if (!/^-?\d+$/.test(by)) return null;
+
+  const number = Number(by);
+
+  return Number.isSafeInteger(number) ? number : null;
+}
+
+// The names the receiver says a page's reactors last went by, each under the text its reactions name it by, asked
+// once for the whole page.
+async function reactorNames(received: readonly ReceivedMessage[]): Promise<Map<string, string>> {
+  const numbers = [...new Set(received.flatMap((message) => message.reactions.flatMap((one) => reactorNumber(one.by) ?? [])))];
+  const named = await peopleNamed(numbers);
+
+  return new Map([...named].map(([number, name]) => [String(number), name]));
 }
 
 const untitled = (title: string | null): boolean => title === null || title.trim() === "";
@@ -369,7 +388,8 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
   const answerers = room.numbers;
   const agents = new Map(received.map((message) => [senderKey(message), message.agentName !== null || (message.senderId !== null && answerers.has(message.senderId))]));
   // What each agent is called, as the agency holds it, so an agent's row stands under its label for every reader.
-  const [voiced, labels] = await Promise.all([ownerVoices(chatId, received, answerers), agentLabels()]);
+  // Who each reactor is, named by the receiver, so a reactor with no words on the page is named all the same.
+  const [voiced, labels, reactors] = await Promise.all([ownerVoices(chatId, received, answerers), agentLabels(), reactorNames(received)]);
   // Each message's files are read once, and a reply to a message the page holds quotes it from the page. A row
   // draws its words from the metadata it arrived with unless it is an agent's answer, which stands as its markdown.
   const media = new Map(received.map((message) => [message.messageId, mediaOf(chatId, message, message.text !== "" && agents.get(senderKey(message)) !== true)]));
@@ -454,7 +474,7 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
         editedAt: message.editedAt,
         deletedAt: message.deletedAt,
         pinnedAt: message.pinnedAt,
-        reactions: message.reactions
+        reactions: message.reactions.map((one) => ({ ...one, name: reactors.get(one.by) ?? null }))
       };
     })
   );

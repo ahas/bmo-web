@@ -1,9 +1,10 @@
 <template>
   <!-- A message's reactions as the messenger draws them (docs/web.md, 「What was done to a message」): each emoji once,
-       with its reactors' faces while they are few and how many once they are more, named in its tooltip; the reader's
-       own in the accent's wash. Pressing one puts the same reaction on the message, or takes the reader's own off. -->
+       with its reactors' faces while they are few and how many once they are more, named in its tooltip, which a
+       finger brings up by resting on it since a tap reacts; the reader's own in the accent's wash. Pressing one puts
+       the same reaction on the message, or takes the reader's own off. -->
   <span data-reactions class="flex min-w-0 flex-wrap items-center gap-1">
-    <HintTip v-for="reaction in props.reactions" :key="reaction.emoji" :text="reaction.who.join(', ')" class="inline-flex">
+    <HintTip v-for="reaction in props.reactions" :key="reaction.emoji" :text="reaction.who.join(', ')" press class="inline-flex">
       <button
         type="button"
         class="inline-flex h-6 items-center gap-1 rounded-full ps-1.5 pe-1 text-sm tabular-nums transition-colors"

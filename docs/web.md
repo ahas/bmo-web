@@ -5296,9 +5296,11 @@ Four bounds keep it from growing forever.
   - **Reactions** stand as the messenger lays them, at the leading end of the meta line with the time at its trailing
     end, on one line: each emoji once, with the faces of those who put it there while they are three or fewer and how
     many once they are more, the reactions of the reader's own senders in the accent's wash, and a tooltip naming who
-    put it there — an agent by its label, a person by the name the room knows them by, else their number. Reactions
-    made on the messenger stand the same way, the record keeping what the chat service says each person has on the
-    message. Pressing a reaction is the reader's own: it takes the reader's off where it is theirs, and puts the same
+    put it there — an agent by its label; a person by the name their words in the room's loaded line carry, else by
+    the name the receiver says they last went by (its `GET /people`, asked once for each page's reactors, so a
+    reactor with no words in the loaded line is named all the same), else their number. Reactions made on the
+    messenger stand the same way, the record keeping what the chat service says each person has on the message.
+    Pressing a reaction is the reader's own: it takes the reader's off where it is theirs, and puts the same
     emoji on the message otherwise. Where the meta line does not stand, they stand on a line of their own instead.
   - **Reacting** is the menu's head: the message's menu opens on a strip of the console's reaction emojis, the
     reader's own marked, and pressing one puts it on the message, or takes it off where it is the reader's own, and

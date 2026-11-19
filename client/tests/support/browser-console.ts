@@ -1370,7 +1370,12 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
       return Response.json({ id: rawNumber(id) });
     }
-    if (path === "/people") return Response.json({ items: [], more: false });
+    // The names people last went by: the media room's reactor with no words in its line goes by one.
+    if (path === "/people") {
+      const ids = (new URL(request.url).searchParams.get("ids") ?? "").split(",");
+
+      return Response.json({ items: ids.filter((id) => id === "8").map((id) => ({ id: Number(id), name: "person-c" })), more: false });
+    }
 
     const paged = pagedRoom(path, new URL(request.url).searchParams);
 

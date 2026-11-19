@@ -76,6 +76,10 @@ describe.skipIf(!origin || !touchReady())("a room's media", () => {
 
       expect(reactions).toEqual({ onMetaLine: true, faces: [2, 1] });
 
+      // A reactor with no words in the loaded line is named in the tooltip as the receiver names them.
+      await page.locator('[data-reaction="\u{2764}\u{FE0F}"]').hover();
+      await page.locator("[data-reka-popper-content-wrapper]").filter({ hasText: "person-c" }).first().waitFor({ timeout: 5_000 });
+
       // A message deleted on the messenger opens its words on a press.
       await page.locator("button[data-deleted]").click();
       await expect(page.locator("[data-deleted-words]").innerText()).resolves.toBe("words deleted on the messenger");
@@ -227,6 +231,7 @@ describe.skipIf(!origin || !touchReady())("a room's media", () => {
         await page.locator('[data-message="m13"] [data-attachment-size]').waitFor({ timeout: 30_000 });
         await page.evaluate(() => document.fonts.ready);
         await page.addScriptTag({ type: "module", content: `${measureSource()}\ninstall();` });
+        await page.waitForFunction(() => "measure" in window);
 
         const read = await page.evaluate(() => {
           const scope: Window & Partial<Measured> = window;

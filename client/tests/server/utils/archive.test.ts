@@ -96,6 +96,21 @@ const labelled = [
   message(30, { room: -13, senderId: 44, senderName: "u44", agentName: "agent-a" }),
   message(31, { room: -13, senderId: 45, senderName: "u45", agentName: "agent-b" })
 ];
+// A room whose message carries reactions: one by a person whose words stand on the page, one by a person with none
+// there whom the receiver names, one by a person it names nobody for, and one by an agent.
+const reacted = [
+  message(70, {
+    room: -16,
+    reactions: [
+      { emoji: "\u{1F44D}", by: "11" },
+      { emoji: "\u{1F44D}", by: "56" },
+      { emoji: "\u{2764}", by: "57" },
+      { emoji: "\u{2764}", by: "agent-a" }
+    ]
+  })
+];
+// The names the receiver says people last went by, by their numbers.
+const lastNames: Record<string, string> = { "5": "Person A", "11": "person-a", "56": "person-c" };
 const keptFile = (place: number, kind: string, name: string, type: string | null, size: number | null, kept = true) => ({ place, kind, name, type, size, kept });
 
 function room(id: number, over: Record<string, unknown> = {}): Record<string, unknown> {
@@ -156,12 +171,17 @@ const receiver = standIn("RECEIVER", (one) => {
   if (path === "/rooms/-13/messages") return answer({ items: labelled, more: false });
   if (path === "/rooms/-14/messages") return answer({ items: membership, more: false });
   if (path === "/rooms/-15/messages") return answer({ items: handedOver, more: false });
+  if (path === "/rooms/-16/messages") return answer({ items: reacted, more: false });
 
   if (path === "/rooms") return answer({ items: rooms, more: false });
 
   // The owner's room is the console-made one; their chat service's one-to-one is a room like any other.
   if (path === "/owner") return answer({ room: -11, senderId: 5 });
-  if (path === "/people") return answer({ items: new URL(one.path, "http://receiver").searchParams.get("ids") === "5" ? [{ id: 5, name: "Person A" }] : [], more: false });
+  if (path === "/people") {
+    const ids = new URL(one.path, "http://receiver").searchParams.get("ids")!.split(",");
+
+    return answer({ items: ids.map((id) => ({ id: Number(id), name: lastNames[id] ?? null })), more: false });
+  }
   if (path === "/rooms/5/title" || path === "/rooms/-11/title") return answer({ title: null });
   if (path === "/rooms/-7/title") return answer({ title: "Room A" });
   if (path === "/rooms/-7/messages") {
@@ -394,6 +414,18 @@ describe("a page of a room", () => {
       { ...joinedLine.fields, code: "people-joined", language: "ko" },
       { person: { senderId: 11, name: "person-a" }, code: "person-left", language: "ko" }
     ]);
+  });
+
+  test("names each reactor of the page as the receiver says they last went by, asking once for every person", async () => {
+    const read = (await readMessagePage(-16, null, 50)).messages;
+
+    expect(read[0]!.reactions).toEqual([
+      { emoji: "\u{1F44D}", by: "11", name: "person-a" },
+      { emoji: "\u{1F44D}", by: "56", name: "person-c" },
+      { emoji: "\u{2764}", by: "57", name: null },
+      { emoji: "\u{2764}", by: "agent-a", name: null }
+    ]);
+    expect(receiver.asked.filter((one) => one.path.startsWith("/people?")).at(-1)?.path).toBe("/people?ids=11%2C56%2C57");
   });
 
   test("a message numbered past 2^53 carries its exact id", async () => {

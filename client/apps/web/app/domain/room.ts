@@ -374,7 +374,8 @@ export interface ReactionView {
 export const REACTION_FACES_MOST = 3;
 
 /** A message's reactions gathered by emoji in the order each first came, each reactor named: an agent by its label,
- * a person by the name the page knows their number by, else the number. */
+ * a person by the name the loaded line knows their number by, else the name the receiver gave the reaction, else the
+ * number. */
 export function reactionViews(
   reactions: readonly MessageReaction[],
   names: ReadonlyMap<string, string>,
@@ -389,7 +390,7 @@ export function reactionViews(
 
     const view = views.get(reaction.emoji) ?? { emoji: reaction.emoji, count: 0, mine: false, who: [], faces: [] };
     const person = /^-?\d+$/.test(reaction.by);
-    const name = names.get(reaction.by) ?? (person ? reaction.by : agentRowName(reaction.by));
+    const name = names.get(reaction.by) ?? reaction.name ?? (person ? reaction.by : agentRowName(reaction.by));
 
     view.count += 1;
     view.mine ||= own.has(reaction.by);

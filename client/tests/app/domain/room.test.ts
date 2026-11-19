@@ -1324,10 +1324,10 @@ describe("what was done to a message", () => {
   test("reactions gather by emoji in the order they came, each reactor named and the reader's own marked", () => {
     const views = reactionViews(
       [
-        { emoji: "\u{1F44D}", by: "1" },
-        { emoji: "\u{2764}", by: "7" },
-        { emoji: "\u{1F44D}", by: "agent-a" },
-        { emoji: "", by: "9" }
+        { emoji: "\u{1F44D}", by: "1", name: null },
+        { emoji: "\u{2764}", by: "7", name: null },
+        { emoji: "\u{1F44D}", by: "agent-a", name: null },
+        { emoji: "", by: "9", name: null }
       ],
       new Map([["7", "person-b"]]),
       [1]
@@ -1348,8 +1348,8 @@ describe("what was done to a message", () => {
     ]);
     const [view] = reactionViews(
       [
-        { emoji: "\u{1F44D}", by: "1" },
-        { emoji: "\u{1F44D}", by: "agent-a" }
+        { emoji: "\u{1F44D}", by: "1", name: null },
+        { emoji: "\u{1F44D}", by: "agent-a", name: null }
       ],
       new Map([["1", "person-a"]]),
       [1],
@@ -1358,5 +1358,19 @@ describe("what was done to a message", () => {
 
     expect(view?.who).toEqual(["person-a", "agent-a"]);
     expect(view?.faces.map((face) => face.src)).toEqual(["/person-1.jpg", "/agent-a.jpg"]);
+  });
+
+  test("a reactor the loaded line does not name stands under the name the receiver gave, the line's own name first", () => {
+    const views = reactionViews(
+      [
+        { emoji: "\u{1F44D}", by: "90000001", name: "person-c" },
+        { emoji: "\u{1F44D}", by: "7", name: "person-b elsewhere" }
+      ],
+      new Map([["7", "person-b"]]),
+      []
+    );
+
+    expect(views[0]?.who).toEqual(["person-c", "person-b"]);
+    expect(views[0]?.faces[0]?.alt).toBe("person-c");
   });
 });

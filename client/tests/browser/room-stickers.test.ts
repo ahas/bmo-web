@@ -62,6 +62,15 @@ async function opened(context: BrowserContext): Promise<Page> {
   const page = await context.newPage();
 
   await page.goto(`${origin}/rooms/${STICKER_CHAT}`, { waitUntil: "load" });
+
+  // A row is brought into view before its picture is waited on, the way a reader who reads the room
+  // reaches it: the console asks for a row's picture only once the reader stands where the row is,
+  // and how far past the screen an engine reaches on its own is the engine's own, so a row nobody
+  // reached would leave the waits below holding a picture that was never asked for.
+  for (const row of [STILL, VIDEO, EMOTICON, GIF, WORDED, SCENE, OWN, APNG]) {
+    await page.locator(`[data-message="${row}"]`).scrollIntoViewIfNeeded();
+  }
+
   await page.locator(`[data-message="${SCENE}"] [data-sticker-animated] svg`).waitFor({ timeout: 30_000 });
   await page.waitForFunction(
     (rows) => rows.every((row) => {

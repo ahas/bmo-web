@@ -20,7 +20,7 @@ const HEAD = { name: "person-tabs-head", password: "fixture-password-3364" };
 const SUBJECT = "person-tabs-subject";
 const RUN = Date.now().toString(36);
 
-const ADMINISTRATOR_TABS = ["settings.label.account", "people.label.organization", "settings.label.permissions", "settings.label.bmo", "roster.label.activity"];
+const ADMINISTRATOR_TABS = ["settings.label.account", "people.label.organization", "settings.label.permissions", "settings.label.bmo", "supply.label.tab", "roster.label.activity"];
 const HEAD_TABS = ["settings.label.account", "people.label.organization", "settings.label.bmo"];
 // Each tab's key in the address, the first standing as none, and what it shows once open.
 const PANES: readonly { key: string | null; label: string; shows: string }[] = [

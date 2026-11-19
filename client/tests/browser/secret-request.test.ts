@@ -349,7 +349,9 @@ describe.skipIf(!origin || !touchReady())("a secret handed to an agent", () => {
       expect(await until(() => room.said.length > 0)).toBe(true);
       expect(room.said).toEqual([wording("secrets.message.request_saved", { name: `req-${RUN}.token`, kind: await kindName("api-key") })]);
       await page.locator(`[data-secret-request="req-${RUN}.token"][data-saved]`).waitFor({ timeout: 10_000 });
-      expect((await line.boundingBox())!.height).toBe(waitingHeight);
+      // The same height to within half a pixel: the layout measures on fractional device pixels, so a
+      // sub-pixel difference is the same line, not one re-laid out.
+      expect(Math.abs((await line.boundingBox())!.height - waitingHeight)).toBeLessThanOrEqual(0.5);
       await expectNoValueOutside(page, sent);
     } finally {
       await context.close();

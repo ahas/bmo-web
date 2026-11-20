@@ -1,10 +1,11 @@
+import type { DragSide } from "bmo-ui/app/domain/floating-drag";
 import type { Ref } from "vue";
 
-// Where the briefing's player stands and how it is moved there (docs/web.md, 「Messages」, the briefing's
-// player). It is dragged like a picture-in-picture window: it follows the pointer inside the page area, settles on
-// the nearer side when let go, and the side and height it was left at are kept in this browser.
+// Where the briefing's player stands (docs/web.md, 「Messages」, the briefing's player). It is dragged like a
+// picture-in-picture window through the shared layer's floating-drag module: it follows the pointer inside the page
+// area, settles on the nearer side when let go, and the side and height it was left at are kept in this browser.
 
-export type BriefingSide = "left" | "right";
+export type BriefingSide = DragSide;
 
 // `top` is the height it was left at, in pixels from the top of the page area; null is where it first stands, as
 // low as the page area lets it, above whatever bar stands at the screen's foot.
@@ -18,45 +19,8 @@ export const BRIEFING_POSITION_DEFAULT: BriefingPosition = { side: "right", top:
 // What marks a bar at a screen's foot, which the player stands above.
 export const SCREEN_FOOT = "[data-screen-foot]";
 
-// How far a pointer travels before a press becomes a drag. A finger settling on glass wanders
-// further than a mouse held still, so a touch is given more room.
-const MOUSE_SLOP_PX = 4;
-const SLOP_PX: Record<string, number> = { pen: 6, touch: 10 };
-
-// How far ahead a throw is carried when choosing the side it settles on, in seconds of its speed.
-const THROW_S = 0.15;
-
 const POSITION_KEY = "bmo-web.briefing-player";
 const POSITION_STATE = "bmo-briefing-position";
-
-// The four edges the player's top-left corner may reach inside the page area.
-export interface BriefingBounds {
-  minLeft: number;
-  maxLeft: number;
-  minTop: number;
-  maxTop: number;
-}
-
-export function slopOf(pointerType: string): number {
-  return SLOP_PX[pointerType] ?? MOUSE_SLOP_PX;
-}
-
-export function isDrag(dx: number, dy: number, pointerType: string): boolean {
-  return Math.hypot(dx, dy) > slopOf(pointerType);
-}
-
-export function clampTo(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), Math.max(min, max));
-}
-
-// The side a player let go at `left`, moving sideways at `speed` pixels a second, settles on: the
-// one its centre is nearer to once the throw is carried on a little.
-export function settledSide(left: number, width: number, bounds: BriefingBounds, speed: number): BriefingSide {
-  const centre = left + width / 2 + speed * THROW_S;
-  const middle = (bounds.minLeft + bounds.maxLeft + width) / 2;
-
-  return centre < middle ? "left" : "right";
-}
 
 /** How far up from the page area's foot the player keeps: the height of the tallest bar standing at that foot. */
 export function footClearance(area: DOMRect, feet: readonly DOMRect[]): number {

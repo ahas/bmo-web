@@ -17,8 +17,8 @@
       class="absolute z-30 w-72 max-w-[calc(100%-2*var(--bmo-gutter))] touch-none gap-2 p-1.5 [--bmo-gutter:1rem] sm:[--bmo-gutter:1.5rem]"
       :class="dragAt === null ? '' : 'cursor-grabbing'"
       :style="placed"
-      @pointerdown="grab"
-      @click.capture="swallow"
+      @pointerdown="drag.grab"
+      @click.capture="drag.swallow"
     >
       <!-- Back puts it away as it puts away anything floating over the screen: it stops the listening. -->
       <BriefingBack @back="shown.stop()" />
@@ -83,9 +83,11 @@
 <script setup lang="ts">
 import { barsOf, BRIEFING_BARS, BRIEFING_FFT, briefingState, swayingBars, swellOf } from "~/domain/briefing";
 import { useBriefingMute } from "~/domain/briefing-mute";
-import { type BriefingBounds, clampTo, footClearance, isDrag, SCREEN_FOOT, settledSide, useBriefingPosition } from "~/domain/briefing-position";
+import { footClearance, SCREEN_FOOT, useBriefingPosition } from "~/domain/briefing-position";
+import { settledSide, useFloatingDrag } from "bmo-ui/app/domain/floating-drag";
 import { useNarrow } from "bmo-ui/app/domain/screen";
 
+import type { DragBounds } from "bmo-ui/app/domain/floating-drag";
 import type { ComponentPublicInstance } from "vue";
 
 const { t } = useI18n();
@@ -270,7 +272,7 @@ const placed = computed(() => {
 
 // The edges it may be dragged between, read off the panel it stands in as the drag begins: the
 // gutter its side keeps, and the highest and lowest its resting rule lets it stand.
-function boundsOf(element: HTMLElement): BriefingBounds {
+function boundsOf(element: HTMLElement): DragBounds {
   const panel = element.offsetParent as HTMLElement;
   const width = element.offsetWidth;
   const gutter = position.value.side === "left" ? element.offsetLeft : panel.clientWidth - element.offsetLeft - width;
@@ -287,144 +289,26 @@ function boundsOf(element: HTMLElement): BriefingBounds {
   return { minLeft: gutter, maxLeft: panel.clientWidth - width - gutter, minTop, maxTop };
 }
 
-// One press on the player, from the pointer going down: a press until it has travelled past the
-// slop, a drag from then on.
-interface Held {
-  pointer: number;
-  type: string;
-  x: number;
-  y: number;
-  from: { left: number; top: number };
-  bounds: BriefingBounds | null;
-  lastX: number;
-  lastAt: number;
-  speed: number;
-}
+// It is dragged like a picture-in-picture window through the shared layer's floating-drag module: a press until it
+// has travelled past the slop, a drag from then on, and let go it settles on the nearer side at the height it was
+// let go at, glides there and is kept; the press it began as is not passed on to what it started on.
+const drag = useFloatingDrag({
+  element: () => player.value,
+  begin: () => {
+    const element = player.value;
 
-let held: Held | null = null;
-let dragged = false;
-
-function grab(event: PointerEvent): void {
-  const element = player.value;
-
-  dragged = false;
-
-  if (element === null || !event.isPrimary || event.button !== 0) {
-    return;
-  }
-
-  for (const running of element.getAnimations()) {
-    running.cancel();
-  }
-
-  held = {
-    pointer: event.pointerId,
-    type: event.pointerType,
-    x: event.clientX,
-    y: event.clientY,
-    from: { left: element.offsetLeft, top: element.offsetTop },
-    bounds: null,
-    lastX: event.clientX,
-    lastAt: event.timeStamp,
-    speed: 0
-  };
-  window.addEventListener("pointermove", follow);
-  window.addEventListener("pointerup", release);
-  window.addEventListener("pointercancel", release);
-}
-
-function follow(event: PointerEvent): void {
-  const element = player.value;
-
-  if (held === null || element === null || event.pointerId !== held.pointer) {
-    return;
-  }
-
-  const dx = event.clientX - held.x;
-  const dy = event.clientY - held.y;
-
-  if (held.bounds === null) {
-    if (!isDrag(dx, dy, held.type)) {
-      return;
-    }
+    if (element === null) return null;
 
     height.value = element.offsetHeight;
-    held.bounds = boundsOf(element);
-  }
 
-  const { bounds } = held;
-  const elapsed = event.timeStamp - held.lastAt;
-
-  if (elapsed > 0) {
-    held.speed = ((event.clientX - held.lastX) / elapsed) * 1000;
-  }
-
-  held.lastX = event.clientX;
-  held.lastAt = event.timeStamp;
-  dragAt.value = {
-    left: clampTo(held.from.left + dx, bounds.minLeft, bounds.maxLeft),
-    top: clampTo(held.from.top + dy, bounds.minTop, bounds.maxTop)
-  };
-}
-
-// Let go, a drag settles on the nearer side at the height it was let go at, glides there, and is
-// kept; the press it began as is not passed on to what it started on.
-async function release(event: PointerEvent): Promise<void> {
-  const element = player.value;
-  const ended = held;
-
-  if (ended === null || event.pointerId !== ended.pointer) {
-    return;
-  }
-
-  held = null;
-  window.removeEventListener("pointermove", follow);
-  window.removeEventListener("pointerup", release);
-  window.removeEventListener("pointercancel", release);
-
-  const at = dragAt.value;
-
-  if (element === null || ended.bounds === null || at === null) {
+    return { from: { left: element.offsetLeft, top: element.offsetTop }, bounds: boundsOf(element) };
+  },
+  move: (at) => {
+    dragAt.value = at;
+  },
+  settle: (at, bounds, speed) => {
+    keep({ side: settledSide(at.left, player.value?.offsetWidth ?? 0, bounds, speed), top: Math.round(at.top) });
     dragAt.value = null;
-
-    return;
-  }
-
-  dragged = true;
-
-  const before = element.getBoundingClientRect();
-
-  keep({ side: settledSide(at.left, element.offsetWidth, ended.bounds, ended.speed), top: Math.round(at.top) });
-  dragAt.value = null;
-  await nextTick();
-
-  if (still.value) {
-    return;
-  }
-
-  const after = element.getBoundingClientRect();
-
-  element.animate([{ transform: `translate(${before.left - after.left}px, ${before.top - after.top}px)` }, { transform: "none" }], {
-    duration: 220,
-    easing: "cubic-bezier(0.2, 0.9, 0.25, 1)"
-  });
-}
-
-// A click that ends a drag is the drag's; one from the keyboard carries no pointer and is passed on.
-function swallow(event: MouseEvent): void {
-  if (dragged && event.detail !== 0) {
-    event.stopPropagation();
-    event.preventDefault();
-  }
-
-  dragged = false;
-}
-
-onScopeDispose(() => {
-  if (import.meta.client) {
-    window.removeEventListener("pointermove", follow);
-    window.removeEventListener("pointerup", release);
-    window.removeEventListener("pointercancel", release);
   }
 });
 </script>

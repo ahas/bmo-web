@@ -579,3 +579,204 @@ describe.skipIf(!origin || !touchReady())("a recommendation in words of its own"
     }, TEST_MS);
   }
 });
+
+// The folded window's pill dragged like a picture-in-picture window (docs/web.md, 「The questions window」, the pill;
+// bmo-ui's `docs/components.md`, 「Dragged like a picture-in-picture window」): a press opens the window, a drag never
+// does, it never leaves what is visible, and where it was left is kept in this browser. On a desk it carries the
+// window's place, so the window unfolds where the pill was left; on a phone it settles on the nearer side.
+describe.skipIf(!origin || !touchReady())("the questions window's pill dragged like a picture-in-picture window", () => {
+  const PILL = "[data-window-pill] button";
+  const SHEET = "[data-beside-page]";
+  const CLOSE = wording("common.action.close");
+  const GESTURE_SETTLE_MS = 1_000;
+
+  async function fold(page: Page): Promise<void> {
+    await page.locator(WINDOW).getByRole("button", { name: CLOSE }).click();
+    await page.locator(WINDOW).waitFor({ state: "detached", timeout: 10_000 });
+  }
+
+  async function within(page: Page, viewport: { width: number; height: number }): Promise<{ x: number; y: number; width: number; height: number }> {
+    const pill = await rectOf(page, PILL);
+
+    expect(pill.x).toBeGreaterThanOrEqual(GUTTER - 1);
+    expect(pill.y).toBeGreaterThanOrEqual(GUTTER - 1);
+    expect(pill.x + pill.width).toBeLessThanOrEqual(viewport.width - GUTTER + 1);
+    expect(pill.y + pill.height).toBeLessThanOrEqual(viewport.height - GUTTER + 1);
+
+    return pill;
+  }
+
+  async function mouseDrag(page: Page, dx: number, dy: number): Promise<void> {
+    const pill = await rectOf(page, PILL);
+    const from = { x: pill.x + pill.width / 2, y: pill.y + pill.height / 2 };
+
+    await page.mouse.move(from.x, from.y);
+    await page.mouse.down();
+    await page.mouse.move(from.x + dx / 2, from.y + dy / 2, { steps: 4 });
+    await page.mouse.move(from.x + dx, from.y + dy, { steps: 4 });
+    await page.mouse.up();
+    await page.waitForTimeout(300);
+  }
+
+  test("on a desk, moves the window's place with it and opens only on a press", async () => {
+    const stand = stood();
+
+    stand.questions = [asked(1, 41)];
+
+    const context = await open(DESK, "light", stand);
+    const page = await context.newPage();
+    const name = (state: string) => `${DESK.width}-pill-${state}`;
+
+    try {
+      await page.evaluate(() => window.localStorage.clear()).catch(() => undefined);
+      await openRoom(page);
+      await page.locator(WINDOW).waitFor({ timeout: 30_000 });
+      await fold(page);
+
+      // A click with no drag opens the window, and one that wobbles less than the slop is still a click.
+      await page.locator(PILL).click();
+      await page.locator(WINDOW).waitFor({ timeout: 10_000 });
+      await fold(page);
+      await mouseDrag(page, 2, 1);
+      await page.locator(WINDOW).waitFor({ timeout: 10_000 });
+      await fold(page);
+
+      // A drag moves the pill with the pointer and opens nothing.
+      const before = await within(page, DESK);
+
+      await mouseDrag(page, -300, 200);
+
+      const after = await within(page, DESK);
+
+      expect(Math.round(after.x - before.x)).toBe(-300);
+      expect(Math.round(after.y - before.y)).toBe(200);
+      expect(await page.locator(WINDOW).count()).toBe(0);
+      await shoot(page, name("dragged"));
+
+      // Dragged far past each corner, it stops inside what is visible, and never opens the window.
+      for (const corner of [
+        { dx: -3_000, dy: -3_000 },
+        { dx: 3_000, dy: -3_000 },
+        { dx: 3_000, dy: 3_000 },
+        { dx: -3_000, dy: 3_000 }
+      ]) {
+        await mouseDrag(page, corner.dx, corner.dy);
+        await within(page, DESK);
+        expect(await page.locator(WINDOW).count()).toBe(0);
+      }
+
+      await mouseDrag(page, 200, -200);
+
+      // The window unfolds where the pill was left, its top trailing corner at the pill's.
+      const left = await within(page, DESK);
+
+      await page.locator(PILL).click();
+      await page.locator(WINDOW).waitFor({ timeout: 10_000 });
+
+      const unfolded = await rectOf(page, WINDOW);
+
+      expect(Math.abs(unfolded.x + unfolded.width - (left.x + left.width))).toBeLessThanOrEqual(1);
+      expect(Math.abs(unfolded.y - left.y)).toBeLessThanOrEqual(1);
+      await shoot(page, name("unfolded"));
+
+      // Kept in this browser: the window stands at the same place after the page is opened again.
+      await openRoom(page);
+      await page.locator(WINDOW).waitFor({ timeout: 30_000 });
+      await page.waitForTimeout(300);
+      expect(await rectOf(page, WINDOW)).toEqual(unfolded);
+    } finally {
+      await context.close();
+    }
+  }, TEST_MS);
+
+  test("on a phone, follows a finger, settles on the nearer side and opens only on a tap", async () => {
+    const stand = stood();
+
+    stand.questions = [asked(1, 41)];
+
+    const context = await open(PHONE, "light", stand);
+    const page = await context.newPage();
+    const name = (state: string) => `${PHONE.width}-pill-${state}`;
+
+    try {
+      await page.evaluate(() => window.localStorage.clear()).catch(() => undefined);
+      await openRoom(page);
+      await page.locator(SHEET).waitFor({ timeout: 30_000 });
+      await page.getByRole("button", { name: wording("common.action.close") }).first().click();
+      await page.locator(SHEET).waitFor({ state: "detached", timeout: 10_000 });
+      await page.waitForTimeout(300);
+
+      const finger = await fingerOn(page);
+      const centre = (box: { x: number; y: number; width: number; height: number }) => ({ x: box.x + box.width / 2, y: box.y + box.height / 2 });
+
+      // A tap opens the sheet.
+      await finger.tap(centre(await rectOf(page, PILL)));
+      await page.locator(SHEET).waitFor({ timeout: 10_000 });
+      await page.getByRole("button", { name: wording("common.action.close") }).first().click();
+      await page.locator(SHEET).waitFor({ state: "detached", timeout: 10_000 });
+      await page.waitForTimeout(300);
+
+      // At first it stands at the leading foot, above the input bar.
+      const first = await within(page, PHONE);
+      const foot = await rectOf(page, "[data-screen-foot]");
+
+      expect(Math.round(first.x)).toBe(GUTTER);
+      expect(first.y + first.height).toBeLessThanOrEqual(foot.y);
+
+      // Dragged toward the trailing side and let go past the middle, it settles there at the height it was let go at.
+      await finger.swipe(centre(first), { x: 260, y: 300 }, { steps: 10 });
+      await page.waitForTimeout(400);
+
+      const settled = await within(page, PHONE);
+
+      expect(Math.round(settled.x + settled.width)).toBe(PHONE.width - GUTTER);
+      expect(Math.abs(settled.y + settled.height / 2 - 300)).toBeLessThanOrEqual(2);
+      expect(await page.locator(SHEET).count()).toBe(0);
+      await shoot(page, name("settled"));
+
+      // Dragged far past the foot and the leading edge, it stays above the input bar and inside what is visible.
+      await finger.swipe(centre(settled), { x: -200, y: PHONE.height + 200 }, { steps: 10 });
+      await page.waitForTimeout(400);
+
+      const low = await within(page, PHONE);
+
+      expect(Math.round(low.x)).toBe(GUTTER);
+      expect(low.y + low.height).toBeLessThanOrEqual((await rectOf(page, "[data-screen-foot]")).y);
+      expect(await page.locator(SHEET).count()).toBe(0);
+
+      // A finger resting on it names it, and lifting presses nothing.
+      await finger.press(centre(low));
+      await page.locator('[role="tooltip"]').first().waitFor({ timeout: 5_000 });
+      expect(await page.locator(SHEET).count()).toBe(0);
+      await shoot(page, name("named"));
+      await finger.tap({ x: PHONE.width / 2, y: 200 });
+      await page.waitForTimeout(300);
+
+      // A finger that rests and then moves on drags it and puts the name away; the next tap opens the sheet.
+      await finger.swipe(centre(low), { x: 300, y: 260 }, { steps: 10, holdMs: 800 });
+      await page.waitForTimeout(400);
+
+      const moved = await within(page, PHONE);
+
+      expect(Math.round(moved.x + moved.width)).toBe(PHONE.width - GUTTER);
+      expect(await page.locator('[role="tooltip"]').count()).toBe(0);
+      expect(await page.locator(SHEET).count()).toBe(0);
+
+      // The browser's own gesture reading takes a tap landing right after a long press for part of that gesture and
+      // makes no click of it, whatever the page does, so the next tap comes once a hand would have lifted and returned.
+      await page.waitForTimeout(GESTURE_SETTLE_MS);
+      await finger.tap(centre(moved));
+      await page.locator(SHEET).waitFor({ timeout: 10_000 });
+
+      // Kept in this browser: folded again after the page is opened again, it stands where it was left.
+      await openRoom(page);
+      await page.locator(SHEET).waitFor({ timeout: 30_000 });
+      await page.getByRole("button", { name: wording("common.action.close") }).first().click();
+      await page.locator(SHEET).waitFor({ state: "detached", timeout: 10_000 });
+      await page.waitForTimeout(300);
+      expect(await rectOf(page, PILL)).toEqual(moved);
+    } finally {
+      await context.close();
+    }
+  }, TEST_MS);
+});

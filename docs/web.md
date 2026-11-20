@@ -6924,8 +6924,15 @@ Four bounds keep it from growing forever.
     head, kept in this browser, and folds when dragged below the short height. While it stands it covers the input bar; folding it
     gives the bar back.
   - **Folded, it is a pill** in the warning colour with the count of the questions waiting, at the top trailing corner of where the
-    window stood on a wide screen and at the leading foot of the conversation above the input bar on a phone. Pressing it unfolds
-    the window where it was. 닫기, Esc inside it and the back gesture fold it.
+    window stood on a wide screen and at first at the leading foot of the conversation above the input bar on a phone. Pressing it
+    unfolds the window where it was. 닫기, Esc inside it and the back gesture fold it.
+  - **The pill is dragged like a picture-in-picture window,** by a mouse or a finger, as the briefing's player is (bmo-ui's
+    `docs/components.md`, 「Dragged like a picture-in-picture window」): a press that travels less than a few pixels unfolds the
+    window, and a drag never does. A finger resting on it names it in the tooltip, and moving on from the rest drags it and puts the
+    name away. On a wide screen the pill carries the window's place with it, so it goes as far as the window's corner may and the
+    window unfolds where the pill was left. On a phone it stays a gutter in from the conversation's edges, under the top bar and above
+    the input bar; let go, it settles on the nearer side at the height it was let go at. Where it was left is kept in this browser:
+    on a wide screen as the window's place, on a phone as the pill's own side and height.
   - **Where it stands among what floats.** It stands over the room and the panels beside it and under everything floating that opens
     — a dialog, a sheet, a drawer, a menu, a popover, a tooltip and the message pill — so a confirmation or a notice is never hidden
     behind it.
@@ -8344,9 +8351,10 @@ and `/api/supply/credits/audit`.
   - **Where it stands:** at first at the bottom right of the page area, on the content's gutter, above whatever
     bar stands at the screen's foot — a room's input bar and the band its typing picture floats in, the remote
     screen's row of keys, any bar a screen marks as its foot (bmo-ui's `docs/console-bundles.md`, 「How a bundle mounts」) — so nothing it covers by default is
-    a bar a screen acts from; it reads that bar again while it stands, so one that grows lifts it. It is moved by dragging it with a mouse or a finger: it follows the pointer and cannot leave the page
+    a bar a screen acts from; it reads that bar again while it stands, so one that grows lifts it. It is moved by dragging it with a mouse or a finger, as the
+    shared layer drags every picture-in-picture window (bmo-ui's `docs/components.md`, 「Dragged like a picture-in-picture window」): it follows the pointer and cannot leave the page
     area, staying on the gutter at each side and at the foot, below the screen's title row at the top and above
-    its foot's bar; let go, it settles on the nearer side, left or right, at the height it was let go at, and a
+    its foot's bar; let go, it settles on the nearer side, left or right, at the height it was let go at, gliding there, and a
     quick throw toward one side settles it there. A press that moves less than a few pixels is a press, and a drag
     never presses what it started on.
   - **Where it was left is kept in this browser** — the side and the height — across briefings and reloads; a

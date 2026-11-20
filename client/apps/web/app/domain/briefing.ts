@@ -2,6 +2,7 @@ import { BRIEFING_SHOWN_MS } from "#shared/config";
 import { TAP_FFT, tapOf } from "bmo-ui/app/domain/sound-tap";
 import { useIsland } from "bmo-ui/app/domain/island";
 
+import { followBriefingMute, useBriefingMute } from "./briefing-mute";
 import { useBotEvents } from "./events";
 import { followPageSound, pagePlayers, pageSoundPlaying } from "./page-sound";
 import { briefingSoundUrl, playAlone } from "./player";
@@ -250,6 +251,8 @@ export interface DeskDeps {
   players: () => Iterable<Playing>;
   // Whether the page itself is playing a sound of its own, which a briefing that comes by itself waits behind.
   pagePlaying: () => boolean;
+  // Whether this device's briefings are muted, which holds one that comes by itself until a press.
+  muted: () => boolean;
   channel: (hear: (word: ClaimWord) => void) => ClaimChannel | null;
   log: HeardLog;
   tab: string;
@@ -280,7 +283,7 @@ interface Current {
   over: boolean;
   // Whether the reader paused it or moved it along while it played, which keeps it in the player at its end.
   touched: boolean;
-  // Whether it waits for the page's own sound to stop before it starts.
+  // Whether it waits for the page's own sound to stop, or for the mute to be lifted, before it starts.
   held: boolean;
 }
 
@@ -422,16 +425,35 @@ export class BriefingDesk {
     return this.waiting.map((one) => one.playable.key);
   }
 
-  // The page's own sound has stopped — or the reader left the page and it went with them — so a briefing that
-  // waited behind it plays now.
+  // The page's own sound has stopped — or the reader left the page and it went with them — or the mute was lifted, so
+  // a briefing that waited for them plays now.
   resume(): void {
     const current = this.current;
 
-    if (current === null || !current.held || current.over || this.deps.pagePlaying()) {
+    if (current === null || !current.held || current.over || this.deps.pagePlaying() || this.deps.muted()) {
       return;
     }
 
     void this.play(current);
+  }
+
+  // This device's mute changed (docs/web.md, 「Messages」, the briefing's player, 「Muted on this device」): muted, the
+  // briefing playing pauses where it is and waits for the mute to be lifted; lifted, the one the mute held plays.
+  followMute(): void {
+    const current = this.current;
+
+    if (!this.deps.muted()) {
+      this.resume();
+
+      return;
+    }
+
+    if (current === null || current.over || current.sound.paused) {
+      return;
+    }
+
+    current.held = true;
+    current.sound.pause();
   }
 
   close(): void {
@@ -500,9 +522,9 @@ export class BriefingDesk {
 
   private start(playable: Playable, byItself: boolean): void {
     const { key } = playable;
-    // A briefing that comes by itself waits while the page plays a sound of its own (docs/web.md, 「Messages」, the
-    // briefing's player); one asked for at a press does not.
-    const held = byItself && this.deps.pagePlaying();
+    // A briefing that comes by itself waits while the page plays a sound of its own or this device is muted
+    // (docs/web.md, 「Messages」, the briefing's player); one asked for at a press does not.
+    const held = byItself && (this.deps.pagePlaying() || this.deps.muted());
     // The handlers reach the briefing they belong to, which is made once its sound is.
     let current!: Current;
     const sound = this.deps.sound(playable.src, {
@@ -537,9 +559,9 @@ export class BriefingDesk {
     });
 
     // The sound starts by itself as it comes (docs/web.md, 「Messages」, the briefing's player): a briefing is meant to
-    // be heard, not waited for, unless the page's own sound stands in the way; that one is played by `resume` once it
-    // stops. A browser that will not start a sound nobody pressed for moves it to `blocked`, where the player's own
-    // press starts it.
+    // be heard, not waited for, unless the page's own sound or this device's mute stands in the way; that one is played
+    // by `resume` once it stops or the mute is lifted. A browser that will not start a sound nobody pressed for moves
+    // it to `blocked`, where the player's own press starts it.
     if (!held) {
       void this.play(current);
     }
@@ -762,6 +784,8 @@ export function useBriefings(t: Translate): void {
 
   const state = briefingState();
   const island = useIsland(t);
+  const { muted: mute } = useBriefingMute();
+  const stopFollowingMute = followBriefingMute(mute);
   let desk: BriefingDesk | null = null;
 
   const made = (): BriefingDesk =>
@@ -772,6 +796,7 @@ export function useBriefings(t: Translate): void {
       src: briefingSoundUrl,
       players: pagePlayers,
       pagePlaying: pageSoundPlaying,
+      muted: () => mute.value,
       channel: browserChannel,
       log: storedLog(),
       tab: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`,
@@ -801,9 +826,12 @@ export function useBriefings(t: Translate): void {
   // page and takes it along.
   const stopFollowingPageSound = followPageSound(() => desk?.resume());
 
+  watch(mute, () => desk?.followMute());
+
   openDesk = made;
   onScopeDispose(() => {
     stopFollowingPageSound();
+    stopFollowingMute();
 
     if (openDesk === made) openDesk = null;
 

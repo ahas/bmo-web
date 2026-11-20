@@ -2,7 +2,8 @@
   <!-- The voice briefing playing, as a small player floating over the page area like a picture-in-picture window,
        first at the bottom right on the content's gutter above whatever bar stands at the screen's foot, and dragged
        from there (docs/web.md, 「Messages」, the briefing's player). Its press pauses the sound or plays one waiting,
-       its title leads to the line it speaks over how far it has played, and its close mark stops the listening. Its
+       its title leads to the line it speaks over how far it has played, its mute keeps this device from playing a
+       briefing aloud by itself, and its close mark stops the listening. Its
        surface swells with the sound, and its words, marks and the library's buttons take the dark theme the frame
        stands in, so a ghost button's hover and press read on it. -->
   <Transition name="bmo-briefing" type="animation">
@@ -52,6 +53,19 @@
         </span>
       </span>
 
+      <!-- This device's mute, its mark the state: a speaker while briefings play aloud here, one struck through while
+           they wait for a press. -->
+      <HintTip :text="muteLabel" press class="shrink-0">
+        <UButton
+          :icon="muted ? 'i-material-symbols-volume-off-rounded' : 'i-material-symbols-volume-up-rounded'"
+          color="neutral"
+          variant="ghost"
+          data-briefing-mute
+          :aria-label="muteLabel"
+          @click="keepMute(!muted)"
+        />
+      </HintTip>
+
       <HintTip :text="$t('briefing.action.stop')" press class="shrink-0">
         <UButton
           icon="i-material-symbols-close"
@@ -68,6 +82,7 @@
 
 <script setup lang="ts">
 import { barsOf, BRIEFING_BARS, BRIEFING_FFT, briefingState, swayingBars, swellOf } from "~/domain/briefing";
+import { useBriefingMute } from "~/domain/briefing-mute";
 import { type BriefingBounds, clampTo, footClearance, isDrag, SCREEN_FOOT, settledSide, useBriefingPosition } from "~/domain/briefing-position";
 import { useNarrow } from "bmo-ui/app/domain/screen";
 
@@ -82,6 +97,10 @@ const waitsForPress = computed(() => shown.value?.phase === "paused" || shown.va
 const pressLabel = computed(() => (waitsForPress.value ? t("briefing.action.listen") : t("briefing.action.pause")));
 const title = computed(() => shown.value?.title ?? t("briefing.label.title"));
 
+// This device's mute (docs/web.md, 「Messages」, the briefing's player, 「Muted on this device」): the press names what
+// it will do, and the desk follows the mute as it changes.
+const { muted, keep: keepMute } = useBriefingMute();
+const muteLabel = computed(() => (muted.value ? t("briefing.action.unmute") : t("briefing.action.mute")));
 
 // How far the sound has played, from nought to one, and the same in minutes and seconds.
 const played = ref(0);

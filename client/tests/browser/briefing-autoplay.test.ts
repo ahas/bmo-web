@@ -316,3 +316,80 @@ describe.skipIf(!origin || !touchReady())("the engine's stop", () => {
     }
   }, 120_000);
 });
+
+// A browser of its own, a profile of its own in each context, whose stream says on every opening that a new briefing
+// of the room ended just now. Its sound runs a minute, so it is still playing when the mute is pressed.
+async function openProfiles(width: number, height: number): Promise<{ profile: () => Promise<Page>; close: () => Promise<void> }> {
+  const launched = await chromium.launch({ args: ["--autoplay-policy=no-user-gesture-required"] });
+  const at = cookie.indexOf("=");
+  const sound = silence(60);
+  let next = 900;
+
+  async function profile(): Promise<Page> {
+    const context = await launched.newContext({ viewport: { width, height }, serviceWorkers: "block", reducedMotion: "reduce" });
+
+    await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
+    await context.route(/\/api\/briefings\/\d+\/sound/, (route) => route.fulfill({ status: 200, headers: { "content-type": "audio/wav" }, body: sound }));
+    await context.route(/\/api\/events(\?|$)/, (route) => {
+      next += 1;
+
+      return route.fulfill({ status: 200, headers: { "content-type": "text/event-stream", "cache-control": "no-cache" }, body: `${RUN_FRAME}${endedFrame(next, Date.now())}` });
+    });
+
+    const page = await context.newPage();
+
+    await page.goto(`${origin}/`, { waitUntil: "domcontentloaded" });
+
+    return page;
+  }
+
+  return { profile, close: async () => await launched.close() };
+}
+
+async function pressReads(page: Page, key: string): Promise<boolean> {
+  return await until(async () => await page.locator("[data-briefing-press]").getAttribute("aria-label"), wording(key), 15_000);
+}
+
+describe.skipIf(!origin || !touchReady())("this device's mute", () => {
+  for (const [width, height] of [[1280, 900], [360, 700]] as const) {
+    test(`holds this browser's briefings across a reload, and another profile plays on, at ${width}`, async () => {
+      const held = await openProfiles(width, height);
+
+      try {
+        const muted = await held.profile();
+        const mute = muted.locator("[data-briefing-mute]");
+
+        // Unmuted, the briefing plays by itself; muted, it pauses where it is and the mark says so.
+        await muted.locator("[data-briefing-popup]").waitFor({ timeout: 30_000 });
+        expect(await pressReads(muted, "briefing.action.pause")).toBe(true);
+        expect(await mute.getAttribute("aria-label")).toBe(wording("briefing.action.mute"));
+        await mute.click();
+        expect(await pressReads(muted, "briefing.action.listen")).toBe(true);
+        expect(await mute.getAttribute("aria-label")).toBe(wording("briefing.action.unmute"));
+
+        // Within the player, which stands within the page at this width.
+        const box = (await muted.locator("[data-briefing-popup]").boundingBox())!;
+        const button = (await mute.boundingBox())!;
+
+        expect(box.x >= 0 && box.x + box.width <= width).toBe(true);
+        expect(button.x >= box.x && button.x + button.width <= box.x + box.width).toBe(true);
+
+        // Reloaded, the next briefing comes to the player and waits for a press, still muted.
+        await muted.reload({ waitUntil: "domcontentloaded" });
+        await muted.locator("[data-briefing-popup]").waitFor({ timeout: 30_000 });
+        expect(await pressReads(muted, "briefing.action.listen")).toBe(true);
+        expect(await mute.getAttribute("aria-label")).toBe(wording("briefing.action.unmute"));
+        expect(await muted.evaluate(() => (document.querySelector("audio[data-briefing]") as HTMLAudioElement).paused)).toBe(true);
+
+        // Another profile of the same account keeps no mute, so its briefing plays by itself.
+        const other = await held.profile();
+
+        await other.locator("[data-briefing-popup]").waitFor({ timeout: 30_000 });
+        expect(await pressReads(other, "briefing.action.pause")).toBe(true);
+        expect(await other.locator("[data-briefing-mute]").getAttribute("aria-label")).toBe(wording("briefing.action.mute"));
+      } finally {
+        await held.close();
+      }
+    }, 120_000);
+  }
+});

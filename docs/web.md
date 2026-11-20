@@ -7475,8 +7475,8 @@ a row shows of a key is the secret's name, and of a login the path it is reached
 
 - **전체 보이스브리핑**, the voice briefing's one switch, the receiver's (its `docs/api.md`, `GET`/`PUT
   /voice-briefing`): whether anything is spoken at all. It stands first, in a group of its own, and is set as it
-  is pressed. A briefing it speaks comes to the console's player as it ends and plays by itself, so there is no
-  second switch for the player. One the receiver refused springs back, and the refusal stands under the switch in
+  is pressed. A briefing it speaks comes to the console's player as it ends and plays by itself, so the only other
+  switch is the player's own mute, which holds one device alone (「Messages」, the briefing's player). One the receiver refused springs back, and the refusal stands under the switch in
   one line; where the receiver does not answer, the switch's place says so with a button that reads it again, and
   the player's group under it stands either way.
 - **The player, placed and tried** (「Messages」, the briefing's player). **위치** chooses 왼쪽 or 오른쪽 and **높이**
@@ -8239,8 +8239,9 @@ and `/api/supply/credits/audit`.
   screen draws — its lists, its toolbars, a room's input bar — while a dialog or a drawer opened over the screen
   covers it like the rest.
   - **What it shows:** its press — the visualiser moving with the sound while it plays, a play mark in its place while
-    it waits for a press — then the briefing's title over a thin bar of how far the sound has played, and
-    **그만듣기**, its close mark. The press pauses a sound playing and plays one waiting; the title leads to the
+    it waits for a press — then the briefing's title over a thin bar of how far the sound has played, the mute of
+    this device (「Muted on this device」), and **그만듣기**, its close mark. The press pauses a sound playing and
+    plays one waiting; the title leads to the
     line the briefing speaks, in its room, and leaves it playing. The player names itself 보이스브리핑 to assistive
     technology, and each press names itself in a tooltip.
   - **Its press and its close mark are the library's own square icon buttons,** ghost and neutral, the visualiser
@@ -8279,9 +8280,21 @@ and `/api/supply/credits/audit`.
     page's sound, as starting a briefing does. Only a briefing that comes by itself is held: a press on the player
     starts a held one, and the settings' trial voice is not held for the page's sound.
   - **A browser that will not start a sound nobody pressed for leaves it waiting too.** Such a browser refuses the
-    play, and the player then says so and starts the sound at one press of its play. No setting of the console's
-    holds a briefing: what it waits behind is the page's own sound and that refusal alone. The settings' trial
+    play, and the player then says so and starts the sound at one press of its play. What a briefing that comes by
+    itself waits behind is the page's own sound, that refusal and this device's mute alone. The settings' trial
     voice comes the same way, and a press on 들어보기 is a press of the reader's.
+  - **Muted on this device.** The player's mute, a square icon button between its title and its close mark, keeps
+    this browser from playing a briefing aloud by itself. It is kept in this browser alone, never on the account,
+    so a phone muted leaves a desk playing and the other way round, and every tab of the browser follows it at once.
+    Its mark is the state at a glance: a speaker while briefings play aloud, a speaker struck through while they
+    do not, its tooltip naming the press (이 기기 음소거, 이 기기 음소거 해제).
+    - Muted, a briefing still comes to the player as it ends, with its title, its line and its play mark, and
+      waits there for a press, as one held behind the page's own sound does; nothing of it plays until pressed, and
+      the one behind it waits for its own press. Its line's chip and its player in the room stand as they do.
+    - Muting while a briefing plays pauses it where it is. Unmuting plays the one standing in the player that the
+      mute alone held, the one it paused among them; one the reader paused stays paused, and one held behind the
+      page's own sound goes on waiting for it.
+    - The settings' trial voice is asked for at a press, so the mute does not hold it.
   - **Played to its end, it goes.** Once a briefing has played to its end the player stays a moment, then goes,
     and the next one waiting comes to it; one the reader paused or moved along while it played, or played again in
     that moment, stays, at its end, until it is closed.

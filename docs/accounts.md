@@ -411,7 +411,7 @@ section states what each does.
   first.
 - **Who keeps them:** the platform administrator and a head of the company's own unit, the unit with no parent,
   write them. Anyone standing in the company reads them, and a unit acting for one of them, which calls with that
-  person in `Owner-Key`, as bmo-project and the approval service do; anyone of another company is answered as if
+  person in `Owner-Key`, as bmo-work and the approval service do; anyone of another company is answered as if
   no such company stood.
 - **A role is carried in a unit:** at most one in a person's home unit, set by the move that places them
   (「Companies and organisation units」), and at most one in each post (「Concurrent posts」). It is always one of
@@ -732,7 +732,7 @@ section states what each does.
 - **A unit marks who among its members has left:** `GET /units/{unit}` and the administrator's list of units answer
   them beside the members, so a caller acting on a unit's people passes them over with no call for each person.
 - **What stays readable is what was public:** the person's public projects and their records go on being read by
-  the heads above, as any public project is (bmo-project's `docs/design.md`). Their private projects, their private
+  the heads above, as any public project is (bmo-work's `docs/design.md`). Their private projects, their private
   conversations and their supervisor's memory are sealed: nobody is given them.
 - **Their supervisor is woken nowhere again,** and a quiet instruction for it is let go (the receiver's
   `docs/wake.md`): the receiver reads the departure off the account's machine standing.

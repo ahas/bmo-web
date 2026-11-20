@@ -2355,6 +2355,11 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   than its place scrolls sideways. The TODO panel, its modal, the co-work step dialog, the agent management
   screen and the monitor all draw their tab rows this way.
   The editor and document below them fill the section with no rounded border.
+  - The active line stays under the chosen tab when a tab comes in front of it or a name before it grows,
+    as the TODO modal's review tab comes in front of the status tab once the item's reviews are read after
+    the modal opened. The console carries bmo-ui's patch of `reka-ui` for this, under `client/patches/`, by
+    which a row of tabs measures its active line again whenever a tab comes or goes and watches the size of
+    every tab it holds.
 
 ### Home screen
 

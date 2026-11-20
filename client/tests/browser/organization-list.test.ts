@@ -423,7 +423,7 @@ describe.skipIf(!origin || !touchReady())("the plans tab", () => {
 // refused as the service refuses it.
 async function supplyStandIn(page: Page, unit: number): Promise<{ writes: unknown[]; refusals: unknown[] }> {
   const available = ["personal", "org_credits"];
-  let view = { inherits: true, policy: { allowed: available, order: [...available, "stop"], memberCreditCredits: null, from: null }, plan: null, wallet: { balance: 0, reserved: 0, debt: 0 }, available, usage: [] };
+  let view = { inherits: true, policy: { allowed: available, order: [...available, "stop"], memberCreditCredits: null as number | null, from: null }, plan: null, wallet: { balance: 0, reserved: 0, debt: 0 }, available, usage: [] };
   const writes: unknown[] = [];
   const refusals: unknown[] = [];
 

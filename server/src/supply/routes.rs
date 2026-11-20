@@ -13,8 +13,8 @@ use bmo_web_client::{
   SupplyAppliedAsk, SupplyAppliedPlan, SupplyAuditPage, SupplyCataloguePlan, SupplyCreditAsk,
   SupplyExposedAsk, SupplyGrantAsk, SupplyGranted, SupplyLedgerEntry, SupplyLedgerPage,
   SupplyMemberUsageRow, SupplyOrgPlans, SupplyOrgView, SupplyPlan, SupplyPlans, SupplyPlatform,
-  SupplyPolicyView, SupplySettingAsk, SupplyUnitReach, SupplyUnits, SupplyUsageRow, SupplyUserView, SupplyView,
-  SupplyWallet,
+  SupplyPolicyView, SupplySettingAsk, SupplyUnitReach, SupplyUnits, SupplyUsageRow, SupplyUserView,
+  SupplyView, SupplyWallet,
 };
 use sea_orm::{ConnectionTrait, TransactionTrait};
 use sumida::api::service::membership::credit::{CreditService, dto::GrantCredit};
@@ -172,7 +172,10 @@ async fn units_read(State(service): State<Service>, headers: HeaderMap) -> Answe
     let (policy, plan) = if who.administrator {
       (true, true)
     } else {
-      (holds_credit(&service.db, user, id).await?, holds_subscription(&service.db, user, id).await?)
+      (
+        holds_credit(&service.db, user, id).await?,
+        holds_subscription(&service.db, user, id).await?,
+      )
     };
 
     if policy || plan {

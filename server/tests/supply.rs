@@ -1869,8 +1869,15 @@ async fn a_unit_whose_applied_plan_was_retired_reads_it_applied_whole_while_its_
 
   put(&app, boss, &format!("/supply/org/{company}/plans/exposed"), json!({ "plans": [team] })).await;
   put(&app, boss, &format!("/supply/org/{company}/plans/applied"), json!({ "plan": team })).await;
-  let (status, said) =
-    asked(&app, Method::DELETE, &format!("/supply/plans/{team}"), None, Some(boss), "administrator").await;
+  let (status, said) = asked(
+    &app,
+    Method::DELETE,
+    &format!("/supply/plans/{team}"),
+    None,
+    Some(boss),
+    "administrator",
+  )
+  .await;
   assert_eq!(status, StatusCode::OK, "{said}");
 
   // Neither shown nor in the catalogue any more, the plan still stands applied, read whole off the subscription.
@@ -1904,7 +1911,13 @@ async fn a_subscribe_sumida_refuses_leaves_the_unit_on_the_plan_it_stood_on() {
   let second = plan(&app, boss, "team plus", "organisation").await;
   let applied = format!("/supply/org/{company}/plans/applied");
 
-  put(&app, boss, &format!("/supply/org/{company}/plans/exposed"), json!({ "plans": [first, second] })).await;
+  put(
+    &app,
+    boss,
+    &format!("/supply/org/{company}/plans/exposed"),
+    json!({ "plans": [first, second] }),
+  )
+  .await;
   put(&app, boss, &applied, json!({ "plan": first })).await;
 
   // sumida refuses a plan that is switched off; the plan stays exposed, so the apply reaches the subscribe.

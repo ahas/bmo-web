@@ -460,7 +460,8 @@ describe("the detail of a row", () => {
   test("carries the row in its head and a way out of it", () => {
     expect(detailTemplate).toContain("#{{ openedItem?.id }}");
     expect(detailTemplate).toContain("{{ openedItem?.title }}");
-    expect(tagOf(`:aria-label="$t('common.action.close')"`, detailTemplate)).toContain("@click=\"detailOpen = false\"");
+    // The way out goes through the dialog's close guard, which asks while the raising form holds anything.
+    expect(tagOf(`:aria-label="$t('common.action.close')"`, detailTemplate)).toContain("@click=\"void closeGuard.leave()\"");
   });
 
   // A set-aside row opens like any other: its dialog is where it is thrown away or let back into

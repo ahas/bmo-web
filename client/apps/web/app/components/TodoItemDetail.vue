@@ -1452,23 +1452,21 @@ function toggled(id: number, closed: boolean, word: string): void {
   settledFailure.value = null;
 
   if (!closed) {
-    void loadTalk(id);
-    void loadNotes(id);
-    void loadReports(id);
-    void loadReviews(id);
-    void loadApprovals(id);
-    void loadSettled(id);
+    void readOpened(id);
   }
 }
 
 // The panel has opened the row the address names. What is typed into the other boxes stands; the
-// row's own word, its talk and its added words are read.
+// row's own word is brought up and the item is read as a press on its row reads it.
 async function asked(id: number, word: string): Promise<void> {
   note.value = word;
-  await loadTalk(id);
-  await loadNotes(id);
-  await loadApprovals(id);
-  await loadSettled(id);
+  await readOpened(id);
+}
+
+// Everything the dialog reads of an item it has just opened, however it came to be opened: its talk, its added words,
+// its reports, its review, its approval and its settled questions.
+async function readOpened(id: number): Promise<void> {
+  await Promise.all([loadTalk(id), loadNotes(id), loadReports(id), loadReviews(id), loadApprovals(id), loadSettled(id)]);
 }
 
 // The talk is read when the item is opened, and only then: it is about that one item, and there

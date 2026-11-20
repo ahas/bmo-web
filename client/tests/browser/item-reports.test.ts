@@ -7,14 +7,15 @@ import { wording } from "../../apps/web/shared/wording";
 import KO from "../fixtures/browser/item-reports.test.ko.json";
 
 import type { Browser, BrowserContext } from "playwright-core";
-import type { TodoBoard, TodoItem, TodoReport } from "../../apps/web/shared/types";
+import type { TodoBoard, TodoItem, TodoReport, TodoReview } from "../../apps/web/shared/types";
 
 // A finished item's reports and the readings of its English texts, as the browser lays them out (docs/web.md, the
 // TODO modal's result and instruction tabs, 「The original, and its translation in its place」): every report stands
 // in the result tab, the closing one first and whole, headed by its kind and moment; the row's mark counts them; each
 // English text opens in its original with the show-translation line above it, the Korean reading taking the original's place when it
 // is pressed and the show-original press putting the original back, each text asked of the translator once however often it is
-// pressed; and each approval stands with its caller and kind, a recommendation apart from approval.
+// pressed; each approval stands with its caller and kind, a recommendation apart from approval; and an item opened by an
+// address reads its own reports and review as a press on its row does, so its review tab stands at once.
 // It drives the console tests/support/browser-console.ts stands up, serving what each place reads through the page's
 // own routes; the suite stands up no console, so there it skips.
 
@@ -41,6 +42,11 @@ const BRIEF = "Write the wording skill and remove the copied guide.";
 const REPORTS: TodoReport[] = [
   { id: 2, kind: "final", body: FINAL, actor: "worker-b", at: NOW - 600 },
   { id: 1, kind: "progress", body: PROGRESS, actor: "worker-b", at: NOW - 1_200 }
+];
+const REVIEWS: TodoReview[] = [
+  { id: 1, kind: "report", stage: null, round: 1, body: "First report of the work.", actor: "worker-b", check: null, at: NOW - 1_000 },
+  { id: 2, kind: "rejection", stage: null, round: 1, body: "The check was not run.", actor: "chat", check: null, at: NOW - 900 },
+  { id: 3, kind: "report", stage: null, round: 2, body: "Second report of the work.", actor: "worker-b", check: null, at: NOW - 700 }
 ];
 
 function item(): TodoItem {
@@ -93,7 +99,7 @@ async function open(viewport: (typeof WIDTHS)[number], auto = false): Promise<Br
   });
   await context.route(new RegExp(`/api/todos/${ITEM}$`), (route) => route.fulfill({ json: item() }));
   await context.route(new RegExp(`/api/todos/${ITEM}/reports$`), (route) => route.fulfill({ json: REPORTS }));
-  await context.route(new RegExp(`/api/todos/${ITEM}/(notes|approvals)$`), (route) => route.fulfill({ json: [] }));
+  await context.route(new RegExp(`/api/todos/${ITEM}/(notes|approvals|reviews)$`), (route) => route.fulfill({ json: [] }));
   await context.route(new RegExp(`/api/todos/${ITEM}/talk$`), (route) => route.fulfill({ json: { turns: [], answering: false, unanswered: null } }));
   await context.route(new RegExp(`/api/todos/${ITEM}/work-order$`), (route) => route.fulfill({ json: null }));
   // The console's own translation route: each reading comes after a moment, so the place under the original is seen
@@ -205,6 +211,61 @@ describe.skipIf(!origin || !touchReady())("an item's reports and translations", 
 
         // The sentence that said a work order's translation cannot be had is gone.
         expect(await page.getByText(KO.unavailable).count()).toBe(0);
+      } finally {
+        await context.close();
+      }
+    }, 90_000);
+  }
+
+  for (const viewport of WIDTHS) {
+    test(`an item opened by its address reads its own reports and review, ${viewport.width}px wide`, async () => {
+      const context = await open(viewport);
+
+      try {
+        // The board carries an older reading of the item, one report and no rejection counted yet; the dialog's own
+        // reads bring both reports and the review.
+        const carried = (): TodoItem => ({ ...item(), reports: [REPORTS[1]!], rejections: 1 });
+
+        await context.route(/\/api\/todos(\?|$)/, async (route) => {
+          if (route.request().method() !== "GET") return await route.continue();
+
+          const board = (await (await route.fetch()).json()) as TodoBoard;
+
+          await route.fulfill({ json: { ...board, done: [carried()], doneTotal: 1 } });
+        });
+        await context.route(new RegExp(`/api/todos/${ITEM}$`), (route) => route.fulfill({ json: carried() }));
+        await context.route(new RegExp(`/api/todos/${ITEM}/reviews$`), (route) => route.fulfill({ json: REVIEWS }));
+
+        const page = await context.newPage();
+
+        await page.goto(`${origin}/?todo=${ITEM}`, { waitUntil: "load" });
+
+        const dialog = page.getByRole("dialog").filter({ hasText: "item-title" }).last();
+        const reviewTab = dialog.getByRole("tab", { name: `${wording("todo.label.review_turns")} · ${wording("todo.label.rejections", { n: 1 })}` }).first();
+
+        // The review tab stands with no word of the queue moving, right after the result.
+        await reviewTab.waitFor({ timeout: 20_000 });
+        expect(await dialog.getByRole("tab").evaluateAll((all) => all.slice(0, 2).map((one) => one.textContent?.trim()))).toEqual([
+          wording("todo.label.result"),
+          `${wording("todo.label.review_turns")} · ${wording("todo.label.rejections", { n: 1 })}`
+        ]);
+
+        // The result holds the reports the dialog read, not the board's one.
+        expect(
+          await until(
+            async () => await dialog.locator("[data-report]").evaluateAll((all) => all.map((one) => one.getAttribute("data-report-kind"))),
+            (kinds) => kinds.length === 2
+          )
+        ).toEqual(["final", "progress"]);
+
+        // The review tab holds every entry in the order written.
+        await reviewTab.click();
+        expect(
+          await until(
+            async () => await dialog.locator("[data-review]").evaluateAll((all) => all.map((one) => one.getAttribute("data-review-kind"))),
+            (kinds) => kinds.length === REVIEWS.length
+          )
+        ).toEqual(["report", "rejection", "report"]);
       } finally {
         await context.close();
       }

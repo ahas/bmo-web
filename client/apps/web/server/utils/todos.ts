@@ -1,5 +1,6 @@
 import { DONE_MAX, DONE_PAGE_SIZE, TODO_REPORTS_FRESH_MS, TODO_SEARCH_LIMIT, UNFINISHED_PAIR_MS, WORKER_AGENT } from "#shared/config";
 import { filterRecords } from "bmo-ui/shared/search";
+import { FROM_TODO_LABEL, sourcesOf } from "#shared/raised-from";
 import { wording } from "#shared/wording";
 import { NO_CONDITIONS, NO_ROOM, todoSearchFields, unfinishedState } from "../../app/domain/todos";
 import { agency, agencyCall, isJobUnderWay } from "./agency";
@@ -33,15 +34,15 @@ export function doneLimit(value: unknown): number {
 
 const seconds = (ms: number | null | undefined): number | null => (ms === null || ms === undefined ? null : Math.floor(ms / 1000));
 
-// Every item, a page at a time, in the queue's order.
-async function allItems(query: { q?: string; state?: string } = {}): Promise<Item[]> {
+/** Every item, a page at a time, in the queue's order, narrowed as bmo-job's `GET /items` narrows them. */
+export async function allItems(query: { q?: string; state?: string; label?: string } = {}): Promise<Item[]> {
   const found: Item[] = [];
   let after: number | undefined;
 
   for (;;) {
     const page = await jobCall(
       job().GET("/items", {
-        params: { query: { limit: 500, ...(after === undefined ? {} : { after }), ...(query.q === undefined ? {} : { q: query.q }), ...(query.state === undefined ? {} : { state: query.state }) } }
+        params: { query: { limit: 500, ...(after === undefined ? {} : { after }), ...(query.q === undefined ? {} : { q: query.q }), ...(query.state === undefined ? {} : { state: query.state }), ...(query.label === undefined ? {} : { label: query.label }) } }
       })
     );
 
@@ -134,18 +135,60 @@ type Unfinished = Pick<TodoItem, "unfinished" | "unfinishedResolvedAt" | "unfini
 
 const NO_UNFINISHED: Unfinished = { unfinished: null, unfinishedResolvedAt: null, unfinishedResolution: null };
 
-/** An item's unfinished note and its resolution: the note from its reports, else from the label an item carried over
- * from the old board keeps it in, and the resolution its labels keep, unless the note was written after it. */
-export function unfinishedOf(item: Pick<Item, "labels">, reports: readonly Report[]): Unfinished {
+/** An item's unfinished note: its words, from its reports, else from the label an item carried over from the old board
+ * keeps them in, and the moment its report was written, in epoch milliseconds, null for such a label. Null where the
+ * item left none. */
+export function unfinishedNoteOf(item: Pick<Item, "labels">, reports: readonly Report[]): { text: string; writtenAt: number | null } | null {
   const report = noteReport(reports);
-  const note = report?.body ?? (item.labels[UNFINISHED_LABEL]?.trim() || null);
+  const text = report?.body ?? (item.labels[UNFINISHED_LABEL]?.trim() || null);
+
+  return text === null ? null : { text, writtenAt: report?.createdAt ?? null };
+}
+
+/** An item's unfinished note and its resolution: the note as `unfinishedNoteOf` reads it, and the resolution its labels
+ * keep, unless the note, or a line raised from it and not dropped, came after it (docs/web.md, the TODO panel's
+ * section, where an unfinished note is read from). */
+export function unfinishedOf(item: Pick<Item, "labels">, reports: readonly Report[], raised: readonly Item[] = []): Unfinished {
+  const note = unfinishedNoteOf(item, reports);
 
   if (note === null) return NO_UNFINISHED;
 
-  const resolvedAt = Number(item.labels[RESOLVED_AT_LABEL]);
-  const holds = Number.isInteger(resolvedAt) && resolvedAt > 0 && (report === null || Math.floor(report.createdAt / 1000) <= resolvedAt);
+  const resolvedAt = resolvedAtOf(item.labels);
+  const after = (ms: number) => resolvedAt === null || Math.floor(ms / 1000) > resolvedAt;
+  const holds = resolvedAt !== null && (note.writtenAt === null || !after(note.writtenAt)) &&
+    !raised.some((line) => line.state !== "dropped" && after(line.createdAt));
 
-  return { unfinished: note, unfinishedResolvedAt: holds ? resolvedAt : null, unfinishedResolution: holds ? (item.labels[RESOLUTION_LABEL] ?? "") : null };
+  return { unfinished: note.text, unfinishedResolvedAt: holds ? resolvedAt : null, unfinishedResolution: holds ? (item.labels[RESOLUTION_LABEL] ?? "") : null };
+}
+
+/** The lines raised from notes, by the item of each note their `from-todo` label names. */
+export type RaisedLines = ReadonlyMap<number, readonly Item[]>;
+
+const NO_RAISED: RaisedLines = new Map();
+
+/** The lines among some items raised from notes, by the note's item. */
+export function raisedLinesAmong(items: readonly Item[]): RaisedLines {
+  const found = new Map<number, Item[]>();
+
+  for (const line of items) {
+    for (const item of new Set(sourcesOf(line.labels[FROM_TODO_LABEL]).map((source) => source.item))) {
+      found.set(item, [...(found.get(item) ?? []), line]);
+    }
+  }
+
+  return found;
+}
+
+/** Every line raised from a note, by the note's item, read by bmo-job's label filter. */
+export async function readRaisedLines(): Promise<RaisedLines> {
+  return raisedLinesAmong(await allItems({ label: FROM_TODO_LABEL }));
+}
+
+/** The moment an item's labels say its unfinished note was resolved, in epoch seconds, or null where they say none. */
+export function resolvedAtOf(labels: Record<string, string>): number | null {
+  const at = Number(labels[RESOLVED_AT_LABEL]);
+
+  return Number.isInteger(at) && at > 0 ? at : null;
 }
 
 /** An item's labels with its unfinished note resolved at a moment, in epoch milliseconds, by the line saying why; every
@@ -250,7 +293,7 @@ function heldForDeploy(item: Item): boolean {
 }
 
 // The items a merged one is read against, by number: the item carrying it and the ones merged into it.
-type Items = ReadonlyMap<number, Item>;
+export type Items = ReadonlyMap<number, Item>;
 
 const NO_ITEMS: Items = new Map();
 
@@ -260,7 +303,7 @@ const isMerged = (item: Item): boolean => item.state === "merged" || item.merged
 
 // The item carrying a merged one: the first along its merges that is not merged itself. Null where a merge names an
 // item not among those read, or the merges turn back on themselves.
-function carrierOf(item: Item, items: Items): Item | null {
+export function carrierOf(item: Item, items: Items): Item | null {
   const seen = new Set<number>([item.id]);
   let at = item;
 
@@ -286,7 +329,7 @@ function waitsOnCarrier(item: Item, items: Items): boolean {
   return carrier !== null && carrier.state !== "done" && carrier.state !== "dropped";
 }
 
-const isFinished = (item: Item, items: Items): boolean =>
+export const isFinished = (item: Item, items: Items): boolean =>
   item.state === "done" || item.state === "dropped" || (isMerged(item) && !waitsOnCarrier(item, items));
 
 type List = "queue" | "pending" | "held" | "merged" | "done";
@@ -310,7 +353,8 @@ function itemOf(
   note: string | null = null,
   live: LiveJobOf | null = null,
   stopped = false,
-  items: Items = NO_ITEMS
+  items: Items = NO_ITEMS,
+  raised: RaisedLines = NO_RAISED
 ): TodoItem {
   const held = heldOf(item, reports);
   const liveState = live?.state ?? null;
@@ -359,7 +403,7 @@ function itemOf(
     reports: reportRows(reports),
     rejections: item.rejections,
     // Only finished work leaves a note behind (docs/web.md, the TODO panel's section).
-    ...(finished ? unfinishedOf(item, reports) : NO_UNFINISHED),
+    ...(finished ? unfinishedOf(item, reports, raised.get(item.id)) : NO_UNFINISHED),
     // A hold's time and reason, read only while the item is held, so a released item says nothing of an earlier hold.
     heldAt: item.state === "held" ? held.heldAt : null,
     heldReason: item.state === "held" ? held.heldReason : null,
@@ -433,11 +477,12 @@ export async function liveJobOfItem(id: number): Promise<LiveJobOf | null> {
 /** One item by its number, or null where there is no such item. */
 export async function readTodoItem(id: number): Promise<TodoItem | null> {
   try {
-    const [item, notes, reports, live] = await Promise.all([
+    const [item, notes, reports, live, raised] = await Promise.all([
       jobCall(job().GET("/items/{itemId}", { params: { path: { itemId: id } } })),
       notesOf(id),
       reportsOfItem(id),
-      liveJobOfItem(id)
+      liveJobOfItem(id),
+      readRaisedLines()
     ]);
 
     keptReports.set(id, { changedAt: item.changedAt, readAt: Date.now(), reports });
@@ -448,7 +493,8 @@ export async function readTodoItem(id: number): Promise<TodoItem | null> {
       notes.map((note) => note.text).at(-1) ?? null,
       live,
       notes.at(-1)?.labels.kind === "stop",
-      await mergesAround(item)
+      await mergesAround(item),
+      raised
     );
   } catch (error) {
     if ((error as { statusCode?: number }).statusCode === 404) return null;
@@ -457,7 +503,7 @@ export async function readTodoItem(id: number): Promise<TodoItem | null> {
 }
 
 // The items several items' merges are read against, read once where any of them is merged or may carry one.
-async function mergesAmong(items: readonly Item[]): Promise<Items> {
+export async function mergesAmong(items: readonly Item[]): Promise<Items> {
   const found = new Map<number, Item>();
 
   for (const item of items) {
@@ -606,11 +652,12 @@ export async function readTodoNotes(todoId: number): Promise<TodoNote[]> {
 
 // What a line's conditions are judged against beyond its own fields: the items waiting on the owner's answer, read
 // where the question condition asks for them, and the items and the reports read of every finished one, where the
-// unfinished condition asks for them.
+// unfinished condition asks for them, with the lines raised from notes, which open a resolved one again.
 interface Readings {
   awaiting: ReadonlySet<number>;
   all: Items;
   reports: ReadonlyMap<number, Report[]>;
+  raised: RaisedLines;
 }
 
 // Whether a line meets the conditions: its own fields, whether one of its questions waits on the owner's answer, and
@@ -624,7 +671,7 @@ function meets(item: Item, conditions: TodoConditions, readings: Readings): bool
   if (conditions.question === "awaiting" && !readings.awaiting.has(item.id)) return false;
 
   if (conditions.unfinished !== null) {
-    const note = unfinishedOf(item, readings.reports.get(item.id) ?? []);
+    const note = unfinishedOf(item, readings.reports.get(item.id) ?? [], readings.raised.get(item.id));
 
     if (!isFinished(item, readings.all) || unfinishedState(note) !== conditions.unfinished) return false;
   }
@@ -677,7 +724,8 @@ async function boardRows(
   items: readonly Item[],
   reported: readonly Item[],
   live: ReadonlyMap<number, LiveJobOf>,
-  all: Items
+  all: Items,
+  raised: RaisedLines
 ): Promise<Map<number, TodoItem>> {
   const reports = await boardReports(reported);
   const stopped = new Map(
@@ -687,7 +735,7 @@ async function boardRows(
   );
 
   return new Map(
-    items.map((item) => [item.id, itemOf(item, reports.get(item.id) ?? [], null, live.get(item.id) ?? null, stopped.get(item.id) ?? false, all)])
+    items.map((item) => [item.id, itemOf(item, reports.get(item.id) ?? [], null, live.get(item.id) ?? null, stopped.get(item.id) ?? false, all, raised)])
   );
 }
 
@@ -702,9 +750,9 @@ export async function readBoardRows(ids: readonly number[]): Promise<TodoBoardRo
     jobCall(job().GET("/items", { params: { query: { ids: [...new Set(ids)].sort((one, other) => one - other).join(","), limit: 500 } } })),
     liveStates()
   ]);
-  const all = await mergesAmong(page.items);
+  const [all, raised] = await Promise.all([mergesAmong(page.items), readRaisedLines()]);
   const reported = page.items.filter((item) => listOf(item, all) === "done" || listOf(item, all) === "held");
-  const rows = await boardRows(page.items, reported, live, all);
+  const rows = await boardRows(page.items, reported, live, all, raised);
 
   return page.items.flatMap((item) => {
     const row = rows.get(item.id);
@@ -726,17 +774,19 @@ export async function readTodoBoard(
   const conditions = input.conditions ?? NO_CONDITIONS;
   const [items, queues, live, awaiting] = await Promise.all([allItems(), readQueues(), liveStates(), awaitingItems(conditions)]);
   const all = byNumber(items);
+  // Every item is in hand, so the lines raised from notes are found among them.
+  const raised = raisedLinesAmong(items);
   // No item's line carries its unfinished note, so the condition on one reads the reports of every finished item,
   // kept as the page's are (docs/boundary.md, 「Gaps the console meets」).
   const reports = conditions.unfinished === null ? new Map<number, Report[]>() : await boardReports(items.filter((item) => isFinished(item, all)));
-  const matching = items.filter((item) => meets(item, conditions, { awaiting, all, reports }));
+  const matching = items.filter((item) => meets(item, conditions, { awaiting, all, reports, raised }));
   const finished = matching.filter((item) => listOf(item, all) === "done").sort((one, other) => other.id - one.id);
   const finishedFound = query === null
     ? finished
     : filterRecords(finished, (item) => [{ label: "", text: `#${item.id} ${item.title} ${item.state}`, shown: true }], query);
   const page = finishedFound.slice(0, limit);
   const held = matching.filter((item) => listOf(item, all) === "held");
-  const rows = await boardRows(matching, [...page, ...held], live, all);
+  const rows = await boardRows(matching, [...page, ...held], live, all, raised);
   const found = (row: TodoItem) => query === null || filterRecords([row], (one) => todoSearchFields(wording, one, []), query).length > 0;
   const listed = (name: List, from: readonly Item[]) =>
     from.filter((item) => rowList(item, rows.get(item.id), all) === name).flatMap((item) => rows.get(item.id) ?? []).filter(found);

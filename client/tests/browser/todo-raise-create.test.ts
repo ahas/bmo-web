@@ -24,6 +24,7 @@ const WIDTHS = [{ width: 1280, height: 800, phone: false }, { width: 360, height
 const SCHEMES = ["light", "dark"] as const;
 const NOTED = 1;
 const PLAIN = 2;
+const NUMBERED = 3;
 const NOW = Math.floor(Date.now() / 1000);
 
 const REPORT: TodoReport = { id: 1, kind: "final", body: "report-body", actor: "agent-a", at: NOW - 60 };
@@ -122,7 +123,9 @@ async function open(viewport: (typeof WIDTHS)[number], scheme: (typeof SCHEMES)[
 
     const board = (await (await route.fetch()).json()) as TodoBoard;
 
-    await route.fulfill({ json: { ...board, done: [item(NOTED, "unfinished-note"), item(PLAIN, null)], standing: { ...board.standing, done: 2 } } });
+    await route.fulfill({
+      json: { ...board, done: [item(NOTED, "unfinished-note"), item(PLAIN, null), item(NUMBERED, "1. first-strand\n2. second-strand")], standing: { ...board.standing, done: 3 } }
+    });
   });
   await context.route(/\/api\/todos\/\d+\/reports$/, (route) => route.fulfill({ json: [REPORT] }));
 
@@ -218,5 +221,99 @@ describe.skipIf(!origin || !touchReady())("the create button in an item's head",
         }
       }, 120_000);
     }
+  }
+});
+
+// The strands a raised row takes up (docs/web.md, the TODO panel's section): a note that numbers its strands stands a
+// chooser of them in the form, by number and first words, on one line with its label and inside the dialog at a
+// phone's width, and what is picked goes with the raise; a note of prose stands none. While the form holds anything,
+// every way out of the dialog asks first, and a question turned down leaves the form as it was; a form left blank, or
+// emptied again, closes at once.
+describe.skipIf(!origin || !touchReady())("the raising form's strands and its close", () => {
+  for (const viewport of WIDTHS) {
+    test(`picks the strands a row takes up and asks before letting typing go at ${viewport.width}px`, async () => {
+      const context = await open(viewport, "light");
+      let raised: Record<string, unknown> | null = null;
+
+      await context.route(/\/api\/todos$/, async (route) => {
+        if (route.request().method() !== "POST") return await route.fallback();
+
+        raised = route.request().postDataJSON() as Record<string, unknown>;
+        await route.fulfill({ json: { ok: true, raised: 77 } });
+      });
+
+      try {
+        const page = await context.newPage();
+        const question = page.getByText(wording("common.title.discard_changes"));
+        // The item's own dialog, told from the drawer standing the panel on a phone, which lists the same title.
+        const itemShut = async () => await page.locator('[role="dialog"][data-state="open"]:has([data-item-head])').waitFor({ state: "detached", timeout: 10_000 });
+        const raise = async (id: number) => {
+          const create = dialog(page, id).getByRole("button", { name: wording("todo.action.create_item"), exact: true });
+
+          if (viewport.phone) await create.tap();
+          else await create.click();
+          await dialog(page, id).getByRole("textbox", { name: wording("todo.label.new_title"), exact: true }).waitFor({ state: "visible", timeout: 10_000 });
+        };
+        const close = async (id: number) => await dialog(page, id).getByRole("button", { name: wording("common.action.close"), exact: true }).filter({ visible: true }).first().click();
+
+        await visit(page, NUMBERED);
+        await raise(NUMBERED);
+
+        const sheet = dialog(page, NUMBERED);
+        const chooser = sheet.locator("[data-raise-strands]");
+
+        // On one line with its label, and inside the dialog.
+        const placed = await chooser.evaluate((field) => {
+          const box = field.getBoundingClientRect();
+          const label = field.parentElement!.querySelector("span")!.getBoundingClientRect();
+          const shell = field.closest('[role="dialog"]')!.getBoundingClientRect();
+
+          return { line: Math.abs(box.top + box.height / 2 - (label.top + label.height / 2)) < 1, inside: box.left >= shell.left && box.right <= shell.right };
+        });
+
+        expect(placed).toEqual({ line: true, inside: true });
+
+        await chooser.click();
+        expect(await page.getByRole("option").allInnerTexts()).toEqual(["1. first-strand", "2. second-strand"]);
+        await page.getByRole("option", { name: "2. second-strand" }).click();
+        await page.keyboard.press("Escape");
+        await page.getByRole("listbox").waitFor({ state: "detached", timeout: 10_000 });
+
+        // A strand picked is a change: closing asks, and the question turned down leaves the form as it was.
+        await close(NUMBERED);
+        await question.waitFor({ state: "visible", timeout: 10_000 });
+        await page.keyboard.press("Escape");
+        await question.waitFor({ state: "hidden", timeout: 10_000 });
+        expect(await sheet.isVisible()).toBe(true);
+        expect(await chooser.innerText()).toContain("2. second-strand");
+
+        // Sent, it carries the strand picked.
+        await sheet.getByRole("textbox", { name: wording("todo.label.new_title"), exact: true }).fill("the rest");
+        await sheet.getByRole("textbox", { name: wording("todo.aria.new_body"), exact: true }).fill("carry on");
+        await sheet.getByRole("button", { name: wording("todo.action.submit_for_approval"), exact: true }).click();
+        await chooser.waitFor({ state: "detached", timeout: 10_000 });
+        expect(raised).toMatchObject({ action: "raise", id: NUMBERED, title: "the rest", said: "carry on", strands: [2] });
+
+        // The form gone with its send, closing asks nothing.
+        await close(NUMBERED);
+        await itemShut();
+        expect(await question.count()).toBe(0);
+
+        // A note of prose stands no chooser; a title typed and emptied again is no change.
+        await visit(page, NOTED);
+        await raise(NOTED);
+        expect(await dialog(page, NOTED).locator("[data-raise-strands]").count()).toBe(0);
+
+        const title = dialog(page, NOTED).getByRole("textbox", { name: wording("todo.label.new_title"), exact: true });
+
+        await title.fill("typed");
+        await title.fill("");
+        await close(NOTED);
+        await itemShut();
+        expect(await question.count()).toBe(0);
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
   }
 });

@@ -268,8 +268,30 @@ describe("what a verb answers", () => {
       title: "the rest",
       brief: "carry on with what is left",
       queueName: "default",
-      requesterName: "tester"
+      requesterName: "tester",
+      raisedBy: 7,
+      labels: { "from-todo": "7" }
     });
+  });
+});
+
+// A row raised out of a note names the note's strands it takes up as bmo-job's `todo --add --from-todo` does, so the
+// note resolves once its rows are done (docs/web.md, the TODO panel's section).
+describe("where a raised row came from", () => {
+  const raisedLabels = () => job.asked.find((one) => one.method === "POST" && one.path === "/items")?.body?.labels;
+
+  test("the strands picked of the note it stands on, and every other note named whole", async () => {
+    fresh();
+
+    expect(await post({ action: "raise", id: 7, title: "the rest", said: "carry on", strands: [2, 3], sources: [9, 7] })).toMatchObject({ status: 200 });
+    expect(raisedLabels()).toEqual({ "from-todo": "7:2,7:3,9" });
+  });
+
+  test("a strand that is no number counted from one is refused before bmo-job is asked", async () => {
+    fresh();
+
+    expect(await post({ action: "raise", id: 7, title: "the rest", said: "carry on", strands: [0] })).toEqual({ status: 400, message: wording("todo.error.bad_strands") });
+    expect(job.asked).toEqual([]);
   });
 });
 

@@ -1344,6 +1344,7 @@ todo:
     bad_note: 결재 의견이 너무 길거나 올바르지 않습니다.
     bad_order: 저장할 순서가 올바르지 않습니다.
     bad_source_ids: 함께 출처로 삼을 항목 번호가 올바르지 않습니다.
+    bad_strands: 미결 건 번호가 올바르지 않습니다.
     bad_worker: 워커 이름이 올바르지 않습니다.
     bot_refused: bmo-job이 요청을 거부했습니다.
     hold_reason_too_long: "보류 사유가 너무 깁니다.\n{n}자까지 입력할 수 있습니다."
@@ -1442,6 +1443,7 @@ todo:
     new_body: 새 항목으로 만들 내용
     panel_width: TODO 패널 너비 조절
     resolve_reason: 미결 해소 사유
+    strands: 새 항목이 맡을 미결 건
     search: TODO 검색
     work_instruction: 작업 지시
     work_purpose: 작업 목적
@@ -1583,6 +1585,7 @@ todo:
     skipped_at: "건너뛴 이유 · {time}"
     skipped_count: "건너뜀 {n}"
     sources: 출처
+    strands: 미결 건
     span_end: "끝 {time}"
     span_start: "시작 {time}"
     span_times: "{n}회"
@@ -1667,6 +1670,7 @@ todo:
       지금 반영하면 재시작할 때 실행 중인 Job이 이전 코드로 삭제된 스키마를 사용하다 실패할 수 있어 대기하고 있습니다.
 
       해제하면 새 Job이 시작되고, 배포는 실행 중인 Job이 없을 때 다시 진행합니다."
+    resolved_by_lines: "{lines} 완료로 해소"
     search_found: "{n}건을 찾았습니다."
     search_none: 찾은 항목이 없습니다.
     section_done_empty: 완료된 항목 없음
@@ -1681,6 +1685,7 @@ todo:
     new_body: 할 일
     note: 지시 사항
     resolve_reason: 해소 사유
+    strands: 미결 전체
     say_to_bmo: 채팅 에이전트에게 메시지 보내기
     search: 검색
   status:

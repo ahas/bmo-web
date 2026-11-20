@@ -14,6 +14,7 @@ import {
   STOP_REASON_NEEDED,
   UNFINISHED_NOT_OPEN
 } from "#shared/config";
+import { FROM_TODO_LABEL, fromTodoLabel } from "#shared/raised-from";
 import { wording } from "#shared/wording";
 import { canResolve } from "../../app/domain/todos";
 import {
@@ -40,6 +41,7 @@ interface TodoBody {
   said?: unknown;
   text?: unknown;
   sources?: unknown;
+  strands?: unknown;
   worker?: unknown;
   model?: unknown;
   role?: unknown;
@@ -71,10 +73,9 @@ const ACTIONS: readonly TodoAction[] = [
 // bmo-job writes; a bmo-job that is not there changes nothing. Filing from nothing is not among the
 // verbs — an item carries the exchange it came from, and that happens in a chat — but raising
 // one out of a unfinished note is, because there the exchange is the note itself and the line he writes
-// about it, and a unfinished note whose every strand is done or standing as its own row is the only way one
-// is ever resolved. Adding words to a row that already stands is here for the same reason the
-// raising is: what he thinks of an hour into the work is said at the screen he is watching it
-// from, and the only other way to say it is a shell.
+// about it, and the rows raised from a note, once done, are what resolves it on its own. Adding words to a
+// row that already stands is here for the same reason the raising is: what he thinks of an hour into the
+// work is said at the screen he is watching it from, and the only other way to say it is a shell.
 export default defineEventHandler(async (event): Promise<TodoActionResult> => {
   // Who is signed in goes to bmo-job where a change carries a name of its own: the words added, a stop's reason, an
   // item raised. An approval carries none, its caller being the one the console's token names.
@@ -115,6 +116,7 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
   const title = body?.title;
   const said = body?.said;
   const sources = body?.sources;
+  const strands = body?.strands;
 
   // A row raised out of a unfinished note needs a name and a reason. Neither is guessed at from the note.
   if (action === "raise") {
@@ -130,6 +132,11 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
     // unfinished note to raise out of is bmo-job's to say; what is checked here is that they are numbers.
     if (sources !== undefined && !isOrder(sources)) {
       throw fail(400, wording("todo.error.bad_source_ids"));
+    }
+
+    // The numbered strands of the note he stands on that the row takes up; none takes it up whole.
+    if (strands !== undefined && (!isOrder(strands) || strands.some((strand) => strand <= 0))) {
+      throw fail(400, wording("todo.error.bad_strands"));
     }
   }
 
@@ -262,7 +269,14 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
       if (queue === undefined) throw fail(503, wording("todo.error.queue_unknown"));
 
       const raised = await jobCall(job().POST("/items", {
-        body: { title: title as string, brief: said as string, queueName: queue.name, requesterName: signed.name }
+        body: {
+          title: title as string,
+          brief: said as string,
+          queueName: queue.name,
+          requesterName: signed.name,
+          raisedBy: id,
+          labels: { [FROM_TODO_LABEL]: raisedFrom(id, (strands ?? []) as number[], (sources ?? []) as number[]) }
+        }
       }));
 
       return { ok: true, raised: raised.id };
@@ -295,6 +309,15 @@ async function resolveUnfinished(id: number, why: string): Promise<void> {
   if (row === null || !canResolve(row)) throw fail(409, wording(UNFINISHED_NOT_OPEN));
 
   await patchItem(id, { labels: labelsResolving((await readItem(id)).labels, why, Date.now()) });
+}
+
+// The notes a raised row takes up, as bmo-job's `todo --add --from-todo` names them: the strands picked of the note he
+// stands on, or that note whole where none is picked, and every other note he named whole (docs/web.md, the TODO
+// panel's section).
+function raisedFrom(id: number, strands: readonly number[], sources: readonly number[]): string {
+  const standing = strands.length === 0 ? [{ item: id, strand: null }] : strands.map((strand) => ({ item: id, strand }));
+
+  return fromTodoLabel([...standing, ...sources.filter((source) => source !== id).map((item) => ({ item, strand: null }))]);
 }
 
 // A reason a verb cannot go without: words, within its bound.

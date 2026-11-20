@@ -15,7 +15,9 @@
     v-if="shows"
     v-bind="detailShell"
     :open="detailOpen"
-    @update:open="detailOpen = $event"
+    :dismissible="narrow ? closeGuard.dismissible.value : true"
+    @update:open="(standing: boolean) => (standing ? (detailOpen = true) : void closeGuard.leave())"
+    @close:prevent="void closeGuard.leave()"
   >
     <template #content>
       <div class="flex h-full min-h-0 flex-col">
@@ -40,7 +42,7 @@
               </UTheme>
 
               <UTooltip v-if="!twoColumns" :text="$t('common.action.close')">
-                <UButton size="sm" color="neutral" variant="ghost" icon="i-material-symbols-close" :aria-label="$t('common.action.close')" data-item-close @click="detailOpen = false" />
+                <UButton size="sm" color="neutral" variant="ghost" icon="i-material-symbols-close" :aria-label="$t('common.action.close')" data-item-close @click="void closeGuard.leave()" />
               </UTooltip>
             </div>
 
@@ -92,7 +94,7 @@
                 <CreateButton contained :label="$t('todo.action.create_item')" @click="startRaise(openedItem.id)" />
               </UTheme>
               <UTooltip :text="$t('common.action.close')">
-                <UButton size="sm" color="neutral" variant="ghost" icon="i-material-symbols-close" :aria-label="$t('common.action.close')" data-item-close @click="detailOpen = false" />
+                <UButton size="sm" color="neutral" variant="ghost" icon="i-material-symbols-close" :aria-label="$t('common.action.close')" data-item-close @click="void closeGuard.leave()" />
               </UTooltip>
             </span>
             <TodoFormBox class="min-w-0 flex-1" :cells="approvalLine">
@@ -202,12 +204,11 @@
                     </div>
                   </template>
 
-                  <!-- A strand of the note that is still real work becomes a row of its own. A
-                       outstanding note is prose with no dividers, so which strand this is is his to say: he
-                       names it and writes what it is, and the note rides onto the new row whole so
-                       it can be read a month later. This is what makes resolving reachable — a
-                       note is resolved once every strand is done or standing as its own row. The
-                       form opens from the head's create button and stands nothing here until then. -->
+                  <!-- A strand of the note that is still real work becomes a row of its own. Which strand this
+                       is is his to say: he picks it among the note's numbered strands, or takes the note whole, and
+                       writes what it is. The note resolves on its own once the rows raised from it are done and
+                       take up every strand. The form opens from the head's create button and stands nothing here
+                       until then. -->
                   <div v-if="raising.has(openedItem.id)" class="-mx-3 mt-4 border-t border-default px-3 pt-4">
                     <UInput
                       ref="raiseTitleBox"
@@ -228,6 +229,26 @@
                       :placeholder="$t('todo.placeholder.new_body')"
                       :aria-label="$t('todo.aria.new_body')"
                     />
+
+                    <!-- Which numbered strands of this note the row takes up, named by bmo-job's from-todo label so the
+                         note resolves once its rows are done; none picked takes the note up whole. A note that numbers
+                         no strands is one, and stands no chooser. -->
+                    <div v-if="strandChoices.length > 0" class="mt-2 flex flex-wrap items-center gap-2">
+                      <span class="text-sm text-muted">{{ $t("todo.label.strands") }}</span>
+
+                      <ChoiceSelect
+                        v-model="raiseStrands"
+                        :content="{ align: 'start' }"
+                        :items="strandChoices"
+                        value-key="value"
+                        multiple
+                        size="sm"
+                        class="min-w-40 max-w-full"
+                        :placeholder="$t('todo.placeholder.strands')"
+                        :aria-label="$t('todo.aria.strands')"
+                        data-raise-strands
+                      />
+                    </div>
 
                     <!-- One strand of work is often left in two notes at once: #164 came out of
                          both #87 and #88. The row he is standing on is always a source and says
@@ -893,9 +914,11 @@ import {
   RESOLUTION_LIMIT,
   TALK_LIMIT
 } from "#shared/config";
+import { noteStrands } from "#shared/raised-from";
 import { UDrawer, UModal } from "#components";
 import { useAgentCatalogue } from "~/domain/catalogue";
 import { useHeldWhileClosing } from "bmo-ui/app/domain/closing";
+import { useCloseGuard } from "bmo-ui/app/domain/form-save";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useLiveRefresh } from "~/domain/events";
 import { useIsland } from "bmo-ui/app/domain/island";
@@ -1109,6 +1132,13 @@ const detailOpen = computed({
   }
 });
 
+// The raising form holds what he typed until it is sent, so every way out of the dialog asks first while it holds
+// anything; one opened and left blank, or emptied again, closes at once (docs/web.md, 「Forms」).
+const raiseHolds = (): boolean =>
+  raising.value.size > 0 &&
+  (raiseTitle.value.trim() !== "" || raiseSaid.value.trim() !== "" || raiseSources.value.length > 0 || raiseStrands.value.length > 0);
+const closeGuard = useCloseGuard(detailOpen, raiseHolds, t);
+
 const detailShell = computed(() => {
   const shared = { title: openedItem.value === null ? "TODO" : `#${openedItem.value.id} ${openedItem.value.title}`, description: t("todo.label.detail_description") };
 
@@ -1242,6 +1272,8 @@ const raiseSaid = ref("");
 // The other notes he named as sources of the row he is raising. The row he is standing on is
 // always one and is never in here: it is not his to unpick.
 const raiseSources = ref<number[]>([]);
+// The numbered strands of the note he stands on that the row takes up; none picked takes the note up whole.
+const raiseStrands = ref<number[]>([]);
 // The raising form's title box, which the head's create button puts the typing in.
 const raiseTitleBox = useTemplateRef<{ inputRef: HTMLInputElement | null }>("raiseTitleBox");
 // The head row's buttons are the library's small ones, and the create button standing among them takes that size.
@@ -1379,6 +1411,7 @@ function toggled(id: number, closed: boolean, word: string): void {
   if (closed) {
     tabsChosenFor = null;
     seekingQuestion = false;
+    clearRaise();
   }
 
   confirming.value = null;
@@ -1736,10 +1769,17 @@ async function release(id: number): Promise<void> {
 }
 
 function openRaise(id: number): void {
+  clearRaise();
   raising.value = new Set([id]);
+}
+
+// The raising form closed and emptied, as a dialog closed with it lets go of what was typed.
+function clearRaise(): void {
+  raising.value = new Set();
   raiseTitle.value = "";
   raiseSaid.value = "";
   raiseSources.value = [];
+  raiseStrands.value = [];
 }
 
 // The head's create button: the result comes forward wherever the reader stood, with the raising form
@@ -1752,6 +1792,9 @@ function startRaise(id: number): void {
   }
   void nextTick(() => raiseTitleBox.value?.inputRef?.focus());
 }
+
+// The numbered strands of the open note, each by its number and its first words, for the row to take up.
+const strandChoices = computed(() => noteStrands(openedItem.value?.unfinished ?? "").map((strand) => ({ label: `${strand.number}. ${strand.text}`, value: strand.number })));
 
 // The notes he may name beside the one he is standing on. Every item whose outstanding note is
 // still standing is here, whichever page of the board it is on and whatever is being searched for
@@ -1786,9 +1829,10 @@ async function raise(id: number): Promise<void> {
 
   try {
     const sources = [...raiseSources.value];
+    const strands = [...raiseStrands.value];
     const answer = await $fetch<TodoActionResult>("/api/todos", {
       method: "POST",
-      body: { action: "raise", id, title, said, sources }
+      body: { action: "raise", id, title, said, sources, strands }
     });
     const from = [id, ...sources].map((one) => `#${one}`).join(", ");
 

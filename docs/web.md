@@ -6813,9 +6813,8 @@ Four bounds keep it from growing forever.
       again in that minute asks bmo-job nothing more of them (`docs/boundary.md`, 「Gaps the console meets」). If it
       left a 미결 (「완료 보고와 미결」 below), it carries a **미결** tag — telling which line left its own story
       without opening. A resolved 미결 reads as **미결 해소**, told apart at a glance from what remains. A 미결 is
-      resolved by hand, in its own cell: a line stood out of it carries no mark of the note it came from that the
-      board could read, so the lines finishing resolve nothing on their own (`docs/boundary.md`, 「Gaps the console
-      meets」). A 미결 carried over from the old board may already stand resolved with the old board's own reason,
+      resolved by hand in its own cell, or on its own once the lines stood out of it are done (「미결 해소」 below).
+      A 미결 carried over from the old board may already stand resolved with the old board's own reason,
       which named the lines stood out of it.
 - **Auto-progress stops and resumes in the panel header.** At the right of the header, beside reread, stands a button, and
   pressing stops the machine moving on to the next item: the chat agent is told of no waiting queue and launches nothing. While stopped a band stands below the header saying 자동 진행 일시정지, with the
@@ -7143,7 +7142,14 @@ Four bounds keep it from growing forever.
   stands, below the original, the reason it is no longer unfinished, so the chat agent does not speak of it as still remaining work.
 - **What can be done after talking is right there.** Having talked over an unfinished-item, the owner has three acts — mark that unfinished-item
   resolved, stand a new item from it, or leave it. Resolving stands as a button in the unfinished-item cell, and standing a new item is
-  **항목 만들기** in the dialog's head, which opens its form in that same cell under the words. Writing the title and what to do stands that line as awaiting approval, and **the
+  **항목 만들기** in the dialog's head, which opens its form in that same cell under the words. Where the note numbers
+  its strands, the form's **미결 건** chooser names each by its number and its first words, and he picks the ones the new
+  line takes up; picking none takes the note up whole, as does a note with no numbered strands. The new line names
+  where it came from as bmo-job's `todo --add --from-todo` does: the note's item as its `raisedBy`, and its label
+  `from-todo` holding `<item>:<strand>` for each strand picked, or the item alone for a note taken whole, every source
+  joined with commas. While the form holds anything typed or picked, every way out of the dialog asks before it is
+  thrown away (「Forms」), and closing the dialog lets the form go. Writing the title and what to do stands that line
+  as awaiting approval, and **the
   unfinished-item original attaches whole to the new item** — so a month later reading that line alone tells what it is. Standing it is not
   approval. It stands beside other requests awaiting the owner's approval. The original line changes nothing — the unfinished-item original stays on
   it and is not resolved. Standing stays after resolving too. Resolving says it is no longer remaining work, not that the text is gone, so
@@ -7153,7 +7159,8 @@ Four bounds keep it from growing forever.
   together. The choices are every item with an unresolved unfinished-item — whether in the loaded page or not, whatever is being searched.
   Another line pointing at the same work as the one being viewed is not a line they found. An already-resolved unfinished-item is not a choice.
   It is already sorted, and reopening it is done separately on that line. Chosen sources attach to the new line's instruction original each in
-  its own block; each of those unfinished-items is resolved by hand once this line and its sibling lines are done.
+  its own block; each of those unfinished-items is named whole in the new line's `from-todo` label, and resolves on
+  its own once this line and its sibling lines are done (「미결 해소」).
 - **The talk knows lines already stood.** The item the chat agent reads stands, below the unfinished-item, the lines already stood from it with their
   number, title and whether finished. Without it, it would say to stand a branch already a line again — the unfinished-item paragraph does not
   record what has already been stood. A link is a table fact so it is not read from prose but read and carried in.
@@ -7285,7 +7292,9 @@ Four bounds keep it from growing forever.
   hold and `--stop-here` write no `final` beside theirs.
   An item carried over from the old board, which has no such report, keeps its 미결 in its label `unfinished`. Its
   resolution stands in the item's labels `unfinished_resolved_at` (epoch seconds) and `unfinished_resolution`; a
-  note written after that moment is a new 미결 and stands unresolved.
+  note written after that moment is a new 미결 and stands unresolved. A line raised from the note after that moment
+  opens it again, a dropped line aside: the 미결 reads unresolved until that line too is done (「미결 해소」 below).
+  The lines raised from a note are the items whose `from-todo` label names its item, read by bmo-job's `label` filter.
 - In the 상태 tab, the **실행 기록** cell stands how long the work took as a bar. What it counts is read from the agency's jobs
   of the item on its worker (its `GET /jobs`), as the dialog opens, as a job of it starts, every few seconds while it runs,
   and once more when it ends: how many ran it, their time, and of the latest job its
@@ -7320,6 +7329,20 @@ Four bounds keep it from growing forever.
   fills that — if one passage of an unfinished-item is still real work, stand that passage as an item, and when every passage of a text is done or stood as its
   own item, resolve the whole text. An item with no unfinished-item and an already-resolved one the console refuses, so nothing is overwritten and the screen says
   why not. Closing an item with another unfinished-item makes it a new one so the earlier resolution no longer holds for it.
+- **A 미결 resolves on its own once the lines raised from it are done.** The lines are those whose `from-todo` label
+  names the note's item, raised after the note was written; an entry `<item>:<strand>` takes up that numbered strand,
+  and the item alone takes up the whole note. A note's strands are the items of its top-level numbered lists, read
+  as markdown, and a note with none is one strand. A dropped line takes up nothing, and a merged line is done once
+  the line carrying it is. The 미결 resolves once at least one line was raised from it, every one of them not dropped
+  is done, and together they take up every strand, so a strand nobody raised, the owner's own among them, keeps the
+  note standing for a hand to resolve. The deployed console's server writes the resolution as a hand would, the
+  moment and a line naming those lines (`#3901, #3902 완료로 해소`), whatever page is open or none; a console served
+  from source for development writes none. It does so each time a line
+  moves to a finished state, read off bmo-job's stream of item changes that the server holds open itself, and once
+  each time that stream opens, so a line finished while the console was down is caught up. A line raised from a
+  resolved note opens it again (「Where a 미결 is read from」 above), and once that line is done the note resolves
+  again with every line named. Only a line raised with the label counts, so a line the console raised before it
+  wrote the label resolves nothing.
 - **A new item is not made here.** An item's worth is in the instruction original, and that original comes only from the conversation the owner had with the chat agent in their private chat. Putting an input box in the panel would make a line with no such conversation. New work is spoken in the owner's private chat's input box, and the chat agent files it as the
   original.
 - The panel is updated by the events the bot flows. On a word naming the items it moved — an item changed, a lease, a

@@ -1,8 +1,10 @@
 <template>
   <!-- What waits for a room, one line a call, oldest first (docs/web.md, the room screen's list of what waits): what it
        is, the agent it wakes, the note it was set with and since when it has stood. -->
-  <ol class="flex max-w-80 flex-col gap-2 p-3" data-room-background-list>
-    <li v-for="call in props.calls" :key="call.id" class="flex min-w-0 flex-col gap-0.5" :data-background-kind="call.kind">
+  <!-- A line that comes or goes while the list is open, as background work begins or ends, unfolds or folds where it
+       stands, the others closing up (docs/web.md, 「Motion」). -->
+  <MovingList tag="ol" class="flex max-w-80 flex-col gap-2 p-3" data-room-background-list>
+    <li v-for="call in props.calls" :key="call.id" class="flex min-w-0 flex-col gap-1" :data-background-kind="call.kind">
       <span class="flex flex-wrap items-center gap-x-2 text-sm">
         <span class="text-highlighted">{{ kindWord(call) }}</span>
         <span v-if="call.agent !== null" class="text-muted">{{ call.agent }}</span>
@@ -14,9 +16,9 @@
           <span class="text-sm whitespace-pre-wrap wrap-anywhere text-toned" data-background-note>{{ text }}</span>
         </template>
       </TranslatedText>
-      <span class="text-sm text-dimmed tabular-nums">{{ detail(call) }}</span>
+      <span class="text-sm text-muted tabular-nums">{{ detail(call) }}</span>
     </li>
-  </ol>
+  </MovingList>
 </template>
 
 <script setup lang="ts">
@@ -45,9 +47,14 @@ function kindWord(call: BackgroundCall): string {
   }
 }
 
+// A moment the list carries, in epoch milliseconds, as the clock reads it, which counts in seconds.
+function clock(at: number): string {
+  return formatClock(Math.floor(at / 1000));
+}
+
 // The line under it: how often a watch checks or when a reminder comes, and since when it has stood.
 function detail(call: BackgroundCall): string {
-  const since = t("room.message.background_since", { time: formatClock(call.startedAt) });
+  const since = t("room.message.background_since", { time: clock(call.startedAt) });
 
   if (call.everySeconds !== null) {
     const often =
@@ -58,7 +65,7 @@ function detail(call: BackgroundCall): string {
     return `${often} · ${since}`;
   }
 
-  if (call.until !== null) return `${t("room.message.background_until", { time: formatClock(call.until) })} · ${since}`;
+  if (call.until !== null) return `${t("room.message.background_until", { time: clock(call.until) })} · ${since}`;
 
   return since;
 }

@@ -5868,7 +5868,10 @@ Four bounds keep it from growing forever.
   so a watch that held, or a reminder whose moment came, leaves the list without a reload. It is read again too as
   the agency says background work of this room began or ended (`background-work.created`, `background-work.ended`),
   so a subagent stands from the end of the turn that launched it and leaves the list as it ends, whatever ended it;
-  how it ended is the supervisor's to tell the room, in the answer its end wakes.
+  how it ended is the supervisor's to tell the room, in the answer its end wakes. A line that comes or goes while the
+  list stands open unfolds or folds where it stands, the others closing up, and the button's count turns as it
+  changes (「Motion」); where the last line goes, the list closes and keeps what it showed until it is off the screen,
+  and the button goes with it.
 - **Nothing here acts:** a call is stopped by the agent that set it, and the list only shows what waits. A tool
   host or an agency that cannot be read leaves its part of the list away, and the button stands on the other's;
   with neither read, the button is away, as one with nothing waiting is.

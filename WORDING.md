@@ -512,6 +512,14 @@
 - an entry the person's BMO drafted → 초안, keeping it → 확정, letting it go → 철회; the drafts on a work another reads →
   `확정 전 초안 {n}건`; one drafted from what an agent did → AI 작업. What an entry rests on → 증거, counted `증거 {n}건`;
   one resting on the person's word alone → 진술. Never 미확인, 승인 for 확정, 취소 or 삭제 for 철회, 근거 for 증거.
+- the ways a unit's works are read on the works screen → 보기: 목록, 진척 트리, 일정, 오늘, 주간 보고; the works at risk
+  gathered at the tree's head → 위험 업무; a scope that changed this week → 범위 변경; the signal's column → 전망. A
+  person's day: a line their BMO wrote → BMO 작성; a line left unmoved day after day → `{n}일째 진척 없음`; nothing
+  written → 기록 없음; a day off in its place in the attendance screen's words (휴가, 오전 반차, 오후 반차, 출장, 휴무,
+  대휴, 공휴일). The weekly report's parts → 중점 업무, 진척 변화, 밀린 업무, 다음 주 기한 조건, 사람별 요약, 가치 분류 (분류
+  없음 for works with none), 조직장 의견; its columns 시작 진척, 종료 진척, 최근 진척; its weeks → 이전 주, 다음 주; the
+  sheet → 다운로드. A head's remark on a work or a person → 의견: 의견, 등록, 의견이 아직 없습니다. Never 진척 나무, 변화
+  없음 for a line left unmoved, 코멘트, 내려받기.
 - a milestone's conditions → 조건: 조건 충족, 조건 미충족, 완료 조건; an approver's rejection of them → 반려, with its 반려
   사유, as an approval document's; the approval forms it waits on → 결재 양식; who approves → 승인자. Never 거절 for it.
 - one work handing something to another, or to a unit → 관계, its kinds 인계, 검수, 참조, 보고, 변경 요청, 업무 요청, sent

@@ -89,6 +89,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/checks/org-memory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Whether a user writes an organisation unit's org memory, heading it or a unit above it or holding the unit's grant. */
+        post: operations["checkOrgMemory"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/checks/room": {
         parameters: {
             query?: never;
@@ -415,6 +432,23 @@ export interface paths {
         put?: never;
         /** A machine name bound to no account revoked at the hub, so the machine under it is told to leave. */
         post: operations["revokeMachine"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/org-memory/units": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The units whose org memory the login writes, companies first and each unit after its parent, each with whether the login heads it. */
+        get: operations["orgMemoryUnits"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1112,6 +1146,41 @@ export interface paths {
         /** Several people moved into a unit in one act, each its head or a member and with the role named, by the administrator. */
         post: operations["movePeople"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/units/{unit}/memory-writers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The people granted a unit's org memory write, by name then id, each with who gave it, for the administrator and a head of the unit or of a unit above. */
+        get: operations["memoryWriters"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/units/{unit}/memory-writers/{user}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** A person of the unit's company granted its org memory write, by the administrator or a head of the unit or of a unit above. */
+        put: operations["grantMemoryWrite"];
+        post?: never;
+        /** A person's grant of a unit's org memory write taken away, by the same callers; none standing changes nothing. */
+        delete: operations["takeMemoryWrite"];
         options?: never;
         head?: never;
         patch?: never;
@@ -2093,6 +2162,19 @@ export interface components {
         Members: {
             members: components["schemas"]["Member"][];
         };
+        /**
+         * @description A person granted a unit's org memory write (`docs/accounts.md`, 「A unit's org memory」): their name, the login
+         *     where none stands, and the user who gave it where a person did.
+         */
+        MemoryWriter: {
+            by?: string | null;
+            name: string;
+            user: string;
+        };
+        /** @description The people granted a unit's org memory write, by name then id. */
+        MemoryWriters: {
+            writers: components["schemas"]["MemoryWriter"][];
+        };
         /** @description A room relation asked of a message's sender. */
         MessageCheckAsk: {
             /** Format: int64 */
@@ -2165,6 +2247,23 @@ export interface components {
             id: number;
             /** Format: int64 */
             room: number;
+        };
+        /**
+         * @description One unit whose org memory a login writes: its parent, absent for a company, its company, itself for a company,
+         *     and whether the login heads it.
+         */
+        OrgMemoryUnit: {
+            company: components["schemas"]["UnitRef"];
+            head: boolean;
+            /** Format: int64 */
+            id: number;
+            name: string;
+            /** Format: int64 */
+            parent?: number | null;
+        };
+        /** @description The units whose org memory a login writes, companies first and each unit after its parent. */
+        OrgMemoryUnits: {
+            units: components["schemas"]["OrgMemoryUnit"][];
         };
         /** @description A person's own parts as kept, whether or not they may use them; `picture` says whether one is kept. */
         OwnAgent: {
@@ -3536,6 +3635,39 @@ export interface operations {
             };
         };
     };
+    checkOrgMemory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UnitCheckAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckAnswer"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
     checkRoom: {
         parameters: {
             query?: never;
@@ -4475,6 +4607,40 @@ export interface operations {
                 };
             };
             /** @description A refusal or failure: bad-request, node-taken, no-hub, upstream-failed, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    orgMemoryUnits: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrgMemoryUnits"];
+                };
+            };
+            /** @description A refusal or failure: forbidden, unauthorized, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -6446,6 +6612,106 @@ export interface operations {
                 };
             };
             /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, left, moved, no-such-role, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    memoryWriters: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                unit: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoryWriters"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    grantMemoryWrite: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                unit: number;
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Done; no content. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, other-company, left, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    takeMemoryWrite: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                unit: number;
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Done; no content. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;

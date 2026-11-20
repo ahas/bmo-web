@@ -4,7 +4,7 @@ use reqwest::{Client, Method, RequestBuilder, StatusCode, Url};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 
-use crate::organisation::UnitSubtree;
+use crate::organisation::{MemoryWriters, OrgMemoryUnits, UnitSubtree};
 use crate::supply::*;
 use crate::types::*;
 use crate::wire::{Answer, ClientFailure};
@@ -290,6 +290,11 @@ impl AccountClient {
     Self::answered(self.send(Method::POST, &["checks", "unit"], ask)).await
   }
 
+  /// `POST /checks/org-memory`.
+  pub async fn check_org_memory(&self, ask: &UnitCheckAsk) -> Answer<CheckAnswer> {
+    Self::answered(self.send(Method::POST, &["checks", "org-memory"], ask)).await
+  }
+
   /// `POST /checks/entry`.
   pub async fn check_entry(&self, ask: &EntryCheckAsk) -> Answer<CheckAnswer> {
     Self::answered(self.send(Method::POST, &["checks", "entry"], ask)).await
@@ -321,6 +326,47 @@ impl AccountClient {
       self
         .request(Method::GET, &["units", &unit.to_string(), "subtree"])
         .header(OWNER_KEY, key),
+    )
+    .await
+  }
+
+  /// `GET /units/{unit}/memory-writers`, read for the login `key`.
+  pub async fn memory_writers(&self, unit: i64, key: &str) -> Answer<MemoryWriters> {
+    Self::answered(
+      self
+        .request(Method::GET, &["units", &unit.to_string(), "memory-writers"])
+        .header(OWNER_KEY, key),
+    )
+    .await
+  }
+
+  /// `PUT /units/{unit}/memory-writers/{user}`, given by the login `key`.
+  pub async fn grant_memory_write(&self, unit: i64, user: &str, key: &str) -> Answer<()> {
+    Self::nothing(
+      self
+        .request(Method::PUT, &["units", &unit.to_string(), "memory-writers", user])
+        .header(OWNER_KEY, key),
+    )
+    .await
+  }
+
+  /// `DELETE /units/{unit}/memory-writers/{user}`, taken by the login `key`.
+  pub async fn take_memory_write(&self, unit: i64, user: &str, key: &str) -> Answer<()> {
+    Self::nothing(
+      self
+        .request(Method::DELETE, &["units", &unit.to_string(), "memory-writers", user])
+        .header(OWNER_KEY, key),
+    )
+    .await
+  }
+
+  /// `GET /org-memory/units`, asked as the login `key` acts for in `role`.
+  pub async fn org_memory_units(&self, key: &str, role: &str) -> Answer<OrgMemoryUnits> {
+    Self::answered(
+      self
+        .request(Method::GET, &["org-memory", "units"])
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
     )
     .await
   }

@@ -19,6 +19,9 @@ import {
   type Accepted,
   type Invite,
   type InviteUnit,
+  type UnitSubtree,
+  type MemoryWriter,
+  type OrgMemoryUnit,
   type InviteView,
   type Proof,
   type RoomCallers,
@@ -1327,4 +1330,47 @@ export async function setUserPermission(user: UserId | number, setting: Permissi
   const reply = await sent(options, clientOf(options).PUT("/users/{user}/agent-permission", { params: { path: { user: userPath(user) }, header: profileHeaders(caller) }, body: { setting } }));
 
   if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}
+
+/** The units whose org memory a login writes, each with whether it heads it (docs/accounts.md, 「A unit's org memory」). */
+export async function orgMemoryUnits(caller: ProfileCaller, options: ServiceOptions = {}): Promise<OrgMemoryUnit[]> {
+  const reply = await sent(options, clientOf(options).GET("/org-memory/units", { params: { header: profileHeaders(caller) } }));
+
+  return answered(reply).units;
+}
+
+/** Whether a user writes a unit's org memory, heading it or holding its grant. */
+export async function writesOrgMemory(unit: number, user: UserId, options: ServiceOptions = {}): Promise<boolean> {
+  const reply = await sent(options, clientOf(options).POST("/checks/org-memory", { body: { unit, user } }));
+
+  return answered(reply).allowed;
+}
+
+/** The people granted a unit's org memory write, for a head of the unit. */
+export async function memoryWriters(unit: number, caller: ProfileCaller, options: ServiceOptions = {}): Promise<MemoryWriter[]> {
+  const reply = await sent(options, clientOf(options).GET("/units/{unit}/memory-writers", { params: { path: { unit }, header: { "Owner-Key": caller.key } } }));
+
+  return answered(reply).writers;
+}
+
+/** A person granted a unit's org memory write. */
+export async function grantMemoryWrite(unit: number, user: UserId, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  const reply = await sent(options, clientOf(options).PUT("/units/{unit}/memory-writers/{user}", { params: { path: { unit, user }, header: { "Owner-Key": caller.key } } }));
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}
+
+/** A person's grant of a unit's org memory write taken away. */
+export async function takeMemoryWrite(unit: number, user: UserId, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  const reply = await sent(options, clientOf(options).DELETE("/units/{unit}/memory-writers/{user}", { params: { path: { unit, user }, header: { "Owner-Key": caller.key } } }));
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}
+
+/** A unit and every unit below it with the people standing in each, for a head of the unit (docs/accounts.md,
+ * 「Everyone under a unit」). */
+export async function unitSubtree(unit: number, caller: ProfileCaller, options: ServiceOptions = {}): Promise<UnitSubtree> {
+  const reply = await sent(options, clientOf(options).GET("/units/{unit}/subtree", { params: { path: { unit }, header: { "Owner-Key": caller.key } } }));
+
+  return answered(reply);
 }

@@ -43,8 +43,8 @@ export function permissionSections(bundles: readonly ConsoleScreen[]): Permissio
   const bySection = new Map<string, PermissionSection>();
 
   for (const screen of screensWithBundles(bundles)) {
-    // A screen a member opens by heading a unit rather than by a section is no section to grant.
-    if (screen.inviters === true || screen.administrator === true) continue;
+    // A screen a member opens by keeping something of a unit rather than by a section is no section to grant.
+    if (screen.unitKeepers === true || screen.administrator === true) continue;
 
     const sections = sectionsOfPath(screen.to);
     const id = sections[0];

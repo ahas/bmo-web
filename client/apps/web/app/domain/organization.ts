@@ -3,6 +3,7 @@ import { filterRecords } from "bmo-ui/shared/search";
 import type { Component, ComputedRef, Ref } from "vue";
 import type { LocationQuery } from "vue-router";
 import type { InviteUnit, UnitRow } from "@web/server-client";
+import type { OrgMemoryUnitView } from "#shared/org-memory";
 
 import { useAdministrator } from "./access";
 import { adminAddress, adminTabNamed, administratorOpens } from "./administration";
@@ -33,6 +34,8 @@ export interface OrganizationReader {
   supply: boolean;
   // Whether the reader holds any part of its supply, its plan alone among them, as a subscription manager does.
   plans: boolean;
+  // Whether the reader writes the org memory of a unit of the organisation chosen, heading it or holding its grant.
+  memory: boolean;
   known: boolean;
 }
 
@@ -76,6 +79,12 @@ function plansReaderOpens(reader: OrganizationReader): boolean {
   return reader.administrator || reader.supply || reader.plans;
 }
 
+// The org memory tab's readers: the administrator, and a member the account service says writes the org memory of a
+// unit of the organisation chosen (「Organisation」, the org memory tab).
+function memoryReaderOpens(reader: OrganizationReader): boolean {
+  return reader.administrator || reader.memory;
+}
+
 // The people tab's key, which a section moved into one person's tab leads to.
 const PEOPLE_TAB = "people";
 
@@ -85,6 +94,7 @@ export const ORGANIZATION_TABS: readonly OrganizationTab[] = [
   { value: "catalogue", label: "catalogue.label.tab", icon: "i-material-symbols-category-outline", opens: rosterReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationCatalogue.vue") },
   { value: "invites", label: "settings.label.invites", icon: "i-material-symbols-person-add-outline", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationInvites.vue") },
   { value: "agent", label: "settings.label.bmo", icon: "i-material-symbols-face-outline", opens: everyReaderOpens, keys: ["unit"], wide: false, load: () => import("~/components/OrganizationBmo.vue") },
+  { value: "memory", label: "org_memory.label.tab", icon: "i-material-symbols-psychology-outline", opens: memoryReaderOpens, keys: ["unit"], wide: false, load: () => import("~/components/OrganizationMemory.vue") },
   // The supply tab stands only for a reader who holds the organisation's supply policy, and the plans tab for one who
   // holds any part of its supply — the administrator everywhere (docs/web.md, 「Organisation」, the supply and plans
   // tabs).
@@ -201,7 +211,7 @@ export function organizationsMatching(organizations: readonly Organization[], wo
 }
 
 /** The companies a member may set something in, each once: those where they head a unit — the invitations' units —
- * and those the roster and the supply reach answer them (docs/web.md, 「Organisation」). They stand in the tree's order
+ * and those the roster, the supply reach and the org memory read answer them (docs/web.md, 「Organisation」). They stand in the tree's order
  * whichever read named them, which for companies is the order of their numbers, as the account service lays its tree. */
 export function memberOrganizations(inviteUnits: readonly InviteUnit[], ...more: readonly (readonly Organization[])[]): Organization[] {
   const all = new Map<number, Organization>();
@@ -217,21 +227,39 @@ export function organizationTabNamed(key: string): OrganizationTab | null {
 }
 
 /**
- * Whether the reader may invite into some unit, as the console's server answers: the administrator always, a member
- * where they head a unit. A member who may invite is listed the organisation screen with its invitations tab
- * alone (docs/web.md, 「Organisation」). Read once for the tab and kept while it stands.
+ * Whether the reader keeps something of a unit, as the console's server answers: the administrator always, a member
+ * where they head a unit, so may invite into it, or write a unit's org memory. Such a member is listed the
+ * organisation screen (docs/web.md, 「Organisation」). Read once for the shell and kept while it stands.
  */
-export function useMayInvite(): ComputedRef<boolean> {
+export function useKeepsUnits(): ComputedRef<boolean> {
   const { data } = useFetch<{ id: number; name: string }[]>("/api/invites/units", { key: "invite-units", lazy: true, server: false, default: () => [] });
+  const { units } = useOrgMemoryUnits();
 
-  return computed(() => (data.value ?? []).length > 0);
+  return computed(() => (data.value ?? []).length > 0 || units.value.length > 0);
+}
+
+/**
+ * The units whose org memory the reader writes, as the account service answers them, and whether that read has
+ * answered, in either direction (docs/web.md, 「Organisation」, the org memory tab). One read shared by the shell, the
+ * screen and the tab.
+ */
+export function useOrgMemoryUnits(): { units: ComputedRef<OrgMemoryUnitView[]>; status: Ref<string>; failed: ComputedRef<boolean>; refresh: () => Promise<void> } {
+  const { data, status, refresh } = useFetch<OrgMemoryUnitView[]>("/api/organization/memory/units", { key: "org-memory-units", lazy: true, server: false, default: () => [] });
+
+  return {
+    units: computed(() => (status.value === "success" ? (data.value ?? []) : [])),
+    status,
+    failed: computed(() => status.value === "error"),
+    refresh: async () => await refresh()
+  };
 }
 
 /**
  * Who reads the organisation screen, for the tabs that stand for them: the administrator at once, and a member once
- * the people roster has said which companies they look through and the supply read which their supply reach covers.
- * Where an organisation is chosen, each says whether it covers that one; where none is, whether it covers any. A read
- * that failed leaves them as one who looks through none and manages none. Once both have answered they stay known: a
+ * the people roster has said which companies they look through, the supply read which their supply reach covers and
+ * the org memory read whose units' memory they write. Where an organisation is chosen, each says whether it covers that
+ * one; where none is, whether it covers any. A read that failed leaves them as one who looks through none, manages none
+ * and writes none. Once all have answered they stay known: a
  * tab that reads one of them itself asks it again as it opens, and that read must not make the reader unknown and
  * take the tab away.
  */
@@ -240,7 +268,9 @@ export function useOrganizationReader(chosen: () => number | null = () => null):
   const { companies, status } = useRosterCompanies();
   const supply = useSupplyReader();
   const supplied = useSupplyUnits();
+  const memory = useOrgMemoryUnits();
   const rosterAnswered = useAnswered(status);
+  const memoryAnswered = useAnswered(memory.status);
   const covers = (list: readonly { id: number }[]): boolean => {
     const company = chosen();
 
@@ -252,7 +282,8 @@ export function useOrganizationReader(chosen: () => number | null = () => null):
     roster: covers(companies.value),
     supply: covers(supplied.value.filter((one) => one.policy)),
     plans: covers(supplied.value),
-    known: administrator.value || (rosterAnswered.value && supply.value.known)
+    memory: covers(memory.units.value.map((one) => one.company)),
+    known: administrator.value || (rosterAnswered.value && supply.value.known && memoryAnswered.value)
   }));
 }
 
@@ -288,8 +319,8 @@ export interface Organizations {
 
 /**
  * The organisations the screen lists (docs/web.md, 「Organisation」): every company for the administrator, read off
- * every unit; for a member the companies where they head a unit, manage the supply or head the company itself. Read
- * once the page stands in the browser and kept while it stands.
+ * every unit; for a member the companies where they head a unit, manage the supply, write a unit's org memory or head
+ * the company itself. Read once the page stands in the browser and kept while it stands.
  */
 export function useOrganizations(failed: (error: unknown) => string): Organizations {
   const administrator = useAdministrator();
@@ -298,8 +329,10 @@ export function useOrganizations(failed: (error: unknown) => string): Organizati
   const roster = useRosterCompanies();
   const supply = useSupplyReader();
   const supplied = useSupplyUnits();
+  const memory = useOrgMemoryUnits();
   const invitesAnswered = useAnswered(invites.status);
   const rosterAnswered = useAnswered(roster.status);
+  const memoryAnswered = useAnswered(memory.status);
 
   watch(
     administrator,
@@ -311,16 +344,16 @@ export function useOrganizations(failed: (error: unknown) => string): Organizati
 
   const list = computed<Organization[] | null>(() => {
     if (administrator.value) return units.status.value === "success" ? (units.data.value ?? []).filter(isCompany).map((one) => ({ id: one.id, name: one.name })) : null;
-    if (!invitesAnswered.value || !rosterAnswered.value || !supply.value.known) return null;
+    if (!invitesAnswered.value || !rosterAnswered.value || !supply.value.known || !memoryAnswered.value) return null;
 
-    return memberOrganizations(invites.status.value === "success" ? (invites.data.value ?? []) : [], roster.companies.value, supplied.value);
+    return memberOrganizations(invites.status.value === "success" ? (invites.data.value ?? []) : [], roster.companies.value, supplied.value, memory.units.value.map((one) => one.company));
   });
   const failure = computed(() => (administrator.value && units.error.value ? failed(units.error.value) : ""));
 
   function companyOf(unit: number): number | null {
     if (administrator.value) return unitPath(units.data.value ?? [], unit)[0]?.id ?? null;
 
-    return (invites.data.value ?? []).find((one) => one.id === unit)?.company.id ?? null;
+    return [...(invites.data.value ?? []), ...memory.units.value].find((one) => one.id === unit)?.company.id ?? null;
   }
 
   return {

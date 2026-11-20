@@ -40,9 +40,9 @@ export interface Screen {
   brought?: true;
   // The tabs a screen keeps in its address as `?tab=`. The first is the screen's own address.
   tabs?: readonly ScreenTab[];
-  // Whether a member's shell lists it only for a member who may invite into some unit, rather than by a section of
-  // their permission (docs/web.md, 「Organisation」).
-  inviters?: true;
+  // Whether a member's shell lists it only for a member who keeps something of a unit — heads one, so may invite into
+  // it, or writes a unit's org memory — rather than by a section of their permission (docs/web.md, 「Organisation」).
+  unitKeepers?: true;
   // Whether the screen is the administrator's alone, so no member's shell lists it and no section grants it
   // (docs/web.md, 「Administration」).
   administrator?: true;
@@ -101,7 +101,7 @@ export const SCREENS: readonly Screen[] = [
   // machine's own monitor stands below its address.
   { label: "screens.label.monitor", to: "/monitor", icon: "i-material-symbols-monitor-heart-outline", nested: true, tabs: MONITOR_TABS, section: "administration" },
   // The organisation and the people in it, a tab to a section.
-  { label: "screens.label.organization", to: ORGANIZATION_PATH, icon: "i-material-symbols-domain", nested: false, tabs: ORGANIZATION_TABS, inviters: true, section: "administration" },
+  { label: "screens.label.organization", to: ORGANIZATION_PATH, icon: "i-material-symbols-domain", nested: false, tabs: ORGANIZATION_TABS, unitKeepers: true, section: "administration" },
   // What is set for the platform itself, the administrator's alone: the providers and the secret kinds.
   { label: "screens.label.admin", to: ADMIN_PATH, icon: "i-material-symbols-shield-person-outline", nested: false, tabs: ADMIN_TABS, administrator: true, section: "administration" }
 ];

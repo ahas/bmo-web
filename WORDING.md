@@ -476,6 +476,11 @@
   겸임 for the post itself, 파견, 소속 추가.
 - acting for a unit's head for a period → 직무대행: 직무대행 지정, 대행자, 종료일, `{date}까지`, and the mark 대행. Never 대리,
   which is a rank, nor 권한 위임.
+- what holds for a whole unit and every agent serving its people is given → 조직 기억: 기억 추가, 기억 편집, 기억 삭제,
+  기억 없음, 이 조직의 기억, 상위 조직의 기억; its fields → 내용, 주제, 고정 (no unit below overrides its topic), 사내 한정
+  (kept from a room where someone outside the company sits); a member's word waiting for a writer → 제안, answered 수락
+  or 거절, 제안 없음; who may write it without heading the unit → 조직 기억 쓰기 권한, 권한 부여, 권한 해제. Never 메모리,
+  공통 기억, 잠금 for 고정, 대외비 for 사내 한정, nor 승인 or 반려 for a proposal, which stay an approval's words.
 - the record of changes to a person's place → 이력: 이력 없음. Never 히스토리, 로그, 발령 내역.
 - a project's work on the projects screen → 단계 (a stage) and 게이트 (what ends it); an approver's rejection of a gate →
   반려, with its 반려 사유, as an approval document's; the approval forms a gate waits on → 결재 양식; a task → 임무, its

@@ -1721,6 +1721,43 @@
         ],
         "type": "object"
       },
+      "MemoryWriter": {
+        "description": "A person granted a unit's org memory write (`docs/accounts.md`, 「A unit's org memory」): their name, the login\nwhere none stands, and the user who gave it where a person did.",
+        "properties": {
+          "by": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user",
+          "name"
+        ],
+        "type": "object"
+      },
+      "MemoryWriters": {
+        "description": "The people granted a unit's org memory write, by name then id.",
+        "properties": {
+          "writers": {
+            "items": {
+              "$ref": "#/components/schemas/MemoryWriter"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "writers"
+        ],
+        "type": "object"
+      },
       "MessageCheckAsk": {
         "description": "A room relation asked of a message's sender.",
         "properties": {
@@ -1948,6 +1985,53 @@
         "required": [
           "room",
           "id"
+        ],
+        "type": "object"
+      },
+      "OrgMemoryUnit": {
+        "description": "One unit whose org memory a login writes: its parent, absent for a company, its company, itself for a company,\nand whether the login heads it.",
+        "properties": {
+          "company": {
+            "$ref": "#/components/schemas/UnitRef"
+          },
+          "head": {
+            "type": "boolean"
+          },
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "parent": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "company",
+          "head"
+        ],
+        "type": "object"
+      },
+      "OrgMemoryUnits": {
+        "description": "The units whose org memory a login writes, companies first and each unit after its parent.",
+        "properties": {
+          "units": {
+            "items": {
+              "$ref": "#/components/schemas/OrgMemoryUnit"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "units"
         ],
         "type": "object"
       },
@@ -5886,6 +5970,60 @@
         ]
       }
     },
+    "/checks/org-memory": {
+      "post": {
+        "operationId": "checkOrgMemory",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UnitCheckAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckAnswer"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Whether a user writes an organisation unit's org memory, heading it or a unit above it or holding the unit's grant.",
+        "tags": [
+          "Checks"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
     "/checks/room": {
       "post": {
         "operationId": "checkRoom",
@@ -7656,6 +7794,73 @@
           "node-taken",
           "no-hub",
           "upstream-failed",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/org-memory/units": {
+      "get": {
+        "operationId": "orgMemoryUnits",
+        "parameters": [
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgMemoryUnits"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: forbidden, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The units whose org memory the login writes, companies first and each unit after its parent, each with whether the login heads it.",
+        "tags": [
+          "Organisation units"
+        ],
+        "x-codes": [
+          "forbidden",
           "unauthorized",
           "not-in-force",
           "database",
@@ -11557,6 +11762,203 @@
           "left",
           "moved",
           "no-such-role",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/units/{unit}/memory-writers": {
+      "get": {
+        "operationId": "memoryWriters",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "unit",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoryWriters"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The people granted a unit's org memory write, by name then id, each with who gave it, for the administrator and a head of the unit or of a unit above.",
+        "tags": [
+          "Organisation units"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/units/{unit}/memory-writers/{user}": {
+      "delete": {
+        "operationId": "takeMemoryWrite",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "unit",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done; no content."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A person's grant of a unit's org memory write taken away, by the same callers; none standing changes nothing.",
+        "tags": [
+          "Organisation units"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "put": {
+        "operationId": "grantMemoryWrite",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "unit",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done; no content."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, other-company, left, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A person of the unit's company granted its org memory write, by the administrator or a head of the unit or of a unit above.",
+        "tags": [
+          "Organisation units"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "other-company",
+          "left",
           "not-in-force",
           "database",
           "failed"

@@ -24,6 +24,7 @@ pub mod machines;
 pub mod marks;
 pub mod migration;
 pub mod nodes;
+pub mod org_memory;
 pub mod pairings;
 pub mod people;
 pub mod phones;

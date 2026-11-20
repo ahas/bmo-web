@@ -61,18 +61,20 @@ describe("the settings dialog", () => {
   });
 });
 
-const ADMINISTRATOR: OrganizationReader = { administrator: true, roster: true, supply: false, plans: false, known: true };
+const ADMINISTRATOR: OrganizationReader = { administrator: true, roster: true, supply: false, plans: false, memory: false, known: true };
 // A head manages the supply of the company they head, as the account service's read says (docs/web.md, the supply tab).
-const COMPANY_HEAD: OrganizationReader = { administrator: false, roster: true, supply: true, plans: true, known: true };
+const COMPANY_HEAD: OrganizationReader = { administrator: false, roster: true, supply: true, plans: true, memory: true, known: true };
 // A subscription manager who heads nothing holds the company's plan alone.
-const PLAN_KEEPER: OrganizationReader = { administrator: false, roster: false, supply: false, plans: true, known: true };
-const MEMBER: OrganizationReader = { administrator: false, roster: false, supply: false, plans: false, known: true };
+const PLAN_KEEPER: OrganizationReader = { administrator: false, roster: false, supply: false, plans: true, memory: false, known: true };
+// A member granted a unit's org memory write without heading one (docs/web.md, 「Organisation」, the org memory tab).
+const MEMORY_WRITER: OrganizationReader = { administrator: false, roster: false, supply: false, plans: false, memory: true, known: true };
+const MEMBER: OrganizationReader = { administrator: false, roster: false, supply: false, plans: false, memory: false, known: true };
 // A member before the people roster has answered, as the server and the browser's first frame see them.
-const UNKNOWN_MEMBER: OrganizationReader = { administrator: false, roster: false, supply: false, plans: false, known: false };
+const UNKNOWN_MEMBER: OrganizationReader = { administrator: false, roster: false, supply: false, plans: false, memory: false, known: false };
 
 describe("the organisation screen", () => {
   test("stands its tabs in order, the units first", () => {
-    expect(ORGANIZATION_TABS.map((tab) => tab.value)).toEqual(["organization", "people", "catalogue", "invites", "agent", "supply", "plans"]);
+    expect(ORGANIZATION_TABS.map((tab) => tab.value)).toEqual(["organization", "people", "catalogue", "invites", "agent", "memory", "supply", "plans"]);
   });
 
   test("leads the keys of the sections that moved away to where they stand now, and no other key", () => {
@@ -94,7 +96,8 @@ describe("the organisation screen", () => {
 
   test("opens every tab to the administrator, the people and the roles and kinds tabs to a member who heads a company, and the invitations and BMO tabs to every member", () => {
     expect(organizationTabsFor(ADMINISTRATOR)).toHaveLength(ORGANIZATION_TABS.length);
-    expect(organizationTabsFor(COMPANY_HEAD).map((tab) => tab.value)).toEqual(["people", "catalogue", "invites", "agent", "supply", "plans"]);
+    expect(organizationTabsFor(COMPANY_HEAD).map((tab) => tab.value)).toEqual(["people", "catalogue", "invites", "agent", "memory", "supply", "plans"]);
+    expect(organizationTabsFor(MEMORY_WRITER).map((tab) => tab.value)).toEqual(["invites", "agent", "memory"]);
     expect(organizationTabsFor(MEMBER).map((tab) => tab.value)).toEqual(["invites", "agent"]);
   });
 
@@ -147,8 +150,8 @@ describe("the organisation screen", () => {
     const admin = SCREENS.find((one) => one.to === ADMIN_PATH)!;
 
     expect(screen.to).toBe(ORGANIZATION_PATH);
-    expect(screen.inviters).toBe(true);
-    expect(screen.tabs?.map((tab) => tabAddress(screen, tab))).toEqual(["/organization", "/organization?tab=people", "/organization?tab=catalogue", "/organization?tab=invites", "/organization?tab=agent", "/organization?tab=supply", "/organization?tab=plans"]);
+    expect(screen.unitKeepers).toBe(true);
+    expect(screen.tabs?.map((tab) => tabAddress(screen, tab))).toEqual(["/organization", "/organization?tab=people", "/organization?tab=catalogue", "/organization?tab=invites", "/organization?tab=agent", "/organization?tab=memory", "/organization?tab=supply", "/organization?tab=plans"]);
     expect(admin.to).toBe(ADMIN_PATH);
     expect(admin.administrator).toBe(true);
     expect(admin.tabs?.map((tab) => tabAddress(admin, tab))).toEqual(["/admin", "/admin?tab=secret-kinds", "/admin?tab=plans", "/admin?tab=credits"]);

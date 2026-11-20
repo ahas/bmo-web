@@ -76,6 +76,14 @@ export const openedRoutes: readonly OpenedRoute[] = [
   // read them and the administrator and the company's heads write them (docs/accounts.md, 「Roles and unit kinds」).
   { method: "GET", path: /^\/api\/organization\/companies\/\d+\/(?:roles|unit-kinds)$/, scope: "user" },
   { method: "PUT", path: /^\/api\/organization\/companies\/\d+\/(?:roles|unit-kinds)$/, scope: "user" },
+  // A unit's org memory, its proposals and who may write it: every signed-in login asks, and the account service says
+  // whom each unit's memory is written by and who grants it (docs/accounts.md, 「A unit's org memory」).
+  { method: "GET", path: /^\/api\/organization\/memory\/(?:units|\d+(?:\/writers)?)$/, scope: "user" },
+  { method: "POST", path: /^\/api\/organization\/memory\/\d+(?:\/\d+\/accept)?$/, scope: "user" },
+  { method: "PATCH", path: /^\/api\/organization\/memory\/\d+\/\d+$/, scope: "user" },
+  { method: "DELETE", path: /^\/api\/organization\/memory\/\d+\/\d+$/, scope: "user" },
+  { method: "PUT", path: /^\/api\/organization\/memory\/\d+\/writers\/\d+$/, scope: "user" },
+  { method: "DELETE", path: /^\/api\/organization\/memory\/\d+\/writers\/\d+$/, scope: "user" },
   // The people roster, its companies, a page of it, a person and their BMO: every signed-in login asks, and the account
   // service decides whom each looks through (docs/accounts.md, 「The people roster」). A person's rooms, agents, sessions
   // and runs are the administrator's alone.

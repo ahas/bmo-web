@@ -7619,7 +7619,7 @@ research screen (「Research screen」).
     organisation; where the address names none, or one the reader may not set, the first is chosen with no step.
     The administrator's list holds every company, with 회사 추가 at the head's right end, which opens a form of
     one name and makes a new company; a member's holds the companies where they head a unit, hold a part of the
-    supply — its policy and credits, or its plan — or head the company itself, and no add.
+    supply — its policy and credits, or its plan — write a unit's org memory, or head the company itself, and no add.
   - **The list and the organisation chosen are regions side by side,** parted by a splitter whose hairline is
     dragged to widen either, the width kept in this browser, each scrolling on its own. On a narrow screen the
     organisation chosen fills the body, and the list opens as a bottom drawer from the button at the head of the
@@ -7629,8 +7629,9 @@ research screen (「Research screen」).
     administrator's list keeps its 회사 추가 through it, so the first company is made there.
   - **A link naming a person but no organisation** — a person's tab from before the list, the console search's
     person — opens the organisation that person stands in.
-- **Inside the organisation chosen, a tab to a section.** The tabs are 조직도, 사용자, 직책·종류, 초대, BMO, 공급 and
-  플랜, keyed in the address as `?tab=` with `people`, `catalogue`, `invites`, `agent`, `supply` and `plans`, 조직도
+- **Inside the organisation chosen, a tab to a section.** The tabs are 조직도, 사용자, 직책·종류, 초대, BMO, 조직 기억, 공급
+  and 플랜, keyed in the address as `?tab=` with `people`, `catalogue`, `invites`, `agent`, `memory`, `supply` and
+  `plans`, 조직도
   being the organisation's own address; a shared link opens the same tab, moving between tabs is a step of the
   history and keeps the organisation chosen, and a key naming no tab the reader may open opens the first they may.
   Every tab reads and writes the organisation chosen alone, and none of them chooses an organisation of its own.
@@ -7643,8 +7644,10 @@ research screen (「Research screen」).
 - **Who opens it.** The administrator opens every tab, and the sidebar lists 조직 for them after the console's
   own screens. A member who heads a unit may invite into it (`docs/accounts.md`, 「Invitations and a person's
   machine」) and sets who under it may personalise their BMO (`docs/accounts.md`, 「A person's BMO profile」), so
-  their shell lists 조직 too and the screen holds 초대 and BMO, and 사용자 and 직책·종류 where they head a company (「사용자」,
-  「직책·종류」); a member who heads none is listed no entry, and the
+  their shell lists 조직 too and the screen holds 초대, BMO and 조직 기억, and 사용자 and 직책·종류 where they head a company
+  (「사용자」, 「직책·종류」). A member granted a unit's org memory write without heading one (`docs/accounts.md`, 「A unit's
+  org memory」) is listed 조직 as well, with the companies of those units, and the screen holds 조직 기억 for them beside
+  the tabs every member opens (「조직 기억」); a member who heads none and holds no such grant is listed no entry, and the
   address shows them 초대 saying they may invite into no unit. 공급 stands for the reader the account service's
   supply reach says holds the supply policy and credits of the organisation chosen — its credit manager or its head
   — and 플랜 for one it says holds any part of its supply, its subscription manager among them; both stand for the
@@ -7658,8 +7661,9 @@ research screen (「Research screen」).
   겸직 추가 on 사용자 to a company's head and the appointment on 조직도 alone, so a head reaches the appointment
   through the route alone. A company's head reads and writes its roles and unit kinds on 직책·종류 the same way.
 - **A tab is drawn once the reader is known to open it.** The administrator is known at once. Whether a member heads
-  a company is known once the people roster has answered, and whether they manage any unit's supply once the account
-  service has said which units their supply reach covers — reads the browser asks after it takes the page over, so
+  a company is known once the people roster has answered, whether they manage any unit's supply once the account
+  service has said which units their supply reach covers, and whether they write any unit's org memory once it has
+  said which units they write — reads the browser asks after it takes the page over, so
   the server draws the page before it knows; once answered they stay known, a later read of either leaving the
   open tab standing. Until then the row holds the tabs every member opens, with the tab the
   address names among them and chosen; the body draws a tab only where every member opens it, and otherwise keeps
@@ -8134,6 +8138,61 @@ Where a company's own words for its roles and its unit kinds are kept (`docs/acc
   moves every row under it; a refusal is said under the row, which goes back to what stood.
 - **A saved default, picture or choice is applied at once** to the BMO of every person it reaches (「A person's BMO
   profile on the agency and the receiver」), and a person's 설정 shows or drops 내 BMO the next time it opens.
+
+#### 조직 기억
+
+A unit's org memory: what holds for everyone in the unit and in the units under it, which every agent serving one of
+them is given (`docs/accounts.md`, 「A unit's org memory」; the brain's `docs/design.md`, 「Org brains」). The brain keeps
+it, a brain of its own for each unit, and the account service says who writes it; the tab reads and writes it through
+the console's server (`/api/organization/memory/units`, and `/api/organization/memory/{unit}` with its memories,
+proposals and writers), which asks the account service's org memory check before every write and names the brain
+write's standing from its answer (`docs/boundary.md`, 「Calls the console makes」).
+
+- **Who opens it:** the administrator, every head of a unit, and every person granted a unit's org memory write; each
+  reads and writes the units the account service's `GET /org-memory/units` answers them, and nobody else is offered
+  the tab. A unit's org brain is found by the company's id and the unit's, and made the first time a memory is written
+  into it, so a unit nobody has written for holds none and reads as holding no memory.
+- **조직** chooses the unit above the column, among the units of the organisation chosen whose memory the reader
+  writes, each offered by its path from its company, where there is more than one; the first stands chosen at first. The choice stands in the address as `?unit=` beside the tab's key and
+  replaces the address.
+- **이 조직의 기억** lists the unit's own memories, the standing ones, one row each: the text whole, and under it, muted,
+  its 주제 where it has one, and 고정 and 사내 한정 as small neutral badges where they are set. A memory whose topic is
+  answered from another unit on the path, a unit above holding a locked memory of it, says so under it, muted,
+  `{unit}의 고정 기억이 대신 적용됩니다.`. Two marks stand at the row's end, 기억 편집 and 기억 삭제, the second asked first;
+  삭제 moves the memory to `invalidated`, so it stops holding and its history stays in the brain. With none the list
+  says 기억 없음. 기억 추가 stands at the tab row's right end.
+- **A memory another service keeps is shown, never edited here.** A service that is the source of a fact writes it
+  into the unit's org brain under a key of its own, and the tab writes no key, so a memory carrying a key is that
+  service's: its row carries no marks, and a muted line under it says where it comes from, the sentence the pack holds
+  for its key, such as `근무 패턴에서 가져온 기억입니다.` for bmo-attendance's working hours, or
+  `다른 서비스가 관리하는 기억입니다.` for a key the pack holds none for (「The codes the packs render」 in
+  `docs/boundary.md`). It changes where its source changes.
+- **The memory form** is the one 기억 추가 and 기억 편집 open (「Forms」): 내용, the text, several lines and required, its
+  line saying that it holds a fact of the whole unit and never a person's standing, circumstances or private words
+  (the brain's `docs/design.md`, 「Org brains」);
+  주제, one line and optional, offering the topics the units of the path already hold so a unit's memory overrides an
+  inherited one by the same word, a topic typed standing as written, its spaces made hyphens and its letters small;
+  고정, a switch, its line saying that the units under it cannot override the topic; and 사내 한정, a switch, on for a new
+  memory, its line saying that a BMO keeps it out of a room where someone outside the company sits. One 저장 stands at
+  its foot, open once 내용 holds words and, for an edit, while a field differs from what is saved. A memory is written
+  under the reader's name, and an edit is a new version over the old one. A refusal is said under the form.
+- **제안** lists what the unit's people proposed without writing it, the proposals the brain keeps as rumors, its
+  heading carrying how many: one row each, the text, and under it, muted, who proposed it and when. 수락 writes it as a
+  fact of the unit in its own words, a new version of type `fact`, and 거절, asked first, moves it to `invalidated`;
+  each takes effect as it is done and the lists are read again. With none it says 제안 없음.
+- **상위 조직의 기억** lists the standing memories of each unit above it on its path, a group to a unit headed by the unit's
+  name, the company first, each row as the unit's own rows stand but with no marks, since a unit's memory is written on
+  that unit. A memory whose topic another unit's memory answers says which, muted, `{unit}의 기억이 대신 적용됩니다.`.
+  Which unit's memory stands for a topic is the brain's answer for the path (`GET /org-topics`), so the tab says what
+  an agent of the unit is given. The group stands only under a unit below a company, and says 상위 조직의 기억 없음 where
+  none of them holds one.
+- **조직 기억 쓰기 권한** stands for a reader who heads the unit: the people granted the unit's org memory write, one row
+  each with its name and 권한 해제 at its end, and 권한 부여 at the right end of its heading, a list of the people standing
+  in the unit or under it, searched by name, a person chosen granted as they are chosen; a head writes without it.
+  With nobody granted it says 권한을 받은 사람 없음. A refusal is said under the list.
+- The tab's groups read on their own, each keeping its place with a skeleton while it is first read and saying its
+  reason with 새로고침 where its read failed, as every tab of this screen does (「Organisation」); a write that goes
+  through reads them again.
 
 #### 공급
 

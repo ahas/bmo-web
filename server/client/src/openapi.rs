@@ -1054,6 +1054,19 @@ pub fn openapi() -> Value {
   );
   add!(
     "POST",
+    "/checks/org-memory",
+    "checkOrgMemory",
+    "Checks",
+    "Whether a user writes an organisation unit's org memory, heading it or a unit above it or holding the unit's grant.",
+    params: vec![],
+    body: Some(json!(generator.subschema_for::<UnitCheckAsk>())),
+    answers: vec![(200, json_answer::<CheckAnswer>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "POST",
     "/checks/entry",
     "checkEntry",
     "Checks",
@@ -1257,6 +1270,58 @@ pub fn openapi() -> Value {
     body: None,
     answers: vec![(200, json_answer::<UnitSubtree>(&mut generator))],
     codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/units/{unit}/memory-writers",
+    "memoryWriters",
+    "Organisation units",
+    "The people granted a unit's org memory write, by name then id, each with who gave it, for the administrator and a head of the unit or of a unit above.",
+    params: vec![integer_path("unit"), owner_key()],
+    body: None,
+    answers: vec![(200, json_answer::<MemoryWriters>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PUT",
+    "/units/{unit}/memory-writers/{user}",
+    "grantMemoryWrite",
+    "Organisation units",
+    "A person of the unit's company granted its org memory write, by the administrator or a head of the unit or of a unit above.",
+    params: vec![integer_path("unit"), string_path("user"), owner_key()],
+    body: None,
+    answers: vec![(204, no_answer())],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "other-company", "left", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "DELETE",
+    "/units/{unit}/memory-writers/{user}",
+    "takeMemoryWrite",
+    "Organisation units",
+    "A person's grant of a unit's org memory write taken away, by the same callers; none standing changes nothing.",
+    params: vec![integer_path("unit"), string_path("user"), owner_key()],
+    body: None,
+    answers: vec![(204, no_answer())],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/org-memory/units",
+    "orgMemoryUnits",
+    "Organisation units",
+    "The units whose org memory the login writes, companies first and each unit after its parent, each with whether the login heads it.",
+    params: vec![owner_key(), owner_role()],
+    body: None,
+    answers: vec![(200, json_answer::<OrgMemoryUnits>(&mut generator))],
+    codes: vec!["forbidden", "unauthorized", "not-in-force", "database", "failed"],
     refusal: Refusal::Wire,
     security: bearer()
   );

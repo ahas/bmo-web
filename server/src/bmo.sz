@@ -82,3 +82,13 @@ definition bmo_tools {
   permission may_use = use | platform:root->superuser
   permission grant   = platform:root->superuser
 }
+
+// A unit's org memory, by the unit's id (docs/accounts.md, 「A unit's org memory」): whether a user writes the memory
+// every agent serving the unit's people shares without heading the unit. A head writes it by heading it, so this
+// relation is only the grant a head gives; it reaches the one unit it names.
+definition bmo_org_memory {
+  relation write: user
+
+  permission may_write = write | platform:root->superuser
+  permission grant     = platform:root->superuser
+}

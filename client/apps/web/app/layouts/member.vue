@@ -82,7 +82,7 @@ import { useSectionAccess, useSectionAccessReady } from "~/domain/section-access
 import { namedWhenFolded, roomItems, screensWithBundles, sectionItems } from "~/domain/screens";
 import { SIDEBAR_GROUP, SIDEBAR_WIDTH } from "~/domain/sidebar-width";
 import { useSidebarUnread } from "~/domain/sidebar-unread";
-import { useMayInvite } from "~/domain/organization";
+import { useKeepsUnits } from "~/domain/organization";
 import { accessOf, homeFor, screenMayRead, sectionsOfPath } from "#shared/sections";
 
 import type { NavigationMenuItem } from "@nuxt/ui";
@@ -138,13 +138,13 @@ async function roomOpened(room: RoomAdded): Promise<void> {
   await refreshNuxtData("rooms");
   await navigateTo(`/rooms/${room.chatId}`);
 }
-// The organisation screen stands for a member who heads a unit, whose screen holds its invitations tab alone
-// (docs/web.md, 「Organisation」).
-const mayInvite = useMayInvite();
+// The organisation screen stands for a member who heads a unit or writes a unit's org memory (docs/web.md,
+// 「Organisation」).
+const keepsUnits = useKeepsUnits();
 const screens = computed(() =>
   screensWithBundles(bundles.value).filter((screen) => {
     if (screen.administrator === true) return false;
-    if (screen.inviters === true) return mayInvite.value;
+    if (screen.unitKeepers === true) return keepsUnits.value;
     if (sectionsOfPath(screen.to).length === 0) return true;
     if (!accessReady.value) return false;
 

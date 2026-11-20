@@ -335,3 +335,37 @@ pub struct HistoryEntry {
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub until: Option<i64>,
 }
+
+/// A person granted a unit's org memory write (`docs/accounts.md`, 「A unit's org memory」): their name, the login
+/// where none stands, and the user who gave it where a person did.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct MemoryWriter {
+  pub user: String,
+  pub name: String,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub by: Option<String>,
+}
+
+/// The people granted a unit's org memory write, by name then id.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct MemoryWriters {
+  pub writers: Vec<MemoryWriter>,
+}
+
+/// One unit whose org memory a login writes: its parent, absent for a company, its company, itself for a company,
+/// and whether the login heads it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct OrgMemoryUnit {
+  pub id: i64,
+  pub name: String,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub parent: Option<i64>,
+  pub company: UnitRef,
+  pub head: bool,
+}
+
+/// The units whose org memory a login writes, companies first and each unit after its parent.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct OrgMemoryUnits {
+  pub units: Vec<OrgMemoryUnit>,
+}

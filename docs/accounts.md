@@ -507,6 +507,33 @@ section states what each does.
   reader is named in `Owner-Key`. A reader of the unit's company who heads neither is refused 403, and a unit of
   another company is answered 404 as if nothing stood there, so the read says nothing across companies.
 
+### A unit's org memory
+
+- **A unit's org memory is what every agent serving a person of the unit, or of a unit under it, shares:** the
+  company's industry, a team's working hours, where its site photographs go. The brain keeps it, in an org brain of
+  its own for each unit (the brain's `docs/design.md`, 「Org brains」); the brain calls no unit, so who may write it
+  is this service's to say, and its caller asks before every write.
+- **Who writes it:** a head of the unit, by sumida's `manage` on it, so a head of a unit above, a person whose acting
+  appointment runs and every platform administrator too; and a person a head has granted the unit's org memory write.
+  A head's and a holder's word is a fact at once; anyone else's is a proposal, which a writer accepts or declines.
+- **The grant is a relation of the deployment's rules,** `write` on a `bmo_org_memory` object named by the unit's id
+  (`server/src/bmo.sz`), so the service keeps no table of it; the tuple names who gave it. It is the unit's alone: it
+  reaches no unit under it, and it gives nothing else a head holds, so giving and taking it, the unit's people and its
+  settings stay the heads'.
+- **Who gives and takes it:** the platform administrator and a head of the unit, by sumida's `manage` on it, with the
+  one acting named in `Owner-Key`. It is given to a person of the unit's company who has not left: a person of
+  another company is refused 409 `other-company` and one who left 409 `left`. Giving it again, or taking away a grant
+  nobody holds, changes nothing.
+- **`GET /units/{unit}/memory-writers`** answers the people holding the grant on the unit, each with their name, the
+  login where none stands, and who gave it where a person did, for the administrator and a head of the unit; a reader
+  of the unit's company who heads it not is refused 403, and a unit of another company is answered 404.
+- **`GET /org-memory/units`** answers the units whose org memory the reader in `Owner-Key` writes, in the tree's
+  order, each with its parent, its company and whether the reader heads it: every unit for the administrator, and
+  otherwise the units they head and those they hold the grant on.
+- **`POST /checks/org-memory`** answers whether a user writes a unit's org memory, by heading it or holding its
+  grant, the grant asked for named as `bmo_org_memory:<unit>#may_write`, so a caller names the brain write's standing
+  from it: `head` where it is allowed, `member` where it is not.
+
 ### A person's history
 
 - **Every change of a person's place is kept:** a move of their home unit, a role set or taken away, a head granted

@@ -10,6 +10,7 @@ mod grants;
 mod import;
 mod invites;
 mod language_pack;
+mod org_memory;
 mod organisation;
 mod pairings;
 mod people;

@@ -1498,6 +1498,7 @@ todo:
     field_waiting: 대기
     field_worker: 저장소
     agent_unnamed: 미지정
+    model_unnamed: 미지정
     assign_model: "{role} · {model}"
     assign_model_agents: "빈 에이전트 · {agents}"
     assign_free: "{role}"
@@ -1527,7 +1528,6 @@ todo:
     model_round: "{model} · {n}회차"
     new_title: 새 항목 제목
     no_room: 방 없음
-    not_approved: 결재 전
     notes_count_removed: "{n}건 · 삭제 {removed}건"
     opened_unattended: 결재 없이 열림
     order_active: 진행 중

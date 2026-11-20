@@ -35,9 +35,11 @@
       </span>
     </template>
 
+    <!-- An item naming no road yet stands as unnamed, as its agent does, rather than as an empty cell. -->
     <template #model>
       <span class="flex items-center">
-        <ItemModelChip :item="props.ranItem ?? props.item" />
+        <ItemModelChip v-if="itemModel(props.ranItem ?? props.item) !== null" :item="props.ranItem ?? props.item" />
+        <span v-else class="text-muted" data-item-model-unnamed>{{ $t("todo.label.model_unnamed") }}</span>
       </span>
     </template>
   </component>
@@ -47,6 +49,7 @@
 import FieldGrid from "./FieldGrid.vue";
 import PairRows from "./PairRows.vue";
 import { countText } from "~/domain/numbers";
+import { itemModel } from "~/domain/todos";
 
 import type { ItemAssignment } from "~/domain/item-assignment";
 import type { PairRow } from "~/domain/pair-rows";

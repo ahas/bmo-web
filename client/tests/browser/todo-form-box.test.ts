@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 
+import { contrast } from "./contrast";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 import { wording } from "../../apps/web/shared/wording";
 
@@ -11,8 +12,9 @@ import type { TodoApproval, TodoBoard, TodoItem } from "../../apps/web/shared/ty
 // document to read one item」): the state on a line of its own under the title, never beside it; on a wide dialog the
 // form block at the head's top right with the approval line and the assignment, the close mark centred on its first
 // row and the head no taller than the box; on a narrow one the box under the state with its approval line alone and
-// the assignment heading the manage tab; and at both widths the content taking most of the dialog's height. What each approval
-// cell says is the domain's own test; here it is only seen drawn.
+// the assignment heading the manage tab; at both widths every word of the box readable on its cells, and the
+// content taking most of the dialog's height. What each approval cell says is the domain's own test; here it is only
+// seen drawn.
 // It drives the console tests/support/browser-console.ts stands up, serving what each place reads through the page's
 // own routes; the suite stands up no console, so there it skips.
 
@@ -131,6 +133,10 @@ describe.skipIf(!origin || !touchReady())("the TODO modal as an approval documen
         expect(await dialog.locator("[data-approval-cell]").evaluateAll((all) => all.map((one) => one.getAttribute("data-approval-cell")))).toEqual(["request", "recommend", "approve"]);
         expect(await dialog.locator('[data-approval-cell="request"]').innerText()).toContain("requester-a");
         expect(await dialog.locator('[data-approval-cell="recommend"]').innerText()).toContain("agent-b");
+        // Every word of the box reads at 4.5:1 or better, the names in their tinted cells among them.
+        const ratios = await contrast(page, "[data-item-form] [data-approval-cell] span:not(:has(span)), [data-item-form] dt, [data-item-form] dd span:not(:has(*))");
+
+        expect(ratios.filter((one) => one.ratio < 4.5)).toEqual([]);
 
         if (!viewport.phone) {
           // The box stands at the head's top right, level with the title, the close mark centred on its first row.

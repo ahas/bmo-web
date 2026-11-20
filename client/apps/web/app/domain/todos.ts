@@ -908,7 +908,7 @@ export function approvalCells(t: Translate, item: TodoItem, approvals: readonly 
   const recommended = recommendation !== null ? given(recommendation, "recommended") : approvals === null ? waiting : { who: t("common.label.none"), at: null, tone: "quiet" as const };
   const approved =
     approval !== null ? given(approval, "given")
-    : item.awaitingApproval ? { who: t("todo.label.not_approved"), at: null, tone: "awaiting" as const }
+    : item.awaitingApproval ? { who: t("todo.label.state_pending"), at: null, tone: "awaiting" as const }
     : approvals === null ? waiting
     : { who: item.approved ? t("todo.label.approved") : t("todo.label.opened_unattended"), at: null, tone: "quiet" as const };
 

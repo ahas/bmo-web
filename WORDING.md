@@ -355,7 +355,8 @@
 - why a supervisor's turn sent nothing to a room → 사유: `사유: {reason}` on its own line under the line saying it did
   not answer, and 사유를 밝히지 않았습니다 where the turn named none. Never 까닭, 이유 없음.
 - the box at a TODO item's top right with its approval line and assignment → 결재란, its cells 요청, 추천 and 결재, the
-  owner's approval of an item being 결재 (결재됨, 결재 전, 결재 대기). Never 결재 박스, 승인란, 서명란.
+  owner's approval of an item being 결재 (결재됨, and 결재 대기 for one awaiting it, in its state and its cell alike). Never
+  결재 박스, 승인란, 서명란, 결재 전.
 - set a TODO item aside → 보류, taking the hold back → 보류 해제: 보류, 보류 해제, 보류 사유, 보류 항목. The act and the
   state mark are the same word, and a held item's menu shows 보류 해제 in place of 보류. Never 보류 풀기, 재개, 대기로 돌리기
   for the release; 재개 stays a stopped work order's own word.

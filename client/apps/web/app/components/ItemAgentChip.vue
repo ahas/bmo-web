@@ -20,7 +20,7 @@
     :disabled="props.busy"
     :aria-label="$t('todo.aria.item_agent')"
     :content="{ align: 'start', side: 'bottom' }"
-    :ui="{ itemDescription: 'whitespace-normal' }"
+    :ui="{ itemDescription: 'whitespace-normal', placeholder: 'truncate text-muted' }"
     data-item-agent
     @update:model-value="pick"
     @update:open="(open: boolean) => open && void read()"

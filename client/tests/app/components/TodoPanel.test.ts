@@ -676,7 +676,9 @@ describe("the model chip and the agent chooser", () => {
     // On the line a tap opens the item, so a finger rests on the chip to read its tooltip; in the form block a tap reads it.
     expect(rowTemplate).toContain('<ItemModelChip :item="item" :query="query" press />');
     expect(chipTemplate).toMatch(/<HintTip [^>]*:press="props.press">/);
-    expect(assignTemplate).toContain('<ItemModelChip :item="props.ranItem ?? props.item" />');
+    expect(assignTemplate).toContain('<ItemModelChip v-if="itemModel(props.ranItem ?? props.item) !== null" :item="props.ranItem ?? props.item" />');
+    // Where no road is named yet the cell says so, as the agent's does, rather than standing empty.
+    expect(assignTemplate).toContain(`{{ $t("todo.label.model_unnamed") }}`);
     expect(chipTemplate).not.toContain("<ChoiceSelect");
     expect(chipTemplate).toMatch(/<UBadge[^>]*data-item-model/);
     expect(chip).toContain("itemModelTip(t, props.item)");

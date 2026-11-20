@@ -1563,7 +1563,7 @@ describe("the approval line and the job record of an opened item", () => {
     // An item awaiting approval says so at once; its recommendation waits on the record.
     expect(cells(awaiting, null).slice(1)).toEqual([
       { key: "recommend", who: null, at: null, tone: "quiet" },
-      { key: "approve", who: wording("todo.label.not_approved"), at: null, tone: "awaiting" }
+      { key: "approve", who: wording("todo.label.state_pending"), at: null, tone: "awaiting" }
     ]);
     expect(cells(item(3), null)[2]).toEqual({ key: "approve", who: null, at: null, tone: "quiet" });
     // Once read with nothing in it, an empty cell is named, and an item its labels opened says so.

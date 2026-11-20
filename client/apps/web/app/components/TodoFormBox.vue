@@ -5,7 +5,7 @@
   <section class="overflow-hidden rounded-lg border border-default text-sm" :aria-label="$t('todo.aria.item_form')" data-item-form>
     <ol class="grid grid-cols-3 divide-x divide-default" data-item-approvals>
       <li v-for="cell in props.cells" :key="cell.key" class="flex min-w-0 flex-col" :data-approval-cell="cell.key">
-        <span class="flex h-8 items-center justify-center border-b border-default bg-elevated text-muted">{{ cell.label }}</span>
+        <span class="flex h-8 items-center justify-center border-b border-default bg-muted text-muted">{{ cell.label }}</span>
         <SkeletonStatus v-if="cell.who === null" as="span" class="flex h-12 items-center justify-center px-2" :label="$t('todo.status.approvals_loading')">
           <SkeletonBar class="h-4 w-2/3" />
         </SkeletonStatus>

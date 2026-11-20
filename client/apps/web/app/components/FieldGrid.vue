@@ -5,14 +5,22 @@
        the same fields either way; a row's muted line stands in its value's tooltip, since a cell holds one line. -->
   <dl class="grid grid-cols-[auto_minmax(0,1fr)_auto_minmax(0,1fr)] border-t border-default" data-field-grid>
     <template v-for="(row, index) in props.rows" :key="row.key">
-      <dt class="flex items-center bg-elevated px-2 py-1 text-muted" :class="cellLines(index, index % 2 === 1)">{{ row.label }}</dt>
-      <UTooltip :text="row.under" :disabled="row.under === undefined">
-        <dd class="flex min-h-10 min-w-0 items-center break-words px-2 py-1 border-s border-default" :class="[cellLines(index, false), index % 2 === 0 && index === props.rows.length - 1 ? 'col-span-3' : '']" :data-pair="row.key">
-          <slot :name="row.key">
-            <span class="text-highlighted">{{ row.value }}</span>
-          </slot>
-        </dd>
-      </UTooltip>
+      <dt class="flex items-center bg-muted px-2 py-1 text-muted" :class="cellLines(index, index % 2 === 1)">{{ row.label }}</dt>
+      <!-- The value cell is the shared tooltip's own box, so the grid keeps its cells; what a cell holds may act on a tap,
+           so a finger rests on it to read the note. -->
+      <HintTip
+        as="dd"
+        :text="row.under"
+        :disabled="row.under === undefined"
+        press
+        class="flex min-h-10 min-w-0 items-center break-words border-s border-default px-2 py-1"
+        :class="[cellLines(index, false), index % 2 === 0 && index === props.rows.length - 1 ? 'col-span-3' : '']"
+        :data-pair="row.key"
+      >
+        <slot :name="row.key">
+          <span class="text-highlighted">{{ row.value }}</span>
+        </slot>
+      </HintTip>
     </template>
   </dl>
 </template>

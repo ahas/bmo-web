@@ -6365,12 +6365,13 @@ Four bounds keep it from growing forever.
     box (`data-item-form`). Its first row is the approval line, three cells **요청**, **추천** and **결재**, each its
     name over who gave it and when (month, day and clock): 요청 the person and room that asked and when the item was
     filed; 추천 the chat agent's latest recommendation, in its own colour so it is never read as an approval; 결재 the
-    latest approval, or where none was given 결재 전 in the warning colour, or 결재 없이 열림 for an item its labels
-    opened unattended. A cell with nothing to name stands 없음, and while the approvals are read the cells waiting on
-    them stand as bars. Under that row stand the item's assignment as form cells, each name in a tinted cell beside
-    its value, two to a row: 에이전트 and 저장소, then 모델 and, while the item is unfinished, 우선순위. On an unfinished
-    item the agent and the worker are changed right there, the worker's repository path in its tooltip; on a finished
-    item they are read. The close mark, and 항목 만들기 before it, stand at the box's top right, centred on its first row.
+    latest approval, or where none was given 결재 대기, the item's state in its own words, in the warning colour, or
+    결재 없이 열림 for an item its labels opened unattended. A cell with nothing to name stands 없음, and while the
+    approvals are read the cells waiting on them stand as bars. Under that row stand the item's assignment as form
+    cells, each name in a tinted cell beside its value, two to a row: 에이전트 and 저장소, then 모델 and, while the item
+    is unfinished, 우선순위. 모델 stands 미지정 where no road is named yet, as 에이전트 does. On an unfinished item the
+    agent and the worker are changed right there, the worker's repository path in the shared tooltip of its cell, a
+    finger resting on the cell to read it; on a finished item they are read. The close mark, and 항목 만들기 before it, stand at the box's top right, centred on its first row.
   - **The head is two columns where the body is,** the title's on the left and the box's on the right, wide enough
     for two of its fields side by side; it draws no line between them, the box being bordered itself. The head is
     only as tall as the taller of the two, so both tab rows start on one line right under it.

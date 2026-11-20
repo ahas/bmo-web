@@ -36,11 +36,14 @@ export async function holdsFocus(element: Locator): Promise<boolean> {
   return await element.evaluate((found) => found === document.activeElement);
 }
 
-/** Goes to a path of the console inside the app, by its router, as a link pressed in it does; the path is the app's own. */
+/**
+ * Starts a move to a path of the console inside the app, by its router, as a link pressed in it does; the path is the
+ * app's own. The move is only started here, and the caller waits for the screen it goes to.
+ */
 export async function goInApp(page: Page, path: string): Promise<void> {
-  await page.evaluate(async (to) => {
+  await page.evaluate((to) => {
     const app = (document.querySelector("#__nuxt") as unknown as { __vue_app__: { config: { globalProperties: { $router: { push: (to: string) => Promise<unknown> } } } } }).__vue_app__;
 
-    await app.config.globalProperties.$router.push(to);
+    void app.config.globalProperties.$router.push(to);
   }, path);
 }

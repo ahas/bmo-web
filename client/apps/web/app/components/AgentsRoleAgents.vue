@@ -295,7 +295,7 @@ async function add(role: string): Promise<void> {
 
   try {
     const last = view.value?.roles.find((one) => one.name === role)?.agents.at(-1);
-    const body = last === undefined || last.provider === null ? { role } : { role, provider: last.provider, model: last.model, effort: last.effort };
+    const body = last === undefined || last.provider === null ? { role } : { role, provider: last.provider, model: last.model, effort: last.effort, advisor: last.advisor };
 
     await $fetch<RoleAgentView>("/api/role-agents", { method: "POST", body });
     await refresh();

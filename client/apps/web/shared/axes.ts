@@ -8,13 +8,15 @@ import type { GenerationSetting } from "./agency";
 // states it, and one the answer does not carry stands as none (docs/boundary.md, 「Gaps the console meets」).
 
 // One road: a provider and what runs on it there — the model, the effort level or none for the provider's own, `on`,
-// `off` or none for the thinking, and on the registry's provider the answer ceiling or none.
+// `off` or none for the thinking, on the registry's provider the answer ceiling or none, and on a provider that takes
+// one the advisor the model consults, a family word or a model id, or none.
 export interface RoadView {
   provider: string;
   model: string;
   effort: string | null;
   thinking: string | null;
   answerTokens: number | null;
+  advisor: string | null;
 }
 
 // One provider the agency carries: its name, the pack's word for its code, the owner's switch, the lines its program
@@ -34,6 +36,10 @@ export interface ProviderView {
   // Whether its engine is the owner's own, as the provider declares it (the agency's `docs/supervisors.md`, 「What
   // confines a session allowed files」). A provider whose engine is not sends what a session reads to an outside party.
   ownersEngine: boolean;
+  // Whether a road on it may name an advisor, and the family words it names one by beside a model of its own, as the
+  // provider declares them; none where it takes none.
+  takesAdvisor: boolean;
+  advisorWords: string[];
 }
 
 // One model a road may name on a provider: its id, the effort levels a road on it takes (none listed is every
@@ -127,6 +133,9 @@ export interface RoleAgentView {
   effort: string | null;
   thinking: string | null;
   answerTokens: number | null;
+  // The advisor its model consults; none where it names none, and always none where it names no road and follows the
+  // asking supervisor's.
+  advisor: string | null;
   enabled: boolean;
   keepsCache: boolean;
   // Whether its runs keep their sessions.

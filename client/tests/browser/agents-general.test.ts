@@ -375,6 +375,15 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
       await page.locator(`li[data-agent="worker-04"] button[aria-label="${wording("agents.aria.agent_remove", { name: "worker-04" })}"]`).click();
       expect(await until(async () => await blocks.count(), (count) => count === 3)).toBe(3);
       expect(sent[2]).toEqual({ method: "DELETE", name: "worker-04", body: null });
+
+      // Its advisor is its own, offered on a provider that takes one and saved as it is picked.
+      const advisor = page.getByRole("button", { name: wording("agents.aria.advisor_of", { name: "worker-02" }), exact: true });
+
+      await advisor.click();
+      await page.getByRole("option", { name: "opus", exact: true }).click();
+      expect(await until(async () => sent.length, (count) => count === 4)).toBe(4);
+      expect(sent[3]).toEqual({ method: "PATCH", name: "worker-02", body: { advisor: "opus" } });
+      expect(await until(async () => (await advisor.innerText()).trim(), (text) => text === "opus")).toBe("opus");
     } finally {
       await context.close();
     }

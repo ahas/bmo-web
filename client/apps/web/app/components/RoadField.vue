@@ -1,7 +1,8 @@
 <template>
   <!-- A supervisor's road as one field of a form (docs/web.md, 「Agent management screen」; the agency's
        docs/supervisors.md): its provider over its fields, each under its own label — its model, its effort, its
-       thinking and, on the registry's provider, its answer ceiling. A field the form does not take stands out of it.
+       thinking, on the registry's provider its answer ceiling, and under them, on a provider that takes one, its
+       advisor. A field the form does not take stands out of it.
        Every change waits for the form's one save, and a refusal stands under the field it names. -->
   <div class="flex min-w-0 flex-col gap-2">
     <UFormField :label="$t('agents.label.agent_provider')" name="provider" :error="errorAt('provider')" class="min-w-0 sm:w-1/2">
@@ -28,7 +29,7 @@
           :loading="models.reading"
           :disabled="props.disabled"
           :aria-label="$t('common.label.model')"
-          @update:model-value="(value: string) => change({ model: value, effort: keptEffort(value) })"
+          @update:model-value="(value: string) => pickModel(value)"
         />
       </UFormField>
       <template v-if="props.whole">
@@ -69,6 +70,31 @@
       </template>
     </div>
 
+    <!-- The advisor the road's model consults, on a provider that declares it takes one: none, the provider's family
+         words or one of its models. Where the provider takes none, a muted line names the providers that do. -->
+    <template v-if="props.whole && provider !== undefined">
+      <UFormField
+        v-if="advisorItems.length > 0"
+        :label="$t('agents.label.advisor')"
+        name="advisor"
+        :error="errorAt('advisor')"
+        :help="road.advisor === null ? undefined : $t('agents.label.advisor_tokens')"
+        class="min-w-0 sm:w-1/2"
+      >
+        <ChoiceSelect
+          :model-value="advisorShown(road.advisor)"
+          :items="advisorItems"
+          value-key="value"
+          class="w-full min-w-0"
+          :loading="models.reading"
+          :disabled="props.disabled"
+          :aria-label="$t('agents.label.advisor')"
+          @update:model-value="(value: string) => change({ advisor: advisorPicked(value) })"
+        />
+      </UFormField>
+      <p v-else-if="advisorNote !== ''" role="note" class="text-sm text-muted">{{ advisorNote }}</p>
+    </template>
+
     <!-- A supervisor that runs as the owner's own user, on a provider whose engine is not the owner's: what its files
          and shell read can go to that provider (the agency's docs/supervisors.md, 「What confines a session allowed
          files」). A state of the form, which holds nothing back from its save. -->
@@ -82,7 +108,7 @@
 import { failureText } from "bmo-ui/app/domain/errors";
 import { formatStamp } from "bmo-ui/app/domain/time";
 
-import { ceilingDefault, effortChoices, markedDefault, thinkingDefault, useProviderModels, useProviders } from "~/domain/axes";
+import { advisorChoices, advisorElsewhere, advisorPicked, advisorShown, ceilingDefault, effortChoices, markedDefault, thinkingDefault, useProviderModels, useProviders } from "~/domain/axes";
 
 import type { RoadView } from "#shared/axes";
 
@@ -133,7 +159,14 @@ watch(() => road.value.provider, (name) => {
 function pickProvider(name: string): void {
   if (name === road.value.provider) return;
 
-  road.value = { provider: name, model: "", effort: null, thinking: null, answerTokens: null };
+  road.value = { provider: name, model: "", effort: null, thinking: null, answerTokens: null, advisor: null };
+}
+
+// A model chosen keeps the effort set where it takes it, and names no advisor until one is chosen again for it.
+function pickModel(model: string): void {
+  if (model === road.value.model) return;
+
+  change({ model, effort: keptEffort(model), advisor: null });
 }
 
 watch(() => `${road.value.provider}:${road.value.model}:${models.value.view === null ? 0 : 1}`, () => {
@@ -151,6 +184,10 @@ const modelItems = computed(() => {
 
   return road.value.model === "" || items.some((one) => one.value === road.value.model) ? items : [{ label: road.value.model, value: road.value.model }, ...items];
 });
+
+// The advisors the provider offers, none where it takes none; and, where it takes none, the providers that do.
+const advisorItems = computed(() => advisorChoices(t, provider.value, models.value.view, road.value.advisor));
+const advisorNote = computed(() => advisorElsewhere(t, providers.value));
 
 const effortItems = computed(() => effortChoices(provider.value, models.value.view, road.value.model).map((level) => ({ label: level, value: level })));
 

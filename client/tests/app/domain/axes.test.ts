@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { ceilingDefault, defaultThreshold, roadText, thinkingDefault, thresholdText } from "../../../apps/web/app/domain/axes";
+import { ADVISOR_NONE, advisorChoices, advisorElsewhere, advisorPicked, advisorShown, ceilingDefault, defaultThreshold, markedDefault, roadText, thinkingDefault, thresholdText } from "../../../apps/web/app/domain/axes";
 import { headOffset } from "../../../apps/web/app/domain/held-heads";
 import { wording } from "../../../apps/web/shared/wording";
 
@@ -12,9 +12,10 @@ import type { RoadView, ProviderModelsView, ProviderView } from "../../../apps/w
 const t = wording;
 
 const provider = (name: string, foldRatioDefault: number | null): ProviderView => ({
-  name, label: name, enabled: true, registered: false, lines: [], reason: null, reasonEnglish: null, foldRatioDefault, keyFile: null, ownersEngine: true
+  name, label: name, enabled: true, registered: false, lines: [], reason: null, reasonEnglish: null, foldRatioDefault, keyFile: null, ownersEngine: true,
+  takesAdvisor: false, advisorWords: []
 });
-const entry = (name: string): RoadView => ({ provider: name, model: "model-a", effort: null, thinking: null, answerTokens: null });
+const entry = (name: string): RoadView => ({ provider: name, model: "model-a", effort: null, thinking: null, answerTokens: null, advisor: null });
 const models: ProviderModelsView = {
   provider: "provider-a",
   models: [{ id: "model-a", efforts: [], inService: true, thinking: false, answerTokens: 8192 }, { id: "model-b", efforts: [], inService: null, thinking: null, answerTokens: null }],
@@ -66,5 +67,41 @@ describe("a road on one line", () => {
     expect(roadText(providers, { ...entry("provider-a"), effort: "high" })).toBe("Provider A · model-a · high");
     expect(roadText(providers, entry("provider-a"))).toBe("Provider A · model-a");
     expect(roadText(providers, { provider: null, model: null, effort: null })).toBeNull();
+  });
+});
+
+// A road's advisor (docs/web.md, 「Agent management screen」): offered only where its provider declares it takes one.
+describe("a road's advisor", () => {
+  const taking: ProviderView = { ...provider("provider-a", null), label: "Provider A", takesAdvisor: true, advisorWords: ["word-a", "word-b"] };
+
+  test("is chosen among none, the provider's family words and its models, a superseded model marked", () => {
+    const held: ProviderModelsView = { ...models, models: [{ id: "model-a", efforts: [], inService: true, thinking: false, answerTokens: 8192 }, { id: "model-old", efforts: [], inService: false, thinking: null, answerTokens: null }] };
+
+    expect(advisorChoices(t, taking, held, null)).toEqual([
+      [{ label: markedDefault(t, wording("agents.label.switch_off"), true), value: ADVISOR_NONE }],
+      [{ label: "word-a", value: "word-a" }, { label: "word-b", value: "word-b" }],
+      [{ label: "model-a", value: "model-a" }, { label: "model-old", value: "model-old", description: wording("agents.label.model_superseded") }]
+    ]);
+  });
+
+  test("keeps one the road names that neither list carries as its own choice", () => {
+    expect(advisorChoices(t, taking, null, "model-z")[2]).toEqual([{ label: "model-z", value: "model-z" }]);
+    expect(advisorChoices(t, taking, null, "word-a")).toHaveLength(2);
+  });
+
+  test("is offered nowhere on a provider that takes none or has not been read", () => {
+    expect(advisorChoices(t, provider("provider-b", null), models, null)).toEqual([]);
+    expect(advisorChoices(t, undefined, models, null)).toEqual([]);
+  });
+
+  test("stands as none in its select where the road names none, and none picked names none", () => {
+    expect(advisorPicked(advisorShown(null))).toBeNull();
+    expect(advisorPicked(advisorShown("word-a"))).toBe("word-a");
+  });
+
+  test("is said, on a provider that takes none, to be taken on the providers that declare one, and nowhere while none does", () => {
+    expect(advisorElsewhere(t, [taking, provider("provider-b", null)])).toBe(wording("agents.message.advisor_only_on", { providers: "Provider A" }));
+    expect(advisorElsewhere(t, [provider("provider-b", null)])).toBe("");
+    expect(advisorElsewhere(t, undefined)).toBe("");
   });
 });

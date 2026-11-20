@@ -104,6 +104,9 @@
 - a supervisor's road, the one provider and model its turns go out on → 공급자 · 모델, its fields 공급자, 모델, 강도,
   생각 and 답변 상한; a session's compaction threshold → 압축 기준; keeping a prefix warm → 캐시 유지;
   a role's sessions kept or opened anew → 유지, 새로. Never 라우트, 라우팅, 우선순위 목록.
+- the second model a road's own model consults when it chooses → 어드바이저: 어드바이저, 어드바이저 모델, 어드바이저 호출;
+  none chosen → 끔, the road's off word as 생각 has it, never 없음 or 사용 안 함 among its choices. Never 조언자, 자문 모델,
+  상담 모델.
 - a repository, where executing work runs → 저장소: 저장소, 저장소 추가, 작업 저장소; the model a repository pins →
   고정 모델; no pin → 역할 에이전트. A deployment's own model → 등록 모델; a file its engine serves → 모델 파일.
 - a repository that is a folder holding other repositories' checkouts, its own tree never written by its jobs → 우산

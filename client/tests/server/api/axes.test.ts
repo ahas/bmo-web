@@ -11,7 +11,7 @@ import type { ProviderModelsView, ProviderView, RepositoryView, RoleAgentView, R
 // each answer read into the screen's shape, an untyped field read as the document states it, and a change carried
 // only where its body reads as one.
 
-const ENTRY = { provider: "claude-code", model: "claude-opus-5-5", effort: "high", thinking: null, answerTokens: null };
+const ENTRY = { provider: "claude-code", model: "claude-opus-5-5", effort: "high", thinking: null, answerTokens: null, advisor: null };
 const SUPERVISOR = {
   name: "agent-a", label: null, ownerAccount: null, aliases: null, icon: null, sessionScope: "agent", turnShape: "window",
   brainFolder: null, repository: "repo-a", ...ENTRY, warming: { "claude-code": true, deepseek: "yes" }, foldRatio: 0.8, gates: null, voice: null,
@@ -75,11 +75,14 @@ const FILED = [
 const agency = standIn("AGENCY", (call) => {
   if (call.path === "/supervisors") return answer({ items: [SUPERVISOR, { ...SUPERVISOR, name: "agent-b", provider: null, model: null, effort: null }, ...FILED], more: false });
   if (call.path === "/supervisors/agent-a" && call.method === "PATCH") return answer({ ...SUPERVISOR, ...call.body });
+  if (call.path === "/supervisors/agent-b" && call.method === "PATCH") return answer({ code: "bad-request", error: "The advisor ranks below the model.", field: "advisor" }, 400);
   if (call.path === "/roles/worker" && call.method === "PATCH") return answer({ ...ROLE, ...call.body });
   if (call.path === "/roles" && call.method === "POST") return answer({ ...ROLE, ...call.body }, 201);
   if (call.path === "/roles") return answer({ roles: [ROLE, SEEKER, { ...OWN_ROLE, skills: ["skill-b"], providerPrompts: { codex: "text-a" } }], bundles: ROLE.bundles, skills: ["skill-a", "skill-b"], lines: ["worker"] });
   if (call.path === "/role-agents" && call.method === "POST") return answer({ ...AGENT, name: "worker-04", carries: false, ...call.body });
   if (call.path === "/role-agents/worker-01" && call.method === "PATCH") return answer({ ...AGENT, ...call.body });
+  if (call.path === "/role-agents/worker-02" && call.method === "PATCH") return answer({ code: "unprocessable-entity", error: "advisor: it ranks below the model." }, 422);
+  if (call.path === "/role-agents/worker-03" && call.method === "PATCH") return answer({ code: "unprocessable-entity", error: "model: no such model." }, 422);
   if (call.path === "/role-agents/worker-01" && call.method === "DELETE") return answer({ code: "conflict", error: "The agent carries a run." }, 409);
   if (call.path === "/role-agents/worker-02" && call.method === "DELETE") return answer({ name: "worker-02" });
   if (call.path === "/supervisors/agent-a" && call.method === "GET") return answer({ ...SUPERVISOR, provider: "deepseek", model: "deepseek-v4-pro" });
@@ -106,13 +109,13 @@ const agency = standIn("AGENCY", (call) => {
     return answer({ provider: "deepseek", models: [{ id: "deepseek-v4-pro", efforts: ["low"], inService: true, thinking: true, answerTokens: 8192, contextTokens: 65536 }, { nothing: true }], staleReadAt: null });
   }
   if (call.path === "/providers") {
-    const held = { enabled: true, coworker: true, lines: ["chat"], quota: null, reason: null, reasonCode: null, foldRatioDefault: 0.85, keyFile: null };
+    const held = { enabled: true, coworker: true, lines: ["chat"], quota: null, reason: null, reasonCode: null, foldRatioDefault: 0.85, keyFile: null, takesAdvisor: false, advisorWords: [] as string[] };
 
     return answer({
       items: [
         { ...held, name: "deepseek", code: "deepseek", label: "DeepSeek", registered: false, gateway: true, ownersEngine: false, quota: { left: 0.5, window: "week", balance: null, resetsAt: null }, keyFile: "deepseek.key" },
-        { ...held, name: "claude-code", code: "claude-code", label: "Claude Code", registered: false, gateway: false, ownersEngine: true },
-        { ...held, name: "outside", code: "outside", label: "Outside", registered: false, gateway: false, ownersEngine: false },
+        { ...held, name: "claude-code", code: "claude-code", label: "Claude Code", registered: false, gateway: false, ownersEngine: true, takesAdvisor: true, advisorWords: ["word-a", "word-b"] },
+        { ...held, name: "outside", code: "outside", label: "Outside", registered: false, gateway: false, ownersEngine: false, advisorWords: ["word-c"] },
         { ...held, name: "registered", code: "registered", label: "Registered models", registered: true, gateway: true, ownersEngine: true }
       ],
       more: false
@@ -176,7 +179,7 @@ describe("the supervisors", () => {
   test("carry a road whole, so a changed provider keeps nothing of the one before it, and name no order, share or force", async () => {
     calls.length = 0;
 
-    const road = { provider: "deepseek", model: "deepseek-v4-pro", effort: null, thinking: "off", answerTokens: 4096 };
+    const road = { provider: "deepseek", model: "deepseek-v4-pro", effort: null, thinking: "off", answerTokens: 4096, advisor: null };
     const got = await asked(supervisorChange, { params: { name: "agent-a" }, body: { road } });
 
     expect(got).toMatchObject({ status: 200, answer: { road } });
@@ -195,6 +198,19 @@ describe("the supervisors", () => {
     expect(await asked(supervisorChange, { params: { name: "agent-a" }, body: { road: { provider: "deepseek" } } })).toMatchObject({ status: 400 });
     expect(await asked(supervisorChange, { params: { name: "agent-a" }, body: { order: [ENTRY], quotaShare: 0.5, active: null } })).toMatchObject({ status: 400 });
     expect(calls).toEqual([]);
+  });
+
+  test("carry the advisor a road names, and say one refused in its own words under the advisor", async () => {
+    calls.length = 0;
+
+    const road = { ...ENTRY, advisor: "word-b" };
+
+    expect(await asked(supervisorChange, { params: { name: "agent-b" }, body: { road } })).toMatchObject({
+      status: 400,
+      message: wording("agents.error.advisor_refused"),
+      data: { field: "advisor" }
+    });
+    expect(calls).toEqual([{ method: "PATCH", path: "/supervisors/agent-b", body: road }]);
   });
 });
 
@@ -306,6 +322,7 @@ describe("a role's agents", () => {
       status: 200,
       answer: { sessions: "fresh", foldRatio: 0.5 }
     });
+    expect(await asked(agentChange, { params: { name: "worker-01" }, body: { advisor: "word-a" } })).toMatchObject({ status: 200, answer: { advisor: "word-a" } });
     expect(await asked(agentChange, { params: { name: "worker-01" }, body: { prompt: "  ", bundles: ["web.read"], skills: null, keepsCache: true } })).toMatchObject({
       status: 200,
       answer: { prompt: null, bundles: ["web.read"], skills: null, keepsCache: true }
@@ -313,6 +330,7 @@ describe("a role's agents", () => {
     expect(calls).toMatchObject([
       { method: "PATCH", path: "/role-agents/worker-01", body: { enabled: false } },
       { method: "PATCH", path: "/role-agents/worker-01", body: { sessions: "fresh", foldRatio: 0.5 } },
+      { method: "PATCH", path: "/role-agents/worker-01", body: { advisor: "word-a" } },
       { method: "PATCH", path: "/role-agents/worker-01", body: { prompt: null, bundles: ["web.read"], skills: null, keepsCache: true } }
     ]);
   });
@@ -325,7 +343,19 @@ describe("a role's agents", () => {
     expect(await asked(agentChange, { params: { name: "worker-01" }, body: { enabled: "yes" } })).toMatchObject({ status: 400 });
     expect(await asked(agentChange, { params: { name: "worker-01" }, body: { bundles: [3] } })).toMatchObject({ status: 400 });
     expect(await asked(agentChange, { params: { name: "worker-01" }, body: { sessions: "sometimes" } })).toMatchObject({ status: 400 });
+    expect(await asked(agentChange, { params: { name: "worker-01" }, body: { advisor: 3 } })).toMatchObject({ status: 400 });
     expect(calls).toEqual([]);
+  });
+
+  test("say a refused advisor in its own words under the advisor, and another refused value in the common words", async () => {
+    expect(await asked(agentChange, { params: { name: "worker-02" }, body: { advisor: "word-b" } })).toMatchObject({
+      message: wording("agents.error.advisor_refused"),
+      data: { field: "advisor" }
+    });
+    expect(await asked(agentChange, { params: { name: "worker-03" }, body: { model: "model-z" } })).toMatchObject({
+      message: wording("agents.error.agency_unprocessable"),
+      data: { field: null }
+    });
   });
 
   test("are removed, one that carries a run refused in the pack's words", async () => {
@@ -459,6 +489,17 @@ describe("the providers and the models they hold", () => {
     const got = await asked(providers, {});
 
     expect(got.answer?.map((one) => [one.name, one.ownersEngine])).toEqual([["deepseek", false], ["claude-code", true], ["outside", false], ["registered", true]]);
+  });
+
+  test("hold whether a road on a provider takes an advisor and the family words it names one by, as the provider declares them", async () => {
+    const got = await asked(providers, {});
+
+    expect(got.answer?.map((one) => [one.name, one.takesAdvisor, one.advisorWords])).toEqual([
+      ["deepseek", false, []],
+      ["claude-code", true, ["word-a", "word-b"]],
+      ["outside", false, []],
+      ["registered", false, []]
+    ]);
   });
 
   test("read a provider's models, a member that is no model left out", async () => {

@@ -3198,8 +3198,9 @@ archive and this week's tokens remain. That is all that can actually be known th
   repository, a supervisor's own settings, and asking once before a removal; a row's whole settings open from its more-menu or its
   name, never from a cell.
 - **A supervisor stands on one road** (the agency's `docs/supervisors.md` and `docs/provider-order.md`): a
-  provider, a model on it, an effort, thinking and, on the registry's provider, an answer ceiling. Every turn of
-  it goes out on that road; no other provider stands in for it and nothing is forced over it. What the road is
+  provider, a model on it, an effort, thinking, on the registry's provider an answer ceiling, and, on a provider
+  that takes one, an advisor: a second model the road's own model consults when it chooses. Every turn of it goes
+  out on that road; no other provider stands in for it and nothing is forced over it. What the road is
   is the agency's word, never worked out here.
 - **A road is one field, edited in its own dialog,** a supervisor's alone. Its cell, 공급자 · 모델, is one line:
   the provider by the pack's word for its code, the model whole and its effort, joined by middle dots; a row
@@ -3213,15 +3214,28 @@ archive and this week's tokens remain. That is all that can actually be known th
     the time it was taken; 강도, a list of the levels that model takes, standing only where it takes any; 생각,
     켬 or 끔; and, on the registry's provider, 답변 상한. The fields stand in one column on a phone and side by
     side from the small breakpoint up, the model taking what is left and every other field its own width;
+  - **어드바이저 under them,** on its own line, standing only where the road's provider declares `takesAdvisor`
+    in `GET /providers` (the agency's `docs/api.md`, 「providers, models and model files」): a list of `끔 (기본값)` — no
+    advisor, every road's own until one is set — then the provider's `advisorWords`, the family words it names an advisor by, then every model of
+    the provider's `GET /provider-models/{provider}`, the same list 모델 offers; an advisor the road names that
+    neither list carries still stands as its own choice. Whether a provider takes one is its declaration alone,
+    never worked out from its name. While an advisor is chosen, a line under the field says that its calls are
+    spent in the advisor model's tokens. Where the road's provider takes none, a muted line stands in the field's
+    place saying that an advisor is taken only on the providers that declare it, named by their words; it stands
+    nowhere while no provider declares one. Which advisor may advise which model is the agency's to judge: the
+    console offers every choice and says a refusal;
   - **the thinking and the answer ceiling mark the model's own:** the choice equal to the `thinking` the model's
     registration or road member declares reads `켬 (기본값)` or `끔 (기본값)` and stands chosen while the road
     leaves thinking to the provider, and picking it leaves it so; an emptied ceiling box is the registration's
     own, its placeholder the declared `answerTokens` with `(기본값)`. A model of a catalogue that declares neither
     marks none;
-  - the save sends the road whole through `PATCH /supervisors/{name}` — its provider, model, effort, thinking
-    and answer ceiling, each null the road leaves to the provider or the registration — so a changed provider or
-    model never carries a level, a switch or a ceiling over from the one before. A refusal keeps every field as
-    written with the pack's sentence for the agency's code under the field its `field` names.
+  - the save sends the road whole through `PATCH /supervisors/{name}` — its provider, model, effort, thinking,
+    answer ceiling and advisor, each null the road leaves to the provider or the registration, the advisor null
+    for none — so a changed provider or model never carries a level, a switch, a ceiling or an advisor over from
+    the one before: picking another provider or another model sets the advisor back to 끔. A refusal keeps every
+    field as written with the pack's sentence for the agency's code under the field its `field` names; an advisor
+    the agency refuses, one ranking below the road's model among them, is said under 어드바이저 in the pack's
+    sentence for a refused advisor.
 - **A road whose engine is not the owner's own carries a warning under the road's fields for a supervisor that runs as the
   owner's own user** (the agency's `docs/supervisors.md`, 「What confines a session allowed files」). Such a supervisor
   is one the agency files under no account or under the owner's account (「The owner's account」 in
@@ -3243,7 +3257,8 @@ archive and this week's tokens remain. That is all that can actually be known th
   under it only where the two differ. Each field stands under its own label; a text or a path takes the dialog's
   width, while a number box stands as wide as the values it takes and a list of a few short choices as wide as its
   longest one, short fields of one kind standing side by side on one line. Fields that belong together — a road's
-  provider, model, effort, thinking and ceiling, a pinned model and its sampling — stand together, one gap apart, and
+  provider, model, effort, thinking, ceiling and advisor, a pinned model and its sampling — stand together, one gap
+  apart, and
   groups stand one larger gap apart.
 
 #### 에이전트
@@ -3265,7 +3280,7 @@ alone (「Access」); another account's agents are reached from 조직's 사용�
   switched as it is pressed through `PATCH /supervisors/{name}` with `warming` whole; a provider turned off on
   this machine stands disabled with its reason. **압축 기준** takes a whole percent from 1 to 100, saved with Enter or
   the check button.
-- **The settings dialog** is one form with one 저장 at its foot: 표시 이름; 공급자, 모델, 강도, 생각 and 답변 상한, the
+- **The settings dialog** is one form with one 저장 at its foot: 표시 이름; 공급자, 모델, 강도, 생각, 답변 상한 and 어드바이저, the
   road's editor in place; 캐시 유지 and 압축 기준 as the cells set them; 작업 저장소, the repository its TODO items go to,
   a list of the repositories; and, for a supervisor whose turns its settings' pieces make (its `turnShape`), its own
   settings as the agency holds them (its `docs/api.md`, 「supervisors」, a supervisor's settings): 생성 파라미터, each
@@ -3317,8 +3332,8 @@ alone (「Access」); another account's agents are reached from 조직's 사용�
   추가, sent as the receiver's `POST /supervisors` adds one (its `docs/api.md`, 「Supervisors」): the receiver makes a
   room of the console's own under 방 이름 that names the new supervisor alone, and the agency registers the supervisor
   on a road of that provider and model. 공급자 and 모델 open on the default answerer's road. The receiver's add takes
-  no more of a road, so the new supervisor's effort, thinking and answer ceiling stand as its provider's own until
-  its row's road sets them. The add carries the signed-in person's user id as `ownerAccount`, required of an
+  no more of a road, so the new supervisor's effort, thinking and answer ceiling stand as its provider's own, and
+  it names no advisor, until its row's road sets them. The add carries the signed-in person's user id as `ownerAccount`, required of an
   organisation member, so the supervisor's brain and ownership are filed under them; for such a person it names
   `sessionScope` `agent` beside it, so one session answers every room their supervisor speaks in (the agency's
   `docs/supervisors.md`, 「Adding and removing a supervisor」), while the console's own account and an add naming
@@ -3357,6 +3372,13 @@ alone (「Access」); another account's agents are reached from 조직's 사용�
       carries the role's line; and, under a provider, 모델, what `GET /provider-models/{provider}` answers for it,
       and 강도, the levels that model takes, standing only where it takes any. A provider picked stands on the first
       model its catalogue serves; 요청한 감독관을 따름 clears the road whole.
+    - **어드바이저 under them,** with the choices, the line on its tokens and the muted line where the agent's
+      provider takes none that a supervisor's road holds (above), each choice saved as it is picked through
+      `PATCH /role-agents/{name}` with `advisor`, 끔 sending null. A provider or a model picked sends the advisor
+      as null with it, so the field stands at 끔 again. An agent that follows its supervisor names no advisor: a
+      muted line stands in the field's place saying that it uses the advisor of the supervisor that asks it. An
+      advisor the agency refuses — a refusal whose `error` begins `advisor: ` — is said under that agent's
+      어드바이저 in the pack's sentence for a refused advisor, and the agent stands as it was.
     - **역할 위에 덮어쓰기, folded,** with the count of what it lays over where it lays any, each item on its own:
       시스템 프롬프트, which then stands in place of the role's; 기능 묶음, a choice of several among the bundles the
       agency declares; and 스킬, names set apart by commas, each a skill a plugin of the agency's release carries.

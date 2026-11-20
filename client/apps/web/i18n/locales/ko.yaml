@@ -2539,6 +2539,7 @@ agents:
     road_of: "{name} 공급자 · 모델"
     agent_enabled_of: "{name} 사용"
     agent_provider_of: "{name} 공급자"
+    advisor_of: "{name} 어드바이저"
     agent_remove: "{name} 제거"
     agent_keeps_cache_of: "{name} 캐시 유지"
     provider_prompt_of: "{provider} 프롬프트"
@@ -2631,6 +2632,7 @@ agents:
     repositories_read_failed: 저장소를 불러오지 못했습니다.
     repository_delete_refused: Job이 체크아웃을 쓰고 있어 저장소를 삭제하지 못했습니다.
     umbrella_refused: 우산 저장소에는 추가지원 체크아웃과 노드 체크아웃을 둘 수 없습니다.
+    advisor_refused: 이 모델에는 쓸 수 없는 어드바이저입니다.
     session_history_read_failed: 세션 기록을 불러오지 못했습니다.
     supervisors_read_failed: 감독관을 불러오지 못했습니다.
     secret_settings_read_failed: 공급자 비밀을 불러오지 못했습니다.
@@ -2846,6 +2848,8 @@ agents:
     models_stale: "{time}에 읽은 목록"
     effort: 강도
     answer_ceiling: 답변 상한
+    advisor: 어드바이저
+    advisor_tokens: 어드바이저 호출은 어드바이저 모델의 토큰을 씁니다.
     pinned_model: 고정 모델
     role_files: 역할 파일 보관
     role_order: 역할 에이전트
@@ -2928,6 +2932,8 @@ agents:
     agent_delete_confirm: 이 에이전트를 삭제할까요?
     document_to_file: 저장하면 파일 내용으로 돌아갑니다.
     pin_waits: 고정 모델이 응답할 수 없으면 이 저장소의 작업이 기다립니다.
+    advisor_only_on: "어드바이저는 {providers}에서만 쓸 수 있습니다."
+    advisor_follows: 요청한 감독관의 어드바이저를 씁니다.
     road_outside_owner: "이 감독관은 이 기기에서 소유자의 시스템 사용자로 실행됩니다.\n도구 제한이 없거나 program.files, program.shell, room.tools 중 하나라도 허용하면 그 사용자가 읽을 수 있는 모든 것이 {provider}에 전달될 수 있습니다.\n데이터 루트와 env/ 아래 모든 유닛의 토큰과 설정 파일도 포함됩니다.\n등록 모델이나 소유자 계정의 Claude Code가 아닌 공급자는 소유자가 직접 정한 경우에만 쓰거나, 도구 제한에서 이 세 가지를 빼 주세요."
     repository_delete_confirm: 이 저장소를 삭제할까요?
   placeholder:

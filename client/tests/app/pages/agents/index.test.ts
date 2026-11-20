@@ -162,7 +162,7 @@ describe("a supervisor's road", () => {
 
   test("offers the providers whose program carries the supervisor's line, a provider picked keeping nothing of the one before", () => {
     expect(scriptOf(roadField)).toContain(".filter((one) => one.lines.length === 0 || one.lines.includes(props.line))");
-    expect(scriptOf(roadField)).toContain('road.value = { provider: name, model: "", effort: null, thinking: null, answerTokens: null };');
+    expect(scriptOf(roadField)).toContain('road.value = { provider: name, model: "", effort: null, thinking: null, answerTokens: null, advisor: null };');
   });
 
   test("offers no default entry anywhere", () => {

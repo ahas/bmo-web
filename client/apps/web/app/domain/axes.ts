@@ -31,11 +31,52 @@ export const SUPERVISOR_LINE = "chat";
 export const JOB_LINE = "worker";
 
 // The fields of a road a form holds, by the names a refusal carries them under.
-export const ROAD_FIELDS: ReadonlySet<string> = new Set(["provider", "model", "effort", "thinking", "answerTokens"]);
+export const ROAD_FIELDS: ReadonlySet<string> = new Set(["provider", "model", "effort", "thinking", "answerTokens", "advisor"]);
 
 /** A road that names no provider yet, as a form opens on one. */
 export function emptyRoad(): RoadView {
-  return { provider: "", model: "", effort: null, thinking: null, answerTokens: null };
+  return { provider: "", model: "", effort: null, thinking: null, answerTokens: null, advisor: null };
+}
+
+// The choice that names no advisor. A select takes no empty value, and no family word or model id begins with a colon.
+export const ADVISOR_NONE = ":none";
+
+export interface AdvisorChoice {
+  label: string;
+  value: string;
+  description?: string;
+}
+
+/** The advisors a road may name on its provider, in groups: none, the family words the provider declares, and the
+ * models its catalogue holds, the superseded generations marked, an advisor the road names that neither carries
+ * standing as its own choice. No group where the provider takes no advisor; which advisor may advise which model is
+ * the agency's to judge. */
+export function advisorChoices(t: Translate, provider: ProviderView | undefined, models: ProviderModelsView | null, advisor: string | null): AdvisorChoice[][] {
+  if (provider?.takesAdvisor !== true) return [];
+
+  const words = provider.advisorWords.map((word) => ({ label: word, value: word }));
+  const held: AdvisorChoice[] = (models?.models ?? []).map((one) => ({ label: one.id, value: one.id, ...(one.inService === false ? { description: t("agents.label.model_superseded") } : {}) }));
+  const named = advisor === null || [...words, ...held].some((one) => one.value === advisor);
+
+  // Naming none is every road's own advisor until one is set, so it is the value marked as the default.
+  return [[{ label: markedDefault(t, t("agents.label.switch_off"), true), value: ADVISOR_NONE }], words, named ? held : [{ label: advisor, value: advisor }, ...held]].filter((group) => group.length > 0);
+}
+
+/** An advisor as its select holds it, and the one a choice names. */
+export function advisorShown(advisor: string | null): string {
+  return advisor ?? ADVISOR_NONE;
+}
+
+export function advisorPicked(value: string): string | null {
+  return value === ADVISOR_NONE ? null : value;
+}
+
+/** The line a road whose provider takes no advisor stands with: the providers that declare one, by their words; empty
+ * while none does or the providers have not been read. */
+export function advisorElsewhere(t: Translate, providers: readonly ProviderView[] | null | undefined): string {
+  const taking = (providers ?? []).filter((one) => one.takesAdvisor).map((one) => one.label);
+
+  return taking.length === 0 ? "" : t("agents.message.advisor_only_on", { providers: taking.join(", ") });
 }
 
 /** A fraction from 0 to 1 as a whole percent. */

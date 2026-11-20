@@ -134,6 +134,7 @@ async function standAgents(user: number): Promise<void> {
       effort: shared.effort,
       thinking: shared.thinking,
       answerTokens: shared.answerTokens,
+      advisor: shared.advisor,
       enabled: true,
       keepsCache: shared.keepsCache,
       sessions: shared.sessions,

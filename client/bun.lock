@@ -23,7 +23,7 @@
       "name": "bmo-web",
       "version": "0.1.0-rev.1",
       "dependencies": {
-        "@agency/client": "file:../../vendor/agency-client-0.1.0-rev.10-e6d5843.tgz",
+        "@agency/client": "file:../../vendor/agency-client-0.1.0-rev.10-63102c5.tgz",
         "@bmo/receiver-client": "file:../../vendor/bmo-receiver-client-0.1.0-rev.1-a46d294.tgz",
         "@internationalized/date": "3.12.4",
         "@nuxt/ui": "4.12.2",
@@ -82,7 +82,7 @@
   "packages": {
     "@adonisjs/hash": ["@adonisjs/hash@9.1.1", "", { "dependencies": { "@phc/format": "^1.0.0", "@poppinss/utils": "^6.9.3" }, "peerDependencies": { "argon2": "^0.31.2 || ^0.41.0 || ^0.43.0", "bcrypt": "^5.1.1 || ^6.0.0" }, "optionalPeers": ["argon2", "bcrypt"] }, "sha512-ZkRguwjAp4skKvKDdRAfdJ2oqQ0N7p9l3sioyXO1E8o0WcsyDgEpsTQtuVNoIdMiw4sn4gJlmL3nyF4BcK1ZDQ=="],
 
-    "@agency/client": ["@agency/client@../../vendor/agency-client-0.1.0-rev.10-e6d5843.tgz", { "dependencies": { "openapi-fetch": "0.17.0" } }, "sha512-KPyOXv4V4NYUwndyHUB6JJmUsd6JzPQKEqLnim9eymfcuWArFZIkF2JTc+V9t+br3gPWUgJ/fkurs7T4h0o1kA=="],
+    "@agency/client": ["@agency/client@../../vendor/agency-client-0.1.0-rev.10-63102c5.tgz", { "dependencies": { "openapi-fetch": "0.17.0" } }, "sha512-80uCZaLvdX240DV/7vWC8FiU+I+1zkY7Sd3NHvSTWX9TzDL+ePQSAh5SfLc4TBNGoBzf/FHEPkdvqsAa/Tji0A=="],
 
     "@alloc/quick-lru": ["@alloc/quick-lru@5.3.0", "", {}, "sha512-U4+70Pc5ZS9osnCBCE5Jha/ciHM+Yp+CNMNC/7HvYbNRk1Ldd+f7qO65W5qfhu/TCv+/ozljlXXe9Nj8419DMA=="],
 

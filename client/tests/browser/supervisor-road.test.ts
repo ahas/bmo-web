@@ -18,7 +18,7 @@ const ACCOUNT = { name: "supervisor-road", password: "fixture-password-2921" };
 // The owner's account, the fixture's first (tests/support/browser-console.ts): a supervisor it adds is filed under it.
 const OWNER = { name: "agent-topbar", password: "fixture-password-1558" };
 // The default answerer's road as the agency stand-in serves it, put back once the file is done.
-const ROAD_A = { provider: "claude-code", model: "claude-opus-5-5", effort: "high", thinking: null, answerTokens: null };
+const ROAD_A = { provider: "claude-code", model: "claude-opus-5-5", effort: "high", thinking: null, answerTokens: null, advisor: null };
 
 const CLAUDE = wording("agents.label.provider_claude_code");
 const DEEPSEEK = wording("agents.label.provider_deepseek");
@@ -132,6 +132,79 @@ describe.skipIf(!origin || !touchReady())("a supervisor's road", () => {
     }
   }, 60_000);
 
+  test("names an advisor where its provider takes one, asks before a changed one is thrown away, and fits a phone", async () => {
+    await roadAPutBack();
+
+    const { context, asked } = await signedIn();
+    const bodies: unknown[] = [];
+
+    context.on("request", (request) => {
+      if (request.method() === "PATCH" && new URL(request.url()).pathname.endsWith("/api/supervisors/agent-a")) bodies.push(request.postDataJSON());
+    });
+
+    try {
+      const page = await context.newPage();
+      const cellA = page.getByRole("button", { name: wording("agents.aria.road_of", { name: "Agent A" }), exact: true });
+
+      // Galaxy S25 in portrait.
+      await page.setViewportSize({ width: 412, height: 915 });
+      await page.goto(`${origin}/agents?tab=supervisors`, { waitUntil: "load" });
+      await cellA.waitFor({ timeout: 15_000 });
+      await cellA.click();
+
+      const form = page.getByRole("dialog");
+      const advisor = form.getByRole("button", { name: wording("agents.label.advisor"), exact: true });
+
+      // It stands at none, marked as the default, and its box stays inside the dialog at a phone's width.
+      await advisor.waitFor({ timeout: 10_000 });
+      expect((await advisor.innerText()).trim()).toContain(wording("agents.label.switch_off"));
+
+      const box = (await advisor.boundingBox())!;
+      const frame = (await form.boundingBox())!;
+
+      expect(box.x >= frame.x && box.x + box.width <= frame.x + frame.width).toBe(true);
+
+      // A changed advisor changed back is no change: the form closes asking nothing.
+      await advisor.click();
+      await page.getByRole("option", { name: "opus", exact: true }).click();
+      expect(await form.getByText(wording("agents.label.advisor_tokens")).count()).toBe(1);
+      await advisor.click();
+      await page.getByRole("option", { name: wording("agents.label.switch_off") }).click();
+      await page.getByRole("listbox").waitFor({ state: "detached", timeout: 10_000 });
+      await page.keyboard.press("Escape");
+      await form.waitFor({ state: "hidden", timeout: 10_000 });
+      expect(await page.getByRole("button", { name: wording("common.action.discard"), exact: true }).count()).toBe(0);
+
+      // A changed advisor asks before it is thrown away, and staying keeps it; saved, it goes with the road whole.
+      await cellA.click();
+      await advisor.click();
+      await page.getByRole("option", { name: "opus", exact: true }).click();
+      await page.getByRole("listbox").waitFor({ state: "detached", timeout: 10_000 });
+      await page.keyboard.press("Escape");
+      await page.getByRole("button", { name: wording("common.action.discard"), exact: true }).waitFor({ timeout: 10_000 });
+      await page.keyboard.press("Escape");
+      expect((await advisor.innerText()).trim()).toBe("opus");
+      await form.getByRole("button", { name: wording("common.action.save"), exact: true }).click();
+      await form.waitFor({ state: "hidden", timeout: 10_000 });
+      expect(bodies.at(-1)).toMatchObject({ road: { provider: "claude-code", model: "claude-opus-5-5", advisor: "opus" } });
+
+      // Read back, it stands as saved; on a provider that takes none, the field gives way to the line naming the one
+      // that does.
+      await page.reload({ waitUntil: "load" });
+      await cellA.waitFor({ timeout: 15_000 });
+      await cellA.click();
+      expect(await until(async () => (await advisor.innerText()).trim(), (text) => text === "opus")).toBe("opus");
+      await form.getByRole("button", { name: wording("agents.label.agent_provider"), exact: true }).click();
+      await page.getByRole("option", { name: DEEPSEEK }).click();
+      await advisor.waitFor({ state: "detached", timeout: 10_000 });
+      expect(await form.getByRole("note").filter({ hasText: wording("agents.message.advisor_only_on", { providers: "Claude Code" }) }).count()).toBe(1);
+      expect(called(asked, "PATCH", "/api/supervisors/agent-a")).toBe(true);
+    } finally {
+      await context.close();
+      await roadAPutBack();
+    }
+  }, 90_000);
+
   test("is marked on a supervisor's screen while it cannot take a turn now, and not while it can", async () => {
     const { context, asked } = await signedIn();
 
@@ -161,7 +234,10 @@ describe.skipIf(!origin || !touchReady())("a supervisor's road", () => {
 
     try {
       const page = await context.newPage();
-      const warning = page.getByRole("dialog").getByRole("note");
+      const warning = page
+        .getByRole("dialog")
+        .getByRole("note")
+        .filter({ hasText: wording("agents.message.road_outside_owner", { provider: DEEPSEEK }).split("\n")[0]! });
 
       await page.goto(`${origin}/agents?tab=supervisors`, { waitUntil: "load" });
 

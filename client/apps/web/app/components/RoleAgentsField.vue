@@ -1,7 +1,7 @@
 <template>
   <!-- A role's agents (docs/web.md, 「Agent management screen」, the roles tab; the agency's docs/role-agents.md): one
        block per agent by name, each one agent of the role on its own road, none standing before another — its switch,
-       its name, its provider, model and effort, and what it lays over its role's preset behind a fold. Each change is one agent's own and is saved as it is made. -->
+       its name, its provider, model, effort and advisor, and what it lays over its role's preset behind a fold. Each change is one agent's own and is saved as it is made. -->
   <div class="flex min-w-0 flex-col gap-3" data-role-agents>
     <p v-if="agents.length === 0" class="text-sm text-muted">{{ $t("agents.status.agents_none") }}</p>
 
@@ -54,7 +54,7 @@
               :loading="modelsOf(agent.provider).reading"
               :disabled="locked"
               :aria-label="$t('agents.aria.order_model_of', { name: agent.name })"
-              @update:model-value="(value: string) => void save(agent, { model: value, effort: keptEffort(agent, value) })"
+              @update:model-value="(value: string) => void pickModel(agent, value)"
             />
           </UFormField>
           <UFormField v-if="agent.provider !== null && effortItems(agent).length > 0" :label="$t('agents.label.effort')" :name="`agent-${agent.name}-effort`" class="sm:w-28 sm:shrink-0">
@@ -69,6 +69,30 @@
             />
           </UFormField>
         </div>
+
+        <!-- Its advisor, on a provider that declares it takes one. One that follows its supervisor uses the
+             supervisor's, and one on a provider that takes none is told which providers take one. -->
+        <UFormField
+          v-if="advisorItems(agent).length > 0"
+          :label="$t('agents.label.advisor')"
+          :name="`agent-${agent.name}-advisor`"
+          :error="advisorRefusal?.agent === agent.name ? advisorRefusal.text : undefined"
+          :help="agent.advisor === null ? undefined : $t('agents.label.advisor_tokens')"
+          class="min-w-0 sm:w-1/2"
+        >
+          <ChoiceSelect
+            :model-value="advisorShown(agent.advisor)"
+            :items="advisorItems(agent)"
+            value-key="value"
+            class="w-full min-w-0"
+            :loading="modelsOf(agent.provider ?? '').reading"
+            :disabled="locked"
+            :aria-label="$t('agents.aria.advisor_of', { name: agent.name })"
+            @update:model-value="(value: string) => void save(agent, { advisor: advisorPicked(value) })"
+          />
+        </UFormField>
+        <p v-else-if="advisorNote !== '' && agent.provider === null" role="note" class="text-sm text-muted">{{ $t("agents.message.advisor_follows") }}</p>
+        <p v-else-if="advisorNote !== '' && agent.provider !== null && providerOf(agent.provider) !== undefined" role="note" class="text-sm text-muted">{{ advisorNote }}</p>
 
         <!-- Whether its last kept session is kept warm, and what it lays over its role's preset, each left empty
              for the role's own. -->
@@ -135,7 +159,7 @@
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
 
-import { effortChoices, useProviderModels, useProviders } from "~/domain/axes";
+import { advisorChoices, advisorElsewhere, advisorPicked, advisorShown, effortChoices, refusedField, useProviderModels, useProviders } from "~/domain/axes";
 import { agentOverrides } from "~/domain/role-agents";
 
 import type { RoleAgentView } from "#shared/axes";
@@ -164,6 +188,8 @@ const FOLLOWS = ":follows";
 const busy = ref(false);
 const adding = ref(false);
 const refusal = ref("");
+// An advisor the agency refused, said under that agent's advisor rather than under the list.
+const advisorRefusal = ref<{ agent: string; text: string } | null>(null);
 const locked = computed(() => props.disabled || busy.value || adding.value);
 
 function modelsOf(provider: string) {
@@ -202,11 +228,28 @@ function effortItems(agent: RoleAgentView): { label: string; value: string }[] {
   return effortChoices(providerOf(agent.provider), modelsOf(agent.provider).view, agent.model).map((level) => ({ label: level, value: level }));
 }
 
+// The advisors an agent's provider offers, none where it names no road or its provider takes none.
+function advisorItems(agent: RoleAgentView): { label: string; value: string }[][] {
+  if (agent.provider === null) return [];
+
+  return advisorChoices(t, providerOf(agent.provider), modelsOf(agent.provider).view, agent.advisor);
+}
+
+// The providers that take an advisor, said for an agent whose provider takes none; empty while none does.
+const advisorNote = computed(() => advisorElsewhere(t, providers.value));
+
 // A model chosen keeps the effort set where it takes it, and lets it go where it does not.
 function keptEffort(agent: RoleAgentView, model: string): string | null {
   if (agent.provider === null || agent.effort === null) return null;
 
   return effortChoices(providerOf(agent.provider), modelsOf(agent.provider).view, model).includes(agent.effort) ? agent.effort : null;
+}
+
+// A model chosen names no advisor until one is chosen again for it.
+async function pickModel(agent: RoleAgentView, model: string): Promise<void> {
+  if (model === agent.model) return;
+
+  await save(agent, { model, effort: keptEffort(agent, model), advisor: null });
 }
 
 function overridesLabel(agent: RoleAgentView): string {
@@ -251,6 +294,7 @@ async function settle(agent: RoleAgentView, field: string, body: (value: string)
 async function save(agent: RoleAgentView, body: Partial<RoleAgentView>): Promise<boolean> {
   busy.value = true;
   refusal.value = "";
+  advisorRefusal.value = null;
 
   try {
     const answered = await $fetch<RoleAgentView>(`/api/role-agents/${encodeURIComponent(agent.name)}`, { method: "PATCH", body });
@@ -260,7 +304,10 @@ async function save(agent: RoleAgentView, body: Partial<RoleAgentView>): Promise
 
     return true;
   } catch (failure) {
-    refusal.value = failureText(failure, t("agents.error.agent_save_failed"));
+    const text = failureText(failure, t("agents.error.agent_save_failed"));
+
+    if (refusedField(failure) === "advisor") advisorRefusal.value = { agent: agent.name, text };
+    else refusal.value = text;
 
     return false;
   } finally {
@@ -271,7 +318,7 @@ async function save(agent: RoleAgentView, body: Partial<RoleAgentView>): Promise
 // A provider chosen stands on the first model its catalogue serves; no provider clears the road whole.
 async function placed(agent: RoleAgentView, provider: string): Promise<void> {
   if (provider === FOLLOWS) {
-    await save(agent, { provider: null, model: null, effort: null });
+    await save(agent, { provider: null, model: null, effort: null, advisor: null });
 
     return;
   }
@@ -287,7 +334,7 @@ async function placed(agent: RoleAgentView, provider: string): Promise<void> {
     return;
   }
 
-  await save(agent, { provider, model: first.id, effort: null });
+  await save(agent, { provider, model: first.id, effort: null, advisor: null });
 }
 
 // An agent added stands last, on the road of the role's last agent, so a seat more of the same kind is one press.
@@ -297,7 +344,7 @@ async function add(): Promise<void> {
 
   try {
     const last = agents.value.at(-1);
-    const body = last === undefined || last.provider === null ? { role: props.role } : { role: props.role, provider: last.provider, model: last.model, effort: last.effort };
+    const body = last === undefined || last.provider === null ? { role: props.role } : { role: props.role, provider: last.provider, model: last.model, effort: last.effort, advisor: last.advisor };
     const answered = await $fetch<RoleAgentView>("/api/role-agents", { method: "POST", body });
 
     agents.value = [...agents.value, answered];

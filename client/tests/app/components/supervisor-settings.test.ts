@@ -17,6 +17,8 @@ const tab = await read("components/AgentsSupervisors.vue");
 const listing = await server("api/chat-documents.get.ts");
 const changing = await server("api/chat-documents/[documentName].patch.ts");
 const patch = await server("api/supervisors/[name].patch.ts");
+const road = await read("components/RoadField.vue");
+const roleAgents = await read("components/RoleAgentsField.vue");
 
 describe("a supervisor's settings", () => {
   test("are one dialog, opened by the tab and the supervisor's own screen", () => {
@@ -42,6 +44,19 @@ describe("a supervisor's settings", () => {
     expect(documents).toContain("chat_document_opening");
     expect(documents).toContain("chat_document_absolute_rules");
     expect(documents).toContain("chat_document_manual");
+  });
+
+  // A road's advisor (docs/web.md, 「Agent management screen」): a supervisor's waits for the form's save, a role
+  // agent's is saved as it is picked, and a provider or a model picked names none.
+  test("hold a road's advisor where its provider takes one, set back to none by a provider or a model picked", () => {
+    expect(road).toContain("advisorChoices(t, provider.value, models.value.view, road.value.advisor)");
+    expect(road).toContain(':error="errorAt(\'advisor\')"');
+    expect(road).toContain("change({ model, effort: keptEffort(model), advisor: null });");
+    expect(roleAgents).toContain("advisorChoices(t, providerOf(agent.provider), modelsOf(agent.provider).view, agent.advisor)");
+    expect(roleAgents).toContain("save(agent, { advisor: advisorPicked(value) })");
+    expect(roleAgents).toContain("save(agent, { model, effort: keptEffort(agent, model), advisor: null })");
+    expect(roleAgents).toContain("save(agent, { provider, model: first.id, effort: null, advisor: null })");
+    expect(roleAgents).toContain('$t("agents.message.advisor_follows")');
   });
 
   test("are carried to the agency by the console's own routes", () => {

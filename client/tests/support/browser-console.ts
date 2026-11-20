@@ -593,8 +593,8 @@ function heldSupervisor(name: string): Record<string, unknown> {
 }
 
 // A supervisor's change as the agency takes it (its docs/api.md, 「supervisors」): a body naming an order, a quota share
-// or a forced provider is refused, and a changed provider or model drops the effort, thinking and answer ceiling the
-// body does not name.
+// or a forced provider is refused, and a changed provider or model drops the effort, thinking, answer ceiling and
+// advisor the body does not name.
 async function changeSupervisor(name: string, request: Request): Promise<Response> {
   const body = (await request.json()) as Record<string, unknown>;
   const gone = ["order", "quotaShare", "active"].find((field) => field in body);
@@ -603,7 +603,7 @@ async function changeSupervisor(name: string, request: Request): Promise<Respons
 
   const held = heldSupervisor(name);
   const roadMoved = ("provider" in body && body.provider !== held.provider) || ("model" in body && body.model !== held.model);
-  const dropped = roadMoved ? { effort: null, thinking: null, answerTokens: null } : {};
+  const dropped = roadMoved ? { effort: null, thinking: null, answerTokens: null, advisor: null } : {};
 
   supervisorChanges.set(name, { ...supervisorChanges.get(name), ...dropped, ...body });
 
@@ -668,7 +668,8 @@ function heldRepositories(): Record<string, unknown>[] {
 function provider(name: string, label: string, extra: Record<string, unknown> = {}): Record<string, unknown> {
   return {
     name, code: name, label, enabled: true, registered: false, coworker: true, gateway: false, ownersEngine: true, lines: ["chat", "worker", "search", "browse"],
-    quota: { left: 0.6, window: "week", balance: null, resetsAt: null }, reason: null, reasonCode: null, foldRatioDefault: 0.85, ...extra
+    quota: { left: 0.6, window: "week", balance: null, resetsAt: null }, reason: null, reasonCode: null, foldRatioDefault: 0.85,
+    takesAdvisor: false, advisorWords: [], ...extra
   };
 }
 
@@ -900,7 +901,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     if (path === "/providers") {
       return Response.json({
         items: [
-          provider("claude-code", "Claude Code"),
+          provider("claude-code", "Claude Code", { takesAdvisor: true, advisorWords: ["fable", "opus", "sonnet"] }),
           provider("deepseek", "DeepSeek", {
             gateway: true,
             ownersEngine: false,

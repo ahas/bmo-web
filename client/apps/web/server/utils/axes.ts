@@ -8,6 +8,7 @@ import type { Provider, Repository, Role, Supervisor } from "@agency/client";
 import type { components } from "@agency/client/schema";
 import type { H3Event } from "h3";
 import type { GenerationSetting } from "#shared/agency";
+import type { RefusalBody } from "./unit-answer";
 import type { CheckoutView, NodeCheckoutAsk, ProviderModelsView, ProviderModelView, ProviderView, RepositoryView, RoadView, RoleAgentView, RoleBundleView, RoleSessionPage, RoleSessionView, RolesView, RoleView, SupervisorRoadStateView, SupervisorRoomView, SupervisorView, SupportCount, WorkNodeView } from "#shared/axes";
 
 type Schemas = components["schemas"];
@@ -34,7 +35,7 @@ export function roadOf(value: unknown): RoadView | null {
 
   if (provider === null || model === null) return null;
 
-  return { provider, model, effort: text(held.effort), thinking: text(held.thinking), answerTokens: number(held.answerTokens) };
+  return { provider, model, effort: text(held.effort), thinking: text(held.thinking), answerTokens: number(held.answerTokens), advisor: text(held.advisor) };
 }
 
 /** One provider as the screen reads it: the pack's word for its code, its switch, its lines and its reason. */
@@ -52,7 +53,9 @@ export function providerViewOf(provider: Provider): ProviderView {
     reasonEnglish: said.reasonEnglish,
     foldRatioDefault: number(held.foldRatioDefault),
     keyFile: text(held.keyFile),
-    ownersEngine: provider.ownersEngine
+    ownersEngine: provider.ownersEngine,
+    takesAdvisor: provider.takesAdvisor,
+    advisorWords: provider.takesAdvisor ? provider.advisorWords : []
   };
 }
 
@@ -213,6 +216,10 @@ export function supervisorChangeOf(body: unknown): Schemas["SupervisorChange"] |
   return Object.keys(change).length === 0 ? null : change;
 }
 
+// A road's advisor the agency refuses, one ranking below the road's model among them, is said in its own words under
+// the advisor; every other refused field in the common words.
+const ROAD_REFUSALS: Readonly<Record<string, string>> = { advisor: "agents.error.advisor_refused" };
+
 export async function changeSupervisor(name: string, change: Schemas["SupervisorChange"], madeFor: H3Event): Promise<SupervisorView> {
   // The two reads the answer needs go beside the change, and a refused change waits for them before it is said, so
   // no read is still running on the receiver once the call has answered.
@@ -220,7 +227,7 @@ export async function changeSupervisor(name: string, change: Schemas["Supervisor
   let supervisor: Supervisor;
 
   try {
-    supervisor = await agencyCall(agency(madeFor).PATCH("/supervisors/{supervisorName}", { params: { path: { supervisorName: name } }, body: change }));
+    supervisor = await agencyCall(agency(madeFor).PATCH("/supervisors/{supervisorName}", { params: { path: { supervisorName: name } }, body: change }), { fields: ROAD_REFUSALS });
   } catch (error) {
     await reads.catch(() => undefined);
 
@@ -247,6 +254,7 @@ export function roleAgentViewOf(agent: Schemas["RoleAgent"]): RoleAgentView {
     effort: agent.effort ?? null,
     thinking: agent.thinking ?? null,
     answerTokens: agent.answerTokens ?? null,
+    advisor: agent.advisor ?? null,
     enabled: agent.enabled,
     keepsCache: agent.keepsCache,
     sessions: agent.sessions,
@@ -267,7 +275,7 @@ export function roadsOf(agents: readonly Schemas["RoleAgent"][]): RoadView[] {
     if (!agent.enabled || agent.provider == null || agent.model == null) continue;
     if (roads.some((road) => road.provider === agent.provider && road.model === agent.model)) continue;
 
-    roads.push({ provider: agent.provider, model: agent.model, effort: agent.effort ?? null, thinking: agent.thinking ?? null, answerTokens: agent.answerTokens ?? null });
+    roads.push({ provider: agent.provider, model: agent.model, effort: agent.effort ?? null, thinking: agent.thinking ?? null, answerTokens: agent.answerTokens ?? null, advisor: agent.advisor ?? null });
   }
 
   return roads;
@@ -402,7 +410,7 @@ export async function removeRole(name: string, madeFor: H3Event): Promise<void> 
 }
 
 // The fields of an agent a screen may send, each with the shape it takes; null clears a field that may be cleared.
-const AGENT_TEXTS = ["provider", "model", "effort", "thinking", "prompt"] as const;
+const AGENT_TEXTS = ["provider", "model", "effort", "thinking", "advisor", "prompt"] as const;
 const AGENT_LISTS = ["bundles", "skills"] as const;
 
 /**
@@ -472,21 +480,28 @@ export function roleAgentChangeOf(body: unknown, adding: boolean): (Schemas["Rol
   return change;
 }
 
-// An agent that carries a run is not removed, and a name already taken is not given again.
-const AGENT_CODES: Readonly<Record<string, string>> = { conflict: "agents.error.role_agent_refused" };
+// An agent that carries a run is not removed, and a name already taken is not given again. An advisor the agency
+// refuses is said under the agent's advisor: the agency answers it with no field, its sentence beginning `advisor: `
+// (the agency's `docs/api.md`, 「roles」).
+const AGENT_CODES: Readonly<Record<string, string>> = { conflict: "agents.error.role_agent_refused", "advisor-refused": "agents.error.advisor_refused" };
+const ADVISOR_REFUSED = "advisor: ";
+
+function agentRefusal(body: RefusalBody): RefusalBody {
+  return body.error?.startsWith(ADVISOR_REFUSED) === true ? { ...body, code: "advisor-refused", field: "advisor" } : body;
+}
 
 export async function addRoleAgent(change: Schemas["RoleAgentChange"] & { role?: string; name?: string }): Promise<RoleAgentView> {
   const { role, ...fields } = change;
 
   if (role === undefined) throw fail(400, wording("common.error.bad_action"));
 
-  return roleAgentViewOf(await agencyCall(agency().POST("/role-agents", { body: { role, ...fields } }), { codes: AGENT_CODES }));
+  return roleAgentViewOf(await agencyCall(agency().POST("/role-agents", { body: { role, ...fields } }), { codes: AGENT_CODES, refusal: agentRefusal }));
 }
 
 export async function changeRoleAgent(name: string, change: Schemas["RoleAgentChange"] & { role?: string; name?: string }): Promise<RoleAgentView> {
   const { role: _role, name: _name, ...body } = change;
 
-  return roleAgentViewOf(await agencyCall(agency().PATCH("/role-agents/{agentName}", { params: { path: { agentName: name } }, body })));
+  return roleAgentViewOf(await agencyCall(agency().PATCH("/role-agents/{agentName}", { params: { path: { agentName: name } }, body }), { codes: AGENT_CODES, refusal: agentRefusal }));
 }
 
 export async function removeRoleAgent(name: string): Promise<void> {

@@ -8,7 +8,8 @@ const room = await Bun.file(new URL("../../../apps/web/app/pages/rooms/[chatId].
 
 describe("what waits for a room", () => {
   test("stands only where something waits, and for the administrator alone", () => {
-    expect(source).toContain('v-if="calls.length > 0"');
+    // What it shows is held while the list closes on the last of it ending, so the button stands on what it shows.
+    expect(source).toContain('v-if="shown !== null"');
     expect(room).toContain('<RoomBackground v-if="administrator" v-model:open="backgroundOpen" v-model:count="backgroundCount" :chat-id="chatId" />');
   });
 
@@ -18,9 +19,10 @@ describe("what waits for a room", () => {
     expect(source).toContain("if (now) void read();");
   });
 
-  test("names a watch and a reminder in the pack's words and any other call by its tool", () => {
+  test("names a watch, a reminder and a background shell command in the pack's words and any other call by its tool", () => {
     expect(list).toContain('t("room.label.background_watch")');
     expect(list).toContain('t("room.label.background_reminder")');
+    expect(list).toContain('t("room.label.background_shell")');
     expect(list).toContain("return call.tool;");
   });
 });

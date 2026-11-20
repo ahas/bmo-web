@@ -1,6 +1,8 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 
+import { wording } from "../../apps/web/shared/wording";
+
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, BrowserContext, Page, Route } from "playwright-core";
@@ -8,8 +10,9 @@ import type { Browser, BrowserContext, Page, Route } from "playwright-core";
 // The monitor's node list, a node's ownership and the monitor watching the monitored nodes alone (docs/web.md,
 // 「Monitor screen」 and 「The node list」), at a desk's width and a phone's. Every node is shared or personal; a personal
 // node that is merely off stands in the neutral grey, a personal node not monitored has no tile on the devices tab and
-// its own screen asks for no reading, and a monitored one's tile names its owner. The administrator sets a node's ownership from its screen, and the node service's refusal stands in the
-// dialog.
+// its own screen asks for no reading, and a monitored one's tile and its own screen's system card name its owner, a
+// skeleton holding the owner's place while the names are read and a failed read of them said once on each screen. The
+// administrator sets a node's ownership from its screen, and the node service's refusal stands in the dialog.
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up, and serves
 // the node list, the users and the machines through the page's own routes. Nothing waits on a clock of the test's.
@@ -62,12 +65,15 @@ function reading(name: string): Record<string, unknown> {
   };
 }
 
-// What the page sent the node service's change, and the machines that answer as none, which a test may add to.
+// What the page sent the node service's change, and the machines that answer as none, which a test may add to. A
+// context opened with the users held answers them only once `releaseUsers` is called, and one opened with them failing
+// answers them 500.
 interface Served {
   changes: unknown[];
   refuseNext: boolean;
   missing: Set<string>;
   machineAsks: string[];
+  releaseUsers: () => void;
 }
 
 let browser: Browser | null = null;
@@ -87,14 +93,20 @@ afterAll(async () => {
   await browser?.close();
 }, BROWSER_HOOK_MS);
 
-async function open(width: number, height: number): Promise<{ context: BrowserContext; served: Served }> {
+async function open(width: number, height: number, users: "answer" | "hold" | "fail" = "answer"): Promise<{ context: BrowserContext; served: Served }> {
   const context = await browser!.newContext({ viewport: { width, height }, serviceWorkers: "block", reducedMotion: "reduce" });
   const at = cookie.indexOf("=");
-  const served: Served = { changes: [], refuseNext: false, missing: new Set(NODES.filter((one) => !one.monitored).map((one) => one.name)), machineAsks: [] };
+  const held = Promise.withResolvers<void>();
+  const served: Served = { changes: [], refuseNext: false, missing: new Set(NODES.filter((one) => !one.monitored).map((one) => one.name)), machineAsks: [], releaseUsers: held.resolve };
 
+  if (users !== "hold") held.resolve();
   await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
   await context.route("**/api/nodes", (route) => route.fulfill({ json: NODES }));
-  await context.route("**/api/users", (route) => route.fulfill({ json: USERS }));
+  await context.route("**/api/users", async (route) => {
+    if (users === "fail") return await route.fulfill({ status: 500, json: { statusCode: 500, message: "users down" } });
+    await held.promise;
+    await route.fulfill({ json: USERS });
+  });
   await context.route((url) => url.pathname.includes("/api/nodes/"), async (route: Route) => {
     const request = route.request();
 
@@ -217,13 +229,19 @@ describe.skipIf(!origin || !touchReady())("the monitor's node list", () => {
       }
     }, 60_000);
 
-    test(`the devices tab names a monitored personal node's owner, has no tile for another personal node, and a machine gone from its screen gives way to a line (${size.name})`, async () => {
-      const { context, served } = await open(size.width, size.height);
+    test(`the devices tab and its own screen name a monitored personal node's owner, there is no tile for another personal node, and a machine gone from its screen gives way to a line (${size.name})`, async () => {
+      const { context, served } = await open(size.width, size.height, "hold");
       const page = await context.newPage();
 
       try {
         await page.goto(`${origin}/monitor`, { waitUntil: "domcontentloaded" });
         await page.waitForFunction((want) => document.querySelectorAll("[data-machine-tile]").length === want, 1 + MONITORED.length, { timeout: 30_000 });
+
+        // While the names are read the owner's place is a skeleton as tall as the badge it gives way to.
+        const waiting = await page.locator("[data-machine-owner-loading]").evaluate((skeleton) => [skeleton.previousElementSibling!.getBoundingClientRect().height, skeleton.getBoundingClientRect().height]);
+
+        expect(waiting[1]).toBe(waiting[0]!);
+        served.releaseUsers();
 
         const tiles = await page.locator("[data-machine-tile]").evaluateAll((all) => all.map((tile) => tile.textContent ?? ""));
 
@@ -245,14 +263,64 @@ describe.skipIf(!origin || !touchReady())("the monitor's node list", () => {
         expect(badges.own).toEqual(badges.kind);
         expect(badges.inside).toBe(true);
 
+        // Its own screen's system card names the owner as a fact of its own, the node being untracked, inside the card.
+        await page.goto(`${origin}/monitor/own-c`, { waitUntil: "domcontentloaded" });
+        await page.waitForFunction(() => [...document.querySelectorAll("[data-machine-monitor] dd")].some((fact) => fact.textContent?.includes("Test Person")), undefined, { timeout: 30_000 });
+
+        const fact = await page.locator("[data-machine-monitor] dd", { hasText: "Test Person" }).evaluate((value) => {
+          const card = value.closest("dl")!.parentElement!.getBoundingClientRect();
+          const own = value.getBoundingClientRect();
+
+          return { facts: value.closest("dl")!.querySelectorAll("dd").length, inside: own.left >= card.left && own.right <= card.right };
+        });
+
+        expect(fact).toEqual({ facts: 1, inside: true });
+
         await page.goto(`${origin}/monitor/pc-a`, { waitUntil: "domcontentloaded" });
         await page.locator("[data-machine-monitor]").waitFor({ timeout: 30_000 });
         await page.waitForFunction(() => document.querySelector("[data-node-unmonitored]") === null, undefined, { timeout: 10_000 });
+        // A shared node has no owner, so once its reading has come its untracked system card holds no fact.
+        await page.locator("[data-machine-monitor] [role=switch]").waitFor({ timeout: 10_000 });
+        expect(await page.locator("[data-machine-monitor] dl").count()).toBe(0);
 
         // The node service stops knowing it as a machine, as it does a node made personal: the cards give way to the line.
         served.missing.add("pc-a");
         await page.locator("[data-node-unmonitored]").waitFor({ timeout: 20_000 });
         expect(await page.locator("[data-machine-monitor]").count()).toBe(0);
+      } finally {
+        await context.close();
+      }
+    }, 60_000);
+
+    test(`a failed read of the names is said once above the tiles and under the owner on its screen (${size.name})`, async () => {
+      const { context } = await open(size.width, size.height, "fail");
+      const page = await context.newPage();
+
+      try {
+        await page.goto(`${origin}/monitor`, { waitUntil: "domcontentloaded" });
+        await page.locator("[data-owner-names-failed]").waitFor({ timeout: 30_000 });
+
+        // One line above the tiles, the tile naming the personal node alone.
+        const said = await page.locator("[data-owner-names-failed]").evaluate((line) => ({
+          text: line.textContent,
+          aboveTiles: [...document.querySelectorAll("[data-machine-tile]")].every((tile) => tile.getBoundingClientRect().top >= line.getBoundingClientRect().bottom)
+        }));
+
+        expect(said).toEqual({ text: wording("hardware.error.users_failed"), aboveTiles: true });
+        expect(await page.locator("[data-owner-names-failed]").count()).toBe(1);
+        expect(await page.locator("[data-machine-owner]").innerText()).toBe(wording("hardware.label.ownership_personal_node"));
+
+        await page.goto(`${origin}/monitor/own-c`, { waitUntil: "domcontentloaded" });
+        await page.locator("[data-machine-monitor] [data-fact-failure]").waitFor({ timeout: 30_000 });
+
+        const fact = await page.locator("[data-fact-failure]").evaluate((reason) => {
+          const value = reason.closest("dd")!;
+          const card = value.closest("dl")!.parentElement!.getBoundingClientRect();
+
+          return { value: value.firstChild!.textContent!.trim(), reason: reason.textContent, inside: reason.getBoundingClientRect().right <= card.right };
+        });
+
+        expect(fact).toEqual({ value: wording("hardware.label.ownership_personal_node"), reason: wording("hardware.error.users_failed"), inside: true });
       } finally {
         await context.close();
       }

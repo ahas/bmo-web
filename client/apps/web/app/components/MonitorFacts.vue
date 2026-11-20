@@ -21,7 +21,10 @@
     <dl v-else-if="facts.length > 0" class="text-sm" :class="GRID">
       <template v-for="fact in facts" :key="fact.label">
         <dt class="whitespace-nowrap text-muted">{{ fact.label }}</dt>
-        <dd class="min-w-0 break-words" :class="fact.tone ?? ''">{{ fact.value }}</dd>
+        <dd class="min-w-0 break-words" :class="fact.tone ?? ''">
+          {{ fact.value }}
+          <span v-if="fact.failure" class="block text-error" data-fact-failure>{{ fact.failure }}</span>
+        </dd>
       </template>
     </dl>
   </MonitorCard>

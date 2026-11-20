@@ -240,7 +240,9 @@
   person's → 소유: 공용 노드, 개인 노드, 공용, 개인, 소유 변경; the account a personal node belongs to → 소유 계정, 계정 없음,
   알 수 없는 계정 {id}. A PC several accounts share, a 공유 기기 above, is a 개인 노드. Never 공유 노드, 공유 PC, 플랫폼 노드 or
   사설 노드 for either. Its last check → 상태: 연결됨, 연결 끊김, 인증 실패, 호스트 키 불일치, 연결할 수 없음, 오류, 확인 전;
-  how it is reached → 연결 방식: SSH, Jake. A personal node's screen says 개인 노드는 모니터링하지 않습니다.
+  how it is reached → 연결 방식: SSH, Jake. A personal node the monitor reads names its owner on its tile and in
+  its system card's 소유 → 개인 노드 · {name}, and 개인 노드 alone where the reader cannot read the name. A personal
+  node the monitor does not read says on its screen 개인 노드는 모니터링하지 않습니다.
 - the console's desktop app → 데스크톱 앱; its pairing with an account → 앱 연결: 앱 연결, 연결 코드, 승인, 거부,
   승인했습니다, 거부했습니다, 연결하는 중, 연결됨. The app's own window → 앱 창, and the line at its top that shows the
   code → 제목 표시줄, as Windows names it. Never 데스크탑, 페어링, 허용 or 거절, nor 타이틀 바 or 창 제목.

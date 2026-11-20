@@ -791,6 +791,8 @@ export interface MonitorFact {
   label: string;
   value: string;
   tone?: string;
+  // What kept the value from being read in full, said under it in the error colour.
+  failure?: string;
 }
 
 // Whether a group of meters keeps a column for the share after each figure.

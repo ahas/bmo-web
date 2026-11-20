@@ -2736,7 +2736,10 @@ archive and this week's tokens remain. That is all that can actually be known th
   - its name, its live tracking switch (bmo-node's `docs/hardware.md`, 「Tracking」) and its connection type —
     SSH or Jake for a node, 로컬 for this machine — and, for a personal node, its owner beside the connection type:
     개인 노드 with the owning account's person's name after a middle dot where the reader is the administrator, who
-    reads every user's name, and 개인 노드 alone for anyone else and until the names have come;
+    reads every user's name, a skeleton in its place while the names are read, and 개인 노드 alone for anyone else
+    and where the names could not be read. A read of the names that failed is said once, above the tiles, in one
+    short line in the error colour, 계정 목록을 불러오지 못했습니다, where a personal node has a tile, so no tile
+    repeats it;
   - each GPU by its short model name, the maker's and the brand's words dropped (`RTX 3070`);
   - one row of two columns, the first four times as wide as the second: in the first a bar for each GPU's VRAM
     and one for RAM, each with its figures in their physical units and no share beside them, in the small size, the
@@ -2760,7 +2763,11 @@ archive and this week's tokens remain. That is all that can actually be known th
   and the storage take a broader column with the memory, every GPU, board and failed services beside them in
   that order; middling, the two columns share the width; narrow, one column in the order CPU, memory, GPU,
   storage, board. The system card carries the live tracking switch, and the CPU card the CPU limit, each written
-  to the node service as it is set.
+  to the node service as it is set. A personal node's system card leads its facts with 소유, its owner in the
+  words its tile uses, read from the node list as the tile's is. The card's skeleton stands until the names are
+  read as well as the reading, so its facts land once, and the owner stands where the machine is not tracked or
+  cannot be read too. Where the names could not be read, the owner is 개인 노드 with the reason under it in the
+  error colour, 계정 목록을 불러오지 못했습니다.
 - **A node's screen is its own monitor, `/monitor/<node>`, for a node not monitored too.** Only a monitored node is
   read (bmo-node's `docs/nodes.md`, 「A node's ownership」), so a node's screen asks for a reading only once the node
   list says the node is monitored; a node that is not, always a personal one, stands one calm line in the muted

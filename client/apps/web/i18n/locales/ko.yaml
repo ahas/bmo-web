@@ -1093,6 +1093,7 @@ hardware:
     no_account: 계정 없음
     no_nodes: 노드 없음
     no_nodes_found: 찾은 노드 없음
+    ownership: 소유
     ownership_all: 전체
     ownership_personal: 개인
     ownership_personal_node: 개인 노드

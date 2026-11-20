@@ -37,7 +37,10 @@
 
         <div class="flex flex-wrap items-center gap-2">
           <UBadge :icon="machineIcon(machine.kind)" :label="machineKindWord($t, machine.kind)" color="neutral" variant="subtle" />
-          <UBadge v-if="owner !== null" icon="i-material-symbols-person-outline" :label="owner" color="neutral" variant="subtle" class="min-w-0 max-w-full" data-machine-owner />
+          <SkeletonStatus v-if="ownerLoading" :label="$t('hardware.status.account_loading')" class="flex" data-machine-owner-loading>
+            <SkeletonBar class="h-7 w-40" />
+          </SkeletonStatus>
+          <UBadge v-else-if="owner !== null" icon="i-material-symbols-person-outline" :label="owner" color="neutral" variant="subtle" class="min-w-0 max-w-full" data-machine-owner />
         </div>
       </div>
 
@@ -134,8 +137,9 @@ import type { GpuView, HardwareView, MachineHardware } from "#shared/types";
 
 // The reading is the overview's one recorded answer for every machine, handed to the tile rather than
 // asked by it, so the tiles keep one interval between them and no machine's read holds another.
-// `owner` is the words naming a personal node's owner, null for a machine no person owns.
-const props = defineProps<{ machine: MonitorMachine; owner: string | null; reading: MachineHardware | null; status: ReadStatus; failed: boolean }>();
+// `owner` is the words naming a personal node's owner, null for a machine no person owns; `ownerLoading` holds its place
+// while the names it is told by are read.
+const props = defineProps<{ machine: MonitorMachine; owner: string | null; ownerLoading: boolean; reading: MachineHardware | null; status: ReadStatus; failed: boolean }>();
 const TILE_METRICS = ["use", "temp"];
 const { t } = useI18n();
 

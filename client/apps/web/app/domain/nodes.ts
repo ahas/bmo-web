@@ -1,7 +1,9 @@
+import { useAdministrator } from "./access";
+
 import type { MonitorNode, NodeOwnership, NodeState, NodeTone } from "#shared/types";
 import type { Translate } from "#shared/wording";
 import type { UserSummary } from "@web/server-client";
-import type { Ref } from "vue";
+import type { ComputedRef, Ref } from "vue";
 
 // The node service's list as the monitor reads it (docs/web.md, 「Monitor screen」 and 「The node list」): the nodes in
 // the list's order, each by its name, its label, how it is reached, whether it is this machine, its last check and
@@ -98,8 +100,9 @@ export function ownershipText(t: Translate, names: ReadonlyMap<string, string>, 
   return name === null ? ownershipNodeWord(t, node.ownership) : t("hardware.label.ownership_personal_of", { name });
 }
 
-/** The owner a monitored personal node's tile names: the personal node with its account's name where the names are
- * read, the word alone where they are not; null for a machine with no account, this machine and a shared node. */
+/** The owner a monitored personal node's tile and system card name: the personal node with its account's name where
+ * the names are read, the word alone where they are not; null for a machine with no account, this machine and a shared
+ * node. */
 export function machineOwnerText(t: Translate, names: ReadonlyMap<string, string> | null, account: string | null): string | null {
   if (account === null) return null;
 
@@ -114,6 +117,21 @@ export function useAccountNames(): { names: Ref<Map<string, string>>; users: Ref
   const read = computed(() => status.value === "success" || status.value === "error");
 
   return { names: computed(() => accountNames(data.value ?? [])), users: data as Ref<UserSummary[]>, read, error };
+}
+
+/** The names a monitored personal node's owner is told by for this reader, whether they are still being read, and
+ * what their read met where it failed. Every user's name is the administrator's read alone, so anyone else has none
+ * and no read to fail, and neither has the administrator where the read failed: null, which names a personal node
+ * without whose. */
+export function useOwnerNames(): { names: ComputedRef<ReadonlyMap<string, string> | null>; waiting: ComputedRef<boolean>; error: ComputedRef<unknown> } {
+  const accounts = useAdministrator().value ? useAccountNames() : null;
+  const error = computed(() => (accounts !== null && accounts.read.value ? (accounts.error.value ?? null) : null));
+
+  return {
+    names: computed(() => (accounts !== null && accounts.read.value && error.value === null ? accounts.names.value : null)),
+    waiting: computed(() => accounts !== null && !accounts.read.value),
+    error
+  };
 }
 
 /** The node list's filter as the address holds it, and its change, which replaces the address rather than adding a

@@ -3,7 +3,8 @@
      connection card, beside the system card — then one card per piece of hardware — the CPU, memory,
      each GPU, the storage devices, the board — each with its own figures and its charts, and the
      services that failed. The system card carries the machine's live tracking switch, and a machine
-     not tracked says so there and stands no hardware cards. A machine that cannot be read says so
+     not tracked says so there and stands no hardware cards. A personal node's owner leads the system
+     card's facts, whether or not the machine was read. A machine that cannot be read says so
      with what was met; a figure it did not answer is marked unreadable. It reads one machine for as long as
      it stands, so a screen that moves to another machine stands a new one. -->
 <template>
@@ -16,9 +17,9 @@
       <MonitorFacts
         :title="$t('hardware.title.system')"
         :facts="systemFacts"
-        :loading="failure === null && hardware === null && !off"
+        :loading="(failure === null && hardware === null && !off) || ownerLoading"
         :loading-label="$t('hardware.status.system_loading')"
-        :rows="6"
+        :rows="owner === null ? 6 : 7"
         :class="$slots.lead ? '' : '@3xl:col-span-2'"
       >
         <template #actions>
@@ -79,7 +80,10 @@ import { countText } from "~/domain/numbers";
 import type { MonitorFact } from "~/domain/hardware";
 import type { HardwareView, MachineHardware } from "#shared/types";
 
-const props = defineProps<{ url: string; historyUrl: string; liveUrl: string }>();
+// `owner` is the words naming a personal node's owner, null for a machine no person owns; `ownerLoading` keeps the
+// system card's skeleton while the names it is told by are read, so the card's facts land once, the owner among them;
+// `ownerFailed` says the names could not be read, the reason standing under the owner.
+const props = defineProps<{ url: string; historyUrl: string; liveUrl: string; owner: string | null; ownerLoading: boolean; ownerFailed: boolean }>();
 // Every reading as it lands, whether the last asking failed outright, and whether the node service answered the
 // machine is none it knows, for a screen that names the machine by what its reading says.
 const emit = defineEmits<{ read: [reading: MachineHardware | null, failed: boolean, missing: boolean] }>();
@@ -101,14 +105,19 @@ provide(HARDWARE_CHARTING, {
   loading: useInitialRead(status),
 });
 
+// The owner is the node list's, not the reading's, so it stands where the machine is not tracked or not read too.
 const systemFacts = computed<MonitorFact[]>(() => {
+  const owner: MonitorFact[] = props.owner === null
+    ? []
+    : [{ label: t("hardware.label.ownership"), value: props.owner, ...(props.ownerFailed ? { failure: t("hardware.error.users_failed") } : {}) }];
   const view = hardware.value;
 
-  if (view === null) return [];
+  if (view === null) return owner;
 
   const failed = view.services.failed;
 
   return [
+    ...owner,
     { label: "OS", value: view.os ?? t(UNREAD) },
     ...(view.wsl ? [{ label: "Windows", value: view.hostOs ?? t(UNREAD) }] : []),
     { label: t("hardware.label.kernel"), value: view.kernel ?? t(UNREAD), tone: "font-mono" },

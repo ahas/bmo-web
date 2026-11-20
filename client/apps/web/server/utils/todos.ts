@@ -1,7 +1,7 @@
-import { DONE_MAX, DONE_PAGE_SIZE, TODO_REPORTS_FRESH_MS, TODO_SEARCH_LIMIT, WORKER_AGENT } from "#shared/config";
+import { DONE_MAX, DONE_PAGE_SIZE, TODO_REPORTS_FRESH_MS, TODO_SEARCH_LIMIT, UNFINISHED_PAIR_MS, WORKER_AGENT } from "#shared/config";
 import { filterRecords } from "bmo-ui/shared/search";
 import { wording } from "#shared/wording";
-import { NO_CONDITIONS, NO_ROOM, todoSearchFields } from "../../app/domain/todos";
+import { NO_CONDITIONS, NO_ROOM, todoSearchFields, unfinishedState } from "../../app/domain/todos";
 import { agency, agencyCall, isJobUnderWay } from "./agency";
 import { job, jobCall, ownersWaitingQuestions } from "./job";
 import { namedLabel } from "./todo-assignment";
@@ -90,11 +90,58 @@ export function holdOf(value: unknown): DeployHold | null {
 }
 
 /** An item's reports as the dialog reads them: the closing ones first, the latest leading, then the rest in the
- * order they were written, which is the order bmo-job hands them in. */
+ * order they were written, which is the order bmo-job hands them in. The report its unfinished note is read from
+ * stands as that note alone. */
 export function reportRows(reports: readonly Report[]): TodoReport[] {
-  const rows = reports.map((report) => ({ id: report.id, kind: report.kind, body: report.body, actor: report.actorName, at: Math.floor(report.createdAt / 1000) }));
+  const note = noteReport(reports);
+  const rows = reports.filter((report) => report !== note).map((report) => ({ id: report.id, kind: report.kind, body: report.body, actor: report.actorName, at: Math.floor(report.createdAt / 1000) }));
 
   return [...rows.filter((row) => row.kind === "final").reverse(), ...rows.filter((row) => row.kind !== "final")];
+}
+
+// The labels an item keeps its unfinished note's resolution in, and the one an item carried over from the old board
+// keeps the note itself in (docs/web.md, the TODO panel's section).
+const UNFINISHED_LABEL = "unfinished";
+const RESOLVED_AT_LABEL = "unfinished_resolved_at";
+const RESOLUTION_LABEL = "unfinished_resolution";
+
+// The report an item's unfinished note is read from: the latest held report whose very next report is a final one by
+// the same writer, written close enough behind it to be the account bmo-job's `todo --done` wrote with the note. A
+// hold's reason and a run's stop-here account stand with no final report written with them. Null where none pairs so.
+function noteReport(reports: readonly Report[]): Report | null {
+  for (let at = reports.length - 2; at >= 0; at -= 1) {
+    const report = reports[at]!;
+    const next = reports[at + 1]!;
+    const paired = next.kind === "final" && next.actorName === report.actorName && next.createdAt - report.createdAt <= UNFINISHED_PAIR_MS;
+
+    if (report.kind === "held" && paired) return report;
+  }
+
+  return null;
+}
+
+type Unfinished = Pick<TodoItem, "unfinished" | "unfinishedResolvedAt" | "unfinishedResolution">;
+
+const NO_UNFINISHED: Unfinished = { unfinished: null, unfinishedResolvedAt: null, unfinishedResolution: null };
+
+/** An item's unfinished note and its resolution: the note from its reports, else from the label an item carried over
+ * from the old board keeps it in, and the resolution its labels keep, unless the note was written after it. */
+export function unfinishedOf(item: Pick<Item, "labels">, reports: readonly Report[]): Unfinished {
+  const report = noteReport(reports);
+  const note = report?.body ?? (item.labels[UNFINISHED_LABEL]?.trim() || null);
+
+  if (note === null) return NO_UNFINISHED;
+
+  const resolvedAt = Number(item.labels[RESOLVED_AT_LABEL]);
+  const holds = Number.isInteger(resolvedAt) && resolvedAt > 0 && (report === null || Math.floor(report.createdAt / 1000) <= resolvedAt);
+
+  return { unfinished: note, unfinishedResolvedAt: holds ? resolvedAt : null, unfinishedResolution: holds ? (item.labels[RESOLUTION_LABEL] ?? "") : null };
+}
+
+/** An item's labels with its unfinished note resolved at a moment, in epoch milliseconds, by the line saying why; every
+ * other label kept as it stands. */
+export function labelsResolving(labels: Record<string, string>, why: string, at: number): Record<string, string> {
+  return { ...labels, [RESOLVED_AT_LABEL]: String(Math.floor(at / 1000)), [RESOLUTION_LABEL]: why };
 }
 
 // The label an item held before bmo-job kept a hold's reason may carry: the moment the console set it aside, in epoch
@@ -257,6 +304,7 @@ function itemOf(
 ): TodoItem {
   const held = heldOf(item, reports);
   const liveState = live?.state ?? null;
+  const finished = isFinished(item, items);
 
   return {
     id: item.id,
@@ -268,7 +316,7 @@ function itemOf(
     approved: approvedItem(item),
     awaitingApproval: item.state === "draft",
     recommended: item.approvals.some((approval) => approval.kind === "recommendation"),
-    done: isFinished(item, items),
+    done: finished,
     running: item.state === "leased",
     liveState,
     // Done in bmo-job while the agency's job for it still goes: its report is still going out, until the agency says
@@ -300,9 +348,8 @@ function itemOf(
     note,
     reports: reportRows(reports),
     rejections: item.rejections,
-    unfinished: null,
-    unfinishedResolvedAt: null,
-    unfinishedResolution: null,
+    // Only finished work leaves a note behind (docs/web.md, the TODO panel's section).
+    ...(finished ? unfinishedOf(item, reports) : NO_UNFINISHED),
     // A hold's time and reason, read only while the item is held, so a released item says nothing of an earlier hold.
     heldAt: item.state === "held" ? held.heldAt : null,
     heldReason: item.state === "held" ? held.heldReason : null,
@@ -547,16 +594,30 @@ export async function readTodoNotes(todoId: number): Promise<TodoNote[]> {
   }));
 }
 
-// Whether a line meets the conditions a line carries enough to judge, with the items waiting on the owner's answer
-// where the question condition asks for them. What the fixed item does not carry — an unfinished note's state and the
-// room it came from — is met by no line where a condition names it.
-function meets(item: Item, conditions: TodoConditions, awaiting: ReadonlySet<number>): boolean {
+// What a line's conditions are judged against beyond its own fields: the items waiting on the owner's answer, read
+// where the question condition asks for them, and the items and the reports read of every finished one, where the
+// unfinished condition asks for them.
+interface Readings {
+  awaiting: ReadonlySet<number>;
+  all: Items;
+  reports: ReadonlyMap<number, Report[]>;
+}
+
+// Whether a line meets the conditions: its own fields, whether one of its questions waits on the owner's answer, and
+// its unfinished note's state; an item not finished yet has left no note, so it meets neither choice of that. The room
+// a line came from is not on the fixed item, and no condition reads it.
+function meets(item: Item, conditions: TodoConditions, readings: Readings): boolean {
   const worker = item.assigneeName ?? WORKER_AGENT;
 
   if (conditions.worker !== null && worker !== conditions.worker) return false;
   if (conditions.requester !== null && (item.requesterName ?? "") !== conditions.requester) return false;
-  if (conditions.unfinished !== null) return false;
-  if (conditions.question === "awaiting" && !awaiting.has(item.id)) return false;
+  if (conditions.question === "awaiting" && !readings.awaiting.has(item.id)) return false;
+
+  if (conditions.unfinished !== null) {
+    const note = unfinishedOf(item, readings.reports.get(item.id) ?? []);
+
+    if (!isFinished(item, readings.all) || unfinishedState(note) !== conditions.unfinished) return false;
+  }
 
   return true;
 }
@@ -655,7 +716,10 @@ export async function readTodoBoard(
   const conditions = input.conditions ?? NO_CONDITIONS;
   const [items, queues, live, awaiting] = await Promise.all([allItems(), readQueues(), liveStates(), awaitingItems(conditions)]);
   const all = byNumber(items);
-  const matching = items.filter((item) => meets(item, conditions, awaiting));
+  // No item's line carries its unfinished note, so the condition on one reads the reports of every finished item,
+  // kept as the page's are (docs/boundary.md, 「Gaps the console meets」).
+  const reports = conditions.unfinished === null ? new Map<number, Report[]>() : await boardReports(items.filter((item) => isFinished(item, all)));
+  const matching = items.filter((item) => meets(item, conditions, { awaiting, all, reports }));
   const finished = matching.filter((item) => listOf(item, all) === "done").sort((one, other) => other.id - one.id);
   const finishedFound = query === null
     ? finished

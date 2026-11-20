@@ -6486,7 +6486,8 @@ Four bounds keep it from growing forever.
     - **결과** stands only on an item that carries a report or unfinished-items, and it is the first tab of
       the row. It holds every report bmo-job keeps of the item (bmo-job's `docs/api.md`, 「Reports」) — the closing
       one, **완료 보고**, first — the latest first where the item closed more than once — and after it the others, **진행 보고** and **보류 사유**, in the order they were
-      written — and then the **미결** with its resolution. Each report is headed by its kind, the moment it was
+      written — and then the **미결** with its resolution. The report a 미결 is read from (「완료 보고와 미결」 below)
+      stands only as that 미결, never again as a 보류 사유. Each report is headed by its kind, the moment it was
       written and who wrote it, and every one of them stands at its whole length with no fold and no scroll of its
       own: a report is the item's account of itself, and a part of it put away behind a press is a part not read.
       The tab reads the reports again each time the item is opened and whenever the queue moves, so a report
@@ -6788,15 +6789,12 @@ Four bounds keep it from growing forever.
       carries how many; the mark's tooltip names them by kind. The board reads the reports of each finished and held
       item it hands over, and keeps what it read for an item for a minute while the item is unchanged, so a page read
       again in that minute asks bmo-job nothing more of them (`docs/boundary.md`, 「Gaps the console meets」). If it
-      left unfinished-items
-      a **미결** tag — telling which line left its own story without opening. A resolved unfinished-item reads as
-      **미결 해소**, told apart at a glance from what remains. An unfinished-item whose branches were each stood as their
-      own line resolves on its own the moment those lines all finish, so the resolution reason standing here reads
-      「이 미결에서 세운 줄이 전부 끝나서 해소됐습니다」 and names by number and title which lines did. So there is no
-      resolving a line-stood unfinished-item by hand. The resolution box stays, since an unfinished-item nobody stood as a
-      line must be resolved by the reader, and even with lines left the owner can close it by their judgement. Conversely,
-      standing one more branch from an already-resolved unfinished-item returns it to unfinished — a line nobody did came
-      from that unfinished-item, so the same rule reads it so.
+      left a 미결 (「완료 보고와 미결」 below), it carries a **미결** tag — telling which line left its own story
+      without opening. A resolved 미결 reads as **미결 해소**, told apart at a glance from what remains. A 미결 is
+      resolved by hand, in its own cell: a line stood out of it carries no mark of the note it came from that the
+      board could read, so the lines finishing resolve nothing on their own (`docs/boundary.md`, 「Gaps the console
+      meets」). A 미결 carried over from the old board may already stand resolved with the old board's own reason,
+      which named the lines stood out of it.
 - **Auto-progress stops and resumes in the panel header.** At the right of the header, beside reread, stands a button, and
   pressing stops the machine moving on to the next item: the chat agent is told of no waiting queue and launches nothing. While stopped a band stands below the header saying 자동 진행 일시정지, with the
   resume button in that band. When the panel is folded the vertical band's text says the pause too — a folded screen not knowing it is
@@ -6824,7 +6822,8 @@ Four bounds keep it from growing forever.
   - **저장소** — the repository whose worker does the line. A line with no assignment is the Built-in worker's, so
     picking that worker finds those lines too. The names come from the agents table, with any other name a line
     still carries.
-  - **미결** — a 미결 still standing, or one already resolved.
+  - **미결** — 미결 남음, a finished line whose 미결 still stands, or 미결 해소, one whose 미결 was resolved. Only a
+    finished line leaves a 미결, so under either choice the unfinished groups stand empty.
   - **요청한 방** and **요청한 사람** — the room a request came from (or none) and the name it was filed under, out of
     what the table holds.
   - **질문** — 답변 대기: the items waiting on his answer, those one of whose questions is put to a person and not yet
@@ -6837,8 +6836,9 @@ Four bounds keep it from growing forever.
   like the tab and the order.
 - **A condition is applied on the server, to every line bmo-job lists, not to the lines in hand.** 완료 comes a page at
   a time, so narrowing only the page on screen would leave it thin; the page, its total and the unfinished groups all
-  answer to the same conditions. The room a request came from is not on bmo-job's lines, so the room condition offers
-  none to pick. Under a condition a group left empty does not stand, and the line under the search says how many
+  answer to the same conditions. A 미결 is not on bmo-job's lines, so under the 미결 condition the board reads
+  the reports of every finished item, kept a minute as the page's are, and narrows by them. The room a request came
+  from is not on bmo-job's lines, so the room condition offers none to pick. Under a condition a group left empty does not stand, and the line under the search says how many
   matched. The lists a condition is picked from are read from the whole table and never narrowed, so a condition that
   empties the panel can still be changed.
 - **The tab badges count the whole table.** They are
@@ -7131,7 +7131,7 @@ Four bounds keep it from growing forever.
   together. The choices are every item with an unresolved unfinished-item — whether in the loaded page or not, whatever is being searched.
   Another line pointing at the same work as the one being viewed is not a line they found. An already-resolved unfinished-item is not a choice.
   It is already sorted, and reopening it is done separately on that line. Chosen sources attach to the new line's instruction original each in
-  its own block, and all those unfinished-items resolve together when this line and its sibling lines all finish.
+  its own block; each of those unfinished-items is resolved by hand once this line and its sibling lines are done.
 - **The talk knows lines already stood.** The item the chat agent reads stands, below the unfinished-item, the lines already stood from it with their
   number, title and whether finished. Without it, it would say to stand a branch already a line again — the unfinished-item paragraph does not
   record what has already been stood. A link is a table fact so it is not read from prose but read and carried in.
@@ -7139,7 +7139,7 @@ Four bounds keep it from growing forever.
   awaiting-approval group. The message pill names the new line, and pressing it goes to the very address a notification uses to open an item.
   Changing the address opens that line, so it opens even pressed with the console already open. That pill is news of a line the reader has not
   seen yet, not a restatement of the act (「Messages」), and it closes on its own time as every pill does.
-- This place is why an unfinished-item actually closes. An unfinished-item is resolved when every branch is done or each stood as its own line,
+- This place is why an unfinished-item actually closes. An unfinished-item is resolved once every branch is done or each stood as its own line,
   and if the road to stand a branch as a line were only in the shell, that rule could not be followed in the console. Where to cut a branch a
   person decides — with no divider in the paragraph, only the reader can say which branch it is, so they write the title and content. A line
   stood here is their request. What they typed is the instruction original, and they are the requester.
@@ -7255,6 +7255,13 @@ Four bounds keep it from growing forever.
   the room, stored whole uncut. Opening a line that carries either stands the **결과** tab first and selected, with each report and the **미결** each in its own cell. So long after the report
   flowed by, opening one item reads how it ended and what remained. An item with no such record is an old item closed before jobs were asked to report,
   and it is not backfilled.
+- **Where a 미결 is read from.** Only a finished item has a 미결. bmo-job's `bmo todo --done` keeps the note as a
+  `held` report and the account as a `final` one, the note first, both by the same writer in one call (bmo-job's
+  `docs/cli.md`, 「`bmo-job todo`」); a hold and `--stop-here` write a `held` report with no `final` beside it. So the
+  미결 is the latest `held` report whose very next report is a `final` one by the same writer within ten seconds.
+  An item carried over from the old board, which has no such pair, keeps its 미결 in its label `unfinished`. Its
+  resolution stands in the item's labels `unfinished_resolved_at` (epoch seconds) and `unfinished_resolution`; a
+  note written after that moment is a new 미결 and stands unresolved.
 - In the 상태 tab, the **실행 기록** cell stands how long the work took as a bar. What it counts is read from the agency's jobs
   of the item on its worker (its `GET /jobs`), as the dialog opens, as a job of it starts, every few seconds while it runs,
   and once more when it ends: how many ran it, their time, and of the latest job its
@@ -7283,10 +7290,12 @@ Four bounds keep it from growing forever.
   run before spans were recorded, or one where side-by-side calls sum longer than the span they sat in — nothing, not 0, stands.
 - **미결 해소.** The unfinished-item cell has a place to resolve it too. Writing one line why it is no longer remaining work and pressing **미결 해소** stands,
   below, when it was resolved and that one line, with not a character of what the job wrote erased. A resolved line reads **미결 해소** even standing in the list.
+  The console writes the moment and the line into the item's two resolution labels in one change of bmo-job's,
+  every other label kept as it stands.
 - Resolution is per item. An unfinished-item is prose so marking one passage inside it would invent a structure not in the text. Instead the way of writing
   fills that — if one passage of an unfinished-item is still real work, stand that passage as an item, and when every passage of a text is done or stood as its
-  own item, resolve the whole text. An item with no unfinished-item and an already-resolved one the bot refuses, so nothing is overwritten and the screen says
-  why not. Closing an item with another unfinished-item makes it a new one so the earlier resolution disappears with it.
+  own item, resolve the whole text. An item with no unfinished-item and an already-resolved one the console refuses, so nothing is overwritten and the screen says
+  why not. Closing an item with another unfinished-item makes it a new one so the earlier resolution no longer holds for it.
 - **A new item is not made here.** An item's worth is in the instruction original, and that original comes only from the conversation the owner had with the chat agent in their private chat. Putting an input box in the panel would make a line with no such conversation. New work is spoken in the owner's private chat's input box, and the chat agent files it as the
   original.
 - The panel is updated by the events the bot flows. On a word naming the items it moved — an item changed, a lease, a

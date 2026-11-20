@@ -526,8 +526,59 @@ describe("the board narrowed", () => {
 
     expect(ids((await readTodoBoard({ conditions: { ...NO_CONDITIONS, worker: "worker-b" } })).queue)).toEqual([1]);
     expect(ids((await readTodoBoard({ conditions: { ...NO_CONDITIONS, worker: "worker" } })).queue)).toEqual([2]);
-    // The fixed item carries no unfinished note, so a condition on one is met by no row.
-    expect(ids((await readTodoBoard({ conditions: { ...NO_CONDITIONS, unfinished: "open" } })).done)).toEqual([]);
+  });
+
+  test("by an unfinished note still standing or resolved, over every finished item, the page and its total included", async () => {
+    const at = 1_790_000_100_000;
+    const report = (id: number, itemId: number, kind: string, actorName: string, createdAt: number, body = `${kind} ${id}`) =>
+      ({ id, itemId, actorName, kind, body, createdAt, labels: {} });
+    // The note a closing job wrote with its account, by the same writer in the same moment.
+    const closed = (itemId: number, noteAt: number) => [report(itemId * 10, itemId, "held", "worker-a", noteAt, `left by ${itemId}`), report(itemId * 10 + 1, itemId, "final", "worker-a", noteAt + 400)];
+    const resolvedAt = (seconds: number) => ({ unfinished_resolved_at: String(seconds), unfinished_resolution: "done in another item" });
+
+    stand([
+      item(61, { state: "done", changedAt: 61 }),
+      item(62, { state: "done", changedAt: 62, labels: resolvedAt(1_790_000_200) }),
+      // Carried over from the old board: the note in its label, resolved and not.
+      item(63, { state: "done", changedAt: 63, labels: { unfinished: "left on the old board", ...resolvedAt(1_790_000_200) } }),
+      item(64, { state: "done", changedAt: 64, labels: { unfinished: "left on the old board" } }),
+      // A stop-here account its writer closed on a minute later, and a hold's reason with another's account after it.
+      item(65, { state: "done", changedAt: 65 }),
+      item(66, { state: "done", changedAt: 66 }),
+      // Closed again with a new note after the earlier one was resolved.
+      item(67, { state: "done", changedAt: 67, labels: resolvedAt(1_790_000_200) }),
+      // A note on work its review has not taken yet: not finished, so it has left nothing.
+      item(68, { state: "leased", changedAt: 68 })
+    ]);
+    held.reports.set(61, closed(61, at));
+    held.reports.set(62, closed(62, at));
+    held.reports.set(65, [report(650, 65, "held", "worker-a", at), report(651, 65, "final", "worker-a", at + 60_000)]);
+    held.reports.set(66, [report(660, 66, "held", "owner", at), report(661, 66, "final", "worker-a", at + 1_000)]);
+    held.reports.set(67, closed(67, at + 200_000));
+    held.reports.set(68, closed(68, at));
+
+    const open = await readTodoBoard({ limit: 1, conditions: { ...NO_CONDITIONS, unfinished: "open" } });
+    const resolved = await readTodoBoard({ conditions: { ...NO_CONDITIONS, unfinished: "resolved" } });
+
+    expect(ids(open.done)).toEqual([67]);
+    expect(open.doneTotal).toBe(3);
+    expect(ids((await readTodoBoard({ limit: 10, conditions: { ...NO_CONDITIONS, unfinished: "open" } })).done)).toEqual([67, 64, 61]);
+    expect([open.queue, open.pending, open.held, open.merged].flat()).toEqual([]);
+    expect(ids(resolved.done)).toEqual([63, 62]);
+    expect(resolved.doneTotal).toBe(2);
+
+    const rows = new Map((await readTodoBoard({ limit: 10 })).done.map((row) => [row.id, row]));
+
+    expect(rows.get(61)).toMatchObject({ unfinished: "left by 61", unfinishedResolvedAt: null, unfinishedResolution: null });
+    expect(rows.get(62)).toMatchObject({ unfinished: "left by 62", unfinishedResolvedAt: 1_790_000_200, unfinishedResolution: "done in another item" });
+    expect(rows.get(63)).toMatchObject({ unfinished: "left on the old board", unfinishedResolvedAt: 1_790_000_200 });
+    expect(rows.get(65)!.unfinished).toBeNull();
+    expect(rows.get(66)!.unfinished).toBeNull();
+    // The note's report stands as the note alone; a held report that is no note stands among the reports.
+    expect(rows.get(61)!.reports.map((one) => one.kind)).toEqual(["final"]);
+    expect(rows.get(65)!.reports.map((one) => one.kind)).toEqual(["final", "held"]);
+
+    for (const id of [61, 62, 65, 66, 67, 68]) held.reports.delete(id);
   });
 
   // An item waits on the owner's answer while one of its questions is put to a person and not yet settled, open or

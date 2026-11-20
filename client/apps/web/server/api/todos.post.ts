@@ -11,9 +11,11 @@ import {
   RAISE_TITLE_LIMIT,
   RESOLUTION_LIMIT,
   STOP_REASON_LIMIT,
-  STOP_REASON_NEEDED
+  STOP_REASON_NEEDED,
+  UNFINISHED_NOT_OPEN
 } from "#shared/config";
 import { wording } from "#shared/wording";
+import { canResolve } from "../../app/domain/todos";
 import {
   isAssignedModel,
   isRoleName,
@@ -198,8 +200,7 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
     throw fail(400, wording("todo.error.bad_agent"));
   }
 
-  // Each verb is one write on the item, its notes or its queue, as bmo-job's fixed API takes it. A verb the fixed
-  // item has no place for — an unfinished note resolved — is refused as one this item cannot take.
+  // Each verb is one write on the item, its notes or its queue, as bmo-job's fixed API takes it.
   switch (action) {
     case "approve":
       // An item naming a model no agent of its role runs is not approved (docs/web.md, the TODO panel's section).
@@ -221,6 +222,9 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
       break;
     case "notices_on":
       await patchItem(id, { noticesOff: null });
+      break;
+    case "resolve":
+      await resolveUnfinished(id, (why as string).trim());
       break;
     case "worker":
       await patchItem(id, { assigneeName: worker === null ? null : String(worker) });
@@ -280,6 +284,17 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
 // held report itself (docs/web.md, the TODO panel's section).
 async function holdItem(id: number, reason: string): Promise<void> {
   await patchItem(id, { state: "held", reason });
+}
+
+// Resolving a finished item's unfinished note: the moment and the line saying why written into the item's labels in
+// one change, every other label kept. An item that left no note, or whose note stands resolved already, is refused,
+// so nothing is written over (docs/web.md, the TODO panel's section).
+async function resolveUnfinished(id: number, why: string): Promise<void> {
+  const row = await readTodoItem(id);
+
+  if (row === null || !canResolve(row)) throw fail(409, wording(UNFINISHED_NOT_OPEN));
+
+  await patchItem(id, { labels: labelsResolving((await readItem(id)).labels, why, Date.now()) });
 }
 
 // A reason a verb cannot go without: words, within its bound.

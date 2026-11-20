@@ -1,6 +1,6 @@
-import { describe, expect, test } from "bun:test";
+import { afterAll, describe, expect, test } from "bun:test";
 
-import { APPEND_LIMIT, HOLD_REASON_LIMIT, HOLD_REASON_NEEDED, NOTICES_REASON_LIMIT, NOTICES_REASON_NEEDED } from "../../../apps/web/shared/config";
+import { APPEND_LIMIT, HOLD_REASON_LIMIT, HOLD_REASON_NEEDED, NOTICES_REASON_LIMIT, NOTICES_REASON_NEEDED, UNFINISHED_NOT_OPEN } from "../../../apps/web/shared/config";
 import { wording } from "../../../apps/web/shared/wording";
 import { asked, routeOf } from "../../support/nitro";
 import { answer, standIn } from "../../support/units";
@@ -12,8 +12,10 @@ import { answer, standIn } from "../../support/units";
 // What bmo-job answers the next write with, where the test is about a refusal of its own; with a method, only a call
 // of that method is refused.
 let refusal: { status: number; code: string; method?: string } | null = null;
-// The labels item 7 holds as bmo-job answers it.
+// The labels item 7 holds as bmo-job answers it, the state it stands in and the reports kept of it.
 let itemLabels: Record<string, string> = {};
+let itemState = "open";
+let itemReports: Record<string, unknown>[] = [];
 
 const job = standIn("JOB", (one) => {
   if (one.method === "GET" && one.path.startsWith("/queues")) {
@@ -30,7 +32,11 @@ const job = standIn("JOB", (one) => {
 
   if (one.method === "DELETE") return new Response(null, { status: 204 });
 
-  return answer({ id: 7, itemId: 7, title: "Item 7", brief: "do it", queueName: "default", priority: 0, state: "open", assigneeName: null, requesterName: "tester", labels: itemLabels, approvals: [], createdAt: 0, changedAt: 1_790_000_050_000, endedAt: null, leaseId: null, mergedInto: null, position: 0, scope: null });
+  if (one.method === "GET" && one.path.startsWith("/items/7/reports")) return answer({ items: itemReports, more: false });
+  if (one.method === "GET" && one.path.startsWith("/items/7/notes")) return answer({ items: [], more: false });
+  if (one.method === "GET" && one.path.startsWith("/items?")) return answer({ items: [], more: false });
+
+  return answer({ id: 7, itemId: 7, title: "Item 7", brief: "do it", queueName: "default", priority: 0, state: itemState, assigneeName: null, requesterName: "tester", labels: itemLabels, approvals: [], createdAt: 0, changedAt: 1_790_000_050_000, endedAt: null, leaseId: null, mergedInto: null, position: 0, scope: null, hold: null, noticesOff: null, rejections: 0 });
 });
 
 // The jobs the agency answers as running.
@@ -341,5 +347,61 @@ describe("choosing an item's agent while its job runs", () => {
     fresh({ status: 409, code: "item-frozen", method: "PATCH" });
 
     expect(await post({ action: "agent", id: 7, agent: "agent-b" })).toEqual({ status: 409, message: wording("job.error.item_frozen") });
+  });
+});
+
+// Resolving a finished item's unfinished note: the moment and the line saying why go into the item's labels, every
+// other label kept; an item with no note standing is refused before anything is written (docs/web.md, the TODO
+// panel's section).
+describe("resolving an unfinished note", () => {
+  // The note and the account a closing job wrote together.
+  const closed = [
+    { id: 1, itemId: 7, kind: "held", body: "left behind", actorName: "worker-a", labels: {}, createdAt: 1_790_000_000_000 },
+    { id: 2, itemId: 7, kind: "final", body: "done", actorName: "worker-a", labels: {}, createdAt: 1_790_000_000_300 }
+  ];
+
+  function finished(reports: Record<string, unknown>[], labels: Record<string, string>): void {
+    fresh();
+    itemState = "done";
+    itemReports = reports;
+    itemLabels = labels;
+  }
+
+  const patches = () => job.asked.filter((one) => one.method === "PATCH");
+
+  test("writes the moment and the line, trimmed, into the item's labels, every other label kept", async () => {
+    finished(closed, { model: "model-a" });
+
+    const before = Math.floor(Date.now() / 1000);
+
+    expect(await post({ action: "resolve", id: 7, why: "  done in another item  " })).toEqual({ status: 200, message: "" });
+    expect(patches().map((one) => one.path)).toEqual(["/items/7"]);
+
+    const labels = (patches()[0]?.body as { labels: Record<string, string> }).labels;
+
+    expect(labels).toMatchObject({ model: "model-a", unfinished_resolution: "done in another item" });
+    expect(Number(labels.unfinished_resolved_at)).toBeGreaterThanOrEqual(before);
+  });
+
+  test("refuses an item that left no note and one whose note stands resolved, writing nothing", async () => {
+    for (const [reports, labels] of [[[closed[1]!], {}], [closed, { unfinished_resolved_at: "1790000100", unfinished_resolution: "earlier" }]] as const) {
+      finished([...reports], { ...labels });
+
+      expect(await post({ action: "resolve", id: 7, why: "done" })).toEqual({ status: 409, message: wording(UNFINISHED_NOT_OPEN) });
+      expect(patches()).toEqual([]);
+    }
+  });
+
+  test("refuses a resolving with no line, before bmo-job is called", async () => {
+    finished(closed, {});
+
+    expect(await post({ action: "resolve", id: 7, why: "  " })).toMatchObject({ status: 400 });
+    expect(job.asked).toEqual([]);
+  });
+
+  afterAll(() => {
+    itemState = "open";
+    itemReports = [];
+    itemLabels = {};
   });
 });

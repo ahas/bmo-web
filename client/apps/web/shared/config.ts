@@ -187,6 +187,11 @@ export const DONE_MAX = 500;
 // minute bounds how late a new report reaches a row's mark (docs/boundary.md, 「Gaps the console meets」).
 export const TODO_REPORTS_FRESH_MS = 60_000;
 
+// How close behind its unfinished note a closing job's account is written. bmo-job's `todo --done` writes both in
+// one call, the note first, so a held report followed this soon by its writer's final one is that note; a hold's
+// reason has no final report written with it (docs/web.md, the TODO panel's section).
+export const UNFINISHED_PAIR_MS = 10_000;
+
 // How long after it ended a summary the tab hears of late still stands in the player waiting for a press; one older
 // still is left to its line, so a stream handing back what it kept does not queue the day's briefings.
 export const BRIEFING_SHOWN_MS = 30 * 60_000;

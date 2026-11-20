@@ -412,7 +412,7 @@ export function stateColour(item: TodoItem): "primary" | "secondary" | "info" | 
 // it is either done since or standing as a TODO row of its own.
 export type UnfinishedState = "none" | "open" | "resolved";
 
-export function unfinishedState(item: TodoItem): UnfinishedState {
+export function unfinishedState(item: Pick<TodoItem, "unfinished" | "unfinishedResolvedAt">): UnfinishedState {
   if (item.unfinished === null) {
     return "none";
   }

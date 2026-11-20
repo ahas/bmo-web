@@ -1,6 +1,6 @@
 // What opens over another stands over it (docs/web.md, 「Floating things」), as the browser tests read it: whether a
 // floating thing is the one the browser draws at its own centre, and a move to another screen inside the app, which
-// sets the screen's floating things up again after the console's own.
+// sets the screen's floating things up again after the console's own; and whether the focus went back where it was.
 
 import type { Locator, Page } from "playwright-core";
 
@@ -29,6 +29,11 @@ export async function standsOnTop(floating: Locator): Promise<boolean> {
 
     return hit !== null && element.contains(hit);
   });
+}
+
+/** Whether the given element holds the keyboard's focus, as a floating thing hands it back on closing. */
+export async function holdsFocus(element: Locator): Promise<boolean> {
+  return await element.evaluate((found) => found === document.activeElement);
 }
 
 /** Goes to a path of the console inside the app, by its router, as a link pressed in it does; the path is the app's own. */

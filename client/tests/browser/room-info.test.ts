@@ -3,7 +3,7 @@ import { chromium } from "playwright-core";
 
 import { wording } from "../../apps/web/shared/wording";
 import { openRoomInfo, roomInfo } from "./room-info";
-import { goInApp, standsOnTop } from "./top-layer";
+import { goInApp, holdsFocus, standsOnTop } from "./top-layer";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, Page } from "playwright-core";
@@ -270,10 +270,11 @@ describe.skipIf(!origin || !touchReady())("the room information", () => {
           if (leave === "back") await page.goBack();
           else await page.keyboard.press("Escape");
           await viewer.waitFor({ state: "detached", timeout: 10_000 });
-          expect({ leave, sheet: await standsOnTop(sheet) }).toEqual({ leave, sheet: true });
+          expect({ leave, sheet: await standsOnTop(sheet), focus: await holdsFocus(picture) }).toEqual({ leave, sheet: true, focus: true });
         }
 
         const player = page.getByRole("dialog", { name: "clip.mp4" });
+        const address = page.url();
 
         await sheet.locator("[data-room-holding=media] [data-held=video] [data-video-still]").click();
         await player.waitFor({ timeout: 10_000 });
@@ -281,6 +282,11 @@ describe.skipIf(!origin || !touchReady())("the room information", () => {
         await page.goBack();
         await player.waitFor({ state: "detached", timeout: 10_000 });
         expect(await standsOnTop(sheet)).toBe(true);
+
+        // What opened and closed left the history as it was: the next back closes the view, and the room stays.
+        await page.goBack();
+        await roomInfo(page).waitFor({ state: "detached", timeout: 10_000 });
+        expect(page.url()).toBe(address);
       } finally {
         await close();
       }
@@ -318,6 +324,7 @@ describe.skipIf(!origin || !touchReady())("the room information", () => {
         await page.keyboard.press("Escape");
         await setting.waitFor({ state: "detached", timeout: 10_000 });
         expect(await standsOnTop(sheet)).toBe(true);
+        expect(await holdsFocus(page.locator("[data-room-info-set-picture]"))).toBe(true);
       } finally {
         await close();
       }
@@ -342,12 +349,15 @@ describe.skipIf(!origin || !touchReady())("the room information", () => {
 
         const sheet = await openRoomInfo(page);
 
+        // The focus goes back to what held it before the shortcut.
+        await page.evaluate(() => document.activeElement?.setAttribute("data-held-focus", ""));
         await page.keyboard.press("ControlOrMeta+k");
         await search.waitFor({ timeout: 10_000 });
         expect(await standsOnTop(search)).toBe(true);
         await page.goBack();
         await search.waitFor({ state: "detached", timeout: 10_000 });
         expect(await standsOnTop(sheet)).toBe(true);
+        expect(await holdsFocus(page.locator("[data-held-focus]"))).toBe(true);
       } finally {
         await close();
       }

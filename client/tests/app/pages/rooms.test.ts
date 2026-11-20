@@ -48,7 +48,7 @@ describe("the room screen's write controls", () => {
 
   test("keep the session information the administrator's, and the room's own settings his where he may change it", () => {
     expect(info).toContain('...(props.administrator ? ["session" as const] : [])');
-    expect(info).toContain('...(props.manages ? ["providers" as const] : [])');
+    expect(info).toContain('...(props.manages ? ["providers" as const, "tone" as const] : [])');
     expect(script).toContain('...(manages.value ? [[{ label: t("room.action.remove_registration")');
   });
 });

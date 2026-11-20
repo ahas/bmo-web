@@ -2781,6 +2781,13 @@ export interface RoomModeView {
   mode: RoomMode | null;
 }
 
+// A room's tone layer as the receiver holds it: the layer the room is set to, null for none, and the layers the
+// deployment offers, each by its own name.
+export interface RoomToneView {
+  tone: string | null;
+  tones: string[];
+}
+
 // The pinned order as it stands once a room was pinned or let go: the room numbers, first to last.
 export interface PinnedRooms {
   rooms: number[];

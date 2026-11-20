@@ -2200,6 +2200,8 @@ room_info:
     callers: 호출 권한
     session: 세션 정보
     providers: 채팅 서비스
+    tone: 말투
+    tone_none: 없음 (기본값)
     media_none: 미디어 없음
     files_none: 파일 없음
     links_none: 링크 없음
@@ -2208,18 +2210,25 @@ room_info:
     sent_by: "{name} · {time}"
   action:
     picture: 방 사진
+  message:
+    tone_rule: 이 방에서 감독관이 가깝지 않은 사람을 대하는 말투입니다.
   status:
     media_loading: 미디어 불러오는 중…
     files_loading: 파일 불러오는 중…
     links_loading: 링크 불러오는 중…
     music_loading: 음악 불러오는 중…
     voice_loading: 음성 메시지 불러오는 중…
+    tone_loading: 말투 불러오는 중…
+    tone_saving: 말투 저장 중
   error:
     media_failed: 미디어를 불러오지 못했습니다.
     files_failed: 파일을 불러오지 못했습니다.
     links_failed: 링크를 불러오지 못했습니다.
     music_failed: 음악을 불러오지 못했습니다.
     voice_failed: 음성 메시지를 불러오지 못했습니다.
+    tone_read_failed: 말투를 불러오지 못했습니다.
+    tone_save_failed: 말투를 저장하지 못했습니다.
+    tone_unknown: 선택할 수 없는 말투입니다.
   aria:
     tabs: 방 정보
 join:

@@ -13,7 +13,8 @@ use bmo_web_client::{
   SupplyAppliedAsk, SupplyAppliedPlan, SupplyAuditPage, SupplyCataloguePlan, SupplyCreditAsk,
   SupplyExposedAsk, SupplyGrantAsk, SupplyGranted, SupplyLedgerEntry, SupplyLedgerPage,
   SupplyMemberUsageRow, SupplyOrgPlans, SupplyOrgView, SupplyPlan, SupplyPlans, SupplyPlatform,
-  SupplyPolicyView, SupplySettingAsk, SupplyUsageRow, SupplyUserView, SupplyView, SupplyWallet,
+  SupplyPolicyView, SupplySettingAsk, SupplyUnitReach, SupplyUnits, SupplyUsageRow, SupplyUserView, SupplyView,
+  SupplyWallet,
 };
 use sea_orm::{ConnectionTrait, TransactionTrait};
 use sumida::api::service::membership::credit::{CreditService, dto::GrantCredit};
@@ -34,6 +35,7 @@ pub fn routes() -> Router<Service> {
     .route("/supply/me", get(me_read).put(me_write))
     .route("/supply/org/{unit}", get(org_read).put(org_write).delete(org_delete))
     .route("/supply/org/{unit}/credits", post(org_credits))
+    .route("/supply/units", get(units_read))
     .route("/supply/org/{unit}/plans", get(org_plans_read))
     .route("/supply/org/{unit}/plans/exposed", axum::routing::put(org_exposed_write))
     .route("/supply/org/{unit}/plans/applied", axum::routing::put(org_applied_write))
@@ -152,6 +154,40 @@ fn sources(resolved: &Resolution, setting: &OwnSetting) -> Vec<bmo_web_client::S
 
 // ---- an organisation's supply ----
 
+/// `GET /supply/units`: the companies whose supply the reader holds a part of — its policy and credits, its plan,
+/// or both — by sumida's own relations on the company; every company for a platform administrator.
+async fn units_read(State(service): State<Service>, headers: HeaderMap) -> Answer<SupplyUnits> {
+  let who = caller(&service, &headers).await?;
+  let user = i64::from(who.user);
+  let rows = crate::all(
+    &service.db,
+    r#"SELECT "id", "name" FROM "organizations" WHERE "parent_id" IS NULL ORDER BY "id""#,
+    vec![],
+  )
+  .await?;
+  let mut units = Vec::new();
+
+  for row in &rows {
+    let id = i64::from(row.try_get::<i32>("", "id")?);
+    let (policy, plan) = if who.administrator {
+      (true, true)
+    } else {
+      (holds_credit(&service.db, user, id).await?, holds_subscription(&service.db, user, id).await?)
+    };
+
+    if policy || plan {
+      units.push(SupplyUnitReach {
+        id,
+        name: row.try_get("", "name")?,
+        policy,
+        plan,
+      });
+    }
+  }
+
+  Ok(Json(SupplyUnits { units }))
+}
+
 /// `GET /supply/org/{unit}`: the unit's policy as it stands, its plan, its wallet and this month's usage per
 /// member, each read by the hand that may read it.
 async fn org_read(
@@ -176,10 +212,18 @@ async fn org_read(
     policy: None,
     plan: None,
     wallet: None,
+    available: Vec::new(),
     usage: Vec::new(),
   };
 
   if credits {
+    let platform = super::platform_policy(&service.db).await?;
+
+    view.available = super::PAYABLE
+      .iter()
+      .filter(|source| platform.available(**source))
+      .map(|source| source.key().to_owned())
+      .collect();
     let resolved = org_policy(&service.db, unit).await?;
     view.inherits = resolved.as_ref().is_none_or(|policy| policy.from != Some(unit));
     view.policy = org_policy_of(&service.db, unit).await?;
@@ -297,14 +341,7 @@ async fn unit_plan<C: ConnectionTrait>(
   db: &C,
   unit: i64,
 ) -> Result<Option<bmo_web_client::SupplyPlanCard>, Refusal> {
-  Ok(plans::live(db, unit).await?.map(|live| bmo_web_client::SupplyPlanCard {
-    name: live.name,
-    price: live.price,
-    scope: "organisation".to_owned(),
-    period: live.period,
-    included_credits: live.included_credits,
-    credits_usable: live.credits_usable,
-  }))
+  Ok(plans::live(db, unit).await?.map(plans::LiveSubscription::card))
 }
 
 // This month's cost of every member of the unit, by source: what stands settled under the unit's wallet.
@@ -433,6 +470,7 @@ async fn org_plans<C: ConnectionTrait>(
       plan: live.plan,
       since: live.since,
       period_end: live.period_end,
+      card: live.card(),
     }),
     catalogue,
   })

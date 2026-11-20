@@ -51,6 +51,21 @@ pub struct LiveSubscription {
   pub credits_usable: bool,
 }
 
+impl LiveSubscription {
+  /// The plan the subscription stands on, as a unit's plan card and its applied plan show it, whether or not the
+  /// plan is still exposed to the unit or still stands.
+  pub fn card(self) -> bmo_web_client::SupplyPlanCard {
+    bmo_web_client::SupplyPlanCard {
+      name: self.name,
+      price: self.price,
+      scope: "organisation".to_owned(),
+      period: self.period,
+      included_credits: self.included_credits,
+      credits_usable: self.credits_usable,
+    }
+  }
+}
+
 /// The unit's own live subscription, newest period end first. A retired plan's stands on its snapshot until
 /// its period ends.
 pub async fn live<C: ConnectionTrait>(db: &C, unit: i64) -> Result<Option<LiveSubscription>, Refusal> {

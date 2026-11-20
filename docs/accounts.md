@@ -955,12 +955,18 @@ section states what each does.
 ### How an order is resolved
 
 - **The platform policy stands above every other layer, and says for each source whether a person's own
-  setting may change it.** Each source carries the platform's value, on or off, and whether it is overridable:
-  - **a locked source** holds the platform's value for everyone: on, it stays in every order the layers below
-    leave it in and no person switches it off; off, it is closed everywhere and no layer below opens it;
-  - **an overridable source** is open to the layers below, and the platform's value is only the default a
-    person starts from: on, it stands in their order until they switch it off; off, it stands out of it until
-    they switch it on;
+  setting may change it.** Each source carries the platform's value, on or off, and whether it is overridable.
+  That lock binds the person's own setting alone: the organisation's policy and the administrator's per-user
+  policy are not bound by it, and narrow what the platform makes available as they narrow everything.
+  - **What the platform makes available** to the layers below is every source it turns on or leaves
+    overridable. A source it turns off and locks is closed everywhere: an organisation's or a per-user policy
+    naming it is refused 403 `source-not-allowed`, and the console's policy forms show it with its switch
+    disabled;
+  - **a locked source** holds the platform's value for every person: on, it stays in their order wherever the
+    organisation's and the per-user policy leave it, and no person switches it off; off, no person switches it on;
+  - **an overridable source** is the person's to switch, and the platform's value is only the default a person
+    starts from: on, it stands in their order until they switch it off; off, it stands out of it until they
+    switch it on;
   - **the order** is overridable or locked the same way: locked, a person's own order is neither read nor
     refused, and their order stands as the layers above leave it.
 - **Five layers narrow what a person may use, each only narrowing what the layers above allow:**
@@ -1041,8 +1047,9 @@ section states what each does.
   - **the applied plan** is the one the unit runs on: its exposure row is marked applied, at most one a unit, and
     a live organisation subscription of sumida's stands on it, which the resolution's plan layer reads as it
     reads any (「How an order is resolved」). A unit applies only a plan exposed to it, one at a time, and the
-    read of its plans answers the live subscription, so between a period's end and the next pass it names
-    none.
+    read of its plans answers the live subscription with the plan whole, so a plan no longer exposed or retired
+    is still answered applied while its subscription lives, and between a period's end and the next pass it
+    names none.
 - **A unit's plans are changed one act at a time:** an exposure, an apply and a renewal of one unit each hold
   that unit's lock for the whole act, so none of them sees another half done.
 - **Applying is sumida's own subscribe,** for the unit as the owner, with no billing key and no renewal of
@@ -1070,7 +1077,9 @@ section states what each does.
   its `subscription_manager`'s or a platform administrator's, and reading the unit's plans is theirs and its
   `credit_manager`'s and `manager`'s as well;
   a person's own setting is the person's alone; and a per-user policy is the `credit_manager` or `manager` of
-  the unit the person stands in, a platform administrator everywhere.
+  the unit the person stands in, a platform administrator everywhere. `GET /supply/units` reads these relations
+  back for the console: each company whose policy and credits or whose plan the reader holds, saying which, and
+  every company for a platform administrator.
 - **Of another person's personal supply an administrator reads which providers it serves, never a credential
   and never a secret's value:** the roads come from the agency's own administrator read (`GET
   /personal-supply` under the person's `Owner-Key`), and the credentials stand in the agency and the secret
@@ -1246,8 +1255,11 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
   ever refused while every cost still stands. They open every supply route with each relation that opens it
   and nothing more: a `credit_manager` and a head on the unit's policy and credits, a `subscription_manager`
   on the unit's plan alone, a member on nothing, an administrator everywhere, and a person on their own
-  setting alone. They expose plans to a unit and apply one through sumida's subscribe, hold that only an exposed
-  organisation plan is applied, that applying another cancels the first, that the applied plan's exposure is
-  not taken away, and that an applied plan whose period ended is subscribed again on the membership pass.
+  setting alone, and the units read names each company by the part of its supply the reader holds. The unit read
+  names what the platform makes available to a policy holder alone. They expose plans to a unit and apply one through sumida's subscribe, hold that only an exposed
+  organisation plan is applied, that applying another cancels the first, that a subscribe sumida refuses leaves
+  the unit on the plan it stood on, that the applied plan's exposure is not taken away, that a unit whose applied
+  plan was retired still reads it applied, whole, while its subscription lives, and that an applied plan whose
+  period ended is subscribed again on the membership pass.
 - **The console's side tests against a stand-in** answering these routes, so a console test needs neither the
   binary nor Valkey.

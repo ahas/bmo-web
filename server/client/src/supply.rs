@@ -197,7 +197,30 @@ pub struct SupplyOrgView {
   pub plan: Option<SupplyPlanCard>,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub wallet: Option<SupplyWallet>,
+  /// For a policy holder, the sources the platform makes available to an organisation's policy: those it turns
+  /// on or leaves to a person's own setting. Empty for anyone else.
+  #[serde(default)]
+  pub available: Vec<String>,
   pub usage: Vec<SupplyMemberUsageRow>,
+}
+
+/// One company whose supply the reader holds a part of: its policy and credits, its plan, or both.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct SupplyUnitReach {
+  pub id: i64,
+  pub name: String,
+  /// Whether the reader holds the company's supply policy and credits: its credit manager or its head.
+  pub policy: bool,
+  /// Whether the reader holds the company's plan: its subscription manager or its head.
+  pub plan: bool,
+}
+
+/// The companies whose supply the reader holds a part of, every one for a platform administrator.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct SupplyUnits {
+  pub units: Vec<SupplyUnitReach>,
 }
 
 /// An organisation's or a person's policy written whole.
@@ -318,13 +341,16 @@ pub struct SupplyCataloguePlan {
   pub exposed: bool,
 }
 
-/// The plan a unit runs on: the plan's id and its subscription's period, in epoch milliseconds.
+/// The plan a unit runs on: the plan's id, its subscription's period, in epoch milliseconds, and the plan whole as
+/// the subscription stands on it, whether or not it is still exposed to the unit or still stands.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct SupplyAppliedPlan {
   pub plan: i64,
   pub since: i64,
   pub period_end: i64,
+  #[serde(flatten)]
+  pub card: SupplyPlanCard,
 }
 
 /// An organisation unit's plans: the ones it is shown, the one it runs on, and for an administrator every

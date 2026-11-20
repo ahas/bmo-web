@@ -772,9 +772,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The reader's own supply: the resolved order, each source's standing and reason, this month's usage, the plan's remaining included amount and the personal credit balance. */
+        /** The reader's own supply: the resolved order and whether the platform locks it, each source's standing, reason, lock and the reader's own choice of it, this month's usage, the plan's remaining included amount and the personal credit balance. */
         get: operations["supplyMe"];
-        /** The reader's own setting written whole; a source an earlier layer closed is refused by the closer's code. */
+        /** The reader's own setting written whole, its order not read while the platform locks it; a source an earlier layer closed is refused by the closer's code, a source switched against a value the platform locks by `locked-by-platform`, and a source named both on and off by `bad-request`. */
         put: operations["setSupplyMe"];
         post?: never;
         delete?: never;
@@ -819,6 +819,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/supply/org/{unit}/plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A unit's plans: the ones it is shown, the one it runs on, and for an administrator every organisation-scope plan with whether the unit is shown it. */
+        get: operations["supplyOrgPlans"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/supply/org/{unit}/plans/applied": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** The plan a unit runs on, one of its exposed plans subscribed through sumida, or none; the plan chosen is subscribed first and only then the standing subscription cancelled. A body naming no `plan` is refused. */
+        put: operations["setSupplyOrgApplied"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/supply/org/{unit}/plans/exposed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Every plan a unit is shown, written whole by a platform administrator; the applied plan cannot be left out. */
+        put: operations["setSupplyOrgExposed"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/supply/plans": {
         parameters: {
             query?: never;
@@ -847,7 +898,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** A membership plan retired, its subscriptions standing on their snapshot. */
+        /** A membership plan retired, its exposures taken away and its subscriptions standing on their snapshot until their period ends. */
         delete: operations["retireSupplyPlan"];
         options?: never;
         head?: never;
@@ -862,10 +913,27 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The platform's default policy and money settings. */
+        /** The platform's policy — the sources it turns on, the ones a person may switch and whether their order is read — and its money settings. */
         get: operations["supplyPlatform"];
         /** Any part of the platform's policy and money settings changed. */
         put: operations["setSupplyPlatform"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/supply/units": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The companies whose supply the reader holds a part of, each saying whether they hold its policy and credits and whether they hold its plan; every company for a platform administrator. */
+        get: operations["supplyUnits"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -1062,23 +1130,6 @@ export interface paths {
         post?: never;
         /** A post and the head grant it carried taken away, by the administrator or a head of the unit or of one above. */
         delete: operations["takePost"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/units/{unit}/subtree": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** A unit and every unit below it in tree order, each with its heads, the acting one marked, its members with their roles and the people holding a post in it, for the administrator and a head of the unit or of a unit above. */
-        get: operations["unitSubtree"];
-        put?: never;
-        post?: never;
-        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -2662,40 +2713,33 @@ export interface components {
         };
         /** @description Why the people standing for a role hold another one. */
         StandReason: "no-holder";
-        /** @description A person whose home unit is a unit of a subtree: the role they carry there and whether their account has left. */
-        SubtreeMember: {
-            left: boolean;
-            /** @description The person's name, the login where none stands. */
-            name: string;
-            role?: components["schemas"]["RoleRef"] | null;
-            user: string;
-        };
-        /** @description A person holding a post in a unit of a subtree: the post's role and whether it carries the unit's head. */
-        SubtreePost: {
-            head: boolean;
-            /** @description The person's name, the login where none stands. */
-            name: string;
-            role?: components["schemas"]["RoleRef"] | null;
-            user: string;
-        };
-        /** @description One unit of a subtree and the people standing in it, each list in the order of their names. */
-        SubtreeUnit: {
-            /** @description The people holding a post in it. */
-            concurrent: components["schemas"]["SubtreePost"][];
-            /** @description The heads granted it directly, an acting one marked. */
-            heads: components["schemas"]["LineHead"][];
+        /**
+         * @description The plan a unit runs on, one of its exposed plans, or none. The key is named even for none: a body naming
+         *     no `plan` at all does not read.
+         */
+        SupplyAppliedAsk: {
             /** Format: int64 */
-            id: number;
-            kind?: components["schemas"]["KindRef"] | null;
-            /** @description The people whose home unit it is. */
-            members: components["schemas"]["SubtreeMember"][];
+            plan: number;
+        };
+        /**
+         * @description The plan a unit runs on: the plan's id, its subscription's period, in epoch milliseconds, and the plan whole as
+         *     the subscription stands on it, whether or not it is still exposed to the unit or still stands.
+         */
+        SupplyAppliedPlan: {
+            creditsUsable: boolean;
+            /** Format: int64 */
+            includedCredits: number | null;
             name: string;
-            /**
-             * Format: int64
-             * @description The unit it stands under, absent for a company.
-             */
-            parent?: number | null;
-            shortName?: string | null;
+            period: string;
+            /** Format: int64 */
+            periodEnd: number;
+            /** Format: int64 */
+            plan: number;
+            /** Format: int64 */
+            price: number;
+            scope: string;
+            /** Format: int64 */
+            since: number;
         };
         /** @description One audited supply act. */
         SupplyAuditEntry: {
@@ -2715,6 +2759,31 @@ export interface components {
             entries: components["schemas"]["SupplyAuditEntry"][];
             next: string | null;
         };
+        /**
+         * @description One plan of the platform's catalogue as an administrator reads it for a unit: the plan, and whether the
+         *     unit is shown it.
+         */
+        SupplyCataloguePlan: {
+            creditsUsable: boolean;
+            exposed: boolean;
+            /** Format: int64 */
+            id: number;
+            /**
+             * Format: int64
+             * @description The amount quota the plan carries for its supply action; null where it includes none.
+             */
+            includedCredits: number | null;
+            name: string;
+            /** @description `day`, `week`, `month` or `year`. */
+            period: string;
+            /**
+             * Format: int64
+             * @description Whole won.
+             */
+            price: number;
+            /** @description `personal` or `organisation`. */
+            scope: string;
+        };
         /** @description Credits granted to anyone. */
         SupplyCreditAsk: {
             /** Format: int64 */
@@ -2724,6 +2793,10 @@ export interface components {
             /** @description `user` or `organisation`. */
             ownerKind: string;
             words?: string | null;
+        };
+        /** @description Every plan a unit is shown, written whole. */
+        SupplyExposedAsk: {
+            plans: number[];
         };
         /** @description Credits granted to a unit's wallet. */
         SupplyGrantAsk: {
@@ -2821,8 +2894,23 @@ export interface components {
             source: string;
             user: string;
         };
+        /**
+         * @description An organisation unit's plans: the ones it is shown, the one it runs on, and for an administrator every
+         *     organisation-scope plan with whether the unit is shown it.
+         */
+        SupplyOrgPlans: {
+            applied?: components["schemas"]["SupplyAppliedPlan"] | null;
+            catalogue?: components["schemas"]["SupplyCataloguePlan"][] | null;
+            exposed: components["schemas"]["SupplyPlan"][];
+        };
         /** @description A unit's supply view. */
         SupplyOrgView: {
+            /**
+             * @description For a policy holder, the sources the platform makes available to an organisation's policy: those it turns
+             *     on or leaves to a person's own setting. Empty for anyone else.
+             * @default []
+             */
+            available: string[];
             inherits: boolean;
             plan?: components["schemas"]["SupplyPlanCard"] | null;
             policy?: components["schemas"]["SupplyPolicyView"] | null;
@@ -2888,13 +2976,18 @@ export interface components {
         SupplyPlans: {
             plans: components["schemas"]["SupplyPlan"][];
         };
-        /** @description The platform's policy and money settings. */
+        /**
+         * @description The platform's policy and money settings. `allowed` holds the sources the platform turns on, `overridable`
+         *     the ones a person's own setting may switch against that default; a source in neither is closed everywhere.
+         */
         SupplyPlatform: {
             allowed: string[];
             /** Format: int64 */
             creditsPerDollar: number;
             enforce: boolean;
             order: string[];
+            orderOverridable: boolean;
+            overridable: string[];
             /** Format: int64 */
             reservationCredits: number;
         };
@@ -2905,6 +2998,8 @@ export interface components {
             creditsPerDollar?: number | null;
             enforce?: boolean | null;
             order?: string[] | null;
+            orderOverridable?: boolean | null;
+            overridable?: string[] | null;
             /** Format: int64 */
             reservationCredits?: number | null;
         };
@@ -2927,24 +3022,51 @@ export interface components {
             memberCreditCredits?: number | null;
             order: string[];
         };
-        /** @description The reader's own setting written whole. */
+        /**
+         * @description The reader's own setting written whole: their order, not read while the platform locks it, and the
+         *     overridable sources they switch off and on against the platform's default.
+         */
         SupplySettingAsk: {
             off: string[];
+            on: string[];
             order: string[];
             /** Format: int64 */
             personalCreditCredits?: number | null;
-            personalCreditsOn: boolean;
         };
         /**
          * @description One source as the reader's view stands it: whether the layers above allow it, whether the reader has it
-         *     switched off, and where it is not allowed, which layer closed it.
+         *     switched off, whether the platform locks it, and where it is not allowed, which layer closed it.
          */
         SupplySourceState: {
             allowed: boolean;
+            /**
+             * @description Whether the platform holds the source as it says for everyone, so the reader's own setting cannot change
+             *     it; `stop` is always locked.
+             */
+            locked: boolean;
             off: boolean;
+            /**
+             * @description The reader's own choice of the source, `on` or `off`; absent where they made none and the platform's
+             *     default stands.
+             */
+            own?: string | null;
             /** @description `not-in-plan`, `blocked-by-organisation` or `blocked-by-administrator`. */
             reason?: string | null;
             source: string;
+        };
+        /** @description One company whose supply the reader holds a part of: its policy and credits, its plan, or both. */
+        SupplyUnitReach: {
+            /** Format: int64 */
+            id: number;
+            name: string;
+            /** @description Whether the reader holds the company's plan: its subscription manager or its head. */
+            plan: boolean;
+            /** @description Whether the reader holds the company's supply policy and credits: its credit manager or its head. */
+            policy: boolean;
+        };
+        /** @description The companies whose supply the reader holds a part of, every one for a platform administrator. */
+        SupplyUnits: {
+            units: components["schemas"]["SupplyUnitReach"][];
         };
         /** @description What one source cost this month, per source. */
         SupplyUsageRow: {
@@ -2968,6 +3090,8 @@ export interface components {
             /** Format: int64 */
             globalRemaining?: number | null;
             order: string[];
+            /** @description Whether the platform locks the order, so the reader's own order is not read. */
+            orderLocked: boolean;
             /** Format: int64 */
             personalCreditCredits?: number | null;
             /** Format: int64 */
@@ -3057,13 +3181,6 @@ export interface components {
              */
             reportsTo?: number | null;
             shortName?: string | null;
-        };
-        /**
-         * @description A unit and every unit below it in tree order: the unit first, each unit followed by the units under it before
-         *     its next sibling, siblings by name and then by id.
-         */
-        UnitSubtree: {
-            units: components["schemas"]["SubtreeUnit"][];
         };
         /**
          * @description One organisation unit read whole: what `Unit` answers, and beside it the unit's kind, short name and the unit
@@ -5167,7 +5284,7 @@ export interface operations {
                     "application/json": components["schemas"]["SupplyView"];
                 };
             };
-            /** @description A refusal or failure: bad-request, forbidden, source-not-allowed, not-in-plan, blocked-by-organisation, blocked-by-administrator, not-in-force, database, failed */
+            /** @description A refusal or failure: bad-request, forbidden, source-not-allowed, not-in-plan, blocked-by-organisation, blocked-by-administrator, locked-by-platform, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -5320,6 +5437,122 @@ export interface operations {
                 };
             };
             /** @description A refusal or failure: bad-request, forbidden, not-in-force, database, upstream-failed, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    supplyOrgPlans: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                unit: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplyOrgPlans"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, forbidden, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    setSupplyOrgApplied: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                unit: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupplyAppliedAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplyOrgPlans"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, forbidden, plan-not-exposed, not-in-force, database, upstream-failed, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    setSupplyOrgExposed: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                unit: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupplyExposedAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplyOrgPlans"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, forbidden, plan-scope, unknown-plan, plan-applied, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -5540,6 +5773,40 @@ export interface operations {
                 };
             };
             /** @description A refusal or failure: bad-request, forbidden, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    supplyUnits: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplyUnits"];
+                };
+            };
+            /** @description A refusal or failure: forbidden, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -6190,40 +6457,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
-            };
-            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WireError"];
-                };
-            };
-        };
-    };
-    unitSubtree: {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description The user of the login the call is made for, its id written as a decimal number. */
-                "Owner-Key": string;
-            };
-            path: {
-                unit: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Answered. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UnitSubtree"];
-                };
             };
             /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
             default: {

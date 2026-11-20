@@ -1651,6 +1651,19 @@ pub fn openapi() -> Value {
     security: bearer()
   );
   add!(
+    "GET",
+    "/supply/units",
+    "supplyUnits",
+    "Supply",
+    "The companies whose supply the reader holds a part of, each saying whether they hold its policy and credits and whether they hold its plan; every company for a platform administrator.",
+    params: vec![owner_key(), owner_role()],
+    body: None,
+    answers: vec![(200, json_answer::<SupplyUnits>(&mut generator))],
+    codes: vec!["forbidden", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
     "PUT",
     "/supply/org/{unit}",
     "setSupplyOrg",

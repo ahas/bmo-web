@@ -616,6 +616,17 @@ impl AccountClient {
     Self::answered(self.send(Method::PUT, &["supply", "me"], ask).header(OWNER_KEY, key)).await
   }
 
+  /// `GET /supply/units`, the companies whose supply the reader holds a part of.
+  pub async fn supply_units(&self, key: &str, role: &str) -> Answer<SupplyUnits> {
+    Self::answered(
+      self
+        .request(Method::GET, &["supply", "units"])
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
   /// `GET /supply/org/{unit}`, read by the unit's credit manager or subscription manager.
   pub async fn supply_org(&self, unit: i64, key: &str, role: &str) -> Answer<SupplyOrgView> {
     Self::answered(

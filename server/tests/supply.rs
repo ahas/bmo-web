@@ -1102,12 +1102,27 @@ async fn each_relation_opens_its_own_part_of_a_unit_and_nothing_more() {
   .await;
   assert!(said.get("wallet").is_some(), "{said}");
   assert_eq!(said["plan"], Value::Null, "{said}");
+  // Beside the policy, what the platform makes available to it: what it turns on or leaves to a person.
+  assert_eq!(said["available"], json!(["personal"]), "{said}");
+  platform(&scratch, r#"["personal"]"#, r#"["personal", "org_credits"]"#, true).await;
+  let (_, said) = asked(
+    &app,
+    Method::GET,
+    &format!("/supply/org/{company}"),
+    None,
+    Some(credit_keeper),
+    "member",
+  )
+  .await;
+  assert_eq!(said["available"], json!(["personal", "org_credits"]), "{said}");
 
   // The subscription manager reads the plan alone, and the policy fields stand absent.
   let (_, said) =
     asked(&app, Method::GET, &format!("/supply/org/{company}"), None, Some(plan_keeper), "member").await;
   assert!(
-    said.get("policy").is_none_or(Value::is_null) && said.get("wallet").is_none_or(Value::is_null),
+    said.get("policy").is_none_or(Value::is_null)
+      && said.get("wallet").is_none_or(Value::is_null)
+      && said["available"] == json!([]),
     "{said}"
   );
 
@@ -1135,6 +1150,56 @@ async fn each_relation_opens_its_own_part_of_a_unit_and_nothing_more() {
   let (status, said) =
     asked(&app, Method::GET, "/supply/platform", None, Some(boss), "administrator").await;
   assert_eq!(status, StatusCode::OK, "{said}");
+}
+
+#[tokio::test]
+async fn the_units_read_names_each_company_by_the_part_of_its_supply_the_reader_holds() {
+  ready();
+  let scratch = fresh().await;
+  let app = app(&scratch).await;
+  let boss = boss(&scratch).await;
+  let company = org(&scratch, "company-a", None).await;
+  let beside = org(&scratch, "company-b", None).await;
+  let team = org(&scratch, "team-a", Some(company)).await;
+  let member = person(&scratch, "plain-member", company).await;
+  let credit_keeper = person(&scratch, "credit-keeper", company).await;
+  let plan_keeper = person(&scratch, "plan-keeper", company).await;
+  let head = person(&scratch, "head", company).await;
+  let team_head = person(&scratch, "team-head", team).await;
+  relation(&scratch, "credit_manager", credit_keeper, company).await;
+  relation(&scratch, "subscription_manager", plan_keeper, company).await;
+  relation(&scratch, "manager", head, company).await;
+  relation(&scratch, "manager", team_head, team).await;
+  let units = |key: i32, role: &'static str| {
+    let app = app.clone();
+
+    async move {
+      let (status, said) = asked(&app, Method::GET, "/supply/units", None, Some(key), role).await;
+
+      assert_eq!(status, StatusCode::OK, "{said}");
+      said["units"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|unit| (unit["id"].as_i64().unwrap(), unit["policy"] == true, unit["plan"] == true))
+        .collect::<Vec<_>>()
+    }
+  };
+  let (company, beside) = (i64::from(company), i64::from(beside));
+
+  assert_eq!(units(credit_keeper, "member").await, [(company, true, false)]);
+  assert_eq!(units(plan_keeper, "member").await, [(company, false, true)]);
+  assert_eq!(units(head, "member").await, [(company, true, true)]);
+  // A unit below a company is no company, and a member or a head below holds no company's supply.
+  assert_eq!(units(team_head, "member").await, []);
+  assert_eq!(units(member, "member").await, []);
+  let every = units(boss, "administrator").await;
+  assert!(
+    every.contains(&(company, true, true))
+      && every.contains(&(beside, true, true))
+      && every.iter().all(|(_, policy, plan)| *policy && *plan),
+    "{every:?}"
+  );
 }
 
 #[tokio::test]
@@ -1791,6 +1856,87 @@ async fn a_unit_runs_on_one_of_its_exposed_plans_applied_through_sumida_s_subscr
     .filter(|entry| entry["kind"] == "plan" && entry["subject"] == subject.as_str())
     .count();
   assert_eq!(acts, 5, "{said}");
+}
+
+#[tokio::test]
+async fn a_unit_whose_applied_plan_was_retired_reads_it_applied_whole_while_its_subscription_lives() {
+  ready();
+  let scratch = fresh().await;
+  let app = app(&scratch).await;
+  let boss = boss(&scratch).await;
+  let company = org(&scratch, "company-a", None).await;
+  let team = plan(&app, boss, "team", "organisation").await;
+
+  put(&app, boss, &format!("/supply/org/{company}/plans/exposed"), json!({ "plans": [team] })).await;
+  put(&app, boss, &format!("/supply/org/{company}/plans/applied"), json!({ "plan": team })).await;
+  let (status, said) =
+    asked(&app, Method::DELETE, &format!("/supply/plans/{team}"), None, Some(boss), "administrator").await;
+  assert_eq!(status, StatusCode::OK, "{said}");
+
+  // Neither shown nor in the catalogue any more, the plan still stands applied, read whole off the subscription.
+  let (_, said) = asked(
+    &app,
+    Method::GET,
+    &format!("/supply/org/{company}/plans"),
+    None,
+    Some(boss),
+    "administrator",
+  )
+  .await;
+  assert_eq!(said["exposed"], json!([]), "{said}");
+  assert!(said["catalogue"].as_array().unwrap().iter().all(|row| row["id"] != team), "{said}");
+  assert_eq!(said["applied"]["plan"], team, "{said}");
+  assert_eq!(
+    (&said["applied"]["name"], &said["applied"]["scope"], &said["applied"]["includedCredits"]),
+    (&json!("team"), &json!("organisation"), &json!(1000)),
+    "{said}"
+  );
+}
+
+#[tokio::test]
+async fn a_subscribe_sumida_refuses_leaves_the_unit_on_the_plan_it_stood_on() {
+  ready();
+  let scratch = fresh().await;
+  let app = app(&scratch).await;
+  let boss = boss(&scratch).await;
+  let company = org(&scratch, "company-a", None).await;
+  let first = plan(&app, boss, "team", "organisation").await;
+  let second = plan(&app, boss, "team plus", "organisation").await;
+  let applied = format!("/supply/org/{company}/plans/applied");
+
+  put(&app, boss, &format!("/supply/org/{company}/plans/exposed"), json!({ "plans": [first, second] })).await;
+  put(&app, boss, &applied, json!({ "plan": first })).await;
+
+  // sumida refuses a plan that is switched off; the plan stays exposed, so the apply reaches the subscribe.
+  scratch
+    .run(
+      r#"UPDATE "membership_plans" SET "is_enabled" = false WHERE "id" = $1"#,
+      vec![(second as i32).into()],
+    )
+    .await;
+  let (status, said) = put(&app, boss, &applied, json!({ "plan": second })).await;
+  assert!(status.is_client_error() || status.is_server_error(), "{status} {said}");
+
+  assert_eq!(subscriptions_of(&scratch, company).await, [(first, "active".to_owned())]);
+  let (_, said) = asked(
+    &app,
+    Method::GET,
+    &format!("/supply/org/{company}/plans"),
+    None,
+    Some(boss),
+    "administrator",
+  )
+  .await;
+  assert_eq!(said["applied"]["plan"], first, "{said}");
+  assert_eq!(
+    scratch
+      .count(
+        r#"SELECT COUNT(*) FROM "supply_plan_exposures" WHERE "org_id" = $1 AND "applied" AND "plan_id" = $2"#,
+        vec![i64::from(company).into(), first.into()],
+      )
+      .await,
+    1
+  );
 }
 
 #[tokio::test]

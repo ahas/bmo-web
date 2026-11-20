@@ -88,13 +88,17 @@ export interface SupplyWallet {
 
 /** A unit's supply (`GET /api/supply/org/{unit}`), answered afresh by the policy write and the policy's taking-away
  * too. Where the unit inherits, `policy` is the row standing for it from above, `from` naming whose row it is.
- * Policy, wallet and usage answer only to a reader who holds the unit's policy; the plan only to one who holds its
- * subscription — a reader who holds the other standing reads those parts as none. */
+ * Policy, wallet, usage and the sources the platform makes available answer only to a reader who holds the unit's
+ * policy; the plan only to one who holds its subscription — a reader who holds the other standing reads those parts
+ * as none. */
 export interface SupplyOrgView {
   inherits: boolean;
   policy: SupplyPolicy | null;
   plan: SupplyPlanInfo | null;
   wallet: SupplyWallet | null;
+  // The sources the platform makes available to the unit's policy: those it turns on or leaves to a person's own
+  // setting. A source out of it is off for every layer, and a policy naming it is refused.
+  available: SupplySource[];
   usage: SupplyMemberUsage[];
 }
 
@@ -171,11 +175,18 @@ export interface SupplyAuditPage {
   next: string | null;
 }
 
-/** One unit a reader may manage supply for, named for a picker. */
+/** One company whose supply the reader holds a part of, named for a picker: whether they hold its policy and credits,
+ * and whether they hold its plan. */
 export interface SupplyUnit {
   id: number;
   name: string;
   parent: number | null;
+  policy: boolean;
+  plan: boolean;
+}
+
+export interface SupplyUnitsWire {
+  units?: { id: number; name: string; policy?: boolean; plan?: boolean }[];
 }
 
 /** A person's own gateway key, as the agency answers it (its `docs/api.md`, 「accounts, rest and usage」). */
@@ -204,6 +215,7 @@ export interface SupplyOrgWire {
   policy?: SupplyPolicyWire | null;
   plan?: SupplyPlanInfo | null;
   wallet?: SupplyWallet | null;
+  available?: SupplySource[];
   usage?: SupplyMemberUsage[];
 }
 
@@ -240,8 +252,9 @@ export interface SupplyPlansWire {
 }
 
 /** The plan an organisation runs on: the plan's id, when it was applied and when its period ends, each a moment in
- * epoch milliseconds as the service's other moments are. */
-export interface SupplyAppliedPlan {
+ * epoch milliseconds as the service's other moments are, and the plan whole as the subscription stands on it, whether
+ * or not it is still exposed to the organisation or still stands. */
+export interface SupplyAppliedPlan extends SupplyPlanInfo {
   plan: number;
   since: number;
   periodEnd: number;

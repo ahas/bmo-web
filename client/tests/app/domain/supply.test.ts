@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import {
   NO_PLAN,
+  applyChoices,
   meSetting,
   movedSourceOrder,
   orderRows,
@@ -129,6 +130,18 @@ describe("an organisation's plans", () => {
   test("choose the plan applied in the dialog, none where none is", () => {
     expect(planChoice({ plan: 3 })).toBe("3");
     expect(planChoice(null)).toBe(NO_PLAN);
+  });
+
+  test("list the plan applied among the dialog's choices, read off the answer, where it is shown no longer", () => {
+    const shown = { id: 2, name: "shown", price: 10, scope: "organisation" as const, period: "month", includedCredits: 5, creditsUsable: true };
+    const applied = { plan: 7, since: 0, periodEnd: 1, name: "retired", price: 20, scope: "organisation", period: "year", includedCredits: null, creditsUsable: false };
+
+    expect(applyChoices({ exposed: [shown], applied }).map((one) => [one.id, one.name, one.period])).toEqual([
+      [7, "retired", "year"],
+      [2, "shown", "month"]
+    ]);
+    expect(applyChoices({ exposed: [shown], applied: { ...applied, plan: 2, name: "shown" } }).map((one) => one.id)).toEqual([2]);
+    expect(applyChoices({ exposed: [shown], applied: null }).map((one) => one.id)).toEqual([2]);
   });
 
   test("write the plans shown with one switch thrown and the rest as they stand", () => {

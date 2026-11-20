@@ -3915,6 +3915,7 @@ supply:
     reason_blocked_by_organisation: 조직에서 막음
     reason_blocked_by_administrator: 관리자가 막힘
     locked: 전역 설정으로 고정
+    platform_off: 전역 설정으로 꺼짐
     order_locked: 순서 전역 설정으로 고정
     overridable: 개인 설정 허용
     fixed: 고정

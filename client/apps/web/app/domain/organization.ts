@@ -22,14 +22,17 @@ export const ORGANIZATION_PATH = "/organization";
 export const ORGANIZATION_KEY = "company";
 
 /** Who reads the screen, as far as which tabs stand for them: the platform administrator, whether the people
- * roster answers them the organisation chosen to look through (docs/accounts.md, 「The people roster」), and whether
- * their supply reach covers it. `known` is false until what decides it has been read, so a tab not yet known to stand
+ * roster answers them the organisation chosen to look through (docs/accounts.md, 「The people roster」), and which
+ * part of its supply they hold. `known` is false until what decides it has been read, so a tab not yet known to stand
  * is neither drawn nor taken away from the address. */
 export interface OrganizationReader {
   administrator: boolean;
   roster: boolean;
-  // Whether the reader's supply reach covers the organisation chosen — their own read, not the roster's.
+  // Whether the reader holds the supply policy and credits of the organisation chosen — their own read, not the
+  // roster's.
   supply: boolean;
+  // Whether the reader holds any part of its supply, its plan alone among them, as a subscription manager does.
+  plans: boolean;
   known: boolean;
 }
 
@@ -61,10 +64,16 @@ function rosterReaderOpens(reader: OrganizationReader): boolean {
   return reader.administrator || reader.roster;
 }
 
-// The supply and plans tabs' readers: the administrator, and a member whose supply reach the account service's read
-// says covers the organisation chosen (「Organisation」, the supply and plans tabs).
+// The supply tab's readers: the administrator, and a member the account service's read says holds the supply policy
+// and credits of the organisation chosen (「Organisation」, the supply tab).
 function supplyReaderOpens(reader: OrganizationReader): boolean {
   return reader.administrator || reader.supply;
+}
+
+// The plans tab's readers: the administrator, and a member the account service's read says holds any part of the
+// organisation's supply — its policy, or its plan alone (「Organisation」, the plans tab).
+function plansReaderOpens(reader: OrganizationReader): boolean {
+  return reader.administrator || reader.supply || reader.plans;
 }
 
 // The people tab's key, which a section moved into one person's tab leads to.
@@ -76,10 +85,11 @@ export const ORGANIZATION_TABS: readonly OrganizationTab[] = [
   { value: "catalogue", label: "catalogue.label.tab", icon: "i-material-symbols-category-outline", opens: rosterReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationCatalogue.vue") },
   { value: "invites", label: "settings.label.invites", icon: "i-material-symbols-person-add-outline", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationInvites.vue") },
   { value: "agent", label: "settings.label.bmo", icon: "i-material-symbols-face-outline", opens: everyReaderOpens, keys: ["unit"], wide: false, load: () => import("~/components/OrganizationBmo.vue") },
-  // The supply and plans tabs stand only for a reader whose supply reach covers the organisation chosen — the
-  // administrator everywhere (docs/web.md, 「Organisation」, the supply and plans tabs).
+  // The supply tab stands only for a reader who holds the organisation's supply policy, and the plans tab for one who
+  // holds any part of its supply — the administrator everywhere (docs/web.md, 「Organisation」, the supply and plans
+  // tabs).
   { value: "supply", label: "supply.label.tab", icon: "i-material-symbols-bolt-outline", opens: supplyReaderOpens, keys: ["unit"], wide: false, load: () => import("~/components/OrganizationSupply.vue") },
-  { value: "plans", label: "supply.label.plans", icon: "i-material-symbols-receipt-long-outline", opens: supplyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationPlans.vue") }
+  { value: "plans", label: "supply.label.plans", icon: "i-material-symbols-receipt-long-outline", opens: plansReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationPlans.vue") }
 ];
 
 // Where a section that once stood here as a tab stands now, by the key its tab had, so a link made before it moved
@@ -240,7 +250,8 @@ export function useOrganizationReader(chosen: () => number | null = () => null):
   return computed(() => ({
     administrator: administrator.value,
     roster: covers(companies.value),
-    supply: covers(supplied.value),
+    supply: covers(supplied.value.filter((one) => one.policy)),
+    plans: covers(supplied.value),
     known: administrator.value || (rosterAnswered.value && supply.value.known)
   }));
 }

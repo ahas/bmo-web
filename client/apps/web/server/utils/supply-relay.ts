@@ -3,16 +3,13 @@ import { withoutBase } from "ufo";
 import { emptyFallbackView } from "../../app/domain/agent-settings";
 
 import { policyBody, sourceList, sourceOwner, sourceScope, supplyAgency, supplyService, textValue, wholeValue } from "./supply";
-import { rosterCompanies } from "./account-service";
 import { signedInUser } from "./accounts";
-import { callerOf } from "./organization";
 import { mayRead, mayWrite } from "#shared/sections";
 import { sectionAccessOf } from "./section-access";
-import { rosterFailure } from "./roster";
 
 import { wording } from "#shared/wording";
 
-import type { SupplyAuditWire, SupplyLedgerWire, SupplyMe, SupplyOrgPlans, SupplyOrgPlansWire, SupplyOrgView, SupplyOrgWire, SupplyPlatformView, SupplyPlatformWire, SupplyPolicy, SupplyPlansWire, SupplyUserView, SupplyUserWire } from "#shared/supply";
+import type { SupplyAuditWire, SupplyLedgerWire, SupplyMe, SupplyOrgPlans, SupplyOrgPlansWire, SupplyOrgView, SupplyOrgWire, SupplyPlatformView, SupplyPlatformWire, SupplyPolicy, SupplyPlansWire, SupplyUnit, SupplyUnitsWire, SupplyUserView, SupplyUserWire } from "#shared/supply";
 import type { PersonalSupplyKey } from "#shared/supply";
 import type { ClaudeLoginStarted, FallbackChanged, FallbackView } from "#shared/types";
 import type { H3Event } from "h3";
@@ -111,15 +108,13 @@ export async function supplyRelay(event: H3Event): Promise<unknown> {
   if (head === "units") {
     if (method !== "GET" || parts.length !== 0) throw absent();
 
-    // The units a supply tab may stand for, as the account service's roster read judges them (docs/web.md,
-    // 「Organisation」, the supply tab): every company for the administrator, the companies whose own unit they
-    // head for anyone else, none for the rest. Where the service carries a supply reach beyond that, this is the
-    // one place it is drawn.
-    try {
-      return (await rosterCompanies(callerOf(signed))).map((one) => ({ id: one.id, name: one.name, parent: null }));
-    } catch (error) {
-      throw rosterFailure(error);
-    }
+    // The companies whose supply the reader holds a part of, as the account service judges them by its own
+    // relations (docs/web.md, 「Organisation」, the supply and plans tabs): every company for the administrator, and
+    // for anyone else each company whose policy and credits they hold — its credit manager or its head — or whose
+    // plan they hold — its subscription manager or its head —, each saying which.
+    const answer = await supplyService<SupplyUnitsWire>(event, "GET", "/units");
+
+    return (answer.units ?? []).map((one): SupplyUnit => ({ id: one.id, name: one.name, parent: null, policy: one.policy === true, plan: one.plan === true }));
   }
 
   if (head === "personal") return await keys(event, method, parts, body);
@@ -413,6 +408,7 @@ function orgView(wire: SupplyOrgWire): SupplyOrgView {
     policy: policyOf(wire.policy ?? null),
     plan: wire.plan ?? null,
     wallet: wire.wallet ?? null,
+    available: wire.available ?? [],
     usage: wire.usage ?? []
   };
 }

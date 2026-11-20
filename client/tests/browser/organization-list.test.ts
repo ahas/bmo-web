@@ -286,6 +286,11 @@ interface Plan {
   exposed: boolean;
 }
 
+// A plan as the applied plan's answer carries it whole, read off the subscription.
+function planCard({ id: _, exposed: __, ...card }: Plan): Omit<Plan, "id" | "exposed"> {
+  return card;
+}
+
 // The organisation's plans as the account service would hold them, answered and written on the page.
 async function plansStandIn(page: Page, unit: number): Promise<{ writes: { path: string; body: unknown }[] }> {
   const catalogue: Plan[] = [
@@ -296,7 +301,7 @@ async function plansStandIn(page: Page, unit: number): Promise<{ writes: { path:
   const writes: { path: string; body: unknown }[] = [];
   const answer = () => ({
     exposed: catalogue.filter((one) => one.exposed).map(({ exposed: _, ...plan }) => plan),
-    applied: applied === null ? null : { plan: applied, since: Date.UTC(2026, 10, 1), periodEnd: Date.UTC(2026, 11, 1) },
+    applied: applied === null ? null : { ...planCard(catalogue.find((one) => one.id === applied)!), plan: applied, since: Date.UTC(2026, 10, 1), periodEnd: Date.UTC(2026, 11, 1) },
     catalogue
   });
 

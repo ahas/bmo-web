@@ -3648,8 +3648,24 @@
         "type": "object"
       },
       "SupplyAppliedPlan": {
-        "description": "The plan a unit runs on: the plan's id and its subscription's period, in epoch milliseconds.",
+        "description": "The plan a unit runs on: the plan's id, its subscription's period, in epoch milliseconds, and the plan whole as\nthe subscription stands on it, whether or not it is still exposed to the unit or still stands.",
         "properties": {
+          "creditsUsable": {
+            "type": "boolean"
+          },
+          "includedCredits": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "period": {
+            "type": "string"
+          },
           "periodEnd": {
             "format": "int64",
             "type": "integer"
@@ -3657,6 +3673,13 @@
           "plan": {
             "format": "int64",
             "type": "integer"
+          },
+          "price": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "scope": {
+            "type": "string"
           },
           "since": {
             "format": "int64",
@@ -3666,7 +3689,13 @@
         "required": [
           "plan",
           "since",
-          "periodEnd"
+          "periodEnd",
+          "name",
+          "price",
+          "scope",
+          "period",
+          "includedCredits",
+          "creditsUsable"
         ],
         "type": "object"
       },
@@ -4175,6 +4204,14 @@
       "SupplyOrgView": {
         "description": "A unit's supply view.",
         "properties": {
+          "available": {
+            "default": [],
+            "description": "For a policy holder, the sources the platform makes available to an organisation's policy: those it turns\non or leaves to a person's own setting. Empty for anyone else.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
           "inherits": {
             "type": "boolean"
           },
@@ -4222,6 +4259,7 @@
         "required": [
           "unit",
           "inherits",
+          "available",
           "usage"
         ],
         "type": "object"
@@ -4643,6 +4681,48 @@
           "allowed",
           "off",
           "locked"
+        ],
+        "type": "object"
+      },
+      "SupplyUnitReach": {
+        "description": "One company whose supply the reader holds a part of: its policy and credits, its plan, or both.",
+        "properties": {
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "plan": {
+            "description": "Whether the reader holds the company's plan: its subscription manager or its head.",
+            "type": "boolean"
+          },
+          "policy": {
+            "description": "Whether the reader holds the company's supply policy and credits: its credit manager or its head.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "policy",
+          "plan"
+        ],
+        "type": "object"
+      },
+      "SupplyUnits": {
+        "description": "The companies whose supply the reader holds a part of, every one for a platform administrator.",
+        "properties": {
+          "units": {
+            "items": {
+              "$ref": "#/components/schemas/SupplyUnitReach"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "units"
         ],
         "type": "object"
       },
@@ -10052,6 +10132,72 @@
         ],
         "x-codes": [
           "bad-request",
+          "forbidden",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/supply/units": {
+      "get": {
+        "operationId": "supplyUnits",
+        "parameters": [
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplyUnits"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: forbidden, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The companies whose supply the reader holds a part of, each saying whether they hold its policy and credits and whether they hold its plan; every company for a platform administrator.",
+        "tags": [
+          "Supply"
+        ],
+        "x-codes": [
           "forbidden",
           "not-in-force",
           "database",

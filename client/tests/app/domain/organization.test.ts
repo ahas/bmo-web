@@ -61,12 +61,14 @@ describe("the settings dialog", () => {
   });
 });
 
-const ADMINISTRATOR: OrganizationReader = { administrator: true, roster: true, supply: false, known: true };
+const ADMINISTRATOR: OrganizationReader = { administrator: true, roster: true, supply: false, plans: false, known: true };
 // A head manages the supply of the company they head, as the account service's read says (docs/web.md, the supply tab).
-const COMPANY_HEAD: OrganizationReader = { administrator: false, roster: true, supply: true, known: true };
-const MEMBER: OrganizationReader = { administrator: false, roster: false, supply: false, known: true };
+const COMPANY_HEAD: OrganizationReader = { administrator: false, roster: true, supply: true, plans: true, known: true };
+// A subscription manager who heads nothing holds the company's plan alone.
+const PLAN_KEEPER: OrganizationReader = { administrator: false, roster: false, supply: false, plans: true, known: true };
+const MEMBER: OrganizationReader = { administrator: false, roster: false, supply: false, plans: false, known: true };
 // A member before the people roster has answered, as the server and the browser's first frame see them.
-const UNKNOWN_MEMBER: OrganizationReader = { administrator: false, roster: false, supply: false, known: false };
+const UNKNOWN_MEMBER: OrganizationReader = { administrator: false, roster: false, supply: false, plans: false, known: false };
 
 describe("the organisation screen", () => {
   test("stands its tabs in order, the units first", () => {
@@ -94,6 +96,10 @@ describe("the organisation screen", () => {
     expect(organizationTabsFor(ADMINISTRATOR)).toHaveLength(ORGANIZATION_TABS.length);
     expect(organizationTabsFor(COMPANY_HEAD).map((tab) => tab.value)).toEqual(["people", "catalogue", "invites", "agent", "supply", "plans"]);
     expect(organizationTabsFor(MEMBER).map((tab) => tab.value)).toEqual(["invites", "agent"]);
+  });
+
+  test("opens the plans tab and not the supply tab to a reader who holds the company's plan alone", () => {
+    expect(organizationTabsFor(PLAN_KEEPER).map((tab) => tab.value)).toEqual(["invites", "agent", "plans"]);
   });
 
   test("opens the first tab a reader may for a key naming none of theirs", () => {

@@ -7618,8 +7618,8 @@ research screen (「Research screen」).
     the history and stands in the address as `?company=` and its number, so a shared link opens the same
     organisation; where the address names none, or one the reader may not set, the first is chosen with no step.
     The administrator's list holds every company, with 회사 추가 at the head's right end, which opens a form of
-    one name and makes a new company; a member's holds the companies where they head a unit, manage the supply
-    or head the company itself, and no add.
+    one name and makes a new company; a member's holds the companies where they head a unit, hold a part of the
+    supply — its policy and credits, or its plan — or head the company itself, and no add.
   - **The list and the organisation chosen are regions side by side,** parted by a splitter whose hairline is
     dragged to widen either, the width kept in this browser, each scrolling on its own. On a narrow screen the
     organisation chosen fills the body, and the list opens as a bottom drawer from the button at the head of the
@@ -7645,9 +7645,11 @@ research screen (「Research screen」).
   machine」) and sets who under it may personalise their BMO (`docs/accounts.md`, 「A person's BMO profile」), so
   their shell lists 조직 too and the screen holds 초대 and BMO, and 사용자 and 직책·종류 where they head a company (「사용자」,
   「직책·종류」); a member who heads none is listed no entry, and the
-  address shows them 초대 saying they may invite into no unit. 공급 and 플랜 stand for the reader whose supply reach
-  the account service's roster read says covers the organisation chosen, and for the administrator wherever
-  they stand; a reader it says nothing for is held the tab no longer than it says nothing. A head marks a person of their unit left as well
+  address shows them 초대 saying they may invite into no unit. 공급 stands for the reader the account service's
+  supply reach says holds the supply policy and credits of the organisation chosen — its credit manager or its head
+  — and 플랜 for one it says holds any part of its supply, its subscription manager among them; both stand for the
+  administrator wherever they stand, and a reader the reach says nothing for is held the tab no longer than it says
+  nothing. A head marks a person of their unit left as well
   (`docs/accounts.md`, 「A person who leaves」): the route stands open to every signed-in login and the account
   service refuses anyone but the person's heads, and the screen offers the act on 사용자, so a head of a unit below a
   company marks a person left through the route alone. A head gives and takes a post in a unit they head, and names
@@ -8138,8 +8140,10 @@ Where a company's own words for its roles and its unit kinds are kept (`docs/acc
 The supply of the organisation chosen: what runs there go out on, the plan it stands on, and the credits that pay
 for them. The account service holds every one of these and owns every refusal (`docs/accounts.md`); the tab
 is read and written on its routes through the console's relay (`/api/supply/org/{unit}` and its `credits`, and
-`/api/supply/units` for the units the tab may stand for — the companies the account service's roster read gives the
-reader, which is every company for the administrator and the companies whose own unit they head for anyone else).
+`/api/supply/units` for the units the tab may stand for — the companies the account service's `GET /supply/units`
+says the reader holds a part of the supply of: every company for the administrator, and for anyone else each company
+whose policy and credits they hold, as its credit manager or its head, or whose plan they hold, as its subscription
+manager or its head, each saying which).
 The unit read carries the policy standing for the unit, own or inherited from above, the plan, the wallet and the
 members' spend, each of those read by the hand that may read it and none for the hand that may not; the policy
 write and the policy's taking-away are answered with the unit as it now stands. No credential and no secret value
@@ -8153,8 +8157,12 @@ stands on it.
   or 상한 없음, and 편집 opens the form on it while 정책 삭제, asked first, takes it away so the unit follows the
   unit above again. The form is the unit's policy written whole: a switch on each source it may set as it allows —
   개인 공급, 전역 공급, 조직 크레딧, 개인 크레딧 —, the order of those allowed moved by arrows with 중단 standing last
-  and unasked for, and 월 상한; a source the layers above close is refused by the service, its reason said in the
-  dialog and no row of it switched on.
+  and unasked for, and 월 상한. A source the platform makes available to no layer below — off, and not left to a
+  person's own setting — stands with its switch off and disabled and 전역 설정으로 꺼짐 under it, as the person's own
+  supply stands a source the platform locks; the unit read names what the platform makes available. The platform's
+  per-source lock binds a person's own setting alone: a source the platform turns off but leaves to a person, and
+  one it locks on, stand open here, and the unit's policy narrows them as it narrows every source. Any refusal is
+  the service's, its reason said in the dialog.
 - **플랜** holds the plan the organisation runs on, read only, as its 플랜 tab sets it (「플랜」 below): its 이름, its
   price in whole won over its period, its period, the 크레딧 it includes each period and whether 크레딧 may be used
   on it, each a row; 계획 없음 where it stands on none.
@@ -8176,17 +8184,20 @@ The plans themselves are designed on 관리자's 플랜 tab (「Administration�
 
 - **적용 플랜** stands first: the plan applied, one row as 관리자's 플랜 rows stand — its name as the label, its scope
   and period, its price and its included credits under it, and whether 크레딧 may be used on it — with 적용 기간, when
-  it was applied and when its period ends, under it; 적용 플랜 없음 where none is. 변경 at the heading's right end
-  opens a dialog listing the exposed plans as one choice each, 없음 first, the plan applied chosen, with 적용 at its
-  foot, open only while the choice differs from what stands. With no plan exposed the dialog says 노출 플랜 없음
+  it was applied and when its period ends, under it; 적용 플랜 없음 where none is. The row is read off the applied
+  plan the service answers, so a plan no longer exposed or retired stands here as long as its subscription lives.
+  변경 at the heading's right end opens a dialog listing the exposed plans as one choice each, 없음 first and the
+  plan applied after it where it is no longer exposed, the plan applied chosen, with 적용 at its foot, open only
+  while the choice differs from what stands. With no plan exposed and none applied the dialog says 노출 플랜 없음
   and 적용 stays off. A refusal is said in the dialog.
 - **노출 플랜** stands under it. The administrator sees every organisation-scope plan, one row each as above, each
   with a switch at its end saying whether it is exposed here, set as it is thrown; the switch of the plan applied
   stands on and disabled, its tooltip saying 적용 중인 플랜은 노출을 끌 수 없습니다. A refusal turns the switch back and
   says why under the row. A reader who is not the administrator sees the exposed plans alone, read only. With no
   organisation-scope plan designed it says 플랜 없음.
-- **Who opens it.** Every reader 공급 stands for. The administrator exposes and applies; the organisation's
-  subscription manager applies one of its exposed plans and exposes none; any other reader reads the tab alone,
+- **Who opens it.** Every reader 공급 stands for, and the organisation's subscription manager, whom the supply reach
+  names for its plan alone. The administrator exposes and applies; the organisation's subscription manager applies
+  one of its exposed plans and exposes none; any other reader reads the tab alone,
   and 변경 is refused them by the account service, said in the dialog.
 - The groups read on their own, each keeping its place with a skeleton while it is first read and saying its
   reason with 새로고침 where its read failed, as every tab of this screen does (「Organisation」).

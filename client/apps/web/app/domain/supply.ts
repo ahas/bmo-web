@@ -3,7 +3,7 @@ import { dayKey, toUnixSeconds } from "bmo-ui/app/domain/time";
 import { accountName } from "./nodes";
 import { countText } from "./numbers";
 
-import type { GatewayMember, PersonalSupplyKey, SupplyAppliedPlan, SupplyCataloguePlan, SupplyMe, SupplyMeSetting, SupplyPolicy, SupplyReason, SupplySource, SupplyUnit } from "#shared/supply";
+import type { GatewayMember, PersonalSupplyKey, SupplyAppliedPlan, SupplyCataloguePlan, SupplyMe, SupplyMeSetting, SupplyOrgPlans, SupplyPlanEntry, SupplyPolicy, SupplyReason, SupplySource, SupplyUnit } from "#shared/supply";
 import type { ClaudeAccountView } from "#shared/types";
 import type { Translate } from "#shared/wording";
 import type { ComputedRef } from "vue";
@@ -324,6 +324,19 @@ export const NO_PLAN = "none";
 /** The dialog's choice the plan applied stands as: its id, or none. */
 export function planChoice(applied: Pick<SupplyAppliedPlan, "plan"> | null): string {
   return applied === null ? NO_PLAN : String(applied.plan);
+}
+
+/** The plan applied as a plan row shows it, read off the answer itself, whatever its exposure. */
+export function appliedPlanEntry(applied: SupplyAppliedPlan): SupplyPlanEntry {
+  return { id: applied.plan, name: applied.name, price: applied.price, scope: applied.scope === "personal" ? "personal" : "organisation", period: applied.period, includedCredits: applied.includedCredits, creditsUsable: applied.creditsUsable };
+}
+
+/** The plans an apply dialog lists after none: the plan applied first where it is shown no longer, so the dialog opens
+ * on a choice it holds, then the plans shown. */
+export function applyChoices(plans: Pick<SupplyOrgPlans, "exposed" | "applied">): SupplyPlanEntry[] {
+  const applied = plans.applied;
+
+  return applied === null || plans.exposed.some((one) => one.id === applied.plan) ? [...plans.exposed] : [appliedPlanEntry(applied), ...plans.exposed];
 }
 
 /** How long the plan applied has run and runs on: the day it was applied to the day its period ends. */

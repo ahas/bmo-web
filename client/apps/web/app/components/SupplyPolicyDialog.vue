@@ -3,18 +3,21 @@
        monthly cap on personal credits where the policy kind carries one (docs/web.md, 「Organisation」, the supply
        tab; the settings' supply section). The platform's form carries beside each source a second switch, whether a
        person's own setting may change it, and under the sources one more of it for the order (「Administration」, the
-       credits tab). One save at the foot sends the whole form, open only while it differs from what opened; the
-       writer answers every refusal, which stands in the dialog. -->
+       credits tab). An organisation's form is handed what the platform makes available, and a source out of it
+       stands with its switch off and disabled and the words saying the platform has it off. One save at the foot
+       sends the whole form, open only while it differs from what opened; the writer answers every refusal, which
+       stands in the dialog. -->
   <SettingsDialog v-model:open="open" :title="props.title" :dirty="changes">
     <div class="flex flex-col divide-y divide-default">
       <div v-for="source in rows" :key="source" class="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 py-3" :data-supply-policy-row="source">
         <span class="flex min-w-0 grow basis-40 flex-col">
           <span class="text-sm" :class="isAllowed(source) ? 'text-highlighted' : 'text-muted'">{{ sourceLabel(t, source) }}</span>
+          <span v-if="!isAvailable(source)" class="text-sm text-muted" data-supply-policy-platform-off>{{ $t("supply.label.platform_off") }}</span>
         </span>
         <span v-if="source !== 'stop'" class="flex shrink-0 items-center gap-2">
           <IconButton size="xs" icon="i-material-symbols-arrow-upward" :label="$t('common.aria.move_up_named', { name: sourceLabel(t, source) })" :disabled="!canMove(source, -1)" @click="move(source, -1)" />
           <IconButton size="xs" icon="i-material-symbols-arrow-downward" :label="$t('common.aria.move_down_named', { name: sourceLabel(t, source) })" :disabled="!canMove(source, 1)" @click="move(source, 1)" />
-          <USwitch :model-value="isAllowed(source)" :aria-label="$t('supply.aria.source_switch', { name: sourceLabel(t, source) })" @update:model-value="(on: boolean) => void toggle(source, on)" />
+          <USwitch :model-value="isAllowed(source)" :disabled="!isAvailable(source)" :aria-label="$t('supply.aria.source_switch', { name: sourceLabel(t, source) })" @update:model-value="(on: boolean) => void toggle(source, on)" />
         </span>
         <USwitch
           v-if="props.overrides && source !== 'stop'"
@@ -66,9 +69,12 @@ interface Props {
   overrides?: boolean;
   // Who writes the policy: the unit's, the person's or the platform's own route, as the caller holds it.
   send: (policy: PolicyWrite) => Promise<unknown>;
+  // The sources the platform makes available to this policy, where the form is handed them: a source out of them is
+  // off for every layer, and the form neither opens it nor keeps it. None handed, every source stands open.
+  available?: readonly SupplySource[] | null;
 }
 
-const props = withDefaults(defineProps<Props>(), { cap: true, overrides: false });
+const props = withDefaults(defineProps<Props>(), { cap: true, overrides: false, available: null });
 const open = defineModel<boolean>("open", { default: false });
 const emit = defineEmits<{ saved: [] }>();
 
@@ -86,8 +92,8 @@ const failure = ref("");
 watch(open, (standing) => {
   if (!standing) return;
 
-  allowed.value = [...props.draft.allowed];
-  order.value = [...props.draft.order];
+  allowed.value = props.draft.allowed.filter(isAvailable);
+  order.value = props.draft.order.filter((one) => one === "stop" || isAvailable(one));
   capWords.value = props.draft.memberCreditCredits === null ? "" : String(props.draft.memberCreditCredits);
   overridable.value = [...props.draft.overridable];
   orderOverridable.value = props.draft.orderOverridable;
@@ -104,6 +110,10 @@ const rows = computed<SupplySource[]>(() => draftRows({ allowed: allowed.value, 
 
 function setOverridable(source: SupplySource, on: boolean): void {
   overridable.value = on ? [...overridable.value.filter((one) => one !== source), source] : overridable.value.filter((one) => one !== source);
+}
+
+function isAvailable(source: SupplySource): boolean {
+  return source === "stop" || props.available === null || props.available.includes(source);
 }
 
 function isAllowed(source: SupplySource): boolean {

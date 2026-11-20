@@ -326,7 +326,8 @@ async function markLeft(): Promise<void> {
 // administrator at once and for a member once the person's unit and the member's supply reach have both answered.
 const supplyUnits = useSupplyUnits();
 const supplyStanding = useSupplyReader();
-const supplyManages = computed(() => person.value !== null && supplyUnits.value.some((one) => one.id === person.value?.unit.id));
+// A person's policy is the credit manager's of their unit, so the reach that counts is a unit's policy, not its plan.
+const supplyManages = computed(() => person.value !== null && supplyUnits.value.some((one) => one.policy && one.id === person.value?.unit.id));
 // Who opens the tabs is known at once for the administrator, and for anyone else once the person's read and the
 // supply reach have both answered; a read that failed answers it too, and leaves its tab standing for nothing.
 const panesSettled = computed(() => administrator.value || (person.value !== null || personFailure.value !== "") && supplyStanding.value.known);

@@ -73,16 +73,16 @@
       </SettingsGroup>
     </template>
 
-    <!-- The plan applied, chosen among the plans shown, none first; one way through at the foot, open only while the
-         choice differs from what stands. -->
+    <!-- The plan applied, chosen among the plans shown, none first and the plan applied standing among them where it
+         is shown no longer; one way through at the foot, open only while the choice differs from what stands. -->
     <SettingsDialog v-model:open="applying" :title="$t('supply.title.plan_applied')" :dirty="applyChanges">
-      <p v-if="exposedChoices.length === 0" class="text-sm text-muted" data-plans-apply-none>{{ $t("supply.label.plan_exposed_none") }}</p>
+      <p v-if="planChoices.length === 0" class="text-sm text-muted" data-plans-apply-none>{{ $t("supply.label.plan_exposed_none") }}</p>
       <URadioGroup v-else v-model="choice" :items="choiceItems" :aria-label="$t('supply.title.plan_applied')" data-plans-apply-choices />
       <p v-if="applyFailure !== ''" role="alert" class="text-sm break-words text-error">{{ applyFailure }}</p>
 
       <template #footer="{ close }">
         <UButton :label="$t('common.action.cancel')" color="neutral" variant="ghost" :disabled="applyBusy" @click="close()" />
-        <UButton :label="$t('supply.action.plan_apply')" :loading="applyBusy" :disabled="applyBusy || exposedChoices.length === 0 || choice === standingChoice" data-plans-apply @click="void apply()" />
+        <UButton :label="$t('supply.action.plan_apply')" :loading="applyBusy" :disabled="applyBusy || planChoices.length === 0 || choice === standingChoice" data-plans-apply @click="void apply()" />
       </template>
     </SettingsDialog>
   </div>
@@ -92,7 +92,7 @@
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 
-import { NO_PLAN, planChoice, planTermText, withExposure } from "~/domain/supply";
+import { NO_PLAN, applyChoices, appliedPlanEntry, planChoice, planTermText, withExposure } from "~/domain/supply";
 
 import type { Organization } from "~/domain/organization";
 import type { SupplyOrgPlans, SupplyPlanEntry } from "#shared/supply";
@@ -111,14 +111,8 @@ const failure = ref("");
 const reading = ref(false);
 
 const applied = computed(() => plans.value?.applied ?? null);
-// The plan applied, read whole from the plans the organisation is shown, or from every plan for the administrator.
-const appliedPlan = computed<SupplyPlanEntry | null>(() => {
-  const standing = applied.value;
-
-  if (standing === null || plans.value === null) return null;
-
-  return [...plans.value.exposed, ...(plans.value.catalogue ?? [])].find((one) => one.id === standing.plan) ?? null;
-});
+// The plan applied, read whole off the answer itself, so a plan no longer exposed or retired still stands as applied.
+const appliedPlan = computed<SupplyPlanEntry | null>(() => (applied.value === null ? null : appliedPlanEntry(applied.value)));
 const termText = computed(() => (applied.value === null ? "" : planTermText(t, applied.value)));
 
 // The read is answered whole; a failure stands until a read goes through, so a read asked again spins on its button.
@@ -164,8 +158,10 @@ const choice = ref(NO_PLAN);
 const standingChoice = computed(() => planChoice(applied.value));
 const applyChanges = useOpenedWith(() => choice.value, { open: applying });
 
-const exposedChoices = computed(() => plans.value?.exposed ?? []);
-const choiceItems = computed(() => [{ label: t("supply.label.plan_choice_none"), value: NO_PLAN }, ...exposedChoices.value.map((one) => ({ label: one.name, value: String(one.id) }))]);
+// The choices: none, the plan applied where it is no longer among the exposed, so the dialog opens on a choice it
+// lists, and the exposed plans.
+const planChoices = computed(() => (plans.value === null ? [] : applyChoices(plans.value)));
+const choiceItems = computed(() => [{ label: t("supply.label.plan_choice_none"), value: NO_PLAN }, ...planChoices.value.map((one) => ({ label: one.name, value: String(one.id) }))]);
 
 function openApply(): void {
   choice.value = standingChoice.value;

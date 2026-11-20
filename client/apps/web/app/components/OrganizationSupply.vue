@@ -82,7 +82,7 @@
       <p v-if="failure !== ''" role="alert" class="break-words text-sm text-error">{{ failure }}</p>
     </template>
 
-    <SupplyPolicyDialog v-model:open="editing" :title="$t('supply.title.policy_set')" :draft="draft" :send="writePolicy" @saved="void read()" />
+    <SupplyPolicyDialog v-model:open="editing" :title="$t('supply.title.policy_set')" :draft="draft" :available="view?.available ?? []" :send="writePolicy" @saved="void read()" />
 
     <!-- Credits granted to the unit's wallet: an amount and a line of words kept with it. A grant is the reader's
          act on the platform's credits, not a payment; the top-up road payments would open stands closed. -->

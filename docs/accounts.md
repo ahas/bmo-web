@@ -615,6 +615,9 @@ section states what each does.
   proof that answers active sets it again, so opening the invitation's link once more sets a record that did not
   land. A refusal — 422 `not-a-hub-node`, where the node service keeps no hub node of that name free of every
   service, or agency out of reach — is written to the console's log, and the account stands active all the same.
+  The services that drive a program on a person's own PC reach the machine with nothing asked from here: the
+  node service lists it as a personal node as it attaches, with the callers its configuration lets onto every
+  personal node (bmo-node's `docs/nodes.md`, 「A node's callers」), and agency's record makes it the person's.
 - **A binding keeps when the account was connected to its machine,** set as the binding is made, by an invitation's
   acceptance, by a pairing's approval for an account bound to none, or by the administrator binding it to another
   machine, and kept while the binding stays on the same machine; a binding made before the moment was kept answers

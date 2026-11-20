@@ -253,8 +253,10 @@
   tree of them → 조직도; a unit at the tree's top → 회사, a new one 새 회사. Never 단위, the English unit's twin.
 - a unit's head → 조직장: 조직장 지정, 조직장 해제. Never 장 alone, 책임자.
 - the people of a room, the accounts let into it and the people its chat service reads → 대화상대: 대화상대,
-  대화상대 없음, 대화상대를 불러오지 못했습니다. Never 멤버, 참여자, 인원, and never 구성원, which is a unit's people; a
-  member the account service knows as an account → 콘솔 사용자.
+  대화상대 없음, 대화상대를 불러오지 못했습니다, 채팅 서비스에서 이 방의 대화상대를 읽지 못했습니다; a room with none
+  says why under 대화상대 없음, 채팅 서비스가 없는 방입니다 or 채팅 서비스가 대화상대 목록을 주지 않습니다. Never 멤버,
+  참여자, 인원, and never 구성원, which is a unit's people; a member the account service knows as an account → 콘솔
+  사용자.
 - whether a person is reachable now → 접속 상태: 온라인, 자리 비움, and for one who is not here the last moment seen,
   최근 접속 {time} 전; several people's → 온라인 {n}명; the account's switch to show it → 접속 상태 공개. Nobody is
   ever written offline: one who is not here is drawn as nothing. Never 접속 중, 부재 중, 마지막 접속, which stays the

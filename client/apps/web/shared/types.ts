@@ -2928,10 +2928,15 @@ export interface RoomMember {
   inConsole: boolean;
 }
 
-// A room's members, and whether the reader may let people in and take them out (docs/web.md, the room screen's
-// section on opening a room and letting people in).
+// What a room's chat service gave of its members (docs/web.md, the room screen's members entry): its list, or none
+// with no failure, since no chat service carries the room or its chat service lists no members.
+export type RoomChatMembers = "listed" | "no-service" | "unlisted";
+
+// A room's members, what its chat service gave of them, and whether the reader may let people in and take them out
+// (docs/web.md, the room screen's section on opening a room and letting people in).
 export interface RoomMembersView {
   members: RoomMember[];
+  chatMembers: RoomChatMembers;
   mayLetIn: boolean;
 }
 

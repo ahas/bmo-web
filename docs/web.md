@@ -5967,12 +5967,15 @@ Four bounds keep it from growing forever.
 - **A member the platform does not know stands as a member alone:** their face, name and status line, with no
   mark and nothing guessed from their name or anything else.
 - **A refusal stands in the sheet's error band,** with the refresh that reads again, and the room stands as it
-  was. The receiver's `not-found`, a room whose chat service has not read its members yet, and its `no-route`,
-  a receiver that hands no members over, are said by the pack's own sentences; every other code by the sentence
-  every receiver route says it in. Where the account service cannot answer, the band says that whether each member
-  is a console user could not be told, and no list stands in its place, so no console user is shown as unknown.
-  A room whose chat service read no members says 대화상대 없음. The receiver's `record-only-room`, a room no chat
-  service carries, is no refusal: its console members stand alone.
+  was. The receiver's `members-unheld`, a chat service that could not read the room's members, is said by the pack's
+  own sentence, 채팅 서비스에서 이 방의 대화상대를 읽지 못했습니다; every other code by the sentence every receiver
+  route says it in. Where the account service cannot answer, the band says that whether each member is a console
+  user could not be told, and no list stands in its place, so no console user is shown as unknown.
+- **A room with no chat-service members is no refusal:** the receiver's `record-only-room`, a room no chat service
+  carries, and its `members-unlisted`, a chat service that lists no members, leave the console members standing
+  alone. A room with no members at all says 대화상대 없음, and under it one line on why where the chat service gave
+  none: 채팅 서비스가 없는 방입니다 for a room no chat service carries, 채팅 서비스가 대화상대 목록을 주지 않습니다 for
+  one whose chat service lists none. A room whose chat service read no members says 대화상대 없음 alone.
 
 #### 방 만들기와 대화상대 추가
 

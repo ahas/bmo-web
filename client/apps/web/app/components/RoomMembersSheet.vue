@@ -30,7 +30,11 @@
 
       <ReadFailure :failure="failure" :message="failed" :reading="pending" @retry="read()" />
 
-      <p v-if="loaded && members.length === 0" class="text-sm text-dimmed">{{ $t("members.label.none") }}</p>
+      <!-- No members at all, with one line on why where the room's chat service gave none. -->
+      <div v-if="loaded && members.length === 0" class="flex flex-col gap-1 text-sm text-dimmed" data-room-members-none>
+        <p>{{ $t("members.label.none") }}</p>
+        <p v-if="noneReason !== null">{{ noneReason }}</p>
+      </div>
 
       <ul v-else-if="loaded" :class="LIST" data-room-members>
         <li
@@ -91,7 +95,7 @@ import { mayRead } from "#shared/sections";
 
 import type { AvatarIndex } from "~/domain/avatars";
 import type { MemberPresence } from "~/domain/presence";
-import type { RoomMember, RoomMembersView } from "#shared/types";
+import type { RoomChatMembers, RoomMember, RoomMembersView } from "#shared/types";
 
 interface Props {
   chatId: number;
@@ -121,6 +125,18 @@ const mayOpenPeople = computed<boolean>(() => props.administrator || mayRead(acc
 
 const members = ref<RoomMember[]>([]);
 const mayLetIn = ref(false);
+const chatMembers = ref<RoomChatMembers>("listed");
+// Why a room with no members has none of its chat service's, where its chat service gave none.
+const noneReason = computed<string | null>(() => {
+  switch (chatMembers.value) {
+    case "no-service":
+      return t("members.label.no_service");
+    case "unlisted":
+      return t("members.label.unlisted");
+    case "listed":
+      return null;
+  }
+});
 const letInOpen = ref(false);
 const busy = ref<string | null>(null);
 const actFailure = ref("");
@@ -155,6 +171,7 @@ async function read(): Promise<void> {
     if (mine !== generation) return;
     members.value = answer.members;
     mayLetIn.value = answer.mayLetIn;
+    chatMembers.value = answer.chatMembers;
     loaded.value = true;
   } catch (error) {
     if (mine !== generation) return;

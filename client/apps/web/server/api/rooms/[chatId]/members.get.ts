@@ -6,8 +6,8 @@ import { requireReadableRoom } from "../../../utils/room-reach";
 import type { RoomMembersView } from "#shared/types";
 
 // A room's members by either road, each marked with the console account they are where the account service knows one,
-// and whether the reader may let people in (docs/web.md, the room screen's members entry). Read for whoever may read
-// the room, each time the sheet opens.
+// what the room's chat service gave of them, and whether the reader may let people in (docs/web.md, the room screen's
+// members entry). Read for whoever may read the room, each time the sheet opens.
 export default defineEventHandler(async (event): Promise<RoomMembersView> => {
   await requireUserSession(event);
 
@@ -15,7 +15,7 @@ export default defineEventHandler(async (event): Promise<RoomMembersView> => {
 
   await requireReadableRoom(event, chatId);
 
-  const [members, may] = await Promise.all([roomMembers(chatId), mayLetIn(await signedInUser(event), chatId)]);
+  const [{ members, chatMembers }, may] = await Promise.all([roomMembers(chatId), mayLetIn(await signedInUser(event), chatId)]);
 
-  return { members, mayLetIn: may };
+  return { members, chatMembers, mayLetIn: may };
 });

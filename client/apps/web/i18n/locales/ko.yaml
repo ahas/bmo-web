@@ -2160,6 +2160,8 @@ members:
   label:
     console_user: 콘솔 사용자
     none: 대화상대 없음
+    no_service: 채팅 서비스가 없는 방입니다.
+    unlisted: 채팅 서비스가 대화상대 목록을 주지 않습니다.
     person: 사람
     unit: 조직
     unit_people: "구성원 {count}명"
@@ -2173,8 +2175,7 @@ members:
     take_out: 내보내기
   error:
     load_failed: 대화상대를 불러오지 못했습니다.
-    not_filled: 채팅 서비스가 이 방의 대화상대를 아직 읽지 않았습니다.
-    not_served: 수신 유닛이 대화상대를 넘기지 않습니다.
+    unheld: 채팅 서비스에서 이 방의 대화상대를 읽지 못했습니다.
     accounts_failed: 콘솔 사용자인지 확인하지 못했습니다.
     entry_failed: 대화상대를 바꾸지 못했습니다.
     entry_forbidden: 이 방에 대화상대를 추가하거나 내보낼 권한이 없습니다.

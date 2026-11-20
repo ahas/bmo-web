@@ -6,7 +6,7 @@ import { fail } from "./fail";
 import { RECEIVER_CODES } from "./receiver";
 import { unitFetch } from "./units";
 
-import type { RoomMember } from "#shared/types";
+import type { RoomChatMembers, RoomMember } from "#shared/types";
 
 // A room's members (docs/web.md, the room screen's members entry; docs/boundary.md, 「Calls the console makes」), by
 // either road: the receiver's list of them as the chat service carrying the room read it, with the account service's
@@ -14,12 +14,26 @@ import type { RoomMember } from "#shared/types";
 // receiver's published document carries neither route, so each call is made on the receiver's address as every unit
 // call is, and its answer is read field by field.
 
-// The receiver's refusals of the members read, each with the pack's key for the sentence a person reads; every other
-// code is said as every receiver route says it.
+// The receiver's refusal of the members read that is a failure, with the pack's key for the sentence a person reads;
+// every other code is said as every receiver route says it.
 const MEMBER_CODES: Readonly<Record<string, string>> = {
-  "not-found": "members.error.not_filled",
-  "no-route": "members.error.not_served"
+  "members-unheld": "members.error.unheld"
 };
+
+// The receiver's refusals that say the room has no chat-service members, which is no failure: no chat service carries
+// the room, or its chat service lists no members.
+const NO_CHAT_MEMBERS: Readonly<Record<string, Exclude<RoomChatMembers, "listed">>> = {
+  "record-only-room": "no-service",
+  "members-unlisted": "unlisted"
+};
+
+type ReadMember = Omit<RoomMember, "account" | "inConsole">;
+
+/** What a room's chat service gave of its members: its list, and whether it gave one. */
+export interface ReceivedMembers {
+  members: ReadMember[];
+  chatMembers: RoomChatMembers;
+}
 
 interface WireMember {
   person?: unknown;
@@ -40,18 +54,15 @@ function statusOf(value: unknown): string | null {
 }
 
 // One member as the receiver answered them; a row with no name is no member a person can be shown.
-function memberOf(row: WireMember): Omit<RoomMember, "account" | "inConsole"> | null {
+function memberOf(row: WireMember): ReadMember | null {
   if (typeof row.name !== "string" || row.name.trim() === "") return null;
 
   return { person: personOf(row.person), name: row.name, status: statusOf(row.statusMessage) };
 }
 
-// The receiver's refusal of a room no chat service carries, whose members are its accounts alone.
-const RECORD_ONLY = "record-only-room";
-
-/** The room's members as the receiver answers them, its refusal said in the pack's words; none for a room no chat
- * service carries. */
-export async function receivedMembers(roomId: number): Promise<Omit<RoomMember, "account" | "inConsole">[]> {
+/** The room's members as the receiver answers them, its refusal said in the pack's words; none, and why, for a room
+ * with no chat-service members. */
+export async function receivedMembers(roomId: number): Promise<ReceivedMembers> {
   let answer: WireMembers | null;
 
   try {
@@ -59,14 +70,17 @@ export async function receivedMembers(roomId: number): Promise<Omit<RoomMember, 
       codes: { ...RECEIVER_CODES, ...MEMBER_CODES }
     });
   } catch (error) {
-    if ((error as { data?: { code?: unknown } | null }).data?.code === RECORD_ONLY) return [];
+    const code = (error as { data?: { code?: unknown } | null }).data?.code;
+    const none = typeof code === "string" ? NO_CHAT_MEMBERS[code] : undefined;
+
+    if (none !== undefined) return { members: [], chatMembers: none };
 
     throw error;
   }
 
   const rows = Array.isArray(answer?.members) ? (answer.members as WireMember[]) : [];
 
-  return rows.flatMap((row) => memberOf(row) ?? []);
+  return { members: rows.flatMap((row) => memberOf(row) ?? []), chatMembers: "listed" };
 }
 
 /** The accounts of the members whose person number is linked to a user who may sign in, by person number. */
@@ -102,9 +116,10 @@ async function accountNames(accounts: readonly string[]): Promise<Map<string, st
 }
 
 /** A room's members by either road: its chat service's, each marked with the console account they are where the
- * account service knows one, then every account let in in the console that its chat service does not list. */
-export async function roomMembers(roomId: number): Promise<RoomMember[]> {
-  const [members, inConsole] = await Promise.all([receivedMembers(roomId), roomAccounts(roomId)]);
+ * account service knows one, then every account let in in the console that its chat service does not list; and what
+ * its chat service gave of them. */
+export async function roomMembers(roomId: number): Promise<{ members: RoomMember[]; chatMembers: RoomChatMembers }> {
+  const [{ members, chatMembers }, inConsole] = await Promise.all([receivedMembers(roomId), roomAccounts(roomId)]);
   const people = [...new Set(members.flatMap((member) => member.person ?? []))];
   const linked = await consoleAccounts(people);
   const consoleKeys = new Set(inConsole.map((member) => member.account));
@@ -117,12 +132,15 @@ export async function roomMembers(roomId: number): Promise<RoomMember[]> {
   const unlisted = inConsole.filter((member) => !listed.has(member.account)).map((member) => member.account);
   const names = await accountNames(unlisted);
 
-  return [
-    ...read,
-    ...unlisted.flatMap((account) => {
-      const name = names.get(account);
+  return {
+    members: [
+      ...read,
+      ...unlisted.flatMap((account) => {
+        const name = names.get(account);
 
-      return name === undefined ? [] : [{ person: null, name, status: null, account, inConsole: true }];
-    })
-  ];
+        return name === undefined ? [] : [{ person: null, name, status: null, account, inConsole: true }];
+      })
+    ],
+    chatMembers
+  };
 }

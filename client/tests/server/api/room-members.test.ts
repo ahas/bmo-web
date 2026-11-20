@@ -9,8 +9,8 @@ import type { RoomMembersView } from "../../../apps/web/shared/types";
 // A room's members (docs/web.md, the room screen's members entry), by either road: the receiver's list as the room's
 // chat service read it, each member marked with the console account they are only where the account service links
 // their person number to a user who may sign in, then the accounts let in in the console that list leaves out; the
-// receiver's refusal said by the pack's sentence for its code, and a room no chat service carries standing with its
-// accounts alone.
+// receiver's refusal said by the pack's sentence for its code, and a room no chat service carries, or whose chat
+// service lists no members, standing with its accounts alone and saying which.
 
 const ROOM = -7;
 const KNOWN = 9_000_000_000_101;
@@ -37,8 +37,8 @@ const receiver = standIn("RECEIVER", (one) => {
       ]
     });
   }
-  if (one.path === "/rooms/-8/members") return answer({ code: "not-found", error: "The room's members were never read." }, 404);
-  if (one.path === "/rooms/-9/members") return answer({ code: "no-route", error: "There is no route here." }, 404);
+  if (one.path === "/rooms/-8/members") return answer({ code: "members-unheld", error: "Chat A gave no members of the room." }, 409);
+  if (one.path === "/rooms/-9/members") return answer({ code: "members-unlisted", error: "Chat A does not list the members of a room." }, 409);
   if (one.path === "/rooms/-10/members") return answer({ members: [{ person: KNOWN, name: "member-a", statusMessage: null }] });
 
   return answer({ code: "failed", error: "Not served here." }, 500);
@@ -77,6 +77,7 @@ describe("a room's members", () => {
         { person: null, name: "member-d", status: "status-d", account: null, inConsole: false },
         { person: null, name: "person-12", status: null, account: "12", inConsole: true }
       ],
+      chatMembers: "listed",
       mayLetIn: true
     });
     // One lookup for every member with a number, and none for the member without one or the row with no name; then
@@ -98,15 +99,19 @@ describe("a room's members", () => {
         { person: null, name: "person-12", status: null, account: "12", inConsole: true },
         { person: null, name: "account-13", status: null, account: "13", inConsole: true }
       ],
+      chatMembers: "no-service",
       mayLetIn: true
     });
+  });
+
+  test("of a room whose chat service lists no members are its accounts alone, none here, with no refusal", async () => {
+    expect((await asked(read, { params: { chatId: "-9" } })).answer).toEqual({ members: [], chatMembers: "unlisted", mayLetIn: true });
   });
 
   test("say the receiver's refusal by the pack's sentence for its code, and ask the account service nothing", async () => {
     server.asked.length = 0;
 
-    expect(await asked(read, { params: { chatId: "-8" } })).toMatchObject({ status: 404, message: wording("members.error.not_filled") });
-    expect(await asked(read, { params: { chatId: "-9" } })).toMatchObject({ status: 404, message: wording("members.error.not_served") });
+    expect(await asked(read, { params: { chatId: "-8" } })).toMatchObject({ status: 409, message: wording("members.error.unheld") });
     expect(await asked(read, { params: { chatId: "-11" } })).toMatchObject({ status: 502, message: wording("room.error.receiver_failed") });
     expect(server.asked).toEqual([]);
   });

@@ -10,8 +10,9 @@ import type { RoomMembersView } from "../../apps/web/shared/types";
 // A room's members (docs/web.md, the room screen's members entry), in the room the console made on the record road
 // that the harness's receiver stands. The members are served through the page's own route, since the harness's
 // receiver serves none: the menu opens the sheet, a member known as an account carries the console user's mark and
-// leads to their page, one who is not stands alone, a long name is cut inside its row, Back closes the sheet, and a
-// refused read stands in the sheet's error band with no list. It drives the console tests/support/browser-console.ts
+// leads to their page, one who is not stands alone, a long name is cut inside its row, Back closes the sheet, a room
+// with no members at all says so with why its chat service gave none, and a refused read stands in the sheet's error
+// band with no list. It drives the console tests/support/browser-console.ts
 // stands up; the suite stands up no console, so there it skips.
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
@@ -27,6 +28,7 @@ const MEMBERS = {
     { person: 9_000_000_000_102, name: "member-b", status: null, account: null, inConsole: false },
     { person: null, name: LONG, status: "status-c", account: null, inConsole: false }
   ],
+  chatMembers: "listed",
   mayLetIn: false
 } satisfies RoomMembersView;
 
@@ -150,9 +152,25 @@ describe.skipIf(!origin || !touchReady())("a room's members", () => {
     }
   }, 90_000);
 
+  test("with no members of a room no chat service carries, say there are none and why, and stand no list", async () => {
+    const none = { members: [], chatMembers: "no-service", mayLetIn: false } satisfies RoomMembersView;
+    const { page, close } = await sheetOpen(360, 780, true, { status: 200, body: none });
+
+    try {
+      const empty = page.locator("[data-room-members-none]");
+
+      await empty.waitFor({ timeout: 10_000 });
+      expect(await empty.locator("p").allInnerTexts()).toEqual([wording("members.label.none"), wording("members.label.no_service")]);
+      expect(await page.locator("[data-room-members]").count()).toBe(0);
+      expect(await page.getByRole("alert").count()).toBe(0);
+    } finally {
+      await close();
+    }
+  }, 90_000);
+
   test("refused, say the refusal in the sheet's error band and stand no list", async () => {
-    const said = wording("members.error.not_served");
-    const { page, close } = await sheetOpen(1280, 900, false, { status: 404, body: { statusCode: 404, message: said } });
+    const said = wording("members.error.unheld");
+    const { page, close } = await sheetOpen(1280, 900, false, { status: 409, body: { statusCode: 409, message: said } });
 
     try {
       await page.getByRole("alert").filter({ hasText: said }).waitFor({ timeout: 10_000 });

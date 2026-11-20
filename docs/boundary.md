@@ -690,16 +690,17 @@ for it, and no file or table of that unit is read meanwhile.
 - **A room's members.** The receiver's published client carries no route for a room's members, so the console asks
   `GET /rooms/{roomId}/members` on the receiver's address as every unit call is made, and reads its answer field by
   field: `members`, each `person` (the person number the room's lines carry, or null where none was given), `name`
-  and `statusMessage` (or null). A row with no name is left out, and a field it does not find stands as none. While
-  the receiver serves no such route, its `no-route` refusal is said in the 대화상대 sheet as the pack's sentence that
-  the receiver hands no members over (`docs/web.md`, the room screen's 대화상대).
+  and `statusMessage` (or null). A row with no name is left out, and a field it does not find stands as none. Its
+  `record-only-room` and `members-unlisted` refusals are no failure: the room has no chat-service members, which the
+  sheet says where it has no members at all; its `members-unheld` is said by the pack's own sentence (`docs/web.md`,
+  the room screen's 대화상대).
 - **A room's accounts and an account's words.** The receiver's published client carries none of its routes for the
   console's rooms — an account's record identity, the rooms an account is a member of, a room's members by account,
   letting an account in and taking one out, and words and files said by an account — nor `openedBy` on a room on the
   record alone, nor `privateOf` and `sealed` on a room it reads, nor the `account` a change in a room is made as (an act on a
   message, a sticker, a forward, a line read aloud, a room's pin, its picture, its providers, its mode, its removal), so the console asks each on the receiver's address as every unit call is made, reads its answer
-  field by field, and reads every message id in it as exact. The receiver's `record-only-room` refusal of a room's
-  chat-service members is read as a room no chat service carries, whose members are its accounts alone. While the
+  field by field, and reads every message id in it as exact. The receiver's refusals of a room's chat-service members
+  are read as 「A room's members」 above says. While the
   receiver serves no route for an account's memberships or a room's accounts, its `no-route` refusal of either reads
   as none, so a room stands as its other roads give it.
 - **A field a route answers that the published types leave untyped.** The agency's client types every route the

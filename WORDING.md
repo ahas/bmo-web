@@ -506,6 +506,9 @@
   signal → 정상, 주의, 위험; risks in the works under it → 하위 위험 {n}건. Its due date → 기한, `{n}일 남음` while it is
   still to come, 오늘 마감 on the day, 기한 지남 once past; its start → 시작일. Never 순조 for 정상, 진행률 for 진척,
   마감일 or 데드라인 for a due date.
+- an entry the person's BMO drafted → 초안, keeping it → 확정, letting it go → 철회; the drafts on a work another reads →
+  `확정 전 초안 {n}건`; one drafted from what an agent did → AI 작업. What an entry rests on → 증거, counted `증거 {n}건`;
+  one resting on the person's word alone → 진술. Never 미확인, 승인 for 확정, 취소 or 삭제 for 철회, 근거 for 증거.
 - a milestone's conditions → 조건: 조건 충족, 조건 미충족, 완료 조건; an approver's rejection of them → 반려, with its 반려
   사유, as an approval document's; the approval forms it waits on → 결재 양식; who approves → 승인자. Never 거절 for it.
 - one work handing something to another, or to a unit → 관계, its kinds 인계, 검수, 참조, 보고, 변경 요청, 업무 요청, sent

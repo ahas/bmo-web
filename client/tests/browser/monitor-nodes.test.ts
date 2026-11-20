@@ -5,10 +5,10 @@ import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, BrowserContext, Page, Route } from "playwright-core";
 
-// The monitor's node list, a node's ownership and the monitor watching shared nodes alone (docs/web.md, 「Monitor
-// screen」 and 「The node list」), at a desk's width and a phone's. Every node is shared or personal; a personal node
-// that is merely off stands in the neutral grey, has no tile on the devices tab, and its own screen asks for no
-// reading. The administrator sets a node's ownership from its screen, and the node service's refusal stands in the
+// The monitor's node list, a node's ownership and the monitor watching the monitored nodes alone (docs/web.md,
+// 「Monitor screen」 and 「The node list」), at a desk's width and a phone's. Every node is shared or personal; a personal
+// node that is merely off stands in the neutral grey, a personal node not monitored has no tile on the devices tab and
+// its own screen asks for no reading, and a monitored one's tile names its owner. The administrator sets a node's ownership from its screen, and the node service's refusal stands in the
 // dialog.
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up, and serves
@@ -31,20 +31,23 @@ interface NodeRow {
   tone: "good" | "bad" | "unknown";
   ownership: "shared" | "personal";
   account: string | null;
+  monitored: boolean;
 }
 
-function node(name: string, kind: NodeRow["kind"], state: string, tone: NodeRow["tone"], account: string | null = null): NodeRow {
-  return { name, label: name, kind, thisMachine: false, connected: state === "connected", state, tone, ownership: account === null ? "shared" : "personal", account };
+// A shared node is always monitored; a personal one where its account is one the node service is set to monitor.
+function node(name: string, kind: NodeRow["kind"], state: string, tone: NodeRow["tone"], account: string | null = null, monitored = account === null): NodeRow {
+  return { name, label: name, kind, thisMachine: false, connected: state === "connected", state, tone, ownership: account === null ? "shared" : "personal", account, monitored };
 }
 
 const NODES: NodeRow[] = [
   node("pc-a", "ssh", "connected", "good"),
   node("pc-b", "hub", "error", "bad"),
   node("own-a", "hub", "disconnected", "unknown", "2"),
-  node("own-b", "hub", "connected", "good", "99")
+  node("own-b", "hub", "connected", "good", "99"),
+  node("own-c", "hub", "connected", "good", "2", true)
 ];
 const USERS = [{ user: "2", name: "tester", fullName: "Test Person", administrator: false }];
-const SHARED = NODES.filter((one) => one.ownership === "shared").map((one) => one.name);
+const MONITORED = NODES.filter((one) => one.monitored).map((one) => one.name);
 
 function reading(name: string): Record<string, unknown> {
   return {
@@ -87,7 +90,7 @@ afterAll(async () => {
 async function open(width: number, height: number): Promise<{ context: BrowserContext; served: Served }> {
   const context = await browser!.newContext({ viewport: { width, height }, serviceWorkers: "block", reducedMotion: "reduce" });
   const at = cookie.indexOf("=");
-  const served: Served = { changes: [], refuseNext: false, missing: new Set(NODES.filter((one) => one.ownership === "personal").map((one) => one.name)), machineAsks: [] };
+  const served: Served = { changes: [], refuseNext: false, missing: new Set(NODES.filter((one) => !one.monitored).map((one) => one.name)), machineAsks: [] };
 
   await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
   await context.route("**/api/nodes", (route) => route.fulfill({ json: NODES }));
@@ -108,12 +111,12 @@ async function open(width: number, height: number): Promise<{ context: BrowserCo
     const name = decodeURIComponent(new URL(request.url()).pathname.split("/").at(-1)!);
     const change = request.postDataJSON() as { ownership: NodeRow["ownership"]; account: string | null };
 
-    return await route.fulfill({ json: { ...NODES.find((one) => one.name === name)!, ...change } });
+    return await route.fulfill({ json: { ...NODES.find((one) => one.name === name)!, ...change, monitored: change.ownership === "shared" } });
   });
   await context.route((url) => url.pathname.includes("/api/hardware/machines"), async (route) => {
     const rest = new URL(route.request().url()).pathname.split("/api/hardware/machines")[1] ?? "";
 
-    if (rest === "" || rest === "/") return await route.fulfill({ json: ["local", ...SHARED].filter((one) => !served.missing.has(one)).map(reading) });
+    if (rest === "" || rest === "/") return await route.fulfill({ json: ["local", ...MONITORED].filter((one) => !served.missing.has(one)).map(reading) });
     if (rest.endsWith("/live")) return await route.fulfill({ json: { at: [], series: {} } });
     if (rest.endsWith("/history")) return await route.fulfill({ json: { at: [], pointSeconds: 5, series: {} } });
 
@@ -141,11 +144,11 @@ describe.skipIf(!origin || !touchReady())("the monitor's node list", () => {
 
       try {
         await page.goto(`${origin}/monitor?tab=nodes`, { waitUntil: "domcontentloaded" });
-        await page.waitForFunction(() => document.querySelectorAll("[data-node-row]").length === 4, undefined, { timeout: 30_000 });
+        await page.waitForFunction(() => document.querySelectorAll("[data-node-row]").length === 5, undefined, { timeout: 30_000 });
 
         const ownerships = await page.locator("[data-node-ownership]").evaluateAll((cells) => cells.map((cell) => cell.getAttribute("data-node-ownership")));
 
-        expect(ownerships).toEqual(["shared", "shared", "personal", "personal"]);
+        expect(ownerships).toEqual(["shared", "shared", "personal", "personal", "personal"]);
 
         // A personal node's account goes by its person's name, and one no user holds still names its id.
         await page.waitForFunction(() => document.querySelector('[data-node-account="2"]')?.textContent?.includes("Test Person") === true, undefined, { timeout: 10_000 });
@@ -172,9 +175,9 @@ describe.skipIf(!origin || !touchReady())("the monitor's node list", () => {
 
         await page.locator("[data-ownership-filter]").click();
         await page.getByRole("option").nth(2).click();
-        await page.waitForFunction(() => document.querySelectorAll("[data-node-row]").length === 2, undefined, { timeout: 10_000 });
+        await page.waitForFunction(() => document.querySelectorAll("[data-node-row]").length === 3, undefined, { timeout: 10_000 });
         expect(new URL(page.url()).searchParams.get("ownership")).toBe("personal");
-        expect(await page.locator("[data-node-row]").evaluateAll((rows) => rows.map((one) => one.getAttribute("data-node-row")))).toEqual(["own-a", "own-b"]);
+        expect(await page.locator("[data-node-row]").evaluateAll((rows) => rows.map((one) => one.getAttribute("data-node-row")))).toEqual(["own-a", "own-b", "own-c"]);
       } finally {
         await context.close();
       }
@@ -213,28 +216,46 @@ describe.skipIf(!origin || !touchReady())("the monitor's node list", () => {
         await context.close();
       }
     }, 60_000);
+
+    test(`the devices tab names a monitored personal node's owner, has no tile for another personal node, and a machine gone from its screen gives way to a line (${size.name})`, async () => {
+      const { context, served } = await open(size.width, size.height);
+      const page = await context.newPage();
+
+      try {
+        await page.goto(`${origin}/monitor`, { waitUntil: "domcontentloaded" });
+        await page.waitForFunction((want) => document.querySelectorAll("[data-machine-tile]").length === want, 1 + MONITORED.length, { timeout: 30_000 });
+
+        const tiles = await page.locator("[data-machine-tile]").evaluateAll((all) => all.map((tile) => tile.textContent ?? ""));
+
+        expect(tiles.filter((text) => text.includes("own-"))).toHaveLength(1);
+        expect(tiles.some((text) => text.includes("own-a") || text.includes("own-b"))).toBe(false);
+        // The administrator reads every user's name, so the owner is named by their person's name.
+        await page.waitForFunction(() => document.querySelector("[data-machine-owner]")?.textContent?.includes("Test Person") === true, undefined, { timeout: 10_000 });
+        expect(await page.locator("[data-machine-owner]").count()).toBe(1);
+
+        // It stands beside the connection type as one more badge of the same height on the same line, inside its tile.
+        const badges = await page.locator("[data-machine-owner]").evaluate((owner) => {
+          const kind = owner.previousElementSibling!.getBoundingClientRect();
+          const own = owner.getBoundingClientRect();
+          const tile = owner.closest("[data-machine-tile]")!.getBoundingClientRect();
+
+          return { kind: [kind.top, kind.height], own: [own.top, own.height], inside: own.right <= tile.right };
+        });
+
+        expect(badges.own).toEqual(badges.kind);
+        expect(badges.inside).toBe(true);
+
+        await page.goto(`${origin}/monitor/pc-a`, { waitUntil: "domcontentloaded" });
+        await page.locator("[data-machine-monitor]").waitFor({ timeout: 30_000 });
+        await page.waitForFunction(() => document.querySelector("[data-node-unmonitored]") === null, undefined, { timeout: 10_000 });
+
+        // The node service stops knowing it as a machine, as it does a node made personal: the cards give way to the line.
+        served.missing.add("pc-a");
+        await page.locator("[data-node-unmonitored]").waitFor({ timeout: 20_000 });
+        expect(await page.locator("[data-machine-monitor]").count()).toBe(0);
+      } finally {
+        await context.close();
+      }
+    }, 60_000);
   }
-
-  test("the devices tab has no tile for a personal node, and a machine gone from its screen gives way to a line", async () => {
-    const { context, served } = await open(1_280, 900);
-    const page = await context.newPage();
-
-    try {
-      await page.goto(`${origin}/monitor`, { waitUntil: "domcontentloaded" });
-      await page.waitForFunction((want) => document.querySelectorAll("[data-machine-tile]").length === want, 1 + SHARED.length, { timeout: 30_000 });
-
-      expect(await page.locator("[data-machine-tile]").evaluateAll((tiles) => tiles.some((tile) => tile.textContent?.includes("own-")))).toBe(false);
-
-      await page.goto(`${origin}/monitor/pc-a`, { waitUntil: "domcontentloaded" });
-      await page.locator("[data-machine-monitor]").waitFor({ timeout: 30_000 });
-      await page.waitForFunction(() => document.querySelector("[data-node-unmonitored]") === null, undefined, { timeout: 10_000 });
-
-      // The node service stops knowing it as a machine, as it does a node made personal: the cards give way to the line.
-      served.missing.add("pc-a");
-      await page.locator("[data-node-unmonitored]").waitFor({ timeout: 20_000 });
-      expect(await page.locator("[data-machine-monitor]").count()).toBe(0);
-    } finally {
-      await context.close();
-    }
-  }, 60_000);
 });

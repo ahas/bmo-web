@@ -189,6 +189,8 @@ export interface MonitorNode {
   // The account a personal node belongs to, its id as a decimal number written out; null where none is known and on
   // a shared node.
   account: string | null;
+  // Whether the hardware monitor reads it: a shared node, or a personal node of an account it is set to monitor.
+  monitored: boolean;
 }
 
 // A node's ownership as the administrator sets it: a shared node takes no account.

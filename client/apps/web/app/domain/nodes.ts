@@ -98,6 +98,14 @@ export function ownershipText(t: Translate, names: ReadonlyMap<string, string>, 
   return name === null ? ownershipNodeWord(t, node.ownership) : t("hardware.label.ownership_personal_of", { name });
 }
 
+/** The owner a monitored personal node's tile names: the personal node with its account's name where the names are
+ * read, the word alone where they are not; null for a machine with no account, this machine and a shared node. */
+export function machineOwnerText(t: Translate, names: ReadonlyMap<string, string> | null, account: string | null): string | null {
+  if (account === null) return null;
+
+  return names === null ? ownershipNodeWord(t, "personal") : ownershipText(t, names, { ownership: "personal", account });
+}
+
 /** The administrator's read of every user, for the names the node list and a node's screen show. */
 export function useAccountNames(): { names: Ref<Map<string, string>>; users: Ref<UserSummary[]>; read: Ref<boolean>; error: Ref<unknown> } {
   const { data, status, error } = useFetch<UserSummary[]>("/api/users", { key: "node-account-users", lazy: true, server: false, default: () => [] });

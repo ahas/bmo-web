@@ -67,29 +67,35 @@ export interface MonitorMachine {
   // hands over.
   label: string | null;
   kind: MachineHardware["kind"];
+  // The account a personal node belongs to, for the owner its tile names; null for this machine and a shared node.
+  account: string | null;
   url: string;
   historyUrl: string;
   liveUrl: string;
   to: string;
 }
 
-// This machine first, then the machines the node service knows in the list's order: the shared nodes, since a
-// personal node is no machine it monitors. A node that is this machine is this machine's tile, so it has none of its
-// own.
+// This machine first, then the machines the node service knows in the list's order: the monitored nodes, since a
+// personal node of an account it is not set to monitor is no machine it reads. A node that is this machine is this
+// machine's tile, so it has none of its own. A personal node's tile carries its account, read off the node list.
 export function monitorMachines(nodes: readonly MonitorNode[], readings: readonly MachineHardware[] | null = null): MonitorMachine[] {
-  const tile = (key: string, name: string, label: string | null, kind: MachineHardware["kind"]): MonitorMachine => ({
-    key, name, label, kind, url: machineHardwareUrl(name), historyUrl: machineHistoryUrl(name), liveUrl: machineLiveUrl(name), to: machineMonitorPath(name)
+  const tile = (key: string, name: string, label: string | null, kind: MachineHardware["kind"], account: string | null): MonitorMachine => ({
+    key, name, label, kind, account, url: machineHardwareUrl(name), historyUrl: machineHistoryUrl(name), liveUrl: machineLiveUrl(name), to: machineMonitorPath(name)
   });
-  const thisMachine = new Set(nodes.filter((node) => node.thisMachine).map((node) => node.name));
-  const shown = ({ name, label, kind }: { name: string; label: string; kind: MachineHardware["kind"] }) => tile(`node:${name}`, name, label, kind);
+  const listed = new Map(nodes.map((node) => [node.name, node]));
+  const shown = ({ name, label, kind }: { name: string; label: string; kind: MachineHardware["kind"] }) => {
+    const node = listed.get(name);
+
+    return tile(`node:${name}`, name, label, kind, node?.ownership === "personal" ? node.account : null);
+  };
 
   // Once every machine's reading has been answered, the answer is what the monitor knows: a machine it stops naming
-  // loses its tile. Until then the shared nodes of the list stand for it.
+  // loses its tile. Until then the monitored nodes of the list stand for it.
   const others = readings === null
-    ? nodes.filter((node) => !node.thisMachine && node.ownership === "shared").map(shown)
-    : readings.filter((machine) => machine.name !== LOCAL_MACHINE && !thisMachine.has(machine.name)).map(shown);
+    ? nodes.filter((node) => !node.thisMachine && node.monitored).map(shown)
+    : readings.filter((machine) => machine.name !== LOCAL_MACHINE && listed.get(machine.name)?.thisMachine !== true).map(shown);
 
-  return [tile("local", LOCAL_MACHINE, null, "local"), ...others];
+  return [tile("local", LOCAL_MACHINE, null, "local", null), ...others];
 }
 
 const KIND_ICONS: Record<MachineHardware["kind"], string> = {

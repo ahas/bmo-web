@@ -26,8 +26,8 @@ function hardwareView(cpu: Partial<CpuView>, memory: Partial<MemoryView> = {}): 
   };
 }
 
-function node(name: string, kind: MonitorNode["kind"], thisMachine = false, ownership: MonitorNode["ownership"] = "shared"): MonitorNode {
-  return { name, label: name.toUpperCase(), kind, thisMachine, connected: true, state: "connected", tone: "good", ownership, account: ownership === "personal" ? "7" : null };
+function node(name: string, kind: MonitorNode["kind"], thisMachine = false, ownership: MonitorNode["ownership"] = "shared", monitored = ownership === "shared"): MonitorNode {
+  return { name, label: name.toUpperCase(), kind, thisMachine, connected: true, state: "connected", tone: "good", ownership, account: ownership === "personal" ? "7" : null, monitored };
 }
 
 function recorded(name: string, kind: MachineHardware["kind"]): MachineHardware {
@@ -37,10 +37,10 @@ function recorded(name: string, kind: MachineHardware["kind"]): MachineHardware 
 describe("monitorMachines", () => {
   test("this machine first, then the nodes in the list's order, each read and opened by its own name", () => {
     expect(monitorMachines([node("agent-a", "hub"), node("alpha", "hub"), node("pc-node", "ssh")])).toEqual([
-      { key: "local", name: "local", label: null, kind: "local", url: "/api/hardware/machines/local", historyUrl: "/api/hardware/machines/local/history", liveUrl: "/api/hardware/machines/local/live", to: "/monitor/local" },
-      { key: "node:agent-a", name: "agent-a", label: "AGENT-A", kind: "hub", url: "/api/hardware/machines/agent-a", historyUrl: "/api/hardware/machines/agent-a/history", liveUrl: "/api/hardware/machines/agent-a/live", to: "/monitor/agent-a" },
-      { key: "node:alpha", name: "alpha", label: "ALPHA", kind: "hub", url: "/api/hardware/machines/alpha", historyUrl: "/api/hardware/machines/alpha/history", liveUrl: "/api/hardware/machines/alpha/live", to: "/monitor/alpha" },
-      { key: "node:pc-node", name: "pc-node", label: "PC-NODE", kind: "ssh", url: "/api/hardware/machines/pc-node", historyUrl: "/api/hardware/machines/pc-node/history", liveUrl: "/api/hardware/machines/pc-node/live", to: "/monitor/pc-node" },
+      { key: "local", name: "local", label: null, kind: "local", account: null, url: "/api/hardware/machines/local", historyUrl: "/api/hardware/machines/local/history", liveUrl: "/api/hardware/machines/local/live", to: "/monitor/local" },
+      { key: "node:agent-a", name: "agent-a", label: "AGENT-A", kind: "hub", account: null, url: "/api/hardware/machines/agent-a", historyUrl: "/api/hardware/machines/agent-a/history", liveUrl: "/api/hardware/machines/agent-a/live", to: "/monitor/agent-a" },
+      { key: "node:alpha", name: "alpha", label: "ALPHA", kind: "hub", account: null, url: "/api/hardware/machines/alpha", historyUrl: "/api/hardware/machines/alpha/history", liveUrl: "/api/hardware/machines/alpha/live", to: "/monitor/alpha" },
+      { key: "node:pc-node", name: "pc-node", label: "PC-NODE", kind: "ssh", account: null, url: "/api/hardware/machines/pc-node", historyUrl: "/api/hardware/machines/pc-node/history", liveUrl: "/api/hardware/machines/pc-node/live", to: "/monitor/pc-node" },
     ]);
   });
 
@@ -48,9 +48,14 @@ describe("monitorMachines", () => {
     expect(monitorMachines([node("self-node", "ssh", true), node("pc-node", "ssh")]).map((machine) => machine.key)).toEqual(["local", "node:pc-node"]);
   });
 
-  // docs/web.md, 「Monitor screen」: a personal node is no machine the monitor knows.
-  test("a personal node has no tile before every machine's reading is answered", () => {
-    expect(monitorMachines([node("pc-node", "ssh"), node("own-pc", "hub", false, "personal")]).map((machine) => machine.key)).toEqual(["local", "node:pc-node"]);
+  // docs/web.md, 「Monitor screen」: a personal node not monitored is no machine the monitor knows, and a monitored one's
+  // tile carries its account.
+  test("a personal node has a tile only where it is monitored, carrying its account before and after the readings", () => {
+    const nodes = [node("pc-node", "ssh"), node("own-pc", "hub", false, "personal"), node("lab-pc", "hub", false, "personal", true)];
+    const tiles = (readings: MachineHardware[] | null) => monitorMachines(nodes, readings).map((machine) => [machine.key, machine.account]);
+
+    expect(tiles(null)).toEqual([["local", null], ["node:pc-node", null], ["node:lab-pc", "7"]]);
+    expect(tiles([recorded("local", "local"), recorded("lab-pc", "hub")])).toEqual([["local", null], ["node:lab-pc", "7"]]);
   });
 
   test("once answered, the machines it names are the tiles, and one it stops naming loses its tile", () => {

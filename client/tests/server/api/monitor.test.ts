@@ -126,10 +126,11 @@ const cardEvents = await routeOf<Response>("../../apps/web/server/api/cards/even
 
 describe("the machines", () => {
   test("are the node list's, page after page, each by its name, label, kind, whether it is this machine, its check and whose it is", async () => {
-    // The first answer leaves out what an older node service does not send: no tone reads unchecked, no ownership shared.
+    // The first answer leaves out what an older node service does not send: no tone reads unchecked, no ownership shared,
+    // and no monitoring monitored where the node is shared alone.
     expect(await nodes({})).toEqual([
-      { name: "node-a", label: "Node A", kind: "ssh", thisMachine: true, connected: true, state: "connected", tone: "unknown", ownership: "shared", account: null },
-      { name: "node-b", label: "Node B", kind: "hub", thisMachine: false, connected: false, state: "disconnected", tone: "unknown", ownership: "personal", account: "7" }
+      { name: "node-a", label: "Node A", kind: "ssh", thisMachine: true, connected: true, state: "connected", tone: "unknown", ownership: "shared", account: null, monitored: true },
+      { name: "node-b", label: "Node B", kind: "hub", thisMachine: false, connected: false, state: "disconnected", tone: "unknown", ownership: "personal", account: "7", monitored: false }
     ]);
   });
 

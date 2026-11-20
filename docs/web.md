@@ -2720,10 +2720,12 @@ archive and this week's tokens remain. That is all that can actually be known th
   board, and `/live` sends a reader on to `/agents?tab=supervisors`, so a link made to that address lands on the
   agents and what each is doing.
 - **기기 shows every machine at a glance** (bmo-node's `docs/hardware.md`, 「Which machines」): this machine first,
-  then the shared nodes in the node list's order, one tile each; a node that is this machine is shown as this
-  machine's tile alone. A personal node is no machine the monitor knows and has no tile. Until the first answer of
-  every machine's reading lands, the tiles are this machine and the shared nodes of the node list; from then on the
-  answer decides, so a machine it stops naming, a node made personal or removed, loses its tile at that period. It fills the panel rather than standing in the reading column, and so does each machine's own
+  then the monitored nodes in the node list's order, one tile each; a node that is this machine is shown as this
+  machine's tile alone. A node is monitored where the node list says so: every shared node, and a personal node of
+  an account the node service is set to monitor. Any other personal node is no machine the monitor knows and has no
+  tile. Until the first answer of every machine's reading lands, the tiles are this machine and the monitored nodes
+  of the node list; from then on the answer decides, so a machine it stops naming, a node no longer monitored or
+  removed, loses its tile at that period. It fills the panel rather than standing in the reading column, and so does each machine's own
   monitor.
 - **A machine goes by the label its reading hands over** — this machine by its host name — on its tile and as the
   title of its own monitor; no name is written into the code. Until the first reading lands the name's place is a
@@ -2732,7 +2734,9 @@ archive and this week's tokens remain. That is all that can actually be known th
   stretched to the whole panel, and every tile of a row is as tall as the row; on a phone they are one column.
 - A tile carries:
   - its name, its live tracking switch (bmo-node's `docs/hardware.md`, 「Tracking」) and its connection type —
-    SSH or Jake for a node, 로컬 for this machine;
+    SSH or Jake for a node, 로컬 for this machine — and, for a personal node, its owner beside the connection type:
+    개인 노드 with the owning account's person's name after a middle dot where the reader is the administrator, who
+    reads every user's name, and 개인 노드 alone for anyone else and until the names have come;
   - each GPU by its short model name, the maker's and the brand's words dropped (`RTX 3070`);
   - one row of two columns, the first four times as wide as the second: in the first a bar for each GPU's VRAM
     and one for RAM, each with its figures in their physical units and no share beside them, in the small size, the
@@ -2757,13 +2761,13 @@ archive and this week's tokens remain. That is all that can actually be known th
   that order; middling, the two columns share the width; narrow, one column in the order CPU, memory, GPU,
   storage, board. The system card carries the live tracking switch, and the CPU card the CPU limit, each written
   to the node service as it is set.
-- **A node's screen is its own monitor, `/monitor/<node>`, for a personal node too.** A personal node is never
-  monitored (bmo-node's `docs/nodes.md`, 「A node's ownership」), so a node's screen asks for a reading only once the
-  node list says the node is shared; a personal node's stands one calm line in the muted colour, 개인 노드는
-  모니터링하지 않습니다, in the cards' place, titled by the node's label. A machine that stops being one while its
-  screen is open — the node service answers it `not-found`, as it does a node made personal — stands the same way
-  once that answer comes: its asking stops, the node list is read again, and its cards give way to the line, a
-  personal node's, or 그런 기기가 없습니다 for any other.
+- **A node's screen is its own monitor, `/monitor/<node>`, for a node not monitored too.** Only a monitored node is
+  read (bmo-node's `docs/nodes.md`, 「A node's ownership」), so a node's screen asks for a reading only once the node
+  list says the node is monitored; a node that is not, always a personal one, stands one calm line in the muted
+  colour, 개인 노드는 모니터링하지 않습니다, in the cards' place, titled by the node's label. A machine that stops
+  being one while its screen is open — the node service answers it `not-found`, as it does a node no longer
+  monitored — stands the same way once that answer comes: its asking stops, the node list is read again, and its
+  cards give way to the line, a personal node's, or 그런 기기가 없습니다 for any other.
 - **A node's ownership is set at the foot of its own screen,** by the administrator: a 소유 section above 노드 삭제,
   saying 공용 노드 or 개인 노드 with the owning account's person's name after a middle dot, and a 변경 button opening a
   dialog of two fields — 소유, 공용 노드 or 개인 노드, and for a personal node 소유 계정, a choice of every user by

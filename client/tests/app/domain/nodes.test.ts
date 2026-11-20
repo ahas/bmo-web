@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-import { accountName, accountNames, filteredNodes, ownershipFilterOf, ownershipText, stateWord, toneDot } from "../../../apps/web/app/domain/nodes";
+import { accountName, accountNames, filteredNodes, machineOwnerText, ownershipFilterOf, ownershipText, stateWord, toneDot } from "../../../apps/web/app/domain/nodes";
 
 import type { MonitorNode } from "../../../apps/web/shared/types";
 
@@ -10,7 +10,7 @@ import type { MonitorNode } from "../../../apps/web/shared/types";
 // the filter by ownership, and the tone a state's dot stands in.
 
 function node(name: string, ownership: MonitorNode["ownership"], account: string | null = null): MonitorNode {
-  return { name, label: name, kind: "hub", thisMachine: false, connected: true, state: "connected", tone: "good", ownership, account };
+  return { name, label: name, kind: "hub", thisMachine: false, connected: true, state: "connected", tone: "good", ownership, account, monitored: ownership === "shared" };
 }
 
 const NAMES = accountNames([
@@ -30,6 +30,13 @@ describe("a personal node's account", () => {
     expect(ownershipText(wording, NAMES, node("own-a", "personal", "2"))).toBe(wording("hardware.label.ownership_personal_of", { name: "Test Person" }));
     expect(ownershipText(wording, NAMES, node("own-b", "personal"))).toBe(wording("hardware.label.ownership_personal_node"));
     expect(ownershipText(wording, NAMES, node("pc-a", "shared"))).toBe(wording("hardware.label.ownership_shared_node"));
+  });
+
+  // docs/web.md, 「Monitor screen」: a monitored personal node's tile names its owner where the names are read.
+  test("names a monitored machine's owner where the names are read, the personal node's word alone where they are not", () => {
+    expect(machineOwnerText(wording, NAMES, "2")).toBe(wording("hardware.label.ownership_personal_of", { name: "Test Person" }));
+    expect(machineOwnerText(wording, null, "2")).toBe(wording("hardware.label.ownership_personal_node"));
+    expect(machineOwnerText(wording, NAMES, null)).toBeNull();
   });
 });
 

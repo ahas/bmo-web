@@ -1,5 +1,6 @@
 <!-- The Monitor screen's Devices tab (docs/web.md, 「Monitor screen」): a tile per machine, this one first and the
-     shared nodes after it once the list is read; once every machine's reading is answered, the machines it names. -->
+     monitored nodes after it once the list is read; once every machine's reading is answered, the machines it names.
+     A personal node's tile names its owner. -->
 <template>
   <div class="flex flex-col gap-4">
     <p v-if="nodesError" class="text-sm text-error">{{ $t("screens.error.nodes_failed") }}</p>
@@ -11,6 +12,7 @@
         v-for="machine in machines"
         :key="machine.key"
         :machine="machine"
+        :owner="machineOwnerText($t, names, machine.account)"
         :reading="readings.get(machine.name) ?? null"
         :status="status"
         :failed="!readings.has(machine.name) && readError !== null"
@@ -22,10 +24,16 @@
 <script setup lang="ts">
 import { useLastRead } from "bmo-ui/app/domain/loading";
 
+import { useAdministrator } from "~/domain/access";
 import { monitorMachines, useMonitorReadings } from "~/domain/hardware";
-import { useNodes } from "~/domain/nodes";
+import { machineOwnerText, useAccountNames, useNodes } from "~/domain/nodes";
 
 const { nodes, error: nodesError } = useNodes();
+
+// Every user's name is the administrator's read alone; anyone else's tiles, and the administrator's until the names
+// have come, say a personal node without whose.
+const accounts = useAdministrator().value ? useAccountNames() : null;
+const names = computed(() => (accounts !== null && accounts.read.value && !accounts.error.value ? accounts.names.value : null));
 
 // One recorded reading for every tile each period, so every tile stands at the same moment and no
 // machine's read can hold another's. A period that fails keeps the tiles on what they last read.

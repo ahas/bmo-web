@@ -40,6 +40,7 @@ interface NodeAnswer {
   tone?: MonitorNode["tone"];
   ownership?: MonitorNode["ownership"];
   account?: string | null;
+  monitored?: boolean;
   agentName?: string | null;
 }
 
@@ -92,7 +93,7 @@ async function nodeAnswers(): Promise<NodeAnswer[]> {
 }
 
 /** One node as the monitor reads it. A field an older node service leaves out reads as that service meant it: no
- * state is a node never checked, and no ownership a shared node. */
+ * state is a node never checked, no ownership a shared node, and no monitoring a node monitored where it is shared. */
 export function monitorNodeOf(node: NodeAnswer): MonitorNode {
   const ownership = node.ownership ?? "shared";
 
@@ -105,7 +106,8 @@ export function monitorNodeOf(node: NodeAnswer): MonitorNode {
     state: node.state ?? "unknown",
     tone: node.tone ?? "unknown",
     ownership,
-    account: ownership === "personal" ? (node.account ?? null) : null
+    account: ownership === "personal" ? (node.account ?? null) : null,
+    monitored: node.monitored ?? ownership === "shared"
   };
 }
 

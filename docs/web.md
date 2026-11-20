@@ -5849,7 +5849,8 @@ Four bounds keep it from growing forever.
   - 미디어: the pictures and the videos, an animation among them, as squares of one size, three to a row on a narrow
     screen and four on a wide one, each cut to fill its square. A picture opens in the room's own viewer (「방 사진 넘기기」), whose head carries
     메시지에서 보기; a video in the shared full player; an animation plays where it stands, as in the conversation.
-    A video the room cannot play stands as its file's mark and name, and a press takes the file.
+    The viewer and the player stand over the view, and back or Esc closes them alone, leaving the view as it stood
+    (「Floating things」). A video the room cannot play stands as its file's mark and name, and a press takes the file.
   - 파일: each file that is no picture, video or sound, as a line: its mark, its name, its size, who sent it and
     when, and its download, as a bubble's file line stands (「첨부와 Telegram 표현」).
   - 링크: each web address the words hold, found as a bubble finds its previews' addresses (「링크 미리보기」), as a
@@ -8677,8 +8678,15 @@ and `/api/supply/credits/audit`.
 - **What opens over another stands over it.** The one opened last is drawn on top of everything standing, takes
   the presses, and is the one back and a tap away close first, whatever order the page set them up in.
   - A floating thing is drawn into the page's body at the place its component took when it was set up, not when
-    it opened. So one set up with the console itself, ahead of every screen, is set up afresh each time it opens
-    and lands after everything already standing. The settings dialog is such a one.
+    it opened. So one set up ahead of what it may be opened from is set up afresh each time it opens and lands
+    after everything already standing:
+    - the settings dialog, set up with the console itself, ahead of every screen;
+    - the content search, which its shortcut opens over whatever stands, a screen's own dialog included;
+    - the picture viewer, which the shared viewer sets up afresh by itself, so the room's viewer stands over
+      방 정보 a picture or the room's picture is opened from;
+    - 방 정보's room picture dialog, whose view is set up again as a side sheet or a drawer when the screen
+      crosses the narrow width;
+    - the TODO panel's job log, opened from an item's detail set up after it.
   - Opened from the user menu in a narrow screen's sidebar drawer, the settings dialog stands over the drawer,
     which waits under it and stands again once the dialog has closed. The drawer going while the dialog stands
     leaves the dialog standing; only the dialog's own close, back or Esc closes it.

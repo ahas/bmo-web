@@ -86,6 +86,7 @@
 
   <PictureDialog
     v-if="props.manages"
+    :key="pictureOpenings"
     v-model:open="pictureOpen"
     :title="$t('picture.label.room')"
     :description="props.title"
@@ -97,6 +98,7 @@
 
 <script setup lang="ts">
 import { useCloseGuard } from "bmo-ui/app/domain/form-save";
+import { useOpenings } from "bmo-ui/app/domain/openings";
 import { useNarrow } from "bmo-ui/app/domain/screen";
 import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
 
@@ -186,6 +188,9 @@ watch(tabs, (items) => {
 });
 
 const pictureOpen = ref(false);
+// Mounted afresh at each opening, so it stands over the view, which is set up again as a sheet or a drawer when
+// the screen crosses the narrow width (docs/web.md, 「Floating things」).
+const pictureOpenings = useOpenings(() => pictureOpen.value);
 
 // A person picked in the callers tab and not added waits there, and closing the view asks first (docs/web.md,
 // 「Forms」).

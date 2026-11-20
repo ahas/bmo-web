@@ -128,6 +128,7 @@
       </div>
     </div>
     <UContentSearch
+      :key="searchOpenings"
       v-model:search-term="searchTerm"
       :groups="searchGroups"
       :color-mode="false"
@@ -170,6 +171,7 @@ import { provideConsolePeople } from "~/domain/people-offer";
 import { provideConsoleTitleBar, useTitleBarTarget } from "~/domain/title-bar";
 import { useBriefings } from "~/domain/briefing";
 import { useInitialRead } from "bmo-ui/app/domain/loading";
+import { useOpenings } from "bmo-ui/app/domain/openings";
 import { consoleName } from "#shared/agent-names";
 import { useAgentFolds } from "~/domain/agent-folds";
 import { agentGroups, groupIcon, isAgentRunning, isUnfolded, runLink, sessionLink, withFolds } from "~/domain/agents";
@@ -418,6 +420,10 @@ function runEntry(agent: AgentMeta, run: AgentRun): NavigationMenuItem {
 // The console search: what this sidebar lists, and the shortcut that opens it from anywhere.
 // Ctrl+K is ⌘K on a Mac; the shortcut layer reads `meta` as Ctrl elsewhere.
 const searchTerm = ref("");
+// Mounted afresh at each opening, so it stands over whatever its shortcut opens it over, a screen's dialog set up
+// after it included (docs/web.md, 「Floating things」).
+const { open: searchOpen } = useContentSearch();
+const searchOpenings = useOpenings(() => searchOpen.value);
 
 // The people the account service finds in the reader's organisation (docs/accounts.md, 「The people
 // directory」), or, for a reader who opens the organisation screen's people tab, every person that tab reaches, found

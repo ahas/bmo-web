@@ -96,7 +96,7 @@
             <UsageFigures :group="group" :now="now" />
           </div>
 
-          <p v-if="groups.length === 0" class="text-sm text-dimmed">{{ $t("usage.status.no_accounts") }}</p>
+          <p v-if="groups.length === 0" class="text-sm text-muted">{{ $t("usage.status.no_accounts") }}</p>
         </div>
       </div>
     </template>

@@ -159,11 +159,12 @@ describe("what the popover holds", () => {
   });
 
   test("a window says how long is left of it, and keeps the hour behind that", () => {
-    const row = tagOf(":title=\"resetClock($t, window)\"", figures);
+    const row = tagOf(':text="resetClock($t, window)"', figures);
 
-    // The length is what stands on the row; the clock face the account gave is on the row
-    // itself, for the reader who wants the hour rather than the length.
-    expect(row).toContain(':title="resetClock($t, window)"');
+    // The length is what stands on the row; the clock face the account gave is in the shared
+    // tooltip on it, for the reader who wants the hour rather than the length.
+    expect(row.startsWith("<HintTip")).toBe(true);
+    expect(row).toContain(':text="resetClock($t, window)"');
     // It counts down while it is read, so its digits are the fixed-width ones.
     expect(row).toContain("tabular-nums");
   });

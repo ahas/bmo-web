@@ -3,6 +3,7 @@ import { chromium } from "playwright-core";
 
 import { moneyText } from "../../apps/web/app/domain/usage";
 import { wording } from "../../apps/web/shared/wording";
+import { contrast } from "./contrast";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, Locator, Page } from "playwright-core";
@@ -39,8 +40,8 @@ afterAll(async () => {
   await browser?.close();
 }, BROWSER_HOOK_MS);
 
-async function opened(viewport: { width: number; height: number }): Promise<Page> {
-  const context = await browser!.newContext({ viewport });
+async function opened(viewport: { width: number; height: number }, colorScheme: "light" | "dark" = "light"): Promise<Page> {
+  const context = await browser!.newContext({ viewport, colorScheme });
   const [name, value] = cookie.split("=") as [string, string];
 
   await context.addCookies([{ name, value, url: origin! }]);
@@ -92,6 +93,18 @@ async function holdsFigures(page: Page): Promise<void> {
   expect(await texts(road.locator("[data-usage-requests] dt"))).toEqual([wording("usage.label.requests_free_models")]);
   expect(await texts(road.locator("[data-usage-requests] dd > span"))).toEqual([wording("usage.label.requests_left", { left: "988", limit: "1,000" })]);
 
+  // An account's figures close its row as far from its bottom edge as its name stands from its top, measured inside
+  // the hairlines the list parts its rows with.
+  const row = page.locator('[data-account="acct-a"]');
+  const account = await box(row);
+  const [lineAbove, lineBelow] = await row.evaluate((element) => [getComputedStyle(element).borderTopWidth, getComputedStyle(element).borderBottomWidth].map(parseFloat));
+  const name = await box(row.locator("> span:nth-child(2) > span:first-child"));
+  const figures = await box(page.locator('[data-account-usage="acct-a"] [data-usage-figures]'));
+  const above = name.y - (account.y + lineAbove!);
+  const below = account.y + account.height - lineBelow! - (figures.y + figures.height);
+
+  expect(Math.abs(above - below)).toBeLessThan(1);
+
   // Nothing runs past the screen's edge.
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
 
@@ -108,6 +121,14 @@ async function sharesColumns(page: Page): Promise<void> {
   expect(Math.abs(shares[0]!.x + shares[0]!.width - (shares[1]!.x + shares[1]!.width))).toBeLessThan(1);
 }
 
+// Every word of the figures reads at 4.5:1 or better on the tab's ground, in the light theme and the dark one.
+async function readable(page: Page): Promise<void> {
+  const read = await contrast(page, "[data-usage-figures] dt, [data-usage-figures] dd > span");
+
+  expect(read.length).toBeGreaterThan(5);
+  for (const one of read) expect({ text: one.text, readable: one.ratio >= 4.5 }).toEqual({ text: one.text, readable: true });
+}
+
 describe.skipIf(!origin || !touchReady())("what the providers tab says each provider and account has left", () => {
   test("on a desk, each bar beside its figure on the row's own line", async () => {
     const page = await opened(DESK);
@@ -115,6 +136,7 @@ describe.skipIf(!origin || !touchReady())("what the providers tab says each prov
     try {
       await holdsFigures(page);
       await sharesColumns(page);
+      await readable(page);
 
       const row = page.locator('[data-account-usage="acct-b"] [data-usage-window]').first();
       const bar = await box(row.locator('[data-slot="root"]').first());
@@ -122,23 +144,46 @@ describe.skipIf(!origin || !touchReady())("what the providers tab says each prov
 
       expect(bar.x + bar.width).toBeLessThanOrEqual(share.x);
       expect(Math.abs(bar.y + bar.height / 2 - (share.y + share.height / 2))).toBeLessThan(4);
+
+      // The hour a window turns over at is in the shared tooltip on how long is left of it.
+      await row.locator("dd > span").last().hover();
+      const clock = wording("usage.label.reset_at", { month: "1", date: "1", weekday: "W", hour: "0", minute: "0" });
+      const shape = new RegExp(`^${clock.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/1|W|0/g, ".+")}$`);
+
+      expect((await page.getByRole("tooltip").first().textContent())?.trim()).toMatch(shape);
     } finally {
       await page.context().close();
     }
   }, TEST_MS);
 
   test("on a phone, each bar on a line of its own under its figure", async () => {
-    const page = await opened(PHONE);
+    const page = await opened(PHONE, "dark");
 
     try {
       await holdsFigures(page);
       await sharesColumns(page);
+      await readable(page);
 
       const row = page.locator('[data-account-usage="acct-b"] [data-usage-window]').first();
       const bar = await box(row.locator('[data-slot="root"]').first());
       const share = await box(row.locator("dd > span").first());
 
       expect(bar.y).toBeGreaterThanOrEqual(share.y + share.height);
+
+      // The title bar's panel stands the same figures, each bar under its row, inside the panel's width.
+      await page.getByRole("button", { name: wording("usage.title.remaining"), exact: true }).first().click();
+
+      const panel = page.locator("[data-usage-figures]").filter({ has: page.locator("[data-usage-window]") }).last();
+
+      await panel.waitFor({ timeout: 10_000 });
+
+      const panelRow = panel.locator("[data-usage-window]").first();
+      const panelBar = await box(panelRow.locator('[data-slot="root"]').first());
+      const panelShare = await box(panelRow.locator("dd > span").first());
+
+      expect(panelBar.y).toBeGreaterThanOrEqual(panelShare.y + panelShare.height);
+      await expect(panel.evaluate((element) => element.scrollWidth - element.clientWidth)).resolves.toBeLessThanOrEqual(0);
+      expect(panelBar.x + panelBar.width).toBeLessThanOrEqual(PHONE.width);
     } finally {
       await page.context().close();
     }

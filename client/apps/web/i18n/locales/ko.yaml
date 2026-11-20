@@ -3323,7 +3323,7 @@ tool:
     write: 쓰기
 usage:
   error:
-    read_failed: 사용량 조회 실패
+    read_failed: 사용량을 불러오지 못했습니다.
   label:
     claude_accounts: Claude 계정
     figure: "{label} {text}"

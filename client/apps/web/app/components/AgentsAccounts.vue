@@ -74,7 +74,7 @@
         <!-- What the account has left, on a line of its own under the row, as wide as the row past its handle: the
              panel's own figures of that login, a skeleton while they are first read, and nothing for an account that
              is off, which answers nothing. -->
-        <div v-if="one.enabled && (props.usage.initial || accountGroup(props.usage.groups, one.id) !== null)" class="col-span-2 col-start-2 pb-2" :data-account-usage="one.id">
+        <div v-if="one.enabled && (props.usage.initial || accountGroup(props.usage.groups, one.id) !== null)" class="col-span-2 col-start-2 pb-1" :data-account-usage="one.id">
           <SkeletonStatus v-if="props.usage.initial" :label="$t('usage.status.loading')"><SkeletonLine width="w-2/3" /></SkeletonStatus>
           <UsageFigures v-else :group="accountGroup(props.usage.groups, one.id)!" :now="props.usage.now" />
         </div>

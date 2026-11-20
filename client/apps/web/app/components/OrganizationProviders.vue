@@ -36,7 +36,7 @@
                balance, and each of its accounts the Claude list below does not carry, under that account's name — as
                the title bar's panel reads it. An account the list carries stands on its own row there. -->
           <div v-for="group in groupsOf(one)" :key="group.id" class="flex min-w-0 flex-col gap-1 pt-1" :data-provider-usage="group.id">
-            <span v-if="group.name !== null" class="min-w-0 truncate text-sm text-muted" :title="group.name">{{ group.name }}</span>
+            <span v-if="group.name !== null" class="min-w-0 truncate text-sm text-muted">{{ group.name }}</span>
             <UsageFigures :group="group" :now="now" />
           </div>
           <HintTip v-if="one.reason !== null" :text="one.reasonEnglish ?? undefined" :disabled="one.reasonEnglish === null" class="min-w-0">

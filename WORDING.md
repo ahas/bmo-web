@@ -286,6 +286,8 @@
   the end of a line of words or in a sentence: a line of words leaves out a part it does not have. Never 미설정, N/A or
   a hyphen for an empty cell.
 - section → 섹션. Never 구역.
+- reading a list, a region or a screen again, the button and the act → 새로고침, written as one word. Never 다시 읽기,
+  새로 고침, 다시 불러오기.
 - organisation → 조직: 조직, 같은 조직, 조직 이름; the side list a screen chooses one from, the 조직 screen's and every
   unit's screen's alike → 조직 목록, its search finding none → 찾은 조직 없음, a reader with none to set → 설정할 조직 없음, and its add for a new company → 회사 추가.
   Never 단체, 기관.

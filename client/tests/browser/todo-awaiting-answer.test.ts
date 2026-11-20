@@ -88,9 +88,9 @@ function item(id: number, over: Partial<TodoItem> = {}): TodoItem {
   };
 }
 
-// The items whose jobs ask, the first of which left a note undone so it would open on its result tab, and one that
-// asks nothing.
-const ASKING = item(1, { unfinished: "left-over" });
+// The items whose jobs ask, the first of which runs and left a note undone so it would open on its result tab, and
+// one that asks nothing.
+const ASKING = item(1, { unfinished: "left-over", running: true, status: "running", liveState: "running" });
 const PLAIN = item(2);
 const ASKING_TOO = item(3);
 const ITEMS = [ASKING, PLAIN, ASKING_TOO];
@@ -240,6 +240,20 @@ async function panel(page: Page, phone: boolean): Promise<void> {
   await row.waitFor({ timeout: STEP_MS });
 }
 
+// A chip's shape as it is drawn: its height, its padding and its corners.
+async function shapeOf(chip: Locator): Promise<string> {
+  return await chip.evaluate((one) => {
+    const style = getComputedStyle(one);
+
+    return `${one.getBoundingClientRect().height} ${style.padding} ${style.borderRadius}`;
+  });
+}
+
+// The colour a chip is filled with.
+async function groundOf(chip: Locator): Promise<string> {
+  return await chip.evaluate((one) => getComputedStyle(one).backgroundColor);
+}
+
 // A press that brings what it asks for, made again a bounded number of times where the page had not yet taken it.
 async function pressFor(press: Locator, shown: Locator): Promise<void> {
   for (let tries = 0; tries < 3 && !(await shown.isVisible()); tries += 1) {
@@ -277,6 +291,40 @@ describe.skipIf(!origin || !touchReady())("an item whose job waits on the owner'
             expect(one.ratio).toBeGreaterThanOrEqual(4.5);
           }
 
+          // It is one of the row's chips: the state badge's height, padding and corners.
+          const state = chip.locator("xpath=../*[1]");
+
+          expect(await shapeOf(chip)).toEqual(await shapeOf(state));
+
+          // A pointer changes its colour on hover and again on press, and its words still read on the hovered row.
+          if (!viewport.phone) {
+            const rest = await groundOf(chip);
+
+            await page.locator(`[data-todo-id="${ASKING.id}"]:visible > button`).first().hover();
+
+            for (const one of await contrast(page, `[data-todo-id="${ASKING.id}"] [data-awaiting-question]:visible`)) {
+              expect(one.ratio).toBeGreaterThanOrEqual(4.5);
+            }
+
+            await chip.hover();
+
+            const hovered = await groundOf(chip);
+
+            expect(hovered).not.toBe(rest);
+
+            for (const one of await contrast(page, `[data-todo-id="${ASKING.id}"] [data-awaiting-question]:visible`)) {
+              expect(one.ratio).toBeGreaterThanOrEqual(4.5);
+            }
+
+            await page.mouse.down();
+
+            const pressed = await groundOf(chip);
+
+            await page.mouse.move(0, 0);
+            await page.mouse.up();
+            expect(pressed).not.toBe(rest);
+          }
+
           // Pressed, it opens the item at its state tab, the card in view, the item wearing the chip.
           const card = page.locator("[data-item-question]:visible");
 
@@ -301,6 +349,10 @@ describe.skipIf(!origin || !touchReady())("an item whose job waits on the owner'
               })
           );
           expect(await page.locator("[data-item-state] [data-awaiting-question]:visible").count()).toBe(1);
+          // Beside the running state, which is pressed for the job's log, it is one chip of the same shape.
+          expect(await shapeOf(page.locator("[data-item-state] [data-awaiting-question]:visible"))).toEqual(
+            await shapeOf(page.locator("[data-item-state] [data-item-state-log]:visible"))
+          );
 
           await page.locator("[data-item-close]:visible").first().click();
           await card.waitFor({ state: "hidden", timeout: STEP_MS });

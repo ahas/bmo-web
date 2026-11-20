@@ -58,8 +58,9 @@
     <div class="flex h-(--ui-header-height) shrink-0 items-center justify-between border-b border-default px-4">
       <div class="flex min-w-0 items-center gap-2">
         <h2 class="shrink-0 text-base font-semibold text-highlighted">TODO</h2>
-        <!-- The questions waiting on him, pressed to stand every item they wait on in one list. -->
-        <UTooltip v-if="questionCount !== null" :text="$t('todo.action.show_awaiting')">
+        <!-- The questions waiting on him, pressed to stand every item they wait on in one list. Its words say more
+             than the count does, so a finger reads them by resting on it. -->
+        <HintTip v-if="questionCount !== null" :text="$t('todo.action.show_awaiting')" press>
           <UButton
             class="min-w-0"
             color="warning"
@@ -71,7 +72,7 @@
           >
             <span class="truncate tabular-nums">{{ questionCount }}</span>
           </UButton>
-        </UTooltip>
+        </HintTip>
       </div>
 
       <div class="flex items-center gap-1">

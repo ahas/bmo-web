@@ -45,12 +45,11 @@
             </div>
 
             <div v-if="openedItem !== null" class="flex flex-wrap items-center gap-2 text-sm" data-item-state>
-              <!-- A running item's state is pressed for its job's log, as the line's job log entry is (docs/web.md, the TODO panel). -->
+              <!-- A running item's state is pressed for its job's log, as the line's job log entry is (docs/web.md, the TODO
+                   panel): a chip like the state it stands for, among the chips beside it. -->
               <UTooltip v-if="openedItem.running" :text="$t('todo.action.job_log')">
-                <UButton
+                <ChipButton
                   :color="stateColour(openedItem)"
-                  variant="subtle"
-                  size="xs"
                   :icon="stateIcon(openedItem)"
                   :label="stateLabel($t, openedItem)"
                   data-item-state-log

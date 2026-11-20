@@ -19,7 +19,7 @@ describe("a job standing on a question", () => {
     expect(row).toContain('<TodoQuestionBadge v-if="questions !== null" :questions="questions" @press="emit(\'question\', item.id)" />');
     expect(item).toContain('<TodoQuestionBadge :questions="waitingQuestions" @press="showQuestion" />');
     expect(badge).toContain("data-awaiting-question");
-    expect(badge).toContain('$t("todo.label.awaiting_question")');
+    expect(badge).toContain(":label=\"$t('todo.label.awaiting_question')\"");
     expect(badge).toContain('questionState(question) === "open"');
   });
 

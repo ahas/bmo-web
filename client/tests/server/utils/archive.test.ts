@@ -343,7 +343,7 @@ describe("a page of a room", () => {
 
     expect(reply.attachments).toEqual([
       { id: 0, kind: "audio", name: wording("room.label.voice_message"), bytes: 1200, type: "audio/ogg", available: true },
-      { id: 1, kind: "document", name: "notes.pdf", bytes: null, type: null, available: false }
+      { id: 1, kind: "document", name: "notes.pdf", bytes: null, type: null, available: false, impliedType: "application/pdf" }
     ]);
     expect(reply.expressions).toEqual([]);
     expect(reply.formats).toEqual([]);

@@ -5813,20 +5813,25 @@ Four bounds keep it from growing forever.
   keeps it while the view stays open, so a tab gone back to stands as it was left; each opening reads afresh. A
   refused read stands in the tab's error band with the refresh that reads again.
 - **Closing the view while 호출 권한 holds a person picked and not added, or its switch turned off,** asks first
-  whether to throw that away, as every form does (「Forms」); the view holds nothing else that waits to be saved.
+  whether to throw that away, as every form does (「Forms」); the view holds nothing else that waits to be saved. While
+  such a change waits, the drawer stands still under a drag rather than slide away, and its other ways out ask.
 - **미디어, 파일, 링크, 음악 and 음성 collect what the room's messages carried, newest first.** Each reads a page at a
   time of the room's messages holding its kind, as the receiver answers them (its `docs/api.md`, 「Messages」, a
   room's messages by what they hold), and reads the next page as the reader nears the list's end. A message carrying
-  several kinds stands under each, and each tab stands only its own kind of what the message carried.
+  several kinds stands under each, and each tab stands only its own kind of what the message carried. A file is
+  counted by what it is, as the receiver counts it: one sent as a file, or a round video note handed over with no type
+  of its own, is a video or a sound where the type its name implies says so, and only the rest are files.
   - 미디어: the pictures and the videos, an animation among them, as squares of one size, three to a row on a narrow
     screen and four on a wide one, each cut to fill its square. A picture opens in the room's own viewer (「방 사진 넘기기」), whose head carries
     메시지에서 보기; a video in the shared full player; an animation plays where it stands, as in the conversation.
+    A video the room cannot play stands as its file's mark and name, and a press takes the file.
   - 파일: each file that is no picture, video or sound, as a line: its mark, its name, its size, who sent it and
     when, and its download, as a bubble's file line stands (「첨부와 Telegram 표현」).
   - 링크: each web address the words hold, found as a bubble finds its previews' addresses (「링크 미리보기」), as a
     line: the address and, under it, its site, who sent it and when. Pressing the line opens the address in a new
     tab.
-  - 음악: each sound that is no voice note, as its player, with who sent it and when.
+  - 음악: each sound that is no voice note, as its player, with who sent it and when, or as its file line where the
+    room cannot play it.
   - 음성: each voice note, as its player, its length beside it and the words heard in it under it, as in the
     conversation, with who sent it and when.
   - Each line of 파일, 링크, 음악 and 음성 carries 메시지에서 보기 at its end, which closes the view and brings the

@@ -2,15 +2,20 @@
   <!-- The room information the room's name opens (docs/web.md, the room screen's room information): its head the room's
        picture and name, and under it one row of tabs over what the room is and what it holds. A side sheet on a wide
        screen and a drawer from the bottom on a narrow one, at one height whichever tab stands. A tab reads what it
-       shows the first time it is shown in an opening and keeps it while the view stays open. -->
+       shows the first time it is shown in an opening and keeps it while the view stays open. A drawer dragged away
+       slides off before any refusal could hold it, so while a change waits it holds itself, standing still under a
+       drag, and hands each refused close to the guard, which asks; the sheet stays where the guard refuses, and is
+       left to dismiss itself. -->
   <component
     :is="narrow ? UDrawer : USlideover"
     :open="open"
     :title="props.title"
     :description="$t('room_info.title.sheet')"
     :ui="narrow ? DRAWER_UI : SHEET_UI"
+    :dismissible="narrow ? guard.dismissible.value : true"
     data-room-info
     @update:open="(standing: boolean) => (standing ? (open = true) : void guard.leave())"
+    @close:prevent="void guard.leave()"
   >
     <template #title>
       <span class="flex min-w-0 items-center gap-3">

@@ -52,7 +52,9 @@ function assetOf(file: ReceivedFile): Asset {
       name: file.name.startsWith(OWN_NAME) ? wording("room.label.voice_message") : file.name,
       bytes: out === null ? null : file.size,
       type: out?.type ?? null,
-      available: out !== null
+      available: out !== null,
+      // What a kept document is all the same, where its name says it is a video or a sound.
+      ...(file.kind === "document" ? { impliedType: file.type } : {})
     }
   };
 }

@@ -212,6 +212,9 @@ export interface MessageAttachment {
   available: boolean;
   // The shape a video or an animation stands in, where the chat service said what it was.
   shape?: MediaShape;
+  // On a kept document, the type its name implies, as the receiver serves its file: a document a browser cannot play
+  // is a video or a sound all the same where its name says so.
+  impliedType?: string | null;
 }
 
 // A picture's, a video's or an animation's width and height, in its own pixels.

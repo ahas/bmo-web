@@ -5,7 +5,8 @@ import { heldRows } from "../../../apps/web/app/domain/room-holding";
 import type { ArchivedMessage, MessageAttachment } from "../../../apps/web/shared/types";
 
 // What each of the room information's tabs stands of the messages read for it (docs/web.md, the room screen's room
-// information): its own kind of what each message carried, newest first, and nothing of a deleted message.
+// information): its own kind of what each message carried, newest first, a file counted by what its name says it is,
+// and nothing of a deleted message.
 
 const ROOM = -12;
 
@@ -13,8 +14,12 @@ function message(messageId: number, sentAt: number, over: Partial<ArchivedMessag
   return { chatId: ROOM, messageId: String(messageId), senderId: 11, senderName: "person-a", sentAt, text: "", imagePath: null, replyToMessageId: null, ...over };
 }
 
-function file(id: number, kind: MessageAttachment["kind"], name: string): MessageAttachment {
-  return { id, kind, name, bytes: 2048, type: null, available: true };
+// A kept file as the console serves it: played files with a type of their own kind, the rest kept as files, each with
+// the type its name implies.
+const SERVED: Record<MessageAttachment["kind"], string> = { video: "video/mp4", animation: "video/mp4", audio: "audio/ogg", document: "application/octet-stream", sticker: "image/webp" };
+
+function file(id: number, kind: MessageAttachment["kind"], name: string, impliedType: string | null = null): MessageAttachment {
+  return { id, kind, name, bytes: 2048, type: SERVED[kind], available: true, impliedType };
 }
 
 describe("the rows a tab stands", () => {
@@ -32,6 +37,17 @@ describe("the rows a tab stands", () => {
     const rows = heldRows("file", [message(1, 100, { imagePath: "/kept/1.jpg", attachments: [file(10, "document", "notes.pdf"), file(11, "audio", "song.mp3")] })]);
 
     expect(rows).toMatchObject([{ kind: "file", attachment: { name: "notes.pdf" } }]);
+  });
+
+  test("a document whose name is a video's or a sound's stands under media or music, as a file line where it does not play", () => {
+    const sent = [
+      message(1, 100, { attachments: [file(10, "document", "clip.mkv", "video/x-matroska")] }),
+      message(2, 200, { attachments: [file(20, "document", "track.wma", "audio/x-ms-wma")] })
+    ];
+
+    expect(heldRows("media", sent)).toMatchObject([{ kind: "file", messageId: "1", attachment: { name: "clip.mkv" } }]);
+    expect(heldRows("music", sent)).toMatchObject([{ kind: "file", messageId: "2", attachment: { name: "track.wma" } }]);
+    expect(heldRows("file", sent)).toEqual([]);
   });
 
   test("links holds every address the words hold outside code, each once, with its site", () => {

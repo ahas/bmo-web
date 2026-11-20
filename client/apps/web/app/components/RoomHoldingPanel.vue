@@ -23,8 +23,8 @@
 
     <MovingList v-else-if="props.holding === 'media'" tag="div" :class="GRID" data-room-holding-rows>
       <!-- Each square is cut by its own corners; a video's and an animation's stand on black where their shape leaves
-           room, as in a bubble. -->
-      <div v-for="row in rows" :key="row.key" class="relative aspect-square min-w-0 overflow-hidden rounded-lg" :class="row.kind === 'picture' ? 'bg-elevated' : 'bg-black'" :data-held="row.kind">
+           room, as in a bubble, and a video the room cannot play stands as its file's mark and name, taken by a press. -->
+      <div v-for="row in rows" :key="row.key" class="relative aspect-square min-w-0 overflow-hidden rounded-lg" :class="row.kind === 'video' || row.kind === 'animation' ? 'bg-black' : 'bg-elevated'" :data-held="row.kind">
         <MessageImage
           v-if="row.kind === 'picture'"
           :src="imageUrl(props.chatId, row.messageId)"
@@ -40,6 +40,22 @@
         <div v-else-if="row.kind === 'animation'" class="flex size-full items-center justify-center">
           <MessageAnimation :attachment="row.attachment" :chat-id="props.chatId" :message-id="row.messageId" />
         </div>
+        <UTooltip v-else-if="row.kind === 'file' && row.attachment.available" :text="$t('common.aria.download_named', { name: row.attachment.name })">
+          <a
+            :href="`${fileUrl(row)}&as=download`"
+            download
+            class="flex size-full flex-col items-center justify-center gap-2 p-2 text-center transition-colors hover:bg-accented active:bg-accented focus-inset"
+            :aria-label="$t('common.aria.download_named', { name: row.attachment.name })"
+          >
+            <UIcon name="i-material-symbols-video-file-outline" class="size-8 shrink-0 text-dimmed" />
+            <span class="line-clamp-2 text-sm break-all text-highlighted">{{ row.attachment.name }}</span>
+          </a>
+        </UTooltip>
+        <span v-else-if="row.kind === 'file'" class="flex size-full flex-col items-center justify-center gap-2 p-2 text-center text-muted">
+          <UIcon name="i-material-symbols-video-file-outline" class="size-8 shrink-0" />
+          <span class="line-clamp-2 text-sm break-all">{{ row.attachment.name }}</span>
+          <span class="text-sm">{{ $t("room.label.unreceivable") }}</span>
+        </span>
       </div>
     </MovingList>
 

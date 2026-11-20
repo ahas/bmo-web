@@ -328,13 +328,18 @@ export function useOrganizations(failed: (error: unknown) => string): Organizati
   const rosterAnswered = useAnswered(roster.status);
   const memoryAnswered = useAnswered(memory.status);
 
-  watch(
-    administrator,
-    (now) => {
-      if (now && units.status.value === "idle") void units.execute();
-    },
-    { immediate: true }
-  );
+  // The administrator's read is asked in the browser alone. Asked while the server draws the page, an answer that came
+  // back before the drawing ended would ride to the browser in the page's payload as already read, and the browser
+  // would never ask for the list itself.
+  if (import.meta.client) {
+    watch(
+      administrator,
+      (now) => {
+        if (now && units.status.value === "idle") void units.execute();
+      },
+      { immediate: true }
+    );
+  }
 
   const list = computed<Organization[] | null>(() => {
     if (administrator.value) return units.status.value === "success" ? (units.data.value ?? []).filter(isCompany).map((one) => ({ id: one.id, name: one.name })) : null;

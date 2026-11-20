@@ -6371,7 +6371,9 @@ Four bounds keep it from growing forever.
     cells, each name in a tinted cell beside its value, two to a row: 에이전트 and 저장소, then 모델 and, while the item
     is unfinished, 우선순위. 모델 stands 미지정 where no road is named yet, as 에이전트 does. On an unfinished item the
     agent and the worker are changed right there, the worker's repository path in the shared tooltip of its cell, a
-    finger resting on the cell to read it; on a finished item they are read. The close mark, and 항목 만들기 before it, stand at the box's top right, centred on its first row.
+    finger resting on the cell to read it; on a finished item they are read. A long name wraps in its cell, the
+    row growing with it, and is never cut. The close mark, and 항목 만들기 before it, stand at the box's top right,
+    centred on its first row.
   - **The head is two columns where the body is,** the title's on the left and the box's on the right, wide enough
     for two of its fields side by side; it draws no line between them, the box being bordered itself. The head is
     only as tall as the taller of the two, so both tab rows start on one line right under it.

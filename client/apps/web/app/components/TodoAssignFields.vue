@@ -18,7 +18,8 @@
     </template>
 
     <!-- Which worker is to do it: an assignment the queue reads to decide whose turn the item is, the job launched on
-         the worker it names, and no assignment the built-in worker. -->
+         the worker it names, and no assignment the built-in worker. A long name wraps in its cell, as the agent's does,
+         rather than being cut. -->
     <template v-if="!props.item.done" #worker>
       <span class="flex min-w-0 items-center">
         <ChoiceSelect
@@ -29,6 +30,7 @@
           class="min-w-40"
           size="sm"
           :aria-label="$t('todo.aria.item_worker')"
+          :ui="{ value: 'whitespace-normal break-keep wrap-anywhere text-start' }"
           :loading="props.workerBusy"
           @update:model-value="emit('worker', $event as string)"
         />

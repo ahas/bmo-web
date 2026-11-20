@@ -6,7 +6,7 @@ import { BROWSER_HOOK_MS, touchReady } from "./touch";
 import { wording } from "../../apps/web/shared/wording";
 
 import type { Browser, BrowserContext, Page } from "playwright-core";
-import type { TodoApproval, TodoBoard, TodoItem } from "../../apps/web/shared/types";
+import type { AgentList, TodoApproval, TodoBoard, TodoItem } from "../../apps/web/shared/types";
 
 // The TODO modal as an approval document, as the browser lays it out (docs/web.md, 「The modal is built as an approval
 // document to read one item」): the state on a line of its own under the title, never beside it; on a wide dialog the
@@ -35,14 +35,15 @@ const APPROVALS: TodoApproval[] = [
   { id: 1, kind: "recommendation", caller: "agent-b", at: NOW - 3_500 }
 ];
 
-function item(): TodoItem {
+function item(over: Partial<TodoItem> = {}): TodoItem {
   return {
     id: ITEM, title: "item-title of a fairly ordinary length for a request", instruction: BRIEF, requester: "requester-a", requesterId: null, chatId: null, approved: true,
     awaitingApproval: false, recommended: true, done: false, running: false, worker: "worker-b", priority: 3, status: "open", model: null, agent: "agent-a", ranOn: null, note: null,
     reports: [], unfinished: null, rejections: 0,
     unfinishedResolvedAt: null, unfinishedResolution: null, heldAt: null, heldReason: null, heldKind: null,
     mergedInto: null, mergedAt: null, mergedIntoTitle: null, mergedFrom: [], attempts: 1, progress: null, stopped: null, holding: null, waiting: null,
-    deployWaits: false, closing: null, deployHeld: false, holdPending: false, orderActive: false, seconds: null, spans: [], createdAt: NOW - 4_000, doneAt: null
+    deployWaits: false, closing: null, deployHeld: false, holdPending: false, orderActive: false, seconds: null, spans: [], createdAt: NOW - 4_000, doneAt: null,
+    ...over
   };
 }
 
@@ -63,7 +64,7 @@ afterAll(async () => {
   await browser?.close();
 }, BROWSER_HOOK_MS);
 
-async function open(viewport: (typeof WIDTHS)[number]): Promise<BrowserContext> {
+async function open(viewport: (typeof WIDTHS)[number], over: Partial<TodoItem> = {}): Promise<BrowserContext> {
   const context = await browser!.newContext({ viewport: { width: viewport.width, height: viewport.height }, isMobile: viewport.phone, hasTouch: viewport.phone, serviceWorkers: "block", reducedMotion: "reduce" });
   const at = cookie.indexOf("=");
 
@@ -73,9 +74,16 @@ async function open(viewport: (typeof WIDTHS)[number]): Promise<BrowserContext> 
 
     const board = (await (await route.fetch()).json()) as TodoBoard;
 
-    await route.fulfill({ json: { ...board, queue: [item()] } });
+    await route.fulfill({ json: { ...board, queue: [item(over)] } });
   });
-  await context.route(new RegExp(`/api/todos/${ITEM}$`), (route) => route.fulfill({ json: item() }));
+  // The item's worker as the agency lists it, so its select names it as chosen.
+  await context.route(/\/api\/agents(\?|$)/, async (route) => {
+    const list = (await (await route.fetch()).json()) as AgentList;
+    const worker = item(over).worker!;
+
+    await route.fulfill({ json: { ...list, agents: [...list.agents, { name: worker, kind: "repository", label: worker, path: `/srv/checkouts/${worker}` }] } });
+  });
+  await context.route(new RegExp(`/api/todos/${ITEM}$`), (route) => route.fulfill({ json: item(over) }));
   await context.route(new RegExp(`/api/todos/${ITEM}/approvals$`), (route) => route.fulfill({ json: APPROVALS }));
   await context.route(new RegExp(`/api/todos/${ITEM}/(notes|reports|reviews)$`), (route) => route.fulfill({ json: [] }));
   await context.route(new RegExp(`/api/todos/${ITEM}/talk$`), (route) => route.fulfill({ json: { turns: [], answering: false, unanswered: null } }));
@@ -162,4 +170,32 @@ describe.skipIf(!origin || !touchReady())("the TODO modal as an approval documen
       }
     }, 60_000);
   }
+
+  test("a long agent or repository name wraps in its cell and is never cut, 1280px wide", async () => {
+    const context = await open(WIDTHS[0], { agent: "agent-with-a-rather-long-registered-name-for-testing", worker: "worker-with-a-rather-long-repository-name" });
+
+    try {
+      const page = await context.newPage();
+
+      await page.goto(`${origin}/?todo=${ITEM}`, { waitUntil: "load" });
+      await boxes(page);
+
+      const dialog = page.getByRole("dialog").filter({ hasText: "item-title" }).last();
+
+      await dialog.locator('[data-item-form] [data-pair="worker"]').getByText("worker-with-a-rather-long-repository-name").waitFor({ timeout: 10_000 });
+      const kept = await dialog.locator("[data-item-form]").evaluate((form) => {
+        const box = form.getBoundingClientRect();
+        const leaves = [...form.querySelectorAll("*")].filter((one) => one.children.length === 0 && one.getBoundingClientRect().width > 0) as HTMLElement[];
+
+        return {
+          cut: leaves.filter((one) => one.scrollWidth > one.clientWidth + 1 && getComputedStyle(one).overflow !== "visible").map((one) => one.textContent),
+          outside: leaves.filter((one) => one.getBoundingClientRect().right > box.right + 0.5).map((one) => one.textContent)
+        };
+      });
+
+      expect(kept).toEqual({ cut: [], outside: [] });
+    } finally {
+      await context.close();
+    }
+  }, 60_000);
 });

@@ -526,6 +526,13 @@
   as 보냄 and arrived as 받음; answered 인수, 반려, 통과, 조건부 통과, 완료 or 거절; how long it waited → 대기 {span}
   while it waits, 응답 경과 {span} once answered. A relation or minutes not yet sent or confirmed → 초안; minutes
   confirmed → 확정.
+- the TODO items that carry a work, and the work's tab listing them → TODO, each item `#{number}` and its title;
+  filing a new one for the work → 항목 만들기; linking one that stands by its number → 연결, its field 항목 번호;
+  ending a link → 연결 해제, ended 연결 해제됨, with its 사유; its state as the TODO panel names it (결재 대기, 대기,
+  진행 중, 보류, 완료, 병합됨), and dropped → 취소됨; how it came to carry the work → 여기서 만듦, 연결함, 병합으로 옮김,
+  파생 항목; a work no item carries any more → 실행 항목 없음, one whose item is held → 항목 보류; keeping the work open
+  past its items → 항목 완료 후에도 진행; an entry an item wrote → TODO 작성, `TODO #{item} 작성`. Never 캐리어, 운반,
+  수행 항목, 버려짐.
 - a meeting's record → 회의록, the action items it lists → 임무. A template a new work opens on → 템플릿, each standing
   by its own name in the pack (단기 업무, 단계·게이트 …).
 - what a board or a record belongs to, a unit or a project, and the company a person belongs to → 소속: 소속, 보드

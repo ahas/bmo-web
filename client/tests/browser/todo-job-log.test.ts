@@ -2,13 +2,15 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 
 import { wording } from "../../apps/web/shared/wording";
+import { standsOnTop } from "./top-layer";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, BrowserContext, Page } from "playwright-core";
 import type { AgentLogLine, AgentLogPage, LiveRun, StatusView, TodoBoard, TodoItem } from "../../apps/web/shared/types";
 
 // The TODO panel's row menu entry on a running line: it names the running job's log and opens that log in the
-// dialog the panel a person is reading draws. A job that ended between the menu opening and the press answers with
+// dialog the panel a person is reading draws, over the opened item it was opened from each time it opens, the drawer's
+// panel set up again included (docs/web.md, 「Floating things」). A job that ended between the menu opening and the press answers with
 // the message pill, which is read where it stands, rather than leaving only a line under the list.
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up, and
@@ -224,6 +226,41 @@ describe.skipIf(!origin || !touchReady())("the TODO row menu's job log", () => {
         await mark.waitFor({ timeout: 15_000 });
         await mark.click();
         await page.getByText("fixture-job-line").waitFor({ state: "visible", timeout: 10_000 });
+      } finally {
+        await context.close();
+      }
+    }
+  }, 90_000);
+
+  test("stands the log over the opened item each time it opens, the drawer opened again included, at 1280 and 360", async () => {
+    for (const [width, height] of [[1280, 900], [360, 780]] as const) {
+      const context = await open(width, height, [RUN]);
+
+      try {
+        const page = await context.newPage();
+        const log = page.getByRole("dialog").filter({ hasText: "fixture-job-line" });
+        const mark = page.locator("[data-item-state-log]:visible").first();
+
+        await page.goto(`${origin}/?todo=${ITEM}`, { waitUntil: "load" });
+
+        for (const opening of [1, 2]) {
+          await mark.waitFor({ timeout: 15_000 });
+          await mark.click();
+          await log.waitFor({ state: "visible", timeout: 10_000 });
+          expect({ width, opening, top: await standsOnTop(log) }).toEqual({ width, opening, top: true });
+
+          // Back closes the log alone, then the item, then the drawer it stands in on a narrow screen.
+          await page.goBack();
+          await log.waitFor({ state: "detached", timeout: 10_000 });
+          expect(await mark.isVisible()).toBe(true);
+          if (opening === 2) break;
+
+          await page.goBack();
+          await mark.waitFor({ state: "hidden", timeout: 10_000 });
+          if (width < 1280) await page.goBack();
+          await page.getByRole("dialog").first().waitFor({ state: "detached", timeout: 10_000 });
+          await (await rowOf(page)).getByText("item-title").click();
+        }
       } finally {
         await context.close();
       }

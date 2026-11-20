@@ -303,7 +303,7 @@
   <!-- The log of the job running a row, opened from the row's menu at its run and following it.
        Drawn only by the panel a person is looking at, as the item dialog is; the state is shared, so the
        press answers in that panel whichever one took it. -->
-  <AgentLogDialog v-if="showsDetail && logAgent !== null" v-model:open="logOpen" :name="logAgent" :place="logPlace" :rooms="rooms ?? []" end />
+  <AgentLogDialog v-if="showsDetail && logAgent !== null" :key="logOpenings" v-model:open="logOpen" :name="logAgent" :place="logPlace" :rooms="rooms ?? []" end />
 
   <!-- Words added to a row from its menu: the same added instructions the opened row adds. -->
   <UModal v-if="showsDetail" v-model:open="appendOpen" :title="appendItem === null ? '' : `#${appendItem.id} ${$t('todo.title.notes')}`">
@@ -361,6 +361,7 @@ import { todoClosed, useAskedTodo } from "~/domain/todo-address";
 import { useAgentCatalogue } from "~/domain/catalogue";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useHoldMenu } from "bmo-ui/app/domain/holdmenu";
+import { useOpenings } from "bmo-ui/app/domain/openings";
 import { usePromptEnter } from "bmo-ui/app/domain/prompt";
 import { usePolling } from "~/domain/polling";
 import { useTodoModelPlan } from "~/domain/todo-models";
@@ -1121,6 +1122,9 @@ function swallowLift(event: MouseEvent): void {
 const logOpen = useState<boolean>("todo-job-log-open", () => false);
 const logAgent = useState<string | null>("todo-job-log-agent", () => null);
 const logPlace = useState<LogPlace | null>("todo-job-log-place", () => null);
+// Mounted afresh at each opening, so it stands over the item's detail it is opened from, which is set up after it
+// (docs/web.md, 「Floating things」).
+const logOpenings = useOpenings(() => logOpen.value);
 
 // The row says a job runs it, or ran it; which agent that job is and the run to follow, the live picture of runs
 // says, and where no run of the item is live, the item's runs name its latest job. A job that cannot be found has

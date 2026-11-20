@@ -7,6 +7,13 @@ import { wording } from "../../apps/web/shared/wording";
 
 import type { Browser, BrowserContext, Page } from "playwright-core";
 
+declare global {
+  interface Window {
+    // Hands the played stream one of the agency's events, as the console's relay writes it.
+    playAgency: (data: unknown) => void;
+  }
+}
+
 // A supervisor's background work in the room's list of what waits (docs/web.md, the room screen's list of what waits):
 // a subagent still running after the turn that launched it stands as a line of its own — its kind's word, the description it
 // was launched with, the supervisor and since when — and it leaves the open list once the agency says it ended, without
@@ -106,7 +113,7 @@ async function open(viewport: (typeof WIDTHS)[number], scheme: (typeof SCHEMES)[
           this.dispatchEvent(new MessageEvent("job-run", { data: JSON.stringify({ run: "job-run-a" }) }));
           setInterval(() => this.dispatchEvent(new MessageEvent("keep", { data: "{}" })), 5_000);
         }, 50);
-        (window as unknown as { playAgency: (data: unknown) => void }).playAgency = (data) => this.dispatchEvent(new MessageEvent("agency", { data: JSON.stringify(data) }));
+        window.playAgency = (data) => this.dispatchEvent(new MessageEvent("agency", { data: JSON.stringify(data) }));
       }
 
       close(): void {
@@ -190,7 +197,7 @@ describe.skipIf(!origin || !touchReady())("a supervisor's background work in the
             room.end(task);
             await page.evaluate(
               ({ chatId, task }) =>
-                (window as unknown as { playAgency: (data: unknown) => void }).playAgency({
+                window.playAgency({
                   id: 9,
                   kind: "background-work.ended",
                   at: Date.now(),

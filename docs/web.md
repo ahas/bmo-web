@@ -5910,8 +5910,8 @@ Four bounds keep it from growing forever.
   and the switches stand as the receiver last answered.
 - **The tab opens on the room's mode, 아바타 모드, as a switch above the providers:** on where the receiver
   holds the room in `avatar`, its agents answering under the owner's account, and off in `record-only`, read and
-  recorded and never answered, each said in a line under it. Turning it sets the mode at once under the
-  administrator's name (the receiver's `PUT /rooms/{roomId}/registration`), the switch waiting while it is written
+  recorded and never answered, each said in a line under it. Turning it sets the mode at once as the
+  administrator (the receiver's `PUT /rooms/{roomId}/registration`), the switch waiting while it is written
   and standing as the receiver answers; a refusal — a chat service that does not offer the mode, a room on none, a
   room whose service is never answered in — is said in the tab by the pack's sentence for the receiver's code. A
   room that was never added has no mode: its switch stands off and disabled, with a line saying so.
@@ -5931,7 +5931,7 @@ Four bounds keep it from growing forever.
   translated, in the receiver's order, and 없음 (기본값) last, which the receiver holds for a room set to none. A line
   under the row says what the layer is for. The select stands as its skeleton while the receiver is read, the row's
   label and line drawn from the start.
-- **A choice is written at once** under the administrator's name and as his account (the receiver's
+- **A choice is written at once** as the administrator and as his account (the receiver's
   `PUT /rooms/{roomId}/tone`), the select waiting while it is written and standing as the receiver answers; the room's
   block carries the layer from its next turn. A refused write is said in the tab by the pack's sentence for the
   receiver's code, 선택할 수 없는 말투입니다 for a layer the receiver no longer offers, and the select stands as the

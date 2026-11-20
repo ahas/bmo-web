@@ -43,7 +43,7 @@ describe("a room's mode", () => {
     receiver.asked.length = 0;
 
     expect((await asked(read, { params: { chatId: "-7" } })).answer).toEqual({ mode: "record-only" });
-    expect(receiver.asked[0]?.path).toBe("/rooms/-7/registration?by=tester");
+    expect(receiver.asked[0]?.path).toBe("/rooms/-7/registration?by=1");
   });
 
   test("answers no mode for a room that was never added", async () => {
@@ -54,7 +54,7 @@ describe("a room's mode", () => {
     receiver.asked.length = 0;
 
     expect((await asked(write, { params: { chatId: "-7" }, body: { mode: "avatar" } })).answer).toEqual({ mode: "avatar" });
-    expect(receiver.asked.filter((one) => one.method === "PUT").map((one) => [one.method, one.path, one.body])).toEqual([["PUT", "/rooms/-7/registration?by=tester", { mode: "avatar", account: 1 }]]);
+    expect(receiver.asked.filter((one) => one.method === "PUT").map((one) => [one.method, one.path, one.body])).toEqual([["PUT", "/rooms/-7/registration?by=1", { mode: "avatar", account: 1 }]]);
   });
 
   test("refuses a mode it does not know and never reaches the receiver", async () => {

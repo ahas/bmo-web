@@ -158,9 +158,16 @@ export function acting(signed: SignedIn): { account?: number } {
   return signed.id === null ? {} : { account: signed.id };
 }
 
-/** The query of a room's removal: who removes it, as his name and his account, and whether it is a preview. */
+/** The administrator a receiver route names as `by`, as the web unit knows him: his user's id, which the receiver
+ * asks the web unit's `GET /users/{user}` about; his login for a console login standing before the account model. */
+export function administratorBy(signed: SignedIn): string {
+  return signed.id === null ? signed.name : String(signed.id);
+}
+
+/** The query of a room's removal: who removes it, as the web unit knows him and as his account, and whether it is a
+ * preview. */
 export function removalQuery(signed: SignedIn, dryRun: boolean): string {
-  const query = new URLSearchParams({ by: signed.name });
+  const query = new URLSearchParams({ by: administratorBy(signed) });
 
   if (dryRun) query.set("dryRun", "true");
   if (signed.id !== null) query.set("account", String(signed.id));

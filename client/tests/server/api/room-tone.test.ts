@@ -23,6 +23,8 @@ const receiver = standIn("RECEIVER", (one) => {
   // No room here is anyone's private room; a private room's refusal stands in room-private.test.ts.
   if (/^\/rooms\/-?\d+$/.test(path)) return answer({ id: Number(path.split("/")[2]), title: null, privateOf: null });
 
+  if (path === "/rooms/-6/tone") return answer({ code: "not-administrator", error: "only the administrator" }, 403);
+
   if (path === "/rooms/-7/tone") {
     if (one.method === "PUT") {
       const asked = one.body?.tone;
@@ -52,8 +54,8 @@ describe("a room's tone layer", () => {
     expect((await asked(write, { params: { chatId: "-7" }, body: { tone: "tone-a" } })).answer).toEqual({ tone: "tone-a", tones: TONES });
     expect((await asked(write, { params: { chatId: "-7" }, body: { tone: null } })).answer).toEqual({ tone: null, tones: TONES });
     expect(receiver.asked.filter((one) => one.method === "PUT").map((one) => [one.path, one.body])).toEqual([
-      ["/rooms/-7/tone?by=tester", { tone: "tone-a", account: 1 }],
-      ["/rooms/-7/tone?by=tester", { tone: null, account: 1 }]
+      ["/rooms/-7/tone?by=1", { tone: "tone-a", account: 1 }],
+      ["/rooms/-7/tone?by=1", { tone: null, account: 1 }]
     ]);
   });
 
@@ -67,8 +69,9 @@ describe("a room's tone layer", () => {
     expect(receiver.asked).toEqual([]);
   });
 
-  test("says a layer the receiver does not offer by the pack's sentence", async () => {
+  test("says the receiver's refusals by the pack's sentence for this route", async () => {
     expect(await asked(write, { params: { chatId: "-7" }, body: { tone: "unoffered" } })).toMatchObject({ status: 400, message: wording("room_info.error.tone_unknown") });
+    expect(await asked(write, { params: { chatId: "-6" }, body: { tone: null } })).toMatchObject({ status: 403, message: wording("common.error.administrator_only") });
   });
 
   test("is the administrator's alone, both ways", async () => {

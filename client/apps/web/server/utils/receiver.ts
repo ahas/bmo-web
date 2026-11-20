@@ -149,6 +149,10 @@ export const RECEIVER_CODES: Readonly<Record<string, string>> = {
   chat: "room.error.removal_chat"
 };
 
+/** The receiver's refusal of a room setting asked by anyone but the administrator, in the sentence every
+ * administrator's route says it in rather than the room removal's. */
+export const ADMINISTRATOR_ONLY: Readonly<Record<string, string>> = { "not-administrator": "common.error.administrator_only" };
+
 // The receiver's refusals of a supervisor's add, its removal and the default answerer setting (its `docs/codes.md`,
 // 「SupervisorRefusal」), each with the pack's key for its sentence, and the field of the add's form each stands under.
 export const SUPERVISOR_CODES: Readonly<Record<string, string>> = {
@@ -288,11 +292,11 @@ export async function roomFileLimit(roomId: number): Promise<FileLimit | null> {
 }
 
 /** A room's chat providers as its dialog reads them: every provider the receiver names, and the ones the room is on. */
-/** A room's mode off its registration, read under the administrator's name: null where the room was never added,
+/** A room's mode off its registration, read as the web unit knows the administrator: null where the room was never added,
  * which the receiver refuses 409 `room-not-added`. */
 export async function roomMode(roomId: number, by: string): Promise<RoomModeView> {
   try {
-    const registration = await receiverCall(receiver().GET("/rooms/{roomId}/registration", { params: { path: { roomId }, query: { by } } }));
+    const registration = await receiverCall(receiver().GET("/rooms/{roomId}/registration", { params: { path: { roomId }, query: { by } } }), { codes: ADMINISTRATOR_ONLY });
 
     return { mode: modeOf(registration) };
   } catch (error) {

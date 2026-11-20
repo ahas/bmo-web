@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 
 import { wording } from "../../apps/web/shared/wording";
+import { openRoomInfo } from "./room-info";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser } from "playwright-core";
@@ -69,8 +70,7 @@ describe.skipIf(!origin || !touchReady())("a picture set in the console", () => 
 
         await page.goto(`${origin}/rooms/${RECORD_CHAT}`, { waitUntil: "load" });
         await page.locator("[data-message]").first().waitFor({ timeout: 30_000 });
-        await page.getByRole("button", { name: wording("common.action.more") }).first().click();
-        await page.getByRole("menuitem", { name: wording("picture.action.set_room") }).click();
+        await (await openRoomInfo(page)).locator("[data-room-info-set-picture]").click();
 
         const room = page.locator("[data-picture-setting='room']");
 

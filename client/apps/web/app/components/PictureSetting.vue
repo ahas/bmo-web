@@ -63,10 +63,17 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+// Whether a picture picked and not yet saved waits here, which a dialog holding the setting asks about before it closes
+// (docs/web.md, 「Forms」).
+const holding = defineModel<boolean>("holding", { default: false });
 const { t } = useI18n();
 
 const chooser = useTemplateRef<HTMLInputElement>("chooser");
 const picked = ref<File | null>(null);
+
+watch(picked, (file) => {
+  holding.value = file !== null;
+}, { immediate: true });
 const previewSrc = ref<string | null>(null);
 const busy = ref<"save" | "clear" | null>(null);
 const said = ref("");

@@ -480,7 +480,7 @@ console page. No answer says which framework drew it. Strict transport is the re
   picture is read by whoever reads the room alone.
 - **The room screen stands read-only for him there and in a sealed room,** as it does for a reader whose rooms section
   only reads, by the room list's word of which rooms the reader may change: no box
-  to write in and no act on a message, no pin, providers, picture or removal in the room's menu, a callers list with
+  to write in and no act on a message, no pin or removal in the room's menu, no picture or providers in 방 정보, a callers list with
   nothing to change, nobody to let in, and no such room to forward a message into. Nothing on the screen says why,
   and nobody else is told he is reading.
 - **Every change the console makes in a room for a person names the account it is made as,** so the receiver refuses
@@ -1410,7 +1410,7 @@ edit to that file alone, once the guide below carries the word.
   room's picture is set as, so another account's private room is refused here and by the receiver:
   - **an agent's,** by its registration name, on its own page — the 사진 button in the page's own row under
     its name, for the administrator — the picture standing under every number the agent's words stand under;
-  - **a room's,** from the room's menu, 방 사진, for the administrator;
+  - **a room's,** from 방 정보's head, 방 사진, for the administrator (「방 정보」);
   - **one's own,** in 설정 › 계정, 프로필 사진: the sender linked to the account, the owner's for the administrator.
   Two more stand in the same shape but are kept by the account service rather than the receiver (`docs/accounts.md`,
   「A person's BMO profile」): a company's default for its people's BMOs, on 조직's BMO tab, its way back 사진 지우기, and
@@ -1419,8 +1419,9 @@ edit to that file alone, once the guide below carries the word.
   Each is one shape: the picture standing now, 사진 고르기 picking a file, the picked one shown in its place with
   저장 and 취소, and 제공자 사진으로 되돌리기, which drops the console's picture so the provider's stands again (the
   receiver's `DELETE`). A refusal is said in the pack's words for its code — too large, not a picture, an agent
-  with no number yet. Every screen takes a changed picture as the receiver tells of it, and the screen that set it
-  at once.
+  with no number yet. A dialog holding the shape, the room's and the agent's, asks before it closes while a picked
+  picture waits unsaved, as every form does (「Forms」). Every screen takes a changed picture as the receiver tells
+  of it, and the screen that set it at once.
 - **A place with no message yet carries the same photo as a message.** The line standing while the chat agent thinks
   carries the same photo on the same side as the chat agent's answer that will stand there, and a line being sent
   carries the sender's photo. So even when an answer or message actually arrives, the photo does not change
@@ -2142,7 +2143,8 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   or leaves a button of the set out. The one difference a screen may make is the room's: its bar is the same bar
   on the translucent ground the room's bars lie over the conversation on, and it carries the room's menu, 진행 중, its
   pinned button and its window's time left beside the room's name, with no row of the room's own under it
-  (「The top bar and the input bar lie over the conversation」).
+  (「The top bar and the input bar lie over the conversation」), and its name is a button that opens the room's
+  information (「방 정보」).
 - **The bar folds by its own width, never by the screen's.** A bar narrower than 48rem (768px) is short: every
   phone's bar, and a wide screen's whose docked panels narrow it, as a 1280px window with the TODO panel docked
   leaves its bar 688px. On a short bar the set's words fold away, the deployment's mark and the usage figures each
@@ -2608,8 +2610,8 @@ archive and this week's tokens remain. That is all that can actually be known th
 
 - **What they are.** The files that came with a room's messages — a voice message, an audio file, a video, a document,
   a sticker, a briefing the chat agent sent — kept by the receiver with each message (the receiver's
-  `docs/room-files.md`). The console has no screen of its own for them; a room's line plays or opens its file where it
-  stands.
+  `docs/room-files.md`). A room's line plays or opens its file where it stands, and the room's 방 정보 collects them by
+  kind in its tabs (「방 정보」).
 - **The road a file goes out by.** The browser names no path. Given the room and message number and kind, a file goes
   out only through the route the receiver serves for that message's file, behind this app's sign-in; the policy on the
   road says nothing can be a script, and it answers range requests so a large video or a long recording plays from the
@@ -4183,7 +4185,7 @@ Four bounds keep it from growing forever.
   panel's top and foot underneath them. Only the room's bars are translucent: every other page's top bar stays
   opaque.
   - What acts on the room stands in the title bar beside the room's name (「The title bar」), and no row of the
-    room's own stands under it: the room's menu, its vertical-dots button, right after the name, then 진행 중
+    room's own stands under it: the name itself, a button opening 방 정보 (「방 정보」), then the room's menu, its vertical-dots button, right after the name, then 진행 중
     (「진행 중」), the pinned button (「What was done to a message」) and last the window's time left (「The window's
     time left stands in the top bar」). Only the time left stands after the pinned button, so the pinned message it
     names changing moves no button. The right end keeps only what every
@@ -5784,11 +5786,55 @@ Four bounds keep it from growing forever.
   words, and a 갱신 mark beside them where that round wrote it afresh (the receiver's `docs/drafting.md`, 「The
   situation note」). The note is the room's live state and not the agent's memory, so it is read beside the verdicts
   and never as a verdict; a round that left no answer stands no note there.
-- **The room's situation as it stands now** is the room menu's 상황, which opens a small dialog of the note and the
-  moment it last changed, read from the receiver each time it opens (`GET /rooms/{roomId}/situation`); a room with no
+- **The room's situation as it stands now** is 방 정보's 상황 tab (「방 정보」): the note and the moment it last
+  changed, read from the receiver each time the tab is first shown in an opening (`GET /rooms/{roomId}/situation`); a room with no
   note yet says so rather than standing an empty box. The note carries the 번역 action of a text read in the
   reader's language, exactly as a memory opened from the room's record does (「The original, and its translation
   under it」).
+
+#### 방 정보
+
+- **Pressing the room's name in the top bar opens 방 정보, for every reader:** one view of what the room is and what
+  it holds, each part a tab of its own. The name is a button, with a hover and a press colour of its own and the
+  tooltip 방 정보, cut short where the bar is short as the name always is. The room's picture beside it keeps its own
+  press, which opens the picture whole, and the presence dot on the picture's corner opens the same view on its
+  대화상대 tab (「Presence and typing」). The room's menu carries none of what the view holds.
+- **It opens as a sheet at the side on a wide screen, as wide as its whole row of tabs, and as a drawer from the
+  bottom on a narrow one,** at one height whichever tab is shown, so changing tabs moves nothing around it; the conversation stays where it stood.
+  Back, Esc, its close button and a press outside close it, and opening and closing it leave the history as it was.
+- **Its head is the room's picture and its name.** The picture opens whole when pressed; a room standing as its
+  letter has nothing to open. For the owner, in a room he may change, a 방 사진 button stands at the head's end and
+  opens the room's picture setting as a dialog over the view (「Profile photos」).
+- **Its tabs stand on one row of the component library's tabs under the head,** the row scrolling sideways where it
+  is narrower than its tabs, in this order: 대화상대, 미디어, 파일, 링크, 음악, 음성, 상황, 호출 권한, then for the
+  owner 세션 정보, and for the owner in a room he may change 채팅 서비스. The view opens on 대화상대, and on the tab it
+  last showed while the room's screen stands; changing tabs adds no step to the history.
+- **A tab reads what it shows the first time it is shown in an opening,** with its skeleton while the read runs, and
+  keeps it while the view stays open, so a tab gone back to stands as it was left; each opening reads afresh. A
+  refused read stands in the tab's error band with the refresh that reads again.
+- **Closing the view while 호출 권한 holds a person picked and not added, or its switch turned off,** asks first
+  whether to throw that away, as every form does (「Forms」); the view holds nothing else that waits to be saved.
+- **미디어, 파일, 링크, 음악 and 음성 collect what the room's messages carried, newest first.** Each reads a page at a
+  time of the room's messages holding its kind, as the receiver answers them (its `docs/api.md`, 「Messages」, a
+  room's messages by what they hold), and reads the next page as the reader nears the list's end. A message carrying
+  several kinds stands under each, and each tab stands only its own kind of what the message carried.
+  - 미디어: the pictures and the videos, an animation among them, as squares of one size, three to a row on a narrow
+    screen and four on a wide one, each cut to fill its square. A picture opens in the room's own viewer (「방 사진 넘기기」), whose head carries
+    메시지에서 보기; a video in the shared full player; an animation plays where it stands, as in the conversation.
+  - 파일: each file that is no picture, video or sound, as a line: its mark, its name, its size, who sent it and
+    when, and its download, as a bubble's file line stands (「첨부와 Telegram 표현」).
+  - 링크: each web address the words hold, found as a bubble finds its previews' addresses (「링크 미리보기」), as a
+    line: the address and, under it, its site, who sent it and when. Pressing the line opens the address in a new
+    tab.
+  - 음악: each sound that is no voice note, as its player, with who sent it and when.
+  - 음성: each voice note, as its player, its length beside it and the words heard in it under it, as in the
+    conversation, with who sent it and when.
+  - Each line of 파일, 링크, 음악 and 음성 carries 메시지에서 보기 at its end, which closes the view and brings the
+    message into view, marked as a pressed quote's is.
+  - A tab with nothing to show says so in one line: 미디어 없음, 파일 없음, 링크 없음, 음악 없음 or 음성 메시지 없음.
+- **The other tabs are the room's own sections:** 대화상대 (「대화상대」), 상황, the room's situation note as it stands
+  (the room's situation as it stands now, above), 호출 권한 (「호출 권한」), 세션 정보 (「세션 정보」) and
+  채팅 서비스 (「채팅 서비스」).
 
 #### 대화에서 찾기
 
@@ -5821,25 +5867,25 @@ Four bounds keep it from growing forever.
 
 #### 채팅 서비스
 
-- **Every room's menu carries 채팅 서비스 for the owner alone,** after 고정. Which providers a room is on
+- **방 정보 carries 채팅 서비스 for the owner alone,** as its last tab (「방 정보」). Which providers a room is on
   is one setting of its registration, which the receiver keeps (its `docs/receiver.md`, 「A room's chat
   providers」), so nobody else signed in sees it, and the console's server refuses its routes for anyone but the
   administrator.
-- **It opens a dialog listing every provider the receiver names,** in the receiver's order, each a row with its
+- **The tab lists every provider the receiver names,** in the receiver's order, each a row with its
   name — the receiver's own label for it — and a switch that stands on where the room is on it. A room whose list
   was never set shows the providers it stands on now, and a line saying so.
 - **A switch saves the whole list at once:** turned on, the provider is added at the list's end; turned off, it
   is taken out. A room is on one provider at least, so the last switch on cannot be turned off. While the list is
-  written every switch waits; a refused write is said in the dialog by the pack's sentence for the receiver's code,
+  written every switch waits; a refused write is said in the tab by the pack's sentence for the receiver's code,
   and the switches stand as the receiver last answered.
-- **The dialog opens on the room's mode, 아바타 모드, as a switch above the providers:** on where the receiver
+- **The tab opens on the room's mode, 아바타 모드, as a switch above the providers:** on where the receiver
   holds the room in `avatar`, its agents answering under the owner's account, and off in `record-only`, read and
   recorded and never answered, each said in a line under it. Turning it sets the mode at once under the
   administrator's name (the receiver's `PUT /rooms/{roomId}/registration`), the switch waiting while it is written
   and standing as the receiver answers; a refusal — a chat service that does not offer the mode, a room on none, a
-  room whose service is never answered in — is said in the dialog by the pack's sentence for the receiver's code. A
+  room whose service is never answered in — is said in the tab by the pack's sentence for the receiver's code. A
   room that was never added has no mode: its switch stands off and disabled, with a line saying so.
-- **The rule the dialog states:** a room on the room's record alone — the receiver's own road, which this console
+- **The rule the tab states:** a room on the room's record alone — the receiver's own road, which this console
   reads — reaches no messenger, and what is said there stands in the archive and the console; turning a messenger
   on starts carrying every message kept from then on to it, and turning it off stops that. The rule is the
   receiver's and turns on the list alone: the console names no provider apart from the others, in its code or in
@@ -5895,7 +5941,7 @@ Four bounds keep it from growing forever.
 
 #### 호출 권한
 
-- **Every room's menu carries 호출 권한 for everyone signed in.** It opens a dialog of the room's callers:
+- **방 정보 carries 호출 권한 for everyone signed in,** a tab of the room's callers (「방 정보」):
   the people who may call their own BMO into the room by name, the grant of `ask` on the room (the account
   service's `docs/accounts.md`, 「A room's callers」).
 - **Each caller stands as a row** with their name and a switch that stands on; turning it off takes the grant away
@@ -5909,13 +5955,12 @@ Four bounds keep it from growing forever.
 
 #### 대화상대
 
-- **Every room's menu carries 대화상대, for everyone signed in,** after 내 BMO와 따로 말하기 and before 호출 권한. It
-  opens a sheet at the side, as 세션 정보 does, and on a narrow screen a drawer from the bottom, headed 대화상대 over
-  the room's name; the conversation stays where it stood, and Back closes it.
+- **방 정보 carries 대화상대, for everyone signed in,** as its first tab, which the view opens on the first time
+  (「방 정보」); the presence dot on the room's picture opens the view on it.
 - **A room's members are accounts, by either road** (`STRUCTURE.md`, 「Accounts, companies and units」): the
   accounts let into the room in the console, as the receiver answers them (`GET /rooms/{roomId}/accounts`), and the
   people the chat service carrying the room read as its members (`GET /rooms/{roomId}/members`), each read every time
-  the sheet opens (`docs/boundary.md`, 「Gaps the console meets」). The chat service's people stand first in the
+  the tab is first shown in an opening (`docs/boundary.md`, 「Gaps the console meets」). The chat service's people stand first in the
   receiver's order, each marked with the account they are where the account service knows one; then every console
   member not among them, by the name their account is shown by: the person's name, the login where none stands. A
   room no chat service carries has the console's members alone, and the receiver's refusal to read its chat
@@ -5933,7 +5978,7 @@ Four bounds keep it from growing forever.
   (「Person's page」) for a reader who may read the account section; for anyone else it carries the mark alone.
 - **A member the platform does not know stands as a member alone:** their face, name and status line, with no
   mark and nothing guessed from their name or anything else.
-- **A refusal stands in the sheet's error band,** with the refresh that reads again, and the room stands as it
+- **A refusal stands in the tab's error band,** with the refresh that reads again, and the room stands as it
   was. The receiver's `members-unheld`, a chat service that could not read the room's members, is said by the pack's
   own sentence, 채팅 서비스에서 이 방의 대화상대를 읽지 못했습니다; every other code by the sentence every receiver
   route says it in. Where the account service cannot answer, the band says that whether each member is a console
@@ -5954,7 +5999,7 @@ Four bounds keep it from growing forever.
   member. The room stands in the opener's company and belongs to the opener's unit, since a room belongs to its
   leader's unit and its leader is the opener (`docs/accounts.md`, 「A room's callers」). A reader with no BMO of their
   own is told so and nothing is made; the console goes to the room once it stands.
-- **대화상대 추가 lets people in, several at once.** The 대화상대 sheet carries it for a reader who may let people
+- **대화상대 추가 lets people in, several at once.** The 대화상대 tab carries it for a reader who may let people
   in: the room's opener, a head of the opener's unit, or the administrator, as the account service answers it
   (`POST /checks/entry`). It opens a dialog with one select of several values, the console's one select, whose
   search finds both the people of the reader's directory and the organisations of the reader's company, a switch
@@ -5986,7 +6031,7 @@ Four bounds keep it from growing forever.
   (`DELETE /rooms/{roomId}/accounts/{account}`), the receiver writes who took whom out, or that a person left,
   into the room; the person's call grant there goes with them where the one taking them out may change it, and the
   room leaves their list at once, so they read it no more.
-- **A refusal is said in the dialog or the sheet** by the pack's sentence for its code, and the list stands as it was.
+- **A refusal is said in the dialog or the tab** by the pack's sentence for its code, and the list stands as it was.
 
 #### 방 등록 삭제
 
@@ -6014,8 +6059,8 @@ Four bounds keep it from growing forever.
 
 #### 세션 정보
 
-- **The sheet is the room's figures, counted on the way out.** Nothing of it is kept anywhere; it
-  is read from the receiver's `GET /console/rooms/{chat}/figures` each time it opens, its messages by the hour
+- **방 정보 carries 세션 정보 for the owner alone: the room's figures, counted on the way out.** Nothing of it is kept anywhere; it
+  is read from the receiver's `GET /console/rooms/{chat}/figures` each time the tab is first shown in an opening, its messages by the hour
   counted in the zone the console shows every time in.
 - **What no unit counts by room stands as "—":** an agent's runs, its last run and its tokens, which the agency
   answers by no room, so the receiver hands each as null (its `docs/boundary-api.md`, 「A room's figures」). The
@@ -8857,8 +8902,8 @@ in a table.
   the same in the same view.
 - **The room's head:** the same dot on the corner of the room's picture, a button of its own on every room, whose
   tooltip says it in words: one other person's state, 온라인 or 자리 비움, or for an offline person the last moment
-  seen, as 최근 접속 and the time since; several people's as 온라인 and how many. Pressing it opens the room's
-  대화상대 (「대화상대」), where each member's own presence stands; the picture beside it keeps its own press.
+  seen, as 최근 접속 and the time since; several people's as 온라인 and how many. Pressing it opens 방 정보 on
+  its 대화상대 tab (「방 정보」), where each member's own presence stands; the picture beside it keeps its own press.
 - **The room's 대화상대:** each member's face carries the same dot, and the line under their name says their presence
   in words, 온라인, 자리 비움 or 최근 접속 and the time since, before the status line their chat service read. The
   reader's own row says nothing of their own.

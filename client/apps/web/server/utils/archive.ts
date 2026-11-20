@@ -13,9 +13,9 @@ import { withOpenings } from "./openings";
 import { ownerChat } from "./owner";
 import { carriesFiles, messageMedia } from "./message-media";
 import { pictureShape } from "./picture-sizes";
-import { exactAnswer, exactMessage, exactMessages, receiver, receiverCall } from "./receiver";
+import { exactAnswer, exactHoldingMessages, exactMessage, exactMessages, receiver, receiverCall } from "./receiver";
 
-import type { ArchivedMessage, ExactMessageId, ForwardedFrom, Judgement, JudgementMark, MessageAttachment, MessageBriefing, MessagePage, MessageReaction, ReplyQuote, RoomSummary, RoundFiguresOf, Situation, TelegramExpression, TelegramFormat, VoiceBriefing } from "#shared/types";
+import type { ArchivedMessage, ExactMessageId, ForwardedFrom, Judgement, JudgementMark, MessageAttachment, MessageBriefing, MessagePage, MessageReaction, ReplyQuote, RoomHolding, RoomHoldingPage, RoomSummary, RoundFiguresOf, Situation, TelegramExpression, TelegramFormat, VoiceBriefing } from "#shared/types";
 import type { KeptLine } from "./account-service";
 import type { ExactMessage, ReceiverRoom } from "./receiver";
 import type { JudgementSpan } from "./gate";
@@ -591,6 +591,15 @@ export async function readMessagePage(chatId: number, before: ExactMessageId | n
   const page = await exactMessages(chatId, { limit: Math.min(limit, PAGING.maxSize), ...(before === null ? {} : { before }) });
 
   return await pageOf(chatId, page, before === null);
+}
+
+/** One page of a room's messages holding a kind, oldest first, ending just before `before` when it is given: the
+ * messages alone, since the room information's tabs show no verdicts (docs/web.md, the room screen's room
+ * information). */
+export async function readHoldingPage(chatId: number, holding: RoomHolding, before: ExactMessageId | null, limit: number): Promise<RoomHoldingPage> {
+  const page = await exactHoldingMessages(chatId, holding, before, Math.min(limit, PAGING.maxSize));
+
+  return { messages: await messagesOf(chatId, page.items.map(receivedOf)), hasMore: page.more };
 }
 
 /** The messages of a room past a message the reader already holds, oldest first. */

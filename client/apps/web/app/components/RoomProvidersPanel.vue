@@ -1,9 +1,9 @@
 <template>
-  <!-- A room's chat providers, for the administrator alone (docs/web.md, the room screen's chat providers): every
-       provider the receiver names with a switch, the whole list written at each turn of one. The rule the list
-       stands under is the receiver's and is said here in the pack's words; nothing here tells one provider from
-       another. -->
-  <SettingsDialog v-model:open="open" :title="$t('room.title.providers')" :description="props.title">
+  <!-- A room's chat providers, the room information's providers tab, for the administrator alone (docs/web.md, the room
+       screen's chat providers): every provider the receiver names with a switch, the whole list written at each turn
+       of one. The rule the list stands under is the receiver's and is said here in the pack's words; nothing here
+       tells one provider from another. -->
+  <div class="flex min-w-0 flex-col gap-4">
     <!-- The room's mode first, above its providers (docs/web.md, the room screen's chat providers): on for avatar,
          off for record-only; a room never added has none, and its switch stands off and disabled. -->
     <ContentSkeleton v-if="mode === undefined && modeFailed === ''" :rows="1" listClass="flex flex-col gap-2" :label="$t('room.status.providers_loading')">
@@ -52,11 +52,7 @@
     </template>
 
     <p v-if="failed !== ''" role="alert" class="break-words text-sm text-error">{{ failed }}</p>
-
-    <template #footer="{ close }">
-      <UButton :label="$t('common.action.close')" color="neutral" variant="ghost" @click="close()" />
-    </template>
-  </SettingsDialog>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -67,12 +63,9 @@ import type { RoomMode, RoomModeView, RoomProvidersView } from "#shared/types";
 
 interface Props {
   chatId: number;
-  // The room's name as its screen shows it.
-  title: string;
 }
 
 const props = defineProps<Props>();
-const open = defineModel<boolean>("open", { required: true });
 
 const { t } = useI18n();
 
@@ -116,17 +109,11 @@ async function read(): Promise<void> {
   }
 }
 
-// Read afresh each time it opens, so the switches stand as the receiver holds the room now.
-watch(open, (now) => {
-  if (!now) return;
-
-  view.value = null;
-  failed.value = "";
-  mode.value = undefined;
-  modeFailed.value = "";
+// Read afresh each time the room information opens, so the switches stand as the receiver holds the room now.
+onMounted(() => {
   void read();
   void readMode();
-}, { immediate: true });
+});
 
 // One switch turned: the whole list written as it now stands, and the switches set to what the receiver answers.
 async function turn(key: string, on: boolean): Promise<void> {

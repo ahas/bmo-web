@@ -7,7 +7,7 @@ import { exactJson, exactJsonText } from "./exact-json";
 import { unitAt, unitFetch } from "./units";
 import { answered } from "./unit-answer";
 
-import type { ExactMessageId, FileLimit, RoomMode, RoomModeView, RoomProvidersView } from "#shared/types";
+import type { ExactMessageId, FileLimit, RoomHolding, RoomMode, RoomModeView, RoomProvidersView } from "#shared/types";
 import type { components, paths } from "@bmo/receiver-client/schema";
 import type { WithExactIds } from "./exact-json";
 import type { UnitAnswerCall } from "./unit-answer";
@@ -229,6 +229,17 @@ export async function exactMessages(roomId: number, query: ExactMessagesQuery): 
 
   return await exactAnswer<ReceiverPage<ReceiverMessage>>(
     receiver().GET("/rooms/{roomId}/messages", { params: { path: { roomId }, query: { ...rest, ...cursors } }, parseAs: "text" })
+  );
+}
+
+/** A page of a room's messages holding one kind, each with its message ids exact (the receiver's `docs/api.md`,
+ * 「Messages」). The published client names no `holding`, so it is asked beside the query the client names
+ * (docs/boundary.md, 「Gaps the console meets」). */
+export async function exactHoldingMessages(roomId: number, holding: RoomHolding, before: ExactMessageId | null, limit: number): Promise<ReceiverPage<ExactMessage>> {
+  const asked = { limit, holding, ...(before === null ? {} : { before }) };
+
+  return await exactAnswer<ReceiverPage<ReceiverMessage>>(
+    receiver().GET("/rooms/{roomId}/messages", { params: { path: { roomId }, query: asked }, parseAs: "text" })
   );
 }
 

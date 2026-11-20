@@ -2803,6 +2803,17 @@ export interface MessagePage {
   hasMore: boolean;
 }
 
+// What a room's messages hold, as the room information collects them a kind to a tab (docs/web.md, the room screen's room information): pictures and videos,
+// files, web addresses, sounds that are no voice note, and voice notes. The receiver names the same kinds.
+export const ROOM_HOLDINGS = ["media", "file", "link", "music", "voice"] as const;
+export type RoomHolding = (typeof ROOM_HOLDINGS)[number];
+
+// One page of a room's messages holding a kind, oldest first, and whether older ones stand before it.
+export interface RoomHoldingPage {
+  messages: ArchivedMessage[];
+  hasMore: boolean;
+}
+
 // Where a room's line begins: the names of the chat services its past comes over from, where the road it is answered on
 // reads a room's past back; none elsewhere, so its oldest message is the conversation's start; null where the receiver
 // could not say (docs/web.md, the room screen's 「Where a room's line begins」).

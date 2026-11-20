@@ -254,6 +254,13 @@
 - an organisation unit, one of the tree a deployment's people stand in → 조직: 조직 추가, 상위 조직, 하위 조직; the
   tree of them → 조직도; a unit at the tree's top → 회사, a new one 새 회사. Never 단위, the English unit's twin.
 - a unit's head → 조직장: 조직장 지정, 조직장 해제. Never 장 alone, 책임자.
+- the one view a room's name opens, of what the room is and what it holds → 방 정보; its tabs → 대화상대, 미디어,
+  파일, 링크, 음악, 음성, 상황, 호출 권한, 세션 정보, 채팅 서비스. Never 방 설정, 채팅방 정보, 방 서랍.
+- what a room's messages carried, collected by kind in 방 정보 → the pictures and videos together 미디어, a file that is no
+  picture, video or sound 파일, a web address the words hold 링크, a sound that is no voice note 음악, voice notes 음성
+  as the tab and 음성 메시지 for one; a tab with none → 미디어 없음, 파일 없음, 링크 없음, 음악 없음, 음성 메시지 없음; a
+  read refused → 미디어를 불러오지 못했습니다 and the like. Never 갤러리 or 앨범 for 미디어 (앨범 is one send's pictures),
+  첨부파일, 오디오, 사운드, 녹음.
 - the people of a room, the accounts let into it and the people its chat service reads → 대화상대: 대화상대,
   대화상대 없음, 대화상대를 불러오지 못했습니다, 채팅 서비스에서 이 방의 대화상대를 읽지 못했습니다; a room with none
   says why under 대화상대 없음, 채팅 서비스가 없는 방입니다 or 채팅 서비스가 대화상대 목록을 주지 않습니다. Never 멤버,

@@ -3,6 +3,7 @@ import { chromium } from "playwright-core";
 
 import { ACCOUNT_PRESENCE_EVENT } from "../../apps/web/shared/types";
 import { wording } from "../../apps/web/shared/wording";
+import { openRoomInfo } from "./room-info";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, BrowserContext, Page } from "playwright-core";
@@ -62,9 +63,7 @@ async function context(members: RoomMembersView): Promise<BrowserContext> {
 async function sheet(page: Page): Promise<void> {
   await page.goto(`${origin}/rooms/${RECORD_CHAT}`, { waitUntil: "load" });
   await page.locator("[data-message]").first().waitFor({ timeout: 30_000 });
-  await page.getByRole("button", { name: wording("common.action.more") }).first().click();
-  await page.getByRole("menuitem", { name: wording("room.action.members") }).click();
-  await page.getByRole("dialog", { name: wording("members.title.sheet") }).waitFor({ timeout: 10_000 });
+  await openRoomInfo(page);
 }
 
 describe.skipIf(!origin || !touchReady())("a person's presence outside a shared room", () => {

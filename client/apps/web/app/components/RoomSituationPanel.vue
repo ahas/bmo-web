@@ -1,9 +1,10 @@
 <template>
-  <!-- The room's situation note as it stands (docs/web.md, the room screen's situation entry): what the round that
-       updates it before it judges a line wrote last, and when it last changed. A room the receiver holds no note for
-       says so rather than standing an empty box. The note is read in the reader's language in its own place, a press away
-       (docs/web.md, 「The original, and its translation in its place」). -->
-  <SettingsDialog v-model:open="open" :title="$t('room.title.situation')" :description="props.title">
+  <!-- The room's situation note as it stands, the room information's situation tab (docs/web.md, the room screen's
+       situation as it stands now): what the round that updates it before it judges a line wrote last, and when it
+       last changed. A room the receiver holds no note for says so rather than standing an empty box. The note is read
+       in the reader's language in its own place, a press away (docs/web.md, 「The original, and its translation in
+       its place」). -->
+  <div class="flex min-w-0 flex-col">
     <ContentSkeleton v-if="loading" :rows="3" listClass="flex flex-col gap-2" :label="$t('room.status.situation_loading')">
       <SkeletonBar class="h-4 w-full" />
       <SkeletonBar class="h-4 w-4/5" />
@@ -19,11 +20,7 @@
       </TranslatedText>
       <p v-if="updatedAt !== null" class="text-sm text-dimmed tabular-nums">{{ $t("room.label.situation_updated", { time: formatStamp(updatedAt / 1000) }) }}</p>
     </div>
-
-    <template #footer="{ close }">
-      <UButton :label="$t('common.action.close')" color="neutral" variant="ghost" @click="close()" />
-    </template>
-  </SettingsDialog>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -33,12 +30,9 @@ import type { RoomSituation } from "#shared/types";
 
 interface Props {
   chatId: number;
-  title: string;
 }
 
 const props = defineProps<Props>();
-
-const open = defineModel<boolean>("open", { required: true });
 
 const note = ref<RoomSituation | null>(null);
 const loading = ref(false);
@@ -64,8 +58,6 @@ async function read(): Promise<void> {
   }
 }
 
-// Each opening reads the note afresh, since a round may have written it since the last look.
-watch(open, (standing) => {
-  if (standing) void read();
-});
+// Each opening of the room information reads the note afresh, since a round may have written it since the last look.
+onMounted(() => void read());
 </script>

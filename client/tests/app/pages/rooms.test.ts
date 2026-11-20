@@ -10,6 +10,7 @@ const read = async (path: string): Promise<string> => Bun.file(new URL(`../../..
 
 const page = await read("app/pages/rooms/[chatId].vue");
 const message = await read("app/components/RoomMessage.vue");
+const info = await read("app/components/RoomInfoSheet.vue");
 const template = page.slice(0, page.indexOf("<script"));
 const script = page.slice(page.indexOf("<script"));
 
@@ -26,7 +27,10 @@ describe("the room screen's write controls", () => {
     expect(template).toContain(':administrator="manages"');
     expect(template).toContain(':read-only="!roomWritable"');
 
-    for (const dialog of ["RoomProvidersDialog", "PictureDialog", "RoomRemovalDialog"]) expect(template).toContain(`<${dialog} v-if="manages"`);
+    expect(template).toContain('<RoomRemovalDialog v-if="manages"');
+    expect(template).toContain(':manages="manages"');
+    expect(info).toContain('<PictureDialog\n    v-if="props.manages"');
+    expect(info).toContain('<RoomProvidersPanel v-if="props.manages');
 
     expect(script).toContain("room.chatId !== chatId && room.writable !== false");
   });
@@ -43,8 +47,8 @@ describe("the room screen's write controls", () => {
   });
 
   test("keep the session information the administrator's, and the room's own settings his where he may change it", () => {
-    expect(script).toContain('...(administrator.value ? [{ label: t("room.title.session_info")');
-    expect(script).toContain('...(manages.value ? [{ label: t("room.action.providers")');
+    expect(info).toContain('...(props.administrator ? ["session" as const] : [])');
+    expect(info).toContain('...(props.manages ? ["providers" as const] : [])');
     expect(script).toContain('...(manages.value ? [[{ label: t("room.action.remove_registration")');
   });
 });

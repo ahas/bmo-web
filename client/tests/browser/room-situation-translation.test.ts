@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 
 import { wording } from "../../apps/web/shared/wording";
+import { roomInfo } from "./room-info";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, BrowserContext, Page } from "playwright-core";
@@ -21,8 +22,7 @@ const NOW = 1_800_000_000_000;
 const NOTE = "The round checked the logs at dawn.";
 const READING = "The round checked the logs at dawn, as the room's note says.";
 
-const situationAction = wording("room.action.situation");
-const moreAction = wording("common.action.more");
+const situationTab = wording("room_info.label.situation");
 
 let browser: Browser | null = null;
 let cookie = "";
@@ -66,21 +66,22 @@ async function open(width: number, height: number, translator: "reads" | "busy")
 async function openSituation(page: Page): Promise<void> {
   await page.goto(`${origin}/rooms/${CHAT}`, { waitUntil: "domcontentloaded" });
 
-  const opener = page.locator(`button[aria-label="${moreAction}"]`).first();
-  const item = page.getByRole("menuitem", { name: situationAction });
+  const opener = page.locator("[data-room-name]");
+  const sheet = roomInfo(page);
 
   await opener.waitFor({ timeout: 30_000 });
-  // A press made before the page's handlers land is lost, so the menu is opened once more where it did not come up.
+  // A press made before the page's handlers land is lost, so the room's name is pressed once more where the room
+  // information did not come up.
   await opener.click();
 
   try {
-    await item.waitFor({ state: "visible", timeout: 5_000 });
+    await sheet.waitFor({ state: "visible", timeout: 5_000 });
   } catch {
     await opener.click();
-    await item.waitFor({ state: "visible", timeout: 10_000 });
+    await sheet.waitFor({ state: "visible", timeout: 10_000 });
   }
 
-  await item.click();
+  await sheet.getByRole("tab", { name: situationTab, exact: true }).click();
   await page.locator("[data-situation-note]").waitFor({ timeout: 20_000 });
 }
 

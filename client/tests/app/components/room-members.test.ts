@@ -13,13 +13,12 @@ import type { RoomMember } from "../../../apps/web/shared/types";
 // A room's members as a person reads them (docs/web.md, the room screen's members entry): each row their face, name
 // and the status line where one was read, the console user's mark on a member known as an account and nothing on one
 // who is not. The row is rendered as the server renders it, with the library's avatar and badge stood in for; where
-// the sheet opens and what a marked row leads to is read off the files that ship.
+// the tab reads and what a marked row leads to is read off the files that ship.
 
 Object.assign(globalThis, { computed });
 
 const Line = ((await import(appFile("components", "RoomMemberLine.vue"))) as { default: Component }).default;
-const sheet = await Bun.file(appFile("components", "RoomMembersSheet.vue")).text();
-const screen = await Bun.file(appFile("pages", "rooms", "[chatId].vue")).text();
+const sheet = await Bun.file(appFile("components", "RoomMembersPanel.vue")).text();
 
 const UAvatar = defineComponent({
   props: { alt: { type: String, default: "" }, text: { type: String, default: "" }, src: { type: String, default: "" } },
@@ -78,13 +77,10 @@ describe("a member of a room", () => {
   });
 });
 
-describe("the members sheet", () => {
-  test("opens from every room's menu and reads the room's members each time it opens", () => {
-    expect(screen).toContain('{ label: t("room.action.members"), icon: "i-material-symbols-group-outline", onSelect: () => { membersOpen.value = true; } }');
-    expect(screen).toContain('<RoomMembersSheet v-model:open="membersOpen"');
+describe("the members tab", () => {
+  test("reads the room's members each time the room information shows it", () => {
     expect(sheet).toContain("await $fetch<RoomMembersView>(`/api/rooms/${props.chatId}/members`)");
-    expect(sheet).toContain("if (!standing) return;");
-    expect(sheet).toContain("void read();");
+    expect(sheet).toContain("onMounted(() => void read());");
     // While the first read runs, one row's place stands, never more than the shortest list a read can land.
     expect(sheet).toContain(':rows="1"');
     expect(sheet).not.toMatch(/:rows="(?!1")/);

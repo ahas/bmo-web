@@ -2,14 +2,14 @@ import { describe, expect, test } from "bun:test";
 
 // The room's situation note as a person reads it (docs/web.md, the room screen's record and its situation entry):
 // the note a round read as that round's answer record stands it, marked where the round wrote it afresh, and the
-// room's note as it stands now, in the room's own menu.
+// room's note as it stands now, in the room information's situation tab.
 
 const read = async (name: string) => await Bun.file(new URL(`../../../apps/web/app/${name}`, import.meta.url)).text();
 
 const chips = await read("components/JudgementChips.vue");
 const message = await read("components/RoomMessage.vue");
 const screen = await read("pages/rooms/[chatId].vue");
-const dialog = await read("components/RoomSituationDialog.vue");
+const dialog = await read("components/RoomSituationPanel.vue");
 
 describe("the note in the answer's record", () => {
   test("stands last in the record, with the mark a round's own change wears", () => {
@@ -29,11 +29,9 @@ describe("the note in the answer's record", () => {
 });
 
 describe("the room's note as it stands", () => {
-  test("opens from the room's menu, read again each time it opens", () => {
-    expect(screen).toContain('t("room.action.situation")');
-    expect(screen).toContain('<RoomSituationDialog v-model:open="situationOpen"');
+  test("is read again each time the room information shows it", () => {
     expect(dialog).toContain("`/api/rooms/${props.chatId}/situation`");
-    expect(dialog).toContain("if (standing) void read();");
+    expect(dialog).toContain("onMounted(() => void read());");
   });
 
   test("says the note, when it changed, and that a room with none has none", () => {
@@ -41,7 +39,6 @@ describe("the room's note as it stands", () => {
     expect(dialog).toContain('$t("room.label.situation_updated"');
     expect(dialog).toContain('$t("room.status.situation_none")');
     expect(dialog).toContain('$t("room.error.situation_failed")');
-    expect(dialog).toContain("$t('room.title.situation')");
   });
 
   test("stands the note or its reading in one place, through the translated text's toggle", () => {

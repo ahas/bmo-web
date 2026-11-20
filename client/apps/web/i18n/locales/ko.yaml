@@ -641,9 +641,6 @@ room:
     attach_file: 파일 첨부
     attach_media: 사진·동영상
     brain_read_page: 브레인에서 보기
-    situation: 방의 상황 보기
-    callers: 호출 권한
-    members: 대화상대
     overlay: 내 BMO와 따로 말하기
     cancel_recording: 녹음 취소
     cancel_reply: 답장 취소
@@ -657,7 +654,6 @@ room:
     find_next: 다음 결과
     find_older: 이전 메시지 더 불러오기
     find_previous: 이전 결과
-    providers: 채팅 서비스
     pin: 고정
     remove_paste: 붙여넣은 텍스트 삭제
     remove_registration: 방 등록 삭제
@@ -955,15 +951,12 @@ room:
     room_add_group: "{n}명과 새 그룹을 만듭니다."
     room_add_supervisor: 내 감독관 가운데에서 고르며, 고르지 않으면 감독관 없이 추가됩니다.
   title:
-    providers: 채팅 서비스
-    situation: 방의 상황
     remove_registration: 방 등록 삭제
     edit_message: 메시지 수정
     forward: 메시지 전달
     room_add: 방 추가
     room_open: 방 만들기
     new_chat: 새 채팅
-    session_info: 세션 정보
   aria:
     avatar_enlarge: "{name} 프로필 사진 크게 보기"
     background_open: "진행 중 {n}개 보기"
@@ -2157,7 +2150,6 @@ overlay:
     send_failed: 보내지 못했습니다.
 members:
   title:
-    sheet: 대화상대
     let_in: 대화상대 추가
   label:
     console_user: 콘솔 사용자
@@ -2183,10 +2175,7 @@ members:
     entry_forbidden: 이 방에 대화상대를 추가하거나 내보낼 권한이 없습니다.
     entry_unknown: 그 사람을 찾을 수 없습니다.
 callers:
-  title:
-    dialog: 호출 권한
   label:
-    about: 이 방에서 이름을 불러 자기 BMO를 부를 수 있는 사람입니다.
     none: 호출 권한이 있는 사람 없음
     person: 사람
     find: 이름으로 찾기
@@ -2202,6 +2191,42 @@ callers:
     load_failed: 호출 권한을 불러오지 못했습니다.
     not_found: 사용자를 찾을 수 없습니다.
     unreachable: 계정 서비스에 연결되지 않았습니다.
+room_info:
+  title:
+    sheet: 방 정보
+  label:
+    members: 대화상대
+    media: 미디어
+    files: 파일
+    links: 링크
+    music: 음악
+    voice: 음성
+    situation: 상황
+    callers: 호출 권한
+    session: 세션 정보
+    providers: 채팅 서비스
+    media_none: 미디어 없음
+    files_none: 파일 없음
+    links_none: 링크 없음
+    music_none: 음악 없음
+    voice_none: 음성 메시지 없음
+    sent_by: "{name} · {time}"
+  action:
+    picture: 방 사진
+  status:
+    media_loading: 미디어 불러오는 중…
+    files_loading: 파일 불러오는 중…
+    links_loading: 링크 불러오는 중…
+    music_loading: 음악 불러오는 중…
+    voice_loading: 음성 메시지 불러오는 중…
+  error:
+    media_failed: 미디어를 불러오지 못했습니다.
+    files_failed: 파일을 불러오지 못했습니다.
+    links_failed: 링크를 불러오지 못했습니다.
+    music_failed: 음악을 불러오지 못했습니다.
+    voice_failed: 음성 메시지를 불러오지 못했습니다.
+  aria:
+    tabs: 방 정보
 join:
   title:
     create: 초대받은 계정 만들기
@@ -3783,7 +3808,6 @@ picture:
   action:
     choose: 사진 고르기
     clear: 제공자 사진으로 되돌리기
-    set_room: 방 사진
   error:
     failed: 사진을 바꾸지 못했습니다.
     no_number: 이 에이전트는 아직 번호가 없어 사진을 둘 수 없습니다.

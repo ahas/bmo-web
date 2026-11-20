@@ -72,7 +72,7 @@ describe("choosing a value", async () => {
   });
 
   test("a person found in the directory is found over the road the select asks", () => {
-    for (const path of ["components/RoomLetInDialog.vue", "components/RoomCallersDialog.vue"]) {
+    for (const path of ["components/RoomLetInDialog.vue", "components/RoomCallersPanel.vue"]) {
       expect({ path, finds: choices.some((one) => one.path === path && propNames(one.node).includes("find")) }).toEqual({ path, finds: true });
     }
   });

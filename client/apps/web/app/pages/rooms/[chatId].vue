@@ -34,9 +34,11 @@
         class="pointer-events-none absolute inset-x-0 top-0 z-20 flex flex-col overflow-clip pb-3"
       >
         <div ref="roomNavbar" class="pointer-events-auto relative z-10">
+          <!-- The name's own box clips nothing of the button it stands as, whose hover reaches a little past its words;
+               the button itself cuts the name short. -->
           <ConsoleTitleBar
             :title="title"
-            :ui="{ root: 'border-b-0' }"
+            :ui="{ root: 'border-b-0', title: 'min-w-0 overflow-visible!' }"
           >
             <!-- The room's picture opens whole when pressed, as a face beside a bubble does; a room
                  standing as its letter has nothing to open. It stands where every other page's mark
@@ -62,12 +64,27 @@
                     class="absolute -end-0.5 -bottom-0.5 size-2 rounded-full ring ring-bg transition-colors before:absolute before:-inset-2 before:content-['']"
                     :class="presenceDot"
                     :aria-label="$t('room.aria.presence_open', { state: presenceLine ?? '' })"
-                    @click="membersOpen = true"
+                    @click="openInfo('members')"
                   />
                 </UTooltip>
               </span>
               <ImageViewer v-if="roomAvatar.src" v-model:open="roomFaceOpen" :src="roomAvatar.src" :title="$t('room.label.avatar_of', { name: title })" />
-              <RoomPictureViewer ref="pictureViewer" :chat-id="chatId" @show="showPictureMessage" />
+              <RoomPictureViewer ref="pictureViewer" :chat-id="chatId" @show="showInMessage" />
+            </template>
+
+            <!-- The room's name is a button of its own, which opens the room information (docs/web.md, the room
+                 screen's room information); it is cut short where the bar is short, as the name always is. -->
+            <template #title>
+              <UTooltip :text="$t('room_info.title.sheet')">
+                <button
+                  type="button"
+                  class="-mx-1 min-w-0 truncate rounded-md px-1 text-start transition-colors hover:bg-elevated active:bg-accented"
+                  data-room-name
+                  @click="openInfo(infoTab)"
+                >
+                  {{ title }}
+                </button>
+              </UTooltip>
             </template>
 
             <!-- What acts on this room alone stands beside its name: its menu, what waits, the pinned button
@@ -106,12 +123,21 @@
                    turn runs or the listening row stands (docs/web.md, 「The window's time left stands in
                    the top bar」). -->
               <RoomWindowClock v-if="listeningWindow !== null" :closes-at="listeningWindow.closesAt" />
-              <RoomProvidersDialog v-if="manages" v-model:open="providersOpen" :chat-id="chatId" :title="title" />
-              <RoomSituationDialog v-model:open="situationOpen" :chat-id="chatId" :title="title" />
-              <RoomCallersDialog v-model:open="callersOpen" :chat-id="chatId" :title="title" :read-only="!roomWritable" />
-              <RoomMembersSheet v-model:open="membersOpen" :chat-id="chatId" :title="title" :avatars="avatars" :administrator="administrator" @left="void roomLeft()" />
+              <RoomInfoSheet
+                v-model:open="infoOpen"
+                v-model:tab="infoTab"
+                :chat-id="chatId"
+                :title="title"
+                :avatar="roomAvatar"
+                :avatars="avatars"
+                :administrator="administrator"
+                :manages="manages"
+                :read-only="!roomWritable"
+                @enlarge="roomFaceOpen = true"
+                @left="void roomLeft()"
+                @show="showInMessage"
+              />
               <RoomOverlay v-if="group" v-model:open="overlayOpen" :chat-id="chatId" :title="title" />
-              <PictureDialog v-if="manages" v-model:open="pictureOpen" :title="$t('picture.label.room')" :description="title" kind="room" :subject="chatId" :avatar="roomAvatar" />
               <RoomRemovalDialog v-if="manages" v-model:open="removalOpen" :chat-id="chatId" :title="title" />
             </template>
           </ConsoleTitleBar>
@@ -460,23 +486,6 @@
        record's answer opening the copy (docs/web.md, the room screen's message menu). -->
   <RoomForwardDialog v-model:open="forwardingOpen" :rooms="forwardingRooms" :description="forwardingDescription" :forward="saveForward" />
 
-  <USlideover v-model:open="statsOpen" :title="$t('room.title.session_info')" :description="title">
-    <template #close="{ ui }">
-      <ShellClose :class="ui.close()" @close="statsOpen = false" />
-    </template>
-
-    <template #body>
-      <!-- The block draws itself either way: every name in it is the screen's own and stands from
-           the first frame, and only the figures beside them are waited for. -->
-      <SkeletonStatus v-if="!statsLoaded && statsPending" as="div" :label="$t('room.status.session_loading')">
-        <RoomStats :stats="null" />
-      </SkeletonStatus>
-
-      <ReadFailure :failure="statsRead" :message="statsError" :reading="statsPending" @retry="openStats()" />
-      <RoomStats v-if="statsLoaded" :stats="stats" />
-    </template>
-  </USlideover>
-
 
 </template>
 
@@ -512,7 +521,7 @@ import { copyText } from "~/domain/copy";
 import { bodyOf, copyChipsOf, messageRef, reportOf } from "~/domain/room-copy";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { deleteMessage as deleteOwnMessage, editMessage as editOwnMessage, forwardMessage as forwardCopy, mineReaction, pinMessage, reactTo, readPins as loadPins } from "~/domain/message-acts";
-import { TURN_ENDED, useBotEvents, useLiveRefresh, useReadFailure, useRoomRun } from "~/domain/events";
+import { TURN_ENDED, useBotEvents, useLiveRefresh, useRoomRun } from "~/domain/events";
 import { sameKept } from "~/domain/same-kept";
 import { firstOpening, handedLines, secretRequestsOf, useConsoleBases, useSecretForm, useSecretRequest, useSecretSaved } from "~/domain/secret-form";
 import { useDragSelect } from "bmo-ui/app/domain/dragselect";
@@ -547,7 +556,6 @@ import {
   without
 } from "~/domain/outbox";
 import { outboxStore } from "~/domain/outbox-store";
-import { emptyRoomStats } from "~/domain/roomstats";
 import {
   archivedRows,
   atFoot,
@@ -588,7 +596,6 @@ import type {
   ExactMessageId,
   Judgement,
   JudgementMark,
-  RoomStats,
   LiveSnapshot,
   OwnerChat,
   QueuedMessage,
@@ -604,6 +611,7 @@ import type { DropdownMenuItem } from "@nuxt/ui";
 import type { WindowFrame } from "bmo-ui/app/domain/floating-window";
 import type { ComposedMessage, PickedFile } from "~/domain/attachments";
 import type { AvatarIndex } from "~/domain/avatars";
+import type { RoomInfoTab } from "~/domain/room-info";
 import type { RunState } from "~/domain/events";
 import type { LandedPicture, OutboxItem, SendOutcome } from "~/domain/outbox";
 import type { ArchivedItem, DayGroup, FeedItem, SenderRun, Speaker, StoodTurn } from "~/domain/room";
@@ -1045,9 +1053,11 @@ provide(ROOM_PICTURES, {
   open: (messageId: ExactMessageId, named: string) => void pictureViewer.value?.show(messageId, named)
 });
 
-// The viewer's show-in-message: the message the picture went out in, once the viewer's own step in
-// the history has been taken back, brought into view and marked as a quote's is.
-async function showPictureMessage(messageId: ExactMessageId): Promise<void> {
+// The viewer's and the room information's show-in-message: the message the picture or the file went out in, once
+// what stood over the screen has closed and its step in the history has been taken back, brought into view and
+// marked as a quote's is.
+async function showInMessage(messageId: ExactMessageId): Promise<void> {
+  infoOpen.value = false;
   await nextTick();
   await stepsLanded();
   await jumpTo(messageId);
@@ -1113,16 +1123,9 @@ const menuItems = computed<DropdownMenuItem[][]>(() => [
     ...(narrow.value && backgroundCount.value > 0
       ? [{ label: t("room.label.background_count", { n: countText(backgroundCount.value) }), icon: "i-material-symbols-pending-actions", onSelect: () => { backgroundOpen.value = true; } }]
       : []),
-    ...(administrator.value ? [{ label: t("room.title.session_info"), icon: "i-material-symbols-bar-chart", onSelect: openStats }] : []),
     { label: t("room.action.find"), icon: "i-material-symbols-search", onSelect: openFind },
-    // The room's situation note as it stands (docs/web.md, the room screen's situation entry).
-    { label: t("room.action.situation"), icon: "i-material-symbols-notes", onSelect: () => { situationOpen.value = true; } },
     // The reader's own BMO beside a group room, a private conversation over it (docs/web.md, the room screen's overlay).
     ...(group.value ? [{ label: t("room.action.overlay"), icon: "i-material-symbols-chat-bubble-outline", onSelect: () => { overlayOpen.value = true; } }] : []),
-    // The room's members as its chat service read them (docs/web.md, the room screen's members entry).
-    { label: t("room.action.members"), icon: "i-material-symbols-group-outline", onSelect: () => { membersOpen.value = true; } },
-    // Who may call their own BMO into the room by name (docs/web.md, the room screen's callers entry).
-    { label: t("room.action.callers"), icon: "i-material-symbols-campaign-outline", onSelect: () => { callersOpen.value = true; } },
     { label: t("room.action.choose_messages"), icon: "i-material-symbols-checklist", onSelect: startSelecting },
     { label: t("room.action.copy_all"), icon: "i-material-symbols-content-copy-outline", onSelect: () => void copyAll() },
     // The pinned order is one list for every reader, so only the administrator sets it (docs/web.md, the room
@@ -1130,11 +1133,6 @@ const menuItems = computed<DropdownMenuItem[][]>(() => [
     ...(manages.value ? [pinned.value
       ? { label: t("room.action.unpin"), icon: "i-material-symbols-keep-off-outline", onSelect: () => void pin(false) }
       : { label: t("room.action.pin"), icon: "i-material-symbols-keep-outline", onSelect: () => void pin(true) }] : []),
-    // Which providers the room is on is a setting of its registration, the administrator's (docs/web.md, the room
-    // screen's chat providers).
-    ...(manages.value ? [{ label: t("room.action.providers"), icon: "i-material-symbols-hub-outline", onSelect: () => { providersOpen.value = true; } }] : []),
-    // The room's picture, set in the console beside the one a provider hands in (docs/web.md, 「Profile photos」).
-    ...(manages.value ? [{ label: t("picture.action.set_room"), icon: "i-material-symbols-add-photo-alternate-outline", onSelect: () => { pictureOpen.value = true; } }] : [])
   ],
   // Removing the room's registration stands last, in a group of its own (docs/web.md, the room
   // screen's registration removal).
@@ -1153,10 +1151,15 @@ async function pin(on: boolean): Promise<void> {
   }
 }
 
-const providersOpen = ref(false);
-const situationOpen = ref(false);
-const callersOpen = ref(false);
-const membersOpen = ref(false);
+// The room information the room's name opens, and the tab it last showed while this screen stands (docs/web.md, the
+// room screen's room information).
+const infoOpen = ref(false);
+const infoTab = ref<RoomInfoTab>("members");
+
+function openInfo(tab: RoomInfoTab): void {
+  infoTab.value = tab;
+  infoOpen.value = true;
+}
 
 // A room the reader has left is no longer theirs to read: the list drops it and the screen goes home.
 async function roomLeft(): Promise<void> {
@@ -1164,7 +1167,6 @@ async function roomLeft(): Promise<void> {
   await navigateTo("/");
 }
 const overlayOpen = ref(false);
-const pictureOpen = ref(false);
 const removalOpen = ref(false);
 // The room's registration was removed while this screen's own removal dialog stood open.
 const removed = ref(false);
@@ -1189,40 +1191,6 @@ useBotEvents((event) => {
 
 watch(removalOpen, (open) => {
   if (!open && removed.value) leaveRemoved();
-});
-
-// What this room adds up to. It is counted when it is asked for, so opening the panel again
-// after a while shows the room as it stands rather than as it stood.
-const statsOpen = ref(false);
-const statsLoaded = ref(false), statsPending = ref(false), statsError = ref("");
-let statsGeneration = 0;
-onScopeDispose(() => { statsGeneration++; });
-const stats = ref<RoomStats>(emptyRoomStats(chatId));
-
-async function openStats(): Promise<void> {
-  const mine = ++statsGeneration;
-  statsOpen.value = true;
-  statsPending.value = true;
-  statsError.value = "";
-
-  try {
-    const answer = await $fetch<RoomStats>(`/api/rooms/${chatId}/stats`);
-    if (mine !== statsGeneration) return;
-    stats.value = answer;
-    statsLoaded.value = true;
-  } catch (error) {
-    if (mine !== statsGeneration) return;
-    statsError.value = failureText(error, t("room.error.session_failed"));
-  } finally {
-    if (mine === statsGeneration) statsPending.value = false;
-  }
-}
-
-// Reading again opens the panel, so the read the bot's return brings is made only while it stands.
-const statsRead = useReadFailure({
-  failed: () => statsOpen.value && statsError.value !== "",
-  reading: () => statsPending.value,
-  reread: () => void openStats()
 });
 
 // Who the input box offers an @ (docs/web.md, the room screen's section on mentions): the people who spoke in this

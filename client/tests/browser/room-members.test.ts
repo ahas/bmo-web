@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 
 import { wording } from "../../apps/web/shared/wording";
+import { openRoomInfo, roomInfo } from "./room-info";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, Page } from "playwright-core";
@@ -18,7 +19,7 @@ import type { RoomMembersView } from "../../apps/web/shared/types";
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "room-members", password: "fixture-password-2995" };
 const RECORD_CHAT = -9_000_000_000_099;
-const LONG = "member-c-with-a-name-far-longer-than-any-row-of-the-sheet-is-wide-at-any-width";
+const LONG = "member-c-with-a-name-far-longer-than-any-row-of-the-room-information-is-wide-at-any-width-it-opens-at-on-any-screen-at-all";
 
 // As the console's members route answers: the members, none let in in the console, and a reader who may let nobody in,
 // so no row carries more than the line it names.
@@ -49,7 +50,8 @@ afterAll(async () => {
   await browser?.close();
 }, BROWSER_HOOK_MS);
 
-// The room open at a width, its members answered as `served` says, and the sheet opened from the room's menu.
+// The room open at a width, its members answered as `served` says, and the room information opened from the room's
+// name on its members tab.
 // Where `served` names a hold, the answer waits for it, so what stands while the read runs can be measured.
 async function sheetOpen(width: number, height: number, phone: boolean, served: { status: number; body: unknown; held?: Promise<void> }): Promise<{ page: Page; close: () => Promise<void> }> {
   const context = await browser!.newContext({ viewport: { width, height }, isMobile: phone, hasTouch: phone, serviceWorkers: "block", reducedMotion: "reduce" });
@@ -65,9 +67,7 @@ async function sheetOpen(width: number, height: number, phone: boolean, served: 
   });
   await page.goto(`${origin}/rooms/${RECORD_CHAT}`, { waitUntil: "load" });
   await page.locator("[data-message]").first().waitFor({ timeout: 30_000 });
-  await page.getByRole("button", { name: wording("common.action.more") }).first().click();
-  await page.getByRole("menuitem", { name: wording("room.action.members") }).click();
-  await page.getByRole("dialog", { name: wording("members.title.sheet") }).waitFor({ timeout: 10_000 });
+  await openRoomInfo(page);
 
   return { page, close: () => context.close() };
 }
@@ -95,7 +95,7 @@ describe.skipIf(!origin || !touchReady())("a room's members", () => {
 
         // A long name is cut inside its row, and no row runs past the sheet.
         const cut = await page.getByText(LONG, { exact: true }).evaluate((line) => ({ cut: line.scrollWidth > line.clientWidth, right: line.getBoundingClientRect().right }));
-        const sheet = await page.getByRole("dialog", { name: wording("members.title.sheet") }).boundingBox();
+        const sheet = await roomInfo(page).boundingBox();
 
         expect(cut.cut).toBe(true);
         expect(cut.right).toBeLessThanOrEqual(sheet!.x + sheet!.width);
@@ -123,7 +123,7 @@ describe.skipIf(!origin || !touchReady())("a room's members", () => {
 
         // Back closes the sheet and leaves the room where it stood.
         await page.goBack();
-        await page.getByRole("dialog", { name: wording("members.title.sheet") }).waitFor({ state: "detached", timeout: 10_000 });
+        await roomInfo(page).waitFor({ state: "detached", timeout: 10_000 });
         expect(new URL(page.url()).pathname).toEndWith(`/rooms/${RECORD_CHAT}`);
       } finally {
         await close();
@@ -137,7 +137,7 @@ describe.skipIf(!origin || !touchReady())("a room's members", () => {
     const { page, close } = await sheetOpen(1280, 900, false, { status: 200, body: MEMBERS, held });
 
     try {
-      const sheet = page.getByRole("dialog", { name: wording("members.title.sheet") });
+      const sheet = roomInfo(page);
       const waiting = sheet.getByRole("status", { name: wording("members.status.loading") });
 
       await waiting.waitFor({ timeout: 10_000 });

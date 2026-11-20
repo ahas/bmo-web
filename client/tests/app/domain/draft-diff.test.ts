@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { draftDiff } from "../../../apps/web/app/domain/draft-process";
+import { draftDiff } from "../../../apps/web/app/domain/drafting";
 
 // A message rewritten by a draft round, read as its change (docs/web.md, the room screen's draft chip): a line the
 // rewrite kept stands plain, one it dropped stands removed, and one it brought stands added.

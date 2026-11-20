@@ -9,7 +9,7 @@ import { timerClock } from "bmo-ui/app/domain/time";
 
 import type { AgentLogLine, RunProgress, TurnAction, TurnReceived, TurnSpeaker } from "#shared/types";
 import type { ComputedRef } from "vue";
-import type { DraftStep, RoomOutcome } from "./events";
+import type { PipelineStep, RoomOutcome } from "./events";
 import type { ContextStateLook, KindLook, ToolChip } from "./log";
 import type { FigureLine } from "./numbers";
 import type { SpendChip } from "./turns";
@@ -50,27 +50,47 @@ export function turnName(t: Translate, speaker: TurnSpeaker | undefined): string
 
 // The line says who is at it, by the name of the agent answering on that row: a room two agents
 // answer stands a row of each, and each row says its own. It says the state the turn is at, whatever turn it is;
-// what the chat agent's draft turn writes is the message, so its writing is said as that (docs/web.md, the room
-// screen's running line). `draft` is the draft turn under way, null where none is.
-export function phaseLook(t: Translate, name: string, progress: RunProgress | null, draft: DraftStep | null = null): WorkingLook {
-  if (draft !== null && progress?.phase === "writing") return { label: draftStepText(t) };
+// what the message turn of a round's pipeline writes is the message, so its writing is said as that, and a turn of a
+// system instruction names the stage it checks the message on (docs/web.md, the room screen's running line). `step`
+// is the pipeline's turn under way, null where none is.
+export function phaseLook(t: Translate, name: string, progress: RunProgress | null, step: PipelineStep | null = null): WorkingLook {
+  if (step?.input === "system") return { label: systemStepText(t, step) };
+  if (step !== null && progress?.phase === "writing") return { label: messageStepText(t) };
 
   return stateLook(t, name, progress);
 }
 
-// What the draft turn's writing is said as: a round's draft is one turn, and what it writes is the message.
-function draftStepText(t: Translate): string {
+// What the message turn's writing is said as: a round's message is one turn, and what it writes is the message.
+function messageStepText(t: Translate): string {
   return t("room.status.draft_writing");
+}
+
+// The words a running turn of a system instruction that is no stage is said in, by the name it goes by: the check of
+// the words that arrived meanwhile and the audit of how the message addresses the people it answers, which runs before
+// the stages (the receiver's docs/instruction.md, 「The audit before the stages」 and 「The round log」).
+const SYSTEM_STEPS: Record<string, string> = {
+  arrived: "room.status.step_arrived",
+  audit: "room.status.step_audit"
+};
+
+// What a turn of a system instruction is said as, whatever it is doing within it: the arrived check and the audit in
+// their own words, and a stage by its name, as the supervisor's settings name it.
+function systemStepText(t: Translate, step: PipelineStep): string {
+  const key = SYSTEM_STEPS[step.question];
+
+  return key === undefined ? t("room.status.step_stage", { name: step.question }) : t(key);
 }
 
 // What a running turn is at now, without the agent's name: the reasoning block's face carries the name, and the
 // detail under it says the state — the tool it works, the Job it waits on, or that it writes — whatever turn it is.
-// What the chat agent's draft turn writes is the message, so its writing is said as that. Null while it only thinks,
-// since the face already says that, and null where the pack has no word for a phase the stream named.
-export function phaseDetail(t: Translate, progress: RunProgress | null, draft: DraftStep | null = null): string | null {
+// What the message turn writes is the message, so its writing is said as that, and a turn of a system instruction
+// says the stage it is on. Null while it only thinks, since the face already says that, and null where the pack has
+// no word for a phase the stream named.
+export function phaseDetail(t: Translate, progress: RunProgress | null, step: PipelineStep | null = null): string | null {
+  if (step?.input === "system") return systemStepText(t, step);
   if (progress === null || progress.phase === "thinking") return null;
 
-  if (progress.phase === "writing") return draft === null ? t("room.status.step_writing") : draftStepText(t);
+  if (progress.phase === "writing") return step === null ? t("room.status.step_writing") : messageStepText(t);
 
   if (progress.phase === "waiting") {
     const item = progress.waitingFor?.todoId ?? null;
@@ -81,39 +101,6 @@ export function phaseDetail(t: Translate, progress: RunProgress | null, draft: D
   const named = progress.tool === null ? null : toolFace(t, progress.tool);
 
   return named === null ? t("room.status.step_tool") : t("room.status.step_tool_named", { tool: named });
-}
-
-// The questions of the draft process's catalogue (the receiver's docs/drafting.md, 「The questions」) named in a
-// list the reader picks from or reads a row of — the draft process's table, its catalogue and a round's draft
-// log — where each stands under the pack's word for it rather than under its catalogue name, and a
-// question the console adds under a name of its own under that name. The last question writes the message instead
-// of asking one, so it is named as the step it is.
-const DRAFT_QUESTION_NAMES: Record<string, string> = {
-  intent: "room.status.draft_question_intent",
-  information: "room.status.draft_question_information",
-  facts: "room.status.draft_question_facts",
-  promises: "room.status.draft_question_promises",
-  fit: "room.status.draft_question_fit",
-  memory: "room.status.draft_question_memory",
-  final: "agents.label.draft_question_final",
-  // The closing check, an item of the process rather than a question of the catalogue (the receiver's
-  // docs/drafting.md, 「The round log」).
-  arrived: "room.label.draft_question_arrived"
-};
-
-// The draft turn follows several questions at once and goes by all their names, joined by `+` (the receiver's
-// docs/drafting.md, 「The round log」): it stands as the words of each, in their order.
-export function draftQuestionLabel(t: Translate, question: string): string {
-  if (question.includes("+")) {
-    return question
-      .split("+")
-      .map((one) => draftQuestionLabel(t, one))
-      .join(" · ");
-  }
-
-  const name = DRAFT_QUESTION_NAMES[question];
-
-  return name === undefined ? question : t(name);
 }
 
 function stateLook(t: Translate, name: string, progress: RunProgress | null): WorkingLook {
@@ -194,9 +181,11 @@ export function outcomeLine(t: Translate, outcome: RoomOutcome): string {
 // bot's own quiet instructions, or both together. A turn the bot said nothing about, and one
 // that took neither, says nothing — what is not known is not made up, and a turn with an empty
 // round behind it has nothing to report having read. Its counts rise while the turn waits on more
-// words, so the line is handed over as its sentence and its figures, which turn on their own.
-export function receivedLine(received: TurnReceived | null): FigureLine | null {
-  if (received === null) {
+// words, so the line is handed over as its sentence and its figures, which turn on their own. A turn of a system
+// instruction of the round's pipeline carries no message received, so while the turn is on one the line says nothing
+// (the receiver's docs/bmo-window.md, 「A message and an instruction」).
+export function receivedLine(received: TurnReceived | null, step: PipelineStep | null = null): FigureLine | null {
+  if (received === null || step?.input === "system") {
     return null;
   }
 
@@ -321,7 +310,7 @@ export function turnActions(lines: readonly AgentLogLine[]): TurnAction[] {
   return actions;
 }
 
-// The opening of one of the draft process's answer marks, as the receiver's `docs/drafting.md` writes them: doubled
+// The opening of one of the instruction pipeline's answer marks, as the receiver's `docs/instruction.md` writes them: doubled
 // angle brackets and a capitalised word, then either the brackets that close the mark or what the mark carries — a
 // reason after a colon, a message's number after a space. Read by its opening, a mark whose reason a bound cut off
 // is still one, and a shell's here-document opening is none.
@@ -362,8 +351,8 @@ export function thinkingResumeFrom(before: string, shown: number, now: string): 
 
 // What a running turn is at, in the pack's words (docs/web.md, the room screen's running line): the state's detail,
 // or that it only thinks where the detail names nothing.
-export function stateLine(t: Translate, progress: RunProgress | null, draft: DraftStep | null = null): string {
-  return phaseDetail(t, progress, draft) ?? t("room.status.step_thinking");
+export function stateLine(t: Translate, progress: RunProgress | null, step: PipelineStep | null = null): string {
+  return phaseDetail(t, progress, step) ?? t("room.status.step_thinking");
 }
 
 // The last call the turn made, where its picture carries one: the one line the running block stands of its work.

@@ -1,64 +1,6 @@
-// The receiver's draft process as the console reads and sets it (the receiver's `docs/drafting.md`): for one
-// supervisor, which questions a round's one draft turn follows before it writes the message and the questions'
-// texts, and what a round's process wrote. The shapes are the receiver's, as its document states them.
-
-/** `*` in a key's place stands for any provider or tier; a supervisor's row names the supervisor under both. */
-export const ANY_KEY = "*";
-
-/** The last question of every list that holds one. */
-export const FINAL_QUESTION = "final";
-
-/** The catalogue's name for the supervisor's own judgement of whether to answer, asked before any process: its text
- * is set like a question's, and no list names it. */
-export const SUPERVISOR_QUESTION = "supervisor";
-
-/** What becomes of a turn once the process's ceiling has passed. */
-export type PastCeiling = "send" | "skip";
-
-/** Where a process or a question's text comes from: set on the console for the supervisor, or the receiver's policy. */
-export type DraftSource = "set" | "default";
-
-/** What a supervisor's process holds, as a set sends it. */
-export interface DraftProcessValues {
-  // The questions every turn's round follows in its one draft turn, in order.
-  rounds: string[];
-  // A value the receiver reads no more; the table does not show it and carries it as it stands.
-  sendFrom: string;
-  // The questions of the list that are switched off: each keeps its place and is not followed.
-  off: string[];
-  // Values the receiver reads no more; the table does not show them and carries them as they stand.
-  ceilingSeconds: number;
-  pastCeiling: PastCeiling;
-}
-
-/** One question of a supervisor's catalogue. */
-export interface DraftQuestionView {
-  name: string;
-  text: string;
-  source: DraftSource;
-  // The policy's text of the question, which stands again once the console's is taken away; null for a question the
-  // console added.
-  policyText: string | null;
-}
-
-/** A supervisor's draft process as its settings read it: the process it follows and whether it is its own, the
- * policy's process, which it follows where it has none, and its catalogue. */
-export interface SupervisorDraftView {
-  source: DraftSource;
-  process: DraftProcessValues;
-  policy: DraftProcessValues;
-  questions: DraftQuestionView[];
-}
-
-/** One save of a supervisor's draft settings; a part left out is left as it stands. */
-export interface SupervisorDraftSave {
-  // The process the supervisor follows from now on, or null to take its own away so it follows the policy's.
-  process?: DraftProcessValues | null;
-  // The texts set, by the question's name: a changed text or a question added.
-  texts?: Record<string, string>;
-  // The questions whose console text is taken away.
-  removed?: string[];
-}
+// A round's instruction pipeline as the console reads it for the room's draft chip (the receiver's
+// `docs/instruction.md`, 「The round log」): what each turn of a round wrote, what the round read from the brain and
+// how its pipeline ended. The shapes are the receiver's, as its document states them.
 
 /** How a round read one piece of the brain: whole as part of the turn's core, as a mark of a version the session
  * already held, or pulled by the agent itself through the index during the round. */
@@ -93,12 +35,14 @@ export interface BrainPiece {
   text: string | null;
 }
 
-/** One turn of a round's draft process, or its end (the receiver's `docs/drafting.md`, 「The round log」). */
+/** One turn of a round's pipeline, or its end (the receiver's `docs/instruction.md`, 「The round log」). */
 export interface DraftRow {
   id: number;
   number: number;
   question: string;
-  kind: "supervisor" | "turn" | "question" | "item" | "check" | "end" | string;
+  // `supervisor`, the agent's own judgement before the round; `turn`, the round's message turn; `arrived`, the check of
+  // the words that arrived meanwhile; `stage`, an instruction stage; or `end`.
+  kind: "supervisor" | "turn" | "arrived" | "stage" | "end" | string;
   answerChars: number;
   changed: boolean;
   outcome: string;
@@ -126,8 +70,8 @@ export interface DraftVersion {
   opened: "handed" | "program";
 }
 
-/** What a round's draft process did, on the round's last message: the round, how many rounds it asked, how it
- * ended, where its end is written, and what it read from the brain, as its end names it. */
+/** What a round's pipeline did, on the round's last message: the round, how many turns it asked once the message
+ * stood, how it ended, and what it read from the brain, as its end names it. */
 export interface DraftSummary {
   round: string;
   asked: number;

@@ -465,14 +465,6 @@ room:
     brain_read_loading: 불러오는 중…
     chat_enabled: 채팅 활성화
     checking: 보냈는지 확인하는 중
-    draft_loading: 드래프트 기록 불러오는 중…
-    draft_none: 남은 드래프트 기록 없음
-    draft_question_facts: 사실 확인
-    draft_question_fit: 규칙·말투 점검
-    draft_question_information: 정보 확인
-    draft_question_intent: 의도 파악
-    draft_question_memory: 기억 정리
-    draft_question_promises: 약속 점검
     draft_writing: 메시지 작성 중
     earlier_loading: 이전 대화를 불러오는 중…
     failed: 실패
@@ -490,9 +482,6 @@ room:
     no_records_left: 남은 기록 없음
     not_sent: 보내지 못함
     nothing_after: 그날 이후 대화 없음
-    outcome_draft_ceiling_message: "{subject} 시간 안에 답을 마치지 못해 그때까지의 답을 보냈습니다."
-    outcome_draft_ceiling_skip: "{subject} 시간 안에 답을 마치지 못해 보내지 않았습니다."
-    outcome_draft_withheld: "{name}의 답이 점검을 통과하지 못해 보내지 않았습니다."
     outcome_run_failed: "{name}의 실행이 실패했습니다."
     outcome_run_stopped: "{name}의 실행을 중지했습니다."
     outcome_skipped: "{subject} 이번에는 답하지 않았습니다."
@@ -527,6 +516,9 @@ room:
     room_add_contacts_loading: 연락처를 불러오는 중
     room_add_no_contacts: 이 계정에 연락처가 없습니다.
     room_add_no_match: 찾는 이름이 없습니다.
+    step_stage: "{name} 단계 확인 중"
+    step_arrived: 도착한 메시지 확인 중
+    step_audit: 호칭 확인 중
   error:
     bad_typing: 입력 중 표시의 형식이 올바르지 않습니다.
     actions_read_failed: 실행 기록을 불러오지 못했습니다.
@@ -721,24 +713,17 @@ room:
     deleted_message_show: 삭제된 메시지 · 눌러서 보기
     draft_changed: 바뀜
     draft_chars: "{n}자"
-    draft_end_ceiling_message: 시간 초과 후 메시지 보냄
-    draft_end_ceiling_skip: 시간 초과 후 보내지 않음
     draft_end_message: 메시지 보냄
     draft_end_skip: 보내지 않음
-    draft_end_withheld: 보류
-    draft_kind_check: 점검
     draft_kind_end: 끝
-    draft_kind_item: 항목
-    draft_kind_question: 질문
     draft_kind_supervisor: 판단
     draft_kind_turn: 턴
     draft_outcome_answered: 답함
     draft_outcome_failed: 실패
     draft_outcome_send: 보냄
     draft_outcome_skip: 넘김
-    draft_question_arrived: 도착 확인
+    draft_turn_arrived: 도착 확인
     draft_reads: "읽음: {names}"
-    draft_slow: 오래 걸린 라운드
     draft_version_handed: 받은 말
     draft_version_program: 작업 알림
     draft_versions: "쓴 답 {n}개"
@@ -920,6 +905,15 @@ room:
     voice_message: 음성 메시지
     voice_note: 음성 메모
     voice_failed: 듣지 못함
+    draft_kind_arrived: 도착 확인
+    draft_kind_stage: 지시 단계
+    draft_outcome_pass: 통과
+    draft_outcome_revised: 수정함
+    draft_turn_message: 메시지 작성
+    draft_kind_audit: 호칭 확인
+    draft_turn_audit: 호칭 확인
+    draft_outcome_no_verdict: 사유 없이 넘김
+    draft_slow: 오래 걸린 턴
   message:
     delete_ask: 이 메시지를 삭제할까요?
     delete_note: 메시지의 말은 지워지고, 있던 자리는 남습니다.
@@ -2460,7 +2454,8 @@ agents:
     walk_order: 순서대로
     agent_add: 에이전트 추가
     draft_to_default: 기본값으로
-    draft_text_to_default: 기본 글로 되돌리기
+    stage_add: 단계 추가
+    stage_to_default: 기본 내용으로 되돌리기
   aria:
     heal_of: "{name} 강등 복원"
     node_checkout_node: 노드 체크아웃을 둘 노드
@@ -2482,12 +2477,6 @@ agents:
     warming_of: "{name} {provider} 캐시 유지"
     warming_cell_of: "{name} 캐시 유지"
     choose_model: 모델 선택
-    draft_move_down: "{name} 아래로"
-    draft_move_up: "{name} 위로"
-    draft_question_of: "{name} 질문"
-    draft_question_on: "{name} 켜기"
-    draft_question_remove_of: "{name} 질문 삭제"
-    draft_remove_question: "{name} 제거"
     drag_reorder: 드래그해서 순서 변경
     prefix_document_down: "{path} 아래로"
     prefix_document_path: 프리픽스 문서 경로
@@ -2498,7 +2487,11 @@ agents:
     settings_sections: 설정 섹션
     switch_on: "{name} 켜기"
     vitals: 에이전트 지표
-    draft_add_to: "{list}에 질문 추가"
+    stage_down: "{name} 아래로"
+    stage_in: "{name} 지시 단계에 추가"
+    stage_out: "{name} 지시 단계에서 제거"
+    stage_text_of: "{name} 내용"
+    stage_up: "{name} 위로"
   error:
     login_which: 다시 로그인할 계정이나 새 계정의 이름 중 하나만 정해 주세요.
     login_not_directory: 설정 디렉터리 계정만 여기서 로그인할 수 있습니다.
@@ -2526,17 +2519,6 @@ agents:
     chat_documents_read_failed: 시스템 프롬프트를 불러오지 못했습니다.
     chat_document_save_failed: 저장하지 못했습니다.
     chat_document_action: 저장하거나 되돌릴 동작이 필요합니다.
-    draft_final_last: 질문이 있는 목록은 final로 끝나야 합니다.
-    draft_process_missing: 이 감독관이 따로 정한 드래프트 과정이 없습니다.
-    draft_process_refused: "수신 유닛이 이 드래프트 과정을 받지 않았습니다. 질문은 이 감독관의 질문 글에 있는 이름이어야 하고, 질문이 있는 목록은 final로 끝나야 하며, final은 끌 수 없고, 짧은 턴 기준은 0~1,000자여야 합니다."
-    draft_processes_read_failed: 드래프트 과정을 불러오지 못했습니다.
-    draft_question_missing: 콘솔에서 추가하거나 바꾼 질문이 아닙니다.
-    draft_question_name: 이름은 소문자·숫자·대시로 된 한 단어입니다.
-    draft_question_named: 아직 목록에 있는 질문입니다. 먼저 질문 순서에서 제거하세요.
-    draft_question_refused: "수신 유닛이 이 질문을 받지 않았습니다. 이름은 소문자·숫자·대시로 된 한 단어, 질문은 비어 있지 않은 4,000자 이하여야 합니다."
-    draft_question_taken: 이미 있는 질문 이름입니다.
-    draft_question_text: "질문은 비어 있지 않은 {max}자 이하여야 합니다."
-    draft_unknown_question: 질문 글에 없는 질문이 있습니다.
     field_refused: 받아들여지지 않은 값입니다.
     job_prompt_failed: 프롬프트를 불러오지 못했습니다.
     launch_empty: 작업 지시를 입력해 주세요.
@@ -2576,8 +2558,19 @@ agents:
     umbrella_refused: 우산 저장소에는 추가지원 체크아웃과 노드 체크아웃을 둘 수 없습니다.
     session_history_read_failed: 세션 기록을 불러오지 못했습니다.
     supervisors_read_failed: 감독관을 불러오지 못했습니다.
-    draft_unsound: 드래프트 설정에 고칠 곳이 있습니다.
     secret_settings_read_failed: 공급자 비밀을 불러오지 못했습니다.
+    stage_chain_missing: 이 감독관이 따로 정한 지시 단계가 없습니다.
+    stage_in_chain: 아직 지시 단계에 있는 단계입니다. 먼저 지시 단계에서 제거하세요.
+    stage_name_reserved: 라운드가 쓰는 이름이라 단계 이름으로 쓸 수 없습니다.
+    stage_name_taken: 이미 있는 단계 이름입니다.
+    stage_text: "내용은 비어 있지 않은 {max}자 이하여야 합니다."
+    stage_text_missing: 콘솔에서 추가하거나 바꾼 단계가 아닙니다.
+    stages_read_failed: 지시 단계를 불러오지 못했습니다.
+    stages_unsound: 드래프트 설정에 고칠 곳이 있습니다.
+    stage_text_refused: "수신 유닛이 이 단계를 받지 않았습니다. 이름은 소문자로 시작하고 소문자·숫자·대시로 된 {name}자 이하의 한 단어, 내용은 비어 있지 않은 {text}자 이하여야 합니다."
+    stage_chain_refused: 수신 유닛이 이 지시 단계 순서를 받지 않았습니다. 이 감독관에게 없는 단계가 들어 있습니다.
+    stage_name: "이름은 소문자로 시작하고 소문자·숫자·대시로 된 {max}자 이하의 한 단어입니다."
+    stage_add_unfinished: 추가할 단계의 이름과 내용을 확인하거나 추가를 취소하세요.
   label:
     agency: 에이전시
     account_kind_sign_in: 여기서 로그인
@@ -2637,12 +2630,6 @@ agents:
     diff_none: 변경 없음
     diff_omitted: 생략
     diff_removed: "{removed}줄 삭제"
-    draft_no_questions: 질문 없음
-    draft_processes_help: "이 감독관이 한 턴 안에서 메시지를 쓰기 전에 순서대로 따르는 질문입니다. 끈 질문은 자리를 지킨 채 빠집니다. 따로 정하지 않은 감독관은 기본값을 따릅니다."
-    draft_question_final: 메시지 작성
-    draft_question_off: 꺼짐
-    draft_question_text: 질문
-    draft_rounds: 질문 순서
     engine: 엔진
     exec_node: 실행 노드
     find_registration: "등록 모델 · {name}"
@@ -2825,7 +2812,6 @@ agents:
     used_by_role: "역할 {name}"
     used_by_supervisor: "감독관 {name}"
     work_repository: 작업 저장소
-    draft_texts: 질문 글
     default_only: "(기본값)"
     role_skills_own: 스킬 직접 고르기
     role_skills_hint: "끄면 역할의 기본 스킬 묶음 전체를 씁니다. 에이전트가 따로 고른 스킬이 있으면 그쪽이 우선합니다."
@@ -2836,6 +2822,10 @@ agents:
     secret_of_kind: "{kind} 종류 비밀"
     key_held: "키 있음 · {time}"
     key_missing: 키 없음
+    stage_text: 내용
+    stages: 지시 단계
+    stages_none: 지시 단계 없음
+    stages_unused: 사용하지 않는 단계
   message:
     sign_in_steps: 로그인 페이지를 열어 이 계정으로 승인한 뒤, 페이지에 나온 코드를 붙여 넣어 주세요.
     account_delete_confirm: 계정을 삭제할까요?
@@ -2869,7 +2859,6 @@ agents:
     sign_in_code: 코드 붙여 넣기
     account_name: claude-01
     directory_path: 설정 디렉터리의 절대 경로
-    draft_add_question: 질문 추가
     find_settings: 설정 찾기
     registry_name: 영문 소문자·숫자·하이픈
     token_path: 토큰 파일의 절대 경로
@@ -2881,7 +2870,6 @@ agents:
     jobs_loading: Job 불러오는 중…
     no_jobs: 실행한 Job 없음
     compacting: 압축 중
-    draft_processes_loading: 드래프트 과정 불러오는 중…
     job_ended: 끝남
     job_running: 실행 중
     log_loading: 로그 불러오는 중…
@@ -2938,6 +2926,7 @@ agents:
     session_valid: 유효
     supervisors_loading: 감독관 불러오는 중…
     secret_settings_loading: 공급자 비밀 불러오는 중…
+    stages_loading: 지시 단계 불러오는 중…
   title:
     sign_in: "{name} 로그인"
     account_add: Claude 계정 추가
@@ -2950,7 +2939,6 @@ agents:
     catalogue_add: 모델 파일 추가
     catalogue_uses: 모델 변경 기록
     chat_documents: 시스템 프롬프트
-    draft_question_add: 드래프트 질문 추가
     registry: 등록 모델
     registry_add: 등록 모델 추가
     work_log: 로그
@@ -2962,6 +2950,7 @@ agents:
     role_agents_of: "{name} 에이전트"
     draft: 드래프트
     secret_settings: 공급자 비밀
+    stage_add: 단계 추가
 gates:
   label:
     classifier: 참조 분류기

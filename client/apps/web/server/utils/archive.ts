@@ -479,7 +479,7 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
     })
   );
 
-  // How the round's draft process made its answer stands on the round's last message (docs/web.md, the room screen's
+  // How the round's instruction pipeline made its answer stands on the round's last message (docs/web.md, the room screen's
   // draft chip): the page's rounds are read from the receiver's round log at once. What the round cost and did is
   // not read with the page; the room asks for it once the page has landed (roundFigures).
   const last = new Map<string, number>();

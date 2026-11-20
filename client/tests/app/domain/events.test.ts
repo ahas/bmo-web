@@ -736,9 +736,9 @@ describe("the chat agent's turn as the receiver names it", () => {
 
       expect(screen.runs().map((run) => [run.messageId, otherAnswererOf(run.speaker)])).toEqual([["41", undefined], ["42", other]]);
 
-      screen.write("bot", botEvent({ type: "draft", number: 1, count: 2, kind: "start", question: "memory", speaker: other }));
+      screen.write("bot", botEvent({ type: "draft", number: 1, count: 2, kind: "start", question: "review", input: "system", speaker: other }));
 
-      expect(screen.runs().map((run) => run.draft?.question)).toEqual([undefined, "memory"]);
+      expect(screen.runs().map((run) => run.step?.question)).toEqual([undefined, "review"]);
 
       screen.write("bot", botEvent({ type: "sent", messageId: "43", speaker: other }));
       screen.write("live", picture([chatTurn({ speaker: tagged })]));
@@ -771,22 +771,22 @@ describe("the chat agent's turn as the receiver names it", () => {
     });
   });
 
-  test("its draft process reaches it: a question's start puts it on that question and the end takes it off", () => {
+  test("its pipeline reaches it: a turn's start puts it on that turn and the end takes it off", () => {
     watching(-1003, (screen) => {
       screen.write("live", picture([]));
       screen.write("bot", botEvent({ type: "run-started", messageId: "41", speaker: tagged }));
-      screen.write("bot", botEvent({ type: "draft", number: 1, count: 2, kind: "start", question: "intent", speaker: tagged }));
+      screen.write("bot", botEvent({ type: "draft", number: 1, count: 1, kind: "start", question: "message", input: "message", speaker: tagged }));
 
-      expect(screen.run()?.draft).toEqual({ number: 1, count: 2, question: "intent" });
+      expect(screen.run()?.step).toEqual({ number: 1, count: 1, question: "message", input: "message" });
       expect(listeningRuns(screen.runs(), open)).toEqual([]);
 
-      screen.write("bot", botEvent({ type: "draft", number: 1, kind: "question", question: "intent", outcome: "answered", speaker: tagged }));
+      screen.write("bot", botEvent({ type: "draft", number: 1, kind: "turn", question: "message", outcome: "answered", speaker: tagged }));
 
-      expect(screen.run()?.draft?.number).toBe(1);
+      expect(screen.run()?.step?.number).toBe(1);
 
-      screen.write("bot", botEvent({ type: "draft", number: 3, kind: "end", outcome: "message", speaker: tagged }));
+      screen.write("bot", botEvent({ type: "draft", number: 2, kind: "end", outcome: "message", speaker: tagged }));
 
-      expect(screen.run()?.draft).toBeUndefined();
+      expect(screen.run()?.step).toBeUndefined();
 
       screen.write("live", picture([]));
     });

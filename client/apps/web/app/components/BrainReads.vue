@@ -24,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import { readLabel, readList, readNew } from "~/domain/draft-process";
+import { readLabel, readList, readNew } from "~/domain/drafting";
 import { useAdministrator } from "~/domain/access";
 
 import type { DraftRead } from "#shared/drafting";

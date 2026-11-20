@@ -265,7 +265,7 @@ export interface ReplyQuote {
   attachment?: MessageAttachment | null;
 }
 
-// The room's situation note as the round that judged a message read it (the receiver's `docs/drafting.md`): the note's
+// The room's situation note as the round that judged a message read it (the receiver's `docs/instruction.md`): the note's
 // text, and whether that round wrote it afresh.
 export interface Situation {
   text: string;
@@ -355,7 +355,7 @@ export interface ArchivedMessage {
   album?: ExactMessageId | null;
   // What that round cost, on the last message the round sent and on no other.
   spend?: RoundSpend | null;
-  // How the round's draft process made its answer, on that same last message: a summary of the round's log,
+  // How the round's instruction pipeline made its answer, on that same last message: a summary of the round's log,
   // read with the page.
   drafts?: DraftSummary | null;
   // Where what the turn did is kept, on that same last message: the room opens it from here and
@@ -452,8 +452,8 @@ export interface BriefingReading {
 // round wrote down, which is carried whole.
 export interface TurnActionsRef {
   agent: string;
-  // Every run of the round by the name its log lines are kept under: its own turn, then each question its draft
-  // process asked the same session.
+  // Every run of the round by the name its log lines are kept under: its own turn, then each turn its instruction
+  // pipeline asked the same session.
   runs: string[];
   documents: number;
   // The reference documents the turn went on holding from earlier in its session, which went as a
@@ -1057,8 +1057,8 @@ export type BotEventType =
   | "live"
   // What the session's own turn is doing right now, as its stream says it.
   | "run-progress"
-  // A turn of the round's draft process ended, or the process did, as the receiver's round log wrote it
-  // (the receiver's docs/drafting.md, 「The round log」).
+  // A turn of the round's instruction pipeline started or ended, or the pipeline did, as the receiver's round log
+  // wrote it (the receiver's docs/instruction.md, 「The round log」).
   | "draft"
   // The TODO changed. What it holds now is read from the archive, so the event says only that.
   | "todo"
@@ -1217,14 +1217,16 @@ interface BotEventFields {
   progress?: RunProgress;
   // A sent event and a draft event: the round the answer went out in, which every message of that answer names.
   round?: string;
-  // A draft event alone: the row of the round log it tells — its number in the process, its question's name, its
-  // kind and how it ended — never the answer itself.
+  // A draft event alone: the row of the round log it tells — its number in the pipeline, its name, its kind and how
+  // it ended — never the answer itself.
   number?: number;
   question?: string;
   kind?: string;
   outcome?: string;
-  // A draft event of kind `start` alone: how many questions the process asks, the one it tells being `number` of them.
+  // A draft event of kind `start` alone: how many turns of its sort the pipeline asks, the one it tells being `number`
+  // of them, and what it carries: `message` for the message turn, `system` for a system instruction.
   count?: number;
+  input?: string;
   // A briefing event alone.
   briefing?: BriefingNews;
 }

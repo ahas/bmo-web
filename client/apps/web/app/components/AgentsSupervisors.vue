@@ -1,7 +1,7 @@
 <template>
   <!-- The supervisors (docs/web.md, 「Agent management screen」, the supervisors tab; the agency's docs/supervisors.md): one row each
        in the agency's order, every value a cell of its own that saves it, the row's own presses at its trailing edge;
-       under the table the agents of the roles. A supervisor's draft process stands in its settings dialog. -->
+       under the table the agents of the roles. A supervisor's instruction stages stand in its settings dialog. -->
   <section class="flex min-w-0 flex-col" :aria-label="$t('agents.label.tab_supervisors')">
     <DataTableSkeleton v-if="supervisors === undefined && !error" :headers="tableHeaders(columns)" :rows="3" :label="$t('agents.status.supervisors_loading')" />
     <ReadFailure

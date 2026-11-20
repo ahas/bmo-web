@@ -3,7 +3,7 @@ import type { Locator, Page } from "playwright-core";
 import type { TouchPoint } from "./touch";
 
 // Carrying a row of an ordered list by its handle, as the console's row drag reads it (docs/web.md, the draft
-// block's question order and the repository dialog's prefix documents): a press on the handle, a travel in steps
+// block's instruction stages and the repository dialog's prefix documents): a press on the handle, a travel in steps
 // past the slack a drag starts at, and a let-go over the row it lands on. The marks a carried list puts on its rows
 // are read while the press is still held, which is the only moment they stand.
 

@@ -124,6 +124,7 @@ for (const module of [
   await import("../../apps/web/server/utils/archive"),
   await import("../../apps/web/server/utils/openings"),
   await import("../../apps/web/server/utils/drafting"),
+  await import("../../apps/web/server/utils/instruction-stages"),
   await import("../../apps/web/server/utils/room-links"),
   await import("../../apps/web/server/utils/room-reads"),
   await import("../../apps/web/server/utils/send-keys"),

@@ -85,22 +85,22 @@ function item(): TodoItem {
 }
 
 // An answer of the chat agent whose round ran two turns of its session, a call in each, one of them reading the brain,
-// and whose draft process wrote one question's answer.
+// and whose instruction pipeline ran one stage that revised the message.
 const ANSWER_ID = "9001";
 const ANSWER: ArchivedMessage = {
   chatId: CHAT, messageId: ANSWER_ID, senderId: 0, senderName: "agent-a", sentAt: NOW - 100, text: "the answer", imagePath: null,
   replyToMessageId: null, agent: true, round: "round-a",
   drafts: { round: "round-a", asked: 1, end: "message", reads: [] },
-  actions: { agent: "agent-a", runs: ["turn-a", "question-a"], documents: 0, held: 0, tools: 2, brain: 1, records: [] }
+  actions: { agent: "agent-a", runs: ["turn-a", "stage-a"], documents: 0, held: 0, tools: 2, brain: 1, records: [] }
 };
-const DRAFT_ANSWER = "the whole notes of the first question, as written";
+const DRAFT_ANSWER = "the whole message as the first stage revised it";
 const DRAFT_ROWS: DraftRow[] = [
-  { id: 1, number: 1, question: "information", kind: "question", answerChars: DRAFT_ANSWER.length, changed: false, outcome: "answered", detail: null, ms: 1_000, at: NOW - 200, answer: DRAFT_ANSWER, reads: [] },
+  { id: 1, number: 1, question: "review", kind: "stage", answerChars: DRAFT_ANSWER.length, changed: true, outcome: "revised", detail: null, ms: 1_000, at: NOW - 200, answer: DRAFT_ANSWER, reads: [] },
   { id: 2, number: 2, question: "", kind: "end", answerChars: 0, changed: false, outcome: "message", detail: null, ms: 0, at: NOW - 150, answer: null, reads: [] }
 ];
 const RUN_LINES: Record<string, AgentLogLine[]> = {
   "turn-a": [line(21, "turn-a", "tool", JSON.stringify({ command: "ls" }), { agent: "agent-a", name: "bash", tool: { name: "bash", icon: null }, ref: "r1" })],
-  "question-a": [line(22, "question-a", "tool", JSON.stringify({ query: "who" }), { agent: "agent-a", name: "mcp__bmo__brain_recall", tool: { name: "brain_recall", icon: null }, ref: "r2" })]
+  "stage-a": [line(22, "stage-a", "tool", JSON.stringify({ query: "who" }), { agent: "agent-a", name: "mcp__bmo__brain_recall", tool: { name: "brain_recall", icon: null }, ref: "r2" })]
 };
 
 let browser: Browser | null = null;
@@ -286,7 +286,7 @@ describe.skipIf(!origin || !touchReady())("the work view", () => {
 
         await message.waitFor({ timeout: 20_000 });
 
-        // The record's one button stands the round's calls and its drafted questions as marks with their counts.
+        // The record's one button stands the round's calls and its pipeline's stages as marks with their counts.
         const chip = message.getByRole("button", { name: new RegExp(wording("room.label.chip_record")) });
 
         await chip.waitFor({ timeout: 10_000 });
@@ -301,7 +301,7 @@ describe.skipIf(!origin || !touchReady())("the work view", () => {
         await record.locator("[data-draft-answer]").first().waitFor({ timeout: 10_000 });
         expect(await record.locator("[data-draft-answer]").first().innerText()).toContain(DRAFT_ANSWER);
 
-        // The calls are read from every run of the round, the answer's turn and the draft question's alike.
+        // The calls are read from every run of the round, the answer's turn and the stage's alike.
         expect(await until(async () => await record.locator("[data-tool-call]").count(), (n) => n >= 2)).toBe(2);
         expect(await record.innerText()).toContain("brain_recall");
         expect(await record.locator("[data-tool-command]").allInnerTexts()).toContain("ls");

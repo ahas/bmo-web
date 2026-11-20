@@ -307,7 +307,7 @@ export interface FeedItem {
   spend: RoundSpend | null;
   // Where what that turn did is kept, on that same message; null on every other row.
   actions: TurnActionsRef | null;
-  // How that round's draft process made the answer, on that same message; null on every other row.
+  // How that round's instruction pipeline made the answer, on that same message; null on every other row.
   drafts: DraftSummary | null;
   // The voice briefing that speaks this line, which stands on its chip line rather than as a row.
   briefing: MessageBriefing | null;
@@ -716,7 +716,7 @@ function sharesRow(held: readonly { messageId: ExactMessageId }[], page: readonl
   return page.some((message) => holding.has(message.messageId));
 }
 
-// A round's figure stands on the last message the round sent, and so does its draft process. An answer sent in
+// A round's figure stands on the last message the round sent, and so does its draft. An answer sent in
 // parts arrives a part at a time, and each part was the round's last when it was read, so every earlier part of a
 // round gives its figure up to the part after it.
 function lastSpends(messages: ArchivedMessage[]): ArchivedMessage[] {

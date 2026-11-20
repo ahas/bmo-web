@@ -3269,34 +3269,37 @@ alone (「Access」); another account's agents are reached from 조직's 사용�
   the owner's own text or put back to its file (the agency's `docs/api.md`, 「chat-documents」). A save sends the
   supervisor's change and then the rest, and a refusal keeps every field as written with the reason under the one it
   names.
-- **드래프트 is a block of that dialog, a supervisor's own:** the questions a round's one draft turn follows before
-  it writes the message, and their texts, as the receiver keeps them for that supervisor alone (the receiver's
-  `docs/drafting.md`, 「The process table」 and 「The questions」). Nothing set here stands for another supervisor, and
-  no screen sets a process for all of them: a supervisor the console has set none for follows the receiver's policy,
-  and the block's title then carries `(기본값)`.
-  - **질문 순서** is the questions every turn's round follows, in order, whatever the turn carried — no turn is
-    lighter than another: an ordered pick from the supervisor's catalogue, every question under the pack's word for it and one
-    the console added under its own name. The questions chosen stand in order, each with a checkbox, carried by its
-    handle to another place, moved up or down or taken out, and one not yet chosen is added before `final`, which stands last in every list that holds a
-    question. A question carried lands on the place of the question whose row stands lit under the pointer; one let go
-    where it went down, or over no question, stays where it was. The checkbox switches a question off or on where it
-    stands: one unchecked keeps its place, dimmed and struck through, and is left out of what the round follows.
-    `final` writes the message and carries no checkbox and no handle, and no question is carried onto it.
-    A list with no question says 질문 없음.
-  - **질문 글** lists the supervisor's catalogue, a line a question: its name, `(기본값)` after one whose text the
-    console has not changed for this supervisor, and its text on one line. Pressing a line opens the text in a box
-    under it, at most 4,000 characters and never empty. 질문 추가 adds a question under a new name, a lowercase word
-    of letters, digits and dashes. A question the console added or changed carries a press at its end that takes
-    the console's text away: one it added leaves the catalogue and the list, and one the policy holds stands
-    again in the policy's text.
-  - **기본값으로** stands beside the block's title where the supervisor has a process of its own, and puts the two
-    lists and the bound back to the policy's.
-  - **Every change of the block waits for the dialog's one save,** which sends the texts set, then the process, then
-    the texts taken away, so a list never names a question the receiver does not yet hold or no longer holds. The
-    process is sent with the stages after the message the supervisor's row switches off as they stand, since the
-    block does not set them and a row sent without them would switch them all on. A process put back to the
-    policy's takes the supervisor's own row away. What the receiver refuses is said under
-    the block in the pack's sentence for its code, every field kept as written.
+- **드래프트 is a block of that dialog, a supervisor's own:** the chain of instruction stages its message passes before
+  it goes out, and their texts, as the receiver keeps them for that supervisor alone (the receiver's
+  `docs/instruction.md`, 「The stage chain and its texts」 and 「The routes」). On each stage the agent reprints the
+  whole revised message or answers that it changes nothing, and after the last the message is sent. Nothing set here
+  stands for another supervisor, and no screen sets a chain for all of them: a supervisor the console has set none
+  for follows the receiver's policy, and the block's title then carries `(기본값)`.
+  - **지시 단계** is the chain in order: each stage a row of its handle, its place, its name with `(기본값)` after one
+    whose text is the policy's, and its text on one line; then 위로, 아래로 and a press that takes it out of the chain,
+    each an icon with its tooltip. A stage carried by its handle lands on the place of the stage whose row stands lit
+    under the pointer; one let go where it went down, or over no stage, stays where it was. A chain with no stage
+    says 지시 단계 없음, and its message then goes out unchecked.
+  - **사용하지 않는 단계** follows where the catalogue holds stages the chain does not name, each the same line with a
+    press that adds it at the chain's end.
+  - **Pressing a stage's line opens its text** in a box under it, at most 4,000 characters and never empty. Under the
+    box, a stage the console added carries 삭제, which takes it out of the chain and the catalogue, and a stage of the
+    policy's whose text the console changed carries 기본 내용으로 되돌리기, which stands the policy's text again.
+  - **단계 추가**, an icon with its tooltip at the end of 지시 단계's title row, opens the add form right under that row: a
+    new name, a lowercase letter followed by lowercase letters, digits and dashes, at most 40 characters, that no
+    stage holds and that is none of the names the round's fixed turns go by (`message`, `arrived`, `audit`), and
+    its text; 추가 puts the stage in the catalogue and at the chain's end. What is typed in the form
+    is a change of the dialog: closing asks, and the save adds the stage before it sends, or, where its name or text
+    cannot be sent, refuses with the reason and keeps the form.
+  - **기본값으로** stands beside the block's title where the supervisor has a chain of its own, and puts the chain back
+    to the policy's; the texts stand as they are.
+  - **Every change of the block waits for the dialog's one save,** which sends the texts set, then the chain, then the
+    texts taken away, so a chain never names a stage the receiver does not yet hold, and a stage the console added
+    is never taken away while a chain still names it. A chain put back to the policy's takes the supervisor's own
+    away. Whether the block holds a change is read from what it would have the receiver hold, so a text put back and
+    typed again, or a chain put back to the policy's and ordered again, is no change. What the receiver refuses is
+    said under the block in the pack's sentence for its code, every field kept as written; the block then reads the
+    stages again, so what the save wrote before the refusal stands as saved and the next save sends only the rest.
 - **기본 응답 감독관** stands above the table, a row of its own: the supervisor that answers every room naming none,
   as the receiver's setting holds it (its `docs/api.md`, 「Supervisors」, `GET` and `PUT /default-answerer`). A list
   of every supervisor the agency lists, each under its own label with its name under it, and no other entry; the
@@ -4760,8 +4763,8 @@ Four bounds keep it from growing forever.
     tooltip and in what a screen reader hears of each mark. Pressing it spreads one panel inside the bubble:
     - **The panel stands in the order the turn made it.** The documents the round's end names as read from the
       brain stand first; then every line of the turn at its own moment — each call as the agent's log draws it,
-      with its result under it, each question of the draft process with the answer or the change it wrote, the
-      process's end, and each gate's card — with what opened the turn once before its first card, and last the
+      with its result under it, each turn of the instruction pipeline with the message a stage revised or the
+      change it made, the pipeline's end, and each gate's card — with what opened the turn once before its first card, and last the
       room's situation note as that round read it. A line the stream gave no moment to stands in the order it
       came.
     - **Nothing on the panel is cut on a line and nothing scrolls in a box of its own**: a long word, path, command
@@ -4808,7 +4811,7 @@ Four bounds keep it from growing forever.
   drafted and sent the answer, the gates' cards and the situation note
   the round read last all stand in the answer's record, under 판정 기록, and a round that left no answer leaves
   nothing to open.
-  - **Which verdicts are a person's message's and which an answer's.** The verdicts of the round's draft process
+  - **Which verdicts are a person's message's and which an answer's.** The verdicts of the round's instruction pipeline
     (`draft`), of its send (`send`), and of the checks and rewrites the answer went through on its way out — 출력
     형식, the content gate and its rewrite and addition, and every second asking (`…-again`) — are the answer's, and
     stand under 판정 in the round's answer's record, its last message. Every other verdict is the
@@ -4941,14 +4944,14 @@ Four bounds keep it from growing forever.
   own log draws it (「A tool call」 under 「Agent screen」) — its top line, the command under the prompt, never
   folded, and its result under it — whatever program the turn ran on, a pane program's calls as a stream's.
   - **The lines come from the record**, read out of the agency's log of every run of the round — its own turn and
-    each question its draft process asked the same session — the first time either list is opened, so what a turn
+    each turn its instruction pipeline asked the same session — the first time either list is opened, so what a turn
     did reads the same however long after it ended and whatever the screen was doing while it ran. A run is read by
     the name its lines are kept under, which is the run's unit name, never the round's. The room's running block and
     these lists are the same lists in the same look: the ones the turn was watched doing.
   - **They stand on the answer's last message**, the way the figure does, and only where that round left that sort
     of action at all. A turn that only spoke leaves none and stands neither.
   - **An answer whose round the record does not name has neither**, since there is no run to read.
-  - **Where the round's end names what it read from the brain** (the receiver's `docs/drafting.md`, 「The round
+  - **Where the round's end names what it read from the brain** (the receiver's `docs/instruction.md`, 「The round
     log」), those pieces are the brain's documents in place of the ones the agency's log says the turn was handed.
     They come with the page, read with the round's summary, and stand at the head of the list before anything is
     read.
@@ -4964,7 +4967,7 @@ Four bounds keep it from growing forever.
     with a leading plus, as an added line, and each held one plain under them, in the muted colour with the
     plus's room kept blank. A piece stands by the index's words for it; the room's own due memories, the entry
     `memories/<room>` (the gate's `docs/reference-selection.md`, 「What a turn is given」), as 이 방에서 지금 할 약속;
-    the room's own situation note, `room-situations/<room>` (the receiver's `docs/drafting.md`, 「The situation
+    the room's own situation note, `room-situations/<room>` (the receiver's `docs/instruction.md`, 「The situation
     note」), as 이 방의 지금 상황; anything else by its path. The brain calls follow the pieces, read from the log the first time the list
     opens, and a round that made none reads nothing. The same list stands in the 드래프트 spread, after the
     round's end.
@@ -5021,35 +5024,37 @@ Four bounds keep it from growing forever.
     by the record its catalogue entry declares (the receiver's `docs/chat-mcp.md`). The records ride on the answer whole, so
     spreading them reads nothing more.
   - **It stands on the answer's last message**, and only where the round wrote something down.
-- **드래프트** — a chat agent answer carries how its round made it and sent it (the receiver's `docs/drafting.md`):
-  the chip is the count of the rounds the process asked — its questions, items and checks; neither its end, the
-  agent's own judgement before the round, nor a row of the round's own turn, where the log holds one, is counted
-  — and pressing it spreads the round as a person reads it, in this order.
-  - **The rounds, one line each**, in the order written: the round's number, what it asked — the question's word
-    (정보 확인, 사실 확인, 기억 정리, 약속 점검, 의도 파악, 규칙·말투 점검, 메시지 작성, 도착 확인, and 판단 for the
-    agent's judgement before the round), or the question's own name where the pack has none; the draft turn, which
-    follows several questions at once, stands as the words of all of them in their order, 「의도 파악 · 정보 확인 ·
-    메시지 작성」 — what it decided —
-    답함, 보냄, 넘김, 실패, or the receiver's word for one the console does not know — how long its answer is,
-    「110자」, and how long it took, 「11.8초」. 바뀜 follows where the answer differs from the one before it.
-  - **The slow round is marked**: where more than one round ran, the round that took longest, when it took at
+- **드래프트** — an agent's answer carries how its round made it and sent it, through the round's instruction
+  pipeline (the receiver's `docs/instruction.md`): the chip is the count of the turns the pipeline asked once the
+  message stood — the check of the words that arrived meanwhile, the audit and its instruction stages; neither its end, the
+  agent's own judgement before the round, nor the round's message turn is counted — and pressing it spreads the
+  round as a person reads it, in this order.
+  - **The turns, one line each**, in the order written: the turn's number, what it was — 메시지 작성 for the message
+    turn, 도착 확인 for the arrived check, 호칭 확인 for the fixed audit before the stages of how the message addresses
+    the people it answers, 판단 for the agent's judgement before the round, and a stage by its own name, as the
+    supervisor's settings name it — what it decided — 답함, 보냄, 사유 없이 넘김 (a skip naming no reason, asked once
+    more), 넘김 or 실패 for a turn, 통과, 수정함 or 실패 for the audit and a stage, or the receiver's word for one the
+    console does not know — how long its answer is, 「110자」, and how long it took, 「11.8초」. 바뀜 follows where the answer
+    differs from the one before it.
+  - **The slow turn is marked**: where more than one turn ran, the turn that took longest, when it took at
     least twice as long as any other, wears a clock mark and its time in the warning colour.
-  - **Every round stands open.** Its line carries no fold: the round's number, what it asked and what it decided stand
-    as a line, and the answer that round wrote stands under it whole as it was
-    written, wrapping at the bubble's width and keeping the page's ordinary flow. A very long answer is bounded by the
-    same means the rest of the screen uses — the bubble's own scroll and the 지우기/더 보기 pattern where a list needs it —
-    never by folding every round. A round with no answer stands its line alone.
-  - **A round that rewrote the message stands its change as a diff**, where the record carries what stood before it: the
-    lines the rewrite kept stand plain, the ones it dropped stand struck through in the error colour, and the ones it
-    brought stand in the success colour, so what a repair round or an arrived rewrite actually changed is read at once. A
-    round whose answer is what stood before it stands that answer once, with no marks.
+  - **Every turn stands open.** Its line carries no fold: the turn's number, what it was and what it decided stand
+    as a line, and the message the audit or a stage revised (수정함) stands under it whole as it was written, wrapping
+    at the bubble's width and keeping the page's ordinary flow. A very long answer is bounded by the same means the
+    rest of the screen uses — the bubble's own scroll and the 지우기/더 보기 pattern where a list needs it — never by
+    folding every turn. Every other turn stands its line alone, whatever answer its row carries: the message turn and
+    the arrived check, whose answer is the message the bubble holds once it went out, an audit or a stage that passed
+    or failed, and a turn with no answer.
+  - **A revision stands its change as a diff**, where the record carries what stood before it: the lines the revision
+    kept stand plain, the ones it dropped stand struck through in the error colour, and the ones it brought stand in
+    the success colour, so what the audit or a stage actually changed is read at once. One whose answer is what stood
+    before it stands that answer once, with no marks.
   - **A round whose turn wrote more than one answer stands each of them**, where the record carries them (the
-    receiver's `versions`, its `docs/drafting.md`, 「The round log」): under the round's answer, 「쓴 답 2개」 and each
+    receiver's `versions`, its `docs/instruction.md`, 「The round log」): under the round's answer, 「쓴 답 2개」 and each
     answer the turn wrote in order, what opened it — 받은 말 for words handed over, 작업 알림 for the program's own
     notice — and its words dimmed, so an answer a later skip left standing, or one a later answer replaced, is read
     beside the answer the round went on with.
-  - **Then the end, one line**: what went out — 메시지 보냄, 보내지 않음, 보류, 시간 초과 후 메시지 보냄 or 시간 초과
-    후 보내지 않음 — and how long the whole took.
+  - **Then the end, one line**: what went out — 메시지 보냄 or 보내지 않음 — and how long the whole took.
   - **Then what was read before it**: the 브레인 chip's own list (「브레인 · 툴 사용」), in the same look, where the
     round's end names any piece.
   - **Then the send and the answer's checks**: the answer's verdicts (「판정」), each a line of its stage's name and
@@ -5059,14 +5064,13 @@ Four bounds keep it from growing forever.
   - **Nothing stands in the receiver's or the gate's own form**: no `ROUND`, `END` or `SENT`, no `answerChars=`,
     no milliseconds and no process key. The raw rows are the copy's (「What a copy holds」).
   - **The rounds are read the first time the chip is pressed,** from the receiver's round log by the message's
-    round (`GET /rounds/drafts`), with a skeleton of three lines while they come and a sentence where the read
+    round (`GET /rounds/pipeline`), with a skeleton of three lines while they come and a sentence where the read
     fails; pressing again folds them and a later press reads nothing more. Where the log holds no row of the
-    round, the gate's `draft` verdicts stand for the rounds, each its number, its question's word and what it
-    decided. The count and whether the chip stands come with the page itself, which reads the page's rounds once
+    round, the gate's `draft` verdicts stand for the turns, each its number, its name and what it decided. The count and whether the chip stands come with the page itself, which reads the page's rounds once
     when it is read.
-  - **It stands on the answer's last message**, and only where the round's process left a row other than one of
-    the round's own turn, or the gate wrote a `draft` verdict of it. An answer of any supervisor but the default
-    answerer, a round that waited and a turn from before the process was kept carry none.
+  - **It stands on the answer's last message**, and only where the round's pipeline left a row other than one of
+    the round's message turn, or the gate wrote a `draft` verdict of it. A round that waited and a turn from before
+    the pipeline was kept carry none.
 - **사용 토큰** — an agent's answer, whichever supervisor gave it, carries what that answer wrote: the token mark and one figure (「What one answer spent
   stands as one figure」).
   - **What is counted is the round.** A round is everything the bot ran to produce that answer: the
@@ -5200,8 +5204,8 @@ Four bounds keep it from growing forever.
   and chat number, each message stands in one line with its time, sender, sender number, message number and body,
   and below it the content of every chip the message carries, whether the chip is open on screen or not, in this
   order: its verdicts (판정) in time order as stage name, time and verdict, a verdict's content following indented
-  where it differs from the verdict; 드래프트, the gate's rows of the round's draft process and then each round row
-  as the chip lists it — its number, question, kind, outcome, characters and milliseconds; 툴 사용, each call by its
+  where it differs from the verdict; 드래프트, the gate's rows of the round's pipeline and then each row of its round log
+  as the chip lists it — its number, name, kind, outcome, characters and milliseconds; 툴 사용, each call by its
   tool's name with the size of its result, or that it failed; 브레인, each piece the round's end names as read — its
   group's word, its name and its path — or, where the end names none, each document the turn was handed, and then
   each call that read the brain; 사용 토큰, each road the round's runs took with its figure; and 전송 last. What a chip reads
@@ -5498,7 +5502,8 @@ Four bounds keep it from growing forever.
   context being folded, the summary opening a new session, the reference gates and the sanitiser lined up, so
   reaching the ask is often the longest stretch of that turn. A room that heard shows it heard from the moment it
   heard. That line writes what this turn received — how many words the room said, how many quiet instructions the
-  bot put before them, both if both. If more words arrive while waiting and merge into the same turn, that count
+  bot put before them, both if both — and nothing while the turn is on a system instruction of its pipeline, which
+  receives no message (below). If more words arrive while waiting and merge into the same turn, that count
   rises too. A turn that received nothing and a turn where the bot has said nothing say nothing here — an unknown
   count is not invented as something else. The line holds no list of the turn's stages: what each gate said
   stands under the message it judged (「판정」), and a second copy here is what made the two disagree. This line
@@ -5633,13 +5638,13 @@ Four bounds keep it from growing forever.
   line of words that wraps at the row's width, a long run breaking inside itself, so nothing scrolls the room
   sideways, at a phone's width too. They are no messages: no number, no reply, no menu and no actions. A new line
   comes in under the others and the oldest goes as the picture drops it; what the turn writes last is its answer,
-  which the picture never carries among them. They stand for the whole of the round: each question of the draft
-  process opens a picture of its own, and one that has written no line yet leaves the lines the round wrote before
+  which the picture never carries among them. They stand for the whole of the round: each turn of the instruction
+  pipeline opens a picture of its own, and one that has written no line yet leaves the lines the round wrote before
   it standing, so the room is never without them between the first line and the answer. When the answer takes the
   row's place they go with the rest of the running block, and the answer's record stands them again among its calls
   (「What the turn did」).
 - **Nothing of the answer stands before it is sent.** What the turn writes is shown in the block only as what it
-  says of its work. A text holding one of the draft process's answer marks (the receiver's `docs/drafting.md`), such
+  says of its work. A text holding one of the instruction pipeline's answer marks (the receiver's `docs/instruction.md`), such
   as `<<SEND>>`, `<<SKIP: …>>`, `<<WAIT>>` or `<<REFUSE>>`, is a draft of the turn's message: it may still change,
   and the message appears only as the message sent. A mark is known by its opening, doubled angle brackets and a
   capitalised word followed by the brackets that close it or by what it carries, a reason after a colon or a
@@ -5675,15 +5680,21 @@ Four bounds keep it from growing forever.
     no tool says 툴 사용 중. A supervisor's turn whose engine a Job holds names the item whose Job it waits on until
     that Job ends (the agency's `docs/supervisors.md`, 「The engine it shares」), read off the bot's picture as well
     as its events, so a screen opened in the middle of the wait shows it; the agents list's row says "Job 종료 대기 중".
-  - **The line says the state through the chat agent's draft turn too** (the receiver's `docs/drafting.md`): the
-    tool it works, the Job it waits on, or nothing while it only thinks, as on any turn. What a draft turn writes is
-    the message, so its writing is said as "메시지 작성 중" where any other turn's is "답을 쓰는 중". The receiver tells
-    the draft turn just before it goes out, as a `draft` event of kind `start`, and the process's `end` row ends
-    it; the rows the process writes as its turns are answered move the line nothing, and no line waits on one. A
-    process that ended with its text withheld or past its ceiling says so in the passing word once the turn has
-    ended — "〈이름〉의 답이 점검을 통과하지 못해 보내지 않았습니다.", "〈이름〉가 시간 안에 답을 마치지 못해 보내지 않았습니다." or
-    "〈이름〉가 시간 안에 답을 마치지 못해 그때까지의 답을 보냈습니다." — and a skip says it as any silent turn does. A
-    turn of any other supervisor runs no process, and its line says the state alone.
+  - **The line says the state through the round's instruction pipeline too** (the receiver's
+    `docs/instruction.md`), whichever supervisor's turn it is. The receiver tells each turn of the pipeline just
+    before it goes out, as a `draft` event of kind `start` naming what the turn carries (its `input`), and the
+    pipeline's `end` row ends it; the rows written as its turns are answered move the line nothing, and no line waits
+    on one.
+    - **The message turn,** the one that carries the room's words, says the tool it works, the Job it waits on, or
+      nothing while it only thinks, as on any turn; what it writes is the message, so its writing is said as
+      "메시지 작성 중" where any other turn's is "답을 쓰는 중". The line of what the turn received stands as on any turn.
+    - **A system instruction,** the check of the words that arrived meanwhile, the audit or an instruction stage, receives no
+      message (the receiver's `docs/bmo-window.md`, 「A message and an instruction」): while the turn is on one, the
+      line of what the turn received stands nothing, and the state says what it checks the message on, "review 단계
+      확인 중" by the stage's own name, "호칭 확인 중" for the audit before the stages, or "도착한 메시지 확인 중" for
+      the arrived check, whatever the turn is doing within it; its last call and its thinking stand under it as on any
+      turn.
+    - A round that ends in a skip says it in the passing word as any silent turn does.
   - **The name is the one answering on that row.** Each running row is one speaker's turn, so each supervisor's row
     names that supervisor, and a room two answer at once stands both rows, each with its own name. The receiver names the speaker on every event of a turn and on the turn its picture holds, by the
     answering agent's registration name (the receiver's `docs/api.md`, 「Events and the live board」). A speaker
@@ -5790,7 +5801,7 @@ Four bounds keep it from growing forever.
     changes: it stood where it stands on the answer, and what arrives with the answer stands after it
     (「The order the chips stand in」).
 - **A round's situation note stands in its answer's record** as that round read it, last in the panel: the note's
-  words, and a 갱신 mark beside them where that round wrote it afresh (the receiver's `docs/drafting.md`, 「The
+  words, and a 갱신 mark beside them where that round wrote it afresh (the receiver's `docs/instruction.md`, 「The
   situation note」). The note is the room's live state and not the agent's memory, so it is read beside the verdicts
   and never as a verdict; a round that left no answer stands no note there.
 - **The room's situation as it stands now** is 방 정보's 상황 tab (「방 정보」): the note and the moment it last

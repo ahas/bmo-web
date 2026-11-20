@@ -4,7 +4,6 @@ import { describe, expect, test } from "bun:test";
 
 const source = await Bun.file(new URL("../../../apps/web/app/components/DraftVersions.vue", import.meta.url)).text();
 const pack = await Bun.file(new URL("../../../apps/web/i18n/locales/ko.yaml", import.meta.url)).text();
-const rows = await Bun.file(new URL("../../../apps/web/app/components/DraftRows.vue", import.meta.url)).text();
 
 describe("the answers a turn wrote", () => {
   test("stand only where the turn wrote more than one", () => {
@@ -17,9 +16,5 @@ describe("the answers a turn wrote", () => {
       expect(pack).toContain(`    ${key}:`);
     }
     expect(source).not.toContain('{{ version.opened }}');
-  });
-
-  test("stand under each round of the draft chip", () => {
-    expect(rows).toContain('<DraftVersions :versions="round.versions"');
   });
 });

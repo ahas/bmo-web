@@ -13,7 +13,9 @@
   <div class="flex min-w-0 flex-col items-start gap-(--chat-meta-gap)">
     <!-- What this turn was handed. A turn that read three messages piled up while the last
          answer was being written and a turn that read one look the same otherwise, and a turn
-         that read nothing but a quiet instruction looks like nothing at all. -->
+         that read nothing but a quiet instruction looks like nothing at all. While the turn is on
+         a system instruction of its pipeline, a stage or the arrived check, nothing was received
+         and the line stands nothing. -->
     <RollingSentence v-if="received !== null" tag="p" class="text-sm leading-(--chat-meta-line) text-muted" :keypath="received.keypath" :figures="received.figures" />
 
     <!-- What the agent writes as it works: the newest of its progress lines in the row's own words, read as a line
@@ -57,9 +59,10 @@ const props = defineProps<Props>();
 const { t } = useI18n();
 // The line names whoever this row is the turn of, which is the name the answer will stand under.
 const name = computed(() => turnName(t, otherAnswererOf(props.run.speaker)));
-// What the turn is at, in the pack's words; the chat agent's draft process, which another supervisor's turn runs
-// none of, names its step there.
-const state = computed(() => stateLine(t, props.run.progress, otherAnswererOf(props.run.speaker) === undefined ? props.run.draft ?? null : null));
+// The turn of the round's instruction pipeline the turn is on, where one has started.
+const step = computed(() => props.run.step ?? null);
+// What the turn is at, in the pack's words, its pipeline's step named there.
+const state = computed(() => stateLine(t, props.run.progress, step.value));
 // The last thinking block the turn's run wrote, where its picture carries one.
 const thinking = computed(() => thinkingBlock(props.run.progress));
 // The last call the turn made, and which call of the turn it is, counting the ones the picture dropped.
@@ -68,7 +71,7 @@ const lastAt = computed(() => (props.run.progress?.droppedActions ?? 0) + (props
 // What the turn has written as it works, the newest apart from the few before it.
 const said = computed(() => saidLines(props.run.progress));
 // What the turn was handed, in the room's own words.
-const received = computed(() => receivedLine(props.run.received));
+const received = computed(() => receivedLine(props.run.received, step.value));
 // The item whose Job holds the engine this turn waits on, which the line names on hover.
 const waitingItem = computed(() => (props.run.progress?.phase === "waiting" ? props.run.progress.waitingFor?.todoId ?? null : null));
 </script>

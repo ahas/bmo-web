@@ -54,7 +54,7 @@ function nameOf(line: LogLine, record: Record<string, unknown> | null): string |
   return typeof named === "string" && named !== "" ? named : null;
 }
 
-// The most runs one round is read as: its own turn and the questions its draft process asked.
+// The most runs one round is read as: its own turn and the turns its instruction pipeline asked.
 const ROUND_RUNS = 50;
 
 // What a run's ledger row says it spent, where it says anything.
@@ -74,7 +74,7 @@ function usageOf(usage: unknown): Omit<RoundSpend, "measured" | "unmeasured" | "
 
 /**
  * What the round's runs spent and what they did, read from the agency's ledger and its log of every run of the round
- * (docs/boundary.md, 「Gaps the console meets」): the round's own turn and each question its draft process asked the
+ * (docs/boundary.md, 「Gaps the console meets」): the round's own turn and each turn its instruction pipeline asked the
  * same session. Every `tool` line is one call; a pane program that leaves no such line names its calls on its
  * progress lines instead. The reference documents are its `context` lines, held or attached. None where the agency
  * holds no run of the round.

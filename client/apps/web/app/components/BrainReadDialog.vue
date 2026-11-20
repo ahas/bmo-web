@@ -35,7 +35,7 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { formatStamp } from "bmo-ui/app/domain/time";
 
 import { CHIP_ICONS } from "~/domain/chips";
-import { readLabel, readNew } from "~/domain/draft-process";
+import { readLabel, readNew } from "~/domain/drafting";
 
 import type { BarProperty } from "bmo-ui/app/domain/tabs";
 import type { BrainPiece, DraftRead } from "#shared/drafting";

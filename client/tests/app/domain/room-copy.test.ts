@@ -68,7 +68,7 @@ describe("a copied message whose verdicts could not be read whole", () => {
   });
 });
 
-// Every chip's content, in the chips' order: the verdicts, the draft process with each round row, the calls with
+// Every chip's content, in the chips' order: the verdicts, the draft rows of the round's pipeline, the calls with
 // their results' sizes, what the turn read from the brain, what it spent, and the send last.
 describe("a copied answer", () => {
   const line = (id: number, kind: string, fields: Record<string, unknown>) => ({
@@ -108,7 +108,7 @@ describe("a copied answer", () => {
         chips: {
           judgements: [],
           drafts: [
-            { id: 1, number: 1, question: "final", kind: "question", answerChars: 70, changed: false, outcome: "answered", detail: null, ms: 10_939, at: 1, answer: null, reads: [] },
+            { id: 1, number: 1, question: "review", kind: "stage", answerChars: 70, changed: false, outcome: "pass", detail: null, ms: 10_939, at: 1, answer: null, reads: [] },
             { id: 2, number: 2, question: "", kind: "end", answerChars: 0, changed: false, outcome: "message", detail: null, ms: 0, at: 2, answer: null, reads: READS }
           ],
           calls: copyCalls(lines),
@@ -122,7 +122,7 @@ describe("a copied answer", () => {
       "PASS",
       wording("room.label.chip_drafts"),
       "ROUND 0 supervisor",
-      "final",
+      "review",
       "10,939ms",
       wording("room.label.draft_reads", { names: "core facts, recent-notes.md" }),
       wording("room.label.chip_tools"),

@@ -55,7 +55,7 @@ const CHANGES: { name: string; method: string; path: (agent: string) => string; 
   { name: "change", method: "PATCH", path: (agent) => `/api/supervisors/${agent}`, handler: await routeOf("../../apps/web/server/api/supervisors/[name].patch"), body: { label: "A label" } },
   { name: "remove", method: "DELETE", path: (agent) => `/api/supervisors/${agent}`, handler: await routeOf("../../apps/web/server/api/supervisors/[name].delete") },
   { name: "settings", method: "PATCH", path: (agent) => `/api/supervisors/${agent}/settings`, handler: await routeOf("../../apps/web/server/api/supervisors/[name]/settings.patch"), body: {} },
-  { name: "draft", method: "PATCH", path: (agent) => `/api/supervisors/${agent}/draft`, handler: await routeOf("../../apps/web/server/api/supervisors/[name]/draft.patch"), body: {} }
+  { name: "instruction stages", method: "PATCH", path: (agent) => `/api/supervisors/${agent}/instruction-stages`, handler: await routeOf("../../apps/web/server/api/supervisors/[name]/instruction-stages.patch"), body: {} }
 ];
 
 // What the route scope and then the route answer a request: the scope's refusal, or the route's own status.

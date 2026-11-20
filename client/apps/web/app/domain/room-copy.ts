@@ -1,7 +1,7 @@
 import { formatStamp, formatTime } from "bmo-ui/app/domain/time";
 
 import { CHIP_LABELS } from "./chips";
-import { DRAFT_STAGE, draftKindText, draftOutcomeText, draftReadsParts, draftRound, readGroups, readHowText, readName, splitDraftJudgements } from "./draft-process";
+import { DRAFT_STAGE, draftKindText, draftOutcomeText, draftReadsParts, draftRound, readGroups, readHowText, readName, splitDraftJudgements } from "./drafting";
 import { readWholeJudgements, stageLabel, wholeOf } from "./judgements";
 import { readRunLines } from "./log";
 import { countText } from "./numbers";
@@ -47,7 +47,7 @@ export interface CopyChips {
   spend: RoundSpend | null;
 }
 
-// What a message carries that its chips read: the round its draft process ran in, the runs its tools were called
+// What a message carries that its chips read: the round its instruction pipeline ran in, the runs its tools were called
 // in, and what the round spent.
 export interface ChipSource {
   judgements: readonly JudgementMark[];
@@ -71,7 +71,7 @@ export function reportOf(t: Translate, title: string, chatId: number, items: Cop
 }
 
 // The message, then every chip's content in the order docs/web.md's 「What a copy holds」 gives: its verdicts, its
-// draft process, its calls, what it read from the brain, what it spent, and its send last.
+// draft rows, its calls, what it read from the brain, what it spent, and its send last.
 function blockOf(t: Translate, item: CopyItem): string {
   const head = `[${formatStamp(item.sentAt)}] ${item.senderName}(${item.senderId ?? MISSING}) #${item.messageId ?? MISSING}: ${item.text}`;
   const read = new Map((item.chips?.judgements ?? []).map((judgement) => [judgement.id, judgement]));

@@ -47,7 +47,7 @@ const READS: { name: string; handler: (event: RouteEvent) => Promise<unknown>; p
   { name: "supervisor's road", handler: await route("supervisors/[name]/road.get"), params: (agent) => ({ name: agent }) },
   { name: "supervisor's rooms", handler: await route("supervisors/[name]/rooms.get"), params: (agent) => ({ name: agent }) },
   { name: "supervisor's settings", handler: await route("supervisors/[name]/settings.get"), params: (agent) => ({ name: agent }) },
-  { name: "supervisor's draft", handler: await route("supervisors/[name]/draft.get"), params: (agent) => ({ name: agent }) }
+  { name: "supervisor's instruction stages", handler: await route("supervisors/[name]/instruction-stages.get"), params: (agent) => ({ name: agent }) }
 ];
 
 // The calls a read made beyond asking whose agents are whose.

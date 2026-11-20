@@ -103,7 +103,7 @@ describe.skipIf(!origin || !touchReady())("copying a message", () => {
       actions: { agent: "agent-a", runs: ["run-7"], documents: 0, held: 0, tools: 1, brain: 0, records: [] }
     };
     const rows = [
-      { id: 1, number: 1, question: "final", kind: "question", answerChars: 70, changed: false, outcome: "answered", detail: null, ms: 10_939, at: NOW - 50, answer: null, reads: [] },
+      { id: 1, number: 1, question: "review", kind: "stage", answerChars: 70, changed: false, outcome: "pass", detail: null, ms: 10_939, at: NOW - 50, answer: null, reads: [] },
       { id: 2, number: 2, question: "", kind: "end", answerChars: 0, changed: false, outcome: "message", detail: null, ms: 0, at: NOW - 49, answer: null, reads: [] }
     ];
     const logLine = (id: number, kind: string, fields: Record<string, unknown>) => ({
@@ -133,7 +133,7 @@ describe.skipIf(!origin || !touchReady())("copying a message", () => {
 
       expect(copied).toContain(`#${drafted.messageId}: ${drafted.text}`);
       expect(copied).toContain(wording("room.label.chip_drafts"));
-      expect(copied).toContain("final");
+      expect(copied).toContain(`review ${wording("room.label.draft_kind_stage")} ${wording("room.label.draft_outcome_pass")}`);
       expect(copied).toContain("10,939ms");
       expect(copied).toContain(wording("room.label.chip_tools"));
       expect(copied).toContain(`bash: ${wording("room.label.copy_result_chars", { n: "1,234" })}`);

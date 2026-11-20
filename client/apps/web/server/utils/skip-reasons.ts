@@ -11,8 +11,7 @@ import type { Judgement, LatestSkipReason, SkipReason } from "#shared/types";
 // is kept here by its text and language, so a reason is translated once while the server runs; a translation that
 // fails or comes back not whole stands as the English line, and is asked for again on the next read.
 
-// The receiver's words for a skip that named no reason (the receiver's `docs/drafting.md`, 「What the receiver reads of
-// an answer」).
+// The receiver's words for a skip that named no reason (the receiver's `docs/instruction.md`, 「What it is」).
 export const NO_REASON_GIVEN = "none given";
 
 // The role the translator is asked for: the reasons are a verdict's words, which the administrator alone reads.

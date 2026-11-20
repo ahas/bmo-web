@@ -149,7 +149,7 @@
       </template>
 
       <!-- The turn's whole record, in the order the turn made it: what it was handed from the brain, every call it
-           made and what came back, each question of its draft process, the round's judgement, and the situation note
+           made and what came back, each turn of its instruction pipeline, the round's judgement, and the situation note
            as that round read it. Nothing here is cut on a line and nothing scrolls in a box of its own; the bubble's
            width wraps what is long and the panel grows by what it holds. -->
       <div v-if="recordOpen" data-record class="flex w-full min-w-0 flex-col gap-3">
@@ -176,8 +176,8 @@
 
             <TurnOpening v-else-if="entry.kind === 'opening'" :instructions="entry.opening.instructions" :chat-id="props.chatId" class="w-full" />
 
-            <!-- One question of the round's draft process, with what it was asked, what it answered, and the answer
-                 or the change it wrote, whole. -->
+            <!-- One turn of the round's pipeline, with what it was asked, how it ended, and the message a stage
+                 revised or the change it made, whole. -->
             <div v-else-if="entry.kind === 'draft'" data-record-draft class="flex w-full min-w-0 flex-col gap-1">
               <div class="flex w-full min-w-0 flex-wrap items-center gap-x-2 px-1 text-sm text-muted tabular-nums">
                 <span class="text-dimmed">{{ countText(entry.line.number) }}</span>
@@ -199,7 +199,7 @@
 
             <p v-else-if="entry.kind === 'end'" data-draft-end class="flex flex-wrap items-center gap-x-2 px-1 text-sm text-muted tabular-nums">
               <UIcon name="i-material-symbols-flag-outline" aria-hidden="true" class="size-4 shrink-0 text-dimmed" />
-              <span class="text-highlighted" :class="entry.withheld ? 'text-error' : ''">{{ entry.outcome }}</span>
+              <span class="text-highlighted">{{ entry.outcome }}</span>
               <span v-if="entry.ms !== null">{{ secondsText($t, entry.ms) }}</span>
               <time v-if="entry.at !== null" class="ms-auto text-dimmed">{{ formatClock(entry.at) }}</time>
             </p>
@@ -285,11 +285,11 @@ import { decidesMessage, judgesAnswer, keptOffer, lineAnswer, lineKept, narrowed
 import { brainActions, progressLines, turnActions } from "~/domain/working";
 import { formatClock, formatStamp } from "bmo-ui/app/domain/time";
 import { roundChip } from "~/domain/turns";
-import { draftAsked, draftDiff, draftRound, endLine, gateRoundLines, roundLines, splitDraftJudgements } from "~/domain/draft-process";
+import { draftAsked, draftDiff, draftRound, endLine, gateRoundLines, roundLines, splitDraftJudgements } from "~/domain/drafting";
 
 import type { AgentLogLine, BriefingReading, ExactMessageId, Judgement, JudgementMark, JudgementRoad, MessageBriefing, RoundSpend, TurnAction, TurnActionsRef, TurnRecord } from "#shared/types";
 import type { LogRow } from "~/domain/log";
-import type { DraftDiffLine, RoundLine } from "~/domain/draft-process";
+import type { DraftDiffLine, RoundLine } from "~/domain/drafting";
 import type { DraftRead, DraftRow, DraftSummary, DraftVersion } from "#shared/drafting";
 import type { BriefingChip, VerdictChip } from "~/domain/chips";
 import type { SpendChip } from "~/domain/turns";
@@ -302,7 +302,7 @@ interface Props {
   spend?: RoundSpend | null;
   // Where what that turn did is kept, on the same message.
   actionsAt?: TurnActionsRef | null;
-  // How the round's draft process made the answer, on the same message.
+  // How the round's pipeline made the answer, on the same message.
   drafts?: DraftSummary | null;
   // The round's whole record as the page reads it, for the answer's one record press: the gates that read the
   // person's message and the send and checks of the answer alike.
@@ -458,7 +458,7 @@ useBotEvents((event) => {
 });
 
 // The turn's record, spread as one panel in the order the turn made it (docs/web.md, the room screen's chip line):
-// what it read from the brain, every call and what came back, each question of its draft process, the round's
+// what it read from the brain, every call and what came back, each turn of its instruction pipeline, the round's
 // judgement, and the situation note as that round read it.
 const recordOpen = ref(false);
 const loadingRecord = ref(false);
@@ -536,7 +536,7 @@ type RecordEntry =
   | { kind: "call"; row: LogRow }
   | { kind: "said"; text: string }
   | { kind: "draft"; line: RoundLine; diff: DraftDiffLine[]; versions: DraftVersion[]; at: number }
-  | { kind: "end"; outcome: string; withheld: boolean; ms: number | null; at: number | null }
+  | { kind: "end"; outcome: string; ms: number | null; at: number | null }
   | { kind: "opening"; opening: NonNullable<Judgement["opening"]> }
   | {
       kind: "judgement";
@@ -581,7 +581,7 @@ const timeline = computed<RecordEntry[]>(() => {
       else if (said.has(line.id)) push(line.at, { kind: "said", text: line.text });
     }
 
-    // Each question of the round's draft process, with the answer or the change it wrote.
+    // Each turn of the round's pipeline, with the message a stage revised or the change it made.
     const rows = draftRows.value;
 
     if (rows !== null && rows.length > 0) {
@@ -605,7 +605,7 @@ const timeline = computed<RecordEntry[]>(() => {
         });
       }
     } else {
-      // The gate wrote the round's questions where the round log holds none; they stand as the rounds they name.
+      // The gate wrote the round's turns where the round log holds none; they stand as the turns they name.
       for (const line of gateRoundLines(t, recordSplit.value.drafts)) {
         const judgement = props.roundJudgements.find((one) => `judgement:${one.id}` === line.key);
 
@@ -683,7 +683,7 @@ async function toggleRecord(): Promise<void> {
     if (!needLines || at === null) return null;
 
     try {
-      // Every run of the round, its own turn first and then each question its draft process asked, read as one.
+      // Every run of the round, its own turn first and then each turn its instruction pipeline asked, read as one.
       const lines = await Promise.all(at.runs.map((run) => readRunLines(at.agent, run)));
 
       loadedLines.value = lines.flat();
@@ -739,7 +739,7 @@ const split = computed(() => splitDraftJudgements(props.judgements));
 // A person's message's own verdicts, which its mark is coloured by; an answer carries none (docs/web.md, the room screen's verdicts).
 const verdicts = computed<JudgementMark[]>(() => (props.answer ? [] : split.value.verdicts.filter((one) => !judgesAnswer(one))));
 
-// The record's draft part stands on a turn that has ended and whose round's process the page read or the gate wrote of.
+// The record's draft part stands on a turn that has ended and whose round's pipeline the page read or the gate wrote of.
 const roundOfDrafts = computed<string | null>(() => draftRound(props.drafts, split.value.drafts));
 const drafted = computed<boolean>(() => props.answer && props.live === null && roundOfDrafts.value !== null && (props.drafts !== null || split.value.drafts.length > 0));
 const draftCount = computed<number>(() => drafted.value ? draftAsked(props.drafts, split.value.drafts) : 0);

@@ -117,7 +117,7 @@ describe("what the block stands while a turn runs", () => {
 
   test("the count of what the turn was handed is still there", () => {
     expect(template).toContain(":figures=\"received.figures\"");
-    expect(source).toContain("receivedLine(props.run.received)");
+    expect(source).toContain("receivedLine(props.run.received, step.value)");
   });
 
   test("the state shimmers at the row's edge in the pack's words, and nothing on it presses or folds", () => {
@@ -185,16 +185,6 @@ describe("the row the running turn is handed to", () => {
   });
 });
 
-// The chat agent's line names the question its draft process is on, and another supervisor's runs no process (docs/web.md,
-// the room screen's running line).
-describe("the draft step on the line", () => {
-  test("is handed the question the turn is on where the turn is the chat agent's, and none where it is another supervisor's", async () => {
-    const shipped = await Bun.file(new URL("../../../apps/web/app/components/RunProgress.vue", import.meta.url)).text();
-
-    expect(shipped).toContain("stateLine(t, props.run.progress, otherAnswererOf(props.run.speaker) === undefined ? props.run.draft ?? null : null)");
-  });
-});
-
 // What the turn writes as a draft of its message is drawn nowhere before the message is sent (docs/web.md, 「Nothing of
 // the answer stands before it is sent」). The block is rendered as the server renders it from a picture holding drafts,
 // with the library's and the app's other components stood in for by ones that draw what they are handed, and the pack
@@ -256,15 +246,35 @@ describe("a picture holding drafts of the turn's message", () => {
     await GlobalRegistrator.unregister();
   });
 
-  test("draws none of them and no mark, and still draws what the turn says of its work and what it is doing", async () => {
+  // Rendered as the server renders it, the stand-ins in place and the pack read by its keys.
+  async function rendered(shown: RunState): Promise<HTMLElement> {
     const Progress = ((await import(appFile("components", "RunProgress.vue"))) as { default: Component }).default;
-    const app = createSSRApp({ render: () => h(Progress, { run }) });
+    const app = createSSRApp({ render: () => h(Progress, { run: shown }) });
 
     for (const [name, component] of Object.entries(standIns)) app.component(name, component);
 
     const holder = document.createElement("div");
 
     holder.innerHTML = await renderToString(app);
+
+    return holder;
+  }
+
+  // A turn on a system instruction of its pipeline carries no message received and names the stage it checks; the
+  // message turn stands what it received (docs/web.md, the room screen's running line).
+  test("stands no message received while the turn is on a stage, and names the stage as its state", async () => {
+    const onStage = await rendered({ ...run, step: { number: 1, count: 1, question: "review", input: "system" } });
+
+    expect(onStage.querySelector("[data-stood-received]")).toBeNull();
+    expect(onStage.querySelector("[data-stood-state]")?.textContent).toBe("room.status.step_stage");
+
+    const onMessage = await rendered({ ...run, step: { number: 1, count: 1, question: "message", input: "message" } });
+
+    expect(onMessage.querySelector("[data-stood-received]")?.textContent).toBe("room.status.received_messages");
+  });
+
+  test("draws none of them and no mark, and still draws what the turn says of its work and what it is doing", async () => {
+    const holder = await rendered(run);
 
     const text = holder.textContent ?? "";
 

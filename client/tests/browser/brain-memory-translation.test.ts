@@ -105,7 +105,7 @@ async function open(width: number, height: number, translator: "reads" | "busy")
   ]);
   await context.route(new RegExp(`/api/rooms/${CHAT}/messages(\\?|$)`), (route) => route.fulfill({ json: { messages: [MESSAGE], judgements: [], hasMore: false } }));
   await context.route(new RegExp(`/api/rooms/${CHAT}/round-figures(\\?|$)`), (route) => route.fulfill({ json: FIGURES }));
-  // The round asked its draft process nothing, so the rows the record reads as it first opens are none.
+  // The round asked its instruction pipeline nothing, so the rows the record reads as it first opens are none.
   await context.route(new RegExp(`/api/rooms/${CHAT}/drafts(\\?|$)`), (route) => route.fulfill({ json: { rows: [] } }));
   await context.route(new RegExp(`/api/rooms/${CHAT}/brain-piece(\\?|$)`), (route) => route.fulfill({ json: PIECE }));
   await context.route(/\/api\/translations$/, (route) =>

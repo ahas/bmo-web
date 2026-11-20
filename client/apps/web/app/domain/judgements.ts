@@ -50,7 +50,7 @@ export const STAGES: readonly StageMeta[] = [
   { slug: "people-search", label: "room.label.stage_people_search" },
   { slug: "sanitizer", label: "room.label.stage_sanitizer" },
   { slug: "send", label: "room.label.stage_send", answer: true },
-  // The round's draft process, row by row as the gate wrote it (the receiver's docs/drafting.md).
+  // The round's instruction pipeline, row by row as the gate wrote it (the receiver's docs/instruction.md).
   { slug: "draft", label: "room.label.stage_draft", answer: true },
   // A message a turn read before the last one it read, pointing at the message its verdicts stand under.
   { slug: "read-with", label: "room.label.stage_read_with" },

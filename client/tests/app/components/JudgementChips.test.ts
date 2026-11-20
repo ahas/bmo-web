@@ -79,7 +79,7 @@ describe("the record, in the order the turn made it", () => {
     expect(record).toContain("whitespace-normal break-keep wrap-anywhere");
   });
 
-  test("each question of the draft process stands at its own moment, its answer or change whole", () => {
+  test("each turn of the round's pipeline stands at its own moment, its answer or change whole", () => {
     expect(script).toContain('push(row.at, {');
     expect(script).toContain("draftDiff(before, line.answer)");
     expect(record.indexOf("data-record-draft")).toBeGreaterThan(-1);
@@ -93,7 +93,7 @@ describe("the record, in the order the turn made it", () => {
     expect(record).toContain('<DraftVersions :versions="entry.versions"');
   });
 
-  test("the end of the process and each gate's card follow, cards by their own moment", () => {
+  test("the end of the pipeline and each gate's card follow, cards by their own moment", () => {
     expect(script).toContain("const end = endLine(t, rows, recordSplit.value.drafts, props.drafts);");
     expect(script).toContain("push(endRow?.at ?? null, { kind: \"end\", ...end,");
     expect(script).toContain('push(judgement.createdAt, {\n        kind: "judgement",');

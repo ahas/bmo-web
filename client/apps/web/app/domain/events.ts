@@ -22,9 +22,9 @@ export interface RunState {
   // Who is answering, as the receiver named the turn; absent where it named nobody. Whether it is the default answerer's
   // or another supervisor's is read off it as the turn is shown (`otherAnswererOf`).
   speaker?: TurnSpeaker;
-  // The question the turn's draft process is on, as its start told it: absent until the first question starts, and
-  // again once the process has ended.
-  draft?: DraftStep;
+  // The turn of the round's instruction pipeline the turn is on, as its start told it: absent until the first starts,
+  // and again once the pipeline has ended.
+  step?: PipelineStep;
   // Set on the state the chat agent's row holds while it only listens in a group room's open window: no turn
   // runs, so nothing was handed and nothing is in progress (docs/web.md, 「The listening row」). It
   // carries when that window closes, in unix seconds on this screen's clock, which the line counts
@@ -36,14 +36,19 @@ export interface RunState {
   answer?: ExactMessageId;
 }
 
-// A question of the draft process as the running line reads it, from the event that tells it starting (the
-// receiver's docs/drafting.md, 「The round log」): its place in the process from 1, how many questions the process
-// asks, and its name.
-export interface DraftStep {
+// A turn of the round's instruction pipeline as the running line reads it, from the event that tells it starting (the
+// receiver's docs/instruction.md, 「The round log」; docs/receiver.md, 「The event stream」): its place from 1 among the
+// turns of its sort and how many there are, its name — `message`, `arrived` or the stage's — and what it carries:
+// `message` for the message turn, which carries the room's words, `system` for a system instruction, a stage or the
+// check of the words that arrived meanwhile (docs/bmo-window.md, 「A message and an instruction」).
+export interface PipelineStep {
   number: number;
   count: number;
   question: string;
+  input: StepInput;
 }
+
+export type StepInput = "message" | "system";
 
 export interface RoomRun {
   // The turns going in the room, one to a speaker, in the order they began.
@@ -953,14 +958,6 @@ const SILENT_OUTCOMES: Record<string, string> = {
   // person is still typing, so it said nothing and left the room to finish.
   waited: "room.status.outcome_waited"
 };
-// How a draft process that ended other than by sending or skipping is said once its turn has ended: a text the
-// checks withheld, and a ceiling that passed, whether what stood went out or nothing did. A plain skip is said as any
-// turn that held its peace.
-const DRAFT_OUTCOMES: Record<string, string> = {
-  withheld: "room.status.outcome_draft_withheld",
-  "ceiling-skip": "room.status.outcome_draft_ceiling_skip",
-  "ceiling-message": "room.status.outcome_draft_ceiling_message"
-};
 export { otherAnswererOf };
 
 // Which turn of a room a run is: its speaker's name, which every event of the turn carries. A room two agents answer
@@ -1103,8 +1100,8 @@ export function stepRoomTurns(rooms: ReadonlyMap<number, RunState[]>, event: Bot
   if (event.type === "run-progress") {
     if (was === undefined || event.progress === undefined) return rooms;
 
-    // The lines the round wrote as it worked stand until a picture brings lines of its own: a later question of
-    // the draft process opens a fresh picture, which has written none yet (docs/web.md, the room screen's progress
+    // The lines the round wrote as it worked stand until a picture brings lines of its own: a later turn of the
+    // instruction pipeline opens a fresh picture, which has written none yet (docs/web.md, the room screen's progress
     // lines).
     const said = (event.progress.said ?? []).length > 0 ? event.progress.said : was.progress?.said;
     const progress = said === undefined ? event.progress : { ...event.progress, said };
@@ -1115,24 +1112,24 @@ export function stepRoomTurns(rooms: ReadonlyMap<number, RunState[]>, event: Bot
     return withRoom(rooms, event.chatId, putTurn(held, { ...was, progress }));
   }
 
-  // A question of the draft process starting: the chat agent's turn is now on it. The process's end leaves the line as
-  // any turn's again until the turn itself ends. The rows written as questions are answered move nothing, so a
-  // round that waits after its first question's start stands on it with no row to come. A draft event reaches the
-  // turn of the speaker it names.
+  // A turn of the instruction pipeline starting: the speaker's turn is now on it. The pipeline's end leaves the line as
+  // any turn's again until the turn itself ends. The rows written as turns are answered move nothing, so a round that
+  // waits after its message turn's start stands on it with no row to come. A start that names no input is the
+  // message turn's, the one that carries the room's words. A draft event reaches the turn of the speaker it names.
   if (event.type === "draft") {
     if (was === undefined) return rooms;
 
     if (event.kind === "end") {
-      const { draft: _ended, ...rest } = was;
+      const { step: _ended, ...rest } = was;
 
-      return was.draft === undefined ? rooms : withRoom(rooms, event.chatId, putTurn(held, rest));
+      return was.step === undefined ? rooms : withRoom(rooms, event.chatId, putTurn(held, rest));
     }
 
     if (event.kind !== "start" || typeof event.number !== "number" || typeof event.count !== "number") return rooms;
 
-    const step: DraftStep = { number: event.number, count: event.count, question: event.question ?? "" };
+    const step: PipelineStep = { number: event.number, count: event.count, question: event.question ?? "", input: event.input === "system" ? "system" : "message" };
 
-    return withRoom(rooms, event.chatId, putTurn(held, { ...was, draft: step }));
+    return withRoom(rooms, event.chatId, putTurn(held, { ...was, step }));
   }
 
   // A turn ends four ways and nothing else closes one. The room's own archive and the queue move
@@ -1200,8 +1197,6 @@ export function useRoomRun(chatId: number, handlers: RoomRunHandlers): RoomRun {
   const outcome = ref<RoomOutcome | null>(null);
 
   let fading: ReturnType<typeof setTimeout> | null = null;
-  // How the chat agent's draft process ended, where it is said when its turn ends.
-  let drafted: string | null = null;
 
   // A turn that has ended and whose answer the room is still reading. The block stands through it:
   // taking it away at the ending would leave the conversation short by the block's own height
@@ -1271,9 +1266,7 @@ export function useRoomRun(chatId: number, handlers: RoomRunHandlers): RoomRun {
   function announce(event: BotEvent): void {
     const kept = event.type === "skipped" && event.messageId !== null;
     const speaker = otherAnswererOf(event.speaker);
-    const label = (speaker === undefined ? drafted : null) ?? (kept ? undefined : SILENT_OUTCOMES[event.type]);
-
-    if (speaker === undefined) drafted = null;
+    const label = kept ? undefined : SILENT_OUTCOMES[event.type];
 
     outcome.value = label === undefined ? null : { key: label, ...(speaker === undefined ? {} : { speaker }) };
 
@@ -1304,18 +1297,12 @@ export function useRoomRun(chatId: number, handlers: RoomRunHandlers): RoomRun {
 
     const key = runKey(event.speaker);
 
-    if (event.type === "draft") {
-      if (event.kind === "end") drafted = DRAFT_OUTCOMES[event.outcome ?? ""] ?? null;
-
-      return;
-    }
+    if (event.type === "draft") return;
 
     if (event.type === "run-started") {
       endings.set(key, (endings.get(key) ?? 0) + 1);
       unsettle(key);
       outcome.value = null;
-
-      if (otherAnswererOf(event.speaker) === undefined) drafted = null;
 
       return;
     }

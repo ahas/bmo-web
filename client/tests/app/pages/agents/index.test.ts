@@ -36,7 +36,7 @@ const popover = await read("../../components/SettingsPopoverCell.vue");
 const input = await read("../../components/SettingsInputCell.vue");
 const generation = await read("../../components/GenerationFields.vue");
 const cells = await Bun.file(new URL("../../../../apps/web/app/domain/settings-cells.ts", import.meta.url)).text();
-const draftFields = await read("../../components/SupervisorDraftFields.vue");
+const stagesFields = await read("../../components/SupervisorStagesFields.vue");
 const supervisorDialog = await read("../../components/SupervisorSettingsDialog.vue");
 const settingsTable = await read("../../components/SettingsTable.vue");
 
@@ -220,15 +220,13 @@ describe("the supervisors tab", () => {
     expect(scriptOf(supervisors)).toContain("description: t(\"agents.message.supervisor_seeded\")");
   });
 
-  test("keeps a supervisor's draft process in its own settings dialog, a block of the form's one save, and none on the tab", () => {
-    expect(templateOf(supervisors)).not.toContain("Draft");
-    expect(templateOf(supervisorDialog)).toContain('<SupervisorDraftFields v-else :name="props.name" :view="draft"');
-    expect(scriptOf(supervisorDialog)).toContain("`/api/supervisors/${encodeURIComponent(props.name)}/draft`");
-    expect(scriptOf(draftFields)).toContain("useFormPart({");
-    expect(scriptOf(draftFields)).toContain('{ method: "PATCH", body: draftChange(props.view, form.value) }');
-    // A list may not name the supervisor's own judgement, which is asked before any process.
-    expect(scriptOf(draftFields)).toContain("filter((name) => name !== SUPERVISOR_QUESTION)");
-    for (const field of ['v-model="form[field]" v-model:off="form.off"', 'v-model="question.text"']) expect(templateOf(draftFields)).toContain(field);
+  test("keeps a supervisor's instruction stages in its own settings dialog, a block of the form's one save, and none on the tab", () => {
+    expect(templateOf(supervisors)).not.toContain("Stages");
+    expect(templateOf(supervisorDialog)).toContain('<SupervisorStagesFields v-else :name="props.name" :view="stages"');
+    expect(scriptOf(supervisorDialog)).toContain("`/api/supervisors/${encodeURIComponent(props.name)}/instruction-stages`");
+    expect(scriptOf(stagesFields)).toContain("useFormPart({");
+    expect(scriptOf(stagesFields)).toContain('{ method: "PATCH", body: stagesChange(props.view, form.value) }');
+    expect(templateOf(stagesFields)).toContain('v-model:text="stage.text"');
   });
 });
 

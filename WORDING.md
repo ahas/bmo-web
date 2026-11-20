@@ -129,6 +129,19 @@
   over) or 작업 알림 (the program's own notice); never 판, which reads as 판정.
 - a round's record on its answer → 판정 기록: 판정 기록, 기록, 펼치기, 접기. The one press carrying the turn's
   brain, calls, drafts and judgement; its parts say 브레인, 툴 사용, 드래프트, 판정.
+- one of the system instructions a supervisor's message passes in order before it goes out → 지시 단계: 지시 단계,
+  지시 단계 없음, 지시 단계에 추가, 지시 단계에서 제거, 단계 추가, 사용하지 않는 단계, and on a running turn `{name} 단계
+  확인 중`; the settings block that holds them keeps the feature's word, 드래프트. A stage stands under its own name, a
+  kebab-case key never translated; its text → 내용, put back by 기본 내용으로 되돌리기. Never 질문, 검토 단계 or 체크리스트
+  for a stage.
+- the fixed check before the stages of how a message addresses the people it answers → 호칭 확인, and on a running turn
+  호칭 확인 중. Never 감사, 오디트 or 이름 점검.
+- the check of the words that arrived while a round worked → 도착 확인, and on a running turn 도착한 메시지 확인 중. Never
+  새 말 확인 or 추가 메시지 점검.
+- how a turn of a round's pipeline ended, in its 드래프트 line → 답함, 보냄, 넘김, 실패, and 사유 없이 넘김 for a skip that
+  named no reason and was asked once more; how the 호칭 확인 or a stage ended → 통과 where the message went on as it stood,
+  수정함 where it rewrote it, 실패. The turn that took longest → 오래 걸린 턴. Never 다시 질문, 패스, 리비전 or 라운드 for a
+  turn.
 - a room's situation note → 상황: 상황, 방의 상황, 방의 상황 보기, 이 방의 지금 상황, 갱신, 상황 노트 없음. Never 현황,
   상태 노트, 컨텍스트 노트.
 - the calendar → 캘린더 (the screen, and one calendar in it); an event → 일정, as in 내 일정, 조직 일정; a reminder → 알림; a recurrence → 반복.

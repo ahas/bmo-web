@@ -9597,6 +9597,13 @@ because it read nothing — its `tsconfig.json` has an empty file list and is a 
 only as references, so a call not following the references has no file to see. Planting a type error and running
 the two side by side, the former ends 0 and only `bun run typecheck` catches it.
 
+The check takes a larger heap than Node gives by default on a smaller machine. It checks every project the app's
+`tsconfig.json` refers to in one `vue-tsc` process, the tests' project reading the whole app again, and what that
+process holds at its peak, near two gigabytes, meets the default limit of a machine with eight gigabytes of
+memory or less, where the collector runs until the process dies for want of heap. So the app's `typecheck` script
+raises the limit to four gigabytes (`NODE_OPTIONS=--max-old-space-size=4096`), which `nuxi typecheck` hands on to
+the `vue-tsc` it starts.
+
 Do not build by hand. The one road to put the console up is the deployment, and the build is its step.
 
 ## Running as a service

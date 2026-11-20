@@ -8,7 +8,7 @@
     "dev": "bun --bun nuxi dev",
     "build": "NODE_OPTIONS=--max-old-space-size=6144 nuxi build",
     "start": "bun .output/server/index.mjs",
-    "typecheck": "nuxi typecheck"
+    "typecheck": "NODE_OPTIONS=--max-old-space-size=4096 nuxi typecheck"
   },
   "dependencies": {
     "@agency/client": "file:../../vendor/agency-client-0.1.0-rev.10-e6d5843.tgz",

@@ -22,7 +22,8 @@
       </template>
       <UInput
         v-model="written"
-        class="w-28 text-end tabular-nums"
+        class="w-28"
+        :ui="{ base: 'text-end tabular-nums' }"
         inputmode="numeric"
         :loading="saving"
         :aria-label="$t('agents.label.deploy_flush')"
@@ -31,7 +32,7 @@
         @blur="save"
       >
         <template #trailing>
-          <span class="text-sm text-muted">{{ $t("agents.label.deploy_flush_unit") }}</span>
+          <span class="text-sm text-muted" data-deploy-flush-unit>{{ $t("agents.label.deploy_flush_unit") }}</span>
         </template>
       </UInput>
     </SettingsRow>

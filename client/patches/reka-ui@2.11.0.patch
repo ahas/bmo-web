@@ -37,6 +37,59 @@ index aeae95620ae16e9394c13d45f20b55d46ad79ca6..cc8d6f1879e7103c4de7d7805d8d4523
  			disabled,
  			open,
  			unmountOnHide,
+diff --git a/dist/Tabs/TabsIndicator.cjs b/dist/Tabs/TabsIndicator.cjs
+index 46ec019c5fb1abf2df1c2f12879f8e99c631bf16..dd10eecffcb2d33292d0315b1189bbe32b5cbe18 100644
+--- a/dist/Tabs/TabsIndicator.cjs
++++ b/dist/Tabs/TabsIndicator.cjs
+@@ -36,8 +36,16 @@ var TabsIndicator_vue_vue_type_script_setup_true_lang_default = /* @__PURE__ */
+ 			immediate: true,
+ 			flush: "post"
+ 		});
+-		(0, vue.watchPostEffect)(() => {
++		function readTabs() {
+ 			tabs.value = Array.from(context.tabsList.value?.querySelectorAll("[role=\"tab\"]") || []);
++		}
++		(0, vue.watchPostEffect)(readTabs);
++		(0, __vueuse_core.useMutationObserver)(context.tabsList, () => {
++			readTabs();
++			updateIndicatorStyle();
++		}, {
++			childList: true,
++			subtree: true
+ 		});
+ 		(0, __vueuse_core.useResizeObserver)((0, vue.computed)(() => [context.tabsList.value, ...tabs.value]), updateIndicatorStyle);
+ 		function updateIndicatorStyle() {
+diff --git a/dist/Tabs/TabsIndicator.js b/dist/Tabs/TabsIndicator.js
+index be2fad95c8a720e8620cb2075965c5a80c1c41c4..edb0dc948adf09e93a7725d5d6462e291416cb3f 100644
+--- a/dist/Tabs/TabsIndicator.js
++++ b/dist/Tabs/TabsIndicator.js
+@@ -2,7 +2,7 @@ import { useForwardExpose } from "../shared/useForwardExpose.js";
+ import { Primitive } from "../Primitive/Primitive.js";
+ import { injectTabsRootContext } from "./TabsRoot.js";
+ import { computed, createBlock, createCommentVNode, defineComponent, mergeProps, openBlock, ref, renderSlot, unref, watch, watchPostEffect, withCtx } from "vue";
+-import { useMounted, useResizeObserver } from "@vueuse/core";
++import { useMounted, useMutationObserver, useResizeObserver } from "@vueuse/core";
+ 
+ //#region src/Tabs/TabsIndicator.vue?vue&type=script&setup=true&lang.ts
+ var TabsIndicator_vue_vue_type_script_setup_true_lang_default = /* @__PURE__ */ defineComponent({
+@@ -35,8 +35,16 @@ var TabsIndicator_vue_vue_type_script_setup_true_lang_default = /* @__PURE__ */
+ 			immediate: true,
+ 			flush: "post"
+ 		});
+-		watchPostEffect(() => {
++		function readTabs() {
+ 			tabs.value = Array.from(context.tabsList.value?.querySelectorAll("[role=\"tab\"]") || []);
++		}
++		watchPostEffect(readTabs);
++		useMutationObserver(context.tabsList, () => {
++			readTabs();
++			updateIndicatorStyle();
++		}, {
++			childList: true,
++			subtree: true
+ 		});
+ 		useResizeObserver(computed(() => [context.tabsList.value, ...tabs.value]), updateIndicatorStyle);
+ 		function updateIndicatorStyle() {
 diff --git a/dist/Tooltip/TooltipContentImpl.cjs b/dist/Tooltip/TooltipContentImpl.cjs
 index c76d4c159fc68f160e315f049faa78e2b27ce5de..21f5ed28e79dc06bc099ef4d5227a389f4b69b21 100644
 --- a/dist/Tooltip/TooltipContentImpl.cjs

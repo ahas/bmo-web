@@ -2,7 +2,7 @@ import { ref } from "vue";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { shortModel } from "#shared/model-short";
 
-import type { ProviderModelsView, ProviderView, QuotaView, RoadView, RoleSessions, SupportCount } from "#shared/axes";
+import type { ProviderModelsView, ProviderView, RoadView, RoleSessions, SupportCount } from "#shared/axes";
 import type { Translate } from "#shared/wording";
 import type { Ref } from "vue";
 
@@ -115,21 +115,6 @@ export function effortChoices(provider: ProviderView | undefined, models: Provid
   const named = models?.models.find((one) => one.id === model)?.efforts ?? [];
 
   return named.length === 0 ? [...EFFORT_LEVELS] : named;
-}
-
-/** What a provider has left, in words: the share left and the window that counted, or a balance; empty where it reports
- * none. */
-export function quotaText(t: Translate, quota: QuotaView | null): string {
-  if (quota === null) return "";
-  if (quota.left !== null) {
-    const share = `${percentOf(quota.left)}%`;
-
-    return quota.window === null ? t("agents.label.quota_left", { share }) : t("agents.label.quota_left_window", { share, window: quota.window });
-  }
-
-  if (quota.balance !== null) return t("agents.label.quota_balance", { amount: quota.balance.toLocaleString("ko-KR") });
-
-  return "";
 }
 
 // The models each provider holds, read once a screen asks for them and held while the page stands; a read that failed

@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-import { accountCellText, accountChoiceNote, accountChoices, accountKindLabel, accountLoginText, accountMark, nextAccountName } from "../../../apps/web/app/domain/accounts";
+import { accountCellText, accountChoices, accountKindLabel, accountLoginText, accountMark, nextAccountName } from "../../../apps/web/app/domain/accounts";
 
 import type { ClaudeAccountView } from "../../../apps/web/shared/types";
 import { ACCOUNT_ID } from "../../support/ids";
@@ -24,39 +24,10 @@ function account(over: Partial<ClaudeAccountView> = {}): ClaudeAccountView {
     login: "standing",
     loginEndsAt: now + 30 * 24 * 3600,
     chosen: false,
-    serving: false,
     restUntil: null,
     ...over
   };
 }
-
-describe("the line under the list about the chosen account", () => {
-  test("says nothing where nothing is chosen or the chosen account is the one in use", () => {
-    expect(accountChoiceNote(wording, [account({ id: "a", serving: true }), account({ id: "b" })], now)).toBe("");
-    expect(accountChoiceNote(wording, [account({ id: "a" }), account({ id: "b", chosen: true, serving: true })], now)).toBe("");
-  });
-
-  test("names the chosen account at its limit, when it comes back and which account carries the runs", () => {
-    const accounts = [
-      account({ id: "a", name: KO.line_40, serving: true }),
-      account({ id: "b", name: KO.line_41, chosen: true, restUntil: now + 3 * 3600 })
-    ];
-
-    expect(accountChoiceNote(wording, accounts, now)).toBe(KO.line_44);
-  });
-
-  test("names a chosen account whose login is gone", () => {
-    const accounts = [account({ id: "a", name: KO.line_48, serving: true }), account({ id: "b", name: KO.line_48_2, chosen: true, login: "gone" })];
-
-    expect(accountChoiceNote(wording, accounts, now)).toBe(KO.line_50);
-  });
-
-  test("names the login in use still being spent where the chosen account could answer", () => {
-    const accounts = [account({ id: "a", name: KO.line_54, serving: true }), account({ id: "b", name: KO.line_54_2, chosen: true })];
-
-    expect(accountChoiceNote(wording, accounts, now)).toBe(wording("agents.status.chosen_after", { serving: KO.line_56, chosen: KO.line_56_2 }));
-  });
-});
 
 describe("the mark a row carries", () => {
   test("says a standing login, one near its end and one that waits for a person", () => {

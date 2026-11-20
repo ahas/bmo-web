@@ -39,9 +39,8 @@
               <UIcon name="i-material-symbols-keep" class="size-4 shrink-0 text-primary" role="img" :aria-label="$t('agents.label.account_chosen')" />
             </UTooltip>
           </span>
-          <span v-if="one.serving || loginText(one) !== ''" class="flex flex-wrap items-center gap-2">
-            <UBadge v-if="one.serving" color="primary" variant="subtle" size="sm" :label="$t('agents.label.account_serving')" />
-            <UBadge v-if="loginText(one) !== ''" :color="one.login === 'gone' ? 'error' : 'warning'" variant="subtle" size="sm" :label="loginText(one)" />
+          <span v-if="loginText(one) !== ''" class="flex flex-wrap items-center gap-2" data-account-marks>
+            <UBadge :color="one.login === 'gone' ? 'error' : 'warning'" variant="subtle" size="sm" :label="loginText(one)" />
           </span>
           <!-- A path is allowed to run past its width and scrolls inside itself, as a worker's
                working directory does. -->
@@ -71,15 +70,18 @@
             @update:model-value="setEnabled(one, $event as boolean)"
           />
         </span>
+
+        <!-- What the account has left, on a line of its own under the row, as wide as the row past its handle: the
+             panel's own figures of that login, a skeleton while they are first read, and nothing for an account that
+             is off, which answers nothing. -->
+        <div v-if="one.enabled && (props.usage.initial || accountGroup(props.usage.groups, one.id) !== null)" class="col-span-2 col-start-2 pb-2" :data-account-usage="one.id">
+          <SkeletonStatus v-if="props.usage.initial" :label="$t('usage.status.loading')"><SkeletonLine width="w-2/3" /></SkeletonStatus>
+          <UsageFigures v-else :group="accountGroup(props.usage.groups, one.id)!" :now="props.usage.now" />
+        </div>
       </li>
 
       <li v-if="shown.length === 0" class="py-3 text-sm text-highlighted">{{ $t("agents.status.no_accounts") }}</li>
     </ol>
-
-    <p v-if="choiceNote !== ''" class="flex items-center gap-2 text-sm text-toned" data-choice-note>
-      <UIcon name="i-material-symbols-swap-horiz" class="size-4 shrink-0 text-warning" />
-      <span class="min-w-0 break-words">{{ choiceNote }}</span>
-    </p>
 
     <p v-if="failed !== ''" role="alert" class="break-words text-sm text-error">{{ failed }}</p>
 
@@ -138,13 +140,15 @@
 
 <script setup lang="ts">
 import { useOpenedWith } from "bmo-ui/app/domain/form-save";
-import { ACCOUNT_KINDS, ACCOUNTS_GROUP, SIGN_IN_KIND, accountChoiceNote, accountLoginText, accountMark, nextAccountName } from "~/domain/accounts";
+import { ACCOUNT_KINDS, ACCOUNTS_GROUP, SIGN_IN_KIND, accountLoginText, accountMark, nextAccountName } from "~/domain/accounts";
 import { movedOrder } from "~/domain/agents";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { usePolling } from "~/domain/polling";
 import { useRowDrag } from "~/domain/row-drag";
+import { accountGroup } from "~/domain/usage";
 
 import type { ClaudeAccountView, ClaudeLoginStarted } from "#shared/types";
+import type { UsageFiguresRead } from "~/domain/usage";
 import type { DropdownMenuItem } from "@nuxt/ui";
 
 interface Props {
@@ -152,9 +156,11 @@ interface Props {
   // Every change is asked of the bot and then read back by the page, which this waits for.
   reread: () => Promise<void>;
   query?: string;
+  // What each account has left, as the page reads it; none until it is read.
+  usage?: UsageFiguresRead;
 }
 
-const props = withDefaults(defineProps<Props>(), { query: "" });
+const props = withDefaults(defineProps<Props>(), { query: "", usage: () => ({ groups: [], now: 0, initial: false }) });
 
 const { t } = useI18n();
 const route = useRoute();
@@ -205,8 +211,6 @@ usePolling(() => { now.value = Math.floor(Date.now() / 1000); }, 60_000);
 function loginText(account: ClaudeAccountView): string {
   return accountLoginText(t, account, now.value);
 }
-
-const choiceNote = computed(() => accountChoiceNote(t, props.accounts, now.value));
 
 // The chosen account offers the way back to the order; every other offers to be the one runs go out
 // on now, which an account that is off cannot be.

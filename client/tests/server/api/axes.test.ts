@@ -452,7 +452,7 @@ describe("the providers and the models they hold", () => {
   test("name a provider in the pack's words with what it has left", async () => {
     const got = await asked(providers, {});
 
-    expect(got.answer?.[0]).toMatchObject({ name: "deepseek", label: wording("agents.label.provider_deepseek"), lines: ["chat"], quota: { left: 0.5, window: "week" }, reason: null, foldRatioDefault: 0.85, keyFile: "deepseek.key" });
+    expect(got.answer?.[0]).toMatchObject({ name: "deepseek", label: wording("agents.label.provider_deepseek"), lines: ["chat"], reason: null, foldRatioDefault: 0.85, keyFile: "deepseek.key" });
   });
 
   test("hold a provider's engine as the owner's own as the provider declares it, whatever serves it", async () => {

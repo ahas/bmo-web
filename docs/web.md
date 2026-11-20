@@ -1178,8 +1178,11 @@ edit to that file alone, once the guide below carries the word.
   on, on a provider that is switched on, stands as a group of its own, in the order the agency lists them and
   under the name the owner gave it — an account or a provider the owner switched off answers nothing, so its
   figures are not shown, whichever of them the road last ran on —
-  holding that account's own session and weekly windows as the share remaining, each with how long is left
-  until it resets. No group is marked as the one in use, since the chat agent and each of a role's agents run on
+  holding that account's own session and weekly windows as the share remaining, each with a bar of that share and
+  how long is left until it resets. A group's rows stand on shared columns, so the names read down one column, the
+  bars start on one line and the figures end on one line; a balance, which has no whole, keeps the bar's place
+  empty, and where the group is narrower than about 28rem, as the panel is, each bar takes a line of its own under
+  its row. No group is marked as the one in use, since the chat agent and each of a role's agents run on
   roads of their own and one mark cannot say whose run it means. Where the chat runs on a provider
   that holds no login, that slot stands first as a group of its own, with whatever
   windows it reports. A slot or an account the agency reads a balance for — a provider paid by the request, an
@@ -1187,7 +1190,7 @@ edit to that file alone, once the guide below carries the word.
   read. A balance that carries a request allowance (the agency's `docs/usage-windows.md`, 「Balances」) stands
   one more row under it: what the allowance covers in the pack's words for it, 「무료 모델 요청」 for
   `free-models` and 「하루 요청」 for one the pack has no word for or that covers every request, and how many
-  are left of the day's ceiling, 「988 / 1,000 남음」. A provider that is switched on and keeps a balance on
+  are left of the day's ceiling, 「988 / 1,000 남음」, with a bar of that share. A provider that is switched on and keeps a balance on
   its own road stands as a group of its own after the accounts, under the agency's label for it, with that
   balance and its allowance, unless it is the slot the chat runs on, which stands first already. An account
   whose windows and balance the agency states none of says so in one line rather than
@@ -8108,10 +8111,15 @@ they and the platform's supply run on. No member opens it.
 #### 공급자
 
 - **공급자** — every provider the agency carries (its `docs/api.md`, 「providers, models and model files」), one row
-  each in the order it lists them: the pack's word for its code with a status mark after it, what it has left as
-  the agency reads its quota — the share left and the window that counted, a balance for one that keeps one, or nothing for one that
-  reports none — the pack's sentence for the reason it cannot answer now where it cannot, with the agency's own
-  English as its tooltip, and the owner's switch. Lowering a switch turns that provider off at once and every
+  each in the order it lists them: the pack's word for its code with a status mark after it, what the provider
+  itself has left, the pack's sentence for the reason it cannot answer now where it cannot, with the agency's own
+  English as its tooltip, and the owner's switch. What it has left is the title bar panel's own figures, read under
+  the same key so both stand the same numbers (「Usage in the title bar」), drawn as that panel draws a group: the
+  slot the chat runs on where that slot is this provider with no login, its own road's balance with its request
+  allowance, and each of its accounts the Claude 계정 list does not carry, under the account's name. A provider whose
+  figures are its accounts' — Claude Code — stands none of its own, since each account carries its own on its row,
+  and a provider that is off or reports nothing stands none. A failed read of the figures is said once in the error
+  band above the groups and keeps what was read last. Lowering a switch turns that provider off at once and every
   order passes it over; its row stands dimmed. Turning off the last one on is refused by the agency, its sentence said
   in a notice. No key the agency holds is read here.
   - **A provider that reads its own key from a file** — the agency's `keyFile`, OpenRouter's and DeepSeek's — carries
@@ -8138,11 +8146,16 @@ they and the platform's supply run on. No member opens it.
   handle, the place in the order, a mark saying whether that login is standing, near its end or gone — a login near
   its end also carrying how long is left, and one that has ended carrying 로그인 필요 — the name the owner gave it,
   where its credential is reached, a configuration directory or a token file shown as that path, the up and down
-  arrows, the row's more-menu and the enable switch. The row runs go out on now carries 사용 중, and the account the
-  owner chose carries 고른 계정. A row's more-menu holds 지금 이 계정으로, which makes that account the chosen one,
-  disabled on an account that is off; the chosen row's menu holds 순서대로 in its place, which lets the choice go.
-  Where the chosen account is not the one in use, a line under the list says so, naming the account runs go out on
-  and when a rest ends (the agency's `docs/cache-fallback.md`, 「Running on one account now」). Claude 계정
+  arrows, the row's more-menu and the enable switch, and the account the owner chose carries 고른 계정. Under the
+  row, as wide as the row past its handle, stands what that account has left: its own group of the title bar panel,
+  its session and weekly windows with how long is left until each resets and its balance where it keeps one, a
+  skeleton line while the figures are first read, and 「읽은 사용량 없음」 where the agency states none. An account that is
+  off stands no figures, since it answers nothing. No row is marked as the one in use and no line names the account
+  runs go out on, since the chat agent and each of a role's agents run on roads of their own and one mark cannot say
+  whose run it means; an account at its limit reads as 0% with the time its window resets. A row's more-menu holds
+  지금 이 계정으로, which makes that account the chosen one, disabled on an account that is off; the chosen row's menu
+  holds 순서대로 in its place, which lets the choice go (the agency's `docs/cache-fallback.md`, 「Running on one account
+  now」). Claude 계정
   추가, the tab row's add, opens a box for a new account's name and how it is reached: 여기서 로그인, offered first, or
   one of the two ways its credential is reached with the path it is reached by; a row's more-menu edits the name, the
   way and the path, or removes the account.
@@ -9517,7 +9530,7 @@ journalctl --user -u <unit> -f
   window taken for the account's.
 - The remaining-usage popover opens within the window's width and height and a long list scrolls within. It holds the
   remaining usage of each account alone — a group per Claude account that is switched on holding that account's windows, and the
-  slot the chat runs on marked (「Usage in the title bar」) — and no tally of tokens and no list of sessions.
+  slot the chat runs on where it holds no login (「Usage in the title bar」) — and no tally of tokens and no list of sessions.
 - A failed read of the popover's figures keeps what was read last on the title bar and in the popover, and the popover says
   the failure above them in the one error band (「How the bot is talked to」 says how a read during a restart reads).
 - The TODO detail's work order edits the intent, run instruction and builder model in the draft. If the draft's intent and

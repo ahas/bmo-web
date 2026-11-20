@@ -2588,7 +2588,6 @@ agents:
     account_kind_directory: 설정 디렉터리
     account_kind_token: 토큰 파일
     account_off: 꺼져 있음
-    account_serving: 사용 중
     alias: 별칭
     bundle_graph_read: 그래프
     bundle_queue_read: TODO 읽기
@@ -2786,9 +2785,6 @@ agents:
     effort: 강도
     answer_ceiling: 답변 상한
     pinned_model: 고정 모델
-    quota_balance: "잔액 {amount}"
-    quota_left: "{share} 남음"
-    quota_left_window: "{share} 남음 · {window}"
     role_files: 역할 파일 보관
     role_order: 역할 에이전트
     role_running: "{running}/{cap} 실행"
@@ -2882,11 +2878,8 @@ agents:
     chat_documents_loading: 시스템 프롬프트 불러오는 중…
     chat_document_stored: 저장된 글
     chat_document_file: 파일 내용
-    chosen_after: "현재 {serving} 사용 중 · 한도 도달 후 {chosen}"
     jobs_loading: Job 불러오는 중…
     no_jobs: 실행한 Job 없음
-    chosen_login: "{chosen} 로그인 필요 · 현재 {serving} 사용 중"
-    chosen_resting: "{chosen} 한도 도달 · {time} 복귀 · 현재 {serving} 사용 중"
     compacting: 압축 중
     draft_processes_loading: 드래프트 과정 불러오는 중…
     job_ended: 끝남

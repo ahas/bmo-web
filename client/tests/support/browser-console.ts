@@ -95,6 +95,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["agent-log-run-start", "fixture-password-3055"],
   ["row-add", "fixture-password-2885"],
   ["provider-secrets", "fixture-password-3037"],
+  ["provider-usage", "fixture-password-3768"],
   ["todo-raise", "fixture-password-2871"],
   ["supervisor-road", "fixture-password-2921"],
   ["builder-model", "fixture-password-2926"],
@@ -275,6 +276,41 @@ if (sharedRooms.length > 0) {
 const ACTIVITY_PERSON = "person-tabs-subject";
 const ACTIVITY_AGENT = "scout-12";
 const activity = { account: 0 };
+
+// The Claude accounts the agency holds, with what each has left (docs/web.md, 「Administration」, the providers tab):
+// two accounts on, one with a weekly window nearly spent and one with both windows, and a third off; the provider list
+// beside them keeps a road with a balance and a request allowance.
+function usageFallback(): Record<string, unknown> {
+  const now = Math.floor(LINE_AT / 1000);
+  const account = (id: string, name: string, place: number, over: Record<string, unknown> = {}) => ({
+    id, name, place, enabled: true, credentialKind: "directory", credentialPath: `/srv/claude/${id}`, login: "standing", loginEndsAt: null,
+    chosen: false, serving: false, restUntil: null, ...over
+  });
+
+  return {
+    active: { provider: "claude-code", account: "acct-b", accountName: "claude-02", accounts: 2, session: null, week: null, balance: null },
+    routes: [{ name: "claude-code", label: "Claude Code" }],
+    accounts: [
+      account("acct-a", "claude-01", 1, { restUntil: now + 2 * 86_400 }),
+      account("acct-b", "claude-02", 2, { chosen: true, serving: true }),
+      account("acct-c", "claude-03", 3, { enabled: false })
+    ]
+  };
+}
+
+function usageAccounts(): Record<string, unknown> {
+  const now = Math.floor(LINE_AT / 1000);
+  const window = (name: string, utilization: number, resetsIn: number) => ({ name, utilization, resetsAt: now + resetsIn, seenAt: now, durationMinutes: null, limitName: null });
+
+  return {
+    items: [
+      { id: "acct-a", provider: "claude-code", session: null, week: window("seven_day", 0.97, 2 * 86_400 + 3_600) },
+      { id: "acct-b", provider: "claude-code", session: window("five_hour", 0.25, 2 * 3_600), week: window("seven_day", 0.16, 6 * 86_400) },
+      { id: "acct-c", provider: "claude-code", session: null, week: window("seven_day", 0.5, 86_400) }
+    ],
+    more: false
+  };
+}
 const SEALED_OWNER = process.env.BROWSER_CONSOLE_SEALED_OWNER === "1";
 
 // The activity person's run, ended an hour after it began, and its seat's session in the room they read.
@@ -839,7 +875,11 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       return Response.json({
         items: [
           provider("claude-code", "Claude Code"),
-          provider("deepseek", "DeepSeek", { gateway: true, ownersEngine: false, quota: { left: null, window: null, balance: 12.5, resetsAt: null } }),
+          provider("deepseek", "DeepSeek", {
+            gateway: true,
+            ownersEngine: false,
+            quota: { left: null, window: null, balance: 12.5, currency: "USD", balanceSeenAt: Math.floor(LINE_AT / 1000) - 120, requests: { used: 12, limit: 1_000, left: 988, scope: "free-models" }, resetsAt: null }
+          }),
           provider("registered", "Registered models", { registered: true, gateway: true, lines: ["chat", "worker"], quota: null })
         ],
         more: false
@@ -867,7 +907,9 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     if (path === "/prompt-documents") return Response.json({ items: [], more: false });
 
     if (path === "/events") return silentStream();
-    if (path === "/fallback") return Response.json({ accounts: [] });
+    if (path === "/fallback") return Response.json(usageFallback());
+    if (path === "/accounts") return Response.json(usageAccounts());
+    if (path === "/usage") return Response.json({ groups: [] });
     if (path === "/settings" && request.method === "PATCH") {
       const body = (await request.json()) as Record<string, unknown>;
 

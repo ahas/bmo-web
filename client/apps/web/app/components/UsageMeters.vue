@@ -93,40 +93,7 @@
             <!-- The group's name on a line of its own. -->
             <p class="min-w-0 truncate text-sm font-medium text-muted">{{ slotName(group) }}<template v-if="group.name !== null"> · {{ group.name }}</template></p>
 
-            <div v-for="window in group.windows" :key="window.name" class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
-              <span class="min-w-0 flex-1 basis-24 break-words text-dimmed">{{ windowLabel($t, window) }}</span>
-              <span class="tabular-nums" :class="toneClass(shareTone(liveWindow(window, now)))">{{ shareText(liveWindow(window, now)) }}</span>
-              <!-- How long is left of the window, not the hour it turns over at: the length is
-                   what the figure beside it is read against. More than a day out, the day it
-                   turns over on stands beside it, since that day is what tells one login's week
-                   from another's. The clock face is kept on the row, for a reader who wants it. -->
-              <span
-                v-if="resetText($t, window, now) !== ''"
-                class="ms-auto text-sm tabular-nums text-dimmed"
-                :title="resetClock($t, window)"
-              >
-                {{ resetText($t, window, now) }}<template v-if="resetDay($t, window, now) !== ''"> · {{ resetDay($t, window, now) }}</template>
-              </span>
-            </div>
-
-            <!-- What a provider paid by the request or an endpoint account has left in money, and how long ago it was
-                 read. -->
-            <div v-if="group.balance !== null" class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
-              <span class="min-w-0 flex-1 basis-24 break-words text-dimmed">{{ $t("usage.label.balance") }}</span>
-              <span class="tabular-nums text-muted">{{ moneyText(group.balance) }}</span>
-              <span class="ms-auto text-sm tabular-nums text-dimmed">{{ $t("usage.label.balance_seen", { wait: elapsedText($t, Math.max(0, now - group.balance.seenAt)) }) }}</span>
-            </div>
-
-            <!-- The request allowance read with the balance: what it covers, and how many are left of the day's
-                 ceiling. -->
-            <div v-if="group.balance?.requests" class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm" data-usage-requests>
-              <span class="min-w-0 flex-1 basis-24 break-words text-dimmed">{{ requestsLabel($t, group.balance.requests) }}</span>
-              <span class="tabular-nums text-muted">{{ requestsText($t, group.balance.requests) }}</span>
-            </div>
-
-            <!-- An account whose windows and balance the agency states none of says so, and no figure stands in their
-                 place. -->
-            <p v-if="group.windows.length === 0 && group.balance === null" class="text-sm text-dimmed">{{ $t("usage.status.no_info") }}</p>
+            <UsageFigures :group="group" :now="now" />
           </div>
 
           <p v-if="groups.length === 0" class="text-sm text-dimmed">{{ $t("usage.status.no_accounts") }}</p>
@@ -137,36 +104,15 @@
 </template>
 
 <script setup lang="ts">
-import { useInitialRead, useLastRead } from "bmo-ui/app/domain/loading";
 import { failureText } from "bmo-ui/app/domain/errors";
-import { elapsedText } from "bmo-ui/app/domain/time";
 import { ACCOUNTS_ADDRESS } from "~/domain/accounts";
 import { useReadFailure } from "~/domain/events";
 import { useTitleBarShort } from "~/domain/title-bar";
-import { usePolling } from "~/domain/polling";
 import { modeLabel } from "~/domain/status";
-import {
-  emptyUsage,
-  knownMode,
-  limitless,
-  liveWindow,
-  loudestTone,
-  moneyText,
-  requestsLabel,
-  requestsText,
-  resetClock,
-  resetDay,
-  resetText,
-  shareText,
-  shareTone,
-  titleAccountLabel,
-  titleWindows,
-  usageGroups,
-  USAGE_REFRESH_MS,
-  windowLabel
-} from "~/domain/usage";
+import { knownMode, limitless, liveWindow, loudestTone, moneyText, shareText, shareTone, titleAccountLabel, titleWindows, toneClass, usageGroups } from "~/domain/usage";
+import { useUsageRead } from "~/domain/usage-read";
 
-import type { FallbackView, UsageView } from "#shared/types";
+import type { FallbackView } from "#shared/types";
 import type { UsageTone } from "~/domain/usage";
 
 const { t } = useI18n();
@@ -174,12 +120,7 @@ const short = useTitleBarShort();
 
 // The figures are the agency's, so the same numbers stand on every screen and every screen reads them from one
 // place.
-const { data, refresh, status: usageStatus, error: usageError } = useFetch<UsageView>("/api/usage", {
-  key: "usage",
-  lazy: true,
-  server: false,
-  default: emptyUsage
-});
+const { usage, now, refresh, status: usageStatus, error: usageError, initial: usageInitial, loaded: usageLoaded, reading: usageReading } = useUsageRead();
 
 // The route chooser reads the fallback under this key, and a change made there reads it again; the slot the chat
 // runs on may have moved with it, so the figures are read again at once rather than at the next minute.
@@ -187,16 +128,7 @@ const { data: fallbackShared } = useNuxtData<FallbackView>("fallback");
 
 watch(fallbackShared, () => void refresh({ dedupe: "defer" }));
 
-const usageInitial = useInitialRead(usageStatus);
-const usageLoaded = ref(usageStatus.value === "success");
-watch(usageStatus, value => { if (value === "success") usageLoaded.value = true; });
-const usageReading = computed(() => usageStatus.value === "pending");
 const usageFailureText = computed(() => failureText(usageError.value, t("usage.error.read_failed")));
-
-// A failed read puts the fetch back to its empty default; what was read last stays on the screen through it, so a
-// figure is never taken down for a read that did not happen.
-const usageRead = useLastRead(data, usageStatus);
-const usage = computed<UsageView>(() => usageRead.value ?? emptyUsage());
 
 function rereadAll(): void {
   void refresh();
@@ -224,28 +156,10 @@ const weekly = computed(() => focusedWindows.value[1]);
 // whole of the bar, so the mark stands for the whole of it.
 const loudest = computed<UsageTone>(() => loudestTone([liveWindow(session.value, now.value), liveWindow(weekly.value, now.value)]));
 
-// The second the lengths are counted from. It moves once a minute because that is the smallest
-// unit those lengths are said in: a clock of its own ticking every second would redraw the rows
-// sixty times for every word that changed.
-const now = ref(Math.floor(Date.now() / 1000));
-
-usePolling(() => {
-  now.value = Math.floor(Date.now() / 1000);
-  void refresh({ dedupe: "defer" });
-}, USAGE_REFRESH_MS);
-
 // A provider under this console's own name for it where it has one, and under the agency's label otherwise.
 function slotName(slot: { provider: string; label: string }): string {
   const mode = knownMode(slot.provider);
 
   return mode === null ? slot.label : modeLabel(t, mode);
-}
-
-function toneClass(tone: UsageTone): string {
-  if (tone === "error") {
-    return "text-error";
-  }
-
-  return tone === "warning" ? "text-warning" : "text-muted";
 }
 </script>

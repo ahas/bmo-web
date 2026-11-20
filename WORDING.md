@@ -176,6 +176,10 @@
   공급원, the five being 개인 공급, 전역 공급, 조직 크레딧, 개인 크레딧 and the end of the fall, 중단. The order
   a run falls through them is 공급 순서. Never 조달, 급전, 리소스 for the thing, and never 소스 for a member of
   the list.
+- what a provider, an account or a slot has left of its limits → 남은 사용량: its windows 세션 and 주간, each as
+  `{share}%` with `{time} 초기화` for how long is left until it resets and 초기화 지남 once past; a balance 잔액 with
+  `{wait} 전` for when it was read; a request allowance 하루 요청 or 무료 모델 요청 as `{left} / {limit} 남음`; and
+  읽은 사용량 없음 where nothing is read. No account or slot is marked 사용 중. Never 잔여량, 쿼터, 한도 잔량, 리셋.
 - the paid standing of a source and its use → 크레딧: 잔액, 이번 달 사용량, 이번 달 개인 크레딧 상한 (the person's own
   row) and 개인 크레딧 월 상한 (an organisation's cap on a person), 크레딧을 부여하다 and its noun 부여, the record
   of movements 장부 and of the grants and changes 감사 기록, the fixed conversion 전환율 and the unit a reservation

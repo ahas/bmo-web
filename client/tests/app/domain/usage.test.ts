@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-import { agentUsage, figureText, kindFigures, kindsKnown, usageOver, knownMode, limitless, liveWindow, loudestTone, resetClock, resetDay, resetText, shareText, shareTone, titleAccountLabel, titleWindows, tokenText, totalText, unsplitText, untilText, usageBar, usageGroups, windowLabel, moneyText, requestsLabel, requestsText } from "../../../apps/web/app/domain/usage";
+import { agentUsage, figureText, kindFigures, kindsKnown, usageOver, knownMode, limitless, liveWindow, loudestTone, resetClock, resetDay, resetText, shareText, shareTone, titleAccountLabel, titleWindows, tokenText, totalText, unsplitText, untilText, usageBar, usageGroups, windowLabel, moneyText, requestsLabel, requestsText, accountGroup, providerGroups, requestsPercent } from "../../../apps/web/app/domain/usage";
 
 import type { AccountUsage, ActiveUsage, AgentTokenUsage, HeadlineWindow, UsageView } from "../../../apps/web/shared/types";
 import type { UsageBar, UsageSegment } from "../../../apps/web/app/domain/usage";
@@ -314,6 +314,11 @@ describe("a row's traffic as a bar", () => {
 });
 
 
+test("a request allowance's share left is its left over its ceiling, and none for a ceiling of nought", () => {
+  expect(requestsPercent({ used: 12, limit: 1_000, left: 988, scope: null })).toBe(98.8);
+  expect(requestsPercent({ used: 0, limit: 0, left: 0, scope: null })).toBeNull();
+});
+
 test("remaining usage reaches zero when spent and does not confuse model-specific windows", () => {
   expect(shareText({ ...session, utilization: 1 })).toBe("0%");
   expect(shareText({ ...session, utilization: 0 })).toBe("100%");
@@ -367,6 +372,30 @@ describe("the panel's groups", () => {
 
   test("nothing at all where the agency names no slot and lists no account", () => {
     expect(usageGroups(view())).toEqual([]);
+  });
+
+  // The providers tab stands each group where it belongs: an account's on that account's row of the list beside it,
+  // and the rest on its provider's row.
+  test("an account's group is found by its id, and a slot or a road is no account's", () => {
+    const slot = active({ provider: "provider-x", label: "Provider X", account: null, accountName: null, logins: 0, session: null, week: null });
+    const road = { provider: "provider-y", label: "Provider Y", balance: { amount: 3, currency: "USD", seenAt: 0, requests: null } };
+    const groups = usageGroups(view({ active: slot, roads: [road], accounts: [account("a", { week })] }));
+
+    expect(accountGroup(groups, "a")?.windows.map((window) => window.name)).toEqual(["seven_day"]);
+    expect(accountGroup(groups, "b")).toBeNull();
+    expect(groups.filter((group) => group.account !== null).map((group) => group.id)).toEqual(["a"]);
+  });
+
+  test("a provider's row holds its slot, its road and the accounts no list beside it carries", () => {
+    const slot = active({ provider: "provider-x", label: "Provider X", account: null, accountName: null, logins: 0, session: null, week: null });
+    const road = { provider: "provider-y", label: "Provider Y", balance: { amount: 3, currency: "USD", seenAt: 0, requests: null } };
+    const endpoint = account("e", { provider: "provider-y", label: "Provider Y" });
+    const groups = usageGroups(view({ active: slot, roads: [road], accounts: [account("a"), endpoint] }));
+    const listed = new Set(["a"]);
+
+    expect(providerGroups(groups, "provider-x", listed).map((group) => group.id)).toEqual(["slot:provider-x"]);
+    expect(providerGroups(groups, "provider-y", listed).map((group) => group.id)).toEqual(["e", "road:provider-y"]);
+    expect(providerGroups(groups, "claude-code", listed)).toEqual([]);
   });
 
   test("a provider this console has a name for is known by it, and any other stands under the agency's label", () => {

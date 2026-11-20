@@ -10,16 +10,19 @@ import KO from "../../fixtures/app/components/UsageMeters.test.ko.json";
 
 const source = await Bun.file(new URL("../../../apps/web/app/components/UsageMeters.vue", import.meta.url)).text();
 const template = source.slice(0, source.indexOf("<script"));
+// What one group of the panel holds is the figures component the providers tab shows too.
+const figuresSource = await Bun.file(new URL("../../../apps/web/app/components/UsageFigures.vue", import.meta.url)).text();
+const figures = figuresSource.slice(0, figuresSource.indexOf("<script"));
 
-// The one element of the bar, with its classes: the button that opens the figures.
-function tagOf(mark: string): string {
-  const at = template.indexOf(mark);
+// The one element of a template, with its classes: by default the bar's, whose button opens the figures.
+function tagOf(mark: string, within: string = template): string {
+  const at = within.indexOf(mark);
 
   expect(at).toBeGreaterThan(-1);
 
-  const opened = template.lastIndexOf("<", at);
+  const opened = within.lastIndexOf("<", at);
 
-  return template.slice(opened, template.indexOf(">", at) + 1);
+  return within.slice(opened, within.indexOf(">", at) + 1);
 }
 
 describe("the mark the figures fold into", () => {
@@ -115,12 +118,13 @@ describe("what the wide bar carries", () => {
 describe("what the popover holds", () => {
   test("each account's remaining windows by name, and no account marked as the one in use", () => {
     expect(template).toContain("usage.title.remaining");
-    expect(template).toContain("windowLabel($t, window)");
     expect(template).toContain('v-for="group in groups"');
     expect(template).toContain("slotName(group)");
+    expect(template).toContain('<UsageFigures :group="group" :now="now" />');
+    expect(figures).toContain("windowLabel($t, window)");
     expect(template).not.toContain("usage.label.in_use");
     // An account the agency states no window for says so, and with none at all the panel says there is none.
-    expect(template).toContain('$t("usage.status.no_info")');
+    expect(figures).toContain('$t("usage.status.no_info")');
     expect(template).toContain('$t("usage.status.no_accounts")');
   });
 
@@ -155,7 +159,7 @@ describe("what the popover holds", () => {
   });
 
   test("a window says how long is left of it, and keeps the hour behind that", () => {
-    const row = tagOf("resetText($t, window, now)");
+    const row = tagOf(":title=\"resetClock($t, window)\"", figures);
 
     // The length is what stands on the row; the clock face the account gave is on the row
     // itself, for the reader who wants the hour rather than the length.

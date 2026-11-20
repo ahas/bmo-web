@@ -2022,10 +2022,6 @@ export interface ClaudeAccountView {
   // Whether this is the account the owner chose to run on now, where the walk starts once the login in use
   // cannot answer.
   chosen: boolean;
-  // Whether automatic runs go out on this account now: the head of the walk, which is the login in
-  // use wherever it can answer. It differs from the chosen one where the chosen one is resting, its
-  // login is gone, or the login in use is still being spent to its end.
-  serving: boolean;
   // Until when, in seconds, a limit rest keeps this account out of the walk, or null where none does.
   restUntil: number | null;
 }

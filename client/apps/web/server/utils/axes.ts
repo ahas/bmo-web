@@ -7,7 +7,7 @@ import { bundleWordOf, providerLabelOf, roadReasonOf } from "./agency-words";
 import type { Provider, Repository, Role, Supervisor } from "@agency/client";
 import type { components } from "@agency/client/schema";
 import type { GenerationSetting } from "#shared/agency";
-import type { CheckoutView, NodeCheckoutAsk, ProviderModelsView, ProviderModelView, ProviderView, QuotaView, RepositoryView, RoadView, RoleAgentView, RoleBundleView, RoleSessionPage, RoleSessionView, RolesView, RoleView, SupervisorRoadStateView, SupervisorRoomView, SupervisorView, SupportCount, WorkNodeView } from "#shared/axes";
+import type { CheckoutView, NodeCheckoutAsk, ProviderModelsView, ProviderModelView, ProviderView, RepositoryView, RoadView, RoleAgentView, RoleBundleView, RoleSessionPage, RoleSessionView, RolesView, RoleView, SupervisorRoadStateView, SupervisorRoomView, SupervisorView, SupportCount, WorkNodeView } from "#shared/axes";
 
 type Schemas = components["schemas"];
 
@@ -33,21 +33,7 @@ export function roadOf(value: unknown): RoadView | null {
   return { provider, model, effort: text(held.effort), thinking: text(held.thinking), answerTokens: number(held.answerTokens) };
 }
 
-function quotaOf(value: unknown): QuotaView | null {
-  if (value === null || typeof value !== "object") return null;
-
-  const held = record(value);
-  const balance = held.balance;
-
-  return {
-    left: number(held.left),
-    window: text(held.window),
-    balance: number(balance) ?? number(record(balance).amount),
-    resetsAt: number(held.resetsAt)
-  };
-}
-
-/** One provider as the screen reads it: the pack's word for its code, its switch, its lines, its quota and its reason. */
+/** One provider as the screen reads it: the pack's word for its code, its switch, its lines and its reason. */
 export function providerViewOf(provider: Provider): ProviderView {
   const held = record(provider);
   const said = roadReasonOf(held.reason, held.reasonCode);
@@ -58,7 +44,6 @@ export function providerViewOf(provider: Provider): ProviderView {
     enabled: provider.enabled,
     registered: provider.registered,
     lines: list(held.lines).filter((one): one is string => typeof one === "string"),
-    quota: quotaOf(held.quota),
     reason: said.reason,
     reasonEnglish: said.reasonEnglish,
     foldRatioDefault: number(held.foldRatioDefault),

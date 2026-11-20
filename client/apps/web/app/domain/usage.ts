@@ -96,6 +96,13 @@ export function shareTone(window: HeadlineWindow | null): UsageTone {
   return percent <= 40 ? "warning" : "muted";
 }
 
+/** The text colour a tone reads in. */
+export function toneClass(tone: UsageTone): string {
+  if (tone === "error") return "text-error";
+
+  return tone === "warning" ? "text-warning" : "text-muted";
+}
+
 // How the meters read when they stand as one mark rather than as their figures. On a narrow
 // bar there is no room for the numbers and an icon stands in for all of them, so the icon takes
 // the loudest news any of the windows has: a share standing at red says red on the icon, and
@@ -116,13 +123,14 @@ export function knownMode(provider: string): AgentMode | null {
   return (agentProviderNames as readonly string[]).includes(provider) ? (provider as AgentMode) : null;
 }
 
-// One group of the panel: whose figures they are — the provider, and the account's name where the slot is one
+// One group of the panel: whose figures they are — the provider, and the account's id and name where the slot is one
 // account of several — and its own windows, session first. A group with no window stated holds none, and says so
 // rather than standing a figure.
 export interface UsageGroup {
   id: string;
   provider: string;
   label: string;
+  account: string | null;
   name: string | null;
   windows: HeadlineWindow[];
   balance: UsageBalance | null;
@@ -140,7 +148,7 @@ export function usageGroups(view: UsageView): UsageGroup[] {
   const slot: UsageGroup[] =
     active === null || active.account !== null
       ? []
-      : [{ id: `slot:${active.provider}`, provider: active.provider, label: active.label, name: null, windows: windowsOf(active), balance: active.balance }];
+      : [{ id: `slot:${active.provider}`, provider: active.provider, label: active.label, account: null, name: null, windows: windowsOf(active), balance: active.balance }];
 
   return [
     ...slot,
@@ -148,12 +156,32 @@ export function usageGroups(view: UsageView): UsageGroup[] {
       id: account.id,
       provider: account.provider,
       label: account.label,
+      account: account.id,
       name: account.name,
       windows: windowsOf(account),
       balance: account.balance
     })),
-    ...view.roads.map((road) => ({ id: `road:${road.provider}`, provider: road.provider, label: road.label, name: null, windows: [], balance: road.balance }))
+    ...view.roads.map((road) => ({ id: `road:${road.provider}`, provider: road.provider, label: road.label, account: null, name: null, windows: [], balance: road.balance }))
   ];
+}
+
+// The figures a screen hands a list of accounts or providers: every group the panel reads, the second the lengths are
+// counted from, and whether the first read is still under way.
+export interface UsageFiguresRead {
+  groups: UsageGroup[];
+  now: number;
+  initial: boolean;
+}
+
+/** The group of one account, by its id; none where the panel holds no figures for it. */
+export function accountGroup(groups: readonly UsageGroup[], account: string): UsageGroup | null {
+  return groups.find((group) => group.account === account) ?? null;
+}
+
+// The groups that are one provider's own: its slot, its road, and each of its accounts that no list of accounts
+// beside it already carries. An account a list carries stands on that list's row instead.
+export function providerGroups(groups: readonly UsageGroup[], provider: string, listed: ReadonlySet<string>): UsageGroup[] {
+  return groups.filter((group) => group.provider === provider && (group.account === null || !listed.has(group.account)));
 }
 
 // The pack's words for what a request allowance covers, by the agency's word for it; an allowance of a scope the
@@ -163,6 +191,11 @@ const REQUEST_SCOPES: Readonly<Record<string, string>> = { "free-models": "usage
 /** What a balance's request allowance is called on the panel. */
 export function requestsLabel(t: Translate, requests: NonNullable<UsageBalance["requests"]>): string {
   return t((requests.scope !== null ? REQUEST_SCOPES[requests.scope] : undefined) ?? "usage.label.requests_day");
+}
+
+/** The share of its ceiling an allowance has left, as a percent; none where the ceiling is nought. */
+export function requestsPercent(requests: NonNullable<UsageBalance["requests"]>): number | null {
+  return requests.limit > 0 ? Math.round(Math.max(0, Math.min(1, requests.left / requests.limit)) * 1000) / 10 : null;
 }
 
 /** How many requests an allowance has left of its ceiling, as the panel says it. */

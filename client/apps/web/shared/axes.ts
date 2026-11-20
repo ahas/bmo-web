@@ -17,17 +17,8 @@ export interface RoadView {
   answerTokens: number | null;
 }
 
-// What a provider has left as a road's check reads it (the agency's `docs/provider-order.md`, 「Quota: what a provider has
-// left」): the share left, the window that counted, a balance for one that keeps one, and when the window resets.
-export interface QuotaView {
-  left: number | null;
-  window: string | null;
-  balance: number | null;
-  resetsAt: number | null;
-}
-
 // One provider the agency carries: its name, the pack's word for its code, the owner's switch, the lines its program
-// carries, what it has left, why it cannot answer now in the pack's words with the agency's own sentence beside, and
+// carries, why it cannot answer now in the pack's words with the agency's own sentence beside, and
 // the compaction threshold a row whose road stands on it is given where it sets none.
 export interface ProviderView {
   name: string;
@@ -35,7 +26,6 @@ export interface ProviderView {
   enabled: boolean;
   registered: boolean;
   lines: string[];
-  quota: QuotaView | null;
   reason: string | null;
   reasonEnglish: string | null;
   foldRatioDefault: number | null;

@@ -6,6 +6,8 @@
        is read here. Each stands as a group under its heading, keeping its place with a skeleton while it is first
        read. -->
   <div class="flex flex-col gap-4">
+    <ReadFailure :failure="usageFailure" :message="usageFailureText" :reading="usageReading" @retry="refreshUsage()" />
+
     <SettingsGroup :title="$t('agents.title.providers')">
       <ContentSkeleton v-if="providers === undefined && status !== 'error' && !providersRetrying" :rows="4" listClass="flex flex-col divide-y divide-default" :label="$t('agents.status.providers_loading')">
         <div class="flex items-center gap-4 py-3">
@@ -30,7 +32,13 @@
             <span class="text-sm text-highlighted">{{ one.label }}</span>
             <UIcon :name="markOf(one).icon" class="size-4 shrink-0" :class="markOf(one).tone" />
           </span>
-          <span v-if="quotaText($t, one.quota) !== ''" class="text-sm tabular-nums text-muted">{{ quotaText($t, one.quota) }}</span>
+          <!-- What the provider itself has left — the slot the chat runs on where it holds no login, its own road's
+               balance, and each of its accounts the Claude list below does not carry, under that account's name — as
+               the title bar's panel reads it. An account the list carries stands on its own row there. -->
+          <div v-for="group in groupsOf(one)" :key="group.id" class="flex min-w-0 flex-col gap-1 pt-1" :data-provider-usage="group.id">
+            <span v-if="group.name !== null" class="min-w-0 truncate text-sm text-muted" :title="group.name">{{ group.name }}</span>
+            <UsageFigures :group="group" :now="now" />
+          </div>
           <HintTip v-if="one.reason !== null" :text="one.reasonEnglish ?? undefined" :disabled="one.reasonEnglish === null" class="min-w-0">
             <span class="break-words text-sm text-warning">{{ one.reason }}</span>
           </HintTip>
@@ -58,7 +66,7 @@
 
     <ProviderSecretSettings />
 
-    <AgentsAccounts v-if="fallback.accounts.length > 0 || fallbackStatus === 'success'" ref="accountsRef" :accounts="fallback.accounts" :reread="rereadFallback" />
+    <AgentsAccounts v-if="fallback.accounts.length > 0 || fallbackStatus === 'success'" ref="accountsRef" :accounts="fallback.accounts" :reread="rereadFallback" :usage="accountsUsage" />
     <SettingsGroup v-else :title="$t('agents.title.accounts')">
       <div v-if="fallbackStatus === 'error' || retrying" class="flex flex-col items-end gap-3 py-3">
         <UAlert class="w-full" color="error" variant="subtle" :description="$t('agents.error.accounts_read_failed')" />
@@ -85,10 +93,14 @@ import { useIsland } from "bmo-ui/app/domain/island";
 import { emptyFallbackView } from "~/domain/agent-settings";
 import { formatStamp } from "bmo-ui/app/domain/time";
 
-import { quotaText, useProviders } from "~/domain/axes";
+import { useProviders } from "~/domain/axes";
+import { useReadFailure } from "~/domain/events";
+import { providerGroups, usageGroups } from "~/domain/usage";
+import { useUsageRead } from "~/domain/usage-read";
 
 import type { ProviderView } from "#shared/axes";
 import type { FallbackView, SecretList } from "#shared/types";
+import type { UsageFiguresRead, UsageGroup } from "~/domain/usage";
 
 const { t } = useI18n();
 const island = useIsland(t);
@@ -98,6 +110,28 @@ const { data: fallback, refresh: refreshFallback, status: fallbackStatus } = use
 
 async function rereadFallback(): Promise<void> {
   await refreshFallback();
+}
+
+// What every provider and account has left, read as the title bar's panel reads it and under the same key, so both
+// stand the same figures; a failed read is said once above the groups and keeps what was read last.
+const { usage, now, refresh: rereadUsage, error: usageError, initial: usageInitial, reading: usageReading } = useUsageRead();
+const groups = computed(() => usageGroups(usage.value));
+const listedAccounts = computed(() => new Set(fallback.value.accounts.map((account) => account.id)));
+const accountsUsage = computed<UsageFiguresRead>(() => ({ groups: groups.value, now: now.value, initial: usageInitial.value }));
+const usageFailureText = computed(() => failureText(usageError.value, t("usage.error.read_failed")));
+
+function refreshUsage(): void {
+  void rereadUsage();
+}
+
+const usageFailure = useReadFailure({
+  failed: () => usageError.value !== undefined && usageError.value !== null,
+  reading: () => usageReading.value,
+  reread: refreshUsage
+});
+
+function groupsOf(provider: ProviderView): UsageGroup[] {
+  return providerGroups(groups.value, provider.name, listedAccounts.value);
 }
 
 // A failed first read of the providers asked again: the failure stands, its button spinning, until the answer lands.

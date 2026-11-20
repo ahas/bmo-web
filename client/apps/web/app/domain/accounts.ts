@@ -76,29 +76,6 @@ export function accountLoginText(t: Translate, account: ClaudeAccountView, now: 
   return left <= 0 ? t("agents.label.login_needed") : t("agents.label.login_expires", { time: untilText(t, left) });
 }
 
-// What the list says under itself when the account the owner chose is not the one runs go out on: why
-// the walk passed it over — its limit and when that rest ends, or its login gone — or, where it can
-// answer, that the login in use is spent to its end first, and which account carries the runs
-// meanwhile. Where nothing is chosen, or the chosen one is in use, it says nothing.
-export function accountChoiceNote(t: Translate, accounts: readonly ClaudeAccountView[], now: number): string {
-  const chosen = accounts.find((one) => one.chosen);
-  const serving = accounts.find((one) => one.serving);
-
-  if (chosen === undefined || serving === undefined || chosen.serving) {
-    return "";
-  }
-
-  if (chosen.restUntil !== null && chosen.restUntil > now) {
-    return t("agents.status.chosen_resting", { chosen: chosen.name, serving: serving.name, time: untilText(t, chosen.restUntil - now) });
-  }
-
-  if (chosen.login === "gone") {
-    return t("agents.status.chosen_login", { chosen: chosen.name, serving: serving.name });
-  }
-
-  return t("agents.status.chosen_after", { chosen: chosen.name, serving: serving.name });
-}
-
 // The logins a work key may be put on: the automatic choice, which walks the account order, then
 // every account under the name the owner gave it. One they turned off stands disabled with that as its reason.
 export function accountChoices(t: Translate, accounts: readonly ClaudeAccountView[]): CellChoice[] {

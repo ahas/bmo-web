@@ -205,7 +205,8 @@
   and one about to be → 시간 초과 · 추천 {number}번으로 결정. Never 권장, 제안, 무응답.
 - download → 다운로드: 다운로드, {name} 다운로드, 다운로드 주소. Never 내려받기. This is the owner's own choice of
   the word.
-- volume → 볼륨; mute, unmute → 음소거, 음소거 해제: 음소거됨, 음소거 해제됨, 볼륨 {n}%.
+- volume → 볼륨; mute, unmute → 음소거, 음소거 해제: 음소거됨, 음소거 해제됨, 볼륨 {n}%; a mute that holds this device
+  alone → 이 기기 음소거, 이 기기 음소거 해제. Never 무음, 소리 끄기, 이 기기에서만 음소거.
 - a video player's controls → 전체 화면, 전체 화면 종료; 재생 속도, 속도 {speed}, and the normal speed `{speed} 보통`;
   자막, 자막 {name}, 자막 꺼짐, with 꺼짐 as the choice of none; 화면 회전, {degrees}도 회전됨; a skip → {n}초 앞으로,
   {n}초 뒤로; 밝기 {n}%; the player itself → 플레이어. Never 풀스크린, 배속 for the setting, 캡션 for subtitles,

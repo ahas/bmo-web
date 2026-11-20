@@ -67,7 +67,8 @@ function depsOf(
   write: (next: BriefingShown | null) => void,
   sound: (src: string, on: SoundHandlers) => BriefingSound,
   heard = new Set<string>(),
-  pagePlaying: () => boolean = () => false
+  pagePlaying: () => boolean = () => false,
+  muted: () => boolean = () => false
 ): DeskDeps {
   return {
     t: (key: string) => key,
@@ -76,6 +77,7 @@ function depsOf(
     src: (id) => `/api/briefings/${id}/sound`,
     players: () => [],
     pagePlaying,
+    muted,
     channel: () => null,
     log: { has: (key) => heard.has(key), add: (key) => void heard.add(key) },
     tab: "tab-a",
@@ -209,6 +211,100 @@ describe("the page's own sound", () => {
 
     expect(held.sounds[0]?.played).toBe(1);
     expect(held.shown()?.phase).toBe("playing");
+  });
+});
+
+// A desk on a device whose mute is the test's to set, beside the page's own sound.
+function mutedDesk(): { desk: Desk; shown: () => BriefingShown | null; sounds: StandInSound[]; mute: (next: boolean) => void; page: (playing: boolean) => void } {
+  let shown: BriefingShown | null = null;
+  let muted = true;
+  let playing = false;
+  const sounds: StandInSound[] = [];
+  const deps = depsOf(
+    () => shown,
+    (next) => (shown = next),
+    (src, on) => {
+      const sound = new StandInSound(src, on);
+
+      sounds.push(sound);
+      return sound;
+    },
+    new Set(),
+    () => playing,
+    () => muted
+  );
+  const desk = new BriefingDesk(deps);
+
+  return {
+    desk,
+    shown: () => shown,
+    sounds,
+    mute: (next) => {
+      muted = next;
+      desk.followMute();
+    },
+    page: (next) => (playing = next)
+  };
+}
+
+describe("this device's mute", () => {
+  test("holds a briefing that comes in the player, waiting for a press, and the page's sound stopping does not start it", async () => {
+    const held = mutedDesk();
+
+    await held.desk.hear({ id: 7, chatId: 42, messageId: "548", endedAt: NOW - 1_000, title: null });
+    held.desk.resume();
+    await Promise.resolve();
+
+    expect(held.sounds[0]?.played).toBe(0);
+    expect(held.shown()?.key).toBe("briefing:7");
+    expect(held.shown()?.phase).toBe("paused");
+
+    held.shown()?.play();
+    await Promise.resolve();
+
+    expect(held.sounds[0]?.played).toBe(1);
+    expect(held.shown()?.phase).toBe("playing");
+  });
+
+  test("lifted, plays the one it held, unless the page's own sound still plays", async () => {
+    const held = mutedDesk();
+
+    await held.desk.hear({ id: 7, chatId: 42, messageId: "548", endedAt: NOW - 1_000, title: null });
+    held.page(true);
+    held.mute(false);
+    await Promise.resolve();
+    expect(held.sounds[0]?.played).toBe(0);
+
+    held.page(false);
+    held.mute(true);
+    held.mute(false);
+    await Promise.resolve();
+    expect(held.sounds[0]?.played).toBe(1);
+  });
+
+  test("pauses the briefing playing where it is, and lifted, plays it on", async () => {
+    const held = mutedDesk();
+
+    held.mute(false);
+    await held.desk.hear({ id: 7, chatId: 42, messageId: "548", endedAt: NOW - 1_000, title: null });
+    expect(held.sounds[0]?.paused).toBe(false);
+
+    held.mute(true);
+    expect(held.sounds[0]?.paused).toBe(true);
+    expect(held.shown()?.key).toBe("briefing:7");
+
+    held.mute(false);
+    await Promise.resolve();
+    expect(held.sounds[0]?.played).toBe(2);
+    expect(held.sounds[0]?.paused).toBe(false);
+  });
+
+  test("does not hold the trial voice, asked for at a press", () => {
+    const held = mutedDesk();
+
+    held.desk.trial("/briefing-trial.ogg", "/rooms/1?settings=briefing");
+
+    expect(held.sounds[0]?.played).toBe(1);
   });
 });
 

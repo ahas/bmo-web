@@ -3750,12 +3750,14 @@ briefing:
     voiceless: 이 에이전트에는 목소리가 없어 읽어 드릴 수 없습니다.
   action:
     listen: 재생
+    mute: 이 기기 음소거
     open: 줄로 가기
     pause: 일시정지
     play_trial: 들어보기
     reset_position: 초기화
     stop: 그만듣기
     stop_trial: 정지
+    unmute: 이 기기 음소거 해제
   label:
     pixels: px
     played: "{at} / {length}"

@@ -42,8 +42,17 @@ export async function holdsFocus(element: Locator): Promise<boolean> {
  */
 export async function goInApp(page: Page, path: string): Promise<void> {
   await page.evaluate((to) => {
-    const app = (document.querySelector("#__nuxt") as unknown as { __vue_app__: { config: { globalProperties: { $router: { push: (to: string) => Promise<unknown> } } } } }).__vue_app__;
+    const app = document.querySelector<ConsoleRoot>("#__nuxt")?.__vue_app__;
+
+    if (app === undefined) {
+      throw new Error("the console's app is not mounted");
+    }
 
     void app.config.globalProperties.$router.push(to);
   }, path);
 }
+
+/** The element the console's app is mounted on, as the page holds it. */
+type ConsoleRoot = Element & {
+  __vue_app__?: { config: { globalProperties: { $router: { push: (to: string) => Promise<unknown> } } } };
+};

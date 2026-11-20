@@ -8,13 +8,16 @@ import type { Browser, BrowserContext, Locator, Page, Route } from "playwright-c
 
 // The organisation screen chooses an organisation first (docs/web.md, 「Organisation」): the organisations at its left,
 // searched by name, each chosen as a step of the history that stands in the address, and on a phone the list rises as
-// a bottom drawer from the button carrying the organisation's name; moving between tabs keeps the organisation. Its
-// plans tab applies one of the plans shown and switches which are shown; the platform's policy form says what a
-// person's own setting may change; and the settings' supply section stands what the platform locks. Each is read at a
-// desk's width and a phone's.
+// a bottom drawer from the button carrying the organisation's name; moving between tabs keeps the organisation; and a
+// member is listed the companies where they head a unit or hold a part of the supply. Its plans tab applies one of the
+// plans shown and switches which are shown; its supply tab's policy form stands a source the platform has off with its
+// switch disabled; the platform's policy form says what a person's own setting may change; the providers tab says
+// whose a gateway road and a Claude account are; and the settings' supply section stands what the platform locks. Each
+// is read at a desk's width and a phone's.
 //
-// The account service's plan, platform and personal supply routes are answered by a stand-in on the page, so what
-// they hold is the test's own; the organisations are the console's own, made for this run.
+// The account service's plan, unit supply, supply reach, platform and personal supply routes are answered by a
+// stand-in on the page, so what they hold is the test's own; the organisations are the console's own, made for this
+// run, and the gateway's members and the Claude accounts are the agency stand-in's of tests/support/browser-console.ts.
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up.
 
@@ -251,26 +254,46 @@ describe.skipIf(!origin || !touchReady())("the organisation list", () => {
     }, 120_000);
   }
 
-  test("holds a member the companies where they head a unit, with no add, and none where they head nothing", async () => {
-    const context = await contextFor(MEMBER.name, 1280, 900);
+  for (const [width, height] of WIDTHS) {
+    test(`holds a member the companies where they head a unit or hold a part of the supply, with no add, and none where they hold nothing, at ${width}px`, async () => {
+      const context = await contextFor(MEMBER.name, width, height);
 
-    try {
-      const page = await context.newPage();
+      try {
+        const page = await context.newPage();
 
-      await open(page, "/organization");
-      expect(await page.locator("[data-organization-none]").innerText({ timeout: 20_000 })).toBe(wording("organization.label.list_none"));
-      expect(await page.getByRole("tab").count()).toBe(0);
+        await open(page, "/organization");
+        expect(await page.locator("[data-organization-none]").innerText({ timeout: 20_000 })).toBe(wording("organization.label.list_none"));
+        expect(await page.getByRole("tab").count()).toBe(0);
 
-      await administer(`/api/organization/units/${team}/heads/${encodeURIComponent(member)}`, "PUT");
-      await open(page, "/organization");
-      await companyIs(page, beta);
-      expect(await runRows(page.locator("[data-organization-list]"))).toEqual([`beta-${RUN}`]);
-      expect(await page.locator("[data-organization-add]").count()).toBe(0);
-    } finally {
-      await context.close();
-      await administer(`/api/organization/units/${team}/heads/${encodeURIComponent(member)}`, "DELETE").catch(() => null);
-    }
-  }, 120_000);
+        await administer(`/api/organization/units/${team}/heads/${encodeURIComponent(member)}`, "PUT");
+        await open(page, "/organization");
+        await companyIs(page, beta);
+        expect(await runRows(await organizationList(page, width))).toEqual([`beta-${RUN}`]);
+        expect(await page.locator("[data-organization-add]").count()).toBe(0);
+        await administer(`/api/organization/units/${team}/heads/${encodeURIComponent(member)}`, "DELETE");
+
+        // Heading nothing, the company whose plan they hold, as the account service's supply reach names it, stands
+        // listed with its plans tab and no supply tab, and the tab reads the company's plans.
+        const fresh = await context.newPage();
+
+        await page.close();
+        await fresh.route(/\/api\/supply\/units$/, async (route) => await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([{ id: alpha, name: `alpha-${RUN}`, parent: null, policy: false, plan: true }]) }));
+        await plansStandIn(fresh, alpha);
+        await open(fresh, "/organization?tab=plans");
+        await companyIs(fresh, alpha);
+        expect(await runRows(await organizationList(fresh, width))).toEqual([`alpha-${RUN}`]);
+        if (width < 640) {
+          await fresh.goBack();
+          await fresh.getByRole("dialog").waitFor({ state: "detached", timeout: 10_000 });
+        }
+        await fresh.locator("[data-plans-applied-row]").waitFor({ timeout: 20_000 });
+        expect((await fresh.locator(`[aria-label="${wording("organization.aria.tabs")}"]`).getByRole("tab").allInnerTexts()).map((one) => one.trim())).toEqual(["settings.label.invites", "settings.label.bmo", "supply.label.plans"].map((key) => wording(key)));
+      } finally {
+        await context.close();
+        await administer(`/api/organization/units/${team}/heads/${encodeURIComponent(member)}`, "DELETE").catch(() => null);
+      }
+    }, 120_000);
+  }
 });
 
 // --- The plans tab, on a stand-in of the organisation's plans ---
@@ -385,6 +408,125 @@ describe.skipIf(!origin || !touchReady())("the plans tab", () => {
         // The plan now applied holds its switch, and the one before can be switched off again.
         expect(await page.locator('[data-plans-catalogue="9002"] [data-plans-applied-switch]').count()).toBe(1);
         expect(await page.locator('[data-plans-catalogue="9001"]').getByRole("switch").isDisabled()).toBe(false);
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+  }
+});
+
+// --- The supply tab, on a stand-in of the organisation's supply ---
+
+// An organisation's supply as the account service would answer it: no policy of its own, the platform's in force from
+// above, and the platform making the person's own supply and the organisation's credits available, the global supply
+// and the personal credits off and left to no person. A policy write naming a source the platform keeps off is
+// refused as the service refuses it.
+async function supplyStandIn(page: Page, unit: number): Promise<{ writes: unknown[]; refusals: unknown[] }> {
+  const available = ["personal", "org_credits"];
+  let view = { inherits: true, policy: { allowed: available, order: [...available, "stop"], memberCreditCredits: null, from: null }, plan: null, wallet: { balance: 0, reserved: 0, debt: 0 }, available, usage: [] };
+  const writes: unknown[] = [];
+  const refusals: unknown[] = [];
+
+  await page.route(new RegExp(`/api/supply/org/${unit}$`), async (route: Route) => {
+    if (route.request().method() === "PUT") {
+      const body = route.request().postDataJSON() as { allowed: string[]; order: string[]; memberCreditCredits: number | null };
+
+      if (body.allowed.some((one) => !available.includes(one))) {
+        refusals.push(body);
+
+        return await route.fulfill({ status: 403, contentType: "application/json", body: JSON.stringify({ code: "source-not-allowed" }) });
+      }
+
+      writes.push(body);
+      view = { ...view, inherits: false, policy: { allowed: body.allowed, order: body.order, memberCreditCredits: body.memberCreditCredits, from: null } };
+    }
+
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(view) });
+  });
+
+  return { writes, refusals };
+}
+
+describe.skipIf(!origin || !touchReady())("the supply tab", () => {
+  for (const [width, height] of WIDTHS) {
+    test(`stands a source the platform has off with its switch disabled and the words saying so, and saves the rest, at ${width}px`, async () => {
+      const context = await contextFor(ADMINISTRATOR.name, width, height);
+
+      try {
+        const page = await context.newPage();
+        const { writes, refusals } = await supplyStandIn(page, beta);
+
+        await open(page, `/organization?company=${beta}&tab=supply`);
+        await page.locator('[data-supply-policy="inherits"]').waitFor({ timeout: 20_000 });
+        await page.getByRole("button", { name: wording("supply.action.policy_set"), exact: true }).click();
+
+        const dialog = page.getByRole("dialog").last();
+        const row = (source: string) => dialog.locator(`[data-supply-policy-row="${source}"]`);
+        const toggle = (source: string) => row(source).getByRole("switch", { name: wording("supply.aria.source_switch", { name: wording(`supply.label.source_${source}`) }), exact: true });
+
+        await row("personal").waitFor({ timeout: 10_000 });
+
+        // The sources the platform keeps off: off, their switch disabled, and the words under their name.
+        for (const source of ["global", "personal_credits"]) {
+          expect({ source, checked: await toggle(source).getAttribute("aria-checked"), disabled: await toggle(source).isDisabled() }).toEqual({ source, checked: "false", disabled: true });
+          expect(await row(source).locator("[data-supply-policy-platform-off]").innerText()).toBe(wording("supply.label.platform_off"));
+        }
+        // The sources it makes available stand as the policy in force has them, switched as the reader likes.
+        for (const source of ["personal", "org_credits"]) {
+          expect({ source, checked: await toggle(source).getAttribute("aria-checked"), disabled: await toggle(source).isDisabled() }).toEqual({ source, checked: "true", disabled: false });
+          expect(await row(source).locator("[data-supply-policy-platform-off]").count()).toBe(0);
+        }
+
+        // A source switched off is saved, and the save is not refused for anything the platform keeps off.
+        const save = dialog.getByRole("button", { name: wording("common.action.save"), exact: true });
+
+        expect(await save.isDisabled()).toBe(true);
+        await toggle("org_credits").click();
+        await save.click();
+        await dialog.waitFor({ state: "detached", timeout: 10_000 });
+        expect({ refusals, writes }).toMatchObject({ refusals: [], writes: [{ allowed: ["personal"], order: ["personal", "stop"] }] });
+        await page.locator('[data-supply-policy="own"]').waitFor({ timeout: 10_000 });
+        expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+  }
+});
+
+// --- The providers tab's owners, on the agency stand-in's gateway members and Claude accounts ---
+
+describe.skipIf(!origin || !touchReady())("the providers tab", () => {
+  for (const [width, height] of WIDTHS) {
+    test(`says whose a gateway road one person owns and whose each Claude account is, and nothing for a road of the platform's, at ${width}px`, async () => {
+      const context = await contextFor(ADMINISTRATOR.name, width, height);
+
+      try {
+        const page = await context.newPage();
+        // The person the stand-in's DeepSeek road and second Claude account belong to, by the name their account goes by.
+        const users = await administer<{ name: string; fullName: string }[]>("/api/users", "GET");
+        const owner = users.find((one) => one.name === "person-tabs-subject")!;
+        const personal = wording("supply.label.owner_personal", { name: owner.fullName.trim() === "" ? owner.name : owner.fullName });
+
+        await open(page, "/admin");
+
+        const road = (name: string) => page.locator(`[data-provider="${name}"]`);
+
+        await road("deepseek").locator("[data-provider-owner]").waitFor({ timeout: 20_000 });
+        expect(await road("deepseek").locator("[data-provider-owner]").innerText()).toBe(personal);
+        // A road of the platform's, and one with no gateway member at all, say nothing of whose they are.
+        await road("registered").waitFor({ timeout: 10_000 });
+        expect(await road("registered").locator("[data-provider-owner]").count()).toBe(0);
+        expect(await road("claude-code").locator("[data-provider-owner]").count()).toBe(0);
+
+        // The Claude accounts: the person's says so by their name, the platform's as shared.
+        const account = (id: string) => page.locator(`[data-account="${id}"] [data-account-owner]`);
+
+        await account("acct-b").waitFor({ timeout: 20_000 });
+        expect(await account("acct-b").innerText()).toBe(personal);
+        expect(await account("acct-a").innerText()).toBe(wording("supply.label.owner_shared"));
+        expect(await account("acct-c").innerText()).toBe(wording("supply.label.owner_shared"));
+        expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
       } finally {
         await context.close();
       }

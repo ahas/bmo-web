@@ -52,7 +52,9 @@ machine's own socket's `bmo_test`, and every name carries the process that made 
     (`BMO_TEST_POSTGRES`, or the machine's own socket where it names none);
   - the account service's secret store on a folder of the scratch directory, in place of the data root's `env/`;
   - a stand-in for each unit the console reads, answering the agent list, the owner's room and its figures, the
-    Claude accounts with what each has left and a provider keeping a balance, an empty TODO board and silent event
+    Claude accounts with what each has left and the user each belongs to, one of them a fixture account's and the
+    rest the platform's, a provider keeping a balance, the model gateway's members with the account each belongs
+    to, a road owned whole by that fixture account and another the platform's, an empty TODO board and silent event
     streams, and every other road with the unit's own not-found;
   - in the receiver's stand-in, whose private room each room is, `privateOf` and `sealed` on every room it reads:
     another account's private room with two lines said in it, `private-room`, and the owner's room, sealed where the

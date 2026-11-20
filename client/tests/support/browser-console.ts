@@ -288,7 +288,8 @@ const activity = { account: 0 };
 
 // The Claude accounts the agency holds, with what each has left (docs/web.md, 「Administration」, the providers tab):
 // two accounts on, one with a weekly window nearly spent and one with both windows, and a third off; the provider list
-// beside them keeps a road with a balance and a request allowance.
+// beside them keeps a road with a balance and a request allowance. The second account belongs to the activity person,
+// the rest to the platform.
 function usageFallback(): Record<string, unknown> {
   const now = Math.floor(LINE_AT / 1000);
   const account = (id: string, name: string, place: number, over: Record<string, unknown> = {}) => ({
@@ -301,8 +302,22 @@ function usageFallback(): Record<string, unknown> {
     routes: [{ name: "claude-code", label: "Claude Code" }],
     accounts: [
       account("acct-a", "claude-01", 1, { restUntil: now + 2 * 86_400 }),
-      account("acct-b", "claude-02", 2, { chosen: true, serving: true }),
+      account("acct-b", "claude-02", 2, { chosen: true, serving: true, userId: activity.account }),
       account("acct-c", "claude-03", 3, { enabled: false })
+    ]
+  };
+}
+
+// The model gateway's members (the agency's `docs/api.md`, 「providers, models and model files」): the DeepSeek road's
+// two, both the activity person's, so the road is theirs alone, and the registered road's one, the platform's.
+function gatewayMembers(): Record<string, unknown> {
+  const member = (name: string, road: string, provider: string, account: number | null) => ({ name, road, label: name, provider, account });
+
+  return {
+    items: [
+      member("deepseek-pro", "deepseek", "deepseek", activity.account),
+      member("deepseek-flash", "deepseek", "deepseek", activity.account),
+      member("model-a", "registered", "openai", null)
     ]
   };
 }
@@ -917,6 +932,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
     if (path === "/events") return silentStream();
     if (path === "/fallback") return Response.json(usageFallback());
+    if (path === "/gateway-members") return Response.json(gatewayMembers());
     if (path === "/accounts") return Response.json(usageAccounts());
     if (path === "/usage") return Response.json({ groups: [] });
     if (path === "/settings" && request.method === "PATCH") {

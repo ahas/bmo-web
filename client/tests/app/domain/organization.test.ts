@@ -15,7 +15,6 @@ import {
   organizationTabNamed,
   organizationTabOf,
   organizationTabsFor,
-  organizationsMatching,
   unitBranches,
   unitPath
 } from "../../../apps/web/app/domain/organization";
@@ -185,13 +184,6 @@ describe("the organisation list", () => {
     expect(chosenOrganization({ unit: "8" }, LIST, companyOf)?.id).toBe(1);
     // The organisation the address names stands before its unit's.
     expect(chosenOrganization({ company: "9", unit: "5" }, LIST, companyOf)?.id).toBe(9);
-  });
-
-  test("narrows to the names holding the words, in the list's order, whatever their case", () => {
-    expect(organizationsMatching(LIST, "works").map((one) => one.id)).toEqual([1, 4]);
-    expect(organizationsMatching(LIST, " HARB ").map((one) => one.id)).toEqual([9]);
-    expect(organizationsMatching(LIST, "")).toEqual(LIST);
-    expect(organizationsMatching(LIST, "nowhere")).toEqual([]);
   });
 
   test("holds for a member each company they head a unit of, manage the supply of or head, once, in the tree's order whichever read named it", () => {

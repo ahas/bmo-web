@@ -42,8 +42,9 @@ export async function holdsFocus(element: Locator): Promise<boolean> {
  */
 export async function goInApp(page: Page, path: string): Promise<void> {
   await page.evaluate((to) => {
-    const app = (document.querySelector("#__nuxt") as unknown as { __vue_app__: { config: { globalProperties: { $router: { push: (to: string) => Promise<unknown> } } } } }).__vue_app__;
+    const root = document.querySelector<HTMLElement & { __vue_app__: { config: { globalProperties: { $router: { push: (to: string) => Promise<unknown> } } } } }>("#__nuxt");
+    if (root === null) throw new Error("the console's app root is missing");
 
-    void app.config.globalProperties.$router.push(to);
+    void root.__vue_app__.config.globalProperties.$router.push(to);
   }, path);
 }

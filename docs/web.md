@@ -7144,7 +7144,9 @@ Four bounds keep it from growing forever.
   resolved, stand a new item from it, or leave it. Resolving stands as a button in the unfinished-item cell, and standing a new item is
   **항목 만들기** in the dialog's head, which opens its form in that same cell under the words. Where the note numbers
   its strands, the form's **미결 건** chooser names each by its number and its first words, and he picks the ones the new
-  line takes up; picking none takes the note up whole, as does a note with no numbered strands. The new line names
+  line takes up; picking none takes the note up whole, as does a note with no numbered strands. A strand's first
+  words are its first line, which can run to a paragraph, so a line longer than sixty characters is cut at the end of
+  a word within them and ends in an ellipsis. The new line names
   where it came from as bmo-job's `todo --add --from-todo` does: the note's item as its `raisedBy`, and its label
   `from-todo` holding `<item>:<strand>` for each strand picked, or the item alone for a note taken whole, every source
   joined with commas. While the form holds anything typed or picked, every way out of the dialog asks before it is

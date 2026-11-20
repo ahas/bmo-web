@@ -16,22 +16,37 @@ export interface RaisedSource {
   strand: number | null;
 }
 
-/** One numbered strand of a note: its number as the note writes it, and the first line of its words. */
+/** One numbered strand of a note: its number as the note writes it, and its first words. */
 export interface NoteStrand {
   number: number;
   text: string;
 }
 
-/** The numbered strands of a note: the items of its top-level numbered lists, read as markdown. A note with none is one
- * strand, and stands here as none. */
+/** How many characters of a strand's first line name it in a chooser: a strand's first line can run to a paragraph,
+ * and a choice is read in one glance. */
+export const STRAND_WORDS_LIMIT = 60;
+
+/** The numbered strands of a note: the items of its top-level numbered lists, read as markdown, each named by its
+ * first words. A note with none is one strand, and stands here as none. */
 export function noteStrands(note: string): NoteStrand[] {
   return Lexer.lex(note)
     .filter((token: Token): token is Tokens.List => token.type === "list" && (token as Tokens.List).ordered)
     .flatMap((list) => {
       const first = typeof list.start === "number" ? list.start : 1;
 
-      return list.items.map((item, at) => ({ number: first + at, text: item.text.trim().split("\n")[0]!.trim() }));
+      return list.items.map((item, at) => ({ number: first + at, text: firstWords(item.text.trim().split("\n")[0]!.trim()) }));
     });
+}
+
+// A line cut to its first words: within the limit, at the end of a word where one ends in its later half, and marked
+// as cut.
+function firstWords(line: string): string {
+  if (line.length <= STRAND_WORDS_LIMIT) return line;
+
+  const cut = line.slice(0, STRAND_WORDS_LIMIT);
+  const space = cut.lastIndexOf(" ");
+
+  return `${(space > STRAND_WORDS_LIMIT / 2 ? cut.slice(0, space) : cut).trimEnd()}…`;
 }
 
 /** The label naming the notes a line takes up, each once and in the order given; a note taken whole names no strand of

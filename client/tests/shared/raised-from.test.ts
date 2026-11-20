@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { fromTodoLabel, noteStrands, sourcesOf, takesUpWhole } from "../../apps/web/shared/raised-from";
+import { fromTodoLabel, noteStrands, sourcesOf, STRAND_WORDS_LIMIT, takesUpWhole } from "../../apps/web/shared/raised-from";
 
 // The label a line raised from notes names them in, as bmo-job's `todo --add --from-todo` writes it, and the strands a
 // note is read as (docs/web.md, the TODO panel's section, on a note resolving on its own).
@@ -14,6 +14,16 @@ describe("a note's strands", () => {
       { number: 2, text: "Host work: the backup" },
       { number: 4, text: "A list starting at four" }
     ]);
+  });
+
+  test("a strand whose first line runs long is named by its first words, cut at a word's end", () => {
+    const words = "word ".repeat(40).trim();
+    const unbroken = "x".repeat(STRAND_WORDS_LIMIT + 10);
+    const [named, solid] = noteStrands(`1. ${words}\n2. ${unbroken}`);
+
+    expect(named!.text).toBe(`${words.slice(0, words.lastIndexOf(" ", STRAND_WORDS_LIMIT))}…`);
+    expect(named!.text.length).toBeLessThanOrEqual(STRAND_WORDS_LIMIT + 1);
+    expect(solid!.text).toBe(`${"x".repeat(STRAND_WORDS_LIMIT)}…`);
   });
 
   test("a note with no numbered list stands none, being one strand", () => {

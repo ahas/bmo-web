@@ -6512,8 +6512,8 @@ Four bounds keep it from growing forever.
       stands only as that 미결, never again as a 보류 사유. Each report is headed by its kind, the moment it was
       written and who wrote it, and every one of them stands at its whole length with no fold and no scroll of its
       own: a report is the item's account of itself, and a part of it put away behind a press is a part not read.
-      The tab reads the reports again each time the item is opened and whenever the queue moves, so a report
-      written while the dialog is open stands without reopening it. What is done about an unfinished-item stands inside the unfinished-item's own cell and under its
+      The tab reads the reports again each time the item is opened, from its row or from an address naming it, and
+      whenever the queue moves, so a report written while the dialog is open stands without reopening it. What is done about an unfinished-item stands inside the unfinished-item's own cell and under its
       words — the **미결 해소** box with its button while the note still stands, and the form raising a new item
       under a line once the head's **항목 만들기** is pressed — because both are written about those words and a box
       on another tab is written blind. That press brings 결과 forward, wherever the reader stood, with the form
@@ -6525,7 +6525,8 @@ Four bounds keep it from growing forever.
       with its reason, 통과 with the check it passed, 오너 보고 and 오너 결정, 수락 and 검수 시작, each headed by its
       kind, its stage (or 최종 보고 for the work whole) and round, who wrote it and when, and its words at their whole
       length, read as markdown. A 반려 stands in the warning colour, so the reasons read apart from the rest. The
-      tab reads the review again each time the item is opened and whenever the queue moves.
+      tab reads the review again each time the item is opened, from its row or from an address naming it, and whenever
+      the queue moves.
     - **요청 원문** is what this item is, in the request's own words. Not the instruction poured whole into one box but stood per part in its own cell:
       exchanged conversation, what the work is, conclusion, what to do. A line the chat agent filed itself stands the chat agent's judgement and
       source unfinished-items, a line filed from the console seeing unfinished-items stands the owner's words and source

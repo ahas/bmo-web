@@ -20,7 +20,8 @@ const row = (id: number, addressee: "person" | "supervisor", state: "open" | "pa
   choices: ["a", "b"],
   recommendation: null,
   state,
-  dueAt: addressee === "person" && state === "open" ? (NOW + 60) * 1000 : null,
+  // A due time a quarter of a second past a whole second, as bmo-job keeps it in milliseconds.
+  dueAt: addressee === "person" && state === "open" ? (NOW + 60) * 1000 + 250 : null,
   toldByAsker: false,
   heardThrough: null,
   readdressedBy: null,
@@ -60,5 +61,13 @@ describe("the questions the console reads", () => {
     const read = await asked(handler, {});
 
     expect(read.answer?.map((question) => question.id).toSorted()).toEqual([1, 3]);
+  });
+
+  test("count to bmo-job's due time rounded up to the second, and carry a stopped one's missing due time as none", async () => {
+    const read = await asked(handler, {});
+    const due = new Map(read.answer?.map((question) => [question.id, question.dueAt]));
+
+    expect(due.get(1)).toBe(NOW + 61);
+    expect(due.get(3)).toBeNull();
   });
 });

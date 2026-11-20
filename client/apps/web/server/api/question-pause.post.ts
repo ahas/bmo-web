@@ -39,6 +39,6 @@ export default defineEventHandler(async (event): Promise<QuestionPauseResult> =>
   return {
     ok: true,
     pausedLeft: null,
-    dueAt: question.dueAt === null ? null : Math.floor(question.dueAt / 1000)
+    dueAt: question.dueAt === null ? null : Math.ceil(question.dueAt / 1000)
   };
 });

@@ -6981,7 +6981,8 @@ Four bounds keep it from growing forever.
   other words beside it (bmo-job's `docs/api.md`, 「The recommendation」). The wait the question has is the service's due
   time, read as the countdown, and the line beside it says what the silence settles: 추천 {number}번 or 추천 답 where a
   recommendation stands, 사람의 답을 기다림 where none does. The countdown is the `dueAt` bmo-job holds for that
-  question, to the second, and nothing of the console's own: a question open with no due time, which nothing settles in
+  question, rounded up to the second so it never reaches nothing before bmo-job's own due time, and nothing of the
+  console's own: a question open with no due time, which nothing settles in
   his place, counts nothing and says 사람의 답을 기다림 alone, never that its time ran out; having no clock, it offers no
   「타이머 정지」 either.
 - **Its time running out settles it on the recommendation.** Where nobody has answered by the due time, bmo-job settles

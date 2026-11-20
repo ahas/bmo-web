@@ -4,8 +4,9 @@
        the same way, and the order is saved the moment it is dropped. What a row says of a credential is the path it
        is reached by — no cell and no box here has a token to show, because none is ever sent to this screen. A new
        login is added from the add at the heading's right end, which opens the box this list keeps. The list stands as a group under its
-       heading, its rows parted by hairlines with no box round them, as the providers above it do. -->
-  <section class="flex flex-col" aria-labelledby="accounts-title">
+       heading, its rows parted by hairlines with no box round them, as the providers above it do. An address naming
+       the group opens with it brought to the top of the body, the body's own padding kept above it. -->
+  <section :id="ACCOUNTS_GROUP" class="flex scroll-mt-4 flex-col" aria-labelledby="accounts-title">
     <div class="flex min-h-8 items-center justify-between gap-4">
       <h3 id="accounts-title" class="text-sm font-semibold text-highlighted">{{ $t("agents.title.accounts") }}</h3>
       <UButton size="xs" color="neutral" variant="ghost" icon="i-material-symbols-add" :label="$t('agents.action.account_add')" data-account-add @click="openAdd()" />
@@ -137,7 +138,7 @@
 
 <script setup lang="ts">
 import { useOpenedWith } from "bmo-ui/app/domain/form-save";
-import { ACCOUNT_KINDS, SIGN_IN_KIND, accountChoiceNote, accountLoginText, accountMark, nextAccountName } from "~/domain/accounts";
+import { ACCOUNT_KINDS, ACCOUNTS_GROUP, SIGN_IN_KIND, accountChoiceNote, accountLoginText, accountMark, nextAccountName } from "~/domain/accounts";
 import { movedOrder } from "~/domain/agents";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { usePolling } from "~/domain/polling";
@@ -156,6 +157,14 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), { query: "" });
 
 const { t } = useI18n();
+const route = useRoute();
+
+// The group stands only once its accounts are read, after the router has scrolled for the address, so it brings itself
+// into view where the address names it; the browser's scroll anchoring holds it there while the groups above it fill.
+onMounted(() => {
+  if (route.hash === `#${ACCOUNTS_GROUP}`) document.getElementById(ACCOUNTS_GROUP)?.scrollIntoView({ block: "start" });
+});
+
 const KIND_ITEMS = ACCOUNT_KINDS.map((one) => ({ ...one, label: t(one.label) }));
 // A new account may also be signed in here, which is what its box offers first.
 const ADD_KIND_ITEMS = [SIGN_IN_KIND, ...ACCOUNT_KINDS].map((one) => ({ ...one, label: t(one.label) }));

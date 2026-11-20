@@ -1,3 +1,4 @@
+import { ADMIN_PATH } from "./administration";
 import { AUTO_LABEL } from "./agent-settings";
 import { untilText } from "./usage";
 
@@ -8,6 +9,11 @@ import type { Translate } from "#shared/wording";
 // The Claude accounts as the screen reads them. What a row says of a credential is where it is
 // reached and how its login stands; nothing here has a credential to show, because nothing the bot
 // answers with carries one.
+
+// The name the accounts group answers to in an address: the administration screen's first tab, at that group
+// (docs/web.md, 「Administration」).
+export const ACCOUNTS_GROUP = "accounts";
+export const ACCOUNTS_ADDRESS = `${ADMIN_PATH}#${ACCOUNTS_GROUP}`;
 
 // The way a new account's box offers beside the two kinds: its login made here, through the agency's own run of the
 // CLI's sign-in, into a configuration directory the agency makes for it (docs/web.md, 「Administration」).

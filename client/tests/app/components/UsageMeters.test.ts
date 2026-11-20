@@ -149,10 +149,9 @@ describe("what the popover holds", () => {
 
   // A mark that stands on every screen leads to what it is about, and a panel opened from one
   // carries the way to that thing's own page. What these figures are read against is the list of
-  // logins, their order and their switches.
+  // logins, their order and their switches, at their group on the administrator's screen.
   test("and the way to the accounts the figures are of", () => {
-    expect(template).toContain('to="/agents?tab=general"');
-    expect(template).toContain(`:label="$t('usage.label.claude_accounts')"`);
+    expect(tagOf(':to="ACCOUNTS_ADDRESS"')).toContain(`:label="$t('usage.label.claude_accounts')"`);
   });
 
   test("a window says how long is left of it, and keeps the hour behind that", () => {

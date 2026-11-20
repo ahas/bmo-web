@@ -72,11 +72,12 @@
         <div class="flex flex-col gap-2">
           <!-- Where these figures are settled: which logins the road walks, in what order and
                which of them are on. A mark standing on every screen leads to the page it is
-               about, and this one is about the accounts. -->
+               about, and this one is about the accounts, on the administrator's screen at their group;
+               the figures stand for the administrator alone, so every reader of this way may open it. -->
           <div class="flex items-center justify-between gap-2">
             <p class="text-sm font-medium text-muted">{{ $t("usage.title.remaining") }}</p>
             <UButton
-              to="/agents?tab=general"
+              :to="ACCOUNTS_ADDRESS"
               size="sm"
               color="neutral"
               variant="link"
@@ -139,6 +140,7 @@
 import { useInitialRead, useLastRead } from "bmo-ui/app/domain/loading";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { elapsedText } from "bmo-ui/app/domain/time";
+import { ACCOUNTS_ADDRESS } from "~/domain/accounts";
 import { useReadFailure } from "~/domain/events";
 import { useTitleBarShort } from "~/domain/title-bar";
 import { usePolling } from "~/domain/polling";

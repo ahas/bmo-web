@@ -1197,7 +1197,10 @@ edit to that file alone, once the guide below carries the word.
   that does not scroll is drawn where nothing can reach it.
 - **It leads to the accounts.** The panel's own heading carries the way to the Claude 계정 list,
   where the logins, their order and their switches are — what the figures are read against, and the
-  only place any of it is changed.
+  only place any of it is changed. The way is the administration screen's 공급자 tab at its Claude 계정 group,
+  `/admin#accounts`, which opens with that group brought to the top of the body (「Administration」). The figures
+  stand for the administrator alone (「The title bar」), the one reader that screen opens to, so no member meets a
+  way that would take them home.
 
 - **Tokens stand as four — 「읽기」, 「쓰기」, 「캐시읽기」, 「캐시쓰기」 — with 「총 …」 beside them.** Those
   four are the tokens one run reports: what was sent, what was written, what was read from cache, what was
@@ -8079,7 +8082,9 @@ they and the platform's supply run on. No member opens it.
   `GET`/`PUT /api/secret-settings`, the administrator's alone, read every such setting and change one, its field
   and a secret's name or null; another setting of the same shape is one more entry in the console's list of them.
 - **Claude 계정** — the Claude accounts in the order the Claude Code provider walks them, a group under its heading as
-  공급자 is, with 계정 추가 at the heading's right end, which opens the add form below; its rows parted by hairlines with no box round them, one row each: a drag
+  공급자 is, with 계정 추가 at the heading's right end, which opens the add form below. The address `/admin#accounts`
+  names the group: the tab opens with it brought to the top of the body once it stands, which is where the title
+  bar's usage panel leads (「Usage in the title bar」). Its rows are parted by hairlines with no box round them, one row each: a drag
   handle, the place in the order, a mark saying whether that login is standing, near its end or gone — a login near
   its end also carrying how long is left, and one that has ended carrying 로그인 필요 — the name the owner gave it,
   where its credential is reached, a configuration directory or a token file shown as that path, the up and down

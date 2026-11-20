@@ -67,7 +67,7 @@ import {
   unfinishedState,
   approvalChangeIcon,
   approvalChangeLine,
-  approvalLabel,
+  approvalCells,
   instructionParts,
   jobRecordLine,
   readableSource,
@@ -75,7 +75,7 @@ import {
 import { DRAG_START_PX, movedEnoughToDrag, rowAtPoint, startsRowDrag } from "../../../apps/web/app/domain/row-drag";
 import { todoModelPlan } from "../../../apps/web/app/domain/todo-models";
 
-import type { RoomSummary, TodoBoard, TodoItem, TodoSpan, WaitTarget } from "../../../apps/web/shared/types";
+import type { RoomSummary, TodoApproval, TodoBoard, TodoItem, TodoSpan, WaitTarget } from "../../../apps/web/shared/types";
 import type { TodoConditions, TodoFilter } from "../../../apps/web/app/domain/todos";
 
 // The owner's own room and a worker, by neutral names.
@@ -366,8 +366,6 @@ describe("where an item stands", () => {
     expect(todoState(item(12, { status: "held", deployHeld: true, closing: { phase: "waiting-live", waiting: [{ repository: null, commit: "abc" }] } }))).toBe("deploy");
     expect(todoState(item(13, { status: "held" }))).toBe("held");
     expect(todoState(item(11, { approved: false, awaitingApproval: false, running: true }))).toBe("running");
-    expect(approvalLabel(wording, item(10, { approved: false, awaitingApproval: false }))).toBe(wording("todo.label.opened_unattended"));
-    expect(approvalLabel(wording, item(12, { approved: true, awaitingApproval: false }))).toBe(wording("todo.label.approved"));
     expect(todoState(item(1))).toBe("waiting");
     expect(todoState(item(2, { running: true }))).toBe("running");
     expect(todoState(item(4, { done: true }))).toBe("done");
@@ -789,8 +787,6 @@ describe("an approval in an item's record", () => {
   });
 
   test("an item only recommended still awaits the owner's approval", () => {
-    expect(approvalLabel(wording, item(9, { approved: false, awaitingApproval: true, recommended: true }))).toBe(wording("todo.label.recommended_awaiting"));
-    expect(approvalLabel(wording, item(9, { approved: true, awaitingApproval: false, recommended: true }))).toBe(wording("todo.label.approved"));
     expect(todoState(item(9, { approved: false, awaitingApproval: true, recommended: true }))).toBe("pending");
   });
 });
@@ -1539,10 +1535,42 @@ describe("the parts of an item's instruction", () => {
   });
 });
 
-describe("the head line and the job record of an opened item", () => {
-  test("say whether it is approved", () => {
-    expect(approvalLabel(wording, item(1))).toBe(wording("todo.label.approved"));
-    expect(approvalLabel(wording, item(1, { approved: false, awaitingApproval: true }))).toBe(wording("todo.label.not_approved"));
+describe("the approval line and the job record of an opened item", () => {
+  const recommendation: TodoApproval = { id: 1, kind: "recommendation", caller: "agent-b", at: 1_000 };
+  const approval: TodoApproval = { id: 2, kind: "approval", caller: "agent-a", at: 2_000 };
+  const cells = (one: TodoItem, approvals: TodoApproval[] | null) =>
+    approvalCells(wording, one, approvals, "requester-a").map(({ key, who, at, tone }) => ({ key, who, at, tone }));
+
+  test("names who asked and when, the newest recommendation and the newest approval, each with its moment", () => {
+    const older: TodoApproval = { id: 3, kind: "approval", caller: "agent-c", at: 1_500 };
+    const asked = item(1, { createdAt: 500 });
+
+    expect(cells(asked, [older, approval, recommendation])).toEqual([
+      { key: "request", who: "requester-a", at: 500, tone: "given" },
+      { key: "recommend", who: "agent-b", at: 1_000, tone: "recommended" },
+      { key: "approve", who: "agent-a", at: 2_000, tone: "given" }
+    ]);
+    expect(approvalCells(wording, asked, [], "requester-a").map((cell) => cell.label)).toEqual([
+      wording("todo.label.field_requester"),
+      wording("todo.label.approval_recommended"),
+      wording("todo.label.approval_given")
+    ]);
+  });
+
+  test("says what the item says where nobody approved it, and waits on the record for the rest", () => {
+    const awaiting = item(2, { approved: false, awaitingApproval: true });
+
+    // An item awaiting approval says so at once; its recommendation waits on the record.
+    expect(cells(awaiting, null).slice(1)).toEqual([
+      { key: "recommend", who: null, at: null, tone: "quiet" },
+      { key: "approve", who: wording("todo.label.not_approved"), at: null, tone: "awaiting" }
+    ]);
+    expect(cells(item(3), null)[2]).toEqual({ key: "approve", who: null, at: null, tone: "quiet" });
+    // Once read with nothing in it, an empty cell is named, and an item its labels opened says so.
+    expect(cells(item(3), [])[1]).toEqual({ key: "recommend", who: wording("common.label.none"), at: null, tone: "quiet" });
+    expect(cells(item(3), [])[2]).toEqual({ key: "approve", who: wording("todo.label.approved"), at: null, tone: "quiet" });
+    expect(cells(item(4, { approved: false, awaitingApproval: false }), [])[2]?.who).toBe(wording("todo.label.opened_unattended"));
+    expect(cells(item(5), [{ ...approval, caller: null }])[2]?.who).toBe(wording("todo.label.approval_no_caller"));
   });
 
   test("say which run is going, that none has run, or nothing where the bars speak", () => {

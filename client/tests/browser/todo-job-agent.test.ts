@@ -8,9 +8,10 @@ import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 import type { TodoBoard, TodoItem } from "../../apps/web/shared/types";
 
 // A running job keeps the agent it was launched on (docs/web.md, the TODO panel's section): the row and the opened
-// item's head name the agent the job runs on, never the item's label, which may have been changed since. The head
-// stands that agent read and not chosen, so no chooser is offered until the job is stopped. Both are read off the
-// page at 1280 pixels and at 360 on a touch screen, the row's chip measured whole inside the viewport.
+// item's assignment name the agent the job runs on, never the item's label, which may have been changed since. The
+// assignment, in the form block on a wide dialog and at the top of the manage tab on a phone's, stands that agent
+// read and not chosen, so no chooser is offered until the job is stopped. Both are read off the page at 1280 pixels
+// and at 360 on a touch screen, the row's chip measured whole inside the viewport.
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up, and
 // serves the board through the page's own route.
@@ -165,13 +166,14 @@ describe.skipIf(!origin || !touchReady())("a running job's agent on the TODO pan
       }
     }, 60_000);
 
-    test(`the opened item's head stands the job's agent locked, with no chooser, at ${width}px`, async () => {
+    test(`the opened item's assignment stands the job's agent locked, with no chooser, at ${width}px`, async () => {
       const context = await open(width, height);
 
       try {
         const page = await context.newPage();
 
         await page.goto(`${origin}/?todo=${ITEM}`, { waitUntil: "load" });
+        if (width < 1024) await page.getByRole("dialog").getByRole("tab", { name: wording("todo.label.manage"), exact: true }).last().click();
 
         const locked = page.locator("[data-item-agent-running]:visible").first();
 

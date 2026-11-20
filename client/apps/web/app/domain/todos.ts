@@ -879,11 +879,44 @@ export function jobRecordLine(t: Translate, item: TodoItem): string | null {
   return item.seconds === null ? t("todo.status.no_job_yet") : null;
 }
 
-// Where the item stands on approval, in the words the dialog's head line uses.
-export function approvalLabel(t: Translate, item: TodoItem): string {
-  if (item.awaitingApproval) return item.recommended ? t("todo.label.recommended_awaiting") : t("todo.label.not_approved");
+/** One cell of an item's approval line, as its form block heads it. */
+export interface ApprovalCell {
+  key: "request" | "recommend" | "approve";
+  label: string;
+  // Who gave it, or the words standing where nobody did; null while the cell waits on the approvals being read.
+  who: string | null;
+  // When it was given, where somebody gave it.
+  at: number | null;
+  tone: "given" | "recommended" | "awaiting" | "quiet";
+}
 
-  return item.approved ? t("todo.label.approved") : t("todo.label.opened_unattended");
+// The approval line an item's form block heads its document with (docs/web.md, the TODO modal's form block): who
+// asked and when, the chat agent's latest recommendation and the latest approval. The approvals are null until they
+// are first read, and the cells that wait on them say so; what the item itself says stands at once.
+export function approvalCells(t: Translate, item: TodoItem, approvals: readonly TodoApproval[] | null, requester: string): ApprovalCell[] {
+  const latest = (kind: TodoApproval["kind"]): TodoApproval | null =>
+    (approvals ?? []).filter((one) => one.kind === kind).reduce<TodoApproval | null>((newest, one) => (newest === null || one.at > newest.at ? one : newest), null);
+  const given = (one: TodoApproval, tone: ApprovalCell["tone"]): Pick<ApprovalCell, "who" | "at" | "tone"> => ({
+    who: one.caller ?? t("todo.label.approval_no_caller"),
+    at: one.at,
+    tone
+  });
+  const waiting = { who: null, at: null, tone: "quiet" } as const;
+  const recommendation = latest("recommendation");
+  const approval = latest("approval");
+
+  const recommended = recommendation !== null ? given(recommendation, "recommended") : approvals === null ? waiting : { who: t("common.label.none"), at: null, tone: "quiet" as const };
+  const approved =
+    approval !== null ? given(approval, "given")
+    : item.awaitingApproval ? { who: t("todo.label.not_approved"), at: null, tone: "awaiting" as const }
+    : approvals === null ? waiting
+    : { who: item.approved ? t("todo.label.approved") : t("todo.label.opened_unattended"), at: null, tone: "quiet" as const };
+
+  return [
+    { key: "request", label: t("todo.label.field_requester"), who: requester, at: item.createdAt, tone: "given" },
+    { key: "recommend", label: t("todo.label.approval_recommended"), ...recommended },
+    { key: "approve", label: t("todo.label.approval_given"), ...approved }
+  ];
 }
 
 // One approval of an item, as its record reads it: its kind — an approver's approval or the chat agent's

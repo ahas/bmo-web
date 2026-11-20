@@ -1439,6 +1439,7 @@ todo:
     filters_set: "필터 {n}개"
     hold_reason: 보류 사유
     item_body: 항목 내용
+    item_form: 결재란
     item_manage: 항목 상태와 관리
     item_view: 항목 보기
     item_worker: 이 항목을 맡을 워커
@@ -1553,7 +1554,6 @@ todo:
     queue_turn_passed: 차례를 넘기는 중
     queue_turn_resume: 재개할 차례
     queue_turn_why: "{turn}: {why}"
-    recommended_awaiting: 추천됨 · 결재 필요
     removed_at: "삭제 {time}"
     rejections: "반려 {n}회"
     report_count: "보고 {n}건"

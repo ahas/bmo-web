@@ -1845,7 +1845,7 @@ Four groups.
 ### Model names where room is short
 
 - **A compact line names a model short**, and its tooltip names it whole. The compact lines are a TODO row's model
-  chip, the model in the TODO modal's head, a step's model on the progress stepper, the model line in a step's or a
+  chip, the model in the TODO modal's form block, a step's model on the progress stepper, the model line in a step's or a
   task's dialog head, the models in a work view's head, a figure's line inside a bubble, and a live run's or an
   execution's model. A table's cell, a settings form and a verdict card name the model whole.
 - **A model stands alone.** No line puts beside a model's name why its road was taken — that the provider order fell
@@ -6249,7 +6249,7 @@ Four bounds keep it from growing forever.
   While a job of the item is under way (starting, running or under its orderer's review), the line names the road that
   run took. A tooltip names the model whole, and while
   a job runs it names after it what chose the job's road, the agency's `chosenBy` in the pack's words: 항목 지정,
-  강제 지정, 고정 모델 or 공급자 순서. The item's detail names the same model in its head, in the same chip. The chip
+  강제 지정, 고정 모델 or 공급자 순서. The item's detail names the same model in its form block, in the same chip. The chip
   is pressed nowhere: the road is read, and chosen through the item's agent. A line carries as a second chip whom its
   work runs on: while a job of the item is under way, the agent that job runs on, the agency's job `agentName`, never
   the item's labels, so a line assigned by a model names there the agent its launch took; otherwise the agent its
@@ -6261,7 +6261,7 @@ Four bounds keep it from growing forever.
   「Reviews」), and none while it was never sent back.
 - **An item is given to a repository and an agent, or a model and a role.** Its 저장소 is its assignment, the
   repository whose worker and checkout the work is done in (unassigned is the built-in worker), chosen in the detail's
-  head. Its 에이전트 is whom the item names its work for, chosen in the detail's head where the item is not finished,
+  form block. Its 에이전트 is whom the item names its work for, chosen in the detail's form block where the item is not finished,
   from one list grouped by role: under each role, first every model its agents switched on run, each once, as
   `<role> · <model>` with the agents running it under it, and then every agent of the role switched on, each with its
   road under its name. A model chosen names that role and that model, `model` and `role` labels, and the agency seats
@@ -6354,14 +6354,31 @@ Four bounds keep it from growing forever.
     pill (「Messages」).
   - The hold is the console's one held finger (「A held finger」), so a finger scrolling the list never opens the menu,
     and the lift that follows a hold does not open the line as well.
-- **The modal is built as a screen to read one item.** The list line's shape is not carried over — a line shape fitted to
-  a narrow column only lines up cell by cell in a wide place. The head stands the number and title uncut, with
-  **항목 만들기** before the close mark on an item carrying an unfinished-item (the dialog's contained create button,
-  「An add that belongs to a row stays in that row at every width」), and under it where this item stands now:
-  its state and its approval (approved or awaiting) on a line of their own, and under that line a name and value
-  list (「Name and value lists」) of who asked, the model, the agent, the priority and the worker, so no value's
-  length moves another. For an unfinished item the worker and the model are cells changed right there, the
-  worker's repository path under its cell, and for a finished item read-only tags. The body is two sets of tabs, in one order across both: 결과 (only where there is one), 보고 턴
+- **The modal is built as an approval document to read one item.** The list line's shape is not carried over — a line
+  shape fitted to a narrow column only lines up cell by cell in a wide place. The body is the document's content and
+  takes the dialog's height; what heads it takes no more than the title's lines and the form block beside them.
+  - **The head is the document's head:** the number and the title, uncut, at the title's size, and under it, on a
+    line of its own, the item's state. No chip or mark stands beside the title. On an item carrying an
+    unfinished-item, **항목 만들기** stands just before the close mark on its line (the dialog's contained create
+    button, 「An add that belongs to a row stays in that row at every width」).
+  - **The form block stands at the head's top right,** where an approval form puts its approval box: one bordered
+    box (`data-item-form`). Its first row is the approval line, three cells **요청**, **추천** and **결재**, each its
+    name over who gave it and when (month, day and clock): 요청 the person and room that asked and when the item was
+    filed; 추천 the chat agent's latest recommendation, in its own colour so it is never read as an approval; 결재 the
+    latest approval, or where none was given 결재 전 in the warning colour, or 결재 없이 열림 for an item its labels
+    opened unattended. A cell with nothing to name stands 없음, and while the approvals are read the cells waiting on
+    them stand as bars. Under that row stand the item's assignment as form cells, each name in a tinted cell beside
+    its value, two to a row: 에이전트 and 저장소, then 모델 and, while the item is unfinished, 우선순위. On an unfinished
+    item the agent and the worker are changed right there, the worker's repository path in its tooltip; on a finished
+    item they are read. The close mark, and 항목 만들기 before it, stand at the box's top right, centred on its first row.
+  - **The head is two columns where the body is,** the title's on the left and the box's on the right, wide enough
+    for two of its fields side by side; it draws no line between them, the box being bordered itself. The head is
+    only as tall as the taller of the two, so both tab rows start on one line right under it.
+  - **Where the dialog is too narrow for two columns,** the head is one column: the title's line ends in the close
+    mark, the state under it and the box under that with its approval line alone. The assignment stands at the top of
+    관리 as a name and value list (「Name and value lists」), the worker's repository path under its cell, so a
+    phone's sheet keeps its height for the content rather than for rows of names.
+  - **The body is two sets of tabs**, in one order across both: 결과 (only where there is one), 보고 턴
   (only where there is one), 상태, 지시 and 요청 원문 on the left, 의논 and 관리 on the right.
   - **Left: 결과, 상태, 지시 and 요청 원문** — how the item ended, what became of it and what it says.
     - **결과** stands only on an item that carries a report or unfinished-items, and it is the first tab of
@@ -6454,7 +6471,8 @@ Four bounds keep it from growing forever.
       place above it takes the height; the talk drops to its end when a new word comes. The turns scroll on their own,
       and the column around them does not scroll.
     - **관리** is approval/order/hold/stop/discard. On an approval-awaiting line their first act is approve or discard, so those
-      buttons are at the top. It carries nothing about an unfinished-item, which is written about where it is read. A
+      buttons are at the top, under the item's assignment alone where the dialog is too narrow for two columns and the
+      form block carries only its approval line. It carries nothing about an unfinished-item, which is written about where it is read. A
       merged line says which item carries it, and a finished line says in one line that nothing is left to do here.
       Its acts follow the item's state as the line's menu does: **보류** with its reason box on an item in the queue,
       **보류 해제** beside the hold's kind, time and reason on one set aside, and the move buttons and the 결재 의견 box

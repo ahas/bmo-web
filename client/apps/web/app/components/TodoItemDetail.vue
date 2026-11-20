@@ -19,116 +19,84 @@
   >
     <template #content>
       <div class="flex h-full min-h-0 flex-col">
-        <!-- The head: which item this is, and every fact of where it stands on one line under it,
-             so none of them has to be scrolled to. On an item still open the worker and the
-             co-work are the controls themselves rather than a word beside them. -->
-        <div class="border-b border-default px-4 py-3">
-          <div class="flex items-center gap-2">
-            <span class="shrink-0 text-sm tabular-nums text-muted">#{{ openedItem?.id }}</span>
-            <p class="min-w-0 flex-1 text-base font-semibold break-words text-highlighted">{{ openedItem?.title }}</p>
+        <!-- The document's head (docs/web.md, the TODO modal): the number and the title with the state on a line of its
+             own under them, never a chip beside the title, and at the top right the form block, the approval line and
+             the item's assignment, where an approval form puts its approval box. It is two columns where the body is, so
+             it is only as tall as the taller of the two and the body begins right under it. Where the dialog is too
+             narrow for two columns, the box under the state carries the approval line alone and the assignment heads
+             the manage tab. -->
+        <div class="grid border-b border-default lg:grid-cols-[minmax(0,1fr)_minmax(0,38rem)]" data-item-head>
+          <div class="flex min-w-0 flex-col gap-2 px-4 py-3">
+            <div class="flex items-center gap-2">
+              <span class="shrink-0 text-sm tabular-nums text-muted">#{{ openedItem?.id }}</span>
+              <h2 class="min-w-0 flex-1 text-xl font-semibold break-words text-highlighted" data-item-title>{{ openedItem?.title }}</h2>
 
-            <!-- The dialog's one add: a new item raised out of the unfinished note. It belongs to this row, so it is
-                 contained and stands here at every width at the row's own button size, never floating over a screen's
-                 own create button (docs/web.md, the add that belongs to a row). -->
-            <UTheme v-if="openedItem !== null && openedItem.unfinished !== null" :props="ROW_BUTTONS">
-              <CreateButton contained :label="$t('todo.action.create_item')" @click="startRaise(openedItem.id)" />
-            </UTheme>
+              <!-- The dialog's one add: a new item raised out of the unfinished note. It belongs to this row, so it is
+                   contained and stands before the close mark at every width at the row's own button size, never floating
+                   over a screen's own create button (docs/web.md, the add that belongs to a row); on a wide dialog the
+                   two stand at the box's top right. -->
+              <UTheme v-if="openedItem !== null && openedItem.unfinished !== null && !twoColumns" :props="ROW_BUTTONS">
+                <CreateButton contained :label="$t('todo.action.create_item')" @click="startRaise(openedItem.id)" />
+              </UTheme>
 
-            <UTooltip :text="$t('common.action.close')">
-              <UButton
-                size="sm"
-                color="neutral"
-                variant="ghost"
-                icon="i-material-symbols-close"
-                :aria-label="$t('common.action.close')"
-                @click="detailOpen = false"
-              />
-            </UTooltip>
+              <UTooltip v-if="!twoColumns" :text="$t('common.action.close')">
+                <UButton size="sm" color="neutral" variant="ghost" icon="i-material-symbols-close" :aria-label="$t('common.action.close')" data-item-close @click="detailOpen = false" />
+              </UTooltip>
+            </div>
+
+            <div v-if="openedItem !== null" class="flex flex-wrap items-center gap-2 text-sm" data-item-state>
+              <!-- A running item's state is pressed for its job's log, as the line's job log entry is (docs/web.md, the TODO panel). -->
+              <UTooltip v-if="openedItem.running" :text="$t('todo.action.job_log')">
+                <UButton
+                  :color="stateColour(openedItem)"
+                  variant="subtle"
+                  size="xs"
+                  :icon="stateIcon(openedItem)"
+                  :label="stateLabel($t, openedItem)"
+                  data-item-state-log
+                  @click="emit('log', openedItem)"
+                />
+              </UTooltip>
+              <UBadge v-else :color="stateColour(openedItem)" variant="subtle" size="sm" :icon="stateIcon(openedItem)">
+                {{ stateLabel($t, openedItem) }}
+              </UBadge>
+            </div>
+
+            <!-- A stopped order at the head of its worker's queue, whole: what stopped it, its turn and
+                 why it waits, and how many times it failed. The card in the queue says the turn alone. -->
+            <dl v-if="openedStop !== null" class="flex flex-col gap-1 text-sm">
+              <div v-if="openedStop.reason !== null" class="flex min-w-0 gap-2">
+                <dt class="shrink-0 text-muted">{{ $t("todo.label.stop_reason") }}</dt>
+                <dd class="min-w-0 break-words text-highlighted">{{ openedStop.reason }}</dd>
+              </div>
+              <div class="flex min-w-0 gap-2">
+                <dt class="shrink-0 text-muted">{{ openedStop.turn }}</dt>
+                <dd class="min-w-0 break-words text-highlighted">{{ openedStop.why }}</dd>
+              </div>
+            </dl>
+            <p v-if="openedStop !== null && openedStop.failures > 0" class="text-sm text-warning tabular-nums">
+              {{ $t("todo.label.stop_failures", { n: countText(openedStop.failures) }) }}
+            </p>
+
+            <TodoFormBox v-if="openedItem !== null && !twoColumns" :cells="approvalLine" />
           </div>
 
-          <!-- Where the item stands now: its state and its approval on a line of their own, and under it a name and
-               value list of who asked, the model, the agent, the priority and the worker, so no value's length moves
-               another (docs/web.md, the item's modal). -->
-          <div v-if="openedItem !== null" class="mt-2 flex flex-wrap items-center gap-2 text-sm">
-            <!-- A running item's state is pressed for its job's log, as the line's job log entry is (docs/web.md, the TODO panel). -->
-            <UTooltip v-if="openedItem.running" :text="$t('todo.action.job_log')">
-              <UButton
-                :color="stateColour(openedItem)"
-                variant="subtle"
-                size="xs"
-                :icon="stateIcon(openedItem)"
-                :label="stateLabel($t, openedItem)"
-                data-item-state-log
-                @click="emit('log', openedItem)"
-              />
-            </UTooltip>
-            <UBadge v-else :color="stateColour(openedItem)" variant="subtle" size="sm" :icon="stateIcon(openedItem)">
-              {{ stateLabel($t, openedItem) }}
-            </UBadge>
-
-            <!-- A request waiting on him already says so in its state, so the approval is named
-                 beside the state only where the state does not carry it. -->
-            <span v-if="todoState(openedItem) !== 'pending'" :class="openedItem.awaitingApproval ? 'text-warning' : 'text-highlighted'">
-              {{ approvalLabel($t, openedItem) }}
+          <!-- The close mark stands at the box's top right, the create button before it, centred on the box's first row: they
+               stand in a row as tall as that one, under an edge as thick as the box's. It comes first among what can be focused, so the
+               dialog opens with the focus on it rather than on a field of the box. -->
+          <div v-if="openedItem !== null && twoColumns" class="flex min-w-0 items-start gap-2 px-4 py-3">
+            <span class="order-last box-content flex h-8 items-center gap-2 border-t border-transparent">
+              <UTheme v-if="openedItem.unfinished !== null" :props="ROW_BUTTONS">
+                <CreateButton contained :label="$t('todo.action.create_item')" @click="startRaise(openedItem.id)" />
+              </UTheme>
+              <UTooltip :text="$t('common.action.close')">
+                <UButton size="sm" color="neutral" variant="ghost" icon="i-material-symbols-close" :aria-label="$t('common.action.close')" data-item-close @click="detailOpen = false" />
+              </UTooltip>
             </span>
+            <TodoFormBox class="min-w-0 flex-1" :cells="approvalLine">
+              <TodoAssignFields v-bind="assignment" shape="cells" @agent="(chosen: ItemAssignment) => void setAgent(openedItem!.id, chosen)" @worker="(chosen: string) => assignWorker(openedItem!.id, chosen)" />
+            </TodoFormBox>
           </div>
-
-          <PairRows v-if="openedItem !== null" :rows="standing" :skeleton="[]" label="">
-            <template #model>
-              <span class="flex items-center">
-                <ItemModelChip :item="ranItem ?? openedItem" />
-              </span>
-            </template>
-
-            <!-- Whom the item names its work for: any agent the agency registers, of any role, or a model and a role
-                 whose free agent takes it at the launch, chosen here while the item is not finished (the agency's
-                 docs/repositories.md, 「An agent an item names」). -->
-            <template #agent>
-              <span class="flex min-w-0 items-center">
-                <ItemAgentChip
-                  :item="openedItem"
-                  :editable="!openedItem.done && openedItem.mergedInto === null"
-                  :busy="busy.has(busyKey(openedItem.id, 'agent')) || busy.has(busyKey(openedItem.id, 'model'))"
-                  @pick="(assignment: ItemAssignment) => void setAgent(openedItem!.id, assignment)"
-                />
-              </span>
-            </template>
-
-            <!-- Which worker is to do it. It is an assignment and not a record: the queue reads
-                 it to decide whose turn the item is, and the job is launched on the worker it
-                 names. No assignment means the built-in worker, which is what the whole queue was
-                 before there was more than one. Its repository path stands under the choice. -->
-            <template v-if="!openedItem.done" #worker>
-              <span class="flex min-w-0 items-center">
-                <ChoiceSelect :content="{ align: 'start' }"
-                  :model-value="openedItem.worker ?? UNASSIGNED"
-                  :items="workerOptions"
-                  value-key="value"
-                  class="min-w-40"
-                  size="sm"
-                  :aria-label="$t('todo.aria.item_worker')"
-                  :loading="busy.has(busyKey(openedItem.id, 'worker'))"
-                  @update:model-value="assignWorker(openedItem.id, $event as string)"
-                />
-              </span>
-            </template>
-          </PairRows>
-
-          <!-- A stopped order at the head of its worker's queue, whole: what stopped it, its turn and
-               why it waits, and how many times it failed. The card in the queue says the turn alone. -->
-          <dl v-if="openedStop !== null" class="mt-2 flex flex-col gap-1 text-sm">
-            <div v-if="openedStop.reason !== null" class="flex min-w-0 gap-2">
-              <dt class="shrink-0 text-muted">{{ $t("todo.label.stop_reason") }}</dt>
-              <dd class="min-w-0 break-words text-highlighted">{{ openedStop.reason }}</dd>
-            </div>
-            <div class="flex min-w-0 gap-2">
-              <dt class="shrink-0 text-muted">{{ openedStop.turn }}</dt>
-              <dd class="min-w-0 break-words text-highlighted">{{ openedStop.why }}</dd>
-            </div>
-          </dl>
-          <p v-if="openedStop !== null && openedStop.failures > 0" class="mt-1 text-sm text-warning tabular-nums">
-            {{ $t("todo.label.stop_failures", { n: countText(openedStop.failures) }) }}
-          </p>
         </div>
 
         <!-- The body is two parts, each a set of tabs: on the left the result of an item that has ended, what has
@@ -162,7 +130,7 @@
               :aria-label="$t('todo.aria.item_body')"
             />
 
-            <div class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 py-3">
+            <div class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 py-3" data-item-body>
               <!-- How the item ended, first where it has ended: every report kept of it, the closing one first, and
                    what it left behind, each whole and never folded, so the item reads as the report of itself. Each
                    report stands in its original with its translation a press away. -->
@@ -639,6 +607,9 @@
               </template>
 
               <template v-else-if="openedItem !== null">
+              <!-- Where the dialog is too narrow for the form block to carry them, the item's assignment heads the manage tab. -->
+              <TodoAssignFields v-if="!twoColumns" v-bind="assignment" shape="pairs" @agent="(chosen: ItemAssignment) => void setAgent(openedItem!.id, chosen)" @worker="(chosen: string) => assignWorker(openedItem!.id, chosen)" />
+
               <!-- His decision on the row first — approving or throwing out a request, or moving
                    and taking back an approved one — then setting it aside, which is neither. -->
               <!-- A merged row is run by nobody, so nothing acts on it here: it is finished with the item
@@ -884,8 +855,8 @@ import { questionsOfTodo } from "~/domain/questions";
 import { formatStamp } from "bmo-ui/app/domain/time";
 import {
   approvalChangeIcon,
+  approvalCells,
   approvalChangeLine,
-  approvalLabel,
   REPORT_KIND_LABELS,
   REVIEW_KIND_LABELS,
   reviewCheckLabel,
@@ -911,8 +882,7 @@ import {
 } from "~/domain/todos";
 import { usePolling } from "~/domain/polling";
 import type { ItemAssignment } from "~/domain/item-assignment";
-import type { PairRow } from "~/domain/pair-rows";
-import type { TodoActFields } from "~/domain/todos";
+import type { ApprovalCell, TodoActFields } from "~/domain/todos";
 
 import type { Ref } from "vue";
 import type {
@@ -987,24 +957,29 @@ function workerNote(item: TodoItem): string {
   return workers.value.find((agent) => agent.name === item.worker)?.path ?? "";
 }
 
-// Who asked, the model, the agent, the priority and the worker of the open item, as a name and value list: the
-// model, the agent and an unfinished item's worker are drawn by the screen, the rest stand as words.
-const standing = computed<PairRow[]>(() => {
+// The open item's approval line, heading its form block: who asked and when, the latest recommendation and the latest
+// approval, the cells that wait on the approvals standing as bars until they are first read.
+const approvalLine = computed<ApprovalCell[]>(() => {
   const item = openedItem.value;
 
   if (item === null) return [];
 
-  const worker: PairRow[] = !item.done
-    ? [{ key: "worker", label: t("todo.label.field_worker"), under: workerNote(item) || undefined }]
-    : item.worker !== null ? [{ key: "worker", label: t("todo.label.field_worker"), value: item.worker }] : [];
+  return approvalCells(t, item, approvalsLoading.value && approvals.value.length === 0 ? null : approvals.value, requesterLine(item, rooms.value));
+});
 
-  return [
-    { key: "requester", label: t("todo.label.field_requester"), value: requesterLine(item, rooms.value) },
-    { key: "model", label: t("todo.label.field_model") },
-    { key: "agent", label: t("todo.label.field_agent") },
-    ...(!item.done ? [{ key: "priority", label: t("todo.label.priority"), value: String(item.priority) }] : []),
-    ...worker
-  ];
+// What the open item's assignment cells are drawn from, in the form block or at the top of the manage tab alike.
+const assignment = computed(() => {
+  const item = openedItem.value!;
+
+  return {
+    item,
+    ranItem: ranItem.value,
+    workerOptions: workerOptions.value,
+    unassigned: UNASSIGNED,
+    workerPath: workerNote(item),
+    agentBusy: busy.value.has(busyKey(item.id, "agent")) || busy.value.has(busyKey(item.id, "model")),
+    workerBusy: busy.value.has(busyKey(item.id, "worker"))
+  };
 });
 
 

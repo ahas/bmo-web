@@ -584,19 +584,27 @@ describe("the result of an item", () => {
     }
   });
 
-  // A new item raised out of the note is the dialog's one add, so it stands in the head row as the layer's
-  // contained create button, which never floats and answers no key, and only where there is a note to raise from.
+  // A new item raised out of the note is the dialog's one add, so it stands just before the close mark as the
+  // layer's contained create button, which never floats and answers no key, and only where there is a note to raise
+  // from: on the title's line of a narrow dialog, at the form block's top right on a wide one, never both.
   test("raises a new item from the head's contained create button, which brings the result forward with its form", () => {
-    const head = detailTemplate.slice(0, detailTemplate.indexOf("common.action.close"));
-    const button = tagOf("<CreateButton", head);
+    const head = detailTemplate.slice(0, detailTemplate.indexOf("<!-- The body is two parts"));
+    const narrow = head.slice(0, head.indexOf("data-item-state"));
+    const wide = head.slice(head.indexOf('v-if="openedItem !== null && twoColumns"'));
     const raising = detailSource.slice(detailSource.indexOf("function startRaise("), detailSource.indexOf("// The notes he may name"));
 
-    expect(head).toContain('<UTheme v-if="openedItem !== null && openedItem.unfinished !== null" :props="ROW_BUTTONS">');
-    expect(button).toContain(" contained ");
-    expect(button).toContain(`:label="$t('todo.action.create_item')"`);
-    expect(button).toContain('@click="startRaise(openedItem.id)"');
-    expect(button).not.toContain("shortcut");
-    expect(detailTemplate.split("todo.action.create_item").length).toBe(2);
+    expect(narrow).toContain('<UTheme v-if="openedItem !== null && openedItem.unfinished !== null && !twoColumns" :props="ROW_BUTTONS">');
+    expect(wide).toContain('<UTheme v-if="openedItem.unfinished !== null" :props="ROW_BUTTONS">');
+    for (const part of [narrow, wide]) {
+      const button = tagOf("<CreateButton", part);
+
+      expect(button).toContain(" contained ");
+      expect(button).toContain(`:label="$t('todo.action.create_item')"`);
+      expect(button).toContain('@click="startRaise(openedItem.id)"');
+      expect(button).not.toContain("shortcut");
+      expect(part.indexOf("<CreateButton")).toBeLessThan(part.indexOf("common.action.close"));
+    }
+    expect(detailTemplate.split("todo.action.create_item").length).toBe(3);
     expect(raising).toContain('leftTab.value = "result"');
     expect(raising).toContain('singleTab.value = "result"');
     expect(raising).toContain("raiseTitleBox.value?.inputRef?.focus()");
@@ -652,8 +660,10 @@ describe("the result of an item", () => {
 });
 
 // The model chip and the agent chooser (docs/web.md, the TODO panel's section): the chip names the road on the line
-// and in the opened item's head and is pressed nowhere; whom an item names is chosen in the head, any agent the agency
-// registers or a model its role's agents run, its pick sent as the `agent` or the `model` verb.
+// and in the opened item's form block and is pressed nowhere; whom an item names is chosen in the form block, any agent
+// the agency registers or a model its role's agents run, its pick sent as the `agent` or the `model` verb.
+const assignSource = await Bun.file(new URL("../../../apps/web/app/components/TodoAssignFields.vue", import.meta.url)).text();
+const assignTemplate = assignSource.slice(0, assignSource.indexOf("<script"));
 const chip = await Bun.file(new URL("../../../apps/web/app/components/ItemModelChip.vue", import.meta.url)).text();
 const agentChip = await Bun.file(new URL("../../../apps/web/app/components/ItemAgentChip.vue", import.meta.url)).text();
 
@@ -662,19 +672,19 @@ describe("the model chip and the agent chooser", () => {
   const agentTemplate = agentChip.slice(0, agentChip.indexOf("<script"));
   const agentScript = agentChip.slice(agentChip.indexOf("<script"));
 
-  test("the chip names the road on the line and in the head and is pressed nowhere", () => {
-    // On the line a tap opens the item, so a finger rests on the chip to read its tooltip; in the head a tap reads it.
+  test("the chip names the road on the line and in the form block and is pressed nowhere", () => {
+    // On the line a tap opens the item, so a finger rests on the chip to read its tooltip; in the form block a tap reads it.
     expect(rowTemplate).toContain('<ItemModelChip :item="item" :query="query" press />');
     expect(chipTemplate).toMatch(/<HintTip [^>]*:press="props.press">/);
-    expect(detailTemplate).toContain('<ItemModelChip :item="ranItem ?? openedItem" />');
+    expect(assignTemplate).toContain('<ItemModelChip :item="props.ranItem ?? props.item" />');
     expect(chipTemplate).not.toContain("<ChoiceSelect");
     expect(chipTemplate).toMatch(/<UBadge[^>]*data-item-model/);
     expect(chip).toContain("itemModelTip(t, props.item)");
   });
 
-  test("the agent is chosen in the head among every agent the agency registers, grouped by role, with no automatic choice", () => {
-    expect(detailTemplate).toContain('<ItemAgentChip');
-    expect(detailTemplate).toContain(':editable="!openedItem.done && openedItem.mergedInto === null"');
+  test("the agent is chosen in the form block among every agent the agency registers, grouped by role, with no automatic choice", () => {
+    expect(assignTemplate).toContain('<ItemAgentChip');
+    expect(assignTemplate).toContain(':editable="!props.item.done && props.item.mergedInto === null"');
     expect(agentTemplate).toContain('<ChoiceSelect\n    v-else-if="props.editable"');
     expect(agentScript).toContain('$fetch<RolesView>("/api/roles")');
     expect(agentScript).not.toContain("AUTO");
@@ -685,14 +695,15 @@ describe("the model chip and the agent chooser", () => {
     expect(rowTemplate).toMatch(/<HintTip v-else-if="itemFreeAgent\(item\) !== null"[^>]*press>\s*<UBadge[^>]*data-item-agent-free>/);
   });
 
-  test("while a job runs the head stands the agent it runs on, read and not chosen", () => {
+  test("while a job runs the form block stands the agent it runs on, read and not chosen", () => {
     expect(agentTemplate).toMatch(/<HintTip v-if="running !== null"[^>]*>\s*<UBadge[^>]*data-item-agent-running>\{\{ running \}\}/);
     expect(agentScript).toContain("props.item.jobAgent ?? null");
   });
 
-  test("sends its pick as the agent or the model verb from the head", () => {
+  test("sends its pick as the agent or the model verb from the form block", () => {
     expect(detailSource).toContain('await act(id, "agent", { agent: assignment.agent }, "todo.error.agent_change_failed");');
     expect(detailSource).toContain('await act(id, "model", { model: assignment.model, role: assignment.role ?? undefined }, "todo.error.agent_change_failed");');
-    expect(detailTemplate).toContain('@pick="(assignment: ItemAssignment) => void setAgent(');
+    expect(assignTemplate).toContain(`@pick="(assignment: ItemAssignment) => emit('agent', assignment)"`);
+    expect(detailTemplate).toContain('@agent="(chosen: ItemAssignment) => void setAgent(openedItem!.id, chosen)"');
   });
 });

@@ -392,6 +392,20 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
           const column = page.locator(`[data-${screen}-column]`);
 
           await column.waitFor({ timeout: 20_000 });
+          // The row narrows as the open tab's add comes in at its end, and the open tab is brought back into its view
+          // as it does, so the row is measured once that has settled; the check below still says where it stands.
+          await page
+            .waitForFunction(
+              () => {
+                const row = document.querySelector('[role="tablist"]')?.getBoundingClientRect();
+                const open = document.querySelector('[role="tablist"] [role="tab"][data-state="active"]')?.getBoundingClientRect();
+
+                return row !== undefined && open !== undefined && open.left >= row.left - 0.5 && open.right <= row.right + 0.5;
+              },
+              null,
+              { timeout: 5_000 }
+            )
+            .catch(() => undefined);
 
           const laid = await page.evaluate((screen) => {
             const body = document.querySelector<HTMLElement>(`[data-${screen}-body]`)!;
@@ -658,6 +672,9 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
           await administer(`/api/organization/units/${team}/heads/${encodeURIComponent(member)}`, "PUT");
           await page.goto(`${origin}/organization`, { waitUntil: "load" });
           await standing(page);
+          // The row holds the tabs every member opens until the org memory read says which units the head writes, and
+          // the org memory tab comes in then (docs/web.md, 「Organisation」), so the row is read once it stands.
+          await page.locator(`[aria-label="${wording("organization.aria.tabs")}"]`).getByRole("tab", { name: wording("org_memory.label.tab"), exact: true }).waitFor({ timeout: 20_000 });
           expect(await tabNames(page)).toEqual([wording("settings.label.invites"), wording("settings.label.bmo"), wording("org_memory.label.tab")]);
 
           // A head asks for a link into their unit from the tab row's add and its dialog, and the service

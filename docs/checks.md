@@ -126,7 +126,10 @@ configuration and the app's modules. The typecheck and the browser files run aga
 a module only once a page asks for it, so a module the production build cannot bundle passes both and stops only
 the deployment. The step is the testbed declaration's `console-build`, in the testbed's wide lane. It writes
 Nuxt's generated project and the build's output into `client/apps/web/.check-build`, which the checkout ignores,
-so a typecheck and a standing dev console in the same checkout keep their own.
+so a typecheck and a standing dev console in the same checkout keep their own. The app's `tsconfig.json` refers
+to the project configs Nuxt generates into `client/apps/web/.nuxt`, and the build's transform reads them for every
+file it compiles, so a tree holding no `.nuxt` yet, as a new worktree or bench does after its install, has the step
+prepare one first with `nuxi prepare`; a tree that already holds one keeps it untouched.
 
 ## The repository-wide checks
 

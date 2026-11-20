@@ -52,6 +52,19 @@ export async function ownersQuestion(id: number): Promise<JobQuestionRow> {
   return question;
 }
 
+/**
+ * The questions still waiting on the owner, as bmo-job holds them: those put to a person, open or stopped, since a
+ * stopped one still waits on him. One a job's supervisor holds is the supervisor's to settle, talk over or put to him
+ * (bmo-job's `docs/api.md`, 「The addressee」), and is none of them until it is put to him.
+ */
+export async function ownersWaitingQuestions(): Promise<JobQuestionRow[]> {
+  const pages = await Promise.all(
+    (["open", "paused"] as const).map((state) => jobCall(job().GET("/questions", { params: { query: { state, addressee: "person", limit: 500 } } })))
+  );
+
+  return pages.flatMap((page) => page.items);
+}
+
 /** One of bmo-job's replies to a question, as its fixed API reads it. */
 type JobReplyRow = components["schemas"]["Reply"];
 

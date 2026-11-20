@@ -1,8 +1,21 @@
 <template>
-  <!-- A job standing still behind a question says so on its row (docs/web.md, the TODO panel's section): a badge
-       beside the state, so it is seen without opening the item. A question is open until it is settled, whether its
-       time has run out or not, so the badge stands as long as the row reads one unsettled. -->
-  <UBadge v-if="open" color="warning" variant="subtle" size="sm" icon="i-material-symbols-help-outline" data-awaiting-question>{{ $t("todo.label.awaiting_question") }}</UBadge>
+  <!-- An item waiting on the owner's answer says so with one chip, on its row beside its state and in the opened item
+       beside its state (docs/web.md, 「A job standing on a question says so where the owner looks」). A question is open
+       until it is settled, whether its time has run out or not, so the chip stands as long as one is unsettled. It is
+       pressed to reach the card the question is answered on, so it is a chip of the row's own size and shape, coloured
+       on hover and press like every pressed thing. -->
+  <UBadge
+    v-if="open"
+    as="button"
+    type="button"
+    color="warning"
+    variant="subtle"
+    size="sm"
+    icon="i-material-symbols-help-outline"
+    class="cursor-pointer transition-colors hover:bg-warning/20 active:bg-warning/30"
+    data-awaiting-question
+    @click.stop="emit('press')"
+  >{{ $t("todo.label.awaiting_question") }}</UBadge>
 </template>
 
 <script setup lang="ts">
@@ -16,6 +29,11 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+const emit = defineEmits<{
+  // The reader asked for the card the question is answered on.
+  press: [];
+}>();
 
 const open = computed(() => props.questions.some((question) => questionState(question) === "open"));
 </script>

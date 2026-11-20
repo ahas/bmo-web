@@ -60,6 +60,9 @@
               <UBadge v-else :color="stateColour(openedItem)" variant="subtle" size="sm" :icon="stateIcon(openedItem)">
                 {{ stateLabel($t, openedItem) }}
               </UBadge>
+
+              <!-- Its job waits on the owner's answer: pressed, the card it is answered on comes into view. -->
+              <TodoQuestionBadge :questions="waitingQuestions" @press="showQuestion" />
             </div>
 
             <!-- A stopped order at the head of its worker's queue, whole: what stopped it, its turn and
@@ -297,6 +300,14 @@
               <!-- What became of the item: its run record and its last job, the co-worker list, what its work asked and
                    the approval record. While a job runs, its figures move as they happen. -->
               <section v-else-if="shownLeft === 'status'" class="flex min-w-0 flex-col gap-2" :aria-label="$t('todo.label.field_state')">
+                  <!-- The question its job waits on the owner's answer to, first of what the tab reads and answered
+                       here (docs/web.md, 「A job standing on a question says so where the owner looks」): the same card the
+                       questions window stands, so there is one card to answer with. The chip that asks for it brings it
+                       into view. -->
+                  <div v-if="waitingQuestions.length > 0" ref="questionPlace" class="scroll-mt-3" data-item-question>
+                    <QuestionAsk :only="openedItem.id" />
+                  </div>
+
                   <!-- The merge on both sides: the item this one's work went to, and the items whose
                        work this one carries. Each number opens that item. -->
                   <div v-if="openedItem.mergedInto !== null || openedItem.mergedFrom.length > 0" class="rounded-lg border border-default p-3">
@@ -338,10 +349,6 @@
                   </div>
 
                   <WorkOrderPanel part="steps" :todo-id="openedItem.id" :title="openedItem.title" :instruction="openedItem.instruction" :queue-paused="board.paused" :now="now" :held="setAside(openedItem)" :item="openedItem" :worker="openedItem.worker" :plan="itemRuns?.plan ?? []" />
-
-                  <!-- The question a job stopped to ask, answered here where the item is read (docs/web.md, the TODO
-                       modal's section): the same card the strip over the room stands, so the answering is one place. -->
-                  <QuestionAsk :only="openedItem.id" />
 
                   <!-- What each of the item's questions became once it is settled, in the words it was settled on. -->
                   <div v-for="card in settledQuestionsOf(openedItem.id)" :key="card.id" class="rounded-md border p-3" :class="questionTone(card)">
@@ -981,7 +988,7 @@ const emit = defineEmits<{
   log: [item: TodoItem];
 }>();
 
-const { opened, busy, board, now, rooms, act, reload, fetchStray } = props.panel;
+const { opened, busy, board, questions, now, rooms, act, reload, fetchStray } = props.panel;
 
 // The repositories an item may go to, out of the one catalogue read every screen shares: the list is the agency's, so
 // this dialog holds none of its own and a repository the owner adds stands here without a change.
@@ -1168,13 +1175,17 @@ const singleTab = ref("status");
 // The open item whose tabs were chosen, so a re-read that hands it back after a moment of none keeps the tab being
 // read. The reader closing it lets it go, so the same item opened again opens on its first tab.
 let tabsChosenFor: number | null = null;
+// Whether the item's question chip asked for its card, which then stands its state tab and is brought into view once it
+// is drawn, however the item came to be opened.
+let seekingQuestion = false;
 
 watch(
   () => props.item?.id ?? null,
   (id) => {
     if (id !== null && id !== tabsChosenFor) {
       tabsChosenFor = id;
-      const first = props.item !== null && (props.item.reports.length > 0 || props.item.unfinished !== null) ? "result" : "status";
+      const reported = props.item !== null && (props.item.reports.length > 0 || props.item.unfinished !== null);
+      const first = reported && !seekingQuestion ? "result" : "status";
       leftTab.value = first;
       singleTab.value = first;
       rightTab.value = "talk";
@@ -1193,6 +1204,34 @@ watch(
 );
 const shownLeft = computed(() => (twoColumns.value ? leftTab.value : singleTab.value));
 const shownRight = computed(() => (twoColumns.value ? rightTab.value : singleTab.value));
+
+// The open item's questions waiting on the owner's answer, out of the console's one reading of them: what its chip
+// reads, and whether its card stands.
+const waitingQuestions = computed(() =>
+  openedItem.value === null ? [] : questions.value.filter((question) => question.todoId === openedItem.value!.id && question.settledAt === null)
+);
+// Where the card stands, once it is drawn.
+const questionPlace = ref<HTMLElement | null>(null);
+
+// The card the item's question is answered on, brought into view: its tab stood, and the card scrolled to once it is
+// drawn, now where it already is, or as soon as the tab or the dialog draws it. The focus stays where the dialog puts it
+// as it opens.
+function showQuestion(): void {
+  seekingQuestion = true;
+  leftTab.value = "status";
+  singleTab.value = "status";
+  void nextTick(() => reveal(questionPlace.value));
+}
+
+function reveal(place: HTMLElement | null): void {
+  if (place === null || !seekingQuestion) return;
+
+  seekingQuestion = false;
+  place.scrollIntoView({ block: "start" });
+}
+
+watch(questionPlace, (place) => reveal(place));
+
 // Which item is a step away from being thrown out: nothing here is removed on one press.
 const confirming = ref<number | null>(null);
 // Which rows have the raise box open, and what is typed into it. One box is open at a time in
@@ -1338,7 +1377,10 @@ function questionTone(card: QuestionCard): string {
 function toggled(id: number, closed: boolean, word: string): void {
   detailGeneration++;
 
-  if (closed) tabsChosenFor = null;
+  if (closed) {
+    tabsChosenFor = null;
+    seekingQuestion = false;
+  }
 
   confirming.value = null;
   note.value = closed ? "" : word;
@@ -1782,5 +1824,5 @@ async function drop(id: number): Promise<void> {
   if (dropped) opened.value = null;
 }
 
-defineExpose({ toggled, asked, reread });
+defineExpose({ toggled, asked, reread, showQuestion });
 </script>

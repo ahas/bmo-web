@@ -610,13 +610,14 @@ describe("the conditions beyond the state", () => {
 
   test("are read back from a stored view or a query, and nothing else passes for one", () => {
     expect(conditionsOf(undefined)).toEqual(NO_CONDITIONS);
-    expect(conditionsOf({ worker: " agent-a ", unfinished: "open", chat: "-1002", requester: "Owner" })).toEqual({
+    expect(conditionsOf({ worker: " agent-a ", unfinished: "open", chat: "-1002", requester: "Owner", question: "awaiting" })).toEqual({
       worker: "agent-a",
       unfinished: "open",
       chat: "-1002",
-      requester: "Owner"
+      requester: "Owner",
+      question: "awaiting"
     });
-    expect(conditionsOf({ worker: "", unfinished: "maybe", cowork: 1, chat: "room", requester: ["Owner"] })).toEqual(NO_CONDITIONS);
+    expect(conditionsOf({ worker: "", unfinished: "maybe", cowork: 1, chat: "room", requester: ["Owner"], question: "open" })).toEqual(NO_CONDITIONS);
     expect(conditionsOf({ chat: "-" })).toEqual({ ...NO_CONDITIONS, chat: "-" });
   });
 

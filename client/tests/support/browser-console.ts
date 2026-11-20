@@ -112,7 +112,8 @@ const ACCOUNTS: readonly [string, string][] = [
   ["opened-with", "fixture-password-3376"],
   ["choice-select", "fixture-password-3413"],
   ["input-menu-name", "fixture-password-3562"],
-  ["qa-admin", "fixture-password-3765"]
+  ["qa-admin", "fixture-password-3765"],
+  ["todo-awaiting", "fixture-password-3826"]
 ];
 
 // The member accounts a test signs in with to read a section by its permission rather than as the administrator,

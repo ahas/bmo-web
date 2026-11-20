@@ -62,7 +62,8 @@ const held = {
   notes: new Map<number, Record<string, unknown>[]>(),
   reports: new Map<number, Record<string, unknown>[]>(),
   queues: [{ name: "default", state: "open", holds: [] as Record<string, unknown>[], leasedCount: 0, openCount: 0, changedAt: 0 }],
-  jobs: [] as { id?: number; itemId: number; state: string; heldFor: string | null; agentName?: string | null }[]
+  jobs: [] as { id?: number; itemId: number; state: string; heldFor: string | null; agentName?: string | null }[],
+  questions: [] as { id: number; itemId: number | null; addressee: "person" | "supervisor"; state: string }[]
 };
 
 function stand(items: Item[]): void {
@@ -90,6 +91,14 @@ const job = standIn("JOB", (asked: Asked) => {
   }
 
   if (url.pathname === "/queues") return answer({ items: held.queues, more: false });
+
+  // The questions, filtered as bmo-job filters them: by state, and by addressee.
+  if (url.pathname === "/questions") {
+    const state = url.searchParams.get("state");
+    const addressee = url.searchParams.get("addressee");
+
+    return answer({ items: held.questions.filter((one) => one.state === state && one.addressee === addressee), more: false });
+  }
 
   return answer({ code: "no-route", error: "no route" }, 404);
 });
@@ -519,6 +528,26 @@ describe("the board narrowed", () => {
     expect(ids((await readTodoBoard({ conditions: { ...NO_CONDITIONS, worker: "worker" } })).queue)).toEqual([2]);
     // The fixed item carries no unfinished note, so a condition on one is met by no row.
     expect(ids((await readTodoBoard({ conditions: { ...NO_CONDITIONS, unfinished: "open" } })).done)).toEqual([]);
+  });
+
+  // An item waits on the owner's answer while one of its questions is put to a person and not yet settled, open or
+  // stopped; one the supervisor holds, and one settled, is not his (docs/web.md, the TODO panel's section).
+  test("by the items waiting on the owner's answer", async () => {
+    stand([item(1), item(2), item(3), item(4), item(5)]);
+    held.questions = [
+      { id: 11, itemId: 1, addressee: "supervisor", state: "open" },
+      { id: 12, itemId: 2, addressee: "person", state: "open" },
+      { id: 13, itemId: 3, addressee: "person", state: "paused" },
+      { id: 14, itemId: 4, addressee: "person", state: "answered" },
+      { id: 15, itemId: null, addressee: "person", state: "open" }
+    ];
+
+    try {
+      expect(ids((await readTodoBoard({ conditions: { ...NO_CONDITIONS, question: "awaiting" } })).queue)).toEqual([2, 3]);
+      expect(ids((await readTodoBoard({ conditions: NO_CONDITIONS })).queue)).toEqual([1, 2, 3, 4, 5]);
+    } finally {
+      held.questions = [];
+    }
   });
 
   test("the choices are read from every item and are not narrowed, and no standing note stands", async () => {

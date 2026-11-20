@@ -62,18 +62,23 @@ export interface TodoConditions {
   // The room a request came from, or NO_ROOM for one filed outside every room.
   chat: string | null;
   requester: string | null;
+  // The items waiting on the owner's answer: one of their questions put to a person and not yet settled.
+  question: "awaiting" | null;
 }
 
 // What the room condition's value is for a request filed outside every room.
 export const NO_ROOM = "-";
 
-export const NO_CONDITIONS: TodoConditions = { worker: null, unfinished: null, chat: null, requester: null };
+export const NO_CONDITIONS: TodoConditions = { worker: null, unfinished: null, chat: null, requester: null, question: null };
 
 const CONDITION_KEYS = Object.keys(NO_CONDITIONS) as (keyof TodoConditions)[];
 
 const FILTERS: readonly TodoFilter[] = ["all", "waiting", "running", "deploy", "deploying", "pending", "held", "merged", "done"];
 
 export const DEFAULT_VIEW: TodoView = { filter: "all", conditions: NO_CONDITIONS };
+
+// Every item waiting on the owner's answer in one list: every state, and the question condition alone.
+export const AWAITING_VIEW: TodoView = { filter: "all", conditions: { ...NO_CONDITIONS, question: "awaiting" } };
 
 // The key of what the panel calls each state, one word to a row. A row on its way to being set
 // aside says so in the bot's own words, which it is handed with the kind of hold.
@@ -527,7 +532,8 @@ export function conditionsOf(value: unknown): TodoConditions {
     worker: text(held.worker),
     unfinished: unfinished === "open" || unfinished === "resolved" ? unfinished : null,
     chat: chat === NO_ROOM || (chat !== null && /^-?\d+$/.test(chat)) ? chat : null,
-    requester: text(held.requester)
+    requester: text(held.requester),
+    question: text(held.question) === "awaiting" ? "awaiting" : null
   };
 }
 

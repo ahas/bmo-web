@@ -231,6 +231,9 @@
 - fold (a work order) → 종료. 접기 is only ever a panel folding away, and is written as below.
 - file, stand up (an item) → 만들기: 항목 만들기, 만든 항목, 만들지 못했습니다. Never 세우기, 올리기.
 - ask (a job's question) → 질문, 질문하다: Job의 질문. Never 물다, 물어본 것, 묻기.
+- a TODO item whose job waits on a question put to the owner → 답변 대기: the chip on its row and in the opened item,
+  and the choice of the TODO filter's 질문 condition; the head's count pressed → 답변 대기 항목만 보기. Never 질문에
+  답을 기다리는 중, 결정 대기, which reads as 결재 대기 at a glance, nor 응답 대기.
 - the answer a job would take by itself → 추천: (추천) before the choice it names, 추천 {number}번, and 추천 답 for words
   the choices do not hold; a question its recommendation settled when its time ran out → 시간 초과 · 추천 답으로 결정,
   and one about to be → 시간 초과 · 추천 {number}번으로 결정; one only a person settles, with no recommendation or no due

@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
-// A job standing on a question, where the owner looks (docs/web.md, the job question's section): the badge on its row in
-// the TODO panel, and the answering card inside the item. One card, one route.
+// A job standing on a question, where the owner looks (docs/web.md, the job question's section): the chip on its row in
+// the TODO panel and in the opened item, and the answering card inside the item. One card, one route.
 
 const read = async (path: string) => await Bun.file(new URL(`../../../apps/web/${path}`, import.meta.url)).text();
 
@@ -15,8 +15,9 @@ const window = await read("app/components/QuestionWindow.vue");
 describe("a job standing on a question", () => {
   // The badge is a part of its own, standing while a question of the item is unsettled, its time run out or not
   // (docs/web.md, the TODO panel's section).
-  test("marks its row in the list and on the board", () => {
-    expect(row).toContain('<TodoQuestionBadge v-if="questions !== null" :questions="questions" />');
+  test("marks its row in the list and the opened item, each mark pressed for the card", () => {
+    expect(row).toContain('<TodoQuestionBadge v-if="questions !== null" :questions="questions" @press="emit(\'question\', item.id)" />');
+    expect(item).toContain('<TodoQuestionBadge :questions="waitingQuestions" @press="showQuestion" />');
     expect(badge).toContain("data-awaiting-question");
     expect(badge).toContain('$t("todo.label.awaiting_question")');
     expect(badge).toContain('questionState(question) === "open"');

@@ -111,8 +111,8 @@
     </template>
     <UBadge v-else :color="stateColour(item)" variant="subtle" size="sm" :icon="stateIcon(item)"><SearchText :text="stateLabel($t, item)" :query="query" /></UBadge>
 
-    <!-- A job standing still behind a question it asked, which reads the panel's clock on its own. -->
-    <TodoQuestionBadge v-if="questions !== null" :questions="questions" />
+    <!-- A job standing still behind a question put to the owner, pressed for the card it is answered on. -->
+    <TodoQuestionBadge v-if="questions !== null" :questions="questions" @press="emit('question', item.id)" />
 
     <!-- The chat agent's recommendation stands apart from approval: the row still waits on the owner. -->
     <UBadge v-if="item.recommended && item.awaitingApproval" color="info" variant="subtle" size="sm" icon="i-material-symbols-thumb-up-outline" data-recommended>{{ $t("todo.label.approval_recommended") }}</UBadge>
@@ -222,6 +222,8 @@ defineProps<{
 // Every press is the panel's to act on, which knows the board, the menu and the drag.
 const emit = defineEmits<{
   open: [id: number];
+  // The item opened at the card its question waiting on the owner is answered on.
+  question: [id: number];
   "handle-down": [id: number, event: PointerEvent];
 }>();
 </script>

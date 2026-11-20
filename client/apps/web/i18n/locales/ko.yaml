@@ -1392,6 +1392,7 @@ todo:
     auto_resume: 자동 진행 재개
     clear_all: 모두 해제
     clear_filters: 필터 모두 해제
+    show_awaiting: 답변 대기 항목만 보기
     clear_search: 검색어 삭제
     confirm_delete: 정말 삭제
     confirm_discard: 정말 버리기
@@ -1488,6 +1489,7 @@ todo:
     field_stopped: 중지 사유
     field_title: 제목
     field_unfinished: 미결
+    field_question: 질문
     field_waiting: 대기
     field_worker: 저장소
     agent_unnamed: 미지정
@@ -1639,7 +1641,7 @@ todo:
     waiting_unit: "대기 중: {what} · 유닛 {name} · {left}"
     work_order_state: "작업 지시서 · {state}"
     work_todo: 조사·검증·구현할 일
-    awaiting_question: 질문에 답을 기다리는 중
+    awaiting_question: 답변 대기
   message:
     discard_confirm: "#{id}번을 버릴까요?"
     discard_effect: 항목이 삭제되고 되돌릴 수 없습니다.

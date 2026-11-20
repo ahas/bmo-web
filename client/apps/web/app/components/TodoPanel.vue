@@ -58,7 +58,20 @@
     <div class="flex h-(--ui-header-height) shrink-0 items-center justify-between border-b border-default px-4">
       <div class="flex min-w-0 items-center gap-2">
         <h2 class="shrink-0 text-base font-semibold text-highlighted">TODO</h2>
-        <p v-if="questionCount !== null" class="truncate text-sm text-warning">{{ questionCount }}</p>
+        <!-- The questions waiting on him, pressed to stand every item they wait on in one list. -->
+        <UTooltip v-if="questionCount !== null" :text="$t('todo.action.show_awaiting')">
+          <UButton
+            class="min-w-0"
+            color="warning"
+            variant="ghost"
+            size="sm"
+            :aria-label="`${questionCount} · ${$t('todo.action.show_awaiting')}`"
+            data-awaiting-count
+            @click="setView(AWAITING_VIEW)"
+          >
+            <span class="truncate tabular-nums">{{ questionCount }}</span>
+          </UButton>
+        </UTooltip>
       </div>
 
       <div class="flex items-center gap-1">
@@ -277,6 +290,7 @@
                 :match="rowMatches.get(item.id) ?? null"
                 :rooms="roomNames"
                 @open="toggle"
+                @question="openQuestion"
                 @handle-down="onHandleDown"
               />
             </li>
@@ -402,6 +416,7 @@ import {
   todoSections,
   todoWaitingSections,
   todoSummary,
+  AWAITING_VIEW,
   conditionCount,
   conditionQuery,
   NO_CONDITIONS,
@@ -647,6 +662,11 @@ const conditionFields = computed<{ key: keyof TodoConditions; label: string; ite
       key: "requester",
       label: t("todo.label.requested_by"),
       items: [any, ...choices.requesters.map((name) => ({ label: name, value: name }))]
+    },
+    {
+      key: "question",
+      label: t("todo.label.field_question"),
+      items: [any, { label: t("todo.label.awaiting_question"), value: "awaiting" }]
     }
   ];
 });
@@ -897,6 +917,13 @@ function toggle(id: number): void {
   detail.value?.toggled(id, open, itemOf(id)?.note ?? "");
 }
 
+// A row's question chip opens its item at the card its question is answered on, leaving it open where it already is.
+function openQuestion(id: number): void {
+  if (opened.value !== id) toggle(id);
+
+  detail.value?.showQuestion();
+}
+
 // However the dialog was dismissed — the close button, the backdrop, the escape key or the back
 // gesture — it lets go of the row through the same toggle the row's own press uses.
 function dismiss(): void {
@@ -942,6 +969,7 @@ const detail = useTemplateRef<{
   toggled: (id: number, closed: boolean, word: string) => void;
   asked: (id: number, word: string) => Promise<void>;
   reread: (id: number) => void;
+  showQuestion: () => void;
 }>("detail");
 const shared = { opened, busy, board, questions, now, rooms, act, reload, fetchStray };
 

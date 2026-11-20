@@ -3,7 +3,7 @@ import { filterRecords } from "bmo-ui/shared/search";
 import { wording } from "#shared/wording";
 import { NO_CONDITIONS, NO_ROOM, todoSearchFields } from "../../app/domain/todos";
 import { agency, agencyCall, isJobUnderWay } from "./agency";
-import { job, jobCall } from "./job";
+import { job, jobCall, ownersWaitingQuestions } from "./job";
 import { namedLabel } from "./todo-assignment";
 
 import type { Note, Item, Report, Queue } from "bmo-job-client";
@@ -547,16 +547,27 @@ export async function readTodoNotes(todoId: number): Promise<TodoNote[]> {
   }));
 }
 
-// Whether a line meets the conditions a line carries enough to judge. What the fixed item does not carry — an
-// unfinished note's state and the room it came from — is met by no line where a condition names it.
-function meets(item: Item, conditions: TodoConditions): boolean {
+// Whether a line meets the conditions a line carries enough to judge, with the items waiting on the owner's answer
+// where the question condition asks for them. What the fixed item does not carry — an unfinished note's state and the
+// room it came from — is met by no line where a condition names it.
+function meets(item: Item, conditions: TodoConditions, awaiting: ReadonlySet<number>): boolean {
   const worker = item.assigneeName ?? WORKER_AGENT;
 
   if (conditions.worker !== null && worker !== conditions.worker) return false;
   if (conditions.requester !== null && (item.requesterName ?? "") !== conditions.requester) return false;
   if (conditions.unfinished !== null) return false;
+  if (conditions.question === "awaiting" && !awaiting.has(item.id)) return false;
 
   return true;
+}
+
+// The items one of whose questions waits on the owner's answer, read only where the question condition asks for them,
+// from the same reading the row's chip stands on (docs/web.md, 「A job standing on a question says so where the owner
+// looks」).
+async function awaitingItems(conditions: TodoConditions): Promise<Set<number>> {
+  if (conditions.question === null) return new Set();
+
+  return new Set((await ownersWaitingQuestions()).flatMap((question) => (question.itemId === null ? [] : [question.itemId])));
 }
 
 // The list a line stands in as its row reads it: an item held by a stop whose run is still ending stands in the queue
@@ -642,9 +653,9 @@ export async function readTodoBoard(
   const limit = input.limit ?? DONE_PAGE_SIZE;
   const query = input.query ?? null;
   const conditions = input.conditions ?? NO_CONDITIONS;
-  const [items, queues, live] = await Promise.all([allItems(), readQueues(), liveStates()]);
+  const [items, queues, live, awaiting] = await Promise.all([allItems(), readQueues(), liveStates(), awaitingItems(conditions)]);
   const all = byNumber(items);
-  const matching = items.filter((item) => meets(item, conditions));
+  const matching = items.filter((item) => meets(item, conditions, awaiting));
   const finished = matching.filter((item) => listOf(item, all) === "done").sort((one, other) => other.id - one.id);
   const finishedFound = query === null
     ? finished

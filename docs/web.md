@@ -6332,7 +6332,9 @@ Four bounds keep it from growing forever.
   no trailing edge there and no second line stands beside the panel's. Dragging the
   edge lights that same line rather than drawing another.
 - **The head is titled TODO**, with the count of open questions beside it in the warning colour while any stand, and the
-  buttons at its right end. The counts stand on the state tabs rather than in the head: **대기**, **진행 중**, **결재 대기**,
+  buttons at its right end. The count is pressed, and stands every item waiting on his answer in one list: it chooses
+  전체 among the tabs and the 질문 condition alone among the conditions (「The state tabs and the filter narrow the groups together」 below), its
+  tooltip saying 답변 대기 항목만 보기. The counts stand on the state tabs rather than in the head: **대기**, **진행 중**, **결재 대기**,
   **보류** and **병합됨** each carry a badge of how many lines that state holds, and a tab whose state holds none carries
   no badge. 전체 and 완료 carry none — the first is the sum of the rest and the second only grows.
 - **A line never pushes the panel sideways.** The title gives way and wraps however long it is, and the arrow at the
@@ -6825,6 +6827,10 @@ Four bounds keep it from growing forever.
   - **미결** — a 미결 still standing, or one already resolved.
   - **요청한 방** and **요청한 사람** — the room a request came from (or none) and the name it was filed under, out of
     what the table holds.
+  - **질문** — 답변 대기: the items waiting on his answer, those one of whose questions is put to a person and not yet
+    settled, open or stopped, read from bmo-job's questions as the row's chip reads them (「A job standing on a question
+    says so where the owner looks」). The list follows the questions: bmo-job's notice that a question or a reply moved
+    reads the board again under the condition, so an item whose question settled leaves it and one newly asked joins it.
 - **Conditions combine and go together with the search.** Every set condition narrows every group at once, and a
   search inside them finds only among what they left. The button shows how many are set, the popover's 「모두
   해제」 and the button beside the filter button drop them all in one press, and the choice is kept in this browser
@@ -6959,15 +6965,21 @@ Four bounds keep it from growing forever.
     line says no more than that. A word that could not be sent says so in the error colour and stays in the box.
   - The talk is read when it opens and again on bmo-job's notice that a reply or a question moved; its first read stands as a
     skeleton of two turns.
-- **A job standing on a question says so where the owner looks, and is answered there.** The item's row in the TODO
-  panel and on the board wears a warning badge, 질문에 답을 기다리는 중, beside its state, so a question is seen without
-  opening anything; the item's modal stands the same card the questions window stands, 의논 with it, at the top of what it
-  reads — the question, the choices and the recommended one, one line why, the time left and the box for an answer the
-  choices do not hold. The answering is one card and one press, through the same route a reply from the room takes; a settled
-  question stands under it in the words it was settled on, read from bmo-job as the item opens and again when bmo-job says a
-  question or a reply moved, with what settled it: 소유자가 답함, or 시간 초과 · 추천 답으로 결정 where its time ran out on
-  the recommendation. A question that arrived while he was away stands the same:
-  the badge is read off the archive as the panel opens.
+- **A job standing on a question says so where the owner looks, and is answered there.** An item one of whose
+  questions is put to a person and not yet settled, open or stopped, is waiting on his answer, and says so with one
+  chip in the warning colour, 답변 대기: on its row in the TODO panel, in the row's chips beside its state and never on
+  the title's line, and in the opened item, in its state line beside its state. So a question is seen without opening
+  anything. The chip is pressed: from the row it opens the item, and from either it stands the item's 상태 tab with
+  the question's card scrolled into view, which is where he answers it. The chip reads the console's one reading of
+  the questions (「A question the supervisor holds is not his yet」), so it comes the moment the supervisor puts a
+  question to him and leaves the moment the question is settled, taken back or let go, on bmo-job's notice that a
+  question or a reply moved; a question that arrived while he was away stands the same, read as the panel opens. The
+  item's modal stands the same card the questions window stands, 의논 with it, at the top of its 상태 tab — the
+  question, the choices and the recommended one, one line why, the time left and the box for an answer the choices do
+  not hold. The answering is one card and one press, through the same route a reply from the room takes; a settled
+  question stands under it in the words it was settled on, read from bmo-job as the item opens and again when bmo-job
+  says a question or a reply moved, with what settled it: 소유자가 답함, or 시간 초과 · 추천 답으로 결정 where its time
+  ran out on the recommendation.
 - **The question bar says it over every administrator screen.** While a question waits, a band in the warning colour
   stands over the screen with the question waiting longest — its item, its words on one line, its time left and what
   the silence settles, and how many more wait — and, at its right end, a small 열기 button that opens the owner's own
@@ -7028,9 +7040,11 @@ Four bounds keep it from growing forever.
 - The same question is aimed at by chat, console and time together. The three decide the same line with the same conditional write, so
   the first to reach stays and a later one overwrites nothing and hears what it was already decided by. A decided question stays with
   the item that asked and is read on opening that line, in the words it was settled on.
-- **There is one place to answer.** The queue beside keeps per item a record of what the question was and how it was decided, but it
-  cannot be answered there. Two answering places would make two things to keep for one question, and which is real would split per
-  screen. So the card stands once, in the questions window over the conversation, and the queue only reads.
+- **There is one card to answer with.** A question is answered on its card, and the card is one component standing in two
+  places, the questions window over the conversation and the item's modal, both drawn from the console's one reading of the
+  questions and writing through the one route. Two cards of their own would make two things to keep for one question, and which
+  is real would split per screen. The TODO row's chip, the head's count and the band lead to a card and answer nothing
+  themselves.
 - The question is read with the queue. A job having asked one, and it being decided, are to the bot the same kind of notice that the
   queue moved, so a question stands on screen the moment it stands — a job stands stopped waiting on the other side so it must be at
   once. The time left its own seconds clock counts. The answer is written on that line through the bot after a send press. If a question

@@ -1,4 +1,3 @@
-import { filterRecords } from "bmo-ui/shared/search";
 
 import type { Component, ComputedRef, Ref } from "vue";
 import type { LocationQuery } from "vue-router";
@@ -203,11 +202,6 @@ export function chosenOrganization(query: LocationQuery, organizations: readonly
   const byCompany = typeof asked === "string" ? organizations.find((one) => String(one.id) === asked) : undefined;
 
   return byCompany ?? named(query.unit) ?? organizations[0] ?? null;
-}
-
-/** The organisations whose name as shown holds the words searched, in the list's order; every one for no words. */
-export function organizationsMatching(organizations: readonly Organization[], words: string): Organization[] {
-  return filterRecords(organizations, (one) => [{ label: "", text: one.name, shown: true }], words);
 }
 
 /** The companies a member may set something in, each once: those where they head a unit — the invitations' units —

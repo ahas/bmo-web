@@ -110,20 +110,20 @@ async function companyIs(page: Page, id: number): Promise<void> {
 
 // The organisation list where it stands: beside the organisation at a desk's width, in its drawer on a phone.
 async function organizationList(page: Page, width: number): Promise<Locator> {
-  if (width >= 640) return page.locator("[data-organization-list]");
+  if (width >= 640) return page.locator("[data-choice-sidebar-list]");
 
-  await page.locator("[data-organization-list-open]").click();
+  await page.locator("[data-choice-sidebar-open]").click();
 
   const drawer = page.getByRole("dialog").last();
 
-  await drawer.locator("[data-organization-list]").waitFor({ timeout: 10_000 });
+  await drawer.locator("[data-choice-sidebar-list]").waitFor({ timeout: 10_000 });
 
-  return drawer.locator("[data-organization-list]");
+  return drawer.locator("[data-choice-sidebar-list]");
 }
 
 // The rows of this run's organisations the list shows.
 async function runRows(list: Locator): Promise<string[]> {
-  return (await list.locator("[data-organization-row]").allInnerTexts()).map((one) => one.trim()).filter((one) => one.endsWith(`-${RUN}`));
+  return (await list.locator("[data-choice-sidebar-row]").allInnerTexts()).map((one) => one.trim()).filter((one) => one.endsWith(`-${RUN}`));
 }
 
 describe.skipIf(!origin || !touchReady())("the organisation list", () => {
@@ -139,30 +139,30 @@ describe.skipIf(!origin || !touchReady())("the organisation list", () => {
 
         // On a phone the organisation's head carries its name, and the list is in the drawer it opens.
         if (width < 640) {
-          expect(await page.locator("[data-organization-list]").count()).toBe(0);
-          expect(await page.locator("[data-organization-name]").innerText()).toBe(`alpha-${RUN}`);
+          expect(await page.locator("[data-choice-sidebar-list]").count()).toBe(0);
+          expect(await page.locator("[data-choice-sidebar-open]").innerText()).toBe(`alpha-${RUN}`);
         }
 
         let list = await organizationList(page, width);
 
         expect(await runRows(list)).toEqual([`alpha-${RUN}`, `beta-${RUN}`]);
-        expect(await list.locator(`[data-organization-row="${alpha}"]`).getAttribute("aria-current")).toBe("true");
+        expect(await list.locator(`[data-choice-sidebar-row="${alpha}"]`).getAttribute("aria-current")).toBe("page");
         // The administrator adds a company from the list's head.
         expect(await list.locator("[data-organization-add]").count()).toBe(1);
 
         // The search narrows the rows as it is typed, marking where it matched, and says so where none matches.
-        const search = list.getByRole("textbox", { name: wording("organization.label.list_search"), exact: true });
+        const search = list.locator("[data-choice-sidebar-search]");
 
         await search.fill(`BETA-${RUN}`);
-        await list.locator(`[data-organization-row="${alpha}"]`).waitFor({ state: "detached", timeout: 5_000 });
-        expect(await list.locator("[data-organization-row]").count()).toBe(1);
-        expect(await list.locator(`[data-organization-row="${beta}"] mark`).innerText()).toBe(`beta-${RUN}`);
+        await list.locator(`[data-choice-sidebar-row="${alpha}"]`).waitFor({ state: "detached", timeout: 5_000 });
+        expect(await list.locator("[data-choice-sidebar-row]").count()).toBe(1);
+        expect(await list.locator(`[data-choice-sidebar-row="${beta}"] mark`).innerText()).toBe(`beta-${RUN}`);
         await search.fill(`nowhere-${RUN}`);
-        expect(await list.locator("[data-organization-list-empty]").innerText({ timeout: 5_000 })).toBe(wording("organization.label.list_no_match"));
+        expect(await list.locator("[data-choice-sidebar-empty]").innerText({ timeout: 5_000 })).toBe(wording("organization.label.list_no_match"));
         await search.fill("");
 
         // Choosing one stands in the address as a step of the history, and on a phone closes the drawer.
-        await list.locator(`[data-organization-row="${beta}"]`).click();
+        await list.locator(`[data-choice-sidebar-row="${beta}"]`).click();
         await companyIs(page, beta);
         if (width < 640) await page.getByRole("dialog").waitFor({ state: "detached", timeout: 10_000 });
 
@@ -217,7 +217,7 @@ describe.skipIf(!origin || !touchReady())("the organisation list", () => {
       await open(page, "/organization?tab=catalogue");
       await page.waitForURL((url) => url.searchParams.get("company") !== null, { timeout: 15_000 });
 
-      const first = (await page.locator("[data-organization-row]").first().getAttribute("data-organization-row"))!;
+      const first = (await page.locator("[data-choice-sidebar-row]").first().getAttribute("data-choice-sidebar-row"))!;
 
       expect(company(page)).toBe(first);
       expect(new URL(page.url()).searchParams.get("tab")).toBe("catalogue");
@@ -239,7 +239,8 @@ describe.skipIf(!origin || !touchReady())("the organisation list", () => {
 
         const none = page.locator("[data-organization-none]");
 
-        expect(await none.locator("[data-organization-list-empty]").innerText({ timeout: 20_000 })).toBe(wording("organization.label.list_none"));
+        expect(await none.innerText({ timeout: 20_000 })).toBe(wording("organization.label.list_none"));
+        expect(await page.locator("[data-choice-sidebar-list], [data-choice-sidebar-open]").count()).toBe(0);
         expect(await none.locator("[data-organization-add]").count()).toBe(1);
         expect(await page.locator(`[aria-label="${wording("organization.aria.tabs")}"]`).count()).toBe(0);
 

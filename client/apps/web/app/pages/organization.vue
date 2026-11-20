@@ -13,75 +13,67 @@
     </template>
 
     <template #body>
-      <!-- With no organisation to set, the list's empty state alone; the administrator's keeps its add of a company above it,
-           so the first company is made there. -->
-      <div v-if="none" class="flex min-h-0 flex-1 flex-col" data-organization-none>
-        <div v-if="administrator" class="mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col">
-          <OrganizationList drawer :organizations="listed" :chosen="null" :administrator="administrator" :failure="''" :reading="false" @add="openAdd" />
-        </div>
-        <p v-else class="mx-auto w-full max-w-3xl p-4 text-sm text-muted">{{ $t("organization.label.list_none") }}</p>
-      </div>
-
-      <USplitter v-else id="organization-list-splitter" auto-save-id="bmo-organization-list-splitter" :items="regions" :ui="{ handle: SPLIT_HANDLE }" class="min-h-0 flex-1">
-        <template #list>
-          <OrganizationList :organizations="listed" :chosen="chosen?.id ?? null" :administrator="administrator" :failure="organizations.failure.value" :reading="organizations.reading.value" @choose="choose" @add="openAdd" @retry="organizations.refresh" />
+      <!-- The organisations in bmo-ui's side list (docs/web.md, 「Organisation」). With none to set, no list and no tab:
+           the words saying so alone, and the administrator's add of a company beside them, so the first is made there. -->
+      <ChoiceSidebar
+        :listed="!none"
+        :label="$t('organization.label.list')"
+        :entries="entries"
+        :chosen="chosen?.id ?? null"
+        save-id="bmo-organization-list-splitter"
+        :failure="organizations.failure.value"
+        :reading="organizations.reading.value"
+        :no-match-text="$t('organization.label.list_no_match')"
+        @choose="choose(Number($event))"
+        @retry="organizations.refresh"
+      >
+        <template v-if="administrator" #actions>
+          <IconButton size="sm" :icon="TAB_ADD_ICON" :label="$t('organization.action.add_company')" data-organization-add @click="openAdd" />
         </template>
 
-        <template #organization>
-          <section class="flex min-h-0 min-w-0 flex-1 flex-col" :aria-label="chosen?.name" :data-organization-chosen="chosen?.id">
-            <!-- On a phone the organisation's name opens the list's drawer; a name the button cuts short reads whole in
-                 its tooltip, a finger resting on it to read it. -->
-            <div v-if="narrow" class="flex h-12 shrink-0 items-center px-2">
-              <UButton v-if="chosen !== null" color="neutral" variant="ghost" class="max-w-full font-semibold text-highlighted" trailing-icon="i-material-symbols-unfold-more" data-organization-list-open @click="listOpen = true">
-                <HintTip :text="chosen.name" cut press class="block min-w-0 truncate" data-organization-name>{{ chosen.name }}</HintTip>
-              </UButton>
-              <SkeletonBar v-else class="ms-2.5 h-4 w-1/2" />
-            </div>
+        <div v-if="none" class="mx-auto flex w-full max-w-3xl items-center gap-2 p-4" data-organization-none>
+          <p class="min-w-0 flex-1 text-sm text-muted">{{ $t("organization.label.list_none") }}</p>
+          <IconButton v-if="administrator" size="sm" :icon="TAB_ADD_ICON" :label="$t('organization.action.add_company')" data-organization-add @click="openAdd" />
+        </div>
 
-            <div ref="tabRow" :class="['flex h-12 shrink-0 items-center gap-2 ps-2 pe-4 sm:ps-4', TAB_ROW_LINE]">
-              <UTabs
-                :key="rowKey"
-                :model-value="tabChosen"
-                :items="tabItems"
-                :content="false"
-                color="neutral"
-                variant="link"
-                size="sm"
-                class="min-w-0 flex-1 self-stretch"
-                :ui="TAB_ROW_UI"
-                :aria-label="$t('organization.aria.tabs')"
-                @update:model-value="(value: string | number) => setTab(String(value))"
-              />
+        <section v-else class="flex min-h-0 min-w-0 flex-1 flex-col" :aria-label="chosen?.name" :data-organization-chosen="chosen?.id">
+          <div ref="tabRow" :class="['flex h-12 shrink-0 items-center gap-2 ps-2 pe-4 sm:ps-4', TAB_ROW_LINE]">
+            <UTabs
+              :key="rowKey"
+              :model-value="tabChosen"
+              :items="tabItems"
+              :content="false"
+              color="neutral"
+              variant="link"
+              size="sm"
+              class="min-w-0 flex-1 self-stretch"
+              :ui="TAB_ROW_UI"
+              :aria-label="$t('organization.aria.tabs')"
+              @update:model-value="(value: string | number) => setTab(String(value))"
+            />
 
-              <IconButton
-                v-if="addLabel !== null"
-                size="sm"
-                :icon="TAB_ADD_ICON"
-                :label="addLabel"
-                :disabled="section?.addDisabled ?? false"
-                data-tab-add
-                @click="section?.openAdd?.()"
-              />
-            </div>
+            <IconButton
+              v-if="addLabel !== null"
+              size="sm"
+              :icon="TAB_ADD_ICON"
+              :label="addLabel"
+              :disabled="section?.addDisabled ?? false"
+              data-tab-add
+              @click="section?.openAdd?.()"
+            />
+          </div>
 
-            <div v-if="tab === null || chosen === null" class="flex min-h-0 min-w-0 flex-1 flex-col" aria-busy="true" data-organization-body data-organization-waiting />
-            <div v-else-if="tab.wide" class="flex min-h-0 min-w-0 flex-1 flex-col" data-organization-body>
+          <div v-if="tab === null || chosen === null" class="flex min-h-0 min-w-0 flex-1 flex-col" aria-busy="true" data-organization-body data-organization-waiting />
+          <div v-else-if="tab.wide" class="flex min-h-0 min-w-0 flex-1 flex-col" data-organization-body>
+            <component :is="tabComponent" :key="chosen.id" ref="section" :company="chosen" />
+          </div>
+          <div v-else class="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto p-4" data-organization-body>
+            <div class="mx-auto flex w-full min-w-0 max-w-3xl flex-col" data-organization-column>
               <component :is="tabComponent" :key="chosen.id" ref="section" :company="chosen" />
             </div>
-            <div v-else class="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto p-4" data-organization-body>
-              <div class="mx-auto flex w-full min-w-0 max-w-3xl flex-col" data-organization-column>
-                <component :is="tabComponent" :key="chosen.id" ref="section" :company="chosen" />
-              </div>
-            </div>
-          </section>
-        </template>
-      </USplitter>
-
-      <UDrawer v-if="narrow" v-model:open="listOpen" :title="$t('organization.label.list')" :ui="FULL_SHEET">
-        <template #body>
-          <OrganizationList drawer :organizations="listed" :chosen="chosen?.id ?? null" :administrator="administrator" :failure="organizations.failure.value" :reading="organizations.reading.value" @choose="choose" @add="openAdd" @retry="organizations.refresh" />
-        </template>
-      </UDrawer>
+          </div>
+        </section>
+      </ChoiceSidebar>
 
       <!-- A new company: one name, and one save at its foot (docs/web.md, 「Organisation」). -->
       <SettingsDialog v-model:open="adding" :title="$t('organization.action.add_company')" :dirty="addChanges">
@@ -103,8 +95,6 @@
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useOpenedWith } from "bmo-ui/app/domain/form-save";
-import { useNarrow } from "bmo-ui/app/domain/screen";
-import { FULL_SHEET, SPLIT_HANDLE } from "bmo-ui/app/domain/side-parts";
 import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
 
 import { useAdministrator } from "~/domain/access";
@@ -126,7 +116,7 @@ import { revealOpenTab } from "~/domain/tab-row";
 
 import type { TabCreate } from "~/domain/tab-create";
 import type { RosterDetail } from "#shared/roster";
-import type { SplitterItem } from "@nuxt/ui";
+import type { SideEntry } from "bmo-ui/app/domain/side-parts";
 import type { Component } from "vue";
 
 // A member opens it for the organisations where they head a unit, manage the supply or head the company; one with
@@ -136,7 +126,6 @@ definePageMeta({ member: true });
 const route = useRoute();
 const router = useRouter();
 const { t } = useI18n();
-const narrow = useNarrow();
 const administrator = useAdministrator();
 
 // The organisations the reader may set anything in, and the one the address chooses among them: the one it names, a
@@ -200,13 +189,8 @@ const tabItems = computed(() => organizationRowTabs(reader.value, route.query.ta
 // where a tab came in before it.
 const rowKey = computed(() => tabItems.value.map((one) => one.value).join(" "));
 
-// The regions the splitter parts, in hundredths of its width: the list, wide enough for its search box and a name,
-// which can be widened to two fifths, and the organisation chosen; on a phone the organisation alone, the list in its
-// drawer.
-const LIST_REGION: SplitterItem = { slot: "list", minSize: 18, defaultSize: 26, maxSize: 40 };
-const ORGANIZATION_REGION: SplitterItem = { slot: "organization", minSize: 60 };
-const regions = computed<SplitterItem[]>(() => (narrow.value ? [{ ...ORGANIZATION_REGION, minSize: 100, defaultSize: 100 }] : [LIST_REGION, ORGANIZATION_REGION]));
-const listOpen = ref(false);
+// The organisations as the side list's rows, each by its name.
+const entries = computed<SideEntry[] | null>(() => listed.value?.map((one) => ({ value: one.id, label: one.name })) ?? null);
 
 // An address naming a tab that moved away is taken to where its section stands now, one naming a tab the reader may
 // not open to the first one they may, and one naming no organisation, or one the reader may not set, to the one
@@ -248,11 +232,8 @@ function setTab(next: string): void {
   void router.push(organizationAddress(next, route.query));
 }
 
-// Choosing an organisation is a step of the history and stands in the address, so a shared link opens the same one; on
-// a phone it closes the drawer it was chosen in.
+// Choosing an organisation is a step of the history and stands in the address, so a shared link opens the same one.
 function choose(company: number): void {
-  listOpen.value = false;
-
   if (company === chosen.value?.id) return;
 
   void router.push(organizationChosenAddress(company, route.query));
@@ -306,7 +287,6 @@ const draft = reactive({ name: "" });
 const addChanges = useOpenedWith(() => draft, { open: adding });
 
 function openAdd(): void {
-  listOpen.value = false;
   draft.name = "";
   addFailure.value = "";
   adding.value = true;

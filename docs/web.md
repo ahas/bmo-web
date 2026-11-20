@@ -7713,13 +7713,13 @@ research screen (「Research screen」).
     The administrator's list holds every company, with 회사 추가 at the head's right end, which opens a form of
     one name and makes a new company; a member's holds the companies where they head a unit, hold a part of the
     supply — its policy and credits, or its plan — write a unit's org memory, or head the company itself, and no add.
-  - **The list and the organisation chosen are regions side by side,** parted by a splitter whose hairline is
-    dragged to widen either, the width kept in this browser, each scrolling on its own. On a narrow screen the
-    organisation chosen fills the body, and the list opens as a bottom drawer from the button at the head of the
-    organisation, which carries its name, a name cut short reading whole in its tooltip; choosing one there closes
-    the drawer.
-  - **A reader with no organisation to set** is shown the list's empty state, 설정할 조직 없음, and no tab; the
-    administrator's list keeps its 회사 추가 through it, so the first company is made there.
+  - **The list and the organisation chosen are bmo-ui's side list** (`ChoiceSidebar`): regions side by side,
+    parted by a splitter whose hairline is dragged to widen either, the width kept in this browser, each scrolling
+    on its own. On a narrow screen the organisation chosen fills the body, and the list opens as a bottom drawer
+    from the button at the head of the organisation, which carries its name, a name cut short reading whole in its
+    tooltip; choosing one there closes the drawer.
+  - **A reader with no organisation to set** is shown 설정할 조직 없음 alone, with no list and no tab; the
+    administrator finds 회사 추가 beside it, so the first company is made there.
   - **A link naming a person but no organisation** — a person's tab from before the list, the console search's
     person — opens the organisation that person stands in.
 - **Inside the organisation chosen, a tab to a section.** The tabs are 조직도, 사용자, 직책·종류, 초대, BMO, 조직 기억, 공급

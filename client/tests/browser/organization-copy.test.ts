@@ -7,9 +7,9 @@ import { wording } from "../../apps/web/shared/wording";
 
 import type { Browser, BrowserContext, BrowserType, Page } from "playwright-core";
 
-// The organisation's copy marks (docs/web.md, 「Organisation settings」 and its chart): a person's machine's install
-// lines in the machine dialog, and an invitation's words in the invitations tab, both when a link is made and when an
-// open one is copied again. A copy that lands turns its mark to a check, one that lands nowhere says so and turns
+// The organisation's copy marks (docs/web.md, 「Organisation」, its chart and its invitations tab): a person's
+// machine's install lines in the machine dialog, and an invitation's words in the invitations tab, both when a link is
+// made and when an open one is copied again. A copy that lands turns its mark to a check, one that lands nowhere says so and turns
 // nothing; a link made copies its words in the press that made it, though the service answers after the browser
 // stops counting that press, in Firefox and WebKit as they ship too, and where the browser refuses it the dialog
 // offers a copy of its own.
@@ -157,7 +157,8 @@ async function machineDialog(width: number, clipboard: ClipboardRoad): Promise<{
 
 const MADE = { token: `copy-token-${RUN}`, fullName: "person-a" };
 
-// The invitations tab, its service making a link only after a press stops being fresh.
+// The invitations tab of this run's company, its service making a link only after a press stops being fresh. The tab
+// lists the links of the organisation chosen alone, so the company is named in the address.
 async function invitesTab(width: number, clipboard: ClipboardRoad, on?: Browser): Promise<{ context: BrowserContext; page: Page }> {
   const context = await signedContext(width, clipboard, on);
 
@@ -172,7 +173,7 @@ async function invitesTab(width: number, clipboard: ClipboardRoad, on?: Browser)
 
   const page = await context.newPage();
 
-  await page.goto(`${origin}/organization?tab=invites`, { waitUntil: "load" });
+  await page.goto(`${origin}/organization?company=${unit}&tab=invites`, { waitUntil: "load" });
   await standing(page);
   await page.locator(`[aria-label="${wording("invites.status.loading")}"]`).waitFor({ state: "detached", timeout: 20_000 });
 

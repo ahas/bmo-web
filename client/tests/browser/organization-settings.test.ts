@@ -31,7 +31,7 @@ const RUN = Date.now().toString(36);
 const PERSONAL = ["settings.label.account", "settings.label.secrets", "settings.label.supply", "settings.label.theme", "settings.label.palette"];
 const ADMINISTRATOR_PERSONAL = [...PERSONAL, "settings.label.notifications", "settings.label.briefing"];
 const MOVED = ["settings.label.invites", "settings.label.permissions", "settings.label.providers", "secrets.label.kinds", "research.title.supervisor"];
-const TABS = ["organization.label.chart", "roster.label.tab", "catalogue.label.tab", "settings.label.invites", "settings.label.bmo", "supply.label.tab", "supply.label.plans"];
+const TABS = ["organization.label.chart", "roster.label.tab", "catalogue.label.tab", "settings.label.invites", "settings.label.bmo", "org_memory.label.tab", "supply.label.tab", "supply.label.plans"];
 const ADMIN_TABS = ["settings.label.providers", "secrets.label.kinds", "supply.label.plans", "supply.label.credits"];
 
 let browser: Browser | null = null;
@@ -441,9 +441,9 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
 
           await standing(page);
           await column(page).getByText(wording("catalogue.label.kinds"), { exact: true }).waitFor({ timeout: 20_000 });
-          // A head of a company manages that company's supply, so the supply and plans tabs stand for them too
-          // (docs/web.md, 「Organisation」, the supply and plans tabs).
-          expect({ pass, tabs: await tabNames(page) }).toEqual({ pass, tabs: ["roster.label.tab", "catalogue.label.tab", "settings.label.invites", "settings.label.bmo", "supply.label.tab", "supply.label.plans"].map((key) => wording(key)) });
+          // A head of a company writes the org memory of the units they head and manages that company's supply, so the
+          // org memory, supply and plans tabs stand for them too (docs/web.md, 「Organisation」).
+          expect({ pass, tabs: await tabNames(page) }).toEqual({ pass, tabs: ["roster.label.tab", "catalogue.label.tab", "settings.label.invites", "settings.label.bmo", "org_memory.label.tab", "supply.label.tab", "supply.label.plans"].map((key) => wording(key)) });
           expect(await page.locator('[role="tab"][aria-selected="true"]').allInnerTexts()).toEqual([wording("catalogue.label.tab")]);
 
           // The row's underline stands under the chosen tab, though a tab came in before it once the head was known.
@@ -510,8 +510,8 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
             expect({ old, open: (await page.locator(`[aria-label="${wording("admin.aria.tabs")}"] [role="tab"][data-state="active"]`).innerText()).trim() }).toEqual({ old, open: wording(label) });
           }
 
-          // The organisation screen keeps the chart, the people, the roles and kinds, the invitations, the BMO and,
-          // for a reader who manages a unit's supply, the supply tab.
+          // The organisation screen keeps the chart, the people, the roles and kinds, the invitations, the BMO, the org
+          // memory and, for a reader who manages a unit's supply, the supply and plans tabs.
           await page.goto(`${origin}/organization`, { waitUntil: "load" });
           await standing(page);
           expect(await tabNames(page)).toEqual(TABS.map((key) => wording(key)));
@@ -658,7 +658,7 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
           await administer(`/api/organization/units/${team}/heads/${encodeURIComponent(member)}`, "PUT");
           await page.goto(`${origin}/organization`, { waitUntil: "load" });
           await standing(page);
-          expect(await tabNames(page)).toEqual([wording("settings.label.invites"), wording("settings.label.bmo")]);
+          expect(await tabNames(page)).toEqual([wording("settings.label.invites"), wording("settings.label.bmo"), wording("org_memory.label.tab")]);
 
           // A head asks for a link into their unit from the tab row's add and its dialog, and the service
           // takes the ask as theirs: a link stands among the open ones, or, where the deployment names no machine hub

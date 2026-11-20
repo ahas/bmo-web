@@ -137,6 +137,16 @@ describe.skipIf(!origin || !touchReady())("the organisation list", () => {
         await open(page, `/organization?company=${alpha}`);
         await companyIs(page, alpha);
 
+        // At a desk's width the list's head and the tab row beside it draw one straight line under them.
+        if (width >= 640) {
+          const lines = await page.evaluate(() => ({
+            head: document.querySelector("[data-choice-sidebar-list]")!.firstElementChild!.getBoundingClientRect().bottom,
+            tabs: document.querySelector("[data-organization-chosen]")!.firstElementChild!.getBoundingClientRect().bottom
+          }));
+
+          expect(lines.head).toBe(lines.tabs);
+        }
+
         // On a phone the organisation's head carries its name, and the list is in the drawer it opens.
         if (width < 640) {
           expect(await page.locator("[data-choice-sidebar-list]").count()).toBe(0);

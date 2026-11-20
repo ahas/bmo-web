@@ -64,7 +64,6 @@ describe("the bot's stream cut to the rooms a user reads", () => {
   test("the bot's picture keeps only the turns going in the rooms read, how much each was handed, and the message each holds queued", () => {
     const cut = {
       at: 7,
-      runs: [],
       compacting: [],
       turns: [{ chatId: ROOM_ID, since: 5, messages: 2, instructions: 1 }],
       queued: [{ chatId: ROOM_ID, messageId: 13, since: 6 }]

@@ -576,7 +576,7 @@ import { SCROLL_BOTTOM_THRESHOLD_PX, SCROLL_TOP_THRESHOLD_PX } from "~/domain/po
 import { formatClock, toUnixSeconds, useNowSeconds } from "bmo-ui/app/domain/time";
 import { presenceWords, roomPresence, TYPING_BAND_PX, usePresence, useTypingTeller } from "~/domain/presence";
 import { imageUrl } from "~/domain/urls";
-import { outcomeLine, useHeldRuns } from "~/domain/working";
+import { outcomeLine } from "~/domain/working";
 import { newestSkipped, skipReasonLine, useLatestSkipReason, useSkipReasons } from "~/domain/skip-reasons";
 import { readerLanguage } from "~/domain/text-reading";
 import { groupRoom, listeningRuns, shownOutcome, useRoomWindow } from "~/domain/room-window";
@@ -589,7 +589,6 @@ import type {
   Judgement,
   JudgementMark,
   RoomStats,
-  LiveRun,
   LiveSnapshot,
   OwnerChat,
   QueuedMessage,
@@ -599,8 +598,7 @@ import type {
   SentAttachments,
   SentMessage,
   Situation,
-  SkipReason,
-  StatusView
+  SkipReason
 } from "#shared/types";
 import type { DropdownMenuItem } from "@nuxt/ui";
 import type { WindowFrame } from "bmo-ui/app/domain/floating-window";
@@ -776,17 +774,6 @@ const FLASH_MS = 1600;
 // the arrows walk it; with nothing focused yet that stop is the newest message.
 const focusedKey = ref<string | null>(null);
 
-// What else is running for this room — a search, a browse, a job, a watch's check. The picture
-// arrives whole on the live event, as it does elsewhere. The standing watches do not ride that
-// stream, so they are read beside it: a check's run says nothing about which watch it is a check of.
-//
-// The runs are held: the receiver's own picture carries no runs at all, so it never clears the
-// room's line, and an answer with none in it clears it only after the settle window, so a job
-// handing over to the next one does not blink the line and move the conversation with it
-// (docs/web.md, the room screen's section on what else runs for the room).
-const { runs: live, take: takeLive, stop: stopLive } = useHeldRuns();
-
-onBeforeUnmount(stopLive);
 // The messages the bot holds queued for a turn of the chat agent's, which are waiting to be judged.
 const queued = ref<QueuedMessage[]>([]);
 
@@ -797,7 +784,6 @@ const { runs, outcome } = useRoomRun(chatId, {
   // A turn that sent its answer stands its row until that answer is in the feed, found as its row finds it.
   answered: (run: RunState) => turnAnswer(run, (otherAnswererOf(run.speaker) ?? botSpeaker(roomFeed.messages.value)).id, roomFeed.messages.value) !== undefined,
   onLive: (picture: LiveSnapshot) => {
-    takeLive(picture.runs);
     queued.value = sameKept(queued.value, picture.queued ?? queued.value);
   }
 });
@@ -1033,7 +1019,7 @@ function roundSituationOf(item: FeedItem): Situation | null {
 
 // Which messages of the room are being judged right now, which their verdict mark beats for: none that
 // already holds a final verdict written since its judging began.
-const judged = computed<Set<ExactMessageId>>(() => judgedNow(chatId, live.value, queued.value, runs.value, judgementIndex.value));
+const judged = computed<Set<ExactMessageId>>(() => judgedNow(chatId, queued.value, runs.value, judgementIndex.value));
 
 // The room's own name, from the one list every screen takes a room's name from, and the
 // picture the receiver keeps for it.
@@ -2920,8 +2906,6 @@ onMounted(async () => {
   if (writable.value) {
     await restoreOutbox();
   }
-
-  await readLive();
 });
 
 // A message the address comes to name while the room stands — the playing bar pressed in its own
@@ -2945,25 +2929,6 @@ watch(
 function letGoOfAsked(): void {
   if (Number(route.params.chatId) === chatId && route.query.at !== undefined) {
     void router.replace({ query: { ...route.query, at: undefined } });
-  }
-}
-
-// A job beside the chat is the agency's, not the receiver's, so the live picture the receiver sends says nothing
-// of one starting or ending. The agency's job events name it, and the board is read again when one comes.
-useLiveRefresh(() => void readLive(), { on: ["worker-run"], everyMs: POLL_INTERVAL_MS });
-
-async function readLive(): Promise<void> {
-  // The work running anywhere is the administrator's to see.
-  if (!administrator.value) {
-    return;
-  }
-
-  try {
-    const status = await $fetch<StatusView>("/api/status");
-
-    takeLive(status.live);
-  } catch {
-    // The room reads either way; without the picture it simply shows no running turn.
   }
 }
 

@@ -5,7 +5,7 @@ import { secondsText } from "../../../apps/web/app/domain/numbers";
 
 import { endsJudging, homedJudgements, instructionParts, judgedNow, verdictWords, judgementText, keptOffer, lineAnswer, lineKept, narrowedOffer, openedCards, openedTurns, roadName, roadOutcome, sortLabel, verdictState, verdictTone, wholeOf } from "../../../apps/web/app/domain/judgements";
 
-import type { GateOfferRecord, Judgement, LiveRun, RoundOpening } from "../../../apps/web/shared/types";
+import type { GateOfferRecord, Judgement, RoundOpening } from "../../../apps/web/shared/types";
 import { WORKER } from "../../support/ids";
 import KO from "../../fixtures/app/domain/judgements.test.ko.json";
 
@@ -100,26 +100,17 @@ describe("what the verdict mark says", () => {
   });
 });
 
-// A message is being judged while a gate of its room judges it, while it waits queued for the chat agent's turn,
-// and while the chat agent's turn that read it last runs; another supervisor's turn judges nothing it read, and another
-// room's gate or queue nothing here.
+// A message is being judged while it waits queued for the chat agent's turn, and while the chat agent's turn that
+// read it last runs; another supervisor's turn judges nothing it read, and another room's queue nothing here.
 describe("which messages are being judged", () => {
-  const gate = (chatId: number, messageId: string | null, kind: LiveRun["kind"] = "gate") => ({ kind, chatId, messageId }) as LiveRun;
-
-  test("a gate of the room names its message, and the chat agent's turn the message it read last", () => {
-    const judged = judgedNow(5, [gate(5, "11"), gate(6, "12"), gate(5, "13", "runner"), gate(5, null)], [], [{ messageId: "14" }]);
-
-    expect([...judged].sort()).toEqual(["11", "14"]);
-  });
-
   test("the message the room holds queued for a turn is judged before any turn has begun", () => {
     const queued = [{ chatId: 5, messageId: "15", since: 1 }, { chatId: 6, messageId: "16", since: 1 }];
 
-    expect([...judgedNow(5, [], queued, [])]).toEqual(["15"]);
+    expect([...judgedNow(5, queued, [])]).toEqual(["15"]);
   });
 
   test("another supervisor's turn and a turn whose start the screen did not see name none", () => {
-    expect([...judgedNow(5, [], [], [{ messageId: "21", speaker: { id: 3, name: KO.line_115 } }, { messageId: null }])]).toEqual([]);
+    expect([...judgedNow(5, [], [{ messageId: "21", speaker: { id: 3, name: KO.line_115 } }, { messageId: null }])]).toEqual([]);
   });
 
   // A verdict that ends a stage's work is final: a message holding one written since its judging began is judged no
@@ -138,7 +129,7 @@ describe("which messages are being judged", () => {
       ["35", [verdict("35", "REPLY", 150)]]
     ]);
 
-    expect([...judgedNow(5, [], queued, turns, held)]).toEqual(["32", "33", "35"]);
+    expect([...judgedNow(5, queued, turns, held)]).toEqual(["32", "33", "35"]);
   });
 
   test("the words that end a stage's work stand whole", () => {

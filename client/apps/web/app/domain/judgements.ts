@@ -1,4 +1,4 @@
-import type { ExactMessageId, Judgement, JudgementMark, JudgementRoad, KeptCounts, LiveRun, QueuedMessage, RoundOpening, TurnSpeaker } from "#shared/types";
+import type { ExactMessageId, Judgement, JudgementMark, JudgementRoad, KeptCounts, QueuedMessage, RoundOpening, TurnSpeaker } from "#shared/types";
 import { chatAgent } from "#shared/agent-names";
 import { otherAnswererOf } from "./agents";
 import { countText } from "./numbers";
@@ -319,17 +319,15 @@ export function verdictState(judgements: readonly JudgementMark[], judging: bool
   return tones.includes("error") ? "error" : tones.includes("success") ? "success" : "neutral";
 }
 
-// Which of a room's messages are being judged right now: one a gate of the room is judging, the one
-// the room holds queued for the chat agent's turn, from the moment it was put into the queue, and the one the chat agent's
-// turn going in the room read last, from the turn's start until the room has read its answer, so
-// the gaps between its gates count too. Another supervisor's turn writes its verdict on its own answer, so
-// the message it read is judged by none of it. A turn whose start the screen did not see names no
-// message, and is known by its gates alone (docs/web.md, 「Room screen」). A message already holding a
-// final verdict written since its judging began is judged no longer, whatever the picture still says of
-// it; a judging whose beginning is not known is ended by none.
+// Which of a room's messages are being judged right now: the one the room holds queued for the chat agent's
+// turn, from the moment it was put into the queue, and the one the chat agent's turn going in the room read
+// last, from the turn's start until the room has read its answer, so the gaps between its gates count too.
+// Another supervisor's turn writes its verdict on its own answer, so the message it read is judged by none of
+// it. A turn whose start the screen did not see names no message, and so judges none (docs/web.md, 「Room
+// screen」). A message already holding a final verdict written since its judging began is judged no longer,
+// whatever the picture still says of it; a judging whose beginning is not known is ended by none.
 export function judgedNow(
   chatId: number,
-  runs: readonly LiveRun[],
   queued: readonly QueuedMessage[],
   turns: readonly { messageId: ExactMessageId | null; speaker?: TurnSpeaker; startedAt?: number }[],
   judgements: ReadonlyMap<ExactMessageId, readonly JudgementMark[]> = new Map()
@@ -339,12 +337,6 @@ export function judgedNow(
   const judging = (messageId: ExactMessageId, from: number | undefined): void => {
     since.set(messageId, Math.min(since.get(messageId) ?? Infinity, from ?? Infinity));
   };
-
-  for (const run of runs) {
-    if (run.kind === "gate" && run.chatId === chatId && run.messageId !== null) {
-      judging(run.messageId, run.startedAt);
-    }
-  }
 
   for (const message of queued) {
     if (message.chatId === chatId) {

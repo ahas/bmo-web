@@ -108,5 +108,5 @@ function roomPicture(picture: LiveSnapshot, rooms: ReadRooms): LiveSnapshot {
 
   const queued = (picture.queued ?? []).filter((message) => rooms.has(message.chatId));
 
-  return { at: picture.at, runs: [], compacting: [], turns, queued };
+  return { at: picture.at, compacting: [], turns, queued };
 }

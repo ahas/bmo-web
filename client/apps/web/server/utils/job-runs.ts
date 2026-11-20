@@ -140,7 +140,7 @@ async function roomOf(job: AgencyJob): Promise<number | null> {
   }
 }
 
-// One job under way, as the home screen and a room's working line read it: a worker's run, named by the run its
+// One job under way, as the home screen and an agent's screen read it: a worker's run, named by the run its
 // log stands under, of the item it is a run of, in the room it reports to. The agency says no model while the
 // job runs, and none of its ceiling, depth or launcher; the job's item is what a stop from the board names.
 function liveRunOf(job: AgencyJob, room: number | null): LiveRun {

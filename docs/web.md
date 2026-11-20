@@ -4807,7 +4807,7 @@ Four bounds keep it from growing forever.
     An answer's verdict whose round's answer the page does not carry stands under nothing.
   - **While the message is being judged the mark beats** — a heartbeat, two quick swells of its size and
     brightness and a rest, over and over, in the chip's own grey; its tooltip says 판정 중. A message is being
-    judged while a gate is judging it, while it waits for the chat agent's turn, and while the chat agent's turn that read it last is
+    judged while it waits for the chat agent's turn, and while the chat agent's turn that read it last is
     still going, from the turn's start until the room has read its answer.
     - **The wait counts from the moment the receiver puts the message into the room's queue for the chat agent**, through
       the queue's quiet delay and whatever the round waits on before it opens, until a turn of theirs takes it, so
@@ -5786,54 +5786,6 @@ Four bounds keep it from growing forever.
   note yet says so rather than standing an empty box. The note carries the 번역 action of a text read in the
   reader's language, exactly as a memory opened from the room's record does (「The original, and its translation
   under it」).
-- **What else runs for this room** — besides the chat agent's answer, a job or a standing watch's check —
-  stands below as **one line of counts**, never one line per run, however many run.
-  - The parts are 「Job <n>」 for jobs and 「워치 <n>」 for watch checks, joined by a middle dot: 「Job 7 · 워치 3」.
-    A part with nothing in it does not stand, and the line stands while any part does.
-  - **The line keeps the runs it last knew.** A picture that carries no runs at all is the receiver's, which serves
-    none, and it says nothing about jobs: it never clears the line. A picture with none in it clears the line only
-    once the settle window — two and a half seconds — passes with nothing running again, so a job handing over to the
-    next one, which is one ending and the next starting a moment later, does not blink the line. The room's row for
-    the line stands at one height whether the line is in it or not, so nothing above it ever moves. The line still knows a
-    search's `검색 <n>` and the rest's `기타 <n>` from a picture that carries one; no unit serves those runs now.
-  - A deployment is never one of its parts: it is no run of this room, and the title bar's mark is the one place it
-    stands (「Deployment in the title bar」).
-  - It never wraps: on a screen too narrow for it the line is cut at its edge. It is centred under the conversation,
-    and its shimmering words are its only running sign, with no spinning mark beside them.
-  - The jobs are the agency's `GET /jobs` under its `running` filter, the jobs `starting`, `running` or `reviewing`:
-    a job whose report awaits its orderer's move keeps its agent's seat, its checkout and its lease (the agency's
-    `docs/job-review.md`), so it is still going and stands on the line as one running. A job whose launch named no
-    room is placed in the room its item's scope names, and one whose item names no room stands in no room. The line is
-    read again when the agency says a job started, changed or ended, and on the catch-up read a reopened stream
-    brings. A watch's check comes from the board's standing watches. The runs of searches, gates and runners going
-    now are served by no unit (`docs/boundary.md`, 「Gaps the console meets」), so the line carries none of them.
-  - Pressing it opens the log of what runs, with no dialog between. With one run it opens that run's log at once;
-    with several it drops a menu of them, one line a run, and choosing one opens its log.
-- **A run line says what runs, how long, and who launched it.** In that menu each of this room's runs — jobs and watches'
-  checks — stands as one line: what runs (a job its item or its model if
-  no item), how long it has gone, and **who launched it**. The launcher writes its own name on launching, so what
-  that room's chat agent launched stands as that room's chat agent's, what the owner launched from the console as launched from the
-  console, what another room's chat agent launched by that chat agent's name. So a search one room's chat agent launched reads
-  as that room's on its screen, and a job the owner's private chat launched for another room's work reads as launched from
-  the owner's private chat in that room.
-  What ran with no name written stands with no launcher — the room work is attached to is not guessed as the
-  launcher. A co-work run stands by its place in the work order, not its unit name, and that being the same rule
-  wherever a run line stands, it is written once for every screen (「에이전트」, a co-work run's name). What runs is not something this screen can
-  shorten, so the line is never cut: a menu wider than the screen scrolls sideways as every menu of the console
-  does. Choosing the line opens that agent's log over the conversation: on a wide screen as a centred modal, on a
-  narrow screen as a sheet rising from the bottom to fill the screen. What
-  is inside is the very log view the agent screen uses, so the line's shape, spread and following are the same, and
-  being the log now in use it holds the end and follows new lines. A **페이지로** button above crosses to that
-  agent's screen at the same run and place (「The work view」), and pressing closes what is open and moves there. Closing is by outside press, Esc and a close
-  button, and a sheet has a handle above it too.
-- **A watch's line is named after the watch, not after the agent looking.** Where the run standing there is a
-  standing watch's check, the line carries 「워치 #N · <name>」 — the watch's number and the few words it was set
-  with, or the head of its note where it was set without a name — and nothing about the watch under it, the
-  same one line an agent's state cell reads for a watch's runner. How often it looks, how long is left, its
-  condition and what it promised are never on that line, however long the note behind it is. Pressing it opens
-  the watch itself above the log, with its detail already open: how often it looks and how long is left, how
-  the last look went, the whole of the note, the condition, and the deadline or the timer's moment. A check that wrote no log is the ordinary case, so what the
-  watch says stands whether there is a log under it or not.
 
 #### 대화에서 찾기
 
@@ -9118,7 +9070,7 @@ its people directory and the members of the reader's company.
     beside what they carry. The tab reads bmo-job's item and queue moving as the TODO moving, a work order or task
     changing as that item's work order and an item's notes, reports and replies as that item's talk; and it reads
     an agency turn as an agent's turn going out or ending, which the worker's job line reads back
-    on, and an agency job as work running for its room, which the room's working line reads back
+    on, and an agency job as work running, which the home screen, an agent's screen and the TODO read back
     on.
 - **A message's id.** The receiver numbers a message with a signed 64-bit integer, and a chat service may number its
   messages past 2^53, beyond what a JavaScript number holds without rounding: a KakaoTalk room's messages are

@@ -4,6 +4,7 @@ import { join } from "node:path";
 
 import { chromium } from "playwright-core";
 
+import { DUE_READ_DELAY_S } from "../../apps/web/app/domain/questions";
 import { wording } from "../../apps/web/shared/wording";
 import { BROWSER_HOOK_MS, fingerOn, touchReady } from "./touch";
 
@@ -108,9 +109,9 @@ function paused(stand: Stand, body: { id: number; paused: boolean }): void {
     if (question.id !== body.id) return question;
 
     if (body.paused) {
-      stand.left.set(question.id, Math.max(0, question.dueAt - at));
+      stand.left.set(question.id, Math.max(0, (question.dueAt ?? at) - at));
 
-      return { ...question, pausedLeft: 0, dueAt: 0 };
+      return { ...question, pausedLeft: 0, dueAt: null };
     }
 
     const left = stand.left.get(question.id) ?? 0;
@@ -161,7 +162,7 @@ async function open(viewport: { width: number; height: number }, scheme: (typeof
     stand.sent.push({ path: "question-pause", body });
     paused(stand, body);
 
-    return await route.fulfill({ json: { ok: true, pausedLeft: null, dueAt: 0 } });
+    return await route.fulfill({ json: { ok: true, pausedLeft: null, dueAt: null } });
   });
   await context.route(api("question-talk"), async (route) => {
     if (route.request().method() === "POST") {
@@ -519,7 +520,7 @@ describe.skipIf(!origin || !touchReady())("a question's timer in the questions w
     const stand = stood();
 
     // Stopped once its time had run out, so bmo-job kept nothing and opens it again with a whole wait.
-    stand.questions = [asked(1, 41, { pausedLeft: 0, dueAt: 0 })];
+    stand.questions = [asked(1, 41, { pausedLeft: 0, dueAt: null })];
 
     const context = await open(DESK, "light", stand);
     const page = await context.newPage();
@@ -538,6 +539,52 @@ describe.skipIf(!origin || !touchReady())("a question's timer in the questions w
       await context.close();
     }
   }, TEST_MS);
+});
+
+// A question's time running out (docs/web.md, 「Its time running out settles it on the recommendation」): the countdown
+// is the due time bmo-job holds, reaching nothing it says the recommendation settles the question, and a moment later
+// the console reads the questions again, so the card leaves on bmo-job's settling without waiting on its news or the
+// poll. The page's clock is played, so no second of it is waited on.
+describe.skipIf(!origin || !touchReady())("a question whose time runs out", () => {
+  const due = now + 60;
+  const OVERDUE = wording("question.status.overdue", { number: 1 });
+  const LAST_SECOND = wording("question.status.running", { time: wording("common.label.seconds", { n: 1 }), number: 1 });
+
+  for (const viewport of [DESK, PHONE]) {
+    test(`says the recommendation settles it, then leaves once bmo-job has, ${viewport.width}`, async () => {
+      const stand = stood();
+
+      stand.questions = [asked(1, 41, { dueAt: due })];
+
+      const context = await open(viewport, "light", stand);
+      const page = await context.newPage();
+
+      try {
+        const holder = viewport.width < 640 ? "[data-beside-page]" : WINDOW;
+        const shown = page.locator(`${holder} section[aria-label="${wording("question.label.asked", { id: 41 })}"]`);
+        const line = shown.locator("p.tabular-nums");
+
+        await page.clock.install({ time: now * 1_000 });
+        await openRoom(page);
+        await shown.waitFor({ timeout: 30_000 });
+
+        await page.clock.pauseAt((due - 2) * 1_000);
+        await page.clock.runFor(1_000);
+        expect(await line.textContent()).toBe(LAST_SECOND);
+
+        await page.clock.runFor(1_000);
+        expect(await line.textContent()).toBe(OVERDUE);
+        await shoot(page, `${viewport.width}-light-time-ran-out`);
+
+        // bmo-job settles it on its recommendation within its next look, and the read after the countdown finds it so.
+        stand.questions = [asked(1, 41, { dueAt: due, chosen: 0, settledAt: due, settledBy: "recommendation" })];
+        await page.clock.runFor(DUE_READ_DELAY_S * 1_000);
+        await shown.waitFor({ state: "detached", timeout: 10_000 });
+      } finally {
+        await context.close();
+      }
+    }, TEST_MS);
+  }
 });
 
 // A recommendation the choices do not hold, as one that is a choice with a remark beside it is, marks no choice and

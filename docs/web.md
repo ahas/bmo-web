@@ -6907,7 +6907,8 @@ Four bounds keep it from growing forever.
   question's notification does, so a question the supervisor holds is never shown to him, counted or rung. Answering
   it, talking it over, reading its talk and stopping its clock are refused 409, with nothing reaching bmo-job past
   reading the question. It appears once the supervisor puts it to him, and its countdown starts then: bmo-job counts a
-  question's due time from the moment it is put to a person, and gives none while the supervisor holds it.
+  question's due time from the moment it is put to a person, with the wait the supervisor's move names or a minute where
+  it names none, and gives none while the supervisor holds it (bmo-job's `docs/api.md`, 「The due time」).
 - **The questions window.** The questions stand in one window floating over the owner's private chat rather than in its foot, so
   neither the conversation nor the box he writes in loses height to them however many wait, and nothing in the foot scrolls. It is
   the shared layer's window beside the page (bmo-ui's `docs/components.md`, 「A window beside the page」), and it is no dialog: the
@@ -6979,14 +6980,19 @@ Four bounds keep it from growing forever.
   console matches a choice word for word and guesses at nothing: bmo-job refuses a recommendation that is a choice with
   other words beside it (bmo-job's `docs/api.md`, 「The recommendation」). The wait the question has is the service's due
   time, read as the countdown, and the line beside it says what the silence settles: 추천 {number}번 or 추천 답 where a
-  recommendation stands, 사람의 답을 기다림 where none does.
+  recommendation stands, 사람의 답을 기다림 where none does. The countdown is the `dueAt` bmo-job holds for that
+  question, to the second, and nothing of the console's own: a question open with no due time, which nothing settles in
+  his place, counts nothing and says 사람의 답을 기다림 alone, never that its time ran out; having no clock, it offers no
+  「타이머 정지」 either.
 - **Its time running out settles it on the recommendation.** Where nobody has answered by the due time, bmo-job settles
   a question that carries a recommendation with it (bmo-job's `docs/api.md`, 「When the due time passes」): the card and
   the band leave as they do for an answer, and the item keeps it among its settled questions as 시간 초과 · 추천 답으로
   결정, with the answer it was settled on. In the moment between the countdown reaching nothing and bmo-job's news of
   the settling, the card says 시간 초과 · 추천 {number}번으로 결정 or 시간 초과 · 추천 답으로 결정, never that a person is
-  waited for. An answer he sends after that is refused by bmo-job, and the card says the question was settled on its
-  recommendation in the meantime, with the answer. Only a question with no recommendation stays open once its time has
+  waited for. That moment is short: bmo-job looks for questions past their due time every second, and the console reads
+  the questions again two seconds after a countdown reaches nothing as well as on bmo-job's news, so the card leaves on
+  the settling even where the news is lost. An answer he sends after that is refused by bmo-job, and the card says the
+  question was settled on its recommendation in the meantime, with the answer. Only a question with no recommendation stays open once its time has
   run out, its card standing where it stood and saying 시간 초과 · 사람의 답을 기다림 until he answers it or its job takes
   it back.
 - **Choosing and sending are different presses.** Pressing a choice only chooses it, not sends. A chosen one stands in a full
@@ -7000,7 +7006,8 @@ Four bounds keep it from growing forever.
 - Undoing has two roads too. Pressing a chosen choice again releases it, and 「선택 취소」 beside it releases it too. Writing
   anything in the write box releases a chosen one — the two are one answer and the bot refuses a body carrying both, so the screen
   keeps them from standing together. Conversely choosing a choice clears written words.
-- **The deadline can be stopped.** A question has one minute on it, after which its recommendation settles it. It keeps a job from
+- **The deadline can be stopped.** A question has the wait bmo-job gives it, one minute where whoever put it to him
+  named none, after which its recommendation settles it. It keeps a job from
   standing long while the owner is not watching,
   but it is short for reading the choices slowly while watching. So the card's remaining time stands on a line of its own under who
   asked, with 「타이머 정지」 at that line's right end, and the line's words changing never move the button. Pressing

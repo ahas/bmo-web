@@ -45,11 +45,12 @@
            and the press stands at the line's right end, so the words changing never move it. A minute is
            short for reading while he is here, and stopping it is how he says he is. The stop is this
            question's alone, and the same press starts its countdown again from what it had left; the card
-           stays either way. -->
+           stays either way. A question with no due time has no clock, so it offers no stop. -->
       <div class="mt-1 flex items-center gap-2">
         <p class="min-w-0 flex-1 text-sm break-words tabular-nums text-warning">{{ card.status }}</p>
 
         <UButton
+          v-if="card.timed"
           class="shrink-0"
           size="xs"
           color="warning"

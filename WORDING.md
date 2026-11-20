@@ -233,7 +233,8 @@
 - ask (a job's question) → 질문, 질문하다: Job의 질문. Never 물다, 물어본 것, 묻기.
 - the answer a job would take by itself → 추천: (추천) before the choice it names, 추천 {number}번, and 추천 답 for words
   the choices do not hold; a question its recommendation settled when its time ran out → 시간 초과 · 추천 답으로 결정,
-  and one about to be → 시간 초과 · 추천 {number}번으로 결정. Never 권장, 제안, 무응답.
+  and one about to be → 시간 초과 · 추천 {number}번으로 결정; one only a person settles, with no recommendation or no due
+  time → 사람의 답을 기다림. Never 권장, 제안, 무응답.
 - download → 다운로드: 다운로드, {name} 다운로드, 다운로드 주소. Never 내려받기. This is the owner's own choice of
   the word.
 - volume → 볼륨; mute, unmute → 음소거, 음소거 해제: 음소거됨, 음소거 해제됨, 볼륨 {n}%; a mute that holds this device

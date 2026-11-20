@@ -3,6 +3,8 @@ import { describe, expect, test } from "bun:test";
 import { wording } from "../../../apps/web/shared/wording";
 
 import {
+  DUE_READ_DELAY_S,
+  dueToRead,
   openQuestions,
   questionCard,
   questionReply,
@@ -202,7 +204,7 @@ describe("what stands over every screen while a job waits", () => {
   });
 
   test("a stopped question still stands with no due time, and says it is stopped and what it recommends", () => {
-    const [card] = openQuestions(wording, [asked({ dueAt: 0, pausedLeft: 0 })], now);
+    const [card] = openQuestions(wording, [asked({ dueAt: null, pausedLeft: 0 })], now);
 
     expect(card?.paused).toBe(true);
     expect(card?.answerable).toBe(true);
@@ -211,10 +213,21 @@ describe("what stands over every screen while a job waits", () => {
   });
 
   test("and stands behind a question whose minute is still running", () => {
-    const stopped = asked({ id: 1, todoId: 10, dueAt: 0, pausedLeft: 0 });
+    const stopped = asked({ id: 1, todoId: 10, dueAt: null, pausedLeft: 0 });
     const running = asked({ id: 2, todoId: 11, dueAt: now + 50 });
 
     expect(openQuestions(wording, [stopped, running], now).map((card) => card.todoId)).toEqual([11, 10]);
+  });
+
+  test("one with no due time counts nothing, offers no stop, never says its time ran out, and stands behind a running minute", () => {
+    const untimed = asked({ id: 1, todoId: 10, dueAt: null });
+    const running = asked({ id: 2, todoId: 11, dueAt: now + 50 });
+    const cards = openQuestions(wording, [untimed, running], now);
+
+    expect(cards.map((card) => card.todoId)).toEqual([11, 10]);
+    expect(cards[1]?.status).toBe(wording("question.status.untimed"));
+    expect(cards.map((card) => card.timed)).toEqual([true, false]);
+    expect(questionCard(wording, asked({ dueAt: null, pausedLeft: 0 }), now).timed).toBe(true);
   });
 
   test("the nearest deadline stands first, whatever order the list was read in", () => {
@@ -347,5 +360,31 @@ describe("the talk over a question", () => {
 
   test("waits on nothing once the question no longer waits", () => {
     expect(talkWait({ turns: [said(1, false)], heardThrough: 1, open: false })).toBeNull();
+  });
+});
+
+// bmo-job settles a question on its recommendation within a second of its due time; the console reads the questions
+// again a moment after the countdown reaches nothing, so the card leaves on that settling even where the news is lost.
+describe("reading again as a countdown runs out", () => {
+  const due = askedAt + 600;
+
+  test("not before the moment after the due time", () => {
+    expect(dueToRead([question({ dueAt: due })], due + DUE_READ_DELAY_S - 1, 0)).toBeNull();
+  });
+
+  test("once that moment has come, and once only for that due time", () => {
+    expect(dueToRead([question({ dueAt: due })], due + DUE_READ_DELAY_S, 0)).toBe(due);
+    expect(dueToRead([question({ dueAt: due })], due + 60, due)).toBeNull();
+  });
+
+  test("never for a stopped question, one with no due time, or one already settled", () => {
+    const later = due + 60;
+    const untouched = [
+      question({ id: 1, dueAt: null, pausedLeft: 0 }),
+      question({ id: 2, dueAt: null }),
+      question({ id: 3, dueAt: due, settledAt: due, settledBy: "recommendation" })
+    ];
+
+    expect(dueToRead(untouched, later, 0)).toBeNull();
   });
 });

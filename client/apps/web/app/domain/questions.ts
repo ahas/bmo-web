@@ -45,6 +45,8 @@ export interface QuestionCard {
   // Whether this question's clock stands stopped in bmo-job. A stop is the one question's: the console keeps none of
   // its own, so a card says only what the job service holds for its own row.
   paused: boolean;
+  // Whether it has a clock at all, running or stopped. One with no due time has nothing to stop, so it offers no stop.
+  timed: boolean;
 }
 
 // What the panel calls each state, in the words the item's own printout uses.
@@ -81,22 +83,40 @@ export function questionCard(t: Translate, question: JobQuestion, now: number = 
     status: statusLine(t, question, state, now),
     answer: settled,
     answerable: state === "open",
-    paused: question.pausedLeft !== null
+    paused: question.pausedLeft !== null,
+    timed: question.pausedLeft !== null || question.dueAt !== null
   };
 }
 
 // The questions still waiting on him, the one longest past its time or nearest it first. A job is standing still
 // behind each one, and the order that matters is which has waited on him longest against its own wait — it is
 // sorted here rather than left to the order they arrived in, because the strip over every screen carries the first
-// of them and that choice has to be the urgent one however the list was read. A stopped question waits however long
-// he takes, so it stands behind every running minute.
+// of them and that choice has to be the urgent one however the list was read. A stopped question, and one with no due
+// time, waits however long he takes, so it stands behind every running minute.
 export function openQuestions(t: Translate, questions: JobQuestion[], now: number = toUnixSeconds(Date.now())): QuestionCard[] {
   const stopped = (question: JobQuestion): number => Number(question.pausedLeft !== null);
+  const due = (question: JobQuestion): number => question.dueAt ?? Number.POSITIVE_INFINITY;
 
   return questions
     .filter((question) => questionState(question) === "open")
-    .sort((left, right) => stopped(left) - stopped(right) || left.dueAt - right.dueAt || left.id - right.id)
+    .sort((left, right) => stopped(left) - stopped(right) || due(left) - due(right) || left.id - right.id)
     .map((question) => questionCard(t, question, now));
+}
+
+// How long after a countdown reaches nothing the questions are read again: bmo-job looks for questions past their due
+// time every second, so by then the one whose time ran out reads as settled on its recommendation.
+export const DUE_READ_DELAY_S = 2;
+
+// The due time the questions are next read again for, once the clock has passed it by the delay: the latest due time
+// of an open, counting question that has passed by then and is later than the one last read for. Null where there is
+// none, so a due time is read for once, and the poll and bmo-job's news carry on from there.
+export function dueToRead(questions: JobQuestion[], now: number, readThrough: number): number | null {
+  const passed = questions
+    .filter((question) => questionState(question) === "open" && question.pausedLeft === null)
+    .map((question) => question.dueAt)
+    .filter((due): due is number => due !== null && due > readThrough && due + DUE_READ_DELAY_S <= now);
+
+  return passed.length === 0 ? null : Math.max(...passed);
 }
 
 // What one item's work stopped to ask, oldest first, whether it is answered or not.
@@ -127,9 +147,10 @@ function recommends(question: JobQuestion): Recommends {
   return question.recommendation === null ? null : "words";
 }
 
-// The line beside the question. An open one says where its clock stands (stopped, counting down, or run out) and
-// what its silence settles: the recommendation, by its choice's number or as words, or nothing, where a person is
-// waited for. Run out with a recommendation, it says the recommendation settles it, which bmo-job is about to do.
+// The line beside the question. An open one says where its clock stands (stopped, counting down, run out, or none
+// at all) and what its silence settles: the recommendation, by its choice's number or as words, or nothing, where a
+// person is waited for. Run out with a recommendation, it says the recommendation settles it, which bmo-job is about
+// to do. With no due time nothing settles it but him, so it says only that.
 function statusLine(t: Translate, question: JobQuestion, state: QuestionState, now: number): string {
   if (state !== "open") return t(STATE_LABELS[state]);
 
@@ -140,6 +161,8 @@ function statusLine(t: Translate, question: JobQuestion, state: QuestionState, n
 
     return recommended === "words" ? t("question.status.paused_words") : t("question.status.paused", recommended);
   }
+
+  if (question.dueAt === null) return t("question.status.untimed");
 
   if (question.dueAt <= now) {
     if (recommended === null) return t("question.status.overdue_alone");
@@ -265,8 +288,20 @@ function hold(): QuestionsState {
     // The clock is not tied to whichever screen asked first. What it drives — a countdown on a
     // question the whole console is waiting on — outlives every screen, and a clock cleared when
     // one page was replaced would leave the strip over the next one frozen.
+    // A countdown that reached nothing is read again a moment later, so the question bmo-job has just settled on its
+    // recommendation leaves even where its news is lost (docs/web.md, 「Its time running out settles it on the
+    // recommendation」).
+    let readThrough = 0;
+
     setInterval(() => {
       made.now.value = toUnixSeconds(Date.now());
+
+      const due = dueToRead(made.all.value, made.now.value, readThrough);
+
+      if (due !== null) {
+        readThrough = due;
+        void reload();
+      }
     }, TICK_MS);
   }
 

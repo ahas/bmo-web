@@ -98,7 +98,7 @@ export function consoleQuestion(question: JobQuestionRow, settling: JobReplyRow 
     recommendation: named !== null && at === -1 ? named : null,
     why: question.recommendation?.why ?? "",
     askedAt: Math.floor(question.createdAt / 1000),
-    dueAt: question.dueAt === null ? 0 : Math.floor(question.dueAt / 1000),
+    dueAt: question.dueAt === null ? null : Math.floor(question.dueAt / 1000),
     chosen: chosen === -1 ? null : chosen,
     answer: settling === null || chosen !== -1 ? null : settling.text,
     // bmo-job keeps a stopped question's time left to itself and reads no due time while it stands stopped.

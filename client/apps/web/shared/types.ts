@@ -904,9 +904,10 @@ export interface JobQuestion {
   // The one line saying why the job would not decide this itself; empty where it named none.
   why: string;
   askedAt: number;
-  // When the question settles on the recommendation if nobody answers: the end of the countdown
-  // while it runs, the end of the stop while they have stopped it.
-  dueAt: number;
+  // When the question settles on the recommendation if nobody answers, in seconds, as bmo-job holds it: the end of the
+  // countdown while it runs; null while it stands stopped, and on a question with no due time, which nothing settles
+  // in his place.
+  dueAt: number | null;
   // The option a settled question was settled on, counted from zero; null while open or where it was settled in words.
   chosen: number | null;
   // The words a settled question was settled on where no option was taken: the owner's own, or the recommendation's.
@@ -2265,7 +2266,7 @@ export interface QuestionAnswerResult {
 export interface QuestionPauseResult {
   ok: true;
   pausedLeft: number | null;
-  dueAt: number;
+  dueAt: number | null;
 }
 
 // One turn of the talk over a job's question (docs/web.md, 「Talking a question over」): the question's replies

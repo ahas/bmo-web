@@ -119,7 +119,7 @@ function paused(stand: Stand, body: { id: number; paused: boolean }): void {
   });
 }
 
-async function open(viewport: { width: number; height: number }, scheme: (typeof SCHEMES)[number], stand: Stand): Promise<BrowserContext> {
+async function open(viewport: { width: number; height: number }, scheme: (typeof SCHEMES)[number], stand: Stand, reducedMotion: "reduce" | "no-preference" = "reduce"): Promise<BrowserContext> {
   const phone = viewport.width < 640;
   const context = await browser!.newContext({
     viewport,
@@ -127,7 +127,7 @@ async function open(viewport: { width: number; height: number }, scheme: (typeof
     hasTouch: phone,
     colorScheme: scheme,
     serviceWorkers: "block",
-    reducedMotion: "reduce"
+    reducedMotion
   });
   const at = cookie.indexOf("=");
 
@@ -779,4 +779,131 @@ describe.skipIf(!origin || !touchReady())("the questions window's pill dragged l
       await context.close();
     }
   }, TEST_MS);
+
+  // The pill against the design rules as it is driven: a hover and a press each paint it other than at rest, the
+  // tooltip names it under a pointer and stands away while it is dragged, a drag shows the grabbing hand, the ring
+  // stands only where the keyboard put the focus, and on a phone the pill glides to its side on the shared motion and
+  // stands there with nothing of the glide left on it.
+  async function paint(page: Page): Promise<string> {
+    return await page.locator(PILL).evaluate((element) => getComputedStyle(element).backgroundColor);
+  }
+
+  test("on a desk, answers a hover, a press, a drag and the keyboard as the design rules ask", async () => {
+    const stand = stood();
+
+    stand.questions = [asked(1, 41)];
+
+    const context = await open(DESK, "light", stand);
+    const page = await context.newPage();
+
+    try {
+      await page.evaluate(() => window.localStorage.clear()).catch(() => undefined);
+      await openRoom(page);
+      await page.locator(WINDOW).waitFor({ timeout: 30_000 });
+
+      // Folded by the keyboard from inside the window, the focus goes to the pill and draws the shared ring.
+      await page.locator(`${WINDOW} > div[tabindex="0"]`).focus();
+      await page.keyboard.press("Escape");
+      await page.locator(WINDOW).waitFor({ state: "detached", timeout: 10_000 });
+
+      const ring = await page.locator(PILL).evaluate((element) => ({ visible: element.matches(":focus-visible"), width: getComputedStyle(element).outlineWidth, style: getComputedStyle(element).outlineStyle }));
+
+      expect(ring).toEqual({ visible: true, width: "2px", style: "solid" });
+
+      // The keyboard's focus taken off, what the mouse does next is measured on its own.
+      await page.locator(PILL).evaluate((element) => (element as HTMLElement).blur());
+      await page.mouse.move(5, 5);
+      await page.waitForTimeout(300);
+
+      const rest = await paint(page);
+      const pill = await rectOf(page, PILL);
+      const centre = { x: pill.x + pill.width / 2, y: pill.y + pill.height / 2 };
+
+      await page.mouse.move(centre.x, centre.y);
+      await page.locator('[role="tooltip"]').first().waitFor({ timeout: 5_000 });
+      expect(await page.locator('[role="tooltip"]').first().innerText()).toBe(wording("question.aria.window_open", { n: 1 }));
+      await page.waitForTimeout(300);
+
+      const hover = await paint(page);
+
+      await page.mouse.down();
+      await page.waitForTimeout(200);
+
+      const press = await paint(page);
+
+      expect(hover).not.toBe(rest);
+      expect(press).not.toBe(rest);
+
+      // Dragged, it shows the grabbing hand, no tooltip stands, and the mouse's press takes no ring.
+      await page.mouse.move(centre.x - 60, centre.y + 40, { steps: 4 });
+
+      expect(await page.locator("[data-window-pill]").evaluate((element) => getComputedStyle(element).cursor)).toBe("grabbing");
+      // The tooltip goes once the drag begins, its own fade allowed for.
+      await page.waitForTimeout(400);
+      expect(await page.locator('[role="tooltip"]').count()).toBe(0);
+
+      await page.mouse.up();
+      await page.waitForTimeout(300);
+      expect(await page.locator(PILL).evaluate((element) => element.matches(":focus-visible"))).toBe(false);
+      expect(await page.locator(WINDOW).count()).toBe(0);
+    } finally {
+      await context.close();
+    }
+  }, TEST_MS);
+
+  test("on a phone, glides to its side on the shared motion and keeps nothing of the glide", async () => {
+    const stand = stood();
+
+    stand.questions = [asked(1, 41)];
+
+    const context = await open(PHONE, "light", stand, "no-preference");
+    const page = await context.newPage();
+
+    try {
+      await page.evaluate(() => window.localStorage.clear()).catch(() => undefined);
+      await openRoom(page);
+      await page.locator(SHEET).waitFor({ timeout: 30_000 });
+      await page.getByRole("button", { name: CLOSE }).first().click();
+      await page.locator(SHEET).waitFor({ state: "detached", timeout: 10_000 });
+      await page.waitForTimeout(600);
+
+      const finger = await fingerOn(page);
+      const first = await rectOf(page, PILL);
+
+      await finger.swipe({ x: first.x + first.width / 2, y: first.y + first.height / 2 }, { x: 250, y: 320 }, { steps: 10 });
+
+      // Mid-glide it runs on the shared length and easing, sideways alone.
+      const gliding = await page.locator("[data-window-pill]").evaluate((element) => {
+        const frame = element.parentElement!;
+
+        return { transition: frame.style.transition, translate: getComputedStyle(frame).translate };
+      });
+
+      const [, sideways = "0px"] = gliding.translate === "none" ? [] : gliding.translate.split(" ");
+
+      expect(gliding.transition).toBe("translate var(--bmo-motion-pop) var(--bmo-ease-enter)");
+      expect(Math.abs(Number.parseFloat(sideways))).toBeLessThan(1);
+
+      await page.waitForTimeout(600);
+
+      const settled = await rectOf(page, PILL);
+      const left = await page.locator("[data-window-pill]").evaluate((element) => ({ transition: element.parentElement!.style.transition, translate: element.parentElement!.style.translate }));
+
+      expect(Math.round(settled.x + settled.width)).toBe(PHONE.width - GUTTER);
+      expect(left).toEqual({ transition: "", translate: "" });
+
+      // A keyboard laid over the page's foot never hides it: it comes up inside what is still visible.
+      await finger.swipe({ x: settled.x + settled.width / 2, y: settled.y + settled.height / 2 }, { x: 250, y: 640 }, { steps: 10 });
+      await page.waitForTimeout(600);
+      await page.setViewportSize({ width: PHONE.width, height: PHONE.height - KEYBOARD_PX });
+      await page.waitForTimeout(600);
+
+      const raised = await rectOf(page, PILL);
+
+      expect(raised.y + raised.height).toBeLessThanOrEqual(PHONE.height - KEYBOARD_PX - GUTTER + 1);
+    } finally {
+      await context.close();
+    }
+  }, TEST_MS);
 });
+

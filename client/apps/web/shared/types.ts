@@ -785,6 +785,8 @@ export interface TodoItem {
   // Which kind of setting aside: the owner stopping the work mid-run (a stop), the owner winding it down to be
   // resumed (waiting to resume), the failure count (held for failures), or null for a plain hold.
   heldKind: "stop" | "pause" | "failure" | null;
+  // Its job notices switched off: why, and since when. Null while they are on.
+  noticesOff: { reason: string; at: number } | null;
   // The item this one was merged into — its number, its title and when — and null on a row never
   // merged. A merged row waits for that item and is finished with it; the link stays once it is.
   mergedInto: number | null;
@@ -2229,6 +2231,9 @@ export type TodoAction =
   // Set aside for now, and taken back. Neither is a deletion: the row keeps its place.
   | "hold"
   | "release"
+  // Its job notices switched off, with the reason required, and switched back on.
+  | "notices_off"
+  | "notices_on"
   // Set aside as the owner's stop: whatever of the item is running is ended now, and what it finished is
   // kept to resume from once the hold is taken back. A reason is required.
   | "stop"

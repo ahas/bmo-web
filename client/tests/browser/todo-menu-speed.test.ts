@@ -67,6 +67,7 @@ function item(id: number): TodoItem {
     heldAt: null,
     heldReason: null,
     heldKind: null,
+    noticesOff: null,
     mergedInto: null,
     mergedAt: null,
     mergedIntoTitle: null,

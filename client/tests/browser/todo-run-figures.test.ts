@@ -39,7 +39,7 @@ function item(running: boolean): TodoItem {
     id: ITEM, title: "item-title", instruction: "item-instruction", requester: "Owner", requesterId: null, chatId: null, approved: true,
     awaitingApproval: false, recommended: false, done: !running, running, liveState: running ? "running" : null, worker: "worker-a", priority: 1,
     status: running ? "running" : "done", model: null, agent: null, ranOn: null, note: null, reports: [], unfinished: null, rejections: 0,
-    unfinishedResolvedAt: null, unfinishedResolution: null, heldAt: null, heldReason: null, heldKind: null, mergedInto: null,
+    unfinishedResolvedAt: null, unfinishedResolution: null, heldAt: null, heldReason: null, heldKind: null, noticesOff: null, mergedInto: null,
     mergedAt: null, mergedIntoTitle: null, mergedFrom: [], attempts: 1, progress: null, stopped: null, holding: null, waiting: null,
     deployWaits: false, closing: null, deployHeld: false, holdPending: false, orderActive: false, seconds: null,
     spans: running ? [] : SPANS, createdAt: NOW - 7_200, doneAt: running ? null : ENDED

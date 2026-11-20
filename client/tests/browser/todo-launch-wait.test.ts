@@ -54,6 +54,7 @@ function item(over: Partial<TodoItem>): TodoItem {
     heldAt: null,
     heldReason: null,
     heldKind: null,
+    noticesOff: null,
     mergedInto: null,
     mergedAt: null,
     mergedIntoTitle: null,

@@ -30,7 +30,7 @@
         "@nuxtjs/i18n": "^10.6.0",
         "@remix-run/multipart-parser": "1.1.1",
         "@web/server-client": "workspace:*",
-        "bmo-job-client": "file:../../vendor/bmo-job-client-0.1.0-rev.8-86e9607.tgz",
+        "bmo-job-client": "file:../../vendor/bmo-job-client-0.1.0-rev.8-d923510.tgz",
         "bmo-text": "file:../../vendor/bmo-text-0.1.0-rev.5-39fe4e0.tgz",
         "dayjs": "^1.11.23",
         "dompurify": "3.4.8",
@@ -968,7 +968,7 @@
 
     "birpc": ["birpc@4.2.0", "", {}, "sha512-KxgKcZPfrtzJDDALHPguGpGJUrzdgpymyiQQgzFjWreHMOpWrnFNVREr5J48x2DBh8ZVioscrV1SBkDipGiX+Q=="],
 
-    "bmo-job-client": ["bmo-job-client@../../vendor/bmo-job-client-0.1.0-rev.8-86e9607.tgz", { "dependencies": { "openapi-fetch": "0.17.0" } }, "sha512-4o/pQI8QDteHQ4Zi0Xc9WL57RMFWSzGhi41pQWAGA3WkdVFcEDNRqmA7oi9Ib3aqlmJTqyWOV5Hy0Gvod00dWg=="],
+    "bmo-job-client": ["bmo-job-client@../../vendor/bmo-job-client-0.1.0-rev.8-d923510.tgz", { "dependencies": { "openapi-fetch": "0.17.0" } }, "sha512-AiGqsKvtcbfAsMl496NjRGCqq1w1sSgI+A9XtTznGlJykf27WA/LF6Tpu7BOAxWAbBh5dlvZ8ioJps3d9vQ9/w=="],
 
     "bmo-text": ["bmo-text@../../vendor/bmo-text-0.1.0-rev.5-39fe4e0.tgz", {}, "sha512-C1O6+RXSYvnGELjahWwU78qX55DoFAz97CeFYKxVLG3WxfFe8wKzWhcrrSwSZ2+PhFGE1TdcHakQKgFRmPri+Q=="],
 

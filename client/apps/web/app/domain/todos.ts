@@ -480,6 +480,24 @@ export function heldLine(t: Translate, item: TodoItem, formatStamp: (at: number)
     : t("todo.label.held_since_reason", { since, kind, reason: item.heldReason });
 }
 
+// The line an item whose job notices are off carries: why, and in the opened item since when as well. Null while they
+// are on.
+export function noticesOffLine(t: Translate, item: TodoItem, formatStamp?: (at: number) => string): string | null {
+  const off = item.noticesOff;
+
+  if (off === null) return null;
+
+  return formatStamp === undefined
+    ? t("todo.label.notices_off", { reason: off.reason })
+    : t("todo.label.notices_off_since", { since: formatStamp(off.at), reason: off.reason });
+}
+
+// Whether an item's job notices can be switched off or on: every item not finished or merged, since a finished one
+// sends none (docs/web.md, the TODO panel's section).
+export function canSwitchNotices(item: TodoItem): boolean {
+  return !item.done && item.mergedInto === null;
+}
+
 export function filterLabel(t: Translate, filter: TodoFilter): string {
   return filter === "all" ? t("common.label.all") : t(STATE_LABELS[filter]);
 }
@@ -1452,6 +1470,9 @@ export function todoSearchFields(
     { label: t("todo.label.field_unfinished"), text: unfinishedLabel(t, item), shown: true },
     { label: t("todo.label.field_requester"), text: pending ? requesterLine(item, rooms) : item.requester, shown: pending },
     { label: t("todo.label.field_stopped"), text: stoppedLine(t, item), shown: true },
+    // A held row's reason and the reason its job notices are off, each under the row's title.
+    { label: t("todo.label.hold_reason"), text: item.heldAt === null ? null : item.heldReason, shown: true },
+    { label: t("todo.label.notices_reason"), text: item.noticesOff?.reason ?? null, shown: true },
     { label: t("todo.label.field_waiting"), text: waitingLine(t, item, now), shown: true },
     { label: t("todo.label.field_deploy_waits"), text: deployWaitsLine(t, item), shown: true },
     { label: t("todo.label.field_merged"), text: item.mergedInto === null ? null : t("todo.label.field_merged_into", { id: item.mergedInto }), shown: true },

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { APPEND_LIMIT, HOLD_REASON_LIMIT } from "../../../apps/web/shared/config";
+import { APPEND_LIMIT, HOLD_REASON_LIMIT, HOLD_REASON_NEEDED, NOTICES_REASON_LIMIT, NOTICES_REASON_NEEDED } from "../../../apps/web/shared/config";
 import { wording } from "../../../apps/web/shared/wording";
 import { asked, routeOf } from "../../support/nitro";
 import { answer, standIn } from "../../support/units";
@@ -106,42 +106,41 @@ describe("adding words to an item that already stands", () => {
   });
 });
 
-// Setting an item aside. Its reason is kept as the item's held report, which bmo-job takes only with words in it, so a
-// hold given none writes the state alone (docs/web.md, the TODO panel's section).
+// Setting an item aside. Its reason goes in the same change as the state, as bmo-job requires, which keeps it as the
+// item's hold and writes its held report itself; a hold with none is refused before bmo-job is called (docs/web.md,
+// the TODO panel's section).
 describe("holding an item from the console", () => {
-  test("a hold with no reason moves the state and marks when, writing no report", async () => {
-    fresh();
-    itemLabels = { agent: "agent-a" };
-
-    expect(await post({ action: "hold", id: 7 })).toEqual({ status: 200, message: "" });
-    expect(job.asked.map((one) => `${one.method} ${one.path}`)).toEqual(["PATCH /items/7", "PATCH /items/7"]);
-    expect(job.asked[0]?.body).toEqual({ state: "held" });
-    // The moment is bmo-job's own, off the item the state's move answered, and every other label is kept.
-    expect(job.asked[1]?.body).toEqual({ labels: { agent: "agent-a", "held-since": "1790000050000" } });
-    itemLabels = {};
-  });
-
-  test("a hold with a reason writes it as the held report after the state, so the report is the hold's own", async () => {
+  test("a hold sends its reason, trimmed, in the one change that moves the state", async () => {
     fresh();
 
     expect(await post({ action: "hold", id: 7, why: "  not this week  " })).toEqual({ status: 200, message: "" });
-    expect(job.asked.map((one) => `${one.method} ${one.path}`)).toEqual(["PATCH /items/7", "POST /items/7/reports", "PATCH /items/7"]);
-    expect(job.asked[1]?.body).toEqual({ kind: "held", body: "not this week", actorName: "tester" });
+    expect(job.asked.map((one) => `${one.method} ${one.path}`)).toEqual(["PATCH /items/7"]);
+    expect(job.asked[0]?.body).toEqual({ state: "held", reason: "not this week" });
   });
 
-  test("a reason past its limit is refused without calling bmo-job", async () => {
+  test("a hold with no reason is refused in the pack's words without calling bmo-job", async () => {
     fresh();
+
+    for (const why of [undefined, "", "   ", 7]) {
+      expect(await post({ action: "hold", id: 7, why })).toEqual({ status: 400, message: wording(HOLD_REASON_NEEDED) });
+    }
 
     expect(await post({ action: "hold", id: 7, why: "a".repeat(HOLD_REASON_LIMIT + 1) })).toMatchObject({ status: 400 });
     expect(job.asked).toEqual([]);
   });
 
-  test("a stop keeps its reason as the held report too, and marks when", async () => {
+  test("bmo-job's refusal of a hold without a reason is said in the pack's words", async () => {
+    fresh({ status: 400, code: "reason_required" });
+
+    expect(await post({ action: "hold", id: 7, why: "later" })).toEqual({ status: 400, message: wording("job.error.reason_required") });
+  });
+
+  test("a stop keeps its note, then holds the item with its reason in the same change", async () => {
     fresh();
 
     await post({ action: "stop", id: 7, why: "wrong direction" });
-    expect(job.asked.map((one) => `${one.method} ${one.path}`)).toEqual(["POST /items/7/notes", "PATCH /items/7", "POST /items/7/reports", "PATCH /items/7"]);
-    expect(job.asked[2]?.body).toEqual({ kind: "held", body: "wrong direction", actorName: "tester" });
+    expect(job.asked.map((one) => `${one.method} ${one.path}`)).toEqual(["POST /items/7/notes", "PATCH /items/7"]);
+    expect(job.asked[1]?.body).toEqual({ state: "held", reason: "wrong direction" });
   });
 
   // bmo-job closes an item only from the lease of the job doing it, and keeps an approval once given (its
@@ -152,6 +151,36 @@ describe("holding an item from the console", () => {
     expect(await post({ action: "done", id: 7 })).toMatchObject({ status: 400 });
     expect(await post({ action: "unapprove", id: 7 })).toMatchObject({ status: 400 });
     expect(job.asked).toEqual([]);
+  });
+});
+
+// Switching an item's job notices off, which bmo-job keeps with its reason, and back on. A switch-off with no reason is
+// refused before bmo-job is called (docs/web.md, the TODO panel's section).
+describe("switching an item's job notices off and on", () => {
+  test("a switch-off carries its reason, trimmed, as the item's noticesOff", async () => {
+    fresh();
+
+    expect(await post({ action: "notices_off", id: 7, why: "  known, waiting on the owner  " })).toEqual({ status: 200, message: "" });
+    expect(job.asked.map((one) => `${one.method} ${one.path}`)).toEqual(["PATCH /items/7"]);
+    expect(job.asked[0]?.body).toEqual({ noticesOff: { reason: "known, waiting on the owner" } });
+  });
+
+  test("a switch-off with no reason is refused in the pack's words without calling bmo-job", async () => {
+    fresh();
+
+    for (const why of [undefined, "", "   "]) {
+      expect(await post({ action: "notices_off", id: 7, why })).toEqual({ status: 400, message: wording(NOTICES_REASON_NEEDED) });
+    }
+
+    expect(await post({ action: "notices_off", id: 7, why: "a".repeat(NOTICES_REASON_LIMIT + 1) })).toMatchObject({ status: 400 });
+    expect(job.asked).toEqual([]);
+  });
+
+  test("a switch-on clears it", async () => {
+    fresh();
+
+    expect(await post({ action: "notices_on", id: 7 })).toEqual({ status: 200, message: "" });
+    expect(job.asked[0]?.body).toEqual({ noticesOff: null });
   });
 });
 

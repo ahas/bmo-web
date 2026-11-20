@@ -97,28 +97,28 @@ export function reportRows(reports: readonly Report[]): TodoReport[] {
   return [...rows.filter((row) => row.kind === "final").reverse(), ...rows.filter((row) => row.kind !== "final")];
 }
 
-/** The label the console's hold writes on an item: the moment bmo-job set it aside, in epoch milliseconds. */
-export const HELD_SINCE_LABEL = "held-since";
+// The label an item held before bmo-job kept a hold's reason may carry: the moment the console set it aside, in epoch
+// milliseconds.
+const HELD_SINCE_LABEL = "held-since";
 
-// The moment a hold from the console set the item aside, where its label says one.
+// The moment such a hold set the item aside, where its label says one.
 function heldSince(labels: Record<string, string>): number | null {
   const since = Number(labels[HELD_SINCE_LABEL]);
 
   return Number.isFinite(since) && since > 0 ? since : null;
 }
 
-// What the panel reads of an item's own reports: every one of them, and the reason a held item was set aside, which is
-// its latest held report written for the hold standing now — none older than the moment the console set it aside. An
-// item held with no reason says when, where its label says it, and nothing of why.
-function reportsOf(reports: readonly Report[], since: number | null): { reports: TodoReport[]; heldReason: string | null; heldAt: number | null } {
+// Why and since when a held item was set aside: the hold bmo-job keeps on it, else, for an item held before bmo-job kept
+// one, its latest held report no older than the moment its label names. An item with neither says when, where its
+// label says it, and nothing of why (docs/web.md, the TODO panel's section).
+function heldOf(item: Item, reports: readonly Report[]): { heldReason: string | null; heldAt: number | null } {
+  if (item.hold !== null) return { heldReason: item.hold.reason, heldAt: Math.floor(item.hold.at / 1000) };
+
+  const since = heldSince(item.labels);
   const held = reports.filter((report) => report.kind === "held" && (since === null || report.createdAt >= since)).at(-1);
   const at = held?.createdAt ?? since;
 
-  return {
-    reports: reportRows(reports),
-    heldReason: held?.body ?? null,
-    heldAt: at === null ? null : Math.floor(at / 1000)
-  };
+  return { heldReason: held?.body ?? null, heldAt: at === null ? null : Math.floor(at / 1000) };
 }
 
 // Whether an approver approved the item: its approvals hold one of the `approval` kind; the chat agent's
@@ -255,7 +255,7 @@ function itemOf(
   stopped = false,
   items: Items = NO_ITEMS
 ): TodoItem {
-  const said = reportsOf(reports, heldSince(item.labels));
+  const held = heldOf(item, reports);
   const liveState = live?.state ?? null;
 
   return {
@@ -298,18 +298,18 @@ function itemOf(
     seconds: null,
     spans: [],
     note,
-    reports: said.reports,
+    reports: reportRows(reports),
     rejections: item.rejections,
     unfinished: null,
     unfinishedResolvedAt: null,
     unfinishedResolution: null,
-    // A hold's time and reason are its latest held report's, read only while the item is held, so a released item says
-    // nothing of an earlier hold.
-    heldAt: item.state === "held" ? said.heldAt : null,
-    heldReason: item.state === "held" ? said.heldReason : null,
+    // A hold's time and reason, read only while the item is held, so a released item says nothing of an earlier hold.
+    heldAt: item.state === "held" ? held.heldAt : null,
+    heldReason: item.state === "held" ? held.heldReason : null,
     // Held by the owner's stop, or a plain hold: bmo-job keeps no wind-down of its own, so none reads as one (docs/web.md,
     // the TODO panel's section).
     heldKind: item.state === "held" && !heldForDeploy(item) && stopped ? "stop" : null,
+    noticesOff: item.noticesOff === null ? null : { reason: item.noticesOff.reason, at: Math.floor(item.noticesOff.at / 1000) },
     mergedInto: item.mergedInto,
     // bmo-job ends an item as it merges it, so the moment it ended is the moment of its merge.
     mergedAt: isMerged(item) ? seconds(item.endedAt) : null,

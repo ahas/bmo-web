@@ -1345,7 +1345,7 @@ todo:
     bad_source_ids: 함께 출처로 삼을 항목 번호가 올바르지 않습니다.
     bad_worker: 워커 이름이 올바르지 않습니다.
     bot_refused: bmo-job이 요청을 거부했습니다.
-    hold_reason_too_long: "보류 사유가 너무 깁니다. {n}자까지 입력할 수 있습니다."
+    hold_reason_too_long: "보류 사유가 너무 깁니다.\n{n}자까지 입력할 수 있습니다."
     queue_unknown: 작업을 넣을 큐가 아직 정해지지 않았습니다.
     talk_unavailable: 항목에 대한 대화를 아직 남길 수 없습니다.
     cannot_append: 완료된 항목에는 지시를 추가할 수 없습니다. 다시 연 뒤에 추가해 주세요.
@@ -1373,6 +1373,9 @@ todo:
     raise_title_empty: 새 항목의 제목을 입력해 주세요.
     resolve_reason_empty: 미결을 해소한 사유를 한 줄로 입력해 주세요.
     stop_reason_needed: 중지 사유를 입력해 주세요.
+    hold_reason_needed: 보류 사유를 입력해 주세요.
+    notices_reason_needed: 알림 끄기 사유를 입력해 주세요.
+    notices_reason_too_long: "알림 끄기 사유가 너무 깁니다.\n{n}자까지 입력할 수 있습니다."
     talk_load_failed: 대화를 불러오지 못했습니다.
     unfinished_not_open: 해소할 미결이 없거나 이미 해소된 항목입니다.
     work_order_fold_failed: 작업 지시서를 종료하지 못했습니다.
@@ -1418,6 +1421,8 @@ todo:
     task_restore_confirm: 되돌리기
     task_skip: 건너뛰기
     unhold: 보류 해제
+    notices_off: 알림 끄기
+    notices_on: 알림 켜기
     job_log: Job 로그
     write_separately: 따로 작성
   aria:
@@ -1425,7 +1430,6 @@ todo:
     filter: TODO 필터
     filter_of: "{name} 필터"
     filters_set: "필터 {n}개"
-    hold_reason: 보류 사유
     item_body: 항목 내용
     item_form: 결재란
     item_manage: 항목 상태와 관리
@@ -1603,6 +1607,10 @@ todo:
     step_synthesis: 설계 종합
     stop_failures: "실패 {n}번"
     stop_reason: 중지 사유
+    hold_reason: 보류 사유
+    notices_reason: 알림 끄기 사유
+    notices_off: "알림 꺼짐 · {reason}"
+    notices_off_since: "{since}부터 알림 꺼짐 · {reason}"
     stop_reason_line: "중지 사유: {reason}"
     summary_deploy: "배포 대기 {n}"
     summary_deploying: "배포 중 {n}"
@@ -1669,7 +1677,6 @@ todo:
     more_sources: 다른 미결도 출처로
     new_body: 할 일
     note: 지시 사항
-    reason_optional: 사유 (선택)
     resolve_reason: 해소 사유
     say_to_bmo: 채팅 에이전트에게 메시지 보내기
     search: 검색
@@ -3459,6 +3466,7 @@ job:
     keepalive_over_count: 킵얼라이브 수가 지원 워커 수를 넘습니다.
     label_empty: 워커의 이름표가 비어 있습니다.
     label_long: 워커의 이름표가 너무 깁니다.
+    label_value_unknown: 지정한 값이 쓸 수 있는 값 목록에 없습니다.
     launch_beyond_count: 기본 워커가 정한 수를 넘는 지원 워커입니다.
     launch_held_by_machine: 이 머신에 Job을 더 띄울 여유가 없습니다.
     launch_item_absent: 실행할 항목이 없습니다.
@@ -3547,6 +3555,8 @@ job:
     question_why: 정하지 않고 묻는 이유가 없습니다.
     raised_by_needed: 판단으로 올리는 행에는 그 행을 올린 항목이 필요합니다.
     raised_by_not_item: 행을 올린 항목으로 지정한 항목이 없습니다.
+    reason_required: 사유를 입력해 주세요.
+    reason_without_hold: 보류할 때만 사유를 함께 보낼 수 있습니다.
     receiver: bmo-job이 리시버를 부르지 못했습니다.
     recover_job_known: 작업 지시서에 이미 있는 Job입니다.
     recover_job_running: 아직 끝나지 않은 Job입니다.

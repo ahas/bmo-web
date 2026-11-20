@@ -18,7 +18,9 @@ import {
   canMove,
   canResolve,
   canStop,
+  canSwitchNotices,
   heldLine,
+  noticesOffLine,
   mergedLine,
   canTop,
   rowVerbs,
@@ -114,6 +116,7 @@ function item(id: number, over: Partial<TodoItem> = {}): TodoItem {
     heldAt: null,
     heldReason: null,
     heldKind: null,
+    noticesOff: null,
     mergedInto: null,
     mergedAt: null,
     mergedIntoTitle: null,
@@ -549,6 +552,21 @@ describe("an item held while it still runs", () => {
     expect(stateLabel(wording, item(13, { status: "held", heldAt: NOW, heldKind: "pause" }))).toBe(wording("todo.label.held_pause"));
     expect(stateLabel(wording, item(11, { status: "held", heldAt: NOW }))).toBe(wording("todo.label.held_plain"));
     expect(stateIcon(item(11, { status: "held", heldAt: NOW }))).toBe("i-material-symbols-pause-circle-outline");
+  });
+
+  test("says its job notices are off with their reason, and since when where a stamp is given", () => {
+    const off = item(14, { noticesOff: { reason: "known", at: NOW } });
+
+    expect(noticesOffLine(wording, item(14))).toBeNull();
+    expect(noticesOffLine(wording, off)).toBe(wording("todo.label.notices_off", { reason: "known" }));
+    expect(noticesOffLine(wording, off, () => "then")).toBe(wording("todo.label.notices_off_since", { since: "then", reason: "known" }));
+  });
+
+  test("can have its job notices switched while it is neither finished nor merged", () => {
+    expect(canSwitchNotices(item(15))).toBe(true);
+    expect(canSwitchNotices(item(15, { status: "held", heldAt: NOW }))).toBe(true);
+    expect(canSwitchNotices(item(15, { done: true }))).toBe(false);
+    expect(canSwitchNotices(item(15, { mergedInto: 3 }))).toBe(false);
   });
 
   test("can be stopped while something of it is in flight, unless it is already his stop", () => {
@@ -1643,6 +1661,15 @@ describe("a running row standing on a wait", () => {
     expect(deployWaitsLine(wording, item(5))).toBeNull();
     expect(fields.find((field) => field.text === wording("todo.label.deploy_waits"))?.shown).toBe(true);
     expect(fields.some((field) => field.text === waitingLine(wording, held, now))).toBe(true);
+  });
+
+  test("a held row's reason and the reason its job notices are off are found by a search, as the row shows them", () => {
+    const quiet = item(6, { status: "held", heldAt: now, heldReason: "waiting on a decision", noticesOff: { reason: "known", at: now } });
+    const shown = todoSearchFields(wording, quiet, [], now).filter((field) => field.shown).map((field) => field.text);
+
+    expect(shown).toContain("waiting on a decision");
+    expect(shown).toContain("known");
+    expect(todoSearchFields(wording, item(6), [], now).some((field) => field.text === "known")).toBe(false);
   });
 
   test("the testbed line says a held seat by its own sentence and a wait by the one carrying its place", () => {

@@ -30,7 +30,7 @@ const item = (id: number, title: string): TodoItem => ({
   worker: null, attempts: 0, progress: null, stopped: null, holding: null, waiting: null, deployWaits: false, closing: null, deployHeld: false,
   holdPending: false, orderActive: false, seconds: null, spans: [], note: null, reports: [],
   unfinished: null, unfinishedResolvedAt: null, unfinishedResolution: null, heldAt: null,
-  heldReason: null, heldKind: null, mergedInto: null, mergedAt: null, mergedIntoTitle: null,
+  heldReason: null, heldKind: null, noticesOff: null, mergedInto: null, mergedAt: null, mergedIntoTitle: null,
   mergedFrom: [], createdAt: 1, doneAt: null
 });
 

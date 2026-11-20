@@ -316,12 +316,15 @@ export const NOT_HELD = "todo.error.not_held";
 // still runs for, and one wound down or stopped, which is work they mean to have resumed.
 export const CANNOT_FINISH = "todo.error.cannot_finish";
 
-// How long the line saying why an item is set aside may be. It is optional — most of what is put
-// away is put away for no reason worth a sentence — and where one is given it is a phrase.
+// How long the line saying why an item is set aside may be. It is required, as bmo-job requires it, and it is a
+// phrase; the same bound holds the reason an item's job notices are switched off for.
 export const HOLD_REASON_LIMIT = 500;
+export const HOLD_REASON_NEEDED = "todo.error.hold_reason_needed";
+export const NOTICES_REASON_LIMIT = HOLD_REASON_LIMIT;
+export const NOTICES_REASON_NEEDED = "todo.error.notices_reason_needed";
 
-// How long the reason for stopping an item's running work may be. Unlike a hold's, it is required:
-// a stop cuts work in flight, and the reason is what the item carries until it is taken up again.
+// How long the reason for stopping an item's running work may be. It is required: a stop cuts work in
+// flight, and the reason is what the item carries until it is taken up again.
 export const STOP_REASON_LIMIT = 2_000;
 export const STOP_REASON_NEEDED = "todo.error.stop_reason_needed";
 

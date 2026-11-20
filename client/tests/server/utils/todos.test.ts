@@ -28,6 +28,8 @@ interface Item {
   mergedInto: number | null;
   position: number;
   scope: string | null;
+  hold: { reason: string; callerName: string | null; at: number } | null;
+  noticesOff: { reason: string; callerName: string | null; at: number } | null;
 }
 
 function item(id: number, over: Partial<Item> = {}): Item {
@@ -49,6 +51,8 @@ function item(id: number, over: Partial<Item> = {}): Item {
     mergedInto: null,
     position: id,
     scope: null,
+    hold: null,
+    noticesOff: null,
     ...over
   };
 }
@@ -364,7 +368,23 @@ describe("what a row carries", () => {
     held.reports.delete(9);
   });
 
-  test("a hold's time and reason only while it is held: a report outlives the hold it was written for", async () => {
+  test("a hold's time and reason are the hold bmo-job keeps on the item, over any held report", async () => {
+    held.reports.set(9, [{ id: 4, itemId: 9, actorName: "owner", kind: "held", body: "earlier hold", createdAt: 1_790_000_030_000, labels: {} }]);
+    stand([item(9, { state: "held", hold: { reason: "waiting on the owner", callerName: "console", at: 1_790_000_060_000 } })]);
+    expect(await readTodoItem(9)).toMatchObject({ heldAt: 1_790_000_060, heldReason: "waiting on the owner" });
+
+    held.reports.delete(9);
+  });
+
+  test("an item's job notices switched off read with their reason and time, and null while they are on", async () => {
+    stand([item(9, { noticesOff: { reason: "known, waiting on the owner", callerName: null, at: 1_790_000_070_000 } })]);
+    expect(await readTodoItem(9)).toMatchObject({ noticesOff: { reason: "known, waiting on the owner", at: 1_790_000_070 } });
+
+    stand([item(9)]);
+    expect(await readTodoItem(9)).toMatchObject({ noticesOff: null });
+  });
+
+  test("a hold with none kept reads its time and reason only while it is held: a report outlives the hold it was written for", async () => {
     const report = { id: 4, itemId: 9, actorName: "owner", kind: "held", body: "not now", createdAt: 1_790_000_030_000, labels: {} };
 
     held.reports.set(9, [report]);
@@ -377,7 +397,7 @@ describe("what a row carries", () => {
     held.reports.delete(9);
   });
 
-  test("a hold given no reason never shows an earlier hold's reason, and says when it was set aside", async () => {
+  test("a hold with none kept and no reason never shows an earlier hold's reason, and says when its label set it aside", async () => {
     held.reports.set(9, [{ id: 4, itemId: 9, actorName: "owner", kind: "held", body: "earlier hold", createdAt: 1_790_000_030_000, labels: {} }]);
     stand([item(9, { state: "held", labels: { "held-since": "1790000060000" } })]);
     expect(await readTodoItem(9)).toMatchObject({ heldAt: 1_790_000_060, heldReason: null });

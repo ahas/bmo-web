@@ -6427,10 +6427,12 @@ Four bounds keep it from growing forever.
   3. **보류** on a line in the queue, running or waiting; **보류 해제** in its place on a line set aside, stopped
      lines among them, which moves the item back to `open` through bmo-job, the same write the opened item's
      button makes. Whether a line is set aside is the item's state in bmo-job, `held`, never whether a report
-     says why: a hold made from this console carries a report only where a reason was given. A request waiting
+     says why: an item held before bmo-job kept a hold's reason may carry none. A request waiting
      on approval is never set aside, since bmo-job moves a `draft` to `held` by no write, and a line its own job
-     holds until its commit goes live (below) offers neither, being the deployment's to let go. The hold takes no
-     reason here; one with a reason is set from the opened item.
+     holds until its commit goes live (below) offers neither, being the deployment's to let go. 보류 opens a small
+     centred dialog of one box for the 보류 사유, with 취소 and 보류 in its foot, 보류 disabled until a line is
+     written (「A hold always carries its reason」, below); the dialog asks before it throws away words written in it, and
+     a refused hold is said under its box, the words kept.
   4. **맨 위로** where the line stands in the queue behind another and is neither a request nor set aside.
   5. **추가 지시** — a small centred dialog of one box and its send button, adding the same words the opened item's 추가 지시 adds.
   6. **버리기** on every line the menu opens on — the one act here that cannot be taken back, standing apart at the
@@ -6567,13 +6569,14 @@ Four bounds keep it from growing forever.
       own box, attaches to the tab's bottom edge — with no turns yet, while they load and when they fail alike, the empty
       place above it takes the height; the talk drops to its end when a new word comes. The turns scroll on their own,
       and the column around them does not scroll.
-    - **관리** is approval/order/hold/stop/discard. On an approval-awaiting line their first act is approve or discard, so those
+    - **관리** is approval/order/hold/stop/notices/discard. On an approval-awaiting line their first act is approve or discard, so those
       buttons are at the top, under the item's assignment alone where the dialog is too narrow for two columns and the
       form block carries only its approval line. It carries nothing about an unfinished-item, which is written about where it is read. A
       merged line says which item carries it, and a finished line says in one line that nothing is left to do here.
-      Its acts follow the item's state as the line's menu does: **보류** with its reason box on an item in the queue,
-      **보류 해제** beside the hold's kind, time and reason on one set aside, and the move buttons and the 결재 의견 box
-      only on an item in the queue. Its discard asks once more in place: the button gives way to **정말 버리기** and
+      Its acts follow the item's state as the line's menu does: **보류** with its required reason box on an item in the
+      queue, **보류 해제** beside the hold's kind, time and reason on one set aside, the 알림 row (「An item's job notices
+      are switched off with a reason」, below) on every item not finished or merged, and the move buttons and the 결재
+      의견 box only on an item in the queue. Its discard asks once more in place: the button gives way to **정말 버리기** and
       the way out.
       Every button of a group stands at that group's right, and a box of words has its button on
       the row under it. The lines between the parts of a group reach the group's own border.
@@ -7168,15 +7171,28 @@ Four bounds keep it from growing forever.
   a **중지** row above 보류: a reason box with the button beside it. The reason is required — the button stays disabled until a line is written — since a stop cuts
   work in flight and the reason is what the item carries until it is taken up. Pressing sends the stop through the bot's control API
   (bmo-job's `docs/work-orders.md`, 「the owner stops an item now」): the runs end, finished work stays, and the item is held as **중지**. The item comes back by the
-  same **보류 해제** as any hold, and its work order then resumes from the interrupted tasks.
-- **A reason is taken but not required.** Resolving an unfinished-item requires one line — that being the whole record of why it is no longer
-  unfinished. A hold differs. It is reversible, and most setting-aside has no reason worth a sentence. Requiring one line each time only piles up
-  lines nobody means. Written, it is kept as the item's 보류 사유 report (bmo-job's `docs/api.md`, 「Reports」), which bmo-job takes only
-  with words in it, so a hold with none writes no report. A hold from this console also writes the moment bmo-job set the item aside on its
-  `held-since` label, in epoch milliseconds, after the state and the report. The hold's reason is the latest such report no older than that
-  moment, so a hold given no reason never shows the reason of an earlier one, and its time is that report's, or the label's where no report
-  stands for it. A hold its own job made writes no label and reads its latest report. Both are read only while the item is held, so a released
-  item says nothing of a hold.
+  same **보류 해제** as any hold, and its work order then resumes from the interrupted tasks. A refused stop is said in the row
+  itself, under its box, the reason kept, as a refused hold and a refused switch of the notices are, never in the message pill.
+- **A hold always carries its reason.** bmo-job refuses a move to `held` without one, `reason_required` (its `docs/api.md`, 「Held, and
+  why」), so every surface that holds an item — the opened item's 보류 row and the line menu's 보류 dialog — asks for it first: its 보류 button
+  stays disabled until a line is written, and the console's route refuses a hold with none before it reaches bmo-job; a refused hold
+  is said in the row or the dialog it was sent from, under its box, never in the message pill. The reason goes in the
+  same change as the state, and bmo-job keeps it on the item as its `hold` and writes it as the item's 보류 사유 report itself. The hold's
+  reason and time are the item's `hold`; an item held with no `hold` kept, one held before bmo-job kept a hold's reason, reads its latest
+  보류 사유 report no older than the moment its `held-since` label names, in epoch milliseconds, where it carries one, and its time is that
+  report's or the label's. Both are read only while the item is held, so a released item says nothing of a hold.
+- **A line held says why, on the line itself.** A held line carries under its title the same line the opened item stands beside 보류
+  해제 — since when, as which kind, and why — so a held line found in a search, or under the 보류 tab, says its reason without opening.
+- **An item's job notices are switched off with a reason, and only with one.** bmo-job keeps the switch and its reason as the item's
+  `noticesOff`, and which notices it holds back is the agency's, which sends them (bmo-job's `docs/api.md`, 「Notices switched off」);
+  the reason is what the item carries meanwhile.
+  The opened item's 관리 group stands an 알림 row on every item not finished or merged: while notices are on, a box for the 알림 끄기
+  사유 with **알림 끄기** beside it, disabled until a line is written, and the console's route refuses a switch-off with none; while they
+  are off, the line `{time}부터 알림 꺼짐 · {reason}` with **알림 켜기** beside it, which switches them back on. A refused switch is said
+  in the row itself, under its box. Every line whose notices are
+  off, finished ones among them, carries `알림 꺼짐 · {reason}` under its title, so the reason stands beside the item wherever it is
+  listed. Who switched them off is not shown: bmo-job names the caller its token names, which for a switch-off made here is the console
+  itself rather than the person.
 - **Nothing is placed above a running line.** Placing over a running line or where it would be above it stands the line right below the running line —
   the highest a waiting line can stand. The saved order gets the same top applied, so wherever it was aimed, the list on screen and the list to the bot
   are one.

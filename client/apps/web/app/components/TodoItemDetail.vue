@@ -758,7 +758,7 @@
                 <!-- Stopped now: whatever of the item is in flight ends, what it finished stays, and
                      the item is held as his stop until the hold is taken back. The reason is what
                      the item carries meanwhile, so the button waits for one. -->
-                <div v-if="canStop(openedItem)" class="-mx-3 flex flex-wrap items-center gap-2 border-t border-default px-3 pt-2">
+                <div v-if="canStop(openedItem)" class="-mx-3 flex flex-wrap items-center gap-2 border-t border-default px-3 pt-2" data-item-stop>
                   <UInput
                     v-model="stopWhy"
                     class="min-w-0 flex-1"
@@ -777,12 +777,14 @@
                     :loading="busy.has(busyKey(openedItem.id, 'stop'))"
                     @click="stop(openedItem.id)"
                   />
+                  <p v-if="stopFailure !== null" role="alert" class="basis-full text-sm whitespace-pre-line text-error">{{ stopFailure }}</p>
                 </div>
 
                 <!-- Set aside for now, or taken back. It is neither dropping nor closing: the row
                      keeps its place and its approval, and the queue simply stops seeing it. A request
                      waiting on approval is never set aside, and a hold its own job keeps until its
-                     commit goes live is the deployment's to let go, so neither stands on those. -->
+                     commit goes live is the deployment's to let go, so neither stands on those. A hold
+                     carries its reason, so the button waits for one. -->
                 <div v-if="canHold(openedItem) || setAside(openedItem)" class="-mx-3 flex flex-wrap items-center gap-2 border-t border-default px-3 pt-2">
                   <template v-if="canHold(openedItem)">
                     <UInput
@@ -790,8 +792,8 @@
                       class="min-w-0 flex-1"
                       size="sm"
                       :maxlength="HOLD_REASON_LIMIT"
-                      :placeholder="$t('todo.placeholder.reason_optional')"
-                      :aria-label="$t('todo.aria.hold_reason')"
+                      :placeholder="$t('todo.label.hold_reason')"
+                      :aria-label="$t('todo.label.hold_reason')"
                     />
                     <UButton
                       size="sm"
@@ -799,9 +801,11 @@
                       variant="subtle"
                       icon="i-material-symbols-pause"
                       :label="$t('todo.action.hold')"
+                      :disabled="holdWhy.trim() === ''"
                       :loading="busy.has(busyKey(openedItem.id, 'hold'))"
                       @click="hold(openedItem.id)"
                     />
+                    <p v-if="holdFailure !== null" role="alert" class="basis-full text-sm whitespace-pre-line text-error">{{ holdFailure }}</p>
                   </template>
 
                   <template v-else>
@@ -817,6 +821,46 @@
                       @click="release(openedItem.id)"
                     />
                   </template>
+                </div>
+
+                <!-- The item's job notices, switched off with the reason it carries while they are off, or back on. A
+                     finished or merged item sends none, so it stands neither. -->
+                <div v-if="canSwitchNotices(openedItem)" class="-mx-3 flex flex-wrap items-center gap-2 border-t border-default px-3 pt-2" data-item-notices>
+                  <template v-if="openedItem.noticesOff === null">
+                    <UInput
+                      v-model="noticesWhy"
+                      class="min-w-0 flex-1"
+                      size="sm"
+                      :maxlength="NOTICES_REASON_LIMIT"
+                      :placeholder="$t('todo.label.notices_reason')"
+                      :aria-label="$t('todo.label.notices_reason')"
+                    />
+                    <UButton
+                      size="sm"
+                      color="neutral"
+                      variant="subtle"
+                      icon="i-material-symbols-notifications-off-outline"
+                      :label="$t('todo.action.notices_off')"
+                      :disabled="noticesWhy.trim() === ''"
+                      :loading="busy.has(busyKey(openedItem.id, 'notices_off'))"
+                      @click="noticesOff(openedItem.id)"
+                    />
+                  </template>
+
+                  <template v-else>
+                    <p class="min-w-0 flex-1 text-sm break-words text-muted">{{ noticesOffLine($t, openedItem, formatStamp) }}</p>
+                    <UButton
+                      size="sm"
+                      color="primary"
+                      variant="subtle"
+                      icon="i-material-symbols-notifications-outline"
+                      :label="$t('todo.action.notices_on')"
+                      :loading="busy.has(busyKey(openedItem.id, 'notices_on'))"
+                      @click="noticesOn(openedItem.id)"
+                    />
+                  </template>
+
+                  <p v-if="noticesFailure !== null" role="alert" class="basis-full text-sm whitespace-pre-line text-error">{{ noticesFailure }}</p>
                 </div>
               </div>
 
@@ -836,6 +880,7 @@ import {
   APPEND_LIMIT,
   NOTE_LIMIT,
   HOLD_REASON_LIMIT,
+  NOTICES_REASON_LIMIT,
   STOP_REASON_LIMIT,
   RAISE_LIMIT,
   RAISE_TITLE_LIMIT,
@@ -864,11 +909,13 @@ import {
   busyKey,
   canBottom,
   canHold,
+  canSwitchNotices,
   canMove,
   canResolve,
   canStop,
   canTop,
   heldLine,
+  noticesOffLine,
   jobRecordLine,
   mergedLine,
   requesterLine,
@@ -919,7 +966,7 @@ interface Props {
     questions: Ref<JobQuestion[]>;
     now: Ref<number>;
     rooms: Ref<RoomSummary[]>;
-    act: (id: number, action: TodoAction, fields?: TodoActFields, failureKey?: string) => Promise<boolean>;
+    act: (id: number, action: TodoAction, fields?: TodoActFields, failureKey?: string, refused?: (said: string) => void) => Promise<boolean>;
     reload: () => Promise<void>;
     fetchStray: (id: number) => Promise<void>;
   };
@@ -1161,8 +1208,14 @@ const raiseSources = ref<number[]>([]);
 const raiseTitleBox = useTemplateRef<{ inputRef: HTMLInputElement | null }>("raiseTitleBox");
 // The head row's buttons are the library's small ones, and the create button standing among them takes that size.
 const ROW_BUTTONS = { button: { size: "sm" } } as const;
-// What is typed into the box beside the hold button, where he wants to say why.
+// What is typed into the box beside the hold button: why it is set aside, which the hold waits for.
 const holdWhy = ref("");
+// What is typed into the box beside the switch-off of the item's job notices, which waits for it the same way.
+const noticesWhy = ref("");
+// Why the last stop, hold or switch of the notices sent from here was refused, said in its own row until the next send.
+const stopFailure = ref<string | null>(null);
+const holdFailure = ref<string | null>(null);
+const noticesFailure = ref<string | null>(null);
 // What is typed into the box beside the stop button. A stop takes a reason, so the button waits.
 const stopWhy = ref("");
 // What is typed into the open item's box for resolving the outstanding note: the one line that
@@ -1291,6 +1344,11 @@ function toggled(id: number, closed: boolean, word: string): void {
   note.value = closed ? "" : word;
   why.value = "";
   stopWhy.value = "";
+  holdWhy.value = "";
+  noticesWhy.value = "";
+  stopFailure.value = null;
+  holdFailure.value = null;
+  noticesFailure.value = null;
 
   talk.value = [];
   talkText.value = "";
@@ -1589,12 +1647,32 @@ async function resolve(id: number): Promise<void> {
   if (await act(id, "resolve", { why: said })) why.value = "";
 }
 
-// Setting one aside. The reason is his to give or leave out — most of what is put away is put
-// away for no reason worth a sentence — and where he gives one it is kept with the holding.
+// Setting one aside, with the reason it is kept with; the button waits for one.
 async function hold(id: number): Promise<void> {
   const reason = holdWhy.value.trim();
 
-  if (await act(id, "hold", { why: reason === "" ? undefined : reason })) holdWhy.value = "";
+  if (reason === "") return;
+
+  holdFailure.value = null;
+
+  if (await act(id, "hold", { why: reason }, undefined, (said) => (holdFailure.value = said))) holdWhy.value = "";
+}
+
+// Switching its job notices off, with the reason it carries while they are off; the button waits for one.
+async function noticesOff(id: number): Promise<void> {
+  const reason = noticesWhy.value.trim();
+
+  if (reason === "") return;
+
+  noticesFailure.value = null;
+
+  if (await act(id, "notices_off", { why: reason }, undefined, (said) => (noticesFailure.value = said))) noticesWhy.value = "";
+}
+
+// Switching them back on.
+async function noticesOn(id: number): Promise<void> {
+  noticesFailure.value = null;
+  await act(id, "notices_on", {}, undefined, (said) => (noticesFailure.value = said));
 }
 
 // Stopping it now. The bot ends what is in flight and holds the item with the reason; the runs end
@@ -1606,7 +1684,9 @@ async function stop(id: number): Promise<void> {
     return;
   }
 
-  if (await act(id, "stop", { why: reason })) stopWhy.value = "";
+  stopFailure.value = null;
+
+  if (await act(id, "stop", { why: reason }, undefined, (said) => (stopFailure.value = said))) stopWhy.value = "";
 }
 
 // Taking it back. It returns to exactly the place it had: its priority never moved.

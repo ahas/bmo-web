@@ -556,7 +556,7 @@ describe("stopping an opened item", () => {
   });
 
   test("posts the stop verb with the trimmed reason and clears the box once it lands", () => {
-    expect(detailSource).toContain('if (await act(id, "stop", { why: reason })) stopWhy.value = "";');
+    expect(detailSource).toContain('if (await act(id, "stop", { why: reason }, undefined, (said) => (stopFailure.value = said))) stopWhy.value = "";');
     expect(detailSource).toContain("const reason = stopWhy.value.trim();");
     expect(detailSource).toContain('stopWhy.value = "";');
   });

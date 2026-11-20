@@ -69,7 +69,7 @@ function item(id: number): TodoItem {
     id, title: `item-title-${id}`, instruction: "item-instruction ".repeat(20), requester: "Owner", requesterId: 42, chatId: null,
     approved: true, awaitingApproval: false, recommended: false, done: false, running: false, liveState: null, worker: null,
     priority: id, status: "waiting", model: null, agent: null, ranOn: null, note: null, reports: [], unfinished: null, rejections: 0,
-    unfinishedResolvedAt: null, unfinishedResolution: null, heldAt: null, heldReason: null, heldKind: null, mergedInto: null,
+    unfinishedResolvedAt: null, unfinishedResolution: null, heldAt: null, heldReason: null, heldKind: null, noticesOff: null, mergedInto: null,
     mergedAt: null, mergedIntoTitle: null, mergedFrom: [], attempts: 0, progress: null, stopped: null, holding: null, waiting: null,
     deployWaits: false, closing: null, deployHeld: false, holdPending: false, orderActive: false, seconds: null, spans: [],
     createdAt: NOW - 120, doneAt: null

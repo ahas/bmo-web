@@ -1,9 +1,12 @@
 import {
   APPEND_LIMIT,
   HOLD_REASON_LIMIT,
+  HOLD_REASON_NEEDED,
   isAgentName,
   MODEL_LABEL_LIMIT,
   NOTE_LIMIT,
+  NOTICES_REASON_LIMIT,
+  NOTICES_REASON_NEEDED,
   RAISE_LIMIT,
   RAISE_TITLE_LIMIT,
   RESOLUTION_LIMIT,
@@ -19,9 +22,8 @@ import {
   requireCandidateOfLabels,
   requireModelCandidate
 } from "../utils/todo-assignment";
-import { HELD_SINCE_LABEL } from "../utils/todos";
 
-import type { Item } from "bmo-job-client";
+import type { components, Item } from "bmo-job-client";
 import type { TodoAction, TodoActionResult } from "#shared/types";
 
 interface TodoBody {
@@ -56,6 +58,8 @@ const ACTIONS: readonly TodoAction[] = [
   "hold",
   "stop",
   "release",
+  "notices_off",
+  "notices_on",
   "worker",
   "model",
   "agent"
@@ -158,10 +162,11 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
     throw fail(400, wording(STOP_REASON_NEEDED));
   }
 
-  // A hold's reason is his to give or leave out; given, it is kept as the item's held report, which bmo-job takes only
-  // with words in it.
-  if (action === "hold" && why !== undefined && (typeof why !== "string" || why.length > HOLD_REASON_LIMIT)) {
-    throw fail(400, wording("todo.error.hold_reason_too_long", { n: HOLD_REASON_LIMIT }));
+  // A hold carries its reason, as bmo-job requires, so a hold with none is refused here rather than reaching bmo-job;
+  // so is a switch-off of the item's job notices, whose reason is what the item carries while they are off.
+  if (action === "hold") requireReason(why, HOLD_REASON_LIMIT, HOLD_REASON_NEEDED, "todo.error.hold_reason_too_long");
+  if (action === "notices_off") {
+    requireReason(why, NOTICES_REASON_LIMIT, NOTICES_REASON_NEEDED, "todo.error.notices_reason_too_long");
   }
 
   const worker = body?.worker;
@@ -206,10 +211,16 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
       await patchItem(id, { state: "dropped" });
       break;
     case "hold":
-      await holdItem(id, typeof why === "string" ? why.trim() : "", signed.name);
+      await holdItem(id, (why as string).trim());
       break;
     case "release":
       await patchItem(id, { state: "open" });
+      break;
+    case "notices_off":
+      await patchItem(id, { noticesOff: { reason: (why as string).trim() } });
+      break;
+    case "notices_on":
+      await patchItem(id, { noticesOff: null });
       break;
     case "worker":
       await patchItem(id, { assigneeName: worker === null ? null : String(worker) });
@@ -237,7 +248,7 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
         params: { path: { itemId: id } },
         body: { text: why as string, actorName: signed.name, labels: { kind: "stop" } }
       }));
-      await holdItem(id, (why as string).trim(), signed.name);
+      await holdItem(id, (why as string).trim());
 
       return { ok: true, stopped: 1 };
     case "raise": {
@@ -265,24 +276,22 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
   return { ok: true };
 });
 
-// Setting an item aside: its state first, then the reason where one was given, as the held report the opened item reads
-// the hold's reason off, then the moment bmo-job set it aside on its labels, so a report older than this hold — an
-// earlier hold's reason — never stands for it (docs/web.md, the TODO panel's section). bmo-job takes a report only with
-// words in it, so a hold given none writes none.
-async function holdItem(id: number, why: string, actorName: string): Promise<void> {
-  const held = await patchItem(id, { state: "held" });
-
-  if (why !== "") {
-    await jobCall(job().POST("/items/{itemId}/reports", {
-      params: { path: { itemId: id } },
-      body: { kind: "held", body: why, actorName }
-    }));
-  }
-
-  await patchItem(id, { labels: { ...held.labels, [HELD_SINCE_LABEL]: String(held.changedAt) } });
+// Setting an item aside: the state and its reason in one change, which bmo-job keeps as the item's hold and writes as its
+// held report itself (docs/web.md, the TODO panel's section).
+async function holdItem(id: number, reason: string): Promise<void> {
+  await patchItem(id, { state: "held", reason });
 }
 
-async function patchItem(id: number, change: { state?: "open" | "held" | "done" | "dropped"; approval?: Record<string, never> | null; assigneeName?: string | null; position?: number; labels?: Record<string, string> }): Promise<Item> {
+// A reason a verb cannot go without: words, within its bound.
+function requireReason(why: unknown, limit: number, needed: string, tooLong: string): void {
+  if (typeof why !== "string" || why.trim() === "") throw fail(400, wording(needed));
+  if (why.length > limit) throw fail(400, wording(tooLong, { n: limit }));
+}
+
+// One change of an item as bmo-job's PATCH takes it.
+type ItemChange = components["schemas"]["ItemChange"];
+
+async function patchItem(id: number, change: ItemChange): Promise<Item> {
   try {
     return await jobCall(job().PATCH("/items/{itemId}", {
       params: { path: { itemId: id } },

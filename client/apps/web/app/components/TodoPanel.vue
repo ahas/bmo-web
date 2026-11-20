@@ -313,6 +313,41 @@
     </template>
   </UModal>
 
+  <!-- A row set aside from its menu, with the reason it is kept with: its hold button waits for one, and the dialog asks before
+       it throws away words written in it (docs/web.md, the TODO panel's section). -->
+  <SettingsDialog
+    v-if="showsDetail"
+    v-model:open="rowHoldOpen"
+    :title="rowHoldRow === null ? '' : `#${rowHoldRow.id} ${$t('todo.action.hold')}`"
+    :description="rowHoldRow?.title"
+    :dirty="rowHoldText.trim() !== ''"
+  >
+    <form id="todo-row-hold-form" class="flex min-w-0 flex-col" data-row-hold @submit.prevent="void sendRowHold()">
+      <UInput
+        v-model="rowHoldText"
+        class="w-full"
+        :maxlength="HOLD_REASON_LIMIT"
+        :placeholder="$t('todo.label.hold_reason')"
+        :aria-label="$t('todo.label.hold_reason')"
+        autofocus
+        @keydown.enter="(event: KeyboardEvent) => (rowHoldEnter.submitOnEnter.value ? undefined : event.preventDefault())"
+      />
+      <p v-if="rowHoldFailure !== null" role="alert" class="mt-2 text-sm whitespace-pre-line text-error">{{ rowHoldFailure }}</p>
+    </form>
+
+    <template #footer="{ close }">
+      <UButton :label="$t('common.action.cancel')" color="neutral" variant="ghost" @click="close()" />
+      <UButton
+        type="submit"
+        form="todo-row-hold-form"
+        icon="i-material-symbols-pause"
+        :label="$t('todo.action.hold')"
+        :disabled="rowHoldText.trim() === ''"
+        :loading="rowHoldRow !== null && busy.has(busyKey(rowHoldRow.id, 'hold'))"
+      />
+    </template>
+  </SettingsDialog>
+
   <!-- One row's detail, over the list rather than inside it. Every panel holds one, so what is
        typed into it lives as long as the panel does; only the panel a person is reading draws it. -->
   <TodoItemDetail ref="detail" :shows="showsDetail" :item="readingItem" :panel="shared" @close="dismiss" @log="(item) => void openJobLog(item)" />
@@ -320,12 +355,13 @@
 </template>
 
 <script setup lang="ts">
-import { APPEND_LIMIT, DONE_PAGE_SIZE } from "#shared/config";
+import { APPEND_LIMIT, DONE_PAGE_SIZE, HOLD_REASON_LIMIT } from "#shared/config";
 import { todoOfQuery } from "#shared/paths";
 import { todoClosed, useAskedTodo } from "~/domain/todo-address";
 import { useAgentCatalogue } from "~/domain/catalogue";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useHoldMenu } from "bmo-ui/app/domain/holdmenu";
+import { usePromptEnter } from "bmo-ui/app/domain/prompt";
 import { usePolling } from "~/domain/polling";
 import { useTodoModelPlan } from "~/domain/todo-models";
 import { useBotEvents, useLiveRefresh, useReadFailure, useTestbedEvents } from "~/domain/events";
@@ -925,8 +961,15 @@ function rereadOpened(): void {
 // The reload here is what makes it immediate for the one who pressed the button, and the row's own state mark is
 // what says it went through: nothing restates it (docs/web.md, 「Messages」). A press that fails says so in the
 // message pill, in the words of what was pressed where it names them and in the general line otherwise. The answer
-// is whether it went through.
-async function act(id: number, action: TodoAction, fields: TodoActFields = {}, failureKey = "todo.error.change_failed"): Promise<boolean> {
+// is whether it went through. A press made from a form of its own, a reason written beside its button, hands where its
+// refusal is said instead, so it stays in the form beside the field (docs/web.md, 「Messages」).
+async function act(
+  id: number,
+  action: TodoAction,
+  fields: TodoActFields = {},
+  failureKey = "todo.error.change_failed",
+  refused?: (said: string) => void
+): Promise<boolean> {
   const key = busyKey(id, action, fields.direction);
 
   busy.value.add(key);
@@ -937,7 +980,8 @@ async function act(id: number, action: TodoAction, fields: TodoActFields = {}, f
 
     return true;
   } catch (error) {
-    island.fail(error, t(failureKey));
+    if (refused === undefined) island.fail(error, t(failureKey));
+    else refused(failureText(error, t(failureKey)));
 
     return false;
   } finally {
@@ -1115,6 +1159,16 @@ async function runRowVerb(item: TodoItem, verb: RowVerb): Promise<void> {
     return;
   }
 
+  // A hold carries its reason, so it is asked for first.
+  if (verb === "hold") {
+    rowHoldRow.value = item;
+    rowHoldText.value = "";
+    rowHoldFailure.value = null;
+    rowHoldOpen.value = true;
+
+    return;
+  }
+
   if (verb === "append") {
     appendItem.value = item;
     appendText.value = "";
@@ -1137,6 +1191,29 @@ async function runRowVerb(item: TodoItem, verb: RowVerb): Promise<void> {
   }
 
   await act(item.id, verb);
+}
+
+// The row the hold dialog sets aside, and the reason written for it.
+const rowHoldOpen = ref(false);
+const rowHoldRow = ref<TodoItem | null>(null);
+const rowHoldText = ref("");
+// Why the last hold sent from the dialog was refused, said under its box until the next send.
+const rowHoldFailure = ref<string | null>(null);
+// Enter sends the hold where the console's prompts send on Enter, and on a touch screen only the button does.
+const rowHoldEnter = usePromptEnter(() => void sendRowHold());
+
+async function sendRowHold(): Promise<void> {
+  const item = rowHoldRow.value;
+  const reason = rowHoldText.value.trim();
+
+  if (item === null || reason === "") return;
+
+  rowHoldFailure.value = null;
+
+  if (await act(item.id, "hold", { why: reason }, undefined, (said) => (rowHoldFailure.value = said))) {
+    rowHoldText.value = "";
+    rowHoldOpen.value = false;
+  }
 }
 
 async function sendAppend(): Promise<void> {

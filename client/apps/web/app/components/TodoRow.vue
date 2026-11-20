@@ -68,6 +68,19 @@
       <SearchText :text="stoppedLine($t, item) ?? ''" :query="query" />
     </p>
 
+    <!-- A held row says since when, as which kind and why, the same line the opened item stands beside its release, so
+         the reason stands beside the item wherever it is listed (docs/web.md, the TODO panel's section). A hold that
+         kept no time would say its kind alone, which the state chip already says. -->
+    <p v-if="item.heldAt !== null && heldLine($t, item, formatStamp) !== null" key="held" class="pt-1 text-sm break-words text-muted" data-item-held>
+      <SearchText :text="heldLine($t, item, formatStamp) ?? ''" :query="query" />
+    </p>
+
+    <!-- A row whose job notices are switched off says so, with the reason they were switched off for. -->
+    <p v-if="noticesOffLine($t, item) !== null" key="notices-off" class="flex items-start gap-1 pt-1 text-sm break-words text-muted" data-item-notices-off>
+      <UIcon name="i-material-symbols-notifications-off-outline" class="mt-0.5 size-4 shrink-0" />
+      <SearchText class="min-w-0" :text="noticesOffLine($t, item) ?? ''" :query="query" />
+    </p>
+
     <!-- A finished row that was merged says where its work was done; an open one says it in its badge. -->
     <p v-if="item.done && item.mergedInto !== null" key="merged" class="pt-1 text-sm text-muted">
       <SearchText :text="$t('todo.label.field_merged_into', { id: item.mergedInto })" :query="query" />
@@ -160,14 +173,18 @@
 <script setup lang="ts">
 // What one row of the TODO panel's list holds, drawn from what it is handed alone, so a panel drawn again draws again
 // only the rows handed something new (docs/web.md, the TODO panel's section).
+import { formatStamp } from "bmo-ui/app/domain/time";
+
 import { countText } from "~/domain/numbers";
 import { ITEM_DEPLOY_COLOURS, itemWayLiveLabel } from "~/domain/deploy";
 import {
   canResolve,
   deployWaitsLine,
   freeAgentWords,
+  heldLine,
   itemAgent,
   itemFreeAgent,
+  noticesOffLine,
   reportsTip,
   requesterLine,
   stateColour,

@@ -18,7 +18,7 @@
     "@nuxtjs/i18n": "^10.6.0",
     "@remix-run/multipart-parser": "1.1.1",
     "@web/server-client": "workspace:*",
-    "bmo-job-client": "file:../../vendor/bmo-job-client-0.1.0-rev.8-86e9607.tgz",
+    "bmo-job-client": "file:../../vendor/bmo-job-client-0.1.0-rev.8-d923510.tgz",
     "bmo-text": "file:../../vendor/bmo-text-0.1.0-rev.5-39fe4e0.tgz",
     "dayjs": "^1.11.23",
     "dompurify": "3.4.8",

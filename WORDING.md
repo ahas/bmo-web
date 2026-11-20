@@ -388,7 +388,11 @@
   결재 박스, 승인란, 서명란, 결재 전.
 - set a TODO item aside → 보류, taking the hold back → 보류 해제: 보류, 보류 해제, 보류 사유, 보류 항목. The act and the
   state mark are the same word, and a held item's menu shows 보류 해제 in place of 보류. Never 보류 풀기, 재개, 대기로 돌리기
-  for the release; 재개 stays a stopped work order's own word.
+  for the release; 재개 stays a stopped work order's own word. A hold always carries its reason: its box is 보류 사유,
+  never 사유 (선택).
+- switch a TODO item's job notices off → 알림 끄기, back on → 알림 켜기: 알림 끄기, 알림 켜기, 알림 꺼짐, 알림 끄기
+  사유. The state is shown with its reason as `알림 꺼짐 · {reason}` on a TODO row, and as `{since}부터 알림 꺼짐 · {reason}`
+  in the opened item, as a hold's line reads. Never 알림 중지, 알림 해제, 음소거, 무음.
 - a job's command in the testbed's queue, on its TODO row → 테스트 중 while it holds a seat, 테스트 대기 <n>번째 while it
   waits, each followed by ` · ` and the command as the testbed names it. Never 검사 중, 차례 대기, 줄 서는 중. It is the
   one place a row says 테스트 중: the state chip never does, a deployment's check and suite reading 배포 중.

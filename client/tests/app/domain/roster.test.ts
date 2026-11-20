@@ -9,7 +9,6 @@ import {
   rosterFiltersSet,
   rosterHiddenHit,
   rosterListKey,
-  rosterTreeCompany,
   rosterUserOf,
   rosterViewOf,
   runEnding,
@@ -81,23 +80,13 @@ describe("a page of the roster", () => {
 });
 
 describe("the filters", () => {
-  test("count those set, the words aside", () => {
+  test("count those set, the words and the organisation chosen aside", () => {
     expect(rosterFiltersSet({ ...NOTHING, q: "a" })).toBe(0);
-    expect(rosterFiltersSet({ q: "", company: 1, unit: 2, kind: "site", role: "head", state: null })).toBe(4);
+    expect(rosterFiltersSet({ q: "", company: 1, unit: 2, kind: "site", role: "head", state: null })).toBe(3);
   });
 
-  test("let the unit and the kind chosen go with the company they stood under", () => {
-    expect(withRosterFilter({ ...NOTHING, company: 1, unit: 2, kind: "site" }, "company", 3)).toEqual({ ...NOTHING, company: 3 });
+  test("change one filter and keep the organisation chosen", () => {
     expect(withRosterFilter({ ...NOTHING, company: 1, unit: 2 }, "role", "head")).toEqual({ ...NOTHING, company: 1, unit: 2, role: "head" });
-  });
-
-  test("offer the unit tree of the company chosen, or of the reader's only company", () => {
-    const one = [{ id: 1, name: "company-a" }];
-    const two = [...one, { id: 3, name: "company-b" }];
-
-    expect(rosterTreeCompany(NOTHING, one)).toBe(1);
-    expect(rosterTreeCompany(NOTHING, two)).toBeNull();
-    expect(rosterTreeCompany({ ...NOTHING, company: 3 }, two)).toBe(3);
   });
 });
 
@@ -140,11 +129,11 @@ describe("a run of a person's agents", () => {
 });
 
 describe("the console search, for a reader who opens the people tab", () => {
-  test("opens a person on the tab, the company and the unit beside the name, the login and the job title matched too", () => {
+  test("opens a person on the tab in their own organisation, the company and the unit beside the name, the login and the job title matched too", () => {
     const group = rosterGroup((key) => key, [PERSON, { ...PERSON, user: "8", unit: { id: 1, name: "company-a" } }]);
 
-    expect(group.entries.map((entry) => entry.to)).toEqual([rosterAddress("7"), rosterAddress("8")]);
-    expect(rosterAddress("7")).toBe("/organization?tab=people&user=7");
+    expect(group.entries.map((entry) => entry.to)).toEqual([rosterAddress("7", 1), rosterAddress("8", 1)]);
+    expect(rosterAddress("7", 1)).toBe("/organization?tab=people&company=1&user=7");
     expect(group.entries.map((entry) => entry.prefix)).toEqual(["company-a team-a", "company-a"]);
     expect(group.entries[0]?.hidden).toEqual([
       { label: "account.label.user_id", text: "member-a" },

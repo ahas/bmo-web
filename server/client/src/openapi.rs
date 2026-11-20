@@ -1616,7 +1616,7 @@ pub fn openapi() -> Value {
     "/supply/me",
     "supplyMe",
     "Supply",
-    "The reader's own supply: the resolved order, each source's standing and reason, this month's usage, the plan's remaining included amount and the personal credit balance.",
+    "The reader's own supply: the resolved order and whether the platform locks it, each source's standing, reason, lock and the reader's own choice of it, this month's usage, the plan's remaining included amount and the personal credit balance.",
     params: vec![owner_key()],
     body: None,
     answers: vec![(200, json_answer::<SupplyView>(&mut generator))],
@@ -1629,11 +1629,11 @@ pub fn openapi() -> Value {
     "/supply/me",
     "setSupplyMe",
     "Supply",
-    "The reader's own setting written whole; a source an earlier layer closed is refused by the closer's code.",
+    "The reader's own setting written whole, its order not read while the platform locks it; a source an earlier layer closed is refused by the closer's code, a source switched against a value the platform locks by `locked-by-platform`, and a source named both on and off by `bad-request`.",
     params: vec![owner_key()],
     body: Some(json!(generator.subschema_for::<SupplySettingAsk>())),
     answers: vec![(200, json_answer::<SupplyView>(&mut generator))],
-    codes: vec!["bad-request", "forbidden", "source-not-allowed", "not-in-plan", "blocked-by-organisation", "blocked-by-administrator", "not-in-force", "database", "failed"],
+    codes: vec!["bad-request", "forbidden", "source-not-allowed", "not-in-plan", "blocked-by-organisation", "blocked-by-administrator", "locked-by-platform", "not-in-force", "database", "failed"],
     refusal: Refusal::Wire,
     security: bearer()
   );
@@ -1691,6 +1691,45 @@ pub fn openapi() -> Value {
   );
   add!(
     "GET",
+    "/supply/org/{unit}/plans",
+    "supplyOrgPlans",
+    "Supply",
+    "A unit's plans: the ones it is shown, the one it runs on, and for an administrator every organisation-scope plan with whether the unit is shown it.",
+    params: vec![integer_path("unit"), owner_key(), owner_role()],
+    body: None,
+    answers: vec![(200, json_answer::<SupplyOrgPlans>(&mut generator))],
+    codes: vec!["bad-request", "forbidden", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PUT",
+    "/supply/org/{unit}/plans/exposed",
+    "setSupplyOrgExposed",
+    "Supply",
+    "Every plan a unit is shown, written whole by a platform administrator; the applied plan cannot be left out.",
+    params: vec![integer_path("unit"), owner_key(), owner_role()],
+    body: Some(json!(generator.subschema_for::<SupplyExposedAsk>())),
+    answers: vec![(200, json_answer::<SupplyOrgPlans>(&mut generator))],
+    codes: vec!["bad-request", "forbidden", "plan-scope", "unknown-plan", "plan-applied", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PUT",
+    "/supply/org/{unit}/plans/applied",
+    "setSupplyOrgApplied",
+    "Supply",
+    "The plan a unit runs on, one of its exposed plans subscribed through sumida, or none; the plan chosen is subscribed first and only then the standing subscription cancelled. A body naming no `plan` is refused.",
+    params: vec![integer_path("unit"), owner_key(), owner_role()],
+    body: Some(json!(generator.subschema_for::<SupplyAppliedAsk>())),
+    answers: vec![(200, json_answer::<SupplyOrgPlans>(&mut generator))],
+    codes: vec!["bad-request", "forbidden", "plan-not-exposed", "not-in-force", "database", "upstream-failed", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
     "/supply/user/{user}",
     "supplyUser",
     "Supply",
@@ -1733,7 +1772,7 @@ pub fn openapi() -> Value {
     "/supply/platform",
     "supplyPlatform",
     "Supply",
-    "The platform's default policy and money settings.",
+    "The platform's policy — the sources it turns on, the ones a person may switch and whether their order is read — and its money settings.",
     params: vec![owner_key(), owner_role()],
     body: None,
     answers: vec![(200, json_answer::<SupplyPlatform>(&mut generator))],
@@ -1798,7 +1837,7 @@ pub fn openapi() -> Value {
     "/supply/plans/{plan}",
     "retireSupplyPlan",
     "Supply",
-    "A membership plan retired, its subscriptions standing on their snapshot.",
+    "A membership plan retired, its exposures taken away and its subscriptions standing on their snapshot until their period ends.",
     params: vec![integer_path("plan"), owner_key(), owner_role()],
     body: None,
     answers: vec![(200, json_answer::<SupplyPlans>(&mut generator))],

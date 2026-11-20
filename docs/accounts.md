@@ -937,39 +937,57 @@ section states what each does.
   sumida's `[membership]` settings written beside the service as sumida reads them: the default currency, a
   one-hour lifetime for a hold the caller gives no lifetime of its own, and the payment provider `none` —
   nothing is bought; credits arrive by a grant alone. A plan includes global supply as its amount quota on
-  the membership action `supply`, and credits stand usable for the holder of a live subscription to an
-  enabled plan whose `supply` action carries a credit cost. sumida's membership maintenance loop — the
-  releasing of expired holds, the sweeping of ended lots and the notices — runs inside the `serve` process,
-  started once as it stands, hourly; it is advisory-locked, so several instances run each pass once.
+  the membership action `supply`, and credits stand usable for the holder of a live subscription to a plan
+  whose `supply` action carries a credit cost, a retired plan's subscription among them until its period ends. The `serve` process runs one hourly membership
+  pass: sumida's own maintenance — the releasing of expired holds, the sweeping of ended lots and the notices,
+  advisory-locked so several instances run each pass once — and then the renewal of the applied plans
+  (「An organisation's plans」).
 - **What each source stands on** (「The tables」): the platform default policy and the platform's money
   settings each in their one row, an organisation's and a person's administrator-set policy and a person's own
   setting each in their own table, every platform reservation this service opens in `supply_reservations`,
   and every settled cost in `supply_costs`. The seeded defaults are the platform policy of `allowed` =
-  `personal, global` and `order` = `personal, global, stop`, and the settings `credits_per_dollar` 1500,
+  `personal`, `order` = `personal, stop`, `overridable` = `personal` and the order overridable, so every
+  platform source stays off until the administrator turns it on; and the settings `credits_per_dollar` 1500,
   `reservation_credits` 200 and `enforce` false. The first values an organisation policy takes are `allowed`
   = `personal, global, org_credits` and that order with `stop`; they are the form's starting point, not a
   default the service writes.
 
 ### How an order is resolved
 
+- **The platform policy stands above every other layer, and says for each source whether a person's own
+  setting may change it.** Each source carries the platform's value, on or off, and whether it is overridable:
+  - **a locked source** holds the platform's value for everyone: on, it stays in every order the layers below
+    leave it in and no person switches it off; off, it is closed everywhere and no layer below opens it;
+  - **an overridable source** is open to the layers below, and the platform's value is only the default a
+    person starts from: on, it stands in their order until they switch it off; off, it stands out of it until
+    they switch it on;
+  - **the order** is overridable or locked the same way: locked, a person's own order is neither read nor
+    refused, and their order stands as the layers above leave it.
 - **Five layers narrow what a person may use, each only narrowing what the layers above allow:**
-  1. the platform default policy;
+  1. the platform policy: the sources it turns on or leaves overridable;
   2. the plan's inclusion — the person's personal subscription where one runs, else the live subscription of
      the nearest unit going up from theirs that holds one. A plan includes global supply with an amount quota
      for its period and says whether credits may be used at all: `global` drops out where the plan includes
      none or its quota is spent, and `org_credits` and `personal_credits` where the plan forbids credits;
   3. the nearest organisation policy going up the unit tree, a unit with no row inheriting its parent's;
   4. the administrator's per-user policy, where one stands;
-  5. the person's own setting, which reorders, switches allowed sources off, and lets personal credits in
-     only once the person switched them on.
+  5. the person's own setting, which reorders where the order is overridable and switches an overridable
+     source on or off against the platform's default; a source it names neither way stands as the default
+     says, and a locked source stands as the platform says whatever the setting holds.
 - **`stop` is appended to every stored order last and cannot be removed;** a hook answer leaves it out, since
-  the agency says the stop itself when no source is left. An organisation credit cap — where one stands —
+  the agency says the stop itself when no source is left. A write may name it last, as every order is read, and
+  it is dropped; named anywhere else it is refused 400. An organisation credit cap — where one stands —
   takes `org_credits` out of a person's order once their organisation-credit spend of the calendar month has
   reached it, and a person's own cap does the same to `personal_credits`.
 - **A write naming a source its earlier layers do not allow is refused.** A policy write closed by the
   platform answers 403 `source-not-allowed`; a person's own write answers the code of the layer that closed
   it — `not-in-plan`, `blocked-by-organisation` or `blocked-by-administrator` — so the screen can say the
-  reason. `GET /supply/me` answers the same reason beside each source it does not allow.
+  reason; a person's own write that would switch a locked source against the platform's value answers 403
+  `locked-by-platform`. A person's own write is judged by what it changes: a choice they already hold for a source
+  a layer has since closed passes as it stands, and their order keeps the sources standing open alone, a closed
+  one it names dropped rather than refused. `GET /supply/me` answers the same reason beside each source it does not allow, says of
+  each source and of the order whether it is locked, and names the person's own choice of each source, on,
+  off or none, so a write sends back what the person chose and leaves the rest to the defaults.
 - **The order is asked afresh for every run;** nothing of one is cached.
 
 ### The hook
@@ -993,7 +1011,11 @@ section states what each does.
     reservation unit of debt, what stands over the ceiling is captured to it and the overage recorded in
     `supply_costs` and charged nowhere, and a capture of a reservation already past its expiry is taken as a
     direct charge of that amount. `release` answers `taken` and gives the reservation back unspent.
-- **What a reservation runs against:** `global` against the plan's amount quota on the person's subscription
+- **While `enforce` is on, a reservation is opened only for a source the person's resolved order holds:** one
+  closed by a layer, switched off by the person, left off by an overridable default or past the person's own cap
+  is refused.
+- **What a reservation runs against:** `global` against the plan's amount quota on the subscription the person's
+  supply stands under — their own, or their unit's or the nearest unit's above (「How an order is resolved」) —
   (sumida's quota holds), `org_credits` against the wallet of the ask account's own organisation and
   `personal_credits` against the person's own wallet (sumida's holds, captures and releases). Every platform
   source reserves and settles in credits, converted at the standing `credits_per_dollar`.
@@ -1009,13 +1031,44 @@ section states what each does.
   `DELETE /hooks/supply` takes the registration away. The `order` answer never names a platform source the
   service would refuse a reservation for.
 
+### An organisation's plans
+
+- **The plans are designed once, for the whole platform,** by a platform administrator (「Supply」, the plans
+  routes); an organisation never writes one.
+- **Each organisation unit is shown some of them and runs on at most one,** two choices kept apart:
+  - **the exposed plans** are the organisation-scope plans the administrator offers the unit, one row each in
+    `supply_plan_exposures`; none is exposed until the administrator exposes it;
+  - **the applied plan** is the one the unit runs on: its exposure row is marked applied, at most one a unit, and
+    a live organisation subscription of sumida's stands on it, which the resolution's plan layer reads as it
+    reads any (「How an order is resolved」). A unit applies only a plan exposed to it, one at a time, and the
+    read of its plans answers the live subscription, so between a period's end and the next pass it names
+    none.
+- **A unit's plans are changed one act at a time:** an exposure, an apply and a renewal of one unit each hold
+  that unit's lock for the whole act, so none of them sees another half done.
+- **Applying is sumida's own subscribe,** for the unit as the owner, with no billing key and no renewal of
+  sumida's, since payments are off. Applying another plan subscribes to it first and only then cancels the
+  standing subscription and moves the applied mark, so a subscribe that fails leaves the unit as it stood;
+  applying none cancels it and leaves the unit on no plan. A write that names no `plan` at all is refused 400. The service renews an applied plan itself: on its hourly
+  membership pass, a unit whose exposure row is marked applied and whose subscription has reached its period
+  end is subscribed to the same plan again, a subscription sumida still reads as active past its period end
+  cancelled first, under the session of the data move's administrator (「The platform
+  administrators」) and audited as that renewal, so the plan stays in force until it is changed. It runs under
+  the same advisory lock as sumida's maintenance, so several instances renew once.
+- **A plan stops being exposed only while it is not applied there;** taking away the exposure of the applied
+  plan is refused 409 `plan-applied`. Retiring a plan takes its exposures away, and a unit on it keeps its
+  subscription's snapshot until the period ends, then runs on none.
+- **Every exposure and every apply is audited** as a `plan` act, its subject the unit.
+
 ### Who may change and read what
 
 - **Only sumida's existing organisation relations stand behind the supply routes;** no new relation is
   declared. An organisation's supply policy and its credits are its `credit_manager` or its `manager`'s, a
   head reaching down the tree as sumida's `manage` does; its plan is its `subscription_manager`'s;
   everything platform-wide — the platform default policy, the conversion rate, the reservation size,
-  `enforce`, the plans, granting credits to anyone, the ledgers and the audit — is a platform administrator's;
+  `enforce`, which sources are overridable, the plans and which of them each unit is shown, granting credits to
+  anyone, the ledgers and the audit — is a platform administrator's; applying one of a unit's exposed plans is
+  its `subscription_manager`'s or a platform administrator's, and reading the unit's plans is theirs and its
+  `credit_manager`'s and `manager`'s as well;
   a person's own setting is the person's alone; and a per-user policy is the `credit_manager` or `manager` of
   the unit the person stands in, a platform administrator everywhere.
 - **Of another person's personal supply an administrator reads which providers it serves, never a credential
@@ -1085,11 +1138,12 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 | `web_presence_hidden` | each account that turned its presence off, by its user, and when; an account showing its presence has no row (「Showing one's presence」) |
 | `web_room_reads` | how far each user has read each room |
 | `document_talk` | the console's threads about a document: each word said over one, by whom, with the passage, heading and version it was said over (`docs/documents-viewer.md`, 「The record」) |
-| `supply_platform_policy` | the platform's one policy row (`id` = 1): `allowed` and `order` as JSON arrays of source keys, and who set them and when (「Supply」) |
+| `supply_platform_policy` | the platform's one policy row (`id` = 1): `allowed`, `order` and `overridable` as JSON arrays of source keys, `order_overridable`, and who set them and when (「Supply」) |
 | `supply_settings` | the platform's one supply settings row (`id` = 1): `credits_per_dollar`, `reservation_credits`, `enforce`, and who set them and when (「Supply」) |
 | `supply_org_policies` | each organisation unit that set its own supply policy: `org_id`, `allowed`, `order`, `member_credit_credits` (the per-person monthly cap on organisation credits, null for none), and who set it and when; no row means the unit inherits (「Supply」) |
 | `supply_user_policies` | each per-user supply policy an administrator set: `user_id`, `allowed`, `order`, `member_credit_credits`, and who set it and when; no row means the person follows their organisation's (「Supply」) |
-| `supply_user_settings` | each person's own supply setting: `order`, `off` (allowed sources the person switched off), `personal_credits_on`, `personal_credit_credits` (their monthly cap on personal credits), and when it changed (「Supply」) |
+| `supply_user_settings` | each person's own supply setting: `order`, `off` and `on` (the overridable sources the person switched off and on against the platform's default), `personal_credit_credits` (their monthly cap on personal credits), and when it changed (「Supply」) |
+| `supply_plan_exposures` | each plan exposed to an organisation unit: `org_id`, `plan_id`, `applied` (the plan the unit runs on, one a unit at most), and who exposed it and when (「An organisation's plans」) |
 | `supply_reservations` | every platform reservation this service opened: its `id` as answered to the agency, `run`, `step`, `user_id`, `source`, `amount_credits`, `spent_credits`, `expires_at`, `state` (`open`, `captured`, `released`), `sumida_reference`, the `key` it was opened on (unique), and its moments (「Supply」) |
 | `supply_costs` | every settled cost, one row per accepted capture and every personal-supply cost recorded: `run`, `user_id`, `org_id`, `source`, `credits` (0 for personal supply), `cost_micros`, `settled_at` and its `period` (`YYYY-MM`) (「Supply」) |
 | `supply_audit` | every supply act an outsider must be able to name: each grant of credits, each change of a policy, the conversion rate or `enforce`, and each change of a plan — who, when, what kind, its subject and its detail (「Supply」) |
@@ -1182,14 +1236,18 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
   every change.
 - **The supply tests** stand sumida's membership domain on the scratch database and resolve orders through
   every layer: each layer only narrowing what the layers above allow, a later layer never switching a source
-  on, `stop` always last, an organisation policy inherited by walking up the tree until one stands, personal
-  credits entering an order only once the person switches them on, and the refusal of a write that names a
-  source an earlier layer closed, said by which layer closed it. They drive the hook against sumida's own
+  on, `stop` always last, an organisation policy inherited by walking up the tree until one stands, an
+  overridable source standing as the platform's default until the person switches it the other way, a locked
+  source standing as the platform says with the person's write against it refused, a locked order
+  standing as the layers above leave it with the person's order unread, and the
+  refusal of a write that names a source an earlier layer closed, said by which layer closed it. They drive the hook against sumida's own
   reservations and quotas — reserve, extend, capture and release — and hold that the same key twice moves
   nothing, that a capture's debt is bounded by one reservation unit, and that with `enforce` off nothing is
   ever refused while every cost still stands. They open every supply route with each relation that opens it
   and nothing more: a `credit_manager` and a head on the unit's policy and credits, a `subscription_manager`
   on the unit's plan alone, a member on nothing, an administrator everywhere, and a person on their own
-  setting alone.
+  setting alone. They expose plans to a unit and apply one through sumida's subscribe, hold that only an exposed
+  organisation plan is applied, that applying another cancels the first, that the applied plan's exposure is
+  not taken away, and that an applied plan whose period ended is subscribed again on the membership pass.
 - **The console's side tests against a stand-in** answering these routes, so a console test needs neither the
   binary nor Valkey.

@@ -15,8 +15,12 @@ export type SupplyReason = "not-in-plan" | "blocked-by-organisation" | "blocked-
 export interface SupplySourceState {
   source: SupplySource;
   allowed: boolean;
-  // An allowed source the reader has closed: switched off, or held by the personal-credit switch or the cap.
+  // A source out of the reader's order: switched off, standing off as the platform's default, or held by the cap.
   off: boolean;
+  // Whether the platform holds its value for everyone, so the reader's own setting does not change it.
+  locked: boolean;
+  // The reader's own choice of it, on or off against the platform's default; absent where they made none.
+  own?: "on" | "off";
   reason?: SupplyReason;
 }
 
@@ -27,10 +31,12 @@ export interface SupplyUsage {
   costMicros: number;
 }
 
-/** The reader's own supply view (`GET /api/supply/me`), and the answer of the write too. The personal-credit switch
- * and the cap it reaches both show on the `personal_credits` source's standing, as closed. */
+/** The reader's own supply view (`GET /api/supply/me`), and the answer of the write too. The personal-credit cap
+ * reached shows on the `personal_credits` source's standing, as off. */
 export interface SupplyMe {
   order: SupplySource[];
+  // Whether the platform holds the order for everyone, so the reader's own order is not read.
+  orderLocked: boolean;
   sources: SupplySourceState[];
   personalCreditCredits: number | null;
   usage: SupplyUsage[];
@@ -38,11 +44,12 @@ export interface SupplyMe {
   personalCredits: number | null;
 }
 
-/** The reader's own setting, written whole (`PUT /api/supply/me`). */
+/** The reader's own setting, written whole (`PUT /api/supply/me`): the order, and the sources switched off and on
+ * against the platform's default. */
 export interface SupplyMeSetting {
   order: SupplySource[];
   off: SupplySource[];
-  personalCreditsOn: boolean;
+  on: SupplySource[];
   personalCreditCredits: number | null;
 }
 
@@ -103,9 +110,11 @@ export interface SupplyUserView {
 }
 
 /** The platform's own supply standing (`GET /api/supply/platform`), as the relay carries it: the default policy
- * whole and the money settings beside it. */
+ * whole, the sources and the order a person's own setting may change, and the money settings beside it. */
 export interface SupplyPlatformView {
   policy: SupplyPolicy;
+  overridable: SupplySource[];
+  orderOverridable: boolean;
   creditsPerDollar: number;
   reservationCredits: number;
   enforce: boolean;
@@ -209,6 +218,8 @@ export interface SupplyUserWire {
 export interface SupplyPlatformWire {
   allowed?: SupplySource[];
   order?: SupplySource[];
+  overridable?: SupplySource[];
+  orderOverridable?: boolean;
   creditsPerDollar?: number;
   reservationCredits?: number;
   enforce?: boolean;
@@ -226,4 +237,43 @@ export interface SupplyAuditWire {
 
 export interface SupplyPlansWire {
   plans?: SupplyPlanEntry[];
+}
+
+/** The plan an organisation runs on: the plan's id, when it was applied and when its period ends, each a moment in
+ * epoch milliseconds as the service's other moments are. */
+export interface SupplyAppliedPlan {
+  plan: number;
+  since: number;
+  periodEnd: number;
+}
+
+/** One organisation-scope plan as the administrator reads a unit's plans: the plan whole, and whether it is
+ * exposed to the unit. */
+export interface SupplyCataloguePlan extends SupplyPlanEntry {
+  exposed: boolean;
+}
+
+/** An organisation's plans (`GET /api/supply/org/{unit}/plans`), answered afresh by each of its writes: the plans
+ * it is shown, the one it runs on, and for the administrator every organisation-scope plan with its exposure. */
+export interface SupplyOrgPlans {
+  exposed: SupplyPlanEntry[];
+  applied: SupplyAppliedPlan | null;
+  catalogue: SupplyCataloguePlan[] | null;
+}
+
+export interface SupplyOrgPlansWire {
+  exposed?: SupplyPlanEntry[];
+  applied?: SupplyAppliedPlan | null;
+  catalogue?: SupplyCataloguePlan[] | null;
+}
+
+/** One member of the agency's model gateway (its `docs/api.md`, 「providers, models and model files」): its name, the
+ * road it belongs to, what a screen shows for it, its provider, and the account it belongs to — a user id, or none
+ * for the platform's. */
+export interface GatewayMember {
+  name: string;
+  road: string | null;
+  label: string;
+  provider: string;
+  account: string | null;
 }

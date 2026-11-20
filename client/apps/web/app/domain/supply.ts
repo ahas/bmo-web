@@ -1,6 +1,9 @@
+import { dayKey, toUnixSeconds } from "bmo-ui/app/domain/time";
+
+import { accountName } from "./nodes";
 import { countText } from "./numbers";
 
-import type { PersonalSupplyKey, SupplyPolicy, SupplyReason, SupplySource, SupplyUnit } from "#shared/supply";
+import type { GatewayMember, PersonalSupplyKey, SupplyAppliedPlan, SupplyCataloguePlan, SupplyMe, SupplyMeSetting, SupplyPolicy, SupplyReason, SupplySource, SupplyUnit } from "#shared/supply";
 import type { ClaudeAccountView } from "#shared/types";
 import type { Translate } from "#shared/wording";
 import type { ComputedRef } from "vue";
@@ -112,26 +115,38 @@ export function wonText(t: Translate, price: number): string {
   return t("supply.label.won", { n: countText(price) });
 }
 
-/** The policy a form opened with, as whole values, so a save writes it as one. */
+/** The policy a form opened with, as whole values, so a save writes it as one. The platform's form carries what a
+ * person's own setting may change as well: the sources left to it and whether the order is. */
 export interface PolicyDraft {
   allowed: SupplySource[];
   order: SupplySource[];
   memberCreditCredits: number | null;
+  overridable: SupplySource[];
+  orderOverridable: boolean;
+}
+
+/** The policy a form writes: the policy, and for the platform's form what a person's own setting may change of it. */
+export interface PolicyWrite extends SupplyPolicy {
+  overridable: SupplySource[];
+  orderOverridable: boolean;
 }
 
 /** The policy a unit's or a person's form opens on: the row standing for them as it is, own or inherited — where
- * none stands at all, the contract's own opening: every payable source, in that order. */
-export function policyDraft(policy: SupplyPolicy | null): PolicyDraft {
+ * none stands at all, the contract's own opening: every payable source, in that order. The platform's form opens on
+ * what its row leaves to a person as well; another's leaves nothing. */
+export function policyDraft(policy: SupplyPolicy | null, overrides: { overridable: SupplySource[]; orderOverridable: boolean } = { overridable: [], orderOverridable: false }): PolicyDraft {
   return {
     allowed: policy === null ? ["personal", "global", "org_credits", "personal_credits"] : [...policy.allowed],
     order: policy === null ? ["personal", "global", "org_credits", "personal_credits", "stop"] : [...policy.order],
-    memberCreditCredits: policy?.memberCreditCredits ?? null
+    memberCreditCredits: policy?.memberCreditCredits ?? null,
+    overridable: [...overrides.overridable],
+    orderOverridable: overrides.orderOverridable
   };
 }
 
 /** Every source the form holds a row for, in the order it stands: the allowed first, each where the draft's own
  * order puts it, the closed after them in that order too, and `stop` last whatever the draft says. */
-export function draftRows(draft: PolicyDraft): SupplySource[] {
+export function draftRows(draft: Pick<PolicyDraft, "allowed" | "order">): SupplySource[] {
   const named = POLICY_SOURCES.map((one) => one.value);
   const inDraft = (order: readonly SupplySource[]): SupplySource[] => named.filter((one) => order.includes(one));
   const rest = named.filter((one) => !draft.order.includes(one));
@@ -204,4 +219,116 @@ export function unitPathLabel(units: readonly SupplyUnit[], unit: SupplyUnit): s
   }
 
   return names.join(" › ");
+}
+
+// The settings' supply order (docs/web.md, 「Settings」, the supply section): every source the reader's order may fall
+// through, each standing as the view says it does.
+
+/** One row of the reader's order: a source, and how it stands. `live` rows are the order the reader shapes, on or
+ * off; a locked one stands on or off as the platform holds it, its switch disabled; `stop` closes the order; a
+ * `closed` row is one a layer below the platform closes, with its reason, greyed under them all. `allowed` says
+ * whether the layers above the reader leave it to them at all — a source the platform locks off is not. */
+export interface OrderRow {
+  source: SupplySource;
+  kind: "live" | "stop" | "closed";
+  on: boolean;
+  locked: boolean;
+  allowed: boolean;
+  // The reader's own choice of it, where they made one.
+  own: "on" | "off" | null;
+  reason: SupplyReason | null;
+}
+
+/** The reader's order as its rows stand: the resolved order first, then the sources out of it the reader or the
+ * platform's default leaves off — a locked one among them where the platform holds it off — then `stop`, then the
+ * sources a later layer closed. */
+export function orderRows(me: Pick<SupplyMe, "order" | "sources">): OrderRow[] {
+  const states = me.sources.filter((one) => one.source !== "stop");
+  const stateOf = (source: SupplySource) => states.find((one) => one.source === source);
+  // A source closed with no reason of a later layer's is one the platform holds off for everyone.
+  const closedByLayer = (source: SupplySource) => {
+    const one = stateOf(source);
+
+    return one !== undefined && !one.allowed && one.reason !== undefined;
+  };
+  const open = me.order.filter((one) => one !== "stop" && !closedByLayer(one));
+  const off = states.filter((one) => !open.includes(one.source) && !closedByLayer(one.source)).map((one) => one.source);
+  const ownOf = (source: SupplySource) => stateOf(source)?.own ?? null;
+  const live = (source: SupplySource, on: boolean): OrderRow => ({ source, kind: "live", on, locked: stateOf(source)?.locked === true, allowed: stateOf(source)?.allowed === true, own: ownOf(source), reason: null });
+
+  return [
+    ...open.map((one) => live(one, true)),
+    ...off.map((one) => live(one, false)),
+    { source: "stop", kind: "stop", on: true, locked: false, allowed: true, own: null, reason: null },
+    ...states.filter((one) => closedByLayer(one.source)).map((one): OrderRow => ({ source: one.source, kind: "closed", on: false, locked: one.locked, allowed: false, own: one.own ?? null, reason: one.reason ?? null }))
+  ];
+}
+
+/** The reader's whole setting as its rows stand, with one change laid over it, as the account service takes it
+ * (docs/boundary.md, 「Supply」): the order of every source the layers above leave to them, each once and `stop` left
+ * for the service to append; and the sources they chose on or off themselves — the one just switched among them — so
+ * a source they never chose keeps following the platform's default. A source the platform locks, and one a layer
+ * above closes, is named neither way: the service refuses a write naming either. */
+export function meSetting(rows: readonly OrderRow[], cap: number | null, change: { order?: SupplySource[]; source?: SupplySource; on?: boolean; cap?: number | null } = {}): SupplyMeSetting {
+  const open = new Set(rows.filter((one) => one.kind === "live" && one.allowed).map((one) => one.source));
+  const choiceOf = (row: OrderRow): "on" | "off" | null => (row.source === change.source && change.on !== undefined ? (change.on ? "on" : "off") : row.own);
+  const chosen = rows.filter((one) => open.has(one.source) && !one.locked);
+
+  return {
+    order: (change.order ?? rows.filter((one) => one.kind === "live").map((one) => one.source)).filter((one) => open.has(one)),
+    off: chosen.filter((one) => choiceOf(one) === "off").map((one) => one.source),
+    on: chosen.filter((one) => choiceOf(one) === "on").map((one) => one.source),
+    personalCreditCredits: change.cap === undefined ? cap : change.cap
+  };
+}
+
+/** A source of the order moved one place among the live rows, the order the write then carries. */
+export function movedSourceOrder(rows: readonly OrderRow[], from: number, to: number): SupplySource[] {
+  const order = rows.filter((one) => one.kind === "live").map((one) => one.source);
+  const [moved] = order.splice(from, 1);
+
+  if (moved === undefined || to < 0 || to > order.length) return rows.filter((one) => one.kind === "live").map((one) => one.source);
+  order.splice(to, 0, moved);
+
+  return order;
+}
+
+// Whose a piece of supply is (docs/web.md, 「Administration」, the providers tab): the platform's, or one person's.
+
+/** The person a gateway road belongs to: the one account every member of the road names, where every one names the
+ * same; none where the road is the platform's, mixed, or has no member. */
+export function roadOwner(members: readonly GatewayMember[], road: string): string | null {
+  const accounts = members.filter((one) => one.road === road).map((one) => one.account);
+
+  if (accounts.length === 0 || accounts.some((one) => one === null)) return null;
+
+  return accounts.every((one) => one === accounts[0]) ? accounts[0]! : null;
+}
+
+/** The words a row says whose it is: the platform's, or one person's with the name the person's account goes by after a
+ * middle dot. An owner is read by its number whichever way a unit wrote it, text or a number. */
+export function ownerText(t: Translate, owner: string | number | null | undefined, names: ReadonlyMap<string, string>): string {
+  const name = accountName(t, names, owner === null || owner === undefined ? null : String(owner));
+
+  return name === null ? t("supply.label.owner_shared") : t("supply.label.owner_personal", { name });
+}
+
+// An organisation's plans (docs/web.md, 「Organisation」, the plans tab): the one it runs on and those it is shown.
+
+/** The choice of none among a dialog's plans, since a choice's value is never empty. */
+export const NO_PLAN = "none";
+
+/** The dialog's choice the plan applied stands as: its id, or none. */
+export function planChoice(applied: Pick<SupplyAppliedPlan, "plan"> | null): string {
+  return applied === null ? NO_PLAN : String(applied.plan);
+}
+
+/** How long the plan applied has run and runs on: the day it was applied to the day its period ends. */
+export function planTermText(t: Translate, applied: Pick<SupplyAppliedPlan, "since" | "periodEnd">): string {
+  return t("supply.label.plan_term_line", { since: dayKey(toUnixSeconds(applied.since)), end: dayKey(toUnixSeconds(applied.periodEnd)) });
+}
+
+/** The plans an organisation is shown once one plan's switch is thrown, the rest as they stand, in the list's order. */
+export function withExposure(catalogue: readonly Pick<SupplyCataloguePlan, "id" | "exposed">[], plan: number, on: boolean): number[] {
+  return catalogue.filter((one) => (one.id === plan ? on : one.exposed)).map((one) => one.id);
 }

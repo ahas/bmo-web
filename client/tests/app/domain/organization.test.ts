@@ -5,13 +5,17 @@ import {
   ORGANIZATION_TABS,
   branchesAbove,
   branchesOpenAtFirst,
+  chosenOrganization,
+  memberOrganizations,
   movePlan,
   organizationAddress,
+  organizationChosenAddress,
   organizationMovedAway,
   organizationRowTabs,
   organizationTabNamed,
   organizationTabOf,
   organizationTabsFor,
+  organizationsMatching,
   unitBranches,
   unitPath
 } from "../../../apps/web/app/domain/organization";
@@ -66,7 +70,7 @@ const UNKNOWN_MEMBER: OrganizationReader = { administrator: false, roster: false
 
 describe("the organisation screen", () => {
   test("stands its tabs in order, the units first", () => {
-    expect(ORGANIZATION_TABS.map((tab) => tab.value)).toEqual(["organization", "people", "catalogue", "invites", "agent", "supply"]);
+    expect(ORGANIZATION_TABS.map((tab) => tab.value)).toEqual(["organization", "people", "catalogue", "invites", "agent", "supply", "plans"]);
   });
 
   test("leads the keys of the sections that moved away to where they stand now, and no other key", () => {
@@ -82,12 +86,13 @@ describe("the organisation screen", () => {
 
   test("leads the permissions key to the person it named on the people tab, at their permissions tab", () => {
     expect(organizationMovedAway("permissions", { tab: "permissions", user: "7", q: "a" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "people", user: "7", pane: "permissions" } });
+    expect(organizationMovedAway("permissions", { tab: "permissions", company: "3", user: "7" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "people", company: "3", user: "7", pane: "permissions" } });
     expect(organizationMovedAway("permissions")).toEqual({ path: ORGANIZATION_PATH, query: { tab: "people", pane: "permissions" } });
   });
 
   test("opens every tab to the administrator, the people and the roles and kinds tabs to a member who heads a company, and the invitations and BMO tabs to every member", () => {
     expect(organizationTabsFor(ADMINISTRATOR)).toHaveLength(ORGANIZATION_TABS.length);
-    expect(organizationTabsFor(COMPANY_HEAD).map((tab) => tab.value)).toEqual(["people", "catalogue", "invites", "agent", "supply"]);
+    expect(organizationTabsFor(COMPANY_HEAD).map((tab) => tab.value)).toEqual(["people", "catalogue", "invites", "agent", "supply", "plans"]);
     expect(organizationTabsFor(MEMBER).map((tab) => tab.value)).toEqual(["invites", "agent"]);
   });
 
@@ -110,13 +115,21 @@ describe("the organisation screen", () => {
     expect(organizationRowTabs(MEMBER, "catalogue").map((tab) => tab.value)).toEqual(["invites", "agent"]);
   });
 
-  test("keeps a tab in the address, the first being the screen's own, and lets the keys of the tab left go with it", () => {
+  test("keeps a tab in the address, the first being the organisation's own, and lets the keys of the tab left go with it while the organisation chosen stays", () => {
     expect(organizationAddress("organization", { unit: "3" })).toEqual({ path: ORGANIZATION_PATH, query: {} });
-    expect(organizationAddress("catalogue", { unit: "3", tab: "invites" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "catalogue" } });
+    expect(organizationAddress("catalogue", { unit: "3", tab: "invites", company: "4" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "catalogue", company: "4" } });
     expect(organizationAddress("invites", { tab: "people", q: "a", company: "1", unit: "2", role: "head", state: "left", user: "7", pane: "bmo", settings: "theme" })).toEqual({
       path: ORGANIZATION_PATH,
-      query: { tab: "invites", settings: "theme" }
+      query: { tab: "invites", company: "1", settings: "theme" }
     });
+    expect(organizationAddress("organization", { tab: "plans", company: "1" })).toEqual({ path: ORGANIZATION_PATH, query: { company: "1" } });
+  });
+
+  test("chooses an organisation as a step that keeps the tab open and lets what that tab held of the one before go", () => {
+    expect(organizationChosenAddress(5, { tab: "people", company: "1", q: "a", unit: "2", user: "7", settings: "theme" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "people", company: "5", settings: "theme" } });
+    // The person's tab stays for the person opened next.
+    expect(organizationChosenAddress(5, { tab: "people", user: "7", pane: "permissions" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "people", company: "5", pane: "permissions" } });
+    expect(organizationChosenAddress(5, {})).toEqual({ path: ORGANIZATION_PATH, query: { company: "5" } });
   });
 
   test("carries the keys a deliberate open hands the tab entered", () => {
@@ -129,11 +142,61 @@ describe("the organisation screen", () => {
 
     expect(screen.to).toBe(ORGANIZATION_PATH);
     expect(screen.inviters).toBe(true);
-    expect(screen.tabs?.map((tab) => tabAddress(screen, tab))).toEqual(["/organization", "/organization?tab=people", "/organization?tab=catalogue", "/organization?tab=invites", "/organization?tab=agent", "/organization?tab=supply"]);
+    expect(screen.tabs?.map((tab) => tabAddress(screen, tab))).toEqual(["/organization", "/organization?tab=people", "/organization?tab=catalogue", "/organization?tab=invites", "/organization?tab=agent", "/organization?tab=supply", "/organization?tab=plans"]);
     expect(admin.to).toBe(ADMIN_PATH);
     expect(admin.administrator).toBe(true);
     expect(admin.tabs?.map((tab) => tabAddress(admin, tab))).toEqual(["/admin", "/admin?tab=secret-kinds", "/admin?tab=plans", "/admin?tab=credits"]);
     expect([screen.section, admin.section]).toEqual(["administration", "administration"]);
+  });
+});
+
+describe("the organisation list", () => {
+  const LIST = [
+    { id: 1, name: "North Works" },
+    { id: 4, name: "South Works" },
+    { id: 9, name: "Harbour" }
+  ];
+  // The units of the list's companies, each by the company it stands in, as a link made before names them.
+  const COMPANY_OF: Record<number, number> = { 2: 1, 3: 1, 5: 4 };
+  const companyOf = (unit: number): number | null => COMPANY_OF[unit] ?? null;
+
+  test("chooses the organisation the address names, else the first, and none where the reader may set none", () => {
+    expect(chosenOrganization({ company: "4" }, LIST)?.id).toBe(4);
+    expect(chosenOrganization({}, LIST)?.id).toBe(1);
+    expect(chosenOrganization({ company: "7" }, LIST)?.id).toBe(1);
+    expect(chosenOrganization({ company: "four" }, LIST)?.id).toBe(1);
+    expect(chosenOrganization({ company: ["9", "4"] }, LIST)?.id).toBe(9);
+    expect(chosenOrganization({}, [])).toBeNull();
+  });
+
+  test("lands a link made before the organisation came first in the organisation its unit stands in", () => {
+    // The supply tab's old `?unit=` named a company; the chart's and the BMO tab's a unit of one.
+    expect(chosenOrganization({ tab: "supply", unit: "4" }, LIST, companyOf)?.id).toBe(4);
+    expect(chosenOrganization({ unit: "5" }, LIST, companyOf)?.id).toBe(4);
+    expect(chosenOrganization({ unit: "8" }, LIST, companyOf)?.id).toBe(1);
+    // The organisation the address names stands before its unit's.
+    expect(chosenOrganization({ company: "9", unit: "5" }, LIST, companyOf)?.id).toBe(9);
+  });
+
+  test("narrows to the names holding the words, in the list's order, whatever their case", () => {
+    expect(organizationsMatching(LIST, "works").map((one) => one.id)).toEqual([1, 4]);
+    expect(organizationsMatching(LIST, " HARB ").map((one) => one.id)).toEqual([9]);
+    expect(organizationsMatching(LIST, "")).toEqual(LIST);
+    expect(organizationsMatching(LIST, "nowhere")).toEqual([]);
+  });
+
+  test("holds for a member each company they head a unit of, manage the supply of or head, once, in the tree's order whichever read named it", () => {
+    const units = [
+      { id: 3, name: "team", parent: 2, company: { id: 1, name: "North Works" } },
+      { id: 2, name: "centre", parent: 1, company: { id: 1, name: "North Works" } }
+    ];
+
+    expect(memberOrganizations(units, [{ id: 9, name: "Harbour" }], [{ id: 1, name: "North Works" }, { id: 4, name: "South Works" }])).toEqual([
+      { id: 1, name: "North Works" },
+      { id: 4, name: "South Works" },
+      { id: 9, name: "Harbour" }
+    ]);
+    expect(memberOrganizations([], [], [])).toEqual([]);
   });
 });
 

@@ -76,32 +76,30 @@
         </template>
       </SettingsGroup>
 
-      <SettingsGroup :title="$t('supply.title.order')">
-        <SettingsRow v-for="(source, index) in shownOrder" :key="source" :label="sourceLabel(t, source)" :class="closedBy(source) === null ? '' : 'opacity-60'" :data-supply-source="source">
-          <template #description>
-            <span v-if="closedBy(source) !== null" class="text-sm text-muted">{{ sourceReasonText(t, closedBy(source)!) }}</span>
+      <!-- The order: each source the reader may shape with its arrows and its switch, one the platform locks with its
+           switch disabled and the words saying so, the end of the fall last, and the sources a later layer closes greyed under them
+           all with their reason. The personal credits' monthly cap stands under their row. -->
+      <div class="flex flex-col">
+        <SettingsGroup :title="$t('supply.title.order')">
+          <template v-for="(row, index) in rows" :key="row.source">
+            <SettingsRow :label="sourceLabel(t, row.source)" :class="row.kind === 'closed' ? 'opacity-60' : ''" :data-supply-source="row.source" :data-supply-locked="row.locked ? '' : undefined">
+              <template #description>
+                <span v-if="row.reason !== null" class="text-sm text-muted">{{ sourceReasonText(t, row.reason) }}</span>
+                <span v-else-if="row.kind === 'live' && row.locked" class="text-sm text-muted">{{ $t("supply.label.locked") }}</span>
+              </template>
+              <template v-if="row.kind === 'live'">
+                <IconButton size="xs" icon="i-material-symbols-arrow-upward" :label="$t('common.aria.move_up_named', { name: sourceLabel(t, row.source) })" :disabled="me.orderLocked || index === 0 || busy !== ''" @click="moveSource(index, index - 1)" />
+                <IconButton size="xs" icon="i-material-symbols-arrow-downward" :label="$t('common.aria.move_down_named', { name: sourceLabel(t, row.source) })" :disabled="me.orderLocked || index === liveCount - 1 || busy !== ''" @click="moveSource(index, index + 1)" />
+                <USwitch :model-value="row.on" :loading="busy === `source:${row.source}`" :disabled="busy !== '' || row.locked" :aria-label="$t('supply.aria.source_switch', { name: sourceLabel(t, row.source) })" @update:model-value="(on: boolean) => void setSource(row.source, on)" />
+              </template>
+            </SettingsRow>
+            <SettingsRow v-if="row.source === 'personal_credits' && row.kind === 'live'" :label="$t('supply.label.monthly_cap')" :description="$t('supply.label.personal_credit_cap_note')" data-supply-cap>
+              <UInput v-model="capWords" class="w-32 text-end tabular-nums" inputmode="numeric" :placeholder="$t('supply.label.cap_none')" :aria-label="$t('supply.label.personal_credit_cap')" :disabled="busy !== ''" @keyup.enter="saveCap" @blur="saveCap" />
+            </SettingsRow>
           </template>
-          <template v-if="source !== 'stop' && usable(source)">
-            <IconButton size="xs" icon="i-material-symbols-arrow-upward" :label="$t('common.aria.move_up_named', { name: sourceLabel(t, source) })" :disabled="index === 0 || busy !== ''" @click="moveSource(index, index - 1)" />
-            <IconButton size="xs" icon="i-material-symbols-arrow-downward" :label="$t('common.aria.move_down_named', { name: sourceLabel(t, source) })" :disabled="index === liveOrder.length - 1 || busy !== ''" @click="moveSource(index, index + 1)" />
-            <USwitch :model-value="!switchedOff(source)" :loading="busy === `source:${source}`" :disabled="busy !== ''" :aria-label="$t('supply.aria.source_switch', { name: sourceLabel(t, source) })" @update:model-value="(on: boolean) => void setSource(source, on)" />
-          </template>
-        </SettingsRow>
-      </SettingsGroup>
-
-      <SettingsGroup :title="$t('supply.title.credits')">
-        <SettingsRow v-if="closedBy('personal_credits') !== null" :label="$t('supply.label.personal_credits_on')">
-          <span class="text-sm text-muted">{{ sourceReasonText(t, closedBy('personal_credits')!) }}</span>
-        </SettingsRow>
-        <template v-else>
-          <SettingsRow :label="$t('supply.label.personal_credits_on')" :description="$t('supply.label.personal_credits_note')">
-            <USwitch :model-value="personalCreditsOn" :loading="busy === 'setting'" :disabled="busy !== ''" :aria-label="$t('supply.label.personal_credits_on')" @update:model-value="(on: boolean) => void setPersonalCredits(on)" />
-          </SettingsRow>
-          <SettingsRow :label="$t('supply.label.personal_credit_cap')" :description="$t('supply.label.personal_credit_cap_note')">
-            <UInput v-model="capWords" class="w-32 text-end tabular-nums" inputmode="numeric" :placeholder="$t('supply.label.cap_none')" :aria-label="$t('supply.label.personal_credit_cap')" :disabled="busy !== ''" @keyup.enter="saveCap" @blur="saveCap" />
-          </SettingsRow>
-        </template>
-      </SettingsGroup>
+        </SettingsGroup>
+        <p v-if="me.orderLocked" class="text-sm text-muted" data-supply-order-locked>{{ $t("supply.label.order_locked") }}</p>
+      </div>
 
       <SettingsGroup :title="$t('supply.title.usage')">
         <SettingsRow v-if="me.usage.length === 0" :label="$t('supply.label.usage_none')" />
@@ -170,10 +168,10 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 
 import { useConfirm } from "~/domain/confirm";
-import { costText, creditsText, keyStatus, loginStatus, roadLabel, sourceLabel, sourceReasonText, SUPPLY_ROADS } from "~/domain/supply";
+import { costText, creditsText, keyStatus, loginStatus, meSetting, movedSourceOrder, orderRows, roadLabel, sourceLabel, sourceReasonText, SUPPLY_ROADS } from "~/domain/supply";
 import { openSettings, useSettings } from "~/domain/settings-dialog";
 
-import type { PersonalSupplyKey, SupplyMe, SupplyReason, SupplySource } from "#shared/supply";
+import type { PersonalSupplyKey, SupplyMe, SupplyMeSetting, SupplySource } from "#shared/supply";
 import type { ClaudeAccountView, ClaudeLoginStarted, FallbackView, KeptSecret, SecretList } from "#shared/types";
 import type { DropdownMenuItem } from "@nuxt/ui";
 
@@ -423,74 +421,21 @@ async function removeKey(one: PersonalSupplyKey): Promise<void> {
   }
 }
 
-// --- The reader's own order, off-switches and personal credits, at the account service ---
+// --- The reader's own order, its switches and the personal-credit cap, at the account service ---
 
-const openOrder = computed<SupplySource[]>(() => (me.value?.order ?? []).filter((one) => one !== "stop"));
-
-// A source the reader has closed — switched off, or held by the personal-credit switch — stands closed and is left
-// out of the resolved order the read answers, so it is drawn from the standings after the open ones, ready to be
-// thrown back in. A source a layer above closed is drawn last of all, greyed, its closer named in one line under
-// its name; it has no controls, and opening it from here is a refusal the service itself makes.
-const offOrder = computed<SupplySource[]>(() => (me.value?.sources ?? []).filter((one) => one.allowed && one.off && one.source !== "stop").map((one) => one.source));
-const liveOrder = computed<SupplySource[]>(() => [...openOrder.value, ...offOrder.value.filter((one) => !openOrder.value.includes(one))]);
-const closedOrder = computed<SupplySource[]>(() => (me.value?.sources ?? []).filter((one) => !one.allowed).map((one) => one.source));
-const shownOrder = computed<SupplySource[]>(() => [...liveOrder.value, "stop", ...closedOrder.value]);
-
-function stateOf(source: SupplySource) {
-  return me.value?.sources.find((one) => one.source === source) ?? null;
-}
-
-function usable(source: SupplySource): boolean {
-  return stateOf(source)?.allowed === true;
-}
-
-function closedBy(source: SupplySource): SupplyReason | null {
-  const one = stateOf(source);
-
-  return one !== null && !one.allowed ? one.reason ?? null : null;
-}
-
-function switchedOff(source: SupplySource): boolean {
-  return stateOf(source)?.off === true;
-}
-
-// The personal-credit switch as the standing reads it: open means the source stands in the walk, closed means it
-// does not — whether the reader shut it or the cap holds it, the balance line beside it says which.
-const personalCreditsOn = computed(() => {
-  const one = stateOf("personal_credits");
-
-  return one !== null && one.allowed && !one.off;
-});
-
-// The order and the closed list every write carries: the whole walk the reader may shape — what stands open and
-// what they themselves closed, `stop` last — and the closes of their own making, the personal-credit switch being
-// written by its own flag rather than as a closed source.
-function writtenOrder(): SupplySource[] {
-  return [...liveOrder.value, "stop"];
-}
-
-function writtenOff(): SupplySource[] {
-  return (me.value?.sources ?? []).filter((one) => one.off && one.allowed && one.source !== "personal_credits" && one.source !== "stop").map((one) => one.source);
-}
+// The order as its rows stand (docs/web.md, 「Settings」, the supply section): what the reader shapes, on and off, the
+// sources the platform locks among them, the end of the fall, and what a later layer closed.
+const rows = computed(() => (me.value === null ? [] : orderRows(me.value)));
+const liveCount = computed(() => rows.value.filter((one) => one.kind === "live").length);
 
 // Every write carries the section's whole setting, and the view the service answers with stands in its place; a
 // refusal says its own sentence under the groups and nothing moved.
-async function saveSetting(patch: { order?: SupplySource[]; off?: SupplySource[]; personalCreditsOn?: boolean; personalCreditCredits?: number | null }, mark = "setting"): Promise<void> {
-  const standing = me.value;
-
-  if (standing === null || busy.value !== "") return;
+async function saveSetting(setting: SupplyMeSetting, mark = "setting"): Promise<void> {
+  if (me.value === null || busy.value !== "") return;
 
   busy.value = mark;
   try {
-    me.value = await $fetch<SupplyMe>("/api/supply/me", {
-      method: "PUT",
-      body: {
-        order: patch.order ?? writtenOrder(),
-        off: patch.off ?? writtenOff(),
-        personalCreditsOn: patch.personalCreditsOn ?? personalCreditsOn.value,
-        personalCreditCredits: patch.personalCreditCredits === undefined ? standing.personalCreditCredits : patch.personalCreditCredits
-      }
-    });
+    me.value = await $fetch<SupplyMe>("/api/supply/me", { method: "PUT", body: setting });
   } catch (error) {
     failure.value = failureText(error, t("supply.error.order_failed"));
   } finally {
@@ -499,31 +444,11 @@ async function saveSetting(patch: { order?: SupplySource[]; off?: SupplySource[]
 }
 
 async function moveSource(from: number, to: number): Promise<void> {
-  const order = liveOrder.value.slice();
-  const [moved] = order.splice(from, 1);
-
-  if (moved === undefined) return;
-  order.splice(to, 0, moved);
-
-  await saveSetting({ order: [...order, "stop"] });
+  await saveSetting(meSetting(rows.value, me.value?.personalCreditCredits ?? null, { order: movedSourceOrder(rows.value, from, to) }));
 }
 
-// The personal credits switch on the walk's row is the same switch as the section's own: its close is written as
-// the flag, never as a closed source.
 async function setSource(source: SupplySource, on: boolean): Promise<void> {
-  if (source === "personal_credits") {
-    await setPersonalCredits(on);
-    return;
-  }
-
-  const off = writtenOff().filter((one) => one !== source);
-  if (!on) off.push(source);
-
-  await saveSetting({ off }, `source:${source}`);
-}
-
-async function setPersonalCredits(on: boolean): Promise<void> {
-  await saveSetting({ personalCreditsOn: on });
+  await saveSetting(meSetting(rows.value, me.value?.personalCreditCredits ?? null, { source, on }), `source:${source}`);
 }
 
 const capWords = ref("");
@@ -540,7 +465,7 @@ async function saveCap(): Promise<void> {
     return;
   }
 
-  await saveSetting({ personalCreditCredits: Number(written) });
+  await saveSetting(meSetting(rows.value, standing, { cap: Number(written) }));
   capWords.value = me.value?.personalCreditCredits === null ? "" : String(me.value?.personalCreditCredits ?? "");
 }
 

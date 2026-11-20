@@ -43,7 +43,7 @@ export function rosterGroup(t: Translate, people: readonly RosterPerson[]): Jump
       id: `person-${person.user}`,
       label: person.name,
       prefix: placeOf(person),
-      to: rosterAddress(person.user),
+      to: rosterAddress(person.user, person.company.id),
       icon: "i-material-symbols-person-outline",
       hidden: [
         { label: t("account.label.user_id"), text: person.login },

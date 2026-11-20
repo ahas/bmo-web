@@ -85,13 +85,20 @@ pub struct SupplyHookReply {
 }
 
 /// One source as the reader's view stands it: whether the layers above allow it, whether the reader has it
-/// switched off, and where it is not allowed, which layer closed it.
+/// switched off, whether the platform locks it, and where it is not allowed, which layer closed it.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct SupplySourceState {
   pub source: String,
   pub allowed: bool,
   pub off: bool,
+  /// Whether the platform holds the source as it says for everyone, so the reader's own setting cannot change
+  /// it; `stop` is always locked.
+  pub locked: bool,
+  /// The reader's own choice of the source, `on` or `off`; absent where they made none and the platform's
+  /// default stands.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub own: Option<String>,
   /// `not-in-plan`, `blocked-by-organisation` or `blocked-by-administrator`.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub reason: Option<String>,
@@ -111,6 +118,8 @@ pub struct SupplyUsageRow {
 #[serde(rename_all = "camelCase")]
 pub struct SupplyView {
   pub order: Vec<String>,
+  /// Whether the platform locks the order, so the reader's own order is not read.
+  pub order_locked: bool,
   pub sources: Vec<SupplySourceState>,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub personal_credit_credits: Option<i64>,
@@ -121,13 +130,14 @@ pub struct SupplyView {
   pub personal_credits: Option<i64>,
 }
 
-/// The reader's own setting written whole.
+/// The reader's own setting written whole: their order, not read while the platform locks it, and the
+/// overridable sources they switch off and on against the platform's default.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct SupplySettingAsk {
   pub order: Vec<String>,
   pub off: Vec<String>,
-  pub personal_credits_on: bool,
+  pub on: Vec<String>,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub personal_credit_credits: Option<i64>,
 }
@@ -213,12 +223,15 @@ pub struct SupplyUserView {
   pub providers: Vec<String>,
 }
 
-/// The platform's policy and money settings.
+/// The platform's policy and money settings. `allowed` holds the sources the platform turns on, `overridable`
+/// the ones a person's own setting may switch against that default; a source in neither is closed everywhere.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct SupplyPlatform {
   pub allowed: Vec<String>,
   pub order: Vec<String>,
+  pub overridable: Vec<String>,
+  pub order_overridable: bool,
   pub credits_per_dollar: i64,
   pub reservation_credits: i64,
   pub enforce: bool,
@@ -232,6 +245,10 @@ pub struct SupplyPlatformAsk {
   pub allowed: Option<Vec<String>>,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub order: Option<Vec<String>>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub overridable: Option<Vec<String>>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub order_overridable: Option<bool>,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub credits_per_dollar: Option<i64>,
   #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -289,6 +306,62 @@ pub struct SupplyPlanPatch {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct SupplyPlans {
   pub plans: Vec<SupplyPlan>,
+}
+
+/// One plan of the platform's catalogue as an administrator reads it for a unit: the plan, and whether the
+/// unit is shown it.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct SupplyCataloguePlan {
+  #[serde(flatten)]
+  pub plan: SupplyPlan,
+  pub exposed: bool,
+}
+
+/// The plan a unit runs on: the plan's id and its subscription's period, in epoch milliseconds.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct SupplyAppliedPlan {
+  pub plan: i64,
+  pub since: i64,
+  pub period_end: i64,
+}
+
+/// An organisation unit's plans: the ones it is shown, the one it runs on, and for an administrator every
+/// organisation-scope plan with whether the unit is shown it.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct SupplyOrgPlans {
+  pub exposed: Vec<SupplyPlan>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub applied: Option<SupplyAppliedPlan>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub catalogue: Option<Vec<SupplyCataloguePlan>>,
+}
+
+/// Every plan a unit is shown, written whole.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct SupplyExposedAsk {
+  pub plans: Vec<i64>,
+}
+
+/// The plan a unit runs on, one of its exposed plans, or none. The key is named even for none: a body naming
+/// no `plan` at all does not read.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct SupplyAppliedAsk {
+  #[serde(deserialize_with = "named_even_as_null")]
+  #[schemars(required, with = "Option<i64>")]
+  pub plan: Option<i64>,
+}
+
+// A value read where the key must stand, null among what it may hold: serde reads a missing `Option` as
+// none unless the field is read through a function of its own.
+fn named_even_as_null<'de, D: serde::Deserializer<'de>, T: Deserialize<'de>>(
+  deserializer: D,
+) -> Result<Option<T>, D::Error> {
+  Option::<T>::deserialize(deserializer)
 }
 
 /// Credits granted to a unit's wallet.

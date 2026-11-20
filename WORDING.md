@@ -216,6 +216,14 @@
   the policy in force shown as the rows' values under it; the act of ending one policy is 정책 삭제, which puts the
   following back, and the act of writing one is 정책 설정. Never 상속, which is a name nobody here says, and never
   적용 for the policy act, which is the platform switch's word.
+- whether a person's own supply setting may change what the platform policy holds → 개인 설정 허용, the switch on the
+  platform's form, and 고정 for a source or the order it holds; what a person reads beside one they cannot change →
+  전역 설정으로 고정, and for the order 순서 전역 설정으로 고정. 고정 here keeps its own sense beside a pinned message's.
+  Never 잠금, 잠김, 강제, 오버라이드.
+- the plans an organisation is offered and the one it runs on → 노출 플랜 and 적용 플랜: a plan offered is 노출, its
+  switch 노출; putting one in force is 적용, the act 적용 and its dialog's way through 적용, none standing as 적용 플랜
+  없음, none offered 노출 플랜 없음; how long it has run and runs on → 적용 기간. 적용 here is the owner's own word for
+  a plan in force and is never the policy act's. Never 구독 for either, 공개 or 표시 for 노출, 할당 or 배정 for 적용.
 - retire, take down → 보관; bringing one back → 복원. Switching a piece in or out of use → 켜기, 끄기.
   Never 내리기, 올리기.
 - fold (a work order) → 종료. 접기 is only ever a panel folding away, and is written as below.
@@ -272,7 +280,9 @@
   the end of a line of words or in a sentence: a line of words leaves out a part it does not have. Never 미설정, N/A or
   a hyphen for an empty cell.
 - section → 섹션. Never 구역.
-- organisation → 조직: 조직, 같은 조직, 조직 이름. Never 단체, 기관.
+- organisation → 조직: 조직, 같은 조직, 조직 이름; the list the 조직 screen chooses one from → 조직 목록, its search
+  finding none → 찾은 조직 없음, a reader with none to set → 설정할 조직 없음, and its add for a new company → 회사 추가.
+  Never 단체, 기관.
 - an organisation unit, one of the tree a deployment's people stand in → 조직: 조직 추가, 상위 조직, 하위 조직; the
   tree of them → 조직도; a unit at the tree's top → 회사, a new one 새 회사. Never 단위, the English unit's twin.
 - a unit's head → 조직장: 조직장 지정, 조직장 해제. Never 장 alone, 책임자.

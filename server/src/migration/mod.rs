@@ -22,6 +22,7 @@ pub mod m20261117_000001_presence_hidden;
 pub mod m20261118_000001_organisation_roles;
 pub mod m20261118_000002_node_bound_at;
 pub mod m20261119_000001_supply;
+pub mod m20261120_000001_supply_overrides;
 mod secret_kind_seeds;
 
 pub struct Migrator;
@@ -53,6 +54,7 @@ impl MigratorTrait for Migrator {
       Box::new(sumida::entity::migration::membership::Migration),
       Box::new(sumida::entity::migration::membership_metering::Migration),
       Box::new(m20261119_000001_supply::Migration),
+      Box::new(m20261120_000001_supply_overrides::Migration),
     ]
   }
 }

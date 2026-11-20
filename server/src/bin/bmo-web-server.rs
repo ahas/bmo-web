@@ -186,11 +186,9 @@ async fn serve(settings: Settings) -> Result<(), String> {
   };
   let service = service.calling_agency(agency.clone());
   // The membership domain's expiry, renewal and notices, run hourly on this service's own state and its
-  // own advisory lock, as sumida's membership guide asks (docs/accounts.md, 「Supply」).
-  let scheduler = sumida::api::service::membership::maintenance::spawn::<bmo_web_server::Service>(
-    service.clone(),
-    std::time::Duration::from_secs(3600),
-  );
+  // own advisory lock, as sumida's membership guide asks, and every applied plan whose period ended subscribed
+  // again after them (docs/accounts.md, 「Supply」, 「An organisation's plans」).
+  let scheduler = tokio::spawn(membership(service.clone()));
   let app = in_force(service, token.clone()).await.map_err(|why| why.to_string())?;
   let address = settings.server.address();
 
@@ -217,6 +215,20 @@ async fn serve(settings: Settings) -> Result<(), String> {
   scheduler.abort();
 
   Ok(())
+}
+
+/// The hourly membership pass, the first at once, each failure said and the next pass run all the same.
+async fn membership(service: bmo_web_server::Service) {
+  let mut ticker = tokio::time::interval(std::time::Duration::from_secs(3600));
+
+  ticker.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+  loop {
+    ticker.tick().await;
+    match bmo_web_server::supply::plans::membership_pass(&service).await {
+      Ok(renewal) => renewal.failed.iter().for_each(|why| eprintln!("bmo-web-server: {why}")),
+      Err(why) => eprintln!("bmo-web-server: the applied plans were not renewed: {why}"),
+    }
+  }
 }
 
 /// The agency the settings name, or one that registers nothing and refuses every read where they name none.

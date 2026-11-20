@@ -1,19 +1,36 @@
 <template>
   <!-- One supply policy written whole: the sources it allows, in the order a run falls through them, and the
        monthly cap on personal credits where the policy kind carries one (docs/web.md, 「Organisation」, the supply
-       tab; the settings' supply section). One supply at the foot sends the whole form, open only while it differs from
-       what opened; the writer answers every refusal, which stands in the dialog. -->
+       tab; the settings' supply section). The platform's form carries beside each source a second switch, whether a
+       person's own setting may change it, and under the sources one more of it for the order (「Administration」, the
+       credits tab). One save at the foot sends the whole form, open only while it differs from what opened; the
+       writer answers every refusal, which stands in the dialog. -->
   <SettingsDialog v-model:open="open" :title="props.title" :dirty="changes">
     <div class="flex flex-col divide-y divide-default">
-      <div v-for="(source, index) in rows" :key="source" class="flex items-center gap-x-4 py-3" :data-supply-policy-row="source">
+      <div v-for="source in rows" :key="source" class="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 py-3" :data-supply-policy-row="source">
         <span class="flex min-w-0 grow basis-40 flex-col">
           <span class="text-sm" :class="isAllowed(source) ? 'text-highlighted' : 'text-muted'">{{ sourceLabel(t, source) }}</span>
         </span>
-        <template v-if="source !== 'stop'">
+        <span v-if="source !== 'stop'" class="flex shrink-0 items-center gap-2">
           <IconButton size="xs" icon="i-material-symbols-arrow-upward" :label="$t('common.aria.move_up_named', { name: sourceLabel(t, source) })" :disabled="!canMove(source, -1)" @click="move(source, -1)" />
           <IconButton size="xs" icon="i-material-symbols-arrow-downward" :label="$t('common.aria.move_down_named', { name: sourceLabel(t, source) })" :disabled="!canMove(source, 1)" @click="move(source, 1)" />
           <USwitch :model-value="isAllowed(source)" :aria-label="$t('supply.aria.source_switch', { name: sourceLabel(t, source) })" @update:model-value="(on: boolean) => void toggle(source, on)" />
-        </template>
+        </span>
+        <USwitch
+          v-if="props.overrides && source !== 'stop'"
+          :model-value="overridable.includes(source)"
+          :label="$t('supply.label.overridable')"
+          :aria-label="$t('supply.aria.source_overridable', { name: sourceLabel(t, source) })"
+          class="shrink-0"
+          data-supply-policy-overridable
+          @update:model-value="(on: boolean) => setOverridable(source, on)"
+        />
+      </div>
+      <div v-if="props.overrides" class="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 py-3" data-supply-policy-row="order">
+        <span class="flex min-w-0 grow basis-40 flex-col">
+          <span class="text-sm text-highlighted">{{ $t("supply.label.order") }}</span>
+        </span>
+        <USwitch v-model="orderOverridable" :label="$t('supply.label.overridable')" :aria-label="$t('supply.aria.order_overridable')" class="shrink-0" data-supply-policy-overridable />
       </div>
     </div>
 
@@ -25,7 +42,7 @@
 
     <template #footer="{ close }">
       <UButton :label="$t('common.action.cancel')" color="neutral" variant="ghost" :disabled="busy" @click="close()" />
-      <UButton :label="$t('common.action.save')" :loading="busy" :disabled="busy || !changes.dirty.value || capBad" @click="void save(close)" />
+      <UButton :label="$t('common.action.save')" :loading="busy" :disabled="busy || !changes.dirty.value || capBad" @click="void save()" />
     </template>
   </SettingsDialog>
 </template>
@@ -34,10 +51,10 @@
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 
-import { draftRows, sourceLabel } from "~/domain/supply";
+import { POLICY_SOURCES, draftRows, sourceLabel } from "~/domain/supply";
 
-import type { PolicyDraft } from "~/domain/supply";
-import type { SupplyPolicy, SupplySource } from "#shared/supply";
+import type { PolicyDraft, PolicyWrite } from "~/domain/supply";
+import type { SupplySource } from "#shared/supply";
 
 interface Props {
   title: string;
@@ -45,11 +62,13 @@ interface Props {
   draft: PolicyDraft;
   // Whether this policy kind carries the per-person monthly cap on organisation credits.
   cap?: boolean;
+  // Whether this policy kind says what a person's own setting may change: the platform's alone.
+  overrides?: boolean;
   // Who writes the policy: the unit's, the person's or the platform's own route, as the caller holds it.
-  send: (policy: SupplyPolicy) => Promise<unknown>;
+  send: (policy: PolicyWrite) => Promise<unknown>;
 }
 
-const props = withDefaults(defineProps<Props>(), { cap: true });
+const props = withDefaults(defineProps<Props>(), { cap: true, overrides: false });
 const open = defineModel<boolean>("open", { default: false });
 const emit = defineEmits<{ saved: [] }>();
 
@@ -58,6 +77,8 @@ const { t } = useI18n();
 const allowed = ref<SupplySource[]>([]);
 const order = ref<SupplySource[]>([]);
 const capWords = ref("");
+const overridable = ref<SupplySource[]>([]);
+const orderOverridable = ref(false);
 const busy = ref(false);
 const failure = ref("");
 
@@ -68,12 +89,22 @@ watch(open, (standing) => {
   allowed.value = [...props.draft.allowed];
   order.value = [...props.draft.order];
   capWords.value = props.draft.memberCreditCredits === null ? "" : String(props.draft.memberCreditCredits);
+  overridable.value = [...props.draft.overridable];
+  orderOverridable.value = props.draft.orderOverridable;
   failure.value = "";
 });
 
-const changes = useOpenedWith(() => ({ allowed: allowed.value.join(","), order: order.value.join(","), cap: capWords.value.trim() }), { open });
+// Which sources a person may change is a set, compared whatever order its switches were thrown in.
+const changes = useOpenedWith(
+  () => ({ allowed: allowed.value.join(","), order: order.value.join(","), cap: capWords.value.trim(), overridable: [...overridable.value].sort().join(","), orderOverridable: orderOverridable.value }),
+  { open }
+);
 
-const rows = computed<SupplySource[]>(() => draftRows({ allowed: allowed.value, order: order.value, memberCreditCredits: null }));
+const rows = computed<SupplySource[]>(() => draftRows({ allowed: allowed.value, order: order.value }));
+
+function setOverridable(source: SupplySource, on: boolean): void {
+  overridable.value = on ? [...overridable.value.filter((one) => one !== source), source] : overridable.value.filter((one) => one !== source);
+}
 
 function isAllowed(source: SupplySource): boolean {
   return source === "stop" || allowed.value.includes(source);
@@ -118,7 +149,14 @@ function toggle(source: SupplySource, on: boolean): void {
 const capOk = computed(() => capWords.value.trim() === "" || /^[1-9][0-9]*$/.test(capWords.value.trim()));
 const capBad = computed(() => props.cap === true && !capOk.value);
 
-async function save(close: () => void): Promise<void> {
+// The order a save writes: the sources switched on, in their order; for the platform's form the sources a person may
+// switch on as well, after them, since a person's own order may hold any of them.
+function writtenOrder(): SupplySource[] {
+  return props.overrides ? rows.value.filter((one) => one !== "stop" && (isAllowed(one) || overridable.value.includes(one))) : openRows();
+}
+
+// A save that went through closes the form at once: what it held is saved, so closing asks nothing.
+async function save(): Promise<void> {
   if (busy.value || !changes.dirty.value || capBad.value) return;
 
   busy.value = true;
@@ -126,12 +164,14 @@ async function save(close: () => void): Promise<void> {
   try {
     await props.send({
       allowed: openRows(),
-      order: [...openRows(), "stop"],
-      memberCreditCredits: capWords.value.trim() === "" ? null : Number(capWords.value.trim())
+      order: [...writtenOrder(), "stop"],
+      memberCreditCredits: capWords.value.trim() === "" ? null : Number(capWords.value.trim()),
+      overridable: POLICY_SOURCES.map((one) => one.value).filter((one) => overridable.value.includes(one)),
+      orderOverridable: orderOverridable.value
     });
 
     emit("saved");
-    close();
+    open.value = false;
   } catch (error) {
     failure.value = failureText(error, t("supply.error.policy_failed"));
   } finally {

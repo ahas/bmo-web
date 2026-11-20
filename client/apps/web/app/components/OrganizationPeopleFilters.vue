@@ -1,22 +1,9 @@
 <template>
-  <!-- The people tab's five filters (docs/web.md, 「Organisation」, the people tab): the company, for a reader who
-       looks through more than one; the unit, from the chosen company's tree as the invitations' unit is chosen; the
-       kind, where the company keeps any; the role and the state. A filter set nowhere shows its own name, and the choice of every value sets it back. In the list's head they stand side by side, and in the
+  <!-- The people tab's filters (docs/web.md, 「Organisation」, the people tab): the unit, from the organisation
+       chosen's tree as the invitations' unit is chosen; the kind, where the organisation keeps any; the role and the
+       state. A filter set nowhere shows its own name, and the choice of every value sets it back. In the list's head they stand side by side, and in the
        narrow screen's drawer one under another, each under its name. -->
   <div :class="props.stacked ? 'flex flex-col gap-4' : 'flex flex-wrap items-center gap-2'" data-roster-filters>
-    <component :is="props.stacked ? UFormField : 'div'" v-if="props.companies.length > 1" v-bind="props.stacked ? { label: $t('invites.label.company') } : {}">
-      <ChoiceSelect
-        :model-value="props.view.company === null ? undefined : String(props.view.company)"
-        :items="companyItems"
-        value-key="value"
-        :placeholder="$t('invites.label.company')"
-        :aria-label="$t('invites.label.company')"
-        :class="props.stacked ? 'w-full' : 'w-36'"
-        data-roster-filter="company"
-        @update:model-value="(value: string) => change('company', value === ALL ? null : Number(value))"
-      />
-    </component>
-
     <component :is="props.stacked ? UFormField : 'div'" v-bind="props.stacked ? { label: $t('invites.label.unit'), description: unitPathText } : {}">
       <UPopover v-model:open="unitOpen" :content="{ align: 'start' }">
         <UButton
@@ -87,16 +74,15 @@ import { ROSTER_ROLES, ROSTER_STATES } from "#shared/roster";
 
 import { companyUnits } from "~/domain/invites";
 import { branchesOpenAtFirst, unitPath } from "~/domain/organization";
-import { ROSTER_ROLE_LABELS, ROSTER_STATE_FACES, rosterTreeCompany, withRosterFilter } from "~/domain/roster";
+import { ROSTER_ROLE_LABELS, ROSTER_STATE_FACES, withRosterFilter } from "~/domain/roster";
 
 import type { RosterView } from "~/domain/roster";
-import type { RosterUnit } from "#shared/roster";
 import type { InviteUnit } from "@web/server-client";
 
 interface Props {
+  // The view, its company the organisation chosen.
   view: RosterView;
-  // The companies the reader looks through, and the units they may choose among, each with its company.
-  companies: readonly RosterUnit[];
+  // The units the reader may choose among, each with its company.
   units: readonly InviteUnit[];
   // Whether the filters stand one under another, each under its name, as in the narrow screen's drawer.
   stacked?: boolean;
@@ -110,16 +96,15 @@ const { t } = useI18n();
 // What a choice of every value stands as; a select's value is never empty.
 const ALL = "all";
 
-const companyItems = computed(() => [{ label: t("common.label.all"), value: ALL }, ...props.companies.map((one) => ({ label: one.name, value: String(one.id) }))]);
 const roleItems = computed(() => [{ label: t("common.label.all"), value: ALL }, ...ROSTER_ROLES.map((role) => ({ label: t(ROSTER_ROLE_LABELS[role]), value: role }))]);
 const stateItems = computed(() => [{ label: t("common.label.all"), value: ALL }, ...ROSTER_STATES.map((state) => ({ label: t(ROSTER_STATE_FACES[state].label), value: state }))]);
 
-function change<Key extends keyof Omit<RosterView, "q">>(key: Key, value: RosterView[Key]): void {
+function change<Key extends keyof Omit<RosterView, "q" | "company">>(key: Key, value: RosterView[Key]): void {
   emit("change", withRosterFilter(props.view, key, value));
 }
 
-// The chosen company's tree, from its own unit down, which a unit is chosen from.
-const treeCompany = computed(() => rosterTreeCompany(props.view, props.companies));
+// The organisation chosen's tree, from its own unit down, which a unit is chosen from.
+const treeCompany = computed(() => props.view.company);
 const treeUnits = computed(() => (treeCompany.value === null ? [] : companyUnits(props.units, treeCompany.value)));
 const unitOpen = ref(false);
 const expanded = ref<string[]>([]);

@@ -39,6 +39,7 @@
               <UIcon name="i-material-symbols-keep" class="size-4 shrink-0 text-primary" role="img" :aria-label="$t('agents.label.account_chosen')" />
             </UTooltip>
           </span>
+          <span class="text-sm text-muted" data-account-owner>{{ ownerText(t, one.userId, props.names) }}</span>
           <span v-if="loginText(one) !== ''" class="flex flex-wrap items-center gap-2" data-account-marks>
             <UBadge :color="one.login === 'gone' ? 'error' : 'warning'" variant="subtle" size="sm" :label="loginText(one)" />
           </span>
@@ -145,6 +146,7 @@ import { movedOrder } from "~/domain/agents";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { usePolling } from "~/domain/polling";
 import { useRowDrag } from "~/domain/row-drag";
+import { ownerText } from "~/domain/supply";
 import { accountGroup } from "~/domain/usage";
 
 import type { ClaudeAccountView, ClaudeLoginStarted } from "#shared/types";
@@ -158,9 +160,15 @@ interface Props {
   query?: string;
   // What each account has left, as the page reads it; none until it is read.
   usage?: UsageFiguresRead;
+  // The names the people the accounts belong to go by, by their user id.
+  names?: ReadonlyMap<string, string>;
 }
 
-const props = withDefaults(defineProps<Props>(), { query: "", usage: () => ({ groups: [], now: 0, initial: false }) });
+const props = withDefaults(defineProps<Props>(), {
+  query: "",
+  usage: () => ({ groups: [], now: 0, initial: false }),
+  names: () => new Map(),
+});
 
 const { t } = useI18n();
 const route = useRoute();

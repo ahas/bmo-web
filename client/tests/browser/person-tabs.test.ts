@@ -126,6 +126,14 @@ async function landed(page: Page, user: string | null, pane: string | null): Pro
   );
 }
 
+// An organisation chosen from the list: beside the organisation at a desk's width, in its drawer on a phone.
+async function choose(page: Page, width: number, company: number): Promise<void> {
+  if (width < 640) await page.locator("[data-organization-list-open]").click();
+
+  await page.locator(`[data-organization-row="${company}"]`).click();
+  await page.waitForURL((url) => url.searchParams.get("company") === String(company), { timeout: 20_000 });
+}
+
 // The region the person scrolls in: beside the list at a desk's width, over it on a phone.
 function region(page: Page, width: number): Locator {
   return width >= 1024 ? page.locator("[data-roster-person-region]") : page.locator("[data-roster-person-sheet] > div");
@@ -291,6 +299,8 @@ describe.skipIf(!origin || !touchReady())("one person's tabs on the people tab",
         await page.goto(`${origin}/?settings=permissions`, { waitUntil: "load" });
         await landed(page, null, "permissions");
         await standing(page);
+        // The key names no person, so it lands on the first organisation; the person's own is chosen from the list.
+        await choose(page, width, company);
         await find(page, subject);
         await landed(page, subject, "permissions");
         await opened(page, "settings.label.permissions");

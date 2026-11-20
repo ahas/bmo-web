@@ -1,6 +1,7 @@
 <template>
   <!-- The providers tab of the administration screen (docs/web.md, 「Administration」, the providers tab): every
-       provider the agency carries, in its order, with what it has left, why it cannot answer now and the owner's
+       provider the agency carries, in its order, with whose its gateway road is where one person owns it all, what it
+       has left, why it cannot answer now and the owner's
        switch, each taking effect as it is thrown; under them the secrets the agency's provider tools read, then the
        Claude accounts the Claude Code provider walks, a new one added from the tab row's add. No key the agency holds
        is read here. Each stands as a group under its heading, keeping its place with a skeleton while it is first
@@ -32,6 +33,7 @@
             <span class="text-sm text-highlighted">{{ one.label }}</span>
             <UIcon :name="markOf(one).icon" class="size-4 shrink-0" :class="markOf(one).tone" />
           </span>
+          <span v-if="owners.has(one.name)" class="text-sm text-muted" data-provider-owner>{{ ownerText($t, owners.get(one.name), names) }}</span>
           <!-- What the provider itself has left — the slot the chat runs on where it holds no login, its own road's
                balance, and each of its accounts the Claude list below does not carry, under that account's name — as
                the title bar's panel reads it. An account the list carries stands on its own row there. -->
@@ -66,7 +68,7 @@
 
     <ProviderSecretSettings />
 
-    <AgentsAccounts v-if="fallback.accounts.length > 0 || fallbackStatus === 'success'" ref="accountsRef" :accounts="fallback.accounts" :reread="rereadFallback" :usage="accountsUsage" />
+    <AgentsAccounts v-if="fallback.accounts.length > 0 || fallbackStatus === 'success'" ref="accountsRef" :accounts="fallback.accounts" :reread="rereadFallback" :usage="accountsUsage" :names="names" />
     <SettingsGroup v-else :title="$t('agents.title.accounts')">
       <div v-if="fallbackStatus === 'error' || retrying" class="flex flex-col items-end gap-3 py-3">
         <UAlert class="w-full" color="error" variant="subtle" :description="$t('agents.error.accounts_read_failed')" />
@@ -95,10 +97,13 @@ import { formatStamp } from "bmo-ui/app/domain/time";
 
 import { useProviders } from "~/domain/axes";
 import { useReadFailure } from "~/domain/events";
+import { useAccountNames } from "~/domain/nodes";
+import { ownerText, roadOwner } from "~/domain/supply";
 import { providerGroups, usageGroups } from "~/domain/usage";
 import { useUsageRead } from "~/domain/usage-read";
 
 import type { ProviderView } from "#shared/axes";
+import type { GatewayMember } from "#shared/supply";
 import type { FallbackView, SecretList } from "#shared/types";
 import type { UsageFiguresRead, UsageGroup } from "~/domain/usage";
 
@@ -106,6 +111,17 @@ const { t } = useI18n();
 const island = useIsland(t);
 
 const { data: providers, refresh, status } = useProviders();
+
+// Whose each gateway road and each Claude account is, read off the gateway's members and the accounts' own owners, the
+// person named as their account goes by. A read that fails leaves a road's line unsaid, as a road no one person owns.
+const { data: members } = useFetch<GatewayMember[]>("/api/gateway-members", { key: "gateway-members", lazy: true, server: false, default: () => [] });
+const { names } = useAccountNames();
+// Each provider's road owned whole by one person, by the provider's name.
+const owners = computed(() => new Map((providers.value ?? []).flatMap((one) => {
+  const owner = roadOwner(members.value ?? [], one.name);
+
+  return owner === null ? [] : [[one.name, owner] as const];
+})));
 const { data: fallback, refresh: refreshFallback, status: fallbackStatus } = useFetch<FallbackView>("/api/fallback", { key: "fallback", lazy: true, server: false, default: emptyFallbackView });
 
 async function rereadFallback(): Promise<void> {

@@ -36,7 +36,7 @@
                 </template>
               </UButton>
             </div>
-            <OrganizationPeopleFilters v-if="!narrow" :view="view" :companies="companies" :units="units" @change="setView" />
+            <OrganizationPeopleFilters v-if="!narrow" :view="view" :units="units" @change="setView" />
           </div>
 
           <!-- The list itself: a failure, the first read's skeleton, a line where nobody stands, or the rows. -->
@@ -84,9 +84,6 @@
             </template>
             <template #login-cell="{ row }">
               <span :class="CELL_TEXT"><SearchText class="truncate text-sm text-toned" :text="row.original.login" :query="view.q" /></span>
-            </template>
-            <template #company-cell="{ row }">
-              <span :class="CELL_TEXT"><SearchText class="truncate text-sm text-toned" :text="row.original.company.name" :query="view.q" /></span>
             </template>
             <template #unit-cell="{ row }">
               <span :class="CELL_TEXT_LINE">
@@ -216,7 +213,7 @@
 
     <UDrawer v-if="narrow" v-model:open="filtersOpen" :title="$t('roster.action.filter')">
       <template #body>
-        <OrganizationPeopleFilters stacked :view="drafted ?? view" :companies="companies" :units="units" @change="(next: RosterView) => (drafted = next)" />
+        <OrganizationPeopleFilters stacked :view="drafted ?? view" :units="units" @change="(next: RosterView) => (drafted = next)" />
       </template>
     </UDrawer>
   </div>
@@ -243,39 +240,37 @@ import {
   rosterRoleOf,
   rosterUserOf,
   rosterViewOf,
-  useRosterCompanies,
   withRosterRow,
   withRosterView
 } from "~/domain/roster";
 import { CELL_TEXT, CELL_TEXT_LINE } from "~/domain/settings-cells";
 
+import type { Organization } from "~/domain/organization";
 import type { RosterView } from "~/domain/roster";
 import type { SettingsColumn } from "~/domain/settings-columns";
 import type { RosterDetail, RosterPage, RosterPerson } from "#shared/roster";
 import type { SplitterItem } from "@nuxt/ui";
 import type { InviteUnit } from "@web/server-client";
 
+interface Props {
+  // The organisation chosen, whose people alone the list looks through.
+  company: Organization;
+}
+
+const props = defineProps<Props>();
+
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const narrow = useNarrow();
 
-// The companies the reader looks through, and the units the unit filter chooses among, as the invitations read them.
-// The companies stand once this screen is in the browser's hands: the server draws none, and the shell may have read
-// them before the screen takes over what the server drew, which must match it.
-const { companies: readCompanies } = useRosterCompanies();
-const mounted = ref(false);
-const companies = computed(() => (mounted.value ? readCompanies.value : []));
-
-onMounted(() => {
-  mounted.value = true;
-});
-
+// The units the unit filter chooses among, as the invitations read them.
 const { data: unitData } = useFetch<InviteUnit[]>("/api/invites/units", { key: "invite-units", server: false, lazy: true, default: () => [] });
 const units = computed(() => unitData.value ?? []);
 
-// What the address shows: the words and the filters, and the person open.
-const view = computed(() => rosterViewOf(route.query));
+// What the address shows: the words and the filters, and the person open; the list looks through the organisation
+// chosen alone.
+const view = computed<RosterView>(() => ({ ...rosterViewOf(route.query), company: props.company.id }));
 const user = computed(() => rosterUserOf(route.query));
 const filtersSet = computed(() => rosterFiltersSet(view.value));
 const filtersOpen = ref(false);
@@ -289,7 +284,6 @@ const regions = computed<SplitterItem[]>(() => (narrow.value ? [{ ...LIST_REGION
 const columns = computed<SettingsColumn<RosterPerson>[]>(() => [
   { id: "name", header: t("account.label.full_name"), ceiling: 280 },
   { id: "login", header: t("account.label.user_id"), ceiling: 200 },
-  { id: "company", header: t("invites.label.company"), ceiling: 200 },
   { id: "unit", header: t("invites.label.unit"), ceiling: 240 },
   { id: "position", header: t("roster.label.position"), ceiling: 160 },
   { id: "role", header: t("organization.label.role") },
@@ -309,12 +303,12 @@ function shownName(person: RosterPerson): string {
   return person.state === "left" ? t("organization.label.left_member", { name: person.name }) : person.name;
 }
 
-// A search hit only in a field the row does not show: the table shows the name, the login, the company and the unit,
+// A search hit only in a field the row does not show: the table shows the name, the login and the unit,
 // and a phone's row the name and the unit.
 function hiddenHit(person: RosterPerson, wide: boolean): { label: string; snippet: string } | null {
   const unit = (person.post ?? person.unit).name;
   const position = person.role?.name ?? "";
-  const shown = wide ? [person.name, person.login, person.company.name, unit, position] : [person.name, unit, position];
+  const shown = wide ? [person.name, person.login, unit, position] : [person.name, unit, position];
 
   return rosterHiddenHit(person, view.value.q, shown, { jobTitle: t("account.label.job_title"), email: t("account.label.email"), rank: t("account.label.rank"), duty: t("account.label.duty") });
 }

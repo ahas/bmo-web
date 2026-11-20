@@ -18,7 +18,8 @@ use sumida::entity::membership::OwnerKind;
 use sumida::error::SumidaError;
 
 use super::{
-  Depth, PAYABLE, PlatformSettings, Source, home_unit, platform_settings, record_cost, resolve_to, wallet,
+  Depth, PlatformSettings, Resolution, Source, home_unit, platform_settings, record_cost, resolve_to,
+  wallet,
 };
 use crate::routes::{Answer, Body};
 use crate::{Refusal, Service, one, run};
@@ -266,24 +267,6 @@ async fn wallet_reopen<C: ConnectionTrait>(db: &C, wallet_id: i32) -> Option<i64
   .map(|reopens| reopens as i64)
 }
 
-/// When the covering period turns and its quota refills.
-async fn period_end<C: ConnectionTrait>(db: &C, user: i64) -> Option<i64> {
-  one(
-    db,
-    r#"SELECT EXTRACT(EPOCH FROM MAX("current_period_end")) * 1000 AS "reopens"
-       FROM "subscriptions"
-       WHERE "owner_kind" = 'personal' AND "owner_id" = $1 AND "allowed_actions" ? 'supply'
-         AND ((status = 'active' AND "current_period_end" > now())
-           OR (status = 'past-due' AND "grace_ends_at" IS NOT NULL AND "grace_ends_at" > now()))"#,
-    vec![(user as i32).into()],
-  )
-  .await
-  .ok()
-  .flatten()
-  .and_then(|row| row.try_get::<Option<f64>>("", "reopens").ok().flatten())
-  .map(|reopens| reopens as i64)
-}
-
 /// `reserve`: a reservation of the standing reservation size, answered with its id, its amount and its
 /// expiry, or refused with the moment it may reopen where one is known. The same key answers what the first
 /// ask did.
@@ -312,8 +295,14 @@ async fn reserve(
   let resolved = resolve_to(&service.db, user, Depth::Own).await?;
   let id = format!("res_{}", tail());
 
-  // Nothing is refused while nothing is enforced, and a person's own credential reserves nothing: the row
-  // stands here alone, recorded so the run's cost settles against it, and no sumida hold is opened.
+  // Nothing is refused while nothing is enforced. Enforced, a source the resolved order does not hold — closed
+  // by a layer, switched off, left off by an overridable default or past the person's own cap — is refused.
+  if settings.enforce && !resolved.order.contains(&source) {
+    return Ok(refused(None));
+  }
+
+  // A person's own credential reserves nothing, and nothing is held while nothing is enforced: the row stands
+  // here alone, recorded so the run's cost settles against it, and no sumida hold is opened.
   if !settings.enforce || source == Source::Personal {
     let expires = crate::now_ms() + ttl_ms();
 
@@ -333,13 +322,9 @@ async fn reserve(
     return Ok(accepted(&settings, &id, settings.reservation_credits, expires));
   }
 
-  if !PAYABLE.contains(&source) || !resolved.of(source).allowed {
-    return Ok(refused(None));
-  }
-
   let txn = service.db.begin().await?;
 
-  let held = match reserve_source(&txn, user, unit, source, settings.reservation_credits, key).await {
+  let held = match reserve_source(&txn, &resolved, unit, source, settings.reservation_credits, key).await {
     Ok(held) => held,
     Err(reopens_at) => {
       txn.rollback().await?;
@@ -406,21 +391,28 @@ async fn open<C: ConnectionTrait>(db: &C, row: &Opening<'_>) -> Result<(), Refus
   Ok(())
 }
 
-// What a source is reserved against: the plan's amount quota for `global`, the owner's credit wallet for
-// the credit sources. The refusal names when the source may be asked again where a moment is known.
+// What a source is reserved against: the amount quota of the subscription the person's supply stands under
+// for `global` — their own, or their unit's or the nearest unit's above — and the owner's credit wallet for the
+// credit sources. The refusal names when the source may be asked again where a moment is known.
 async fn reserve_source<C: ConnectionTrait>(
   txn: &C,
-  user: i64,
+  resolved: &Resolution,
   unit: i64,
   source: Source,
   amount: i64,
   key: &str,
 ) -> Result<(String, i64), Option<i64>> {
+  let user = resolved.user;
+
   match source {
     Source::Global => {
+      let Some((kind, owner)) = &resolved.plan.owner else {
+        return Err(None);
+      };
+
       match QuotaService::<crate::Service>::reserve_in_txn(
-        &OwnerKind::Personal,
-        user as i32,
+        kind,
+        *owner,
         super::ACTION,
         amount,
         None,
@@ -431,7 +423,7 @@ async fn reserve_source<C: ConnectionTrait>(
       .await
       {
         Ok(held) => Ok((held.reservation_id.to_string(), millis(held.expires_at))),
-        Err(SumidaError::QuotaExceeded { .. }) => Err(period_end(txn, user).await),
+        Err(SumidaError::QuotaExceeded { .. }) => Err(resolved.plan.reopens_at),
         Err(_) => Err(None),
       }
     }

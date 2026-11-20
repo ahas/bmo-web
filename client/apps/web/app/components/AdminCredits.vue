@@ -24,7 +24,11 @@
         <template #aside>
           <IconButton size="sm" icon="i-material-symbols-edit" :label="$t('common.action.edit')" :disabled="busy" @click="editing = true" />
         </template>
-        <SettingsRow :label="$t('supply.label.policy')">
+        <!-- Each source's value, and under it whether a person's own setting may change it; the order the same. -->
+        <SettingsRow v-for="one in POLICY_SOURCES" :key="one.value" :label="$t(one.label)" :description="overridableText(platform.overridable.includes(one.value))" :data-platform-source="one.value">
+          <span class="text-sm text-highlighted">{{ platform.policy.allowed.includes(one.value) ? $t("supply.label.source_on") : $t("supply.label.source_off") }}</span>
+        </SettingsRow>
+        <SettingsRow :label="$t('supply.label.order')" :description="overridableText(platform.orderOverridable)" data-platform-order>
           <span class="text-sm text-highlighted" data-platform-allowed>{{ policyLine(platform.policy) }}</span>
         </SettingsRow>
         <SettingsRow :label="$t('supply.label.rate')" :description="$t('supply.label.rate_note')">
@@ -107,7 +111,7 @@
       <p v-if="failure !== ''" role="alert" class="break-words text-sm text-error">{{ failure }}</p>
     </template>
 
-    <SupplyPolicyDialog v-model:open="editing" :title="$t('supply.title.platform_policy')" :draft="draft" :cap="false" :send="writePolicy" @saved="void read()" />
+    <SupplyPolicyDialog v-model:open="editing" :title="$t('supply.title.platform_policy')" :draft="draft" :cap="false" overrides :send="writePolicy" @saved="void read()" />
 
     <!-- A grant: a person found by name or an organisation chosen by its path, an amount and the words kept with it
          (docs/web.md, 「Administration」, the supply tab). The person search is the directory's own. -->
@@ -145,11 +149,11 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 import { formatStamp } from "bmo-ui/app/domain/time";
 
-import { policyDraft, sourceLabel, unitPathLabel, useSupplyUnits } from "~/domain/supply";
+import { POLICY_SOURCES, policyDraft, sourceLabel, unitPathLabel, useSupplyUnits } from "~/domain/supply";
 
 import { countText } from "~/domain/numbers";
 
-import type { PolicyDraft } from "~/domain/supply";
+import type { PolicyDraft, PolicyWrite } from "~/domain/supply";
 import type { SupplyAuditPage, SupplyLedgerPage, SupplyPlatformView, SupplyPolicy } from "#shared/supply";
 import type { PersonView } from "#shared/people";
 import type { Translate } from "#shared/wording";
@@ -188,14 +192,22 @@ const grantChanges = useOpenedWith(() => ({ kind: ownerKind.value, owner: ownerI
 
 const ownerKindItems = [{ value: "user", label: t("supply.label.scope_personal") }, { value: "organisation", label: t("supply.label.scope_organisation") }];
 const unitChoices = computed(() => managed.value.map((one) => ({ label: unitPathLabel(managed.value, one), value: String(one.id) })));
-const draft = computed<PolicyDraft>(() => policyDraft(platform.value?.policy ?? null));
+const draft = computed<PolicyDraft>(() => policyDraft(platform.value?.policy ?? null, platform.value ?? undefined));
 
 function whole(value: string): boolean {
   return /^[1-9][0-9]*$/.test(value.trim());
 }
 
+// The order a run falls through the sources on, the end of the fall alone where none is.
 function policyLine(policy: SupplyPolicy): string {
-  return policy.order.filter((one) => one !== "stop" && policy.allowed.includes(one)).map((one) => sourceLabel(t, one)).join(", ");
+  const open = policy.order.filter((one) => one !== "stop" && policy.allowed.includes(one));
+
+  return (open.length === 0 ? ["stop" as const] : open).map((one) => sourceLabel(t, one)).join(", ");
+}
+
+// Whether a person's own setting may change a source or the order, in the one muted line under its row.
+function overridableText(overridable: boolean): string {
+  return overridable ? t("supply.label.overridable") : t("supply.label.fixed");
 }
 
 // The kinds the two records answer, in the console's words where they are known and named by their code where they
@@ -239,8 +251,8 @@ async function read(): Promise<void> {
   }
 }
 
-async function writePolicy(policy: SupplyPolicy): Promise<void> {
-  await $fetch("/api/supply/platform", { method: "PUT", body: { allowed: policy.allowed, order: policy.order } });
+async function writePolicy(policy: PolicyWrite): Promise<void> {
+  await $fetch("/api/supply/platform", { method: "PUT", body: { allowed: policy.allowed, order: policy.order, overridable: policy.overridable, orderOverridable: policy.orderOverridable } });
 }
 
 // One number field, written when it is done being written: an unchanged or unreadable value is let go in silence,

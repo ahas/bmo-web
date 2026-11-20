@@ -655,6 +655,51 @@ impl AccountClient {
     .await
   }
 
+  /// `GET /supply/org/{unit}/plans`.
+  pub async fn supply_org_plans(&self, unit: i64, key: &str, role: &str) -> Answer<SupplyOrgPlans> {
+    Self::answered(
+      self
+        .request(Method::GET, &["supply", "org", &unit.to_string(), "plans"])
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
+  /// `PUT /supply/org/{unit}/plans/exposed`.
+  pub async fn set_supply_org_exposed(
+    &self,
+    unit: i64,
+    key: &str,
+    role: &str,
+    ask: &SupplyExposedAsk,
+  ) -> Answer<SupplyOrgPlans> {
+    Self::answered(
+      self
+        .send(Method::PUT, &["supply", "org", &unit.to_string(), "plans", "exposed"], ask)
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
+  /// `PUT /supply/org/{unit}/plans/applied`.
+  pub async fn set_supply_org_applied(
+    &self,
+    unit: i64,
+    key: &str,
+    role: &str,
+    ask: &SupplyAppliedAsk,
+  ) -> Answer<SupplyOrgPlans> {
+    Self::answered(
+      self
+        .send(Method::PUT, &["supply", "org", &unit.to_string(), "plans", "applied"], ask)
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
   /// `POST /supply/org/{unit}/credits`.
   pub async fn grant_org_credits(
     &self,

@@ -1,15 +1,8 @@
 <template>
   <!-- The roles and kinds tab (docs/web.md, 「Organisation」, its roles and kinds tab; docs/accounts.md, 「Roles and unit
-       kinds」): a company's roles, the highest first, and its unit kinds in its order, each list in the company's own
-       words and written whole in its form. The administrator reads every company, a head of a company's own unit the
-       companies they head. -->
+       kinds」): the organisation chosen's roles, the highest first, and its unit kinds in its order, each list in its
+       own words and written whole in its form. -->
   <div class="flex flex-col gap-4">
-    <SettingsGroup v-if="companies.length > 1">
-      <SettingsRow :label="$t('catalogue.label.company')">
-        <ChoiceSelect :model-value="company" :items="companyItems" value-key="value" class="w-48" :aria-label="$t('catalogue.label.company')" data-catalogue-company @update:model-value="(value: string) => pickCompany(value)" />
-      </SettingsRow>
-    </SettingsGroup>
-
     <SettingsGroup v-for="list in LISTS" :key="list.kind" :title="$t(list.title)" :data-catalogue-list="list.kind">
       <template #aside>
         <UButton color="neutral" variant="subtle" icon="i-material-symbols-edit-outline" :label="$t('catalogue.action.edit')" :disabled="read[list.kind] === null" data-catalogue-edit @click="editing = list.kind" />
@@ -38,9 +31,15 @@
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
 
-import { useRosterCompanies } from "~/domain/roster";
-
 import type { CatalogueEntry } from "~/components/OrganizationCatalogueDialog.vue";
+import type { Organization } from "~/domain/organization";
+
+interface Props {
+  // The organisation chosen, whose lists the tab holds.
+  company: Organization;
+}
+
+const props = defineProps<Props>();
 
 type ListKind = "roles" | "unit-kinds";
 
@@ -57,21 +56,7 @@ const LISTS: readonly ListFace[] = [
 const LIST_OF = Object.fromEntries(LISTS.map((list) => [list.kind, list])) as Record<ListKind, ListFace>;
 
 const { t } = useI18n();
-const route = useRoute();
-const router = useRouter();
-const { companies } = useRosterCompanies();
-
-const companyItems = computed(() => companies.value.map((one) => ({ label: one.name, value: String(one.id) })));
-// The company the address names where it is one the reader may, else the first.
-const company = computed(() => {
-  const asked = String(route.query.company ?? "");
-
-  return companies.value.some((one) => String(one.id) === asked) ? asked : String(companies.value[0]?.id ?? "");
-});
-
-function pickCompany(value: string): void {
-  void router.replace({ query: { ...route.query, company: value } });
-}
+const company = computed(() => String(props.company.id));
 
 // Each list as the company keeps it, lowest first for the roles; none while it is read.
 const read = reactive<Record<ListKind, CatalogueEntry[] | null>>({ roles: null, "unit-kinds": null });
@@ -88,8 +73,6 @@ function shown(kind: ListKind): CatalogueEntry[] {
 async function readLists(): Promise<void> {
   const at = company.value;
 
-  if (at === "") return;
-
   reading.value = true;
   await Promise.all(
     LISTS.map(async ({ kind }) => {
@@ -104,15 +87,7 @@ async function readLists(): Promise<void> {
   reading.value = false;
 }
 
-watch(
-  company,
-  () => {
-    read.roles = null;
-    read["unit-kinds"] = null;
-    void readLists();
-  },
-  { immediate: true }
-);
+onMounted(() => void readLists());
 
 // The list open in its form, written in the order shown: the roles back to lowest first.
 const editing = ref<ListKind | null>(null);

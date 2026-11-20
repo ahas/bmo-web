@@ -26,6 +26,11 @@ export const SUPPLY_CALL: UnitCall = {
     "not-in-plan": "supply.error.not_in_plan",
     "blocked-by-organisation": "supply.error.blocked_by_organisation",
     "blocked-by-administrator": "supply.error.blocked_by_administrator",
+    "locked-by-platform": "supply.error.locked_by_platform",
+    "plan-scope": "supply.error.plan_scope",
+    "unknown-plan": "supply.error.unknown_plan",
+    "plan-applied": "supply.error.plan_applied",
+    "plan-not-exposed": "supply.error.plan_not_exposed",
     "not-in-force": "supply.error.not_in_force",
     "bad-request": "supply.error.bad_request",
     // The personal-supply roads a person's detail asks after, where the deployment names no agency: not a failure

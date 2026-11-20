@@ -1,8 +1,8 @@
 <template>
-  <!-- The units tab (docs/web.md, 「Organisation settings」, the units tab): the units as a tree beside the unit
-       chosen, its heads and its people, two regions across the whole body that each scroll on their own, parted by a
-       splitter. On a narrow screen the unit chosen fills the body and the tree opens as a bottom drawer from the
-       button at the unit's head. What a unit is called is its name alone. -->
+  <!-- The units tab (docs/web.md, 「Organisation」, its chart): the organisation chosen's units as a tree, the
+       organisation at its top, beside the unit chosen, its heads and its people, two regions across the whole body
+       that each scroll on their own, parted by a splitter. On a narrow screen the unit chosen fills the body and the
+       tree opens as a bottom drawer from the button at the unit's head. What a unit is called is its name alone. -->
   <div class="flex min-h-0 min-w-0 flex-1 flex-col">
     <!-- A read that failed, and a deployment holding no unit, say so in a reading column of the body's. -->
     <div v-if="failed || empty" class="min-h-0 flex-1 overflow-y-auto p-4">
@@ -262,7 +262,7 @@
           <UInput v-model="draft.name" class="w-full" />
         </UFormField>
         <UFormField :label="$t('organization.label.parent')" name="parent">
-          <ChoiceSelect v-model="draft.parent" :items="[{ label: $t('organization.label.new_company'), value: NEW_COMPANY }, ...parents(null)]" value-key="value" class="w-full" />
+          <ChoiceSelect v-model="draft.parent" :items="parents(null)" value-key="value" class="w-full" data-unit-add-parent />
         </UFormField>
         <UAlert v-if="formFailure !== ''" color="error" variant="subtle" :description="formFailure" />
       </UForm>
@@ -326,13 +326,21 @@ import { dayKey, toUnixSeconds } from "bmo-ui/app/domain/time";
 
 import { useConfirm } from "~/domain/confirm";
 import { countText } from "~/domain/numbers";
-import { branchesAbove, branchesOpenAtFirst, isCompany, unitPath } from "~/domain/organization";
+import { ORGANIZATION_UNITS_KEY, branchesAbove, branchesOpenAtFirst, isCompany, unitPath } from "~/domain/organization";
 import { shownName } from "~/domain/people";
 
+import type { Organization } from "~/domain/organization";
 import type { SplitterItem } from "@nuxt/ui";
 import type { Ref } from "vue";
 import type { RoleView } from "#shared/roster";
 import type { Unit, UnitRow, UserSummary } from "@web/server-client";
+
+interface Props {
+  // The organisation chosen, whose tree alone the tab stands.
+  company: Organization;
+}
+
+const props = defineProps<Props>();
 
 const { t } = useI18n();
 const route = useRoute();
@@ -365,7 +373,7 @@ function pathText(id: number, itself: boolean): string {
   return (itself ? path : path.slice(0, -1)).map((unit) => unit.name).join(" › ");
 }
 
-// The unit the address names, or the first company where it names none it holds.
+// The unit the address names, or the organisation itself where it names none of its tree.
 const chosen = computed<UnitRow | null>(() => {
   const asked = unitOf(Number(route.query.unit));
 
@@ -439,8 +447,8 @@ function people(except: string[]): { label: string; value: string }[] {
   return users.value.filter((one) => !except.includes(one.user)).map((one) => ({ label: shownName(one), value: one.user }));
 }
 
-// The parents a unit may stand under, each by its path from its company: for a new unit any unit; for a unit
-// standing, the units of its own company that do not stand under it.
+// The parents a unit may stand under, each by its path from the organisation: for a new unit any unit of it, the
+// organisation first; for a unit standing, those that do not stand under it.
 function parents(of: number | null): { label: string; value: string }[] {
   const all = units.value ?? [];
   const choice = (unit: UnitRow) => ({ label: pathText(unit.id, true), value: String(unit.id) });
@@ -455,13 +463,16 @@ function parents(of: number | null): { label: string; value: string }[] {
   return all.filter((unit) => pathOf(unit.id)[0]?.id === company && !below.has(unit.id)).map(choice);
 }
 
-// The units and the people read; a failure stands until a read goes through, so a read asked again from it spins
-// on its button rather than giving way to the skeleton. The unit chosen is read whole beside them, and each company's
-// own lists with them.
+// The organisation's units and the people read; a failure stands until a read goes through, so a read asked again
+// from it spins on its button rather than giving way to the skeleton. The unit chosen is read whole beside them, and
+// the organisation's own lists with them.
 async function read(): Promise<void> {
   reading.value = true;
   try {
-    [units.value, users.value] = await Promise.all([$fetch<UnitRow[]>("/api/organization/units"), $fetch<UserSummary[]>("/api/users")]);
+    const [all, people] = await Promise.all([$fetch<UnitRow[]>("/api/organization/units"), $fetch<UserSummary[]>("/api/users")]);
+
+    units.value = all.filter((unit) => unitPath(all, unit.id)[0]?.id === props.company.id);
+    users.value = people;
     failure.value = "";
     await Promise.all([readView(), readCatalogues()]);
   } catch (error) {
@@ -607,7 +618,7 @@ async function removePost(user: string): Promise<void> {
 // --- The tree narrowed by kind ---
 
 // The whole tree is a value of its own, since a select item's value is never empty; a kind is named with its company,
-// `<company>:<key>`, as each company keeps its own.
+// `<company>:<key>`, as each company keeps its own and the address names it so.
 const KIND_ALL = "all";
 const kindFilter = computed(() => {
   const asked = String(route.query.kind ?? "");
@@ -619,7 +630,7 @@ const kindItems = computed(() => [
   ...(units.value ?? []).filter(isCompany).flatMap((company) => {
     const kinds = catalogues.value[company.id]?.kinds ?? [];
 
-    return kinds.length === 0 ? [] : [{ type: "label" as const, label: company.name }, ...kinds.map((kind) => ({ label: kind.name, value: `${company.id}:${kind.key}` }))];
+    return kinds.map((kind) => ({ label: kind.name, value: `${company.id}:${kind.key}` }));
   })
 ]);
 const unitsOfKind = computed(() => {
@@ -827,26 +838,25 @@ function peopleDropped(event: DragEvent): void {
 // A person picker's words name its action rather than hint at a value, so they read at the words' own colour.
 const PICKER_UI = { placeholder: "text-default" };
 
-// A new unit: a name and a parent, with no parent a new company. The parent chosen for none is `NEW_COMPANY`, since a
-// select item's value is never empty.
-const NEW_COMPANY = "company";
+// A new unit of the organisation: a name and a parent, the organisation itself at first. A new company is the
+// organisation list's own add.
 const adding = ref(false);
-const draft = reactive({ name: "", parent: NEW_COMPANY });
+const draft = reactive({ name: "", parent: String(props.company.id) });
 const addChanges = useOpenedWith(() => draft, { open: adding });
 
 function openAdd(): void {
-  Object.assign(draft, { name: "", parent: NEW_COMPANY });
+  Object.assign(draft, { name: "", parent: String(props.company.id) });
   formFailure.value = "";
   adding.value = true;
 }
 
 async function add(): Promise<void> {
-  const body = { name: draft.name.trim(), parent: draft.parent === NEW_COMPANY ? null : Number(draft.parent) };
+  const body = { name: draft.name.trim(), parent: Number(draft.parent) };
 
   if (!(await acting(() => $fetch("/api/organization/units", { method: "POST", body }), formFailure))) return;
 
   adding.value = false;
-  if (body.parent !== null) openBranches([...branchesAbove(units.value ?? [], body.parent), body.parent]);
+  openBranches([...branchesAbove(units.value ?? [], body.parent), body.parent]);
 }
 
 // The unit's own form: its name and its parent, held until its one save sends what differs from what is saved.
@@ -911,7 +921,11 @@ async function saveEdit(): Promise<void> {
   // Reporting to the unit's own parent is reporting to none: the line goes up through the parent then.
   if (edit.reportsTo !== saved.reportsTo) body.reportsTo = edit.reportsTo === edit.parent ? null : Number(edit.reportsTo);
 
-  if (await acting(() => $fetch(`/api/organization/units/${unit.id}`, { method: "PATCH", body }), formFailure)) editing.value = false;
+  if (!(await acting(() => $fetch(`/api/organization/units/${unit.id}`, { method: "PATCH", body }), formFailure))) return;
+
+  editing.value = false;
+  // The organisation list names each company as its own unit is named, so a company renamed is read again there.
+  if (isCompany(unit) && body.name !== undefined) void refreshNuxtData(ORGANIZATION_UNITS_KEY);
 }
 
 // The person whose machine is open in its dialog.

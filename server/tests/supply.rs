@@ -214,9 +214,9 @@ async fn enforce(scratch: &Scratch, on: bool) {
     .await;
 }
 
-/// The platform default policy opened to `sources`, as an administrator's write of it would: the seeded
-/// default allows the person's own credential and global supply alone (docs/accounts.md, 「Supply」), so a
-/// test that asks the hook of a credit source opens it here first.
+/// The platform policy turning `sources` on, as an administrator's write of it would: the seeded policy turns
+/// on the person's own credential alone (docs/accounts.md, 「Supply」), so a test that asks of a platform
+/// source opens it here first. A source the seed leaves locked stays so: on for everyone once turned on.
 async fn open_platform(scratch: &Scratch, sources: &str) {
   scratch
     .run(
@@ -294,6 +294,7 @@ async fn the_order_is_the_platform_default_until_a_later_layer_narrows_it() {
   let boss = boss(&scratch).await;
   let company = org(&scratch, "company-a", None).await;
   let tester = person(&scratch, "tester", company).await;
+  open_platform(&scratch, r#"["personal", "global"]"#).await;
 
   // With no plan standing, global drops out and personal alone remains, and `stop` is last.
   let (status, said) = asked(&app, Method::GET, "/supply/me", None, Some(tester), "member").await;
@@ -345,7 +346,7 @@ async fn a_later_layer_never_switches_a_source_the_layers_above_closed() {
     &app,
     Method::PUT,
     "/supply/me",
-    Some(json!({ "order": ["personal", "global", "org_credits"], "off": [], "personalCreditsOn": false })),
+    Some(json!({ "order": ["personal", "global", "org_credits"], "off": [], "on": ["org_credits"] })),
     Some(tester),
     "member",
   )
@@ -390,7 +391,7 @@ async fn an_organisation_policy_narrows_every_person_beneath_it_and_the_unit_inh
     &app,
     Method::PUT,
     &format!("/supply/org/{company}"),
-    Some(json!({ "allowed": ["personal", "global"], "order": ["personal", "global"] })),
+    Some(json!({ "allowed": ["personal", "global"], "order": ["personal", "global", "stop"] })),
     Some(boss),
     "administrator",
   )
@@ -434,50 +435,254 @@ async fn an_organisation_policy_narrows_every_person_beneath_it_and_the_unit_inh
   );
 }
 
+/// The platform policy written whole in the database: the sources it turns on, the ones a person may switch,
+/// and whether the person's own order is read.
+async fn platform(scratch: &Scratch, allowed: &str, overridable: &str, order_overridable: bool) {
+  scratch
+    .run(
+      r#"UPDATE "supply_platform_policy"
+             SET "allowed" = $1::jsonb, "overridable" = $2::jsonb, "order_overridable" = $3
+           WHERE "id" = 1"#,
+      vec![allowed.into(), overridable.into(), order_overridable.into()],
+    )
+    .await;
+}
+
+/// One source's row of the reader's view.
+fn source<'a>(said: &'a Value, key: &str) -> &'a Value {
+  said["sources"].as_array().unwrap().iter().find(|row| row["source"] == key).unwrap()
+}
+
 #[tokio::test]
-async fn personal_credits_enter_an_order_only_once_the_person_switches_them_on() {
+async fn an_overridable_source_stands_as_the_platform_s_default_until_the_person_switches_it() {
   ready();
   let scratch = fresh().await;
   let app = app(&scratch).await;
   let company = org(&scratch, "company-a", None).await;
   let tester = person(&scratch, "tester", company).await;
   subscription(&scratch, "personal", tester, Some(1000), true).await;
-  scratch
-    .run(
-      r#"UPDATE "supply_platform_policy" SET "allowed" = '["personal", "global", "personal_credits"]' WHERE "id" = 1"#,
-      vec![],
-    )
-    .await;
+  // The person's own credential overridable and on, personal credits overridable and off, global locked on.
+  platform(&scratch, r#"["personal", "global"]"#, r#"["personal", "personal_credits"]"#, true).await;
 
-  // Allowed by every layer, and off: it stands absent from the order, marked switched off.
   let (_, said) = asked(&app, Method::GET, "/supply/me", None, Some(tester), "member").await;
   assert_eq!(said["order"], json!(["personal", "global", "stop"]), "{said}");
-  let source = said["sources"]
-    .as_array()
-    .unwrap()
-    .iter()
-    .find(|row| row["source"] == "personal_credits")
-    .unwrap();
-  assert_eq!(source["off"], true, "{said}");
+  assert_eq!(said["orderLocked"], false, "{said}");
+  assert_eq!(source(&said, "personal_credits")["off"], true, "{said}");
+  assert_eq!(source(&said, "personal_credits")["locked"], false, "{said}");
+  assert_eq!(source(&said, "global")["locked"], true, "{said}");
 
-  asked(
+  // Each switched the other way: personal credits on, the person's own credential off.
+  let (status, said) = asked(
     &app,
     Method::PUT,
     "/supply/me",
     Some(json!({
       "order": ["personal", "global", "personal_credits"],
-      "off": [],
-      "personalCreditsOn": true,
+      "off": ["personal"],
+      "on": ["personal_credits"],
       "personalCreditCredits": 50
     })),
     Some(tester),
     "member",
   )
   .await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert_eq!(said["order"], json!(["global", "personal_credits", "stop"]), "{said}");
+  assert_eq!(source(&said, "personal")["off"], true, "{said}");
+  assert_eq!(source(&said, "personal")["own"], "off", "{said}");
+  assert_eq!(source(&said, "personal_credits")["own"], "on", "{said}");
+  assert_eq!(said["personalCreditCredits"], 50, "{said}");
+
+  // A source switched both ways at once does not read.
+  let (status, said) = asked(
+    &app,
+    Method::PUT,
+    "/supply/me",
+    Some(json!({ "order": ["personal", "global", "personal_credits"], "off": ["personal"], "on": ["personal"] })),
+    Some(tester),
+    "member",
+  )
+  .await;
+  assert_eq!(status, StatusCode::BAD_REQUEST, "{said}");
+
+  // Named neither way, each stands as the platform's default again.
+  let (_, said) = asked(
+    &app,
+    Method::PUT,
+    "/supply/me",
+    Some(json!({ "order": ["personal", "global", "personal_credits"], "off": [], "on": [] })),
+    Some(tester),
+    "member",
+  )
+  .await;
+
+  assert_eq!(said["order"], json!(["personal", "global", "stop"]), "{said}");
+  assert!(source(&said, "personal_credits").get("own").is_none(), "{said}");
+}
+
+#[tokio::test]
+async fn a_locked_source_and_a_locked_order_stand_as_the_platform_says_and_the_person_s_write_is_refused() {
+  ready();
+  let scratch = fresh().await;
+  let app = app(&scratch).await;
+  let boss = boss(&scratch).await;
+  let company = org(&scratch, "company-a", None).await;
+  let tester = person(&scratch, "tester", company).await;
+  subscription(&scratch, "personal", tester, Some(1000), false).await;
+
+  // The administrator locks both sources on and the order with them.
+  let (status, said) = asked(
+    &app,
+    Method::PUT,
+    "/supply/platform",
+    Some(json!({ "allowed": ["personal", "global"], "order": ["personal", "global"], "overridable": [], "orderOverridable": false })),
+    Some(boss),
+    "administrator",
+  )
+  .await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert_eq!(said["overridable"], json!([]), "{said}");
+  assert_eq!(said["orderOverridable"], false, "{said}");
+
+  // A setting written before the lock, switching the source off and reordering, is not read.
+  scratch
+    .run(
+      r#"INSERT INTO "supply_user_settings" ("user_id", "order", "off", "on", "updated_at")
+         VALUES ($1, '["global", "personal"]', '["personal"]', '[]', 0)"#,
+      vec![tester.into()],
+    )
+    .await;
   let (_, said) = asked(&app, Method::GET, "/supply/me", None, Some(tester), "member").await;
 
-  assert_eq!(said["order"], json!(["personal", "global", "personal_credits", "stop"]), "{said}");
-  assert_eq!(said["personalCreditCredits"], 50, "{said}");
+  assert_eq!(said["order"], json!(["personal", "global", "stop"]), "{said}");
+  assert_eq!(said["orderLocked"], true, "{said}");
+  assert_eq!(source(&said, "personal")["locked"], true, "{said}");
+  assert_eq!(source(&said, "personal")["off"], false, "{said}");
+
+  // Newly switching a locked source against the platform's value is refused.
+  for ask in [
+    json!({ "order": ["personal", "global"], "off": ["global"], "on": [] }),
+    json!({ "order": ["personal", "global"], "off": [], "on": ["org_credits"] }),
+  ] {
+    let (status, said) = asked(&app, Method::PUT, "/supply/me", Some(ask), Some(tester), "member").await;
+
+    assert_eq!(status, StatusCode::FORBIDDEN, "{said}");
+    assert_eq!(said["code"], "locked-by-platform", "{said}");
+  }
+
+  // A locked order is neither read nor refused: another order is taken, the order stands as the platform
+  // says, and the order stored before the lock stays for the day it is read again.
+  let (status, said) = asked(
+    &app,
+    Method::PUT,
+    "/supply/me",
+    Some(json!({ "order": ["global"], "off": [], "on": [] })),
+    Some(tester),
+    "member",
+  )
+  .await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert_eq!(said["order"], json!(["personal", "global", "stop"]), "{said}");
+  assert_eq!(
+    scratch
+      .count(
+        r#"SELECT COUNT(*) FROM "supply_user_settings" WHERE "user_id" = $1 AND "order" = '["global", "personal"]'"#,
+        vec![tester.into()],
+      )
+      .await,
+    1
+  );
+}
+
+#[tokio::test]
+async fn a_person_s_own_write_is_judged_by_what_it_changes() {
+  ready();
+  let scratch = fresh().await;
+  let app = app(&scratch).await;
+  let company = org(&scratch, "company-a", None).await;
+  let tester = person(&scratch, "tester", company).await;
+  subscription(&scratch, "personal", tester, Some(1000), false).await;
+  platform(&scratch, r#"["personal", "global"]"#, r#"["personal", "global"]"#, true).await;
+  let write = |body: Value| asked(&app, Method::PUT, "/supply/me", Some(body), Some(tester), "member");
+
+  let (status, said) =
+    write(json!({ "order": ["personal", "global", "stop"], "off": ["global"], "on": [] })).await;
+  assert_eq!(status, StatusCode::OK, "{said}");
+
+  // The plan's quota spent closes global; the person's choice of it, sent back as they hold it, still passes
+  // and stays stored.
+  scratch
+    .run(
+      r#"UPDATE "subscriptions" SET "amount_quotas" = '{"supply": 0}'::jsonb WHERE "owner_id" = $1"#,
+      vec![tester.into()],
+    )
+    .await;
+  let (status, said) = write(json!({ "order": ["personal", "global"], "off": ["global"], "on": [] })).await;
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert_eq!(source(&said, "global")["own"], "off", "{said}");
+
+  // Newly switched on, the closed source is refused by the layer that closed it.
+  let (status, said) = write(json!({ "order": ["personal", "global"], "off": [], "on": ["global"] })).await;
+  assert_eq!((status, said["code"].as_str()), (StatusCode::FORBIDDEN, Some("not-in-plan")), "{said}");
+
+  // The order keeps the sources standing open alone: one the platform locks off and one the plan closed are
+  // dropped from it rather than refused.
+  let (status, said) =
+    write(json!({ "order": ["org_credits", "personal", "global"], "off": ["global"], "on": [] })).await;
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert_eq!(
+    scratch
+      .count(
+        r#"SELECT COUNT(*) FROM "supply_user_settings" WHERE "user_id" = $1 AND "order" = '["personal"]'"#,
+        vec![tester.into()],
+      )
+      .await,
+    1
+  );
+}
+
+#[tokio::test]
+async fn a_reservation_opens_only_for_a_source_the_resolved_order_holds() {
+  ready();
+  let scratch = fresh().await;
+  let app = app(&scratch).await;
+  let company = org(&scratch, "company-a", None).await;
+  let tester = person(&scratch, "tester", company).await;
+  subscription(&scratch, "personal", tester, Some(0), true).await;
+  credit(&scratch, "personal", tester, 1000).await;
+  enforce(&scratch, true).await;
+  open_platform(&scratch, r#"["personal", "personal_credits"]"#).await;
+  scratch
+    .run(
+      r#"INSERT INTO "supply_user_settings" ("user_id", "order", "off", "on", "personal_credit_credits", "updated_at")
+         VALUES ($1, '[]', '[]', '[]', 100, 0)"#,
+      vec![tester.into()],
+    )
+    .await;
+  let reserve = |run: i64| {
+    hook(
+      &app,
+      json!({ "op": "reserve", "run": run, "step": 1, "account": tester, "source": "personal_credits", "key": format!("{run}:1:reserve") }),
+    )
+  };
+
+  // Under the person's own cap the source stands in the order and reserves.
+  let (_, said) = reserve(60).await;
+  assert_eq!(said["answer"]["accepted"], true, "{said}");
+
+  // Past it the order no longer holds the source, and the reservation is refused though the wallet could pay.
+  scratch
+    .run(
+      r#"INSERT INTO "supply_costs" ("run", "user_id", "org_id", "source", "credits", "cost_micros", "settled_at", "period")
+         VALUES (60, $1, $2, 'personal_credits', 100, 66_667, 1, to_char(now(), 'YYYY-MM'))"#,
+      vec![tester.into(), company.into()],
+    )
+    .await;
+  let (_, said) = reserve(61).await;
+  assert_eq!(said["answer"]["accepted"], false, "{said}");
 }
 
 #[tokio::test]
@@ -540,18 +745,17 @@ async fn enforce_off_refuses_nothing_while_every_cost_still_stands() {
   let company = org(&scratch, "company-a", None).await;
   let tester = person(&scratch, "tester", company).await;
   subscription(&scratch, "personal", tester, Some(1000), true).await;
-  scratch
-    .run(
-      r#"UPDATE "supply_platform_policy" SET
-             "allowed" = '["personal", "global", "org_credits", "personal_credits"]'
-         WHERE "id" = 1"#,
-      vec![],
-    )
-    .await;
+  platform(
+    &scratch,
+    r#"["personal", "global", "org_credits"]"#,
+    r#"["personal", "personal_credits"]"#,
+    true,
+  )
+  .await;
 
   // The plan includes global and lets credits be spent, and no wallet stands, yet with nothing enforced the
-  // order names every source the layers leave in it — personal credits aside, which wait on the person's own
-  // switch — and a reservation is accepted at the full size.
+  // order names every source the layers leave in it — personal credits aside, which the platform leaves off
+  // until the person switches them on — and a reservation is accepted at the full size.
   let (status, said) = hook(&app, json!({ "op": "order", "run": 1, "account": tester, "provider": "anthropic", "model": "m", "kind": "job" })).await;
   assert_eq!(status, StatusCode::OK, "{said}");
   assert_eq!(order(&said), ["personal", "global", "org_credits"], "{said}");
@@ -776,6 +980,7 @@ async fn a_quota_reservation_holds_the_period_and_captures_its_actual_cost() {
   let tester = person(&scratch, "tester", company).await;
   subscription(&scratch, "personal", tester, Some(1000), false).await;
   enforce(&scratch, true).await;
+  open_platform(&scratch, r#"["personal", "global"]"#).await;
 
   let (status, said) = hook(
     &app,
@@ -1050,6 +1255,7 @@ async fn a_per_user_policy_is_the_unit_s_credit_manager_s_and_an_administrator_s
   let keeper = person(&scratch, "keeper", company).await;
   subscription(&scratch, "personal", tester, Some(1000), true).await;
   relation(&scratch, "credit_manager", keeper, company).await;
+  open_platform(&scratch, r#"["personal", "global"]"#).await;
 
   let (status, said) = asked(
     &app,
@@ -1152,22 +1358,31 @@ async fn the_platform_row_carries_the_seeded_defaults_until_the_administrator_mo
     asked(&app, Method::GET, "/supply/platform", None, Some(boss), "administrator").await;
 
   assert_eq!(status, StatusCode::OK, "{said}");
-  assert_eq!(said["allowed"], json!(["personal", "global"]), "{said}");
-  assert_eq!(said["order"], json!(["personal", "global", "stop"]), "{said}");
+  assert_eq!(said["allowed"], json!(["personal"]), "{said}");
+  assert_eq!(said["order"], json!(["personal", "stop"]), "{said}");
+  assert_eq!(said["overridable"], json!(["personal"]), "{said}");
+  assert_eq!(said["orderOverridable"], true, "{said}");
   assert_eq!(said["creditsPerDollar"], 1500, "{said}");
   assert_eq!(said["reservationCredits"], 200, "{said}");
   assert_eq!(said["enforce"], false, "{said}");
 
-  // `stop` is appended by the service itself: a written order naming it is refused.
-  let (status, said) = asked(
-    &app,
-    Method::PUT,
-    "/supply/platform",
-    Some(json!({ "order": ["personal", "global", "stop"] })),
-    Some(boss),
-    "administrator",
-  )
-  .await;
+  // `stop` may stand last in a written order, as every order is read back, and is dropped there; named
+  // anywhere else it is refused.
+  let put_order = |order: Value| {
+    asked(
+      &app,
+      Method::PUT,
+      "/supply/platform",
+      Some(json!({ "order": order })),
+      Some(boss),
+      "administrator",
+    )
+  };
+  let (status, said) = put_order(json!(["personal", "stop"])).await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert_eq!(said["order"], json!(["personal", "stop"]), "{said}");
+  let (status, said) = put_order(json!(["stop", "personal"])).await;
 
   assert_eq!(status, StatusCode::BAD_REQUEST, "{said}");
 
@@ -1342,4 +1557,410 @@ async fn a_cost_records_the_period_it_falls_in() {
     .expect("personal cost stands");
 
   assert_eq!(row["costMicros"], 50, "{said}");
+}
+
+// ---- the migration of the platform row and the person's switch ----
+
+#[tokio::test]
+async fn the_overrides_migration_renews_a_seeded_platform_row_and_keeps_an_administrator_s() {
+  use bmo_web_server::migration::Migrator;
+  use sea_orm_migration::MigratorTrait;
+
+  ready();
+  let scratch = fresh().await;
+  let company = org(&scratch, "company-a", None).await;
+  let switched_on = person(&scratch, "switched-on", company).await;
+  let left_off = person(&scratch, "left-off", company).await;
+  let platform_row = || async {
+    let row = bmo_web_server::one(
+      scratch.db(),
+      r#"SELECT "allowed"::text AS "allowed", "order"::text AS "order", "overridable"::text AS "overridable",
+                "order_overridable"
+           FROM "supply_platform_policy" WHERE "id" = 1"#,
+      vec![],
+    )
+    .await
+    .unwrap()
+    .unwrap();
+    let list =
+      |column: &str| serde_json::from_str::<Value>(&row.try_get::<String>("", column).unwrap()).unwrap();
+
+    (
+      list("allowed"),
+      list("order"),
+      list("overridable"),
+      row.try_get::<bool>("", "order_overridable").unwrap(),
+    )
+  };
+
+  // The row as an administrator set it before the overrides stood, and each person's old switch.
+  Migrator::down(scratch.db(), Some(1)).await.unwrap();
+  scratch
+    .run(
+      r#"UPDATE "supply_platform_policy"
+             SET "allowed" = '["personal", "global", "personal_credits"]',
+                 "order" = '["global", "personal", "personal_credits", "stop"]', "updated_by" = 1
+           WHERE "id" = 1"#,
+      vec![],
+    )
+    .await;
+  scratch
+    .run(
+      r#"INSERT INTO "supply_user_settings" ("user_id", "order", "off", "personal_credits_on", "updated_at")
+         VALUES ($1, '[]', '[]', true, 0), ($2, '[]', '[]', false, 0)"#,
+      vec![switched_on.into(), left_off.into()],
+    )
+    .await;
+  Migrator::up(scratch.db(), None).await.unwrap();
+
+  // What it allowed stays open and overridable, personal credits off until a person switches them on.
+  assert_eq!(
+    platform_row().await,
+    (
+      json!(["personal", "global"]),
+      json!(["global", "personal", "personal_credits", "stop"]),
+      json!(["personal", "global", "personal_credits"]),
+      true
+    )
+  );
+  assert_eq!(
+    scratch
+      .count(
+        r#"SELECT COUNT(*) FROM "supply_user_settings"
+            WHERE ("user_id" = $1 AND "on" = '["personal_credits"]' AND "off" = '[]')
+               OR ("user_id" = $2 AND "on" = '[]' AND "off" = '["personal_credits"]')"#,
+        vec![switched_on.into(), left_off.into()],
+      )
+      .await,
+    2
+  );
+
+  // A row still standing as seeded takes the new defaults.
+  Migrator::down(scratch.db(), Some(1)).await.unwrap();
+  scratch
+    .run(
+      r#"UPDATE "supply_platform_policy"
+             SET "allowed" = '["personal", "global"]', "order" = '["personal", "global", "stop"]',
+                 "updated_by" = NULL
+           WHERE "id" = 1"#,
+      vec![],
+    )
+    .await;
+  Migrator::up(scratch.db(), None).await.unwrap();
+
+  assert_eq!(
+    platform_row().await,
+    (json!(["personal"]), json!(["personal", "stop"]), json!(["personal"]), true)
+  );
+}
+
+// ---- an organisation's plans ----
+
+/// A plan made through the plans route, as the administrator makes one.
+async fn plan(app: &Router, boss: i32, name: &str, scope: &str) -> i64 {
+  let (status, said) = asked(
+    app,
+    Method::POST,
+    "/supply/plans",
+    Some(json!({ "name": name, "price": 0, "scope": scope, "period": "month", "includedCredits": 1000, "creditsUsable": false })),
+    Some(boss),
+    "administrator",
+  )
+  .await;
+
+  assert_eq!(status, StatusCode::CREATED, "{said}");
+  said["id"].as_i64().unwrap()
+}
+
+/// The unit's subscriptions in sumida, by plan and status, oldest first.
+async fn subscriptions_of(scratch: &Scratch, unit: i32) -> Vec<(i64, String)> {
+  bmo_web_server::all(
+    scratch.db(),
+    r#"SELECT "plan_id", "status" FROM "subscriptions"
+        WHERE "owner_kind" = 'organization' AND "owner_id" = $1 ORDER BY "id""#,
+    vec![unit.into()],
+  )
+  .await
+  .unwrap()
+  .iter()
+  .map(|row| {
+    (
+      i64::from(row.try_get::<i32>("", "plan_id").unwrap()),
+      row.try_get("", "status").unwrap(),
+    )
+  })
+  .collect()
+}
+
+/// A write the administrator makes.
+async fn put(app: &Router, boss: i32, path: &str, body: Value) -> (StatusCode, Value) {
+  asked(app, Method::PUT, path, Some(body), Some(boss), "administrator").await
+}
+
+fn ids_of(list: &Value) -> Vec<i64> {
+  list.as_array().unwrap().iter().map(|plan| plan["id"].as_i64().unwrap()).collect()
+}
+
+#[tokio::test]
+async fn a_unit_runs_on_one_of_its_exposed_plans_applied_through_sumida_s_subscribe() {
+  ready();
+  let scratch = fresh().await;
+  let app = app(&scratch).await;
+  let boss = boss(&scratch).await;
+  let company = org(&scratch, "company-a", None).await;
+  let first = plan(&app, boss, "team", "organisation").await;
+  let second = plan(&app, boss, "team plus", "organisation").await;
+  let personal = plan(&app, boss, "solo", "personal").await;
+  let plans = format!("/supply/org/{company}/plans");
+  let exposed = format!("/supply/org/{company}/plans/exposed");
+  let applied = format!("/supply/org/{company}/plans/applied");
+
+  // Only a standing organisation plan is exposed, and only an exposed one applied.
+  let (status, said) = put(&app, boss, &exposed, json!({ "plans": [personal] })).await;
+  assert_eq!(
+    (status, said["code"].as_str()),
+    (StatusCode::UNPROCESSABLE_ENTITY, Some("plan-scope")),
+    "{said}"
+  );
+  let (status, said) = put(&app, boss, &exposed, json!({ "plans": [first, 999_999] })).await;
+  assert_eq!((status, said["code"].as_str()), (StatusCode::NOT_FOUND, Some("unknown-plan")), "{said}");
+  let (status, said) = put(&app, boss, &applied, json!({ "plan": first })).await;
+  assert_eq!(
+    (status, said["code"].as_str()),
+    (StatusCode::CONFLICT, Some("plan-not-exposed")),
+    "{said}"
+  );
+  let (status, said) = put(&app, boss, &applied, json!({})).await;
+  assert_eq!(status, StatusCode::BAD_REQUEST, "a body naming no plan: {said}");
+
+  let (status, said) = put(&app, boss, &exposed, json!({ "plans": [first, second] })).await;
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert_eq!(ids_of(&said["exposed"]), [second, first], "{said}");
+  assert!(said["catalogue"].as_array().unwrap().iter().all(|row| row["exposed"] == true), "{said}");
+  assert!(said.get("applied").is_none(), "{said}");
+
+  // Applied: one subscription of sumida's on the plan, which the unit's plan card reads.
+  let (status, said) = put(&app, boss, &applied, json!({ "plan": first })).await;
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert_eq!(said["applied"]["plan"], first, "{said}");
+  assert!(said["applied"]["periodEnd"].as_i64().unwrap() > said["applied"]["since"].as_i64().unwrap());
+  assert_eq!(subscriptions_of(&scratch, company).await, [(first, "active".to_owned())]);
+  let (_, said) =
+    asked(&app, Method::GET, &format!("/supply/org/{company}"), None, Some(boss), "administrator").await;
+  assert_eq!(said["plan"]["name"], "team", "{said}");
+
+  // Applying another cancels the first; the applied plan stays shown.
+  let (_, said) = put(&app, boss, &applied, json!({ "plan": second })).await;
+  assert_eq!(said["applied"]["plan"], second, "{said}");
+  assert_eq!(
+    subscriptions_of(&scratch, company).await,
+    [(first, "canceled".to_owned()), (second, "active".to_owned())]
+  );
+  let (status, said) = put(&app, boss, &exposed, json!({ "plans": [first] })).await;
+  assert_eq!((status, said["code"].as_str()), (StatusCode::CONFLICT, Some("plan-applied")), "{said}");
+
+  // Applying none leaves the unit on no plan, and the plan may then stop being shown.
+  let (_, said) = put(&app, boss, &applied, json!({ "plan": null })).await;
+  assert!(said.get("applied").is_none(), "{said}");
+  assert_eq!(subscriptions_of(&scratch, company).await[1], (second, "canceled".to_owned()));
+  let (status, said) = put(&app, boss, &exposed, json!({ "plans": [first] })).await;
+  assert_eq!(status, StatusCode::OK, "{said}");
+
+  // Retiring a plan takes its exposures away.
+  asked(
+    &app,
+    Method::DELETE,
+    &format!("/supply/plans/{first}"),
+    None,
+    Some(boss),
+    "administrator",
+  )
+  .await;
+  let (_, said) = asked(&app, Method::GET, &plans, None, Some(boss), "administrator").await;
+  assert_eq!(said["exposed"], json!([]), "{said}");
+
+  // Every exposure and apply stands audited under the unit.
+  let subject = format!("org {company}");
+  let (_, said) =
+    asked(&app, Method::GET, "/supply/credits/audit?limit=50", None, Some(boss), "administrator").await;
+  let acts = said["entries"]
+    .as_array()
+    .unwrap()
+    .iter()
+    .filter(|entry| entry["kind"] == "plan" && entry["subject"] == subject.as_str())
+    .count();
+  assert_eq!(acts, 5, "{said}");
+}
+
+#[tokio::test]
+async fn global_reserves_against_the_plan_the_nearest_unit_above_applied() {
+  ready();
+  let scratch = fresh().await;
+  let app = app(&scratch).await;
+  let boss = boss(&scratch).await;
+  let company = org(&scratch, "company-a", None).await;
+  let division = org(&scratch, "division-a", Some(company)).await;
+  let tester = person(&scratch, "tester", division).await;
+  let team = plan(&app, boss, "team", "organisation").await;
+  put(&app, boss, &format!("/supply/org/{company}/plans/exposed"), json!({ "plans": [team] })).await;
+  put(&app, boss, &format!("/supply/org/{company}/plans/applied"), json!({ "plan": team })).await;
+  open_platform(&scratch, r#"["personal", "global"]"#).await;
+  enforce(&scratch, true).await;
+
+  let (_, said) = hook(&app, json!({ "op": "order", "run": 70, "account": tester, "provider": "anthropic", "model": "m", "kind": "job" })).await;
+  assert_eq!(order(&said), ["personal", "global"], "{said}");
+
+  // The hold stands on the company's subscription, whose quota the person's supply stands under.
+  let (status, said) = hook(
+    &app,
+    json!({ "op": "reserve", "run": 70, "step": 1, "account": tester, "source": "global", "key": "70:1:reserve" }),
+  )
+  .await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert_eq!(said["answer"]["accepted"], true, "{said}");
+  assert_eq!(
+    scratch
+      .count(
+        r#"SELECT COUNT(*) FROM "quota_reservations" r JOIN "subscriptions" s ON s."id" = r."subscription_id"
+            WHERE r."status" = 'held' AND s."owner_kind" = 'organization' AND s."owner_id" = $1"#,
+        vec![company.into()],
+      )
+      .await,
+    1
+  );
+}
+
+#[tokio::test]
+async fn an_applied_plan_whose_period_ended_is_subscribed_again_on_the_membership_pass() {
+  ready();
+  let scratch = fresh().await;
+  let app = app(&scratch).await;
+  let boss = boss(&scratch).await;
+  let company = org(&scratch, "company-a", None).await;
+  let team = plan(&app, boss, "team", "organisation").await;
+
+  for (path, body) in [("exposed", json!({ "plans": [team] })), ("applied", json!({ "plan": team }))] {
+    let (status, said) = asked(
+      &app,
+      Method::PUT,
+      &format!("/supply/org/{company}/plans/{path}"),
+      Some(body),
+      Some(boss),
+      "administrator",
+    )
+    .await;
+
+    assert_eq!(status, StatusCode::OK, "{said}");
+  }
+
+  // The clock moved past the period's end, as the rows read it.
+  scratch
+    .run(
+      r#"UPDATE "subscriptions"
+             SET "current_period_start" = now() - interval '31 days', "current_period_end" = now() - interval '1 hour'
+           WHERE "owner_kind" = 'organization' AND "owner_id" = $1"#,
+      vec![company.into()],
+    )
+    .await;
+
+  let renewal = bmo_web_server::supply::plans::membership_pass(&scratch.service).await.unwrap();
+  assert_eq!((renewal.renewed, renewal.failed.len()), (1, 0), "{renewal:?}");
+  assert_eq!(
+    subscriptions_of(&scratch, company).await,
+    [(team, "expired".to_owned()), (team, "active".to_owned())]
+  );
+  let (_, said) = asked(
+    &app,
+    Method::GET,
+    &format!("/supply/org/{company}/plans"),
+    None,
+    Some(boss),
+    "administrator",
+  )
+  .await;
+  assert_eq!(said["applied"]["plan"], team, "{said}");
+
+  // A plan still live is left as it stands.
+  let renewal = bmo_web_server::supply::plans::membership_pass(&scratch.service).await.unwrap();
+  assert_eq!(renewal.renewed, 0, "{renewal:?}");
+
+  // A period ended that sumida's own pass has not yet seen: the subscription still reads active, and the
+  // renewal cancels it before subscribing again.
+  scratch
+    .run(
+      r#"UPDATE "subscriptions"
+             SET "current_period_start" = now() - interval '31 days', "current_period_end" = now() - interval '1 hour'
+           WHERE "owner_kind" = 'organization' AND "owner_id" = $1 AND "status" = 'active'"#,
+      vec![company.into()],
+    )
+    .await;
+
+  let renewal = bmo_web_server::supply::plans::renew_applied(&scratch.service).await.unwrap();
+  assert_eq!((renewal.renewed, renewal.failed.len()), (1, 0), "{renewal:?}");
+  assert_eq!(
+    subscriptions_of(&scratch, company).await,
+    [(team, "expired".to_owned()), (team, "canceled".to_owned()), (team, "active".to_owned())]
+  );
+}
+
+#[tokio::test]
+async fn each_relation_opens_its_own_part_of_a_unit_s_plans() {
+  ready();
+  let scratch = fresh().await;
+  let app = app(&scratch).await;
+  let boss = boss(&scratch).await;
+  let company = org(&scratch, "company-a", None).await;
+  let member = person(&scratch, "plain-member", company).await;
+  let credit_keeper = person(&scratch, "credit-keeper", company).await;
+  let plan_keeper = person(&scratch, "plan-keeper", company).await;
+  relation(&scratch, "credit_manager", credit_keeper, company).await;
+  relation(&scratch, "subscription_manager", plan_keeper, company).await;
+  let team = plan(&app, boss, "team", "organisation").await;
+  let plans = format!("/supply/org/{company}/plans");
+  let exposed = format!("/supply/org/{company}/plans/exposed");
+  let applied = format!("/supply/org/{company}/plans/applied");
+
+  // Exposure is the administrator's alone, and so is the catalogue.
+  for key in [plan_keeper, credit_keeper] {
+    let (status, said) =
+      asked(&app, Method::PUT, &exposed, Some(json!({ "plans": [team] })), Some(key), "member").await;
+    assert_eq!(status, StatusCode::FORBIDDEN, "{said}");
+  }
+  let (status, said) = asked(
+    &app,
+    Method::PUT,
+    &exposed,
+    Some(json!({ "plans": [team] })),
+    Some(boss),
+    "administrator",
+  )
+  .await;
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert!(said["catalogue"].is_array(), "{said}");
+
+  // The subscription manager and the credit manager read the unit's plans; a plain member does not.
+  for key in [plan_keeper, credit_keeper] {
+    let (status, said) = asked(&app, Method::GET, &plans, None, Some(key), "member").await;
+    assert_eq!(status, StatusCode::OK, "{said}");
+    assert!(said.get("catalogue").is_none(), "{said}");
+  }
+  let (status, said) = asked(&app, Method::GET, &plans, None, Some(member), "member").await;
+  assert_eq!(status, StatusCode::FORBIDDEN, "{said}");
+
+  // Applying is the subscription manager's, not the credit manager's.
+  let (status, said) = asked(
+    &app,
+    Method::PUT,
+    &applied,
+    Some(json!({ "plan": team })),
+    Some(credit_keeper),
+    "member",
+  )
+  .await;
+  assert_eq!(status, StatusCode::FORBIDDEN, "{said}");
+  let (status, said) =
+    asked(&app, Method::PUT, &applied, Some(json!({ "plan": team })), Some(plan_keeper), "member").await;
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert_eq!(said["applied"]["plan"], team, "{said}");
 }

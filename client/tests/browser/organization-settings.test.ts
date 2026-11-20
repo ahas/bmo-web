@@ -31,7 +31,7 @@ const RUN = Date.now().toString(36);
 const PERSONAL = ["settings.label.account", "settings.label.secrets", "settings.label.supply", "settings.label.theme", "settings.label.palette"];
 const ADMINISTRATOR_PERSONAL = [...PERSONAL, "settings.label.notifications", "settings.label.briefing"];
 const MOVED = ["settings.label.invites", "settings.label.permissions", "settings.label.providers", "secrets.label.kinds", "research.title.supervisor"];
-const TABS = ["organization.label.chart", "roster.label.tab", "catalogue.label.tab", "settings.label.invites", "settings.label.bmo", "supply.label.tab"];
+const TABS = ["organization.label.chart", "roster.label.tab", "catalogue.label.tab", "settings.label.invites", "settings.label.bmo", "supply.label.tab", "supply.label.plans"];
 const ADMIN_TABS = ["settings.label.providers", "secrets.label.kinds", "supply.label.plans", "supply.label.credits"];
 
 let browser: Browser | null = null;
@@ -441,9 +441,9 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
 
           await standing(page);
           await column(page).getByText(wording("catalogue.label.kinds"), { exact: true }).waitFor({ timeout: 20_000 });
-          // A head of a company manages that company's supply, so the supply tab stands for them too (docs/web.md,
-          // 「Organisation」, the supply tab).
-          expect({ pass, tabs: await tabNames(page) }).toEqual({ pass, tabs: ["roster.label.tab", "catalogue.label.tab", "settings.label.invites", "settings.label.bmo", "supply.label.tab"].map((key) => wording(key)) });
+          // A head of a company manages that company's supply, so the supply and plans tabs stand for them too
+          // (docs/web.md, 「Organisation」, the supply and plans tabs).
+          expect({ pass, tabs: await tabNames(page) }).toEqual({ pass, tabs: ["roster.label.tab", "catalogue.label.tab", "settings.label.invites", "settings.label.bmo", "supply.label.tab", "supply.label.plans"].map((key) => wording(key)) });
           expect(await page.locator('[role="tab"][aria-selected="true"]').allInnerTexts()).toEqual([wording("catalogue.label.tab")]);
 
           // The row's underline stands under the chosen tab, though a tab came in before it once the head was known.

@@ -111,7 +111,8 @@ const ACCOUNTS: readonly [string, string][] = [
   ["date-escape", "fixture-password-3374"],
   ["opened-with", "fixture-password-3376"],
   ["choice-select", "fixture-password-3413"],
-  ["input-menu-name", "fixture-password-3562"]
+  ["input-menu-name", "fixture-password-3562"],
+  ["qa-admin", "fixture-password-3765"]
 ];
 
 // The member accounts a test signs in with to read a section by its permission rather than as the administrator,
@@ -124,6 +125,14 @@ const MEMBERS: readonly { name: string; password: string; sections: readonly { s
     password: "fixture-password-2401",
     sections: [
       { section: "rooms", read: true, write: true },
+      { section: "account", read: true, write: true }
+    ]
+  },
+  {
+    name: "tester",
+    password: "fixture-password-3766",
+    sections: [
+      { section: "rooms", read: true, write: false },
       { section: "account", read: true, write: true }
     ]
   },

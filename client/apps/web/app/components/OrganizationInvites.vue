@@ -1,12 +1,12 @@
 <template>
-  <!-- Invitations (docs/web.md, 「Organisation settings」, the invitations tab): a link made into a unit the reader
-       heads, or any for the administrator, chosen as a company and then a unit of its tree, with the role the person
+  <!-- Invitations (docs/web.md, 「Organisation」, the invitations tab): a link made into a unit of the organisation
+       chosen the reader heads, or any for the administrator, chosen from its tree, with the role the person
        takes there and, where the maker gives it, the person's name, in a dialog the tab row's add opens; copied with its words and when it closes,
        in the press that makes it, or by a copy of its own in the dialog where the browser refused that; the open
-       ones listed, each copied again or taken back by its two marks. While they are first read the list keeps its
+       ones into the organisation listed, each copied again or taken back by its two marks. While they are first read the list keeps its
        place with a skeleton, and a read that failed says why in its place. -->
   <div class="flex flex-col gap-4">
-    <p v-if="units !== null && units.length === 0" class="text-sm text-muted">{{ $t("invites.label.no_units") }}</p>
+    <p v-if="units !== null && treeUnits.length === 0" class="text-sm text-muted">{{ $t("invites.label.no_units") }}</p>
 
     <SettingsGroup :title="$t('invites.label.open')">
       <ContentSkeleton v-if="!loaded && readFailure === ''" :rows="1" listClass="flex flex-col divide-y divide-default" :label="$t('invites.status.loading')">
@@ -23,9 +23,9 @@
         <UAlert class="w-full" color="error" variant="subtle" :description="readFailure" />
         <UButton color="neutral" variant="subtle" icon="i-material-symbols-refresh" :label="$t('common.action.refresh')" :loading="reading" @click="load" />
       </div>
-      <SettingsRow v-else-if="invites.length === 0" :label="$t('invites.label.none')" />
+      <SettingsRow v-else-if="shownInvites.length === 0" :label="$t('invites.label.none')" />
       <SettingsRow
-        v-for="invite in invites"
+        v-for="invite in shownInvites"
         :key="invite.token"
         :label="inviteLine(invite)"
         :description="$t('invites.label.until', { time: formatStamp(invite.expiresAt / 1000) })"
@@ -43,7 +43,7 @@
 
     <p v-if="failure !== ''" role="alert" class="text-sm text-error">{{ failure }}</p>
 
-    <SettingsDialog v-model:open="making" :title="$t('invites.label.make')">
+    <SettingsDialog v-model:open="making" :title="$t('invites.label.make')" :dirty="makeChanges">
       <!-- A link made whose copy the browser refused stands in the dialog with its own copy, which a fresh press
            puts on the clipboard. -->
       <div v-if="made !== null" class="flex flex-col gap-3" data-invite-made>
@@ -55,11 +55,7 @@
           <UInput v-model="fullName" class="w-full" autocomplete="off" data-invite-name />
         </UFormField>
 
-        <UFormField :label="$t('invites.label.company')" name="company">
-          <ChoiceSelect :model-value="company" :items="companyItems" value-key="value" class="w-full" :aria-label="$t('invites.label.company')" data-invite-company @update:model-value="chooseCompany" />
-        </UFormField>
-
-        <!-- The chosen company's tree, as the units tab draws it; the path down to the unit chosen reads above it. -->
+        <!-- The organisation's tree, as the units tab draws it; the path down to the unit chosen reads above it. -->
         <UFormField :label="$t('invites.label.unit')" :description="chosenPath" name="unit">
           <div role="group" class="overflow-x-auto [scrollbar-width:thin]" :aria-label="$t('invites.label.unit')" data-invite-unit-tree>
             <OrganizationUnitTree v-model:expanded="expanded" class="w-max min-w-full" :units="treeUnits" :chosen="unit" @choose="(id: number) => (unit = id)" />
@@ -98,17 +94,26 @@
 
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
+import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 import { useIsland } from "bmo-ui/app/domain/island";
 import { formatStamp } from "bmo-ui/app/domain/time";
 
 import { copyPending, copyText } from "~/domain/copy";
 
-import { companyUnits, inviteCompanies, placeOf } from "~/domain/invites";
+import { companyUnits, placeOf } from "~/domain/invites";
 import { unitBranches, unitPath } from "~/domain/organization";
 
 import { useAdministrator } from "~/domain/access";
 
+import type { Organization } from "~/domain/organization";
 import type { Invite, InviteUnit } from "@web/server-client";
+
+interface Props {
+  // The organisation chosen, whose units alone a link is made into and whose links alone are listed.
+  company: Organization;
+}
+
+const props = defineProps<Props>();
 
 const { t } = useI18n();
 const island = useIsland(t);
@@ -117,7 +122,6 @@ const config = useRuntimeConfig();
 
 const units = ref<InviteUnit[] | null>(null);
 const invites = ref<Invite[]>([]);
-const company = ref("");
 const unit = ref<number | null>(null);
 const role = ref<"member" | "head">("member");
 // The keys of the tree's branches standing open.
@@ -136,9 +140,12 @@ const makeFailure = ref("");
 // The link just made whose copy the browser refused, which the dialog then shows with its own copy.
 const made = ref<Invite | null>(null);
 const copied = ref("");
+// The dialog asks before it closes on a choice changed from what it opened with; a link made stands as what it opened
+// with from then on, since the making went through.
+const makeChanges = useOpenedWith(() => ({ name: fullName.value, unit: unit.value, role: role.value, hours: hours.value, made: made.value?.token ?? "" }), { open: making });
 
-const companyItems = computed(() => inviteCompanies(units.value ?? []).map((one) => ({ label: one.name, value: String(one.id) })));
-const treeUnits = computed(() => companyUnits(units.value ?? [], Number(company.value)));
+const treeUnits = computed(() => companyUnits(units.value ?? [], props.company.id));
+const shownInvites = computed(() => invites.value.filter((invite) => invite.company.id === props.company.id));
 const chosenPath = computed(() =>
   unitPath(treeUnits.value, unit.value ?? Number.NaN)
     .map((one) => one.name)
@@ -150,10 +157,8 @@ const roleItems = computed(() => [
   { label: t("organization.label.role_head"), value: "head", disabled: !administrator.value }
 ]);
 
-// A company chosen chooses the top of its tree, its first branches open.
-function chooseCompany(value: string): void {
-  company.value = value;
-
+// The top of the organisation's tree is chosen at first, its first branches open.
+function chooseTop(): void {
   const roots = unitBranches(treeUnits.value).map((branch) => branch.unit.id);
 
   unit.value = roots[0] ?? null;
@@ -173,7 +178,7 @@ async function load(): Promise<void> {
     [units.value, invites.value] = await Promise.all([$fetch<InviteUnit[]>("/api/invites/units"), $fetch<Invite[]>("/api/invites")]);
     readFailure.value = "";
     loaded.value = true;
-    if (unit.value === null && companyItems.value.length > 0) chooseCompany(companyItems.value[0]!.value);
+    if (unit.value === null) chooseTop();
   } catch (error) {
     readFailure.value = failureText(error, t("invites.error.failed"));
   } finally {
@@ -233,6 +238,7 @@ async function make(): Promise<void> {
     } else {
       copied.value = "";
       made.value = invite;
+      await makeChanges.take();
     }
   } catch (error) {
     makeFailure.value = failureText(error, t("invites.error.failed"));
@@ -254,5 +260,5 @@ onMounted(() => void load());
 
 // The tab's create: a link, by its dialog, standing off until the units the reader may invite into are read and
 // while there are none.
-defineExpose({ addLabel: computed(() => t("invites.label.make")), addDisabled: computed(() => (units.value ?? []).length === 0), openAdd: openMake });
+defineExpose({ addLabel: computed(() => t("invites.label.make")), addDisabled: computed(() => treeUnits.value.length === 0), openAdd: openMake });
 </script>

@@ -1,26 +1,34 @@
-import type { Component, ComputedRef } from "vue";
+import { filterRecords } from "bmo-ui/shared/search";
+
+import type { Component, ComputedRef, Ref } from "vue";
 import type { LocationQuery } from "vue-router";
+import type { InviteUnit, UnitRow } from "@web/server-client";
 
 import { useAdministrator } from "./access";
 import { adminAddress, adminTabNamed, administratorOpens } from "./administration";
+import { inviteCompanies } from "./invites";
 import { PERSON_PANE_KEY } from "./person-panes";
 import { useRosterCompanies } from "./roster";
-import { useSupplyReader } from "./supply";
+import { useSupplyReader, useSupplyUnits } from "./supply";
 import { SETTINGS_QUERY } from "./settings-dialog";
 
-// The organisation screen (docs/web.md, 「Organisation」): the organisation and the people in it, a tab to a
-// section. Each tab is a component of its own; this is only the order they stand in,
-// what each tab is called and who may open it.
+// The organisation screen (docs/web.md, 「Organisation」): the organisations at its left, the one chosen at its right,
+// and inside it a tab to a section. Each tab is a component of its own; this is only the order they stand in, what
+// each tab is called and who may open it, and which organisation the address chooses.
 
 export const ORGANIZATION_PATH = "/organization";
 
-/** Who reads the screen, as far as which tabs stand for them: the platform administrator, and whether the people
- * roster answers them any company to look through (docs/accounts.md, 「The people roster」). `known` is false until
- * what decides it has been read, so a tab not yet known to stand is neither drawn nor taken away from the address. */
+/** The key of the address the organisation chosen stands in, kept as the reader moves between tabs. */
+export const ORGANIZATION_KEY = "company";
+
+/** Who reads the screen, as far as which tabs stand for them: the platform administrator, whether the people
+ * roster answers them the organisation chosen to look through (docs/accounts.md, 「The people roster」), and whether
+ * their supply reach covers it. `known` is false until what decides it has been read, so a tab not yet known to stand
+ * is neither drawn nor taken away from the address. */
 export interface OrganizationReader {
   administrator: boolean;
   roster: boolean;
-  // Whether the reader manages any unit's supply — their own read, not the roster's (the supply tab).
+  // Whether the reader's supply reach covers the organisation chosen — their own read, not the roster's.
   supply: boolean;
   known: boolean;
 }
@@ -53,8 +61,8 @@ function rosterReaderOpens(reader: OrganizationReader): boolean {
   return reader.administrator || reader.roster;
 }
 
-// The supply tab's readers: the administrator, and a member the account service has named a unit's manager or
-// credit manager for (「Organisation」, the supply tab).
+// The supply and plans tabs' readers: the administrator, and a member whose supply reach the account service's read
+// says covers the organisation chosen (「Organisation」, the supply and plans tabs).
 function supplyReaderOpens(reader: OrganizationReader): boolean {
   return reader.administrator || reader.supply;
 }
@@ -64,13 +72,14 @@ const PEOPLE_TAB = "people";
 
 export const ORGANIZATION_TABS: readonly OrganizationTab[] = [
   { value: "organization", label: "organization.label.chart", icon: "i-material-symbols-account-tree-outline", opens: administratorOpens, keys: ["unit", "kind"], wide: true, load: () => import("~/components/OrganizationUnits.vue") },
-  { value: PEOPLE_TAB, label: "roster.label.tab", icon: "i-material-symbols-group-outline", opens: rosterReaderOpens, keys: ["q", "company", "unit", "kind", "role", "state", "user", PERSON_PANE_KEY], wide: true, load: () => import("~/components/OrganizationPeople.vue") },
-  { value: "catalogue", label: "catalogue.label.tab", icon: "i-material-symbols-category-outline", opens: rosterReaderOpens, keys: ["company"], wide: false, load: () => import("~/components/OrganizationCatalogue.vue") },
+  { value: PEOPLE_TAB, label: "roster.label.tab", icon: "i-material-symbols-group-outline", opens: rosterReaderOpens, keys: ["q", "unit", "kind", "role", "state", "user", PERSON_PANE_KEY], wide: true, load: () => import("~/components/OrganizationPeople.vue") },
+  { value: "catalogue", label: "catalogue.label.tab", icon: "i-material-symbols-category-outline", opens: rosterReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationCatalogue.vue") },
   { value: "invites", label: "settings.label.invites", icon: "i-material-symbols-person-add-outline", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationInvites.vue") },
-  { value: "agent", label: "settings.label.bmo", icon: "i-material-symbols-face-outline", opens: everyReaderOpens, keys: ["company", "unit"], wide: false, load: () => import("~/components/OrganizationBmo.vue") },
-  // The supply tab stands only for a reader who manages a unit's supply — the administrator everywhere, a member for
-  // the units the account service names them (docs/web.md, 「Organisation」, the supply tab).
-  { value: "supply", label: "supply.label.tab", icon: "i-material-symbols-bolt-outline", opens: supplyReaderOpens, keys: ["unit"], wide: false, load: () => import("~/components/OrganizationSupply.vue") }
+  { value: "agent", label: "settings.label.bmo", icon: "i-material-symbols-face-outline", opens: everyReaderOpens, keys: ["unit"], wide: false, load: () => import("~/components/OrganizationBmo.vue") },
+  // The supply and plans tabs stand only for a reader whose supply reach covers the organisation chosen — the
+  // administrator everywhere (docs/web.md, 「Organisation」, the supply and plans tabs).
+  { value: "supply", label: "supply.label.tab", icon: "i-material-symbols-bolt-outline", opens: supplyReaderOpens, keys: ["unit"], wide: false, load: () => import("~/components/OrganizationSupply.vue") },
+  { value: "plans", label: "supply.label.plans", icon: "i-material-symbols-receipt-long-outline", opens: supplyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationPlans.vue") }
 ];
 
 // Where a section that once stood here as a tab stands now, by the key its tab had, so a link made before it moved
@@ -82,11 +91,14 @@ const MOVED_AWAY: Readonly<Record<string, { path: string; query: LocationQuery; 
   research: { path: "/research", query: { tab: "settings" } },
   briefing: { path: ORGANIZATION_PATH, query: { [SETTINGS_QUERY]: "briefing" } },
   secrets: { path: ORGANIZATION_PATH, query: { [SETTINGS_QUERY]: "secrets" } },
-  permissions: { path: ORGANIZATION_PATH, query: { tab: PEOPLE_TAB, [PERSON_PANE_KEY]: "permissions" }, carries: ["user"] }
+  permissions: { path: ORGANIZATION_PATH, query: { tab: PEOPLE_TAB, [PERSON_PANE_KEY]: "permissions" }, carries: ["user", ORGANIZATION_KEY] }
 };
 
 /** The address a key of a tab that moved away from this screen now leads to, where it names one, read off the address it was asked on. */
 export function organizationMovedAway(key: unknown, query: LocationQuery = {}): { path: string; query: LocationQuery } | null {
+  // A key this screen's own tab holds stands here, whatever tab of the administrator's carries the same key.
+  if (typeof key === "string" && organizationTabNamed(key) !== null) return null;
+
   const admin = adminTabNamed(key);
 
   if (admin !== null) return adminAddress(admin.value);
@@ -129,14 +141,64 @@ const TAB_KEYS = new Set(ORGANIZATION_TABS.flatMap((tab) => tab.keys));
 
 /**
  * The address of one tab: the screen's own for the first, `?tab=` for the rest. What the tab left owned goes, and
- * every other key of the address stays; `carried` names the keys a deliberate open hands the tab entered, such as
- * the company and the unit the BMO tab opens at.
+ * every other key of the address stays, the organisation chosen among them; `carried` names the keys a deliberate open
+ * hands the tab entered, such as the organisation and the unit the BMO tab opens at.
  */
 export function organizationAddress(value: string, query: LocationQuery = {}, carried: LocationQuery = {}): { path: string; query: LocationQuery } {
   const rest = Object.fromEntries(Object.entries(query).filter(([key]) => key !== "tab" && !TAB_KEYS.has(key)));
   const kept = { ...rest, ...carried };
 
   return { path: ORGANIZATION_PATH, query: value === ORGANIZATION_TABS[0]!.value ? kept : { ...kept, tab: value } };
+}
+
+/**
+ * The address of one organisation chosen from the list: the tab open stays, what that tab held of the organisation
+ * before — its words, its filters, the person open — goes, and every other key of the address stays, the person's tab
+ * kept for the person opened next among them.
+ */
+export function organizationChosenAddress(company: number, query: LocationQuery = {}): { path: string; query: LocationQuery } {
+  const rest = Object.fromEntries(Object.entries(query).filter(([key]) => key === PERSON_PANE_KEY || !TAB_KEYS.has(key)));
+
+  return { path: ORGANIZATION_PATH, query: { ...rest, [ORGANIZATION_KEY]: String(company) } };
+}
+
+/** One organisation of the list: a company at the top of the tree of units, by its number and its name. */
+export interface Organization {
+  id: number;
+  name: string;
+}
+
+/**
+ * The organisation an address chooses among those the reader may set: the one `?company=` names; else, for a link
+ * made before the screen chose an organisation first, the one whose tree holds the unit `?unit=` names; else the
+ * first. None where the reader may set none.
+ */
+export function chosenOrganization(query: LocationQuery, organizations: readonly Organization[], companyOfUnit: (unit: number) => number | null = () => null): Organization | null {
+  const named = (value: LocationQuery[string] | undefined): Organization | undefined => {
+    const text = Array.isArray(value) ? value[0] : value;
+
+    return typeof text === "string" && /^[1-9][0-9]*$/.test(text) ? organizations.find((one) => one.id === Number(text) || one.id === companyOfUnit(Number(text))) : undefined;
+  };
+  const asked = Array.isArray(query[ORGANIZATION_KEY]) ? query[ORGANIZATION_KEY][0] : query[ORGANIZATION_KEY];
+  const byCompany = typeof asked === "string" ? organizations.find((one) => String(one.id) === asked) : undefined;
+
+  return byCompany ?? named(query.unit) ?? organizations[0] ?? null;
+}
+
+/** The organisations whose name as shown holds the words searched, in the list's order; every one for no words. */
+export function organizationsMatching(organizations: readonly Organization[], words: string): Organization[] {
+  return filterRecords(organizations, (one) => [{ label: "", text: one.name, shown: true }], words);
+}
+
+/** The companies a member may set something in, each once: those where they head a unit — the invitations' units —
+ * and those the roster and the supply reach answer them (docs/web.md, 「Organisation」). They stand in the tree's order
+ * whichever read named them, which for companies is the order of their numbers, as the account service lays its tree. */
+export function memberOrganizations(inviteUnits: readonly InviteUnit[], ...more: readonly (readonly Organization[])[]): Organization[] {
+  const all = new Map<number, Organization>();
+
+  for (const one of [...inviteCompanies(inviteUnits), ...more.flat()]) if (!all.has(one.id)) all.set(one.id, { id: one.id, name: one.name });
+
+  return [...all.values()].sort((one, other) => one.id - other.id);
 }
 
 /** The tab of the organisation screen a key names, where it names one. */
@@ -157,31 +219,108 @@ export function useMayInvite(): ComputedRef<boolean> {
 
 /**
  * Who reads the organisation screen, for the tabs that stand for them: the administrator at once, and a member once
- * the people roster has said whether they look through any company and the supply read has said whether they manage
- * any unit. A read that failed leaves them as one who looks through none and manages none. Once both have answered
- * they stay known: a tab that reads one of them itself asks it again as it opens, and that read must not make the
- * reader unknown and take the tab away.
+ * the people roster has said which companies they look through and the supply read which their supply reach covers.
+ * Where an organisation is chosen, each says whether it covers that one; where none is, whether it covers any. A read
+ * that failed leaves them as one who looks through none and manages none. Once both have answered they stay known: a
+ * tab that reads one of them itself asks it again as it opens, and that read must not make the reader unknown and
+ * take the tab away.
  */
-export function useOrganizationReader(): ComputedRef<OrganizationReader> {
+export function useOrganizationReader(chosen: () => number | null = () => null): ComputedRef<OrganizationReader> {
   const administrator = useAdministrator();
   const { companies, status } = useRosterCompanies();
   const supply = useSupplyReader();
-  const rosterAnswered = ref(false);
+  const supplied = useSupplyUnits();
+  const rosterAnswered = useAnswered(status);
+  const covers = (list: readonly { id: number }[]): boolean => {
+    const company = chosen();
+
+    return company === null ? list.length > 0 : list.some((one) => one.id === company);
+  };
+
+  return computed(() => ({
+    administrator: administrator.value,
+    roster: covers(companies.value),
+    supply: covers(supplied.value),
+    known: administrator.value || (rosterAnswered.value && supply.value.known)
+  }));
+}
+
+// Whether a read has answered once, either way; it stays answered as the read is asked again.
+function useAnswered(status: Ref<string>): Ref<boolean> {
+  const answered = ref(false);
 
   watch(
     status,
     (now) => {
-      if (now === "success" || now === "error") rosterAnswered.value = true;
+      if (now === "success" || now === "error") answered.value = true;
     },
     { immediate: true }
   );
 
-  return computed(() => ({
-    administrator: administrator.value,
-    roster: companies.value.length > 0,
-    supply: supply.value.opens,
-    known: administrator.value || (rosterAnswered.value && supply.value.known)
-  }));
+  return answered;
+}
+
+/** The key the administrator's read of every unit is kept under, which a change of a company's name reads again. */
+export const ORGANIZATION_UNITS_KEY = "organization-units";
+
+/** The organisations the reader may set something in, and what the screen needs to choose one. */
+export interface Organizations {
+  // Every company the reader may set anything in, in the tree's order; null until the reads that say so answer.
+  list: ComputedRef<Organization[] | null>;
+  // Why the read failed, empty while it has not.
+  failure: ComputedRef<string>;
+  // The company a unit stands in, where the reads hold it: an old link naming a unit lands in its organisation.
+  companyOf: (unit: number) => number | null;
+  reading: ComputedRef<boolean>;
+  refresh: () => Promise<void>;
+}
+
+/**
+ * The organisations the screen lists (docs/web.md, 「Organisation」): every company for the administrator, read off
+ * every unit; for a member the companies where they head a unit, manage the supply or head the company itself. Read
+ * once the page stands in the browser and kept while it stands.
+ */
+export function useOrganizations(failed: (error: unknown) => string): Organizations {
+  const administrator = useAdministrator();
+  const units = useFetch<UnitRow[]>("/api/organization/units", { key: ORGANIZATION_UNITS_KEY, lazy: true, server: false, immediate: false, default: () => [] });
+  const invites = useFetch<InviteUnit[]>("/api/invites/units", { key: "invite-units", lazy: true, server: false, default: () => [] });
+  const roster = useRosterCompanies();
+  const supply = useSupplyReader();
+  const supplied = useSupplyUnits();
+  const invitesAnswered = useAnswered(invites.status);
+  const rosterAnswered = useAnswered(roster.status);
+
+  watch(
+    administrator,
+    (now) => {
+      if (now && units.status.value === "idle") void units.execute();
+    },
+    { immediate: true }
+  );
+
+  const list = computed<Organization[] | null>(() => {
+    if (administrator.value) return units.status.value === "success" ? (units.data.value ?? []).filter(isCompany).map((one) => ({ id: one.id, name: one.name })) : null;
+    if (!invitesAnswered.value || !rosterAnswered.value || !supply.value.known) return null;
+
+    return memberOrganizations(invites.status.value === "success" ? (invites.data.value ?? []) : [], roster.companies.value, supplied.value);
+  });
+  const failure = computed(() => (administrator.value && units.error.value ? failed(units.error.value) : ""));
+
+  function companyOf(unit: number): number | null {
+    if (administrator.value) return unitPath(units.data.value ?? [], unit)[0]?.id ?? null;
+
+    return (invites.data.value ?? []).find((one) => one.id === unit)?.company.id ?? null;
+  }
+
+  return {
+    list,
+    failure,
+    companyOf,
+    reading: computed(() => units.status.value === "pending"),
+    refresh: async () => {
+      if (administrator.value) await units.refresh();
+    }
+  };
 }
 
 // The units tab's tree (docs/web.md, 「Organisation」, its chart): companies at its top, each unit under its

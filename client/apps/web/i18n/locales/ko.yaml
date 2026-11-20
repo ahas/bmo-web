@@ -1958,9 +1958,12 @@ organization:
   label:
     chart: 조직도
     none: 조직 없음
+    list: 조직 목록
+    list_search: 조직 목록 검색
+    list_none: 설정할 조직 없음
+    list_no_match: 찾은 조직 없음
     name: 이름
     parent: 상위 조직
-    new_company: 없음 (새 회사)
     heads: 조직장
     no_heads: 조직장 없음
     no_members: 구성원 없음
@@ -2022,6 +2025,7 @@ organization:
     install: "연결할 PC에서 아래 명령 중 하나를 실행해 jake를 설치하세요.\n연결되면 이 사람의 BMO와 에이전트가 이 기기에서 실행됩니다."
   action:
     add: 조직 추가
+    add_company: 회사 추가
     mark_left: "{name} 탈퇴 처리"
     mark_left_confirm: 탈퇴 처리
     edit: 편집
@@ -2085,7 +2089,6 @@ organization:
 catalogue:
   label:
     tab: 직책·종류
-    company: 회사
     roles: 직책
     kinds: 조직 종류
     no_roles: 직책 없음
@@ -3830,7 +3833,6 @@ admin:
     tabs: 관리자 탭
 bmo_profile:
   label:
-    company: 회사
     company_default: 기본 BMO
     name: 이름
     call_names: 부르는 이름
@@ -3886,7 +3888,6 @@ supply:
     logins: 공급 로그인
     keys: 공급 키
     order: 공급 순서
-    credits: 개인 크레딧
     usage: 이번 달 사용량
     policy: 공급 정책
     plan: 플랜
@@ -3897,14 +3898,14 @@ supply:
     policy_set: 공급 정책 설정
     plan_add: 플랜 추가
     plan_edit: 플랜 편집
+    plan_applied: 적용 플랜
+    plan_exposed: 노출 플랜
   label:
     note: 로그인과 키의 값은 이 화면에 나타나지 않습니다. 이름과 상태만 보입니다.
     tab: 공급
     plans: 플랜
     plans_none: 플랜 없음
     credits: 크레딧
-    unit: 조직
-    no_units: 관리할 공급이 있는 조직이 없습니다.
     source_personal: 개인 공급
     source_global: 전역 공급
     source_org_credits: 조직 크레딧
@@ -3913,6 +3914,22 @@ supply:
     reason_not_in_plan: 계획에 없음
     reason_blocked_by_organisation: 조직에서 막음
     reason_blocked_by_administrator: 관리자가 막힘
+    locked: 전역 설정으로 고정
+    order_locked: 순서 전역 설정으로 고정
+    overridable: 개인 설정 허용
+    fixed: 고정
+    order: 순서
+    source_on: 켜짐
+    source_off: 꺼짐
+    monthly_cap: 월 상한
+    owner_shared: 공용
+    owner_personal: "개인 · {name}"
+    plan_applied_none: 적용 플랜 없음
+    plan_exposed_none: 노출 플랜 없음
+    plan_term: 적용 기간
+    plan_term_line: "{since}부터 {end}까지"
+    plan_applied_locked: 적용 중인 플랜은 노출을 끌 수 없습니다
+    plan_choice_none: 없음
     road: 공급자
     road_claude: Claude
     road_codex: Codex
@@ -3929,8 +3946,6 @@ supply:
     login_needed: 로그인 필요
     window_full: 창 가득 참
     refused: 키 거부됨
-    personal_credits_on: 개인 크레딧 사용
-    personal_credits_note: 켜면 개인 크레딧이 공급 순서에 들어옵니다.
     personal_credit_cap: 개인 크레딧 월 상한
     personal_credit_cap_note: 한 달에 개인 크레딧으로 보낼 수 있는 가장 큰 양입니다.
     cap_none: 상한 없음
@@ -3999,11 +4014,16 @@ supply:
     credit_grant: 크레딧 부여
     grant: 부여
     plan_add: 플랜 추가
+    plan_change: 변경
+    plan_apply: 적용
     more: 더 불러오기
   aria:
     login_switch: "{name} 공급 로그인 켜기"
     key_switch: "{name} 공급 키 켜기"
     source_switch: "{name} 공급 사용"
+    source_overridable: "{name} 개인 설정 허용"
+    order_overridable: 순서 개인 설정 허용
+    plan_exposed: "{name} 노출"
   status:
     loading: 공급 정보 불러오는 중…
     ledger_loading: 장부 불러오는 중…
@@ -4038,6 +4058,11 @@ supply:
     not_in_plan: 계획에 없는 공급원입니다.
     blocked_by_organisation: 조직에서 허용하지 않은 공급원입니다.
     blocked_by_administrator: 관리자가 허용하지 않은 공급원입니다.
+    locked_by_platform: 전역 설정으로 고정된 공급원이나 순서는 바꿀 수 없습니다.
+    plan_scope: 조직 대상 플랜만 조직에 노출할 수 있습니다.
+    unknown_plan: 찾을 수 없는 플랜입니다.
+    plan_applied: 적용 중인 플랜은 노출을 끌 수 없습니다.
+    plan_not_exposed: 이 조직에 노출되지 않은 플랜은 적용할 수 없습니다.
     not_in_force: 공급 기능이 아직 이 배포에 켜지지 않았습니다.
     no_agency: 이 배포에는 에이전시가 지정되어 있지 않아 개인 공급을 알 수 없습니다.
     upstream_failed: 다른 단위가 답하지 않아 공급 정보를 불러오지 못했습니다.

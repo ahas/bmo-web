@@ -9,6 +9,7 @@
 //! agent or a person.
 
 pub mod hook;
+pub mod plans;
 pub mod routes;
 
 use std::collections::BTreeMap;
@@ -16,6 +17,7 @@ use std::collections::BTreeMap;
 use sea_orm::{ConnectionTrait, TransactionTrait};
 use serde_json::json;
 use sumida::api::authz::Authz;
+use sumida::entity::membership::OwnerKind;
 
 use crate::users::user_subject;
 use crate::{Refusal, one, run};
@@ -116,12 +118,34 @@ pub struct Standing {
   pub closed_by: Option<Closed>,
   /// Whether the reader has the source switched off, where they may use it.
   pub off: bool,
+  /// Whether the platform holds the source as it says for everyone, out of reach of a person's own setting.
+  pub locked: bool,
 }
 
-/// The platform default policy.
+/// The platform policy: the sources it turns on, its order, the sources a person's own setting may switch
+/// against that default, and whether a person's own order is read.
 pub struct PlatformPolicy {
   pub allowed: Vec<Source>,
   pub order: Vec<Source>,
+  pub overridable: Vec<Source>,
+  pub order_overridable: bool,
+}
+
+impl PlatformPolicy {
+  /// Whether the platform turns the source on, the default a person starts from where it is overridable.
+  pub fn on(&self, source: Source) -> bool {
+    self.allowed.contains(&source)
+  }
+
+  /// Whether a person's own setting cannot change the source.
+  pub fn locked(&self, source: Source) -> bool {
+    !self.overridable.contains(&source)
+  }
+
+  /// Whether the layers below may use the source at all: it is on, or a person may switch it on.
+  pub fn available(&self, source: Source) -> bool {
+    self.on(source) || !self.locked(source)
+  }
 }
 
 /// The platform's money settings: the conversion of a US-dollar cost into credits, the size of one
@@ -155,13 +179,13 @@ pub struct Policy {
   pub from: Option<i64>,
 }
 
-/// A person's own setting. `off` holds allowed sources the person switched off; personal credits enter the
-/// order only once the person switches them on.
+/// A person's own setting. `off` and `on` hold the overridable sources the person switched off and on
+/// against the platform's default; a source in neither stands as that default says.
 #[derive(Debug, Clone)]
 pub struct OwnSetting {
   pub order: Vec<Source>,
   pub off: Vec<Source>,
-  pub personal_credits_on: bool,
+  pub on: Vec<Source>,
   pub personal_credit_credits: Option<i64>,
 }
 
@@ -175,6 +199,9 @@ pub struct PlanUsage {
   pub credits_usable: bool,
   /// When the period ends and the quota refills, in epoch milliseconds.
   pub reopens_at: Option<i64>,
+  /// Who holds the subscription — the person, or their unit or the nearest unit above — whose quota a
+  /// `global` reservation runs against; none where no subscription stands.
+  pub owner: Option<(OwnerKind, i32)>,
 }
 
 impl PlanUsage {
@@ -184,6 +211,7 @@ impl PlanUsage {
       remaining: None,
       credits_usable: false,
       reopens_at: None,
+      owner: None,
     }
   }
 }
@@ -191,7 +219,7 @@ impl PlanUsage {
 /// How far a resolution has walked: which layers have narrowed what the layers above allow.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Depth {
-  /// The platform default and the plan's inclusion.
+  /// The platform policy and the plan's inclusion.
   Plan,
   /// The nearest organisation policy too.
   Organisation,
@@ -205,6 +233,8 @@ pub enum Depth {
 pub struct Resolution {
   /// The order as resolved at the depth read, `stop` last.
   pub order: Vec<Source>,
+  /// Whether the platform locks the order, so the person's own order is not read.
+  pub order_locked: bool,
   pub standing: BTreeMap<&'static str, Standing>,
   pub plan: PlanUsage,
   /// How far this resolution walked.
@@ -213,10 +243,19 @@ pub struct Resolution {
   pub user: i64,
 }
 
+/// How `stop` stands in every resolution: always there, last, and no setting moves it.
+const STOP: Standing = Standing {
+  allowed: true,
+  closed_by: None,
+  off: false,
+  locked: true,
+};
+
 impl Resolution {
-  /// The standing of one source; every payable source always has one.
+  /// The standing of one source: every payable source's as the layers left it, and `stop`'s, which nothing
+  /// changes. A written key is read here safely, whatever it names.
   pub fn of(&self, source: Source) -> Standing {
-    self.standing[source.key()]
+    self.standing.get(source.key()).copied().unwrap_or(STOP)
   }
 
   /// The order as the hook answers it: the payable sources in their order, `stop` left out.
@@ -246,24 +285,31 @@ fn keys(sources: &[Source]) -> Vec<&'static str> {
   sources.iter().map(|source| source.key()).collect()
 }
 
-/// The platform default policy, as it stands.
+/// A stored source list column, read whole.
+fn list_of(row: &sea_orm::QueryResult, column: &str) -> Result<Vec<Source>, Refusal> {
+  let list: serde_json::Value =
+    serde_json::from_str(&row.try_get::<String>("", column)?).expect("a stored list is JSON");
+
+  sources_of(&list)
+}
+
+/// The platform policy, as it stands.
 pub async fn platform_policy(db: &impl ConnectionTrait) -> Result<PlatformPolicy, Refusal> {
   let row = one(
     db,
-    r#"SELECT "allowed"::text AS "allowed", "order"::text AS "order"
+    r#"SELECT "allowed"::text AS "allowed", "order"::text AS "order",
+              "overridable"::text AS "overridable", "order_overridable"
        FROM "supply_platform_policy" WHERE "id" = 1"#,
     vec![],
   )
   .await?
   .expect("the migration seeds the platform policy");
-  let allowed: serde_json::Value =
-    serde_json::from_str(&row.try_get::<String>("", "allowed")?).expect("a stored list is JSON");
-  let order: serde_json::Value =
-    serde_json::from_str(&row.try_get::<String>("", "order")?).expect("a stored list is JSON");
 
   Ok(PlatformPolicy {
-    allowed: sources_of(&allowed)?,
-    order: sources_of(&order)?,
+    allowed: list_of(&row, "allowed")?,
+    order: list_of(&row, "order")?,
+    overridable: list_of(&row, "overridable")?,
+    order_overridable: row.try_get("", "order_overridable")?,
   })
 }
 
@@ -320,14 +366,10 @@ async fn policy_row<C: ConnectionTrait>(
   else {
     return Ok(None);
   };
-  let allowed: serde_json::Value =
-    serde_json::from_str(&row.try_get::<String>("", "allowed")?).expect("a stored list is JSON");
-  let order: serde_json::Value =
-    serde_json::from_str(&row.try_get::<String>("", "order")?).expect("a stored list is JSON");
 
   Ok(Some(Policy {
-    allowed: sources_of(&allowed)?,
-    order: sources_of(&order)?,
+    allowed: list_of(&row, "allowed")?,
+    order: list_of(&row, "order")?,
     member_credit_credits: row.try_get("", "member_credit_credits")?,
     from: Some(id),
   }))
@@ -354,12 +396,12 @@ pub async fn user_policy<C: ConnectionTrait>(db: &C, user: i64) -> Result<Option
   policy_row(db, "supply_user_policies", "user_id", user).await
 }
 
-/// The person's own setting, or the default: no order of their own, nothing switched off, personal credits
-/// not switched on and no cap of their own.
+/// The person's own setting, or the default: no order of their own, nothing switched either way against the
+/// platform's default and no cap of their own.
 pub async fn own_setting<C: ConnectionTrait>(db: &C, user: i64) -> Result<OwnSetting, Refusal> {
   let Some(row) = one(
     db,
-    r#"SELECT "order"::text AS "order", "off"::text AS "off", "personal_credits_on",
+    r#"SELECT "order"::text AS "order", "off"::text AS "off", "on"::text AS "on",
               "personal_credit_credits"
          FROM "supply_user_settings" WHERE "user_id" = $1"#,
     vec![user.into()],
@@ -369,24 +411,21 @@ pub async fn own_setting<C: ConnectionTrait>(db: &C, user: i64) -> Result<OwnSet
     return Ok(OwnSetting {
       order: Vec::new(),
       off: Vec::new(),
-      personal_credits_on: false,
+      on: Vec::new(),
       personal_credit_credits: None,
     });
   };
-  let order: serde_json::Value =
-    serde_json::from_str(&row.try_get::<String>("", "order")?).expect("a stored list is JSON");
-  let off: serde_json::Value =
-    serde_json::from_str(&row.try_get::<String>("", "off")?).expect("a stored list is JSON");
 
   Ok(OwnSetting {
-    order: sources_of(&order)?,
-    off: sources_of(&off)?,
-    personal_credits_on: row.try_get("", "personal_credits_on")?,
+    order: list_of(&row, "order")?,
+    off: list_of(&row, "off")?,
+    on: list_of(&row, "on")?,
     personal_credit_credits: row.try_get("", "personal_credit_credits")?,
   })
 }
 
-/// The live subscription a person's supply stands under, read whole with this period's usage and holds.
+/// The live subscription a person's supply stands under, read whole with this period's usage and holds. A
+/// retired plan's subscription stands on its snapshot until its period ends.
 struct Plan {
   /// Whether the subscription's plan lets its owner pay from a wallet: the supply action carries a credit
   /// cost.
@@ -419,7 +458,6 @@ const PLAN_SQL: &str = r#"
                 GROUP BY "subscription_id", "action", "period_start") h
            ON h."subscription_id" = s."id" AND h."action" = $3 AND h."period_start" = s."current_period_start"
    WHERE s."owner_kind" = $1 AND s."owner_id" = $2
-     AND p."deleted_at" IS NULL AND p."is_enabled"
      AND ((s."status" = 'active' AND s."current_period_end" > now())
        OR (s."status" = 'past-due' AND s."grace_ends_at" IS NOT NULL AND s."grace_ends_at" > now()))
    ORDER BY s."current_period_end" DESC
@@ -446,12 +484,13 @@ async fn plan_of<C: ConnectionTrait>(
 }
 
 impl Plan {
-  fn usage(&self) -> PlanUsage {
+  fn usage(&self, owner: (OwnerKind, i32)) -> PlanUsage {
     PlanUsage {
       included: self.covers,
       remaining: self.quota.map(|quota| (quota - self.used - self.held).max(0)),
       credits_usable: self.credits_usable,
       reopens_at: Some(self.ends_at),
+      owner: Some(owner),
     }
   }
 }
@@ -464,14 +503,14 @@ pub async fn subscription_of<C: ConnectionTrait>(
   unit: i64,
 ) -> Result<Option<PlanUsage>, Refusal> {
   if let Some(plan) = plan_of(db, "personal", user).await? {
-    return Ok(Some(plan.usage()));
+    return Ok(Some(plan.usage((OwnerKind::Personal, user as i32))));
   }
 
   let mut here = unit;
 
   loop {
     if let Some(plan) = plan_of(db, "organization", here).await? {
-      return Ok(Some(plan.usage()));
+      return Ok(Some(plan.usage((OwnerKind::Organization, here as i32))));
     }
 
     match parent_of(db, here).await? {
@@ -659,22 +698,30 @@ pub async fn resolve_to<C: ConnectionTrait>(
 
   let mut standing = BTreeMap::new();
 
+  // The platform opens to the layers below every source it turns on or leaves overridable; one it neither
+  // turns on nor leaves overridable is closed everywhere.
   for source in PAYABLE {
     standing.insert(
       source.key(),
       Standing {
-        allowed: platform.allowed.contains(&source),
+        allowed: platform.available(source),
         closed_by: None,
         off: false,
+        locked: platform.locked(source),
       },
     );
   }
-  let mut order: Vec<Source> = platform.order.iter().copied().filter(|source| source.payable()).collect();
+  let mut order: Vec<Source> = platform
+    .order
+    .iter()
+    .copied()
+    .filter(|source| source.payable() && platform.available(*source))
+    .collect();
 
-  // A source the platform allows but names nowhere in its order keeps its standing place, as at every layer
+  // A source the platform opens but names nowhere in its order keeps its standing place, as at every layer
   // below it: an order is a preference over what is allowed, and the platform opens a source by allowing it.
   for source in PAYABLE {
-    if platform.allowed.contains(&source) && !order.contains(&source) {
+    if platform.available(source) && !order.contains(&source) {
       order.push(source);
     }
   }
@@ -721,41 +768,36 @@ pub async fn resolve_to<C: ConnectionTrait>(
     close(&mut order, &mut standing, Source::OrgCredits, Closed::BlockedByAdministrator);
   }
 
-  // The person's own setting: a reorder, a switch off, and personal credits entering only where switched on.
+  // The person's own setting: each overridable source switched against the platform's default or standing as
+  // it says, a locked one as the platform says whatever the setting holds, and a reorder where the platform
+  // reads the person's order.
   if let Some(setting) = setting {
-    for source in &setting.off {
-      if source.payable() && standing[source.key()].allowed {
-        order.retain(|held| *held != *source);
+    for source in PAYABLE {
+      let state = standing[source.key()];
 
-        if let Some(state) = standing.get_mut(source.key()) {
-          *state = Standing {
-            off: true,
-            ..*state
-          };
-        }
+      if !state.allowed || state.locked {
+        continue;
+      }
+
+      let on = if setting.on.contains(&source) {
+        true
+      } else if setting.off.contains(&source) {
+        false
+      } else {
+        platform.on(source)
+      };
+
+      if !on {
+        switch_off(&mut order, &mut standing, source);
       }
     }
-    if !setting.personal_credits_on && standing[Source::PersonalCredits.key()].allowed {
-      order.retain(|held| *held != Source::PersonalCredits);
-
-      let state = standing.get_mut(Source::PersonalCredits.key()).expect("it is read");
-      *state = Standing {
-        off: true,
-        ..*state
-      };
-    }
     if let Some(cap) = setting.personal_credit_credits
+      && standing[Source::PersonalCredits.key()].allowed
       && spent(db, user, Source::PersonalCredits).await? >= cap
     {
-      order.retain(|held| *held != Source::PersonalCredits);
-
-      let state = standing.get_mut(Source::PersonalCredits.key()).expect("it is read");
-      *state = Standing {
-        off: true,
-        ..*state
-      };
+      switch_off(&mut order, &mut standing, Source::PersonalCredits);
     }
-    if !setting.order.is_empty() {
+    if platform.order_overridable && !setting.order.is_empty() {
       let allowed: Vec<Source> =
         PAYABLE.into_iter().filter(|source| standing[source.key()].allowed).collect();
 
@@ -765,6 +807,7 @@ pub async fn resolve_to<C: ConnectionTrait>(
 
   Ok(Resolution {
     order: order_with_stop(&order),
+    order_locked: !platform.order_overridable,
     standing,
     plan,
     depth,
@@ -794,8 +837,18 @@ fn close(
       allowed: false,
       closed_by: Some(by),
       off: false,
+      ..*state
     };
   }
+}
+
+// A source the person may use switched off: out of the order, marked off.
+fn switch_off(order: &mut Vec<Source>, standing: &mut BTreeMap<&'static str, Standing>, source: Source) {
+  order.retain(|held| *held != source);
+
+  let state = standing.get_mut(source.key()).expect("every payable source is read");
+
+  state.off = true;
 }
 
 /// Every order stands with `stop` last.
@@ -815,6 +868,21 @@ fn named(list: &[String]) -> Result<Vec<Source>, Refusal> {
   }
 
   Ok(out)
+}
+
+/// A written order: `stop` may stand last, as every order is read back, and is dropped there, since the
+/// service appends it itself; named anywhere else it is refused.
+fn ordered(list: &[String]) -> Result<Vec<Source>, Refusal> {
+  let mut order = named(list)?;
+
+  if order.last() == Some(&Source::Stop) {
+    order.pop();
+  }
+  if order.contains(&Source::Stop) {
+    return Err(Refusal::bad("`stop` stands last in every order and nowhere else"));
+  }
+
+  Ok(order)
 }
 
 /// A write may name only sources its earlier layers allow — a later layer narrows, never opens — and the
@@ -862,24 +930,32 @@ pub fn check_order(allowed: &[Source], order: &[Source]) -> Result<(), Refusal> 
   Ok(())
 }
 
-/// The platform policy and money settings changed, whole or in part, by a platform administrator.
+/// The platform policy and money settings changed, whole or in part, by a platform administrator. The order
+/// names every source the platform opens — on or overridable — and nothing else.
 pub async fn set_platform(
   db: &(impl ConnectionTrait + TransactionTrait),
   actor: i64,
   ask: &bmo_web_client::SupplyPlatformAsk,
 ) -> Result<(), Refusal> {
   let allowed = ask.allowed.as_deref().map(named).transpose()?;
-  let order = ask.order.as_deref().map(named).transpose()?;
+  let order = ask.order.as_deref().map(ordered).transpose()?;
+  let overridable = ask.overridable.as_deref().map(named).transpose()?;
 
-  if let Some(allowed) = &allowed {
-    for source in allowed {
-      if !source.payable() {
-        return Err(Refusal::bad("`stop` is not a source an allowed list names"));
-      }
+  for list in [&allowed, &overridable].into_iter().flatten() {
+    if list.iter().any(|source| !source.payable()) {
+      return Err(Refusal::bad("`stop` is no source the platform turns on or leaves overridable"));
     }
   }
   if let Some(order) = &order {
-    check_order(&allowed.clone().unwrap_or_else(|| PAYABLE.to_vec()), order)?;
+    let standing = platform_policy(db).await?;
+    let next = PlatformPolicy {
+      allowed: allowed.clone().unwrap_or(standing.allowed),
+      order: order.clone(),
+      overridable: overridable.clone().unwrap_or(standing.overridable),
+      order_overridable: standing.order_overridable,
+    };
+
+    check_order(&PAYABLE.into_iter().filter(|source| next.available(*source)).collect::<Vec<_>>(), order)?;
   }
   if ask.credits_per_dollar.is_some_and(|rate| rate <= 0)
     || ask.reservation_credits.is_some_and(|size| size <= 0)
@@ -887,25 +963,35 @@ pub async fn set_platform(
     return Err(Refusal::bad("the conversion rate and the reservation size are numbers of one or more"));
   }
 
+  let policy_changed =
+    allowed.is_some() || order.is_some() || overridable.is_some() || ask.order_overridable.is_some();
+  let settings_changed =
+    ask.credits_per_dollar.is_some() || ask.reservation_credits.is_some() || ask.enforce.is_some();
+  let listed = |list: &Option<Vec<Source>>| list.as_deref().map(|list| json!(keys(list)).to_string());
   let txn = db.begin().await?;
 
-  if let Some(allowed) = &allowed {
+  if policy_changed {
     run(
       &txn,
-      r#"UPDATE "supply_platform_policy" SET "allowed" = $1::jsonb, "updated_at" = $2, "updated_by" = $3 WHERE "id" = 1"#,
-      vec![json!(keys(allowed)).to_string().into(), crate::now_ms().into(), actor.into()],
+      r#"UPDATE "supply_platform_policy"
+             SET "allowed" = COALESCE($1::jsonb, "allowed"),
+                 "order" = COALESCE($2::jsonb, "order"),
+                 "overridable" = COALESCE($3::jsonb, "overridable"),
+                 "order_overridable" = COALESCE($4, "order_overridable"),
+                 "updated_at" = $5, "updated_by" = $6
+           WHERE "id" = 1"#,
+      vec![
+        listed(&allowed).into(),
+        listed(&order.as_deref().map(order_with_stop)).into(),
+        listed(&overridable).into(),
+        ask.order_overridable.into(),
+        crate::now_ms().into(),
+        actor.into(),
+      ],
     )
     .await?;
   }
-  if let Some(order) = &order {
-    run(
-      &txn,
-      r#"UPDATE "supply_platform_policy" SET "order" = $1, "updated_at" = $2, "updated_by" = $3 WHERE "id" = 1"#,
-      vec![json!(keys(&order_with_stop(order))).to_string().into(), crate::now_ms().into(), actor.into()],
-    )
-    .await?;
-  }
-  if ask.credits_per_dollar.is_some() || ask.reservation_credits.is_some() || ask.enforce.is_some() {
+  if settings_changed {
     run(
       &txn,
       r#"UPDATE "supply_settings"
@@ -925,21 +1011,26 @@ pub async fn set_platform(
     .await?;
   }
 
-  if allowed.is_some() || order.is_some() {
+  if policy_changed {
+    let shown =
+      |list: Option<Vec<Source>>| list.map(|list| join(&list)).unwrap_or_else(|| "kept".to_owned());
+
     audit(
       &txn,
       actor,
       "policy",
       "platform",
       &format!(
-        "allowed {}, order {}",
-        allowed.map(|allowed| join(&allowed)).unwrap_or_else(|| "kept".to_owned()),
-        order.map(|order| join(&order_with_stop(&order))).unwrap_or_else(|| "kept".to_owned())
+        "allowed {}, order {}, overridable {}, order overridable {}",
+        shown(allowed),
+        shown(order.as_deref().map(order_with_stop)),
+        shown(overridable),
+        ask.order_overridable.map_or("kept".to_owned(), |open| open.to_string()),
       ),
     )
     .await?;
   }
-  if ask.credits_per_dollar.is_some() || ask.reservation_credits.is_some() || ask.enforce.is_some() {
+  if settings_changed {
     audit(
       &txn,
       actor,
@@ -971,16 +1062,16 @@ pub async fn set_org_policy(
   ask: &bmo_web_client::SupplyPolicyAsk,
 ) -> Result<(), Refusal> {
   let allowed = named(&ask.allowed)?;
-  let order = named(&ask.order)?;
-  // An organisation policy narrows the platform default alone: whose plan closes what is a fact of each
-  // person beneath it, and the policy row itself may open nothing the platform closed.
+  let order = ordered(&ask.order)?;
+  // An organisation policy narrows the platform policy alone: whose plan closes what is a fact of each person
+  // beneath it, and the policy row itself may open nothing the platform closed.
   let platform = platform_policy(db).await?;
 
   for source in &allowed {
     if !source.payable() {
       return Err(Refusal::bad(format!("`{}` is no source a policy may name", source.key())));
     }
-    if !platform.allowed.contains(source) {
+    if !platform.available(*source) {
       return Err(
         Refusal::forbidden(format!(
           "`{}` is closed by the platform and cannot be opened by this write",
@@ -1056,7 +1147,7 @@ pub async fn set_user_policy(
   ask: &bmo_web_client::SupplyPolicyAsk,
 ) -> Result<(), Refusal> {
   let allowed = named(&ask.allowed)?;
-  let order = named(&ask.order)?;
+  let order = ordered(&ask.order)?;
   let base = resolve_to(db, user, Depth::Organisation).await?;
 
   check_writable(&base, &allowed, "policy")?;
@@ -1118,44 +1209,74 @@ pub async fn clear_user_policy(
   Ok(())
 }
 
-/// The person's own setting written whole: a reorder, a switch off, personal credits switched on or off,
-/// and the person's own cap. A source an earlier layer closed cannot be switched on, and the refusal is the
-/// closer's own code.
+/// The person's own setting written whole: a reorder, the overridable sources switched off and on against the
+/// platform's default, and the person's own cap. A write is judged by what it changes against the setting
+/// stored: a choice the person already holds passes as it stands, though a layer has since closed its source
+/// or the platform locked it; a source newly switched on that a layer closed is refused by the closer's own
+/// code, and one newly switched against a value the platform locks `locked-by-platform`. The order keeps the
+/// sources standing open alone, a closed one it names dropped, and while the order is locked it is not read.
 pub async fn set_own_setting(
   db: &(impl ConnectionTrait + TransactionTrait),
   user: i64,
   ask: &bmo_web_client::SupplySettingAsk,
 ) -> Result<(), Refusal> {
-  let order = named(&ask.order)?;
   let off = named(&ask.off)?;
+  let on = named(&ask.on)?;
+  let written = ordered(&ask.order)?;
+  let platform = platform_policy(db).await?;
   let base = resolve_to(db, user, Depth::Administrator).await?;
+  let stored = own_setting(db, user).await?;
 
-  for source in order.iter().chain(off.iter()) {
-    let state = base.of(*source);
+  if let Some(source) = off.iter().chain(on.iter()).find(|source| !source.payable()) {
+    return Err(Refusal::bad(format!("`{}` is no source a person switches", source.key())));
+  }
+  if let Some(source) = on.iter().find(|source| off.contains(source)) {
+    return Err(Refusal::bad(format!("`{}` is switched both on and off", source.key())));
+  }
+  for (switched, held, to) in [(&on, &stored.on, true), (&off, &stored.off, false)] {
+    let changed = || switched.iter().filter(|source| !held.contains(source));
 
-    if !state.allowed {
+    if let Some(source) = changed().find(|source| platform.locked(**source) && platform.on(**source) != to)
+    {
       return Err(
         Refusal::forbidden(format!(
-          "`{}` is closed by {} and cannot be switched {}",
+          "`{}` is locked by the platform and cannot be switched {}",
           source.key(),
-          state.closed_by.map_or("a layer above", Closed::name),
-          if off.contains(source) { "off" } else { "on" }
+          if to { "on" } else { "off" }
         ))
-        .coded(state.closed_by.map_or("source-not-allowed", Closed::code)),
+        .coded("locked-by-platform"),
+      );
+    }
+    if to && let Some(source) = changed().find(|source| !base.of(**source).allowed) {
+      let closed_by = base.of(*source).closed_by;
+
+      return Err(
+        Refusal::forbidden(format!(
+          "`{}` is closed by {} and cannot be switched on",
+          source.key(),
+          closed_by.map_or("the platform", Closed::name)
+        ))
+        .coded(closed_by.map_or("source-not-allowed", Closed::code)),
       );
     }
   }
-  check_order(
-    &PAYABLE.into_iter().filter(|source| base.of(*source).allowed).collect::<Vec<_>>(),
-    &order,
-  )?;
 
-  if let Some(source) = off.iter().find(|source| !order.contains(source)) {
-    return Err(Refusal::bad(format!(
-      "`{}` is switched off and stands missing from the order",
-      source.key()
-    )));
-  }
+  // A locked order is neither read nor refused: the person's stored order stays as it stood, for the day the
+  // platform reads it again.
+  let order = if platform.order_overridable {
+    let mut open: Vec<Source> = Vec::with_capacity(written.len());
+
+    for source in written.into_iter().filter(|source| base.of(*source).allowed) {
+      if !open.contains(&source) {
+        open.push(source);
+      }
+    }
+
+    open
+  } else {
+    stored.order
+  };
+
   if ask.personal_credit_credits.is_some_and(|cap| cap < 0) {
     return Err(Refusal::bad("a credit cap is a number of zero or more"));
   }
@@ -1165,16 +1286,16 @@ pub async fn set_own_setting(
   run(
     &txn,
     r#"INSERT INTO "supply_user_settings"
-         ("user_id", "order", "off", "personal_credits_on", "personal_credit_credits", "updated_at")
-       VALUES ($1, $2::jsonb, $3::jsonb, $4, $5, $6)
+         ("user_id", "order", "off", "on", "personal_credit_credits", "updated_at")
+       VALUES ($1, $2::jsonb, $3::jsonb, $4::jsonb, $5, $6)
        ON CONFLICT ("user_id") DO UPDATE
-         SET "order" = $2::jsonb, "off" = $3::jsonb, "personal_credits_on" = $4,
+         SET "order" = $2::jsonb, "off" = $3::jsonb, "on" = $4::jsonb,
              "personal_credit_credits" = $5, "updated_at" = $6"#,
     vec![
       user.into(),
       json!(keys(&order)).to_string().into(),
       json!(keys(&off)).to_string().into(),
-      ask.personal_credits_on.into(),
+      json!(keys(&on)).to_string().into(),
       ask.personal_credit_credits.into(),
       crate::now_ms().into(),
     ],
@@ -1185,17 +1306,64 @@ pub async fn set_own_setting(
     user,
     "policy",
     &format!("user {user} own"),
-    &format!(
-      "order {}, off {}, personal credits {}",
-      join(&order),
-      join(&off),
-      ask.personal_credits_on
-    ),
+    &format!("order {}, off {}, on {}", join(&order), join(&off), join(&on)),
   )
   .await?;
   txn.commit().await?;
 
   Ok(())
+}
+
+/// The membership services read the acting person from a session; the console named them in `Owner-Key`,
+/// and the session is stood from the user row and their standing here, never from a cookie.
+pub(crate) async fn session(
+  service: &crate::Service,
+  user: i32,
+) -> Result<sumida::infra::session::UserSession, Refusal> {
+  use sumida::infra::session::{UserEnvironment, UserProfile, UserSession, UserState};
+
+  let row = one(
+    &service.db,
+    r#"SELECT "username", COALESCE("full_name", '') AS "full_name", "organization_id", "role_id",
+              o."name" AS "org_name", r."name" AS "role_name"
+         FROM "users" u
+         JOIN "organizations" o ON o."id" = u."organization_id"
+         JOIN "roles" r ON r."id" = u."role_id"
+        WHERE u."id" = $1"#,
+    vec![user.into()],
+  )
+  .await?
+  .ok_or_else(|| Refusal::forbidden("the call names no user of this deployment"))?;
+  let administrator = Authz::is_superuser(&user_subject(&service.db, user).await?, &service.db).await?;
+
+  Ok(UserSession {
+    inner: tower_sessions::Session::new(
+      None,
+      std::sync::Arc::new(tower_sessions::MemoryStore::default()),
+      None,
+    ),
+    profile: UserProfile {
+      id: user,
+      username: row.try_get("", "username")?,
+      full_name: row.try_get("", "full_name")?,
+      organization: sumida::infra::session::UserOrganization {
+        id: row.try_get("", "organization_id")?,
+        name: row.try_get("", "org_name")?,
+      },
+      role: sumida::infra::session::UserRole {
+        id: row.try_get("", "role_id")?,
+        name: row.try_get("", "role_name")?,
+      },
+      is_admin: administrator,
+      is_authorized: true,
+      api_key: None,
+      first_seen_at: chrono::Utc::now(),
+      last_seen_at: chrono::Utc::now(),
+      expiry: None,
+    },
+    env: UserEnvironment::default(),
+    state: UserState::default(),
+  })
 }
 
 /// One audited supply act: who did it, of what kind, to what subject, and the words beside it.

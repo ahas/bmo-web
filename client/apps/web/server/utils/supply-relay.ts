@@ -12,7 +12,7 @@ import { rosterFailure } from "./roster";
 
 import { wording } from "#shared/wording";
 
-import type { SupplyAuditWire, SupplyLedgerWire, SupplyMe, SupplyOrgView, SupplyOrgWire, SupplyPlatformView, SupplyPlatformWire, SupplyPolicy, SupplyPlansWire, SupplyUserView, SupplyUserWire } from "#shared/supply";
+import type { SupplyAuditWire, SupplyLedgerWire, SupplyMe, SupplyOrgPlans, SupplyOrgPlansWire, SupplyOrgView, SupplyOrgWire, SupplyPlatformView, SupplyPlatformWire, SupplyPolicy, SupplyPlansWire, SupplyUserView, SupplyUserWire } from "#shared/supply";
 import type { PersonalSupplyKey } from "#shared/supply";
 import type { ClaudeLoginStarted, FallbackChanged, FallbackView } from "#shared/types";
 import type { H3Event } from "h3";
@@ -31,7 +31,8 @@ import type { H3Event } from "h3";
 //
 // The paths under `/api/supply/`, by method:
 //   GET  me                         the reader's own view; units answers the units a supply tab may stand for alone
-//   PUT  me                         the reader's own setting, written whole, answered as the view now stands
+//   PUT  me                         the reader's own setting — the order, the sources switched off and on, the
+//                                   cap — written whole, answered as the view now stands
 //   GET  personal                   the reader's own gateway keys
 //   POST personal                   a key added: a road and the name of one of the reader's own secrets
 //   PATCH personal/{key}            one key's place or switch
@@ -45,11 +46,16 @@ import type { H3Event } from "h3";
 //   PUT  org/{unit}                 its policy written whole, answered as it now stands; DELETE takes the row away
 //                                   and answers the unit inheriting again
 //   POST org/{unit}/credits         credits granted to its wallet, with the words kept
+//   GET  org/{unit}/plans           the plans it is shown, the one it runs on, and for the administrator every
+//                                   organisation-scope plan with its exposure
+//   PUT  org/{unit}/plans/exposed   the plans it is shown, written whole;  PUT .../applied the one it runs on, or
+//                                   none; each answered as GET answers
 //   GET  user/{user}                a person's policy, their providers' names and their resolved order
 //   PUT  user/{user}                their per-user policy, answered as it now stands;  DELETE returns them to
 //                                   their organisation's and answers the same view
 //   GET  platform                   the platform default, the conversion, the reservation, the switch
-//   PUT  platform                   any part of them changed, answered as the row now stands
+//   PUT  platform                   any part of them changed — the sources and the order a person's own setting
+//                                   may change among them — answered as the row now stands
 //   GET  plans                      every plan;  POST adds one and answers it
 //   PATCH plans/{plan}              a plan changed in part, answered whole;  DELETE retires it and answers the list
 //   POST credits                    credits granted to a person or an organisation
@@ -136,33 +142,37 @@ function bad(): Error {
   return fail(400, wording("supply.error.bad_request"));
 }
 
-// The reader's own setting, written whole. The service answers the write with the view as it now stands; where it
-// answers nothing, the view is read again rather than left half-drawn.
+// The reader's own setting, written whole: the order, the sources switched off and those switched on against the
+// platform's default. The service answers the write with the view as it now stands; where it answers nothing, the
+// view is read again rather than left half-drawn.
 async function writeMe(event: H3Event, body: Record<string, unknown>): Promise<SupplyMe> {
   const order = sourceList(body.order);
   const off = sourceList(body.off);
+  const on = sourceList(body.on);
 
-  if (order === null || off === null || typeof body.personalCreditsOn !== "boolean") throw bad();
+  if (order === null || off === null || on === null) throw bad();
   if (body.personalCreditCredits !== undefined && body.personalCreditCredits !== null && wholeValue(body.personalCreditCredits) === null) throw bad();
 
   const cap = body.personalCreditCredits === undefined ? undefined : wholeValue(body.personalCreditCredits);
   const written = await supplyService<SupplyMeWire>(event, "PUT", "/me", {
     order,
     off,
-    personalCreditsOn: body.personalCreditsOn,
+    on,
     ...(cap === undefined ? {} : { personalCreditCredits: cap })
   });
 
   return Array.isArray(written.sources) ? meView(written) : meView(await supplyService<SupplyMeWire>(event, "GET", "/me"));
 }
 
-type SupplyMeWire = Omit<SupplyMe, "sources"> & { sources?: SupplyMe["sources"] };
+type SupplyMeWire = Omit<SupplyMe, "sources" | "orderLocked"> & { orderLocked?: boolean; sources?: (Omit<SupplyMe["sources"][number], "locked"> & { locked?: boolean })[] };
 
-// The view as the reader's screens stand on it, the service's own lists kept as it gave them.
+// The view as the reader's screens stand on it, the service's own lists kept as it gave them; a source or an order
+// the answer says nothing of locking is one the reader's own setting changes.
 function meView(wire: SupplyMeWire): SupplyMe {
   return {
     order: wire.order ?? [],
-    sources: wire.sources ?? [],
+    orderLocked: wire.orderLocked === true,
+    sources: (wire.sources ?? []).map((one) => ({ ...one, locked: one.locked === true })),
     personalCreditCredits: wire.personalCreditCredits ?? null,
     usage: wire.usage ?? [],
     globalRemaining: wire.globalRemaining ?? null,
@@ -339,6 +349,8 @@ async function org(event: H3Event, method: string, parts: string[], body: Record
     throw absent();
   }
 
+  if (parts[1] === "plans") return await orgPlans(event, unit, method, parts.slice(2), body);
+
   if (parts.length === 2 && parts[1] === "credits" && method === "POST") {
     const amount = wholeValue(body.amount);
 
@@ -352,6 +364,45 @@ async function org(event: H3Event, method: string, parts: string[], body: Record
   }
 
   throw absent();
+}
+
+// One unit's plans: read, or one of its two choices written — the plans it is shown, written whole, and the one it runs
+// on, a plan's id or none — every write answered with the plans as they now stand.
+async function orgPlans(event: H3Event, unit: number, method: string, rest: string[], body: Record<string, unknown>): Promise<SupplyOrgPlans> {
+  if (rest.length === 0 && method === "GET") return orgPlansView(await supplyService<SupplyOrgPlansWire>(event, "GET", `/org/${unit}/plans`));
+
+  if (rest.length !== 1 || method !== "PUT") throw absent();
+
+  if (rest[0] === "exposed") {
+    const plans = planIds(body.plans);
+
+    if (plans === null) throw bad();
+
+    return orgPlansView(await supplyService<SupplyOrgPlansWire>(event, "PUT", `/org/${unit}/plans/exposed`, { plans }));
+  }
+
+  if (rest[0] === "applied") {
+    const plan = body.plan === null ? null : wholeValue(body.plan);
+
+    if (plan === null && body.plan !== null) throw bad();
+
+    return orgPlansView(await supplyService<SupplyOrgPlansWire>(event, "PUT", `/org/${unit}/plans/applied`, { plan }));
+  }
+
+  throw absent();
+}
+
+// The plan ids a body names, each a whole number and none twice; anything else is none.
+function planIds(value: unknown): number[] | null {
+  if (!Array.isArray(value)) return null;
+
+  const ids = value.map(wholeValue);
+
+  return ids.every((one): one is number => one !== null) && new Set(ids).size === ids.length ? ids : null;
+}
+
+function orgPlansView(wire: SupplyOrgPlansWire): SupplyOrgPlans {
+  return { exposed: wire.exposed ?? [], applied: wire.applied ?? null, catalogue: wire.catalogue ?? null };
 }
 
 // The unit's view as the screens stand on it: what the service answered none of stands as none, and a unit with no
@@ -421,6 +472,18 @@ async function platform(event: H3Event, method: string, body: Record<string, unk
     asked.order = policy.order;
   }
 
+  if (body.overridable !== undefined) {
+    const overridable = sourceList(body.overridable);
+
+    if (overridable === null) throw bad();
+    asked.overridable = overridable;
+  }
+
+  if (body.orderOverridable !== undefined) {
+    if (typeof body.orderOverridable !== "boolean") throw bad();
+    asked.orderOverridable = body.orderOverridable;
+  }
+
   for (const field of ["creditsPerDollar", "reservationCredits"] as const) {
     const value = wholeValue(body[field]);
 
@@ -438,7 +501,8 @@ async function platform(event: H3Event, method: string, body: Record<string, unk
   return platformView(await supplyService<SupplyPlatformWire>(event, "PUT", "/platform", asked));
 }
 
-// The platform row as the screen stands on it: the default policy under one name, the money settings beside it.
+// The platform row as the screen stands on it: the default policy under one name, what a person's own setting may
+// change of it — none where the answer names none — and the money settings beside it.
 function platformView(wire: SupplyPlatformWire): SupplyPlatformView {
   if (!Array.isArray(wire.allowed) || !Array.isArray(wire.order) || wire.creditsPerDollar === undefined || wire.reservationCredits === undefined) {
     throw createError({ statusCode: 502, message: wording("supply.error.platform_read_failed") });
@@ -446,6 +510,8 @@ function platformView(wire: SupplyPlatformWire): SupplyPlatformView {
 
   return {
     policy: { allowed: wire.allowed, order: wire.order, memberCreditCredits: null },
+    overridable: wire.overridable ?? [],
+    orderOverridable: wire.orderOverridable === true,
     creditsPerDollar: wire.creditsPerDollar,
     reservationCredits: wire.reservationCredits,
     enforce: wire.enforce === true

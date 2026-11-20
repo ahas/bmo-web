@@ -10,21 +10,21 @@ use axum::extract::{Path, Query, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::routing::{get, post};
 use bmo_web_client::{
-  SupplyAuditPage, SupplyCreditAsk, SupplyGrantAsk, SupplyGranted, SupplyLedgerEntry, SupplyLedgerPage,
-  SupplyMemberUsageRow, SupplyOrgView, SupplyPlan, SupplyPlans, SupplyPlatform, SupplyPolicyView,
-  SupplySettingAsk, SupplyUsageRow, SupplyUserView, SupplyView, SupplyWallet,
+  SupplyAppliedAsk, SupplyAppliedPlan, SupplyAuditPage, SupplyCataloguePlan, SupplyCreditAsk,
+  SupplyExposedAsk, SupplyGrantAsk, SupplyGranted, SupplyLedgerEntry, SupplyLedgerPage,
+  SupplyMemberUsageRow, SupplyOrgPlans, SupplyOrgView, SupplyPlan, SupplyPlans, SupplyPlatform,
+  SupplyPolicyView, SupplySettingAsk, SupplyUsageRow, SupplyUserView, SupplyView, SupplyWallet,
 };
-use sea_orm::ConnectionTrait;
+use sea_orm::{ConnectionTrait, TransactionTrait};
 use sumida::api::service::membership::credit::{CreditService, dto::GrantCredit};
 
 use super::{
-  Depth, Resolution, Source, audit, clear_org_policy, clear_user_policy, holds_credit, holds_subscription,
-  home_unit, org_policy, platform_policy, platform_settings, resolve_to, set_org_policy, set_own_setting,
-  set_platform, set_user_policy, user_policy, wallet,
+  Depth, OwnSetting, Resolution, Source, audit, clear_org_policy, clear_user_policy, holds_credit,
+  holds_subscription, home_unit, org_policy, plans, platform_policy, platform_settings, resolve_to,
+  session, set_org_policy, set_own_setting, set_platform, set_user_policy, user_policy, wallet,
 };
 use crate::readers::{Reader, reader};
 use crate::routes::{Answer, Body, user_in};
-use crate::users::user_subject;
 use crate::{Refusal, Service, ids, one};
 
 /// The supply routes, mounted with the service's own.
@@ -34,6 +34,9 @@ pub fn routes() -> Router<Service> {
     .route("/supply/me", get(me_read).put(me_write))
     .route("/supply/org/{unit}", get(org_read).put(org_write).delete(org_delete))
     .route("/supply/org/{unit}/credits", post(org_credits))
+    .route("/supply/org/{unit}/plans", get(org_plans_read))
+    .route("/supply/org/{unit}/plans/exposed", axum::routing::put(org_exposed_write))
+    .route("/supply/org/{unit}/plans/applied", axum::routing::put(org_applied_write))
     .route("/supply/user/{user}", get(user_read).put(user_write).delete(user_delete))
     .route("/supply/platform", get(platform_read).put(platform_write))
     .route("/supply/plans", get(plans_read).post(plans_create))
@@ -95,7 +98,8 @@ async fn view(service: &Service, resolved: &Resolution) -> Result<SupplyView, Re
 
   Ok(SupplyView {
     order: keys(&resolved.order),
-    sources: sources(resolved),
+    order_locked: resolved.order_locked,
+    sources: sources(resolved, &setting),
     personal_credit_credits: setting.personal_credit_credits,
     usage: usage
       .iter()
@@ -119,25 +123,30 @@ fn keys(order: &[Source]) -> Vec<String> {
   order.iter().map(|source| source.key().to_owned()).collect()
 }
 
-fn sources(resolved: &Resolution) -> Vec<bmo_web_client::SupplySourceState> {
-  super::PAYABLE
+// Every source's standing, `stop` last, with the person's own choice of it beside, so a write sends back what
+// they chose.
+fn sources(resolved: &Resolution, setting: &OwnSetting) -> Vec<bmo_web_client::SupplySourceState> {
+  super::ALL
     .into_iter()
     .map(|source| {
       let state = resolved.of(source);
+      let own = if setting.on.contains(&source) {
+        Some("on")
+      } else if setting.off.contains(&source) {
+        Some("off")
+      } else {
+        None
+      };
 
       bmo_web_client::SupplySourceState {
         source: source.key().to_owned(),
         allowed: state.allowed,
         off: state.off,
+        locked: state.locked,
+        own: own.map(str::to_owned),
         reason: state.closed_by.map(|closed| closed.code().to_owned()),
       }
     })
-    .chain(std::iter::once(bmo_web_client::SupplySourceState {
-      source: Source::Stop.key().to_owned(),
-      allowed: true,
-      off: false,
-      reason: None,
-    }))
     .collect()
 }
 
@@ -262,13 +271,14 @@ async fn org_policy_of<C: ConnectionTrait>(db: &C, unit: i64) -> Result<Option<S
   let standing = super::org_policy(db, unit).await?;
 
   let Some(standing) = standing else {
-    // With no row anywhere above, the platform's default stands: the answer names it as the inherited
-    // policy of a unit that sets nothing of its own.
+    // With no row anywhere above, the platform's policy stands: the answer names what it opens — on or
+    // overridable — as the inherited policy of a unit that sets nothing of its own.
     let platform = super::platform_policy(db).await?;
+    let open = |source: &&Source| !source.payable() || platform.available(**source);
 
     return Ok(Some(SupplyPolicyView {
-      allowed: platform.allowed.iter().map(|source| source.key().to_owned()).collect(),
-      order: platform.order.iter().map(|source| source.key().to_owned()).collect(),
+      allowed: super::PAYABLE.iter().filter(open).map(|source| source.key().to_owned()).collect(),
+      order: platform.order.iter().filter(open).map(|source| source.key().to_owned()).collect(),
       member_credit_credits: None,
       from: None,
     }));
@@ -287,37 +297,14 @@ async fn unit_plan<C: ConnectionTrait>(
   db: &C,
   unit: i64,
 ) -> Result<Option<bmo_web_client::SupplyPlanCard>, Refusal> {
-  one(
-    db,
-    r#"SELECT p."name", p."price", p."billing_interval",
-              (s."amount_quotas" ->> 'supply')::bigint AS "quota",
-              (a."credit_cost" IS NOT NULL) AS "priced"
-         FROM "subscriptions" s
-         JOIN "membership_plans" p ON p."id" = s."plan_id"
-         LEFT JOIN "plan_actions" a ON a."plan_id" = s."plan_id" AND a."action" = 'supply'
-        WHERE s."owner_kind" = 'organization' AND s."owner_id" = $1
-          AND p."deleted_at" IS NULL
-          AND ((s."status" = 'active' AND s."current_period_end" > now())
-            OR (s."status" = 'past-due' AND s."grace_ends_at" IS NOT NULL AND s."grace_ends_at" > now()))
-        ORDER BY s."current_period_end" DESC LIMIT 1"#,
-    vec![(unit as i32).into()],
-  )
-  .await?
-  .map(|row| -> Result<bmo_web_client::SupplyPlanCard, Refusal> {
-    Ok(bmo_web_client::SupplyPlanCard {
-      name: row.try_get("", "name")?,
-      price: row.try_get("", "price")?,
-      scope: "organisation".to_owned(),
-      period: row
-        .try_get::<Option<String>>("", "billing_interval")
-        .ok()
-        .flatten()
-        .unwrap_or_else(|| "month".to_owned()),
-      included_credits: row.try_get::<Option<i64>>("", "quota").ok().flatten(),
-      credits_usable: row.try_get::<Option<bool>>("", "priced").ok().flatten().unwrap_or(false),
-    })
-  })
-  .transpose()
+  Ok(plans::live(db, unit).await?.map(|live| bmo_web_client::SupplyPlanCard {
+    name: live.name,
+    price: live.price,
+    scope: "organisation".to_owned(),
+    period: live.period,
+    included_credits: live.included_credits,
+    credits_usable: live.credits_usable,
+  }))
 }
 
 // This month's cost of every member of the unit, by source: what stands settled under the unit's wallet.
@@ -343,6 +330,112 @@ async fn member_usage<C: ConnectionTrait>(db: &C, unit: i64) -> Result<Vec<Suppl
   }
 
   Ok(out)
+}
+
+// ---- an organisation's plans ----
+
+/// `GET /supply/org/{unit}/plans`: the plans the unit is shown and the one it runs on, read by its
+/// subscription manager, its credit manager or head, or an administrator, who reads the catalogue too.
+async fn org_plans_read(
+  State(service): State<Service>,
+  headers: HeaderMap,
+  Path(unit): Path<String>,
+) -> Answer<SupplyOrgPlans> {
+  let unit = unit_of(&unit)?;
+  let who = caller(&service, &headers).await?;
+  let user = i64::from(who.user);
+
+  if !who.administrator
+    && !holds_subscription(&service.db, user, unit).await?
+    && !holds_credit(&service.db, user, unit).await?
+  {
+    return Err(Refusal::forbidden(
+      "the unit's plans are its subscription manager's, its credit manager's or its head's",
+    ));
+  }
+
+  Ok(Json(org_plans(&service.db, unit, who.administrator).await?))
+}
+
+/// `PUT /supply/org/{unit}/plans/exposed`: every plan the unit is shown, a platform administrator's.
+async fn org_exposed_write(
+  State(service): State<Service>,
+  headers: HeaderMap,
+  Path(unit): Path<String>,
+  Body(ask): Body<SupplyExposedAsk>,
+) -> Answer<SupplyOrgPlans> {
+  let unit = unit_of(&unit)?;
+  let who = administrator(&service, &headers).await?;
+
+  plans::set_exposed(&service.db, i64::from(who.user), unit, &ask.plans).await?;
+  Ok(Json(org_plans(&service.db, unit, true).await?))
+}
+
+/// `PUT /supply/org/{unit}/plans/applied`: the plan the unit runs on, its subscription manager's or an
+/// administrator's.
+async fn org_applied_write(
+  State(service): State<Service>,
+  headers: HeaderMap,
+  Path(unit): Path<String>,
+  Body(ask): Body<SupplyAppliedAsk>,
+) -> Answer<SupplyOrgPlans> {
+  let unit = unit_of(&unit)?;
+  let who = caller(&service, &headers).await?;
+
+  if !who.administrator && !holds_subscription(&service.db, i64::from(who.user), unit).await? {
+    return Err(Refusal::forbidden("the plan a unit runs on is its subscription manager's"));
+  }
+
+  plans::apply(&service, who.user, unit, ask.plan).await?;
+  Ok(Json(org_plans(&service.db, unit, who.administrator).await?))
+}
+
+// A unit's plans as every plans route answers them, the catalogue for an administrator alone.
+async fn org_plans<C: ConnectionTrait>(
+  db: &C,
+  unit: i64,
+  catalogue: bool,
+) -> Result<SupplyOrgPlans, Refusal> {
+  let exposed = plans::exposed(db, unit).await?;
+  let mut shown = Vec::with_capacity(exposed.len());
+
+  for plan in &exposed {
+    shown.push(plan_row(db, *plan as i32).await?);
+  }
+
+  let catalogue = if catalogue {
+    let rows = crate::all(
+      db,
+      r#"SELECT "id" FROM "membership_plans"
+          WHERE "deleted_at" IS NULL AND "scope" = 'organization' ORDER BY "id" DESC"#,
+      vec![],
+    )
+    .await?;
+    let mut every = Vec::with_capacity(rows.len());
+
+    for row in &rows {
+      let plan = plan_row(db, row.try_get("", "id")?).await?;
+
+      every.push(SupplyCataloguePlan {
+        exposed: exposed.contains(&plan.id),
+        plan,
+      });
+    }
+
+    Some(every)
+  } else {
+    None
+  };
+
+  Ok(SupplyOrgPlans {
+    exposed: shown,
+    applied: plans::live(db, unit).await?.map(|live| SupplyAppliedPlan {
+      plan: live.plan,
+      since: live.since,
+      period_end: live.period_end,
+    }),
+    catalogue,
+  })
 }
 
 // ---- a person's policy, an administrator's read ----
@@ -450,8 +543,10 @@ async fn platform_view<C: ConnectionTrait>(db: &C) -> Result<SupplyPlatform, Ref
   let settings = platform_settings(db).await?;
 
   Ok(SupplyPlatform {
-    allowed: policy.allowed.iter().map(|source| source.key().to_owned()).collect(),
-    order: policy.order.iter().map(|source| source.key().to_owned()).collect(),
+    allowed: keys(&policy.allowed),
+    order: keys(&policy.order),
+    overridable: keys(&policy.overridable),
+    order_overridable: policy.order_overridable,
     credits_per_dollar: settings.credits_per_dollar,
     reservation_credits: settings.reservation_credits,
     enforce: settings.enforce,
@@ -604,7 +699,8 @@ async fn plans_patch(
   Ok(Json(plan_row(&service.db, id).await?))
 }
 
-/// `DELETE /supply/plans/{plan}`: the plan retired, its subscriptions standing on their snapshot.
+/// `DELETE /supply/plans/{plan}`: the plan retired and its exposures taken away, its subscriptions standing on
+/// their snapshot until their period ends.
 async fn plans_delete(
   State(service): State<Service>,
   headers: HeaderMap,
@@ -613,8 +709,16 @@ async fn plans_delete(
   let who = administrator(&service, &headers).await?;
   let id = plan_of_path(&plan)?;
 
+  // sumida's retirement runs in a transaction of its own; the exposures go after it, with the audit, so a
+  // retirement refused leaves them standing, and a unit's read never names a retired plan meanwhile, since
+  // the exposed plans are read among the standing ones alone.
   service.plans(session(&service, who.user).await?).await?.delete(id).await?;
-  audit(&service.db, i64::from(who.user), "plan", &format!("plan {id}"), "retired").await?;
+
+  let txn = service.db.begin().await?;
+
+  plans::forget(&txn, i64::from(id)).await?;
+  audit(&txn, i64::from(who.user), "plan", &format!("plan {id}"), "retired").await?;
+  txn.commit().await?;
   plans_read(State(service), headers).await
 }
 
@@ -869,58 +973,6 @@ fn epoch_ms(row: &sea_orm::QueryResult, column: &str) -> Result<i64, Refusal> {
   let at: chrono::DateTime<chrono::Utc> = row.try_get("", column)?;
 
   Ok(at.timestamp_millis())
-}
-
-// ---- the session a membership call is judged under ----
-
-/// The membership services read the acting person from a session; the console named them in `Owner-Key`,
-/// and the session is stood from the user row and their standing here, never from a cookie.
-async fn session(service: &Service, user: i32) -> Result<sumida::infra::session::UserSession, Refusal> {
-  use sumida::infra::session::{UserEnvironment, UserProfile, UserSession, UserState};
-
-  let row = one(
-    &service.db,
-    r#"SELECT "username", COALESCE("full_name", '') AS "full_name", "organization_id", "role_id",
-              o."name" AS "org_name", r."name" AS "role_name"
-         FROM "users" u
-         JOIN "organizations" o ON o."id" = u."organization_id"
-         JOIN "roles" r ON r."id" = u."role_id"
-        WHERE u."id" = $1"#,
-    vec![user.into()],
-  )
-  .await?
-  .ok_or_else(|| Refusal::forbidden("the call names no user of this deployment"))?;
-  let administrator =
-    sumida::api::authz::Authz::is_superuser(&user_subject(&service.db, user).await?, &service.db).await?;
-
-  Ok(UserSession {
-    inner: tower_sessions::Session::new(
-      None,
-      std::sync::Arc::new(tower_sessions::MemoryStore::default()),
-      None,
-    ),
-    profile: UserProfile {
-      id: user,
-      username: row.try_get("", "username")?,
-      full_name: row.try_get("", "full_name")?,
-      organization: sumida::infra::session::UserOrganization {
-        id: row.try_get("", "organization_id")?,
-        name: row.try_get("", "org_name")?,
-      },
-      role: sumida::infra::session::UserRole {
-        id: row.try_get("", "role_id")?,
-        name: row.try_get("", "role_name")?,
-      },
-      is_admin: administrator,
-      is_authorized: true,
-      api_key: None,
-      first_seen_at: chrono::Utc::now(),
-      last_seen_at: chrono::Utc::now(),
-      expiry: None,
-    },
-    env: UserEnvironment::default(),
-    state: UserState::default(),
-  })
 }
 
 // The plans service under a session of the caller's.

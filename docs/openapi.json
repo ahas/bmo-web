@@ -3634,130 +3634,39 @@
           }
         ]
       },
-      "SubtreeMember": {
-        "description": "A person whose home unit is a unit of a subtree: the role they carry there and whether their account has left.",
+      "SupplyAppliedAsk": {
+        "description": "The plan a unit runs on, one of its exposed plans, or none. The key is named even for none: a body naming\nno `plan` at all does not read.",
         "properties": {
-          "left": {
-            "type": "boolean"
-          },
-          "name": {
-            "description": "The person's name, the login where none stands.",
-            "type": "string"
-          },
-          "role": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/RoleRef"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "user": {
-            "type": "string"
+          "plan": {
+            "format": "int64",
+            "type": "integer"
           }
         },
         "required": [
-          "user",
-          "name",
-          "left"
+          "plan"
         ],
         "type": "object"
       },
-      "SubtreePost": {
-        "description": "A person holding a post in a unit of a subtree: the post's role and whether it carries the unit's head.",
+      "SupplyAppliedPlan": {
+        "description": "The plan a unit runs on: the plan's id and its subscription's period, in epoch milliseconds.",
         "properties": {
-          "head": {
-            "type": "boolean"
-          },
-          "name": {
-            "description": "The person's name, the login where none stands.",
-            "type": "string"
-          },
-          "role": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/RoleRef"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "user": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "user",
-          "name",
-          "head"
-        ],
-        "type": "object"
-      },
-      "SubtreeUnit": {
-        "description": "One unit of a subtree and the people standing in it, each list in the order of their names.",
-        "properties": {
-          "concurrent": {
-            "description": "The people holding a post in it.",
-            "items": {
-              "$ref": "#/components/schemas/SubtreePost"
-            },
-            "type": "array"
-          },
-          "heads": {
-            "description": "The heads granted it directly, an acting one marked.",
-            "items": {
-              "$ref": "#/components/schemas/LineHead"
-            },
-            "type": "array"
-          },
-          "id": {
+          "periodEnd": {
             "format": "int64",
             "type": "integer"
           },
-          "kind": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/KindRef"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "members": {
-            "description": "The people whose home unit it is.",
-            "items": {
-              "$ref": "#/components/schemas/SubtreeMember"
-            },
-            "type": "array"
-          },
-          "name": {
-            "type": "string"
-          },
-          "parent": {
-            "description": "The unit it stands under, absent for a company.",
+          "plan": {
             "format": "int64",
-            "type": [
-              "integer",
-              "null"
-            ]
+            "type": "integer"
           },
-          "shortName": {
-            "type": [
-              "string",
-              "null"
-            ]
+          "since": {
+            "format": "int64",
+            "type": "integer"
           }
         },
         "required": [
-          "id",
-          "name",
-          "heads",
-          "members",
-          "concurrent"
+          "plan",
+          "since",
+          "periodEnd"
         ],
         "type": "object"
       },
@@ -3822,6 +3731,56 @@
         ],
         "type": "object"
       },
+      "SupplyCataloguePlan": {
+        "description": "One plan of the platform's catalogue as an administrator reads it for a unit: the plan, and whether the\nunit is shown it.",
+        "properties": {
+          "creditsUsable": {
+            "type": "boolean"
+          },
+          "exposed": {
+            "type": "boolean"
+          },
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "includedCredits": {
+            "description": "The amount quota the plan carries for its supply action; null where it includes none.",
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "period": {
+            "description": "`day`, `week`, `month` or `year`.",
+            "type": "string"
+          },
+          "price": {
+            "description": "Whole won.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "scope": {
+            "description": "`personal` or `organisation`.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "price",
+          "scope",
+          "period",
+          "includedCredits",
+          "creditsUsable",
+          "exposed"
+        ],
+        "type": "object"
+      },
       "SupplyCreditAsk": {
         "description": "Credits granted to anyone.",
         "properties": {
@@ -3848,6 +3807,22 @@
           "ownerKind",
           "ownerId",
           "amount"
+        ],
+        "type": "object"
+      },
+      "SupplyExposedAsk": {
+        "description": "Every plan a unit is shown, written whole.",
+        "properties": {
+          "plans": {
+            "items": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "plans"
         ],
         "type": "object"
       },
@@ -4163,6 +4138,40 @@
         ],
         "type": "object"
       },
+      "SupplyOrgPlans": {
+        "description": "An organisation unit's plans: the ones it is shown, the one it runs on, and for an administrator every\norganisation-scope plan with whether the unit is shown it.",
+        "properties": {
+          "applied": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SupplyAppliedPlan"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "catalogue": {
+            "items": {
+              "$ref": "#/components/schemas/SupplyCataloguePlan"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "exposed": {
+            "items": {
+              "$ref": "#/components/schemas/SupplyPlan"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "exposed"
+        ],
+        "type": "object"
+      },
       "SupplyOrgView": {
         "description": "A unit's supply view.",
         "properties": {
@@ -4391,7 +4400,7 @@
         "type": "object"
       },
       "SupplyPlatform": {
-        "description": "The platform's policy and money settings.",
+        "description": "The platform's policy and money settings. `allowed` holds the sources the platform turns on, `overridable`\nthe ones a person's own setting may switch against that default; a source in neither is closed everywhere.",
         "properties": {
           "allowed": {
             "items": {
@@ -4412,6 +4421,15 @@
             },
             "type": "array"
           },
+          "orderOverridable": {
+            "type": "boolean"
+          },
+          "overridable": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
           "reservationCredits": {
             "format": "int64",
             "type": "integer"
@@ -4420,6 +4438,8 @@
         "required": [
           "allowed",
           "order",
+          "overridable",
+          "orderOverridable",
           "creditsPerDollar",
           "reservationCredits",
           "enforce"
@@ -4452,6 +4472,21 @@
             ]
           },
           "order": {
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "orderOverridable": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "overridable": {
             "items": {
               "type": "string"
             },
@@ -4537,9 +4572,15 @@
         "type": "object"
       },
       "SupplySettingAsk": {
-        "description": "The reader's own setting written whole.",
+        "description": "The reader's own setting written whole: their order, not read while the platform locks it, and the\noverridable sources they switch off and on against the platform's default.",
         "properties": {
           "off": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "on": {
             "items": {
               "type": "string"
             },
@@ -4557,26 +4598,34 @@
               "integer",
               "null"
             ]
-          },
-          "personalCreditsOn": {
-            "type": "boolean"
           }
         },
         "required": [
           "order",
           "off",
-          "personalCreditsOn"
+          "on"
         ],
         "type": "object"
       },
       "SupplySourceState": {
-        "description": "One source as the reader's view stands it: whether the layers above allow it, whether the reader has it\nswitched off, and where it is not allowed, which layer closed it.",
+        "description": "One source as the reader's view stands it: whether the layers above allow it, whether the reader has it\nswitched off, whether the platform locks it, and where it is not allowed, which layer closed it.",
         "properties": {
           "allowed": {
             "type": "boolean"
           },
+          "locked": {
+            "description": "Whether the platform holds the source as it says for everyone, so the reader's own setting cannot change\nit; `stop` is always locked.",
+            "type": "boolean"
+          },
           "off": {
             "type": "boolean"
+          },
+          "own": {
+            "description": "The reader's own choice of the source, `on` or `off`; absent where they made none and the platform's\ndefault stands.",
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "reason": {
             "description": "`not-in-plan`, `blocked-by-organisation` or `blocked-by-administrator`.",
@@ -4592,7 +4641,8 @@
         "required": [
           "source",
           "allowed",
-          "off"
+          "off",
+          "locked"
         ],
         "type": "object"
       },
@@ -4675,6 +4725,10 @@
             },
             "type": "array"
           },
+          "orderLocked": {
+            "description": "Whether the platform locks the order, so the reader's own order is not read.",
+            "type": "boolean"
+          },
           "personalCreditCredits": {
             "format": "int64",
             "type": [
@@ -4704,6 +4758,7 @@
         },
         "required": [
           "order",
+          "orderLocked",
           "sources",
           "usage"
         ],
@@ -4948,21 +5003,6 @@
           "left",
           "concurrent",
           "acting"
-        ],
-        "type": "object"
-      },
-      "UnitSubtree": {
-        "description": "A unit and every unit below it in tree order: the unit first, each unit followed by the units under it before\nits next sibling, siblings by name and then by id.",
-        "properties": {
-          "units": {
-            "items": {
-              "$ref": "#/components/schemas/SubtreeUnit"
-            },
-            "type": "array"
-          }
-        },
-        "required": [
-          "units"
         ],
         "type": "object"
       },
@@ -8918,7 +8958,7 @@
             "bearerAuth": []
           }
         ],
-        "summary": "The reader's own supply: the resolved order, each source's standing and reason, this month's usage, the plan's remaining included amount and the personal credit balance.",
+        "summary": "The reader's own supply: the resolved order and whether the platform locks it, each source's standing, reason, lock and the reader's own choice of it, this month's usage, the plan's remaining included amount and the personal credit balance.",
         "tags": [
           "Supply"
         ],
@@ -8971,7 +9011,7 @@
                 }
               }
             },
-            "description": "A refusal or failure: bad-request, forbidden, source-not-allowed, not-in-plan, blocked-by-organisation, blocked-by-administrator, not-in-force, database, failed"
+            "description": "A refusal or failure: bad-request, forbidden, source-not-allowed, not-in-plan, blocked-by-organisation, blocked-by-administrator, locked-by-platform, not-in-force, database, failed"
           }
         },
         "security": [
@@ -8979,7 +9019,7 @@
             "bearerAuth": []
           }
         ],
-        "summary": "The reader's own setting written whole; a source an earlier layer closed is refused by the closer's code.",
+        "summary": "The reader's own setting written whole, its order not read while the platform locks it; a source an earlier layer closed is refused by the closer's code, a source switched against a value the platform locks by `locked-by-platform`, and a source named both on and off by `bad-request`.",
         "tags": [
           "Supply"
         ],
@@ -8990,6 +9030,7 @@
           "not-in-plan",
           "blocked-by-organisation",
           "blocked-by-administrator",
+          "locked-by-platform",
           "not-in-force",
           "database",
           "failed"
@@ -9318,6 +9359,259 @@
         ]
       }
     },
+    "/supply/org/{unit}/plans": {
+      "get": {
+        "operationId": "supplyOrgPlans",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "unit",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplyOrgPlans"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, forbidden, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A unit's plans: the ones it is shown, the one it runs on, and for an administrator every organisation-scope plan with whether the unit is shown it.",
+        "tags": [
+          "Supply"
+        ],
+        "x-codes": [
+          "bad-request",
+          "forbidden",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/supply/org/{unit}/plans/applied": {
+      "put": {
+        "operationId": "setSupplyOrgApplied",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "unit",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupplyAppliedAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplyOrgPlans"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, forbidden, plan-not-exposed, not-in-force, database, upstream-failed, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The plan a unit runs on, one of its exposed plans subscribed through sumida, or none; the plan chosen is subscribed first and only then the standing subscription cancelled. A body naming no `plan` is refused.",
+        "tags": [
+          "Supply"
+        ],
+        "x-codes": [
+          "bad-request",
+          "forbidden",
+          "plan-not-exposed",
+          "not-in-force",
+          "database",
+          "upstream-failed",
+          "failed"
+        ]
+      }
+    },
+    "/supply/org/{unit}/plans/exposed": {
+      "put": {
+        "operationId": "setSupplyOrgExposed",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "unit",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupplyExposedAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplyOrgPlans"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, forbidden, plan-scope, unknown-plan, plan-applied, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Every plan a unit is shown, written whole by a platform administrator; the applied plan cannot be left out.",
+        "tags": [
+          "Supply"
+        ],
+        "x-codes": [
+          "bad-request",
+          "forbidden",
+          "plan-scope",
+          "unknown-plan",
+          "plan-applied",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
     "/supply/plans": {
       "get": {
         "operationId": "supplyPlans",
@@ -9523,7 +9817,7 @@
             "bearerAuth": []
           }
         ],
-        "summary": "A membership plan retired, its subscriptions standing on their snapshot.",
+        "summary": "A membership plan retired, its exposures taken away and its subscriptions standing on their snapshot until their period ends.",
         "tags": [
           "Supply"
         ],
@@ -9678,7 +9972,7 @@
             "bearerAuth": []
           }
         ],
-        "summary": "The platform's default policy and money settings.",
+        "summary": "The platform's policy — the sources it turns on, the ones a person may switch and whether their order is read — and its money settings.",
         "tags": [
           "Supply"
         ],
@@ -11126,71 +11420,6 @@
           "other-company",
           "left",
           "no-such-role",
-          "not-in-force",
-          "database",
-          "failed"
-        ]
-      }
-    },
-    "/units/{unit}/subtree": {
-      "get": {
-        "operationId": "unitSubtree",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "unit",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          },
-          {
-            "description": "The user of the login the call is made for, its id written as a decimal number.",
-            "in": "header",
-            "name": "Owner-Key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UnitSubtree"
-                }
-              }
-            },
-            "description": "Answered."
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WireError"
-                }
-              }
-            },
-            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "summary": "A unit and every unit below it in tree order, each with its heads, the acting one marked, its members with their roles and the people holding a post in it, for the administrator and a head of the unit or of a unit above.",
-        "tags": [
-          "Organisation units"
-        ],
-        "x-codes": [
-          "bad-request",
-          "unauthorized",
-          "forbidden",
-          "not-found",
           "not-in-force",
           "database",
           "failed"

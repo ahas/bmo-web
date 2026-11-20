@@ -2028,6 +2028,9 @@ export interface ClaudeAccountView {
   chosen: boolean;
   // Until when, in seconds, a limit rest keeps this account out of the walk, or null where none does.
   restUntil: number | null;
+  // The person the account belongs to, by their user id — a number as the agency writes it — or none for the
+  // platform's (the agency's `docs/supply.md`, 「Owned supply」).
+  userId?: number | string | null;
 }
 
 /** How a login is standing: answering, near its end, or gone. */

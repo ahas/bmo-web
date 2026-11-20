@@ -22,18 +22,10 @@
       <SettingsGroup>
         <SettingsRow v-if="plans.length === 0" :label="$t('supply.label.plans_none')" />
         <template v-else>
-          <SettingsRow v-for="one in plans" :key="one.id" :label="one.name" :data-plan="one.id">
-            <template #description>
-              <span class="flex min-w-0 flex-wrap items-center gap-x-2 text-sm text-muted">
-                <span>{{ one.scope === "personal" ? $t("supply.label.scope_personal") : $t("supply.label.scope_organisation") }}</span>
-                <span class="tabular-nums">{{ periodLabel(t, one.period) }} · {{ one.includedCredits === null ? '—' : creditsText(t, one.includedCredits) }}</span>
-                <span>{{ one.creditsUsable ? $t("supply.label.credits_usable_on") : $t("supply.label.credits_usable_off") }}</span>
-              </span>
-            </template>
-            <span class="text-sm tabular-nums text-highlighted">{{ wonText(t, one.price) }}</span>
+          <SupplyPlanRow v-for="one in plans" :key="one.id" :plan="one">
             <IconButton size="sm" icon="i-material-symbols-edit" :label="$t('common.action.edit')" :disabled="busy !== ''" @click="openEdit(one)" />
             <IconButton size="sm" color="error" icon="i-material-symbols-delete-outline" :label="$t('common.action.delete')" :disabled="busy !== ''" @click="remove(one)" />
-          </SettingsRow>
+          </SupplyPlanRow>
         </template>
       </SettingsGroup>
 
@@ -85,7 +77,6 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 
 import { useConfirm } from "~/domain/confirm";
-import { creditsText, periodLabel, wonText } from "~/domain/supply";
 
 import type { SupplyPlanEntry } from "#shared/supply";
 

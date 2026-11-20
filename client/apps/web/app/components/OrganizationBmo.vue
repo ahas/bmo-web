@@ -1,6 +1,6 @@
 <template>
-  <!-- The organisation screen's BMO tab (docs/web.md, 「Organisation」, the BMO tab): a company chosen among those
-       the reader heads a unit of; its default for its people's BMOs, for the administrator and the company's own heads,
+  <!-- The organisation screen's BMO tab (docs/web.md, 「Organisation」, the BMO tab): the organisation chosen, where the
+       reader heads a unit of it; its default for its people's BMOs, for the administrator and the company's own heads,
        its text parts changed in a form and its picture set in place; and who may personalise their BMO, the company's
        tree from the reader's highest unit down, each unit and, opened, each person with a choice saved as it is made. -->
   <div class="flex flex-col gap-4">
@@ -18,15 +18,9 @@
       <UButton color="neutral" variant="subtle" icon="i-material-symbols-refresh" :label="$t('common.action.refresh')" :loading="unitsPending" @click="refreshUnits()" />
     </div>
 
-    <p v-else-if="companies.length === 0" class="text-sm text-muted">{{ $t("bmo_profile.label.no_companies") }}</p>
+    <p v-else-if="company === ''" class="text-sm text-muted">{{ $t("bmo_profile.label.no_companies") }}</p>
 
     <template v-else>
-      <SettingsGroup>
-        <SettingsRow :label="$t('bmo_profile.label.company')">
-          <ChoiceSelect :model-value="company" :items="companyItems" value-key="value" class="w-48" :aria-label="$t('bmo_profile.label.company')" data-bmo-company @update:model-value="(value: string) => pickCompany(value)" />
-        </SettingsRow>
-      </SettingsGroup>
-
       <SettingsGroup v-if="mayDefault" :title="$t('bmo_profile.label.company_default')">
         <template v-if="companyDefault !== null">
           <SettingsRow :label="$t('bmo_profile.label.name')" :description="nameShown(t, companyDefault.name)" data-bmo-default="name">
@@ -113,13 +107,20 @@ import { followsLine, headsCompany, nameShown, permissionRows, permissionTops, s
 import { inviteCompanies } from "~/domain/invites";
 
 import type { PermissionRow } from "~/domain/bmo-profile";
+import type { Organization } from "~/domain/organization";
 import type { CompanyBmoView, OwnBmoParts, PermissionSetting, PermissionTree } from "#shared/bmo-profile";
 import type { InviteUnit } from "@web/server-client";
 import type { AvatarProps } from "@nuxt/ui";
 
+interface Props {
+  // The organisation chosen, the company the tab sets.
+  company: Organization;
+}
+
+const props = defineProps<Props>();
+
 const { t } = useI18n();
 const route = useRoute();
-const router = useRouter();
 
 // The same read the shell's invitations entry makes, so the tab opens on what it already holds.
 const { data: unitData, status: unitsStatus, error: unitsError, pending: unitsPending, refresh: refreshUnits } = useFetch<InviteUnit[]>("/api/invites/units", { key: "invite-units", server: false, lazy: true, default: () => [] });
@@ -127,9 +128,8 @@ const { data: unitData, status: unitsStatus, error: unitsError, pending: unitsPe
 // The units the reader heads, or null until the first read has answered.
 const units = computed(() => (unitsStatus.value === "success" ? unitData.value : null));
 const unitsFailure = computed(() => (unitsError.value ? failureText(unitsError.value, t("bmo_profile.error.read_failed")) : ""));
-const companies = computed(() => inviteCompanies(units.value ?? []));
-const companyItems = computed(() => companies.value.map((one) => ({ label: one.name, value: String(one.id) })));
-const company = ref("");
+// The organisation chosen, where the reader heads a unit of it; none where they head none there.
+const company = computed(() => (inviteCompanies(units.value ?? []).some((one) => one.id === props.company.id) ? String(props.company.id) : ""));
 const mayDefault = computed(() => company.value !== "" && headsCompany(units.value ?? [], Number(company.value)));
 
 const companyDefault = ref<CompanyBmoView | null>(null);
@@ -148,33 +148,6 @@ const defaultPicture = computed<AvatarProps>(() => ({
   src: companyDefault.value?.picture === true ? `/api/organization/companies/${company.value}/agent/picture?at=${pictureAt.value}` : undefined,
   alt: nameShown(t, companyDefault.value?.name ?? null)
 }));
-
-// The company the address names where it is one of them (docs/web.md, 「Organisation」, the BMO tab), else the first as
-// soon as the list stands, kept while it is still one of them.
-function askedCompany(): string | null {
-  const asked = route.query.company;
-
-  return companies.value.some((one) => String(one.id) === asked) ? String(asked) : null;
-}
-
-watch(
-  [companies, () => route.query.company],
-  ([listed]) => {
-    const asked = askedCompany();
-
-    if (asked !== null) company.value = asked;
-    else if (!listed.some((one) => String(one.id) === company.value)) company.value = listed[0] === undefined ? "" : String(listed[0].id);
-  },
-  { immediate: true }
-);
-
-// A company chosen stands in the address in place of the one before, and the unit opened under the one before goes.
-function pickCompany(value: string): void {
-  const { unit: _unit, ...rest } = route.query;
-
-  company.value = value;
-  void router.replace({ query: { ...rest, company: value } });
-}
 
 // The unit the address names is opened with its people once its company's tree stands, and brought into view: the
 // people tab's BMO permission opens the tab at a person's unit. Each unit asked is opened once, so the tree read again

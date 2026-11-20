@@ -532,8 +532,10 @@ export class BriefingDesk {
         this.move(current, "playing");
         playAlone(current.sound, this.deps.players());
       },
+      // A pause the mute made holds the briefing rather than touching it, so played on to its end it still goes.
       paused: () => {
-        current.touched = true;
+        if (!current.held) current.touched = true;
+
         this.move(current, "paused");
       },
       ended: () => void this.settle(current),

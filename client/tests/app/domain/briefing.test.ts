@@ -33,7 +33,11 @@ class StandInSound implements BriefingSound {
   }
 
   pause(): void {
+    const playing = !this.paused;
+
     this.paused = true;
+
+    if (playing) this.on.paused();
   }
 
   release(): void {}
@@ -297,6 +301,12 @@ describe("this device's mute", () => {
     await Promise.resolve();
     expect(held.sounds[0]?.played).toBe(2);
     expect(held.sounds[0]?.paused).toBe(false);
+
+    // The mute's pause was no touch of the reader's, so played on to its end, where a sound reads paused, it goes.
+    held.sounds[0]!.paused = true;
+    held.sounds[0]?.on.ended();
+    await settled();
+    expect(held.shown()).toBeNull();
   });
 
   test("does not hold the trial voice, asked for at a press", () => {

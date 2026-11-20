@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { createError } from "h3";
 
+import { workCall } from "../../../apps/web/server/utils/background-work";
 import { backgroundCall } from "../../../apps/web/server/utils/pocket";
 import { asked, routeOf } from "../../support/nitro";
 import { answer, standIn } from "../../support/units";
@@ -9,7 +10,9 @@ import { answer, standIn } from "../../support/units";
 import type { BackgroundView } from "../../../apps/web/shared/types";
 
 // What waits for a room (docs/web.md, the room screen's list of what waits): the tool host's running asynchronous calls whose wake is for the
-// room, read on its console face as the administrator, each a watch, a reminder or another call.
+// room, read on its console face as the administrator, each a watch, a reminder or another call; and the background work
+// a supervisor's program still runs for the room, as the agency lists it by the room, each a subagent, a shell command or
+// another kind by its name.
 
 const globals: Record<string, unknown> = globalThis;
 
@@ -35,6 +38,19 @@ const pocket = standIn(
   { headers: true }
 );
 
+const WORK = [
+  { task: "a1", kind: "subagent", description: "Fetch the model files", command: null, roomId: -7, agentName: "agent-a", launchedAt: 1500, status: "running" },
+  { task: "b2", kind: "shell", description: "", command: "sleep 30", roomId: -7, agentName: "agent-a", launchedAt: 2500, status: "running" }
+];
+
+let agencyReachable = true;
+
+const agencyUnit = standIn("AGENCY", (one) => {
+  if (!agencyReachable) return answer({ code: "failed", error: "down" }, 500);
+
+  return one.path.startsWith("/background-work") ? answer({ items: WORK, more: false }) : answer({ code: "not-found", error: "no route" }, 404);
+});
+
 const read = await routeOf<BackgroundView>("../../apps/web/server/api/rooms/[chatId]/background.get");
 
 describe("what waits for a room", () => {
@@ -43,10 +59,18 @@ describe("what waits for a room", () => {
 
     const calls = (await asked(read, { params: { chatId: "-7" } })).answer?.calls ?? [];
 
-    expect(calls.map((call) => [call.id, call.kind])).toEqual([["early", "reminder"], ["plain", "call"], ["late", "watch"]]);
+    expect(calls.map((call) => [call.id, call.kind])).toEqual([
+      ["early", "reminder"],
+      ["background-work:a1", "subagent"],
+      ["plain", "call"],
+      ["background-work:b2", "shell"],
+      ["late", "watch"]
+    ]);
     expect(calls[0]?.until).toBe(61_000);
-    expect(calls[2]?.everySeconds).toBe(900);
-    expect(calls[2]?.note).toBe("the fetch ended");
+    expect(calls[4]?.everySeconds).toBe(900);
+    expect(calls[4]?.note).toBe("the fetch ended");
+    expect(calls[1]).toMatchObject({ note: "Fetch the model files", agent: "agent-a", startedAt: 1500 });
+    expect(agencyUnit.asked.at(-1)?.path).toBe("/background-work?roomId=-7");
     expect(pocket.asked[0]?.path).toBe("/uses?state=running");
     expect(pocket.asked[0]?.headers?.["owner-role"]).toBe("administrator");
   });
@@ -57,19 +81,34 @@ describe("what waits for a room", () => {
     expect(backgroundCall({ id: "c", tool: "bmo/wait", room: -8, startedAt: 0, arguments: {} }, -7, null)).toBeNull();
   });
 
+  test("notes a shell command launched with no description by its command, and any other kind by its name", () => {
+    expect(workCall(WORK[1]!).note).toBe("sleep 30");
+    expect(workCall({ ...WORK[0]!, kind: "MCP task", description: "" })).toMatchObject({ kind: "call", tool: "MCP task", note: null });
+  });
+
   test("stands a call naming no room in the owner's private chat alone", async () => {
-    expect((await asked(read, { params: { chatId: "-5" } })).answer?.calls.map((call) => call.id)).toEqual(["roomless"]);
+    agencyReachable = false;
+
+    try {
+      expect((await asked(read, { params: { chatId: "-5" } })).answer?.calls.map((call) => call.id)).toEqual(["roomless"]);
+    } finally {
+      agencyReachable = true;
+    }
+
     expect((await asked(read, { params: { chatId: "-7" } })).answer?.calls.map((call) => call.id)).not.toContain("roomless");
     expect(receiver.asked.some((one) => one.path === "/owner")).toBe(true);
   });
 
-  test("answers none where the tool host cannot be read", async () => {
+  test("leaves out the part of a unit that cannot be read, and answers none where neither can", async () => {
     reachable = false;
 
     try {
+      expect((await asked(read, { params: { chatId: "-7" } })).answer?.calls.map((call) => call.kind)).toEqual(["subagent", "shell"]);
+      agencyReachable = false;
       expect((await asked(read, { params: { chatId: "-7" } })).answer).toEqual({ calls: [] });
     } finally {
       reachable = true;
+      agencyReachable = true;
     }
   });
 
@@ -82,9 +121,11 @@ describe("what waits for a room", () => {
 
     try {
       pocket.asked.length = 0;
+      agencyUnit.asked.length = 0;
 
       expect((await asked(read, { params: { chatId: "-7" } })).status).toBe(403);
       expect(pocket.asked).toEqual([]);
+      expect(agencyUnit.asked).toEqual([]);
     } finally {
       globals.requireAdministrator = administrator;
     }

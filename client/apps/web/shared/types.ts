@@ -1116,6 +1116,9 @@ export type BotEventType =
   // A supervisor, a role or a repository changed or went, or a role's slot was asked, let in or given back, as the
   // agency publishes it: what the agent lists and the agents' state read again on.
   | "agency-catalogue"
+  // Background work a supervisor's program runs for a room began or ended, as the agency publishes it: what the room's
+  // list of what waits reads again on. It names the room it was launched in, nought for none.
+  | "agency-background"
   // Somebody started or stopped writing in a room, as the receiver tells it with no id (docs/web.md, 「Presence and
   // typing」). A tab holds it apart from the numbered events: `TypingEvent`.
   | "typing"
@@ -2751,12 +2754,14 @@ export interface RoomProvidersView {
 
 // A room's mode as its registration holds it, for the administrator alone: `avatar`, its agents answering under the
 // owner's account; `record-only`, read and recorded and never answered; null for a room that was never added.
-// One asynchronous call the tool host keeps running with its wake for a room (docs/web.md, the room screen's list of what waits): a watch
-// with how often its check runs, a reminder with the moment it waits for, or any other call by its tool's name;
-// the note it was set with, the agent it wakes, and when it started, in epoch milliseconds.
+// One thing that waits for a room (docs/web.md, the room screen's list of what waits): an asynchronous call the tool
+// host keeps running with its wake for the room — a watch with how often its check runs, a reminder with the moment it
+// waits for, or any other call by its tool's name — or background work a supervisor's program still runs for the room,
+// a subagent, a shell command, or any other kind by the name the program gives it as its `tool`; the note it was set
+// or launched with, the agent it wakes, and when it started, in epoch milliseconds.
 export interface BackgroundCall {
   id: string;
-  kind: "watch" | "reminder" | "call";
+  kind: "watch" | "reminder" | "call" | "subagent" | "shell";
   tool: string;
   note: string | null;
   everySeconds: number | null;

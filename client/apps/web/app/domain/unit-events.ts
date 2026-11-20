@@ -115,7 +115,8 @@ export function jobEvent(data: Fields): BotEvent | null {
 
 /**
  * One of the agency's events as the console's (the agency's `docs/api.md`, 「Events」): a turn going out or
- * ending as an agent's turn, and a job starting, changing or ending as work running for its room. The event's
+ * ending as an agent's turn, a job starting, changing or ending as work running for its room, and a supervisor's
+ * background work beginning or ending as what waits for its room. The event's
  * own kind is the outer `kind`; what it carries is the event's `data`.
  */
 export function agencyEvent(data: Fields): BotEvent | null {
@@ -152,6 +153,12 @@ export function agencyEvent(data: Fields): BotEvent | null {
     const item = number(job.itemId);
 
     return { id, at: number(job.startedAt) ?? at, type: "worker-run", chatId: room ?? 0, messageId: null, ...(item === null ? {} : { todoId: item }) };
+  }
+
+  if (kind === "background-work.created" || kind === "background-work.ended") {
+    const work = member ?? data;
+
+    return { id, at, type: "agency-background", chatId: number(work.roomId) ?? 0, messageId: null };
   }
 
   if (kind === "supervisor.changed" || kind === "role.changed" || kind === "repository.changed" || kind === "repository.deleted" || kind === "slot-request.changed") {

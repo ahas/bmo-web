@@ -25,7 +25,10 @@ function account(id: string, window: unknown = null): Account {
     endpointUrl: null,
     keyFile: null,
     models: null,
-    basePrompt: null
+    basePrompt: null,
+    userId: null,
+    node: null,
+    lendable: false
   };
 }
 
@@ -150,7 +153,7 @@ describe("each account's windows", () => {
 
 describe("each worker's week", () => {
   const unsplit = (tokens: number, jobs: number) => ({
-    tokens, jobs, inputTokens: null, outputTokens: null, cacheReadTokens: null, cacheWriteTokens: null, unsplitJobs: jobs, unsplitTokens: tokens
+    tokens, jobs, inputTokens: null, outputTokens: null, cacheReadTokens: null, cacheWriteTokens: null, unsplitJobs: jobs, unsplitTokens: tokens, costUsd: null
   });
   const usage = {
     groups: [

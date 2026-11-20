@@ -1,6 +1,7 @@
 <template>
   <!-- What waits for this room, for the administrator alone (docs/web.md, the room screen's list of what waits): a watch, a reminder or a call
-       an agent left running, read as the screen opens, every minute and at each opening. It stands nowhere while
+       an agent left running, and a supervisor's background subagent or shell command, read as the screen opens, every
+       minute, at each opening and as the agency says background work of the room began or ended. It stands nowhere while
        none waits. On a wide screen it is a button with how many, opening the list over it, however short the bar
        stands; on a narrow screen the room's menu opens the list, as a drawer from the screen's foot, so the bar keeps
        room for the room's name. -->
@@ -33,6 +34,7 @@
 <script setup lang="ts">
 import { useNarrow } from "bmo-ui/app/domain/screen";
 
+import { useLiveRefresh } from "~/domain/events";
 import { countText } from "~/domain/numbers";
 
 import type { BackgroundCall, BackgroundView } from "#shared/types";
@@ -73,6 +75,10 @@ onMounted(() => {
 onBeforeUnmount(() => {
   if (timer !== null) clearInterval(timer);
 });
+
+// Background work of this room beginning or ending is told by the agency, so the list stands it from the turn's end
+// and lets it go as it ends; the tool host tells nothing, so its calls wait on the minute's read.
+useLiveRefresh(() => void read(), { on: ["agency-background"], where: (event) => event.chatId === props.chatId });
 
 // A room changed under the same screen reads its own list; an opened list is read afresh.
 watch(() => props.chatId, () => void read());

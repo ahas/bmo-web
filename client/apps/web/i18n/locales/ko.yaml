@@ -749,6 +749,8 @@ room:
     background: 진행 중
     background_count: "진행 중 {n}개"
     background_reminder: 알림
+    background_shell: 셸 명령
+    background_subagent: 서브에이전트
     background_watch: 감시
     mode_avatar: 아바타 모드
     earlier_count: "이전 {n}개"

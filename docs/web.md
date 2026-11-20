@@ -5846,23 +5846,32 @@ Four bounds keep it from growing forever.
 
 - **The top bar carries 진행 중 for the administrator alone, where something set for this room waits:** the
   tool host's asynchronous calls that stand running with their wake for this room (the tool host's
-  `GET /uses`, read on its console face) — a watch an agent set, a reminder, a call still running. A call that names
-  no room wakes in the owner's private chat, as the receiver queues a wake naming none, so it stands there. It stands as a
+  `GET /uses`, read on its console face) — a watch an agent set, a reminder, a call still running — and the
+  background work a supervisor's program still runs for this room after the turn that launched it, a subagent or
+  a shell command (the agency's `GET /background-work`, by the room). A call that names
+  no room wakes in the owner's private chat, as the receiver queues a wake naming none, so it stands there; background
+  work launched in no room stands nowhere, since its end wakes no room. It stands as a
   button with how many right after the room's menu, before the pinned button and the window's clock, and nowhere
   while none waits.
 - **On a narrow screen it folds into the room's menu,** as an entry after the pinned one naming how many wait, and the
   entry opens the same list as a drawer from the screen's foot, so the bar keeps room for the room's name. On a
   wide screen it keeps its button however short the bar stands (「The title bar」), since its list opens over it.
 - **Pressing it opens a list, one line a call, oldest first:** what it is — 감시 for a watch, with how often its
-  check runs, 알림 for a reminder, with the moment it waits for, and the tool's own name for any other call — the
-  note it was set with, the agent it wakes, and since when it has stood. A call with no note stands its tool's name
-  alone. The note is the agent's own words, a wake's instruction among them, so it stands in its original with its
+  check runs, 알림 for a reminder, with the moment it waits for, 서브에이전트 for a background subagent, 셸 명령 for a
+  background shell command, and the tool's own name for any other call — the note it was set with, the agent it
+  wakes, and since when it has stood. A call with no note stands its tool's name alone. Background work's note is
+  the description it was launched with, and its moment the turn's end that launched it, as the agency writes its
+  launch down; a shell command launched with no description stands its command as its note. The note is the agent's own words, a wake's instruction among them, so it stands in its original with its
   translation in its place, each note under a line of its own (「The original, and its translation in its place」
   under 「TODO 패널」); what the call is, the agent and the times are the console's own words and stay as they are.
 - **It is read as the screen opens, again every minute while the screen stands, and each time the list opens,**
-  so a watch that held, or a reminder whose moment came, leaves the list without a reload.
+  so a watch that held, or a reminder whose moment came, leaves the list without a reload. It is read again too as
+  the agency says background work of this room began or ended (`background-work.created`, `background-work.ended`),
+  so a subagent stands from the end of the turn that launched it and leaves the list as it ends, whatever ended it;
+  how it ended is the supervisor's to tell the room, in the answer its end wakes.
 - **Nothing here acts:** a call is stopped by the agent that set it, and the list only shows what waits. A tool
-  host that cannot be read leaves the button away, as one with nothing waiting does.
+  host or an agency that cannot be read leaves its part of the list away, and the button stands on the other's;
+  with neither read, the button is away, as one with nothing waiting is.
 
 #### 내 BMO와 따로 말하기
 

@@ -29,12 +29,20 @@ import type { BackgroundCall } from "#shared/types";
 const props = defineProps<{ calls: readonly BackgroundCall[] }>();
 const { t } = useI18n();
 
-// What a call is, in a person's words: a watch, a reminder, or the tool's own name.
+// What a call is, in a person's words: a watch, a reminder, a subagent, a shell command, or the tool's own name.
 function kindWord(call: BackgroundCall): string {
-  if (call.kind === "watch") return t("room.label.background_watch");
-  if (call.kind === "reminder") return t("room.label.background_reminder");
-
-  return call.tool;
+  switch (call.kind) {
+    case "watch":
+      return t("room.label.background_watch");
+    case "reminder":
+      return t("room.label.background_reminder");
+    case "subagent":
+      return t("room.label.background_subagent");
+    case "shell":
+      return t("room.label.background_shell");
+    case "call":
+      return call.tool;
+  }
 }
 
 // The line under it: how often a watch checks or when a reminder comes, and since when it has stood.

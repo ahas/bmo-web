@@ -144,6 +144,13 @@ describe("the agency's turns", () => {
     expect(agencyEvent({ id: 30, at: 1, kind: "account.changed", data: { id: 4 } })).toBeNull();
   });
 
+  test("a supervisor's background work beginning or ending names the room it was launched in", () => {
+    const work = { task: "a1", kind: "subagent", description: "Fetch the files", command: null, roomId: -7, agentName: "agent-a", launchedAt: 5, status: "running" };
+
+    expect(agencyEvent({ id: 40, at: 9, kind: "background-work.created", data: work })).toEqual({ id: 40, at: 9, type: "agency-background", chatId: -7, messageId: null });
+    expect(agencyEvent({ id: 41, at: 12, kind: "background-work.ended", data: { ...work, roomId: null, status: "lost" } })).toMatchObject({ type: "agency-background", chatId: 0 });
+  });
+
   test("a run or a session that moved names its agent and its run, where the event carries them", () => {
     expect(agencyEvent({ id: 31, at: 7, kind: "run.changed", data: { id: 4, agentName: "worker-b", unitName: "run-a" } })).toEqual({
       id: 31,

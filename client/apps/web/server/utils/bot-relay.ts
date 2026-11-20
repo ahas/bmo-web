@@ -37,7 +37,8 @@ export interface RelayCursors {
 }
 
 // The agency's events the console's screens read back on: a turn going out, a turn ending, a job starting, changing
-// or ending beside the chat, and a supervisor, a role, a repository or a role's slot moving.
+// or ending beside the chat, a supervisor, a role, a repository or a role's slot moving, and a supervisor's background
+// work beginning or ending.
 export const AGENCY_KINDS = [
   "turn.created",
   "turn.ended",
@@ -53,7 +54,9 @@ export const AGENCY_KINDS = [
   "role.changed",
   "repository.changed",
   "repository.deleted",
-  "slot-request.changed"
+  "slot-request.changed",
+  "background-work.created",
+  "background-work.ended"
 ] as const;
 
 // The voice engine's kinds the screens read (its `docs/boundary-api.md`, 「Events」): a briefing taken in, ended, or

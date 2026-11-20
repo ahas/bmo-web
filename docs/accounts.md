@@ -763,8 +763,11 @@ section states what each does.
 - **A unit marks who among its members has left:** `GET /units/{unit}` and the administrator's list of units answer
   them beside the members, so a caller acting on a unit's people passes them over with no call for each person.
 - **What stays readable is what was a unit's:** the unit's works assigned to the person stay their unit's, read
-  and changed by the heads above as any unit's work is (bmo-work's `docs/design.md`). Their own works, read by
-  them alone, their private conversations and their supervisor's memory are sealed: nobody is given them.
+  and changed by the heads above as any unit's work is (bmo-work's `docs/design.md`).
+- **What was theirs alone is read by the platform administrator alone:** their own works (bmo-work's
+  `docs/design.md`), their private room with their supervisor (the receiver's `docs/receiver.md`) and their
+  supervisor's memory (the brain's `docs/design.md`, 「The screen」). The administrator reads each of them and
+  changes none; nobody else is given them, the person included once their sign-in is gone.
 - **Their supervisor is woken nowhere again,** and a quiet instruction for it is let go (the receiver's
   `docs/wake.md`): the receiver reads the departure off the account's machine standing.
 

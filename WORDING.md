@@ -491,15 +491,29 @@
   or 거절, 제안 없음; who may write it without heading the unit → 조직 기억 쓰기 권한, 권한 부여, 권한 해제. Never 메모리,
   공통 기억, 잠금 for 고정, 대외비 for 사내 한정, nor 승인 or 반려 for a proposal, which stay an approval's words.
 - the record of changes to a person's place → 이력: 이력 없음. Never 히스토리, 로그, 발령 내역.
-- a project's work on the projects screen → 단계 (a stage) and 게이트 (what ends it); an approver's rejection of a gate →
-  반려, with its 반려 사유, as an approval document's; the approval forms a gate waits on → 결재 양식; a task → 임무, its
-  due date → 기한, `{n}일 남음` while it is still to come, 오늘 마감 on the day, 기한 지남 once past; a project's planned
-  period → 계획 기간, its 시작일 and 종료일; a progress entry → 진척, its share → 진척률, its outlook → 전망, with 순조,
-  주의, 위험; a recurring stage's reporting period → 보고 주기, with 매주, 매월, 분기마다, 반기마다, the project it reports
-  to → 보고 대상, and a period that ended with no report → 보고 누락 {n}건; one project asking another, or a unit, for
-  work → 업무 요청, answered 인수, 거절, then 완료; a report waiting for its unit's head to send it → 초안; how long a
-  relation waited → 대기 {span} while it waits, 응답 경과 {span} once answered. Never 거절 for a gate's rejection,
-  마감일 or 데드라인 for a due date, 진행률 for 진척률.
+- one piece of work in the works tree, and the screen that shows the tree → 업무: 업무, 새 업무, 내 업무, 내 개인 업무,
+  `{name} 업무` for a unit's, 업무가 아직 없습니다; the works under one → 하위 업무 (하위 업무가 아직 없습니다), the one
+  above → 상위 업무. A work's kind → 종류: 묶음 업무 (one rolled up from the works under it), 단발 업무, 누적 업무, 기한 조건
+  (a milestone, ending once its conditions hold), 끼어든 업무 (an interruption, counted `끼어든 업무 {n}건 · {m}분`). Its
+  state → 상태: 초안, 진행, 완료, 취소됨.
+- who carries a work → 담당자; giving it to them → 할당: 할당, `{name} 할당`, 할당이 아직 없습니다; their acknowledgement →
+  확인, the assignment standing 확인 대기 until it is given and 확인함 after; a unit's head the assignment went past →
+  건너뛴 조직장.
+- a work's share of its parent → 가중치; dividing one work into several → 나누기; its changes over time → 이력, each
+  change named by what changed (범위, 가중치, 종류, 목표, 계획, 날짜, 담당자, 상위 업무, 상태, 나누기, 진척) and shown
+  as `{before} → {after}`. Never 히스토리.
+- how far a work has gone → 진척, its entries 진척 기록; where the plan says it should be → `계획 {percent}` beside it; its
+  signal → 정상, 주의, 위험; risks in the works under it → 하위 위험 {n}건. Its due date → 기한, `{n}일 남음` while it is
+  still to come, 오늘 마감 on the day, 기한 지남 once past; its start → 시작일. Never 순조 for 정상, 진행률 for 진척,
+  마감일 or 데드라인 for a due date.
+- a milestone's conditions → 조건: 조건 충족, 조건 미충족, 완료 조건; an approver's rejection of them → 반려, with its 반려
+  사유, as an approval document's; the approval forms it waits on → 결재 양식; who approves → 승인자. Never 거절 for it.
+- one work handing something to another, or to a unit → 관계, its kinds 인계, 검수, 참조, 보고, 변경 요청, 업무 요청, sent
+  as 보냄 and arrived as 받음; answered 인수, 반려, 통과, 조건부 통과, 완료 or 거절; how long it waited → 대기 {span}
+  while it waits, 응답 경과 {span} once answered. A relation or minutes not yet sent or confirmed → 초안; minutes
+  confirmed → 확정.
+- a meeting's record → 회의록, the action items it lists → 임무. A template a new work opens on → 템플릿, each standing
+  by its own name in the pack (단기 업무, 단계·게이트 …).
 - what a board or a record belongs to, a unit or a project, and the company a person belongs to → 소속: 소속, 보드
   소속, 소속 조직 구성원, 소속 회사가 없습니다; a board or a record that belongs to none shows 없음. Never 소속
   없음, and never 담당 or 담당자 for it, which is who keeps or approves a thing.

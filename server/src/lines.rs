@@ -19,9 +19,9 @@ use sea_orm::ConnectionTrait;
 use crate::acting::acting_grant;
 use crate::catalogue::{Entry, Roles, entries};
 use crate::ids::shown;
-use crate::readers::{Reader, reader};
+use crate::readers::reader;
 use crate::routes::Answer;
-use crate::units::{HEAD_GRANT, UNIT, company_of, unit_in};
+use crate::units::{HEAD_GRANT, UNIT};
 use crate::{Refusal, Service, all, attributes};
 
 /// One person holding a role at a unit: their id, their name and whether through a post.
@@ -114,20 +114,6 @@ async fn chain<C: ConnectionTrait>(db: &C, unit: i32) -> Result<Vec<(i32, LineVi
   }
 
   Ok(steps)
-}
-
-/// The unit a path names, where it stands in a company the reader reaches; answered as if nothing stood there
-/// otherwise. Answers the unit and its company.
-async fn reached<C: ConnectionTrait>(db: &C, reader: &Reader, unit: &str) -> Result<(i32, i32), Refusal> {
-  let unit = unit_in(unit)?;
-  let absent = || Refusal::absent(format!("no unit {unit}"));
-  let company = company_of(db, unit).await?.ok_or_else(absent)?;
-
-  if !reader.reaches(company) {
-    return Err(absent());
-  }
-
-  Ok((unit, company))
 }
 
 async fn unit_name<C: ConnectionTrait>(db: &C, unit: i32) -> Result<String, Refusal> {
@@ -250,7 +236,7 @@ async fn line_route(
   headers: HeaderMap,
 ) -> Answer<UnitLine> {
   let reader = reader(&service.db, &headers).await?;
-  let (unit, company) = reached(&service.db, &reader, &unit).await?;
+  let (unit, company) = reader.reached(&service.db, &unit).await?;
 
   Ok(Json(line(&service.db, unit, company).await?))
 }
@@ -261,7 +247,7 @@ async fn stand_route(
   headers: HeaderMap,
 ) -> Answer<RoleStand> {
   let reader = reader(&service.db, &headers).await?;
-  let (unit, company) = reached(&service.db, &reader, &unit).await?;
+  let (unit, company) = reader.reached(&service.db, &unit).await?;
   let asked = entries::<Roles, _>(&service.db, company)
     .await?
     .into_iter()

@@ -3634,6 +3634,133 @@
           }
         ]
       },
+      "SubtreeMember": {
+        "description": "A person whose home unit is a unit of a subtree: the role they carry there and whether their account has left.",
+        "properties": {
+          "left": {
+            "type": "boolean"
+          },
+          "name": {
+            "description": "The person's name, the login where none stands.",
+            "type": "string"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RoleRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user",
+          "name",
+          "left"
+        ],
+        "type": "object"
+      },
+      "SubtreePost": {
+        "description": "A person holding a post in a unit of a subtree: the post's role and whether it carries the unit's head.",
+        "properties": {
+          "head": {
+            "type": "boolean"
+          },
+          "name": {
+            "description": "The person's name, the login where none stands.",
+            "type": "string"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RoleRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user",
+          "name",
+          "head"
+        ],
+        "type": "object"
+      },
+      "SubtreeUnit": {
+        "description": "One unit of a subtree and the people standing in it, each list in the order of their names.",
+        "properties": {
+          "concurrent": {
+            "description": "The people holding a post in it.",
+            "items": {
+              "$ref": "#/components/schemas/SubtreePost"
+            },
+            "type": "array"
+          },
+          "heads": {
+            "description": "The heads granted it directly, an acting one marked.",
+            "items": {
+              "$ref": "#/components/schemas/LineHead"
+            },
+            "type": "array"
+          },
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/KindRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "members": {
+            "description": "The people whose home unit it is.",
+            "items": {
+              "$ref": "#/components/schemas/SubtreeMember"
+            },
+            "type": "array"
+          },
+          "name": {
+            "type": "string"
+          },
+          "parent": {
+            "description": "The unit it stands under, absent for a company.",
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "shortName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "heads",
+          "members",
+          "concurrent"
+        ],
+        "type": "object"
+      },
       "SupplyAuditEntry": {
         "description": "One audited supply act.",
         "properties": {
@@ -4821,6 +4948,21 @@
           "left",
           "concurrent",
           "acting"
+        ],
+        "type": "object"
+      },
+      "UnitSubtree": {
+        "description": "A unit and every unit below it in tree order: the unit first, each unit followed by the units under it before\nits next sibling, siblings by name and then by id.",
+        "properties": {
+          "units": {
+            "items": {
+              "$ref": "#/components/schemas/SubtreeUnit"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "units"
         ],
         "type": "object"
       },
@@ -10984,6 +11126,71 @@
           "other-company",
           "left",
           "no-such-role",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/units/{unit}/subtree": {
+      "get": {
+        "operationId": "unitSubtree",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "unit",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnitSubtree"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A unit and every unit below it in tree order, each with its heads, the acting one marked, its members with their roles and the people holding a post in it, for the administrator and a head of the unit or of a unit above.",
+        "tags": [
+          "Organisation units"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
           "not-in-force",
           "database",
           "failed"

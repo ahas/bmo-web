@@ -23,7 +23,7 @@ use crate::units::{
 use crate::{Refusal, Service, all, now_ms, one, run};
 
 /// The columns a post's role is read by, a post's row being `up` and its role's `pr`.
-const ROLE_COLUMNS: &str = r#"pr."id" AS "role_id", pr."key" AS "role_key", pr."name" AS "role_name",
+pub const ROLE_COLUMNS: &str = r#"pr."id" AS "role_id", pr."key" AS "role_key", pr."name" AS "role_name",
   pr."place" AS "role_place""#;
 
 /// A post's role as a row carries it, where it carries one.
@@ -42,7 +42,7 @@ pub fn role_of(row: &QueryResult) -> Result<Option<Entry>, Refusal> {
 }
 
 /// Whether the person `up."user_id"` names holds the head of the unit `up."unit_id"` names lastingly.
-const POST_HEAD: &str = r#"EXISTS (
+pub const POST_HEAD: &str = r#"EXISTS (
   SELECT 1 FROM "relation_tuples" ph
   WHERE ph."resource_type" = 'organization' AND ph."resource_id" = up."unit_id"::text
     AND ph."relation" = 'manager' AND ph."subject_type" = 'user' AND ph."subject_id" = up."user_id"::text

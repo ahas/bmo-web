@@ -176,6 +176,56 @@ pub struct UnitLine {
   pub steps: Vec<LineStep>,
 }
 
+/// A person whose home unit is a unit of a subtree: the role they carry there and whether their account has left.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct SubtreeMember {
+  pub user: String,
+  /// The person's name, the login where none stands.
+  pub name: String,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub role: Option<RoleRef>,
+  pub left: bool,
+}
+
+/// A person holding a post in a unit of a subtree: the post's role and whether it carries the unit's head.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct SubtreePost {
+  pub user: String,
+  /// The person's name, the login where none stands.
+  pub name: String,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub role: Option<RoleRef>,
+  pub head: bool,
+}
+
+/// One unit of a subtree and the people standing in it, each list in the order of their names.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct SubtreeUnit {
+  pub id: i64,
+  pub name: String,
+  /// The unit it stands under, absent for a company.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub parent: Option<i64>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub kind: Option<KindRef>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub short_name: Option<String>,
+  /// The heads granted it directly, an acting one marked.
+  pub heads: Vec<LineHead>,
+  /// The people whose home unit it is.
+  pub members: Vec<SubtreeMember>,
+  /// The people holding a post in it.
+  pub concurrent: Vec<SubtreePost>,
+}
+
+/// A unit and every unit below it in tree order: the unit first, each unit followed by the units under it before
+/// its next sibling, siblings by name and then by id.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct UnitSubtree {
+  pub units: Vec<SubtreeUnit>,
+}
+
 /// A person standing for a role for a unit: where they hold it and whether through a post.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct RoleHolder {

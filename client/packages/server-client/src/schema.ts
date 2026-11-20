@@ -697,6 +697,201 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/supply/credits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Credits into anyone's wallet, the platform administrator's act, answered the wallet as it stands after. */
+        post: operations["grantSupplyCredits"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/supply/credits/audit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every supply act an outsider must be able to name, newest first, paged. */
+        get: operations["supplyAudit"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/supply/credits/ledger": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The membership wallet ledger, newest first, paged. */
+        get: operations["supplyLedger"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/supply/hook": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The agency's supply ask, answered under `answer`: the order, or a reservation taken, extended, captured or released. */
+        post: operations["supplyHook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/supply/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The reader's own supply: the resolved order, each source's standing and reason, this month's usage, the plan's remaining included amount and the personal credit balance. */
+        get: operations["supplyMe"];
+        /** The reader's own setting written whole; a source an earlier layer closed is refused by the closer's code. */
+        put: operations["setSupplyMe"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/supply/org/{unit}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A unit's supply: the policy standing for it, its plan, its wallet and this month's usage per member, each read by the hand that may read it. */
+        get: operations["supplyOrg"];
+        /** A unit's supply policy written whole, by its credit manager or its head. */
+        put: operations["setSupplyOrg"];
+        post?: never;
+        /** A unit's supply policy taken away, the unit inheriting again. */
+        delete: operations["clearSupplyOrg"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/supply/org/{unit}/credits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Credits into a unit's wallet, answered the wallet as it stands after. */
+        post: operations["grantSupplyOrgCredits"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/supply/plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every membership plan that stands, retired ones aside. */
+        get: operations["supplyPlans"];
+        put?: never;
+        /** A membership plan made. */
+        post: operations["addSupplyPlan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/supply/plans/{plan}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** A membership plan retired, its subscriptions standing on their snapshot. */
+        delete: operations["retireSupplyPlan"];
+        options?: never;
+        head?: never;
+        /** A membership plan changed. */
+        patch: operations["changeSupplyPlan"];
+        trace?: never;
+    };
+    "/supply/platform": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The platform's default policy and money settings. */
+        get: operations["supplyPlatform"];
+        /** Any part of the platform's policy and money settings changed. */
+        put: operations["setSupplyPlatform"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/supply/user/{user}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A person's supply as an administrator reads it: their per-user policy, the roads their personal supply serves, and their resolved order. */
+        get: operations["supplyUser"];
+        /** A person's per-user policy written whole, narrowing within their organisation. */
+        put: operations["setSupplyUser"];
+        post?: never;
+        /** A person's per-user policy taken away, the person following their organisation's again. */
+        delete: operations["clearSupplyUser"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/units": {
         parameters: {
             query?: never;
@@ -867,6 +1062,23 @@ export interface paths {
         post?: never;
         /** A post and the head grant it carried taken away, by the administrator or a head of the unit or of one above. */
         delete: operations["takePost"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/units/{unit}/subtree": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A unit and every unit below it in tree order, each with its heads, the acting one marked, its members with their roles and the people holding a post in it, for the administrator and a head of the unit or of a unit above. */
+        get: operations["unitSubtree"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -2450,6 +2662,328 @@ export interface components {
         };
         /** @description Why the people standing for a role hold another one. */
         StandReason: "no-holder";
+        /** @description A person whose home unit is a unit of a subtree: the role they carry there and whether their account has left. */
+        SubtreeMember: {
+            left: boolean;
+            /** @description The person's name, the login where none stands. */
+            name: string;
+            role?: components["schemas"]["RoleRef"] | null;
+            user: string;
+        };
+        /** @description A person holding a post in a unit of a subtree: the post's role and whether it carries the unit's head. */
+        SubtreePost: {
+            head: boolean;
+            /** @description The person's name, the login where none stands. */
+            name: string;
+            role?: components["schemas"]["RoleRef"] | null;
+            user: string;
+        };
+        /** @description One unit of a subtree and the people standing in it, each list in the order of their names. */
+        SubtreeUnit: {
+            /** @description The people holding a post in it. */
+            concurrent: components["schemas"]["SubtreePost"][];
+            /** @description The heads granted it directly, an acting one marked. */
+            heads: components["schemas"]["LineHead"][];
+            /** Format: int64 */
+            id: number;
+            kind?: components["schemas"]["KindRef"] | null;
+            /** @description The people whose home unit it is. */
+            members: components["schemas"]["SubtreeMember"][];
+            name: string;
+            /**
+             * Format: int64
+             * @description The unit it stands under, absent for a company.
+             */
+            parent?: number | null;
+            shortName?: string | null;
+        };
+        /** @description One audited supply act. */
+        SupplyAuditEntry: {
+            /** Format: int64 */
+            at: number;
+            by: string;
+            byName: string;
+            detail: string;
+            /** Format: int64 */
+            id: number;
+            /** @description `grant`, `policy`, `settings` or `plan`. */
+            kind: string;
+            subject: string;
+        };
+        /** @description A page of the audit, newest first. */
+        SupplyAuditPage: {
+            entries: components["schemas"]["SupplyAuditEntry"][];
+            next: string | null;
+        };
+        /** @description Credits granted to anyone. */
+        SupplyCreditAsk: {
+            /** Format: int64 */
+            amount: number;
+            /** Format: int64 */
+            ownerId: number;
+            /** @description `user` or `organisation`. */
+            ownerKind: string;
+            words?: string | null;
+        };
+        /** @description Credits granted to a unit's wallet. */
+        SupplyGrantAsk: {
+            /** Format: int64 */
+            amount: number;
+            words?: string | null;
+        };
+        /** @description The wallet as it stands after a grant. */
+        SupplyGranted: {
+            /** Format: int64 */
+            balance: number;
+            /** Format: int64 */
+            debt: number;
+        };
+        /** @description The answer to a hook operation, under `answer`. */
+        SupplyHookAnswer: {
+            answer: components["schemas"]["SupplyHookReply"];
+        };
+        /** @description The ask posted to the supply hook: the point and the operation with its fields. */
+        SupplyHookAsk: {
+            ask: components["schemas"]["SupplyHookOp"];
+            point: string;
+        };
+        /** @description The ask of one hook operation. Each operation reads the fields it names; the rest stand absent. */
+        SupplyHookOp: {
+            /** @description The account the run stands under, as the digits of a user's id: handed as text or as a number. */
+            account?: unknown;
+            /** Format: double */
+            costUsd?: number | null;
+            job?: unknown;
+            /** @description The idempotency key `<run>:<step>:<op>`, taken once end to end. */
+            key?: string | null;
+            /** @description `job` or `turn`, for an order ask. */
+            kind?: string | null;
+            model?: string | null;
+            op: string;
+            provider?: string | null;
+            reservation?: string | null;
+            /** Format: int64 */
+            room?: number | null;
+            /** Format: int64 */
+            run?: number | null;
+            source?: string | null;
+            /** Format: double */
+            spentUsd?: number | null;
+            /** Format: int64 */
+            step?: number | null;
+            supervisor?: string | null;
+        };
+        /** @description What one hook operation answered. */
+        SupplyHookReply: {
+            accepted?: boolean | null;
+            /** Format: double */
+            amountUsd?: number | null;
+            /** Format: int64 */
+            expiresAt?: number | null;
+            /**
+             * Format: int64
+             * @description When a refused reservation may be asked again, where a moment is known.
+             */
+            reopensAt?: number | null;
+            reservation?: string | null;
+            /** @description The resolved order for an `order` ask, `stop` left out. */
+            sources?: string[] | null;
+            taken?: boolean | null;
+        };
+        /** @description One entry of the credits ledger. */
+        SupplyLedgerEntry: {
+            /** Format: int64 */
+            amount: number;
+            /** Format: int64 */
+            at: number;
+            /** Format: int64 */
+            balanceAfter: number;
+            /** Format: int64 */
+            debtChange: number;
+            /** Format: int64 */
+            id: number;
+            /** @description The membership ledger kind: `grant`, `consume`, `reserve`, `capture` and the rest. */
+            kind: string;
+            /** Format: int64 */
+            ownerId: number;
+            ownerKind: string;
+            words?: string | null;
+        };
+        /** @description A page of the credits ledger, newest first. */
+        SupplyLedgerPage: {
+            entries: components["schemas"]["SupplyLedgerEntry"][];
+            next: string | null;
+        };
+        /** @description What one member of a unit cost this month, by source. */
+        SupplyMemberUsageRow: {
+            /** Format: int64 */
+            credits: number;
+            source: string;
+            user: string;
+        };
+        /** @description A unit's supply view. */
+        SupplyOrgView: {
+            inherits: boolean;
+            plan?: components["schemas"]["SupplyPlanCard"] | null;
+            policy?: components["schemas"]["SupplyPolicyView"] | null;
+            /** Format: int64 */
+            unit: number;
+            usage: components["schemas"]["SupplyMemberUsageRow"][];
+            wallet?: components["schemas"]["SupplyWallet"] | null;
+        };
+        /** @description One membership plan whole, as the platform's plan screen reads and writes it. */
+        SupplyPlan: {
+            creditsUsable: boolean;
+            /** Format: int64 */
+            id: number;
+            /**
+             * Format: int64
+             * @description The amount quota the plan carries for its supply action; null where it includes none.
+             */
+            includedCredits: number | null;
+            name: string;
+            /** @description `day`, `week`, `month` or `year`. */
+            period: string;
+            /**
+             * Format: int64
+             * @description Whole won.
+             */
+            price: number;
+            /** @description `personal` or `organisation`. */
+            scope: string;
+        };
+        /** @description A plan made whole. */
+        SupplyPlanAsk: {
+            creditsUsable: boolean;
+            /** Format: int64 */
+            includedCredits: number | null;
+            name: string;
+            period: string;
+            /** Format: int64 */
+            price: number;
+            scope: string;
+        };
+        /** @description The plan standing for a unit, as its `subscription_manager` reads it. */
+        SupplyPlanCard: {
+            creditsUsable: boolean;
+            /** Format: int64 */
+            includedCredits: number | null;
+            name: string;
+            period: string;
+            /** Format: int64 */
+            price: number;
+            scope: string;
+        };
+        /** @description A plan changed in part. */
+        SupplyPlanPatch: {
+            creditsUsable?: boolean | null;
+            /** Format: int64 */
+            includedCredits?: number | null;
+            name?: string | null;
+            period?: string | null;
+            /** Format: int64 */
+            price?: number | null;
+        };
+        /** @description The plans, newest first. */
+        SupplyPlans: {
+            plans: components["schemas"]["SupplyPlan"][];
+        };
+        /** @description The platform's policy and money settings. */
+        SupplyPlatform: {
+            allowed: string[];
+            /** Format: int64 */
+            creditsPerDollar: number;
+            enforce: boolean;
+            order: string[];
+            /** Format: int64 */
+            reservationCredits: number;
+        };
+        /** @description Any part of the platform row changed. */
+        SupplyPlatformAsk: {
+            allowed?: string[] | null;
+            /** Format: int64 */
+            creditsPerDollar?: number | null;
+            enforce?: boolean | null;
+            order?: string[] | null;
+            /** Format: int64 */
+            reservationCredits?: number | null;
+        };
+        /** @description An organisation's or a person's policy written whole. */
+        SupplyPolicyAsk: {
+            allowed: string[];
+            /** Format: int64 */
+            memberCreditCredits?: number | null;
+            order: string[];
+        };
+        /** @description One policy as it stands for a unit or a person: whose row it is where it stands above. */
+        SupplyPolicyView: {
+            allowed: string[];
+            /**
+             * Format: int64
+             * @description The unit whose row stands, where the unit inherits one from above.
+             */
+            from?: number | null;
+            /** Format: int64 */
+            memberCreditCredits?: number | null;
+            order: string[];
+        };
+        /** @description The reader's own setting written whole. */
+        SupplySettingAsk: {
+            off: string[];
+            order: string[];
+            /** Format: int64 */
+            personalCreditCredits?: number | null;
+            personalCreditsOn: boolean;
+        };
+        /**
+         * @description One source as the reader's view stands it: whether the layers above allow it, whether the reader has it
+         *     switched off, and where it is not allowed, which layer closed it.
+         */
+        SupplySourceState: {
+            allowed: boolean;
+            off: boolean;
+            /** @description `not-in-plan`, `blocked-by-organisation` or `blocked-by-administrator`. */
+            reason?: string | null;
+            source: string;
+        };
+        /** @description What one source cost this month, per source. */
+        SupplyUsageRow: {
+            /** Format: int64 */
+            costMicros: number;
+            /** Format: int64 */
+            credits: number;
+            source: string;
+        };
+        /** @description A person's supply as an administrator reads it. */
+        SupplyUserView: {
+            inherits: boolean;
+            order: string[];
+            policy?: components["schemas"]["SupplyPolicyView"] | null;
+            /** @description The roads the person's personal supply serves; never a credential, never a secret's value. */
+            providers: string[];
+            user: string;
+        };
+        /** @description The reader's own supply view. */
+        SupplyView: {
+            /** Format: int64 */
+            globalRemaining?: number | null;
+            order: string[];
+            /** Format: int64 */
+            personalCreditCredits?: number | null;
+            /** Format: int64 */
+            personalCredits?: number | null;
+            sources: components["schemas"]["SupplySourceState"][];
+            usage: components["schemas"]["SupplyUsageRow"][];
+        };
+        /** @description What a credit wallet holds. */
+        SupplyWallet: {
+            /** Format: int64 */
+            balance: number;
+            /** Format: int64 */
+            debt: number;
+            /** Format: int64 */
+            reserved: number;
+        };
         /**
          * @description A unit renamed or moved under another parent of its company, its kind, short name and the unit it reports to
          *     set: each of the last three left as it stands where absent and taken away where null.
@@ -2523,6 +3057,13 @@ export interface components {
              */
             reportsTo?: number | null;
             shortName?: string | null;
+        };
+        /**
+         * @description A unit and every unit below it in tree order: the unit first, each unit followed by the units under it before
+         *     its next sibling, siblings by name and then by id.
+         */
+        UnitSubtree: {
+            units: components["schemas"]["SubtreeUnit"][];
         };
         /**
          * @description One organisation unit read whole: what `Unit` answers, and beside it the unit's kind, short name and the unit
@@ -4424,6 +4965,703 @@ export interface operations {
             };
         };
     };
+    grantSupplyCredits: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupplyCreditAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplyGranted"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, forbidden, not-in-force, database, upstream-failed, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    supplyAudit: {
+        parameters: {
+            query?: {
+                after?: number;
+                limit?: number;
+            };
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplyAuditPage"];
+                };
+            };
+            /** @description A refusal or failure: forbidden, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    supplyLedger: {
+        parameters: {
+            query?: {
+                after?: number;
+                limit?: number;
+            };
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplyLedgerPage"];
+                };
+            };
+            /** @description A refusal or failure: forbidden, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    supplyHook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupplyHookAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplyHookAnswer"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    supplyMe: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplyView"];
+                };
+            };
+            /** @description A refusal or failure: forbidden, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    setSupplyMe: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupplySettingAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplyView"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, forbidden, source-not-allowed, not-in-plan, blocked-by-organisation, blocked-by-administrator, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    supplyOrg: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                unit: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplyOrgView"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, forbidden, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    setSupplyOrg: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                unit: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupplyPolicyAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplyOrgView"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, forbidden, source-not-allowed, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    clearSupplyOrg: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                unit: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplyOrgView"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, forbidden, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    grantSupplyOrgCredits: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                unit: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupplyGrantAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplyGranted"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, forbidden, not-in-force, database, upstream-failed, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    supplyPlans: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplyPlans"];
+                };
+            };
+            /** @description A refusal or failure: forbidden, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    addSupplyPlan: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupplyPlanAsk"];
+            };
+        };
+        responses: {
+            /** @description Made. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplyPlan"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, forbidden, not-in-force, database, upstream-failed, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    retireSupplyPlan: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                plan: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplyPlans"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, forbidden, not-found, not-in-force, database, upstream-failed, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    changeSupplyPlan: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                plan: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupplyPlanPatch"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplyPlan"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, forbidden, not-found, not-in-force, database, upstream-failed, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    supplyPlatform: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplyPlatform"];
+                };
+            };
+            /** @description A refusal or failure: forbidden, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    setSupplyPlatform: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupplyPlatformAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplyPlatform"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, forbidden, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    supplyUser: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplyUserView"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, forbidden, not-in-force, no-agency, upstream-failed, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    setSupplyUser: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupplyPolicyAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplyUserView"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, forbidden, source-not-allowed, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    clearSupplyUser: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplyUserView"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, forbidden, not-in-force, no-agency, upstream-failed, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
     units: {
         parameters: {
             query?: {
@@ -4952,6 +6190,40 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    unitSubtree: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                unit: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnitSubtree"];
+                };
             };
             /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
             default: {

@@ -220,6 +220,7 @@ fn own() -> Router<Service> {
     .merge(crate::acting::routes())
     .merge(crate::posts::routes())
     .merge(crate::lines::routes())
+    .merge(crate::subtree::routes())
     .merge(crate::callers::routes())
     .merge(crate::invites::routes())
     .merge(crate::machines::routes())

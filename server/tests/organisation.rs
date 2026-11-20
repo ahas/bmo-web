@@ -1,8 +1,9 @@
 //! A company's own words for its organisation and what stands on its units beside heads and members
 //! (docs/accounts.md, 「Users and senders」, 「Companies and organisation units」, 「Roles and unit kinds」,
-//! 「Concurrent posts」, 「Acting」, 「The line of a unit」 and 「A person's history」): the role and kind catalogues,
-//! a unit's kind, short name and the unit it reports to, the line read through it, acting appointments, posts,
-//! the history of a person's place, and a person's rank, duty and the title composed from them.
+//! 「Concurrent posts」, 「Acting」, 「The line of a unit」, 「Everyone under a unit」 and 「A person's history」): the
+//! role and kind catalogues, a unit's kind, short name and the unit it reports to, the line read through it, acting
+//! appointments, posts, everyone under a unit in one read, the history of a person's place, and a person's rank,
+//! duty and the title composed from them.
 
 use crate::support::{OWNER, ROOM, Scratch, console_hash, ready};
 use axum::Router;
@@ -815,6 +816,113 @@ async fn a_concurrent_post_lists_a_person_in_its_unit_and_its_line_while_their_h
   assert_eq!(first["byName"], "division-head");
   assert_eq!(first["unit"]["id"], site);
   assert_eq!(first["after"]["key"], "lead");
+}
+
+#[tokio::test]
+async fn a_units_subtree_answers_everyone_under_it_in_tree_order_to_its_heads_alone() {
+  let world = world().await;
+  let (division, site, office) = (world.division, world.site, world.office);
+  let until = bmo_web_server::now_ms() + 3_600_000;
+
+  world.roles().await;
+  // A unit under the office, the first sibling, so tree order and level order part; a person in it who has left.
+  let crew = unit(&world.scratch, "crew-a", Some(office)).await;
+  let gone = placed(&world.scratch, "member-gone", crew).await;
+  let (status, _) = world.admin(Method::POST, &format!("/users/{gone}/leave"), None).await;
+  assert_eq!(status, StatusCode::NO_CONTENT);
+  // The site's member carries a role there and holds a post heading the office; the office's member acts for the
+  // site's head.
+  let (status, said) = world.role(world.in_site, site, false, json!("lead")).await;
+  assert_eq!(status, StatusCode::OK, "{said}");
+  let (status, said) = world
+    .call(
+      Method::PUT,
+      &format!("/units/{office}/posts/{}", world.in_site),
+      Some(json!({ "role": "associate", "head": true })),
+      world.division_head,
+    )
+    .await;
+  assert_eq!(status, StatusCode::OK, "{said}");
+  let (status, said) = world
+    .call(
+      Method::PUT,
+      &format!("/units/{site}/acting"),
+      Some(json!({ "user": world.in_office.to_string(), "until": until })),
+      world.division_head,
+    )
+    .await;
+  assert_eq!(status, StatusCode::OK, "{said}");
+
+  let subtree = format!("/units/{division}/subtree");
+  let (status, said) = world.call(Method::GET, &subtree, None, world.division_head).await;
+  assert_eq!(status, StatusCode::OK, "{said}");
+  let units = said["units"].as_array().unwrap();
+  let order: Vec<i64> = units.iter().map(|one| one["id"].as_i64().unwrap()).collect();
+  assert_eq!(order, [division, office, crew, site].map(i64::from));
+  let at = |unit: i32| units.iter().find(|one| one["id"] == unit).unwrap().clone();
+
+  // The division stands under its company; its head is its own, the company's head standing under the company alone.
+  let top = at(division);
+  assert_eq!(top["parent"], world.company);
+  assert_eq!(
+    top["heads"],
+    json!([{ "user": world.division_head.to_string(), "name": "division-head", "acting": false, "concurrent": false }])
+  );
+  assert_eq!(users(&top["members"]), [world.division_head.to_string()]);
+  // The office: its member, and the site's member heading it through a post that carries a role.
+  let office_unit = at(office);
+  assert_eq!(
+    office_unit["heads"],
+    json!([{ "user": world.in_site.to_string(), "name": "member-site", "acting": false, "concurrent": true }])
+  );
+  assert_eq!(
+    office_unit["members"],
+    json!([{ "user": world.in_office.to_string(), "name": "member-office", "left": false }])
+  );
+  assert_eq!(office_unit["concurrent"][0]["user"], world.in_site.to_string());
+  assert_eq!(office_unit["concurrent"][0]["role"]["key"], "associate");
+  assert_eq!(office_unit["concurrent"][0]["head"], true);
+  // The crew: the person who left, marked.
+  assert_eq!(
+    at(crew)["members"],
+    json!([{ "user": gone.to_string(), "name": "member-gone", "left": true }])
+  );
+  // The site: the acting head marked, its member with the role carried there, no post.
+  let site_unit = at(site);
+  assert_eq!(site_unit["heads"][0]["user"], world.in_office.to_string());
+  assert_eq!(site_unit["heads"][0]["acting"], true);
+  assert_eq!(site_unit["members"][0]["user"], world.in_site.to_string());
+  assert_eq!(site_unit["members"][0]["role"]["key"], "lead");
+  assert_eq!(site_unit["concurrent"], json!([]));
+
+  // The administrator reads the same; the acting head reads the site's subtree and not the division's above it.
+  let (status, by_administrator) = world.admin(Method::GET, &subtree, None).await;
+  assert_eq!(status, StatusCode::OK, "{by_administrator}");
+  assert_eq!(by_administrator, said);
+  let (status, acted) =
+    world.call(Method::GET, &format!("/units/{site}/subtree"), None, world.in_office).await;
+  assert_eq!(status, StatusCode::OK, "{acted}");
+  assert_eq!(acted["units"].as_array().unwrap().len(), 1);
+  let (status, _) = world.call(Method::GET, &subtree, None, world.in_office).await;
+  assert_eq!(status, StatusCode::FORBIDDEN);
+
+  // A member of the company who heads nothing is refused; a reader of another company is answered as if no unit
+  // stood; so is a unit that does not stand.
+  let (status, _) = world.call(Method::GET, &subtree, None, world.in_site).await;
+  assert_eq!(status, StatusCode::FORBIDDEN);
+  let (status, _) = world.call(Method::GET, &subtree, None, world.outsider).await;
+  assert_eq!(status, StatusCode::NOT_FOUND);
+  let (status, _) = world.admin(Method::GET, "/units/999999/subtree", None).await;
+  assert_eq!(status, StatusCode::NOT_FOUND);
+
+  // A call naming no user is refused.
+  let request = Request::builder()
+    .uri(&subtree)
+    .header("x-real-ip", "127.0.0.1")
+    .header(header::AUTHORIZATION, format!("Bearer {TOKEN}"))
+    .body(Body::empty())
+    .unwrap();
+  assert_eq!(world.app.clone().oneshot(request).await.unwrap().status(), StatusCode::FORBIDDEN);
 }
 
 #[tokio::test]

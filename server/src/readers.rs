@@ -7,7 +7,7 @@ use bmo_web_client::OWNER_KEY;
 use sea_orm::ConnectionTrait;
 use sumida::api::authz::Authz;
 
-use crate::units::{HEADS, UNIT, company_of};
+use crate::units::{HEADS, UNIT, company_of, unit_in};
 use crate::users::user_subject;
 use crate::{Refusal, one};
 
@@ -22,6 +22,20 @@ impl Reader {
   /// Whether the reader reaches what stands in `company`: the administrator every company, anyone else their own.
   pub fn reaches(&self, company: i32) -> bool {
     self.administrator || self.company == Some(company)
+  }
+
+  /// The unit a path names, where it stands in a company the reader reaches; answered as if nothing stood there
+  /// otherwise. Answers the unit and its company.
+  pub async fn reached<C: ConnectionTrait>(&self, db: &C, unit: &str) -> Result<(i32, i32), Refusal> {
+    let unit = unit_in(unit)?;
+    let absent = || Refusal::absent(format!("no unit {unit}"));
+    let company = company_of(db, unit).await?.ok_or_else(absent)?;
+
+    if !self.reaches(company) {
+      return Err(absent());
+    }
+
+    Ok((unit, company))
   }
 
   /// Whether the reader heads `unit`, by sumida's `manage` on it, which the administrator always holds.

@@ -39,6 +39,7 @@ pub mod secrets;
 pub mod sections;
 pub mod settings;
 pub mod store;
+pub mod subtree;
 pub mod supply;
 pub mod units;
 pub mod users;

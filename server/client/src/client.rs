@@ -4,6 +4,7 @@ use reqwest::{Client, Method, RequestBuilder, StatusCode, Url};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 
+use crate::organisation::UnitSubtree;
 use crate::supply::*;
 use crate::types::*;
 use crate::wire::{Answer, ClientFailure};
@@ -312,6 +313,16 @@ impl AccountClient {
   /// `GET /units/{unit}`.
   pub async fn unit(&self, unit: i64) -> Answer<Unit> {
     Self::answered(self.request(Method::GET, &["units", &unit.to_string()])).await
+  }
+
+  /// `GET /units/{unit}/subtree`, read for the login `key`.
+  pub async fn unit_subtree(&self, unit: i64, key: &str) -> Answer<UnitSubtree> {
+    Self::answered(
+      self
+        .request(Method::GET, &["units", &unit.to_string(), "subtree"])
+        .header(OWNER_KEY, key),
+    )
+    .await
   }
 
   /// `GET /units`, asked as the login `key` acts for in `role`.

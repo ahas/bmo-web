@@ -1249,6 +1249,19 @@ pub fn openapi() -> Value {
   );
   add!(
     "GET",
+    "/units/{unit}/subtree",
+    "unitSubtree",
+    "Organisation units",
+    "A unit and every unit below it in tree order, each with its heads, the acting one marked, its members with their roles and the people holding a post in it, for the administrator and a head of the unit or of a unit above.",
+    params: vec![integer_path("unit"), owner_key()],
+    body: None,
+    answers: vec![(200, json_answer::<UnitSubtree>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
     "/units/{unit}/line/{role}",
     "roleStand",
     "Organisation units",

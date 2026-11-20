@@ -486,6 +486,27 @@ section states what each does.
 - **Both read for anyone of the unit's company and the administrator,** with the reader in `Owner-Key`; a unit of
   another company, and a role key its catalogue does not hold, is answered 404 as if nothing stood there.
 
+### Everyone under a unit
+
+- **`GET /units/{unit}/subtree`** answers a unit and every unit below it in one read, so a view of everyone a head
+  heads needs no walk from one unit to its children. The units stand in tree order: the asked unit first, and
+  each unit followed by every unit under it before its next sibling, siblings in the order a unit's `children`
+  stand in (by name, then by id).
+- **Each unit carries** its id, its name, its parent (absent for a company), its kind and short name where set,
+  and the people standing in it, each with their name (the person's name, the login where none stands), in the
+  order of their names, then their ids:
+  - its heads granted directly, as a line's heads are: each marked acting where the grant is a running
+    appointment's (「Acting」) and concurrent where the person holds a post in it; a head of a unit above stands
+    under that unit alone;
+  - its members, the people whose home unit it is, each with the role they carry there and whether their account
+    has left (「A person who leaves」);
+  - the people holding a post in it (「Concurrent posts」), each with the post's role and whether it carries the
+    unit's head.
+- **Who reads it:** the administrator, and a head of the unit or of a unit above it by sumida's `manage` on the
+  unit, so an acting head reads it while the appointment runs and a head through a post as any head does; the
+  reader is named in `Owner-Key`. A reader of the unit's company who heads neither is refused 403, and a unit of
+  another company is answered 404 as if nothing stood there, so the read says nothing across companies.
+
 ### A person's history
 
 - **Every change of a person's place is kept:** a move of their home unit, a role set or taken away, a head granted
@@ -1128,6 +1149,11 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 - **The line tests** read a line through a unit it reports to and up its parents, each step's heads and role
   holders; who stands for a role at the nearest step; the next lower role's holders marked acting with the reason
   where no step holds it; nobody where none stands; and a reader of another company answered 404.
+- **The subtree tests** read a division's subtree as its head, the administrator and an acting head of it: the
+  division first and each unit after its parent, siblings by name, each with its heads marked acting or concurrent,
+  its members with their roles and a member who has left marked, and its posts; a member of the company is
+  refused, a reader of another company answered as if no unit stood, a head of a unit below refused the unit
+  above, and a call naming no user refused.
 - **The acting tests** stand an appointment and, rather than wait for its end, move the end into the past in the
   database: the person passes the unit check and is listed acting while it runs, and neither once its end has
   passed, with no act between; a second

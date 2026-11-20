@@ -342,8 +342,8 @@ section states what each does.
   company at the top of its branch, and a company holds units under units to any depth. The words a company calls its units by — division, centre, team, part — are
   their names alone, and nothing here reads a meaning into them (`STRUCTURE.md`, 「Terms」).
 - **A user has one home unit,** the organisation sumida keeps on the user, at any depth of the tree. It alone
-  decides their company, their path and what gathers their own projects, and `GET /users/{user}/unit` answers it.
-  Beside it a person may hold posts in other units of the same company (「Concurrent posts」).
+  decides their company, their path and which heads read the works assigned to them, and `GET /users/{user}/unit`
+  answers it. Beside it a person may hold posts in other units of the same company (「Concurrent posts」).
 - **A person's place in their unit is its head or a member,** the two places a move and an invitation name, and
   it is the one authority a unit gives. Beside it a person may carry one role of their company's catalogue in
   their home unit, and one in each post (「Roles and unit kinds」); a role is a fact others read, such as an
@@ -433,10 +433,11 @@ section states what each does.
   - it counts, marked, where the roster is narrowed by unit or by kind (「The people roster」);
   - it may carry a head grant on the unit, which a move of the person's home unit leaves standing and taking the
     post takes away.
-- **What a post does not do:** it decides nothing of the person's company, path or own projects, which are their
-  home unit's, and gives no authority but the head grant it carries. Reading what is shared to a unit through a
-  post, the documents another unit shares with it among them, is not provided: such a unit reads a person's home
-  unit (`GET /users/{user}/unit`), so a post opens nothing shared to its unit.
+- **What a post does not do:** it decides nothing of the person's company, path or the heads who read the works
+  assigned to them, which are their home unit's, and gives no authority but the head grant it carries. Reading
+  what is shared to a unit through a post, the documents another unit shares with it among them, is not
+  provided: such a unit reads a person's home unit (`GET /users/{user}/unit`), so a post opens nothing shared to
+  its unit.
 - **Who gives and takes a post:** the platform administrator, and a head of the unit or of a unit above it, by
   sumida's `manage` on the unit. Giving a post that stands again changes its role and its head grant.
 - **A post ends** when it is taken away, when the person is moved into its unit as their home, when they are moved
@@ -761,9 +762,9 @@ section states what each does.
   they carried, and an acting appointment of theirs ends, each kept in their history.
 - **A unit marks who among its members has left:** `GET /units/{unit}` and the administrator's list of units answer
   them beside the members, so a caller acting on a unit's people passes them over with no call for each person.
-- **What stays readable is what was public:** the person's public projects and their records go on being read by
-  the heads above, as any public project is (bmo-work's `docs/design.md`). Their private projects, their private
-  conversations and their supervisor's memory are sealed: nobody is given them.
+- **What stays readable is what was a unit's:** the unit's works assigned to the person stay their unit's, read
+  and changed by the heads above as any unit's work is (bmo-work's `docs/design.md`). Their own works, read by
+  them alone, their private conversations and their supervisor's memory are sealed: nobody is given them.
 - **Their supervisor is woken nowhere again,** and a quiet instruction for it is let go (the receiver's
   `docs/wake.md`): the receiver reads the departure off the account's machine standing.
 

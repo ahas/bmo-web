@@ -1,8 +1,8 @@
 //! Concurrent posts (docs/accounts.md, 「Concurrent posts」; docs/boundary.md, 「Organisation units」): a person's
 //! standing in a unit of their company other than their home unit, with a role of the catalogue or none and the
 //! unit's head granted or not. A post lists the person in its unit and puts them in its line; their company, path
-//! and own projects stay their home unit's. The administrator and a head of the unit or of one above give and take
-//! one.
+//! and the heads who read the works assigned to them stay their home unit's. The administrator and a head of
+//! the unit or of one above give and take one.
 
 use axum::Json;
 use axum::Router;

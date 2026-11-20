@@ -286,8 +286,8 @@
   the end of a line of words or in a sentence: a line of words leaves out a part it does not have. Never 미설정, N/A or
   a hyphen for an empty cell.
 - section → 섹션. Never 구역.
-- organisation → 조직: 조직, 같은 조직, 조직 이름; the list the 조직 screen chooses one from → 조직 목록, its search
-  finding none → 찾은 조직 없음, a reader with none to set → 설정할 조직 없음, and its add for a new company → 회사 추가.
+- organisation → 조직: 조직, 같은 조직, 조직 이름; the side list a screen chooses one from, the 조직 screen's and every
+  unit's screen's alike → 조직 목록, its search finding none → 찾은 조직 없음, a reader with none to set → 설정할 조직 없음, and its add for a new company → 회사 추가.
   Never 단체, 기관.
 - an organisation unit, one of the tree a deployment's people stand in → 조직: 조직 추가, 상위 조직, 하위 조직; the
   tree of them → 조직도; a unit at the tree's top → 회사, a new one 새 회사. Never 단위, the English unit's twin.
@@ -446,7 +446,8 @@
   for its handling unit → 접수 대기, then 처리 중. 반려 is the same word a job review takes, each on its own screen. Never
   제출, 거절, 철회, 취소 for these.
 - the boxes a person and a unit read documents in → 결재함: 결재 대기 (with its count, 결재 대기 {n}), 기안함, 처리함,
-  참조함; a unit's 완료함, 수신함, 참조함. Never 받은편지함, 대기열.
+  참조함; a unit's 완료함, 수신함, 참조함; the side list they are chosen from → 결재함 목록, a person's own heading it as
+  내 결재함 and each unit's under the unit's name. Never 받은편지함, 대기열.
 - a company's kinds of document → 양식: 양식, 새 양식, 양식 없음; the default set → 품의서, 내부 결재, 사내공문, 업무 협조, 휴가
   신청, 변경 보고; how a form numbers its completed documents → 번호 방식, its values 번호 없음, 양식별, 조직 약칭별; the number a
   document is given → 문서 번호. Keeping the forms and rules is 편집, as a setting's is; a document's own words are 수정. Never

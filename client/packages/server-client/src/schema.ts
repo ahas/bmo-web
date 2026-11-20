@@ -1135,6 +1135,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/units/{unit}/subtree": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A unit and every unit below it in tree order, each with its heads, the acting one marked, its members with their roles and the people holding a post in it, for the administrator and a head of the unit or of a unit above. */
+        get: operations["unitSubtree"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users": {
         parameters: {
             query?: never;
@@ -2713,6 +2730,41 @@ export interface components {
         };
         /** @description Why the people standing for a role hold another one. */
         StandReason: "no-holder";
+        /** @description A person whose home unit is a unit of a subtree: the role they carry there and whether their account has left. */
+        SubtreeMember: {
+            left: boolean;
+            /** @description The person's name, the login where none stands. */
+            name: string;
+            role?: components["schemas"]["RoleRef"] | null;
+            user: string;
+        };
+        /** @description A person holding a post in a unit of a subtree: the post's role and whether it carries the unit's head. */
+        SubtreePost: {
+            head: boolean;
+            /** @description The person's name, the login where none stands. */
+            name: string;
+            role?: components["schemas"]["RoleRef"] | null;
+            user: string;
+        };
+        /** @description One unit of a subtree and the people standing in it, each list in the order of their names. */
+        SubtreeUnit: {
+            /** @description The people holding a post in it. */
+            concurrent: components["schemas"]["SubtreePost"][];
+            /** @description The heads granted it directly, an acting one marked. */
+            heads: components["schemas"]["LineHead"][];
+            /** Format: int64 */
+            id: number;
+            kind?: components["schemas"]["KindRef"] | null;
+            /** @description The people whose home unit it is. */
+            members: components["schemas"]["SubtreeMember"][];
+            name: string;
+            /**
+             * Format: int64
+             * @description The unit it stands under, absent for a company.
+             */
+            parent?: number | null;
+            shortName?: string | null;
+        };
         /**
          * @description The plan a unit runs on, one of its exposed plans, or none. The key is named even for none: a body naming
          *     no `plan` at all does not read.
@@ -3181,6 +3233,13 @@ export interface components {
              */
             reportsTo?: number | null;
             shortName?: string | null;
+        };
+        /**
+         * @description A unit and every unit below it in tree order: the unit first, each unit followed by the units under it before
+         *     its next sibling, siblings by name and then by id.
+         */
+        UnitSubtree: {
+            units: components["schemas"]["SubtreeUnit"][];
         };
         /**
          * @description One organisation unit read whole: what `Unit` answers, and beside it the unit's kind, short name and the unit
@@ -6457,6 +6516,40 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    unitSubtree: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                unit: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnitSubtree"];
+                };
             };
             /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
             default: {

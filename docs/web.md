@@ -8343,8 +8343,8 @@ The plans themselves are designed on 관리자's 플랜 tab (「Administration�
 ### Administration
 
 관리자 is the administrator's screen of what is set for the platform itself: the providers and the Claude accounts
-every run goes out on, the kinds every person's secret form asks in, the plans the platform sells and the credits
-they and the platform's supply run on. No member opens it.
+every run goes out on, how often the agency puts every waiting commit live, the kinds every person's secret form
+asks in, the plans the platform sells and the credits they and the platform's supply run on. No member opens it.
 
 - **It stands at `/admin`, a tab to a section.** The tabs are 공급자, 비밀 종류, 플랜 and 크레딧, keyed in the address
   as `?tab=` with `secret-kinds`, `plans` and `credits`, 공급자 being the screen's own address; a shared link opens
@@ -8427,6 +8427,22 @@ they and the platform's supply run on. No member opens it.
   at once, by mouse and finger alike, and the arrows move one row the same way; turning off the last one on is
   refused by the agency. **No row, box or answer carries a token, a cookie or anything out of a credential file** —
   the path is the whole of what is shown.
+- **배포** — one row, 일괄 배포 주기: the minutes between two of the agency's flushes of the deploy queue, each of
+  which puts every commit waiting for its repository's batch deployment live at once (the agency's
+  `docs/agent-control.md`, 「The deploy queue is flushed every hour」). The row holds one number box in minutes, `분`
+  standing after the figure, which shows the agency's `deployFlushMinutes` as it answers it, the minutes in force,
+  with thousands separators. A figure written and left, by Enter or by focus leaving the box, is saved at once
+  through `PATCH /settings` (the agency's `docs/api.md`, 「settings」); a figure unchanged is not sent. Emptying the
+  box and leaving it hands the agency null, which returns the flush to the agency's own minutes, and the box then
+  shows what the agency answers. No `(기본값)` mark stands, since the agency answers the minutes in force and never
+  says which of them is its own (「The default among choices」; `docs/boundary.md`, 「Gaps the console meets」). A
+  figure that is no number is not sent and the box is written back; any other figure goes to the agency as written,
+  and its refusal of the field, a figure that is no positive whole number, is said in the row's description line
+  by the pack's sentence for that field while the box keeps the figure written and leaving it again sends nothing
+  until the figure changes. While it is first read the group
+  stands a skeleton row, and a failed read stands its reason with 새로고침 under the heading. The console's
+  `GET`/`PUT /api/deploy-flush-minutes`, the administrator's alone, read the minutes and change them, `minutes` a
+  number or null; a number that is no whole number is the agency's to refuse.
 - Every change here takes effect as it is made, as everything on this screen does.
 
 #### 비밀 종류

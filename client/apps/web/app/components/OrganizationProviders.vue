@@ -3,8 +3,8 @@
        provider the agency carries, in its order, with whose its gateway road is where one person owns it all, what it
        has left, why it cannot answer now and the owner's
        switch, each taking effect as it is thrown; under them the secrets the agency's provider tools read, then the
-       Claude accounts the Claude Code provider walks, a new one added from the tab row's add. No key the agency holds
-       is read here. Each stands as a group under its heading, keeping its place with a skeleton while it is first
+       Claude accounts the Claude Code provider walks, a new one added from the tab row's add, and last the minutes
+       between the agency's flushes of the deploy queue. No key the agency holds is read here. Each stands as a group under its heading, keeping its place with a skeleton while it is first
        read. -->
   <div class="flex flex-col gap-4">
     <ReadFailure :failure="usageFailure" :message="usageFailureText" :reading="usageReading" @retry="refreshUsage()" />
@@ -85,6 +85,8 @@
         </div>
       </ContentSkeleton>
     </SettingsGroup>
+
+    <DeployFlushSetting />
   </div>
 </template>
 

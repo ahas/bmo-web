@@ -424,6 +424,8 @@
   started and waiting its turn in the testbed's deployment line; 배포 중 for a deployment under way. Each names its
   repository after ` · ` where one is known: 배포 중 · bmo-drive, 배포 순서 대기 · bmo-job 외 4. The list of the
   deployments waiting in the line → 순서 대기. Never 줄 서는 중, 대기열 or 배포 큐 for the line.
+- the minutes between the agency's flushes, each putting every commit 배포 대기 live at once → 일괄 배포 주기, its
+  group 배포, its figure followed by 분. Never 플러시, 배포 큐 비우기 or 큐 간격.
 - the research unit's words → 리서치, 분류 (a category), 대기열 (its queue), 제외 (dismissing an item), 보류 (a hold on its
   runs), 해당 (a document marked for the owner's word), 브리핑 (a brief), 보안 권고 (an advisory). Never 카테고리, 큐, 기각.
 - set by hand → 수동 지정. Never 손으로 정함.

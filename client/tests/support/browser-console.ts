@@ -95,6 +95,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["agent-log-run-start", "fixture-password-3055"],
   ["row-add", "fixture-password-2885"],
   ["provider-secrets", "fixture-password-3037"],
+  ["deploy-flush", "fixture-password-3842"],
   ["provider-usage", "fixture-password-3768"],
   ["todo-raise", "fixture-password-2871"],
   ["todo-unfinished", "fixture-password-3832"],
@@ -697,9 +698,12 @@ const models = new Map<string, Record<string, unknown>>([
   ["model-a", { key: "registered::model-a", name: "model-a", provider: "registered", model: "model-a-7b", cardService: null, roleFiles: false, tier: null, healthy: true, lastAnsweredAt: null, usedBy: ["repository repo-b"] }],
   ["model-b", { key: "registered::model-b", name: "model-b", provider: "registered", model: "model-b-7b", cardService: "service-b", roleFiles: true, tier: null, healthy: false, lastAnsweredAt: null, usedBy: [] }]
 ]);
-// The agency's own settings, so the providers tab reads and changes the secrets its tools read; a secret whose name
-// starts with `refused-` is refused as the agency refuses a name, naming the field it was asked for.
-const agencySettings: Record<string, unknown> = { researchSupervisor: null, downgradeReturn: null, deepseekCardSecret: null, deepseekLoginSecret: null };
+// The agency's own settings, so the providers tab reads and changes the secrets its tools read and the deploy queue's
+// flush minutes; a secret whose name starts with `refused-` is refused as the agency refuses a name, and minutes that
+// are no positive whole number as it refuses them, each naming the field it was asked for. The flush minutes set to
+// null read as the policy's own.
+const POLICY_FLUSH_MINUTES = 60;
+const agencySettings: Record<string, unknown> = { researchSupervisor: null, downgradeReturn: null, deepseekCardSecret: null, deepseekLoginSecret: null, deployFlushMinutes: POLICY_FLUSH_MINUTES };
 const entries = new Map<string, Record<string, unknown>>([
   ["entry-a", catalogueEntry("entry-a", "engine-a", "model-a")],
   ["entry-b", catalogueEntry("entry-b", "engine-b", "model-b")]
@@ -941,11 +945,13 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     if (path === "/settings" && request.method === "PATCH") {
       const body = (await request.json()) as Record<string, unknown>;
 
-      const refused = Object.entries(body).find(([, value]) => typeof value === "string" && value.startsWith("refused-"));
+      const refused = Object.entries(body).find(([field, value]) =>
+        field === "deployFlushMinutes" ? value !== null && !(Number.isSafeInteger(value) && (value as number) > 0) : typeof value === "string" && value.startsWith("refused-")
+      );
 
       if (refused) return Response.json({ code: "bad-request", error: `${refused[0]} is refused`, field: refused[0] }, { status: 400 });
 
-      Object.assign(agencySettings, body);
+      Object.assign(agencySettings, body, body.deployFlushMinutes === null ? { deployFlushMinutes: POLICY_FLUSH_MINUTES } : {});
     }
     if (path === "/settings") return Response.json(agencySettings);
 

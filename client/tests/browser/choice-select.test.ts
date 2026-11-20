@@ -101,6 +101,8 @@ describe("a list searches once it holds more than seven choices, and only then",
         const page = await context.newPage();
 
         await page.goto(`${origin}/?todo=${ITEM.id}`, { waitUntil: "load" });
+        // Where the dialog is too narrow for the form block to carry it, the assignment heads the manage tab.
+        if (width.phone) await press(page.getByRole("dialog").getByRole("tab", { name: wording("todo.label.manage"), exact: true }).last(), width.phone);
 
         const chooser = page.locator("[data-item-agent]:visible").first();
 

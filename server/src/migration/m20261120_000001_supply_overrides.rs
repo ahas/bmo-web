@@ -5,7 +5,8 @@
 //! The platform row still standing as seeded takes the new defaults: the person's own credential alone, on and
 //! overridable, the order overridable. A row an administrator set keeps what it allows, every source it allows
 //! overridable: personal credits, which no person had until they switched them on, stand overridable and off.
-//! A person's old personal-credits switch becomes `personal_credits` in their `on` or their `off`.
+//! A person's old personal-credits switch, where they had switched it on, becomes `personal_credits` in their `on`;
+//! left off, it was the old default rather than a choice, and becomes none, so the platform's default stands.
 
 use sea_orm_migration::prelude::*;
 
@@ -34,9 +35,6 @@ UPDATE "supply_platform_policy"
 ALTER TABLE "supply_user_settings" ADD COLUMN IF NOT EXISTS "on" jsonb NOT NULL DEFAULT '[]';
 
 UPDATE "supply_user_settings" SET "on" = '["personal_credits"]' WHERE "personal_credits_on";
-
-UPDATE "supply_user_settings" SET "off" = "off" || '["personal_credits"]'
- WHERE NOT "personal_credits_on" AND NOT ("off" ? 'personal_credits');
 
 ALTER TABLE "supply_user_settings" DROP COLUMN "personal_credits_on";
 

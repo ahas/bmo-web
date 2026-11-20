@@ -1613,7 +1613,8 @@ async fn the_overrides_migration_renews_a_seeded_platform_row_and_keeps_an_admin
     .await;
   Migrator::up(scratch.db(), None).await.unwrap();
 
-  // What it allowed stays open and overridable, personal credits off until a person switches them on.
+  // What it allowed stays open and overridable, personal credits off until a person switches them on. The
+  // switch a person turned on is their choice; one left off was the old default and is no choice at all.
   assert_eq!(
     platform_row().await,
     (
@@ -1628,7 +1629,7 @@ async fn the_overrides_migration_renews_a_seeded_platform_row_and_keeps_an_admin
       .count(
         r#"SELECT COUNT(*) FROM "supply_user_settings"
             WHERE ("user_id" = $1 AND "on" = '["personal_credits"]' AND "off" = '[]')
-               OR ("user_id" = $2 AND "on" = '[]' AND "off" = '["personal_credits"]')"#,
+               OR ("user_id" = $2 AND "on" = '[]' AND "off" = '[]')"#,
         vec![switched_on.into(), left_off.into()],
       )
       .await,

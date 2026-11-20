@@ -265,19 +265,22 @@ export function orderRows(me: Pick<SupplyMe, "order" | "sources">): OrderRow[] {
 }
 
 /** The reader's whole setting as its rows stand, with one change laid over it, as the account service takes it
- * (docs/boundary.md, 「Supply」): the order of every source the layers above leave to them, each once and `stop` left
- * for the service to append; and the sources they chose on or off themselves — the one just switched among them — so
- * a source they never chose keeps following the platform's default. A source the platform locks, and one a layer
- * above closes, is named neither way: the service refuses a write naming either. */
+ * (docs/boundary.md, 「Supply」; docs/accounts.md, 「How an order is resolved」): the order of every source the layers
+ * above leave to them, each once and `stop` left for the service to append; and every choice they hold, on or off —
+ * the one just switched among them — so a source they never chose keeps following the platform's default. The
+ * service writes the choices whole, so a choice of a source a layer above closes, or one the platform locks, is sent
+ * back as it stands: the service passes a choice already held, and leaving it out would erase it. Only a source the
+ * reader may switch takes the change. */
 export function meSetting(rows: readonly OrderRow[], cap: number | null, change: { order?: SupplySource[]; source?: SupplySource; on?: boolean; cap?: number | null } = {}): SupplyMeSetting {
   const open = new Set(rows.filter((one) => one.kind === "live" && one.allowed).map((one) => one.source));
-  const choiceOf = (row: OrderRow): "on" | "off" | null => (row.source === change.source && change.on !== undefined ? (change.on ? "on" : "off") : row.own);
-  const chosen = rows.filter((one) => open.has(one.source) && !one.locked);
+  const switchable = (row: OrderRow) => open.has(row.source) && !row.locked;
+  const choiceOf = (row: OrderRow): "on" | "off" | null => (row.source === change.source && change.on !== undefined && switchable(row) ? (change.on ? "on" : "off") : row.own);
+  const held = rows.filter((one) => one.kind !== "stop");
 
   return {
     order: (change.order ?? rows.filter((one) => one.kind === "live").map((one) => one.source)).filter((one) => open.has(one)),
-    off: chosen.filter((one) => choiceOf(one) === "off").map((one) => one.source),
-    on: chosen.filter((one) => choiceOf(one) === "on").map((one) => one.source),
+    off: held.filter((one) => choiceOf(one) === "off").map((one) => one.source),
+    on: held.filter((one) => choiceOf(one) === "on").map((one) => one.source),
     personalCreditCredits: change.cap === undefined ? cap : change.cap
   };
 }

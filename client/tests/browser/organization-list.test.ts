@@ -475,10 +475,11 @@ interface MeSource {
 }
 
 // A person's own write judged as the account service judges it (docs/accounts.md, 「How an order is resolved」;
-// docs/boundary.md, 「Supply」): a source named both on and off, or switched on or off where a layer above closed it,
-// or switched against a locked platform value, is refused; while the order is read it names every source the layers
-// above leave to the person, each once, `stop` allowed only trailing, and every source switched off stands in it.
-// The refusal, where there is one, is answered with its status and code; none is null.
+// docs/boundary.md, 「Supply」): a source named both on and off is refused; a choice the person already holds passes as
+// it stands, while one newly switched against a locked platform value, or newly switched on where a layer above
+// closed it, is refused; while the order is read it names every source the layers above leave to the person, each
+// once, `stop` allowed only trailing, and every open source switched off stands in it. The refusal, where there is
+// one, is answered with its status and code; none is null.
 function judgedWrite(sources: readonly MeSource[], orderLocked: boolean, body: { order: string[]; off: string[]; on: string[] }): { status: number; code: string } | null {
   const state = (key: string) => sources.find((one) => one.source === key);
   const payable = sources.filter((one) => one.source !== "stop");
@@ -491,8 +492,9 @@ function judgedWrite(sources: readonly MeSource[], orderLocked: boolean, body: {
       const one = state(key);
 
       if (one === undefined || key === "stop") return { status: 400, code: "bad-request" };
+      if (one.own === (to ? "on" : "off")) continue;
       if (one.locked && !one.off !== to) return { status: 403, code: "locked-by-platform" };
-      if (!one.allowed) return { status: 403, code: one.reason ?? "source-not-allowed" };
+      if (to && !one.allowed) return { status: 403, code: one.reason ?? "source-not-allowed" };
     }
   }
 
@@ -502,7 +504,7 @@ function judgedWrite(sources: readonly MeSource[], orderLocked: boolean, body: {
 
   if (order.includes("stop") || new Set(order).size !== order.length) return { status: 400, code: "bad-request" };
   if (order.some((one) => !allowed.includes(one)) || allowed.some((one) => !order.includes(one))) return { status: 400, code: "bad-request" };
-  if (body.off.some((one) => !order.includes(one))) return { status: 400, code: "bad-request" };
+  if (body.off.some((one) => allowed.includes(one) && !order.includes(one))) return { status: 400, code: "bad-request" };
 
   return null;
 }
@@ -578,13 +580,13 @@ describe.skipIf(!origin || !touchReady())("the settings' supply order", () => {
         expect(await source("global").innerText()).toContain(wording("supply.label.reason_not_in_plan"));
         expect(await source("global").getByRole("switch").count()).toBe(0);
 
-        // A switch thrown writes back the reader's own choices and that one alone, so the rest keep the default.
+        // A switch thrown writes back every choice the reader holds and that one, so the rest keep the default.
         const written = page.waitForRequest((request) => request.url().endsWith("/api/supply/me") && request.method() === "PUT");
 
         await source("org_credits").getByRole("switch").click();
         await written;
-        // The global supply's stored choice stands unsent while a layer above closes it.
-        expect({ refusals, writes }).toEqual({ refusals: [], writes: [{ order: ["personal", "org_credits", "personal_credits"], off: ["org_credits", "personal_credits"], on: [], personalCreditCredits: null }] });
+        // The global supply's stored choice goes back as it stands while a layer above closes it, so it is not erased.
+        expect({ refusals, writes }).toEqual({ refusals: [], writes: [{ order: ["personal", "org_credits", "personal_credits"], off: ["org_credits", "personal_credits"], on: ["global"], personalCreditCredits: null }] });
 
         // With the order the person's again, a move writes every source left to them, in the order moved.
         me.orderLocked = false;
@@ -595,7 +597,7 @@ describe.skipIf(!origin || !touchReady())("the settings' supply order", () => {
 
         await source("personal").getByRole("button", { name: wording("common.aria.move_down_named", { name: wording("supply.label.source_personal") }), exact: true }).click();
         await moved;
-        expect({ refusals, write: writes.at(-1) }).toEqual({ refusals: [], write: { order: ["org_credits", "personal", "personal_credits"], off: ["personal_credits"], on: [], personalCreditCredits: null } });
+        expect({ refusals, write: writes.at(-1) }).toEqual({ refusals: [], write: { order: ["org_credits", "personal", "personal_credits"], off: ["personal_credits"], on: ["global"], personalCreditCredits: null } });
       } finally {
         await context.close();
       }

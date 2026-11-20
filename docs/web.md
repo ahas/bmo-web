@@ -7530,7 +7530,8 @@ a row shows of a key is the secret's name, and of a login the path it is reached
   월 상한 row under it takes the credits a month may go out on it, 상한 없음 by default — the cap the person sets,
   never above what the organisation's cap leaves; the source reads closed while the cap is spent as well as while
   its switch is off. Each change is written whole as it is made and answered with the view as it
-  now stands; the account service is the owner of every refusal, and a refused write leaves the section as it stood,
+  now stands: the order of the sources standing open, and every choice the reader holds, on or off, a choice of a
+  source a layer closes or the platform locks sent back as it stands, so a write never erases one; the account service is the owner of every refusal, and a refused write leaves the section as it stood,
   its reason under the group.
 - **이번 달 사용량** lists what went out this month, one row per source with its credits and its cost, and beneath
   them 계획 남은 공급, the plan's included usage still left, and 개인 크레딧 잔액, the reader's own credit balance,

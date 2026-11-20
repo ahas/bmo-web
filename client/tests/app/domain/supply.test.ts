@@ -61,20 +61,20 @@ describe("the reader's order", () => {
     ]);
   });
 
-  test("writes back only the reader's own choices and the one just switched, so the rest keep following the platform's default", () => {
+  test("writes back every choice the reader holds and the one just switched, so the rest keep following the platform's default", () => {
     const rows = orderRows(ME);
 
-    // The personal credits a layer above closed keep their stored choice unsent, and stand out of the order.
-    expect(meSetting(rows, 500)).toEqual({ order: ["org_credits", "personal", "global"], off: ["global"], on: [], personalCreditCredits: 500 });
-    expect(meSetting(rows, 500, { source: "global", on: true })).toEqual({ order: ["org_credits", "personal", "global"], off: [], on: ["global"], personalCreditCredits: 500 });
-    expect(meSetting(rows, 500, { source: "org_credits", on: false })).toMatchObject({ off: ["org_credits", "global"], on: [] });
+    // The personal credits a layer above closed stand out of the order, and their stored choice goes back as it stands.
+    expect(meSetting(rows, 500)).toEqual({ order: ["org_credits", "personal", "global"], off: ["global"], on: ["personal_credits"], personalCreditCredits: 500 });
+    expect(meSetting(rows, 500, { source: "global", on: true })).toEqual({ order: ["org_credits", "personal", "global"], off: [], on: ["global", "personal_credits"], personalCreditCredits: 500 });
+    expect(meSetting(rows, 500, { source: "org_credits", on: false })).toMatchObject({ off: ["org_credits", "global"], on: ["personal_credits"] });
     expect(meSetting(rows, null, { cap: 900 }).personalCreditCredits).toBe(900);
   });
 
-  test("names a source the platform locks neither on nor off, whatever the reader chose before", () => {
+  test("sends back a choice of a source the platform locks as it stands, and lets no switch change it", () => {
     const rows = orderRows({ order: ["personal", "stop"], sources: [source("personal", { locked: true, own: "off" }), source("stop", { locked: true })] });
 
-    expect(meSetting(rows, null, { source: "personal", on: false })).toMatchObject({ off: [], on: [] });
+    expect(meSetting(rows, null, { source: "personal", on: true })).toMatchObject({ off: ["personal"], on: [] });
   });
 
   test("leaves a source the platform locks off out of the order, beside the one it locks on", () => {

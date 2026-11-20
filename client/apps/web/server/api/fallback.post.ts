@@ -2,6 +2,7 @@ import { wording } from "#shared/wording";
 
 import type { components } from "@agency/client/schema";
 import type { FallbackChanged } from "#shared/types";
+import type { H3Event } from "h3";
 
 type FallbackChange = components["schemas"]["FallbackChange"];
 
@@ -50,7 +51,7 @@ export default defineEventHandler(async (event): Promise<FallbackChanged> => {
     throw fail(400, wording("agents.error.bad_credential_kind"));
   }
 
-  return await toAgency({
+  return await toAgency(event, {
     action,
     order: action === "set-account-order" ? body.order : undefined,
     account: typeof body.account === "string" ? body.account : undefined,
@@ -65,8 +66,8 @@ const text = (value: unknown): string | null => (typeof value === "string" && va
 const truth = (value: unknown): boolean | null => (typeof value === "boolean" ? value : null);
 
 // One change handed to the agency, which writes it, its refusal said on the screen by the pack's sentence for its
-// code. The agency's fixed API takes the change as one PATCH of the fallback.
-async function toAgency(sent: Record<string, unknown>): Promise<FallbackChanged> {
+// code. The agency's fixed API takes the change as one PATCH of the fallback, made for the person signed in.
+async function toAgency(event: H3Event, sent: Record<string, unknown>): Promise<FallbackChanged> {
   const change: FallbackChange = {
     action: text(sent.action),
     order: sent.order ?? null,
@@ -86,7 +87,7 @@ async function toAgency(sent: Record<string, unknown>): Promise<FallbackChanged>
     mode: null
   };
 
-  await agencyCall(agency().PATCH("/fallback", { body: change }));
+  await agencyCall(agency(event).PATCH("/fallback", { body: change }));
 
   return { ok: true };
 }

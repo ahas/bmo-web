@@ -554,9 +554,15 @@ states them. The three units the console calls directly publish a TypeScript cli
 and each generated from that unit's OpenAPI document. The console's server calls them through those packages and
 their `./schema` types, and reads a response into the screen's own shape where the screen needs more than the
 unit carries. A browser call to one of them reaches its fixed path through the relay (below). Every call the
-console makes on the agency carries, beside the console's token, the signed-in login's user in `Owner-Key` and
-role in `Owner-Role`, so the agency refuses what that person may not do; a call made for nobody signed in
-carries neither.
+console makes on the agency for a person's own view of the Claude accounts carries, beside the console's token,
+the signed-in login's user in `Owner-Key` and role in `Owner-Role`: the fallback read and changed, and the fallback
+and the accounts the usage view reads, so the agency keeps a member to their own accounts (the agency's
+`docs/api.md`, 「Who a caller acts for」). A call made for nobody signed in carries neither. Every other call on the
+agency, agent management and the console's own reads and set-up alike, is the deployment's own and carries
+neither: the agency's check of a member on agent management reads its one `agents` section, which the console's
+account model splits into five parts and grants no person (`docs/accounts.md`, 「Console sections」), so the
+console's own gate holds those routes (`docs/web.md`, 「Access」). A call through the relay carries the signed-in
+person as the relay says (below).
 
 | Unit | What the console reaches it for | Routes |
 |---|---|---|

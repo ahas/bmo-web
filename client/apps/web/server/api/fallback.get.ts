@@ -10,7 +10,7 @@ export default defineEventHandler(async (event): Promise<FallbackView> => {
   await requireUserSession(event);
 
   // The agency's generated schema leaves both fields untyped; each one missing stands as below.
-  const fallback = (await agencyCall(agency().GET("/fallback"))) as Partial<FallbackView>;
+  const fallback = (await agencyCall(agency(event).GET("/fallback"))) as Partial<FallbackView>;
   const empty = emptyFallbackView();
 
   return {

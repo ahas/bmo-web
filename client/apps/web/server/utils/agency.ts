@@ -30,8 +30,12 @@ const AGENCY_CODES: Readonly<Record<string, string>> = {
   "too-large": "common.error.file_too_large"
 };
 
-// The person a call acts for, read once for the request: the agency refuses what that login may not do (the
-// agency's `docs/api.md`, 「Who a call acts for」). A call made for nobody signed in carries none.
+// Whom a call acts for (the agency's `docs/api.md`, 「Who a caller acts for」; docs/boundary.md, 「Calls the console
+// makes」). A call handed the request it is made for carries the person signed in on it, read once for the request,
+// so the agency keeps a member's view of their own supply to that member; a request with nobody signed in hands on
+// none. Every other call is the deployment's own and carries no owner: the agency's own check of agent management
+// reads a console section no person holds a grant of, so a member named there would be refused what the console's
+// own gate already lets them do (docs/web.md, 「Access」).
 const OWNER = "agencyOwner";
 
 async function ownerOf(event: H3Event): Promise<Record<string, string>> {
@@ -47,42 +51,31 @@ async function ownerOf(event: H3Event): Promise<Record<string, string>> {
   return headers;
 }
 
-// The request a call is made for, where it is made inside one.
-function currentEvent(): H3Event | null {
-  try {
-    return useEvent();
-  } catch {
-    return null;
-  }
+function carryingOwnerOf(event: H3Event): AgencyFetch {
+  return async (request) => {
+    const headers = new Headers(request.headers);
+
+    for (const [name, value] of Object.entries(await ownerOf(event))) headers.set(name, value);
+
+    return await fetch(new Request(request, { headers }));
+  };
 }
 
-async function ownerCallHeaders(): Promise<Record<string, string>> {
-  const event = currentEvent();
-
-  return event === null ? {} : await ownerOf(event);
-}
-
-// Every agency call carries the signed-in person beside the console's token.
-const carryingOwner: AgencyFetch = async (request) => {
-  const headers = new Headers(request.headers);
-
-  for (const [name, value] of Object.entries(await ownerCallHeaders())) headers.set(name, value);
-
-  return await fetch(new Request(request, { headers }));
-};
-
-/** The agency at the address its setting names, asked with its token and the signed-in person's owner key. */
-export function agency(): AgencyClient {
+/**
+ * The agency at the address its setting names, asked with its token: as the deployment's own, or, handed the request
+ * a call is made for, as the person signed in on it.
+ */
+export function agency(madeFor?: H3Event): AgencyClient {
   const unit = unitAt("AGENCY");
 
   if (unit === null) throw fail(503, wording(CONTROL_UNREACHABLE));
 
-  return agencyClient(unit.address, unit.token ?? "", carryingOwner);
+  return agencyClient(unit.address, unit.token ?? "", madeFor === undefined ? undefined : carryingOwnerOf(madeFor));
 }
 
 /**
  * One call on an agency route the published client the console vendors names no type for, by the path the agency's
- * `docs/api.md` documents, answered and refused as every other agency call is.
+ * `docs/api.md` documents, made as the deployment's own and answered and refused as every other agency call is.
  */
 export async function agencyRoute<T>(method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE", path: string, body?: unknown, call: AgencyCall = {}): Promise<T> {
   const unit = unitAt("AGENCY");
@@ -91,7 +84,7 @@ export async function agencyRoute<T>(method: "GET" | "POST" | "PUT" | "PATCH" | 
 
   const asked = fetch(`${unit.address}${path}`, {
     method,
-    headers: { ...unitHeaders(unit), ...(await ownerCallHeaders()), accept: "application/json", ...(body === undefined ? {} : { "content-type": "application/json" }) },
+    headers: { ...unitHeaders(unit), accept: "application/json", ...(body === undefined ? {} : { "content-type": "application/json" }) },
     body: body === undefined ? undefined : JSON.stringify(body)
   }).then(async (response) => {
     const parsed: unknown = await response.json().catch(() => undefined);

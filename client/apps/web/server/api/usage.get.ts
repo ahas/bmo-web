@@ -16,8 +16,8 @@ export default defineEventHandler(async (event): Promise<UsageView> => {
 
   const after = Date.now() - WEEK_MS;
   const [fallback, accounts, usage, supervisors, answerer, providers] = await Promise.all([
-    agencyCall(agency().GET("/fallback")),
-    agencyCall(agency().GET("/accounts")),
+    agencyCall(agency(event).GET("/fallback")),
+    agencyCall(agency(event).GET("/accounts")),
     agencyCall(agency().GET("/usage", { params: { query: { groupBy: "agent", after } } })),
     // The provider the chat agent runs on is the default answerer's own; a list that does not answer leaves the
     // fallback's word standing.

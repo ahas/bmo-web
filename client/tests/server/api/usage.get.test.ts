@@ -1,12 +1,19 @@
 import { describe, expect, test } from "bun:test";
 
+import { globalsRestoredAfter } from "../../support/globals";
 import { asked, routeOf } from "../../support/nitro";
 import { answer, standIn } from "../../support/units";
 
 import type { UsageView } from "../../../apps/web/shared/types";
 
 // The usage view as the agency answers it: the fallback for the slot the chat runs on and the accounts' names, the
-// account list for each account's window, and the usage grouped by worker over the last week.
+// account list for each account's window, and the usage grouped by worker over the last week. The fallback and the
+// account list are read for the person signed in, and every other read as the deployment's own (docs/boundary.md,
+// 「Calls the console makes」).
+
+const globals: Record<string, unknown> = globalThis;
+
+globalsRestoredAfter(["requireUserSession"]);
 
 let empty = false;
 // The provider the default answerer runs on now, which is the provider the chat runs on.
@@ -50,7 +57,7 @@ const agency = standIn("AGENCY", (call) => {
     after: 0,
     before: 1
   });
-});
+}, { headers: true });
 
 // The supervisor the receiver's default answerer setting names.
 standIn("RECEIVER", (call) => (call.path === "/default-answerer" ? answer({ supervisor: "agent-a" }) : answer({ code: "no-route", error: "no route" }, 404)));
@@ -119,5 +126,25 @@ describe("the usage view", () => {
     empty = true;
 
     expect((await asked(handler, {})).answer).toEqual({ active: null, roads: [], accounts: [], agents: [], contexts: [] });
+  });
+
+  test("reads the fallback and the accounts as the member signed in, and the rest as the deployment's own", async () => {
+    empty = false;
+    globals.requireUserSession = async () => ({ sid: "session-a", user: { id: 12, name: "member-d" }, administrator: false });
+    agency.asked.length = 0;
+
+    await asked(handler, {});
+
+    const owners = (prefix: string) =>
+      agency.asked.filter((call) => call.path.startsWith(prefix)).map((call) => ({ key: call.headers?.["owner-key"], role: call.headers?.["owner-role"] }));
+    const member = [{ key: "12", role: "member" }];
+    const nobody = [{ key: undefined, role: undefined }];
+
+    expect({ fallback: owners("/fallback"), accounts: owners("/accounts"), supervisors: owners("/supervisors"), usage: owners("/usage") }).toEqual({
+      fallback: member,
+      accounts: member,
+      supervisors: nobody,
+      usage: nobody
+    });
   });
 });

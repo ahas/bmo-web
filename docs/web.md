@@ -8933,7 +8933,9 @@ in a table.
     ground, then 입력 중…. Up to three faces stand; past three, the first three stand with the group's cap after
     them, +N with the count's separators in tabular figures, which a screen reader hears as 외 N명
     (`common.aria.others_count`). A face is the picture the archive keeps for the person, else their letter on
-    their own hue, as their row in 대화상대 wears it.
+    their own hue, as their row in 대화상대 wears it. Every face, the cap and the words stand on the picture's
+    vertical centre, and the first face stands as far inside the picture's rounded start as from its top and
+    bottom, so its curve is concentric with the picture's.
   - **The faces move by place alone.** A writer starting, stopping or changing place in the series moves the faces
     sideways, as a moving list moves, with no fade, and the cap unfolds and folds the same way. What the picture
     holds stands in bmo-ui's unfolding box (`UnfoldingBox`, 「A box that follows what it holds」), so the picture's

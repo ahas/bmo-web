@@ -9,7 +9,8 @@ import type { Browser, BrowserContext, Page } from "playwright-core";
 // Who is here and who writes, as a room draws them (docs/web.md, 「Presence and typing」): the dot on the head's
 // picture and on the room's row, the mark on the row of a room not open, and the room's typing picture naming who
 // writes by their faces, collapsing past three into a count, each standing with nothing else moving and covering
-// neither the box nor the newest line, at a desk's width and a phone's, and fading only where motion is welcome.
+// neither the box nor the newest line, its faces and words on its vertical centre, at a desk's width and a phone's,
+// and fading only where motion is welcome.
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up, and serves
 // the stream and the room's members through the page's own routes: one stream holds nobody, one a person online and
@@ -173,6 +174,10 @@ interface Drawn {
   faces: string[];
   // What a screen reader hears of the cap, the count of the rest.
   rest: string;
+  // How far each face's, the cap's and the words' vertical centre stands from the picture's.
+  offCentre: number[];
+  // How far the first face stands inside the picture's start and inside its top.
+  firstInset: { start: number; top: number } | null;
   menuLeft: number;
   headDot: boolean;
 }
@@ -191,6 +196,13 @@ async function drawn(page: Page): Promise<Drawn> {
     const picture = standing === null || getComputedStyle(standing).display === "none" ? null : standing;
     const menu = document.querySelector<HTMLElement>("[data-room-menu]")!;
     const bar = menu.closest<HTMLElement>("[data-title-bar]")!;
+    const middle = (element: Element): number => {
+      const { top, height } = element.getBoundingClientRect();
+
+      return top + height / 2;
+    };
+    const centred = picture?.querySelectorAll("[data-typing-faces] > [data-face] > :first-child, [data-typing-faces] [data-face-cap] [aria-hidden=true], [data-typing-tip] > span");
+    const first = picture?.querySelector("[data-typing-faces] > [data-face] > :first-child") ?? null;
 
     return {
       band: box(band),
@@ -203,6 +215,9 @@ async function drawn(page: Page): Promise<Drawn> {
         ((face.hasAttribute("data-face-cap") ? face.querySelector("[aria-hidden=true]") : face)?.textContent ?? "").trim()
       ),
       rest: (picture?.querySelector("[data-typing-faces] [data-face-cap] .sr-only")?.textContent ?? "").trim(),
+      offCentre: [...(centred ?? [])].map((element) => Math.abs(middle(element) - middle(picture!))),
+      firstInset:
+        first === null ? null : { start: first.getBoundingClientRect().left - picture!.getBoundingClientRect().left, top: first.getBoundingClientRect().top - picture!.getBoundingClientRect().top },
       menuLeft: menu.getBoundingClientRect().left,
       headDot: bar.querySelector(".bg-success") !== null
     };
@@ -271,6 +286,12 @@ describe.skipIf(!origin || !touchReady())("who is here and who writes in a room"
           expect(picture.bottom).toBeLessThanOrEqual(busy.drawn.foot.top);
           expect(picture.top).toBeGreaterThanOrEqual(busy.drawn.newest.bottom);
           expect(picture.right).toBeLessThanOrEqual(viewport.width);
+
+          // Every face, the cap and the words stand on the picture's vertical centre, and the first face's curve is
+          // concentric with the picture's rounded start.
+          expect(busy.drawn.offCentre).toHaveLength(busy.drawn.faces.length + 1);
+          for (const off of busy.drawn.offCentre) expect(off).toBeLessThanOrEqual(0.5);
+          expect(Math.abs(busy.drawn.firstInset!.start - busy.drawn.firstInset!.top)).toBeLessThanOrEqual(0.5);
         }
 
         // The names are read in the tooltip too: a pointer brings it up on a desk, a tap on a phone.

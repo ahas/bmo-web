@@ -515,7 +515,8 @@
 - the ways a unit's works are read on the works screen → 보기: 목록, 진척 트리, 일정, 오늘, 주간 보고; the works at risk
   gathered at the tree's head → 위험 업무; a scope that changed this week → 범위 변경; the signal's column → 전망. A
   person's day: a line their BMO wrote → BMO 작성; a line left unmoved day after day → `{n}일째 진척 없음`; nothing
-  written → 기록 없음; a day off in its place in the attendance screen's words (휴가, 오전 반차, 오후 반차, 출장, 휴무,
+  written → 기록 없음; nothing written on a day whose end-of-day question found the person's BMO not connected →
+  BMO 연결 안 됨, never 연결 실패 or BMO 오프라인; a day off in its place in the attendance screen's words (휴가, 오전 반차, 오후 반차, 출장, 휴무,
   대휴, 공휴일). The weekly report's parts → 중점 업무, 진척 변화, 밀린 업무, 다음 주 기한 조건, 사람별 요약, 가치 분류 (분류
   없음 for works with none), 조직장 의견; its columns 시작 진척, 종료 진척, 최근 진척; its weeks → 이전 주, 다음 주; the
   sheet → 다운로드. A head's remark on a work or a person → 의견: 의견, 등록, 의견이 아직 없습니다. Never 진척 나무, 변화

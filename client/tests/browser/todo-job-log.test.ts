@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 
 import { wording } from "../../apps/web/shared/wording";
-import { standsOnTop } from "./top-layer";
+import { holdsFocus, standsOnTop } from "./top-layer";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, BrowserContext, Page } from "playwright-core";
@@ -252,7 +252,7 @@ describe.skipIf(!origin || !touchReady())("the TODO row menu's job log", () => {
           // Back closes the log alone, then the item, then the drawer it stands in on a narrow screen.
           await page.goBack();
           await log.waitFor({ state: "detached", timeout: 10_000 });
-          expect(await mark.isVisible()).toBe(true);
+          expect({ width, opening, focus: await holdsFocus(mark) }).toEqual({ width, opening, focus: true });
           if (opening === 2) break;
 
           await page.goBack();

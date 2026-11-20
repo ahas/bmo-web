@@ -253,8 +253,9 @@
                     <!-- One strand of work is often left in two notes at once: #164 came out of
                          both #87 and #88. The row he is standing on is always a source and says
                          so as a fixed chip; the rest he names here, out of the notes still
-                         standing. What he picks rides onto the new row, and each of those notes
-                         settles when this row and its siblings are done. -->
+                         standing, read as the form opens, each by its numbered strands or whole.
+                         What he picks rides onto the new row, and each of those notes settles when
+                         the rows raised from it are done and take up every strand. -->
                     <div class="mt-2 flex flex-wrap items-center gap-2">
                       <span class="text-sm text-muted">{{ $t("todo.label.sources") }}</span>
                       <UBadge color="neutral" variant="subtle" size="sm" :label="`#${openedItem.id}`" />
@@ -263,12 +264,14 @@
                         v-model="raiseSources"
                         :content="{ align: 'start' }"
                         :items="otherNotes(openedItem.id)"
+                        :loading="openNotes === null"
                         value-key="value"
                         multiple
                         size="sm"
-                        class="min-w-40"
+                        class="min-w-40 max-w-full"
                         :placeholder="$t('todo.placeholder.more_sources')"
                         :aria-label="$t('todo.aria.more_sources')"
+                        data-raise-sources
                       />
                     </div>
 
@@ -914,7 +917,7 @@ import {
   RESOLUTION_LIMIT,
   TALK_LIMIT
 } from "#shared/config";
-import { noteStrands } from "#shared/raised-from";
+import { fromTodoLabel, noteStrands, sourcesOf } from "#shared/raised-from";
 import { UDrawer, UModal } from "#components";
 import { useAgentCatalogue } from "~/domain/catalogue";
 import { useHeldWhileClosing } from "bmo-ui/app/domain/closing";
@@ -960,12 +963,14 @@ import { usePolling } from "~/domain/polling";
 import type { ItemAssignment } from "~/domain/item-assignment";
 import type { ApprovalCell, TodoActFields } from "~/domain/todos";
 
+import type { SelectMenuItem } from "@nuxt/ui";
 import type { Ref } from "vue";
 import type {
   ItemRuns,
   JobLine,
   JobQuestion,
   RoomSummary,
+  StandingNote,
   TodoAction,
   TodoActionResult,
   TodoApproval,
@@ -1269,9 +1274,12 @@ const confirming = ref<number | null>(null);
 const raising = ref(new Set<number>());
 const raiseTitle = ref("");
 const raiseSaid = ref("");
-// The other notes he named as sources of the row he is raising. The row he is standing on is
-// always one and is never in here: it is not his to unpick.
-const raiseSources = ref<number[]>([]);
+// The other notes he named as sources of the row he is raising, each as the from-todo label names it: a note's item
+// and one numbered strand of it, or the item alone for a note with none. The row he is standing on is always one and
+// is never in here: it is not his to unpick.
+const raiseSources = ref<string[]>([]);
+// The notes still standing that he may name beside it, read as the form opens; null while that reading is under way.
+const openNotes = ref<StandingNote[] | null>(null);
 // The numbered strands of the note he stands on that the row takes up; none picked takes the note up whole.
 const raiseStrands = ref<number[]>([]);
 // The raising form's title box, which the head's create button puts the typing in.
@@ -1771,6 +1779,28 @@ async function release(id: number): Promise<void> {
 function openRaise(id: number): void {
   clearRaise();
   raising.value = new Set([id]);
+  void readOpenNotes();
+}
+
+// The notes still standing, read afresh each time the form opens: no line of the board carries its note (docs/web.md,
+// the TODO panel's section). Only the latest reading lands, and one that fails leaves the chooser empty and says so.
+let openNotesReading = 0;
+
+async function readOpenNotes(): Promise<void> {
+  const reading = ++openNotesReading;
+
+  openNotes.value = null;
+
+  try {
+    const read = await $fetch<StandingNote[]>("/api/todos/standing-notes");
+
+    if (reading === openNotesReading) openNotes.value = read;
+  } catch (error) {
+    if (reading !== openNotesReading) return;
+
+    openNotes.value = [];
+    island.fail(error, t("todo.error.standing_notes_failed"));
+  }
 }
 
 // The raising form closed and emptied, as a dialog closed with it lets go of what was typed.
@@ -1799,11 +1829,22 @@ const strandChoices = computed(() => noteStrands(openedItem.value?.unfinished ??
 // The notes he may name beside the one he is standing on. Every item whose outstanding note is
 // still standing is here, whichever page of the board it is on and whatever is being searched for
 // — the row he is looking at and the note that points at the same work are two different rows,
-// and he has not searched for the second one.
-function otherNotes(id: number): { label: string; value: number }[] {
-  return board.value.standingNotes
+// and he has not searched for the second one. A note that numbers its strands stands as a group
+// headed by its item, each strand a choice naming its item so the chosen ones read apart; one that
+// numbers none is one choice taking it up whole.
+function otherNotes(id: number): SelectMenuItem[][] {
+  return (openNotes.value ?? [])
     .filter((note) => note.id !== id)
-    .map((note) => ({ label: `#${note.id} ${note.title}`, value: note.id }));
+    .map((note) => {
+      const named = `#${note.id} ${note.title}`;
+
+      if (note.strands.length === 0) return [{ label: named, value: fromTodoLabel([{ item: note.id, strand: null }]) }];
+
+      return [
+        { type: "label" as const, label: named },
+        ...note.strands.map((strand) => ({ label: `#${note.id} ${strand.number}. ${strand.text}`, value: fromTodoLabel([{ item: note.id, strand: strand.number }]) }))
+      ];
+    });
 }
 
 function closeRaise(id: number): void {
@@ -1828,13 +1869,13 @@ async function raise(id: number): Promise<void> {
   busy.value.add(key);
 
   try {
-    const sources = [...raiseSources.value];
+    const sources = sourcesOf(raiseSources.value.join(","));
     const strands = [...raiseStrands.value];
     const answer = await $fetch<TodoActionResult>("/api/todos", {
       method: "POST",
       body: { action: "raise", id, title, said, sources, strands }
     });
-    const from = [id, ...sources].map((one) => `#${one}`).join(", ");
+    const from = [...new Set([id, ...sources.map((source) => source.item)])].map((one) => `#${one}`).join(", ");
 
     closeRaise(id);
     // The new line is news the reader has not seen yet, standing among the requests: the pill names it and its press

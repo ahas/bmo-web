@@ -334,8 +334,8 @@ export const NOTICES_REASON_NEEDED = "todo.error.notices_reason_needed";
 export const STOP_REASON_LIMIT = 2_000;
 export const STOP_REASON_NEEDED = "todo.error.stop_reason_needed";
 
-// What the console says when the bot refused to raise a row. An open matter is what such a row comes out
-// of, so an item that left none has nothing to raise one from.
+// What the console says to a row raised from an item that left no note. A note is what such a row comes out of, so an
+// item that left none has nothing to raise one from.
 export const NOTHING_TO_RAISE = "todo.error.nothing_to_raise";
 
 // What the console says when the bot refused to resolve an open matter. The row either left none or has

@@ -1368,6 +1368,8 @@ todo:
     note_send_failed: 지시 사항을 보내지 못했습니다.
     notes_load_failed: 추가 지시를 불러오지 못했습니다.
     nothing_to_raise: 그 항목에는 미결이 없어 새 항목을 만들 수 없습니다.
+    source_without_note: "#{id}번에는 미결이 없어 출처로 삼을 수 없습니다."
+    standing_notes_failed: 다른 미결을 불러오지 못했습니다.
     order_save_failed: 순서를 저장하지 못했습니다.
     queue_moved: 그 사이 대기열이 바뀌어 순서를 저장하지 못했습니다. 새로고침한 뒤 옮겨 주세요.
     queue_pause_direction: 자동 진행을 일시정지할지 재개할지 정해 주세요.
@@ -1586,6 +1588,7 @@ todo:
     skipped_count: "건너뜀 {n}"
     sources: 출처
     strands: 미결 건
+    note_original: "#{id}번 미결 원문"
     span_end: "끝 {time}"
     span_start: "시작 {time}"
     span_times: "{n}회"

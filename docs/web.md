@@ -7150,7 +7150,12 @@ Four bounds keep it from growing forever.
   joined with commas. While the form holds anything typed or picked, every way out of the dialog asks before it is
   thrown away (「Forms」), and closing the dialog lets the form go. Writing the title and what to do stands that line
   as awaiting approval, and **the
-  unfinished-item original attaches whole to the new item** — so a month later reading that line alone tells what it is. Standing it is not
+  unfinished-item original attaches whole to the new item** — so a month later reading that line alone tells what it is. The console's
+  server reads each source's note itself, never taking it from the form, and writes the new line's instruction as what was typed
+  followed by one block per source, the item being viewed first and the others in the order picked: a line naming the note's item,
+  in the pack's words, and under it the note's words whole as a quotation, every strand of it even where only some were picked,
+  since which strands the line takes up is its label's to say. A source that left no note, or a strand its note does not number,
+  is refused before anything is written. Standing it is not
   approval. It stands beside other requests awaiting the owner's approval. The original line changes nothing — the unfinished-item original stays on
   it and is not resolved. Standing stays after resolving too. Resolving says it is no longer remaining work, not that the text is gone, so
   noticing later while reading that one branch is still work, stand it then.
@@ -7158,9 +7163,16 @@ Four bounds keep it from growing forever.
   87 and 88 together. The standing cell's **출처** line stands the item being viewed fixed, and beside it a chooser names other unfinished-items
   together. The choices are every item with an unresolved unfinished-item — whether in the loaded page or not, whatever is being searched.
   Another line pointing at the same work as the one being viewed is not a line they found. An already-resolved unfinished-item is not a choice.
-  It is already sorted, and reopening it is done separately on that line. Chosen sources attach to the new line's instruction original each in
-  its own block; each of those unfinished-items is named whole in the new line's `from-todo` label, and resolves on
-  its own once this line and its sibling lines are done (「미결 해소」).
+  It is already sorted, and reopening it is done separately on that line. No line of the board carries its note, so the
+  choices are read when the form opens, the reports of every finished item read as the 미결 condition reads them and
+  kept a minute the same way, and the list awaits that reading under its skeleton; a reading that fails says so in a
+  message pill and leaves the list empty. Each note stands as a group headed by
+  its item's number and title, and under it each numbered strand by its item's number, the strand's number and its first
+  words; a note with no numbered strands is one choice, named by its item's number and title, that takes it up whole.
+  The list searches what each choice shows. Chosen sources attach to the new line's instruction original each in its own
+  block, as above; the new line's `from-todo` label names each strand picked as `<item>:<strand>` and a note with no
+  strands by its item alone, and each of those notes resolves on its own once the lines raised from it are done and
+  take up every strand (「미결 해소」).
 - **The talk knows lines already stood.** The item the chat agent reads stands, below the unfinished-item, the lines already stood from it with their
   number, title and whether finished. Without it, it would say to stand a branch already a line again — the unfinished-item paragraph does not
   record what has already been stood. A link is a table fact so it is not read from prose but read and carried in.

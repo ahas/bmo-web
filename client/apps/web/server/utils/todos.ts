@@ -1,6 +1,6 @@
 import { DONE_MAX, DONE_PAGE_SIZE, TODO_REPORTS_FRESH_MS, TODO_SEARCH_LIMIT, UNFINISHED_PAIR_MS, WORKER_AGENT } from "#shared/config";
 import { filterRecords } from "bmo-ui/shared/search";
-import { FROM_TODO_LABEL, sourcesOf } from "#shared/raised-from";
+import { FROM_TODO_LABEL, noteStrands, sourcesOf } from "#shared/raised-from";
 import { wording } from "#shared/wording";
 import { NO_CONDITIONS, NO_ROOM, todoSearchFields, unfinishedState } from "../../app/domain/todos";
 import { agency, agencyCall, isJobUnderWay } from "./agency";
@@ -8,7 +8,7 @@ import { job, jobCall, ownersWaitingQuestions } from "./job";
 import { namedLabel } from "./todo-assignment";
 
 import type { Note, Item, Report, Queue } from "bmo-job-client";
-import type { DeployHold, TodoBoard, TodoBoardRow, TodoChoices, TodoItem, TodoNote, TodoReport, TodoReview, TodoStanding } from "#shared/types";
+import type { DeployHold, StandingNote, TodoBoard, TodoBoardRow, TodoChoices, TodoItem, TodoNote, TodoReport, TodoReview, TodoStanding } from "#shared/types";
 import type { TodoConditions } from "../../app/domain/todos";
 
 // The TODO as bmo-job reads it in its fixed API (bmo-job's `docs/api.md`): the items it keeps, the queues they
@@ -804,10 +804,29 @@ export async function readTodoBoard(
     merged: listed("merged", matching),
     done: page.flatMap((item) => rows.get(item.id) ?? []),
     doneTotal: finishedFound.length,
-    standingNotes: [],
     choices,
     standing: standingOf(matching, live, rows, all),
     paused: queues.length > 0 && queues.every((queue) => queue.state === "paused"),
     deployHold: holds.length === 0 ? null : holdOf(holds[0])
   };
+}
+
+/**
+ * Every finished item whose unfinished note still stands, newest first, with the note's numbered strands: the choices
+ * the raising form offers beside the note being viewed. No item's line carries its note, so the reports of every
+ * finished item are read as the unfinished condition reads them, each kept a minute while the item is unchanged (docs/web.md,
+ * the TODO panel's section).
+ */
+export async function readStandingNotes(): Promise<StandingNote[]> {
+  const items = await allItems();
+  const all = byNumber(items);
+  const finished = items.filter((item) => isFinished(item, all)).sort((one, other) => other.id - one.id);
+  const reports = await boardReports(finished);
+  const raised = raisedLinesAmong(items);
+
+  return finished.flatMap((item) => {
+    const note = unfinishedOf(item, reports.get(item.id) ?? [], raised.get(item.id));
+
+    return unfinishedState(note) === "open" ? [{ id: item.id, title: item.title, strands: noteStrands(note.unfinished ?? "") }] : [];
+  });
 }

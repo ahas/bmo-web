@@ -1,6 +1,6 @@
 import { afterAll, describe, expect, test } from "bun:test";
 
-import { APPEND_LIMIT, HOLD_REASON_LIMIT, HOLD_REASON_NEEDED, NOTICES_REASON_LIMIT, NOTICES_REASON_NEEDED, UNFINISHED_NOT_OPEN } from "../../../apps/web/shared/config";
+import { APPEND_LIMIT, HOLD_REASON_LIMIT, HOLD_REASON_NEEDED, NOTHING_TO_RAISE, NOTICES_REASON_LIMIT, NOTICES_REASON_NEEDED, UNFINISHED_NOT_OPEN } from "../../../apps/web/shared/config";
 import { wording } from "../../../apps/web/shared/wording";
 import { asked, routeOf } from "../../support/nitro";
 import { answer, standIn } from "../../support/units";
@@ -16,6 +16,12 @@ let refusal: { status: number; code: string; method?: string } | null = null;
 let itemLabels: Record<string, string> = {};
 let itemState = "open";
 let itemReports: Record<string, unknown>[] = [];
+// The reports kept of the other items, by item.
+const otherReports = new Map<number, Record<string, unknown>[]>();
+
+// A job's unfinished note on an item, as bmo-job labels its held report.
+const noteOn = (itemId: number, body: string) =>
+  ({ id: itemId * 10, itemId, kind: "held", body, actorName: "worker-a", labels: { account: "unfinished" }, createdAt: 1_790_000_000_000 });
 
 const job = standIn("JOB", (one) => {
   if (one.method === "GET" && one.path.startsWith("/queues")) {
@@ -32,7 +38,14 @@ const job = standIn("JOB", (one) => {
 
   if (one.method === "DELETE") return new Response(null, { status: 204 });
 
-  if (one.method === "GET" && one.path.startsWith("/items/7/reports")) return answer({ items: itemReports, more: false });
+  const reportsOf = /^\/items\/(\d+)\/reports/.exec(one.path);
+
+  if (one.method === "GET" && reportsOf !== null) {
+    const itemId = Number(reportsOf[1]);
+
+    return answer({ items: itemId === 7 ? itemReports : (otherReports.get(itemId) ?? []), more: false });
+  }
+
   if (one.method === "GET" && one.path.startsWith("/items/7/notes")) return answer({ items: [], more: false });
   if (one.method === "GET" && one.path.startsWith("/items?")) return answer({ items: [], more: false });
 
@@ -258,15 +271,17 @@ describe("taking words back off an item", () => {
 describe("what a verb answers", () => {
   test("the row a raise made in the queue's first queue, and the runs a stop asked to end", async () => {
     fresh();
+    itemReports = [noteOn(7, "left behind")];
 
     const raised = await asked(handler, { body: { action: "raise", id: 7, title: "the rest", said: "carry on with what is left" } });
     const stopped = await asked(handler, { body: { action: "stop", id: 7, why: "wrong direction" } });
+
+    itemReports = [];
 
     expect(raised.answer).toEqual({ ok: true, raised: 41 });
     expect(stopped.answer).toEqual({ ok: true, stopped: 1 });
     expect(job.asked.find((one) => one.method === "POST" && one.path === "/items")?.body).toMatchObject({
       title: "the rest",
-      brief: "carry on with what is left",
       queueName: "default",
       requesterName: "tester",
       raisedBy: 7,
@@ -278,19 +293,62 @@ describe("what a verb answers", () => {
 // A row raised out of a note names the note's strands it takes up as bmo-job's `todo --add --from-todo` does, so the
 // note resolves once its rows are done (docs/web.md, the TODO panel's section).
 describe("where a raised row came from", () => {
-  const raisedLabels = () => job.asked.find((one) => one.method === "POST" && one.path === "/items")?.body?.labels;
+  const raisedBody = () => job.asked.find((one) => one.method === "POST" && one.path === "/items")?.body;
+  const block = (id: number, quoted: string) => `${wording("todo.label.note_original", { id })}\n\n${quoted}`;
 
-  test("the strands picked of the note it stands on, and every other note named whole", async () => {
+  function noted(): void {
     fresh();
+    itemReports = [noteOn(7, "Left:\n\n1. the tooltip\n2. the menu\n3. the focus")];
+    otherReports.set(9, [noteOn(9, "1. the badge\n2. the count")]);
+    otherReports.set(12, [noteOn(12, "One thing is left.")]);
+  }
 
-    expect(await post({ action: "raise", id: 7, title: "the rest", said: "carry on", strands: [2, 3], sources: [9, 7] })).toMatchObject({ status: 200 });
-    expect(raisedLabels()).toEqual({ "from-todo": "7:2,7:3,9" });
+  afterAll(() => {
+    itemReports = [];
+    otherReports.clear();
   });
 
-  test("a strand that is no number counted from one is refused before bmo-job is asked", async () => {
+  test("the strands picked of the note it stands on, then each other note by its strand or whole, every note's words attached", async () => {
+    noted();
+
+    const sources = [{ item: 9, strand: 2 }, { item: 7, strand: 1 }, { item: 12, strand: null }];
+
+    expect(await post({ action: "raise", id: 7, title: "the rest", said: "carry on", strands: [2, 3], sources })).toMatchObject({ status: 200 });
+    expect(raisedBody()?.labels).toEqual({ "from-todo": "7:2,7:3,9:2,12" });
+    expect(raisedBody()?.brief).toBe([
+      "carry on",
+      block(7, "> Left:\n>\n> 1. the tooltip\n> 2. the menu\n> 3. the focus"),
+      block(9, "> 1. the badge\n> 2. the count"),
+      block(12, "> One thing is left.")
+    ].join("\n\n"));
+  });
+
+  test("a source that left no note, a strand its note does not number, and a note it stands on that left none are refused, nothing raised", async () => {
+    noted();
+    otherReports.delete(12);
+
+    expect(await post({ action: "raise", id: 7, title: "the rest", said: "carry on", sources: [{ item: 12, strand: null }] }))
+      .toEqual({ status: 409, message: wording("todo.error.source_without_note", { id: 12 }) });
+    expect(await post({ action: "raise", id: 7, title: "the rest", said: "carry on", sources: [{ item: 9, strand: 3 }] }))
+      .toEqual({ status: 400, message: wording("todo.error.bad_strands") });
+    expect(await post({ action: "raise", id: 7, title: "the rest", said: "carry on", strands: [4] }))
+      .toEqual({ status: 400, message: wording("todo.error.bad_strands") });
+
+    itemReports = [];
+
+    expect(await post({ action: "raise", id: 7, title: "the rest", said: "carry on" })).toEqual({ status: 409, message: wording(NOTHING_TO_RAISE) });
+    expect(raisedBody()).toBeUndefined();
+  });
+
+  test("a strand that is no number counted from one, and a source that is no item and strand, are refused before bmo-job is asked", async () => {
     fresh();
 
     expect(await post({ action: "raise", id: 7, title: "the rest", said: "carry on", strands: [0] })).toEqual({ status: 400, message: wording("todo.error.bad_strands") });
+
+    for (const sources of [[9], [{ item: 9 }], [{ item: 9, strand: 0 }], [{ item: "9", strand: null }]]) {
+      expect(await post({ action: "raise", id: 7, title: "the rest", said: "carry on", sources })).toEqual({ status: 400, message: wording("todo.error.bad_source_ids") });
+    }
+
     expect(job.asked).toEqual([]);
   });
 });

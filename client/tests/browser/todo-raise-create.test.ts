@@ -5,7 +5,7 @@ import { wording } from "../../apps/web/shared/wording";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, BrowserContext, Page } from "playwright-core";
-import type { TodoBoard, TodoItem, TodoReport } from "../../apps/web/shared/types";
+import type { StandingNote, TodoBoard, TodoItem, TodoReport } from "../../apps/web/shared/types";
 
 // The create button in the head of an item's dialog (docs/web.md, the add that belongs to a row, and the TODO
 // panel's result tab): on an item carrying an unfinished note it stands in the head row, before the close mark, as
@@ -28,6 +28,13 @@ const NUMBERED = 3;
 const NOW = Math.floor(Date.now() / 1000);
 
 const REPORT: TodoReport = { id: 1, kind: "final", body: "report-body", actor: "agent-a", at: NOW - 60 };
+// The notes still standing as the raising form reads them: the item being viewed, which the chooser leaves out, one
+// numbering its strands and one of prose.
+const STANDING: StandingNote[] = [
+  { id: NUMBERED, title: `item-title-${NUMBERED}`, strands: [{ number: 1, text: "first-strand" }, { number: 2, text: "second-strand" }] },
+  { id: 5, title: "item-title-5", strands: [{ number: 1, text: "other-first" }, { number: 2, text: "other-second" }] },
+  { id: 6, title: "item-title-6", strands: [] }
+];
 
 function item(id: number, unfinished: string | null): TodoItem {
   return {
@@ -128,6 +135,7 @@ async function open(viewport: (typeof WIDTHS)[number], scheme: (typeof SCHEMES)[
     });
   });
   await context.route(/\/api\/todos\/\d+\/reports$/, (route) => route.fulfill({ json: [REPORT] }));
+  await context.route(/\/api\/todos\/standing-notes$/, (route) => route.fulfill({ json: STANDING }));
 
   return context;
 }
@@ -226,7 +234,9 @@ describe.skipIf(!origin || !touchReady())("the create button in an item's head",
 
 // The strands a raised row takes up (docs/web.md, the TODO panel's section): a note that numbers its strands stands a
 // chooser of them in the form, by number and first words, on one line with its label and inside the dialog at a
-// phone's width, and what is picked goes with the raise; a note of prose stands none. While the form holds anything,
+// phone's width, and what is picked goes with the raise; a note of prose stands none. Beside it the other notes still
+// standing are offered, the one being viewed left out, each strand naming its note and a note of prose whole, and
+// what is picked goes with the raise as each note's item and strand. While the form holds anything,
 // every way out of the dialog asks first, and a question turned down leaves the form as it was; a form left blank, or
 // emptied again, closes at once.
 describe.skipIf(!origin || !touchReady())("the raising form's strands and its close", () => {
@@ -279,6 +289,24 @@ describe.skipIf(!origin || !touchReady())("the raising form's strands and its cl
         await page.keyboard.press("Escape");
         await page.getByRole("listbox").waitFor({ state: "detached", timeout: 10_000 });
 
+        // The other notes, inside the dialog: the one being viewed is none of them.
+        const sources = sheet.locator("[data-raise-sources]");
+
+        expect(await sources.evaluate((field) => {
+          const box = field.getBoundingClientRect();
+          const shell = field.closest('[role="dialog"]')!.getBoundingClientRect();
+
+          return box.left >= shell.left && box.right <= shell.right;
+        })).toBe(true);
+        await sources.click();
+        await page.getByRole("option").first().waitFor({ state: "visible", timeout: 10_000 });
+        expect(await page.getByRole("option").allInnerTexts()).toEqual(["#5 1. other-first", "#5 2. other-second", "#6 item-title-6"]);
+        await page.getByRole("option", { name: "#5 2. other-second" }).click();
+        await page.getByRole("option", { name: "#6 item-title-6" }).click();
+        await page.keyboard.press("Escape");
+        await page.getByRole("listbox").waitFor({ state: "detached", timeout: 10_000 });
+        expect(await sources.innerText()).toContain("#5 2. other-second");
+
         // A strand picked is a change: closing asks, and the question turned down leaves the form as it was.
         await close(NUMBERED);
         await question.waitFor({ state: "visible", timeout: 10_000 });
@@ -292,7 +320,14 @@ describe.skipIf(!origin || !touchReady())("the raising form's strands and its cl
         await sheet.getByRole("textbox", { name: wording("todo.aria.new_body"), exact: true }).fill("carry on");
         await sheet.getByRole("button", { name: wording("todo.action.submit_for_approval"), exact: true }).click();
         await chooser.waitFor({ state: "detached", timeout: 10_000 });
-        expect(raised).toMatchObject({ action: "raise", id: NUMBERED, title: "the rest", said: "carry on", strands: [2] });
+        expect(raised).toMatchObject({
+          action: "raise",
+          id: NUMBERED,
+          title: "the rest",
+          said: "carry on",
+          strands: [2],
+          sources: [{ item: 5, strand: 2 }, { item: 6, strand: null }]
+        });
 
         // The form gone with its send, closing asks nothing.
         await close(NUMBERED);

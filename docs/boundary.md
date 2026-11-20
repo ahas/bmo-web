@@ -856,7 +856,9 @@ for it, and no file or table of that unit is read meanwhile.
   one; a note written before it labelled the note carries no mark of its own, and the console tells that one by the
   `final` report its writer wrote with it. The console keeps the resolution in two labels of the item (`docs/web.md`,
   the TODO panel's section, 「Where a 미결 is read from」). Its item row carries none of that, so under the 미결
-  condition the board reads the reports of every finished item, kept a minute as above. Nothing in bmo-job reads
+  condition the board reads the reports of every finished item, kept a minute as above, and so does the raising
+  form's chooser of the other notes still standing as it opens, and a line raised from notes reads each source's
+  reports for the words it attaches. Nothing in bmo-job reads
   the `from-todo` label its `todo --add` writes or resolves a note when the lines raised from it finish, so the
   console's server does both: it holds bmo-job's stream of item changes open itself, reads the lines raised from
   notes by that label each time a line moves to a finished state and once each time the stream opens, and writes the

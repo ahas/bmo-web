@@ -18,7 +18,7 @@ afterAll(async () => { await browser?.close(); });
 // The board is typed as the screen's own, so a column added to it fails the static check here
 // rather than throwing inside a render nobody is watching.
 const empty: TodoBoard = {
-  queue: [], pending: [], held: [], merged: [], done: [], doneTotal: 0, standingNotes: [],
+  queue: [], pending: [], held: [], merged: [], done: [], doneTotal: 0,
   choices: { workers: [], chats: [], requesters: [] },
   standing: { queue: 0, running: 0, deploy: 0, deploying: 0, pending: 0, held: 0, merged: 0 },
   paused: false, deployHold: null

@@ -118,7 +118,7 @@ afterEach(() => {
   held.jobs = [];
 });
 
-const { readTodoBoard, readTodoItem, readTodoItems, readTodoNotes, searchedFor, doneLimit } = await import("../../../apps/web/server/utils/todos");
+const { readStandingNotes, readTodoBoard, readTodoItem, readTodoItems, readTodoNotes, searchedFor, doneLimit } = await import("../../../apps/web/server/utils/todos");
 const { NO_CONDITIONS } = await import("../../../apps/web/app/domain/todos");
 
 const ids = (rows: { id: number }[]) => rows.map((row) => row.id);
@@ -614,14 +614,13 @@ describe("the board narrowed", () => {
     }
   });
 
-  test("the choices are read from every item and are not narrowed, and no standing note stands", async () => {
+  test("the choices are read from every item and are not narrowed", async () => {
     stand([item(1, { assigneeName: "worker-b" }), item(2), item(3, { state: "done", requesterName: "agent-a" })]);
 
     const board = await readTodoBoard({ conditions: { ...NO_CONDITIONS, worker: "worker-b" } });
 
     expect(board.choices.workers.sort()).toEqual(["worker", "worker-b"]);
     expect(board.choices.requesters.sort()).toEqual(["agent-a", "owner"]);
-    expect(board.standingNotes).toEqual([]);
   });
 
   test("by a search, over each item's title and brief", async () => {
@@ -632,6 +631,36 @@ describe("the board narrowed", () => {
     expect(ids(board.queue)).toEqual([1]);
     expect(ids(board.done)).toEqual([3]);
     expect(board.doneTotal).toBe(1);
+  });
+});
+
+// The notes the raising form offers beside the one being viewed: every finished item's note still standing, newest
+// first, with its numbered strands; one resolved, one an unfinished item has not left yet, and an item that left none
+// are not among them (docs/web.md, the TODO panel's section).
+describe("the notes still standing", () => {
+  test("every finished item's open note, newest first, with its numbered strands", async () => {
+    const note = (id: number, itemId: number, body: string) =>
+      ({ id, itemId, actorName: "worker-a", kind: "held", body, createdAt: 1_790_000_100_000, labels: { account: "unfinished" } });
+
+    stand([
+      item(81, { state: "done", changedAt: 81 }),
+      item(82, { state: "done", changedAt: 82, labels: { unfinished: "left on the old board" } }),
+      item(83, { state: "done", changedAt: 83, labels: { unfinished_resolved_at: "1790000200", unfinished_resolution: "done elsewhere" } }),
+      item(84, { state: "leased", changedAt: 84 }),
+      item(85, { state: "done", changedAt: 85 })
+    ]);
+    held.reports.set(81, [note(810, 81, "Two things are left:\n\n1. the tooltip\n   on hover\n2. the menu")]);
+    held.reports.set(83, [note(830, 83, "settled already")]);
+    held.reports.set(84, [note(840, 84, "not taken by its review yet")]);
+
+    try {
+      expect(await readStandingNotes()).toEqual([
+        { id: 82, title: "Item 82", strands: [] },
+        { id: 81, title: "Item 81", strands: [{ number: 1, text: "the tooltip" }, { number: 2, text: "the menu" }] }
+      ]);
+    } finally {
+      for (const id of [81, 83, 84]) held.reports.delete(id);
+    }
   });
 });
 

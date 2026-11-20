@@ -5,6 +5,7 @@ import {
   isAgentName,
   MODEL_LABEL_LIMIT,
   NOTE_LIMIT,
+  NOTHING_TO_RAISE,
   NOTICES_REASON_LIMIT,
   NOTICES_REASON_NEEDED,
   RAISE_LIMIT,
@@ -14,7 +15,7 @@ import {
   STOP_REASON_NEEDED,
   UNFINISHED_NOT_OPEN
 } from "#shared/config";
-import { FROM_TODO_LABEL, fromTodoLabel } from "#shared/raised-from";
+import { FROM_TODO_LABEL, fromTodoLabel, noteStrands } from "#shared/raised-from";
 import { wording } from "#shared/wording";
 import { canResolve } from "../../app/domain/todos";
 import {
@@ -27,6 +28,7 @@ import {
 } from "../utils/todo-assignment";
 
 import type { components, Item } from "bmo-job-client";
+import type { RaisedSource } from "#shared/raised-from";
 import type { TodoAction, TodoActionResult } from "#shared/types";
 
 interface TodoBody {
@@ -128,9 +130,9 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
       throw fail(400, wording("todo.error.raise_body_empty"));
     }
 
-    // The other notes he named beside the one he is standing on. Whether each of them left a
-    // unfinished note to raise out of is bmo-job's to say; what is checked here is that they are numbers.
-    if (sources !== undefined && !isOrder(sources)) {
+    // The other notes he named beside the one he is standing on, each by one of its numbered strands or whole. Whether
+    // each left a note, and numbers that strand, is read as the row is raised; what is checked here is the shape.
+    if (sources !== undefined && !isSourceList(sources)) {
       throw fail(400, wording("todo.error.bad_source_ids"));
     }
 
@@ -263,7 +265,8 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
 
       return { ok: true, stopped: 1 };
     case "raise": {
-      const queues = await readQueues();
+      const picked = raisedFrom(id, (strands ?? []) as number[], (sources ?? []) as RaisedSource[]);
+      const [notes, queues] = await Promise.all([notesRaisedFrom(id, picked), readQueues()]);
       const queue = queues[0];
 
       if (queue === undefined) throw fail(503, wording("todo.error.queue_unknown"));
@@ -271,11 +274,11 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
       const raised = await jobCall(job().POST("/items", {
         body: {
           title: title as string,
-          brief: said as string,
+          brief: briefWithNotes(said as string, notes),
           queueName: queue.name,
           requesterName: signed.name,
           raisedBy: id,
-          labels: { [FROM_TODO_LABEL]: raisedFrom(id, (strands ?? []) as number[], (sources ?? []) as number[]) }
+          labels: { [FROM_TODO_LABEL]: fromTodoLabel(picked) }
         }
       }));
 
@@ -312,12 +315,57 @@ async function resolveUnfinished(id: number, why: string): Promise<void> {
 }
 
 // The notes a raised row takes up, as bmo-job's `todo --add --from-todo` names them: the strands picked of the note he
-// stands on, or that note whole where none is picked, and every other note he named whole (docs/web.md, the TODO
-// panel's section).
-function raisedFrom(id: number, strands: readonly number[], sources: readonly number[]): string {
+// stands on, or that note whole where none is picked, then every other note he named, by its strand or whole
+// (docs/web.md, the TODO panel's section).
+function raisedFrom(id: number, strands: readonly number[], sources: readonly RaisedSource[]): RaisedSource[] {
   const standing = strands.length === 0 ? [{ item: id, strand: null }] : strands.map((strand) => ({ item: id, strand }));
 
-  return fromTodoLabel([...standing, ...sources.filter((source) => source !== id).map((item) => ({ item, strand: null }))]);
+  return [...standing, ...sources.filter((source) => source.item !== id)];
+}
+
+// One note a raised row attaches: its item and its words whole.
+interface RaisedNote {
+  item: number;
+  text: string;
+}
+
+// The words of every note a raised row takes up, each read from its item's reports as the board reads them, never from
+// the form, in the order the sources are named. The note he stands on that left none has nothing to raise from;
+// another named that left none is no source, and a strand its note does not number is none of it (docs/web.md, the
+// TODO panel's section).
+async function notesRaisedFrom(id: number, sources: readonly RaisedSource[]): Promise<RaisedNote[]> {
+  const items = [...new Set(sources.map((source) => source.item))];
+
+  return await Promise.all(items.map(async (item) => {
+    const [read, reports] = await Promise.all([readItem(item), reportsOfItem(item)]);
+    const note = unfinishedNoteOf(read, reports);
+
+    if (note === null) {
+      throw fail(409, item === id ? wording(NOTHING_TO_RAISE) : wording("todo.error.source_without_note", { id: item }));
+    }
+
+    const numbered = new Set(noteStrands(note.text).map((strand) => strand.number));
+
+    if (sources.some((source) => source.item === item && source.strand !== null && !numbered.has(source.strand))) {
+      throw fail(400, wording("todo.error.bad_strands"));
+    }
+
+    return { item, text: note.text };
+  }));
+}
+
+// A raised row's brief: what he typed, then each note it takes up in a block of its own, a line naming the note's item
+// over its words whole as a quotation, so the row reads on its own however long after (docs/web.md, the TODO panel's
+// section).
+function briefWithNotes(said: string, notes: readonly RaisedNote[]): string {
+  const block = (note: RaisedNote) => `${wording("todo.label.note_original", { id: note.item })}\n\n${quoted(note.text)}`;
+
+  return [said, ...notes.map(block)].join("\n\n");
+}
+
+// Words as a markdown quotation, every line of them inside it.
+function quoted(text: string): string {
+  return text.trim().split("\n").map((line) => (line.trim() === "" ? ">" : `> ${line}`)).join("\n");
 }
 
 // A reason a verb cannot go without: words, within its bound.
@@ -390,6 +438,16 @@ async function readItem(id: number): Promise<Item> {
 
 function isAgentLabel(value: unknown): value is string {
   return typeof value === "string" && value.length <= MODEL_LABEL_LIMIT && (value === "auto" || /^[a-z][a-z0-9-]*$/.test(value));
+}
+
+function isSourceList(value: unknown): value is RaisedSource[] {
+  const counted = (entry: unknown) => typeof entry === "number" && Number.isInteger(entry) && entry > 0;
+
+  return Array.isArray(value) && value.every((entry: unknown) => {
+    const source = entry as Partial<RaisedSource> | null;
+
+    return typeof source === "object" && source !== null && counted(source.item) && (source.strand === null || counted(source.strand));
+  });
 }
 
 function isOrder(value: unknown): value is number[] {

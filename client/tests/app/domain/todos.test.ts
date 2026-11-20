@@ -148,7 +148,7 @@ const board: TodoBoard = {
   held: [], merged: [],
   done: [item(4, { done: true, doneAt: 1_756_900_000, status: "done" })],
   doneTotal: 1,
-  standingNotes: [],
+ 
   choices: CHOICES,
   standing: { queue: 3, running: 1, deploy: 0, deploying: 0, pending: 1, held: 0, merged: 0 },
   paused: false, deployHold: null
@@ -201,7 +201,7 @@ describe("the panel's sections", () => {
 
   test("an empty section says so rather than standing blank", () => {
     const sections = todoSections(wording, { queue: [], pending: [], held: [], merged: [],
-    done: [], doneTotal: 0, standingNotes: [], choices: CHOICES, standing: NO_STANDING, paused: false, deployHold: null });
+    done: [], doneTotal: 0, choices: CHOICES, standing: NO_STANDING, paused: false, deployHold: null });
 
     expect(sections.map((section) => section.empty)).toEqual([
       wording("todo.message.section_pending_empty"),
@@ -955,7 +955,7 @@ describe("the row a job is going on for standing first", () => {
     held: [], merged: [],
     done: [],
     doneTotal: 0,
-    standingNotes: [],
+   
     choices: CHOICES,
     standing: NO_STANDING,
     paused: false, deployHold: null
@@ -1216,17 +1216,17 @@ describe("the line under the finished list", () => {
 describe("what a search found", () => {
   test("counts every list, since a search reaches the whole table and not the finished alone", () => {
     expect(searchTally(wording, { queue: [item(1)], pending: [item(2)], held: [], merged: [],
-    done: [item(3)], doneTotal: 12, standingNotes: [], choices: CHOICES, standing: NO_STANDING, paused: false, deployHold: null })).toBe(wording("todo.message.search_found", { n: "14" }));
+    done: [item(3)], doneTotal: 12, choices: CHOICES, standing: NO_STANDING, paused: false, deployHold: null })).toBe(wording("todo.message.search_found", { n: "14" }));
   });
 
   test("says so once where nothing anywhere matched", () => {
     expect(searchTally(wording, { queue: [], pending: [], held: [], merged: [],
-    done: [], doneTotal: 0, standingNotes: [], choices: CHOICES, standing: NO_STANDING, paused: false, deployHold: null })).toBe(wording("todo.message.search_none"));
+    done: [], doneTotal: 0, choices: CHOICES, standing: NO_STANDING, paused: false, deployHold: null })).toBe(wording("todo.message.search_none"));
   });
 
   test("counts the ones behind the page rather than the ones on the screen", () => {
     expect(searchTally(wording, { queue: [], pending: [], held: [], merged: [],
-    done: [item(3)], doneTotal: 40, standingNotes: [], choices: CHOICES, standing: NO_STANDING, paused: false, deployHold: null })).toBe(wording("todo.message.search_found", { n: "40" }));
+    done: [item(3)], doneTotal: 40, choices: CHOICES, standing: NO_STANDING, paused: false, deployHold: null })).toBe(wording("todo.message.search_found", { n: "40" }));
   });
 });
 
@@ -1234,7 +1234,7 @@ describe("what a search found", () => {
 // is out of sight everywhere except its own chip — which is the whole of what he asked for.
 describe("an item set aside", () => {
   const aside = item(7, { status: "held", heldAt: 1_756_900_000, heldReason: "not now" });
-  const board: TodoBoard = { queue: [item(1)], pending: [item(9, { approved: false, awaitingApproval: true })], held: [aside], merged: [], done: [], doneTotal: 0, standingNotes: [], choices: CHOICES, standing: { queue: 1, running: 0, deploy: 0, deploying: 0, pending: 1, held: 1, merged: 0 }, paused: false, deployHold: null };
+  const board: TodoBoard = { queue: [item(1)], pending: [item(9, { approved: false, awaitingApproval: true })], held: [aside], merged: [], done: [], doneTotal: 0, choices: CHOICES, standing: { queue: 1, running: 0, deploy: 0, deploying: 0, pending: 1, held: 1, merged: 0 }, paused: false, deployHold: null };
 
   test("is neither waiting nor waiting on him: it waits on nothing", () => {
     expect(todoState(aside)).toBe("held");
@@ -1283,7 +1283,7 @@ describe("an item merged into another", () => {
     merged: [merged],
     done: [],
     doneTotal: 0,
-    standingNotes: [],
+   
     choices: CHOICES,
     standing: { queue: 1, running: 0, deploy: 0, deploying: 0, pending: 0, held: 0, merged: 1 },
     paused: false, deployHold: null

@@ -5,6 +5,7 @@
 import type { PushKind } from "./config";
 import type { DeployStage, DeployStep, DeployStepAhead, DeployStepUnderWay } from "./deploy-progress";
 import type { DraftSummary } from "./drafting";
+import type { NoteStrand } from "./raised-from";
 
 // bmo-job's shapes (bmo-job's `docs/api.md`).
 
@@ -823,13 +824,6 @@ export interface TodoBoard {
   // is being searched for, and the ones that match where something is. It is what tells the
   // panel there is more to fetch, and what lets it say how far through it has got.
   doneTotal: number;
-  // Every item whose open matter is still standing, whether or not it is on the page in hand. It is the
-  // list a new row's sources are picked from: a strand of work is often left in two notes at
-  // once, and the row that takes it up comes out of both of them. A note already resolved is not
-  // among them — it has been settled, and settling it again is a different act done on its own
-  // row. The finished ones are paged, so this is asked for separately rather than found among
-  // them.
-  standingNotes: StandingNote[];
   // What the table's own columns hold, for the panel's conditions to be picked from: every worker
   // that does a row (an unassigned row being the built-in worker's), every room a request came from (null for one filed outside every room) and
   // every name a request was filed under. Read from the whole table and never narrowed, so a
@@ -874,11 +868,15 @@ export interface TodoChoices {
   requesters: string[];
 }
 
-// One item that left an open matter nobody has settled: enough to pick it by and nothing else, since the
-// note itself is read on the row it belongs to.
+// One finished item whose unfinished note still stands, as the raising form offers it beside the note being viewed:
+// enough to pick it by, its numbered strands among it, and nothing else, since the note itself is read on the row it
+// belongs to (docs/web.md, the TODO panel's section). A note already resolved is none: it has been settled, and
+// settling it again is a different act done on its own row.
 export interface StandingNote {
   id: number;
   title: string;
+  // The note's numbered strands, none where it numbers none and is taken up whole.
+  strands: NoteStrand[];
 }
 
 // Who settled a question a job put to the owner: their own answer, wherever they gave it, or the job's

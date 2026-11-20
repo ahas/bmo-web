@@ -848,11 +848,11 @@ for it, and no file or table of that unit is read meanwhile.
   reports of every finished and held item it hands over, one read per item, and keeps each for a minute while the
   item's `changedAt` stands. A report appended moves no state, so one written in that minute reaches the row's mark
   only when the minute is up; the item's dialog reads its reports itself.
-- **An item's 미결.** bmo-job keeps a job's unfinished note as a `held` report with no mark of its own and keeps no
-  resolution of one, so the console tells the note by the `final` report its writer wrote with it and keeps its
-  resolution in two labels of the item (`docs/web.md`, the TODO panel's section, 「Where a 미결 is read from」). Its
-  item row carries none of that, so under the 미결 condition the board reads the reports of every finished item, kept
-  a minute as above. A line stood out of a 미결 carries no mark of the note it came from (no item carries bmo-job's
+- **An item's 미결.** bmo-job labels a job's unfinished note's `held` report as the note and keeps no resolution of
+  one; a note written before it labelled the note carries no mark of its own, and the console tells that one by the
+  `final` report its writer wrote with it. The console keeps the resolution in two labels of the item (`docs/web.md`,
+  the TODO panel's section, 「Where a 미결 is read from」). Its item row carries none of that, so under the 미결
+  condition the board reads the reports of every finished item, kept a minute as above. A line stood out of a 미결 carries no mark of the note it came from (no item carries bmo-job's
   `from-todo` label, and the console raises a line with none), so a 미결 resolves by hand only.
 - **A worker's downgrade heal.** Whether a worker's session is put back on its model when it answered on a lesser
   one is set by the agency's command line and taken by no route, so the console's switch for it changes nothing.

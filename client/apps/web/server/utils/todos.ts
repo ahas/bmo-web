@@ -105,16 +105,26 @@ const UNFINISHED_LABEL = "unfinished";
 const RESOLVED_AT_LABEL = "unfinished_resolved_at";
 const RESOLUTION_LABEL = "unfinished_resolution";
 
-// The report an item's unfinished note is read from: the latest held report whose very next report is a final one by
-// the same writer, written close enough behind it to be the account bmo-job's `todo --done` wrote with the note. A
-// hold's reason and a run's stop-here account stand with no final report written with them. Null where none pairs so.
-function noteReport(reports: readonly Report[]): Report | null {
-  for (let at = reports.length - 2; at >= 0; at -= 1) {
-    const report = reports[at]!;
-    const next = reports[at + 1]!;
-    const paired = next.kind === "final" && next.actorName === report.actorName && next.createdAt - report.createdAt <= UNFINISHED_PAIR_MS;
+// The label bmo-job's `todo --done` gives the held report it keeps an unfinished note in (its docs/api.md, 「Reports」);
+// a hold's reason and a run's stop-here account are held reports with no label.
+const NOTE_LABEL = { key: "account", value: "unfinished" } as const;
 
-    if (report.kind === "held" && paired) return report;
+// Whether an unlabelled held report is a note written before bmo-job labelled it: the very next report is a final one
+// by the same writer, written close enough behind it to be the account `todo --done` wrote with the note, where a
+// hold's reason and a run's stop-here account stand with no final report written with them.
+function pairedNote(report: Report, next: Report | undefined): boolean {
+  return next?.kind === "final" && next.actorName === report.actorName && next.createdAt - report.createdAt <= UNFINISHED_PAIR_MS;
+}
+
+// The report an item's unfinished note is read from: the latest held report labelled the note, or unlabelled and
+// paired with the account written with it. Null where none is.
+function noteReport(reports: readonly Report[]): Report | null {
+  for (let at = reports.length - 1; at >= 0; at -= 1) {
+    const report = reports[at]!;
+    const labelled = report.labels[NOTE_LABEL.key] === NOTE_LABEL.value;
+    const unlabelled = Object.keys(report.labels).length === 0;
+
+    if (report.kind === "held" && (labelled || (unlabelled && pairedNote(report, reports[at + 1])))) return report;
   }
 
   return null;

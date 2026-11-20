@@ -188,8 +188,9 @@ export const DONE_MAX = 500;
 export const TODO_REPORTS_FRESH_MS = 60_000;
 
 // How close behind its unfinished note a closing job's account is written. bmo-job's `todo --done` writes both in
-// one call, the note first, so a held report followed this soon by its writer's final one is that note; a hold's
-// reason has no final report written with it (docs/web.md, the TODO panel's section).
+// one call, the note first, so an unlabelled held report, one written before bmo-job labelled the note, followed this
+// soon by its writer's final one is that note; a hold's reason has no final report written with it (docs/web.md, the
+// TODO panel's section).
 export const UNFINISHED_PAIR_MS = 10_000;
 
 // How long after it ended a summary the tab hears of late still stands in the player waiting for a press; one older

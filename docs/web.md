@@ -7256,10 +7256,12 @@ Four bounds keep it from growing forever.
   flowed by, opening one item reads how it ended and what remained. An item with no such record is an old item closed before jobs were asked to report,
   and it is not backfilled.
 - **Where a 미결 is read from.** Only a finished item has a 미결. bmo-job's `bmo todo --done` keeps the note as a
-  `held` report and the account as a `final` one, the note first, both by the same writer in one call (bmo-job's
-  `docs/cli.md`, 「`bmo-job todo`」); a hold and `--stop-here` write a `held` report with no `final` beside it. So the
-  미결 is the latest `held` report whose very next report is a `final` one by the same writer within ten seconds.
-  An item carried over from the old board, which has no such pair, keeps its 미결 in its label `unfinished`. Its
+  `held` report labelled `account` at `unfinished`, and a hold and `--stop-here` write a `held` report with no label
+  (bmo-job's `docs/api.md`, 「Reports」). So the 미결 is the latest `held` report that either carries that label or,
+  for a note written before bmo-job labelled it, carries none and is followed at once by a `final` report of the
+  same writer within ten seconds: `--done` writes the note first and its account right after it in one call, where a
+  hold and `--stop-here` write no `final` beside theirs.
+  An item carried over from the old board, which has no such report, keeps its 미결 in its label `unfinished`. Its
   resolution stands in the item's labels `unfinished_resolved_at` (epoch seconds) and `unfinished_resolution`; a
   note written after that moment is a new 미결 and stands unresolved.
 - In the 상태 tab, the **실행 기록** cell stands how long the work took as a bar. What it counts is read from the agency's jobs

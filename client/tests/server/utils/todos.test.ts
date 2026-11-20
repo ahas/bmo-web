@@ -530,9 +530,10 @@ describe("the board narrowed", () => {
 
   test("by an unfinished note still standing or resolved, over every finished item, the page and its total included", async () => {
     const at = 1_790_000_100_000;
-    const report = (id: number, itemId: number, kind: string, actorName: string, createdAt: number, body = `${kind} ${id}`) =>
-      ({ id, itemId, actorName, kind, body, createdAt, labels: {} });
-    // The note a closing job wrote with its account, by the same writer in the same moment.
+    const report = (id: number, itemId: number, kind: string, actorName: string, createdAt: number, body = `${kind} ${id}`, labels: Record<string, string> = {}) =>
+      ({ id, itemId, actorName, kind, body, createdAt, labels });
+    const labelled = (id: number, itemId: number, createdAt: number) => report(id, itemId, "held", "worker-a", createdAt, `left by ${itemId}`, { account: "unfinished" });
+    // The note a closing job wrote with its account before bmo-job labelled it, by the same writer in the same moment.
     const closed = (itemId: number, noteAt: number) => [report(itemId * 10, itemId, "held", "worker-a", noteAt, `left by ${itemId}`), report(itemId * 10 + 1, itemId, "final", "worker-a", noteAt + 400)];
     const resolvedAt = (seconds: number) => ({ unfinished_resolved_at: String(seconds), unfinished_resolution: "done in another item" });
 
@@ -548,7 +549,12 @@ describe("the board narrowed", () => {
       // Closed again with a new note after the earlier one was resolved.
       item(67, { state: "done", changedAt: 67, labels: resolvedAt(1_790_000_200) }),
       // A note on work its review has not taken yet: not finished, so it has left nothing.
-      item(68, { state: "leased", changedAt: 68 })
+      item(68, { state: "leased", changedAt: 68 }),
+      // The label names the note with no account beside it, and before a later stop-here account and its close; a held
+      // report with another label is no note however its account follows it.
+      item(69, { state: "done", changedAt: 69 }),
+      item(70, { state: "done", changedAt: 70 }),
+      item(71, { state: "done", changedAt: 71 })
     ]);
     held.reports.set(61, closed(61, at));
     held.reports.set(62, closed(62, at));
@@ -556,13 +562,16 @@ describe("the board narrowed", () => {
     held.reports.set(66, [report(660, 66, "held", "owner", at), report(661, 66, "final", "worker-a", at + 1_000)]);
     held.reports.set(67, closed(67, at + 200_000));
     held.reports.set(68, closed(68, at));
+    held.reports.set(69, [labelled(690, 69, at)]);
+    held.reports.set(70, [labelled(700, 70, at), report(701, 70, "held", "worker-a", at + 60_000), report(702, 70, "final", "worker-a", at + 120_000)]);
+    held.reports.set(71, [report(710, 71, "held", "worker-a", at, "held 710", { lane: "todo" }), report(711, 71, "final", "worker-a", at + 400)]);
 
     const open = await readTodoBoard({ limit: 1, conditions: { ...NO_CONDITIONS, unfinished: "open" } });
     const resolved = await readTodoBoard({ conditions: { ...NO_CONDITIONS, unfinished: "resolved" } });
 
-    expect(ids(open.done)).toEqual([67]);
-    expect(open.doneTotal).toBe(3);
-    expect(ids((await readTodoBoard({ limit: 10, conditions: { ...NO_CONDITIONS, unfinished: "open" } })).done)).toEqual([67, 64, 61]);
+    expect(ids(open.done)).toEqual([70]);
+    expect(open.doneTotal).toBe(5);
+    expect(ids((await readTodoBoard({ limit: 10, conditions: { ...NO_CONDITIONS, unfinished: "open" } })).done)).toEqual([70, 69, 67, 64, 61]);
     expect([open.queue, open.pending, open.held, open.merged].flat()).toEqual([]);
     expect(ids(resolved.done)).toEqual([63, 62]);
     expect(resolved.doneTotal).toBe(2);
@@ -574,11 +583,15 @@ describe("the board narrowed", () => {
     expect(rows.get(63)).toMatchObject({ unfinished: "left on the old board", unfinishedResolvedAt: 1_790_000_200 });
     expect(rows.get(65)!.unfinished).toBeNull();
     expect(rows.get(66)!.unfinished).toBeNull();
+    expect(rows.get(69)!.unfinished).toBe("left by 69");
+    expect(rows.get(70)!.unfinished).toBe("left by 70");
+    expect(rows.get(71)!.unfinished).toBeNull();
     // The note's report stands as the note alone; a held report that is no note stands among the reports.
     expect(rows.get(61)!.reports.map((one) => one.kind)).toEqual(["final"]);
     expect(rows.get(65)!.reports.map((one) => one.kind)).toEqual(["final", "held"]);
+    expect(rows.get(70)!.reports.map((one) => one.id)).toEqual([702, 701]);
 
-    for (const id of [61, 62, 65, 66, 67, 68]) held.reports.delete(id);
+    for (const id of [61, 62, 65, 66, 67, 68, 69, 70, 71]) held.reports.delete(id);
   });
 
   // An item waits on the owner's answer while one of its questions is put to a person and not yet settled, open or

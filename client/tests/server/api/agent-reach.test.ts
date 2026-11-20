@@ -10,6 +10,8 @@ import type { RouteEvent } from "../../support/nitro";
 // quote what was said in its rooms, a person's private room among them, so a reader other than the administrator reads
 // the agents their own account owns alone — their own BMO and a role agent standing as theirs — and every other agent
 // answers them as if it did not stand, nothing of it asked. The administrator reads every agent's.
+// Whose agent it is, and what a supervisor's page reads, is asked of the agency as the member signed in
+// (docs/boundary.md, 「Calls the console makes」).
 
 const MEMBER = 7;
 
@@ -27,7 +29,7 @@ const agency = standIn("AGENCY", (one) => {
   if (path === "/log-lines") return answer({ items: [{ id: 1, runId: 9, jobId: null, agentName: "u5", kind: "text", text: "a private word", at: 1 }], more: false });
 
   return answer({ items: [], more: false });
-});
+}, { headers: true });
 
 const globals: Record<string, unknown> = globalThis;
 let session: Record<string, unknown> = {};
@@ -90,6 +92,25 @@ describe("an agent's reads, for a member", () => {
     const log = READS[0]!.handler;
 
     expect((await asked(log, { params: { name: `u${MEMBER}` }, query: { run: "run-of-u5" } })).answer).toEqual({ lines: [], hasMore: false, unavailable: true });
+  });
+});
+
+describe("an agent's page, asked of the agency", () => {
+  test("asks whose agent it is and the supervisor's own reads as the member signed in", async () => {
+    asMember();
+
+    for (const read of READS) {
+      agency.asked.length = 0;
+
+      await asked(read.handler, { params: read.params(`u${MEMBER}`) });
+
+      const managed = agency.asked.filter((one) => /^\/(supervisors|roles)(\/|\?|$)/.test(one.path));
+
+      expect(managed.length).toBeGreaterThan(0);
+      expect(managed.map((one) => ({ path: one.path, key: one.headers?.["owner-key"], role: one.headers?.["owner-role"] }))).toEqual(
+        managed.map((one) => ({ path: one.path, key: String(MEMBER), role: "member" }))
+      );
+    }
   });
 });
 

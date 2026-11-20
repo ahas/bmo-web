@@ -6,7 +6,7 @@ import type { ModelPage, ModelView } from "#shared/agency";
 export default defineEventHandler(async (event): Promise<ModelPage> => {
   await requireUserSession(event);
 
-  const page = await agencyCall(agency().GET("/models"));
+  const page = await agencyCall(agency(event).GET("/models"));
 
   return {
     items: page.items.map((one): ModelView => {

@@ -7,5 +7,5 @@ import type { RolesView } from "#shared/axes";
 export default defineEventHandler(async (event): Promise<RolesView> => {
   const signed = await signedInUser(event);
 
-  return await readRoles((role) => listedRole(role, signed.id));
+  return await readRoles((role) => listedRole(role, signed.id), event);
 });

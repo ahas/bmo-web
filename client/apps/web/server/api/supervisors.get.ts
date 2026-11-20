@@ -8,5 +8,5 @@ import type { SupervisorView } from "#shared/axes";
 export default defineEventHandler(async (event): Promise<SupervisorView[]> => {
   const signed = await signedInUser(event);
 
-  return listedSupervisors(await readSupervisors(), signed.id);
+  return listedSupervisors(await readSupervisors(event), signed.id);
 });

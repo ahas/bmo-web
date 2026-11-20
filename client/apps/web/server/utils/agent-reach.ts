@@ -18,9 +18,11 @@ type Schemas = components["schemas"];
 // A role agent as the agency answers it, with the account it is filed under, which its published schema leaves out.
 type HeldAgent = Schemas["RoleAgent"] & { ownerAccount?: string | null };
 
-/** Whether the account owns the agent of this name: a supervisor filed under it, or a role agent. */
-export async function ownsAgent(account: number, name: string): Promise<boolean> {
-  const [supervisors, roles] = await Promise.all([agencyCall(agency().GET("/supervisors")), agencyCall(agency().GET("/roles"))]);
+/** Whether the account owns the agent of this name: a supervisor filed under it, or a role agent; read for the person
+ * signed in on `madeFor`. */
+export async function ownsAgent(account: number, name: string, madeFor: H3Event): Promise<boolean> {
+  const asked = agency(madeFor);
+  const [supervisors, roles] = await Promise.all([agencyCall(asked.GET("/supervisors")), agencyCall(asked.GET("/roles"))]);
 
   if (supervisors.items.some((supervisor) => supervisor.name === name && supervisorOwner(supervisor) === account)) return true;
 
@@ -34,7 +36,7 @@ export async function requireOwnSupervisor(event: H3Event, name: string): Promis
 
   if (signed.administrator) return;
 
-  const owned = signed.id === null ? false : await agencyCall(agency().GET("/supervisors")).then(
+  const owned = signed.id === null ? false : await agencyCall(agency(event).GET("/supervisors")).then(
     (page) => page.items.some((supervisor) => supervisor.name === name && supervisorOwner(supervisor) === signed.id),
     () => false
   );
@@ -47,7 +49,7 @@ export async function requireReadableAgent(event: H3Event, name: string): Promis
   const signed = await signedInUser(event);
 
   if (signed.administrator) return;
-  if (signed.id === null || !(await ownsAgent(signed.id, name).catch(() => false))) {
+  if (signed.id === null || !(await ownsAgent(signed.id, name, event).catch(() => false))) {
     throw createError({ statusCode: 404, statusMessage: "Not Found" });
   }
 }

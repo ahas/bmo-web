@@ -10,5 +10,5 @@ export default defineEventHandler(async (event): Promise<SupervisorRoomView[]> =
 
   await requireReadableAgent(event, name);
 
-  return await readSupervisorRooms(name);
+  return await readSupervisorRooms(name, event);
 });

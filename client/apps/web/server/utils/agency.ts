@@ -27,15 +27,20 @@ const AGENCY_CODES: Readonly<Record<string, string>> = {
   "internal-server-error": "agents.error.agency_failed",
   "bad-gateway": "agents.error.agency_failed",
   "name-taken": "agents.error.agent_name_taken",
-  "too-large": "common.error.file_too_large"
+  "too-large": "common.error.file_too_large",
+  forbidden: "agents.error.agency_forbidden",
+  "access-unchecked": "agents.error.agency_access_unchecked"
 };
+
+// A refusal of what the person a call acts for may not do is answered as one, so the screen says it is refused rather
+// than that the agency failed.
+const AGENCY_PASSED: readonly number[] = [403];
 
 // Whom a call acts for (the agency's `docs/api.md`, 「Who a caller acts for」; docs/boundary.md, 「Calls the console
 // makes」). A call handed the request it is made for carries the person signed in on it, read once for the request,
-// so the agency keeps a member's view of their own supply to that member; a request with nobody signed in hands on
-// none. Every other call is the deployment's own and carries no owner: the agency's own check of agent management
-// reads a console section no person holds a grant of, so a member named there would be refused what the console's
-// own gate already lets them do (docs/web.md, 「Access」).
+// so the agency keeps a member to their own supply and to the parts of agent management their console sections
+// grant; a request with nobody signed in hands on none. A call handed no request is the deployment's own and carries
+// no owner: the console's own bookkeeping and set-up, which no person's sections bound.
 const OWNER = "agencyOwner";
 
 async function ownerOf(event: H3Event): Promise<Record<string, string>> {
@@ -108,7 +113,7 @@ export async function agencyCall<T, E extends { code?: string; error?: string; f
   const { fields = {}, ...unitCall } = call;
 
   try {
-    return await answered(asked, { ...unitCall, codes: { ...AGENCY_CODES, ...unitCall.codes } });
+    return await answered(asked, { ...unitCall, passStatus: [...AGENCY_PASSED, ...(unitCall.passStatus ?? [])], codes: { ...AGENCY_CODES, ...unitCall.codes } });
   } catch (error) {
     throw error instanceof Error ? fieldRefusal(error, fields) : error;
   }

@@ -7,5 +7,5 @@ import type { RepositoryView } from "#shared/axes";
 export default defineEventHandler(async (event): Promise<RepositoryView[]> => {
   const signed = await signedInUser(event);
 
-  return await readRepositories((rows) => listedRows(rows, signed.id));
+  return await readRepositories((rows) => listedRows(rows, signed.id), event);
 });

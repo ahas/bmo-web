@@ -12,5 +12,5 @@ export default defineEventHandler(async (event): Promise<RepositoryView> => {
 
   if (change === null) throw fail(400, wording("common.error.bad_action"));
 
-  return await changeRepository(name, change);
+  return await changeRepository(name, change, event);
 });

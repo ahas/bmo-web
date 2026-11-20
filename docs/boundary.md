@@ -553,16 +553,28 @@ states them. The three units the console calls directly publish a TypeScript cli
 `bmo-job-client` and `@bmo/receiver-client`, each a vendored tarball under `client/vendor/`
 and each generated from that unit's OpenAPI document. The console's server calls them through those packages and
 their `./schema` types, and reads a response into the screen's own shape where the screen needs more than the
-unit carries. A browser call to one of them reaches its fixed path through the relay (below). Every call the
-console makes on the agency for a person's own view of the Claude accounts carries, beside the console's token,
-the signed-in login's user in `Owner-Key` and role in `Owner-Role`: the fallback read and changed, and the fallback
-and the accounts the usage view reads, so the agency keeps a member to their own accounts (the agency's
-`docs/api.md`, 「Who a caller acts for」). A call made for nobody signed in carries neither. Every other call on the
-agency, agent management and the console's own reads and set-up alike, is the deployment's own and carries
-neither: the agency's check of a member on agent management reads its one `agents` section, which the console's
-account model splits into five parts and grants no person (`docs/accounts.md`, 「Console sections」), so the
-console's own gate holds those routes (`docs/web.md`, 「Access」). A call through the relay carries the signed-in
-person as the relay says (below).
+unit carries. A browser call to one of them reaches its fixed path through the relay (below).
+
+The console calls the agency for a person or as the deployment's own (the agency's `docs/api.md`, 「Who a caller
+acts for」). A call made for a person carries, beside the console's token, the signed-in login's user in
+`Owner-Key` and role in `Owner-Role`, and a call made for nobody signed in carries neither. These are made for a
+person:
+
+- **A person's own view of the Claude accounts:** the fallback read and changed, and the fallback and the accounts
+  the usage view reads, so the agency keeps a member to their own accounts.
+- **Agent management:** every agency call the routes of its five tabs make (에이전트, 역할, 저장소, 등록 모델 and
+  모델 파일, each read and each change), the agent list those tabs share with the runs its roles hold now, and what
+  an agent's own page reads of the supervisors and the roles, the check of whose agent it is among them. The
+  agency holds each to the person's console section of that part (`docs/accounts.md`, 「Console sections」): a
+  read of the supervisors, the roles or the repositories under any of the five parts' read, a read of the models
+  or the model files under that part's own, and every change under its own part's write. The console's own gate
+  stands before it (`docs/web.md`, 「Access」), so the agency's is a second line; where it refuses all the same, the
+  person is answered 403 in the pack's words, and a permission the agency could not read 503.
+
+Every other call is the deployment's own and carries neither: the console's own bookkeeping and the BMO set-up at
+sign-in, the agents' labels and faces, the people roster, the testbed's and the TODO panel's reads, the model
+names the layout reads from `/models`, the provider switches and the owner's word to a worker, which only the
+administrator sends. A call through the relay carries the signed-in person as the relay says (below).
 
 | Unit | What the console reaches it for | Routes |
 |---|---|---|

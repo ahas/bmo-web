@@ -10,5 +10,5 @@ export default defineEventHandler(async (event): Promise<SupervisorRoadStateView
 
   await requireReadableAgent(event, name);
 
-  return await readSupervisorRoadState(name);
+  return await readSupervisorRoadState(name, event);
 });

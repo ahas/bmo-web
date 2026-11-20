@@ -11,5 +11,5 @@ export default defineEventHandler(async (event): Promise<RoleView> => {
 
   if (change === null) throw fail(400, wording("common.error.bad_action"));
 
-  return await addRole(change);
+  return await addRole(change, event);
 });

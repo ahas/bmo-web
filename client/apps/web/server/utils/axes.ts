@@ -6,6 +6,7 @@ import { bundleWordOf, providerLabelOf, roadReasonOf } from "./agency-words";
 
 import type { Provider, Repository, Role, Supervisor } from "@agency/client";
 import type { components } from "@agency/client/schema";
+import type { H3Event } from "h3";
 import type { GenerationSetting } from "#shared/agency";
 import type { CheckoutView, NodeCheckoutAsk, ProviderModelsView, ProviderModelView, ProviderView, RepositoryView, RoadView, RoleAgentView, RoleBundleView, RoleSessionPage, RoleSessionView, RolesView, RoleView, SupervisorRoadStateView, SupervisorRoomView, SupervisorView, SupportCount, WorkNodeView } from "#shared/axes";
 
@@ -15,6 +16,9 @@ type Schemas = components["schemas"];
 // 「supervisors」, 「roles」, 「repositories, prefix-checks and room-holdings」 and 「providers, models and model files」),
 // in the shapes the agent management screen reads. A field the published types leave untyped is read as the agency's
 // document states it, defensively: a field that does not read as its shape stands as none.
+// A read or change made for agent management's tabs or an agent's page is handed the request it is made for, so the
+// agency asks it as the person signed in on it (docs/boundary.md, 「Calls the console makes」); a read handed none is
+// the deployment's own, for the console's own bookkeeping.
 
 const text = (value: unknown): string | null => (typeof value === "string" && value !== "" ? value : null);
 const number = (value: unknown): number | null => (typeof value === "number" && Number.isFinite(value) ? value : null);
@@ -147,14 +151,14 @@ export function supervisorViewOf(supervisor: Supervisor, answerer: string | null
   };
 }
 
-export async function readSupervisors(): Promise<SupervisorView[]> {
-  const [page, answerer, owner] = await Promise.all([agencyCall(agency().GET("/supervisors")), defaultAnswerer(), ownersAccount()]);
+export async function readSupervisors(madeFor?: H3Event): Promise<SupervisorView[]> {
+  const [page, answerer, owner] = await Promise.all([agencyCall(agency(madeFor).GET("/supervisors")), defaultAnswerer(), ownersAccount()]);
 
   return page.items.map((supervisor) => supervisorViewOf(supervisor, answerer, owner));
 }
 
-export async function readSupervisor(name: string): Promise<SupervisorView> {
-  const [supervisor, answerer, owner] = await Promise.all([agencyCall(agency().GET("/supervisors/{supervisorName}", { params: { path: { supervisorName: name } } })), defaultAnswerer(), ownersAccount()]);
+export async function readSupervisor(name: string, madeFor: H3Event): Promise<SupervisorView> {
+  const [supervisor, answerer, owner] = await Promise.all([agencyCall(agency(madeFor).GET("/supervisors/{supervisorName}", { params: { path: { supervisorName: name } } })), defaultAnswerer(), ownersAccount()]);
 
   return supervisorViewOf(supervisor, answerer, owner);
 }
@@ -209,14 +213,14 @@ export function supervisorChangeOf(body: unknown): Schemas["SupervisorChange"] |
   return Object.keys(change).length === 0 ? null : change;
 }
 
-export async function changeSupervisor(name: string, change: Schemas["SupervisorChange"]): Promise<SupervisorView> {
+export async function changeSupervisor(name: string, change: Schemas["SupervisorChange"], madeFor: H3Event): Promise<SupervisorView> {
   // The two reads the answer needs go beside the change, and a refused change waits for them before it is said, so
   // no read is still running on the receiver once the call has answered.
   const reads = Promise.all([defaultAnswerer(), ownersAccount()]);
   let supervisor: Supervisor;
 
   try {
-    supervisor = await agencyCall(agency().PATCH("/supervisors/{supervisorName}", { params: { path: { supervisorName: name } }, body: change }));
+    supervisor = await agencyCall(agency(madeFor).PATCH("/supervisors/{supervisorName}", { params: { path: { supervisorName: name } }, body: change }));
   } catch (error) {
     await reads.catch(() => undefined);
 
@@ -291,8 +295,8 @@ export function roleViewOf(role: Role): RoleView {
 }
 
 /** Every role, each as `listed` keeps it of what the agency answers: whole where none is named. */
-export async function readRoles(listed: (role: Role) => Role = (role) => role): Promise<RolesView> {
-  const answer = await agencyCall(agency().GET("/roles"));
+export async function readRoles(listed: (role: Role) => Role = (role) => role, madeFor?: H3Event): Promise<RolesView> {
+  const answer = await agencyCall(agency(madeFor).GET("/roles"));
 
   return { roles: answer.roles.map((role) => roleViewOf(listed(role))), bundles: answer.bundles.map(bundleOf), skills: answer.skills ?? [], lines: answer.lines };
 }
@@ -366,7 +370,7 @@ export function roleChangeOf(body: unknown, adding: boolean): (Schemas["RoleChan
 }
 
 /** A new role; on a new role the agency is sent no prompt or description it was not given. */
-export async function addRole(change: Schemas["RoleChange"] & { name?: string }): Promise<RoleView> {
+export async function addRole(change: Schemas["RoleChange"] & { name?: string }, madeFor: H3Event): Promise<RoleView> {
   const { name, label, bundles, line } = change;
 
   if (name === undefined || label == null || bundles == null || line == null) throw fail(400, wording("common.error.bad_action"));
@@ -381,20 +385,20 @@ export async function addRole(change: Schemas["RoleChange"] & { name?: string })
 
   if (prompts.length > 0) body.providerPrompts = Object.fromEntries(prompts);
 
-  return roleViewOf(await agencyCall(agency().POST("/roles", { body })));
+  return roleViewOf(await agencyCall(agency(madeFor).POST("/roles", { body })));
 }
 
-export async function changeRole(name: string, change: Schemas["RoleChange"] & { name?: string }): Promise<RoleView> {
+export async function changeRole(name: string, change: Schemas["RoleChange"] & { name?: string }, madeFor: H3Event): Promise<RoleView> {
   const { name: _name, ...body } = change;
 
-  return roleViewOf(await agencyCall(agency().PATCH("/roles/{roleName}", { params: { path: { roleName: name } }, body })));
+  return roleViewOf(await agencyCall(agency(madeFor).PATCH("/roles/{roleName}", { params: { path: { roleName: name } }, body })));
 }
 
 // A role still going or waiting, or one the policy names as a default, is not removed.
 const ROLE_REMOVAL_CODES: Readonly<Record<string, string>> = { conflict: "agents.error.role_delete_refused" };
 
-export async function removeRole(name: string): Promise<void> {
-  await agencyCall(agency().DELETE("/roles/{roleName}", { params: { path: { roleName: name } } }), { codes: ROLE_REMOVAL_CODES });
+export async function removeRole(name: string, madeFor: H3Event): Promise<void> {
+  await agencyCall(agency(madeFor).DELETE("/roles/{roleName}", { params: { path: { roleName: name } } }), { codes: ROLE_REMOVAL_CODES });
 }
 
 // The fields of an agent a screen may send, each with the shape it takes; null clears a field that may be cleared.
@@ -509,9 +513,9 @@ function roleSessionOf(session: Schemas["RoleSession"]): RoleSessionView {
 }
 
 /** One page of a role's session history, newest first, the page before the session `before` names. */
-export async function readRoleSessions(name: string, before: number | null, limit: number): Promise<RoleSessionPage> {
+export async function readRoleSessions(name: string, before: number | null, limit: number, madeFor: H3Event): Promise<RoleSessionPage> {
   const query = before === null ? { limit } : { before, limit };
-  const page = await agencyCall(agency().GET("/roles/{roleName}/sessions", { params: { path: { roleName: name }, query } }));
+  const page = await agencyCall(agency(madeFor).GET("/roles/{roleName}/sessions", { params: { path: { roleName: name }, query } }));
 
   return { items: page.items.map(roleSessionOf), more: page.more };
 }
@@ -627,8 +631,8 @@ export function repositoryViewOf(repository: Repository): RepositoryView {
 }
 
 /** Every repository `listed` keeps of what the agency answers: all of them where none is named. */
-export async function readRepositories(listed: (rows: Repository[]) => Repository[] = (rows) => rows): Promise<RepositoryView[]> {
-  const page = await agencyCall(agency().GET("/repositories"));
+export async function readRepositories(listed: (rows: Repository[]) => Repository[], madeFor: H3Event): Promise<RepositoryView[]> {
+  const page = await agencyCall(agency(madeFor).GET("/repositories"));
 
   return listed(page.items).map(repositoryViewOf);
 }
@@ -711,35 +715,35 @@ export function repositoryChangeOf(body: unknown, adding: boolean): Schemas["Rep
 // An umbrella left with a support checkout or a node checkout is refused under its switch in words of its own.
 const REPOSITORY_FIELDS: Readonly<Record<string, string>> = { umbrella: "agents.error.umbrella_refused" };
 
-export async function addRepository(change: Schemas["RepositoryAsk"]): Promise<RepositoryView> {
-  return repositoryViewOf(await agencyCall(agency().POST("/repositories", { body: change }), { fields: REPOSITORY_FIELDS }));
+export async function addRepository(change: Schemas["RepositoryAsk"], madeFor: H3Event): Promise<RepositoryView> {
+  return repositoryViewOf(await agencyCall(agency(madeFor).POST("/repositories", { body: change }), { fields: REPOSITORY_FIELDS }));
 }
 
-export async function changeRepository(name: string, change: Schemas["RepositoryAsk"]): Promise<RepositoryView> {
+export async function changeRepository(name: string, change: Schemas["RepositoryAsk"], madeFor: H3Event): Promise<RepositoryView> {
   return repositoryViewOf(
-    await agencyCall(agency().PATCH("/repositories/{repositoryName}", { params: { path: { repositoryName: name } }, body: change }), { fields: REPOSITORY_FIELDS })
+    await agencyCall(agency(madeFor).PATCH("/repositories/{repositoryName}", { params: { path: { repositoryName: name } }, body: change }), { fields: REPOSITORY_FIELDS })
   );
 }
 
 // A repository a job holds a checkout of is not removed.
 const REPOSITORY_REMOVAL_CODES: Readonly<Record<string, string>> = { conflict: "agents.error.repository_delete_refused" };
 
-export async function removeRepository(name: string): Promise<void> {
-  await agencyCall(agency().DELETE("/repositories/{repositoryName}", { params: { path: { repositoryName: name } } }), { codes: REPOSITORY_REMOVAL_CODES });
+export async function removeRepository(name: string, madeFor: H3Event): Promise<void> {
+  await agencyCall(agency(madeFor).DELETE("/repositories/{repositoryName}", { params: { path: { repositoryName: name } } }), { codes: REPOSITORY_REMOVAL_CODES });
 }
 
 /** The rooms a supervisor's turns went into, the latest first, each with its latest run there (the agency's `docs/api.md`,
  * 「supervisors」). */
-export async function readSupervisorRooms(name: string): Promise<SupervisorRoomView[]> {
-  const page = await agencyCall(agency().GET("/supervisors/{supervisorName}/rooms", { params: { path: { supervisorName: name } } }));
+export async function readSupervisorRooms(name: string, madeFor: H3Event): Promise<SupervisorRoomView[]> {
+  const page = await agencyCall(agency(madeFor).GET("/supervisors/{supervisorName}/rooms", { params: { path: { supervisorName: name } } }));
 
   return page.items.map((room) => ({ chatId: room.roomId, runs: room.runs, lastRun: room.lastRunUnit, lastStartedAt: room.lastStartedAt, lastFinishedAt: room.lastFinishedAt }));
 }
 
 /** Whether a supervisor's road can take a turn now, as a turn's start judges it, with the agency's sentence for why where
  * it cannot (the agency's `docs/api.md`, 「supervisors」). */
-export async function readSupervisorRoadState(name: string): Promise<SupervisorRoadStateView> {
-  const road = await agencyCall(agency().GET("/supervisors/{supervisorName}/road", { params: { path: { supervisorName: name } } }));
+export async function readSupervisorRoadState(name: string, madeFor: H3Event): Promise<SupervisorRoadStateView> {
+  const road = await agencyCall(agency(madeFor).GET("/supervisors/{supervisorName}/road", { params: { path: { supervisorName: name } } }));
 
   return { answers: road.answers, reason: text(road.reason) };
 }

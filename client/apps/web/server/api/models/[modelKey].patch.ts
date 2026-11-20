@@ -35,5 +35,5 @@ export default defineEventHandler(async (event): Promise<ModelView> => {
     roleFiles: typeof body?.roleFiles === "boolean" ? body.roleFiles : null
   };
 
-  return await agencyCall(agency().PATCH("/models/{modelKey}", { params: { path: { modelKey: key } }, body: change }));
+  return await agencyCall(agency(event).PATCH("/models/{modelKey}", { params: { path: { modelKey: key } }, body: change }));
 });

@@ -35,5 +35,5 @@ export default defineEventHandler(async (event): Promise<ModelView> => {
     roleFiles: typeof body?.roleFiles === "boolean" ? body.roleFiles : null
   };
 
-  return await agencyCall(agency().POST("/models", { body: change }));
+  return await agencyCall(agency(event).POST("/models", { body: change }));
 });

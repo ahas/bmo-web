@@ -1,4 +1,5 @@
 import type { SupervisorSettingsView } from "#shared/axes";
+import type { H3Event } from "h3";
 
 const text = (value: unknown): string | null => (typeof value === "string" ? value : null);
 const list = <T>(value: unknown): T[] => (Array.isArray(value) ? (value as T[]) : []);
@@ -26,7 +27,7 @@ export function supervisorSettingsOf(answer: unknown): SupervisorSettingsView {
   };
 }
 
-/** One supervisor's own settings as the agency holds them now. */
-export async function readSupervisorSettings(name: string): Promise<SupervisorSettingsView> {
-  return supervisorSettingsOf(await agencyCall(agency().GET("/supervisors/{supervisorName}/settings", { params: { path: { supervisorName: name } } })));
+/** One supervisor's own settings as the agency holds them now, read for the person signed in on `madeFor`. */
+export async function readSupervisorSettings(name: string, madeFor: H3Event): Promise<SupervisorSettingsView> {
+  return supervisorSettingsOf(await agencyCall(agency(madeFor).GET("/supervisors/{supervisorName}/settings", { params: { path: { supervisorName: name } } })));
 }

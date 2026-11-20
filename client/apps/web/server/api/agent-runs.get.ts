@@ -1,6 +1,7 @@
 import { providerLabelOf, slotSourceOf } from "../utils/agency-words";
 import { repositorySummary, runPlace, slotRunsOf } from "../utils/agent-list";
 
+import type { AgencyClient } from "@agency/client";
 import type { AgentRun, AgentRunsView, RoleReservation } from "#shared/agent-runs";
 import type { AgentSummary, StopTarget } from "#shared/types";
 
@@ -30,9 +31,9 @@ function itemOf(job: JobGoing | null, path: string | null, repositories: readonl
 }
 
 // The jobs going now, by id; a read that fails names none, and a run then opens by the run its binding names.
-async function jobsGoing(): Promise<Map<number, JobGoing>> {
+async function jobsGoing(asked: AgencyClient): Promise<Map<number, JobGoing>> {
   try {
-    const page = await agencyCall(agency().GET("/jobs", { params: { query: { running: true, limit: 500 } } }));
+    const page = await agencyCall(asked.GET("/jobs", { params: { query: { running: true, limit: 500 } } }));
 
     return new Map(page.items.map((job) => [job.id, { run: job.runName ?? String(job.runId ?? job.id), itemId: job.itemId }]));
   } catch {
@@ -43,10 +44,12 @@ async function jobsGoing(): Promise<Map<number, JobGoing>> {
 export default defineEventHandler(async (event): Promise<AgentRunsView> => {
   await requireUserSession(event);
 
+  // The agency is asked as the reader, as every read of agent management's tabs is.
+  const asked = agency(event);
   const [slots, repositories, jobs] = await Promise.all([
-    agencyCall(agency().GET("/slots")),
-    agencyCall(agency().GET("/repositories")).then((page) => page.items.map(repositorySummary)).catch(() => []),
-    jobsGoing()
+    agencyCall(asked.GET("/slots")),
+    agencyCall(asked.GET("/repositories")).then((page) => page.items.map(repositorySummary)).catch(() => []),
+    jobsGoing(asked)
   ]);
 
   const runs = slotRunsOf(slots).map((run): AgentRun => {

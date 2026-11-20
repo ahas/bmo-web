@@ -9,7 +9,7 @@ export default defineEventHandler(async (event): Promise<null> => {
 
   if (key === "") throw fail(400, wording("agents.error.registry_value"));
 
-  await agencyCall(agency().DELETE("/models/{modelKey}", { params: { path: { modelKey: key } } }));
+  await agencyCall(agency(event).DELETE("/models/{modelKey}", { params: { path: { modelKey: key } } }));
 
   return null;
 });

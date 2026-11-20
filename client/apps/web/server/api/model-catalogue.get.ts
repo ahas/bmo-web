@@ -5,7 +5,7 @@ import type { CatalogueView, ModelUseState } from "#shared/agency";
 export default defineEventHandler(async (event): Promise<CatalogueView> => {
   await requireUserSession(event);
 
-  const view = await agencyCall(agency().GET("/model-catalogue"));
+  const view = await agencyCall(agency(event).GET("/model-catalogue"));
 
   return {
     entries: view.entries,

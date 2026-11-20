@@ -3,7 +3,7 @@
 export default defineEventHandler(async (event): Promise<null> => {
   await signedInUser(event);
 
-  await removeRole(axisName(getRouterParam(event, "name")));
+  await removeRole(axisName(getRouterParam(event, "name")), event);
 
   return null;
 });

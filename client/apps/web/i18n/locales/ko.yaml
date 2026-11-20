@@ -2502,9 +2502,11 @@ agents:
     account_fields_needed: 계정 이름과 자격 증명 파일 경로를 입력해 주세요.
     account_order_list: 계정 순서를 목록으로 보내 주세요.
     account_switch_needed: 계정과 켬·끔 값이 필요합니다.
+    agency_access_unchecked: 권한을 확인하지 못해 에이전시가 요청을 처리하지 않았습니다. 잠시 후 다시 시도해 주세요.
     agency_bad_request: 에이전시가 요청을 받아들이지 않았습니다.
     agency_conflict: 지금 상태와 맞지 않아 에이전시가 받아들이지 않았습니다.
     agency_failed: 에이전시가 요청을 처리하지 못했습니다.
+    agency_forbidden: 에이전시에서 이 일을 할 권한이 없습니다.
     agency_not_found: 에이전시에 해당 항목이 없습니다.
     agency_unavailable: 에이전시가 지금 이 요청을 처리할 수 없습니다.
     agency_unprocessable: 에이전시가 받아들일 수 없는 값입니다.

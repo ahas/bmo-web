@@ -18,5 +18,5 @@ export default defineEventHandler(async (event): Promise<SupervisorView> => {
 
   if (change === null) throw fail(400, wording("common.error.bad_action"));
 
-  return await changeSupervisor(name, change);
+  return await changeSupervisor(name, change, event);
 });

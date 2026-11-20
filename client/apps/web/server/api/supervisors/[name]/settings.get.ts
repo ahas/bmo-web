@@ -11,5 +11,5 @@ export default defineEventHandler(async (event): Promise<SupervisorSettingsView>
 
   await requireReadableAgent(event, name);
 
-  return await readSupervisorSettings(name);
+  return await readSupervisorSettings(name, event);
 });

@@ -10,5 +10,5 @@ export default defineEventHandler(async (event): Promise<RoleSessionPage> => {
   const name = axisName(getRouterParam(event, "name"));
   const before = Number(getQuery(event).before);
 
-  return await readRoleSessions(name, Number.isSafeInteger(before) && before > 0 ? before : null, PAGE);
+  return await readRoleSessions(name, Number.isSafeInteger(before) && before > 0 ? before : null, PAGE, event);
 });

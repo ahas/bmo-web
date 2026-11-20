@@ -22,14 +22,17 @@ export default defineEventHandler(async (event): Promise<AgentList> => {
   const answerer = defaultAnswerer();
   const order = gateOrderView();
 
+  // The agency is asked as the reader, so it holds the list to the parts of agent management they may read.
+  const asked = agency(event);
+
   try {
     const [every, roles, repositories, slots, newest, rooms] = await Promise.all([
-      agencyCall(agency().GET("/supervisors")),
-      agencyCall(agency().GET("/roles")),
-      agencyCall(agency().GET("/repositories")),
+      agencyCall(asked.GET("/supervisors")),
+      agencyCall(asked.GET("/roles")),
+      agencyCall(asked.GET("/repositories")),
       // What the slots hold only adds to the lists; an answer that does not come leaves its part empty.
-      agencyCall(agency().GET("/slots")).catch(() => null),
-      agencyCall(agency().GET("/jobs", { params: { query: { limit: 1 } } })).then((page) => page.items[0] ?? null).catch(() => null),
+      agencyCall(asked.GET("/slots")).catch(() => null),
+      agencyCall(asked.GET("/jobs", { params: { query: { limit: 1 } } })).then((page) => page.items[0] ?? null).catch(() => null),
       // Rooms that cannot be read leave every supervisor with none under it.
       listedRooms(event).catch((): ReadonlySet<number> => new Set())
     ]);
@@ -49,7 +52,7 @@ export default defineEventHandler(async (event): Promise<AgentList> => {
       Promise.all(
         supervisors.items.map(async (supervisor) => [
           supervisor.name,
-          await agencyCall(agency().GET("/supervisors/{supervisorName}/rooms", { params: { path: { supervisorName: supervisor.name } } }))
+          await agencyCall(asked.GET("/supervisors/{supervisorName}/rooms", { params: { path: { supervisorName: supervisor.name } } }))
             .then((page) => page.items)
             .catch(() => [])
         ] as const)

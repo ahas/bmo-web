@@ -18,7 +18,7 @@ export default defineEventHandler(async (event): Promise<SupervisorSettingsView>
   if (typeof body !== "object" || body === null) throw fail(400, wording("common.error.bad_action"));
 
   const saved = await agencyCall(
-    agency().PATCH("/supervisors/{supervisorName}/settings", {
+    agency(event).PATCH("/supervisors/{supervisorName}/settings", {
       params: { path: { supervisorName: name } },
       body: {
         by: session.name,

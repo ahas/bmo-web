@@ -77,7 +77,7 @@ describe("the usage view", () => {
     expect((await asked(handler, {})).answer).toMatchObject({
       active: { provider: "provider-x", label: "Provider X", account: null, accountName: null, logins: 0, session: null, week: null, balance: null },
       roads: [],
-      accounts: [{ id: "a", name: "Account A", provider: "claude-code", label: "claude-code", inUse: false, session: null, week: null, balance: null }],
+      accounts: [{ id: "a", name: "Account A", provider: "claude-code", label: "claude-code", session: null, week: null, balance: null }],
       contexts: []
     });
   });

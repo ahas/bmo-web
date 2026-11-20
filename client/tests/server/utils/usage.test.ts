@@ -106,13 +106,13 @@ describe("each account's windows", () => {
     expect(accountWindows({})).toEqual([null, null]);
   });
 
-  test("stand in the agency's order under their names, the one the chat runs on marked and holding the slot's windows", () => {
+  test("stand in the agency's order under their names, the one the chat runs on holding the slot's windows", () => {
     const active = activeUsage(fallback(onClaude));
     const accounts = accountUsages(fallback(onClaude), [account("a"), account("b")], active);
 
-    expect(accounts.map((one) => [one.id, one.name, one.label, one.inUse, one.session?.utilization ?? null, one.week?.utilization ?? null])).toEqual([
-      ["a", "Account A", "Claude Code", true, 0.3, 0.6],
-      ["b", "Account B", "Claude Code", false, null, null]
+    expect(accounts.map((one) => [one.id, one.name, one.label, one.session?.utilization ?? null, one.week?.utilization ?? null])).toEqual([
+      ["a", "Account A", "Claude Code", 0.3, 0.6],
+      ["b", "Account B", "Claude Code", null, null]
     ]);
   });
 
@@ -124,13 +124,13 @@ describe("each account's windows", () => {
     expect(accounts.map((one) => one.week?.utilization ?? null)).toEqual([0.6, null]);
   });
 
-  test("none is marked while the chat runs on a provider with no login, and none borrows a figure", () => {
+  test("none borrows a figure while the chat runs on a provider with no login", () => {
     const active = activeUsage(fallback(onOther));
     const accounts = accountUsages(fallback(onOther), [account("a"), account("b")], active);
 
-    expect(accounts.map((one) => [one.inUse, one.session, one.week])).toEqual([
-      [false, null, null],
-      [false, null, null]
+    expect(accounts.map((one) => [one.session, one.week])).toEqual([
+      [null, null],
+      [null, null]
     ]);
   });
 
@@ -144,7 +144,7 @@ describe("each account's windows", () => {
   });
 
   test("an account the fallback does not name stands under its id", () => {
-    expect(accountUsages({ routes: [] }, [account("c")], null)[0]).toMatchObject({ id: "c", name: "c", label: "claude-code", inUse: false });
+    expect(accountUsages({ routes: [] }, [account("c")], null)[0]).toMatchObject({ id: "c", name: "c", label: "claude-code" });
   });
 });
 

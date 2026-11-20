@@ -195,7 +195,7 @@ export function accountUsages(
   const off = accountsOff(fallback);
 
   return accounts.filter((account) => !off.has(account.id) && !providersOff.has(account.provider)).map((account) => {
-    const inUse = active !== null && active.provider === account.provider && active.account === account.id;
+    const isSlotAccount = active !== null && active.provider === account.provider && active.account === account.id;
     // An account's own windows as the agency answers them, or read off the usage it last reported where it names
     // none of its own.
     const [reported, reportedWeek] = accountWindows(account.window);
@@ -207,9 +207,8 @@ export function accountUsages(
       name: names.get(account.id) ?? account.id,
       provider: account.provider,
       label: labels.get(account.provider) ?? account.provider,
-      inUse,
-      session: session ?? (inUse ? active.session : null),
-      week: week ?? (inUse ? active.week : null),
+      session: session ?? (isSlotAccount ? active.session : null),
+      week: week ?? (isSlotAccount ? active.week : null),
       balance: balanceOf((account as { balance?: unknown }).balance)
     };
   });

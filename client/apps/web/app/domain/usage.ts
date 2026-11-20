@@ -117,14 +117,13 @@ export function knownMode(provider: string): AgentMode | null {
 }
 
 // One group of the panel: whose figures they are — the provider, and the account's name where the slot is one
-// account of several — whether the chat runs on it now, and its own windows, session first. A group with no
-// window stated holds none, and says so rather than standing a figure.
+// account of several — and its own windows, session first. A group with no window stated holds none, and says so
+// rather than standing a figure.
 export interface UsageGroup {
   id: string;
   provider: string;
   label: string;
   name: string | null;
-  inUse: boolean;
   windows: HeadlineWindow[];
   balance: UsageBalance | null;
 }
@@ -134,14 +133,14 @@ function windowsOf(slot: { session: HeadlineWindow | null; week: HeadlineWindow 
 }
 
 // Every registered account as a group of its own, in the agency's order, each with its own windows. Where the chat
-// runs on a provider that holds no login, that slot is a group of its own ahead of them, marked as the one in use;
-// and each provider's own road that keeps a balance stands after them, under the provider's label.
+// runs on a provider that holds no login, that slot is a group of its own ahead of them; and each provider's own
+// road that keeps a balance stands after them, under the provider's label.
 export function usageGroups(view: UsageView): UsageGroup[] {
   const active = view.active;
   const slot: UsageGroup[] =
     active === null || active.account !== null
       ? []
-      : [{ id: `slot:${active.provider}`, provider: active.provider, label: active.label, name: null, inUse: true, windows: windowsOf(active), balance: active.balance }];
+      : [{ id: `slot:${active.provider}`, provider: active.provider, label: active.label, name: null, windows: windowsOf(active), balance: active.balance }];
 
   return [
     ...slot,
@@ -150,11 +149,10 @@ export function usageGroups(view: UsageView): UsageGroup[] {
       provider: account.provider,
       label: account.label,
       name: account.name,
-      inUse: account.inUse,
       windows: windowsOf(account),
       balance: account.balance
     })),
-    ...view.roads.map((road) => ({ id: `road:${road.provider}`, provider: road.provider, label: road.label, name: null, inUse: false, windows: [], balance: road.balance }))
+    ...view.roads.map((road) => ({ id: `road:${road.provider}`, provider: road.provider, label: road.label, name: null, windows: [], balance: road.balance }))
   ];
 }
 

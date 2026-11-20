@@ -1722,13 +1722,12 @@ export interface UsageBalance {
 }
 
 // One registered account and what it has left: its own session and weekly windows and no other account's, null
-// where the agency states none, and whether the chat runs on it now.
+// where the agency states none.
 export interface AccountUsage {
   id: string;
   name: string;
   provider: string;
   label: string;
-  inUse: boolean;
   session: HeadlineWindow | null;
   week: HeadlineWindow | null;
   balance: UsageBalance | null;

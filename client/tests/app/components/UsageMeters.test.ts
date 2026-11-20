@@ -113,12 +113,12 @@ describe("what the wide bar carries", () => {
 });
 
 describe("what the popover holds", () => {
-  test("each account's remaining windows by name, and the one in use marked", () => {
+  test("each account's remaining windows by name, and no account marked as the one in use", () => {
     expect(template).toContain("usage.title.remaining");
     expect(template).toContain("windowLabel($t, window)");
     expect(template).toContain('v-for="group in groups"');
     expect(template).toContain("slotName(group)");
-    expect(template).toContain(`:label="$t('usage.label.in_use')"`);
+    expect(template).not.toContain("usage.label.in_use");
     // An account the agency states no window for says so, and with none at all the panel says there is none.
     expect(template).toContain('$t("usage.status.no_info")');
     expect(template).toContain('$t("usage.status.no_accounts")');

@@ -86,14 +86,11 @@
           </div>
 
           <!-- Every registered account as a group of its own, in the agency's order, whichever of them is
-               serving: each login keeps its own limit, so each keeps its own figures, and the one the chat runs
-               on now is marked. A slot on a provider with no login stands ahead of them, marked the same way. -->
+               serving: each login keeps its own limit, so each keeps its own figures. A slot on a provider with
+               no login stands ahead of them. -->
           <div v-for="group in groups" :key="group.id" class="flex flex-col gap-1">
-            <!-- The group's name on a line of its own, and the mark of the one in use on a row under it. -->
+            <!-- The group's name on a line of its own. -->
             <p class="min-w-0 truncate text-sm font-medium text-muted">{{ slotName(group) }}<template v-if="group.name !== null"> · {{ group.name }}</template></p>
-            <div v-if="group.inUse" class="flex">
-              <UBadge size="sm" color="primary" variant="subtle" :label="$t('usage.label.in_use')" />
-            </div>
 
             <div v-for="window in group.windows" :key="window.name" class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
               <span class="min-w-0 flex-1 basis-24 break-words text-dimmed">{{ windowLabel($t, window) }}</span>

@@ -1179,9 +1179,9 @@ edit to that file alone, once the guide below carries the word.
   under the name the owner gave it — an account or a provider the owner switched off answers nothing, so its
   figures are not shown, whichever of them the road last ran on —
   holding that account's own session and weekly windows as the share remaining, each with how long is left
-  until it resets; the account the chat agent's own turns run on now is marked 「사용 중」, which says nothing
-  of a role, since each of a role's agents stands on a road of its own. Where the chat runs on a provider
-  that holds no login, that slot stands first as a group of its own, marked the same way, with whatever
+  until it resets. No group is marked as the one in use, since the chat agent and each of a role's agents run on
+  roads of their own and one mark cannot say whose run it means. Where the chat runs on a provider
+  that holds no login, that slot stands first as a group of its own, with whatever
   windows it reports. A slot or an account the agency reads a balance for — a provider paid by the request, an
   endpoint account — carries it as a row of its own: 「잔액」, the amount in its currency, and how long ago it was
   read. A balance that carries a request allowance (the agency's `docs/usage-windows.md`, 「Balances」) stands
@@ -9455,7 +9455,6 @@ journalctl --user -u <unit> -f
     right now — expired, refused, rate-limited or unreachable — keeps its last reading.
   - A window a Claude answer carries is written under the login that produced it, and a reading whose
     login cannot be named is not written (the agency's `docs/cache-fallback.md`).
-  - The group of the account automatic runs go out on now is marked as the one in use.
   - A window more than a day from its reset names the weekday it turns over on beside the time left,
     since two logins keep their weeks on different days; the date and hour stand behind it.
   - A window whose reset time has passed is shown as reset, not as the percentage it held before the

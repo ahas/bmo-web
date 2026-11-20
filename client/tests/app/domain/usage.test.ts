@@ -329,7 +329,7 @@ describe("the panel's groups", () => {
   const week: HeadlineWindow = { ...session, name: "seven_day", utilization: 0.4 };
 
   function account(id: string, over: Partial<AccountUsage> = {}): AccountUsage {
-    return { id, name: `Account ${id}`, provider: "claude-code", label: "Claude Code", inUse: false, session: null, week: null, balance: null, ...over };
+    return { id, name: `Account ${id}`, provider: "claude-code", label: "Claude Code", session: null, week: null, balance: null, ...over };
   }
 
   function active(over: Partial<ActiveUsage> = {}): ActiveUsage {
@@ -341,11 +341,11 @@ describe("the panel's groups", () => {
   }
 
   test("each account holds its own windows alone, session first, in the agency's order", () => {
-    const groups = usageGroups(view({ active: active(), accounts: [account("a", { inUse: true, session, week }), account("b", { week })] }));
+    const groups = usageGroups(view({ active: active(), accounts: [account("a", { session, week }), account("b", { week })] }));
 
-    expect(groups.map((group) => [group.id, group.name, group.inUse, group.windows.map((window) => window.name)])).toEqual([
-      ["a", "Account a", true, ["five_hour", "seven_day"]],
-      ["b", "Account b", false, ["seven_day"]],
+    expect(groups.map((group) => [group.id, group.name, group.windows.map((window) => window.name)])).toEqual([
+      ["a", "Account a", ["five_hour", "seven_day"]],
+      ["b", "Account b", ["seven_day"]],
     ]);
   });
 
@@ -353,14 +353,14 @@ describe("the panel's groups", () => {
     expect(usageGroups(view({ accounts: [account("a")] }))[0]?.windows).toEqual([]);
   });
 
-  test("a slot on a provider with no login stands ahead of the accounts, marked, and no account is", () => {
+  test("a slot on a provider with no login stands ahead of the accounts", () => {
     const slot = active({ provider: "provider-x", label: "Provider X", account: null, accountName: null, logins: 0, session: null, week: null });
     const groups = usageGroups(view({ active: slot, accounts: [account("a"), account("b")] }));
 
-    expect(groups.map((group) => [group.label, group.name, group.inUse])).toEqual([
-      ["Provider X", null, true],
-      ["Claude Code", "Account a", false],
-      ["Claude Code", "Account b", false],
+    expect(groups.map((group) => [group.label, group.name])).toEqual([
+      ["Provider X", null],
+      ["Claude Code", "Account a"],
+      ["Claude Code", "Account b"],
     ]);
     expect(groups[0]?.windows).toEqual([]);
   });
@@ -461,11 +461,11 @@ describe("a balance", () => {
 
   test("of a provider's own road stands as a group of its own after the accounts, under the provider's label", () => {
     const balance = { amount: 9.55, currency: "USD", seenAt: 0, requests: { used: 12, limit: 1000, left: 988, scope: "free-models" } };
-    const account = { id: "a", name: "Account A", provider: "claude-code", label: "Claude Code", inUse: false, session: null, week: null, balance: null };
+    const account = { id: "a", name: "Account A", provider: "claude-code", label: "Claude Code", session: null, week: null, balance: null };
     const groups = usageGroups({ active: null, roads: [{ provider: "provider-y", label: "Provider Y", balance }], accounts: [account], agents: [], contexts: [] });
 
     expect(groups.map((group) => group.id)).toEqual(["a", "road:provider-y"]);
-    expect(groups[1]).toMatchObject({ provider: "provider-y", label: "Provider Y", name: null, inUse: false, windows: [], balance });
+    expect(groups[1]).toMatchObject({ provider: "provider-y", label: "Provider Y", name: null, windows: [], balance });
   });
 
   test("says what its request allowance covers in the pack's words, and how many are left of the day's ceiling", () => {

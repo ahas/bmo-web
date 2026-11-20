@@ -3307,7 +3307,6 @@ usage:
   label:
     claude_accounts: Claude 계정
     figure: "{label} {text}"
-    in_use: 사용 중
     kind_cache_read: 캐시읽기
     kind_cache_write: 캐시쓰기
     kind_input: 읽기

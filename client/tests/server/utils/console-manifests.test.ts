@@ -32,6 +32,12 @@ test("the units asked are those whose address is set, each with its token", () =
   expect(named).toEqual([{ name: "UNIT_A", unit: { address: "http://a.invalid", token: "t" } }]);
 });
 
+test("a Nuxt runtime setting is the console's own, so its public address is never asked for a manifest", () => {
+  const named = namedUnits({ NUXT_PUBLIC_CONSOLE_ADDRESS: "https://console.invalid/bmo/", NUXT_UNIT_ADDRESS: "http://n.invalid" });
+
+  expect(named).toEqual([]);
+});
+
 test("a manifest that reads brings its bundle with its words", async () => {
   answers["/console-manifest"] = () => Response.json(manifestOf());
   answers["/console/words"] = () => Response.json({ ko: { "unit-a": { title: "a" } } });

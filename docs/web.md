@@ -9297,8 +9297,10 @@ its people directory and the members of the reader's company.
   imports one is left out as a bundle that imports what is not shared.
 - **The units asked are every unit the settings name.** The server asks each unit whose `<NAME>_ADDRESS` is set
   for its manifest, with that unit's token, when it starts and once a minute after, each ask waiting for its
-  unit's answer; a unit still answering keeps the screens its last answer brought, and is not asked again until
-  it has answered. Which answers leave a unit out is the contract's (「How a console finds the services」), and a
+  unit's answer. A setting whose name begins `NUXT_` is one of Nuxt's runtime settings, the console's own and
+  never a unit's, so its public address, `NUXT_PUBLIC_CONSOLE_ADDRESS`, is never asked and the console never asks
+  itself. A unit still answering keeps the screens its last answer brought, and is not asked again until it has
+  answered. Which answers leave a unit out is the contract's (「How a console finds the services」), and a
   unit nothing answers, or that answers anything but a 200, is left out with nothing said on a screen.
 - **A bundle's file its unit no longer serves has the unit asked again at once.** A bundle's files carry their
   content in their names, so a unit released between two asks serves new names while the console still hands out
@@ -9643,7 +9645,8 @@ The console reads its settings from its environment: the units' addresses and to
 | `BMO_WEB_DEV_HOSTS` | The hosts a dev server answers beyond its own, comma-separated |
 
 A unit's address and token are read by name on the console's server, `<NAME>_ADDRESS` and `<NAME>_TOKEN`; a unit
-whose address is not set is a unit the console does not reach.
+whose address is not set is a unit the console does not reach. A name beginning `NUXT_` is one of the console's own
+runtime settings, never a unit's address.
 
 Make a key like this:
 

@@ -53,6 +53,9 @@ export function onBundlesRead(listener: (bundles: readonly AttachedBundle[]) => 
   return () => listeners.delete(listener);
 }
 
+/** The prefix of Nuxt's runtime settings: the console's own, never a unit's address. */
+const CONSOLE_SETTING_PREFIX = "NUXT_";
+
 /** Every unit the settings name, as `<NAME>_ADDRESS` with an address set, with its token. */
 export function namedUnits(environment: Record<string, string | undefined> = process.env): { name: string; unit: UnitAddress }[] {
   const named: { name: string; unit: UnitAddress }[] = [];
@@ -61,7 +64,7 @@ export function namedUnits(environment: Record<string, string | undefined> = pro
     const name = /^([A-Z][A-Z0-9_]*)_ADDRESS$/.exec(key)?.[1];
     const address = value?.trim() ?? "";
 
-    if (name === undefined || address === "") continue;
+    if (name === undefined || name.startsWith(CONSOLE_SETTING_PREFIX) || address === "") continue;
 
     const token = environment[`${name}_TOKEN`]?.trim() ?? "";
 

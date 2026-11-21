@@ -460,6 +460,16 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
         await page.locator("[data-agent-settings]").waitFor({ state: "detached", timeout: 10_000 });
         expect(await discard().count()).toBe(0);
 
+        // A value changed and changed back is no change: the save stays off and closing asks nothing.
+        dialog = await open("worker-02");
+        await dialog.locator("[data-agent-enabled]").click();
+        expect(await save().isDisabled()).toBe(false);
+        await dialog.locator("[data-agent-enabled]").click();
+        expect(await save().isDisabled()).toBe(true);
+        await page.keyboard.press("Escape");
+        await page.locator("[data-agent-settings]").waitFor({ state: "detached", timeout: 10_000 });
+        expect(await discard().count()).toBe(0);
+
         // One that follows its supervisor uses the asking supervisor's advisor, which the line under the provider says.
         dialog = await open("worker-03");
         expect(await dialog.locator("[data-road-provider]").innerText()).toContain(wording("agents.message.advisor_follows"));

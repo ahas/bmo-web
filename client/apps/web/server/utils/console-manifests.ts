@@ -370,6 +370,31 @@ export function bundleFiles(manifest: ConsoleManifest, path: string): boolean {
   return bundleFile(manifest, path) || (folder !== "/" && path.startsWith(folder) && below.every((step) => step !== "" && step !== "." && step !== ".."));
 }
 
+// The translator the console's runtime configuration names, as bmo-ui's `translation` module reads it on a screen.
+interface NamedTranslator {
+  service?: unknown;
+  path?: unknown;
+}
+
+/**
+ * Whether a call of a unit the console calls directly is the translator's ask (docs/web.md, 「Screens a unit
+ * brings」): a `POST` of the route the console's translator setting names, on the service it names. A console that
+ * names no translator has no such ask.
+ */
+export function translatorAsk(serviceName: string, method: string, path: string): boolean {
+  const named = (useRuntimeConfig().public as { bmoUi?: { translator?: NamedTranslator } } | undefined)?.bmoUi?.translator;
+  const service = typeof named?.service === "string" ? named.service.trim() : "";
+  const route = typeof named?.path === "string" ? named.path.trim().replace(/\/+$/, "") : "";
+
+  return service !== "" && route !== "" && service === serviceName && route === path && method.toUpperCase() === "POST";
+}
+
+/** Whether a page may ask a unit the console calls directly for a translation: a bundle's page whose manifest names
+ * the unit under `calls`, which the reader may open. Any other page translates through the console's own routes. */
+export function pageTranslates(page: AttachedBundle | null, serviceName: string, reader: Reader): boolean {
+  return page !== null && screensCall(page.manifest, serviceName) && readerMay(reader, page.manifest);
+}
+
 /** Whether a page names a service it calls: a page that is no bundle's screen does, and a bundle's page does where
  * the service is its own or its manifest names it under `calls`. */
 export function pageNames(page: AttachedBundle | null, serviceName: string): boolean {

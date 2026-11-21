@@ -571,3 +571,53 @@ describe("a bundle's file its unit no longer serves", () => {
     expect(manifestAsks()).toBe(before);
   });
 });
+
+// A bundle's screen translates through the translator the console names, and that translator may be a unit the
+// console calls directly, which answers no manifest (docs/web.md, 「Screens a unit brings」).
+describe("the translator's ask of a unit the console calls directly", () => {
+  const ask = new TextEncoder().encode(JSON.stringify({ language: "ko", originals: ["Likes tea"] }));
+  const translating = (page: string, path = "translations"): Promise<number | undefined> =>
+    handler({
+      ...asking(path),
+      method: "POST",
+      headers: { referer: `https://console.example.test/${page}`, "content-type": "application/json", "content-length": String(ask.length) },
+      streamed: [ask]
+    } as RouteEvent).then(
+      (response) => response.status,
+      (error: { statusCode?: number }) => error.statusCode
+    );
+
+  beforeAll(() => {
+    globals.useRuntimeConfig = () => ({ app: { baseURL: "/" }, public: { bmoUi: { translator: { service: "relayed", path: "/translations" } } } });
+    attachBundles([
+      { manifest: manifestOf("reader", { apiPrefix: "/console", calls: ["relayed"] }), unit: { address: unit.address, token: null }, words: {} },
+      { manifest: manifestOf("other", { apiPrefix: "/console" }), unit: { address: unit.address, token: null }, words: {} }
+    ]);
+  });
+  afterAll(() => {
+    globals.useRuntimeConfig = () => ({ app: { baseURL: "/" } });
+    attachBundles([]);
+  });
+
+  test("reaches the unit from a bundle's page that names it under `calls`", async () => {
+    unit.asked.length = 0;
+
+    expect(await translating("reader")).toBe(200);
+    expect(unit.asked).toEqual([{ method: "POST", path: "/translations", body: { language: "ko", originals: ["Likes tea"] } }]);
+  });
+
+  test("is refused from a bundle's page that does not name the unit, and from a page that is no bundle's", async () => {
+    unit.asked.length = 0;
+
+    expect(await translating("other")).toBe(403);
+    expect(await translating("settings")).toBe(403);
+    expect(unit.asked).toEqual([]);
+  });
+
+  test("lets no other change of the unit through, whatever page asks it", async () => {
+    unit.asked.length = 0;
+
+    expect(await translating("reader", "translations/kept")).toBe(404);
+    expect(unit.asked).toEqual([]);
+  });
+});

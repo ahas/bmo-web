@@ -8,7 +8,7 @@ import { CONTROL_UNREACHABLE } from "#shared/config";
 import { shareRead } from "bmo-ui/shared/console-manifest";
 
 import { relayedRest, socketRelay } from "../utils/bundle-relay";
-import { attachedService, bundleFile, bundleFiles, bundleOfPage, pageReaches, readManifestAgain, readerMay, readerOf, relayedCall } from "../utils/console-manifests";
+import { attachedService, bundleFile, bundleFiles, bundleOfPage, pageReaches, pageTranslates, readManifestAgain, readerMay, readerOf, relayedCall, translatorAsk } from "../utils/console-manifests";
 import { ownerHeaders } from "../utils/owner-key";
 import { requestStream } from "../utils/streamed-forms";
 import { unitAt } from "../utils/units";
@@ -25,7 +25,10 @@ import { unitAt } from "../utils/units";
 // A service a manifest names is relayed at the address of the unit that answered it, and only for the paths under
 // its API prefix, the routes it names under `relays`, its module and its stylesheet, to a reader its manifest's role
 // and owner key allow (docs/web.md, 「Screens a unit brings」). A unit the console calls directly, which answers no
-// manifest, is relayed at the address its setting names, for a read alone and from no bundle's page.
+// manifest, is relayed at the address its setting names, for a read alone and from no bundle's page, but for the
+// translator's ask: where the console's translator setting names such a unit, a `POST` of the route it names is
+// relayed from a bundle's page whose manifest names the unit under `calls` and that the reader may open, since a
+// bundle's screen translates through that route (bmo-ui's `docs/console-bundles.md`, 「Translation」).
 //
 // A bundle's page reaches another service a manifest names only where its own manifest names that service under
 // `calls`, on that service's own terms; the page is the address the browser sends as the call's referrer. Any other
@@ -100,6 +103,7 @@ async function relayed(event: H3Event): Promise<Response> {
   const method = getMethod(event).toUpperCase();
 
   const reading = method === "GET" || method === "HEAD";
+  const translating = attached === null && translatorAsk(service, method, `/${rest}`);
 
   // A name neither a manifest nor a setting names is this console's own absence, not a unit's. A unit the console
   // calls directly — the agency, bmo-job, the receiver, the brain — stands beside the bundles, and its own paths are
@@ -107,7 +111,7 @@ async function relayed(event: H3Event): Promise<Response> {
   // rules of what it changes (docs/web.md, 「Access」), so a change asked here is absent. A path of a bundle's service
   // outside what its manifest lets through is absent as well.
   if (unit === null) throw createError({ statusCode: 404, statusMessage: "Not Found" });
-  if (attached === null && !reading) throw createError({ statusCode: 404, statusMessage: "Not Found" });
+  if (attached === null && !reading && !translating) throw createError({ statusCode: 404, statusMessage: "Not Found" });
   if (attached !== null && !relayedCall(attached.manifest, method, `/${rest}`)) throw createError({ statusCode: 404, statusMessage: "Not Found" });
 
   const session = await getUserSession(event);
@@ -126,9 +130,13 @@ async function relayed(event: H3Event): Promise<Response> {
   }
 
   // A bundle's page calling a service its manifest does not name is refused, whatever the reader may open; a unit the
-  // console calls directly is no service a manifest names, so a bundle's page reaches none of them.
-  if (attached === null && bundleOfPage(useRuntimeConfig().app.baseURL, getRequestHeader(event, "referer")) !== null) {
-    throw createError({ statusCode: 403, statusMessage: "Forbidden" });
+  // console calls directly is no service a manifest names, so a bundle's page reaches none of them, but for the
+  // translator's ask, which only a bundle's page naming the unit makes.
+  if (attached === null) {
+    const page = bundleOfPage(useRuntimeConfig().app.baseURL, getRequestHeader(event, "referer"));
+    const reaches = translating ? pageTranslates(page, service, readerOf(await signedInUser(event))) : page === null;
+
+    if (!reaches) throw createError({ statusCode: 403, statusMessage: "Forbidden" });
   }
 
   if (attached !== null && !pageReaches(bundleOfPage(useRuntimeConfig().app.baseURL, getRequestHeader(event, "referer")), attached, method, `/${rest}`)) {

@@ -9337,11 +9337,15 @@ its people directory and the members of the reader's company.
 - **A bundle's calls to another service** are relayed and refused as the contract's 「How a bundle mounts」 states;
   the console tells the page a call comes from by the page address the browser sends as the call's referrer. A
   unit the console calls directly answers no manifest, so no manifest names it and a bundle's page reaching one is
-  refused 403.
+  refused 403, but for the translator's ask below.
 - **A unit the console calls directly is relayed for a read alone.** The console's own screens read such a unit's
   fixed paths under `/api/<unit>/` behind the administrator's sign-in, and every change of one is made through a
   route of the console's own, held to the rules of what it changes (「Access」), so a change asked of the relay is
-  absent and no change goes around those rules.
+  absent and no change goes around those rules. The one call past a read is the translator's ask, which changes
+  nothing: where the translator the console names is such a unit, a `POST` of its translating route is relayed to
+  the unit at the address its setting names, with its token and the reader's owner key and role, from a bundle's
+  page whose manifest names the unit under `calls` and that the reader may open; from any other page it is refused
+  403, and any other method or path of the unit stays absent.
 - **The people directory is every company's for the platform administrator,** the console's own addition to the
   contract's 「How a bundle mounts」 (the people directory). Its `search` and `person` read the account service's
   directory for the signed-in login, which for the platform administrator holds the people of every company
@@ -9359,7 +9363,8 @@ its people directory and the members of the reader's company.
 - **The translator a bundle translates through** is named by the console's environment
   (`NUXT_PUBLIC_BMO_UI_TRANSLATOR_SERVICE` and `NUXT_PUBLIC_BMO_UI_TRANSLATOR_PATH`, `docs/boundary.md`,
   「Settings」), as bmo-ui's runtime configuration reads it; the console's code names none, and with neither set no
-  screen translates. How many originals one ask carries and how many asks a tab holds out at once are the same
+  screen translates. The service is a bundle's, whose manifest lets the route through, or a unit the console calls
+  directly, whose translating route the relay hands on as the bullet on such units says. How many originals one ask carries and how many asks a tab holds out at once are the same
   configuration's (`NUXT_PUBLIC_BMO_UI_TRANSLATOR_BATCH` and `NUXT_PUBLIC_BMO_UI_TRANSLATOR_ASKS_AT_ONCE`),
   bmo-ui's defaults standing where neither is set.
 - **A reader is handed the screens their role opens.** The console's `GET /api/console-bundles` answers the

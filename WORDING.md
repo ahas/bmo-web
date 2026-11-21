@@ -177,7 +177,9 @@
   `거부 사유: {reason}` where it is shown; the 담당자's tab of waiting bookings → 요청: 승인 대기 중인 요청이 없습니다.
   Never 허용, 거절, 반려, which stays a job review's word, nor 신청 for a booking that waits.
 - the theater → 극장: 작품 (a title), 에피소드, 보관함 (the screen of titles), 내 극장, 조직 극장, 플레이리스트, 이어 보기,
-  자막, 자막 굽기, 라이브러리 (a folder registered), 색인 and 재색인 (a scan), 업로드, 대사.
+  자막, 자막 굽기, 라이브러리 (a folder registered), 색인 and 재색인 (a scan), 업로드, 대사. Its player's play
+  modes → 일반 모드, 영화관 모드, 전체 화면; the control between the first two names the mode a press goes to,
+  영화관 모드 or 일반 모드. Never 극장 모드, 시어터 모드, 기본 보기, 넓게 보기.
 - turn into (a text block's kind) → 종류 변경: 종류 변경, 종류를 변경했습니다, 변경하지 못했습니다; the kinds it
   offers stand on their own words (본문, 제목 1, 글머리 목록, 인용, 코드 블록). Never 서식 변경, 스타일, 종류로
   바꾸기. 변환 is no form of it: that word stands only where a file's format is really converted, as an mp3

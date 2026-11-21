@@ -179,6 +179,7 @@ common:
     document_menu: 문서 메뉴
     download_named: "{name} 다운로드"
     enlarge_named: "{name} 크게 보기"
+    holds_chosen: 선택한 항목 포함
     image_zoom: "{title}, 휠이나 두 손가락으로 확대"
     increase: 증가
     member_permission: "{name} 권한"

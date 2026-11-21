@@ -359,20 +359,28 @@ export function stateLabel(t: Translate, item: TodoItem): string {
 // having nothing to say. Reporting wears what running wears: the item is done, but its run is
 // still going, so it is not finished yet. It reads the state through the same answer the label
 // does, so the word and the colour on one row can never disagree.
-// The mark a row's state wears beside its word.
-const STATE_ICONS: Record<TodoState, string> = {
-  pending: "i-material-symbols-approval-outline",
-  waiting: "i-material-symbols-schedule-outline",
-  starting: "i-material-symbols-progress-activity",
-  running: "i-material-symbols-progress-activity",
-  deploy: "i-material-symbols-rocket-outline",
-  deploying: "i-material-symbols-rocket-launch-outline",
-  stopping: "i-material-symbols-pause-circle-outline",
-  reporting: "i-material-symbols-progress-activity",
-  held: "i-material-symbols-pause-circle-outline",
-  merged: "i-material-symbols-merge",
-  done: "i-material-symbols-check-circle-outline"
+// The mark a row's state wears beside its word, and whether it turns: the three states whose run is under way spin
+// theirs, since the layer turns no mark of its own accord.
+interface StateMark {
+  icon: string;
+  spins?: true;
+}
+
+const STATE_MARKS: Record<TodoState, StateMark> = {
+  pending: { icon: "i-material-symbols-approval-outline" },
+  waiting: { icon: "i-material-symbols-schedule-outline" },
+  starting: { icon: "i-material-symbols-progress-activity", spins: true },
+  running: { icon: "i-material-symbols-progress-activity", spins: true },
+  deploy: { icon: "i-material-symbols-rocket-outline" },
+  deploying: { icon: "i-material-symbols-rocket-launch-outline" },
+  stopping: { icon: "i-material-symbols-pause-circle-outline" },
+  reporting: { icon: "i-material-symbols-progress-activity", spins: true },
+  held: { icon: "i-material-symbols-pause-circle-outline" },
+  merged: { icon: "i-material-symbols-merge" },
+  done: { icon: "i-material-symbols-check-circle-outline" }
 };
+
+const SPINNING = "animate-spin motion-reduce:animate-none";
 
 export function stateIcon(item: TodoItem): string {
   const state = todoState(item);
@@ -380,7 +388,12 @@ export function stateIcon(item: TodoItem): string {
   if (state === "waiting" && item.stopped !== null) return "i-material-symbols-stop-circle-outline";
   // The owner's own stop wears a raised hand, told apart from a hold at a glance.
   if ((state === "held" || state === "stopping") && item.heldKind === "stop") return "i-material-symbols-back-hand-outline";
-  return STATE_ICONS[state];
+  return STATE_MARKS[state].icon;
+}
+
+// The class a badge's leading icon takes for the row's state: the spin while its run is under way, nothing at rest.
+export function stateIconClass(item: TodoItem): string {
+  return STATE_MARKS[todoState(item)].spins === true ? SPINNING : "";
 }
 
 export function stateColour(item: TodoItem): "primary" | "secondary" | "info" | "success" | "warning" | "neutral" {

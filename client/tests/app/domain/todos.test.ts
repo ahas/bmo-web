@@ -47,6 +47,7 @@ import {
   searchTally,
   stateColour,
   stateIcon,
+  stateIconClass,
   stateLabel,
   stopDetail,
   stoppedLine,
@@ -552,6 +553,13 @@ describe("an item held while it still runs", () => {
     expect(stateLabel(wording, item(13, { status: "held", heldAt: NOW, heldKind: "pause" }))).toBe(wording("todo.label.held_pause"));
     expect(stateLabel(wording, item(11, { status: "held", heldAt: NOW }))).toBe(wording("todo.label.held_plain"));
     expect(stateIcon(item(11, { status: "held", heldAt: NOW }))).toBe("i-material-symbols-pause-circle-outline");
+  });
+
+  // The layer turns no mark of its own accord, so the badge spins the running mark while the run is under way.
+  test("spins its mark while its run is under way and holds it still at rest", () => {
+    expect(stateIconClass(item(2, { running: true, attempts: 1 }))).toBe("animate-spin motion-reduce:animate-none");
+    expect(stateIconClass(item(9, { status: "held", heldAt: NOW, running: true, holdPending: true, heldKind: "stop" }))).toBe("");
+    expect(stateIconClass(item(11, { status: "held", heldAt: NOW }))).toBe("");
   });
 
   test("says its job notices are off with their reason, and since when where a stamp is given", () => {

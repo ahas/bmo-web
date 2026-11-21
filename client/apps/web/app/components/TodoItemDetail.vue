@@ -53,12 +53,13 @@
                 <ChipButton
                   :color="stateColour(openedItem)"
                   :icon="stateIcon(openedItem)"
+                  :ui="{ leadingIcon: stateIconClass(openedItem) }"
                   :label="stateLabel($t, openedItem)"
                   data-item-state-log
                   @click="emit('log', openedItem)"
                 />
               </UTooltip>
-              <UBadge v-else :color="stateColour(openedItem)" variant="subtle" size="sm" :icon="stateIcon(openedItem)">
+              <UBadge v-else :color="stateColour(openedItem)" variant="subtle" size="sm" :icon="stateIcon(openedItem)" :ui="{ leadingIcon: stateIconClass(openedItem) }">
                 {{ stateLabel($t, openedItem) }}
               </UBadge>
 
@@ -954,6 +955,7 @@ import {
   setAside,
   stateColour,
   stateIcon,
+  stateIconClass,
   stateLabel,
   stopDetail,
   todoState,

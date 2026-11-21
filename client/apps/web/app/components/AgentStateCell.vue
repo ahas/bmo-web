@@ -94,6 +94,7 @@ const runItems = computed<DropdownMenuItem[]>(() =>
     label: doing.line,
     description: [doing.note, elapsedOf(doing)].filter((part): part is string => part !== null).join(" · "),
     icon: "i-material-symbols-progress-activity",
+    ui: { itemLeadingIcon: "animate-spin motion-reduce:animate-none" },
     onSelect: () => emit("open", at)
   }))
 );

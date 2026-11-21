@@ -822,6 +822,11 @@ edit to that file alone, once the guide below carries the word.
   - **Every icon a screen names is one the set holds.** A name the set lacks draws nothing at all, an empty
     button with no word to say it failed, so a test holds every Material Symbols name the console's code
     writes to the set the console installs.
+  - **The work-in-progress mark turns only where the screen drawing it spins it,** for as long as the work it
+    marks runs, since bmo-ui's stylesheet turns none of its own accord; drawn at rest, or kept in the page
+    hidden, it stands still. A test holds every place the console's code names the mark to its spin: an element
+    carrying it in its template carries `animate-spin` or the library's loading state, and a look handing it out
+    as data says it spins.
   - **An icon first drawn after the page has loaded never redraws the page's letters.** The icon library
     puts the style of each icon it draws for the first time into the page's head, ahead of every other
     stylesheet. A sheet put in ahead of the others makes the browser rebuild its whole set of fonts, and for

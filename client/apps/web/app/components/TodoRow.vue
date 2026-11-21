@@ -109,7 +109,7 @@
         data-item-deploy
       ><SearchText :text="itemWayLiveLabel($t, way)" :query="query" /></UBadge>
     </template>
-    <UBadge v-else :color="stateColour(item)" variant="subtle" size="sm" :icon="stateIcon(item)"><SearchText :text="stateLabel($t, item)" :query="query" /></UBadge>
+    <UBadge v-else :color="stateColour(item)" variant="subtle" size="sm" :icon="stateIcon(item)" :ui="{ leadingIcon: stateIconClass(item) }"><SearchText :text="stateLabel($t, item)" :query="query" /></UBadge>
 
     <!-- A job standing still behind a question put to the owner, pressed for the card it is answered on. -->
     <TodoQuestionBadge v-if="questions !== null" :questions="questions" @press="emit('question', item.id)" />
@@ -189,6 +189,7 @@ import {
   requesterLine,
   stateColour,
   stateIcon,
+  stateIconClass,
   stateLabel,
   stoppedLine,
   testbedLineKey,

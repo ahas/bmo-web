@@ -34,7 +34,8 @@
         <TabSwitch :model-value="props.view" :items="views" :label="$t('common.label.view')" :compact="tight" @update:model-value="emit('view', $event)" />
 
         <!-- That a translation is still going stands before the switch, in a place kept for it while none is, so
-             neither its coming and going nor the switch's language name changing moves the other. -->
+             neither its coming and going nor the switch's language name changing moves the other. Its mark spins
+             only while one is coming in, and stands still where it is kept hidden. -->
         <div role="status" :class="translating ? '' : 'invisible'" :aria-hidden="!translating">
           <UTooltip :text="$t('documents.status.translating')">
             <UButton
@@ -43,6 +44,7 @@
               size="sm"
               square
               icon="i-material-symbols-progress-activity"
+              :ui="{ leadingIcon: translating ? 'animate-spin motion-reduce:animate-none' : '' }"
               :aria-label="$t('documents.status.translating')"
               @click="goToWaiting"
             />

@@ -498,11 +498,18 @@
   or 거절, 제안 없음; who may write it without heading the unit → 조직 기억 쓰기 권한, 권한 부여, 권한 해제. Never 메모리,
   공통 기억, 잠금 for 고정, 대외비 for 사내 한정, nor 승인 or 반려 for a proposal, which stay an approval's words.
 - the record of changes to a person's place → 이력: 이력 없음. Never 히스토리, 로그, 발령 내역.
-- one piece of work in the works tree, and the screen that shows the tree → 업무: 업무, 새 업무, 내 업무, 내 개인 업무,
-  `{name} 업무` for a unit's, 업무가 아직 없습니다; the works under one → 하위 업무 (하위 업무가 아직 없습니다), the one
-  above → 상위 업무. A work's kind → 종류: 묶음 업무 (one rolled up from the works under it), 단발 업무, 누적 업무, 기한 조건
-  (a milestone, ending once its conditions hold), 끼어든 업무 (an interruption, counted `끼어든 업무 {n}건 · {m}분`). Its
-  state → 상태: 초안, 진행, 완료, 취소됨.
+- the one screen of the organisation's works, its menu and its title → 일정 관리. 업무 is never a menu's or a screen's
+  name.
+- one piece of work in the works tree, and each card, row or bar that draws one on 일정 관리 → 업무: 업무, 새 업무, 내 업무,
+  내 개인 업무, `{name} 업무` for a unit's, 업무가 아직 없습니다, one with no date → 날짜 없는 업무; the works under one →
+  하위 업무 (하위 업무가 아직 없습니다), the one above → 상위 업무. A work's kind → 종류: 묶음 업무 (one rolled up from the
+  works under it), 단발 업무, 누적 업무, 기한 조건 (a milestone, ending once its conditions hold), 끼어든 업무 (an
+  interruption, counted `끼어든 업무 {n}건 · {m}분`). Its state → 상태: 초안, 진행, 완료, 취소됨; on a card only 초안 and
+  취소됨 are shown, since the column says the rest. Never 작업, 항목, 하위 작업 for a work, nor 에픽, 스토리, 버그 for
+  a kind.
+- the left list of 일정 관리 → 조직 목록, its rows 내 업무, each company and each unit by its own name. A board's
+  column → 열, each a status (상태), its role → 단계: 시작 전, 진행 중, 완료, its limit → 최대; a work's 우선순위
+  (가장 높음, 높음, 보통, 낮음, 가장 낮음), 레이블, 포인트, 스프린트 and the 백로그 it waits in. Never 스토리 포인트, 컬럼, 칸, and 태그 for a label.
 - who carries a work → 담당자; giving it to them → 할당: 할당, `{name} 할당`, 할당이 아직 없습니다; their acknowledgement →
   확인, the assignment standing 확인 대기 until it is given and 확인함 after; a unit's head the assignment went past →
   건너뛴 조직장.
@@ -516,15 +523,22 @@
 - an entry the person's BMO drafted → 초안, keeping it → 확정, letting it go → 철회; the drafts on a work another reads →
   `확정 전 초안 {n}건`; one drafted from what an agent did → AI 작업. What an entry rests on → 증거, counted `증거 {n}건`;
   one resting on the person's word alone → 진술. Never 미확인, 승인 for 확정, 취소 or 삭제 for 철회, 근거 for 증거.
-- the ways a unit's works are read on the works screen → 보기: 목록, 진척 트리, 일정, 오늘, 주간 보고; the works at risk
-  gathered at the tree's head → 위험 업무; a scope that changed this week → 범위 변경; the signal's column → 전망. A
+- the ways the chosen place's works are read on 일정 관리 → 보기: 요약, 타임라인, 백로그, 보드, 캘린더, 목록, and for a
+  head 오늘, 주간 보고, 월간 보고. 일정 is never a view's name: it is a calendar event alone. The works at risk
+  gathered at the list's head → 위험 업무; a scope that changed this week → 범위 변경; the signal's column → 전망. A
   person's day: a line their BMO wrote → BMO 작성; a line left unmoved day after day → `{n}일째 진척 없음`; nothing
   written → 기록 없음; nothing written on a day whose end-of-day question found the person's BMO not connected →
   BMO 연결 안 됨, never 연결 실패 or BMO 오프라인; a day off in its place in the attendance screen's words (휴가, 오전 반차, 오후 반차, 출장, 휴무,
   대휴, 공휴일). The weekly report's parts → 중점 업무, 진척 변화, 밀린 업무, 다음 주 기한 조건, 사람별 요약, 가치 분류 (분류
   없음 for works with none), 조직장 의견; its columns 시작 진척, 종료 진척, 최근 진척; its weeks → 이전 주, 다음 주; the
-  sheet → 다운로드. A head's remark on a work or a person → 의견: 의견, 등록, 의견이 아직 없습니다. Never 진척 나무, 변화
-  없음 for a line left unmoved, 코멘트, 내려받기.
+  sheet → 다운로드. A reader's remark on a work, or a head's on a person → 의견: 의견, 의견 추가, 등록, 의견이 아직
+  없습니다, a head's marked 조직장. Never 진척 나무, 변화 없음 for a line left unmoved, 댓글, 코멘트, 내려받기.
+- the weekly and monthly reports, in the words of the company's productivity workbooks so a reader of the workbook reads
+  the same words: a work's classification → 분류 코드, its Level1 → 가치 분류, an entry's kind of work → 활동, the site or
+  project it is for → 구분지표; the hours → 계획시간, 실적시간, 계획 대비, 정규, 야근, 휴무, 휴일 근무, KPI 시간, KPI 비율,
+  야근 비율, 야근 편차, 1인당 시간, 인원; the spans → 전월 누계, 당월, 연간 누계; a person's own work in a head's report →
+  개인 업무. Next week's plan → 계획, its draft → 계획 초안, keeping it → 확정; a head's coaching on a plan line →
+  코칭. Never 레벨, 공수, 오버타임, 실적 시간 with a space.
 - a milestone's conditions → 조건: 조건 충족, 조건 미충족, 완료 조건; an approver's rejection of them → 반려, with its 반려
   사유, as an approval document's; the approval forms it waits on → 결재 양식; who approves → 승인자. Never 거절 for it.
 - one work handing something to another, or to a unit → 관계, its kinds 인계, 검수, 참조, 보고, 변경 요청, 업무 요청, sent
@@ -540,8 +554,8 @@
   수행 항목, 버려짐.
 - a meeting's record → 회의록, the action items it lists → 임무. A template a new work opens on → 템플릿, each standing
   by its own name in the pack (단기 업무, 단계·게이트 …).
-- what a board or a record belongs to, a unit or a project, and the company a person belongs to → 소속: 소속, 보드
-  소속, 소속 조직 구성원, 소속 회사가 없습니다; a board or a record that belongs to none shows 없음. Never 소속
+- what a record belongs to, a unit, and the company a person belongs to → 소속: 소속, 소속 조직 구성원, 소속 회사가
+  없습니다; a record that belongs to none shows 없음. Never 소속
   없음, and never 담당 or 담당자 for it, which is who keeps or approves a thing.
 - **One screen speaks in one style.** A notice, a guidance line and an error end in 합니다 and
   했습니다 throughout; 어요 is never mixed into them.

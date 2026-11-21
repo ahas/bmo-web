@@ -1500,8 +1500,8 @@ Four groups.
     리서치, monitor, 조직 and 관리자, and every screen a unit brings whose manifest names it: the brain's (브레인),
     code review's, BMO's face (비모 얼굴), the tool host's (도구) and the remote
     machines' (원격) among them.
-  - **애플리케이션** holds every other screen a unit brings: mail, 파일, 아티팩트, 캘린더, 노트, 일정 관리,
-    프로젝트 and 극장 among them.
+  - **애플리케이션** holds every other screen a unit brings: mail, 파일, 아티팩트, 캘린더, 노트, 일정 관리
+    and 극장 among them.
   - **Which section a screen stands in is the screen's own.** Each of the console's own screens names its section
     where it is listed. A screen a unit brings stands in the section its manifest names under `sidebarSection`
     (bmo-ui's `docs/console-bundles.md`, the sidebar section): 관리자 서비스 for `administration`, 애플리케이션 for
@@ -9390,7 +9390,7 @@ its people directory and the members of the reader's company.
   contract's 「How a bundle mounts」 (the people directory). Its `search` and `person` read the account service's
   directory for the signed-in login, which for the platform administrator holds the people of every company
   (`docs/accounts.md`, 「The people directory」), so a screen a unit brings names and picks a person of another
-  company, as one of a board or a project that company's people stand on, and each found person carries their
+  company, as one of the works that company's people stand on, and each found person carries their
   unit as `organization`. Every other reader's directory stays their own company.
 - **The members of the reader's company are a service the console answers itself,** as the contract's 「How a
   bundle mounts」 (the company's members) and 「What a console owes」 state it: its name, its one read, what it

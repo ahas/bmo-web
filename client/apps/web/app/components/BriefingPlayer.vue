@@ -2,8 +2,8 @@
   <!-- The voice briefing playing, as a small player floating over the page area like a picture-in-picture window,
        first at the bottom right on the content's gutter above whatever bar stands at the screen's foot, and dragged
        from there (docs/web.md, 「Messages」, the briefing's player). Its press pauses the sound or plays one waiting,
-       its title leads to the line it speaks over how far it has played, its mute keeps this device from playing a
-       briefing aloud by itself, and its close mark stops the listening. Its
+       its title leads to the line it speaks over how far it has played, its mute keeps this device's briefings
+       silent, and its close mark stops the listening. Its
        surface swells with the sound, and its words, marks and the library's buttons take the dark theme the frame
        stands in, so a ghost button's hover and press read on it. -->
   <Transition name="bmo-briefing" type="animation">
@@ -54,7 +54,7 @@
       </span>
 
       <!-- This device's mute, its mark the state: a speaker while briefings play aloud here, one struck through while
-           they wait for a press. -->
+           they play without a sound. -->
       <HintTip :text="muteLabel" press class="shrink-0">
         <UButton
           :icon="muted ? 'i-material-symbols-volume-off-rounded' : 'i-material-symbols-volume-up-rounded'"
@@ -156,9 +156,12 @@ function draw(now: number): void {
     return;
   }
 
-  // Still bars for a reader who asked for less movement, while how far it has played goes on being read.
-  if (still.value) {
-    bars.value = STILL;
+  // Bars at rest for a sound played without one, which moves nothing since nobody hears it, and still bars for a reader
+  // who asked for less movement, while how far it has played goes on being read.
+  const heard = playing.heard();
+
+  if (!heard || still.value) {
+    bars.value = heard ? STILL : RESTING;
     frame = requestAnimationFrame(draw);
 
     return;

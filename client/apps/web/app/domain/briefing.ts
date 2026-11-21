@@ -77,6 +77,8 @@ export interface BriefingShown {
   position: () => { at: number; length: number } | null;
   // The sound's spectrum this moment, written into the array; false where the browser gives none.
   levels: (into: Uint8Array<ArrayBuffer>) => boolean;
+  // Whether the sound is heard, which one played without a sound on a device that muted the briefings is not.
+  heard: () => boolean;
 }
 
 export const BRIEFING_STATE = "bmo-briefing";
@@ -151,6 +153,9 @@ export interface SoundHandlers {
 
 // The sound a briefing plays through: an element of the page in a browser, a stand-in in a test.
 export interface BriefingSound extends Playing {
+  // Whether it plays without a sound, as it does on a device that muted the briefings; a silent sound is no player of
+  // the page's, so no other player starting pauses it.
+  muted: boolean;
   play: () => Promise<void>;
   release: () => void;
   levels: (into: Uint8Array<ArrayBuffer>) => boolean;
@@ -283,7 +288,7 @@ interface Current {
   over: boolean;
   // Whether the reader paused it or moved it along while it played, which keeps it in the player at its end.
   touched: boolean;
-  // Whether it waits for the page's own sound to stop, or for the mute to be lifted, before it starts.
+  // Whether it waits for the page's own sound to stop before it starts.
   held: boolean;
 }
 
@@ -425,35 +430,38 @@ export class BriefingDesk {
     return this.waiting.map((one) => one.playable.key);
   }
 
-  // The page's own sound has stopped — or the reader left the page and it went with them — or the mute was lifted, so
-  // a briefing that waited for them plays now.
+  // The page's own sound has stopped — or the reader left the page and it went with them — so a briefing that waited
+  // for it plays now.
   resume(): void {
     const current = this.current;
 
-    if (current === null || !current.held || current.over || this.deps.pagePlaying() || this.deps.muted()) {
+    if (current === null || !current.held || current.over || this.deps.pagePlaying()) {
       return;
     }
 
     void this.play(current);
   }
 
-  // This device's mute changed (docs/web.md, 「Messages」, the briefing's player, 「Muted on this device」): muted, the
-  // briefing playing pauses where it is and waits for the mute to be lifted; lifted, the one the mute held plays.
+  // This device's mute changed (docs/web.md, 「Messages」, the briefing's player, 「Muted on this device」). Muted, the
+  // briefing standing goes silent where it is and plays on, and one held behind the page's own sound, heard by
+  // nobody now, starts. Lifted, the one playing is heard from where it is, and the press that lifted it, the reader's,
+  // takes the sound from every other player as starting a briefing does.
   followMute(): void {
     const current = this.current;
 
-    if (!this.deps.muted()) {
-      this.resume();
-
+    if (current === null || current.over) {
       return;
     }
 
-    if (current === null || current.over || current.sound.paused) {
-      return;
-    }
+    const muted = this.deps.muted();
 
-    current.held = true;
-    current.sound.pause();
+    current.sound.muted = muted;
+
+    if (muted) {
+      if (current.held) void this.play(current);
+    } else if (!current.sound.paused) {
+      playAlone(current.sound, this.deps.players());
+    }
   }
 
   close(): void {
@@ -522,20 +530,22 @@ export class BriefingDesk {
 
   private start(playable: Playable, byItself: boolean): void {
     const { key } = playable;
-    // A briefing that comes by itself waits while the page plays a sound of its own or this device is muted
-    // (docs/web.md, 「Messages」, the briefing's player); one asked for at a press does not.
-    const held = byItself && (this.deps.pagePlaying() || this.deps.muted());
+    // A briefing that comes by itself to a device that muted the briefings plays without a sound, and one that comes
+    // by itself while the page plays a sound of its own waits behind it (docs/web.md, 「Messages」, the briefing's
+    // player); one asked for at a press is neither. A silent one is heard by nobody, so it waits behind nothing.
+    const silent = byItself && this.deps.muted();
+    const held = byItself && !silent && this.deps.pagePlaying();
     // The handlers reach the briefing they belong to, which is made once its sound is.
     let current!: Current;
     const sound = this.deps.sound(playable.src, {
+      // Only a sound that is heard takes the sound from the page's other players.
       playing: () => {
         this.move(current, "playing");
-        playAlone(current.sound, this.deps.players());
-      },
-      // A pause the mute made holds the briefing rather than touching it, so played on to its end it still goes.
-      paused: () => {
-        if (!current.held) current.touched = true;
 
+        if (!current.sound.muted) playAlone(current.sound, this.deps.players());
+      },
+      paused: () => {
+        current.touched = true;
         this.move(current, "paused");
       },
       ended: () => void this.settle(current),
@@ -545,6 +555,7 @@ export class BriefingDesk {
       failed: () => this.fail(current, null)
     });
 
+    sound.muted = silent;
     current = { playable, sound, over: false, touched: false, held };
     this.current = current;
 
@@ -557,13 +568,14 @@ export class BriefingDesk {
       pause: () => current.sound.pause(),
       stop: () => this.stop(current),
       levels: (into) => current.sound.levels(into),
-      position: () => current.sound.position()
+      position: () => current.sound.position(),
+      heard: () => !current.sound.muted
     });
 
     // The sound starts by itself as it comes (docs/web.md, 「Messages」, the briefing's player): a briefing is meant to
-    // be heard, not waited for, unless the page's own sound or this device's mute stands in the way; that one is played
-    // by `resume` once it stops or the mute is lifted. A browser that will not start a sound nobody pressed for moves
-    // it to `blocked`, where the player's own press starts it.
+    // be heard, not waited for, unless the page's own sound stands in the way; that one is played by `resume` once it
+    // stops. A browser that will not start a sound nobody pressed for moves it to `blocked`, where the player's own
+    // press starts it.
     if (!held) {
       void this.play(current);
     }
@@ -665,29 +677,25 @@ export class BriefingDesk {
   }
 }
 
-// The page's own element for a briefing's sound. It is one of the page's players, so a voice
-// message started on the room screen pauses it as it pauses any other; it is marked as the
-// briefing's, so the briefing starting does not pause itself. The tap is taken once it plays,
-// since the copy of a sound that has not started carries nothing to read.
+// The page's own element for a briefing's sound. Heard, it is one of the page's players, so a voice
+// message started on the room screen pauses it as it pauses any other; silent, it carries no
+// player's mark, so nothing pauses it for the sound it does not make. It is marked as the
+// briefing's, so the briefing starting does not pause itself. The tap is taken the first time the
+// sound is read while it is heard, since the copy of a sound that has not started carries nothing
+// to read, and a silent one is never tapped, so nothing of it reaches the page's audio.
 function elementSound(src: string, on: SoundHandlers): BriefingSound {
   const element = document.createElement("audio");
   const listening = new AbortController();
   const options = { signal: listening.signal };
   let tap: Tap | null = null;
+  let tapped = false;
 
   element.dataset.player = "";
   element.dataset.briefing = "";
   element.hidden = true;
   element.preload = "auto";
   element.src = src;
-  element.addEventListener(
-    "playing",
-    () => {
-      tap ??= tapOf(element);
-      on.playing();
-    },
-    options
-  );
+  element.addEventListener("playing", () => on.playing(), options);
   // A sound ending pauses itself on the way; only a pause before the end is one.
   element.addEventListener("pause", () => {
     if (!element.ended) on.paused();
@@ -701,9 +709,27 @@ function elementSound(src: string, on: SoundHandlers): BriefingSound {
     get paused() {
       return element.paused;
     },
+    get muted() {
+      return element.muted;
+    },
+    set muted(silent: boolean) {
+      element.muted = silent;
+
+      if (silent) delete element.dataset.player;
+      else element.dataset.player = "";
+    },
     play: () => element.play(),
     pause: () => element.pause(),
-    levels: (into) => tap?.levels(into) ?? false,
+    levels: (into) => {
+      if (element.muted) return false;
+
+      if (!tapped) {
+        tapped = true;
+        tap = tapOf(element);
+      }
+
+      return tap?.levels(into) ?? false;
+    },
     position: () => (Number.isFinite(element.duration) && element.duration > 0 ? { at: element.currentTime, length: element.duration } : null),
     release: () => {
       listening.abort();

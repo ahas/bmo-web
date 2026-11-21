@@ -8641,7 +8641,8 @@ and `/api/supply/credits/audit`.
     `docs/boundary-api.md`, 「Events」, 「Briefings」): a `briefing.ended` of a `summary`, `done`, whose `plays`
     holds. It starts by itself at the moment it comes — on opening, on a page loading, on a tab coming back from the
     background, and behind another that has ended, which follows its own end — with no press asked for, unless the
-    page is playing a sound of its own, which it waits behind (「A briefing waits behind the page's own sound」). One
+    page is playing a sound of its own, which it waits behind (「A briefing waits behind the page's own sound」); on a
+    device that muted the briefings it plays without a sound (「Muted on this device」). One
     that ended more than half an hour before — a stream handing back what it kept — is left to its line; a full
     reading never comes to the player, and one whose `plays` does not hold is left to its line.
   - **A briefing waits behind the page's own sound.** A sound the page plays itself and the reader can hear — a
@@ -8650,23 +8651,30 @@ and `/api/supply/credits/audit`.
     stops, or when the reader leaves the page and the sound goes with it; nothing is dropped, and a briefing
     arriving after it waits behind it as another does. A press of the player starts it at once and pauses the
     page's sound, as starting a briefing does. Only a briefing that comes by itself is held: a press on the player
-    starts a held one, and the settings' trial voice is not held for the page's sound.
+    starts a held one, and the settings' trial voice is not held for the page's sound. A briefing this device muted
+    is heard by nobody, so it waits behind nothing and plays on silently beside the page's sound.
   - **A browser that will not start a sound nobody pressed for leaves it waiting too.** Such a browser refuses the
     play, and the player then says so and starts the sound at one press of its play. What a briefing that comes by
-    itself waits behind is the page's own sound, that refusal and this device's mute alone. The settings' trial
+    itself waits behind is the page's own sound and that refusal alone. The settings' trial
     voice comes the same way, and a press on 들어보기 is a press of the reader's.
   - **Muted on this device.** The player's mute, a square icon button between its title and its close mark, keeps
-    this browser from playing a briefing aloud by itself. It is kept in this browser alone, never on the account,
-    so a phone muted leaves a desk playing and the other way round, and every tab of the browser follows it at once.
-    Its mark is the state at a glance: a speaker while briefings play aloud, a speaker struck through while they
-    do not, its tooltip naming the press (이 기기 음소거, 이 기기 음소거 해제).
-    - Muted, a briefing still comes to the player as it ends, with its title, its line and its play mark, and
-      waits there for a press, as one held behind the page's own sound does; nothing of it plays until pressed, and
-      the one behind it waits for its own press. Its line's chip and its player in the room stand as they do.
-    - Muting while a briefing plays pauses it where it is. Unmuting plays the one standing in the player that the
-      mute alone held, the one it paused among them; one the reader paused stays paused, and one held behind the
-      page's own sound goes on waiting for it.
-    - The settings' trial voice is asked for at a press, so the mute does not hold it.
+    this browser's briefings silent. It is kept in this browser alone, never on the account, so a phone muted leaves
+    a desk playing and the other way round, and every tab of the browser follows it at once. Its mark is the state
+    at a glance: a speaker while briefings play aloud, a speaker struck through while they do not, its tooltip naming
+    the press (이 기기 음소거, 이 기기 음소거 해제).
+    - Muted, a briefing still comes to the player as it ends, with its title and its line, and plays through without
+      a sound: its visualiser stands at rest while its bar of how far it has played moves, and played to its end it
+      goes as any other does, the one behind it following. Its press pauses it and plays it on, still silent. Its
+      line's chip and its player in the room stand as they do.
+    - A muted briefing touches no other playback. It pauses none of the page's sounds, waits behind none of them,
+      and is no player another one starting pauses, so whatever plays on the page — a voice message, a video, a
+      screen a unit brings — plays on through its coming and going, and nothing of it reaches the browser's sound.
+    - Muting while a briefing plays silences it where it is, and it plays on to its end; one held behind the page's
+      own sound starts silently at once. Unmuting lets the one playing be heard from where it is, and, a press of
+      the reader's, pauses any other sound playing on the screen as starting a briefing does; one the reader paused
+      stays paused.
+    - The settings' trial voice is asked for at a press, so it plays aloud while the mute stands; pressing the mute
+      while it plays silences it as it silences a briefing.
   - **Played to its end, it goes.** Once a briefing has played to its end the player stays a moment, then goes,
     and the next one waiting comes to it; one the reader paused or moved along while it played, or played again in
     that moment, stays, at its end, until it is closed.
@@ -8685,8 +8693,8 @@ and `/api/supply/credits/audit`.
     looked at first, then one merely shown, then a hidden one — so a briefing is heard once per browser.
   - **While it plays its surface swells a little with the sound,** the surface alone, so a press aimed at it never
     misses; a reader who asked for less movement is given it still. A sound refused by a browser that will not
-    start one nobody pressed for waits for the press. Starting a briefing pauses any other sound playing on the
-    screen.
+    start one nobody pressed for waits for the press. Starting a briefing aloud pauses any other sound playing on the
+    screen; one this device muted pauses none.
 - **Its surface is fixed dark in both themes**, so the text and the marks on it are fixed with it rather than left
   to the theme's own colours. The tone is carried by the mark alone — a note, something gone through, a warning,
   something gone wrong — and never by the whole surface.

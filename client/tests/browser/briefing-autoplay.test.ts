@@ -9,7 +9,8 @@ import type { Browser, BrowserContext, Page } from "playwright-core";
 // A voice briefing that arrives plays by itself, and its player closes by itself when it ends (docs/web.md, the
 // Messages section, the briefing's player). A browser that will not start a sound nobody pressed for leaves the player
 // waiting, showing its play press, and that one press starts it. The voice engine's stop silences it, and nothing
-// that ended before the stop plays afterwards.
+// that ended before the stop plays afterwards. A browser that muted the briefings plays them without a sound, and the
+// page's own sound plays on through one coming and going.
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up, and serves
 // the briefing's arrival on the console's own stream and its sound through the console's own route.
@@ -118,11 +119,14 @@ async function open(policy: string, width = 1280, height = 900): Promise<{ conte
   return { context, page, close: async () => { await context.close(); await launched.close(); } };
 }
 
+// Where this browser keeps its mute of the briefings, set before the console loads for a browser that muted them.
+const MUTE_KEY = "bmo-web.briefing-muted";
+
 // A console with a sound of the page's own already playing, a report read aloud as it were, and its stream held
-// until that sound plays so the briefing reaches the console during it.
-async function openDuringPageSound(): Promise<{ page: Page; arrive: () => void; close: () => Promise<void> }> {
+// until that sound plays so the briefing reaches the console during it; muted, this browser has muted the briefings.
+async function openDuringPageSound(width = 1280, height = 900, muted = false): Promise<{ page: Page; arrive: () => void; close: () => Promise<void> }> {
   const launched = await chromium.launch({ args: ["--autoplay-policy=no-user-gesture-required"] });
-  const context = await launched.newContext({ viewport: { width: 1280, height: 900 }, serviceWorkers: "block", reducedMotion: "reduce" });
+  const context = await launched.newContext({ viewport: { width, height }, serviceWorkers: "block", reducedMotion: "reduce" });
   const at = cookie.indexOf("=");
   let arrive: () => void = () => undefined;
   const arrived = new Promise<void>((resolve) => (arrive = resolve));
@@ -134,6 +138,8 @@ async function openDuringPageSound(): Promise<{ page: Page; arrive: () => void; 
 
     return await route.fulfill({ status: 200, headers: { "content-type": "text/event-stream", "cache-control": "no-cache" }, body: `${frame()}` });
   });
+
+  if (muted) await context.addInitScript((key) => localStorage.setItem(key, "1"), MUTE_KEY);
 
   const page = await context.newPage();
 
@@ -346,6 +352,15 @@ async function openProfiles(width: number, height: number): Promise<{ profile: (
   return { profile, close: async () => await launched.close() };
 }
 
+// Whether the briefing's own sound plays, and whether it plays without a sound.
+async function briefingSound(page: Page): Promise<{ paused: boolean; muted: boolean }> {
+  return await page.evaluate(() => {
+    const sound = document.querySelector("audio[data-briefing]") as HTMLAudioElement;
+
+    return { paused: sound.paused, muted: sound.muted };
+  });
+}
+
 async function pressReads(page: Page, key: string): Promise<boolean> {
   return await until(async () => await page.locator("[data-briefing-press]").getAttribute("aria-label"), wording(key), 15_000);
 }
@@ -359,13 +374,15 @@ describe.skipIf(!origin || !touchReady())("this device's mute", () => {
         const muted = await held.profile();
         const mute = muted.locator("[data-briefing-mute]");
 
-        // Unmuted, the briefing plays by itself; muted, it pauses where it is and the mark says so.
+        // Unmuted, the briefing plays by itself aloud; muted, it plays on without a sound and the mark says so.
         await muted.locator("[data-briefing-popup]").waitFor({ timeout: 30_000 });
         expect(await pressReads(muted, "briefing.action.pause")).toBe(true);
         expect(await mute.getAttribute("aria-label")).toBe(wording("briefing.action.mute"));
+        expect(await briefingSound(muted)).toEqual({ paused: false, muted: false });
         await mute.click();
-        expect(await pressReads(muted, "briefing.action.listen")).toBe(true);
         expect(await mute.getAttribute("aria-label")).toBe(wording("briefing.action.unmute"));
+        expect(await briefingSound(muted)).toEqual({ paused: false, muted: true });
+        expect(await pressReads(muted, "briefing.action.pause")).toBe(true);
 
         // Within the player, which stands within the page at this width.
         const box = (await muted.locator("[data-briefing-popup]").boundingBox())!;
@@ -374,19 +391,44 @@ describe.skipIf(!origin || !touchReady())("this device's mute", () => {
         expect(box.x >= 0 && box.x + box.width <= width).toBe(true);
         expect(button.x >= box.x && button.x + button.width <= box.x + box.width).toBe(true);
 
-        // Reloaded, the next briefing comes to the player and waits for a press, still muted.
+        // Reloaded, the next briefing comes to the player and plays by itself without a sound, still muted.
         await muted.reload({ waitUntil: "domcontentloaded" });
         await muted.locator("[data-briefing-popup]").waitFor({ timeout: 30_000 });
-        expect(await pressReads(muted, "briefing.action.listen")).toBe(true);
+        expect(await pressReads(muted, "briefing.action.pause")).toBe(true);
         expect(await mute.getAttribute("aria-label")).toBe(wording("briefing.action.unmute"));
-        expect(await muted.evaluate(() => (document.querySelector("audio[data-briefing]") as HTMLAudioElement).paused)).toBe(true);
+        expect(await briefingSound(muted)).toEqual({ paused: false, muted: true });
 
-        // Another profile of the same account keeps no mute, so its briefing plays by itself.
+        // Another profile of the same account keeps no mute, so its briefing plays by itself aloud.
         const other = await held.profile();
 
         await other.locator("[data-briefing-popup]").waitFor({ timeout: 30_000 });
         expect(await pressReads(other, "briefing.action.pause")).toBe(true);
         expect(await other.locator("[data-briefing-mute]").getAttribute("aria-label")).toBe(wording("briefing.action.mute"));
+        expect(await briefingSound(other)).toEqual({ paused: false, muted: false });
+      } finally {
+        await held.close();
+      }
+    }, 120_000);
+  }
+
+  for (const [width, height] of [[1280, 900], [360, 700]] as const) {
+    test(`leaves the page's own sound playing through a briefing that comes, plays silently and goes, at ${width}`, async () => {
+      const held = await openDuringPageSound(width, height, true);
+      const pageSound = async (): Promise<boolean> =>
+        await held.page.evaluate(() => (document.querySelector("[data-player]:not([data-briefing])") as HTMLAudioElement).paused);
+
+      try {
+        held.arrive();
+        await held.page.locator("[data-briefing-popup]").waitFor({ timeout: 30_000 });
+
+        // It came by itself and plays without a sound, behind nothing, while the page's sound plays on.
+        expect(await pressReads(held.page, "briefing.action.pause")).toBe(true);
+        expect(await briefingSound(held.page)).toEqual({ paused: false, muted: true });
+        expect(await pageSound()).toBe(false);
+
+        // Played to its end, it goes, and the page's sound is still playing.
+        expect(await until(async () => await held.page.locator("[data-briefing-popup]").count(), 0, 15_000)).toBe(true);
+        expect(await pageSound()).toBe(false);
       } finally {
         await held.close();
       }

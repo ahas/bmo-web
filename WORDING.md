@@ -469,6 +469,11 @@
 - the unit a two-phase request arrives at → 처리 조직; the units a letter goes to → 수신처; the unit a document is drafted in →
   기안 조직. Never 처리 부서, 수신 부서, 기안 부서: a unit is 조직.
 - a completed document filed in the archive → 아카이브 등록. Never 보관, which is retiring a thing.
+- the kinds an archive (아티팩트) document is filed as, 리서치, 기록, 학습자료, 원문 and 페이지 → 카테고리: 카테고리, 모든 카테고리,
+  each opening its list; a document's category label, the filer's own word for the work that made it → 분류: 분류, 모든 분류.
+  Never 종류 for an archive document's kind: the owner's own choice of the word. The archive's front page → 최신 문서, 많이 본
+  문서 with its span 최근 7일 and 최근 7일 동안 읽은 문서 없음 for none, 카테고리 with 전체 first; a row's link to its whole
+  list → 모두 보기.
 - how long a step or a document took → 경과, the summary of them → 경과시간, with 건수, 중앙값 and 최소 ~ 최대. Never 소요 시간, 처리
   시간.
 - the attendance screen → 근태; its views → 근무계획, 휴가, 업무 기록, 조직 근무계획 (a head's view of a unit), 설정. Never

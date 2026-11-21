@@ -538,7 +538,12 @@
   project it is for → 구분지표; the hours → 계획시간, 실적시간, 계획 대비, 정규, 야근, 휴무, 휴일 근무, KPI 시간, KPI 비율,
   야근 비율, 야근 편차, 1인당 시간, 인원; the spans → 전월 누계, 당월, 연간 누계; a person's own work in a head's report →
   개인 업무. Next week's plan → 계획, its draft → 계획 초안, keeping it → 확정; a head's coaching on a plan line →
-  코칭. Never 레벨, 공수, 오버타임, 실적 시간 with a space.
+  코칭. The weekly report's tables → 계획 대비 실적, 분류별 시간, 야근 업무, 업무별 시간, 구분지표별 시간, its week
+  `{month}월 {number}주차`, the 40-hour check → 40시간 계획 and 40시간 실적, each 완료 or 미달, a class over or under
+  its plan → 130% 초과, 70% 미만 in the 판정 column, the row a table is drawn for → 대상; the monthly report's →
+  월간 코칭, 월별 추이, KPI 집계, 통계, 조직장 의견 (현황, 대책, 해석, 개선활동 with 당초, 변경, 효과); a level of the
+  classification below Level1 → `{n}단계`; the row heading of a table → 구분, its total → 합계. Exporting the
+  workbook's input rows → 실적 내보내기. Never 레벨, 공수, 오버타임, 실적 시간 with a space.
 - a milestone's conditions → 조건: 조건 충족, 조건 미충족, 완료 조건; an approver's rejection of them → 반려, with its 반려
   사유, as an approval document's; the approval forms it waits on → 결재 양식; who approves → 승인자. Never 거절 for it.
 - one work handing something to another, or to a unit → 관계, its kinds 인계, 검수, 참조, 보고, 변경 요청, 업무 요청, sent

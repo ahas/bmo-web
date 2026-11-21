@@ -1,5 +1,6 @@
 import { TURN_ENDED } from "#shared/types";
 
+import { SIDEBAR_COUNTS_WORD } from "./bundle-streams";
 import { frameEvent } from "./sse-frames";
 
 import type { BotEventType, ChatTurn, ExactMessageId, LiveSnapshot, PresenceWho, TurnReceived, TurnSpeaker } from "#shared/types";
@@ -44,9 +45,10 @@ export function roomStreamFilter(rooms: ReadRooms): RelayFilter {
 
       return name === "run" || name === "stopping";
     },
-    // The deployment's word alone carries nothing but that it moved, and the route it sends them to
-    // hands a member only that a run is under way (docs/web.md, 「Deployment in the title bar」).
-    consoleEvent: (event) => event.name === "deploy",
+    // The deployment's word carries nothing but that it moved, and the route it sends them to hands a member only
+    // that a run is under way (docs/web.md, 「Deployment in the title bar」); the sidebar counts' word carries nothing
+    // but that a count may have moved, and the route it sends them to reads their own (docs/web.md, 「Sidebar」).
+    consoleEvent: (event) => event.name === "deploy" || event.name === SIDEBAR_COUNTS_WORD,
     // bmo-job's and the agency's events name no room, so none of them is a room of theirs.
     units: false,
     derived: () => (frame) => {

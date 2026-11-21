@@ -132,8 +132,9 @@ interface StreamState {
 // of them goes. Every screen reads the same connection: a browser holds only a handful open to
 // one origin, and each of these is a second one held from this app to the bot besides.
 const listeners = new Set<(event: BotEvent) => void>();
-// The console's own words that carry nothing but that something moved: the deployment, and the testbed's queue.
-const CONSOLE_WORDS = ["deploy", "testbed"] as const;
+// The console's own words that carry nothing but that something moved: the deployment, the testbed's queue, and a
+// sidebar count.
+const CONSOLE_WORDS = ["deploy", "testbed", "sidebar-counts"] as const;
 
 type ConsoleWord = (typeof CONSOLE_WORDS)[number];
 
@@ -586,8 +587,8 @@ function open(): void {
     }
   });
 
-  // The console's words that the deployment moved and that the testbed's queue changed. They carry nothing; a
-  // listener reads again.
+  // The console's words that the deployment moved, that the testbed's queue changed and that a sidebar count may have
+  // moved. They carry nothing; a listener reads again.
   for (const word of CONSOLE_WORDS) {
     source.addEventListener(word, () => {
       heard = true;
@@ -1515,5 +1516,10 @@ export function useDeployEvents(onChange: () => void): void {
 // The console's word that the testbed's queue changed (docs/web.md, the TODO panel's section).
 export function useTestbedEvents(onChange: () => void): void {
   useConsoleWord("testbed", onChange);
+}
+
+// The console's word that a unit whose screen carries a sidebar count said something moved (docs/web.md, 「Sidebar」).
+export function useSidebarCountEvents(onChange: () => void): void {
+  useConsoleWord("sidebar-counts", onChange);
 }
 

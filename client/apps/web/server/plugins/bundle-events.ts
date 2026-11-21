@@ -1,21 +1,25 @@
 import { createParser } from "eventsource-parser";
 
-import { ring } from "../utils/push";
-import { ringsFromThisServer } from "../utils/pushnews";
+import { noticeOf } from "../utils/bundle-notices";
+import { SIDEBAR_COUNTS_WORD, dutyOf } from "../utils/bundle-streams";
+import { publishConsoleEvent } from "../utils/console-events";
 import { onBundlesRead } from "../utils/console-manifests";
 import { OWNER_KEY_HEADER, OWNER_ROLE_HEADER, moveAdministratorKey } from "../utils/owner-key";
+import { ring } from "../utils/push";
+import { ringsFromThisServer } from "../utils/pushnews";
 import { unitHeaders } from "../utils/units";
 
+import type { NoticeWords } from "../utils/bundle-notices";
+import type { StreamDuty } from "../utils/bundle-streams";
 import type { AttachedBundle } from "../utils/console-manifests";
-import type { PushPayload } from "#shared/types";
-import type { ConsoleManifest } from "bmo-ui/shared/console-manifest";
 
-// A console bundle's notices (bmo-ui's `docs/console-bundles.md`, 「Notices」): the console reads the
-// stream of a unit whose manifest asks for it, and every event whose kind the manifest names under
-// `pushKinds` rings the owner's devices in the bundle's own words, under the notice kind that carries the
-// bundle's name. No unit's address, path or word is written here: the manifest names the service and the
-// kinds, and the bundle's words name the words. A stream is followed while its manifest stands as it was
-// read, and let go when the manifest goes or changes.
+// A console bundle's event stream, followed by the console's server (docs/web.md, 「Notifications」 and 「Sidebar」;
+// bmo-ui's `docs/console-bundles.md`, 「Notices」 and the sidebar count): every event whose kind the manifest names
+// under `pushKinds` rings the owner's devices in the bundle's own words, under the notice kind that carries the
+// bundle's name, and every event of a bundle whose manifest names a sidebar count tells every open tab to read its
+// counts again. No unit's address, path or word is written here: the manifest names the service, the kinds and the
+// count, and the bundle's words name the words. A stream is followed while its manifest stands as it was read, and
+// let go when the manifest goes or changes.
 
 // How long to wait before opening a stream again after it dropped, and the ceiling that wait grows to.
 const RETRY_MS = 5_000;
@@ -25,70 +29,9 @@ const RETRY_CAP_MS = 30_000;
 // waits a moment rather than counting as a failure.
 const FIRST_OPEN_DELAY_MS = 2_000;
 
-interface Words {
-  [key: string]: unknown;
-}
-
-type Fields = Record<string, unknown>;
-
-function fieldOf(data: Fields, name: string): string {
-  const value = data[name];
-
-  if (typeof value === "string") return value;
-  if (typeof value === "number") return String(value);
-  if (typeof value === "object" && value !== null) {
-    const held = value as Fields;
-
-    return String(held.name ?? held.address ?? "");
-  }
-
-  return "";
-}
-
-function filled(text: unknown, data: Fields): string {
-  if (typeof text !== "string") return "";
-
-  return text.replaceAll(/\{(\w+)\}/g, (_match, name: string) => fieldOf(data, name));
-}
-
-// One word of a bundle's pack under the notice kind its event names, wherever the kind's own dots
-// divide the pack's tree.
-function noticeWord(words: Words, name: string, kind: string, role: "title" | "body"): unknown {
-  let held: unknown = words[name];
-
-  for (const part of ["notice", ...kind.split("."), role]) {
-    if (typeof held !== "object" || held === null) return undefined;
-
-    held = (held as Words)[part];
-  }
-
-  return held;
-}
-
-// The bundle's screen under the console's own base path, where pressing the notice goes; the manifest names the
-// screen's path inside the console, which a device's notification cannot read without the base.
-function screenUrl(bundle: ConsoleManifest): string {
-  const base = useRuntimeConfig().app.baseURL.replace(/\/+$/, "");
-
-  return `${base}/${bundle.screenPath.replace(/^\/+/, "")}`;
-}
-
-function noticeOf(bundle: ConsoleManifest, kind: string, data: Fields, words: Words): PushPayload {
-  return {
-    kind: bundle.name as PushPayload["kind"],
-    title: filled(noticeWord(words, bundle.name, kind, "title"), data) || bundle.title,
-    body: filled(noticeWord(words, bundle.name, kind, "body"), data),
-    url: screenUrl(bundle),
-    tag: `${bundle.name}:${fieldOf(data, "threadId") || fieldOf(data, "id") || kind}`
-  };
-}
-
-async function follow(attached: AttachedBundle, words: Words, letGo: AbortSignal, closing: () => boolean): Promise<void> {
+async function follow(attached: AttachedBundle, duty: StreamDuty, words: NoticeWords, letGo: AbortSignal, closing: () => boolean): Promise<void> {
   const stopping = () => closing() || letGo.aborted;
   const { manifest: bundle, unit } = attached;
-  const kinds = new Set(bundle.pushKinds);
-
-  if (kinds.size === 0) return;
 
   let attempts = 0;
 
@@ -124,26 +67,19 @@ async function follow(attached: AttachedBundle, words: Words, letGo: AbortSignal
 
         parser.feed(decoder.decode(chunk.value, { stream: true }));
 
-        for (const event of arrived.splice(0)) {
-          if (!kinds.has(event.name)) continue;
+        const heard = arrived.splice(0);
 
-          let data: Fields = {};
+        // Which change moves a count is the unit's own, so any event of it has the tabs read their counts again.
+        if (duty.counts && heard.length > 0) publishConsoleEvent(SIDEBAR_COUNTS_WORD, {});
 
-          try {
-            const read: unknown = JSON.parse(event.data);
-
-            if (typeof read === "object" && read !== null) data = read as Fields;
-          } catch {
-            // An event that does not read as JSON says nothing a notice can carry.
-          }
-
-          await ring(noticeOf(bundle, event.name, data, words));
+        for (const event of heard) {
+          if (duty.rings.has(event.name)) await ring(noticeOf(bundle, event.name, event.data, words, useRuntimeConfig().app.baseURL));
         }
       }
     } catch (error) {
       if (stopping()) break;
 
-      console.error(`push: could not read ${bundle.name}'s events:`, error);
+      console.error(`bundle events: could not read ${bundle.name}'s events:`, error);
     }
 
     attempts += 1;
@@ -153,11 +89,9 @@ async function follow(attached: AttachedBundle, words: Words, letGo: AbortSignal
 }
 
 export default defineNitroPlugin((nitro) => {
-  if (!ringsFromThisServer(import.meta.dev, process.env.BMO_PUSH_IN_DEV)) {
-    console.log("push: a development console does not ring. Start it with BMO_PUSH_IN_DEV=1 to ring from here");
+  const ringsHere = ringsFromThisServer(import.meta.dev, process.env.BMO_PUSH_IN_DEV);
 
-    return;
-  }
+  if (!ringsHere) console.log("push: a development console does not ring. Start it with BMO_PUSH_IN_DEV=1 to ring from here");
 
   // Each stream followed, by the manifest it was read under, with the switch that lets it go.
   const followed = new Map<string, AbortController>();
@@ -167,9 +101,10 @@ export default defineNitroPlugin((nitro) => {
     const standing = new Set<string>();
 
     for (const bundle of bundles) {
-      const words = bundle.words.ko as Words | undefined;
+      const words = bundle.words.ko as NoticeWords | undefined;
+      const duty = dutyOf(bundle.manifest, words, ringsHere);
 
-      if (!bundle.manifest.events || bundle.manifest.pushKinds.length === 0 || words === undefined) continue;
+      if (duty === null) continue;
 
       const key = `${bundle.unit.address} ${JSON.stringify(bundle.manifest)}`;
 
@@ -180,7 +115,7 @@ export default defineNitroPlugin((nitro) => {
       const held = new AbortController();
 
       followed.set(key, held);
-      void follow(bundle, words, held.signal, () => closing);
+      void follow(bundle, duty, words ?? {}, held.signal, () => closing);
     }
 
     for (const [key, held] of followed) {

@@ -600,9 +600,9 @@ nothing.
     account and with no room (「Presence and typing」).
   - What a turn is doing step by step, the verdicts, the other work running anywhere, the queue, the
     console's own events, bmo-job's and the agency's events, which name no room, and anything of a room
-    they do not read never reach them. The one console
-    word that does is `deploy`, which carries nothing but that the deployment moved (「Deployment in
-    the title bar」).
+    they do not read never reach them. The console words that do are `deploy`, which carries nothing but
+    that the deployment moved (「Deployment in the title bar」), and `sidebar-counts`, which carries nothing
+    but that a unit's count may have moved (「Sidebar」).
 - **Every open stream asks again who it is for.** Each time a stream's rooms are read again — on a change of the
   reader's rooms and each minute — the login it was opened for is asked about as a request's is, the administrator's
   stream among them: a login that no longer stands, or one no longer what it was when the stream opened, the
@@ -1527,8 +1527,13 @@ Four groups.
     another unit for it. The console draws a positive count at the line's end as a count badge (「Count badges」)
     in the primary colour, the reader's mail count among them. Folded, it stands on the icon's rim at about two
     o'clock instead, as the rooms' dots do, with the number itself in a pill there, placed from the row's centre
-    so the folded column keeps one centre. The console reads the counts when the sidebar stands and again on its
-    own pacing clock while the tab is open and shown.
+    so the folded column keeps one centre. The console reads the counts when the sidebar stands, again on its
+    own pacing clock while the tab is open and shown, and again at once whenever the tab's stream carries the
+    `sidebar-counts` word. The console's server follows the event stream of every unit whose manifest names
+    both a count and its events, and tells every open tab that word on any event of it, since which change
+    moves a count is the unit's own; the word carries nothing, and each tab reads its own reader's counts
+    again, a word heard while a read is in the air reading once more after it. So a count follows mail
+    arriving and mail read within moments, however briefly it stands.
 - **Rooms** — the reader's own rooms and, for the administrator, the deployment's (「Access」), never another
   account's. The rooms stand in the order the receiver's room list gives them, the pinned first. The owner's private
   chat is the room the receiver's `GET /owner` names — a room the console made on the record road as readily as a chat
@@ -9067,7 +9072,13 @@ and `/api/supply/credits/audit`.
   receives it, and the path that rings it; the 알림 section and the delivery filter read the list of kinds and
   nothing else, so a kind added later changes no file but its own and that list. The two kinds of the bot's stream
   are rung by the plugin that listens to it; a bundle's notice kind is rung by the plugin that reads the stream
-  of a unit whose manifest names the kind, in the bundle's own words. That stream is read for nobody signed in, so it carries the
+  of a unit whose manifest names the kind, in the bundle's own words. The words' placeholders are filled from the
+  member the event carries, the inner `data` of the stream's `{"id", "kind", "at", "data"}` (bmo-chat's
+  `docs/conventions.md`, 「Events and streams」); a field holding a name and an address is said by its name, and by its
+  address where the name is empty. A field that is absent or empty takes with it the text beside it that holds no
+  letter or digit, so a separator never stands alone: `{from}: {subject}` with no subject reads as the sender
+  alone. A title that comes out empty is the bundle's own screen title in its words. Notices of the same thread, or
+  else of the same member, share one tag, so a later one replaces the earlier in the tray. That stream is read for nobody signed in, so it carries the
   platform administrator's owner key, in the administrator's role: the user the account service names its
   administrator, its id as a decimal number (`docs/boundary.md`, 「Calls the console makes」).
 - **A device receives a kind unless it was turned off there.** What a device stores is what it refused, so a kind added
@@ -9080,7 +9091,7 @@ and `/api/supply/credits/audit`.
   notice itself, so a bell ringing there is noise. Only for that screen, though — a tab looking at the cache siren screen
   has no way to know a question in the queue, so it rings then.
 - **Pressing goes to that place.** A question stands the queue panel with that item open, a room
-  message stands that room, and mail opens the conversation of the newest message that arrived. The address a
+  message stands that room, and a bundle's notice, mail's among them, opens the bundle's screen. The address a
   notification carries is written by the server under the configured base path, and a window told to go there takes
   that base off before handing the place to its router. If a console is already open its window
   is brought forward and moved, not opened anew. A window installed as an app is not always one the service worker

@@ -1,13 +1,16 @@
 import { onBeforeUnmount, onMounted, ref } from "vue";
 
+import { useSidebarCountEvents } from "./events";
+
 import type { ScreenCounts } from "./screens";
 import type { Ref } from "vue";
 
 // The sidebar counts the bundles declare (docs/web.md, 「Sidebar」; bmo-ui's `docs/console-bundles.md`, the sidebar
 // count). The console reads them itself, from its server, for the reader signed in; the sidebar asks the console's own
 // route for them, so no call is made from whatever bundle's page is open, and the last count stands where one did not
-// answer. The sidebar asks when it stands, again every minute while the tab is open — a clock that paces, since no
-// stream announces a count — and the moment a tab brought back into view looks at them.
+// answer. The sidebar asks when it stands, at once whenever the tab's stream says a count may have moved, again every
+// minute while the tab is open — a clock that paces, for a unit whose stream the console does not follow — and the
+// moment a tab brought back into view looks at them.
 
 const READ_EVERY_MS = 60_000;
 
@@ -28,32 +31,56 @@ export function mergedCounts(held: ScreenCounts, answer: unknown): ScreenCounts 
 }
 
 /**
+ * A read asked for while it is already in the air is not made beside it, and is not dropped either: what moved may
+ * have come after the read in the air was answered, so one more read follows it, however many were asked meanwhile.
+ */
+export function coalesced(readOnce: () => Promise<void>): () => Promise<void> {
+  let reading: Promise<void> | null = null;
+  let owed = false;
+
+  return () => {
+    if (reading !== null) {
+      owed = true;
+
+      return reading;
+    }
+
+    reading = (async () => {
+      try {
+        do {
+          owed = false;
+          await readOnce();
+        } while (owed);
+      } finally {
+        reading = null;
+      }
+    })();
+
+    return reading;
+  };
+}
+
+/**
  * The sidebar counts, read for the reader whose sidebar stands. Nothing is drawn before a read has answered, and a
  * count that did not answer stays as the sidebar last held it.
  */
 export function useSidebarUnread(): Ref<ScreenCounts> {
   const counts = ref<ScreenCounts>({});
   let clock: ReturnType<typeof setInterval> | null = null;
-  let reading = false;
-
-  async function read(): Promise<void> {
-    if (reading) return;
-
-    reading = true;
-
+  const read = coalesced(async () => {
     try {
       counts.value = mergedCounts(counts.value, await $fetch(COUNTS_ROUTE, { headers: { accept: "application/json" } }));
     } catch {
       // A console that did not answer leaves every count standing; the sidebar keeps drawing them.
-    } finally {
-      reading = false;
     }
-  }
+  });
 
   // A tab that came back into view reads again, since a minute's clock does not run while the browser holds it.
   function onVisible(): void {
     if (document.visibilityState === "visible") void read();
   }
+
+  useSidebarCountEvents(() => void read());
 
   onMounted(() => {
     void read();

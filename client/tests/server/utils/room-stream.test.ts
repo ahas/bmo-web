@@ -74,7 +74,7 @@ describe("the bot's stream cut to the rooms a user reads", () => {
       .toEqual({ id: 10, at: 7, type: "live", chatId: 0, messageId: null, live: cut });
   });
 
-  test("the relay passes the run's word and the stopping word as they are, and none of the console's own", () => {
+  test("the relay passes the run's word and the stopping word as they are, and of the console's own only the words that carry nothing", () => {
     const filter = roomStreamFilter(rooms);
 
     expect(filter.frame!("event: run\ndata: {\"run\":\"a\"}\n\n")).toBe(true);
@@ -82,6 +82,7 @@ describe("the bot's stream cut to the rooms a user reads", () => {
     expect(filter.frame!(bot({ id: 3, at: 1, type: "message", chatId: ROOM_ID, messageId: 12 }))).toBe(false);
     expect(filter.consoleEvent!({ name: "mail", data: { account: "a" } })).toBe(false);
     expect(filter.consoleEvent!({ name: "deploy", data: {} })).toBe(true);
+    expect(filter.consoleEvent!({ name: "sidebar-counts", data: {} })).toBe(true);
   });
 
   test("each frame is cut to the rooms as they stand when it passes, so a room taken away falls silent at once", () => {

@@ -3407,6 +3407,8 @@ alone (「Access」); another account's agents are reached from 조직's 사용�
       under each stands one line saying it is the role's setting, shared by every agent of the role, and 역할 설정,
       which opens the role's dialog (「역할」 above) over this one; a save there is read again here. A text the role
       holds none of says 없음. On a phone the side list is a select above the text, naming the text it shows.
+      The tab row, and the side list under it, hold to the top of the dialog's body while a long text scrolls, so
+      another text or tab is one press away wherever the reader stands in it.
     - **기능:** 기능 묶음, a choice of several among the bundles the agency declares, and 스킬, a choice of several
       among the skills a plugin of the agency's release carries, each the agent's own and each left empty for the
       role's, which its placeholder names with `(기본값)` — the role's skills only where it names them, since one

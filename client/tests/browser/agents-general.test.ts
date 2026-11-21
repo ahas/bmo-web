@@ -369,13 +369,15 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
       ];
       const view = () => ({
         roles: [{
-          name: "worker", label: "Worker", description: null, prompt: "role-text-a", providerPrompts: { "claude-code": "provider-text-a" }, bundles: [], skills: null, line: "worker", agents,
+          name: "worker", label: "Worker", description: null, prompt: ROLE_TEXT, providerPrompts: { "claude-code": "provider-text-a" }, bundles: [], skills: null, line: "worker", agents,
           roads: [], maxConcurrent: agents.length, running: 0, waiting: 0, provider: "claude-code", waitingFor: null
         }],
         bundles: [{ name: "web.read", label: "Web reading" }],
         skills: ["skill-a"],
         lines: ["worker"]
       });
+      // A role prompt longer than the dialog's body, which scrolls under the tab row and beside the side list.
+      const ROLE_TEXT = ["role-text-a", ...Array.from({ length: 120 }, (_, at) => `line-${at}`)].join("\n");
       const sent: { method: string; name: string | null; body: unknown }[] = [];
 
       await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
@@ -482,7 +484,30 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
         await pick(wording("agents.aria.provider_prompt_of", { provider: "Claude Code" }));
         expect((await dialog.locator("[data-role-text]").innerText()).trim()).toBe("provider-text-a");
         await pick(wording("agents.label.role_prompt"));
-        expect((await dialog.locator("[data-role-text]").innerText()).trim()).toBe("role-text-a");
+        expect((await dialog.locator("[data-role-text]").innerText()).trim()).toBe(ROLE_TEXT);
+
+        // Scrolled to its end, the text leaves the tab row at the body's top and the side list under it.
+        const body = dialog.locator("[data-slot=body]");
+
+        await body.evaluate((box) => box.scrollTo({ top: box.scrollHeight }));
+
+        const shown = (await body.boundingBox())!;
+        const tabRow = (await dialog.locator("[data-agent-tabs]").boundingBox())!;
+
+        expect(await body.evaluate((box) => box.scrollTop)).toBeGreaterThan(0);
+        expect(Math.abs(tabRow.y - shown.y)).toBeLessThanOrEqual(1);
+
+        // The tab row runs from one side of the dialog to the other, its line with it.
+        const row = (await dialog.locator("[data-agent-tabs]").locator("xpath=..").boundingBox())!;
+
+        expect(Math.abs(row.x - shown.x)).toBeLessThanOrEqual(1);
+        expect(Math.abs(row.width - (await body.evaluate((box) => box.clientWidth)))).toBeLessThanOrEqual(1);
+        if (!phone) {
+          const list = (await dialog.locator("[data-agent-prompt-list]").boundingBox())!;
+
+          expect(list.y).toBeGreaterThanOrEqual(tabRow.y + tabRow.height);
+          expect(list.y + list.height).toBeLessThanOrEqual(shown.y + shown.height);
+        }
         expect(await dialog.locator("[data-role-shared]").innerText()).toContain(wording("agents.message.role_shared"));
 
         // The role's dialog opens over this one, and Back closes it alone.

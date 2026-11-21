@@ -14,8 +14,9 @@
     </ContentSkeleton>
 
     <template v-else>
-      <!-- The tab row stands against the dialog's edges, its line running from side to side. -->
-      <div :class="['-mx-4 -mt-4 h-10 shrink-0 px-2 sm:-mx-6 sm:-mt-6 sm:px-4', TAB_ROW_LINE]">
+      <!-- The tab row stands against the dialog's edges, its line running from side to side, and holds to the top of
+           the dialog's body while a long text scrolls under it. -->
+      <div :class="['sticky -top-4 z-10 -mx-4 -mt-4 h-10 shrink-0 bg-default px-2', TAB_ROW_LINE]">
         <UTabs v-model="tab" :items="tabs" :content="false" color="neutral" variant="link" size="sm" :ui="TAB_ROW_UI" :aria-label="$t('agents.aria.agent_tabs')" data-agent-tabs />
       </div>
 
@@ -60,7 +61,8 @@
         <!-- The texts the system prompt is composed of: the list at the left and the chosen one's text beside it, a
              select over the text on a phone. -->
         <div v-else-if="tab === 'prompt'" class="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start" data-agent-prompts>
-          <div class="hidden w-48 shrink-0 sm:block" data-agent-prompt-list>
+          <!-- The list holds under the tab row while a long text scrolls beside it. -->
+          <div class="hidden w-48 shrink-0 sm:sticky sm:top-10 sm:block" data-agent-prompt-list>
             <UNavigationMenu :items="sectionLinks" orientation="vertical" :aria-label="$t('agents.label.agent_prompt')" />
           </div>
           <ChoiceSelect v-model="section" :items="sectionItems" value-key="value" class="w-full sm:hidden" :aria-label="$t('agents.label.agent_prompt')" data-agent-prompt-select />

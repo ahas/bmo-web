@@ -3199,7 +3199,7 @@ archive and this week's tokens remain. That is all that can actually be known th
   with the pack's sentence for the agency's code under the field, or, for a choice, says it in a notice. A cell
   showing only what the agency worked out — how many of a role's runs go — is not pressed. A
   cell holding a group of switches — a supervisor's 캐시 유지 — opens them in its dropdown, each taking effect as it is
-  thrown. Dialogs are left only for what is not one cell: a supervisor's road, a whole role with its agents, a whole
+  thrown. Dialogs are left only for what is not one cell: a supervisor's road, a whole role, one agent of a role, a whole
   repository, a supervisor's own settings, and asking once before a removal; a row's whole settings open from its more-menu or its
   name, never from a cell.
 - **A supervisor stands on one road** (the agency's `docs/supervisors.md` and `docs/provider-order.md`): a
@@ -3214,21 +3214,23 @@ archive and this week's tokens remain. That is all that can actually be known th
   - 공급자, a choice of every provider whose program carries the supervisor's line, a provider that cannot answer
     now standing with the pack's sentence for its reason; a provider picked stands on the first model its
     catalogue serves;
-  - under it, each under its own label — 모델, a list of what the agency's `GET /provider-models/{provider}`
+  - **어드바이저 beside 공급자,** on its line from the small breakpoint up and under it on a phone, so the advisor is
+    seen with the provider it depends on, standing only where the road's provider declares `takesAdvisor` in
+    `GET /providers` (the agency's `docs/api.md`, 「providers, models and model files」): a list of `끔 (기본값)` — no
+    advisor, every road's own until one is set — then the provider's `advisorWords`, the family words it names an
+    advisor by, then every model of the provider's `GET /provider-models/{provider}`, the same list 모델 offers; an
+    advisor the road names that neither list carries still stands as its own choice. Whether a provider takes one
+    is its declaration alone, never worked out from its name. While an advisor is chosen, a line under the field
+    says that its calls are spent in the advisor model's tokens. Where the road's provider takes none, the field
+    stands nowhere and a muted line under 공급자 says that an advisor is taken only on the providers that declare
+    it, named by their words, so why stands beside the provider at a glance; it stands nowhere while no provider
+    declares one. Which advisor may advise which model is the agency's to judge: the console offers every choice
+    and says a refusal;
+  - under them, each under its own label — 모델, a list of what the agency's `GET /provider-models/{provider}`
     answers for that provider, the Claude catalogue's superseded generations marked and a stale read said with
     the time it was taken; 강도, a list of the levels that model takes, standing only where it takes any; 생각,
     켬 or 끔; and, on the registry's provider, 답변 상한. The fields stand in one column on a phone and side by
     side from the small breakpoint up, the model taking what is left and every other field its own width;
-  - **어드바이저 under them,** on its own line, standing only where the road's provider declares `takesAdvisor`
-    in `GET /providers` (the agency's `docs/api.md`, 「providers, models and model files」): a list of `끔 (기본값)` — no
-    advisor, every road's own until one is set — then the provider's `advisorWords`, the family words it names an advisor by, then every model of
-    the provider's `GET /provider-models/{provider}`, the same list 모델 offers; an advisor the road names that
-    neither list carries still stands as its own choice. Whether a provider takes one is its declaration alone,
-    never worked out from its name. While an advisor is chosen, a line under the field says that its calls are
-    spent in the advisor model's tokens. Where the road's provider takes none, a muted line stands in the field's
-    place saying that an advisor is taken only on the providers that declare it, named by their words; it stands
-    nowhere while no provider declares one. Which advisor may advise which model is the agency's to judge: the
-    console offers every choice and says a refusal;
   - **the thinking and the answer ceiling mark the model's own:** the choice equal to the `thinking` the model's
     registration or road member declares reads `켬 (기본값)` or `끔 (기본값)` and stands chosen while the road
     leaves thinking to the provider, and picking it leaves it so; an emptied ceiling box is the registration's
@@ -3269,7 +3271,7 @@ archive and this week's tokens remain. That is all that can actually be known th
 #### 에이전트
 
 The tab holds every agent of the screen: the supervisors, which answer rooms, and the agents of the roles, each
-a seat of its role. Both tables, and a role's agents its dialog opens, hold the reader's own and the deployment's
+a seat of its role. Both tables, and the agent an agent's dialog opens, hold the reader's own and the deployment's
 alone (「Access」); another account's agents are reached from 조직's 사용자 tab.
 
 - **One table of every supervisor** (the agency's `docs/supervisors.md`), one row each in the order the agency lists
@@ -3367,32 +3369,44 @@ alone (「Access」); another account's agents are reached from 조직's 사용�
     standing marked `(기본값)` where the agent sets none, and a dash for an agent that names no road and sets
     none; 캐시 유지, a switch, whether its last
     kept session is pinged before its cache cools; and 사용, the switch that turns it on and off.
-  - **Pressing an agent's name opens its role's agents,** a dialog titled with the role (「역할」 above gives the
-    role its preset): one block per agent of that role, by name, saved as each is changed.
-    - **A block's head:** a switch that turns the agent on and off; its name; and its removal, which stands
-      disabled while it carries a run. While it carries a run, 실행 중 stands as a chip on a row of its own under
-      the head. No agent stands before another: which one does a
-      job is named by the supervisor that orders it.
-    - **Its road under them:** 공급자, a choice of 요청한 감독관을 따름 — no road — and every provider whose program
-      carries the role's line; and, under a provider, 모델, what `GET /provider-models/{provider}` answers for it,
-      and 강도, the levels that model takes, standing only where it takes any. A provider picked stands on the first
-      model its catalogue serves; 요청한 감독관을 따름 clears the road whole.
-    - **어드바이저 under them,** with the choices, the line on its tokens and the muted line where the agent's
-      provider takes none that a supervisor's road holds (above), each choice saved as it is picked through
-      `PATCH /role-agents/{name}` with `advisor`, 끔 sending null. A provider or a model picked sends the advisor
-      as null with it, so the field stands at 끔 again. An agent that follows its supervisor names no advisor: a
-      muted line stands in the field's place saying that it uses the advisor of the supervisor that asks it. An
-      advisor the agency refuses — a refusal whose `error` begins `advisor: ` — is said under that agent's
-      어드바이저 in the pack's sentence for a refused advisor, and the agent stands as it was.
-    - **역할 위에 덮어쓰기, folded,** with the count of what it lays over where it lays any, each item on its own:
-      시스템 프롬프트, which then stands in place of the role's; 기능 묶음, a choice of several among the bundles the
-      agency declares; and 스킬, names set apart by commas, each a skill a plugin of the agency's release carries.
-      Each left empty is the role's own, whatever the others hold. Above them stands 캐시 유지, the same switch the
-      table holds.
-    - **에이전트 추가** under the list adds one in the last place, on the road of the role's last agent.
+  - **Pressing an agent's name, or 설정 in its more-menu, opens that agent's own dialog,** titled with its name and
+    with its role under the title, holding that one agent and none of its role's others — the owner's words:
+    「그냥 해당 에이전트 설정만 표시해주는게 맞지않을까?」. It is one form (「Forms」) with one 저장 at its foot: every
+    change waits for it, the save sends the fields that differ through `PATCH /role-agents/{name}`, and the dialog
+    closes once it went through. Closing asks whether to throw changes away only while a value differs from the one
+    it opened with, and Back closes it as every dialog's does. A refusal keeps every field as written, with the
+    pack's sentence for the agency's code under the field its `field` names, and its tab chosen; an advisor the agency
+    refuses — a refusal whose `error` begins `advisor: ` — is said under 어드바이저 in the pack's sentence for a
+    refused advisor. Its fields stand in four tabs, the shared tabs of Nuxt UI under the title, the first chosen as it
+    opens — the owner's words: 「모달에서 섹션을 탭으로 좀 나눠라」:
+    - **일반:** 사용, the switch that turns it on and off, and 실행 중 as a chip beside it while it carries a run;
+      then its road, the road field a supervisor's road holds (above) with 요청한 감독관을 따름 — no road — first
+      among 공급자's choices, which clears the road whole, and every provider whose program carries the role's line
+      after it. 어드바이저 stands beside 공급자 as a supervisor's road has it: plain on a provider that takes one, and
+      on one that takes none the muted line under 공급자 naming the providers that do. An agent that follows its
+      supervisor names no advisor, and the muted line under 공급자 says that it uses the advisor of the supervisor that
+      asks it. A provider or a model picked sets the advisor back to 끔.
+    - **세션:** 세션, 유지 or 새로; 압축 기준, a whole percent from 1 to 100, empty for the one its provider declares,
+      which its placeholder names with `(기본값)`; and 캐시 유지, the switch with the line saying what it does. They
+      are the settings the table's cells hold.
+    - **시스템 프롬프트:** a side list of the texts the agent's system prompt is composed of, the chosen one's text
+      beside it — the owner's words: 「시스템 프롬프트 서브섹션들은 사이드바로 좀 나누고 모달내에서」: 에이전트 프롬프트,
+      the agent's own, a text box as tall as its text, which stands in place of the role's prompt and is empty for
+      the role's; 역할 프롬프트, the role's; and `<provider> 프롬프트` for every provider text the role holds, in the
+      agency's order of providers. The first is chosen as the tab opens. The role's texts are read, not edited, here:
+      under each stands one line saying it is the role's setting, shared by every agent of the role, and 역할 설정,
+      which opens the role's dialog (「역할」 above) over this one; a save there is read again here. A text the role
+      holds none of says 없음. On a phone the side list is a select above the text, naming the text it shows.
+    - **기능:** 기능 묶음, a choice of several among the bundles the agency declares, and 스킬, a choice of several
+      among the skills a plugin of the agency's release carries, each the agent's own and each left empty for the
+      role's, which its placeholder names with `(기본값)` — the role's skills only where it names them, since one
+      naming none leaves its runs the release's whole plugin; one line under them says an empty one follows the role's
+      setting, shared by every agent of the role, with 역할 설정.
+    - Adding and removing agents stays with the table: 에이전트 추가 at its head and 삭제 in each row's more-menu.
+      No agent stands before another: which one does a job is named by the supervisor that orders it.
   - **에이전트 추가 at the table's head**, the heading's grey icon with its name as its tooltip, offers every role in
     a menu dropping from it; the one picked is given one more agent in its last
-    place, on the road of its last agent, through `POST /role-agents`, and that role's agents open.
+    place, on the road of its last agent, through `POST /role-agents`, and the new agent's own dialog opens.
   - **삭제** stands in each row's more-menu, asked first in a dialog naming the agent, and stands disabled while
     the agent carries a run, its tooltip saying so.
   - **중지** stands first in the more-menu of an agent whose run is tied to an item (「What each agent is doing

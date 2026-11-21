@@ -4,8 +4,8 @@
        now (「What each agent is doing now」), whose run tied to an item its more-menu stops, its road, and
        the settings that are its own, each a cell that saves it: whether its runs keep their sessions, the share its
        session is folded at, whether it may be called as a co-worker, whether its last session is kept warm and
-       whether it is switched on. Pressing an agent's name opens its role's agents, where its road, its place and
-       what it lays over its role are changed. -->
+       whether it is switched on. Pressing an agent's name opens that agent's own settings, where its road, its
+       advisor, its sessions and what it lays over its role are changed. -->
   <section class="flex min-w-0 flex-col" :aria-label="$t('agents.label.role_agents')" data-role-agents-table>
     <div class="flex h-12 shrink-0 items-center justify-between gap-2 px-4">
       <h2 class="text-sm font-medium text-highlighted">{{ $t("agents.label.role_agents") }}</h2>
@@ -30,7 +30,7 @@
           class="ps-4"
           :disabled="props.readonly"
           :aria-label="$t('agents.aria.settings_of', { name: row.original.name })"
-          @click="openRole(row.original.role)"
+          @click="openAgent(row.original.name)"
         >
           <SearchText class="truncate font-mono text-sm font-medium" :class="row.original.enabled ? 'text-highlighted' : 'text-dimmed'" :text="row.original.name" :query="props.query" />
         </button>
@@ -112,7 +112,7 @@
     <p v-if="runsError" role="alert" class="px-4 py-2 break-words text-sm text-error">{{ failureText(runsError, $t("live.error.agent_runs_read_failed")) }}</p>
     <p v-if="refusal !== ''" role="alert" class="px-4 py-2 break-words text-sm text-error">{{ refusal }}</p>
 
-    <RoleAgentsDialog v-model:open="editing" :role="editingRole" />
+    <AgentSettingsDialog v-model:open="editing" :name="editingAgent" />
     <AgentLogDialog v-if="log !== null" v-model:open="logOpen" :name="log.role" :place="log.place" :rooms="rooms ?? []" />
   </section>
 </template>
@@ -277,15 +277,15 @@ async function flip(agent: RoleAgentView, key: (typeof SWITCHES)[number]["key"],
 }
 
 const editing = ref(false);
-const editingRole = ref<string | null>(null);
+const editingAgent = ref<string | null>(null);
 
-function openRole(role: string): void {
-  editingRole.value = role;
+function openAgent(name: string): void {
+  editingAgent.value = name;
   editing.value = true;
 }
 
-// One more agent of a role: it stands last among its role's, on the road of the role's last agent, and its role's
-// agents open so its road and its place can be set.
+// One more agent of a role: it stands last among its role's, on the road of the role's last agent, and its own
+// settings open so its road can be set.
 const adding = ref(false);
 const addItems = computed<DropdownMenuItem[]>(() => (view.value?.roles ?? []).map((role) => ({ label: role.name, onSelect: () => void add(role.name) })));
 
@@ -297,9 +297,10 @@ async function add(role: string): Promise<void> {
     const last = view.value?.roles.find((one) => one.name === role)?.agents.at(-1);
     const body = last === undefined || last.provider === null ? { role } : { role, provider: last.provider, model: last.model, effort: last.effort, advisor: last.advisor };
 
-    await $fetch<RoleAgentView>("/api/role-agents", { method: "POST", body });
+    const answered = await $fetch<RoleAgentView>("/api/role-agents", { method: "POST", body });
+
     await refresh();
-    openRole(role);
+    openAgent(answered.name);
   } catch (failure) {
     refusal.value = failureText(failure, t("agents.error.agent_save_failed"));
   } finally {
@@ -337,7 +338,7 @@ function menuOf(agent: RoleAgentView): DropdownMenuItem[] {
 
   return [
     ...stopItems,
-    { label: t("agents.action.settings"), icon: "i-material-symbols-settings-outline", onSelect: () => openRole(agent.role) },
+    { label: t("agents.action.settings"), icon: "i-material-symbols-settings-outline", onSelect: () => openAgent(agent.name) },
     {
       label: t("common.action.delete"),
       icon: "i-material-symbols-delete-outline",

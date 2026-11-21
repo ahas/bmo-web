@@ -273,7 +273,7 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
     }, 60_000);
   }
 
-  test("stand a role's agents as rows of the agents tab, their own settings saved from their cells, and change them in their role's dialog", async () => {
+  test("stand a role's agents as rows of the agents tab, their own settings saved from their cells", async () => {
     const context = await browser!.newContext({ viewport: { width: 1280, height: 900 }, serviceWorkers: "block", reducedMotion: "reduce" });
     const at = cookie.indexOf("=");
     // One role of three agents on one road, the first carrying a run, as the console's own route answers it.
@@ -346,48 +346,165 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
       expect(await until(async () => sent.length, (count) => count === 1)).toBe(1);
       expect(sent[0]).toEqual({ method: "PATCH", name: "worker-02", body: { keepsCache: true } });
       sent.length = 0;
-
-      // Its name opens its role's agents.
-      await rows.first().locator("button", { hasText: "worker-01" }).click();
-
-      const blocks = page.locator("[data-role-agents] li[data-agent]");
-
-      await blocks.first().waitFor({ timeout: 15_000 });
-      expect(await blocks.count()).toBe(3);
-
-      // An agent that carries a run is not removed.
-      expect(await page.locator(`li[data-agent="worker-01"] button[aria-label="${wording("agents.aria.agent_remove", { name: "worker-01" })}"]`).isDisabled()).toBe(true);
-
-      // Switched off, the agent's change goes at once and stands as answered.
-      await page.locator('li[data-agent="worker-03"] [role="switch"]').first().click();
-      expect(await until(async () => sent.length, (count) => count === 1)).toBe(1);
-      expect(sent[0]).toEqual({ method: "PATCH", name: "worker-03", body: { enabled: false } });
-
-      // One more seat of the same kind is one press: it stands last on the road of the role's last agent.
-      await page.getByRole("button", { name: wording("agents.action.agent_add") }).click();
-      await blocks.nth(3).waitFor({ timeout: 10_000 });
-      expect(sent[1]).toEqual({ method: "POST", name: null, body: { role: "worker", provider: "claude-code", model: "claude-opus-5-5", effort: "high" } });
-
-      // No agent stands before another: a block carries no place and no button moving it.
-      expect(await page.locator(`button[aria-label="${wording("common.aria.move_up_named", { name: "worker-04" })}"]`).count()).toBe(0);
-
-      // Removed, it leaves the list.
-      await page.locator(`li[data-agent="worker-04"] button[aria-label="${wording("agents.aria.agent_remove", { name: "worker-04" })}"]`).click();
-      expect(await until(async () => await blocks.count(), (count) => count === 3)).toBe(3);
-      expect(sent[2]).toEqual({ method: "DELETE", name: "worker-04", body: null });
-
-      // Its advisor is its own, offered on a provider that takes one and saved as it is picked.
-      const advisor = page.getByRole("button", { name: wording("agents.aria.advisor_of", { name: "worker-02" }), exact: true });
-
-      await advisor.click();
-      await page.getByRole("option", { name: "opus", exact: true }).click();
-      expect(await until(async () => sent.length, (count) => count === 4)).toBe(4);
-      expect(sent[3]).toEqual({ method: "PATCH", name: "worker-02", body: { advisor: "opus" } });
-      expect(await until(async () => (await advisor.innerText()).trim(), (text) => text === "opus")).toBe("opus");
     } finally {
       await context.close();
     }
   }, 90_000);
+
+  for (const [width, height, phone] of [[1280, 900, false], [360, 780, true]] as const) {
+    test(`open one agent's own settings in tabs, saved once from the foot, its role's texts read with the way to the role, ${width}px wide`, async () => {
+      const context = await browser!.newContext({ viewport: { width, height }, isMobile: phone, hasTouch: phone, serviceWorkers: "block", reducedMotion: "reduce" });
+      const at = cookie.indexOf("=");
+      // One role of three agents: one on a provider that takes an advisor, one on a provider that takes none and one
+      // that follows the supervisor that asks it.
+      const seat = (index: number, extra: Record<string, unknown> = {}) => ({
+        name: `worker-0${index}`, role: "worker", provider: "claude-code", model: "claude-opus-5-5", effort: "high", thinking: null, answerTokens: null, advisor: null,
+        enabled: true, position: index, keepsCache: false, sessions: "keep", foldRatio: null, prompt: null, bundles: null, skills: null,
+        followsSupervisor: false, carries: false, ...extra
+      });
+      let agents = [
+        seat(1),
+        seat(2, { provider: "deepseek", model: "deepseek-v4-pro", effort: null }),
+        seat(3, { provider: null, model: null, effort: null, followsSupervisor: true })
+      ];
+      const view = () => ({
+        roles: [{
+          name: "worker", label: "Worker", description: null, prompt: "role-text-a", providerPrompts: { "claude-code": "provider-text-a" }, bundles: [], skills: null, line: "worker", agents,
+          roads: [], maxConcurrent: agents.length, running: 0, waiting: 0, provider: "claude-code", waitingFor: null
+        }],
+        bundles: [{ name: "web.read", label: "Web reading" }],
+        skills: ["skill-a"],
+        lines: ["worker"]
+      });
+      const sent: { method: string; name: string | null; body: unknown }[] = [];
+
+      await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
+      await context.route(/\/api\/roles$/, (route) => route.fulfill({ json: view() }));
+      await context.route(/\/api\/roles\/worker\/sessions/, (route) => route.fulfill({ json: { items: [], more: false } }));
+      await context.route(/\/api\/role-agents(\/[^/]+)?$/, async (route) => {
+        const request = route.request();
+        const name = /\/role-agents\/([^/]+)$/.exec(new URL(request.url()).pathname)?.[1] ?? null;
+        const body = request.postDataJSON() as Record<string, unknown>;
+
+        sent.push({ method: request.method(), name, body });
+
+        if (request.method() === "POST") {
+          const added = seat(agents.length + 1, body);
+
+          agents = [...agents, added];
+
+          return await route.fulfill({ json: added });
+        }
+
+        agents = agents.map((one) => (one.name === name ? { ...one, ...body } : one));
+
+        return await route.fulfill({ json: agents.find((one) => one.name === name) });
+      });
+
+      try {
+        const page = await context.newPage();
+
+        await page.goto(`${origin}/agents?tab=supervisors`, { waitUntil: "load" });
+
+        const rows = page.locator("[data-role-agents-table] tbody tr").filter({ hasText: /worker-0\d/ });
+        const open = async (name: string): Promise<Locator> => {
+          await rows.locator("button", { hasText: name }).click();
+          await page.locator("[data-agent-settings]").waitFor({ timeout: 15_000 });
+
+          return page.getByRole("dialog");
+        };
+        const save = () => page.getByRole("dialog").getByRole("button", { name: wording("common.action.save"), exact: true });
+        const discard = () => page.getByRole("button", { name: wording("common.action.discard"), exact: true });
+
+        await rows.first().waitFor({ timeout: 15_000 });
+
+        // The dialog holds the one agent pressed, none of its role's others, its fields in four tabs.
+        let dialog = await open("worker-01");
+
+        expect(await dialog.getByRole("heading", { name: "worker-01", exact: true }).count()).toBe(1);
+        expect(await dialog.innerText()).not.toContain("worker-02");
+        expect((await dialog.locator("[data-agent-tabs]").getByRole("tab").allInnerTexts()).map((one) => one.trim())).toEqual(
+          ["agents.label.agent_tab_general", "agents.label.column_sessions", "agents.label.agent_prompt", "agents.label.agent_tab_features"].map((key) => wording(key))
+        );
+
+        // On a provider that takes one, the advisor stands plainly beside the provider; picked, it waits for the save.
+        const advisor = dialog.locator("[data-road-advisor]");
+
+        expect(await advisor.isVisible()).toBe(true);
+        expect(await dialog.locator("[data-road-provider]").innerText()).not.toContain(wording("agents.message.advisor_only_on", { providers: "Claude Code" }));
+        expect(await save().isDisabled()).toBe(true);
+        await advisor.getByRole("button").click();
+        await page.getByRole("option", { name: "opus", exact: true }).click();
+        await page.getByRole("listbox").waitFor({ state: "detached", timeout: 10_000 });
+        expect(sent).toEqual([]);
+        // Closed with the change, it asks; Back on the question keeps the dialog and its change.
+        await page.keyboard.press("Escape");
+        await discard().waitFor({ timeout: 10_000 });
+        await page.goBack();
+        await discard().waitFor({ state: "detached", timeout: 10_000 });
+        expect((await advisor.getByRole("button").innerText()).trim()).toBe("opus");
+
+        // The one save sends the road whole and the dialog closes.
+        await save().click();
+        await page.locator("[data-agent-settings]").waitFor({ state: "detached", timeout: 10_000 });
+        expect(sent).toEqual([{ method: "PATCH", name: "worker-01", body: { provider: "claude-code", model: "claude-opus-5-5", effort: "high", thinking: null, answerTokens: null, advisor: "opus" } }]);
+
+        // On a provider that takes none, the line under the provider says why no advisor stands; opened and closed
+        // untouched, the dialog asks nothing, on Back as on Esc.
+        dialog = await open("worker-02");
+        expect(await dialog.locator("[data-road-advisor]").count()).toBe(0);
+        expect(await dialog.locator("[data-road-provider]").innerText()).toContain(wording("agents.message.advisor_only_on", { providers: "Claude Code" }));
+        await page.goBack();
+        await page.locator("[data-agent-settings]").waitFor({ state: "detached", timeout: 10_000 });
+        expect(await discard().count()).toBe(0);
+
+        // One that follows its supervisor uses the asking supervisor's advisor, which the line under the provider says.
+        dialog = await open("worker-03");
+        expect(await dialog.locator("[data-road-provider]").innerText()).toContain(wording("agents.message.advisor_follows"));
+
+        // The system prompt's texts: a side list beside the text, a select over it on a phone; the role's are read,
+        // said to be the role's, with the way to the role's dialog.
+        await dialog.locator("[data-agent-tabs]").getByRole("tab", { name: wording("agents.label.agent_prompt") }).click();
+        expect(await dialog.locator("[data-agent-prompt-section='own'] textarea").count()).toBe(1);
+
+        const pick = async (label: string): Promise<void> => {
+          if (phone) {
+            await dialog.locator("[data-agent-prompt-select]").click();
+            await page.getByRole("option", { name: label, exact: true }).click();
+            await page.getByRole("listbox").waitFor({ state: "detached", timeout: 10_000 });
+          } else {
+            await dialog.locator("[data-agent-prompt-list]").getByText(label, { exact: true }).click();
+          }
+        };
+
+        expect(await dialog.locator("[data-agent-prompt-list]").isVisible()).toBe(!phone);
+        expect(await dialog.locator("[data-agent-prompt-select]").isVisible()).toBe(phone);
+        await pick(wording("agents.aria.provider_prompt_of", { provider: "Claude Code" }));
+        expect((await dialog.locator("[data-role-text]").innerText()).trim()).toBe("provider-text-a");
+        await pick(wording("agents.label.role_prompt"));
+        expect((await dialog.locator("[data-role-text]").innerText()).trim()).toBe("role-text-a");
+        expect(await dialog.locator("[data-role-shared]").innerText()).toContain(wording("agents.message.role_shared"));
+
+        // The role's dialog opens over this one, and Back closes it alone.
+        await dialog.locator("[data-role-open]").click();
+        await page.getByRole("dialog", { name: "worker", exact: true }).waitFor({ timeout: 10_000 });
+        await page.goBack();
+        await page.getByRole("dialog", { name: "worker", exact: true }).waitFor({ state: "detached", timeout: 10_000 });
+        expect(await page.locator("[data-agent-settings]").count()).toBe(1);
+        await page.keyboard.press("Escape");
+        await page.locator("[data-agent-settings]").waitFor({ state: "detached", timeout: 10_000 });
+
+        // An agent added from the table's head opens its own settings.
+        sent.length = 0;
+        await page.locator("[data-agent-add]").click();
+        await page.getByRole("menuitem", { name: "worker", exact: true }).click();
+        await page.locator("[data-agent-settings]").waitFor({ timeout: 10_000 });
+        expect(await page.getByRole("dialog").getByRole("heading", { name: "worker-04", exact: true }).count()).toBe(1);
+      } finally {
+        await context.close();
+      }
+    }, 90_000);
+  }
 
   for (const [width, height, phone] of [[1280, 900, false], [360, 780, true]] as const) {
     test(`hold a role's provider prompts in its dialog, a box for each provider of its line and for one it still holds, ${width}px wide`, async () => {

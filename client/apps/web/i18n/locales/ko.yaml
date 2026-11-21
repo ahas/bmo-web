@@ -2534,6 +2534,7 @@ agents:
     use_model: 이 모델로 변경
     walk_order: 순서대로
     agent_add: 에이전트 추가
+    role_settings: 역할 설정
     draft_to_default: 기본값으로
     stage_add: 단계 추가
     stage_to_default: 기본 내용으로 되돌리기
@@ -2542,13 +2543,9 @@ agents:
     node_checkout_node: 노드 체크아웃을 둘 노드
     node_checkout_path: 노드 체크아웃 경로
     node_checkout_remove: "{node} 노드 체크아웃 삭제"
-    order_effort_of: "{name} Effort"
-    order_model_of: "{name} 모델"
     road_of: "{name} 공급자 · 모델"
     agent_enabled_of: "{name} 사용"
-    agent_provider_of: "{name} 공급자"
-    advisor_of: "{name} 어드바이저"
-    agent_remove: "{name} 제거"
+    agent_tabs: 에이전트 설정
     agent_keeps_cache_of: "{name} 캐시 유지"
     provider_prompt_of: "{provider} 프롬프트"
     room_last_run: "{room}, 실행 {n}회, 마지막 실행 {time}, 로그 열기"
@@ -2875,14 +2872,14 @@ agents:
     column_enabled: 사용
     role_prompt_set: 있음
     role_prompt_none: 없음
-    agent_keeps_cache_hint: 마지막으로 답한 세션을 캐시가 식기 전에 데웁니다. 캐시 수명을 공개하는 공급자에서만 동작합니다.
-    agent_overrides: 역할 위에 덮어쓰기
-    agent_overrides_n: "역할 위에 덮어쓰기 · {n}"
+    agent_keeps_cache_hint: "마지막으로 답한 세션을 캐시가 식기 전에 데웁니다.\n캐시 수명을 공개하는 공급자에서만 동작합니다."
     agent_inherits: 비우면 역할 설정
     agent_prompt: 시스템 프롬프트
     agent_bundles: 기능 묶음
     agent_skills: 스킬
-    agent_skills_hint: 쉼표로 구분 · 비우면 역할 설정
+    agent_prompt_own: 에이전트 프롬프트
+    agent_tab_general: 일반
+    agent_tab_features: 기능
     role_waiting: "{n} 대기"
     rules_folder: 규칙 폴더
     run_line: 실행 라인
@@ -2947,6 +2944,8 @@ agents:
     pin_waits: 고정 모델이 응답할 수 없으면 이 저장소의 작업이 기다립니다.
     advisor_only_on: "어드바이저는 {providers}에서만 쓸 수 있습니다."
     advisor_follows: 요청한 감독관의 어드바이저를 씁니다.
+    role_shared: 이 역할의 모든 에이전트가 함께 쓰는 역할 설정입니다.
+    role_features: 비워 두면 이 역할의 모든 에이전트가 함께 쓰는 역할 설정을 따릅니다.
     road_outside_owner: "이 감독관은 이 기기에서 소유자의 시스템 사용자로 실행됩니다.\n도구 제한이 없거나 program.files, program.shell, room.tools 중 하나라도 허용하면 그 사용자가 읽을 수 있는 모든 것이 {provider}에 전달될 수 있습니다.\n데이터 루트와 env/ 아래 모든 유닛의 토큰과 설정 파일도 포함됩니다.\n등록 모델이나 소유자 계정의 Claude Code가 아닌 공급자는 소유자가 직접 정한 경우에만 쓰거나, 도구 제한에서 이 세 가지를 빼 주세요."
     repository_delete_confirm: 이 저장소를 삭제할까요?
   placeholder:
@@ -3042,7 +3041,6 @@ agents:
     work_result: 결과
     work_stages: 진행 단계
     role_add: 역할 추가
-    role_agents_of: "{name} 에이전트"
     draft: 드래프트
     secret_settings: 공급자 비밀
     deploy: 배포

@@ -13,9 +13,8 @@ const page = await read("./index.vue");
 const supervisors = await read("../../components/AgentsSupervisors.vue");
 const roles = await read("../../components/AgentsRoles.vue");
 const roleDialog = await read("../../components/RoleSettingsDialog.vue");
-const agentsField = await read("../../components/RoleAgentsField.vue");
 const roleAgents = await read("../../components/AgentsRoleAgents.vue");
-const roleAgentsDialog = await read("../../components/RoleAgentsDialog.vue");
+const agentDialog = await read("../../components/AgentSettingsDialog.vue");
 const history = await read("../../components/RoleSessionHistory.vue");
 const repositories = await read("../../components/AgentsRepositories.vue");
 const repositoryDialog = await read("../../components/RepositorySettingsDialog.vue");
@@ -254,7 +253,6 @@ describe("the roles tab", () => {
       expect(roleDialog).not.toContain(field);
     }
     // Its agents are added and changed in the agents tab, which the dialog says.
-    expect(templateOf(roleDialog)).not.toContain("<RoleAgentsField");
     expect(templateOf(roleDialog)).toContain("agents.message.agents_in_tab");
   });
 });
@@ -283,15 +281,14 @@ describe("the agents tab", () => {
     expect(scriptOf(roleAgents)).toContain('{ method: "DELETE" }');
   });
 
-  test("changes a role's agents in their own dialog: each one's road, place and what it lays over its role", () => {
-    expect(templateOf(roleAgents)).toContain('<RoleAgentsDialog v-model:open="editing" :role="editingRole" />');
-    expect(templateOf(roleAgentsDialog)).toContain("<RoleAgentsField");
-    for (const call of ['$fetch<RoleAgentView>("/api/role-agents", { method: "POST"', 'method: "PATCH", body', 'method: "DELETE"']) expect(scriptOf(agentsField)).toContain(call);
-    for (const part of ["agent.enabled", "agent.keepsCache", "agent.prompt", "agent.bundles", "agent.skills", "agents.label.agent_follows", "agents.action.agent_add"]) {
-      expect(agentsField).toContain(part);
-    }
-    // An agent that carries a run is not removed.
-    expect(templateOf(agentsField)).toContain(':disabled="locked || agent.carries"');
+  test("changes one agent in its own dialog, one form saved once, the role's texts read and changed in the role's", () => {
+    expect(templateOf(roleAgents)).toContain('<AgentSettingsDialog v-model:open="editing" :name="editingAgent" />');
+    expect(scriptOf(roleAgents)).toContain("onSelect: () => openAgent(agent.name) }");
+    expect(templateOf(agentDialog)).toContain(':dirty="changes"');
+    expect(scriptOf(agentDialog)).toContain('`/api/role-agents/${encodeURIComponent(props.name)}`, { method: "PATCH", body: body() }');
+    for (const part of ["form.enabled", "form.road", "form.sessions", "form.threshold", "form.keepsCache", "form.prompt", "form.bundles", "form.skills"]) expect(agentDialog).toContain(part);
+    expect(templateOf(agentDialog)).toContain('<RoadField v-model="form.road" :line="role.line" follows');
+    expect(templateOf(agentDialog)).toContain("<RoleSettingsDialog");
   });
 });
 

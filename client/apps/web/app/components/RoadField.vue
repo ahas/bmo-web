@@ -1,21 +1,47 @@
 <template>
-  <!-- A supervisor's road as one field of a form (docs/web.md, 「Agent management screen」; the agency's
-       docs/supervisors.md): its provider over its fields, each under its own label — its model, its effort, its
-       thinking, on the registry's provider its answer ceiling, and under them, on a provider that takes one, its
-       advisor. A field the form does not take stands out of it.
+  <!-- A road as one field of a form (docs/web.md, 「Agent management screen」; the agency's docs/supervisors.md and
+       docs/role-agents.md): its provider with, beside it on a provider that takes one, its advisor, and under them its
+       fields, each under its own label — its model, its effort, its thinking, on the registry's provider its answer
+       ceiling. Where the provider takes no advisor, or the road follows the supervisor that asks it, a muted line
+       under the provider says why no advisor stands. A field the form does not take stands out of it.
        Every change waits for the form's one save, and a refusal stands under the field it names. -->
   <div class="flex min-w-0 flex-col gap-2">
-    <UFormField :label="$t('agents.label.agent_provider')" name="provider" :error="errorAt('provider')" class="min-w-0 sm:w-1/2">
-      <ChoiceSelect
-        :model-value="road.provider === '' ? undefined : road.provider"
-        :items="providerItems"
-        value-key="value"
-        class="w-full min-w-0"
-        :disabled="props.disabled"
-        :aria-label="$t('agents.label.agent_provider')"
-        @update:model-value="(value: string) => pickProvider(value)"
-      />
-    </UFormField>
+    <div class="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start">
+      <UFormField :label="$t('agents.label.agent_provider')" name="provider" :error="errorAt('provider')" :help="providerNote" class="min-w-0" :class="advisorStands ? 'sm:flex-1' : 'sm:w-1/2'" data-road-provider>
+        <ChoiceSelect
+          :model-value="providerShown"
+          :items="providerItems"
+          value-key="value"
+          class="w-full min-w-0"
+          :disabled="props.disabled"
+          :aria-label="$t('agents.label.agent_provider')"
+          @update:model-value="(value: string) => pickProvider(value)"
+        />
+      </UFormField>
+
+      <!-- The advisor the road's model consults, on a provider that declares it takes one: none, the provider's
+           family words or one of its models. -->
+      <UFormField
+        v-if="advisorStands"
+        :label="$t('agents.label.advisor')"
+        name="advisor"
+        :error="errorAt('advisor')"
+        :help="road.advisor === null ? undefined : $t('agents.label.advisor_tokens')"
+        class="min-w-0 sm:flex-1"
+        data-road-advisor
+      >
+        <ChoiceSelect
+          :model-value="advisorShown(road.advisor)"
+          :items="advisorItems"
+          value-key="value"
+          class="w-full min-w-0"
+          :loading="models.reading"
+          :disabled="props.disabled"
+          :aria-label="$t('agents.label.advisor')"
+          @update:model-value="(value: string) => change({ advisor: advisorPicked(value) })"
+        />
+      </UFormField>
+    </div>
 
     <!-- The road's fields, each under its own label: the model takes what is left, every other field its own width,
          side by side from the small breakpoint up. -->
@@ -70,31 +96,6 @@
       </template>
     </div>
 
-    <!-- The advisor the road's model consults, on a provider that declares it takes one: none, the provider's family
-         words or one of its models. Where the provider takes none, a muted line names the providers that do. -->
-    <template v-if="props.whole && provider !== undefined">
-      <UFormField
-        v-if="advisorItems.length > 0"
-        :label="$t('agents.label.advisor')"
-        name="advisor"
-        :error="errorAt('advisor')"
-        :help="road.advisor === null ? undefined : $t('agents.label.advisor_tokens')"
-        class="min-w-0 sm:w-1/2"
-      >
-        <ChoiceSelect
-          :model-value="advisorShown(road.advisor)"
-          :items="advisorItems"
-          value-key="value"
-          class="w-full min-w-0"
-          :loading="models.reading"
-          :disabled="props.disabled"
-          :aria-label="$t('agents.label.advisor')"
-          @update:model-value="(value: string) => change({ advisor: advisorPicked(value) })"
-        />
-      </UFormField>
-      <p v-else-if="advisorNote !== ''" role="note" class="text-sm text-muted">{{ advisorNote }}</p>
-    </template>
-
     <!-- A supervisor that runs as the owner's own user, on a provider whose engine is not the owner's: what its files
          and shell read can go to that provider (the agency's docs/supervisors.md, 「What confines a session allowed
          files」). A state of the form, which holds nothing back from its save. -->
@@ -122,11 +123,16 @@ interface Props {
   disabled?: boolean;
   // Whether the supervisor the road is for runs as the owner's own user on this machine.
   runsAsOwner?: boolean;
+  // Whether the road may name none and follow the supervisor that asks it, as a role's agent may.
+  follows?: boolean;
 }
 
-const props = withDefaults(defineProps<Props>(), { whole: true, refusal: null, disabled: false, runsAsOwner: false });
-// A road whose provider is empty names none yet.
+const props = withDefaults(defineProps<Props>(), { whole: true, refusal: null, disabled: false, runsAsOwner: false, follows: false });
+// A road whose provider is empty names none: not yet, or, where it may follow, none at all.
 const road = defineModel<RoadView>({ required: true });
+
+// The choice that names no road. A select takes no empty value, and no provider's name holds a colon.
+const FOLLOWS = ":follows";
 
 const { t } = useI18n();
 const { data: providers } = useProviders();
@@ -144,11 +150,14 @@ function errorAt(field: string): string | undefined {
 }
 
 // Every provider whose program carries the line; one that cannot answer now stands with its reason.
-const providerItems = computed(() =>
-  (providers.value ?? [])
+const providerItems = computed(() => [
+  ...(props.follows ? [{ label: t("agents.label.agent_follows"), value: FOLLOWS }] : []),
+  ...(providers.value ?? [])
     .filter((one) => one.lines.length === 0 || one.lines.includes(props.line))
     .map((one) => ({ label: one.label, value: one.name, ...(one.reason === null ? {} : { description: one.reason }) }))
-);
+]);
+
+const providerShown = computed(() => (road.value.provider !== "" ? road.value.provider : props.follows ? FOLLOWS : undefined));
 
 // The provider's models are read as it first stands in the field.
 watch(() => road.value.provider, (name) => {
@@ -156,7 +165,9 @@ watch(() => road.value.provider, (name) => {
 }, { immediate: true });
 
 // A provider picked stands on the first model its catalogue serves once that is read, with nothing of the one before.
-function pickProvider(name: string): void {
+function pickProvider(picked: string): void {
+  const name = picked === FOLLOWS ? "" : picked;
+
   if (name === road.value.provider) return;
 
   road.value = { provider: name, model: "", effort: null, thinking: null, answerTokens: null, advisor: null };
@@ -187,7 +198,19 @@ const modelItems = computed(() => {
 
 // The advisors the provider offers, none where it takes none; and, where it takes none, the providers that do.
 const advisorItems = computed(() => advisorChoices(t, provider.value, models.value.view, road.value.advisor));
-const advisorNote = computed(() => advisorElsewhere(t, providers.value));
+const advisorStands = computed(() => props.whole && advisorItems.value.length > 0);
+
+// Why no advisor stands, said under the provider: a road that follows uses the asking supervisor's, and a provider
+// that takes none is told which providers do.
+const providerNote = computed<string | undefined>(() => {
+  if (!props.whole || advisorStands.value) return undefined;
+  if (road.value.provider === "") return props.follows ? t("agents.message.advisor_follows") : undefined;
+  if (provider.value === undefined) return undefined;
+
+  const elsewhere = advisorElsewhere(t, providers.value);
+
+  return elsewhere === "" ? undefined : elsewhere;
+});
 
 const effortItems = computed(() => effortChoices(provider.value, models.value.view, road.value.model).map((level) => ({ label: level, value: level })));
 

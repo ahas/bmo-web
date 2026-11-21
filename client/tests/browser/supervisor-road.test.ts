@@ -188,8 +188,8 @@ describe.skipIf(!origin || !touchReady())("a supervisor's road", () => {
       await form.waitFor({ state: "hidden", timeout: 10_000 });
       expect(bodies.at(-1)).toMatchObject({ road: { provider: "claude-code", model: "claude-opus-5-5", advisor: "opus" } });
 
-      // Read back, it stands as saved; on a provider that takes none, the field gives way to the line naming the one
-      // that does.
+      // Read back, it stands as saved; on a provider that takes none, the field gives way to the line under the
+      // provider naming the one that does.
       await page.reload({ waitUntil: "load" });
       await cellA.waitFor({ timeout: 15_000 });
       await cellA.click();
@@ -197,7 +197,7 @@ describe.skipIf(!origin || !touchReady())("a supervisor's road", () => {
       await form.getByRole("button", { name: wording("agents.label.agent_provider"), exact: true }).click();
       await page.getByRole("option", { name: DEEPSEEK }).click();
       await advisor.waitFor({ state: "detached", timeout: 10_000 });
-      expect(await form.getByRole("note").filter({ hasText: wording("agents.message.advisor_only_on", { providers: "Claude Code" }) }).count()).toBe(1);
+      expect(await form.locator("[data-road-provider]").innerText()).toContain(wording("agents.message.advisor_only_on", { providers: "Claude Code" }));
       expect(called(asked, "PATCH", "/api/supervisors/agent-a")).toBe(true);
     } finally {
       await context.close();

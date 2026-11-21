@@ -514,7 +514,7 @@
   확인, the assignment standing 확인 대기 until it is given and 확인함 after; a unit's head the assignment went past →
   건너뛴 조직장.
 - a work's share of its parent → 가중치; dividing one work into several → 나누기; its changes over time → 이력, each
-  change named by what changed (범위, 가중치, 종류, 목표, 계획, 날짜, 담당자, 상위 업무, 상태, 나누기, 진척) and shown
+  change named by what changed (범위, 가중치, 종류, 목표, 계획, 날짜, 담당자, 상위 업무, 상태, 나누기, 진척, 우선순위, 레이블, 포인트) and shown
   as `{before} → {after}`. Never 히스토리.
 - how far a work has gone → 진척, its entries 진척 기록; where the plan says it should be → `계획 {percent}` beside it; its
   signal → 정상, 주의, 위험; risks in the works under it → 하위 위험 {n}건. Its due date → 기한, `{n}일 남음` while it is
@@ -538,12 +538,12 @@
   project it is for → 구분지표; the hours → 계획시간, 실적시간, 계획 대비, 정규, 야근, 휴무, 휴일 근무, KPI 시간, KPI 비율,
   야근 비율, 야근 편차, 1인당 시간, 인원; the spans → 전월 누계, 당월, 연간 누계; a person's own work in a head's report →
   개인 업무. Next week's plan → 계획, its draft → 계획 초안, keeping it → 확정; a head's coaching on a plan line →
-  코칭. The weekly report's tables → 계획 대비 실적, 분류별 시간, 야근 업무, 업무별 시간, 구분지표별 시간, its week
+  코칭, its kind → 코칭 분류, the line it takes from the company's list → 피드백. The weekly report's tables → 계획 대비 실적, 분류별 시간, 야근 업무, 업무별 시간, 구분지표별 시간, its week
   `{month}월 {number}주차`, the 40-hour check → 40시간 계획 and 40시간 실적, each 완료 or 미달, a class over or under
   its plan → 130% 초과, 70% 미만 in the 판정 column, the row a table is drawn for → 대상; the monthly report's →
   월간 코칭, 월별 추이, KPI 집계, 통계, 조직장 의견 (현황, 대책, 해석, 개선활동 with 당초, 변경, 효과); a level of the
   classification below Level1 → `{n}단계`; the row heading of a table → 구분, its total → 합계. Exporting the
-  workbook's input rows → 실적 내보내기. Never 레벨, 공수, 오버타임, 실적 시간 with a space.
+  workbook's input rows → 실적 내보내기. Never 레벨, 공수, 오버타임, F/B, 실적 시간 with a space.
 - a milestone's conditions → 조건: 조건 충족, 조건 미충족, 완료 조건; an approver's rejection of them → 반려, with its 반려
   사유, as an approval document's; the approval forms it waits on → 결재 양식; who approves → 승인자. Never 거절 for it.
 - one work handing something to another, or to a unit → 관계, its kinds 인계, 검수, 참조, 보고, 변경 요청, 업무 요청, sent

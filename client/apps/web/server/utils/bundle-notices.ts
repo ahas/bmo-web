@@ -1,3 +1,5 @@
+import { noticePlace } from "bmo-ui/shared/console-manifest";
+
 import type { PushPayload } from "#shared/types";
 import type { ConsoleManifest } from "bmo-ui/shared/console-manifest";
 
@@ -5,7 +7,7 @@ import type { ConsoleManifest } from "bmo-ui/shared/console-manifest";
 // 「Notices」): an event of the unit's stream said in the words the bundle's pack gives its kind. The stream's
 // `data` is the platform's event, `{"id", "kind", "at", "data"}` (bmo-chat's `docs/conventions.md`, 「Events and
 // streams」), and the words' placeholders are filled from the member it carries. No unit's word is written here:
-// the pack names the fields its words take.
+// the pack names the fields its words take, and the manifest names the place its notice of a kind opens.
 
 /** A bundle's words in one language, as its pack answers them. */
 export interface NoticeWords {
@@ -96,8 +98,9 @@ function wordAt(words: NoticeWords, path: readonly string[]): unknown {
 
 /**
  * The notice an event of a declared kind rings: the title and body the bundle's words give the kind, the title its
- * screen's own where the kind's comes out empty, pressing it going to the bundle's screen under `baseURL`, and one tag
- * for the member's thread, or else the member, so a later notice of it replaces the earlier.
+ * screen's own where the kind's comes out empty, pressing it going under `baseURL` to the place the manifest names for
+ * the kind — the screen itself where it names none, or where a placeholder has no field to fill it — and one tag for
+ * the member's thread, or else the member, so a later notice of it replaces the earlier.
  */
 export function noticeOf(bundle: ConsoleManifest, kind: string, eventData: string, words: NoticeWords, baseURL: string): PushPayload {
   const member = memberOf(eventData);
@@ -109,7 +112,7 @@ export function noticeOf(bundle: ConsoleManifest, kind: string, eventData: strin
     kind: bundle.name as PushPayload["kind"],
     title: filled(kindWord("title"), member) || (typeof screenTitle === "string" ? screenTitle : bundle.name),
     body: filled(kindWord("body"), member),
-    url: `${base}/${bundle.screenPath.replace(/^\/+/, "")}`,
+    url: `${base}/${noticePlace(bundle, kind, member).replace(/^\/+/, "")}`,
     tag: `${bundle.name}:${fieldOf(member, "threadId") || fieldOf(member, "id") || kind}`
   };
 }

@@ -9106,7 +9106,10 @@ and `/api/supply/credits/audit`.
   notice itself, so a bell ringing there is noise. Only for that screen, though — a tab looking at the cache siren screen
   has no way to know a question in the queue, so it rings then.
 - **Pressing goes to that place.** A question stands the queue panel with that item open, a room
-  message stands that room, and a bundle's notice, mail's among them, opens the bundle's screen. The address a
+  message stands that room, and a bundle's notice opens the place its manifest names for its kind (bmo-ui's
+  `docs/console-bundles.md`, 「Notices」) — a new mail's notice opens that conversation — where the pattern's
+  placeholders fill from the same member its words are filled from, and opens the bundle's own screen where the manifest
+  names no place for the kind or a placeholder has no field to fill it. The address a
   notification carries is written by the server under the configured base path, and a window told to go there takes
   that base off before handing the place to its router. If a console is already open its window
   is brought forward and moved, not opened anew. A window installed as an app is not always one the service worker

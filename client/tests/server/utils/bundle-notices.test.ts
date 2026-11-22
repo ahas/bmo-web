@@ -4,10 +4,19 @@ import { fieldOf, filled, memberOf, noticeOf } from "../../../apps/web/server/ut
 import { manifestOf } from "../../support/console-manifest";
 
 // A bundle's notice as it rings (docs/web.md, 「Notifications」): the words its pack gives the kind, filled from the
-// member the stream's event carries, a separator never left standing beside an empty field, and the bundle's own
-// screen title where the kind's title comes out empty.
+// member the stream's event carries, a separator never left standing beside an empty field, the bundle's own screen
+// title where the kind's title comes out empty, and the place the manifest names for the kind as its address.
 
-const bundle = manifestOf("mail", { title: "mail.title.screen", events: true, pushKinds: ["message.created"] });
+// The mail manifest as its unit answers it, naming the conversation a new mail's notice opens.
+const bundle = manifestOf("mail", {
+  title: "mail.title.screen",
+  events: true,
+  pushKinds: ["message.created"],
+  pushPlaces: { "message.created": "/mail/{accountName}/inbox/{threadId}" }
+});
+
+// The same manifest with no place named, which leaves every notice of it opening the screen.
+const bare = manifestOf("mail", { title: "mail.title.screen", events: true, pushKinds: ["message.created"] });
 
 // The words a mail bundle gives its screen and its new-mail notice.
 function wordsOf(notice: { title: string; body: string }) {
@@ -41,16 +50,29 @@ function mailEvent(over: Record<string, unknown> = {}): string {
   });
 }
 
-test("a new mail rings with its subject as the title and its sender as the body, under its thread's tag", () => {
+test("a new mail rings in its words, opening the conversation its manifest names, under its thread's tag", () => {
   const words = wordsOf({ title: "{subject}", body: "{from}" });
 
   expect(noticeOf(bundle, "message.created", mailEvent(), words, "/console/")).toEqual({
     kind: "mail" as never,
     title: "Quarterly report",
     body: "Tester",
-    url: "/console/mail",
+    url: "/console/mail/work/inbox/thread-1",
     tag: "mail:thread-1"
   });
+});
+
+test("a notice of a kind the manifest names no place for opens the bundle's screen", () => {
+  const words = wordsOf({ title: "{subject}", body: "{from}" });
+
+  expect(noticeOf(bare, "message.created", mailEvent(), words, "/console/").url).toBe("/console/mail");
+});
+
+test("a place with no member field to fill it opens the bundle's screen", () => {
+  const words = wordsOf({ title: "{subject}", body: "{from}" });
+
+  expect(noticeOf(bundle, "message.created", mailEvent({ threadId: "" }), words, "/console/").url).toBe("/console/mail");
+  expect(noticeOf(bundle, "message.created", mailEvent({ accountName: undefined }), words, "/console/").url).toBe("/console/mail");
 });
 
 test("the fields are read from the member the event carries, not from the event around it", () => {

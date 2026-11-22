@@ -7753,8 +7753,8 @@ research screen (「Research screen」).
     moves between tabs.
   - **The tree is bmo-ui's side tree** (`ChoiceTree`, bmo-ui's `docs/components.md`, 「Choosing from a side
     tree」), the one 일정 관리's organisation tree stands on. Every node above the one chosen stands open and
-    marked, and the node chosen open; a branch opens and closes by the chevron at its row's end or the arrow keys,
-    and a press on the rest of a row chooses it alone. The search narrows the tree as it is typed to the nodes
+    marked, and the node chosen open; a branch opens and closes by the chevron at its row's end, whose tooltip
+    says 확장 or 축소, or by the arrow keys, and a press on the rest of a row chooses it alone. The search narrows the tree as it is typed to the nodes
     whose name or kind holds the words, each standing in its place with the nodes over it open, and with nothing
     matching says 찾은 조직 없음. The administrator finds 회사 추가 at the search's right end, which opens a form of one
     name and makes a new company; a member finds no add.

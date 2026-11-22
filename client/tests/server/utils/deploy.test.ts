@@ -312,53 +312,47 @@ describe("the hold", () => {
   });
 });
 
-// The deployments waiting their turn in the testbed's deployment line, read from the deploy units standing
-// (docs/web.md, 「Deployment in the title bar」; docs/boundary.md, 「Gaps the console meets」).
+// The deployments waiting their turn in the testbed's deployment line, read from the testbed's status in the order
+// its line will serve them (docs/web.md, 「Deployment in the title bar」; docs/boundary.md, the testbed's row).
 describe("the line", () => {
   const root = (name: string): string => join(scratch, "line", name);
   const readings = [
     { unitName: "unit-a", record: { ...record, unit: "deploy-a-1" }, writtenAt: 1, root: root("unit-a") },
     { unitName: "unit-b", record: null, writtenAt: null, root: root("unit-b") }
   ];
-  const unit = (name: string, progressFile: string | null, since: number, commit: string | null = "a".repeat(12)) => ({ unit: `${name}.service`, since, progressFile, commit });
+  const ticket = (unit: string, where: string | null, askedAt: number, commit: string | null = "a".repeat(40)) => ({ words: unit, repository: "app", commit, root: where, unit, askedAt, pid: 1, first: null, beforeStart: false });
+  const status = (...waiting: object[]) => ({ queues: { items: [] }, machines: [], closeLine: null, deployLine: { holder: ticket("deploy-a-1", root("unit-a"), 500), waiting } });
 
-  test("is every unit standing whose record lies under a listed root and is not its own run, the one begun first first", () => {
+  test("is every waiting ticket under a listed root, in the order the testbed lists them", () => {
     const brings = (where: string, commit: string) => [{ commit, subject: where, todoId: null }];
-    const line = deployLineOf([
-      unit("deploy-b-2", join(root("unit-b"), "deploy-progress.json"), 3_000),
-      unit("deploy-a-1", join(root("unit-a"), "deploy-progress.json"), 1_000),
-      unit("deploy-a-3", join(root("unit-a"), "deploy-progress.json"), 2_000, null),
-      unit("deploy-x-4", join(scratch, "elsewhere", "deploy-progress.json"), 500),
-      unit("deploy-y-5", null, 400)
-    ], readings, brings);
+    const line = deployLineOf(
+      status(
+        { ...ticket("deploy-b-2", root("unit-b"), 3_000), waitsFor: "line" },
+        { ...ticket("deploy-a-3", `${root("unit-a")}/`, 2_000, null), waitsFor: "root" },
+        { ...ticket("deploy-x-4", join(scratch, "elsewhere"), 400), waitsFor: "line" },
+        { ...ticket("deploy-y-5", null, 300), waitsFor: "line" }
+      ),
+      readings,
+      brings
+    );
 
     expect(line).toEqual([
-      { unitName: "unit-a", unit: "deploy-a-3.service", commit: null, since: 2_000, brings: [] },
-      { unitName: "unit-b", unit: "deploy-b-2.service", commit: "a".repeat(12), since: 3_000, brings: [{ commit: "a".repeat(12), subject: root("unit-b"), todoId: null }] }
+      { unitName: "unit-b", unit: "deploy-b-2", commit: "a".repeat(40), since: 3_000, brings: [{ commit: "a".repeat(40), subject: root("unit-b"), todoId: null }] },
+      { unitName: "unit-a", unit: "deploy-a-3", commit: null, since: 2_000, brings: [] }
     ]);
   });
 
-  test("reads each unit's record from its process's environment and its commit from its command", async () => {
+  test("runs the testbed's status verb and reads nothing where it does not answer", async () => {
     const asked: string[][] = [];
     const run = async (command: readonly string[]): Promise<string | null> => {
       asked.push([...command]);
 
-      if (command.includes("list-units")) return JSON.stringify([{ unit: "deploy-b-2.service" }, { unit: "deploy-gone.service" }]);
-      if (command.includes("MainPID")) return command.at(-1) === "deploy-b-2.service" ? "77\n" : "0\n";
-      if (command.includes("ActiveEnterTimestamp")) return "@1794829458\n";
-
-      return null;
+      return JSON.stringify(status({ ...ticket("deploy-b-2", root("unit-b"), 3_000, null), waitsFor: "line" }));
     };
-    const words = {
-      environment: (pid: number) => (pid === 77 ? ["PATH=/bin", `BMO_DEPLOY_PROGRESS=${join(root("unit-b"), "deploy-progress.json")}`] : null),
-      argv: (pid: number) => (pid === 77 ? ["/bin/deployer", "deploy", "--commit", "b".repeat(10), "--message=Carries #51."] : null)
-    };
-    const line = await readDeployLine(readings, run, words);
+    const line = await readDeployLine(readings, run, "/bin/testbed");
 
-    expect(line.map(({ unitName, unit: named, commit, since }) => ({ unitName, unit: named, commit, since }))).toEqual([
-      { unitName: "unit-b", unit: "deploy-b-2.service", commit: "b".repeat(10), since: 1_794_829_458_000 }
-    ]);
-    expect(asked[0]).toContain("bmo-deploy-*");
-    expect(await readDeployLine(readings, async () => null, words)).toEqual([]);
+    expect(asked).toEqual([["/bin/testbed", "status", "--json"]]);
+    expect(line.map(({ unit }) => unit)).toEqual(["deploy-b-2"]);
+    expect(await readDeployLine(readings, async () => null, "/bin/testbed")).toEqual([]);
   });
 });

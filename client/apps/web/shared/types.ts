@@ -3229,9 +3229,9 @@ export interface DeployWaiting {
   unitName: string;
   /** The user unit it stands in, whose journal says where it waits. */
   unit: string;
-  /** The commit its command names, as given; none where it names none. */
+  /** The whole commit it asks for, as the testbed reads it; none where its ticket names none. */
   commit: string | null;
-  /** When its unit began, in milliseconds. */
+  /** When it asked, in milliseconds. */
   since: number;
   /** The commits it would bring live, oldest first: from the release its root has live to its commit. */
   brings: DeployCommit[];

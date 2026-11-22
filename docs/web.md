@@ -1289,17 +1289,20 @@ edit to that file alone, once the guide below carries the word.
   - **What stands first.** A run under way, then the deployment's hold, then the deployments waiting in the line,
     then a run ended within its two minutes, then a page older than the console.
   - **A deployment waiting its turn stands too.** The testbed starts every deployment in a unit of its own,
-    `bmo-deploy-<stamp>` in `bmo-deploy.slice`, and one waiting for its turn in the machine's deployment line has
-    written nothing into its progress record yet (the testbed's `docs/deploy.md`, 「The deployment line」). So the
-    console reads every such unit still active whose progress record, the file its `BMO_DEPLOY_PROGRESS` names,
-    stands under a listed deploy root and does not name that unit as its run: each is a deployment waiting in the
-    line, named by its deploy root's folder name as a run is, with the commit its command names and when its unit
-    began, the one begun first first, as the line takes them in the order they asked. With no run under way and no
+    `bmo-deploy-<stamp>` in `bmo-deploy.slice`, and one waiting for its turn, in the machine's deployment line or
+    for its deploy root's turn before it, has written nothing into its progress record yet (the testbed's
+    `docs/deploy.md`, 「The deployment line」). So the console reads the line from the testbed's status
+    (`docs/boundary.md`, the testbed's rows): every waiting deployment it lists whose deploy root is a listed
+    deploy root, in the order the testbed lists them, which is the order its line will serve them, those waiting
+    for their deploy root's turn after those in the line. Each is named by its deploy root's folder name as a run
+    is, with its unit, the whole commit it asks for and when it asked; a repository and commit stand once there,
+    whatever name the commit was asked by. With no run under way and no
     hold standing, the mark stands them in the info colour behind an hourglass, the first in the line named:
     「배포 순서 대기 · bmo-job」, or 「배포 순서 대기 · bmo-job 외 4」 for several. The popover of any mark lists them
     under 순서 대기, each by its place in the line, the first to go being 1, its unit, its commit's short hash and
     how long it has waited. A member hears nothing of
-    them. The testbed serves no reading of its line (`docs/boundary.md`, 「Gaps the console meets」).
+    them. The console looks every second at the deploy units standing, whose coming and going is the line moving,
+    and tells every tab `deploy` when they change.
   - Wide, it is a spinning mark, 「배포 중」, the stage and the time since the deployment began,
     ticking each second in tabular figures. On a short bar (「The title bar」) it is the spinning mark alone, its
     words in its tooltip. Whatever its state, its words and its icon take the badges' darker step of its colour, so they

@@ -244,8 +244,14 @@ function bundleOf(bundle: Schemas["RoleBundle"]): RoleBundleView {
   return { name: bundle.name, label: bundleWordOf(bundle.code, bundle.name, bundle.label) };
 }
 
+// Whether an agent or a role follows the supervisor that asks a run of it (the agency's `docs/role-agents.md`, 「An
+// agent that follows its asker」), a field the vendored client does not name yet.
+interface Following {
+  followsAsker?: boolean | null;
+}
+
 /** One agent of a role as the screen reads it (docs/web.md, the roles tab). */
-export function roleAgentViewOf(agent: Schemas["RoleAgent"]): RoleAgentView {
+export function roleAgentViewOf(agent: Schemas["RoleAgent"] & Following): RoleAgentView {
   return {
     name: agent.name,
     role: agent.role,
@@ -262,6 +268,7 @@ export function roleAgentViewOf(agent: Schemas["RoleAgent"]): RoleAgentView {
     prompt: agent.prompt ?? null,
     bundles: agent.bundles ?? null,
     skills: agent.skills ?? null,
+    followsAsker: agent.followsAsker ?? null,
     followsSupervisor: agent.followsSupervisor ?? (agent.provider == null),
     carries: agent.carries ?? false
   };
@@ -282,7 +289,7 @@ export function roadsOf(agents: readonly Schemas["RoleAgent"][]): RoadView[] {
 }
 
 /** One role as the screen reads it, named by its name on every screen (docs/web.md, the roles tab). */
-export function roleViewOf(role: Role): RoleView {
+export function roleViewOf(role: Role & Following): RoleView {
   return {
     name: role.name,
     label: role.label,
@@ -295,6 +302,7 @@ export function roleViewOf(role: Role): RoleView {
     agents: (role.agents ?? []).map(roleAgentViewOf),
     roads: roadsOf(role.agents ?? []),
     maxConcurrent: role.maxConcurrent,
+    followsAsker: role.followsAsker ?? false,
     running: role.running,
     waiting: role.waiting,
     provider: role.provider,
@@ -318,9 +326,15 @@ const wholeFrom = (value: unknown, least: number): value is number => typeof val
  * so are skills given as null and a provider's prompt emptied or given as null. Null
  * where the body does not read as one; whether the values stand is the agency's to say.
  */
-export function roleChangeOf(body: unknown, adding: boolean): (Schemas["RoleChange"] & { name?: string }) | null {
+export function roleChangeOf(body: unknown, adding: boolean): (Schemas["RoleChange"] & Following & { name?: string }) | null {
   const held = record(body);
-  const change: Schemas["RoleChange"] & { name?: string } = {};
+  const change: Schemas["RoleChange"] & Following & { name?: string } = {};
+
+  if ("followsAsker" in held) {
+    if (typeof held.followsAsker !== "boolean") return null;
+
+    change.followsAsker = held.followsAsker;
+  }
 
   if (adding) {
     if (text(held.name) === null) return null;
@@ -418,9 +432,15 @@ const AGENT_LISTS = ["bundles", "skills"] as const;
  * role; a change any one field. Null where the body does not read as one; whether the values stand is the agency's to
  * say.
  */
-export function roleAgentChangeOf(body: unknown, adding: boolean): (Schemas["RoleAgentChange"] & { role?: string; name?: string }) | null {
+export function roleAgentChangeOf(body: unknown, adding: boolean): (Schemas["RoleAgentChange"] & Following & { role?: string; name?: string }) | null {
   const held = record(body);
-  const change: Schemas["RoleAgentChange"] & { role?: string; name?: string } = {};
+  const change: Schemas["RoleAgentChange"] & Following & { role?: string; name?: string } = {};
+
+  if ("followsAsker" in held) {
+    if (held.followsAsker !== null && typeof held.followsAsker !== "boolean") return null;
+
+    change.followsAsker = held.followsAsker;
+  }
 
   if (adding) {
     if (text(held.role) === null) return null;

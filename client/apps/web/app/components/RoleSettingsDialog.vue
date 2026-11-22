@@ -25,6 +25,11 @@
           <ChoiceSelect v-model="form.line" :items="lineItems" value-key="value" class="w-full sm:w-64" :disabled="busy" :aria-label="$t('agents.label.run_line')" />
         </UFormField>
 
+        <!-- Whether its agents follow the supervisor that asks a run of them, each agent's own road its fallback. -->
+        <UFormField name="followsAsker" :error="errorAt('followsAsker')">
+          <USwitch v-model="form.followsAsker" :label="$t('agents.label.agent_follows')" :disabled="busy" data-role-follows />
+        </UFormField>
+
         <UFormField :label="$t('agents.label.column_bundles')" name="bundles" :error="errorAt('bundles')">
           <div class="grid gap-2 sm:grid-cols-2">
             <UCheckbox
@@ -144,10 +149,12 @@ interface RoleForm {
   prompt: string;
   // The text each provider's runs carry after the prompt, an empty one standing for none.
   providerPrompts: Record<string, string>;
+  // Whether its agents follow the supervisor that asks a run of them.
+  followsAsker: boolean;
 }
 
 function emptyForm(): RoleForm {
-  return { name: "", description: "", line: view.value?.lines[0] ?? "", bundles: [], skills: null, prompt: "", providerPrompts: {} };
+  return { name: "", description: "", line: view.value?.lines[0] ?? "", bundles: [], skills: null, prompt: "", providerPrompts: {}, followsAsker: false };
 }
 
 function formOf(held: RoleView): RoleForm {
@@ -158,7 +165,8 @@ function formOf(held: RoleView): RoleForm {
     bundles: held.bundles.map((one) => one.name),
     skills: held.skills === null ? null : [...held.skills],
     prompt: held.prompt ?? "",
-    providerPrompts: { ...held.providerPrompts }
+    providerPrompts: { ...held.providerPrompts },
+    followsAsker: held.followsAsker
   };
 }
 
@@ -177,7 +185,7 @@ const lineItems = computed(() => {
 
   return (form.value.line === "" || lines.includes(form.value.line) ? lines : [form.value.line, ...lines]).map((line) => ({ label: line, value: line }));
 });
-const FIELDS = ["name", "label", "description", "line", "bundles", "skills", "prompt", "providerPrompts"];
+const FIELDS = ["name", "label", "description", "line", "bundles", "skills", "prompt", "providerPrompts", "followsAsker"];
 
 // The providers a prompt box stands for: every one whose program carries the role's line, in the agency's order, then
 // any other the role holds a text for, so that text can still be emptied.
@@ -273,6 +281,7 @@ function body(): Record<string, unknown> {
   if (changed("description") && (!adding.value || now.description.trim() !== "")) sent.description = now.description.trim() === "" ? null : now.description;
   if (changed("line")) sent.line = now.line;
   if (changed("bundles")) sent.bundles = now.bundles;
+  if (changed("followsAsker") && (!adding.value || now.followsAsker)) sent.followsAsker = now.followsAsker;
   if (changed("skills") && (!adding.value || now.skills !== null)) sent.skills = now.skills;
   if (changed("prompt") && (!adding.value || now.prompt.trim() !== "")) sent.prompt = now.prompt.trim() === "" ? null : now.prompt;
 

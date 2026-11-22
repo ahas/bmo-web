@@ -3395,7 +3395,11 @@ alone (「Access」); another account's agents are reached from 조직's 사용�
       after it. 어드바이저 stands beside 공급자 as a supervisor's road has it: plain on a provider that takes one, and
       on one that takes none the muted line under 공급자 naming the providers that do. An agent that follows its
       supervisor names no advisor, and the muted line under 공급자 says that it uses the advisor of the supervisor that
-      asks it. A provider or a model picked sets the advisor back to 끔.
+      asks it. A provider or a model picked sets the advisor back to 끔. Under a road it names stands 요청한 감독관을
+      따름, a choice of 켬 and 끔, the one its role sets marked `(기본값)`: 켬 sends its runs a supervisor asks onto
+      that supervisor's road, the road it names standing where none asks or that road cannot answer (the agency's
+      `docs/role-agents.md`, 「An agent that follows its asker」). The role's setting chosen is sent as none, so the
+      agent goes by its role's from then on. An agent naming no road follows always, and the choice is not shown.
     - **세션:** 세션, 유지 or 새로; 압축 기준, a whole percent from 1 to 100, empty for the one its provider declares,
       which its placeholder names with `(기본값)`; and 캐시 유지, the switch with the line saying what it does. They
       are the settings the table's cells hold.
@@ -3498,7 +3502,9 @@ alone (「Access」); another account's agents are reached from 조직's 사용�
   role's name and its more-menu, and the counts are read again every few seconds while the tab stands.
 - **Pressing a row's name opens the role's dialog,** one form with one 저장 at its foot: 이름 (fixed once made,
   and the label the agency keeps for its log as the role is added), 설명, 실행 라인 — a choice of the lines the agency
-  names — 기능 묶음 as a checkbox for every bundle the agency declares, 스킬, and 역할 프롬프트, a text area as tall as its
+  names — 요청한 감독관을 따름, the switch saying whether its agents follow the supervisor that asks a run of them,
+  each agent's own choice standing over it, 기능 묶음 as a checkbox for every bundle the agency declares, 스킬, and
+  역할 프롬프트, a text area as tall as its
   text, which every run of the role opens with, empty for none; and 공급자별 프롬프트, a text area for every
   provider whose program carries the role's line, each under the provider's word and as tall as its text, which a run
   of the role on that provider carries after the role's prompt, empty for none (the agency's `docs/agent-roles.md`,

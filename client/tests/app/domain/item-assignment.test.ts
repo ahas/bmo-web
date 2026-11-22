@@ -10,11 +10,11 @@ import type { RoleAgentView, RoleView } from "../../../apps/web/shared/axes";
 
 const seat = (name: string, model: string | null, enabled = true): RoleAgentView => ({
   name, role: "role-a", provider: model === null ? null : "provider-a", model, effort: null, thinking: null, answerTokens: null, advisor: null, enabled,
-  keepsCache: false, sessions: "keep", foldRatio: null, prompt: null, bundles: null, skills: null, followsSupervisor: model === null, carries: false
+  keepsCache: false, sessions: "keep", foldRatio: null, prompt: null, bundles: null, skills: null, followsAsker: null, followsSupervisor: model === null, carries: false
 });
 
 const role = (name: string, agents: RoleAgentView[]): RoleView => ({
-  name, label: name, description: null, prompt: null, providerPrompts: {}, bundles: [], skills: null, line: "default", agents, roads: [],
+  name, label: name, description: null, prompt: null, providerPrompts: {}, bundles: [], skills: null, line: "default", agents, roads: [], followsAsker: false,
   maxConcurrent: agents.length, running: 0, waiting: 0, provider: null, waitingFor: null
 } as RoleView);
 

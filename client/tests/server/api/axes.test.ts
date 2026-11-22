@@ -272,6 +272,20 @@ describe("the roles", () => {
     expect(calls).toEqual([]);
   });
 
+  test("carry whether a role's agents follow their asker, off where the agency names none, and refuse one that is no switch", async () => {
+    expect((await asked(roles, {})).answer?.roles.map((role) => role.followsAsker)).toEqual([false, false, false]);
+
+    calls.length = 0;
+
+    expect(await asked(roleChange, { params: { name: "worker" }, body: { followsAsker: true } })).toMatchObject({ status: 200 });
+    expect(calls).toEqual([{ method: "PATCH", path: "/roles/worker", body: { followsAsker: true } }]);
+
+    calls.length = 0;
+
+    for (const followsAsker of [null, "on", 1]) expect(await asked(roleChange, { params: { name: "worker" }, body: { followsAsker } })).toMatchObject({ status: 400 });
+    expect(calls).toEqual([]);
+  });
+
   test("refuse a change of another shape before it goes, and a new role missing what the agency requires", async () => {
     calls.length = 0;
 
@@ -333,6 +347,19 @@ describe("a role's agents", () => {
       { method: "PATCH", path: "/role-agents/worker-01", body: { advisor: "word-a" } },
       { method: "PATCH", path: "/role-agents/worker-01", body: { prompt: null, bundles: ["web.read"], skills: null, keepsCache: true } }
     ]);
+  });
+
+  test("carry whether an agent follows its asker, null giving it its role's, and refuse one that is no switch", async () => {
+    calls.length = 0;
+
+    expect(await asked(agentChange, { params: { name: "worker-01" }, body: { followsAsker: false } })).toMatchObject({ status: 200, answer: { followsAsker: false } });
+    expect(await asked(agentChange, { params: { name: "worker-01" }, body: { followsAsker: null } })).toMatchObject({ status: 200, answer: { followsAsker: null } });
+    expect(calls.map((call) => call.body)).toEqual([{ followsAsker: false }, { followsAsker: null }]);
+
+    calls.length = 0;
+
+    expect(await asked(agentChange, { params: { name: "worker-01" }, body: { followsAsker: "off" } })).toMatchObject({ status: 400 });
+    expect(calls).toEqual([]);
   });
 
   test("refuse a body of another shape before it goes", async () => {

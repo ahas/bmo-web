@@ -115,6 +115,8 @@ export interface RoleView {
   roads: RoadView[];
   // How many of its agents are switched on: the most of its runs that go at once.
   maxConcurrent: number;
+  // Whether its agents follow the supervisor that asks a run of them, each agent's own setting standing over it.
+  followsAsker: boolean;
   running: number;
   waiting: number;
   // The provider its next run goes out on; none where none of its agents' roads can answer now.
@@ -145,7 +147,10 @@ export interface RoleAgentView {
   prompt: string | null;
   bundles: string[] | null;
   skills: string[] | null;
-  // Whether it names no road, so its runs follow the supervisor that asks them.
+  // Whether it follows the supervisor that asks its run while naming a road of its own, that road standing where no
+  // supervisor's does; null where its role's setting stands.
+  followsAsker: boolean | null;
+  // Whether a run a supervisor asks of it goes out on that supervisor's road: it names no road, or it follows its asker.
   followsSupervisor: boolean;
   // Whether a run stands let in on it now.
   carries: boolean;

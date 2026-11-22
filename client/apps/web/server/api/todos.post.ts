@@ -266,8 +266,9 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
       return { ok: true, stopped: 1 };
     case "raise": {
       const picked = raisedFrom(id, (strands ?? []) as number[], (sources ?? []) as RaisedSource[]);
-      const [notes, queues] = await Promise.all([notesRaisedFrom(id, picked), readQueues()]);
-      const queue = queues[0];
+      // The queue is read once the notes stand, so a raise refused for its notes leaves no read of it out on bmo-job.
+      const notes = await notesRaisedFrom(id, picked);
+      const queue = (await readQueues())[0];
 
       if (queue === undefined) throw fail(503, wording("todo.error.queue_unknown"));
 
@@ -332,13 +333,13 @@ interface RaisedNote {
 // The words of every note a raised row takes up, each read from its item's reports as the board reads them, never from
 // the form, in the order the sources are named. The note he stands on that left none has nothing to raise from;
 // another named that left none is no source, and a strand its note does not number is none of it (docs/web.md, the
-// TODO panel's section).
+// TODO panel's section). The reads go one after another, so a refusal answers only once no read it started is still
+// out on bmo-job.
 async function notesRaisedFrom(id: number, sources: readonly RaisedSource[]): Promise<RaisedNote[]> {
-  const items = [...new Set(sources.map((source) => source.item))];
+  const notes: RaisedNote[] = [];
 
-  return await Promise.all(items.map(async (item) => {
-    const [read, reports] = await Promise.all([readItem(item), reportsOfItem(item)]);
-    const note = unfinishedNoteOf(read, reports);
+  for (const item of new Set(sources.map((source) => source.item))) {
+    const note = unfinishedNoteOf(await readItem(item), await reportsOfItem(item));
 
     if (note === null) {
       throw fail(409, item === id ? wording(NOTHING_TO_RAISE) : wording("todo.error.source_without_note", { id: item }));
@@ -350,8 +351,10 @@ async function notesRaisedFrom(id: number, sources: readonly RaisedSource[]): Pr
       throw fail(400, wording("todo.error.bad_strands"));
     }
 
-    return { item, text: note.text };
-  }));
+    notes.push({ item, text: note.text });
+  }
+
+  return notes;
 }
 
 // A raised row's brief: what he typed, then each note it takes up in a block of its own, a line naming the note's item
@@ -407,9 +410,13 @@ async function reposition(action: "move" | "top" | "bottom" | "reorder", id: num
   const positions = new Map(items.map((item) => [item.id, item.position]));
 
   if (action === "reorder") {
-    await Promise.all((order as number[]).map(async (itemId, at) => {
+    // Every patch is waited out before a refusal among them is answered, so none is still out on bmo-job.
+    const patched = await Promise.allSettled((order as number[]).map(async (itemId, at) => {
       if (positions.get(itemId) !== at) await patchItem(itemId, { position: at });
     }));
+    const refused = patched.find((one) => one.status === "rejected");
+
+    if (refused !== undefined) throw refused.reason;
 
     return;
   }

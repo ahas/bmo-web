@@ -338,6 +338,8 @@ describe("where a raised row came from", () => {
 
     expect(await post({ action: "raise", id: 7, title: "the rest", said: "carry on" })).toEqual({ status: 409, message: wording(NOTHING_TO_RAISE) });
     expect(raisedBody()).toBeUndefined();
+    // A raise refused for its notes reads no queue, so no read of it reaches bmo-job after the refusal is answered.
+    expect(job.asked.filter((one) => one.path.startsWith("/queues"))).toEqual([]);
   });
 
   test("a strand that is no number counted from one, and a source that is no item and strand, are refused before bmo-job is asked", async () => {

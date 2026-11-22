@@ -7740,20 +7740,34 @@ its credits — is the administrator's screen, 관리자
 settings dialog's (「Settings」), and the research supervisor stands with the research unit's settings on the
 research screen (「Research screen」).
 
-- **It stands at `/organization`: the organisations at its left, the one chosen at its right.**
-  - **The organisation list** is a region of its own: a search box at its head, then every company the reader
-    may set anything in, one row each by its name, in the tree's order whichever read named it. The search narrows the rows as it is
-    typed, matching the name as shown, and with nothing matching says 찾은 조직 없음. Choosing a row is a step of
-    the history and stands in the address as `?company=` and its number, so a shared link opens the same
-    organisation; where the address names none, or one the reader may not set, the first is chosen with no step.
-    The administrator's list holds every company, with 회사 추가 at the head's right end, which opens a form of
-    one name and makes a new company; a member's holds the companies where they head a unit, hold a part of the
-    supply — its policy and credits, or its plan — write a unit's org memory, or head the company itself, and no add.
-  - **The list and the organisation chosen are bmo-ui's side list** (`ChoiceSidebar`): regions side by side,
-    parted by a splitter whose hairline is dragged to widen either, the width kept in this browser, each scrolling
-    on its own. On a narrow screen the organisation chosen fills the body, and the list opens as a bottom drawer
-    from the button at the head of the organisation, which carries its name, a name cut short reading whole in its
-    tooltip; choosing one there closes the drawer.
+- **It stands at `/organization`: one tree of the organisations at its left, the node chosen at its right.**
+  - **The organisation tree** is a region of its own: a search box at its head, then every company the reader may
+    set anything in at its top level, in the tree's order whichever read named it, and each company's units under
+    it, every unit under its parent, nested as deep as the units are. The administrator's tree holds every unit; a
+    member's holds the companies where they head a unit, hold a part of the supply — its policy and credits, or its
+    plan — write a unit's org memory, or head the company itself, and under each the units they may invite into and
+    the units whose org memory they write, each under its parent where the parent stands among them and under its
+    company otherwise. A company leads with a building and a unit with a group of people. What a unit is called —
+    본부, 센터, 팀, 파트 — is its name alone (`docs/accounts.md`, 「Companies and organisation units」); a unit
+    carrying a kind wears it as a small neutral badge after its name, in its company's words.
+  - **Choosing a node is a step of the history** and stands in the address: a company as `?company=` and its
+    number, a unit as `?unit=` and its number beside its company's `?company=`, so a shared link opens the same
+    node. Where the address names no company, or one the reader may not set, the first is chosen with no step; where
+    it names no unit of the company chosen's tree, the company itself is chosen. The node chosen stays as the reader
+    moves between tabs.
+  - **The tree is bmo-ui's side tree** (`ChoiceTree`, bmo-ui's `docs/components.md`, 「Choosing from a side
+    tree」), the one 일정 관리's organisation tree stands on. Every node above the one chosen stands open and
+    marked, and the node chosen open; a branch opens and closes by the chevron at its row's end or the arrow keys,
+    and a press on the rest of a row chooses it alone. The search narrows the tree as it is typed to the nodes
+    whose name or kind holds the words, each standing in its place with the nodes over it open, and with nothing
+    matching says 찾은 조직 없음. The administrator finds 회사 추가 at the search's right end, which opens a form of one
+    name and makes a new company; a member finds no add.
+  - **The tree and the node chosen are regions side by side,** parted by a splitter whose hairline is dragged to
+    widen either, the width kept in this browser, each scrolling on its own. While the organisations are first read
+    the tree keeps its place with a skeleton of its rows. On a narrow screen the node chosen fills the body, and the
+    tree opens as a bottom drawer from the button at the start of the tab row, which carries the node's name, a
+    name cut short reading whole in its tooltip; choosing a node there closes the drawer, and opening or closing a
+    branch leaves it open.
   - **A reader with no organisation to set** is shown 설정할 조직 없음 alone, with no list and no tab; the
     administrator finds 회사 추가 beside it, so the first company is made there.
   - **A link naming a person but no organisation** — a person's tab from before the list, the console search's
@@ -7763,7 +7777,9 @@ research screen (「Research screen」).
   `plans`, 조직도
   being the organisation's own address; a shared link opens the same tab, moving between tabs is a step of the
   history and keeps the organisation chosen, and a key naming no tab the reader may open opens the first they may.
-  Every tab reads and writes the organisation chosen alone, and none of them chooses an organisation of its own.
+  Every tab reads and writes the company of the node chosen alone, and a tab that stands for one unit — 조직도,
+  사용자, 초대, BMO and 조직 기억 — stands for the node chosen, the company itself where a company is chosen; none of
+  them chooses an organisation or a unit of its own.
   The console search finds each tab as it finds every screen's.
 - **A key of a section that moved away leads to where it stands now,** so a link made before it moved still lands
   on it: `research` to the research screen's 설정 tab, `briefing` to the settings dialog's 보이스브리핑 and `secrets`
@@ -7800,15 +7816,16 @@ research screen (「Research screen」).
   the address names no tab, it waits the same way, the first tab being one a member may not open. Once the reader
   is known, the tab asked for stands where they open it, the first they open where it names none, and the address
   naming one they may not open is replaced. So the page never holds a tab the reader did not ask for.
-- **The tab row** stands at the head of the organisation chosen, the tabs filling it and the open tab's own add at
-  its right end where the tab has one, the row's grey icon on a phone too (「The title bar」): 조직 추가 on 조직도 and
-  초대 링크 만들기 on 초대. On a narrow screen the tabs keep one line and scroll
+- **The tab row** stands at the head of the node chosen, its line meeting the tree's head line, the tabs filling it
+  and the open tab's own add at its right end where the tab has one, the row's grey icon on a phone too (「The title
+  bar」): 조직 추가 on 조직도 and 초대 링크 만들기 on 초대. On a narrow screen the tree's button stands at the row's
+  start, giving way to the tabs, which keep one line and scroll
   sideways, and the open tab is scrolled into view whenever it changes, so it never stands behind the row's add or
   past its edge.
 - **A tab's content** stands in groups under small headings as the settings dialog's sections do, in a reading
   column centred in the screen's body: 768px of content at most, the body's padding outside it, 16px on every side
-  at every width. The groups stand 16px apart, and the body scrolls on its own edge. 조직도 lays its two regions
-  across the whole body instead (below). Each tab's lists keep their place with skeletons shaped like their rows
+  at every width. The groups stand 16px apart, and the body scrolls on its own edge. 사용자 lays its list and the
+  person across the whole body instead (「사용자」). Each tab's lists keep their place with skeletons shaped like their rows
   while they are first read, and a read that failed says its reason in their place with 새로고침, which spins while
   the read is asked again; the reason stands until a read goes through.
 - **Two or three actions on one row are icon buttons,** each named by its tooltip: a link's copy and its taking back
@@ -7816,38 +7833,13 @@ research screen (「Research screen」).
 
 #### 조직도
 
-- **The tree of units and the unit chosen stand side by side.** At the left the organisation's units stand as a
-  tree, Nuxt UI's own, the organisation at its top and each unit under its parent, nested as deep as the units are,
-  each level indented under the one above; at the right the unit chosen. Choosing one is a step of the history and stands in the address as
-  `?unit=` and its number, so a shared link opens the same unit; where the address names none, the organisation
-  itself is chosen with no step. What a unit is called — 본부, 센터, 팀, 파트 — is its name alone (`docs/accounts.md`,
-  「Companies and organisation units」); a unit carrying a kind wears it as a small neutral badge on a row under its
-  name, inside the unit's row in the tree, the kind in its company's words.
-- **The tree narrows by kind.** Where any company keeps a kind, a 종류 select stands at the tree's head: 전체, then each
-  company's kinds under the company's name. A kind chosen lists the units of that kind alone, flat, each with its
-  path from its company muted under its name, a press choosing it as a press on the tree does; 전체 brings the tree
-  back as it was left. The choice stands in the address as `?kind=`, the company's number and the kind's key, beside
-  `?unit=`, and replaces the address rather than stepping it.
-- **The two are regions of their own across the whole body,** parted by a splitter whose hairline is dragged to widen
-  either, the widths kept in this browser. Each scrolls on its own, its scrollbar on its own edge. The tree reaches
-  its region's edges, its rows keeping their own inner padding, and every unit's name stands whole: where the tree
-  is wider than its region it scrolls sideways, and no name is cut. The unit chosen stands in a reading column
-  centred in its region, with the body's 16px padding outside it. While the units are first read, each region keeps
-  its place with a skeleton shaped like its rows.
-- **A branch opens and closes in place.** A unit with units under it carries a chevron at its row's end, whose
-  tooltip says 하위 조직 확장 or 하위 조직 축소; pressing it shows or hides the units under it without choosing it,
-  and the arrow keys do the same on a unit the keyboard stands on. Pressing a unit's name chooses it and leaves its
-  branch as it is. A branch closed keeps what stood open inside it, so opening it again shows it as it was left.
-- **What stands open.** At first every company's branch is open, and every branch down to the unit chosen; whenever
-  the unit chosen changes or moves, the branches down to it open, and a unit made under a parent opens the branches
-  down to that parent, so the unit chosen and a unit just made are always in view. Nothing else is opened or closed
-  for the reader, and what they opened and closed stands while the tab does, across every change made on it.
-- **On a narrow screen the unit chosen fills the body,** and the tree opens as a bottom drawer from the button at
-  the head of the unit, which carries the unit's name, a name it cuts short reading whole in its tooltip; choosing a
-  unit there closes the drawer, and opening or closing a branch leaves it open.
+- **It shows the node chosen in the tree,** a unit or the company itself, in the tab's reading column: its head,
+  its heads, its acting head, its people and its posts, as the points below say. The tab draws no tree of its own.
+  While the units are first read it keeps the place of each part with a skeleton shaped like it.
 - **조직 추가** stands at the tab row's right end and opens a form of a name and a parent, each unit of the
-  organisation offered by its path from it, the organisation itself at first. It has one 저장 at its foot. A new
-  company is made from the organisation list's 회사 추가 alone.
+  organisation offered by its path from it, the node chosen at first. It has one 저장 at its foot. The unit made is
+  chosen, a step of the history, so it stands in view in the tree with the branches down to it open. A new company
+  is made from the tree's 회사 추가 alone.
 - **The unit chosen** is headed by its name on a row of its own, with the path above it standing whole, wrapping onto
   more lines between its steps where the row is too narrow. 편집 stands on the row under the name, at its right end,
   and opens the unit's form: its name; for a unit under a company, its parent among the units of its company that do not
@@ -7857,8 +7849,8 @@ research screen (「Research screen」).
   from what is saved. A refusal — a parent in another company, a parent under the unit itself, an approval line that
   comes back round, a short name another unit holds — is said under the form in words.
 - **The unit's attributes stand under its name,** each only where set: its kind as the tree's badge, 약칭 and the short
-  name, and 결재 상위 조직 with that unit's path, a link that chooses it. The unit chosen is read whole beside the
-  tree, for its people's roles, its posts and its appointment.
+  name, and 결재 상위 조직 with that unit's path, a link that chooses it in the tree. The unit chosen is read whole as
+  it is chosen, for its people's roles, its posts and its appointment.
 - **Every person on this screen is named by their person's name,** their login where none stands: the heads,
   the members, the pickers, the machine dialog and the move dialog.
 - **조직장** lists the unit's heads, one row each with its name and a mark that takes the head away, and 조직장 지정
@@ -7898,7 +7890,7 @@ research screen (「Research screen」).
     dialog at either step writes nothing. Once written, the dialog closes, the choice is given up and the units
     are read again. A refusal is said in the dialog and nobody is moved; where someone moved a person meanwhile,
     the units are read again and the dialog says to look again.
-  - On a wide screen a person's row is carried by the pointer onto a unit of the tree, taking the people chosen
+  - On a wide screen a person's row is carried by the pointer onto a unit of the organisation tree, taking the people chosen
     with it, or the person alone where they are not chosen; the unit under the pointer stands lit, and the drop
     opens the same dialog at its second step, that unit as where they go and each a 구성원, 뒤로 changing either.
   - The machine mark opens the person's machine in a dialog: the machine their account is bound to and whether it
@@ -7938,14 +7930,15 @@ account's rooms or agents (「Access」).
 - **Who opens it.** The administrator, over every company; and a member who heads a company, the company's own unit,
   over the companies they head (`docs/accounts.md`, 「The people roster」). A head of a unit below a company does
   not. The tab stands only for a reader it is for, and its routes answer anyone else as if nothing stood there.
-- **The list and the person stand side by side,** as 조직도's two regions do: the list at the left, the person chosen
+- **The list and the person stand side by side** beside the organisation tree: the list at the left, the person chosen
   at the right, parted by a splitter whose widths this browser keeps, each region scrolling on its own. With nobody
   chosen the right region says in one line to choose a person. On a narrow screen the list fills the body, and a
   person chosen opens over it, filling the screen, with a back arrow at its head; the arrow and the back gesture
   return to the list as it was left, its search, its scroll and the rows already read. While the person covers the
   list the keyboard does not reach it; a row that held the focus hands it to the person and takes it back as they
   close.
-- **The address carries what is shown:** `?q=` the words, `company=`, `unit=`, `kind=`, `role=` and `state=` the filters, and
+- **The address carries what is shown:** `?q=` the words, `company=` and `unit=` the node chosen in the tree, `kind=`,
+  `role=` and `state=` the filters, and
   `user=` the person, and `pane=` the person's tab open (below), so a shared link opens the same view. Choosing a
   person is a step of the history; the words
   and the filters replace the address as they change. The list is not built again when a person opens or closes.
@@ -7956,12 +7949,14 @@ account's rooms or agents (「Access」).
     is marked where it matched, by the console's shared list search; a hit only in a field the row does not show,
     such as the job title or an email, stands as one line under the row. An answer to words already typed past is
     dropped.
-  - **The filters:** 조직, a unit of the organisation chosen and every unit under it, chosen from its tree as
-    초대's 조직 is; 종류, 전체 or a kind of the organisation, standing only where it keeps any; 역할, 전체, 조직장 or 구성원; and 상태, 전체, 활성, 기기 연결
-    대기 or 탈퇴. A person counted under 조직 or 종류 through a post stands in the list as well, marked. On a narrow
+  - **The list holds the node chosen in the tree:** the people of a unit chosen and of every unit under it, and
+    everyone of a company chosen. The tab offers no unit of its own to choose.
+  - **The filters:** 종류, 전체 or a kind of the organisation, standing only where it keeps any; 역할, 전체, 조직장 or
+    구성원; and 상태, 전체, 활성, 기기 연결 대기 or 탈퇴. A person counted under the unit chosen or the 종류 through a
+    post stands in the list as well, marked. On a narrow
     screen the search box stands alone in the head with how many people match and then, at the head's right end, one
     필터 button, so the count changing never moves it, carrying how many filters are set,
-    which opens the four in a bottom drawer; what is
+    which opens the three in a bottom drawer; what is
     chosen there is set as the drawer closes, however it closes, so the back gesture that closes it keeps the choice.
 - **The list is the console's shared data table,** its head stuck to the top and every column's width dragged, one
   row a person in the order of their names: 이름, the person's mark of initials and their name, (탈퇴) beside a
@@ -8111,11 +8106,12 @@ Where a company's own words for its roles and its unit kinds are kept (`docs/acc
 - **초대 링크 만들기**, the tab row's add, opens a dialog of 이름, 조직, 역할 and 유효 기간, with 링크 만들고
   복사 at its foot; it stands off while the reader may invite into no unit. 이름 is the person's name, which the
   maker may give and may leave empty; the join page offers it for the person to correct.
-- **조직 is the organisation's tree** of the units the reader may invite into, drawn as the 조직도 tab draws its
-  tree: the organisation itself at its top for the administrator, a head's own unit at its top for a head, every
-  unit under its parent to any depth. A press chooses a unit, the organisation itself among them, and the chosen
-  unit's path from the organisation down stands above the tree. The top of the tree is chosen at first with its
-  branch open.
+- **조직 is the link's own field,** a tree of the units the reader may invite into, as 조직 이동 offers its units
+  for the people it moves: the organisation itself at its top for the administrator, a head's own unit at its top
+  for a head, every unit under its parent to any depth. A press chooses a unit, the organisation itself among them,
+  and the chosen unit's path from the organisation down stands above the tree. It opens on the node chosen in the
+  organisation tree where the reader may invite into it, and on the top of its own tree otherwise, with the
+  branches down to it open.
 - **역할 is the person's role in the unit,** 구성원 or 조직장, 구성원 at first. 조직장 is the administrator's alone
   to give, so for a head it stands in the list and cannot be chosen.
 - **A link is made into the unit and role chosen** for the span of hours. Made, it is copied at once with its
@@ -8281,9 +8277,9 @@ write's standing from its answer (`docs/boundary.md`, 「Calls the console makes
   reads and writes the units the account service's `GET /org-memory/units` answers them, and nobody else is offered
   the tab. A unit's org brain is found by the company's id and the unit's, and made the first time a memory is written
   into it, so a unit nobody has written for holds none and reads as holding no memory.
-- **조직** chooses the unit above the column, among the units of the organisation chosen whose memory the reader
-  writes, each offered by its path from its company, where there is more than one; the first stands chosen at first. The choice stands in the address as `?unit=` beside the tab's key and
-  replaces the address.
+- **The unit is the node chosen in the organisation tree,** the company itself where a company is chosen; the tab
+  offers no unit of its own to choose. Where the reader does not write the node chosen's memory, the tab says in one
+  line to choose a unit whose memory they write in the tree, and nothing else.
 - **이 조직의 기억** lists the unit's own memories, the standing ones, one row each: the text whole, and under it, muted,
   its 주제 where it has one, and 고정 and 사내 한정 as small neutral badges where they are set. A memory whose topic is
   answered from another unit on the path, a unit above holding a locked memory of it, says so under it, muted,

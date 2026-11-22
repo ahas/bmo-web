@@ -35,6 +35,11 @@
             />
           </div>
           <RoadField v-model="form.road" :line="role.line" follows :refusal="refusal" :disabled="busy" />
+          <!-- A road it names is its fallback where it follows the supervisor that asks it; one naming none follows
+               always. -->
+          <UFormField v-if="form.road.provider !== ''" :label="$t('agents.label.agent_follows')" name="followsAsker" :error="errorAt('followsAsker')">
+            <ChoiceSelect v-model="form.follows" :items="followItems" value-key="value" class="w-full sm:w-48" :disabled="busy" :aria-label="$t('agents.label.agent_follows')" data-agent-follows />
+          </UFormField>
         </template>
 
         <template v-else-if="tab === 'sessions'">
@@ -129,6 +134,13 @@ const { data: providers } = useProviders();
 
 const role = computed<RoleView | null>(() => view.value?.roles.find((one) => one.agents.some((agent) => agent.name === props.name)) ?? null);
 const agent = computed<RoleAgentView | null>(() => role.value?.agents.find((one) => one.name === props.name) ?? null);
+
+// Whether the role has its agents follow their asker, which an agent setting none runs on.
+const roleFollows = computed(() => role.value?.followsAsker ?? false);
+const followItems = computed(() => [
+  { label: markedDefault(t, t("agents.label.switch_on"), roleFollows.value), value: "on" as const },
+  { label: markedDefault(t, t("agents.label.switch_off"), !roleFollows.value), value: "off" as const }
+]);
 const failed = ref(false);
 const roleOpen = ref(false);
 
@@ -146,6 +158,8 @@ const tabs = computed<TabsItem[]>(() => [
 interface AgentForm {
   enabled: boolean;
   road: RoadView;
+  // Whether it follows the supervisor that asks its run, as it runs now: its own setting, else its role's.
+  follows: "on" | "off";
   sessions: RoleSessions;
   // Its compaction threshold as a whole percent, or null for its provider's.
   threshold: number | null;
@@ -158,6 +172,7 @@ interface AgentForm {
 function formOf(held: RoleAgentView | null): AgentForm {
   return {
     enabled: held?.enabled ?? true,
+    follows: (held?.followsAsker ?? roleFollows.value) ? "on" : "off",
     road: { provider: held?.provider ?? "", model: held?.model ?? "", effort: held?.effort ?? null, thinking: held?.thinking ?? null, answerTokens: held?.answerTokens ?? null, advisor: held?.advisor ?? null },
     sessions: held?.sessions ?? "keep",
     threshold: held?.foldRatio == null ? null : percentOf(held.foldRatio),
@@ -242,6 +257,7 @@ const FIELD_TABS: Record<string, Tab> = {
   thinking: "general",
   answerTokens: "general",
   advisor: "general",
+  followsAsker: "general",
   sessions: "sessions",
   foldRatio: "sessions",
   keepsCache: "sessions",
@@ -327,6 +343,8 @@ function body(): Partial<RoleAgentView> {
       advisor: named ? now.road.advisor : null
     });
   }
+  // The role's setting chosen is the role's own, so the agent follows the role from then on.
+  if (now.follows !== before.follows) sent.followsAsker = (now.follows === "on") === roleFollows.value ? null : now.follows === "on";
   if (now.sessions !== before.sessions) sent.sessions = now.sessions;
   if (now.threshold !== before.threshold) sent.foldRatio = now.threshold === null ? null : fractionOf(now.threshold);
   if (now.keepsCache !== before.keepsCache) sent.keepsCache = now.keepsCache;

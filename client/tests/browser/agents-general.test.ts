@@ -608,6 +608,115 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
         await context.close();
       }
     }, 60_000);
+
+    test(`choose under an agent's road whether it follows its asker, its role's setting marked as the default, and switch the role's, ${width}px wide`, async () => {
+      const context = await browser!.newContext({ viewport: { width, height }, isMobile: phone, hasTouch: phone, serviceWorkers: "block", reducedMotion: "reduce" });
+      const at = cookie.indexOf("=");
+      // A role whose agents follow their asker: one agent on a road of its own going by the role's setting, and one
+      // naming no road, which follows always.
+      const seat = (index: number, extra: Record<string, unknown> = {}) => ({
+        name: `voice-0${index}`, role: "voice", provider: "deepseek", model: "deepseek-v4-pro", effort: null, thinking: null, answerTokens: null, advisor: null,
+        enabled: true, keepsCache: false, sessions: "keep", foldRatio: null, prompt: null, bundles: null, skills: null,
+        followsAsker: null, followsSupervisor: true, carries: false, ...extra
+      });
+      let agents = [seat(1), seat(2, { provider: null, model: null })];
+      let followsAsker = true;
+      const role = () => ({
+        name: "voice", label: "Voice", description: null, prompt: null, providerPrompts: {}, bundles: [], skills: null, line: "worker", agents, roads: [],
+        maxConcurrent: agents.length, followsAsker, running: 0, waiting: 0, provider: null, waitingFor: null
+      });
+      const sent: { path: string; body: unknown }[] = [];
+
+      await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
+      await context.route(/\/api\/roles$/, (route) => route.fulfill({ json: { roles: [role()], bundles: [], skills: [], lines: ["worker"] } }));
+      await context.route(/\/api\/roles\/voice\/sessions/, (route) => route.fulfill({ json: { items: [], more: false } }));
+      await context.route(/\/api\/roles\/voice$/, async (route) => {
+        const body = route.request().postDataJSON() as { followsAsker?: boolean };
+
+        sent.push({ path: "role", body });
+        followsAsker = body.followsAsker ?? followsAsker;
+        await route.fulfill({ json: role() });
+      });
+      await context.route(/\/api\/role-agents\/[^/]+$/, async (route) => {
+        const name = /\/role-agents\/([^/]+)$/.exec(new URL(route.request().url()).pathname)?.[1] ?? "";
+        const body = route.request().postDataJSON() as Record<string, unknown>;
+
+        sent.push({ path: name, body });
+        agents = agents.map((one) => (one.name === name ? { ...one, ...body } : one));
+        await route.fulfill({ json: agents.find((one) => one.name === name) });
+      });
+
+      try {
+        const page = await context.newPage();
+
+        await page.goto(`${origin}/agents?tab=supervisors`, { waitUntil: "load" });
+
+        const rows = page.locator("[data-role-agents-table] tbody tr").filter({ hasText: /voice-0\d/ });
+        const open = async (name: string): Promise<Locator> => {
+          await rows.locator("button", { hasText: name }).click();
+          await page.locator("[data-agent-settings]").waitFor({ timeout: 15_000 });
+
+          return page.getByRole("dialog");
+        };
+        const pick = async (dialog: Locator, label: string) => {
+          await dialog.locator("[data-agent-follows]").click();
+          await page.getByRole("option", { name: label, exact: true }).click();
+          await page.getByRole("listbox").waitFor({ state: "detached", timeout: 10_000 });
+        };
+        const on = wording("agents.label.default_marked", { value: wording("agents.label.switch_on") });
+        const off = wording("agents.label.switch_off");
+
+        await rows.first().waitFor({ timeout: 15_000 });
+
+        // An agent on a road of its own going by its role stands on the role's choice, marked as the default.
+        let dialog = await open("voice-01");
+        const save = () => dialog.getByRole("button", { name: wording("common.action.save"), exact: true });
+
+        expect((await dialog.locator("[data-agent-follows]").innerText()).trim()).toBe(on);
+        expect(await dialog.locator("[data-agent-follows]").evaluate((one) => one.getBoundingClientRect().right <= one.closest("[role=dialog]")!.getBoundingClientRect().right)).toBe(true);
+
+        // Chosen off and back on, it is no change, and the dialog closes asking nothing.
+        await pick(dialog, off);
+        await pick(dialog, on);
+        expect(await save().isDisabled()).toBe(true);
+
+        // Off is its own setting, sent as false.
+        await pick(dialog, off);
+        await save().click();
+        await dialog.waitFor({ state: "detached", timeout: 10_000 });
+        expect(sent.at(-1)).toEqual({ path: "voice-01", body: { followsAsker: false } });
+
+        // The role's choice chosen again is the role's own, sent as none.
+        dialog = await open("voice-01");
+        expect((await dialog.locator("[data-agent-follows]").innerText()).trim()).toBe(off);
+        await pick(dialog, on);
+        await save().click();
+        await dialog.waitFor({ state: "detached", timeout: 10_000 });
+        expect(sent.at(-1)).toEqual({ path: "voice-01", body: { followsAsker: null } });
+
+        // An agent naming no road follows always, and is offered no choice.
+        dialog = await open("voice-02");
+        expect(await dialog.locator("[data-agent-follows]").count()).toBe(0);
+        await page.keyboard.press("Escape");
+        await dialog.waitFor({ state: "detached", timeout: 10_000 });
+
+        // The role's dialog holds the role's own switch, its change sent alone.
+        await page.goto(`${origin}/agents?tab=roles`, { waitUntil: "load" });
+        await page.locator("#setting-role-voice").click({ timeout: 15_000 });
+
+        const roleDialog = page.getByRole("dialog");
+        const follows = roleDialog.getByRole("switch", { name: wording("agents.label.agent_follows"), exact: true });
+
+        await follows.waitFor({ timeout: 10_000 });
+        expect(await follows.getAttribute("aria-checked")).toBe("true");
+        await follows.click();
+        await roleDialog.getByRole("button", { name: wording("common.action.save"), exact: true }).click();
+        expect(await until(async () => sent.at(-1)?.path, (path) => path === "role")).toBe("role");
+        expect(sent.at(-1)).toEqual({ path: "role", body: { followsAsker: false } });
+      } finally {
+        await context.close();
+      }
+    }, 60_000);
   }
 
   test("stand every column of the agents tab's tables at its own width, the room left over one empty column at the table's edge", async () => {

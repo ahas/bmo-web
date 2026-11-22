@@ -74,8 +74,9 @@
   after its prompt on one provider → 공급자별 프롬프트, each box named `<provider> 프롬프트`.
 - the screen where the roles, the agents, the repositories and the models are kept → 에이전시. Its tabs → 역할,
   에이전트, 저장소, 등록 모델, 모델 파일. Never 에이전트 관리 for the screen.
-- one seat of a role, on one road → 에이전트: 에이전트, 에이전트 추가, 에이전트 없음. An agent that names no road →
-  요청한 감독관을 따름; what it lays over its role's preset → 역할 위에 덮어쓰기; one that carries a run → 실행 중. Never
+- one seat of a role, on one road → 에이전트: 에이전트, 에이전트 추가, 에이전트 없음. An agent that names no road, and
+  the setting by which an agent or a role follows its asker while naming a road of its own →
+  요청한 감독관을 따름, its choices 켬 and 끔; what it lays over its role's preset → 역할 위에 덮어쓰기; one that carries a run → 실행 중. Never
   자리, 인스턴스, 워커 for the seat. Its own prompt, which stands in place of its role's → 에이전트 프롬프트; its dialog's
   tabs → 일반, 세션, 시스템 프롬프트, 기능; what its role sets for every agent of it → 역할 설정, the way to the role's
   dialog named the same. Never 공통 설정, 상위 설정.

@@ -20,34 +20,50 @@ const ELEMENT = 1;
 const ATTRIBUTE = 6;
 const DIRECTIVE = 7;
 
+// A directive's argument is a plain expression, or a joined one built from parts and carrying no content of its own.
+interface TemplateExpression {
+  type: number;
+  content?: string;
+}
+
 interface TemplateProp {
   type: number;
   name: string;
-  arg?: { content?: string };
+  arg?: TemplateExpression;
   loc: { source: string };
 }
 
 interface TemplateNode {
   type: number;
   props?: TemplateProp[];
-  children?: TemplateNode[];
+  children?: readonly (TemplateNode | string | symbol)[];
   loc: { start: { line: number } };
 }
 
+// What is read of a parsed script's nodes: the kind, the line it starts on, and the members these reads name. The
+// parser's own nodes carry far more than this, and any one of them stands where this shape is read.
 interface ScriptNode {
   type: string;
   loc?: { start: { line: number } } | null;
-  [key: string]: unknown;
+  name?: string;
+  key?: ScriptNode | null;
+  value?: unknown;
+  properties?: ScriptNode[];
 }
 
 function propNamed(prop: TemplateProp, name: string): boolean {
   return (prop.type === ATTRIBUTE && prop.name === name) || (prop.type === DIRECTIVE && prop.name === "bind" && prop.arg?.content === name);
 }
 
+// A joined expression's parts stand beside its nodes as bare strings and symbols, and are passed over.
+function isTemplateNode(node: TemplateNode | string | symbol): node is TemplateNode {
+  return typeof node === "object";
+}
+
 function elements(node: TemplateNode): TemplateNode[] {
   const own = node.type === ELEMENT ? [node] : [];
 
-  return [...own, ...(node.children ?? []).flatMap(elements)];
+  return [...own, ...(node.children ?? []).filter(isTemplateNode).flatMap(elements)];
 }
 
 function spinsOwn(element: TemplateNode): boolean {
@@ -63,28 +79,44 @@ function stillInTemplate(root: TemplateNode): number[] {
 }
 
 function isNode(value: unknown): value is ScriptNode {
-  return value !== null && typeof value === "object" && typeof (value as { type?: unknown }).type === "string";
+  return typeof value === "object" && value !== null && "type" in value && typeof value.type === "string";
 }
 
+// Every member a node carries is read for children, arrays of nodes among them, so no node kind is named here.
 function childrenOf(node: ScriptNode): ScriptNode[] {
-  return Object.entries(node)
+  const members: [string, unknown][] = Object.entries(node);
+
+  return members
     .filter(([key]) => !key.endsWith("Comments"))
     .flatMap(([, value]) => (Array.isArray(value) ? value : [value]))
     .filter(isNode);
 }
 
+// A node standing in another node's member: the parser puts a property's key and value there.
+function nodeOf(value: unknown): ScriptNode | null {
+  return isNode(value) ? value : null;
+}
+
 function textOf(node: ScriptNode): string | null {
-  if (node.type === "StringLiteral") return node.value as string;
-  if (node.type === "TemplateElement") return (node.value as { cooked: string | null }).cooked;
+  if (node.type === "StringLiteral" && typeof node.value === "string") return node.value;
+  if (node.type === "TemplateElement") return cookedOf(node.value);
 
   return null;
 }
 
-function keyName(property: ScriptNode): string | null {
-  const key = property.key as ScriptNode | undefined;
+// A template piece's text is the cooked value beside its raw source, which the parser leaves null where an escape
+// does not form; that value stands in the piece and is no node of its own.
+function cookedOf(value: unknown): string | null {
+  if (typeof value !== "object" || value === null || !("cooked" in value)) return null;
 
-  if (key?.type === "Identifier") return key.name as string;
-  if (key?.type === "StringLiteral") return key.value as string;
+  return typeof value.cooked === "string" ? value.cooked : null;
+}
+
+function keyName(property: ScriptNode): string | null {
+  const key = property.key;
+
+  if (key?.type === "Identifier") return key.name ?? null;
+  if (key?.type === "StringLiteral") return typeof key.value === "string" ? key.value : null;
 
   return null;
 }
@@ -95,11 +127,11 @@ function holdsSpin(node: ScriptNode): boolean {
 
 // The object a mark stands in says it turns: by a spin flag set true, or by a spin class among its values.
 function objectSpins(object: ScriptNode): boolean {
-  return (object.properties as ScriptNode[]).some((property) => {
-    const value = property.value as ScriptNode | undefined;
+  return (object.properties ?? []).some((property) => {
+    const value = nodeOf(property.value);
     const flagged = SPIN_FLAGS.has(keyName(property) ?? "") && value?.type === "BooleanLiteral" && value.value === true;
 
-    return flagged || (value !== undefined && holdsSpin(value));
+    return flagged || (value !== null && holdsSpin(value));
   });
 }
 
@@ -120,7 +152,7 @@ function stillInScript(code: string, line: number, templateSpins: boolean): numb
     for (const child of childrenOf(node)) walk(child, [...ancestors, node]);
   }
 
-  walk(babelParse(code, { sourceType: "module", plugins: ["typescript"] }).program as unknown as ScriptNode, []);
+  walk(babelParse(code, { sourceType: "module", plugins: ["typescript"] }).program, []);
 
   return still;
 }
@@ -129,7 +161,7 @@ function stillMarks(path: string, text: string): string[] {
   if (!path.endsWith(".vue")) return stillInScript(text, 1, false).map((line) => `${path}:${line}`);
 
   const { descriptor } = parse(text, { filename: path });
-  const template = descriptor.template?.ast as TemplateNode | undefined;
+  const template = descriptor.template?.ast;
   const lines = template === undefined ? [] : stillInTemplate(template);
   const templateSpins = template !== undefined && elements(template).some(spinsOwn);
 

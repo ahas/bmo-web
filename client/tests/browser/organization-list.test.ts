@@ -6,10 +6,11 @@ import { wording } from "../../apps/web/shared/wording";
 
 import type { Browser, BrowserContext, Locator, Page, Route } from "playwright-core";
 
-// The organisation screen chooses an organisation first (docs/web.md, 「Organisation」): the organisations at its left,
-// searched by name, each chosen as a step of the history that stands in the address, and on a phone the list rises as
-// a bottom drawer from the button carrying the organisation's name; moving between tabs keeps the organisation; and a
-// member is listed the companies where they head a unit or hold a part of the supply. Its plans tab applies one of the
+// The organisation screen chooses a node of one organisation tree first (docs/web.md, 「Organisation」): the companies at
+// its left with their units under them, searched by name, each chosen as a step of the history that stands in the
+// address, the way down to a unit chosen open and marked, and on a phone the tree rises as a bottom drawer from the
+// button at the start of the tab row carrying the node's name; moving between tabs keeps the node; and a member is
+// listed the companies where they head a unit or hold a part of the supply, with the units they head under them. Its plans tab applies one of the
 // plans shown and switches which are shown; its supply tab's policy form stands a source the platform has off with its
 // switch disabled; the platform's policy form says what a person's own setting may change; the providers tab says
 // whose a gateway road and a Claude account are; and the settings' supply section stands what the platform locks. Each
@@ -103,12 +104,16 @@ function company(page: Page): string | null {
   return new URL(page.url()).searchParams.get("company");
 }
 
+function unit(page: Page): string | null {
+  return new URL(page.url()).searchParams.get("unit");
+}
+
 async function companyIs(page: Page, id: number): Promise<void> {
   await page.waitForURL((url) => url.searchParams.get("company") === String(id), { timeout: 15_000 });
   await page.locator(`[data-organization-chosen="${id}"]`).waitFor({ timeout: 15_000 });
 }
 
-// The organisation list where it stands: beside the organisation at a desk's width, in its drawer on a phone.
+// The organisation tree where it stands: beside the node chosen at a desk's width, in its drawer on a phone.
 async function organizationList(page: Page, width: number): Promise<Locator> {
   if (width >= 640) return page.locator("[data-choice-sidebar-list]");
 
@@ -121,9 +126,19 @@ async function organizationList(page: Page, width: number): Promise<Locator> {
   return drawer.locator("[data-choice-sidebar-list]");
 }
 
-// The rows of this run's organisations the list shows.
+// The rows of this run's nodes the tree shows, top to bottom.
 async function runRows(list: Locator): Promise<string[]> {
-  return (await list.locator("[data-choice-sidebar-row]").allInnerTexts()).map((one) => one.trim()).filter((one) => one.endsWith(`-${RUN}`));
+  return (await list.locator("[data-choice-tree-row]").allInnerTexts()).map((one) => one.trim()).filter((one) => one.endsWith(`-${RUN}`));
+}
+
+// The tree's row of a node, by its number.
+function nodeRow(list: Locator, id: number): Locator {
+  return list.locator(`[role=treeitem]:has([data-choice-tree-row="number:${id}"])`);
+}
+
+// The node chosen, a company or a unit of it, as the body stands for it.
+async function nodeIs(page: Page, id: number): Promise<void> {
+  await page.locator(`[data-organization-node="${id}"]`).waitFor({ timeout: 15_000 });
 }
 
 describe.skipIf(!origin || !touchReady())("the organisation list", () => {
@@ -155,45 +170,75 @@ describe.skipIf(!origin || !touchReady())("the organisation list", () => {
 
         let list = await organizationList(page, width);
 
+        // Companies at the top, the one chosen open; the second's team stands folded under it.
         expect(await runRows(list)).toEqual([`alpha-${RUN}`, `beta-${RUN}`]);
-        expect(await list.locator(`[data-choice-sidebar-row="${alpha}"]`).getAttribute("aria-current")).toBe("page");
-        // The administrator adds a company from the list's head.
+        expect(await nodeRow(list, alpha).getAttribute("aria-selected")).toBe("true");
+        expect(await nodeRow(list, beta).getAttribute("aria-level")).toBe("1");
+        // The administrator adds a company from the tree's head.
         expect(await list.locator("[data-organization-add]").count()).toBe(1);
 
-        // The search narrows the rows as it is typed, marking where it matched, and says so where none matches.
+        // The search narrows the whole tree as it is typed, marking where it matched, keeping the nodes over a match
+        // open, and says so where none matches.
         const search = list.locator("[data-choice-sidebar-search]");
 
         await search.fill(`BETA-${RUN}`);
-        await list.locator(`[data-choice-sidebar-row="${alpha}"]`).waitFor({ state: "detached", timeout: 5_000 });
-        expect(await list.locator("[data-choice-sidebar-row]").count()).toBe(1);
-        expect(await list.locator(`[data-choice-sidebar-row="${beta}"] mark`).innerText()).toBe(`beta-${RUN}`);
+        await list.locator(`[data-choice-tree-row="number:${alpha}"]`).waitFor({ state: "detached", timeout: 5_000 });
+        expect(await runRows(list)).toEqual([`beta-${RUN}`]);
+        expect(await list.locator(`[data-choice-tree-row="number:${beta}"] mark`).innerText()).toBe(`beta-${RUN}`);
+        await search.fill(`TEAM-${RUN}`);
+        await list.locator(`[data-choice-tree-row="number:${team}"] mark`).waitFor({ timeout: 5_000 });
+        expect(await runRows(list)).toEqual([`beta-${RUN}`, `team-${RUN}`]);
+        expect(await nodeRow(list, team).getAttribute("aria-level")).toBe("2");
         await search.fill(`nowhere-${RUN}`);
         expect(await list.locator("[data-choice-sidebar-empty]").innerText({ timeout: 5_000 })).toBe(wording("organization.label.list_no_match"));
         await search.fill("");
 
-        // Choosing one stands in the address as a step of the history, and on a phone closes the drawer.
-        await list.locator(`[data-choice-sidebar-row="${beta}"]`).click();
+        // Choosing a company stands in the address as a step of the history, and on a phone closes the drawer.
+        await nodeRow(list, beta).locator("[data-choice-tree-row]").click();
         await companyIs(page, beta);
+        await nodeIs(page, beta);
         if (width < 640) await page.getByRole("dialog").waitFor({ state: "detached", timeout: 10_000 });
 
-        // Moving between tabs keeps the organisation chosen.
+        // A unit under it is chosen the same way, beside its company; the company above it stands open and marked.
+        list = await organizationList(page, width);
+        await nodeRow(list, team).locator("[data-choice-tree-row]").click();
+        await page.waitForURL((url) => url.searchParams.get("unit") === String(team), { timeout: 15_000 });
+        await nodeIs(page, team);
+        expect(company(page)).toBe(String(beta));
+        if (width < 640) {
+          await page.getByRole("dialog").waitFor({ state: "detached", timeout: 10_000 });
+          expect(await page.locator("[data-choice-sidebar-open]").innerText()).toBe(`team-${RUN}`);
+          list = await organizationList(page, width);
+        }
+        expect(await nodeRow(list, team).getAttribute("aria-selected")).toBe("true");
+        expect(await nodeRow(list, beta).getAttribute("aria-expanded")).toBe("true");
+        expect(await nodeRow(list, beta).locator("[data-choice-tree-way]").count()).toBe(1);
+        if (width < 640) {
+          await page.goBack();
+          await page.getByRole("dialog").waitFor({ state: "detached", timeout: 10_000 });
+        }
+
+        // Moving between tabs keeps the node chosen.
         await page.getByRole("tab", { name: wording("roster.label.tab"), exact: true }).click();
         await page.waitForURL((url) => url.searchParams.get("tab") === "people", { timeout: 15_000 });
-        expect(company(page)).toBe(String(beta));
+        expect([company(page), unit(page)]).toEqual([String(beta), String(team)]);
         await page.getByRole("tab", { name: wording("supply.label.plans"), exact: true }).click();
         await page.waitForURL((url) => url.searchParams.get("tab") === "plans", { timeout: 15_000 });
-        expect(company(page)).toBe(String(beta));
+        expect([company(page), unit(page)]).toEqual([String(beta), String(team)]);
 
-        // Back walks the tabs and then the choice back.
+        // Back walks the tabs and then each choice back, one step each.
         await page.goBack();
         await page.waitForURL((url) => url.searchParams.get("tab") === "people", { timeout: 15_000 });
         await page.goBack();
         await page.waitForURL((url) => url.searchParams.get("tab") === null, { timeout: 15_000 });
-        await companyIs(page, beta);
+        await nodeIs(page, team);
+        await page.goBack();
+        await page.waitForURL((url) => url.searchParams.get("unit") === null, { timeout: 15_000 });
+        await nodeIs(page, beta);
         await page.goBack();
         await companyIs(page, alpha);
 
-        // On a phone Back closes the drawer and leaves the organisation where it is.
+        // On a phone Back closes the drawer and leaves the node where it is.
         if (width < 640) {
           list = await organizationList(page, width);
           await page.goBack();
@@ -218,18 +263,24 @@ describe.skipIf(!origin || !touchReady())("the organisation list", () => {
       await open(page, `/organization?tab=supply&unit=${beta}`);
       await companyIs(page, beta);
 
-      // The chart's unit, below its company.
+      // The chart's unit, below its company, chosen in the tree.
       await open(page, `/organization?unit=${team}`);
       await companyIs(page, beta);
+      await nodeIs(page, team);
       await page.locator(`[data-unit-chosen="${team}"]`).waitFor({ timeout: 20_000 });
+
+      // A unit the tree does not hold under the company named: the company itself, the unit gone from the address.
+      await open(page, `/organization?company=${alpha}&unit=${team}`);
+      await page.waitForURL((url) => url.searchParams.get("unit") === null, { timeout: 15_000 });
+      await nodeIs(page, alpha);
 
       // No organisation named: the first is chosen and written into the address in place, with no step.
       await open(page, "/organization?tab=catalogue");
       await page.waitForURL((url) => url.searchParams.get("company") !== null, { timeout: 15_000 });
 
-      const first = (await page.locator("[data-choice-sidebar-row]").first().getAttribute("data-choice-sidebar-row"))!;
+      const first = (await page.locator("[data-choice-tree-row]").first().getAttribute("data-choice-tree-row"))!;
 
-      expect(company(page)).toBe(first);
+      expect(`number:${company(page)}`).toBe(first);
       expect(new URL(page.url()).searchParams.get("tab")).toBe("catalogue");
     } finally {
       await context.close();
@@ -279,7 +330,8 @@ describe.skipIf(!origin || !touchReady())("the organisation list", () => {
         await administer(`/api/organization/units/${team}/heads/${encodeURIComponent(member)}`, "PUT");
         await open(page, "/organization");
         await companyIs(page, beta);
-        expect(await runRows(await organizationList(page, width))).toEqual([`beta-${RUN}`]);
+        // The company, and under it the unit they head.
+        expect(await runRows(await organizationList(page, width))).toEqual([`beta-${RUN}`, `team-${RUN}`]);
         expect(await page.locator("[data-organization-add]").count()).toBe(0);
         await administer(`/api/organization/units/${team}/heads/${encodeURIComponent(member)}`, "DELETE");
 

@@ -3,14 +3,17 @@ import { describe, expect, test } from "bun:test";
 import {
   ORGANIZATION_PATH,
   ORGANIZATION_TABS,
+  administratorTreeUnits,
   branchesAbove,
-  branchesOpenAtFirst,
   chosenOrganization,
+  companyOfNode,
   memberOrganizations,
+  memberTreeUnits,
   movePlan,
   organizationAddress,
-  organizationChosenAddress,
   organizationMovedAway,
+  organizationNodeAddress,
+  organizationNodes,
   organizationRowTabs,
   organizationTabNamed,
   organizationTabOf,
@@ -20,6 +23,7 @@ import {
 } from "../../../apps/web/app/domain/organization";
 
 import type { OrganizationReader, UnitBranch, UnitPlace, UnitStanding } from "../../../apps/web/app/domain/organization";
+import type { SideNode } from "bmo-ui/app/domain/side-parts";
 import { ADMIN_PATH } from "../../../apps/web/app/domain/administration";
 import { SETTINGS_SECTIONS, sectionsFor } from "../../../apps/web/app/domain/settings-dialog";
 import { SCREENS, tabAddress } from "../../../apps/web/app/domain/screens";
@@ -123,21 +127,27 @@ describe("the organisation screen", () => {
     expect(organizationRowTabs(MEMBER, "catalogue").map((tab) => tab.value)).toEqual(["invites", "agent"]);
   });
 
-  test("keeps a tab in the address, the first being the organisation's own, and lets the keys of the tab left go with it while the organisation chosen stays", () => {
-    expect(organizationAddress("organization", { unit: "3" })).toEqual({ path: ORGANIZATION_PATH, query: {} });
-    expect(organizationAddress("catalogue", { unit: "3", tab: "invites", company: "4" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "catalogue", company: "4" } });
+  test("keeps a tab in the address, the first being the organisation's own, and lets the keys of the tab left go with it while the node chosen stays", () => {
+    expect(organizationAddress("organization", { unit: "3", kind: "1:team" })).toEqual({ path: ORGANIZATION_PATH, query: { unit: "3" } });
+    expect(organizationAddress("catalogue", { unit: "3", tab: "invites", company: "4" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "catalogue", company: "4", unit: "3" } });
     expect(organizationAddress("invites", { tab: "people", q: "a", company: "1", unit: "2", role: "head", state: "left", user: "7", pane: "bmo", settings: "theme" })).toEqual({
       path: ORGANIZATION_PATH,
-      query: { tab: "invites", company: "1", settings: "theme" }
+      query: { tab: "invites", company: "1", unit: "2", settings: "theme" }
     });
     expect(organizationAddress("organization", { tab: "plans", company: "1" })).toEqual({ path: ORGANIZATION_PATH, query: { company: "1" } });
   });
 
-  test("chooses an organisation as a step that keeps the tab open and lets what that tab held of the one before go", () => {
-    expect(organizationChosenAddress(5, { tab: "people", company: "1", q: "a", unit: "2", user: "7", settings: "theme" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "people", company: "5", settings: "theme" } });
+  test("chooses a node of another company as a step that keeps the tab open and lets what that tab held of the one before go", () => {
+    expect(organizationNodeAddress(5, null, { tab: "people", company: "1", q: "a", unit: "2", user: "7", settings: "theme" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "people", company: "5", settings: "theme" } });
+    expect(organizationNodeAddress(5, 8, { tab: "people", company: "1", q: "a" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "people", company: "5", unit: "8" } });
     // The person's tab stays for the person opened next.
-    expect(organizationChosenAddress(5, { tab: "people", user: "7", pane: "permissions" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "people", company: "5", pane: "permissions" } });
-    expect(organizationChosenAddress(5, {})).toEqual({ path: ORGANIZATION_PATH, query: { company: "5" } });
+    expect(organizationNodeAddress(5, null, { tab: "people", user: "7", pane: "permissions" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "people", company: "5", pane: "permissions" } });
+    expect(organizationNodeAddress(5, null, {})).toEqual({ path: ORGANIZATION_PATH, query: { company: "5" } });
+  });
+
+  test("chooses a node of the same company keeping all the tab held, the unit beside the company or gone for the company itself", () => {
+    expect(organizationNodeAddress(1, 3, { tab: "people", company: "1", q: "a", unit: "2", role: "head" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "people", company: "1", q: "a", role: "head", unit: "3" } });
+    expect(organizationNodeAddress(1, null, { tab: "people", company: "1", q: "a", unit: "2" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "people", company: "1", q: "a" } });
   });
 
   test("carries the keys a deliberate open hands the tab entered", () => {
@@ -239,12 +249,68 @@ describe("the units tab's tree", () => {
     expect(unitPath(looped, 1).map((unit) => unit.name)).toEqual(["b", "a"]);
   });
 
-  test("opens every company at first and every branch down to the unit chosen", () => {
-    expect(branchesOpenAtFirst(UNITS, null)).toEqual([2, 6]);
-    expect(branchesOpenAtFirst(UNITS, 2)).toEqual([2, 6]);
-    expect(branchesOpenAtFirst(UNITS, 4)).toEqual([2, 6, 3]);
+  test("opens every branch down to a unit", () => {
     expect(branchesAbove(UNITS, 4)).toEqual([2, 3]);
     expect(branchesAbove(UNITS, 2)).toEqual([]);
+  });
+});
+
+// The organisation tree the screen chooses its node from: the companies the reader may set, and the units under them.
+const COMPANIES = [
+  { id: 2, name: "company-a" },
+  { id: 6, name: "company-b" }
+];
+
+// A tree of nodes as nested labels, a node's badge after its label, a node's children in brackets after it.
+function outline(nodes: readonly SideNode[]): unknown[] {
+  return nodes.map((node) => {
+    const label = node.badge === undefined ? node.label : `${node.label} (${node.badge})`;
+
+    return node.children === undefined ? label : [label, outline(node.children)];
+  });
+}
+
+describe("the organisation tree", () => {
+  test("stands each company at its top in its order and its units under it, each under its parent, wearing its kind", () => {
+    const rows: Parameters<typeof administratorTreeUnits>[0] = [
+      { id: 2, name: "company-a" },
+      { id: 3, name: "team-a", parent: 2, kind: { name: "Team" } },
+      { id: 4, name: "part-a", parent: 3 },
+      { id: 6, name: "company-b" }
+    ];
+    const units = administratorTreeUnits(rows);
+    const nodes = organizationNodes(COMPANIES, units);
+
+    expect(outline(nodes)).toEqual([["company-a", [["team-a (Team)", ["part-a"]]]], "company-b"]);
+    expect(nodes.map((node) => [node.key, node.icon])).toEqual([
+      [2, "i-material-symbols-domain"],
+      [6, "i-material-symbols-domain"]
+    ]);
+    expect(nodes[0]!.children![0]!.icon).toBe("i-material-symbols-groups-outline");
+    expect(units.map((unit) => unit.company)).toEqual([2, 2, 2, 6]);
+  });
+
+  test("stands a member's units under their parent where it holds it and under the company otherwise, each once", () => {
+    const company = { id: 2, name: "company-a" };
+    const invite = [
+      { id: 2, name: "company-a", company },
+      { id: 4, name: "part-a", parent: 3, company },
+      { id: 7, name: "part-b", parent: 4, company }
+    ];
+    const memory = [
+      { id: 4, name: "part-a", parent: 3, company, head: true },
+      { id: 5, name: "team-b", parent: 2, company, head: false }
+    ];
+
+    expect(outline(organizationNodes(COMPANIES, memberTreeUnits(invite, memory)))).toEqual([["company-a", [["part-a", ["part-b"]], "team-b"]], "company-b"]);
+  });
+
+  test("names the company a node stands in, itself for a company, and none for a node it does not hold", () => {
+    const units = memberTreeUnits([], [{ id: 5, name: "team-b", parent: 2, company: { id: 2, name: "company-a" }, head: false }]);
+
+    expect(companyOfNode(COMPANIES, units, 6)).toBe(6);
+    expect(companyOfNode(COMPANIES, units, 5)).toBe(2);
+    expect(companyOfNode(COMPANIES, units, 9)).toBeNull();
   });
 });
 

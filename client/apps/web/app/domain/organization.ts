@@ -3,6 +3,7 @@ import type { Component, ComputedRef, Ref } from "vue";
 import type { LocationQuery } from "vue-router";
 import type { InviteUnit, UnitRow } from "@web/server-client";
 import type { OrgMemoryUnitView } from "#shared/org-memory";
+import type { SideNode } from "bmo-ui/app/domain/side-parts";
 
 import { useAdministrator } from "./access";
 import { adminAddress, adminTabNamed, administratorOpens } from "./administration";
@@ -12,14 +13,18 @@ import { useRosterCompanies } from "./roster";
 import { useSupplyReader, useSupplyUnits } from "./supply";
 import { SETTINGS_QUERY } from "./settings-dialog";
 
-// The organisation screen (docs/web.md, 「Organisation」): the organisations at its left, the one chosen at its right,
-// and inside it a tab to a section. Each tab is a component of its own; this is only the order they stand in, what
-// each tab is called and who may open it, and which organisation the address chooses.
+// The organisation screen (docs/web.md, 「Organisation」): one tree of the organisations at its left, the node chosen
+// at its right, and inside it a tab to a section. Each tab is a component of its own; this is only the order they
+// stand in, what each tab is called and who may open it, the tree, and which node the address chooses.
 
 export const ORGANIZATION_PATH = "/organization";
 
 /** The key of the address the organisation chosen stands in, kept as the reader moves between tabs. */
 export const ORGANIZATION_KEY = "company";
+
+/** The key of the address a unit chosen in the tree stands in beside its company, kept as the reader moves between
+ * tabs; absent where the company itself is chosen. */
+export const UNIT_KEY = "unit";
 
 /** Who reads the screen, as far as which tabs stand for them: the platform administrator, whether the people
  * roster answers them the organisation chosen to look through (docs/accounts.md, 「The people roster」), and which
@@ -88,16 +93,16 @@ function memoryReaderOpens(reader: OrganizationReader): boolean {
 const PEOPLE_TAB = "people";
 
 export const ORGANIZATION_TABS: readonly OrganizationTab[] = [
-  { value: "organization", label: "organization.label.chart", icon: "i-material-symbols-account-tree-outline", opens: administratorOpens, keys: ["unit", "kind"], wide: true, load: () => import("~/components/OrganizationUnits.vue") },
-  { value: PEOPLE_TAB, label: "roster.label.tab", icon: "i-material-symbols-group-outline", opens: rosterReaderOpens, keys: ["q", "unit", "kind", "role", "state", "user", PERSON_PANE_KEY], wide: true, load: () => import("~/components/OrganizationPeople.vue") },
+  { value: "organization", label: "organization.label.chart", icon: "i-material-symbols-account-tree-outline", opens: administratorOpens, keys: [], wide: false, load: () => import("~/components/OrganizationUnits.vue") },
+  { value: PEOPLE_TAB, label: "roster.label.tab", icon: "i-material-symbols-group-outline", opens: rosterReaderOpens, keys: ["q", "kind", "role", "state", "user", PERSON_PANE_KEY], wide: true, load: () => import("~/components/OrganizationPeople.vue") },
   { value: "catalogue", label: "catalogue.label.tab", icon: "i-material-symbols-category-outline", opens: rosterReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationCatalogue.vue") },
   { value: "invites", label: "settings.label.invites", icon: "i-material-symbols-person-add-outline", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationInvites.vue") },
-  { value: "agent", label: "settings.label.bmo", icon: "i-material-symbols-face-outline", opens: everyReaderOpens, keys: ["unit"], wide: false, load: () => import("~/components/OrganizationBmo.vue") },
-  { value: "memory", label: "org_memory.label.tab", icon: "i-material-symbols-psychology-outline", opens: memoryReaderOpens, keys: ["unit"], wide: false, load: () => import("~/components/OrganizationMemory.vue") },
+  { value: "agent", label: "settings.label.bmo", icon: "i-material-symbols-face-outline", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationBmo.vue") },
+  { value: "memory", label: "org_memory.label.tab", icon: "i-material-symbols-psychology-outline", opens: memoryReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationMemory.vue") },
   // The supply tab stands only for a reader who holds the organisation's supply policy, and the plans tab for one who
   // holds any part of its supply — the administrator everywhere (docs/web.md, 「Organisation」, the supply and plans
   // tabs).
-  { value: "supply", label: "supply.label.tab", icon: "i-material-symbols-bolt-outline", opens: supplyReaderOpens, keys: ["unit"], wide: false, load: () => import("~/components/OrganizationSupply.vue") },
+  { value: "supply", label: "supply.label.tab", icon: "i-material-symbols-bolt-outline", opens: supplyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationSupply.vue") },
   { value: "plans", label: "supply.label.plans", icon: "i-material-symbols-receipt-long-outline", opens: plansReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationPlans.vue") }
 ];
 
@@ -171,14 +176,79 @@ export function organizationAddress(value: string, query: LocationQuery = {}, ca
 }
 
 /**
- * The address of one organisation chosen from the list: the tab open stays, what that tab held of the organisation
- * before — its words, its filters, the person open — goes, and every other key of the address stays, the person's tab
- * kept for the person opened next among them.
+ * The address of one node chosen in the tree, a company or a unit of it: the tab open stays; where the company
+ * changes, what that tab held of the company before — its words, its filters, the person open — goes, the person's
+ * tab kept for the person opened next; where it stays, the tab keeps all it held. Every other key of the address
+ * stays, and the unit stands beside its company, or goes where the company itself is chosen.
  */
-export function organizationChosenAddress(company: number, query: LocationQuery = {}): { path: string; query: LocationQuery } {
-  const rest = Object.fromEntries(Object.entries(query).filter(([key]) => key === PERSON_PANE_KEY || !TAB_KEYS.has(key)));
+export function organizationNodeAddress(company: number, unit: number | null, query: LocationQuery = {}): { path: string; query: LocationQuery } {
+  const same = query[ORGANIZATION_KEY] === String(company);
+  const rest = Object.fromEntries(Object.entries(query).filter(([key]) => key !== UNIT_KEY && (same || key === PERSON_PANE_KEY || !TAB_KEYS.has(key))));
 
-  return { path: ORGANIZATION_PATH, query: { ...rest, [ORGANIZATION_KEY]: String(company) } };
+  return { path: ORGANIZATION_PATH, query: { ...rest, [ORGANIZATION_KEY]: String(company), ...(unit === null ? {} : { [UNIT_KEY]: String(unit) }) } };
+}
+
+/** A unit of the organisation tree: where it stands, the company it stands in, and the kind it carries in its
+ * company's words, where it carries one. */
+export interface TreeUnit extends UnitPlace {
+  company: number;
+  kind?: string;
+}
+
+// The tree's marks: a building for a company, a group of people for a unit.
+const COMPANY_ICON = "i-material-symbols-domain";
+const UNIT_ICON = "i-material-symbols-groups-outline";
+
+/**
+ * The organisation tree (docs/web.md, 「Organisation」): each company the reader may set at the top level, in its
+ * order, and under it the units given of that company, each under its parent where the parent is among them and
+ * under the company otherwise, keyed by their numbers. A unit given that is a company itself stands as that company.
+ */
+export function organizationNodes(companies: readonly Organization[], units: readonly TreeUnit[]): SideNode[] {
+  const nodeOf = (branch: UnitBranch<TreeUnit>): SideNode => ({
+    key: branch.unit.id,
+    label: branch.unit.name,
+    icon: UNIT_ICON,
+    ...(branch.unit.kind ? { badge: branch.unit.kind } : {}),
+    ...(branch.children.length === 0 ? {} : { children: branch.children.map(nodeOf) })
+  });
+
+  return companies.map((company) => {
+    const own = units.find((unit) => unit.id === company.id);
+    const under = units.filter((unit) => unit.company === company.id && unit.id !== company.id).map((unit) => (unit.parent === company.id ? { ...unit, parent: null } : unit));
+    const children = unitBranches(under).map(nodeOf);
+
+    return { key: company.id, label: company.name, icon: COMPANY_ICON, ...(own?.kind ? { badge: own.kind } : {}), ...(children.length === 0 ? {} : { children }) };
+  });
+}
+
+/** Every unit as the administrator's tree holds it, each with its company and its kind. */
+export function administratorTreeUnits(units: readonly (UnitPlace & { kind?: { name: string } | null })[]): TreeUnit[] {
+  return units.map((unit) => ({ id: unit.id, name: unit.name, parent: unit.parent ?? null, company: unitPath(units, unit.id)[0]?.id ?? unit.id, ...(unit.kind ? { kind: unit.kind.name } : {}) }));
+}
+
+/** The units a member's tree holds: those they may invite into and those whose org memory they write, each once. */
+export function memberTreeUnits(inviteUnits: readonly InviteUnit[], memoryUnits: readonly OrgMemoryUnitView[]): TreeUnit[] {
+  const all = new Map<number, TreeUnit>();
+
+  for (const unit of [...inviteUnits, ...memoryUnits]) if (!all.has(unit.id)) all.set(unit.id, { id: unit.id, name: unit.name, parent: unit.parent ?? null, company: unit.company.id });
+
+  return [...all.values()];
+}
+
+/** The company a node of the tree stands in, itself for a company; none for a number the tree does not hold. */
+export function companyOfNode(companies: readonly Organization[], units: readonly TreeUnit[], node: number): number | null {
+  if (companies.some((company) => company.id === node)) return node;
+
+  return units.find((unit) => unit.id === node)?.company ?? null;
+}
+
+/** People and the like carried by the pointer onto a unit of the organisation tree, as the open tab takes them: the
+ * kinds of data it takes, whether a unit takes them, and what their drop on a unit does. */
+export interface TreeDrop {
+  types: readonly string[];
+  takes: (unit: number) => boolean;
+  onto: (unit: number, event: DragEvent) => void;
 }
 
 /** One organisation of the list: a company at the top of the tree of units, by its number and its name. */
@@ -235,13 +305,14 @@ export function useKeepsUnits(): ComputedRef<boolean> {
 /**
  * The units whose org memory the reader writes, as the account service answers them, and whether that read has
  * answered, in either direction (docs/web.md, 「Organisation」, the org memory tab). One read shared by the shell, the
- * screen and the tab.
+ * screen and the tab; the units last answered stand while it is asked again, as the tab asks it when it opens, so the
+ * tab is never taken away from the reader for the length of that read. A read that failed holds none.
  */
 export function useOrgMemoryUnits(): { units: ComputedRef<OrgMemoryUnitView[]>; status: Ref<string>; failed: ComputedRef<boolean>; refresh: () => Promise<void> } {
   const { data, status, refresh } = useFetch<OrgMemoryUnitView[]>("/api/organization/memory/units", { key: "org-memory-units", lazy: true, server: false, default: () => [] });
 
   return {
-    units: computed(() => (status.value === "success" ? (data.value ?? []) : [])),
+    units: computed(() => (status.value === "error" ? [] : (data.value ?? []))),
     status,
     failed: computed(() => status.value === "error"),
     refresh: async () => await refresh()
@@ -303,6 +374,8 @@ export const ORGANIZATION_UNITS_KEY = "organization-units";
 export interface Organizations {
   // Every company the reader may set anything in, in the tree's order; null until the reads that say so answer.
   list: ComputedRef<Organization[] | null>;
+  // The units the tree holds under those companies, read with them; null until they answer.
+  units: ComputedRef<TreeUnit[] | null>;
   // Why the read failed, empty while it has not.
   failure: ComputedRef<string>;
   // The company a unit stands in, where the reads hold it: an old link naming a unit lands in its organisation.
@@ -348,6 +421,12 @@ export function useOrganizations(failed: (error: unknown) => string): Organizati
     return memberOrganizations(invites.status.value === "success" ? (invites.data.value ?? []) : [], roster.companies.value, supplied.value, memory.units.value.map((one) => one.company));
   });
   const failure = computed(() => (administrator.value && units.error.value ? failed(units.error.value) : ""));
+  const treeUnits = computed<TreeUnit[] | null>(() => {
+    if (list.value === null) return null;
+    if (administrator.value) return administratorTreeUnits(units.data.value ?? []);
+
+    return memberTreeUnits(invites.status.value === "success" ? (invites.data.value ?? []) : [], memory.units.value);
+  });
 
   function companyOf(unit: number): number | null {
     if (administrator.value) return unitPath(units.data.value ?? [], unit)[0]?.id ?? null;
@@ -357,6 +436,7 @@ export function useOrganizations(failed: (error: unknown) => string): Organizati
 
   return {
     list,
+    units: treeUnits,
     failure,
     companyOf,
     reading: computed(() => units.status.value === "pending"),
@@ -422,13 +502,6 @@ export function branchesAbove(units: readonly UnitPlace[], id: number): number[]
   return unitPath(units, id)
     .slice(0, -1)
     .map((unit) => unit.id);
-}
-
-/** The branches open at first: every company's, and every one down to the unit chosen. */
-export function branchesOpenAtFirst(units: readonly UnitPlace[], chosen: number | null): number[] {
-  const open = units.filter(isCompany).map((unit) => unit.id);
-
-  return [...new Set(chosen === null ? open : [...open, ...branchesAbove(units, chosen)])];
 }
 
 // A move of several people into one unit (docs/web.md, 「Organisation」, its chart): what the act will write,

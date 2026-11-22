@@ -1,260 +1,196 @@
 <template>
-  <!-- The units tab (docs/web.md, 「Organisation」, its chart): the organisation chosen's units as a tree, the
-       organisation at its top, beside the unit chosen, its heads and its people, two regions across the whole body
-       that each scroll on their own, parted by a splitter. On a narrow screen the unit chosen fills the body and the
-       tree opens as a bottom drawer from the button at the unit's head. What a unit is called is its name alone. -->
-  <div class="flex min-h-0 min-w-0 flex-1 flex-col">
-    <!-- A read that failed, and a deployment holding no unit, say so in a reading column of the body's. -->
-    <div v-if="failed || empty" class="min-h-0 flex-1 overflow-y-auto p-4">
-      <div v-if="failed" class="mx-auto flex w-full max-w-3xl flex-col items-end gap-3">
-        <UAlert class="w-full" color="error" variant="subtle" :description="failure" />
-        <UButton color="neutral" variant="subtle" icon="i-material-symbols-refresh" :label="$t('common.action.refresh')" :loading="reading" @click="read" />
-      </div>
-      <p v-else class="mx-auto w-full max-w-3xl text-sm text-muted">{{ $t("organization.label.none") }}</p>
+  <!-- The units tab (docs/web.md, 「Organisation」, its chart): the node chosen in the organisation tree, a unit or the
+       company itself, with its heads, its people and its posts, in the tab's reading column; the tab draws no tree of
+       its own. What a unit is called is its name alone. -->
+  <div class="flex min-w-0 flex-col gap-4">
+    <!-- A read that failed, and a deployment holding no unit, say so in its place. -->
+    <div v-if="failed" class="flex flex-col items-end gap-3">
+      <UAlert class="w-full" color="error" variant="subtle" :description="failure" />
+      <UButton color="neutral" variant="subtle" icon="i-material-symbols-refresh" :label="$t('common.action.refresh')" :loading="reading" @click="read" />
     </div>
+    <p v-else-if="empty" class="text-sm text-muted">{{ $t("organization.label.none") }}</p>
 
-    <!-- The tree and the unit chosen, each a region scrolling on its own, parted by the splitter's hairline; on a
-         phone the unit alone, the tree in its drawer. -->
-    <USplitter v-else id="organization-splitter" auto-save-id="bmo-organization-splitter" :items="regions" :ui="{ handle: SPLIT_HANDLE }" class="min-h-0 flex-1">
-      <template #tree>
-        <!-- People carried from the unit chosen and dropped on a unit open the move's preview with that unit. -->
-        <nav
-          class="min-h-0 min-w-0 flex-1 overflow-auto [scrollbar-width:thin]"
-          :aria-label="$t('organization.label.chart')"
-          data-unit-tree
-          @dragover="peopleOver"
-          @dragleave="peopleLeave"
-          @drop="peopleDropped"
-        >
-          <ContentSkeleton v-if="units === null" class="p-2" :rows="TREE_SKELETON_ROWS" listClass="flex flex-col" :label="$t('organization.status.loading')">
-            <template #default="{ index }">
-              <div class="flex h-8 items-center gap-1.5 px-2.5" :class="index === 0 ? '' : 'ps-6'">
-                <SkeletonBar class="size-5 shrink-0 rounded-sm" />
-                <SkeletonBar class="h-4" :class="index % 2 === 0 ? 'w-2/3' : 'w-1/2'" />
-              </div>
-            </template>
-          </ContentSkeleton>
-          <template v-else>
-            <div v-if="kindItems.length > 1" class="px-2 pt-2" data-unit-kind-filter>
-              <ChoiceSelect :model-value="kindFilter" :items="kindItems" value-key="value" size="sm" class="w-full" :aria-label="$t('organization.label.kind')" @update:model-value="(value: string) => setKindFilter(value)" />
-            </div>
-            <OrganizationUnitTree v-if="kindFilter === KIND_ALL" v-model:expanded="expanded" class="w-max min-w-full p-2" :units="units" :chosen="chosen?.id ?? null" :dropping="dropUnit" @choose="choose" />
-            <OrganizationKindUnits v-else class="p-2" :units="unitsOfKind" :chosen="chosen?.id ?? null" @choose="choose" />
+    <ContentSkeleton v-else-if="chosen === null" class="w-full" :label="$t('organization.status.loading')">
+      <!-- The unit's head, its heads and its people, each piece at the real one's height; the words that need
+           no read stand as they are, and the row the edit button stands on is kept for it. -->
+      <div class="flex flex-col gap-4">
+        <div class="flex flex-col gap-2">
+          <div class="flex flex-col">
+            <SkeletonLine width="w-1/3" />
+            <SkeletonLine size="lg" width="w-1/2" />
+          </div>
+          <div class="h-8" />
+        </div>
+        <SettingsGroup :title="$t('organization.label.heads')">
+          <div class="flex h-14 items-center"><SkeletonBar class="h-4 w-1/3" /></div>
+        </SettingsGroup>
+        <div class="flex flex-col">
+          <div class="flex min-h-8 items-center"><SkeletonBar class="h-4 w-24" /></div>
+          <div class="flex flex-col divide-y divide-default">
+            <div v-for="row in 2" :key="row" class="flex h-14 items-center"><SkeletonBar class="h-4 w-1/3" /></div>
+          </div>
+        </div>
+      </div>
+    </ContentSkeleton>
+
+    <section v-else class="flex w-full min-w-0 flex-col gap-4" :data-unit-chosen="chosen.id">
+      <!-- The unit's head: its path standing whole above its name, the name a row of its own, and the edit
+           button on the row under it at its right end. -->
+      <div class="flex flex-col gap-2">
+        <div class="flex min-w-0 flex-col items-start">
+          <p v-if="pathOf(chosen.id).length > 1" class="max-w-full text-sm break-keep text-muted [overflow-wrap:anywhere]" data-unit-path>{{ pathText(chosen.id, false) }}</p>
+          <h2 class="max-w-full text-lg font-semibold break-keep text-highlighted [overflow-wrap:anywhere]">{{ chosen.name }}</h2>
+          <div v-if="chosen.kind || chosen.shortName || reportsToOf(chosen) !== null" class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted" data-unit-attributes>
+            <UBadge v-if="chosen.kind" :label="chosen.kind.name" color="neutral" variant="subtle" size="sm" data-unit-kind />
+            <span v-if="chosen.shortName" data-unit-short-name>{{ $t("organization.label.short_name_line", { name: chosen.shortName }) }}</span>
+            <ULink v-if="reportsToOf(chosen) !== null" class="text-start text-sm break-keep [overflow-wrap:anywhere]" data-unit-reports-to @click="choose(reportsToOf(chosen)!)">{{ $t("organization.label.reports_to_line", { path: pathText(reportsToOf(chosen)!, true) }) }}</ULink>
+          </div>
+        </div>
+        <div class="flex justify-end">
+          <UButton color="neutral" variant="subtle" icon="i-material-symbols-edit-outline" :label="$t('organization.action.edit')" data-unit-edit @click="openEdit" />
+        </div>
+      </div>
+
+      <SettingsGroup :title="$t('organization.label.heads')">
+        <template #aside>
+          <ChoiceSelect
+            :model-value="undefined"
+            :items="people(chosen.heads)"
+            value-key="value"
+            icon="i-material-symbols-person-add-outline"
+            size="sm"
+            :placeholder="$t('organization.action.add_head')"
+            :disabled="busy"
+            class="w-56 min-w-0 shrink"
+            :ui="PICKER_UI"
+            :loading="working === 'heads'"
+            data-unit-add-head
+            @update:model-value="(user: unknown) => user && setHead(String(user), true)"
+          />
+        </template>
+        <SettingsRow v-if="chosen.heads.length === 0" :label="$t('organization.label.no_heads')" />
+        <SettingsRow v-for="head in chosen.heads" :key="head" :label="nameOf(head)" data-unit-head>
+          <template #description>
+            <span v-if="actingUser === head || postHeads.has(head)" class="flex gap-1">
+              <UBadge v-if="actingUser === head" :label="$t('organization.label.acting_mark')" color="neutral" variant="subtle" size="sm" data-unit-head-acting />
+              <UBadge v-if="postHeads.has(head)" :label="$t('organization.label.post_mark')" color="neutral" variant="subtle" size="sm" data-unit-head-post />
+            </span>
           </template>
-        </nav>
-      </template>
+          <UTooltip v-if="actingUser !== head" :text="$t('organization.action.remove_head', { name: nameOf(head) })">
+            <UButton color="neutral" variant="ghost" icon="i-material-symbols-person-remove-outline" :aria-label="$t('organization.action.remove_head', { name: nameOf(head) })" :loading="working === `head:${head}`" :disabled="busy" @click="setHead(head, false)" />
+          </UTooltip>
+        </SettingsRow>
+      </SettingsGroup>
 
-      <template #unit>
-        <div ref="unitScroll" class="min-h-0 min-w-0 flex-1 overflow-y-auto p-4" data-unit-scroll>
-          <ContentSkeleton v-if="chosen === null" class="mx-auto w-full max-w-3xl" :label="$t('organization.status.loading')">
-            <!-- The unit's head, its heads and its people, each piece at the real one's height; the words that need
-                 no read stand as they are, and the row the edit button stands on is kept for it. -->
-            <div class="flex flex-col gap-4">
-              <div class="flex flex-col gap-2">
-                <div class="flex flex-col">
-                  <SkeletonLine width="w-1/3" />
-                  <SkeletonLine size="lg" width="w-1/2" />
-                </div>
-                <div class="h-8" />
-              </div>
-              <SettingsGroup :title="$t('organization.label.heads')">
-                <div class="flex h-14 items-center"><SkeletonBar class="h-4 w-1/3" /></div>
-              </SettingsGroup>
-              <div class="flex flex-col">
-                <div class="flex min-h-8 items-center"><SkeletonBar class="h-4 w-24" /></div>
-                <div class="flex flex-col divide-y divide-default">
-                  <div v-for="row in 2" :key="row" class="flex h-14 items-center"><SkeletonBar class="h-4 w-1/3" /></div>
-                </div>
-              </div>
+      <!-- The person acting for the unit's head while an appointment runs (docs/accounts.md, 「Acting」). -->
+      <SettingsGroup :title="$t('organization.label.acting')" data-unit-acting>
+        <template #aside>
+          <UButton color="neutral" variant="subtle" size="sm" icon="i-material-symbols-person-add-outline" :label="$t('organization.action.appoint')" :disabled="busy || view === null" data-unit-appoint @click="actingOpen = true" />
+        </template>
+        <div v-if="view === null" class="flex h-14 items-center"><SkeletonBar class="h-4 w-1/3" /></div>
+        <SettingsRow v-else-if="view.acting" :label="nameOf(view.acting.user)" :description="$t('organization.label.acting_until', { date: lastDay(view.acting.until) })" data-unit-acting-row>
+          <UButton color="neutral" variant="outline" :label="$t('organization.action.end_acting')" :aria-label="$t('organization.action.end_acting_of', { name: nameOf(view.acting.user) })" :loading="working === 'acting'" :disabled="busy" data-unit-end-acting @click="endActing" />
+        </SettingsRow>
+        <SettingsRow v-else :label="$t('organization.label.acting_none')" />
+      </SettingsGroup>
+
+      <!-- Several people are chosen at once, a run of them by Shift or a held finger, and moved into another unit
+           together after the move's preview (docs/web.md, 「Organisation settings」, the units tab). -->
+      <div ref="memberList">
+        <SettingsGroup :title="$t('organization.label.members', { count: countText(chosen.members.length) })">
+          <template #aside>
+            <ChoiceSelect
+              :model-value="undefined"
+              :items="people(chosen.members)"
+              value-key="value"
+              icon="i-material-symbols-group-add-outline"
+              size="sm"
+              :placeholder="$t('organization.action.place')"
+              :disabled="busy"
+              class="w-56 min-w-0 shrink"
+              :ui="PICKER_UI"
+              :loading="working === 'members'"
+              data-unit-place
+              @update:model-value="(user: unknown) => user && place(String(user))"
+            />
+          </template>
+          <div v-if="choosable.length > 0" class="flex min-h-12 items-center gap-2" data-unit-choice>
+            <ChooseAll :keys="choosable" :selected="selected" @choose="chooseAll" />
+            <span v-if="selected.size > 0" class="text-sm whitespace-nowrap text-muted tabular-nums" data-unit-chosen-count>{{ $t("organization.label.chosen", { count: countText(selected.size) }) }}</span>
+            <UButton class="ms-auto shrink-0" color="neutral" variant="subtle" icon="i-material-symbols-move-item-outline" :label="$t('organization.action.move')" :disabled="selected.size === 0 || busy" data-unit-move @click="openMove" />
+          </div>
+          <SettingsRow v-if="chosen.members.length === 0" :label="$t('organization.label.no_members')" />
+          <div
+            v-for="member in chosen.members"
+            :key="member"
+            :class="memberRowClass(member)"
+            data-unit-member
+            :data-member-row="member"
+            :data-member-choosable="gone(member) ? undefined : ''"
+            :draggable="!narrow && !gone(member) && !busy"
+            @dragstart="carryPeople($event, member)"
+          >
+            <div v-if="!gone(member)" :class="[CHOOSE_CELL, 'cursor-pointer hover:bg-elevated active:bg-elevated']" data-member-check @click="pick(member, $event.shiftKey)">
+              <UCheckbox :model-value="selected.has(member)" :aria-label="$t('organization.action.choose_person', { name: nameOf(member) })" />
             </div>
-          </ContentSkeleton>
-
-          <section v-else class="mx-auto flex w-full min-w-0 max-w-3xl flex-col gap-4" :data-unit-chosen="chosen.id">
-            <!-- The unit's head: its path standing whole above its name, the name a row of its own, and the edit
-                 button on the row under it at its right end. -->
-            <div class="flex flex-col gap-2">
-              <div class="flex min-w-0 flex-col items-start">
-                <p v-if="pathOf(chosen.id).length > 1" class="max-w-full text-sm break-keep text-muted [overflow-wrap:anywhere]" data-unit-path>{{ pathText(chosen.id, false) }}</p>
-                <!-- On a phone the name opens the tree's drawer; a name the button cuts short reads whole in its
-                     tooltip, a finger resting on it to read it. -->
-                <UButton
-                  v-if="narrow"
-                  color="neutral"
-                  variant="ghost"
-                  class="-ms-2.5 max-w-full text-lg font-semibold text-highlighted"
-                  trailing-icon="i-material-symbols-unfold-more"
-                  data-unit-tree-open
-                  @click="treeOpen = true"
-                >
-                  <HintTip :text="chosen.name" cut press class="block min-w-0 truncate" data-unit-name>{{ chosen.name }}</HintTip>
-                </UButton>
-                <h2 v-else class="max-w-full text-lg font-semibold break-keep text-highlighted [overflow-wrap:anywhere]">{{ chosen.name }}</h2>
-                <div v-if="chosen.kind || chosen.shortName || reportsToOf(chosen) !== null" class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted" data-unit-attributes>
-                  <UBadge v-if="chosen.kind" :label="chosen.kind.name" color="neutral" variant="subtle" size="sm" data-unit-kind />
-                  <span v-if="chosen.shortName" data-unit-short-name>{{ $t("organization.label.short_name_line", { name: chosen.shortName }) }}</span>
-                  <ULink v-if="reportsToOf(chosen) !== null" class="text-start text-sm break-keep [overflow-wrap:anywhere]" data-unit-reports-to @click="choose(reportsToOf(chosen)!)">{{ $t("organization.label.reports_to_line", { path: pathText(reportsToOf(chosen)!, true) }) }}</ULink>
-                </div>
-              </div>
-              <div class="flex justify-end">
-                <UButton color="neutral" variant="subtle" icon="i-material-symbols-edit-outline" :label="$t('organization.action.edit')" data-unit-edit @click="openEdit" />
-              </div>
+            <div v-else :class="CHOOSE_CELL" />
+            <div class="flex min-w-0 flex-1 flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
+              <span class="min-w-0 flex-1 text-sm break-words text-highlighted">{{ gone(member) ? $t("organization.label.left_member", { name: nameOf(member) }) : nameOf(member) }}</span>
+              <ChoiceSelect
+                v-if="!gone(member) && chosenRoles.length > 0 && view !== null"
+                :model-value="roleOfMember(member)"
+                :items="roleItems"
+                value-key="value"
+                size="sm"
+                class="w-36 shrink-0"
+                :disabled="busy"
+                :loading="working === `role:${member}`"
+                :aria-label="$t('organization.label.position_of', { name: nameOf(member) })"
+                data-member-position
+                @update:model-value="(value: string) => setRole(member, value)"
+              />
             </div>
-
-            <SettingsGroup :title="$t('organization.label.heads')">
-              <template #aside>
-                <ChoiceSelect
-                  :model-value="undefined"
-                  :items="people(chosen.heads)"
-                  value-key="value"
-                  icon="i-material-symbols-person-add-outline"
-                  size="sm"
-                  :placeholder="$t('organization.action.add_head')"
-                  :disabled="busy"
-                  class="w-56 min-w-0 shrink"
-                  :ui="PICKER_UI"
-                  :loading="working === 'heads'"
-                  data-unit-add-head
-                  @update:model-value="(user: unknown) => user && setHead(String(user), true)"
-                />
-              </template>
-              <SettingsRow v-if="chosen.heads.length === 0" :label="$t('organization.label.no_heads')" />
-              <SettingsRow v-for="head in chosen.heads" :key="head" :label="nameOf(head)" data-unit-head>
-                <template #description>
-                  <span v-if="actingUser === head || postHeads.has(head)" class="flex gap-1">
-                    <UBadge v-if="actingUser === head" :label="$t('organization.label.acting_mark')" color="neutral" variant="subtle" size="sm" data-unit-head-acting />
-                    <UBadge v-if="postHeads.has(head)" :label="$t('organization.label.post_mark')" color="neutral" variant="subtle" size="sm" data-unit-head-post />
-                  </span>
-                </template>
-                <UTooltip v-if="actingUser !== head" :text="$t('organization.action.remove_head', { name: nameOf(head) })">
-                  <UButton color="neutral" variant="ghost" icon="i-material-symbols-person-remove-outline" :aria-label="$t('organization.action.remove_head', { name: nameOf(head) })" :loading="working === `head:${head}`" :disabled="busy" @click="setHead(head, false)" />
-                </UTooltip>
-              </SettingsRow>
-            </SettingsGroup>
-
-            <!-- The person acting for the unit's head while an appointment runs (docs/accounts.md, 「Acting」). -->
-            <SettingsGroup :title="$t('organization.label.acting')" data-unit-acting>
-              <template #aside>
-                <UButton color="neutral" variant="subtle" size="sm" icon="i-material-symbols-person-add-outline" :label="$t('organization.action.appoint')" :disabled="busy || view === null" data-unit-appoint @click="actingOpen = true" />
-              </template>
-              <div v-if="view === null" class="flex h-14 items-center"><SkeletonBar class="h-4 w-1/3" /></div>
-              <SettingsRow v-else-if="view.acting" :label="nameOf(view.acting.user)" :description="$t('organization.label.acting_until', { date: lastDay(view.acting.until) })" data-unit-acting-row>
-                <UButton color="neutral" variant="outline" :label="$t('organization.action.end_acting')" :aria-label="$t('organization.action.end_acting_of', { name: nameOf(view.acting.user) })" :loading="working === 'acting'" :disabled="busy" data-unit-end-acting @click="endActing" />
-              </SettingsRow>
-              <SettingsRow v-else :label="$t('organization.label.acting_none')" />
-            </SettingsGroup>
-
-            <!-- Several people are chosen at once, a run of them by Shift or a held finger, and moved into another unit
-                 together after the move's preview (docs/web.md, 「Organisation settings」, the units tab). -->
-            <div ref="memberList">
-              <SettingsGroup :title="$t('organization.label.members', { count: countText(chosen.members.length) })">
-                <template #aside>
-                  <ChoiceSelect
-                    :model-value="undefined"
-                    :items="people(chosen.members)"
-                    value-key="value"
-                    icon="i-material-symbols-group-add-outline"
-                    size="sm"
-                    :placeholder="$t('organization.action.place')"
-                    :disabled="busy"
-                    class="w-56 min-w-0 shrink"
-                    :ui="PICKER_UI"
-                    :loading="working === 'members'"
-                    data-unit-place
-                    @update:model-value="(user: unknown) => user && place(String(user))"
-                  />
-                </template>
-                <div v-if="choosable.length > 0" class="flex min-h-12 items-center gap-2" data-unit-choice>
-                  <ChooseAll :keys="choosable" :selected="selected" @choose="chooseAll" />
-                  <span v-if="selected.size > 0" class="text-sm whitespace-nowrap text-muted tabular-nums" data-unit-chosen-count>{{ $t("organization.label.chosen", { count: countText(selected.size) }) }}</span>
-                  <UButton class="ms-auto shrink-0" color="neutral" variant="subtle" icon="i-material-symbols-move-item-outline" :label="$t('organization.action.move')" :disabled="selected.size === 0 || busy" data-unit-move @click="openMove" />
-                </div>
-                <SettingsRow v-if="chosen.members.length === 0" :label="$t('organization.label.no_members')" />
-                <div
-                  v-for="member in chosen.members"
-                  :key="member"
-                  :class="memberRowClass(member)"
-                  data-unit-member
-                  :data-member-row="member"
-                  :data-member-choosable="gone(member) ? undefined : ''"
-                  :draggable="!narrow && !gone(member) && !busy"
-                  @dragstart="carryPeople($event, member)"
-                  @dragend="dropUnit = null"
-                >
-                  <div v-if="!gone(member)" :class="[CHOOSE_CELL, 'cursor-pointer hover:bg-elevated active:bg-elevated']" data-member-check @click="pick(member, $event.shiftKey)">
-                    <UCheckbox :model-value="selected.has(member)" :aria-label="$t('organization.action.choose_person', { name: nameOf(member) })" />
-                  </div>
-                  <div v-else :class="CHOOSE_CELL" />
-                  <div class="flex min-w-0 flex-1 flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
-                    <span class="min-w-0 flex-1 text-sm break-words text-highlighted">{{ gone(member) ? $t("organization.label.left_member", { name: nameOf(member) }) : nameOf(member) }}</span>
-                    <ChoiceSelect
-                      v-if="!gone(member) && chosenRoles.length > 0 && view !== null"
-                      :model-value="roleOfMember(member)"
-                      :items="roleItems"
-                      value-key="value"
-                      size="sm"
-                      class="w-36 shrink-0"
-                      :disabled="busy"
-                      :loading="working === `role:${member}`"
-                      :aria-label="$t('organization.label.position_of', { name: nameOf(member) })"
-                      data-member-position
-                      @update:model-value="(value: string) => setRole(member, value)"
-                    />
-                  </div>
-                  <div v-if="!gone(member)" class="flex shrink-0 items-center gap-1" data-member-marks>
-                    <UTooltip :text="$t('organization.label.machine', { name: nameOf(member) })">
-                      <UButton color="neutral" variant="ghost" icon="i-material-symbols-computer-outline" :aria-label="$t('organization.label.machine', { name: nameOf(member) })" @click="openMachine(member)" />
-                    </UTooltip>
-                    <UTooltip :text="$t('organization.action.mark_left', { name: nameOf(member) })">
-                      <UButton color="neutral" variant="ghost" icon="i-material-symbols-person-off-outline" :aria-label="$t('organization.action.mark_left', { name: nameOf(member) })" :loading="working === `left:${member}`" :disabled="busy" @click="markLeft(member)" />
-                    </UTooltip>
-                  </div>
-                </div>
-              </SettingsGroup>
+            <div v-if="!gone(member)" class="flex shrink-0 items-center gap-1" data-member-marks>
+              <UTooltip :text="$t('organization.label.machine', { name: nameOf(member) })">
+                <UButton color="neutral" variant="ghost" icon="i-material-symbols-computer-outline" :aria-label="$t('organization.label.machine', { name: nameOf(member) })" @click="openMachine(member)" />
+              </UTooltip>
+              <UTooltip :text="$t('organization.action.mark_left', { name: nameOf(member) })">
+                <UButton color="neutral" variant="ghost" icon="i-material-symbols-person-off-outline" :aria-label="$t('organization.action.mark_left', { name: nameOf(member) })" :loading="working === `left:${member}`" :disabled="busy" @click="markLeft(member)" />
+              </UTooltip>
             </div>
+          </div>
+        </SettingsGroup>
+      </div>
 
-            <!-- The people holding a post in the unit, beside the people whose home unit it is (docs/accounts.md,
-                 「Concurrent posts」). -->
-            <SettingsGroup :title="$t('organization.label.posts', { count: countText(view?.concurrent.length ?? 0) })" data-unit-posts>
-              <template #aside>
-                <UButton color="neutral" variant="subtle" size="sm" icon="i-material-symbols-group-add-outline" :label="$t('organization.action.add_post')" :disabled="busy || view === null" data-unit-add-post @click="openPost(null)" />
-              </template>
-              <div v-if="view === null" class="flex h-14 items-center"><SkeletonBar class="h-4 w-1/3" /></div>
-              <SettingsRow v-else-if="view.concurrent.length === 0" :label="$t('organization.label.no_posts')" />
-              <SettingsRow v-for="post in view?.concurrent ?? []" v-else :key="post.user" :label="nameOf(post.user)" data-unit-post>
-                <template #description>
-                  <span v-if="post.role || post.head" class="flex flex-wrap items-center gap-1">
-                    <span v-if="post.role">{{ post.role.name }}</span>
-                    <UBadge v-if="post.head" :label="$t('organization.label.role_head')" color="neutral" variant="subtle" size="sm" />
-                  </span>
-                </template>
-                <div class="flex shrink-0 items-center gap-1">
-                  <UTooltip :text="$t('organization.action.edit_post', { name: nameOf(post.user) })">
-                    <UButton color="neutral" variant="ghost" icon="i-material-symbols-edit-outline" :aria-label="$t('organization.action.edit_post', { name: nameOf(post.user) })" :disabled="busy" data-unit-edit-post @click="openPost(post.user)" />
-                  </UTooltip>
-                  <UTooltip :text="$t('organization.action.remove_post', { name: nameOf(post.user) })">
-                    <UButton color="neutral" variant="ghost" icon="i-material-symbols-person-remove-outline" :aria-label="$t('organization.action.remove_post', { name: nameOf(post.user) })" :loading="working === `post:${post.user}`" :disabled="busy" data-unit-remove-post @click="removePost(post.user)" />
-                  </UTooltip>
-                </div>
-              </SettingsRow>
-            </SettingsGroup>
+      <!-- The people holding a post in the unit, beside the people whose home unit it is (docs/accounts.md,
+           「Concurrent posts」). -->
+      <SettingsGroup :title="$t('organization.label.posts', { count: countText(view?.concurrent.length ?? 0) })" data-unit-posts>
+        <template #aside>
+          <UButton color="neutral" variant="subtle" size="sm" icon="i-material-symbols-group-add-outline" :label="$t('organization.action.add_post')" :disabled="busy || view === null" data-unit-add-post @click="openPost(null)" />
+        </template>
+        <div v-if="view === null" class="flex h-14 items-center"><SkeletonBar class="h-4 w-1/3" /></div>
+        <SettingsRow v-else-if="view.concurrent.length === 0" :label="$t('organization.label.no_posts')" />
+        <SettingsRow v-for="post in view?.concurrent ?? []" v-else :key="post.user" :label="nameOf(post.user)" data-unit-post>
+          <template #description>
+            <span v-if="post.role || post.head" class="flex flex-wrap items-center gap-1">
+              <span v-if="post.role">{{ post.role.name }}</span>
+              <UBadge v-if="post.head" :label="$t('organization.label.role_head')" color="neutral" variant="subtle" size="sm" />
+            </span>
+          </template>
+          <div class="flex shrink-0 items-center gap-1">
+            <UTooltip :text="$t('organization.action.edit_post', { name: nameOf(post.user) })">
+              <UButton color="neutral" variant="ghost" icon="i-material-symbols-edit-outline" :aria-label="$t('organization.action.edit_post', { name: nameOf(post.user) })" :disabled="busy" data-unit-edit-post @click="openPost(post.user)" />
+            </UTooltip>
+            <UTooltip :text="$t('organization.action.remove_post', { name: nameOf(post.user) })">
+              <UButton color="neutral" variant="ghost" icon="i-material-symbols-person-remove-outline" :aria-label="$t('organization.action.remove_post', { name: nameOf(post.user) })" :loading="working === `post:${post.user}`" :disabled="busy" data-unit-remove-post @click="removePost(post.user)" />
+            </UTooltip>
+          </div>
+        </SettingsRow>
+      </SettingsGroup>
 
-            <p v-if="failure !== ''" role="alert" class="text-sm text-error">{{ failure }}</p>
-          </section>
-        </div>
-      </template>
-    </USplitter>
+      <p v-if="failure !== ''" role="alert" class="text-sm text-error">{{ failure }}</p>
+    </section>
 
-    <UDrawer v-if="narrow" v-model:open="treeOpen" :title="$t('organization.label.chart')">
-      <template #body>
-        <div v-if="kindItems.length > 1" class="pb-2">
-          <ChoiceSelect :model-value="kindFilter" :items="kindItems" value-key="value" size="sm" class="w-full" :aria-label="$t('organization.label.kind')" @update:model-value="(value: string) => setKindFilter(value)" />
-        </div>
-        <div v-if="kindFilter === KIND_ALL" class="overflow-x-auto [scrollbar-width:thin]">
-          <OrganizationUnitTree v-model:expanded="expanded" class="w-max min-w-full" :units="units ?? []" :chosen="chosen?.id ?? null" @choose="choose" />
-        </div>
-        <OrganizationKindUnits v-else :units="unitsOfKind" :chosen="chosen?.id ?? null" @choose="choose" />
-      </template>
-    </UDrawer>
 
     <SettingsDialog v-model:open="adding" :title="$t('organization.action.add')" :dirty="addChanges">
       <UForm id="unit-add-form" :state="draft" class="flex flex-col gap-4" @submit="add">
@@ -321,22 +257,20 @@ import { draggedSelection, useDragSelect } from "bmo-ui/app/domain/dragselect";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 import { useNarrow } from "bmo-ui/app/domain/screen";
-import { SPLIT_HANDLE } from "bmo-ui/app/domain/side-parts";
 import { dayKey, toUnixSeconds } from "bmo-ui/app/domain/time";
 
 import { useConfirm } from "~/domain/confirm";
 import { countText } from "~/domain/numbers";
-import { ORGANIZATION_UNITS_KEY, branchesAbove, branchesOpenAtFirst, isCompany, unitPath } from "~/domain/organization";
+import { ORGANIZATION_UNITS_KEY, UNIT_KEY, isCompany, organizationNodeAddress, unitPath } from "~/domain/organization";
 import { shownName } from "~/domain/people";
 
-import type { Organization } from "~/domain/organization";
-import type { SplitterItem } from "@nuxt/ui";
+import type { Organization, TreeDrop } from "~/domain/organization";
 import type { Ref } from "vue";
 import type { RoleView } from "#shared/roster";
 import type { Unit, UnitRow, UserSummary } from "@web/server-client";
 
 interface Props {
-  // The organisation chosen, whose tree alone the tab stands.
+  // The organisation chosen, whose units alone the tab stands for.
   company: Organization;
 }
 
@@ -373,64 +307,27 @@ function pathText(id: number, itself: boolean): string {
   return (itself ? path : path.slice(0, -1)).map((unit) => unit.name).join(" › ");
 }
 
-// The unit the address names, or the organisation itself where it names none of its tree.
+// The node chosen in the organisation tree: the unit the address names, or the organisation itself where it names none
+// of its units.
 const chosen = computed<UnitRow | null>(() => {
-  const asked = unitOf(Number(route.query.unit));
+  const asked = unitOf(Number(route.query[UNIT_KEY]));
 
-  return asked ?? units.value?.find(isCompany) ?? null;
+  return asked ?? units.value?.find((unit) => unit.id === props.company.id) ?? null;
 });
 
-// The branches standing open, by their keys: every company's and every one down to the unit chosen at first, and
-// then what the reader opens and closes, kept across every change made on the tab. The unit chosen, wherever it
-// moves, and a unit just made always stand in view (docs/web.md, 「Organisation settings」, its chart).
-const expanded = ref<string[]>([]);
+// The administrator's read of every unit the screen's tree stands on, laid over with each read here, so a unit made,
+// renamed or moved stands in the tree as it does in the tab.
+const treeUnits = useNuxtData<UnitRow[]>(ORGANIZATION_UNITS_KEY);
 
-function openBranches(ids: number[]): void {
-  const keys = ids.map(String).filter((key) => !expanded.value.includes(key));
-
-  if (keys.length > 0) expanded.value = [...expanded.value, ...keys];
-}
-
-// The chosen unit's path, so a unit moved under another parent opens its new branches too.
-const chosenPath = computed(() => (chosen.value === null ? "" : pathOf(chosen.value.id).map((unit) => unit.id).join("/")));
-let openedAtFirst = false;
-
-watch(
-  chosenPath,
-  () => {
-    const all = units.value;
-    const unit = chosen.value?.id ?? null;
-
-    if (all === null) return;
-    if (!openedAtFirst) openBranches(branchesOpenAtFirst(all, unit));
-    else if (unit !== null) openBranches(branchesAbove(all, unit));
-    openedAtFirst = true;
-  },
-  { immediate: true }
-);
-
-const treeOpen = ref(false);
-
-// The read failed, or the deployment holds no unit: either is said in place of both regions.
+// The read failed, or the deployment holds no unit: either is said in place of the unit.
 const failed = computed(() => units.value === null && failure.value !== "");
 const empty = computed(() => units.value !== null && chosen.value === null);
 
-// The regions the splitter parts, in hundredths of its width: the tree, which can be widened to a half, and the unit
-// chosen; on a phone the unit alone, the tree in its drawer.
-const TREE_REGION: SplitterItem = { slot: "tree", minSize: 15, defaultSize: 28, maxSize: 50 };
-const UNIT_REGION: SplitterItem = { slot: "unit", minSize: 50 };
-const regions = computed<SplitterItem[]>(() => (narrow.value ? [{ ...UNIT_REGION, minSize: 100, defaultSize: 100 }] : [TREE_REGION, UNIT_REGION]));
-
-// How many units the tree's skeleton stands: a company and the units open under it at first.
-const TREE_SKELETON_ROWS = 3;
-
-// Choosing a unit is a step of the history and stands in the address, so a shared link opens the same unit.
+// Choosing a unit from the tab — the unit it reports to — chooses it in the organisation tree, a step of the history.
 function choose(unit: number): void {
-  treeOpen.value = false;
-
   if (unit === chosen.value?.id) return;
 
-  void router.push({ query: { ...route.query, unit: String(unit) } });
+  void router.push(organizationNodeAddress(props.company.id, unit === props.company.id ? null : unit, route.query));
 }
 
 function nameOf(user: string): string {
@@ -463,6 +360,7 @@ function parents(of: number | null): { label: string; value: string }[] {
   return all.filter((unit) => pathOf(unit.id)[0]?.id === company && !below.has(unit.id)).map(choice);
 }
 
+
 // The organisation's units and the people read; a failure stands until a read goes through, so a read asked again
 // from it spins on its button rather than giving way to the skeleton. The unit chosen is read whole beside them, and
 // the organisation's own lists with them.
@@ -472,6 +370,7 @@ async function read(): Promise<void> {
     const [all, people] = await Promise.all([$fetch<UnitRow[]>("/api/organization/units"), $fetch<UserSummary[]>("/api/users")]);
 
     units.value = all.filter((unit) => unitPath(all, unit.id)[0]?.id === props.company.id);
+    treeUnits.data.value = all;
     users.value = people;
     failure.value = "";
     await Promise.all([readView(), readCatalogues()]);
@@ -615,39 +514,6 @@ async function removePost(user: string): Promise<void> {
   if (taken) await acting(() => $fetch(`/api/organization/units/${unit.id}/posts/${encodeURIComponent(user)}`, { method: "DELETE" }), failure, `post:${user}`);
 }
 
-// --- The tree narrowed by kind ---
-
-// The whole tree is a value of its own, since a select item's value is never empty; a kind is named with its company,
-// `<company>:<key>`, as each company keeps its own and the address names it so.
-const KIND_ALL = "all";
-const kindFilter = computed(() => {
-  const asked = String(route.query.kind ?? "");
-
-  return kindItems.value.some((item) => "value" in item && item.value === asked) ? asked : KIND_ALL;
-});
-const kindItems = computed(() => [
-  { label: t("organization.label.kind_all"), value: KIND_ALL },
-  ...(units.value ?? []).filter(isCompany).flatMap((company) => {
-    const kinds = catalogues.value[company.id]?.kinds ?? [];
-
-    return kinds.map((kind) => ({ label: kind.name, value: `${company.id}:${kind.key}` }));
-  })
-]);
-const unitsOfKind = computed(() => {
-  const [company, key] = kindFilter.value.split(":");
-
-  return (units.value ?? [])
-    .filter((unit) => unit.kind?.key === key && String(companyOf(unit.id)) === company)
-    .map((unit) => ({ id: unit.id, name: unit.name, path: pathText(unit.id, false) }));
-});
-
-// The kind chosen stands in the address in place of the one before.
-function setKindFilter(value: string): void {
-  const { kind: _, ...rest } = route.query;
-
-  void router.replace({ query: value === KIND_ALL ? rest : { ...rest, kind: value } });
-}
-
 // The unit a unit's matters go up through, where it reports to one.
 function reportsToOf(unit: UnitRow): number | null {
   return unit.reportsTo ?? null;
@@ -703,7 +569,6 @@ async function markLeft(user: string): Promise<void> {
 const selected = ref(new Set<string>());
 const anchor = ref<string | null>(null);
 const memberList = ref<HTMLElement | null>(null);
-const unitScroll = ref<HTMLElement | null>(null);
 
 // The people who may be chosen, in the order they stand: everyone in the unit who has not left.
 const choosable = computed(() => (chosen.value === null ? [] : chosen.value.members.filter((member) => !gone(member))));
@@ -735,11 +600,18 @@ function chooseAll(all: boolean): void {
   anchor.value = null;
 }
 
+// What holds the tab's column and scrolls it: the nearest box above the list that scrolls up and down.
+function scrollerOf(element: HTMLElement | null): HTMLElement | null {
+  for (let at = element?.parentElement ?? null; at !== null; at = at.parentElement) if (/auto|scroll/.test(getComputedStyle(at).overflowY)) return at;
+
+  return null;
+}
+
 // A finger held on a person chooses them, and one that goes on to move chooses every person it passes, the
 // console's own gesture for every list that chooses more than one.
 useDragSelect({
   surface: () => memberList.value,
-  scroller: () => unitScroll.value,
+  scroller: () => scrollerOf(memberList.value),
   rowMark: "data-member-row",
   choosableMark: "data-member-choosable",
   keys: () => choosable.value,
@@ -779,11 +651,8 @@ function openMove(): void {
 
 // --- People carried by the pointer onto a unit of the tree ---
 
-// The drag type the people chosen travel under from the unit's list to the tree.
+// The drag type the people chosen travel under from the unit's list to the organisation tree.
 const PEOPLE_DRAG = "application/x-organization-people";
-// The unit of the tree carried people stand over.
-const dropUnit = ref<number | null>(null);
-
 // A person's row carried takes the people chosen with it, or the person alone where they are not chosen.
 function carryPeople(event: DragEvent, member: string): void {
   if (!selected.value.has(member)) {
@@ -795,68 +664,38 @@ function carryPeople(event: DragEvent, member: string): void {
   if (event.dataTransfer) event.dataTransfer.effectAllowed = "move";
 }
 
-// The unit whose row of the tree the pointer is level with, read off where the rows stand.
-function unitAt(event: DragEvent): number | null {
-  const tree = event.currentTarget as HTMLElement;
-
-  for (const mark of tree.querySelectorAll<HTMLElement>("[data-unit-drop]")) {
-    const box = (mark.closest<HTMLElement>('[data-slot="link"]') ?? mark).getBoundingClientRect();
-
-    if (event.clientY >= box.top && event.clientY < box.bottom) return Number(mark.dataset.unitDrop);
-  }
-
-  return null;
-}
-
-function peopleOver(event: DragEvent): void {
-  if (!(event.dataTransfer?.types.includes(PEOPLE_DRAG) ?? false)) return;
-
-  const unit = unitAt(event);
-
-  dropUnit.value = unit === chosen.value?.id ? null : unit;
-  if (dropUnit.value === null) return;
-
-  event.preventDefault();
-  event.dataTransfer!.dropEffect = "move";
-}
-
-function peopleLeave(event: DragEvent): void {
-  if (!(event.currentTarget as HTMLElement).contains(event.relatedTarget as Node | null)) dropUnit.value = null;
-}
-
-// People dropped on a unit: the move's preview, the unit chosen as where they go and each staying a member.
-function peopleDropped(event: DragEvent): void {
-  const unit = dropUnit.value;
-
-  dropUnit.value = null;
-  if (unit === null || !(event.dataTransfer?.types.includes(PEOPLE_DRAG) ?? false)) return;
-
-  event.preventDefault();
-  moveDialog.value?.start(choosable.value.filter((member) => selected.value.has(member)), unit);
-}
+// People carried onto a unit of the organisation tree other than the one chosen: the move's preview, that unit as
+// where they go and each staying a member.
+const treeDrop: TreeDrop = {
+  types: [PEOPLE_DRAG],
+  takes: (unit) => unit !== chosen.value?.id && unitOf(unit) !== null,
+  onto: (unit) => moveDialog.value?.start(choosable.value.filter((member) => selected.value.has(member)), unit)
+};
 
 // A person picker's words name its action rather than hint at a value, so they read at the words' own colour.
 const PICKER_UI = { placeholder: "text-default" };
 
-// A new unit of the organisation: a name and a parent, the organisation itself at first. A new company is the
-// organisation list's own add.
+// A new unit of the organisation: a name and a parent, the node chosen at first. A new company is the organisation
+// tree's own add.
 const adding = ref(false);
 const draft = reactive({ name: "", parent: String(props.company.id) });
 const addChanges = useOpenedWith(() => draft, { open: adding });
 
 function openAdd(): void {
-  Object.assign(draft, { name: "", parent: String(props.company.id) });
+  Object.assign(draft, { name: "", parent: String(chosen.value?.id ?? props.company.id) });
   formFailure.value = "";
   adding.value = true;
 }
 
+// The unit made is chosen once the units are read again, so it stands in view in the tree.
 async function add(): Promise<void> {
   const body = { name: draft.name.trim(), parent: Number(draft.parent) };
+  let made: number | null = null;
 
-  if (!(await acting(() => $fetch("/api/organization/units", { method: "POST", body }), formFailure))) return;
+  if (!(await acting(async () => (made = (await $fetch<{ id: number }>("/api/organization/units", { method: "POST", body })).id), formFailure))) return;
 
   adding.value = false;
-  openBranches([...branchesAbove(units.value ?? [], body.parent), body.parent]);
+  if (made !== null) choose(made);
 }
 
 // The unit's own form: its name and its parent, held until its one save sends what differs from what is saved.
@@ -924,8 +763,6 @@ async function saveEdit(): Promise<void> {
   if (!(await acting(() => $fetch(`/api/organization/units/${unit.id}`, { method: "PATCH", body }), formFailure))) return;
 
   editing.value = false;
-  // The organisation list names each company as its own unit is named, so a company renamed is read again there.
-  if (isCompany(unit) && body.name !== undefined) void refreshNuxtData(ORGANIZATION_UNITS_KEY);
 }
 
 // The person whose machine is open in its dialog.
@@ -940,5 +777,6 @@ function openMachine(user: string): void {
 onMounted(() => void read());
 
 // The tab's create: a unit, by its form.
-defineExpose({ addLabel: computed(() => t("organization.action.add")), openAdd });
+// And what it takes carried onto the organisation tree.
+defineExpose({ addLabel: computed(() => t("organization.action.add")), openAdd, treeDrop });
 </script>

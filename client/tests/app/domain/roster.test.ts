@@ -80,12 +80,12 @@ describe("a page of the roster", () => {
 });
 
 describe("the filters", () => {
-  test("count those set, the words and the organisation chosen aside", () => {
-    expect(rosterFiltersSet({ ...NOTHING, q: "a" })).toBe(0);
-    expect(rosterFiltersSet({ q: "", company: 1, unit: 2, kind: "site", role: "head", state: null })).toBe(3);
+  test("count those set, the words and the node chosen in the tree aside", () => {
+    expect(rosterFiltersSet({ ...NOTHING, q: "a", unit: 2 })).toBe(0);
+    expect(rosterFiltersSet({ q: "", company: 1, unit: 2, kind: "site", role: "head", state: null })).toBe(2);
   });
 
-  test("change one filter and keep the organisation chosen", () => {
+  test("change one filter and keep the node chosen", () => {
     expect(withRosterFilter({ ...NOTHING, company: 1, unit: 2 }, "role", "head")).toEqual({ ...NOTHING, company: 1, unit: 2, role: "head" });
   });
 });

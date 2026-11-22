@@ -36,7 +36,7 @@
                 </template>
               </UButton>
             </div>
-            <OrganizationPeopleFilters v-if="!narrow" :view="view" :units="units" @change="setView" />
+            <OrganizationPeopleFilters v-if="!narrow" :view="view" @change="setView" />
           </div>
 
           <!-- The list itself: a failure, the first read's skeleton, a line where nobody stands, or the rows. -->
@@ -213,7 +213,7 @@
 
     <UDrawer v-if="narrow" v-model:open="filtersOpen" :title="$t('roster.action.filter')">
       <template #body>
-        <OrganizationPeopleFilters stacked :view="drafted ?? view" :units="units" @change="(next: RosterView) => (drafted = next)" />
+        <OrganizationPeopleFilters stacked :view="drafted ?? view" @change="(next: RosterView) => (drafted = next)" />
       </template>
     </UDrawer>
   </div>
@@ -250,7 +250,6 @@ import type { RosterView } from "~/domain/roster";
 import type { SettingsColumn } from "~/domain/settings-columns";
 import type { RosterDetail, RosterPage, RosterPerson } from "#shared/roster";
 import type { SplitterItem } from "@nuxt/ui";
-import type { InviteUnit } from "@web/server-client";
 
 interface Props {
   // The organisation chosen, whose people alone the list looks through.
@@ -264,9 +263,6 @@ const route = useRoute();
 const router = useRouter();
 const narrow = useNarrow();
 
-// The units the unit filter chooses among, as the invitations read them.
-const { data: unitData } = useFetch<InviteUnit[]>("/api/invites/units", { key: "invite-units", server: false, lazy: true, default: () => [] });
-const units = computed(() => unitData.value ?? []);
 
 // What the address shows: the words and the filters, and the person open; the list looks through the organisation
 // chosen alone.

@@ -126,11 +126,11 @@ async function landed(page: Page, user: string | null, pane: string | null): Pro
   );
 }
 
-// An organisation chosen from the list: beside the organisation at a desk's width, in its drawer on a phone.
+// An organisation chosen from the tree: beside the organisation at a desk's width, in its drawer on a phone.
 async function choose(page: Page, width: number, company: number): Promise<void> {
   if (width < 640) await page.locator("[data-choice-sidebar-open]").click();
 
-  await page.locator(`[data-choice-sidebar-row="${company}"]`).click();
+  await page.locator(`[data-choice-tree-row="number:${company}"]`).click();
   await page.waitForURL((url) => url.searchParams.get("company") === String(company), { timeout: 20_000 });
 }
 

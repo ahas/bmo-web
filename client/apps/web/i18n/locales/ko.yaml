@@ -1999,7 +1999,6 @@ organization:
     head_dropped: "{unit} 조직장 해제"
     post_dropped: "{unit} 겸직 해제"
     kind: 종류
-    kind_all: 전체
     no_kind: 없음
     short_name: 약칭
     short_name_line: "약칭 {name}"
@@ -2101,8 +2100,8 @@ organization:
 org_memory:
   label:
     tab: 조직 기억
-    unit: 조직
     no_units: 조직 기억을 쓸 수 있는 조직이 없습니다.
+    choose_unit: 조직 목록에서 기억을 쓸 수 있는 조직을 선택해 주세요.
     own: 이 조직의 기억
     no_memories: 기억 없음
     proposals: "제안 {count}건"

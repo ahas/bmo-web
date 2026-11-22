@@ -197,6 +197,10 @@
   (정렬, 정렬 추가, `{name} 정렬`), each on its own control. Never 맞춤, 왼쪽 맞춤, 중앙 정렬 or 얼라인.
 - the words under a picture or a block → 설명: 설명, 설명을 입력해 주세요, and a card's description the same, 설명
   수정. Never 캡션, the word the video player's line also keeps from subtitles, nor 주석.
+- bring files into a note as notes → 가져오기: 가져오기, `노트 {n}개를 가져왔습니다`, 가져오지 못했습니다. Never 임포트, and
+  never 불러오기, which is a screen reading what it shows.
+- put a file of the reader's into a note → 업로드: 업로드, `{size}보다 작은 파일만 업로드할 수 있습니다` for a file over the
+  largest the note takes. Never 올리기, 업로드 한도 or 최대 용량.
 - secret, a value a unit reads by its file name → 비밀; the console's store of them, each person's own → 비밀 보관함,
   and one's own → 내 비밀; putting a value in place of the one a name holds → 교체. Never 시크릿, 키 보관소, 개인 금고.
 - the shape a secret is asked in → 비밀 종류; one of its fields → 항목, its key 키 and its label 이름; fields put
@@ -258,7 +262,7 @@
   the choices do not hold; a question its recommendation settled when its time ran out → 시간 초과 · 추천 답으로 결정,
   and one about to be → 시간 초과 · 추천 {number}번으로 결정; one only a person settles, with no recommendation or no due
   time → 사람의 답을 기다림. Never 권장, 제안, 무응답.
-- download → 다운로드: 다운로드, {name} 다운로드, 다운로드 주소. Never 내려받기. This is the owner's own choice of
+- download → 다운로드: 다운로드, {name} 다운로드, 다운로드 주소, `{name} 파일을 다운로드하지 못했습니다`. Never 내려받기. This is the owner's own choice of
   the word.
 - volume → 볼륨; mute, unmute → 음소거, 음소거 해제: 음소거됨, 음소거 해제됨, 볼륨 {n}%; a mute that holds this device
   alone → 이 기기 음소거, 이 기기 음소거 해제. Never 무음, 소리 끄기, 이 기기에서만 음소거.
@@ -299,7 +303,8 @@
   sentence about why the older lines are missing.
 - filter, sift → 필터. Never 거르기.
 - page → 페이지. Never 쪽.
-- table → 테이블; row → 행; query → 쿼리, wherever the text is about a database. Never 표, 줄, 질의.
+- table → 테이블; row → 행; cell → 셀; query → 쿼리, wherever the text is about a database: `행 {n}개를 클립보드에
+  복사했습니다`, `셀 {n}개를 클립보드에 복사했습니다`. Never 표, 줄, 칸, 질의.
 - default → 기본값, standing only as the mark after the default value (above). Never 처음 값.
 - a value that is not set, standing alone in a table's cell or in a name and value list → `—`, the dash alone, as every
   table of the console writes it; a moment that was never recorded → 기록 없음. The dash never stands between words, at

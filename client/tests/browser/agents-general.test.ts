@@ -665,6 +665,7 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
         };
         const on = wording("agents.label.default_marked", { value: wording("agents.label.switch_on") });
         const off = wording("agents.label.switch_off");
+        const discard = () => page.getByRole("button", { name: wording("common.action.discard"), exact: true });
 
         await rows.first().waitFor({ timeout: 15_000 });
 
@@ -675,8 +676,15 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
         expect((await dialog.locator("[data-agent-follows]").innerText()).trim()).toBe(on);
         expect(await dialog.locator("[data-agent-follows]").evaluate((one) => one.getBoundingClientRect().right <= one.closest("[role=dialog]")!.getBoundingClientRect().right)).toBe(true);
 
-        // Chosen off and back on, it is no change, and the dialog closes asking nothing.
+        // Changed and closed, it asks; Back on the question leaves it open with the change kept.
         await pick(dialog, off);
+        await page.keyboard.press("Escape");
+        await discard().waitFor({ timeout: 10_000 });
+        await page.keyboard.press("Escape");
+        await discard().waitFor({ state: "detached", timeout: 10_000 });
+        expect((await dialog.locator("[data-agent-follows]").innerText()).trim()).toBe(off);
+
+        // Chosen back on, it is no change.
         await pick(dialog, on);
         expect(await save().isDisabled()).toBe(true);
 
@@ -710,6 +718,12 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
         await follows.waitFor({ timeout: 10_000 });
         expect(await follows.getAttribute("aria-checked")).toBe("true");
         await follows.click();
+        // Switched and closed, it asks; Back on the question leaves the switch as it was turned.
+        await page.keyboard.press("Escape");
+        await discard().waitFor({ timeout: 10_000 });
+        await page.keyboard.press("Escape");
+        await discard().waitFor({ state: "detached", timeout: 10_000 });
+        expect(await follows.getAttribute("aria-checked")).toBe("false");
         await roleDialog.getByRole("button", { name: wording("common.action.save"), exact: true }).click();
         expect(await until(async () => sent.at(-1)?.path, (path) => path === "role")).toBe("role");
         expect(sent.at(-1)).toEqual({ path: "role", body: { followsAsker: false } });

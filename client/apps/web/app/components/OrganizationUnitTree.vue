@@ -1,8 +1,8 @@
 <template>
-  <!-- The units tab's tree (docs/web.md, 「Organisation settings」, its chart): companies at its top, each unit
-       under its parent to any depth. A press on a unit chooses it and leaves its branch as it is; the chevron at a
-       branch's end, or an arrow key, opens or closes the branch in place. What stands open is the screen's, so it
-       outlives the drawer. Every name stands whole: the tree is as wide as its widest row, and what holds it scrolls
+  <!-- The tree an invitation's unit is chosen from (docs/web.md, 「Organisation」, the invitations tab): the units at
+       its top, each unit under its parent to any depth. A press on a unit chooses it and leaves its branch as it is;
+       the chevron at a branch's end, or an arrow key, opens or closes the branch in place. What stands open is the
+       caller's. Every name stands whole: the tree is as wide as its widest row, and what holds it scrolls
        sideways where it is wider. -->
   <UTree
     v-model:expanded="expanded"
@@ -15,10 +15,9 @@
     :on-toggle="keepOnPress"
     @update:model-value="(item: unknown) => choose(item as UnitItem | undefined)"
   >
-    <!-- A unit's name marks its row for people carried over the tree, and stands lit while they would land there. -->
     <template #item-label="{ item }">
       <span class="flex flex-col items-start gap-1">
-        <span :data-unit-drop="item.id" class="rounded-sm" :class="props.dropping === item.id ? 'bg-primary/15 ring-1 ring-primary' : ''">{{ item.label }}</span>
+        <span>{{ item.label }}</span>
         <span v-if="item.kind" class="flex flex-wrap items-center gap-1">
           <UBadge :label="item.kind" color="neutral" variant="subtle" size="sm" data-unit-tree-kind />
         </span>
@@ -57,13 +56,11 @@ type TreeUnit = UnitPlace & { kind?: { name: string } | null };
 interface Props {
   units: readonly TreeUnit[];
   chosen: number | null;
-  // The unit people carried from the unit chosen would be moved into, lit while they stand over it.
-  dropping?: number | null;
 }
 
 type UnitItem = TreeItem & { id: number; label: string; kind?: string; children?: UnitItem[] };
 
-const props = withDefaults(defineProps<Props>(), { dropping: null });
+const props = defineProps<Props>();
 const emit = defineEmits<{ choose: [unit: number] }>();
 // The keys of the branches standing open, kept by the screen.
 const expanded = defineModel<string[]>("expanded", { required: true });

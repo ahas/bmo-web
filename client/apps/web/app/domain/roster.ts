@@ -18,14 +18,14 @@ export const ROSTER_PAGE = 50;
 /** The tab's own key in the address. */
 export const ROSTER_TAB = "people";
 
-/** What the list shows, as the address carries it: the words, the organisation chosen and the four filters. None set
- * shows everyone the organisation holds. */
+/** What the list shows, as the address carries it: the words, the node chosen in the organisation tree and the three
+ * filters. None set shows everyone the organisation holds. */
 export interface RosterView {
   q: string;
-  // The organisation chosen, which the screen's list of organisations sets rather than a filter.
+  // The organisation chosen, and the unit of it chosen where one is, which the screen's tree sets rather than a filter.
   company: number | null;
   unit: number | null;
-  // A unit kind's key, of the company whose tree the unit filter offers.
+  // A unit kind's key, of the company chosen.
   kind: string | null;
   role: RosterRole | null;
   state: RosterState | null;
@@ -106,13 +106,13 @@ export function rosterListKey(view: RosterView): string {
   return JSON.stringify([view.q, view.company, view.unit, view.kind, view.role, view.state]);
 }
 
-/** How many of the four filters are set, which the narrow screen's filter button carries. */
+/** How many of the three filters are set, which the narrow screen's filter button carries. */
 export function rosterFiltersSet(view: RosterView): number {
-  return [view.unit, view.kind, view.role, view.state].filter((one) => one !== null).length;
+  return [view.kind, view.role, view.state].filter((one) => one !== null).length;
 }
 
 /** The view with one filter changed. */
-export function withRosterFilter<Key extends keyof Omit<RosterView, "q" | "company">>(view: RosterView, key: Key, value: RosterView[Key]): RosterView {
+export function withRosterFilter<Key extends keyof Omit<RosterView, "q" | "company" | "unit">>(view: RosterView, key: Key, value: RosterView[Key]): RosterView {
   return { ...view, [key]: value };
 }
 

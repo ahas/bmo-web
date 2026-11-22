@@ -1,10 +1,10 @@
 <template>
-  <!-- The organisation screen (docs/web.md, 「Organisation」): the organisations at its left and the one chosen at its
-       right, two regions parted by a splitter whose width this browser keeps, each scrolling on its own. On a narrow
-       screen the organisation chosen fills the body and the list rises as a bottom drawer from the button at its head,
-       which carries its name. Inside the organisation chosen the tab row stands at its head, the open tab's own add at
-       its right end where it has one, the row's grey icon at every width, and the open tab scrolled into the row's
-       view. A tab's content stands in a reading column centred in the region, the region's padding outside it, and
+  <!-- The organisation screen (docs/web.md, 「Organisation」): one tree of the organisations at its left, companies at
+       its top and their units under them, and the node chosen at its right, two regions parted by a splitter whose
+       width this browser keeps, each scrolling on its own. On a narrow screen the node chosen fills the body and the
+       tree rises as a bottom drawer from the button at the start of the tab row, which carries its name. Inside the
+       node chosen the tab row stands at its head, the open tab's own add at its right end where it has one, the row's
+       grey icon at every width, and the open tab scrolled into the row's view. A tab's content stands in a reading column centred in the region, the region's padding outside it, and
        scrolls; a tab laid across the whole region takes it unpadded and scrolls its own parts. A reader with no
        organisation to set is told so, with no tab. -->
   <UDashboardPanel id="organization" :ui="{ body: 'p-0 sm:p-0 gap-0 [&>*]:max-w-none' }">
@@ -13,67 +13,76 @@
     </template>
 
     <template #body>
-      <!-- The organisations in bmo-ui's side list (docs/web.md, 「Organisation」). With none to set, no list and no tab:
-           the words saying so alone, and the administrator's add of a company beside them, so the first is made there. -->
-      <ChoiceSidebar
+      <!-- The organisations in bmo-ui's side tree (docs/web.md, 「Organisation」), the open tab taking people carried
+           onto a unit of it where it takes any. With none to set, no tree and no tab: the words saying so alone, and the
+           administrator's add of a company beside them, so the first is made there. -->
+      <ChoiceTree
         :listed="!none"
         :label="$t('organization.label.list')"
-        :entries="entries"
-        :chosen="chosen?.id ?? null"
+        :nodes="nodes"
+        :chosen="chosenNode"
         save-id="bmo-organization-list-splitter"
         :failure="organizations.failure.value"
         :reading="organizations.reading.value"
         :no-match-text="$t('organization.label.list_no_match')"
+        opener-in-body
+        :drop-types="treeDrop?.types ?? []"
+        :drop-takes="(key: string | number) => treeDrop?.takes(Number(key)) ?? false"
         @choose="choose(Number($event))"
         @retry="organizations.refresh"
+        @drop="(key: string | number, event: DragEvent) => treeDrop?.onto(Number(key), event)"
       >
         <template v-if="administrator" #actions>
           <IconButton size="sm" :icon="TAB_ADD_ICON" :label="$t('organization.action.add_company')" data-organization-add @click="openAdd" />
         </template>
 
-        <div v-if="none" class="mx-auto flex w-full max-w-3xl items-center gap-2 p-4" data-organization-none>
-          <p class="min-w-0 flex-1 text-sm text-muted">{{ $t("organization.label.list_none") }}</p>
-          <IconButton v-if="administrator" size="sm" :icon="TAB_ADD_ICON" :label="$t('organization.action.add_company')" data-organization-add @click="openAdd" />
-        </div>
-
-        <section v-else class="flex min-h-0 min-w-0 flex-1 flex-col" :aria-label="chosen?.name" :data-organization-chosen="chosen?.id">
-          <div ref="tabRow" :class="['flex h-12 shrink-0 items-center gap-2 ps-2 pe-4 sm:ps-4', TAB_ROW_LINE]">
-            <UTabs
-              :key="rowKey"
-              :model-value="tabChosen"
-              :items="tabItems"
-              :content="false"
-              color="neutral"
-              variant="link"
-              size="sm"
-              class="min-w-0 flex-1 self-stretch"
-              :ui="TAB_ROW_UI"
-              :aria-label="$t('organization.aria.tabs')"
-              @update:model-value="(value: string | number) => setTab(String(value))"
-            />
-
-            <IconButton
-              v-if="addLabel !== null"
-              size="sm"
-              :icon="TAB_ADD_ICON"
-              :label="addLabel"
-              :disabled="section?.addDisabled ?? false"
-              data-tab-add
-              @click="section?.openAdd?.()"
-            />
+        <template #default="{ opener }">
+          <div v-if="none" class="mx-auto flex w-full max-w-3xl items-center gap-2 p-4" data-organization-none>
+            <p class="min-w-0 flex-1 text-sm text-muted">{{ $t("organization.label.list_none") }}</p>
+            <IconButton v-if="administrator" size="sm" :icon="TAB_ADD_ICON" :label="$t('organization.action.add_company')" data-organization-add @click="openAdd" />
           </div>
 
-          <div v-if="tab === null || chosen === null" class="flex min-h-0 min-w-0 flex-1 flex-col" aria-busy="true" data-organization-body data-organization-waiting />
-          <div v-else-if="tab.wide" class="flex min-h-0 min-w-0 flex-1 flex-col" data-organization-body>
-            <component :is="tabComponent" :key="chosen.id" ref="section" :company="chosen" />
-          </div>
-          <div v-else class="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto p-4" data-organization-body>
-            <div class="mx-auto flex w-full min-w-0 max-w-3xl flex-col" data-organization-column>
+          <section v-else class="flex min-h-0 min-w-0 flex-1 flex-col" :aria-label="chosenName" :data-organization-chosen="chosen?.id" :data-organization-node="chosenNode ?? undefined">
+            <!-- On a phone the tree's button stands at the row's start, giving way to the tabs. -->
+            <div ref="tabRow" :class="['flex h-12 shrink-0 items-center gap-2 ps-2 pe-4 sm:ps-4', TAB_ROW_LINE, OPENER_GIVES_WAY]">
+              <component :is="opener" />
+              <UTabs
+                :key="rowKey"
+                :model-value="tabChosen"
+                :items="tabItems"
+                :content="false"
+                color="neutral"
+                variant="link"
+                size="sm"
+                class="min-w-0 flex-1 self-stretch"
+                :ui="TAB_ROW_UI"
+                :aria-label="$t('organization.aria.tabs')"
+                @update:model-value="(value: string | number) => setTab(String(value))"
+              />
+
+              <IconButton
+                v-if="addLabel !== null"
+                size="sm"
+                :icon="TAB_ADD_ICON"
+                :label="addLabel"
+                :disabled="section?.addDisabled ?? false"
+                data-tab-add
+                @click="section?.openAdd?.()"
+              />
+            </div>
+
+            <div v-if="tab === null || chosen === null" class="flex min-h-0 min-w-0 flex-1 flex-col" aria-busy="true" data-organization-body data-organization-waiting />
+            <div v-else-if="tab.wide" class="flex min-h-0 min-w-0 flex-1 flex-col" data-organization-body>
               <component :is="tabComponent" :key="chosen.id" ref="section" :company="chosen" />
             </div>
-          </div>
-        </section>
-      </ChoiceSidebar>
+            <div v-else class="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto p-4" data-organization-body>
+              <div class="mx-auto flex w-full min-w-0 max-w-3xl flex-col" data-organization-column>
+                <component :is="tabComponent" :key="chosen.id" ref="section" :company="chosen" />
+              </div>
+            </div>
+          </section>
+        </template>
+      </ChoiceTree>
 
       <!-- A new company: one name, and one save at its foot (docs/web.md, 「Organisation」). -->
       <SettingsDialog v-model:open="adding" :title="$t('organization.action.add_company')" :dirty="addChanges">
@@ -101,10 +110,13 @@ import { useAdministrator } from "~/domain/access";
 import {
   ORGANIZATION_KEY,
   ORGANIZATION_PATH,
+  UNIT_KEY,
   chosenOrganization,
+  companyOfNode,
   organizationAddress,
-  organizationChosenAddress,
   organizationMovedAway,
+  organizationNodeAddress,
+  organizationNodes,
   organizationRowTabs,
   organizationTabOf,
   organizationTabsFor,
@@ -114,9 +126,9 @@ import {
 import { TAB_ADD_ICON } from "~/domain/tab-create";
 import { revealOpenTab } from "~/domain/tab-row";
 
+import type { TreeDrop } from "~/domain/organization";
 import type { TabCreate } from "~/domain/tab-create";
 import type { RosterDetail } from "#shared/roster";
-import type { SideEntry } from "bmo-ui/app/domain/side-parts";
 import type { Component } from "vue";
 
 // A member opens it for the organisations where they head a unit, manage the supply or head the company; one with
@@ -134,6 +146,7 @@ const administrator = useAdministrator();
 const organizations = useOrganizations((error) => failureText(error, t("organization.error.failed")));
 const mounted = ref(false);
 const listed = computed(() => (mounted.value ? organizations.list.value : null));
+const treeUnits = computed(() => (mounted.value ? organizations.units.value : null));
 
 onMounted(() => {
   mounted.value = true;
@@ -174,6 +187,25 @@ const chosen = computed(() => {
 });
 const none = computed(() => listed.value !== null && listed.value.length === 0 && organizations.failure.value === "");
 
+// The unit the address names beside its company, where the tree holds it under the company chosen; the company itself
+// is the node chosen otherwise.
+const askedUnit = computed(() => {
+  const value = route.query[UNIT_KEY];
+  const text = Array.isArray(value) ? value[0] : value;
+
+  return typeof text === "string" && /^[1-9][0-9]*$/.test(text) ? Number(text) : null;
+});
+const chosenUnit = computed(() => {
+  const company = chosen.value?.id;
+
+  return treeUnits.value?.find((unit) => unit.id === askedUnit.value && unit.company === company && unit.id !== company) ?? null;
+});
+const chosenNode = computed(() => chosenUnit.value?.id ?? chosen.value?.id ?? null);
+const chosenName = computed(() => chosenUnit.value?.name ?? chosen.value?.name);
+
+// The organisations as the tree's nodes, each company's units under it; none until both are read.
+const nodes = computed(() => (listed.value === null || treeUnits.value === null ? null : organizationNodes(listed.value, treeUnits.value)));
+
 // Each tab says which readers it stands for; who reads is known at once for the administrator, and for a member once
 // the people roster and the supply read have said whether they cover the organisation chosen. Until then the row
 // holds the tab the address names as well, chosen, and the region draws no tab not yet known to stand for the reader:
@@ -189,18 +221,16 @@ const tabItems = computed(() => organizationRowTabs(reader.value, route.query.ta
 // where a tab came in before it.
 const rowKey = computed(() => tabItems.value.map((one) => one.value).join(" "));
 
-// The organisations as the side list's rows, each by its name.
-const entries = computed<SideEntry[] | null>(() => listed.value?.map((one) => ({ value: one.id, label: one.name })) ?? null);
-
 // An address naming a tab that moved away is taken to where its section stands now, one naming a tab the reader may
-// not open to the first one they may, and one naming no organisation, or one the reader may not set, to the one
-// chosen in its place, each with no step of the history; the last two wait until who reads is known. Each waits until
+// not open to the first one they may, one naming no organisation, or one the reader may not set, to the one chosen in
+// its place, and one naming a unit the tree does not hold under it to the company itself, each with no step of the
+// history; the tab waits until who reads is known, and the unit until the tree is read. Each waits until
 // the page stands in the browser: an address replaced while the page is still taking over what the server drew would
 // leave the page on the address before it.
 onMounted(() =>
   watch(
-    () => [route.query.tab, tabs.value, reader.value.known, chosen.value?.id] as const,
-    ([asked, list, , company]) => {
+    () => [route.query.tab, tabs.value, reader.value.known, chosen.value?.id, treeUnits.value, chosenUnit.value] as const,
+    ([asked, list, , company, units, unit]) => {
       // Once the page is being left, its address is no longer its own to set.
       if (router.currentRoute.value.path !== ORGANIZATION_PATH) return;
 
@@ -218,30 +248,47 @@ onMounted(() =>
         return;
       }
 
-      if (company !== undefined && route.query[ORGANIZATION_KEY] !== String(company)) void router.replace({ query: { ...route.query, [ORGANIZATION_KEY]: String(company) } });
+      if (company === undefined) return;
+
+      const strayUnit = units !== null && askedUnit.value !== null && unit === null;
+
+      if (route.query[ORGANIZATION_KEY] !== String(company) || strayUnit) {
+        const { [UNIT_KEY]: _unit, ...rest } = route.query;
+
+        void router.replace({ query: { ...(strayUnit ? rest : route.query), [ORGANIZATION_KEY]: String(company) } });
+      }
     },
     { immediate: true }
   )
 );
 
-// The tab stands in the address, and moving to another is a step of the history that keeps the organisation chosen;
-// the first is the organisation's own address.
+// The tab stands in the address, and moving to another is a step of the history that keeps the node chosen; the first
+// is the node's own address.
 function setTab(next: string): void {
   if (next === tabChosen.value) return;
 
   void router.push(organizationAddress(next, route.query));
 }
 
-// Choosing an organisation is a step of the history and stands in the address, so a shared link opens the same one.
-function choose(company: number): void {
-  if (company === chosen.value?.id) return;
+// Choosing a node of the tree is a step of the history and stands in the address, so a shared link opens the same one:
+// a company by its number, a unit by its own beside its company's.
+function choose(node: number): void {
+  if (node === chosenNode.value || listed.value === null) return;
 
-  void router.push(organizationChosenAddress(company, route.query));
+  const company = companyOfNode(listed.value, treeUnits.value ?? [], node);
+
+  if (company !== null) void router.push(organizationNodeAddress(company, node === company ? null : node, route.query));
 }
 
 // The open tab's own create, which it names and opens itself; a tab with none leaves the row without the button.
-const section = useTemplateRef<TabCreate>("section");
+const section = useTemplateRef<TabCreate & { treeDrop?: TreeDrop }>("section");
 const addLabel = computed(() => section.value?.addLabel ?? null);
+// What the open tab takes carried onto a unit of the tree, where it takes anything.
+const treeDrop = computed(() => section.value?.treeDrop ?? null);
+
+// On a phone the tree's button shares the tab row with the tabs, and the button is drawn by the tree, so it is told
+// there: it gives way to its own name, which reads whole in its tooltip when cut, and the tabs hold the rest.
+const OPENER_GIVES_WAY = "[&_[data-choice-sidebar-open]]:min-w-0 [&_[data-choice-sidebar-open]]:max-w-[40%]";
 
 // The open tab brought into the row's view as it changes, as the row first stands and as it is drawn again, and
 // whenever the row's tabs are laid out at another width — the region turning narrow, the open tab's add coming in at

@@ -1,6 +1,7 @@
 <template>
   <!-- Invitations (docs/web.md, 「Organisation」, the invitations tab): a link made into a unit of the organisation
-       chosen the reader heads, or any for the administrator, chosen from its tree, with the role the person
+       chosen the reader heads, or any for the administrator, chosen from its own tree opening on the node chosen in
+       the organisation tree, with the role the person
        takes there and, where the maker gives it, the person's name, in a dialog the tab row's add opens; copied with its words and when it closes,
        in the press that makes it, or by a copy of its own in the dialog where the browser refused that; the open
        ones into the organisation listed, each copied again or taken back by its two marks. While they are first read the list keeps its
@@ -55,7 +56,8 @@
           <UInput v-model="fullName" class="w-full" autocomplete="off" data-invite-name />
         </UFormField>
 
-        <!-- The organisation's tree, as the units tab draws it; the path down to the unit chosen reads above it. -->
+        <!-- The link's own unit, from the tree of the units the reader may invite into; the path down to the unit
+             chosen reads above it. -->
         <UFormField :label="$t('invites.label.unit')" :description="chosenPath" name="unit">
           <div role="group" class="overflow-x-auto [scrollbar-width:thin]" :aria-label="$t('invites.label.unit')" data-invite-unit-tree>
             <OrganizationUnitTree v-model:expanded="expanded" class="w-max min-w-full" :units="treeUnits" :chosen="unit" @choose="(id: number) => (unit = id)" />
@@ -101,7 +103,7 @@ import { formatStamp } from "bmo-ui/app/domain/time";
 import { copyPending, copyText } from "~/domain/copy";
 
 import { companyUnits, placeOf } from "~/domain/invites";
-import { unitBranches, unitPath } from "~/domain/organization";
+import { UNIT_KEY, branchesAbove, unitBranches, unitPath } from "~/domain/organization";
 
 import { useAdministrator } from "~/domain/access";
 
@@ -116,6 +118,7 @@ interface Props {
 const props = defineProps<Props>();
 
 const { t } = useI18n();
+const route = useRoute();
 const island = useIsland(t);
 const administrator = useAdministrator();
 const config = useRuntimeConfig();
@@ -211,7 +214,15 @@ async function copy(invite: Invite): Promise<void> {
   }
 }
 
+// The dialog opens on the node chosen in the organisation tree where the reader may invite into it, the branches down to
+// it open, and on the top of its own tree otherwise.
 function openMake(): void {
+  const node = Number(route.query[UNIT_KEY] ?? props.company.id);
+
+  if (treeUnits.value.some((one) => one.id === node)) {
+    unit.value = node;
+    expanded.value = [...new Set([...expanded.value, ...branchesAbove(treeUnits.value, node).map(String)])];
+  } else chooseTop();
   makeFailure.value = "";
   fullName.value = "";
   made.value = null;

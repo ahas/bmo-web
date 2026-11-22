@@ -181,11 +181,11 @@ async function ringed(page: Page, selector: string): Promise<{ visible: boolean;
   });
 }
 
-// The units tab's tree where it stands: beside the unit at a desk's width, in its drawer on a phone.
+// The organisation tree where it stands: beside the node chosen at a desk's width, in its drawer on a phone.
 async function unitTree(page: Page, width: number): Promise<Locator> {
-  if (width >= 1024) return page.locator("[data-unit-tree]");
+  if (width >= 1024) return page.locator("[data-choice-sidebar-list]");
 
-  await page.locator("[data-unit-tree-open]").click();
+  await page.locator("[data-choice-sidebar-open]").click();
 
   const drawer = page.getByRole("dialog").last();
 
@@ -196,48 +196,50 @@ async function unitTree(page: Page, width: number): Promise<Locator> {
 
 // The names of the units the tree shows of this run's, with their depth.
 async function shownUnits(tree: Locator): Promise<string[]> {
-  return tree
-    .locator('[role="treeitem"]')
-    .evaluateAll((rows, run) => rows.filter((row) => row.textContent?.includes(`-${run}`)).map((row) => `${row.getAttribute("aria-level")}:${row.textContent?.trim()}`), RUN);
+  return tree.locator('[role="treeitem"]').evaluateAll(
+    (rows, run) =>
+      rows
+        .map((row) => ({ level: row.getAttribute("aria-level"), name: row.querySelector("[data-choice-tree-row]")?.textContent?.trim() ?? "" }))
+        .filter((row) => row.name.endsWith(`-${run}`))
+        .map((row) => `${row.level}:${row.name}`),
+    RUN
+  );
 }
 
 describe.skipIf(!origin || !touchReady())("the settings dialog and the organisation settings screen", () => {
   for (const [width, height] of [[1280, 900], [360, 780]] as const) {
-    test(`the units' tree opens and closes three levels in place, at ${width}px`, async () => {
+    test(`the organisation tree opens and closes three levels in place, at ${width}px`, async () => {
       const context = await contextFor(ADMINISTRATOR.name, width, height, "light");
       const [first, second, third] = [`1:company-${RUN}`, `2:team-${RUN}`, `3:part-${RUN}`];
 
       try {
         const page = await context.newPage();
 
-        // At first the company stands open and the team under it closed.
+        // At first the company chosen stands open and the team under it closed.
         await page.goto(`${origin}/organization?unit=${company}`, { waitUntil: "load" });
         await standing(page);
         await page.locator(`[data-unit-chosen="${company}"]`).waitFor({ timeout: 20_000 });
 
         const tree = await unitTree(page, width);
         const row = (name: string) => tree.locator('[role="treeitem"]', { hasText: `${name}-${RUN}` });
-        const toggle = (name: string) => row(name).locator("[data-unit-branch-toggle]");
+        const toggle = (name: string) => row(name).locator("[data-choice-tree-toggle]");
 
         expect(await shownUnits(tree)).toEqual([first, second]);
         expect(await row("part").count()).toBe(0);
-        expect(await toggle("team").getAttribute("aria-label")).toBe(wording("organization.action.expand"));
+        expect(await row("team").getAttribute("aria-expanded")).toBe("false");
 
         // The team's chevron opens the third level without choosing the team, and the drawer stays open.
         await toggle("team").click();
         await row("part").waitFor({ timeout: 10_000 });
         expect(await shownUnits(tree)).toEqual([first, second, third]);
-        expect(await toggle("team").getAttribute("aria-label")).toBe(wording("organization.action.collapse"));
-        expect(new URL(page.url()).searchParams.get("unit")).toBe(String(company));
-        expect(await row("part").locator("[data-unit-branch-toggle]").count()).toBe(0);
+        expect(await row("team").getAttribute("aria-expanded")).toBe("true");
+        expect(new URL(page.url()).searchParams.get("company")).toBe(String(company));
+        expect(new URL(page.url()).searchParams.get("unit")).toBeNull();
+        expect(await row("part").locator("[data-choice-tree-toggle]").count()).toBe(0);
 
-        // A branch's chevron makes its row no taller than a unit's with none, and each level stands further in.
+        // Each level stands further in.
         const boxes = await Promise.all(["company", "team", "part"].map(async (name) => (await row(name).locator('[data-slot="linkLabel"]').boundingBox())!));
-        const heights = await Promise.all(["company", "team", "part"].map(async (name) => (await row(name).boundingBox())!.height));
 
-        // The same height to within half a pixel: the layout measures on fractional device pixels, so a
-        // sub-pixel difference is the same row, not one re-laid out.
-        expect(Math.max(...heights) - Math.min(...heights)).toBeLessThanOrEqual(0.5);
         expect(boxes[0]!.x).toBeLessThan(boxes[1]!.x);
         expect(boxes[1]!.x).toBeLessThan(boxes[2]!.x);
 
@@ -249,14 +251,16 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
         await row("part").waitFor({ timeout: 10_000 });
         expect(await shownUnits(tree)).toEqual([first, second, third]);
 
-        // A press on a unit with units under it chooses it and leaves its branch open.
-        await row("team").getByText(`team-${RUN}`, { exact: true }).click();
+        // A press on a unit with units under it chooses it and leaves its branch open, the company above it marked.
+        await row("team").locator("[data-choice-tree-row]").click();
         await page.waitForURL((url) => url.searchParams.get("unit") === String(team), { timeout: 10_000 });
         await page.locator(`[data-unit-chosen="${team}"]`).waitFor({ timeout: 10_000 });
 
         const again = await unitTree(page, width);
+        const marked = (name: string) => again.locator('[role="treeitem"]', { hasText: `${name}-${RUN}` }).locator("[data-choice-tree-way]");
 
         expect(await shownUnits(again)).toEqual([first, second, third]);
+        expect([await marked("company").count(), await marked("team").count()]).toEqual([1, 0]);
 
         // A link to the third level opens the branches down to it.
         await page.goto(`${origin}/organization?unit=${part}`, { waitUntil: "load" });
@@ -295,20 +299,22 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
         const shape = await page.evaluate(() => {
           const box = (selector: string) => document.querySelector(selector)?.getBoundingClientRect() ?? null;
           const cut = (element: Element | null) => element !== null && (element as HTMLElement).scrollWidth > (element as HTMLElement).clientWidth;
-          const tree = document.querySelector<HTMLElement>("[data-unit-tree]");
-          const unit = document.querySelector<HTMLElement>("[data-unit-scroll]")!;
+          const tree = document.querySelector<HTMLElement>("[data-choice-sidebar-list]");
+          const rows = tree?.querySelector<HTMLElement>("[data-choice-tree]")?.parentElement?.parentElement ?? null;
+          const unit = document.querySelector<HTMLElement>("[data-organization-body]")!;
 
           return {
-            tree: box("[data-unit-tree]"),
-            handle: box("#organization-splitter-handle-0"),
-            unit: box("[data-unit-scroll]"),
+            tree: box("[data-choice-sidebar-list]"),
+            handle: box("#bmo-organization-list-splitter-handle-0"),
+            unit: box("[data-organization-body]"),
+            column: box("[data-organization-column]"),
             unitScrolls: getComputedStyle(unit).overflowY,
-            treeScrolls: tree === null ? null : getComputedStyle(tree).overflowX,
-            treeWider: tree === null ? null : tree.scrollWidth > tree.clientWidth,
-            cutNames: [...document.querySelectorAll('[data-unit-tree] [data-slot="linkLabel"]')].filter(cut).length,
+            treeScrolls: rows === null ? null : getComputedStyle(rows).overflowY,
+            treeWider: rows === null ? null : rows.scrollWidth > rows.clientWidth,
+            cutNames: [...document.querySelectorAll('[data-choice-tree] [data-slot="linkLabel"]')].filter(cut).length,
             pathCut: cut(document.querySelector("[data-unit-path]")),
             pathLines: Math.round(box("[data-unit-path]")!.height / parseFloat(getComputedStyle(document.querySelector("[data-unit-path]")!).lineHeight)),
-            name: box("[data-unit-chosen] h2, [data-unit-tree-open]"),
+            name: box("[data-unit-chosen] h2"),
             edit: box("[data-unit-edit]"),
             heading: box("[data-unit-chosen] h3"),
             addHead: box("[data-unit-add-head]"),
@@ -325,7 +331,7 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
         expect(shape.pathCut).toBe(false);
         if (width < 1024) expect(shape.pathLines).toBeGreaterThan(1);
         expect(shape.edit!.top).toBeGreaterThanOrEqual(shape.name!.bottom);
-        expect(Math.abs(shape.edit!.right - shape.unit!.right + 16)).toBeLessThanOrEqual(1);
+        expect(Math.abs(shape.edit!.right - shape.column!.right)).toBeLessThanOrEqual(1);
 
         // A head's row and a person's row stand at one height.
         expect(shape.rows[0]).toBe(shape.rows[1]);
@@ -334,21 +340,28 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
         expect(Math.abs(shape.addHead!.top + shape.addHead!.height / 2 - (shape.heading!.top + shape.heading!.height / 2))).toBeLessThanOrEqual(1);
 
         if (width >= 1024) {
-          // Two regions meeting the splitter's one-pixel line, each scrolling on its own; the tree's names whole, the
-          // tree scrolling sideways where it is wider than its region.
+          // Two regions meeting the splitter's one-pixel line, each scrolling on its own; the tree's names whole,
+          // wrapping inside its region rather than running past it.
           expect(shape.handle!.width).toBe(1);
           expect(Math.abs(shape.tree!.right - shape.handle!.left)).toBeLessThanOrEqual(0.5);
           expect(Math.abs(shape.unit!.left - shape.handle!.right)).toBeLessThanOrEqual(0.5);
           expect({ unit: shape.unitScrolls, tree: shape.treeScrolls }).toEqual({ unit: "auto", tree: "auto" });
           expect(shape.cutNames).toBe(0);
-          expect(shape.treeWider).toBe(true);
+          expect(shape.treeWider).toBe(false);
         } else {
           expect(shape.tree).toBeNull();
         }
 
-        // On a phone the unit's name, cut short by the button that opens the tree, reads whole in its tooltip.
+        // On a phone the node's name, cut short by the button at the tab row's start that opens the tree, reads whole
+        // in its tooltip, and the tabs keep the larger share of the row.
         if (width < 1024) {
-          const name = page.locator("[data-unit-name]");
+          const name = page.locator("[data-choice-sidebar-open] .truncate");
+          const share = await page.evaluate(() => ({
+            opener: document.querySelector("[data-choice-sidebar-open]")!.getBoundingClientRect().width,
+            tabs: document.querySelector('[role="tablist"]')!.getBoundingClientRect().width
+          }));
+
+          expect(share.tabs).toBeGreaterThan(share.opener);
 
           expect(await name.evaluate((one) => one.scrollWidth > one.clientWidth)).toBe(true);
           await name.hover();
@@ -563,13 +576,13 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
           expect(unnamed).toBe(0);
 
           if (width >= 1024) {
-            const tree = page.locator("[data-unit-tree]");
+            const tree = page.locator("[data-choice-sidebar-list]");
 
             expect(await tree.innerText()).toContain(`team-${RUN}`);
             await tree.getByText(`company-${RUN}`, { exact: true }).click();
           } else {
-            expect(await page.locator("[data-unit-tree]").count()).toBe(0);
-            await page.locator("[data-unit-tree-open]").click();
+            expect(await page.locator("[data-choice-sidebar-list]").count()).toBe(0);
+            await page.locator("[data-choice-sidebar-open]").click();
 
             const drawer = page.getByRole("dialog").last();
 
@@ -577,19 +590,20 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
             await drawer.waitFor({ state: "hidden", timeout: 10_000 });
           }
 
-          await page.waitForURL((url) => url.searchParams.get("unit") === String(company), { timeout: 10_000 });
+          await page.waitForURL((url) => url.searchParams.get("unit") === null && url.searchParams.get("company") === String(company), { timeout: 10_000 });
           await page.locator(`[data-unit-chosen="${company}"]`).waitFor({ timeout: 10_000 });
 
-          // On a phone the back gesture closes the tree's drawer and leaves the unit where it was.
+          // On a phone the back gesture closes the tree's drawer and leaves the node where it was.
           if (width < 1024) {
-            await page.locator("[data-unit-tree-open]").click();
+            await page.locator("[data-choice-sidebar-open]").click();
 
             const drawer = page.getByRole("dialog").last();
 
             await drawer.waitFor({ timeout: 10_000 });
             await page.goBack();
             await drawer.waitFor({ state: "hidden", timeout: 10_000 });
-            expect(new URL(page.url()).searchParams.get("unit")).toBe(String(company));
+            expect(new URL(page.url()).searchParams.get("company")).toBe(String(company));
+            expect(new URL(page.url()).searchParams.get("unit")).toBeNull();
           }
 
           // Back on the team: its words read at 4.5:1 or better on their ground, the tree's too where it stands.
@@ -597,7 +611,7 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
           await standing(page);
           await chosen.waitFor({ timeout: 20_000 });
 
-          const low = (await contrast(page, `[data-unit-chosen="${team}"] :is(h2, span, p, button, [data-slot="label"]), [data-unit-tree] [data-slot="linkLabel"], [aria-label="${wording("organization.aria.tabs")}"] [role="tab"]`)).filter((one) => one.ratio < 4.5);
+          const low = (await contrast(page, `[data-unit-chosen="${team}"] :is(h2, span, p, button, [data-slot="label"]), [data-choice-tree] [data-slot="linkLabel"], [aria-label="${wording("organization.aria.tabs")}"] [role="tab"]`)).filter((one) => one.ratio < 4.5);
 
           expect(low).toEqual([]);
 
@@ -609,7 +623,7 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
             expect({ selector, hover: seen.hover !== seen.rest, press: seen.press !== seen.rest }).toEqual({ selector, hover: true, press: true });
           }
 
-          for (const selector of ["[data-unit-edit]", ...(width >= 1024 ? ["[data-unit-tree] [role=\"treeitem\"]"] : ["[data-unit-tree-open]"])]) {
+          for (const selector of ["[data-unit-edit]", ...(width >= 1024 ? ["[data-choice-tree] [role=\"treeitem\"]"] : ["[data-choice-sidebar-open]"])]) {
             const focus = await ringed(page, selector);
 
             expect({ selector, visible: focus.visible, ringed: focus.ring !== "", width: focus.ring.startsWith("2px") || focus.ring.includes("0px 0px 0px 2px") }).toEqual({ selector, visible: true, ringed: true, width: true });
@@ -719,7 +733,38 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
     }
   }
 
-  test("people dragged onto a unit of the tree light it and open the move's preview there, and the move stands after a reload", async () => {
+  for (const [width, height] of [[1280, 800], [360, 780]] as const) {
+    test(`the org memory tab stands for the node chosen in the tree, saying so where the reader writes none of it, at ${width}px`, async () => {
+      // The member heads the team, so they write its memory and none of the company's own.
+      await administer(`/api/organization/units/${team}/heads/${encodeURIComponent(member)}`, "PUT");
+      const context = await contextFor(MEMBER.name, width, height, "light");
+
+      try {
+        const page = await context.newPage();
+
+        await page.goto(`${origin}/organization?tab=memory&company=${company}`, { waitUntil: "load" });
+        await standing(page);
+        expect(await page.locator("[data-org-memory-not-writer]").innerText({ timeout: 20_000 })).toBe(wording("org_memory.label.choose_unit"));
+        expect(await page.locator("[data-org-memory-own]").count()).toBe(0);
+
+        // The team chosen in the tree is the unit the tab stands for: its memory is asked for, and the line goes.
+        // The brain behind that read is no part of this console, so what it answers is not read here.
+        const tree = await unitTree(page, width);
+        const asked = page.waitForRequest((request) => new URL(request.url()).pathname.endsWith(`/api/organization/memory/${team}`), { timeout: 20_000 });
+
+        await tree.locator('[role="treeitem"]', { hasText: `team-${RUN}` }).locator("[data-choice-tree-row]").click();
+        await page.waitForURL((url) => url.searchParams.get("unit") === String(team) && url.searchParams.get("tab") === "memory", { timeout: 15_000 });
+        await asked;
+        await page.locator("[data-org-memory-not-writer]").waitFor({ state: "detached", timeout: 10_000 });
+        expect(await overflow(page)).toBeLessThanOrEqual(0);
+      } finally {
+        await context.close();
+        await administer(`/api/organization/units/${team}/heads/${encodeURIComponent(member)}`, "DELETE").catch(() => null);
+      }
+    }, 120_000);
+  }
+
+  test("people dragged onto a unit of the organisation tree light it and open the move's preview there, and the move stands after a reload", async () => {
     // Two units of this run under the company, the three people standing in the first.
     const from = (await administer<{ id: number }>("/api/organization/units", "POST", { name: `drag-from-${RUN}`, parent: company })).id;
     const to = (await administer<{ id: number }>("/api/organization/units", "POST", { name: `drag-to-${RUN}`, parent: company })).id;
@@ -738,8 +783,9 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
       await standing(page);
 
       const rowOf = (name: string) => page.locator("[data-unit-member]").filter({ hasText: name });
-      const target = page.locator(`[data-unit-tree] [data-unit-drop="${to}"]`);
-      const lit = async (unit: number) => (await page.locator(`[data-unit-tree] [data-unit-drop="${unit}"]`).getAttribute("class"))?.includes("ring-primary") ?? false;
+      const mark = (unit: number) => `[data-choice-tree] [data-choice-tree-row="number:${unit}"]`;
+      const target = page.locator(mark(to));
+      const lit = async (unit: number) => (await page.locator(`[data-choice-tree-lit] [data-choice-tree-row="number:${unit}"]`).count()) === 1;
 
       await rowOf(MOVERS[2]!).waitFor({ timeout: 20_000 });
       // The tree keeps every unit the console holds, so the one dropped on is brought into the tree's view first.
@@ -755,7 +801,7 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
       await page.mouse.move(grip.x, grip.y);
       await page.mouse.down();
 
-      const home = await centre(page.locator(`[data-unit-tree] [data-unit-drop="${from}"]`));
+      const home = await centre(page.locator(mark(from)));
 
       await page.mouse.move(home.x, home.y, { steps: 12 });
       expect(await lit(from)).toBe(false);
@@ -763,7 +809,7 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
       const over = await centre(target);
 
       await page.mouse.move(over.x, over.y, { steps: 12 });
-      await page.locator(`[data-unit-tree] [data-unit-drop="${to}"].ring-primary`).waitFor({ timeout: 5_000 });
+      await page.locator(`[data-choice-tree-lit] [data-choice-tree-row="number:${to}"]`).waitFor({ timeout: 5_000 });
       await page.mouse.up();
       expect(await lit(to)).toBe(false);
 

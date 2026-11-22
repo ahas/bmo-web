@@ -16,16 +16,13 @@
       <UButton color="neutral" variant="subtle" icon="i-material-symbols-refresh" :label="$t('common.action.refresh')" :loading="refreshingUnits" @click="refreshUnitsNow" />
     </div>
 
-    <p v-else-if="unitItems.length === 0" class="text-sm text-muted">{{ $t("org_memory.label.no_units") }}</p>
+    <p v-else-if="units.length === 0" class="text-sm text-muted">{{ $t("org_memory.label.no_units") }}</p>
 
     <template v-else>
-      <SettingsGroup v-if="unitItems.length > 1">
-        <SettingsRow :label="$t('org_memory.label.unit')">
-          <ChoiceSelect :model-value="String(unit)" :items="unitItems" value-key="value" class="w-56 min-w-0" :aria-label="$t('org_memory.label.unit')" data-org-memory-unit @update:model-value="(value: string) => pickUnit(value)" />
-        </SettingsRow>
-      </SettingsGroup>
+      <!-- The unit is the node chosen in the organisation tree; one whose memory the reader does not write says so. -->
+      <p v-if="unit === 0" class="text-sm text-muted" data-org-memory-not-writer>{{ $t("org_memory.label.choose_unit") }}</p>
 
-      <ContentSkeleton v-if="view === null && failure === ''" :rows="3" list-class="flex flex-col divide-y divide-default" :label="$t('org_memory.status.loading')">
+      <ContentSkeleton v-else-if="view === null && failure === ''" :rows="3" list-class="flex flex-col divide-y divide-default" :label="$t('org_memory.status.loading')">
         <div class="flex items-center gap-4 py-3">
           <div class="flex min-w-0 flex-1 flex-col gap-1">
             <SkeletonLine width="w-2/3" />
@@ -122,7 +119,7 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { formatDateClock } from "bmo-ui/app/domain/time";
 
 import { useConfirm } from "~/domain/confirm";
-import { useOrgMemoryUnits } from "~/domain/organization";
+import { UNIT_KEY, useOrgMemoryUnits } from "~/domain/organization";
 import { countText } from "~/domain/numbers";
 
 import type { Organization } from "~/domain/organization";
@@ -130,7 +127,6 @@ import type { OrgMemory, OrgMemoryDraft, OrgMemoryUnitView, OrgMemoryView, OrgMe
 
 const { t } = useI18n();
 const route = useRoute();
-const router = useRouter();
 const confirm = useConfirm();
 const props = defineProps<{
   // The organisation chosen: the tab offers the units of it whose memory the reader writes.
@@ -159,7 +155,6 @@ const edited = ref<OrgMemory | null>(null);
 const busy = computed(() => reading.value || working.value !== "");
 
 const chosen = computed<OrgMemoryUnitView | null>(() => units.value.find((one) => one.id === unit.value) ?? null);
-const unitItems = computed(() => units.value.map((one) => ({ label: unitLabel(one), value: String(one.id) })));
 const inheritedCount = computed(() => (view.value?.inherited ?? []).reduce((sum, group) => sum + group.memories.length, 0));
 const grantable = computed(() => {
   const granted = new Set((writers.value?.writers ?? []).map((one) => one.user));
@@ -167,23 +162,6 @@ const grantable = computed(() => {
   return (writers.value?.people ?? []).filter((one) => !granted.has(one.user)).map((one) => ({ label: one.name, value: one.user }));
 });
 const editTitle = computed(() => t(edited.value === null ? "org_memory.action.add" : "org_memory.action.edit"));
-
-// A unit by its path from its company, read off the units offered: the company first, then each unit above it that
-// the list holds.
-function unitLabel(one: OrgMemoryUnitView): string {
-  const byId = new Map(units.value.map((each) => [each.id, each]));
-  const names = [one.name];
-  let at = one.parent === null ? undefined : byId.get(one.parent);
-
-  while (at !== undefined && !names.includes(at.name)) {
-    names.unshift(at.name);
-    at = at.parent === null ? undefined : byId.get(at.parent);
-  }
-
-  if (one.parent !== null && names[0] !== one.company.name) names.unshift(one.company.name);
-
-  return names.join(" › ");
-}
 
 function proposedLine(memory: OrgMemory): string {
   return t("org_memory.label.proposed_by", { name: memory.writtenBy, when: formatDateClock(Math.floor(memory.writtenAt / 1000)) });
@@ -240,22 +218,13 @@ async function readWriters(): Promise<void> {
   }
 }
 
-// The unit the address names where the reader writes it, the first of their units otherwise; a chosen unit stands in
-// the address in place of the one before.
-function pickUnit(value: string): void {
-  unit.value = Number(value);
-  void router.replace({ query: { ...route.query, unit: value } });
-}
-
+// The node chosen in the organisation tree where the reader writes its memory, none otherwise.
 watch(
-  unitItems,
-  (items) => {
-    if (items.length === 0) return;
+  [units, () => route.query[UNIT_KEY]],
+  ([writes]) => {
+    const node = Number(route.query[UNIT_KEY] ?? props.company.id);
 
-    const named = items.find((one) => one.value === String(route.query.unit ?? ""));
-
-    if (named !== undefined) unit.value = Number(named.value);
-    else if (!items.some((one) => one.value === String(unit.value))) unit.value = Number(items[0]!.value);
+    unit.value = writes.some((one) => one.id === node) ? node : 0;
   },
   { immediate: true }
 );

@@ -18,6 +18,14 @@ console's typecheck and then every test file under `client/tests` in one `bun te
 - **Most browser files drive a running console** rather than a page of their own: each reads the console's
   address from `BMO_CONSOLE_TEST_URL`, except `skeleton`, which reads it from `BMO_SKELETON_TEST_URL`. The suite
   stands up no console, so without those variables they skip; every other browser file runs.
+- **Every client file shares that one process,** its globals and the console's server state among them, such as
+  the bundles attached. Bun reports a test that runs out of its time as failed and goes on, while the test's body
+  runs on to its end in the tests after it. So state another describe sets up in its own hooks, the bundles
+  attached among it, is taken back in a hook of the describe that changed it, never at the end of a test's body,
+  where a late body would take it from the describe running then.
+- **A server a test stands up listens on the loopback address, `127.0.0.1`, alone,** as the tests reach it. A
+  server left to Bun's default listens on every address, and a machine whose loopback reaches such a listener only
+  after its first connection attempts are dropped makes every call to it wait seconds.
 
 ### The scratch databases
 

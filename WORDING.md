@@ -185,6 +185,18 @@
   offers stand on their own words (본문, 제목 1, 글머리 목록, 인용, 코드 블록). Never 서식 변경, 스타일, 종류로
   바꾸기. 변환 is no form of it: that word stands only where a file's format is really converted, as an mp3
   conversion's run names itself.
+- copy, paste → 복사, 붙여넣기: 복사, 복사했습니다, 클립보드에 복사했습니다, 복사하지 못했습니다; 붙여넣기, 붙여넣은,
+  붙여넣을 링크를 입력해 주세요, 링크를 붙여넣거나 입력해 주세요. Never 카피, 붙이기 or 페이스트 for a paste; 붙이기
+  keeps its own sense where a thing is attached rather than pasted.
+- rename → 이름 변경, the act on a menu. Never 이름 바꾸기, 이름 수정, 리네임.
+- undo, redo → 실행 취소, 다시 실행: 실행 취소, 다시 실행, 실행 취소로 블록 내용을 되돌릴 수 있습니다. 실행 취소 stands
+  whole and is never 취소 alone, which is a dialog's way out. 다시 실행 is also a work order step's run again, each on
+  its own screen. Never 되돌리기 or 언두 for undo, 다시 하기 or 재실행 for redo.
+- indent, outdent a line → 들여쓰기, 내어쓰기. Never 탭, 오른쪽으로 이동, 왼쪽으로 이동, 내어 쓰기 or 내쓰기.
+- align text → 정렬: the menu 정렬, its sides 왼쪽 정렬, 가운데 정렬, 오른쪽 정렬. A list's sort is 정렬 as well
+  (정렬, 정렬 추가, `{name} 정렬`), each on its own control. Never 맞춤, 왼쪽 맞춤, 중앙 정렬 or 얼라인.
+- the words under a picture or a block → 설명: 설명, 설명을 입력해 주세요, and a card's description the same, 설명
+  수정. Never 캡션, the word the video player's line also keeps from subtitles, nor 주석.
 - secret, a value a unit reads by its file name → 비밀; the console's store of them, each person's own → 비밀 보관함,
   and one's own → 내 비밀; putting a value in place of the one a name holds → 교체. Never 시크릿, 키 보관소, 개인 금고.
 - the shape a secret is asked in → 비밀 종류; one of its fields → 항목, its key 키 and its label 이름; fields put

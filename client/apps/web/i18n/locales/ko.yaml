@@ -85,7 +85,7 @@ common:
     palette_teal: 청록
     palette_violet: 보라
     path: 경로
-    picture_caption: 캡션
+    picture_caption: 설명
     picture_resolution: 해상도
     picture_resolution_value: "{width} × {height}"
     play_position: 재생 위치

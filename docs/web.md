@@ -1294,7 +1294,8 @@ edit to that file alone, once the guide below carries the word.
     `docs/deploy.md`, 「The deployment line」). So the console reads the line from the testbed's status
     (`docs/boundary.md`, the testbed's rows): every waiting deployment it lists whose deploy root is a listed
     deploy root, in the order the testbed lists them, which is the order its line will serve them, those waiting
-    for their deploy root's turn after those in the line. Each is named by its deploy root's folder name as a run
+    for their deploy root's turn included where they will reach the line (the testbed's `docs/deploy.md`, 「The
+    deployment line」). Each is named by its deploy root's folder name as a run
     is, with its unit, the whole commit it asks for and when it asked; a repository and commit stand once there,
     whatever name the commit was asked by. With no run under way and no
     hold standing, the mark stands them in the info colour behind an hourglass, the first in the line named:

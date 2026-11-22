@@ -228,6 +228,16 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
         expect(await row("part").count()).toBe(0);
         expect(await row("team").getAttribute("aria-expanded")).toBe("false");
 
+        // A branch's chevron names what a press does in its tooltip.
+        await toggle("team").hover();
+        expect((await page.locator('[role="tooltip"]').first().innerText({ timeout: 5_000 })).trim()).toBe(wording("common.action.expand"));
+        await page.mouse.move(0, 0);
+        await page.locator('[role="tooltip"]').waitFor({ state: "detached", timeout: 5_000 });
+        await toggle("company").hover();
+        expect((await page.locator('[role="tooltip"]').first().innerText({ timeout: 5_000 })).trim()).toBe(wording("common.action.collapse"));
+        await page.mouse.move(0, 0);
+        await page.locator('[role="tooltip"]').waitFor({ state: "detached", timeout: 5_000 });
+
         // The team's chevron opens the third level without choosing the team, and the drawer stays open.
         await toggle("team").click();
         await row("part").waitFor({ timeout: 10_000 });

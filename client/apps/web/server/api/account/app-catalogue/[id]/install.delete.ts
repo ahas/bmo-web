@@ -6,5 +6,5 @@ import type { CatalogueApp } from "#shared/app-catalogue";
 export default defineEventHandler(async (event): Promise<CatalogueApp> => {
   const id = catalogueParam(getRouterParam(event, "id"));
 
-  return await actOnApp(await signedInUser(event), id, "uninstall");
+  return await actOnApp(await signedInUser(event), id, "uninstall", {}, getQuery(event).company);
 });

@@ -4202,6 +4202,7 @@ apps:
 # the personal apps section and the administrator's platform app requests.
 app_catalogue:
   label:
+    company: 公司
     none: 没有共享的应用
     scope: 共享范围
     scope_all: 全部

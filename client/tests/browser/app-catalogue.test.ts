@@ -75,6 +75,7 @@ function app(id: string, title: string, more: Partial<CatalogueApp>): CatalogueA
 function catalogue(apps: CatalogueApp[], reach: PermissionReach = { network: true, secrets: true, held: [] }): Catalogue {
   return {
     company: "3",
+    companies: [],
     ceiling: ["team", "heads"],
     apps,
     notices: [{ kind: "shared", app: "17-weekly", at: 1_763_900_000_000 }],
@@ -320,6 +321,62 @@ describe.skipIf(!origin || !touchReady())("the app catalogue", () => {
         await press(page, page.locator("[data-catalogue-share-confirm]"), phone);
         await page.locator("[data-personal-apps-shared]").waitFor({ timeout: 10_000 });
         expect(shared).toEqual([{ name: "weekly", targets: [{ team: true }, { heads: true }] }]);
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+
+    test(`lets the administrator choose the company whose catalogue they read, and acts in it, ${width}px wide`, async () => {
+      const context = await contextAt(width, height, phone);
+      const asked: string[] = [];
+      const companies = [
+        { id: "1", name: "Company One" },
+        { id: "2", name: "Company Two" }
+      ];
+      const ofCompany = (company: string) => (company === "2" ? app("31-ledger", "Ledger", { maker: "31" }) : app("17-weekly", "Weekly summary", {}));
+
+      await context.route(/\/api\/account\/app-catalogue(?:\/|$|\?)/, async (route) => {
+        const request = route.request();
+        const url = new URL(request.url());
+        const path = url.pathname.replace(/^.*\/api\/account\/app-catalogue/, "");
+        // The home company where the screen names none, as the console's server reads it.
+        const company = url.searchParams.get("company") ?? "1";
+
+        asked.push(`${request.method()} ${path} company=${url.searchParams.get("company") ?? ""}`);
+
+        if (request.method() === "GET" && path === "") return await route.fulfill({ json: { ...catalogue([ofCompany(company)]), company, companies, notices: [] } });
+
+        await route.fulfill({ json: ofCompany(company) });
+      });
+
+      try {
+        const page = await context.newPage();
+
+        await page.goto(`${origin}/app-catalogue`, { waitUntil: "load" });
+        await page.locator("[data-catalogue-app='17-weekly']").waitFor({ timeout: 30_000 });
+        expect(asked[0]).toBe("GET  company=");
+
+        // The company chosen, its catalogue read.
+        await press(page, page.locator("[data-catalogue-company]"), phone);
+        await press(page, page.getByRole("option", { name: "Company Two", exact: true }), phone);
+
+        const ledger = page.locator("[data-catalogue-app='31-ledger']");
+
+        await ledger.waitFor({ timeout: 10_000 });
+        expect(asked).toContain("GET  company=2");
+
+        // An act on one of its apps goes in that company.
+        await press(page, ledger, phone);
+        await page.locator("[data-catalogue-dialog]").waitFor({ timeout: 10_000 });
+        await press(page, page.locator("[data-catalogue-install]"), phone);
+
+        const installing = page.getByRole("dialog").filter({ hasText: wording("app_catalogue.title.install") });
+        const installed = page.waitForResponse((response) => response.url().includes("/31-ledger/install"), { timeout: 10_000 });
+
+        await installing.waitFor({ timeout: 10_000 });
+        await press(page, installing.getByRole("button", { name: wording("app_catalogue.action.install") }), phone);
+        await installed;
+        expect(asked).toContain("POST /31-ledger/install company=2");
       } finally {
         await context.close();
       }

@@ -8,5 +8,5 @@ export default defineEventHandler(async (event): Promise<CatalogueApp> => {
   const id = catalogueParam(getRouterParam(event, "id"));
   const body = (await readBody<{ on?: unknown; lock?: unknown }>(event).catch(() => null)) ?? {};
 
-  return await actOnApp(await signedInUser(event), id, "unit", { unit: getRouterParam(event, "unit"), on: body.on, lock: body.lock });
+  return await actOnApp(await signedInUser(event), id, "unit", { unit: getRouterParam(event, "unit"), on: body.on, lock: body.lock }, getQuery(event).company);
 });

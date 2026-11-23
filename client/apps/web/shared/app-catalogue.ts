@@ -85,6 +85,9 @@ export interface CatalogueNotice {
 /** The reader's company's catalogue as they see it, with the names of the people and units it mentions. */
 export interface Catalogue {
   company: string;
+  // The companies whose catalogue the reader may choose to read: every company for the administrator, none for anyone
+  // else, who reads their own.
+  companies: CatalogueCompany[];
   ceiling: ShareScope[];
   apps: CatalogueApp[];
   notices: CatalogueNotice[];
@@ -141,4 +144,20 @@ export function linkUnit(link: string): number | null {
 /** An app's id in its catalogue: the maker's account, a dash and the app's name. */
 export function catalogueId(id: string): boolean {
   return /^[A-Za-z0-9_-]+-[a-z][a-z0-9_]*$/.test(id);
+}
+
+/** A company whose catalogue the administrator may read. */
+export interface CatalogueCompany {
+  id: string;
+  name: string;
+}
+
+/** The company an administrator's catalogue is read for: the one asked for where it reads as a unit's id, else their
+ * home company; none for anyone else, whom the agency reads in their own company. */
+export function catalogueCompany(administrator: boolean, asked: unknown, home: number | null): number | null {
+  if (!administrator) return null;
+
+  const named = typeof asked === "string" && /^[1-9][0-9]*$/.test(asked) ? Number(asked) : null;
+
+  return named ?? home;
 }

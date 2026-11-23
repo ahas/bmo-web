@@ -201,7 +201,7 @@ async function readSource(): Promise<void> {
   refusal.value = "";
 
   try {
-    source.value = await $fetch<CatalogueSource>(`/api/account/app-catalogue/${props.app.id}/source`);
+    source.value = await $fetch<CatalogueSource>(`/api/account/app-catalogue/${props.app.id}/source`, { query: { company: props.catalogue.company } });
   } catch (error) {
     refusal.value = failureText(error, t("app_catalogue.error.source_failed"));
   } finally {
@@ -215,7 +215,10 @@ async function act(kind: string, body: Record<string, unknown> = {}, path = kind
   refusal.value = "";
 
   try {
-    emit("changed", await $fetch<CatalogueApp>(`/api/account/app-catalogue/${props.app.id}/${path}`, { method, body: method === "POST" ? body : undefined }));
+    // The company the catalogue was read in, which the console's server hands on for the administrator alone.
+    const query = { company: props.catalogue.company };
+
+    emit("changed", await $fetch<CatalogueApp>(`/api/account/app-catalogue/${props.app.id}/${path}`, { method, query, body: method === "POST" ? body : undefined }));
   } catch (error) {
     refusal.value = failureText(error, t("app_catalogue.error.act_failed"));
   } finally {

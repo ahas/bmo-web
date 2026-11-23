@@ -8742,6 +8742,11 @@ the sidebar's 애플리케이션 and opens to every person with a user of the ac
 through its own routes under `/api/account/app-catalogue`, which ask the agency for the account the reader's user is,
 so a reader sees and does what their own account may alone, and the agency's word is what every control shows.
 
+- **The administrator chooses the company,** whose catalogue they read and act in: a list of every company stands
+  above the search, 회사, their own company chosen until they choose another. The console's server names that company
+  to the agency on every read and act of theirs, their home company where the screen names none, since the agency
+  answers the administrator's account an empty catalogue where no company is named. Nobody else holds the list; their
+  own company is the one they read.
 - **A search and a filter stand over the list,** on one row: 앱 찾기, matching an app's title, its description and its
   name as the reader types, and 공유 범위 — 전체, 팀, 상위 조직장, 회사 전체 and 직접 지정 — leaving the apps shared with
   that scope, 직접 지정 being those shared with a person, a group or a unit by name.

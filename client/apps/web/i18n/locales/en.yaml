@@ -4166,6 +4166,7 @@ apps:
 # the personal apps section and the administrator's platform app requests.
 app_catalogue:
   label:
+    company: Company
     none: No shared apps
     scope: Shared with
     scope_all: All

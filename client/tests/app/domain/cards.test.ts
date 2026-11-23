@@ -22,10 +22,10 @@ const node = (name: string, view: ReturnType<typeof card>) => ({
 
 describe("the card arbiter screen", () => {
   test("a card's bar is each resident unit in its service's colour, then the free room", () => {
-    const tone = palette(["kakia"]);
-    const pieces = memoryBar(t, card(1600, [["kakia/weights@a", "kakia", 4039, "resident"], ["kakia/store@a", "kakia", 4739, "evicted"], ["kakia/compute@a", "kakia", 1300, "ram"]]), tone);
-    expect(pieces.map((piece) => piece.key)).toEqual(["kakia/weights@a", "free"]);
-    expect(pieces[0]!.tone).toBe(tone("kakia").bar);
+    const tone = palette(["kiki"]);
+    const pieces = memoryBar(t, card(1600, [["kiki/weights@a", "kiki", 4039, "resident"], ["kiki/store@a", "kiki", 4739, "evicted"], ["kiki/compute@a", "kiki", 1300, "ram"]]), tone);
+    expect(pieces.map((piece) => piece.key)).toEqual(["kiki/weights@a", "free"]);
+    expect(pieces[0]!.tone).toBe(tone("kiki").bar);
     expect(pieces[1]!.share).toBeCloseTo(1600 / 11875);
     expect(mibText(t, 4039)).toBe("4,039 MiB");
     expect(mibText(t, null)).toBe("hardware.label.unread");
@@ -45,23 +45,23 @@ describe("the card arbiter screen", () => {
 
   test("the board has every card's units and leftover use, each service with its units, and what waits", () => {
     const busy = {
-      ...card(1600, [["kakia/weights@a", "kakia", 4000, "resident"], ["kakia/store@a", "kakia", 4000, "evicted"]]),
+      ...card(1600, [["kiki/weights@a", "kiki", 4000, "resident"], ["kiki/store@a", "kiki", 4000, "evicted"]]),
       queue: [{ ticket: "t1", service: "voice", turn: false, position: 1, waitedS: 4, waitS: 30, unit: "voice/big", vramMiB: null }],
     };
     const state: CardsState = {
       master: { version: "m", startedAt: 0, rulesFile: "r", rulesLoadedAt: 0, rulesError: null, readEveryS: 2 },
       groups: [],
-      nodes: [{ ...node("a", card(0, [])), occupants: ["trainer", "kakia", "*"], cards: [busy] }],
-      declared: [{ unit: "kakia/*", service: "kakia", kind: "resident", vramMiB: null }, { unit: "voice/small", service: "voice", kind: "on-demand", vramMiB: 900 }],
+      nodes: [{ ...node("a", card(0, [])), occupants: ["trainer", "kiki", "*"], cards: [busy] }],
+      declared: [{ unit: "kiki/*", service: "kiki", kind: "resident", vramMiB: null }, { unit: "voice/small", service: "voice", kind: "on-demand", vramMiB: 900 }],
       events: [],
       tiers: [],
       services: [],
     };
     const shown = board(state);
-    expect(shown.cards[0]!.pieces.map((piece) => [piece.unit, piece.pattern])).toEqual([["kakia/weights", 0]]);
+    expect(shown.cards[0]!.pieces.map((piece) => [piece.unit, piece.pattern])).toEqual([["kiki/weights", 0]]);
     expect(shown.cards[0]!.others.map((other) => [other.what, other.vramMiB])).toEqual([["unsplit", 11875 - 1600 - 4000]]);
     expect(shown.outside.map((chunk) => [chunk.place?.node, chunk.vramMiB])).toEqual([["a", 11875 - 1600 - 4000]]);
-    expect(shown.services.map((service) => [service.name, service.vramMiB, service.waiting])).toEqual([["kakia", 4000, 0], ["voice", 0, 1], ["trainer", 0, 0]]);
+    expect(shown.services.map((service) => [service.name, service.vramMiB, service.waiting])).toEqual([["kiki", 4000, 0], ["voice", 0, 1], ["trainer", 0, 0]]);
     expect(shown.services[0]!.chunks.map((chunk) => [chunk.place?.node, chunk.vramMiB, chunk.wheres])).toEqual([["a", 4000, ["resident", "evicted"]]]);
     expect(shown.services[0]!.chunks[0]!.units.map((unit) => [unit.part, unit.pattern, unit.where])).toEqual([["weights", 0, "resident"], ["store", 1, "evicted"]]);
     expect(shown.services[1]!.chunks.map((chunk) => [chunk.place?.node ?? null, chunk.units.map((unit) => [unit.key, unit.kind, unit.where])])).toEqual([
@@ -74,8 +74,8 @@ describe("the card arbiter screen", () => {
 
   test("a card's processes name its memory past the units: a service's context, a stray process, the driver's", () => {
     const busy = {
-      ...card(1600, [["kakia/weights@a", "kakia", 4000, "resident"], ["kakia/store@a", "kakia", 5000, "resident"]]),
-      processes: [{ pid: 7, name: "rpc-server", service: "kakia", usedMiB: 9450 }, { pid: 9, name: "Xorg", service: null, usedMiB: 120 }],
+      ...card(1600, [["kiki/weights@a", "kiki", 4000, "resident"], ["kiki/store@a", "kiki", 5000, "resident"]]),
+      processes: [{ pid: 7, name: "rpc-server", service: "kiki", usedMiB: 9450 }, { pid: 9, name: "Xorg", service: null, usedMiB: 120 }],
     };
     busy.units[0]!.detail = { blocks: { from: 0, to: 17 }, output: false, mtp: false, fullAttention: null };
     busy.units[1]!.detail = { blocks: { from: 57, to: 63 }, output: true, mtp: true, fullAttention: 2 };
@@ -88,21 +88,21 @@ describe("the card arbiter screen", () => {
       services: [],
     };
     const shown = board(state);
-    const kakia = shown.services[0]!.chunks[0]!;
-    expect(kakia.others.map((other) => [otherWord(t, other), other.service, other.vramMiB])).toEqual([['cards.label.context{"process":"rpc-server"}', "kakia", 450]]);
-    expect(kakia.vramMiB).toBe(9450);
+    const kiki = shown.services[0]!.chunks[0]!;
+    expect(kiki.others.map((other) => [otherWord(t, other), other.service, other.vramMiB])).toEqual([['cards.label.context{"process":"rpc-server"}', "kiki", 450]]);
+    expect(kiki.vramMiB).toBe(9450);
     expect(shown.services[0]!.vramMiB).toBe(9450);
     expect(shown.outside[0]!.others.map((other) => [otherWord(t, other), other.service, other.vramMiB])).toEqual([["Xorg", null, 120], ["cards.label.driver", null, 11875 - 1600 - 9450 - 120]]);
-    expect(shown.cards[0]!.others.map((other) => other.service)).toEqual(["kakia", null, null]);
-    expect(detailText(t, kakia.units[0]!.detail)).toBe('cards.label.blocks{"from":"0","to":"17"}');
-    expect(detailText(t, kakia.units[1]!.detail)).toBe('cards.label.blocks{"from":"57","to":"63"} · cards.label.full_attention{"n":"2"} · cards.label.mtp · cards.label.output');
+    expect(shown.cards[0]!.others.map((other) => other.service)).toEqual(["kiki", null, null]);
+    expect(detailText(t, kiki.units[0]!.detail)).toBe('cards.label.blocks{"from":"0","to":"17"}');
+    expect(detailText(t, kiki.units[1]!.detail)).toBe('cards.label.blocks{"from":"57","to":"63"} · cards.label.full_attention{"n":"2"} · cards.label.mtp · cards.label.output');
   });
 
   test("the chart paints a card's memory by the service it belongs to, and only what no service holds gray", () => {
     const busy = {
-      ...card(1600, [["kakia/weights@a", "kakia", 4000, "resident"]]),
+      ...card(1600, [["kiki/weights@a", "kiki", 4000, "resident"]]),
       processes: [
-        { pid: 7, name: "rpc-server", service: "kakia", usedMiB: 4400 },
+        { pid: 7, name: "rpc-server", service: "kiki", usedMiB: 4400 },
         { pid: 9, name: "Xorg", service: null, usedMiB: 120 },
         { pid: 10, name: "voice", service: "voice", usedMiB: 300 },
       ],
@@ -117,9 +117,9 @@ describe("the card arbiter screen", () => {
     };
     const blocks = chartBlocks(t, board(state).cards);
     expect(blocks.map((block) => [block.name, block.service, block.end - block.start])).toEqual([
-      ["kakia/weights", "kakia", 4000],
+      ["kiki/weights", "kiki", 4000],
       ["voice", "voice", 300],
-      ['cards.label.context{"process":"rpc-server"}', "kakia", 400],
+      ['cards.label.context{"process":"rpc-server"}', "kiki", 400],
       ["Xorg", null, 120],
       ["cards.label.driver", null, 5455],
     ]);

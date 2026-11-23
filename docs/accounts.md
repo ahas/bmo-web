@@ -1091,7 +1091,11 @@ Each is declared by the module that uses it, as the service stands, under the un
   `docs/console-bundles.md`), and the tools sharing it are declared under the same key where they are published. The
   system's own screens and tools — the console's own screens, rooms, the brain and their kin — are no app and are
   never switched.
-- **Each app stands on two kinds,** declared by the unit that publishes the app, never by this service:
+- **Each app stands on two kinds,** declared by the unit that publishes the app, never by this service. The tool host
+  publishes every app: its `put` declares them for an app with tools, from the `[app]` table of a tool's manifest,
+  and a unit whose app is a screen alone has its deployment declare them through the tool host's `app` verb, from a
+  file holding that table alone (bmo-pocket's `docs/api.md`, 「An app on the delegation chain」), so a screen and
+  the tools later published under its key stand on the same two kinds:
   - `app.<key>.offered`, whether the app may be used under a link: a flag, `narrowing`, with rules, at the platform
     and units, written by a unit's head. A link below only narrows what is offered above, so the platform's rule for
     one company offers an app to that company alone, and its default says whether an app nobody named is offered.
@@ -1101,6 +1105,9 @@ Each is declared by the module that uses it, as the service stands, under the un
 - **An app is usable by a person where both resolve true for them;** a kind nobody declared says nothing against
   it. Every consumer asks both afresh as it acts — the console as it lists a reader's screens and relays each call
   (`docs/web.md`, 「Screens a unit brings」), the issuer of a session as it hands one its tools — and keeps no answer.
+- **An app is recalled by the platform's link alone:** its `on` holding false under a lock, with no platform rule
+  turning it on for anyone, cuts every link below, so the app is off for everyone at every consumer's next ask, and
+  what the links below hold stands again once the lock is lifted (`docs/web.md`, 「Administration」, 앱·도구).
 
 ## Supply
 

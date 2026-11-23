@@ -7831,8 +7831,8 @@ tree of units, is chosen first; everything else is set inside the one chosen: it
 every person looked up one at a time, the invitations into its units, its people's BMOs, its supply and its
 plans. What is set for the platform itself —
 the providers and the Claude accounts
-every run goes out on, the kinds every person's secret form asks in, and the platform's own supply, its plans and
-its credits — is the administrator's screen, 관리자
+every run goes out on, the kinds every person's secret form asks in, the platform's own supply, its plans and
+its credits, and the apps every company is offered — is the administrator's screen, 관리자
 (「Administration」). What a person sets for themselves alone, their secrets and the voice briefing among it, is the
 settings dialog's (「Settings」), and the research supervisor stands with the research unit's settings on the
 research screen (「Research screen」).
@@ -8514,10 +8514,11 @@ The plans themselves are designed on 관리자's 플랜 tab (「Administration�
 
 관리자 is the administrator's screen of what is set for the platform itself: the providers and the Claude accounts
 every run goes out on, how often the agency puts every waiting commit live, the kinds every person's secret form
-asks in, the plans the platform sells and the credits they and the platform's supply run on. No member opens it.
+asks in, the plans the platform sells and the credits they and the platform's supply run on, and the apps every
+company is offered and their recall. No member opens it.
 
-- **It stands at `/admin`, a tab to a section.** The tabs are 공급자, 비밀 종류, 플랜 and 크레딧, keyed in the address
-  as `?tab=` with `secret-kinds`, `plans` and `credits`, 공급자 being the screen's own address; a shared link opens
+- **It stands at `/admin`, a tab to a section.** The tabs are 공급자, 비밀 종류, 플랜, 크레딧 and 앱·도구, keyed in the
+  address as `?tab=` with `secret-kinds`, `plans`, `credits` and `apps`, 공급자 being the screen's own address; a shared link opens
   the same tab, moving between tabs is a step of the history, and a key naming no tab opens the first. The console
   search finds each tab as it finds every screen's. A link to `/organization` naming `providers` or `secret-kinds`
   lands on the same tab here.
@@ -8681,6 +8682,52 @@ and `/api/supply/credits/audit`.
   its subject, then the moment, whose act and what it changed. The service audits each of these in its own table
   as it takes the write, and this one route answers the whole record.
 - No balance is shown for anyone here, and no top-up control stands: payments are off.
+
+#### 앱·도구
+
+Every app the delegation chain holds as it stands for the whole platform (「Screens a unit brings」; `docs/accounts.md`,
+「An app's two settings」): what it is where no link says otherwise, the companies and units the platform offers it to
+or withholds it from, and its recall. The console reads the platform's link of each app's two kinds, the defaults their
+publisher declared and the platform's rules naming a unit, and writes them through its own routes, the
+administrator's alone: `GET /api/admin/apps`, `PUT /api/admin/apps/{app}` for the platform's own word, and `POST` and
+`DELETE /api/admin/apps/{app}/recall` for the recall; a unit's offer is written through 조직's route for that unit
+(「앱·도구」 under 「Organisation」).
+
+- **One row per app the chain holds,** in the order of their names, as 조직's 앱·도구 rows stand: the app's icon and its
+  name — the title its screen's bundle gives, else the app's key in the monospace face — with one muted line under it,
+  and at the row's end 설정, an icon button that opens the app's settings, and 긴급 회수, an icon button in the error
+  colour.
+  - **The line says to whom it is offered:** 모든 회사에 제공, with `{n}곳 제외` after a middle dot where rules withhold
+    it from some; where it is not offered by default, `{n}곳에 제공`, or 제공하지 않음 where no rule offers it; and,
+    after a middle dot, 하위 조직 잠금 where the platform locks it.
+- **설정 opens a dialog titled with the app's name,** each choice saved as it is made, so closing it never asks:
+  - **전역 설정:** 제공, whether the app is offered where no rule says otherwise, a list of 제공 and 제공 안 함; 상태,
+    whether it is on where nobody under the platform says otherwise, a list of 켬 and 끔; and 하위 조직 잠금, a switch
+    locking the app's on for every company, unit and person. In each list the value its publisher declared is marked
+    `(기본값)`, and choosing it takes the platform's own word away, so the declaration stands again.
+  - **회사별 제공:** every company, and every unit below one that a platform rule names, each a row of its name — a
+    unit under a company as the company, a middle dot and the unit — and a list of 제공 and 제공 안 함 in which the
+    platform's own offer is marked `(기본값)`; choosing another writes the platform's rule for that unit, and choosing
+    the marked one takes the rule away. A rule naming a person or a group, which no screen writes, is kept as it stands
+    and not listed.
+  - While the app is recalled, 상태 and 하위 조직 잠금 stand disabled.
+  - A refusal is said under its row, which goes back to what stood.
+- **긴급 회수 turns the app off everywhere at once:** the platform's link of its on holds 끔 and a lock, so every
+  company, unit and person under it is off whatever they said, and any platform rule turning it on for someone is
+  taken away. A screen of it meets 403 `app-off` at its next relayed call and leaves every reader's list at their next
+  read of the screens, and a session's issuer withholds its tools from the next turn on. What companies, units and
+  people said below stays kept and unread, so lifting the recall finds it as it was. Taking a tool out of the tool
+  host at once, mid-turn, stays the tool host's own `take` (bmo-pocket's `docs/registry.md`).
+  - **It is asked first as a step the row grows** (「Messages」), marked on its leading edge in the error colour:
+    `<app> 앱을 모든 곳에서 끌까요?`, then what it does — off for every company and person at once, nobody turning it
+    back on until the recall is lifted, and their own settings coming back then — and 취소 and then 회수, the way
+    through in the error colour, at its trailing edge, the keyboard's place handed to 취소 as it opens and back to the
+    row as it closes.
+  - **A recalled app's line says 긴급 회수됨** in the error colour, and 회수 해제 stands in place of 긴급 회수: it lifts
+    the lock and takes the platform's own word on its on away, so the value its publisher declared and everything
+    said below it stand again, at once and with no question, since it only gives back.
+- **None held says 앱 없음.** The rows keep their place with a skeleton while they are first read, and a read that
+  failed says its reason with 새로고침, as every tab of this screen does.
 
 ### The desktop app's window
 
@@ -9614,8 +9661,9 @@ title bar」), its people directory and the members of the reader's company.
     `app-off` and the pack's sentence saying the organisation's setting turned the app off. A screen already open
     meets that refusal at its next call, and its address, opened again, leads a member to their home as any address
     they may not open does (「Access」).
-  - **Where an app is turned on and off** is 「Organisation」's 앱 tab, for a unit and those under it, and
-    「Settings」' 앱 section, for the reader alone.
+  - **Where an app is turned on and off** is 「Administration」's 앱·도구 tab, for the platform, every company it is
+    offered to and its recall; 「Organisation」's 앱·도구 tab, for a unit and those under it; and 「Settings」' 내 앱·도구
+    section, for the reader alone.
 - **A screen's module is loaded the first time its path is opened.** The browser reads the module through the
   relay and, before it runs, points every import of a shared library at the console's own copy. A file of the
   bundle the module imports is read the same way, one imported only when it is reached at the moment it is

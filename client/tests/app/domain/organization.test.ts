@@ -171,7 +171,7 @@ describe("the organisation screen", () => {
     expect(screen.tabs?.map((tab) => tabAddress(screen, tab))).toEqual(["/organization", "/organization?tab=people", "/organization?tab=catalogue", "/organization?tab=invites", "/organization?tab=agent", "/organization?tab=apps", "/organization?tab=memory", "/organization?tab=supply", "/organization?tab=plans"]);
     expect(admin.to).toBe(ADMIN_PATH);
     expect(admin.administrator).toBe(true);
-    expect(admin.tabs?.map((tab) => tabAddress(admin, tab))).toEqual(["/admin", "/admin?tab=secret-kinds", "/admin?tab=plans", "/admin?tab=credits"]);
+    expect(admin.tabs?.map((tab) => tabAddress(admin, tab))).toEqual(["/admin", "/admin?tab=secret-kinds", "/admin?tab=plans", "/admin?tab=credits", "/admin?tab=apps"]);
     expect([screen.section, admin.section]).toEqual(["administration", "administration"]);
   });
 });

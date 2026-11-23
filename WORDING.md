@@ -103,6 +103,11 @@
   상위 조직에서 잠금 on 조직 and 조직에서 잠금 in 설정; the platform letting a company use one → 제공, one it does not →
   제공되지 않음; a call to an app turned off → 조직 설정으로 꺼진 앱입니다. 잠금 here is the delegation chain's own word.
   Never 활성화, 비활성화, 사용 설정, 차단. 애플리케이션 stays the sidebar section's word.
+- the platform's word on an app on 관리자 → 전역 설정, its choices 제공 or 제공 안 함 and 켬 or 끔; the platform's word for
+  one company or unit → 회사별 제공; a row's line → 모든 회사에 제공 (`{n}곳 제외` after it), `{n}곳에 제공` or 제공하지
+  않음, a company or a unit counted by 곳. Turning an app off everywhere at once → 긴급 회수, its question
+  `<앱> 앱을 모든 곳에서 끌까요?` and its way through 회수; its state → 긴급 회수됨; its undoing → 회수 해제. Never 강제
+  종료, 비상 정지, 철회.
 - where a part of a BMO's profile came from → 직접 정함, 회사에서 정함; the deployment's own wears the default's mark,
   `BMO (기본값)`. How a BMO speaks and behaves, as text → 페르소나. Never 성격, 말투 설정, 프롬프트.
 - a role's slot, one of the runs its agents let in at once → 역할 슬롯, 슬롯; a slot kept by a reservation → 예약, counted

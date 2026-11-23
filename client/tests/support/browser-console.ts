@@ -120,6 +120,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["input-menu-name", "fixture-password-3562"],
   ["qa-admin", "fixture-password-3765"],
   ["app-screens", "fixture-password-3901"],
+  ["apps-admin", "fixture-password-3911"],
   ["todo-awaiting", "fixture-password-3826"]
 ];
 
@@ -212,6 +213,15 @@ const MEMBERS: readonly { name: string; password: string; sections: readonly { s
       { section: "account", read: true, write: true }
     ]
   })),
+  // The person an app is offered to or recalled from on the administrator's apps tab.
+  {
+    name: "apps-reader",
+    password: "fixture-password-3912",
+    sections: [
+      { section: "rooms", read: true, write: false },
+      { section: "account", read: true, write: true }
+    ]
+  },
   // The research screen opened to a member, research the first section they read.
   {
     name: "research-reader",

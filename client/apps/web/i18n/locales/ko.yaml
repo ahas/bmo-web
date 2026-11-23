@@ -4001,10 +4001,27 @@ apps:
     locked_organization: 조직에서 잠금
     not_offered: 제공되지 않음
     offer: 제공
+    withhold: 제공 안 함
+    state: 상태
+    platform: 전역 설정
+    by_company: 회사별 제공
+    offered_everywhere: 모든 회사에 제공
+    offered_nowhere: 제공하지 않음
+    offered_to: "{count}곳에 제공"
+    withheld_from: "{count}곳 제외"
+    recalled: 긴급 회수됨
   action:
     lock: 하위 조직 잠금
     unlock: 잠금 해제
     follow: 되돌리기
+    settings: 설정
+    recall: 긴급 회수
+    recall_confirm: 회수
+    lift: 회수 해제
+  title:
+    recall: "{app} 앱을 모든 곳에서 끌까요?"
+  message:
+    recall: "모든 회사와 사람에게서 바로 꺼지고, 회수를 풀 때까지 아무도 켤 수 없습니다.\n회사와 조직, 사람이 정한 값은 남아 있다가 회수를 풀면 다시 적용됩니다."
   status:
     loading: 앱 불러오는 중…
   error:

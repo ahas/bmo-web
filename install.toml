@@ -80,7 +80,7 @@ secret = true
 name = "web.public-address"
 what = "The console's public address as a browser opens it, its scheme, host and the base path /bmo/ with its closing slash, such as https://console.example/bmo/; the machine's own address where nothing outside reaches it."
 file = "install/inputs/web.public-address"
-default = "http://127.0.0.1:3210/bmo/"
+default = "http://127.0.0.1:{{port.web.console}}/bmo/"
 
 # Where the other units reach the server.
 [[value]]
@@ -105,10 +105,10 @@ listen = "127.0.0.1:{{port.web.server}}"
 token = "{{token.web.server}}"
 
 [database]
-url = "postgres:///bmo_web?host=/var/run/postgresql"
+url = "postgres:///bmo_web?host={{postgres.host}}&port={{postgres.port}}"
 
 [sessions]
-valkey = "redis://127.0.0.1:6379/13"
+valkey = "{{valkey.url}}/13"
 
 [receiver]
 base = "http://127.0.0.1:{{port.receiver.server}}"
@@ -134,7 +134,7 @@ text = '''
 PORT={{port.web.console}}
 BMO_WEB_BASE_URL=/bmo/
 NUXT_SESSION_PASSWORD={{token.web.session}}
-WEB_DATABASE_URL=postgres:///bmo_web?host=/var/run/postgresql
+WEB_DATABASE_URL=postgres:///bmo_web?host={{postgres.host}}&port={{postgres.port}}
 WEB_SERVER_ADDRESS={{value.web.address}}
 WEB_SERVER_TOKEN={{token.web.server}}
 NUXT_PUBLIC_CHAT_AGENT_NAME={{value.agent.name}}
@@ -144,9 +144,9 @@ WEB_DATA_DIR={{data_root}}/web
 WEB_FEATURES_FILE={{data_root}}/env/console-features.toml
 POCKET_SESSION_TOKEN_FILE={{data_root}}/tool-host/held/console.token
 KEEPALIVE_CONSUMER=receiver
-BMO_WEB_SERVER_BIN={{home}}/.local/share/bmo-web/deploy/bin/bmo-web-server
-BMO_WEB_SERVER_DIR={{home}}/.local/share/bmo-web/deploy/server
-DEPLOY_ROOTS={{home}}/.local/share/bmo-cli:{{home}}/.local/share/bmo-pocket:{{home}}/.local/share/bmo-testbed:{{home}}/.local/share/bmo-web:{{home}}/.local/share/bmo-job:{{home}}/.local/share/bmo-brain:{{home}}/.local/share/bmo-cache-warmer:{{home}}/.local/share/bmo-agency:{{home}}/.local/share/bmo-receiver:{{home}}/.local/share/bmo-gate:{{home}}/.local/share/bmo-explorer:{{home}}/.local/share/bmo-telegram:{{home}}/.local/share/bmo-discord:{{home}}/.local/share/bmo-artifact:{{home}}/.local/share/bmo-note:{{home}}/.local/share/bmo-calendar:{{home}}/.local/share/bmo-drive:{{home}}/.local/share/bmo-mail:{{home}}/.local/share/bmo-remote:{{home}}/.local/share/bmo-review:{{home}}/.local/share/bmo-research:{{home}}/.local/share/bmo-node:{{home}}/.local/share/bmo-arbiter:{{home}}/.local/share/bmo-voice:{{home}}/.local/share/bmo-eye:{{home}}/.local/share/bmo-face:{{home}}/.local/share/bmo-voc:{{home}}/.local/share/bmo-cache-siren:{{home}}/.local/share/bmo-theater:{{home}}/.local/share/jake-hub
+BMO_WEB_SERVER_BIN={{prefix}}/bmo-web/deploy/bin/bmo-web-server
+BMO_WEB_SERVER_DIR={{prefix}}/bmo-web/deploy/server
+DEPLOY_ROOTS={{prefix}}/bmo-cli:{{prefix}}/bmo-pocket:{{prefix}}/bmo-testbed:{{prefix}}/bmo-web:{{prefix}}/bmo-job:{{prefix}}/bmo-brain:{{prefix}}/bmo-cache-warmer:{{prefix}}/bmo-agency:{{prefix}}/bmo-receiver:{{prefix}}/bmo-gate:{{prefix}}/bmo-explorer:{{prefix}}/bmo-telegram:{{prefix}}/bmo-discord:{{prefix}}/bmo-artifact:{{prefix}}/bmo-note:{{prefix}}/bmo-calendar:{{prefix}}/bmo-drive:{{prefix}}/bmo-mail:{{prefix}}/bmo-remote:{{prefix}}/bmo-review:{{prefix}}/bmo-research:{{prefix}}/bmo-node:{{prefix}}/bmo-arbiter:{{prefix}}/bmo-voice:{{prefix}}/bmo-eye:{{prefix}}/bmo-face:{{prefix}}/bmo-voc:{{prefix}}/bmo-cache-siren:{{prefix}}/bmo-theater:{{prefix}}/jake-hub
 '''
 
 # The server's address and token for the units that ask the account service and read them from this file, the
@@ -186,7 +186,7 @@ set -eu
 set -a
 . "$BMO_DATA_DIR/env/web-console.env"
 set +a
-cd "$HOME/.local/share/bmo-web/deploy-expand/client/apps/web"
+cd "$BMO_INSTALL_PREFIX/bmo-web/deploy-expand/client/apps/web"
 "$HOME/.bun/bin/bun" -e '
 const read = (name) => require("node:fs").readFileSync(process.env[name], "utf8").replace(/\r?\n$/, "");
 process.argv.splice(1, process.argv.length - 1, "scripts/user.ts", "set", read("BMO_INPUT_WEB_OWNER_NAME"), read("BMO_INPUT_WEB_OWNER_PASSWORD"), "--administrator");

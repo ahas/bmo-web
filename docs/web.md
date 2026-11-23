@@ -9141,6 +9141,17 @@ and `/api/supply/credits/audit`.
   else of the same member, share one tag, so a later one replaces the earlier in the tray. That stream is read for nobody signed in, so it carries the
   platform administrator's owner key, in the administrator's role: the user the account service names its
   administrator, its id as a decimal number (`docs/boundary.md`, 「Calls the console makes」).
+- **A bundle's notice rings the readers its manifest names for its kind** (bmo-ui's `docs/console-bundles.md`,
+  「Who a notice rings」), as bmo-ui's `noticeReaders` reads them from the manifest and the event's member, and
+  never every device:
+  - readers holding a role ring the devices of every account holding it: for `administrator`, the platform
+    administrators alone, and for `member`, every account, since an administrator holds every role a member holds;
+  - one account a member's field names rings that account's devices alone, the field holding its user id as the
+    owner key writes it, and a member whose field holds no key rings nobody;
+  - a kind the manifest names no readers for rings every account whose role the manifest's role allows.
+  Whether an account is a platform administrator is the account service's word, read as the rooms' ringing reads
+  each login (`GET /users`, held a minute), a login the service does not name standing as the
+  administrator's. A device's own refusals hold over all of it.
 - **A device receives a kind unless it was turned off there.** What a device stores is what it refused, so a kind added
   after the device subscribed reaches it too.
 - **The test button rings a test of its own,** not one of the kinds, and reaches every device of the account whatever

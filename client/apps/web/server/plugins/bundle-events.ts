@@ -1,9 +1,12 @@
 import { createParser } from "eventsource-parser";
 
-import { noticeOf } from "../utils/bundle-notices";
+import { noticeReaders } from "bmo-ui/shared/console-manifest";
+
+import { memberOf, noticeOf } from "../utils/bundle-notices";
 import { SIDEBAR_COUNTS_WORD, dutyOf } from "../utils/bundle-streams";
 import { publishConsoleEvent } from "../utils/console-events";
 import { onBundlesRead } from "../utils/console-manifests";
+import { noticeHearers } from "../utils/notice-hearers";
 import { OWNER_KEY_HEADER, OWNER_ROLE_HEADER, moveAdministratorKey } from "../utils/owner-key";
 import { ring } from "../utils/push";
 import { ringsFromThisServer } from "../utils/pushnews";
@@ -12,12 +15,13 @@ import { unitHeaders } from "../utils/units";
 import type { NoticeWords } from "../utils/bundle-notices";
 import type { StreamDuty } from "../utils/bundle-streams";
 import type { AttachedBundle } from "../utils/console-manifests";
+import type { NoticeHearers } from "../utils/notice-hearers";
 
 // A console bundle's event stream, followed by the console's server (docs/web.md, 「Notifications」 and 「Sidebar」;
 // bmo-ui's `docs/console-bundles.md`, 「Notices」 and the sidebar count): every event whose kind the manifest names
-// under `pushKinds` rings the owner's devices in the bundle's own words, under the notice kind that carries the
-// bundle's name, and every event of a bundle whose manifest names a sidebar count tells every open tab to read its
-// counts again. No unit's address, path or word is written here: the manifest names the service, the kinds and the
+// under `pushKinds` rings, in the bundle's own words and under the notice kind that carries the bundle's name, the
+// devices of the readers the manifest names for its kind (bmo-ui's `noticeReaders`), and every event of a bundle whose
+// manifest names a sidebar count tells every open tab to read its counts again. No unit's address, path or word is written here: the manifest names the service, the kinds and the
 // count, and the bundle's words name the words. A stream is followed while its manifest stands as it was read, and
 // let go when the manifest goes or changes.
 
@@ -29,7 +33,7 @@ const RETRY_CAP_MS = 30_000;
 // waits a moment rather than counting as a failure.
 const FIRST_OPEN_DELAY_MS = 2_000;
 
-async function follow(attached: AttachedBundle, duty: StreamDuty, words: NoticeWords, letGo: AbortSignal, closing: () => boolean): Promise<void> {
+async function follow(attached: AttachedBundle, duty: StreamDuty, words: NoticeWords, hearers: NoticeHearers, letGo: AbortSignal, closing: () => boolean): Promise<void> {
   const stopping = () => closing() || letGo.aborted;
   const { manifest: bundle, unit } = attached;
 
@@ -73,7 +77,11 @@ async function follow(attached: AttachedBundle, duty: StreamDuty, words: NoticeW
         if (duty.counts && heard.length > 0) publishConsoleEvent(SIDEBAR_COUNTS_WORD, {});
 
         for (const event of heard) {
-          if (duty.rings.has(event.name)) await ring(noticeOf(bundle, event.name, event.data, words, useRuntimeConfig().app.baseURL));
+          if (!duty.rings.has(event.name)) continue;
+
+          const readers = noticeReaders(bundle, event.name, memberOf(event.data));
+
+          await ring(noticeOf(bundle, event.name, event.data, words, useRuntimeConfig().app.baseURL), new Set(), async (login) => await hearers.hears(login, readers));
         }
       }
     } catch (error) {
@@ -93,6 +101,8 @@ export default defineNitroPlugin((nitro) => {
 
   if (!ringsHere) console.log("push: a development console does not ring. Start it with BMO_PUSH_IN_DEV=1 to ring from here");
 
+  // Whose devices each notice rings, read login by login as the account service names them.
+  const hearers = noticeHearers();
   // Each stream followed, by the manifest it was read under, with the switch that lets it go.
   const followed = new Map<string, AbortController>();
   let closing = false;
@@ -115,7 +125,7 @@ export default defineNitroPlugin((nitro) => {
       const held = new AbortController();
 
       followed.set(key, held);
-      void follow(bundle, duty, words ?? {}, held.signal, () => closing);
+      void follow(bundle, duty, words ?? {}, hearers, held.signal, () => closing);
     }
 
     for (const [key, held] of followed) {

@@ -241,6 +241,19 @@
 - the agents a person is given as their account is made ready → 가입 구성: each role 위를 따름, 막음, 에이전트 없음 or
   에이전트 `{n}`, a following role saying 플랫폼 규칙을 따름, 위를 따라 막음 or 위를 따라 에이전트 `{n}`. Never 초기 설정,
   온보딩.
+- the sidebar's section of what the heads of the organisations set → 조직, its entries the organisation screen's tab
+  names; the tab of every setting about the agents of a unit's people → 에이전트. Never 조직 관리, 조직 설정 for the
+  section.
+- the organisation's instructions every agent of its people follows → 조직 지침, a unit's own text → 지침, none → 지침
+  없음, the links above → 상위 조직 지침 `{n}`개가 먼저 적용됩니다. Never 시스템 프롬프트, 규칙, 정책 for them.
+- whether an agent keeps its persona, as a unit or a person chooses it → its row 적용 on 조직 and 페르소나 사용 in 설정,
+  its choices 페르소나 사용 and 페르소나 없음, a following row saying 위를 따라 페르소나 사용 or 위를 따라 페르소나 없음.
+  Never 페르소나 끄기, 성격 없음.
+- whether a unit's people add and change repositories → 저장소 관리, its choices 위를 따름, 허용, 막음; the repositories
+  a unit owns → 조직 저장소, 조직 저장소 추가, 조직 저장소 없음. Never 레포 권한.
+- a setting a unit above or the platform decided for a person, as their own settings say it → 조직이 정함 · `{unit}`,
+  조직이 정함 where no unit is named, 전역 설정으로 정함 for the platform; its state → 켜짐 or 꺼짐. Never 관리자 지정,
+  강제됨.
 - the step a person whose runs only their own supply can carry takes before they start → 에이전트 로그인 설정, its way
   in from the join page 로그인하고 설정하기 and its way through 시작하기. Never 온보딩.
 - what a provider, an account or a slot has left of its limits → 남은 사용량: its windows 세션 and 주간, each as

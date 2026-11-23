@@ -15,7 +15,42 @@ test("every screen of the console's own is listed, named from the pack, and stan
   expect(SCREENS.map((screen) => screen.to).sort()).toEqual(["/admin", "/agents", "/db", "/documents", "/monitor", "/organization", "/research", "/siren"]);
   expect(SCREENS.some((screen) => screen.brought === true)).toBe(false);
   expect(screensWithBundles([]).map((screen) => screen.to)).toEqual(SCREENS.map((screen) => screen.to));
-  expect(screenItems(wording, "/").map((item) => item.label)).toEqual(SCREENS.map((screen) => wording(screen.label)));
+  expect(screenItems(wording, "/").map((item) => item.label)).toEqual(
+    SCREENS.flatMap((screen) => (screen.tabEntries === undefined ? [wording(screen.label)] : (screen.tabs ?? []).map((tab) => wording(tab.label))))
+  );
+});
+
+// The organisation screen as the sidebar's organisation section lists it: one entry for each of its tabs.
+const ORGANIZATION = SCREENS.find((screen) => screen.to === "/organization")!;
+
+test("the organisation screen stands in a section of its own between the administration's and the applications', one entry for each of its tabs in their order", () => {
+  const mail = brought("/mail", "mail", { title: "screens.label.mail" });
+  const menus = sectionItems(wording, "/", undefined, false, screensWithBundles([mail]));
+
+  expect(ORGANIZATION.section).toBe("organization");
+  expect(menus.map((menu) => menu.heading)).toEqual(["screens.label.section_administration", "screens.label.section_organization", "screens.label.section_application"].map((key) => wording(key)));
+  expect(menus[1]!.items.slice(1).map((item) => item.label)).toEqual((ORGANIZATION.tabs ?? []).map((tab) => wording(tab.label)));
+  expect(menus[0]!.items.map((item) => item.to)).not.toContain("/organization");
+});
+
+test("a tab entry leads to its tab, lit where the screen stands open on it, the first where the address names none, and keeps what the open screen chose", () => {
+  const tabs = [
+    { value: "invites", label: "settings.label.invites", icon: "i-material-symbols-circle" },
+    { value: "agents", label: "org_agents.label.tab", icon: "i-material-symbols-circle" }
+  ];
+  const screen: Screen = { ...ORGANIZATION, tabs };
+  const elsewhere = screenItems(wording, "/rooms", undefined, false, [screen], {}, { todo: "4" });
+  const open = screenItems(wording, "/organization", undefined, false, [screen], {}, { company: "3", unit: "5", tab: "agents" });
+  const first = screenItems(wording, "/organization", undefined, false, [screen], {}, { company: "3" });
+
+  expect(elsewhere.map((item) => item.to)).toEqual([{ path: "/organization", query: { tab: "invites" } }, { path: "/organization", query: { tab: "agents" } }]);
+  expect(elsewhere.map((item) => item.active)).toEqual([false, false]);
+  expect(open.map((item) => item.to)).toEqual([
+    { path: "/organization", query: { company: "3", unit: "5", tab: "invites" } },
+    { path: "/organization", query: { company: "3", unit: "5", tab: "agents" } }
+  ]);
+  expect(open.map((item) => item.active)).toEqual([false, true]);
+  expect(first.map((item) => item.active)).toEqual([true, false]);
 });
 
 // A screen a unit brings, as the console's list hands it to the browser.
@@ -75,8 +110,8 @@ test("a unit's screen takes its manifest's own name and icon, and stands only wh
   expect(screens.some((entry) => entry.to === "/files")).toBe(false);
 });
 
-test("the console's own screens all stand under the administrator services", () => {
-  expect(SCREENS.filter((screen) => screen.section !== "administration").map((screen) => screen.to)).toEqual([]);
+test("the console's own screens all stand under the administrator services, the organisation screen in its own section", () => {
+  expect(SCREENS.filter((screen) => screen.section !== "administration").map((screen) => [screen.to, screen.section])).toEqual([["/organization", "organization"]]);
 });
 
 test("a screen a unit brings stands under the administrator services where its manifest names them, and is an application where it names the applications", () => {
@@ -157,9 +192,9 @@ test("each section is a menu of its own under its heading from the pack, and a s
   const both = sectionItems(wording, "/", undefined, false, screensWithBundles([mail]));
   const headings = (menus: typeof both) => menus.map((menu) => menu.heading);
 
-  expect(headings(both)).toEqual([wording("screens.label.section_administration"), wording("screens.label.section_application")]);
+  expect(headings(both)).toEqual([wording("screens.label.section_administration"), wording("screens.label.section_organization"), wording("screens.label.section_application")]);
   expect(both.map((menu) => menu.items[0])).toEqual(headings(both).map((heading) => ({ label: heading, type: "label" })));
-  expect(both[1]!.items.slice(1).map((item) => item.to)).toEqual(["/mail"]);
+  expect(both[2]!.items.slice(1).map((item) => item.to)).toEqual(["/mail"]);
   expect(headings(sectionItems(wording, "/", undefined, false, screensWithBundles([mail], [])))).toEqual([wording("screens.label.section_application")]);
   expect(sectionItems(wording, "/", undefined, false, [])).toEqual([]);
 });

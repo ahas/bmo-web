@@ -76,6 +76,17 @@ export const openedRoutes: readonly OpenedRoute[] = [
   { method: "POST", path: /^\/api\/organization\/units\/\d+\/supply\/keys$/, scope: "user" },
   { method: "PATCH", path: /^\/api\/organization\/units\/\d+\/supply\/keys\/[^/]+$/, scope: "user" },
   { method: "DELETE", path: /^\/api\/organization\/units\/\d+\/supply\/keys\/[^/]+$/, scope: "user" },
+  // An organisation's agent settings — its instructions, its persona's choice, repository management — and its own
+  // repositories: every signed-in login asks, and the account service and the agency decide who heads what
+  // (docs/web.md, 「Organisation」, the agents tab).
+  { method: "GET", path: /^\/api\/organization\/units\/\d+\/(?:agent-settings|repositories)$/, scope: "user" },
+  { method: "PUT", path: /^\/api\/organization\/units\/\d+\/agent-settings$/, scope: "user" },
+  { method: "POST", path: /^\/api\/organization\/units\/\d+\/repositories$/, scope: "user" },
+  { method: "DELETE", path: /^\/api\/organization\/units\/\d+\/repositories\/[^/]+$/, scope: "user" },
+  // The supply sources and the persona's choice as they stand for the reader alone, a unit above deciding some of
+  // them (docs/web.md, 「Settings」).
+  { method: "GET", path: /^\/api\/account\/(?:supply-sources|agent-persona)$/, scope: "user" },
+  { method: "PUT", path: /^\/api\/account\/agent-persona$/, scope: "user" },
   { method: "GET", path: /^\/api\/account\/apps$/, scope: "user" },
   { method: "PUT", path: /^\/api\/account\/apps\/[^/]+$/, scope: "user" },
   // A person marked left: every signed-in login asks, and the account service lets the administrator and the person's

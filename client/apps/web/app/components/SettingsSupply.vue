@@ -1,8 +1,9 @@
 <template>
-  <!-- The supply section of the settings (docs/web.md, 「Settings」, the supply section): the reader's own Claude
-       logins and gateway keys, each with its place in the walk, its switch and what it can do now, then the order
-       a run of theirs falls through the platform's supply, this month's spend and what their supply has left. No
-       credential and no secret value stands on this screen: what a row says of a key is its name. -->
+  <!-- The supply section of the settings (docs/web.md, 「Settings」, the supply section): the agent supply sources
+       standing for the reader, then the reader's own Claude logins and gateway keys, each with its place in the walk,
+       its switch and what it can do now, then the order a run of theirs falls through the platform's supply, this
+       month's spend and what their supply has left. No credential and no secret value stands on this screen: what a
+       row says of a key is its name. -->
   <div class="flex flex-col gap-6">
     <p class="text-sm text-muted">{{ $t("supply.label.note") }}</p>
 
@@ -24,6 +25,8 @@
     </div>
 
     <template v-else>
+      <SupplySourcesStanding />
+
       <SettingsGroup :title="$t('supply.title.logins')">
         <template #aside>
           <UTooltip :text="$t('supply.action.login_add')">

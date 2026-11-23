@@ -1,8 +1,9 @@
 <template>
   <!-- The own-BMO section (docs/web.md, 「Settings」, the own-BMO section): the profile standing for the reader's own
-       BMO, each part with where it came from under it; the change button opens the form of its text parts, the picture
-       is set in place, and the reset empties the reader's own parts after asking, so the company's default stands
-       again. Shown only to a reader who may personalise their BMO, which the account service decides. -->
+       BMO, each part with where it came from under it, and whether it keeps its persona; the change button opens the
+       form of its text parts, the picture is set in place, and the reset empties the reader's own parts after asking,
+       so the company's default stands again. Shown only to a reader who may personalise their BMO, which the account
+       service decides. -->
   <div class="flex flex-col gap-6">
     <ContentSkeleton v-if="profile === null && failure === ''" :rows="3" listClass="flex flex-col divide-y divide-default" :label="$t('bmo_profile.status.loading')">
       <div class="flex items-center gap-4 py-3">
@@ -39,6 +40,7 @@
             <span v-if="sourceLine(t, profile.persona.from) !== null" class="text-sm text-muted">{{ sourceLine(t, profile.persona.from) }}</span>
           </template>
         </SettingsRow>
+        <PersonaChoiceRow />
       </SettingsGroup>
 
       <SettingsGroup :title="$t('bmo_profile.label.picture')">

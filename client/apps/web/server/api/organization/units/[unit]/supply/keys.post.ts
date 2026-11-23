@@ -4,7 +4,7 @@ import { signedInUser } from "../../../../../utils/accounts";
 import { unitNumber } from "../../../../../utils/organization";
 import { addKey, orgAgentsFailure } from "../../../../../utils/organisation-supply";
 
-// A key of the unit's added (docs/web.md, 「Organisation」, the supply tab): `road`, `name`, the secret's name in the
+// A key of the unit's added (docs/web.md, 「Organisation」, the agents tab): `road`, `name`, the secret's name in the
 // unit's space, and `value`, the key itself, which goes into that space and nowhere else.
 export default defineEventHandler(async (event): Promise<{ ok: true }> => {
   const unit = unitNumber(getRouterParam(event, "unit"));

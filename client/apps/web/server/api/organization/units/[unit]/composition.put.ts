@@ -6,7 +6,7 @@ import { changeComposition, isDelegation, orgAgentsFailure } from "../../../../u
 
 import type { CompositionChoice } from "#shared/organisation-supply";
 
-// A unit's word on one role, and the composition's delegation (docs/web.md, 「Organisation」, the BMO tab): `role` with
+// A unit's word on one role, and the composition's delegation (docs/web.md, 「Organisation」, the agents tab): `role` with
 // `choice` — `{ off: true }`, `{ agents: n }` or null to follow above — and `delegation`, either or both.
 export default defineEventHandler(async (event): Promise<{ ok: true }> => {
   const unit = unitNumber(getRouterParam(event, "unit"));

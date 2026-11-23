@@ -257,14 +257,14 @@ onMounted(() => nextTick(openAskedTodo));
 const desktopApp = useDesktopApp();
 const sidebarFolded = ref(false);
 // The screens units bring take their manifest's own name and icon; the console's own screens stand as they are
-// (docs/web.md, 「Screens a unit brings」). The sidebar stands them in its two sections, and the user menu those
+// (docs/web.md, 「Screens a unit brings」). The sidebar stands them in its sections, and the user menu those
 // the reader's role places in it (「Sidebar」).
 const bundles = useConsoleScreens();
 // The console's own screens stand as the deployment's features leave them (docs/web.md, 「The console's features」).
 const screens = screensWithBundles(bundles.value, featuredScreens(useConsoleFeatures().value));
 // The counts the bundles declare, read for this reader while the sidebar stands (docs/web.md, 「Sidebar」).
 const unread = useSidebarUnread();
-const screenSections = computed<SectionMenu[]>((before) => sameKept(before, sectionItems(t, route.path, undefined, sidebarFolded.value, screens, unread.value)));
+const screenSections = computed<SectionMenu[]>((before) => sameKept(before, sectionItems(t, route.path, undefined, sidebarFolded.value, screens, unread.value, route.query)));
 
 // The picture every session in this sidebar wears.
 const avatars = useAvatars();

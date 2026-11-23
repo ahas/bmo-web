@@ -72,20 +72,22 @@ describe("the settings dialog", () => {
   });
 });
 
-const ADMINISTRATOR: OrganizationReader = { administrator: true, roster: true, supply: false, plans: false, memory: false, known: true };
+const ADMINISTRATOR: OrganizationReader = { administrator: true, roster: true, supply: false, plans: false, memory: false, heads: false, known: true };
 // A head manages the supply of the company they head, as the account service's read says (docs/web.md, the supply tab).
-const COMPANY_HEAD: OrganizationReader = { administrator: false, roster: true, supply: true, plans: true, memory: true, known: true };
+const COMPANY_HEAD: OrganizationReader = { administrator: false, roster: true, supply: true, plans: true, memory: true, heads: true, known: true };
 // A subscription manager who heads nothing holds the company's plan alone.
-const PLAN_KEEPER: OrganizationReader = { administrator: false, roster: false, supply: false, plans: true, memory: false, known: true };
+const PLAN_KEEPER: OrganizationReader = { administrator: false, roster: false, supply: false, plans: true, memory: false, heads: false, known: true };
 // A member granted a unit's org memory write without heading one (docs/web.md, 「Organisation」, the org memory tab).
-const MEMORY_WRITER: OrganizationReader = { administrator: false, roster: false, supply: false, plans: false, memory: true, known: true };
-const MEMBER: OrganizationReader = { administrator: false, roster: false, supply: false, plans: false, memory: false, known: true };
+const MEMORY_WRITER: OrganizationReader = { administrator: false, roster: false, supply: false, plans: false, memory: true, heads: false, known: true };
+// A member who heads a unit below the company, so writes its memory and sets its agents.
+const UNIT_HEAD: OrganizationReader = { administrator: false, roster: false, supply: false, plans: false, memory: true, heads: true, known: true };
+const MEMBER: OrganizationReader = { administrator: false, roster: false, supply: false, plans: false, memory: false, heads: false, known: true };
 // A member before the people roster has answered, as the server and the browser's first frame see them.
-const UNKNOWN_MEMBER: OrganizationReader = { administrator: false, roster: false, supply: false, plans: false, memory: false, known: false };
+const UNKNOWN_MEMBER: OrganizationReader = { administrator: false, roster: false, supply: false, plans: false, memory: false, heads: false, known: false };
 
 describe("the organisation screen", () => {
   test("stands its tabs in order, the units first", () => {
-    expect(ORGANIZATION_TABS.map((tab) => tab.value)).toEqual(["organization", "people", "catalogue", "invites", "agent", "apps", "memory", "supply", "plans"]);
+    expect(ORGANIZATION_TABS.map((tab) => tab.value)).toEqual(["organization", "people", "catalogue", "invites", "agent", "agents", "apps", "memory", "supply", "plans"]);
   });
 
   test("leads the keys of the sections that moved away to where they stand now, and no other key", () => {
@@ -105,9 +107,10 @@ describe("the organisation screen", () => {
     expect(organizationMovedAway("permissions")).toEqual({ path: ORGANIZATION_PATH, query: { tab: "people", pane: "permissions" } });
   });
 
-  test("opens every tab to the administrator, the people and the roles and kinds tabs to a member who heads a company, and the invitations and BMO tabs to every member", () => {
+  test("opens every tab to the administrator, the people and the roles and kinds tabs to a member who heads a company, the agents tab to a member who heads a unit, and the invitations and BMO tabs to every member", () => {
     expect(organizationTabsFor(ADMINISTRATOR)).toHaveLength(ORGANIZATION_TABS.length);
-    expect(organizationTabsFor(COMPANY_HEAD).map((tab) => tab.value)).toEqual(["people", "catalogue", "invites", "agent", "apps", "memory", "supply", "plans"]);
+    expect(organizationTabsFor(COMPANY_HEAD).map((tab) => tab.value)).toEqual(["people", "catalogue", "invites", "agent", "agents", "apps", "memory", "supply", "plans"]);
+    expect(organizationTabsFor(UNIT_HEAD).map((tab) => tab.value)).toEqual(["invites", "agent", "agents", "apps", "memory"]);
     expect(organizationTabsFor(MEMORY_WRITER).map((tab) => tab.value)).toEqual(["invites", "agent", "apps", "memory"]);
     expect(organizationTabsFor(MEMBER).map((tab) => tab.value)).toEqual(["invites", "agent", "apps"]);
   });
@@ -162,17 +165,18 @@ describe("the organisation screen", () => {
     expect(organizationAddress("agent", { tab: "people", user: "7" }, { company: "1", unit: "2" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "agent", company: "1", unit: "2" } });
   });
 
-  test("stands in the sidebar and the search with its tabs, under the administrator services beside the administrator's", () => {
+  test("stands in the sidebar's organisation section by its tabs and in the search with them, the administrator's under the administrator services", () => {
     const screen = SCREENS.find((one) => one.to === ORGANIZATION_PATH)!;
     const admin = SCREENS.find((one) => one.to === ADMIN_PATH)!;
 
     expect(screen.to).toBe(ORGANIZATION_PATH);
     expect(screen.unitKeepers).toBe(true);
-    expect(screen.tabs?.map((tab) => tabAddress(screen, tab))).toEqual(["/organization", "/organization?tab=people", "/organization?tab=catalogue", "/organization?tab=invites", "/organization?tab=agent", "/organization?tab=apps", "/organization?tab=memory", "/organization?tab=supply", "/organization?tab=plans"]);
+    expect(screen.tabs?.map((tab) => tabAddress(screen, tab))).toEqual(["/organization", "/organization?tab=people", "/organization?tab=catalogue", "/organization?tab=invites", "/organization?tab=agent", "/organization?tab=agents", "/organization?tab=apps", "/organization?tab=memory", "/organization?tab=supply", "/organization?tab=plans"]);
     expect(admin.to).toBe(ADMIN_PATH);
     expect(admin.administrator).toBe(true);
     expect(admin.tabs?.map((tab) => tabAddress(admin, tab))).toEqual(["/admin", "/admin?tab=secret-kinds", "/admin?tab=plans", "/admin?tab=credits", "/admin?tab=apps"]);
-    expect([screen.section, admin.section]).toEqual(["administration", "administration"]);
+    expect([screen.section, admin.section]).toEqual(["organization", "administration"]);
+    expect(screen.tabEntries?.("invites", { company: "3" })).toEqual({ path: ORGANIZATION_PATH, query: { company: "3", tab: "invites" } });
   });
 });
 

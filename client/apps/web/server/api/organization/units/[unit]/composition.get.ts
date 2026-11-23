@@ -4,7 +4,7 @@ import { orgAgentsFailure, unitComposition } from "../../../../utils/organisatio
 
 import type { CompositionView } from "#shared/organisation-supply";
 
-// A unit's sign-up composition (docs/web.md, 「Organisation」, the BMO tab): each role with what stands there and the
+// A unit's sign-up composition (docs/web.md, 「Organisation」, the agents tab): each role with what stands there and the
 // unit's own word, and what the reader may change.
 export default defineEventHandler(async (event): Promise<CompositionView> => {
   const unit = unitNumber(getRouterParam(event, "unit"));

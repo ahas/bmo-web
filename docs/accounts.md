@@ -283,7 +283,7 @@ section states what each does.
 
 ### Console sections
 
-- **A console section is one entry of the console's navigation,** a screen of the sidebar's two sections, the
+- **A console section is one entry of the console's navigation,** a screen of the sidebar's sections, the
   rooms and the account beside them, or one part of agent management's screen, whose five tabs are
   its five parts, or `live`, what runs now, which no one screen holds and every screen that shows a run reads. Each screen is named by the first part of its path; each part of agent management is named
   by its tab:

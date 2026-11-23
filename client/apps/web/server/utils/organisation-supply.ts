@@ -10,7 +10,7 @@ import type { SignedIn } from "./accounts";
 import type { ChainDelegation, CompositionChoice, CompositionView, SourceKind, UnitSourceView, UnitSupplyItem, UnitSupplyView } from "#shared/organisation-supply";
 import type { H3Event } from "h3";
 
-// An organisation's agents (docs/web.md, 「Organisation」, the supply and BMO tabs; the agency's `docs/supply.md`,
+// An organisation's agents (docs/web.md, 「Organisation」, the agents tab; the agency's `docs/supply.md`,
 // 「The sources a person's chain leaves open」 and 「Organisation supply」, and `docs/role-agents.md`, 「The agents an
 // account is given」): the three source settings and the sign-up composition are the agency's kinds on the
 // delegation chain, read and written on the chain's own routes as the signed-in login, so who writes a link and a

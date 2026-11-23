@@ -1,7 +1,7 @@
 import { AGENT_TABS } from "./agent-settings";
 import { MONITOR_TABS } from "./hardware";
 import { ADMIN_PATH, ADMIN_TABS } from "./administration";
-import { ORGANIZATION_PATH, ORGANIZATION_TABS } from "./organization";
+import { ORGANIZATION_PATH, ORGANIZATION_TABS, organizationAddress } from "./organization";
 
 import { avatarFor } from "./avatars";
 import { COUNT_BADGE, countText } from "./numbers";
@@ -18,17 +18,21 @@ import type { ConsoleSidebarSection } from "bmo-ui/shared/console-manifest";
 import type { ListedRoom } from "#shared/types";
 import type { Translate } from "#shared/wording";
 import type { BadgeProps, DropdownMenuItem, NavigationMenuItem } from "@nuxt/ui";
+import type { LocationQuery, RouteLocationRaw } from "vue-router";
 
 // The sections the sidebar stands its screens in, in the order they stand, each under its heading
-// (docs/web.md, 「Sidebar」): what the administrator keeps the deployment running with, and every other screen.
+// (docs/web.md, 「Sidebar」): what the administrator keeps the deployment running with, what the heads of the
+// organisations set for them, and every other screen.
 export const SCREEN_SECTIONS = [
   { id: "administration", heading: "screens.label.section_administration" },
+  { id: "organization", heading: "screens.label.section_organization" },
   { id: "application", heading: "screens.label.section_application" }
 ] as const;
 
 // Where a screen's entry stands: one of the sidebar's sections, or `account`, the user menu, the reader's own menu,
-// which stands in neither section (bmo-ui's `docs/console-bundles.md`, the sidebar section).
-export type ScreenSection = ConsoleSidebarSection;
+// which stands in none of them (bmo-ui's `docs/console-bundles.md`, the sidebar section). The organisation's section is
+// the console's own, which no unit's manifest names.
+export type ScreenSection = ConsoleSidebarSection | "organization";
 
 // The console's screens at the top of the sidebar, each in its section. The sidebar and the console search both
 // read this list, so a screen added here is in both.
@@ -45,6 +49,10 @@ export interface Screen {
   brought?: true;
   // The tabs a screen keeps in its address as `?tab=`. The first is the screen's own address.
   tabs?: readonly ScreenTab[];
+  // Where the sidebar lists the screen as one entry for each of its tabs, in their order, rather than as one entry: the
+  // address of a tab's entry, read off the address open where the screen is open, so the entry keeps what the screen
+  // chose (docs/web.md, 「Sidebar」).
+  tabEntries?: (tab: string, query: LocationQuery) => RouteLocationRaw;
   // Whether a member's shell lists it only for a member who keeps something of a unit — heads one, so may invite into
   // it, or writes a unit's org memory — rather than by a section of their permission (docs/web.md, 「Organisation」).
   unitKeepers?: true;
@@ -108,8 +116,18 @@ export const SCREENS: readonly Screen[] = [
   // Every machine's hardware, bmo-node's, and the card master's board of every node's card, a tab each. Each
   // machine's own monitor stands below its address.
   { label: "screens.label.monitor", to: "/monitor", icon: "i-material-symbols-monitor-heart-outline", nested: true, tabs: MONITOR_TABS, feature: "monitor", section: "administration" },
-  // The organisation and the people in it, a tab to a section.
-  { label: "screens.label.organization", to: ORGANIZATION_PATH, icon: "i-material-symbols-domain", nested: false, tabs: ORGANIZATION_TABS, unitKeepers: true, feature: "organizations", section: "administration" },
+  // The organisation and the people in it, a tab to a section, each tab an entry of the organisation's section.
+  {
+    label: "screens.label.organization",
+    to: ORGANIZATION_PATH,
+    icon: "i-material-symbols-domain",
+    nested: false,
+    tabs: ORGANIZATION_TABS,
+    tabEntries: organizationAddress,
+    unitKeepers: true,
+    feature: "organizations",
+    section: "organization"
+  },
   // What is set for the platform itself, the administrator's alone: the providers and the secret kinds.
   { label: "screens.label.admin", to: ADMIN_PATH, icon: "i-material-symbols-shield-person-outline", nested: false, tabs: ADMIN_TABS, administrator: true, section: "administration" }
 ];
@@ -213,38 +231,61 @@ export const FOLDED_MARK = "relative after:absolute after:top-2 after:start-[rou
 // A sidebar count as the sidebar last read it, by the address of the screen it stands on.
 export type ScreenCounts = Readonly<Record<string, number>>;
 
-export function screenItems(t: Translate, path: string, live: ScreenLive = QUIET, folded = false, screens: readonly Screen[] = SCREENS, counts: ScreenCounts = {}): NavigationMenuItem[] {
-  return screens.map((screen) => {
-    const status = screen.status?.(live) ?? null;
-    const count = screen.counted === true ? (counts[screen.to] ?? 0) : 0;
-    const entry = {
-      label: t(screen.label),
-      to: screen.to,
-      icon: screen.icon,
-      active: isScreenActive(screen, path)
-    };
+export function screenItems(
+  t: Translate,
+  path: string,
+  live: ScreenLive = QUIET,
+  folded = false,
+  screens: readonly Screen[] = SCREENS,
+  counts: ScreenCounts = {},
+  query: LocationQuery = {}
+): NavigationMenuItem[] {
+  return screens.flatMap((screen) => (screen.tabEntries === undefined ? [screenItem(t, path, live, folded, screen, counts)] : tabItems(t, path, screen, query)));
+}
 
-    // A positive count stands at the line's end as a count badge, and folded as the number itself over the icon's rim
-    // at about two o'clock, where a badge conventionally sits (docs/web.md, 「Sidebar」).
-    const counted = count > 0;
-    const said = counted ? t("screens.aria.screen_unread", { name: t(screen.label), count: countText(count) }) : undefined;
-    const countedEntry = !counted
-      ? entry
-      : folded
-        ? { ...entry, chip: { text: unreadLabel(count) ?? String(count), color: "primary" as const } }
-        : { ...entry, badge: { ...COUNT_BADGE, label: unreadLabel(count) ?? String(count), color: "primary" as const } };
+/**
+ * The entries of a screen the sidebar lists by its tabs: one for each tab it holds for the reader, in their order,
+ * each under the tab's name and icon and leading to it, the one open lit — the tab the address names, else the
+ * screen's first. Where the screen is open, each leads there keeping what the address chose besides its tab.
+ */
+export function tabItems(t: Translate, path: string, screen: Screen, query: LocationQuery = {}): NavigationMenuItem[] {
+  const tabs = screen.tabs ?? [];
+  const open = path === screen.to;
+  const asked = typeof query.tab === "string" ? query.tab : tabs[0]?.value;
 
-    if (status === null) {
-      return said === undefined ? countedEntry : { ...countedEntry, "aria-description": said };
-    }
+  return tabs.map((tab) => ({ label: t(tab.label), to: screen.tabEntries!(tab.value, open ? query : {}), icon: tab.icon, active: open && asked === tab.value }));
+}
 
-    // Folded, the name is gone and the row is its icon alone. A mark given a cell at the row's end
-    // is dropped there by the menu, so the row says nothing at all; drawn over the icon's corner it
-    // says the same thing and moves no icon.
-    return folded
-      ? { ...countedEntry, ui: { link: `${FOLDED_MARK} ${status.folded}` }, "aria-description": said ?? t(status.label) }
-      : { ...countedEntry, trailingIcon: status.icon, ui: { linkTrailingIcon: status.tone }, "aria-description": said ?? t(status.label) };
-  });
+function screenItem(t: Translate, path: string, live: ScreenLive, folded: boolean, screen: Screen, counts: ScreenCounts): NavigationMenuItem {
+  const status = screen.status?.(live) ?? null;
+  const count = screen.counted === true ? (counts[screen.to] ?? 0) : 0;
+  const entry = {
+    label: t(screen.label),
+    to: screen.to,
+    icon: screen.icon,
+    active: isScreenActive(screen, path)
+  };
+
+  // A positive count stands at the line's end as a count badge, and folded as the number itself over the icon's rim
+  // at about two o'clock, where a badge conventionally sits (docs/web.md, 「Sidebar」).
+  const counted = count > 0;
+  const said = counted ? t("screens.aria.screen_unread", { name: t(screen.label), count: countText(count) }) : undefined;
+  const countedEntry = !counted
+    ? entry
+    : folded
+      ? { ...entry, chip: { text: unreadLabel(count) ?? String(count), color: "primary" as const } }
+      : { ...entry, badge: { ...COUNT_BADGE, label: unreadLabel(count) ?? String(count), color: "primary" as const } };
+
+  if (status === null) {
+    return said === undefined ? countedEntry : { ...countedEntry, "aria-description": said };
+  }
+
+  // Folded, the name is gone and the row is its icon alone. A mark given a cell at the row's end
+  // is dropped there by the menu, so the row says nothing at all; drawn over the icon's corner it
+  // says the same thing and moves no icon.
+  return folded
+    ? { ...countedEntry, ui: { link: `${FOLDED_MARK} ${status.folded}` }, "aria-description": said ?? t(status.label) }
+    : { ...countedEntry, trailingIcon: status.icon, ui: { linkTrailingIcon: status.tone }, "aria-description": said ?? t(status.label) };
 }
 
 // The slot the user menu draws its screens' items through, whose end carries a count badge.
@@ -288,11 +329,19 @@ export interface SectionMenu {
 // The sidebar's screens: each section that holds any, a menu of its own under its heading, its screens by name
 // (docs/web.md, 「Sidebar」). Each is a menu of its own so the sidebar parts the sections as it parts its other
 // groups. A heading is a row of words alone, which the menu leaves out where the sidebar is folded.
-export function sectionItems(t: Translate, path: string, live: ScreenLive = QUIET, folded = false, screens: readonly Screen[] = SCREENS, counts: ScreenCounts = {}): SectionMenu[] {
+export function sectionItems(
+  t: Translate,
+  path: string,
+  live: ScreenLive = QUIET,
+  folded = false,
+  screens: readonly Screen[] = SCREENS,
+  counts: ScreenCounts = {},
+  query: LocationQuery = {}
+): SectionMenu[] {
   return screenSections(t, screens).map((section) => {
     const heading = t(section.heading);
 
-    return { heading, items: [{ label: heading, type: "label" as const }, ...screenItems(t, path, live, folded, section.screens, counts)] };
+    return { heading, items: [{ label: heading, type: "label" as const }, ...screenItems(t, path, live, folded, section.screens, counts, query)] };
   });
 }
 

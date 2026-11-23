@@ -31,8 +31,8 @@ const RUN = Date.now().toString(36);
 const PERSONAL = ["settings.label.account", "settings.label.secrets", "settings.label.supply", "settings.label.theme", "settings.label.palette"];
 const ADMINISTRATOR_PERSONAL = [...PERSONAL, "settings.label.notifications", "settings.label.briefing"];
 const MOVED = ["settings.label.invites", "settings.label.permissions", "settings.label.providers", "secrets.label.kinds", "research.title.supervisor"];
-const TABS = ["organization.label.chart", "roster.label.tab", "catalogue.label.tab", "settings.label.invites", "settings.label.bmo", "apps.label.tab", "org_memory.label.tab", "supply.label.tab", "supply.label.plans"];
-const ADMIN_TABS = ["settings.label.providers", "secrets.label.kinds", "supply.label.plans", "supply.label.credits"];
+const TABS = ["organization.label.chart", "roster.label.tab", "catalogue.label.tab", "settings.label.invites", "settings.label.bmo", "org_agents.label.tab", "apps.label.tab", "org_memory.label.tab", "supply.label.tab", "supply.label.plans"];
+const ADMIN_TABS = ["settings.label.providers", "secrets.label.kinds", "supply.label.plans", "supply.label.credits", "apps.label.tab"];
 
 let browser: Browser | null = null;
 const cookies = new Map<string, string>();
@@ -478,9 +478,9 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
 
           await standing(page);
           await column(page).getByText(wording("catalogue.label.kinds"), { exact: true }).waitFor({ timeout: 20_000 });
-          // A head of a company writes the org memory of the units they head and manages that company's supply, so the
-          // org memory, supply and plans tabs stand for them too (docs/web.md, 「Organisation」).
-          expect({ pass, tabs: await tabNames(page) }).toEqual({ pass, tabs: ["roster.label.tab", "catalogue.label.tab", "settings.label.invites", "settings.label.bmo", "apps.label.tab", "org_memory.label.tab", "supply.label.tab", "supply.label.plans"].map((key) => wording(key)) });
+          // A head of a company writes the org memory of the units they head, sets their agents and manages that company's
+          // supply, so the agents, org memory, supply and plans tabs stand for them too (docs/web.md, 「Organisation」).
+          expect({ pass, tabs: await tabNames(page) }).toEqual({ pass, tabs: ["roster.label.tab", "catalogue.label.tab", "settings.label.invites", "settings.label.bmo", "org_agents.label.tab", "apps.label.tab", "org_memory.label.tab", "supply.label.tab", "supply.label.plans"].map((key) => wording(key)) });
           expect(await page.locator('[role="tab"][aria-selected="true"]').allInnerTexts()).toEqual([wording("catalogue.label.tab")]);
 
           // The row's underline stands under the chosen tab, though a tab came in before it once the head was known.
@@ -547,8 +547,8 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
             expect({ old, open: (await page.locator(`[aria-label="${wording("admin.aria.tabs")}"] [role="tab"][data-state="active"]`).innerText()).trim() }).toEqual({ old, open: wording(label) });
           }
 
-          // The organisation screen keeps the chart, the people, the roles and kinds, the invitations, the BMO, the org
-          // memory and, for a reader who manages a unit's supply, the supply and plans tabs.
+          // The organisation screen keeps the chart, the people, the roles and kinds, the invitations, the BMO, the
+          // agents, the apps, the org memory and, for a reader who manages a unit's supply, the supply and plans tabs.
           await page.goto(`${origin}/organization`, { waitUntil: "load" });
           await standing(page);
           expect(await tabNames(page)).toEqual(TABS.map((key) => wording(key)));
@@ -689,7 +689,10 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
 
           expect(await dialogSections(page, "/rooms")).toEqual(PERSONAL.map((key) => wording(key)));
 
-          const entry = page.locator('a[href$="/organization"]');
+          // The sidebar's organisation section, whose entries are the organisation screen's tabs.
+          // An invitation's dialog may still stand over the page as the entry is looked for, which hides the sidebar from
+          // the page's roles, so the entry is found by its section's own label.
+          const entry = page.locator(`nav[aria-label="${wording("screens.label.section_organization")}"] a`);
 
           if (width >= 1024) expect(await entry.count()).toBe(0);
 
@@ -699,7 +702,7 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
           // The row holds the tabs every member opens until the org memory read says which units the head writes, and
           // the org memory tab comes in then (docs/web.md, 「Organisation」), so the row is read once it stands.
           await page.locator(`[aria-label="${wording("organization.aria.tabs")}"]`).getByRole("tab", { name: wording("org_memory.label.tab"), exact: true }).waitFor({ timeout: 20_000 });
-          expect(await tabNames(page)).toEqual([wording("settings.label.invites"), wording("settings.label.bmo"), wording("apps.label.tab"), wording("org_memory.label.tab")]);
+          expect(await tabNames(page)).toEqual([wording("settings.label.invites"), wording("settings.label.bmo"), wording("org_agents.label.tab"), wording("apps.label.tab"), wording("org_memory.label.tab")]);
 
           // A head asks for a link into their unit from the tab row's add and its dialog, and the service
           // takes the ask as theirs: a link stands among the open ones, or, where the deployment names no machine hub

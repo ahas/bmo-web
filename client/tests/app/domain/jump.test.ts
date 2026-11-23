@@ -68,7 +68,10 @@ describe("the console's screens", () => {
     const listed = screenGroup(wording).entries.filter((entry) => entry.prefix === undefined).map((entry) => entry.to);
 
     expect(listed).toEqual(sidebarOrder(wording, SCREENS).map((screen) => screen.to));
-    expect(sectionItems(wording, "/").flatMap((menu) => menu.items.slice(1)).map((item) => item.to)).toEqual(listed);
+    // The organisation screen stands in the sidebar as its tabs, each an entry leading to it.
+    const entries = sectionItems(wording, "/").flatMap((menu) => menu.items.slice(1)).map((item) => (typeof item.to === "string" ? item.to : (item.to as { path: string }).path));
+
+    expect([...new Set(entries)]).toEqual(listed);
   });
 
   test("the screens of the user menu are found after the sidebar's", () => {

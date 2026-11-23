@@ -40,6 +40,8 @@ export interface OrganizationReader {
   plans: boolean;
   // Whether the reader writes the org memory of a unit of the organisation chosen, heading it or holding its grant.
   memory: boolean;
+  // Whether the reader heads a unit of the organisation chosen, so may invite into it.
+  heads: boolean;
   known: boolean;
 }
 
@@ -89,6 +91,12 @@ function memoryReaderOpens(reader: OrganizationReader): boolean {
   return reader.administrator || reader.memory;
 }
 
+// The agents tab's readers: the administrator, and a member who heads a unit of the organisation chosen, a company's
+// head or a unit's below it (「Organisation」, the agents tab).
+function headReaderOpens(reader: OrganizationReader): boolean {
+  return reader.administrator || reader.heads;
+}
+
 // The people tab's key, which a section moved into one person's tab leads to.
 const PEOPLE_TAB = "people";
 
@@ -98,6 +106,7 @@ export const ORGANIZATION_TABS: readonly OrganizationTab[] = [
   { value: "catalogue", label: "catalogue.label.tab", icon: "i-material-symbols-category-outline", opens: rosterReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationCatalogue.vue") },
   { value: "invites", label: "settings.label.invites", icon: "i-material-symbols-person-add-outline", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationInvites.vue") },
   { value: "agent", label: "settings.label.bmo", icon: "i-material-symbols-face-outline", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationBmo.vue") },
+  { value: "agents", label: "org_agents.label.tab", icon: "i-material-symbols-smart-toy-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationAgents.vue") },
   { value: "apps", label: "apps.label.tab", icon: "i-material-symbols-apps", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationApps.vue") },
   { value: "memory", label: "org_memory.label.tab", icon: "i-material-symbols-psychology-outline", opens: memoryReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationMemory.vue") },
   // The supply tab stands only for a reader who holds the organisation's supply policy, and the plans tab for one who
@@ -297,10 +306,21 @@ export function organizationTabNamed(key: string): OrganizationTab | null {
  * organisation screen (docs/web.md, 「Organisation」). Read once for the shell and kept while it stands.
  */
 export function useKeepsUnits(): ComputedRef<boolean> {
-  const { data } = useFetch<{ id: number; name: string }[]>("/api/invites/units", { key: "invite-units", lazy: true, server: false, default: () => [] });
+  const headed = useHeadedUnits();
   const { units } = useOrgMemoryUnits();
 
-  return computed(() => (data.value ?? []).length > 0 || units.value.length > 0);
+  return computed(() => headed.units.value.length > 0 || units.value.length > 0);
+}
+
+/**
+ * The units the reader heads, as the account service answers them: the units they may invite into
+ * (docs/accounts.md, 「Invitations and a person's machine」), each with its company. One read shared by the shell, the
+ * screen and the invitations tab; a read that failed holds none.
+ */
+export function useHeadedUnits(): { units: ComputedRef<InviteUnit[]>; status: Ref<string> } {
+  const { data, status } = useFetch<InviteUnit[]>("/api/invites/units", { key: "invite-units", lazy: true, server: false, default: () => [] });
+
+  return { units: computed(() => (status.value === "error" ? [] : (data.value ?? []))), status };
 }
 
 /**
@@ -335,8 +355,10 @@ export function useOrganizationReader(chosen: () => number | null = () => null):
   const supply = useSupplyReader();
   const supplied = useSupplyUnits();
   const memory = useOrgMemoryUnits();
+  const headed = useHeadedUnits();
   const rosterAnswered = useAnswered(status);
   const memoryAnswered = useAnswered(memory.status);
+  const headsAnswered = useAnswered(headed.status);
   const covers = (list: readonly { id: number }[]): boolean => {
     const company = chosen();
 
@@ -349,7 +371,8 @@ export function useOrganizationReader(chosen: () => number | null = () => null):
     supply: covers(supplied.value.filter((one) => one.policy)),
     plans: covers(supplied.value),
     memory: covers(memory.units.value.map((one) => one.company)),
-    known: administrator.value || (rosterAnswered.value && supply.value.known && memoryAnswered.value)
+    heads: covers(headed.units.value.map((one) => one.company)),
+    known: administrator.value || (rosterAnswered.value && supply.value.known && memoryAnswered.value && headsAnswered.value)
   }));
 }
 

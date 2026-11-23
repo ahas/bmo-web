@@ -1,5 +1,5 @@
 <template>
-  <!-- The BMO tab's sign-up composition (docs/web.md, 「Organisation」, the BMO tab): for the unit chosen in the tree,
+  <!-- The agents tab's sign-up composition (docs/web.md, 「Organisation」, the agents tab): for the unit chosen in the tree,
        the company where none is, each role with the agents a person here is given as their account is made ready —
        off, none, or a number of agents on the road of the role's own agent — or following above, with what that comes
        to, and what the units below may do with it. Each choice is saved as it is made. -->

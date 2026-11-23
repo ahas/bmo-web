@@ -88,8 +88,6 @@
         </ul>
       </SettingsGroup>
 
-      <OrganizationComposition :company="props.company" />
-
       <BmoProfileForm
         v-if="companyDefault !== null"
         v-model:open="editing"

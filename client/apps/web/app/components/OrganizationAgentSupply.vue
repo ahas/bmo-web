@@ -1,5 +1,5 @@
 <template>
-  <!-- The supply tab's agent supply (docs/web.md, 「Organisation」, the supply tab): the unit chosen in the tree, the
+  <!-- The agents tab's agent supply (docs/web.md, 「Organisation」, the agents tab): the unit chosen in the tree, the
        company where none is — which of the three supply sources stand open under it, each closed here or following
        above with what the links below may do, and the unit's own keys where it holds organisation supply. A key's
        value is typed once into the form and goes to the unit's secret store; a row says of a key its name alone. -->

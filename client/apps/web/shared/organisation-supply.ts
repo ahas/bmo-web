@@ -1,5 +1,5 @@
-// An organisation's agents as its heads set them on the delegation chain (docs/web.md, 「Organisation」, the supply
-// and BMO tabs): which supply sources stand open under a unit, the unit's own keys, and the agents its people are
+// An organisation's agents as its heads set them on the delegation chain (docs/web.md, 「Organisation」, the agents
+// tab): which supply sources stand open under a unit, the unit's own keys, and the agents its people are
 // given as their accounts are made ready. No secret value stands in any shape here: what a screen learns of a key
 // is its name.
 

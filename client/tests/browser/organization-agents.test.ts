@@ -6,9 +6,8 @@ import { wording } from "../../apps/web/shared/wording";
 
 import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 
-// An organisation's agents (docs/web.md, 「Organisation」, the supply and BMO tabs, and 「The join page」): the supply
-// tab's groups of the unit's supply sources and its own keys, the BMO tab's sign-up composition, and the agent login
-// step a person whose runs only their own supply can carry is held at. Each is worked as a hand works it at a phone's width and a desk's: what a
+// An organisation's agents (docs/web.md, 「Organisation」, the agents tab, and 「The join page」): the agents tab's
+// groups of the unit's supply sources and its own keys and its sign-up composition, and the agent login step a person whose runs only their own supply can carry is held at. Each is worked as a hand works it at a phone's width and a desk's: what a
 // press lands on is the control it names, nothing runs off the side, and what a press does is read back off the screen
 // after the page is read again.
 //
@@ -96,7 +95,7 @@ describe.skipIf(!origin || !touchReady())("an organisation's agents", () => {
       const context = await contextFor(ADMINISTRATOR.name, width);
       const page = await context.newPage();
 
-      await tab(page, "supply");
+      await tab(page, "agents");
 
       const sources = page.locator("[data-agent-supply]");
 
@@ -151,7 +150,7 @@ describe.skipIf(!origin || !touchReady())("an organisation's agents", () => {
       const context = await contextFor(ADMINISTRATOR.name, width);
       const page = await context.newPage();
 
-      await tab(page, "agent");
+      await tab(page, "agents");
 
       const group = page.locator("[data-composition]");
       const worker = group.locator('[data-composition-role="worker"]');

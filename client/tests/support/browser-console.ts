@@ -86,6 +86,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["todo-row-unfold", "fixture-password-2784"],
   ["org-settings", "fixture-password-2666"],
   ["org-agents", "fixture-password-3901"],
+  ["org-group", "fixture-password-3903"],
   ["copy-marks", "fixture-password-3291"],
   ["machine-unbind", "fixture-password-3583"],
   ["todo-run-figures", "fixture-password-2826"],
@@ -150,6 +151,16 @@ const MEMBERS: readonly { name: string; password: string; sections: readonly { s
   {
     name: "org-member",
     password: "fixture-password-2667",
+    sections: [
+      { section: "rooms", read: true, write: false },
+      { section: "account", read: true, write: true }
+    ]
+  },
+  // A person under a company whose heads decide their agents' settings, who owns a BMO of their own (docs/web.md,
+  // 「Settings」, the supply and own-BMO sections).
+  {
+    name: "org-group-person",
+    password: "fixture-password-3904",
     sections: [
       { section: "rooms", read: true, write: false },
       { section: "account", read: true, write: true }
@@ -847,6 +858,10 @@ const notFound = () => Response.json({ code: "not-found", error: "not served by 
 // usage」): open for every unit, its items added, switched and removed as the agency keeps them.
 const unitSupply = new Map<number, { id: string; road: string; secret: string; enabled: boolean; refusedAt: number | null }[]>();
 let unitSupplyNext = 1;
+// The user who owns the BMO the deployment's own read of the supervisors holds, once the users are made.
+let ownedBmo: number | null = null;
+// The repositories units own, by name, as the agency's stand-in keeps them.
+const unitRepositories = new Map<string, Record<string, unknown>>();
 // The people the agency's stand-in answers as able to run on their own supply alone, holding none of their own.
 const ownSupplyOnly = new Set<string>();
 // The account service's port, which the agency's stand-in asks the chain at as the agency does.
@@ -962,7 +977,13 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
     // The two axes and the places: two supervisors, a handful of roles with runs going and waiting, and the
     // repositories.
-    if (path === "/supervisors") return Response.json({ items: [heldSupervisor("agent-a"), heldSupervisor("agent-c")], more: false });
+    // The deployment's own read, carrying no owner, holds as well the BMO a fixture person owns, so their own-BMO
+    // section stands; what a signed-in reader is answered holds the two supervisors alone.
+    if (path === "/supervisors") {
+      const owned = request.headers.get("owner-key") === null && ownedBmo !== null ? [supervisor("agent-own", "Agent Own", { ownerAccount: ownedBmo })] : [];
+
+      return Response.json({ items: [heldSupervisor("agent-a"), heldSupervisor("agent-c"), ...owned], more: false });
+    }
     if (path === "/roles") return Response.json({ roles: ROLES, bundles: [{ name: "web.read", code: "web-read", label: "Web reading" }, { name: "web.sites", code: "web-sites", label: "Site tools" }], lines: ["worker", "search", "browse", "translate"] });
     if (/^\/roles\/[^/]+\/sessions$/.test(path)) {
       return Response.json({
@@ -970,6 +991,20 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
         more: false
       });
     }
+    // A unit's own repositories, added under it and removed as the agency keeps them (the agency's
+    // `docs/repositories.md`, 「An organisation's repository」).
+    if (path === "/repositories" && request.method === "POST") {
+      const body = (await request.json()) as { name: string; label: string | null; path: string; ownerUnit?: number | null };
+
+      if (body.ownerUnit === undefined || body.ownerUnit === null) return null;
+
+      const added = repository(body.name, body.label ?? body.name, { path: body.path, ownerUnit: body.ownerUnit, label: body.label });
+
+      unitRepositories.set(body.name, added);
+
+      return Response.json(added, { status: 201 });
+    }
+    if (/^\/repositories\/[^/]+$/.test(path) && request.method === "DELETE" && unitRepositories.delete(decodeURIComponent(path.slice("/repositories/".length)))) return new Response(null, { status: 204 });
     // A repository's change is answered as the agency keeps it, nothing kept past the answer; an umbrella left with a
     // support checkout or a node checkout is refused as the agency refuses it.
     if (/^\/repositories\/[^/]+$/.test(path) && request.method === "PATCH") {
@@ -987,7 +1022,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
       return Response.json(changed);
     }
-    if (path === "/repositories") return Response.json({ items: heldRepositories(), more: false });
+    if (path === "/repositories") return Response.json({ items: [...heldRepositories(), ...unitRepositories.values()], more: false });
     if (path === "/slots") {
       // The worker's runs, each on the agent of the role it was let in on: a job's, which opens by the job's run, and
       // one its asker named the work of. The seeker's run is one no job carries, named by what it was asked to do. The
@@ -1989,13 +2024,19 @@ try {
   }
 
   // The agency's own kinds on the delegation chain, declared as the agency declares them as it stands: the three supply
-  // sources and the sign-up composition (the agency's `policy/organisation.toml`).
-  for (const [key, shape, mode, levels, fallback] of [
-    ["supply.platform", "flag", "narrowing", ["platform", "unit", "person"], true],
-    ["supply.organisation", "flag", "narrowing", ["platform", "unit"], false],
-    ["supply.personal", "flag", "narrowing", ["platform", "unit", "person"], true],
-    ["signup.composition", "json", "nearest", ["platform", "unit", "person"], undefined]
-  ] as const) {
+  // sources, the sign-up composition and repository management (the agency's `policy/organisation.toml`), and the
+  // organisation's instructions and the persona's choice (its `policy/prompt-layers.toml`).
+  const agencyKinds: readonly { key: string; shape: string; mode: string; levels: readonly string[]; fallback?: unknown; choices?: readonly string[]; rules: boolean; personWriter: string }[] = [
+    { key: "supply.platform", shape: "flag", mode: "narrowing", levels: ["platform", "unit", "person"], fallback: true, rules: true, personWriter: "heads" },
+    { key: "supply.organisation", shape: "flag", mode: "narrowing", levels: ["platform", "unit"], fallback: false, rules: true, personWriter: "heads" },
+    { key: "supply.personal", shape: "flag", mode: "narrowing", levels: ["platform", "unit", "person"], fallback: true, rules: true, personWriter: "heads" },
+    { key: "signup.composition", shape: "json", mode: "nearest", levels: ["platform", "unit", "person"], rules: false, personWriter: "heads" },
+    { key: "repositories.manage", shape: "flag", mode: "nearest", levels: ["platform", "unit", "person"], fallback: true, rules: true, personWriter: "heads" },
+    { key: "agency.org-instructions", shape: "text", mode: "layered", levels: ["platform", "unit"], rules: false, personWriter: "heads" },
+    { key: "agency.persona", shape: "keys", mode: "nearest", levels: ["platform", "unit", "person"], fallback: ["own"], choices: ["own", "none"], rules: true, personWriter: "both" }
+  ];
+
+  for (const { key, shape, mode, levels, fallback, choices = [], rules, personWriter } of agencyKinds) {
     const declared = await service(`/chain/kinds/${key}`, {
       method: "PUT",
       body: JSON.stringify({
@@ -2003,19 +2044,23 @@ try {
         declaredBy: "agency",
         description: key,
         shape,
-        choices: [],
+        choices,
         mode,
         ...(fallback === undefined ? {} : { default: fallback }),
-        rules: shape !== "json",
+        rules,
         levels,
         unitPermission: "manage",
-        personWriter: "heads"
+        personWriter
       })
     });
 
     if (!declared.ok) throw new Error(`the agency's kind ${key} was refused: ${declared.status} ${await declared.text()}`);
   }
 
+  const bmoOwner = users.find((user) => user.name === "org-group-person");
+
+  if (bmoOwner === undefined) throw new Error("org-group-person stands in no users list");
+  ownedBmo = Number(bmoOwner.user);
   const ownOnly = users.find((user) => user.name === "agent-login");
 
   if (ownOnly === undefined) throw new Error("agent-login stands in no users list");

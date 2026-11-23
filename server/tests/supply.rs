@@ -672,7 +672,7 @@ async fn a_reservation_opens_only_for_a_source_the_resolved_order_holds() {
   let reserve = |run: i64| {
     hook(
       &app,
-      json!({ "op": "reserve", "run": run, "step": 1, "account": tester, "source": "personal_credits", "key": format!("{run}:1:reserve") }),
+      json!({ "op": "reserve", "run": format!("job-{run}-1"), "step": 1, "account": tester, "source": "personal_credits", "key": format!("job-{run}-1:1:reserve") }),
     )
   };
 
@@ -684,7 +684,7 @@ async fn a_reservation_opens_only_for_a_source_the_resolved_order_holds() {
   scratch
     .run(
       r#"INSERT INTO "supply_costs" ("run", "user_id", "org_id", "source", "credits", "cost_micros", "settled_at", "period")
-         VALUES (60, $1, $2, 'personal_credits', 100, 66_667, 1, to_char(now(), 'YYYY-MM'))"#,
+         VALUES ('job-60-1', $1, $2, 'personal_credits', 100, 66_667, 1, to_char(now(), 'YYYY-MM'))"#,
       vec![tester.into(), company.into()],
     )
     .await;
@@ -727,7 +727,7 @@ async fn a_member_cap_closed_out_by_the_month_s_spend_takes_the_source_it_caps()
   scratch
     .run(
       r#"INSERT INTO "supply_costs" ("run", "user_id", "org_id", "source", "credits", "cost_micros", "settled_at", "period")
-         VALUES (1, $1, $2, 'org_credits', 100, 66_667, 1, to_char(now(), 'YYYY-MM'))"#,
+         VALUES ('job-1-1', $1, $2, 'org_credits', 100, 66_667, 1, to_char(now(), 'YYYY-MM'))"#,
       vec![tester.into(), company.into()],
     )
     .await;
@@ -777,7 +777,7 @@ async fn a_credit_allowance_on_the_chain_closes_organisation_credits_once_the_mo
     scratch
       .run(
         r#"INSERT INTO "supply_costs" ("run", "user_id", "org_id", "source", "credits", "cost_micros", "settled_at", "period")
-           VALUES (1, $1, $2, 'org_credits', 150, 100_000, 1, to_char(now(), 'YYYY-MM'))"#,
+           VALUES ('job-1-1', $1, $2, 'org_credits', 150, 100_000, 1, to_char(now(), 'YYYY-MM'))"#,
         vec![user.into(), company.into()],
       )
       .await;
@@ -850,13 +850,13 @@ async fn enforce_off_refuses_nothing_while_every_cost_still_stands() {
   // The plan includes global and lets credits be spent, and no wallet stands, yet with nothing enforced the
   // order names every source the layers leave in it — personal credits aside, which the platform leaves off
   // until the person switches them on — and a reservation is accepted at the full size.
-  let (status, said) = hook(&app, json!({ "op": "order", "run": 1, "account": tester, "provider": "anthropic", "model": "m", "kind": "job" })).await;
+  let (status, said) = hook(&app, json!({ "op": "order", "run": "job-1-1", "account": tester, "provider": "anthropic", "model": "m", "kind": "job" })).await;
   assert_eq!(status, StatusCode::OK, "{said}");
   assert_eq!(order(&said), ["personal", "global", "org_credits"], "{said}");
 
   let (status, said) = hook(
     &app,
-    json!({ "op": "reserve", "run": 1, "step": 1, "account": tester, "source": "org_credits", "key": "1:1:reserve" }),
+    json!({ "op": "reserve", "run": "job-1-1", "step": 1, "account": tester, "source": "org_credits", "key": "job-1-1:1:reserve" }),
   )
   .await;
 
@@ -871,7 +871,7 @@ async fn enforce_off_refuses_nothing_while_every_cost_still_stands() {
   // The capture settles: the cost row stands, and the wallet was never drawn on.
   let (status, said) = hook(
     &app,
-    json!({ "op": "capture", "run": 1, "step": 2, "account": tester, "source": "org_credits", "reservation": reservation, "costUsd": 0.1, "key": "1:2:capture" }),
+    json!({ "op": "capture", "run": "job-1-1", "step": 2, "account": tester, "source": "org_credits", "reservation": reservation, "costUsd": 0.1, "key": "job-1-1:2:capture" }),
   )
   .await;
 
@@ -903,7 +903,7 @@ async fn the_same_key_twice_moves_nothing() {
 
   let (_, first) = hook(
     &app,
-    json!({ "op": "reserve", "run": 7, "step": 1, "account": tester, "source": "org_credits", "key": "7:1:reserve" }),
+    json!({ "op": "reserve", "run": "job-7-1", "step": 1, "account": tester, "source": "org_credits", "key": "job-7-1:1:reserve" }),
   )
   .await;
   let (balance, held, _) = wallet(&scratch, "organization", company).await;
@@ -912,7 +912,7 @@ async fn the_same_key_twice_moves_nothing() {
   // The same key answered again: the same reservation, the same amount, the wallet unmoved.
   let (_, again) = hook(
     &app,
-    json!({ "op": "reserve", "run": 7, "step": 1, "account": tester, "source": "org_credits", "key": "7:1:reserve" }),
+    json!({ "op": "reserve", "run": "job-7-1", "step": 1, "account": tester, "source": "org_credits", "key": "job-7-1:1:reserve" }),
   )
   .await;
 
@@ -936,7 +936,7 @@ async fn a_wallet_hold_reserves_extends_captures_and_releases_against_sumida() {
 
   let (_, said) = hook(
     &app,
-    json!({ "op": "reserve", "run": 10, "step": 1, "account": tester, "source": "org_credits", "key": "10:1:reserve" }),
+    json!({ "op": "reserve", "run": "job-10-1", "step": 1, "account": tester, "source": "org_credits", "key": "job-10-1:1:reserve" }),
   )
   .await;
   let reservation = said["answer"]["reservation"].as_str().unwrap().to_owned();
@@ -945,7 +945,7 @@ async fn a_wallet_hold_reserves_extends_captures_and_releases_against_sumida() {
   // Extended: one unit more, the whole answered.
   let (_, said) = hook(
     &app,
-    json!({ "op": "extend", "run": 10, "step": 2, "account": tester, "source": "org_credits", "reservation": reservation, "spentUsd": 0.1, "key": "10:2:extend" }),
+    json!({ "op": "extend", "run": "job-10-1", "step": 2, "account": tester, "source": "org_credits", "reservation": reservation, "spentUsd": 0.1, "key": "job-10-1:2:extend" }),
   )
   .await;
   assert_eq!(said["answer"]["accepted"], true, "{said}");
@@ -956,7 +956,7 @@ async fn a_wallet_hold_reserves_extends_captures_and_releases_against_sumida() {
   let (balance_before, _, _) = wallet(&scratch, "organization", company).await;
   let (status, said) = hook(
     &app,
-    json!({ "op": "capture", "run": 10, "step": 3, "account": tester, "source": "org_credits", "reservation": reservation, "costUsd": 0.1, "key": "10:3:capture" }),
+    json!({ "op": "capture", "run": "job-10-1", "step": 3, "account": tester, "source": "org_credits", "reservation": reservation, "costUsd": 0.1, "key": "job-10-1:3:capture" }),
   )
   .await;
   let (balance, held, debt) = wallet(&scratch, "organization", company).await;
@@ -969,13 +969,13 @@ async fn a_wallet_hold_reserves_extends_captures_and_releases_against_sumida() {
   // A second reservation, released: the balance returns whole.
   let (_, said) = hook(
     &app,
-    json!({ "op": "reserve", "run": 10, "step": 4, "account": tester, "source": "org_credits", "key": "10:4:reserve" }),
+    json!({ "op": "reserve", "run": "job-10-1", "step": 4, "account": tester, "source": "org_credits", "key": "job-10-1:4:reserve" }),
   )
   .await;
   let held_reservation = said["answer"]["reservation"].as_str().unwrap().to_owned();
   let (status, said) = hook(
     &app,
-    json!({ "op": "release", "run": 10, "step": 5, "account": tester, "source": "org_credits", "reservation": held_reservation, "key": "10:5:release" }),
+    json!({ "op": "release", "run": "job-10-1", "step": 5, "account": tester, "source": "org_credits", "reservation": held_reservation, "key": "job-10-1:5:release" }),
   )
   .await;
 
@@ -1001,7 +1001,7 @@ async fn organisation_supply_counts_as_organisation_credits_and_is_recorded_alon
   // No wallet: accepted, no hold opened, and its cost recorded under the organisation's own supply.
   let (_, said) = hook(
     &app,
-    json!({ "op": "reserve", "run": 60, "step": 1, "account": tester, "source": "organisation", "key": "60:1:reserve" }),
+    json!({ "op": "reserve", "run": "job-60-1", "step": 1, "account": tester, "source": "organisation", "key": "job-60-1:1:reserve" }),
   )
   .await;
   assert_eq!(said["answer"]["accepted"], true, "{said}");
@@ -1017,7 +1017,7 @@ async fn organisation_supply_counts_as_organisation_credits_and_is_recorded_alon
   );
   let (_, said) = hook(
     &app,
-    json!({ "op": "capture", "run": 60, "step": 2, "account": tester, "source": "organisation", "reservation": reservation, "costUsd": 0.1, "key": "60:2:capture" }),
+    json!({ "op": "capture", "run": "job-60-1", "step": 2, "account": tester, "source": "organisation", "reservation": reservation, "costUsd": 0.1, "key": "job-60-1:2:capture" }),
   )
   .await;
   assert_eq!(said["answer"]["taken"], true, "{said}");
@@ -1040,7 +1040,7 @@ async fn organisation_supply_counts_as_organisation_credits_and_is_recorded_alon
   credit(&scratch, "organization", company, 1000).await;
   let (_, said) = hook(
     &app,
-    json!({ "op": "reserve", "run": 61, "step": 1, "account": tester, "source": "organisation", "key": "61:1:reserve" }),
+    json!({ "op": "reserve", "run": "job-61-1", "step": 1, "account": tester, "source": "organisation", "key": "job-61-1:1:reserve" }),
   )
   .await;
   assert_eq!(said["answer"]["accepted"], true, "{said}");
@@ -1059,7 +1059,7 @@ async fn organisation_supply_counts_as_organisation_credits_and_is_recorded_alon
   assert_eq!(status, StatusCode::OK, "{said}");
   let (_, said) = hook(
     &app,
-    json!({ "op": "reserve", "run": 62, "step": 1, "account": tester, "source": "organisation", "key": "62:1:reserve" }),
+    json!({ "op": "reserve", "run": "job-62-1", "step": 1, "account": tester, "source": "organisation", "key": "job-62-1:1:reserve" }),
   )
   .await;
   assert_eq!(said["answer"]["accepted"], false, "{said}");
@@ -1091,7 +1091,7 @@ async fn a_capture_may_run_into_debt_of_one_reservation_unit_and_no_further() {
 
   let (_, said) = hook(
     &app,
-    json!({ "op": "reserve", "run": 20, "step": 1, "account": tester, "source": "org_credits", "key": "20:1:reserve" }),
+    json!({ "op": "reserve", "run": "job-20-1", "step": 1, "account": tester, "source": "org_credits", "key": "job-20-1:1:reserve" }),
   )
   .await;
   let reservation = said["answer"]["reservation"].as_str().unwrap().to_owned();
@@ -1099,7 +1099,7 @@ async fn a_capture_may_run_into_debt_of_one_reservation_unit_and_no_further() {
   // 400 credits were spent against a hold of 200 with a balance of 300: 100 of debt, within the unit.
   let (status, said) = hook(
     &app,
-    json!({ "op": "capture", "run": 20, "step": 2, "account": tester, "source": "org_credits", "reservation": reservation, "costUsd": 400.0 / 1500.0, "key": "20:2:capture" }),
+    json!({ "op": "capture", "run": "job-20-1", "step": 2, "account": tester, "source": "org_credits", "reservation": reservation, "costUsd": 400.0 / 1500.0, "key": "job-20-1:2:capture" }),
   )
   .await;
 
@@ -1110,7 +1110,7 @@ async fn a_capture_may_run_into_debt_of_one_reservation_unit_and_no_further() {
   // Past the unit the source will not go: captured to the ceiling, the overage recorded and charged nowhere.
   let (_, said) = hook(
     &app,
-    json!({ "op": "reserve", "run": 21, "step": 1, "account": tester, "source": "org_credits", "key": "21:1:reserve" }),
+    json!({ "op": "reserve", "run": "job-21-1", "step": 1, "account": tester, "source": "org_credits", "key": "job-21-1:1:reserve" }),
   )
   .await;
   assert_eq!(said["answer"]["accepted"], false, "{said}");
@@ -1136,7 +1136,7 @@ async fn the_order_never_names_a_platform_source_the_service_would_refuse_to_res
   // The quota is smaller than one reservation unit and no wallet stands: neither source can reserve.
   let (_, said) = hook(
     &app,
-    json!({ "op": "order", "run": 30, "account": tester, "provider": "anthropic", "model": "m", "kind": "job" }),
+    json!({ "op": "order", "run": "job-30-1", "account": tester, "provider": "anthropic", "model": "m", "kind": "job" }),
   )
   .await;
 
@@ -1152,7 +1152,7 @@ async fn the_order_never_names_a_platform_source_the_service_would_refuse_to_res
     .await;
   let (_, said) = hook(
     &app,
-    json!({ "op": "order", "run": 31, "account": tester, "provider": "anthropic", "model": "m", "kind": "job" }),
+    json!({ "op": "order", "run": "job-31-1", "account": tester, "provider": "anthropic", "model": "m", "kind": "job" }),
   )
   .await;
 
@@ -1172,7 +1172,7 @@ async fn a_quota_reservation_holds_the_period_and_captures_its_actual_cost() {
 
   let (status, said) = hook(
     &app,
-    json!({ "op": "reserve", "run": 40, "step": 1, "account": tester, "source": "global", "key": "40:1:reserve" }),
+    json!({ "op": "reserve", "run": "job-40-1", "step": 1, "account": tester, "source": "global", "key": "job-40-1:1:reserve" }),
   )
   .await;
 
@@ -1195,7 +1195,7 @@ async fn a_quota_reservation_holds_the_period_and_captures_its_actual_cost() {
 
   let (status, said) = hook(
     &app,
-    json!({ "op": "capture", "run": 40, "step": 2, "account": tester, "source": "global", "reservation": reservation, "costUsd": 0.1, "key": "40:2:capture" }),
+    json!({ "op": "capture", "run": "job-40-1", "step": 2, "account": tester, "source": "global", "reservation": reservation, "costUsd": 0.1, "key": "job-40-1:2:capture" }),
   )
   .await;
 
@@ -1228,7 +1228,7 @@ async fn personal_supply_reserves_nothing_and_records_its_cost_alone() {
 
   let (status, said) = hook(
     &app,
-    json!({ "op": "reserve", "run": 50, "step": 1, "account": tester, "source": "personal", "key": "50:1:reserve" }),
+    json!({ "op": "reserve", "run": "job-50-1", "step": 1, "account": tester, "source": "personal", "key": "job-50-1:1:reserve" }),
   )
   .await;
 
@@ -1238,7 +1238,7 @@ async fn personal_supply_reserves_nothing_and_records_its_cost_alone() {
 
   let (status, said) = hook(
     &app,
-    json!({ "op": "capture", "run": 50, "step": 2, "account": tester, "source": "personal", "reservation": reservation, "costUsd": 0.2, "key": "50:2:capture" }),
+    json!({ "op": "capture", "run": "job-50-1", "step": 2, "account": tester, "source": "personal", "reservation": reservation, "costUsd": 0.2, "key": "job-50-1:2:capture" }),
   )
   .await;
 
@@ -1797,7 +1797,7 @@ async fn a_cost_records_the_period_it_falls_in() {
   scratch
     .run(
       r#"INSERT INTO "supply_costs" ("run", "user_id", "org_id", "source", "credits", "cost_micros", "settled_at", "period")
-         VALUES (1, $1, $2, 'personal', 0, 50, 1, to_char(now(), 'YYYY-MM'))"#,
+         VALUES ('job-1-1', $1, $2, 'personal', 0, 50, 1, to_char(now(), 'YYYY-MM'))"#,
       vec![tester.into(), company.into()],
     )
     .await;
@@ -1848,9 +1848,9 @@ async fn the_overrides_migration_renews_a_seeded_platform_row_and_keeps_an_admin
   };
 
   // The row as an administrator set it before the overrides stood, and each person's old switch: the overrides
-  // taken down with the move onto the delegation chain, the organisation's BMO default's and the accounts' languages'
-  // that stand after them.
-  Migrator::down(scratch.db(), Some(4)).await.unwrap();
+  // taken down with the move onto the delegation chain, the organisation's BMO default's, the accounts' languages' and
+  // the supply run keys' that stand after them.
+  Migrator::down(scratch.db(), Some(5)).await.unwrap();
   scratch
     .run(
       r#"UPDATE "supply_platform_policy"
@@ -1894,7 +1894,7 @@ async fn the_overrides_migration_renews_a_seeded_platform_row_and_keeps_an_admin
   );
 
   // A row still standing as seeded takes the new defaults.
-  Migrator::down(scratch.db(), Some(4)).await.unwrap();
+  Migrator::down(scratch.db(), Some(5)).await.unwrap();
   scratch
     .run(
       r#"UPDATE "supply_platform_policy"
@@ -2159,13 +2159,13 @@ async fn global_reserves_against_the_plan_the_nearest_unit_above_applied() {
   open_platform(&scratch, r#"["personal", "global"]"#).await;
   enforce(&scratch, true).await;
 
-  let (_, said) = hook(&app, json!({ "op": "order", "run": 70, "account": tester, "provider": "anthropic", "model": "m", "kind": "job" })).await;
+  let (_, said) = hook(&app, json!({ "op": "order", "run": "job-70-1", "account": tester, "provider": "anthropic", "model": "m", "kind": "job" })).await;
   assert_eq!(order(&said), ["personal", "global"], "{said}");
 
   // The hold stands on the company's subscription, whose quota the person's supply stands under.
   let (status, said) = hook(
     &app,
-    json!({ "op": "reserve", "run": 70, "step": 1, "account": tester, "source": "global", "key": "70:1:reserve" }),
+    json!({ "op": "reserve", "run": "job-70-1", "step": 1, "account": tester, "source": "global", "key": "job-70-1:1:reserve" }),
   )
   .await;
 
@@ -2315,4 +2315,61 @@ async fn each_relation_opens_its_own_part_of_a_unit_s_plans() {
     asked(&app, Method::PUT, &applied, Some(json!({ "plan": team })), Some(plan_keeper), "member").await;
   assert_eq!(status, StatusCode::OK, "{said}");
   assert_eq!(said["applied"]["plan"], team, "{said}");
+}
+
+// ---- the agency's captured asks ----
+
+/// The asks the agency posts as a person's run starts, captured from its own test of the same contract (the
+/// agency's `docs/api.md`, 「Hook points」): its run named by its supply key, a string.
+fn captured_asks() -> Vec<Value> {
+  serde_json::from_str(include_str!("fixtures/agency-supply-asks.json"))
+    .expect("the captured asks are JSON")
+}
+
+#[tokio::test]
+async fn the_agency_s_captured_order_and_reserve_asks_are_answered() {
+  ready();
+  let scratch = fresh().await;
+  let app = app(&scratch).await;
+  let company = org(&scratch, "company-a", None).await;
+  let tester = person(&scratch, "tester", company).await;
+  subscription(&scratch, "personal", tester, Some(1000), true).await;
+  platform(&scratch, r#"["personal", "global"]"#, r#"["personal"]"#, true).await;
+
+  let asks = captured_asks();
+  let run = asks[0]["ask"]["run"].clone();
+
+  for captured in asks {
+    // The account is the test's own person; every other field goes as the agency sent it.
+    let mut ask = captured["ask"].clone();
+    ask["account"] = json!(tester);
+
+    let (status, said) = asked(
+      &app,
+      Method::POST,
+      "/supply/hook",
+      Some(json!({ "point": captured["point"], "ask": ask })),
+      None,
+      "administrator",
+    )
+    .await;
+
+    assert_eq!(status, StatusCode::OK, "{} was refused: {said}", ask["op"]);
+
+    match ask["op"].as_str().unwrap() {
+      "order" => assert_eq!(order(&said), ["personal", "global"], "{said}"),
+      _ => assert_eq!(said["answer"]["accepted"], true, "{said}"),
+    }
+  }
+
+  assert_eq!(
+    scratch
+      .count(
+        r#"SELECT COUNT(*) FROM "supply_reservations" WHERE "run" = $1"#,
+        vec![run.as_str().unwrap().into()]
+      )
+      .await,
+    1,
+    "the reservation is kept under the agency's run key"
+  );
 }

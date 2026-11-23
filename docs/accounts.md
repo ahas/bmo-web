@@ -1231,7 +1231,8 @@ Each is declared by the module that uses it, as the service stands, under the un
 
 - **One route, `POST /supply/hook`,** reached only by a caller presenting the server's bearer token — the same
   token every deployment caller presents, no new secret. The body is `{ point, ask }` with the ask's `op`, and
-  the answer is `{ answer }`. Amounts are US dollars, times epoch milliseconds, and the `key` of every ask
+  the answer is `{ answer }`. Amounts are US dollars, times epoch milliseconds, `run` is the agency's supply
+  key for the run, a string (the agency's `docs/api.md`, 「Hook points」), and the `key` of every ask
   that moves money is `<run>:<step>:<op>`, taken once end to end: the key is carried into sumida's own
   idempotency and kept unique here, so a repeated ask answers what the first did and moves nothing twice.
   - **`order`** answers `sources`: the resolved order of the ask's `account`, each entry `personal` or a
@@ -1398,8 +1399,8 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 | `chain_group_members` | each member of a group |
 | `supply_settings` | the platform's one supply settings row (`id` = 1): `credits_per_dollar`, `reservation_credits`, `enforce`, and who set them and when (「Supply」) |
 | `supply_plan_exposures` | each plan exposed to an organisation unit: `org_id`, `plan_id`, `applied` (the plan the unit runs on, one a unit at most), and who exposed it and when (「An organisation's plans」) |
-| `supply_reservations` | every platform reservation this service opened: its `id` as answered to the agency, `run`, `step`, `user_id`, `source`, `amount_credits`, `spent_credits`, `expires_at`, `state` (`open`, `captured`, `released`), `sumida_reference`, the `key` it was opened on (unique), and its moments (「Supply」) |
-| `supply_costs` | every settled cost, one row per accepted capture and every personal-supply cost recorded: `run`, `user_id`, `org_id`, `source`, `credits` (0 for personal supply), `cost_micros`, `settled_at` and its `period` (`YYYY-MM`) (「Supply」) |
+| `supply_reservations` | every platform reservation this service opened: its `id` as answered to the agency, `run` (the agency's supply key, text), `step`, `user_id`, `source`, `amount_credits`, `spent_credits`, `expires_at`, `state` (`open`, `captured`, `released`), `sumida_reference`, the `key` it was opened on (unique), and its moments (「Supply」) |
+| `supply_costs` | every settled cost, one row per accepted capture and every personal-supply cost recorded: `run` (the agency's supply key, text), `user_id`, `org_id`, `source`, `credits` (0 for personal supply), `cost_micros`, `settled_at` and its `period` (`YYYY-MM`) (「Supply」) |
 | `supply_audit` | every supply act an outsider must be able to name: each grant of credits, each change of a policy, the conversion rate or `enforce`, and each change of a plan — who, when, what kind, its subject and its detail (「Supply」) |
 
 ## Tests

@@ -1,0 +1,27 @@
+[
+  {
+    "point": "supply",
+    "ask": {
+      "op": "order",
+      "run": "job-41-1763900000000",
+      "account": 7,
+      "provider": "deepseek",
+      "model": "deepseek-flash",
+      "kind": "job",
+      "job": 41,
+      "supervisor": null,
+      "room": null
+    }
+  },
+  {
+    "point": "supply",
+    "ask": {
+      "op": "reserve",
+      "run": "job-41-1763900000000",
+      "step": 1,
+      "account": 7,
+      "source": "global",
+      "key": "job-41-1763900000000:1:reserve"
+    }
+  }
+]

@@ -275,7 +275,7 @@ async fn reserve(
   ask: &bmo_web_client::SupplyHookOp,
 ) -> Result<bmo_web_client::SupplyHookReply, Refusal> {
   let user = account(ask)?;
-  let run_id = field(ask.run, "run")?;
+  let run_id = field(ask.run.as_deref(), "run")?;
   let step = field(ask.step, "step")?;
   let source = source_of(ask)?;
   let key = field(ask.key.as_deref(), "key")?;
@@ -362,7 +362,7 @@ async fn reserve(
 // A reservation opened here: the new row's fields, given whole.
 struct Opening<'a> {
   id: &'a str,
-  run: i64,
+  run: &'a str,
   step: i64,
   user: i64,
   source: Source,
@@ -568,7 +568,7 @@ async fn capture(
   service: &Service,
   ask: &bmo_web_client::SupplyHookOp,
 ) -> Result<bmo_web_client::SupplyHookReply, Refusal> {
-  let run_id = field(ask.run, "run")?;
+  let run_id = field(ask.run.as_deref(), "run")?;
   let key = field(ask.key.as_deref(), "key")?;
   let cost_usd = field(ask.cost_usd, "costUsd")?;
   let held = standing(&service.db, &field(ask.reservation.clone(), "reservation")?)

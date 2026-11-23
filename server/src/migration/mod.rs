@@ -26,6 +26,7 @@ pub mod m20261120_000001_supply_overrides;
 pub mod m20261123_000001_delegation_chain;
 pub mod m20261124_000001_agent_defaults_on_chain;
 pub mod m20261125_000001_languages;
+pub mod m20261126_000001_supply_run_keys;
 mod secret_kind_seeds;
 
 pub struct Migrator;
@@ -64,6 +65,8 @@ impl MigratorTrait for Migrator {
       Box::new(m20261124_000001_agent_defaults_on_chain::Migration),
       // The language each account reads the console in.
       Box::new(m20261125_000001_languages::Migration),
+      // The run of a supply reservation and a settled cost kept as the agency's supply key.
+      Box::new(m20261126_000001_supply_run_keys::Migration),
     ]
   }
 }

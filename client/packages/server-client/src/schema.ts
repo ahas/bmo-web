@@ -3321,8 +3321,8 @@ export interface components {
             reservation?: string | null;
             /** Format: int64 */
             room?: number | null;
-            /** Format: int64 */
-            run?: number | null;
+            /** @description The agency's supply key for the run: its kind, its number and the moment it chose its source. */
+            run?: string | null;
             source?: string | null;
             /** Format: double */
             spentUsd?: number | null;

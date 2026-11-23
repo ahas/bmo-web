@@ -22,8 +22,9 @@ pub struct SupplyHookAsk {
 #[serde(rename_all = "camelCase")]
 pub struct SupplyHookOp {
   pub op: String,
+  /// The agency's supply key for the run: its kind, its number and the moment it chose its source.
   #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub run: Option<i64>,
+  pub run: Option<String>,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub step: Option<i64>,
   /// The account the run stands under, as the digits of a user's id: handed as text or as a number.

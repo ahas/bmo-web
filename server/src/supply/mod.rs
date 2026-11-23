@@ -1517,7 +1517,7 @@ pub async fn holds_subscription<C: ConnectionTrait>(db: &C, user: i64, unit: i64
 /// the month it falls in.
 pub(crate) async fn record_cost<C: ConnectionTrait>(
   db: &C,
-  run_id: i64,
+  run_id: &str,
   user: i64,
   org: i64,
   source: Source,

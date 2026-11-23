@@ -30,7 +30,8 @@ types; `server/client/` is the Rust crate the server answers with and that docum
 
 - **A body is JSON, both ways,** with camelCase keys. A time is epoch milliseconds, a count a whole number,
   and a field written with a question mark may be null. A user's id is answered as the digits of sumida's whole
-  number, a string a caller hands on as it stands; all other ids are signed 64-bit integers.
+  number, a string a caller hands on as it stands; the supply hook's `run` is the agency's supply key for a run,
+  a string as well (「Supply」); all other ids are signed 64-bit integers.
 - **Every route but `GET /health` takes `Authorization: Bearer <token>`** with the server's token, and answers
   401 `unauthorized` without it. sumida's own session routes (below) take the session cookie instead and are
   reached only through the console's server.
@@ -462,7 +463,7 @@ locks against its value is refused 403 `locked-by-platform`.
 
 | Route | Request | Answer |
 |---|---|---|
-| `POST /supply/hook` | `point` (`supply`) and `ask`: `op` with `order` asking `run`, `account`, `provider`, `model`, `kind`, `job?`, `supervisor?`, `room?`; `reserve` asking `run`, `step`, `account`, `source`, `key`; `extend` asking `run`, `step`, `account`, `source`, `reservation`, `spentUsd`, `key`; `capture` asking `run`, `step`, `account`, `source`, `reservation`, `costUsd`, `key`; `release` asking `run`, `step`, `account`, `source`, `reservation`, `key` | `answer`: `sources` for `order` (each `personal` or a platform key, `stop` left out); `accepted`, `reservation`, `amountUsd`, `expiresAt` and `reopensAt?` for `reserve`; `accepted`, `amountUsd` (the whole now) and `expiresAt` for `extend`; `taken` for `capture` and `release` |
+| `POST /supply/hook` | `point` (`supply`) and `ask`: `op` with `order` asking `run` (the agency's supply key for the run, a string), `account` (a number or its digits), `provider`, `model`, `kind`, `job?`, `supervisor?`, `room?`; `reserve` asking `run`, `step`, `account`, `source`, `key`; `extend` asking `run`, `step`, `account`, `source`, `reservation`, `spentUsd`, `key`; `capture` asking `run`, `step`, `account`, `source`, `reservation`, `costUsd`, `key`; `release` asking `run`, `step`, `account`, `source`, `reservation`, `key` | `answer`: `sources` for `order` (each `personal` or a platform key, `stop` left out); `accepted`, `reservation`, `amountUsd`, `expiresAt` and `reopensAt?` for `reserve`; `accepted`, `amountUsd` (the whole now) and `expiresAt` for `extend`; `taken` for `capture` and `release` |
 | `GET /supply/me` | `Owner-Key` | `order` (the resolved order, `stop` last), `orderLocked`, `sources` (each of the five: `source`, `allowed`, `off`, `locked`, `own?` — the person's own choice, `on` or `off`, absent where they made none — and `reason?` — `not-in-plan`, `blocked-by-organisation`, `blocked-by-administrator`), `personalCreditCredits?`, `usage` (this month per source: `source`, `credits`, `costMicros`), `globalRemaining?` (the plan's remaining included credits), `personalCredits?` (the person's wallet balance) |
 | `PUT /supply/me` | `order` (not read while the order is locked), `off`, `on`, `personalCreditCredits?` | 200, the view as it now stands; refused 403 by the closing layer's code or `locked-by-platform`, 400 for a source named both on and off |
 | `GET /supply/units` | `Owner-Key`, `Owner-Role` | `units`: each company whose supply the reader holds a part of, as `id`, `name`, `policy` (they hold its policy and credits: its `credit_manager` or its head) and `plan` (they hold its plan: its `subscription_manager` or its head); every company, both true, for an administrator |

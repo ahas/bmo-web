@@ -185,6 +185,11 @@
   offers stand on their own words (본문, 제목 1, 글머리 목록, 인용, 코드 블록). Never 서식 변경, 스타일, 종류로
   바꾸기. 변환 is no form of it: that word stands only where a file's format is really converted, as an mp3
   conversion's run names itself.
+- a line of a to-do list in a note → 할 일: 할 일, 할 일 목록, 할 일 목록에 할 일을 추가합니다. Never 업무, which is a work of
+  일정 관리, nor 작업 or 태스크.
+- a code block's language that colours nothing → 일반 텍스트. Never 평문, nor 본문, which is a text block's kind.
+- when a note or a database row was made → 만든 날짜, a database's column of it the same; when its words last changed →
+  최근 수정, `{time} 수정`, 방금 수정됨. Never 생성 시간, 생성일, 편집됨.
 - copy, paste → 복사, 붙여넣기: 복사, 복사했습니다, 클립보드에 복사했습니다, 복사하지 못했습니다; 붙여넣기, 붙여넣은,
   붙여넣을 링크를 입력해 주세요, 링크를 붙여넣거나 입력해 주세요. Never 카피, 붙이기 or 페이스트 for a paste; 붙이기
   keeps its own sense where a thing is attached rather than pasted.

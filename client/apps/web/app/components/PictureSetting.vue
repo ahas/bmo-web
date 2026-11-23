@@ -80,7 +80,8 @@ const said = ref("");
 const failure = ref("");
 
 const words = computed(() => pictureWords(props.kind));
-const shown = computed<AvatarProps>(() => (previewSrc.value === null ? props.avatar : { ...props.avatar, src: previewSrc.value }));
+// A picked picture stands as itself, with none of the standing picture's drawn copies left beside it.
+const shown = computed<AvatarProps>(() => (previewSrc.value === null ? props.avatar : { ...props.avatar, src: previewSrc.value, as: undefined }));
 
 function release(): void {
   if (previewSrc.value !== null) URL.revokeObjectURL(previewSrc.value);

@@ -1,6 +1,8 @@
+import { drawnStep, WIDTH_FIELD } from "#shared/drawn-pictures";
 import { wording } from "#shared/wording";
 
 import { avatarPicture, isAvatarKind } from "../../../utils/avatars";
+import { drawnCopy } from "../../../utils/drawn-pictures";
 import { requireReadableRoom } from "../../../utils/room-reach";
 
 // A profile picture is served by whose it is, never by a path the browser names. These are personal
@@ -28,12 +30,19 @@ export default defineEventHandler(async (event) => {
     throw fail(404, wording("room.error.avatar_not_found"));
   }
 
+  // A width asked for is answered with the copy cut to the circle at that step (docs/web.md, 「A picture drawn small」),
+  // kept under the moment the address names, since a picture taken later is another picture.
+  const query = getQuery(event);
+  const step = drawnStep(query[WIDTH_FIELD]);
+  const moment = typeof query.v === "string" ? query.v : null;
+  const served = step === null || moment === null ? picture : await drawnCopy(`avatar/${kind}/${id}/${moment}`, picture, step, "square");
+
   // The address carries the moment the picture was taken, so what a browser holds is good until a new
   // one arrives and the address changes with it.
   setResponseHeaders(event, {
-    "content-type": picture.type,
+    "content-type": served.type,
     "cache-control": "private, max-age=604800, immutable"
   });
 
-  return picture.bytes;
+  return served.bytes;
 });

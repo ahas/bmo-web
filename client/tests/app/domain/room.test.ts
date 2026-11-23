@@ -222,7 +222,7 @@ describe("the row that stands while the chat agent is working", () => {
       .flatMap((day) => day.items)
       .find((item) => item.senderName === "agent-a");
 
-    expect(waiting).toEqual({ src: "/bmo/api/avatars/person/10000001?v=300", alt: "agent-a" });
+    expect(waiting).toMatchObject({ src: "/bmo/api/avatars/person/10000001?v=300", alt: "agent-a" });
     expect(answered?.look.avatar).toEqual(waiting);
   });
 
@@ -265,7 +265,7 @@ describe("an answer sent in the owner's own account", () => {
 
     expect(botSpeaker([voiced(1)])).toEqual({ id: owner, name: "Agent A" });
     expect(botAvatar([voiced(1)], new Map([[`person:${owner}`, "/owner.jpg"]]))).toMatchObject({ text: "A", alt: "Agent A" });
-    expect(botAvatar([voiced(1)], new Map([["agent:agent-a", "/agent-a.jpg"]]))).toEqual({ src: "/agent-a.jpg", alt: "Agent A" });
+    expect(botAvatar([voiced(1)], new Map([["agent:agent-a", "/agent-a.jpg"]]))).toMatchObject({ src: "/agent-a.jpg", alt: "Agent A" });
   });
 
   test("an answer filed under its own name wears no account mark", () => {

@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { AVATAR_TONES, avatarFor, avatarIndex, avatarKey, avatarTone, FACE_TONES, hueOf, identityMark, initialOf } from "../../../apps/web/app/domain/avatars";
 
+import { DrawnImage } from "../../../apps/web/app/domain/drawn-image";
 import { registerChatAgent } from "../../../apps/web/shared/agent-names";
 
 import type { AvatarRef } from "../../../apps/web/shared/types";
@@ -47,7 +48,7 @@ describe("what a name stands as when there is no picture", () => {
 
 describe("what one room or one person wears", () => {
   test("the picture, where there is one", () => {
-    expect(avatarFor(index, "person", 10000003, "agent-a")).toEqual({
+    expect(avatarFor(index, "person", 10000003, "agent-a")).toMatchObject({
       src: "/bmo/api/avatars/person/10000003?v=300",
       alt: "agent-a"
     });
@@ -95,7 +96,12 @@ describe("what one room or one person wears", () => {
 
 describe("the mark an item wears in place of its name", () => {
   test("is the picture where there is one", () => {
-    expect(identityMark("mail:bob@example.com", "Bob", { picture: "/p.png" })).toEqual({ src: "/p.png", alt: "Bob" });
+    const mark = identityMark("mail:bob@example.com", "Bob", { picture: "/p.png?v=1" });
+
+    // The kept picture is what the viewer opens whole; the browser draws the face from a copy of its own size.
+    expect(mark.src).toBe("/p.png?v=1");
+    expect(mark.alt).toBe("Bob");
+    expect(mark.as).toEqual({ img: DrawnImage });
   });
 
   test("is one letter on one of the palette's tones, the same for one key every time", () => {

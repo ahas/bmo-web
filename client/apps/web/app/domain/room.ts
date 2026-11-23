@@ -3,7 +3,7 @@ import { PAGING, POLL_INTERVAL_MS, ROUND_FIGURES_AT_ONCE } from "#shared/config"
 import { chatAgent } from "#shared/agent-names";
 import { SKIPPED_STAGE } from "#shared/types";
 import { agentRowName, bmoLabel, otherAnswererOf, defaultAnswererName } from "./agents";
-import { agentKey, avatarFor, hueOf } from "./avatars";
+import { agentKey, avatarFor, hueOf, pictureMark } from "./avatars";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { runKey } from "./events";
 import { countText } from "./numbers";
@@ -1219,7 +1219,7 @@ function faceOf(message: Pick<ArchivedMessage, "senderId" | "senderName" | "voic
 export function agentAvatar(avatars: AvatarIndex, name: string, label: string = agentRowName(name)): AvatarProps {
   const picture = avatars.get(agentKey(name));
 
-  return picture === undefined ? avatarFor(avatars, "person", null, label) : { src: picture, alt: label };
+  return picture === undefined ? avatarFor(avatars, "person", null, label) : pictureMark(picture, label);
 }
 
 // What a message carried, each by the kind it stands as: its picture, as a sticker or a picture, and every file it

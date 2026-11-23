@@ -1,3 +1,4 @@
+import { DrawnImage } from "./drawn-image";
 import { useLiveRefresh } from "./events";
 import { appUrl } from "./urls";
 
@@ -102,7 +103,7 @@ export function avatarTone(key: string): string {
 // stands as a question mark on its own tone rather than as nothing.
 export function identityMark(key: string, name: string, options: { picture?: string; icon?: string; tone?: string } = {}): AvatarProps {
   if (options.picture !== undefined) {
-    return { src: options.picture, alt: name };
+    return pictureMark(options.picture, name);
   }
 
   const initial = initialOf(name);
@@ -114,6 +115,12 @@ export function identityMark(key: string, name: string, options: { picture?: str
   // The letter takes the circle's own colour rather than the muted one an avatar's fallback
   // carries by default, which on a filled circle is barely there at all.
   return { text: initial === "" ? NAMELESS : initial, class: `${options.tone ?? avatarTone(key)} text-white`, ui: { fallback: "text-inherit" }, alt: name };
+}
+
+// A face drawn from its picture: the kept picture's address, which the viewer opens whole, and the copies the browser
+// draws it from at the size it stands at (docs/web.md, 「A picture drawn small」).
+export function pictureMark(picture: string, name: string): AvatarProps {
+  return { src: picture, alt: name, as: { img: DrawnImage } };
 }
 
 // What one room or one person wears. The picture when there is one; otherwise the first letter

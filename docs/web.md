@@ -1461,6 +1461,32 @@ edit to that file alone, once the guide below carries the word.
 - The photo is in the same place as the rest of this app. It does not open without login, its address is made
   only of a room or person number, and nothing goes out on it but what the receiver's picture routes answer.
 
+### A picture drawn small
+
+- **A picture drawn smaller than it is kept is drawn from a copy made at about the size it stands at,** never by
+  the browser shrinking the kept file by a large step. A browser shrinks a picture by halving it as many times as
+  fit and sampling what is left with no filter, so whatever is finer than the size drawn breaks into jagged edges
+  and ripples: on a fine ring pattern in Chromium, a picture drawn at 1.7 times smaller than its file differs from
+  a properly filtered one as much as unfiltered sampling does, and how far the halving goes depends on how the
+  browser rasterises on that machine. No stylesheet setting changes how a browser filters a shrinking picture.
+- **The console's server makes the copies.** The routes serving a profile photo and a message's picture answer a
+  width asked in the address (`w`, in screen pixels) with the picture shrunk to the first step of one ladder at or
+  above that width, filtered with a Lanczos kernel and written as WebP. The ladder starts at 16 pixels and each step
+  is at most a quarter wider than the one before, up to 2048. A profile photo's copy is cut to the square its circle
+  shows, from its middle, as the circle cuts it; a message's picture keeps its shape. A width at or past the
+  picture's own, a picture with more than one frame and a picture the image library cannot read go out as kept,
+  and a sticker asked to play looping or still goes out as that asks. The copies made last are kept in the server's memory within a bound, and the browser keeps each under
+  its address as it keeps the picture.
+- **The browser chooses the step.** A small picture names the ladder's steps as the widths it can be drawn from and
+  the width its box draws it at, so the browser takes the first step covering that width at the screen's density:
+  the copy drawn is at most one step larger than the pixels it covers, and its last shrink is a small one. A face
+  names the width its avatar size draws it at; one drawn at no named size names the width it is laid out at and is
+  read as it comes into view. It is every profile photo: a room's, a person's and a chat agent's face, wherever it
+  stands. A picture whose box cuts it to another shape than its own, as a square preview cuts a wide photo, is
+  drawn from the kept file, since a copy chosen by its width alone would be drawn larger than it was made.
+- **The viewer that opens a picture whole shows the kept file.** Pressing a face, a room's photo or a message's
+  picture opens the address with no width asked, so the original bytes are what the viewer zooms into.
+
 ### Sidebar
 
 - **The sidebar opens 17rem wide, in the unit of the text it holds rather than a share of the window,** so a

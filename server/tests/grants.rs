@@ -15,6 +15,8 @@ const MEMBER: i64 = 777;
 const STRANGER: i64 = 888;
 const OTHER: i64 = -200;
 const UNANSWERED: i64 = -300;
+// A room whose members are granted asking about the system, which no other test grants anything in.
+const ASKING: i64 = -400;
 // A holder of its own for each test that grants, since the tests share one database.
 const UNGRANTED: i64 = 801;
 const LAUNCHER: i64 = 802;
@@ -22,7 +24,7 @@ const EXPIRING: i64 = 803;
 const DEPLOYER: i64 = 804;
 
 /// Every relation a room holds, as the deployment's rules declare them.
-const RELATIONS: [&str; 14] = [
+const RELATIONS: [&str; 15] = [
   "ask",
   "search",
   "notes",
@@ -36,6 +38,7 @@ const RELATIONS: [&str; 14] = [
   "deploy",
   "worker_talk",
   "console",
+  "system",
   "rule",
 ];
 
@@ -62,6 +65,7 @@ async fn seed(scratch: Scratch) -> Scratch {
     (ROOM, 3, STRANGER),
     (OTHER, 1, OWNER),
     (OTHER, 2, MEMBER),
+    (ASKING, 1, OWNER),
   ] {
     scratch.message(room, message, sender);
   }
@@ -293,6 +297,34 @@ async fn an_unlinked_sender_holds_the_member_grant_and_a_standing_rule_opens_its
     1,
     "the rule's words stand beside it"
   );
+}
+
+#[tokio::test]
+async fn the_members_granted_asking_about_the_system_hold_that_alone_and_in_their_room_alone() {
+  let scratch = moved().await;
+  let to_members = Holder {
+    sender: None,
+    user: None,
+    members: true,
+  };
+
+  granted(
+    &scratch,
+    GrantAsk {
+      target: in_room(ASKING, "system"),
+      to: to_members,
+      words: Some("anyone here may ask how the agent works".into()),
+      expires_at: None,
+      message: on(ASKING, 1),
+    },
+  )
+  .await
+  .unwrap();
+
+  assert!(check_room(scratch.db(), ASKING, Some(STRANGER), "system").await.unwrap().allowed);
+  assert!(check_room(scratch.db(), ASKING, None, "system").await.unwrap().allowed);
+  assert!(!check_room(scratch.db(), ASKING, Some(STRANGER), "launch").await.unwrap().allowed);
+  assert!(!check_room(scratch.db(), ROOM, Some(STRANGER), "system").await.unwrap().allowed);
 }
 
 #[tokio::test]

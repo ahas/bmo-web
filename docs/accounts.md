@@ -115,6 +115,12 @@ section states what each does.
     and linked.
   - Granting again moves the expiry and the words.
 - **`DELETE /grants`** — the same selector and the message it is revoked on, checked the same way.
+- **A room's relations are the deployment's rules' own,** each a thing its holder may have the chat agent do in
+  the room: `ask`, `search`, `notes`, `memories`, `reminders`, `file_todo`, `approve`, `launch`, `watch`,
+  `room_rules`, `deploy`, `worker_talk` and `console`; `system`, asking the agent about its own system, which it
+  answers nobody else; and `rule`, a standing rule whose words the agent judges, which opens every other relation
+  of the room for its holder and is held by a user alone. Every relation but `rule` may be granted to a user or
+  to the room's members.
 
 ### A room's callers
 

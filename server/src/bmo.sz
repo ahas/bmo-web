@@ -21,8 +21,9 @@ definition bmo_section {
   permission grant     = platform:root->superuser
 }
 
-// A room, by its chat id. A grant names what its holder may have the chat agent do there; `rule` is a room
-// rule carried over, whose words the agent judges, and it opens every relation of the room for its holder.
+// A room, by its chat id. A grant names what its holder may have the chat agent do there; `system` lets its
+// holder ask the agent about its own system, which it otherwise answers the owner alone; `rule` is a room rule
+// carried over, whose words the agent judges, and it opens every relation of the room for its holder.
 definition bmo_room {
   relation ask:         user | bmo_member
   relation search:      user | bmo_member
@@ -37,6 +38,7 @@ definition bmo_room {
   relation deploy:      user | bmo_member
   relation worker_talk: user | bmo_member
   relation console:     user | bmo_member
+  relation system:      user | bmo_member
   relation rule:        user
 
   permission may_ask         = ask | rule | platform:root->superuser
@@ -52,6 +54,7 @@ definition bmo_room {
   permission may_deploy      = deploy | rule | platform:root->superuser
   permission may_worker_talk = worker_talk | rule | platform:root->superuser
   permission may_console     = console | rule | platform:root->superuser
+  permission may_system      = system | rule | platform:root->superuser
   permission may_rule        = rule | platform:root->superuser
   permission grant           = platform:root->superuser
 }

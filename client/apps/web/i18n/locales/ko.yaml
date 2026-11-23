@@ -2398,6 +2398,7 @@ machines:
 desktop:
   title:
     page: 데스크톱 앱
+    server: 서버 변경
   label:
     version: 버전
     published: 공개일
@@ -2420,13 +2421,19 @@ desktop:
     channel_stable: 안정판
     channel_nightly: 나이틀리
     default_value: "{value} (기본값)"
+    server: BMO 서버
+    server_address: BMO 서버 주소
   action:
+    change_server: 변경
     download: 다운로드
     minimize: 최소화
     maximize: 최대화
     restore: 이전 크기로
     close_window: 닫기
   message:
+    server_address: https 주소를 입력합니다. http는 localhost에서만 쓸 수 있습니다.
+    server_change: 서버를 변경하면 앱을 다시 시작하고 새 서버에서 앱 연결을 다시 합니다.
+    server_restarting: 앱을 다시 시작합니다.
     step_install: 설치 파일을 다운로드해 설치합니다.
     step_open: 데스크톱 앱을 열면 앱 창 제목 표시줄에 연결 코드가 표시되고 앱 연결 페이지가 열립니다.
     step_approve: 앱 연결 페이지의 연결 코드가 앱 창 제목 표시줄의 코드와 같은지 확인하고 승인합니다.

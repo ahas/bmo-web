@@ -2,8 +2,9 @@
   <!-- The desktop section (docs/web.md, 「Settings」, the desktop section): the desktop app's own settings, read from
        the app through its bridge each time the section opens and changed through it one at a time. Only the switches
        the app's platform offers are handed over, and only those the console has words for are drawn; under them the
-       update channel, where the app hands one over. A switch takes effect as it is turned and the channel as it is
-       chosen; a change the app refuses goes back, with the reason under its name. -->
+       server the app connects to, changed through its own form, and the update channel, each where the app hands
+       one over. A switch takes effect as it is turned and the channel as it is chosen; a change the app refuses goes
+       back, with the reason under its name. -->
   <div class="flex flex-col gap-3" data-desktop-settings>
     <div v-if="view?.unreadable" role="alert" class="flex flex-col gap-1 text-sm text-error" data-desktop-unreadable>
       <p>{{ $t("desktop.error.settings_unreadable") }}</p>
@@ -35,6 +36,18 @@
             @update:model-value="(on: boolean) => void turn(one.key, on)"
           />
         </SettingsRow>
+        <SettingsRow v-if="server !== null" :label="$t('desktop.label.server')" data-desktop-server>
+          <template #description>
+            <span class="font-mono text-sm break-all text-muted" data-desktop-server-address>{{ server }}</span>
+          </template>
+          <UButton
+            color="neutral"
+            variant="outline"
+            :label="$t('desktop.action.change_server')"
+            :disabled="Boolean(view.unreadable) || changing !== null"
+            @click="openServer()"
+          />
+        </SettingsRow>
         <SettingsRow v-if="channel !== null" :label="$t('desktop.label.update_channel')" data-desktop-channel>
           <template #description>
             <span class="text-sm text-muted">{{ $t("desktop.message.update_channel") }}</span>
@@ -55,11 +68,45 @@
         </SettingsRow>
       </template>
     </SettingsGroup>
+
+    <SettingsDialog v-model:open="editingServer" :title="$t('desktop.title.server')" :dirty="serverChanges">
+      <UForm id="desktop-server-form" :state="serverForm" class="flex flex-col gap-4" data-desktop-server-form @submit="submitServer">
+        <UFormField :label="$t('desktop.label.server_address')" name="address" :help="$t('desktop.message.server_address')">
+          <UInput
+            v-model="serverForm.address"
+            class="w-full font-mono"
+            inputmode="url"
+            autocomplete="url"
+            autocapitalize="off"
+            spellcheck="false"
+            :readonly="restarting"
+          />
+        </UFormField>
+        <p class="text-sm text-muted">{{ $t("desktop.message.server_change") }}</p>
+        <p v-if="restarting" role="status" class="text-sm" data-desktop-server-restarting>{{ $t("desktop.message.server_restarting") }}</p>
+        <div v-if="serverRefusal" role="alert" class="flex flex-col text-sm text-error" data-desktop-server-refusal>
+          <span>{{ $t("desktop.error.change_failed") }}</span>
+          <span class="font-mono break-all">{{ serverRefusal }}</span>
+        </div>
+      </UForm>
+
+      <template #footer="{ close }">
+        <UButton color="neutral" variant="ghost" :label="$t('common.action.cancel')" :disabled="restarting" @click="close()" />
+        <UButton
+          type="submit"
+          form="desktop-server-form"
+          :label="$t('common.action.save')"
+          :loading="sendingServer || restarting"
+          :disabled="sendingServer || restarting || !serverChanges.dirty.value"
+        />
+      </template>
+    </SettingsDialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
+import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 
 import {
   DESKTOP_CHANNELS,
@@ -67,6 +114,7 @@ import {
   DESKTOP_CHANNEL_WORDS,
   DESKTOP_SWITCH_WORDS,
   changeDesktopChannel,
+  changeDesktopServer,
   changeDesktopSetting,
   isDesktopChannel,
   isKnownSwitch,
@@ -99,6 +147,49 @@ const channel = computed(() => {
 
   return isDesktopChannel(chosen) ? chosen : null;
 });
+
+// The server the app connects to, where it hands one over.
+const server = computed(() => {
+  const address = view.value?.consoleUrl;
+
+  return typeof address === "string" && address !== "" ? address : null;
+});
+
+// The server's form: the address entered, sent whole to the app, which checks it is a BMO console before keeping it
+// and then starts again on it, so a server taken holds the form still until the window goes.
+const editingServer = ref(false);
+const serverForm = reactive({ address: "" });
+const sendingServer = ref(false);
+const restarting = ref(false);
+const serverRefusal = ref("");
+const serverChanges = useOpenedWith(() => ({ address: serverForm.address.trim() }), { open: editingServer });
+
+function openServer(): void {
+  serverForm.address = server.value ?? "";
+  serverRefusal.value = "";
+  editingServer.value = true;
+}
+
+async function submitServer(): Promise<void> {
+  if (sendingServer.value || restarting.value || !serverChanges.dirty.value) return;
+
+  const before = server.value;
+
+  sendingServer.value = true;
+  serverRefusal.value = "";
+  try {
+    const answered = await changeDesktopServer(serverForm.address);
+
+    view.value = answered;
+    // The app answers with the server it now starts again on; the one it runs on already changes nothing.
+    if (answered.consoleUrl !== before) restarting.value = true;
+    else editingServer.value = false;
+  } catch (error) {
+    serverRefusal.value = reasonOf(error);
+  } finally {
+    sendingServer.value = false;
+  }
+}
 
 // The channels' real values, in the app's order, the default marked as such.
 const channelItems = computed(() =>

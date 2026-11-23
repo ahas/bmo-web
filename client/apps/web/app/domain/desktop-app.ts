@@ -36,6 +36,8 @@ export interface DesktopSettings {
   switches: DesktopSwitch[];
   // The update channel, where the app hands one over; an app that hands none over offers no channel.
   updateChannel?: string;
+  // The server the app connects to, its console's address, where the app hands one over.
+  consoleUrl?: string | null;
   // Why the app cannot change its settings file, where it cannot.
   unreadable: string | null;
   windowControls: WindowControls;
@@ -103,6 +105,12 @@ export function changeDesktopSetting(key: DesktopSwitchKey, on: boolean): Promis
 /** The update channel chosen through the bridge; the app's settings as they then stand. */
 export function changeDesktopChannel(channel: DesktopChannel): Promise<DesktopSettings> {
   return call<DesktopSettings>("change_setting", { setting: "updateChannel", value: channel });
+}
+
+/** The server named through the bridge, the address as entered; the app's settings as they then stand, the server it
+ *  now starts again on among them. */
+export function changeDesktopServer(address: string): Promise<DesktopSettings> {
+  return call<DesktopSettings>("change_setting", { setting: "consoleUrl", value: address });
 }
 
 /** Asks the bridge whether the page stands in the app, and what the app says of its window; nothing where none answers. */

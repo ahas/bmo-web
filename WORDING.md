@@ -299,6 +299,9 @@
 - the app's own settings, in the console's settings → 데스크톱, the section's name, as the owner named it: its switches
   are 잠금 중 원격 제어 유지, 창을 닫으면 트레이로 이동, 로그인할 때 시작, 트레이에서 시작 and 절전 모드 방지, the app's
   tray → 트레이 and its file → 설정 파일. Never 데탑, 시스템 트레이, 알림 영역 or 슬립.
+- the deployment the desktop app connects to → BMO 서버, its console's address → BMO 서버 주소; changing it →
+  서버 변경, in the tray and as the form's title, 변경 on the settings row; the app starting again on the new one →
+  앱을 다시 시작합니다. Never 콘솔 주소, 호스트, 서버 바꾸기 or 재시작.
 - where the desktop app's updates come from → 업데이트 채널: the set's releases → 안정판, `안정판 (기본값)` among the
   choices; the day's build between them → 나이틀리, as the owner named it; what a nightly is → 매일 만드는 빌드. Never
   정식판, 베타, 개발판, 스테이블 or 릴리스 채널.

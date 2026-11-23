@@ -97,7 +97,8 @@ export const openedRoutes: readonly OpenedRoute[] = [
   { method: "GET", path: /^\/api\/desktop\/pairings\/[0-9a-f]+$/, scope: "user" },
   { method: "GET", path: /^\/api\/desktop\/pair\/[0-9A-Za-z-]+$/, scope: "user" },
   { method: "POST", path: /^\/api\/desktop\/pair\/[0-9A-Za-z-]+\/(approve|refuse)$/, scope: "user" },
-  // The desktop app's current release, which its download page reads for every signed-in login.
+  // The desktop app's current release, which its download page reads for every signed-in login, and the app itself
+  // with no session.
   { method: "GET", path: /^\/api\/desktop\/release$/, scope: "user" },
   { method: "POST", path: /^\/api\/me\/machine\/proof$/, scope: "user" },
   // The reader's own machine, which the settings' machine section reads and takes away.

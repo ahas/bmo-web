@@ -370,6 +370,11 @@ this rule alone and goes nowhere else.
   api/desktop/pairings/<pairing>` hands the service's read on as it answers it, the one answer carrying the
   credential marked `Cache-Control: no-store`. The console's server logs neither call's body or answer, and the
   credential reaches the app alone, never a page.
+- **The desktop app's release read is taken with no sign-in as well.** `GET api/desktop/release` answers what the
+  download page reads (「The desktop app's download page」), a JSON object holding `release`, the public release or
+  null, and nothing a public release does not show. The desktop app reads it before it keeps a server's address, and
+  takes an address only where it answers so, which is how it tells a BMO console from any other site (jake's
+  `docs/desktop.md`, 「The server」).
 
 **Every answer carries the browser's guards.** `X-Content-Type-Options: nosniff`, so a file is read as the
 type it is answered as and never sniffed into a script; `Referrer-Policy: same-origin`, so an address of the
@@ -7585,7 +7590,16 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
   - 트레이에서 시작, with the line that starting at sign-in then opens no window;
   - 절전 모드 방지, with the line that the PC does not sleep while the agent runs.
   A switch the console has no words for is not drawn.
-- **Under the switches, 업데이트 채널** chooses where the app's updates come from (jake's `docs/desktop.md`, 「The
+- **Under the switches, BMO 서버** shows the server the app connects to, its console's address in the monospace face
+  as the row's line, where the app hands one over, and 변경 opens its form (「Forms」): 서버 변경, one field, BMO 서버
+  주소, filled with the address as it stands, the line under it saying that an https address is entered and http
+  is taken for localhost alone, and one muted line that changing the server restarts the app, which then connects
+  to the new server again. 저장 is open only while the address differs, and sends it to the app through the bridge
+  (jake's `docs/desktop.md`, 「The server」). The app checks it is a BMO console before keeping it: a refusal says
+  변경하지 못했습니다 in the form in the error colour, the app's reason under it, and the form stays open; an address
+  taken shows 앱을 다시 시작합니다 in the form while the app starts again on the new server, and the form holds
+  still until the window goes. An address the app already runs on closes the form with nothing changed.
+- **Under the server, 업데이트 채널** chooses where the app's updates come from (jake's `docs/desktop.md`, 「The
   update channel」), a segmented control of the two channels the app takes, its real values with the default
   marked: 안정판 (기본값) and 나이틀리. The line under its name says that 나이틀리 is a build made every day and may
   not work properly. It stands only where the app hands the channel over; an app that hands none over offers no
@@ -8642,10 +8656,11 @@ and `/api/supply/credits/audit`.
   of the app is drawn there: no 데스크톱 section, no controls, no room kept for them. Nothing is read from the user
   agent, and a server render draws nothing of the app.
 - **The bridge is the app's commands the app grants the console's address,** and the console calls nothing else:
-  `settings`, which reads the app's settings and who draws the window's controls; `change_setting`, which changes
-  one setting by its key, a switch with `on`, true or false, and the update channel, `updateChannel`, with `value`,
-  `stable` or `nightly`; and the window's own minimise, maximise toggle, close, start dragging, maximised state
-  and title.
+  `settings`, which reads the app's settings, the server's address among them, and who draws the window's
+  controls; `change_setting`, which changes one setting by its key, a switch with `on`, true or false, the update
+  channel, `updateChannel`, with `value`, `stable` or `nightly`, and the server, `consoleUrl`, with `value`, the
+  address as entered; and the window's own minimise, maximise toggle, close, start dragging, maximised state and
+  title.
 - **In the app the console is the window's frame.** The window has no native title bar, so the top of the
   console is the window's top edge:
   - **The title bar is the window's drag region,** and the sidebar's head beside it: pressed and dragged where
@@ -8665,7 +8680,7 @@ and `/api/supply/credits/audit`.
     changes, which is where the app's pairing code stands, the controls at its right where the console draws them,
     and the room left at its left where the system's stand, the whole bar the drag region.
 - `client/tests/browser/desktop-window.test.ts` stands the bridge in for the app and holds the 데스크톱 section,
-  its switches and its update channel, the user menu's entry, the drag region, the controls and the room kept for
+  its switches, its server and its update channel, the user menu's entry, the drag region, the controls and the room kept for
   them to whether it answers, at a desk's width and a phone's.
 
 ### Messages

@@ -9,7 +9,7 @@ import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 
 // The desktop app's window (docs/web.md, 「The desktop app's window」 and 「Settings」, the desktop section): the console
 // draws nothing of the app in a browser, and in the app — the app's bridge stood in here, answering as the app does —
-// the settings gain the desktop section, whose switches and update channel are the app's and change through it, the user menu drops the download page,
+// the settings gain the desktop section, whose switches, server and update channel are the app's and change through it, the user menu drops the download page,
 // the title bar is the window's drag region, the window's controls stand at its right end where the app says the
 // console draws them and call the window's commands, the room for the system's own is kept where they stand inset,
 // and a page with no shell carries the window's bar. Each is read at a desk's width and a phone's, from what is drawn.
@@ -63,7 +63,8 @@ async function pageFor(width: number, height: number, controls: Controls | null)
         ];
         let maximized = false;
         let updateChannel = "stable";
-        const view = () => ({ switches: switches.map((one) => ({ ...one })), updateChannel, unreadable: null, windowControls });
+        let consoleUrl = "https://bmo.example/console/";
+        const view = () => ({ switches: switches.map((one) => ({ ...one })), updateChannel, consoleUrl, unreadable: null, windowControls });
 
         Object.assign(window, { bridgeCalls: calls });
         Object.assign(window, { __TAURI_INTERNALS__: {
@@ -74,6 +75,13 @@ async function pageFor(width: number, height: number, controls: Controls | null)
                 return view();
               case "change_setting": {
                 if (args?.setting === "keepAwake") throw "keepAwake is not offered on this platform";
+                if (args?.setting === "consoleUrl") {
+                  // The app asks the address whether it is a BMO console before it keeps it.
+                  if (String(args.value).includes("not-bmo")) throw "the address is no BMO console (HTTP 404)";
+                  consoleUrl = String(args.value).replace(/\/?$/, "/");
+
+                  return view();
+                }
                 if (args?.setting === "updateChannel") {
                   if (args.value !== "stable" && args.value !== "nightly") throw "updateChannel takes a value, stable or nightly";
                   updateChannel = args.value;
@@ -277,6 +285,84 @@ describe.skipIf(!origin || !touchReady())("the desktop app's window", () => {
           ["change_setting", { setting: "updateChannel", value: "stable" }]
         ]);
         expect(await row.locator("[data-desktop-refusal]").count()).toBe(0);
+      } finally {
+        await context.close();
+      }
+    }, 180_000);
+
+    test(`in the app the server is shown and changed through its form, a refusal said in it, at ${width}px`, async () => {
+      const { context, page } = await pageFor(width, height, "console");
+
+      try {
+        await page.goto(`${origin}/?settings=desktop`, { waitUntil: "load", timeout: 120_000 });
+        await standing(page);
+
+        const row = page.locator("[data-desktop-settings] [data-desktop-server]");
+
+        await row.waitFor({ timeout: 20_000 });
+        expect(await row.textContent()).toContain(wording("desktop.label.server"));
+        expect(await row.locator("[data-desktop-server-address]").textContent()).toBe("https://bmo.example/console/");
+
+        // The row sits between the switches and the channel, inside the window, and nothing covers its button.
+        const order = await page.locator("[data-desktop-settings] [data-desktop-switch], [data-desktop-settings] [data-desktop-server], [data-desktop-settings] [data-desktop-channel]").evaluateAll((rows) =>
+          rows.map((one) => (one.hasAttribute("data-desktop-server") ? "server" : one.hasAttribute("data-desktop-channel") ? "channel" : "switch"))
+        );
+
+        expect(order.slice(-2)).toEqual(["server", "channel"]);
+
+        const change = row.getByRole("button", { name: wording("desktop.action.change_server"), exact: true });
+
+        await change.scrollIntoViewIfNeeded();
+
+        const box = (await change.boundingBox())!;
+
+        expect(box.x).toBeGreaterThanOrEqual(0);
+        expect(box.x + box.width).toBeLessThanOrEqual(width);
+        expect(await change.evaluate((one) => {
+          const { x, y, width: w, height: h } = one.getBoundingClientRect();
+
+          return one.contains(document.elementFromPoint(x + w / 2, y + h / 2));
+        })).toBe(true);
+
+        // The row's button opens the form, the address as it stands in its field, its save closed until the address differs.
+        await change.click();
+
+        const form = page.getByRole("dialog", { name: wording("desktop.title.server") });
+        const field = form.getByRole("textbox", { name: wording("desktop.label.server_address") });
+        const save = form.getByRole("button", { name: wording("common.action.save"), exact: true });
+
+        await field.waitFor({ timeout: 10_000 });
+        expect(await field.inputValue()).toBe("https://bmo.example/console/");
+        expect(await form.textContent()).toContain(wording("desktop.message.server_address"));
+        expect(await save.isDisabled()).toBe(true);
+
+        // An address the app refuses keeps the form open, the app's reason in it.
+        await field.fill("https://not-bmo.example/");
+        await save.click();
+
+        const refusal = form.locator("[data-desktop-server-refusal]");
+
+        await refusal.waitFor({ timeout: 10_000 });
+        expect(await refusal.textContent()).toContain(wording("desktop.error.change_failed"));
+        expect(await refusal.textContent()).toContain("the address is no BMO console (HTTP 404)");
+
+        // An address the app takes says the app starts again, the form held still, every part of it inside the window.
+        await field.fill("https://other-bmo.example/console");
+        await save.click();
+        await form.locator("[data-desktop-server-restarting]").waitFor({ timeout: 10_000 });
+        expect(await form.locator("[data-desktop-server-restarting]").textContent()).toBe(wording("desktop.message.server_restarting"));
+        expect(await form.locator("[data-desktop-server-refusal]").count()).toBe(0);
+        expect(await field.getAttribute("readonly")).not.toBeNull();
+        for (const part of [field, save]) {
+          const one = (await part.boundingBox())!;
+
+          expect(one.x).toBeGreaterThanOrEqual(0);
+          expect(one.x + one.width).toBeLessThanOrEqual(width);
+        }
+        expect((await bridgeCalls(page)).filter(([command]) => command === "change_setting")).toEqual([
+          ["change_setting", { setting: "consoleUrl", value: "https://not-bmo.example/" }],
+          ["change_setting", { setting: "consoleUrl", value: "https://other-bmo.example/console" }]
+        ]);
       } finally {
         await context.close();
       }

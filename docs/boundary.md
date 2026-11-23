@@ -937,6 +937,7 @@ not written into this repository.
 | `/api/people/members` | the console: the members of the signed-in reader's company, each `user` and `name`, read from the server's `GET /users/members` with the reader's owner key and role and handed to a bundle's page only where its manifest names `people` under `calls` (`docs/web.md`, 「Screens a unit brings」) |
 | `/api/desktop/pairings` | the console, with no sign-in, for `POST` alone: a pairing asked of the server for the address the proxy names, answered as `pairing`, `code`, `approveUrl` (the console's `/desktop/pair?code=<code>&in=app` under its public address) and `pollAfterSeconds`; the server's 429 handed on (`docs/web.md`, 「Access」) |
 | `/api/desktop/pairings/<pairing>` | the console, with no sign-in, for `GET` alone: the server's read of the pairing handed on, its status as it stands, the 200 answering `node`, `credential` and `hubUrl` under `Cache-Control: no-store` |
+| `/api/desktop/release` | the console, with no sign-in, for `GET` alone: the desktop app's release read, `release`, the public release or null, which the download page reads and the desktop app checks a server by (`docs/web.md`, 「Access」) |
 | `/api/github/deliveries` | the console, with no sign-in, for `POST` alone and a body of at most 1 MB: handed on unchanged to the agency's `POST /github/deliveries` with GitHub's headers and the agency's token (`docs/web.md`, 「Access」) |
 
 The server answers on its own listen address to the console and the other units on the machine, and no road of

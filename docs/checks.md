@@ -51,6 +51,16 @@ machine's own socket's `bmo_test`, and every name carries the process that made 
   run of another checkout against the same server keeps its own, and reads no name but its own. A database it
   cannot drop is named on the error stream and left for the next run.
 
+### The browsers' language
+
+Every browser a client test launches lists Korean, `ko-KR`, as its language unless the test names another. The
+tests read the console's words in Korean through the shared wording module, and the console follows the browser's
+languages for a reader whose account names none (`docs/web.md`, 「Wording and the language pack」), while a browser
+left to itself lists its own build's language, English. So the client's tests preload one module, named in
+`client/bunfig.toml`, that gives every context and page opened from a launched Chromium, Firefox or WebKit the
+Korean locale where the test passes none. A test about another language passes that language as its own `locale`,
+which stands.
+
 ### Running the console-driven browser files
 
 `client/tests/support/browser-console.ts` stands up the console they drive:

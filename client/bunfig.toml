@@ -1,3 +1,6 @@
 [test]
 # The console's tests stand under tests/ alone, beside the workspace's members rather than inside them.
 root = "./tests"
+# Every browser a test launches lists Korean unless the test names another language (docs/checks.md, 「The browsers'
+# language」).
+preload = ["./tests/support/browser-locale.ts"]

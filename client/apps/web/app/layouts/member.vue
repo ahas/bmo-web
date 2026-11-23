@@ -84,7 +84,8 @@ import { useRoomList, useRoomReading } from "~/domain/room-list";
 import { useRoomsPresent } from "~/domain/presence";
 import { useConsoleScreens } from "~/domain/console-screens";
 import { useSectionAccess, useSectionAccessReady } from "~/domain/section-access";
-import { namedWhenFolded, roomItems, screensWithBundles, sectionItems } from "~/domain/screens";
+import { featuredScreens, namedWhenFolded, roomItems, screensWithBundles, sectionItems } from "~/domain/screens";
+import { useConsoleFeatures } from "~/domain/console-features";
 import { SIDEBAR_GROUP, SIDEBAR_WIDTH } from "~/domain/sidebar-width";
 import { useSidebarUnread } from "~/domain/sidebar-unread";
 import { useKeepsUnits } from "~/domain/organization";
@@ -132,9 +133,10 @@ const roomEntries = computed<NavigationMenuItem[]>(() => roomItems(t, rooms.valu
 // bring whose manifest opens to them (docs/web.md, 「Access」). A screen unit-brought and not one of the console's
 // own list stands by its manifest's role alone.
 const bundles = useConsoleScreens();
+const features = useConsoleFeatures();
 const access = useSectionAccess();
 const accessReady = useSectionAccessReady();
-const home = computed(() => (accessReady.value ? homeFor(access.value, screensWithBundles(bundles.value).map((one) => one.to)) : MEMBER_HOME));
+const home = computed(() => (accessReady.value ? homeFor(access.value, screensWithBundles(bundles.value, featuredScreens(features.value)).map((one) => one.to)) : MEMBER_HOME));
 // The rooms list is the section's own; a reader whose rooms section is closed sees none of it.
 const roomsRead = computed(() => !accessReady.value || accessOf(access.value, "rooms").read);
 // A reader whose rooms section writes opens a group room, which stands in the list at once, and the console goes to it.
@@ -149,7 +151,7 @@ async function roomOpened(room: RoomAdded): Promise<void> {
 // 「Organisation」).
 const keepsUnits = useKeepsUnits();
 const screens = computed(() =>
-  screensWithBundles(bundles.value).filter((screen) => {
+  screensWithBundles(bundles.value, featuredScreens(features.value)).filter((screen) => {
     if (screen.administrator === true) return false;
     if (screen.unitKeepers === true) return keepsUnits.value;
     if (sectionsOfPath(screen.to).length === 0) return true;

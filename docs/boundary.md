@@ -742,6 +742,7 @@ data root's `env/web-console.env`, which its unit reads and its build reads for 
 | console | `DOCUMENT_ROOTS` | the document viewer's roots: a JSON list, each root's `key`, its `label` and the absolute top of its `checkout`, in the order the list stands them (`docs/documents-viewer.md`, 「The roots a deployment names」); a key one of the roots other units keep already holds names no root. With none, the viewer lists only those roots, unread, and opens no document |
 | console | `DESKTOP_RELEASE_URL` | the desktop app's release read, the JSON file naming its current release (jake's `docs/desktop.md`, 「The read the console uses」); with none set, the download page says no release is published |
 | console | `WEB_DATA_DIR` | the console's own data folder, inside no checkout |
+| console | `WEB_FEATURES_FILE` | the console features file, which parts of the console's own a deployment shows (`docs/web.md`, 「The console's features」); every part stands where it is not set |
 | console | `NUXT_SESSION_PASSWORD` | the key the console seals its session cookie with |
 
 - **A unit whose address is not set** is a unit the console does not reach: its screens stand as they do for a
@@ -966,6 +967,7 @@ not written into this repository.
 | `/api/events` and every other event stream | the console, unbuffered, the connection kept open while it idles |
 | `/api/<service>` and every road under it | the console, which hands each on whole to the service a manifest names (「Calls the console makes」), behind its sign-in but for the share reads a manifest names and a bundle's module and stylesheet |
 | `/api/console-bundles` | the console: the bundles the signed-in reader may open, with their words; with no session, the one bundle whose share page the `path` asked for stands under, the one with the longest screen path where one stands under another |
+| `/api/console-features` | the console: the deployment's features, each `organizations`, `research`, `siren` and `monitor` true or false, read from the file `WEB_FEATURES_FILE` names (`docs/web.md`, 「The console's features」) |
 | `/api/console-bundles/unread` | the console: the sidebar counts of the bundles the signed-in reader may open whose manifest names a `sidebarUnread`, each read by the console from the unit with its own credential and the reader's owner key and role, answered by screen path for each count that answered |
 | `/api/people/members` | the console: the members of the signed-in reader's company, each `user` and `name`, read from the server's `GET /users/members` with the reader's owner key and role and handed to a bundle's page only where its manifest names `people` under `calls` (`docs/web.md`, 「Screens a unit brings」) |
 | `/api/desktop/pairings` | the console, with no sign-in, for `POST` alone: a pairing asked of the server for the address the proxy names, answered as `pairing`, `code`, `approveUrl` (the console's `/desktop/pair?code=<code>&in=app` under its public address) and `pollAfterSeconds`; the server's 429 handed on (`docs/web.md`, 「Access」) |

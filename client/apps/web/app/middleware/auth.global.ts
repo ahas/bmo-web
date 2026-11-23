@@ -4,7 +4,8 @@ import { standUnavailable, unavailableRoute } from "~/domain/screen-unavailable"
 import { loginRoute, returnPath } from "~/domain/login-end";
 import { settingsKept } from "~/domain/settings-dialog";
 import { ensureSectionAccess } from "~/domain/section-access";
-import { screensWithBundles } from "~/domain/screens";
+import { featureLeftOut, featuredScreens, screensWithBundles } from "~/domain/screens";
+import { useConsoleFeatures } from "~/domain/console-features";
 import { homeFor, inConsoleSections, screenMayRead } from "#shared/sections";
 
 // Nothing but the login page is readable without a session; the API refuses on its own side. The
@@ -52,6 +53,12 @@ export default defineNuxtRouteMiddleware(async (to) => {
   // pairing page」): no section is asked and no shell is put around it.
   if (to.meta.everyLogin === true) return;
 
+  // A screen the deployment's features leave out opens to nobody; its address goes to the console's front door
+  // (docs/web.md, 「The console's features」).
+  const features = useConsoleFeatures().value;
+
+  if (featureLeftOut(features, to.path)) return navigateTo({ path: "/", query: settingsKept(to.query) });
+
   if (isAdministrator(session.value)) return;
 
   // A member opens only the sections their permission opens, each in the member's own shell; any other
@@ -71,7 +78,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
     // screen where its manifest opens it to them.
     const page = inConsoleSections(to.path) ? to.matched.length > 0 : to.meta.member === true;
     const opens = screenMayRead(access, to.path) && (page || screen !== null);
-    const home = homeFor(access, screensWithBundles(screens).map((one) => one.to));
+    const home = homeFor(access, screensWithBundles(screens, featuredScreens(features)).map((one) => one.to));
 
     // The way to the first screen they may open never leads back to the address refused, which stands instead; a
   // settings section the address asked for opens there.

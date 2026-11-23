@@ -1668,6 +1668,9 @@ try {
     WEB_SERVER_ADDRESS: `http://127.0.0.1:${serverPort}`,
     WEB_SERVER_TOKEN: TOKEN,
     WEB_DATA_DIR: join(scratch, "data"),
+    // The features file stands nowhere until a test writes it, so every feature stands for the other tests
+    // (docs/web.md, 「The console's features」).
+    WEB_FEATURES_FILE: join(scratch, "console-features.toml"),
     NUXT_PUBLIC_CHAT_AGENT_NAME: "agent-a",
     NUXT_PUBLIC_CHAT_AGENT_LABEL: "Agent A",
     BMO_MCP_HOST_SOCKET: toolSocket,
@@ -1819,6 +1822,8 @@ try {
   }
 
   console.log(origin);
+  // The features file a test writes and takes back, which the console reads at each page (tests/browser/sidebar-features.test.ts).
+  console.log(`BMO_CONSOLE_TEST_FEATURES=${join(scratch, "console-features.toml")}`);
 } catch (error) {
   console.error(error);
   await stop(true, 1);

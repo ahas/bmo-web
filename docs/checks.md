@@ -105,7 +105,14 @@ BMO_CONSOLE_TEST_URL=<the address> bmo-testbed run -- bun test tests/browser/con
 BMO_SKELETON_TEST_URL=<the address> bmo-testbed run -- bun test tests/browser/skeleton.test.ts
 ```
 
-The first command stands until interrupted, so it runs in a shell of its own beside the others.
+The first command stands until interrupted, so it runs in a shell of its own beside the others. Beside the
+address it prints `BMO_CONSOLE_TEST_FEATURES=` and the console features file that console reads, which stands
+nowhere until a test writes it (`docs/web.md`, 「The console's features」); the file that leaves features out,
+`sidebar-features`, reads it from that variable and skips without it, and takes the file back once done:
+
+```
+BMO_CONSOLE_TEST_URL=<the address> BMO_CONSOLE_TEST_FEATURES=<the file> bmo-testbed run -- bun test tests/browser/sidebar-features.test.ts
+```
 
 The console the script stands up listens on this machine's loopback address alone, so a file is run on the
 machine that stands it. The testbed's declaration names `BMO_CONSOLE_TEST_URL` and `BMO_SKELETON_TEST_URL` among

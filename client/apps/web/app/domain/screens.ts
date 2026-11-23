@@ -7,11 +7,13 @@ import { avatarFor } from "./avatars";
 import { COUNT_BADGE, countText } from "./numbers";
 import { presenceChip, roomPresence, typingPeople } from "./presence";
 import { unreadLabel, unreadShown } from "./room-list";
+import { sectionsOfPath } from "#shared/sections";
 
 import type { AvatarIndex } from "./avatars";
 import type { RoomsPresent } from "./presence";
 import type { RoomReading } from "./room-list";
 import type { ConsoleScreen } from "#shared/console-bundles";
+import type { ConsoleFeature, ConsoleFeatures } from "#shared/console-features";
 import type { ConsoleSidebarSection } from "bmo-ui/shared/console-manifest";
 import type { ListedRoom } from "#shared/types";
 import type { Translate } from "#shared/wording";
@@ -53,6 +55,9 @@ export interface Screen {
   // `docs/console-bundles.md`, the sidebar count; docs/web.md, 「Sidebar」). Only a screen a unit brings whose
   // manifest names one carries it.
   counted?: true;
+  // The deployment's feature the screen stands by, where a deployment may leave it out (docs/web.md, 「The console's
+  // features」).
+  feature?: ConsoleFeature;
   // The mark the screen's entry carries while something on it wants looking at, read from what the
   // console knows live. A status is a mark and not a count, so nothing of it grows beside the name;
   // a count stands only where a unit's manifest declares one (`counted`).
@@ -89,7 +94,7 @@ export interface ScreenTab {
 export const SCREENS: readonly Screen[] = [
   // The cache siren: what the agents' requests did to the provider's prompt cache, as the siren on this machine sees
   // it.
-  { label: "screens.label.siren", to: "/siren", icon: "i-material-symbols-e911-emergency-outline", nested: false, section: "administration" },
+  { label: "screens.label.siren", to: "/siren", icon: "i-material-symbols-e911-emergency-outline", nested: false, feature: "siren", section: "administration" },
   // The console's own database, read as tables and rows.
   { label: "screens.label.db", to: "/db", icon: "i-material-symbols-database-outline", nested: false, section: "administration" },
   // The documents the agents read and the deployment's operating documents, read as documents.
@@ -99,15 +104,34 @@ export const SCREENS: readonly Screen[] = [
   { label: "screens.label.agents", to: "/agents", icon: "i-material-symbols-list-alt-outline", nested: false, tabs: AGENT_TABS, section: "administration" },
   // The research unit watched at work: whether its loop runs, its categories and its queue, each item's run opening
   // over the list; its settings tab holds what every research run is held to and the research supervisor.
-  { label: "screens.label.research", to: "/research", icon: "i-material-symbols-travel-explore", nested: false, section: "administration" },
+  { label: "screens.label.research", to: "/research", icon: "i-material-symbols-travel-explore", nested: false, feature: "research", section: "administration" },
   // Every machine's hardware, bmo-node's, and the card master's board of every node's card, a tab each. Each
   // machine's own monitor stands below its address.
-  { label: "screens.label.monitor", to: "/monitor", icon: "i-material-symbols-monitor-heart-outline", nested: true, tabs: MONITOR_TABS, section: "administration" },
+  { label: "screens.label.monitor", to: "/monitor", icon: "i-material-symbols-monitor-heart-outline", nested: true, tabs: MONITOR_TABS, feature: "monitor", section: "administration" },
   // The organisation and the people in it, a tab to a section.
-  { label: "screens.label.organization", to: ORGANIZATION_PATH, icon: "i-material-symbols-domain", nested: false, tabs: ORGANIZATION_TABS, unitKeepers: true, section: "administration" },
+  { label: "screens.label.organization", to: ORGANIZATION_PATH, icon: "i-material-symbols-domain", nested: false, tabs: ORGANIZATION_TABS, unitKeepers: true, feature: "organizations", section: "administration" },
   // What is set for the platform itself, the administrator's alone: the providers and the secret kinds.
   { label: "screens.label.admin", to: ADMIN_PATH, icon: "i-material-symbols-shield-person-outline", nested: false, tabs: ADMIN_TABS, administrator: true, section: "administration" }
 ];
+
+/** The console's own screens the deployment's features leave standing (docs/web.md, 「The console's features」). */
+export function featuredScreens(features: ConsoleFeatures, screens: readonly Screen[] = SCREENS): Screen[] {
+  return screens.filter((screen) => screen.feature === undefined || features[screen.feature]);
+}
+
+/** Whether an address stands under a screen the deployment's features leave out: below its address, or in its one
+ * section, as the card board stands in the monitor's. */
+export function featureLeftOut(features: ConsoleFeatures, path: string, screens: readonly Screen[] = SCREENS): boolean {
+  const asked = sectionsOfPath(path);
+
+  return screens.some((screen) => {
+    if (screen.feature === undefined || features[screen.feature]) return false;
+
+    const own = sectionsOfPath(screen.to);
+
+    return isScreenActive({ ...screen, nested: true }, path) || (own.length === 1 && asked.length === 1 && own[0] === asked[0]);
+  });
+}
 
 /**
  * The screens with every screen a unit brings among them: its manifest gives the screen the name it is called by,

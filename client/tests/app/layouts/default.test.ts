@@ -70,7 +70,7 @@ describe("the console search in the sidebar", () => {
   test("lists the screens the search lists, one list of them both", () => {
     expect(layout).toContain("sectionItems(t, route.path, ");
     expect(layout).toContain("screenGroup(t, screens)");
-    expect(layout).toContain("screensWithBundles(bundles.value)");
+    expect(layout).toContain("screensWithBundles(bundles.value, featuredScreens(useConsoleFeatures().value))");
   });
 });
 

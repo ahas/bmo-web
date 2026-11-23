@@ -1560,7 +1560,7 @@ Four groups.
     between the rooms and the agents, and named by its heading as a navigation landmark. Folded to icons, the
     headings go as every heading does, and that space alone parts the 관리자 서비스 from the 애플리케이션.
   - Cache siren, DB, document viewer, agent management, 리서치, monitor, 조직 and 관리자 are the console's own and
-    always stand; the screens units bring stand only while their unit answers its manifest, under the manifest's
+    stand unless the deployment's features leave one out (「The console's features」); the screens units bring stand only while their unit answers its manifest, under the manifest's
     own name and icon (「Screens a unit brings」). The monitor's second tab is the card board, `/cards` leading
     there; `/live` leads to agent management's 에이전트 tab (「에이전트」).
   - This group does not fold — its sections are flat lists of screens with no branch to fold, and the fold the
@@ -9822,6 +9822,7 @@ The console reads its settings from its environment: the units' addresses and to
 | `BMO_WEB_OUTPUT_DIR` | Where a build writes its release; `.output` where none is named. The deployment names a release's own directory, and the change check's production build a folder under the ignored `.check-build` |
 | `BMO_WEB_BUILD_DIR` | Where Nuxt writes its generated project; `.nuxt` where none is named. A standing dev console names its own, beginning `.nuxt-`, and the change check's production build one under `.check-build`, both of which the checkout ignores, so a typecheck in the same checkout leaves what they use alone |
 | `BMO_WEB_DEV_HOSTS` | The hosts a dev server answers beyond its own, comma-separated |
+| `WEB_FEATURES_FILE` | The console features file (「The console's features」); every feature stands where it is not set |
 
 A unit's address and token are read by name on the console's server, `<NAME>_ADDRESS` and `<NAME>_TOKEN`; a unit
 whose address is not set is a unit the console does not reach. A name beginning `NUXT_` is one of the console's own
@@ -9838,6 +9839,30 @@ Make a notification key pair like this, in `client/apps/web`. Put the two lines 
 ```
 bun scripts/vapid.ts
 ```
+
+## The console's features
+
+A deployment may leave out parts of the console's own that its people never use: one person alone has no
+organisation, and a machine running no research, cache siren or node service has nothing for those screens to
+read. Which parts stand is the deployment's features, read from a TOML file of `true` and `false` values, the one
+`WEB_FEATURES_FILE` names. The install writes it (bmo-testbed's `docs/install.md`, 「The console features」), at the
+data root's `env/console-features.toml`, from the preset installed and the units it holds.
+
+| Feature | What it leaves out where it is `false` |
+|---|---|
+| `organizations` | The 조직 screen: its sidebar entry, its search entries and its tabs |
+| `research` | The 리서치 screen, and the research section on a person's permissions tab |
+| `siren` | The cache siren screen, and its section on a person's permissions tab |
+| `monitor` | The monitor screen with its card board, and its section on a person's permissions tab |
+
+- **A feature the file does not name stands,** and so does every feature where no file is named, where the file does
+  not stand or where it does not read: a console is whole unless a deployment says otherwise.
+- **The file is read again at each read of the features,** which every page asks for once as it is drawn, so a
+  feature turned on or off reaches each page at its next load with no restart.
+- **A feature left out leaves out what leads to it, and the address with it:** its screen stands in neither the
+  sidebar, the search nor a person's permissions tab, and a page asked at its address, the card board's among the
+  monitor's, goes to the console's front door, whoever asks. Nothing of a unit's own screen is a feature: a screen a
+  unit brings stands while its unit answers its manifest.
 
 ## First setup
 

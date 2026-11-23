@@ -195,8 +195,9 @@ import { SCREEN_FRAME, useNarrow } from "bmo-ui/app/domain/screen";
 import { useVisibleShell } from "~/domain/overlay";
 import { useRoomList, useRoomReading } from "~/domain/room-list";
 import { useRoomsPresent } from "~/domain/presence";
+import { useConsoleFeatures } from "~/domain/console-features";
 import { useConsoleScreens } from "~/domain/console-screens";
-import { namedWhenFolded, roomItems, screensWithBundles, sectionItems } from "~/domain/screens";
+import { featuredScreens, namedWhenFolded, roomItems, screensWithBundles, sectionItems } from "~/domain/screens";
 import { SIDEBAR_GROUP, SIDEBAR_WIDTH } from "~/domain/sidebar-width";
 import { useSidebarUnread } from "~/domain/sidebar-unread";
 import { sameKept, sameRowsKept } from "~/domain/same-kept";
@@ -259,7 +260,8 @@ const sidebarFolded = ref(false);
 // (docs/web.md, 「Screens a unit brings」). The sidebar stands them in its two sections, and the user menu those
 // the reader's role places in it (「Sidebar」).
 const bundles = useConsoleScreens();
-const screens = screensWithBundles(bundles.value);
+// The console's own screens stand as the deployment's features leave them (docs/web.md, 「The console's features」).
+const screens = screensWithBundles(bundles.value, featuredScreens(useConsoleFeatures().value));
 // The counts the bundles declare, read for this reader while the sidebar stands (docs/web.md, 「Sidebar」).
 const unread = useSidebarUnread();
 const screenSections = computed<SectionMenu[]>((before) => sameKept(before, sectionItems(t, route.path, undefined, sidebarFolded.value, screens, unread.value)));

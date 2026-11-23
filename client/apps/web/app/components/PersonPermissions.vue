@@ -66,6 +66,7 @@
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
 
+import { useConsoleFeatures } from "~/domain/console-features";
 import { useConsoleScreens } from "~/domain/console-screens";
 import { permissionSections } from "~/domain/permissions";
 
@@ -104,7 +105,9 @@ const columns = computed<SettingsColumn<PermissionRow>[]>(() => [
   { id: "write", header: t("permissions.label.write") }
 ]);
 
-const sections = computed(() => permissionSections(useConsoleScreens().value));
+const screens = useConsoleScreens();
+const features = useConsoleFeatures();
+const sections = computed(() => permissionSections(screens.value, features.value));
 const address = computed(() => `/api/users/${encodeURIComponent(props.user)}/sections`);
 
 // Every section with what the person holds of it; one the answer leaves out is held neither way.

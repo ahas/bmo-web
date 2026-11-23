@@ -1,7 +1,9 @@
 import { CONSOLE_SECTIONS, isConsoleSection, sectionsOfPath } from "#shared/sections";
-import { screensWithBundles } from "./screens";
+import { featuredScreens, screensWithBundles, SCREENS } from "./screens";
+import { EVERY_FEATURE } from "#shared/console-features";
 
 import type { ConsoleScreen } from "#shared/console-bundles";
+import type { ConsoleFeatures } from "#shared/console-features";
 
 // The sections a person's permissions tab lists (docs/web.md, 「Access」): the console's navigation in
 // its own order, each named by the screen it opens, and every screen a unit brings that the console's own list
@@ -38,11 +40,13 @@ const NAMED: Record<string, { label: string; icon: string }> = {
   account: { label: "settings.label.account", icon: "i-material-symbols-person-outline" }
 };
 
-/** The sections a person's permissions tab lists, each with the name and mark its screen wears. */
-export function permissionSections(bundles: readonly ConsoleScreen[]): PermissionSection[] {
+/** The sections a person's permissions tab lists, each with the name and mark its screen wears; a section whose screen
+ * the deployment's features leave out is not listed (docs/web.md, 「The console's features」). */
+export function permissionSections(bundles: readonly ConsoleScreen[], features: ConsoleFeatures = EVERY_FEATURE): PermissionSection[] {
   const bySection = new Map<string, PermissionSection>();
+  const leftOut = new Set(SCREENS.filter((screen) => screen.feature !== undefined && !features[screen.feature]).flatMap((screen) => sectionsOfPath(screen.to)));
 
-  for (const screen of screensWithBundles(bundles)) {
+  for (const screen of screensWithBundles(bundles, featuredScreens(features))) {
     // A screen a member opens by keeping something of a unit rather than by a section is no section to grant.
     if (screen.unitKeepers === true || screen.administrator === true) continue;
 
@@ -56,6 +60,8 @@ export function permissionSections(bundles: readonly ConsoleScreen[]): Permissio
   }
 
   const listed = CONSOLE_SECTIONS.flatMap((id): PermissionSection[] => {
+    if (leftOut.has(id)) return [];
+
     const section = bySection.get(id);
 
     if (section !== undefined) return [section];

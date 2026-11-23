@@ -1221,14 +1221,14 @@ screens:
     files: 文件
     find_description: 前往界面、房间或智能体
     group_agents: 智能体
-    section_administration: 管理服务
+    section_administration: 系统服务
     section_application: 应用
     section_mine: 我的应用
     internal_name: 内部名称
     live: 实时状态
     mail: 邮件
     monitor: 监控
-    admin: 管理员
+    admin: 平台设置
     organization: 组织
     remote: 远程
     research: 调研
@@ -4160,7 +4160,7 @@ picture:
     saved: 照片已更换。
 admin:
   aria:
-    tabs: 管理员标签页
+    tabs: 平台设置标签页
 bmo_profile:
   label:
     company_default: 默认 BMO

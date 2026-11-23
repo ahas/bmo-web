@@ -242,7 +242,7 @@ common:
     preview_meta: 어제 오후 7:12 수정
     preview_note: 회의록
   error:
-    administrator_only: 관리자만 할 수 있습니다.
+    administrator_only: 플랫폼 관리자만 할 수 있습니다.
     attachments_too_large: "한 파일에 {size}까지, 한 번에 {n}개까지 보낼 수 있습니다."
     attachments_too_many: "한 번에 {n}개까지 보낼 수 있습니다."
     bad_action: 요청한 동작이 올바르지 않습니다.
@@ -593,8 +593,8 @@ room:
     receiver_unreachable: 이 방의 채팅 서비스가 답하지 않습니다.
     removal_chat: 방 번호가 아닙니다.
     removal_infrastructure: 설정에 적힌 운영 방이라 지울 수 없습니다.
-    removal_not_administrator: 관리자만 방 등록을 지울 수 있습니다.
-    removal_owners_chat: 관리자 자신의 개인 채팅이라 지울 수 없습니다.
+    removal_not_administrator: 플랫폼 관리자만 방 등록을 지울 수 있습니다.
+    removal_owners_chat: 플랫폼 관리자 자신의 개인 채팅이라 지울 수 없습니다.
     providers_read_failed: 채팅 서비스를 불러오지 못했습니다.
     mode_no_chat_service: 어느 채팅 서비스에도 이어지지 않은 방이라 아바타 모드를 켤 수 없습니다.
     mode_not_added: 추가된 적이 없는 방이라 모드를 바꿀 수 없습니다.
@@ -1230,14 +1230,14 @@ screens:
     files: 파일
     find_description: 화면, 방, 에이전트로 이동
     group_agents: 에이전트
-    section_administration: 관리자 서비스
+    section_administration: 시스템 서비스
     section_application: 애플리케이션
     section_mine: 내 앱
     internal_name: 내부 이름
     live: 실시간 상태
     mail: 메일
     monitor: 모니터
-    admin: 관리자
+    admin: 플랫폼 설정
     organization: 조직
     remote: 원격
     research: 리서치
@@ -1886,7 +1886,7 @@ roster:
     machine: 기기
     last_sign_in: 최근 로그인
     made_at: 만든 날짜
-    administrator: 관리자
+    administrator: 플랫폼 관리자
     head_of: 조직장인 조직
     acting_for: 직무대행
     acting_until: "{unit} · {date}까지"
@@ -2088,8 +2088,8 @@ organization:
     short_name_taken: 이 회사의 다른 조직이 이미 쓰는 약칭입니다.
     no_such_kind: 이 회사에 없는 종류입니다.
     no_such_role: 이 회사에 없는 직책입니다.
-    head_only: 관리자나 상위 조직의 조직장만 할 수 있습니다.
-    leave_head_only: 관리자나 그 사람의 조직 또는 상위 조직의 조직장만 탈퇴 처리할 수 있습니다.
+    head_only: 플랫폼 관리자나 상위 조직의 조직장만 할 수 있습니다.
+    leave_head_only: 플랫폼 관리자나 그 사람의 조직 또는 상위 조직의 조직장만 탈퇴 처리할 수 있습니다.
     post_left: 탈퇴한 사람에게는 겸직이나 직무대행을 맡길 수 없습니다.
     home_unit: 소속 조직에는 겸직을 줄 수 없습니다.
     post_other_company: 같은 회사의 사람만 지정할 수 있습니다.
@@ -2169,7 +2169,7 @@ org_memory:
     not_found: 그 조직이나 기억이 없습니다.
     conflict: "그사이 기억이 바뀌었습니다.\n다시 불러와 확인해 주세요."
     kept_by_source: 다른 서비스가 관리하는 기억은 여기서 바꿀 수 없습니다.
-    head_only: 관리자나 이 조직의 조직장만 할 수 있습니다.
+    head_only: 플랫폼 관리자나 이 조직의 조직장만 할 수 있습니다.
     writer_left: 탈퇴한 사람에게는 권한을 줄 수 없습니다.
     person_outside: 이 조직이나 하위 조직에 있는 사람만 고를 수 있습니다.
     no_unit: 소속 조직이 없어 정보를 공유할 수 없습니다.
@@ -2202,7 +2202,7 @@ invites:
     span: "{hours}시간"
     open: 열린 초대
     none: 열린 초대 없음
-    no_units: 초대할 수 있는 조직이 없습니다. 조직장이나 관리자만 초대할 수 있습니다.
+    no_units: 초대할 수 있는 조직이 없습니다. 조직장이나 플랫폼 관리자만 초대할 수 있습니다.
     until: "{time}까지"
   action:
     make: 링크 만들고 복사
@@ -2223,7 +2223,7 @@ invites:
     name_taken: 이미 쓰이는 아이디입니다.
     no_hub: 기기 연결 허브가 설정되어 있지 않아 초대할 수 없습니다.
     not_found: 초대를 찾을 수 없습니다.
-    not_ready: 아직 계정을 만들 수 없는 상태입니다. 관리자에게 알려 주세요.
+    not_ready: 아직 계정을 만들 수 없는 상태입니다. 플랫폼 관리자에게 알려 주세요.
     unreachable: 계정 서비스에 연결되지 않았습니다.
 overlay:
   title:
@@ -2272,7 +2272,7 @@ callers:
     person: 사람
     find: 이름으로 찾기
     allow: 호출 허용
-    heads_only: 이 방을 이끄는 사람이나 그 조직의 조직장, 관리자가 아니어서 내가 조직장인 조직의 사람만 바꿀 수 있습니다.
+    heads_only: 이 방을 이끄는 사람이나 그 조직의 조직장, 플랫폼 관리자가 아니어서 내가 조직장인 조직의 사람만 바꿀 수 있습니다.
   action:
     add: 추가
   status:
@@ -2864,7 +2864,7 @@ agents:
     supervisor_unknown: "감독관 {supervisor}이(가) 없습니다."
     word_empty: 메시지를 입력해 주세요.
     word_owner_only: 워커에게 하는 말은 소유자만 보낼 수 있습니다.
-    supervisor_own_only: 내 BMO만 추가할 수 있습니다. 다른 사람의 감독관은 관리자가 추가합니다.
+    supervisor_own_only: 내 BMO만 추가할 수 있습니다. 다른 사람의 감독관은 플랫폼 관리자가 추가합니다.
     role_delete_refused: 실행 중이거나 대기 중인 실행이 있거나 정책이 정한 역할이라 삭제하지 못했습니다.
     role_agent_refused: 실행 중인 에이전트이거나 이미 있는 이름입니다
     agent_save_failed: 에이전트를 저장하지 못했습니다.
@@ -4141,7 +4141,7 @@ picture:
     saved: 사진을 바꿨습니다.
 admin:
   aria:
-    tabs: 관리자 탭
+    tabs: 플랫폼 설정 탭
 bmo_profile:
   label:
     company_default: 기본 BMO
@@ -4312,7 +4312,7 @@ app_catalogue:
     clone_effect: "더 이상 업데이트를 받지 않습니다."
     uninstall_effect: "내 PC에서 앱을 삭제합니다.\n데이터는 PC에 남습니다."
     withdraw_effect: "새로 설치할 수 없습니다.\n이미 설치한 사람은 계속 씁니다."
-    promote_effect: "관리자가 검토한 뒤 플랫폼 앱으로 배포합니다."
+    promote_effect: "플랫폼 관리자가 검토한 뒤 플랫폼 앱으로 배포합니다."
     recall_effect: "이 조직의 모든 PC에서 앱이 삭제되고, 다시 켤 수 없게 잠깁니다."
     shared: "{app} 앱을 공유했습니다."
   status:
@@ -4414,7 +4414,7 @@ supply:
     source_stop: 중단
     reason_not_in_plan: 계획에 없음
     reason_blocked_by_organisation: 조직에서 막음
-    reason_blocked_by_administrator: 관리자가 막힘
+    reason_blocked_by_administrator: 플랫폼 관리자가 막힘
     locked: 전역 설정으로 고정
     platform_off: 전역 설정으로 꺼짐
     order_locked: 순서 전역 설정으로 고정
@@ -4560,7 +4560,7 @@ supply:
     source_not_allowed: 허용되지 않은 공급원이 있습니다.
     not_in_plan: 계획에 없는 공급원입니다.
     blocked_by_organisation: 조직에서 허용하지 않은 공급원입니다.
-    blocked_by_administrator: 관리자가 허용하지 않은 공급원입니다.
+    blocked_by_administrator: 플랫폼 관리자가 허용하지 않은 공급원입니다.
     locked_by_platform: 전역 설정으로 고정된 공급원이나 순서는 바꿀 수 없습니다.
     plan_scope: 조직 대상 플랜만 조직에 노출할 수 있습니다.
     unknown_plan: 찾을 수 없는 플랜입니다.

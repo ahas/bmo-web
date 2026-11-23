@@ -20,21 +20,18 @@ import type { Translate } from "#shared/wording";
 import type { BadgeProps, DropdownMenuItem, NavigationMenuItem } from "@nuxt/ui";
 
 // The sections the sidebar stands its screens in, in the order they stand (docs/web.md, 「Sidebar」): what the
-// administrator keeps the deployment running with, the organisation screen, every other screen a unit brings, and the
-// reader's own screens. Each is named, and
-// a headed one stands its name as a heading over its rows; the organisation's holds one entry by the same name, so it
-// stands no heading and is named by that entry's name alone.
+// administrator keeps the deployment running and the organisation with, every other screen a unit brings, and the
+// reader's own screens. Each stands its name as a heading over its rows.
 export const SCREEN_SECTIONS = [
-  { id: "administration", name: "screens.label.section_administration", headed: true },
-  { id: "organization", name: "screens.label.organization", headed: false },
-  { id: "application", name: "screens.label.section_application", headed: true },
-  { id: "mine", name: "screens.label.section_mine", headed: true }
+  { id: "administration", name: "screens.label.section_administration" },
+  { id: "application", name: "screens.label.section_application" },
+  { id: "mine", name: "screens.label.section_mine" }
 ] as const;
 
 // Where a screen's entry stands: one of the sidebar's sections, or `account`, the user menu, the reader's own menu,
-// which stands in none of them (bmo-ui's `docs/console-bundles.md`, the sidebar section). The organisation's section and
-// the reader's own screens' are the console's own, which no unit's manifest names.
-export type ScreenSection = ConsoleSidebarSection | "organization" | "mine";
+// which stands in none of them (bmo-ui's `docs/console-bundles.md`, the sidebar section). The reader's own screens'
+// section is the console's own, which no unit's manifest names.
+export type ScreenSection = ConsoleSidebarSection | "mine";
 
 // The console's screens at the top of the sidebar, each in its section. The sidebar and the console search both
 // read this list, so a screen added here is in both.
@@ -117,8 +114,8 @@ export const SCREENS: readonly Screen[] = [
   // Every machine's hardware, bmo-node's, and the card master's board of every node's card, a tab each. Each
   // machine's own monitor stands below its address.
   { label: "screens.label.monitor", to: "/monitor", icon: "i-material-symbols-monitor-heart-outline", nested: true, tabs: MONITOR_TABS, feature: "monitor", section: "administration" },
-  // The organisation and the people in it, a tab to a section, the one entry of the organisation's section.
-  { label: "screens.label.organization", to: ORGANIZATION_PATH, icon: "i-material-symbols-domain", nested: false, tabs: ORGANIZATION_TABS, unitKeepers: true, feature: "organizations", section: "organization" },
+  // The organisation and the people in it, a tab to a section.
+  { label: "screens.label.organization", to: ORGANIZATION_PATH, icon: "i-material-symbols-domain", nested: false, tabs: ORGANIZATION_TABS, unitKeepers: true, feature: "organizations", section: "administration" },
   // The personal apps the reader's company shares, as the reader may see them: browsed, installed, turned on for a unit
   // and recalled.
   { label: "screens.label.catalogue", to: "/app-catalogue", icon: "i-material-symbols-apps", nested: false, everyone: true, feature: "organizations", section: "application" },
@@ -185,8 +182,8 @@ function byName(t: Translate, screens: readonly Screen[], section: ScreenSection
 }
 
 /** The screens of each section the reader is shown, by the name they read, and only the sections holding any. */
-export function screenSections(t: Translate, screens: readonly Screen[]): { name: string; headed: boolean; screens: Screen[] }[] {
-  return SCREEN_SECTIONS.map((section) => ({ name: section.name, headed: section.headed, screens: byName(t, screens, section.id) })).filter((section) => section.screens.length > 0);
+export function screenSections(t: Translate, screens: readonly Screen[]): { name: string; screens: Screen[] }[] {
+  return SCREEN_SECTIONS.map((section) => ({ name: section.name, screens: byName(t, screens, section.id) })).filter((section) => section.screens.length > 0);
 }
 
 /** The screens in the order the sidebar stands them, section after section. */
@@ -293,15 +290,15 @@ export function accountUnread(t: Translate, screens: readonly Screen[], counts: 
   return said.length === 0 ? null : said.join(", ");
 }
 
-// One section of the sidebar's screens as its menu draws it: the name it is called by, and its rows, a headed
-// section's led by its name as a heading.
+// One section of the sidebar's screens as its menu draws it: the name it is called by, and its rows, led by its name
+// as a heading.
 export interface SectionMenu {
   name: string;
   items: NavigationMenuItem[];
 }
 
 // The sidebar's screens: each section that holds any, a menu of its own named by its section, its screens by name
-// under its heading where it stands one (docs/web.md, 「Sidebar」). Each is a menu of its own so the sidebar parts the
+// under its heading (docs/web.md, 「Sidebar」). Each is a menu of its own so the sidebar parts the
 // sections as it parts its other groups. A heading is a row of words alone, which the menu leaves out where the
 // sidebar is folded.
 export function sectionItems(t: Translate, path: string, live: ScreenLive = QUIET, folded = false, screens: readonly Screen[] = SCREENS, counts: ScreenCounts = {}): SectionMenu[] {
@@ -309,7 +306,7 @@ export function sectionItems(t: Translate, path: string, live: ScreenLive = QUIE
     const name = t(section.name);
     const rows = screenItems(t, path, live, folded, section.screens, counts);
 
-    return { name, items: section.headed ? [{ label: name, type: "label" as const }, ...rows] : rows };
+    return { name, items: [{ label: name, type: "label" as const }, ...rows] };
   });
 }
 

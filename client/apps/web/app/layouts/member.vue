@@ -31,7 +31,7 @@
       </template>
 
       <template #default="{ collapsed }">
-        <!-- The screens' sections they may open, each a menu of its own under its heading where it stands one (docs/web.md,
+        <!-- The screens' sections they may open, each a menu of its own under its heading (docs/web.md,
              「Sidebar」). -->
         <UNavigationMenu
           v-for="section in screenSections"

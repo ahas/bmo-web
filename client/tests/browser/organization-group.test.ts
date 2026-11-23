@@ -6,10 +6,10 @@ import { wording } from "../../apps/web/shared/wording";
 
 import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 
-// The sidebar's organisation section and the agents tab (docs/web.md, 「Sidebar」 and 「Organisation」, the agents
+// The sidebar's organisation entry and the agents tab (docs/web.md, 「Sidebar」 and 「Organisation」, the agents
 // tab), and what a company decided read in a person's own settings (「Settings」, the supply and own-BMO sections).
-// The section stands between the administrator services and the applications as one entry under no heading, the
-// organisation screen, which keeps its own tab row; the agents tab sets a company's instructions, persona, supply sources and
+// The entry stands among the administrator services by its name, alone under their heading for a head who opens no
+// other of them, and opens the organisation screen, which keeps its own tab row; the agents tab sets a company's instructions, persona, supply sources and
 // repositories, each with what the units below may do; and a person under the company reads the persona and the
 // supply source it locked or closed as decided by the company, named, with nothing to change. Each is worked as a hand
 // works it at a phone's width and a desk's: what a press lands on is the control it names, nothing runs off the side,
@@ -113,10 +113,10 @@ async function overflows(page: Page): Promise<boolean> {
   return await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
 }
 
-// The sidebar's organisation section, named by its one entry, the phone's drawer opened first; the title bar's toggle
-// answers only once the page has hydrated, so a press that opened nothing is made again.
+// The sidebar's administrator services, the section the organisation entry stands in, the phone's drawer opened
+// first; the title bar's toggle answers only once the page has hydrated, so a press that opened nothing is made again.
 async function organizationSection(page: Page, width: number): Promise<Locator> {
-  const section = page.getByRole("navigation", { name: wording("screens.label.organization"), exact: true });
+  const section = page.getByRole("navigation", { name: wording("screens.label.section_administration"), exact: true });
   const entry = section.getByRole("link", { name: wording("screens.label.organization"), exact: true });
 
   for (let press = 0; width < 1024 && press < 10 && !(await entry.isVisible()); press += 1) {
@@ -145,9 +145,9 @@ async function choose(page: Page, select: Locator, option: string): Promise<void
   await page.getByRole("option", { name: option, exact: true }).click();
 }
 
-describe.skipIf(!origin || !touchReady())("the organisation section and the agents tab", () => {
+describe.skipIf(!origin || !touchReady())("the organisation entry and the agents tab", () => {
   for (const width of WIDTHS) {
-    test(`the administrator's sidebar stands the organisation screen as one entry under no heading between the administrator services and the applications, and the entry opens the screen with its tab row, at ${width}px`, async () => {
+    test(`the administrator's sidebar stands the organisation screen among the administrator services by its name, and the entry opens the screen with its tab row, at ${width}px`, async () => {
       const context = await contextFor(ADMINISTRATOR.name, width);
 
       try {
@@ -159,10 +159,12 @@ describe.skipIf(!origin || !touchReady())("the organisation section and the agen
         const name = wording("screens.label.organization");
         const section = await organizationSection(page, width);
 
-        // One entry, the screen's name, and no heading row above it: the section's words are the entry's alone.
-        expect((await section.getByRole("link").allInnerTexts()).map((one) => one.trim())).toEqual([name]);
-        expect((await section.innerText()).trim()).toBe(name);
-        expect(await sectionNames(page)).toEqual([wording("screens.label.section_administration"), name, wording("screens.label.section_application")]);
+        // An entry among the administrator services, which stand by their names; no section of its own stands for it.
+        const names = (await section.getByRole("link").allInnerTexts()).map((one) => one.trim());
+
+        expect(names).toContain(name);
+        expect(names).toEqual([...names].sort(new Intl.Collator("en").compare));
+        expect(await sectionNames(page)).toEqual([wording("screens.label.section_administration"), wording("screens.label.section_application")]);
         expect(await section.locator('a[aria-current="page"]').count()).toBe(0);
 
         const entry = section.getByRole("link", { name, exact: true });
@@ -330,15 +332,17 @@ describe.skipIf(!origin || !touchReady())("the organisation section and the agen
         expect(await page.locator('[data-own-source="platform"]').innerText()).toContain(wording("org_agents.label.state_on"));
         expect(await overflows(page)).toBe(false);
 
-        // A head of the team: the organisation section stands its one entry for them too, under no heading.
+        // A head of the team who opens no other administrator service: the section stands for them under its heading,
+        // the organisation entry its one row.
         await administer(`/api/organization/units/${team}/heads/${encodeURIComponent(person)}`, "PUT");
         await page.goto(`${origin}/rooms`, { waitUntil: "load" });
         await standing(page);
 
         const section = await organizationSection(page, width);
 
-        expect((await section.innerText()).trim()).toBe(wording("screens.label.organization"));
-        expect(await section.getByRole("link").count()).toBe(1);
+        expect((await section.getByRole("link").allInnerTexts()).map((one) => one.trim())).toEqual([wording("screens.label.organization")]);
+        expect((await section.innerText()).split("\n").map((one) => one.trim()).filter((one) => one !== "")).toEqual([wording("screens.label.section_administration"), wording("screens.label.organization")]);
+        expect(await sectionNames(page)).not.toContain(wording("screens.label.organization"));
       } finally {
         await context.close();
         await administer(`/api/organization/units/${team}/heads/${encodeURIComponent(person)}`, "DELETE").catch(() => null);

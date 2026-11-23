@@ -42,7 +42,7 @@
              cell of its own, so the folded column keeps one centre. The menu is told which rows
              wear the mark that way, which is why the fold is read out here. Folded, every row names
              itself in a tooltip; spread, its name stands and no tooltip repeats it. -->
-        <!-- The screens' sections, each a menu of its own under its heading where it stands one, parted as the sidebar
+        <!-- The screens' sections, each a menu of its own under its heading, parted as the sidebar
              parts its groups (docs/web.md, 「Sidebar」). -->
         <UNavigationMenu
           v-for="section in screenSections"

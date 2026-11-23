@@ -577,7 +577,7 @@ nothing.
   never leads back to the address refused: where the first one they may open is that address, as for a member who
   reads no section at all, it stands, and its routes answer as if nothing stood there.
 - **A member's console stands in a shell of its own.** Its sidebar is the console's mark, the console's own
-  sections they may read, the 조직 entry where they head a unit or write a unit's org memory, and the
+  sections they may read, the 조직 entry under 시스템 서비스 where they head a unit or write a unit's org memory, and the
   screens units bring that they may open, in the sidebar's sections (「Sidebar」), their rooms and the user menu: no agents
   block, nodes or search, no queue panel, question bar or briefing player, and nothing in it reports which room
   the tab shows. Its sidebar hears the bot's stream for
@@ -1560,25 +1560,23 @@ writing the words. A wording fix is an edit to the packs alone, once the guide b
   - The screens and their tabs are one list in the code, read by both the sidebar and the search, so a screen
     added to one is in the other. A screen a unit brings takes its manifest's own title and icon, merged into
     the list from the manifests the reader may open (「Screens a unit brings」). The search lists the screens in
-    the sidebar's order, the 관리자 서비스 first, then 조직 and the 애플리케이션 after them, and then the screens the
+    the sidebar's order, the 시스템 서비스 first and the 애플리케이션 after them, and then the screens the
     user menu holds for the reader, by name as a section's are.
 
 Four groups.
 
-- **The screens** — in four sections: **관리자 서비스**, what the administrator needs to keep the deployment
-  running; then the organisation screen, **조직**, what the heads of the organisations set for the people under them;
-  **애플리케이션**, every other screen a unit brings; and **내 앱**, the reader's own screens. 관리자 서비스,
-  애플리케이션 and 내 앱 each stand under their heading; the organisation's section stands no heading.
-  - **관리자 서비스** holds the console's own cache siren, DB, document viewer, agent management (에이전시),
-    리서치, monitor and 관리자, and every screen a unit brings whose manifest names it: the brain's (브레인),
+- **The screens** — in three sections, each under its heading: **시스템 서비스**, what the administrator needs to keep
+  the deployment running and what the heads of the organisations set for the people under them; **애플리케이션**,
+  every other screen a unit brings; and **내 앱**, the reader's own screens.
+  - **시스템 서비스** holds the console's own cache siren, DB, document viewer, agent management (에이전시),
+    리서치, monitor, 조직 and 플랫폼 설정, and every screen a unit brings whose manifest names it: the brain's (브레인),
     code review's, BMO's face (비모 얼굴), the tool host's (도구) and the remote
     machines' (원격) among them.
-  - **조직** is one entry, the organisation screen (「Organisation」), which leads to the screen and is lit on any of
-    its tabs; the screen's tabs are its own tab row's, never entries of the sidebar. A heading over it would repeat its
-    one entry's name, so the section stands none, and it is named 조직 as a landmark by that entry's name. The entry
-    stands for the administrator and for a member the screen stands for — one who heads a unit or writes a unit's org
-    memory — and for nobody else, so a member who heads nothing meets no entry there. No unit's manifest names this
-    section: it is the console's own.
+  - **조직** is one entry of 시스템 서비스, the organisation screen (「Organisation」), which leads to the screen and is lit
+    on any of its tabs; the screen's tabs are its own tab row's, never entries of the sidebar. The entry stands for the
+    administrator and for a member the screen stands for — one who heads a unit or writes a unit's org memory — and for
+    nobody else, so a member who heads nothing meets no entry there. A member it stands for who opens no other
+    administrator service meets 시스템 서비스 under its heading with 조직 its one entry.
   - **애플리케이션** holds the console's own 앱 카탈로그 (「App catalogue」) and every other screen a unit brings: mail, 파일,
     아티팩트, 캘린더, 노트, 일정 관리 and 극장 among them.
   - **내 앱** holds the screens of the reader's own personal apps (「A reader's own screens」), each under the name its
@@ -1587,7 +1585,7 @@ Four groups.
   - **Which section a screen stands in is the screen's own.** Each of the console's own screens names its section
     where it is listed. A screen a unit brings stands in the section its manifest names for the reader's role
     (bmo-ui's `docs/console-bundles.md`, the sidebar section and 「A section by role」): the one `sidebarSections`
-    names for the role the reader holds, else `sidebarSection`, as bmo-ui's `sectionFor` answers it. 관리자 서비스
+    names for the role the reader holds, else `sidebarSection`, as bmo-ui's `sectionFor` answers it. 시스템 서비스
     stands for `administration`, 애플리케이션 for `application` and for a manifest that names none, and the user
     menu for `account` (below), where the screen stands in no section. The console's server reads the section
     for each reader and hands the browser that one alone, so a screen whose face differs by role stands once for
@@ -1603,10 +1601,9 @@ Four groups.
     all; a member who opens no screen at all has neither heading. A heading is a row of words alone, as the
     agents' and the rooms' headings are: it leads nowhere and is skipped by the keyboard.
   - **Each section is a group of the sidebar's own,** parted from the next by the same space the sidebar leaves
-    between the rooms and the agents, and named by its heading as a navigation landmark, the organisation's by its
-    entry's name. Folded to icons, the
+    between the rooms and the agents, and named by its heading as a navigation landmark. Folded to icons, the
     headings go as every heading does, and that space alone parts the sections.
-  - Cache siren, DB, document viewer, agent management, 리서치, monitor, 조직 and 관리자 are the console's own and
+  - Cache siren, DB, document viewer, agent management, 리서치, monitor, 조직 and 플랫폼 설정 are the console's own and
     stand unless the deployment's features leave one out (「The console's features」); the screens units bring stand only while their unit answers its manifest, under the manifest's
     own name and icon (「Screens a unit brings」). The monitor's second tab is the card board, `/cards` leading
     there; `/live` leads to agent management's 에이전트 tab (「에이전트」).
@@ -2738,7 +2735,7 @@ archive and this week's tokens remain. That is all that can actually be known th
 - The place **The owner reads** the markdown documents the chat agent reads. What is read from where, how paths are fenced,
   and who runs the search, translation and passage talk are in `docs/documents-viewer.md`, and here the
   screen's shape is told. A document is the chat agent's insides, so the list, body, translation and talk all open only
-  behind login. In the sidebar it stands under 관리자 서비스 (「Sidebar」). This screen reads and writes nothing; the brain's
+  behind login. In the sidebar it stands under 시스템 서비스 (「Sidebar」). This screen reads and writes nothing; the brain's
   library, its memories and its fragments are the brain's own screen's, which the brain brings by its manifest
   (「Screens a unit brings」).
 - **The list.** Documents stand by their titles, not their file names — inside a person's or a room's group the
@@ -3719,7 +3716,7 @@ alone (「Access」); another account's agents are reached from 조직's 사용�
 
 #### Around the tabs
 
-- **The provider switches and the Claude accounts** are 관리자's 공급자 tab (「Administration」), since
+- **The provider switches and the Claude accounts** are 플랫폼 설정's 공급자 tab (「Administration」), since
   they are no supervisor's, role's or repository's.
 - **The research unit's settings and the research supervisor** are the research screen's 설정 tab (「Research
   screen」).
@@ -7526,7 +7523,7 @@ Four bounds keep it from growing forever.
 The settings are one large dialog over whatever screen is open, opened by 설정 in the user menu at the
 sidebar's foot (「Sidebar」). They hold what a person sets for themselves alone: their account, their own
 secrets, what this browser shows them, and the voice briefing, which is spoken to the administrator alone and so is theirs to
-switch. What is set for other people stands on 조직 (「Organisation」), what is set for the platform itself on 관리자
+switch. What is set for other people stands on 조직 (「Organisation」), what is set for the platform itself on 플랫폼 설정
 (「Administration」), and what the research unit's runs are held to on the research screen (「Research
 screen」). The dialog is no screen of its own: `/account` takes the reader home with the dialog open at 계정.
 
@@ -7557,7 +7554,7 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
   section, gone into on a narrow screen, and at the first section the reader may open where the key
   names none of them. A member sent on from an address they may not open to their own home is sent with the key, so
   the dialog opens there. A key that names none of the dialog's sections but a tab of 조직 — `organization`,
-  `invites` — or of 관리자 — `providers`, `secret-kinds` — takes the reader to that tab instead, `permissions` to 조직's
+  `invites` — or of 플랫폼 설정 — `providers`, `secret-kinds` — takes the reader to that tab instead, `permissions` to 조직's
   사용자 with the person's 권한 tab open, and `research` to the research screen's 설정 tab, so a link made before a
   section moved still lands where it stands now. The key is
   taken off the address as the dialog opens: what
@@ -7747,7 +7744,7 @@ person sees their own space and nobody else's, the administrator included.
     the row away.
 - **비밀 추가**, the button at the head of 보관된 비밀, opens the secret form (below), the same form the composer's clip
   and an agent's request open.
-- The kinds the form asks in are the deployment's, kept on 관리자's 비밀 종류 (「Administration」).
+- The kinds the form asks in are the deployment's, kept on 플랫폼 설정's 비밀 종류 (「Administration」).
 - **The secret form** is one dialog (「Forms」), whichever way it opens: 종류, 이름, the kind's fields and 저장 at its
   foot.
   - 종류 lists every kind by its name, and 직접 구성 last; the chosen kind's description stands under the list.
@@ -7863,7 +7860,7 @@ a row shows of a key is the secret's name, and of a login the path it is reached
 - **공급 순서** stands the sources a run may fall through, in the order resolved for the reader: each usable source a
   row with its arrows and its switch, and a source the reader themselves closed stands among them with its switch
   off, ready back in; a source a layer above closes stands greyed under them all, its reason in one line — 계획에
-  없음, 조직에서 막힘 or 관리자가 막힘 — and it carries no control, a write that opened it back standing refused 403
+  없음, 조직에서 막힘 or 플랫폼 관리자가 막힘 — and it carries no control, a write that opened it back standing refused 403
   with that closer's reason. 중단 always stands last and moves as nothing. A source the platform locks stands
   with its switch disabled and 전역 설정으로 고정 under it, on or off as the platform holds it; with the order
   locked the arrows stand disabled and one muted line under the group says 순서 전역 설정으로 고정. Every other
@@ -8000,7 +7997,7 @@ every person looked up one at a time, the invitations into its units, its people
 supply and its plans. What is set for the platform itself —
 the providers and the Claude accounts
 every run goes out on, the kinds every person's secret form asks in, the platform's own supply, its plans and
-its credits, and the apps every company is offered — is the administrator's screen, 관리자
+its credits, and the apps every company is offered — is the administrator's screen, 플랫폼 설정
 (「Administration」). What a person sets for themselves alone, their secrets and the voice briefing among it, is the
 settings dialog's (「Settings」), and the research supervisor stands with the research unit's settings on the
 research screen (「Research screen」).
@@ -8045,17 +8042,17 @@ research screen (「Research screen」).
   Every tab reads and writes the company of the node chosen alone, and a tab that stands for one unit — 조직도,
   사용자, 초대, BMO, 에이전트, 앱·도구, 아티팩트 저장 and 조직 기억 — stands for the node chosen, the company itself where a company is chosen; none of
   them chooses an organisation or a unit of its own.
-  The console search finds each tab as it finds every screen's; the sidebar lists the screen as one entry, 조직, and
-  the tabs stand in the screen's own row alone (「Sidebar」).
+  The console search finds each tab as it finds every screen's; the sidebar lists the screen as one entry, 조직, among
+  the 시스템 서비스, and the tabs stand in the screen's own row alone (「Sidebar」).
 - **A key of a section that moved away leads to where it stands now,** so a link made before it moved still lands
   on it: `research` to the research screen's 설정 tab, `briefing` to the settings dialog's 보이스브리핑 and `secrets`
-  to its 비밀 보관함, each over this screen, `providers` and `secret-kinds` to those tabs of 관리자, and `permissions` to
+  to its 비밀 보관함, each over this screen, `providers` and `secret-kinds` to those tabs of 플랫폼 설정, and `permissions` to
   사용자 with the person's 권한 tab open, the person its `user=` named still chosen (「사용자」). The address is replaced
   rather than stepped, so the back gesture does not return to the old key.
-- **Who opens it.** The administrator opens every tab, and the sidebar lists 조직 for them. A member who heads a unit may invite into it (`docs/accounts.md`, 「Invitations and a person's
+- **Who opens it.** The administrator opens every tab, and the sidebar lists 조직 for them among the 시스템 서비스. A member who heads a unit may invite into it (`docs/accounts.md`, 「Invitations and a person's
   machine」), sets who under it may personalise their BMO (`docs/accounts.md`, 「A person's BMO profile」) and which
   apps stand on under it (「앱·도구」), and sets the agents of the people under it (「에이전트」) and where their documents are kept (「아티팩트 저장」), so their shell's sidebar
-  lists 조직 and the screen holds 초대, BMO, 에이전트, 앱·도구, 아티팩트 저장 and 조직 기억, 에이전트 and 아티팩트 저장 standing
+  lists 조직 under 시스템 서비스 and the screen holds 초대, BMO, 에이전트, 앱·도구, 아티팩트 저장 and 조직 기억, 에이전트 and 아티팩트 저장 standing
   where they head a unit of the organisation chosen, and 사용자 and 직책·종류 where they head a company
   (「사용자」, 「직책·종류」). A member granted a unit's org memory write without heading one (`docs/accounts.md`, 「A unit's
   org memory」) is listed 조직 as well, with the companies of those units, and the screen holds 조직 기억 for them beside
@@ -8244,7 +8241,7 @@ account's rooms or agents (「Access」).
   and holds what is done for them; each tab holds one part, so a part is found by its name rather than by scrolling
   past the others, and a part the reader may not open stands as no tab at all.
   - **The head** carries the mark and the name with the login under it on a row of their own, and on the row under
-    it 관리자 for a platform administrator and the state as a chip with its words, and at its right end 관리, a menu
+    it 플랫폼 관리자 for a platform administrator and the state as a chip with its words, and at its right end 관리, a menu
     of the acts the reader may do for this person:
     조직 이동, the move dialog of 조직도 at its first step for this person alone; 겸직 추가, 조직도's post form with this
     person fixed and the unit chosen in it, the units of their company the reader heads, but their home unit, offered
@@ -8777,10 +8774,10 @@ stands on it.
 #### 플랜
 
 The plans the organisation chosen is shown and the one it runs on (`docs/accounts.md`, 「An organisation's plans」).
-The plans themselves are designed on 관리자's 플랜 tab (「Administration」); this tab only chooses among them. It reads
+The plans themselves are designed on 플랫폼 설정's 플랜 tab (「Administration」); this tab only chooses among them. It reads
 `GET /api/supply/org/{unit}/plans` and writes `PUT /api/supply/org/{unit}/plans/exposed` and `/applied`.
 
-- **적용 플랜** stands first: the plan applied, one row as 관리자's 플랜 rows stand — its name as the label, its scope
+- **적용 플랜** stands first: the plan applied, one row as 플랫폼 설정's 플랜 rows stand — its name as the label, its scope
   and period, its price and its included credits under it, and whether 크레딧 may be used on it — with 적용 기간, when
   it was applied and when its period ends, under it; 적용 플랜 없음 where none is. The row is read off the applied
   plan the service answers, so a plan no longer exposed or retired stands here as long as its subscription lives.
@@ -8864,7 +8861,7 @@ so a reader sees and does what their own account may alone, and the agency's wor
 
 ### Administration
 
-관리자 is the administrator's screen of what is set for the platform itself: the providers and the Claude accounts
+플랫폼 설정 is the administrator's screen of what is set for the platform itself: the providers and the Claude accounts
 every run goes out on, how often the agency puts every waiting commit live, the kinds every person's secret form
 asks in, the plans the platform sells and the credits they and the platform's supply run on, and the apps every
 company is offered and their recall. No member opens it.
@@ -8874,7 +8871,7 @@ company is offered and their recall. No member opens it.
   the same tab, moving between tabs is a step of the history, and a key naming no tab opens the first. The console
   search finds each tab as it finds every screen's. A link to `/organization` naming `providers` or `secret-kinds`
   lands on the same tab here.
-- **Who opens it.** The administrator alone, and the sidebar lists 관리자 for them after 조직; a member is listed
+- **Who opens it.** The administrator alone, and the sidebar lists 플랫폼 설정 for them after 조직; a member is listed
   no entry, and the address takes them home as any screen they may not open does.
 - **The tab row, a tab's content and its groups** stand as 조직's do (「Organisation」): the open tab's own add at
   the row's right end, 종류 추가 on 비밀 종류 and 플랜 추가 on 플랜 and none on 공급자, whose add stands in its Claude 계정

@@ -1221,14 +1221,14 @@ screens:
     files: ファイル
     find_description: 画面、ルーム、エージェントへ移動
     group_agents: エージェント
-    section_administration: 管理者サービス
+    section_administration: システムサービス
     section_application: アプリケーション
     section_mine: マイアプリ
     internal_name: 内部名
     live: リアルタイム状態
     mail: メール
     monitor: モニター
-    admin: 管理者
+    admin: プラットフォーム設定
     organization: 組織
     remote: リモート
     research: リサーチ
@@ -4160,7 +4160,7 @@ picture:
     saved: 写真を変更しました。
 admin:
   aria:
-    tabs: 管理者タブ
+    tabs: プラットフォーム設定タブ
 bmo_profile:
   label:
     company_default: 標準 BMO

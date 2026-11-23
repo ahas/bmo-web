@@ -8,8 +8,8 @@ import { BROWSER_HOOK_MS, touchReady } from "./touch";
 import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 import KO from "../fixtures/browser/sidebar-sections.test.ko.json";
 
-// The sidebar's screens in their sections, the administrator services and the applications each under its heading and
-// the organisation's one entry under none, in the order of the names the reader sees, and a section with no screen the
+// The sidebar's screens in their sections, the administrator services (the organisation screen among them) and the
+// applications each under its heading, in the order of the names the reader sees, and a section with no screen the
 // reader may open left out, heading and all (docs/web.md, 「Sidebar」): the
 // administrator's shell, a member who reads some of the console's own sections and a member who reads none, at a
 // desk's width and in a phone's drawer.
@@ -24,16 +24,14 @@ const ROOM_READER = { name: "room-reader", password: "fixture-password-2402" };
 
 const ADMINISTRATION = wording("screens.label.section_administration");
 const APPLICATION = wording("screens.label.section_application");
-// The organisation's section, named by its one entry and showing no heading.
-const ORGANIZATION = wording("screens.label.organization");
-// The stand-in units' screens, each named by its unit, in Latin letters.
-const BROUGHT = [...HARNESS_SCREEN_UNITS];
+// The stand-in units' screens, each named by its unit, in Latin letters, then the app catalogue every reader opens,
+// named in Hangul.
+const BROUGHT = [...HARNESS_SCREEN_UNITS, wording("screens.label.catalogue")];
 
 // The sidebar as each reader reads it, section by section: the heading it shows and its screens' names.
 const EXPECTED = {
   [ADMINISTRATOR.name]: [
-    [ADMINISTRATION, ["db", "admin", "research", "monitor", "documents", "agents", "siren"].map((key) => wording(`screens.label.${key}`))],
-    ["", [ORGANIZATION]],
+    [ADMINISTRATION, ["db", "research", "monitor", "documents", "agents", "organization", "siren", "admin"].map((key) => wording(`screens.label.${key}`))],
     [APPLICATION, BROUGHT]
   ],
   [SECTION_READER.name]: [
@@ -93,8 +91,8 @@ async function sidebar(page: Page, phone: boolean): Promise<Locator> {
   return page.getByRole("dialog");
 }
 
-// The screens' sections read top to bottom, each a menu named by its section: the heading it shows, none for the
-// organisation's, and the names of the screens under it.
+// The screens' sections read top to bottom, each a menu named by its section: the heading it shows and the names of
+// the screens under it.
 async function sections(holder: Locator): Promise<[string, string[]][]> {
   await holder.locator(`nav[aria-label="${APPLICATION}"]`).waitFor({ timeout: 20_000 });
 
@@ -111,7 +109,7 @@ async function sections(holder: Locator): Promise<[string, string[]][]> {
     }
 
     return read;
-  }, [ADMINISTRATION, ORGANIZATION, APPLICATION]);
+  }, [ADMINISTRATION, APPLICATION]);
 }
 
 describe.skipIf(!origin || !touchReady())("the sidebar's sections", () => {

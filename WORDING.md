@@ -121,7 +121,7 @@
   공유 중단 (공유 중단됨); a head turning it on for a unit → 조직에 켜기, off → 조직에서 끄기, taking it off every PC there →
   회수; the reviewer's text → 검토 보고서 (검토 중 while it is written); a head's consent → 승인 (승인 대기); the request to
   ship it for every company → 플랫폼 앱 요청; what it asks for → 요구 권한. Never 스토어, 마켓, 배포 for a share, 철회, 롤백.
-- the platform's word on an app on 관리자 → 전역 설정, its choices 제공 or 제공 안 함 and 켬 or 끔; the platform's word for
+- the platform's word on an app on 플랫폼 설정 → 전역 설정, its choices 제공 or 제공 안 함 and 켬 or 끔; the platform's word for
   one company or unit → 회사별 제공; a row's line → 모든 회사에 제공 (`{n}곳 제외` after it), `{n}곳에 제공` or 제공하지
   않음, a company or a unit counted by 곳. Turning an app off everywhere at once → 긴급 회수, its question
   `<앱> 앱을 모든 곳에서 끌까요?` and its way through 회수; its state → 긴급 회수됨; its undoing → 회수 해제. Never 강제
@@ -201,7 +201,7 @@
 - taking a resource out of use, which cancels its standing bookings and has no way back → 삭제: 삭제, 자원을
   삭제할까요. Never 보관, which keeps a thing to be brought back by 복원.
 - the people who approve a resource's bookings → 담당자: 담당자, 담당자 {names}, 이 자원의 담당자. Never 관리자, which
-  names the administrator's screen, nor 승인자 or 책임자; and never 소속, which is what a thing belongs to (below).
+  is the platform administrator's word, nor 승인자 or 책임자; and never 소속, which is what a thing belongs to (below).
 - a booking that waits on a resource's 담당자 → 승인 필요 on the resource; a booking's state → 승인 대기 while it waits,
   예약됨 once it holds, 거부됨 once refused; the 담당자's acts → 승인, 거부, 승인되었습니다, 거부되었습니다, 예약을
   거부할까요, the pair the desktop app's pairing takes (below); why it was refused → 사유 (선택) as the field and
@@ -440,11 +440,14 @@
 - what an act will write, shown before it is written → 미리 보기; a row the act leaves as it stands → 변경 없음.
   Never 사전 확인, 변화 없음.
 - the screen of the organisation and the people in it → 조직; the administrator's screen of what is set for the
-  platform itself (providers, secret kinds) → 관리자; the dialog of what a person sets for themselves → 설정. Never
-  조직 설정 or 관리자 설정.
-- the sidebar's sections of screens: what the administrator keeps the deployment running with → 관리자 서비스;
-  every other screen → 애플리케이션. Never 앱, 어플리케이션, 관리 서비스 or 관리자 메뉴. 관리자 alone stays the name
-  of the administrator's screen above.
+  platform itself (providers, secret kinds, plans, credits) → 플랫폼 설정; the dialog of what a person sets for
+  themselves → 설정. Never 조직 설정, 관리자 or 관리자 설정 for a screen.
+- the sidebar's sections of screens: what the administrator keeps the deployment running with, and the organisation
+  screen beside it → 시스템 서비스; every other screen → 애플리케이션. Never 앱, 어플리케이션, 관리자 서비스, 관리
+  서비스 or 관리자 메뉴.
+- the person who administers the whole platform → 플랫폼 관리자: 플랫폼 관리자만 할 수 있습니다, 플랫폼 관리자나
+  조직장만, 플랫폼 관리자에게 알려 주세요. Never 관리자 alone, which a reader cannot tell from a unit's 조직장; 관리자
+  stays only where it names something else, as a service manager (서비스 관리자).
 - the account on a chat service a contact listing and a started conversation are for → 계정: 내 계정, 채팅 서비스
   계정, 내 계정 연락처, 채팅 서비스 계정 연락처. Never 어카운트, 아이디.
 - the organisation screen's tab where accounts are looked up across companies → 사용자: 사용자, 사용자 없음, 사용자를

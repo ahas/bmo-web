@@ -84,7 +84,7 @@ afterAll(async () => {
 }, BROWSER_HOOK_MS);
 
 async function contextFor(account: string, width: number, height: number, scheme: "light" | "dark"): Promise<BrowserContext> {
-  const context = await browser!.newContext({ viewport: { width, height }, colorScheme: scheme, serviceWorkers: "block", reducedMotion: "reduce" });
+  const context = await browser!.newContext({ viewport: { width, height }, locale: "ko-KR", colorScheme: scheme, serviceWorkers: "block", reducedMotion: "reduce" });
   const cookie = cookies.get(account)!;
   const at = cookie.indexOf("=");
 
@@ -519,8 +519,15 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
           if (width >= 1024) {
             await page.keyboard.press("Escape");
             await page.getByRole("dialog").first().waitFor({ state: "hidden", timeout: 10_000 });
+            // The dialog's address goes as it closes, and a search opened before it has gone is cleared by that step, so
+            // the search is opened once the address stands without it and typed into once its box stands.
+            await page.waitForURL((url) => !url.searchParams.has("settings"), { timeout: 10_000 });
             await page.keyboard.press("Control+K");
-            await page.keyboard.type(wording("secrets.label.kinds"));
+
+            const box = page.getByPlaceholder(wording("screens.placeholder.find"), { exact: true });
+
+            await box.waitFor({ timeout: 10_000 });
+            await box.pressSequentially(wording("secrets.label.kinds"));
 
             const hit = page.getByRole("option", { name: new RegExp(wording("secrets.label.kinds")) }).first();
 
@@ -689,10 +696,10 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
 
           expect(await dialogSections(page, "/rooms")).toEqual(PERSONAL.map((key) => wording(key)));
 
-          // The sidebar's organisation section, whose one entry is the organisation screen.
+          // The sidebar's organisation entry, among the administrator services.
           // An invitation's dialog may still stand over the page as the entry is looked for, which hides the sidebar from
-          // the page's roles, so the entry is found by its section's own label.
-          const entry = page.locator(`nav[aria-label="${wording("screens.label.organization")}"] a`);
+          // the page's roles, so the entry is found by its section's own label and its address.
+          const entry = page.locator(`nav[aria-label="${wording("screens.label.section_administration")}"] a[href$="/organization"]`);
 
           if (width >= 1024) expect(await entry.count()).toBe(0);
 

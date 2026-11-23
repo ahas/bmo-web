@@ -1221,14 +1221,14 @@ screens:
     files: Files
     find_description: "Go to a screen, room or agent"
     group_agents: Agents
-    section_administration: Admin services
+    section_administration: System services
     section_application: Applications
     section_mine: My apps
     internal_name: Internal name
     live: Live status
     mail: Mail
     monitor: Monitor
-    admin: Admin
+    admin: Platform settings
     organization: Organization
     remote: Remote
     research: Research
@@ -4126,7 +4126,7 @@ picture:
     saved: Photo changed.
 admin:
   aria:
-    tabs: Admin tabs
+    tabs: Platform settings tabs
 bmo_profile:
   label:
     company_default: Default BMO

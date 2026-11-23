@@ -165,7 +165,7 @@ describe("the organisation screen", () => {
     expect(organizationAddress("agent", { tab: "people", user: "7" }, { company: "1", unit: "2" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "agent", company: "1", unit: "2" } });
   });
 
-  test("stands in the sidebar's organisation section as one entry and in the search with its tabs, the administrator's under the administrator services", () => {
+  test("stands among the administrator services as one entry and in the search with its tabs, as the administrator's own screen does", () => {
     const screen = SCREENS.find((one) => one.to === ORGANIZATION_PATH)!;
     const admin = SCREENS.find((one) => one.to === ADMIN_PATH)!;
 
@@ -175,7 +175,7 @@ describe("the organisation screen", () => {
     expect(admin.to).toBe(ADMIN_PATH);
     expect(admin.administrator).toBe(true);
     expect(admin.tabs?.map((tab) => tabAddress(admin, tab))).toEqual(["/admin", "/admin?tab=secret-kinds", "/admin?tab=plans", "/admin?tab=credits", "/admin?tab=apps"]);
-    expect([screen.section, admin.section]).toEqual(["organization", "administration"]);
+    expect([screen.section, admin.section]).toEqual(["administration", "administration"]);
   });
 });
 

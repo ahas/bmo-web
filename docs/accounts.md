@@ -584,7 +584,7 @@ section states what each does.
 - **Who sets it:** the platform administrator anywhere; a unit's head on that unit and every unit below it, and on every
   person standing in one of them, by sumida's `manage` on the unit. A setting is taken away by setting it to follow
   the unit above, which removes it. Where a unit above locks the setting on the chain, a change below the lock is
-  refused 409 `locked`, and what was set below it stands unread.
+  refused 409 `locked` to anyone but the platform administrator, and what was set below it stands unread.
 - **The routes.** Each takes the login it is made for in `Owner-Key` and `Owner-Role`, as the profile's routes do; a
   caller the route does not name is refused 403 `forbidden`, a company or unit that does not stand 404 `not-found`,
   and a unit that is no company where a company is named 404 `not-found` as well.
@@ -961,7 +961,9 @@ section states what each does.
   link, for each setting, whoever administers that link says what the setting is there and whether the links below
   may change it. The service keeps the links and answers what stands; what a setting does is its consumer's.
 - **A unit's chain is its own path:** the platform, its company and each unit down to it. A person's chain is their
-  home unit's chain and then the person. A post in another unit puts nothing on it (「Concurrent posts」).
+  home unit's chain and then the person, and no other: a post in another unit (겸직) puts nothing on it, so a
+  setting a unit holds reaches the people whose home unit is at or under it and never one who only holds a post
+  there (「Concurrent posts」).
 - **Every route stands in `docs/boundary.md`, 「The delegation chain」;** this section states what they keep and
   how a setting is resolved.
 
@@ -1054,10 +1056,11 @@ What stands for a person, or for a unit, is read up its chain, the subject's own
 
 ### Who changes a link
 
-- **A link changes a setting only where no link above it holds `lock`,** read as resolution's second rule reads it.
-  A write below a lock is refused 409 `locked`, naming the link holding it, whoever writes, the platform
-  administrator included: the lock is lifted where it was set. A link that is not one of the kind's `levels` is
-  refused 400 `bad-link`.
+- **A link changes a setting only where no link above it holds `lock`,** read as resolution's second rule reads it,
+  but for the platform administrator. Anyone else writing below a lock is refused 409 `locked`, naming the link
+  holding it; the lock is lifted where it was set. The platform administrator writes any link whatever locks stand
+  above it, and what they write there stays kept and unread while the lock stands, as everything below a lock does.
+  A link that is not one of the kind's `levels` is refused 400 `bad-link`, the administrator's write included.
 - **Who writes a link:** the platform's, a platform administrator; a unit's, a platform administrator and whoever
   holds the kind's `unitPermission` on the unit; a person's, as the kind's `personWriter` says, the platform
   administrator among `heads`. Anyone else is refused 403 `forbidden`.
@@ -1073,7 +1076,7 @@ Each is declared by the module that uses it, as the service stands, under the un
 | `agent-profile.personalize` | the BMO setting permission (「A person's BMO profile」) | a flag, `nearest`, withheld by default | units and people; `manage`, `heads` |
 | `supply.policy` | the platform's, an organisation's and the per-user supply policy (「Supply」) | `json`, `layered` | the platform, units and people; `manage_credit`, `heads` |
 | `supply.own` | a person's own supply setting (「Supply」) | `json`, `nearest` | people; `self` |
-| `supply.credit-allowance` | the organisation credits one person may spend in a calendar month (「How an order is resolved」) | an amount, `narrowing`, `unlimited` by default, with rules | the platform, units and people; `manage_credit`, `heads` |
+| `supply.credit-allowance` | a person's monthly limit of organisation credits: the organisation credits one person may spend in a calendar month (「How an order is resolved」) | an amount, `narrowing`, `unlimited` by default, with rules | the platform, units and people; `manage_credit`, `heads` |
 
 - **The org memory's lock stands in the brain,** as a mark on each memory of an org brain, and the brain resolves a
   topic by the same rule a lock follows here: the farthest unit on the path holding a locked memory of it, else the
@@ -1153,12 +1156,12 @@ Each is declared by the module that uses it, as the service stands, under the un
   it is dropped; named anywhere else it is refused 400. An organisation credit cap — where one stands —
   takes `org_credits` out of a person's order once their organisation-credit spend of the calendar month has
   reached it, and a person's own cap does the same to `personal_credits`.
-- **A person's credit allowance** is the delegation chain's `supply.credit-allowance` resolved for them: `unlimited`,
-  or the organisation credits they may spend in a calendar month, set at the platform, at any unit and on the
-  person, for one person, a named group or a unit by rules, each link narrowing what stands above it. Once their
-  organisation-credit spend of the month reaches it, `org_credits` leaves their order, closed by
-  `blocked-by-administrator` where the person's own link set the smallest allowance and by
-  `blocked-by-organisation` otherwise. Where nothing is set it is `unlimited` and closes nothing.
+- **A person's credit allowance is their monthly limit of organisation credits:** the delegation chain's
+  `supply.credit-allowance` resolved for them, `unlimited` or the organisation credits they may spend in a calendar
+  month, set at the platform, at any unit and on the person, for one person, a named group or a unit by rules, each
+  link narrowing what stands above it. Once their organisation-credit spend of the month reaches it, `org_credits`
+  leaves their order, closed by `blocked-by-administrator` where the person's own link set the smallest allowance
+  and by `blocked-by-organisation` otherwise. Where nothing is set it is `unlimited` and closes nothing.
 - **A write naming a source its earlier layers do not allow is refused.** A policy write closed by the
   platform answers 403 `source-not-allowed`; a person's own write answers the code of the layer that closed
   it — `not-in-plan`, `blocked-by-organisation` or `blocked-by-administrator` — so the screen can say the

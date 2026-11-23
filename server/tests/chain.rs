@@ -459,7 +459,7 @@ async fn a_kind_is_declared_by_its_unit_and_held_to_its_shape() {
 }
 
 #[tokio::test]
-async fn who_writes_which_link_and_a_lock_withholds_every_link_below_it() {
+async fn who_writes_which_link_and_a_lock_withholds_every_link_below_it_but_from_the_administrator() {
   let tree = tree().await;
   let (person, centre_head, company_head) = (tree.person, tree.centre_head, tree.company_head);
   let (status, said) = tree
@@ -515,7 +515,7 @@ async fn who_writes_which_link_and_a_lock_withholds_every_link_below_it() {
   assert_eq!((said["value"].clone(), said["from"].clone()), (json!("own"), json!(own)));
   assert_eq!(said["link"]["mayChange"], true, "{said}");
 
-  // The company locks it: nothing below changes it, the administrator included, and the company's value stands.
+  // The company locks it: nobody below changes it but the platform administrator, and the company's value stands.
   let (status, said) = tree
     .ask(
       Method::PUT,
@@ -525,12 +525,28 @@ async fn who_writes_which_link_and_a_lock_withholds_every_link_below_it() {
     )
     .await;
   assert_eq!((status, said["delegation"].clone()), (StatusCode::OK, json!("lock")));
-  for login in [centre_head, tree.admin] {
-    let path = format!("/chain/kinds/test.mode/links/{centre}/value");
-    let (status, said) = tree.ask(Method::PUT, &path, Some(json!({ "value": "again" })), login).await;
-    assert_eq!((status, said["code"].clone()), (StatusCode::CONFLICT, json!("locked")));
-  }
+  let path = format!("/chain/kinds/test.mode/links/{centre}/value");
+  let (status, said) = tree.ask(Method::PUT, &path, Some(json!({ "value": "again" })), centre_head).await;
+  assert_eq!((status, said["code"].clone()), (StatusCode::CONFLICT, json!("locked")));
   assert_eq!(tree.value("test.mode", &own, json!("again"), person).await, StatusCode::CONFLICT);
+  let (status, said) = tree
+    .ask(Method::PUT, &path, Some(json!({ "value": "administrator's" })), tree.admin)
+    .await;
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert_eq!(
+    (said["value"].clone(), said["writable"].clone()),
+    (json!("administrator's"), json!(true))
+  );
+  let (status, said) = tree
+    .ask(
+      Method::PUT,
+      &format!("/chain/kinds/test.mode/links/{own}/value"),
+      Some(json!({ "value": "own by the administrator" })),
+      tree.admin,
+    )
+    .await;
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert_eq!(tree.value("test.mode", &own, json!("own"), tree.admin).await, StatusCode::OK);
   assert_eq!(
     tree.value("test.mode", &company, json!("company again"), company_head).await,
     StatusCode::OK
@@ -550,7 +566,10 @@ async fn who_writes_which_link_and_a_lock_withholds_every_link_below_it() {
     .ask(Method::GET, &format!("/chain/kinds/test.mode/links/{centre}"), None, centre_head)
     .await;
   assert_eq!(status, StatusCode::OK, "{said}");
-  assert_eq!((said["value"].clone(), said["writable"].clone()), (json!("centre"), json!(false)));
+  assert_eq!(
+    (said["value"].clone(), said["writable"].clone()),
+    (json!("administrator's"), json!(false))
+  );
   assert_eq!(said["lockedBy"], json!(company), "{said}");
   let (status, _) = tree
     .ask(Method::GET, &format!("/chain/kinds/test.mode/links/{centre}"), None, person)

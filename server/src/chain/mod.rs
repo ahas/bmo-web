@@ -796,8 +796,14 @@ pub async fn declare<C: ConnectionTrait>(db: &C, kind: &ChainKind) -> Result<Cha
 // ---------------------------------------------------------------------------------------------------------
 // Writing a link
 
-/// A link a write of the kind may change: one of its levels, standing, and under no lock; refused otherwise.
-pub async fn open<C: ConnectionTrait>(db: &C, kind: &ChainKind, link: Link) -> Result<Path, Refusal> {
+/// A link a write of the kind by `by` may change: one of its levels, standing, and under no lock unless the writer
+/// is the platform administrator, who writes any link whatever locks stand above it; refused otherwise.
+pub async fn open<C: ConnectionTrait>(
+  db: &C,
+  kind: &ChainKind,
+  link: Link,
+  by: Option<i32>,
+) -> Result<Path, Refusal> {
   if !kind.levels.contains(&link.level()) {
     return Err(Refusal::bad(format!("`{}` holds no entry at {link}", kind.key)).coded("bad-link"));
   }
@@ -805,7 +811,9 @@ pub async fn open<C: ConnectionTrait>(db: &C, kind: &ChainKind, link: Link) -> R
   let path = Path::ending_at(db, link).await?;
   let held = entries(db, &kind.key, Some(&path.links)).await?;
 
-  if let Some(lock) = lock_above(&path, &held) {
+  if let Some(lock) = lock_above(&path, &held)
+    && !administers(db, by).await?
+  {
     return Err(
       Refusal::new(StatusCode::CONFLICT, format!("`{}` is locked at {lock}, above {link}", kind.key))
         .coded("locked"),
@@ -813,6 +821,14 @@ pub async fn open<C: ConnectionTrait>(db: &C, kind: &ChainKind, link: Link) -> R
   }
 
   Ok(path)
+}
+
+/// Whether the writer is the platform administrator; a write no person makes is not.
+async fn administers<C: ConnectionTrait>(db: &C, by: Option<i32>) -> Result<bool, Refusal> {
+  match by {
+    Some(user) => Ok(Authz::is_superuser(&user_subject(db, user).await?, db).await?),
+    None => Ok(false),
+  }
 }
 
 /// The row of a link, made where none stands, its writer and moment renewed.
@@ -859,7 +875,7 @@ pub async fn put_value<C: ConnectionTrait>(
   value: Option<&Value>,
   by: Option<i32>,
 ) -> Result<(), Refusal> {
-  open(db, kind, link).await?;
+  open(db, kind, link, by).await?;
   if let Some(value) = value {
     fits(kind, value).map_err(bad_value)?;
   }
@@ -886,7 +902,7 @@ pub async fn put_delegation<C: ConnectionTrait>(
   delegation: ChainDelegation,
   by: Option<i32>,
 ) -> Result<(), Refusal> {
-  open(db, kind, link).await?;
+  open(db, kind, link, by).await?;
   if matches!(link, Link::Person(_)) && delegation != ChainDelegation::Inherit {
     return Err(Refusal::bad("a person's link has nothing below it to delegate to").coded("bad-link"));
   }
@@ -952,7 +968,7 @@ pub async fn put_rules<C: ConnectionTrait>(
   rules: &[(Who, Value)],
   by: Option<i32>,
 ) -> Result<(), Refusal> {
-  open(db, kind, link).await?;
+  open(db, kind, link, by).await?;
   if !rules.is_empty() && !kind.rules {
     return Err(bad_rule(format!("`{}` takes no rules", kind.key)));
   }
@@ -1014,9 +1030,14 @@ pub async fn put_rules<C: ConnectionTrait>(
   tidy(db, &kind.key, link).await
 }
 
-/// A link's entry taken away whole, so the link follows above.
-pub async fn clear<C: ConnectionTrait>(db: &C, kind: &ChainKind, link: Link) -> Result<(), Refusal> {
-  open(db, kind, link).await?;
+/// A link's entry taken away whole by `by`, so the link follows above.
+pub async fn clear<C: ConnectionTrait>(
+  db: &C,
+  kind: &ChainKind,
+  link: Link,
+  by: Option<i32>,
+) -> Result<(), Refusal> {
+  open(db, kind, link, by).await?;
   run(
     db,
     r#"DELETE FROM "chain_rules" WHERE "kind" = $1 AND "link" = $2"#,

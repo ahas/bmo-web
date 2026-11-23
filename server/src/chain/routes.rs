@@ -123,7 +123,7 @@ async fn entry_view(service: &Service, who: &Reader, kind: &ChainKind, link: Lin
     set_by: entry.set_by.map(shown),
     set_at: entry.set_at,
     locked_by: locked_by.map(|lock| lock.to_string()),
-    writable: writer && locked_by.is_none() && kind.levels.contains(&link.level()),
+    writable: writer && (locked_by.is_none() || who.administrator) && kind.levels.contains(&link.level()),
   }))
 }
 
@@ -215,9 +215,9 @@ async fn clear_route(
   Segment((key, link)): Segment<(String, String)>,
   headers: HeaderMap,
 ) -> Result<StatusCode, Refusal> {
-  let (_, kind, link) = writer(&service, &headers, &key, &link).await?;
+  let (who, kind, link) = writer(&service, &headers, &key, &link).await?;
 
-  super::clear(&service.db, &kind, link).await?;
+  super::clear(&service.db, &kind, link, Some(who.user)).await?;
 
   Ok(StatusCode::NO_CONTENT)
 }

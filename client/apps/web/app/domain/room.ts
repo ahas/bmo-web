@@ -334,6 +334,8 @@ export interface FeedItem {
   // The words a message deleted on its messenger still holds, which the row opens on a press; none where the delete
   // took them, as the console's own delete does.
   deletedText?: string;
+  // The picture a message deleted on its messenger carried, which the row opens with its words.
+  deletedImageUrl?: string;
   editedAt?: number | null;
   pinnedAt?: number | null;
   reactions?: ReactionView[];
@@ -1723,6 +1725,16 @@ function feedItemOf(
   // A sticker nothing of which is kept to draw stands as its emoji, in the sticker's box.
   const emoji = deleted ? null : stickerEmojiOf(message.stickerEmoji, sticker, attachments);
   const shown = withoutMediaMark(message.text, { attachments, pictured, sticker, stickerEmoji: emoji !== null }, { expressions: message.expressions ?? [], formats: message.formats ?? [] });
+  // A message deleted on its messenger still holds what it carried in the record: its words read as they were sent,
+  // the media mark taken off as for a live message, and its picture opened under them.
+  const heldPicture = deleted && message.imagePath !== null;
+  const held = deleted
+    ? withoutMediaMark(
+        message.text,
+        { attachments: message.attachments ?? [], pictured: heldPicture, sticker: heldPicture && message.sticker === true },
+        { expressions: [], formats: [] }
+      )
+    : shown;
   const headed = message.replyQuote != null || message.forwardedFrom != null;
   const bare = !deleted && bareMedia(shown.text, carriedKinds(sticker || emoji !== null ? "sticker" : pictured ? "picture" : null, attachments), headed);
 
@@ -1734,7 +1746,8 @@ function feedItemOf(
     sentAt: message.sentAt,
     text: message.text,
     shownText: deleted ? "" : shown.text,
-    ...(deleted && shown.text.trim() !== "" ? { deletedText: shown.text } : {}),
+    ...(deleted && held.text.trim() !== "" ? { deletedText: held.text } : {}),
+    ...(heldPicture ? { deletedImageUrl: imageUrlFor(message.chatId, message.messageId) } : {}),
     quote: deleted ? null : (message.replyQuote ?? null),
     imageUrl: !pictured ? null : imageUrlFor(message.chatId, message.messageId),
     ...(sticker ? { stickerPicture: true } : {}),

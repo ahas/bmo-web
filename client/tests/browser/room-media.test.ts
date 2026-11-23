@@ -81,8 +81,16 @@ describe.skipIf(!origin || !touchReady())("a room's media", () => {
       await page.locator("[data-reka-popper-content-wrapper]").filter({ hasText: "person-c" }).first().waitFor({ timeout: 5_000 });
 
       // A message deleted on the messenger opens its words on a press.
-      await page.locator("button[data-deleted]").click();
-      await expect(page.locator("[data-deleted-words]").innerText()).resolves.toBe("words deleted on the messenger");
+      await page.locator('[data-message="m7"] button[data-deleted]').click();
+      await expect(page.locator('[data-message="m7"] [data-deleted-words]').innerText()).resolves.toBe("words deleted on the messenger");
+
+      // A picture deleted on the messenger opens as the picture it carried, with no media mark in words.
+      await page.locator('[data-message="m40"] button[data-deleted]').click();
+      const held = page.locator('[data-message="m40"] img[data-deleted-picture]');
+
+      await held.waitFor({ timeout: 5_000 });
+      await expect(held.evaluate((picture) => (picture as HTMLImageElement).decode().then(() => (picture as HTMLImageElement).naturalWidth))).resolves.toBeGreaterThan(0);
+      expect(await page.locator('[data-message="m40"] [data-deleted-words]').count()).toBe(0);
     } finally {
       await context.close();
     }

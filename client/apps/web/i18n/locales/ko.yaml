@@ -712,6 +712,7 @@ room:
     deleted_message: 삭제된 메시지
     deleted_message_hide: 삭제된 메시지 · 내용 접기
     deleted_message_show: 삭제된 메시지 · 눌러서 보기
+    deleted_picture: 삭제된 메시지의 사진
     draft_changed: 바뀜
     draft_chars: "{n}자"
     draft_end_message: 메시지 보냄

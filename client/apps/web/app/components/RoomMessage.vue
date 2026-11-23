@@ -261,7 +261,7 @@
                              one deleted on its messenger still holds its words, which a press on the line opens. -->
                         <template v-else-if="empty">
                           <button
-                            v-if="props.item.deleted && props.item.deletedText"
+                            v-if="props.item.deleted && (props.item.deletedText || props.item.deletedImageUrl)"
                             type="button"
                             class="text-muted italic underline decoration-dotted underline-offset-2 hover:text-default"
                             data-deleted
@@ -273,6 +273,14 @@
                           <p v-else class="text-muted italic" :data-deleted="props.item.deleted ? '' : undefined">
                             {{ props.item.deleted ? $t("room.label.deleted_message") : $t("room.label.empty_message") }}
                           </p>
+                          <img
+                            v-if="showingDeleted && props.item.deletedImageUrl"
+                            data-deleted-picture
+                            :src="props.item.deletedImageUrl"
+                            :alt="$t('room.label.deleted_picture')"
+                            class="mt-1 max-h-80 max-w-full rounded-md border-s-2 border-default ps-2 object-contain"
+                            loading="lazy"
+                          />
                           <p v-if="showingDeleted && props.item.deletedText" data-deleted-words class="mt-1 border-s-2 border-default ps-2 text-toned whitespace-pre-wrap break-words">
                             {{ props.item.deletedText }}
                           </p>

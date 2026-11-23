@@ -890,6 +890,20 @@ describe("a message that is only what it carried", () => {
     expect(rowOf(archived(10, "[Photo]"))?.shownText).toBe("[Photo]");
   });
 
+  // "pressing it opens what it held under the line ... its words with the media mark taken off as a live message's
+  // are, and the picture it carried"
+  test("opens a message deleted on its messenger with its picture and its words without the media mark", () => {
+    const alone = rowOf({ ...archived(11, "[Photo]"), imagePath: "/kept/11.jpg", deletedAt: 1 });
+    const captioned = rowOf({ ...archived(12, "[Photo]\nlook at this"), imagePath: "/kept/12.jpg", deletedAt: 1 });
+
+    expect(alone?.deleted).toBe(true);
+    expect(alone?.deletedImageUrl).toBeDefined();
+    expect(alone?.deletedText).toBeUndefined();
+    expect(alone?.imageUrl).toBeNull();
+    expect(captioned?.deletedText).toBe("look at this");
+    expect(captioned?.deletedImageUrl).toBeDefined();
+  });
+
   test("keeps the bubble where it has words, and where it carried nothing at all", () => {
     expect(rowOf({ ...archived(1, KO.line_629), attachments: [document] })?.look.variant).toBe("soft");
     expect(rowOf({ ...archived(2, KO.line_630), imagePath: "/kept/2.jpg" })?.look.variant).toBe("soft");

@@ -1121,6 +1121,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       shown(4, { kind: "sticker", files: [{ kind: "sticker", source: "sticker-1.tgs", storedPath: "kept", collectedAt: LINE_AT }] }),
       shown(5, { files: [{ kind: "animation", source: "video.mp4", storedPath: "kept", collectedAt: LINE_AT }] }),
       shown(7, { text: "words deleted on the messenger", deletedAt: LINE_AT - 100 }),
+      shown(40, { text: "[Photo]", imagePath: `images/${MEDIA_CHAT}/40.jpg`, deletedAt: LINE_AT - 90 }),
       shown(6, { text: "reacted to", reactions: [{ emoji: "\u{1F44D}", by: "1" }, { emoji: "\u{1F44D}", by: "7" }, { emoji: "\u{2764}\u{FE0F}", by: "8" }] }),
       shown(8, { text: inlineWords }),
       shown(9, { text: preWords }),

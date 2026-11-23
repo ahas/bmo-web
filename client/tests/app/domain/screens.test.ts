@@ -12,7 +12,7 @@ import type { ConsoleScreen } from "../../../apps/web/shared/console-bundles";
 // its section by the name the reader sees, lit on its own address and, where it is nested, on the pages below it.
 
 test("every screen of the console's own is listed, named from the pack, and stands always", () => {
-  expect(SCREENS.map((screen) => screen.to).sort()).toEqual(["/admin", "/agents", "/db", "/documents", "/monitor", "/organization", "/research", "/siren"]);
+  expect(SCREENS.map((screen) => screen.to).sort()).toEqual(["/admin", "/agents", "/app-catalogue", "/db", "/documents", "/monitor", "/organization", "/research", "/siren"]);
   expect(SCREENS.some((screen) => screen.brought === true)).toBe(false);
   expect(screensWithBundles([]).map((screen) => screen.to)).toEqual(SCREENS.map((screen) => screen.to));
   expect(screenItems(wording, "/").map((item) => item.label)).toEqual(SCREENS.map((screen) => wording(screen.label)));
@@ -90,8 +90,11 @@ test("a unit's screen takes its manifest's own name and icon, and stands only wh
   expect(screens.some((entry) => entry.to === "/files")).toBe(false);
 });
 
-test("the console's own screens all stand under the administrator services, the organisation screen in its own section", () => {
-  expect(SCREENS.filter((screen) => screen.section !== "administration").map((screen) => [screen.to, screen.section])).toEqual([["/organization", "organization"]]);
+test("the console's own screens all stand under the administrator services, the organisation screen in its own section and the app catalogue among the applications", () => {
+  expect(SCREENS.filter((screen) => screen.section !== "administration").map((screen) => [screen.to, screen.section])).toEqual([
+    ["/organization", "organization"],
+    ["/app-catalogue", "application"]
+  ]);
 });
 
 test("a screen a unit brings stands under the administrator services where its manifest names them, and is an application where it names the applications", () => {
@@ -174,7 +177,7 @@ test("each section is a menu of its own named from the pack, a headed one under 
 
   expect(names(both)).toEqual([wording("screens.label.section_administration"), wording("screens.label.organization"), wording("screens.label.section_application")]);
   expect(both.map((menu) => menu.items.filter((item) => item.type === "label"))).toEqual([[{ label: names(both)[0], type: "label" }], [], [{ label: names(both)[2], type: "label" }]]);
-  expect(both[2]!.items.slice(1).map((item) => item.to)).toEqual(["/mail"]);
+  expect(both[2]!.items.slice(1).map((item) => item.to)).toEqual(["/mail", "/app-catalogue"]);
   expect(names(sectionItems(wording, "/", undefined, false, screensWithBundles([mail], [])))).toEqual([wording("screens.label.section_application")]);
   expect(sectionItems(wording, "/", undefined, false, [])).toEqual([]);
 });

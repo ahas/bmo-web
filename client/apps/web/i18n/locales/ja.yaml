@@ -1236,6 +1236,7 @@ screens:
     siren: キャッシュサイレン
     rooms: ルーム
     brain: ブレイン
+    catalogue: アプリカタログ
     todo_description: 待ち行列と承認待ち
   placeholder:
     find: 画面・ルーム・エージェントを検索
@@ -4196,6 +4197,106 @@ apps:
     no_app: アプリが見つかりません。
     read_failed: アプリの設定を読み込めませんでした。
     failed: アプリの設定を保存できませんでした。
+# The app catalogue (docs/web.md, 「App catalogue」): the personal apps a company's people share, the share dialog of
+# the personal apps section and the administrator's platform app requests.
+app_catalogue:
+  label:
+    none: 共有されたアプリはありません
+    scope: 共有範囲
+    scope_all: すべて
+    scope_team: チーム
+    scope_heads: 上位の組織長
+    scope_company: 会社全体
+    scope_direct: 個別指定
+    maker: 作成者
+    version: バージョン
+    shared: 共有日時
+    installs: インストール
+    installs_count: "{count}人がインストール"
+    targets: 共有先
+    permissions: 要求する権限
+    permissions_line: "要求する権限: {permissions}"
+    own_data: 自分のデータのみ使用
+    network: "ネットワーク使用 {addresses}"
+    secrets: "シークレット使用 {names}"
+    review: レビュー報告
+    review_pending: レビュー中
+    review_failed: レビュー報告を作成できませんでした。
+    source: ソース
+    installed: インストール済み
+    installed_unit: 組織がインストール
+    update_waiting: アップデートあり
+    withdrawn: 共有停止
+    awaiting_approval: 承認待ち
+    notices: お知らせ
+    notice_shared: "{app} が共有されました。"
+    notice_update: "{app} のアップデートに確認が必要です。"
+    notice_approval: "{app} が承認を待っています。"
+    unit: 組織
+    lock: 下位組織をロック
+    promotions: プラットフォームアプリの依頼
+    promotion_line: "{company} · {by} · {time}"
+    no_promotions: 依頼はありません
+  placeholder:
+    search: アプリを探す
+  action:
+    install: インストール
+    update: アップデート
+    clone: 複製
+    turn_on: 組織でオン
+    turn_off: 組織でオフ
+    recall: 回収
+    withdraw: 共有停止
+    approve: 承認
+    promote: プラットフォームアプリを依頼
+    share: 共有
+    source: ソースを見る
+    seen: すべて確認
+    open: 表示
+  title:
+    install: アプリをインストールしますか?
+    update: アプリをアップデートしますか?
+    clone: 自分の個人アプリとして複製しますか?
+    uninstall: アプリを削除しますか?
+    withdraw: 共有を停止しますか?
+    promote: プラットフォームアプリとして依頼しますか?
+    recall: アプリを回収しますか?
+    share: アプリを共有
+    unit: 組織の設定
+  message:
+    install_effect: "自分の PC がソースを受け取ってビルドします。\nデータは自分の PC にだけ保存されます。"
+    update_effect: "新しいバージョンを受け取ってビルドします。"
+    update_grown: "新しいバージョンはより多くの権限を要求します。"
+    clone_effect: "今後アップデートは届きません。"
+    uninstall_effect: "自分の PC からアプリを削除します。\nデータは PC に残ります。"
+    withdraw_effect: "新しくインストールできなくなります。\nインストール済みの人は使い続けます。"
+    promote_effect: "管理者が確認してからプラットフォームアプリとして配布します。"
+    recall_effect: "この組織のすべての PC からアプリが削除され、オフのままロックされます。"
+    shared: "{app} を共有しました。"
+  status:
+    loading: カタログを読み込み中…
+  error:
+    read_failed: カタログを読み込めませんでした。
+    act_failed: 依頼を処理できませんでした。
+    source_failed: ソースを読み込めませんでした。
+    share_failed: 共有できませんでした。
+    no_runner: アプリを実行する PC がありません。
+    unreached: "PC に接続できません。\nPC の電源が入っているか確認してください。"
+    refused: PC がこのアプリを受け付けませんでした。
+    not_found: アプリが見つかりません。
+    scope_withheld: 組織の設定により、この範囲には共有できません。
+    other_company: 会社の外には共有できません。
+    make_withheld: 組織の設定により、個人アプリを作成・共有できません。
+    permission_withheld: 組織の設定により、このアプリが要求する権限を使えません。
+    install_withheld: 組織の設定により、共有されたアプリをインストールできません。
+    withdrawn: 共有が停止されたアプリです。
+    awaiting_approval: 組織長の承認を待っているアプリです。
+    not_offered: 組織の設定でオフになっているアプリです。
+    name_taken: 同じ名前の個人アプリがすでにあります。
+    locked: 組織がロックしているため変更できません。
+    forbidden: この操作を行う権限がありません。
+    no_user: ユーザーアカウントがないため、カタログを使えません。
+
 personal_apps:
   label:
     none: 個人アプリなし

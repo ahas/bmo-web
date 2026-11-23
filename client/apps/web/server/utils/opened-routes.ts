@@ -98,6 +98,13 @@ export const openedRoutes: readonly OpenedRoute[] = [
   { method: "GET", path: /^\/api\/account\/personal-apps$/, scope: "user" },
   { method: "POST", path: /^\/api\/account\/personal-apps\/[^/]+\/back$/, scope: "user" },
   { method: "DELETE", path: /^\/api\/account\/personal-apps\/[^/]+$/, scope: "user" },
+  // The reader's company's catalogue of shared personal apps: every signed-in login asks for their own account, the agency
+  // judging what each sees and may do (docs/web.md, 「App catalogue」).
+  { method: "GET", path: /^\/api\/account\/app-catalogue$/, scope: "user" },
+  { method: "POST", path: /^\/api\/account\/app-catalogue(?:\/seen)?$/, scope: "user" },
+  { method: "GET", path: /^\/api\/account\/app-catalogue\/[^/]+\/source$/, scope: "user" },
+  { method: "POST", path: /^\/api\/account\/app-catalogue\/[^/]+\/(?:install|update|clone|withdraw|approve|promote|recall|units\/\d+)$/, scope: "user" },
+  { method: "DELETE", path: /^\/api\/account\/app-catalogue\/[^/]+\/install$/, scope: "user" },
   // A person marked left: every signed-in login asks, and the account service lets the administrator and the person's
   // heads alone (docs/accounts.md, 「A person who leaves」).
   { method: "POST", path: /^\/api\/organization\/users\/\d+\/leave$/, scope: "user" },

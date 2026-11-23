@@ -1,7 +1,8 @@
 <template>
   <!-- The personal apps section (docs/web.md, 「Settings」, the personal apps section): every tool of the reader's own
        their BMO made on their PC, each a row of its name, what it does, its version and when it was put, and what it
-       may reach, with the way back to the version before and its deletion, each asked first. -->
+       may reach, with its share into the company's catalogue, the way back to the version before and its deletion,
+       the last two asked first. -->
   <div class="flex flex-col gap-6">
     <ContentSkeleton v-if="apps === null && failure === ''" :rows="2" listClass="flex flex-col divide-y divide-default" :label="$t('personal_apps.status.loading')">
       <div class="flex items-center gap-4 py-3">
@@ -39,6 +40,14 @@
 
             <IconButton
               size="sm"
+              icon="i-material-symbols-share-outline"
+              :label="$t('app_catalogue.action.share')"
+              :disabled="busy !== null"
+              data-personal-app-share
+              @click="sharing = app"
+            />
+            <IconButton
+              size="sm"
               icon="i-material-symbols-history"
               :label="$t('personal_apps.action.back')"
               :loading="busy === `back:${app.name}`"
@@ -60,7 +69,17 @@
       </SettingsGroup>
 
       <p v-if="refusal !== ''" role="alert" class="text-sm text-error" data-personal-apps-refusal>{{ refusal }}</p>
+      <p v-if="sharedNote !== ''" role="status" class="text-sm text-muted" data-personal-apps-shared>{{ sharedNote }}</p>
     </template>
+
+    <CatalogueShareDialog
+      v-if="sharing !== null"
+      :open="sharing !== null"
+      :name="sharing.name"
+      :title="appLabel(sharing)"
+      @update:open="(standing: boolean) => (standing ? undefined : (sharing = null))"
+      @shared="(shared) => (sharedNote = $t('app_catalogue.message.shared', { app: shared.title }))"
+    />
   </div>
 </template>
 
@@ -80,6 +99,8 @@ const failure = ref("");
 const reading = ref(false);
 const busy = ref<string | null>(null);
 const refusal = ref("");
+const sharing = ref<PersonalApp | null>(null);
+const sharedNote = ref("");
 
 // An app by its entry's title where it gives one, else by its name.
 function appLabel(app: PersonalApp): string {

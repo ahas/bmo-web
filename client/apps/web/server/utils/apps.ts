@@ -1,6 +1,6 @@
 import { spokenLanguage, wording, WORDING_LANGUAGE } from "#shared/wording";
 
-import { AccountRefusal, chainEntry, chainKinds, listUnits, resolveChain, setChainDelegation, setChainRules, setChainValue } from "./account-service";
+import { AccountRefusal, chainEntry, chainKinds, homeUnit, listUnits, resolveChain, setChainDelegation, setChainRules, setChainValue, unitView } from "./account-service";
 import { appKind, appOfKind } from "./app-gate";
 import { wordAt } from "./bundle-notices";
 import { attachedService } from "./console-manifests";
@@ -41,6 +41,25 @@ export async function declaredAppKinds(): Promise<Map<string, Map<AppSetting, Ch
 /** Every app whose kinds the chain holds, each with the settings declared for it. */
 export async function declaredApps(): Promise<Map<string, Set<AppSetting>>> {
   return new Map([...(await declaredAppKinds())].map(([app, kinds]) => [app, new Set(kinds.keys())]));
+}
+
+/** The company whose catalogue a shared app stands in, read off its key, `shared-<company>-…` (bmo-pocket's
+ * `docs/catalogue.md`, 「The app on the delegation chain」); none for a platform app. */
+export function sharedAppCompany(app: string): number | null {
+  const company = /^shared-(\d+)-/.exec(app)?.[1];
+
+  return company === undefined ? null : Number(company);
+}
+
+/** The apps a company's people and heads are shown: every platform app and their own company's shared apps, never
+ * another company's (docs/accounts.md, 「An app's two settings」). A reader of no company is shown the platform's
+ * alone. */
+export function companyApps<T>(apps: ReadonlyMap<string, T>, company: number | null): Map<string, T> {
+  return new Map([...apps].filter(([app]) => {
+    const shared = sharedAppCompany(app);
+
+    return shared === null || shared === company;
+  }));
 }
 
 /** An app as its screen names it: the title its bundle's words give and its icon, or none where no screen of it is
@@ -86,7 +105,8 @@ export async function ownApps(signed: SignedIn): Promise<OwnApp[]> {
   if (person === null) return [];
 
   const link = `person:${person}`;
-  const apps = await declaredApps();
+  const [declared, home] = await Promise.all([declaredApps(), homeUnit(person).catch(() => null)]);
+  const apps = companyApps(declared, home?.company.id ?? null);
   const rows = await Promise.all(
     [...apps].map(async ([app, settings]): Promise<OwnApp | null> => {
       if (!settings.has("on")) return null;
@@ -111,6 +131,10 @@ export async function setOwnApp(signed: SignedIn, app: string, on: boolean | nul
 
   if (person === null) throw fail(404, wording("apps.error.no_app"));
 
+  const home = await homeUnit(person).catch(() => null);
+
+  if (sharedAppCompany(app) !== null && sharedAppCompany(app) !== (home?.company.id ?? null)) throw fail(404, wording("apps.error.no_app"));
+
   await setChainValue(appKind(app, "on"), `person:${person}`, on, callerOf(signed));
 }
 
@@ -119,7 +143,8 @@ export async function setOwnApp(signed: SignedIn, app: string, on: boolean | nul
 export async function unitApps(unit: number, signed: SignedIn): Promise<UnitApp[]> {
   const caller = callerOf(signed);
   const link = `unit:${unit}`;
-  const apps = await declaredApps();
+  const [declared, view] = await Promise.all([declaredApps(), unitView(unit)]);
+  const apps = companyApps(declared, view.company.id);
   const rows = await Promise.all(
     [...apps].map(async ([app, settings]): Promise<UnitApp | null> => {
       if (!settings.has("on")) return null;
@@ -157,6 +182,9 @@ export async function changeUnitApp(unit: number, app: string, change: UnitAppCh
   const caller = callerOf(signed);
   const link = `unit:${unit}`;
   const onKey = appKind(app, "on");
+
+  // Another company's shared app is no app of the unit's: it is never shown there, and never written there.
+  if (sharedAppCompany(app) !== null && sharedAppCompany(app) !== (await unitView(unit)).company.id) throw fail(404, wording("apps.error.no_app"));
 
   if (change.offer !== undefined) {
     if (!signed.administrator) throw fail(403, wording("apps.error.forbidden"));

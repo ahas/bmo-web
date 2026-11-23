@@ -1245,6 +1245,7 @@ screens:
     siren: 캐시 사이렌
     rooms: 방
     brain: 브레인
+    catalogue: 앱 카탈로그
     todo_description: 대기열과 결재 대기
   placeholder:
     find: 화면·방·에이전트 찾기
@@ -4178,6 +4179,106 @@ apps:
     no_app: 앱을 찾을 수 없습니다.
     read_failed: 앱 설정을 불러오지 못했습니다.
     failed: 앱 설정을 저장하지 못했습니다.
+
+# The app catalogue (docs/web.md, 「App catalogue」): the personal apps a company's people share, the share dialog of
+# the personal apps section and the administrator's platform app requests.
+app_catalogue:
+  label:
+    none: 공유된 앱 없음
+    scope: 공유 범위
+    scope_all: 전체
+    scope_team: 팀
+    scope_heads: 상위 조직장
+    scope_company: 회사 전체
+    scope_direct: 직접 지정
+    maker: 만든 사람
+    version: 버전
+    shared: 공유 시각
+    installs: 설치
+    installs_count: "{count}명 설치"
+    targets: 공유 대상
+    permissions: 요구 권한
+    permissions_line: "요구 권한: {permissions}"
+    own_data: 자기 데이터만 사용
+    network: "네트워크 사용 {addresses}"
+    secrets: "비밀 사용 {names}"
+    review: 검토 보고서
+    review_pending: 검토 중
+    review_failed: 검토 보고서를 쓰지 못했습니다.
+    source: 원본
+    installed: 설치됨
+    installed_unit: 조직에서 설치
+    update_waiting: 업데이트 있음
+    withdrawn: 공유 중단됨
+    awaiting_approval: 승인 대기
+    notices: 알림
+    notice_shared: "{app} 앱이 공유되었습니다."
+    notice_update: "{app} 업데이트에 확인이 필요합니다."
+    notice_approval: "{app} 앱이 승인을 기다립니다."
+    unit: 조직
+    lock: 하위 조직 잠금
+    promotions: 플랫폼 앱 요청
+    promotion_line: "{company} · {by} · {time}"
+    no_promotions: 요청 없음
+  placeholder:
+    search: 앱 찾기
+  action:
+    install: 설치
+    update: 업데이트
+    clone: 복제
+    turn_on: 조직에 켜기
+    turn_off: 조직에서 끄기
+    recall: 회수
+    withdraw: 공유 중단
+    approve: 승인
+    promote: 플랫폼 앱 요청
+    share: 공유
+    source: 원본 보기
+    seen: 모두 확인
+    open: 보기
+  title:
+    install: 앱을 설치할까요?
+    update: 앱을 업데이트할까요?
+    clone: 내 개인 앱으로 복제할까요?
+    uninstall: 앱을 삭제할까요?
+    withdraw: 공유를 중단할까요?
+    promote: 플랫폼 앱으로 요청할까요?
+    recall: 앱을 회수할까요?
+    share: 앱 공유
+    unit: 조직 설정
+  message:
+    install_effect: "내 PC가 원본을 받아 빌드합니다.\n데이터는 내 PC에만 쌓입니다."
+    update_effect: "새 버전을 받아 빌드합니다."
+    update_grown: "새 버전이 더 많은 권한을 요구합니다."
+    clone_effect: "더 이상 업데이트를 받지 않습니다."
+    uninstall_effect: "내 PC에서 앱을 삭제합니다.\n데이터는 PC에 남습니다."
+    withdraw_effect: "새로 설치할 수 없습니다.\n이미 설치한 사람은 계속 씁니다."
+    promote_effect: "관리자가 검토한 뒤 플랫폼 앱으로 배포합니다."
+    recall_effect: "이 조직의 모든 PC에서 앱이 삭제되고, 다시 켤 수 없게 잠깁니다."
+    shared: "{app} 앱을 공유했습니다."
+  status:
+    loading: 카탈로그 불러오는 중…
+  error:
+    read_failed: 카탈로그를 불러오지 못했습니다.
+    act_failed: 요청을 처리하지 못했습니다.
+    source_failed: 원본을 불러오지 못했습니다.
+    share_failed: 공유하지 못했습니다.
+    no_runner: 앱을 실행할 PC가 없습니다.
+    unreached: "PC에 연결할 수 없습니다.\nPC가 켜져 있는지 확인해 주세요."
+    refused: PC가 이 앱을 받지 않았습니다.
+    not_found: 앱을 찾을 수 없습니다.
+    scope_withheld: 조직 설정으로 이 범위에는 공유할 수 없습니다.
+    other_company: 회사 밖으로는 공유할 수 없습니다.
+    make_withheld: 조직 설정으로 개인 앱을 만들거나 공유할 수 없습니다.
+    permission_withheld: 조직 설정으로 이 앱이 요구하는 권한을 쓸 수 없습니다.
+    install_withheld: 조직 설정으로 공유받은 앱을 설치할 수 없습니다.
+    withdrawn: 공유가 중단된 앱입니다.
+    awaiting_approval: 조직장 승인을 기다리는 앱입니다.
+    not_offered: 조직 설정으로 꺼진 앱입니다.
+    name_taken: 같은 이름의 개인 앱이 이미 있습니다.
+    locked: 조직에서 잠가 바꿀 수 없습니다.
+    forbidden: 이 작업을 할 권한이 없습니다.
+    no_user: 사용자 계정이 없어 카탈로그를 쓸 수 없습니다.
 
 # The personal apps section (docs/web.md, 「Settings」, the personal apps section): a reader's own tools, made and run on
 # their PC, each with its version, when it was put and what it may reach.

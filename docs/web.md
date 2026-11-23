@@ -1579,8 +1579,8 @@ Four groups.
     stands for the administrator and for a member the screen stands for — one who heads a unit or writes a unit's org
     memory — and for nobody else, so a member who heads nothing meets no entry there. No unit's manifest names this
     section: it is the console's own.
-  - **애플리케이션** holds every other screen a unit brings: mail, 파일, 아티팩트, 캘린더, 노트, 일정 관리
-    and 극장 among them.
+  - **애플리케이션** holds the console's own 앱 카탈로그 (「App catalogue」) and every other screen a unit brings: mail, 파일,
+    아티팩트, 캘린더, 노트, 일정 관리 and 극장 among them.
   - **내 앱** holds the screens of the reader's own personal apps (「A reader's own screens」), each under the name its
     words give it, and stands below the other three. No unit's manifest names this section, and no screen of it is
     any other reader's.
@@ -7837,7 +7837,8 @@ reader's own link of each app's `on` kind through its own routes (`GET /api/acco
 /api/account/apps/{app}`), which hand the account service the reader as the writer, so a lock above refuses the write
 there.
 
-- **One row per app offered to the reader,** an app not offered to them standing nowhere in it: the app's icon and its
+- **One row per app offered to the reader,** an app not offered to them, and another company's shared app, standing
+  nowhere in it: the app's icon and its
   name — the title its screen's bundle gives, else the app's key in the monospace face — with one muted line under it
   saying where its state comes from, and its switch at the row's end.
   - **직접 정함** where the reader set it, with 되돌리기, an icon button before the switch, that takes the reader's own
@@ -7861,6 +7862,11 @@ account the reader's user is, so a reader reaches their own apps alone.
 - **One row per app,** by its name: its entry's title where it gives one, else its name. Under it, in muted lines,
   what its entry does, when it was put, its version in the monospace face, and what it may reach beyond its own
   data — 자기 데이터만 사용 where it asks for nothing more.
+- **공유** opens the app's share, a dialog titled 앱 공유 with the app's name under it: three boxes, 팀, 상위 조직장 and 회사
+  전체, whom the app is shared with in the reader's company (「App catalogue」), each open as far as the reader's organisation
+  lets them share and the first two chosen as it opens. 공유 at its foot shares the version in place through the console's
+  own route (`POST /api/account/app-catalogue`) and closes it, one muted line under the list then saying it was shared;
+  a refusal is said in the dialog. A dialog whose choice moved asks before it closes.
 - **이전 버전으로** sends the app back to the version before the one in place, which the PC keeps; it is off where the PC
   keeps none older. It asks first, saying the version in place is deleted from the PC.
 - **삭제** asks first, naming the app and saying its source and data stay on the PC; a delete that goes through takes the
@@ -8563,9 +8569,10 @@ node's links of each app's two kinds through its own routes (`GET /api/organizat
 /api/organization/units/{unit}/apps/{app}`), handing the account service the reader as the writer, so who may change
 a link, and a lock above it, are the service's word.
 
-- **One row per app the chain holds,** in the order of their names: the app's icon and its name — the title its
-  screen's bundle gives, else the app's key in the monospace face — with one muted line under it saying how it stands
-  for the node, and its controls at the row's end, under the name where they do not fit beside it.
+- **One row per app the chain holds for the node's company,** in the order of their names — every platform app and
+  the company's own shared apps, never another company's (`docs/accounts.md`, 「An app's two settings」): the app's
+  icon and its name — the title its screen's bundle gives, else the app's key in the monospace face — with one muted
+  line under it saying how it stands for the node, and its controls at the row's end, under the name where they do not fit beside it.
   - **The state line:** 직접 정함 where the node sets it; 상위 조직을 따라 켬 or 끔 where it follows the unit above, and
     전역 설정을 따라 켬 or 끔 on a company's own row; 상위 조직에서 잠금 where a link above locks it; 제공되지 않음
     where the app is not offered to the node, its controls disabled.
@@ -8725,6 +8732,48 @@ The plans themselves are designed on 관리자's 플랜 tab (「Administration�
   and 변경 is refused them by the account service, said in the dialog.
 - The groups read on their own, each keeping its place with a skeleton while it is first read and saying its
   reason with 새로고침 where its read failed, as every tab of this screen does (「Organisation」).
+
+### App catalogue
+
+The personal apps people of the reader's company share (the agency's `docs/person-nodes.md`, 「Shared apps」): each one
+another person's BMO made on their PC and shared into the company's catalogue, which the reader installs on their own PC,
+a head turns on for a unit and recalls there. Nothing of another company stands in it. It stands at `/app-catalogue` in
+the sidebar's 애플리케이션 and opens to every person with a user of the account service; the console reads and changes it
+through its own routes under `/api/account/app-catalogue`, which ask the agency for the account the reader's user is,
+so a reader sees and does what their own account may alone, and the agency's word is what every control shows.
+
+- **A search and a filter stand over the list,** on one row: 앱 찾기, matching an app's title, its description and its
+  name as the reader types, and 공유 범위 — 전체, 팀, 상위 조직장, 회사 전체 and 직접 지정 — leaving the apps shared with
+  that scope, 직접 지정 being those shared with a person, a group or a unit by name.
+- **알림 stands above the list where the reader has any,** one row each with 보기, which opens the app: an app shared
+  with the reader since they last looked, `{app} 앱이 공유되었습니다.`; a copy waiting for them to confirm what its new
+  version asks for, `{app} 업데이트에 확인이 필요합니다.`; and a version waiting for their approval as a head,
+  `{app} 앱이 승인을 기다립니다.`. 모두 확인 beside the heading keeps that they looked, and the shared ones go.
+- **One row per app,** in the order of their titles, a press opening its details: its title, and under it who made it
+  and what it does; then its states as icons, each named by its tooltip — 공유 중단됨, 승인 대기, 업데이트 있음, and
+  설치됨 or 조직에서 설치 where the reader holds a copy — and how many installed it, in a column of its own at the row's
+  end. None says 공유된 앱 없음. The rows keep their place with a
+  skeleton while they are first read, and a read that failed says its reason with 새로고침.
+- **The details open in a dialog titled with the app's name:** its description; 만든 사람, 버전, 공유 시각, 설치, 공유
+  대상 and 요구 권한 as a list of names and values, 요구 권한 saying 자기 데이터만 사용 where it asks for nothing more,
+  with a menu beside it of the acts the reader may take besides installing; 조직 설정 for a head; 검토 보고서, the review
+  the agency's reviewer wrote, 검토 중 while it is written; and 원본, whose 원본 보기 reads the version's source and shows
+  every file under its path in a coloured code block. 설치, or 업데이트 where the reader's copy has a newer version, stands
+  in the dialog's foot. What the reader may do is the agency's word alone.
+  - **설치** asks first, naming the app, what it asks for and that the reader's PC fetches its source and builds it with
+    its data staying there; then the copy is installed.
+  - **업데이트** moves the reader's copy onto the newest version, asked first, saying where the new version asks for more
+    than the copy did; a version asking for nothing more reaches the copy by itself as the reader's PC is next heard.
+  - **The menu** holds 승인, which approves the newest version, for a head of the maker's unit where the organisation
+    asks for one; 복제, which makes the copy the reader's own personal app, receiving no update again; 플랫폼 앱 요청,
+    which asks the administrator to make it a platform app; and, in the error colour, 삭제, which takes the copy off the
+    reader's PC, its data staying there, and 공유 중단, the owner's or the maker's, saying nobody installs it from then
+    and every copy goes on. Each but 승인 asks first, and a lock of the organisation's refuses 복제 and 삭제.
+  - **조직 설정**, for a head: 하위 조직 잠금, a switch, and a row naming one of the units they head on their path in a
+    list, the nearest first chosen, with three icon buttons beside it — 조직에 켜기, 조직에서 끄기 and, in the error colour,
+    회수. 조직에 켜기 turns the app on for everyone under the unit, locked where the switch says so, and their PCs install
+    it; 회수, asked first, takes it off every PC under the unit and locks it off there.
+  - A refusal is said in the dialog under the acts, and every act answers the app as it then stands.
 
 ### Administration
 
@@ -8928,6 +8977,10 @@ administrator's alone: `GET /api/admin/apps`, `PUT /api/admin/apps/{app}` for th
     and not listed.
   - While the app is recalled, 상태 and 하위 조직 잠금 stand disabled.
   - A refusal is said under its row, which goes back to what stood.
+- **플랫폼 앱 요청** stands under the apps: every company's request to make a shared personal app a platform app (「App
+  catalogue」), newest first, each a row of the app's title with the company, who asked and when under it, and the note
+  they gave; 요청 없음 where none stands. The administrator reads the app's source and, where it is to ship, puts it as a
+  platform tool (bmo-pocket's `docs/catalogue.md`, 「A promotion」).
 - **긴급 회수 turns the app off everywhere at once:** the platform's link of its on holds 끔 and a lock, so every
   company, unit and person under it is off whatever they said, and any platform rule turning it on for someone is
   taken away. A screen of it meets 403 `app-off` at its next relayed call and leaves every reader's list at their next

@@ -1236,6 +1236,7 @@ screens:
     siren: Cache siren
     rooms: Rooms
     brain: Brain
+    catalogue: App catalogue
     todo_description: Queue and pending approvals
   placeholder:
     find: "Find a screen, room or agent"
@@ -4160,6 +4161,106 @@ apps:
     no_app: App not found.
     read_failed: "Couldn't load app settings."
     failed: "Couldn't save app settings."
+# The app catalogue (docs/web.md, 「App catalogue」): the personal apps a company's people share, the share dialog of
+# the personal apps section and the administrator's platform app requests.
+app_catalogue:
+  label:
+    none: No shared apps
+    scope: Shared with
+    scope_all: All
+    scope_team: Team
+    scope_heads: Heads above
+    scope_company: Whole company
+    scope_direct: Named directly
+    maker: Made by
+    version: Version
+    shared: Shared
+    installs: Installs
+    installs_count: "{count} installed"
+    targets: Shared with
+    permissions: Permissions
+    permissions_line: "Permissions: {permissions}"
+    own_data: Uses only its own data
+    network: "Uses the network {addresses}"
+    secrets: "Uses secrets {names}"
+    review: Review report
+    review_pending: Being reviewed
+    review_failed: The review report could not be written.
+    source: Source
+    installed: Installed
+    installed_unit: Installed by the organisation
+    update_waiting: Update available
+    withdrawn: Sharing stopped
+    awaiting_approval: Awaiting approval
+    notices: Notices
+    notice_shared: "{app} was shared with you."
+    notice_update: "{app}'s update needs your confirmation."
+    notice_approval: "{app} awaits your approval."
+    unit: Organisation
+    lock: Lock below
+    promotions: Platform app requests
+    promotion_line: "{company} · {by} · {time}"
+    no_promotions: No requests
+  placeholder:
+    search: Find an app
+  action:
+    install: Install
+    update: Update
+    clone: Clone
+    turn_on: Turn on
+    turn_off: Turn off
+    recall: Recall
+    withdraw: Stop sharing
+    approve: Approve
+    promote: Request platform app
+    share: Share
+    source: View source
+    seen: Mark all read
+    open: View
+  title:
+    install: Install the app?
+    update: Update the app?
+    clone: Clone it as your own personal app?
+    uninstall: Delete the app?
+    withdraw: Stop sharing it?
+    promote: Request it as a platform app?
+    recall: Recall the app?
+    share: Share the app
+    unit: Organisation
+  message:
+    install_effect: "Your PC fetches the source and builds it.\nIts data stays on your PC."
+    update_effect: "Your PC fetches the new version and builds it."
+    update_grown: "The new version asks for more permissions."
+    clone_effect: "It no longer receives updates."
+    uninstall_effect: "The app is deleted from your PC.\nIts data stays on the PC."
+    withdraw_effect: "Nobody can install it from now on.\nThose who installed it keep using it."
+    promote_effect: "The administrator reviews it and ships it as a platform app."
+    recall_effect: "The app is deleted from every PC of the organisation, and locked off."
+    shared: "Shared {app}."
+  status:
+    loading: Loading the catalogue…
+  error:
+    read_failed: The catalogue could not be loaded.
+    act_failed: The request could not be done.
+    source_failed: The source could not be loaded.
+    share_failed: The app could not be shared.
+    no_runner: There is no PC to run the app on.
+    unreached: "The PC can't be reached.\nCheck that it's on."
+    refused: The PC did not take the app.
+    not_found: The app can't be found.
+    scope_withheld: Your organisation does not let you share that widely.
+    other_company: Apps can't be shared outside the company.
+    make_withheld: Your organisation does not let you make or share personal apps.
+    permission_withheld: Your organisation does not allow what this app asks for.
+    install_withheld: Your organisation does not let you install shared apps.
+    withdrawn: Sharing of this app has stopped.
+    awaiting_approval: This app awaits a head's approval.
+    not_offered: This app is turned off by your organisation's settings.
+    name_taken: You already have a personal app of that name.
+    locked: Your organisation locked it.
+    forbidden: You may not do this.
+    no_user: There is no user account, so the catalogue can't be used.
+
 personal_apps:
   label:
     none: No personal apps

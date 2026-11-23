@@ -142,7 +142,8 @@ describe("a console route as another user meets it", () => {
   });
 
   // docs/accounts.md, 「Who changes a link」: the account service decides who writes which link of the delegation chain,
-  // so the console's scope lets every member ask for a unit's apps and their own, whatever sections they hold.
+  // so the console's scope lets every member ask for a unit's apps and their own, and their company's catalogue of shared
+  // apps, whatever sections they hold.
   test("a member asks for a unit's apps and their own, the account service deciding", async () => {
     service.sections.set(4, new Map());
     session = { user: { name: "no-account", id: 4 }, sid: "bmo.sid=no-account", administrator: false };
@@ -154,7 +155,14 @@ describe("a console route as another user meets it", () => {
       { file: "account/apps/[app].put", method: "PUT", path: "/api/account/apps/app-a" },
       { file: "account/personal-apps.get", method: "GET", path: "/api/account/personal-apps" },
       { file: "account/personal-apps/[name]/back.post", method: "POST", path: "/api/account/personal-apps/weekly/back" },
-      { file: "account/personal-apps/[name].delete", method: "DELETE", path: "/api/account/personal-apps/weekly" }
+      { file: "account/personal-apps/[name].delete", method: "DELETE", path: "/api/account/personal-apps/weekly" },
+      { file: "account/app-catalogue.get", method: "GET", path: "/api/account/app-catalogue" },
+      { file: "account/app-catalogue.post", method: "POST", path: "/api/account/app-catalogue" },
+      { file: "account/app-catalogue/seen.post", method: "POST", path: "/api/account/app-catalogue/seen" },
+      { file: "account/app-catalogue/[id]/source.get", method: "GET", path: "/api/account/app-catalogue/17-weekly/source" },
+      { file: "account/app-catalogue/[id]/install.post", method: "POST", path: "/api/account/app-catalogue/17-weekly/install" },
+      { file: "account/app-catalogue/[id]/install.delete", method: "DELETE", path: "/api/account/app-catalogue/17-weekly/install" },
+      { file: "account/app-catalogue/[id]/units/[unit].post", method: "POST", path: "/api/account/app-catalogue/17-weekly/units/40" }
     ]) {
       expect({ route: route.file, status: await answer(route) }).toEqual({ route: route.file, status: 200 });
     }

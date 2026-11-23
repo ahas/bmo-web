@@ -1135,6 +1135,12 @@ Each is declared by the module that uses it, as the service stands, under the un
   - `app.<key>.on`, whether the app is on: a flag, `nearest`, at the platform, units and people, a person's link
     written by the person and by their heads alike (`personWriter` `both`), its default what a new app starts at.
     A unit that locks it decides it for everyone under it.
+- **A person's own personal app shared with their company is an app of that company alone** (bmo-pocket's
+  `docs/catalogue.md`, 「The app on the delegation chain」): its key is `shared-<company>-…`, the company it was shared
+  in, and the issuer offers it to that company by the platform's rule. Every list a person or a unit is shown — their
+  own apps, a unit's — holds the platform's apps and their own company's shared apps and never another company's, not
+  even as one not offered, and a write naming another company's is refused as no app; the platform administrator's
+  list of every app holds them all.
 - **An app is usable by a person where both resolve true for them;** a kind nobody declared says nothing against
   it. Every consumer asks both afresh as it acts — the console as it lists a reader's screens and relays each call
   (`docs/web.md`, 「Screens a unit brings」), the issuer of a session as it hands one its tools — and keeps no answer.

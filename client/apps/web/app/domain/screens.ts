@@ -57,6 +57,9 @@ export interface Screen {
   // Whether the screen is the administrator's alone, so no member's shell lists it and no section grants it
   // (docs/web.md, 「Administration」).
   administrator?: true;
+  // Whether every person with a user opens the screen, what it shows being their own account's, so no section grants
+  // it (docs/web.md, 「App catalogue」).
+  everyone?: true;
   // Whether the screen's entry carries a sidebar count, which the console reads itself (bmo-ui's
   // `docs/console-bundles.md`, the sidebar count; docs/web.md, 「Sidebar」). Only a screen a unit brings whose
   // manifest names one carries it.
@@ -116,6 +119,9 @@ export const SCREENS: readonly Screen[] = [
   { label: "screens.label.monitor", to: "/monitor", icon: "i-material-symbols-monitor-heart-outline", nested: true, tabs: MONITOR_TABS, feature: "monitor", section: "administration" },
   // The organisation and the people in it, a tab to a section, the one entry of the organisation's section.
   { label: "screens.label.organization", to: ORGANIZATION_PATH, icon: "i-material-symbols-domain", nested: false, tabs: ORGANIZATION_TABS, unitKeepers: true, feature: "organizations", section: "organization" },
+  // The personal apps the reader's company shares, as the reader may see them: browsed, installed, turned on for a unit
+  // and recalled.
+  { label: "screens.label.catalogue", to: "/app-catalogue", icon: "i-material-symbols-apps", nested: false, everyone: true, feature: "organizations", section: "application" },
   // What is set for the platform itself, the administrator's alone: the providers and the secret kinds.
   { label: "screens.label.admin", to: ADMIN_PATH, icon: "i-material-symbols-shield-person-outline", nested: false, tabs: ADMIN_TABS, administrator: true, section: "administration" }
 ];

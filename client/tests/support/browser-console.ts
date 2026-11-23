@@ -82,6 +82,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["sidebar-sections", "fixture-password-3051"],
   ["personal-apps", "fixture-password-4101"],
   ["personal-screens", "fixture-password-4102"],
+  ["app-catalogue", "fixture-password-4103"],
   ["monitor-polling", "fixture-password-2372"],
   ["monitor-nodes", "fixture-password-3688"],
   ["todo-models", "fixture-password-2298"],

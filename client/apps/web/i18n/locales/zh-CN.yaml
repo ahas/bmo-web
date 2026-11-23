@@ -1236,6 +1236,7 @@ screens:
     siren: 缓存警报
     rooms: 房间
     brain: Brain
+    catalogue: 应用目录
     todo_description: 队列与待审批
   placeholder:
     find: 查找界面·房间·智能体
@@ -4196,6 +4197,106 @@ apps:
     no_app: 找不到该应用。
     read_failed: 无法加载应用设置。
     failed: 无法保存应用设置。
+# The app catalogue (docs/web.md, 「App catalogue」): the personal apps a company's people share, the share dialog of
+# the personal apps section and the administrator's platform app requests.
+app_catalogue:
+  label:
+    none: 没有共享的应用
+    scope: 共享范围
+    scope_all: 全部
+    scope_team: 团队
+    scope_heads: 上级负责人
+    scope_company: 全公司
+    scope_direct: 直接指定
+    maker: 创建者
+    version: 版本
+    shared: 共享时间
+    installs: 安装
+    installs_count: "{count} 人已安装"
+    targets: 共享对象
+    permissions: 所需权限
+    permissions_line: "所需权限：{permissions}"
+    own_data: 仅使用自己的数据
+    network: "使用网络 {addresses}"
+    secrets: "使用密钥 {names}"
+    review: 审查报告
+    review_pending: 审查中
+    review_failed: 未能写出审查报告。
+    source: 源代码
+    installed: 已安装
+    installed_unit: 组织安装
+    update_waiting: 有更新
+    withdrawn: 已停止共享
+    awaiting_approval: 等待批准
+    notices: 通知
+    notice_shared: "{app} 已共享给你。"
+    notice_update: "{app} 的更新需要你确认。"
+    notice_approval: "{app} 正在等待批准。"
+    unit: 组织
+    lock: 锁定下级组织
+    promotions: 平台应用申请
+    promotion_line: "{company} · {by} · {time}"
+    no_promotions: 没有申请
+  placeholder:
+    search: 查找应用
+  action:
+    install: 安装
+    update: 更新
+    clone: 复制
+    turn_on: 为组织开启
+    turn_off: 为组织关闭
+    recall: 收回
+    withdraw: 停止共享
+    approve: 批准
+    promote: 申请平台应用
+    share: 共享
+    source: 查看源代码
+    seen: 全部已读
+    open: 查看
+  title:
+    install: 要安装此应用吗？
+    update: 要更新此应用吗？
+    clone: 要复制为你的个人应用吗？
+    uninstall: 要删除此应用吗？
+    withdraw: 要停止共享吗？
+    promote: 要申请为平台应用吗？
+    recall: 要收回此应用吗？
+    share: 共享应用
+    unit: 组织设置
+  message:
+    install_effect: "你的 PC 会获取源代码并构建。\n数据只保存在你的 PC 上。"
+    update_effect: "会获取新版本并构建。"
+    update_grown: "新版本需要更多权限。"
+    clone_effect: "之后不再接收更新。"
+    uninstall_effect: "将从你的 PC 删除此应用。\n数据会保留在 PC 上。"
+    withdraw_effect: "之后无法再安装。\n已安装的人可以继续使用。"
+    promote_effect: "管理员审查后将作为平台应用发布。"
+    recall_effect: "将从该组织的所有 PC 删除此应用，并锁定为关闭。"
+    shared: "已共享 {app}。"
+  status:
+    loading: 正在加载目录…
+  error:
+    read_failed: 无法加载目录。
+    act_failed: 无法处理请求。
+    source_failed: 无法加载源代码。
+    share_failed: 无法共享。
+    no_runner: 没有可运行应用的 PC。
+    unreached: "无法连接到 PC。\n请确认 PC 已开启。"
+    refused: PC 未接受此应用。
+    not_found: 找不到此应用。
+    scope_withheld: 根据组织设置，无法共享到此范围。
+    other_company: 无法共享到公司以外。
+    make_withheld: 根据组织设置，无法创建或共享个人应用。
+    permission_withheld: 根据组织设置，无法使用此应用所需的权限。
+    install_withheld: 根据组织设置，无法安装共享的应用。
+    withdrawn: 此应用已停止共享。
+    awaiting_approval: 此应用正在等待负责人批准。
+    not_offered: 此应用已按组织设置关闭。
+    name_taken: 已有同名的个人应用。
+    locked: 组织已锁定，无法更改。
+    forbidden: 你无权执行此操作。
+    no_user: 没有用户账户，无法使用目录。
+
 personal_apps:
   label:
     none: 无个人应用

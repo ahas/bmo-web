@@ -112,6 +112,12 @@
   {names}`. Never 나만의 앱, 커스텀 도구, 롤백, 복원.
 - the screens of a person's own apps, as the sidebar groups them → 내 앱; a screen of one that cannot open because the
   person's PC does not answer → `PC가 꺼져 있어 열 수 없습니다.` Never 오프라인, 연결 끊김 for it.
+- the company's shelf of shared personal apps → 앱 카탈로그; sharing one → 공유, whom with → 공유 대상, the three scopes →
+  팀, 상위 조직장, 회사 전체, and one named by hand → 직접 지정; putting a copy on one's PC → 설치 (설치됨, 조직에서 설치 where a
+  head's turning on did), moving it to the newest → 업데이트, making it one's own → 복제; the owner ending a share →
+  공유 중단 (공유 중단됨); a head turning it on for a unit → 조직에 켜기, off → 조직에서 끄기, taking it off every PC there →
+  회수; the reviewer's text → 검토 보고서 (검토 중 while it is written); a head's consent → 승인 (승인 대기); the request to
+  ship it for every company → 플랫폼 앱 요청; what it asks for → 요구 권한. Never 스토어, 마켓, 배포 for a share, 철회, 롤백.
 - the platform's word on an app on 관리자 → 전역 설정, its choices 제공 or 제공 안 함 and 켬 or 끔; the platform's word for
   one company or unit → 회사별 제공; a row's line → 모든 회사에 제공 (`{n}곳 제외` after it), `{n}곳에 제공` or 제공하지
   않음, a company or a unit counted by 곳. Turning an app off everywhere at once → 긴급 회수, its question
@@ -693,3 +699,4 @@
 - 아티팩트 → artifact / アーティファクト / 制品.
 - 인물 (the person an org memory is about) → person / 人物 / 人员.
 - 전역 베이스 → global base / グローバルベース / 全局库.
+- 앱 카탈로그 → app catalogue / アプリカタログ / 应用目录; 회수 → recall / 回収 / 收回; 복제 → clone / 複製 / 复制.

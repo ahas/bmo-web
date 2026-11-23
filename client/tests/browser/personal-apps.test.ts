@@ -82,7 +82,7 @@ async function press(page: Page, control: Locator, phone: boolean): Promise<void
 describe.skipIf(!origin || !touchReady())("the personal apps section", () => {
   for (const [width, height, phone] of [[1280, 900, false], [360, 780, true]] as const) {
     test(`shows each app and sends one back and deletes another once asked, ${width}px wide`, async () => {
-      const context = await browser!.newContext({ viewport: { width, height }, isMobile: phone, hasTouch: phone, serviceWorkers: "block", reducedMotion: "reduce" });
+      const context = await browser!.newContext({ viewport: { width, height }, isMobile: phone, hasTouch: phone, locale: "ko-KR", serviceWorkers: "block", reducedMotion: "reduce" });
       const at = cookie.indexOf("=");
       const asked: string[] = [];
       let standing = apps();

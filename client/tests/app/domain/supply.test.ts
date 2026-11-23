@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test";
 import {
   NO_PLAN,
   applyChoices,
+  loginStatus,
   meSetting,
   movedSourceOrder,
   orderRows,
@@ -16,6 +17,7 @@ import {
 
 import { globalsRestoredAfter } from "../../support/globals";
 
+import type { ClaudeAccountView } from "../../../apps/web/shared/types";
 import type { GatewayMember, SupplySourceState } from "../../../apps/web/shared/supply";
 
 // Supply as the console's screens read it (docs/web.md, 「Settings」, the supply section; 「Organisation」, the plans
@@ -160,5 +162,29 @@ describe("an organisation's plans", () => {
     const end = Date.UTC(2026, 11, 1, 12);
 
     expect(planTermText(t, { since, periodEnd: end })).toBe('supply.label.plan_term_line{"since":"2026-11-01","end":"2026-12-01"}');
+  });
+});
+
+describe("what one's own Claude login can do now", () => {
+  const login = (over: Partial<ClaudeAccountView>): ClaudeAccountView => ({
+    id: "mine",
+    name: "mine",
+    place: 1,
+    enabled: true,
+    credentialKind: "directory",
+    credentialPath: "/home/one/.claude",
+    login: "standing",
+    loginEndsAt: null,
+    chosen: false,
+    restUntil: null,
+    ...over
+  });
+
+  test("a login never signed in on the agency's machine says it is not signed in", () => {
+    expect(loginStatus(t, login({ login: "none" }), 0)).toMatchObject({ label: "supply.label.login_none", tone: "text-error" });
+  });
+
+  test("a standing login goes out", () => {
+    expect(loginStatus(t, login({}), 0).label).toBe("supply.label.usable");
   });
 });

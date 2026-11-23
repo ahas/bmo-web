@@ -42,14 +42,14 @@ export function accountKindLabel(t: Translate, kind: ClaudeAccountView["credenti
   return key === undefined ? kind : t(key);
 }
 
-// The mark a row carries: a standing login, one near its end, one that waits for a person — and a
-// login the owner turned off, which answers nothing whatever its own standing.
+// The mark a row carries: a standing login, one near its end, one that waits for a person or was never
+// signed in here — and a login the owner turned off, which answers nothing whatever its own standing.
 export function accountMark(account: ClaudeAccountView): { icon: string; tone: string } {
   if (!account.enabled) {
     return { icon: "i-material-symbols-block", tone: "text-muted" };
   }
 
-  if (account.login === "gone") {
+  if (account.login === "gone" || account.login === "none") {
     return { icon: "i-material-symbols-error-outline", tone: "text-error" };
   }
 
@@ -60,9 +60,13 @@ export function accountMark(account: ClaudeAccountView): { icon: string; tone: s
   return { icon: "i-material-symbols-check-circle-outline", tone: "text-success" };
 }
 
-// What a row says about its login in words: a login that needs a person says so, one near its end
-// says how long is left, and one that simply stands says nothing at all.
+// What a row says about its login in words: a login never signed in here says so, one that needs a person
+// says so, one near its end says how long is left, and one that simply stands says nothing at all.
 export function accountLoginText(t: Translate, account: ClaudeAccountView, now: number): string {
+  if (account.login === "none") {
+    return t("agents.label.login_none");
+  }
+
   if (account.login === "gone") {
     return t("agents.label.login_needed");
   }

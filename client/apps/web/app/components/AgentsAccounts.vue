@@ -41,7 +41,7 @@
           </span>
           <span class="text-sm text-muted" data-account-owner>{{ ownerText(t, one.userId, props.names) }}</span>
           <span v-if="loginText(one) !== ''" class="flex flex-wrap items-center gap-2" data-account-marks>
-            <UBadge :color="one.login === 'gone' ? 'error' : 'warning'" variant="subtle" size="sm" :label="loginText(one)" />
+            <UBadge :color="one.login === 'gone' || one.login === 'none' ? 'error' : 'warning'" variant="subtle" size="sm" :label="loginText(one)" />
           </span>
           <!-- A path is allowed to run past its width and scrolls inside itself, as a worker's
                working directory does. -->

@@ -2910,6 +2910,7 @@ agents:
     line_word: Sent message
     login_expires: "Expires {time}"
     login_needed: Sign-in required
+    login_none: Not signed in
     model_bytes: Bytes
     model_file: File name
     model_source: Download URL
@@ -4361,6 +4362,7 @@ supply:
     usable_off: Not in use
     login_off: "Off"
     login_needed: Login required
+    login_none: Not signed in
     window_full: Window full
     refused: Key refused
     personal_credit_cap: Personal credit monthly cap

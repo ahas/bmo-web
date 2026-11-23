@@ -7795,7 +7795,7 @@ a row shows of a key is the secret's name, and of a login the path it is reached
   공급 the platform has not opened to the reader's company says too; where nobody did, nothing. The reader writes none
   of the three, their heads do, so no row carries a control. The group reads on its own beside the others.
 - **공급 로그인** lists the reader's Claude logins in the order their runs walk them, one row each: the name, its
-  place in the order, its state in one word — 사용 가능, 창 가득 참, 로그인 필요 — and its switch. The arrows move
+  place in the order, its state in one word — 사용 가능, 창 가득 참, 로그인 필요, 로그인 안 됨 — and its switch. The arrows move
   one row, the whole order written as it is dropped; a refusal leaves the order the agency holds. 로그인 추가 at
   the heading's end asks a name and starts the sign-in the agency runs on the reader's own node: the box opens the
   sign-in's address in the reader's browser, the code that page shows is pasted into 인증 코드 and handed back with
@@ -8846,8 +8846,9 @@ company is offered and their recall. No member opens it.
   공급자 is, with 계정 추가 at the heading's right end, which opens the add form below. The address `/admin#accounts`
   names the group: the tab opens with it brought to the top of the body once it stands, which is where the title
   bar's usage panel leads (「Usage in the title bar」). Its rows are parted by hairlines with no box round them, one row each: a drag
-  handle, the place in the order, a mark saying whether that login is standing, near its end or gone — a login near
-  its end also carrying how long is left, and one that has ended carrying 로그인 필요 — the name the owner gave it,
+  handle, the place in the order, a mark saying whether that login is standing, near its end, gone or never signed in on the agency's
+  machine — a login near its end also carrying how long is left, one that has ended carrying 로그인 필요, and one
+  the agency holds no login for there (its `login` of `none`) carrying 로그인 안 됨 — the name the owner gave it,
   where its credential is reached, a configuration directory or a token file shown as that path, the up and down
   arrows, the row's more-menu and the enable switch. Under the name stands its 소유, 공용 or 개인 with the owning
   person's name after a middle dot, read off the account's `userId` (the agency's `docs/supply.md`, 「Owned

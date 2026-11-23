@@ -36,6 +36,10 @@ describe("the mark a row carries", () => {
     expect(accountMark(account({ login: "gone" })).tone).toBe("text-error");
   });
 
+  test("says a login never signed in on the agency's machine as one that cannot answer", () => {
+    expect(accountMark(account({ login: "none", loginEndsAt: null }))).toMatchObject({ icon: "i-material-symbols-error-outline", tone: "text-error" });
+  });
+
   test("says a login the owner turned off before anything about the login itself", () => {
     expect(accountMark(account({ enabled: false, login: "gone" }))).toMatchObject({ icon: "i-material-symbols-block", tone: "text-muted" });
   });
@@ -54,6 +58,10 @@ describe("what a row says about a login in words", () => {
   test("one that has ended, or whose end has passed, asks for a login", () => {
     expect(accountLoginText(wording, account({ login: "gone" }), now)).toBe(wording("agents.label.login_needed"));
     expect(accountLoginText(wording, account({ login: "ending", loginEndsAt: now - 60 }), now)).toBe(wording("agents.label.login_needed"));
+  });
+
+  test("one never signed in on the agency's machine says it is not signed in", () => {
+    expect(accountLoginText(wording, account({ login: "none", loginEndsAt: null }), now)).toBe(wording("agents.label.login_none"));
   });
 
   test("one near its end whose end nothing can read says nothing rather than guessing", () => {

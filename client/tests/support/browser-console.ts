@@ -355,7 +355,8 @@ const ACTIVITY_AGENT = "scout-12";
 const activity = { account: 0 };
 
 // The Claude accounts the agency holds, with what each has left (docs/web.md, 「Administration」, the providers tab):
-// two accounts on, one with a weekly window nearly spent and one with both windows, and a third off; the provider list
+// two accounts on, one with a weekly window nearly spent and one with both windows, a third off, and a fourth whose CLI
+// was never signed in on the agency's machine; the provider list
 // beside them keeps a road with a balance and a request allowance. The second account belongs to the activity person,
 // the rest to the platform.
 function usageFallback(): Record<string, unknown> {
@@ -371,7 +372,8 @@ function usageFallback(): Record<string, unknown> {
     accounts: [
       account("acct-a", "claude-01", 1, { restUntil: now + 2 * 86_400 }),
       account("acct-b", "claude-02", 2, { chosen: true, serving: true, userId: activity.account }),
-      account("acct-c", "claude-03", 3, { enabled: false })
+      account("acct-c", "claude-03", 3, { enabled: false }),
+      account("acct-d", "claude-04", 4, { login: "none" })
     ]
   };
 }

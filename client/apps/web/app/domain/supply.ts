@@ -56,11 +56,16 @@ export function sourceReasonText(t: Translate, reason: SupplyReason): string {
   return t(keys[reason]);
 }
 
-// What one's own Claude login can do now, in the pack's word: a login that has ended needs a person, one the
-// windows have filled needs waiting, an off one is only switched back on, and the rest go out.
+// What one's own Claude login can do now, in the pack's word: a login never signed in says so, a login that has
+// ended needs a person, one the windows have filled needs waiting, an off one is only switched back on, and the
+// rest go out.
 export function loginStatus(t: Translate, account: ClaudeAccountView, nowSeconds: number): { label: string; tone: string; icon: string } {
   if (!account.enabled) {
     return { label: t("supply.label.login_off"), tone: "text-muted", icon: "i-material-symbols-block-outline" };
+  }
+
+  if (account.login === "none") {
+    return { label: t("supply.label.login_none"), tone: "text-error", icon: "i-material-symbols-error-outline" };
   }
 
   if (account.login === "gone") {

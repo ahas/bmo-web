@@ -2940,6 +2940,7 @@ agents:
     line_word: 已发送的消息
     login_expires: "{time} 过期"
     login_needed: 需要登录
+    login_none: 未登录
     model_bytes: 字节数
     model_file: 文件名
     model_source: 下载地址
@@ -4399,6 +4400,7 @@ supply:
     usable_off: 不使用
     login_off: 已关闭
     login_needed: 需要登录
+    login_none: 未登录
     window_full: 窗口已满
     refused: 密钥被拒绝
     personal_credit_cap: 个人积分每月上限

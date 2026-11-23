@@ -2034,8 +2034,8 @@ export interface ClaudeAccountView {
   userId?: number | string | null;
 }
 
-/** How a login is standing: answering, near its end, or gone. */
-export type LoginStanding = "standing" | "ending" | "gone";
+/** How a login is standing: held nowhere on the agency's machine, answering, near its end, or gone. */
+export type LoginStanding = "none" | "standing" | "ending" | "gone";
 
 // The agency holds more than one Claude login, and each of them is an account: a name the owner gives it, a
 // place in the account order, an on/off, and where its credential is reached. The Claude Code

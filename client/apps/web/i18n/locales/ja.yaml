@@ -2940,6 +2940,7 @@ agents:
     line_word: 送信したメッセージ
     login_expires: "{time} に期限切れ"
     login_needed: ログインが必要
+    login_none: 未ログイン
     model_bytes: バイト数
     model_file: ファイル名
     model_source: ダウンロード URL
@@ -4399,6 +4400,7 @@ supply:
     usable_off: 使用しない
     login_off: オフ
     login_needed: ログインが必要
+    login_none: 未ログイン
     window_full: 枠が上限
     refused: キー拒否
     personal_credit_cap: 個人クレジットの月間上限

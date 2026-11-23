@@ -83,6 +83,8 @@ async function holdsFigures(page: Page): Promise<void> {
   // No row is marked as the one in use and no line names it: the account runs go out on carries no badge.
   await expect(page.locator("[data-choice-note]").count()).resolves.toBe(0);
   await expect(page.locator('[data-account="acct-b"] [data-account-marks]').count()).resolves.toBe(0);
+  // A login never signed in on the agency's machine says so on its row, never standing as signed in.
+  expect(await texts(page.locator('[data-account="acct-d"] [data-account-marks]'))).toEqual([wording("agents.label.login_none")]);
 
   // A provider whose figures are its accounts' stands none of its own; a road's balance and allowance stand on its row.
   await expect(page.locator('[data-provider="claude-code"] [data-provider-usage]').count()).resolves.toBe(0);

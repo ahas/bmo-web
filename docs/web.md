@@ -7933,12 +7933,12 @@ research screen (「Research screen」).
   - **A link naming a person but no organisation** — a person's tab from before the list, the console search's
     person — opens the organisation that person stands in.
 - **Inside the organisation chosen, a tab to a section.** The tabs are 조직도, 사용자, 직책·종류, 초대, BMO, 에이전트,
-  앱·도구, 조직 기억, 공급 and 플랜, keyed in the address as `?tab=` with `people`, `catalogue`, `invites`, `agent`,
-  `agents`, `apps`, `memory`, `supply` and `plans`, 조직도
+  앱·도구, 아티팩트 저장, 조직 기억, 공급 and 플랜, keyed in the address as `?tab=` with `people`, `catalogue`, `invites`, `agent`,
+  `agents`, `apps`, `storage`, `memory`, `supply` and `plans`, 조직도
   being the organisation's own address; a shared link opens the same tab, moving between tabs is a step of the
   history and keeps the organisation chosen, and a key naming no tab the reader may open opens the first they may.
   Every tab reads and writes the company of the node chosen alone, and a tab that stands for one unit — 조직도,
-  사용자, 초대, BMO, 에이전트, 앱·도구 and 조직 기억 — stands for the node chosen, the company itself where a company is chosen; none of
+  사용자, 초대, BMO, 에이전트, 앱·도구, 아티팩트 저장 and 조직 기억 — stands for the node chosen, the company itself where a company is chosen; none of
   them chooses an organisation or a unit of its own.
   The console search finds each tab as it finds every screen's, and the sidebar's 조직 section lists each tab the
   reader opens as an entry of its own (「Sidebar」).
@@ -7949,8 +7949,8 @@ research screen (「Research screen」).
   rather than stepped, so the back gesture does not return to the old key.
 - **Who opens it.** The administrator opens every tab, and the sidebar's 조직 section lists each for them. A member who heads a unit may invite into it (`docs/accounts.md`, 「Invitations and a person's
   machine」), sets who under it may personalise their BMO (`docs/accounts.md`, 「A person's BMO profile」) and which
-  apps stand on under it (「앱·도구」), and sets the agents of the people under it (「에이전트」), so their shell's 조직
-  section lists the tabs they open and the screen holds 초대, BMO, 에이전트, 앱·도구 and 조직 기억, 에이전트 standing
+  apps stand on under it (「앱·도구」), and sets the agents of the people under it (「에이전트」) and where their documents are kept (「아티팩트 저장」), so their shell's 조직
+  section lists the tabs they open and the screen holds 초대, BMO, 에이전트, 앱·도구, 아티팩트 저장 and 조직 기억, 에이전트 and 아티팩트 저장 standing
   where they head a unit of the organisation chosen, and 사용자 and 직책·종류 where they head a company
   (「사용자」, 「직책·종류」). A member granted a unit's org memory write without heading one (`docs/accounts.md`, 「A unit's
   org memory」) is listed the 조직 section as well, with the companies of those units, and the screen holds 조직 기억 for them beside
@@ -8531,6 +8531,26 @@ a link, and a lock above it, are the service's word.
   stood. It reaches the people under the node at their next relayed call and their next read of the screens.
 - **None held says 앱 없음.** The rows keep their place with a skeleton while they are first read, and a read that
   failed says its reason with 새로고침, as every tab of this screen does.
+
+#### 아티팩트 저장
+
+- **It sets where the documents of the people under the node chosen are kept,** the company where none is chosen
+  (bmo-artifact's `docs/artifact.md`, 「Places」): the delegation chain's setting `artifact.storage`, bmo-artifact's
+  kind. The administrator opens it, and so does every member who heads a unit; a head reads and writes their own
+  units', the administrator every unit's, and anyone else is told they may not set it.
+- **저장 위치** says the place standing for the unit: its own, or 위를 따라 `{place}` where it follows above, 이 서버 being
+  what nothing set runs on. A place is shown by its word, 이 서버 for the local place and SharePoint for a SharePoint
+  library, and by the name bmo-artifact gives it where the pack has no word. The settings of the place shown stand
+  under it, one row each — for SharePoint 사이트 ID, 드라이브 ID, 폴더 and 토큰 계정, 문서 주인 where no account is named.
+- **변경 on its row opens the form** (「Forms」): 저장 위치, 위를 따름 or one of the places bmo-artifact offers, and a field
+  for each setting the place takes, marked 선택 where it may stay empty; 폴더 says under it that `{login}` becomes the
+  person's login and `{document}` the document's number. 저장 at its foot is open only while a field differs and
+  every setting the place needs is given, and writes the value through bmo-artifact, which judges it and writes it
+  on the chain in the reader's name; a refusal is said under the form. 변경 stands disabled where the reader may not
+  write the unit's link now.
+- **하위 조직** is what the units below may do with it, 위를 따름, 하위 조직 허용 or 하위 조직 잠금, saved as it is chosen on the
+  delegation chain; under a lock above both stand disabled with 상위 조직에서 잠금.
+- **A saved place reaches the documents filed after it;** a document already filed stays where it was kept.
 
 #### 조직 기억
 

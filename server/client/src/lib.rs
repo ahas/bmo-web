@@ -16,7 +16,7 @@ mod types;
 mod wire;
 
 pub use chain::*;
-pub use client::{AccountClient, OWNER_KEY, OWNER_ROLE};
+pub use client::{AccountClient, DECLARED_BY, OWNER_KEY, OWNER_ROLE};
 pub use openapi::{openapi, openapi_json};
 pub use organisation::*;
 pub use supply::*;

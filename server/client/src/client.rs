@@ -4,7 +4,7 @@ use reqwest::{Client, Method, RequestBuilder, StatusCode, Url};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 
-use crate::chain::{ChainKind, ChainResolution, ChainResolveAsk};
+use crate::chain::{ChainEntry, ChainKind, ChainResolution, ChainResolveAsk, ChainValueAsk};
 use crate::organisation::{MemoryWriters, OrgMemoryUnits, UnitSubtree};
 use crate::supply::*;
 use crate::types::*;
@@ -16,6 +16,10 @@ pub const OWNER_ROLE: &str = "owner-role";
 /// The header a call names the user of the login it is made for in, as the console hands it on: the id written
 /// as a decimal number.
 pub const OWNER_KEY: &str = "owner-key";
+
+/// The header a write of a `json` kind's value names the unit that declared the kind in, the unit that judged the
+/// value (`docs/accounts.md`, 「A setting kind」).
+pub const DECLARED_BY: &str = "declared-by";
 
 /// The account service at one base address, called with one bearer token.
 #[derive(Debug, Clone)]
@@ -114,6 +118,25 @@ impl AccountClient {
   /// `GET /chain/kinds/{key}/resolve`: a setting resolved for a person or a unit.
   pub async fn resolve_chain(&self, key: &str, ask: &ChainResolveAsk) -> Answer<ChainResolution> {
     Self::answered(self.get(&["chain", "kinds", key, "resolve"], ask)).await
+  }
+
+  /// `PUT /chain/kinds/{key}/links/{link}/value`: a link's value written in the name of the login `owner` acts
+  /// for, by the unit `declared_by` names, which judged a `json` kind's value itself.
+  pub async fn put_chain_value(
+    &self,
+    key: &str,
+    link: &str,
+    ask: &ChainValueAsk,
+    owner: &str,
+    declared_by: &str,
+  ) -> Answer<ChainEntry> {
+    Self::answered(
+      self
+        .send(Method::PUT, &["chain", "kinds", key, "links", link, "value"], ask)
+        .header(OWNER_KEY, owner)
+        .header(DECLARED_BY, declared_by),
+    )
+    .await
   }
 
   /// `GET /accounts/model`.

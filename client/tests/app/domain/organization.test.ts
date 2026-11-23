@@ -87,7 +87,7 @@ const UNKNOWN_MEMBER: OrganizationReader = { administrator: false, roster: false
 
 describe("the organisation screen", () => {
   test("stands its tabs in order, the units first", () => {
-    expect(ORGANIZATION_TABS.map((tab) => tab.value)).toEqual(["organization", "people", "catalogue", "invites", "agent", "agents", "apps", "memory", "supply", "plans"]);
+    expect(ORGANIZATION_TABS.map((tab) => tab.value)).toEqual(["organization", "people", "catalogue", "invites", "agent", "agents", "apps", "storage", "memory", "supply", "plans"]);
   });
 
   test("leads the keys of the sections that moved away to where they stand now, and no other key", () => {
@@ -109,8 +109,8 @@ describe("the organisation screen", () => {
 
   test("opens every tab to the administrator, the people and the roles and kinds tabs to a member who heads a company, the agents tab to a member who heads a unit, and the invitations and BMO tabs to every member", () => {
     expect(organizationTabsFor(ADMINISTRATOR)).toHaveLength(ORGANIZATION_TABS.length);
-    expect(organizationTabsFor(COMPANY_HEAD).map((tab) => tab.value)).toEqual(["people", "catalogue", "invites", "agent", "agents", "apps", "memory", "supply", "plans"]);
-    expect(organizationTabsFor(UNIT_HEAD).map((tab) => tab.value)).toEqual(["invites", "agent", "agents", "apps", "memory"]);
+    expect(organizationTabsFor(COMPANY_HEAD).map((tab) => tab.value)).toEqual(["people", "catalogue", "invites", "agent", "agents", "apps", "storage", "memory", "supply", "plans"]);
+    expect(organizationTabsFor(UNIT_HEAD).map((tab) => tab.value)).toEqual(["invites", "agent", "agents", "apps", "storage", "memory"]);
     expect(organizationTabsFor(MEMORY_WRITER).map((tab) => tab.value)).toEqual(["invites", "agent", "apps", "memory"]);
     expect(organizationTabsFor(MEMBER).map((tab) => tab.value)).toEqual(["invites", "agent", "apps"]);
   });
@@ -171,7 +171,7 @@ describe("the organisation screen", () => {
 
     expect(screen.to).toBe(ORGANIZATION_PATH);
     expect(screen.unitKeepers).toBe(true);
-    expect(screen.tabs?.map((tab) => tabAddress(screen, tab))).toEqual(["/organization", "/organization?tab=people", "/organization?tab=catalogue", "/organization?tab=invites", "/organization?tab=agent", "/organization?tab=agents", "/organization?tab=apps", "/organization?tab=memory", "/organization?tab=supply", "/organization?tab=plans"]);
+    expect(screen.tabs?.map((tab) => tabAddress(screen, tab))).toEqual(["/organization", "/organization?tab=people", "/organization?tab=catalogue", "/organization?tab=invites", "/organization?tab=agent", "/organization?tab=agents", "/organization?tab=apps", "/organization?tab=storage", "/organization?tab=memory", "/organization?tab=supply", "/organization?tab=plans"]);
     expect(admin.to).toBe(ADMIN_PATH);
     expect(admin.administrator).toBe(true);
     expect(admin.tabs?.map((tab) => tabAddress(admin, tab))).toEqual(["/admin", "/admin?tab=secret-kinds", "/admin?tab=plans", "/admin?tab=credits", "/admin?tab=apps"]);

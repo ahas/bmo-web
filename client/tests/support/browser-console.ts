@@ -88,6 +88,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["org-settings", "fixture-password-2666"],
   ["org-agents", "fixture-password-3901"],
   ["org-group", "fixture-password-3903"],
+  ["org-storage", "fixture-password-3921"],
   ["copy-marks", "fixture-password-3291"],
   ["machine-unbind", "fixture-password-3583"],
   ["todo-run-figures", "fixture-password-2826"],
@@ -940,6 +941,45 @@ async function compositionAnswer(path: string, request: Request): Promise<Respon
   });
 }
 
+// The storage places as bmo-artifact's stand-in answers them (its `docs/api.md`, 「Storage places」): the local place and
+// a SharePoint library with the settings it takes, and a link's value judged — a SharePoint value naming its site, drive
+// and a folder naming the document's number — and put on the account service's chain in the caller's name, naming
+// bmo-artifact as the kind's declarer; any other value refused 400 `bad-request`.
+async function storageAnswer(path: string, request: Request): Promise<Response | null> {
+  if (path === "/storage-places" && request.method === "GET") {
+    return Response.json({
+      places: [
+        { name: "local", description: "local", fields: [] },
+        {
+          name: "sharepoint",
+          description: "sharepoint",
+          fields: [
+            { key: "site", shape: "text", required: true },
+            { key: "drive", shape: "text", required: true },
+            { key: "folder", shape: "text", required: true },
+            { key: "account", shape: "number", required: false }
+          ]
+        }
+      ]
+    });
+  }
+
+  const link = /^\/storage\/([^/]+)$/.exec(path)?.[1];
+
+  if (link === undefined || request.method !== "PUT") return null;
+
+  const { value } = (await request.json()) as { value: Record<string, unknown> | null };
+  const judged = value === null || value.place === "local" || (value.place === "sharepoint" && typeof value.site === "string" && typeof value.drive === "string" && String(value.folder ?? "").includes("{document}"));
+
+  if (!judged) return Response.json({ code: "bad-request", error: "the storage value does not read" }, { status: 400 });
+
+  return await fetch(`http://127.0.0.1:${accountServicePort}/chain/kinds/artifact.storage/links/${link}/value`, {
+    method: "PUT",
+    headers: { authorization: `Bearer ${TOKEN}`, "owner-key": request.headers.get("owner-key") ?? "", "declared-by": "artifact", "content-type": "application/json" },
+    body: JSON.stringify({ value })
+  });
+}
+
 // What each unit's stand-in answers, read from that unit's documented routes; anything else is the unit's own
 // not-found. The tests serve the rest of what they measure through the page's routes themselves.
 const UNITS: Record<string, (path: string, request: Request) => Response | null | Promise<Response | null>> = {
@@ -1693,7 +1733,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
   SCREEN_A: (path) => screenUnit(HARNESS_SCREEN_UNITS[0], path, ["people"]),
   SCREEN_B: (path) => screenUnit(HARNESS_SCREEN_UNITS[1], path),
   SCREEN_RELEASED: (path, request) => releasedUnit(HARNESS_SCREEN_UNITS[2], path, request),
-  ARTIFACT: () => null,
+  ARTIFACT: (path, request) => storageAnswer(decodeURIComponent(path), request),
   TELEGRAM: () => null,
   CACHE_SIREN: () => null,
   CACHE_WARMER: (path) => path === "/round" ? Response.json({ stopped: false }) : null
@@ -2057,6 +2097,26 @@ try {
 
     if (!declared.ok) throw new Error(`the agency's kind ${key} was refused: ${declared.status} ${await declared.text()}`);
   }
+
+  // bmo-artifact's storage setting, declared as bmo-artifact declares it as it stands (its `docs/artifact.md`, 「The
+  // setting」).
+  const storage = await service("/chain/kinds/artifact.storage", {
+    method: "PUT",
+    body: JSON.stringify({
+      key: "artifact.storage",
+      declaredBy: "artifact",
+      description: "artifact.storage",
+      shape: "json",
+      choices: [],
+      mode: "nearest",
+      rules: false,
+      levels: ["platform", "unit"],
+      unitPermission: "manage",
+      personWriter: "heads"
+    })
+  });
+
+  if (!storage.ok) throw new Error(`the artifact's storage kind was refused: ${storage.status} ${await storage.text()}`);
 
   const bmoOwner = users.find((user) => user.name === "org-group-person");
 

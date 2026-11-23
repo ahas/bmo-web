@@ -76,6 +76,10 @@ export const openedRoutes: readonly OpenedRoute[] = [
   { method: "POST", path: /^\/api\/organization\/units\/\d+\/supply\/keys$/, scope: "user" },
   { method: "PATCH", path: /^\/api\/organization\/units\/\d+\/supply\/keys\/[^/]+$/, scope: "user" },
   { method: "DELETE", path: /^\/api\/organization\/units\/\d+\/supply\/keys\/[^/]+$/, scope: "user" },
+  // Where a unit's documents are kept: every signed-in login asks, and the account service decides who writes the
+  // unit's link of the delegation chain, bmo-artifact judging the value (docs/web.md, 「Organisation」, the storage tab).
+  { method: "GET", path: /^\/api\/organization\/storage$/, scope: "user" },
+  { method: "PUT", path: /^\/api\/organization\/storage$/, scope: "user" },
   // An organisation's agent settings — its instructions, its persona's choice, repository management — and its own
   // repositories: every signed-in login asks, and the account service and the agency decide who heads what
   // (docs/web.md, 「Organisation」, the agents tab).

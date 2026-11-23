@@ -91,7 +91,7 @@ function memoryReaderOpens(reader: OrganizationReader): boolean {
   return reader.administrator || reader.memory;
 }
 
-// The agents tab's readers: the administrator, and a member who heads a unit of the organisation chosen, a company's
+// The agents and storage tabs' readers: the administrator, and a member who heads a unit of the organisation chosen, a company's
 // head or a unit's below it (「Organisation」, the agents tab).
 function headReaderOpens(reader: OrganizationReader): boolean {
   return reader.administrator || reader.heads;
@@ -108,6 +108,7 @@ export const ORGANIZATION_TABS: readonly OrganizationTab[] = [
   { value: "agent", label: "settings.label.bmo", icon: "i-material-symbols-face-outline", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationBmo.vue") },
   { value: "agents", label: "org_agents.label.tab", icon: "i-material-symbols-smart-toy-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationAgents.vue") },
   { value: "apps", label: "apps.label.tab", icon: "i-material-symbols-apps", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationApps.vue") },
+  { value: "storage", label: "org_storage.label.tab", icon: "i-material-symbols-hard-drive-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationArtifactStorage.vue") },
   { value: "memory", label: "org_memory.label.tab", icon: "i-material-symbols-psychology-outline", opens: memoryReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationMemory.vue") },
   // The supply tab stands only for a reader who holds the organisation's supply policy, and the plans tab for one who
   // holds any part of its supply — the administrator everywhere (docs/web.md, 「Organisation」, the supply and plans

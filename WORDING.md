@@ -242,6 +242,9 @@
   source closed above → 상위 조직에서 꺼짐, organisation supply the platform has not opened → 제공되지 않음, the
   administrator's opening of it → 이 회사에 조직 공급 제공. What the units below may do with a setting → 하위 조직, its
   choice 위를 따름, 하위 조직 허용 or 하위 조직 잠금, the delegation chain's own words. Never 소스, 차단.
+- where a company's archive documents are kept → 아티팩트 저장: its tab and form; the place → 저장 위치, the local place 이 서버
+  and a SharePoint library SharePoint, a following unit's 위를 따라 `{place}`; SharePoint's settings 사이트 ID, 드라이브 ID, 폴더
+  and 토큰 계정, an unnamed account 문서 주인. Never 스토리지, 보관소.
 - the agents a person is given as their account is made ready → 가입 구성: each role 위를 따름, 막음, 에이전트 없음 or
   에이전트 `{n}`, a following role saying 플랫폼 규칙을 따름, 위를 따라 막음 or 위를 따라 에이전트 `{n}`. Never 초기 설정,
   온보딩.

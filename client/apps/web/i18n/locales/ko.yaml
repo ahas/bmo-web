@@ -2427,6 +2427,29 @@ org_agents:
     repositories_withheld: 이 조직은 저장소를 추가하거나 바꿀 수 없습니다.
     repository_name: 저장소 이름은 영문 소문자, 숫자, 하이픈만 씁니다.
     repository_path: 저장소 경로를 확인해 주세요.
+org_storage:
+  title:
+    storage: 아티팩트 저장
+  label:
+    tab: 아티팩트 저장
+    place: 저장 위치
+    follows: "위를 따라 {place}"
+    optional: 선택
+    unset: 없음
+    folder_help: "{'{login}'}은 사용자 로그인, {'{document}'}는 문서 번호로 바뀝니다."
+    place_local: 이 서버
+    place_sharepoint: SharePoint
+    sharepoint_site: 사이트 ID
+    sharepoint_drive: 드라이브 ID
+    sharepoint_folder: 폴더
+    sharepoint_account: 토큰 계정
+    sharepoint_account_unset: 문서 주인
+  error:
+    locked: 상위 조직에서 잠가 바꿀 수 없습니다.
+    forbidden: 이 조직의 아티팩트 저장을 설정할 권한이 없습니다.
+    bad_value: 저장 위치 설정이 올바르지 않습니다.
+    unavailable: 아티팩트 서비스에 연결할 수 없습니다. 잠시 뒤 다시 시도해 주세요.
+    failed: 아티팩트 저장을 설정하지 못했습니다.
 pairing:
   title:
     page: 데스크톱 앱 연결

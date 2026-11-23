@@ -15,6 +15,8 @@ import type { Browser, BrowserContext } from "playwright-core";
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "judging-beat", password: "fixture-password-3146" };
 const CHAT = -9_000_000_000_146;
+// The console's sticker room, whose first message is a sticker standing alone, with no bubble ground of its own.
+const STICKER_CHAT = 45;
 const NOW = Math.floor(Date.now() / 1000);
 const PHONE = { width: 360, height: 760 };
 
@@ -105,6 +107,38 @@ describe.skipIf(!origin || !touchReady())("a message being judged", () => {
       const under = await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.closest("[data-bubble]") !== null, { x: box.x + box.width / 2, y: box.y + box.height / 2 });
 
       expect(under).toBe(true);
+    } finally {
+      await context.close();
+    }
+  }, 120_000);
+
+  test("rings a sticker standing alone round its box and paints nothing behind it", async () => {
+    const context = await browser!.newContext({ viewport: PHONE, serviceWorkers: "block", hasTouch: true, isMobile: true });
+    const at = cookie.indexOf("=");
+    const picture = { at: NOW * 1000, compacting: [], turns: [], queued: [{ chatId: STICKER_CHAT, messageId: "1", since: NOW }] };
+
+    await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
+    await context.route(/\/api\/events(\?|$)/, (route) =>
+      route.fulfill({ status: 200, contentType: "text/event-stream", body: `event: live\ndata: ${JSON.stringify(picture)}\n\n` })
+    );
+
+    try {
+      const page = await context.newPage();
+
+      await page.goto(`${origin}/rooms/${STICKER_CHAT}`, { waitUntil: "domcontentloaded" });
+
+      const beat = page.locator('[data-message-id="1"] [data-beat]');
+
+      await beat.waitFor({ timeout: 30_000 });
+
+      // The row it stands on shows through wherever the picture leaves its box empty, a lit row's colour included.
+      const ground = await beat.evaluate((node) => {
+        const style = getComputedStyle(node.querySelector(".bubble-beat-ground")!);
+
+        return { paint: style.backgroundColor, ring: style.boxShadow !== "none", tail: node.querySelector(".bubble-tail-grown") !== null };
+      });
+
+      expect(ground).toEqual({ paint: "rgba(0, 0, 0, 0)", ring: true, tail: false });
     } finally {
       await context.close();
     }

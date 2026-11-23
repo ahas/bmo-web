@@ -7,8 +7,8 @@ import { wording } from "../../apps/web/shared/wording";
 import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 
 // An organisation's agents (docs/web.md, 「Organisation」, the supply and BMO tabs, and 「The join page」): the supply
-// tab's 에이전트 공급원 and 조직 공급 키 groups, the BMO tab's 가입 구성, and the agent login step a person whose runs only
-// their own supply can carry is held at. Each is worked as a hand works it at a phone's width and a desk's: what a
+// tab's groups of the unit's supply sources and its own keys, the BMO tab's sign-up composition, and the agent login
+// step a person whose runs only their own supply can carry is held at. Each is worked as a hand works it at a phone's width and a desk's: what a
 // press lands on is the control it names, nothing runs off the side, and what a press does is read back off the screen
 // after the page is read again.
 //
@@ -161,7 +161,7 @@ describe.skipIf(!origin || !touchReady())("an organisation's agents", () => {
       expect(await reachable(select)).toBe(true);
       await select.click();
       await page.getByRole("option", { name: wording("org_agents.label.choice_off"), exact: true }).click();
-      await page.waitForFunction(() => document.querySelector('[data-composition-role="worker"] button[aria-haspopup="listbox"]')?.textContent?.includes("막음") === true, null, { timeout: 15_000 });
+      await page.waitForFunction((off) => document.querySelector('[data-composition-role="worker"] button[aria-haspopup="listbox"]')?.textContent?.includes(off) === true, wording("org_agents.label.choice_off"), { timeout: 15_000 });
       expect(await overflows(page)).toBe(false);
 
       await page.reload({ waitUntil: "load" });

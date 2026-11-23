@@ -71,9 +71,11 @@ const view = ref<CompositionView | null>(null);
 const failure = ref("");
 const busy = ref("");
 
-const delegations = computed(() =>
-  (["inherit", "allow", "lock"] as const).map((one) => ({ value: one, label: t(`org_agents.label.delegation_${one}`) }))
-);
+const delegations = computed(() => [
+  { value: "inherit", label: t("org_agents.label.delegation_inherit") },
+  { value: "allow", label: t("org_agents.label.delegation_allow") },
+  { value: "lock", label: t("org_agents.label.delegation_lock") }
+]);
 // A role's word: following above, off, no agents, or one to the most agents.
 const choices = computed(() => [
   { value: "inherit", label: t("org_agents.label.choice_inherit") },

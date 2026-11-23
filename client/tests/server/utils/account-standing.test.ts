@@ -12,9 +12,9 @@ import { wording } from "../../../apps/web/shared/wording";
 // An account made ready (docs/web.md, 「The join page」): it is given a supervisor of its own, named after the account
 // and titled by the person's name, their login where none stands, on the default answerer's road's provider and
 // model, its identity on the record road named by the name it is shown by and linked to it (docs/accounts.md, 「Users
-// and senders」), and one agent of its
-// own for every role with an
-// agent of no account, taking that agent's road; an account that holds one already is given none again. Its machine,
+// and senders」), and the agents the agency composes for it, asked of the agency once each time it is made ready (the
+// agency's `docs/role-agents.md`, 「The agents an account is given」); an account that holds a BMO already is given
+// none again. Its machine,
 // where the hub holds it, is set in agency as the node its runs stand on (docs/accounts.md, 「Invitations and a
 // person's machine」), and a node agency refuses leaves the account ready.
 
@@ -45,6 +45,7 @@ const agency = standIn("AGENCY", (call) => {
     });
   }
   if (call.method === "POST" && call.path === "/role-agents") return answer({ ...AGENT, ...call.body }, 201);
+  if (call.method === "POST" && call.path.startsWith("/composed-agents/")) return answer({ items: [{ ...AGENT, name: "worker-u9", ownerAccount: "9" }] });
   if (call.method === "PATCH" && call.path.startsWith("/supervisors/")) {
     const name = call.path.slice("/supervisors/".length);
     const held = (supervisors as { name: string }[]).find((one) => one.name === name);
@@ -96,7 +97,7 @@ afterAll(() => {
 });
 
 describe("an account made ready", () => {
-  test("is given its own BMO on the default answerer's road and an agent of every role it holds none of", async () => {
+  test("is given its own BMO on the default answerer's road and the agents the agency composes for it", async () => {
     agency.asked.length = 0;
     receiver.asked.length = 0;
 
@@ -109,11 +110,9 @@ describe("an account made ready", () => {
     // their login.
     expect(added[0]?.body).toEqual({ name: "u9", label: ownTitles("member-a").label, room: ownTitles("member-a").room, provider: "codex", model: "model-a", repository: null, ownerAccount: 9, sessionScope: "agent" });
 
-    const agents = agency.asked.filter((call) => call.method === "POST" && call.path === "/role-agents");
-
-    // The worker role gains one; the scout role holds the account's already; the idle role has no agent switched on.
-    expect(agents).toHaveLength(1);
-    expect(agents[0]?.body).toMatchObject({ role: "worker", name: "worker-u9", ownerAccount: "9", provider: "deepseek", model: "model-w", effort: "high", enabled: true, keepsCache: true });
+    // The agents are the agency's to make, by the composition the delegation chain resolves for the person: the
+    // console asks once and adds none of its own.
+    expect(agency.asked.filter((call) => call.method === "POST").map((call) => call.path)).toEqual(["/composed-agents/9"]);
   });
 
   test("is linked to its identity on the record road, the same one every time it is made ready, named as it is shown", async () => {

@@ -6,7 +6,7 @@
 /** The three supply sources a unit opens or closes below it, in the order a run takes them. */
 export type SourceKind = "personal" | "organisation" | "platform";
 
-/** Whether the links below a unit may change a setting: 허용, 잠금 or 위를 따름. */
+/** Whether the links below a unit may change a setting: allowed, locked, or following the link above. */
 export type ChainDelegation = "allow" | "lock" | "inherit";
 
 /** One source as it stands at a unit. */

@@ -129,9 +129,17 @@ const value = ref("");
 const addFailure = ref("");
 const addChanges = useOpenedWith(() => ({ road: road.value, name: name.value, value: value.value }), { open: adding });
 
-const delegations = computed(() =>
-  (["inherit", "allow", "lock"] as const).map((one) => ({ value: one, label: t(`org_agents.label.delegation_${one}`) }))
-);
+const delegations = computed(() => [
+  { value: "inherit", label: t("org_agents.label.delegation_inherit") },
+  { value: "allow", label: t("org_agents.label.delegation_allow") },
+  { value: "lock", label: t("org_agents.label.delegation_lock") }
+]);
+// Each source's word, from the pack whole.
+const SOURCE_WORDS: Readonly<Record<SourceKind, string>> = {
+  personal: "org_agents.label.source_personal",
+  organisation: "org_agents.label.source_organisation",
+  platform: "org_agents.label.source_platform"
+};
 // The roads a unit registers a key for: Claude Code on an Anthropic API key, and the gateway's roads.
 const roads = computed(() => [
   { value: "claude-code", label: t("org_agents.label.road_claude") },
@@ -144,7 +152,7 @@ const organisationOpen = computed(() => view.value?.sources.find((one) => one.so
 const namePlain = computed(() => /^[A-Za-z0-9_-][A-Za-z0-9._-]{0,199}$/.test(name.value.trim()) && !name.value.trim().endsWith(".previous"));
 
 function sourceName(source: SourceKind): string {
-  return t(`org_agents.label.source_${source}`);
+  return t(SOURCE_WORDS[source]);
 }
 
 // What a source's row says under its name: why it stands closed where it does, or that a lock above holds it.

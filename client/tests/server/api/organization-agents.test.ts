@@ -186,7 +186,7 @@ describe("the organisation's agent settings", () => {
     expect(await repositories({ params: { unit: String(UNIT) } } as RouteEvent)).toEqual([{ name: "team-tools", label: null, path: "/work/team-tools" }]);
     expect(agency.asked[0]!.headers?.["owner-key"]).toBeUndefined();
 
-    await addRepository({ params: { unit: String(UNIT) }, body: { name: "team-site", label: " ", path: " /work/team-site " }, context: { agencyOwner: { "owner-key": HEAD, "owner-role": "member" } } } as unknown as RouteEvent);
+    await addRepository({ params: { unit: String(UNIT) }, body: { name: "team-site", label: " ", path: " /work/team-site " }, context: { agencyOwner: { "owner-key": HEAD, "owner-role": "member" } } } as RouteEvent);
 
     const added = agency.asked.find((call) => call.method === "POST")!;
 

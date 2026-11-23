@@ -123,7 +123,7 @@ checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
 [[package]]
 name = "api"
 version = "0.2.0"
-source = "git+https://github.com/ahas/sumida?rev=b80b190a435a1224e9efd81a66c9b7643b836092#b80b190a435a1224e9efd81a66c9b7643b836092"
+source = "git+https://github.com/ahas/sumida?rev=ba121d8e75669b898c94b5f50c0b7e594e0b846a#ba121d8e75669b898c94b5f50c0b7e594e0b846a"
 dependencies = [
  "anyhow",
  "argon2",
@@ -138,6 +138,7 @@ dependencies = [
  "error",
  "futures",
  "humantime",
+ "infer",
  "infra",
  "inventory",
  "jsonwebtoken",
@@ -993,6 +994,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "cfb"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a347dcabdae9c31b0825fd6a8bed285ec9c2acb89c47827126d52fa4f59cece3"
+dependencies = [
+ "fnv",
+ "uuid",
+ "web-time",
+]
+
+[[package]]
 name = "cfg-if"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1779,7 +1791,7 @@ dependencies = [
 [[package]]
 name = "entity"
 version = "0.2.0"
-source = "git+https://github.com/ahas/sumida?rev=b80b190a435a1224e9efd81a66c9b7643b836092#b80b190a435a1224e9efd81a66c9b7643b836092"
+source = "git+https://github.com/ahas/sumida?rev=ba121d8e75669b898c94b5f50c0b7e594e0b846a#ba121d8e75669b898c94b5f50c0b7e594e0b846a"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1810,7 +1822,7 @@ dependencies = [
 [[package]]
 name = "error"
 version = "0.2.0"
-source = "git+https://github.com/ahas/sumida?rev=b80b190a435a1224e9efd81a66c9b7643b836092#b80b190a435a1224e9efd81a66c9b7643b836092"
+source = "git+https://github.com/ahas/sumida?rev=ba121d8e75669b898c94b5f50c0b7e594e0b846a#ba121d8e75669b898c94b5f50c0b7e594e0b846a"
 dependencies = [
  "anyhow",
  "aws-sdk-s3",
@@ -2711,9 +2723,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "infer"
+version = "0.22.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f4200d433cbd5178df7797c9c2e75b348b728e39631cf14520d1e2fc424201f4"
+dependencies = [
+ "cfb",
+]
+
+[[package]]
 name = "infra"
 version = "0.2.0"
-source = "git+https://github.com/ahas/sumida?rev=b80b190a435a1224e9efd81a66c9b7643b836092#b80b190a435a1224e9efd81a66c9b7643b836092"
+source = "git+https://github.com/ahas/sumida?rev=ba121d8e75669b898c94b5f50c0b7e594e0b846a#ba121d8e75669b898c94b5f50c0b7e594e0b846a"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -5322,7 +5343,7 @@ checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
 [[package]]
 name = "sumida"
 version = "0.2.0"
-source = "git+https://github.com/ahas/sumida?rev=b80b190a435a1224e9efd81a66c9b7643b836092#b80b190a435a1224e9efd81a66c9b7643b836092"
+source = "git+https://github.com/ahas/sumida?rev=ba121d8e75669b898c94b5f50c0b7e594e0b846a#ba121d8e75669b898c94b5f50c0b7e594e0b846a"
 dependencies = [
  "api",
  "aws-smithy-types",

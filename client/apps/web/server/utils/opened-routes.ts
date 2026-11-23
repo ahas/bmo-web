@@ -72,6 +72,7 @@ export const openedRoutes: readonly OpenedRoute[] = [
   // An organisation's agents — its supply sources, its own keys and its sign-up composition: every signed-in login
   // asks, and the account service and the agency decide who heads what (docs/web.md, 「Organisation」).
   { method: "GET", path: /^\/api\/organization\/units\/\d+\/(?:supply|composition)$/, scope: "user" },
+  { method: "GET", path: /^\/api\/organization\/units\/\d+\/composition\/models\/[^/]+$/, scope: "user" },
   { method: "PUT", path: /^\/api\/organization\/units\/\d+\/(?:composition|supply\/company|supply\/sources\/[a-z]+)$/, scope: "user" },
   { method: "POST", path: /^\/api\/organization\/units\/\d+\/supply\/keys$/, scope: "user" },
   { method: "PATCH", path: /^\/api\/organization\/units\/\d+\/supply\/keys\/[^/]+$/, scope: "user" },
@@ -91,6 +92,14 @@ export const openedRoutes: readonly OpenedRoute[] = [
   // them (docs/web.md, 「Settings」).
   { method: "GET", path: /^\/api\/account\/(?:supply-sources|agent-persona)$/, scope: "user" },
   { method: "PUT", path: /^\/api\/account\/agent-persona$/, scope: "user" },
+  // The reader's own agents and instructions: every signed-in login asks for their own, the agency judging by the
+  // delegation chain what they may change (docs/web.md, 「Settings」, the own-agents section).
+  { method: "GET", path: /^\/api\/account\/(?:own-agents|own-instructions)$/, scope: "user" },
+  { method: "GET", path: /^\/api\/account\/own-agents\/models\/[^/]+$/, scope: "user" },
+  { method: "POST", path: /^\/api\/account\/own-agents(?:\/[^/]+\/back)?$/, scope: "user" },
+  { method: "PATCH", path: /^\/api\/account\/own-agents\/[^/]+$/, scope: "user" },
+  { method: "DELETE", path: /^\/api\/account\/own-agents\/[^/]+$/, scope: "user" },
+  { method: "PUT", path: /^\/api\/account\/own-instructions$/, scope: "user" },
   { method: "GET", path: /^\/api\/account\/apps$/, scope: "user" },
   { method: "PUT", path: /^\/api\/account\/apps\/[^/]+$/, scope: "user" },
   // The reader's personal apps: every signed-in login asks for their own, the agency holding each account's apart

@@ -270,6 +270,14 @@
 - whether an agent keeps its persona, as a unit or a person chooses it → its row 적용 on 조직 and 페르소나 사용 in 설정,
   its choices 페르소나 사용 and 페르소나 없음, a following row saying 위를 따라 페르소나 사용 or 위를 따라 페르소나 없음.
   Never 페르소나 끄기, 성격 없음.
+- a person's own agents, the set their organisation supplies with their own changes over it → 내 에이전트: a seat
+  supplied → 받은 에이전트 · `{unit}`, 받은 에이전트 · 기본 for the platform's own rule, 받은 에이전트 · 지금 없음 for one that
+  no longer stands; one the person changed → 직접 정함, put back by 되돌리기; one of their own → 직접 추가; a role an
+  organisation turned off → 쓸 수 없는 역할; a model their supply cannot run → 공급 없음. Their own instructions → 내 지침,
+  for every agent 모든 에이전트. Never 커스텀 에이전트, 개인화, 기본 에이전트 for a supplied one.
+- what a unit's people may change of the agents it supplies → 개인 설정 허용, its rows 에이전트 추가·끄기, 공급자 · 모델 선택
+  and 내 지침, each 위를 따름, 허용 or 막음; one agent of a role in 가입 구성 → `{role} 에이전트 {n}`, its road the role's own
+  agent's → 역할 에이전트를 따름. Never 권한 위임, 사용자 설정 허용.
 - whether a unit's people add and change repositories → 저장소 관리, its choices 위를 따름, 허용, 막음; the repositories
   a unit owns → 조직 저장소, 조직 저장소 추가, 조직 저장소 없음. Never 레포 권한.
 - a setting a unit above or the platform decided for a person, as their own settings say it → 조직이 정함 · `{unit}`,

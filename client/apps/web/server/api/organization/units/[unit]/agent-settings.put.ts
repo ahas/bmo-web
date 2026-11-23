@@ -5,7 +5,8 @@ import { changeAgentSetting, isAgentSetting, settingValue } from "../../../../ut
 import { isDelegation, orgAgentsFailure } from "../../../../utils/organisation-supply";
 
 // A unit's word on one of its agent settings, and that setting's delegation (docs/web.md, 「Organisation」, the agents
-// tab): `setting`, `instructions`, `persona` or `repositories`, with `value` — a text, `own` or `none`, true or false,
+// tab): `setting`, `instructions`, `persona`, `repositories`, `ownAgents`, `roadChoice` or `personalInstructions`, with
+// `value` — a text, `own` or `none`, true or false,
 // or null to follow above — and `delegation`, `allow`, `lock` or `inherit`, either or both.
 export default defineEventHandler(async (event): Promise<{ ok: true }> => {
   const unit = unitNumber(getRouterParam(event, "unit"));

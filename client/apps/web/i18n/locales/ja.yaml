@@ -1820,6 +1820,7 @@ settings:
   title:
     settings: 設定
   label:
+    own_agents: "マイエージェント"
     account: アカウント
     agent: マイBMO
     briefing: ボイスブリーフィング
@@ -2368,6 +2369,7 @@ agent_login:
     start: 開始
 org_agents:
   title:
+    person_changes: "個人設定の許可"
     sources: エージェントの供給元
     keys: 組織の供給キー
     composition: 加入時の構成
@@ -2379,6 +2381,11 @@ org_agents:
   status:
     loading: エージェント設定を読み込み中…
   label:
+    road_role_default: "ロールのエージェントに従う"
+    composition_agent: "{name} エージェント {count}"
+    person_change_instructions: "自分の指示"
+    person_change_road: "プロバイダー · モデルの選択"
+    person_change_agents: "エージェントの追加・オフ"
     tab: エージェント
     instructions_own: 指針
     instructions_none: 指針なし
@@ -2434,6 +2441,7 @@ org_agents:
     stands_off: 上位に従いブロック
     stands_agents: "上位に従いエージェント {count}"
   aria:
+    composition_road: "{name} エージェント {count} のプロバイダー · モデルを変更"
     source_switch: "{name}をオン"
     delegation: "{name}の下位組織への委任"
     key_switch: "{name}をオン"
@@ -2456,6 +2464,59 @@ org_agents:
     repositories_withheld: この組織はリポジトリを追加・変更できません。
     repository_name: リポジトリ名には英小文字、数字、ハイフンのみ使えます。
     repository_path: リポジトリのパスを確認してください。
+own_agents:
+  title:
+    agents: "エージェント"
+    organisation_instructions: "組織の指示"
+    instructions: "自分の指示"
+  status:
+    loading: "マイエージェントを読み込み中…"
+  label:
+    no_agents: "エージェントなし"
+    own: "自分で追加"
+    changed: "自分で設定"
+    gone: "受け取ったエージェント · 現在なし"
+    from_unit: "受け取ったエージェント · {name}"
+    from_unit_unnamed: "受け取ったエージェント · 組織"
+    from_platform: "受け取ったエージェント · 既定"
+    role_off: "使えないロール"
+    add_decided: "エージェントの追加・オフ: {decided}"
+    road_decided: "プロバイダー · モデルの選択: {decided}"
+    instructions_decided: "自分の指示: {decided}"
+    not_supplied: "供給なし"
+    effort_default: "既定"
+    organisation_none: "組織の指示なし"
+    organisation_first: "自分の指示より先に適用されます。"
+    all_agents: "すべてのエージェント"
+    instructions_note: "ロールの後、ペルソナの前で従い、組織の指示が先に適用されます。"
+    characters: "{count} / {most} 文字"
+  action:
+    add: "エージェントを追加"
+    back: "元に戻す"
+    road: "プロバイダー · モデル"
+  aria:
+    road: "{name} のプロバイダー · モデルを変更"
+    switch: "{name} をオン"
+    remove: "{name} を削除"
+    instruction: "{name} の指示を変更"
+  message:
+    remove: "このエージェントを削除しますか?"
+    remove_effect: "自分で追加したエージェントだけが削除され、組織から受け取ったエージェントは残ります。"
+  error:
+    read_failed: "マイエージェントを読み込めませんでした。"
+    failed: "変更できませんでした。"
+    no_user: "このログインにはエージェントがありません。"
+    add_withheld: "組織がエージェントの追加・オフを許可していません。"
+    road_withheld: "組織がプロバイダー · モデルの選択を許可していません。"
+    instructions_withheld: "組織が自分の指示を許可していません。"
+    not_supplied: "自分の供給ではこのモデルを使えません。"
+    role_off: "このロールは組織で禁止されています。"
+    too_many: "このロールにはこれ以上エージェントを置けません。"
+    supplied: "組織から受け取ったエージェントは削除せずオフにします。"
+    busy: "実行中のエージェントは削除できません。"
+    unknown_agent: "自分のエージェントではありません。"
+    bad_instructions: "指示が長すぎます。"
+    not_found: "そのエージェントはありません。"
 org_storage:
   title:
     storage: アーティファクトの保存

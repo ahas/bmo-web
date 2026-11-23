@@ -10,7 +10,8 @@ import type { RouteEvent } from "../../support/nitro";
 
 // The organisation screen's agents tab and a person's own reading of the chain (docs/web.md, 「Organisation」, the
 // agents tab; 「Settings」, the supply and own-BMO sections): a unit's instructions, persona's choice and repository
-// management read off the chain as the signed-in head and written on its routes in their name; the unit's own
+// management, and what its people may change of the agents it supplies, a kind not yet declared standing as none, read
+// off the chain as the signed-in head and written on its routes in their name; the unit's own
 // repositories read off the agency as the deployment's own and added in the head's name; and the supply sources and
 // the persona's choice standing for a person, with the unit that decided each named. Who may write a link is the
 // account service's rule; the stand-in answers its writers as it would.
@@ -32,7 +33,9 @@ const entry = (kind: string, link: string, value: unknown, delegation = "inherit
 const unitLinks: Record<string, ReturnType<typeof entry>> = {
   "agency.org-instructions": entry("agency.org-instructions", `unit:${UNIT}`, "Keep the team's records in the team's folder."),
   "agency.persona": entry("agency.persona", `unit:${UNIT}`, null, "lock"),
-  "repositories.manage": entry("repositories.manage", `unit:${UNIT}`, false)
+  "repositories.manage": entry("repositories.manage", `unit:${UNIT}`, false),
+  "agency.own-agents": entry("agency.own-agents", `unit:${UNIT}`, null),
+  "agency.road-choice": entry("agency.road-choice", `unit:${UNIT}`, false, "lock")
 };
 const resolutions: Record<string, unknown> = {
   "agency.org-instructions": {
@@ -46,7 +49,9 @@ const resolutions: Record<string, unknown> = {
     ]
   },
   "agency.persona": { kind: "agency.persona", subject: `unit:${UNIT}`, path: [], layers: [{ link: `unit:${COMPANY}`, value: ["none"] }], value: ["none"], from: `unit:${COMPANY}` },
-  "repositories.manage": { kind: "repositories.manage", subject: `unit:${UNIT}`, path: [], layers: [{ link: `unit:${UNIT}`, value: false }], value: false, from: `unit:${UNIT}` }
+  "repositories.manage": { kind: "repositories.manage", subject: `unit:${UNIT}`, path: [], layers: [{ link: `unit:${UNIT}`, value: false }], value: false, from: `unit:${UNIT}` },
+  "agency.own-agents": { kind: "agency.own-agents", subject: `unit:${UNIT}`, path: [], layers: [], value: true },
+  "agency.road-choice": { kind: "agency.road-choice", subject: `unit:${UNIT}`, path: [], layers: [{ link: `unit:${UNIT}`, value: false }], value: false, from: `unit:${UNIT}` }
 };
 // What each kind resolves to for the member, as their own settings read it.
 const personal: Record<string, unknown> = {
@@ -73,8 +78,10 @@ const service = standIn(
 
     if (call.method === "GET" && resolve !== null) {
       const kind = decodeURIComponent(resolve[1]!);
+      const said = new URLSearchParams(resolve[2]).has("person") ? personal[kind] : resolutions[kind];
 
-      return answer(new URLSearchParams(resolve[2]).has("person") ? personal[kind] : resolutions[kind]);
+      // A kind its unit has not declared yet is no kind the service holds.
+      return said === undefined ? answer({ code: "no-such-kind", error: "no such kind" }, 404) : answer(said);
     }
 
     const link = /^\/chain\/kinds\/([^/]+)\/links\/([^/]+)(?:\/(value|delegation))?$/.exec(call.path);
@@ -134,7 +141,10 @@ describe("the organisation's agent settings", () => {
       unit: UNIT,
       instructions: { own: "Keep the team's records in the team's folder.", above: ["Never reach for another company's systems."], delegation: "inherit", writable: true, lockedBy: null },
       persona: { own: null, stands: "none", delegation: "lock", writable: true, lockedBy: null },
-      repositories: { own: false, stands: false, delegation: "inherit", writable: true, lockedBy: null }
+      repositories: { own: false, stands: false, delegation: "inherit", writable: true, lockedBy: null },
+      ownAgents: { own: null, stands: true, delegation: "inherit", writable: true, lockedBy: null },
+      roadChoice: { own: false, stands: false, delegation: "lock", writable: true, lockedBy: null },
+      personalInstructions: null
     });
   });
 

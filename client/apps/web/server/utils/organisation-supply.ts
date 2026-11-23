@@ -2,11 +2,13 @@ import { wording } from "#shared/wording";
 
 import { AccountRefusal, chainEntry, keepUnitSecret, resolveChain, setChainDelegation, setChainRules, setChainValue } from "./account-service";
 import { agency, agencyCall } from "./agency";
+import { readProviderModels } from "./axes";
 import { fail } from "./fail";
 import { callerOf, organizationFailure } from "./organization";
 
 import type { ChainEntryView } from "./account-service";
 import type { SignedIn } from "./accounts";
+import type { OwnModel, OwnRoad } from "#shared/own-agents";
 import type { ChainDelegation, CompositionChoice, CompositionView, SourceKind, UnitSourceView, UnitSupplyItem, UnitSupplyView } from "#shared/organisation-supply";
 import type { H3Event } from "h3";
 
@@ -172,44 +174,64 @@ export async function removeKey(event: H3Event, unit: number, item: string): Pro
 
 // A link's own composition value, as the agency writes it.
 interface CompositionValue {
-  roles?: Record<string, { off?: boolean; agents?: unknown[] }>;
+  roles?: Record<string, { off?: boolean; agents?: { provider?: unknown; model?: unknown; effort?: unknown }[] }>;
+}
+
+// One agent's road as a composition holds it, none for the road of the role's own agent.
+function compositionRoad(said: { provider?: unknown; model?: unknown; effort?: unknown } | undefined): OwnRoad | null {
+  if (typeof said?.provider !== "string" || typeof said.model !== "string") return null;
+
+  return { provider: said.provider, model: said.model, effort: typeof said.effort === "string" ? said.effort : null };
 }
 
 // A role's word as a link's composition holds it.
-function choiceOf(said: { off?: boolean; agents?: unknown[] } | undefined): CompositionChoice | null {
+function choiceOf(said: NonNullable<CompositionValue["roles"]>[string] | undefined): CompositionChoice | null {
   if (said === undefined) return null;
   if (said.off === true) return { off: true };
-  if (Array.isArray(said.agents)) return { agents: said.agents.length };
+  if (Array.isArray(said.agents)) return { agents: said.agents.length, roads: said.agents.map(compositionRoad) };
 
   return null;
 }
 
 /** A unit's sign-up composition: what stands for each role there and the unit's own word on it. */
 export async function unitComposition(event: H3Event, unit: number, signed: SignedIn): Promise<CompositionView> {
-  const [stood, roles, entry] = await Promise.all([
+  const [stood, roles, entry, providers] = await Promise.all([
     agencyCall(agency(event).GET("/signup-composition", { params: { query: { unit } } }), { codes: CODES }),
     agencyCall(agency(event).GET("/roles"), { codes: CODES }),
-    entryOrNone(COMPOSITION_KIND, `unit:${unit}`, signed)
+    entryOrNone(COMPOSITION_KIND, `unit:${unit}`, signed),
+    agencyCall(agency().GET("/providers")).then((page) => page.items)
   ]);
 
   if (entry === null) throw fail(403, wording("org_agents.error.forbidden"));
 
   const own = ((entry.value ?? {}) as CompositionValue).roles ?? {};
-  const labels = new Map(roles.roles.map((role) => [role.name, role.label]));
+  const held = new Map(roles.roles.map((role) => [role.name, role]));
 
   return {
     unit,
     roles: stood.roles.map((role) => ({
       role: role.role,
-      label: labels.get(role.role) ?? role.role,
+      label: held.get(role.role)?.label ?? role.role,
+      line: held.get(role.role)?.line ?? "",
       off: role.off,
       agents: role.agents === null || role.agents === undefined ? null : role.agents.length,
       own: choiceOf(own[role.role])
     })),
+    providers: providers.filter((one) => one.enabled).map((one) => ({ name: one.name, label: one.label, lines: one.lines })),
     delegation: entry.delegation,
     writable: entry.writable,
     lockedBy: entry.lockedBy ?? null
   };
+}
+
+/** The models a road of a unit's composition may name on one provider, for a reader who reads the unit's composition:
+ * every model the provider offers, whether a person's supply carries it being each person's own. */
+export async function compositionModels(unit: number, provider: string, signed: SignedIn): Promise<OwnModel[]> {
+  if ((await entryOrNone(COMPOSITION_KIND, `unit:${unit}`, signed)) === null) throw fail(403, wording("org_agents.error.forbidden"));
+
+  const read = await readProviderModels(provider);
+
+  return read.models.map((one) => ({ id: one.id, efforts: one.efforts, inService: one.inService, supplied: true }));
 }
 
 /** A unit's word on one role written, none to follow above, and the composition's delegation set. The agency judges
@@ -221,8 +243,16 @@ export async function changeComposition(event: H3Event, unit: number, change: { 
 
     if (change.choice === null || change.choice === undefined) {
       delete roles[change.role];
+    } else if ("off" in change.choice) {
+      roles[change.role] = { off: true };
     } else {
-      roles[change.role] = "off" in change.choice ? { off: true } : { agents: Array.from({ length: change.choice.agents }, () => ({})) };
+      const roads = change.choice.roads;
+
+      roles[change.role] = { agents: Array.from({ length: change.choice.agents }, (_, index) => {
+        const road = roads[index] ?? null;
+
+        return road === null ? {} : { provider: road.provider, model: road.model, ...(road.effort === null ? {} : { effort: road.effort }) };
+      }) };
     }
 
     const value = Object.keys(roles).length === 0 ? null : { roles };

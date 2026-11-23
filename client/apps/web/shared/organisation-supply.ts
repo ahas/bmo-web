@@ -1,3 +1,5 @@
+import type { OwnProvider, OwnRoad } from "./own-agents";
+
 // An organisation's agents as its heads set them on the delegation chain (docs/web.md, 「Organisation」, the agents
 // tab): which supply sources stand open under a unit, the unit's own keys, and the agents its people are
 // given as their accounts are made ready. No secret value stands in any shape here: what a screen learns of a key
@@ -46,6 +48,8 @@ export interface UnitSupplyView {
 export interface CompositionRoleView {
   role: string;
   label: string;
+  // The line its runs go out on, which a road's provider must carry.
+  line: string;
   // What stands for the unit: off, or the agents given; `agents` null for the platform's own rule.
   off: boolean;
   agents: number | null;
@@ -53,13 +57,15 @@ export interface CompositionRoleView {
   own: CompositionChoice | null;
 }
 
-/** A unit's word on a role: off, or a number of agents on the road of the role's own agent. */
-export type CompositionChoice = { off: true } | { agents: number };
+/** A unit's word on a role: off, or its agents, each on its road or, null, on the road of the role's own agent. */
+export type CompositionChoice = { off: true } | { agents: number; roads: (OwnRoad | null)[] };
 
 /** A unit's sign-up composition (`GET /api/organization/units/{unit}/composition`). */
 export interface CompositionView {
   unit: number;
   roles: CompositionRoleView[];
+  // The providers a road may name, each with the lines its program carries.
+  providers: OwnProvider[];
   delegation: ChainDelegation;
   writable: boolean;
   lockedBy: string | null;

@@ -1816,6 +1816,7 @@ settings:
   title:
     settings: Settings
   label:
+    own_agents: "My agents"
     account: Account
     agent: My BMO
     briefing: Voice briefing
@@ -2344,6 +2345,7 @@ agent_login:
     start: Start
 org_agents:
   title:
+    person_changes: "Personal changes"
     sources: Agent supply sources
     keys: Organization supply keys
     composition: Signup setup
@@ -2355,6 +2357,11 @@ org_agents:
   status:
     loading: Loading agent settings…
   label:
+    road_role_default: "Follow the role agent"
+    composition_agent: "{name} agent {count}"
+    person_change_instructions: "My instructions"
+    person_change_road: "Choose provider · model"
+    person_change_agents: "Add and turn off agents"
     tab: Agents
     instructions_own: Instructions
     instructions_none: No instructions
@@ -2410,6 +2417,7 @@ org_agents:
     stands_off: "Blocked, following parent"
     stands_agents: "{count} agents, following parent"
   aria:
+    composition_road: "Change provider · model of {name} agent {count}"
     source_switch: "Turn on {name}"
     delegation: "{name} delegation to sub-organizations"
     key_switch: "Turn on {name}"
@@ -2432,6 +2440,59 @@ org_agents:
     repositories_withheld: "This organization can't add or change repositories."
     repository_name: "A repository name uses lowercase letters, digits and hyphens only."
     repository_path: Check the repository path.
+own_agents:
+  title:
+    agents: "Agents"
+    organisation_instructions: "Organisation instructions"
+    instructions: "My instructions"
+  status:
+    loading: "Loading my agents…"
+  label:
+    no_agents: "No agents"
+    own: "Added by you"
+    changed: "Set by you"
+    gone: "Received agent · gone"
+    from_unit: "Received agent · {name}"
+    from_unit_unnamed: "Received agent · organisation"
+    from_platform: "Received agent · default"
+    role_off: "Role not available"
+    add_decided: "Add and turn off agents: {decided}"
+    road_decided: "Choose provider · model: {decided}"
+    instructions_decided: "My instructions: {decided}"
+    not_supplied: "No supply"
+    effort_default: "Default"
+    organisation_none: "No organisation instructions"
+    organisation_first: "Applied before your own instructions."
+    all_agents: "All agents"
+    instructions_note: "Followed after the role and before the persona, with organisation instructions applying first."
+    characters: "{count} / {most} characters"
+  action:
+    add: "Add agent"
+    back: "Revert"
+    road: "Provider · model"
+  aria:
+    road: "Change provider · model of {name}"
+    switch: "Turn on {name}"
+    remove: "Delete {name}"
+    instruction: "Change instructions for {name}"
+  message:
+    remove: "Delete this agent?"
+    remove_effect: "Only agents you added are deleted, and agents received from your organisation stay."
+  error:
+    read_failed: "Couldn't load my agents."
+    failed: "Couldn't make the change."
+    no_user: "This login has no agents."
+    add_withheld: "Your organisation does not allow adding or turning off agents."
+    road_withheld: "Your organisation does not allow choosing provider · model."
+    instructions_withheld: "Your organisation does not allow your own instructions."
+    not_supplied: "Your supply cannot run this model."
+    role_off: "This role is blocked by your organisation."
+    too_many: "No more agents can be added to this role."
+    supplied: "Agents received from your organisation are turned off, not deleted."
+    busy: "A running agent cannot be deleted."
+    unknown_agent: "That is not one of your agents."
+    bad_instructions: "The instructions are too long."
+    not_found: "That agent does not exist."
 org_storage:
   title:
     storage: Artifact storage

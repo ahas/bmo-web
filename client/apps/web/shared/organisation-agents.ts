@@ -4,9 +4,13 @@
 
 import type { ChainDelegation, SourceKind } from "./organisation-supply";
 
-/** The agents tab's settings each a unit sets on the chain: its instructions, its persona's choice and whether its
- * people add and change repositories. */
-export type AgentSettingKey = "instructions" | "persona" | "repositories";
+/** The agents tab's settings each a unit sets on the chain: its instructions, its persona's choice, whether its people
+ * add and change repositories, and what they may change of the agents it supplies — add agents and switch supplied ones
+ * off, choose roads, give instructions of their own. */
+export type AgentSettingKey = "instructions" | "persona" | "repositories" | "ownAgents" | "roadChoice" | "personalInstructions";
+
+/** The settings of what a unit's people may change of the agents it supplies, in the order the tab shows them. */
+export const PERSON_CHANGES = ["ownAgents", "roadChoice", "personalInstructions"] as const;
 
 /** A persona's choice: the agent's own persona, or none at all. */
 export type PersonaChoice = "own" | "none";
@@ -37,6 +41,9 @@ export interface UnitAgentSettings {
   instructions: UnitInstructions | null;
   persona: UnitChainSetting<PersonaChoice> | null;
   repositories: UnitChainSetting<boolean> | null;
+  ownAgents: UnitChainSetting<boolean> | null;
+  roadChoice: UnitChainSetting<boolean> | null;
+  personalInstructions: UnitChainSetting<boolean> | null;
 }
 
 /** A repository the unit owns, whose people's agents alone work on it. */

@@ -13,8 +13,9 @@ import type { ChainDelegation, SourceKind } from "#shared/organisation-supply";
 import type { H3Event } from "h3";
 
 // An organisation's agent settings (docs/web.md, 「Organisation」, the agents tab; the agency's
-// `docs/prompt-layers.md` and `docs/repositories.md`): the organisation's instructions, the persona's choice and
-// repository management are the agency's kinds on the delegation chain, read and written on the chain's own routes as
+// `docs/prompt-layers.md`, `docs/repositories.md` and `docs/role-agents.md`): the organisation's instructions, the
+// persona's choice, repository management and what its people may change of the agents it supplies are the agency's
+// kinds on the delegation chain, read and written on the chain's own routes as
 // the signed-in login, so who writes a link and a lock above it are the account service's word. A unit's own
 // repositories are the agency's rows, added and removed as the signed-in login. And the settings of the chain a person
 // reads in their own settings (「Settings」): the supply sources standing for them, and their persona's choice, a unit
@@ -24,7 +25,10 @@ import type { H3Event } from "h3";
 const KINDS: Readonly<Record<AgentSettingKey, string>> = {
   instructions: "agency.org-instructions",
   persona: "agency.persona",
-  repositories: "repositories.manage"
+  repositories: "repositories.manage",
+  ownAgents: "agency.own-agents",
+  roadChoice: "agency.road-choice",
+  personalInstructions: "agency.personal-instructions"
 };
 
 /** The chain's kind of each supply source, as the agency declares it. */
@@ -46,7 +50,7 @@ const REPOSITORY_CODES: Readonly<Record<string, string>> = {
 // The fields of an add the agency may refuse, each with the pack's key for what the form says under it.
 const REPOSITORY_FIELDS: Readonly<Record<string, string>> = { name: "org_agents.error.repository_name", path: "org_agents.error.repository_path" };
 
-const SETTINGS: readonly AgentSettingKey[] = ["instructions", "persona", "repositories"];
+const SETTINGS: readonly AgentSettingKey[] = ["instructions", "persona", "repositories", "ownAgents", "roadChoice", "personalInstructions"];
 
 /** Whether a word names an agents-tab setting. */
 export function isAgentSetting(value: unknown): value is AgentSettingKey {
@@ -100,19 +104,34 @@ async function personaAt(unit: number, signed: SignedIn): Promise<UnitChainSetti
   return entry === null ? null : settingOf(entry, personaOf(entry.value), personaOf(resolved.value) ?? "own");
 }
 
-async function repositoriesAt(unit: number, signed: SignedIn): Promise<UnitChainSetting<boolean> | null> {
-  const [entry, resolved] = await Promise.all([entryOrNone(KINDS.repositories, `unit:${unit}`, signed), resolveChain(KINDS.repositories, { unit })]);
+// A flag of the unit's, allowed where nothing says otherwise; none where the reader may not read it, or where the unit
+// that declares it has not declared it yet, so the tab stands without it.
+async function flagAt(setting: AgentSettingKey, unit: number, signed: SignedIn): Promise<UnitChainSetting<boolean> | null> {
+  try {
+    const [entry, resolved] = await Promise.all([entryOrNone(KINDS[setting], `unit:${unit}`, signed), resolveChain(KINDS[setting], { unit })]);
 
-  return entry === null ? null : settingOf(entry, flagOf(entry.value), resolved.value !== false);
+    return entry === null ? null : settingOf(entry, flagOf(entry.value), resolved.value !== false);
+  } catch (error) {
+    if (error instanceof AccountRefusal && error.status === 404) return null;
+
+    throw error;
+  }
 }
 
 /** The agent settings of a unit as the reader stands to them; a reader who writes none of them is refused. */
 export async function unitAgentSettings(unit: number, signed: SignedIn): Promise<UnitAgentSettings> {
-  const [instructions, persona, repositories] = await Promise.all([instructionsAt(unit, signed), personaAt(unit, signed), repositoriesAt(unit, signed)]);
+  const [instructions, persona, repositories, ownAgents, roadChoice, personalInstructions] = await Promise.all([
+    instructionsAt(unit, signed),
+    personaAt(unit, signed),
+    flagAt("repositories", unit, signed),
+    flagAt("ownAgents", unit, signed),
+    flagAt("roadChoice", unit, signed),
+    flagAt("personalInstructions", unit, signed)
+  ]);
 
-  if (instructions === null && persona === null && repositories === null) throw fail(403, wording("org_agents.error.forbidden"));
+  if ([instructions, persona, repositories, ownAgents, roadChoice, personalInstructions].every((one) => one === null)) throw fail(403, wording("org_agents.error.forbidden"));
 
-  return { unit, instructions, persona, repositories };
+  return { unit, instructions, persona, repositories, ownAgents, roadChoice, personalInstructions };
 }
 
 /** The chain's value of a setting as the screen sends it: undefined where it is none of the setting's, null to follow
@@ -161,8 +180,9 @@ export async function removeUnitRepository(event: H3Event, unit: number, name: s
 
 // --- A person's own reading of the chain ---
 
-// The name of the unit a link names, none where it names none or the unit cannot be read.
-async function unitNamed(link: string | null | undefined): Promise<DecidedBy> {
+/** Who a link of the chain is, as a person's settings name it: a unit by its name, the platform, or nobody where it
+ * names none. */
+export async function unitNamed(link: string | null | undefined): Promise<DecidedBy> {
   if (link === null || link === undefined) return null;
   if (link === "platform") return { by: "platform" };
 

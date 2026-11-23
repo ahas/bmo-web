@@ -7534,12 +7534,12 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
   the dialog's left under the title 설정, each section one line of an icon and its name; the open one
   is marked. The section's own name heads the right, with the dialog's close mark at its right end,
   and its content scrolls under it.
-  - The sections are 계정, 내 BMO, 기기, 데스크톱, 비밀 보관함, 공급, 내 앱·도구, 내 개인 앱, 테마, 대화방, 알림 and 보이스브리핑. A
-    member is shown 계정, 기기, 비밀 보관함, 공급, 내 앱·도구, 내 개인 앱, 테마 and 대화방; 데스크톱 stands for any reader, but only in the desktop
+  - The sections are 계정, 내 BMO, 내 에이전트, 기기, 데스크톱, 비밀 보관함, 공급, 내 앱·도구, 내 개인 앱, 테마, 대화방, 알림 and
+    보이스브리핑. A member is shown 계정, 내 에이전트, 기기, 비밀 보관함, 공급, 내 앱·도구, 내 개인 앱, 테마 and 대화방; 데스크톱 stands for any reader, but only in the desktop
     app's window (「데스크톱」); 알림 and 보이스브리핑 are the administrator's, since the console rings and plays
     briefings for the administrator alone. 내 BMO is shown to a person who may personalise their BMO and owns one (「내
     BMO」). A login with no user of the account service, which holds no secret space and no machine, is not
-    shown 기기 or 비밀 보관함, and 공급, 내 앱·도구 and 내 개인 앱 are no sections for it either, what they set standing against that
+    shown 기기 or 비밀 보관함, and 내 에이전트, 공급, 내 앱·도구 and 내 개인 앱 are no sections for it either, what they set standing against that
     user.
   - A section's content stands in groups under small headings, each group a column of rows parted by
     hairlines. A row carries its name and, where the name needs it, one muted line under it at the
@@ -7552,7 +7552,7 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
 - **On a narrow screen the dialog fills the screen** and opens on the list of sections alone, over the
   sidebar drawer it was opened from (「Floating things」). A tap on one goes into it: the head then carries
   a back arrow before the section's name, and the arrow or the back gesture returns to the list. The close mark stands at the head's right end on both.
-- **An address opens it at one section:** `?settings=` and a section's key — `account`, `agent`, `machine`, `desktop`, `secrets`, `supply`, `apps`, `theme`,
+- **An address opens it at one section:** `?settings=` and a section's key — `account`, `agent`, `own-agents`, `machine`, `desktop`, `secrets`, `supply`, `apps`, `theme`,
   `palette`, `notifications`, `briefing` — on any address of the console opens the dialog at that
   section, gone into on a narrow screen, and at the first section the reader may open where the key
   names none of them. A member sent on from an address they may not open to their own home is sent with the key, so
@@ -7614,6 +7614,58 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
   so the company's, or none, stands again.
 - **초기화** empties the person's own parts and picture after the console's question dialog asks (「Messages」), so
   the company's default stands for each again; it stands off while the person has set nothing.
+
+#### 내 에이전트
+
+The reader's own agents: the set their organisation supplies, and the reader's own changes laid over it (the agency's
+`docs/role-agents.md`, 「A person's own agents」, and `docs/prompt-layers.md`, 「The person's instructions」). Every
+person with a user of the account service sees it. The console reads and changes them through its own routes (`GET`
+and `POST /api/account/own-agents`, `PATCH` and `DELETE /api/account/own-agents/{name}`, `POST
+/api/account/own-agents/{name}/back`, `GET /api/account/own-agents/models/{provider}`, `GET` and `PUT
+/api/account/own-instructions`), which ask the agency as the deployment's own for the account the reader's user is, so
+a reader reaches their own agents alone. Whether the reader may make each change is the delegation chain's word, read
+by the agency for them; the console decides none of it.
+
+- **One setting, rendered by the reader's reach.** The agent settings are the same items at every link of the
+  delegation chain, each link's view showing that link's values with where they came from and the locks above it: the
+  person's own link is this section, the 「나」 of the settings, which takes no other input than the signed-in reader;
+  a unit's link is 조직's 에이전트 tab for the node chosen in its tree, for the reader who heads it; and the platform's
+  defaults stand on 관리자's 에이전시 screen, the administrator's alone. A head never needs that screen for what their
+  organisation supplies: the composition's roles and roads, the organisation's instructions and what the people may
+  change all stand on the 에이전트 tab.
+- **The model is the organisation's set and the person's layer over it.** What the reader's company and units supply —
+  the agents of each role and their roads, set on 조직's 에이전트 tab as 가입 구성, and their 조직 지침 — stands first,
+  each item saying where it came from; what the reader changes stands over it and is taken back with 되돌리기, so the
+  supplied value stands again. Each kind of change is allowed or withheld by the organisation, set by its heads on the
+  same tab (개인 설정 허용), allowed where nobody set it, so with nothing set a person may make every change.
+- **에이전트** lists the reader's agents role by role, the seats supplied first: each row the role's label and the agent's
+  name, under it its 공급자 · 모델 on one line — 요청한 감독관을 따름 for an agent that names none — and where it came
+  from: 받은 에이전트 · and the unit that supplied it, 받은 에이전트 · 기본 for the platform's own rule, 직접 정함 for a
+  seat the reader changed (`· 꺼짐` where they switched it off), 받은 에이전트 · 지금 없음 for a seat that no longer stands,
+  and 직접 추가 for an agent of their own. Its controls stand at the row's end:
+  - **되돌리기**, an icon button on a seat the reader changed or that no longer stands, which puts it back as supplied;
+  - **공급자 · 모델**, which opens the agent's road in a form of its own: 공급자, its first choice 요청한 감독관을 따름
+    and then every provider whose program carries the role's line; 모델, the provider's models less any another person
+    owns, a model the reader's supply does not carry standing disabled with 공급 없음; and 강도 where the model takes
+    levels, 기본 first. 저장 sends the road whole, a refusal said in the form;
+  - **its switch**, which turns the agent on and off; a supplied agent switched off is the reader's own change, so its
+    switch stands disabled while on where the organisation withholds 에이전트 추가·끄기;
+  - **삭제**, on an agent of the reader's own alone, asked first and disabled while the agent carries a run.
+  **에이전트 추가** at the group's heading drops a menu of every role that does not stand off and holds fewer than the
+  most agents of one role; the one picked is given one more agent on the road of the role's own agent, and the list is
+  read again. A role the organisation turned off stands as a row of its own, 쓸 수 없는 역할 · and who decided it.
+- **A change the organisation withholds** stands disabled, and a line at the group's head says which and who decided
+  it, as 내 BMO's rows do: `에이전트 추가·끄기: 조직이 정함 · {unit}`, `공급자 · 모델 선택: 조직이 정함 · {unit}`, 조직이 정함
+  alone where the unit cannot be named and 전역 설정으로 정함 for the platform.
+- **조직 지침** follows, read only: every text the organisations above the reader hold, outermost first, each under who
+  set it, and a line saying they apply before the reader's own; 조직 지침 없음 where none stands.
+- **내 지침** last: 모든 에이전트, the text every agent of the reader's is given, then one row for each agent — their BMO by
+  its name and each role agent as its role's label and name — with its own text, each 지침 없음 where none stands, and
+  변경 opening a form of one text of several lines held to the agency's ceiling, its count shown under it. 저장 writes the
+  instructions whole. Withheld, the rows stand with 변경 disabled and a line saying `내 지침: 조직이 정함 · {unit}`; what the
+  reader wrote stays kept and is given to no agent until it is allowed again.
+- **A change reaches the agents at once:** a road and a switch at the agent's next run, instructions at each agent's next
+  turn. A read that failed says its reason with 새로고침, and a refused act is said under the list, which is read again.
 
 #### 기기
 
@@ -8497,8 +8549,9 @@ Where a company's own words for its roles and its unit kinds are kept (`docs/acc
 #### 에이전트
 
 Every setting of the delegation chain about the agents of the people under the node chosen, in one place: what they
-are told, whether they keep a persona, what their runs go out on, what an account is given as it is made ready, and the
-repositories their work stands on. The administrator opens it, and so does a member who heads a unit of the
+are told, whether they keep a persona, what their runs go out on, the agents the unit supplies them and on which roads,
+what they may change of those agents themselves, and the repositories their work stands on. It is the unit's view of
+the same settings a person sees of their own link in 설정's 내 에이전트 (「Settings」). The administrator opens it, and so does a member who heads a unit of the
 organisation chosen, its company or a unit below it. Each setting is a kind the agency declares on the chain (the
 agency's `docs/prompt-layers.md`, `docs/supply.md`, `docs/role-agents.md` and `docs/repositories.md`), read and
 written as the reader on the chain's own routes or the agency's, so who may change the node's link, and a lock above
@@ -8533,13 +8586,26 @@ it, are the account service's word.
   키, typed once; the value goes into the unit's space of the secret store and nowhere else, and the agency is handed
   the name. While organisation supply stands closed for the unit the add is disabled and the group says why.
 - **가입 구성** is the unit's sign-up composition (the agency's `docs/role-agents.md`, 「The agents an account is
-  given」): each role by its label with a choice of 위를 따름, 막음, 에이전트 없음 and 에이전트 1 to 3 — the agents a person here is given as their account
-  is made ready, each on the road of the role's own agent — a role following above saying under its name what that
+  given」 and 「A person's own agents」): the set of agents the unit supplies its people, each role by its label with a
+  choice of 위를 따름, 막음, 에이전트 없음 and 에이전트 1 to 3 — the agents a person here is given, which their 설정's 내
+  에이전트 shows as received — and, under a role the unit gives agents of, one row for each agent, `{role} 에이전트 {n}`,
+  with its 공급자 · 모델 on one line, 역할 에이전트를 따름 where it stands on the road of the role's own agent, and 변경
+  opening the same road form as 내 에이전트's, its first choice 역할 에이전트를 따름 and its models every model the
+  provider offers, whether a person's supply carries one being each person's own (`GET
+  /api/organization/units/{unit}/composition/models/{provider}`, for a reader of the unit's composition). A number of
+  agents changed keeps the roads of the seats it keeps. A role following above says under its name what that
   comes to: 플랫폼 규칙을 따름 (one agent on the road of the role's own agent), 위를 따라 막음 or 위를 따라 에이전트 `{n}`. A choice is saved as it is made, through
   the agency's composition route in the reader's name, and the group read again; a refusal is said under the group.
   A first row, 하위 조직, is what the units below may do with it, 위를 따름, 하위 조직 허용 or 하위 조직 잠금, written on
   the delegation chain; under a lock above the choices stand disabled with 상위 조직에서 잠금. A head reads and writes their own units',
   the administrator every unit's.
+- **개인 설정 허용** is what the unit's people may change of the agents it supplies, each a flag of the delegation chain
+  the agency declares (the agency's `docs/role-agents.md`, 「A person's own agents」, and `docs/prompt-layers.md`, 「The
+  person's instructions」), one row each: 에이전트 추가·끄기 (`agency.own-agents`), adding agents of their own and switching a
+  supplied one off; 공급자 · 모델 선택 (`agency.road-choice`); and 내 지침 (`agency.personal-instructions`). Each row holds
+  two choices side by side, its own — 위를 따름, 허용 or 막음, a row following above saying under its name 위를 따라 허용 or
+  위를 따라 막음 — and what the units below may do with it, 위를 따름, 하위 조직 허용 or 하위 조직 잠금, both disabled with
+  상위 조직에서 잠금 under a lock above. Nothing set anywhere allows them all.
 - **조직 저장소** is the repositories the unit owns, whose people's agents alone work on them (the agency's
   `docs/repositories.md`, 「An organisation's repository」), and whether its people add and change repositories:
   - **저장소 관리** (`repositories.manage`) is the unit's choice of 위를 따름, 허용 and 막음, a row following above saying
@@ -8559,7 +8625,8 @@ it, are the account service's word.
   and says its reason with 새로고침 where its read failed, and a refusal of a choice is said under its group, the
   choice going back to what stands.
 - **A change reaches the agents at once:** the instructions and the persona at each person's next turn, the sources at
-  the next run's start, the composition at the next account made ready.
+  the next run's start, what the people may change at their next change; the composition is what each person's 내
+  에이전트 reads as received from then on, and what a new account is given as it is made ready.
 
 #### 앱·도구
 

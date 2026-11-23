@@ -1820,6 +1820,7 @@ settings:
   title:
     settings: 设置
   label:
+    own_agents: "我的智能体"
     account: 账号
     agent: 我的 BMO
     briefing: 语音简报
@@ -2368,6 +2369,7 @@ agent_login:
     start: 开始
 org_agents:
   title:
+    person_changes: "个人设置许可"
     sources: 智能体供给来源
     keys: 组织供给密钥
     composition: 加入时配置
@@ -2379,6 +2381,11 @@ org_agents:
   status:
     loading: 正在加载智能体设置…
   label:
+    road_role_default: "跟随角色智能体"
+    composition_agent: "{name} 智能体 {count}"
+    person_change_instructions: "我的指示"
+    person_change_road: "选择提供商 · 模型"
+    person_change_agents: "添加和关闭智能体"
     tab: 智能体
     instructions_own: 指引
     instructions_none: 无指引
@@ -2434,6 +2441,7 @@ org_agents:
     stands_off: 沿用上级，禁止
     stands_agents: "沿用上级，智能体 {count}"
   aria:
+    composition_road: "更改 {name} 智能体 {count} 的提供商 · 模型"
     source_switch: "开启{name}"
     delegation: "{name}下级组织委托"
     key_switch: "开启{name}"
@@ -2456,6 +2464,59 @@ org_agents:
     repositories_withheld: 此组织无法添加或更改仓库。
     repository_name: 仓库名称仅限小写英文字母、数字和连字符。
     repository_path: 请检查仓库路径。
+own_agents:
+  title:
+    agents: "智能体"
+    organisation_instructions: "组织指示"
+    instructions: "我的指示"
+  status:
+    loading: "正在加载我的智能体…"
+  label:
+    no_agents: "没有智能体"
+    own: "自己添加"
+    changed: "自己设定"
+    gone: "收到的智能体 · 当前没有"
+    from_unit: "收到的智能体 · {name}"
+    from_unit_unnamed: "收到的智能体 · 组织"
+    from_platform: "收到的智能体 · 默认"
+    role_off: "不可用的角色"
+    add_decided: "添加和关闭智能体: {decided}"
+    road_decided: "选择提供商 · 模型: {decided}"
+    instructions_decided: "我的指示: {decided}"
+    not_supplied: "没有供给"
+    effort_default: "默认"
+    organisation_none: "没有组织指示"
+    organisation_first: "先于我的指示适用。"
+    all_agents: "所有智能体"
+    instructions_note: "在角色之后、人设之前遵循，组织指示先适用。"
+    characters: "{count} / {most} 字"
+  action:
+    add: "添加智能体"
+    back: "还原"
+    road: "提供商 · 模型"
+  aria:
+    road: "更改 {name} 的提供商 · 模型"
+    switch: "开启 {name}"
+    remove: "删除 {name}"
+    instruction: "更改 {name} 的指示"
+  message:
+    remove: "删除这个智能体?"
+    remove_effect: "只删除自己添加的智能体，从组织收到的智能体会保留。"
+  error:
+    read_failed: "无法加载我的智能体。"
+    failed: "无法更改。"
+    no_user: "此登录没有智能体。"
+    add_withheld: "组织不允许添加或关闭智能体。"
+    road_withheld: "组织不允许选择提供商 · 模型。"
+    instructions_withheld: "组织不允许我的指示。"
+    not_supplied: "我的供给无法运行此模型。"
+    role_off: "此角色已被组织禁止。"
+    too_many: "此角色不能再添加智能体。"
+    supplied: "从组织收到的智能体只能关闭，不能删除。"
+    busy: "运行中的智能体不能删除。"
+    unknown_agent: "这不是我的智能体。"
+    bad_instructions: "指示太长。"
+    not_found: "没有这个智能体。"
 org_storage:
   title:
     storage: 制品存储

@@ -1,3 +1,4 @@
+import { isOwnRoad } from "#shared/own-agents";
 import { wording } from "#shared/wording";
 
 import { signedInUser } from "../../../../utils/accounts";
@@ -7,7 +8,8 @@ import { changeComposition, isDelegation, orgAgentsFailure } from "../../../../u
 import type { CompositionChoice } from "#shared/organisation-supply";
 
 // A unit's word on one role, and the composition's delegation (docs/web.md, 「Organisation」, the agents tab): `role` with
-// `choice` — `{ off: true }`, `{ agents: n }` or null to follow above — and `delegation`, either or both.
+// `choice` — `{ off: true }`, `{ agents: n, roads }`, each road a provider, a model and an effort or null for the road
+// of the role's own agent, or null to follow above — and `delegation`, either or both.
 export default defineEventHandler(async (event): Promise<{ ok: true }> => {
   const unit = unitNumber(getRouterParam(event, "unit"));
   const body = await readBody<{ role?: unknown; choice?: unknown; delegation?: unknown }>(event).catch(() => ({}) as Record<string, unknown>);
@@ -31,10 +33,14 @@ function choiceIn(value: unknown): CompositionChoice | null | undefined {
   if (value === null) return null;
   if (typeof value !== "object") return undefined;
 
-  const said = value as { off?: unknown; agents?: unknown };
+  const said = value as { off?: unknown; agents?: unknown; roads?: unknown };
 
   if (said.off === true) return { off: true };
-  if (typeof said.agents === "number" && Number.isInteger(said.agents) && said.agents >= 0 && said.agents <= 8) return { agents: said.agents };
+  if (typeof said.agents !== "number" || !Number.isInteger(said.agents) || said.agents < 0 || said.agents > 8) return undefined;
 
-  return undefined;
+  const roads = Array.isArray(said.roads) ? said.roads : [];
+
+  if (roads.some((road) => road !== null && !isOwnRoad(road))) return undefined;
+
+  return { agents: said.agents, roads: roads.map((road) => (isOwnRoad(road) ? { provider: road.provider, model: road.model, effort: road.effort ?? null } : null)) };
 }

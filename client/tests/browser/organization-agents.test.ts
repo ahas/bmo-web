@@ -7,7 +7,8 @@ import { wording } from "../../apps/web/shared/wording";
 import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 
 // An organisation's agents (docs/web.md, 「Organisation」, the agents tab, and 「The join page」): the agents tab's
-// groups of the unit's supply sources and its own keys and its sign-up composition, and the agent login step a person whose runs only their own supply can carry is held at. Each is worked as a hand works it at a phone's width and a desk's: what a
+// groups of the unit's supply sources and its own keys, its sign-up composition with a road for each agent it gives, what
+// its people may change of the agents it supplies, and the agent login step a person whose runs only their own supply can carry is held at. Each is worked as a hand works it at a phone's width and a desk's: what a
 // press lands on is the control it names, nothing runs off the side, and what a press does is read back off the screen
 // after the page is read again.
 //
@@ -82,6 +83,17 @@ async function reachable(control: Locator): Promise<boolean> {
 // Whether the page runs off its side: the document wider than the screen.
 async function overflows(page: Page): Promise<boolean> {
   return await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
+}
+
+// A choice picked from a select: the select pressed, the choice in the one list it opened, and that list gone before
+// anything under it is pressed.
+async function choose(page: Page, select: Locator, choice: string): Promise<void> {
+  await select.click();
+
+  const list = page.getByRole("listbox");
+
+  await list.getByRole("option", { name: choice, exact: true }).click();
+  await list.waitFor({ state: "detached", timeout: 10_000 });
 }
 
 async function tab(page: Page, name: string): Promise<void> {
@@ -172,6 +184,68 @@ describe.skipIf(!origin || !touchReady())("an organisation's agents", () => {
       await page.locator('[data-composition-role="worker"]').locator('button[aria-haspopup="listbox"]').click();
       await page.getByRole("option", { name: wording("org_agents.label.choice_inherit"), exact: true }).click();
       await page.locator('[data-composition-role="worker"]').getByText(wording("org_agents.label.stands_platform"), { exact: true }).waitFor({ timeout: 15_000 });
+
+      await context.close();
+    }, 120_000);
+
+    test(`the unit gives a role's agent on a road of its own and withholds a change its people may make at ${width}px`, async () => {
+      const context = await contextFor(ADMINISTRATOR.name, width);
+      const page = await context.newPage();
+
+      await tab(page, "agents");
+
+      // One agent of the builder role, on the role's own agent's road until the unit chooses one.
+      const builder = page.locator('[data-composition-role="builder"]');
+
+      await builder.waitFor({ timeout: 20_000 });
+      expect(await reachable(builder.locator('button[aria-haspopup="listbox"]'))).toBe(true);
+
+      // No agent first, so the one given next starts on the role's own agent's road whatever an earlier run left.
+      await choose(page, builder.locator('button[aria-haspopup="listbox"]'), wording("org_agents.label.choice_none"));
+      await page.locator('[data-composition-agent="builder:0"]').waitFor({ state: "detached", timeout: 15_000 });
+      await choose(page, builder.locator('button[aria-haspopup="listbox"]'), wording("org_agents.label.choice_agents", { count: 1 }));
+
+      const seat = page.locator('[data-composition-agent="builder:0"]');
+
+      await seat.getByText(wording("org_agents.label.road_role_default"), { exact: true }).waitFor({ timeout: 15_000 });
+
+      // Its road chosen in the road's own form, read back off the row.
+      const change = seat.locator("[data-composition-road]");
+
+      expect(await reachable(change)).toBe(true);
+      await change.click();
+
+      const dialog = page.locator("[data-road-dialog]");
+
+      await dialog.waitFor({ timeout: 10_000 });
+      await dialog.locator("button[data-road-dialog-provider], [data-road-dialog-provider] button").first().click();
+      await page.getByRole("option", { name: "Claude Code", exact: true }).click();
+      await page.waitForFunction(() => document.querySelector("[data-road-dialog-save]")?.hasAttribute("disabled") === false, null, { timeout: 15_000 });
+      await page.locator("[data-road-dialog-save]").click();
+      await dialog.waitFor({ state: "detached", timeout: 15_000 });
+      await seat.getByText("Claude Code · claude-opus-5-5", { exact: true }).waitFor({ timeout: 15_000 });
+      expect(await overflows(page)).toBe(false);
+
+      // What the people may change: road choice withheld at the company, said and kept when read again.
+      const road = page.locator('[data-org-person-change="roadChoice"]');
+
+      await road.waitFor({ timeout: 15_000 });
+      expect(await reachable(road.locator("[data-org-person-change-choice]"))).toBe(true);
+      await choose(page, road.locator("[data-org-person-change-choice]"), wording("org_agents.label.choice_off"));
+      await page.waitForFunction((off) => document.querySelector('[data-org-person-change="roadChoice"] [data-org-person-change-choice]')?.textContent?.includes(off) === true, wording("org_agents.label.choice_off"), { timeout: 15_000 });
+
+      await page.reload({ waitUntil: "load" });
+      await standing(page);
+      await page.locator('[data-org-person-change="roadChoice"]').waitFor({ timeout: 20_000 });
+      expect(await page.locator('[data-org-person-change="roadChoice"] [data-org-person-change-choice]').textContent()).toContain(wording("org_agents.label.choice_off"));
+      await page.locator('[data-composition-agent="builder:0"]').getByText("Claude Code · claude-opus-5-5", { exact: true }).waitFor({ timeout: 15_000 });
+      expect(await overflows(page)).toBe(false);
+
+      // Put back to following above, for the next width.
+      await choose(page, page.locator('[data-org-person-change="roadChoice"] [data-org-person-change-choice]'), wording("org_agents.label.choice_inherit"));
+      await page.locator('[data-org-person-change="roadChoice"]').getByText(wording("org_agents.label.manage_stands_allow"), { exact: true }).waitFor({ timeout: 15_000 });
+      await choose(page, page.locator('[data-composition-role="builder"] button[aria-haspopup="listbox"]'), wording("org_agents.label.choice_inherit"));
+      await page.locator('[data-composition-agent="builder:0"]').waitFor({ state: "detached", timeout: 15_000 });
 
       await context.close();
     }, 120_000);

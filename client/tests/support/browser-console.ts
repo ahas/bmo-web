@@ -133,7 +133,8 @@ const ACCOUNTS: readonly [string, string][] = [
   ["todo-awaiting", "fixture-password-3826"],
   ["four-languages", "fixture-password-4401"],
   ["browser-language", "fixture-password-4402"],
-  ["shared-info", "fixture-password-4113"]
+  ["shared-info", "fixture-password-4113"],
+  ["own-agents", "fixture-password-4114"]
 ];
 
 // The member accounts a test signs in with to read a section by its permission rather than as the administrator,
@@ -959,6 +960,138 @@ async function compositionAnswer(path: string, request: Request): Promise<Respon
   });
 }
 
+// A person's own agents as the agency's stand-in answers them (the agency's `docs/api.md`, 「own-agents」): a worker
+// seat their company supplies, on a road its composition names, and a seeker seat of the platform's own rule; the
+// producer role turned off by the company; adding agents and choosing roads allowed, their own instructions withheld
+// by the company, a unit the account service does not hold. Every change is kept in the stand-in for the next read.
+const OWN = {
+  agents: new Map<string, { role: string; road: { provider: string; model: string; effort: string | null } | null; enabled: boolean; supplied: boolean }>(),
+  all: "Answer in short lines." as string | null,
+  made: 0
+};
+const OWN_SUPPLIED: Record<string, { role: string; road: { provider: string; model: string; effort: string | null } | null; from: string | null }> = {};
+
+function ownSeat(account: string, role: string): string {
+  return `${role}-u${account}`;
+}
+
+async function ownAgentsAnswer(path: string, request: Request): Promise<Response | null> {
+  const asked = /^\/own-(agents|instructions)\/(\d+)(?:\/(.*))?$/.exec(path);
+
+  if (asked === null) return null;
+
+  const [, kind, account, rest = ""] = asked;
+  const worker = ownSeat(account!, "worker");
+  const seeker = ownSeat(account!, ASKED_RUN.role);
+  // A unit no account service holds, so the screen says it as an organisation it cannot name.
+  const company: number | null = 999_999;
+
+  if (OWN.agents.size === 0) {
+    OWN_SUPPLIED[worker] = { role: "worker", road: { provider: "claude-code", model: "claude-opus-5-5", effort: "high" }, from: company === null ? null : `unit:${company}` };
+    OWN_SUPPLIED[seeker] = { role: ASKED_RUN.role, road: null, from: null };
+    for (const [name, seat] of Object.entries(OWN_SUPPLIED)) OWN.agents.set(name, { role: seat.role, road: seat.road, enabled: true, supplied: true });
+  }
+
+  const view = (name: string) => {
+    const held = OWN.agents.get(name);
+    const supplied = OWN_SUPPLIED[name];
+    const changed = held !== undefined && supplied !== undefined && (!held.enabled || JSON.stringify(held.road) !== JSON.stringify(supplied.road));
+
+    return {
+      name,
+      agent: held === undefined ? null : { name, role: held.role, ...(held.road ?? { provider: null, model: null, effort: null }), enabled: held.enabled, carries: false },
+      supplied: supplied === undefined ? null : { road: supplied.road, from: supplied.from },
+      changed
+    };
+  };
+
+  if (kind === "agents" && request.method === "GET" && rest === "") {
+    const roles = ROLES.map((role) => ({
+      role: role.name,
+      label: role.label,
+      description: null,
+      line: role.line,
+      off: role.name === "producer",
+      offFrom: role.name === "producer" && company !== null ? `unit:${company}` : null,
+      most: 8,
+      agents: [...OWN.agents.entries()].filter(([, held]) => held.role === role.name).map(([name]) => view(name))
+    }));
+
+    return Response.json({
+      account: Number(account),
+      add: { allowed: true, from: null },
+      road: { allowed: true, from: null },
+      roles,
+      providers: [{ name: "claude-code", label: "Claude Code", lines: ["chat", "worker", "search"] }, { name: "deepseek", label: "DeepSeek", lines: ["chat", "worker"] }]
+    });
+  }
+
+  const models = /^models\/([^/]+)$/.exec(rest);
+
+  if (kind === "agents" && models !== null) {
+    const ids = models[1] === "deepseek" ? [["deepseek-v4-pro", true], ["deepseek-flash", false]] : [["claude-opus-5-5", true], ["claude-sonnet-5", true]];
+
+    return Response.json({ provider: models[1], models: ids.map(([id, supplied]) => ({ id, efforts: ["low", "medium", "high"], inService: true, supplied })) });
+  }
+
+  if (kind === "agents" && request.method === "POST" && rest === "") {
+    const body = (await request.json()) as { role: string };
+
+    OWN.made += 1;
+    OWN.agents.set(`${body.role}-u${account}-${OWN.made + 1}`, { role: body.role, road: null, enabled: true, supplied: false });
+
+    return Response.json({}, { status: 201 });
+  }
+
+  const one = /^([^/]+)(\/back)?$/.exec(rest);
+  const name = one?.[1] === undefined ? "" : decodeURIComponent(one[1]);
+
+  if (kind === "agents" && one !== null && one[2] !== undefined && request.method === "POST") {
+    const supplied = OWN_SUPPLIED[name];
+
+    if (supplied === undefined) return Response.json({ code: "not-supplied", error: "no seat" }, { status: 404 });
+    OWN.agents.set(name, { role: supplied.role, road: supplied.road, enabled: true, supplied: true });
+
+    return Response.json(view(name));
+  }
+
+  if (kind === "agents" && one !== null && request.method === "PATCH") {
+    const held = OWN.agents.get(name);
+
+    if (held === undefined) return Response.json({ code: "not-found", error: "no agent" }, { status: 404 });
+
+    const body = (await request.json()) as { provider?: string | null; model?: string | null; effort?: string | null; enabled?: boolean };
+
+    if (body.model === "deepseek-flash") return Response.json({ code: "road-not-supplied", error: "not carried", field: "model" }, { status: 409 });
+    if ("provider" in body) held.road = body.provider === null || body.provider === undefined ? null : { provider: body.provider, model: body.model!, effort: body.effort ?? null };
+    if (typeof body.enabled === "boolean") held.enabled = body.enabled;
+
+    return Response.json(view(name));
+  }
+
+  if (kind === "agents" && one !== null && request.method === "DELETE") {
+    if (OWN_SUPPLIED[name] !== undefined) return Response.json({ code: "supplied-agent", error: "supplied" }, { status: 409 });
+    OWN.agents.delete(name);
+
+    return new Response(null, { status: 204 });
+  }
+
+  if (kind === "instructions") {
+    if (request.method === "PUT") return Response.json({ code: "instructions-withheld", error: "withheld" }, { status: 403 });
+
+    return Response.json({
+      allowed: { allowed: false, from: company === null ? null : `unit:${company}` },
+      all: OWN.all,
+      agents: {},
+      named: [{ name: `u${account}`, label: "My BMO", kind: "supervisor", role: null }, ...[...OWN.agents.entries()].map(([agent, held]) => ({ name: agent, label: null, kind: "agent", role: held.role }))],
+      organisation: company === null ? [] : [{ from: `unit:${company}`, text: "Never share a customer's files outside the company." }],
+      mostCharacters: 20000
+    });
+  }
+
+  return null;
+}
+
 // The storage places as bmo-artifact's stand-in answers them (its `docs/api.md`, 「Storage places」): the local place and
 // a SharePoint library with the settings it takes, and a link's value judged — a SharePoint value naming its site, drive
 // and a folder naming the document's number — and put on the account service's chain in the caller's name, naming
@@ -1128,6 +1261,10 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     const composition = await compositionAnswer(path, request);
 
     if (composition !== null) return composition;
+
+    const own = await ownAgentsAnswer(path, request);
+
+    if (own !== null) return own;
 
     // A person's own keys, of which the step's person holds none.
     if (path === "/personal-supply" && request.method === "GET") return Response.json({ items: [] });
@@ -2196,7 +2333,8 @@ try {
 
   // The agency's own kinds on the delegation chain, declared as the agency declares them as it stands: the three supply
   // sources, the sign-up composition and repository management (the agency's `policy/organisation.toml`), and the
-  // organisation's instructions and the persona's choice (its `policy/prompt-layers.toml`).
+  // organisation's instructions, the persona's choice and the person's own instructions (its `policy/prompt-layers.toml`),
+  // and what a person may change of the agents supplied to them.
   const agencyKinds: readonly { key: string; shape: string; mode: string; levels: readonly string[]; fallback?: unknown; choices?: readonly string[]; rules: boolean; personWriter: string }[] = [
     { key: "supply.platform", shape: "flag", mode: "narrowing", levels: ["platform", "unit", "person"], fallback: true, rules: true, personWriter: "heads" },
     { key: "supply.organisation", shape: "flag", mode: "narrowing", levels: ["platform", "unit"], fallback: false, rules: true, personWriter: "heads" },
@@ -2204,7 +2342,10 @@ try {
     { key: "signup.composition", shape: "json", mode: "nearest", levels: ["platform", "unit", "person"], rules: false, personWriter: "heads" },
     { key: "repositories.manage", shape: "flag", mode: "nearest", levels: ["platform", "unit", "person"], fallback: true, rules: true, personWriter: "heads" },
     { key: "agency.org-instructions", shape: "text", mode: "layered", levels: ["platform", "unit"], rules: false, personWriter: "heads" },
-    { key: "agency.persona", shape: "keys", mode: "nearest", levels: ["platform", "unit", "person"], fallback: ["own"], choices: ["own", "none"], rules: true, personWriter: "both" }
+    { key: "agency.persona", shape: "keys", mode: "nearest", levels: ["platform", "unit", "person"], fallback: ["own"], choices: ["own", "none"], rules: true, personWriter: "both" },
+    { key: "agency.own-agents", shape: "flag", mode: "nearest", levels: ["platform", "unit", "person"], fallback: true, rules: true, personWriter: "heads" },
+    { key: "agency.road-choice", shape: "flag", mode: "nearest", levels: ["platform", "unit", "person"], fallback: true, rules: true, personWriter: "heads" },
+    { key: "agency.personal-instructions", shape: "flag", mode: "nearest", levels: ["platform", "unit", "person"], fallback: true, rules: true, personWriter: "heads" }
   ];
 
   for (const { key, shape, mode, levels, fallback, choices = [], rules, personWriter } of agencyKinds) {

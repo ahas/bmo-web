@@ -32,6 +32,7 @@ export interface SettingsSection {
 export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   { key: "account", label: "settings.label.account", icon: "i-material-symbols-person-outline", administrator: false, user: false, load: () => import("~/components/SettingsAccount.vue") },
   { key: "agent", label: "settings.label.agent", icon: "i-material-symbols-face-outline", administrator: false, user: true, personalize: true, load: () => import("~/components/SettingsBmo.vue") },
+  { key: "own-agents", label: "settings.label.own_agents", icon: "i-material-symbols-smart-toy-outline", administrator: false, user: true, load: () => import("~/components/SettingsOwnAgents.vue") },
   { key: "machine", label: "settings.label.machine", icon: "i-material-symbols-computer-outline", administrator: false, user: true, load: () => import("~/components/SettingsMachine.vue") },
   { key: "desktop", label: "settings.label.desktop", icon: "i-material-symbols-desktop-windows-outline", administrator: false, user: false, app: true, load: () => import("~/components/SettingsDesktop.vue") },
   { key: "secrets", label: "settings.label.secrets", icon: "i-material-symbols-key-outline", administrator: false, user: true, load: () => import("~/components/SettingsSecrets.vue") },

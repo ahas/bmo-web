@@ -1,8 +1,8 @@
 <template>
   <!-- The organisation screen's agents tab (docs/web.md, 「Organisation」, the agents tab): every setting of the
        delegation chain about the agents of the people under the unit chosen in the tree, the company where none is —
-       its instructions, its persona's choice, its supply sources and keys, its sign-up composition and its own
-       repositories — each with what the units below may do with it. Each group reads on its own, and each choice is
+       its instructions, its persona's choice, its supply sources and keys, its sign-up composition, what its people may
+       change of the agents it supplies and its own repositories — each with what the units below may do with it. Each group reads on its own, and each choice is
        saved as it is made. -->
   <div class="flex flex-col gap-4" data-org-agents>
     <ContentSkeleton v-if="view === null && failure === ''" :rows="2" list-class="flex flex-col divide-y divide-default" :label="$t('org_agents.status.loading')">
@@ -76,6 +76,36 @@
 
     <OrganizationAgentSupply :company="company" />
     <OrganizationComposition :company="company" />
+
+    <!-- What the unit's people may change of the agents it supplies, each allowed, withheld or following above, with what
+         the units below may do with it beside it. -->
+    <SettingsGroup v-if="view !== null && personChanges.length > 0" :title="$t('org_agents.title.person_changes')" data-org-person-changes>
+      <SettingsRow v-for="change in personChanges" :key="change.key" :label="$t(change.label)" :description="manageLine(change.setting)" :data-org-person-change="change.key">
+        <div class="flex flex-wrap justify-end gap-2">
+          <ChoiceSelect
+            :model-value="change.setting.own === null ? 'inherit' : change.setting.own ? 'allow' : 'deny'"
+            :items="manageChoices"
+            value-key="value"
+            class="w-36"
+            :loading="busy === change.key"
+            :disabled="busy !== '' || !change.setting.writable"
+            :aria-label="$t(change.label)"
+            data-org-person-change-choice
+            @update:model-value="(value: unknown) => void choose(change.key, value === 'inherit' ? 'inherit' : value === 'allow')"
+          />
+          <ChoiceSelect
+            :model-value="change.setting.delegation"
+            :items="delegations"
+            value-key="value"
+            class="w-36"
+            :disabled="busy !== '' || !change.setting.writable"
+            :aria-label="$t('org_agents.aria.delegation', { name: $t(change.label) })"
+            :data-org-delegation="change.key"
+            @update:model-value="(value: unknown) => void delegate(change.key, value)"
+          />
+        </div>
+      </SettingsRow>
+    </SettingsGroup>
 
     <!-- The unit's own repositories: whether its people add and change repositories, and the repositories it owns,
          whose people's agents alone work on them. -->
@@ -179,6 +209,8 @@ import { useConfirm } from "~/domain/confirm";
 import { UNIT_KEY } from "~/domain/organization";
 
 import type { Organization } from "~/domain/organization";
+import { PERSON_CHANGES } from "#shared/organisation-agents";
+
 import type { AgentSettingKey, PersonaChoice, UnitAgentSettings, UnitChainSetting, UnitRepository } from "#shared/organisation-agents";
 
 interface Props {
@@ -219,6 +251,22 @@ const manageChoices = computed(() => [
   { value: "allow", label: t("org_agents.label.manage_allow") },
   { value: "deny", label: t("org_agents.label.choice_off") }
 ]);
+
+// Each setting of what the people may change, by the pack's name for it.
+const PERSON_CHANGE_LABELS: Readonly<Record<(typeof PERSON_CHANGES)[number], string>> = {
+  ownAgents: "org_agents.label.person_change_agents",
+  roadChoice: "org_agents.label.person_change_road",
+  personalInstructions: "org_agents.label.person_change_instructions"
+};
+
+// The settings of what the people may change that the reader writes, in the tab's order.
+const personChanges = computed(() =>
+  PERSON_CHANGES.flatMap((key) => {
+    const setting = view.value?.[key] ?? null;
+
+    return setting === null ? [] : [{ key, setting, label: PERSON_CHANGE_LABELS[key] }];
+  })
+);
 
 // What the persona's row says under its name: a lock above, or what following above comes to.
 function personaLine(setting: UnitChainSetting<PersonaChoice>): string {

@@ -828,6 +828,12 @@ room:
     room_add_modes: "模式：{modes}"
     room_add_room: 房间
     room_add_search: 搜索名称
+    road_record: 对话记录
+    road_telegram: Telegram
+    road_kakao: KakaoTalk
+    road_teams: Microsoft Teams
+    road_discord: Discord
+    road_other: "即时通讯工具（{key}）"
     room_add_service: 聊天服务
     room_add_supervisor: 群组主管
     room_add_tab_contacts: 新对话
@@ -923,7 +929,7 @@ room:
     messages_copied: "已复制{n}条消息。"
     removal_done: 已删除房间登记及其记录。
     removal_goes: 删除后，下列记录和文件将一并删除，且无法恢复。
-    providers_rule: 只开启本房间记录的房间不连接任何即时通讯工具，所说的内容只保留在记录和此控制台中。开启某个即时通讯工具后，从那时起留在此房间的消息也会发送到该工具；关闭后即停止。房间必须至少在一处保持开启。
+    providers_rule: 只开启对话记录的房间不连接任何即时通讯工具，所说的内容只保留在记录和此控制台中。开启某个即时通讯工具后，从那时起留在此房间的消息也会发送到该工具；关闭后即停止。房间必须至少在一处保持开启。
     mode_rule: 开启后，此房间的智能体以你的账号回复；关闭后只读取和记录，不回复。
     background_every_minutes: "每{n}分钟检查一次"
     background_every_seconds: "每{n}秒检查一次"

@@ -1699,10 +1699,12 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
     // The one chat service rooms are added from, listing its account's rooms and the contacts of the account a listing
     // names, taking the record-only mode and reading a room's past back; and a second that does none of it, which the
-    // rooms read back to their oldest line are on.
+    // rooms read back to their oldest line are on. The room's record stands first, as the receiver lists it, under its
+    // own English label, which the console never shows.
     if (path === "/providers") {
       return Response.json({
         items: [
+          { key: "record", label: "the room's record", can: ["text", "photo", "document"], listsRooms: false, listsContacts: false, startsChats: false, startsGroups: false, roomModes: [] },
           { key: "chat-a", label: "Chat A", can: ["text", "history"], listsRooms: true, listsContacts: true, startsChats: false, startsGroups: false, roomModes: ["record-only"] },
           { key: "chat-b", label: "Chat B", can: ["text"], listsRooms: false, listsContacts: false, startsChats: false, startsGroups: false, roomModes: [], fileBytes: CHAT_B_FILE_BYTES }
         ],

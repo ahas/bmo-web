@@ -13,7 +13,7 @@ export default defineEventHandler(async (event): Promise<RoomAddService[]> => {
     .filter((provider) => provider.roomModes.length > 0)
     .map((provider) => ({
       key: provider.key,
-      label: provider.label,
+      label: chatRoadName(provider.key),
       modes: provider.roomModes,
       listsRooms: provider.listsRooms,
       listsContacts: provider.listsContacts ?? false,

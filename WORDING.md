@@ -406,6 +406,9 @@
 - a unit's head → 조직장: 조직장 지정, 조직장 해제. Never 장 alone, 책임자.
 - the one view a room's name opens, of what the room is and what it holds → 방 정보; its tabs → 대화상대, 미디어,
   파일, 링크, 음악, 음성, 상황, 호출 권한, 세션 정보, 채팅 서비스, 말투. Never 방 설정, 채팅방 정보, 방 서랍.
+- a chat road a room is on, as 채팅 서비스 and the console name it → the receiver's own record 대화 기록, each chat
+  service by the name people say for it (텔레그램, 카카오톡, 팀즈, 디스코드), and one the pack has no name for →
+  메신저 ({key}). Never 이 방의 기록 for the record, and never the receiver's English label.
 - what a room's messages carried, collected by kind in 방 정보 → the pictures and videos together 미디어, a file that is no
   picture, video or sound 파일, a web address the words hold 링크, a sound that is no voice note 음악, voice notes 음성
   as the tab and 음성 메시지 for one; a tab with none → 미디어 없음, 파일 없음, 링크 없음, 음악 없음, 음성 메시지 없음; a
@@ -712,6 +715,7 @@
 - 워커 → worker / ワーカー / 工作器.
 - 판정 → verdict / 判定 / 判定.
 - 방 → room / ルーム / 房间.
+- 대화 기록 (the record road) → Room record / 会話記録 / 对话记录.
 - 항목 → item / 項目 / 条目.
 - 조직장 → head / 組織長 / 负责人.
 - 위임 사슬 → delegation chain / 委任チェーン / 委托链.

@@ -1,12 +1,13 @@
 import { afterEach, describe, expect, test } from "bun:test";
 
+import { wording } from "../../../apps/web/shared/wording";
 import { asked, routeOf } from "../../support/nitro";
 import { answer, standIn } from "../../support/units";
 
 import type { RoomFileLimit } from "../../../apps/web/shared/types";
 
 // The largest file a room takes, as its input box reads it (docs/web.md, the room screen's input box): the receiver's
-// `fileLimit` for the room, its chat service named by the label the receiver gives it, or none where none declares one.
+// `fileLimit` for the room, its chat service named by its name in the pack, never the receiver's label, or none where none declares one.
 
 const ROOM = -7;
 
@@ -29,8 +30,8 @@ afterEach(() => {
 });
 
 describe("the largest file a room takes", () => {
-  test("is the receiver's limit for the room, its chat service named by its label", async () => {
-    expect((await asked(limit, { params: { chatId: String(ROOM) }, context: { readableRooms: new Set([ROOM]) } })).answer).toEqual({ limit: { bytes: 50_000_000, by: "Chat A" } });
+  test("is the receiver's limit for the room, its chat service named by its name in the pack", async () => {
+    expect((await asked(limit, { params: { chatId: String(ROOM) }, context: { readableRooms: new Set([ROOM]) } })).answer).toEqual({ limit: { bytes: 50_000_000, by: wording("room.label.road_other", { key: "chat-a" }) } });
   });
 
   test("is none where none of the room's chat services declares one", async () => {

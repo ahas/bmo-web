@@ -23,7 +23,7 @@ const ACCOUNT = { name: "room-attach", password: "fixture-password-2364" };
 // The room the harness keeps on this machine's own record, and a room on a chat service declaring a million bytes.
 const RECORD_CHAT = -9_000_000_000_099;
 const LIMITED_CHAT = -9_002_000_000_003;
-const DECLARED = { by: "Chat B", bytes: 1_000_000 };
+const DECLARED = { by: wording("room.label.road_other", { key: "chat-b" }), bytes: 1_000_000 };
 // Past the fifty megabytes the console once held a file to.
 const LARGE_BYTES = 60 * 1024 * 1024;
 

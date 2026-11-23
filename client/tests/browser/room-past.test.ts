@@ -18,7 +18,7 @@ import type { Browser, Page } from "playwright-core";
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "room-past", password: "fixture-password-2943" };
 const ROOMS = [
-  { chat: -9_002_000_000_002, lines: 75, begins: wording("room.status.held_from", { services: "Chat A" }) },
+  { chat: -9_002_000_000_002, lines: 75, begins: wording("room.status.held_from", { services: wording("room.label.road_other", { key: "chat-a" }) }) },
   { chat: -9_002_000_000_003, lines: 70, begins: wording("room.status.start_of_talk") }
 ];
 const WIDTHS = [

@@ -114,7 +114,7 @@ describe("where a room's line begins", () => {
   test("names each of the room's services that declares it reads a room's past back, in the room's order", async () => {
     receiver.asked.length = 0;
 
-    expect((await asked(past, { params: { chatId: "-12" } })).answer).toEqual({ readers: ["Provider C", "Provider A"] });
+    expect((await asked(past, { params: { chatId: "-12" } })).answer).toEqual({ readers: [wording("room.label.road_other", { key: "provider-c" }), wording("room.label.road_other", { key: "provider-a" })] });
     expect(receiver.asked.map((one) => one.path).sort()).toEqual(["/providers", "/rooms/-12/providers"]);
   });
 

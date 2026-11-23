@@ -116,7 +116,7 @@ describe.skipIf(!origin || !touchReady())("the sidebar's rooms", () => {
       const dialog = page.getByRole("dialog", { name: wording("room.title.room_add") });
 
       await dialog.getByRole("button", { name: wording("room.label.room_add_service") }).click();
-      await page.getByRole("option", { name: "Chat A" }).click();
+      await page.getByRole("option", { name: wording("room.label.road_other", { key: "chat-a" }) }).click();
       await dialog.getByRole("option", { name: /numbered-room/ }).locator("button").click();
       await dialog.getByRole("button", { name: wording("common.action.add") }).click();
       await dialog.waitFor({ state: "hidden", timeout: 20_000 });
@@ -129,7 +129,7 @@ describe.skipIf(!origin || !touchReady())("the sidebar's rooms", () => {
       await newChatMenu(page);
       await page.getByRole("menuitem", { name: wording("room.action.new_chat_add") }).click();
       await dialog.getByRole("button", { name: wording("room.label.room_add_service") }).click();
-      await page.getByRole("option", { name: "Chat A" }).click();
+      await page.getByRole("option", { name: wording("room.label.road_other", { key: "chat-a" }) }).click();
 
       const added = [wording("room.label.room_add_added_avatar"), wording("room.label.room_add_added_record_only")];
       const line = dialog.getByRole("option", { name: /numbered-room/ });
@@ -163,7 +163,7 @@ describe.skipIf(!origin || !touchReady())("the sidebar's rooms", () => {
       const dialog = page.getByRole("dialog", { name: wording("room.title.room_add") });
 
       await dialog.getByRole("button", { name: wording("room.label.room_add_service") }).click();
-      await page.getByRole("option", { name: "Chat A" }).click();
+      await page.getByRole("option", { name: wording("room.label.road_other", { key: "chat-a" }) }).click();
       await dialog.getByRole("tab", { name: wording("room.label.room_add_tab_contacts") }).click();
 
       const contacts = dialog.getByRole("listbox", { name: wording("room.label.room_add_tab_contacts") });

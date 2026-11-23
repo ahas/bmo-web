@@ -828,6 +828,12 @@ room:
     room_add_modes: "Modes: {modes}"
     room_add_room: Room
     room_add_search: Search names
+    road_record: Room record
+    road_telegram: Telegram
+    road_kakao: KakaoTalk
+    road_teams: Microsoft Teams
+    road_discord: Discord
+    road_other: "Messenger ({key})"
     room_add_service: Chat service
     room_add_supervisor: Group supervisor
     room_add_tab_contacts: New conversation
@@ -923,7 +929,7 @@ room:
     messages_copied: "Copied {n} messages."
     removal_done: The room registration and its records were deleted.
     removal_goes: "Deleting removes the records and files below with it, and they can't be restored."
-    providers_rule: "A room with only this room's record turned on isn't connected to any messenger, and what is said stays only in the records and this console. Turn on a messenger and, from then on, messages left in this room also go to that messenger; turn it off and they stop. A room must be on in at least one place."
+    providers_rule: "A room with only Room record turned on isn't connected to any messenger, and what is said stays only in the records and this console. Turn on a messenger and, from then on, messages left in this room also go to that messenger; turn it off and they stop. A room must be on in at least one place."
     mode_rule: "When on, this room's agent answers as your account; when off, it only reads and records, and doesn't answer."
     background_every_minutes: "Checks every {n} min"
     background_every_seconds: "Checks every {n}s"

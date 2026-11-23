@@ -4652,8 +4652,8 @@ Four bounds keep it from growing forever.
   it says what that is. Where a chat service the room is on reads a room's past back — it declares `history` in
   bmo-chat's terms — the room holds only what that service has handed over so far, so the line names the
   service: 「〈서비스〉에서 받은 대화는 여기부터입니다.」, and the older lines are that service's to read back. The
-  services named are the room's providers whose own verbs hold `history`, each by the label the receiver gives
-  it, in the room's order. Everywhere else it is the conversation's start: 「대화의 처음입니다.」. Where the
+  services named are the room's providers whose own verbs hold `history`, each by its name (「A chat road's
+  name」), in the room's order. Everywhere else it is the conversation's start: 「대화의 처음입니다.」. Where the
   receiver cannot say, the line stands with no words rather than calling the oldest message the start on a guess.
   The console asks this once, when the oldest message is reached, from the room's providers and each provider's
   own verbs, its `can` on the receiver's provider list, so two services of one room are told apart. The line
@@ -6057,8 +6057,9 @@ Four bounds keep it from growing forever.
   providers」), so nobody else signed in sees it, and the console's server refuses its routes for anyone but the
   administrator.
 - **The tab lists every provider the receiver names,** in the receiver's order, each a row with its
-  name — the receiver's own label for it — and a switch that stands on where the room is on it. A room whose list
+  name and a switch that stands on where the room is on it. A room whose list
   was never set shows the providers it stands on now, and a line saying so.
+- **A road is named by its key, in the pack's words (「A chat road's name」).**
 - **A switch saves the whole list at once:** turned on, the provider is added at the list's end; turned off, it
   is taken out. A room is on one provider at least, so the last switch on cannot be turned off. While the list is
   written every switch waits; a refused write is said in the tab by the pack's sentence for the receiver's code,
@@ -6075,6 +6076,18 @@ Four bounds keep it from growing forever.
   on starts carrying every message kept from then on to it, and turning it off stops that. The rule is the
   receiver's and turns on the list alone: the console names no provider apart from the others, in its code or in
   what it sends.
+
+#### A chat road's name
+
+- **Every chat road the receiver names is called by its key, in the reader's language pack.** The receiver gives
+  each road a label of its own, which is English and is never shown; the console keeps one word per road key the
+  receiver declares — its own record (대화 기록) and each chat service a receiver configuration names a road for —
+  in all four packs, and says it wherever a road is named: the 채팅 서비스 tab's rows and switches, the chat services
+  채팅 서비스 방 추가 offers, the line where a room's past begins and the chat service a file past its limit names.
+- **A road the pack holds no word for is called by the pack's word for a messenger with its key beside it**
+  (「메신저 (key)」), so two such roads stay apart and the receiver's English still never shows. A road key the
+  receiver comes to declare is given its word in every pack; a test holds the keys the receiver declares, captured,
+  against the four packs.
 
 #### 말투
 

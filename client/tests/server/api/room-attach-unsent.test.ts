@@ -73,7 +73,7 @@ afterEach(() => {
 });
 
 // The sentence a file past the room's limit is said with.
-const overLimit = (name: string) => wording("room.error.file_over_limit_named", { name, by: "Chat A", limit: fileSizeText(3) });
+const overLimit = (name: string) => wording("room.error.file_over_limit_named", { name, by: wording("room.label.road_other", { key: "chat-a" }), limit: fileSizeText(3) });
 
 describe("files the receiver refuses as one send", () => {
   test("each fail with a reason naming the file once, and the log carries the receiver's own words for each", async () => {

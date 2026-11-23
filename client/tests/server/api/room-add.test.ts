@@ -74,10 +74,10 @@ const contacts = await routeOf<unknown>("../../apps/web/server/api/room-add/[key
 const add = await routeOf<unknown>("../../apps/web/server/api/rooms.post");
 
 describe("adding a room", () => {
-  test("offers every service that takes a mode, with what it lists and starts, the record left out", async () => {
+  test("offers every service that takes a mode, by its name in the pack, with what it lists and starts, the record left out", async () => {
     expect((await asked(services, {})).answer).toEqual([
-      { key: "service-a", label: "Service A", modes: ["record-only", "avatar"], listsRooms: true, listsContacts: true, startsChats: true, startsGroups: false },
-      { key: "service-b", label: "Service B", modes: ["avatar", "record-only"], listsRooms: false, listsContacts: false, startsChats: false, startsGroups: false }
+      { key: "service-a", label: wording("room.label.road_other", { key: "service-a" }), modes: ["record-only", "avatar"], listsRooms: true, listsContacts: true, startsChats: true, startsGroups: false },
+      { key: "service-b", label: wording("room.label.road_other", { key: "service-b" }), modes: ["avatar", "record-only"], listsRooms: false, listsContacts: false, startsChats: false, startsGroups: false }
     ]);
   });
 

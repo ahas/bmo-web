@@ -15,6 +15,9 @@ import type { RoomProvidersView } from "../../../apps/web/shared/types";
 const globals: Record<string, unknown> = globalThis;
 
 const listed = [{ key: "provider-a", label: "Provider A" }, { key: "provider-b", label: "Provider B" }];
+// Each provider as the dialog reads it: by its name in the pack, never the receiver's label; a key the pack holds no
+// words for is called by the pack's word for a messenger.
+const named = listed.map(({ key }) => ({ key, label: wording("room.label.road_other", { key }) }));
 let on: string[] = ["provider-a"];
 let chosen = false;
 
@@ -45,7 +48,7 @@ const write = await routeOf<RoomProvidersView>("../../apps/web/server/api/rooms/
 
 describe("a room's chat providers", () => {
   test("reads every provider the receiver names and the ones the room is on", async () => {
-    expect((await asked(read, { params: { chatId: "-7" } })).answer).toEqual({ providers: listed, on: ["provider-a"], chosen: false });
+    expect((await asked(read, { params: { chatId: "-7" } })).answer).toEqual({ providers: named, on: ["provider-a"], chosen: false });
   });
 
   test("sets the whole list on the receiver and answers it as the receiver now holds it", async () => {
@@ -53,7 +56,7 @@ describe("a room's chat providers", () => {
 
     const answered = await asked(write, { params: { chatId: "-7" }, body: { providers: ["provider-a", "provider-b"] } });
 
-    expect(answered.answer).toEqual({ providers: listed, on: ["provider-a", "provider-b"], chosen: true });
+    expect(answered.answer).toEqual({ providers: named, on: ["provider-a", "provider-b"], chosen: true });
     expect(receiver.asked.filter((one) => one.method === "PUT").map((one) => [one.path, one.body])).toEqual([
       ["/rooms/-7/providers", { providers: ["provider-a", "provider-b"], account: 1 }]
     ]);

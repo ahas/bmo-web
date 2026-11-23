@@ -1,6 +1,7 @@
 import createClient, { type Client } from "openapi-fetch";
 
 import { CONTROL_UNREACHABLE } from "#shared/config";
+import { roadName } from "#shared/roads";
 import { wording } from "#shared/wording";
 
 import { exactJson, exactJsonText } from "./exact-json";
@@ -256,10 +257,16 @@ export async function exactMessage(roomId: number, messageId: ExactMessageId): P
   );
 }
 
+/** A chat road's name in the reader's language, by its key from the pack (docs/web.md, 「A chat road's name」); the label the
+ * receiver gives a road is its own English and is never shown. */
+export function chatRoadName(key: string): string {
+  return roadName(wording, key);
+}
+
 /**
  * The names of the chat services a room's past comes over from: the room's providers whose own verbs, their `can` on
- * the receiver's provider list, hold `history` (bmo-chat's `docs/contract.md`, 「Capabilities」), each by the label the
- * receiver gives it, in the room's order. None where no provider of the room reads its past back.
+ * the receiver's provider list, hold `history` (bmo-chat's `docs/contract.md`, 「Capabilities」), each by its name
+ * in the pack, in the room's order. None where no provider of the room reads its past back.
  */
 export async function roomPastReaders(roomId: number): Promise<string[]> {
   const asking = receiver();
@@ -271,11 +278,11 @@ export async function roomPastReaders(roomId: number): Promise<string[]> {
   return room.providers.flatMap((key) => {
     const provider = listed.items.find((one) => one.key === key);
 
-    return provider?.can.includes(HISTORY) === true ? [provider.label] : [];
+    return provider?.can.includes(HISTORY) === true ? [chatRoadName(provider.key)] : [];
   });
 }
 
-/** The largest file a room takes and the chat service declaring it, by the label the receiver gives it: the smallest
+/** The largest file a room takes and the chat service declaring it, by its name in the pack: the smallest
  * limit any chat service on the room's list declares, or none where none declares one (the receiver's `docs/api.md`,
  * 「Sends」). */
 export async function roomFileLimit(roomId: number): Promise<FileLimit | null> {
@@ -288,7 +295,7 @@ export async function roomFileLimit(roomId: number): Promise<FileLimit | null> {
 
   if (limit === null) return null;
 
-  return { bytes: limit.bytes, by: listed.items.find((provider) => provider.key === limit.provider)?.label ?? limit.provider };
+  return { bytes: limit.bytes, by: chatRoadName(limit.provider) };
 }
 
 /** A room's chat providers as its dialog reads them: every provider the receiver names, and the ones the room is on. */
@@ -328,7 +335,7 @@ export async function roomProviders(roomId: number): Promise<RoomProvidersView> 
   ]);
 
   return {
-    providers: listed.items.map((provider) => ({ key: provider.key, label: provider.label })),
+    providers: listed.items.map((provider) => ({ key: provider.key, label: chatRoadName(provider.key) })),
     on: room.providers,
     chosen: room.chosen
   };

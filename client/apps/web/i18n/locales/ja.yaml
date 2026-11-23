@@ -828,6 +828,12 @@ room:
     room_add_modes: "モード: {modes}"
     room_add_room: ルーム
     room_add_search: 名前を検索
+    road_record: 会話記録
+    road_telegram: Telegram
+    road_kakao: カカオトーク
+    road_teams: Microsoft Teams
+    road_discord: Discord
+    road_other: "メッセンジャー（{key}）"
     room_add_service: チャットサービス
     room_add_supervisor: グループのスーパーバイザー
     room_add_tab_contacts: 新しい会話
@@ -923,7 +929,7 @@ room:
     messages_copied: "メッセージ{n}件をコピーしました。"
     removal_done: ルームの登録とその記録を削除しました。
     removal_goes: 削除すると、以下の記録とファイルも一緒に削除され、復元できません。
-    providers_rule: このルームの記録だけをオンにしたルームはどのメッセンジャーにもつながらず、話した内容は記録とこのコンソールにだけ残ります。メッセンジャーをオンにすると、その時点からこのルームに残るメッセージがそのメッセンジャーにも送られ、オフにすると止まります。ルームは少なくとも1か所でオンにしておく必要があります。
+    providers_rule: 会話記録だけをオンにしたルームはどのメッセンジャーにもつながらず、話した内容は記録とこのコンソールにだけ残ります。メッセンジャーをオンにすると、その時点からこのルームに残るメッセージがそのメッセンジャーにも送られ、オフにすると止まります。ルームは少なくとも1か所でオンにしておく必要があります。
     mode_rule: オンにするとこのルームのエージェントがあなたのアカウントとして返信し、オフにすると読んで記録するだけで返信しません。
     background_every_minutes: "{n}分ごとに確認"
     background_every_seconds: "{n}秒ごとに確認"

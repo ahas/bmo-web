@@ -495,7 +495,8 @@
 - the kinds an archive (아티팩트) document is filed as, 리서치, 기록, 학습자료, 원문 and 페이지 → 카테고리: 카테고리, 모든 카테고리,
   each opening its list; a document's category label, the filer's own word for the work that made it → 분류: 분류, 모든 분류.
   Never 종류 for an archive document's kind: the owner's own choice of the word. The archive's front page → 최신 문서, 많이 본
-  문서 with its span 최근 7일 and 최근 7일 동안 읽은 문서 없음 for none, 카테고리 with 전체 first; a row's link to its whole
+  문서 with its span 최근 7일 and 최근 7일 동안 읽은 문서 없음 for none, the documents the reader read last → 최근 본 문서
+  with 최근 7일 동안 본 문서 없음 for none, 카테고리 with 전체 first; a row's link to its whole
   list → 모두 보기.
 - how long a step or a document took → 경과, the summary of them → 경과시간, with 건수, 중앙값 and 최소 ~ 최대. Never 소요 시간, 처리
   시간.

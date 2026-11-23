@@ -141,15 +141,13 @@ export default defineNuxtConfig({
     rollupConfig: { external: [/^bun$/, /^bun:/], plugins: [yamlData] },
     typescript: { tsConfig: { compilerOptions: { types: ["@types/bun"] } } },
     hooks: {
-      // A route that answers no read and whose address holds no parameter is left out of the map `$fetch` and
-      // `useFetch` are typed against. Every typed call matches its address against every route in the map, and past
-      // some two hundred and forty of them TypeScript gives up on the console's calls (docs/web.md, 「Running in
-      // development」); such a route's callers write its address whole and name the type of what it answers, so the
-      // map gives them nothing but its weight.
+      // The map of routes `$fetch` and `useFetch` would be typed against is left empty. Typing one call against it
+      // matches every route in it against every other, so its cost grows with the square of the routes and past
+      // some two hundred TypeScript gives up on the console's calls (docs/web.md, 「Running in development」).
+      // Every caller that reads an answer names the type of what it answers, so the map gives them nothing but
+      // its weight.
       "types:extend"(types) {
-        for (const [route, methods] of Object.entries(types.routes)) {
-          if (!("get" in methods) && !("default" in methods) && !/[:*]/.test(route)) delete types.routes[route];
-        }
+        for (const route of Object.keys(types.routes)) delete types.routes[route];
       }
     }
   },

@@ -10184,12 +10184,14 @@ memory or less, where the collector runs until the process dies for want of heap
 raises the limit to four gigabytes (`NODE_OPTIONS=--max-old-space-size=4096`), which `nuxi typecheck` hands on to
 the `vue-tsc` it starts.
 
-The map of routes `$fetch` and `useFetch` are typed against holds no route that answers no read and whose address
-holds no parameter. Nitro writes every route of the server into that one map, and each typed call matches its address
-against every route in it; past some two hundred and forty routes TypeScript stops short on the console's calls, says
-the instantiation is too deep and leaves their answers untyped. A change at a fixed address is called by that address
-whole and read by the type its caller names, so the console's configuration leaves such routes out of the map, and
-the map keeps every read and every address with a parameter, whose methods and answers it checks.
+`$fetch` and `useFetch` are typed against no map of routes. Nitro writes every route of the server into one map
+and types a call by matching addresses against the routes in it, and the defaults it gives a call reach every route
+in the map against every other, so the work grows with the square of the routes, whatever form the call takes and
+whether or not it names its answer. Past some two hundred routes TypeScript stops short on a call, says the
+instantiation is too deep, and every answer read through it is left untyped. So the console's configuration empties
+that map, and a call costs the check the same however many routes the server has: every caller that reads an answer
+names the type of what it answers, a call that names none reads its answer as `unknown`, and a method is checked
+only as an HTTP method.
 
 Do not build by hand. The one road to put the console up is the deployment, and the build is its step.
 

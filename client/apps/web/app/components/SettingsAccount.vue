@@ -1,7 +1,8 @@
 <template>
   <!-- The account section (docs/web.md, 「Settings」): the account's login and the way to its form, the login and
        the password, which is a dialog of its own with its own save; the profile, the person's name, job title and
-       contact details in a dialog of their own; the switch to show one's presence (「Presence and typing」); and one's own
+       contact details in a dialog of their own; the switch to show one's presence (「Presence and typing」); what one's
+       organisation may know of one, as shared memories of one's home unit; and one's own
        picture, the sender's linked to the account, set in the console (「Profile photos」). -->
   <div class="flex flex-col gap-6">
     <SettingsGroup>
@@ -44,6 +45,8 @@
         />
       </SettingsRow>
     </SettingsGroup>
+
+    <SettingsSharedInfo v-if="account !== undefined" />
 
     <div v-if="ownSender !== null" class="flex flex-col gap-2">
       <h3 class="text-sm font-medium text-highlighted">{{ $t("picture.label.own") }}</h3>

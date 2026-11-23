@@ -19,6 +19,8 @@ export interface OrgMemory {
   // The unit whose memory stands for its topic in its place, where another unit's does; null where it stands itself
   // or has no topic.
   standsInstead: { id: number; name: string; locked: boolean } | null;
+  // The person it is about, where it is a shared memory about one person; null for a memory of the whole unit.
+  about: { user: string; name: string } | null;
 }
 
 /** The memories of one unit of the path. */
@@ -37,14 +39,30 @@ export interface OrgMemoryView {
   inherited: OrgMemoryGroup[];
   // Every topic the units of the path hold, for the form to offer.
   topics: string[];
+  // The people standing in the unit or under it, whom the form may write a memory about.
+  people: OrgMemoryPerson[];
 }
 
-/** A memory as the form writes it. */
+/** A memory as the form writes it: about one person, by their user id, where `about` names one. */
 export interface OrgMemoryDraft {
   text: string;
   topic: string | null;
   locked: boolean;
   internalOnly: boolean;
+  about: string | null;
+}
+
+/** A person the form may write a memory about: one standing in the unit or under it. */
+export interface OrgMemoryPerson {
+  user: string;
+  name: string;
+}
+
+/** The signed-in person's own shared memories (docs/web.md, 「Settings」): their home unit, none where they stand in no unit,
+ * and each memory about them that the organisation may know. */
+export interface OwnMemoryView {
+  unit: { id: number; name: string } | null;
+  memories: { id: number; text: string; writtenAt: number }[];
 }
 
 /** A unit whose org memory the reader writes, as the tab's unit choice offers it. */

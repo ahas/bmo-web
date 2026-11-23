@@ -1365,6 +1365,18 @@ export async function writesOrgMemory(unit: number, user: UserId, options: Servi
   return answered(reply).allowed;
 }
 
+/** The unit a person stands in, with its company, none where they stand in no unit (docs/accounts.md, 「Companies and
+ * organisation units」). */
+export async function homeUnit(user: UserId, options: ServiceOptions = {}): Promise<{ company: { id: number; name: string }; unit: { id: number; name: string } } | null> {
+  const reply = await sent(options, clientOf(options).GET("/users/{user}/unit", { params: { path: { user: userPath(user) } } }));
+
+  if (reply.response.status === 404) return null;
+
+  const said = answered(reply);
+
+  return { company: { id: said.company.id, name: said.company.name }, unit: { id: said.unit.id, name: said.unit.name } };
+}
+
 /** The people granted a unit's org memory write, for a head of the unit. */
 export async function memoryWriters(unit: number, caller: ProfileCaller, options: ServiceOptions = {}): Promise<MemoryWriter[]> {
   const reply = await sent(options, clientOf(options).GET("/units/{unit}/memory-writers", { params: { path: { unit }, header: { "Owner-Key": caller.key } } }));

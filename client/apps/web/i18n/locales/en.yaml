@@ -2102,6 +2102,13 @@ org_memory:
     text_help: "Don't include assessments of particular people, personal circumstances or private chats."
     topic: Topic
     topic_line: "Topic {topic}"
+    person: "Person"
+    person_help: "Only what may be known inside the organization: their position, duties or how they prefer to be reached."
+    person_none: "None"
+    person_line: "Person {name}"
+    shared_mine: "My information shared with the organization"
+    no_shared_mine: "Nothing shared"
+    shared_mine_help: "Only what may be known inside the organization, such as your position, duties or how you prefer to be reached. Don't include health or personal circumstances."
     locked: Fixed
     locked_help: "Sub-organizations can't override it on the same topic."
     internal: Internal only
@@ -2118,7 +2125,11 @@ org_memory:
     decline: Decline
     grant: Grant access
     revoke: "Revoke {name}'s access"
+    add_info: "Add information"
+    delete_info: "Delete information"
   message:
+    delete_info: "Delete this information?"
+    delete_info_effect: "The organization's BMOs will no longer receive this information."
     delete: Delete this memory?
     delete_effect: BMOs in this organization and its sub-organizations will no longer receive this memory.
     decline: Decline this proposal?
@@ -2136,6 +2147,8 @@ org_memory:
     kept_by_source: "Memories managed by another service can't be changed here."
     head_only: Only an administrator or a head of this organization can do this.
     writer_left: "A person who has left can't be granted access."
+    person_outside: "You can only choose people in this organization or its sub-organizations."
+    no_unit: "You don't belong to an organization, so there's nothing to share."
 catalogue:
   label:
     tab: "Positions & types"

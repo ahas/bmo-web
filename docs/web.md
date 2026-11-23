@@ -7581,6 +7581,13 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
   account's identity on the record road takes the name it is now shown by, the person's name or the login where
   none stands (`docs/accounts.md`, 「Users and senders」), so the people of a room and a forward name the person by it
   before their next words.
+- **조직에 공유한 내 정보** stands for a person who stands in a unit: what their organisation may know of them, the shared
+  memories about them in their home unit's org memory (`docs/accounts.md`, 「A unit's org memory」), read and written
+  through the console's own routes (`/api/organization/memory/own`). One row each, the text whole and, muted, the
+  day it was written; 정보 삭제 at the row's end, asked first, moves it to `invalidated`. 정보 추가 at the group's
+  heading opens a form of one 내용, several lines, its line saying that it holds only what the organisation may know,
+  such as the reader's role, duties or how they prefer to be reached, and never their circumstances or health; 저장 is
+  open once it holds words. With none it says 공유한 정보 없음. A person in no unit is shown no such group.
 - **접속 상태 공개** is the account's presence switch (「Presence and typing」, 「The switch」): one row with its switch,
   on unless the account turned it off, and one muted line saying what turning it off hides. It takes effect as it
   is switched. A console login standing before the account model, which has no account, is shown no such row.
@@ -8607,7 +8614,8 @@ write's standing from its answer (`docs/boundary.md`, 「Calls the console makes
   offers no unit of its own to choose. Where the reader does not write the node chosen's memory, the tab says in one
   line to choose a unit whose memory they write in the tree, and nothing else.
 - **이 조직의 기억** lists the unit's own memories, the standing ones, one row each: the text whole, and under it, muted,
-  its 주제 where it has one, and 고정 and 사내 한정 as small neutral badges where they are set. A memory whose topic is
+  its 인물 where it is about a person and its 주제 where it has one, and 고정 and 사내 한정 as small neutral badges where
+  they are set. A memory whose topic is
   answered from another unit on the path, a unit above holding a locked memory of it, says so under it, muted,
   `{unit}의 고정 기억이 대신 적용됩니다.`. Two marks stand at the row's end, 기억 편집 and 기억 삭제, the second asked first;
   삭제 moves the memory to `invalidated`, so it stops holding and its history stays in the brain. With none the list
@@ -8619,8 +8627,11 @@ write's standing from its answer (`docs/boundary.md`, 「Calls the console makes
   `다른 서비스가 관리하는 기억입니다.` for a key the pack holds none for (「The codes the packs render」 in
   `docs/boundary.md`). It changes where its source changes.
 - **The memory form** is the one 기억 추가 and 기억 편집 open (「Forms」): 내용, the text, several lines and required, its
-  line saying that it holds a fact of the whole unit and never a person's standing, circumstances or private words
-  (the brain's `docs/design.md`, 「Org brains」);
+  line saying that it holds a fact of the whole unit and never a person's circumstances or private words (the brain's
+  `docs/design.md`, 「Org brains」);
+  인물, optional, a list of the people standing in the unit or under it searched by name: a memory about one person,
+  its line saying that it holds only what the organisation may know of them, such as their role, their duties or how
+  they prefer to be reached, written shared (`docs/accounts.md`, 「A unit's org memory」);
   주제, one line and optional, offering the topics the units of the path already hold so a unit's memory overrides an
   inherited one by the same word, a topic typed standing as written, its spaces made hyphens and its letters small;
   고정, a switch, its line saying that the units under it cannot override the topic; and 사내 한정, a switch, on for a new

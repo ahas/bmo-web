@@ -582,6 +582,11 @@
   (kept from a room where someone outside the company sits); a member's word waiting for a writer → 제안, answered 수락
   or 거절, 제안 없음; who may write it without heading the unit → 조직 기억 쓰기 권한, 권한 부여, 권한 해제. Never 메모리,
   공통 기억, 잠금 for 고정, 대외비 for 사내 한정, nor 승인 or 반려 for a proposal, which stay an approval's words.
+- a memory of the organisation about one person, what it may know of them → its field and mark 인물; the person's own
+  such memories on 계정 → 조직에 공유한 내 정보: 정보 추가, 정보 삭제, 공유한 정보 없음. Never 신상, 개인 정보 for it.
+- what every agent may read, above every company → 전역 베이스 in Korean text; on the brain screen, its
+  candidates' review → 검토, each decided 전역으로, `{brain}에 남김` or 버림; a tip kept by an agent → 요령. Never 공용
+  기억 or 글로벌 for the base.
 - the record of changes to a person's place → 이력: 이력 없음. Never 히스토리, 로그, 발령 내역.
 - the one screen of the organisation's works, its menu and its title → 일정 관리. 업무 is never a menu's or a screen's
   name.
@@ -684,3 +689,5 @@
 - 조직장 → head / 組織長 / 负责人.
 - 위임 사슬 → delegation chain / 委任チェーン / 委托链.
 - 아티팩트 → artifact / アーティファクト / 制品.
+- 인물 (the person an org memory is about) → person / 人物 / 人员.
+- 전역 베이스 → global base / グローバルベース / 全局库.

@@ -110,7 +110,7 @@
       </template>
     </template>
 
-    <OrganizationMemoryDialog v-model:open="editing" :title="editTitle" :topics="view?.topics ?? []" :saved="edited" :send="send" @saved="void read()" />
+    <OrganizationMemoryDialog v-model:open="editing" :title="editTitle" :topics="view?.topics ?? []" :people="view?.people ?? []" :saved="edited" :send="send" @saved="void read()" />
   </div>
 </template>
 

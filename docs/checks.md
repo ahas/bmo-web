@@ -69,6 +69,8 @@ machine's own socket's `bmo_test`, and every name carries the process that made 
     chain as the agency does, one fixture member whose runs only their
     own supply can carry, and every other road with the unit's own not-found;
   - the agency's own kinds on the delegation chain, declared as the agency declares them as it stands;
+  - in the brain's stand-in for organisations' memories, the org brains made and found by their keys, each keeping
+    the memories written into it and moved to `invalidated`, so a page read again shows what a write left;
   - in the receiver's stand-in, whose private room each room is, `privateOf` and `sealed` on every room it reads:
     another account's private room with two lines said in it, `private-room`, and the owner's room, sealed where the
     script runs with `BROWSER_CONSOLE_SEALED_OWNER=1`; a write naming an account in another account's private room, or

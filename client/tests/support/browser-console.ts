@@ -18,6 +18,7 @@ import { WatchedChildren } from "./children";
 import { manifestFields } from "./console-manifest";
 import { HARNESS_SCREEN_UNITS } from "./harness-screens";
 import { jobLogAnswer } from "./job-log";
+import { orgBrainAnswer } from "./org-brain";
 import { capturedMachines, capturedReadings } from "./node-machines";
 import { rawNumber } from "./raw-number";
 import { roleLogAnswer } from "./role-log";
@@ -128,7 +129,8 @@ const ACCOUNTS: readonly [string, string][] = [
   ["apps-admin", "fixture-password-3911"],
   ["todo-awaiting", "fixture-password-3826"],
   ["four-languages", "fixture-password-4401"],
-  ["browser-language", "fixture-password-4402"]
+  ["browser-language", "fixture-password-4402"],
+  ["shared-info", "fixture-password-4113"]
 ];
 
 // The member accounts a test signs in with to read a section by its permission rather than as the administrator,
@@ -1712,6 +1714,8 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     }
   },
   BRAIN: () => null,
+  // The brain again, for organisations' memories (tests/support/org-brain.ts).
+  ORG_BRAIN: (path, request) => orgBrainAnswer(path, request),
   // The node service, its machines as a running one answers them (tests/support/node-machines.ts), stamped now: the
   // monitor's own reads are served from them, so a file driving the monitor through the console's server reads what
   // the service sends. It lists no node, so the monitor's tiles are the machines its answer names.

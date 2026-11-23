@@ -1,13 +1,13 @@
 import { wording } from "#shared/wording";
 
-import { memoryWriters, unitSubtree, unitView, writesOrgMemory } from "./account-service";
+import { homeUnit, memoryWriters, unitSubtree, unitView, writesOrgMemory } from "./account-service";
 import { fail } from "./fail";
 import { callerOf, organizationFailure } from "./organization";
 import { unitFetch } from "./units";
 
 import type { SignedIn } from "./accounts";
 import type { UnitCall } from "./units";
-import type { OrgMemory, OrgMemoryDraft, OrgMemoryView, OrgMemoryWritersView } from "#shared/org-memory";
+import type { OrgMemory, OrgMemoryDraft, OrgMemoryPerson, OrgMemoryView, OrgMemoryWritersView, OwnMemoryView } from "#shared/org-memory";
 
 // A unit's org memory on the organisation screen's org memory tab (docs/web.md, 「Organisation」, the org memory tab;
 // docs/boundary.md, 「Calls the console makes」): the brain keeps it in an org brain of each unit, keyed by the company's
@@ -52,6 +52,8 @@ const PROPOSAL = "rumor";
 const NOT_STANDING = `${PROPOSAL},episode`;
 // The subject type a memory stands for its topic by.
 const TOPIC = "topic";
+// The subject type a shared memory names the person it is about by, keyed by the user's id.
+const PERSON = "person";
 
 interface BrainRow {
   id: number;
@@ -62,6 +64,7 @@ interface BrainRow {
   subjects: { type: string; key: string }[];
   locked: boolean;
   internalOnly: boolean;
+  shared?: boolean;
   actorName: string;
   validFrom: number | null;
   createdAt: number;
@@ -131,6 +134,26 @@ function topicOf(row: BrainRow): string | null {
   return row.subjects.find((subject) => subject.type === TOPIC)?.key ?? null;
 }
 
+function personOf(row: BrainRow): string | null {
+  return row.subjects.find((subject) => subject.type === PERSON)?.key ?? null;
+}
+
+/** The people standing in the unit or under it, by name, whom a memory of the unit may be about. */
+async function peopleOf(signed: SignedIn, unit: number): Promise<OrgMemoryPerson[]> {
+  try {
+    const subtree = await unitSubtree(unit, callerOf(signed));
+    const people = new Map<string, string>();
+
+    for (const one of subtree.units) {
+      for (const person of [...one.heads, ...one.members.filter((member) => !member.left), ...one.concurrent]) people.set(person.user, person.name);
+    }
+
+    return [...people].map(([user, name]) => ({ user, name })).toSorted((one, other) => one.name.localeCompare(other.name) || one.user.localeCompare(other.user));
+  } catch (error) {
+    throw organizationFailure(error);
+  }
+}
+
 /** The unit a reader writes the org memory of, with its path from its company; refused where they write it not. */
 async function writtenUnit(signed: SignedIn, unit: number): Promise<{ company: number; path: { id: number; name: string }[] }> {
   const { key } = callerOf(signed);
@@ -171,6 +194,8 @@ export async function orgMemoryView(signed: SignedIn, unit: number): Promise<Org
     : await unitFetch<TopicStanding[]>(BRAIN, `/org-topics?${new URLSearchParams({ brainIds: held.map((one) => one.brainId).join(",") })}`, undefined, BRAIN_CALL);
   const unitOfBrain = new Map(held.map((one) => [one.brainId, one.unit]));
   const topics = new Map(standing.map((one) => [one.topic, one]));
+  const people = await peopleOf(signed, unit);
+  const named = new Map(people.map((person) => [person.user, person.name]));
 
   const shown = (row: BrainRow): OrgMemory => {
     const topic = topicOf(row);
@@ -186,8 +211,14 @@ export async function orgMemoryView(signed: SignedIn, unit: number): Promise<Org
       source: sourceLine(row.key),
       writtenBy: row.actorName,
       writtenAt: row.validFrom ?? row.createdAt,
-      standsInstead: instead === undefined ? null : { ...instead, locked: stands!.locked }
+      standsInstead: instead === undefined ? null : { ...instead, locked: stands!.locked },
+      about: aboutOf(row)
     };
+  };
+  const aboutOf = (row: BrainRow): OrgMemory["about"] => {
+    const user = personOf(row);
+
+    return user === null ? null : { user, name: named.get(user) ?? user };
   };
   const standingOfBrain = async (brainId: number | null): Promise<BrainRow[]> => (brainId === null ? [] : await memoriesOf(brainId, { excludeTypes: NOT_STANDING }));
   const own = brains.at(-1)!;
@@ -203,7 +234,8 @@ export async function orgMemoryView(signed: SignedIn, unit: number): Promise<Org
     own: ownRows.map(shown),
     proposals: proposalRows.map(shown),
     inherited: brains.slice(0, -1).map((one, index) => ({ unit: one.unit, memories: aboveRows[index]!.map(shown) })),
-    topics: [...new Set(every.map(topicOf).filter((topic): topic is string => topic !== null))].toSorted()
+    topics: [...new Set(every.map(topicOf).filter((topic): topic is string => topic !== null))].toSorted(),
+    people
   };
 }
 
@@ -226,7 +258,17 @@ async function memoryOf(brainId: number, memory: number): Promise<BrainRow> {
 }
 
 function subjectsOf(draft: OrgMemoryDraft): { type: string; key: string }[] {
-  return draft.topic === null ? [] : [{ type: TOPIC, key: draft.topic }];
+  return [...(draft.topic === null ? [] : [{ type: TOPIC, key: draft.topic }]), ...(draft.about === null ? [] : [{ type: PERSON, key: draft.about }])];
+}
+
+/** A draft whose person, where it names one, stands in the unit or under it; refused otherwise, so nothing known of a
+ * person reaches a unit they do not stand in, nor another company. */
+async function checkedPerson(signed: SignedIn, unit: number, draft: OrgMemoryDraft): Promise<void> {
+  if (draft.about === null) return;
+
+  const people = await peopleOf(signed, unit);
+
+  if (!people.some((person) => person.user === draft.about)) throw fail(409, wording("org_memory.error.person_outside"));
 }
 
 function posted(path: string, body: Record<string, unknown>, method = "POST"): Promise<unknown> {
@@ -236,6 +278,9 @@ function posted(path: string, body: Record<string, unknown>, method = "POST"): P
 /** A memory written into the unit's org brain under the reader's name, the brain made where none stands. */
 export async function writeOrgMemory(signed: SignedIn, unit: number, draft: OrgMemoryDraft): Promise<void> {
   const { company, path } = await writtenUnit(signed, unit);
+
+  await checkedPerson(signed, unit, draft);
+
   const brainId = await brainMade(company, path.at(-1)!);
 
   await posted(`/brains/${brainId}/memories`, {
@@ -245,6 +290,7 @@ export async function writeOrgMemory(signed: SignedIn, unit: number, draft: OrgM
     subjects: subjectsOf(draft),
     locked: draft.locked,
     internalOnly: draft.internalOnly,
+    shared: draft.about !== null,
     standing: await standingOf(signed, unit)
   });
 }
@@ -252,6 +298,9 @@ export async function writeOrgMemory(signed: SignedIn, unit: number, draft: OrgM
 /** A new version written over one of the unit's memories. */
 export async function editOrgMemory(signed: SignedIn, unit: number, memory: number, draft: OrgMemoryDraft): Promise<void> {
   const { company } = await writtenUnit(signed, unit);
+
+  await checkedPerson(signed, unit, draft);
+
   const brainId = await brainOfUnit(company, unit);
 
   await memoryOf(brainId, memory);
@@ -261,8 +310,75 @@ export async function editOrgMemory(signed: SignedIn, unit: number, memory: numb
     subjects: subjectsOf(draft),
     locked: draft.locked,
     internalOnly: draft.internalOnly,
+    shared: draft.about !== null,
     standing: await standingOf(signed, unit)
   });
+}
+
+/** The signed-in person's home unit and the company it stands in, none where they stand in no unit. */
+async function ownUnit(signed: SignedIn): Promise<{ company: number; unit: { id: number; name: string } } | null> {
+  const { key } = callerOf(signed);
+
+  if (key === "") return null;
+
+  try {
+    const home = await homeUnit(key);
+
+    return home === null ? null : { company: home.company.id, unit: { id: home.unit.id, name: home.unit.name } };
+  } catch (error) {
+    throw organizationFailure(error);
+  }
+}
+
+/** The shared memories about the signed-in person in their home unit's org brain, as the account section shows them
+ * (docs/web.md, 「Settings」). */
+export async function ownMemoryView(signed: SignedIn): Promise<OwnMemoryView> {
+  const own = await ownUnit(signed);
+
+  if (own === null) return { unit: null, memories: [] };
+
+  const brainId = await brainOf(own.company, own.unit.id);
+  const rows = brainId === null ? [] : await memoriesOf(brainId, { excludeTypes: NOT_STANDING });
+  const { key } = callerOf(signed);
+
+  return {
+    unit: own.unit,
+    memories: rows
+      .filter((row) => row.shared === true && personOf(row) === key && row.subjects.filter((subject) => subject.type === PERSON).length === 1)
+      .map((row) => ({ id: row.id, text: row.text, writtenAt: row.validFrom ?? row.createdAt }))
+  };
+}
+
+/** A shared memory about the signed-in person written into their home unit's org brain under the standing `person`,
+ * which the brain takes as a head's word for a shared memory about them alone. */
+export async function writeOwnMemory(signed: SignedIn, text: string): Promise<void> {
+  const own = await ownUnit(signed);
+
+  if (own === null) throw fail(409, wording("org_memory.error.no_unit"));
+
+  const brainId = await brainMade(own.company, own.unit);
+
+  await posted(`/brains/${brainId}/memories`, {
+    type: "fact",
+    text,
+    actorName: signed.name,
+    subjects: [{ type: PERSON, key: callerOf(signed).key }],
+    internalOnly: true,
+    shared: true,
+    standing: "person"
+  });
+}
+
+/** One of the signed-in person's own shared memories moved to `invalidated` under the standing `person`; the brain
+ * refuses it where the memory is not theirs. */
+export async function dropOwnMemory(signed: SignedIn, memory: number): Promise<void> {
+  const own = await ownUnit(signed);
+
+  if (own === null) throw fail(404, wording("org_memory.error.not_found"));
+
+  const brainId = await brainOfUnit(own.company, own.unit.id);
+
+  await posted(`/brains/${brainId}/memories/${memory}`, { status: "invalidated", actorName: signed.name, standing: "person" }, "PATCH");
 }
 
 /** A proposal accepted as a fact of the unit in its own words. */

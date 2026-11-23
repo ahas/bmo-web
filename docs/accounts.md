@@ -540,6 +540,17 @@ section states what each does.
 - **`POST /checks/org-memory`** answers whether a user writes a unit's org memory, by heading it or holding its
   grant, the grant asked for named as `bmo_org_memory:<unit>#may_write`, so a caller names the brain write's standing
   from it: `head` where it is allowed, `member` where it is not.
+- **A memory about one person** stands in a unit's org memory only as what the organisation may know of them — their
+  role, the duties they carry, how they prefer to be reached — and is marked shared (the brain's `docs/design.md`,
+  「Org brains」). A writer of the unit writes one about a person standing in the unit or under it, who is of the unit's
+  company and has not left; the person writes their own into their home unit's org memory, under the standing
+  `person`, which the brain takes as a head's word for a shared memory about them alone. Anyone else's word on a
+  person stays a proposal. Their circumstances, their health and any evaluation of them stay in their agents' own
+  brains, and nothing of those is carried into an org memory by itself: a writer or the person puts it there.
+- **Whether a person's agents read the org memory at all,** and the platform's base beside it, is the brain's two
+  kinds of the delegation chain, `brain.organisation` and `brain.global`, declared by the brain's deployment (the
+  brain's `docs/design.md`, 「The layers a reading takes」): a company or a unit turns either off for the people under
+  it, and no unit below turns it on again.
 
 ### A person's history
 

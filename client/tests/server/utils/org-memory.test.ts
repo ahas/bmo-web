@@ -5,7 +5,7 @@ import { globalsRestoredAfter } from "../../support/globals";
 import { answer, standIn } from "../../support/units";
 
 import { fail } from "../../../apps/web/server/utils/fail";
-import { acceptOrgMemory, editOrgMemory, orgMemoryView, writeOrgMemory } from "../../../apps/web/server/utils/org-memory";
+import { acceptOrgMemory, dropOwnMemory, editOrgMemory, orgMemoryView, ownMemoryView, writeOrgMemory, writeOwnMemory } from "../../../apps/web/server/utils/org-memory";
 import { wording } from "../../../apps/web/shared/wording";
 
 import type { SignedIn } from "../../../apps/web/server/utils/accounts";
@@ -13,8 +13,9 @@ import type { SignedIn } from "../../../apps/web/server/utils/accounts";
 // A unit's org memory on the org memory tab (docs/web.md, 「Organisation」, the org memory tab): the console asks the
 // account service whether the reader writes the unit's memory before it reads or writes, names the brain write's
 // standing from that answer, shows which unit's memory stands for each topic as the brain answers it for the path, and
-// leaves a memory a service keeps under its own key as that service wrote it. The account service and the brain are
-// stood in for.
+// leaves a memory a service keeps under its own key as that service wrote it; a memory about one person of the unit is
+// written shared, and a person writes their own shared memories into their home unit's org brain under the standing
+// `person`. The account service and the brain are stood in for.
 
 const globals = globalThis as Record<string, unknown>;
 
@@ -34,6 +35,14 @@ standIn("WEB_SERVER", (call) => {
   if (call.method === "POST" && call.path === "/checks/org-memory") {
     return answer({ allowed: writers.has(String(call.body?.user)), grant: `bmo_org_memory:${call.body?.unit}#may_write`, user: call.body?.user });
   }
+  if (call.method === "GET" && call.path === `/units/${TEAM}/subtree`) {
+    return answer({ units: [{ id: TEAM, heads: [{ user: "7", name: "writer-a" }], members: [{ user: "9", name: "member-c", left: false }, { user: "10", name: "member-gone", left: true }], concurrent: [] }] });
+  }
+  if (call.method === "GET" && call.path === "/users/9/unit") {
+    const company = { id: COMPANY, name: "company-a" };
+
+    return answer({ user: "9", company, unit: { id: TEAM, name: "team-a" }, path: [company, { id: TEAM, name: "team-a" }] });
+  }
   if (call.method === "GET" && call.path === `/units/${TEAM}`) {
     const company = { id: COMPANY, name: "company-a" };
 
@@ -51,7 +60,8 @@ const HOURS = { type: "topic", key: "working-hours" };
 const memories: Record<string, unknown>[] = [
   row(101, COMPANY_BRAIN, { key: "attendance-working-hours", subjects: [HOURS], locked: true }),
   row(201, TEAM_BRAIN, { subjects: [HOURS] }),
-  row(202, TEAM_BRAIN, { type: "rumor" })
+  row(202, TEAM_BRAIN, { type: "rumor" }),
+  row(203, TEAM_BRAIN, { subjects: [{ type: "person", key: "9" }], shared: true })
 ];
 
 const brain = standIn("ORG_BRAIN", (call) => {
@@ -77,19 +87,25 @@ const brain = standIn("ORG_BRAIN", (call) => {
 
   if (call.method === "GET" && one !== null) return answer(memories.find((each) => each.id === Number(one[2])));
   if (call.method === "POST") return answer({ id: 900 }, 201);
+  if (call.method === "PATCH") return answer({ id: 900 });
 
   return answer({ code: "not-found", error: "no route" }, 404);
 });
 
 const WRITER: SignedIn = { name: "writer-a", id: 7, administrator: false };
 const MEMBER: SignedIn = { name: "member-b", id: 8, administrator: false };
-const DRAFT = { text: "Weekly report by Friday", topic: null, locked: false, internalOnly: true };
+const PERSON: SignedIn = { name: "member-c", id: 9, administrator: false };
+const DRAFT = { text: "Weekly report by Friday", topic: null, locked: false, internalOnly: true, about: null };
 
 describe("a unit's org memory", () => {
   test("shows the unit's own memories, its proposals and the path's, each with the unit standing for its topic", async () => {
     const view = await orgMemoryView(WRITER, TEAM);
 
-    expect(view.own.map((one) => [one.id, one.standsInstead])).toEqual([[201, { id: COMPANY, name: "company-a", locked: true }]]);
+    expect(view.own.map((one) => [one.id, one.standsInstead, one.about])).toEqual([
+      [201, { id: COMPANY, name: "company-a", locked: true }, null],
+      [203, null, { user: "9", name: "member-c" }]
+    ]);
+    expect(view.people).toEqual([{ user: "9", name: "member-c" }, { user: "7", name: "writer-a" }]);
     expect(view.proposals.map((one) => one.id)).toEqual([202]);
     expect(view.inherited.map((group) => [group.unit.id, group.memories.map((one) => [one.id, one.standsInstead, one.source])])).toEqual([
       [COMPANY, [[101, null, wording("org_memory.label.source_work_pattern")]]]
@@ -114,8 +130,47 @@ describe("a unit's org memory", () => {
     const posted = brain.asked.filter((call) => call.method === "POST").map((call) => [call.path, call.body]);
 
     expect(posted).toEqual([
-      [`/brains/${TEAM_BRAIN}/memories`, { type: "fact", text: DRAFT.text, actorName: "writer-a", subjects: [], locked: false, internalOnly: true, standing: "head" }],
+      [`/brains/${TEAM_BRAIN}/memories`, { type: "fact", text: DRAFT.text, actorName: "writer-a", subjects: [], locked: false, internalOnly: true, shared: false, standing: "head" }],
       [`/brains/${TEAM_BRAIN}/memories/202/versions`, { type: "fact", actorName: "writer-a", standing: "head" }]
     ]);
+  });
+});
+
+describe("a memory about one person", () => {
+  test("is written shared about a person standing in the unit or under it, and refused for anyone else", async () => {
+    brain.asked.length = 0;
+
+    await writeOrgMemory(WRITER, TEAM, { ...DRAFT, text: "Prefers mail to calls", about: "9" });
+    await expect(writeOrgMemory(WRITER, TEAM, { ...DRAFT, about: "10" })).rejects.toMatchObject({ statusCode: 409 });
+    await expect(writeOrgMemory(WRITER, TEAM, { ...DRAFT, about: "77" })).rejects.toMatchObject({ statusCode: 409 });
+
+    const posted = brain.asked.filter((call) => call.method === "POST").map((call) => call.body);
+
+    expect(posted).toEqual([
+      { type: "fact", text: "Prefers mail to calls", actorName: "writer-a", subjects: [{ type: "person", key: "9" }], locked: false, internalOnly: true, shared: true, standing: "head" }
+    ]);
+  });
+
+  test("of the person's own is read, written and dropped in their home unit's org brain under their own standing", async () => {
+    brain.asked.length = 0;
+
+    const own = await ownMemoryView(PERSON);
+
+    expect(own).toEqual({ unit: { id: TEAM, name: "team-a" }, memories: [{ id: 203, text: "memory 203", writtenAt: 1_000 }] });
+
+    await writeOwnMemory(PERSON, "Reached by chat first");
+    await dropOwnMemory(PERSON, 203);
+
+    const written = brain.asked.filter((call) => call.method !== "GET").map((call) => [call.method, call.path, call.body]);
+
+    expect(written).toEqual([
+      ["POST", `/brains/${TEAM_BRAIN}/memories`, { type: "fact", text: "Reached by chat first", actorName: "member-c", subjects: [{ type: "person", key: "9" }], internalOnly: true, shared: true, standing: "person" }],
+      ["PATCH", `/brains/${TEAM_BRAIN}/memories/203`, { status: "invalidated", actorName: "member-c", standing: "person" }]
+    ]);
+  });
+
+  test("leaves a person in no unit with nothing to share", async () => {
+    expect(await ownMemoryView(MEMBER)).toEqual({ unit: null, memories: [] });
+    await expect(writeOwnMemory(MEMBER, "Anything")).rejects.toMatchObject({ statusCode: 409 });
   });
 });

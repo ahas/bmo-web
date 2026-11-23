@@ -2116,6 +2116,13 @@ org_memory:
     text_help: 请勿包含对特定人员的评价、个人情况或私聊内容。
     topic: 主题
     topic_line: "主题 {topic}"
+    person: "人员"
+    person_help: "只填写可以在组织内公开的内容，如职位、负责的工作、联系偏好。"
+    person_none: "无"
+    person_line: "人员 {name}"
+    shared_mine: "我向组织共享的信息"
+    no_shared_mine: "没有共享的信息"
+    shared_mine_help: "只填写可以在组织内公开的内容，如职位、负责的工作、联系偏好。不要填写健康或个人情况。"
     locked: 固定
     locked_help: 下级组织不能以相同主题覆盖。
     internal: 仅限公司内部
@@ -2132,7 +2139,11 @@ org_memory:
     decline: 拒绝
     grant: 授予权限
     revoke: "解除{name}的权限"
+    add_info: "添加信息"
+    delete_info: "删除信息"
   message:
+    delete_info: "要删除此信息吗？"
+    delete_info_effect: "组织的 BMO 将不再收到此信息。"
     delete: 要删除这条记忆吗？
     delete_effect: 本组织及下级组织的 BMO 将不再收到这条记忆。
     decline: 要拒绝这条提议吗？
@@ -2150,6 +2161,8 @@ org_memory:
     kept_by_source: 由其他服务管理的记忆无法在此更改。
     head_only: 仅管理员或本组织的负责人可以执行此操作。
     writer_left: 不能为已离职的人授予权限。
+    person_outside: "只能选择本组织或下级组织中的人员。"
+    no_unit: "你不属于任何组织，因此无法共享信息。"
 catalogue:
   label:
     tab: 职务·类型

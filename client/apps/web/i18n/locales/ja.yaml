@@ -2116,6 +2116,13 @@ org_memory:
     text_help: 特定の人の評価や事情、個人トークの内容は含めないでください。
     topic: トピック
     topic_line: "トピック {topic}"
+    person: "人物"
+    person_help: "役職・担当業務・連絡方法の希望など、組織内で知られてよいことだけを入れます。"
+    person_none: "なし"
+    person_line: "人物 {name}"
+    shared_mine: "組織に共有した自分の情報"
+    no_shared_mine: "共有した情報はありません"
+    shared_mine_help: "役職・担当業務・連絡方法の希望など、組織内で知られてよいことだけを入れます。健康や個人的な事情は入れません。"
     locked: 固定
     locked_help: 下位組織が同じトピックで上書きできません。
     internal: 社内限定
@@ -2132,7 +2139,11 @@ org_memory:
     decline: 断る
     grant: 権限を付与
     revoke: "{name}の権限を解除"
+    add_info: "情報を追加"
+    delete_info: "情報を削除"
   message:
+    delete_info: "この情報を削除しますか？"
+    delete_info_effect: "組織のBMOはこの情報を受け取らなくなります。"
     delete: この記憶を削除しますか？
     delete_effect: この組織と下位組織のBMOは、今後この記憶を受け取らなくなります。
     decline: この提案を断りますか？
@@ -2150,6 +2161,8 @@ org_memory:
     kept_by_source: 別のサービスが管理している記憶はここでは変更できません。
     head_only: 管理者またはこの組織の組織長のみ実行できます。
     writer_left: 退会した人には権限を付与できません。
+    person_outside: "この組織または下位組織にいる人だけを選べます。"
+    no_unit: "所属組織がないため、情報を共有できません。"
 catalogue:
   label:
     tab: 役職・種類

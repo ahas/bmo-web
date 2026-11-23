@@ -1,0 +1,10 @@
+# Translation of server/lang/ko/casebook.yaml; that file says what each line is for.
+room: "ルーム {chat}"
+no_room: "ルームなし"
+message: "メッセージ {message}"
+no_message: "メッセージなし"
+code_made: "コードが作った書式、検証は 1 回のみ"
+attempt: "{attempt} 回目の試行"
+reason: "理由: {reason}"
+text: "対象メッセージ:"
+markup: "ゲートが作った書式:"

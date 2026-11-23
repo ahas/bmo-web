@@ -1376,6 +1376,7 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 | `web_tab_states` | a user's open tabs per screen |
 | `web_palettes` | the bubble palette each user reads rooms in |
 | `web_themes` | the theme each user reads the console in |
+| `web_languages` | the language each user reads the console in, where they chose one (`docs/web.md`, 「Wording and the language pack」) |
 | `web_presence_hidden` | each account that turned its presence off, by its user, and when; an account showing its presence has no row (「Showing one's presence」) |
 | `web_room_reads` | how far each user has read each room |
 | `document_talk` | the console's threads about a document: each word said over one, by whom, with the passage, heading and version it was said over (`docs/documents-viewer.md`, 「The record」) |

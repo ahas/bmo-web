@@ -1,0 +1,36 @@
+# Translated from server/lang/ko/models.yaml; its comments say what each value is.
+usage: |-
+  usage: bmo model [--db <归档库>]
+         bmo model add <名称> --file <文件.gguf> --bytes <字节> --sha256 <哈希> [字段…]
+         bmo model set <名称> [字段…]
+         bmo model remove <名称>
+         bmo model use <名称>
+         bmo model --entry <名称> --json
+         bmo model --placed <名称> <节点>
+
+  字段：--label <名称> --source <https 地址 | 数据根目录下的路径> --engine <引擎> --registration <注册模型>
+        --note <备注> --thinking on|off --temperature <数> --top-p <数> --presence-penalty <数> --max-tokens <数>
+  在 set 中把字段值设为 default 或 none 即清空该栏。
+
+  不带参数时，显示目录中的所有条目以及每个引擎最近一次模型切换。
+  use 将该条目切换为其引擎的模型：启动一个由引擎安装器负责下载、校验和安装的用户单元，然后立即结束。
+  --entry 和 --placed 供引擎安装器使用。
+not_held: "目录中没有这个模型：{name}"
+already_held: "名称已存在：{name}"
+placed: "已记下 {name} 的文件位于 {node}。"
+node_unreadable: "无法读取节点名称。"
+removed: "已从目录中删除 {name}。"
+choosing: "已开始将 {engine} 引擎切换为 {entry}（用户单元 bmo-model-use-{engine}，日志 {log}）。"
+listing:
+  use: "模型切换 · {engine} ← {entry} · {chosen_by} · {at} · {state}{step}{reason}"
+  serving: " [服务中]"
+  file: "  文件 {file} · {bytes} B · sha256 {sha256}"
+  where: "  来源 {source} · 引擎 {engine} · 注册模型 {registration} · 节点 {nodes}"
+  defaults: "  默认生成设置 · 思考 {thinking} · temperature {temperature} · top_p {top_p} · presence_penalty {presence_penalty} · max_tokens {max_tokens}"
+  thinking_on: "开"
+  thinking_off: "关"
+  note: "  备注 {note}"
+run:
+  installing: "安装器运行中"
+  not_running: "不是进行中的模型切换：{id}"
+  failed: "安装器失败了。"

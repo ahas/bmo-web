@@ -1,0 +1,10 @@
+# Translation of server/lang/ko/casebook.yaml; that file says what each line is for.
+room: "Room {chat}"
+no_room: "No room"
+message: "Message {message}"
+no_message: "No message"
+code_made: "Markup built by code, verified once"
+attempt: "Attempt {attempt}"
+reason: "Reason: {reason}"
+text: "Target message:"
+markup: "Markup the gate made:"

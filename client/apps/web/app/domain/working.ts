@@ -37,8 +37,8 @@ export interface LiveTurn {
 
 // A name joined to the subject particle its last sound asks for, which the pack takes as {subject}: the name comes
 // from another unit, so no key of the pack can carry the particle itself.
-export function subjectOf(name: string): string {
-  return joinedSubject(name);
+export function subjectOf(t: Translate, name: string): string {
+  return joinedSubject(t, name);
 }
 
 // Who a turn is, by the name a person calls it: a supervisor under the label its row in the agents table carries,
@@ -104,7 +104,7 @@ export function phaseDetail(t: Translate, progress: RunProgress | null, step: Pi
 }
 
 function stateLook(t: Translate, name: string, progress: RunProgress | null): WorkingLook {
-  const subject = subjectOf(name);
+  const subject = subjectOf(t, name);
 
   if (progress === null || progress.phase === "thinking") {
     return { label: t("room.status.agent_thinking", { subject }) };
@@ -148,7 +148,7 @@ export function listeningLines(t: Translate, name: string, secondsLeft: number):
 
   return {
     enabled: t("room.status.chat_enabled"),
-    state: t("room.status.agent_listening", { subject: subjectOf(name) }),
+    state: t("room.status.agent_listening", { subject: subjectOf(t, name) }),
     left: { keypath: "room.status.listening_left", figures: { time: { value: left, text: timerClock(left) } } }
   };
 }
@@ -165,7 +165,7 @@ export function windowClockLines(t: Translate, name: string, secondsLeft: number
   const left = Math.max(0, secondsLeft);
 
   return {
-    state: t("room.status.agent_listening", { subject: subjectOf(name) }),
+    state: t("room.status.agent_listening", { subject: subjectOf(t, name) }),
     left: { keypath: "room.status.window_left", figures: { time: { value: left, text: timerClock(left) } } }
   };
 }
@@ -174,7 +174,7 @@ export function windowClockLines(t: Translate, name: string, secondsLeft: number
 export function outcomeLine(t: Translate, outcome: RoomOutcome): string {
   const name = turnName(t, outcome.speaker);
 
-  return t(outcome.key, { name, subject: subjectOf(name) });
+  return t(outcome.key, { name, subject: subjectOf(t, name) });
 }
 
 // What the turn was handed, in the room's own words: how many of the room's own messages, the

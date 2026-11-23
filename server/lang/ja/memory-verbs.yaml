@@ -1,0 +1,22 @@
+# Translated from server/lang/ko/memory-verbs.yaml; its comments say what each value is.
+global_scope: "グローバル · {reach}"
+from_item: " · 項目 #{item} の未決事項"
+why_missing: "--why '<理由>' says why, and a row never comes down for no reason anybody can read"
+action_missing: "--action '<何を>' is what attaches; give it, or --action - with the text on stdin"
+state_missing: "--action '<今どこまで>' is where the state now stands; give it, or --action - with the text on stdin"
+situation_unpaired: "a situation row is a pair: --condition '<いつ>' is the half the matcher reads, or --on <event> the fact it waits for, and without either it would attach every turn"
+situation_unfinished: "memory '{handle}' is a situation row, which is never finished: take it down with --retire {slug} --why '<理由>'"
+event_unknown: "不明なイベントです: {given}。{kinds} のいずれかを使ってください。"
+event_empty: "(空の値)"
+event_kind_item: "{kind}[:<項目>]"
+event_takes_no_item: "{kind} イベントには項目を付けません: {given}"
+event_bad_item: "イベントの項目番号が正しくありません: {given}"
+usage: |-
+  usage: {verb} --chat <chatId>|--global [--reach <owner|group|all>] --add --type <promise|check|followup|situation|state> --action '<何を>'|- [--condition '<いつ>' | --on <deployed[:<項目>]|job-ended[:<項目>]|queue-changed> | --until '<check>' [--name '<短い名前>'] [--every <seconds>] [--within <minutes>]] [--slug <slug>] [--for <userId>] [--by <userId>] [--message <messageId>] [--todo <itemId>] [--replaces <slug>]
+         {verb} --chat <chatId> --update <id|slug> --action '<今どこまで>'|-
+         {verb} --chat <chatId> --done <id|slug> [--text '<how it ended>']
+         {verb} --chat <chatId>|--global --retire <id|slug> --why '<理由>'
+         {verb} --chat <chatId>|--global --revive <id|slug>
+         {verb} --chat <chatId>|--global --candidate <id|slug> --why '<理由>'
+         {verb} --chat <chatId>|--global --list [--all] [--type <type>]
+  every form takes --agent <name>, the agent whose rows these are, where the run calling it names none

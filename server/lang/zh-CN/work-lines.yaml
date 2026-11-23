@@ -1,0 +1,28 @@
+# The words a running job's line is said in wherever a person reads it (docs/jobs.md, 「The item is the only
+# number」): the item it is a run of, and the step a work order is at (docs/work-orders.md, 「What a step is
+# called」). Each `{name}` is filled in with what it names.
+
+# A job's line names its item as {id}.
+item: "条目 #{id}"
+# A run of an item past its first: {item} is the item's line above, {attempt} which run of it this is.
+attempt: "{item} · 第 {attempt} 次运行"
+# A job with no item behind it, where its launcher wrote no line for why it was launched.
+itemless: "无条目的任务"
+
+# A work order's round past the first, {round}, ahead of the step's name.
+round: "第 {round} 轮"
+
+# Each step of a work order by its name. Only a build step is followed by which of how many it is.
+steps:
+  # The plan turn.
+  plan: "计划"
+  # A stage that finds things out.
+  investigate: "调查"
+  # A stage that checks a finding or the plan.
+  review: "审查"
+  # The synthesis turn, which writes the build list.
+  synthesis: "设计综合"
+  # A build step.
+  build: "实现"
+  # The final turn.
+  final: "最终验证"

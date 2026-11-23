@@ -186,6 +186,7 @@ import { settingsAnchor } from "~/domain/agent-settings";
 import { anyRunning, catalogueForm, catalogueRefusalPlace, catalogueSave, defaultsPairs, emptyCatalogueForm, GENERATION_FIELDS, sizeText, sourceText, useText } from "~/domain/catalogue-models";
 import { useConfirm } from "~/domain/confirm";
 import { useReadFailure } from "~/domain/events";
+import { languageTag, useLanguage } from "~/domain/language";
 import { CELL_TEXT } from "~/domain/settings-cells";
 
 import type { CatalogueEntryView, CatalogueView } from "#shared/agency";
@@ -241,8 +242,11 @@ function useMark(state: string): { icon: string; tone: string } {
     : state === "done" ? { icon: "i-material-symbols-check-circle-outline", tone: "text-success" } : { icon: "i-material-symbols-error-outline", tone: "text-error" };
 }
 
+// A moment as the reader's language writes a day and a time.
+const language = useLanguage();
+
 function timeText(seconds: number): string {
-  return new Date(seconds * 1000).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  return new Date(seconds * 1000).toLocaleString(languageTag(language.value), { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
 const busy = ref(false);

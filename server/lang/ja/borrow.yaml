@@ -1,0 +1,2 @@
+# Translation of server/lang/ko/borrow.yaml; that file says what each line is for.
+parked: "Job {job} が {worker} を借りて {branch} に移り、前の Job が残した変更をそのブランチに置く"

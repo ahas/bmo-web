@@ -1,0 +1,5 @@
+# Translated from server/lang/ko/providers.yaml; its comments say what each value is.
+off: "The provider is off."
+single_model: "A single-model provider doesn't lend co-workers."
+model_wrong: "Invalid job model: {selection}"
+no_model: "No provider that is on has a job model registered."

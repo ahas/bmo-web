@@ -1,0 +1,112 @@
+# What a work order's editing answers the owner and the chat agent with (docs/work-orders.md): the refusals of a plan
+# that does not read, of a step verb the order's state does not allow, and of the control route's own
+# verbs, said alike by the bun bot and `bmo-server` where each answers them; and what the work order script
+# says of its own flags and of a bot it could not reach. Each `{name}` is filled in with what it names:
+# {task} a step's id, {item} the TODO item's number, {cwd} a checkout.
+
+# A plan that does not read: what it lacks, the {name} of a part that is empty or too long, the {most}
+# things a synthesis may build, the {roles} a task may take.
+plan:
+  not_object: "需要一个 JSON 对象。"
+  empty: "{name} 为空或过长。"
+  stages: "需要阶段列表（stages）。"
+  stage_tasks: "每个阶段至少需要一个任务。"
+  stage_title: "阶段名称"
+  role: "角色必须是 {roles} 之一。"
+  model: "模型"
+  model_form: "模型以 提供商::模型 的格式指定。"
+  task_instruction: "单项指令"
+  task_title: "任务名称"
+  builds: "实现任务最多 {most} 个。"
+  build_instruction: "实现指令"
+
+# A step verb the order's state does not allow, or one given what it does not take: the {tiers} a model
+# or a co-worker may be, those only a worker is ({worker_only}), a job named by its {job} with the
+# particle its number takes, its {unit}, and the {base} a step's prompt was read for.
+steps:
+  no_task: "此工作指令单中没有任务 {task}。"
+  control: "计划、综合和最终轮次不通过步骤动词修改。要中途结束工作指令单，请使用 --close。"
+  finished: "该工作指令单已结束。要重新运行，请用 --reopen 打开。"
+  draft: "这是尚未运行的草稿。"
+  closing: "该工作指令单正在结束。撤回在检出中打开的更改并完成后，再用 --reopen 打开。"
+  instruction_size: "任务指令须为 1–30000 字。"
+  model_tier: "模型等级必须是 {tiers} 之一。"
+  coworker_tier: "协作者等级必须是 {tiers} 之一。{worker_only} 等级不会借作协作者。"
+  history_edit: "不修改前几轮的任务。"
+  history_rerun: "不重新运行前几轮的任务。要从前一轮重来，请重新打开工作指令单。"
+  history_restore: "不恢复前几轮的任务。要从前一轮重来，请重新打开工作指令单。"
+  running_edit: "修改运行中任务已保存的指令，已经开始的运行不会知道。要给运行中的任务补充内容，请用 bmo todo --append {item} 追加。"
+  done_edit: "已完成的任务请在 --rerun {task} 中连同指令一起修改。"
+  nothing_to_edit: "没有要修改的指令或模型。"
+  skip_reason: "请填写跳过原因，1–2000 字。"
+  skipped_already: "任务 {task} 已被跳过。"
+  running_builder: "运行中的 builder 轮次不在此处停止。要让它停下，请用 bmo todo --stop {item} --why '<原因>' 停止该条目。"
+  not_yet: "任务 {task} 的阶段还没到。要取消跳过，请使用 --restore。"
+  stage_running: "当前阶段有运行中的任务，因此不回退阶段。"
+  build_running: "有实现任务运行期间不予受理。"
+  research_over: "调查环节结束后不再重新运行调查阶段。要从调查重来，请重新打开工作指令单。"
+  phase: "当前环节不重新运行此任务。"
+  running: "任务 {task} 正在运行。"
+  pending: "任务 {task} 已在等待中。"
+  not_skipped: "任务 {task} 未被跳过。"
+  same_anchor: "不能以同一任务为基准移动。"
+  add_anchor: "新任务只能放在等待中的实现任务之前或之后。"
+  build_move: "只有两个实现任务都在等待中时才能移动。"
+  task_move: "不能在阶段内或跨阶段移动单个任务。阶段需整体移动。"
+  stage_move_past: "只能移动当前阶段之后的阶段。"
+  stage_move_pending: "只能移动任务全部在等待中的阶段。"
+  move_kinds: "实现任务只能与实现任务互相移动，调查阶段的任务只能与调查阶段的任务互相移动。"
+  stop_reason: "请填写停止原因，1–2000 字。"
+  close_reason: "请填写结束原因，1–2000 字。"
+  close_builder: "有运行中的 builder 轮次，因此不结束。要让它停下，请用 bmo todo --stop {item} --why '<原因>' 停止该条目。"
+  recover_done: "只恢复已结束的工作指令单。对于运行器持有的工作指令单，恢复的记录会被运行器的保存覆盖。"
+  recover_no_jobs: "该范围内没有此条目的 Job。"
+  recover_known: "Job {job} 已记录在工作指令单中。只需填写被覆盖运行的 Job 编号。"
+  recover_running: "Job {job} 尚未结束。"
+  recover_not_step: "Job #{job}（{unit}）不是此条目工作指令单的步骤。"
+  recover_unread: "无法从 Job #{job} 的提示词中读取 {base} 的角色和指令。"
+  recover_twice: "任务 {task} 已在工作指令单中。"
+  recover_none: "该范围内没有成功的阶段，没有可恢复的任务。"
+  recover_no_builder: "该范围内没有可读取先前运行目的和指令的 builder 轮次。"
+
+# The control route's verbs on a work order and an item: a stopped order's place in its line, a body
+# field by its {name}, runs asked to stop that are still {alive}, a result document already at its {path}.
+orders:
+  paused: "TODO #{item} 的工作指令单已暂停。轮到它在该工作器队列中时，机器人会自动恢复；要立即恢复，请使用 bmo work-order --todo {item} --resume。"
+  not_text: "{name} 的值必须是字符串。"
+  missing: "需要 {name} 的值。"
+  still_running: "已请求停止运行，但尚未确认结束：{alive}"
+  document_there: "{path} 已有结果文档，不予覆盖。"
+  reopen_done: "只能重新打开已完成的工作指令单。"
+  draft_only: "只能修改尚未运行的草稿。"
+  order_and_model: "请检查工作指令单和模型。"
+  approved_only: "只运行已批准且可推进的 TODO。"
+  active: "TODO #{item}：已保存的步骤已在进行中。"
+  done: "已完成的工作指令单不再运行。要保留先前结果重新运行，请用 bmo work-order --todo {item} --reopen 打开。"
+  model: "任务模型无效。"
+  chat: "chatId 无效。"
+  not_checkout: "{cwd} 不是 git 仓库，因此不运行协作。"
+  not_checkout_run: "{cwd} 不是 git 仓库，因此不运行协作。请不带协作，作为普通 Job 运行。"
+  item_number: "TODO 编号无效。"
+  no_item: "找不到 TODO。"
+  resume_held: "只恢复已批准、未暂缓且未合并的中断工作。"
+  resume_paused: "只能恢复已中断的工作。"
+  before_after: "before 和 after 只能填写其中一个。"
+  checkout_done: "已完成工作指令单的检出记录了工作在何处完成，因此不予更改。"
+  job_range: "Job 编号范围请写成 <第一个 Job>-<最后一个 Job>。"
+  action: "无效的操作。"
+  stop_done: "已完成的条目不能停止。"
+
+# The work order script's own flags, and a bot it could not reach to stop an item or edit an order: the
+# {flag} lacking a value, the {verbs} named together, the {error} the call gave and the {status} the bot
+# answered with.
+script:
+  value: "{flag} 后面需要一个值。"
+  verbs: "一次只能使用一个动词：{verbs}"
+  recover: "--recover 请写成 <第一个 Job>-<最后一个 Job>。"
+  stop_no_token: "缺少机器人的 control API 令牌（BMO_CONTROL_TOKEN），未停止。"
+  stop_unreachable: "机器人没有响应，未停止。请在机器人运行时再次调用。（{error}）"
+  stop_refused: "机器人未接受停止请求（HTTP {status}）。"
+  edit_no_token: "缺少机器人的 control API 令牌（BMO_CONTROL_TOKEN），未修改工作指令单。"
+  edit_unreachable: "机器人没有响应，未修改工作指令单。请在机器人运行时再次调用。（{error}）"
+  edit_refused: "机器人未接受请求（HTTP {status}）。"

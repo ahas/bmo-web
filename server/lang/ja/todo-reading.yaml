@@ -1,0 +1,124 @@
+# The words a TODO item is read in by a person and by the chat agent (docs/worker-language.md): one line of it in
+# a listing and the whole of it opened, written by the bun bot's TODO readings. A job reads its own English
+# rendering instead. Each `{name}` is filled in with what it names.
+
+# One line of a listing: a merge into the item {id}, the item finished, waiting on approval by its
+# {requester}, and the marks that follow the item's state.
+line:
+  merged: "#{id}に統合済み"
+  merging: "#{id}に統合"
+  done: "完了{merge}"
+  pending: "決裁待ち（{requester}）"
+  cowork: " · 協業"
+  note: " · 決裁意見あり"
+  report: " · 報告あり"
+  unfinished: " · 未決事項あり"
+  unfinished_resolved: " · 未決事項解消"
+
+# The word a held item wears, by who set it aside and whether its run still ends: stopped by the owner, wound
+# down to resume, held after failing, or plain; and while its run still goes, stopping, winding down, or
+# waiting for the run to end.
+held:
+  stop: "停止"
+  stopping: "停止中"
+  pause: "再開待ち"
+  pausing: "仕上げ中"
+  failure: "失敗により保留"
+  plain: "保留"
+  pending: "中断待ち"
+
+# What a row linked to the item opened is: finished, still open, merged, held.
+row:
+  done: "完了"
+  open: "未完了"
+  merged: "統合済み"
+  held: "保留"
+  opened: "オープン"
+
+# The whole of one item opened, each line by its label. {state}, {held}, {requester}, {approved},
+# {priority}, {model}, {worker} and {cowork} are its values; its impact grounds, the chat agent's and a job's each under
+# its own head, are one line per node, by its {id} and the {contract} that changes on it or the word for a
+# change inside alone, and a line where a new home must be decided.
+show:
+  state: "状態: {state}"
+  state_merged: "統合済み"
+  state_done: "完了"
+  held: "保留: {at}{reason}"
+  requester: "依頼者: {requester}"
+  approved: "決裁: {approved}"
+  priority: "優先度: {priority}"
+  model: "モデル: {model}"
+  model_default: "デフォルト"
+  # Beside the provider and model the work last went out on, wherever an item's model is shown: the mark of
+  # a road the provider order fell to, the mark of runs that went out on more than one, and in the detail
+  # alone the {requested} model where the two differ.
+  model_fallback: "（フォールバック）"
+  model_changed: "（モデル変更あり）"
+  model_requested: "（依頼 {requested}）"
+  worker: "ワーカー: {worker}{unassigned}"
+  worker_unassigned: "（未割り当て、Built-in ワーカー）"
+  cowork: "協業: {cowork}"
+  cowork_on: "オン"
+  cowork_off: "オフ（1 セッションで実行）"
+  impact: "影響の根拠:"
+  impact_job: "Job が改めて洗い出した影響の根拠:"
+  impact_node: "- {id}: {contract}"
+  impact_inside: "内部のみの変更"
+  impact_new_home: "- 新しい配置先を決める必要あり"
+  owner_note: "{owner}の決裁意見（原文のまま）:\n{note}"
+  owner_note_carried: "この意見は Job のプロンプトにそのまま載せ、Job は報告の中でこれに答える必要があります。"
+  report: "完了報告:"
+  unfinished: "未決事項{resolved}:"
+  unfinished_resolved: "（解消済み）"
+  resolution: "解消 {on}: {resolution}"
+  raised: "この未決事項からすでに作成した項目（再作成しない）:"
+  notes: "追加の指示:"
+  draft: "作業指示書の下書き（項目本文とは別に記載）:"
+  draft_intent: "目的:\n{intent}"
+  draft_instruction: "指示:\n{instruction}"
+
+# The merge on both sides: into the item {id} with its {title}, at the moment {at}, and the items merged
+# into this one.
+merge:
+  into: "統合: #{id} {title}に {at}統合済み{follows}"
+  follows: "。その項目が完了すると一緒に完了します"
+  merged: "統合された項目:"
+  work: "統合された項目 #{id} {title}（この項目の Job が一緒に行い、この項目を閉じると一緒に完了）:"
+
+# The repair link on both sides: the item {id} with its {title} this one repairs, and the items repairing
+# this one.
+repair:
+  target: "修正対象: #{id}{title}"
+  repairs: "この項目を修正する項目:"
+
+# What the work stopped to ask the owner, and what each question became.
+questions:
+  heading: "Job の質問:"
+  waiting: "まだ待機中"
+  typed: "{answer}（{owner_subject}が直接入力）"
+  chosen: "{owner_subject}が選択"
+  defaulted: "無回答 · 推奨回答で決定"
+
+# How long the item took and what the time went to: the {attempts} runs, the {finished} of them ended, each
+# attempt by its {attempt} and {job}, the spans of the run phase {phase}, and the tokens of the {spending}
+# runs that left a record of them.
+time:
+  running: "時間: まだ実行中（実行 {attempts} 回）"
+  total: "時間: 合計 {clock}（実行 {attempts} 回{finished}）"
+  finished: "、終了 {finished} 回"
+  attempt_running: "- {attempt} 回目（Job {job}）: まだ実行中"
+  attempt: "- {attempt} 回目（Job {job}）: {clock} · {outcome}"
+  no_outcome: "記録なし"
+  phases: "区間（Job 全体を分けたもの）:"
+  split: "{phase} の内訳（すぐ上の {phase} 区間を分けたもの）:"
+  split_waiting: "- ブランチを待った時間 {clock}"
+  split_tooling: "- 直接ツールを呼び出した時間 {clock}"
+  split_generating: "- モデルが生成した時間 {clock}"
+  inside: "{phase} 中のツール別時間（同時に実行されたツールは時間が重なるため、合計が実際の時間より長くなることがあります）:"
+  inside_more: "- その他 {count} 種類"
+  no_spans: "区間の記録なし（区間を記録する前に実行された Job です）"
+  span_times: " · {times} 回"
+  span_tokens: " · トークン {tokens}"
+  tokens: "トークン（モデル別、使用量の記録がある {spending} 回の合計）:"
+  tokens_missing: "- 残りの {missing} 回は使用量の記録がないため含まれていません"
+  no_tokens: "トークンの記録なし（実行が使用量を残せなかった Job です）"

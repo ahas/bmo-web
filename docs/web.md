@@ -727,26 +727,48 @@ link is the whole key and every holder of the token reads the same.
 
 ## Wording and the language pack
 
-Every word the console shows stands in one file, `client/apps/web/i18n/locales/ko.yaml`, and a screen, a
-server route or a shared module names a key into it rather than writing the words. A wording fix is an
-edit to that file alone, once the guide below carries the word.
+Every word the console shows stands in its language pack, one file to a language under
+`client/apps/web/i18n/locales/`, and a screen, a server route or a shared module names a key into it rather than
+writing the words. A wording fix is an edit to the packs alone, once the guide below carries the word.
 
+- **The console speaks four languages:** Korean (`ko`), English (`en`), Japanese (`ja`) and Simplified Chinese
+  (`zh-CN`).
+  - **Korean is the source.** `ko.yaml` is the pack the wording guide governs and every key is first written in;
+    the other three are its translations, key for key, in its order, each value carrying the marks the Korean one
+    carries. A key added to the Korean is added to the other three in the same change.
+  - **A test holds them so** (`client/tests/i18n/languages.test.ts`): it fails on a pack missing a key of the
+    Korean, holding one the Korean does not or holding them in another order, on a value whose marks differ from
+    the Korean's, on Korean standing in another language's pack, and on a value the engine cannot read.
+  - **The console's terms are written one way in each language:** a concept the glossary names has one word in
+    English, Japanese and Chinese as well, used wherever the Korean uses its word.
 - **The guide behind the words stands at the repository's root, `WORDING.md`.** It holds the principle a
   Korean sentence follows and the console glossary: the one Korean word each console concept is written
   as. A worker writing or changing UI text reads it, follows it, and adds a line when a concept first
   needs its word. No test reads it, and no other repository receives it.
 - **The mechanism is `@nuxtjs/i18n`**, set up as the bmo-ui layer asks of its host (bmo-ui's
-  `docs/boundary.md`, 「What the host owes」): no locale prefix in the address, the pack in YAML under
-  `client/apps/web/i18n/locales/`, the locale declared with the
-  `language` the document's `lang` is written from.
-  - **There is one locale, `ko`.** A second locale would be a second file every wording fix has to
-    reach, so none is kept, and the browser's own language is never asked.
-  - Nuxt UI's own words — the command palette, the empty table, a close button — come from its `ko`
-    locale; the few keys that locale lacks are supplied from the pack in `app/app.vue`.
-    - **An input menu's open button is named from the locale,** by the key `inputMenu.trigger`, which the
-      pack answers with the console's word for it. The Nuxt UI release the console runs hands the button
-      that key itself, so the combobox library's English default is never read out. The library draws a
-      unit's screens too, so an input menu on a bundle's screen is named the same way.
+  `docs/boundary.md`, 「What the host owes」): no locale prefix in the address, the packs in YAML under
+  `client/apps/web/i18n/locales/`, each locale declared with the `language` tag the document's `lang` is written
+  as. A key a pack lacks reads as the Korean's.
+- **A reader reads the console in their account's language,** chosen on 설정's 테마 (「Settings」) and kept against
+  the account on the server, so it follows the person to every browser and device. An account that chose none,
+  and a page read before anyone signs in, reads it in the language the browser asks for: the first of the browser's
+  languages whose primary subtag is `ko`, `ja` or `zh` — Chinese of any region taking `zh-CN` — or `en`, and
+  English where it asks for none of them.
+  - **The page stands in it from its first frame.** The server reads the account's choice for the page it sends,
+    else the browser's cookie or the languages its request lists, and the tab reads the account's again whenever
+    somebody signs in or out, as it starts and when it is looked at again.
+  - **Everything the page writes follows it:** the document's `lang`, which bmo-ui's typefaces and line breaks
+    for Japanese and Chinese key on; Nuxt UI's own locale of that language; the locale figures and letter case
+    are written in and the dayjs locale dates' words are, stated to the bmo-ui layer as its host owes them; and
+    every bundle's words, since a bundle's screens read the console's locale.
+  - **The browser carries it to the server** in the cookie `bmo-language`, kept a year from its last writing,
+    so every request is answered in it (「Who asks the pack, and how」).
+- Nuxt UI's own words — the command palette, the empty table, a close button — come from its locale of the
+  reader's language; the few keys those locales lack are supplied from the pack in `app/app.vue`.
+  - **An input menu's open button is named from the locale,** by the key `inputMenu.trigger`, which the
+    pack answers with the console's word for it. The Nuxt UI release the console runs hands the button
+    that key itself, so the combobox library's English default is never read out. The library draws a
+    unit's screens too, so an input menu on a bundle's screen is named the same way.
 - **A key is `<domain>.<role>.<key>`, in lower snake case.**
   - The domain is the screen or the feature the words belong to — `todo`, `research`, `agents`,
     `archive`, `live`, `siren`, `usage`, `app` and their kin. A word two or more domains share stands once under `common`.
@@ -759,6 +781,10 @@ edit to that file alone, once the guide below carries the word.
   - A name the pack cannot know — an agent's label read from the archive — is handed in with the particle
     after it already joined, by the console's own particle helper, and the placeholder says so:
     `{subject}` is the name with 이 or 가. A name that takes 의, which never changes, stays `{name}`.
+    - The helper joins nothing itself: it reads which form the name's last sound asks for and says the pack's
+      key for that form — `common.label.subject_closed`, `subject_open`, or `subject_unread` where the sound
+      cannot be read — with the name as `{name}`. A language that joins no particle to a name answers all three
+      with the name alone, so `{subject}` is the bare name there.
 - **A key is always written out whole.** A map from a state to its words maps the state to a key
   written in full; a key assembled out of pieces cannot be found by reading, and is refused.
 - **Who asks the pack, and how.**
@@ -777,16 +803,23 @@ edit to that file alone, once the guide below carries the word.
     as its first parameter, and its caller passes its own `t`, or `$t` from a template.
   - A table in that code that gives each state or kind its words holds the key instead, and the
     words are asked for where they are put on the screen.
-  - The console's server and the tests ask through `shared/wording.ts`, which reads the same pack through
+  - The console's server and the tests ask through `shared/wording.ts`, which reads the same packs through
     the same engine. The server resolves a key before it answers, so the message a failed request
     carries and the title a push notification carries are still words, in the shape they always had.
+    - **The server says them in the language of the request it answers:** the one the cookie carries, else the
+      one its `Accept-Language` asks for, and Korean for a request naming neither, as a unit asking on its own
+      account does; each request runs in a context of its own, which the wording module reads. Words said
+      outside any request — a notification a unit's stream rings — are said in Korean. The server asks the
+      account service in the same language (`docs/language-pack.md`, 「How each side reads it」), renders a fixed
+      line in it, asks a share page's head in it, and reads a bundle's words of it.
     Where the server calls a function a screen also calls, it hands that function this translator,
     so the two read one text.
   - Client app code takes nothing from that module but the `Translate` type; a screen's words come
     from the module's own instance.
 - **No Korean stands in the code.** A string compared against a value, used as an id or a key, sent to
-  a unit or matched against what a unit answers is not wording, and stands in the data file beside the pack,
-  `client/apps/web/i18n/data/ko.yaml`, read by name; a code file holds none.
+  a unit or matched against what a unit answers is not wording, and stands in the data file beside the packs,
+  `client/apps/web/i18n/data/ko.yaml`, read by name; a code file holds none. It lists every word a unit writes a
+  mark in, whatever the language, and is read the same whatever language the reader reads the console in.
 - **The pack answers the layer under it.** The bmo-ui layer reads keys of its own from the host's pack
   (bmo-ui's `docs/boundary.md`, 「Wording keys」), so a key it reads counts as asked for, and the pack holds
   every one. A console bundle carries its own pack under its namespace, and the console merges the packs
@@ -805,8 +838,8 @@ edit to that file alone, once the guide below carries the word.
   a type from `shared/wording.ts`, which would carry the pack into the browser's bundle where the development
   server cannot serve it. A bundle's own pack is not held to this: it is the bundle's, and the console only
   merges it.
-- **The pack is large and is opened by its group.** A change opens the one top-level domain it is
-  about rather than the whole file.
+- **A pack is large and is opened by its group.** A change opens the one top-level domain it is
+  about rather than the whole file, in each of the four.
 
 ## Screen
 
@@ -7537,7 +7570,7 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
   entered for either change, and 저장 is open only while the name or the password differs; closing
   with a change asks first (「Forms」).
 - A changed login takes everything the account holds with it — the devices it rings, the phones that
-  play its briefings, the tabs each screen stands with, its theme and its palette.
+  play its briefings, the tabs each screen stands with, its theme, its palette and its language.
 - **프로필** carries the person's name and the job title as its line, and 변경 opens the form: 이름, the name
   people read the person by, then 직함, 직위, 담당업무, of a few lines, and the landline, mobile and email, each empty
   where the account keeps none, and 저장, open only while one differs. The person's 직책 is set on 조직도, never here
@@ -7831,6 +7864,11 @@ account the reader's user is, so a reader reaches their own apps alone.
 
 #### 테마
 
+- **언어** is the account's language (「Wording and the language pack」), chosen from a list of the four the console
+  speaks, each named in its own script — 한국어, English, 日本語, 简体中文 — so a reader finds theirs whatever the
+  console speaks now. Its muted line says that it is the language of the screens and notices on every device the
+  account opens the console on. A choice takes effect on the whole console at once, a bundle's screens with it, and
+  is kept against the account as it is made; a refusal puts back what stood and says why under the section.
 - **화면 모드** chooses 시스템, 밝게 or 어둡게 for this browser, the same choice the user menu offers.
 - **자동 번역**, a switch for this browser, on unless it is turned off: whether a text a worker or a job wrote in
   another language than the reader's opens already read in the reader's (「The original, and its translation in
@@ -9885,7 +9923,7 @@ title bar」), its people directory and the members of the reader's company.
   sign-in is asked for. An address of the console's own API or its assets is never read as moved. The server
   reads the move from bmo-ui's `movedScreenAddress`, and the sidebar names the screen at its current path alone.
 - **A share page** is served as the contract's 「Share pages」 states (「Access」). Where the bundle's manifest names
-  a `shareHead`, the server asks it in the console's one locale, `ko`, reads the answer through bmo-ui's
+  a `shareHead`, the server asks it in the reader's language (「Wording and the language pack」), reads the answer through bmo-ui's
   `shareHead` and writes it into the shell it serves; the bundle's page still sets its own head once its module
   runs.
 
@@ -10070,7 +10108,7 @@ the minutes it missed at once. The console stays light under that whatever a uni
 ## Tables
 
 - **The console's own tables are the server's** (`docs/accounts.md`, 「The tables」): the console accounts, the push
-  devices, the tab states, the palettes and themes, the accounts that turned their presence off, how far each user
+  devices, the tab states, the palettes, themes and languages, the accounts that turned their presence off, how far each user
   has read each room, and the threads about a document. The console reads and writes those and no other unit's.
 - **Everything else a screen shows is another unit's,** read through that unit's routes (`docs/boundary.md`): the
   agents, their log and their runs are the agency's; the TODO items, their talk, the questions, the jobs and the
@@ -10233,7 +10271,7 @@ The console stands as the systemd user unit this repository's `deploy/` holds, `
 - **What a deployment does for this repository,** beyond the testbed's own steps: the server's release build; the
   console's install and build in the build tree, written into the release being built; and before the flip, the
   server's settings held to what it stands on (`bmo-web-server settings`: `server.token` and `names.chat_agent`
-  must be set), the document wording file written into the release as `documents.ko.yaml` for bmo-artifact
+  must be set), the document wording files written into the release, `documents.ko.yaml` and one beside it for each other language, for bmo-artifact
   (`docs/boundary.md`, 「The document wording file」), and the server's migrations, every one of which only adds, so
   the release still serving reads on through them.
 - **The settings stand under the data root,** never in the repository and never in a release: the server's as

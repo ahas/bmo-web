@@ -1,0 +1,21 @@
+# Translation of server/lang/ko/consult.yaml; that file says what each line is for.
+empty: "相談用ルームに言うことが空です。"
+no_room: "相談用ルームが決まっていません (bmo consult room <ルーム>)。"
+not_answerer: "{agent} は相談用ルーム {room} で答えるエージェントではありません。"
+
+said: "{room} で {name} の名前で発言しました{number}。"
+number: " (メッセージ {id})"
+windows: "Windows there now:"
+
+room_unset: "相談用ルームが決まっていません。"
+room_shown: "相談用ルーム: {title} ({chat})"
+room_chosen: "相談用ルームを {title} ({chat}) にしました。"
+not_answered: "'{room}' はエージェントが答えるルームとして記録されていません。"
+not_shared: "'{room}' は 2 つ以上のエージェントが答えるルームではないため、相談用ルームにできません。"
+nothing_shown: "{agent} に見せる相談情報がありません: 相談用ルームがないか、そのルームで答えていません。"
+unanswered: "ボットが応答しません ({why})"
+untaken: "ボットが受け付けませんでした (HTTP {status})。"
+usage: |-
+  usage: bmo consult room [<ルーム番号 | ルーム名>] [--db <アーカイブ>]
+         bmo consult say '<発言>' [--reply <メッセージ番号>] [--agent <エージェント>]
+         bmo consult state [--agent <エージェント>] [--db <アーカイブ>]

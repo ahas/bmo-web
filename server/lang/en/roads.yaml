@@ -1,0 +1,61 @@
+# Translated from server/lang/ko/roads.yaml; its comments say what each value is.
+service:
+  mark: "[Bot notice]"
+  stopping:
+    deploying: "The service is stopping briefly for an update{items}."
+    items: " ({items})"
+    restarting: "The service is restarting briefly."
+not_standing: "the machine hasn't started yet"
+kakao:
+  refusals:
+    unconfigured: "Can't send to KakaoTalk: {why}."
+    unknown_room: "KakaoTalk has no room {chat}."
+    voice_unconfigured: "Can't send from that account on KakaoTalk: {why}."
+    pc_unreachable: "Can't send to KakaoTalk PC: {why}."
+    pc_failed: "Couldn't send to KakaoTalk PC: {why}"
+discord:
+  refusals:
+    unconfigured: "Can't send to Discord: {why}."
+    unknown_room: "Discord has no room {chat}."
+    voice_unconfigured: "Can't send from that account on Discord: {why}."
+    message_missing: "Can't find message {message} on Discord."
+    sticker_missing: "Discord has no {emoji} sticker."
+teams:
+  refusals:
+    owner_text_only: "On Teams, {owner}'s account can send text only."
+    owner_unconfigured: "Can't send from {owner}'s account on Teams: {why}."
+    owner_unknown_room: "Teams has no room {chat}."
+telegram:
+  refusals:
+    unconfigured: "Can't send to Telegram: {why}."
+    mode_down: "The {mode} route of {road} isn't running right now: {why}."
+    mode_missing: "this road has no such route"
+  kinds:
+    forwarded: "[Forwarded: {from}] "
+    forwarded_bare: "[Forwarded] "
+    forwarded_chat: "chat"
+    photo: "[Photo]{caption}"
+    location: "[Location] latitude {latitude}, longitude {longitude}{live} https://maps.google.com/?q={latitude},{longitude}"
+    location_live: ", live sharing"
+    venue: "[Venue] {title}, {address} https://maps.google.com/?q={latitude},{longitude}"
+    contact: "[Contact] {name} {phone}"
+    poll: "[Poll] {question} ({options})"
+    sticker: "[Sticker{emoji}{set}]"
+    sticker_set: " ({set})"
+    video: "[Video{duration}]{caption}"
+    video_note: "[Video note{duration}]"
+    voice: "[Voice{duration}]{caption}"
+    audio: "[Audio{name}{duration}]{caption}"
+    document: "[File{name}]{caption}"
+    story: "[Story]"
+    paid_media: "[Paid media]{caption}"
+    giveaway: "[Giveaway]"
+    joined: "[Joined] {members}"
+    left: "[Left] {member}"
+    pinned: "[Pinned] {text}"
+    pinned_message: "message {id}"
+    renamed: "[Room renamed] {title}"
+    photo_changed: "[Room photo changed]"
+    photo_deleted: "[Room photo deleted]"
+    call_started: "[Video call started]"
+    call_ended: "[Video call ended{duration}]"

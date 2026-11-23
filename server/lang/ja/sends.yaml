@@ -1,0 +1,48 @@
+# What a verb of the `bmo` binary says where it puts something into a room (docs/messages.md): the one
+# sentence a room's road refuses a send with, the refusals of who a send goes out as, and the titles its runs
+# stand under. Each `{name}` is filled in with what it names.
+
+# What each chat verb is, as it stands in the refusal of a road that does not perform it.
+capabilities:
+  text: "メッセージを送る"
+  photo: "写真を送る"
+  album: "写真をまとめて送る"
+  document: "ファイルを送る"
+  audio: "音声ファイルを送る"
+  voice: "ボイスメッセージを送る"
+  sticker: "スタンプを送る"
+  reaction: "リアクションを付ける"
+  pin: "メッセージを固定する"
+  typing: "入力中の表示を出す"
+  edit: "送ったメッセージを編集する"
+  delete: "送ったメッセージを削除する"
+  replyTo: "特定のメッセージに返信する"
+  fetchMedia: "写真やファイルを後から取得する"
+  avatars: "プロフィール画像を取得する"
+  history: "過去の履歴を取得する"
+
+# A road refusing a verb it does not perform: {road} the road's label, {what} the verb's words above.
+verb_refused: "{road}では{what}ことができません。"
+
+# An agent sending into a room another agent answers, {subject} its name with its subject particle.
+another_agents_room: "このルームは別のエージェントが応答するルームなので、{subject}は送信できません。"
+
+# An agent sending in its own turn where its role gives no sending, {name} its name.
+role_without_sends: "{name}のロールには送信機能がないため、送信できません。"
+
+# A sticker the set does not carry: the road's own {refusal}, then where to look.
+sticker_list: "{refusal} --list で使えるものを確認できます。"
+
+# Pictures of which none went, {road} the road's label; each missed picture follows on a line of its own.
+no_picture: "{road}: 写真を 1 枚も送信できませんでした。"
+
+# The title a line's own run stands under where a person watches it, {room} the room's name.
+say_title: "{room}に送信"
+
+# What a line's run writes into its log as it goes: its start with how many {count} characters it says into
+# {chat}, its end once they are there, and an answer asked for that is not brought back because {chat} has
+# asked {count} rooms for answers lately.
+say_log:
+  started: "{count}文字 · chat {chat}"
+  sent: "sent {count}文字 to chat {chat}"
+  relay_dropped: "reply not brought back: chat {chat} has asked {count}回 lately"

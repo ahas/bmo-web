@@ -1,0 +1,112 @@
+# What a work order's editing answers the owner and the chat agent with (docs/work-orders.md): the refusals of a plan
+# that does not read, of a step verb the order's state does not allow, and of the control route's own
+# verbs, said alike by the bun bot and `bmo-server` where each answers them; and what the work order script
+# says of its own flags and of a bot it could not reach. Each `{name}` is filled in with what it names:
+# {task} a step's id, {item} the TODO item's number, {cwd} a checkout.
+
+# A plan that does not read: what it lacks, the {name} of a part that is empty or too long, the {most}
+# things a synthesis may build, the {roles} a task may take.
+plan:
+  not_object: "JSON オブジェクトが必要です。"
+  empty: "{name} が空か、長すぎます。"
+  stages: "ステージ一覧 (stages) が必要です。"
+  stage_tasks: "各ステージにタスクが1つ以上必要です。"
+  stage_title: "ステージ名"
+  role: "役割は {roles} のいずれかです。"
+  model: "モデル"
+  model_form: "モデルは プロバイダー::モデル の形式で指定します。"
+  task_instruction: "個別の指示"
+  task_title: "タスク名"
+  builds: "実装タスクは最大 {most}件です。"
+  build_instruction: "実装の指示"
+
+# A step verb the order's state does not allow, or one given what it does not take: the {tiers} a model
+# or a co-worker may be, those only a worker is ({worker_only}), a job named by its {job} with the
+# particle its number takes, its {unit}, and the {base} a step's prompt was read for.
+steps:
+  no_task: "タスク {task} はこの作業指示書にありません。"
+  control: "計画・統合・最終ターンはステップ動詞では変更しません。作業指示書を途中で終えるには --close を使います。"
+  finished: "終了した作業指示書です。再実行するには --reopen で開きます。"
+  draft: "まだ実行前の下書きです。"
+  closing: "終了処理中の作業指示書です。チェックアウトに開いた変更を取り下げて完了した後、--reopen で開きます。"
+  instruction_size: "タスクの指示は1〜30000字で入力します。"
+  model_tier: "モデルの等級は {tiers} のいずれかです。"
+  coworker_tier: "コワーカーの等級は {tiers} のいずれかです。{worker_only} 等級はコワーカーとして借りません。"
+  history_edit: "前の回のタスクは変更しません。"
+  history_rerun: "前の回のタスクは再実行しません。前の回からやり直すには作業指示書を開き直します。"
+  history_restore: "前の回のタスクは元に戻しません。前の回からやり直すには作業指示書を開き直します。"
+  running_edit: "実行中のタスクの保存済み指示を変えても、すでに始まった実行には伝わりません。実行中のものに言葉を加えるには bmo todo --append {item} で追記します。"
+  done_edit: "完了したタスクは --rerun {task} で指示と一緒に修正します。"
+  nothing_to_edit: "変更する指示やモデルがありません。"
+  skip_reason: "スキップする理由を1〜2000字で記入します。"
+  skipped_already: "タスク {task} はすでにスキップ済みです。"
+  running_builder: "実行中の builder ターンはここでは止めません。やめさせるには bmo todo --stop {item} --why '<理由>' で項目を停止します。"
+  not_yet: "タスク {task} のステージはまだ来ていません。スキップを解除するには --restore を使います。"
+  stage_running: "現在のステージに実行中のタスクがあるため、ステージを戻しません。"
+  build_running: "実行中の実装タスクがある間は受け付けません。"
+  research_over: "調査フェーズが終わった後は調査ステージを再実行しません。調査からやり直すには作業指示書を開き直します。"
+  phase: "現在のフェーズではこのタスクを再実行しません。"
+  running: "タスク {task} は実行中です。"
+  pending: "タスク {task} はすでに待機中です。"
+  not_skipped: "タスク {task} はスキップされていません。"
+  same_anchor: "同じタスクを基準にして移動しません。"
+  add_anchor: "新しいタスクは待機中の実装タスクの前か後ろにだけ置きます。"
+  build_move: "実装タスクは両方が待機中のときだけ移動します。"
+  task_move: "タスク1つをステージ内や別のステージへ移動しません。ステージは丸ごと移動します。"
+  stage_move_past: "現在のステージより後ろにあるステージだけ移動します。"
+  stage_move_pending: "タスクがすべて待機中のステージだけ移動します。"
+  move_kinds: "実装タスクは実装タスク同士、調査ステージのタスクは調査ステージのタスク同士でだけ移動します。"
+  stop_reason: "停止の理由を1〜2000字で記入します。"
+  close_reason: "終了の理由を1〜2000字で記入します。"
+  close_builder: "実行中の builder ターンがあるため終了しません。やめさせるには bmo todo --stop {item} --why '<理由>' で項目を停止します。"
+  recover_done: "終了した作業指示書だけを復元します。ランナーが保持している作業指示書では、復元した記録はランナーの保存で上書きされます。"
+  recover_no_jobs: "その範囲にこの項目の Job がありません。"
+  recover_known: "Job {job} は作業指示書にすでに記録されている Job です。上書きされた実行の Job 番号だけを記入します。"
+  recover_running: "Job {job} はまだ終わっていません。"
+  recover_not_step: "Job #{job} ({unit}) はこの項目の作業指示書のステップではありません。"
+  recover_unread: "Job #{job} のプロンプトから {base} の役割と指示を読み取れませんでした。"
+  recover_twice: "タスク {task} はすでに作業指示書にあります。"
+  recover_none: "その範囲に成功したステージがないため、復元するタスクがありません。"
+  recover_no_builder: "その範囲に、前の実行の目的と指示を読み取れる builder ターンがありません。"
+
+# The control route's verbs on a work order and an item: a stopped order's place in its line, a body
+# field by its {name}, runs asked to stop that are still {alive}, a result document already at its {path}.
+orders:
+  paused: "TODO #{item} の作業指示書は一時停止しています。そのワーカーの列で順番が来るとボットが自動で再開します。今すぐ再開するには bmo work-order --todo {item} --resume を使います。"
+  not_text: "{name} の値は文字列です。"
+  missing: "{name} の値が必要です。"
+  still_running: "実行の停止を要求しましたが、まだ終了が確認されていません: {alive}"
+  document_there: "{path} に結果ドキュメントがすでにあるため、上書きしません。"
+  reopen_done: "完了した作業指示書だけを開き直します。"
+  draft_only: "実行前の下書きだけを編集できます。"
+  order_and_model: "作業指示書とモデルを確認してください。"
+  approved_only: "承認済みで進行可能な TODO だけを実行します。"
+  active: "TODO #{item}: 保存されたステップがすでに進行中です。"
+  done: "完了した作業指示書は再実行しません。前の結果を活かして再実行するには bmo work-order --todo {item} --reopen で開きます。"
+  model: "作業モデルが正しくありません。"
+  chat: "chatId が正しくありません。"
+  not_checkout: "{cwd} は git リポジトリではないため、協業を実行しません。"
+  not_checkout_run: "{cwd} は git リポジトリではないため、協業を実行しません。協業なしの通常の Job として実行してください。"
+  item_number: "TODO 番号が正しくありません。"
+  no_item: "TODO がありません。"
+  resume_held: "承認済みで、保留・マージされていない中断作業だけを再開します。"
+  resume_paused: "中断された作業だけを再開できます。"
+  before_after: "before と after のどちらか一方だけを記入します。"
+  checkout_done: "完了した作業指示書のチェックアウトは、その作業がどこで行われたかの記録なので変更しません。"
+  job_range: "Job 番号の範囲は <最初の Job>-<最後の Job> で記入します。"
+  action: "正しくない操作です。"
+  stop_done: "完了した項目は停止しません。"
+
+# The work order script's own flags, and a bot it could not reach to stop an item or edit an order: the
+# {flag} lacking a value, the {verbs} named together, the {error} the call gave and the {status} the bot
+# answered with.
+script:
+  value: "{flag} の後に値が必要です。"
+  verbs: "一度に使える動詞は1つだけです: {verbs}"
+  recover: "--recover は <最初の Job>-<最後の Job> で記入します。"
+  stop_no_token: "ボットの control API トークン (BMO_CONTROL_TOKEN) がないため、停止しませんでした。"
+  stop_unreachable: "ボットが応答しないため、停止しませんでした。ボットが起動しているときにもう一度呼び出します。({error})"
+  stop_refused: "ボットが停止を受け付けませんでした (HTTP {status})。"
+  edit_no_token: "ボットの control API トークン (BMO_CONTROL_TOKEN) がないため、作業指示書を変更しませんでした。"
+  edit_unreachable: "ボットが応答しないため、作業指示書を変更しませんでした。ボットが起動しているときにもう一度呼び出します。({error})"
+  edit_refused: "ボットがリクエストを受け付けませんでした (HTTP {status})。"

@@ -12,12 +12,13 @@
   - **The server's pack** is what the server says and renders for other units: one folder to a language under
     the pack's `lang/` folder in `server/`, one YAML file in it to a part. The server reads it into types; the
     console's tests read the same files where a test builds an expected line from a part.
-  - **The console's pack** is what its screens show: `client/apps/web/i18n/locales/ko.yaml`
+  - **The console's pack** is what its screens show: one file to a language under `client/apps/web/i18n/locales/`
     (`docs/web.md`, 「Wording and the language pack」). It also answers every key the bmo-ui layer reads, and
     those keys count as asked for, so none of them is pruned as unread. A console bundle carries its own pack
     under its namespace, and the console merges it; no bundle's word stands here.
   - **Korean the console's code matches on is data, not wording:** a string compared against what a unit
-    answers stands in `client/apps/web/i18n/data/ko.yaml`, beside the pack, and is read by name.
+    answers stands in `client/apps/web/i18n/data/ko.yaml`, beside the packs, every word a unit writes it in
+    listed, and is read by name whatever language the reader reads the console in.
   - **They stay apart because their readers read a value differently.** The console's pack is compiled by
     vue-i18n, whose message syntax gives `@`, `|`, `{` and `}` meanings of their own; the server's is read as
     plain text with `{name}` marks filled in. A value written for one reader would be misread by the other, so
@@ -30,10 +31,23 @@
 
 ## A language is a folder
 
-- **Each language has a folder of its own, named by its code:** `ko` today. A second language is a second folder
-  holding every file of the first under the same keys.
-- **The language a deployment speaks is chosen in one place on each side:** the folder the server's part reader
-  compiles in, and the locale the console's i18n module is given. Nothing else names a language.
+- **Each language has a folder of its own, named by its code:** `ko`, `en`, `ja` and `zh-CN` on the server's
+  side, and a file of the same name on the console's.
+- **Korean is the source.** Every key is first written in Korean, under the wording guide; the other three hold
+  every file of the Korean, every key of each in its order, each line carrying the Korean's marks. A file of
+  another language is commented once at its head as the Korean's translation; the comment on each key stands in
+  the Korean alone.
+- **Tests hold the languages to the source:** the server's pack test reads every folder against the Korean, key
+  for key, shape for shape and mark for mark, and the console's language test does so for its packs
+  (`docs/web.md`, 「Wording and the language pack」).
+- **A key a language lacks is read as the Korean's,** on both sides, so a key the Korean gains before its
+  translation still says something.
+- **The languages are named in one place on each side:** the server's part reader, which compiles every folder
+  in, and the locales the console's i18n module is given with the console's own list of the languages it
+  speaks. Nothing else names a language.
+- **A part whose words only Korean needs stays Korean in every language:** the readings the voice script speaks a
+  Korean figure or particle aloud by are the Korean voice's own, and another language's file holds them as they
+  stand.
 
 ## A part is a file
 
@@ -48,29 +62,36 @@
     left as it is (the server's `fill_marks`).
   - A name the pack cannot know is handed in with its particle already joined by the code's particle helper,
     and its mark says so: `{subject}` is a name with 이 or 가, `{topic}` a word with 은 or 는. The server's
-    helper takes the particles from the pack's `particles` part.
+    helper takes the particles from the pack's `particles` part, which a language that joins none to a name
+    holds empty, so the mark is the bare name there.
   - A short piece joined between parts of a line — a separator, a lead space — is a key of its own where it is
     wording, and stays in the code where it is markup.
 
 ## How each side reads it
 
-- **The server reads a part into a type,** one module to a part, compiled in and read once on first use, every
-  mapping denying keys it does not declare. A file that does not read as its type fails the pack's own tests.
+- **The server reads a part into a type,** one module to a part, compiled in from every language's folder and
+  read once in each language on first use, every mapping denying keys it does not declare. A file that does not
+  read as its type fails the pack's own tests.
+- **The server speaks the language its request names:** a route reads every part in the first language of the
+  request's `Accept-Language` the pack holds, by its primary subtag, and in Korean where it names none, as a unit
+  asking on its own account does. The console's server names the reader's language on every call it makes.
+  Work the server runs outside a request speaks Korean.
 - **The console's server** reads its own pack through `shared/wording.ts`, as `docs/web.md` says.
 - **A console test** imports a server part with the runtime's own YAML import and reads its keys by name.
 
 ## What other units read
 
-- **A fixed line** is rendered by `POST /words/render`: a code and its fields, in a language, answered with the
-  sentence (`docs/boundary.md`, 「Fixed lines」).
-- **The document wording file** is rendered from the server's pack into the file bmo-artifact's settings name,
-  holding every key of bmo-artifact's 「Wording」 table and no other, and travels with the server's release.
+- **A fixed line** is rendered by `POST /words/render`: a code and its fields, in the language the request names,
+  answered with the sentence (`docs/boundary.md`, 「Fixed lines」).
+- **The document wording files** are rendered from the server's pack, one to a language, each holding every key
+  of bmo-artifact's 「Wording」 table and no other, and travel with the server's release.
   - Its groups are the pack's `archive-docs` part, as `archive_docs`, and its `search` part, as `search`; each
     holds bmo-artifact's keys under the same names, so a key added to either is a key added to the file.
-  - `bmo-web-server wording <file>` writes it; the server's tests hold its keys and each line's marks to
-    bmo-artifact's table, kept beside them as a fixture.
-  - Each deployment writes it into the release as `documents.ko.yaml`, the path bmo-artifact's `[wording] file`
-    names through the deploy tree (`docs/boundary.md`, 「The document wording file」).
+  - `bmo-web-server wording <folder>` writes them into the folder, each as `documents.<language>.yaml`; the
+    server's tests hold every language's keys and each line's marks to bmo-artifact's table, kept beside them as
+    a fixture.
+  - Each deployment writes them into the release, `documents.ko.yaml` among them, the path bmo-artifact's
+    `[wording] file` names through the deploy tree (`docs/boundary.md`, 「The document wording file」).
 
 ## How it is held
 

@@ -1,0 +1,13 @@
+# Translation of server/lang/ko/claude-token.yaml; that file says what each line is for.
+unknown_account: 'claude-token: No registered Claude account is named "{named}". Check the account list with bmo agent.'
+making: 'Making a node token for Claude account "{name}".'
+approve: "When the browser opens, make sure you're signed in as this account, then approve."
+approve_as: "When the browser opens, make sure you're signed in as {email}, then approve."
+sign_in_failed: "claude-token: claude setup-token didn't run to the end. Nothing was saved."
+paste: "Paste the token printed above and press Enter (it won't be shown on screen): "
+stopped: "claude-token: Stopped. Nothing was saved."
+refused: "claude-token: {fault} Nothing was saved."
+not_a_token: "This isn't a token printed by claude setup-token (starting with sk-ant-oat)."
+cut: "The token was cut off or has spaces in it. Paste it again as one line."
+kept: "Saved: {file}"
+from_next_run: "From the next run, every node runs Claude Code with this token."

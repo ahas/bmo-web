@@ -1,0 +1,66 @@
+# Translation of server/lang/ko/agent-catalogue.yaml; that file says what each line is for.
+roster:
+  chat: "{chat_agent}: one shared chat agent. {owner_chat_agent} is the chat agent in the owner’s private chat, not another agent. Connected rooms: {rooms}."
+  owner_room: "{owner_chat}, {owner_chat_agent} or {owner_chat_agent} (you, the owner's private chat)"
+  kinds:
+    supervisor: "主管, or supervisors: you and the supervisors below, each answering in the rooms that name it, in a persona of its own. A room that names other supervisors alone is never yours to speak in; in a room you share with one, the receiver wakes each of you by the same rule."
+    gate: "关卡智能体, or 关卡: the judgement runs with no tools of their own."
+    runner: "运行器: the research runs you launch and that hand their result back to you."
+    recollector: "回忆器, or Recollector: the runs that decide what of a conversation becomes an agent's long-term memory and write it from that agent's own view: the room digest and the person-book writer with Read, Write, Edit, Glob and Grep only, the session summariser with no tools."
+    worker: "worker: the jobs you launch with the task tool. Each has a name of its own and a checkout of its own."
+
+agents:
+  worker:
+    label: "工作器"
+    aliases: ["Job 工作器", "任务工作器", "工作器", "工作器任务"]
+  session-summary:
+    label: "会话摘要器"
+    aliases: ["会话摘要器", "交接摘要器"]
+  system-documents:
+    label: "系统文档分类器"
+    aliases: ["参考分类器", "系统文档分类器", "系统参考关卡", "设定判定关卡"]
+  room-rules:
+    label: "房间规则分类器"
+    aliases: ["参考分类器", "房间规则分类器", "房间规则关卡", "规则手册分类器"]
+  library-knowledge:
+    label: "书库知识分类器"
+    aliases: ["参考分类器", "书库知识分类器", "书库关卡", "知识文档分类器"]
+  people-search:
+    label: "人物簿检索"
+    aliases: ["人物簿搜索", "人物簿检索", "人物片段分类器", "人物簿分类器"]
+  situation-rules:
+    label: "情境规则匹配器"
+    aliases: ["情境规则", "情境规则匹配器", "规则匹配器", "条件触发规则"]
+  sanitizer:
+    label: "净化关卡"
+    aliases: ["上下文卫生关卡", "防入侵关卡", "输入净化"]
+  output-format:
+    label: "输出格式关卡"
+    aliases: ["输出格式关卡", "格式判定关卡"]
+  people-standing:
+    label: "人物簿摘要器"
+    aliases: ["人物簿摘要器", "人物摘要编写器", "常驻层编写器", "摘要编写器"]
+  document-seek:
+    label: "文档查找关卡"
+    aliases: ["文档查找关卡", "文档搜索关卡", "目录查找"]
+  translator:
+    label: "翻译器"
+    aliases: ["翻译器", "翻译智能体", "文档翻译器"]
+  voice-polish:
+    label: "脚本润色关卡"
+    aliases: ["脚本润色关卡", "听读润色", "全文朗读润色"]
+  voice-reading:
+    label: "读音关卡"
+    aliases: ["音译关卡", "读音关卡", "发音关卡"]
+  search:
+    label: "搜索器"
+    aliases: ["搜索器", "网页搜索器", "检索器", "网页检索器"]
+  browse:
+    label: "浏览器搜索器"
+    aliases: ["浏览器检索器", "浏览器搜索器", "高级网页搜索", "实时搜索"]
+  digest:
+    label: "摘要"
+    aliases: ["摘要", "房间摘要器", "对话摘要器", "对话整理器"]
+  people-digest:
+    label: "人物簿编写器"
+    aliases: ["人物簿编写器", "人物簿编辑器", "人物簿整理器", "人际关系整理器"]

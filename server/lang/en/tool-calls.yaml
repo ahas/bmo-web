@@ -1,0 +1,42 @@
+# What `bmo job tool-calls` says of a job's own thread, read out of the record the CLI keeps for its session
+# (docs/jobs.md): which job and record were read, what the calls added up to, and each call longest
+# first. Each `{name}` is filled in with what it names; a length of time is the span words' own.
+
+# The item named has no job in the archive; {todo} is its number.
+no_job: "Item #{todo} has no Job in the archive."
+# No worker runs in the checkout the verb was run from; {here} is that checkout.
+no_worker: "No worker running in {here} is in the agents table. Point at the record file directly with --session."
+# A record the worker holds, by its session and model.
+session: "Session {session} · {model}"
+# No record could be read.
+nothing_to_read: "There is no record to read. Once a session is swept away its inside can't be viewed again; only the time and tokens the Job left remain."
+# The job read: {todo} the item, {job} the job's number.
+job: "Item #{todo} · Job {job}"
+# Beside the job where the item was tried more than once; {runs} how many times.
+last_of: " (last of {runs} runs)"
+# Where the window has no end yet.
+still_running: "Still running"
+# The record read, and how many lines it holds.
+record: "Record {path}"
+lines: "{count} lines"
+# No call in the whole record, or none inside the job's window.
+no_calls: "This record has no tool calls at all."
+no_calls_in_window: "This record has no tool calls inside that window. The Job ran in another session, or that session has been swept away."
+# What the calls add up to: {times} calls, {span} their time added, {open} the unanswered ones' part.
+total: "{times} tool calls · {span} total{open}"
+open: " · {open} unanswered"
+# One tool's share.
+tool: "{name} {span} {times} times"
+# The suite's own calls, or where it was never called.
+tests: "bun test {times} times {span}"
+no_tests: "bun test: never called in this record."
+no_tests_in_window: "bun test: never called in this window."
+# The heading over the calls, all of them or the longest {top} of {all}.
+order: "Longest first"
+order_top: "Longest {top} first ({all} calls in all)"
+# One call: {index} its place, {name} the tool, {span} how long it was out, {at} when it went out.
+call: "{index}. {name} {span} · {at}{open}"
+# Beside a call the record ends with still out.
+call_open: " · no answer"
+# A call whose record names no tool.
+unnamed_tool: "Unnamed tool"

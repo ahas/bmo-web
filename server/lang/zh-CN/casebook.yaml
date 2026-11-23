@@ -1,0 +1,10 @@
+# Translation of server/lang/ko/casebook.yaml; that file says what each line is for.
+room: "房间 {chat}"
+no_room: "无房间"
+message: "消息 {message}"
+no_message: "无消息"
+code_made: "代码生成的格式，仅验证一次"
+attempt: "第 {attempt} 次尝试"
+reason: "原因: {reason}"
+text: "目标消息:"
+markup: "关卡生成的格式:"

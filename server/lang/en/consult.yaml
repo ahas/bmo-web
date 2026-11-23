@@ -1,0 +1,21 @@
+# Translation of server/lang/ko/consult.yaml; that file says what each line is for.
+empty: "There's nothing to say to the consult room."
+no_room: "No consult room is set (bmo consult room <room>)."
+not_answerer: "{agent} isn't an agent that answers in consult room {room}."
+
+said: "Said it in {room} as {name}{number}."
+number: " (message {id})"
+windows: "Windows there now:"
+
+room_unset: "No consult room is set."
+room_shown: "Consult room: {title} ({chat})"
+room_chosen: "Set the consult room to {title} ({chat})."
+not_answered: "'{room}' isn't recorded as a room an agent answers in."
+not_shared: "'{room}' isn't a room two or more agents answer in, so it can't be the consult room."
+nothing_shown: "No consult info to show {agent}: there's no consult room, or it doesn't answer there."
+unanswered: "The bot isn't answering ({why})"
+untaken: "The bot didn't accept it (HTTP {status})."
+usage: |-
+  usage: bmo consult room [<room number | room name>] [--db <archive>]
+         bmo consult say '<words>' [--reply <message number>] [--agent <agent>]
+         bmo consult state [--agent <agent>] [--db <archive>]

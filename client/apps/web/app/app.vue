@@ -20,28 +20,34 @@
 </template>
 
 <script setup lang="ts">
-import { ko } from "@nuxt/ui/locale";
+import { en, ja, ko, zh_cn } from "@nuxt/ui/locale";
 import { TOOLTIP_PROVIDER } from "bmo-ui/app/domain/tooltip";
 import { consoleName } from "#shared/agent-names";
 import { useDesktopApp } from "~/domain/desktop-app";
+import { useLanguage } from "~/domain/language";
 
 const { t } = useI18n();
 const { loggedIn } = useUserSession();
 const route = useRoute();
 const desktopApp = useDesktopApp();
 
-// The sidebar's drawer names itself with keys Nuxt UI's own locales do not carry, so a screen
+// Nuxt UI's own words come from its locale of the reader's language (docs/web.md, 「Wording and the language
+// pack」). The sidebar's drawer names itself with keys Nuxt UI's own locales do not carry, so a screen
 // reader would read the key; the console supplies them. Its fold button is named as the console
 // names every fold button, and that name is the tooltip it wears. An input menu's open button, on
 // the console's screens and on a bundle's alike, is named by the console's word (docs/web.md,
 // 「Wording and the language pack」).
-const locale = extendLocale(ko, {
-  messages: {
-    dashboardSidebar: { title: t("app.label.sidebar"), description: t("app.label.sidebar_description") },
-    dashboardSidebarCollapse: { collapse: t("common.action.collapse"), expand: t("common.action.expand") },
-    inputMenu: { trigger: t("common.aria.open_list") }
-  }
-});
+const LIBRARY_LOCALES = { ko, en, ja, "zh-CN": zh_cn };
+const language = useLanguage();
+const locale = computed(() =>
+  extendLocale(LIBRARY_LOCALES[language.value], {
+    messages: {
+      dashboardSidebar: { title: t("app.label.sidebar"), description: t("app.label.sidebar_description") },
+      dashboardSidebarCollapse: { collapse: t("common.action.collapse"), expand: t("common.action.expand") },
+      inputMenu: { trigger: t("common.aria.open_list") }
+    }
+  })
+);
 
 // The interface's faces are asked for with the page rather than once the stylesheet has been read
 // and laid out, so the first screen is drawn in them instead of swapping into them a moment after

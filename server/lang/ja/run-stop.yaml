@@ -1,0 +1,38 @@
+# Translated from server/lang/ko/run-stop.yaml; its comments say what each value is.
+usage: |-
+  usage: bmo run stop [--list]
+         bmo run stop <種類>:<id> [--why '<理由>']
+         bmo run stop --all
+
+  引数なしで呼ぶと、いま実行中のものを対象と一緒に表示します。
+  対象は bmo run list が各行に出す語です: unit:bmo-search-9、execution:bmo-execution-…、item:623。
+  チャットのターンとゲートは execution、ランナー・エディター・Job ワーカーは unit、作業指示書は item で指します。
+  コワーカーは単独では停止できず、起動した実行を代わりに指すよう答えます。
+  item には --why '<理由>' が必要です。項目は停止によって保留され、その理由を付けて置かれます。理由は韓国語で書きます。
+  --all はいま実行中の対象をすべて一度に止めます。
+  停止は要求と確認を分けて伝えます: 要求は終わるよう頼んだこと、確認は実際に終わったことです。
+refusals:
+  target: "'{target}' は対象ではありません。<種類>:<id> で指定し、種類は execution、unit、item のいずれかです。いま実行中のものは bmo run stop --list で確認します。"
+reason:
+  english: "理由は韓国語で書いてください。保留の理由は、コンソールと一覧に書いたとおりに表示されます。"
+bot:
+  token: "ボットの control API トークン (BMO_CONTROL_TOKEN) がないため、ボットに問い合わせられませんでした。"
+  silent: "ボットが応答しません。ボットが起動しているときにもう一度呼んでください。({why})"
+  refused: "ボットが受け付けませんでした (HTTP {status})。"
+  unread: "ボットの応答を読み取れませんでした。"
+list:
+  empty: "実行中のものはありません。"
+  unnamed: "停止できる実行がありません。表示するものは {count} 件ありますが、まだ指定できる対象がありません。"
+  head: "実行 {count} 件"
+  left_out: " (指定できる対象がない {left} 件は除外しました)"
+  turn: "会話 · ルーム {chat}"
+  room: "ルーム {chat}"
+done:
+  confirmed: "停止しました: {what}。実行 {runs} 件、終了を確認しました。"
+  asked: "停止を要求しました: {what}。実行 {runs} 件。終了は確認できなかったので、bmo run list で確認してください。"
+all:
+  none: "実行中のものがないため、何も停止しませんでした。"
+  head: "実行 {asked} 件に停止を要求し、そのうち {confirmed} 件の終了を確認しました。"
+  ended: "終了"
+  stopping: "停止中"
+  refused: "停止できず: {why}"

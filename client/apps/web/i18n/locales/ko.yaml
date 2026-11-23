@@ -7,6 +7,8 @@ app:
     auto_translate: 자동 번역
     auto_translate_description: 다른 언어로 쓰인 보고와 지시서를 열 때 바로 번역해서 보여 줍니다. 원문 보기로 언제든 되돌릴 수 있습니다.
     color_mode: 화면 모드
+    language: "언어"
+    language_description: "화면과 알림에 쓰는 말입니다. 이 계정으로 여는 모든 기기에 적용됩니다."
     manifest_name: "{agent}"
     mode_dark: 어둡게
     mode_light: 밝게
@@ -104,6 +106,9 @@ common:
     speaker_bmo: 채팅 에이전트
     speaker_owner: 소유자
     speed_normal: "{speed} 보통"
+    subject_closed: "{name}이"
+    subject_open: "{name}가"
+    subject_unread: "{name}이(가)"
     subtitles_off: 꺼짐
     theme_forest: 숲
     theme_sea: 바다
@@ -1814,12 +1819,14 @@ account:
     user_service_failed: "계정 서비스의 사용자를 만들지 못했습니다: {reason}"
     bad_palette: 없는 팔레트입니다.
     bad_theme: 없는 테마입니다.
+    bad_language: "없는 언어입니다."
     bad_user_id: 아이디는 영문, 숫자, 점, 밑줄, 하이픈만 사용할 수 있습니다.
     current_password_empty: 현재 비밀번호를 입력해 주세요.
     current_password_wrong: 현재 비밀번호가 맞지 않습니다.
     palette_failed: 팔레트를 저장하지 못했습니다.
     save_failed: 계정 정보를 변경하지 못했습니다.
     theme_failed: 테마를 저장하지 못했습니다.
+    language_failed: "언어를 저장하지 못했습니다."
     user_id_taken: 이미 사용 중인 아이디입니다.
     profile_forbidden: 프로필은 그 계정의 주인이나 플랫폼 관리자만 바꿀 수 있습니다.
     profile_shape: 프로필의 값이 올바르지 않습니다.

@@ -1,0 +1,38 @@
+# Translated from server/lang/ko/run-stop.yaml; its comments say what each value is.
+usage: |-
+  usage: bmo run stop [--list]
+         bmo run stop <kind>:<id> [--why '<reason>']
+         bmo run stop --all
+
+  Called with no arguments, lists what is running now with its targets.
+  A target is the word bmo run list prints on each line: unit:bmo-search-9, execution:bmo-execution-…, item:623.
+  Chat turns and gates are named by execution, runners, editors and Job workers by unit, and work orders by item.
+  A co-worker can't be stopped on its own; the answer says to name the run that started it instead.
+  item needs --why '<reason>'. The item is put on hold by the stop and stands with that reason. Write the reason in Korean.
+  --all stops every target running now at once.
+  A stop tells the request and the confirmation apart: the request asked it to end, the confirmation is that it actually ended.
+refusals:
+  target: "'{target}' is not a target. Name it as <kind>:<id>, where kind is one of execution, unit, item. See what is running now with bmo run stop --list."
+reason:
+  english: "Please write the reason in Korean. The reason for putting on hold shows on the console and in lists exactly as written."
+bot:
+  token: "There's no control API token for the bot (BMO_CONTROL_TOKEN), so the bot couldn't be asked."
+  silent: "The bot isn't answering. Call again while the bot is up. ({why})"
+  refused: "The bot didn't accept it (HTTP {status})."
+  unread: "Couldn't read the bot's answer."
+list:
+  empty: "Nothing is running."
+  unnamed: "No run can be stopped. There are {count} to show, but none has a target to name yet."
+  head: "{count} runs"
+  left_out: " ({left} with no target to name are left out)"
+  turn: "Conversation · room {chat}"
+  room: "Room {chat}"
+done:
+  confirmed: "Stopped: {what}. {runs} runs, confirmed ended."
+  asked: "Asked to stop: {what}. {runs} runs. Couldn't confirm they ended; check with bmo run list."
+all:
+  none: "Nothing is running, so nothing was stopped."
+  head: "Asked {asked} runs to stop; {confirmed} of them confirmed ended."
+  ended: "ended"
+  stopping: "stopping"
+  refused: "couldn't stop: {why}"

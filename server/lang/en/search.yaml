@@ -1,0 +1,109 @@
+# What a search leaves for a person to read (docs/archive.md, 「A search's document」, 「A page imported
+# whole」): the document `bmo runner search` writes under the runtime data root, and the result a page brought
+# in whole is written as. Each `{name}` is filled in with what it names.
+
+# What the console's collection of documents is called, which the chat's session is told a page brought in whole
+# was kept in.
+archive_name: "Archive"
+
+# The question a page brought in whole stands under, by the {source} address it was asked from.
+import_query: "Import original: {source}"
+
+# The document's head: its title where the result gave none, by the {query}; and its lines, each with the
+# {value} it states, an option by its {name}.
+head:
+  untitled: "Search · {query}"
+  query: "- Question: {value}"
+  topic: "- Topic: {value}"
+  keywords: "- Keywords: {value}"
+  rule: "- Rule applied: {value}"
+  option: "- Option {name}: {value}"
+  depth: "- Depth: {value}"
+  status: "- Status: {value}"
+  started: "- Started: {value}"
+  finished: "- Finished: {value}"
+  runs: "- Runs: {value}"
+
+# The result the room was given: its heading, what stands under it while nothing is written, the branch a
+# finding came out of by its {branch} label, and the heading of the pages it cites.
+result:
+  heading: "Result"
+  empty: "Nothing has been written yet."
+  branch: "Branch: {branch}"
+  sources: "Sources"
+
+# The trail folded under the result: its heading and the line that opens it, the run's own section, the mark
+# of the {run} a branch was opened in where the search took several, and the headings of what one branch
+# asked, opened and found.
+trail:
+  heading: "Research trail"
+  summary: "What each branch asked and the pages it opened"
+  own: "This run itself"
+  run: " · run {run}"
+  asked: "Asked"
+  opened: "Pages opened"
+  found: "What came out of it"
+
+# What each fixed part of a result's body is called.
+parts:
+  VERDICT: "Short answer"
+  SUMMARY: "Summary"
+  INTRO: "Introduction"
+  BODY: "Body"
+  CONCLUSION: "Conclusion"
+  UNCONFIRMED: "Not confirmed"
+  MORE: "More detail"
+
+# What each line of an entry is written as, with the {value} the line carries; a stock line's {value} is its
+# state, when it was read and where, joined; a deal's {now} price, its {usual} one where given and the {real}
+# word on it; a review's {rating} in bold where given, its {words} and the {page} it stands on; a picture
+# kept as the chat agent's own copy says the {address} it came from. The rating a result writes where there is none is
+# `no_rating`.
+fields:
+  ADDRESS: "Address: {value}"
+  MAP: "Map: {value}"
+  ROADVIEW: "Street view: {value}"
+  MENU: "Menu: {value}"
+  menu_alone: "Menu:"
+  RELEASED: "Released: {value}"
+  NEWER: "Latest model: {value}"
+  STOCK: "Availability: {value}"
+  deal: "Deal: {now}{usual}{real}"
+  deal_usual: " (usually {usual})"
+  deal_real: " · {real}"
+  review_link: " ([review]({page}))"
+  no_rating: "None"
+  original: "Original: {address}"
+
+# What the console's reading of a finding draws it with: the labels of an entry's address, its map and street
+# view links, a menu with its dish, price and notes columns, when a product was released, its newer model, its
+# state and its page, a deal and what it {usual}ly costs, the page a review stands on, and what a finding with
+# no words of its own is called in the contents, by its {place}.
+reading:
+  address: "Address"
+  map: "Map"
+  street_view: "Street view"
+  menu: "Menu"
+  dish: "Item"
+  price: "Price"
+  notes: "Notes"
+  released: "Released"
+  newer: "Latest model"
+  stock: "Availability"
+  product_page: "Product page"
+  deal: "Deal"
+  usual: "Usually {usual}"
+  review: "Review"
+  untitled: "Item {place}"
+
+# A page brought in whole, as its result: the line that says it was answered, its topic by the page's
+# {host}, the figure {n} with its {caption} that could not be captured, and what each source line says of the
+# page kept, of the address asked that moved to it, and of a work the page cites with its {text} where any.
+import:
+  answered: "Imported the original as is"
+  topic: "Original from {host}"
+  missing: "Figure {n} ({caption}) could not be captured, so only its original address remains."
+  kept: "Imported original page"
+  moved: "Address asked for, which moved to the page above"
+  cited: "Work the original cites"
+  cited_text: "Work the original cites: {text}"

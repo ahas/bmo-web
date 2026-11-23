@@ -1,0 +1,10 @@
+# Translation of server/lang/ko/full-suite.yaml; that file says what each line is for.
+account: "The daily full suite run didn't pass {where}{engine}: {verdict}.{files} It may have exposed a dependency the selective runs missed. Log: {log}"
+at_head: "at main ({head})"
+no_head: "with main unread"
+engine: " running the archive tests on {engine}"
+files: " Broken files: {files}."
+file: "{file} ({package})"
+joiner: ", "
+outside: "outside any package"
+outside_listed: "(outside any package)"

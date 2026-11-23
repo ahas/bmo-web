@@ -1,0 +1,112 @@
+# What a game of 끝말잇기 says in the room and what its start and stop answer the chat agent with
+# (docs/word-chain.md), said alike by the bun bot and bmo-server.
+
+# What a game says in the room, in the chat agent's voice, and what its start and stop answer the chat agent with.
+# Each `{name}` is filled in with what it names: {word} a word as played, {topic} a word quoted with its
+# topic particle, {openings} the syllables a word may start with and the particle after them, {name} a
+# player's name and {subject} a name with its subject particle. The particles are chosen by the code
+# saying the line, by the sound a word ends on.
+lines:
+  # A game's name: the first players' {shown} names, and the {rest} counted.
+  game: "[{shown}'s game]"
+  game_more: "[{shown} and {rest} others' game]"
+  game_joint: "·"
+  # Why a word the asker gave cannot open a game.
+  opening_not_in_book: "{topic} isn't in the dictionary"
+  opening_loanword: "{topic} is a loanword"
+  opening_no_follower: "{topic} has no word that can follow it"
+  # The asker asked for another opening word, the one that could not open it said {unusable}.
+  ask_again: "{unusable}, so it can't be the starting word. {name}, give me another one and I'll open the game."
+  ask_again_bare: "{unusable}, so it can't be the starting word. Give me another word."
+  ask_first: "{name}, give me a starting word first. You can add it like 「start puppy」."
+  no_opening: "I didn't get a starting word, so I'll drop the word chain."
+  folded: "I'll drop the word chain."
+  # The call for players: its rules, how to join, the {seconds} until it starts, and its opening word.
+  call: "Word chain: looking for players!"
+  call_join: "「join」"
+  call_join_named: "「join {name}」, with the name of someone in this game, since several games are recruiting,"
+  call_how: "Type {how} to get in. I'll start in {seconds} seconds, or when a player says 「start」."
+  call_opening: "The starting word is {openings}."
+  call_moves: "When it's your turn, just type a word. 「give up」 to give up, 「stop word chain」 to end the game."
+  rule_joint: " · "
+  rule_nouns: "Nouns only"
+  rule_loanwords_on: "Loanwords allowed"
+  rule_loanwords_off: "No loanwords"
+  rule_manner_on: "No killer words"
+  rule_manner_off: "Killer words allowed"
+  rule_no_limit: "No time limit (ends after {minutes} min with no moves)"
+  rule_limit: "{seconds}s per turn"
+  rule_robot: "{agent} plays too ({difficulty})"
+  # A move refused, and why.
+  off_chain: "{topic} doesn't follow. Give me a word starting with {openings}."
+  not_in_book: "{topic} isn't in the dictionary."
+  loanword: "{topic} is a loanword, so it's not allowed this game."
+  used: "{topic} has already been played."
+  manner: "{topic} is a killer word, so it's not allowed this game."
+  # What happens in a game: a player joins with {count} in it, a round starts in an {order}, a turn with
+  # its {limit}, a word taken for its {points}, what a word means, a player out ({by} scoring the 한방 its
+  # {points}), and the end with each {place} of the ranking and its {score} and {words}.
+  joined: "{name} joined ({count} players)"
+  started: "Start! Order: {order}"
+  order_joint: " → "
+  first_word: "Starting word: {word}"
+  new_word: "New starting word: {word}"
+  meaning: "{word}: {meaning}"
+  turn: "{name}'s turn: start with {openings}{limit}"
+  turn_limit: " · {seconds}s"
+  taken: "Nice, {word} (+{points})"
+  taken_robot: "{name}: {word} (+{points})"
+  timeout: "Time's up! {name} is out."
+  hanbang: "Killer word! No word starts with {openings}, so {name} is out.{by}"
+  hanbang_by: " ({name} +{points})"
+  gave_up: "{name} gave up."
+  stuck: "{subject} couldn't find a word to follow. {name} is out."
+  nobody: "Nobody joined, so I'll drop the word chain."
+  stopped: "Word chain stopped. Scores so far:"
+  idle: "No moves for {minutes} min, so I'll drop the word chain. Scores so far:"
+  decided: "Game over! Final ranking:"
+  ranking: "#{place} {name} {score} pts ({words} words)"
+  # Where a word to a game could be for several standing ones: which to pick with the {verb} it was said
+  # for, the word to say and an {example} of it.
+  pick: "Pick the game to {verb}: {games}. Add the name of someone in the game, like 「{word} {example}」."
+  pick_stop: "stop"
+  pick_join: "join"
+  pick_stop_word: "stop word chain"
+  pick_join_word: "join"
+
+  # The robot's difficulty as the call names it.
+  difficulty:
+    easy: "Easy"
+    normal: "Normal"
+    hard: "Hard"
+
+# What starting and stopping a game answer the chat agent with: the word book missing at its {path}, a
+# {subject} already in a {game} of the room, an opening word {unusable}, a game opened in the room {chat}
+# with {more} standing beside it, or none to stop.
+answers:
+  no_book: "The word dictionary isn't installed: {path} (bmo word-chain install)"
+  in_game: "{subject} is already in {game} in this room."
+  unusable: "{unusable}, so the game can't be opened. Get another starting word and open it again."
+  asked_again: "{unusable}, so I asked {name} in the room for another starting word. The game opens once a usable word comes in."
+  opened: "Opened a word chain: room {chat}, recruiting players.{more}"
+  opened_more: " This room has {count} games running."
+  none: "There's no word chain in progress in this room."
+  several: "This room has {count} games running: {games}. Pass the person who asked to stop as player."
+  not_theirs: "There's no word chain game in this room with that person in it."
+  # The bot asked to start or stop a game from a shell not answering at all, with {why}, or answering the
+  # {status} of a request it did not take.
+  unreached: "The bot isn't responding ({why})"
+  not_taken: "The bot didn't accept the request (HTTP {status})."
+
+# What the word book's own verbs answer: the book installed with its {count} words at its {path} out of its
+# {source} at its {commit} under its {licence}, the {count} meanings read into it out of theirs, and a {word}
+# looked up — absent, or present with whether it is a {loanword}, the {openings} it hands on and how many
+# {count} words follow, and its {meaning}, a basic word's or a hard one's.
+book:
+  installed: "Installed {count} words at {path} ({source} @ {commit}, {licence})."
+  meanings: "Added {count} definitions ({source} @ {commit}, {licence})."
+  absent: "「{word}」: not in the dictionary"
+  found: "「{word}」: found{loanword} · {count} words follow with {openings}"
+  loanword: " (loanword)"
+  basic: "Basic word: {meaning}"
+  hard: "Hard word: {meaning}"

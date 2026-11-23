@@ -91,3 +91,11 @@ CREATE INDEX IF NOT EXISTS "document_talk_document" ON "document_talk" (document
 ALTER TABLE "web_push_devices" ADD COLUMN IF NOT EXISTS "user_id" bigint;
 
 ALTER TABLE "web_tab_states" ADD COLUMN IF NOT EXISTS "user_id" bigint;
+
+CREATE TABLE IF NOT EXISTS "web_languages" (
+  "user_name" text NOT NULL,
+  "language" text NOT NULL,
+  "updated_at" bigint NOT NULL,
+  "user_id" bigint,
+  PRIMARY KEY ("user_name")
+);

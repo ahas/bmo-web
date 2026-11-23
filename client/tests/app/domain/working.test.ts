@@ -41,7 +41,7 @@ describe("what the room says the answering agent is doing", () => {
   test("listening reads by its own keys, under the name the turn's line wears, with the window's time left turning", () => {
     expect(listeningLines(wording, "Bob", 161)).toEqual({
       enabled: wording("room.status.chat_enabled"),
-      state: wording("room.status.agent_listening", { subject: subjectOf("Bob") }),
+      state: wording("room.status.agent_listening", { subject: subjectOf(wording, "Bob") }),
       left: { keypath: "room.status.listening_left", figures: { time: { value: 161, text: "2:41" } } }
     });
     expect(listeningLines(wording, "Bob", 161).state).toContain("Bob");
@@ -53,7 +53,7 @@ describe("what the room says the answering agent is doing", () => {
   // left as a timer reads it, never below nought.
   test("the top bar's clock says who listens and how long is left", () => {
     expect(windowClockLines(wording, "Bob", 161)).toEqual({
-      state: wording("room.status.agent_listening", { subject: subjectOf("Bob") }),
+      state: wording("room.status.agent_listening", { subject: subjectOf(wording, "Bob") }),
       left: { keypath: "room.status.window_left", figures: { time: { value: 161, text: "2:41" } } }
     });
     expect(windowClockLines(wording, "Bob", -5).left.figures.time).toEqual({ value: 0, text: "0:00" });

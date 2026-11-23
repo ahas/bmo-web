@@ -1,0 +1,21 @@
+# Translation of server/lang/ko/consult.yaml; that file says what each line is for.
+empty: "要对商议房间说的话是空的。"
+no_room: "尚未设置商议房间 (bmo consult room <房间>)。"
+not_answerer: "{agent} 不是在商议房间 {room} 中回答的智能体。"
+
+said: "已在 {room} 以 {name} 的名义发言{number}。"
+number: " (消息 {id})"
+windows: "Windows there now:"
+
+room_unset: "尚未设置商议房间。"
+room_shown: "商议房间: {title} ({chat})"
+room_chosen: "已将商议房间设为 {title} ({chat})。"
+not_answered: "'{room}' 没有被记录为智能体回答的房间。"
+not_shared: "'{room}' 不是两个以上智能体回答的房间，不能设为商议房间。"
+nothing_shown: "没有可向 {agent} 显示的商议信息: 没有商议房间，或它不在该房间中回答。"
+unanswered: "机器人没有响应 ({why})"
+untaken: "机器人未接收 (HTTP {status})。"
+usage: |-
+  usage: bmo consult room [<房间编号 | 房间名称>] [--db <归档>]
+         bmo consult say '<内容>' [--reply <消息编号>] [--agent <智能体>]
+         bmo consult state [--agent <智能体>] [--db <归档>]

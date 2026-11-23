@@ -1,0 +1,21 @@
+# Translation of server/lang/ko/branch-split.yaml; that file says what each line is for.
+clock:
+  seconds: "{seconds}s"
+  minutes: "{minutes}m {seconds}s"
+  hours: "{hours}h {minutes}m"
+
+none_left: "No workflow records are left under {project}."
+not_found: "Couldn't find records of workflow {workflow} under {project}. Use --list to see what is left."
+branches: "{count} branches"
+session: "Session {session}"
+records_gone: "  The branches' records are gone. Once the session is swept away, what went on inside can't be seen again."
+
+branch: "- Branch {index}"
+tokens: "{tokens} tokens"
+no_type: "No type recorded"
+no_split: "  No record, or no length to divide."
+unnamed_tool: "Unnamed tool"
+
+split: "  Total {total} · tools {tooling} ({tooling_share}, {calls} calls{open}) · model time {generating} ({generating_share})"
+open: ", {open} unanswered"
+tool: "{name} {clock} {times} calls"

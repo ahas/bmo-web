@@ -156,3 +156,110 @@ fn a_step_of_a_past_round_is_refused_by_what_was_asked_of_it() {
   assert_ne!(edits.steps.history_rerun, edits.steps.history_restore);
   assert!(edits.orders.paused.contains("{item}"));
 }
+
+// Every language holds every part of the source, key for key in the source's order, each line carrying the marks
+// the source's does, so a key the code reads stands in each and no language says a key the source does not.
+#[test]
+fn every_language_holds_every_part_key_for_key() {
+  let folder = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("lang");
+  let parts = |language: Language| {
+    let mut parts = std::fs::read_dir(folder.join(language.code()))
+      .unwrap()
+      .map(|entry| entry.unwrap().file_name().into_string().unwrap())
+      .collect::<Vec<_>>();
+
+    parts.sort();
+    parts
+  };
+  let source = parts(Language::SOURCE);
+
+  for language in Language::ALL {
+    assert_eq!(parts(language), source, "{}", language.code());
+
+    for part in &source {
+      let read = |language: Language| {
+        let text = std::fs::read_to_string(folder.join(language.code()).join(part)).unwrap();
+
+        serde_saphyr::from_str::<serde_json::Value>(&text).unwrap()
+      };
+
+      same_shape(&read(Language::SOURCE), &read(language), &format!("{}/{part}", language.code()));
+    }
+  }
+}
+
+fn same_shape(source: &serde_json::Value, other: &serde_json::Value, at: &str) {
+  use serde_json::Value;
+
+  match (source, other) {
+    (Value::Object(source), Value::Object(other)) => {
+      assert_eq!(source.keys().collect::<Vec<_>>(), other.keys().collect::<Vec<_>>(), "{at}");
+      for (key, value) in source {
+        same_shape(value, &other[key], &format!("{at}.{key}"));
+      }
+    }
+    (Value::Array(source), Value::Array(other)) => {
+      assert_eq!(source.len(), other.len(), "{at}");
+      for (place, (value, translated)) in source.iter().zip(other).enumerate() {
+        same_shape(value, translated, &format!("{at}[{place}]"));
+      }
+    }
+    (Value::String(source), Value::String(other)) => {
+      assert_eq!(marks(source), marks(other), "{at}: {other}")
+    }
+    (source, other) => assert_eq!(std::mem::discriminant(source), std::mem::discriminant(other), "{at}"),
+  }
+}
+
+// The `{name}` marks a line carries.
+fn marks(line: &str) -> std::collections::BTreeSet<&str> {
+  line
+    .match_indices('{')
+    .filter_map(|(at, _)| line[at..].find('}').map(|end| &line[at..=at + end]))
+    .filter(|mark| {
+      mark[1..mark.len() - 1]
+        .chars()
+        .all(|letter| letter.is_ascii_alphanumeric() || letter == '_')
+    })
+    .collect()
+}
+
+// Every part reads as its type in every language, a key a language lacks reading as the source's.
+#[test]
+fn every_part_the_server_reads_reads_in_every_language() {
+  for language in Language::ALL {
+    assert!(!chat_health::CHAT_HEALTH_WORDS.in_language(language).account.line.is_empty());
+    assert!(!draws::DRAWS.in_language(language).line.head.is_empty());
+    assert!(fixed_lines::FIXED_LINES.in_language(language).rest_begins.contains("{chat_agent}"));
+    assert!(job_titles::JOB_TITLES.in_language(language).both.contains("{rank}"));
+    let _ = &particles::PARTICLES.in_language(language).subject;
+    assert!(!roads::ROAD_WORDS.in_language(language).telegram.kinds.photo.is_empty());
+    assert!(!secret_kinds::SECRET_KINDS.in_language(language).kinds.is_empty());
+    assert!(!supervisors::SUPERVISOR_WORDS.in_language(language).engine_error.failed.is_empty());
+    assert!(!archive_docs::ARCHIVE_DOCS.in_language(language).kinds.is_empty());
+    assert!(!search::SEARCH.in_language(language).parts.is_empty());
+  }
+}
+
+// A request names its language by the first tag of its `Accept-Language` the pack holds, by weight, of any region.
+#[test]
+fn a_request_names_its_language_by_the_first_tag_the_pack_holds() {
+  assert_eq!(Language::accepted("ja-JP,ja;q=0.9,en;q=0.8"), Some(Language::Ja));
+  assert_eq!(Language::accepted("fr-FR, en;q=0.5, ko;q=0.7"), Some(Language::Ko));
+  assert_eq!(Language::accepted("zh-TW"), Some(Language::ZhCn));
+  assert_eq!(Language::accepted("en-GB;q=0, de"), None);
+  assert_eq!(Language::asked("zh-Hans-CN"), Some(Language::ZhCn));
+  assert_eq!(Language::coded("ZH-cn"), Some(Language::ZhCn));
+  assert_eq!(Language::coded("zh"), None);
+}
+
+// Work speaks the language it is run in, and the source outside any.
+#[tokio::test]
+async fn work_reads_the_pack_in_the_language_it_speaks() {
+  assert_eq!(spoken(), Language::SOURCE);
+
+  let english = speaking(Language::En, async { fixed_lines::FIXED_LINES.chat_denied.clone() }).await;
+
+  assert_eq!(english, fixed_lines::FIXED_LINES.in_language(Language::En).chat_denied);
+  assert_ne!(english, fixed_lines::FIXED_LINES.chat_denied);
+}

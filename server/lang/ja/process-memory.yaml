@@ -1,0 +1,6 @@
+# Translated from server/lang/ko/process-memory.yaml; its comments say what each value is.
+machine: "{at} · メモリ {total}MB 中 利用可能 {available}MB · スワップ {swap_total}MB 中 残り {swap_free}MB"
+counted: "数えたプロセス {counted} 件 · 読めなかったプロセス {unreadable} 件"
+runtimes: "実行ファイル別"
+programs: "{name} のプログラム別"
+none: "(なし)"

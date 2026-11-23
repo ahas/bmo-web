@@ -1,0 +1,109 @@
+# What a search leaves for a person to read (docs/archive.md, 「A search's document」, 「A page imported
+# whole」): the document `bmo runner search` writes under the runtime data root, and the result a page brought
+# in whole is written as. Each `{name}` is filled in with what it names.
+
+# What the console's collection of documents is called, which the chat's session is told a page brought in whole
+# was kept in.
+archive_name: "归档"
+
+# The question a page brought in whole stands under, by the {source} address it was asked from.
+import_query: "导入原文: {source}"
+
+# The document's head: its title where the result gave none, by the {query}; and its lines, each with the
+# {value} it states, an option by its {name}.
+head:
+  untitled: "搜索 · {query}"
+  query: "- 问题: {value}"
+  topic: "- 主题: {value}"
+  keywords: "- 关键词: {value}"
+  rule: "- 适用规则: {value}"
+  option: "- 选项 {name}: {value}"
+  depth: "- 深度: {value}"
+  status: "- 状态: {value}"
+  started: "- 开始: {value}"
+  finished: "- 结束: {value}"
+  runs: "- 运行: {value}"
+
+# The result the room was given: its heading, what stands under it while nothing is written, the branch a
+# finding came out of by its {branch} label, and the heading of the pages it cites.
+result:
+  heading: "结果"
+  empty: "尚未写入任何内容。"
+  branch: "分支: {branch}"
+  sources: "来源"
+
+# The trail folded under the result: its heading and the line that opens it, the run's own section, the mark
+# of the {run} a branch was opened in where the search took several, and the headings of what one branch
+# asked, opened and found.
+trail:
+  heading: "调研过程"
+  summary: "各分支提出的问题和打开的页面"
+  own: "本次运行直接"
+  run: " · 运行 {run}"
+  asked: "提出的问题"
+  opened: "打开的页面"
+  found: "由此得出的内容"
+
+# What each fixed part of a result's body is called.
+parts:
+  VERDICT: "核心答案"
+  SUMMARY: "摘要"
+  INTRO: "引言"
+  BODY: "正文"
+  CONCLUSION: "结论"
+  UNCONFIRMED: "未能确认的内容"
+  MORE: "详情"
+
+# What each line of an entry is written as, with the {value} the line carries; a stock line's {value} is its
+# state, when it was read and where, joined; a deal's {now} price, its {usual} one where given and the {real}
+# word on it; a review's {rating} in bold where given, its {words} and the {page} it stands on; a picture
+# kept as the chat agent's own copy says the {address} it came from. The rating a result writes where there is none is
+# `no_rating`.
+fields:
+  ADDRESS: "地址: {value}"
+  MAP: "地图: {value}"
+  ROADVIEW: "街景: {value}"
+  MENU: "菜单: {value}"
+  menu_alone: "菜单:"
+  RELEASED: "上市: {value}"
+  NEWER: "最新型号: {value}"
+  STOCK: "销售状态: {value}"
+  deal: "优惠: {now}{usual}{real}"
+  deal_usual: "（平时 {usual}）"
+  deal_real: " · {real}"
+  review_link: "（[评价]({page})）"
+  no_rating: "无"
+  original: "原图: {address}"
+
+# What the console's reading of a finding draws it with: the labels of an entry's address, its map and street
+# view links, a menu with its dish, price and notes columns, when a product was released, its newer model, its
+# state and its page, a deal and what it {usual}ly costs, the page a review stands on, and what a finding with
+# no words of its own is called in the contents, by its {place}.
+reading:
+  address: "地址"
+  map: "地图"
+  street_view: "街景"
+  menu: "菜单"
+  dish: "菜品"
+  price: "价格"
+  notes: "备注"
+  released: "上市"
+  newer: "最新型号"
+  stock: "销售状态"
+  product_page: "商品页面"
+  deal: "优惠"
+  usual: "平时 {usual}"
+  review: "评价"
+  untitled: "第 {place} 项内容"
+
+# A page brought in whole, as its result: the line that says it was answered, its topic by the page's
+# {host}, the figure {n} with its {caption} that could not be captured, and what each source line says of the
+# page kept, of the address asked that moved to it, and of a work the page cites with its {text} where any.
+import:
+  answered: "已原样导入原文"
+  topic: "导入 {host} 原文"
+  missing: "未能截取图 {n}（{caption}），只保留了原地址。"
+  kept: "导入的原文页面"
+  moved: "请求导入的地址，已跳转到上面的页面"
+  cited: "原文引用的资料"
+  cited_text: "原文引用的资料: {text}"

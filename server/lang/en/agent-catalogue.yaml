@@ -1,0 +1,66 @@
+# Translation of server/lang/ko/agent-catalogue.yaml; that file says what each line is for.
+roster:
+  chat: "{chat_agent}: one shared chat agent. {owner_chat_agent} is the chat agent in the owner’s private chat, not another agent. Connected rooms: {rooms}."
+  owner_room: "{owner_chat}, {owner_chat_agent} or {owner_chat_agent} (you, the owner's private chat)"
+  kinds:
+    supervisor: "Supervisor, or supervisors: you and the supervisors below, each answering in the rooms that name it, in a persona of its own. A room that names other supervisors alone is never yours to speak in; in a room you share with one, the receiver wakes each of you by the same rule."
+    gate: "Gate agent, or gate: the judgement runs with no tools of their own."
+    runner: "Runner: the research runs you launch and that hand their result back to you."
+    recollector: "Recollector: the runs that decide what of a conversation becomes an agent's long-term memory and write it from that agent's own view: the room digest and the person-book writer with Read, Write, Edit, Glob and Grep only, the session summariser with no tools."
+    worker: "worker: the jobs you launch with the task tool. Each has a name of its own and a checkout of its own."
+
+agents:
+  worker:
+    label: "Worker"
+    aliases: ["Job worker", "job worker", "worker", "worker job"]
+  session-summary:
+    label: "Session summarizer"
+    aliases: ["session summarizer", "handoff summarizer"]
+  system-documents:
+    label: "System document classifier"
+    aliases: ["reference classifier", "system document classifier", "system reference gate", "lore gate"]
+  room-rules:
+    label: "Room rule classifier"
+    aliases: ["reference classifier", "room rule classifier", "room rule gate", "rulebook classifier"]
+  library-knowledge:
+    label: "Library knowledge classifier"
+    aliases: ["reference classifier", "library knowledge classifier", "library gate", "knowledge document classifier"]
+  people-search:
+    label: "People book search"
+    aliases: ["people book search", "people book lookup", "person fragment classifier", "people book classifier"]
+  situation-rules:
+    label: "Situation rule matcher"
+    aliases: ["situation rules", "situation rule matcher", "rule matcher", "conditional rules"]
+  sanitizer:
+    label: "Sanitizer gate"
+    aliases: ["context hygiene gate", "hacking gate", "input sanitizer"]
+  output-format:
+    label: "Output format gate"
+    aliases: ["output format gate", "format verdict gate"]
+  people-standing:
+    label: "People book summarizer"
+    aliases: ["people book summarizer", "person summary writer", "standing layer writer", "summary writer"]
+  document-seek:
+    label: "Document finder gate"
+    aliases: ["document finder gate", "document search gate", "table of contents finder"]
+  translator:
+    label: "Translator"
+    aliases: ["translator", "translation agent", "document translator"]
+  voice-polish:
+    label: "Script polish gate"
+    aliases: ["script polish gate", "listening polish", "full read polish"]
+  voice-reading:
+    label: "Pronunciation gate"
+    aliases: ["pronunciation gate", "reading gate", "transliteration gate"]
+  search:
+    label: "Searcher"
+    aliases: ["searcher", "web searcher", "search engine", "web search engine"]
+  browse:
+    label: "Browser searcher"
+    aliases: ["browser search", "browser searcher", "top web search", "live search"]
+  digest:
+    label: "Digest"
+    aliases: ["digest", "room summarizer", "conversation summarizer", "conversation organizer"]
+  people-digest:
+    label: "People book writer"
+    aliases: ["people book writer", "people book editor", "people book organizer", "relationship organizer"]

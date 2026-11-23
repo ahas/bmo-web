@@ -146,6 +146,9 @@ export const openedRoutes: readonly OpenedRoute[] = [
 
   // The account's own surface.
   section(ACCOUNT, "POST", /^\/api\/account$/),
+  // The language the account reads the console in, which every signed-in login reads and chooses, whatever it may open.
+  { method: "GET", path: /^\/api\/account\/language$/, scope: "user" },
+  { method: "PUT", path: /^\/api\/account\/language$/, scope: "user" },
   section(ACCOUNT, "GET", /^\/api\/account\/(palette|theme|presence)$/),
   section(ACCOUNT, "PUT", /^\/api\/account\/(palette|theme|presence)$/),
   // One's own BMO's profile, which the account service opens only to a person who may personalise it.

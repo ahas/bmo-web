@@ -1,0 +1,36 @@
+# Translation of server/lang/ko/gate-eval.yaml; that file says what each line is for.
+usage: |-
+  usage: bmo gate eval <start|generate|status|score|report> [options]
+
+  Makes answer-keyed evaluation questions for each gate with Codex, and scores the gates on each road with them.
+
+    start     Starts the generation as the user unit bmo-gate-eval (run by the binary that ran this command).
+    generate  Runs the same generation in the foreground. The unit runs this.
+    status    Shows, per gate, how many were made, asked, refused and discarded, how many remain, and the state.
+    score     Asks the gates with --road claude|kiki and scores them. --limit <n> takes only that many per gate, spread evenly over the whole set.
+    report    Shows each gate's last score on each road side by side.
+
+    --set <name>      Set name (default v1). The data is in the data root's gate-eval/<name>/.
+    --gate <gate>     That gate only. Can be given more than once.
+    --per-gate <n>    Questions to make per gate (default: each gate's own count).
+    --batch <n>       Questions to ask for in one batch (default: each gate's own count).
+
+refusals:
+  command: "Give one command (start, generate, status, score, report)."
+  unknown_command: "Unknown command: {command}"
+  count: "{flag} is a whole number of 1 or more."
+  gate: "Gates not in the evaluation set: {unknown} (available: {known})"
+  road: "--road is {roads}."
+  roads_joined: " or "
+  running: "{unit} is already running. Check it with journalctl --user -u {unit}."
+
+started: "Started {unit} ({tree}). Progress: bmo gate eval status --set {set} · Log: journalctl --user -u {unit}"
+
+status:
+  set: "Set {set} · {folder}"
+  head: "Gate | State | Made | Target | Remaining | Batch | Asked | Refused | Discarded | Reason"
+  sanitizer: "sanitizer | Not made with Codex | The security-breach sentences are the questions themselves, so left to {supervisor}"
+
+report:
+  none: "Set {set} has no scores yet."
+  head: "Gate | Road | Model | Questions | Answered | Passed | Accuracy | Easy | Borderline | Checks met | Median s | p90 s"

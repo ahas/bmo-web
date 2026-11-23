@@ -68,8 +68,8 @@ export default defineNuxtConfig({
   },
   // The zone every time is shown in, the locale figures are written and letter case folded in, and the
   // dayjs locale dates' words are written in, all stated since the console renders on the server as well
-  // as in the browser (bmo-ui's `docs/boundary.md`, 「What the host owes」). The dayjs locale is loaded
-  // by the app's own plugin.
+  // as in the browser (bmo-ui's `docs/boundary.md`, 「What the host owes」). These are the source language's;
+  // the language plugin states the reader's over them. The dayjs locales are loaded by the app's own plugin.
   appConfig: {
     // Where a bundle's screens call its service: the console's relay base, then the service's name
     // and the path the service's own API writes (bmo-ui's `docs/console-bundles.md`).
@@ -104,6 +104,8 @@ export default defineNuxtConfig({
         "dayjs/plugin/utc",
         "dayjs/plugin/timezone",
         "dayjs/locale/ko",
+        "dayjs/locale/ja",
+        "dayjs/locale/zh-cn",
         "@internationalized/date",
         "bmo-text/markdown",
         "dompurify",
@@ -130,8 +132,10 @@ export default defineNuxtConfig({
   },
   nitro: {
     // A console bundle whose screen opens a socket has it relayed like any other call: the console
-    // hands the upgrade on to the service the manifest names (bmo-ui's `docs/console-bundles.md`).
-    experimental: { websocket: true },
+    // hands the upgrade on to the service the manifest names (bmo-ui's `docs/console-bundles.md`). Each request
+    // runs in a context of its own, so the words it is answered with are said in its reader's language
+    // (`server/plugins/language.ts`).
+    experimental: { websocket: true, asyncContext: true },
     // A deployment builds a release of its own beside the one being served and only then moves onto it,
     // because nitro splits the build by route and a running server reads a route's chunk off disk the
     // first time that route is asked for (docs/web.md, 「Running as a service」). Whoever is deploying
@@ -168,14 +172,20 @@ export default defineNuxtConfig({
   $production: {
     nitro: { preset: "bun", entry: fileURLToPath(new URL("./server/bun.mjs", import.meta.url)) }
   },
-  // One language, one pack: every word the console shows is a key into `i18n/locales/ko.yaml`, so a
-  // wording fix is an edit to that file alone (docs/web.md, 「Wording and the language pack」).
-  // `language` is what the module writes into the document's `lang`.
+  // Four languages, one pack each: every word the console shows is a key into `i18n/locales/ko.yaml`, and the
+  // other three hold the same keys (docs/web.md, 「Wording and the language pack」). The reader's language is the
+  // console's own choice (`app/plugins/language.ts`), so the module detects none. `language` is the tag the
+  // document's `lang` is written as.
   i18n: {
     strategy: "no_prefix",
     defaultLocale: "ko",
     detectBrowserLanguage: false,
-    locales: [{ code: "ko", language: "ko-KR", file: "ko.yaml" }]
+    locales: [
+      { code: "ko", language: "ko-KR", file: "ko.yaml" },
+      { code: "en", language: "en-US", file: "en.yaml" },
+      { code: "ja", language: "ja-JP", file: "ja.yaml" },
+      { code: "zh-CN", language: "zh-CN", file: "zh-CN.yaml" }
+    ]
   },
   ui: {
     // Registers ContentSearch and ContentSearchButton, which the sidebar's search is; the console has no

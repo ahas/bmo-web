@@ -1,0 +1,4369 @@
+# Every word the console shows, key for key with ko.yaml, which the wording guide governs; the rules for
+# adding one are in docs/web.md, "Wording and the language pack".
+
+app:
+  label:
+    account: Account
+    auto_translate: Auto-translate
+    auto_translate_description: Reports and instructions written in another language are translated as soon as you open them. You can switch back with Show original at any time.
+    color_mode: Appearance
+    language: Language
+    language_description: The language of the screens and notices. It applies on every device this account opens the console on.
+    manifest_name: "{agent}"
+    mode_dark: Dark
+    mode_light: Light
+    mode_system: System
+    name: "{agent}"
+    password: Password
+    remember: Stay signed in
+    search_group: Group
+    search_key: Key
+    search_name: Name
+    search_people: People
+    search_place: Location
+    search_screens: Screens
+    sidebar: Sidebar
+    sidebar_description: "Screens, rooms, agents"
+    user_id: Username
+  action:
+    login: Sign in
+    logout: Sign out
+    reload: Reload
+  message:
+    new_build: A new version has been deployed.
+    manifest_description: "See room conversations and agent verdicts, and send messages to a room's agent."
+    login_again: Please sign in again.
+    session_ended: Your sign-in has expired.
+  error:
+    login_failed: "Couldn't sign in."
+    wrong_credentials: The username or password is incorrect.
+    machine_gone: "This account's machine (jake) isn't connected. Reconnect the machine to sign in."
+    accounts_down: "The account service isn't responding, so you can't sign in right now."
+common:
+  title:
+    delete_named: "Delete {name}"
+    discard_changes: Discard unsaved changes?
+    share: Share
+  label:
+    members: People
+    permission_edit: Edit
+    permission_read: Read
+    translated_from: "Translated from {language}"
+    translated_in_part_from: "Partly translated from {language}"
+    all: All
+    auto: Auto
+    chat_agent: Chat agent
+    count: "{n}"
+    day_format: "ddd, MMM D, YYYY"
+    days: "{d}d"
+    days_hours: "{d}d {h}h"
+    depth_basic: Basic
+    depth_exhaustive: Exhaustive
+    depth_thorough: Thorough
+    expired: Expired
+    expiry: Expires
+    forever: No expiry
+    hours: "{h}h"
+    hours_minutes: "{h}h {m}m"
+    hours_minutes_seconds: "{h}h {m}m {s}s"
+    left_days: "{n}d left"
+    left_hours: "{n}h left"
+    left_minutes: "{n}m left"
+    left_under_minute: Less than 1m left
+    link: Link
+    minutes: "{m}m"
+    minutes_seconds: "{m}m {s}s"
+    model: Model
+    name: Name
+    no_record: No record
+    none: None
+    optional: Optional
+    original: Original
+    palette_forest: Forest
+    palette_lemon: Lemon
+    palette_sea: Sea
+    palette_sunset: Sunset
+    palette_teal: Teal
+    palette_violet: Violet
+    path: Path
+    picture_caption: Caption
+    picture_resolution: Resolution
+    picture_resolution_value: "{width} × {height}"
+    play_position: Playback position
+    properties: Properties
+    rendered: Rendered
+    room: Room
+    seconds: "{n}s"
+    share_until: "Until {date}"
+    short_day_format: YY.MM.DD
+    size: Size
+    span_1h: 1 hour
+    span_24h: 24 hours
+    span_30d: 30 days
+    span_6h: 6 hours
+    span_7d: 7 days
+    speaker_bmo: Chat agent
+    speaker_owner: Owner
+    speed_normal: "{speed} Normal"
+    subject_closed: "{name}"
+    subject_open: "{name}"
+    subject_unread: "{name}"
+    subtitles_off: "Off"
+    theme_forest: Forest
+    theme_sea: Sea
+    theme_sunset: Sunset
+    theme_teal: Teal
+    theme_violet: Violet
+    toc: Contents
+    unplayable: "Can't play"
+    view: View
+    volume: Volume
+  action:
+    share: Share
+    show_translation: Show translation
+    show_original: Show original
+    add: Add
+    add_choice: "Add \"{value}\""
+    back: Back
+    cancel: Cancel
+    choose_all: Select all
+    choose_none: Deselect all
+    clear_search: Clear search
+    close: Close
+    close_all_tabs: Close all tabs
+    close_other_tabs: Close other tabs
+    close_right_tabs: Close tabs to the right
+    collapse: Collapse
+    copy: Copy
+    create_link: Create
+    delete: Delete
+    discard: Discard
+    edit: Edit
+    exit_fullscreen: Exit full screen
+    expand: Expand
+    find: Find
+    fit_screen: Fit to screen
+    fullscreen: Full screen
+    more: More
+    move_down: Move down
+    move_up: Move up
+    mute: Mute
+    next_month: Next month
+    next_picture: Next photo
+    next_year: Next year
+    next_years: Next years
+    open: Open
+    page_back: Previous
+    page_forward: Next
+    pause: Pause
+    pin: Pin
+    play: Play
+    play_now: Play now
+    previous_month: Previous month
+    previous_picture: Previous photo
+    previous_year: Previous year
+    previous_years: Previous years
+    refresh: Refresh
+    retry_translation: Request again
+    save: Save
+    see_all: See all
+    skip_back: "Back {n}s"
+    skip_forward: "Forward {n}s"
+    subtitles: Subtitles
+    turn_picture: Rotate
+    unmute: Unmute
+    unpin: Unpin
+    unshare: Stop sharing
+    zoom_in: Zoom in
+    zoom_out: Zoom out
+  aria:
+    close_named: "Close {name}"
+    column_width: "{name} width"
+    decrease: Decrease
+    document_menu: Document menu
+    download_named: "Download {name}"
+    enlarge_named: "Enlarge {name}"
+    holds_chosen: Contains selected items
+    image_zoom: "{title}, zoom with the wheel or two fingers"
+    increase: Increase
+    member_permission: "{name} permission"
+    menu_of: "{name} menu"
+    more_notices: "{n} more notifications"
+    move_down_named: "Move {name} down"
+    move_up_named: "Move {name} up"
+    open_list: Open list
+    opens_new_tab: (opens in a new tab)
+    others_count: "and {n} others"
+    pinned_named: "{name} pinned"
+    play_named: "Play {name}"
+    player_named: "{name} player"
+    search_named: "Search {name}"
+    search_scope: Search scope
+    share_address: Share link address
+    speed_named: "Playback speed {speed}"
+    window_move: Move window · arrow keys
+    window_resize: Resize window · arrow keys
+  status:
+    bmo_answering: The chat agent is writing a reply…
+    brightness: "Brightness {n}%"
+    copied: Copied
+    link_preview_loading: Loading link preview…
+    loading: Loading…
+    loading_named: "Loading {name}…"
+    members_loading: Loading people shared with…
+    muted: Muted
+    next_in: "Playing in {n}s"
+    no_choices: No items
+    no_match: No matches
+    no_members: Not shared with anyone
+    no_rooms: No recorded rooms
+    picture_loading: Loading photo…
+    reconnecting: Reconnecting
+    rooms_loading: Loading rooms…
+    share_loading: Loading share link…
+    speed: "Speed {speed}"
+    subtitles_off: Subtitles off
+    subtitles_on: "Subtitles {name}"
+    translating: Translating…
+    translation_busy: "The translator is busy and couldn't translate right now."
+    turned: "Rotated {degrees}°"
+    unmuted: Unmuted
+    video_loading: Loading video details…
+    volume: "Volume {n}%"
+    went_back: "Back {n}s"
+    went_forward: "Forward {n}s"
+  message:
+    translator_absent: "No translator is available, so this can't be translated."
+    link_copied: Link copied.
+    preview_badge: In progress
+    preview_field: Search
+    preview_link: Learn more
+    preview_meta: "Edited yesterday at 7:12 PM"
+    preview_note: Meeting notes
+  error:
+    administrator_only: Only an administrator can do this.
+    attachments_too_large: "You can send up to {size} per file and up to {n} files at a time."
+    attachments_too_many: "You can send up to {n} files at a time."
+    bad_action: "The requested action isn't valid."
+    bad_cursor: "The cursor value isn't valid."
+    bad_limit: "The count value isn't valid."
+    choices_find_failed: "Couldn't search."
+    copy_failed: "Couldn't copy."
+    editor_failed: "Couldn't load the code editor."
+    file_too_large: A file is larger than the size you can send.
+    form_broken: "The sent file wasn't received in full."
+    image_unavailable: "Can't load the image."
+    link_copy_failed: "Couldn't copy the link."
+    member_change_failed: "Couldn't change the permission."
+    member_search_failed: "Couldn't search for people."
+    member_share_failed: "Couldn't share."
+    members_read_failed: "Couldn't read who it's shared with."
+    not_saved_named: "{name} not saved"
+    not_sent: "Couldn't send."
+    picture_failed: "Couldn't load the photo."
+    rooms_failed: "Couldn't load the room list."
+    save_failed: "Couldn't save."
+    say_to_bmo_empty: Enter a message for the chat agent.
+    send_failed: "Couldn't send the message."
+    share_create_failed: "Couldn't create the share link."
+    share_read_failed: "Couldn't read the share link."
+    too_long: "The message is too long. You can send up to {n} characters."
+    translation_failed: "Couldn't translate."
+    unshare_failed: "Couldn't stop sharing."
+    video_failed: "Couldn't load the video."
+  placeholder:
+    member_search: Find by name
+    search: Search
+control:
+  status:
+    checking: Loading API
+  error:
+    reader_disconnected: "The reader isn't connected, so this can't be sent."
+    status: "The bot control API responded with {status}."
+    unreachable: "Couldn't load API"
+db:
+  label:
+    cut_length: "{n} characters in total"
+    json_list: "{n} items"
+    json_no: "No"
+    json_none: None
+    json_object: "{n} fields · {keys}"
+    json_object_empty: No fields
+    json_yes: "Yes"
+    length: "{n} characters"
+    masked: Hidden value
+    masked_badge: Hidden
+    page: "Page {page} of {pages} · {total} rows"
+    primary_key: Primary key
+    required: Required
+    result: "{rows} rows · {ms} ms"
+    result_cut: "Cut at {rows} rows · {ms} ms"
+    schema: Schema
+    sql_rule: "Read-only · up to {rows} rows"
+    table: Table
+  action:
+    first_page: First page
+    last_page: Last page
+    next_page: Next page
+    previous_page: Previous page
+    run: Run
+    stop: Stop
+  aria:
+    find_in_table: Find in this table
+    pick_table: Select table
+    query: Query
+    sort_by: "Sort by {name}"
+    tables_and_sql: Tables and SQL
+  error:
+    no_rowid: "This table has no row ID, so its rows can't be read one at a time."
+    no_such_table: Table not found.
+    no_table_name: No table name was given.
+    query_empty: The query is empty.
+    query_failed: "Couldn't run the query."
+    read_failed: "Couldn't read the database."
+    read_stopped: Reading stopped.
+    row_not_found: Row not found.
+    rows_failed: "Couldn't read the rows."
+    table_failed: "Couldn't read the table."
+    tables_failed: "Couldn't read the table list."
+  placeholder:
+    query: "SELECT * FROM web_users ORDER BY created_at DESC"
+  status:
+    no_result: No results
+    no_rows: No rows
+    no_rows_found: No matching rows
+    no_tables: No tables
+    note_read_at: "{note} · read at {time}"
+    result_loading: Loading results…
+    row_loading: Loading row…
+    tables_loading: Loading tables…
+  title:
+    result_row: "Query result · row {n}"
+    table_row: "{table} · row {n}"
+files:
+  label:
+    progress: "{done}/{all} {percent}%"
+  action:
+    keep_both: Keep both
+    replace: Replace
+    skip: Skip
+  aria:
+    name_field: New name
+  status:
+    uploading: Uploading
+  message:
+    conflict: Something with the same name already exists.
+push:
+  title:
+    question: "Question from the Job for item #{id}"
+    question_titled: "#{id} {title} · Question from the Job"
+    room_bundled: "{room} · {n} new messages"
+  label:
+    mail: New mail
+    question: Job questions
+    room: Room messages
+  message:
+    mail: "Notifies you when new mail arrives in the inbox and is still unread. Mail moved by a filter or marked as read isn't notified."
+    room: "Notifies you of messages and reports supervisors send to rooms. Nothing is sent while you're viewing that room, and messages from one room are bundled into one."
+    room_line: "{sender}: {line}"
+    question: "The Job has stopped to wait for an answer, and after 1 minute the recommended answer is chosen. You can pause the timer in the console."
+    test_body: Notifications will arrive on this device.
+    test_nowhere: "No device is set to receive notifications, so nothing was sent."
+    test_sent: "Sent to {n} devices."
+  error:
+    bad_endpoint: "That isn't a push service address, so this device wasn't connected."
+    bad_subscription: The subscription details are incomplete.
+    bad_watch: "The details of the room the tab is viewing aren't in a valid format."
+    change_failed: "Couldn't change the notification settings."
+    denied: Notifications are blocked. Allow notifications for this site in your browser settings.
+    device_taken: "Notifications on this device are connected to another account. Disconnect it from that account, then try again."
+    no_device: No device was given to disconnect.
+    no_worker: "This browser has no service worker, so it can't receive notifications."
+    read_failed: "Couldn't read the notification settings."
+    unconfigured: "This server has no push key, so it can't send notifications."
+    unsupported: "This browser doesn't support push."
+question:
+  error:
+    answer_failed: "Couldn't send the answer."
+    bad_option: "The selected option isn't valid."
+    bad_own_answer: Your own answer is empty or too long.
+    bad_question_id: "The question number isn't valid."
+    one_answer: "Send either a selected number or your own answer, not both."
+    pause_direction: Choose whether to pause or resume the timer.
+    pause_failed: "Couldn't pause the timer."
+    resume_failed: "Couldn't resume the timer."
+    settled_by_recommendation: "Time ran out in the meantime, so the recommended answer was chosen: {answer}"
+    settled_elsewhere: "It was already decided elsewhere in the meantime: {answer}"
+    bad_talk: The discussion message is empty or too long.
+    talk_failed: "Couldn't send the discussion message."
+    talk_read_failed: "Couldn't load the discussion."
+    talk_settled: "This question already has an answer, so it can't be discussed."
+    owner_only: "Only the owner can answer or discuss a Job's question."
+    not_put_to_owner: "A supervisor is handling this question, so you can't answer or discuss it."
+  action:
+    answer: Answer
+    answer_as_written: Answer as written
+    answer_with: "Answer with {number}"
+    close: Dismiss
+    discuss: Talk about this
+    pause: Pause timer
+    resume: Resume timer
+    unpick: Clear selection
+  aria:
+    own_answer: Your own answer
+    talk: Discussion message
+    window_open: "{n} Job questions · open"
+  label:
+    asked: "Job question · item #{id}"
+    asked_by: "{asker} · {since} ago"
+    asked_prefix: Job question · item
+    job: "Job #{id}"
+    talk: Discussion
+    recommended: (recommended)
+    recommended_words: "Recommended answer:"
+    summary: "{n} questions"
+    why: "Why it asks:"
+  placeholder:
+    own_answer: An answer not among the options (the Job reads what you type as is)
+    talk: Message to the Job
+  status:
+    open: Waiting for an answer
+    overdue: "Time's up · recommended {number} chosen"
+    overdue_alone: "Time's up · waiting for a person's answer"
+    overdue_words: "Time's up · recommended answer chosen"
+    owner: Answered by the owner
+    paused: "Timer paused · recommended {number}"
+    paused_alone: "Timer paused · waiting for a person's answer"
+    paused_words: Timer paused · recommended answer
+    recommendation: "Time's up · recommended answer chosen"
+    running: "{time} left · recommended {number}"
+    running_alone: "{time} left · waiting for a person's answer"
+    running_words: "{time} left · recommended answer"
+    untimed: "Waiting for a person's answer"
+    no_talk: "You can discuss with the Job what the question means, what each option leads to, and why it recommends one."
+    talk_loading: Loading discussion…
+    talk_unheard: "The Job hasn't read this yet."
+    talk_writing: The Job is writing a reply…
+  title:
+    window: Job questions
+room:
+  status:
+    agent_listening: "{subject} is listening"
+    agent_thinking: "{subject} is thinking"
+    agent_tool: "{subject} is using a tool"
+    agent_tool_named: "{subject} is using {tool}"
+    agent_waiting_engine: "{subject} is waiting for a Job on the same model to finish"
+    situation_loading: Loading situation note…
+    situation_none: No situation note
+    agent_waiting_engine_item: "{subject} is waiting for Job #{item} on the same model to finish"
+    agent_writing: "{subject} is writing a reply"
+    step_thinking: Thinking
+    step_tool: Using a tool
+    step_tool_named: "Using {tool}"
+    step_waiting: Waiting for a Job on the same model to finish
+    step_waiting_item: "Waiting for Job #{item} on the same model to finish"
+    step_writing: Writing a reply
+    brain_read_loading: Loading…
+    chat_enabled: Chat on
+    checking: Checking whether it was sent
+    draft_writing: Writing a message
+    earlier_loading: Loading earlier messages…
+    failed: Failed
+    figures_loading: Loading records and token usage…
+    find_count: "{at}/{n}"
+    find_loaded_only: Searching loaded messages only
+    find_none: No messages found
+    forward_none: No matching rooms
+    forward_rooms_none: There are no rooms to forward to.
+    held_from: "Conversations received from {services} start here."
+    later_loading: Loading later messages…
+    listening_left: "For the next {time}"
+    more_records: "{n} more"
+    no_messages: No recorded messages
+    no_records_left: No records left
+    not_sent: Not sent
+    nothing_after: No messages after that day
+    outcome_run_failed: "{name}'s run failed."
+    outcome_run_stopped: "{name}'s run was stopped."
+    outcome_skipped: "{subject} didn't answer this time."
+    outcome_skipped_times: "{subject} didn't answer {n} times."
+    outcome_skipped_reason: "Reason: {reason}"
+    outcome_skipped_reason_none: No reason given.
+    outcome_waited: "{subject} waited, expecting more messages to follow."
+    received_both: "Received {messages} messages · {instructions} quiet instructions"
+    received_instructions: "Received {instructions} quiet instructions"
+    received_messages: "Received {messages} messages"
+    records_loading: Loading records…
+    providers_loading: Loading chat services…
+    mode_saving: "Changing the room's mode"
+    providers_saving: Changing chat services…
+    removal_loading: Loading the records to delete…
+    room_loading: Loading room…
+    selected_count: "{n} selected"
+    sending: Sending
+    sent: Sent
+    session_loading: Loading session details…
+    start_of_talk: This is the start of the conversation.
+    sticker_none: No stickers to send
+    stickers_loading: Loading stickers…
+    talk_loading: Loading conversation…
+    waiting: Sends when connected
+    window_left: "{time} left"
+    room_add_no_services: There are no chat services to add a room from.
+    room_add_no_rooms: This account has no rooms.
+    room_add_loading: Loading rooms
+    room_add_more_loading: Loading more rooms
+    room_add_end: End of the room list
+    room_add_contacts_loading: Loading contacts
+    room_add_no_contacts: This account has no contacts.
+    room_add_no_match: No matching names.
+    step_stage: "Checking the {name} stage"
+    step_arrived: Checking arrived messages
+    step_audit: Checking forms of address
+  error:
+    bad_typing: "The typing indicator isn't in a valid format."
+    actions_read_failed: "Couldn't load the run records."
+    attachment_empty: "{name}: the file is empty, so it wasn't attached."
+    attachment_too_large: "The file is larger than {by} can send ({limit}), so it wasn't attached."
+    situation_failed: "Couldn't read the situation note."
+    attachment_too_many: "You can attach up to {max} files at a time. Sending without {name}."
+    avatar_not_found: Profile photo not found.
+    bad_avatar_id: "The profile photo number isn't valid."
+    bad_avatar_kind: "The profile photo type isn't valid."
+    bad_chat_id: "The room number isn't valid."
+    bad_instruction_id: "The instruction number isn't valid."
+    bad_judgement_ids: "The verdict numbers aren't valid."
+    bad_judgement_span: "The time range for reading verdicts isn't valid."
+    bad_language: "The language isn't valid."
+    bad_message_id: "The message number isn't valid."
+    bad_reply_id: "The number of the message to reply to isn't valid."
+    bad_send_key: "The send key isn't valid."
+    brain_read_failed: "Couldn't load the Brain records."
+    delete_failed: "Couldn't delete the message."
+    drafts_read_failed: "Couldn't load the draft records."
+    edit_empty: Enter the edited message.
+    edit_failed: "Couldn't edit the message."
+    judgements_read_failed: "Couldn't load the verdicts."
+    message_deleted: This message was deleted.
+    message_forbidden: "You can't do that with this message."
+    message_unknown: "That message isn't in the records."
+    no_caller: This account has no sender to use in this room.
+    pin_message_direction: Choose whether to pin or unpin the message.
+    pin_message_failed: "Couldn't pin the message."
+    reaction_empty: Choose an emoji to react with.
+    reaction_failed: "Couldn't add the reaction."
+    sticker_empty: Choose a sticker to send.
+    sticker_failed: "Couldn't send the sticker."
+    stickers_read_failed: "Couldn't load stickers."
+    unknown_sticker: "The records don't know this sticker."
+    file_empty_named: "{name} is empty, so it wasn't sent."
+    file_not_found: File not found.
+    file_too_large_named: "{name} is larger than this room can send, so it wasn't sent."
+    file_over_limit_named: "{name} is larger than {by} can send ({limit}), so it wasn't sent."
+    file_with_voice: "You can't attach files until the voice memo is sent."
+    instruction_read_failed: "Couldn't read the original instruction."
+    forward_failed: "Couldn't forward the message."
+    forward_room: Choose a room to forward to.
+    forward_same_room: "You can't forward to the current room."
+    jump_failed: "Couldn't jump to the date."
+    message_not_found: Message not found.
+    no_file: "There's no file to send."
+    no_voice: "There's no voice memo to send."
+    none_sent: No files were sent.
+    photo_not_found: Photo not found.
+    pictures_failed: "Couldn't load the room's other photos."
+    pin_direction: Choose whether to pin or unpin the room.
+    pin_failed: "Couldn't pin the room."
+    read_failed: "Couldn't load. Try again in a moment."
+    receiver_bad_request: "The receiver unit couldn't read the request."
+    receiver_conflict: "The receiver unit refused because it doesn't match the current state."
+    receiver_failed: The receiver unit failed while answering.
+    receiver_forbidden: "This account can't do this."
+    receiver_not_found: "The room or message wasn't found."
+    receiver_not_ready: "The receiver unit isn't ready to answer yet."
+    receiver_unauthorized: "The token shared with the receiver unit doesn't match."
+    receiver_unit_failed: The receiver unit failed while calling another unit.
+    receiver_unreachable: "This room's chat service isn't answering."
+    removal_chat: "That isn't a room number."
+    removal_infrastructure: "This is an operations room named in the configuration, so it can't be deleted."
+    removal_not_administrator: Only an administrator can delete a room registration.
+    removal_owners_chat: "This is the administrator's own private chat, so it can't be deleted."
+    providers_read_failed: "Couldn't load chat services."
+    mode_no_chat_service: "This room isn't connected to any chat service, so avatar mode can't be turned on."
+    mode_not_added: "This room was never added, so its mode can't be changed."
+    mode_read_failed: "Couldn't load the room's mode."
+    mode_save_failed: "Couldn't change the room's mode."
+    mode_takes_no_avatar: "This room's chat service doesn't take replies, so avatar mode can't be turned on."
+    providers_save_failed: "Couldn't change chat services."
+    providers_shape: Choose at least one chat service to turn on.
+    removal_read_failed: "Couldn't load the records to delete."
+    removal_seeded_room: "This room is set by a supervisor's configuration, so it can't be deleted."
+    reply_missing: "The message to reply to isn't in the records."
+    voice_denied: "The microphone can't be used. Allow microphone access in your browser."
+    voice_empty: Nothing was recorded. Record again.
+    voice_unsupported: "This browser can't record voice memos."
+    voice_with_files: "Voice memos can't be sent with files."
+    say_empty: Enter a message to send.
+    no_account: You need to sign in with an account.
+    private_room: "You can't change another person's private room."
+    open_title: Enter a room name.
+    open_no_bmo: "You don't have your own BMO, so you can't create a room."
+    open_failed: "Couldn't create the room."
+    session_failed: "Couldn't load session details."
+    unpin_failed: "Couldn't unpin the room."
+    words_only: This room only takes text.
+    room_add_refused: "The room to add isn't valid."
+    room_add_unlisted: "This chat service doesn't provide a room list."
+    room_add_unknown: "The chat service doesn't know this room."
+    room_add_avatar: "Avatar mode isn't available on this chat service."
+    room_add_added: This room has already been added.
+    room_add_failed: "Couldn't add the room."
+    room_add_rooms_failed: "Couldn't load the room list."
+    room_add_contacts_unlisted: "This chat service doesn't provide contacts."
+    room_add_unstarted: "This chat service doesn't start this kind of conversation."
+    room_add_contact_unknown: "The chat service doesn't know this contact."
+    room_add_start_refused: "The chat service didn't start the conversation."
+    room_add_contacts_failed: "Couldn't load contacts."
+    room_add_supervisor: "A group's supervisor can only be chosen from your own supervisors."
+  action:
+    room_open: Create
+    new_chat_add: Add chat service room
+    new_chat_open: Create console room
+    attach_document: File
+    attach_secret: Secret
+    attach_file: Attach file
+    attach_media: "Photos & videos"
+    brain_read_page: View in Brain
+    overlay: Talk to my BMO privately
+    cancel_recording: Cancel recording
+    cancel_reply: Cancel reply
+    choose_messages: Select messages
+    copy_all: Copy all
+    copy_ref: Copy message reference
+    copy_text: Copy text only
+    edit_message: Edit
+    find: Find in conversation
+    forward: Forward
+    find_next: Next result
+    find_older: Load more earlier messages
+    find_previous: Previous result
+    pin: Pin
+    remove_paste: Remove pasted text
+    remove_registration: Delete room registration
+    react: React
+    reply: Reply
+    resend: Resend
+    select: Select
+    show_in_message: Show in message
+    sticker: Stickers
+    stop_recording: Stop recording
+    spoiler_show: Show spoiler
+    quote_expand: Expand quote
+    quote_collapse: Collapse quote
+    to_latest: Jump to latest
+    unpin: Unpin
+  label:
+    presence_away: Away
+    presence_last_seen: "Last seen {ago} ago"
+    presence_online: Online
+    presence_online_count: "{n} online"
+    typing: Typing…
+    typing_names: "{names} typing…"
+    typing_unnamed: Someone
+    room_open_title: Room name
+    answer_took: "Took {time}"
+    avatar_of: "{name}'s profile photo"
+    situation: Situation
+    situation_changed: Updated
+    situation_updated: "Updated at {time}"
+    brain_read_attached: Attached
+    brain_read_before: Read before
+    brain_read_due: Promises due in this room now
+    brain_read_held: "Read before: {n}"
+    brain_read_situation: "This room's current situation"
+    brain_read_held_one: Read before
+    brain_read_how: Read
+    brain_read_key: Key
+    brain_read_layer: Layer
+    brain_read_new: Newly read
+    brain_read_read: Read directly
+    brain_read_subjects: Subjects
+    brain_read_type: Type
+    brain_read_written: Written
+    chip_brain: Brain
+    chip_briefing: Voice briefing
+    chip_briefing_failed: Voice briefing failed
+    chip_briefing_making: Making voice briefing
+    chip_briefing_stopped: Voice briefing stopped · can request again
+    chip_context: Context
+    chip_record: Verdict record
+    chip_drafts: Drafts
+    chip_records: Records
+    chip_tokens: Tokens used
+    chip_tools: Tool use
+    chip_verdicts: Verdicts
+    chip_verdicts_judging: Judging
+    context: Context
+    copy_call_failed: Failed
+    copy_result_chars: "Result {n} characters"
+    copy_tokens: "{n} tokens"
+    deleted_message: Deleted message
+    deleted_message_hide: Deleted message · hide content
+    deleted_message_show: Deleted message · tap to view
+    deleted_picture: Photo from a deleted message
+    draft_changed: Changed
+    draft_chars: "{n} characters"
+    draft_end_message: Message sent
+    draft_end_skip: Not sent
+    draft_kind_end: End
+    draft_kind_supervisor: Judgement
+    draft_kind_turn: Turn
+    draft_outcome_answered: Answered
+    draft_outcome_failed: Failed
+    draft_outcome_send: Sent
+    draft_outcome_skip: Passed
+    draft_turn_arrived: Arrival check
+    draft_reads: "Read: {names}"
+    draft_version_handed: Words handed in
+    draft_version_program: Work notice
+    draft_versions: "{n} replies written"
+    background: In progress
+    background_count: "{n} in progress"
+    background_reminder: Reminder
+    background_shell: Shell command
+    background_subagent: Subagent
+    background_watch: Watch
+    mode_avatar: Avatar mode
+    earlier_count: "{n} earlier"
+    edited: Edited
+    edited_at: "Edited at {time}"
+    forwarded: "Forwarded from {name}"
+    edit_message: Message
+    empty_message: (empty message)
+    find_box: Search text
+    hour: "{n}:00"
+    hour_count: "{hour}:00 · {n}"
+    hour_of_day: Time of day
+    judgement_applies: Applies
+    judgement_no: "No"
+    judgement_spent: Used
+    judgement_unread: "Couldn't read"
+    judgement_yes: "Yes"
+    last_answer: Last reply
+    last_talk: Last conversation
+    me: Me
+    messages: Messages
+    no_speakers: No one has sent a message yet
+    not_yet: None yet
+    offer_counts: "Before filter {held} · after filter {left}"
+    offer_item_rule: "This turn received only a bot line, so only the pieces linked to the item numbers that line mentions were taken as candidates."
+    offer_kept: "Item {item} · keyword {keyword} · word {word} · person {person} · recent {recent}"
+    open_sessions: Open sessions
+    opening_title: Instruction that started the turn
+    outcome_answered: Answered
+    outcome_read_with: Read along
+    outcome_waiting: Waited
+    paste_name: "Paste {n}"
+    paste_size: "{n} characters"
+    peak_hour: "{hour}:00 hour"
+    peak_hours: Peak hours
+    picture_file: File name
+    picture_format: Format
+    picture_message: Message number
+    picture_not_kept: No file kept
+    picture_sender: Sender
+    picture_sent_at: Sent at
+    picture_size: File size
+    pinned: Pinned
+    pinned_at: "Pinned at {time}"
+    pinned_count: "{n} pinned messages"
+    pinned_of: "Pinned message {at}/{n} · {words}"
+    quiet_instruction: Quiet instruction
+    quote_picture: Photo
+    quote_sticker: Sticker
+    quote_video: Video
+    recent_answer: Recent reply
+    record_memory: Memory
+    record_memory_numbered: "Memory #{id}"
+    record_note: Note
+    record_note_numbered: "Note #{id}"
+    record_rule: Situation rule
+    record_rule_numbered: "Situation rule #{id}"
+    record_todo_add: New item
+    record_todo_add_numbered: "New item #{id}"
+    record_todo_append: Item addition
+    record_todo_append_numbered: "Addition to item #{id}"
+    record_watch: Watch
+    record_watch_numbered: "Watch #{id}"
+    recording: "Recording {time}"
+    removal_copies: Archive copies
+    removal_documents: brain documents
+    removal_failures: "Couldn't delete"
+    removal_folders: Folders
+    removal_pictures: Room profile photos
+    removal_rows: Rows
+    removal_settings: Settings
+    removal_stays: Rows that stay
+    removal_undeclared: Undeclared settings (stay)
+    removal_warnings: Things to check
+    road_answered: Answered
+    road_busy_skip: Skipped while busy
+    road_error: Error
+    road_stopped: Stopped by user
+    road_timeout: Timed out
+    road_too_large: Refused as too large
+    road_unavailable: Unavailable
+    room_add_added_avatar: Added as avatar
+    room_add_added_record_only: Added as record only
+    room_add_group_title: Group name
+    room_add_has_chat: Has a conversation
+    room_add_held: Room already added
+    room_add_kind_bot: Bot
+    room_add_kind_group: Group
+    room_add_kind_owner: Private
+    room_add_kind_person: Person
+    room_add_mode: Mode
+    room_add_mode_avatar: Avatar
+    room_add_mode_record_only: Record only
+    room_add_modes: "Modes: {modes}"
+    room_add_room: Room
+    room_add_search: Search names
+    room_add_service: Chat service
+    room_add_supervisor: Group supervisor
+    room_add_tab_contacts: New conversation
+    room_add_tab_rooms: Existing rooms
+    room_add_title: Title
+    room_add_untitled: "Room {id}"
+    runs: Runs
+    runs_count: "{n} times"
+    runs_last: "{n} times · last {time}"
+    session_of: "{name} session"
+    share_people: People
+    sort_browse: Browsing
+    sort_console_talk: Console conversation
+    sort_document_reload: Document refresh
+    sort_impact_mismatch: Collaboration basis mismatch
+    sort_notice: Notice
+    sort_overtime: Run extension
+    sort_raised_row: New item
+    sort_random_draw: Draw
+    sort_relay: Answer relay
+    sort_reminder: Reminder
+    sort_remote_browser: Remote browser
+    sort_resume_condition: Resume condition
+    sort_run_failure: Run failure
+    sort_run_state: Run status
+    sort_say: Relay
+    sort_search: Search results
+    sort_song: Song
+    sort_supervisor_cut: Supervisor stop
+    sort_unfinished: Open issues
+    sort_watch: Watch
+    span_days: "Day {n}"
+    span_months: "Month {n}"
+    span_speakers: "{span} · {n} participants"
+    stage_chat: Chat
+    stage_content_append: Append
+    stage_content_rewrite: Rewrite
+    stage_draft: Draft
+    stage_language_again: Room language rewrite
+    stage_owed_again: Missing reply rewrite
+    stage_people_search: People book search
+    stage_read_with: Read along
+    stage_record_again: Promise record rewrite
+    stage_rule_again: Situation rule rewrite
+    stage_sanitizer: Sanitizer
+    stage_send: Send
+    stage_skipped: "Didn't answer"
+    stage_supervisor: Supervisor
+    stage_wake_again: Wake condition rewrite
+    stage_wording_again: Banned word rewrite
+    sticker_preview: Sticker preview
+    thinking_line: Thinking
+    tokens: Tokens
+    tokens_week_total: "This week {week} · total {total}"
+    top_speakers: Most active senders
+    unknown_message: Message not in the records
+    unreceivable: "Can't receive"
+    verdict_clean: No issues
+    verdict_defused: Defused
+    verdict_failed: Failed
+    verdict_folded: Partly folded
+    verdict_no_answer: No answer
+    verdict_no_candidates: No candidates
+    verdict_none: Nothing selected
+    verdict_open: Not folded
+    verdict_passed: Passed
+    verdict_picked: Selected
+    verdict_rewritten: Rewritten
+    verdict_sent: Sent
+    verdict_sent_parts: "Sent in {n} parts"
+    verdict_situation: "Applies {applies} · used {spent}"
+    verdict_skipped: Skipped
+    verdict_unknown: Unknown verdict
+    verdict_unreadable: "Couldn't read the answer"
+    voice_message: Voice message
+    voice_note: Voice memo
+    voice_failed: "Couldn't hear"
+    draft_kind_arrived: Arrival check
+    draft_kind_stage: Instruction stage
+    draft_outcome_pass: Passed
+    draft_outcome_revised: Revised
+    draft_turn_message: Writing a message
+    draft_kind_audit: Form of address check
+    draft_turn_audit: Form of address check
+    draft_outcome_no_verdict: Passed without a reason
+    draft_slow: Slow turn
+  message:
+    delete_ask: Delete this message?
+    delete_note: "The message's words are removed, and its place stays."
+    forwarded: "Forwarded to the {room} room."
+    id_copied: Message reference copied.
+    message_ref: "Room {room} (chatId {chatId}) · message #{messageId}"
+    messages_copied: "Copied {n} messages."
+    removal_done: The room registration and its records were deleted.
+    removal_goes: "Deleting removes the records and files below with it, and they can't be restored."
+    providers_rule: "A room with only this room's record turned on isn't connected to any messenger, and what is said stays only in the records and this console. Turn on a messenger and, from then on, messages left in this room also go to that messenger; turn it off and they stop. A room must be on in at least one place."
+    mode_rule: "When on, this room's agent answers as your account; when off, it only reads and records, and doesn't answer."
+    background_every_minutes: "Checks every {n} min"
+    background_every_seconds: "Checks every {n}s"
+    background_since: "Since {time}"
+    background_until: "Notifies at {time}"
+    mode_unadded: "This room hasn't been added, so it has no mode."
+    providers_unset: "This was never set, so it shows where the room is connected now."
+    removal_refused: "This room's registration can't be deleted."
+    removal_stays: "Items, Jobs, Job questions, searches and usage made from this room stay."
+    room_removed: "This room's registration was deleted, so you've been moved to Home."
+    text_copied: Text copied.
+    room_add_mode_avatar: "The room's agent answers as your account."
+    room_add_mode_record_only: "Only reads and records, and doesn't answer."
+    room_add_nothing: "This chat service provides neither a room list nor contacts, so rooms can't be added here."
+    room_add_contacts_mine: "My account's contacts"
+    room_add_contacts_service: "Chat service account's contacts"
+    room_add_no_start: "This chat service doesn't start new conversations."
+    room_add_one_to_one: Starts a one-to-one conversation with this contact.
+    room_add_group: "Creates a new group with {n} people."
+    room_add_supervisor: "Choose from your own supervisors; if you choose none, the room is added without a supervisor."
+  title:
+    remove_registration: Delete room registration
+    edit_message: Edit message
+    forward: Forward message
+    room_add: Add room
+    room_open: Create room
+    new_chat: New chat
+  aria:
+    avatar_enlarge: "Enlarge {name}'s profile photo"
+    background_open: "View {n} in progress"
+    brain_read_open: "Open {name}"
+    forward_to: "Forward to room: {name}"
+    mention_agent: "Agent {name}"
+    mention_list: Mention suggestions
+    mention_person: "Person {name}"
+    go_to_quote: "Go to {name}'s message"
+    jump_to_date: "{name}, jump to date"
+    pinned_open: "{n} pinned messages"
+    presence_open: "{state}, view participants"
+    reaction: "{emoji} {n} people"
+    remove_named: "Remove {name}"
+    sticker_send: "Send {emoji} sticker"
+  placeholder:
+    drop_here: Drop here to attach
+    forward_search: Find by room name
+cards:
+  label:
+    block: "Block {n}"
+    blocks: "Blocks {from}–{to}"
+    board: All
+    card_alone: Card only
+    card_memory: Card memory
+    card_of: "{node} card {n}"
+    chart: VRAM by card
+    context: "CUDA context ({process})"
+    driver: Driver reserved
+    events: History
+    fill: Fill
+    free: Free VRAM
+    full_attention: "{n} full-attention blocks"
+    kind: Kind
+    load: Load
+    master: Master
+    mtp: MTP
+    nodes: Nodes
+    occupant: Occupant
+    on_demand: On demand
+    others: Outside the group
+    outside: Outside services
+    output: Output layer
+    pool: One pool
+    priority: Priority
+    priority_rule: "Set in the arbiter's rules file ({file}); it can't be changed from the console."
+    priority_value: Priority
+    queue: Queue
+    ram: RAM dump
+    resident: Resident
+    rules: Rules
+    service: Service
+    spread: Placement
+    spread_many: Several nodes
+    spread_one: One node
+    store: Dump store
+    tier: Tier
+    turn: Turn
+    unit: Unit
+    unload: Unload
+    unplaced_chunk: Off card
+    unsplit: Driver and context
+    version: Version
+    vram: VRAM
+    waiting: On-hold queue
+    where: State
+  status:
+    claim: "Claimed by {who}"
+    claim_on: "Claimed on {nodes}"
+    connected: Connected
+    evicted: NVMe
+    expected: "Expected {t}"
+    extents: "{n} extents · {s} slots"
+    free_short: "{m} free"
+    held: Waiting
+    in_ram: RAM
+    loading: Reading the arbiter
+    lost: Disconnected
+    lost_since: "Disconnected for {t}"
+    mixed: Partial
+    no_queue: Nothing waiting
+    no_turn: No turn
+    no_units: No units loaded
+    on_card: Loaded
+    position: "No. {n}"
+    ram_available: "{m} available"
+    ram_floor: "{m} reserved for claims"
+    ram_max: "Max {m}"
+    rules_error: "Couldn't read the rules"
+    stage: "Stage wait {t}"
+    turns: "Used {n}"
+    unknown: Unknown
+    unplaced: Unloaded
+    waiting: "{n} waiting"
+  error:
+    master: "Can't connect to the master."
+hardware:
+  title:
+    board: Motherboard
+    cpu_limit: Temperature limit
+    live: Live
+    node_removal: Remove node
+    node_remove_ask: "Remove the node \"{name}\"?"
+    ownership: Ownership
+    ownership_change: "Change ownership of \"{name}\""
+    record: History
+    storage: Storage
+    system: System
+  label:
+    band_point: "{mean} ({min}–{max})"
+    clock: Clock
+    clock_peak: Peak clock
+    column_account: Owner account
+    column_kind: Connection
+    column_node: Node
+    column_ownership: Ownership
+    column_state: State
+    criteria_fill: "Green below {mild} · yellow from {mild} · orange from {warm} · red from {hot}"
+    criteria_temperature: "Limit {limit} ({source}) · green below {near} · orange from {near} · red from {limit}"
+    criteria_temperature_slowdown: "Limit {limit} ({source}) · green below {near} · orange from {near} · red from {limit} · red while throttling"
+    criteria_temperature_slowdown_only: Limit unknown · red while throttling
+    criteria_temperature_unknown: Limit unknown
+    failed_services: Failed services
+    fan: Fan
+    host: Host
+    kernel: Kernel
+    kind_hub: Jake
+    kind_local: Local
+    kind_ssh: SSH
+    limit_source_chip: chip
+    limit_source_driver: driver
+    limit_source_set: set
+    load: Load
+    memory: Memory
+    memory_clock: Memory clock
+    mount: Mount
+    node_leave: Remove jake from this PC and disconnect
+    no_account: No account
+    no_nodes: No nodes
+    no_nodes_found: No nodes found
+    ownership: Ownership
+    ownership_all: All
+    ownership_personal: Personal
+    ownership_personal_node: Personal node
+    ownership_personal_of: "Personal node · {name}"
+    ownership_shared: Shared
+    ownership_shared_node: Shared node
+    off_named: "{label} (off)"
+    power: Power
+    range: "{min}–{max}"
+    service_counts: "Running {running} · failed {failed}"
+    services: Services
+    span_15m: 15 min
+    span_1h: 1 hour
+    span_24h: 24 hours
+    span_30d: 1 month
+    span_5m: 5 min
+    span_6h: 6 hours
+    span_7d: 1 week
+    state_auth: Authentication failed
+    state_connected: Connected
+    state_disconnected: Disconnected
+    state_error: Error
+    state_hostkey: Host key mismatch
+    state_unknown: Not checked yet
+    state_unreachable: Unreachable
+    storage_hdd: HDD
+    storage_network: Network
+    storage_nvme: NVMe
+    storage_ssd: SSD
+    storage_usb: USB
+    storage_virtual: WSL virtual disk
+    swap: Swap
+    tab_devices: Devices
+    tab_logs: Logs
+    tab_nodes: Nodes
+    tab_services: Services
+    temperature: Temperature
+    threads: "{n} threads"
+    tracking: Live tracking
+    unread: "Couldn't read"
+    unknown_account: "Unknown account {id}"
+    uptime: Uptime
+    usage: Usage
+    used: Used
+  aria:
+    core_usage: "{name} usage {usage} clock {clock}"
+    live_summary: "{label} live: latest {last}"
+    monitor_tabs: Monitor sections
+    ownership_filter: Ownership filter
+    range_summary: "{label} {span}: {range}"
+    span: History period
+  error:
+    bad_span: "The monitor doesn't render that period."
+    cpu_limit_body: Send the device and the temperature limit.
+    cpu_limit_failed: "Couldn't change the temperature limit."
+    cpu_limit_range: The temperature limit must be above 0 °C and below 127 °C.
+    no_machine: No such device.
+    no_node: No such node.
+    node_leave_refused: "The hub didn't accept the disconnect, so the node wasn't removed. Check that jake on this PC is attached to the hub."
+    node_remove_failed: "Couldn't remove the node."
+    ownership_failed: "Couldn't change the ownership."
+    ownership_refused: "The node service didn't accept this ownership setting."
+    ownership_shape: Ownership must be shared or personal.
+    readings_failed: "Couldn't load the device status."
+    record_failed: "Couldn't load the history."
+    tracking_direction: Send the device and an on or off value.
+    tracking_failed: "Couldn't change live tracking."
+    users_failed: "Couldn't load the account list."
+  status:
+    account_loading: Loading owner account…
+    board_loading: Loading motherboard…
+    cpu_loading: Loading CPU…
+    memory_loading: Loading memory…
+    name_loading: Loading name…
+    nodes_loading: Loading nodes…
+    no_sensor_library: No Windows sensor library
+    storage_loading: Loading storage…
+    system_loading: Loading system…
+    tracking_loading: Loading live tracking…
+    tracking_off: Live tracking off
+  action:
+    node_remove: Remove node
+    ownership_change: Change ownership
+    ownership_edit: Change
+  message:
+    node_leave: jake removes itself from this PC and leaves the hub. Otherwise the node comes back at the next check.
+    node_leave_unattached: "jake on this PC isn't attached to the hub right now, so it's only taken off the list. The node comes back when it reattaches."
+    node_removal: Takes this node off the monitor list.
+    node_remove_effect: A node taken off the list is no longer monitored.
+    personal_unmonitored: "Personal nodes aren't monitored."
+monitor_logs:
+  label:
+    all_categories: All categories
+    all_levels: All levels
+    category: Category
+    category_backup: Backup
+    category_deploy: Deploy
+    category_service: Service
+    category_suite: Tests
+    category_upkeep: Scheduled tasks
+    filter: Filter
+    filter_count: "Filters {n}"
+    level: Level
+    level_error: Error
+    level_other: Other
+    level_warning: Warning
+    masked: «masked value»
+    search: Search logs
+  aria:
+    filters: Log filters
+    list: Logs
+  status:
+    empty: No lines
+    empty_found: No lines found
+    loading: Loading logs…
+  error:
+    read_failed: "Couldn't load the logs."
+screens:
+  label:
+    agents: Agency
+    agents_group: "Agents · {name}"
+    artifact: Artifacts
+    chat_id: Chat ID
+    code: Code review
+    db: DB
+    documents: Document viewer
+    files: Files
+    find_description: "Go to a screen, room or agent"
+    group_agents: Agents
+    section_administration: Admin services
+    section_organization: Organization
+    section_application: Applications
+    internal_name: Internal name
+    live: Live status
+    mail: Mail
+    monitor: Monitor
+    admin: Admin
+    organization: Organization
+    remote: Remote
+    research: Research
+    search: Search
+    siren: Cache siren
+    rooms: Rooms
+    brain: Brain
+    todo_description: Queue and pending approvals
+  placeholder:
+    find: "Find a screen, room or agent"
+  status:
+    agents_loading: Loading agents…
+    disconnected: Disconnected
+    no_settings_found: No settings found
+    restarting: Restarting
+    rooms_loading: Loading rooms…
+  action:
+    read_screen_again: Reload
+  error:
+    agents_failed: "Couldn't load agents"
+    bad_screen_name: Invalid screen name.
+    no_tab_state: No tab state.
+    nodes_failed: "Couldn't load nodes"
+    rooms_failed: "Couldn't load rooms"
+    screen_unreachable: "This screen's service isn't responding, so the screen couldn't be loaded."
+    tab_state_too_large: The tab state is too large.
+  aria:
+    room_typing: Typing
+    room_unread: "{count} unread messages"
+    screen_unread: "{name}: {count} unread"
+siren:
+  error:
+    load_failed: "Couldn't load the siren."
+    unreachable: "The cache siren isn't responding."
+  aria:
+    agent_filter: Agent filter
+    kind_filter: Kind filter
+    model_filter: Model filter
+    request_filter: Request filter
+  label:
+    all_models: All models
+    cache_share: Cache reuse rate
+    cache_tokens_of: "Cache {tokens}"
+    cause_deploy: Deploy
+    cause_launch: Launch line moved
+    cause_reload: Document reload
+    chat_session: "{title} {agent}"
+    cold_requests: Re-prefill requests
+    filter: Filter
+    filter_count: "Filters {n}"
+    kind_burst: Burst
+    kind_cmd: Command
+    kind_cold: Re-prefill
+    kind_compact: Compaction
+    kind_error: Error
+    kind_growth: New-token spike
+    kind_notice: Notice
+    kind_quota: Quota
+    kind_refusal: Model switch
+    kind_request: Request
+    kind_start: First request
+    kind_warm: Cache
+    last_request: Last request
+    minute_tokens: "{tokens} new tokens"
+    moving_sessions: Sessions active in the last 30 min
+    new_tokens: New tokens in the last minute
+    new_tokens_of: "New {tokens}"
+    no_known_cause: No recorded cause
+    note_burst: "{count} requests in {seconds}s"
+    note_compact: Compaction
+    note_effort_model: Model or effort changed
+    note_image: Image
+    note_model_switch: Model switch
+    note_prefix_changed: Prefix changed
+    note_session_start: First request of the session
+    note_tool_search: Tool search
+    note_ttl_expired: Cache TTL expired
+    note_unknown: Unknown
+    note_usage_unavailable: Usage not provided
+    sirens: Sirens raised
+    unnamed: Other
+    window_last: Tally start and last request
+    window_since: Tally start
+  message:
+    thresholds_armed: "Last 10 min, new tokens per minute · alarm from {threshold} new tokens · cache lifetime {minutes} min · alarm on"
+    thresholds_quiet: "Last 10 min, new tokens per minute · alarm from {threshold} new tokens · cache lifetime {minutes} min · alarm off"
+  status:
+    end: End
+    figures_loading: Loading figures…
+    more_loading: Loading more…
+    no_matching: No matching requests
+    no_requests: No requests
+    requests_loading: Loading recent requests…
+  title:
+    recent_requests: Recent requests
+todo:
+  error:
+    approvals_load_failed: "Couldn't load the approval history."
+    questions_load_failed: "Couldn't load the answered questions."
+    auto_change_failed: "Couldn't change auto-advance."
+    bad_action: "That action isn't possible."
+    bad_direction: Invalid move direction.
+    bad_model: Invalid model.
+    bad_agent: Invalid agent name.
+    bad_role: Invalid role name.
+    no_candidate: "No agent runs the {model} model in the {role} role.\nAgents in the {role} role: {agents}"
+    unknown_role: "The agency has no {role} role."
+    bad_item_id: Invalid item number.
+    bad_note: The approval note is too long or invalid.
+    bad_order: The order to save is invalid.
+    bad_source_ids: The item numbers to use as additional sources are invalid.
+    bad_strands: Invalid open issue numbers.
+    bad_worker: Invalid worker name.
+    bot_refused: bmo-job refused the request.
+    hold_reason_too_long: "The reason for putting on hold is too long.\nYou can enter up to {n} characters."
+    queue_unknown: "The queue for this work hasn't been decided yet."
+    talk_unavailable: "You can't leave a conversation on this item yet."
+    cannot_append: "You can't add instructions to a completed item. Reopen it first."
+    cannot_finish: "An item that's already done, has a Job running, or is waiting to stop or resume can't be marked done."
+    cannot_hold: The item is completed or already on hold.
+    cannot_unappend: This instruction is already deleted. Refresh the list.
+    change_failed: "Couldn't change the TODO."
+    create_failed: "Couldn't create the new item."
+    hold_release_failed: "Couldn't release the deploy hold."
+    item_read_failed: "Couldn't read #{id}."
+    job_ended: "Job #{id} has already ended."
+    job_read_failed: "Couldn't read Job #{id}."
+    load_failed: "Couldn't load the TODO."
+    not_held: "The item isn't on hold."
+    note_delete_failed: "Couldn't delete the instruction."
+    note_empty: Enter an instruction to add.
+    note_pick: "Couldn't find the instruction to delete."
+    note_send_failed: "Couldn't send the instruction."
+    notes_load_failed: "Couldn't load the added instructions."
+    nothing_to_raise: "That item has no open issues, so no new item can be made from it."
+    source_without_note: "#{id} has no open issues, so it can't be a source."
+    standing_notes_failed: "Couldn't load the other open issues."
+    order_save_failed: "Couldn't save the order."
+    queue_moved: "The queue changed in the meantime, so the order wasn't saved. Refresh and move it again."
+    queue_pause_direction: Choose whether to pause or resume auto-advance.
+    raise_body_empty: Enter what to do about this open issue.
+    raise_title_empty: Enter a title for the new item.
+    resolve_reason_empty: Enter a one-line reason the open issue is resolved.
+    stop_reason_needed: Enter a reason for stopping.
+    hold_reason_needed: Enter a reason for putting it on hold.
+    notices_reason_needed: Enter a reason for turning notices off.
+    notices_reason_too_long: "The reason for turning notices off is too long.\nYou can enter up to {n} characters."
+    talk_load_failed: "Couldn't load the conversation."
+    unfinished_not_open: "The item has no open issue to resolve, or it's already resolved."
+    work_order_fold_failed: "Couldn't end the work order."
+    work_order_load_failed: "Couldn't load the work order."
+    work_order_save_failed: "Couldn't save the work order."
+    work_order_stop_failed: "Couldn't stop the work order."
+    worker_change_failed: "Couldn't change the worker."
+    agent_change_failed: "Couldn't change the agent."
+    job_runs_on: "A Job (#{job}) is running on the {agent} agent, so it can't be changed.\nStop the Job to change it."
+  action:
+    approve: Approve
+    auto_pause: Pause auto-advance
+    auto_resume: Resume auto-advance
+    clear_all: Clear all
+    clear_filters: Clear all filters
+    show_awaiting: Show only items awaiting an answer
+    clear_search: Clear search
+    confirm_delete: Delete
+    confirm_discard: Discard
+    create_item: Create item
+    discard: Discard
+    edit_reopen: Edit and reopen
+    end_work_order: End work order
+    give_up: Give up
+    hold: Put on hold
+    move_bottom: Move to bottom
+    move_top: Move to top
+    open_todo: Open TODO
+    panel_close: Close TODO panel
+    panel_collapse: Close TODO panel
+    panel_expand: Open TODO panel
+    release_hold: Release
+    reopen_keep: Reopen and keep the previous result
+    resume: Resume
+    resume_from_done: Resume from the done stage
+    save_instruction: Save instruction
+    skip_and_end: Skip remaining work and end
+    stop: Stop
+    stop_and_hold: Stop now and put on hold
+    submit_for_approval: Request approval
+    task_edit: Edit instruction
+    task_rerun: Run again
+    task_restore: Undo skip
+    task_restore_confirm: Restore
+    task_skip: Skip
+    unhold: Take off hold
+    notices_off: Turn off notices
+    notices_on: Turn on notices
+    job_log: Job log
+    write_separately: Write separately
+  aria:
+    drag_reorder: Drag to reorder
+    filter: TODO filter
+    filter_of: "{name} filter"
+    filters_set: "{n} filters"
+    item_body: Item content
+    item_form: Approval box
+    item_manage: Item state and management
+    item_view: Item view
+    item_worker: Worker for this item
+    item_agent: Agent for this item
+    more_sources: Other open issues to use as sources besides this item
+    new_body: Content for the new item
+    panel_width: Resize TODO panel
+    resolve_reason: Reason the open issue is resolved
+    strands: Open issues the new item takes on
+    search: Search TODO
+    work_instruction: Work instruction
+    work_purpose: Work purpose
+  label:
+    approval_by_person: "{name}"
+    approval_given: Approval
+    approval_no_caller: Caller unknown
+    approval_recommended: Recommended
+    approved: Approved
+    chosen_forced: Forced
+    chosen_item: Set on item
+    chosen_order: Provider order
+    chosen_pin: Pinned model
+    model_chosen_by: "{model} · {by}"
+    base_worker: Default worker
+    builder_model: Builder model
+    builder_stage: "Stage {n} · {title}"
+    checkout_release_wait: Waiting for its turn to release the checkout
+    conversation: Conversation
+    deploy_hold_breaks: Schema change
+    deploy_hold_jobs: Jobs waited on
+    deploy_deploying: Deploying
+    deploy_failed: Deploy failed
+    deploy_in_line: Waiting in deploy line
+    deploy_in_line_at: "Waiting in deploy line, No. {n}"
+    deploy_waiting_live: Waiting to deploy
+    deploy_waits: The deploy goes out when this Job ends
+    detail_description: Instructions and history
+    discussion: Discussion
+    edited_instruction: Edited instruction
+    end_reason: Reason for ending
+    field_checkout: Checkout
+    field_checkout_reason: "Holding the checkout: {reason}"
+    field_deploy_waits: Waiting to deploy
+    field_id: No.
+    field_instruction: Instruction
+    field_merged: Merged
+    field_merged_into: "Merged into #{id}"
+    field_model: Model
+    field_agent: Agent
+    field_note: Approval note
+    field_report: Report
+    field_requester: Requested
+    field_state: State
+    field_stopped: Stop reason
+    field_title: Title
+    field_unfinished: Open issues
+    field_question: Question
+    field_waiting: Waiting
+    field_worker: Repository
+    agent_unnamed: Unassigned
+    model_unnamed: Unassigned
+    assign_model: "{role} · {model}"
+    assign_model_agents: "Free agents · {agents}"
+    assign_free: "{role}"
+    assign_free_any: Unassigned
+    assign_free_tip: "Taken by whichever agent running the {model} model in the {role} role is free when the Job starts."
+    assign_free_any_tip: "Taken by whichever agent running the {model} model is free when the Job starts."
+    agent_job_running: 'This is the agent of a running Job.
+
+      Stop the Job to change it.'
+    filter: Filter
+    held_failure: On hold after failure
+    held_pause: Waiting to resume
+    held_pausing: Wrapping up
+    held_pending: Waiting to pause
+    held_plain: On hold
+    held_since: "{kind} since {since}"
+    held_since_reason: "{kind} since {since} · {reason}"
+    held_stop: Stopped
+    held_stopping: Stopping
+    item_head: "#{id} {title}"
+    job_ended_at: "Ended {time}"
+    job_started_at: "Started {time}"
+    manage: Manage
+    merged_done: "Merged into {target} and completed with it"
+    merged_done_since: "Merged into {target} on {since} and completed with it"
+    merged_into: "Merged into #{id}"
+    merged_open: "Merged into {target} · completes when that item does"
+    merged_open_since: "Merged into {target} on {since} · completes when that item does"
+    model_round: "{model} · round {n}"
+    new_title: New item title
+    no_room: No room
+    notes_count_removed: "{n} · {removed} deleted"
+    opened_unattended: Opened without approval
+    order_active: In progress
+    order_closing: Ending
+    order_done: Done
+    order_draft: Draft
+    order_paused: Paused
+    owner_note: "Owner's approval note"
+    owner_stopped: "Stopped: {why}"
+    part_conclusion: Conclusion
+    part_to_do: What needs to be done
+    part_what: What the work is
+    phase_finish: Wrap-up
+    phase_ready: Preparation
+    phase_run: Agent run
+    phase_run_by: "{runner} run"
+    phase_wait: Waiting
+    priority: Priority
+    purpose_conclusion: "Purpose · the chat agent's conclusion"
+    purpose_same: "Purpose and instruction: same as the item's instruction"
+    queue_place: "Queue position: {place}"
+    queue_place_failures: "{turn}: {why} · failed {failures} times"
+    queue_turn_held: On hold
+    queue_turn_passed: Passing the turn
+    queue_turn_resume: Up to resume
+    queue_turn_why: "{turn}: {why}"
+    removed_at: "Deleted {time}"
+    rejections: "Rejected {n} times"
+    report_count: "{n} reports"
+    report_final: Completion report
+    report_held: Reason for putting on hold
+    report_progress: Progress report
+    request_text: Original request
+    requested_by: Requested by
+    requested_room: Requesting room
+    rerun_instruction: Instruction to run again
+    resolved_at: "Resolved · {time}"
+    review_accepted: Accepted
+    review_answer: Answer
+    review_check_decisions: Grounds for decisions
+    review_check_promises: Promises kept
+    review_escalation: Report to owner
+    review_final: "Final report · round {round}"
+    review_opened: Review started
+    review_pass: Passed
+    review_question: Query
+    review_rejection: Rejected
+    review_report: Report
+    review_ruling: "Owner's decision"
+    review_stage: "Stage {stage} · round {round}"
+    review_turns: Report turns
+    result: Result
+    round_result: "Round {round} result"
+    run_id: "Run #{id}"
+    run_id_took: "Run #{id} · {time}"
+    runner: "{worker} · {road}"
+    skip_reason: Reason for skipping
+    skipped_at: "Reason skipped · {time}"
+    skipped_count: "Skipped {n}"
+    sources: Sources
+    strands: Open issues
+    note_original: "Original open issue of #{id}"
+    span_end: "Ended {time}"
+    span_start: "Started {time}"
+    span_times: "{n} times"
+    span_tokens: "{tokens} tokens"
+    span_total: "Total {time}"
+    state_deploy: To deploy
+    state_deploying: Deploying
+    state_done: Done
+    state_held: On hold
+    state_merged: Merged
+    state_pending: Awaiting approval
+    state_reporting: Reporting completion
+    state_running: In progress
+    state_starting: Starting
+    state_running_progress: "In progress · {progress}"
+    state_stopped: Stopped
+    state_waiting: Waiting
+    step_stage: Stage
+    step_rejections: "Rejected {n} times"
+    step_stage_place: "Stage {n}/{of}"
+    step_final: Final verification
+    step_investigate: Investigation
+    step_plan: Plan
+    step_review: Review
+    step_synthesis: Design synthesis
+    stop_failures: "Failed {n} times"
+    stop_reason: Stop reason
+    hold_reason: Reason for putting on hold
+    notices_reason: Reason for turning notices off
+    notices_off: "Notices off · {reason}"
+    notices_off_since: "Notices off since {since} · {reason}"
+    stop_reason_line: "Stop reason: {reason}"
+    summary_deploy: "Waiting to deploy {n}"
+    summary_deploying: "Deploying {n}"
+    summary_held: "On hold {n}"
+    summary_merged: "Merged {n}"
+    summary_pending: "Awaiting approval {n}"
+    summary_queue: "{n}"
+    testbed_holding: "Testing · {command}"
+    testbed_waiting: "Waiting to test, No. {n} · {command}"
+    task_done: Done
+    task_failed: Failed
+    task_pending: Waiting
+    task_running: Running
+    task_skipped: Skipped
+    task_step: Work stage
+    time_attempts: "Run {n} times"
+    time_rest: "{n} others"
+    time_total: "Total {time}"
+    unassigned_builtin: Not assigned (built-in worker)
+    unfinished_open: Open issues
+    unfinished_remaining: Open issues remain
+    unfinished_resolved: Open issues resolved
+    waiting_overdue: Past the expected time
+    waiting_pid: "Waiting: {what} · pid {pid} · {left}"
+    waiting_unit: "Waiting: {what} · unit {name} · {left}"
+    work_order_state: "Work order · {state}"
+    work_todo: "To investigate, verify and build"
+    awaiting_question: Awaiting answer
+  message:
+    discard_confirm: "Discard #{id}?"
+    discard_effect: "The item is deleted and can't be restored."
+    done_all_found: "Loaded all {n} completed items found."
+    done_all_loaded: "Loaded all {n} completed items."
+    note_delivered: "The chat agent's edit carrying this instruction has already reached the running Job, so it stays in that Job."
+    queue_all_busy: "Everything waiting stands behind a checkout in use or a turn that isn't the agent's."
+    queue_machine_short: "The machine has no room for another Job; you'll be told again when there is."
+    queue_nothing_waiting: No worker has anything waiting.
+    queue_paused: "The owner's pause or deploys on hold are still in place."
+    queue_told: Told the agent about the queue.
+    queue_unchanged: Nothing has changed since the queue was last reported.
+    queue_unreadable: "Couldn't read what's running right now."
+    raised: "Created an item from the open issues of {from}.\nIt's now awaiting approval."
+    raised_item: "Created #{id} from the open issues of {from}.\nIt's now awaiting approval."
+    release_hold_confirm: Release the deploy hold?
+    release_hold_effect: "This deploy ends without applying anything, and the commits keep waiting.\nIt's waiting because applying now could make running Jobs fail on restart, using a deleted schema with the old code.\nOnce released, new Jobs start, and the deploy proceeds again when no Job is running."
+    resolved_by_lines: "Resolved by completing {lines}"
+    search_found: "Found {n}."
+    search_none: No items found.
+    section_done_empty: No completed items
+    section_held_empty: No items on hold
+    section_merged_empty: No merged items
+    section_pending_empty: No pending requests
+    section_queue_empty: No items left
+    time_inside_note: "Tools that ran at the same time overlap, so the total can exceed the actual time"
+  placeholder:
+    approval_note: Approval note (optional)
+    more_sources: Other open issues as sources
+    new_body: What to do
+    note: Instruction
+    resolve_reason: Reason resolved
+    strands: All open issues
+    say_to_bmo: Message the chat agent
+    search: Search
+  status:
+    approvals_loading: Loading approval history…
+    auto_paused_hint: Auto-advance paused · resume to start the next stage
+    change_handed: "Handed to the Job at {time}"
+    change_no_job: No Job running · the next Job reads it
+    change_waiting: Waiting to reach the Job
+    coworkers_loading: Loading work stages…
+    delivered_suffix: Handed to the Job
+    deploy_hold_after: "Goes out after {items} end"
+    deploy_hold_jobs: "Goes out after {n} Jobs end"
+    deploy_hold_jobs_unread: "Couldn't read the Job list"
+    deploy_hold_limit: "The hold is released if they haven't ended by {time}."
+    deploy_hold_no_jobs: No Jobs waited on
+    deploy_hold_suffix: Waiting to deploy
+    done_nothing_to_do: "Completed item, nothing to do"
+    item_loading: Loading item…
+    item_missing: "No item #{id}"
+    list_refreshing: Refreshing list…
+    loading: Loading TODO…
+    more_done_loading: Loading more completed items…
+    next_run_applies: Applies from the next run
+    no_approvals: No approval history
+    no_brief: No brief yet · the chat agent writes it on the first run
+    no_coworkers: No work stages
+    no_job_yet: No Job has run yet
+    no_notes: No added instructions
+    no_talk: No conversation
+    notes_loading: Loading added instructions…
+    paused_suffix: Paused
+    running_attempt: "Running attempt {n}"
+    talk_loading: Loading conversation…
+    unreadable: "Couldn't read"
+    work_order_loading: Loading work order…
+  title:
+    approvals: Approval history
+    brief: Brief
+    brief_changes: "Chat agent's edits"
+    conversation: Conversation
+    coworkers: Work stages
+    instruction_as_said: Original instruction
+    notes: Added instructions
+    questions: "Job's questions"
+    run_log: Run history
+    section_done: Done
+    section_held: On hold
+    section_merged: Merged
+    section_pending: Awaiting approval
+    section_queue: Queue
+    time_inside: Time per tool during the agent run
+    time_inside_by: "Time per tool during the {runner} run"
+    time_phases: Phases
+    work_order: Work order
+account:
+  title:
+    login: Sign-in details
+    profile: Profile
+  label:
+    presence_shown: Show my presence
+    presence_shown_description: "When off, no one can see whether you are online or when you were last seen."
+    current_password: Current password
+    device_since: "Since {time} · {kinds}"
+    email: Email
+    full_name: Name
+    job_title: Title
+    rank: Rank
+    duty: Duties
+    landline: Landline
+    mobile: Mobile
+    new_password: New password
+    nothing_subscribed: No notifications
+    other_devices: "{n} other devices"
+    own_bmo: "{name}'s {agent}"
+    bmo_name: BMO
+    own_bmo_room: "{name}"
+    palette: Palette
+    palette_description: Room colors
+    preview: Preview
+    profile: Profile
+    theme: Theme
+    theme_description: Accent and gray
+    user_id: User ID
+  action:
+    change: Change
+    reset_palette: Reset
+    reset_theme: Reset
+    retry: Try again
+    send_test: Send test
+    subscribe: Turn on notifications
+    unsubscribe: Turn off notifications
+  status:
+    not_subscribed: "This device doesn't receive notifications yet."
+    notifications_loading: Loading notification settings…
+    profile_loading: Loading profile
+    presence_loading: Loading presence setting…
+  message:
+    preview_answer: "It was at 7. The meeting notes are at https://example.com/notes ."
+    preview_ask: "What time was today's meeting?"
+    preview_code: "Change it like this.\n```ts\npick(\"teal\");\n```"
+    preview_thanks: Thanks. Show me the settings again too
+    saved: Account details updated.
+    user_saved: "Saved account {name}."
+    user_service_saved: "Saved user {name} to the account service."
+    user_service_saved_administrator: "Saved user {name} to the account service as a platform administrator."
+    user_service_unset: "The account model is in use, but the server's executable and settings folder aren't set, so the user wasn't saved to the account service. Save it with the server's user command."
+    user_usage: "Usage: bun scripts/user.ts set USER_ID PASSWORD [--administrator]"
+  error:
+    bad_presence: The presence setting is not valid.
+    presence_failed: "Couldn't save the presence setting."
+    presence_no_account: "A sign-in without an account can't show or hide its presence."
+    presence_read_failed: "Couldn't load the presence setting."
+    bad_new_password: The new password is too short or too long.
+    user_name_shape: "User IDs must be {min}–{max} characters of letters, digits, dots, underscores and hyphens."
+    user_password_short: "Passwords must be at least {min} characters."
+    user_service_failed: "Couldn't create the user in the account service: {reason}"
+    bad_palette: "That palette doesn't exist."
+    bad_theme: "That theme doesn't exist."
+    bad_language: "That language isn't available."
+    bad_user_id: "User IDs can only use letters, digits, dots, underscores and hyphens."
+    current_password_empty: Enter your current password.
+    current_password_wrong: The current password is incorrect.
+    palette_failed: "Couldn't save the palette."
+    save_failed: "Couldn't update the account details."
+    theme_failed: "Couldn't save the theme."
+    language_failed: "Couldn't save the language."
+    user_id_taken: That user ID is already taken.
+    profile_forbidden: "Only the account's owner or a platform administrator can change a profile."
+    profile_shape: The profile has an invalid value.
+    profile_read_failed: "Couldn't load the profile."
+    profile_write_failed: "Couldn't save the profile."
+settings:
+  title:
+    settings: Settings
+  label:
+    account: Account
+    agent: My BMO
+    briefing: Voice briefing
+    notifications: Notifications
+    palette: Rooms
+    permissions: Permissions
+    invites: Invites
+    bmo: BMO
+    providers: Providers
+    machine: Machine
+    desktop: Desktop
+    secrets: Secrets
+    supply: Supply
+    apps: "My apps & tools"
+    personal_apps: My personal apps
+    supervisor_none: No supervisor
+    theme: Theme
+  action:
+    back: Back
+people:
+  title:
+    person: Person
+  label:
+    name: Name
+    organization: Organization
+    job_title: Title
+    rank: Rank
+    position: Position
+    duty: Duties
+    posts: Concurrent posts
+    presence: Presence
+    landline: Landline
+    mobile: Mobile
+    email: Email
+  status:
+    loading: Loading person…
+  error:
+    read_failed: "Couldn't load this person's details."
+    not_found: Person not found.
+roster:
+  label:
+    tab: Users
+    state: Status
+    machine: Machine
+    last_sign_in: Last sign-in
+    made_at: Created
+    administrator: Administrator
+    head_of: Heads
+    acting_for: Acting head
+    acting_until: "{unit} · until {date}"
+    position: Position
+    kind: Type
+    posts: Concurrent posts
+    no_posts: No concurrent posts
+    history: History
+    no_history: No history
+    history_by: "{time} · {name}"
+    history_placed: "Moved · {unit}"
+    history_placed_from: "Moved · {from} → {unit}"
+    history_role: "Position changed · {unit} · {before} → {after}"
+    history_head_granted: "Made head · {unit}"
+    history_head_taken: "Removed as head · {unit}"
+    history_acting: "Made acting head · {unit} · until {date}"
+    history_acting_ended: "Acting head ended · {unit}"
+    history_post_given: "Concurrent post added · {unit} · {role}"
+    history_post_changed: "Concurrent post position changed · {unit} · {before} → {after}"
+    history_post_taken: "Concurrent post removed · {unit}"
+    history_left: Marked as left
+    left_by: "{time} · by {name}"
+    choose: Select a user.
+    no_bmo: No BMO
+    persona_length: "{count} characters"
+    runs: Recent activity
+    activity: Activity
+    belonging: Membership
+    private_room: Private chat
+    group_room: Group
+    message_count: "{count} messages"
+    context: "{carried}/{window} {share}%"
+    no_rooms: No rooms
+    no_agents: No agents
+    no_sessions: No sessions
+    no_runs: No recent activity
+  placeholder:
+    search: "Search by name, user ID or organization"
+  action:
+    filter: Filter
+    manage: Manage
+    profile: Edit profile
+    add_post: Add concurrent post
+  aria:
+    count: "{count} users found"
+    person_tabs: User detail tabs
+  status:
+    active: Active
+    pending: Waiting for a machine
+    left: Left
+    on: "On"
+    off: "Off"
+    loading: Loading users…
+    more_loading: Loading more users…
+    person_loading: Loading user details…
+    bmo_loading: Loading BMO…
+    rooms_loading: Loading rooms…
+    agents_loading: Loading agents…
+    sessions_loading: Loading sessions…
+    runs_loading: Loading recent activity…
+    none: No users
+    no_results: No results
+    end: End of list
+    run_running: Running
+    run_completed: Completed
+    run_failed: Failed
+    run_stopped: Stopped
+    run_ended: Ended
+    run_ended_as: "Ended · {outcome}"
+  error:
+    read_failed: "Couldn't load the user list."
+    person_read_failed: "Couldn't load user details."
+    bmo_read_failed: "Couldn't load BMO."
+    rooms_read_failed: "Couldn't load rooms."
+    agents_read_failed: "Couldn't load agents."
+    sessions_read_failed: "Couldn't load sessions."
+    runs_read_failed: "Couldn't load recent activity."
+permissions:
+  label:
+    administrator: Platform administrators can read and write every section.
+    read: Read
+    section: Section
+    write: Write
+  status:
+    sections_loading: Loading permissions…
+  error:
+    sections_read_failed: "Couldn't load permissions."
+    sections_write_failed: "Couldn't save permissions."
+  aria:
+    read_of: "Read {name}"
+    write_of: "Write {name}"
+organization:
+  aria:
+    tabs: Organization tabs
+  label:
+    chart: Org chart
+    none: No organizations
+    list: Organizations
+    list_none: No organizations to set up
+    list_no_match: No organizations found
+    name: Name
+    parent: Parent organization
+    heads: Heads
+    no_heads: No heads
+    no_members: No members
+    members: "{count} members"
+    left_member: "{name} (left)"
+    machine: "{name}'s machine"
+    machine_none: No machine connected
+    machine_name: Machine name
+    machine_name_placeholder: Automatic name
+    machine_shared: Machine shared by several accounts
+    machine_shared_help: Other accounts can also connect to this machine. Each account has its own workspace.
+    linux: Linux·WSL
+    windows: Windows
+    chosen: "{count} selected"
+    move_to: Move to
+    role: Role
+    role_head: Head
+    role_member: Member
+    role_of: "{name}'s role"
+    unchanged: No change
+    head_dropped: "Removed as head of {unit}"
+    post_dropped: "Concurrent post in {unit} removed"
+    kind: Type
+    no_kind: None
+    short_name: Short name
+    short_name_line: "Short name {name}"
+    reports_to: Approval parent
+    reports_to_line: "Approval parent {path}"
+    default_mark: "{label} (default)"
+    position: Position
+    no_position: No position
+    keep_position: Keep current position
+    position_of: "{name}'s position"
+    position_line: "Position {name}"
+    acting: Acting head
+    acting_mark: Acting
+    acting_until: "Until {date}"
+    acting_none: None
+    acting_person: Acting person
+    acting_end: End date
+    acting_replaces: "{name}'s current acting role will end."
+    posts: "{count} concurrent posts"
+    no_posts: No concurrent posts
+    post_mark: Concurrent
+    post_person: Person
+    post_unit: Organization
+    post_head: Also head
+  title:
+    mark_left: Mark as left?
+    unbind: "Disconnect {name}'s machine?"
+    end_acting: End the acting role?
+    remove_post: Remove the concurrent post?
+  message:
+    mark_left: "This person will no longer be able to sign in, and their BMO won't wake up again. Work this person owns for an organization stays, and its heads can keep reading and changing it. Their personal work, private chats and BMO's memories can be read only by platform administrators. This can't be undone."
+    unbind: "This account can sign in without a connected machine, and this person's BMO and agents will no longer run on this machine."
+    end_acting: This person loses head permissions right away.
+    remove_post: The position and head role in this organization are removed too.
+    install: "Run one of the commands below on the PC to connect to install jake.\nOnce it connects, this person's BMO and agents run on that machine."
+  action:
+    add: Add organization
+    add_company: Add company
+    mark_left: "Mark {name} as left"
+    mark_left_confirm: Mark as left
+    edit: Edit
+    add_head: Make head
+    remove_head: "Remove {name} as head"
+    place: Add member
+    bind: Connect machine
+    rebind: Connect another machine
+    unbind: Disconnect machine
+    unbind_confirm: Disconnect
+    share: Share
+    unshare: Stop sharing
+    check: Check
+    expand: Expand sub-organizations
+    collapse: Collapse sub-organizations
+    move: Move
+    preview: Preview
+    move_confirm: Move
+    choose_person: "Select {name}"
+    appoint: Appoint acting head
+    end_acting: End
+    end_acting_of: "End {name}'s acting role"
+    add_post: Add concurrent post
+    edit_post: "Edit {name}'s concurrent post"
+    remove_post: "Remove {name}'s concurrent post"
+    remove_post_confirm: Remove
+  status:
+    loading: Loading organizations…
+    attached: Connected
+    waiting: Waiting to connect
+    shared: Shared machine
+  error:
+    agency_node_taken: "The agency records this machine as another account's node rather than a shared machine, so this couldn't be done.\nThe machine connection is unchanged."
+    bad_request: The name or organization number is not valid.
+    cycle: "An organization can't be moved under its own sub-organization, and an approval line can't pass the same organization twice."
+    short_name_taken: Another organization in this company already uses that short name.
+    no_such_kind: This company has no such type.
+    no_such_role: This company has no such position.
+    head_only: Only an administrator or a head of a parent organization can do this.
+    leave_head_only: "Only an administrator or a head of the person's organization or a parent organization can mark them as left."
+    post_left: "A person who has left can't be given a concurrent post or acting role."
+    home_unit: "A concurrent post can't be given in the person's own organization."
+    post_other_company: Only people in the same company can be chosen.
+    already_head: Already a head of this organization.
+    bad_period: The end date must be after today.
+    bad_catalogue: "Keys must start with a lowercase letter and use only lowercase letters, digits and -, up to 40 characters.\nNames must be one line of up to 40 characters, and must not repeat."
+    role_held: "A position someone still holds can't be deleted."
+    kind_held: "Organizations of this type still exist, so it can't be deleted."
+    failed: "Couldn't process the organization."
+    left: "A machine can't be connected to an account that has left."
+    machine_name: "Machine names must use letters, digits, - and _, up to 63 characters."
+    move_left: "A person who has left can't be moved."
+    moved: "Someone's organization changed in the meantime, so the move didn't go through.\nThe org chart has been reloaded; please check again."
+    no_hub: "No jake hub is set up, so machines can't be connected."
+    node_taken: "Another account is already connected to this machine.\nShare that account's machine first, then connect it as a machine shared by several accounts."
+    not_a_hub_node: "The node service doesn't know this machine as a hub node, so it couldn't be set as this person's node."
+    not_found: "That organization or user doesn't exist."
+    other_company: "An organization can't be moved to another company."
+    shared_in_use: "Another account is connected to this machine too, so sharing can't be stopped."
+    unreachable: "Couldn't reach the account service."
+org_memory:
+  label:
+    tab: Organization memory
+    no_units: No organizations where you can write organization memory.
+    choose_unit: Select an organization where you can write memory from the list.
+    own: "This organization's memories"
+    no_memories: No memories
+    proposals: "{count} proposals"
+    no_proposals: No proposals
+    proposed_by: "{name} · {when}"
+    inherited: "Parent organizations' memories"
+    no_inherited: No memories from parent organizations
+    writers: Organization memory write access
+    no_writers: No one has been granted access
+    text: Content
+    text_help: "Don't include assessments of particular people, personal circumstances or private chats."
+    topic: Topic
+    topic_line: "Topic {topic}"
+    locked: Fixed
+    locked_help: "Sub-organizations can't override it on the same topic."
+    internal: Internal only
+    internal_help: "BMO won't mention it in rooms with people from outside the company."
+    instead: "{unit}'s memory applies instead."
+    instead_locked: "{unit}'s fixed memory applies instead."
+    source_work_pattern: This memory comes from a work pattern.
+    source_other: This memory is managed by another service.
+  action:
+    add: Add memory
+    edit: Edit memory
+    delete: Delete memory
+    accept: Accept
+    decline: Decline
+    grant: Grant access
+    revoke: "Revoke {name}'s access"
+  message:
+    delete: Delete this memory?
+    delete_effect: BMOs in this organization and its sub-organizations will no longer receive this memory.
+    decline: Decline this proposal?
+  status:
+    loading: Loading organization memory…
+  error:
+    read_failed: "Couldn't load organization memory."
+    failed: "Couldn't process organization memory."
+    bad_request: The content is empty or too long.
+    writers_only: "Only this organization's heads or people with organization memory write access can do this."
+    not_found: "That organization or memory doesn't exist."
+    conflict: 'The memory changed in the meantime.
+
+      Reload and check again.'
+    kept_by_source: "Memories managed by another service can't be changed here."
+    head_only: Only an administrator or a head of this organization can do this.
+    writer_left: "A person who has left can't be granted access."
+catalogue:
+  label:
+    tab: "Positions & types"
+    roles: Positions
+    kinds: Organization types
+    no_roles: No positions
+    no_kinds: No organization types
+    key: Key
+    name: Name
+  action:
+    edit: Edit
+    add: Add
+    remove: "Delete {name}"
+    drag: Reorder
+  status:
+    loading: Loading list…
+  error:
+    read_failed: "Couldn't load the list."
+invites:
+  label:
+    make: Create invite link
+    full_name: Name
+    company: Company
+    unit: Organization
+    role: Role
+    hours: Valid for
+    span: "{hours} hours"
+    open: Open invites
+    none: No open invites
+    no_units: There are no organizations you can invite to. Only heads and administrators can invite.
+    until: "Until {time}"
+  action:
+    make: Create and copy link
+    copy: Copy invite text
+    drop: Cancel
+  status:
+    copied: Copied
+    loading: Loading invites…
+  message:
+    made_uncopied: "The invite link was created, but the browser blocked automatic copying.\nPress Copy invite text."
+    text: "You're invited to {place}. Create an account at the link below and install jake on your PC as instructed to activate it. {link} (Valid until {time})"
+    text_named: "{name}, you're invited to {place}. Create an account at the link below and install jake on your PC as instructed to activate it. {link} (Valid until {time})"
+  error:
+    bad_request: The organization or a value is not valid.
+    closed: This invite has expired or has already been used.
+    failed: "Couldn't process the invite."
+    forbidden: "You can't invite to this organization."
+    name_taken: That user ID is already taken.
+    no_hub: "No machine connection hub is set up, so invites can't be sent."
+    not_found: Invite not found.
+    not_ready: "Accounts can't be created yet. Let an administrator know."
+    unreachable: "Couldn't reach the account service."
+overlay:
+  title:
+    panel: My BMO
+  label:
+    none: "You don't have a BMO of your own, so you can't talk to it separately."
+    empty: Nothing said yet.
+    input: Not visible to people in this room
+  action:
+    send: Send
+    log: "View my BMO's log"
+  status:
+    loading: Loading my BMO…
+  error:
+    load_failed: "Couldn't load my BMO."
+    send_failed: "Couldn't send."
+members:
+  title:
+    let_in: Add members
+  label:
+    console_user: Console user
+    none: No members
+    no_service: This room has no chat service.
+    unlisted: "The chat service doesn't provide a member list."
+    person: Person
+    unit: Organization
+    unit_people: "{count} members"
+    choice: "People & organizations"
+    find: Search by name or organization
+  status:
+    loading: Loading members…
+  action:
+    let_in: Add members
+    leave: Leave
+    take_out: Remove
+  error:
+    load_failed: "Couldn't load members."
+    unheld: "Couldn't read this room's members from the chat service."
+    accounts_failed: "Couldn't check whether they're console users."
+    entry_failed: "Couldn't change members."
+    entry_forbidden: "You don't have permission to add or remove members in this room."
+    entry_unknown: "That person couldn't be found."
+callers:
+  label:
+    none: No one can call
+    person: Person
+    find: Search by name
+    allow: Allow calling
+    heads_only: "You don't lead this room and aren't a head of its organization or an administrator, so you can change only people in organizations you head."
+  action:
+    add: Add
+  status:
+    loading: Loading call permissions…
+  error:
+    failed: "Couldn't change call permissions."
+    forbidden: "You can't change this person's call permission."
+    load_failed: "Couldn't load call permissions."
+    not_found: User not found.
+    unreachable: "Couldn't reach the account service."
+room_info:
+  title:
+    sheet: Room info
+  label:
+    members: Members
+    media: Media
+    files: Files
+    links: Links
+    music: Music
+    voice: Voice
+    situation: Situation
+    callers: Call permissions
+    session: Session info
+    providers: Chat services
+    tone: Tone
+    tone_none: None (default)
+    media_none: No media
+    files_none: No files
+    links_none: No links
+    music_none: No music
+    voice_none: No voice messages
+    sent_by: "{name} · {time}"
+  action:
+    picture: Room picture
+  message:
+    tone_rule: "The tone the supervisor uses in this room with people it isn't close to."
+  status:
+    media_loading: Loading media…
+    files_loading: Loading files…
+    links_loading: Loading links…
+    music_loading: Loading music…
+    voice_loading: Loading voice messages…
+    tone_loading: Loading tone…
+    tone_saving: Saving tone
+  error:
+    media_failed: "Couldn't load media."
+    files_failed: "Couldn't load files."
+    links_failed: "Couldn't load links."
+    music_failed: "Couldn't load music."
+    voice_failed: "Couldn't load voice messages."
+    tone_read_failed: "Couldn't load the tone."
+    tone_save_failed: "Couldn't save the tone."
+    tone_unknown: "That tone can't be selected."
+  aria:
+    tabs: Room info
+join:
+  title:
+    create: Create your invited account
+  label:
+    full_name: Name
+    linux: Linux·WSL
+    windows: Windows
+  action:
+    accept: Create account
+    check: "I've installed it, check"
+    copy: Copy
+  message:
+    invited: "You're invited to {place}."
+    invited_head: "You're invited to {place} as a head."
+    until: "This invite is valid until {time}."
+    expired: 'This invite has expired.
+
+      Ask the person who invited you for a new link.'
+    used: This invite has already been used.
+    install: "Your account has been created.\nRun one of the commands below on the PC you'll use with this account to install jake.\nThe account is activated once it's installed and connected."
+    waiting: Waiting for the machine to connect…
+    active: 'The machine is connected and your account is active.
+
+      You can sign in now.'
+    agent_login: "The machine is connected and your account is active.\nIn this organization, agents can only use your own supply sign-in or supply key. Signing in opens agent sign-in setup right away."
+  error:
+    full_name_empty: Enter your name.
+agent_login:
+  title:
+    page: Agent sign-in setup
+  message:
+    lead: "In this organization, agents work only with your own supply sign-in or supply key.\nSign in to Claude or add a supply key below, then start."
+    still_needed: No supply sign-in or supply key is turned on yet.
+  action:
+    login: Sign in and set up
+    start: Start
+org_agents:
+  title:
+    sources: Agent supply sources
+    keys: Organization supply keys
+    composition: Signup setup
+    key_add: Add organization supply key
+    instructions: Organization instructions
+    persona: Persona
+    repositories: Organization repositories
+    repository_add: Add organization repository
+  status:
+    loading: Loading agent settings…
+  label:
+    tab: Agents
+    instructions_own: Instructions
+    instructions_none: No instructions
+    instructions_above: "{count} instructions from the organizations above apply first."
+    instructions_note: The agents of people in this organization and the organizations under it follow these in every conversation.
+    persona: Applies
+    persona_own: Use the persona
+    persona_none: No persona
+    persona_stands_own: "Following above: use the persona"
+    persona_stands_none: "Following above: no persona"
+    persona_use: Use the persona
+    repositories_manage: Manage repositories
+    manage_allow: Allow
+    manage_stands_allow: "Following above: allowed"
+    manage_stands_deny: "Following above: blocked"
+    repositories_none: No organization repositories
+    repository_name: Name
+    repository_name_note: "Lowercase letters, digits and hyphens only."
+    repository_label: Display name
+    repository_path: Path
+    repository_path_note: The folder the main checkout is in.
+    decided_named: "Set by the organization · {name}"
+    decided_unit: Set by the organization
+    decided_platform: Set by the global settings
+    state_on: "On"
+    state_off: "Off"
+    source_personal: Personal supply
+    source_organisation: Organization supply
+    source_platform: Platform supply
+    closed_above: Turned off by a parent organization
+    not_provided: Not provided
+    locked_above: Locked by a parent organization
+    below: Sub-organizations
+    delegation_allow: Allow sub-organizations
+    delegation_lock: Lock sub-organizations
+    delegation_inherit: Follow parent
+    company_provided: Provide organization supply to this company
+    keys_none: No organization supply keys
+    keys_closed: "Organization supply isn't provided, so keys can't be added."
+    road: Provider
+    road_claude: Claude (Anthropic API key)
+    name: Name
+    name_note: "Stored under this name in the organization's secrets."
+    value: Key
+    status_ready: Available
+    status_refused: Key rejected
+    status_off: "Off"
+    choice_inherit: Follow parent
+    choice_off: Blocked
+    choice_none: No agents
+    choice_agents: "{count} agents"
+    stands_platform: Follows platform rules
+    stands_off: "Blocked, following parent"
+    stands_agents: "{count} agents, following parent"
+  aria:
+    source_switch: "Turn on {name}"
+    delegation: "{name} delegation to sub-organizations"
+    key_switch: "Turn on {name}"
+    key_remove: "Delete {name}"
+    role_choice: "{name} signup setup"
+    repository_remove: "Delete {name}"
+  message:
+    repository_remove: Delete this organization repository?
+    repository_remove_effect: "Only the repository's registration is deleted; the checkout on disk stays. It can't be deleted while a Job is using the checkout."
+    key_remove: Delete this organization supply key?
+    key_remove_effect: "Agents working with this key will use another supply source from their next run. The key value stays in the organization's secrets."
+  error:
+    locked: "Locked by a parent organization and can't be changed."
+    forbidden: "You don't have permission to set up this organization's agents."
+    closed: "Organization supply isn't provided, so keys can't be added."
+    taken: An organization supply key with the same name already exists.
+    unknown_road: "This provider can't be used right now."
+    bad_composition: "Couldn't save the signup setup."
+    unchecked: "Couldn't check permissions. Try again in a moment."
+    repositories_withheld: "This organization can't add or change repositories."
+    repository_name: "A repository name uses lowercase letters, digits and hyphens only."
+    repository_path: Check the repository path.
+org_storage:
+  title:
+    storage: Artifact storage
+  label:
+    tab: Artifact storage
+    place: Storage location
+    follows: "Following above: {place}"
+    optional: Optional
+    unset: None
+    folder_help: "{'{login}'} becomes the user's login and {'{document}'} the document number."
+    place_local: This server
+    place_sharepoint: SharePoint
+    sharepoint_site: Site ID
+    sharepoint_drive: Drive ID
+    sharepoint_folder: Folder
+    sharepoint_account: Token account
+    sharepoint_account_unset: "The document's owner"
+  error:
+    locked: "An organization above has locked this, so it can't be changed."
+    forbidden: "You don't have permission to set this organization's artifact storage."
+    bad_value: "The storage location setting isn't valid."
+    unavailable: "Can't connect to the artifact service. Try again in a moment."
+    failed: "Couldn't set the artifact storage."
+pairing:
+  title:
+    page: Connect desktop app
+    confirm: Connect this app to your account?
+  label:
+    code: Pairing code
+    machine: Machine to connect
+    machine_new: Create a new one and connect
+    machines_link: Machines in settings
+  action:
+    approve: Approve
+    download: Download desktop app
+    refuse: Decline
+  message:
+    lead_app: Connects the BMO desktop app on this PC to your account.
+    lead_link: Connects the BMO desktop app to your account.
+    compare_app: 'The pairing code also appears in the title bar at the top of this window.
+
+      Approve only if the two codes match.'
+    compare_link: "Approve only if it matches the pairing code in the title bar at the top of the desktop app's window.\nIf someone else gave you this link, don't approve it."
+    machine_effect: "If you approve, your account's work can run on the PC where the app is installed."
+    effect: "The app showing this pairing code will be connected as machine {machine}.\nApprove only if it matches the code in the app window's title bar."
+    effect_new: "The app showing this pairing code will be connected as a new machine of yours.\nApprove only if it matches the code in the app window's title bar."
+    machines: "You can see connected machines in {link}."
+    sign_in: Sign in to connect the desktop app.
+    connecting: The app is connecting…
+    connected: The app is connected.
+    refused: Declined.
+    expired: The pairing code has expired. Try again from the app.
+    closed: This pairing code has already been approved or declined.
+    no_code: "There's no pairing code. Try again from the app."
+  status:
+    loading: Loading pairing code…
+  error:
+    closed: "This pairing code has already been approved, declined or has expired."
+    failed: "Couldn't connect the app."
+    left: "An account that has left can't be connected to a machine."
+    no_hub: "No machine connection hub is set up, so the app can't be connected."
+    not_found: Pairing code not found.
+    too_many: Too many pairing requests. Try again in a moment.
+    unreachable: "Couldn't reach the account service."
+machines:
+  label:
+    name: Device name
+    state: Status
+    kind: Connection type
+    desktop: Desktop app
+    installed: Installed program
+    shared: Shared device
+    bound_at: Connected on
+    none: No connected devices
+  title:
+    unbind: "Disconnect {name}?"
+  action:
+    desktop: Desktop app
+    unbind: Disconnect device
+    unbind_confirm: Disconnect
+  message:
+    none: Open the desktop app to connect a device to this account.
+    unbind: "This account's BMO and agents will no longer run on this device."
+    unbind_desktop: "The desktop app will be disconnected too, so you'll need to connect the app again to use it."
+    unbind_installed: "The installed program on this device will be removed, so you'll need to install it again to use it."
+  status:
+    loading: Loading devices…
+    attached: Connected
+    waiting: Waiting to connect
+  error:
+    no_account: "Sign-ins that aren't account service users have no connected devices."
+    unreachable: "Couldn't reach the account service."
+    failed: "Couldn't load devices."
+    none_bound: No devices are connected.
+    unbind_failed: "Couldn't disconnect the device."
+desktop:
+  title:
+    page: Desktop app
+    server: Change server
+  label:
+    version: Version
+    published: Released
+    file: File
+    size: Size
+    size_value: "{size} ({bytes} bytes)"
+    sha256: SHA-256
+    steps: How to use
+    windows: Windows
+    linux: Linux
+    nsis: Installer
+    appimage: AppImage
+    deb: deb package
+    keep_control_while_locked: Keep remote control while locked
+    close_to_tray: Minimize to tray on close
+    start_at_sign_in: Start at sign-in
+    start_in_tray: Start in tray
+    keep_awake: Prevent sleep
+    update_channel: Update channel
+    channel_stable: Stable
+    channel_nightly: Nightly
+    default_value: "{value} (default)"
+    server: BMO server
+    server_address: BMO server address
+  action:
+    change_server: Change
+    download: Download
+    minimize: Minimize
+    maximize: Maximize
+    restore: Restore
+    close_window: Close
+  message:
+    server_address: Enter an https address. http works only on localhost.
+    server_change: Changing the server restarts the app and connects it again on the new server.
+    server_restarting: Restarting the app.
+    step_install: Download and run the installer.
+    step_open: "When you open the desktop app, a connection code appears in its title bar and the app connection page opens."
+    step_approve: "Check that the code on the app connection page matches the one in the app's title bar, then approve."
+    keep_control_while_locked: "When off, agents are disconnected while the PC is locked."
+    close_to_tray: "When off, closing the window quits the app."
+    start_in_tray: "When starting at sign-in, the window isn't opened."
+    keep_awake: "The PC won't go to sleep while an agent is running."
+    update_channel: Nightly builds are made every day and may not work properly.
+    unsigned: "The installer isn't code-signed, so Windows may warn you the first time you run it.\nIf Windows protected your PC appears, select More info, then Run anyway to install."
+  status:
+    loading: Loading desktop app info…
+    none: No released version
+    settings_loading: Loading desktop app settings…
+  error:
+    unreadable: "Couldn't load desktop app info."
+    settings_failed: "Couldn't load desktop app settings."
+    settings_unreadable: "The settings file can't be read, so it can't be changed."
+    change_failed: "Couldn't make the change."
+secrets:
+  title:
+    add: Add secret
+    replace: Replace secret
+    kind_add: Add kind
+    kind_edit: Edit kind
+  label:
+    compose: Custom
+    field_input: Input
+    field_key: Key
+    field_label: Name
+    field_masked: Hide value
+    field_required: Required
+    fields: Fields
+    file_chosen: "{name} · {size}"
+    handed: "{name} · {kind}"
+    input_file: File
+    input_line: Single line
+    input_lines: Multiple lines
+    kind: Kind
+    kind_description: Description
+    kind_key: Key
+    kind_key_hint: "Lowercase letters, digits, hyphens"
+    kind_name: Name
+    kind_row: "{description} · {keys}"
+    kinds: Secret kinds
+    kinds_none: No secret kinds
+    new_kind_name: Kind name
+    purpose: "Purpose: {purpose}"
+    request: Secret request
+    save_as_kind: Save as kind
+    saved: Saved
+    kept: Stored secrets
+    name: Name
+    name_hint: "Letters, digits, dots, underscores, hyphens"
+    none: No stored secrets
+    note: "Only you can see your secrets. Agents and services are given only their names in their settings. Values stay only in files in the secret store, never in chats or logs."
+    replace: Replace existing value
+    replace_note: "The previous value is kept in the file {name}.previous."
+    row: "{bytes} bytes · changed {time}"
+  action:
+    add: Add secret
+    replace: Replace
+    choose_file: Choose file
+    field_add: Add field
+    field_remove: Remove field
+    kind_add: Add kind
+    load_file: Load from file
+    remove_handed: "Remove {name}"
+  status:
+    loading: Loading secrets…
+    kinds_loading: Loading secret kinds…
+  message:
+    composed: "Custom: {keys}"
+    handed: "Saved to the secret store: {name} ({kind})"
+    kind_delete_confirm: Delete this secret kind?
+    kind_delete_effect: Stored secrets stay as they are.
+    request_saved: "Saved the requested secret to the secret store: {name} ({kind})"
+    delete_confirm: Delete this secret?
+    delete_effect: "The value is kept in the file {name}.previous, and services that read this name will no longer find a value."
+  error:
+    bad_name: "Names must be up to {max} letters, digits, dots, underscores or hyphens, and can't start with a dot or end with .previous."
+    bad_kind: "The secret kind doesn't follow the rules."
+    bad_value: "Couldn't read the value."
+    fault_description: "Enter a description of up to {max} characters."
+    fault_field_alone: "A multiple-line or file field can't be used with other fields."
+    fault_field_key: "Field keys must be up to {max} letters, digits or underscores, and can't start with a digit."
+    fault_field_label: "Enter a field name of up to {max} characters."
+    fault_field_repeated: A field with this key already exists.
+    fault_key: "Keys must be up to {max} lowercase letters, digits or hyphens, and must start with a letter."
+    fault_name: "Enter a name of up to {max} characters."
+    fault_no_fields: Add at least one field.
+    fault_too_many_fields: "Up to {max} fields are allowed."
+    file_read_failed: "Couldn't read the file."
+    kind_delete_failed: "Couldn't delete the secret kind."
+    kind_exists: A secret kind with this key already exists.
+    kind_save_failed: "Couldn't save the secret kind."
+    kinds_read_failed: "Couldn't load secret kinds."
+    delete_failed: "Couldn't delete the secret."
+    empty_value: Enter a value.
+    exists: A secret with this name already exists. Turn on Replace existing value.
+    no_space: This sign-in has no secret store.
+    no_store: "The server settings don't name a secret store folder."
+    not_a_file: "This name can't be used because it exists in the store folder as something other than a file."
+    not_for_you: This secret was requested from someone else.
+    not_found: "There's no secret with this name."
+    not_yours: "This is someone else's secret store."
+    not_in_force: "The secret store can't be used until the account model is in use."
+    read_failed: "Couldn't load secrets."
+    save_failed: "Couldn't save the secret."
+    unreachable: "Couldn't reach the account service."
+agents:
+  action:
+    sign_in_again: Sign in again
+    open_sign_in: Open sign-in page
+    sign_in_finish: Finish sign-in
+    expand: Expand
+    node_checkout_add: Add node checkout
+    reset_document: Revert to file contents
+    line_details: Details
+    log: Log
+    prefix_document_add: Add prefix document
+    persona_to_file: Revert to file contents
+    settings: Settings
+    to_end: Jump to bottom
+    to_page: Open as page
+    use_account: Use this account
+    account_add: Add account
+    key_set: Set key
+    use_model: Switch to this model
+    walk_order: In order
+    agent_add: Add agent
+    role_settings: Role settings
+    draft_to_default: Reset to default
+    stage_add: Add stage
+    stage_to_default: Reset to default text
+  aria:
+    heal_of: "Restore {name} from demotion"
+    node_checkout_node: Node to hold the node checkout
+    node_checkout_path: Node checkout path
+    node_checkout_remove: "Delete node checkout on {node}"
+    road_of: "{name} provider · model"
+    agent_enabled_of: "Use {name}"
+    agent_tabs: Agent settings
+    agent_keeps_cache_of: "Keep {name} cache warm"
+    provider_prompt_of: "{provider} prompt"
+    room_last_run: "{room}, {n} runs, last run {time}, open log"
+    sessions_of: "{name} sessions"
+    settings_of: "{name} settings"
+    supervisor_rooms: "Rooms {name} answered"
+    threshold_of: "{name} compaction threshold"
+    warming_of: "Keep {name} {provider} cache warm"
+    warming_cell_of: "Keep {name} cache warm"
+    choose_model: Choose model
+    drag_reorder: Drag to reorder
+    prefix_document_down: "Move {path} down"
+    prefix_document_path: Prefix document path
+    prefix_document_remove: "Remove {path}"
+    prefix_document_up: "Move {path} up"
+    provider_of: "{name} provider"
+    search_depth: Search depth
+    settings_sections: Settings sections
+    switch_on: "Turn on {name}"
+    vitals: Agent metrics
+    stage_down: "Move {name} down"
+    stage_in: "Add {name} to instruction stages"
+    stage_out: "Remove {name} from instruction stages"
+    stage_text_of: "{name} text"
+    stage_up: "Move {name} up"
+  error:
+    login_which: "Choose either an account to sign in again or a name for a new account, not both."
+    login_not_directory: Only config directory accounts can sign in here.
+    login_directory_taken: A config directory with this name already exists. Choose another name.
+    login_gone: The sign-in has ended or timed out. Start over.
+    login_refused: "The sign-in didn't accept the code. Start over."
+    login_code_needed: Paste the code shown on the sign-in page.
+    account_fields_needed: Enter the account name and the credential file path.
+    account_order_list: Send the account order as a list.
+    account_switch_needed: An account and an on/off value are required.
+    agency_access_unchecked: "The agency couldn't check permissions, so it didn't process the request. Try again in a moment."
+    agency_bad_request: "The agency didn't accept the request."
+    agency_conflict: "The agency didn't accept the request because it conflicts with the current state."
+    agency_failed: "The agency couldn't process the request."
+    agency_forbidden: "You don't have permission to do this in the agency."
+    agency_not_found: The agency has no such item.
+    agency_unavailable: "The agency can't process this request right now."
+    agency_unprocessable: "The agency can't accept this value."
+    agent_name_taken: This key already exists.
+    bad_agent_name: Invalid agent name.
+    bad_credential_kind: Credentials are either a config directory or a token file.
+    bad_depth: Invalid search depth.
+    bad_launch_agent: Invalid agent to run.
+    bad_word_worker: Invalid worker to message.
+    catalogue_action: Invalid action requested on the model file.
+    catalogue_read_failed: "Couldn't load the model file list."
+    chat_documents_read_failed: "Couldn't load the system prompt."
+    chat_document_save_failed: "Couldn't save."
+    chat_document_action: An action to save or revert is required.
+    field_refused: "This value wasn't accepted."
+    job_prompt_failed: "Couldn't load the prompt."
+    launch_empty: Enter a work order.
+    launch_failed: "Couldn't run."
+    log_read_failed: "Couldn't read the log. Try again in a moment."
+    models_load_failed: "Couldn't load the model list."
+    no_such_agent: Agent not found.
+    pick_account: Choose an account.
+    provider_off: "This provider is off. Choose Auto or a provider that's on."
+    registry_read_failed: "Couldn't load registered models."
+    registry_value: "Send the registered model's name and model."
+    supervisor_add: "Send the supervisor's name, display name, room name, provider, model and work repository."
+    default_answerer_failed: "Couldn't save the default supervisor."
+    supervisor_default_answerer: "{label} is the default supervisor and can't be deleted. Choose another supervisor as the default first, then delete it."
+    supervisor_label: Enter a display name.
+    supervisor_model: Choose a model from the registered models that have an address.
+    supervisor_name: "Enter a name of up to 40 lowercase letters, digits and hyphens, starting with a lowercase letter."
+    supervisor_name_taken: "The name {name} is already used by another supervisor."
+    supervisor_provider: "The {provider} provider can't serve as a supervisor."
+    supervisor_repository: "There's no repository {repository}."
+    supervisor_room: Enter a room name.
+    supervisor_running: "{label} is answering right now, so it couldn't be deleted. Delete it again after the turn ends."
+    supervisor_seeded_refused: "{label} is a supervisor set up by the deployment and can't be deleted."
+    supervisor_unknown: "There's no supervisor {supervisor}."
+    word_empty: Enter a message.
+    word_owner_only: Only the owner can message a worker.
+    supervisor_own_only: "You can only add your own BMO. An admin adds other people's supervisors."
+    role_delete_refused: "Couldn't delete the role because it has running or waiting runs, or a policy defines it."
+    role_agent_refused: "The agent is running, or the name already exists"
+    agent_save_failed: "Couldn't save the agent."
+    roles_read_failed: "Couldn't load roles."
+    accounts_read_failed: "Couldn't load Claude accounts."
+    provider_models_read_failed: "Couldn't load the provider's model list."
+    providers_read_failed: "Couldn't load providers."
+    repositories_read_failed: "Couldn't load repositories."
+    repository_delete_refused: "Couldn't delete the repository because a Job is using a checkout."
+    umbrella_refused: "An umbrella repository can't have support checkouts or node checkouts."
+    advisor_refused: "This advisor can't be used with this model."
+    session_history_read_failed: "Couldn't load session history."
+    supervisors_read_failed: "Couldn't load supervisors."
+    secret_settings_read_failed: "Couldn't load provider secrets."
+    deploy_flush_read_failed: "Couldn't load the batch deploy interval."
+    deploy_flush_refused: Enter a whole number of 1 minute or more.
+    stage_chain_missing: This supervisor has no instruction stages of its own.
+    stage_in_chain: This stage is still in the instruction stages. Remove it from the instruction stages first.
+    stage_name_reserved: "This name is used by rounds and can't be a stage name."
+    stage_name_taken: A stage with this name already exists.
+    stage_text: "The text must be non-empty and up to {max} characters."
+    stage_text_missing: "This stage wasn't added or changed in the console."
+    stages_read_failed: "Couldn't load instruction stages."
+    stages_unsound: The draft settings need fixing.
+    stage_text_refused: "The receiver unit didn't accept this stage. The name must be one word of up to {name} lowercase letters, digits and dashes, starting with a lowercase letter, and the text must be non-empty and up to {text} characters."
+    stage_chain_refused: "The receiver unit didn't accept this instruction stage order. It includes stages this supervisor doesn't have."
+    stage_name: "The name is one word of up to {max} lowercase letters, digits and dashes, starting with a lowercase letter."
+    stage_add_unfinished: "Check the new stage's name and text, or cancel adding it."
+  label:
+    agency: Agency
+    account_kind_sign_in: Sign in here
+    sign_in_code: Authorization code
+    account_chosen: Selected account
+    default_answerer: Default supervisor
+    room_title: Room name
+    account_kind_directory: Config directory
+    account_kind_token: Token file
+    account_off: "Off"
+    alias: Alias
+    bundle_graph_read: Graph
+    bundle_queue_read: Read TODO
+    bundle_room_chat: Memories · notes · TODO
+    bundle_room_send: Send
+    bundle_web_branches: Research branches
+    bundle_web_images: View images
+    bundle_web_read: Read the web
+    bundle_web_rulebooks: Rulebooks
+    bundle_web_sites: Site tools
+    call_done: Done
+    call_failed: Failed
+    characters_unit: characters
+    clock_asked: Asked supervisor to check
+    clock_asked_silent: "Asked supervisor to check · no output for {time}"
+    clock_ask_failed: Supervisor check failed
+    clock_cut: Stopped
+    clock_cut_no_process: Not responding
+    clock_cut_no_progress: No progress
+    clock_cut_stop: Work stopped
+    clock_cut_supervisor: Supervisor
+    clock_kept: Kept by supervisor
+    clock_kept_until: "Kept by supervisor · until {time}"
+    clock_long: "Running for over {minutes} min"
+    clock_loop: Loop
+    clock_pid: "Process {pid}"
+    clock_running: "Running {time}"
+    clock_turn_ended: Ended with the turn
+    column_role: Role
+    column_rooms: Rooms
+    context_archive: Past conversations
+    context_attached: Read this time
+    context_document: Reference documents
+    context_held: Read earlier
+    context_knowledge: Knowledge
+    context_memory: Memories
+    context_person: People book
+    context_room: Room context
+    context_rule: Rules
+    context_situation: Situation rules
+    context_tokens: "Context {tokens}"
+    credential: Credential
+    dev_server: Dev server command
+    diff_added: "{added} lines added"
+    diff_added_removed: "{added} lines added, {removed} lines removed"
+    diff_more_files: "{n} more files changed"
+    diff_none: No changes
+    diff_omitted: Omitted
+    diff_removed: "{removed} lines removed"
+    engine: Engine
+    exec_node: Execution node
+    find_registration: "Registered model · {name}"
+    generation: Generation parameters
+    group_repository: Repositories
+    group_role: Roles
+    group_runner: Runners
+    group_supervisor: Supervisors
+    group_worker: Repositories
+    job_prompt_english: English version
+    job_running: "Running {time}"
+    job_took: "Took {time}"
+    job_tools: "Tools: {n}"
+    key: Key
+    chat_document_opening: Prompt opening
+    chat_document_absolute_rules: Absolute rules
+    chat_document_manual: Operations manual
+    launch_say: Message
+    launch_task: Work order
+    line_answer: Answer
+    line_context: Context
+    line_end: End
+    line_note: Note
+    line_prompt: Prompt
+    line_start: Start
+    line_system_prompt: System prompt
+    line_text: Text
+    line_thinking: Thinking
+    line_tool: Tool call
+    line_tool_result: Tool result
+    line_unknown: Other
+    line_word: Sent message
+    login_expires: "Expires {time}"
+    login_needed: Sign-in required
+    model_bytes: Bytes
+    model_file: File name
+    model_source: Download URL
+    no_room: No room
+    node_checkouts: Node checkouts
+    note: Note
+    persona_file: File contents
+    phase_final: Final verification
+    phase_plan: Plan
+    phase_synthesis: Design synthesis
+    piece_persona: Persona
+    pinned_provider: Provider
+    preamble: Preamble
+    prefix_documents: Prefix documents
+    provider_claude_code: Claude Code
+    provider_codex: Codex
+    provider_deepseek: DeepSeek
+    provider_laya: Laya
+    provider_off: Provider off
+    provider_openrouter: OpenRouter
+    provider_registered: Registered model
+    record_ends: The record ends here
+    reference: Reference injection
+    reference_send: Attach
+    registry_healthy: Responding
+    registry_state: Status
+    registry_unhealthy: Not responding
+    registry_last_answered: "Last responded {time}"
+    restore: Restore from demotion
+    result_less: Show less
+    result_more: "Show {n} more lines"
+    role_bundles_none: No feature bundles
+    room_runs_last: "{n} runs · last run {time}"
+    run_cache_read: "Cache read {n}"
+    run_context: "Context ~{tokens}"
+    run_no_place: No path
+    run_work_room: "{work} · {room}"
+    run_requests: "Requests: {n}"
+    sampling: Sampling
+    search_tab: Tab
+    serving: Serving
+    source_fetch: Download
+    source_none: No download URL
+    support_count: Support checkouts
+    umbrella: Umbrella repository
+    switch_off: "Off"
+    switch_on: "On"
+    system_prompt_sent: System prompt to send
+    tab_supervisors: Agents
+    think_off: Thinking off
+    think_on: Thinking on
+    thinking: Thinking
+    this_machine: This device
+    this_run: This run
+    unit_build: "Build {n}"
+    unit_reopened: "{label} #{run}"
+    unit_round: "{label} round {round}"
+    unit_stage: "Stage {stage}-{task}"
+    unknown_code: "Unknown code `{code}`"
+    unmeasured: Not measured
+    uptime: "Uptime {time}"
+    usage_cache_read: "Cache read {n}"
+    usage_input: "Input {n}"
+    usage_output: "Output {n}"
+    use_dry_allowed_length: Allowed repeat length
+    use_dry_base: Growth with repeat length
+    use_dry_multiplier: Long repeat suppression strength
+    use_frequency_penalty: Suppress frequent tokens
+    use_max_tokens: Max output tokens
+    use_min_p: Floor relative to top probability
+    use_presence_penalty: Suppress tokens already used
+    use_preserve_thinking: Keep reasoning from earlier questions
+    use_repeat_last_n: Recent tokens checked for repeats
+    use_repeat_penalty: Suppress recent token repeats
+    use_seed: Random seed
+    use_temperature: Answer randomness
+    use_top_k: Only the top k candidates
+    use_top_p: Only candidates within top cumulative probability
+    weekly: Weekly
+    worker_label: Label
+    tab_roles: Roles
+    column_bundles: Feature bundles
+    find_role: "Role {name}"
+    role_prompt: Role prompt
+    provider_prompts: Per-provider prompts
+    card_service: Card service
+    checkouts_value: "Support {support} · {held}/{all} in use"
+    checkouts_value_umbrella: "Umbrella repository · {held}/{all} in use"
+    column_checkouts: Checkouts
+    column_heal: Restore from demotion
+    column_model_defaults: Generation parameters
+    column_model_file: Model file
+    column_nodes: Nodes
+    column_repository: Repository
+    column_sessions: Sessions
+    column_state: Status
+    column_size: Size
+    column_supervisor: Supervisor
+    column_threshold: Compaction threshold
+    column_warming: Keep cache warm
+    default_marked: "{value} (default)"
+    description: Description
+    display_name: Display name
+    model_superseded: Previous generation
+    models_stale: "List read at {time}"
+    effort: Effort
+    answer_ceiling: Answer limit
+    advisor: Advisor
+    advisor_tokens: "Advisor calls use the advisor model's tokens."
+    pinned_model: Pinned model
+    role_files: Keep role files
+    role_order: Role agents
+    role_running: "{running}/{cap} running"
+    role_reserved: "{n} reserved"
+    role_agents: Agents
+    agent_provider: Provider
+    agent_follows: Follow the requesting supervisor
+    agent_carries: Running
+    agent_keeps_cache: Keep cache warm
+    column_agent: Agent
+    column_road: Provider · model
+    column_enabled: Use
+    role_prompt_set: Set
+    role_prompt_none: None
+    agent_keeps_cache_hint: 'Warms the last session that answered before its cache goes cold.
+
+      Works only with providers that publish their cache lifetime.'
+    agent_inherits: Leave empty to use role settings
+    agent_prompt: System prompt
+    agent_bundles: Feature bundles
+    agent_skills: Skills
+    agent_prompt_own: Agent prompt
+    agent_tab_general: General
+    agent_tab_features: Features
+    role_waiting: "{n} waiting"
+    rules_folder: Rules folder
+    run_line: Run line
+    session_answered: "Last answered {time}"
+    session_context: "Context {tokens}"
+    session_context_share: "Context {tokens} · {share}"
+    session_opened: "Started {time}"
+    session_runs: "Runs: {n}"
+    sessions_fresh: New
+    sessions_keep: Keep
+    tab_model_files: Model files
+    tab_models: Registered models
+    tab_repositories: Repositories
+    used_by: Used by
+    used_by_repository: "Repository {name}"
+    used_by_role: "Role {name}"
+    used_by_supervisor: "Supervisor {name}"
+    work_repository: Work repository
+    default_only: (default)
+    role_skills_own: Choose skills
+    role_skills_hint: "When off, the role's whole default skill bundle is used. Skills an agent chose itself take precedence."
+    role_skills_none: No skills
+    deepseek_card_secret: DeepSeek payment card
+    deepseek_login_secret: DeepSeek sign-in
+    secret_none: None
+    secret_of_kind: "{kind} secret"
+    deploy_flush: Batch deploy interval
+    deploy_flush_note: Every commit waiting to deploy is deployed at this interval.
+    deploy_flush_unit: min
+    key_held: "Key set · {time}"
+    key_missing: No key
+    stage_text: Text
+    stages: Instruction stages
+    stages_none: No instruction stages
+    stages_unused: Unused stages
+  message:
+    sign_in_steps: "Open the sign-in page, approve with this account, then paste the code shown on the page."
+    account_delete_confirm: Delete this account?
+    catalogue_delete_confirm: Remove this model file from the list?
+    supervisor_delete_confirm: "Delete {name}?"
+    supervisor_delete_takes: "Deletes the supervisor's settings, sessions and people records.\nRooms the supervisor answered stay as they are, messages and documents included."
+    node_checkouts_need_here: Node checkouts are available only when the execution node is this device.
+    umbrella_means: "A folder that holds other repositories' checkouts. Jobs never modify this folder itself."
+    umbrella_no_support: An umbrella repository has no support checkouts.
+    umbrella_no_node_checkouts: An umbrella repository has no node checkouts.
+    generation_resets: "{n} room sessions will start fresh from the next turn."
+    log_of_agent: "This agent's log"
+    log_of_watch: "What this watch is waiting on, and its record"
+    log_start: This is the start of the log.
+    registry_delete_confirm: Delete this registered model?
+    supervisor_seeded: "This supervisor was set up by the deployment and can't be deleted."
+    supervisor_is_default_answerer: "This is the default supervisor and can't be deleted."
+    supervisor_room_taken_back: "{label} has taken back the room {title} with the same name. Its messages and documents are still there."
+    use_model_confirm: "Load the {model} model on the {engine} engine?"
+    use_model_moves: "The {registration} registered model won't respond until the download, check and install finish and the engine restarts."
+    role_delete_confirm: Delete this role?
+    agents_in_tab: Agents for this role are added and changed in the Agents tab.
+    agent_delete_confirm: Delete this agent?
+    document_to_file: Saving reverts it to the file contents.
+    pin_waits: "If the pinned model can't respond, this repository's work waits."
+    advisor_only_on: "Advisors are available only on {providers}."
+    advisor_follows: "Uses the requesting supervisor's advisor."
+    role_shared: These role settings are shared by every agent of this role.
+    role_features: Leave empty to follow the role settings shared by every agent of this role.
+    road_outside_owner: "This supervisor runs on this device as the owner's system user.\nIf it has no tool limit, or allows any of program.files, program.shell or room.tools, anything that user can read may be sent to {provider}.\nThat includes every unit's tokens and settings files under the data root and env/.\nUse a provider other than a registered model or Claude Code on the owner's account only when the owner chose it directly, or remove these three from the tool limit."
+    repository_delete_confirm: Delete this repository?
+  placeholder:
+    sign_in_code: Paste code
+    account_name: claude-01
+    directory_path: Absolute path of the config directory
+    find_settings: Find settings
+    registry_name: "Lowercase letters, digits, hyphens"
+    token_path: Absolute path of the token file
+  status:
+    call_running: Running
+    chat_documents_loading: Loading system prompt…
+    chat_document_stored: Saved text
+    chat_document_file: File contents
+    jobs_loading: Loading Jobs…
+    no_jobs: No Jobs run
+    compacting: Compacting
+    job_ended: Ended
+    job_running: Running
+    log_loading: Loading log…
+    log_unavailable: "The run this link points to wasn't found, so its log can't be opened."
+    newer_loading: Loading newer lines…
+    no_accounts: No registered accounts
+    no_catalogue: No registered model files
+    no_log: No log recorded
+    no_registrations: No registered models
+    older_loading: Loading earlier lines…
+    registry_loading: Loading registered models
+    road_codex_missing: "Unavailable because the Codex executable isn't on this device."
+    road_deepseek_key_unusable: "Unavailable because the DeepSeek key file (deepseek.key) is missing or its permissions aren't 0600."
+    road_gateway_key_unusable: "Unavailable because the gateway key file (llm-gateway.key) is missing or its permissions aren't 0600."
+    road_laya_url_unset: "Unavailable because the Laya server address isn't set."
+    road_line_not_carried: "This provider's program doesn't support this work's run line."
+    road_no_registration_addressed: Unavailable because no registered model has an address.
+    road_openrouter_key_unset: "OpenRouter is unavailable because BMO_OPENROUTER_KEY isn't set."
+    road_unavailable: "This route can't be chosen right now."
+    road_unknown_code: "Unavailable because of the unknown code `{code}`."
+    run_gate: Reaching a verdict
+    run_runner: Searching
+    run_worker: Working
+    running: In progress
+    road_closed: "Can't answer"
+    turn_thinking: Thinking
+    turn_tool: Using tools
+    turn_tool_named: "Using {tool}"
+    turn_waiting_engine: Waiting for the Job to end
+    turn_writing: Writing an answer
+    use_done: Done
+    use_failed: "Failed · {reason}"
+    use_running: "In progress · {step}"
+    use_starting: Starting
+    vitals_loading: Loading agent metrics…
+    no_roles: No roles
+    agents_none: No agents
+    agent_in_use: "Running, so it can't be deleted."
+    roles_loading: Loading roles…
+    catalogue_loading: Loading model files…
+    no_node_checkouts: No node checkouts
+    no_repositories: No repositories
+    no_role_sessions: No sessions
+    no_supervisors: No supervisors
+    providers_loading: Loading providers…
+    accounts_loading: Loading Claude accounts…
+    registration_in_use: "In use by {names}, so it can't be deleted."
+    repositories_loading: Loading repositories…
+    repository_in_use: "A Job is using a checkout, so it can't be deleted."
+    role_blocked: Blocked
+    role_in_use: "It has running or waiting runs, so it can't be deleted."
+    session_expired: Expired
+    session_history_loading: Loading session history…
+    session_valid: Valid
+    supervisors_loading: Loading supervisors…
+    secret_settings_loading: Loading provider secrets…
+    deploy_flush_loading: Loading batch deploy interval…
+    stages_loading: Loading instruction stages…
+  title:
+    sign_in: "Sign in to {name}"
+    account_add: Add Claude account
+    key_of: "{name} key"
+    providers: Providers
+    repository_add: Add repository
+    session_history: Session history
+    supervisor_add: Add supervisor
+    accounts: Claude accounts
+    catalogue_add: Add model file
+    catalogue_uses: Model change history
+    chat_documents: System prompt
+    registry: Registered models
+    registry_add: Add registered model
+    work_log: Log
+    work_now: Now
+    work_order: Work order
+    work_result: Result
+    work_stages: Progress stages
+    role_add: Add role
+    draft: Draft
+    secret_settings: Provider secrets
+    deploy: Deploy
+    stage_add: Add stage
+gates:
+  label:
+    classifier: Reference classifier
+    content_judge: First gate
+    library_knowledge: Library knowledge classifier
+    output_decide: Output format stage 1 gate
+    output_format: Output format gate
+    output_verify: Output format stage 2 gate
+    room_memories: Room memory classifier
+    room_rules: Room rule classifier
+    situation_rules: Situation rule matcher
+    system_documents: System document classifier
+live:
+  action:
+    stop: Stop
+    stop_run: "Stop {run}"
+  aria:
+    stop_confirm_named: "Confirm stopping {name}"
+    stop_named: "Stop {name}"
+  error:
+    agent_runs_read_failed: "Couldn't read agent status."
+    stop_failed: "Couldn't stop the run."
+    stop_target_absent: "Couldn't find the run to stop."
+    stop_target_needed: Choose a run to stop.
+    stop_target_wrong: "That isn't a valid run to stop."
+  label:
+    agent_idle: Idle
+    answering: "Answering · {rooms}"
+    deadline_passed: Past deadline
+    last_check_met: "Last checked {ago} ago · met"
+    last_check_timed_out: "Last checked {ago} ago · timed out"
+    last_check_unmet: "Last checked {ago} ago · not met (exit {code})"
+    outcome_blocked: Stopped waiting for a user reply
+    outcome_cut_short: Cut short at the cap
+    outcome_died: Ended without a report
+    outcome_done: Done
+    outcome_error: Run error
+    outcome_failed: Failed
+    outcome_limit: Limit reached
+    outcome_live_tasks: "Refused: subtasks still running"
+    outcome_stopped: Stopped by user
+    outcome_unanswered: Reported no answer
+    outcome_unclosed: "Refused: work not closed"
+    outcome_work_step: Step done
+    remaining: "{time} left"
+    run_item: "#{id}"
+    slot_source_ask: Request
+    slot_source_browse: Browsing
+    slot_source_cowork: Cowork
+    slot_source_job: Job
+    slot_source_native: Native
+    slot_source_none: No source
+    slot_source_search: Search
+    slot_source_translate: Translation
+    timer_left: "Timer · {time} left"
+    timer_passed: "Timer · time's up"
+    watch_condition: Condition
+    watch_content: Content
+    watch_deadline: Deadline
+    watch_every: "Every {interval} · {left}"
+    watch_memory: Memory
+    watch_memory_id: "#{id}"
+    watch_memory_none: None
+    watch_no_memory: No memory
+    watch_time: Time
+    watch_title: "Watch #{id} · {name}"
+    work_item: "Item #{id}"
+    space_follows: Follows the requesting supervisor
+  message:
+    stop_confirm: "Stop this job's run?"
+    stop_confirm_default: Stop the run?
+  status:
+    stopping: Stopping
+    unchecked: Not checked yet
+research:
+  aria:
+    branches_of: "{key} branches"
+    category_filter: Category filter
+    delete_source_named: "Delete source #{id}"
+    dismiss_named: "Dismiss {name}"
+    edit_source_named: "Edit source #{id}"
+    follow_up_named: "Request a follow-up on {name}"
+    front_named: "Move {name} to the front"
+    log: Run log
+    minutes_of: "{key} time"
+    open_run_named: "Open the run record for {name}"
+    reask_named: "Request {name} again"
+    repair_named: "Open repair job #{id}"
+    resume_named: "Resume {name}"
+    sections: Research sections
+    state_filter: State filter
+    stop_named: "Stop {name}"
+    edit_topic_named: "Edit topic {name}"
+    delete_topic_named: "Delete topic {name}"
+  error:
+    ask_conflict: "The same item is already waiting, running or stuck."
+    ask_failed: "Couldn't send the request."
+    ask_refused: "The research unit didn't accept this name or address."
+    dismiss_conflict: "This item can't be dismissed in its current state."
+    supervisor_read_failed: "Couldn't read the research supervisor."
+    dismiss_failed: "Couldn't dismiss it."
+    engines_unread: "Couldn't read search engine status: {reason}"
+    failed: "The research unit couldn't handle the request."
+    follow_conflict: "The same item is already waiting, running or stuck, or the research to follow up has no document yet."
+    follow_missing: The research unit has no such category or research to follow up.
+    follow_refused: "The research unit didn't accept this name, address or research to follow up."
+    front_conflict: "This item can't be moved to the front in its current state."
+    front_failed: "Couldn't move it to the front."
+    no_category: The research unit has no such category.
+    no_item: The research unit has no such item.
+    no_run: The research unit has no such run record.
+    no_source: The research unit has no such source.
+    queue_read_failed: "Couldn't read the queue."
+    reask_conflict: "This item isn't stuck, so it can't be requested again."
+    reask_failed: "Couldn't request it again."
+    refused: "The research unit didn't accept this value."
+    run_read_failed: "Couldn't read the run record."
+    settings_read_failed: "Couldn't read research settings."
+    source_delete_failed: "Couldn't delete the source."
+    source_refused: "The research unit didn't accept this source."
+    source_save_failed: "Couldn't save the source."
+    sources_read_failed: "Couldn't read sources."
+    state_change_failed: "Couldn't change the state."
+    state_read_failed: "Couldn't read research status."
+    unreachable: "The research unit isn't responding."
+    topic_refused: "The research unit didn't accept this topic. The name must start with a lowercase letter and use only lowercase letters, digits and -, up to 32 characters; the instruction can't be empty; and a calendar needs an ID."
+    topic_taken: A category with that name already exists.
+    topic_held: "Sources or waiting or running items still use this topic, so it can't be deleted."
+    topic_name: "The name starts with a lowercase letter and uses only lowercase letters, digits and -, up to 32 characters."
+    topic_save_failed: "Couldn't save the topic."
+    topic_delete_failed: "Couldn't delete the topic."
+  message:
+    dismiss_confirm: Dismiss this item from the queue?
+    dismiss_note: "Dismissed items aren't looked for again."
+    every_help: "Leave empty to use the category's interval"
+    gap_help: "Leave empty to use the web tool's value"
+    source_delete_confirm: "Delete source #{id}?"
+    source_delete_note: Items this source found are kept.
+    words_help: Separate with commas
+    topic_delete_confirm: Delete this topic?
+    topic_delete_note: Its receiving room settings go with it. Documents already posted stay.
+    topic_name_help: "Can't be changed after it's created."
+    topic_instruction_help: Describe what to look for and how to organize it.
+    calendar_help: Writes found events that have a date to the calendar.
+  label:
+    address: Address
+    all_categories: All categories
+    all_states: All states
+    asked: Requested
+    because: Why / what you want to know
+    branch_role: Branch role
+    branches: Branches
+    cadence: "Read every {n} min"
+    cap_counts: "Waiting {waiting} · running {running}"
+    category: Category
+    closes: Web tool closes
+    default_road: Default route
+    depth: Depth
+    document: Document
+    engine: Engine
+    engine_gap: Engine gap
+    every: Interval
+    every_category: "Category interval {n} min"
+    every_value: "Every {n} min"
+    exclude_words: Words to exclude
+    failure_count: "{n} failures in a row"
+    failures: Failures
+    filter: Filter
+    filter_exclude: "Exclude {words}"
+    filter_require: "Include {words}"
+    finished: Finished
+    fit: Fits
+    fit_nodes: "Fits · {nodes}"
+    gap_value: "{n}ms"
+    gather: "Gather every {n} min"
+    held: On hold
+    hold_bench: Bench
+    hold_reported: Reported
+    hold_restore: Waiting to restore
+    hold_waiting_card: Waiting for a card
+    hold_since: "Since {time}"
+    host_gap: Host gap
+    item_state_dismissed: Dismissed
+    item_state_finishing: Finishing
+    item_state_fit: Review requested
+    item_state_reported: Reported
+    item_state_running: Running
+    item_state_stuck: Stuck
+    item_state_taken: Handled
+    item_state_waiting: Waiting
+    key: Key
+    kind: Kind
+    kind_arxiv: arXiv
+    kind_github_releases: GitHub releases
+    kind_huggingface_search: Hugging Face search
+    kind_huggingface_trending: Hugging Face trending
+    kind_rss: RSS
+    language_en: English
+    language_ko: Korean
+    last_try: "Last try {time}"
+    last_try_untimed: Last try
+    limit: Per read
+    limit_value: "{n} items"
+    log_kind_answer: Answer
+    log_kind_asked: Request
+    log_kind_branch: Branch
+    log_kind_ended: Ended
+    log_kind_filed: Filed
+    log_kind_round: Round
+    log_kind_seated: Assigned
+    log_kind_told: Notice
+    loop_changed: "Changed {time}"
+    loop_running: Running
+    loop_stopped: All stopped
+    minute_unit: min
+    minutes: Time
+    minutes_value: "{n} min"
+    narration: "Narration {language}"
+    observed: Checked
+    origin_asked: "Request: {because}"
+    origin_follow_up: "Follow-up on “{title}”"
+    origin_follow_up_document: "Follow-up on document #{id}"
+    origin_source: "Source: {source}"
+    origin_source_gone: "Source: no longer exists"
+    outcome: Result
+    outcome_answered: Answered
+    outcome_cut: Cut short
+    outcome_failed: Failed
+    profile_browse: Browse
+    profile_search_basic: Basic search
+    profile_search_exhaustive: Exhaustive search
+    profile_search_thorough: Thorough search
+    query: Question
+    read_at: Last read
+    reason: Reason
+    repair: "Repair #{id}"
+    require_words: Words to include
+    retry_at: "Retry {time}"
+    road: Route
+    run_error: Error
+    run_state_closed: Closed
+    run_state_running: Running
+    run_state_waiting: Waiting
+    search_words: Search terms
+    shape_advisory: Security advisory
+    shape_brief: Briefing
+    shape_investigation: Investigation
+    shape_manual: Manual
+    shape_manual_or_investigation: Manual · investigation
+    source_id: No.
+    source_target: Address · search terms
+    started: Started
+    state: State
+    state_degraded: Degraded
+    state_healthy: Healthy
+    state_running: Running
+    state_stopped: Stopped
+    state_suspended: Suspended
+    strategy: Fetch strategy
+    strategy_browser_first: Browser first
+    strategy_direct_only: Direct only
+    strategy_direct_then_browser: Direct first
+    stuck_count: "Stuck {n}"
+    supervisor: Supervisor
+    suspended_until: Suspended until
+    tab_queue: Queue
+    tab_settings: Settings
+    tab_sources: Sources
+    tries: "{n} tries"
+    unknown_value: "Unknown value {value}"
+    tab_topics: Topics
+    topic: Topic
+    topic_purpose: Purpose
+    topic_instruction: Instruction
+    topic_period: Interval
+    topic_calendar: Calendar
+    topic_running: Running
+    topic_stopped: Stopped
+    topic_counts: "Waiting {waiting} · running {running}"
+    period_unit: Interval unit
+    period_day: Days
+    period_hour: Hours
+    period_minute: Minutes
+    period_every_day: "Every {n} days"
+    period_every_hour: "Every {n} hours"
+    period_every_minute: "Every {n} min"
+    calendar_writes: Write to calendar
+    calendar_realm: Calendar type
+    calendar_mine: My calendar
+    calendar_organization: Organization calendar
+    calendar_id: Calendar ID
+  status:
+    no_categories: No categories
+    no_engines: No search engines.
+    no_items: No items
+    no_log: No log
+    no_sources: No sources added
+    queue_end: End of queue
+    queue_loading: Loading the queue
+    queue_more_loading: Loading more of the queue
+    run_loading: Loading the run record
+    settings_loading: Loading research settings
+    sources_loading: Loading sources
+    state_loading: Loading research status
+    supervisor_loading: Loading the research supervisor
+    topics_loading: Loading topics
+    no_topics: No topics added
+  title:
+    ask: Request an item
+    categories: Categories
+    engines: Search engines
+    fetching: Fetching
+    follow_up: Request a follow-up
+    limits: Limits per key
+    queue: Queue
+    run: Run record
+    source_add: Add source
+    source_edit: "Edit source #{id}"
+    sources: Sources
+    supervisor: Research supervisor
+    topic_add: Add topic
+    topic_edit: "Edit topic {name}"
+  action:
+    ask: Request
+    dismiss: Dismiss
+    follow_up: Follow up
+    front: Move to front
+    reask: Request again
+    resume: Resume
+    resume_all: Resume all
+    stop: Stop
+    stop_all: Stop all
+tool:
+  label:
+    bash: Shell
+    bash_output: Shell output
+    coworker: Coworker
+    coworker_kind: "Coworker {kind}"
+    edit: Edit
+    glob: File search
+    grep: Content search
+    kill_shell: Kill shell
+    monitor: Monitor
+    notebook_edit: Notebook edit
+    read: Read
+    schedule_wakeup: Schedule wakeup
+    send_message: Send message
+    server_chrome_devtools: Browser
+    server_toolbook: Toolbook
+    server_web: Web
+    skill: Skill
+    task_output: Wait for branch
+    task_stop: Stop branch
+    todo_write: Write to-dos
+    tool_search: Tool search
+    web_fetch: Read web page
+    web_search: Web search
+    workflow: Workflow
+    write: Write
+usage:
+  error:
+    read_failed: "Couldn't load usage."
+  label:
+    claude_accounts: Claude accounts
+    figure: "{label} {text}"
+    kind_cache_read: Cache read
+    kind_cache_write: Cache write
+    kind_input: Input
+    kind_output: Output
+    reset_at: "Resets {month}/{date} ({weekday}) {hour}:{minute}"
+    reset_in: "Resets in {time}"
+    reset_passed: Reset passed
+    total: "Total {tokens}"
+    unsplit: "Unsplit {runs} runs {tokens}"
+    until_days: "{d}d"
+    until_days_hours: "{d}d {h}h"
+    until_hours: "{h}h"
+    until_hours_minutes: "{h}h {m}m"
+    until_minutes: "{m}m"
+    until_soon: soon
+    weekday_fri: Fri
+    weekday_mon: Mon
+    weekday_name: "{day}"
+    weekday_sat: Sat
+    weekday_sun: Sun
+    weekday_thu: Thu
+    weekday_tue: Tue
+    weekday_wed: Wed
+    window_limit: "{limit} · {label}"
+    window_primary: Primary
+    window_secondary: Secondary
+    window_session: Session
+    window_weekly: Weekly
+    window_weekly_overage: Weekly + overage
+    balance: Balance
+    balance_seen: "{wait} ago"
+    requests_day: Requests per day
+    requests_free_models: Free model requests
+    requests_left: "{left} / {limit} left"
+  status:
+    loading: Loading usage…
+    no_accounts: No accounts added
+    no_info: No usage read
+  title:
+    remaining: Remaining usage
+    remaining_of: "Remaining usage · {name}"
+job:
+  error:
+    action_wrong: "This route doesn't accept that action."
+    add_anchor: A new task can only go next to a waiting build task.
+    after_not_open: "The item that an on-hold item resumes after isn't another unfinished item."
+    agency: "bmo-job couldn't reach the agency."
+    agent_name_taken: An agent with that name already exists.
+    append_empty: The note to add is empty.
+    back_here_needs_path: A worker brought back to this machine needs a path on this machine.
+    banned_terms: "It contains wording we've agreed not to use."
+    base_on_node: "A base worker on a node can't be given a node checkout."
+    before_and_after: "Before and after can't both be set."
+    body_not_json: "The request body isn't JSON."
+    brain: "bmo-job couldn't reach the Brain."
+    brief_agent_only: Only the chat agent can rewrite a brief.
+    brief_empty: The brief is empty.
+    brief_needs_change: A brief must come with what changed.
+    brief_not_english: The brief and what changed must be written in English.
+    build_move: "The build task or its anchor isn't waiting, so it can't be moved."
+    build_running: The build task is running.
+    builder_running: "A running builder turn can't be skipped."
+    builtin_not_removed: "Built-in workers can't be removed."
+    builtin_path_fixed: "A built-in worker's path can't be moved."
+    builtin_stays_here: "Built-in workers can't be placed on a node."
+    chat_wrong: "That isn't the room's chat number."
+    checkout_already_on_node: That node already has a checkout.
+    checkout_busy: "A Job is running in the checkout's worker."
+    checkout_held: Work is already going on in the checkout.
+    checkout_held_by_order: "Other work orders hold the checkout, and the worker has no free checkout."
+    checkout_name_long: "The node checkout's name breaks the worker naming rule."
+    checkout_not_git: "The checkout isn't a git repository."
+    checkout_not_on_node: That node has no checkout.
+    checkout_not_removed: "Couldn't clear the checkout's worker."
+    checkout_of_done: "A finished work order's checkout can't be changed."
+    close_builder_running: "A builder turn is running, so it can't be closed."
+    close_reason_size: The closing reason must be 1 to 2000 characters.
+    closing_refused: "The closing report or open issues didn't pass the closing conditions."
+    commit_already_live: That commit is already live.
+    commit_not_on_main: "The commit isn't on main, so a deploy won't make it live."
+    condition_both: "An on-hold item's resume condition takes either an item or a deploy, not both."
+    control_turn_untouched: "Plan, synthesis and closing turns can't be edited."
+    cowork_needs_item: Cowork needs an item to run.
+    cowork_needs_switch: Cowork must be turned on or off.
+    coworker_tier_wrong: "That tier isn't available to the coworker."
+    database: "bmo-job couldn't read or write its database."
+    dev_command_lines: "The worker's dev server command must be one line."
+    dev_command_long: "The worker's dev server command is too long."
+    document_exists: A result document already exists at that path.
+    done_task_edit: "Don't edit a finished task; run it again instead."
+    done_while_held: "An item waiting to resume or stopped can't be closed as done."
+    draft_only: "A work order past the draft stage can't be turned back into a draft."
+    edit_job_running: "A Job is working with the content you're rewriting."
+    edit_no_part: The item has no such part.
+    edit_nothing: Choose at least one part to edit.
+    edit_order_started: The work order has already started; only a draft can be rewritten.
+    edit_part_empty: The part to edit is empty.
+    field_missing: A value is missing from the request.
+    field_not_text: "A value in the request isn't text."
+    field_wrong: A value in the request is missing or malformed.
+    file_empty: "There's an empty file."
+    file_too_large: A file is larger than the allowed size.
+    filing_parts_missing: Parts that make up the item are missing.
+    from_todo_unread: "Couldn't read the source as an item and strand number."
+    gate: "bmo-job couldn't reach the gate."
+    has_support: "A worker with support workers or a node checkout can't be placed on a node."
+    history_edit: "Tasks from past rounds can't be edited."
+    history_rerun: "Tasks from past rounds can't be run again."
+    history_restore: "Tasks from past rounds can't be restored."
+    hold_not_taken: "The item is already finished, merged or on hold."
+    hold_takes_no_after: "Simply putting on hold can't name an item to resume after."
+    impact_unread: "The impact grounds don't read as a single JSON object."
+    instruction_size: A task instruction must be 1 to 30000 characters.
+    item_absent: No such item.
+    item_closed_already: "The item is already finished, so the note wouldn't reach anyone."
+    item_frozen: "This value can't be changed because the running Job read it when it started.\nStop the Job to change it."
+    item_launch_takes_no_why: "Running an item doesn't take a one-line reason."
+    item_merged: "This item was merged into another, so what you write goes to that item."
+    item_not_approved: "The item isn't approved to run."
+    item_number_wrong: "The item number isn't an integer."
+    itemless_needs_why: A run without an item needs a one-line reason.
+    job_cannot_unhold: "A Job can't take an item off hold."
+    job_model_wrong: "The Job model given isn't a tier, provider or model."
+    job_range_form: A Job range must be a first and a last Job.
+    judgement_empty: The judgement is empty.
+    judgement_needs_title_and_room: A row raised as a judgement needs a title and a room.
+    judgement_with_conversation: "A row raised as a judgement can't include parts of a conversation."
+    keepalive_count_form: The keepalive count must be an integer of 0 or more.
+    keepalive_over_count: The keepalive count exceeds the number of support workers.
+    label_empty: "The worker's label is empty."
+    label_long: "The worker's label is too long."
+    label_value_unknown: "The value given isn't in the list of allowed values."
+    launch_beyond_count: This support worker is beyond the count the base worker set.
+    launch_held_by_machine: This machine has no room to start more Jobs.
+    launch_item_absent: "There's no item to run."
+    launch_item_at_work: "The item is already being worked on, so it won't be run twice."
+    launch_item_done: The item is already finished.
+    launch_item_held: The item is on hold.
+    launch_item_merged: The item was merged into another.
+    launch_item_other_worker: The item belongs to another worker.
+    launch_item_unapproved: "The item isn't approved yet."
+    launch_needs_launcher: Who started the run is required.
+    launch_waits: "The last run died before reaching the work, so there's still time to wait."
+    made_path_blocked: "Something other than a folder is where the new worker's folder would go."
+    manager_unreachable: "Couldn't reach the service manager that starts Job units."
+    mark_needs_status: A status mark needs a status line.
+    merge_finished: "Finished items can't be merged or merged into."
+    merge_itself: "An item can't be merged into itself."
+    merge_needs_items: A merge needs the item to merge and the item to merge into.
+    merge_running: "An item a Job is working on can't be merged."
+    merged_finished: The item is already finished along with the item it was merged into.
+    message_not_archived: The quoted message is no longer in the room.
+    middle_step_closes: "A middle step of a work order can't close the item. The last turn closes it."
+    model_needed: The model setting must be auto or a model name.
+    model_tier_wrong: "That model tier doesn't exist."
+    move_kinds: "A task can't be moved between tasks of another kind."
+    no_deploy_hold: "There's no deploy wait to release."
+    no_job_model: None of the enabled providers offers a Job model.
+    no_node: No such node.
+    no_such_item: No such item.
+    no_such_note: "There's no note with that number."
+    no_such_strand: The open issue has no strand with that number.
+    no_such_worker: No such worker.
+    no_unfinished: There are no open issues to resolve.
+    no_waiting_commits: This item has no commits waiting for deploy.
+    no_worker: No such worker.
+    node_path_form: A node path must start with / or ~/.
+    node_takes_no_jobs: "That node doesn't take Jobs."
+    not_a_base: "That isn't a base worker."
+    not_a_commit: "The commit given isn't a commit in this repository."
+    not_built: "The running bmo-job doesn't include this action."
+    not_held: "The item isn't on hold."
+    not_merged: "The item isn't merged."
+    not_restable: "Workers the owner didn't add can't be rested or woken."
+    note_needs_number: A note can only be deleted by its number.
+    nothing_to_change: "There's nothing to change."
+    nothing_to_edit: "There's no instruction or model to edit."
+    order_active: A step of the work order is already running.
+    order_and_model: "Couldn't read the work order or the model."
+    order_closing: "The work order is closing and isn't finished yet."
+    order_done: "A finished work order isn't run again."
+    order_draft: "It's a draft that hasn't run yet."
+    order_finished: "A finished work order isn't reopened."
+    order_paused: "The work order is paused, waiting its turn in the worker's line."
+    order_step_holds: "A work order step can't put its own item on hold now."
+    path_absent: "The worker's path doesn't exist."
+    path_empty: "The worker's path is empty."
+    path_not_absolute: "The worker's path isn't absolute."
+    path_not_directory: "The worker's path isn't a folder."
+    phase_wrong: "This task isn't run again at the current stage."
+    pin_wrong: "The agency didn't accept the worker's pinned value."
+    plan_model_form: A model must be written as a provider and a model.
+    plan_no_stages: The plan has no list of stages.
+    plan_not_object: "The plan isn't a JSON object."
+    plan_part_empty: A part of the plan is empty or too long.
+    plan_role_wrong: "The task's role isn't an existing role."
+    plan_stage_empty: A stage has no tasks.
+    plan_too_many_builds: "The synthesis builds more than it's allowed to."
+    preamble_long: "The worker's preamble is too long."
+    priority_needs_number: Priority must be a number.
+    prompt_not_written: "Couldn't write the text for the Job."
+    provider_off: "This run's provider is turned off."
+    question_absent: No such question.
+    question_answer_wrong: An answer must be either an option number or your own words.
+    question_banned_terms: "It contains wording we've agreed not to use."
+    question_item: The question has no item.
+    question_option_empty: An option must be one line with content.
+    question_options: A question needs at least two options.
+    question_outside_hosting: It hands over a page hosted outside the deployment.
+    question_recommend: The recommendation must be one of the option numbers.
+    question_room: "A question goes only to the owner's private chat, without naming a room."
+    question_takes_no_talk: "This question doesn't take replies."
+    question_talk_number: Name a question number to leave a reply.
+    question_talk_say: The reply is empty.
+    question_talk_settled: This question already has an answer.
+    question_text: "The question doesn't say what it asks."
+    question_wait: "The wait time isn't a number of milliseconds."
+    question_why: "There's no reason for asking instead of deciding."
+    raised_by_needed: A row raised as a judgement needs the item that raised it.
+    raised_by_not_item: "The item named as raising the row doesn't exist."
+    reason_required: Enter a reason.
+    reason_without_hold: A reason can only be sent when putting on hold.
+    receiver: "bmo-job couldn't reach the receiver."
+    recover_job_known: This Job is already in the work order.
+    recover_job_running: "This Job hasn't finished yet."
+    recover_no_builder: The range has no builder turn to read the goal and instruction from.
+    recover_no_jobs: The range has no Jobs of this item.
+    recover_no_success: The range has no successful step.
+    recover_not_done: "An unfinished work order isn't recovered."
+    recover_not_step: "This Job isn't a step of this item's work order."
+    recover_prompt_unread: "Couldn't read the role and instruction from the Job's text."
+    recover_task_twice: This task is already in the work order.
+    reopen_not_done: "An unfinished work order isn't reopened."
+    reorder_stale: The queue changed in the meantime. Move it again in the reloaded order.
+    repairs_chain_full: The repair chain has used up its set number of tries.
+    repairs_cycle: "An item repairing this item can't be linked back as this item's repair."
+    repairs_itself: "An item can't be linked as its own repair."
+    repairs_needs_target: A repair link must name an item or remove the link.
+    repairs_on_filing: "A repair link can't be given when filing."
+    requester_lacks: The requester lacks the needed permission or an enabled Claude account.
+    research_over: "The research stage has passed, so research tasks can't be run again."
+    resolve_needs_why: Resolving an open issue needs a reason.
+    resume_not_held: "The work to resume isn't approved, is on hold or was merged."
+    resume_not_stopped: "The work to resume isn't stopped."
+    route_absent: bmo-job has no such route.
+    runner_depth_wrong: "The runner doesn't take that depth."
+    runner_not_launched: "Couldn't start the runner."
+    runner_unknown: No such runner.
+    running_task_edit: "A running task's instruction can't be changed."
+    runs_still_alive: "The runs you asked to stop haven't ended yet."
+    same_anchor: "A task can't be moved relative to itself."
+    server: "bmo-job couldn't reach its own server."
+    session_launches_item: "A chat session doesn't run items."
+    single_model_provider: "A coworker can't be requested from a provider that offers only one model."
+    skip_reason_size: The skip reason must be 1 to 2000 characters.
+    source_left_nothing: The source item has no open issues left.
+    source_not_item: "The item named as the row's source doesn't exist."
+    stage_move_past: "The current stage and the ones before it can't be moved."
+    stage_move_pending: "A stage with tasks that aren't waiting can't be moved."
+    stage_not_yet: "The task's stage hasn't come yet."
+    stage_running: A task is running in the current stage.
+    stop_done_item: "A finished item can't be stopped."
+    stop_here_closed: The item is already finished or merged.
+    stop_here_held_takes_no_reason: "An item already on hold can't be given a reason or resume condition again."
+    stop_here_needs_reason: Leaving where a working item stopped needs a reason.
+    stop_here_needs_report: Leaving where it stopped needs a report.
+    stop_here_not_held: The item is neither on hold nor being worked on.
+    stop_needs_why: Stopping needs a reason.
+    stop_reason_size: The stop reason must be 1 to 2000 characters.
+    strand_not_named: An open issue with several strands needs a strand number.
+    support_changed_by_base: "A support worker's settings follow the base worker's."
+    support_count_range: The support worker count must be an integer from 0 to the maximum.
+    support_follows_base: "A support worker can't be placed apart from its base worker."
+    support_has_no_settings: "A support worker can't have its own support settings."
+    support_name_long: "The base worker's name is too long, so the last support worker's name breaks the rule."
+    support_removed_by_count: "Don't remove support workers; lower the base worker's count instead."
+    takes_no_files: "This request doesn't take files."
+    talk_busy: Still answering the previous message.
+    talk_item_absent: "There's no item to talk about."
+    task_absent: The work order has no such task.
+    task_already_skipped: This task was already skipped.
+    task_move: "Move the whole stage, not a single task."
+    task_needs_room_and_work: A room to run in and the work to do are required.
+    task_not_skipped: "This task wasn't skipped."
+    task_pending: This task is already waiting.
+    task_running: The task is running.
+    testbed: "bmo-job couldn't reach the testbed."
+    too_many_files: There are more files than allowed.
+    unfinished_resolved_already: The open issue is already resolved.
+    unit_not_started: "The Job unit didn't start."
+    web: "bmo-job couldn't reach the web console server."
+    why_one_line: The reason must be one line.
+    wind_down_needs_why: Waiting to resume needs a reason.
+    wind_down_not_taken: "The item is already finished, merged or stopped."
+    worker_is_support: A support worker can only be chosen through its base worker.
+    worker_name_form: "The new worker's name breaks the worker naming rule."
+    worker_needs_name: Choose a worker or clear the choice.
+deploy:
+  status:
+    failed: Deploy failed
+    hold: Waiting to deploy
+    line: Waiting in deploy line
+    live: Deployed
+    newer: New version
+    refused: Deploy refused
+    rolled_back: Deploy failed · Rolled back
+    running: Deploying
+    withdrawn: Deploy stopped
+  action:
+    collapse_items: Collapse items
+    expand_items: Expand items
+    reload: Refresh
+  error:
+    log_failed: "Couldn't read the log."
+  label:
+    commit: Commit
+    exit_code: "Exit code {code}"
+    items: Items
+    line: Waiting in line
+    line_more: "{unit} and {n} more"
+    log: Log
+    part_check: Check
+    part_pack: Pack
+    part_snapshot: Snapshot
+    rest: "and {n} more"
+    stage_after: Wrap-up
+    stage_backup: Backup
+    stage_before: Pre-switch steps
+    stage_build: Build
+    stage_check: Checks and tests
+    stage_restart: Restart services
+    stage_rollback: Rollback
+    stage_starting: Preparing
+    stage_stay_up: Health check
+    stage_tree: Preparing release
+    stages: Stages
+    state_ahead: Upcoming
+    state_current: In progress
+    state_done: Done
+    state_failed: Failed
+    step_failed: "{step} exit code {code}"
+    step_hung: "{step} stopped · No output"
+  message:
+    log_empty: No log
+documents:
+  label:
+    from_translation: From translation
+    hit_place: "{title} · line {line}"
+    kind: Type
+    language_en: English
+    language_ko: Korean
+    other_candidates: Other candidates
+    root_agents: Agent instructions
+    root_rules: Rulebook
+    root_system_prompts: System prompts
+    root_unread: "Can't be read"
+    scope_all: All documents
+    scope_this: This document
+    translation: Translation
+    translation_of: "{language} translation"
+    view_rendered: Rendered
+    view_source: Source
+    view_split: Split view
+    writer: Author
+    writer_deploy: Deploy
+    writer_person: Person
+  status:
+    documents_found: "{n} documents"
+    list_loading: Loading list…
+    loading: Loading document…
+    no_documents_found: No documents found
+    no_places_found: No matches found
+    no_talk: No conversation
+    no_toc: No table of contents
+    opening: Opening document…
+    seeking: Searching…
+    talk_loading: Loading conversation…
+    translating: Translating
+    translation_failed_parts: "{n} parts failed to translate"
+  action:
+    ask_agent: "Ask {agent}"
+    list: List
+    list_collapse: Close list
+    list_expand: Open list
+    remove_quote: Remove quote
+    retry_translation: Request again
+    toc_collapse: Close contents
+    toc_expand: Open contents
+  aria:
+    body_hits: Lines found in the text
+    document_list: Document list
+    jump_quote: Go to quoted passage
+    jump_quote_named: "Go to quoted passage: {heading}"
+    open_documents: Open documents
+    talk_log: Conversation history
+    toolbar: Document toolbar
+  error:
+    editor_failed: "Couldn't load the source editor."
+    talk_owner_only: Only the owner can talk about documents.
+    list_failed: "Couldn't read the document list."
+    no_such_document: Document not found.
+    question_too_long: "The question is too long. You can enter up to {n} characters."
+    read_failed: "Couldn't read the document."
+    search_failed: "Couldn't search the documents."
+    search_too_long: The search term is too long.
+    seek_empty: Enter what you want to find.
+    seek_failed: "Couldn't find where your question points."
+    talk_busy: Still answering your previous message.
+    talk_read_failed: "Couldn't load the conversation."
+    too_large: The document is too large to open.
+    translation_ask_failed: "Couldn't request a translation."
+    translation_read_failed: "Couldn't read the translation."
+    translation_unavailable: "Translation isn't available yet because there's no way to reach the translator."
+    translation_unreachable: "Couldn't connect to the translator, so a translation can't be requested."
+  message:
+    choose_document: Select a document.
+    root_unread_agency: "This document belongs to the agency. The agency doesn't yet offer whole documents, so it can't be read in this console."
+    translation_unavailable: "The translator doesn't provide translations to this console yet, so it can't be read in translation."
+    unanswered_limit: "The usage limit was reached, so this message wasn't answered."
+    unanswered_other: No answer was received for this message.
+    unanswered_outage: "The model provider didn't respond, so this message wasn't answered."
+    unanswered_resting: "The chat agent is resting, so this message wasn't answered."
+    unanswered_silent: The chat agent gave no answer to this message.
+  placeholder:
+    find: Find documents
+    seek: Ask what to find
+  title:
+    seek: Find by question
+    talk: Conversation
+briefing:
+  error:
+    bad_id: "The voice briefing number isn't valid."
+    engine_unreachable: "Couldn't connect to the voice engine, so it can't be read aloud."
+    line_not_found: "Couldn't find the line to read."
+    no_engine: No voice engine is set up for this console.
+    not_found: "That voice briefing can't be found."
+    not_made: "Couldn't create the voice briefing."
+    one_switch: Only one switch can be changed at a time.
+    play_failed: "Couldn't play the voice briefing."
+    settings_read_failed: "Couldn't read voice briefing settings."
+    settings_write_failed: "Couldn't change voice briefing settings."
+    switched_off: "Voice briefing is turned off, so it can't be read aloud."
+    voiceless: "This agent has no voice, so it can't be read aloud."
+  action:
+    listen: Play
+    mute: Mute on this device
+    open: Go to line
+    pause: Pause
+    play_trial: Preview
+    reset_position: Reset
+    stop: Stop listening
+    stop_trial: Stop
+    unmute: Unmute on this device
+  label:
+    pixels: px
+    played: "{at} / {length}"
+    position_side: Position
+    position_top: Height
+    side_left: Left
+    side_right: Right
+    switch_all: All voice briefings
+    switch_all_note: "When off, neither summary briefings nor full readings of lines are made."
+    title: Voice briefing
+  status:
+    making: Creating voice briefing.
+    settings_loading: Reading voice briefing settings…
+    stopped: Voice briefing stopped.
+home:
+  label:
+    bmo_link: Chat agent connection
+    loose_job: Job run without an item
+  status:
+    bmo_answering: Chat agent is answering
+picture:
+  action:
+    choose: Choose photo
+    clear: Revert to provider photo
+  error:
+    failed: "Couldn't change the photo."
+    no_number: "This agent doesn't have a number yet, so it can't have a photo."
+    not_a_picture: "This file can't be read as a photo."
+    too_large: The photo file is too large.
+  label:
+    agent: Agent photo
+    own: Profile photo
+    preview_note: "Once saved, this photo is shown instead of the provider's photo."
+    room: Room photo
+  message:
+    cleared: "Reverted to the provider's photo."
+    saved: Photo changed.
+admin:
+  aria:
+    tabs: Admin tabs
+bmo_profile:
+  label:
+    company_default: Default BMO
+    name: Name
+    call_names: Call names
+    call_name_new: Name to add
+    picture: Profile photo
+    persona: Persona
+    permission: BMO settings permission
+    default_value: "{value} (default)"
+    from_own: Set by you
+    from_company: Set by company
+    allow: Allow
+    deny: Block
+    inherit: Follow parent organization
+    follows_allowed: "Allowed, following parent organization"
+    follows_denied: "Blocked, following parent organization"
+    persona_count: "{count}/{max} characters"
+    no_companies: There are no companies you can set up.
+    no_call_names: No call names
+    company_picture_note: "Once saved, this photo becomes the BMO photo for people in the company."
+    own_picture_note: "Once saved, this photo becomes your BMO's photo."
+    reset_title: Reset your BMO?
+    reset_description: "Clears the name, call names, photo and persona you set, and follows the company settings."
+  aria:
+    call_name_remove: "Remove {name}"
+    tree: BMO settings permission org chart
+  action:
+    reset: Reset
+    picture_remove: Remove photo
+    picture_company: Revert to company photo
+  status:
+    loading: Loading BMO settings…
+  message:
+    saved: Saved.
+    reset: Reset.
+    picture_removed: Photo removed.
+    picture_company: Reverted to the company photo.
+  error:
+    withheld: "You don't have permission to set up your own BMO."
+    bad_profile: "The name, call names or persona isn't in the right format."
+    call_name_taken: That name already exists.
+    call_name_comma: "Call names can't contain commas."
+    call_names_full: You can have up to 10 call names.
+    forbidden: "You don't have permission to change this setting."
+    not_found: Company or organization not found.
+    read_failed: "Couldn't load BMO settings."
+    failed: "Couldn't save BMO settings."
+apps:
+  label:
+    tab: "Apps & tools"
+    none: No apps
+    "on": "On"
+    "off": "Off"
+    follow_above: Follow parent organization
+    follow_platform: Follow global settings
+    follows_above_on: "On, following parent organization"
+    follows_above_off: "Off, following parent organization"
+    follows_platform_on: "On, following global settings"
+    follows_platform_off: "Off, following global settings"
+    follows_organization: Follows organization
+    own: Set by you
+    locked_above: Locked by parent organization
+    locked_organization: Locked by organization
+    not_offered: Not offered
+    offer: Offer
+    withhold: "Don't offer"
+    state: Status
+    platform: Global settings
+    by_company: Offered per company
+    offered_everywhere: Offered to all companies
+    offered_nowhere: Not offered
+    offered_to: "Offered to {count}"
+    withheld_from: "{count} excluded"
+    recalled: Emergency recalled
+  action:
+    lock: Lock for sub-organizations
+    unlock: Unlock
+    follow: Revert
+    settings: Settings
+    recall: Emergency recall
+    recall_confirm: Recall
+    lift: Lift recall
+  title:
+    recall: "Turn off the {app} app everywhere?"
+  message:
+    recall: "It turns off right away for every company and person, and no one can turn it on until the recall is lifted.\nValues set by companies, organizations and people are kept and apply again once the recall is lifted."
+  status:
+    loading: Loading apps…
+  error:
+    "off": This app is turned off by organization settings.
+    locked: "This app is locked by the parent organization and can't be changed."
+    forbidden: "You don't have permission to change this app's settings."
+    no_app: App not found.
+    read_failed: "Couldn't load app settings."
+    failed: "Couldn't save app settings."
+personal_apps:
+  label:
+    none: No personal apps
+    unreached: "The PC isn't connected, so earlier versions can't be checked."
+    updated: "Updated {time}"
+    version: Version
+    own_data: Uses only its own data
+    network: "Uses the network {addresses}"
+    secrets: "Uses secrets {names}"
+  action:
+    back: Back to the earlier version
+  message:
+    back_confirm: Go back to the earlier version?
+    back_effect: The current version is deleted from the PC.
+    delete_confirm: Delete the personal app?
+    delete_effect: 'BMO can no longer use this app.
+
+      Its source and data stay on the PC.'
+  status:
+    loading: Loading personal apps…
+  error:
+    read_failed: "Couldn't load the personal apps."
+    back_failed: "Couldn't go back to the earlier version."
+    delete_failed: "Couldn't delete the personal app."
+    no_runner: "There's no PC to run the personal app."
+    unreached: "Can't connect to the PC.\nCheck that the PC is on."
+    no_older: No earlier version is left on the PC.
+    refused: "The PC didn't accept this version."
+    not_found: "Couldn't find the personal app."
+    no_user: "There's no user account, so personal apps can't be used."
+supply:
+  title:
+    logins: Supply logins
+    keys: Supply keys
+    order: Supply order
+    usage: Usage this month
+    policy: Supply policy
+    plan: Plan
+    platform_policy: Platform default policy
+    audit: Audit log
+    key_add: Add supply key
+    credit_grant: Grant credits
+    policy_set: Set supply policy
+    plan_add: Add plan
+    plan_edit: Edit plan
+    plan_applied: Applied plan
+    plan_exposed: Visible plans
+  label:
+    note: Login and key values never appear on this screen. Only names and statuses are shown.
+    tab: Supply
+    plans: Plans
+    plans_none: No plans
+    credits: Credits
+    source_personal: Personal supply
+    source_global: Global supply
+    source_org_credits: Organization credits
+    source_personal_credits: Personal credits
+    source_organisation: Organization supply
+    source_stop: Stop
+    reason_not_in_plan: Not in plan
+    reason_blocked_by_organisation: Blocked by organization
+    reason_blocked_by_administrator: Blocked by administrator
+    locked: Fixed by global settings
+    platform_off: Off by global settings
+    order_locked: Order fixed by global settings
+    overridable: Allow personal settings
+    fixed: Fixed
+    order: Order
+    source_on: "On"
+    source_off: "Off"
+    monthly_cap: Monthly cap
+    owner_shared: Shared
+    owner_personal: "Personal · {name}"
+    plan_applied_none: No applied plan
+    plan_exposed_none: No visible plans
+    plan_term: Term
+    plan_term_line: "From {since} to {end}"
+    plan_applied_locked: "A plan in use can't be hidden"
+    plan_choice_none: None
+    road: Provider
+    road_claude: Claude
+    road_codex: Codex
+    road_deepseek: DeepSeek
+    road_openrouter: OpenRouter
+    secret: Secret
+    secret_note: The value stays in the secret store; only its name is passed here.
+    secrets_none: Your secret store has no secrets yet.
+    logins_none: No supply logins
+    keys_none: No supply keys
+    usable: Available
+    usable_off: Not in use
+    login_off: "Off"
+    login_needed: Login required
+    window_full: Window full
+    refused: Key refused
+    personal_credit_cap: Personal credit monthly cap
+    personal_credit_cap_note: The most that can be spent from personal credits in a month.
+    cap_none: No cap
+    usage_none: No usage
+    global_remaining: Supply left on plan
+    personal_balance: Personal credit balance
+    plan_none: No plan
+    credits_count: "{n} credits"
+    won: "₩{n}"
+    policy: Policy
+    follows_above: Follows parent organization
+    follows_unit: Follows organization
+    member_credit_cap: Personal credit monthly cap
+    plan_name: Name
+    price: Price
+    price_whole: "Price per period, in won"
+    period: Period
+    period_day: Daily
+    period_week: Weekly
+    period_month: Monthly
+    period_quarter: Quarterly
+    period_year: Yearly
+    included: Term included
+    credits_usable: Credits usable
+    credits_usable_on: Credits usable
+    credits_usable_off: Credits not usable
+    balance: Balance
+    rate: Conversion rate
+    rate_note: The rate at which 1 US dollar of cost converts to credits.
+    reservation: Reservation credits
+    reservation_note: The unit by which each run opens and grows its reservation.
+    enforce: Enforce supply limits
+    enforce_note: "When off, usage is only recorded and no run is stopped by supply."
+    scope: Target
+    scope_personal: Personal
+    scope_organisation: Organization
+    owner: Target
+    amount: Amount
+    words: Note
+    words_placeholder: Optional
+    kind_grant: Grant
+    kind_consume: Consume
+    kind_reserve: Reserve
+    kind_capture: Use
+    kind_refund: Refund
+    kind_debit: Debit
+    kind_policy: Policy
+    kind_settings: Settings
+    kind_plan: Plan
+    kind_named: "Unknown code `{kind}`"
+    owner_user: User
+    owner_organisation: Organization
+    ledger_none: No records
+    audit_none: No audit records
+    personal: Personal supply
+    personal_none: No personal supply
+    providers: Personal supply providers
+    resolved_order: Supply order
+  action:
+    login_add: Add supply login
+    login_again: Log in
+    key_add: Add supply key
+    open_store: Go to secret store
+    policy_set: Set policy
+    policy_delete: Delete policy
+    credit_grant: Grant credits
+    grant: Grant
+    plan_add: Add plan
+    plan_change: Change
+    plan_apply: Apply
+    more: Load more
+  aria:
+    login_switch: "Turn on supply login {name}"
+    key_switch: "Turn on supply key {name}"
+    source_switch: "Use {name} supply"
+    source_overridable: "Allow personal settings for {name}"
+    order_overridable: Allow personal settings for order
+    plan_exposed: "Show {name}"
+  status:
+    loading: Loading supply info…
+    ledger_loading: Loading ledger…
+    audit_loading: Loading audit log…
+  message:
+    login_delete: "Delete supply login {name}?"
+    login_delete_effect: Runs that used this login will move to the next in the supply order.
+    key_delete: "Delete supply key {name}?"
+    key_delete_effect: The secret itself stays in the store; only the supply this key provided goes away.
+    policy_delete: Delete the supply policy?
+    policy_delete_effect: "This organization will follow its parent organization's policy."
+    policy_delete_effect_user: "This person will follow their organization's policy."
+    plan_delete: "Delete plan {name}?"
+    plan_delete_effect: No one new will be able to buy this plan.
+  placeholder:
+    find_person: Find people
+  error:
+    read_failed: "Couldn't load supply info."
+    logins_failed: "Couldn't change the supply login."
+    signin_failed: "Couldn't start the login."
+    key_failed: "Couldn't change the supply key."
+    order_failed: "Couldn't save supply settings."
+    policy_failed: "Couldn't save the supply policy."
+    grant_failed: "Couldn't grant credits."
+    plan_failed: "Couldn't save the plan."
+    platform_failed: "Couldn't save platform supply settings."
+    platform_read_failed: "Couldn't load platform supply settings."
+    ledger_failed: "Couldn't load the credit ledger."
+    audit_failed: "Couldn't load the audit log."
+    forbidden: "You don't have permission to view this."
+    source_not_allowed: "Some supply sources aren't allowed."
+    not_in_plan: "This supply source isn't in the plan."
+    blocked_by_organisation: "This supply source isn't allowed by the organization."
+    blocked_by_administrator: "This supply source isn't allowed by the administrator."
+    locked_by_platform: "Supply sources or order fixed by global settings can't be changed."
+    plan_scope: Only organization plans can be shown to an organization.
+    unknown_plan: Plan not found.
+    plan_applied: "A plan in use can't be hidden."
+    plan_not_exposed: "A plan not shown to this organization can't be applied."
+    not_in_force: "Supply isn't turned on for this deployment yet."
+    no_agency: "No agency is set for this deployment, so personal supply can't be known."
+    upstream_failed: "Another unit didn't respond, so supply info couldn't be loaded."
+    bad_request: "The supply request can't be processed."
+    unknown_road: Unknown provider.
+    key_taken: This provider already has a key.
+    key_gone: Supply key not found.
+    node_off: "The device isn't connected, so the login can't start."
+    secret_name: "The secret name isn't valid."

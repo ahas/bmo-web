@@ -1,0 +1,17 @@
+# Translated from server/lang/ko/laya-agreement.yaml; its comments say what each value is.
+usage: |-
+  usage: bmo gate laya-agreement [--stage <门控>] [--db <地址>] [--json]
+
+  按门控显示 Laya 与 LLM 判定的一致率：配对数、失败数、整体一致率，以及每个 τ 下
+  Laya 将承担的份额（覆盖）及其中的一致率。按候选分别判定的门控以题目而非配对计数，
+  并另外显示 Laya 回答的题目中替门控做出决定的份额（Laya 决定）。带安全判定的门控另外显示 Laya 判为安全的数量，
+  以及其中 LLM 也判为安全的比例。
+  不带 --db 时读取本机设置所指的归档库。只读不写。
+  --json 将各门控的数值原样输出为 JSON。
+none: "还没有记录的 Laya 判定。"
+gate: "{stage}：{counted} · 失败 {failures} · 一致 {agreement}{settled}"
+questions: "题目 {count}"
+pairs: "配对 {count}"
+settled: " · Laya 决定 {share}"
+head: "  τ      覆盖     一致"
+safe_head: "     安全判定  其中 LLM 也判安全"

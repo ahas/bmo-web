@@ -1,0 +1,50 @@
+# What the voice briefing says where a person or an agent reads it (docs/voice-briefing.md). Each `{name}` is
+# filled in with what it names.
+
+# Every briefing refused while the owner has the switch off, and one of an agent whose row names no voice, by its
+# {label}.
+switched_off: "ボイスブリーフィングはオフになっています。{owner_subject} コンソールで再びオンにするまで、音声では送りません。このメッセージはテキストだけで伝え、再送しないでください。"
+voiceless: "{label} には声がないため、音声では送りません。このメッセージはテキストだけで伝え、再送しないでください。"
+
+# What a briefing's run is called where a person watches it, by its {room}.
+title: "{room} 音声ブリーフィング"
+
+# A launch refused before anything exists: one nobody signed, one with no words, and one whose run, by its
+# {unit}, never came up.
+unsigned: "音声ブリーフィングには起動した人の指定が必要です: セッションからは --by chat:<chatId>、それ以外は起動した人の名前。"
+wordless: "音声ブリーフィングには話す内容が必要です: 内容は stdin から読むか、--text で渡します。"
+not_up: "音声ブリーフィングのユニット {unit} が起動しなかったため、何も話していません。"
+
+# How the hand tool and the briefing launcher are called, said with a refusal of what they were asked.
+usage_hand: "使い方: bmo voice say --text '<内容>' [--chat <chatId>] [--caption <text>] [--file <path.ogg>] [--voice <名前>]"
+usage_brief: "使い方: bmo voice brief --chat <chatId> --by chat:<chatId> [--emotion <感情>] [--title '<一行>'] [--text '<内容>'] [--document <searchId>]  (内容は stdin から読みます)"
+
+# A switch change that names neither switch, or both.
+one_switch: "オンかオフか (on または autoplay のどちらか一つ、true または false) を送ってください。"
+
+# The notes a briefing's run writes in its log as it goes, which a person watching the run reads.
+runner:
+  # The run's first note: the {count} of characters it was handed and its {chat}.
+  started: "{count}字 · chat {chat}"
+  # The polishing gate's answer to a full reading: the {seconds} it took and the {script} it wrote, or the
+  # {fault} that leaves the mechanical script to be read.
+  polished: "整え {seconds}秒: {script}"
+  unpolished: "整え {seconds}秒で失敗、機械台本で読みます: {fault}"
+  # The reading gate's failure, by its {fault}.
+  unread: "読みゲート失敗: {fault}"
+  # What the voice is given: the {reading} the gate wrote, or the line as it came where it had nothing to write.
+  read: "読み: {reading}"
+  read_as_written: "読み: 音訳するものがないため原文のまま"
+  # A line handed to the voice node list, by its {voice}.
+  to_node: "{voice}: ノードで話します"
+  # A line a node spoke: the {node}, the waits {how} it came to it by, the {seconds} the line lasts, the
+  # {speak} seconds it took to say and the {load} seconds its weights took, and its {checkpoint}.
+  node_spoke: "ノード {node}{how}: {seconds}秒分 · 発話 {speak}秒 · 重み {load}秒 · {checkpoint}"
+  # The waits a node's line names: the {seconds} it waited for a free node, and a card other work held.
+  node_waited: "空きノードを {seconds}秒待機"
+  card_queued: "他の作業が使っているカードの列に並びました"
+  # A line that waited its turn on this machine's card, and a full reading that waited behind the summaries.
+  queued: "別のブリーフィングが話しているため列に並びました"
+  behind_summaries: "要約ブリーフィングが先のため後ろに並びました"
+  # What stands where a gate gave no reason.
+  no_reason: "理由なし"

@@ -1,0 +1,12 @@
+# What `bmo test count` prints (docs/deploy.md, 「The test count」): the tests the checkout holds, and with
+# `--since` the TypeScript tests the range removed, each accounted for or not. Each `{name}` is filled in
+# with what it names.
+
+# The tests the checkout holds, by language.
+tree: "TypeScript 测试 {typescript} 个，Rust 测试 {rust} 个"
+# The range from {since}: the changed test files' tests {before} and {after}, and the {removed} it removed.
+range: "自 {since} 起变更的测试文件: 测试 {before} 个 → {after} 个，删除的测试 {removed} 个"
+# One test removed, by its {file} and {title}.
+removed: "  删除: {file} · {title}"
+# One test removed that nothing accounts for.
+open: "无替代也无退役理由而删除: {file} · {title}"

@@ -1,0 +1,36 @@
+# Translated from server/lang/ko/models.yaml; its comments say what each value is.
+usage: |-
+  usage: bmo model [--db <アーカイブ>]
+         bmo model add <名前> --file <ファイル.gguf> --bytes <バイト> --sha256 <ハッシュ> [フィールド…]
+         bmo model set <名前> [フィールド…]
+         bmo model remove <名前>
+         bmo model use <名前>
+         bmo model --entry <名前> --json
+         bmo model --placed <名前> <ノード>
+
+  フィールド: --label <名前> --source <https アドレス | データルート下のパス> --engine <エンジン> --registration <登録モデル>
+              --note <メモ> --thinking on|off --temperature <数値> --top-p <数値> --presence-penalty <数値> --max-tokens <数値>
+  set でフィールドの値を default か none にすると、その欄を空にします。
+
+  引数なしでは、カタログのすべての項目とエンジンごとの最後のモデル切り替えを表示します。
+  use はその項目を自身のエンジンのモデルに切り替えます: エンジンのインストーラーがダウンロード・検証・インストールを行うユーザーユニットを起動し、すぐに終了します。
+  --entry と --placed はエンジンのインストーラーが使うものです。
+not_held: "カタログにないモデルです: {name}"
+already_held: "すでにある名前です: {name}"
+placed: "{name} のファイルが {node} にあると記録しました。"
+node_unreadable: "ノード名を読み取れません。"
+removed: "{name} をカタログから削除しました。"
+choosing: "{engine} エンジンを {entry} に切り替え始めました (ユーザーユニット bmo-model-use-{engine}、ログ {log})。"
+listing:
+  use: "モデル切り替え · {engine} ← {entry} · {chosen_by} · {at} · {state}{step}{reason}"
+  serving: " [提供中]"
+  file: "  ファイル {file} · {bytes} B · sha256 {sha256}"
+  where: "  ソース {source} · エンジン {engine} · 登録モデル {registration} · ノード {nodes}"
+  defaults: "  既定の生成設定 · 思考 {thinking} · temperature {temperature} · top_p {top_p} · presence_penalty {presence_penalty} · max_tokens {max_tokens}"
+  thinking_on: "オン"
+  thinking_off: "オフ"
+  note: "  メモ {note}"
+run:
+  installing: "インストーラー実行中"
+  not_running: "進行中のモデル切り替えではありません: {id}"
+  failed: "インストーラーが失敗しました。"

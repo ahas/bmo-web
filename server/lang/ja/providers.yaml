@@ -1,0 +1,5 @@
+# Translated from server/lang/ko/providers.yaml; its comments say what each value is.
+off: "プロバイダーがオフになっています。"
+single_model: "単一モデルのプロバイダーのため、コワーカーを貸し出しません。"
+model_wrong: "正しくない作業モデル: {selection}"
+no_model: "オンのプロバイダーに登録された作業モデルがありません。"

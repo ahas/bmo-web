@@ -1,0 +1,50 @@
+# What the voice briefing says where a person or an agent reads it (docs/voice-briefing.md). Each `{name}` is
+# filled in with what it names.
+
+# Every briefing refused while the owner has the switch off, and one of an agent whose row names no voice, by its
+# {label}.
+switched_off: "Voice briefings are turned off. Nothing will be sent as voice until {owner_subject} turns them back on in the console. Deliver this message as text only, and don't try to send it again."
+voiceless: "{label} has no voice, so nothing is sent as voice. Deliver this message as text only, and don't try to send it again."
+
+# What a briefing's run is called where a person watches it, by its {room}.
+title: "{room} voice briefing"
+
+# A launch refused before anything exists: one nobody signed, one with no words, and one whose run, by its
+# {unit}, never came up.
+unsigned: "a voice briefing has to say who launched it: --by chat:<chatId> from a session, or the launcher's own name."
+wordless: "a voice briefing has to have something to say: the words are read from stdin, or given with --text."
+not_up: "the voice briefing's unit {unit} did not come up; nothing was said."
+
+# How the hand tool and the briefing launcher are called, said with a refusal of what they were asked.
+usage_hand: "usage: bmo voice say --text '<words>' [--chat <chatId>] [--caption <text>] [--file <path.ogg>] [--voice <name>]"
+usage_brief: "usage: bmo voice brief --chat <chatId> --by chat:<chatId> [--emotion <emotion>] [--title '<one line>'] [--text '<words>'] [--document <searchId>]  (the words are read from stdin)"
+
+# A switch change that names neither switch, or both.
+one_switch: "Say whether to turn it on or off (one of on or autoplay, true or false)."
+
+# The notes a briefing's run writes in its log as it goes, which a person watching the run reads.
+runner:
+  # The run's first note: the {count} of characters it was handed and its {chat}.
+  started: "{count} chars · chat {chat}"
+  # The polishing gate's answer to a full reading: the {seconds} it took and the {script} it wrote, or the
+  # {fault} that leaves the mechanical script to be read.
+  polished: "Polished in {seconds}s: {script}"
+  unpolished: "Polishing failed after {seconds}s, reading the mechanical script: {fault}"
+  # The reading gate's failure, by its {fault}.
+  unread: "Reading gate failed: {fault}"
+  # What the voice is given: the {reading} the gate wrote, or the line as it came where it had nothing to write.
+  read: "Reading: {reading}"
+  read_as_written: "Reading: nothing to transliterate, reading as written"
+  # A line handed to the voice node list, by its {voice}.
+  to_node: "{voice}: speaking on a node"
+  # A line a node spoke: the {node}, the waits {how} it came to it by, the {seconds} the line lasts, the
+  # {speak} seconds it took to say and the {load} seconds its weights took, and its {checkpoint}.
+  node_spoke: "Node {node}{how}: {seconds}s of audio · speaking {speak}s · weights {load}s · {checkpoint}"
+  # The waits a node's line names: the {seconds} it waited for a free node, and a card other work held.
+  node_waited: "waited {seconds}s for a free node"
+  card_queued: "queued for a card held by other work"
+  # A line that waited its turn on this machine's card, and a full reading that waited behind the summaries.
+  queued: "Queued while another briefing was speaking"
+  behind_summaries: "Queued behind summary briefings, which go first"
+  # What stands where a gate gave no reason.
+  no_reason: "No reason given"

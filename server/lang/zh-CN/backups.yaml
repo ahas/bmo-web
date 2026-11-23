@@ -1,0 +1,12 @@
+# Translation of server/lang/ko/backups.yaml; that file says what each line is for.
+snapshot_usage: "将归档、Brain 和数据根目录存入按小时的槽位 (docs/archive-backup.md)。"
+drill_usage:
+  - "将最新的每小时快照 (或 --from 目录) 恢复到临时数据库或临时文件，并按清单逐表核对行数。"
+  - "--keep 以该名称 (数据库名或文件路径) 保留恢复出的副本。实际恢复步骤见 docs/RUNBOOK.md 「Database」。"
+drill_failed: "每日恢复演练在 {dir} 失败 ({step}): {said}。{differ} 先检查每小时快照 (bmo-snapshot-backup) 及其日志 (journalctl --user -u bmo-snapshot-backup)。"
+drill_differ: " 不一致的表: {tables}{more}。"
+drill_more: " 等另外 {count} 个"
+upload_usage:
+  - "将未经验证的部署备份上传到 garage (s3://{bucket}/{prefix})，再读回核对大小和校验和，"
+  - "然后 garage 上只保留最新 5 份，本地只保留最新 1 份 (docs/deploy.md 「Sending them to Garage」)。"
+upload_failed_note: "部署已经完成，没有被阻塞。未验证的备份留在本地磁盘，下次部署的上传会重新发送。"

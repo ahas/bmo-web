@@ -1,0 +1,4407 @@
+# Every word the console shows, key for key with ko.yaml, which the wording guide governs; the rules for
+# adding one are in docs/web.md, "Wording and the language pack".
+
+app:
+  label:
+    account: アカウント
+    auto_translate: 自動翻訳
+    auto_translate_description: 別の言語で書かれた報告や指示書を開くと、すぐに翻訳して表示します。「原文を表示」でいつでも元に戻せます。
+    color_mode: 表示モード
+    language: 言語
+    language_description: 画面と通知の言語です。このアカウントで開くすべての機器に適用されます。
+    manifest_name: "{agent}"
+    mode_dark: ダーク
+    mode_light: ライト
+    mode_system: システム
+    name: "{agent}"
+    password: パスワード
+    remember: ログインしたままにする
+    search_group: グループ
+    search_key: キー
+    search_name: 名前
+    search_people: 人
+    search_place: 場所
+    search_screens: 画面
+    sidebar: サイドバー
+    sidebar_description: 画面、ルーム、エージェント
+    user_id: ユーザー ID
+  action:
+    login: ログイン
+    logout: ログアウト
+    reload: 再読み込み
+  message:
+    new_build: 新しいバージョンがデプロイされました。
+    manifest_description: ルームの会話とエージェントの判定を確認し、ルームのエージェントにメッセージを送ります。
+    login_again: もう一度ログインしてください。
+    session_ended: ログインの有効期限が切れました。
+  error:
+    login_failed: ログインできませんでした。
+    wrong_credentials: ユーザー ID またはパスワードが正しくありません。
+    machine_gone: このアカウントのマシン（jake）が接続されていません。マシンを再接続するとログインできます。
+    accounts_down: アカウントサービスが応答しないため、現在ログインできません。
+common:
+  title:
+    delete_named: "{name}を削除"
+    discard_changes: 保存していない変更を破棄しますか？
+    share: 共有
+  label:
+    members: 人
+    permission_edit: 編集
+    permission_read: 閲覧
+    translated_from: "{language}から翻訳"
+    translated_in_part_from: "{language}から一部翻訳"
+    all: すべて
+    auto: 自動
+    chat_agent: チャットエージェント
+    count: "{n}件"
+    day_format: YYYY年M月D日 (ddd)
+    days: "{d}日"
+    days_hours: "{d}日{h}時間"
+    depth_basic: 基本
+    depth_exhaustive: 超精密
+    depth_thorough: 精密
+    expired: 期限切れ
+    expiry: 有効期限
+    forever: 無期限
+    hours: "{h}時間"
+    hours_minutes: "{h}時間{m}分"
+    hours_minutes_seconds: "{h}時間{m}分{s}秒"
+    left_days: "残り{n}日"
+    left_hours: "残り{n}時間"
+    left_minutes: "残り{n}分"
+    left_under_minute: 残り1分未満
+    link: リンク
+    minutes: "{m}分"
+    minutes_seconds: "{m}分{s}秒"
+    model: モデル
+    name: 名前
+    no_record: 記録なし
+    none: なし
+    optional: 任意
+    original: 原文
+    palette_forest: 森
+    palette_lemon: レモン
+    palette_sea: 海
+    palette_sunset: 夕焼け
+    palette_teal: ティール
+    palette_violet: バイオレット
+    path: パス
+    picture_caption: 説明
+    picture_resolution: 解像度
+    picture_resolution_value: "{width} × {height}"
+    play_position: 再生位置
+    properties: プロパティ
+    rendered: レンダリング
+    room: ルーム
+    seconds: "{n}秒"
+    share_until: "{date}まで"
+    short_day_format: YY.MM.DD
+    size: サイズ
+    span_1h: 1時間
+    span_24h: 24時間
+    span_30d: 30日
+    span_6h: 6時間
+    span_7d: 7日
+    speaker_bmo: チャットエージェント
+    speaker_owner: オーナー
+    speed_normal: "{speed} 標準"
+    subject_closed: "{name}"
+    subject_open: "{name}"
+    subject_unread: "{name}"
+    subtitles_off: オフ
+    theme_forest: 森
+    theme_sea: 海
+    theme_sunset: 夕焼け
+    theme_teal: ティール
+    theme_violet: バイオレット
+    toc: 目次
+    unplayable: 再生できません
+    view: 表示
+    volume: 音量
+  action:
+    share: 共有
+    show_translation: 翻訳を表示
+    show_original: 原文を表示
+    add: 追加
+    add_choice: "「{value}」を追加"
+    back: 戻る
+    cancel: キャンセル
+    choose_all: すべて選択
+    choose_none: すべて解除
+    clear_search: 検索語を消去
+    close: 閉じる
+    close_all_tabs: すべてのタブを閉じる
+    close_other_tabs: 他のタブを閉じる
+    close_right_tabs: 右側のタブを閉じる
+    collapse: 折りたたむ
+    copy: コピー
+    create_link: 作成
+    delete: 削除
+    discard: 破棄
+    edit: 編集
+    exit_fullscreen: 全画面を終了
+    expand: 展開
+    find: 検索
+    fit_screen: 画面に合わせる
+    fullscreen: 全画面
+    more: その他
+    move_down: 下へ
+    move_up: 上へ
+    mute: ミュート
+    next_month: 翌月
+    next_picture: 次の写真
+    next_year: 翌年
+    next_years: 次の年の範囲
+    open: 開く
+    page_back: 前へ
+    page_forward: 次へ
+    pause: 一時停止
+    pin: 固定
+    play: 再生
+    play_now: 今すぐ再生
+    previous_month: 前月
+    previous_picture: 前の写真
+    previous_year: 前年
+    previous_years: 前の年の範囲
+    refresh: 更新
+    retry_translation: 再リクエスト
+    save: 保存
+    see_all: すべて表示
+    skip_back: "{n}秒戻る"
+    skip_forward: "{n}秒進む"
+    subtitles: 字幕
+    turn_picture: 回転
+    unmute: ミュート解除
+    unpin: 固定を解除
+    unshare: 共有を解除
+    zoom_in: 拡大
+    zoom_out: 縮小
+  aria:
+    close_named: "{name}を閉じる"
+    column_width: "{name}の幅"
+    decrease: 減らす
+    document_menu: ドキュメントメニュー
+    download_named: "{name}をダウンロード"
+    enlarge_named: "{name}を拡大表示"
+    holds_chosen: 選択した項目を含む
+    image_zoom: "{title}、ホイールまたは2本指で拡大"
+    increase: 増やす
+    member_permission: "{name}の権限"
+    menu_of: "{name}のメニュー"
+    more_notices: "ほかに通知が{n}件あります"
+    move_down_named: "{name}を下へ"
+    move_up_named: "{name}を上へ"
+    open_list: リストを開く
+    opens_new_tab: （新しいタブで開きます）
+    others_count: "ほか{n}人"
+    pinned_named: "{name}を固定中"
+    play_named: "{name}を再生"
+    player_named: "{name}のプレーヤー"
+    search_named: "{name}を検索"
+    search_scope: 検索範囲
+    share_address: 共有リンクのアドレス
+    speed_named: "再生速度 {speed}"
+    window_move: ウィンドウを移動 · 矢印キー
+    window_resize: ウィンドウのサイズ変更 · 矢印キー
+  status:
+    bmo_answering: チャットエージェントが返信を書いています…
+    brightness: "明るさ {n}%"
+    copied: コピーしました
+    link_preview_loading: リンクのプレビューを読み込み中…
+    loading: 読み込み中…
+    loading_named: "{name}を読み込み中…"
+    members_loading: 共有相手を読み込み中…
+    muted: ミュート中
+    next_in: "{n}秒後に再生"
+    no_choices: 項目なし
+    no_match: 一致する項目なし
+    no_members: 共有相手なし
+    no_rooms: 記録されたルームなし
+    picture_loading: 写真を読み込み中…
+    reconnecting: 再接続中
+    rooms_loading: ルームを読み込み中…
+    share_loading: 共有リンクを読み込み中…
+    speed: "速度 {speed}"
+    subtitles_off: 字幕オフ
+    subtitles_on: "字幕 {name}"
+    translating: 翻訳中…
+    translation_busy: 翻訳機が混み合っているため、今は翻訳できませんでした。
+    turned: "{degrees}度回転しました"
+    unmuted: ミュートを解除しました
+    video_loading: 動画の情報を読み込み中…
+    volume: "音量 {n}%"
+    went_back: "{n}秒戻りました"
+    went_forward: "{n}秒進みました"
+  message:
+    translator_absent: 翻訳機がないため翻訳できません。
+    link_copied: リンクをコピーしました。
+    preview_badge: 進行中
+    preview_field: 検索
+    preview_link: 詳細を見る
+    preview_meta: "昨日 午後7:12 に編集"
+    preview_note: 議事録
+  error:
+    administrator_only: 管理者のみ実行できます。
+    attachments_too_large: "1ファイルにつき{size}まで、一度に{n}件まで送信できます。"
+    attachments_too_many: "一度に{n}件まで送信できます。"
+    bad_action: リクエストされた操作が正しくありません。
+    bad_cursor: カーソルの値が正しくありません。
+    bad_limit: 件数の値が正しくありません。
+    choices_find_failed: 検索できませんでした。
+    copy_failed: コピーできませんでした。
+    editor_failed: コードエディターを読み込めませんでした。
+    file_too_large: 送信できるサイズを超えるファイルがあります。
+    form_broken: 送信されたファイルを最後まで受け取れませんでした。
+    image_unavailable: 画像を読み込めません。
+    link_copy_failed: リンクをコピーできませんでした。
+    member_change_failed: 権限を変更できませんでした。
+    member_search_failed: 人を検索できませんでした。
+    member_share_failed: 共有できませんでした。
+    members_read_failed: 共有相手を読み込めませんでした。
+    not_saved_named: "{name}は保存されていません"
+    not_sent: 送信できませんでした。
+    picture_failed: 写真を読み込めませんでした。
+    rooms_failed: ルーム一覧を読み込めませんでした。
+    save_failed: 保存できませんでした。
+    say_to_bmo_empty: チャットエージェントに送るメッセージを入力してください。
+    send_failed: メッセージを送信できませんでした。
+    share_create_failed: 共有リンクを作成できませんでした。
+    share_read_failed: 共有リンクを読み込めませんでした。
+    too_long: "メッセージが長すぎます。{n}文字まで送信できます。"
+    translation_failed: 翻訳できませんでした。
+    unshare_failed: 共有を解除できませんでした。
+    video_failed: 動画を読み込めませんでした。
+  placeholder:
+    member_search: 名前で検索
+    search: 検索
+control:
+  status:
+    checking: API を読み込み中
+  error:
+    reader_disconnected: リーダーが接続されていないため送信できません。
+    status: "ボット制御 API が {status} を返しました。"
+    unreachable: API を読み込めませんでした
+db:
+  label:
+    cut_length: "全{n}文字"
+    json_list: "項目{n}件"
+    json_no: いいえ
+    json_none: なし
+    json_object: "フィールド{n}件 · {keys}"
+    json_object_empty: フィールドなし
+    json_yes: はい
+    length: "{n}文字"
+    masked: 隠された値
+    masked_badge: 非表示
+    page: "{page} / {pages} ページ · {total}行"
+    primary_key: 主キー
+    required: 必須
+    result: "{rows}行 · {ms}ms"
+    result_cut: "{rows}行で打ち切り · {ms}ms"
+    schema: スキーマ
+    sql_rule: "読み取り専用 · 最大{rows}行"
+    table: テーブル
+  action:
+    first_page: 最初のページ
+    last_page: 最後のページ
+    next_page: 次のページ
+    previous_page: 前のページ
+    run: 実行
+    stop: 停止
+  aria:
+    find_in_table: このテーブル内を検索
+    pick_table: テーブルを選択
+    query: クエリ
+    sort_by: "{name}で並べ替え"
+    tables_and_sql: テーブルと SQL
+  error:
+    no_rowid: 行番号のないテーブルのため、行を1件ずつ読み込めません。
+    no_such_table: テーブルが見つかりません。
+    no_table_name: テーブル名がありません。
+    query_empty: クエリが空です。
+    query_failed: クエリを実行できませんでした。
+    read_failed: データベースを読み込めませんでした。
+    read_stopped: 読み込みを停止しました。
+    row_not_found: 行が見つかりません。
+    rows_failed: 行を読み込めませんでした。
+    table_failed: テーブルを読み込めませんでした。
+    tables_failed: テーブル一覧を読み込めませんでした。
+  placeholder:
+    query: "SELECT * FROM web_users ORDER BY created_at DESC"
+  status:
+    no_result: 結果なし
+    no_rows: 行なし
+    no_rows_found: 一致する行なし
+    no_tables: テーブルなし
+    note_read_at: "{note} · {time}に読み込み"
+    result_loading: 結果を読み込み中…
+    row_loading: 行を読み込み中…
+    tables_loading: テーブルを読み込み中…
+  title:
+    result_row: "クエリ結果 · {n}行目"
+    table_row: "{table} · {n}行目"
+files:
+  label:
+    progress: "{done}/{all} {percent}%"
+  action:
+    keep_both: 両方残す
+    replace: 上書き
+    skip: スキップ
+  aria:
+    name_field: 新しい名前
+  status:
+    uploading: アップロード中
+  message:
+    conflict: 同じ名前がすでにあります。
+push:
+  title:
+    question: "項目 #{id} の Job からの質問"
+    question_titled: "#{id} {title} · Job からの質問"
+    room_bundled: "{room} · 新着メッセージ{n}件"
+  label:
+    mail: 新着メール
+    question: Job からの質問
+    room: ルームのメッセージ
+  message:
+    mail: 受信トレイに新しいメールが届き、未読のときに通知します。フィルターで移動したメールや既読にしたメールは通知しません。
+    room: スーパーバイザーがルームに送ったメッセージと報告を通知します。そのルームを表示しているときは通知せず、1つのルームのメッセージは1件にまとめます。
+    room_line: "{sender}: {line}"
+    question: Job が回答を待って止まっており、1分たつと推奨回答に決まります。コンソールでタイマーを止められます。
+    test_body: このデバイスに通知が届きます。
+    test_nowhere: 通知を受け取るよう設定したデバイスがないため、送信しませんでした。
+    test_sent: "{n}台のデバイスに送信しました。"
+  error:
+    bad_endpoint: プッシュサービスのアドレスではないため、このデバイスを接続しませんでした。
+    bad_subscription: 購読情報が不完全です。
+    bad_watch: タブが表示しているルーム情報の形式が正しくありません。
+    change_failed: 通知設定を変更できませんでした。
+    denied: 通知がブロックされています。ブラウザーの設定でこのサイトの通知を許可してください。
+    device_taken: このデバイスの通知は別のアカウントに接続されています。そのアカウントで接続を解除してから、もう一度お試しください。
+    no_device: 接続を解除するデバイスが指定されていません。
+    no_worker: このブラウザーにはサービスワーカーがないため、通知を受け取れません。
+    read_failed: 通知設定を読み込めませんでした。
+    unconfigured: このサーバーにはプッシュキーがないため、通知を送信できません。
+    unsupported: このブラウザーはプッシュに対応していません。
+question:
+  error:
+    answer_failed: 回答を送信できませんでした。
+    bad_option: 選択した項目が正しくありません。
+    bad_own_answer: 入力した回答が空か、長すぎます。
+    bad_question_id: 質問番号が正しくありません。
+    one_answer: 選択した番号と入力した回答のどちらか一方だけを送信してください。
+    pause_direction: タイマーを停止するか再開するかを選んでください。
+    pause_failed: タイマーを停止できませんでした。
+    resume_failed: タイマーを再開できませんでした。
+    settled_by_recommendation: "その間に時間切れとなり、推奨回答に決まりました: {answer}"
+    settled_elsewhere: "その間に別の場所で先に決まりました: {answer}"
+    bad_talk: 相談メッセージが空か、長すぎます。
+    talk_failed: 相談メッセージを送信できませんでした。
+    talk_read_failed: 相談を読み込めませんでした。
+    talk_settled: すでに回答が決まった質問のため、相談できません。
+    owner_only: Job の質問に回答・相談できるのはオーナーだけです。
+    not_put_to_owner: スーパーバイザーが担当している質問のため、回答・相談できません。
+  action:
+    answer: 回答する
+    answer_as_written: この内容で回答
+    answer_with: "{number}番で回答"
+    close: 通知を閉じる
+    discuss: このテーマで話す
+    pause: タイマーを停止
+    resume: タイマーを再開
+    unpick: 選択を取り消す
+  aria:
+    own_answer: 入力した回答
+    talk: 相談メッセージ
+    window_open: "Job からの質問{n}件 · 開く"
+  label:
+    asked: "Job からの質問 · 項目 #{id}"
+    asked_by: "{asker} · {since}前"
+    asked_prefix: Job からの質問 · 項目
+    job: "Job #{id}"
+    talk: 相談
+    recommended: （推奨）
+    recommended_words: "推奨回答:"
+    summary: "質問{n}件"
+    why: "質問の理由:"
+  placeholder:
+    own_answer: 選択肢にない回答（入力した内容を Job がそのまま読みます）
+    talk: Job へのメッセージ
+  status:
+    open: 回答待ち
+    overdue: "時間切れ · 推奨の{number}番に決定"
+    overdue_alone: 時間切れ · 人の回答を待っています
+    overdue_words: 時間切れ · 推奨回答に決定
+    owner: オーナーが回答
+    paused: "タイマー停止中 · 推奨{number}番"
+    paused_alone: タイマー停止中 · 人の回答を待っています
+    paused_words: タイマー停止中 · 推奨回答
+    recommendation: 時間切れ · 推奨回答に決定
+    running: "残り{time} · 推奨{number}番"
+    running_alone: "残り{time} · 人の回答を待っています"
+    running_words: "残り{time} · 推奨回答"
+    untimed: 人の回答を待っています
+    no_talk: 質問の意味、選択肢ごとの結果、推奨の理由について Job と相談できます。
+    talk_loading: 相談を読み込み中…
+    talk_unheard: Job はまだ読んでいません。
+    talk_writing: Job が返信を書いています…
+  title:
+    window: Job からの質問
+room:
+  status:
+    agent_listening: "{subject}が聞いています"
+    agent_thinking: "{subject}が考えています"
+    agent_tool: "{subject}がツールを使用中"
+    agent_tool_named: "{subject}が{tool}を使用中"
+    agent_waiting_engine: "{subject}が同じモデルを使う Job の終了を待っています"
+    situation_loading: 状況ノートを読み込み中…
+    situation_none: 状況ノートなし
+    agent_waiting_engine_item: "{subject}が同じモデルを使う #{item} の Job の終了を待っています"
+    agent_writing: "{subject}が返信を書いています"
+    step_thinking: 考え中
+    step_tool: ツールを使用中
+    step_tool_named: "{tool}を使用中"
+    step_waiting: 同じモデルを使う Job の終了を待っています
+    step_waiting_item: "同じモデルを使う #{item} の Job の終了を待っています"
+    step_writing: 返信を書いています
+    brain_read_loading: 読み込み中…
+    chat_enabled: チャット有効
+    checking: 送信済みか確認中
+    draft_writing: メッセージを作成中
+    earlier_loading: 以前の会話を読み込み中…
+    failed: 失敗
+    figures_loading: 記録と使用トークンを読み込み中…
+    find_count: "{at}/{n}"
+    find_loaded_only: 読み込んだメッセージのみ検索
+    find_none: 一致するメッセージなし
+    forward_none: 一致するルームなし
+    forward_rooms_none: 転送できるルームがありません。
+    held_from: "{services}から受け取った会話はここからです。"
+    later_loading: 以降の会話を読み込み中…
+    listening_left: "今後{time}"
+    more_records: "ほかに{n}件"
+    no_messages: 記録されたメッセージなし
+    no_records_left: 残りの記録なし
+    not_sent: 送信できませんでした
+    nothing_after: その日以降の会話なし
+    outcome_run_failed: "{name}の実行が失敗しました。"
+    outcome_run_stopped: "{name}の実行を停止しました。"
+    outcome_skipped: "{subject}は今回は返信しませんでした。"
+    outcome_skipped_times: "{subject}は{n}回返信しませんでした。"
+    outcome_skipped_reason: "理由: {reason}"
+    outcome_skipped_reason_none: 理由は示されませんでした。
+    outcome_waited: "{subject}はメッセージがまだ続きそうなので待ちました。"
+    received_both: "メッセージ{messages}件 · サイレント指示{instructions}件を受信"
+    received_instructions: "サイレント指示{instructions}件を受信"
+    received_messages: "メッセージ{messages}件を受信"
+    records_loading: 記録を読み込み中…
+    providers_loading: チャットサービスを読み込み中…
+    mode_saving: ルームのモードを変更中
+    providers_saving: チャットサービスを変更中…
+    removal_loading: 削除する記録を読み込み中…
+    room_loading: ルームを読み込み中…
+    selected_count: "{n}件選択中"
+    sending: 送信中
+    sent: 送信済み
+    session_loading: セッション情報を読み込み中…
+    start_of_talk: 会話の最初です。
+    sticker_none: 送信できるスタンプなし
+    stickers_loading: スタンプを読み込み中…
+    talk_loading: 会話を読み込み中…
+    waiting: 接続後に送信
+    window_left: "残り{time}"
+    room_add_no_services: ルームを追加できるチャットサービスがありません。
+    room_add_no_rooms: このアカウントにはルームがありません。
+    room_add_loading: ルーム一覧を読み込み中
+    room_add_more_loading: ルーム一覧をさらに読み込み中
+    room_add_end: ルーム一覧の終わり
+    room_add_contacts_loading: 連絡先を読み込み中
+    room_add_no_contacts: このアカウントには連絡先がありません。
+    room_add_no_match: 一致する名前がありません。
+    step_stage: "{name}段階を確認中"
+    step_arrived: 届いたメッセージを確認中
+    step_audit: 呼び方を確認中
+  error:
+    bad_typing: 入力中表示の形式が正しくありません。
+    actions_read_failed: 実行記録を読み込めませんでした。
+    attachment_empty: "{name}: 空のファイルのため添付しませんでした。"
+    attachment_too_large: "{by}で送信できるサイズ（{limit}）を超えるファイルのため添付しませんでした。"
+    situation_failed: 状況ノートを読み込めませんでした。
+    attachment_too_many: "一度に{max}件まで添付できます。{name}を除いて送信します。"
+    avatar_not_found: プロフィール写真が見つかりません。
+    bad_avatar_id: プロフィール写真の番号が正しくありません。
+    bad_avatar_kind: プロフィール写真の種類が正しくありません。
+    bad_chat_id: ルーム番号が正しくありません。
+    bad_instruction_id: 指示番号が正しくありません。
+    bad_judgement_ids: 判定番号が正しくありません。
+    bad_judgement_span: 判定を読み込む時間範囲が正しくありません。
+    bad_language: 言語が正しくありません。
+    bad_message_id: メッセージ番号が正しくありません。
+    bad_reply_id: 返信先のメッセージ番号が正しくありません。
+    bad_send_key: 送信キーが正しくありません。
+    brain_read_failed: ブレインの記録を読み込めませんでした。
+    delete_failed: メッセージを削除できませんでした。
+    drafts_read_failed: 下書きの記録を読み込めませんでした。
+    edit_empty: 編集後のメッセージを入力してください。
+    edit_failed: メッセージを編集できませんでした。
+    judgements_read_failed: 判定を読み込めませんでした。
+    message_deleted: 削除されたメッセージです。
+    message_forbidden: このメッセージにはその操作を行えません。
+    message_unknown: そのメッセージは記録にありません。
+    no_caller: このアカウントには、このルームで使える送信者がいません。
+    pin_message_direction: メッセージを固定するか固定を解除するかを選んでください。
+    pin_message_failed: メッセージを固定できませんでした。
+    reaction_empty: リアクションする絵文字を選んでください。
+    reaction_failed: リアクションできませんでした。
+    sticker_empty: 送信するスタンプを選んでください。
+    sticker_failed: スタンプを送信できませんでした。
+    stickers_read_failed: スタンプを読み込めませんでした。
+    unknown_sticker: 記録にないスタンプです。
+    file_empty_named: "{name}は空のファイルのため送信しませんでした。"
+    file_not_found: ファイルが見つかりません。
+    file_too_large_named: "{name}はこのルームで送信できるサイズを超えるため送信しませんでした。"
+    file_over_limit_named: "{name}は{by}で送信できるサイズ（{limit}）を超えるため送信しませんでした。"
+    file_with_voice: ボイスメモを送信するまでファイルは添付できません。
+    instruction_read_failed: 指示の原文を読み込めませんでした。
+    forward_failed: メッセージを転送できませんでした。
+    forward_room: 転送先のルームを選んでください。
+    forward_same_room: 現在のルームには転送できません。
+    jump_failed: 日付に移動できませんでした。
+    message_not_found: メッセージが見つかりませんでした。
+    no_file: 送信するファイルがありません。
+    no_voice: 送信するボイスメモがありません。
+    none_sent: 送信されたファイルはありません。
+    photo_not_found: 写真が見つかりません。
+    pictures_failed: ルームの他の写真を読み込めませんでした。
+    pin_direction: ルームを固定するか固定を解除するかを選んでください。
+    pin_failed: ルームを固定できませんでした。
+    read_failed: 読み込めませんでした。しばらくしてからもう一度お試しください。
+    receiver_bad_request: 受信ユニットがリクエストを読み取れませんでした。
+    receiver_conflict: 現在の状態と合わないため、受信ユニットが拒否しました。
+    receiver_failed: 受信ユニットが応答中に失敗しました。
+    receiver_forbidden: このアカウントではこの操作はできません。
+    receiver_not_found: 該当するルームまたはメッセージがありません。
+    receiver_not_ready: 受信ユニットはまだ応答する準備ができていません。
+    receiver_unauthorized: 受信ユニットと共有したトークンが一致しません。
+    receiver_unit_failed: 受信ユニットが別のユニットを呼び出す途中で失敗しました。
+    receiver_unreachable: このルームのチャットサービスが応答しません。
+    removal_chat: ルーム番号ではありません。
+    removal_infrastructure: 設定に記載された運用ルームのため削除できません。
+    removal_not_administrator: ルームの登録を削除できるのは管理者だけです。
+    removal_owners_chat: 管理者自身の個人チャットのため削除できません。
+    providers_read_failed: チャットサービスを読み込めませんでした。
+    mode_no_chat_service: どのチャットサービスにもつながっていないルームのため、アバターモードをオンにできません。
+    mode_not_added: 追加されたことのないルームのため、モードを変更できません。
+    mode_read_failed: ルームのモードを読み込めませんでした。
+    mode_save_failed: ルームのモードを変更できませんでした。
+    mode_takes_no_avatar: このルームはチャットサービスが返信を受け付けないため、アバターモードをオンにできません。
+    providers_save_failed: チャットサービスを変更できませんでした。
+    providers_shape: オンにするチャットサービスを1つ以上選んでください。
+    removal_read_failed: 削除する記録を読み込めませんでした。
+    removal_seeded_room: スーパーバイザーの設定で決められたルームのため削除できません。
+    reply_missing: 返信先のメッセージが記録にありません。
+    voice_denied: マイクを使用できません。ブラウザーでマイクへのアクセスを許可してください。
+    voice_empty: 録音された音声がありません。もう一度録音してください。
+    voice_unsupported: このブラウザーではボイスメモを録音できません。
+    voice_with_files: ボイスメモはファイルと一緒に送信できません。
+    say_empty: 送信するメッセージを入力してください。
+    no_account: アカウントでログインする必要があります。
+    private_room: 他の人の個人ルームは変更できません。
+    open_title: ルーム名を入力してください。
+    open_no_bmo: 自分の BMO がないため、ルームを作成できません。
+    open_failed: ルームを作成できませんでした。
+    session_failed: セッション情報を読み込めませんでした。
+    unpin_failed: ルームの固定を解除できませんでした。
+    words_only: このルームはテキストのみ受け付けます。
+    room_add_refused: 追加するルームが正しくありません。
+    room_add_unlisted: このチャットサービスはルーム一覧を提供していません。
+    room_add_unknown: チャットサービスが認識していないルームです。
+    room_add_avatar: このチャットサービスではアバターモードを使えません。
+    room_add_added: すでに追加したルームです。
+    room_add_failed: ルームを追加できませんでした。
+    room_add_rooms_failed: ルーム一覧を読み込めませんでした。
+    room_add_contacts_unlisted: このチャットサービスは連絡先を提供していません。
+    room_add_unstarted: このチャットサービスはこの種類の会話を開始しません。
+    room_add_contact_unknown: チャットサービスが認識していない連絡先です。
+    room_add_start_refused: チャットサービスが会話を開始しませんでした。
+    room_add_contacts_failed: 連絡先を読み込めませんでした。
+    room_add_supervisor: グループのスーパーバイザーは自分のスーパーバイザーの中からのみ選べます。
+  action:
+    room_open: 作成
+    new_chat_add: チャットサービスのルームを追加
+    new_chat_open: コンソールのルームを作成
+    attach_document: ファイル
+    attach_secret: シークレット
+    attach_file: ファイルを添付
+    attach_media: 写真・動画
+    brain_read_page: ブレインで表示
+    overlay: 自分の BMO と個別に話す
+    cancel_recording: 録音をキャンセル
+    cancel_reply: 返信をキャンセル
+    choose_messages: メッセージを選択
+    copy_all: すべてコピー
+    copy_ref: 会話番号をコピー
+    copy_text: テキストのみコピー
+    edit_message: 編集
+    find: 会話内を検索
+    forward: 転送
+    find_next: 次の結果
+    find_older: 以前のメッセージをさらに読み込む
+    find_previous: 前の結果
+    pin: 固定
+    remove_paste: 貼り付けたテキストを削除
+    remove_registration: ルームの登録を削除
+    react: リアクション
+    reply: 返信
+    resend: 再送信
+    select: 選択
+    show_in_message: メッセージで表示
+    sticker: スタンプ
+    stop_recording: 録音を終了
+    spoiler_show: ネタバレを表示
+    quote_expand: 引用を展開
+    quote_collapse: 引用を折りたたむ
+    to_latest: 最新のメッセージへ
+    unpin: 固定を解除
+  label:
+    presence_away: 離席中
+    presence_last_seen: "最終アクセス {ago}前"
+    presence_online: オンライン
+    presence_online_count: "オンライン {n}人"
+    typing: 入力中…
+    typing_names: "{names}が入力中…"
+    typing_unnamed: 誰か
+    room_open_title: ルーム名
+    answer_took: "所要時間 {time}"
+    avatar_of: "{name}のプロフィール写真"
+    situation: 状況
+    situation_changed: 更新
+    situation_updated: "{time}に更新"
+    brain_read_attached: 添付
+    brain_read_before: 既読
+    brain_read_due: このルームで今果たす約束
+    brain_read_held: "既読 {n}件"
+    brain_read_situation: このルームの今の状況
+    brain_read_held_one: 既読
+    brain_read_how: 読み方
+    brain_read_key: キー
+    brain_read_layer: レイヤー
+    brain_read_new: 新たに読んだ
+    brain_read_read: 直接読んだ
+    brain_read_subjects: 対象
+    brain_read_type: 種類
+    brain_read_written: 作成
+    chip_brain: ブレイン
+    chip_briefing: ボイスブリーフィング
+    chip_briefing_failed: ボイスブリーフィング失敗
+    chip_briefing_making: ボイスブリーフィングを作成中
+    chip_briefing_stopped: ボイスブリーフィング停止 · 再リクエスト可能
+    chip_context: コンテキスト
+    chip_record: 判定記録
+    chip_drafts: 下書き
+    chip_records: 記録
+    chip_tokens: 使用トークン
+    chip_tools: ツール使用
+    chip_verdicts: 判定
+    chip_verdicts_judging: 判定中
+    context: コンテキスト
+    copy_call_failed: 失敗
+    copy_result_chars: "結果 {n}文字"
+    copy_tokens: "{n} トークン"
+    deleted_message: 削除されたメッセージ
+    deleted_message_hide: 削除されたメッセージ · 内容を隠す
+    deleted_message_show: 削除されたメッセージ · タップして表示
+    deleted_picture: 削除されたメッセージの写真
+    draft_changed: 変更あり
+    draft_chars: "{n}文字"
+    draft_end_message: メッセージ送信
+    draft_end_skip: 送信しない
+    draft_kind_end: 終了
+    draft_kind_supervisor: 判断
+    draft_kind_turn: ターン
+    draft_outcome_answered: 返信済み
+    draft_outcome_failed: 失敗
+    draft_outcome_send: 送信
+    draft_outcome_skip: 見送り
+    draft_turn_arrived: 到着確認
+    draft_reads: "既読: {names}"
+    draft_version_handed: 受け取った言葉
+    draft_version_program: 作業通知
+    draft_versions: "書いた返信 {n}件"
+    background: 進行中
+    background_count: "進行中 {n}件"
+    background_reminder: 通知
+    background_shell: シェルコマンド
+    background_subagent: サブエージェント
+    background_watch: 監視
+    mode_avatar: アバターモード
+    earlier_count: "以前の{n}件"
+    edited: 編集済み
+    edited_at: "{time}に編集"
+    forwarded: "{name}から転送"
+    edit_message: メッセージ
+    empty_message: （空のメッセージ）
+    find_box: 検索語
+    hour: "{n}時"
+    hour_count: "{hour}時 · {n}件"
+    hour_of_day: 時間帯
+    judgement_applies: 適用
+    judgement_no: いいえ
+    judgement_spent: 使用
+    judgement_unread: 読み込めず
+    judgement_yes: はい
+    last_answer: 最後の返信
+    last_talk: 最後の会話
+    me: 自分
+    messages: メッセージ
+    no_speakers: まだメッセージを送った人はいません
+    not_yet: まだありません
+    offer_counts: "フィルター前 {held} · フィルター後 {left}"
+    offer_item_rule: ボットの行だけを受け取ったターンのため、その行が言及した項目番号に関連する断片だけを候補として受け取りました。
+    offer_kept: "項目 {item} · キーワード {keyword} · 単語 {word} · 人物 {person} · 最近 {recent}"
+    open_sessions: 開いているセッション
+    opening_title: ターンを開始した指示
+    outcome_answered: 返信済み
+    outcome_read_with: 併せて読んだ
+    outcome_waiting: 待機
+    paste_name: "貼り付け {n}"
+    paste_size: "{n}文字"
+    peak_hour: "{hour}時台"
+    peak_hours: 利用ピーク
+    picture_file: ファイル名
+    picture_format: 形式
+    picture_message: メッセージ番号
+    picture_not_kept: 保管されたファイルなし
+    picture_sender: 送信者
+    picture_sent_at: 送信日時
+    picture_size: ファイルサイズ
+    pinned: 固定済み
+    pinned_at: "{time}に固定"
+    pinned_count: "固定されたメッセージ {n}件"
+    pinned_of: "固定されたメッセージ {at}/{n} · {words}"
+    quiet_instruction: サイレント指示
+    quote_picture: 写真
+    quote_sticker: スタンプ
+    quote_video: 動画
+    recent_answer: 最近の返信
+    record_memory: 記憶
+    record_memory_numbered: "記憶 #{id}"
+    record_note: メモ
+    record_note_numbered: "メモ #{id}"
+    record_rule: 状況ルール
+    record_rule_numbered: "状況ルール #{id}"
+    record_todo_add: 新しい項目
+    record_todo_add_numbered: "新しい項目 #{id}"
+    record_todo_append: 項目への追記
+    record_todo_append_numbered: "項目 #{id} への追記"
+    record_watch: ウォッチ
+    record_watch_numbered: "ウォッチ #{id}"
+    recording: "録音中 {time}"
+    removal_copies: アーカイブのコピー
+    removal_documents: brain ドキュメント
+    removal_failures: 削除できなかったもの
+    removal_folders: フォルダー
+    removal_pictures: ルームのプロフィール写真
+    removal_rows: 行
+    removal_settings: 設定
+    removal_stays: 残る行
+    removal_undeclared: 宣言されていない設定（残ります）
+    removal_warnings: 確認事項
+    road_answered: 応答済み
+    road_busy_skip: 混雑のためスキップ
+    road_error: エラー
+    road_stopped: ユーザーが停止
+    road_timeout: タイムアウト
+    road_too_large: サイズ超過で拒否
+    road_unavailable: なし
+    room_add_added_avatar: アバターとして追加済み
+    room_add_added_record_only: 記録のみで追加済み
+    room_add_group_title: グループ名
+    room_add_has_chat: 会話あり
+    room_add_held: 追加済みのルーム
+    room_add_kind_bot: ボット
+    room_add_kind_group: グループ
+    room_add_kind_owner: 個人
+    room_add_kind_person: 人
+    room_add_mode: モード
+    room_add_mode_avatar: アバター
+    room_add_mode_record_only: 記録のみ
+    room_add_modes: "モード: {modes}"
+    room_add_room: ルーム
+    room_add_search: 名前を検索
+    room_add_service: チャットサービス
+    room_add_supervisor: グループのスーパーバイザー
+    room_add_tab_contacts: 新しい会話
+    room_add_tab_rooms: 既存のルーム
+    room_add_title: タイトル
+    room_add_untitled: "ルーム {id}"
+    runs: 実行
+    runs_count: "{n}回"
+    runs_last: "{n}回 · 最終 {time}"
+    session_of: "{name}のセッション"
+    share_people: 人
+    sort_browse: ブラウジング
+    sort_console_talk: コンソールの会話
+    sort_document_reload: ドキュメント更新
+    sort_impact_mismatch: 協業根拠の相違
+    sort_notice: 通知
+    sort_overtime: 実行延長
+    sort_raised_row: 新しい項目
+    sort_random_draw: 抽選
+    sort_relay: 回答の伝達
+    sort_reminder: リマインダー
+    sort_remote_browser: リモートブラウザー
+    sort_resume_condition: 再開条件
+    sort_run_failure: 実行失敗
+    sort_run_state: 実行状態
+    sort_say: 伝達
+    sort_search: 検索結果
+    sort_song: 歌
+    sort_supervisor_cut: スーパーバイザーによる中断
+    sort_unfinished: 未決事項
+    sort_watch: ウォッチ
+    span_days: "{n}日目"
+    span_months: "{n}か月目"
+    span_speakers: "{span} · 参加者 {n}人"
+    stage_chat: チャット
+    stage_content_append: 追記
+    stage_content_rewrite: 書き直し
+    stage_draft: 下書き
+    stage_language_again: ルームの言語で書き直し
+    stage_owed_again: 漏れた返信の書き直し
+    stage_people_search: 人物帳の検索
+    stage_read_with: 併せて読んだ
+    stage_record_again: 約束記録の書き直し
+    stage_rule_again: 状況ルールの書き直し
+    stage_sanitizer: 無害化
+    stage_send: 送信
+    stage_skipped: 返信なし
+    stage_supervisor: スーパーバイザー
+    stage_wake_again: 起動条件の書き直し
+    stage_wording_again: 禁止語の書き直し
+    sticker_preview: スタンプのプレビュー
+    thinking_line: 思考
+    tokens: トークン
+    tokens_week_total: "今週 {week} · 合計 {total}"
+    top_speakers: メッセージが最も多い人
+    unknown_message: 記録にないメッセージ
+    unreceivable: 受信できません
+    verdict_clean: 問題なし
+    verdict_defused: 無力化
+    verdict_failed: 失敗
+    verdict_folded: 一部縮小
+    verdict_no_answer: 回答なし
+    verdict_no_candidates: 候補なし
+    verdict_none: 選択なし
+    verdict_open: 縮小なし
+    verdict_passed: 通過
+    verdict_picked: 選択
+    verdict_rewritten: 書き直し済み
+    verdict_sent: 送信済み
+    verdict_sent_parts: "{n}件に分けて送信"
+    verdict_situation: "適用 {applies} · 使用 {spent}"
+    verdict_skipped: スキップ
+    verdict_unknown: 不明な判定
+    verdict_unreadable: 回答を読み取れず
+    voice_message: 音声メッセージ
+    voice_note: ボイスメモ
+    voice_failed: 聞き取れず
+    draft_kind_arrived: 到着確認
+    draft_kind_stage: 指示段階
+    draft_outcome_pass: 通過
+    draft_outcome_revised: 修正済み
+    draft_turn_message: メッセージ作成
+    draft_kind_audit: 呼び方の確認
+    draft_turn_audit: 呼び方の確認
+    draft_outcome_no_verdict: 理由なしで見送り
+    draft_slow: 時間のかかったターン
+  message:
+    delete_ask: このメッセージを削除しますか？
+    delete_note: メッセージの内容は消えますが、その場所は残ります。
+    forwarded: "{room}ルームに転送しました。"
+    id_copied: 会話番号をコピーしました。
+    message_ref: "ルーム {room} (chatId {chatId}) · メッセージ #{messageId}"
+    messages_copied: "メッセージ{n}件をコピーしました。"
+    removal_done: ルームの登録とその記録を削除しました。
+    removal_goes: 削除すると、以下の記録とファイルも一緒に削除され、復元できません。
+    providers_rule: このルームの記録だけをオンにしたルームはどのメッセンジャーにもつながらず、話した内容は記録とこのコンソールにだけ残ります。メッセンジャーをオンにすると、その時点からこのルームに残るメッセージがそのメッセンジャーにも送られ、オフにすると止まります。ルームは少なくとも1か所でオンにしておく必要があります。
+    mode_rule: オンにするとこのルームのエージェントがあなたのアカウントとして返信し、オフにすると読んで記録するだけで返信しません。
+    background_every_minutes: "{n}分ごとに確認"
+    background_every_seconds: "{n}秒ごとに確認"
+    background_since: "{time}から"
+    background_until: "{time}に通知"
+    mode_unadded: 追加されたルームではないため、モードがありません。
+    providers_unset: 設定されたことがないため、今このルームがつながっている先を表示しています。
+    removal_refused: このルームは登録を削除できません。
+    removal_stays: このルームで作成した項目、Job、Job の質問、検索、使用量は残ります。
+    room_removed: このルームの登録が削除されたため、ホームに移動しました。
+    text_copied: テキストをコピーしました。
+    room_add_mode_avatar: ルームのエージェントがあなたのアカウントとして返信します。
+    room_add_mode_record_only: 読んで記録するだけで返信しません。
+    room_add_nothing: このチャットサービスはルーム一覧も連絡先も提供していないため、ここでは追加できません。
+    room_add_contacts_mine: 自分のアカウントの連絡先
+    room_add_contacts_service: チャットサービスのアカウントの連絡先
+    room_add_no_start: このチャットサービスは新しい会話を開始しません。
+    room_add_one_to_one: この連絡先と1対1の会話を始めます。
+    room_add_group: "{n}人と新しいグループを作成します。"
+    room_add_supervisor: 自分のスーパーバイザーの中から選びます。選ばない場合はスーパーバイザーなしで追加されます。
+  title:
+    remove_registration: ルームの登録を削除
+    edit_message: メッセージを編集
+    forward: メッセージを転送
+    room_add: ルームを追加
+    room_open: ルームを作成
+    new_chat: 新しいチャット
+  aria:
+    avatar_enlarge: "{name}のプロフィール写真を拡大表示"
+    background_open: "進行中の{n}件を表示"
+    brain_read_open: "{name}を開く"
+    forward_to: "転送先のルーム: {name}"
+    mention_agent: "エージェント {name}"
+    mention_list: メンション候補
+    mention_person: "人 {name}"
+    go_to_quote: "{name}のメッセージへ移動"
+    jump_to_date: "{name}、日付へ移動"
+    pinned_open: "固定されたメッセージ {n}件"
+    presence_open: "{state}、参加者を表示"
+    reaction: "{emoji} {n}人"
+    remove_named: "{name}を削除"
+    sticker_send: "{emoji}のスタンプを送信"
+  placeholder:
+    drop_here: ここにドロップすると添付されます
+    forward_search: ルーム名で検索
+cards:
+  label:
+    block: "ブロック {n}"
+    blocks: "ブロック {from}〜{to}"
+    board: 全体
+    card_alone: カード単独
+    card_memory: カードメモリ
+    card_of: "{node} カード {n}"
+    chart: カード別 VRAM
+    context: "CUDA コンテキスト ({process})"
+    driver: ドライバー予約
+    events: 履歴
+    fill: 充填
+    free: 空き VRAM
+    full_attention: "フルアテンションブロック {n} 個"
+    kind: 種類
+    load: ロード
+    master: マスター
+    mtp: MTP
+    nodes: ノード
+    occupant: 占有者
+    on_demand: 要求時
+    others: グループ外
+    outside: サービス外
+    output: 出力層
+    pool: 一括
+    priority: 優先順位
+    priority_rule: "調停器のルールファイル ({file}) で決まり、コンソールからは変更できません。"
+    priority_value: 優先順位
+    queue: 待ち行列
+    ram: RAM ダンプ
+    resident: 常駐
+    rules: ルール
+    service: サービス
+    spread: 配置
+    spread_many: 複数ノード
+    spread_one: 単一ノード
+    store: ダンプ保存先
+    tier: 等級
+    turn: 順番
+    unit: 単位
+    unload: アンロード
+    unplaced_chunk: カード外
+    unsplit: ドライバー・コンテキスト
+    version: バージョン
+    vram: VRAM
+    waiting: 保留待ち行列
+    where: 状態
+  status:
+    claim: "{who} が占有"
+    claim_on: "占有 {nodes}"
+    connected: 接続済み
+    evicted: NVMe
+    expected: "予定 {t}"
+    extents: "extent {n} 個 · スロット {s} 個"
+    free_short: "残り {m}"
+    held: 待機中
+    in_ram: RAM
+    loading: 調停器を読み込み中
+    lost: 切断
+    lost_since: "{t} 前から切断"
+    mixed: 一部
+    no_queue: 待ちなし
+    no_turn: 順番なし
+    no_units: ロード済みの単位なし
+    on_card: ロード済み
+    position: "{n} 番目"
+    ram_available: "空き {m}"
+    ram_floor: "占有割り当て {m}"
+    ram_max: "最大 {m}"
+    rules_error: ルールを読み込めません
+    stage: "ステージ待ち {t}"
+    turns: "使用 {n}"
+    unknown: 不明
+    unplaced: アンロード済み
+    waiting: "待機 {n}"
+  error:
+    master: マスターに接続できません。
+hardware:
+  title:
+    board: マザーボード
+    cpu_limit: 限界温度
+    live: リアルタイム
+    node_removal: ノード削除
+    node_remove_ask: "「{name}」ノードを削除しますか？"
+    ownership: 所有
+    ownership_change: "「{name}」の所有を変更"
+    record: 履歴
+    storage: ストレージ
+    system: システム
+  label:
+    band_point: "{mean} ({min}〜{max})"
+    clock: クロック
+    clock_peak: 最高クロック
+    column_account: 所有アカウント
+    column_kind: 接続方式
+    column_node: ノード
+    column_ownership: 所有
+    column_state: 状態
+    criteria_fill: "{mild} 未満は緑 · {mild} から黄 · {warm} からオレンジ · {hot} から赤"
+    criteria_temperature: "限界 {limit} ({source}) · {near} 未満は緑 · {near} からオレンジ · {limit} から赤"
+    criteria_temperature_slowdown: "限界 {limit} ({source}) · {near} 未満は緑 · {near} からオレンジ · {limit} から赤 · スロットリング中は赤"
+    criteria_temperature_slowdown_only: 限界温度不明 · スロットリング中は赤
+    criteria_temperature_unknown: 限界温度不明
+    failed_services: 失敗したサービス
+    fan: ファン
+    host: ホスト
+    kernel: カーネル
+    kind_hub: Jake
+    kind_local: ローカル
+    kind_ssh: SSH
+    limit_source_chip: チップ
+    limit_source_driver: ドライバー
+    limit_source_set: 設定
+    load: 負荷
+    memory: メモリ
+    memory_clock: メモリクロック
+    mount: マウント
+    node_leave: この PC から jake を削除して接続を切る
+    no_account: アカウントなし
+    no_nodes: ノードなし
+    no_nodes_found: 該当するノードなし
+    ownership: 所有
+    ownership_all: すべて
+    ownership_personal: 個人
+    ownership_personal_node: 個人ノード
+    ownership_personal_of: "個人ノード · {name}"
+    ownership_shared: 共用
+    ownership_shared_node: 共用ノード
+    off_named: "{label} (オフ)"
+    power: 電力
+    range: "{min}〜{max}"
+    service_counts: "実行 {running} · 失敗 {failed}"
+    services: サービス
+    span_15m: 15分
+    span_1h: 1時間
+    span_24h: 24時間
+    span_30d: 1か月
+    span_5m: 5分
+    span_6h: 6時間
+    span_7d: 1週間
+    state_auth: 認証失敗
+    state_connected: 接続済み
+    state_disconnected: 切断
+    state_error: エラー
+    state_hostkey: ホストキー不一致
+    state_unknown: 未確認
+    state_unreachable: 接続できません
+    storage_hdd: HDD
+    storage_network: ネットワーク
+    storage_nvme: NVMe
+    storage_ssd: SSD
+    storage_usb: USB
+    storage_virtual: WSL 仮想ディスク
+    swap: スワップ
+    tab_devices: デバイス
+    tab_logs: ログ
+    tab_nodes: ノード
+    tab_services: サービス
+    temperature: 温度
+    threads: "スレッド {n}"
+    tracking: リアルタイム追跡
+    unread: 読み取れません
+    unknown_account: "不明なアカウント {id}"
+    uptime: 稼働時間
+    usage: 使用率
+    used: 使用
+  aria:
+    core_usage: "{name} 使用率 {usage} クロック {clock}"
+    live_summary: "{label} リアルタイム: 最新 {last}"
+    monitor_tabs: モニターのセクション
+    ownership_filter: 所有フィルター
+    range_summary: "{label} {span}: {range}"
+    span: 履歴の期間
+  error:
+    bad_span: モニターが表示しない期間です。
+    cpu_limit_body: デバイスと限界温度を送ってください。
+    cpu_limit_failed: 限界温度を変更できませんでした。
+    cpu_limit_range: 限界温度は 0 °C より高く 127 °C より低くしてください。
+    no_machine: そのデバイスはありません。
+    no_node: そのノードはありません。
+    node_leave_refused: ハブが切断を受け付けなかったため、ノードを削除しませんでした。この PC の jake がハブに接続されているか確認してください。
+    node_remove_failed: ノードを削除できませんでした。
+    ownership_failed: 所有を変更できませんでした。
+    ownership_refused: ノードサービスがこの所有設定を受け付けませんでした。
+    ownership_shape: 所有は共用か個人のいずれかにしてください。
+    readings_failed: デバイスの状態を読み込めませんでした。
+    record_failed: 履歴を読み込めませんでした。
+    tracking_direction: デバイスとオン・オフの値を送ってください。
+    tracking_failed: リアルタイム追跡を変更できませんでした。
+    users_failed: アカウント一覧を読み込めませんでした。
+  status:
+    account_loading: 所有アカウントを読み込み中…
+    board_loading: マザーボードを読み込み中…
+    cpu_loading: CPU を読み込み中…
+    memory_loading: メモリを読み込み中…
+    name_loading: 名前を読み込み中…
+    nodes_loading: ノードを読み込み中…
+    no_sensor_library: Windows センサーライブラリなし
+    storage_loading: ストレージを読み込み中…
+    system_loading: システムを読み込み中…
+    tracking_loading: リアルタイム追跡を読み込み中…
+    tracking_off: リアルタイム追跡オフ
+  action:
+    node_remove: ノード削除
+    ownership_change: 所有を変更
+    ownership_edit: 変更
+  message:
+    node_leave: jake がこの PC から自身を削除し、ハブから離脱します。そのままにすると次回の点検でノードが再び作成されます。
+    node_leave_unattached: この PC の jake は現在ハブに接続されていないため、一覧から外すだけです。再接続するとノードが再び作成されます。
+    node_removal: このノードをモニターの一覧から外します。
+    node_remove_effect: 一覧から外したノードはモニタリングされなくなります。
+    personal_unmonitored: 個人ノードはモニタリングしません。
+monitor_logs:
+  label:
+    all_categories: すべての分類
+    all_levels: すべてのレベル
+    category: 分類
+    category_backup: バックアップ
+    category_deploy: デプロイ
+    category_service: サービス
+    category_suite: テスト
+    category_upkeep: 定期作業
+    filter: フィルター
+    filter_count: "フィルター {n}"
+    level: レベル
+    level_error: エラー
+    level_other: その他
+    level_warning: 警告
+    masked: «マスクされた値»
+    search: ログを検索
+  aria:
+    filters: ログフィルター
+    list: ログ
+  status:
+    empty: 行なし
+    empty_found: 該当する行なし
+    loading: ログを読み込み中…
+  error:
+    read_failed: ログを読み込めませんでした。
+screens:
+  label:
+    agents: エージェンシー
+    agents_group: "エージェント · {name}"
+    artifact: アーティファクト
+    chat_id: チャット番号
+    code: コードレビュー
+    db: DB
+    documents: ドキュメントビューアー
+    files: ファイル
+    find_description: 画面、ルーム、エージェントへ移動
+    group_agents: エージェント
+    section_administration: 管理者サービス
+    section_organization: 組織
+    section_application: アプリケーション
+    internal_name: 内部名
+    live: リアルタイム状態
+    mail: メール
+    monitor: モニター
+    admin: 管理者
+    organization: 組織
+    remote: リモート
+    research: リサーチ
+    search: 検索
+    siren: キャッシュサイレン
+    rooms: ルーム
+    brain: ブレイン
+    todo_description: 待ち行列と承認待ち
+  placeholder:
+    find: 画面・ルーム・エージェントを検索
+  status:
+    agents_loading: エージェント一覧を読み込み中…
+    disconnected: 切断
+    no_settings_found: 該当する設定なし
+    restarting: 再起動中
+    rooms_loading: ルーム一覧を読み込み中…
+  action:
+    read_screen_again: 再読み込み
+  error:
+    agents_failed: エージェント一覧の取得に失敗
+    bad_screen_name: 画面名が正しくありません。
+    no_tab_state: タブの状態がありません。
+    nodes_failed: ノード一覧の取得に失敗
+    rooms_failed: ルーム一覧の取得に失敗
+    screen_unreachable: この画面のサービスが応答しないため、画面を読み込めませんでした。
+    tab_state_too_large: タブの状態が大きすぎます。
+  aria:
+    room_typing: 入力中
+    room_unread: "未読メッセージ {count} 件"
+    screen_unread: "{name} 未読 {count} 件"
+siren:
+  error:
+    load_failed: サイレンを読み込めませんでした。
+    unreachable: キャッシュサイレンが応答しません。
+  aria:
+    agent_filter: エージェントフィルター
+    kind_filter: 種類フィルター
+    model_filter: モデルフィルター
+    request_filter: リクエストフィルター
+  label:
+    all_models: すべてのモデル
+    cache_share: キャッシュ再利用率
+    cache_tokens_of: "キャッシュ {tokens}"
+    cause_deploy: デプロイ
+    cause_launch: 起動ライン移動
+    cause_reload: ドキュメント再読み込み
+    chat_session: "{title} {agent}"
+    cold_requests: 再プリフィルのリクエスト
+    filter: フィルター
+    filter_count: "フィルター {n}"
+    kind_burst: 暴走
+    kind_cmd: コマンド
+    kind_cold: 再プリフィル
+    kind_compact: 圧縮
+    kind_error: エラー
+    kind_growth: 新規トークン急増
+    kind_notice: 通知
+    kind_quota: 上限
+    kind_refusal: モデル切り替え
+    kind_request: リクエスト
+    kind_start: 最初のリクエスト
+    kind_warm: キャッシュ
+    last_request: 最後のリクエスト
+    minute_tokens: "新規トークン {tokens}"
+    moving_sessions: 30分以内に活動したセッション
+    new_tokens: 直近1分の新規トークン
+    new_tokens_of: "新規 {tokens}"
+    no_known_cause: 記録された原因なし
+    note_burst: "{seconds}秒間にリクエスト {count} 件"
+    note_compact: 圧縮
+    note_effort_model: モデル・強度の変更
+    note_image: 画像
+    note_model_switch: モデル切り替え
+    note_prefix_changed: プレフィックス変更
+    note_session_start: セッションの最初のリクエスト
+    note_tool_search: ツール検索
+    note_ttl_expired: キャッシュ TTL 期限切れ
+    note_unknown: 不明
+    note_usage_unavailable: 使用量の提供なし
+    sirens: 鳴ったサイレン
+    unnamed: その他
+    window_last: 集計開始と最後のリクエスト
+    window_since: 集計開始
+  message:
+    thresholds_armed: "直近10分、1分あたりの新規トークン · 新規トークン {threshold} から警報 · キャッシュ寿命 {minutes}分 · 警報オン"
+    thresholds_quiet: "直近10分、1分あたりの新規トークン · 新規トークン {threshold} から警報 · キャッシュ寿命 {minutes}分 · 警報オフ"
+  status:
+    end: 終わり
+    figures_loading: 数値を読み込み中…
+    more_loading: さらに読み込み中…
+    no_matching: 条件に合うリクエストなし
+    no_requests: リクエストなし
+    requests_loading: 最近のリクエストを読み込み中…
+  title:
+    recent_requests: 最近のリクエスト
+todo:
+  error:
+    approvals_load_failed: 承認履歴を読み込めませんでした。
+    questions_load_failed: 回答済みの質問を読み込めませんでした。
+    auto_change_failed: 自動進行を変更できませんでした。
+    bad_action: 実行できない操作です。
+    bad_direction: 移動方向が正しくありません。
+    bad_model: モデルが正しくありません。
+    bad_agent: エージェント名が正しくありません。
+    bad_role: ロール名が正しくありません。
+    no_candidate: "{role} ロールで {model} モデルを実行するエージェントがありません。\n{role} ロールのエージェント: {agents}"
+    unknown_role: "{role} ロールがエージェンシーにありません。"
+    bad_item_id: 項目番号が正しくありません。
+    bad_note: 承認コメントが長すぎるか、正しくありません。
+    bad_order: 保存する順序が正しくありません。
+    bad_source_ids: 併せて出典にする項目番号が正しくありません。
+    bad_strands: 未決事項の番号が正しくありません。
+    bad_worker: ワーカー名が正しくありません。
+    bot_refused: bmo-job がリクエストを拒否しました。
+    hold_reason_too_long: "保留理由が長すぎます。\n{n} 文字まで入力できます。"
+    queue_unknown: 作業を入れるキューがまだ決まっていません。
+    talk_unavailable: この項目にはまだ会話を残せません。
+    cannot_append: 完了した項目には指示を追加できません。再度開いてから追加してください。
+    cannot_finish: すでに完了した項目、Job が実行中の項目、停止・再開待ちの項目は完了にできません。
+    cannot_hold: 完了した項目か、すでに保留した項目です。
+    cannot_unappend: すでに削除された指示です。一覧を更新してください。
+    change_failed: TODO を変更できませんでした。
+    create_failed: 新しい項目を作成できませんでした。
+    hold_release_failed: デプロイ待ちを解除できませんでした。
+    item_read_failed: "#{id} を読み込めませんでした。"
+    job_ended: "Job #{id} はすでに終了しています。"
+    job_read_failed: "Job #{id} を読み込めませんでした。"
+    load_failed: TODO を読み込めませんでした。
+    not_held: 保留中の項目ではありません。
+    note_delete_failed: 指示を削除できませんでした。
+    note_empty: 追加する指示を入力してください。
+    note_pick: 削除する指示が見つかりませんでした。
+    note_send_failed: 指示を送信できませんでした。
+    notes_load_failed: 追加指示を読み込めませんでした。
+    nothing_to_raise: その項目には未決事項がないため、新しい項目を作成できません。
+    source_without_note: "#{id} には未決事項がないため、出典にできません。"
+    standing_notes_failed: ほかの未決事項を読み込めませんでした。
+    order_save_failed: 順序を保存できませんでした。
+    queue_moved: その間に待ち行列が変わったため、順序を保存できませんでした。更新してから移動してください。
+    queue_pause_direction: 自動進行を一時停止するか再開するか選んでください。
+    raise_body_empty: この未決事項で行うことを入力してください。
+    raise_title_empty: 新しい項目のタイトルを入力してください。
+    resolve_reason_empty: 未決事項を解消した理由を1行で入力してください。
+    stop_reason_needed: 停止理由を入力してください。
+    hold_reason_needed: 保留理由を入力してください。
+    notices_reason_needed: 通知をオフにする理由を入力してください。
+    notices_reason_too_long: "通知をオフにする理由が長すぎます。\n{n} 文字まで入力できます。"
+    talk_load_failed: 会話を読み込めませんでした。
+    unfinished_not_open: 解消する未決事項がないか、すでに解消された項目です。
+    work_order_fold_failed: 作業指示書を終了できませんでした。
+    work_order_load_failed: 作業指示書を読み込めませんでした。
+    work_order_save_failed: 作業指示書を保存できませんでした。
+    work_order_stop_failed: 作業指示書を停止できませんでした。
+    worker_change_failed: ワーカーを変更できませんでした。
+    agent_change_failed: エージェントを変更できませんでした。
+    job_runs_on: "{agent} エージェントで実行中の Job (#{job}) があるため変更できません。\nJob を停止すると変更できます。"
+  action:
+    approve: 承認
+    auto_pause: 自動進行を一時停止
+    auto_resume: 自動進行を再開
+    clear_all: すべて解除
+    clear_filters: フィルターをすべて解除
+    show_awaiting: 回答待ちの項目のみ表示
+    clear_search: 検索語を消去
+    confirm_delete: 削除する
+    confirm_discard: 破棄する
+    create_item: 項目を作成
+    discard: 破棄
+    edit_reopen: 編集して再度開く
+    end_work_order: 指示書を終了
+    give_up: やめる
+    hold: 保留
+    move_bottom: 一番下へ
+    move_top: 一番上へ
+    open_todo: TODO を開く
+    panel_close: TODO パネルを閉じる
+    panel_collapse: TODO パネルを閉じる
+    panel_expand: TODO パネルを開く
+    release_hold: 解除
+    reopen_keep: 前回の結果を残して再度開く
+    resume: 再開
+    resume_from_done: 完了段階から再開
+    save_instruction: 指示を保存
+    skip_and_end: 残りの作業をスキップして終了
+    stop: 停止
+    stop_and_hold: すぐに停止して保留
+    submit_for_approval: 承認を依頼
+    task_edit: 指示を編集
+    task_rerun: 再実行
+    task_restore: スキップを取り消す
+    task_restore_confirm: 元に戻す
+    task_skip: スキップ
+    unhold: 保留解除
+    notices_off: 通知をオフ
+    notices_on: 通知をオン
+    job_log: Job ログ
+    write_separately: 別に作成
+  aria:
+    drag_reorder: ドラッグして並べ替え
+    filter: TODO フィルター
+    filter_of: "{name} フィルター"
+    filters_set: "フィルター {n} 個"
+    item_body: 項目の内容
+    item_form: 承認欄
+    item_manage: 項目の状態と管理
+    item_view: 項目を表示
+    item_worker: この項目を担当するワーカー
+    item_agent: この項目を担当するエージェント
+    more_sources: この項目のほかに併せて出典にする未決事項
+    new_body: 新しい項目にする内容
+    panel_width: TODO パネルの幅を調整
+    resolve_reason: 未決事項を解消した理由
+    strands: 新しい項目が引き受ける未決事項
+    search: TODO を検索
+    work_instruction: 作業指示
+    work_purpose: 作業目的
+  label:
+    approval_by_person: "{name}"
+    approval_given: 承認
+    approval_no_caller: 呼び出し元不明
+    approval_recommended: 推奨
+    approved: 承認済み
+    chosen_forced: 強制指定
+    chosen_item: 項目で指定
+    chosen_order: プロバイダー順
+    chosen_pin: 固定モデル
+    model_chosen_by: "{model} · {by}"
+    base_worker: 既定のワーカー
+    builder_model: Builder モデル
+    builder_stage: "{n} 段階 · {title}"
+    checkout_release_wait: チェックアウトを手放す順番を待機中
+    conversation: 会話
+    deploy_hold_breaks: スキーマ変更
+    deploy_hold_jobs: 待っている Job
+    deploy_deploying: デプロイ中
+    deploy_failed: デプロイ失敗
+    deploy_in_line: デプロイ順番待ち
+    deploy_in_line_at: "デプロイ順番待ち {n} 番"
+    deploy_waiting_live: デプロイ待ち
+    deploy_waits: この Job が終わるとデプロイされます
+    detail_description: 指示と履歴
+    discussion: 協議
+    edited_instruction: 編集した指示
+    end_reason: 終了理由
+    field_checkout: チェックアウト
+    field_checkout_reason: "チェックアウト占有の理由: {reason}"
+    field_deploy_waits: デプロイ待ち
+    field_id: 番号
+    field_instruction: 指示
+    field_merged: 統合
+    field_merged_into: "#{id} に統合"
+    field_model: モデル
+    field_agent: エージェント
+    field_note: 承認コメント
+    field_report: 報告
+    field_requester: 依頼
+    field_state: 状態
+    field_stopped: 停止理由
+    field_title: タイトル
+    field_unfinished: 未決事項
+    field_question: 質問
+    field_waiting: 待機
+    field_worker: リポジトリ
+    agent_unnamed: 未指定
+    model_unnamed: 未指定
+    assign_model: "{role} · {model}"
+    assign_model_agents: "空きエージェント · {agents}"
+    assign_free: "{role}"
+    assign_free_any: 未指定
+    assign_free_tip: "{role} ロールで {model} モデルを実行するエージェントのうち、Job の開始時に空いているエージェントが担当します。"
+    assign_free_any_tip: "{model} モデルを実行するエージェントのうち、Job の開始時に空いているエージェントが担当します。"
+    agent_job_running: '実行中の Job のエージェントです。
+
+      Job を停止すると変更できます。'
+    filter: フィルター
+    held_failure: 失敗で保留
+    held_pause: 再開待ち
+    held_pausing: 仕上げ中
+    held_pending: 中断待ち
+    held_plain: 保留
+    held_since: "{since} から{kind}"
+    held_since_reason: "{since} から{kind} · {reason}"
+    held_stop: 停止
+    held_stopping: 停止中
+    item_head: "#{id} {title}"
+    job_ended_at: "終了 {time}"
+    job_started_at: "開始 {time}"
+    manage: 管理
+    merged_done: "{target} に統合され、併せて完了"
+    merged_done_since: "{since} に {target} に統合され、併せて完了"
+    merged_into: "#{id} に統合済み"
+    merged_open: "{target} に統合済み · その項目が完了すると併せて完了"
+    merged_open_since: "{since} に {target} に統合済み · その項目が完了すると併せて完了"
+    model_round: "{model} · {n} 回目"
+    new_title: 新しい項目のタイトル
+    no_room: ルームなし
+    notes_count_removed: "{n} 件 · 削除 {removed} 件"
+    opened_unattended: 承認なしで開始
+    order_active: 進行中
+    order_closing: 終了中
+    order_done: 完了
+    order_draft: 下書き
+    order_paused: 中断
+    owner_note: オーナーの承認コメント
+    owner_stopped: "停止: {why}"
+    part_conclusion: 結論
+    part_to_do: 何をすべきか
+    part_what: どんな作業か
+    phase_finish: 仕上げ
+    phase_ready: 準備
+    phase_run: エージェント実行
+    phase_run_by: "{runner} 実行"
+    phase_wait: 待機
+    priority: 優先順位
+    purpose_conclusion: 目的 · チャットエージェントの結論
+    purpose_same: "目的・指示: 項目の指示と同じ"
+    queue_place: "待ち行列の順番: {place}"
+    queue_place_failures: "{turn}: {why} · 失敗 {failures} 回"
+    queue_turn_held: 保留
+    queue_turn_passed: 順番を譲っています
+    queue_turn_resume: 再開の順番
+    queue_turn_why: "{turn}: {why}"
+    removed_at: "削除 {time}"
+    rejections: "差し戻し {n} 回"
+    report_count: "報告 {n} 件"
+    report_final: 完了報告
+    report_held: 保留理由
+    report_progress: 進捗報告
+    request_text: 依頼の原文
+    requested_by: 依頼者
+    requested_room: 依頼したルーム
+    rerun_instruction: 再実行する指示
+    resolved_at: "解消 · {time}"
+    review_accepted: 受理
+    review_answer: 回答
+    review_check_decisions: 決定の根拠
+    review_check_promises: 約束の履行
+    review_escalation: オーナーへの報告
+    review_final: "最終報告 · {round} 回目"
+    review_opened: 検収開始
+    review_pass: 合格
+    review_question: 質疑
+    review_rejection: 差し戻し
+    review_report: 報告
+    review_ruling: オーナーの決定
+    review_stage: "{stage} 段階 · {round} 回目"
+    review_turns: 報告ターン
+    result: 結果
+    round_result: "{round} 回目の結果"
+    run_id: "実行 #{id}"
+    run_id_took: "実行 #{id} · {time}"
+    runner: "{worker} · {road}"
+    skip_reason: スキップする理由
+    skipped_at: "スキップした理由 · {time}"
+    skipped_count: "スキップ {n}"
+    sources: 出典
+    strands: 未決事項
+    note_original: "#{id} の未決事項の原文"
+    span_end: "終了 {time}"
+    span_start: "開始 {time}"
+    span_times: "{n} 回"
+    span_tokens: "トークン {tokens}"
+    span_total: "合計 {time}"
+    state_deploy: デプロイ待ち
+    state_deploying: デプロイ中
+    state_done: 完了
+    state_held: 保留
+    state_merged: 統合済み
+    state_pending: 承認待ち
+    state_reporting: 完了報告中
+    state_running: 進行中
+    state_starting: 開始中
+    state_running_progress: "進行中 · {progress}"
+    state_stopped: 停止済み
+    state_waiting: 待機
+    step_stage: 段階
+    step_rejections: "差し戻し {n} 回"
+    step_stage_place: "段階 {n}/{of}"
+    step_final: 最終検証
+    step_investigate: 調査
+    step_plan: 計画
+    step_review: レビュー
+    step_synthesis: 設計の統合
+    stop_failures: "失敗 {n} 回"
+    stop_reason: 停止理由
+    hold_reason: 保留理由
+    notices_reason: 通知をオフにする理由
+    notices_off: "通知オフ · {reason}"
+    notices_off_since: "{since} から通知オフ · {reason}"
+    stop_reason_line: "停止理由: {reason}"
+    summary_deploy: "デプロイ待ち {n}"
+    summary_deploying: "デプロイ中 {n}"
+    summary_held: "保留 {n}"
+    summary_merged: "統合 {n}"
+    summary_pending: "承認待ち {n}"
+    summary_queue: "{n} 件"
+    testbed_holding: "テスト中 · {command}"
+    testbed_waiting: "テスト待ち {n} 番目 · {command}"
+    task_done: 完了
+    task_failed: 失敗
+    task_pending: 待機
+    task_running: 実行中
+    task_skipped: スキップ
+    task_step: 作業段階
+    time_attempts: "{n} 回実行"
+    time_rest: "その他 {n} 件"
+    time_total: "合計 {time}"
+    unassigned_builtin: 割り当てなし (Built-in ワーカー)
+    unfinished_open: 未決事項
+    unfinished_remaining: 未決事項あり
+    unfinished_resolved: 未決事項解消
+    waiting_overdue: 予定時刻を超過
+    waiting_pid: "待機中: {what} · pid {pid} · {left}"
+    waiting_unit: "待機中: {what} · ユニット {name} · {left}"
+    work_order_state: "作業指示書 · {state}"
+    work_todo: 調査・検証・実装すること
+    awaiting_question: 回答待ち
+  message:
+    discard_confirm: "#{id} を破棄しますか？"
+    discard_effect: 項目は削除され、元に戻せません。
+    done_all_found: "検索された完了項目 {n} 件をすべて読み込みました。"
+    done_all_loaded: "完了項目 {n} 件をすべて読み込みました。"
+    note_delivered: この指示を含むチャットエージェントの修正内容は、実行中の Job にすでに届いているため、その Job にはそのまま残ります。
+    queue_all_busy: 待っている作業はすべて、使用中のチェックアウトか、エージェントの順番ではないターンの後ろにあります。
+    queue_machine_short: マシンに Job をもう1つ実行する余裕がないため、余裕ができたら改めて知らせます。
+    queue_nothing_waiting: どのワーカーにも待っている作業はありません。
+    queue_paused: オーナーの一時停止またはデプロイ保留がまだ有効です。
+    queue_told: エージェントにキューの状況を知らせました。
+    queue_unchanged: すでに知らせたキューの状況から変わったことはありません。
+    queue_unreadable: 現在何が実行中かを読み取れませんでした。
+    raised: "{from} の未決事項から項目を作成しました。\n承認待ちになりました。"
+    raised_item: "{from} の未決事項から #{id} を作成しました。\n承認待ちになりました。"
+    release_hold_confirm: デプロイ待ちを解除しますか？
+    release_hold_effect: '今回のデプロイは何も反映せずに終了し、コミットはそのまま待機します。
+
+      今反映すると、再起動時に実行中の Job が古いコードで削除されたスキーマを使って失敗するおそれがあるため待機しています。
+
+      解除すると新しい Job が開始され、デプロイは実行中の Job がないときに再開します。'
+    resolved_by_lines: "{lines} の完了で解消"
+    search_found: "{n} 件見つかりました。"
+    search_none: 該当する項目はありません。
+    section_done_empty: 完了した項目なし
+    section_held_empty: 保留した項目なし
+    section_merged_empty: 統合された項目なし
+    section_pending_empty: 待機中の依頼なし
+    section_queue_empty: 残りの項目なし
+    time_inside_note: 同時に実行されたツールは時間が重なるため、合計が実際の時間より長くなることがあります
+  placeholder:
+    approval_note: 承認コメント (任意)
+    more_sources: ほかの未決事項も出典に
+    new_body: やること
+    note: 指示
+    resolve_reason: 解消の理由
+    strands: すべての未決事項
+    say_to_bmo: チャットエージェントにメッセージを送る
+    search: 検索
+  status:
+    approvals_loading: 承認履歴を読み込み中…
+    auto_paused_hint: 自動進行を一時停止中 · 再開すると次の段階が始まります
+    change_handed: "{time} に Job へ伝達済み"
+    change_no_job: 実行中の Job なし · 次の Job が読み込みます
+    change_waiting: Job への伝達待ち
+    coworkers_loading: 作業段階を読み込み中…
+    delivered_suffix: Job へ伝達済み
+    deploy_hold_after: "{items} が終わるとデプロイ"
+    deploy_hold_jobs: "Job {n} 個が終わるとデプロイ"
+    deploy_hold_jobs_unread: Job 一覧を読み込めません
+    deploy_hold_limit: "{time} までに終わらない場合は待機を解除します。"
+    deploy_hold_no_jobs: 待っている Job なし
+    deploy_hold_suffix: デプロイ待ち
+    done_nothing_to_do: 完了した項目のため、やることなし
+    item_loading: 項目を読み込み中…
+    item_missing: "#{id} の項目なし"
+    list_refreshing: 一覧を更新中…
+    loading: TODO を読み込み中…
+    more_done_loading: 完了項目をさらに読み込み中…
+    next_run_applies: 次回の実行から反映
+    no_approvals: 承認履歴なし
+    no_brief: まだ整理された指示なし · 最初の実行時にチャットエージェントが作成
+    no_coworkers: 作業段階なし
+    no_job_yet: まだ実行された Job なし
+    no_notes: 追加指示なし
+    no_talk: 会話なし
+    notes_loading: 追加指示を読み込み中…
+    paused_suffix: 一時停止
+    running_attempt: "{n} 回目を実行中"
+    talk_loading: 会話を読み込み中…
+    unreadable: 読み込めません
+    work_order_loading: 作業指示書を読み込み中…
+  title:
+    approvals: 承認履歴
+    brief: 整理された指示
+    brief_changes: チャットエージェントが修正した内容
+    conversation: やり取りした会話
+    coworkers: 作業段階
+    instruction_as_said: 指示の原文
+    notes: 追加指示
+    questions: Job の質問
+    run_log: 実行履歴
+    section_done: 完了
+    section_held: 保留
+    section_merged: 統合済み
+    section_pending: 承認待ち
+    section_queue: 待ち行列
+    time_inside: エージェント実行中のツール別時間
+    time_inside_by: "{runner} 実行中のツール別時間"
+    time_phases: 区間
+    work_order: 作業指示書
+account:
+  title:
+    login: ログイン情報
+    profile: プロフィール
+  label:
+    presence_shown: オンライン状態を公開
+    presence_shown_description: オフにすると、誰も自分のオンライン状態と最終アクセスを見られなくなります。
+    current_password: 現在のパスワード
+    device_since: "{time}から · {kinds}"
+    email: メールアドレス
+    full_name: 名前
+    job_title: 役職名
+    rank: 職位
+    duty: 担当業務
+    landline: 固定電話
+    mobile: 携帯電話
+    new_password: 新しいパスワード
+    nothing_subscribed: 受け取る通知なし
+    other_devices: "他のデバイス {n}台"
+    own_bmo: "{name}の{agent}"
+    bmo_name: BMO
+    own_bmo_room: "{name}"
+    palette: パレット
+    palette_description: ルームの色
+    preview: プレビュー
+    profile: プロフィール
+    theme: テーマ
+    theme_description: アクセントカラーとグレー
+    user_id: ユーザーID
+  action:
+    change: 変更
+    reset_palette: リセット
+    reset_theme: リセット
+    retry: 再試行
+    send_test: テスト送信
+    subscribe: 通知を受け取る
+    unsubscribe: 通知をオフ
+  status:
+    not_subscribed: このデバイスはまだ通知を受け取っていません。
+    notifications_loading: 通知設定を読み込み中…
+    profile_loading: プロフィールを読み込み中
+    presence_loading: オンライン状態の公開設定を読み込み中…
+  message:
+    preview_answer: "7時です。議事録は https://example.com/notes にあります。"
+    preview_ask: 今日の会議って何時だっけ？
+    preview_code: "こう変えれば大丈夫です。\n```ts\npick(\"teal\");\n```"
+    preview_thanks: ありがとう。設定ももう一度見せて
+    saved: アカウント情報を変更しました。
+    user_saved: "{name}のアカウントを保存しました。"
+    user_service_saved: "{name}をアカウントサービスのユーザーとして保存しました。"
+    user_service_saved_administrator: "{name}をアカウントサービスにプラットフォーム管理者として保存しました。"
+    user_service_unset: アカウントモデルは使われていますが、サーバーの実行ファイルと設定フォルダーが指定されていないため、アカウントサービスのユーザーは保存しませんでした。サーバーの user コマンドで保存してください。
+    user_usage: "使い方: bun scripts/user.ts set <ユーザーID> <パスワード> [--administrator]"
+  error:
+    bad_presence: オンライン状態の公開設定の値が正しくありません。
+    presence_failed: オンライン状態の公開設定を保存できませんでした。
+    presence_no_account: アカウントのないログインでは、オンライン状態を公開・非公開にできません。
+    presence_read_failed: オンライン状態の公開設定を読み込めませんでした。
+    bad_new_password: 新しいパスワードが短すぎるか長すぎます。
+    user_name_shape: "ユーザーIDは{min}～{max}文字の英字、数字、ピリオド、アンダースコア、ハイフンで入力してください。"
+    user_password_short: "パスワードは{min}文字以上にしてください。"
+    user_service_failed: "アカウントサービスのユーザーを作成できませんでした: {reason}"
+    bad_palette: 存在しないパレットです。
+    bad_theme: 存在しないテーマです。
+    bad_language: 存在しない言語です。
+    bad_user_id: ユーザーIDには英字、数字、ピリオド、アンダースコア、ハイフンのみ使用できます。
+    current_password_empty: 現在のパスワードを入力してください。
+    current_password_wrong: 現在のパスワードが正しくありません。
+    palette_failed: パレットを保存できませんでした。
+    save_failed: アカウント情報を変更できませんでした。
+    theme_failed: テーマを保存できませんでした。
+    language_failed: 言語を保存できませんでした。
+    user_id_taken: すでに使われているユーザーIDです。
+    profile_forbidden: プロフィールはそのアカウントの持ち主かプラットフォーム管理者のみ変更できます。
+    profile_shape: プロフィールの値が正しくありません。
+    profile_read_failed: プロフィールを読み込めませんでした。
+    profile_write_failed: プロフィールを保存できませんでした。
+settings:
+  title:
+    settings: 設定
+  label:
+    account: アカウント
+    agent: マイBMO
+    briefing: ボイスブリーフィング
+    notifications: 通知
+    palette: ルーム
+    permissions: 権限
+    invites: 招待
+    bmo: BMO
+    providers: プロバイダー
+    machine: デバイス
+    desktop: デスクトップ
+    secrets: シークレット保管庫
+    supply: 供給
+    apps: マイアプリ・ツール
+    personal_apps: マイ個人アプリ
+    supervisor_none: スーパーバイザーなし
+    theme: テーマ
+  action:
+    back: 戻る
+people:
+  title:
+    person: メンバー
+  label:
+    name: 名前
+    organization: 組織
+    job_title: 役職名
+    rank: 職位
+    position: 役職
+    duty: 担当業務
+    posts: 兼務
+    presence: オンライン状態
+    landline: 固定電話
+    mobile: 携帯電話
+    email: メールアドレス
+  status:
+    loading: メンバーを読み込み中…
+  error:
+    read_failed: メンバー情報を読み込めませんでした。
+    not_found: メンバーが見つかりません。
+roster:
+  label:
+    tab: ユーザー
+    state: 状態
+    machine: デバイス
+    last_sign_in: 最終ログイン
+    made_at: 作成日
+    administrator: 管理者
+    head_of: 組織長を務める組織
+    acting_for: 職務代行
+    acting_until: "{unit} · {date}まで"
+    position: 役職
+    kind: 種類
+    posts: 兼務
+    no_posts: 兼務なし
+    history: 履歴
+    no_history: 履歴なし
+    history_by: "{time} · {name}"
+    history_placed: "組織異動 · {unit}"
+    history_placed_from: "組織異動 · {from} → {unit}"
+    history_role: "役職変更 · {unit} · {before} → {after}"
+    history_head_granted: "組織長に指定 · {unit}"
+    history_head_taken: "組織長を解除 · {unit}"
+    history_acting: "職務代行に指定 · {unit} · {date}まで"
+    history_acting_ended: "職務代行を解除 · {unit}"
+    history_post_given: "兼務を追加 · {unit} · {role}"
+    history_post_changed: "兼務の役職変更 · {unit} · {before} → {after}"
+    history_post_taken: "兼務を解除 · {unit}"
+    history_left: 退会処理
+    left_by: "{time} · {name}が処理"
+    choose: ユーザーを選択してください。
+    no_bmo: BMOなし
+    persona_length: "{count}文字"
+    runs: 最近のアクティビティ
+    activity: アクティビティ
+    belonging: 所属
+    private_room: 個人トーク
+    group_room: グループ
+    message_count: "メッセージ {count}件"
+    context: "{carried}/{window} {share}%"
+    no_rooms: ルームなし
+    no_agents: エージェントなし
+    no_sessions: セッションなし
+    no_runs: 最近のアクティビティなし
+  placeholder:
+    search: 名前、ユーザーID、組織で検索
+  action:
+    filter: フィルター
+    manage: 管理
+    profile: プロフィールを変更
+    add_post: 兼務を追加
+  aria:
+    count: "見つかったユーザー {count}人"
+    person_tabs: ユーザー情報タブ
+  status:
+    active: 有効
+    pending: デバイス接続待ち
+    left: 退会
+    on: オン
+    off: オフ
+    loading: ユーザーを読み込み中…
+    more_loading: ユーザーをさらに読み込み中…
+    person_loading: ユーザー情報を読み込み中…
+    bmo_loading: BMOを読み込み中…
+    rooms_loading: ルームを読み込み中…
+    agents_loading: エージェントを読み込み中…
+    sessions_loading: セッションを読み込み中…
+    runs_loading: 最近のアクティビティを読み込み中…
+    none: ユーザーなし
+    no_results: 検索結果なし
+    end: リストの終わり
+    run_running: 実行中
+    run_completed: 完了
+    run_failed: 失敗
+    run_stopped: 停止
+    run_ended: 終了
+    run_ended_as: "終了 · {outcome}"
+  error:
+    read_failed: ユーザー一覧を読み込めませんでした。
+    person_read_failed: ユーザー情報を読み込めませんでした。
+    bmo_read_failed: BMOを読み込めませんでした。
+    rooms_read_failed: ルームを読み込めませんでした。
+    agents_read_failed: エージェントを読み込めませんでした。
+    sessions_read_failed: セッションを読み込めませんでした。
+    runs_read_failed: 最近のアクティビティを読み込めませんでした。
+permissions:
+  label:
+    administrator: プラットフォーム管理者はすべてのセクションを閲覧・編集できます。
+    read: 閲覧
+    section: セクション
+    write: 編集
+  status:
+    sections_loading: 権限を読み込み中…
+  error:
+    sections_read_failed: 権限を読み込めませんでした。
+    sections_write_failed: 権限を保存できませんでした。
+  aria:
+    read_of: "{name}の閲覧"
+    write_of: "{name}の編集"
+organization:
+  aria:
+    tabs: 組織タブ
+  label:
+    chart: 組織図
+    none: 組織なし
+    list: 組織一覧
+    list_none: 設定する組織なし
+    list_no_match: 該当する組織なし
+    name: 名前
+    parent: 上位組織
+    heads: 組織長
+    no_heads: 組織長なし
+    no_members: メンバーなし
+    members: "メンバー {count}人"
+    left_member: "{name}（退会）"
+    machine: "{name}のデバイス"
+    machine_none: 接続されたデバイスなし
+    machine_name: デバイス名
+    machine_name_placeholder: 自動命名
+    machine_shared: 複数のアカウントで共用するデバイス
+    machine_shared_help: 他のアカウントもこのデバイスに接続できます。作業スペースはアカウントごとに分かれています。
+    linux: Linux·WSL
+    windows: Windows
+    chosen: "{count}人を選択"
+    move_to: 異動先の組織
+    role: 役割
+    role_head: 組織長
+    role_member: メンバー
+    role_of: "{name}の役割"
+    unchanged: 変更なし
+    head_dropped: "{unit}の組織長を解除"
+    post_dropped: "{unit}の兼務を解除"
+    kind: 種類
+    no_kind: なし
+    short_name: 略称
+    short_name_line: "略称 {name}"
+    reports_to: 決裁上位組織
+    reports_to_line: "決裁上位組織 {path}"
+    default_mark: "{label}（デフォルト）"
+    position: 役職
+    no_position: 役職なし
+    keep_position: 現在の役職を維持
+    position_of: "{name}の役職"
+    position_line: "役職 {name}"
+    acting: 職務代行
+    acting_mark: 代行
+    acting_until: "{date}まで"
+    acting_none: なし
+    acting_person: 代行者
+    acting_end: 終了日
+    acting_replaces: "現在代行中の{name}の職務代行は終了します。"
+    posts: "兼務 {count}人"
+    no_posts: 兼務なし
+    post_mark: 兼務
+    post_person: 対象者
+    post_unit: 組織
+    post_head: 組織長を兼任
+  title:
+    mark_left: 退会処理しますか？
+    unbind: "{name}のデバイス接続を解除しますか？"
+    end_acting: 職務代行を解除しますか？
+    remove_post: 兼務を解除しますか？
+  message:
+    mark_left: この人はログインできなくなり、この人のBMOも再び起動しなくなります。この人が担当している組織の業務はそのまま残り、組織長が引き続き閲覧・変更できます。個人の業務と個人トーク、BMOの記憶はプラットフォーム管理者のみ閲覧できます。元に戻せません。
+    unbind: このアカウントは接続されたデバイスなしでログインでき、この人のBMOとエージェントはこのデバイスで実行されなくなります。
+    end_acting: この人はすぐに組織長の権限を失います。
+    remove_post: この組織での役職と組織長の兼任も一緒に解除されます。
+    install: '接続するPCで以下のコマンドのいずれかを実行して、jakeをインストールしてください。
+
+      接続されると、この人のBMOとエージェントがこのデバイスで実行されます。'
+  action:
+    add: 組織を追加
+    add_company: 会社を追加
+    mark_left: "{name}を退会処理"
+    mark_left_confirm: 退会処理
+    edit: 編集
+    add_head: 組織長を指定
+    remove_head: "{name}の組織長を解除"
+    place: メンバーを追加
+    bind: デバイスを接続
+    rebind: 別のデバイスに接続
+    unbind: デバイス接続を解除
+    unbind_confirm: 接続解除
+    share: 共有
+    unshare: 共有を解除
+    check: 確認する
+    expand: 下位組織を展開
+    collapse: 下位組織を折りたたむ
+    move: 組織異動
+    preview: プレビュー
+    move_confirm: 異動
+    choose_person: "{name}を選択"
+    appoint: 職務代行を指定
+    end_acting: 解除
+    end_acting_of: "{name}の職務代行を解除"
+    add_post: 兼務を追加
+    edit_post: "{name}の兼務を編集"
+    remove_post: "{name}の兼務を解除"
+    remove_post_confirm: 解除
+  status:
+    loading: 組織を読み込み中…
+    attached: 接続済み
+    waiting: 接続待ち
+    shared: 共用デバイス
+  error:
+    agency_node_taken: 'エージェンシーがこのデバイスを共用デバイスではなく別のアカウントのノードとして記録しているため、処理できませんでした。
+
+      デバイスの接続はそのままです。'
+    bad_request: 名前または組織番号が正しくありません。
+    cycle: 組織を自分の下位組織の下に移動したり、決裁ラインが同じ組織を2回通るようにしたりすることはできません。
+    short_name_taken: この会社の別の組織がすでに使っている略称です。
+    no_such_kind: この会社にない種類です。
+    no_such_role: この会社にない役職です。
+    head_only: 管理者または上位組織の組織長のみ実行できます。
+    leave_head_only: 管理者、またはその人の組織か上位組織の組織長のみ退会処理できます。
+    post_left: 退会した人には兼務や職務代行を任せられません。
+    home_unit: 所属組織では兼務を設定できません。
+    post_other_company: 同じ会社の人のみ指定できます。
+    already_head: すでにこの組織の組織長です。
+    bad_period: 終了日は今日より後にしてください。
+    bad_catalogue: 'キーは英小文字で始め、英小文字、数字、- で40文字以内にしてください。
+
+      名前は1行40文字以内で、重複しないようにしてください。'
+    role_held: 担当者がまだいる役職は削除できません。
+    kind_held: この種類の組織がまだあるため削除できません。
+    failed: 組織を処理できませんでした。
+    left: 退会したアカウントにはデバイスを接続できません。
+    machine_name: デバイス名は英字、数字、-、_ で63文字以内にしてください。
+    move_left: 退会した人は異動できません。
+    moved: 'その間に組織が変わった人がいるため、異動できませんでした。
+
+      組織図を再読み込みしたので、もう一度確認してください。'
+    no_hub: jakeハブが設定されていないため、デバイスを接続できません。
+    node_taken: '別のアカウントがすでにこのデバイスに接続しています。
+
+      そのアカウントのデバイスを共有してから、複数のアカウントで共用するデバイスとして接続してください。'
+    not_a_hub_node: ノードサービスがこのデバイスをハブノードとして認識していないため、この人のノードに設定できませんでした。
+    not_found: その組織またはユーザーは存在しません。
+    other_company: 組織を別の会社に移動することはできません。
+    shared_in_use: 別のアカウントもこのデバイスに接続しているため、共有を解除できません。
+    unreachable: アカウントサービスに接続できませんでした。
+org_memory:
+  label:
+    tab: 組織の記憶
+    no_units: 組織の記憶を書き込める組織がありません。
+    choose_unit: 組織一覧から記憶を書き込める組織を選択してください。
+    own: この組織の記憶
+    no_memories: 記憶なし
+    proposals: "提案 {count}件"
+    no_proposals: 提案なし
+    proposed_by: "{name} · {when}"
+    inherited: 上位組織の記憶
+    no_inherited: 上位組織の記憶なし
+    writers: 組織の記憶の書き込み権限
+    no_writers: 権限を持つ人なし
+    text: 内容
+    text_help: 特定の人の評価や事情、個人トークの内容は含めないでください。
+    topic: トピック
+    topic_line: "トピック {topic}"
+    locked: 固定
+    locked_help: 下位組織が同じトピックで上書きできません。
+    internal: 社内限定
+    internal_help: 社外の人がいるルームではBMOは話しません。
+    instead: "{unit}の記憶が代わりに適用されます。"
+    instead_locked: "{unit}の固定された記憶が代わりに適用されます。"
+    source_work_pattern: 勤務パターンから取り込んだ記憶です。
+    source_other: 別のサービスが管理している記憶です。
+  action:
+    add: 記憶を追加
+    edit: 記憶を編集
+    delete: 記憶を削除
+    accept: 受け入れる
+    decline: 断る
+    grant: 権限を付与
+    revoke: "{name}の権限を解除"
+  message:
+    delete: この記憶を削除しますか？
+    delete_effect: この組織と下位組織のBMOは、今後この記憶を受け取らなくなります。
+    decline: この提案を断りますか？
+  status:
+    loading: 組織の記憶を読み込み中…
+  error:
+    read_failed: 組織の記憶を読み込めませんでした。
+    failed: 組織の記憶を処理できませんでした。
+    bad_request: 内容が空か長すぎます。
+    writers_only: この組織の組織長か、組織の記憶の書き込み権限を持つ人のみ実行できます。
+    not_found: その組織または記憶は存在しません。
+    conflict: 'その間に記憶が変更されました。
+
+      再読み込みして確認してください。'
+    kept_by_source: 別のサービスが管理している記憶はここでは変更できません。
+    head_only: 管理者またはこの組織の組織長のみ実行できます。
+    writer_left: 退会した人には権限を付与できません。
+catalogue:
+  label:
+    tab: 役職・種類
+    roles: 役職
+    kinds: 組織の種類
+    no_roles: 役職なし
+    no_kinds: 組織の種類なし
+    key: キー
+    name: 名前
+  action:
+    edit: 編集
+    add: 追加
+    remove: "{name}を削除"
+    drag: 並べ替え
+  status:
+    loading: 一覧を読み込み中…
+  error:
+    read_failed: 一覧を読み込めませんでした。
+invites:
+  label:
+    make: 招待リンクを作成
+    full_name: 名前
+    company: 会社
+    unit: 組織
+    role: 役割
+    hours: 有効期間
+    span: "{hours}時間"
+    open: 有効な招待
+    none: 有効な招待なし
+    no_units: 招待できる組織がありません。招待できるのは組織長か管理者のみです。
+    until: "{time}まで"
+  action:
+    make: リンクを作成してコピー
+    copy: 招待文をコピー
+    drop: 取り消す
+  status:
+    copied: コピーしました
+    loading: 招待を読み込み中…
+  message:
+    made_uncopied: '招待リンクを作成しましたが、ブラウザーが自動コピーをブロックしました。
+
+      「招待文をコピー」を押してください。'
+    text: "{place}に招待します。以下のリンクからアカウントを作成し、案内に従ってPCにjakeをインストールすると、アカウントが有効になります。{link}（有効期限: {time}まで）"
+    text_named: "{name}さんを{place}に招待します。以下のリンクからアカウントを作成し、案内に従ってPCにjakeをインストールすると、アカウントが有効になります。{link}（有効期限: {time}まで）"
+  error:
+    bad_request: 組織または値が正しくありません。
+    closed: 期限切れか、すでに使用された招待です。
+    failed: 招待を処理できませんでした。
+    forbidden: この組織には招待できません。
+    name_taken: すでに使われているユーザーIDです。
+    no_hub: デバイス接続ハブが設定されていないため、招待できません。
+    not_found: 招待が見つかりません。
+    not_ready: まだアカウントを作成できない状態です。管理者に連絡してください。
+    unreachable: アカウントサービスに接続できませんでした。
+overlay:
+  title:
+    panel: マイBMO
+  label:
+    none: 自分専用のBMOがないため、個別に話しかけることはできません。
+    empty: まだ会話がありません。
+    input: このルームの人には表示されません
+  action:
+    send: 送信
+    log: マイBMOの記録を見る
+  status:
+    loading: マイBMOを読み込み中…
+  error:
+    load_failed: マイBMOを読み込めませんでした。
+    send_failed: 送信できませんでした。
+members:
+  title:
+    let_in: メンバーを追加
+  label:
+    console_user: コンソールユーザー
+    none: メンバーなし
+    no_service: チャットサービスのないルームです。
+    unlisted: チャットサービスがメンバー一覧を提供していません。
+    person: メンバー
+    unit: 組織
+    unit_people: "メンバー {count}人"
+    choice: メンバー・組織
+    find: 名前または組織で検索
+  status:
+    loading: メンバーを読み込み中…
+  action:
+    let_in: メンバーを追加
+    leave: 退出
+    take_out: 退出させる
+  error:
+    load_failed: メンバーを読み込めませんでした。
+    unheld: チャットサービスからこのルームのメンバーを読み取れませんでした。
+    accounts_failed: コンソールユーザーかどうか確認できませんでした。
+    entry_failed: メンバーを変更できませんでした。
+    entry_forbidden: このルームにメンバーを追加・退出させる権限がありません。
+    entry_unknown: その人が見つかりません。
+callers:
+  label:
+    none: 呼び出し権限を持つ人なし
+    person: メンバー
+    find: 名前で検索
+    allow: 呼び出しを許可
+    heads_only: このルームの主導者でも、その組織の組織長や管理者でもないため、自分が組織長を務める組織の人のみ変更できます。
+  action:
+    add: 追加
+  status:
+    loading: 呼び出し権限を読み込み中…
+  error:
+    failed: 呼び出し権限を変更できませんでした。
+    forbidden: この人の呼び出し権限は変更できません。
+    load_failed: 呼び出し権限を読み込めませんでした。
+    not_found: ユーザーが見つかりません。
+    unreachable: アカウントサービスに接続できませんでした。
+room_info:
+  title:
+    sheet: ルーム情報
+  label:
+    members: メンバー
+    media: メディア
+    files: ファイル
+    links: リンク
+    music: 音楽
+    voice: 音声
+    situation: 状況
+    callers: 呼び出し権限
+    session: セッション情報
+    providers: チャットサービス
+    tone: 話し方
+    tone_none: なし（デフォルト）
+    media_none: メディアなし
+    files_none: ファイルなし
+    links_none: リンクなし
+    music_none: 音楽なし
+    voice_none: 音声メッセージなし
+    sent_by: "{name} · {time}"
+  action:
+    picture: ルームの写真
+  message:
+    tone_rule: このルームでスーパーバイザーが親しくない人に接するときの話し方です。
+  status:
+    media_loading: メディアを読み込み中…
+    files_loading: ファイルを読み込み中…
+    links_loading: リンクを読み込み中…
+    music_loading: 音楽を読み込み中…
+    voice_loading: 音声メッセージを読み込み中…
+    tone_loading: 話し方を読み込み中…
+    tone_saving: 話し方を保存中
+  error:
+    media_failed: メディアを読み込めませんでした。
+    files_failed: ファイルを読み込めませんでした。
+    links_failed: リンクを読み込めませんでした。
+    music_failed: 音楽を読み込めませんでした。
+    voice_failed: 音声メッセージを読み込めませんでした。
+    tone_read_failed: 話し方を読み込めませんでした。
+    tone_save_failed: 話し方を保存できませんでした。
+    tone_unknown: 選択できない話し方です。
+  aria:
+    tabs: ルーム情報
+join:
+  title:
+    create: 招待されたアカウントを作成
+  label:
+    full_name: 名前
+    linux: Linux·WSL
+    windows: Windows
+  action:
+    accept: アカウントを作成
+    check: インストールしました、確認する
+    copy: コピー
+  message:
+    invited: "{place}に招待されました。"
+    invited_head: "{place}に組織長として招待されました。"
+    until: "{time}まで有効な招待です。"
+    expired: '期限切れの招待です。
+
+      招待した人に新しいリンクをもらってください。'
+    used: すでに使用された招待です。
+    install: 'アカウントを作成しました。
+
+      このアカウントを使うPCで以下のコマンドのいずれかを実行して、jakeをインストールしてください。
+
+      インストールして接続されると、アカウントが有効になります。'
+    waiting: デバイスの接続を待っています…
+    active: 'デバイスが接続され、アカウントが有効になりました。
+
+      ログインできます。'
+    agent_login: 'デバイスが接続され、アカウントが有効になりました。
+
+      この組織では、自分の供給ログインまたは供給キーでのみエージェントを使えます。ログインすると、すぐにエージェントのログイン設定が開きます。'
+  error:
+    full_name_empty: 名前を入力してください。
+agent_login:
+  title:
+    page: エージェントのログイン設定
+  message:
+    lead: 'この組織では、自分の供給ログインまたは供給キーでのみエージェントが動作します。
+
+      以下でClaudeにログインするか供給キーを追加してから、開始してください。'
+    still_needed: オンになっている供給ログインまたは供給キーがまだありません。
+  action:
+    login: ログインして設定
+    start: 開始
+org_agents:
+  title:
+    sources: エージェントの供給元
+    keys: 組織の供給キー
+    composition: 加入時の構成
+    key_add: 組織の供給キーを追加
+    instructions: 組織の指針
+    persona: ペルソナ
+    repositories: 組織のリポジトリ
+    repository_add: 組織のリポジトリを追加
+  status:
+    loading: エージェント設定を読み込み中…
+  label:
+    tab: エージェント
+    instructions_own: 指針
+    instructions_none: 指針なし
+    instructions_above: "上位組織の指針 {count} 件が先に適用されます。"
+    instructions_note: この組織と下位組織の人のエージェントが、すべての会話で従います。
+    persona: 適用
+    persona_own: ペルソナを使う
+    persona_none: ペルソナなし
+    persona_stands_own: 上位に従ってペルソナを使う
+    persona_stands_none: 上位に従ってペルソナなし
+    persona_use: ペルソナを使う
+    repositories_manage: リポジトリの管理
+    manage_allow: 許可
+    manage_stands_allow: 上位に従って許可
+    manage_stands_deny: 上位に従ってブロック
+    repositories_none: 組織のリポジトリなし
+    repository_name: 名前
+    repository_name_note: 英小文字、数字、ハイフンのみ使えます。
+    repository_label: 表示名
+    repository_path: パス
+    repository_path_note: メインのチェックアウトがあるフォルダです。
+    decided_named: "組織が設定 · {name}"
+    decided_unit: 組織が設定
+    decided_platform: 全体設定で設定
+    state_on: オン
+    state_off: オフ
+    source_personal: 個人供給
+    source_organisation: 組織供給
+    source_platform: プラットフォーム供給
+    closed_above: 上位組織でオフ
+    not_provided: 提供されていません
+    locked_above: 上位組織でロック
+    below: 下位組織
+    delegation_allow: 下位組織に許可
+    delegation_lock: 下位組織をロック
+    delegation_inherit: 上位に従う
+    company_provided: この会社に組織供給を提供
+    keys_none: 組織の供給キーなし
+    keys_closed: 組織供給が提供されていないため、キーを追加できません。
+    road: プロバイダー
+    road_claude: Claude（Anthropic APIキー）
+    name: 名前
+    name_note: 組織のシークレット保管庫にこの名前で保管します。
+    value: キー
+    status_ready: 利用可能
+    status_refused: キーが拒否されました
+    status_off: オフ
+    choice_inherit: 上位に従う
+    choice_off: ブロック
+    choice_none: エージェントなし
+    choice_agents: "エージェント {count}"
+    stands_platform: プラットフォームのルールに従う
+    stands_off: 上位に従いブロック
+    stands_agents: "上位に従いエージェント {count}"
+  aria:
+    source_switch: "{name}をオン"
+    delegation: "{name}の下位組織への委任"
+    key_switch: "{name}をオン"
+    key_remove: "{name}を削除"
+    role_choice: "{name}の加入時の構成"
+    repository_remove: "{name} を削除"
+  message:
+    repository_remove: この組織のリポジトリを削除しますか?
+    repository_remove_effect: リポジトリの登録だけを削除し、ディスク上のチェックアウトはそのまま残します。Job がチェックアウトを使っている間は削除できません。
+    key_remove: この組織の供給キーを削除しますか？
+    key_remove_effect: このキーで動作していたエージェントは、次回の実行から別の供給元を使います。キーの値は組織のシークレット保管庫に残ります。
+  error:
+    locked: 上位組織でロックされているため変更できません。
+    forbidden: この組織のエージェントを設定する権限がありません。
+    closed: 組織供給が提供されていないため、キーを追加できません。
+    taken: 同じ名前の組織の供給キーがすでにあります。
+    unknown_road: このプロバイダーは現在使用できません。
+    bad_composition: 加入時の構成を保存できません。
+    unchecked: 権限を確認できませんでした。しばらくしてからもう一度お試しください。
+    repositories_withheld: この組織はリポジトリを追加・変更できません。
+    repository_name: リポジトリ名には英小文字、数字、ハイフンのみ使えます。
+    repository_path: リポジトリのパスを確認してください。
+org_storage:
+  title:
+    storage: アーティファクトの保存
+  label:
+    tab: アーティファクトの保存
+    place: 保存先
+    follows: "上位に従って {place}"
+    optional: 任意
+    unset: なし
+    folder_help: "{'{login}'} はユーザーのログイン、{'{document}'} は文書番号に置き換わります。"
+    place_local: このサーバー
+    place_sharepoint: SharePoint
+    sharepoint_site: サイト ID
+    sharepoint_drive: ドライブ ID
+    sharepoint_folder: フォルダー
+    sharepoint_account: トークンアカウント
+    sharepoint_account_unset: 文書の所有者
+  error:
+    locked: 上位組織がロックしているため変更できません。
+    forbidden: この組織のアーティファクトの保存を設定する権限がありません。
+    bad_value: 保存先の設定が正しくありません。
+    unavailable: アーティファクトサービスに接続できません。しばらくしてからもう一度お試しください。
+    failed: アーティファクトの保存を設定できませんでした。
+pairing:
+  title:
+    page: デスクトップアプリの接続
+    confirm: このアプリを自分のアカウントに接続しますか？
+  label:
+    code: 接続コード
+    machine: 接続するデバイス
+    machine_new: 新しく作成して接続
+    machines_link: 設定のデバイス
+  action:
+    approve: 承認
+    download: デスクトップアプリをダウンロード
+    refuse: 拒否
+  message:
+    lead_app: このPCのBMOデスクトップアプリを自分のアカウントに接続します。
+    lead_link: BMOデスクトップアプリを自分のアカウントに接続します。
+    compare_app: 'このウィンドウ上部のタイトルバーにも接続コードが表示されます。
+
+      2つのコードが一致する場合のみ承認してください。'
+    compare_link: 'デスクトップアプリのウィンドウ上部のタイトルバーにある接続コードと一致する場合のみ承認してください。
+
+      他の人から受け取ったリンクであれば、承認しないでください。'
+    machine_effect: 承認すると、自分のアカウントの作業がアプリをインストールしたPCで実行される場合があります。
+    effect: "この接続コードを表示しているアプリが、デバイス {machine} として接続されます。\nアプリのウィンドウのタイトルバーにあるコードと一致する場合のみ承認してください。"
+    effect_new: 'この接続コードを表示しているアプリが、新しく作成した自分のデバイスとして接続されます。
+
+      アプリのウィンドウのタイトルバーにあるコードと一致する場合のみ承認してください。'
+    machines: "接続したデバイスは{link}で確認できます。"
+    sign_in: デスクトップアプリを接続するにはログインが必要です。
+    connecting: アプリが接続しています…
+    connected: アプリが接続されました。
+    refused: 拒否しました。
+    expired: 接続コードの有効期限が切れました。アプリからもう一度お試しください。
+    closed: すでに承認または拒否された接続コードです。
+    no_code: 接続コードがありません。アプリからもう一度お試しください。
+  status:
+    loading: 接続コードを読み込み中…
+  error:
+    closed: すでに承認・拒否されたか、期限切れの接続コードです。
+    failed: アプリの接続を処理できませんでした。
+    left: 退会したアカウントはデバイスに接続できません。
+    no_hub: デバイス接続ハブが設定されていないため、アプリを接続できません。
+    not_found: 接続コードが見つかりません。
+    too_many: 接続リクエストが多すぎます。しばらくしてからもう一度お試しください。
+    unreachable: アカウントサービスに接続できませんでした。
+machines:
+  label:
+    name: デバイス名
+    state: 状態
+    kind: 接続方法
+    desktop: デスクトップアプリ
+    installed: インストール型プログラム
+    shared: 共有デバイス
+    bound_at: 接続日
+    none: 接続中のデバイスなし
+  title:
+    unbind: "{name} の接続を解除しますか？"
+  action:
+    desktop: デスクトップアプリ
+    unbind: デバイスの接続を解除
+    unbind_confirm: 接続解除
+  message:
+    none: デスクトップアプリを開くと、このアカウントにデバイスを接続できます。
+    unbind: このアカウントの BMO とエージェントは、このデバイスで実行されなくなります。
+    unbind_desktop: デスクトップアプリの接続も切れるため、再び使うにはアプリをもう一度接続する必要があります。
+    unbind_installed: このデバイスのインストール型プログラムは削除されるため、再び使うにはもう一度インストールする必要があります。
+  status:
+    loading: デバイスを読み込み中…
+    attached: 接続済み
+    waiting: 接続待ち
+  error:
+    no_account: アカウントサービスのユーザーではないログインには、接続中のデバイスはありません。
+    unreachable: アカウントサービスに接続できませんでした。
+    failed: デバイスを読み込めませんでした。
+    none_bound: 接続中のデバイスはありません。
+    unbind_failed: デバイスの接続を解除できませんでした。
+desktop:
+  title:
+    page: デスクトップアプリ
+    server: サーバーの変更
+  label:
+    version: バージョン
+    published: 公開日
+    file: ファイル
+    size: サイズ
+    size_value: "{size}（{bytes} バイト）"
+    sha256: SHA-256
+    steps: 使い方
+    windows: Windows
+    linux: Linux
+    nsis: インストーラー
+    appimage: AppImage
+    deb: deb パッケージ
+    keep_control_while_locked: ロック中もリモート操作を維持
+    close_to_tray: ウィンドウを閉じたらトレイへ
+    start_at_sign_in: ログイン時に起動
+    start_in_tray: トレイで起動
+    keep_awake: スリープを防止
+    update_channel: 更新チャネル
+    channel_stable: 安定版
+    channel_nightly: ナイトリー
+    default_value: "{value}（デフォルト）"
+    server: BMO サーバー
+    server_address: BMO サーバーのアドレス
+  action:
+    change_server: 変更
+    download: ダウンロード
+    minimize: 最小化
+    maximize: 最大化
+    restore: 元のサイズに戻す
+    close_window: 閉じる
+  message:
+    server_address: https のアドレスを入力します。http は localhost でのみ使えます。
+    server_change: サーバーを変更するとアプリが再起動し、新しいサーバーでアプリの接続をやり直します。
+    server_restarting: アプリを再起動します。
+    step_install: インストーラーをダウンロードしてインストールします。
+    step_open: デスクトップアプリを開くと、アプリのウィンドウのタイトルバーに接続コードが表示され、アプリ接続ページが開きます。
+    step_approve: アプリ接続ページの接続コードがアプリのタイトルバーのコードと同じであることを確認して承認します。
+    keep_control_while_locked: オフにすると、PC がロックされている間はエージェントの接続を切ります。
+    close_to_tray: オフにすると、ウィンドウを閉じたときにアプリを終了します。
+    start_in_tray: ログイン時に起動するとき、ウィンドウを開きません。
+    keep_awake: エージェントの実行中は PC がスリープしません。
+    update_channel: ナイトリーは毎日作られるビルドのため、正しく動作しないことがあります。
+    unsigned: 'コード署名のないインストーラーのため、初回実行時に Windows が警告することがあります。
+
+      Windows によって PC が保護されました、と表示されたら、詳細情報を押してから実行を押すとインストールされます。'
+  status:
+    loading: デスクトップアプリの情報を読み込み中…
+    none: 公開されたバージョンなし
+    settings_loading: デスクトップアプリの設定を読み込み中…
+  error:
+    unreadable: デスクトップアプリの情報を読み込めませんでした。
+    settings_failed: デスクトップアプリの設定を読み込めませんでした。
+    settings_unreadable: 設定ファイルを読み取れないため、変更できません。
+    change_failed: 変更できませんでした。
+secrets:
+  title:
+    add: シークレットを追加
+    replace: シークレットを置き換え
+    kind_add: 種類を追加
+    kind_edit: 種類を編集
+  label:
+    compose: カスタム
+    field_input: 入力
+    field_key: キー
+    field_label: 名前
+    field_masked: 値を隠す
+    field_required: 必須
+    fields: 項目
+    file_chosen: "{name} · {size}"
+    handed: "{name} · {kind}"
+    input_file: ファイル
+    input_line: 1 行
+    input_lines: 複数行
+    kind: 種類
+    kind_description: 説明
+    kind_key: キー
+    kind_key_hint: 英小文字、数字、ハイフン
+    kind_name: 名前
+    kind_row: "{description} · {keys}"
+    kinds: シークレットの種類
+    kinds_none: シークレットの種類なし
+    new_kind_name: 種類の名前
+    purpose: "用途：{purpose}"
+    request: シークレットのリクエスト
+    save_as_kind: 種類として保存
+    saved: 保存済み
+    kept: 保管中のシークレット
+    name: 名前
+    name_hint: 英字、数字、ドット、アンダースコア、ハイフン
+    none: 保管中のシークレットなし
+    note: 自分のシークレットは自分だけが見られます。エージェントと各サービスの設定には名前だけを渡します。値は保管庫のファイルにだけ残り、会話やログには残りません。
+    replace: 既存の値を置き換え
+    replace_note: "以前の値は {name}.previous ファイルに残ります。"
+    row: "{bytes} バイト · {time} に変更"
+  action:
+    add: シークレットを追加
+    replace: 置き換え
+    choose_file: ファイルを選択
+    field_add: 項目を追加
+    field_remove: 項目を削除
+    kind_add: 種類を追加
+    load_file: ファイルから読み込む
+    remove_handed: "{name} を削除"
+  status:
+    loading: シークレットを読み込み中…
+    kinds_loading: シークレットの種類を読み込み中…
+  message:
+    composed: "カスタム：{keys}"
+    handed: "シークレット保管庫に保存しました：{name}（{kind}）"
+    kind_delete_confirm: このシークレットの種類を削除しますか？
+    kind_delete_effect: 保管中のシークレットはそのまま残ります。
+    request_saved: "リクエストされたシークレットを保管庫に保存しました：{name}（{kind}）"
+    delete_confirm: このシークレットを削除しますか？
+    delete_effect: "値は {name}.previous ファイルに残り、この名前を読むサービスは値を見つけられなくなります。"
+  error:
+    bad_name: "名前は {max} 文字以内の英字、数字、ドット、アンダースコア、ハイフンで、ドットで始めたり .previous で終えたりはできません。"
+    bad_kind: シークレットの種類がルールに合っていません。
+    bad_value: 値を読み取れませんでした。
+    fault_description: "説明は {max} 文字以内で入力してください。"
+    fault_field_alone: 複数行やファイルの項目は、ほかの項目と一緒に使えません。
+    fault_field_key: "項目のキーは {max} 文字以内の英字、数字、アンダースコアで、数字で始めることはできません。"
+    fault_field_label: "項目の名前は {max} 文字以内で入力してください。"
+    fault_field_repeated: 同じキーの項目がすでにあります。
+    fault_key: "キーは {max} 文字以内の英小文字、数字、ハイフンで、英字で始める必要があります。"
+    fault_name: "名前は {max} 文字以内で入力してください。"
+    fault_no_fields: 項目を 1 つ以上追加してください。
+    fault_too_many_fields: "項目は {max} 個までです。"
+    file_read_failed: ファイルを読み取れませんでした。
+    kind_delete_failed: シークレットの種類を削除できませんでした。
+    kind_exists: 同じキーのシークレットの種類がすでにあります。
+    kind_save_failed: シークレットの種類を保存できませんでした。
+    kinds_read_failed: シークレットの種類を読み込めませんでした。
+    delete_failed: シークレットを削除できませんでした。
+    empty_value: 値を入力してください。
+    exists: 同じ名前のシークレットがすでにあります。既存の値を置き換え、をオンにしてください。
+    no_space: このログインにはシークレット保管庫がありません。
+    no_store: サーバーの設定でシークレット保管庫のフォルダーが指定されていません。
+    not_a_file: この名前は保管庫フォルダーにファイル以外の項目として存在するため、使えません。
+    not_for_you: ほかの人にリクエストされたシークレットです。
+    not_found: この名前のシークレットはありません。
+    not_yours: ほかの人のシークレット保管庫です。
+    not_in_force: アカウントモデルが使われるまで、シークレット保管庫は使えません。
+    read_failed: シークレットを読み込めませんでした。
+    save_failed: シークレットを保存できませんでした。
+    unreachable: アカウントサービスに接続できませんでした。
+agents:
+  action:
+    sign_in_again: 再ログイン
+    open_sign_in: ログインページを開く
+    sign_in_finish: ログインを完了
+    expand: 拡大表示
+    node_checkout_add: ノードチェックアウトを追加
+    reset_document: ファイルの内容に戻す
+    line_details: 詳細
+    log: ログ
+    prefix_document_add: プレフィックス文書を追加
+    persona_to_file: ファイルの内容に戻す
+    settings: 設定
+    to_end: 一番下へ
+    to_page: ページで開く
+    use_account: このアカウントを使う
+    account_add: アカウントを追加
+    key_set: キーを設定
+    use_model: このモデルに変更
+    walk_order: 順番に
+    agent_add: エージェントを追加
+    role_settings: ロール設定
+    draft_to_default: デフォルトに戻す
+    stage_add: ステージを追加
+    stage_to_default: デフォルトの内容に戻す
+  aria:
+    heal_of: "{name} の降格を解除"
+    node_checkout_node: ノードチェックアウトを置くノード
+    node_checkout_path: ノードチェックアウトのパス
+    node_checkout_remove: "{node} のノードチェックアウトを削除"
+    road_of: "{name} のプロバイダー · モデル"
+    agent_enabled_of: "{name} を使用"
+    agent_tabs: エージェント設定
+    agent_keeps_cache_of: "{name} のキャッシュ維持"
+    provider_prompt_of: "{provider} プロンプト"
+    room_last_run: "{room}、実行 {n} 回、最終実行 {time}、ログを開く"
+    sessions_of: "{name} のセッション"
+    settings_of: "{name} の設定"
+    supervisor_rooms: "{name} が回答したルーム"
+    threshold_of: "{name} の圧縮しきい値"
+    warming_of: "{name} の {provider} キャッシュ維持"
+    warming_cell_of: "{name} のキャッシュ維持"
+    choose_model: モデルを選択
+    drag_reorder: ドラッグして並べ替え
+    prefix_document_down: "{path} を下へ"
+    prefix_document_path: プレフィックス文書のパス
+    prefix_document_remove: "{path} を外す"
+    prefix_document_up: "{path} を上へ"
+    provider_of: "{name} のプロバイダー"
+    search_depth: 検索の深さ
+    settings_sections: 設定セクション
+    switch_on: "{name} をオン"
+    vitals: エージェントの指標
+    stage_down: "{name} を下へ"
+    stage_in: "{name} を指示ステージに追加"
+    stage_out: "{name} を指示ステージから削除"
+    stage_text_of: "{name} の内容"
+    stage_up: "{name} を上へ"
+  error:
+    login_which: 再ログインするアカウントか、新しいアカウントの名前のどちらか一方だけを指定してください。
+    login_not_directory: ここでログインできるのは設定ディレクトリのアカウントだけです。
+    login_directory_taken: この名前の設定ディレクトリがすでにあります。別の名前を指定してください。
+    login_gone: ログインが終了したか、時間切れになりました。最初からやり直してください。
+    login_refused: ログインでコードが受け付けられませんでした。最初からやり直してください。
+    login_code_needed: ログインページに表示されたコードを貼り付けてください。
+    account_fields_needed: アカウント名と認証情報ファイルのパスを入力してください。
+    account_order_list: アカウントの順序をリストで送ってください。
+    account_switch_needed: アカウントとオン・オフの値が必要です。
+    agency_access_unchecked: 権限を確認できなかったため、エージェンシーはリクエストを処理しませんでした。しばらくしてからもう一度お試しください。
+    agency_bad_request: エージェンシーがリクエストを受け付けませんでした。
+    agency_conflict: 現在の状態と合わないため、エージェンシーが受け付けませんでした。
+    agency_failed: エージェンシーがリクエストを処理できませんでした。
+    agency_forbidden: エージェンシーでこの操作を行う権限がありません。
+    agency_not_found: エージェンシーに該当する項目がありません。
+    agency_unavailable: エージェンシーは今このリクエストを処理できません。
+    agency_unprocessable: エージェンシーが受け付けられない値です。
+    agent_name_taken: すでにあるキーです。
+    bad_agent_name: エージェント名が正しくありません。
+    bad_credential_kind: 認証情報は設定ディレクトリかトークンファイルです。
+    bad_depth: 検索の深さが正しくありません。
+    bad_launch_agent: 実行するエージェントが正しくありません。
+    bad_word_worker: メッセージを送るワーカーが正しくありません。
+    catalogue_action: モデルファイルに要求した操作が正しくありません。
+    catalogue_read_failed: モデルファイルの一覧を読み込めませんでした。
+    chat_documents_read_failed: システムプロンプトを読み込めませんでした。
+    chat_document_save_failed: 保存できませんでした。
+    chat_document_action: 保存または元に戻す操作が必要です。
+    field_refused: 受け付けられなかった値です。
+    job_prompt_failed: プロンプトを読み込めませんでした。
+    launch_empty: 作業指示を入力してください。
+    launch_failed: 実行できませんでした。
+    log_read_failed: ログを読み取れませんでした。しばらくしてからもう一度お試しください。
+    models_load_failed: モデルの一覧を読み込めませんでした。
+    no_such_agent: エージェントが見つかりません。
+    pick_account: アカウントを選択してください。
+    provider_off: オフのプロバイダーです。自動か、オンのプロバイダーを選択してください。
+    registry_read_failed: 登録モデルを読み込めませんでした。
+    registry_value: 登録モデルの名前とモデルを送ってください。
+    supervisor_add: スーパーバイザーの名前、表示名、ルーム名、プロバイダー、モデル、作業リポジトリを送ってください。
+    default_answerer_failed: デフォルト応答スーパーバイザーを保存できませんでした。
+    supervisor_default_answerer: "{label} はデフォルト応答スーパーバイザーのため削除できません。別のスーパーバイザーをデフォルト応答スーパーバイザーにしてから削除してください。"
+    supervisor_label: 表示名を入力してください。
+    supervisor_model: モデルは、アドレスのある登録モデルの中から選択してください。
+    supervisor_name: 名前は英小文字で始まる小文字・数字・ハイフンの 40 文字以内で入力してください。
+    supervisor_name_taken: "名前 {name} はすでに別のスーパーバイザーが使っています。"
+    supervisor_provider: "{provider} プロバイダーはスーパーバイザーを担当できません。"
+    supervisor_repository: "リポジトリ {repository} がありません。"
+    supervisor_room: ルーム名を入力してください。
+    supervisor_running: "{label} は今回答中のため削除できませんでした。ターンが終わってから、もう一度削除してください。"
+    supervisor_seeded_refused: "{label} はデプロイが設定したスーパーバイザーのため削除できません。"
+    supervisor_unknown: "スーパーバイザー {supervisor} がありません。"
+    word_empty: メッセージを入力してください。
+    word_owner_only: ワーカーへのメッセージはオーナーだけが送れます。
+    supervisor_own_only: 追加できるのは自分の BMO だけです。ほかの人のスーパーバイザーは管理者が追加します。
+    role_delete_refused: 実行中または待機中の実行があるか、ポリシーで定められたロールのため削除できませんでした。
+    role_agent_refused: 実行中のエージェントか、すでにある名前です
+    agent_save_failed: エージェントを保存できませんでした。
+    roles_read_failed: ロールを読み込めませんでした。
+    accounts_read_failed: Claude アカウントを読み込めませんでした。
+    provider_models_read_failed: プロバイダーのモデル一覧を読み込めませんでした。
+    providers_read_failed: プロバイダーを読み込めませんでした。
+    repositories_read_failed: リポジトリを読み込めませんでした。
+    repository_delete_refused: Job がチェックアウトを使っているため、リポジトリを削除できませんでした。
+    umbrella_refused: アンブレラリポジトリには、サポート用チェックアウトとノードチェックアウトを置けません。
+    advisor_refused: このモデルでは使えないアドバイザーです。
+    session_history_read_failed: セッション履歴を読み込めませんでした。
+    supervisors_read_failed: スーパーバイザーを読み込めませんでした。
+    secret_settings_read_failed: プロバイダーのシークレットを読み込めませんでした。
+    deploy_flush_read_failed: 一括デプロイの間隔を読み込めませんでした。
+    deploy_flush_refused: 1 分以上の整数で入力してください。
+    stage_chain_missing: このスーパーバイザーが独自に定めた指示ステージはありません。
+    stage_in_chain: まだ指示ステージにあるステージです。先に指示ステージから削除してください。
+    stage_name_reserved: ラウンドが使う名前のため、ステージ名には使えません。
+    stage_name_taken: すでにあるステージ名です。
+    stage_text: "内容は空でない {max} 文字以内にしてください。"
+    stage_text_missing: コンソールで追加または変更したステージではありません。
+    stages_read_failed: 指示ステージを読み込めませんでした。
+    stages_unsound: 下書きの設定に直すところがあります。
+    stage_text_refused: "受信ユニットがこのステージを受け付けませんでした。名前は小文字で始まり、小文字・数字・ダッシュからなる {name} 文字以内の 1 語、内容は空でない {text} 文字以内にしてください。"
+    stage_chain_refused: 受信ユニットがこの指示ステージの順序を受け付けませんでした。このスーパーバイザーにないステージが含まれています。
+    stage_name: "名前は小文字で始まり、小文字・数字・ダッシュからなる {max} 文字以内の 1 語です。"
+    stage_add_unfinished: 追加するステージの名前と内容を確認するか、追加をキャンセルしてください。
+  label:
+    agency: エージェンシー
+    account_kind_sign_in: ここでログイン
+    sign_in_code: 認証コード
+    account_chosen: 選択したアカウント
+    default_answerer: デフォルト応答スーパーバイザー
+    room_title: ルーム名
+    account_kind_directory: 設定ディレクトリ
+    account_kind_token: トークンファイル
+    account_off: オフ
+    alias: 別名
+    bundle_graph_read: グラフ
+    bundle_queue_read: TODO の読み取り
+    bundle_room_chat: 記憶 · メモ · TODO
+    bundle_room_send: 送信
+    bundle_web_branches: リサーチ分岐
+    bundle_web_images: 画像の表示
+    bundle_web_read: Web の読み取り
+    bundle_web_rulebooks: ルールブック
+    bundle_web_sites: サイトツール
+    call_done: 完了
+    call_failed: 失敗
+    characters_unit: 文字
+    clock_asked: スーパーバイザーに確認を依頼
+    clock_asked_silent: "スーパーバイザーに確認を依頼 · 出力なしで {time}"
+    clock_ask_failed: スーパーバイザーの確認に失敗
+    clock_cut: 中止
+    clock_cut_no_process: 応答なし
+    clock_cut_no_progress: 進捗なし
+    clock_cut_stop: 作業を中止
+    clock_cut_supervisor: スーパーバイザー
+    clock_kept: スーパーバイザーが継続
+    clock_kept_until: "スーパーバイザーが継続 · {time} まで"
+    clock_long: "{minutes} 分以上実行中"
+    clock_loop: 繰り返し
+    clock_pid: "プロセス {pid}"
+    clock_running: "実行中 {time}"
+    clock_turn_ended: ターンとともに終了
+    column_role: ロール
+    column_rooms: ルーム
+    context_archive: 過去の会話
+    context_attached: 今回読んだもの
+    context_document: 参照文書
+    context_held: 以前に読んだもの
+    context_knowledge: 知識
+    context_memory: 記憶
+    context_person: 人物帳
+    context_room: ルームのコンテキスト
+    context_rule: ルール
+    context_situation: 状況ルール
+    context_tokens: "コンテキスト {tokens}"
+    credential: 認証情報
+    dev_server: 開発サーバーのコマンド
+    diff_added: "{added} 行追加"
+    diff_added_removed: "{added} 行追加、{removed} 行削除"
+    diff_more_files: "ほかに {n} ファイル変更"
+    diff_none: 変更なし
+    diff_omitted: 省略
+    diff_removed: "{removed} 行削除"
+    engine: エンジン
+    exec_node: 実行ノード
+    find_registration: "登録モデル · {name}"
+    generation: 生成パラメーター
+    group_repository: リポジトリ
+    group_role: ロール
+    group_runner: ランナー
+    group_supervisor: スーパーバイザー
+    group_worker: リポジトリ
+    job_prompt_english: 英語版
+    job_running: "実行中 {time}"
+    job_took: "所要 {time}"
+    job_tools: "ツール {n} 回"
+    key: キー
+    chat_document_opening: プロンプトの冒頭
+    chat_document_absolute_rules: 絶対ルール
+    chat_document_manual: 運用マニュアル
+    launch_say: メッセージ
+    launch_task: 作業指示
+    line_answer: 回答
+    line_context: コンテキスト
+    line_end: 終了
+    line_note: メモ
+    line_prompt: プロンプト
+    line_start: 開始
+    line_system_prompt: システムプロンプト
+    line_text: テキスト
+    line_thinking: 思考
+    line_tool: ツール呼び出し
+    line_tool_result: ツールの結果
+    line_unknown: その他
+    line_word: 送信したメッセージ
+    login_expires: "{time} に期限切れ"
+    login_needed: ログインが必要
+    model_bytes: バイト数
+    model_file: ファイル名
+    model_source: ダウンロード URL
+    no_room: ルームなし
+    node_checkouts: ノードチェックアウト
+    note: メモ
+    persona_file: ファイルの内容
+    phase_final: 最終検証
+    phase_plan: 計画
+    phase_synthesis: 設計の統合
+    piece_persona: ペルソナ
+    pinned_provider: プロバイダー
+    preamble: 前書き
+    prefix_documents: プレフィックス文書
+    provider_claude_code: Claude Code
+    provider_codex: Codex
+    provider_deepseek: DeepSeek
+    provider_laya: Laya
+    provider_off: オフのプロバイダー
+    provider_openrouter: OpenRouter
+    provider_registered: 登録モデル
+    record_ends: 記録はここで途切れています
+    reference: 参照の注入
+    reference_send: 添付
+    registry_healthy: 応答あり
+    registry_state: 状態
+    registry_unhealthy: 応答なし
+    registry_last_answered: "最終応答 {time}"
+    restore: 降格を解除
+    result_less: 折りたたむ
+    result_more: "さらに {n} 行表示"
+    role_bundles_none: 機能バンドルなし
+    room_runs_last: "{n} 回 · 最終実行 {time}"
+    run_cache_read: "キャッシュ読み取り {n}"
+    run_context: "コンテキスト ~{tokens}"
+    run_no_place: パスなし
+    run_work_room: "{work} · {room}"
+    run_requests: "リクエスト {n} 回"
+    sampling: サンプリング
+    search_tab: タブ
+    serving: 提供中
+    source_fetch: ダウンロード
+    source_none: ダウンロード URL なし
+    support_count: サポート用チェックアウトの数
+    umbrella: アンブレラリポジトリ
+    switch_off: オフ
+    switch_on: オン
+    system_prompt_sent: 送信するシステムプロンプト
+    tab_supervisors: エージェント
+    think_off: 思考オフ
+    think_on: 思考オン
+    thinking: 思考
+    this_machine: このデバイス
+    this_run: この実行
+    unit_build: "実装 {n}"
+    unit_reopened: "{label}（{run} 回目）"
+    unit_round: "{label} 第 {round} ラウンド"
+    unit_stage: "ステージ {stage}-{task}"
+    unknown_code: "不明なコード `{code}`"
+    unmeasured: 未計測
+    uptime: "稼働時間 {time}"
+    usage_cache_read: "キャッシュ読み取り {n}"
+    usage_input: "入力 {n}"
+    usage_output: "出力 {n}"
+    use_dry_allowed_length: 許容する繰り返しの長さ
+    use_dry_base: 繰り返しが長いほど強まる度合い
+    use_dry_multiplier: 長い繰り返しの抑制の強さ
+    use_frequency_penalty: 頻出トークンの抑制
+    use_max_tokens: 最大出力トークン
+    use_min_p: 最高確率に対する下限
+    use_presence_penalty: 一度出たトークンの抑制
+    use_preserve_thinking: 前の質問の推論を保持
+    use_repeat_last_n: 繰り返しを調べる直近トークン数
+    use_repeat_penalty: 直近トークンの繰り返しの抑制
+    use_seed: ランダムシード
+    use_temperature: 回答のランダム性
+    use_top_k: 上位 k 個だけを候補に
+    use_top_p: 累積確率の上位だけを候補に
+    weekly: 週間
+    worker_label: ラベル
+    tab_roles: ロール
+    column_bundles: 機能バンドル
+    find_role: "ロール {name}"
+    role_prompt: ロールプロンプト
+    provider_prompts: プロバイダー別プロンプト
+    card_service: カードサービス
+    checkouts_value: "サポート {support} · {held}/{all} 使用中"
+    checkouts_value_umbrella: "アンブレラリポジトリ · {held}/{all} 使用中"
+    column_checkouts: チェックアウト
+    column_heal: 降格の解除
+    column_model_defaults: 生成パラメーター
+    column_model_file: モデルファイル
+    column_nodes: ノード
+    column_repository: リポジトリ
+    column_sessions: セッション
+    column_state: 状態
+    column_size: サイズ
+    column_supervisor: スーパーバイザー
+    column_threshold: 圧縮しきい値
+    column_warming: キャッシュ維持
+    default_marked: "{value}（デフォルト）"
+    description: 説明
+    display_name: 表示名
+    model_superseded: 旧世代
+    models_stale: "{time} に読み込んだ一覧"
+    effort: 強度
+    answer_ceiling: 回答の上限
+    advisor: アドバイザー
+    advisor_tokens: アドバイザーの呼び出しにはアドバイザーモデルのトークンを使います。
+    pinned_model: 固定モデル
+    role_files: ロールファイルの保管
+    role_order: ロールエージェント
+    role_running: "{running}/{cap} 実行"
+    role_reserved: "{n} 予約"
+    role_agents: エージェント
+    agent_provider: プロバイダー
+    agent_follows: 依頼したスーパーバイザーに従う
+    agent_carries: 実行中
+    agent_keeps_cache: キャッシュ維持
+    column_agent: エージェント
+    column_road: プロバイダー · モデル
+    column_enabled: 使用
+    role_prompt_set: あり
+    role_prompt_none: なし
+    agent_keeps_cache_hint: '最後に回答したセッションを、キャッシュが冷める前に温めます。
+
+      キャッシュの有効期間を公開しているプロバイダーでのみ動作します。'
+    agent_inherits: 空欄ならロール設定
+    agent_prompt: システムプロンプト
+    agent_bundles: 機能バンドル
+    agent_skills: スキル
+    agent_prompt_own: エージェントプロンプト
+    agent_tab_general: 一般
+    agent_tab_features: 機能
+    role_waiting: "{n} 待機"
+    rules_folder: ルールフォルダー
+    run_line: 実行ライン
+    session_answered: "最終応答 {time}"
+    session_context: "コンテキスト {tokens}"
+    session_context_share: "コンテキスト {tokens} · {share}"
+    session_opened: "開始 {time}"
+    session_runs: "実行 {n} 回"
+    sessions_fresh: 新規
+    sessions_keep: 維持
+    tab_model_files: モデルファイル
+    tab_models: 登録モデル
+    tab_repositories: リポジトリ
+    used_by: 使用先
+    used_by_repository: "リポジトリ {name}"
+    used_by_role: "ロール {name}"
+    used_by_supervisor: "スーパーバイザー {name}"
+    work_repository: 作業リポジトリ
+    default_only: （デフォルト）
+    role_skills_own: スキルを個別に選ぶ
+    role_skills_hint: オフにすると、ロールのデフォルトのスキルバンドルをすべて使います。エージェントが個別に選んだスキルがあれば、そちらが優先されます。
+    role_skills_none: スキルなし
+    deepseek_card_secret: DeepSeek の支払いカード
+    deepseek_login_secret: DeepSeek のログイン
+    secret_none: なし
+    secret_of_kind: "{kind} 種類のシークレット"
+    deploy_flush: 一括デプロイの間隔
+    deploy_flush_note: デプロイ待ちのコミットを、この間隔ですべてデプロイします。
+    deploy_flush_unit: 分
+    key_held: "キーあり · {time}"
+    key_missing: キーなし
+    stage_text: 内容
+    stages: 指示ステージ
+    stages_none: 指示ステージなし
+    stages_unused: 使用していないステージ
+  message:
+    sign_in_steps: ログインページを開いてこのアカウントで承認し、ページに表示されたコードを貼り付けてください。
+    account_delete_confirm: このアカウントを削除しますか？
+    catalogue_delete_confirm: このモデルファイルを一覧から削除しますか？
+    supervisor_delete_confirm: "{name} を削除しますか？"
+    supervisor_delete_takes: 'スーパーバイザーの設定、セッション、人物の記録を削除します。
+
+      スーパーバイザーが回答していたルームは、メッセージや文書も含めてそのまま残ります。'
+    node_checkouts_need_here: ノードチェックアウトは、実行ノードがこのデバイスのときだけ置けます。
+    umbrella_means: ほかのリポジトリのチェックアウトを入れるフォルダーで、Job はこのフォルダー自体を変更しません。
+    umbrella_no_support: アンブレラリポジトリはサポート用チェックアウトを置きません。
+    umbrella_no_node_checkouts: アンブレラリポジトリはノードチェックアウトを置きません。
+    generation_resets: "ルームのセッション {n} 件が、次のターンから新しく始まります。"
+    log_of_agent: このエージェントのログ
+    log_of_watch: このウォッチの待機対象と記録
+    log_start: ログの先頭です。
+    registry_delete_confirm: この登録モデルを削除しますか？
+    supervisor_seeded: デプロイが設定したスーパーバイザーのため削除できません。
+    supervisor_is_default_answerer: デフォルト応答スーパーバイザーのため削除できません。
+    supervisor_room_taken_back: "{label} が同じ名前のルーム {title} を再び担当しました。メッセージと文書はそのまま残っています。"
+    use_model_confirm: "{engine} エンジンに {model} モデルを読み込みますか？"
+    use_model_moves: "ダウンロード・確認・インストールが終わってエンジンが再起動するまで、{registration} 登録モデルは応答しません。"
+    role_delete_confirm: このロールを削除しますか？
+    agents_in_tab: このロールのエージェントは、エージェントタブで追加・変更します。
+    agent_delete_confirm: このエージェントを削除しますか？
+    document_to_file: 保存するとファイルの内容に戻ります。
+    pin_waits: 固定モデルが応答できないと、このリポジトリの作業は待機します。
+    advisor_only_on: "アドバイザーは {providers} でのみ使えます。"
+    advisor_follows: 依頼したスーパーバイザーのアドバイザーを使います。
+    role_shared: このロールのすべてのエージェントが共有するロール設定です。
+    role_features: 空欄にすると、このロールのすべてのエージェントが共有するロール設定に従います。
+    road_outside_owner: "このスーパーバイザーは、このデバイスでオーナーのシステムユーザーとして実行されます。\nツール制限がないか、program.files、program.shell、room.tools のいずれかを許可していると、そのユーザーが読めるものはすべて {provider} に渡る可能性があります。\nデータルートと env/ 以下にあるすべてのユニットのトークンや設定ファイルも含まれます。\n登録モデルやオーナーのアカウントの Claude Code 以外のプロバイダーは、オーナーが自分で決めた場合にだけ使うか、ツール制限からこの 3 つを外してください。"
+    repository_delete_confirm: このリポジトリを削除しますか？
+  placeholder:
+    sign_in_code: コードを貼り付け
+    account_name: claude-01
+    directory_path: 設定ディレクトリの絶対パス
+    find_settings: 設定を検索
+    registry_name: 英小文字・数字・ハイフン
+    token_path: トークンファイルの絶対パス
+  status:
+    call_running: 実行中
+    chat_documents_loading: システムプロンプトを読み込み中…
+    chat_document_stored: 保存されたテキスト
+    chat_document_file: ファイルの内容
+    jobs_loading: Job を読み込み中…
+    no_jobs: 実行した Job なし
+    compacting: 圧縮中
+    job_ended: 終了
+    job_running: 実行中
+    log_loading: ログを読み込み中…
+    log_unavailable: リンク先の実行が見つからないため、その実行のログを開けません。
+    newer_loading: 次の行を読み込み中…
+    no_accounts: 登録されたアカウントなし
+    no_catalogue: 登録されたモデルファイルなし
+    no_log: 記録されたログなし
+    no_registrations: 登録されたモデルなし
+    older_loading: 前の行を読み込み中…
+    registry_loading: 登録モデルを読み込み中
+    road_codex_missing: このデバイスに Codex の実行ファイルがないため選択できません。
+    road_deepseek_key_unusable: DeepSeek のキーファイル（deepseek.key）がないか、権限が 0600 でないため選択できません。
+    road_gateway_key_unusable: ゲートウェイのキーファイル（llm-gateway.key）がないか、権限が 0600 でないため選択できません。
+    road_laya_url_unset: Laya サーバーのアドレスが設定されていないため選択できません。
+    road_line_not_carried: このプロバイダーのプログラムは、この作業の実行ラインに対応していません。
+    road_no_registration_addressed: アドレスのある登録モデルがないため選択できません。
+    road_openrouter_key_unset: BMO_OPENROUTER_KEY が設定されていないため、OpenRouter を選択できません。
+    road_unavailable: 今はこの経路を選択できません。
+    road_unknown_code: "不明なコード `{code}` のため選択できません。"
+    run_gate: 判定中
+    run_runner: 検索中
+    run_worker: 作業中
+    running: 進行中
+    road_closed: 回答できません
+    turn_thinking: 思考中
+    turn_tool: ツールを使用中
+    turn_tool_named: "{tool} を使用中"
+    turn_waiting_engine: Job の終了を待機中
+    turn_writing: 回答を作成中
+    use_done: 完了
+    use_failed: "失敗 · {reason}"
+    use_running: "進行中 · {step}"
+    use_starting: 開始しています
+    vitals_loading: エージェントの数値を読み込み中…
+    no_roles: ロールなし
+    agents_none: エージェントなし
+    agent_in_use: 実行中のため削除できません。
+    roles_loading: ロールを読み込み中…
+    catalogue_loading: モデルファイルを読み込み中…
+    no_node_checkouts: ノードチェックアウトなし
+    no_repositories: リポジトリなし
+    no_role_sessions: セッションなし
+    no_supervisors: スーパーバイザーなし
+    providers_loading: プロバイダーを読み込み中…
+    accounts_loading: Claude アカウントを読み込み中…
+    registration_in_use: "{names} で使用中のため削除できません。"
+    repositories_loading: リポジトリを読み込み中…
+    repository_in_use: Job がチェックアウトを使っているため削除できません。
+    role_blocked: ブロック中
+    role_in_use: 実行中または待機中の実行があるため削除できません。
+    session_expired: 期限切れ
+    session_history_loading: セッション履歴を読み込み中…
+    session_valid: 有効
+    supervisors_loading: スーパーバイザーを読み込み中…
+    secret_settings_loading: プロバイダーのシークレットを読み込み中…
+    deploy_flush_loading: 一括デプロイの間隔を読み込み中…
+    stages_loading: 指示ステージを読み込み中…
+  title:
+    sign_in: "{name} にログイン"
+    account_add: Claude アカウントを追加
+    key_of: "{name} のキー"
+    providers: プロバイダー
+    repository_add: リポジトリを追加
+    session_history: セッション履歴
+    supervisor_add: スーパーバイザーを追加
+    accounts: Claude アカウント
+    catalogue_add: モデルファイルを追加
+    catalogue_uses: モデル変更履歴
+    chat_documents: システムプロンプト
+    registry: 登録モデル
+    registry_add: 登録モデルを追加
+    work_log: ログ
+    work_now: 現在
+    work_order: 作業指示
+    work_result: 結果
+    work_stages: 進行ステージ
+    role_add: ロールを追加
+    draft: 下書き
+    secret_settings: プロバイダーのシークレット
+    deploy: デプロイ
+    stage_add: ステージを追加
+gates:
+  label:
+    classifier: 参照分類器
+    content_judge: 第1ゲート
+    library_knowledge: 書庫知識分類器
+    output_decide: 出力書式 第1段階ゲート
+    output_format: 出力書式ゲート
+    output_verify: 出力書式 第2段階ゲート
+    room_memories: ルーム記憶分類器
+    room_rules: ルームルール分類器
+    situation_rules: 状況ルール照合器
+    system_documents: システム文書分類器
+live:
+  action:
+    stop: 停止
+    stop_run: "{run}を停止"
+  aria:
+    stop_confirm_named: "{name}の停止を確認"
+    stop_named: "{name}を停止"
+  error:
+    agent_runs_read_failed: エージェントの状態を読み込めませんでした。
+    stop_failed: 実行を停止できませんでした。
+    stop_target_absent: 停止する実行が見つかりませんでした。
+    stop_target_needed: 停止する実行を指定してください。
+    stop_target_wrong: 停止する対象が正しくありません。
+  label:
+    agent_idle: 待機中
+    answering: "回答中 · {rooms}"
+    deadline_passed: 期限切れ
+    last_check_met: "最終確認 {ago}前 · 達成"
+    last_check_timed_out: "最終確認 {ago}前 · タイムアウト"
+    last_check_unmet: "最終確認 {ago}前 · 未達成 (終了 {code})"
+    outcome_blocked: ユーザーの応答待ちで停止
+    outcome_cut_short: 上限に達して中断
+    outcome_died: 報告なしで終了
+    outcome_done: 完了
+    outcome_error: 実行エラー
+    outcome_failed: 失敗
+    outcome_limit: 上限到達
+    outcome_live_tasks: サブタスク実行中のため拒否
+    outcome_stopped: ユーザーが停止
+    outcome_unanswered: 応答失敗を報告
+    outcome_unclosed: 作業を閉じていないため拒否
+    outcome_work_step: ステップ完了
+    remaining: "残り{time}"
+    run_item: "#{id}"
+    slot_source_ask: 依頼
+    slot_source_browse: ブラウジング
+    slot_source_cowork: 協業
+    slot_source_job: Job
+    slot_source_native: ネイティブ
+    slot_source_none: 出所なし
+    slot_source_search: 検索
+    slot_source_translate: 翻訳
+    timer_left: "タイマー · 残り{time}"
+    timer_passed: タイマー · 時間切れ
+    watch_condition: 条件
+    watch_content: 内容
+    watch_deadline: 期限
+    watch_every: "{interval}ごと · {left}"
+    watch_memory: メモリ
+    watch_memory_id: "#{id}"
+    watch_memory_none: なし
+    watch_no_memory: メモリなし
+    watch_time: 時刻
+    watch_title: "ウォッチ #{id} · {name}"
+    work_item: "項目 #{id}"
+    space_follows: 依頼したスーパーバイザーに従う
+  message:
+    stop_confirm: この作業の実行を停止しますか？
+    stop_confirm_default: 実行を停止しますか？
+  status:
+    stopping: 停止中
+    unchecked: 未確認
+research:
+  aria:
+    branches_of: "{key}のブランチ"
+    category_filter: 分類フィルター
+    delete_source_named: "出典 #{id}を削除"
+    dismiss_named: "{name}を除外"
+    edit_source_named: "出典 #{id}を編集"
+    follow_up_named: "{name}の追加調査を依頼"
+    front_named: "{name}を先頭へ"
+    log: 実行ログ
+    minutes_of: "{key}の時間"
+    open_run_named: "{name}の実行記録を開く"
+    reask_named: "{name}を再依頼"
+    repair_named: "修理作業 #{id}を開く"
+    resume_named: "{name}を再開"
+    sections: リサーチのセクション
+    state_filter: 状態フィルター
+    stop_named: "{name}を停止"
+    edit_topic_named: "トピック{name}を編集"
+    delete_topic_named: "トピック{name}を削除"
+  error:
+    ask_conflict: 同じ項目がすでに待機中、実行中、または停滞しています。
+    ask_failed: 依頼できませんでした。
+    ask_refused: リサーチユニットがこの名前またはアドレスを受け付けませんでした。
+    dismiss_conflict: この項目は現在の状態では除外できません。
+    supervisor_read_failed: リサーチスーパーバイザーを読み込めませんでした。
+    dismiss_failed: 除外できませんでした。
+    engines_unread: "検索エンジンの状態を読み込めませんでした: {reason}"
+    failed: リサーチユニットが依頼を処理できませんでした。
+    follow_conflict: 同じ項目がすでに待機中、実行中、または停滞しているか、追加調査の元となる調査にまだ文書がありません。
+    follow_missing: リサーチユニットにこの分類または追加調査の元となる調査がありません。
+    follow_refused: リサーチユニットがこの名前、アドレス、または追加調査の元となる調査を受け付けませんでした。
+    front_conflict: この項目は現在の状態では先頭へ移動できません。
+    front_failed: 先頭へ移動できませんでした。
+    no_category: リサーチユニットにこの分類がありません。
+    no_item: リサーチユニットにこの項目がありません。
+    no_run: リサーチユニットにこの実行記録がありません。
+    no_source: リサーチユニットにこの出典がありません。
+    queue_read_failed: キューを読み込めませんでした。
+    reask_conflict: この項目は停滞していないため、再依頼できません。
+    reask_failed: 再依頼できませんでした。
+    refused: リサーチユニットがこの値を受け付けませんでした。
+    run_read_failed: 実行記録を読み込めませんでした。
+    settings_read_failed: リサーチ設定を読み込めませんでした。
+    source_delete_failed: 出典を削除できませんでした。
+    source_refused: リサーチユニットがこの出典を受け付けませんでした。
+    source_save_failed: 出典を保存できませんでした。
+    sources_read_failed: 出典を読み込めませんでした。
+    state_change_failed: 状態を変更できませんでした。
+    state_read_failed: リサーチの状態を読み込めませんでした。
+    unreachable: リサーチユニットが応答しません。
+    topic_refused: リサーチユニットがこのトピックを受け付けませんでした。名前は小文字で始まる小文字・数字・- の32文字以内、指示は空にできず、カレンダーにはIDが必要です。
+    topic_taken: すでにある分類名です。
+    topic_held: 出典または待機中・実行中の項目がまだこのトピックを使っているため、削除できません。
+    topic_name: 名前は小文字で始まる小文字・数字・- の32文字以内です。
+    topic_save_failed: トピックを保存できませんでした。
+    topic_delete_failed: トピックを削除できませんでした。
+  message:
+    dismiss_confirm: この項目をキューから除外しますか？
+    dismiss_note: 除外した項目は再び探しません。
+    every_help: 空欄の場合は分類の周期
+    gap_help: 空欄の場合はウェブツールが決めた値
+    source_delete_confirm: "出典 #{id}を削除しますか？"
+    source_delete_note: この出典が見つけた項目はそのまま残ります。
+    words_help: カンマ区切り
+    topic_delete_confirm: このトピックを削除しますか？
+    topic_delete_note: 受信ルームの設定も一緒に削除されます。投稿済みの文書は残ります。
+    topic_name_help: 作成後は変更できません。
+    topic_instruction_help: 何を探してどうまとめるかを書きます。
+    calendar_help: 見つけた予定のうち日付のあるものをカレンダーに記録します。
+  label:
+    address: アドレス
+    all_categories: すべての分類
+    all_states: すべての状態
+    asked: 依頼
+    because: なぜ・何を知りたいか
+    branch_role: ブランチの役割
+    branches: ブランチ
+    cadence: "{n}分ごとに読み込み"
+    cap_counts: "待機 {waiting} · 実行 {running}"
+    category: 分類
+    closes: ウェブツール終了
+    default_road: 既定の経路
+    depth: 深さ
+    document: 文書
+    engine: エンジン
+    engine_gap: エンジン間隔
+    every: 周期
+    every_category: "分類の周期 {n}分"
+    every_value: "{n}分ごと"
+    exclude_words: 除外する語
+    failure_count: "連続失敗 {n}回"
+    failures: 失敗
+    filter: フィルター
+    filter_exclude: "除外 {words}"
+    filter_require: "含む {words}"
+    finished: 終了
+    fit: 該当
+    fit_nodes: "該当 · {nodes}"
+    gap_value: "{n}ms"
+    gather: "{n}分ごとに収集"
+    held: 保留
+    hold_bench: ベンチ
+    hold_reported: 報告済み
+    hold_restore: 復旧待ち
+    hold_waiting_card: カード待ち
+    hold_since: "{time}から"
+    host_gap: ホスト間隔
+    item_state_dismissed: 除外済み
+    item_state_finishing: 仕上げ中
+    item_state_fit: 確認依頼
+    item_state_reported: 報告済み
+    item_state_running: 実行中
+    item_state_stuck: 停滞
+    item_state_taken: 処理済み
+    item_state_waiting: 待機
+    key: キー
+    kind: 種類
+    kind_arxiv: arXiv
+    kind_github_releases: GitHub リリース
+    kind_huggingface_search: Hugging Face 検索
+    kind_huggingface_trending: Hugging Face トレンド
+    kind_rss: RSS
+    language_en: 英語
+    language_ko: 韓国語
+    last_try: "前回の試行 {time}"
+    last_try_untimed: 前回の試行
+    limit: 1回あたり
+    limit_value: "{n}件"
+    log_kind_answer: 回答
+    log_kind_asked: 依頼
+    log_kind_branch: ブランチ
+    log_kind_ended: 終了
+    log_kind_filed: 登録
+    log_kind_round: ラウンド
+    log_kind_seated: 割り当て
+    log_kind_told: 通知
+    loop_changed: "{time}に変更"
+    loop_running: 実行中
+    loop_stopped: すべて停止
+    minute_unit: 分
+    minutes: 時間
+    minutes_value: "{n}分"
+    narration: "読み上げ {language}"
+    observed: 確認
+    origin_asked: "依頼: {because}"
+    origin_follow_up: "「{title}」の追加調査"
+    origin_follow_up_document: "文書 #{id}の追加調査"
+    origin_source: "出典: {source}"
+    origin_source_gone: "出典: 現在はないソース"
+    outcome: 結果
+    outcome_answered: 回答
+    outcome_cut: 中断
+    outcome_failed: 失敗
+    profile_browse: ブラウズ
+    profile_search_basic: 基本検索
+    profile_search_exhaustive: 超精密検索
+    profile_search_thorough: 精密検索
+    query: 質問
+    read_at: 最終読み込み
+    reason: 理由
+    repair: "修理 #{id}"
+    require_words: 含める語
+    retry_at: "{time}に再試行"
+    road: 経路
+    run_error: エラー
+    run_state_closed: 終了
+    run_state_running: 実行中
+    run_state_waiting: 待機
+    search_words: 検索語
+    shape_advisory: セキュリティ勧告
+    shape_brief: ブリーフィング
+    shape_investigation: 調査
+    shape_manual: マニュアル
+    shape_manual_or_investigation: マニュアル・調査
+    source_id: 番号
+    source_target: アドレス・検索語
+    started: 開始
+    state: 状態
+    state_degraded: 低下
+    state_healthy: 正常
+    state_running: 実行中
+    state_stopped: 停止済み
+    state_suspended: 中断
+    strategy: 取得戦略
+    strategy_browser_first: ブラウザー優先
+    strategy_direct_only: 直接のみ
+    strategy_direct_then_browser: 直接優先
+    stuck_count: "停滞 {n}"
+    supervisor: スーパーバイザー
+    suspended_until: 中断解除
+    tab_queue: キュー
+    tab_settings: 設定
+    tab_sources: 出典
+    tries: "試行 {n}回"
+    unknown_value: "不明な値 {value}"
+    tab_topics: トピック
+    topic: トピック
+    topic_purpose: 目的
+    topic_instruction: 指示
+    topic_period: 周期
+    topic_calendar: カレンダー
+    topic_running: 実行中
+    topic_stopped: 停止済み
+    topic_counts: "待機 {waiting} · 実行 {running}"
+    period_unit: 周期の単位
+    period_day: 日
+    period_hour: 時間
+    period_minute: 分
+    period_every_day: "{n}日ごと"
+    period_every_hour: "{n}時間ごと"
+    period_every_minute: "{n}分ごと"
+    calendar_writes: カレンダーに記録
+    calendar_realm: カレンダーの種類
+    calendar_mine: マイカレンダー
+    calendar_organization: 組織カレンダー
+    calendar_id: カレンダーID
+  status:
+    no_categories: 分類なし
+    no_engines: 検索エンジンがありません。
+    no_items: 項目なし
+    no_log: ログなし
+    no_sources: 登録された出典なし
+    queue_end: キューの終わり
+    queue_loading: キューを読み込み中
+    queue_more_loading: キューをさらに読み込み中
+    run_loading: 実行記録を読み込み中
+    settings_loading: リサーチ設定を読み込み中
+    sources_loading: 出典を読み込み中
+    state_loading: リサーチの状態を読み込み中
+    supervisor_loading: リサーチスーパーバイザーを読み込み中
+    topics_loading: トピックを読み込み中
+    no_topics: 登録されたトピックなし
+  title:
+    ask: 項目を依頼
+    categories: 分類
+    engines: 検索エンジン
+    fetching: 取得
+    follow_up: 追加調査を依頼
+    limits: キーごとの上限
+    queue: キュー
+    run: 実行記録
+    source_add: 出典を追加
+    source_edit: "出典 #{id}を編集"
+    sources: 出典
+    supervisor: リサーチスーパーバイザー
+    topic_add: トピックを追加
+    topic_edit: "トピック{name}を編集"
+  action:
+    ask: 依頼
+    dismiss: 除外
+    follow_up: 追加調査
+    front: 先頭へ
+    reask: 再依頼
+    resume: 再開
+    resume_all: すべて再開
+    stop: 停止
+    stop_all: すべて停止
+tool:
+  label:
+    bash: シェル
+    bash_output: シェル出力
+    coworker: コワーカー
+    coworker_kind: "コワーカー {kind}"
+    edit: 編集
+    glob: ファイル検索
+    grep: 内容検索
+    kill_shell: シェル終了
+    monitor: モニター
+    notebook_edit: ノートブック編集
+    read: 読み込み
+    schedule_wakeup: ウェイクアップ予約
+    send_message: メッセージ送信
+    server_chrome_devtools: ブラウザー
+    server_toolbook: ツールブック
+    server_web: ウェブ
+    skill: スキル
+    task_output: ブランチ待機
+    task_stop: ブランチ停止
+    todo_write: ToDo作成
+    tool_search: ツール検索
+    web_fetch: ウェブページ読み込み
+    web_search: ウェブ検索
+    workflow: ワークフロー
+    write: 書き込み
+usage:
+  error:
+    read_failed: 使用量を読み込めませんでした。
+  label:
+    claude_accounts: Claude アカウント
+    figure: "{label} {text}"
+    kind_cache_read: キャッシュ読み込み
+    kind_cache_write: キャッシュ書き込み
+    kind_input: 入力
+    kind_output: 出力
+    reset_at: "{month}月{date}日({weekday}) {hour}:{minute}にリセット"
+    reset_in: "{time}にリセット"
+    reset_passed: リセット時刻経過
+    total: "合計 {tokens}"
+    unsplit: "未分離 {runs}件 {tokens}"
+    until_days: "{d}日後"
+    until_days_hours: "{d}日{h}時間後"
+    until_hours: "{h}時間後"
+    until_hours_minutes: "{h}時間{m}分後"
+    until_minutes: "{m}分後"
+    until_soon: まもなく
+    weekday_fri: 金
+    weekday_mon: 月
+    weekday_name: "{day}曜日"
+    weekday_sat: 土
+    weekday_sun: 日
+    weekday_thu: 木
+    weekday_tue: 火
+    weekday_wed: 水
+    window_limit: "{limit} · {label}"
+    window_primary: 基本
+    window_secondary: 補助
+    window_session: セッション
+    window_weekly: 週間
+    window_weekly_overage: 週間+超過
+    balance: 残高
+    balance_seen: "{wait}前"
+    requests_day: 1日のリクエスト
+    requests_free_models: 無料モデルのリクエスト
+    requests_left: "残り {left} / {limit}"
+  status:
+    loading: 使用量を読み込み中…
+    no_accounts: 登録されたアカウントなし
+    no_info: 読み込んだ使用量なし
+  title:
+    remaining: 残りの使用量
+    remaining_of: "残りの使用量 · {name}"
+job:
+  error:
+    action_wrong: このルートでは受け付けない操作です。
+    add_anchor: 新しいタスクは待機中のビルドタスクの隣にしか置けません。
+    after_not_open: 保留後に再開する項目が、まだ終わっていない別の項目ではありません。
+    agency: bmo-job がエージェンシーを呼び出せませんでした。
+    agent_name_taken: すでにあるエージェント名です。
+    append_empty: 追記する内容が空です。
+    back_here_needs_path: このマシンに戻すワーカーには、このマシンのパスが必要です。
+    banned_terms: 使わないと決めた表現が含まれています。
+    base_on_node: ノード上の基本ワーカーにはノードチェックアウトを割り当てられません。
+    before_and_after: 前と後を同時に指定することはできません。
+    body_not_json: リクエスト本文が JSON ではありません。
+    brain: bmo-job がブレインを呼び出せませんでした。
+    brief_agent_only: ブリーフを書き直せるのはチャットエージェントだけです。
+    brief_empty: ブリーフが空です。
+    brief_needs_change: ブリーフには変更内容を添える必要があります。
+    brief_not_english: ブリーフと変更内容は英語で書く必要があります。
+    build_move: ビルドタスクまたはその基準が待機中ではないため、移動できません。
+    build_running: ビルドタスクが実行中です。
+    builder_running: 実行中のビルダーターンはスキップできません。
+    builtin_not_removed: 組み込みのワーカーは削除できません。
+    builtin_path_fixed: 組み込みのワーカーのパスは移動できません。
+    builtin_stays_here: 組み込みのワーカーはノードに置けません。
+    chat_wrong: ルームのチャット番号ではありません。
+    checkout_already_on_node: そのノードにはすでにチェックアウトがあります。
+    checkout_busy: チェックアウトのワーカーで Job が実行中です。
+    checkout_held: チェックアウトですでに作業中です。
+    checkout_held_by_order: ほかの作業指示書がチェックアウトを使用中で、ワーカーに空きチェックアウトがありません。
+    checkout_name_long: ノードチェックアウトの名前がワーカーの命名規則に反しています。
+    checkout_not_git: チェックアウトが git リポジトリではありません。
+    checkout_not_on_node: そのノードにチェックアウトがありません。
+    checkout_not_removed: チェックアウトのワーカーを片付けられませんでした。
+    checkout_of_done: 終了した作業指示書のチェックアウトは変更できません。
+    close_builder_running: ビルダーターンが実行中のため、閉じられません。
+    close_reason_size: 閉じる理由は1〜2000文字にしてください。
+    closing_refused: 完了報告または未決事項が完了条件を満たしませんでした。
+    commit_already_live: すでにライブのコミットです。
+    commit_not_on_main: main にないコミットのため、デプロイしてもライブになりません。
+    condition_both: 保留の再開条件は項目かデプロイのどちらか一方だけです。
+    control_turn_untouched: 計画、統合、完了のターンは編集できません。
+    cowork_needs_item: 共同作業の実行には項目が必要です。
+    cowork_needs_switch: 共同作業はオンかオフにする必要があります。
+    coworker_tier_wrong: コワーカーが使えるティアではありません。
+    database: bmo-job がデータベースを読み書きできませんでした。
+    dev_command_lines: ワーカーの開発サーバーコマンドは1行にしてください。
+    dev_command_long: ワーカーの開発サーバーコマンドが長すぎます。
+    document_exists: そのパスにはすでに結果文書があります。
+    done_task_edit: 終了したタスクは編集せず、再実行してください。
+    done_while_held: 再開待ちまたは停止中の項目は完了として閉じられません。
+    draft_only: 下書きを過ぎた作業指示書は下書きに戻せません。
+    edit_job_running: 書き直そうとしている内容で Job が作業中です。
+    edit_no_part: 項目にそのような部分はありません。
+    edit_nothing: 編集する部分を少なくとも1つ指定してください。
+    edit_order_started: 作業指示書はすでに開始されています。書き直せるのは下書きだけです。
+    edit_part_empty: 編集する部分が空です。
+    field_missing: リクエストに値がありません。
+    field_not_text: リクエストの値が文字列ではありません。
+    field_wrong: リクエストの値がないか、形式が正しくありません。
+    file_empty: 空のファイルがあります。
+    file_too_large: 受け付けられるサイズを超えるファイルがあります。
+    filing_parts_missing: 項目を構成する部分が欠けています。
+    from_todo_unread: 出所を項目と枝の番号として読み取れません。
+    gate: bmo-job がゲートを呼び出せませんでした。
+    has_support: サポートワーカーまたはノードチェックアウトのあるワーカーはノードに置けません。
+    history_edit: 過去の回のタスクは編集できません。
+    history_rerun: 過去の回のタスクは再実行できません。
+    history_restore: 過去の回のタスクは復元できません。
+    hold_not_taken: すでに終了、統合、または保留された項目です。
+    hold_takes_no_after: 通常の保留には、後で再開する項目を指定できません。
+    impact_unread: 影響の根拠を1つの JSON オブジェクトとして読み取れません。
+    instruction_size: タスクの指示は1〜30000文字にしてください。
+    item_absent: そのような項目はありません。
+    item_closed_already: すでに終了した項目のため、追記は誰にも届きません。
+    item_frozen: '実行中の Job が開始時に読み込んだ値のため、変更できません。
+
+      Job を停止すると変更できます。'
+    item_launch_takes_no_why: 項目の実行には1行の理由を付けられません。
+    item_merged: 別の項目に統合された項目のため、書いた内容はその項目に送られます。
+    item_not_approved: 承認されて実行できる項目ではありません。
+    item_number_wrong: 項目番号が整数ではありません。
+    itemless_needs_why: 項目なしの実行には1行の理由が必要です。
+    job_cannot_unhold: Job は保留を解除できません。
+    job_model_wrong: 指定した Job モデルはティアでも、プロバイダーでも、モデルでもありません。
+    job_range_form: Job の範囲は最初と最後の Job で指定してください。
+    judgement_empty: 判断が空です。
+    judgement_needs_title_and_room: 判断として上げる行にはタイトルとルームが必要です。
+    judgement_with_conversation: 判断として上げる行には会話の一部を含められません。
+    keepalive_count_form: キープアライブ数は0以上の整数にしてください。
+    keepalive_over_count: キープアライブ数がサポートワーカー数を超えています。
+    label_empty: ワーカーのラベルが空です。
+    label_long: ワーカーのラベルが長すぎます。
+    label_value_unknown: 指定した値は使用できる値の一覧にありません。
+    launch_beyond_count: 基本ワーカーが決めた数を超えるサポートワーカーです。
+    launch_held_by_machine: このマシンにはこれ以上 Job を起動する余裕がありません。
+    launch_item_absent: 実行する項目がありません。
+    launch_item_at_work: すでに作業中の項目のため、二重には実行しません。
+    launch_item_done: すでに終了した項目です。
+    launch_item_held: 保留中の項目です。
+    launch_item_merged: 別の項目に統合された項目です。
+    launch_item_other_worker: 別のワーカーの担当の項目です。
+    launch_item_unapproved: まだ承認されていない項目です。
+    launch_needs_launcher: 誰が実行したかが必要です。
+    launch_waits: 直近の実行が作業に着く前に停止したため、待機時間がまだ残っています。
+    made_path_blocked: 新しいワーカーのフォルダーを作る場所にフォルダー以外のものがあります。
+    manager_unreachable: Job ユニットを起動するサービスマネージャーに接続できませんでした。
+    mark_needs_status: 状態の表示には状態行が必要です。
+    merge_finished: 終了した項目は統合することも、統合先にすることもできません。
+    merge_itself: 項目を自身に統合することはできません。
+    merge_needs_items: 統合には、統合する項目と統合先の項目が必要です。
+    merge_running: Job が作業中の項目は統合できません。
+    merged_finished: 統合先の項目と一緒にすでに終了した項目です。
+    message_not_archived: 引用したメッセージがルームに残っていません。
+    middle_step_closes: 作業指示書の途中のステップは項目を閉じられません。最後のターンが閉じます。
+    model_needed: モデル設定は auto かモデル名にしてください。
+    model_tier_wrong: 存在しないモデルティアです。
+    move_kinds: 種類の異なるタスクの間には移動できません。
+    no_deploy_hold: 解除するデプロイ待ちがありません。
+    no_job_model: 有効なプロバイダーの中に Job モデルを提供するものがありません。
+    no_node: そのようなノードはありません。
+    no_such_item: そのような項目はありません。
+    no_such_note: その番号の追記はありません。
+    no_such_strand: 未決事項にその番号の枝はありません。
+    no_such_worker: そのようなワーカーはありません。
+    no_unfinished: 解消する未決事項がありません。
+    no_waiting_commits: この項目にはデプロイ待ちのコミットがありません。
+    no_worker: そのようなワーカーはありません。
+    node_path_form: ノードのパスは / か ~/ で始めてください。
+    node_takes_no_jobs: そのノードは Job を受け付けません。
+    not_a_base: 基本ワーカーではありません。
+    not_a_commit: 指定したコミットはこのリポジトリのコミットではありません。
+    not_built: 実行中の bmo-job にはこの操作が含まれていません。
+    not_held: 保留されていない項目です。
+    not_merged: 統合されていない項目です。
+    not_restable: オーナーが追加していないワーカーは休止も再開もできません。
+    note_needs_number: 追記は番号でのみ削除できます。
+    nothing_to_change: 変更するものがありません。
+    nothing_to_edit: 編集する指示またはモデルがありません。
+    order_active: 作業指示書のステップがすでに実行中です。
+    order_and_model: 作業指示書またはモデルを読み取れません。
+    order_closing: 作業指示書は完了処理中で、まだ終わっていません。
+    order_done: 終了した作業指示書は再実行しません。
+    order_draft: まだ実行していない下書きです。
+    order_finished: 終了した作業指示書は再び開きません。
+    order_paused: 作業指示書は一時停止中で、ワーカーの列で順番を待っています。
+    order_step_holds: 作業指示書のステップが自分の項目を保留できないタイミングです。
+    path_absent: ワーカーのパスが存在しません。
+    path_empty: ワーカーのパスが空です。
+    path_not_absolute: ワーカーのパスが絶対パスではありません。
+    path_not_directory: ワーカーのパスがフォルダーではありません。
+    phase_wrong: 現在の段階ではこのタスクを再実行しません。
+    pin_wrong: エージェンシーがワーカーの固定値を受け付けませんでした。
+    plan_model_form: モデルはプロバイダーとモデルで指定してください。
+    plan_no_stages: 計画に段階の一覧がありません。
+    plan_not_object: 計画が JSON オブジェクトではありません。
+    plan_part_empty: 計画の一部が空か、長すぎます。
+    plan_role_wrong: タスクの役割が存在する役割ではありません。
+    plan_stage_empty: タスクのない段階があります。
+    plan_too_many_builds: 統合が作成できる数を超えるビルドを作成しています。
+    preamble_long: ワーカーの前置きが長すぎます。
+    priority_needs_number: 優先度は数値にしてください。
+    prompt_not_written: Job に渡す文章を作成できませんでした。
+    provider_off: この実行のプロバイダーがオフになっています。
+    question_absent: そのような質問はありません。
+    question_answer_wrong: 回答は選択肢の番号か、自分で書いた言葉のどちらかにしてください。
+    question_banned_terms: 使わないと決めた表現が含まれています。
+    question_item: 質問に項目がありません。
+    question_option_empty: 選択肢は内容のある1行にしてください。
+    question_options: 質問には選択肢が2つ以上必要です。
+    question_outside_hosting: デプロイの外でホストされているページを渡しています。
+    question_recommend: おすすめは選択肢の番号のいずれかにしてください。
+    question_room: 質問はルームを指定せず、オーナーの個人チャットにのみ送られます。
+    question_takes_no_talk: 返信を受け付けない質問です。
+    question_talk_number: 返信を残すには質問番号を指定してください。
+    question_talk_say: 残す返信が空です。
+    question_talk_settled: すでに回答が決まった質問です。
+    question_text: 質問に尋ねる内容がありません。
+    question_wait: 待機時間がミリ秒の数値ではありません。
+    question_why: 決めずに質問する理由がありません。
+    raised_by_needed: 判断として上げる行には、その行を上げた項目が必要です。
+    raised_by_not_item: 行を上げた項目として指定した項目がありません。
+    reason_required: 理由を入力してください。
+    reason_without_hold: 理由は保留するときにだけ送れます。
+    receiver: bmo-job がレシーバーを呼び出せませんでした。
+    recover_job_known: 作業指示書にすでにある Job です。
+    recover_job_running: まだ終わっていない Job です。
+    recover_no_builder: 範囲内に目的と指示を読み取るビルダーターンがありません。
+    recover_no_jobs: 範囲内にこの項目の Job がありません。
+    recover_no_success: 範囲内に成功したステップがありません。
+    recover_not_done: 終わっていない作業指示書は復旧しません。
+    recover_not_step: この項目の作業指示書のステップではない Job です。
+    recover_prompt_unread: Job の文章から役割と指示を読み取れません。
+    recover_task_twice: すでに作業指示書にあるタスクです。
+    reopen_not_done: 終わっていない作業指示書は再び開きません。
+    reorder_stale: その間にキューが変わりました。読み込み直した順序で移動してください。
+    repairs_chain_full: 修理チェーンはすでに決められた回数を使い切りました。
+    repairs_cycle: この項目を修理している項目を、この項目の修理として再び連結することはできません。
+    repairs_itself: 項目を自身の修理として連結することはできません。
+    repairs_needs_target: 修理の連結は項目を指定するか、連結を解除する必要があります。
+    repairs_on_filing: 登録時に修理の連結を一緒に指定することはできません。
+    requester_lacks: 依頼者に必要な権限または有効な Claude アカウントがありません。
+    research_over: 調査段階を過ぎたため、調査タスクを再実行できません。
+    resolve_needs_why: 未決事項の解消には理由が必要です。
+    resume_not_held: 再開する作業が承認されていないか、保留されたか、統合されました。
+    resume_not_stopped: 再開する作業が停止していません。
+    route_absent: bmo-job にそのようなルートはありません。
+    runner_depth_wrong: ランナーが受け付けない深さです。
+    runner_not_launched: ランナーを開始できませんでした。
+    runner_unknown: そのようなランナーはありません。
+    running_task_edit: 実行中のタスクの指示は変更できません。
+    runs_still_alive: 停止を指示した実行がまだ終わっていません。
+    same_anchor: タスクを自身を基準に移動することはできません。
+    server: bmo-job が自身のサーバーを呼び出せませんでした。
+    session_launches_item: チャットセッションは項目を実行しません。
+    single_model_provider: モデルを1つだけ提供するプロバイダーにはコワーカーを依頼できません。
+    skip_reason_size: スキップする理由は1〜2000文字にしてください。
+    source_left_nothing: 出所の項目に残っている未決事項がありません。
+    source_not_item: 行の出所として指定した項目がありません。
+    stage_move_past: 現在の段階とその前の段階は移動できません。
+    stage_move_pending: 待機中でないタスクがある段階は移動できません。
+    stage_not_yet: タスクの段階がまだ来ていません。
+    stage_running: 現在の段階に実行中のタスクがあります。
+    stop_done_item: 終了した項目は停止できません。
+    stop_here_closed: すでに終了または統合された項目です。
+    stop_here_held_takes_no_reason: すでに保留された項目には、理由や再開条件を再度指定できません。
+    stop_here_needs_reason: 作業中の項目に停止した箇所を残すには理由が必要です。
+    stop_here_needs_report: 停止した箇所を残すには報告が必要です。
+    stop_here_not_held: 保留中でも作業中でもない項目です。
+    stop_needs_why: 停止には理由が必要です。
+    stop_reason_size: 停止する理由は1〜2000文字にしてください。
+    strand_not_named: 枝が複数ある未決事項には枝の番号を指定してください。
+    support_changed_by_base: サポートワーカーの設定は基本ワーカーの設定に従います。
+    support_count_range: サポートワーカー数は0から最大値までの整数にしてください。
+    support_follows_base: サポートワーカーを基本ワーカーと離して置くことはできません。
+    support_has_no_settings: サポートワーカーには個別のサポート設定を指定できません。
+    support_name_long: 基本ワーカーの名前が長すぎるため、最後のサポートワーカーの名前が規則に反します。
+    support_removed_by_count: サポートワーカーは削除せず、基本ワーカーの数で減らしてください。
+    takes_no_files: このリクエストはファイルを受け付けません。
+    talk_busy: 前のメッセージにまだ回答中です。
+    talk_item_absent: 会話する項目がありません。
+    task_absent: 作業指示書にそのようなタスクはありません。
+    task_already_skipped: すでにスキップしたタスクです。
+    task_move: タスク1つではなく、段階全体を移動してください。
+    task_needs_room_and_work: 実行するルームと作業内容が必要です。
+    task_not_skipped: スキップしていないタスクです。
+    task_pending: すでに待機中のタスクです。
+    task_running: タスクが実行中です。
+    testbed: bmo-job がテストベッドを呼び出せませんでした。
+    too_many_files: 受け付けられる数を超えるファイルがあります。
+    unfinished_resolved_already: 未決事項はすでに解消されています。
+    unit_not_started: Job ユニットが起動しませんでした。
+    web: bmo-job がウェブコンソールサーバーを呼び出せませんでした。
+    why_one_line: 理由は1行にしてください。
+    wind_down_needs_why: 再開待ちには理由が必要です。
+    wind_down_not_taken: すでに終了、統合、または停止された項目です。
+    worker_is_support: サポートワーカーは基本ワーカーを通してのみ指定できます。
+    worker_name_form: 新しいワーカーの名前がワーカーの命名規則に反しています。
+    worker_needs_name: ワーカーを指定するか、指定を解除してください。
+deploy:
+  status:
+    failed: デプロイ失敗
+    hold: デプロイ待ち
+    line: デプロイ順番待ち
+    live: デプロイ完了
+    newer: 新しいバージョン
+    refused: デプロイ拒否
+    rolled_back: デプロイ失敗 · ロールバック
+    running: デプロイ中
+    withdrawn: デプロイ中断
+  action:
+    collapse_items: 項目を折りたたむ
+    expand_items: 項目を展開
+    reload: 再読み込み
+  error:
+    log_failed: ログを読み込めませんでした。
+  label:
+    commit: コミット
+    exit_code: "終了コード {code}"
+    items: 項目
+    line: 順番待ち
+    line_more: "{unit} ほか {n}"
+    log: ログ
+    part_check: 確認
+    part_pack: 圧縮
+    part_snapshot: スナップショット
+    rest: "ほか {n}"
+    stage_after: 仕上げ
+    stage_backup: バックアップ
+    stage_before: 切り替え前の段階
+    stage_build: ビルド
+    stage_check: 検査・テスト
+    stage_restart: サービス再起動
+    stage_rollback: ロールバック
+    stage_starting: 準備
+    stage_stay_up: ヘルスチェック
+    stage_tree: リリース準備
+    stages: 段階
+    state_ahead: 予定
+    state_current: 進行中
+    state_done: 完了
+    state_failed: 失敗
+    step_failed: "{step} 終了コード {code}"
+    step_hung: "{step} 停止 · 出力なし"
+  message:
+    log_empty: ログなし
+documents:
+  label:
+    from_translation: 翻訳から
+    hit_place: "{title} · {line}行目"
+    kind: 種類
+    language_en: 英語
+    language_ko: 韓国語
+    other_candidates: ほかの候補
+    root_agents: エージェント指示文
+    root_rules: ルールブック
+    root_system_prompts: システムプロンプト
+    root_unread: 読み込み不可
+    scope_all: すべての文書
+    scope_this: この文書
+    translation: 翻訳
+    translation_of: "{language}訳"
+    view_rendered: レンダリング
+    view_source: 原文
+    view_split: 分割表示
+    writer: 作成者
+    writer_deploy: デプロイ
+    writer_person: 人
+  status:
+    documents_found: "文書 {n}件"
+    list_loading: 一覧を読み込み中…
+    loading: 文書を読み込み中…
+    no_documents_found: 該当する文書なし
+    no_places_found: 該当箇所なし
+    no_talk: 会話なし
+    no_toc: 目次なし
+    opening: 文書を開いています…
+    seeking: 検索中…
+    talk_loading: 会話を読み込み中…
+    translating: 翻訳中
+    translation_failed_parts: "翻訳失敗 {n}件"
+  action:
+    ask_agent: "{agent}に質問"
+    list: 一覧
+    list_collapse: 一覧を閉じる
+    list_expand: 一覧を開く
+    remove_quote: 引用を削除
+    retry_translation: 再リクエスト
+    toc_collapse: 目次を閉じる
+    toc_expand: 目次を開く
+  aria:
+    body_hits: 本文で見つかった行
+    document_list: 文書一覧
+    jump_quote: 引用箇所へ移動
+    jump_quote_named: "引用箇所へ移動: {heading}"
+    open_documents: 開いている文書
+    talk_log: 会話履歴
+    toolbar: 文書ツールバー
+  error:
+    editor_failed: 原文エディターを読み込めませんでした。
+    talk_owner_only: 文書についての会話は所有者のみ行えます。
+    list_failed: 文書一覧を読み込めませんでした。
+    no_such_document: 文書が見つかりません。
+    question_too_long: "質問が長すぎます。{n}文字まで入力できます。"
+    read_failed: 文書を読み込めませんでした。
+    search_failed: 文書を検索できませんでした。
+    search_too_long: 検索語が長すぎます。
+    seek_empty: 探す内容を入力してください。
+    seek_failed: 質問の該当箇所が見つかりませんでした。
+    talk_busy: 前のメッセージにまだ回答中です。
+    talk_read_failed: 会話を読み込めませんでした。
+    too_large: 文書が大きすぎて開けません。
+    translation_ask_failed: 翻訳をリクエストできませんでした。
+    translation_read_failed: 翻訳を読み込めませんでした。
+    translation_unavailable: 翻訳機への経路がまだないため、翻訳できません。
+    translation_unreachable: 翻訳機に接続できないため、翻訳をリクエストできません。
+  message:
+    choose_document: 文書を選択してください。
+    root_unread_agency: エージェンシーの文書です。エージェンシーが文書全体を提供する経路をまだ開いていないため、このコンソールでは読めません。
+    translation_unavailable: 翻訳機がまだこのコンソールに翻訳を提供していないため、翻訳して読むことはできません。
+    unanswered_limit: 利用上限に達したため、このメッセージには回答できませんでした。
+    unanswered_other: このメッセージには回答がありませんでした。
+    unanswered_outage: モデル提供元が応答しなかったため、このメッセージには回答できませんでした。
+    unanswered_resting: チャットエージェントが休止中のため、このメッセージには回答できませんでした。
+    unanswered_silent: チャットエージェントはこのメッセージに何も回答しませんでした。
+  placeholder:
+    find: 文書を検索
+    seek: 探す内容を質問
+  title:
+    seek: 質問で探す
+    talk: 会話
+briefing:
+  error:
+    bad_id: ボイスブリーフィングの番号が正しくありません。
+    engine_unreachable: ボイスエンジンに接続できないため、読み上げできません。
+    line_not_found: 読み上げる行が見つかりませんでした。
+    no_engine: このコンソールにはボイスエンジンが設定されていません。
+    not_found: そのボイスブリーフィングは見つかりません。
+    not_made: ボイスブリーフィングを作成できませんでした。
+    one_switch: スイッチは一度に一つしか変更できません。
+    play_failed: ボイスブリーフィングを再生できませんでした。
+    settings_read_failed: ボイスブリーフィングの設定を読み込めませんでした。
+    settings_write_failed: ボイスブリーフィングの設定を変更できませんでした。
+    switched_off: ボイスブリーフィングがオフのため、読み上げできません。
+    voiceless: このエージェントには声がないため、読み上げできません。
+  action:
+    listen: 再生
+    mute: この端末でミュート
+    open: 行へ移動
+    pause: 一時停止
+    play_trial: 試聴
+    reset_position: リセット
+    stop: 聞くのをやめる
+    stop_trial: 停止
+    unmute: この端末でミュート解除
+  label:
+    pixels: px
+    played: "{at} / {length}"
+    position_side: 位置
+    position_top: 高さ
+    side_left: 左
+    side_right: 右
+    switch_all: すべてのボイスブリーフィング
+    switch_all_note: オフにすると、要約ブリーフィングも行の全文読み上げも作成しません。
+    title: ボイスブリーフィング
+  status:
+    making: ボイスブリーフィングを作成しています。
+    settings_loading: ボイスブリーフィングの設定を読み込み中…
+    stopped: ボイスブリーフィングを停止しました。
+home:
+  label:
+    bmo_link: チャットエージェント接続
+    loose_job: 項目なしで実行した Job
+  status:
+    bmo_answering: チャットエージェントが回答中
+picture:
+  action:
+    choose: 写真を選ぶ
+    clear: 提供元の写真に戻す
+  error:
+    failed: 写真を変更できませんでした。
+    no_number: このエージェントにはまだ番号がないため、写真を設定できません。
+    not_a_picture: 写真として読み込めないファイルです。
+    too_large: 写真ファイルが大きすぎます。
+  label:
+    agent: エージェントの写真
+    own: プロフィール写真
+    preview_note: 保存すると、提供元の写真の代わりにこの写真が表示されます。
+    room: ルームの写真
+  message:
+    cleared: 提供元の写真に戻しました。
+    saved: 写真を変更しました。
+admin:
+  aria:
+    tabs: 管理者タブ
+bmo_profile:
+  label:
+    company_default: 標準 BMO
+    name: 名前
+    call_names: 呼び名
+    call_name_new: 追加する名前
+    picture: プロフィール写真
+    persona: ペルソナ
+    permission: BMO 設定権限
+    default_value: "{value}（デフォルト）"
+    from_own: 自分で設定
+    from_company: 会社で設定
+    allow: 許可
+    deny: ブロック
+    inherit: 上位組織に従う
+    follows_allowed: 上位組織に従い許可
+    follows_denied: 上位組織に従いブロック
+    persona_count: "{count}/{max}文字"
+    no_companies: 設定できる会社がありません。
+    no_call_names: 呼び名なし
+    company_picture_note: 保存すると、この写真が会社のメンバーの BMO の写真になります。
+    own_picture_note: 保存すると、この写真があなたの BMO の写真になります。
+    reset_title: あなたの BMO をリセットしますか？
+    reset_description: 自分で設定した名前、呼び名、写真、ペルソナを消去し、会社の設定に従います。
+  aria:
+    call_name_remove: "{name}を削除"
+    tree: BMO 設定権限の組織図
+  action:
+    reset: リセット
+    picture_remove: 写真を削除
+    picture_company: 会社の写真に戻す
+  status:
+    loading: BMO の設定を読み込み中…
+  message:
+    saved: 保存しました。
+    reset: リセットしました。
+    picture_removed: 写真を削除しました。
+    picture_company: 会社の写真に戻しました。
+  error:
+    withheld: BMO を自分で設定する権限がありません。
+    bad_profile: 名前、呼び名、またはペルソナの形式が正しくありません。
+    call_name_taken: すでにある名前です。
+    call_name_comma: 呼び名にはカンマを使えません。
+    call_names_full: 呼び名は10個まで設定できます。
+    forbidden: この設定を変更する権限がありません。
+    not_found: 会社または組織が見つかりません。
+    read_failed: BMO の設定を読み込めませんでした。
+    failed: BMO の設定を保存できませんでした。
+apps:
+  label:
+    tab: アプリ・ツール
+    none: アプリなし
+    "on": オン
+    "off": オフ
+    follow_above: 上位組織に従う
+    follow_platform: 全体設定に従う
+    follows_above_on: 上位組織に従いオン
+    follows_above_off: 上位組織に従いオフ
+    follows_platform_on: 全体設定に従いオン
+    follows_platform_off: 全体設定に従いオフ
+    follows_organization: 組織に従う
+    own: 自分で設定
+    locked_above: 上位組織でロック
+    locked_organization: 組織でロック
+    not_offered: 提供されていません
+    offer: 提供
+    withhold: 提供しない
+    state: 状態
+    platform: 全体設定
+    by_company: 会社別の提供
+    offered_everywhere: すべての会社に提供
+    offered_nowhere: 提供しない
+    offered_to: "{count}か所に提供"
+    withheld_from: "{count}か所を除外"
+    recalled: 緊急回収済み
+  action:
+    lock: 下位組織をロック
+    unlock: ロック解除
+    follow: 元に戻す
+    settings: 設定
+    recall: 緊急回収
+    recall_confirm: 回収
+    lift: 回収を解除
+  title:
+    recall: "{app} アプリをすべての場所でオフにしますか？"
+  message:
+    recall: 'すべての会社と人に対してすぐにオフになり、回収を解除するまで誰もオンにできません。
+
+      会社、組織、人が設定した値は残り、回収を解除すると再び適用されます。'
+  status:
+    loading: アプリを読み込み中…
+  error:
+    "off": 組織の設定でオフになっているアプリです。
+    locked: 上位組織でロックされたアプリのため、変更できません。
+    forbidden: このアプリの設定を変更する権限がありません。
+    no_app: アプリが見つかりません。
+    read_failed: アプリの設定を読み込めませんでした。
+    failed: アプリの設定を保存できませんでした。
+personal_apps:
+  label:
+    none: 個人アプリなし
+    unreached: PC に接続されていないため、以前のバージョンを確認できません。
+    updated: "{time} 更新"
+    version: バージョン
+    own_data: 自分のデータのみ使用
+    network: "ネットワークを使用 {addresses}"
+    secrets: "シークレットを使用 {names}"
+  action:
+    back: 以前のバージョンに戻す
+  message:
+    back_confirm: 以前のバージョンに戻しますか?
+    back_effect: 現在のバージョンは PC から削除されます。
+    delete_confirm: 個人アプリを削除しますか?
+    delete_effect: 'BMO はこのアプリを使えなくなります。
+
+      ソースとデータは PC に残ります。'
+  status:
+    loading: 個人アプリを読み込み中…
+  error:
+    read_failed: 個人アプリを読み込めませんでした。
+    back_failed: 以前のバージョンに戻せませんでした。
+    delete_failed: 個人アプリを削除できませんでした。
+    no_runner: 個人アプリを実行する PC がありません。
+    unreached: 'PC に接続できません。
+
+      PC の電源が入っているか確認してください。'
+    no_older: PC に以前のバージョンが残っていません。
+    refused: PC がこのバージョンを受け付けませんでした。
+    not_found: 個人アプリが見つかりません。
+    no_user: ユーザーアカウントがないため、個人アプリを使えません。
+supply:
+  title:
+    logins: 供給ログイン
+    keys: 供給キー
+    order: 供給順序
+    usage: 今月の利用量
+    policy: 供給ポリシー
+    plan: プラン
+    platform_policy: プラットフォームの基本ポリシー
+    audit: 監査記録
+    key_add: 供給キーを追加
+    credit_grant: クレジット付与
+    policy_set: 供給ポリシー設定
+    plan_add: プランを追加
+    plan_edit: プランを編集
+    plan_applied: 適用プラン
+    plan_exposed: 公開プラン
+  label:
+    note: ログインとキーの値はこの画面に表示されません。名前と状態のみ表示されます。
+    tab: 供給
+    plans: プラン
+    plans_none: プランなし
+    credits: クレジット
+    source_personal: 個人供給
+    source_global: 全体供給
+    source_org_credits: 組織クレジット
+    source_personal_credits: 個人クレジット
+    source_organisation: 組織供給
+    source_stop: 停止
+    reason_not_in_plan: プランにない
+    reason_blocked_by_organisation: 組織でブロック
+    reason_blocked_by_administrator: 管理者がブロック
+    locked: 全体設定で固定
+    platform_off: 全体設定でオフ
+    order_locked: 順序は全体設定で固定
+    overridable: 個人設定を許可
+    fixed: 固定
+    order: 順序
+    source_on: オン
+    source_off: オフ
+    monthly_cap: 月間上限
+    owner_shared: 共用
+    owner_personal: "個人 · {name}"
+    plan_applied_none: 適用プランなし
+    plan_exposed_none: 公開プランなし
+    plan_term: 適用期間
+    plan_term_line: "{since}から{end}まで"
+    plan_applied_locked: 適用中のプランは非公開にできません
+    plan_choice_none: なし
+    road: プロバイダー
+    road_claude: Claude
+    road_codex: Codex
+    road_deepseek: DeepSeek
+    road_openrouter: OpenRouter
+    secret: シークレット
+    secret_note: 値はシークレット保管庫にあり、ここには名前だけを渡します。
+    secrets_none: あなたのシークレット保管庫にはまだシークレットがありません。
+    logins_none: 供給ログインなし
+    keys_none: 供給キーなし
+    usable: 利用可能
+    usable_off: 使用しない
+    login_off: オフ
+    login_needed: ログインが必要
+    window_full: 枠が上限
+    refused: キー拒否
+    personal_credit_cap: 個人クレジットの月間上限
+    personal_credit_cap_note: 1か月に個人クレジットで使える最大量です。
+    cap_none: 上限なし
+    usage_none: 利用量なし
+    global_remaining: プランの残り供給
+    personal_balance: 個人クレジット残高
+    plan_none: プランなし
+    credits_count: "{n} クレジット"
+    won: "{n}ウォン"
+    policy: ポリシー
+    follows_above: 上位組織に従う
+    follows_unit: 組織に従う
+    member_credit_cap: 個人クレジットの月間上限
+    plan_name: 名前
+    price: 価格
+    price_whole: 1周期の価格（ウォン単位）
+    period: 周期
+    period_day: 毎日
+    period_week: 毎週
+    period_month: 月間
+    period_quarter: 四半期ごと
+    period_year: 年間
+    included: 期間を含む
+    credits_usable: クレジット利用可
+    credits_usable_on: クレジット利用可
+    credits_usable_off: クレジット利用不可
+    balance: 残高
+    rate: 換算率
+    rate_note: コスト 1 US ドルをクレジットに換算する比率です。
+    reservation: 予約クレジット
+    reservation_note: 実行ごとに予約が開かれ、増えていく量の単位です。
+    enforce: 供給制限を適用
+    enforce_note: オフにすると利用量の記録のみ行い、供給を理由に実行を止めません。
+    scope: 対象
+    scope_personal: 個人
+    scope_organisation: 組織
+    owner: 対象
+    amount: 金額
+    words: メモ
+    words_placeholder: 任意
+    kind_grant: 付与
+    kind_consume: 消費
+    kind_reserve: 予約
+    kind_capture: 使用
+    kind_refund: 返金
+    kind_debit: 差し引き
+    kind_policy: ポリシー
+    kind_settings: 設定
+    kind_plan: プラン
+    kind_named: "不明なコード `{kind}`"
+    owner_user: ユーザー
+    owner_organisation: 組織
+    ledger_none: 記録なし
+    audit_none: 監査記録なし
+    personal: 個人供給
+    personal_none: 個人供給なし
+    providers: 個人供給の提供元
+    resolved_order: 供給順序
+  action:
+    login_add: 供給ログインを追加
+    login_again: ログイン
+    key_add: 供給キーを追加
+    open_store: シークレット保管庫へ
+    policy_set: ポリシー設定
+    policy_delete: ポリシー削除
+    credit_grant: クレジット付与
+    grant: 付与
+    plan_add: プランを追加
+    plan_change: 変更
+    plan_apply: 適用
+    more: さらに読み込む
+  aria:
+    login_switch: "{name} の供給ログインをオン"
+    key_switch: "{name} の供給キーをオン"
+    source_switch: "{name} の供給を使用"
+    source_overridable: "{name} の個人設定を許可"
+    order_overridable: 順序の個人設定を許可
+    plan_exposed: "{name} を公開"
+  status:
+    loading: 供給情報を読み込み中…
+    ledger_loading: 台帳を読み込み中…
+    audit_loading: 監査記録を読み込み中…
+  message:
+    login_delete: "{name} の供給ログインを削除しますか？"
+    login_delete_effect: このログインを使っていた実行は、供給順序の次に従います。
+    key_delete: "{name} の供給キーを削除しますか？"
+    key_delete_effect: シークレット自体は保管庫に残り、このキーによる供給だけがなくなります。
+    policy_delete: 供給ポリシーを削除しますか？
+    policy_delete_effect: この組織は上位組織のポリシーに従います。
+    policy_delete_effect_user: この人は所属組織のポリシーに従います。
+    plan_delete: "{name} プランを削除しますか？"
+    plan_delete_effect: 今後このプランを新たに購入する人はいなくなります。
+  placeholder:
+    find_person: 人を検索
+  error:
+    read_failed: 供給情報を読み込めませんでした。
+    logins_failed: 供給ログインを変更できませんでした。
+    signin_failed: ログインを開始できませんでした。
+    key_failed: 供給キーを変更できませんでした。
+    order_failed: 供給設定を保存できませんでした。
+    policy_failed: 供給ポリシーを保存できませんでした。
+    grant_failed: クレジットを付与できませんでした。
+    plan_failed: プランを保存できませんでした。
+    platform_failed: プラットフォームの供給設定を保存できませんでした。
+    platform_read_failed: プラットフォームの供給設定を読み込めませんでした。
+    ledger_failed: クレジット台帳を読み込めませんでした。
+    audit_failed: 監査記録を読み込めませんでした。
+    forbidden: この情報を閲覧する権限がありません。
+    source_not_allowed: 許可されていない供給元があります。
+    not_in_plan: プランにない供給元です。
+    blocked_by_organisation: 組織で許可されていない供給元です。
+    blocked_by_administrator: 管理者が許可していない供給元です。
+    locked_by_platform: 全体設定で固定された供給元や順序は変更できません。
+    plan_scope: 組織向けのプランのみ組織に公開できます。
+    unknown_plan: プランが見つかりません。
+    plan_applied: 適用中のプランは非公開にできません。
+    plan_not_exposed: この組織に公開されていないプランは適用できません。
+    not_in_force: 供給機能はまだこのデプロイで有効になっていません。
+    no_agency: このデプロイにはエージェンシーが指定されていないため、個人供給を確認できません。
+    upstream_failed: 他のユニットが応答しなかったため、供給情報を読み込めませんでした。
+    bad_request: 供給リクエストを処理できません。
+    unknown_road: 不明なプロバイダーです。
+    key_taken: このプロバイダーにはすでにキーがあります。
+    key_gone: 供給キーが見つかりません。
+    node_off: デバイスが接続されていないため、ログインを開始できません。
+    secret_name: シークレット名が正しくありません。

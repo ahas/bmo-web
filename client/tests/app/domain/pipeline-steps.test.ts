@@ -76,7 +76,7 @@ describe("the pipeline's events on the room's turns", () => {
 });
 
 describe("the running line", () => {
-  const state = wording("room.status.agent_thinking", { subject: subjectOf("agent-a") });
+  const state = wording("room.status.agent_thinking", { subject: subjectOf(wording, "agent-a") });
   const writing: RunProgress = { ...thinking, phase: "writing" };
   const working: RunProgress = { ...thinking, phase: "tool", tool: "Bash" };
 

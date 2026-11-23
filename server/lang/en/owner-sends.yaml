@@ -1,0 +1,6 @@
+# Translated from server/lang/ko/owner-sends.yaml; its comments say what each value is.
+reply_missing: "The message to reply to isn't in the record."
+words_only: "This room takes text only. Files can't be sent here."
+empty_file: "{name}: empty file, so it wasn't sent."
+too_large: "{name}: {size} is too large. Each file can be up to {largest}."
+megabytes: "{megabytes}MB"

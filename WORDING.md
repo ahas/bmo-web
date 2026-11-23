@@ -9,6 +9,9 @@
 - The words themselves stand in `client/apps/web/i18n/locales/ko.yaml`; this guide says which word is
   chosen and how the sentence is written. A change to a word in the guide and a change to the pack that
   shows it are made together.
+- The console's other languages — English, Japanese and Simplified Chinese — translate the Korean key for key
+  (docs/web.md, 「Wording and the language pack」); 「The other languages」 below names the one word each of them
+  writes a console concept as.
 
 ## The principle
 
@@ -658,3 +661,26 @@
   했습니다 throughout; 어요 is never mixed into them.
 - **No dash between words.** A range is written `{min}~{max}`; a caveat on a title stands on its
   own smaller line, or after a ` · `.
+
+## The other languages
+
+- Each line is `<the Korean UI word> → <English> / <Japanese> / <Simplified Chinese>`. Wherever the Korean writes a
+  concept by its word, each translation writes it by the word named here; where the Korean word stands for
+  something else — 공급자 is a provider, 서비스 워커 the browser's service worker, 항목 a form's field — the
+  translation writes that thing by its own word.
+- 감독관 → supervisor / スーパーバイザー / 主管.
+- 에이전시 → agency / エージェンシー / 代理中心.
+- 에이전트 → agent / エージェント / 智能体.
+- 브레인 → Brain / ブレイン / Brain.
+- 미결 → open issues / 未決事項 / 待决事项.
+- 보류 → on hold / 保留 / 暂缓.
+- 드래프트 → draft / 下書き / 草稿.
+- 공급 → supply / 供給 / 供给; 공급자 → provider / プロバイダー / 提供商.
+- 저장소 → repository / リポジトリ / 仓库.
+- 워커 → worker / ワーカー / 工作器.
+- 판정 → verdict / 判定 / 判定.
+- 방 → room / ルーム / 房间.
+- 항목 → item / 項目 / 条目.
+- 조직장 → head / 組織長 / 负责人.
+- 위임 사슬 → delegation chain / 委任チェーン / 委托链.
+- 아티팩트 → artifact / アーティファクト / 制品.

@@ -1,0 +1,2 @@
+# Translated from server/lang/ko/outside-hosting.yaml; its comments say what each value is.
+refusal: "a document shown to {owner} goes into the chat agent's own アーカイブ, never onto a page hosted outside it. File it with `bmo archive doc --title '<タイトル>' --body <markdown file>` (an HTML page with `--html <file>`), and put the console address it prints where this address stands. These addresses open a page outside the アーカイブ:"

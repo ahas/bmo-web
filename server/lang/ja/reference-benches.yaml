@@ -1,0 +1,59 @@
+# Translated from server/lang/ko/reference-benches.yaml; its comments say what each value is.
+usage:
+  compare: |-
+    usage: bmo reference compare [--per-cell <数>] [--db <アドレス>] [--route-db <アドレス>] [--json] [--out <パス>]
+
+    保存された参照分類器の実行を標本として抽出し、同じ会話を分割した三つのゲートにもう一度問い、前後を比べます。
+    付いた断片の数、二つの答えの集合関係、何も選ばなかった回数、答えを読めなかった割合、そして前段に
+    かかった時間を出します。時間は三つのゲートを並べて実行した実時間です。
+    --per-cell はルームと候補数の区間ごとにいくつ抽出するかです (既定 8)。
+    --db がなければ、このマシンのデータルートが指すアーカイブを読みます。
+    --route-db はゲートの経路と断片表を読むアーカイブです (既定は --db と同じもの)。
+    --json は数値を JSON で出力し、--out <パス> はその JSON をファイルに書きます: ゲートが自分の経路を
+    述べる行が同じ出力に出るため、機械が読む答えはファイルで受け取るほうが確実です。
+  inputs: |-
+    usage: bmo reference inputs [--db <アドレス>] < turns.jsonl > inputs.jsonl
+
+    標準入力の行ごとにターンを一つ ({"chatId": <ルーム>, "messageIds": [<メッセージ>...], "instructions": "<静かな指示>", "bodies": {"<ゲート>": ["<スラッグ>"]}}) 受け取り、ゲートごとに現在の断片表と絞り込みで組み立てた Laya の入力 (state と候補ごとの質問) と候補の
+    目次説明を一行の JSON で出力します。instructions はそのターンのプロンプトの静かな指示ブロックに書かれたとおりに渡し、読んだものは
+    そのまま返します。人の発言がなく指示だけのターンは、ゲートごとに宣言したとおりにだけ問います。
+    行は messageIds の代わりに作業 ({"kind": "job", "title", "instruction", "requester", "requesterId"} または {"kind": "search", "query"}) を
+    持てます: その場合は知識ゲートの入力だけで答え、その行と絞り込みはその作業自身の実行のものを使います。
+    bodies に書いた断片は、目次説明と本文を pieces に載せます。
+    どのモデルにも問わず、何も書き込みません。--db がなければ、このマシンのデータルートが指すアーカイブを開きます。
+  narrowing: |-
+    usage: bmo reference narrowing [--db <アドレス>] [--chat <ルーム>] [--turns <数>] [--json]
+
+    {chat_agent_subject} 実際に答えたターン (参照判定が残ったメッセージ) を現在の断片表でもう一度絞り込み、ゲートごとにいくつ
+    残るかをルーム別に測ります。--chat がなければ判定が残ったすべてのルームを、--turns がなければルームごとに直近 20 ターンを見ます。
+    --db がなければ、このマシンのデータルートが指すアーカイブを開きます。--json はターンごとの数値を JSON で出力します。
+  replay: |-
+    usage: bmo reference replay [--db <アドレス>] [--use <turns.jsonl>] [--turns <数>] [--out <パス>]
+
+    使用判定が出た実際のターンを現在の参照経路にもう一度通し、ゲートごとに付いた文書数とそのうち答えが実際に使った
+    数を、記録当時と並べて出力します。ゲートは --db のアーカイブが決めた経路で実際に問われます。
+    --turns は均等に抽出するターン数 (既定 60)、--out はターンごとの結果を JSON で書くファイルです。
+  roads: |-
+    usage: bmo reference roads [--db <アドレス>] [--json]
+
+    断片表を読む経路と目次ファイルを読んでいた経路が、同じ候補を同じ順序で出すかをルームごとに比べます。
+    --db がなければ、このマシンのデータルートが指すアーカイブを開きます。--json は数値を JSON で出力します。
+  waste: |-
+    usage: bmo reference waste [--db <アドレス>] [--use <turns.jsonl>] [--since <YYYY-MM-DD>] [--top <数>] [--json]
+
+    参照ゲートが付けた文書ごとに、付いたターン数、使用判定が出たターンのうち答えが実際に使った数と無駄に付いた割合、
+    無駄に付いて入ったトークンの合計を表で出力します。ゲート段階にかかった時間と、無駄に付いた文書がターン入力に加えた分も出します。
+    --use がなければ、データフォルダーの reference-use/use-1/turns.jsonl の判定を読みます。
+compare:
+  per_cell: "reference-compare: --per-cell は 1 以上の整数です。"
+  corpus: "reference-compare: {runs} 件の実行のうち {unreadable} 件は形式が合わず、{dropped} 件は分割できなかったため、{cut} 件から {sample} 件を抽出しました。"
+  asked: "  {at}/{sample} · {chat} · {gates} ゲート · {ms}ms"
+  written: "reference-compare: {out} に書き込みました。"
+  sample: "標本 {runs} 件 · ルーム {rooms} 件 · 候補 {least}〜{most} 件 (中央値 {middle})"
+  sifted: "選別した実行 {runs} 件のうち、形式が合わないもの {unreadable} 件、分割できず捨てたもの {dropped} 件、残ったもの {cut} 件"
+  pieces: "付いた断片: 前 {before} 件/ターン · 後 {after} 件/ターン"
+  none: "何も選ばず: 前 {before} · 後 {after}"
+  unread: "答えを読めず: 前 {before} · 後 ゲート {after}"
+  shapes: "集合関係: {shapes}"
+  wanting: "  どちらかが選んだターン ({runs} 件): {shapes}"
+  front: "前段の時間: 前 中央値 {before_middle}ms/90% {before_ninth}ms (対応 {timed} 件) · 後 中央値 {after_middle}ms/90% {after_ninth}ms"

@@ -10,13 +10,13 @@ use sea_orm::ConnectionTrait;
 use serde::Deserialize;
 use serde_json::{Map, Value};
 
-use crate::lang::LANGUAGE;
 use crate::lang::chat_health::CHAT_HEALTH_WORDS;
 use crate::lang::draws::DRAWS;
 use crate::lang::fixed_lines::FIXED_LINES;
 use crate::lang::particles::{PARTICLES, Particle};
 use crate::lang::roads::ROAD_WORDS;
 use crate::lang::supervisors::SUPERVISOR_WORDS;
+use crate::lang::{Language, speaking_now};
 use crate::marks::fill_marks;
 use crate::settings::Names;
 use crate::{Refusal, one};
@@ -201,9 +201,9 @@ pub enum DrawResult {
   Shuffle { order: Vec<String> },
 }
 
-/// The sentence a render request asks for: its `language`, then its code with the fields beside it. A
-/// language the pack does not have and a code it holds no sentence for are refused 404; a request that does
-/// not read as its code's shape, 400.
+/// The sentence a render request asks for: its `language`, a language tag the pack holds a folder for by its
+/// primary subtag, then its code with the fields beside it. A language the pack does not have and a code it holds
+/// no sentence for are refused 404; a request that does not read as its code's shape, 400.
 pub async fn rendered<C: ConnectionTrait>(
   db: &C,
   mut asked: Map<String, Value>,
@@ -214,12 +214,12 @@ pub async fn rendered<C: ConnectionTrait>(
     _ => return Err(Refusal::bad("a render request names its `language`")),
   };
 
-  if language != LANGUAGE {
+  let Some(language) = Language::asked(&language) else {
     return Err(
       Refusal::new(StatusCode::NOT_FOUND, format!("the pack has no language `{language}`"))
         .coded("unknown-language"),
     );
-  }
+  };
 
   let code = asked.get("code").and_then(Value::as_str).unwrap_or_default().to_owned();
   let line = serde_json::from_value::<FixedLine>(Value::Object(asked))
@@ -239,7 +239,7 @@ pub async fn rendered<C: ConnectionTrait>(
 
   let accounts = shown_names(db, &line.accounts()).await?;
 
-  line.text(names, &accounts).ok_or_else(|| {
+  speaking_now(language, || line.text(names, &accounts)).ok_or_else(|| {
     Refusal::new(StatusCode::NOT_FOUND, format!("the pack holds no line for `{code}`"))
       .coded("unknown-code")
   })

@@ -1,0 +1,46 @@
+# Translation of server/lang/ko/checkout-holds.yaml; that file says what each line is for.
+waits:
+  open_job: "{worker} ワーカーの Job #{job} がまだ開いています"
+  lock: "チェックアウトの Job ロックが取られています"
+  ended_units: "{worker} ワーカーの終了した Job ユニット {units} がまだ生きています"
+  ended_record: "{worker} ワーカーの終了した Job ユニット {unit} の実行記録 {id} ({label}) が閉じられていません{more}"
+  ended_records: " · このような記録が {count} 件あります"
+  own_turns: "停止前の自分のターン {live} がまだ生きています"
+  checking: "自分の変更ファイル {count} 個でリポジトリ検査を実行中です ({starts} 回目の検査)"
+  release: "チェックアウトを手放す順番を待っています"
+
+place:
+  line: "{turn}: {why}{failures}"
+  failures: " · 失敗 {failures} 回"
+  resume: "再開の順番"
+  passed: "順番を譲っています"
+  held: "保留"
+  owner_stop: "{owner} が停止: {why}"
+
+notes:
+  unsettled: "検査の間に変更が変わり続けたため、検査を {tries} 回開始したあと中止し、自分の変更を main 外の wip/{item} ブランチに置きます。"
+  unpushed: "停止した指示書の変更をコミット {commit} として置きましたが、プッシュできませんでした: {refused}"
+  uncommitted: "停止した指示書の変更をコミットにまとめられなかったため、チェックアウトにそのまま置きます: {why}"
+  left: "他の変更と切り分けられず、チェックアウトに残した変更: {paths}"
+  parked: "指示書の変更 {count} 件を {branch} ブランチにコミット {commit} として置きました。"
+  parked_stopped: "停止した指示書の変更 {count} 件を {branch} ブランチにコミット {commit} として置きました。"
+  not_parked: "停止した指示書の変更をブランチにまとめられなかったため、作業パスにそのまま置きます: {why}"
+  not_on_main: "基本チェックアウトを {main} に戻せなかったため、指示書のブランチにそのまま置きます: {said}"
+  unread: "原因を読み取れず"
+
+git:
+  own_worktree: "{worker} の作業パス"
+  base_checkout: "基本チェックアウト"
+  not_moved: "{place} を指示書のブランチに移せなかったため停止します: {why}"
+  not_merged: "停止時にブランチに置いた変更を取り込めなかったため、再び停止します: {why}"
+  no_branch: "ブランチ {branch} はありません。"
+  not_fetched: "ブランチ {branch} を取得できませんでした: {said}"
+  add: "変更をステージできませんでした"
+  commit: "変更をコミットできませんでした"
+  read_commit: "コミットを読み取れませんでした"
+  read_head: "HEAD を読み取れませんでした"
+  write_tree: "ツリーを書き込めませんでした"
+  write_commit: "コミットを書き込めませんでした"
+  move_branch: "ブランチを移動できませんでした"
+  take_back: "変更を取り戻せませんでした"
+  read_branch: "ブランチの変更を読み取れませんでした"

@@ -1,0 +1,5 @@
+# Translated from server/lang/ko/node-land.yaml; its comments say what each value is.
+pending: "{commit} · {item}{worker}{urgent}: {reason}"
+item: "Item #{item}"
+no_item: "No item"
+urgent: " · now (schema ahead)"

@@ -8,14 +8,14 @@ import { readFileSync } from "node:fs";
 const fixture = readFileSync(new URL("../fixtures/web-tables.sql", import.meta.url), "utf8");
 const read = (name: string) => readFileSync(new URL(`../../../server/src/migration/${name}.rs`, import.meta.url), "utf8");
 const tables = read("m20261019_000001_tables");
-const migrations = [tables, read("m20261019_000002_document_talk"), read("m20261117_000001_presence_hidden")];
+const migrations = [tables, read("m20261019_000002_document_talk"), read("m20261117_000001_presence_hidden"), read("m20261125_000001_languages")];
 
 const blocks = fixture.split("\n\n").map((block) => block.trim()).filter((block) => block !== "");
 
 test("every table the tests make is made by one of the server's migrations as it is written there", () => {
   const made = blocks.filter((block) => block.startsWith("CREATE TABLE"));
 
-  expect(made.length).toBe(9);
+  expect(made.length).toBe(10);
 
   for (const block of made) {
     expect(migrations.some((migration) => migration.includes(block))).toBe(true);

@@ -1,0 +1,218 @@
+# The answers and refusals of the TODO verbs (docs/todo.md) as a person or the chat agent reads them; run inside
+# a job, the same verbs answer in the worker's English, written beside where each line is said. Each
+# `{name}` is filled in with what it names: {id} and {title} an item's, {selector} what was named.
+
+# A resume condition put with a hold that cannot stand.
+condition:
+  both: "--after and --after-deploy aren't taken together. An item on hold has one resume condition"
+  after: "--after must be another item that hasn't finished yet. #{id} is {why}"
+  after_itself: "this item itself"
+  after_finished: "already finished"
+  no_commits: "#{id} has no commits waiting for deployment. Close that work first so its commits wait for deployment, or name a commit yourself (--after-deploy <commit>)"
+  not_commit: "--after-deploy {selector}: not a commit in this repository"
+  not_on_main: "--after-deploy {selector}: this commit isn't on main, so a deployment won't put it live"
+  live: "--after-deploy {selector}: this commit is already live"
+
+# The words added to an item: none, those taken back ({count} of them, each by its {note} number, its
+# {author}, who took it back {by} and when {at}), and one taken back now by its {note} number.
+notes:
+  none: "todo: #{id} '{title}' has no added notes"
+  withdrawn: "{count} withdrawn notes:"
+  withdrawn_note: "- Note {note} (added by {author}, withdrawn by {by} {at})"
+  removed: "todo: #{id} '{title}' note {note} withdrawn. It won't be carried into any Job"
+  removed_delivered: "todo: #{id} '{title}' note {note} withdrawn. {chat_agent}'s change carrying this note was already handed to a running Job, so it stays in that Job"
+
+# An item rewritten: the parts named by what was {changed}.
+edit:
+  nothing: "--edit needs at least one thing to change: one of --title, --what, --do, --conclusion, --judgement, --intent, --order."
+  title: "title"
+  intent: "work order purpose"
+  order: "work order instruction"
+  done: "todo: #{id} '{title}' rewritten: {changed}"
+
+# The queue's switches: auto-progress paused or resumed, and the deployment's {hold} standing or let go.
+queue:
+  paused: "todo: auto-progress paused. {chat_agent} won't be told the queue is waiting. Running Jobs and stages go on to the end."
+  resumed: "todo: auto-progress resumed. {chat_agent} will be told how the queue stands."
+  hold_stands: "todo: the deployment hold still stands: {hold}. Resuming doesn't release it; --release-deploy-hold does."
+  no_hold: "todo: no deployment hold stands."
+  hold_released: "todo: deployment hold released: {hold}. The deployment backs off without putting anything live, and the commits keep waiting."
+
+# An item set aside, stopped, wound down or left where its run stopped, and a hold let go: with its
+# {reason}, the {runs} asked to stop, the {job} told to stop at its stage, the {note} left and the {held}
+# word it stays under.
+hold:
+  after: "--hold doesn't take --after. Putting on hold until an item finishes is --wind-down <id> --why '<reason>' --after <item id>"
+  held: "todo: #{id} '{title}' on hold. The queue won't pick it up any more{reason}"
+  stop_why: "todo: --stop needs --why '<reason>'"
+  stopped: "todo: #{id} '{title}' stopped. Asked {runs} runs to stop, and the item is on hold as stopped ({reason}). Taking it off hold picks up where it was cut off"
+  wind_down_why: "--wind-down needs --why '<reason>'"
+  wound_down: "todo: #{id} '{title}' awaiting resume. {told}. Reason: {reason}"
+  wound_down_idle: "No Job is running, so it was only put on hold"
+  wound_down_running: "Telling the running Job {job} to finish the stage it is on and stop"
+  stop_here_report: "--stop-here takes --report '<what is finished and where to pick up>'"
+  stop_here_closed: "#{id} '{title}' is finished or merged into another item, so it can't be left stopped"
+  stopped_here: "todo: #{id} '{title}' stopping point left (note {note}). Not closed as done; left as {held}{reason}"
+  job_unhold: "A Job doesn't take items off hold"
+  unheld: "todo: #{id} '{title}' taken off hold. Back in order at priority {priority}"
+
+# Items merged into the item {into} and taken out again, with its {priority}; {target} is the merge target
+# named with its subject particle.
+merge:
+  usage: "--merge takes the item numbers to merge and --into <number>. Separate numbers with commas."
+  merged: "todo: {ids} → #{into} '{title}' merged. The queue won't pick them up any more, and they are done when {target} is done"
+  unmerged: "todo: #{id} '{title}' unmerged. Back to the original item at priority {priority}"
+
+# An item closed or opened again: what the closing wrote, the items finished with it ({ids}), a the chat agent's share
+# strand handed to the chat agent as the memory {memory} with its {head}, an item waiting on it whose condition the
+# closing met, and on opening again the merge it leaves ({into}), the items merged again and the notes it
+# came out of opened again ({ids}).
+close:
+  resolve_why: "--resolve takes --why: what makes it no longer an open issue."
+  report: "report"
+  unfinished: "open issues"
+  written: " ({parts} written)"
+  written_joint: " and "
+  carried: " (merged items done with it: {ids})"
+  handed: "todo: handed {chat_agent}'s share of open issues to {chat_agent}. Memory #{memory}: {head}"
+  resumable: "todo: #{id} '{title}' resume condition (#{after} finished) is met and {chat_agent} was told. {chat_agent_subject} takes it off hold"
+  reopened: "Waiting"
+  reopened_unmerged: " (taken out of merge into #{into})"
+  reopened_merged: " (merged items merged again: {ids})"
+  reopened_sources: " (source open issues reopened: {ids})"
+  # The section a closing puts on the report over what the live-Claude guard kept, and its line for one
+  # opening: its {at} number, what it was for {purpose} and how many {runs} it let through.
+  live_claude_heading: "Live measurement record (kept by the guard)"
+  # The resolution a 미결 gets once every row it was broken into is finished, naming those {rows}.
+  settled: "Resolved because every row raised from this open issue is finished: {rows}."
+  # The word an item is named by in an instruction that names it by its number.
+  item_word: "item"
+  # The report an item merged into the {target} is closed with when that item is.
+  merged_report: "Merged into #{target} and done with it. How it was done is in #{target}'s completion report."
+  live_claude_line: "{at}. {purpose}: {runs} real Claude runs"
+
+# The item's settings: its state line, its {worker} (and the base it is a {support} worker of), the
+# {target} it repairs as the {round} of {rounds} repairs of the item {root}, its co-work, its impact grounds
+# (read or refused for {why}, the nodes whose outward contract changes counted as {contracts}, a new home
+# marked, the {verdict} they come to beside the {cowork} setting the item stands at; a job's own grounds
+# kept quietly, or kept and told to the chat agent for the {reason} that they differ or that the chat agent filed none), its
+# priority and its job {model}.
+settings:
+  mark_status: "--mark takes --status with the one-line state to write."
+  worker_usage: "--worker takes one worker name after the item. Give - to remove the assignment."
+  worker_support: "{worker} is a support worker of {base}. Assign the item to {base}; the run picks which checkout it runs in."
+  worker_cleared: "todo: #{id} '{title}' worker unassigned. The Built-in worker takes it"
+  worker_set: "todo: #{id} '{title}' taken by worker {worker}"
+  repairs_with_add: "--repairs isn't used with filing. File with --add first, then give --repairs <repairing item number> <target number> with the number it printed."
+  repairs_usage: "--repairs takes one number after the item: the target it repairs. Give - to remove the link."
+  repairs_cleared: "todo: #{id} '{title}' repair target unlinked"
+  repairs_set: "todo: #{id} '{title}' repairs #{target} (repair {round}/{rounds} of #{root})"
+  cowork_usage: "--cowork takes on or off after the item."
+  cowork_on: "todo: #{id} '{title}' runs as co-work"
+  cowork_off: "todo: #{id} '{title}' co-work turned off. Runs as one session"
+  impact_usage: "Impact grounds are taken as one JSON ({why}): {\"nodes\":[{\"id\":\"<graph node id>\",\"contract\":\"<outward contract that changes>\" or null}],\"new_home\":<true if a new home must be decided>}"
+  impact_set: "todo: #{id} '{title}' impact grounds written. {contracts} nodes whose outward contract changes{new_home}; verdict {verdict}, co-work setting {cowork}"
+  impact_new_home: ", new home needed"
+  impact_single: "one Job"
+  impact_cowork: "co-work"
+  impact_on: "on"
+  impact_off: "off"
+  impact_check_kept: "todo: #{id} impact grounds the Job drew again written. The verdict matches the co-work setting, so {chat_agent} isn't told"
+  impact_check_told: "todo: #{id} impact grounds the Job drew again written and {chat_agent} told ({reason}). {chat_agent_subject} changes the co-work setting; this Job carries on as it started"
+  impact_check_differs: "verdict is {verdict} but co-work setting is {cowork}"
+  impact_check_unfiled: "the item has no impact grounds from {chat_agent}"
+  priority_usage: "--priority takes one number after the item."
+  model_needed: "--model auto or an explicit model is required."
+  model_set: "todo: #{id} model {model}"
+  model_wrong: "Not a valid work model."
+  no_verb: "Unknown verb. This script takes one of the verbs above."
+
+# Filing a row: a raised row short of its title or its room, and a filing short of the {missing} parts named,
+# the reply named by its {reply_part}; a row filed as {id} with its {title}, its {cowork} mark and the head of
+# the message that asked for it {clip}; a row raised on the chat agent's judgement out of the work of the item {item},
+# out of the strands of {sources}, each by its {id} and {strand}, with its {cowork} mark and the notes it
+# opened again {ids}; and a title or summary that uses a term set aside, the {terms} named.
+add:
+  judgement_needs: "An item raised with --judgement needs --title, and --chat or this machine's settings must give the room number."
+  missing: "--add is missing {missing} or it is empty. An item is made of these parts, so if any is empty no row is written."
+  reply_part: "--reply or --reply-text"
+  filed: "todo: added #{id} '{title}': awaiting approval{cowork}; it enters the queue once approved ({clip})"
+  raised: "todo: added #{id} '{title}': raised on {chat_agent}'s judgement (work of item #{item}{sources}), awaiting {chat_agent}'s approval{cowork}{reopened}"
+  raised_sources: ", source open issues {sources}"
+  raised_source: "strand {strand} of #{id}"
+  raised_reopened: " (source open issues reopened: {ids})"
+  cowork: ", co-work"
+  wording: "Nothing was written: the title or summary uses words set aside: {terms} (WORDING.md). Reword them and run again."
+
+# Words added to an item: none given; told to the chat agent, who folds them into the brief; the chat agent's own, kept as
+# the record its --brief folds in; and the account of the fact the chat agent is told, of the words {by} added to the item
+# {id} {title}, with no job at work on it or with the running {job}.
+append:
+  empty: "--append writes words onto the item, so it takes some: --text '<words>', or the words on stdin"
+  told: "todo: #{id} '{title}' note added. {chat_agent} was told, and {chat_agent_subject} folds it into the instruction"
+  own: "todo: #{id} '{title}' note added. It stays as a record; fold it into the instruction with --brief and state what changed"
+  fact_idle: "{by} added a note to #{id} {title}. No Job is running on that item."
+  fact_running: "{by} added a note to #{id} {title}. Job {job} is working on that item."
+
+# the chat agent's rewrite of an item's brief: refused to anyone but the chat agent, with no change named, with no brief on
+# stdin and with either not in English; written with no job running, or with the change handed to the running {job}.
+brief:
+  not_bmo: "--brief is written by {chat_agent} alone. Write anything to add with --append, and {chat_agent_subject} folds it into the instruction"
+  no_change: "--brief also takes what changed, in English: --change '<what changed>'"
+  empty: "--brief takes the whole new instruction on stdin"
+  not_english: "The instruction and what changed are written in English, which the worker reads. {owner}'s words stay as written inside a ```text fence"
+  idle: "todo: #{id} '{title}' instruction revised. No Job is running, so the next Job starts with the new instruction"
+  running: "todo: #{id} '{title}' instruction revised. Only what changed is handed to the running Job {job}, before its report"
+
+# An approval that carried the owner's word.
+approve:
+  noted: " (note written with it)"
+# A wind-down: its resume condition said as a reason, waiting on the item {id} to finish or on {what} going
+# live; the note the run it interrupts is handed, opening with the wind-down {mark}, the {why} the owner gave,
+# how it {resume}s and the {verb} with the item {id} it closes with; and the mark the note a run leaves where it
+# stopped opens with.
+wind_down:
+  finished: "Resume when #{id} finishes"
+  deployed: "Resume after {what} is deployed"
+  resume_plain: "Resumes when {chat_agent_subject} takes it off hold"
+  resume_condition: "Resumes when the condition ({condition}) is met and {chat_agent_subject} takes it off hold"
+  note: |-
+    {mark} By {owner}'s instruction, this item stops here ({why}). {resume}.
+    Finish only the stage under way, and start no new stage, lesson or unit. Leave no unit or process this run started.
+    Commit what is to be committed and close the way the repository does,
+    but don't close the item as done: {verb} --stop-here {id} --report '<what is finished and where to pick up>'
+    --done refuses this item.
+  stopped_here_mark: "[Stopping point]"
+  # A held or stopped reason written in English by a person, which the screens show as written.
+  reason_korean: "Please write the reason in Korean. The reason for putting on hold shows on the console and in lists exactly as written."
+# The whole usage `bmo todo --help` prints, every verb with its flags.
+usage: |-
+  usage: bmo todo --add --title '<title>' --what '<what the work is>' --do '<what has to be done>' --conclusion '<conclusion>' --instruction <messageId>[,<messageId>] [--reply <messageId>[,<messageId>]] [--reply-text '<text>'] [--chat <chatId>] [--requester '<name>'] [--fasttrack <tool>] [--model <model>] [--status '<text>'] [--cowork] [--impact '<grounds JSON>']
+         bmo todo --add --title '<title>' --judgement '<the chat agent's judgement>' --from-todo <id>:<strand>[,<id>:<strand>] --raised-by <id> [--chat <chatId>] [--model <model>] [--status '<text>'] [--cowork] [--impact '<grounds JSON>']
+         bmo todo --list [--all] [--pending] [--held] [--merged] [--chat <chatId>]
+         bmo todo --show <id|title>
+         bmo todo --set-model <id> --model <auto|model>
+         bmo todo --notes <id|title>
+         bmo todo --append <id|title> [--text '<words to add>'] [--by '<who>']   (stdin without --text)
+         bmo todo --unappend <id|title> --note-id <note number> [--by '<who>']   (--notes prints the note numbers)
+         bmo todo --brief <id|title> --change '<what changed, in English>'   (the whole new brief in English on stdin; chat the chat agent's alone, and a running job is handed only the change)
+         bmo todo --edit <id|title> [--title '<title>'] [--what '<...>'] [--do '<...>'] [--conclusion '<...>'] [--judgement '<...>'] [--intent '<work order purpose>'] [--order '<work order instruction>']   (only an item not finished and with no job running; the conversation's originals cannot be changed)
+         bmo todo --done <id|title> [--report '<how the work was done>'] [--unfinished '<what was left as open issues>'] | --reopen <id|title>
+         bmo todo --resolve <id> --why '<what makes it no longer an open issue>'
+         bmo todo --mark <id|title> --status '<text>'
+         bmo todo --approve <id> [--note '<the owner's further word or question>'] | --unapprove <id>
+         bmo todo --hold <id|title> [--why '<why it waits>'] [--after-deploy <item id|commit>] | --unhold <id|title>   (--hold lets the running turn finish; --unhold is never a job's)
+         bmo todo --stop <id|title> --why '<reason>'   (stops the running job and its co-workers now and holds the item as stopped; finished stages stay)
+         bmo todo --wind-down <id|title> --why '<reason>' [--after <item id> | --after-deploy <item id|commit>]   (stop at the end of the current stage: held as awaiting resume and told to the running job at once)
+                  (a condition releases nothing: when the --after item finishes, or the item's waiting commits or the commit go live, the chat agent is told and takes the hold off)
+         bmo todo --stop-here <id|title> [--why '<reason>' [--after <item id> | --after-deploy <item id|commit>]] --report '<what is finished and where the next run picks up>'   (leaves where a wound-down or stopped item's job stopped; the item stays open and held. A job told in words to stop puts its own item at awaiting resume with --why)
+         bmo todo --merge <id>[,<id>] --into <id> | --unmerge <id|title>   (the merged items are finished when the item they merged into is)
+         bmo todo --worker <id|title> <worker name | ->
+         bmo todo --repairs <id|title> <id of the item it repairs | ->   (this item was filed to repair the other's failure; repairs chain in one line, up to 3)
+         bmo todo --cowork <id|title> <on|off>
+         bmo todo --impact <id|title> '<grounds JSON>'   (the parts of the code the change reaches and the outward contract that changes on each; docs/todo.md)
+         bmo todo --impact-check <id|title> '<grounds JSON>'   (a job's own grounds, weighed again before it changes anything; the chat agent is told where they come to another verdict than the co-work setting)
+         bmo todo --priority <id|title> <n>
+         bmo todo --drop <id>
+         bmo todo --pause | --resume   (the whole queue's automatic progress; the owner's pause only)
+         bmo todo --release-deploy-hold   (releases by hand the wait a deployment put on while a job ends; the deployment backs off without putting anything live)

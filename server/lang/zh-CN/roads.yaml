@@ -1,0 +1,61 @@
+# Translated from server/lang/ko/roads.yaml; its comments say what each value is.
+service:
+  mark: "[机器人通知]"
+  stopping:
+    deploying: "因更新{items}，服务将暂时停止。"
+    items: "（{items}）"
+    restarting: "服务将暂时重启。"
+not_standing: "机器尚未启动"
+kakao:
+  refusals:
+    unconfigured: "无法发送到 KakaoTalk：{why}。"
+    unknown_room: "KakaoTalk 中没有房间 {chat}。"
+    voice_unconfigured: "无法在 KakaoTalk 用该账户发送：{why}。"
+    pc_unreachable: "无法发送到 KakaoTalk PC：{why}。"
+    pc_failed: "未能发送到 KakaoTalk PC：{why}"
+discord:
+  refusals:
+    unconfigured: "无法发送到 Discord：{why}。"
+    unknown_room: "Discord 中没有房间 {chat}。"
+    voice_unconfigured: "无法在 Discord 用该账户发送：{why}。"
+    message_missing: "在 Discord 中找不到消息 {message}。"
+    sticker_missing: "Discord 中没有 {emoji} 贴纸。"
+teams:
+  refusals:
+    owner_text_only: "在 Teams 中，{owner} 的账户只能发送文字。"
+    owner_unconfigured: "无法在 Teams 用 {owner} 的账户发送：{why}。"
+    owner_unknown_room: "Teams 中没有房间 {chat}。"
+telegram:
+  refusals:
+    unconfigured: "无法发送到 Telegram：{why}。"
+    mode_down: "{road} 的 {mode} 通道当前未运行：{why}。"
+    mode_missing: "此线路没有该通道"
+  kinds:
+    forwarded: "[转发：{from}] "
+    forwarded_bare: "[转发] "
+    forwarded_chat: "聊天"
+    photo: "[图片]{caption}"
+    location: "[位置] 纬度 {latitude}，经度 {longitude}{live} https://maps.google.com/?q={latitude},{longitude}"
+    location_live: "，实时共享"
+    venue: "[地点] {title}，{address} https://maps.google.com/?q={latitude},{longitude}"
+    contact: "[联系人] {name} {phone}"
+    poll: "[投票] {question}（{options}）"
+    sticker: "[贴纸{emoji}{set}]"
+    sticker_set: "（{set}）"
+    video: "[视频{duration}]{caption}"
+    video_note: "[视频消息{duration}]"
+    voice: "[语音{duration}]{caption}"
+    audio: "[音频{name}{duration}]{caption}"
+    document: "[文件{name}]{caption}"
+    story: "[快拍]"
+    paid_media: "[付费媒体]{caption}"
+    giveaway: "[抽奖]"
+    joined: "[加入] {members}"
+    left: "[退出] {member}"
+    pinned: "[置顶] {text}"
+    pinned_message: "消息 {id}"
+    renamed: "[房间改名] {title}"
+    photo_changed: "[房间头像更改]"
+    photo_deleted: "[房间头像删除]"
+    call_started: "[视频通话开始]"
+    call_ended: "[视频通话结束{duration}]"

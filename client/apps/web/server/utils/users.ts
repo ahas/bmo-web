@@ -25,9 +25,9 @@ export async function checkPassword(user: WebUser | null, password: string): Pro
 }
 
 // The tables whose rows belong to one account by its name, which move with it when it is renamed:
-// the devices it rings, the tabs each screen stands with, how far it has read each room, its theme and
-// its palette. A row left under the old name would belong to nobody.
-const ACCOUNT_TABLES = ["web_push_devices", "web_tab_states", "web_room_reads", "web_themes", "web_palettes"] as const;
+// the devices it rings, the tabs each screen stands with, how far it has read each room, its theme, its
+// palette and its language. A row left under the old name would belong to nobody.
+const ACCOUNT_TABLES = ["web_push_devices", "web_tab_states", "web_room_reads", "web_themes", "web_palettes", "web_languages"] as const;
 
 export async function renameWebUser(from: string, to: string): Promise<void> {
   const sql = useWebSql();

@@ -1,0 +1,18 @@
+# Translated from server/lang/ko/nodes.yaml; its comments say what each value is.
+clock: "{month}/{day}/{year}, {hour}:{minute}:{second} {half}"
+morning: "AM"
+afternoon: "PM"
+pane:
+  kind: "Connection    {kind}"
+  address: "Address       {address}"
+  credential: "Credential at {credential}"
+  state: "State         {state}{detail}"
+  detail: " ({detail})"
+  checked: "Checked       {clock}"
+  connected: "Last connected {clock}"
+  never: "never"
+  own_ssh_setup: "the account's SSH setup"
+  hub_not_listed: "hub not in the list"
+  ssh_enter: "Press Enter to connect."
+  jake_only: "A Jake node has no interactive shell, so only its state is shown."
+  gone: "Node {name} is no longer in the list, so this pane closes."

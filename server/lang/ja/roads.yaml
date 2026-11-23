@@ -1,0 +1,61 @@
+# Translated from server/lang/ko/roads.yaml; its comments say what each value is.
+service:
+  mark: "[ボット通知]"
+  stopping:
+    deploying: "アップデート{items}のため、サービスが一時停止します。"
+    items: " ({items}) "
+    restarting: "サービスが一時的に再起動します。"
+not_standing: "マシンがまだ起動していません"
+kakao:
+  refusals:
+    unconfigured: "カカオトークに送信できません: {why}。"
+    unknown_room: "カカオトークにルーム {chat} がありません。"
+    voice_unconfigured: "カカオトークでそのアカウントから送信できません: {why}。"
+    pc_unreachable: "カカオトーク PC に送信できません: {why}。"
+    pc_failed: "カカオトーク PC に送信できませんでした: {why}"
+discord:
+  refusals:
+    unconfigured: "Discord に送信できません: {why}。"
+    unknown_room: "Discord にルーム {chat} がありません。"
+    voice_unconfigured: "Discord でそのアカウントから送信できません: {why}。"
+    message_missing: "Discord でメッセージ {message} が見つかりません。"
+    sticker_missing: "Discord に {emoji} スタンプがありません。"
+teams:
+  refusals:
+    owner_text_only: "Teams では {owner} のアカウントからはテキストのみ送信できます。"
+    owner_unconfigured: "Teams で {owner} のアカウントから送信できません: {why}。"
+    owner_unknown_room: "Teams にルーム {chat} がありません。"
+telegram:
+  refusals:
+    unconfigured: "Telegram に送信できません: {why}。"
+    mode_down: "{road} の {mode} 経路は現在動いていません: {why}。"
+    mode_missing: "このロードにない経路です"
+  kinds:
+    forwarded: "[転送: {from}] "
+    forwarded_bare: "[転送] "
+    forwarded_chat: "チャット"
+    photo: "[写真]{caption}"
+    location: "[位置情報] 緯度 {latitude}、経度 {longitude}{live} https://maps.google.com/?q={latitude},{longitude}"
+    location_live: "、リアルタイム共有"
+    venue: "[場所] {title}、{address} https://maps.google.com/?q={latitude},{longitude}"
+    contact: "[連絡先] {name} {phone}"
+    poll: "[投票] {question} ({options})"
+    sticker: "[スタンプ{emoji}{set}]"
+    sticker_set: " ({set})"
+    video: "[動画{duration}]{caption}"
+    video_note: "[ビデオメッセージ{duration}]"
+    voice: "[音声{duration}]{caption}"
+    audio: "[オーディオ{name}{duration}]{caption}"
+    document: "[ファイル{name}]{caption}"
+    story: "[ストーリー]"
+    paid_media: "[有料メディア]{caption}"
+    giveaway: "[プレゼント抽選]"
+    joined: "[参加] {members}"
+    left: "[退出] {member}"
+    pinned: "[ピン留め] {text}"
+    pinned_message: "メッセージ {id}"
+    renamed: "[ルーム名変更] {title}"
+    photo_changed: "[ルーム写真変更]"
+    photo_deleted: "[ルーム写真削除]"
+    call_started: "[ビデオ通話開始]"
+    call_ended: "[ビデオ通話終了{duration}]"

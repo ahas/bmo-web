@@ -1,0 +1,2 @@
+# Translated from server/lang/ko/job-titles.yaml; its comments say what each value is.
+both: "{rank}，{role}"

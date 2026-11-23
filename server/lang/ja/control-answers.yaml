@@ -1,0 +1,83 @@
+# Translation of server/lang/ko/control-answers.yaml; that file says what each line is for.
+request:
+  not_json: "リクエスト本文が JSON ではありません。"
+  action: "要求された操作が正しくありません。"
+
+fallback:
+  no_laya: "Laya に問い合わせられないため、このゲートは既定値でのみ通します。BMO_LAYA_URL を確認してください。"
+  no_provider: "この作業キーに応答できる有効なプロバイダーがありません。プロバイダーのインストール・キー・モデル設定を確認してください。"
+  models_unread: "{provider} のモデル一覧を取得できませんでした: {why}"
+  unknown_key: "不明な fallback key です: {key}"
+  models_retired: "個別のモデル設定は終了しました。モデル等級の設定を使ってください。"
+  order: "順序には {providers} を一度ずつ含める必要があります。"
+  provider_switch: "プロバイダー名とオン・オフの値が必要です。"
+  run_mode: "実行モードは自動またはプロバイダー 1 つである必要があります。"
+  tier_provider: "プロバイダーを選択してください。"
+
+accounts:
+  switch: "アカウントとオン・オフの値が必要です。"
+  run_on: "実行するアカウントが必要です。"
+  credential_kind: "認証情報は設定ディレクトリまたはトークンファイルです。"
+  credential_path: "認証情報ファイルのパスを入力してください。"
+  name_needed: "アカウント名を入力してください。"
+  which_to_change: "どのアカウントを変更するか指定してください。"
+  which_to_remove: "どのアカウントを削除するか指定してください。"
+  choice: "アカウントは自動またはアカウント 1 つである必要があります。"
+  unknown: "{id} というアカウントはありません。"
+  off: "{name} はオフになっています。"
+  no_id: "アカウント ID を作成できません。"
+  id_shape: "ID は英小文字・数字で始まる 2〜32 文字で、使える記号はドット・アンダースコア・ハイフンだけです。"
+  id_taken: "{id} というアカウントはすでに存在します。"
+  name_empty: "アカウント名が空です。"
+  name_long: "アカウント名は {most} 文字までです。"
+  name_taken: "\"{name}\" というアカウントはすでに存在します。"
+  path_empty: "認証情報のパスが空です。"
+  path_relative: "パスは絶対パスである必要があります。"
+  path_missing: "そのパスは存在しません。"
+  path_not_directory: "そのパスはディレクトリではありません。"
+  path_not_file: "トークンのパスはファイルである必要があります。"
+  order: "順序には登録済みのアカウントを一度ずつ含める必要があります。"
+  last_off: "すべてのアカウントをオフにすることはできません。少なくとも 1 つはオンにしてください。"
+  last_gone: "最後のアカウントは削除できません。"
+  chosen_off: "オフのアカウントは選べません。先にオンにしてください。"
+
+gates:
+  not_gate: "ゲートではありません: {key}"
+  own_llm: "ゲートの思考と出力サイズは、モデル等級の自前 LLM 設定で決めます。"
+  nothing: "変更する値がありません: タイムアウト、Laya モード、τ、使用、Laya 代替 LLM のいずれかを送ってください。"
+  fallback: "Laya 代替 LLM はプロバイダー名または {fallback} である必要があります。"
+  switch: "使用はオン (true) またはオフ (false) である必要があります。"
+  always_on: "このゲートはオフにできません: {key}"
+  timeout: "タイムアウトは {least} 秒から {most} 秒の間である必要があります。"
+  mode: "Laya モードは {modes} のいずれかである必要があります。"
+  tau: "τ は 0 から 1 の間の数値である必要があります。"
+  no_question: "このゲートには Laya の質問がないため、off 以外にはできません: {key}"
+  no_safety: "このゲートには安全判定がないため、非対称モードにはできません: {key}"
+  no_checkpoint: "Laya サーバーにこのゲートのチェックポイントがないため、{mode} モードでオンにしませんでした。最後の状態確認はこのゲートに触れていません: {key}"
+  needs_tau: "{mode} モードには τ が必要です。"
+workers:
+  back_here_path: "このマシンに戻すときは、このマシンのパスを入力してください。"
+  sampling:
+    no_agent: "エージェントが見つかりません: {agent}"
+    not_worker: "{label} はワーカーではないため、個別のサンプリングを持ちません。"
+    follows_base: "{label} のサンプリングは基本ワーカーの設定に従います。"
+    shape: "サンプリングは名前と値の組である必要があります。"
+    unknown: "サンプリングに {name} という設定はありません。"
+
+laya:
+
+  modes:
+    off: "オフ"
+    shadow: "シャドー"
+    filter: "フィルター"
+    asymmetric: "非対称"
+
+  states:
+    up: "応答あり"
+    off: "アドレスなし"
+    unknown: "未確認"
+    unreachable: "到達不可"
+    timeout: "応答なし"
+    refused: "拒否"
+    bad-answer: "不正な応答"
+    too-large: "大きすぎる"

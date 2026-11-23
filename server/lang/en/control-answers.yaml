@@ -1,0 +1,83 @@
+# Translation of server/lang/ko/control-answers.yaml; that file says what each line is for.
+request:
+  not_json: "The request body isn't JSON."
+  action: "The requested action isn't valid."
+
+fallback:
+  no_laya: "Can't reach Laya, so this gate passes only by its default. Check BMO_LAYA_URL."
+  no_provider: "No enabled provider can answer this work key. Check the providers' installation, keys and model settings."
+  models_unread: "Couldn't get the {provider} model list: {why}"
+  unknown_key: "Unknown fallback key: {key}"
+  models_retired: "Per-model settings are retired. Use the model tier settings."
+  order: "The order must list {providers} once each."
+  provider_switch: "A provider name and an on/off value are required."
+  run_mode: "The run mode must be auto or a single provider."
+  tier_provider: "Choose a provider."
+
+accounts:
+  switch: "An account and an on/off value are required."
+  run_on: "An account to run on is required."
+  credential_kind: "A credential is a config directory or a token file."
+  credential_path: "Enter the credential file path."
+  name_needed: "Enter an account name."
+  which_to_change: "Say which account to change."
+  which_to_remove: "Say which account to delete."
+  choice: "The account must be auto or a single account."
+  unknown: "There is no account named {id}."
+  off: "{name} is off."
+  no_id: "Couldn't make an account ID."
+  id_shape: "An ID must be 2–32 characters starting with a lowercase letter or digit, using only dots, underscores and hyphens."
+  id_taken: "An account named {id} already exists."
+  name_empty: "The account name is empty."
+  name_long: "An account name can be up to {most} characters."
+  name_taken: "An account named \"{name}\" already exists."
+  path_empty: "The credential path is empty."
+  path_relative: "The path must be absolute."
+  path_missing: "That path doesn't exist."
+  path_not_directory: "That path isn't a directory."
+  path_not_file: "The token path must be a file."
+  order: "The order must list every registered account once."
+  last_off: "You can't turn off every account. Keep at least one on."
+  last_gone: "You can't delete the last account."
+  chosen_off: "You can't choose an account that's off. Turn it on first."
+
+gates:
+  not_gate: "Not a gate: {key}"
+  own_llm: "A gate's thinking and output size are set in the model tier's own LLM settings."
+  nothing: "No value to change: send one of timeout, Laya mode, τ, enabled, or Laya fallback LLM."
+  fallback: "The Laya fallback LLM must be a provider name or {fallback}."
+  switch: "Enabled must be on (true) or off (false)."
+  always_on: "This gate can't be turned off: {key}"
+  timeout: "The timeout must be between {least} and {most} seconds."
+  mode: "The Laya mode must be one of {modes}."
+  tau: "τ must be a number between 0 and 1."
+  no_question: "This gate has no Laya question, so it can only be off: {key}"
+  no_safety: "This gate has no safety verdict, so it can't be in asymmetric mode: {key}"
+  no_checkpoint: "The Laya server has no checkpoint for this gate, so it wasn't turned on in {mode} mode. The last status check doesn't mention this gate: {key}"
+  needs_tau: "{mode} mode needs τ."
+workers:
+  back_here_path: "To bring it back to this machine, enter this machine's path."
+  sampling:
+    no_agent: "Agent not found: {agent}"
+    not_worker: "{label} isn't a worker, so it has no sampling of its own."
+    follows_base: "{label}'s sampling follows the base worker's settings."
+    shape: "Sampling must be pairs of names and values."
+    unknown: "Sampling has no {name} setting."
+
+laya:
+
+  modes:
+    off: "Off"
+    shadow: "Shadow"
+    filter: "Filter"
+    asymmetric: "Asymmetric"
+
+  states:
+    up: "Responding"
+    off: "No address"
+    unknown: "Not checked"
+    unreachable: "Unreachable"
+    timeout: "No response"
+    refused: "Refused"
+    bad-answer: "Bad answer"
+    too-large: "Too large"

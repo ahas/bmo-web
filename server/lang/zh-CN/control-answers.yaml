@@ -1,0 +1,83 @@
+# Translation of server/lang/ko/control-answers.yaml; that file says what each line is for.
+request:
+  not_json: "请求正文不是 JSON。"
+  action: "请求的操作无效。"
+
+fallback:
+  no_laya: "无法询问 Laya，此关卡只按默认值放行。请检查 BMO_LAYA_URL。"
+  no_provider: "没有已启用的提供商能响应此工作键。请检查提供商的安装、密钥和模型设置。"
+  models_unread: "未能获取 {provider} 的模型列表: {why}"
+  unknown_key: "未知的 fallback key: {key}"
+  models_retired: "单独的模型设置已停用。请使用模型等级设置。"
+  order: "顺序必须包含 {providers} 各一次。"
+  provider_switch: "需要提供商名称和开关值。"
+  run_mode: "运行模式必须是自动或单个提供商。"
+  tier_provider: "请选择提供商。"
+
+accounts:
+  switch: "需要账号和开关值。"
+  run_on: "需要用于运行的账号。"
+  credential_kind: "凭据是配置目录或令牌文件。"
+  credential_path: "请输入凭据文件路径。"
+  name_needed: "请填写账号名称。"
+  which_to_change: "需要指定修改哪个账号。"
+  which_to_remove: "需要指定删除哪个账号。"
+  choice: "账号必须是自动或单个账号。"
+  unknown: "没有名为 {id} 的账号。"
+  off: "{name} 已关闭。"
+  no_id: "无法生成账号标识符。"
+  id_shape: "标识符须为 2–32 个字符，以小写英文字母或数字开头，只能使用点、下划线和连字符。"
+  id_taken: "已有名为 {id} 的账号。"
+  name_empty: "账号名称为空。"
+  name_long: "账号名称最多 {most} 个字符。"
+  name_taken: "已有名为 \"{name}\" 的账号。"
+  path_empty: "凭据路径为空。"
+  path_relative: "路径必须是绝对路径。"
+  path_missing: "该路径不存在。"
+  path_not_directory: "该路径不是目录。"
+  path_not_file: "令牌路径必须是文件。"
+  order: "顺序必须包含每个已注册账号各一次。"
+  last_off: "不能关闭所有账号。至少要保留一个开启。"
+  last_gone: "不能删除最后一个账号。"
+  chosen_off: "不能选择已关闭的账号。请先开启。"
+
+gates:
+  not_gate: "不是关卡: {key}"
+  own_llm: "关卡的思考和输出大小在模型等级的自有 LLM 设置中设定。"
+  nothing: "没有要更改的值: 请发送超时、Laya 模式、τ、启用、Laya 备用 LLM 之一。"
+  fallback: "Laya 备用 LLM 必须是提供商名称或 {fallback}。"
+  switch: "启用必须是开 (true) 或关 (false)。"
+  always_on: "此关卡不能关闭: {key}"
+  timeout: "超时必须在 {least} 秒到 {most} 秒之间。"
+  mode: "Laya 模式必须是 {modes} 之一。"
+  tau: "τ 必须是 0 到 1 之间的数字。"
+  no_question: "此关卡没有 Laya 问题，只能设为 off: {key}"
+  no_safety: "此关卡没有安全判定，不能设为非对称模式: {key}"
+  no_checkpoint: "Laya 服务器上没有此关卡的检查点，因此未以 {mode} 模式开启。最近一次状态检查未提到此关卡: {key}"
+  needs_tau: "{mode} 模式需要 τ。"
+workers:
+  back_here_path: "要回到本机，请输入本机的路径。"
+  sampling:
+    no_agent: "找不到智能体: {agent}"
+    not_worker: "{label} 不是工作器，因此没有单独的采样设置。"
+    follows_base: "{label} 的采样沿用基础工作器的设置。"
+    shape: "采样必须是名称与值的配对。"
+    unknown: "采样中没有 {name} 设置。"
+
+laya:
+
+  modes:
+    off: "关闭"
+    shadow: "影子"
+    filter: "过滤"
+    asymmetric: "非对称"
+
+  states:
+    up: "有响应"
+    off: "无地址"
+    unknown: "未检查"
+    unreachable: "无法连接"
+    timeout: "无响应"
+    refused: "被拒绝"
+    bad-answer: "错误回答"
+    too-large: "过大"

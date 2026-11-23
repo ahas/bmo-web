@@ -1,0 +1,218 @@
+# The answers and refusals of the TODO verbs (docs/todo.md) as a person or the chat agent reads them; run inside
+# a job, the same verbs answer in the worker's English, written beside where each line is said. Each
+# `{name}` is filled in with what it names: {id} and {title} an item's, {selector} what was named.
+
+# A resume condition put with a hold that cannot stand.
+condition:
+  both: "--after 和 --after-deploy 不能同时使用。暂缓的恢复条件只有一个"
+  after: "--after 必须是另一个尚未结束的条目。#{id}是{why}"
+  after_itself: "本条目自身"
+  after_finished: "已结束的条目"
+  no_commits: "#{id}没有等待部署的提交。请先关闭该工作让提交进入部署等待，或直接指定提交（--after-deploy <提交>）"
+  not_commit: "--after-deploy {selector}: 不是本仓库的提交"
+  not_on_main: "--after-deploy {selector}: 该提交不在 main 上，部署也不会上线"
+  live: "--after-deploy {selector}: 该提交已经上线"
+
+# The words added to an item: none, those taken back ({count} of them, each by its {note} number, its
+# {author}, who took it back {by} and when {at}), and one taken back now by its {note} number.
+notes:
+  none: "todo: #{id} '{title}' 没有补充留言"
+  withdrawn: "已撤回的留言 {count} 条:"
+  withdrawn_note: "- 留言 {note}（{author}补充，{by}于 {at} 撤回）"
+  removed: "todo: #{id} '{title}' 已撤回留言 {note}。不会放入任何 Job"
+  removed_delivered: "todo: #{id} '{title}' 已撤回留言 {note}。包含这条留言的{chat_agent}修改已传给运行中的 Job，因此该 Job 中仍保留"
+
+# An item rewritten: the parts named by what was {changed}.
+edit:
+  nothing: "--edit 至少需要一项要修改的内容: --title、--what、--do、--conclusion、--judgement、--intent、--order 之一。"
+  title: "标题"
+  intent: "工作指示目的"
+  order: "工作指示内容"
+  done: "todo: #{id} '{title}' 已改写: {changed}"
+
+# The queue's switches: auto-progress paused or resumed, and the deployment's {hold} standing or let go.
+queue:
+  paused: "todo: 自动推进已暂停。不再告知{chat_agent}队列在等待。运行中的 Job 和阶段会进行到底。"
+  resumed: "todo: 自动推进已恢复。会告知{chat_agent}队列的状况。"
+  hold_stands: "todo: 部署等待仍然有效: {hold}。恢复不会解除它，解除需用 --release-deploy-hold。"
+  no_hold: "todo: 当前没有部署等待。"
+  hold_released: "todo: 已解除部署等待: {hold}。部署不上线任何内容就退出，提交继续等待。"
+
+# An item set aside, stopped, wound down or left where its run stopped, and a hold let go: with its
+# {reason}, the {runs} asked to stop, the {job} told to stop at its stage, the {note} left and the {held}
+# word it stays under.
+hold:
+  after: "--hold 不接受 --after。等待条目结束的暂缓是 --wind-down <id> --why '<理由>' --after <条目 id>"
+  held: "todo: #{id} '{title}' 已暂缓。队列不再拾取{reason}"
+  stop_why: "todo: --stop 需要 --why '<理由>'"
+  stopped: "todo: #{id} '{title}' 已停止。已请求 {runs} 个运行停止，条目以停止状态暂缓（{reason}）。解除暂缓后会从中断处继续"
+  wind_down_why: "--wind-down 需要 --why '<理由>'"
+  wound_down: "todo: #{id} '{title}' 等待恢复。{told}。理由: {reason}"
+  wound_down_idle: "没有运行中的 Job，只设置了暂缓"
+  wound_down_running: "通知运行中的 Job {job}完成当前阶段后停止"
+  stop_here_report: "--stop-here 需要 --report '<已完成的内容·接续位置>'"
+  stop_here_closed: "#{id} '{title}' 已结束或已合并到其他条目，无法停留"
+  stopped_here: "todo: #{id} '{title}' 已留下停止点（留言 {note}）。不以完成关闭，保持为{held}{reason}"
+  job_unhold: "Job 不能解除暂缓"
+  unheld: "todo: #{id} '{title}' 已解除暂缓。回到优先级 {priority} 的顺序"
+
+# Items merged into the item {into} and taken out again, with its {priority}; {target} is the merge target
+# named with its subject particle.
+merge:
+  usage: "--merge 需要要合并的条目编号和 --into <编号>。编号用逗号分隔。"
+  merged: "todo: {ids} → #{into} '{title}' 已合并。队列不再拾取，{target}完成时一并完成"
+  unmerged: "todo: #{id} '{title}' 已取消合并。回到优先级 {priority} 的原条目"
+
+# An item closed or opened again: what the closing wrote, the items finished with it ({ids}), a the chat agent's share
+# strand handed to the chat agent as the memory {memory} with its {head}, an item waiting on it whose condition the
+# closing met, and on opening again the merge it leaves ({into}), the items merged again and the notes it
+# came out of opened again ({ids}).
+close:
+  resolve_why: "--resolve 需要用 --why 说明为何不再是待决事项。"
+  report: "报告"
+  unfinished: "待决事项"
+  written: "（已填写{parts}）"
+  written_joint: "·"
+  carried: "（已合并的条目一并完成: {ids}）"
+  handed: "todo: 已将{chat_agent}负责的待决事项交给{chat_agent}。记忆 #{memory}: {head}"
+  resumable: "todo: #{id} '{title}' 的恢复条件（#{after} 结束）已满足，已通知{chat_agent}。暂缓由{chat_agent_subject}解除"
+  reopened: "等待"
+  reopened_unmerged: "（已从合并到 #{into} 中移出）"
+  reopened_merged: "（已合并的条目重新合并: {ids}）"
+  reopened_sources: "（来源待决事项重新打开: {ids}）"
+  # The section a closing puts on the report over what the live-Claude guard kept, and its line for one
+  # opening: its {at} number, what it was for {purpose} and how many {runs} it let through.
+  live_claude_heading: "实测记录（守卫留下的）"
+  # The resolution a 미결 gets once every row it was broken into is finished, naming those {rows}.
+  settled: "由这条待决事项建立的行已全部完成，因此已解决: {rows}。"
+  # The word an item is named by in an instruction that names it by its number.
+  item_word: "条目"
+  # The report an item merged into the {target} is closed with when that item is.
+  merged_report: "已合并到 #{target}并一并完成。处理方式见 #{target}的完成报告。"
+  live_claude_line: "{at}. {purpose}: 真实 Claude 运行 {runs} 次"
+
+# The item's settings: its state line, its {worker} (and the base it is a {support} worker of), the
+# {target} it repairs as the {round} of {rounds} repairs of the item {root}, its co-work, its impact grounds
+# (read or refused for {why}, the nodes whose outward contract changes counted as {contracts}, a new home
+# marked, the {verdict} they come to beside the {cowork} setting the item stands at; a job's own grounds
+# kept quietly, or kept and told to the chat agent for the {reason} that they differ or that the chat agent filed none), its
+# priority and its job {model}.
+settings:
+  mark_status: "--mark 需要用 --status 给出要写入的一行状态。"
+  worker_usage: "--worker 在条目后接一个工作器名称。要取消分配请给 -。"
+  worker_support: "{worker}是{base}的增援工作器。条目请分配给{base}，在哪个检出中运行由运行决定。"
+  worker_cleared: "todo: #{id} '{title}' 已取消工作器分配。由 Built-in 工作器负责"
+  worker_set: "todo: #{id} '{title}' 由工作器 {worker}负责"
+  repairs_with_add: "--repairs 不能与登记同时使用。请先用 --add 登记，再用显示的编号给出 --repairs <修复条目编号> <对象编号>。"
+  repairs_usage: "--repairs 在条目后接一个修复对象的编号。要取消关联请给 -。"
+  repairs_cleared: "todo: #{id} '{title}' 已取消与修复对象的关联"
+  repairs_set: "todo: #{id} '{title}' 修复 #{target}（#{root}的第 {round}/{rounds} 次修复）"
+  cowork_usage: "--cowork 在条目后接 on 或 off。"
+  cowork_on: "todo: #{id} '{title}' 以协作方式运行"
+  cowork_off: "todo: #{id} '{title}' 已关闭协作。以单个会话运行"
+  impact_usage: "影响依据以一个 JSON 接收（{why}）: {\"nodes\":[{\"id\":\"<图节点 id>\",\"contract\":\"<变更的对外契约>\" 或 null}],\"new_home\":<需要确定新位置时为 true>}"
+  impact_set: "todo: #{id} '{title}' 已写入影响依据。对外契约变更的节点 {contracts} 个{new_home}，判定为{verdict}，协作设置为{cowork}"
+  impact_new_home: "，需要新位置"
+  impact_single: "单个 Job"
+  impact_cowork: "协作"
+  impact_on: "开"
+  impact_off: "关"
+  impact_check_kept: "todo: #{id} 已写入 Job 重新梳理的影响依据。判定与协作设置一致，不通知{chat_agent}"
+  impact_check_told: "todo: #{id} 已写入 Job 重新梳理的影响依据并通知{chat_agent}（{reason}）。协作设置由{chat_agent_subject}更改，此 Job 按开始时的方式继续"
+  impact_check_differs: "判定为{verdict}，但协作设置为{cowork}"
+  impact_check_unfiled: "条目中没有{chat_agent}的影响依据"
+  priority_usage: "--priority 在条目后接一个数字。"
+  model_needed: "需要 --model auto 或明确的模型。"
+  model_set: "todo: #{id} 模型 {model}"
+  model_wrong: "不是有效的工作模型。"
+  no_verb: "无法识别动词。此脚本接受上面的一个动词。"
+
+# Filing a row: a raised row short of its title or its room, and a filing short of the {missing} parts named,
+# the reply named by its {reply_part}; a row filed as {id} with its {title}, its {cowork} mark and the head of
+# the message that asked for it {clip}; a row raised on the chat agent's judgement out of the work of the item {item},
+# out of the strands of {sources}, each by its {id} and {strand}, with its {cowork} mark and the notes it
+# opened again {ids}; and a title or summary that uses a term set aside, the {terms} named.
+add:
+  judgement_needs: "用 --judgement 建立的条目需要 --title，并且 --chat 或本机设置必须给出房间号。"
+  missing: "--add 缺少{missing}或为空。条目由这些部分组成，任一部分为空都不会写入行。"
+  reply_part: "--reply 或 --reply-text"
+  filed: "todo: added #{id} '{title}': 待审批{cowork}，批准后进入队列（{clip}）"
+  raised: "todo: added #{id} '{title}': 依{chat_agent}的判断提出（条目 #{item}的工作{sources}），等待{chat_agent}批准{cowork}{reopened}"
+  raised_sources: "，来源待决事项 {sources}"
+  raised_source: "#{id}的第 {strand} 条"
+  raised_reopened: "（来源待决事项重新打开: {ids}）"
+  cowork: "，协作"
+  wording: "标题和摘要中有约定不使用的词，因此没有写入任何内容: {terms}（WORDING.md）。请改写后重新运行。"
+
+# Words added to an item: none given; told to the chat agent, who folds them into the brief; the chat agent's own, kept as
+# the record its --brief folds in; and the account of the fact the chat agent is told, of the words {by} added to the item
+# {id} {title}, with no job at work on it or with the running {job}.
+append:
+  empty: "--append 会在条目上补充文字，因此需要内容: --text '<文字>'，或通过 stdin 提供"
+  told: "todo: #{id} '{title}' 已补充留言。已通知{chat_agent}，由{chat_agent_subject}整理进指示"
+  own: "todo: #{id} '{title}' 已补充留言。作为记录保留。请用 --brief 整理进指示并写明变更"
+  fact_idle: "#{id} {title}补充了{by}的留言。该条目没有运行中的 Job。"
+  fact_running: "#{id} {title}补充了{by}的留言。Job {job}正在处理该条目。"
+
+# the chat agent's rewrite of an item's brief: refused to anyone but the chat agent, with no change named, with no brief on
+# stdin and with either not in English; written with no job running, or with the change handed to the running {job}.
+brief:
+  not_bmo: "--brief 只由{chat_agent}编写。要补充的内容请用 --append 写下，由{chat_agent_subject}整理进指示"
+  no_change: "--brief 还需用英文说明变更了什么: --change '<what changed>'"
+  empty: "--brief 通过 stdin 接收新指示全文"
+  not_english: "指示和变更用工作器阅读的英文编写。{owner}的原话原样放在 ```text 围栏内"
+  idle: "todo: #{id} '{title}' 已修改指示。没有运行中的 Job，下一个 Job 将按新指示开始"
+  running: "todo: #{id} '{title}' 已修改指示。只有变更部分会在报告之前传给运行中的 Job {job}"
+
+# An approval that carried the owner's word.
+approve:
+  noted: "（意见一并记录）"
+# A wind-down: its resume condition said as a reason, waiting on the item {id} to finish or on {what} going
+# live; the note the run it interrupts is handed, opening with the wind-down {mark}, the {why} the owner gave,
+# how it {resume}s and the {verb} with the item {id} it closes with; and the mark the note a run leaves where it
+# stopped opens with.
+wind_down:
+  finished: "#{id} 结束后恢复"
+  deployed: "{what} 部署后恢复"
+  resume_plain: "在{chat_agent_subject}解除暂缓时恢复"
+  resume_condition: "在条件（{condition}）满足且{chat_agent_subject}解除暂缓时恢复"
+  note: |-
+    {mark} 按{owner}的指示，此条目做到这里为止（{why}）。{resume}。
+    只完成当前阶段，不再启动新的阶段·学习·单元。本次运行启动的单元·进程不得遗留。
+    该提交的提交，按仓库的方式关闭之后，
+    不以完成关闭条目: {verb} --stop-here {id} --report '<已完成的内容·接续位置>'
+    --done 会拒绝此条目。
+  stopped_here_mark: "[停止点]"
+  # A held or stopped reason written in English by a person, which the screens show as written.
+  reason_korean: "请用韩语填写理由。暂缓理由会按填写原样显示在控制台和列表中。"
+# The whole usage `bmo todo --help` prints, every verb with its flags.
+usage: |-
+  usage: bmo todo --add --title '<title>' --what '<what the work is>' --do '<what has to be done>' --conclusion '<conclusion>' --instruction <messageId>[,<messageId>] [--reply <messageId>[,<messageId>]] [--reply-text '<text>'] [--chat <chatId>] [--requester '<name>'] [--fasttrack <tool>] [--model <model>] [--status '<text>'] [--cowork] [--impact '<grounds JSON>']
+         bmo todo --add --title '<title>' --judgement '<the chat agent's judgement>' --from-todo <id>:<strand>[,<id>:<strand>] --raised-by <id> [--chat <chatId>] [--model <model>] [--status '<text>'] [--cowork] [--impact '<grounds JSON>']
+         bmo todo --list [--all] [--pending] [--held] [--merged] [--chat <chatId>]
+         bmo todo --show <id|title>
+         bmo todo --set-model <id> --model <auto|model>
+         bmo todo --notes <id|title>
+         bmo todo --append <id|title> [--text '<words to add>'] [--by '<who>']   (stdin without --text)
+         bmo todo --unappend <id|title> --note-id <note number> [--by '<who>']   (--notes prints the note numbers)
+         bmo todo --brief <id|title> --change '<what changed, in English>'   (the whole new brief in English on stdin; chat the chat agent's alone, and a running job is handed only the change)
+         bmo todo --edit <id|title> [--title '<title>'] [--what '<...>'] [--do '<...>'] [--conclusion '<...>'] [--judgement '<...>'] [--intent '<work order purpose>'] [--order '<work order instruction>']   (only an item not finished and with no job running; the conversation's originals cannot be changed)
+         bmo todo --done <id|title> [--report '<how the work was done>'] [--unfinished '<what was left as 待决事项>'] | --reopen <id|title>
+         bmo todo --resolve <id> --why '<what makes it no longer 待决事项>'
+         bmo todo --mark <id|title> --status '<text>'
+         bmo todo --approve <id> [--note '<the owner's further word or question>'] | --unapprove <id>
+         bmo todo --hold <id|title> [--why '<why it waits>'] [--after-deploy <item id|commit>] | --unhold <id|title>   (--hold lets the running turn finish; --unhold is never a job's)
+         bmo todo --stop <id|title> --why '<reason>'   (stops the running job and its co-workers now and holds the item as stopped; finished stages stay)
+         bmo todo --wind-down <id|title> --why '<reason>' [--after <item id> | --after-deploy <item id|commit>]   (stop at the end of the current stage: held as 等待恢复 and told to the running job at once)
+                  (a condition releases nothing: when the --after item finishes, or the item's waiting commits or the commit go live, the chat agent is told and takes the hold off)
+         bmo todo --stop-here <id|title> [--why '<reason>' [--after <item id> | --after-deploy <item id|commit>]] --report '<what is finished and where the next run picks up>'   (leaves where a wound-down or stopped item's job stopped; the item stays open and held. A job told in words to stop puts its own item at 等待恢复 with --why)
+         bmo todo --merge <id>[,<id>] --into <id> | --unmerge <id|title>   (the merged items are finished when the item they merged into is)
+         bmo todo --worker <id|title> <worker name | ->
+         bmo todo --repairs <id|title> <id of the item it repairs | ->   (this item was filed to repair the other's failure; repairs chain in one line, up to 3)
+         bmo todo --cowork <id|title> <on|off>
+         bmo todo --impact <id|title> '<grounds JSON>'   (the parts of the code the change reaches and the outward contract that changes on each; docs/todo.md)
+         bmo todo --impact-check <id|title> '<grounds JSON>'   (a job's own grounds, weighed again before it changes anything; the chat agent is told where they come to another verdict than the co-work setting)
+         bmo todo --priority <id|title> <n>
+         bmo todo --drop <id>
+         bmo todo --pause | --resume   (the whole queue's automatic progress; the owner's pause only)
+         bmo todo --release-deploy-hold   (releases by hand the wait a deployment put on while a job ends; the deployment backs off without putting anything live)

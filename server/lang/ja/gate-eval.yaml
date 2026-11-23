@@ -1,0 +1,36 @@
+# Translation of server/lang/ko/gate-eval.yaml; that file says what each line is for.
+usage: |-
+  usage: bmo gate eval <start|generate|status|score|report> [オプション]
+
+  ゲートごとに正解付きの評価問題を Codex で作り、その問題でゲートを経路ごとに採点する。
+
+    start     生成をユーザーユニット bmo-gate-eval として起動する (このコマンドを実行したバイナリで実行される)。
+    generate  同じ生成をフォアグラウンドで実行する。ユニットがこれを実行する。
+    status    ゲートごとの作成数、質問数、拒否数、破棄数、残量、状態を表示する。
+    score     --road claude|kiki でゲートに問い合わせて採点する。--limit <数> はゲートごとにセット全体から均等にその数だけ。
+    report    経路ごとにゲート別の最後の採点を並べて表示する。
+
+    --set <名前>      セット名 (既定 v1)。データはデータルートの gate-eval/<名前>/ にある。
+    --gate <ゲート>   そのゲートだけ。複数回指定できる。
+    --per-gate <数>   ゲートごとに作る問題数 (既定はゲートごとに決めた数)。
+    --batch <数>      1 バッチで求める問題数 (既定はゲートごとに決めた数)。
+
+refusals:
+  command: "コマンドを 1 つ指定してください (start, generate, status, score, report)。"
+  unknown_command: "不明なコマンドです: {command}"
+  count: "{flag} は 1 以上の整数です。"
+  gate: "評価セットにないゲートです: {unknown} (あるもの: {known})"
+  road: "--road は {roads} です。"
+  roads_joined: " または "
+  running: "{unit} はすでに実行中です。journalctl --user -u {unit} で確認してください。"
+
+started: "{unit} を起動しました ({tree})。進行: bmo gate eval status --set {set} · ログ: journalctl --user -u {unit}"
+
+status:
+  set: "セット {set} · {folder}"
+  head: "ゲート | 状態 | 作成数 | 目標 | 残量 | バッチ | 質問数 | 拒否 | 破棄 | 理由"
+  sanitizer: "sanitizer | Codex では作らない | セキュリティ侵害の文が問題そのものなので {supervisor} の担当に残す"
+
+report:
+  none: "セット {set} にはまだ採点がありません。"
+  head: "ゲート | 経路 | モデル | 問題 | 回答 | 合格 | 正答率 | 易しい | 境界 | チェック充足 | 中央値 秒 | 90% 秒"

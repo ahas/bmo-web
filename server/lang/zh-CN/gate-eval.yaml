@@ -1,0 +1,36 @@
+# Translation of server/lang/ko/gate-eval.yaml; that file says what each line is for.
+usage: |-
+  usage: bmo gate eval <start|generate|status|score|report> [选项]
+
+  用 Codex 为每个关卡生成带标准答案的评测题，再用这些题按路线给关卡评分。
+
+    start     以用户单元 bmo-gate-eval 启动生成 (由运行此命令的二进制执行)。
+    generate  在前台运行同样的生成。单元运行的就是它。
+    status    按关卡显示已生成数、已提问数、被拒数、丢弃数、剩余量和状态。
+    score     用 --road claude|kiki 询问关卡并评分。--limit <数> 每个关卡在整套题中均匀地只取这么多。
+    report    按路线并排显示每个关卡最近一次的评分。
+
+    --set <名称>      题集名称 (默认 v1)。数据在数据根目录的 gate-eval/<名称>/ 下。
+    --gate <关卡>     只针对该关卡。可多次指定。
+    --per-gate <数>   每个关卡要生成的题数 (默认为每个关卡各自设定的数)。
+    --batch <数>      一批请求的题数 (默认为每个关卡各自设定的数)。
+
+refusals:
+  command: "请给出一个命令 (start, generate, status, score, report)。"
+  unknown_command: "未知命令: {command}"
+  count: "{flag} 必须是 1 以上的整数。"
+  gate: "评测集中没有的关卡: {unknown} (现有: {known})"
+  road: "--road 只能是 {roads}。"
+  roads_joined: " 或 "
+  running: "{unit} 已在运行。请用 journalctl --user -u {unit} 查看。"
+
+started: "已启动 {unit} ({tree})。进度: bmo gate eval status --set {set} · 日志: journalctl --user -u {unit}"
+
+status:
+  set: "题集 {set} · {folder}"
+  head: "关卡 | 状态 | 已生成 | 目标 | 剩余 | 批次 | 已提问 | 被拒 | 丢弃 | 原因"
+  sanitizer: "sanitizer | 不用 Codex 生成 | 安全入侵语句本身就是题目，留给 {supervisor} 处理"
+
+report:
+  none: "题集 {set} 还没有评分。"
+  head: "关卡 | 路线 | 模型 | 题目 | 已回答 | 通过 | 正确率 | 简单 | 边界 | 满足检查 | 中位秒 | 90% 秒"

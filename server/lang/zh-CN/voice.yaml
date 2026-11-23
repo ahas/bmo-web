@@ -1,0 +1,50 @@
+# What the voice briefing says where a person or an agent reads it (docs/voice-briefing.md). Each `{name}` is
+# filled in with what it names.
+
+# Every briefing refused while the owner has the switch off, and one of an agent whose row names no voice, by its
+# {label}.
+switched_off: "语音简报已关闭。在 {owner_subject} 于控制台重新开启之前，不会以语音发送。请仅以文字传达这条消息，不要再次尝试发送。"
+voiceless: "{label} 没有语音，因此不以语音发送。请仅以文字传达这条消息，不要再次尝试发送。"
+
+# What a briefing's run is called where a person watches it, by its {room}.
+title: "{room} 语音简报"
+
+# A launch refused before anything exists: one nobody signed, one with no words, and one whose run, by its
+# {unit}, never came up.
+unsigned: "语音简报必须注明发起者：在会话中使用 --by chat:<chatId>，否则使用发起者自己的名字。"
+wordless: "语音简报必须有要说的内容：内容从 stdin 读取，或通过 --text 提供。"
+not_up: "语音简报的单元 {unit} 未能启动，未播报任何内容。"
+
+# How the hand tool and the briefing launcher are called, said with a refusal of what they were asked.
+usage_hand: "用法: bmo voice say --text '<内容>' [--chat <chatId>] [--caption <text>] [--file <path.ogg>] [--voice <名称>]"
+usage_brief: "用法: bmo voice brief --chat <chatId> --by chat:<chatId> [--emotion <情绪>] [--title '<一行>'] [--text '<内容>'] [--document <searchId>]  (内容从 stdin 读取)"
+
+# A switch change that names neither switch, or both.
+one_switch: "请说明是开启还是关闭（on 或 autoplay 二选一，true 或 false）。"
+
+# The notes a briefing's run writes in its log as it goes, which a person watching the run reads.
+runner:
+  # The run's first note: the {count} of characters it was handed and its {chat}.
+  started: "{count} 字 · chat {chat}"
+  # The polishing gate's answer to a full reading: the {seconds} it took and the {script} it wrote, or the
+  # {fault} that leaves the mechanical script to be read.
+  polished: "润色 {seconds} 秒：{script}"
+  unpolished: "润色 {seconds} 秒后失败，改读机械脚本：{fault}"
+  # The reading gate's failure, by its {fault}.
+  unread: "读法门控失败：{fault}"
+  # What the voice is given: the {reading} the gate wrote, or the line as it came where it had nothing to write.
+  read: "读法：{reading}"
+  read_as_written: "读法：无需音译，按原文朗读"
+  # A line handed to the voice node list, by its {voice}.
+  to_node: "{voice}：在节点上播报"
+  # A line a node spoke: the {node}, the waits {how} it came to it by, the {seconds} the line lasts, the
+  # {speak} seconds it took to say and the {load} seconds its weights took, and its {checkpoint}.
+  node_spoke: "节点 {node}{how}：{seconds} 秒音频 · 播报 {speak} 秒 · 权重 {load} 秒 · {checkpoint}"
+  # The waits a node's line names: the {seconds} it waited for a free node, and a card other work held.
+  node_waited: "等待空闲节点 {seconds} 秒"
+  card_queued: "排在被其他任务占用的显卡队列中"
+  # A line that waited its turn on this machine's card, and a full reading that waited behind the summaries.
+  queued: "另一条简报正在播报，已排队"
+  behind_summaries: "摘要简报优先，已排在其后"
+  # What stands where a gate gave no reason.
+  no_reason: "无原因"

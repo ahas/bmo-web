@@ -1,0 +1,18 @@
+# Translated from server/lang/ko/nodes.yaml; its comments say what each value is.
+clock: "{year}/{month}/{day} {half}{hour}:{minute}:{second}"
+morning: "上午"
+afternoon: "下午"
+pane:
+  kind: "连接类型    {kind}"
+  address: "地址        {address}"
+  credential: "凭据位置    {credential}"
+  state: "状态        {state}{detail}"
+  detail: "（{detail}）"
+  checked: "检查时间    {clock}"
+  connected: "最近连接    {clock}"
+  never: "无"
+  own_ssh_setup: "账户的 SSH 设置"
+  hub_not_listed: "中枢不在列表中"
+  ssh_enter: "按 Enter 连接。"
+  jake_only: "Jake 节点没有交互式 Shell，只显示状态。"
+  gone: "节点 {name} 已不在列表中，关闭此窗格。"

@@ -1,0 +1,46 @@
+# Translation of server/lang/ko/checkout-holds.yaml; that file says what each line is for.
+waits:
+  open_job: "Job #{job} on worker {worker} is still open"
+  lock: "The checkout's Job lock is held"
+  ended_units: "Ended Job units {units} on worker {worker} are still alive"
+  ended_record: "Run record {id} ({label}) of ended Job unit {unit} on worker {worker} isn't closed{more}"
+  ended_records: " · {count} such records"
+  own_turns: "My turns from before the stop, {live}, are still alive"
+  checking: "Running the repository check on my {count} changed files (check #{starts})"
+  release: "Waiting for my turn to let the checkout go"
+
+place:
+  line: "{turn}: {why}{failures}"
+  failures: " · {failures} failures"
+  resume: "Up to resume"
+  passed: "Passing the turn"
+  held: "On hold"
+  owner_stop: "Stopped by {owner}: {why}"
+
+notes:
+  unsettled: "The change kept changing while it was checked, so after starting the check {tries} times I stopped and put my change on the wip/{item} branch, off main."
+  unpushed: "Left the stopped work order's change as commit {commit} but couldn't push it: {refused}"
+  uncommitted: "Couldn't take the stopped work order's change into a commit, so it stays in the checkout as is: {why}"
+  left: "Changes left in the checkout because they couldn't be separated from others' changes: {paths}"
+  parked: "Left the work order's {count} changes on branch {branch} as commit {commit}."
+  parked_stopped: "Left the stopped work order's {count} changes on branch {branch} as commit {commit}."
+  not_parked: "Couldn't take the stopped work order's change onto a branch, so it stays in the work path as is: {why}"
+  not_on_main: "Couldn't return the base checkout to {main}, so it stays on the work order's branch: {said}"
+  unread: "Cause unread"
+
+git:
+  own_worktree: "{worker}'s work path"
+  base_checkout: "Base checkout"
+  not_moved: "Couldn't move {place} onto the work order's branch, so stopping: {why}"
+  not_merged: "Couldn't bring back the change left on the branch at the stop, so stopping again: {why}"
+  no_branch: "Branch {branch} doesn't exist."
+  not_fetched: "Couldn't fetch branch {branch}: {said}"
+  add: "Couldn't stage the change"
+  commit: "Couldn't commit the change"
+  read_commit: "Couldn't read the commit"
+  read_head: "Couldn't read HEAD"
+  write_tree: "Couldn't write the tree"
+  write_commit: "Couldn't write the commit"
+  move_branch: "Couldn't move the branch"
+  take_back: "Couldn't take the change back"
+  read_branch: "Couldn't read the branch's change"

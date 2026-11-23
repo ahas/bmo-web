@@ -1,0 +1,42 @@
+# What `bmo job tool-calls` says of a job's own thread, read out of the record the CLI keeps for its session
+# (docs/jobs.md): which job and record were read, what the calls added up to, and each call longest
+# first. Each `{name}` is filled in with what it names; a length of time is the span words' own.
+
+# The item named has no job in the archive; {todo} is its number.
+no_job: "項目 #{todo}の Job がアーカイブにありません。"
+# No worker runs in the checkout the verb was run from; {here} is that checkout.
+no_worker: "{here}で動いているワーカーが agents 表にありません。--session で記録ファイルを直接指定してください。"
+# A record the worker holds, by its session and model.
+session: "セッション {session} · {model}"
+# No record could be read.
+nothing_to_read: "読める記録がありません。セッションが消去されると中身は二度と見られず、Job が残した時間とトークンだけが残ります。"
+# The job read: {todo} the item, {job} the job's number.
+job: "項目 #{todo} · Job {job}"
+# Beside the job where the item was tried more than once; {runs} how many times.
+last_of: "（実行 {runs} 回のうち最後）"
+# Where the window has no end yet.
+still_running: "まだ実行中"
+# The record read, and how many lines it holds.
+record: "記録 {path}"
+lines: "{count} 行"
+# No call in the whole record, or none inside the job's window.
+no_calls: "この記録にはツール呼び出しが 1 つもありません。"
+no_calls_in_window: "その範囲内にこの記録のツール呼び出しが 1 つもありません。Job が別のセッションで実行されたか、そのセッションが消去された後です。"
+# What the calls add up to: {times} calls, {span} their time added, {open} the unanswered ones' part.
+total: "ツール {times} 回 · 合計 {span}{open}"
+open: " · 応答のないもの {open} 回"
+# One tool's share.
+tool: "{name} {span} {times} 回"
+# The suite's own calls, or where it was never called.
+tests: "bun test {times} 回 {span}"
+no_tests: "bun test: この記録では一度も呼ばれていません。"
+no_tests_in_window: "bun test: この範囲では一度も呼ばれていません。"
+# The heading over the calls, all of them or the longest {top} of {all}.
+order: "時間のかかった順"
+order_top: "時間のかかった順に {top} 件（全 {all} 回）"
+# One call: {index} its place, {name} the tool, {span} how long it was out, {at} when it went out.
+call: "{index}. {name} {span} · {at}{open}"
+# Beside a call the record ends with still out.
+call_open: " · 応答なし"
+# A call whose record names no tool.
+unnamed_tool: "名前のないツール"

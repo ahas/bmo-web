@@ -1,4 +1,4 @@
-import { wording } from "#shared/wording";
+import { spokenLanguage, wording, WORDING_LANGUAGE } from "#shared/wording";
 
 import { AccountRefusal, chainEntry, chainKinds, listUnits, resolveChain, setChainDelegation, setChainRules, setChainValue } from "./account-service";
 import { appKind, appOfKind } from "./app-gate";
@@ -18,8 +18,10 @@ import type { AdminApp, AdminApps, AppName, AppOffer, OwnApp, PlatformAppChange,
 // written on the chain's own routes as the signed-in login, so who writes a link and a lock above it are the account
 // service's word. No app is named here: the chain's kinds name them, and a screen's bundle names their title.
 
-/** The language the console reads a bundle's words in (docs/web.md, 「Screens a unit brings」). */
-const CONSOLE_LOCALE = "ko";
+/** The language the console reads a bundle's words in (docs/web.md, 「Screens a unit brings」): the reader's. */
+function consoleLocale(): string {
+  return spokenLanguage();
+}
 
 /** Every app whose kinds the chain holds, each with its kinds as their publisher declared them, by setting. */
 export async function declaredAppKinds(): Promise<Map<string, Map<AppSetting, ChainKindView>>> {
@@ -45,7 +47,7 @@ export async function declaredApps(): Promise<Map<string, Set<AppSetting>>> {
  * attached. */
 export function appName(app: string): AppName {
   const bundle = attachedService(app);
-  const words = bundle?.words[CONSOLE_LOCALE];
+  const words = bundle?.words[consoleLocale()] ?? bundle?.words[WORDING_LANGUAGE];
   const title = bundle === null || words === undefined ? undefined : wordAt(words as Record<string, unknown>, bundle.manifest.title.split("."));
 
   return { app, title: typeof title === "string" && title !== "" ? title : null, icon: bundle?.manifest.icon ?? null };
@@ -53,7 +55,7 @@ export function appName(app: string): AppName {
 
 /** The apps in the order of the names a reader reads them by. */
 export function byName<T extends AppName>(apps: T[]): T[] {
-  return apps.toSorted((one, other) => (one.title ?? one.app).localeCompare(other.title ?? other.app, CONSOLE_LOCALE));
+  return apps.toSorted((one, other) => (one.title ?? one.app).localeCompare(other.title ?? other.app, consoleLocale()));
 }
 
 // Whether a resolution lets an app through: anything but `false` does.
@@ -195,7 +197,7 @@ function offersOf(rules: ChainRuleView[], units: Map<number, { name: string; par
     offers.push({ unit, name: row.name, company: row.parent === null ? null : companyName(unit, units), offered: rule.value });
   }
 
-  return offers.toSorted((one, other) => Number(one.company !== null) - Number(other.company !== null) || `${one.company ?? ""}${one.name}`.localeCompare(`${other.company ?? ""}${other.name}`, CONSOLE_LOCALE));
+  return offers.toSorted((one, other) => Number(one.company !== null) - Number(other.company !== null) || `${one.company ?? ""}${one.name}`.localeCompare(`${other.company ?? ""}${other.name}`, consoleLocale()));
 }
 
 // The name of the company a unit stands under.
@@ -241,7 +243,7 @@ export async function adminApps(signed: SignedIn): Promise<AdminApps> {
     companies: rows
       .filter((row) => (row.parent ?? null) === null)
       .map((row) => ({ id: row.id, name: row.name }))
-      .toSorted((one, other) => one.name.localeCompare(other.name, CONSOLE_LOCALE))
+      .toSorted((one, other) => one.name.localeCompare(other.name, consoleLocale()))
   };
 }
 

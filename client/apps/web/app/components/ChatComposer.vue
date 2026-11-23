@@ -655,7 +655,7 @@ function onPaste(event: ClipboardEvent): void {
 
   event.preventDefault();
 
-  const entry = pastedOf(text, pasted.value);
+  const entry = pastedOf(t, text, pasted.value);
 
   pasted.value = [...pasted.value, entry];
   insertAtCaret(event.target, entry.mark);

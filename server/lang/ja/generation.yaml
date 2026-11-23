@@ -1,0 +1,9 @@
+# Translated from server/lang/ko/generation.yaml; its comments say what each value is.
+refusals:
+  switch: "{name} はオンまたはオフで指定してください。"
+  number: "{name} は数値で指定してください。"
+  whole: "{name} は整数で指定してください。"
+  range: "{name} は {span} の範囲で指定してください。"
+  above: "{min} 超"
+  least: "{min} 以上"
+  most: "{least} {max} 以下"

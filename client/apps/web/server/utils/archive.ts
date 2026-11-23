@@ -1,7 +1,7 @@
 import { PAGING, roomLabel } from "#shared/config";
 import { isSystemNotice } from "#shared/text-marks";
 import { readingStateOf } from "#shared/voice-briefings";
-import { WORDING_LANGUAGE, wording } from "#shared/wording";
+import { spokenLanguage, wording } from "#shared/wording";
 
 import { renderedLine } from "./account-service";
 import { agentLabels } from "./agent-labels";
@@ -408,7 +408,7 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
     let rendered = lines.get(key);
 
     if (rendered === undefined) {
-      rendered = renderedLine(message.line, WORDING_LANGUAGE);
+      rendered = renderedLine(message.line, spokenLanguage());
       lines.set(key, rendered);
     }
 

@@ -1,0 +1,7 @@
+# Translated from server/lang/ko/job-wait.yaml; its comments say what each value is.
+usage: |-
+  usage: bmo job wait --todo <id> --what '<在等什么>' (--unit <单元> | --pid <pid>) --until <40m|2h|14:30>
+         bmo job wait --todo <id> --what '<在等什么>' --until <40m|2h|14:30> -- <命令…>
+         bmo job wait --todo <id> --clear
+what: "say what the job waits on: --what '<在等什么>'."
+target: "name the one thing whose life says the wait goes on: --unit <单元> or --pid <pid>, or run the command after --."

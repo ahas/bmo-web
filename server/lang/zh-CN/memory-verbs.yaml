@@ -1,0 +1,22 @@
+# Translated from server/lang/ko/memory-verbs.yaml; its comments say what each value is.
+global_scope: "全局 · {reach}"
+from_item: " · 条目 #{item} 的待决事项"
+why_missing: "--why '<原因>' says why, and a row never comes down for no reason anybody can read"
+action_missing: "--action '<做什么>' is what attaches; give it, or --action - with the text on stdin"
+state_missing: "--action '<目前进展到哪>' is where the state now stands; give it, or --action - with the text on stdin"
+situation_unpaired: "a situation row is a pair: --condition '<何时>' is the half the matcher reads, or --on <event> the fact it waits for, and without either it would attach every turn"
+situation_unfinished: "memory '{handle}' is a situation row, which is never finished: take it down with --retire {slug} --why '<原因>'"
+event_unknown: "未知事件：{given}。请使用 {kinds} 之一。"
+event_empty: "（空值）"
+event_kind_item: "{kind}[:<条目>]"
+event_takes_no_item: "{kind} 事件不带条目：{given}"
+event_bad_item: "事件的条目编号无效：{given}"
+usage: |-
+  usage: {verb} --chat <chatId>|--global [--reach <owner|group|all>] --add --type <promise|check|followup|situation|state> --action '<做什么>'|- [--condition '<何时>' | --on <deployed[:<条目>]|job-ended[:<条目>]|queue-changed> | --until '<check>' [--name '<简短名称>'] [--every <seconds>] [--within <minutes>]] [--slug <slug>] [--for <userId>] [--by <userId>] [--message <messageId>] [--todo <itemId>] [--replaces <slug>]
+         {verb} --chat <chatId> --update <id|slug> --action '<目前进展到哪>'|-
+         {verb} --chat <chatId> --done <id|slug> [--text '<how it ended>']
+         {verb} --chat <chatId>|--global --retire <id|slug> --why '<原因>'
+         {verb} --chat <chatId>|--global --revive <id|slug>
+         {verb} --chat <chatId>|--global --candidate <id|slug> --why '<原因>'
+         {verb} --chat <chatId>|--global --list [--all] [--type <type>]
+  every form takes --agent <name>, the agent whose rows these are, where the run calling it names none

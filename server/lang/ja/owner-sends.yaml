@@ -1,0 +1,6 @@
+# Translated from server/lang/ko/owner-sends.yaml; its comments say what each value is.
+reply_missing: "返信するメッセージが記録にありません。"
+words_only: "このルームはテキストのみ受け付けます。ファイルは送信できません。"
+empty_file: "{name}: 空のファイルのため送信しませんでした。"
+too_large: "{name}: {size} は大きすぎます。1 ファイルあたり {largest} まで送信できます。"
+megabytes: "{megabytes}MB"

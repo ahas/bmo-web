@@ -1,0 +1,10 @@
+# Translation of server/lang/ko/full-suite.yaml; that file says what each line is for.
+account: "1 日 1 回実行される全体スイートが {where}{engine}通らなかった: {verdict}。{files} 選択実行が追いきれなかった依存が表に出たのかもしれない。ログ: {log}"
+at_head: "main ({head}) で"
+no_head: "main を読み取れず"
+engine: " アーカイブのテストを {engine} で実行して"
+files: " 壊れたファイル: {files}。"
+file: "{file} ({package})"
+joiner: "、"
+outside: "パッケージ外"
+outside_listed: "(パッケージ外)"

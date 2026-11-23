@@ -119,8 +119,23 @@ pub async fn in_force(service: Service, token: String) -> Result<Router, Refusal
       .route("/health", get(health))
       .layer(sessions)
       .with_state(service)
-      .layer(settings.session.ip_source.clone().into_extension()),
+      .layer(settings.session.ip_source.clone().into_extension())
+      .layer(from_fn(spoken_language)),
   )
+}
+
+/// Every request answered in the language it asks for (docs/language-pack.md, 「How each side reads it」): the
+/// first of its `Accept-Language` tags the pack holds, and the source where it names none, as a unit asking on its
+/// own account does.
+pub async fn spoken_language(request: Request, next: Next) -> Response {
+  let language = request
+    .headers()
+    .get(header::ACCEPT_LANGUAGE)
+    .and_then(|value| value.to_str().ok())
+    .and_then(crate::lang::Language::accepted)
+    .unwrap_or(crate::lang::Language::SOURCE);
+
+  crate::lang::speaking(language, next.run(request)).await
 }
 
 // The bearer token every route but the health takes.

@@ -1,0 +1,12 @@
+# Translation of server/lang/ko/backups.yaml; that file says what each line is for.
+snapshot_usage: "アーカイブ・ブレイン・データルートを時間別スロットに保存する (docs/archive-backup.md)。"
+drill_usage:
+  - "最新の時間別スナップショット (または --from のディレクトリ) を一時 DB か一時ファイルに復元し、マニフェストの表ごとに行数を照合する。"
+  - "--keep は復元したコピーをその名前 (DB 名またはファイルパス) で残す。実際の復元手順は docs/RUNBOOK.md 「Database」。"
+drill_failed: "毎日実行される復元訓練が {dir} で失敗した ({step}): {said}。{differ} まず時間別スナップショット (bmo-snapshot-backup) とそのログ (journalctl --user -u bmo-snapshot-backup) を確認する。"
+drill_differ: " 一致しない表: {tables}{more}。"
+drill_more: " ほか {count} 件"
+upload_usage:
+  - "デプロイバックアップのうち未確認のものを garage (s3://{bucket}/{prefix}) にアップロードし、読み直してサイズ・チェックサムを照合したあと、"
+  - "garage には最新 5 件、ローカルには最新 1 件だけを残す (docs/deploy.md 「Sending them to Garage」)。"
+upload_failed_note: "デプロイはすでに完了しており、妨げられていない。未確認のバックアップはローカルディスクに残り、次のデプロイのアップロードが再送する。"

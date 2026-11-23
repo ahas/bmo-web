@@ -1,0 +1,6 @@
+# What a song asked for by its title says where a person reads it (docs/song.md). Each `{name}` is filled in
+# with what it names.
+
+# The title a song's own run stands under where a person watches it: the {room}'s name and the song's
+# {title}.
+run_title: "{room} song · {title}"

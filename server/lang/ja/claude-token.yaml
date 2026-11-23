@@ -1,0 +1,13 @@
+# Translation of server/lang/ko/claude-token.yaml; that file says what each line is for.
+unknown_account: 'claude-token: 登録済みの Claude アカウントに "{named}" はありません。bmo agent でアカウント一覧を確認してください。'
+making: 'Claude アカウント "{name}" のノード用トークンを作成します。'
+approve: "ブラウザーが開いたら、このアカウントでログインしていることを確認して承認してください。"
+approve_as: "ブラウザーが開いたら、{email} アカウントでログインしていることを確認して承認してください。"
+sign_in_failed: "claude-token: claude setup-token が最後まで進みませんでした。何も保存していません。"
+paste: "上に出力されたトークンを貼り付けて Enter を押してください (画面には表示されません): "
+stopped: "claude-token: 中止しました。何も保存していません。"
+refused: "claude-token: {fault} 何も保存していません。"
+not_a_token: "claude setup-token が出力したトークン (sk-ant-oat で始まる) ではありません。"
+cut: "トークンが途中で切れているか、空白が混じっています。1 行のまま貼り付け直してください。"
+kept: "保存しました: {file}"
+from_next_run: "次回の実行から、すべてのノードがこのトークンで Claude Code を実行します。"

@@ -1,0 +1,19 @@
+# Translation of server/lang/ko/draws.yaml; that file says what each line is for.
+spec:
+  dice: "{sides} 面ダイス {count} 個{modifier}"
+  range: "{min} から {max} までの整数 1 つ"
+  pick: "{items} 個から {take} 個を抽選"
+  shuffle: "{items} 個の順番をシャッフル"
+
+dice_total: "{faces} → 合計 {total}"
+
+line:
+  head: "抽選"
+  labelled: "抽選 · {label}"
+  asked: "{head} ({asked})"
+  result: "結果: {result}"
+  draw: "番号 {number} · シード {seed}"
+  method: "方式 {method}: SHA-256(シード:番号:ブロック) を 4 バイトずつ読み、偏りなく選ぶ"
+  first: "このルームで最初の抽選なので、先に公開したコミットメントはないよ。"
+  answered: "このシードの SHA-256 は先に公開したコミットメント {commitment}"
+  next: "次のコミットメント: {next}"

@@ -1,0 +1,46 @@
+# Translation of server/lang/ko/checkout-holds.yaml; that file says what each line is for.
+waits:
+  open_job: "工作器 {worker} 的 Job #{job} 仍未关闭"
+  lock: "检出的 Job 锁仍被占用"
+  ended_units: "工作器 {worker} 已结束的 Job 单元 {units} 仍在运行"
+  ended_record: "工作器 {worker} 已结束的 Job 单元 {unit} 的运行记录 {id} ({label}) 尚未关闭{more}"
+  ended_records: " · 这样的记录共 {count} 条"
+  own_turns: "停止前我的轮次 {live} 仍在运行"
+  checking: "正在用我改动的 {count} 个文件运行仓库检查 (第 {starts} 次检查)"
+  release: "正在等待轮到释放检出"
+
+place:
+  line: "{turn}: {why}{failures}"
+  failures: " · 失败 {failures} 次"
+  resume: "等待恢复"
+  passed: "正在让出轮次"
+  held: "暂缓"
+  owner_stop: "{owner} 已停止: {why}"
+
+notes:
+  unsettled: "检查期间变更一直在变，启动检查 {tries} 次后放弃，将我的变更放到 main 之外的 wip/{item} 分支。"
+  unpushed: "已将停止的工作单的变更存为提交 {commit}，但未能推送: {refused}"
+  uncommitted: "未能将停止的工作单的变更收入提交，原样留在检出中: {why}"
+  left: "无法与他人变更分开、留在检出中的变更: {paths}"
+  parked: "已将工作单的 {count} 处变更以提交 {commit} 放到 {branch} 分支。"
+  parked_stopped: "已将停止的工作单的 {count} 处变更以提交 {commit} 放到 {branch} 分支。"
+  not_parked: "未能将停止的工作单的变更收到分支上，原样留在工作路径中: {why}"
+  not_on_main: "未能将基础检出切回 {main}，仍留在工作单的分支上: {said}"
+  unread: "未能读取原因"
+
+git:
+  own_worktree: "{worker} 的工作路径"
+  base_checkout: "基础检出"
+  not_moved: "未能将 {place} 切到工作单的分支，停止: {why}"
+  not_merged: "未能取回停止时放到分支上的变更，再次停止: {why}"
+  no_branch: "分支 {branch} 不存在。"
+  not_fetched: "未能获取分支 {branch}: {said}"
+  add: "未能暂存变更"
+  commit: "未能提交变更"
+  read_commit: "未能读取提交"
+  read_head: "未能读取 HEAD"
+  write_tree: "未能写入树"
+  write_commit: "未能写入提交"
+  move_branch: "未能移动分支"
+  take_back: "未能撤回变更"
+  read_branch: "未能读取分支的变更"

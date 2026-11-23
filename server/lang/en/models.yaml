@@ -1,0 +1,36 @@
+# Translated from server/lang/ko/models.yaml; its comments say what each value is.
+usage: |-
+  usage: bmo model [--db <archive>]
+         bmo model add <name> --file <file.gguf> --bytes <bytes> --sha256 <hash> [fields…]
+         bmo model set <name> [fields…]
+         bmo model remove <name>
+         bmo model use <name>
+         bmo model --entry <name> --json
+         bmo model --placed <name> <node>
+
+  fields: --label <name> --source <https address | path under the data root> --engine <engine> --registration <registered model>
+          --note <note> --thinking on|off --temperature <n> --top-p <n> --presence-penalty <n> --max-tokens <n>
+  In set, giving a field default or none clears it.
+
+  With no arguments, shows every entry in the catalogue and the latest model change for each engine.
+  use switches that entry in as its engine's model: it starts a user unit in which the engine's installer downloads, verifies and installs it, and returns at once.
+  --entry and --placed are for the engine's installer.
+not_held: "No such model in the catalogue: {name}"
+already_held: "That name already exists: {name}"
+placed: "Noted that the file of {name} is on {node}."
+node_unreadable: "Can't read the node name."
+removed: "Removed {name} from the catalogue."
+choosing: "Started switching the {engine} engine to {entry} (user unit bmo-model-use-{engine}, log {log})."
+listing:
+  use: "Model change · {engine} ← {entry} · {chosen_by} · {at} · {state}{step}{reason}"
+  serving: " [serving]"
+  file: "  file {file} · {bytes} B · sha256 {sha256}"
+  where: "  source {source} · engine {engine} · registered model {registration} · nodes {nodes}"
+  defaults: "  default generation settings · thinking {thinking} · temperature {temperature} · top_p {top_p} · presence_penalty {presence_penalty} · max_tokens {max_tokens}"
+  thinking_on: "on"
+  thinking_off: "off"
+  note: "  note {note}"
+run:
+  installing: "Installer running"
+  not_running: "Not a model change in progress: {id}"
+  failed: "The installer failed."

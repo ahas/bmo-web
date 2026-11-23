@@ -1,0 +1,6 @@
+# Translated from server/lang/ko/process-memory.yaml; its comments say what each value is.
+machine: "{at} · memory {available}MB available of {total}MB · swap {swap_free}MB free of {swap_total}MB"
+counted: "{counted} processes counted · {unreadable} processes unreadable"
+runtimes: "By executable"
+programs: "By program in {name}"
+none: "(none)"

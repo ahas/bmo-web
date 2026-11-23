@@ -14,7 +14,7 @@ const globals: Record<string, unknown> = globalThis;
 globalsRestoredAfter(["defineNitroPlugin"]);
 globals.defineNitroPlugin = (plugin: unknown) => plugin;
 
-const { SHARE_HEAD_LANGUAGE, writeShareHead } = await import("../../apps/web/server/plugins/share-heads");
+const { shareHeadLanguage, writeShareHead } = await import("../../apps/web/server/plugins/share-heads");
 
 const BASE = "/bmo/";
 const SHELL = '<meta name="viewport" content="width=device-width">';
@@ -115,7 +115,8 @@ describe("a bundle's share address", () => {
     const url = one!.url;
 
     expect(url.pathname).toBe("/links/Ab3_x9/head");
-    expect(url.searchParams.get("language")).toBe(SHARE_HEAD_LANGUAGE);
+    expect(url.searchParams.get("language")).toBe(shareHeadLanguage());
+    expect(shareHeadLanguage()).toBe("ko");
     expect(one!.headers.get("authorization")).toBe("Bearer token-a");
     expect(one!.headers.get("owner-key")).toBeNull();
     expect(one!.headers.get("owner-role")).toBeNull();

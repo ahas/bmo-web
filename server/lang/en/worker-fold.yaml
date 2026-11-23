@@ -1,0 +1,36 @@
+# What `bmo worker fold` says of the job workers' sessions it folds after a prefix change (docs/deploy.md,
+# docs/agent-control.md): each line under its head, what it leaves alone and why, what it would fold, what
+# became of each fold, and the run's last line. Each `{name}` is filled in with what it names: {name} a
+# session's worker and model, {session} its id, {count} how many.
+
+# Every line the verb prints opens with this, {line} the rest of it.
+line: "Fold: {line}"
+
+# A session left as it stands: no prefix word on its row, or a prefix that has not moved.
+untouched:
+  no_record: "{name}: no prefix record, left as is (--all folds it)"
+  same: "{name}: prefix unchanged, nothing to fold"
+
+# With --dry-run, a session that would be folded.
+due: "{name}: would fold {session}"
+
+# What became of one fold, after the session's {name}.
+outcomes:
+  compacted: "{name}: folded"
+  too_short: "{name}: too little built up; the summarizer found nothing to fold"
+  busy: "{name}: skipped, a Job holds that checkout's lock"
+  failed: "{name}: couldn't fold"
+
+# The run's last line: nothing found, {count} sessions with each outcome counted, and the {count} left
+# standing because their prefix had not moved.
+tally:
+  none: "No sessions to fold"
+  sessions: "{count} sessions: {parts}"
+  part: "{word} {count}"
+  left: "{count} with prefix unchanged"
+  due: "Would fold {count} sessions"
+  words:
+    compacted: "folded"
+    too_short: "nothing to fold"
+    busy: "skipped"
+    failed: "failed"

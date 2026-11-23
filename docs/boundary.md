@@ -539,26 +539,29 @@ locks against its value is refused 403 `locked-by-platform`.
   through `fixed-lines.person`; the `senderId` is carried and not read. A list of people names every one of them,
   joined by `fixed-lines.people_joiner`, as the console names the people writing in a room. A `people` list naming
   nobody is refused 400 `bad-request`.
-- **`language` names the pack's language,** `ko`; another language is refused 404 `unknown-language`. A code
-  the pack does not hold is refused 404 `unknown-code`, and a line whose fields do not read as its code's
-  shape 400 `bad-request`. The caller then sends the line as its code and fields, so a room is never silent.
-- **The receiver must send `language` = `ko`.** The language it sends is its own setting, and its example
-  settings name `en`; a receiver deployed so has every fixed line refused 404 `unknown-language` and posts each
-  unrendered, as its code and fields. Its deployment sets `ko`, the one language the pack holds.
+- **`language` names one of the pack's languages** — `ko`, `en`, `ja` or `zh-CN` — as a language tag read by its
+  primary subtag, so `ko-KR` is `ko` and Chinese of any region or script `zh-CN`; another language is refused 404
+  `unknown-language`. A code the pack does not hold is refused 404 `unknown-code`, and a line whose fields do not
+  read as its code's shape 400 `bad-request`. The caller then sends the line as its code and fields, so a room is
+  never silent.
+- **The receiver sends its room's language,** its own setting; a line is rendered in it, and a key that language
+  lacks in the Korean.
 - **The route answers whether or not the account model is in force,** since it reads no account.
 - **The console's server asks it too,** for each message of the kind `fixed-line` a room's page carries with its
-  line: the line's code and fields, and `ko`. The sentence it answers stands as the message's words, and where it
+  line: the line's code and fields, and the reader's language. The sentence it answers stands as the message's words, and where it
   refuses or does not answer, the words the message was kept with stand (`docs/web.md`, 「A fixed line stands as a
   system line too」).
 
 ### The document wording file
 
-The server's release carries the document wording file bmo-artifact's `[wording] file` setting names: every
-key of the artifact's 「Wording」 table, rendered from the server's pack, and no other key (`docs/language-pack.md`,
-「What other units read」). The server's binary writes it, `bmo-web-server wording <file>`, from the pack alone
-and with no settings, and the release ships the file it writes: each deployment writes it before the flip as
-`documents.ko.yaml` at the top of the release, so it stands at `~/.local/share/bmo-web/deploy/documents.ko.yaml`
-through the deploy tree, the path bmo-artifact's deployment sets as its `[wording] file`. bmo-artifact reads the
+The server's release carries the document wording files, one to each language of the pack, and bmo-artifact's
+`[wording] file` setting names one of them: every key of the artifact's 「Wording」 table, rendered from the server's
+pack in that language, a key the language lacks in the Korean, and no other key (`docs/language-pack.md`, 「What
+other units read」). The server's binary writes them, `bmo-web-server wording <folder>`, from the pack alone and
+with no settings, each as `documents.<language>.yaml`, and the release ships the files it writes: each deployment
+writes them before the flip at the top of the release, so `documents.ko.yaml`, `documents.en.yaml`,
+`documents.ja.yaml` and `documents.zh-CN.yaml` stand under `~/.local/share/bmo-web/deploy/` through the deploy
+tree, the Korean one at the path bmo-artifact's deployment sets as its `[wording] file`. bmo-artifact reads the
 file as it starts, so a release that changes the pack reaches it at bmo-artifact's next start.
 
 ### sumida's own routes

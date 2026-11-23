@@ -1,0 +1,9 @@
+# Translated from server/lang/ko/generation.yaml; its comments say what each value is.
+refusals:
+  switch: "{name} must be on or off."
+  number: "{name} must be a number."
+  whole: "{name} must be a whole number."
+  range: "{name} must be {span}."
+  above: "above {min}"
+  least: "at least {min}"
+  most: "{least} and at most {max}"

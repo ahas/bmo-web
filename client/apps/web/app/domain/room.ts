@@ -415,7 +415,7 @@ export function skippedTurns(judgements: readonly JudgementMark[]): number {
 // each read a message of its own — so the only ones gathered are those over the same message, and
 // those say how many they were. Only the chat agent's turns end in silence, so the line names it.
 export function skippedLine(t: Translate, count: number): string {
-  const subject = subjectOf(bmoLabel(t));
+  const subject = subjectOf(t, bmoLabel(t));
 
   return count === 1 ? t("room.status.outcome_skipped", { subject }) : t("room.status.outcome_skipped_times", { subject, n: countText(count) });
 }

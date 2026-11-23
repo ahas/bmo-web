@@ -1,0 +1,19 @@
+# Translation of server/lang/ko/draws.yaml; that file says what each line is for.
+spec:
+  dice: "{count} {sides}-sided dice{modifier}"
+  range: "One whole number from {min} to {max}"
+  pick: "Pick {take} of {items}"
+  shuffle: "Shuffle {items} items"
+
+dice_total: "{faces} → total {total}"
+
+line:
+  head: "Draw"
+  labelled: "Draw · {label}"
+  asked: "{head} ({asked})"
+  result: "Result: {result}"
+  draw: "No. {number} · seed {seed}"
+  method: "Method {method}: reads SHA-256(seed:number:block) 4 bytes at a time and picks without bias"
+  first: "This is the room's first draw, so there's no earlier published commitment."
+  answered: "This seed's SHA-256 is the earlier published commitment {commitment}"
+  next: "Next commitment: {next}"

@@ -1,0 +1,109 @@
+# What a search leaves for a person to read (docs/archive.md, 「A search's document」, 「A page imported
+# whole」): the document `bmo runner search` writes under the runtime data root, and the result a page brought
+# in whole is written as. Each `{name}` is filled in with what it names.
+
+# What the console's collection of documents is called, which the chat's session is told a page brought in whole
+# was kept in.
+archive_name: "アーカイブ"
+
+# The question a page brought in whole stands under, by the {source} address it was asked from.
+import_query: "原文の取り込み: {source}"
+
+# The document's head: its title where the result gave none, by the {query}; and its lines, each with the
+# {value} it states, an option by its {name}.
+head:
+  untitled: "検索 · {query}"
+  query: "- 質問: {value}"
+  topic: "- トピック: {value}"
+  keywords: "- キーワード: {value}"
+  rule: "- 適用ルール: {value}"
+  option: "- オプション {name}: {value}"
+  depth: "- 深さ: {value}"
+  status: "- 状態: {value}"
+  started: "- 開始: {value}"
+  finished: "- 終了: {value}"
+  runs: "- 実行: {value}"
+
+# The result the room was given: its heading, what stands under it while nothing is written, the branch a
+# finding came out of by its {branch} label, and the heading of the pages it cites.
+result:
+  heading: "結果"
+  empty: "まだ何も書かれていません。"
+  branch: "ブランチ: {branch}"
+  sources: "出典"
+
+# The trail folded under the result: its heading and the line that opens it, the run's own section, the mark
+# of the {run} a branch was opened in where the search took several, and the headings of what one branch
+# asked, opened and found.
+trail:
+  heading: "調査の過程"
+  summary: "ブランチごとに尋ねたことと開いたページ"
+  own: "この実行が直接"
+  run: " · 実行 {run}"
+  asked: "尋ねたこと"
+  opened: "開いたページ"
+  found: "ここから得られたこと"
+
+# What each fixed part of a result's body is called.
+parts:
+  VERDICT: "要点"
+  SUMMARY: "要約"
+  INTRO: "序論"
+  BODY: "本論"
+  CONCLUSION: "結論"
+  UNCONFIRMED: "確認できなかったこと"
+  MORE: "詳細"
+
+# What each line of an entry is written as, with the {value} the line carries; a stock line's {value} is its
+# state, when it was read and where, joined; a deal's {now} price, its {usual} one where given and the {real}
+# word on it; a review's {rating} in bold where given, its {words} and the {page} it stands on; a picture
+# kept as the chat agent's own copy says the {address} it came from. The rating a result writes where there is none is
+# `no_rating`.
+fields:
+  ADDRESS: "住所: {value}"
+  MAP: "地図: {value}"
+  ROADVIEW: "ストリートビュー: {value}"
+  MENU: "メニュー: {value}"
+  menu_alone: "メニュー:"
+  RELEASED: "発売: {value}"
+  NEWER: "最新モデル: {value}"
+  STOCK: "販売状況: {value}"
+  deal: "割引: {now}{usual}{real}"
+  deal_usual: "（通常 {usual}）"
+  deal_real: " · {real}"
+  review_link: "（[レビュー]({page})）"
+  no_rating: "なし"
+  original: "元画像: {address}"
+
+# What the console's reading of a finding draws it with: the labels of an entry's address, its map and street
+# view links, a menu with its dish, price and notes columns, when a product was released, its newer model, its
+# state and its page, a deal and what it {usual}ly costs, the page a review stands on, and what a finding with
+# no words of its own is called in the contents, by its {place}.
+reading:
+  address: "住所"
+  map: "地図"
+  street_view: "ストリートビュー"
+  menu: "メニュー"
+  dish: "品目"
+  price: "価格"
+  notes: "備考"
+  released: "発売"
+  newer: "最新モデル"
+  stock: "販売状況"
+  product_page: "商品ページ"
+  deal: "割引"
+  usual: "通常 {usual}"
+  review: "レビュー"
+  untitled: "{place}番目の内容"
+
+# A page brought in whole, as its result: the line that says it was answered, its topic by the page's
+# {host}, the figure {n} with its {caption} that could not be captured, and what each source line says of the
+# page kept, of the address asked that moved to it, and of a work the page cites with its {text} where any.
+import:
+  answered: "原文をそのまま取り込みました"
+  topic: "{host} の原文の取り込み"
+  missing: "図 {n}（{caption}）をキャプチャできず、元のアドレスだけが残りました。"
+  kept: "取り込んだ原文ページ"
+  moved: "取り込みを依頼したアドレス（上のページに移動）"
+  cited: "原文が引用した資料"
+  cited_text: "原文が引用した資料: {text}"

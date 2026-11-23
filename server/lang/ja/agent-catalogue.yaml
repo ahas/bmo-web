@@ -1,0 +1,66 @@
+# Translation of server/lang/ko/agent-catalogue.yaml; that file says what each line is for.
+roster:
+  chat: "{chat_agent}: one shared chat agent. {owner_chat_agent} is the chat agent in the owner’s private chat, not another agent. Connected rooms: {rooms}."
+  owner_room: "{owner_chat}, {owner_chat_agent} or {owner_chat_agent} (you, the owner's private chat)"
+  kinds:
+    supervisor: "スーパーバイザー, or supervisors: you and the supervisors below, each answering in the rooms that name it, in a persona of its own. A room that names other supervisors alone is never yours to speak in; in a room you share with one, the receiver wakes each of you by the same rule."
+    gate: "ゲートエージェント, or ゲート: the judgement runs with no tools of their own."
+    runner: "ランナー: the research runs you launch and that hand their result back to you."
+    recollector: "リコレクター, or Recollector: the runs that decide what of a conversation becomes an agent's long-term memory and write it from that agent's own view: the room digest and the person-book writer with Read, Write, Edit, Glob and Grep only, the session summariser with no tools."
+    worker: "worker: the jobs you launch with the task tool. Each has a name of its own and a checkout of its own."
+
+agents:
+  worker:
+    label: "ワーカー"
+    aliases: ["Job ワーカー", "ジョブワーカー", "ワーカー", "ワーカージョブ"]
+  session-summary:
+    label: "セッション要約"
+    aliases: ["セッション要約", "引き継ぎ要約"]
+  system-documents:
+    label: "システム文書分類"
+    aliases: ["参照分類", "システム文書分類", "システム参照ゲート", "ロア判定ゲート"]
+  room-rules:
+    label: "ルーム規則分類"
+    aliases: ["参照分類", "ルーム規則分類", "ルーム規則ゲート", "ルールブック分類"]
+  library-knowledge:
+    label: "書庫知識分類"
+    aliases: ["参照分類", "書庫知識分類", "書庫ゲート", "知識文書分類"]
+  people-search:
+    label: "人物帳検索"
+    aliases: ["人物帳サーチ", "人物帳検索", "人物断片分類", "人物帳分類"]
+  situation-rules:
+    label: "状況規則マッチャー"
+    aliases: ["状況規則", "状況規則マッチャー", "規則マッチャー", "条件付き規則"]
+  sanitizer:
+    label: "無害化ゲート"
+    aliases: ["文脈衛生ゲート", "ハッキングゲート", "入力サニタイズ"]
+  output-format:
+    label: "出力書式ゲート"
+    aliases: ["出力書式ゲート", "書式要否判定ゲート"]
+  people-standing:
+    label: "人物帳要約"
+    aliases: ["人物帳要約", "人物要約作成", "常設層作成", "要約作成"]
+  document-seek:
+    label: "文書検索ゲート"
+    aliases: ["文書検索ゲート", "文書サーチゲート", "目次検索"]
+  translator:
+    label: "翻訳"
+    aliases: ["翻訳", "翻訳エージェント", "文書翻訳"]
+  voice-polish:
+    label: "台本仕上げゲート"
+    aliases: ["台本仕上げゲート", "聞き取り用仕上げ", "全文読み上げ仕上げ"]
+  voice-reading:
+    label: "読み方ゲート"
+    aliases: ["音訳ゲート", "読み方ゲート", "発音ゲート"]
+  search:
+    label: "サーチャー"
+    aliases: ["サーチャー", "ウェブサーチャー", "検索", "ウェブ検索"]
+  browse:
+    label: "ブラウザーサーチャー"
+    aliases: ["ブラウザー検索", "ブラウザーサーチャー", "上位ウェブ検索", "実検索"]
+  digest:
+    label: "ダイジェスト"
+    aliases: ["ダイジェスト", "ルーム要約", "会話要約", "会話整理"]
+  people-digest:
+    label: "人物帳作成"
+    aliases: ["人物帳作成", "人物帳エディター", "人物帳整理", "人間関係整理"]

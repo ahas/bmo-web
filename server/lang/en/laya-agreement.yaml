@@ -1,0 +1,17 @@
+# Translated from server/lang/ko/laya-agreement.yaml; its comments say what each value is.
+usage: |-
+  usage: bmo gate laya-agreement [--stage <gate>] [--db <address>] [--json]
+
+  Shows, per gate, how often Laya agrees with the LLM's verdict: pairs, failures, overall agreement, and for each τ
+  the share Laya would take on (coverage) and the agreement within it. A gate that decides each candidate on its own
+  is counted in questions instead of pairs, and also shows the share of the questions Laya answered that it settled in the gate's place (Laya settled). A gate with a safety verdict also shows how many Laya called safe and
+  the share of those the LLM called safe too.
+  Without --db it reads the archive this machine's settings point to. It only reads and never writes.
+  --json prints each gate's figures as JSON.
+none: "No Laya verdicts recorded yet."
+gate: "{stage}: {counted} · {failures} failed · {agreement} agreed{settled}"
+questions: "{count} questions"
+pairs: "{count} pairs"
+settled: " · Laya settled {share}"
+head: "  τ      cover    agree"
+safe_head: "     safe     LLM safe too"

@@ -1,0 +1,25 @@
+# The tool probe's reading as `bmo tool probe` prints it (docs/toolbook.md, 「Measuring」): a title line, and
+# one row to a line under the columns named here. Each `{name}` is filled in with what it names.
+
+# The title line: {at} the Seoul time the reading was printed.
+title: "Tool probe · {at}"
+# The columns, in the order they stand.
+columns:
+  line: "Line"
+  tools_shown: "Tools shown"
+  first_request: "First request tokens"
+  input: "Input"
+  cache_write: "Cache write"
+  cache_read: "Cache read"
+  tool: "Tool"
+  way: "Path"
+  to_result: "Secs to result"
+  whole: "Total secs"
+  exit: "Exit"
+# How the session reached its tool: not at all, through the toolbook, or directly.
+ways:
+  unreached: "Not reached"
+  toolbook: "Toolbook"
+  direct: "Direct"
+# A line asked for that no probe measures: {unknown} the lines asked, {lines} the lines there are.
+unknown_line: "Unknown line: {unknown}. Lines that can be measured: {lines}"

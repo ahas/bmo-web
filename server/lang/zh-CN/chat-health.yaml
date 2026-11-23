@@ -1,0 +1,35 @@
+# Translation of server/lang/ko/chat-health.yaml; that file says what each line is for.
+causes:
+  exit: "运行异常结束了 (退出码 {code})"
+  signal: "运行被外部中断了 (信号 {signal})"
+  error_result: "运行一直跑到了最后，但返回的是错误而不是回答"
+  silent: "运行本身没问题，但轮到回答时只说了要等一等"
+  transport: "没能拿到用来启动运行的窗格"
+  unknown: "读不出运行是怎么结束的"
+
+account:
+  line: "{opening}{room}。{cause}。{said}\n{rest}"
+  broke: "{agent} 的运行失败了"
+  silent: "{subject}这一轮没能给出回答"
+  room: " ({room})"
+  said: " 返回的内容: {said}"
+  action: "最后在使用 {tool} 工具{detail}。"
+  detail: " ({detail})"
+  record: "记录在 {record}。"
+  run_log: "{agent} 运行日志 {run}"
+  unnamed_tool: "未命名工具"
+
+last_resort:
+  journal: "日志 (韩国时间): {windows}"
+  repeated: "同样的原因已经是第 {count} 次了。"
+  speaking: "{subject}接手了这件事却一直没能回答，所以由机器人直接发送。"
+
+rest:
+  outage: "{chat_agent} 的脑子连不上了… 服务器不听话，我先歇一会儿再回来。"
+
+fold:
+  going: "呜呜，脑子塞满了… 我去睡一小会儿。"
+  failed: "呃，没睡着… 脑子折叠不了，那我就继续醒着吧。"
+  failed_owner: "{room} 房间的上下文折叠失败了: {reason}"
+  woken: "上下文折叠"
+  deferred: "推迟上下文折叠。"

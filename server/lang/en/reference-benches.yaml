@@ -1,0 +1,59 @@
+# Translated from server/lang/ko/reference-benches.yaml; its comments say what each value is.
+usage:
+  compare: |-
+    usage: bmo reference compare [--per-cell <n>] [--db <address>] [--route-db <address>] [--json] [--out <path>]
+
+    Samples stored reference classifier runs and asks the three split gates the same conversation again to compare before and after.
+    Reports the pieces attached, how the two answers' sets relate, how often nothing was picked, the share of answers that could not be read, and the time
+    the front end took. The time is wall-clock time with the three gates run side by side.
+    --per-cell is how many to sample per room and candidate-count band (default 8).
+    Without --db it reads the archive this machine's data root points to.
+    --route-db is the archive to read the gate routes and the piece table from (default: the same as --db).
+    --json prints the figures as JSON, and --out <path> writes that JSON to a file: the lines in which a gate tells its own route
+    come out on the same stream, so a machine-read answer is safer taken from the file.
+  inputs: |-
+    usage: bmo reference inputs [--db <address>] < turns.jsonl > inputs.jsonl
+
+    Takes one turn per line of standard input ({"chatId": <room>, "messageIds": [<message>...], "instructions": "<silent instructions>", "bodies": {"<gate>": ["<slug>"]}}) and, per gate, prints as one line of JSON the Laya input (state and the question for each candidate) assembled with the current piece table and narrowing, and the candidates'
+    index descriptions. Give instructions exactly as written in that turn prompt's silent-instructions block; what was read
+    is handed back as it is. A turn with instructions and no words from a person is asked only as each gate declares.
+    A line may carry work ({"kind": "job", "title", "instruction", "requester", "requesterId"} or {"kind": "search", "query"}) in place of
+    messageIds: it is answered with the knowledge gate's input alone, its lines and narrowing those of the work's own run.
+    The pieces named in bodies carry their index description and body as pieces.
+    Asks no model and writes nothing. Without --db it opens the archive this machine's data root points to.
+  narrowing: |-
+    usage: bmo reference narrowing [--db <address>] [--chat <room>] [--turns <n>] [--json]
+
+    Narrows again, with the current piece table, the turns {chat_agent_subject} actually answered (messages with a reference verdict left), and measures per room how many
+    remain for each gate. Without --chat it looks at every room with verdicts left; without --turns, the latest 20 turns per room.
+    Without --db it opens the archive this machine's data root points to. --json prints each turn's figures as JSON.
+  replay: |-
+    usage: bmo reference replay [--db <address>] [--use <turns.jsonl>] [--turns <n>] [--out <path>]
+
+    Puts real turns with a use verdict through the current reference route again and prints, per gate, the documents attached and how many of them the answer actually used,
+    side by side with the figures recorded at the time. The gates are actually asked, along the route the --db archive sets.
+    --turns is how many turns to sample evenly (default 60); --out is the file to write each turn's result to as JSON.
+  roads: |-
+    usage: bmo reference roads [--db <address>] [--json]
+
+    Compares per room whether the route that reads the piece table and the route that read the index files give the same candidates in the same order.
+    Without --db it opens the archive this machine's data root points to. --json prints the figures as JSON.
+  waste: |-
+    usage: bmo reference waste [--db <address>] [--use <turns.jsonl>] [--since <YYYY-MM-DD>] [--top <n>] [--json]
+
+    Tabulates, for each document the reference gate attached, the turns it was attached to, how many of the turns with a use verdict the answer actually used and the share attached in vain,
+    and the total tokens that went in attached in vain. Also shows the time spent in the gate stage and the share the documents attached in vain added to the turn input.
+    Without --use it reads the verdicts in the data folder's reference-use/use-1/turns.jsonl.
+compare:
+  per_cell: "reference-compare: --per-cell is a whole number of 1 or more."
+  corpus: "reference-compare: of {runs} runs, {unreadable} were not in shape and {dropped} could not be split, so {sample} were sampled from {cut}."
+  asked: "  {at}/{sample} · {chat} · {gates} gates · {ms}ms"
+  written: "reference-compare: wrote {out}."
+  sample: "{runs} sampled · {rooms} rooms · {least}–{most} candidates (median {middle})"
+  sifted: "Of {runs} runs sifted, {unreadable} not in shape, {dropped} dropped as unsplittable, {cut} left"
+  pieces: "Pieces attached: before {before}/turn · after {after}/turn"
+  none: "Picked nothing: before {before} · after {after}"
+  unread: "Answer unreadable: before {before} · after gates {after}"
+  shapes: "Set relation: {shapes}"
+  wanting: "  Turns where either side picked ({runs}): {shapes}"
+  front: "Front-end time: before median {before_middle}ms/90% {before_ninth}ms ({timed} paired) · after median {after_middle}ms/90% {after_ninth}ms"

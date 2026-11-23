@@ -1,0 +1,5 @@
+# Translated from server/lang/ko/remote-desktop.yaml; its comments say what each value is.
+dials: "リモートデスクトップはポート {port} で接続します。"
+unset: "リモートデスクトップはポート {port} で接続します (未設定)。"
+not_a_port: "設定値 '{kept}' はポートではないため無視し、ポート {port} で接続します。"
+refused: "ポートではありません: {value}"

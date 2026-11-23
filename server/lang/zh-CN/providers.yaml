@@ -1,0 +1,5 @@
+# Translated from server/lang/ko/providers.yaml; its comments say what each value is.
+off: "提供商已关闭。"
+single_model: "单模型提供商不出借协作者。"
+model_wrong: "无效的作业模型：{selection}"
+no_model: "已开启的提供商中没有注册作业模型。"

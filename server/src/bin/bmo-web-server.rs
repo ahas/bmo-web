@@ -1,23 +1,24 @@
 //! The server's binary (docs/accounts.md): `serve` stands the account service on the address its settings
 //! name, `migrate` brings its database up to date, `settings` refuses settings `serve` would not stand on,
 //! `health` asks the service standing there whether it answers, `user` is the account command, and `wording` writes
-//! the document wording file from the language pack.
+//! the document wording files, one to a language, from the language pack.
 
 use std::fs;
 use std::io::{self, Write};
 use std::os::unix::fs::{DirBuilderExt, PermissionsExt};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 use std::sync::Arc;
 
 use bmo_web_server::agency::{Agency, AgencyClient, NoAgency};
 use bmo_web_server::data_move::moved;
+use bmo_web_server::lang::Language;
 use bmo_web_server::receiver::{NoReceiver, Receiver, ReceiverClient};
 use bmo_web_server::routes::{in_force, stand};
 use bmo_web_server::rules::RULES;
 use bmo_web_server::settings::Settings;
 use bmo_web_server::users::set_sign_in;
-use bmo_web_server::wording::document_wording;
+use bmo_web_server::wording::{document_wording, wording_file};
 use bmo_web_server::{holdings, migration, secrets, store};
 use clap::{Parser, Subcommand};
 use sumida::api::authz::Authz;
@@ -61,11 +62,11 @@ enum Verb {
     #[arg(long)]
     administrator: bool,
   },
-  /// Writes the document wording file bmo-artifact reads, from the language pack (docs/language-pack.md,
-  /// 「What other units read」).
+  /// Writes the document wording files bmo-artifact reads, one to a language, from the language pack
+  /// (docs/language-pack.md, 「What other units read」).
   Wording {
-    /// The file written.
-    file: PathBuf,
+    /// The folder the files are written into, each as `documents.<language>.yaml`.
+    folder: PathBuf,
   },
   /// Moves the old archive's exported rows into this store (docs/accounts.md, TODO #1923).
   Import {
@@ -300,10 +301,15 @@ async fn health(settings: &Settings) -> Result<(), String> {
   }
 }
 
-// The document wording file written to `file`, from the pack alone, so a release writes it with no settings.
-fn wording(file: &PathBuf) -> ExitCode {
-  let written = document_wording().and_then(|text| {
-    fs::write(file, text).map_err(|why| format!("{} cannot be written: {why}", file.display()))
+// The document wording files written into `folder`, one to a language, from the pack alone, so a release writes
+// them with no settings.
+fn wording(folder: &Path) -> ExitCode {
+  let written = Language::ALL.into_iter().try_for_each(|language| {
+    let file = folder.join(wording_file(language));
+
+    document_wording(language).and_then(|text| {
+      fs::write(&file, text).map_err(|why| format!("{} cannot be written: {why}", file.display()))
+    })
   });
 
   match written {
@@ -315,8 +321,8 @@ fn wording(file: &PathBuf) -> ExitCode {
 fn main() -> ExitCode {
   let cli = Cli::parse();
 
-  if let Verb::Wording { file } = &cli.verb {
-    return wording(file);
+  if let Verb::Wording { folder } = &cli.verb {
+    return wording(folder);
   }
 
   // The import reads its own arguments and never the deployment's settings.

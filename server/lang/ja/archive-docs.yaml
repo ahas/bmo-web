@@ -1,0 +1,17 @@
+# Translation of server/lang/ko/archive-docs.yaml; that file says what each line is for.
+header:
+  kind: "- 種類: {kind}"
+  request: "- 依頼: {request}"
+  written: "- 作成: {time}"
+  attached: "- 添付: {names}"
+
+kinds:
+  record: "記録"
+  learning: "学習資料"
+  import: "原文"
+  page: "ページ"
+
+time:
+  line: "{year}/{month}/{day} {half} {hour}:{minute}"
+  morning: "午前"
+  afternoon: "午後"

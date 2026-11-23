@@ -14,7 +14,7 @@ describe("a long paste in the room prompt", () => {
   });
 
   test("is labelled by the head of its first line with words and by its length", () => {
-    const pasted = pastedOf(`\n\n  The assembly is done and the tree is clean. Here is the record.\n${"x".repeat(8_000)}`);
+    const pasted = pastedOf(wording, `\n\n  The assembly is done and the tree is clean. Here is the record.\n${"x".repeat(8_000)}`);
 
     expect(pastedLabel(wording, pasted)).toEqual({
       name: KO.line_19,
@@ -24,19 +24,19 @@ describe("a long paste in the room prompt", () => {
   });
 
   test("is marked with the lowest number the box does not already hold", () => {
-    const first = pastedOf("a".repeat(2_500));
-    const second = pastedOf("b", [first]);
+    const first = pastedOf(wording, "a".repeat(2_500));
+    const second = pastedOf(wording, "b", [first]);
 
     expect(first.mark).toBe(KO.line_29);
     expect(second.key).toBe("paste2");
-    expect(pastedOf("c", [second]).key).toBe("paste1");
+    expect(pastedOf(wording, "c", [second]).key).toBe("paste1");
   });
 });
 
 describe("sending a box that holds marks", () => {
   test("puts each paste back where its mark stands, between the typed words", () => {
-    const first = pastedOf(KO.line_37);
-    const second = pastedOf(KO.line_38, [first]);
+    const first = pastedOf(wording, KO.line_37);
+    const second = pastedOf(wording, KO.line_38, [first]);
     const typed = `${KO.line_39}${second.mark}${KO.line_39_2}${first.mark}${KO.line_39_3}`;
 
     expect(composedText(typed, [first, second])).toBe(KO.line_41);
@@ -47,8 +47,8 @@ describe("sending a box that holds marks", () => {
   });
 
   test("drops a paste whose mark was deleted, and brings it back with the mark", () => {
-    const first = pastedOf(KO.line_49);
-    const second = pastedOf(KO.line_50, [first]);
+    const first = pastedOf(wording, KO.line_49);
+    const second = pastedOf(wording, KO.line_50, [first]);
 
     expect(standingPastes(`${second.mark}`, [first, second])).toEqual([second]);
     expect(composedText(`${second.mark}`, standingPastes(`${second.mark}`, [first, second]))).toBe(KO.line_53);
@@ -56,7 +56,7 @@ describe("sending a box that holds marks", () => {
   });
 
   test("removing an entry takes its mark out of the box", () => {
-    const first = pastedOf(KO.line_58);
+    const first = pastedOf(wording, KO.line_58);
 
     expect(withoutMark(`${KO.line_60}${first.mark}${KO.line_60_2}`, first)).toBe(KO.line_60_3);
   });
@@ -64,7 +64,7 @@ describe("sending a box that holds marks", () => {
 
 describe("a paste kept with the draft", () => {
   test("reads back only what has the shape of a paste", () => {
-    const kept = pastedOf(KO.line_66);
+    const kept = pastedOf(wording, KO.line_66);
 
     expect(readPasted([kept, { key: 1 }, null, "x"])).toEqual([kept]);
     expect(readPasted("nope")).toEqual([]);

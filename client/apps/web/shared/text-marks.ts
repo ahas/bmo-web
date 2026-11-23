@@ -13,8 +13,6 @@ interface TextMarks {
     video: string[];
     video_note: string[];
     audio: string[];
-    paste: string;
-    characters: string;
   };
   filed: { branch: string };
 }
@@ -31,11 +29,6 @@ export const MEDIA_MARKS = {
   videoNote: MARKS.video_note,
   audio: MARKS.audio
 };
-
-/** The mark a long paste stands as in the typed text: the paste word, its number and how many characters it holds. */
-export function pasteMark(number: number, characters: number): string {
-  return `[${MARKS.paste} ${number} · ${characters.toLocaleString("ko-KR")}${MARKS.characters}]`;
-}
 
 /** The word a Claude Workflow's branch is filed under in the name a run stores, ahead of its number. */
 export const BRANCH_WORD = (data as TextMarks).filed.branch;

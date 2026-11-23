@@ -1,0 +1,9 @@
+# Translated from server/lang/ko/generation.yaml; its comments say what each value is.
+refusals:
+  switch: "{name} 的值必须是开或关。"
+  number: "{name} 的值必须是数字。"
+  whole: "{name} 的值必须是整数。"
+  range: "{name} 的值必须在 {span} 范围内。"
+  above: "大于 {min}"
+  least: "不小于 {min}"
+  most: "{least}、不大于 {max}"

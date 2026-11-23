@@ -1,0 +1,30 @@
+# What a work order reads as in lines wherever it is read (docs/work-orders.md; docs/job-tools.md, 「What a verb
+# answers with」): the order's own words, a task run again, the counts, its hold on its checkout and its stops;
+# and what a resume adds where the queue is held still. Each `{name}` is filled in with what it names.
+
+# The order's round past the first, {round}, after its phase.
+round: " · {round}回目"
+# A task run past its first time: which time this is, {attempt}.
+attempt: " ({attempt}回目)"
+# The order's purpose, {intent}, and its instruction, {instruction}, each whole.
+intent: "目的: {intent}"
+instruction: "指示: {instruction}"
+# How many tasks of earlier rounds the history holds, {count}.
+history: "history: {count}件"
+# The order holding its checkout, and what letting it go waits on, {wait}.
+holds_checkout: "checkout: この作業指示書が保持しています"
+release_wait: " ({wait} を待機)"
+# The owner's stop, the {owner} by name with the {why} they gave and the minute {at} they gave it; a wind-down
+# under way, with its {why} and {at}.
+owner_stop: "{owner} が停止: {why} ({at})"
+closing: "終了処理中: {why} ({at})"
+# How many of the order's stops were failures, {count}, after the minute it stopped.
+failed_stops: " · 失敗で停止 {count}回"
+# The last line: the minute the order was last written, {at}.
+updated: "updated: {at} · 全体の構造は --json"
+
+# A resume answered while the queue is held still, by the owner's pause or by a deployment's hold, so the
+# order is active again and its next step still does not start.
+resume:
+  owner: "自動進行が一時停止中のため、再開しても次のステップはオンにするまで始まりません。"
+  deploy: "デプロイが Job の終了を待ってキューを保持しているため、再開しても次のステップはデプロイが解放するまで始まりません。"

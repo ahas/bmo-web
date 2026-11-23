@@ -1,5 +1,6 @@
 # Words the console matches on rather than shows (docs/web.md, 「Wording and the language pack」): what another
-# unit writes into a text in this language, read by name in `shared/text-marks.ts`. A code file holds none.
+# unit writes into a text, in every language it writes in, read by name in `shared/text-marks.ts` whatever language
+# the reader reads the console in. A code file holds none.
 
 # The marks a message's text opens with where it stands for something other than words. A voice message's
 # text is its mark, with the recording's length where one is known, then the words it says; a line an agent sends
@@ -18,17 +19,6 @@ marks:
   video: ["동영상", "Video"]
   video_note: ["동영상 메모", "Video note"]
   audio: ["오디오", "Audio"]
-  # A long paste held beside the console's box stands in the typed text as its mark, which is found there again by
-  # what it says: the paste word, its number, and its length in characters with the character word after it.
-  paste: "붙여넣기"
-  characters: "자"
-
-# The subject particle a name from another unit is joined to, by the sound it ends on: after a closed syllable and
-# after an open one. The console reads which one a name asks for and joins it.
-particles:
-  subject:
-    closed: "이"
-    open: "가"
 
 # The word bmo-job files a co-work branch's span under in the name it stores, ahead of the branch's number.
 filed:

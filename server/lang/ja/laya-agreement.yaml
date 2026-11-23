@@ -1,0 +1,17 @@
+# Translated from server/lang/ko/laya-agreement.yaml; its comments say what each value is.
+usage: |-
+  usage: bmo gate laya-agreement [--stage <ゲート>] [--db <アドレス>] [--json]
+
+  ゲートごとに Laya と LLM の判定の一致率を表示します: ペア数、失敗数、全体の一致率、そして τ ごとに
+  Laya が受け持つ割合 (カバー) とその中の一致率。候補ごとに別々に決めるゲートはペアの代わりに設問で数え、
+  Laya が答えた設問のうちゲートの代わりに決めた割合 (Laya が決定) も表示します。安全判定のあるゲートは、Laya が安全とした数と
+  そのうち LLM も安全とした割合も表示します。
+  --db がなければ、このマシンの設定が指すアーカイブを読みます。読むだけで書き込みません。
+  --json はゲートごとの数値をそのまま JSON で出力します。
+none: "記録された Laya の判定はまだありません。"
+gate: "{stage}: {counted} · 失敗 {failures} · 一致 {agreement}{settled}"
+questions: "設問 {count}"
+pairs: "ペア {count}"
+settled: " · Laya が決定 {share}"
+head: "  τ      カバー   一致"
+safe_head: "     安全判定  うち LLM も安全"

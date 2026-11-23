@@ -1,0 +1,112 @@
+# What a work order's editing answers the owner and the chat agent with (docs/work-orders.md): the refusals of a plan
+# that does not read, of a step verb the order's state does not allow, and of the control route's own
+# verbs, said alike by the bun bot and `bmo-server` where each answers them; and what the work order script
+# says of its own flags and of a bot it could not reach. Each `{name}` is filled in with what it names:
+# {task} a step's id, {item} the TODO item's number, {cwd} a checkout.
+
+# A plan that does not read: what it lacks, the {name} of a part that is empty or too long, the {most}
+# things a synthesis may build, the {roles} a task may take.
+plan:
+  not_object: "A JSON object is required."
+  empty: "{name} is empty or too long."
+  stages: "A list of stages (stages) is required."
+  stage_tasks: "Each stage needs at least one task."
+  stage_title: "Stage name"
+  role: "Role must be one of {roles}."
+  model: "Model"
+  model_form: "Specify the model as provider::model."
+  task_instruction: "Task instruction"
+  task_title: "Task name"
+  builds: "At most {most} build tasks."
+  build_instruction: "Build instruction"
+
+# A step verb the order's state does not allow, or one given what it does not take: the {tiers} a model
+# or a co-worker may be, those only a worker is ({worker_only}), a job named by its {job} with the
+# particle its number takes, its {unit}, and the {base} a step's prompt was read for.
+steps:
+  no_task: "Task {task} isn't in this work order."
+  control: "Plan, synthesis and final turns aren't changed with step verbs. To end a work order midway, use --close."
+  finished: "This work order is finished. To run it again, open it with --reopen."
+  draft: "This is a draft that hasn't run yet."
+  closing: "This work order is closing. Once the changes opened in the checkout are taken back and it is done, open it with --reopen."
+  instruction_size: "A task instruction must be 1–30000 characters."
+  model_tier: "Model tier must be one of {tiers}."
+  coworker_tier: "Co-worker tier must be one of {tiers}. {worker_only} tiers aren't borrowed as co-workers."
+  history_edit: "Tasks from earlier rounds aren't edited."
+  history_rerun: "Tasks from earlier rounds aren't rerun. To redo from an earlier round, reopen the work order."
+  history_restore: "Tasks from earlier rounds aren't restored. To redo from an earlier round, reopen the work order."
+  running_edit: "Changing a running task's saved instruction doesn't reach the run already started. To add words to what is running, append with bmo todo --append {item}."
+  done_edit: "Fix a finished task together with its instruction in --rerun {task}."
+  nothing_to_edit: "There's no instruction or model to change."
+  skip_reason: "Give a reason for skipping, 1–2000 characters."
+  skipped_already: "Task {task} is already skipped."
+  running_builder: "A running builder turn isn't stopped here. To make it stop, stop the item with bmo todo --stop {item} --why '<reason>'."
+  not_yet: "Task {task}'s stage hasn't come yet. To undo the skip, use --restore."
+  stage_running: "A task in the current stage is running, so the stage isn't rolled back."
+  build_running: "Not accepted while a build task is running."
+  research_over: "Investigate stages aren't rerun once the research phase is over. To redo from research, reopen the work order."
+  phase: "This task isn't rerun in the current phase."
+  running: "Task {task} is running."
+  pending: "Task {task} is already pending."
+  not_skipped: "Task {task} isn't skipped."
+  same_anchor: "A task isn't moved relative to itself."
+  add_anchor: "A new task goes only before or after a pending build task."
+  build_move: "Build tasks are moved only when both are pending."
+  task_move: "A single task isn't moved within a stage or to another stage. Stages are moved whole."
+  stage_move_past: "Only stages after the current one are moved."
+  stage_move_pending: "Only stages whose tasks are all pending are moved."
+  move_kinds: "Build tasks move only among build tasks, and investigate-stage tasks only among investigate-stage tasks."
+  stop_reason: "Give a reason for stopping, 1–2000 characters."
+  close_reason: "Give a reason for closing, 1–2000 characters."
+  close_builder: "A builder turn is running, so it isn't closed. To make it stop, stop the item with bmo todo --stop {item} --why '<reason>'."
+  recover_done: "Only finished work orders are recovered. For a work order a runner holds, the recovered record is overwritten by the runner's save."
+  recover_no_jobs: "This item has no Job in that range."
+  recover_known: "Job {job} is already recorded in the work order. Name only the Job numbers of overwritten runs."
+  recover_running: "Job {job} hasn't finished yet."
+  recover_not_step: "Job #{job} ({unit}) isn't a work order step of this item."
+  recover_unread: "Couldn't read the role and instruction of {base} from Job #{job}'s prompt."
+  recover_twice: "Task {task} is already in the work order."
+  recover_none: "No stage succeeded in that range, so there's no task to recover."
+  recover_no_builder: "There's no builder turn in that range to read the earlier run's purpose and instruction from."
+
+# The control route's verbs on a work order and an item: a stopped order's place in its line, a body
+# field by its {name}, runs asked to stop that are still {alive}, a result document already at its {path}.
+orders:
+  paused: "The work order for TODO #{item} is paused. The bot resumes it on its own when its turn comes in that worker's line; to resume it now, use bmo work-order --todo {item} --resume."
+  not_text: "{name} must be a string."
+  missing: "{name} is required."
+  still_running: "Asked the runs to stop, but they aren't confirmed finished yet: {alive}"
+  document_there: "A result document already exists at {path}, so it isn't overwritten."
+  reopen_done: "Only finished work orders are reopened."
+  draft_only: "Only a draft that hasn't run can be edited."
+  order_and_model: "Check the work order and the model."
+  approved_only: "Only approved TODOs ready to proceed are run."
+  active: "TODO #{item}: the saved steps are already in progress."
+  done: "A finished work order isn't run again. To run it again keeping the earlier results, open it with bmo work-order --todo {item} --reopen."
+  model: "Invalid task model."
+  chat: "Invalid chatId."
+  not_checkout: "{cwd} isn't a git repository, so co-work isn't run."
+  not_checkout_run: "{cwd} isn't a git repository, so co-work isn't run. Run it as a regular Job without co-work."
+  item_number: "Invalid TODO number."
+  no_item: "TODO not found."
+  resume_held: "Only approved stopped work that is neither on hold nor merged is resumed."
+  resume_paused: "Only stopped work can be resumed."
+  before_after: "Give only one of before and after."
+  checkout_done: "A finished work order's checkout is the record of where its work was done, so it isn't changed."
+  job_range: "Write a Job range as <first Job>-<last Job>."
+  action: "Invalid action."
+  stop_done: "A finished item isn't stopped."
+
+# The work order script's own flags, and a bot it could not reach to stop an item or edit an order: the
+# {flag} lacking a value, the {verbs} named together, the {error} the call gave and the {status} the bot
+# answered with.
+script:
+  value: "{flag} needs a value after it."
+  verbs: "Use only one verb at a time: {verbs}"
+  recover: "Write --recover as <first Job>-<last Job>."
+  stop_no_token: "Didn't stop: the bot's control API token (BMO_CONTROL_TOKEN) is missing."
+  stop_unreachable: "Didn't stop: the bot isn't responding. Call again when the bot is up. ({error})"
+  stop_refused: "The bot didn't accept the stop (HTTP {status})."
+  edit_no_token: "Didn't change the work order: the bot's control API token (BMO_CONTROL_TOKEN) is missing."
+  edit_unreachable: "Didn't change the work order: the bot isn't responding. Call again when the bot is up. ({error})"
+  edit_refused: "The bot didn't accept the request (HTTP {status})."

@@ -1,0 +1,10 @@
+# Translation of server/lang/ko/full-suite.yaml; that file says what each line is for.
+account: "每天运行一次的完整测试套件{where}{engine}未通过: {verdict}。{files} 可能暴露了选择性运行没跟上的依赖。日志: {log}"
+at_head: "在 main ({head}) 上"
+no_head: "因无法读取 main"
+engine: "以 {engine} 运行归档测试时"
+files: " 出错的文件: {files}。"
+file: "{file} ({package})"
+joiner: "、"
+outside: "包外"
+outside_listed: "(包外)"

@@ -1,0 +1,124 @@
+# The words a TODO item is read in by a person and by the chat agent (docs/worker-language.md): one line of it in
+# a listing and the whole of it opened, written by the bun bot's TODO readings. A job reads its own English
+# rendering instead. Each `{name}` is filled in with what it names.
+
+# One line of a listing: a merge into the item {id}, the item finished, waiting on approval by its
+# {requester}, and the marks that follow the item's state.
+line:
+  merged: "已合并到 #{id}"
+  merging: "合并到 #{id}"
+  done: "已完成{merge}"
+  pending: "待审批（{requester}）"
+  cowork: " · 协作"
+  note: " · 有审批意见"
+  report: " · 有报告"
+  unfinished: " · 有待决事项"
+  unfinished_resolved: " · 待决事项已解决"
+
+# The word a held item wears, by who set it aside and whether its run still ends: stopped by the owner, wound
+# down to resume, held after failing, or plain; and while its run still goes, stopping, winding down, or
+# waiting for the run to end.
+held:
+  stop: "已停止"
+  stopping: "停止中"
+  pause: "等待恢复"
+  pausing: "收尾中"
+  failure: "因失败暂缓"
+  plain: "暂缓"
+  pending: "等待中断"
+
+# What a row linked to the item opened is: finished, still open, merged, held.
+row:
+  done: "已完成"
+  open: "未完成"
+  merged: "已合并"
+  held: "暂缓"
+  opened: "已打开"
+
+# The whole of one item opened, each line by its label. {state}, {held}, {requester}, {approved},
+# {priority}, {model}, {worker} and {cowork} are its values; its impact grounds, the chat agent's and a job's each under
+# its own head, are one line per node, by its {id} and the {contract} that changes on it or the word for a
+# change inside alone, and a line where a new home must be decided.
+show:
+  state: "状态: {state}"
+  state_merged: "已合并"
+  state_done: "已完成"
+  held: "暂缓: {at}{reason}"
+  requester: "请求人: {requester}"
+  approved: "审批: {approved}"
+  priority: "优先级: {priority}"
+  model: "模型: {model}"
+  model_default: "默认"
+  # Beside the provider and model the work last went out on, wherever an item's model is shown: the mark of
+  # a road the provider order fell to, the mark of runs that went out on more than one, and in the detail
+  # alone the {requested} model where the two differ.
+  model_fallback: "（回退）"
+  model_changed: "（模型已变更）"
+  model_requested: "（请求 {requested}）"
+  worker: "工作器: {worker}{unassigned}"
+  worker_unassigned: "（未分配，Built-in 工作器）"
+  cowork: "协作: {cowork}"
+  cowork_on: "开"
+  cowork_off: "关（以单个会话运行）"
+  impact: "影响依据:"
+  impact_job: "Job 重新梳理的影响依据:"
+  impact_node: "- {id}: {contract}"
+  impact_inside: "仅内部变更"
+  impact_new_home: "- 需要确定新位置"
+  owner_note: "{owner}的审批意见（原文）:\n{note}"
+  owner_note_carried: "这条意见必须原样放入 Job 提示词，Job 必须在报告中回应。"
+  report: "完成报告:"
+  unfinished: "待决事项{resolved}:"
+  unfinished_resolved: "（已解决）"
+  resolution: "解决 {on}: {resolution}"
+  raised: "已由这些待决事项创建的条目（不再重复创建）:"
+  notes: "补充指示:"
+  draft: "工作指示草稿（与条目正文分开记录）:"
+  draft_intent: "目的:\n{intent}"
+  draft_instruction: "指示:\n{instruction}"
+
+# The merge on both sides: into the item {id} with its {title}, at the moment {at}, and the items merged
+# into this one.
+merge:
+  into: "合并: {at}已合并到 #{id} {title}{follows}"
+  follows: "。该条目完成时一并完成"
+  merged: "已合并的条目:"
+  work: "已合并的条目 #{id} {title}（由本条目的 Job 一并处理，关闭本条目时一并完成）:"
+
+# The repair link on both sides: the item {id} with its {title} this one repairs, and the items repairing
+# this one.
+repair:
+  target: "修复对象: #{id}{title}"
+  repairs: "修复本条目的条目:"
+
+# What the work stopped to ask the owner, and what each question became.
+questions:
+  heading: "Job 的提问:"
+  waiting: "仍在等待"
+  typed: "{answer}（{owner_subject}直接输入）"
+  chosen: "{owner_subject}选择"
+  defaulted: "未回复 · 按推荐答案决定"
+
+# How long the item took and what the time went to: the {attempts} runs, the {finished} of them ended, each
+# attempt by its {attempt} and {job}, the spans of the run phase {phase}, and the tokens of the {spending}
+# runs that left a record of them.
+time:
+  running: "时间: 仍在运行（运行 {attempts} 次）"
+  total: "时间: 共 {clock}（运行 {attempts} 次{finished}）"
+  finished: "，已结束 {finished} 次"
+  attempt_running: "- 第 {attempt} 次（Job {job}）: 仍在运行"
+  attempt: "- 第 {attempt} 次（Job {job}）: {clock} · {outcome}"
+  no_outcome: "无记录"
+  phases: "阶段（整个 Job 的划分）:"
+  split: "{phase} 细分时间（上方 {phase} 阶段的划分）:"
+  split_waiting: "- 等待分支的时间 {clock}"
+  split_tooling: "- 直接调用工具的时间 {clock}"
+  split_generating: "- 模型生成的时间 {clock}"
+  inside: "{phase} 期间各工具的时间（同时运行的工具时间会重叠，合计可能长于实际时间）:"
+  inside_more: "- 其他 {count} 种"
+  no_spans: "无阶段记录（该 Job 在开始记录阶段之前运行）"
+  span_times: " · {times} 次"
+  span_tokens: " · 令牌 {tokens}"
+  tokens: "令牌（按模型，有用量记录的 {spending} 次合计）:"
+  tokens_missing: "- 其余 {missing} 次没有用量记录，未计入"
+  no_tokens: "无令牌记录（运行未能留下用量的 Job）"

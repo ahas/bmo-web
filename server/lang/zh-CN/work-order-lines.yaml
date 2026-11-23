@@ -1,0 +1,30 @@
+# What a work order reads as in lines wherever it is read (docs/work-orders.md; docs/job-tools.md, 「What a verb
+# answers with」): the order's own words, a task run again, the counts, its hold on its checkout and its stops;
+# and what a resume adds where the queue is held still. Each `{name}` is filled in with what it names.
+
+# The order's round past the first, {round}, after its phase.
+round: " · 第 {round} 轮"
+# A task run past its first time: which time this is, {attempt}.
+attempt: "（第 {attempt} 次）"
+# The order's purpose, {intent}, and its instruction, {instruction}, each whole.
+intent: "目的：{intent}"
+instruction: "指令：{instruction}"
+# How many tasks of earlier rounds the history holds, {count}.
+history: "history：{count} 条"
+# The order holding its checkout, and what letting it go waits on, {wait}.
+holds_checkout: "checkout：由此工作指令单占用"
+release_wait: "（等待 {wait}）"
+# The owner's stop, the {owner} by name with the {why} they gave and the minute {at} they gave it; a wind-down
+# under way, with its {why} and {at}.
+owner_stop: "{owner} 已停止：{why}（{at}）"
+closing: "正在结束：{why}（{at}）"
+# How many of the order's stops were failures, {count}, after the minute it stopped.
+failed_stops: " · 因失败停止 {count} 次"
+# The last line: the minute the order was last written, {at}.
+updated: "updated：{at} · 完整结构请用 --json"
+
+# A resume answered while the queue is held still, by the owner's pause or by a deployment's hold, so the
+# order is active again and its next step still does not start.
+resume:
+  owner: "自动推进已暂停，即使恢复，下一步也要等重新开启后才会启动。"
+  deploy: "部署正在等待 Job 结束并占用着队列，即使恢复，下一步也要等部署释放后才会启动。"

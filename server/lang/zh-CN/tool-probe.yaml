@@ -1,0 +1,25 @@
+# The tool probe's reading as `bmo tool probe` prints it (docs/toolbook.md, 「Measuring」): a title line, and
+# one row to a line under the columns named here. Each `{name}` is filled in with what it names.
+
+# The title line: {at} the Seoul time the reading was printed.
+title: "工具探测 · {at}"
+# The columns, in the order they stand.
+columns:
+  line: "线路"
+  tools_shown: "显示的工具"
+  first_request: "首次请求令牌"
+  input: "输入"
+  cache_write: "缓存写入"
+  cache_read: "缓存读取"
+  tool: "工具"
+  way: "路径"
+  to_result: "到结果秒数"
+  whole: "总秒数"
+  exit: "退出"
+# How the session reached its tool: not at all, through the toolbook, or directly.
+ways:
+  unreached: "未能到达"
+  toolbook: "工具簿"
+  direct: "直接"
+# A line asked for that no probe measures: {unknown} the lines asked, {lines} the lines there are.
+unknown_line: "未知线路: {unknown}。可测量的线路: {lines}"

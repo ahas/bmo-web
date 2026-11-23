@@ -1,0 +1,13 @@
+# Translated from server/lang/ko/room-removal.yaml; its comments say what each value is.
+refused:
+  seeded: "This room is declared in the supervisor seed and would be created again at the next start, so it can't be deleted."
+  infra: "This is an infrastructure room set in the configuration, so it can't be deleted."
+  owner: "This is the administrator's private room, so it can't be deleted. Reports and questions are delivered to this room."
+  administrator: "Only the administrator can delete a room's registration."
+  chat: "The room number to delete is not valid."
+warned:
+  answerers: "Supervisors answer in this room: {names}. They remain, but will no longer answer in this room."
+  items: "This room has {count} open items made in it. The items remain, and their updates go to the administrator's private room."
+  questions: "{count} Job questions from this room are waiting for an answer."
+  private: "This is {user}'s private room."
+  road: "This room can still be reached through {road}. If a message comes later, it is registered again as a new room."

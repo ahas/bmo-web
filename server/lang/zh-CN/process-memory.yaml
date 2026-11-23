@@ -1,0 +1,6 @@
+# Translated from server/lang/ko/process-memory.yaml; its comments say what each value is.
+machine: "{at} · 内存 {total}MB 中可用 {available}MB · 交换空间 {swap_total}MB 中剩余 {swap_free}MB"
+counted: "统计进程 {counted} 个 · 无法读取的进程 {unreadable} 个"
+runtimes: "按可执行文件"
+programs: "{name} 的各程序"
+none: "（无）"

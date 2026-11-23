@@ -1,0 +1,5 @@
+# Translated from server/lang/ko/remote-desktop.yaml; its comments say what each value is.
+dials: "Remote desktop connects on port {port}."
+unset: "Remote desktop connects on port {port} (not set)."
+not_a_port: "The set value '{kept}' is not a port, so it is ignored and port {port} is used."
+refused: "Not a port: {value}"

@@ -1,0 +1,23 @@
+# What the sign-in scripts a person runs once say to that person: the Telegram reader's login
+# (docs/reader.md) and the Teams avatar's delegated sign-in (docs/teams.md, 「The avatar mode」). Each `{name}` is
+# filled in with what it names.
+
+# The Telegram reader's login.
+telegram:
+  # The API id and hash missing from the environment.
+  unconfigured: "请先在环境（.env）中设置 BMO_TG_API_ID 和 BMO_TG_API_HASH。可在 my.telegram.org 申请。"
+  # The questions asked in turn while signing in.
+  phone: "电话号码（+8210...）: "
+  code: "在 Telegram 收到的验证码: "
+  password: "两步验证密码（没有请按回车）: "
+  # The sign-in done, over the line to add to the environment.
+  signed_in: "登录成功。请将下面这一行添加到 .env，然后重启服务:"
+
+# The Teams avatar's sign-in.
+teams:
+  # The Graph app's id missing, after {missing}, what the configuration says is not set.
+  unconfigured: "{missing}: 请在 env/bot.env 中填入允许公共客户端流程的 Entra 应用 ID。"
+  # Where to enter the device code, {address}, and the {code}, where Microsoft's answer carried no message.
+  enter_code: "请在 {address} 输入 {code}。"
+  # The sign-in done, as the {account} signed in, with the {path} its token was written to.
+  signed_in: "已登录: {account}。令牌位于 {path}。"

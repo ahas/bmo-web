@@ -1,0 +1,112 @@
+# What a game of 끝말잇기 says in the room and what its start and stop answer the chat agent with
+# (docs/word-chain.md), said alike by the bun bot and bmo-server.
+
+# What a game says in the room, in the chat agent's voice, and what its start and stop answer the chat agent with.
+# Each `{name}` is filled in with what it names: {word} a word as played, {topic} a word quoted with its
+# topic particle, {openings} the syllables a word may start with and the particle after them, {name} a
+# player's name and {subject} a name with its subject particle. The particles are chosen by the code
+# saying the line, by the sound a word ends on.
+lines:
+  # A game's name: the first players' {shown} names, and the {rest} counted.
+  game: "[{shown} 的对局]"
+  game_more: "[{shown} 等 {rest} 人的对局]"
+  game_joint: "·"
+  # Why a word the asker gave cannot open a game.
+  opening_not_in_book: "{topic} 不在词典里"
+  opening_loanword: "{topic} 是外来词"
+  opening_no_follower: "{topic} 没有能接上的词"
+  # The asker asked for another opening word, the one that could not open it said {unusable}.
+  ask_again: "{unusable}，不能用作起始词。{name}，换一个起始词吧，收到就开局。"
+  ask_again_bare: "{unusable}，不能用作起始词。换一个词吧。"
+  ask_first: "{name}，先给一个开局用的起始词吧。也可以像「开始 小狗」这样带上词。"
+  no_opening: "没收到起始词，词语接龙就先不玩了。"
+  folded: "词语接龙就先不玩了。"
+  # The call for players: its rules, how to join, the {seconds} until it starts, and its opening word.
+  call: "词语接龙招募玩家！"
+  call_join: "「参加」"
+  call_join_named: "「参加 {name}」（有多个对局在招募，请带上这局里某人的名字）"
+  call_how: "输入 {how} 即可加入。{seconds} 秒后或有玩家说「开始」时开局。"
+  call_opening: "起始词是 {openings}。"
+  call_moves: "轮到你时只输入词语即可。「认输」为认输，「停止接龙」为结束游戏。"
+  rule_joint: " · "
+  rule_nouns: "仅限名词"
+  rule_loanwords_on: "允许外来词"
+  rule_loanwords_off: "禁止外来词"
+  rule_manner_on: "禁止绝杀词"
+  rule_manner_off: "允许绝杀词"
+  rule_no_limit: "不限时（{minutes} 分钟无人出词则结束）"
+  rule_limit: "每轮 {seconds} 秒"
+  rule_robot: "{agent} 也参加（{difficulty}）"
+  # A move refused, and why.
+  off_chain: "{topic} 接不上。请给一个以 {openings} 开头的词。"
+  not_in_book: "{topic} 不在词典里。"
+  loanword: "{topic} 是外来词，本局不能用。"
+  used: "{topic} 已经出过了。"
+  manner: "{topic} 是绝杀词，本局不能用。"
+  # What happens in a game: a player joins with {count} in it, a round starts in an {order}, a turn with
+  # its {limit}, a word taken for its {points}, what a word means, a player out ({by} scoring the 한방 its
+  # {points}), and the end with each {place} of the ranking and its {score} and {words}.
+  joined: "{name} 加入（{count} 人）"
+  started: "开始！顺序：{order}"
+  order_joint: " → "
+  first_word: "起始词：{word}"
+  new_word: "新起始词：{word}"
+  meaning: "{word}：{meaning}"
+  turn: "轮到 {name}：以 {openings} 开头{limit}"
+  turn_limit: " · {seconds} 秒"
+  taken: "好，{word}（+{points}）"
+  taken_robot: "{name}：{word}（+{points}）"
+  timeout: "时间到！{name} 出局。"
+  hanbang: "绝杀！没有以 {openings} 开头的词，{name} 出局。{by}"
+  hanbang_by: "（{name} +{points}）"
+  gave_up: "{name} 认输。"
+  stuck: "{subject} 没找到能接上的词。{name} 出局。"
+  nobody: "没有人参加，词语接龙就先不玩了。"
+  stopped: "词语接龙已停止。目前得分："
+  idle: "{minutes} 分钟无人出词，词语接龙就先不玩了。目前得分："
+  decided: "游戏结束！最终排名："
+  ranking: "第 {place} 名 {name} {score} 分（{words} 个词）"
+  # Where a word to a game could be for several standing ones: which to pick with the {verb} it was said
+  # for, the word to say and an {example} of it.
+  pick: "请选择要{verb}的对局：{games}。像「{word} {example}」这样带上对局中某人的名字即可。"
+  pick_stop: "停止"
+  pick_join: "参加"
+  pick_stop_word: "停止接龙"
+  pick_join_word: "参加"
+
+  # The robot's difficulty as the call names it.
+  difficulty:
+    easy: "简单"
+    normal: "普通"
+    hard: "困难"
+
+# What starting and stopping a game answer the chat agent with: the word book missing at its {path}, a
+# {subject} already in a {game} of the room, an opening word {unusable}, a game opened in the room {chat}
+# with {more} standing beside it, or none to stop.
+answers:
+  no_book: "未安装词典：{path}（bmo word-chain install）"
+  in_game: "{subject} 已在本房间的 {game} 中。"
+  unusable: "{unusable}，无法开局。请换一个起始词后重新开局。"
+  asked_again: "{unusable}，已在房间里请 {name} 换一个起始词。收到可用的词后即开局。"
+  opened: "已开启词语接龙：房间 {chat}，正在招募玩家。{more}"
+  opened_more: " 本房间共有 {count} 个对局。"
+  none: "本房间没有进行中的词语接龙。"
+  several: "本房间有 {count} 个对局：{games}。请把要求停止的人作为 player 传入。"
+  not_theirs: "本房间没有那个人参加的词语接龙对局。"
+  # The bot asked to start or stop a game from a shell not answering at all, with {why}, or answering the
+  # {status} of a request it did not take.
+  unreached: "机器人没有响应（{why}）"
+  not_taken: "机器人未接受请求（HTTP {status}）。"
+
+# What the word book's own verbs answer: the book installed with its {count} words at its {path} out of its
+# {source} at its {commit} under its {licence}, the {count} meanings read into it out of theirs, and a {word}
+# looked up — absent, or present with whether it is a {loanword}, the {openings} it hands on and how many
+# {count} words follow, and its {meaning}, a basic word's or a hard one's.
+book:
+  installed: "已将 {count} 个词安装到 {path}（{source} @ {commit}，{licence}）。"
+  meanings: "已加入 {count} 条释义（{source} @ {commit}，{licence}）。"
+  absent: "「{word}」：词典中没有"
+  found: "「{word}」：有{loanword} · 以 {openings} 接续的词 {count} 个"
+  loanword: "（外来词）"
+  basic: "基础词：{meaning}"
+  hard: "难词：{meaning}"

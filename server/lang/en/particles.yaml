@@ -1,0 +1,9 @@
+# Translated from server/lang/ko/particles.yaml. English has no particles joined to a name, so each is empty.
+subject:
+  closed: ""
+  open: ""
+  unknown: ""
+object:
+  closed: ""
+  open: ""
+  unknown: ""

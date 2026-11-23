@@ -1,0 +1,9 @@
+# The one line at the foot of a resident program's screen (docs/agent-control.md, 「What a resident turn
+# reads」): what is going and since when, or since when the agent has been resting and which run it last did.
+# A run is named by its {name} and {title}, and each moment is an {at} on Seoul's clock.
+
+resting: "休止中"
+person: "直接入力 · {at} 開始"
+running: "実行中 · {name} · {title} · {at} 開始"
+rested_after_person: "休止中 · {at} から · 最後は直接入力"
+rested_after_run: "休止中 · {at} から · 最後の実行 {name}"

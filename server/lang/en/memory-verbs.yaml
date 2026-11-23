@@ -1,0 +1,22 @@
+# Translated from server/lang/ko/memory-verbs.yaml; its comments say what each value is.
+global_scope: "global · {reach}"
+from_item: " · open issue of item #{item}"
+why_missing: "--why '<reason>' says why, and a row never comes down for no reason anybody can read"
+action_missing: "--action '<what>' is what attaches; give it, or --action - with the text on stdin"
+state_missing: "--action '<where it stands now>' is where the state now stands; give it, or --action - with the text on stdin"
+situation_unpaired: "a situation row is a pair: --condition '<when>' is the half the matcher reads, or --on <event> the fact it waits for, and without either it would attach every turn"
+situation_unfinished: "memory '{handle}' is a situation row, which is never finished: take it down with --retire {slug} --why '<reason>'"
+event_unknown: "Unknown event: {given}. Use one of {kinds}."
+event_empty: "(empty)"
+event_kind_item: "{kind}[:<item>]"
+event_takes_no_item: "A {kind} event takes no item: {given}"
+event_bad_item: "The event's item number is not valid: {given}"
+usage: |-
+  usage: {verb} --chat <chatId>|--global [--reach <owner|group|all>] --add --type <promise|check|followup|situation|state> --action '<what>'|- [--condition '<when>' | --on <deployed[:<item>]|job-ended[:<item>]|queue-changed> | --until '<check>' [--name '<short name>'] [--every <seconds>] [--within <minutes>]] [--slug <slug>] [--for <userId>] [--by <userId>] [--message <messageId>] [--todo <itemId>] [--replaces <slug>]
+         {verb} --chat <chatId> --update <id|slug> --action '<where it stands now>'|-
+         {verb} --chat <chatId> --done <id|slug> [--text '<how it ended>']
+         {verb} --chat <chatId>|--global --retire <id|slug> --why '<reason>'
+         {verb} --chat <chatId>|--global --revive <id|slug>
+         {verb} --chat <chatId>|--global --candidate <id|slug> --why '<reason>'
+         {verb} --chat <chatId>|--global --list [--all] [--type <type>]
+  every form takes --agent <name>, the agent whose rows these are, where the run calling it names none

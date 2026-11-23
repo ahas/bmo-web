@@ -1,0 +1,29 @@
+# The words a TODO item's instruction is composed in beyond its own parts and the copied conversation
+# (docs/todo.md, 「What an item says」): the block of words added after it was filed, the block a raised row
+# carries for each strand it came out of, the judgement such a row states, and the source lines that say who
+# wrote a block and when. Each `{name}` is filled in with what it names.
+
+# The block of words added to an item while it stood, and its source: the {note} number, its {author} and
+# when it was added {at}.
+note: "追記"
+note_source: "メモ {note}、{author}、{at}"
+
+# The block the chat agent's own judgement stands in on a row it raised; the console reads rows by this heading.
+judgement: "{chat_agent}の判断"
+
+# The block of one strand of a 미결 a raised row came out of, and its source: the item {id} and {title}
+# that left it and the {strand} number.
+source: "出典の未決事項"
+source_line: "項目 #{id} {title}、{strand}番"
+
+# What raised a row a job raised, by the item {id} whose work it was.
+raised_by_item: "項目 #{id}の作業"
+
+# The source of a block the {filer} wrote itself as it filed the row, the filer's name with its particle.
+filed_by: "{filer}が受付時に記入"
+
+# What a fast-track promotion's first block opens with, ahead of the tool's path.
+fast_track: "ファストトラックツール: "
+
+# The tail of a copied message's source that names its archived message {id}.
+message: "、メッセージ {id}"

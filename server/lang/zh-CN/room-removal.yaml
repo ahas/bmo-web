@@ -1,0 +1,13 @@
+# Translated from server/lang/ko/room-removal.yaml; its comments say what each value is.
+refused:
+  seeded: "该房间在主管种子中声明，下次启动时会重新创建，因此无法删除。"
+  infra: "该房间是配置中指定的基础设施房间，无法删除。"
+  owner: "这是管理员的私人房间，无法删除。报告和问题会发送到这个房间。"
+  administrator: "只有管理员可以删除房间登记。"
+  chat: "要删除的房间编号无效。"
+warned:
+  answerers: "有主管在此房间回答：{names}。主管会保留，但不再在此房间回答。"
+  items: "此房间中创建的未关闭条目有 {count} 个。条目会保留，消息会发送到管理员的私人房间。"
+  questions: "来自此房间的 Job 问题中有 {count} 个正在等待回答。"
+  private: "这是 {user} 的私人房间。"
+  road: "仍可通过 {road} 线路连接到此房间。之后如有消息进来，会重新登记为新房间。"

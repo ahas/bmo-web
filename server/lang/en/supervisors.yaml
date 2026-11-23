@@ -1,0 +1,10 @@
+# What a supervisor's turn says of its own in a room (docs/boundary.md, 「Fixed lines」).
+
+# The one line a supervisor's turn leaves in the room, under the supervisor's own name, where its engine ended
+# the turn with an error, chosen by the error's kind: the engine busy or over its limit, the engine refusing the
+# request, the answer longer than the engine allows, and any other error. No marks.
+engine_error:
+  busy: "The engine is busy right now, so I couldn't answer this message. Please try again in a moment."
+  refused: "The engine didn't accept the request, so I couldn't answer this message. The engine settings need checking."
+  too_long: "The answer went past the length the engine allows, so I couldn't answer this message. Please ask again a little shorter."
+  failed: "The engine hit an error, so I couldn't answer this message. Please try again in a moment."

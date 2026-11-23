@@ -1,0 +1,28 @@
+# What the console shows of a talk the owner has with the chat agent about an item, a document or a code review
+# (docs/web.md), said alike by the bun bot's talk routes and `bmo-server`'s where each answers them.
+
+# A second word while the first is still being answered.
+busy: "{chat_agent_subject}は前のメッセージにまだ回答中です。"
+
+# Why a turn came back with nothing, shown under the unanswered line: the chat agent resting, the usage limit, the API
+# not answering, a turn that said nothing, and any other.
+unanswered:
+  resting: "{chat_agent_subject}は休止中のため、このメッセージには答えられませんでした。"
+  limit: "利用上限に達したため、このメッセージには答えられませんでした。"
+  outage: "API が応答しなかったため、このメッセージには答えられませんでした。"
+  silent: "{chat_agent_subject}はこのメッセージに何も答えませんでした。"
+  other: "このメッセージには回答がありませんでした。"
+
+# The code review: a row filed while the chat agent still answers in its thread, and one for a {worker} the catalogue no
+# longer has.
+code_review:
+  answering: "{chat_agent_subject}はこのレビューにまだ回答中です。回答が届いてから登録できます。"
+  worker_gone: "{worker} ワーカーはもう存在しないため、登録できません。"
+
+# The document viewer: a seek the gate left unanswered, and why a document's translation stopped short — the
+# translator gave no answer, the translation was stopped, or its part could not be written.
+seek_unanswered: "文書検索ゲートが応答しませんでした。"
+translation:
+  unanswered: "翻訳機が応答しませんでした。"
+  stopped: "翻訳が停止されました。"
+  unwritten: "翻訳を書き込めませんでした。"

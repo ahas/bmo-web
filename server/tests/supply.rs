@@ -1848,8 +1848,9 @@ async fn the_overrides_migration_renews_a_seeded_platform_row_and_keeps_an_admin
   };
 
   // The row as an administrator set it before the overrides stood, and each person's old switch: the overrides
-  // taken down with the move onto the delegation chain and the organisation's BMO default's that stand after them.
-  Migrator::down(scratch.db(), Some(3)).await.unwrap();
+  // taken down with the move onto the delegation chain, the organisation's BMO default's and the accounts' languages'
+  // that stand after them.
+  Migrator::down(scratch.db(), Some(4)).await.unwrap();
   scratch
     .run(
       r#"UPDATE "supply_platform_policy"
@@ -1893,7 +1894,7 @@ async fn the_overrides_migration_renews_a_seeded_platform_row_and_keeps_an_admin
   );
 
   // A row still standing as seeded takes the new defaults.
-  Migrator::down(scratch.db(), Some(3)).await.unwrap();
+  Migrator::down(scratch.db(), Some(4)).await.unwrap();
   scratch
     .run(
       r#"UPDATE "supply_platform_policy"

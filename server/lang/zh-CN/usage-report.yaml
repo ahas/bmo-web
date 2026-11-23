@@ -1,0 +1,39 @@
+# What the accounts have been spending as `bmo usage` prints it (docs/usage.md): the last five hours and
+# the last seven days, each by mode and model and by agent, and with `--refresh-claude` what each Claude
+# account's own windows stand at. Each `{name}` is filled in with what it names.
+
+# The two stretches read, newest first.
+windows:
+  five_hours: "最近 5 小时"
+  seven_days: "最近 7 天"
+
+# The two ways a stretch's rows are grouped, and what a grouping with no rows says, {title} its name.
+groups:
+  models: "按模式和模型"
+  agents: "按智能体"
+  empty: "{title}：无记录"
+
+# The four kinds a run reports, as the console's usage view names them too: what it read, what it wrote,
+# and the cache on both sides.
+kinds:
+  read: "读取"
+  write: "写入"
+  cache_read: "缓存读取"
+  cache_write: "缓存写入"
+
+# What went past whichever kinds it divided into, {tokens} the figure; how many runs a line counts,
+# {runs} the count; and what the kinds cannot cover, the {runs} rows written before the split and the
+# {tokens} they carry.
+total: "共 {tokens}"
+runs: "{runs} 次"
+unsplit: "拆分前 {runs} 条 {tokens}"
+
+# One Claude account's windows read afresh: why it could not be read, {title} the account and
+# {failure} why; a window's reset moment as the owner reads it, in Korea's time, or that it has none.
+refresh:
+  unread: "{title}：无法读取（{failure}）"
+  resets: "{moment} KST 重置"
+  no_reset: "无重置时间"
+  moment: "{month}/{day}（{weekday}）{hour}:{minute}"
+  # The weekdays, Sunday first.
+  weekdays: ["周日", "周一", "周二", "周三", "周四", "周五", "周六"]

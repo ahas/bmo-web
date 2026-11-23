@@ -9,7 +9,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use axum::Router;
 use axum::body::Body;
 use axum::http::{Method, Request, StatusCode, header};
-use bmo_web_server::lang::LANGUAGE;
+use bmo_web_server::lang::Language;
 use bmo_web_server::lang::chat_health::CHAT_HEALTH_WORDS;
 use bmo_web_server::lang::draws::DRAWS;
 use bmo_web_server::lang::fixed_lines::FIXED_LINES;
@@ -19,6 +19,9 @@ use bmo_web_server::lang::supervisors::SUPERVISOR_WORDS;
 use bmo_web_server::marks::fill_marks;
 use bmo_web_server::routes::in_force;
 use bmo_web_server::wording::document_wording;
+
+// The language a room speaks where a test names none: the source the pack is written in.
+const LANGUAGE: &str = Language::SOURCE.code();
 use http_body_util::BodyExt;
 use serde_json::{Map, Value, json};
 use support::{CHAT_AGENT, Scratch, SharedDatabase, ready};
@@ -397,8 +400,45 @@ fn lines_of(value: &Value, at: &str, into: &mut BTreeMap<String, String>) {
   }
 }
 
+// Every language the pack holds renders a line in its own words, and a tag of any region names its language's folder.
+#[tokio::test]
+async fn a_line_is_rendered_in_the_language_the_request_names() {
+  for language in Language::ALL {
+    let (status, body) = render_with("compacting", json!({}), language.code(), Some(TOKEN)).await;
+
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert_eq!(body["text"].as_str(), Some(CHAT_HEALTH_WORDS.in_language(language).fold.going.as_str()));
+  }
+
+  for (tag, language) in [
+    ("ko-KR", Language::Ko),
+    ("EN-gb", Language::En),
+    ("ja-JP", Language::Ja),
+    ("zh-TW", Language::ZhCn),
+  ] {
+    let (_, body) = render_with("compacting", json!({}), tag, Some(TOKEN)).await;
+
+    assert_eq!(
+      body["text"].as_str(),
+      Some(CHAT_HEALTH_WORDS.in_language(language).fold.going.as_str()),
+      "{tag}"
+    );
+  }
+
+  assert_ne!(
+    CHAT_HEALTH_WORDS.in_language(Language::En).fold.going,
+    CHAT_HEALTH_WORDS.in_language(Language::Ko).fold.going
+  );
+}
+
 #[test]
 fn the_document_wording_file_holds_every_artifact_key_and_no_other() {
+  for language in Language::ALL {
+    document_wording_holds_every_artifact_key(language);
+  }
+}
+
+fn document_wording_holds_every_artifact_key(language: Language) {
   let wanted: BTreeMap<String, BTreeSet<String>> = include_str!("fixtures/artifact-wording.txt")
     .lines()
     .filter(|line| !line.starts_with('#') && !line.trim().is_empty())
@@ -409,7 +449,7 @@ fn the_document_wording_file_holds_every_artifact_key_and_no_other() {
       (key, words.map(|mark| mark.trim_matches(['{', '}']).to_owned()).collect())
     })
     .collect();
-  let file: Value = serde_saphyr::from_str(&document_wording().unwrap()).unwrap();
+  let file: Value = serde_saphyr::from_str(&document_wording(language).unwrap()).unwrap();
   let mut held = BTreeMap::new();
 
   lines_of(&file, "", &mut held);
@@ -417,8 +457,8 @@ fn the_document_wording_file_holds_every_artifact_key_and_no_other() {
   assert_eq!(wanted.len(), 78);
   assert_eq!(held.keys().collect::<Vec<_>>(), wanted.keys().collect::<Vec<_>>());
   for (key, line) in &held {
-    assert!(!line.is_empty(), "{key}");
-    assert_eq!(marks_of(line), wanted[key], "{key}: {line}");
+    assert!(!line.is_empty(), "{}: {key}", language.code());
+    assert_eq!(marks_of(line), wanted[key], "{}: {key}: {line}", language.code());
   }
 }
 

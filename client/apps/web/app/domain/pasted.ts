@@ -1,5 +1,4 @@
 import { PASTE_ENTRY_CHARS } from "#shared/config";
-import { pasteMark } from "#shared/text-marks";
 
 import type { Translate } from "#shared/wording";
 
@@ -23,7 +22,7 @@ export function isPasteEntry(text: string): boolean {
 // A new paste, numbered with the lowest number no paste held beside the same box carries — a paste
 // whose mark was deleted still holds its number until the message goes, so an undo that puts the
 // mark back finds its own words.
-export function pastedOf(text: string, held: readonly PastedText[] = []): PastedText {
+export function pastedOf(t: Translate, text: string, held: readonly PastedText[] = []): PastedText {
   const taken = new Set(held.map((entry) => entry.key));
   let number = 1;
 
@@ -31,9 +30,11 @@ export function pastedOf(text: string, held: readonly PastedText[] = []): Pasted
     number += 1;
   }
 
-  // The mark stands in the typed text and in the kept draft, and is found there again by what it says, so its words
-  // are data rather than wording.
-  return { key: `paste${number}`, text, mark: pasteMark(number, text.length) };
+  // The mark stands in the typed text and in the kept draft, and is found there again by what it says: the paste's
+  // name and its length in the reader's language, in brackets.
+  const { name, size } = pastedLabel(t, { key: `paste${number}`, text, mark: "" });
+
+  return { key: `paste${number}`, text, mark: `[${name} · ${size}]` };
 }
 
 // What an entry says about its paste: the name its mark carries, the head of its first line with

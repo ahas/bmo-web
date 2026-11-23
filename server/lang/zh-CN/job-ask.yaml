@@ -1,0 +1,27 @@
+# Translated from server/lang/ko/job-ask.yaml; its comments say what each value is.
+usage: |-
+  usage: bmo job ask --todo <id> --question '<要决定什么>' --option '<一个>' --option '<另一个>' --recommend <n> --why '<一句话说明为什么问>' [--chat <chatId>]
+         bmo job ask --talk <问题编号> --say '<回答>' [--option '<一个>' --option '<另一个>' --recommend <n> [--question '<…>'] [--why '<…>']]
+refusals:
+  room: "a question is put to {owner} in their private chat and nowhere else: leave --chat out."
+  item: "a question belongs to a TODO item: --todo <id>, the item this job is a run of."
+  question: "a question has to say what is being asked: --question '<要决定什么>'."
+  options: "a question needs at least two options to choose between: --option '<一个>' --option '<另一个>'."
+  option: "every option is one line of its own with something on it."
+  recommend: "the recommendation is one of the options by its number: --recommend 1..{count}."
+  why: "a question has to say why it is being asked rather than decided: --why '<一句话>'."
+  wait: "the wait is a number of milliseconds: --wait <ms>."
+  talk: "--talk names the question by the number its talk came back with: --talk <问题编号>."
+  no_talk: "question #{id} takes no talk."
+  say: "a talk answers them with words of its own: --say '<回答>'."
+  wording: "the words use terms {owner} has banned (WORDING.md): {terms}. Write them again with each one replaced, choosing among the words given by what the sentence means and fixing the particle after it."
+heard: |-
+  {owner} talked instead of choosing on question #{id}; its clock stays stopped while you talk it over.
+  They said:
+  {heard}
+
+  Answer them from what you know of the work, and wait on the question again, in one call (timeout 600000):
+    bmo job ask --talk {id} --say '<回答>'
+  Where the talk changed the choice, the same call puts it again: every option anew with the recommendation, and the question or the why where they changed:
+    --option '<一个>' --option '<另一个>' --recommend <n> [--question '<要决定什么>'] [--why '<一句话>']
+  They end it by choosing. Until then the question is open and the work waits on it.

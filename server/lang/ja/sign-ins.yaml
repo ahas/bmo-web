@@ -1,0 +1,23 @@
+# What the sign-in scripts a person runs once say to that person: the Telegram reader's login
+# (docs/reader.md) and the Teams avatar's delegated sign-in (docs/teams.md, 「The avatar mode」). Each `{name}` is
+# filled in with what it names.
+
+# The Telegram reader's login.
+telegram:
+  # The API id and hash missing from the environment.
+  unconfigured: "まず BMO_TG_API_ID と BMO_TG_API_HASH を環境（.env）に設定してください。my.telegram.org で発行できます。"
+  # The questions asked in turn while signing in.
+  phone: "電話番号（+8210...）: "
+  code: "Telegram で受け取ったコード: "
+  password: "2 段階認証のパスワード（なければ Enter）: "
+  # The sign-in done, over the line to add to the environment.
+  signed_in: "ログインしました。下の 1 行を .env に追加してから、サービスを再起動してください:"
+
+# The Teams avatar's sign-in.
+teams:
+  # The Graph app's id missing, after {missing}, what the configuration says is not set.
+  unconfigured: "{missing}: パブリッククライアントフローを許可した Entra アプリの ID を env/bot.env に設定してください。"
+  # Where to enter the device code, {address}, and the {code}, where Microsoft's answer carried no message.
+  enter_code: "{address} で {code} を入力してください。"
+  # The sign-in done, as the {account} signed in, with the {path} its token was written to.
+  signed_in: "ログインしました: {account}。トークンは {path} にあります。"

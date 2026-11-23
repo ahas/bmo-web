@@ -1,0 +1,124 @@
+# The words a TODO item is read in by a person and by the chat agent (docs/worker-language.md): one line of it in
+# a listing and the whole of it opened, written by the bun bot's TODO readings. A job reads its own English
+# rendering instead. Each `{name}` is filled in with what it names.
+
+# One line of a listing: a merge into the item {id}, the item finished, waiting on approval by its
+# {requester}, and the marks that follow the item's state.
+line:
+  merged: "Merged into #{id}"
+  merging: "Merging into #{id}"
+  done: "Done{merge}"
+  pending: "Awaiting approval ({requester})"
+  cowork: " · co-work"
+  note: " · approval note"
+  report: " · has report"
+  unfinished: " · open issues"
+  unfinished_resolved: " · open issues resolved"
+
+# The word a held item wears, by who set it aside and whether its run still ends: stopped by the owner, wound
+# down to resume, held after failing, or plain; and while its run still goes, stopping, winding down, or
+# waiting for the run to end.
+held:
+  stop: "Stopped"
+  stopping: "Stopping"
+  pause: "Awaiting resume"
+  pausing: "Wrapping up"
+  failure: "On hold after failure"
+  plain: "On hold"
+  pending: "Waiting to stop"
+
+# What a row linked to the item opened is: finished, still open, merged, held.
+row:
+  done: "Done"
+  open: "Open"
+  merged: "Merged"
+  held: "On hold"
+  opened: "Opened"
+
+# The whole of one item opened, each line by its label. {state}, {held}, {requester}, {approved},
+# {priority}, {model}, {worker} and {cowork} are its values; its impact grounds, the chat agent's and a job's each under
+# its own head, are one line per node, by its {id} and the {contract} that changes on it or the word for a
+# change inside alone, and a line where a new home must be decided.
+show:
+  state: "State: {state}"
+  state_merged: "Merged"
+  state_done: "Done"
+  held: "On hold: {at}{reason}"
+  requester: "Requester: {requester}"
+  approved: "Approval: {approved}"
+  priority: "Priority: {priority}"
+  model: "Model: {model}"
+  model_default: "Default"
+  # Beside the provider and model the work last went out on, wherever an item's model is shown: the mark of
+  # a road the provider order fell to, the mark of runs that went out on more than one, and in the detail
+  # alone the {requested} model where the two differ.
+  model_fallback: "(fallback)"
+  model_changed: "(model changed)"
+  model_requested: "(requested {requested})"
+  worker: "Worker: {worker}{unassigned}"
+  worker_unassigned: " (unassigned, Built-in worker)"
+  cowork: "Co-work: {cowork}"
+  cowork_on: "On"
+  cowork_off: "Off (runs as one session)"
+  impact: "Impact grounds:"
+  impact_job: "Impact grounds the Job drew again:"
+  impact_node: "- {id}: {contract}"
+  impact_inside: "Internal change only"
+  impact_new_home: "- A new home must be decided"
+  owner_note: "{owner}'s approval note (verbatim):\n{note}"
+  owner_note_carried: "This note must be carried into the Job prompt as is, and the Job must answer it in its report."
+  report: "Completion report:"
+  unfinished: "Open issues{resolved}:"
+  unfinished_resolved: " (resolved)"
+  resolution: "Resolved {on}: {resolution}"
+  raised: "Items already raised from these open issues (not raised again):"
+  notes: "Further instructions:"
+  draft: "Work order draft (written apart from the item body):"
+  draft_intent: "Purpose:\n{intent}"
+  draft_instruction: "Instruction:\n{instruction}"
+
+# The merge on both sides: into the item {id} with its {title}, at the moment {at}, and the items merged
+# into this one.
+merge:
+  into: "Merge: merged into #{id} {title} {at}{follows}"
+  follows: ". It is done together when that item is done"
+  merged: "Merged items:"
+  work: "Merged item #{id} {title} (this item's Job does it too, and it is done when this item is closed):"
+
+# The repair link on both sides: the item {id} with its {title} this one repairs, and the items repairing
+# this one.
+repair:
+  target: "Repairs: #{id}{title}"
+  repairs: "Items repairing this one:"
+
+# What the work stopped to ask the owner, and what each question became.
+questions:
+  heading: "The Job's questions:"
+  waiting: "Still waiting"
+  typed: "{answer} (typed by {owner_subject})"
+  chosen: "Chosen by {owner_subject}"
+  defaulted: "No answer · decided by the recommended answer"
+
+# How long the item took and what the time went to: the {attempts} runs, the {finished} of them ended, each
+# attempt by its {attempt} and {job}, the spans of the run phase {phase}, and the tokens of the {spending}
+# runs that left a record of them.
+time:
+  running: "Time: still running ({attempts} runs)"
+  total: "Time: {clock} total ({attempts} runs{finished})"
+  finished: ", {finished} ended"
+  attempt_running: "- Attempt {attempt} (Job {job}): still running"
+  attempt: "- Attempt {attempt} (Job {job}): {clock} · {outcome}"
+  no_outcome: "No record"
+  phases: "Phases (the whole Job divided):"
+  split: "{phase} breakdown (the {phase} phase just above, divided):"
+  split_waiting: "- Waiting on branches {clock}"
+  split_tooling: "- Calling tools directly {clock}"
+  split_generating: "- Model generating {clock}"
+  inside: "Time by tool during {phase} (tools that ran at once overlap, so the sum can exceed the real time):"
+  inside_more: "- {count} others"
+  no_spans: "No phase record (this Job ran before phases were recorded)"
+  span_times: " · {times} times"
+  span_tokens: " · {tokens} tokens"
+  tokens: "Tokens (by model, summed over the {spending} runs with usage records):"
+  tokens_missing: "- The other {missing} runs have no usage record and are left out"
+  no_tokens: "No token record (the run left no usage for this Job)"

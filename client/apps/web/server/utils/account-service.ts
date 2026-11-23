@@ -43,6 +43,8 @@ import {
   type WireError
 } from "@web/server-client";
 
+import { spokenLanguage } from "#shared/wording";
+
 import type { PersonView } from "#shared/people";
 import type { SecretFile, SecretKind } from "#shared/secret-kinds";
 import type { KeptSecret } from "#shared/types";
@@ -94,7 +96,7 @@ function clientOf(options: ServiceOptions): AccountServiceClient {
 
   if (address === "") throw new AccountServiceDown("(no address)", "no address is set for the server");
 
-  return accountServiceClient(address, options.token ?? process.env.WEB_SERVER_TOKEN ?? "");
+  return accountServiceClient(address, options.token ?? process.env.WEB_SERVER_TOKEN ?? "", undefined, spokenLanguage());
 }
 
 // sumida's own session routes take the session cookie, and a bearer sent there is read as a token and refused
@@ -104,7 +106,7 @@ function sumidaClientOf(options: ServiceOptions): AccountServiceClient {
 
   if (address === "") throw new AccountServiceDown("(no address)", "no address is set for the server");
 
-  return accountServiceClient(address, "");
+  return accountServiceClient(address, "", undefined, spokenLanguage());
 }
 
 // A call nothing answered is the service down; a call it answered is read by its status.

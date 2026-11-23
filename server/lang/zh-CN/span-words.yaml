@@ -1,0 +1,53 @@
+# What a job's spans are called where a person reads a breakdown of them (docs/todo.md, 「Reading an
+# item」): the CLI's own tools and the MCP servers by the act they do, a co-worker and a branch, a length
+# of time, and the kinds a run's tokens divide into. Each `{name}` is filled in with what it names.
+
+# The CLI's own tools, by the name the protocol calls each.
+tools:
+  Bash: "Shell"
+  BashOutput: "Shell 输出"
+  KillShell: "终止 Shell"
+  Read: "读取"
+  Write: "写入"
+  Edit: "编辑"
+  NotebookEdit: "笔记本编辑"
+  Glob: "文件搜索"
+  Grep: "内容搜索"
+  Task: "协作者"
+  Agent: "协作者"
+  TaskOutput: "等待分支"
+  TaskStop: "停止分支"
+  Workflow: "工作流"
+  ToolSearch: "工具搜索"
+  Skill: "技能"
+  Monitor: "监视"
+  SendMessage: "发送消息"
+  ScheduleWakeup: "预约唤醒"
+  TodoWrite: "编写待办"
+  WebSearch: "网页搜索"
+  WebFetch: "读取网页"
+
+# The MCP servers a tool is called through, by the name each is registered under.
+servers:
+  chrome-devtools: "浏览器"
+  toolbook: "工具簿"
+  web: "网页"
+
+# A co-worker a run handed work to, alone or with its {kind}.
+coworker: "协作者"
+coworker_kind: "协作者 {kind}"
+
+# A length of time: under a minute in {seconds}, under an hour in {minutes} and {seconds}, and past it in
+# {hours} and {minutes}.
+clock:
+  seconds: "{seconds}秒"
+  minutes: "{minutes}分{seconds}秒"
+  hours: "{hours}小时{minutes}分"
+
+# The four kinds a run's tokens divide into, and the {tokens} it saw go past whichever kinds.
+kinds:
+  input: "读取"
+  output: "写入"
+  cache_read: "缓存读取"
+  cache_write: "缓存写入"
+total: "共 {tokens}"

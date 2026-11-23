@@ -1,0 +1,38 @@
+# Translated from server/lang/ko/run-stop.yaml; its comments say what each value is.
+usage: |-
+  usage: bmo run stop [--list]
+         bmo run stop <类型>:<id> [--why '<原因>']
+         bmo run stop --all
+
+  不带参数调用时，列出当前正在运行的内容及其目标。
+  目标就是 bmo run list 每行打印的那个词：unit:bmo-search-9、execution:bmo-execution-…、item:623。
+  聊天轮次和门控用 execution，运行器、编辑器和 Job 工作器用 unit，工作指令单用 item 来指定。
+  协作者不能单独停止，会回复改为指定启动它的那次运行。
+  item 需要 --why '<原因>'。条目会因停止而暂缓，并带着该原因保留。原因用韩语填写。
+  --all 一次停止当前正在运行的全部目标。
+  停止会区分请求和确认：请求是要求它结束，确认是它确实已结束。
+refusals:
+  target: "'{target}' 不是目标。请用 <类型>:<id> 指定，类型为 execution、unit、item 之一。当前正在运行的内容可用 bmo run stop --list 查看。"
+reason:
+  english: "请用韩语填写原因。暂缓原因会按原样显示在控制台和列表中。"
+bot:
+  token: "没有机器人的 control API 令牌（BMO_CONTROL_TOKEN），无法询问机器人。"
+  silent: "机器人没有响应。请在机器人运行时再次调用。（{why}）"
+  refused: "机器人未接受（HTTP {status}）。"
+  unread: "无法读取机器人的回复。"
+list:
+  empty: "没有正在运行的内容。"
+  unnamed: "没有可停止的运行。有 {count} 个可显示，但还没有可指定的目标。"
+  head: "运行 {count} 个"
+  left_out: "（已省略 {left} 个没有可指定目标的项）"
+  turn: "对话 · 房间 {chat}"
+  room: "房间 {chat}"
+done:
+  confirmed: "已停止：{what}。运行 {runs} 个，已确认结束。"
+  asked: "已请求停止：{what}。运行 {runs} 个。未能确认已结束，请用 bmo run list 查看。"
+all:
+  none: "没有正在运行的内容，未停止任何内容。"
+  head: "已请求停止 {asked} 个运行，其中 {confirmed} 个已确认结束。"
+  ended: "已结束"
+  stopping: "停止中"
+  refused: "无法停止：{why}"

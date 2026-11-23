@@ -1,17 +1,11 @@
-import data from "../i18n/data/ko.yaml";
+import type { Translate } from "./wording";
 
 // A particle that changes with the sound before it, joined to a name that comes from another unit, so no key of the
-// pack can carry the particle itself and the pack takes the joined name as its {subject} mark. The particle's two
-// forms are the language's and stand in the data file beside the pack; what is read here is only which form the
-// last sound asks for: the final a syllable closes on, read off its place in the syllable block, or the final of a
-// figure's reading.
-
-interface ParticleForms {
-  closed: string;
-  open: string;
-}
-
-const SUBJECT = (data as { particles: { subject: ParticleForms } }).particles.subject;
+// pack can carry the particle itself and the pack takes the joined name as its {subject} mark. The name joined to
+// each form is a key of the pack, one for a name whose last sound closes, one for one that is open and one for one
+// whose sound is not read, so a language that joins no particle to a name says the name alone in all three; what is
+// read here is only which form the last sound asks for: the final a syllable closes on, read off its place in the
+// syllable block, or the final of a figure's reading.
 
 // Where the syllable block starts, and how many syllables it holds; each syllable's place in it carries its final.
 const SYLLABLES_FROM = 0xac00;
@@ -39,12 +33,12 @@ export function finalOf(character: string): number | null {
  * A name joined to the subject particle its last sound asks for, read past a closing bracket or quote. A name that
  * ends in anything else gives no sound to read and takes both forms.
  */
-export function subjectOf(name: string): string {
+export function subjectOf(t: Translate, name: string): string {
   const final = finalOf(name.replace(CLOSING_MARKS, "").slice(-1));
 
   if (final === null) {
-    return `${name}${SUBJECT.closed}(${SUBJECT.open})`;
+    return t("common.label.subject_unread", { name });
   }
 
-  return `${name}${final === 0 ? SUBJECT.open : SUBJECT.closed}`;
+  return final === 0 ? t("common.label.subject_open", { name }) : t("common.label.subject_closed", { name });
 }

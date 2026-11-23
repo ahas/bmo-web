@@ -1,0 +1,59 @@
+# Translated from server/lang/ko/reference-benches.yaml; its comments say what each value is.
+usage:
+  compare: |-
+    usage: bmo reference compare [--per-cell <数>] [--db <地址>] [--route-db <地址>] [--json] [--out <路径>]
+
+    从已存储的参考分类器运行中抽样，把同一段对话重新交给拆分后的三个门控，对比前后结果。
+    输出附加的片段数、两次回答的集合关系、什么都没选的次数、无法读取回答的比例，以及前端
+    耗时。耗时是三个门控并行运行的挂钟时间。
+    --per-cell 是每个房间和候选数区间抽取的数量（默认 8）。
+    不带 --db 时读取本机数据根目录所指的归档库。
+    --route-db 是读取门控路径和片段表的归档库（默认与 --db 相同）。
+    --json 将数值输出为 JSON，--out <路径> 将该 JSON 写入文件：门控说明自身路径的行
+    也从同一出口输出，所以供机器读取的结果用文件接收更可靠。
+  inputs: |-
+    usage: bmo reference inputs [--db <地址>] < turns.jsonl > inputs.jsonl
+
+    标准输入每行接收一个轮次（{"chatId": <房间>, "messageIds": [<消息>...], "instructions": "<静默指令>", "bodies": {"<门控>": ["<slug>"]}}），按门控输出一行 JSON：用当前片段表和收窄组装的 Laya 输入（state 和每个候选的问题）以及候选的
+    目录说明。instructions 按该轮提示词的静默指令块中所写原样提供，读到的内容
+    原样返回。只有指令而没有人发言的轮次，只按各门控声明的方式询问。
+    一行可以用作业（{"kind": "job", "title", "instruction", "requester", "requesterId"} 或 {"kind": "search", "query"}）代替
+    messageIds：此时只用知识门控的输入来回答，其行和收窄取自该作业自身的运行。
+    bodies 中列出的片段会把目录说明和正文放入 pieces。
+    不询问任何模型，也不写入任何内容。不带 --db 时打开本机数据根目录所指的归档库。
+  narrowing: |-
+    usage: bmo reference narrowing [--db <地址>] [--chat <房间>] [--turns <数>] [--json]
+
+    用当前片段表重新收窄 {chat_agent_subject} 实际回答过的轮次（留有参考判定的消息），按房间测量每个门控
+    剩下多少。不带 --chat 时查看所有留有判定的房间，不带 --turns 时每个房间查看最近 20 轮。
+    不带 --db 时打开本机数据根目录所指的归档库。--json 将每轮的数值输出为 JSON。
+  replay: |-
+    usage: bmo reference replay [--db <地址>] [--use <turns.jsonl>] [--turns <数>] [--out <路径>]
+
+    把已有使用判定的真实轮次重新放入当前参考路径，按门控输出附加的文档数及其中回答实际使用的
+    数量，并与记录时的数值并列。门控会按 --db 归档库确定的路径真实询问。
+    --turns 是均匀抽取的轮次数（默认 60），--out 是以 JSON 写入每轮结果的文件。
+  roads: |-
+    usage: bmo reference roads [--db <地址>] [--json]
+
+    按房间对比读取片段表的路径与原先读取目录文件的路径是否以相同顺序给出相同候选。
+    不带 --db 时打开本机数据根目录所指的归档库。--json 将数值输出为 JSON。
+  waste: |-
+    usage: bmo reference waste [--db <地址>] [--use <turns.jsonl>] [--since <YYYY-MM-DD>] [--top <数>] [--json]
+
+    按参考门控附加的每个文档，列表输出附加的轮次数、有使用判定的轮次中回答实际使用的数量和白白附加的比例，
+    以及白白附加带入的令牌总数。另外输出门控阶段耗时，以及白白附加的文档给轮次输入增加的份额。
+    不带 --use 时读取数据文件夹中 reference-use/use-1/turns.jsonl 的判定。
+compare:
+  per_cell: "reference-compare: --per-cell 必须是不小于 1 的整数。"
+  corpus: "reference-compare: {runs} 次运行中 {unreadable} 次格式不符，{dropped} 次无法拆分，从 {cut} 次中抽取了 {sample} 次。"
+  asked: "  {at}/{sample} · {chat} · {gates} 个门控 · {ms}ms"
+  written: "reference-compare: 已写入 {out}。"
+  sample: "样本 {runs} 个 · 房间 {rooms} 个 · 候选 {least}~{most} 个（中位数 {middle}）"
+  sifted: "筛选的 {runs} 次运行中，格式不符 {unreadable} 次，无法拆分而丢弃 {dropped} 次，剩余 {cut} 次"
+  pieces: "附加片段：前 {before} 个/轮 · 后 {after} 个/轮"
+  none: "什么都没选：前 {before} · 后 {after}"
+  unread: "无法读取回答：前 {before} · 后 门控 {after}"
+  shapes: "集合关系：{shapes}"
+  wanting: "  至少一方有选择的轮次（{runs} 个）：{shapes}"
+  front: "前端耗时：前 中位数 {before_middle}ms/90% {before_ninth}ms（配对 {timed} 个） · 后 中位数 {after_middle}ms/90% {after_ninth}ms"

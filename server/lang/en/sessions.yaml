@@ -1,0 +1,30 @@
+# Why a session the chat agent holds is replaced, as the console's events and the session's note name it
+# (docs/sessions.md, 「Session replacement」).
+
+# Each reason a held session may not be resumed by a run, and why a room's session was replaced.
+reasons:
+  # The run goes out on another provider, model or effort than the session was opened on.
+  route: "Run provider or model changed"
+  # The run goes out on another login than the session was opened under.
+  account: "Account changed"
+  # The place the session opened on is one its provider no longer holds.
+  placement: "Run node gone"
+  # The system prompt or the front of the line moved.
+  prefix: "System prompt or run prefix changed"
+  # The prefix has outlived its provider's cache.
+  expired: "Cache TTL expired"
+  # The held session's record names no prefix to compare against.
+  no_prefix: "Session has no prompt baseline"
+  # A session the account's safeguard answered on a lesser model, replaced to bring the room back: as a
+  # room's turn heals it, and as the one shared session is told to replace it.
+  downgrade: "Downgrade detected · session replaced"
+  downgrade_forced: "Session replaced after automatic model fallback"
+
+# What an event's detail adds where the replaced session's summary did not come back.
+summary_failed: " · summary failed"
+
+# The chat's own tail of a road that named no session to resume: the room a round was in ({chat}), and what
+# the agent answered there ({agent}, {chat}, {text}).
+transcript:
+  room: "Room {chat}:"
+  answer: "{agent} (room {chat}): {text}"

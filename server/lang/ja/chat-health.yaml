@@ -1,0 +1,35 @@
+# Translation of server/lang/ko/chat-health.yaml; that file says what each line is for.
+causes:
+  exit: "実行が異常終了したよ (終了コード {code})"
+  signal: "外から実行が切られたよ (シグナル {signal})"
+  error_result: "実行は最後まで行ったけど、答えの代わりにエラーが返ってきたよ"
+  silent: "実行自体は問題なかったけど、答える番に待つって言っただけだったよ"
+  transport: "実行を立てるペインを取れなかったよ"
+  unknown: "実行がどう終わったのか読み取れなかったよ"
+
+account:
+  line: "{opening}{room}。{cause}。{said}\n{rest}"
+  broke: "{agent} の実行が失敗したよ"
+  silent: "{subject}今回の番に答えを出せなかったよ"
+  room: " ({room})"
+  said: " 返ってきた言葉: {said}"
+  action: "最後に {tool} ツールを使っていたよ{detail}。"
+  detail: " ({detail})"
+  record: "記録は {record} にあるよ。"
+  run_log: "{agent} 実行ログ {run}"
+  unnamed_tool: "名前のないツール"
+
+last_resort:
+  journal: "ジャーナル (韓国時間): {windows}"
+  repeated: "同じ原因で {count} 回目だよ。"
+  speaking: "{subject}この件を引き継いだのに答えられずにいるから、ボットが直接送るね。"
+
+rest:
+  outage: "{chat_agent} の頭がつながらない… サーバーが言うことを聞かないから、ちょっと休んでくるね。"
+
+fold:
+  going: "うう、頭がいっぱい… ちょっとだけ寝てくるね。"
+  failed: "あれ、眠れなかった… 頭をたためないから、このまま起きてるね。"
+  failed_owner: "{room} ルームの文脈の折りたたみに失敗しました: {reason}"
+  woken: "文脈の折りたたみ"
+  deferred: "文脈の折りたたみを延期します。"

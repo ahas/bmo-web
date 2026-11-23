@@ -1,0 +1,18 @@
+# Translated from server/lang/ko/nodes.yaml; its comments say what each value is.
+clock: "{year}/{month}/{day} {half}{hour}:{minute}:{second}"
+morning: "午前"
+afternoon: "午後"
+pane:
+  kind: "接続タイプ    {kind}"
+  address: "アドレス      {address}"
+  credential: "認証情報の場所 {credential}"
+  state: "状態          {state}{detail}"
+  detail: " ({detail})"
+  checked: "確認日時      {clock}"
+  connected: "最終接続      {clock}"
+  never: "なし"
+  own_ssh_setup: "アカウントの SSH 設定"
+  hub_not_listed: "ハブが一覧にない"
+  ssh_enter: "Enter を押すと接続します。"
+  jake_only: "Jake ノードには対話シェルがないため、状態のみ表示します。"
+  gone: "ノード {name} が一覧にないため、このペインを閉じます。"

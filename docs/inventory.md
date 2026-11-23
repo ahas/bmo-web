@@ -505,7 +505,7 @@ receiver's talk takes the earlier turns from its caller.
 | `lang/bmo-lang/Cargo.toml` | the server's own dependencies (`indexmap`, `serde-saphyr`) |
 | `lang/bmo-lang/package.json`, `bunfig.toml` | not carried: the console's tests import a part by its path under `server/lang/` |
 
-The console's own pack, `client/apps/web/i18n/locales/ko.yaml`, travels with the shell.
+The console's own packs, one to a language under `client/apps/web/i18n/locales/`, travel with the shell.
 
 ## Fixed lines and the document wording
 

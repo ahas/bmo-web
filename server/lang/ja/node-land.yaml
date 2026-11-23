@@ -1,0 +1,5 @@
+# Translated from server/lang/ko/node-land.yaml; its comments say what each value is.
+pending: "{commit} · {item}{worker}{urgent}: {reason}"
+item: "項目 #{item}"
+no_item: "項目なし"
+urgent: " · 即時 (スキーマが先行)"

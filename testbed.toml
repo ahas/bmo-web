@@ -100,13 +100,14 @@ id = "settings"
 phase = "before-flip"
 command = "cd server && ../bin/bmo-web-server settings"
 
-# The document wording file, written from the release's own pack into the release, where bmo-artifact's `[wording]
-# file` names it through the deploy tree: ~/.local/share/bmo-web/deploy/documents.ko.yaml (docs/boundary.md, 「The
-# document wording file」).
+# The document wording files, one to a language, written from the release's own pack into the release, where
+# bmo-artifact's `[wording] file` names one through the deploy tree: ~/.local/share/bmo-web/deploy/documents.ko.yaml
+# and its siblings documents.en.yaml, documents.ja.yaml and documents.zh-CN.yaml (docs/boundary.md, 「The document
+# wording file」).
 [[deploy.step]]
 id = "wording"
 phase = "before-flip"
-command = "bin/bmo-web-server wording documents.ko.yaml"
+command = "bin/bmo-web-server wording ."
 
 # The server's database brought up to date before the flip; every migration only adds, so the release still serving
 # reads on through it.

@@ -1,0 +1,13 @@
+# Translation of server/lang/ko/claude-token.yaml; that file says what each line is for.
+unknown_account: 'claude-token: 已注册的 Claude 账号中没有 "{named}"。请用 bmo agent 查看账号列表。'
+making: '正在为 Claude 账号 "{name}" 生成节点用令牌。'
+approve: "浏览器打开后，请确认已用此账号登录，然后批准。"
+approve_as: "浏览器打开后，请确认已用 {email} 账号登录，然后批准。"
+sign_in_failed: "claude-token: claude setup-token 未能运行完成。未保存任何内容。"
+paste: "请粘贴上面输出的令牌并按 Enter (屏幕上不会显示): "
+stopped: "claude-token: 已中止。未保存任何内容。"
+refused: "claude-token: {fault} 未保存任何内容。"
+not_a_token: "这不是 claude setup-token 输出的令牌 (以 sk-ant-oat 开头)。"
+cut: "令牌被截断或混入了空格。请按一整行重新粘贴。"
+kept: "已保存: {file}"
+from_next_run: "从下次运行起，所有节点都会用此令牌运行 Claude Code。"

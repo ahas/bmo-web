@@ -1,0 +1,35 @@
+# Translation of server/lang/ko/chat-health.yaml; that file says what each line is for.
+causes:
+  exit: "The run ended abnormally (exit code {code})"
+  signal: "The run was cut off from outside (signal {signal})"
+  error_result: "The run went all the way, but an error came back instead of an answer"
+  silent: "The run itself was fine, but when it was its turn to answer it only said it would wait"
+  transport: "Couldn't get a pane to start the run in"
+  unknown: "Couldn't tell how the run ended"
+
+account:
+  line: "{opening}{room}. {cause}.{said}\n{rest}"
+  broke: "{agent}'s run failed"
+  silent: "{subject} couldn't answer this turn"
+  room: " ({room})"
+  said: " What came back: {said}"
+  action: "It was last using the {tool} tool{detail}."
+  detail: " ({detail})"
+  record: "The record is at {record}."
+  run_log: "{agent} run log {run}"
+  unnamed_tool: "unnamed tool"
+
+last_resort:
+  journal: "Journal (Korea time): {windows}"
+  repeated: "That's the {count}th time from the same cause. "
+  speaking: "{subject} took this over but still hasn't answered, so the bot is sending it directly."
+
+rest:
+  outage: "{chat_agent}'s head can't connect... the server isn't listening, so I'll rest a bit and come back."
+
+fold:
+  going: "Ugh, my head's full... gonna take a quick nap."
+  failed: "Uh, couldn't sleep... folding my head didn't work, so I'll just stay awake."
+  failed_owner: "Context folding failed in room {room}: {reason}"
+  woken: "Context fold"
+  deferred: "Deferring the context fold."

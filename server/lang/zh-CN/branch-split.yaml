@@ -1,0 +1,21 @@
+# Translation of server/lang/ko/branch-split.yaml; that file says what each line is for.
+clock:
+  seconds: "{seconds}秒"
+  minutes: "{minutes}分{seconds}秒"
+  hours: "{hours}小时{minutes}分"
+
+none_left: "{project} 下没有剩余的工作流记录。"
+not_found: "在 {project} 下找不到工作流 {workflow} 的记录。可用 --list 查看剩余记录。"
+branches: "{count} 个分支"
+session: "会话 {session}"
+records_gone: "  分支记录已不存在。会话被清除后，其内部情况将无法再查看。"
+
+branch: "- 分支 {index}"
+tokens: "令牌 {tokens}"
+no_type: "无类型记录"
+no_split: "  没有记录，或没有可拆分的时长。"
+unnamed_tool: "未命名工具"
+
+split: "  总计 {total} · 工具 {tooling} ({tooling_share}，{calls} 次{open}) · 模型用时 {generating} ({generating_share})"
+open: "，未获响应 {open} 次"
+tool: "{name} {clock} {times} 次"

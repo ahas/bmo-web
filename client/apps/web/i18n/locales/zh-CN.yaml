@@ -1,0 +1,4407 @@
+# Every word the console shows, key for key with ko.yaml, which the wording guide governs; the rules for
+# adding one are in docs/web.md, "Wording and the language pack".
+
+app:
+  label:
+    account: 账号
+    auto_translate: 自动翻译
+    auto_translate_description: 打开用其他语言写的报告和指令时立即翻译显示。随时可以通过“查看原文”切换回来。
+    color_mode: 显示模式
+    language: 语言
+    language_description: 界面和通知使用的语言。适用于用此账号打开的所有设备。
+    manifest_name: "{agent}"
+    mode_dark: 深色
+    mode_light: 浅色
+    mode_system: 跟随系统
+    name: "{agent}"
+    password: 密码
+    remember: 保持登录
+    search_group: 分组
+    search_key: 键
+    search_name: 名称
+    search_people: 人员
+    search_place: 位置
+    search_screens: 页面
+    sidebar: 侧边栏
+    sidebar_description: 页面、房间、智能体
+    user_id: 用户名
+  action:
+    login: 登录
+    logout: 退出登录
+    reload: 重新加载
+  message:
+    new_build: 新版本已部署。
+    manifest_description: 查看房间对话和智能体判定，并向房间的智能体发送消息。
+    login_again: 需要重新登录。
+    session_ended: 登录已过期。
+  error:
+    login_failed: 登录失败。
+    wrong_credentials: 用户名或密码不正确。
+    machine_gone: 此账号的设备（jake）未连接。重新连接设备后即可登录。
+    accounts_down: 账号服务无响应，目前无法登录。
+common:
+  title:
+    delete_named: "删除{name}"
+    discard_changes: 要放弃未保存的更改吗？
+    share: 共享
+  label:
+    members: 人员
+    permission_edit: 编辑
+    permission_read: 查看
+    translated_from: "译自{language}"
+    translated_in_part_from: "部分译自{language}"
+    all: 全部
+    auto: 自动
+    chat_agent: 聊天智能体
+    count: "{n}个"
+    day_format: YYYY年M月D日 (ddd)
+    days: "{d}天"
+    days_hours: "{d}天{h}小时"
+    depth_basic: 基础
+    depth_exhaustive: 极详尽
+    depth_thorough: 详尽
+    expired: 已过期
+    expiry: 过期时间
+    forever: 永久
+    hours: "{h}小时"
+    hours_minutes: "{h}小时{m}分钟"
+    hours_minutes_seconds: "{h}小时{m}分{s}秒"
+    left_days: "剩余{n}天"
+    left_hours: "剩余{n}小时"
+    left_minutes: "剩余{n}分钟"
+    left_under_minute: 剩余不到1分钟
+    link: 链接
+    minutes: "{m}分钟"
+    minutes_seconds: "{m}分{s}秒"
+    model: 模型
+    name: 名称
+    no_record: 无记录
+    none: 无
+    optional: 可选
+    original: 原文
+    palette_forest: 森林
+    palette_lemon: 柠檬
+    palette_sea: 海洋
+    palette_sunset: 晚霞
+    palette_teal: 青绿
+    palette_violet: 紫罗兰
+    path: 路径
+    picture_caption: 说明
+    picture_resolution: 分辨率
+    picture_resolution_value: "{width} × {height}"
+    play_position: 播放位置
+    properties: 属性
+    rendered: 渲染
+    room: 房间
+    seconds: "{n}秒"
+    share_until: "截至{date}"
+    short_day_format: YY.MM.DD
+    size: 大小
+    span_1h: 1小时
+    span_24h: 24小时
+    span_30d: 30天
+    span_6h: 6小时
+    span_7d: 7天
+    speaker_bmo: 聊天智能体
+    speaker_owner: 所有者
+    speed_normal: "{speed} 正常"
+    subject_closed: "{name}"
+    subject_open: "{name}"
+    subject_unread: "{name}"
+    subtitles_off: 关闭
+    theme_forest: 森林
+    theme_sea: 海洋
+    theme_sunset: 晚霞
+    theme_teal: 青绿
+    theme_violet: 紫罗兰
+    toc: 目录
+    unplayable: 无法播放
+    view: 查看
+    volume: 音量
+  action:
+    share: 共享
+    show_translation: 查看译文
+    show_original: 查看原文
+    add: 添加
+    add_choice: "添加“{value}”"
+    back: 返回
+    cancel: 取消
+    choose_all: 全选
+    choose_none: 全部取消
+    clear_search: 清除搜索词
+    close: 关闭
+    close_all_tabs: 关闭所有标签页
+    close_other_tabs: 关闭其他标签页
+    close_right_tabs: 关闭右侧标签页
+    collapse: 收起
+    copy: 复制
+    create_link: 创建
+    delete: 删除
+    discard: 放弃
+    edit: 编辑
+    exit_fullscreen: 退出全屏
+    expand: 展开
+    find: 查找
+    fit_screen: 适应屏幕
+    fullscreen: 全屏
+    more: 更多
+    move_down: 下移
+    move_up: 上移
+    mute: 静音
+    next_month: 下个月
+    next_picture: 下一张
+    next_year: 下一年
+    next_years: 后面的年份
+    open: 打开
+    page_back: 上一页
+    page_forward: 下一页
+    pause: 暂停
+    pin: 置顶
+    play: 播放
+    play_now: 立即播放
+    previous_month: 上个月
+    previous_picture: 上一张
+    previous_year: 上一年
+    previous_years: 前面的年份
+    refresh: 刷新
+    retry_translation: 重新请求
+    save: 保存
+    see_all: 查看全部
+    skip_back: "后退{n}秒"
+    skip_forward: "前进{n}秒"
+    subtitles: 字幕
+    turn_picture: 旋转
+    unmute: 取消静音
+    unpin: 取消置顶
+    unshare: 取消共享
+    zoom_in: 放大
+    zoom_out: 缩小
+  aria:
+    close_named: "关闭{name}"
+    column_width: "{name}宽度"
+    decrease: 减少
+    document_menu: 文档菜单
+    download_named: "下载{name}"
+    enlarge_named: "放大查看{name}"
+    holds_chosen: 包含所选项
+    image_zoom: "{title}，用滚轮或双指缩放"
+    increase: 增加
+    member_permission: "{name}的权限"
+    menu_of: "{name}菜单"
+    more_notices: "还有{n}条通知"
+    move_down_named: "下移{name}"
+    move_up_named: "上移{name}"
+    open_list: 打开列表
+    opens_new_tab: （在新标签页中打开）
+    others_count: "等{n}人"
+    pinned_named: "{name}已置顶"
+    play_named: "播放{name}"
+    player_named: "{name}播放器"
+    search_named: "搜索{name}"
+    search_scope: 搜索范围
+    share_address: 共享链接地址
+    speed_named: "播放速度 {speed}"
+    window_move: 移动窗口 · 方向键
+    window_resize: 调整窗口大小 · 方向键
+  status:
+    bmo_answering: 聊天智能体正在撰写回复…
+    brightness: "亮度 {n}%"
+    copied: 已复制
+    link_preview_loading: 正在加载链接预览…
+    loading: 正在加载…
+    loading_named: "正在加载{name}…"
+    members_loading: 正在加载共享对象…
+    muted: 已静音
+    next_in: "{n}秒后播放"
+    no_choices: 无选项
+    no_match: 无匹配项
+    no_members: 无共享对象
+    no_rooms: 无已记录的房间
+    picture_loading: 正在加载照片…
+    reconnecting: 正在重新连接
+    rooms_loading: 正在加载房间…
+    share_loading: 正在加载共享链接…
+    speed: "速度 {speed}"
+    subtitles_off: 字幕已关闭
+    subtitles_on: "字幕 {name}"
+    translating: 正在翻译…
+    translation_busy: 翻译器繁忙，暂时无法翻译。
+    turned: "已旋转{degrees}度"
+    unmuted: 已取消静音
+    video_loading: 正在加载视频信息…
+    volume: "音量 {n}%"
+    went_back: "已后退{n}秒"
+    went_forward: "已前进{n}秒"
+  message:
+    translator_absent: 没有可用的翻译器，无法翻译。
+    link_copied: 链接已复制。
+    preview_badge: 进行中
+    preview_field: 搜索
+    preview_link: 了解详情
+    preview_meta: "昨天 下午7:12 编辑"
+    preview_note: 会议记录
+  error:
+    administrator_only: 仅管理员可以执行此操作。
+    attachments_too_large: "每个文件最大{size}，一次最多发送{n}个。"
+    attachments_too_many: "一次最多发送{n}个。"
+    bad_action: 请求的操作无效。
+    bad_cursor: 游标值无效。
+    bad_limit: 数量值无效。
+    choices_find_failed: 搜索失败。
+    copy_failed: 复制失败。
+    editor_failed: 无法加载代码编辑器。
+    file_too_large: 有文件超过了可发送的大小。
+    form_broken: 未能完整接收发送的文件。
+    image_unavailable: 无法加载图片。
+    link_copy_failed: 复制链接失败。
+    member_change_failed: 无法更改权限。
+    member_search_failed: 搜索人员失败。
+    member_share_failed: 共享失败。
+    members_read_failed: 无法读取共享对象。
+    not_saved_named: "{name}未保存"
+    not_sent: 发送失败。
+    picture_failed: 无法加载照片。
+    rooms_failed: 无法加载房间列表。
+    save_failed: 保存失败。
+    say_to_bmo_empty: 请输入要发给聊天智能体的消息。
+    send_failed: 消息发送失败。
+    share_create_failed: 无法创建共享链接。
+    share_read_failed: 无法读取共享链接。
+    too_long: "消息过长，最多可发送{n}个字符。"
+    translation_failed: 翻译失败。
+    unshare_failed: 无法取消共享。
+    video_failed: 无法加载视频。
+  placeholder:
+    member_search: 按名称查找
+    search: 搜索
+control:
+  status:
+    checking: 正在加载 API
+  error:
+    reader_disconnected: 读取器未连接，无法发送。
+    status: "机器人控制 API 返回了 {status}。"
+    unreachable: API 加载失败
+db:
+  label:
+    cut_length: "共{n}个字符"
+    json_list: "{n}项"
+    json_no: 否
+    json_none: 无
+    json_object: "{n}个字段 · {keys}"
+    json_object_empty: 无字段
+    json_yes: 是
+    length: "{n}个字符"
+    masked: 已隐藏的值
+    masked_badge: 已隐藏
+    page: "第 {page} / {pages} 页 · {total}行"
+    primary_key: 主键
+    required: 必填
+    result: "{rows}行 · {ms}ms"
+    result_cut: "截断于{rows}行 · {ms}ms"
+    schema: 架构
+    sql_rule: "只读 · 最多{rows}行"
+    table: 表
+  action:
+    first_page: 第一页
+    last_page: 最后一页
+    next_page: 下一页
+    previous_page: 上一页
+    run: 运行
+    stop: 停止
+  aria:
+    find_in_table: 在此表中查找
+    pick_table: 选择表
+    query: 查询
+    sort_by: "按{name}排序"
+    tables_and_sql: 表和 SQL
+  error:
+    no_rowid: 此表没有行号，无法逐行读取。
+    no_such_table: 找不到表。
+    no_table_name: 缺少表名。
+    query_empty: 查询为空。
+    query_failed: 查询执行失败。
+    read_failed: 无法读取数据库。
+    read_stopped: 已停止读取。
+    row_not_found: 找不到该行。
+    rows_failed: 无法读取行。
+    table_failed: 无法读取表。
+    tables_failed: 无法读取表列表。
+  placeholder:
+    query: "SELECT * FROM web_users ORDER BY created_at DESC"
+  status:
+    no_result: 无结果
+    no_rows: 无行
+    no_rows_found: 无匹配的行
+    no_tables: 无表
+    note_read_at: "{note} · 读取于{time}"
+    result_loading: 正在加载结果…
+    row_loading: 正在加载行…
+    tables_loading: 正在加载表…
+  title:
+    result_row: "查询结果 · 第{n}行"
+    table_row: "{table} · 第{n}行"
+files:
+  label:
+    progress: "{done}/{all} {percent}%"
+  action:
+    keep_both: 保留两者
+    replace: 覆盖
+    skip: 跳过
+  aria:
+    name_field: 新名称
+  status:
+    uploading: 正在上传
+  message:
+    conflict: 已存在同名项。
+push:
+  title:
+    question: "条目 #{id} 的 Job 提问"
+    question_titled: "#{id} {title} · Job 提问"
+    room_bundled: "{room} · {n}条新消息"
+  label:
+    mail: 新邮件
+    question: Job 提问
+    room: 房间消息
+  message:
+    mail: 收件箱收到新邮件且尚未读取时通知。被过滤器移走或标为已读的邮件不会通知。
+    room: 通知主管发到房间的消息和报告。正在查看该房间时不通知，同一房间的消息合并为一条。
+    room_line: "{sender}: {line}"
+    question: Job 正停下等待回答，1分钟后将采用推荐答案。可以在控制台暂停计时器。
+    test_body: 通知将发送到此设备。
+    test_nowhere: 没有设置接收通知的设备，因此未发送。
+    test_sent: "已发送到{n}台设备。"
+  error:
+    bad_endpoint: 这不是推送服务地址，因此未连接此设备。
+    bad_subscription: 订阅信息不完整。
+    bad_watch: 标签页正在查看的房间信息格式无效。
+    change_failed: 无法更改通知设置。
+    denied: 通知已被阻止。请在浏览器设置中允许此网站的通知。
+    device_taken: 此设备的通知已连接到其他账号。请在该账号中断开连接后重试。
+    no_device: 未指定要断开连接的设备。
+    no_worker: 此浏览器没有 Service Worker，无法接收通知。
+    read_failed: 无法读取通知设置。
+    unconfigured: 此服务器没有推送密钥，无法发送通知。
+    unsupported: 此浏览器不支持推送。
+question:
+  error:
+    answer_failed: 回答发送失败。
+    bad_option: 所选选项无效。
+    bad_own_answer: 自行输入的回答为空或过长。
+    bad_question_id: 问题编号无效。
+    one_answer: 所选编号和自行输入的回答只能发送其一。
+    pause_direction: 请选择暂停还是继续计时器。
+    pause_failed: 无法暂停计时器。
+    resume_failed: 无法继续计时器。
+    settled_by_recommendation: "期间已超时，已采用推荐答案：{answer}"
+    settled_elsewhere: "期间已在别处先行决定：{answer}"
+    bad_talk: 讨论消息为空或过长。
+    talk_failed: 讨论消息发送失败。
+    talk_read_failed: 无法加载讨论。
+    talk_settled: 此问题已有答案，无法讨论。
+    owner_only: 只有所有者可以回答或讨论 Job 的提问。
+    not_put_to_owner: 此问题由主管负责，无法回答或讨论。
+  action:
+    answer: 回答
+    answer_as_written: 按此回答
+    answer_with: "选择{number}号回答"
+    close: 关闭通知
+    discuss: 就此话题对话
+    pause: 暂停计时器
+    resume: 继续计时器
+    unpick: 取消选择
+  aria:
+    own_answer: 自行输入的回答
+    talk: 讨论消息
+    window_open: "Job 提问{n}个 · 打开"
+  label:
+    asked: "Job 提问 · 条目 #{id}"
+    asked_by: "{asker} · {since}前"
+    asked_prefix: Job 提问 · 条目
+    job: "Job #{id}"
+    talk: 讨论
+    recommended: （推荐）
+    recommended_words: 推荐答案：
+    summary: "{n}个问题"
+    why: 提问原因：
+  placeholder:
+    own_answer: 选项中没有的回答（输入的内容 Job 会原样读取）
+    talk: 发给 Job 的消息
+  status:
+    open: 等待回答
+    overdue: "已超时 · 采用推荐的{number}号"
+    overdue_alone: 已超时 · 等待人工回答
+    overdue_words: 已超时 · 采用推荐答案
+    owner: 所有者已回答
+    paused: "计时器已暂停 · 推荐{number}号"
+    paused_alone: 计时器已暂停 · 等待人工回答
+    paused_words: 计时器已暂停 · 推荐答案
+    recommendation: 已超时 · 采用推荐答案
+    running: "剩余{time} · 推荐{number}号"
+    running_alone: "剩余{time} · 等待人工回答"
+    running_words: "剩余{time} · 推荐答案"
+    untimed: 等待人工回答
+    no_talk: 可以与 Job 讨论问题的含义、各选项的结果以及推荐的理由。
+    talk_loading: 正在加载讨论…
+    talk_unheard: Job 尚未读取。
+    talk_writing: Job 正在撰写回复…
+  title:
+    window: Job 提问
+room:
+  status:
+    agent_listening: "{subject}正在聆听"
+    agent_thinking: "{subject}正在思考"
+    agent_tool: "{subject}正在使用工具"
+    agent_tool_named: "{subject}正在使用{tool}"
+    agent_waiting_engine: "{subject}正在等待使用同一模型的 Job 结束"
+    situation_loading: 正在加载情况笔记…
+    situation_none: 无情况笔记
+    agent_waiting_engine_item: "{subject}正在等待使用同一模型的 #{item} Job 结束"
+    agent_writing: "{subject}正在撰写回复"
+    step_thinking: 正在思考
+    step_tool: 正在使用工具
+    step_tool_named: "正在使用{tool}"
+    step_waiting: 正在等待使用同一模型的 Job 结束
+    step_waiting_item: "正在等待使用同一模型的 #{item} Job 结束"
+    step_writing: 正在撰写回复
+    brain_read_loading: 正在加载…
+    chat_enabled: 已启用聊天
+    checking: 正在确认是否已发送
+    draft_writing: 正在撰写消息
+    earlier_loading: 正在加载更早的对话…
+    failed: 失败
+    figures_loading: 正在加载记录和令牌用量…
+    find_count: "{at}/{n}"
+    find_loaded_only: 仅在已加载的消息中查找
+    find_none: 未找到消息
+    forward_none: 无匹配的房间
+    forward_rooms_none: 没有可转发的房间。
+    held_from: "从{services}收到的对话从这里开始。"
+    later_loading: 正在加载之后的对话…
+    listening_left: "接下来{time}"
+    more_records: "还有{n}条"
+    no_messages: 无已记录的消息
+    no_records_left: 没有更多记录
+    not_sent: 未发送
+    nothing_after: 当天之后没有对话
+    outcome_run_failed: "{name}的运行失败了。"
+    outcome_run_stopped: "已停止{name}的运行。"
+    outcome_skipped: "{subject}这次没有回复。"
+    outcome_skipped_times: "{subject}有{n}次没有回复。"
+    outcome_skipped_reason: "原因：{reason}"
+    outcome_skipped_reason_none: 未说明原因。
+    outcome_waited: "{subject}预计还有后续消息，因此等待了。"
+    received_both: "收到{messages}条消息 · {instructions}条静默指令"
+    received_instructions: "收到{instructions}条静默指令"
+    received_messages: "收到{messages}条消息"
+    records_loading: 正在加载记录…
+    providers_loading: 正在加载聊天服务…
+    mode_saving: 正在更改房间模式
+    providers_saving: 正在更改聊天服务…
+    removal_loading: 正在加载要删除的记录…
+    room_loading: 正在加载房间…
+    selected_count: "已选择{n}项"
+    sending: 正在发送
+    sent: 已发送
+    session_loading: 正在加载会话信息…
+    start_of_talk: 这是对话的开头。
+    sticker_none: 没有可发送的贴纸
+    stickers_loading: 正在加载贴纸…
+    talk_loading: 正在加载对话…
+    waiting: 连接后发送
+    window_left: "剩余{time}"
+    room_add_no_services: 没有可添加房间的聊天服务。
+    room_add_no_rooms: 此账号没有房间。
+    room_add_loading: 正在加载房间列表
+    room_add_more_loading: 正在加载更多房间
+    room_add_end: 房间列表已到底
+    room_add_contacts_loading: 正在加载联系人
+    room_add_no_contacts: 此账号没有联系人。
+    room_add_no_match: 未找到该名称。
+    step_stage: "正在检查{name}阶段"
+    step_arrived: 正在检查收到的消息
+    step_audit: 正在检查称呼
+  error:
+    bad_typing: 正在输入提示的格式无效。
+    actions_read_failed: 无法加载运行记录。
+    attachment_empty: "{name}：文件为空，未添加附件。"
+    attachment_too_large: "文件超过{by}可发送的大小（{limit}），未添加附件。"
+    situation_failed: 无法读取情况笔记。
+    attachment_too_many: "一次最多可添加{max}个附件。将排除{name}后发送。"
+    avatar_not_found: 找不到头像。
+    bad_avatar_id: 头像编号无效。
+    bad_avatar_kind: 头像类型无效。
+    bad_chat_id: 房间编号无效。
+    bad_instruction_id: 指令编号无效。
+    bad_judgement_ids: 判定编号无效。
+    bad_judgement_span: 读取判定的时间范围无效。
+    bad_language: 语言无效。
+    bad_message_id: 消息编号无效。
+    bad_reply_id: 要回复的消息编号无效。
+    bad_send_key: 发送键无效。
+    brain_read_failed: 无法加载 Brain 记录。
+    delete_failed: 无法删除消息。
+    drafts_read_failed: 无法加载草稿记录。
+    edit_empty: 请输入修改后的消息。
+    edit_failed: 无法修改消息。
+    judgements_read_failed: 无法加载判定。
+    message_deleted: 此消息已删除。
+    message_forbidden: 无法对此消息执行该操作。
+    message_unknown: 记录中没有该消息。
+    no_caller: 此账号在此房间中没有可用的发送者。
+    pin_message_direction: 请选择置顶还是取消置顶消息。
+    pin_message_failed: 无法置顶消息。
+    reaction_empty: 请选择要回应的表情。
+    reaction_failed: 无法添加回应。
+    sticker_empty: 请选择要发送的贴纸。
+    sticker_failed: 贴纸发送失败。
+    stickers_read_failed: 无法加载贴纸。
+    unknown_sticker: 记录中没有此贴纸。
+    file_empty_named: "{name}文件为空，未发送。"
+    file_not_found: 找不到文件。
+    file_too_large_named: "{name}文件超过了此房间可发送的大小，未发送。"
+    file_over_limit_named: "{name}文件超过了{by}可发送的大小（{limit}），未发送。"
+    file_with_voice: 发送语音备忘之前无法添加文件。
+    instruction_read_failed: 无法读取指令原文。
+    forward_failed: 消息转发失败。
+    forward_room: 请选择要转发到的房间。
+    forward_same_room: 无法转发到当前房间。
+    jump_failed: 无法跳转到该日期。
+    message_not_found: 找不到消息。
+    no_file: 没有要发送的文件。
+    no_voice: 没有要发送的语音备忘。
+    none_sent: 没有发送任何文件。
+    photo_not_found: 找不到照片。
+    pictures_failed: 无法加载房间的其他照片。
+    pin_direction: 请选择置顶还是取消置顶房间。
+    pin_failed: 无法置顶房间。
+    read_failed: 加载失败，请稍后重试。
+    receiver_bad_request: 接收单元无法读取请求。
+    receiver_conflict: 与当前状态不符，接收单元已拒绝。
+    receiver_failed: 接收单元在响应时失败。
+    receiver_forbidden: 此账号无法执行此操作。
+    receiver_not_found: 找不到该房间或消息。
+    receiver_not_ready: 接收单元尚未准备好响应。
+    receiver_unauthorized: 与接收单元约定的令牌不匹配。
+    receiver_unit_failed: 接收单元在调用其他单元时失败。
+    receiver_unreachable: 此房间的聊天服务无响应。
+    removal_chat: 这不是房间编号。
+    removal_infrastructure: 这是配置中写明的运维房间，无法删除。
+    removal_not_administrator: 仅管理员可以删除房间登记。
+    removal_owners_chat: 这是管理员自己的私人聊天，无法删除。
+    providers_read_failed: 无法加载聊天服务。
+    mode_no_chat_service: 此房间未连接任何聊天服务，无法开启代答模式。
+    mode_not_added: 此房间从未添加过，无法更改模式。
+    mode_read_failed: 无法加载房间模式。
+    mode_save_failed: 无法更改房间模式。
+    mode_takes_no_avatar: 此房间的聊天服务不接收回复，无法开启代答模式。
+    providers_save_failed: 无法更改聊天服务。
+    providers_shape: 请至少选择一个要开启的聊天服务。
+    removal_read_failed: 无法加载要删除的记录。
+    removal_seeded_room: 这是主管配置指定的房间，无法删除。
+    reply_missing: 记录中没有要回复的消息。
+    voice_denied: 无法使用麦克风。请在浏览器中允许麦克风权限。
+    voice_empty: 没有录到声音，请重新录音。
+    voice_unsupported: 此浏览器无法录制语音备忘。
+    voice_with_files: 语音备忘不能与文件一起发送。
+    say_empty: 请输入要发送的消息。
+    no_account: 需要使用账号登录。
+    private_room: 无法更改他人的私人房间。
+    open_title: 请输入房间名称。
+    open_no_bmo: 你没有自己的 BMO，无法创建房间。
+    open_failed: 无法创建房间。
+    session_failed: 无法加载会话信息。
+    unpin_failed: 无法取消置顶房间。
+    words_only: 此房间只接收文字。
+    room_add_refused: 要添加的房间无效。
+    room_add_unlisted: 此聊天服务不提供房间列表。
+    room_add_unknown: 聊天服务不认识此房间。
+    room_add_avatar: 此聊天服务不支持代答模式。
+    room_add_added: 此房间已添加。
+    room_add_failed: 无法添加房间。
+    room_add_rooms_failed: 无法加载房间列表。
+    room_add_contacts_unlisted: 此聊天服务不提供联系人。
+    room_add_unstarted: 此聊天服务不会发起此类对话。
+    room_add_contact_unknown: 聊天服务不认识此联系人。
+    room_add_start_refused: 聊天服务未能发起对话。
+    room_add_contacts_failed: 无法加载联系人。
+    room_add_supervisor: 群组的主管只能从你自己的主管中选择。
+  action:
+    room_open: 创建
+    new_chat_add: 添加聊天服务房间
+    new_chat_open: 创建控制台房间
+    attach_document: 文件
+    attach_secret: 密钥
+    attach_file: 添加附件
+    attach_media: 照片/视频
+    brain_read_page: 在 Brain 中查看
+    overlay: 与我的 BMO 单独对话
+    cancel_recording: 取消录音
+    cancel_reply: 取消回复
+    choose_messages: 选择消息
+    copy_all: 全部复制
+    copy_ref: 复制对话编号
+    copy_text: 仅复制文本
+    edit_message: 编辑
+    find: 在对话中查找
+    forward: 转发
+    find_next: 下一个结果
+    find_older: 加载更多早期消息
+    find_previous: 上一个结果
+    pin: 置顶
+    remove_paste: 删除粘贴的文本
+    remove_registration: 删除房间登记
+    react: 回应
+    reply: 回复
+    resend: 重新发送
+    select: 选择
+    show_in_message: 在消息中查看
+    sticker: 贴纸
+    stop_recording: 结束录音
+    spoiler_show: 显示剧透
+    quote_expand: 展开引用
+    quote_collapse: 收起引用
+    to_latest: 跳到最新消息
+    unpin: 取消置顶
+  label:
+    presence_away: 离开
+    presence_last_seen: "最近在线 {ago}前"
+    presence_online: 在线
+    presence_online_count: "{n}人在线"
+    typing: 正在输入…
+    typing_names: "{names}正在输入…"
+    typing_unnamed: 有人
+    room_open_title: 房间名称
+    answer_took: "耗时{time}"
+    avatar_of: "{name}的头像"
+    situation: 情况
+    situation_changed: 已更新
+    situation_updated: "更新于{time}"
+    brain_read_attached: 附件
+    brain_read_before: 之前读过
+    brain_read_due: 此房间当前要履行的约定
+    brain_read_held: "之前读过{n}条"
+    brain_read_situation: 此房间的当前情况
+    brain_read_held_one: 之前读过
+    brain_read_how: 读取方式
+    brain_read_key: 键
+    brain_read_layer: 层
+    brain_read_new: 新读取
+    brain_read_read: 直接读取
+    brain_read_subjects: 对象
+    brain_read_type: 类型
+    brain_read_written: 撰写
+    chip_brain: Brain
+    chip_briefing: 语音简报
+    chip_briefing_failed: 语音简报失败
+    chip_briefing_making: 正在制作语音简报
+    chip_briefing_stopped: 语音简报已停止 · 可重新请求
+    chip_context: 上下文
+    chip_record: 判定记录
+    chip_drafts: 草稿
+    chip_records: 记录
+    chip_tokens: 令牌用量
+    chip_tools: 工具使用
+    chip_verdicts: 判定
+    chip_verdicts_judging: 判定中
+    context: 上下文
+    copy_call_failed: 失败
+    copy_result_chars: "结果 {n}个字符"
+    copy_tokens: "{n} 令牌"
+    deleted_message: 已删除的消息
+    deleted_message_hide: 已删除的消息 · 收起内容
+    deleted_message_show: 已删除的消息 · 点按查看
+    deleted_picture: 已删除消息中的照片
+    draft_changed: 已更改
+    draft_chars: "{n}个字符"
+    draft_end_message: 已发送消息
+    draft_end_skip: 未发送
+    draft_kind_end: 结束
+    draft_kind_supervisor: 判断
+    draft_kind_turn: 轮次
+    draft_outcome_answered: 已回复
+    draft_outcome_failed: 失败
+    draft_outcome_send: 已发送
+    draft_outcome_skip: 跳过
+    draft_turn_arrived: 到达确认
+    draft_reads: "已读：{names}"
+    draft_version_handed: 收到的话
+    draft_version_program: 工作通知
+    draft_versions: "已写回复{n}条"
+    background: 进行中
+    background_count: "进行中{n}项"
+    background_reminder: 提醒
+    background_shell: Shell 命令
+    background_subagent: 子智能体
+    background_watch: 监视
+    mode_avatar: 代答模式
+    earlier_count: "更早{n}条"
+    edited: 已编辑
+    edited_at: "编辑于{time}"
+    forwarded: "转发自{name}"
+    edit_message: 消息
+    empty_message: （空消息）
+    find_box: 查找内容
+    hour: "{n}点"
+    hour_count: "{hour}点 · {n}条"
+    hour_of_day: 时段
+    judgement_applies: 适用
+    judgement_no: 否
+    judgement_spent: 已用
+    judgement_unread: 未能读取
+    judgement_yes: 是
+    last_answer: 最后回复
+    last_talk: 最后对话
+    me: 我
+    messages: 消息
+    no_speakers: 还没有人发送消息
+    not_yet: 暂无
+    offer_counts: "过滤前 {held} · 过滤后 {left}"
+    offer_item_rule: 此轮次只收到了机器人的一行消息，因此只将与该行提到的条目编号相关的片段作为候选。
+    offer_kept: "条目 {item} · 关键词 {keyword} · 词语 {word} · 人物 {person} · 最近 {recent}"
+    open_sessions: 打开的会话
+    opening_title: 发起此轮次的指令
+    outcome_answered: 已回复
+    outcome_read_with: 一并读取
+    outcome_waiting: 已等待
+    paste_name: "粘贴 {n}"
+    paste_size: "{n}个字符"
+    peak_hour: "{hour}点时段"
+    peak_hours: 使用高峰
+    picture_file: 文件名
+    picture_format: 格式
+    picture_message: 消息编号
+    picture_not_kept: 无保存的文件
+    picture_sender: 发送者
+    picture_sent_at: 发送时间
+    picture_size: 文件大小
+    pinned: 已置顶
+    pinned_at: "置顶于{time}"
+    pinned_count: "{n}条置顶消息"
+    pinned_of: "置顶消息 {at}/{n} · {words}"
+    quiet_instruction: 静默指令
+    quote_picture: 照片
+    quote_sticker: 贴纸
+    quote_video: 视频
+    recent_answer: 最近回复
+    record_memory: 记忆
+    record_memory_numbered: "记忆 #{id}"
+    record_note: 备注
+    record_note_numbered: "备注 #{id}"
+    record_rule: 情况规则
+    record_rule_numbered: "情况规则 #{id}"
+    record_todo_add: 新条目
+    record_todo_add_numbered: "新条目 #{id}"
+    record_todo_append: 条目补充
+    record_todo_append_numbered: "条目 #{id} 补充"
+    record_watch: 监视
+    record_watch_numbered: "监视 #{id}"
+    recording: "正在录音 {time}"
+    removal_copies: 归档副本
+    removal_documents: brain 文档
+    removal_failures: 未能删除
+    removal_folders: 文件夹
+    removal_pictures: 房间头像
+    removal_rows: 行
+    removal_settings: 设置
+    removal_stays: 保留的行
+    removal_undeclared: 未声明的设置（保留）
+    removal_warnings: 注意事项
+    road_answered: 已响应
+    road_busy_skip: 因繁忙跳过
+    road_error: 错误
+    road_stopped: 用户已停止
+    road_timeout: 超时
+    road_too_large: 因超出大小被拒
+    road_unavailable: 无
+    room_add_added_avatar: 已以代答方式添加
+    room_add_added_record_only: 已以仅记录方式添加
+    room_add_group_title: 群组名称
+    room_add_has_chat: 有对话
+    room_add_held: 已有的房间
+    room_add_kind_bot: 机器人
+    room_add_kind_group: 群组
+    room_add_kind_owner: 个人
+    room_add_kind_person: 人员
+    room_add_mode: 模式
+    room_add_mode_avatar: 代答
+    room_add_mode_record_only: 仅记录
+    room_add_modes: "模式：{modes}"
+    room_add_room: 房间
+    room_add_search: 搜索名称
+    room_add_service: 聊天服务
+    room_add_supervisor: 群组主管
+    room_add_tab_contacts: 新对话
+    room_add_tab_rooms: 已有房间
+    room_add_title: 标题
+    room_add_untitled: "房间 {id}"
+    runs: 运行
+    runs_count: "{n}次"
+    runs_last: "{n}次 · 最近 {time}"
+    session_of: "{name}的会话"
+    share_people: 人员
+    sort_browse: 浏览
+    sort_console_talk: 控制台对话
+    sort_document_reload: 文档更新
+    sort_impact_mismatch: 协作依据不符
+    sort_notice: 通知
+    sort_overtime: 运行延长
+    sort_raised_row: 新条目
+    sort_random_draw: 抽签
+    sort_relay: 回答转达
+    sort_reminder: 提醒
+    sort_remote_browser: 远程浏览器
+    sort_resume_condition: 恢复条件
+    sort_run_failure: 运行失败
+    sort_run_state: 运行状态
+    sort_say: 转达
+    sort_search: 搜索结果
+    sort_song: 歌曲
+    sort_supervisor_cut: 主管中止
+    sort_unfinished: 待决事项
+    sort_watch: 监视
+    span_days: "第{n}天"
+    span_months: "第{n}个月"
+    span_speakers: "{span} · {n}位参与者"
+    stage_chat: 聊天
+    stage_content_append: 补充
+    stage_content_rewrite: 重写
+    stage_draft: 草稿
+    stage_language_again: 按房间语言重写
+    stage_owed_again: 遗漏回复重写
+    stage_people_search: 人物簿检索
+    stage_read_with: 一并读取
+    stage_record_again: 约定记录重写
+    stage_rule_again: 情况规则重写
+    stage_sanitizer: 净化
+    stage_send: 发送
+    stage_skipped: 未回复
+    stage_supervisor: 主管
+    stage_wake_again: 唤醒条件重写
+    stage_wording_again: 禁用词重写
+    sticker_preview: 贴纸预览
+    thinking_line: 思考
+    tokens: 令牌
+    tokens_week_total: "本周 {week} · 总计 {total}"
+    top_speakers: 消息最多的人
+    unknown_message: 记录中没有的消息
+    unreceivable: 无法接收
+    verdict_clean: 无异常
+    verdict_defused: 已消解
+    verdict_failed: 失败
+    verdict_folded: 部分精简
+    verdict_no_answer: 无回答
+    verdict_no_candidates: 无候选
+    verdict_none: 未选择
+    verdict_open: 未精简
+    verdict_passed: 通过
+    verdict_picked: 已选择
+    verdict_rewritten: 已改写
+    verdict_sent: 已发送
+    verdict_sent_parts: "分{n}条发送"
+    verdict_situation: "适用 {applies} · 已用 {spent}"
+    verdict_skipped: 已跳过
+    verdict_unknown: 未知判定
+    verdict_unreadable: 未能读取回答
+    voice_message: 语音消息
+    voice_note: 语音备忘
+    voice_failed: 未能听取
+    draft_kind_arrived: 到达确认
+    draft_kind_stage: 指令阶段
+    draft_outcome_pass: 通过
+    draft_outcome_revised: 已修改
+    draft_turn_message: 撰写消息
+    draft_kind_audit: 称呼检查
+    draft_turn_audit: 称呼检查
+    draft_outcome_no_verdict: 无理由跳过
+    draft_slow: 耗时较长的轮次
+  message:
+    delete_ask: 要删除此消息吗？
+    delete_note: 消息内容会被删除，但其位置会保留。
+    forwarded: "已转发到{room}房间。"
+    id_copied: 已复制对话编号。
+    message_ref: "房间 {room} (chatId {chatId}) · 消息 #{messageId}"
+    messages_copied: "已复制{n}条消息。"
+    removal_done: 已删除房间登记及其记录。
+    removal_goes: 删除后，下列记录和文件将一并删除，且无法恢复。
+    providers_rule: 只开启本房间记录的房间不连接任何即时通讯工具，所说的内容只保留在记录和此控制台中。开启某个即时通讯工具后，从那时起留在此房间的消息也会发送到该工具；关闭后即停止。房间必须至少在一处保持开启。
+    mode_rule: 开启后，此房间的智能体以你的账号回复；关闭后只读取和记录，不回复。
+    background_every_minutes: "每{n}分钟检查一次"
+    background_every_seconds: "每{n}秒检查一次"
+    background_since: "自{time}起"
+    background_until: "{time}提醒"
+    mode_unadded: 此房间未被添加，因此没有模式。
+    providers_unset: 从未设置过，因此显示此房间当前连接的位置。
+    removal_refused: 此房间的登记无法删除。
+    removal_stays: 在此房间创建的条目、Job、Job 提问、搜索和用量将保留。
+    room_removed: 此房间的登记已删除，已跳转到首页。
+    text_copied: 已复制文本。
+    room_add_mode_avatar: 房间的智能体以你的账号回复。
+    room_add_mode_record_only: 只读取和记录，不回复。
+    room_add_nothing: 此聊天服务既不提供房间列表也不提供联系人，无法在此添加。
+    room_add_contacts_mine: 我的账号联系人
+    room_add_contacts_service: 聊天服务账号联系人
+    room_add_no_start: 此聊天服务不会发起新对话。
+    room_add_one_to_one: 将与此联系人开始一对一对话。
+    room_add_group: "将与{n}人创建新群组。"
+    room_add_supervisor: 从你自己的主管中选择；不选择则以无主管状态添加。
+  title:
+    remove_registration: 删除房间登记
+    edit_message: 编辑消息
+    forward: 转发消息
+    room_add: 添加房间
+    room_open: 创建房间
+    new_chat: 新聊天
+  aria:
+    avatar_enlarge: "放大查看{name}的头像"
+    background_open: "查看进行中的{n}项"
+    brain_read_open: "打开{name}"
+    forward_to: "转发到房间：{name}"
+    mention_agent: "智能体 {name}"
+    mention_list: 提及候选
+    mention_person: "人员 {name}"
+    go_to_quote: "跳转到{name}的消息"
+    jump_to_date: "{name}，跳转到日期"
+    pinned_open: "{n}条置顶消息"
+    presence_open: "{state}，查看对话成员"
+    reaction: "{emoji} {n}人"
+    remove_named: "删除{name}"
+    sticker_send: "发送{emoji}贴纸"
+  placeholder:
+    drop_here: 拖放到此处即可添加附件
+    forward_search: 按房间名称查找
+cards:
+  label:
+    block: "块 {n}"
+    blocks: "块 {from}~{to}"
+    board: 全部
+    card_alone: 仅显卡
+    card_memory: 显卡内存
+    card_of: "{node} 显卡 {n}"
+    chart: 各显卡 VRAM
+    context: "CUDA 上下文（{process}）"
+    driver: 驱动预留
+    events: 记录
+    fill: 填充
+    free: 剩余 VRAM
+    full_attention: "{n} 个全注意力块"
+    kind: 类型
+    load: 加载
+    master: 主控
+    mtp: MTP
+    nodes: 节点
+    occupant: 占用者
+    on_demand: 按需
+    others: 组外
+    outside: 服务外
+    output: 输出层
+    pool: 一组
+    priority: 优先级
+    priority_rule: "在仲裁器规则文件（{file}）中设定，无法在控制台中更改。"
+    priority_value: 优先级
+    queue: 队列
+    ram: RAM 转储
+    resident: 常驻
+    rules: 规则
+    service: 服务
+    spread: 布局
+    spread_many: 多个节点
+    spread_one: 单个节点
+    store: 转储存储
+    tier: 等级
+    turn: 轮次
+    unit: 单元
+    unload: 卸载
+    unplaced_chunk: 显卡外
+    unsplit: 驱动·上下文
+    version: 版本
+    vram: VRAM
+    waiting: 暂缓队列
+    where: 状态
+  status:
+    claim: "{who} 占用"
+    claim_on: "占用 {nodes}"
+    connected: 已连接
+    evicted: NVMe
+    expected: "预计 {t}"
+    extents: "{n} 个 extent · {s} 个槽位"
+    free_short: "剩余 {m}"
+    held: 等待中
+    in_ram: RAM
+    loading: 正在读取仲裁器
+    lost: 已断开
+    lost_since: "已断开 {t}"
+    mixed: 部分
+    no_queue: 无等待
+    no_turn: 无轮次
+    no_units: 无已加载单元
+    on_card: 已加载
+    position: "第 {n} 位"
+    ram_available: "可用 {m}"
+    ram_floor: "占用分配 {m}"
+    ram_max: "最大 {m}"
+    rules_error: 无法读取规则
+    stage: "阶段等待 {t}"
+    turns: "使用 {n}"
+    unknown: 未知
+    unplaced: 已卸载
+    waiting: "等待 {n}"
+  error:
+    master: 无法连接到主控。
+hardware:
+  title:
+    board: 主板
+    cpu_limit: 温度上限
+    live: 实时
+    node_removal: 删除节点
+    node_remove_ask: "要删除节点\"{name}\"吗？"
+    ownership: 归属
+    ownership_change: "更改\"{name}\"的归属"
+    record: 记录
+    storage: 存储设备
+    system: 系统
+  label:
+    band_point: "{mean}（{min}~{max}）"
+    clock: 频率
+    clock_peak: 最高频率
+    column_account: 所属账号
+    column_kind: 连接方式
+    column_node: 节点
+    column_ownership: 归属
+    column_state: 状态
+    criteria_fill: "{mild} 以下绿色 · {mild} 起黄色 · {warm} 起橙色 · {hot} 起红色"
+    criteria_temperature: "上限 {limit}（{source}）· {near} 以下绿色 · {near} 起橙色 · {limit} 起红色"
+    criteria_temperature_slowdown: "上限 {limit}（{source}）· {near} 以下绿色 · {near} 起橙色 · {limit} 起红色 · 降频时红色"
+    criteria_temperature_slowdown_only: 温度上限未知 · 降频时红色
+    criteria_temperature_unknown: 温度上限未知
+    failed_services: 失败的服务
+    fan: 风扇
+    host: 主机
+    kernel: 内核
+    kind_hub: Jake
+    kind_local: 本地
+    kind_ssh: SSH
+    limit_source_chip: 芯片
+    limit_source_driver: 驱动
+    limit_source_set: 设置
+    load: 负载
+    memory: 内存
+    memory_clock: 内存频率
+    mount: 挂载点
+    node_leave: 从此 PC 删除 jake 并断开连接
+    no_account: 无账号
+    no_nodes: 无节点
+    no_nodes_found: 未找到节点
+    ownership: 归属
+    ownership_all: 全部
+    ownership_personal: 个人
+    ownership_personal_node: 个人节点
+    ownership_personal_of: "个人节点 · {name}"
+    ownership_shared: 公用
+    ownership_shared_node: 公用节点
+    off_named: "{label}（已关闭）"
+    power: 功耗
+    range: "{min}~{max}"
+    service_counts: "运行 {running} · 失败 {failed}"
+    services: 服务
+    span_15m: 15 分钟
+    span_1h: 1 小时
+    span_24h: 24 小时
+    span_30d: 1 个月
+    span_5m: 5 分钟
+    span_6h: 6 小时
+    span_7d: 1 周
+    state_auth: 认证失败
+    state_connected: 已连接
+    state_disconnected: 已断开
+    state_error: 错误
+    state_hostkey: 主机密钥不匹配
+    state_unknown: 尚未检查
+    state_unreachable: 无法连接
+    storage_hdd: HDD
+    storage_network: 网络
+    storage_nvme: NVMe
+    storage_ssd: SSD
+    storage_usb: USB
+    storage_virtual: WSL 虚拟磁盘
+    swap: 交换空间
+    tab_devices: 设备
+    tab_logs: 日志
+    tab_nodes: 节点
+    tab_services: 服务
+    temperature: 温度
+    threads: "{n} 线程"
+    tracking: 实时跟踪
+    unread: 无法读取
+    unknown_account: "未知账号 {id}"
+    uptime: 运行时间
+    usage: 使用率
+    used: 已用
+  aria:
+    core_usage: "{name} 使用率 {usage} 频率 {clock}"
+    live_summary: "{label} 实时：最新 {last}"
+    monitor_tabs: 监控分区
+    ownership_filter: 归属筛选
+    range_summary: "{label} {span}：{range}"
+    span: 记录时段
+  error:
+    bad_span: 监控不显示该时段。
+    cpu_limit_body: 请发送设备和温度上限。
+    cpu_limit_failed: 无法更改温度上限。
+    cpu_limit_range: 温度上限必须高于 0 °C 且低于 127 °C。
+    no_machine: 没有该设备。
+    no_node: 没有该节点。
+    node_leave_refused: 中心未接受断开请求，因此未删除节点。请确认此 PC 上的 jake 已接入中心。
+    node_remove_failed: 无法删除节点。
+    ownership_failed: 无法更改归属。
+    ownership_refused: 节点服务未接受此归属设置。
+    ownership_shape: 归属必须是公用或个人。
+    readings_failed: 无法加载设备状态。
+    record_failed: 无法加载记录。
+    tracking_direction: 请发送设备和开关值。
+    tracking_failed: 无法更改实时跟踪。
+    users_failed: 无法加载账号列表。
+  status:
+    account_loading: 正在加载所属账号…
+    board_loading: 正在加载主板…
+    cpu_loading: 正在加载 CPU…
+    memory_loading: 正在加载内存…
+    name_loading: 正在加载名称…
+    nodes_loading: 正在加载节点…
+    no_sensor_library: 无 Windows 传感器库
+    storage_loading: 正在加载存储设备…
+    system_loading: 正在加载系统…
+    tracking_loading: 正在加载实时跟踪…
+    tracking_off: 实时跟踪已关闭
+  action:
+    node_remove: 删除节点
+    ownership_change: 更改归属
+    ownership_edit: 更改
+  message:
+    node_leave: jake 会从此 PC 上自行删除并离开中心。若不处理，下次检查时节点会重新出现。
+    node_leave_unattached: 此 PC 上的 jake 当前未接入中心，因此仅从列表中移除。重新接入后节点会重新出现。
+    node_removal: 将此节点从监控列表中移除。
+    node_remove_effect: 从列表中移除的节点将不再被监控。
+    personal_unmonitored: 不监控个人节点。
+monitor_logs:
+  label:
+    all_categories: 所有分类
+    all_levels: 所有级别
+    category: 分类
+    category_backup: 备份
+    category_deploy: 部署
+    category_service: 服务
+    category_suite: 测试
+    category_upkeep: 定期任务
+    filter: 筛选
+    filter_count: "筛选 {n}"
+    level: 级别
+    level_error: 错误
+    level_other: 其他
+    level_warning: 警告
+    masked: «已遮盖的值»
+    search: 搜索日志
+  aria:
+    filters: 日志筛选
+    list: 日志
+  status:
+    empty: 无内容
+    empty_found: 未找到匹配行
+    loading: 正在加载日志…
+  error:
+    read_failed: 无法加载日志。
+screens:
+  label:
+    agents: 代理中心
+    agents_group: "智能体 · {name}"
+    artifact: 制品
+    chat_id: 聊天编号
+    code: 代码审查
+    db: DB
+    documents: 文档查看器
+    files: 文件
+    find_description: 前往界面、房间或智能体
+    group_agents: 智能体
+    section_administration: 管理服务
+    section_organization: 组织
+    section_application: 应用
+    internal_name: 内部名称
+    live: 实时状态
+    mail: 邮件
+    monitor: 监控
+    admin: 管理员
+    organization: 组织
+    remote: 远程
+    research: 调研
+    search: 搜索
+    siren: 缓存警报
+    rooms: 房间
+    brain: Brain
+    todo_description: 队列与待审批
+  placeholder:
+    find: 查找界面·房间·智能体
+  status:
+    agents_loading: 正在加载智能体列表…
+    disconnected: 已断开
+    no_settings_found: 未找到设置
+    restarting: 正在重启
+    rooms_loading: 正在加载房间列表…
+  action:
+    read_screen_again: 重新加载
+  error:
+    agents_failed: 智能体列表获取失败
+    bad_screen_name: 界面名称无效。
+    no_tab_state: 没有标签页状态。
+    nodes_failed: 节点列表获取失败
+    rooms_failed: 房间列表获取失败
+    screen_unreachable: 此界面的服务无响应，无法加载界面。
+    tab_state_too_large: 标签页状态过大。
+  aria:
+    room_typing: 正在输入
+    room_unread: "{count} 条未读消息"
+    screen_unread: "{name} 未读 {count} 条"
+siren:
+  error:
+    load_failed: 无法加载警报。
+    unreachable: 缓存警报无响应。
+  aria:
+    agent_filter: 智能体筛选
+    kind_filter: 类型筛选
+    model_filter: 模型筛选
+    request_filter: 请求筛选
+  label:
+    all_models: 全部模型
+    cache_share: 缓存复用率
+    cache_tokens_of: "缓存 {tokens}"
+    cause_deploy: 部署
+    cause_launch: 启动线变更
+    cause_reload: 文档重新加载
+    chat_session: "{title} {agent}"
+    cold_requests: 重新预填充的请求
+    filter: 筛选
+    filter_count: "筛选 {n}"
+    kind_burst: 突发
+    kind_cmd: 命令
+    kind_cold: 重新预填充
+    kind_compact: 压缩
+    kind_error: 错误
+    kind_growth: 新 token 激增
+    kind_notice: 通知
+    kind_quota: 配额
+    kind_refusal: 模型切换
+    kind_request: 请求
+    kind_start: 首次请求
+    kind_warm: 缓存
+    last_request: 最后一次请求
+    minute_tokens: "{tokens} 新 token"
+    moving_sessions: 30 分钟内活跃的会话
+    new_tokens: 最近 1 分钟新 token
+    new_tokens_of: "新 {tokens}"
+    no_known_cause: 无记录的原因
+    note_burst: "{seconds} 秒内请求 {count} 次"
+    note_compact: 压缩
+    note_effort_model: 模型·强度变更
+    note_image: 图片
+    note_model_switch: 模型切换
+    note_prefix_changed: 前缀变更
+    note_session_start: 会话首次请求
+    note_tool_search: 工具搜索
+    note_ttl_expired: 缓存 TTL 过期
+    note_unknown: 未知
+    note_usage_unavailable: 未提供用量
+    sirens: 已触发的警报
+    unnamed: 其他
+    window_last: 统计开始与最后一次请求
+    window_since: 统计开始
+  message:
+    thresholds_armed: "最近 10 分钟，每分钟新 token · 新 token 达 {threshold} 时报警 · 缓存有效期 {minutes} 分钟 · 报警已开启"
+    thresholds_quiet: "最近 10 分钟，每分钟新 token · 新 token 达 {threshold} 时报警 · 缓存有效期 {minutes} 分钟 · 报警已关闭"
+  status:
+    end: 结束
+    figures_loading: 正在加载数据…
+    more_loading: 正在加载更多…
+    no_matching: 没有符合条件的请求
+    no_requests: 无请求
+    requests_loading: 正在加载最近的请求…
+  title:
+    recent_requests: 最近的请求
+todo:
+  error:
+    approvals_load_failed: 无法加载审批记录。
+    questions_load_failed: 无法加载已有答复的问题。
+    auto_change_failed: 无法更改自动推进。
+    bad_action: 无法执行该操作。
+    bad_direction: 移动方向无效。
+    bad_model: 模型无效。
+    bad_agent: 智能体名称无效。
+    bad_role: 角色名称无效。
+    no_candidate: "没有在 {role} 角色中运行 {model} 模型的智能体。\n{role} 角色的智能体：{agents}"
+    unknown_role: "代理中心中没有 {role} 角色。"
+    bad_item_id: 条目编号无效。
+    bad_note: 审批意见过长或无效。
+    bad_order: 要保存的顺序无效。
+    bad_source_ids: 一并作为来源的条目编号无效。
+    bad_strands: 待决事项编号无效。
+    bad_worker: 工作器名称无效。
+    bot_refused: bmo-job 拒绝了请求。
+    hold_reason_too_long: "暂缓原因过长。\n最多可输入 {n} 个字符。"
+    queue_unknown: 尚未确定放入任务的队列。
+    talk_unavailable: 暂时无法为该条目留下对话。
+    cannot_append: 已完成的条目无法添加指示。请重新打开后再添加。
+    cannot_finish: 已完成、Job 正在运行或正在等待停止·恢复的条目无法标记为完成。
+    cannot_hold: 该条目已完成或已暂缓。
+    cannot_unappend: 该指示已被删除。请刷新列表。
+    change_failed: 无法更改 TODO。
+    create_failed: 无法创建新条目。
+    hold_release_failed: 无法解除部署等待。
+    item_read_failed: "无法读取 #{id}。"
+    job_ended: "Job #{id} 已结束。"
+    job_read_failed: "无法读取 Job #{id}。"
+    load_failed: 无法加载 TODO。
+    not_held: 该条目未被暂缓。
+    note_delete_failed: 无法删除指示。
+    note_empty: 请输入要添加的指示。
+    note_pick: 未找到要删除的指示。
+    note_send_failed: 无法发送指示。
+    notes_load_failed: 无法加载追加指示。
+    nothing_to_raise: 该条目没有待决事项，无法创建新条目。
+    source_without_note: "#{id} 没有待决事项，无法作为来源。"
+    standing_notes_failed: 无法加载其他待决事项。
+    order_save_failed: 无法保存顺序。
+    queue_moved: 期间队列已变化，无法保存顺序。请刷新后再移动。
+    queue_pause_direction: 请选择暂停还是恢复自动推进。
+    raise_body_empty: 请输入针对此待决事项要做的事。
+    raise_title_empty: 请输入新条目的标题。
+    resolve_reason_empty: 请用一行输入解决该待决事项的原因。
+    stop_reason_needed: 请输入停止原因。
+    hold_reason_needed: 请输入暂缓原因。
+    notices_reason_needed: 请输入关闭通知的原因。
+    notices_reason_too_long: "关闭通知的原因过长。\n最多可输入 {n} 个字符。"
+    talk_load_failed: 无法加载对话。
+    unfinished_not_open: 该条目没有可解决的待决事项，或已解决。
+    work_order_fold_failed: 无法结束工作指令单。
+    work_order_load_failed: 无法加载工作指令单。
+    work_order_save_failed: 无法保存工作指令单。
+    work_order_stop_failed: 无法停止工作指令单。
+    worker_change_failed: 无法更改工作器。
+    agent_change_failed: 无法更改智能体。
+    job_runs_on: "{agent} 智能体上有正在运行的 Job（#{job}），无法更改。\n停止该 Job 后即可更改。"
+  action:
+    approve: 批准
+    auto_pause: 暂停自动推进
+    auto_resume: 恢复自动推进
+    clear_all: 全部清除
+    clear_filters: 清除所有筛选
+    show_awaiting: 仅显示等待答复的条目
+    clear_search: 清除搜索词
+    confirm_delete: 确认删除
+    confirm_discard: 确认丢弃
+    create_item: 创建条目
+    discard: 丢弃
+    edit_reopen: 修改并重新打开
+    end_work_order: 结束指令单
+    give_up: 放弃
+    hold: 暂缓
+    move_bottom: 移到底部
+    move_top: 移到顶部
+    open_todo: 打开 TODO
+    panel_close: 关闭 TODO 面板
+    panel_collapse: 关闭 TODO 面板
+    panel_expand: 打开 TODO 面板
+    release_hold: 解除
+    reopen_keep: 保留之前的结果并重新打开
+    resume: 恢复
+    resume_from_done: 从完成阶段恢复
+    save_instruction: 保存指示
+    skip_and_end: 跳过剩余工作并结束
+    stop: 停止
+    stop_and_hold: 立即停止并暂缓
+    submit_for_approval: 提交审批
+    task_edit: 修改指示
+    task_rerun: 重新运行
+    task_restore: 取消跳过
+    task_restore_confirm: 恢复
+    task_skip: 跳过
+    unhold: 解除暂缓
+    notices_off: 关闭通知
+    notices_on: 开启通知
+    job_log: Job 日志
+    write_separately: 另行编写
+  aria:
+    drag_reorder: 拖动以调整顺序
+    filter: TODO 筛选
+    filter_of: "{name} 筛选"
+    filters_set: "{n} 个筛选"
+    item_body: 条目内容
+    item_form: 审批栏
+    item_manage: 条目状态与管理
+    item_view: 查看条目
+    item_worker: 负责此条目的工作器
+    item_agent: 负责此条目的智能体
+    more_sources: 除此条目外一并作为来源的待决事项
+    new_body: 作为新条目的内容
+    panel_width: 调整 TODO 面板宽度
+    resolve_reason: 待决事项解决原因
+    strands: 新条目承接的待决事项
+    search: 搜索 TODO
+    work_instruction: 工作指示
+    work_purpose: 工作目的
+  label:
+    approval_by_person: "{name}"
+    approval_given: 审批
+    approval_no_caller: 调用者不明
+    approval_recommended: 推荐
+    approved: 已审批
+    chosen_forced: 强制指定
+    chosen_item: 条目指定
+    chosen_order: 提供商顺序
+    chosen_pin: 固定模型
+    model_chosen_by: "{model} · {by}"
+    base_worker: 默认工作器
+    builder_model: Builder 模型
+    builder_stage: "第 {n} 阶段 · {title}"
+    checkout_release_wait: 正在等待释放检出副本的轮次
+    conversation: 对话
+    deploy_hold_breaks: 架构变更
+    deploy_hold_jobs: 等待中的 Job
+    deploy_deploying: 部署中
+    deploy_failed: 部署失败
+    deploy_in_line: 等待部署顺序
+    deploy_in_line_at: "等待部署顺序，第 {n} 位"
+    deploy_waiting_live: 等待部署
+    deploy_waits: 此 Job 结束后即部署
+    detail_description: 指示与记录
+    discussion: 讨论
+    edited_instruction: 已修改的指示
+    end_reason: 结束原因
+    field_checkout: 检出副本
+    field_checkout_reason: "占用检出副本的原因：{reason}"
+    field_deploy_waits: 等待部署
+    field_id: 编号
+    field_instruction: 指示
+    field_merged: 合并
+    field_merged_into: "合并到 #{id}"
+    field_model: 模型
+    field_agent: 智能体
+    field_note: 审批意见
+    field_report: 报告
+    field_requester: 请求
+    field_state: 状态
+    field_stopped: 停止原因
+    field_title: 标题
+    field_unfinished: 待决事项
+    field_question: 问题
+    field_waiting: 等待
+    field_worker: 仓库
+    agent_unnamed: 未指定
+    model_unnamed: 未指定
+    assign_model: "{role} · {model}"
+    assign_model_agents: "空闲智能体 · {agents}"
+    assign_free: "{role}"
+    assign_free_any: 未指定
+    assign_free_tip: "由 {role} 角色中运行 {model} 模型、在 Job 启动时空闲的智能体负责。"
+    assign_free_any_tip: "由运行 {model} 模型、在 Job 启动时空闲的智能体负责。"
+    agent_job_running: '这是正在运行的 Job 的智能体。
+
+      停止该 Job 后即可更改。'
+    filter: 筛选
+    held_failure: 因失败暂缓
+    held_pause: 等待恢复
+    held_pausing: 收尾中
+    held_pending: 等待中断
+    held_plain: 暂缓
+    held_since: "自 {since} 起{kind}"
+    held_since_reason: "自 {since} 起{kind} · {reason}"
+    held_stop: 停止
+    held_stopping: 正在停止
+    item_head: "#{id} {title}"
+    job_ended_at: "结束 {time}"
+    job_started_at: "开始 {time}"
+    manage: 管理
+    merged_done: "已合并到 {target} 并一同完成"
+    merged_done_since: "{since} 已合并到 {target} 并一同完成"
+    merged_into: "已合并到 #{id}"
+    merged_open: "已合并到 {target} · 该条目完成时一同完成"
+    merged_open_since: "{since} 已合并到 {target} · 该条目完成时一同完成"
+    model_round: "{model} · 第 {n} 次"
+    new_title: 新条目标题
+    no_room: 无房间
+    notes_count_removed: "{n} 条 · 已删除 {removed} 条"
+    opened_unattended: 未经审批开启
+    order_active: 进行中
+    order_closing: 正在结束
+    order_done: 完成
+    order_draft: 草稿
+    order_paused: 已中断
+    owner_note: 所有者的审批意见
+    owner_stopped: "停止：{why}"
+    part_conclusion: 结论
+    part_to_do: 需要做什么
+    part_what: 是什么工作
+    phase_finish: 收尾
+    phase_ready: 准备
+    phase_run: 智能体运行
+    phase_run_by: "{runner} 运行"
+    phase_wait: 等待
+    priority: 优先级
+    purpose_conclusion: 目的 · 聊天智能体的结论
+    purpose_same: 目的·指示：与条目指示相同
+    queue_place: "队列顺序：{place}"
+    queue_place_failures: "{turn}：{why} · 失败 {failures} 次"
+    queue_turn_held: 暂缓
+    queue_turn_passed: 正在让出轮次
+    queue_turn_resume: 轮到恢复
+    queue_turn_why: "{turn}：{why}"
+    removed_at: "删除 {time}"
+    rejections: "退回 {n} 次"
+    report_count: "报告 {n} 条"
+    report_final: 完成报告
+    report_held: 暂缓原因
+    report_progress: 进度报告
+    request_text: 请求原文
+    requested_by: 请求人
+    requested_room: 请求的房间
+    rerun_instruction: 要重新运行的指示
+    resolved_at: "已解决 · {time}"
+    review_accepted: 接受
+    review_answer: 答复
+    review_check_decisions: 决策依据
+    review_check_promises: 承诺履行
+    review_escalation: 向所有者报告
+    review_final: "最终报告 · 第 {round} 轮"
+    review_opened: 开始验收
+    review_pass: 通过
+    review_question: 质询
+    review_rejection: 退回
+    review_report: 报告
+    review_ruling: 所有者决定
+    review_stage: "第 {stage} 阶段 · 第 {round} 轮"
+    review_turns: 报告轮次
+    result: 结果
+    round_result: "第 {round} 轮结果"
+    run_id: "运行 #{id}"
+    run_id_took: "运行 #{id} · {time}"
+    runner: "{worker} · {road}"
+    skip_reason: 跳过原因
+    skipped_at: "跳过原因 · {time}"
+    skipped_count: "已跳过 {n}"
+    sources: 来源
+    strands: 待决事项
+    note_original: "#{id} 的待决事项原文"
+    span_end: "结束 {time}"
+    span_start: "开始 {time}"
+    span_times: "{n} 次"
+    span_tokens: "token {tokens}"
+    span_total: "共 {time}"
+    state_deploy: 等待部署
+    state_deploying: 部署中
+    state_done: 完成
+    state_held: 暂缓
+    state_merged: 已合并
+    state_pending: 待审批
+    state_reporting: 正在提交完成报告
+    state_running: 进行中
+    state_starting: 正在启动
+    state_running_progress: "进行中 · {progress}"
+    state_stopped: 已停止
+    state_waiting: 等待
+    step_stage: 阶段
+    step_rejections: "退回 {n} 次"
+    step_stage_place: "阶段 {n}/{of}"
+    step_final: 最终验证
+    step_investigate: 调查
+    step_plan: 计划
+    step_review: 审查
+    step_synthesis: 设计综合
+    stop_failures: "失败 {n} 次"
+    stop_reason: 停止原因
+    hold_reason: 暂缓原因
+    notices_reason: 关闭通知的原因
+    notices_off: "通知已关闭 · {reason}"
+    notices_off_since: "自 {since} 起通知已关闭 · {reason}"
+    stop_reason_line: "停止原因：{reason}"
+    summary_deploy: "等待部署 {n}"
+    summary_deploying: "部署中 {n}"
+    summary_held: "暂缓 {n}"
+    summary_merged: "合并 {n}"
+    summary_pending: "待审批 {n}"
+    summary_queue: "{n} 项"
+    testbed_holding: "测试中 · {command}"
+    testbed_waiting: "等待测试第 {n} 位 · {command}"
+    task_done: 完成
+    task_failed: 失败
+    task_pending: 等待
+    task_running: 运行中
+    task_skipped: 已跳过
+    task_step: 工作阶段
+    time_attempts: "运行 {n} 次"
+    time_rest: "其他 {n} 项"
+    time_total: "共 {time}"
+    unassigned_builtin: 未分配（Built-in 工作器）
+    unfinished_open: 待决事项
+    unfinished_remaining: 仍有待决事项
+    unfinished_resolved: 待决事项已解决
+    waiting_overdue: 已超过预计时间
+    waiting_pid: "等待中：{what} · pid {pid} · {left}"
+    waiting_unit: "等待中：{what} · 单元 {name} · {left}"
+    work_order_state: "工作指令单 · {state}"
+    work_todo: 要调查·验证·实现的事
+    awaiting_question: 等待答复
+  message:
+    discard_confirm: "要丢弃 #{id} 吗？"
+    discard_effect: 条目将被删除且无法恢复。
+    done_all_found: "已加载找到的全部 {n} 个已完成条目。"
+    done_all_loaded: "已加载全部 {n} 个已完成条目。"
+    note_delivered: 包含此指示的聊天智能体修改已送达正在运行的 Job，因此会保留在该 Job 中。
+    queue_all_busy: 所有等待的工作都排在正在使用的检出副本或不属于智能体的轮次之后。
+    queue_machine_short: 机器没有余量再运行一个 Job，有余量时会再次通知。
+    queue_nothing_waiting: 没有任何工作器有等待中的工作。
+    queue_paused: 所有者的暂停或部署暂缓仍然有效。
+    queue_told: 已将队列状况告知智能体。
+    queue_unchanged: 与已告知的队列状况相比没有变化。
+    queue_unreadable: 无法读取当前正在运行的内容。
+    raised: "已从 {from} 的待决事项创建条目。\n已进入待审批。"
+    raised_item: "已从 {from} 的待决事项创建 #{id}。\n已进入待审批。"
+    release_hold_confirm: 要解除部署等待吗？
+    release_hold_effect: '本次部署将不应用任何内容而结束，提交会继续等待。
+
+      之所以等待，是因为现在应用的话，重启时正在运行的 Job 可能会用旧代码使用已删除的架构而失败。
+
+      解除后新 Job 将启动，部署会在没有运行中的 Job 时重新进行。'
+    resolved_by_lines: "因 {lines} 完成而解决"
+    search_found: "找到 {n} 项。"
+    search_none: 未找到条目。
+    section_done_empty: 无已完成条目
+    section_held_empty: 无暂缓条目
+    section_merged_empty: 无已合并条目
+    section_pending_empty: 无等待中的请求
+    section_queue_empty: 无剩余条目
+    time_inside_note: 同时运行的工具时间会重叠，因此合计可能比实际时间长
+  placeholder:
+    approval_note: 审批意见（可选）
+    more_sources: 其他待决事项也作为来源
+    new_body: 要做的事
+    note: 指示事项
+    resolve_reason: 解决原因
+    strands: 全部待决事项
+    say_to_bmo: 给聊天智能体发消息
+    search: 搜索
+  status:
+    approvals_loading: 正在加载审批记录…
+    auto_paused_hint: 自动推进已暂停 · 恢复后才会开始下一阶段
+    change_handed: "{time} 已送达 Job"
+    change_no_job: 无运行中的 Job · 由下一个 Job 读取
+    change_waiting: 等待送达 Job
+    coworkers_loading: 正在加载工作阶段…
+    delivered_suffix: 已送达 Job
+    deploy_hold_after: "{items} 结束后部署"
+    deploy_hold_jobs: "{n} 个 Job 结束后部署"
+    deploy_hold_jobs_unread: 无法读取 Job 列表
+    deploy_hold_limit: "若到 {time} 仍未结束，将解除等待。"
+    deploy_hold_no_jobs: 无等待中的 Job
+    deploy_hold_suffix: 等待部署
+    done_nothing_to_do: 已完成的条目，无需操作
+    item_loading: 正在加载条目…
+    item_missing: "没有条目 #{id}"
+    list_refreshing: 正在刷新列表…
+    loading: 正在加载 TODO…
+    more_done_loading: 正在加载更多已完成条目…
+    next_run_applies: 从下次运行起生效
+    no_approvals: 无审批记录
+    no_brief: 尚无整理好的指示 · 首次运行时由聊天智能体编写
+    no_coworkers: 无工作阶段
+    no_job_yet: 尚无运行过的 Job
+    no_notes: 无追加指示
+    no_talk: 无对话
+    notes_loading: 正在加载追加指示…
+    paused_suffix: 已暂停
+    running_attempt: "正在第 {n} 次运行"
+    talk_loading: 正在加载对话…
+    unreadable: 无法读取
+    work_order_loading: 正在加载工作指令单…
+  title:
+    approvals: 审批记录
+    brief: 整理好的指示
+    brief_changes: 聊天智能体修改的内容
+    conversation: 往来对话
+    coworkers: 工作阶段
+    instruction_as_said: 指示原文
+    notes: 追加指示
+    questions: Job 的问题
+    run_log: 运行记录
+    section_done: 完成
+    section_held: 暂缓
+    section_merged: 已合并
+    section_pending: 待审批
+    section_queue: 队列
+    time_inside: 智能体运行期间各工具用时
+    time_inside_by: "{runner} 运行期间各工具用时"
+    time_phases: 时段
+    work_order: 工作指令单
+account:
+  title:
+    login: 登录信息
+    profile: 个人资料
+  label:
+    presence_shown: 公开在线状态
+    presence_shown_description: 关闭后，任何人都无法看到你的在线状态和最近上线时间。
+    current_password: 当前密码
+    device_since: "自 {time} 起 · {kinds}"
+    email: 邮箱
+    full_name: 姓名
+    job_title: 职称
+    rank: 职级
+    duty: 负责业务
+    landline: 座机
+    mobile: 手机
+    new_password: 新密码
+    nothing_subscribed: 未接收任何通知
+    other_devices: "其他 {n} 台设备"
+    own_bmo: "{name}的{agent}"
+    bmo_name: BMO
+    own_bmo_room: "{name}"
+    palette: 调色板
+    palette_description: 房间颜色
+    preview: 预览
+    profile: 个人资料
+    theme: 主题
+    theme_description: 强调色与灰色
+    user_id: 用户名
+  action:
+    change: 更改
+    reset_palette: 重置
+    reset_theme: 重置
+    retry: 重试
+    send_test: 发送测试
+    subscribe: 接收通知
+    unsubscribe: 关闭通知
+  status:
+    not_subscribed: 此设备尚未接收通知。
+    notifications_loading: 正在加载通知设置…
+    profile_loading: 正在加载个人资料
+    presence_loading: 正在加载在线状态公开设置…
+  message:
+    preview_answer: "7 点。会议记录在 https://example.com/notes 。"
+    preview_ask: 今天的会是几点来着？
+    preview_code: "这样改就行。\n```ts\npick(\"teal\");\n```"
+    preview_thanks: 谢谢。设置也再给我看一下
+    saved: 已更改账号信息。
+    user_saved: "已保存账号 {name}。"
+    user_service_saved: "已将用户 {name} 保存到账号服务。"
+    user_service_saved_administrator: "已将用户 {name} 作为平台管理员保存到账号服务。"
+    user_service_unset: 正在使用账号模型，但未指定服务器的可执行文件和配置文件夹，因此未将用户保存到账号服务。请使用服务器的 user 命令保存。
+    user_usage: "用法：bun scripts/user.ts set <用户名> <密码> [--administrator]"
+  error:
+    bad_presence: 在线状态公开设置的值无效。
+    presence_failed: 无法保存在线状态公开设置。
+    presence_no_account: 没有账号的登录无法公开或隐藏在线状态。
+    presence_read_failed: 无法加载在线状态公开设置。
+    bad_new_password: 新密码太短或太长。
+    user_name_shape: "用户名须为 {min}–{max} 个字符，只能包含英文字母、数字、点、下划线和连字符。"
+    user_password_short: "密码至少需要 {min} 个字符。"
+    user_service_failed: "无法在账号服务中创建用户：{reason}"
+    bad_palette: 该调色板不存在。
+    bad_theme: 该主题不存在。
+    bad_language: 该语言不存在。
+    bad_user_id: 用户名只能使用英文字母、数字、点、下划线和连字符。
+    current_password_empty: 请输入当前密码。
+    current_password_wrong: 当前密码不正确。
+    palette_failed: 无法保存调色板。
+    save_failed: 无法更改账号信息。
+    theme_failed: 无法保存主题。
+    language_failed: 无法保存语言。
+    user_id_taken: 该用户名已被使用。
+    profile_forbidden: 只有账号本人或平台管理员才能更改个人资料。
+    profile_shape: 个人资料中的值无效。
+    profile_read_failed: 无法加载个人资料。
+    profile_write_failed: 无法保存个人资料。
+settings:
+  title:
+    settings: 设置
+  label:
+    account: 账号
+    agent: 我的 BMO
+    briefing: 语音简报
+    notifications: 通知
+    palette: 房间
+    permissions: 权限
+    invites: 邀请
+    bmo: BMO
+    providers: 提供商
+    machine: 设备
+    desktop: 桌面
+    secrets: 密钥保管库
+    supply: 供给
+    apps: 我的应用·工具
+    personal_apps: 我的个人应用
+    supervisor_none: 无主管
+    theme: 主题
+  action:
+    back: 返回
+people:
+  title:
+    person: 人员
+  label:
+    name: 姓名
+    organization: 组织
+    job_title: 职称
+    rank: 职级
+    position: 职务
+    duty: 负责业务
+    posts: 兼职
+    presence: 在线状态
+    landline: 座机
+    mobile: 手机
+    email: 邮箱
+  status:
+    loading: 正在加载人员…
+  error:
+    read_failed: 无法加载人员信息。
+    not_found: 找不到该人员。
+roster:
+  label:
+    tab: 用户
+    state: 状态
+    machine: 设备
+    last_sign_in: 最近登录
+    made_at: 创建日期
+    administrator: 管理员
+    head_of: 担任负责人的组织
+    acting_for: 代理职务
+    acting_until: "{unit} · 至 {date}"
+    position: 职务
+    kind: 类型
+    posts: 兼职
+    no_posts: 无兼职
+    history: 记录
+    no_history: 无记录
+    history_by: "{time} · {name}"
+    history_placed: "调动组织 · {unit}"
+    history_placed_from: "调动组织 · {from} → {unit}"
+    history_role: "职务变更 · {unit} · {before} → {after}"
+    history_head_granted: "指定为负责人 · {unit}"
+    history_head_taken: "解除负责人 · {unit}"
+    history_acting: "指定代理职务 · {unit} · 至 {date}"
+    history_acting_ended: "解除代理职务 · {unit}"
+    history_post_given: "添加兼职 · {unit} · {role}"
+    history_post_changed: "兼职职务变更 · {unit} · {before} → {after}"
+    history_post_taken: "解除兼职 · {unit}"
+    history_left: 已办理离职
+    left_by: "{time} · 由 {name} 办理"
+    choose: 请选择用户。
+    no_bmo: 无 BMO
+    persona_length: "{count} 字"
+    runs: 最近活动
+    activity: 活动
+    belonging: 所属
+    private_room: 私聊
+    group_room: 群组
+    message_count: "{count} 条消息"
+    context: "{carried}/{window} {share}%"
+    no_rooms: 无房间
+    no_agents: 无智能体
+    no_sessions: 无会话
+    no_runs: 无最近活动
+  placeholder:
+    search: 按姓名、用户名、组织搜索
+  action:
+    filter: 筛选
+    manage: 管理
+    profile: 编辑个人资料
+    add_post: 添加兼职
+  aria:
+    count: "找到 {count} 位用户"
+    person_tabs: 用户信息标签页
+  status:
+    active: 已激活
+    pending: 等待连接设备
+    left: 已离职
+    on: 开启
+    off: 关闭
+    loading: 正在加载用户…
+    more_loading: 正在加载更多用户…
+    person_loading: 正在加载用户信息…
+    bmo_loading: 正在加载 BMO…
+    rooms_loading: 正在加载房间…
+    agents_loading: 正在加载智能体…
+    sessions_loading: 正在加载会话…
+    runs_loading: 正在加载最近活动…
+    none: 无用户
+    no_results: 无搜索结果
+    end: 已到列表末尾
+    run_running: 运行中
+    run_completed: 已完成
+    run_failed: 失败
+    run_stopped: 已停止
+    run_ended: 已结束
+    run_ended_as: "已结束 · {outcome}"
+  error:
+    read_failed: 无法加载用户列表。
+    person_read_failed: 无法加载用户信息。
+    bmo_read_failed: 无法加载 BMO。
+    rooms_read_failed: 无法加载房间。
+    agents_read_failed: 无法加载智能体。
+    sessions_read_failed: 无法加载会话。
+    runs_read_failed: 无法加载最近活动。
+permissions:
+  label:
+    administrator: 平台管理员可以读写所有板块。
+    read: 读取
+    section: 板块
+    write: 写入
+  status:
+    sections_loading: 正在加载权限…
+  error:
+    sections_read_failed: 无法加载权限。
+    sections_write_failed: 无法保存权限。
+  aria:
+    read_of: "读取{name}"
+    write_of: "写入{name}"
+organization:
+  aria:
+    tabs: 组织标签页
+  label:
+    chart: 组织架构图
+    none: 无组织
+    list: 组织列表
+    list_none: 没有可设置的组织
+    list_no_match: 未找到组织
+    name: 名称
+    parent: 上级组织
+    heads: 负责人
+    no_heads: 无负责人
+    no_members: 无成员
+    members: "{count} 名成员"
+    left_member: "{name}（已离职）"
+    machine: "{name}的设备"
+    machine_none: 未连接设备
+    machine_name: 设备名称
+    machine_name_placeholder: 自动命名
+    machine_shared: 多个账号共用的设备
+    machine_shared_help: 其他账号也可以连接到这台设备。每个账号都有独立的工作空间。
+    linux: Linux·WSL
+    windows: Windows
+    chosen: "已选择 {count} 人"
+    move_to: 调往的组织
+    role: 角色
+    role_head: 负责人
+    role_member: 成员
+    role_of: "{name}的角色"
+    unchanged: 不变
+    head_dropped: "解除{unit}负责人"
+    post_dropped: "解除{unit}兼职"
+    kind: 类型
+    no_kind: 无
+    short_name: 简称
+    short_name_line: "简称 {name}"
+    reports_to: 审批上级组织
+    reports_to_line: "审批上级组织 {path}"
+    default_mark: "{label}（默认）"
+    position: 职务
+    no_position: 无职务
+    keep_position: 保留当前职务
+    position_of: "{name}的职务"
+    position_line: "职务 {name}"
+    acting: 代理职务
+    acting_mark: 代理
+    acting_until: "至 {date}"
+    acting_none: 无
+    acting_person: 代理人
+    acting_end: 结束日期
+    acting_replaces: "当前由{name}代理的职务将结束。"
+    posts: "{count} 人兼职"
+    no_posts: 无兼职
+    post_mark: 兼职
+    post_person: 对象
+    post_unit: 组织
+    post_head: 兼任负责人
+  title:
+    mark_left: 要办理离职吗？
+    unbind: "要断开{name}的设备连接吗？"
+    end_acting: 要解除代理职务吗？
+    remove_post: 要解除兼职吗？
+  message:
+    mark_left: 此人将无法再登录，其 BMO 也不会再被唤醒。此人负责的组织工作会保留，负责人仍可继续查看和修改。个人工作、私聊及 BMO 的记忆仅平台管理员可以查看。此操作无法撤销。
+    unbind: 此账号可在未连接设备的情况下登录，此人的 BMO 和智能体将不再在这台设备上运行。
+    end_acting: 此人将立即失去负责人权限。
+    remove_post: 该组织中的职务及兼任负责人也将一并解除。
+    install: '请在要连接的电脑上运行以下任一命令来安装 jake。
+
+      连接后，此人的 BMO 和智能体将在这台设备上运行。'
+  action:
+    add: 添加组织
+    add_company: 添加公司
+    mark_left: "为{name}办理离职"
+    mark_left_confirm: 办理离职
+    edit: 编辑
+    add_head: 指定负责人
+    remove_head: "解除{name}的负责人"
+    place: 添加成员
+    bind: 连接设备
+    rebind: 连接其他设备
+    unbind: 断开设备连接
+    unbind_confirm: 断开连接
+    share: 共享
+    unshare: 取消共享
+    check: 检查
+    expand: 展开下级组织
+    collapse: 收起下级组织
+    move: 调动组织
+    preview: 预览
+    move_confirm: 调动
+    choose_person: "选择{name}"
+    appoint: 指定代理职务
+    end_acting: 解除
+    end_acting_of: "解除{name}的代理职务"
+    add_post: 添加兼职
+    edit_post: "编辑{name}的兼职"
+    remove_post: "解除{name}的兼职"
+    remove_post_confirm: 解除
+  status:
+    loading: 正在加载组织…
+    attached: 已连接
+    waiting: 等待连接
+    shared: 共享设备
+  error:
+    agency_node_taken: '代理中心将这台设备记录为其他账号的节点而非共享设备，因此无法处理。
+
+      设备连接保持不变。'
+    bad_request: 名称或组织编号无效。
+    cycle: 不能将组织移到其自身的下级组织之下，审批线也不能两次经过同一个组织。
+    short_name_taken: 该简称已被本公司的其他组织使用。
+    no_such_kind: 本公司没有此类型。
+    no_such_role: 本公司没有此职务。
+    head_only: 仅管理员或上级组织的负责人可以执行此操作。
+    leave_head_only: 仅管理员或此人所在组织及其上级组织的负责人可以办理离职。
+    post_left: 不能为已离职的人安排兼职或代理职务。
+    home_unit: 不能在本人所属组织安排兼职。
+    post_other_company: 只能指定同一公司的人。
+    already_head: 已是该组织的负责人。
+    bad_period: 结束日期必须晚于今天。
+    bad_catalogue: '键必须以小写英文字母开头，只能包含小写英文字母、数字和 -，不超过 40 个字符。
+
+      名称须为单行，不超过 40 个字符，且不能重复。'
+    role_held: 仍有人担任的职务无法删除。
+    kind_held: 仍有该类型的组织，无法删除。
+    failed: 无法处理组织。
+    left: 不能为已离职的账号连接设备。
+    machine_name: 设备名称只能包含英文字母、数字、- 和 _，不超过 63 个字符。
+    move_left: 已离职的人无法调动。
+    moved: '期间有人的组织发生了变化，因此未能调动。
+
+      已重新加载组织架构图，请再次确认。'
+    no_hub: 未设置 jake 中枢，无法连接设备。
+    node_taken: '已有其他账号连接到这台设备。
+
+      请先共享该账号的设备，再作为多个账号共用的设备进行连接。'
+    not_a_hub_node: 节点服务未将这台设备识别为中枢节点，因此无法设为此人的节点。
+    not_found: 该组织或用户不存在。
+    other_company: 不能将组织移到其他公司。
+    shared_in_use: 还有其他账号连接在这台设备上，无法取消共享。
+    unreachable: 无法连接到账号服务。
+org_memory:
+  label:
+    tab: 组织记忆
+    no_units: 没有可以写入组织记忆的组织。
+    choose_unit: 请从组织列表中选择可以写入记忆的组织。
+    own: 本组织的记忆
+    no_memories: 无记忆
+    proposals: "{count} 条提议"
+    no_proposals: 无提议
+    proposed_by: "{name} · {when}"
+    inherited: 上级组织的记忆
+    no_inherited: 无上级组织的记忆
+    writers: 组织记忆写入权限
+    no_writers: 无人获得权限
+    text: 内容
+    text_help: 请勿包含对特定人员的评价、个人情况或私聊内容。
+    topic: 主题
+    topic_line: "主题 {topic}"
+    locked: 固定
+    locked_help: 下级组织不能以相同主题覆盖。
+    internal: 仅限公司内部
+    internal_help: 在有公司外部人员的房间中，BMO 不会提及。
+    instead: "改为适用{unit}的记忆。"
+    instead_locked: "改为适用{unit}的固定记忆。"
+    source_work_pattern: 此记忆来自工作模式。
+    source_other: 此记忆由其他服务管理。
+  action:
+    add: 添加记忆
+    edit: 编辑记忆
+    delete: 删除记忆
+    accept: 接受
+    decline: 拒绝
+    grant: 授予权限
+    revoke: "解除{name}的权限"
+  message:
+    delete: 要删除这条记忆吗？
+    delete_effect: 本组织及下级组织的 BMO 将不再收到这条记忆。
+    decline: 要拒绝这条提议吗？
+  status:
+    loading: 正在加载组织记忆…
+  error:
+    read_failed: 无法加载组织记忆。
+    failed: 无法处理组织记忆。
+    bad_request: 内容为空或过长。
+    writers_only: 仅本组织的负责人或拥有组织记忆写入权限的人可以执行此操作。
+    not_found: 该组织或记忆不存在。
+    conflict: '期间记忆已被更改。
+
+      请重新加载并确认。'
+    kept_by_source: 由其他服务管理的记忆无法在此更改。
+    head_only: 仅管理员或本组织的负责人可以执行此操作。
+    writer_left: 不能为已离职的人授予权限。
+catalogue:
+  label:
+    tab: 职务·类型
+    roles: 职务
+    kinds: 组织类型
+    no_roles: 无职务
+    no_kinds: 无组织类型
+    key: 键
+    name: 名称
+  action:
+    edit: 编辑
+    add: 添加
+    remove: "删除{name}"
+    drag: 调整顺序
+  status:
+    loading: 正在加载列表…
+  error:
+    read_failed: 无法加载列表。
+invites:
+  label:
+    make: 创建邀请链接
+    full_name: 姓名
+    company: 公司
+    unit: 组织
+    role: 角色
+    hours: 有效期
+    span: "{hours} 小时"
+    open: 有效邀请
+    none: 无有效邀请
+    no_units: 没有可以邀请的组织。只有负责人或管理员可以邀请。
+    until: "至 {time}"
+  action:
+    make: 创建并复制链接
+    copy: 复制邀请文字
+    drop: 取消
+  status:
+    copied: 已复制
+    loading: 正在加载邀请…
+  message:
+    made_uncopied: '已创建邀请链接，但浏览器阻止了自动复制。
+
+      请点击“复制邀请文字”。'
+    text: "邀请你加入{place}。请通过下方链接创建账号，并按提示在电脑上安装 jake，账号即可激活。{link}（有效期至 {time}）"
+    text_named: "邀请{name}加入{place}。请通过下方链接创建账号，并按提示在电脑上安装 jake，账号即可激活。{link}（有效期至 {time}）"
+  error:
+    bad_request: 组织或值无效。
+    closed: 该邀请已过期或已被使用。
+    failed: 无法处理邀请。
+    forbidden: 无法邀请加入此组织。
+    name_taken: 该用户名已被使用。
+    no_hub: 未设置设备连接中枢，无法邀请。
+    not_found: 找不到该邀请。
+    not_ready: 目前还无法创建账号。请告知管理员。
+    unreachable: 无法连接到账号服务。
+overlay:
+  title:
+    panel: 我的 BMO
+  label:
+    none: 你没有专属的 BMO，无法单独对话。
+    empty: 还没有对话。
+    input: 此房间中的其他人看不到
+  action:
+    send: 发送
+    log: 查看我的 BMO 的记录
+  status:
+    loading: 正在加载我的 BMO…
+  error:
+    load_failed: 无法加载我的 BMO。
+    send_failed: 发送失败。
+members:
+  title:
+    let_in: 添加成员
+  label:
+    console_user: 控制台用户
+    none: 无成员
+    no_service: 此房间没有聊天服务。
+    unlisted: 聊天服务未提供成员列表。
+    person: 人员
+    unit: 组织
+    unit_people: "{count} 名成员"
+    choice: 人员·组织
+    find: 按姓名或组织搜索
+  status:
+    loading: 正在加载成员…
+  action:
+    let_in: 添加成员
+    leave: 退出
+    take_out: 移出
+  error:
+    load_failed: 无法加载成员。
+    unheld: 无法从聊天服务读取此房间的成员。
+    accounts_failed: 无法确认是否为控制台用户。
+    entry_failed: 无法更改成员。
+    entry_forbidden: 你没有在此房间添加或移出成员的权限。
+    entry_unknown: 找不到该人员。
+callers:
+  label:
+    none: 无人拥有呼叫权限
+    person: 人员
+    find: 按姓名搜索
+    allow: 允许呼叫
+    heads_only: 你不是此房间的主导者、其组织的负责人或管理员，因此只能更改你担任负责人的组织中的人员。
+  action:
+    add: 添加
+  status:
+    loading: 正在加载呼叫权限…
+  error:
+    failed: 无法更改呼叫权限。
+    forbidden: 无法更改此人的呼叫权限。
+    load_failed: 无法加载呼叫权限。
+    not_found: 找不到该用户。
+    unreachable: 无法连接到账号服务。
+room_info:
+  title:
+    sheet: 房间信息
+  label:
+    members: 成员
+    media: 媒体
+    files: 文件
+    links: 链接
+    music: 音乐
+    voice: 语音
+    situation: 情况
+    callers: 呼叫权限
+    session: 会话信息
+    providers: 聊天服务
+    tone: 语气
+    tone_none: 无（默认）
+    media_none: 无媒体
+    files_none: 无文件
+    links_none: 无链接
+    music_none: 无音乐
+    voice_none: 无语音消息
+    sent_by: "{name} · {time}"
+  action:
+    picture: 房间图片
+  message:
+    tone_rule: 主管在此房间中对待不熟悉的人时使用的语气。
+  status:
+    media_loading: 正在加载媒体…
+    files_loading: 正在加载文件…
+    links_loading: 正在加载链接…
+    music_loading: 正在加载音乐…
+    voice_loading: 正在加载语音消息…
+    tone_loading: 正在加载语气…
+    tone_saving: 正在保存语气
+  error:
+    media_failed: 无法加载媒体。
+    files_failed: 无法加载文件。
+    links_failed: 无法加载链接。
+    music_failed: 无法加载音乐。
+    voice_failed: 无法加载语音消息。
+    tone_read_failed: 无法加载语气。
+    tone_save_failed: 无法保存语气。
+    tone_unknown: 无法选择该语气。
+  aria:
+    tabs: 房间信息
+join:
+  title:
+    create: 创建受邀账号
+  label:
+    full_name: 姓名
+    linux: Linux·WSL
+    windows: Windows
+  action:
+    accept: 创建账号
+    check: 已安装，检查
+    copy: 复制
+  message:
+    invited: "你已受邀加入{place}。"
+    invited_head: "你已受邀以负责人身份加入{place}。"
+    until: "此邀请有效期至 {time}。"
+    expired: '此邀请已过期。
+
+      请向邀请人索取新链接。'
+    used: 此邀请已被使用。
+    install: '账号已创建。
+
+      请在将使用此账号的电脑上运行以下任一命令来安装 jake。
+
+      安装并连接后，账号即会激活。'
+    waiting: 正在等待设备连接…
+    active: '设备已连接，账号已激活。
+
+      现在可以登录了。'
+    agent_login: '设备已连接，账号已激活。
+
+      在此组织中，智能体只能使用你自己的供给登录或供给密钥。登录后会立即打开智能体登录设置。'
+  error:
+    full_name_empty: 请输入姓名。
+agent_login:
+  title:
+    page: 智能体登录设置
+  message:
+    lead: '在此组织中，智能体只使用你自己的供给登录或供给密钥工作。
+
+      请在下方登录 Claude 或添加供给密钥，然后开始。'
+    still_needed: 还没有已开启的供给登录或供给密钥。
+  action:
+    login: 登录并设置
+    start: 开始
+org_agents:
+  title:
+    sources: 智能体供给来源
+    keys: 组织供给密钥
+    composition: 加入时配置
+    key_add: 添加组织供给密钥
+    instructions: 组织指引
+    persona: 人设
+    repositories: 组织仓库
+    repository_add: 添加组织仓库
+  status:
+    loading: 正在加载智能体设置…
+  label:
+    tab: 智能体
+    instructions_own: 指引
+    instructions_none: 无指引
+    instructions_above: "上级组织的 {count} 条指引优先适用。"
+    instructions_note: 此组织及下级组织成员的智能体在所有对话中都会遵循。
+    persona: 适用
+    persona_own: 使用人设
+    persona_none: 不使用人设
+    persona_stands_own: 沿用上级：使用人设
+    persona_stands_none: 沿用上级：不使用人设
+    persona_use: 使用人设
+    repositories_manage: 管理仓库
+    manage_allow: 允许
+    manage_stands_allow: 沿用上级：允许
+    manage_stands_deny: 沿用上级：禁止
+    repositories_none: 无组织仓库
+    repository_name: 名称
+    repository_name_note: 仅限小写英文字母、数字和连字符。
+    repository_label: 显示名称
+    repository_path: 路径
+    repository_path_note: 主检出所在的文件夹。
+    decided_named: "由组织设定 · {name}"
+    decided_unit: 由组织设定
+    decided_platform: 由全局设置设定
+    state_on: 开启
+    state_off: 关闭
+    source_personal: 个人供给
+    source_organisation: 组织供给
+    source_platform: 平台供给
+    closed_above: 已被上级组织关闭
+    not_provided: 未提供
+    locked_above: 已被上级组织锁定
+    below: 下级组织
+    delegation_allow: 允许下级组织
+    delegation_lock: 锁定下级组织
+    delegation_inherit: 沿用上级
+    company_provided: 向此公司提供组织供给
+    keys_none: 无组织供给密钥
+    keys_closed: 未提供组织供给，无法添加密钥。
+    road: 提供商
+    road_claude: Claude（Anthropic API 密钥）
+    name: 名称
+    name_note: 以此名称保存在组织密钥保管库中。
+    value: 密钥
+    status_ready: 可用
+    status_refused: 密钥被拒绝
+    status_off: 已关闭
+    choice_inherit: 沿用上级
+    choice_off: 禁止
+    choice_none: 无智能体
+    choice_agents: "智能体 {count}"
+    stands_platform: 遵循平台规则
+    stands_off: 沿用上级，禁止
+    stands_agents: "沿用上级，智能体 {count}"
+  aria:
+    source_switch: "开启{name}"
+    delegation: "{name}下级组织委托"
+    key_switch: "开启{name}"
+    key_remove: "删除{name}"
+    role_choice: "{name}加入时配置"
+    repository_remove: "删除 {name}"
+  message:
+    repository_remove: 要删除此组织仓库吗？
+    repository_remove_effect: 仅删除仓库的登记，磁盘上的检出保持不变。Job 正在使用检出时无法删除。
+    key_remove: 要删除此组织供给密钥吗？
+    key_remove_effect: 使用此密钥工作的智能体将从下次运行起改用其他供给来源。密钥值会保留在组织密钥保管库中。
+  error:
+    locked: 已被上级组织锁定，无法更改。
+    forbidden: 你没有设置此组织智能体的权限。
+    closed: 未提供组织供给，无法添加密钥。
+    taken: 已存在同名的组织供给密钥。
+    unknown_road: 此提供商目前无法使用。
+    bad_composition: 无法保存加入时配置。
+    unchecked: 无法确认权限。请稍后重试。
+    repositories_withheld: 此组织无法添加或更改仓库。
+    repository_name: 仓库名称仅限小写英文字母、数字和连字符。
+    repository_path: 请检查仓库路径。
+org_storage:
+  title:
+    storage: 制品存储
+  label:
+    tab: 制品存储
+    place: 存储位置
+    follows: "沿用上级：{place}"
+    optional: 可选
+    unset: 无
+    folder_help: "{'{login}'} 会替换为用户的登录名，{'{document}'} 会替换为文档编号。"
+    place_local: 本服务器
+    place_sharepoint: SharePoint
+    sharepoint_site: 站点 ID
+    sharepoint_drive: 驱动器 ID
+    sharepoint_folder: 文件夹
+    sharepoint_account: 令牌账号
+    sharepoint_account_unset: 文档所有者
+  error:
+    locked: 上级组织已锁定，无法更改。
+    forbidden: 你没有权限设置此组织的制品存储。
+    bad_value: 存储位置设置无效。
+    unavailable: 无法连接到制品服务。请稍后再试。
+    failed: 无法设置制品存储。
+pairing:
+  title:
+    page: 连接桌面应用
+    confirm: 要将此应用连接到你的账号吗？
+  label:
+    code: 连接码
+    machine: 要连接的设备
+    machine_new: 新建并连接
+    machines_link: 设置中的设备
+  action:
+    approve: 批准
+    download: 下载桌面应用
+    refuse: 拒绝
+  message:
+    lead_app: 将此电脑上的 BMO 桌面应用连接到你的账号。
+    lead_link: 将 BMO 桌面应用连接到你的账号。
+    compare_app: '此窗口顶部的标题栏中也会显示连接码。
+
+      仅在两个连接码一致时批准。'
+    compare_link: '仅在与桌面应用窗口顶部标题栏中的连接码一致时批准。
+
+      如果链接是别人发给你的，请不要批准。'
+    machine_effect: 批准后，你账号的工作可能会在安装了该应用的电脑上运行。
+    effect: "显示此连接码的应用将作为设备 {machine} 连接。\n仅在与应用窗口标题栏中的连接码一致时批准。"
+    effect_new: '显示此连接码的应用将作为你新建的设备连接。
+
+      仅在与应用窗口标题栏中的连接码一致时批准。'
+    machines: "可以在{link}中查看已连接的设备。"
+    sign_in: 需要登录才能连接桌面应用。
+    connecting: 应用正在连接…
+    connected: 应用已连接。
+    refused: 已拒绝。
+    expired: 连接码已过期，请在应用中重试。
+    closed: 此连接码已被批准或拒绝。
+    no_code: 没有连接码，请在应用中重试。
+  status:
+    loading: 正在加载连接码…
+  error:
+    closed: 此连接码已被批准、拒绝或已过期。
+    failed: 无法处理应用连接。
+    left: 已离职的账号无法连接设备。
+    no_hub: 未设置设备连接中枢，无法连接应用。
+    not_found: 找不到连接码。
+    too_many: 连接请求过多，请稍后重试。
+    unreachable: 无法连接到账号服务。
+machines:
+  label:
+    name: 设备名称
+    state: 状态
+    kind: 连接方式
+    desktop: 桌面应用
+    installed: 安装版程序
+    shared: 共享设备
+    bound_at: 连接日期
+    none: 没有已连接的设备
+  title:
+    unbind: "要断开设备 {name} 的连接吗？"
+  action:
+    desktop: 桌面应用
+    unbind: 断开设备连接
+    unbind_confirm: 断开连接
+  message:
+    none: 打开桌面应用即可将设备连接到此账号。
+    unbind: 此账号的 BMO 和智能体将不再在这台设备上运行。
+    unbind_desktop: 桌面应用的连接也会断开，如需再次使用，需要重新连接应用。
+    unbind_installed: 这台设备上的安装版程序将被移除，如需再次使用，需要重新安装。
+  status:
+    loading: 正在加载设备…
+    attached: 已连接
+    waiting: 等待连接
+  error:
+    no_account: 不是账号服务用户的登录没有已连接的设备。
+    unreachable: 无法连接到账号服务。
+    failed: 无法加载设备。
+    none_bound: 没有已连接的设备。
+    unbind_failed: 无法断开设备连接。
+desktop:
+  title:
+    page: 桌面应用
+    server: 更改服务器
+  label:
+    version: 版本
+    published: 发布日期
+    file: 文件
+    size: 大小
+    size_value: "{size}（{bytes} 字节）"
+    sha256: SHA-256
+    steps: 使用方法
+    windows: Windows
+    linux: Linux
+    nsis: 安装程序
+    appimage: AppImage
+    deb: deb 软件包
+    keep_control_while_locked: 锁定时保持远程控制
+    close_to_tray: 关闭窗口时最小化到托盘
+    start_at_sign_in: 登录时启动
+    start_in_tray: 启动到托盘
+    keep_awake: 防止休眠
+    update_channel: 更新渠道
+    channel_stable: 稳定版
+    channel_nightly: 每夜版
+    default_value: "{value}（默认）"
+    server: BMO 服务器
+    server_address: BMO 服务器地址
+  action:
+    change_server: 更改
+    download: 下载
+    minimize: 最小化
+    maximize: 最大化
+    restore: 还原
+    close_window: 关闭
+  message:
+    server_address: 请输入 https 地址。http 仅可用于 localhost。
+    server_change: 更改服务器后，应用会重新启动，并在新服务器上重新连接应用。
+    server_restarting: 正在重新启动应用。
+    step_install: 下载并运行安装程序。
+    step_open: 打开桌面应用后，应用窗口的标题栏会显示连接码，并打开应用连接页面。
+    step_approve: 确认应用连接页面上的连接码与应用标题栏中的一致，然后批准。
+    keep_control_while_locked: 关闭后，电脑锁定期间会断开智能体连接。
+    close_to_tray: 关闭后，关闭窗口时将退出应用。
+    start_in_tray: 登录时启动不会打开窗口。
+    keep_awake: 智能体运行期间，电脑不会进入休眠。
+    update_channel: 每夜版是每天构建的版本，可能无法正常运行。
+    unsigned: '此安装程序没有代码签名，首次运行时 Windows 可能会发出警告。
+
+      如果出现 Windows 已保护你的电脑，请点击更多信息，再点击仍要运行即可安装。'
+  status:
+    loading: 正在加载桌面应用信息…
+    none: 没有已发布的版本
+    settings_loading: 正在加载桌面应用设置…
+  error:
+    unreadable: 无法加载桌面应用信息。
+    settings_failed: 无法加载桌面应用设置。
+    settings_unreadable: 无法读取设置文件，因此无法更改。
+    change_failed: 无法更改。
+secrets:
+  title:
+    add: 添加机密
+    replace: 替换机密
+    kind_add: 添加类型
+    kind_edit: 编辑类型
+  label:
+    compose: 自定义
+    field_input: 输入
+    field_key: 键
+    field_label: 名称
+    field_masked: 隐藏值
+    field_required: 必填
+    fields: 字段
+    file_chosen: "{name} · {size}"
+    handed: "{name} · {kind}"
+    input_file: 文件
+    input_line: 单行
+    input_lines: 多行
+    kind: 类型
+    kind_description: 说明
+    kind_key: 键
+    kind_key_hint: 小写字母、数字、连字符
+    kind_name: 名称
+    kind_row: "{description} · {keys}"
+    kinds: 机密类型
+    kinds_none: 没有机密类型
+    new_kind_name: 类型名称
+    purpose: "用途：{purpose}"
+    request: 机密请求
+    save_as_kind: 保存为类型
+    saved: 已保存
+    kept: 已保存的机密
+    name: 名称
+    name_hint: 字母、数字、点、下划线、连字符
+    none: 没有已保存的机密
+    note: 你的机密只有你自己能看到。智能体和各服务的设置中只传递名称。值只保留在机密库的文件中，不会出现在对话和日志里。
+    replace: 替换现有值
+    replace_note: "之前的值会保留在 {name}.previous 文件中。"
+    row: "{bytes} 字节 · {time} 更改"
+  action:
+    add: 添加机密
+    replace: 替换
+    choose_file: 选择文件
+    field_add: 添加字段
+    field_remove: 删除字段
+    kind_add: 添加类型
+    load_file: 从文件加载
+    remove_handed: "移除 {name}"
+  status:
+    loading: 正在加载机密…
+    kinds_loading: 正在加载机密类型…
+  message:
+    composed: "自定义：{keys}"
+    handed: "已保存到机密库：{name}（{kind}）"
+    kind_delete_confirm: 要删除此机密类型吗？
+    kind_delete_effect: 已保存的机密将保持不变。
+    request_saved: "已将请求的机密保存到机密库：{name}（{kind}）"
+    delete_confirm: 要删除此机密吗？
+    delete_effect: "值会保留在 {name}.previous 文件中，读取此名称的服务将无法再找到值。"
+  error:
+    bad_name: "名称须为不超过 {max} 个字符的字母、数字、点、下划线或连字符，且不能以点开头或以 .previous 结尾。"
+    bad_kind: 机密类型不符合规则。
+    bad_value: 无法读取值。
+    fault_description: "说明不能超过 {max} 个字符。"
+    fault_field_alone: 多行或文件字段不能与其他字段一起使用。
+    fault_field_key: "字段键须为不超过 {max} 个字符的字母、数字或下划线，且不能以数字开头。"
+    fault_field_label: "字段名称不能超过 {max} 个字符。"
+    fault_field_repeated: 已有相同键的字段。
+    fault_key: "键须为不超过 {max} 个字符的小写字母、数字或连字符，且必须以字母开头。"
+    fault_name: "名称不能超过 {max} 个字符。"
+    fault_no_fields: 请至少添加一个字段。
+    fault_too_many_fields: "最多 {max} 个字段。"
+    file_read_failed: 无法读取文件。
+    kind_delete_failed: 无法删除机密类型。
+    kind_exists: 已有相同键的机密类型。
+    kind_save_failed: 无法保存机密类型。
+    kinds_read_failed: 无法加载机密类型。
+    delete_failed: 无法删除机密。
+    empty_value: 请输入值。
+    exists: 已有同名机密。请打开替换现有值。
+    no_space: 此登录没有机密库。
+    no_store: 服务器设置中未指定机密库文件夹。
+    not_a_file: 此名称在机密库文件夹中是非文件项，无法使用。
+    not_for_you: 这是向其他人请求的机密。
+    not_found: 没有此名称的机密。
+    not_yours: 这是其他人的机密库。
+    not_in_force: 在启用账号模型之前，无法使用机密库。
+    read_failed: 无法加载机密。
+    save_failed: 无法保存机密。
+    unreachable: 无法连接到账号服务。
+agents:
+  action:
+    sign_in_again: 重新登录
+    open_sign_in: 打开登录页面
+    sign_in_finish: 完成登录
+    expand: 放大查看
+    node_checkout_add: 添加节点检出
+    reset_document: 恢复为文件内容
+    line_details: 详情
+    log: 日志
+    prefix_document_add: 添加前缀文档
+    persona_to_file: 恢复为文件内容
+    settings: 设置
+    to_end: 跳到底部
+    to_page: 在页面中打开
+    use_account: 使用此账号
+    account_add: 添加账号
+    key_set: 设置密钥
+    use_model: 切换到此模型
+    walk_order: 按顺序
+    agent_add: 添加智能体
+    role_settings: 角色设置
+    draft_to_default: 恢复默认
+    stage_add: 添加阶段
+    stage_to_default: 恢复默认内容
+  aria:
+    heal_of: "解除 {name} 的降级"
+    node_checkout_node: 放置节点检出的节点
+    node_checkout_path: 节点检出路径
+    node_checkout_remove: "删除 {node} 的节点检出"
+    road_of: "{name} 提供商 · 模型"
+    agent_enabled_of: "使用 {name}"
+    agent_tabs: 智能体设置
+    agent_keeps_cache_of: "保持 {name} 缓存"
+    provider_prompt_of: "{provider} 提示词"
+    room_last_run: "{room}，运行 {n} 次，上次运行 {time}，打开日志"
+    sessions_of: "{name} 的会话"
+    settings_of: "{name} 的设置"
+    supervisor_rooms: "{name} 回复过的房间"
+    threshold_of: "{name} 的压缩阈值"
+    warming_of: "保持 {name} 的 {provider} 缓存"
+    warming_cell_of: "保持 {name} 缓存"
+    choose_model: 选择模型
+    drag_reorder: 拖动以调整顺序
+    prefix_document_down: "下移 {path}"
+    prefix_document_path: 前缀文档路径
+    prefix_document_remove: "移除 {path}"
+    prefix_document_up: "上移 {path}"
+    provider_of: "{name} 提供商"
+    search_depth: 搜索深度
+    settings_sections: 设置分区
+    switch_on: "开启 {name}"
+    vitals: 智能体指标
+    stage_down: "下移 {name}"
+    stage_in: "将 {name} 添加到指令阶段"
+    stage_out: "从指令阶段中移除 {name}"
+    stage_text_of: "{name} 的内容"
+    stage_up: "上移 {name}"
+  error:
+    login_which: 请只指定要重新登录的账号或新账号的名称之一。
+    login_not_directory: 只有配置目录账号可以在此登录。
+    login_directory_taken: 已有同名的配置目录。请换一个名称。
+    login_gone: 登录已结束或已超时。请从头开始。
+    login_refused: 登录未接受该代码。请从头开始。
+    login_code_needed: 请粘贴登录页面上显示的代码。
+    account_fields_needed: 请输入账号名称和凭据文件路径。
+    account_order_list: 请以列表形式发送账号顺序。
+    account_switch_needed: 需要账号和开/关值。
+    agency_access_unchecked: 无法确认权限，代理中心未处理该请求。请稍后重试。
+    agency_bad_request: 代理中心未接受该请求。
+    agency_conflict: 与当前状态不符，代理中心未接受。
+    agency_failed: 代理中心无法处理该请求。
+    agency_forbidden: 你没有在代理中心执行此操作的权限。
+    agency_not_found: 代理中心中没有该项。
+    agency_unavailable: 代理中心现在无法处理此请求。
+    agency_unprocessable: 代理中心无法接受此值。
+    agent_name_taken: 此键已存在。
+    bad_agent_name: 智能体名称无效。
+    bad_credential_kind: 凭据须为配置目录或令牌文件。
+    bad_depth: 搜索深度无效。
+    bad_launch_agent: 要运行的智能体无效。
+    bad_word_worker: 要发送消息的工作器无效。
+    catalogue_action: 对模型文件请求的操作无效。
+    catalogue_read_failed: 无法加载模型文件列表。
+    chat_documents_read_failed: 无法加载系统提示词。
+    chat_document_save_failed: 无法保存。
+    chat_document_action: 需要保存或恢复操作。
+    field_refused: 此值未被接受。
+    job_prompt_failed: 无法加载提示词。
+    launch_empty: 请输入工作指令。
+    launch_failed: 无法运行。
+    log_read_failed: 无法读取日志。请稍后重试。
+    models_load_failed: 无法加载模型列表。
+    no_such_agent: 找不到智能体。
+    pick_account: 请选择账号。
+    provider_off: 此提供商已关闭。请选择自动或已开启的提供商。
+    registry_read_failed: 无法加载注册模型。
+    registry_value: 请发送注册模型的名称和模型。
+    supervisor_add: 请发送主管的名称、显示名称、房间名称、提供商、模型和工作仓库。
+    default_answerer_failed: 无法保存默认回复主管。
+    supervisor_default_answerer: "{label} 是默认回复主管，无法删除。请先将其他主管设为默认回复主管，再删除。"
+    supervisor_label: 请输入显示名称。
+    supervisor_model: 请从有地址的注册模型中选择模型。
+    supervisor_name: 名称须以小写字母开头，由小写字母、数字和连字符组成，不超过 40 个字符。
+    supervisor_name_taken: "名称 {name} 已被其他主管使用。"
+    supervisor_provider: "{provider} 提供商不能担任主管。"
+    supervisor_repository: "没有仓库 {repository}。"
+    supervisor_room: 请输入房间名称。
+    supervisor_running: "{label} 正在回复，无法删除。请在本轮结束后再删除。"
+    supervisor_seeded_refused: "{label} 是由部署创建的主管，无法删除。"
+    supervisor_unknown: "没有主管 {supervisor}。"
+    word_empty: 请输入消息。
+    word_owner_only: 只有所有者可以向工作器发送消息。
+    supervisor_own_only: 只能添加你自己的 BMO。其他人的主管由管理员添加。
+    role_delete_refused: 该角色有正在运行或等待中的运行，或由策略指定，无法删除。
+    role_agent_refused: 该智能体正在运行，或名称已存在
+    agent_save_failed: 无法保存智能体。
+    roles_read_failed: 无法加载角色。
+    accounts_read_failed: 无法加载 Claude 账号。
+    provider_models_read_failed: 无法加载提供商的模型列表。
+    providers_read_failed: 无法加载提供商。
+    repositories_read_failed: 无法加载仓库。
+    repository_delete_refused: Job 正在使用检出，无法删除仓库。
+    umbrella_refused: 伞形仓库不能设置辅助检出和节点检出。
+    advisor_refused: 此顾问不能用于该模型。
+    session_history_read_failed: 无法加载会话记录。
+    supervisors_read_failed: 无法加载主管。
+    secret_settings_read_failed: 无法加载提供商机密。
+    deploy_flush_read_failed: 无法加载批量部署间隔。
+    deploy_flush_refused: 请输入不少于 1 分钟的整数。
+    stage_chain_missing: 此主管没有单独设定的指令阶段。
+    stage_in_chain: 该阶段仍在指令阶段中。请先将其从指令阶段中移除。
+    stage_name_reserved: 此名称由轮次使用，不能用作阶段名称。
+    stage_name_taken: 阶段名称已存在。
+    stage_text: "内容不能为空，且不超过 {max} 个字符。"
+    stage_text_missing: 这不是在控制台中添加或更改的阶段。
+    stages_read_failed: 无法加载指令阶段。
+    stages_unsound: 草稿设置中有需要修正的地方。
+    stage_text_refused: "接收单元未接受此阶段。名称须为以小写字母开头、由小写字母、数字和短横线组成、不超过 {name} 个字符的单个词，内容不能为空且不超过 {text} 个字符。"
+    stage_chain_refused: 接收单元未接受此指令阶段顺序。其中包含此主管没有的阶段。
+    stage_name: "名称须为以小写字母开头、由小写字母、数字和短横线组成、不超过 {max} 个字符的单个词。"
+    stage_add_unfinished: 请确认要添加的阶段名称和内容，或取消添加。
+  label:
+    agency: 代理中心
+    account_kind_sign_in: 在此登录
+    sign_in_code: 验证码
+    account_chosen: 已选账号
+    default_answerer: 默认回复主管
+    room_title: 房间名称
+    account_kind_directory: 配置目录
+    account_kind_token: 令牌文件
+    account_off: 已关闭
+    alias: 别名
+    bundle_graph_read: 图谱
+    bundle_queue_read: 读取 TODO
+    bundle_room_chat: 记忆 · 备注 · TODO
+    bundle_room_send: 发送
+    bundle_web_branches: 研究分支
+    bundle_web_images: 查看图片
+    bundle_web_read: 读取网页
+    bundle_web_rulebooks: 规则手册
+    bundle_web_sites: 站点工具
+    call_done: 完成
+    call_failed: 失败
+    characters_unit: 字
+    clock_asked: 已请求主管确认
+    clock_asked_silent: "已请求主管确认 · {time} 无输出"
+    clock_ask_failed: 主管确认失败
+    clock_cut: 已停止
+    clock_cut_no_process: 无响应
+    clock_cut_no_progress: 无进展
+    clock_cut_stop: 停止工作
+    clock_cut_supervisor: 主管
+    clock_kept: 主管保留
+    clock_kept_until: "主管保留 · 至 {time}"
+    clock_long: "已运行超过 {minutes} 分钟"
+    clock_loop: 循环
+    clock_pid: "进程 {pid}"
+    clock_running: "运行中 {time}"
+    clock_turn_ended: 随本轮结束
+    column_role: 角色
+    column_rooms: 房间
+    context_archive: 过往对话
+    context_attached: 本次读取
+    context_document: 参考文档
+    context_held: 之前读取
+    context_knowledge: 知识
+    context_memory: 记忆
+    context_person: 人物簿
+    context_room: 房间上下文
+    context_rule: 规则
+    context_situation: 情境规则
+    context_tokens: "上下文 {tokens}"
+    credential: 凭据
+    dev_server: 开发服务器命令
+    diff_added: "新增 {added} 行"
+    diff_added_removed: "新增 {added} 行，删除 {removed} 行"
+    diff_more_files: "另有 {n} 个文件更改"
+    diff_none: 无更改
+    diff_omitted: 已省略
+    diff_removed: "删除 {removed} 行"
+    engine: 引擎
+    exec_node: 执行节点
+    find_registration: "注册模型 · {name}"
+    generation: 生成参数
+    group_repository: 仓库
+    group_role: 角色
+    group_runner: 运行器
+    group_supervisor: 主管
+    group_worker: 仓库
+    job_prompt_english: 英文版
+    job_running: "运行中 {time}"
+    job_took: "耗时 {time}"
+    job_tools: "工具 {n} 次"
+    key: 密钥
+    chat_document_opening: 提示词开头
+    chat_document_absolute_rules: 绝对规则
+    chat_document_manual: 运营手册
+    launch_say: 消息
+    launch_task: 工作指令
+    line_answer: 回答
+    line_context: 上下文
+    line_end: 结束
+    line_note: 备注
+    line_prompt: 提示词
+    line_start: 开始
+    line_system_prompt: 系统提示词
+    line_text: 文本
+    line_thinking: 思考
+    line_tool: 工具调用
+    line_tool_result: 工具结果
+    line_unknown: 其他
+    line_word: 已发送的消息
+    login_expires: "{time} 过期"
+    login_needed: 需要登录
+    model_bytes: 字节数
+    model_file: 文件名
+    model_source: 下载地址
+    no_room: 无房间
+    node_checkouts: 节点检出
+    note: 备注
+    persona_file: 文件内容
+    phase_final: 最终验证
+    phase_plan: 计划
+    phase_synthesis: 设计综合
+    piece_persona: 人设
+    pinned_provider: 提供商
+    preamble: 前言
+    prefix_documents: 前缀文档
+    provider_claude_code: Claude Code
+    provider_codex: Codex
+    provider_deepseek: DeepSeek
+    provider_laya: Laya
+    provider_off: 已关闭的提供商
+    provider_openrouter: OpenRouter
+    provider_registered: 注册模型
+    record_ends: 记录在此中断
+    reference: 参考注入
+    reference_send: 附加
+    registry_healthy: 有响应
+    registry_state: 状态
+    registry_unhealthy: 无响应
+    registry_last_answered: "上次响应 {time}"
+    restore: 解除降级
+    result_less: 收起
+    result_more: "再显示 {n} 行"
+    role_bundles_none: 没有功能包
+    room_runs_last: "{n} 次 · 上次运行 {time}"
+    run_cache_read: "缓存读取 {n}"
+    run_context: "上下文 ~{tokens}"
+    run_no_place: 无路径
+    run_work_room: "{work} · {room}"
+    run_requests: "请求 {n} 次"
+    sampling: 采样
+    search_tab: 标签页
+    serving: 服务中
+    source_fetch: 下载
+    source_none: 无下载地址
+    support_count: 辅助检出数
+    umbrella: 伞形仓库
+    switch_off: 关
+    switch_on: 开
+    system_prompt_sent: 要发送的系统提示词
+    tab_supervisors: 智能体
+    think_off: 思考关
+    think_on: 思考开
+    thinking: 思考
+    this_machine: 本设备
+    this_run: 本次运行
+    unit_build: "实现 {n}"
+    unit_reopened: "第 {run} 次 {label}"
+    unit_round: "{label} 第 {round} 轮"
+    unit_stage: "阶段 {stage}-{task}"
+    unknown_code: "未知代码 `{code}`"
+    unmeasured: 未测量
+    uptime: "运行时长 {time}"
+    usage_cache_read: "缓存读取 {n}"
+    usage_input: "输入 {n}"
+    usage_output: "输出 {n}"
+    use_dry_allowed_length: 允许的重复长度
+    use_dry_base: 重复越长惩罚增幅
+    use_dry_multiplier: 长重复抑制强度
+    use_frequency_penalty: 抑制高频词元
+    use_max_tokens: 最大输出词元数
+    use_min_p: 相对最高概率的下限
+    use_presence_penalty: 抑制已出现的词元
+    use_preserve_thinking: 保留之前问题的推理
+    use_repeat_last_n: 检查重复的最近词元数
+    use_repeat_penalty: 抑制最近词元重复
+    use_seed: 随机种子
+    use_temperature: 回答的随机性
+    use_top_k: 仅取前 k 个候选
+    use_top_p: 仅取累积概率靠前的候选
+    weekly: 每周
+    worker_label: 标签
+    tab_roles: 角色
+    column_bundles: 功能包
+    find_role: "角色 {name}"
+    role_prompt: 角色提示词
+    provider_prompts: 各提供商提示词
+    card_service: 显卡服务
+    checkouts_value: "辅助 {support} · {held}/{all} 使用中"
+    checkouts_value_umbrella: "伞形仓库 · {held}/{all} 使用中"
+    column_checkouts: 检出
+    column_heal: 解除降级
+    column_model_defaults: 生成参数
+    column_model_file: 模型文件
+    column_nodes: 节点
+    column_repository: 仓库
+    column_sessions: 会话
+    column_state: 状态
+    column_size: 大小
+    column_supervisor: 主管
+    column_threshold: 压缩阈值
+    column_warming: 保持缓存
+    default_marked: "{value}（默认）"
+    description: 说明
+    display_name: 显示名称
+    model_superseded: 上一代
+    models_stale: "{time} 读取的列表"
+    effort: 强度
+    answer_ceiling: 回答上限
+    advisor: 顾问
+    advisor_tokens: 顾问调用会消耗顾问模型的词元。
+    pinned_model: 固定模型
+    role_files: 保留角色文件
+    role_order: 角色智能体
+    role_running: "{running}/{cap} 运行"
+    role_reserved: "{n} 预留"
+    role_agents: 智能体
+    agent_provider: 提供商
+    agent_follows: 跟随发起请求的主管
+    agent_carries: 运行中
+    agent_keeps_cache: 保持缓存
+    column_agent: 智能体
+    column_road: 提供商 · 模型
+    column_enabled: 使用
+    role_prompt_set: 有
+    role_prompt_none: 无
+    agent_keeps_cache_hint: '在缓存失效前预热最后回复的会话。
+
+      仅适用于公开缓存有效期的提供商。'
+    agent_inherits: 留空则使用角色设置
+    agent_prompt: 系统提示词
+    agent_bundles: 功能包
+    agent_skills: 技能
+    agent_prompt_own: 智能体提示词
+    agent_tab_general: 常规
+    agent_tab_features: 功能
+    role_waiting: "{n} 等待"
+    rules_folder: 规则文件夹
+    run_line: 运行线路
+    session_answered: "上次回复 {time}"
+    session_context: "上下文 {tokens}"
+    session_context_share: "上下文 {tokens} · {share}"
+    session_opened: "开始于 {time}"
+    session_runs: "运行 {n} 次"
+    sessions_fresh: 新建
+    sessions_keep: 保持
+    tab_model_files: 模型文件
+    tab_models: 注册模型
+    tab_repositories: 仓库
+    used_by: 使用方
+    used_by_repository: "仓库 {name}"
+    used_by_role: "角色 {name}"
+    used_by_supervisor: "主管 {name}"
+    work_repository: 工作仓库
+    default_only: （默认）
+    role_skills_own: 自行选择技能
+    role_skills_hint: 关闭时使用角色的全部默认技能包。若智能体另行选择了技能，则以智能体的选择为准。
+    role_skills_none: 没有技能
+    deepseek_card_secret: DeepSeek 支付卡
+    deepseek_login_secret: DeepSeek 登录
+    secret_none: 无
+    secret_of_kind: "{kind} 类型机密"
+    deploy_flush: 批量部署间隔
+    deploy_flush_note: 每隔此间隔部署所有待部署的提交。
+    deploy_flush_unit: 分钟
+    key_held: "已有密钥 · {time}"
+    key_missing: 没有密钥
+    stage_text: 内容
+    stages: 指令阶段
+    stages_none: 没有指令阶段
+    stages_unused: 未使用的阶段
+  message:
+    sign_in_steps: 请打开登录页面，用此账号批准后，粘贴页面上显示的代码。
+    account_delete_confirm: 要删除此账号吗？
+    catalogue_delete_confirm: 要从列表中删除此模型文件吗？
+    supervisor_delete_confirm: "要删除 {name} 吗？"
+    supervisor_delete_takes: '将删除主管的设置、会话和人物记录。
+
+      主管回复过的房间，连同消息和文档都会保留。'
+    node_checkouts_need_here: 只有执行节点是本设备时，才能设置节点检出。
+    umbrella_means: 存放其他仓库检出的文件夹，Job 不会修改该文件夹本身。
+    umbrella_no_support: 伞形仓库不设置辅助检出。
+    umbrella_no_node_checkouts: 伞形仓库不设置节点检出。
+    generation_resets: "{n} 个房间会话将从下一轮起重新开始。"
+    log_of_agent: 此智能体的日志
+    log_of_watch: 此监视的等待对象和记录
+    log_start: 这是日志的开头。
+    registry_delete_confirm: 要删除此注册模型吗？
+    supervisor_seeded: 这是由部署创建的主管，无法删除。
+    supervisor_is_default_answerer: 这是默认回复主管，无法删除。
+    supervisor_room_taken_back: "{label} 重新接管了同名房间 {title}。消息和文档仍然保留。"
+    use_model_confirm: "要在 {engine} 引擎上加载 {model} 模型吗？"
+    use_model_moves: "在下载、校验、安装完成并且引擎重启之前，{registration} 注册模型将不会响应。"
+    role_delete_confirm: 要删除此角色吗？
+    agents_in_tab: 此角色的智能体在智能体标签页中添加和更改。
+    agent_delete_confirm: 要删除此智能体吗？
+    document_to_file: 保存后将恢复为文件内容。
+    pin_waits: 如果固定模型无法响应，此仓库的工作将等待。
+    advisor_only_on: "顾问仅可在 {providers} 上使用。"
+    advisor_follows: 使用发起请求的主管的顾问。
+    role_shared: 这是此角色所有智能体共用的角色设置。
+    role_features: 留空则遵循此角色所有智能体共用的角色设置。
+    road_outside_owner: "此主管在本设备上以所有者的系统用户身份运行。\n如果没有工具限制，或允许了 program.files、program.shell、room.tools 中的任意一项，该用户能读取的所有内容都可能被发送给 {provider}。\n其中包括数据根目录和 env/ 下所有单元的令牌和设置文件。\n除注册模型或所有者账号的 Claude Code 之外的提供商，请仅在所有者亲自选择时使用，或从工具限制中去掉这三项。"
+    repository_delete_confirm: 要删除此仓库吗？
+  placeholder:
+    sign_in_code: 粘贴代码
+    account_name: claude-01
+    directory_path: 配置目录的绝对路径
+    find_settings: 查找设置
+    registry_name: 小写字母、数字、连字符
+    token_path: 令牌文件的绝对路径
+  status:
+    call_running: 运行中
+    chat_documents_loading: 正在加载系统提示词…
+    chat_document_stored: 已保存的文本
+    chat_document_file: 文件内容
+    jobs_loading: 正在加载 Job…
+    no_jobs: 没有运行过的 Job
+    compacting: 正在压缩
+    job_ended: 已结束
+    job_running: 运行中
+    log_loading: 正在加载日志…
+    log_unavailable: 找不到链接指向的运行，无法打开该运行的日志。
+    newer_loading: 正在加载后续行…
+    no_accounts: 没有已注册的账号
+    no_catalogue: 没有已注册的模型文件
+    no_log: 没有记录的日志
+    no_registrations: 没有已注册的模型
+    older_loading: 正在加载之前的行…
+    registry_loading: 正在加载注册模型
+    road_codex_missing: 本设备上没有 Codex 可执行文件，无法选择。
+    road_deepseek_key_unusable: DeepSeek 密钥文件（deepseek.key）不存在或权限不是 0600，无法选择。
+    road_gateway_key_unusable: 网关密钥文件（llm-gateway.key）不存在或权限不是 0600，无法选择。
+    road_laya_url_unset: 未设置 Laya 服务器地址，无法选择。
+    road_line_not_carried: 此提供商的程序不支持此工作的运行线路。
+    road_no_registration_addressed: 没有带地址的注册模型，无法选择。
+    road_openrouter_key_unset: 未设置 BMO_OPENROUTER_KEY，无法选择 OpenRouter。
+    road_unavailable: 现在无法选择此路径。
+    road_unknown_code: "因未知代码 `{code}` 无法选择。"
+    run_gate: 判定中
+    run_runner: 搜索中
+    run_worker: 工作中
+    running: 进行中
+    road_closed: 无法回复
+    turn_thinking: 思考中
+    turn_tool: 正在使用工具
+    turn_tool_named: "正在使用 {tool}"
+    turn_waiting_engine: 等待 Job 结束
+    turn_writing: 正在撰写回答
+    use_done: 完成
+    use_failed: "失败 · {reason}"
+    use_running: "进行中 · {step}"
+    use_starting: 正在启动
+    vitals_loading: 正在加载智能体数据…
+    no_roles: 没有角色
+    agents_none: 没有智能体
+    agent_in_use: 正在运行，无法删除。
+    roles_loading: 正在加载角色…
+    catalogue_loading: 正在加载模型文件…
+    no_node_checkouts: 没有节点检出
+    no_repositories: 没有仓库
+    no_role_sessions: 没有会话
+    no_supervisors: 没有主管
+    providers_loading: 正在加载提供商…
+    accounts_loading: 正在加载 Claude 账号…
+    registration_in_use: "{names} 正在使用，无法删除。"
+    repositories_loading: 正在加载仓库…
+    repository_in_use: Job 正在使用检出，无法删除。
+    role_blocked: 已阻塞
+    role_in_use: 有正在运行或等待中的运行，无法删除。
+    session_expired: 已过期
+    session_history_loading: 正在加载会话记录…
+    session_valid: 有效
+    supervisors_loading: 正在加载主管…
+    secret_settings_loading: 正在加载提供商机密…
+    deploy_flush_loading: 正在加载批量部署间隔…
+    stages_loading: 正在加载指令阶段…
+  title:
+    sign_in: "登录 {name}"
+    account_add: 添加 Claude 账号
+    key_of: "{name} 密钥"
+    providers: 提供商
+    repository_add: 添加仓库
+    session_history: 会话记录
+    supervisor_add: 添加主管
+    accounts: Claude 账号
+    catalogue_add: 添加模型文件
+    catalogue_uses: 模型更改记录
+    chat_documents: 系统提示词
+    registry: 注册模型
+    registry_add: 添加注册模型
+    work_log: 日志
+    work_now: 当前
+    work_order: 工作指令
+    work_result: 结果
+    work_stages: 进行阶段
+    role_add: 添加角色
+    draft: 草稿
+    secret_settings: 提供商机密
+    deploy: 部署
+    stage_add: 添加阶段
+gates:
+  label:
+    classifier: 参考分类器
+    content_judge: 第一道闸门
+    library_knowledge: 书库知识分类器
+    output_decide: 输出格式第一阶段闸门
+    output_format: 输出格式闸门
+    output_verify: 输出格式第二阶段闸门
+    room_memories: 房间记忆分类器
+    room_rules: 房间规则分类器
+    situation_rules: 情境规则匹配器
+    system_documents: 系统文档分类器
+live:
+  action:
+    stop: 停止
+    stop_run: "停止{run}"
+  aria:
+    stop_confirm_named: "确认停止{name}"
+    stop_named: "停止{name}"
+  error:
+    agent_runs_read_failed: 无法读取智能体状态。
+    stop_failed: 无法停止运行。
+    stop_target_absent: 找不到要停止的运行。
+    stop_target_needed: 请指定要停止的运行。
+    stop_target_wrong: 要停止的对象无效。
+  label:
+    agent_idle: 空闲
+    answering: "回复中 · {rooms}"
+    deadline_passed: 已过期限
+    last_check_met: "上次检查 {ago}前 · 已满足"
+    last_check_timed_out: "上次检查 {ago}前 · 超时"
+    last_check_unmet: "上次检查 {ago}前 · 未满足（退出码 {code}）"
+    outcome_blocked: 等待用户回复时停止
+    outcome_cut_short: 达到上限而中断
+    outcome_died: 未报告即结束
+    outcome_done: 完成
+    outcome_error: 运行错误
+    outcome_failed: 失败
+    outcome_limit: 已达限额
+    outcome_live_tasks: 子任务仍在运行，已拒绝
+    outcome_stopped: 用户已停止
+    outcome_unanswered: 报告未能回复
+    outcome_unclosed: 未关闭工作，已拒绝
+    outcome_work_step: 步骤完成
+    remaining: "剩余 {time}"
+    run_item: "#{id}"
+    slot_source_ask: 请求
+    slot_source_browse: 浏览
+    slot_source_cowork: 协作
+    slot_source_job: Job
+    slot_source_native: 原生
+    slot_source_none: 无来源
+    slot_source_search: 搜索
+    slot_source_translate: 翻译
+    timer_left: "计时器 · 剩余 {time}"
+    timer_passed: 计时器 · 时间已到
+    watch_condition: 条件
+    watch_content: 内容
+    watch_deadline: 期限
+    watch_every: "每 {interval} · {left}"
+    watch_memory: 记忆
+    watch_memory_id: "#{id}"
+    watch_memory_none: 无
+    watch_no_memory: 无记忆
+    watch_time: 时间
+    watch_title: "监视 #{id} · {name}"
+    work_item: "条目 #{id}"
+    space_follows: 跟随发起请求的主管
+  message:
+    stop_confirm: 要停止此工作的运行吗？
+    stop_confirm_default: 要停止运行吗？
+  status:
+    stopping: 正在停止
+    unchecked: 尚未检查
+research:
+  aria:
+    branches_of: "{key} 的分支"
+    category_filter: 分类筛选
+    delete_source_named: "删除来源 #{id}"
+    dismiss_named: "排除{name}"
+    edit_source_named: "编辑来源 #{id}"
+    follow_up_named: "请求对{name}进行后续调查"
+    front_named: "将{name}移到最前"
+    log: 运行日志
+    minutes_of: "{key} 的时间"
+    open_run_named: "打开{name}的运行记录"
+    reask_named: "重新请求{name}"
+    repair_named: "打开修复任务 #{id}"
+    resume_named: "恢复{name}"
+    sections: 研究板块
+    state_filter: 状态筛选
+    stop_named: "停止{name}"
+    edit_topic_named: "编辑主题{name}"
+    delete_topic_named: "删除主题{name}"
+  error:
+    ask_conflict: 相同条目已在等待、运行或卡住。
+    ask_failed: 无法发出请求。
+    ask_refused: 研究单元未接受此名称或地址。
+    dismiss_conflict: 此条目在当前状态下无法排除。
+    supervisor_read_failed: 无法读取研究主管。
+    dismiss_failed: 无法排除。
+    engines_unread: "无法读取搜索引擎状态：{reason}"
+    failed: 研究单元未能处理该请求。
+    follow_conflict: 相同条目已在等待、运行或卡住，或者要跟进的调查还没有文档。
+    follow_missing: 研究单元中没有此分类或要跟进的调查。
+    follow_refused: 研究单元未接受此名称、地址或要跟进的调查。
+    front_conflict: 此条目在当前状态下无法移到最前。
+    front_failed: 无法移到最前。
+    no_category: 研究单元中没有此分类。
+    no_item: 研究单元中没有此条目。
+    no_run: 研究单元中没有此运行记录。
+    no_source: 研究单元中没有此来源。
+    queue_read_failed: 无法读取队列。
+    reask_conflict: 此条目未卡住，无法重新请求。
+    reask_failed: 无法重新请求。
+    refused: 研究单元未接受此值。
+    run_read_failed: 无法读取运行记录。
+    settings_read_failed: 无法读取研究设置。
+    source_delete_failed: 无法删除来源。
+    source_refused: 研究单元未接受此来源。
+    source_save_failed: 无法保存来源。
+    sources_read_failed: 无法读取来源。
+    state_change_failed: 无法更改状态。
+    state_read_failed: 无法读取研究状态。
+    unreachable: 研究单元无响应。
+    topic_refused: 研究单元未接受此主题。名称须以小写字母开头，仅含小写字母、数字和 -，不超过 32 个字符；指示不能为空；日历须有 ID。
+    topic_taken: 该分类名称已存在。
+    topic_held: 仍有来源或等待中、运行中的条目在使用此主题，无法删除。
+    topic_name: 名称须以小写字母开头，仅含小写字母、数字和 -，不超过 32 个字符。
+    topic_save_failed: 无法保存主题。
+    topic_delete_failed: 无法删除主题。
+  message:
+    dismiss_confirm: 要将此条目从队列中排除吗？
+    dismiss_note: 已排除的条目不会再被查找。
+    every_help: 留空则使用分类周期
+    gap_help: 留空则使用网页工具设定的值
+    source_delete_confirm: "要删除来源 #{id} 吗？"
+    source_delete_note: 此来源找到的条目会保留。
+    words_help: 用逗号分隔
+    topic_delete_confirm: 要删除此主题吗？
+    topic_delete_note: 接收房间的设置也会一并删除。已发布的文档会保留。
+    topic_name_help: 创建后无法更改。
+    topic_instruction_help: 写明要查找什么以及如何整理。
+    calendar_help: 将找到的日程中带日期的记录到日历。
+  label:
+    address: 地址
+    all_categories: 全部分类
+    all_states: 全部状态
+    asked: 请求
+    because: 为什么 / 想了解什么
+    branch_role: 分支角色
+    branches: 分支
+    cadence: "每 {n} 分钟读取"
+    cap_counts: "等待 {waiting} · 运行 {running}"
+    category: 分类
+    closes: 网页工具关闭
+    default_road: 默认路径
+    depth: 深度
+    document: 文档
+    engine: 引擎
+    engine_gap: 引擎间隔
+    every: 周期
+    every_category: "分类周期 {n} 分钟"
+    every_value: "每 {n} 分钟"
+    exclude_words: 排除词
+    failure_count: "连续失败 {n} 次"
+    failures: 失败
+    filter: 筛选
+    filter_exclude: "排除 {words}"
+    filter_require: "包含 {words}"
+    finished: 已结束
+    fit: 符合
+    fit_nodes: "符合 · {nodes}"
+    gap_value: "{n}ms"
+    gather: "每 {n} 分钟收集"
+    held: 暂缓
+    hold_bench: 替补
+    hold_reported: 已报告
+    hold_restore: 等待恢复
+    hold_waiting_card: 等待显卡
+    hold_since: "自 {time} 起"
+    host_gap: 主机间隔
+    item_state_dismissed: 已排除
+    item_state_finishing: 收尾中
+    item_state_fit: 请求审核
+    item_state_reported: 已报告
+    item_state_running: 运行中
+    item_state_stuck: 卡住
+    item_state_taken: 已处理
+    item_state_waiting: 等待
+    key: 键
+    kind: 类型
+    kind_arxiv: arXiv
+    kind_github_releases: GitHub 发布
+    kind_huggingface_search: Hugging Face 搜索
+    kind_huggingface_trending: Hugging Face 趋势
+    kind_rss: RSS
+    language_en: 英语
+    language_ko: 韩语
+    last_try: "上次尝试 {time}"
+    last_try_untimed: 上次尝试
+    limit: 每次
+    limit_value: "{n} 条"
+    log_kind_answer: 回复
+    log_kind_asked: 请求
+    log_kind_branch: 分支
+    log_kind_ended: 结束
+    log_kind_filed: 登记
+    log_kind_round: 轮次
+    log_kind_seated: 分配
+    log_kind_told: 通知
+    loop_changed: "{time} 更改"
+    loop_running: 运行中
+    loop_stopped: 全部已停止
+    minute_unit: 分钟
+    minutes: 时间
+    minutes_value: "{n} 分钟"
+    narration: "朗读 {language}"
+    observed: 确认
+    origin_asked: "请求：{because}"
+    origin_follow_up: "“{title}”的后续调查"
+    origin_follow_up_document: "文档 #{id} 的后续调查"
+    origin_source: "来源：{source}"
+    origin_source_gone: 来源：已不存在的来源
+    outcome: 结果
+    outcome_answered: 已回复
+    outcome_cut: 中断
+    outcome_failed: 失败
+    profile_browse: 浏览
+    profile_search_basic: 基本搜索
+    profile_search_exhaustive: 极致搜索
+    profile_search_thorough: 精细搜索
+    query: 问题
+    read_at: 上次读取
+    reason: 原因
+    repair: "修复 #{id}"
+    require_words: 包含词
+    retry_at: "{time} 重试"
+    road: 路径
+    run_error: 错误
+    run_state_closed: 已结束
+    run_state_running: 运行中
+    run_state_waiting: 等待
+    search_words: 搜索词
+    shape_advisory: 安全公告
+    shape_brief: 简报
+    shape_investigation: 调查
+    shape_manual: 手册
+    shape_manual_or_investigation: 手册·调查
+    source_id: 编号
+    source_target: 地址·搜索词
+    started: 开始
+    state: 状态
+    state_degraded: 降级
+    state_healthy: 正常
+    state_running: 运行中
+    state_stopped: 已停止
+    state_suspended: 暂停
+    strategy: 获取策略
+    strategy_browser_first: 浏览器优先
+    strategy_direct_only: 仅直接
+    strategy_direct_then_browser: 直接优先
+    stuck_count: "卡住 {n}"
+    supervisor: 主管
+    suspended_until: 暂停解除
+    tab_queue: 队列
+    tab_settings: 设置
+    tab_sources: 来源
+    tries: "尝试 {n} 次"
+    unknown_value: "未知值 {value}"
+    tab_topics: 主题
+    topic: 主题
+    topic_purpose: 目的
+    topic_instruction: 指示
+    topic_period: 周期
+    topic_calendar: 日历
+    topic_running: 运行中
+    topic_stopped: 已停止
+    topic_counts: "等待 {waiting} · 运行 {running}"
+    period_unit: 周期单位
+    period_day: 天
+    period_hour: 小时
+    period_minute: 分钟
+    period_every_day: "每 {n} 天"
+    period_every_hour: "每 {n} 小时"
+    period_every_minute: "每 {n} 分钟"
+    calendar_writes: 记录到日历
+    calendar_realm: 日历类型
+    calendar_mine: 我的日历
+    calendar_organization: 组织日历
+    calendar_id: 日历 ID
+  status:
+    no_categories: 暂无分类
+    no_engines: 没有搜索引擎。
+    no_items: 暂无条目
+    no_log: 暂无日志
+    no_sources: 暂无已添加的来源
+    queue_end: 队列末尾
+    queue_loading: 正在加载队列
+    queue_more_loading: 正在加载更多队列
+    run_loading: 正在加载运行记录
+    settings_loading: 正在加载研究设置
+    sources_loading: 正在加载来源
+    state_loading: 正在加载研究状态
+    supervisor_loading: 正在加载研究主管
+    topics_loading: 正在加载主题
+    no_topics: 暂无已添加的主题
+  title:
+    ask: 请求条目
+    categories: 分类
+    engines: 搜索引擎
+    fetching: 获取
+    follow_up: 请求后续调查
+    limits: 各键限额
+    queue: 队列
+    run: 运行记录
+    source_add: 添加来源
+    source_edit: "编辑来源 #{id}"
+    sources: 来源
+    supervisor: 研究主管
+    topic_add: 添加主题
+    topic_edit: "编辑主题{name}"
+  action:
+    ask: 请求
+    dismiss: 排除
+    follow_up: 后续调查
+    front: 移到最前
+    reask: 重新请求
+    resume: 恢复
+    resume_all: 全部恢复
+    stop: 停止
+    stop_all: 全部停止
+tool:
+  label:
+    bash: Shell
+    bash_output: Shell 输出
+    coworker: 协作者
+    coworker_kind: "协作者 {kind}"
+    edit: 编辑
+    glob: 文件搜索
+    grep: 内容搜索
+    kill_shell: 结束 Shell
+    monitor: 监控
+    notebook_edit: 笔记本编辑
+    read: 读取
+    schedule_wakeup: 预约唤醒
+    send_message: 发送消息
+    server_chrome_devtools: 浏览器
+    server_toolbook: 工具书
+    server_web: 网页
+    skill: 技能
+    task_output: 等待分支
+    task_stop: 停止分支
+    todo_write: 写待办
+    tool_search: 工具搜索
+    web_fetch: 读取网页
+    web_search: 网页搜索
+    workflow: 工作流
+    write: 写入
+usage:
+  error:
+    read_failed: 无法加载用量。
+  label:
+    claude_accounts: Claude 账号
+    figure: "{label} {text}"
+    kind_cache_read: 缓存读取
+    kind_cache_write: 缓存写入
+    kind_input: 输入
+    kind_output: 输出
+    reset_at: "{month}月{date}日（周{weekday}）{hour}:{minute} 重置"
+    reset_in: "{time}重置"
+    reset_passed: 已过重置时间
+    total: "共 {tokens}"
+    unsplit: "未拆分 {runs} 次 {tokens}"
+    until_days: "{d} 天后"
+    until_days_hours: "{d} 天 {h} 小时后"
+    until_hours: "{h} 小时后"
+    until_hours_minutes: "{h} 小时 {m} 分钟后"
+    until_minutes: "{m} 分钟后"
+    until_soon: 即将
+    weekday_fri: 五
+    weekday_mon: 一
+    weekday_name: "星期{day}"
+    weekday_sat: 六
+    weekday_sun: 日
+    weekday_thu: 四
+    weekday_tue: 二
+    weekday_wed: 三
+    window_limit: "{limit} · {label}"
+    window_primary: 主要
+    window_secondary: 次要
+    window_session: 会话
+    window_weekly: 每周
+    window_weekly_overage: 每周+超额
+    balance: 余额
+    balance_seen: "{wait}前"
+    requests_day: 每日请求
+    requests_free_models: 免费模型请求
+    requests_left: "剩余 {left} / {limit}"
+  status:
+    loading: 正在加载用量…
+    no_accounts: 暂无已添加的账号
+    no_info: 暂无已读取的用量
+  title:
+    remaining: 剩余用量
+    remaining_of: "剩余用量 · {name}"
+job:
+  error:
+    action_wrong: 此路由不接受该操作。
+    add_anchor: 新任务只能放在等待中的构建任务旁边。
+    after_not_open: 暂缓后要恢复的条目不是另一个尚未结束的条目。
+    agency: bmo-job 无法调用代理中心。
+    agent_name_taken: 该智能体名称已存在。
+    append_empty: 要追加的内容为空。
+    back_here_needs_path: 调回本机的工作器需要本机上的路径。
+    banned_terms: 包含约定不使用的表述。
+    base_on_node: 节点上的基础工作器不能分配节点检出。
+    before_and_after: 不能同时指定前和后。
+    body_not_json: 请求正文不是 JSON。
+    brain: bmo-job 无法调用 Brain。
+    brief_agent_only: 只有聊天智能体可以改写简报。
+    brief_empty: 简报为空。
+    brief_needs_change: 简报须附带更改内容。
+    brief_not_english: 简报和更改内容须用英语书写。
+    build_move: 构建任务或其基准不在等待中，无法移动。
+    build_running: 构建任务正在运行。
+    builder_running: 正在运行的构建者轮次无法跳过。
+    builtin_not_removed: 内置工作器无法删除。
+    builtin_path_fixed: 内置工作器的路径无法移动。
+    builtin_stays_here: 内置工作器不能放在节点上。
+    chat_wrong: 这不是房间的聊天编号。
+    checkout_already_on_node: 该节点上已有检出。
+    checkout_busy: 检出的工作器中有 Job 正在运行。
+    checkout_held: 检出中已有工作在进行。
+    checkout_held_by_order: 检出被其他工单占用，且工作器没有空闲检出。
+    checkout_name_long: 节点检出的名称违反工作器命名规则。
+    checkout_not_git: 检出不是 git 仓库。
+    checkout_not_on_node: 该节点上没有检出。
+    checkout_not_removed: 无法清理检出的工作器。
+    checkout_of_done: 已结束工单的检出无法更改。
+    close_builder_running: 构建者轮次正在运行，无法关闭。
+    close_reason_size: 关闭原因须为 1 到 2000 个字符。
+    closing_refused: 收尾报告或待决事项未通过收尾条件。
+    commit_already_live: 该提交已上线。
+    commit_not_on_main: 该提交不在 main 上，部署后不会上线。
+    condition_both: 暂缓的恢复条件只能是条目或部署之一。
+    control_turn_untouched: 计划、综合和收尾轮次无法编辑。
+    cowork_needs_item: 协同工作需要条目才能运行。
+    cowork_needs_switch: 协同工作须开启或关闭。
+    coworker_tier_wrong: 这不是协作者可用的层级。
+    database: bmo-job 无法读写其数据库。
+    dev_command_lines: 工作器的开发服务器命令须为一行。
+    dev_command_long: 工作器的开发服务器命令过长。
+    document_exists: 该路径已有结果文档。
+    done_task_edit: 已结束的任务请勿编辑，应重新运行。
+    done_while_held: 等待恢复或已停止的条目不能以完成关闭。
+    draft_only: 已过草稿阶段的工单不能改回草稿。
+    edit_job_running: 有 Job 正在使用要改写的内容工作。
+    edit_no_part: 条目中没有该部分。
+    edit_nothing: 请至少指定一个要编辑的部分。
+    edit_order_started: 工单已开始，只能改写草稿。
+    edit_part_empty: 要编辑的部分为空。
+    field_missing: 请求中缺少值。
+    field_not_text: 请求中的值不是文本。
+    field_wrong: 请求中的值缺失或格式不正确。
+    file_empty: 存在空文件。
+    file_too_large: 有文件超过允许的大小。
+    filing_parts_missing: 缺少构成条目的部分。
+    from_todo_unread: 无法将来源读取为条目和分项编号。
+    gate: bmo-job 无法调用闸门。
+    has_support: 有支援工作器或节点检出的工作器不能放在节点上。
+    history_edit: 以往轮次的任务无法编辑。
+    history_rerun: 以往轮次的任务无法重新运行。
+    history_restore: 以往轮次的任务无法恢复。
+    hold_not_taken: 该条目已结束、已合并或已暂缓。
+    hold_takes_no_after: 普通暂缓不能指定之后要恢复的条目。
+    impact_unread: 影响依据无法读取为单个 JSON 对象。
+    instruction_size: 任务指示须为 1 到 30000 个字符。
+    item_absent: 没有该条目。
+    item_closed_already: 该条目已结束，追加的内容不会送达任何人。
+    item_frozen: '这是运行中的 Job 启动时读取的值，无法更改。
+
+      停止 Job 后即可更改。'
+    item_launch_takes_no_why: 运行条目时不能附带一行原因。
+    item_merged: 该条目已合并到另一个条目，写下的内容会送往那个条目。
+    item_not_approved: 该条目未获批准，无法运行。
+    item_number_wrong: 条目编号不是整数。
+    itemless_needs_why: 无条目的运行需要一行原因。
+    job_cannot_unhold: Job 无法解除暂缓。
+    job_model_wrong: 指定的 Job 模型既不是层级，也不是提供方或模型。
+    job_range_form: Job 范围须为第一个和最后一个 Job。
+    judgement_empty: 判断为空。
+    judgement_needs_title_and_room: 作为判断提出的行需要标题和房间。
+    judgement_with_conversation: 作为判断提出的行不能包含对话片段。
+    keepalive_count_form: 保活数须为 0 或以上的整数。
+    keepalive_over_count: 保活数超过支援工作器数。
+    label_empty: 工作器的标签为空。
+    label_long: 工作器的标签过长。
+    label_value_unknown: 指定的值不在可用值列表中。
+    launch_beyond_count: 该支援工作器超出基础工作器设定的数量。
+    launch_held_by_machine: 本机已无余量启动更多 Job。
+    launch_item_absent: 没有要运行的条目。
+    launch_item_at_work: 该条目已在处理中，不会重复运行。
+    launch_item_done: 该条目已结束。
+    launch_item_held: 该条目已暂缓。
+    launch_item_merged: 该条目已合并到另一个条目。
+    launch_item_other_worker: 该条目属于另一个工作器。
+    launch_item_unapproved: 该条目尚未获批准。
+    launch_needs_launcher: 需要说明由谁运行。
+    launch_waits: 最近一次运行在开始工作前就已终止，仍需继续等待。
+    made_path_blocked: 要创建新工作器文件夹的位置上有非文件夹的东西。
+    manager_unreachable: 无法连接启动 Job 单元的服务管理器。
+    mark_needs_status: 状态标记需要状态行。
+    merge_finished: 已结束的条目不能合并，也不能作为合并目标。
+    merge_itself: 条目不能合并到自身。
+    merge_needs_items: 合并需要被合并的条目和合并目标条目。
+    merge_running: Job 正在处理的条目无法合并。
+    merged_finished: 该条目已与合并目标条目一同结束。
+    message_not_archived: 引用的消息已不在房间中。
+    middle_step_closes: 工单的中间步骤不能关闭条目，由最后一个轮次关闭。
+    model_needed: 模型设置须为 auto 或模型名称。
+    model_tier_wrong: 该模型层级不存在。
+    move_kinds: 不能移动到其他类型的任务之间。
+    no_deploy_hold: 没有可解除的部署等待。
+    no_job_model: 已开启的提供方中没有提供 Job 模型的。
+    no_node: 没有该节点。
+    no_such_item: 没有该条目。
+    no_such_note: 没有该编号的追加内容。
+    no_such_strand: 待决事项中没有该编号的分项。
+    no_such_worker: 没有该工作器。
+    no_unfinished: 没有要解决的待决事项。
+    no_waiting_commits: 此条目没有等待部署的提交。
+    no_worker: 没有该工作器。
+    node_path_form: 节点路径须以 / 或 ~/ 开头。
+    node_takes_no_jobs: 该节点不接受 Job。
+    not_a_base: 这不是基础工作器。
+    not_a_commit: 指定的提交不是此仓库的提交。
+    not_built: 运行中的 bmo-job 不包含此操作。
+    not_held: 该条目未暂缓。
+    not_merged: 该条目未被合并。
+    not_restable: 非所有者添加的工作器无法休眠或唤醒。
+    note_needs_number: 追加内容只能按编号删除。
+    nothing_to_change: 没有要更改的内容。
+    nothing_to_edit: 没有要编辑的指示或模型。
+    order_active: 工单的步骤已在运行。
+    order_and_model: 无法读取工单或模型。
+    order_closing: 工单正在收尾，尚未结束。
+    order_done: 已结束的工单不会重新运行。
+    order_draft: 这是尚未运行的草稿。
+    order_finished: 已结束的工单不会重新打开。
+    order_paused: 工单已暂停，正在工作器队列中等待轮到它。
+    order_step_holds: 此时工单步骤不能暂缓自己的条目。
+    path_absent: 工作器的路径不存在。
+    path_empty: 工作器的路径为空。
+    path_not_absolute: 工作器的路径不是绝对路径。
+    path_not_directory: 工作器的路径不是文件夹。
+    phase_wrong: 当前阶段不会重新运行此任务。
+    pin_wrong: 代理中心未接受工作器的固定值。
+    plan_model_form: 模型须写成提供方和模型。
+    plan_no_stages: 计划中没有阶段列表。
+    plan_not_object: 计划不是 JSON 对象。
+    plan_part_empty: 计划的某一部分为空或过长。
+    plan_role_wrong: 任务的角色不是已有角色。
+    plan_stage_empty: 存在没有任务的阶段。
+    plan_too_many_builds: 综合构建的数量超过允许值。
+    preamble_long: 工作器的前言过长。
+    priority_needs_number: 优先级须为数字。
+    prompt_not_written: 无法写出给 Job 的文本。
+    provider_off: 此次运行的提供方已关闭。
+    question_absent: 没有该问题。
+    question_answer_wrong: 回答须为选项编号或自己写的话之一。
+    question_banned_terms: 包含约定不使用的表述。
+    question_item: 问题没有条目。
+    question_option_empty: 选项须为有内容的一行。
+    question_options: 问题须有两个或以上选项。
+    question_outside_hosting: 提供的是部署之外托管的页面。
+    question_recommend: 推荐须为选项编号之一。
+    question_room: 问题不指定房间，只发送到所有者的私聊。
+    question_takes_no_talk: 此问题不接受留言。
+    question_talk_number: 须指定问题编号才能留言。
+    question_talk_say: 留言为空。
+    question_talk_settled: 此问题已有答案。
+    question_text: 问题中没有要问的内容。
+    question_wait: 等待时间不是毫秒数。
+    question_why: 缺少不作决定而提问的原因。
+    raised_by_needed: 作为判断提出的行需要提出该行的条目。
+    raised_by_not_item: 指定为提出该行的条目不存在。
+    reason_required: 请输入原因。
+    reason_without_hold: 只有暂缓时才能一并发送原因。
+    receiver: bmo-job 无法调用接收器。
+    recover_job_known: 该 Job 已在工单中。
+    recover_job_running: 该 Job 尚未结束。
+    recover_no_builder: 范围内没有可读取目的和指示的构建者轮次。
+    recover_no_jobs: 范围内没有此条目的 Job。
+    recover_no_success: 范围内没有成功的步骤。
+    recover_not_done: 未结束的工单不会恢复。
+    recover_not_step: 该 Job 不是此条目工单的步骤。
+    recover_prompt_unread: 无法从 Job 的文本中读取角色和指示。
+    recover_task_twice: 该任务已在工单中。
+    reopen_not_done: 未结束的工单不会重新打开。
+    reorder_stale: 队列在此期间已更改，请按重新读取的顺序移动。
+    repairs_chain_full: 修复链已用完设定的次数。
+    repairs_cycle: 不能将修复此条目的条目再关联为此条目的修复。
+    repairs_itself: 条目不能关联为自身的修复。
+    repairs_needs_target: 修复关联须指定条目或解除关联。
+    repairs_on_filing: 登记时不能同时指定修复关联。
+    requester_lacks: 请求者缺少所需权限或已开启的 Claude 账号。
+    research_over: 调查阶段已过，无法重新运行调查任务。
+    resolve_needs_why: 解决待决事项需要原因。
+    resume_not_held: 要恢复的工作未获批准、已暂缓或已合并。
+    resume_not_stopped: 要恢复的工作并未停止。
+    route_absent: bmo-job 中没有该路由。
+    runner_depth_wrong: 运行器不接受该深度。
+    runner_not_launched: 无法启动运行器。
+    runner_unknown: 没有该运行器。
+    running_task_edit: 运行中任务的指示无法更改。
+    runs_still_alive: 要求停止的运行尚未结束。
+    same_anchor: 任务不能以自身为基准移动。
+    server: bmo-job 无法调用自身的服务器。
+    session_launches_item: 聊天会话不运行条目。
+    single_model_provider: 不能向只提供一个模型的提供方请求协作者。
+    skip_reason_size: 跳过原因须为 1 到 2000 个字符。
+    source_left_nothing: 来源条目中没有剩余的待决事项。
+    source_not_item: 指定为该行来源的条目不存在。
+    stage_move_past: 当前阶段及之前的阶段无法移动。
+    stage_move_pending: 含有非等待中任务的阶段无法移动。
+    stage_not_yet: 任务所在阶段尚未到来。
+    stage_running: 当前阶段有正在运行的任务。
+    stop_done_item: 已结束的条目无法停止。
+    stop_here_closed: 该条目已结束或已合并。
+    stop_here_held_takes_no_reason: 已暂缓的条目不能再次指定原因或恢复条件。
+    stop_here_needs_reason: 要为处理中的条目留下停止位置，需要原因。
+    stop_here_needs_report: 要留下停止位置，需要报告。
+    stop_here_not_held: 该条目既未暂缓也不在处理中。
+    stop_needs_why: 停止需要原因。
+    stop_reason_size: 停止原因须为 1 到 2000 个字符。
+    strand_not_named: 含多个分项的待决事项须指定分项编号。
+    support_changed_by_base: 支援工作器的设置跟随基础工作器的设置。
+    support_count_range: 支援工作器数须为 0 到最大值之间的整数。
+    support_follows_base: 支援工作器不能与基础工作器分开放置。
+    support_has_no_settings: 不能为支援工作器单独指定支援设置。
+    support_name_long: 基础工作器的名称过长，导致最后一个支援工作器的名称违反规则。
+    support_removed_by_count: 请勿删除支援工作器，应通过基础工作器的数量减少。
+    takes_no_files: 此请求不接受文件。
+    talk_busy: 仍在回复上一条消息。
+    talk_item_absent: 没有要对话的条目。
+    task_absent: 工单中没有该任务。
+    task_already_skipped: 该任务已跳过。
+    task_move: 须移动整个阶段，而不是单个任务。
+    task_needs_room_and_work: 需要运行的房间和要做的工作。
+    task_not_skipped: 该任务未被跳过。
+    task_pending: 该任务已在等待。
+    task_running: 任务正在运行。
+    testbed: bmo-job 无法调用测试台。
+    too_many_files: 文件数量超过允许值。
+    unfinished_resolved_already: 待决事项已解决。
+    unit_not_started: Job 单元未启动。
+    web: bmo-job 无法调用网页控制台服务器。
+    why_one_line: 原因须为一行。
+    wind_down_needs_why: 等待恢复需要原因。
+    wind_down_not_taken: 该条目已结束、已合并或已停止。
+    worker_is_support: 支援工作器只能通过基础工作器指定。
+    worker_name_form: 新工作器的名称违反工作器命名规则。
+    worker_needs_name: 请指定工作器或取消指定。
+deploy:
+  status:
+    failed: 部署失败
+    hold: 等待部署
+    line: 排队等待部署
+    live: 部署完成
+    newer: 新版本
+    refused: 部署被拒绝
+    rolled_back: 部署失败 · 已回滚
+    running: 部署中
+    withdrawn: 部署已中止
+  action:
+    collapse_items: 收起条目
+    expand_items: 展开条目
+    reload: 刷新
+  error:
+    log_failed: 无法读取日志。
+  label:
+    commit: 提交
+    exit_code: "退出码 {code}"
+    items: 条目
+    line: 排队中
+    line_more: "{unit} 等 {n} 项"
+    log: 日志
+    part_check: 检查
+    part_pack: 打包
+    part_snapshot: 快照
+    rest: "等 {n} 项"
+    stage_after: 收尾
+    stage_backup: 备份
+    stage_before: 切换前步骤
+    stage_build: 构建
+    stage_check: 检查与测试
+    stage_restart: 重启服务
+    stage_rollback: 回滚
+    stage_starting: 准备
+    stage_stay_up: 健康检查
+    stage_tree: 准备发布
+    stages: 阶段
+    state_ahead: 待进行
+    state_current: 进行中
+    state_done: 完成
+    state_failed: 失败
+    step_failed: "{step} 退出码 {code}"
+    step_hung: "{step} 已停止 · 无输出"
+  message:
+    log_empty: 无日志
+documents:
+  label:
+    from_translation: 来自译文
+    hit_place: "{title} · 第 {line} 行"
+    kind: 类型
+    language_en: 英语
+    language_ko: 韩语
+    other_candidates: 其他候选
+    root_agents: 智能体指令
+    root_rules: 规则手册
+    root_system_prompts: 系统提示词
+    root_unread: 无法读取
+    scope_all: 全部文档
+    scope_this: 此文档
+    translation: 译文
+    translation_of: "{language}译文"
+    view_rendered: 渲染
+    view_source: 原文
+    view_split: 分栏查看
+    writer: 作者
+    writer_deploy: 部署
+    writer_person: 人员
+  status:
+    documents_found: "{n} 个文档"
+    list_loading: 正在加载列表…
+    loading: 正在加载文档…
+    no_documents_found: 未找到文档
+    no_places_found: 未找到位置
+    no_talk: 暂无对话
+    no_toc: 无目录
+    opening: 正在打开文档…
+    seeking: 正在查找…
+    talk_loading: 正在加载对话…
+    translating: 翻译中
+    translation_failed_parts: "{n} 处翻译失败"
+  action:
+    ask_agent: "向 {agent} 提问"
+    list: 列表
+    list_collapse: 关闭列表
+    list_expand: 打开列表
+    remove_quote: 移除引用
+    retry_translation: 重新请求
+    toc_collapse: 关闭目录
+    toc_expand: 打开目录
+  aria:
+    body_hits: 正文中找到的行
+    document_list: 文档列表
+    jump_quote: 跳转到引用位置
+    jump_quote_named: "跳转到引用位置：{heading}"
+    open_documents: 已打开的文档
+    talk_log: 对话记录
+    toolbar: 文档工具栏
+  error:
+    editor_failed: 无法加载原文编辑器。
+    talk_owner_only: 只有所有者可以就文档进行对话。
+    list_failed: 无法读取文档列表。
+    no_such_document: 找不到该文档。
+    question_too_long: "问题过长，最多可输入 {n} 个字符。"
+    read_failed: 无法读取文档。
+    search_failed: 无法查找文档。
+    search_too_long: 搜索词过长。
+    seek_empty: 请输入要查找的内容。
+    seek_failed: 未能找到问题对应的位置。
+    talk_busy: 仍在回复上一条消息。
+    talk_read_failed: 无法加载对话。
+    too_large: 文档过大，无法打开。
+    translation_ask_failed: 无法请求翻译。
+    translation_read_failed: 无法读取译文。
+    translation_unavailable: 尚无连接翻译器的途径，无法翻译。
+    translation_unreachable: 无法连接翻译器，无法请求翻译。
+  message:
+    choose_document: 请选择文档。
+    root_unread_agency: 这是代理中心的文档。代理中心尚未开放提供完整文档的途径，因此无法在此控制台中阅读。
+    translation_unavailable: 翻译器尚未向此控制台提供翻译，因此无法阅读译文。
+    unanswered_limit: 已达到使用上限，未能回复这条消息。
+    unanswered_other: 这条消息未收到回复。
+    unanswered_outage: 模型提供方无响应，未能回复这条消息。
+    unanswered_resting: 聊天智能体处于休息状态，未能回复这条消息。
+    unanswered_silent: 聊天智能体未对这条消息作出任何回复。
+  placeholder:
+    find: 查找文档
+    seek: 提问要查找的内容
+  title:
+    seek: 通过提问查找
+    talk: 对话
+briefing:
+  error:
+    bad_id: 语音简报编号无效。
+    engine_unreachable: 无法连接语音引擎，无法朗读。
+    line_not_found: 未找到要朗读的行。
+    no_engine: 此控制台未设置语音引擎。
+    not_found: 找不到该语音简报。
+    not_made: 无法生成语音简报。
+    one_switch: 一次只能更改一个开关。
+    play_failed: 无法播放语音简报。
+    settings_read_failed: 无法读取语音简报设置。
+    settings_write_failed: 无法更改语音简报设置。
+    switched_off: 语音简报已关闭，无法朗读。
+    voiceless: 此智能体没有声音，无法朗读。
+  action:
+    listen: 播放
+    mute: 在此设备静音
+    open: 转到该行
+    pause: 暂停
+    play_trial: 试听
+    reset_position: 重置
+    stop: 停止收听
+    stop_trial: 停止
+    unmute: 在此设备取消静音
+  label:
+    pixels: px
+    played: "{at} / {length}"
+    position_side: 位置
+    position_top: 高度
+    side_left: 左侧
+    side_right: 右侧
+    switch_all: 全部语音简报
+    switch_all_note: 关闭后，既不生成摘要简报，也不生成整行朗读。
+    title: 语音简报
+  status:
+    making: 正在生成语音简报。
+    settings_loading: 正在读取语音简报设置…
+    stopped: 语音简报已停止。
+home:
+  label:
+    bmo_link: 聊天智能体连接
+    loose_job: 未关联条目运行的 Job
+  status:
+    bmo_answering: 聊天智能体正在回复
+picture:
+  action:
+    choose: 选择照片
+    clear: 恢复为提供方照片
+  error:
+    failed: 无法更换照片。
+    no_number: 此智能体尚无编号，无法设置照片。
+    not_a_picture: 该文件无法作为照片读取。
+    too_large: 照片文件过大。
+  label:
+    agent: 智能体照片
+    own: 头像
+    preview_note: 保存后，将显示此照片而非提供方照片。
+    room: 房间照片
+  message:
+    cleared: 已恢复为提供方照片。
+    saved: 照片已更换。
+admin:
+  aria:
+    tabs: 管理员标签页
+bmo_profile:
+  label:
+    company_default: 默认 BMO
+    name: 名称
+    call_names: 称呼
+    call_name_new: 要添加的称呼
+    picture: 头像
+    persona: 人设
+    permission: BMO 设置权限
+    default_value: "{value}（默认）"
+    from_own: 自行设定
+    from_company: 公司设定
+    allow: 允许
+    deny: 禁止
+    inherit: 遵循上级组织
+    follows_allowed: 遵循上级组织：允许
+    follows_denied: 遵循上级组织：禁止
+    persona_count: "{count}/{max} 字"
+    no_companies: 没有可设置的公司。
+    no_call_names: 无称呼
+    company_picture_note: 保存后，此照片将成为公司成员的 BMO 照片。
+    own_picture_note: 保存后，此照片将成为我的 BMO 照片。
+    reset_title: 要重置我的 BMO 吗？
+    reset_description: 清除自行设定的名称、称呼、照片和人设，改为遵循公司设置。
+  aria:
+    call_name_remove: "删除 {name}"
+    tree: BMO 设置权限组织架构图
+  action:
+    reset: 重置
+    picture_remove: 删除照片
+    picture_company: 恢复为公司照片
+  status:
+    loading: 正在加载 BMO 设置…
+  message:
+    saved: 已保存。
+    reset: 已重置。
+    picture_removed: 照片已删除。
+    picture_company: 已恢复为公司照片。
+  error:
+    withheld: 你没有自行设置 BMO 的权限。
+    bad_profile: 名称、称呼或人设的格式不正确。
+    call_name_taken: 该名称已存在。
+    call_name_comma: 称呼中不能使用逗号。
+    call_names_full: 最多可设置 10 个称呼。
+    forbidden: 你没有更改此设置的权限。
+    not_found: 找不到公司或组织。
+    read_failed: 无法加载 BMO 设置。
+    failed: 无法保存 BMO 设置。
+apps:
+  label:
+    tab: 应用与工具
+    none: 无应用
+    "on": 开启
+    "off": 关闭
+    follow_above: 遵循上级组织
+    follow_platform: 遵循全局设置
+    follows_above_on: 遵循上级组织：开启
+    follows_above_off: 遵循上级组织：关闭
+    follows_platform_on: 遵循全局设置：开启
+    follows_platform_off: 遵循全局设置：关闭
+    follows_organization: 遵循组织
+    own: 自行设定
+    locked_above: 已被上级组织锁定
+    locked_organization: 已被组织锁定
+    not_offered: 未提供
+    offer: 提供
+    withhold: 不提供
+    state: 状态
+    platform: 全局设置
+    by_company: 按公司提供
+    offered_everywhere: 向所有公司提供
+    offered_nowhere: 不提供
+    offered_to: "向 {count} 处提供"
+    withheld_from: "排除 {count} 处"
+    recalled: 已紧急收回
+  action:
+    lock: 锁定下级组织
+    unlock: 解除锁定
+    follow: 恢复
+    settings: 设置
+    recall: 紧急收回
+    recall_confirm: 收回
+    lift: 解除收回
+  title:
+    recall: "要在所有地方关闭 {app} 应用吗？"
+  message:
+    recall: '所有公司和人员将立即关闭该应用，在解除收回之前任何人都无法开启。
+
+      公司、组织和人员设定的值会保留，解除收回后重新生效。'
+  status:
+    loading: 正在加载应用…
+  error:
+    "off": 该应用已被组织设置关闭。
+    locked: 该应用已被上级组织锁定，无法更改。
+    forbidden: 你没有更改此应用设置的权限。
+    no_app: 找不到该应用。
+    read_failed: 无法加载应用设置。
+    failed: 无法保存应用设置。
+personal_apps:
+  label:
+    none: 无个人应用
+    unreached: 未连接到 PC，无法查看以前的版本。
+    updated: "{time} 更新"
+    version: 版本
+    own_data: 仅使用自身数据
+    network: "使用网络 {addresses}"
+    secrets: "使用密钥 {names}"
+  action:
+    back: 恢复到以前的版本
+  message:
+    back_confirm: 要恢复到以前的版本吗？
+    back_effect: 当前版本将从 PC 中删除。
+    delete_confirm: 要删除个人应用吗？
+    delete_effect: 'BMO 将无法再使用此应用。
+
+      源代码和数据会保留在 PC 上。'
+  status:
+    loading: 正在加载个人应用…
+  error:
+    read_failed: 无法加载个人应用。
+    back_failed: 无法恢复到以前的版本。
+    delete_failed: 无法删除个人应用。
+    no_runner: 没有可运行个人应用的 PC。
+    unreached: '无法连接到 PC。
+
+      请确认 PC 已开机。'
+    no_older: PC 上没有保留以前的版本。
+    refused: PC 未接受此版本。
+    not_found: 找不到个人应用。
+    no_user: 没有用户账号，无法使用个人应用。
+supply:
+  title:
+    logins: 供给登录
+    keys: 供给密钥
+    order: 供给顺序
+    usage: 本月用量
+    policy: 供给策略
+    plan: 套餐
+    platform_policy: 平台默认策略
+    audit: 审计记录
+    key_add: 添加供给密钥
+    credit_grant: 发放积分
+    policy_set: 设置供给策略
+    plan_add: 添加套餐
+    plan_edit: 编辑套餐
+    plan_applied: 已应用套餐
+    plan_exposed: 可见套餐
+  label:
+    note: 登录和密钥的值不会显示在此页面，只显示名称和状态。
+    tab: 供给
+    plans: 套餐
+    plans_none: 无套餐
+    credits: 积分
+    source_personal: 个人供给
+    source_global: 全局供给
+    source_org_credits: 组织积分
+    source_personal_credits: 个人积分
+    source_organisation: 组织供给
+    source_stop: 停止
+    reason_not_in_plan: 不在套餐内
+    reason_blocked_by_organisation: 已被组织禁止
+    reason_blocked_by_administrator: 已被管理员禁止
+    locked: 由全局设置固定
+    platform_off: 由全局设置关闭
+    order_locked: 顺序由全局设置固定
+    overridable: 允许个人设置
+    fixed: 固定
+    order: 顺序
+    source_on: 已开启
+    source_off: 已关闭
+    monthly_cap: 每月上限
+    owner_shared: 共用
+    owner_personal: "个人 · {name}"
+    plan_applied_none: 无已应用套餐
+    plan_exposed_none: 无可见套餐
+    plan_term: 适用期间
+    plan_term_line: "{since} 至 {end}"
+    plan_applied_locked: 正在应用的套餐无法隐藏
+    plan_choice_none: 无
+    road: 提供商
+    road_claude: Claude
+    road_codex: Codex
+    road_deepseek: DeepSeek
+    road_openrouter: OpenRouter
+    secret: 密钥
+    secret_note: 值保存在密钥库中，这里只传递名称。
+    secrets_none: 你的密钥库中还没有密钥。
+    logins_none: 无供给登录
+    keys_none: 无供给密钥
+    usable: 可用
+    usable_off: 不使用
+    login_off: 已关闭
+    login_needed: 需要登录
+    window_full: 窗口已满
+    refused: 密钥被拒绝
+    personal_credit_cap: 个人积分每月上限
+    personal_credit_cap_note: 每月可用个人积分支付的最大额度。
+    cap_none: 无上限
+    usage_none: 无用量
+    global_remaining: 套餐剩余供给
+    personal_balance: 个人积分余额
+    plan_none: 无套餐
+    credits_count: "{n} 积分"
+    won: "{n} 韩元"
+    policy: 策略
+    follows_above: 遵循上级组织
+    follows_unit: 遵循组织
+    member_credit_cap: 个人积分每月上限
+    plan_name: 名称
+    price: 价格
+    price_whole: 每周期价格，以韩元计
+    period: 周期
+    period_day: 每天
+    period_week: 每周
+    period_month: 每月
+    period_quarter: 每季度
+    period_year: 每年
+    included: 含期限
+    credits_usable: 可用积分
+    credits_usable_on: 可用积分
+    credits_usable_off: 不可用积分
+    balance: 余额
+    rate: 换算率
+    rate_note: 将 1 美元成本换算为积分的比率。
+    reservation: 预留积分
+    reservation_note: 每次运行开启并扩大预留时所用的单位。
+    enforce: 启用供给限制
+    enforce_note: 关闭后仅记录用量，不会因供给而阻止任何运行。
+    scope: 对象
+    scope_personal: 个人
+    scope_organisation: 组织
+    owner: 对象
+    amount: 金额
+    words: 备注
+    words_placeholder: 可选
+    kind_grant: 发放
+    kind_consume: 消耗
+    kind_reserve: 预留
+    kind_capture: 使用
+    kind_refund: 退款
+    kind_debit: 扣除
+    kind_policy: 策略
+    kind_settings: 设置
+    kind_plan: 套餐
+    kind_named: "未知代码 `{kind}`"
+    owner_user: 用户
+    owner_organisation: 组织
+    ledger_none: 无记录
+    audit_none: 无审计记录
+    personal: 个人供给
+    personal_none: 无个人供给
+    providers: 个人供给提供方
+    resolved_order: 供给顺序
+  action:
+    login_add: 添加供给登录
+    login_again: 登录
+    key_add: 添加供给密钥
+    open_store: 前往密钥库
+    policy_set: 设置策略
+    policy_delete: 删除策略
+    credit_grant: 发放积分
+    grant: 发放
+    plan_add: 添加套餐
+    plan_change: 更改
+    plan_apply: 应用
+    more: 加载更多
+  aria:
+    login_switch: "开启 {name} 供给登录"
+    key_switch: "开启 {name} 供给密钥"
+    source_switch: "使用 {name} 供给"
+    source_overridable: "允许 {name} 个人设置"
+    order_overridable: 允许顺序个人设置
+    plan_exposed: "显示 {name}"
+  status:
+    loading: 正在加载供给信息…
+    ledger_loading: 正在加载账本…
+    audit_loading: 正在加载审计记录…
+  message:
+    login_delete: "要删除 {name} 供给登录吗？"
+    login_delete_effect: 使用此登录的运行将按供给顺序转到下一项。
+    key_delete: "要删除 {name} 供给密钥吗？"
+    key_delete_effect: 密钥本身仍保留在密钥库中，只移除由此密钥提供的供给。
+    policy_delete: 要删除供给策略吗？
+    policy_delete_effect: 该组织将遵循上级组织的策略。
+    policy_delete_effect_user: 此人将遵循所属组织的策略。
+    plan_delete: "要删除 {name} 套餐吗？"
+    plan_delete_effect: 此后不会再有人新购买此套餐。
+  placeholder:
+    find_person: 查找人员
+  error:
+    read_failed: 无法加载供给信息。
+    logins_failed: 无法更改供给登录。
+    signin_failed: 无法开始登录。
+    key_failed: 无法更改供给密钥。
+    order_failed: 无法保存供给设置。
+    policy_failed: 无法保存供给策略。
+    grant_failed: 无法发放积分。
+    plan_failed: 无法保存套餐。
+    platform_failed: 无法保存平台供给设置。
+    platform_read_failed: 无法加载平台供给设置。
+    ledger_failed: 无法加载积分账本。
+    audit_failed: 无法加载审计记录。
+    forbidden: 你没有查看此信息的权限。
+    source_not_allowed: 存在未被允许的供给来源。
+    not_in_plan: 该供给来源不在套餐内。
+    blocked_by_organisation: 该供给来源未获组织允许。
+    blocked_by_administrator: 该供给来源未获管理员允许。
+    locked_by_platform: 由全局设置固定的供给来源或顺序无法更改。
+    plan_scope: 只有面向组织的套餐才能向组织显示。
+    unknown_plan: 找不到该套餐。
+    plan_applied: 正在应用的套餐无法隐藏。
+    plan_not_exposed: 未向此组织显示的套餐无法应用。
+    not_in_force: 此部署尚未开启供给功能。
+    no_agency: 此部署未指定代理中心，无法获知个人供给。
+    upstream_failed: 其他单元无响应，无法加载供给信息。
+    bad_request: 无法处理该供给请求。
+    unknown_road: 未知的供给方。
+    key_taken: 该供给方已有密钥。
+    key_gone: 找不到该供给密钥。
+    node_off: 设备未连接，无法开始登录。
+    secret_name: 密钥名称无效。

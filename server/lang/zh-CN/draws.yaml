@@ -1,0 +1,19 @@
+# Translation of server/lang/ko/draws.yaml; that file says what each line is for.
+spec:
+  dice: "{count} 个 {sides} 面骰子{modifier}"
+  range: "{min} 到 {max} 之间的一个整数"
+  pick: "从 {items} 个中抽 {take} 个"
+  shuffle: "打乱 {items} 个的顺序"
+
+dice_total: "{faces} → 合计 {total}"
+
+line:
+  head: "抽签"
+  labelled: "抽签 · {label}"
+  asked: "{head} ({asked})"
+  result: "结果: {result}"
+  draw: "编号 {number} · 种子 {seed}"
+  method: "方法 {method}: 每次读取 SHA-256(种子:编号:块) 的 4 个字节，无偏地选取"
+  first: "这是本房间的第一次抽签，没有之前公开的承诺值。"
+  answered: "此种子的 SHA-256 即之前公开的承诺值 {commitment}"
+  next: "下一个承诺值: {next}"

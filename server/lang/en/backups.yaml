@@ -1,0 +1,12 @@
+# Translation of server/lang/ko/backups.yaml; that file says what each line is for.
+snapshot_usage: "Puts the archive, the Brain and the data root into an hourly slot (docs/archive-backup.md)."
+drill_usage:
+  - "Restores the latest hourly snapshot (or the --from directory) into a temporary database or file and checks each table's row count against the manifest."
+  - "--keep keeps the restored copy under that name (a database name or a file path). The real restore steps are in docs/RUNBOOK.md 「Database」."
+drill_failed: "The daily restore drill failed on {dir} ({step}): {said}.{differ} Check the hourly snapshot (bmo-snapshot-backup) and its log (journalctl --user -u bmo-snapshot-backup) first."
+drill_differ: " Tables that differ: {tables}{more}."
+drill_more: " and {count} more"
+upload_usage:
+  - "Uploads the unverified deploy backups to garage (s3://{bucket}/{prefix}), reads them back to check size and checksum,"
+  - "then keeps only the latest 5 on garage and the latest 1 locally (docs/deploy.md 「Sending them to Garage」)."
+upload_failed_note: "The deployment already finished and was not blocked. The unverified backups stay on the local disk, and the next deployment's upload sends them again."

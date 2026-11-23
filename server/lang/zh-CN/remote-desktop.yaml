@@ -1,0 +1,5 @@
+# Translated from server/lang/ko/remote-desktop.yaml; its comments say what each value is.
+dials: "远程桌面通过端口 {port} 连接。"
+unset: "远程桌面通过端口 {port} 连接（未设置）。"
+not_a_port: "设置的值 '{kept}' 不是端口，已忽略，改用端口 {port} 连接。"
+refused: "不是端口：{value}"

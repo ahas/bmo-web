@@ -1,0 +1,5 @@
+# What the work-order runner writes as a stop reason of its own (docs/work-orders.md): the error an order
+# stopped on, read first in the console and told to the chat agent.
+
+# A final turn that ended done with its item neither finished nor held.
+final_not_closed: "最终步骤未完成该 TODO。"

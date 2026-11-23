@@ -1,0 +1,212 @@
+# What a line is said with once it is made a script for a voice (docs/voice-plan.md, 「A line is spoken as
+# a script, not as markup」, 「How figures are said」, 「A gate only voice passes: the reading gate」 and 「A
+# full reading is polished for listening」): the words markup is unfolded into, the particles fitted to the
+# sound before them, the words a figure is read in, and why a gate's answer was not used. Each `{name}` is
+# filled in with what it names.
+
+spoken:
+  # The ordinals a numbered item opens with, from the first to the twentieth; past them the item's figure
+  # is said with figures.ordinal after it.
+  ordinals:
+    - 첫째
+    - 둘째
+    - 셋째
+    - 넷째
+    - 다섯째
+    - 여섯째
+    - 일곱째
+    - 여덟째
+    - 아홉째
+    - 열째
+    - 열한째
+    - 열두째
+    - 열셋째
+    - 열넷째
+    - 열다섯째
+    - 열여섯째
+    - 열일곱째
+    - 열여덟째
+    - 열아홉째
+    - 스무째
+  # The particle a title takes before what it heads, fitted to how the title ends.
+  title_particle: 는
+  # What is said where a Korean word is written straight onto a web address.
+  address: 주소
+  # The words that already name a web address, after which the address only goes and the word takes its
+  # particle.
+  address_words:
+    - 주소
+    - 링크
+  # The endings that make a line polite where they close a sentence or a line.
+  polite_endings:
+    - 요
+    - 니다
+  # The one sentence closing a script its web addresses were taken out of: in a casual line, in a polite
+  # line, and in a line holding English and no Korean.
+  attached: "リンクは添付したよ。"
+  attached_polite: "リンクは添付しました。"
+  attached_english: "I've attached the link."
+
+particles:
+  # Each particle that changes with the sound before it, as its form after a syllable closed by a
+  # consonant and its form after an open one.
+  pairs:
+    - [은, 는]
+    - [을, 를]
+    - [이, 가]
+    - [과, 와]
+    - [이랑, 랑]
+    - [이라고, 라고]
+    - [이라는, 라는]
+    - [이라서, 라서]
+    - [이라도, 라도]
+    - [이라면, 라면]
+    - [이라, 라]
+    - [이란, 란]
+    - [이야, 야]
+    - [이나, 나]
+    - [이며, 며]
+    - [이고, 고]
+    - [이든지, 든지]
+    - [이든, 든]
+    - [이다, 다]
+    - [이에요, 예요]
+  # The pairs whose open form also follows a syllable closed by ㄹ, written as the pairs above are.
+  open_after_rieul:
+    - [으로, 로]
+
+figures:
+  # The figures 0 to 9 said one by one, and in Sino-Korean.
+  digits: [영, 일, 이, 삼, 사, 오, 육, 칠, 팔, 구]
+  # The places of a group of four figures, from the ones to the thousands.
+  places: ["", 십, 백, 천]
+  # The groups of four figures a whole number is grouped by, from the lowest.
+  groups: ["", 만, 억, 조, 경]
+  # The native counts one to nine as a counter takes them, nothing for zero.
+  native_ones: ["", 한, 두, 세, 네, 다섯, 여섯, 일곱, 여덟, 아홉]
+  # The native tens, ten to ninety, nothing for zero.
+  native_tens: ["", 열, 스물, 서른, 마흔, 쉰, 예순, 일흔, 여든, 아흔]
+  # Twenty as a counter takes it with no ones after it.
+  twenty: 스무
+  # One as an ordinal says it before figures.ordinal.
+  first: 첫
+  # The months said otherwise than their Sino-Korean figure, by the figure.
+  months:
+    "6": 유
+    "10": 시
+  # The counters a figure before them is said natively for.
+  native_counters:
+    - 개
+    - 명
+    - 마리
+    - 사람
+    - 살
+    - 시간
+    - 달
+    - 가지
+    - 장
+    - 권
+    - 잔
+    - 병
+    - 벌
+    - 켤레
+    - 그루
+    - 송이
+    - 척
+    - 채
+    - 곳
+    - 군데
+    - 줄
+    - 판
+    - 통
+    - 방
+    - 알
+    - 칸
+    - 바퀴
+    - 차례
+    - 자루
+    - 끼
+    - 밤
+    - 걸음
+    - 개비
+    - 포기
+    - 모금
+  # The syllables a particle or an ending may open with after a counter, for the counter to be a word of
+  # its own: so 1달러 is not a month counted, nor 3대학 machines.
+  counter_ends: 이가을를은는에의도만까부로으와과째씩나쯤마밖보처였인라랑께뿐요야지다면며고든치짜동정반전후간내당들한예네거하경말초중
+  # The hour counter, whose figure is native from 1 to 12.
+  hour: 시
+  # The ordinal counter, whose figure is native and opens on figures.first.
+  ordinal: 번째
+  # The counter of machines, native below ten and an age above it.
+  machines: 대
+  # The month counter, whose figure is a month.
+  month: 월
+  # The counter of months counted, said in Sino-Korean.
+  months_counted: 개월
+  # The word an item number is said with, unless the line writes it after the number already.
+  item: 번
+  # A date by its {year}, {month} and {day}, each said already.
+  date: "{year}년 {month}월 {day}일"
+  # A clock time's {hours}, {minutes} and {seconds}, each said already; a part that is zero is left out.
+  hours: "{hours}시"
+  minutes: "{minutes}분"
+  seconds: "{seconds}초"
+  # Two figures a colon apart that make no time, as a ratio of {left} to {right}.
+  ratio: "{left} 대 {right}"
+  # A fraction of {top} over {bottom}.
+  fraction: "{bottom}분의 {top}"
+  # The decimal point, between a whole part and its figures, and between the parts of a version.
+  point: 점
+  # An {amount} of dollars and of won.
+  dollars: "{amount} 달러"
+  won: "{amount} 원"
+  # A sign opening a figure.
+  plus: 플러스
+  minus: 마이너스
+  # A tilde between two figures, said after the first of them.
+  range: 에서
+  # The marks a figure is written with that are said, each as it follows the figure, a space before it
+  # where one is said.
+  symbols:
+    "%": " 퍼센트"
+    "°": 도
+    "℃": 도
+
+gate:
+  # A gate that gave no answer, or an empty one.
+  no_answer: ゲートが応答しませんでした
+  # A gate somebody stopped.
+  stopped: ゲートが停止されました
+  # A gate that could not be run, by {why}.
+  could_not_run: "ゲートを実行できませんでした: {why}"
+  # What a run's log says where a reading or a polish failed and named no reason.
+  unexplained: 理由なし
+
+reading:
+  # An answer giving no reading for the {span} it was asked about.
+  no_reading: "ゲートが {span} の読み方を返しませんでした"
+  # A reading of a {span} left in roman letters, as the {reading} came back.
+  roman: "ゲートがローマ字をそのまま残しました: {span} → {reading}"
+  # A reading of a {span} still holding a figure, as the {reading} came back.
+  figure: "ゲートが数字を読まずに残しました: {span} → {reading}"
+
+polish:
+  # A script with no Korean in it, which is not polished.
+  no_korean: 韓国語がないため整えませんでした
+  # An answer holding one of the script's private marks.
+  private_marks: 回答に台本の内部マークが残っています
+  # An answer holding a code placeholder the script did not hand it.
+  unknown_placeholder: 回答に台本にないコードプレースホルダーがあります
+  # A code placeholder, by its {number}, standing other than once, {times} being how many times it does.
+  placeholder_count: "コードプレースホルダー {number} が {times} 回出現します"
+  # A roman word or a figure, the {word}, the answer changed or dropped.
+  changed: "ローマ字・数字が変わりました: {word}"
+  # A roman word or a figure, the {word}, the answer holds and the script did not.
+  added: "なかったローマ字・数字が現れました: {word}"
+  # An item ordinal, the {word}, the answer says fewer times than it has to.
+  ordinal_missing: "項目番号が抜けています: {word}"
+  # An answer whose Korean came out much shorter or longer than the script's, {before} and {after} being
+  # their syllables.
+  too_short: "回答が短すぎます: {before}字 → {after}字"
+  too_long: "回答が長すぎます: {before}字 → {after}字"

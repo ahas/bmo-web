@@ -1,0 +1,21 @@
+# Translation of server/lang/ko/branch-split.yaml; that file says what each line is for.
+clock:
+  seconds: "{seconds}秒"
+  minutes: "{minutes}分{seconds}秒"
+  hours: "{hours}時間{minutes}分"
+
+none_left: "{project} の下に残っているワークフロー記録はありません。"
+not_found: "ワークフロー {workflow} の記録が {project} の下に見つかりませんでした。--list で残っているものを確認できます。"
+branches: "ブランチ {count} 個"
+session: "セッション {session}"
+records_gone: "  ブランチの記録が残っていません。セッションが消去されると、この内側は再び確認できません。"
+
+branch: "- ブランチ {index}"
+tokens: "トークン {tokens}"
+no_type: "タイプ記録なし"
+no_split: "  記録がないか、分割できる長さがありません。"
+unnamed_tool: "名前のないツール"
+
+split: "  全体 {total} · ツール {tooling} ({tooling_share}、{calls} 回{open}) · モデルの時間 {generating} ({generating_share})"
+open: "、応答なし {open} 回"
+tool: "{name} {clock} {times} 回"

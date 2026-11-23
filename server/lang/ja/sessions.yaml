@@ -1,0 +1,30 @@
+# Why a session the chat agent holds is replaced, as the console's events and the session's note name it
+# (docs/sessions.md, 「Session replacement」).
+
+# Each reason a held session may not be resumed by a run, and why a room's session was replaced.
+reasons:
+  # The run goes out on another provider, model or effort than the session was opened on.
+  route: "実行プロバイダー・モデルの変更"
+  # The run goes out on another login than the session was opened under.
+  account: "アカウントの変更"
+  # The place the session opened on is one its provider no longer holds.
+  placement: "実行ノードの消失"
+  # The system prompt or the front of the line moved.
+  prefix: "システムプロンプト・実行の先頭部分の変更"
+  # The prefix has outlived its provider's cache.
+  expired: "キャッシュ TTL の期限切れ"
+  # The held session's record names no prefix to compare against.
+  no_prefix: "セッションにプロンプトの基準がない"
+  # A session the account's safeguard answered on a lesser model, replaced to bring the room back: as a
+  # room's turn heals it, and as the one shared session is told to replace it.
+  downgrade: "ダウングレードを検知 · セッションを交換"
+  downgrade_forced: "モデルの自動代替後にセッションを交換"
+
+# What an event's detail adds where the replaced session's summary did not come back.
+summary_failed: " · 要約に失敗"
+
+# The chat's own tail of a road that named no session to resume: the room a round was in ({chat}), and what
+# the agent answered there ({agent}, {chat}, {text}).
+transcript:
+  room: "ルーム {chat}:"
+  answer: "{agent}（ルーム {chat}）: {text}"

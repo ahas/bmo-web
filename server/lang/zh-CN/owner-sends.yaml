@@ -1,0 +1,6 @@
+# Translated from server/lang/ko/owner-sends.yaml; its comments say what each value is.
+reply_missing: "要回复的消息不在记录中。"
+words_only: "这个房间只接收文字，不能发送文件。"
+empty_file: "{name}：空文件，未发送。"
+too_large: "{name}：{size} 太大了。每个文件最大 {largest}。"
+megabytes: "{megabytes}MB"

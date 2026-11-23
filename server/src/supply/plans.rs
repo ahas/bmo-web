@@ -208,7 +208,8 @@ fn not_exposed(plan: i64) -> Refusal {
 
 /// The plan a unit runs on set to one of its exposed plans, or to none, the whole act under the unit's plans
 /// lock. The plan chosen is subscribed first, through sumida's own subscribe for the unit with no billing key
-/// and no renewal of sumida's, a live subscription on it kept where one stands; only then is every other
+/// and no renewal of sumida's — its trusted entry, since the money side is this service's and no payment is
+/// captured through sumida — a live subscription on it kept where one stands; only then is every other
 /// subscription of the unit that still stands cancelled and the applied mark moved, so a subscribe refused
 /// leaves the unit as it stood.
 pub async fn apply(service: &Service, actor: i32, unit: i64, plan: Option<i64>) -> Result<(), Refusal> {
@@ -220,7 +221,7 @@ pub async fn apply(service: &Service, actor: i32, unit: i64, plan: Option<i64>) 
     return Err(not_exposed(plan));
   }
 
-  let subscriptions = SubscriptionService::new(service.clone(), session(service, actor).await?);
+  let subscriptions = SubscriptionService::trusted(service.clone(), session(service, actor).await?);
   let rows = standing(&txn, unit, plan).await?;
   let kept = rows.iter().find(|row| row.on_plan && row.live).map(|row| row.id);
 
@@ -435,7 +436,7 @@ async fn renew_due(service: &Service) -> Result<Renewal, Refusal> {
       Refusal::forbidden("no move's administrator stands for the service to renew a plan under")
     })?;
   let subscriptions =
-    SubscriptionService::new(service.clone(), session(service, administrator as i32).await?);
+    SubscriptionService::trusted(service.clone(), session(service, administrator as i32).await?);
 
   for row in &due {
     let unit: i64 = row.try_get("", "org_id")?;

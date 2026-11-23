@@ -1084,7 +1084,9 @@ section states what each does.
 - **A unit's plans are changed one act at a time:** an exposure, an apply and a renewal of one unit each hold
   that unit's lock for the whole act, so none of them sees another half done.
 - **Applying is sumida's own subscribe,** for the unit as the owner, with no billing key and no renewal of
-  sumida's, since payments are off. Applying another plan subscribes to it first and only then cancels the
+  sumida's, since payments are off. It is asked through sumida's trusted entry, the one for server code that
+  settles the money side itself, so a priced plan starts without a payment captured through sumida; the owner
+  is still judged by the session it is asked under. Applying another plan subscribes to it first and only then cancels the
   standing subscription and moves the applied mark, so a subscribe that fails leaves the unit as it stood;
   applying none cancels it and leaves the unit on no plan. A write that names no `plan` at all is refused 400. The service renews an applied plan itself: on its hourly
   membership pass, a unit whose exposure row is marked applied and whose subscription has reached its period

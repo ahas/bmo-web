@@ -1,5 +1,4 @@
 import type { BarColor } from "bmo-ui/app/domain/bars";
-import type { VerdictState } from "./judgements";
 import type { MessageBriefing, TurnRecord } from "#shared/types";
 import type { Translate } from "#shared/wording";
 
@@ -86,27 +85,6 @@ export function briefingChip(state: MessageBriefing["state"]): BriefingChip {
     case "idle":
     case "ready":
       return { icon: CHIP_ICONS.briefing, iconClass: "", label: CHIP_LABELS.briefing };
-  }
-}
-
-// How the verdict chip's mark looks at each state of its message's verdicts: the bubble's green or red mark
-// ink, or the chip's grey; while the message is being judged no mark stands and its bubble beats instead.
-// The name says the state in the tooltip (docs/web.md, 「Room screen」).
-export interface VerdictChip {
-  iconClass: string;
-  label: string;
-}
-
-export function verdictChip(state: VerdictState): VerdictChip {
-  switch (state) {
-    case "judging":
-      return { iconClass: "", label: "room.label.chip_verdicts_judging" };
-    case "success":
-      return { iconClass: "text-(--chat-mark-success)", label: "room.label.chip_verdicts_passed" };
-    case "error":
-      return { iconClass: "text-(--chat-mark-error)", label: "room.label.chip_verdicts_failed" };
-    case "neutral":
-      return { iconClass: "", label: CHIP_LABELS.verdicts };
   }
 }
 

@@ -6,8 +6,7 @@ import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, BrowserContext } from "playwright-core";
 
-// A person's message being judged beats its bubble and carries no verdict mark; once judged, the bubble stands
-// still and the mark stands by its time (docs/web.md, the room screen's verdicts).
+// A person's message being judged beats its bubble; judged or not, its line carries no verdict mark (docs/web.md, the room screen's verdicts).
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up, serves the
 // room's page through the page's own route, and hands the live picture the bot's event stream carries, with the
@@ -112,13 +111,15 @@ describe.skipIf(!origin || !touchReady())("a message being judged", () => {
     }
   }, 120_000);
 
-  test("once judged, stands still and carries its mark", async () => {
+  test("once judged, stands still and carries no mark", async () => {
     const context = await open(false, "no-preference");
     const page = await context.newPage();
 
     try {
       await page.goto(`${origin}/rooms/${CHAT}`, { waitUntil: "domcontentloaded" });
-      await page.locator("[data-message] [data-verdict-mark]").first().waitFor({ timeout: 30_000 });
+      await page.locator("[data-message] [data-bubble]").first().waitFor({ timeout: 30_000 });
+
+      expect(await page.locator("[data-message] [data-verdict-mark]").count()).toBe(0);
 
       expect(await page.locator("[data-message] [data-bubble].bubble-beat").count()).toBe(0);
       expect(await page.locator("[data-message] [data-judging]").count()).toBe(0);

@@ -93,24 +93,6 @@
              it travels with the time it is measured to. -->
         <slot name="took" />
 
-        <!-- The verdict mark alone, once the message's judging is over, coloured by how the whole of it went
-             and named by its tooltip; while it is judged the bubble beats instead. It presses nothing, since
-             what judged the round stands in the answer's record (docs/web.md, the room screen's verdicts). A
-             mark that comes while the message is on screen pops in; a message read in with it stands it at
-             once. A message sent a moment ago keeps the mark's room, so the time beside it does not move
-             when it comes. -->
-        <HintTip
-          v-if="marked"
-          data-verdict-mark
-          :text="$t(markLook.label)"
-          :side="over ? 'top' : undefined"
-          class="flex h-(--chat-meta-line) items-center"
-          role="img"
-          :aria-label="$t(markLook.label)"
-        >
-          <UIcon :name="CHIP_ICONS.verdicts" class="size-4 shrink-0" :class="markClass" />
-        </HintTip>
-        <span v-else-if="roomForMark && props.clock" aria-hidden="true" class="invisible h-(--chat-meta-line) w-6" />
 
         <!-- The time and the send mark, which are the message's own. -->
         <slot name="clock" />
@@ -273,7 +255,7 @@
 </template>
 
 <script setup lang="ts">
-import { briefingChip, CHIP_ICONS, CHIP_LABELS, verdictChip } from "~/domain/chips";
+import { briefingChip, CHIP_ICONS, CHIP_LABELS } from "~/domain/chips";
 import { briefingSoundUrl, mediaUrl } from "~/domain/player";
 import { BRIEFING_SETTLE_MS } from "~/domain/briefing";
 import { readingStateOf } from "#shared/voice-briefings";
@@ -291,7 +273,7 @@ import type { AgentLogLine, BriefingReading, ExactMessageId, Judgement, Judgemen
 import type { LogRow } from "~/domain/log";
 import type { DraftDiffLine, RoundLine } from "~/domain/drafting";
 import type { DraftRead, DraftRow, DraftSummary, DraftVersion } from "#shared/drafting";
-import type { BriefingChip, VerdictChip } from "~/domain/chips";
+import type { BriefingChip } from "~/domain/chips";
 import type { SpendChip } from "~/domain/turns";
 import type { Situation } from "#shared/types";
 import type { LiveTurn } from "~/domain/working";
@@ -771,17 +753,15 @@ const full = computed<boolean>(() => chipped.value || filled.value.took);
 
 // Whether the verdict mark stands: once the message is being judged, and from then on wherever it
 // has a verdict.
-// Whether the message is being judged now: its bubble beats instead of a mark, and the mark comes once the
-// judging is over (docs/web.md, the room screen's verdicts).
+// Whether the message is being judged now: its bubble beats meanwhile, and its line carries no mark of the
+// verdicts, which stand in the answer's record (docs/web.md, the room screen's verdicts).
 const judgingNow = computed<boolean>(() => !props.answer && verdictState(verdicts.value, props.judging) === "judging");
 
 watch(judgingNow, (judging) => emit("judging", judging), { immediate: true });
 
-const marked = computed<boolean>(() => !props.answer && !judgingNow.value && verdicts.value.length > 0);
-
 // Whether the line has anything to stand: a chip, the wait, the verdict mark, or the clock. A running
 // turn with none of them carries no line at all.
-const shown = computed<boolean>(() => full.value || marked.value || props.clock);
+const shown = computed<boolean>(() => full.value || props.clock);
 
 // Whether anything a chip spreads stands under the line.
 const spreading = computed<boolean>(
@@ -870,21 +850,6 @@ const lineLook = computed<string>(() => {
 
   return "basis-full text-muted";
 });
-
-// What the mark says of the message's verdicts as a whole, and how it says it. A row read in with its mark
-// stands it at once; a mark that comes later, as the judging ends, pops in.
-const markLook = computed<VerdictChip>(() => verdictChip(verdictState(verdicts.value, props.judging)));
-const markStood = marked.value;
-
-const markClass = computed<string>(() => ["transition-colors", markLook.value.iconClass, !markStood ? "verdict-pop" : ""].join(" "));
-
-// How long after it was sent a message may still come to be judged: such a message keeps the mark's
-// room from the start, so nothing beside it moves when it comes. An answer keeps none, since no mark
-// ever comes to it and the room would stand as a gap between its wait and its time. A line over a
-// picture keeps none: it stands at the picture's trailing corner and grows away from the time, and
-// room kept there would stand as a hole in the overlay chip.
-const JUDGED_WITHIN_SECONDS = 600;
-const roomForMark = !props.answer && !props.overPicture && !props.besidePicture && props.sentAt > 0 && Date.now() / 1000 - props.sentAt < JUDGED_WITHIN_SECONDS;
 
 // The mark a thinking message's label wears.
 const THINKING_ICON = "i-material-symbols-lightbulb-outline";

@@ -4621,7 +4621,7 @@ Four bounds keep it from growing forever.
     where even that does not reach the end, the room's end replaces what was held, as opening the room at its
     end does. No stretch of the room is ever missing between two rows shown.
 - **답까지 걸린 시간** — an agent's answer, whichever supervisor gave it, carries at the trailing end of its meta line,
-  before the verdict mark and the time, how long that room waited. What is measured is from when the earliest not-yet-answered message this answer replied to
+  before the time, how long that room waited. What is measured is from when the earliest not-yet-answered message this answer replied to
   arrived in the room to when that answer went out, both ends on one clock — Telegram's where Telegram carried
   the answer, this machine's otherwise — so it equals the difference of the two times on screen. An answer once rejected and rewritten measures to when the room read those words,
   so the rewrite time is in it. A message with nothing measured — what a room said, and an old answer whose
@@ -4798,7 +4798,7 @@ Four bounds keep it from growing forever.
 - **메타 줄** — the foot of every bubble is one line, the same for a message and for the turn still running
   (「지금 하는 일」), drawn by one component.
   - At its leading end stand the turn's record and the chips of what it spent and what it wrote down; at its
-    trailing end the answer's waiting time (「답까지 걸린 시간」), the verdict mark, the time and the owner's
+    trailing end the answer's waiting time (「답까지 걸린 시간」), the time and the owner's
     send mark (「보내는 중」), the trailing end standing the bubble's inner room from its edge.
   - Every message carries its own time, whatever place it holds in its run and whoever sent it — a notice the chat agent
     voices, a job's report and the owner's own words alike — so a line that lands minutes after another of the
@@ -4813,7 +4813,7 @@ Four bounds keep it from growing forever.
     - At a phone's 360px the bubble's widest leaves the line 240px: the record's parts wrap inside the button,
       so it takes the line's whole width on two rows where it needs to, and a turn carrying every chip and its
       waiting time stands its trailing end under them.
-  - A line carrying nothing but its verdict mark, its time and its send mark, and standing
+  - A line carrying nothing but its time and its send mark, and standing
     straight after the words stands at the end of the words' last line, as Telegram lays it, wherever that line
     leaves it room, and drops to a line of its own under the words only where it does not; so a short message's
     bubble is one line tall, as wide as its words and the line beside them.
@@ -4835,7 +4835,7 @@ Four bounds keep it from growing forever.
     the light theme's needs the darker step for its letters to read at 4.5:1.
   - Its ground is black at half opacity, its corners the small tier, and it stands 4px in from the picture's
     trailing edge and foot.
-  - It keeps 8px of room at both ends and 4px between its parts — the verdict mark, the time, the send
+  - It keeps 8px of room at both ends and 4px between its parts — the time, the send
     mark — on the meta line's 20px line; no part keeps side room of its own, and it keeps no room for verdicts
     still to come, growing away from the time as they arrive.
   - Its letters are white at three quarters at rest; a part that is pressed answers a pointer by its letters
@@ -4917,15 +4917,11 @@ Four bounds keep it from growing forever.
   turn's thinking」) is told by that kind and never by its words. It stands in the agent's run as a bubble like any
   of its lines, its words muted, and its meta line opens on the label 생각 at the leading end, where an answer's
   chips stand. It is no answer: it carries no chip, no waiting time and no voice briefing chip.
-- **판정** — a person's message carries the verdict mark alone, with no dot and no count, standing just before the
-  time, once its judging is over: it takes the colour of how the whole of it went, and its tooltip names it and
-  what it says. While the message is being judged no mark stands and its bubble beats instead. The mark presses nothing and spreads nothing. A person's message sent within
-  the last ten minutes keeps the mark's room before its time from the start, so the time does not move when the
-  mark comes; a line over or beside a picture keeps none. An agent's answer carries no verdict mark and keeps no
-  room for one, so its waiting time stands by its time at the line's own gap: what judged the round, what
-  drafted and sent the answer, the gates' cards and the situation note
-  the round read last all stand in the answer's record, under 판정 기록, and a round that left no answer leaves
-  nothing to open.
+- **판정** — a person's message carries no verdict mark. While it is being judged its bubble beats (below);
+  once judged it stands still, and what judged the round — the turn's own word, the gates' cards and the
+  situation note it read last — stands in the round's answer's record, under 판정 기록, and a round that left
+  no answer leaves nothing to open. An answer carries no mark either, so its waiting time stands by its time
+  at the line's own gap.
   - **Which verdicts are a person's message's and which an answer's.** The verdicts of the round's instruction pipeline
     (`draft`), of its send (`send`), and of the checks and rewrites the answer went through on its way out — 출력
     형식, the content gate and its rewrite and addition, and every second asking (`…-again`) — are the answer's, and
@@ -4938,7 +4934,7 @@ Four bounds keep it from growing forever.
   - **While the message is being judged its bubble beats** — a heartbeat of a ring around the bubble, two quick
     swells of its brightness and width and a rest, over and over, in the accented border's grey, drawn on a layer
     of its own over the bubble's edge so nothing inside the bubble moves and nothing under a finger changes; a
-    screen reader reads 판정 중 in the bubble. The mark comes as the judging ends and pops in. A message is being
+    screen reader reads 판정 중 in the bubble. A message is being
     judged while it waits for the chat agent's turn, and while the chat agent's turn that read it last is
     still going, from the turn's start until the room has read its answer.
     - **The wait counts from the moment the receiver puts the message into the room's queue for the chat agent**, through

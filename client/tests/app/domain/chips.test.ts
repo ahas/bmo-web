@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-import { briefingChip, chipLook, contextChipText, recordLook, STILL_CHIP_LOOK, verdictChip } from "../../../apps/web/app/domain/chips";
+import { briefingChip, chipLook, contextChipText, recordLook, STILL_CHIP_LOOK } from "../../../apps/web/app/domain/chips";
 import KO from "../../fixtures/app/domain/chips.test.ko.json";
 
 // What a chip on a message's thin line wears. The rule it is held to is that a pointer is always
@@ -72,17 +72,6 @@ describe("where a record landed", () => {
     expect(recordLook(wording, { kind: "todo-append", text: "", wakes: false, id: 699 }).label).toBe(wording("room.label.record_todo_append_numbered", { id: "699" }));
     expect(recordLook(wording, { kind: "note", text: "", wakes: false, id: null }).label).toBe(KO.line_72);
     expect(recordLook(wording, { kind: "watch", text: "", wakes: true, id: 76 }).label).toBe(KO.line_73);
-  });
-});
-
-// The verdict mark beats while its message is judged and then wears the bubble's mark ink for how it
-// went, the ink the bubble-contrast test holds to 3:1; its name says the same in words.
-describe("the verdict mark", () => {
-  test("beats while judged, then is green, red or the chip's own grey, each named", () => {
-    const looks = (["judging", "success", "error", "neutral"] as const).map((state) => verdictChip(state));
-
-    expect(looks.map((look) => look.iconClass)).toEqual(["", "text-(--chat-mark-success)", "text-(--chat-mark-error)", ""]);
-    expect(looks.map((look) => wording(look.label))).toEqual([KO.line_84, wording("room.label.chip_verdicts_passed"), wording("room.label.chip_verdicts_failed"), KO.line_84_2]);
   });
 });
 

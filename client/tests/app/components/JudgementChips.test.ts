@@ -152,17 +152,13 @@ describe("the judgement", () => {
     expect(script).toContain("await Promise.all([readLines(), readDrafts(), readJudgements()])");
   });
 
-  test("a person's message keeps its mark alone, which presses nothing and spreads nothing", () => {
-    expect(trail).toContain('<HintTip\n          v-if="marked"\n          data-verdict-mark');
-    expect(trail).toContain(':name="CHIP_ICONS.verdicts"');
+  test("a message's line carries no verdict mark; its verdicts are read only for whether it is being judged", () => {
+    expect(template).not.toContain("data-verdict-mark");
+    expect(trail).not.toContain("CHIP_ICONS.verdicts");
     expect(script).toContain("const verdicts = computed<JudgementMark[]>(() => (props.answer ? [] :");
-    expect(script).toContain("verdictChip(verdictState(verdicts.value, props.judging))");
+    expect(script).toContain('const judgingNow = computed<boolean>(() => !props.answer && verdictState(verdicts.value, props.judging) === "judging");');
     expect(template).not.toContain("data-outcome");
     expect(script).not.toContain("expanded");
-  });
-
-  test("an answer carries no mark of its own", () => {
-    expect(script).toContain("const marked = computed<boolean>(() => !props.answer && !judgingNow.value && verdicts.value.length > 0);");
   });
 
   test("a thinking message opens its line on its own label, where an answer's chips stand", () => {
@@ -172,8 +168,8 @@ describe("the judgement", () => {
     expect(script).toContain("props.figuring ||\n    props.thinking ||\n    filled.value.lead\n);");
   });
 
-  test("an answer keeps no room for a mark, so its wait stands by its time", () => {
-    expect(script).toContain("const roomForMark = !props.answer && !props.overPicture && !props.besidePicture");
+  test("no line keeps room for a mark, so a wait stands by its time", () => {
+    expect(script).not.toContain("roomForMark");
   });
 });
 
@@ -185,17 +181,10 @@ describe("the chips that stay their own", () => {
     expect([...order].sort((a, b) => a - b)).toEqual(order);
   });
 
-  test("the wait stands at the trailing end with the time it is measured to, before the verdicts", () => {
+  test("the wait stands at the trailing end with the time it is measured to, just before the clock", () => {
     expect(lead).not.toContain('<slot name="took" />');
     expect(trail.indexOf('<slot name="took" />')).toBeGreaterThan(-1);
-    expect(trail.indexOf('<slot name="took" />')).toBeLessThan(trail.indexOf("CHIP_ICONS.verdicts"));
-  });
-
-  test("the verdicts stand at the trailing end, just before the clock, room kept for the mark", () => {
-    expect(trail.indexOf("CHIP_ICONS.verdicts")).toBeGreaterThan(-1);
-    expect(trail.indexOf("CHIP_ICONS.verdicts")).toBeLessThan(trail.indexOf('<slot name="clock" />'));
-    expect(trail).toContain('v-else-if="roomForMark && props.clock"');
-    expect(trail).toContain("invisible h-(--chat-meta-line) w-6");
+    expect(trail.indexOf('<slot name="took" />')).toBeLessThan(trail.indexOf('<slot name="clock" />'));
   });
 });
 
@@ -219,18 +208,13 @@ describe("the line itself", () => {
     expect(watcher.indexOf("    measure();")).toBeLessThan(watcher.indexOf("observer.observe(element)"));
   });
 
-  test("a mark that comes as the judging ends pops in, and one read in with the row stands at once", () => {
-    expect(script).toContain("const markStood = marked.value;");
-    expect(script).toContain('!markStood ? "verdict-pop" : ""');
-  });
-
   test("a message being judged carries no mark and says so for its bubble to beat", () => {
     expect(script).toContain('watch(judgingNow, (judging) => emit("judging", judging), { immediate: true });');
   });
 
   test("each chip stands exactly when its own thing is there, and the row when any of them is", () => {
     expect(template).toContain('<div v-if="shown || spreading" :class="frame">');
-    expect(script).toContain("const shown = computed<boolean>(() => full.value || marked.value || props.clock);");
+    expect(script).toContain("const shown = computed<boolean>(() => full.value || props.clock);");
     expect(row).toContain('<ContextChip v-if="context !== null" :ratio="context" />');
     expect(script).toContain("props.live === null ? (props.spend?.context ?? null) : null");
     expect(row).toContain('<LineChip v-if="records.length > 0"');

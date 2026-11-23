@@ -42,16 +42,15 @@ describe("the wait a row wears", () => {
     expect(template).toContain(mark);
   });
 
-  test("stands on the meta line at the bubble's foot, at its trailing end before the verdicts and the clock", () => {
+  test("stands on the meta line at the bubble's foot, at its trailing end before the clock", () => {
     // The row hands the line its wait and its clock; the line stands the wait at its trailing end,
-    // before the verdicts, and the clock after them.
+    // and the clock after it.
     expect(slotOf("took")).toContain(mark);
     expect(slotOf("clock")).toContain("{{ clock }}");
     const trail = line.slice(line.indexOf("data-meta-trail"));
 
     expect(line.indexOf('<slot name="took" />')).toBeGreaterThan(line.indexOf("data-meta-trail"));
-    expect(trail.indexOf('<slot name="took" />')).toBeLessThan(trail.indexOf("CHIP_ICONS.verdicts"));
-    expect(trail.indexOf('<slot name="clock" />')).toBeGreaterThan(trail.indexOf("CHIP_ICONS.verdicts"));
+    expect(trail.indexOf('<slot name="took" />')).toBeLessThan(trail.indexOf('<slot name="clock" />'));
     expect(template.slice(template.indexOf("data-words"), template.indexOf("<JudgementChips"))).not.toContain(mark);
   });
 

@@ -264,31 +264,6 @@
 }
 
 
-/* The verdict mark coming with its verdicts settled while its message is on screen: a short pop — a
-   scale past its size and back, fading in — on the pop length (docs/web.md, 「판정」). A reader who
-   asked for less movement sees it stand at once. */
-.verdict-pop {
-  animation: verdict-pop var(--bmo-motion-pop) var(--bmo-ease-enter) both;
-}
-
-@keyframes verdict-pop {
-  from {
-    opacity: 0;
-    transform: scale(0);
-  }
-
-  60% {
-    opacity: 1;
-    transform: scale(1.4);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .verdict-pop {
-    animation: none;
-  }
-}
-
 /* A message's bubble while it is being judged: a heartbeat of a ring around it, two quick swells of its
    brightness and a rest, looping until the judging is over (docs/web.md, 「판정」). The ring stands on a layer of its
    own over the bubble's edge, so nothing inside moves and the arrival's rise is left alone. A reader who asked for

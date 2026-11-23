@@ -704,9 +704,7 @@ room:
     chip_tokens: 사용 토큰
     chip_tools: 툴 사용
     chip_verdicts: 판정
-    chip_verdicts_failed: 판정 실패
     chip_verdicts_judging: 판정 중
-    chip_verdicts_passed: 판정 통과
     context: 컨텍스트
     copy_call_failed: 실패
     copy_result_chars: "결과 {n}자"

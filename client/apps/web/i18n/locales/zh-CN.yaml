@@ -1223,6 +1223,7 @@ screens:
     group_agents: 智能体
     section_administration: 管理服务
     section_application: 应用
+    section_mine: 我的应用
     internal_name: 内部名称
     live: 实时状态
     mail: 邮件
@@ -1253,6 +1254,7 @@ screens:
     nodes_failed: 节点列表获取失败
     rooms_failed: 房间列表获取失败
     screen_unreachable: 此界面的服务无响应，无法加载界面。
+    pc_off: 电脑已关机，无法打开。
     tab_state_too_large: 标签页状态过大。
   aria:
     room_typing: 正在输入

@@ -11,6 +11,7 @@ import { APP_OFF, appGateOf } from "../utils/app-gate";
 import { relayedRest, socketRelay } from "../utils/bundle-relay";
 import { attachedService, bundleFile, bundleFiles, bundleOfPage, pageReaches, pageTranslates, readManifestAgain, readerMay, readerOf, relayedCall, translatorAsk } from "../utils/console-manifests";
 import { ownerHeaders } from "../utils/owner-key";
+import { personalName, personalPageService, readerScreen, relayPersonal } from "../utils/personal-screens";
 import { requestStream } from "../utils/streamed-forms";
 import { unitAt } from "../utils/units";
 
@@ -50,6 +51,10 @@ import { unitAt } from "../utils/units";
 //
 // A socket a bundle declares stands at the same path, and the route carries the relay's socket hooks for it
 // (`utils/bundle-relay.ts`).
+//
+// A reader's own screen is relayed under its `my-` name for the signed-in reader alone, and only where it is theirs
+// (docs/web.md, 「A reader's own screens」): its files read through the tool host's app face, and its tool's calls
+// made there, each from its own page. Its page reaches no other service, but for a read of a unit's bundle files.
 
 /** The headers a request is handed on with, and an answer's headers a browser reads. A streamed body goes with the
  * length the browser named, since without it the fetch sends the stream in chunks, which a service reading a body by
@@ -102,12 +107,22 @@ async function relayed(event: H3Event): Promise<Response> {
 
   if (rest === null) throw createError({ statusCode: 400, statusMessage: "Bad Request" });
 
+  const baseURL = useRuntimeConfig().app.baseURL;
+  const fromPersonal = personalPageService(baseURL, getRequestHeader(event, "referer"));
+
+  if (personalName(service)) return await relayedPersonal(event, service, rest, fromPersonal);
+
   const attached = attachedService(service);
   const unit = attached?.unit ?? unitAt(service.replaceAll("-", "_").toUpperCase());
   const method = getMethod(event).toUpperCase();
 
   const reading = method === "GET" || method === "HEAD";
   const translating = attached === null && translatorAsk(service, method, `/${rest}`);
+
+  // A reader's own screen's page reaches no service but its own, a read of a unit's bundle files aside.
+  if (fromPersonal !== null && !(attached !== null && reading && bundleFiles(attached.manifest, `/${rest}`))) {
+    throw createError({ statusCode: 403, statusMessage: "Forbidden" });
+  }
 
   // A name neither a manifest nor a setting names is this console's own absence, not a unit's. A unit the console
   // calls directly — the agency, bmo-job, the receiver, the brain — stands beside the bundles, and its own paths are
@@ -203,6 +218,30 @@ async function relayed(event: H3Event): Promise<Response> {
   if (!answered.has("content-security-policy")) answered.set("content-security-policy", RELAYED_FRAMING);
 
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers: answered });
+}
+
+// A reader's own screen's call: for the signed-in reader alone, of a screen of theirs, a call of its tool from its own
+// page alone.
+async function relayedPersonal(event: H3Event, service: string, rest: string, fromPage: string | null): Promise<Response> {
+  const session = await getUserSession(event);
+
+  if (session.user === undefined) throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
+
+  const signed = await signedInUser(event);
+  const bundle = await readerScreen(signed, service);
+
+  if (bundle === null) throw createError({ statusCode: 404, statusMessage: "Not Found" });
+
+  const method = getMethod(event).toUpperCase();
+  const reading = method === "GET" || method === "HEAD";
+
+  if (!reading && fromPage !== service) throw createError({ statusCode: 403, statusMessage: "Forbidden" });
+
+  const answered = await relayPersonal(signed, bundle, method, rest.split("/"), async () => (await readRawBody(event, "utf8")) ?? "");
+
+  if (answered === null) throw createError({ statusCode: 404, statusMessage: "Not Found" });
+
+  return answered;
 }
 
 export default defineEventHandler({ handler: relayed, websocket: socketRelay });

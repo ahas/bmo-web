@@ -19,6 +19,10 @@ export interface ConsoleScreen {
   // `docs/console-bundles.md`, the sidebar count; docs/web.md, 「Sidebar」).
   counted: boolean;
   // The section the bundle's manifest names for its entry for the reader's role: one of the sidebar's two, or the
-  // reader's own menu (bmo-ui's `docs/console-bundles.md`, the sidebar section; docs/web.md, 「Sidebar」).
-  sidebarSection: ConsoleSidebarSection;
+  // reader's own menu (bmo-ui's `docs/console-bundles.md`, the sidebar section; docs/web.md, 「Sidebar」); `mine`, the
+  // sidebar's my-apps section, for a screen of the reader's own.
+  sidebarSection: ConsoleSidebarSection | "mine";
+  // Where it is a screen of the reader's own (docs/web.md, 「A reader's own screens」): whether their PC answered as
+  // the list was read.
+  personal?: { reached: boolean };
 }

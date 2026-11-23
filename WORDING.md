@@ -110,6 +110,8 @@
   개인 앱 없음; one placed build of it → 버전, when it was put → `{time} 업데이트`; going to the one before → 이전 버전으로,
   its question 이전 버전으로 되돌릴까요?; what it may reach → `자기 데이터만 사용`, `네트워크 사용 {addresses}`, `비밀 사용
   {names}`. Never 나만의 앱, 커스텀 도구, 롤백, 복원.
+- the screens of a person's own apps, as the sidebar groups them → 내 앱; a screen of one that cannot open because the
+  person's PC does not answer → `PC가 꺼져 있어 열 수 없습니다.` Never 오프라인, 연결 끊김 for it.
 - the platform's word on an app on 관리자 → 전역 설정, its choices 제공 or 제공 안 함 and 켬 or 끔; the platform's word for
   one company or unit → 회사별 제공; a row's line → 모든 회사에 제공 (`{n}곳 제외` after it), `{n}곳에 제공` or 제공하지
   않음, a company or a unit counted by 곳. Turning an app off everywhere at once → 긴급 회수, its question

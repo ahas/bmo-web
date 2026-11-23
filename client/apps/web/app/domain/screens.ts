@@ -20,19 +20,21 @@ import type { Translate } from "#shared/wording";
 import type { BadgeProps, DropdownMenuItem, NavigationMenuItem } from "@nuxt/ui";
 
 // The sections the sidebar stands its screens in, in the order they stand (docs/web.md, 「Sidebar」): what the
-// administrator keeps the deployment running with, the organisation screen, and every other screen. Each is named, and
+// administrator keeps the deployment running with, the organisation screen, every other screen a unit brings, and the
+// reader's own screens. Each is named, and
 // a headed one stands its name as a heading over its rows; the organisation's holds one entry by the same name, so it
 // stands no heading and is named by that entry's name alone.
 export const SCREEN_SECTIONS = [
   { id: "administration", name: "screens.label.section_administration", headed: true },
   { id: "organization", name: "screens.label.organization", headed: false },
-  { id: "application", name: "screens.label.section_application", headed: true }
+  { id: "application", name: "screens.label.section_application", headed: true },
+  { id: "mine", name: "screens.label.section_mine", headed: true }
 ] as const;
 
 // Where a screen's entry stands: one of the sidebar's sections, or `account`, the user menu, the reader's own menu,
-// which stands in none of them (bmo-ui's `docs/console-bundles.md`, the sidebar section). The organisation's section is
-// the console's own, which no unit's manifest names.
-export type ScreenSection = ConsoleSidebarSection | "organization";
+// which stands in none of them (bmo-ui's `docs/console-bundles.md`, the sidebar section). The organisation's section and
+// the reader's own screens' are the console's own, which no unit's manifest names.
+export type ScreenSection = ConsoleSidebarSection | "organization" | "mine";
 
 // The console's screens at the top of the sidebar, each in its section. The sidebar and the console search both
 // read this list, so a screen added here is in both.

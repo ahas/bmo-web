@@ -96,8 +96,16 @@ export function screenOpened(screen: ConsoleScreen): boolean {
   return opened.has(screen.module);
 }
 
+/** A reader's own screen whose PC did not answer as the list was read, which is not loaded, since it could read none
+ * of its data (docs/web.md, 「A reader's own screens」). */
+export function pcOff(screen: ConsoleScreen): boolean {
+  return screen.personal?.reached === false;
+}
+
 // Loads a screen's bundle and stands its routes, in place of any console page at or below its screen path.
 function standScreen(router: Router, screen: ConsoleScreen): Promise<void> {
+  if (pcOff(screen)) return Promise.reject(new Error(`${screen.name}: its PC is off`));
+
   let held = opening.get(screen.module);
 
   if (held === undefined) {
@@ -133,7 +141,7 @@ export async function openScreen(router: Router, screen: ConsoleScreen, reread: 
   } catch (error) {
     const named = (await reread())?.find((one) => one.name === screen.name);
 
-    if (named === undefined || (named.module === screen.module && named.stylesheet === screen.stylesheet)) throw error;
+    if (named === undefined || (named.module === screen.module && named.stylesheet === screen.stylesheet && pcOff(named) === pcOff(screen))) throw error;
 
     await standScreen(router, named);
   }

@@ -1565,10 +1565,10 @@ writing the words. A wording fix is an edit to the packs alone, once the guide b
 
 Four groups.
 
-- **The screens** — in three sections: **관리자 서비스**, what the administrator needs to keep the deployment
+- **The screens** — in four sections: **관리자 서비스**, what the administrator needs to keep the deployment
   running; then the organisation screen, **조직**, what the heads of the organisations set for the people under them;
-  and **애플리케이션**, every other screen. 관리자 서비스 and 애플리케이션 each stand under their heading; the
-  organisation's section stands no heading.
+  **애플리케이션**, every other screen a unit brings; and **내 앱**, the reader's own screens. 관리자 서비스,
+  애플리케이션 and 내 앱 each stand under their heading; the organisation's section stands no heading.
   - **관리자 서비스** holds the console's own cache siren, DB, document viewer, agent management (에이전시),
     리서치, monitor and 관리자, and every screen a unit brings whose manifest names it: the brain's (브레인),
     code review's, BMO's face (비모 얼굴), the tool host's (도구) and the remote
@@ -1581,6 +1581,9 @@ Four groups.
     section: it is the console's own.
   - **애플리케이션** holds every other screen a unit brings: mail, 파일, 아티팩트, 캘린더, 노트, 일정 관리
     and 극장 among them.
+  - **내 앱** holds the screens of the reader's own personal apps (「A reader's own screens」), each under the name its
+    words give it, and stands below the other three. No unit's manifest names this section, and no screen of it is
+    any other reader's.
   - **Which section a screen stands in is the screen's own.** Each of the console's own screens names its section
     where it is listed. A screen a unit brings stands in the section its manifest names for the reader's role
     (bmo-ui's `docs/console-bundles.md`, the sidebar section and 「A section by role」): the one `sidebarSections`
@@ -9937,6 +9940,43 @@ title bar」), its people directory and the members of the reader's company.
   a `shareHead`, the server asks it in the reader's language (「Wording and the language pack」), reads the answer through bmo-ui's
   `shareHead` and writes it into the shell it serves; the bundle's page still sets its own head once its module
   runs.
+
+### A reader's own screens
+
+A person's personal app may carry a screen, built on their PC (the agency's `docs/person-nodes.md`, 「Personal
+screens」). The console attaches it for that person alone, as bmo-ui's contract states a bundle that differs per
+reader (bmo-ui's `docs/console-bundles.md`, 「A bundle that differs per reader」); what it adds of its own:
+
+- **The namespace is `my`.** A reader's own screen is named `my-` and its app's name, and stands under `/my/`; a unit's
+  manifest whose screen path, or a former one, stands at or under `/my`, or whose name or service name opens on
+  `my-`, is left out as one that clashes, said in the log.
+- **They are read for the reader under a session of their own.** The console's server asks the agency for a screen
+  session for the account the signed-in user is (`POST /personal-apps/{ownerAccount}/screen-session`, the agency's
+  `docs/api.md`, 「personal-apps」), keeps its token for that account until a minute before it lapses, and asks the
+  tool host's app face under it (bmo-pocket's `docs/api.md`, 「Personal screens」): `GET /screens` for the list, with
+  its words and whether the reader's PC answered. A token the tool host no longer takes is asked for again once. A
+  login with no user, an account with no PC, a refusal or a tool host that does not answer leaves the reader with
+  no screen of their own, nothing said.
+- **They stand in the list of screens the reader is handed** (「Screens a unit brings」), the same way a unit's do,
+  each read through bmo-ui's `consoleManifest` and `onThisLayer` as a manifest the console assembles from what the
+  app face answers — role `member`, the owner key asked, its module and stylesheet the relay addresses below — and
+  left out where it does not read or its layer stands outside the console's range, said in the log. Each carries
+  whether its PC answered, and stands in 내 앱.
+- **Its page is drawn in the browser,** as a bundle's is: the server answers every address under `/my/` with the app's
+  shell, whoever asks, and the browser draws the screen once its module is in.
+- **The relay of a reader's own screen** is `/api/my-<name>/`, for the signed-in reader alone and only for a screen of
+  theirs: a `GET` of `files/<digest>/<path>` is the app face's file, its bytes and its media type as the tool host
+  answered them and kept for good by the reader's browser, `private, max-age=31536000, immutable`, since its address
+  names its bytes; a `POST` of `tools/<entry>`, its body the arguments, is a call of that entry of the screen's own
+  tool through the app face, answered as the tool host answers a call, its refusals by their status. Nothing else
+  answers there, and another reader's screen is absent. A call to it comes only from its own screen's page, the page
+  told by the referrer as for every bundle; its page reaches no other service, a unit's or the console's own relay,
+  and is refused 403 there.
+- **A PC that is off is said, not drawn.** Where the list says the reader's PC did not answer, the screen's addresses
+  open onto the console's own page under the screen's title saying **PC가 꺼져 있어 열 수 없습니다**, with
+  새로고침, which reads the list again and opens the screen once the PC answers; so does a screen whose module or a
+  file it imports the relay answers 502, the PC gone off since the list was read. A module the browser kept is not
+  run while the PC is off, since the screen could read none of its data.
 
 ## How the units are talked to
 

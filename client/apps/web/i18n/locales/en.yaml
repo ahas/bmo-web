@@ -1223,6 +1223,7 @@ screens:
     group_agents: Agents
     section_administration: Admin services
     section_application: Applications
+    section_mine: My apps
     internal_name: Internal name
     live: Live status
     mail: Mail
@@ -1253,6 +1254,7 @@ screens:
     nodes_failed: "Couldn't load nodes"
     rooms_failed: "Couldn't load rooms"
     screen_unreachable: "This screen's service isn't responding, so the screen couldn't be loaded."
+    pc_off: "Your PC is off, so this app can't be opened."
     tab_state_too_large: The tab state is too large.
   aria:
     room_typing: Typing

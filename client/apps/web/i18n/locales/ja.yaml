@@ -1223,6 +1223,7 @@ screens:
     group_agents: エージェント
     section_administration: 管理者サービス
     section_application: アプリケーション
+    section_mine: マイアプリ
     internal_name: 内部名
     live: リアルタイム状態
     mail: メール
@@ -1253,6 +1254,7 @@ screens:
     nodes_failed: ノード一覧の取得に失敗
     rooms_failed: ルーム一覧の取得に失敗
     screen_unreachable: この画面のサービスが応答しないため、画面を読み込めませんでした。
+    pc_off: PCの電源が切れているため開けません。
     tab_state_too_large: タブの状態が大きすぎます。
   aria:
     room_typing: 入力中

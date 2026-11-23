@@ -11,6 +11,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { SQL } from "bun";
+import { LAYER_VERSION } from "bmo-ui/shared/console-manifest";
 import sharp from "sharp";
 
 import { connectionOf } from "../../apps/web/server/utils/db";
@@ -80,6 +81,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["agent-names", "fixture-password-2371"],
   ["sidebar-sections", "fixture-password-3051"],
   ["personal-apps", "fixture-password-4101"],
+  ["personal-screens", "fixture-password-4102"],
   ["monitor-polling", "fixture-password-2372"],
   ["monitor-nodes", "fixture-password-3688"],
   ["todo-models", "fixture-password-2298"],
@@ -993,10 +995,114 @@ async function storageAnswer(path: string, request: Request): Promise<Response |
   });
 }
 
+// A reader's own screen (docs/web.md, 「A reader's own screens」): the personal-screens account's one, `weekly_notes`,
+// whose screen session the agency's stand-in issues for that account alone and whose list, files and calls the tool
+// host's stand-in answers on its app face under that session's token (bmo-pocket's `docs/api.md`, 「Personal
+// screens」). The module is addressed by the digest of its index, as a placed version's is. Its tool answers the week's
+// notes, and its `pc_switch` entry turns the PC the account's screens run on off and on, so a test meets the screen
+// with the PC off once it has turned it off through the screen itself.
+let personalAccount: string | null = null;
+let personalPc = true;
+
+const PERSONAL_WORDS = Object.fromEntries(
+  ["ko", "en", "ja", "zh-CN"].map((locale) => [locale, { "my-weekly-notes": { title: "Weekly notes", action: { load: "Load", off: "Turn the PC off" } } }])
+);
+
+const PERSONAL_MODULE = `import { defineComponent, h, ref } from "vue";
+import { useI18n } from "vue-i18n";
+import UButton from "@nuxt/ui/components/Button.vue";
+import { relayCall } from "bmo-ui/app/domain/relay";
+
+const Notes = defineComponent({
+  setup() {
+    const { t } = useI18n();
+    const said = ref("");
+    const call = (entry, body) => relayCall("my-weekly-notes", "/tools/" + entry, { method: "POST", body });
+    const load = async () => {
+      const answered = await call("weekly_notes", { week: "47" });
+      said.value = answered.result.content[0].text;
+    };
+    const off = async () => {
+      await call("pc_switch", { on: false });
+      said.value = "off";
+    };
+
+    return () => h("div", { "data-personal-screen": "my-weekly-notes", class: "flex flex-col items-start gap-3 p-4" }, [
+      h(UButton, { label: t("my-weekly-notes.action.load"), "data-personal-load": "", onClick: load }),
+      h(UButton, { label: t("my-weekly-notes.action.off"), "data-personal-off": "", color: "neutral", variant: "subtle", onClick: off }),
+      h("p", { "data-personal-said": "" }, said.value)
+    ]);
+  }
+});
+
+export default { routes: [{ path: "/my/weekly-notes", name: "my-weekly-notes", component: Notes, meta: { consoleTitleBar: true } }] };
+`;
+
+const sha256 = (text: string) => new Bun.CryptoHasher("sha256").update(text).digest("hex");
+const PERSONAL_INDEX = JSON.stringify({ "module.js": sha256(PERSONAL_MODULE) });
+const PERSONAL_DIGEST = sha256(PERSONAL_INDEX);
+
+// The tool host's app face as its stand-in answers it, or null for a path it does not serve.
+async function personalFace(path: string, request: Request): Promise<Response | null> {
+  if (!path.startsWith("/screens")) return null;
+
+  if (personalAccount === null || request.headers.get("authorization") !== `Bearer screen-${personalAccount}`) {
+    return Response.json({ code: "unauthorized", error: "no session" }, { status: 401 });
+  }
+
+  if (path === "/screens") {
+    const item = {
+      tool: "weekly_notes",
+      version: "1763900000000-b2c3d4",
+      name: "my-weekly-notes",
+      screenPath: "/my/weekly-notes",
+      title: "my-weekly-notes.title",
+      icon: "i-material-symbols-sticky-note-2-outline",
+      layer: LAYER_VERSION,
+      words: PERSONAL_WORDS,
+      digest: PERSONAL_DIGEST,
+      module: `/screens/weekly_notes/${PERSONAL_DIGEST}/module.js`,
+      stylesheet: null
+    };
+
+    return Response.json({ items: [item], reached: personalPc });
+  }
+
+  if (path === `/screens/weekly_notes/${PERSONAL_DIGEST}/module.js`) {
+    if (!personalPc) return Response.json({ code: "runner-unreached", error: "the PC does not answer" }, { status: 502 });
+
+    return new Response(PERSONAL_MODULE, { headers: { "content-type": "text/javascript; charset=utf-8", "cache-control": "private, max-age=31536000, immutable" } });
+  }
+
+  if (path === "/screens/weekly_notes/calls" && request.method === "POST") {
+    const asked = (await request.json()) as { name: string; input: { week?: string; on?: boolean } };
+    const answer = (text: string) => Response.json({ namespace: "my", name: asked.name, result: { content: [{ type: "text", text }], isError: false }, spentMs: 1 });
+
+    if (asked.name === "weekly_notes") return answer(`notes of week ${asked.input.week ?? "now"}`);
+
+    if (asked.name === "pc_switch") {
+      personalPc = asked.input.on === true;
+
+      return answer(personalPc ? "on" : "off");
+    }
+  }
+
+  return Response.json({ code: "not-found", error: "no such screen" }, { status: 404 });
+}
+
 // What each unit's stand-in answers, read from that unit's documented routes; anything else is the unit's own
 // not-found. The tests serve the rest of what they measure through the page's routes themselves.
 const UNITS: Record<string, (path: string, request: Request) => Response | null | Promise<Response | null>> = {
   AGENCY: async (path, request) => {
+    // A reader's own screens' session, issued for the personal-screens account alone.
+    const screened = /^\/personal-apps\/([^/]+)\/screen-session$/.exec(path)?.[1];
+
+    if (screened !== undefined && request.method === "POST") {
+      return screened === personalAccount
+        ? Response.json({ token: `screen-${screened}`, expiresAt: Date.now() + 600_000 }, { status: 201 })
+        : Response.json({ code: "no-runner", error: "the account has no PC its personal apps run on" }, { status: 409 });
+    }
+
     // A long job's log, read by its run from the TODO panel (tests/support/job-log.ts).
     const jobLog = jobLogAnswer(new URL(request.url));
 
@@ -1864,6 +1970,10 @@ try {
   servers.push(Bun.serve({
     unix: toolSocket,
     fetch: async (request) => {
+      const faced = await personalFace(new URL(request.url).pathname, request);
+
+      if (faced !== null) return faced;
+
       if (request.headers.get("authorization") !== `Bearer ${TOKEN}`) return Response.json({ code: "unauthorized", error: "no session" }, { status: 401 });
 
       const call = (await request.json()) as { namespace: string; name: string; input: { address: string } };
@@ -1980,6 +2090,8 @@ try {
   if (!listed.ok) throw new Error(`the users list was refused: ${listed.status}`);
 
   const users = (await listed.json()) as { user: string; name: string }[];
+
+  personalAccount = users.find((user) => user.name === "personal-screens")?.user ?? null;
 
   for (const member of MEMBERS) {
     const one = users.find((user) => user.name === member.name);

@@ -1,6 +1,7 @@
 import { CONSOLE_MANIFEST_ROUTE, LAYER_BOUND, LAYER_VERSION, consoleManifest, movedScreenAddress, onThisLayer, relaysRoute, roleAllows, screensCall, sectionFor } from "bmo-ui/shared/console-manifest";
 
 import { ownerKeyOf, ownerRoleOf } from "./owner-key";
+import { personalName, personalPath } from "./personal-screens";
 import { unitHeaders } from "./units";
 
 import type { SignedIn } from "./accounts";
@@ -165,7 +166,14 @@ export const CONSOLE_PEOPLE_SERVICE = "people";
 
 // Why a bundle is left out by itself, or null where nothing of its own leaves it out.
 function ownClash(manifest: ConsoleManifest): string | null {
-  return manifest.serviceName === CONSOLE_PEOPLE_SERVICE ? `its service is named ${CONSOLE_PEOPLE_SERVICE}, which the console answers itself` : null;
+  if (manifest.serviceName === CONSOLE_PEOPLE_SERVICE) return `its service is named ${CONSOLE_PEOPLE_SERVICE}, which the console answers itself`;
+
+  // The namespace of the readers' own screens (docs/web.md, 「A reader's own screens」).
+  if (personalName(manifest.name) || personalName(manifest.serviceName) || screenPaths(manifest).some(personalPath)) {
+    return "it stands in the namespace of the readers' own screens";
+  }
+
+  return null;
 }
 
 /** The bundles with every two that share a name, a screen path or a service name left out, both of them, and every

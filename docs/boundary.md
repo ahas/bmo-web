@@ -963,7 +963,7 @@ shown as.
 | the receiver | its refusals, each by the table beside its calls — every route's, the owner's sends, the voice briefing, removing a room and the instruction stages'; a file a send did not take, by its kind; the fixed lines through `POST /words/render`. Its facts are an agent's to say, and no screen shows them | the receiver's `docs/codes.md` |
 | bmo-job | its refusals, each by the table beside its calls; the answers a screen says, a queue told and an unanswered turn; the kinds a row is laid out by, the held words, the line and model marks, and the phases a job's time is divided into | bmo-job's `docs/api.md`, 「Codes」 and 「Routes」; its `docs/jobs.md`, 「Where a job's time went」 |
 | bmo-chat | the lines a chat service hands over, `people-joined` and `person-left`, which the receiver keeps as `fixed-line` messages and the console renders through `POST /words/render` | bmo-chat's `docs/contract.md`, 「Lines」 |
-| bmo-attendance | the key of the org memory it writes into a unit's org brain, `attendance-working-hours`, the unit's working hours from its work pattern, which the 조직 기억 tab names as its source (`docs/web.md`, 「조직 기억」) | bmo-attendance's `docs/design.md` |
+| the attendance service | the key of the org memory it writes into a unit's org brain, `attendance-working-hours`, the unit's working hours from its work pattern, which the 조직 기억 tab names as its source (`docs/web.md`, 「조직 기억」) | that service's own documents |
 | bmo-ui | the 146 keys the layer reads | bmo-ui's `docs/boundary.md`, 「Wording keys」 |
 
 ## The public address

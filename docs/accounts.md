@@ -421,7 +421,7 @@ section states what each does.
   first.
 - **Who keeps them:** the platform administrator and a head of the company's own unit, the unit with no parent,
   write them. Anyone standing in the company reads them, and a unit acting for one of them, which calls with that
-  person in `Owner-Key`, as bmo-work and the approval service do; anyone of another company is answered as if
+  person in `Owner-Key`, as a company's own services do; anyone of another company is answered as if
   no such company stood.
 - **A role is carried in a unit:** at most one in a person's home unit, set by the move that places them
   (「Companies and organisation units」), and at most one in each post (「Concurrent posts」). It is always one of
@@ -792,9 +792,8 @@ section states what each does.
 - **A unit marks who among its members has left:** `GET /units/{unit}` and the administrator's list of units answer
   them beside the members, so a caller acting on a unit's people passes them over with no call for each person.
 - **What stays readable is what was a unit's:** the unit's works assigned to the person stay their unit's, read
-  and changed by the heads above as any unit's work is (bmo-work's `docs/design.md`).
-- **What was theirs alone is read by the platform administrator alone:** their own works (bmo-work's
-  `docs/design.md`), their private room with their supervisor (the receiver's `docs/receiver.md`) and their
+  and changed by the heads above as any unit's work is.
+- **What was theirs alone is read by the platform administrator alone:** their own works, their private room with their supervisor (the receiver's `docs/receiver.md`) and their
   supervisor's memory (the brain's `docs/design.md`, 「The screen」). The administrator reads each of them and
   changes none; nobody else is given them, the person included once their sign-in is gone.
 - **Their supervisor is woken nowhere again,** and a quiet instruction for it is let go (the receiver's

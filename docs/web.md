@@ -8633,7 +8633,7 @@ write's standing from its answer (`docs/boundary.md`, 「Calls the console makes
 - **A memory another service keeps is shown, never edited here.** A service that is the source of a fact writes it
   into the unit's org brain under a key of its own, and the tab writes no key, so a memory carrying a key is that
   service's: its row carries no marks, and a muted line under it says where it comes from, the sentence the pack holds
-  for its key, such as `근무 패턴에서 가져온 기억입니다.` for bmo-attendance's working hours, or
+  for its key, such as `근무 패턴에서 가져온 기억입니다.` for the attendance service's working hours, or
   `다른 서비스가 관리하는 기억입니다.` for a key the pack holds none for (「The codes the packs render」 in
   `docs/boundary.md`). It changes where its source changes.
 - **The memory form** is the one 기억 추가 and 기억 편집 open (「Forms」): 내용, the text, several lines and required, its

@@ -172,7 +172,7 @@ describe("what one's own Claude login can do now", () => {
     place: 1,
     enabled: true,
     credentialKind: "directory",
-    credentialPath: "/home/one/.claude",
+    credentialPath: "/home/user/.claude",
     login: "standing",
     loginEndsAt: null,
     chosen: false,

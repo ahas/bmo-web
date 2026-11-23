@@ -1222,7 +1222,6 @@ screens:
     find_description: "Go to a screen, room or agent"
     group_agents: Agents
     section_administration: Admin services
-    section_organization: Organization
     section_application: Applications
     internal_name: Internal name
     live: Live status

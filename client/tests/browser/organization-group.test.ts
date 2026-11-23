@@ -8,8 +8,8 @@ import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 
 // The sidebar's organisation section and the agents tab (docs/web.md, 「Sidebar」 and 「Organisation」, the agents
 // tab), and what a company decided read in a person's own settings (「Settings」, the supply and own-BMO sections).
-// The section stands between the administrator services and the applications, one entry for each tab of the
-// organisation screen the reader opens; the agents tab sets a company's instructions, persona, supply sources and
+// The section stands between the administrator services and the applications as one entry under no heading, the
+// organisation screen, which keeps its own tab row; the agents tab sets a company's instructions, persona, supply sources and
 // repositories, each with what the units below may do; and a person under the company reads the persona and the
 // supply source it locked or closed as decided by the company, named, with nothing to change. Each is worked as a hand
 // works it at a phone's width and a desk's: what a press lands on is the control it names, nothing runs off the side,
@@ -113,11 +113,11 @@ async function overflows(page: Page): Promise<boolean> {
   return await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
 }
 
-// The sidebar's organisation section, the phone's drawer opened first; the title bar's toggle answers only once the
-// page has hydrated, so a press that opened nothing is made again.
-async function organizationSection(page: Page, width: number, waitFor: string): Promise<Locator> {
-  const section = page.getByRole("navigation", { name: wording("screens.label.section_organization"), exact: true });
-  const entry = section.getByRole("link", { name: waitFor, exact: true });
+// The sidebar's organisation section, named by its one entry, the phone's drawer opened first; the title bar's toggle
+// answers only once the page has hydrated, so a press that opened nothing is made again.
+async function organizationSection(page: Page, width: number): Promise<Locator> {
+  const section = page.getByRole("navigation", { name: wording("screens.label.organization"), exact: true });
+  const entry = section.getByRole("link", { name: wording("screens.label.organization"), exact: true });
 
   for (let press = 0; width < 1024 && press < 10 && !(await entry.isVisible()); press += 1) {
     await page.locator("[data-title-bar] [data-slot='toggle']").first().click();
@@ -128,9 +128,9 @@ async function organizationSection(page: Page, width: number, waitFor: string): 
   return section;
 }
 
-// The names the sidebar's sections stand under, in their order.
+// The names the sidebar's sections are called by, in their order.
 async function sectionNames(page: Page): Promise<string[]> {
-  const named = [wording("screens.label.section_administration"), wording("screens.label.section_organization"), wording("screens.label.section_application")];
+  const named = [wording("screens.label.section_administration"), wording("screens.label.organization"), wording("screens.label.section_application")];
 
   return await page.evaluate(
     (names) => [...document.querySelectorAll<HTMLElement>("nav[aria-label]")].filter((one) => one.checkVisibility()).map((one) => one.getAttribute("aria-label")!).filter((name) => names.includes(name)),
@@ -147,34 +147,49 @@ async function choose(page: Page, select: Locator, option: string): Promise<void
 
 describe.skipIf(!origin || !touchReady())("the organisation section and the agents tab", () => {
   for (const width of WIDTHS) {
-    test(`the administrator's sidebar lists the organisation screen's tabs between the administrator services and the applications, and an entry opens its tab at ${width}px`, async () => {
+    test(`the administrator's sidebar stands the organisation screen as one entry under no heading between the administrator services and the applications, and the entry opens the screen with its tab row, at ${width}px`, async () => {
       const context = await contextFor(ADMINISTRATOR.name, width);
 
       try {
         const page = await context.newPage();
 
-        await page.goto(`${origin}/organization?company=${company}`, { waitUntil: "load" });
+        await page.goto(`${origin}/rooms`, { waitUntil: "load" });
         await standing(page);
 
-        const section = await organizationSection(page, width, wording("org_agents.label.tab"));
-        const tabs = ["organization.label.chart", "roster.label.tab", "catalogue.label.tab", "settings.label.invites", "settings.label.bmo", "org_agents.label.tab", "apps.label.tab", "org_memory.label.tab", "supply.label.tab", "supply.label.plans"];
+        const name = wording("screens.label.organization");
+        const section = await organizationSection(page, width);
 
-        expect((await section.getByRole("link").allInnerTexts()).map((one) => one.trim())).toEqual(tabs.map((key) => wording(key)));
-        expect(await sectionNames(page)).toEqual([wording("screens.label.section_administration"), wording("screens.label.section_organization"), wording("screens.label.section_application")]);
+        // One entry, the screen's name, and no heading row above it: the section's words are the entry's alone.
+        expect((await section.getByRole("link").allInnerTexts()).map((one) => one.trim())).toEqual([name]);
+        expect((await section.innerText()).trim()).toBe(name);
+        expect(await sectionNames(page)).toEqual([wording("screens.label.section_administration"), name, wording("screens.label.section_application")]);
+        expect(await section.locator('a[aria-current="page"]').count()).toBe(0);
 
-        // The screen open on its first tab lights that entry; the agents entry leads to its tab, keeping the company.
-        expect(await section.locator('a[aria-current="page"]').allInnerTexts()).toEqual([wording("organization.label.chart")]);
+        const entry = section.getByRole("link", { name, exact: true });
 
-        const agents = section.getByRole("link", { name: wording("org_agents.label.tab"), exact: true });
+        expect(await reachable(entry)).toBe(true);
+        await entry.click();
+        await page.waitForURL((url) => url.pathname.endsWith("/organization"), { timeout: 15_000 });
 
+        // The screen keeps its own tab row, every tab of it the administrator's, and the entry is lit on any of them.
+        const row = page.locator(`[aria-label="${wording("organization.aria.tabs")}"]`);
+        const agents = row.getByRole("tab", { name: wording("org_agents.label.tab"), exact: true });
+
+        await agents.waitFor({ timeout: 20_000 });
+        expect(await row.getByRole("tab", { name: wording("roster.label.tab"), exact: true }).count()).toBe(1);
+
+        const lit = await organizationSection(page, width);
+
+        expect(await lit.locator('a[aria-current="page"]').allInnerTexts()).toEqual([name]);
+        if (width < 1024) await page.keyboard.press("Escape");
         expect(await reachable(agents)).toBe(true);
         await agents.click();
-        await page.waitForURL((url) => url.searchParams.get("tab") === "agents" && url.searchParams.get("company") === String(company), { timeout: 15_000 });
+        await page.waitForURL((url) => url.searchParams.get("tab") === "agents", { timeout: 15_000 });
         await page.locator("[data-org-agents]").waitFor({ timeout: 20_000 });
 
-        const lit = await organizationSection(page, width, wording("org_agents.label.tab"));
+        const still = await organizationSection(page, width);
 
-        expect(await lit.locator('a[aria-current="page"]').allInnerTexts()).toEqual([wording("org_agents.label.tab")]);
+        expect(await still.locator('a[aria-current="page"]').allInnerTexts()).toEqual([name]);
         expect(await overflows(page)).toBe(false);
       } finally {
         await context.close();
@@ -279,7 +294,7 @@ describe.skipIf(!origin || !touchReady())("the organisation section and the agen
       }
     }, 120_000);
 
-    test(`a person under the company reads the persona and the supply source it decided as the company's, named, with nothing to change, and a head's sidebar lists the tabs they open, at ${width}px`, async () => {
+    test(`a person under the company reads the persona and the supply source it decided as the company's, named, with nothing to change, and a head's sidebar stands the organisation entry, at ${width}px`, async () => {
       const context = await contextFor(PERSON.name, width);
 
       try {
@@ -315,16 +330,15 @@ describe.skipIf(!origin || !touchReady())("the organisation section and the agen
         expect(await page.locator('[data-own-source="platform"]').innerText()).toContain(wording("org_agents.label.state_on"));
         expect(await overflows(page)).toBe(false);
 
-        // A head of the team: the organisation section lists the tabs they open, the agents tab among them.
+        // A head of the team: the organisation section stands its one entry for them too, under no heading.
         await administer(`/api/organization/units/${team}/heads/${encodeURIComponent(person)}`, "PUT");
         await page.goto(`${origin}/rooms`, { waitUntil: "load" });
         await standing(page);
 
-        const section = await organizationSection(page, width, wording("org_memory.label.tab"));
+        const section = await organizationSection(page, width);
 
-        expect((await section.getByRole("link").allInnerTexts()).map((one) => one.trim())).toEqual(
-          ["settings.label.invites", "settings.label.bmo", "org_agents.label.tab", "apps.label.tab", "org_memory.label.tab"].map((key) => wording(key))
-        );
+        expect((await section.innerText()).trim()).toBe(wording("screens.label.organization"));
+        expect(await section.getByRole("link").count()).toBe(1);
       } finally {
         await context.close();
         await administer(`/api/organization/units/${team}/heads/${encodeURIComponent(person)}`, "DELETE").catch(() => null);

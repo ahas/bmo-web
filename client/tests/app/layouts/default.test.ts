@@ -64,7 +64,7 @@ describe("the console search in the sidebar", () => {
 
   test("reads the sidebar counts the bundles declare, and hands them to the screen entries", () => {
     expect(layout).toContain("const unread = useSidebarUnread();");
-    expect(layout).toContain("sectionItems(t, route.path, undefined, sidebarFolded.value, screens, unread.value, route.query)");
+    expect(layout).toContain("sectionItems(t, route.path, undefined, sidebarFolded.value, screens, unread.value)");
   });
 
   test("lists the screens the search lists, one list of them both", () => {

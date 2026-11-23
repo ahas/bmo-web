@@ -42,12 +42,12 @@
              cell of its own, so the folded column keeps one centre. The menu is told which rows
              wear the mark that way, which is why the fold is read out here. Folded, every row names
              itself in a tooltip; spread, its name stands and no tooltip repeats it. -->
-        <!-- The screens' sections, each a menu of its own under its heading, parted as the sidebar parts its groups
-             (docs/web.md, 「Sidebar」). -->
+        <!-- The screens' sections, each a menu of its own under its heading where it stands one, parted as the sidebar
+             parts its groups (docs/web.md, 「Sidebar」). -->
         <UNavigationMenu
           v-for="section in screenSections"
-          :key="section.heading"
-          :aria-label="section.heading"
+          :key="section.name"
+          :aria-label="section.name"
           :items="namedWhenFolded(section.items, collapsed)"
           :collapsed="collapsed"
           tooltip
@@ -264,7 +264,7 @@ const bundles = useConsoleScreens();
 const screens = screensWithBundles(bundles.value, featuredScreens(useConsoleFeatures().value));
 // The counts the bundles declare, read for this reader while the sidebar stands (docs/web.md, 「Sidebar」).
 const unread = useSidebarUnread();
-const screenSections = computed<SectionMenu[]>((before) => sameKept(before, sectionItems(t, route.path, undefined, sidebarFolded.value, screens, unread.value, route.query)));
+const screenSections = computed<SectionMenu[]>((before) => sameKept(before, sectionItems(t, route.path, undefined, sidebarFolded.value, screens, unread.value)));
 
 // The picture every session in this sidebar wears.
 const avatars = useAvatars();

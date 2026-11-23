@@ -1,7 +1,7 @@
 import { AGENT_TABS } from "./agent-settings";
 import { MONITOR_TABS } from "./hardware";
 import { ADMIN_PATH, ADMIN_TABS } from "./administration";
-import { ORGANIZATION_PATH, ORGANIZATION_TABS, organizationAddress } from "./organization";
+import { ORGANIZATION_PATH, ORGANIZATION_TABS } from "./organization";
 
 import { avatarFor } from "./avatars";
 import { COUNT_BADGE, countText } from "./numbers";
@@ -18,15 +18,15 @@ import type { ConsoleSidebarSection } from "bmo-ui/shared/console-manifest";
 import type { ListedRoom } from "#shared/types";
 import type { Translate } from "#shared/wording";
 import type { BadgeProps, DropdownMenuItem, NavigationMenuItem } from "@nuxt/ui";
-import type { LocationQuery, RouteLocationRaw } from "vue-router";
 
-// The sections the sidebar stands its screens in, in the order they stand, each under its heading
-// (docs/web.md, 「Sidebar」): what the administrator keeps the deployment running with, what the heads of the
-// organisations set for them, and every other screen.
+// The sections the sidebar stands its screens in, in the order they stand (docs/web.md, 「Sidebar」): what the
+// administrator keeps the deployment running with, the organisation screen, and every other screen. Each is named, and
+// a headed one stands its name as a heading over its rows; the organisation's holds one entry by the same name, so it
+// stands no heading and is named by that entry's name alone.
 export const SCREEN_SECTIONS = [
-  { id: "administration", heading: "screens.label.section_administration" },
-  { id: "organization", heading: "screens.label.section_organization" },
-  { id: "application", heading: "screens.label.section_application" }
+  { id: "administration", name: "screens.label.section_administration", headed: true },
+  { id: "organization", name: "screens.label.organization", headed: false },
+  { id: "application", name: "screens.label.section_application", headed: true }
 ] as const;
 
 // Where a screen's entry stands: one of the sidebar's sections, or `account`, the user menu, the reader's own menu,
@@ -49,10 +49,6 @@ export interface Screen {
   brought?: true;
   // The tabs a screen keeps in its address as `?tab=`. The first is the screen's own address.
   tabs?: readonly ScreenTab[];
-  // Where the sidebar lists the screen as one entry for each of its tabs, in their order, rather than as one entry: the
-  // address of a tab's entry, read off the address open where the screen is open, so the entry keeps what the screen
-  // chose (docs/web.md, 「Sidebar」).
-  tabEntries?: (tab: string, query: LocationQuery) => RouteLocationRaw;
   // Whether a member's shell lists it only for a member who keeps something of a unit — heads one, so may invite into
   // it, or writes a unit's org memory — rather than by a section of their permission (docs/web.md, 「Organisation」).
   unitKeepers?: true;
@@ -116,18 +112,8 @@ export const SCREENS: readonly Screen[] = [
   // Every machine's hardware, bmo-node's, and the card master's board of every node's card, a tab each. Each
   // machine's own monitor stands below its address.
   { label: "screens.label.monitor", to: "/monitor", icon: "i-material-symbols-monitor-heart-outline", nested: true, tabs: MONITOR_TABS, feature: "monitor", section: "administration" },
-  // The organisation and the people in it, a tab to a section, each tab an entry of the organisation's section.
-  {
-    label: "screens.label.organization",
-    to: ORGANIZATION_PATH,
-    icon: "i-material-symbols-domain",
-    nested: false,
-    tabs: ORGANIZATION_TABS,
-    tabEntries: organizationAddress,
-    unitKeepers: true,
-    feature: "organizations",
-    section: "organization"
-  },
+  // The organisation and the people in it, a tab to a section, the one entry of the organisation's section.
+  { label: "screens.label.organization", to: ORGANIZATION_PATH, icon: "i-material-symbols-domain", nested: false, tabs: ORGANIZATION_TABS, unitKeepers: true, feature: "organizations", section: "organization" },
   // What is set for the platform itself, the administrator's alone: the providers and the secret kinds.
   { label: "screens.label.admin", to: ADMIN_PATH, icon: "i-material-symbols-shield-person-outline", nested: false, tabs: ADMIN_TABS, administrator: true, section: "administration" }
 ];
@@ -191,8 +177,8 @@ function byName(t: Translate, screens: readonly Screen[], section: ScreenSection
 }
 
 /** The screens of each section the reader is shown, by the name they read, and only the sections holding any. */
-export function screenSections(t: Translate, screens: readonly Screen[]): { heading: string; screens: Screen[] }[] {
-  return SCREEN_SECTIONS.map((section) => ({ heading: section.heading, screens: byName(t, screens, section.id) })).filter((section) => section.screens.length > 0);
+export function screenSections(t: Translate, screens: readonly Screen[]): { name: string; headed: boolean; screens: Screen[] }[] {
+  return SCREEN_SECTIONS.map((section) => ({ name: section.name, headed: section.headed, screens: byName(t, screens, section.id) })).filter((section) => section.screens.length > 0);
 }
 
 /** The screens in the order the sidebar stands them, section after section. */
@@ -231,29 +217,8 @@ export const FOLDED_MARK = "relative after:absolute after:top-2 after:start-[rou
 // A sidebar count as the sidebar last read it, by the address of the screen it stands on.
 export type ScreenCounts = Readonly<Record<string, number>>;
 
-export function screenItems(
-  t: Translate,
-  path: string,
-  live: ScreenLive = QUIET,
-  folded = false,
-  screens: readonly Screen[] = SCREENS,
-  counts: ScreenCounts = {},
-  query: LocationQuery = {}
-): NavigationMenuItem[] {
-  return screens.flatMap((screen) => (screen.tabEntries === undefined ? [screenItem(t, path, live, folded, screen, counts)] : tabItems(t, path, screen, query)));
-}
-
-/**
- * The entries of a screen the sidebar lists by its tabs: one for each tab it holds for the reader, in their order,
- * each under the tab's name and icon and leading to it, the one open lit — the tab the address names, else the
- * screen's first. Where the screen is open, each leads there keeping what the address chose besides its tab.
- */
-export function tabItems(t: Translate, path: string, screen: Screen, query: LocationQuery = {}): NavigationMenuItem[] {
-  const tabs = screen.tabs ?? [];
-  const open = path === screen.to;
-  const asked = typeof query.tab === "string" ? query.tab : tabs[0]?.value;
-
-  return tabs.map((tab) => ({ label: t(tab.label), to: screen.tabEntries!(tab.value, open ? query : {}), icon: tab.icon, active: open && asked === tab.value }));
+export function screenItems(t: Translate, path: string, live: ScreenLive = QUIET, folded = false, screens: readonly Screen[] = SCREENS, counts: ScreenCounts = {}): NavigationMenuItem[] {
+  return screens.map((screen) => screenItem(t, path, live, folded, screen, counts));
 }
 
 function screenItem(t: Translate, path: string, live: ScreenLive, folded: boolean, screen: Screen, counts: ScreenCounts): NavigationMenuItem {
@@ -320,28 +285,23 @@ export function accountUnread(t: Translate, screens: readonly Screen[], counts: 
   return said.length === 0 ? null : said.join(", ");
 }
 
-// One section of the sidebar's screens as its menu draws it: the heading it is named by, and its rows.
+// One section of the sidebar's screens as its menu draws it: the name it is called by, and its rows, a headed
+// section's led by its name as a heading.
 export interface SectionMenu {
-  heading: string;
+  name: string;
   items: NavigationMenuItem[];
 }
 
-// The sidebar's screens: each section that holds any, a menu of its own under its heading, its screens by name
-// (docs/web.md, 「Sidebar」). Each is a menu of its own so the sidebar parts the sections as it parts its other
-// groups. A heading is a row of words alone, which the menu leaves out where the sidebar is folded.
-export function sectionItems(
-  t: Translate,
-  path: string,
-  live: ScreenLive = QUIET,
-  folded = false,
-  screens: readonly Screen[] = SCREENS,
-  counts: ScreenCounts = {},
-  query: LocationQuery = {}
-): SectionMenu[] {
+// The sidebar's screens: each section that holds any, a menu of its own named by its section, its screens by name
+// under its heading where it stands one (docs/web.md, 「Sidebar」). Each is a menu of its own so the sidebar parts the
+// sections as it parts its other groups. A heading is a row of words alone, which the menu leaves out where the
+// sidebar is folded.
+export function sectionItems(t: Translate, path: string, live: ScreenLive = QUIET, folded = false, screens: readonly Screen[] = SCREENS, counts: ScreenCounts = {}): SectionMenu[] {
   return screenSections(t, screens).map((section) => {
-    const heading = t(section.heading);
+    const name = t(section.name);
+    const rows = screenItems(t, path, live, folded, section.screens, counts);
 
-    return { heading, items: [{ label: heading, type: "label" as const }, ...screenItems(t, path, live, folded, section.screens, counts, query)] };
+    return { name, items: section.headed ? [{ label: name, type: "label" as const }, ...rows] : rows };
   });
 }
 

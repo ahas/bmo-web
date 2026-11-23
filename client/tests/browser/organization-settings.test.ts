@@ -689,10 +689,10 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
 
           expect(await dialogSections(page, "/rooms")).toEqual(PERSONAL.map((key) => wording(key)));
 
-          // The sidebar's organisation section, whose entries are the organisation screen's tabs.
+          // The sidebar's organisation section, whose one entry is the organisation screen.
           // An invitation's dialog may still stand over the page as the entry is looked for, which hides the sidebar from
           // the page's roles, so the entry is found by its section's own label.
-          const entry = page.locator(`nav[aria-label="${wording("screens.label.section_organization")}"] a`);
+          const entry = page.locator(`nav[aria-label="${wording("screens.label.organization")}"] a`);
 
           if (width >= 1024) expect(await entry.count()).toBe(0);
 

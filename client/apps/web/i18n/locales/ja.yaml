@@ -1222,7 +1222,6 @@ screens:
     find_description: 画面、ルーム、エージェントへ移動
     group_agents: エージェント
     section_administration: 管理者サービス
-    section_organization: 組織
     section_application: アプリケーション
     internal_name: 内部名
     live: リアルタイム状態

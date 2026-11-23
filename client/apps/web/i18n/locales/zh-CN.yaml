@@ -1222,7 +1222,6 @@ screens:
     find_description: 前往界面、房间或智能体
     group_agents: 智能体
     section_administration: 管理服务
-    section_organization: 组织
     section_application: 应用
     internal_name: 内部名称
     live: 实时状态

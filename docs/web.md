@@ -577,7 +577,7 @@ nothing.
   never leads back to the address refused: where the first one they may open is that address, as for a member who
   reads no section at all, it stands, and its routes answer as if nothing stood there.
 - **A member's console stands in a shell of its own.** Its sidebar is the console's mark, the console's own
-  sections they may read, the 조직 section's entries where they head a unit or write a unit's org memory, and the
+  sections they may read, the 조직 entry where they head a unit or write a unit's org memory, and the
   screens units bring that they may open, in the sidebar's sections (「Sidebar」), their rooms and the user menu: no agents
   block, nodes or search, no queue panel, question bar or briefing player, and nothing in it reports which room
   the tab shows. Its sidebar hears the bot's stream for
@@ -1561,28 +1561,24 @@ writing the words. A wording fix is an edit to the packs alone, once the guide b
     added to one is in the other. A screen a unit brings takes its manifest's own title and icon, merged into
     the list from the manifests the reader may open (「Screens a unit brings」). The search lists the screens in
     the sidebar's order, the 관리자 서비스 first, then 조직 and the 애플리케이션 after them, and then the screens the
-    user menu holds for the reader, by name as a section's are. A screen the sidebar lists by its tabs stands in the
-    search once, its tabs under it, as every screen's do; for a member those are the tabs they open (「Organisation」).
+    user menu holds for the reader, by name as a section's are.
 
 Four groups.
 
-- **The screens** — in three sections, each under its heading: **관리자 서비스**, what the administrator needs to
-  keep the deployment running; **조직**, what the heads of the organisations set for the people under them; and
-  **애플리케이션**, every other screen.
+- **The screens** — in three sections: **관리자 서비스**, what the administrator needs to keep the deployment
+  running; then the organisation screen, **조직**, what the heads of the organisations set for the people under them;
+  and **애플리케이션**, every other screen. 관리자 서비스 and 애플리케이션 each stand under their heading; the
+  organisation's section stands no heading.
   - **관리자 서비스** holds the console's own cache siren, DB, document viewer, agent management (에이전시),
     리서치, monitor and 관리자, and every screen a unit brings whose manifest names it: the brain's (브레인),
     code review's, BMO's face (비모 얼굴), the tool host's (도구) and the remote
     machines' (원격) among them.
-  - **조직** holds the organisation screen (「Organisation」), listed as one entry for each of its tabs the reader
-    opens, in the screen's tab order rather than by name: 조직도, 사용자, 직책·종류, 초대, BMO, 에이전트, 앱·도구, 조직
-    기억, 공급 and 플랜 for the administrator, and for a member the tabs that screen stands for them, read for the
-    organisation the screen has chosen while it is open and for any organisation otherwise, so an entry comes in once
-    the reads that say who the reader is have answered. Each entry wears its tab's name and icon and leads to its
-    tab; while the screen is open it leads there keeping the organisation and the unit chosen, and the entry of the tab
-    open is lit, the screen's first where the address names none. A tab the screen gains is an entry here with no
-    change of the sidebar's. The section stands for the administrator and for a member the screen stands for — one who
-    heads a unit or writes a unit's org memory — and for nobody else, so a member who heads nothing meets neither
-    heading nor entry. No unit's manifest names this section: it is the console's own.
+  - **조직** is one entry, the organisation screen (「Organisation」), which leads to the screen and is lit on any of
+    its tabs; the screen's tabs are its own tab row's, never entries of the sidebar. A heading over it would repeat its
+    one entry's name, so the section stands none, and it is named 조직 as a landmark by that entry's name. The entry
+    stands for the administrator and for a member the screen stands for — one who heads a unit or writes a unit's org
+    memory — and for nobody else, so a member who heads nothing meets no entry there. No unit's manifest names this
+    section: it is the console's own.
   - **애플리케이션** holds every other screen a unit brings: mail, 파일, 아티팩트, 캘린더, 노트, 일정 관리
     and 극장 among them.
   - **Which section a screen stands in is the screen's own.** Each of the console's own screens names its section
@@ -1595,7 +1591,7 @@ Four groups.
     each reader, where their role places it: a platform administrator never meets a member's entry of it. The
     console keeps no list of addresses of its own for a screen a unit brings, so a unit moves its screen by its
     manifest alone.
-  - **Within a section the screens stand by the name the reader sees,** 조직's tab entries aside, compared as English collation compares
+  - **Within a section the screens stand by the name the reader sees,** compared as English collation compares
     them: names in Latin letters first, a to z with case set aside, then names in Hangul, ㄱ to ㅎ. A screen a
     unit brings is ordered by the name its manifest gives it, so where a unit renames its screen it moves to its
     new place.
@@ -1604,7 +1600,8 @@ Four groups.
     all; a member who opens no screen at all has neither heading. A heading is a row of words alone, as the
     agents' and the rooms' headings are: it leads nowhere and is skipped by the keyboard.
   - **Each section is a group of the sidebar's own,** parted from the next by the same space the sidebar leaves
-    between the rooms and the agents, and named by its heading as a navigation landmark. Folded to icons, the
+    between the rooms and the agents, and named by its heading as a navigation landmark, the organisation's by its
+    entry's name. Folded to icons, the
     headings go as every heading does, and that space alone parts the sections.
   - Cache siren, DB, document viewer, agent management, 리서치, monitor, 조직 and 관리자 are the console's own and
     stand unless the deployment's features leave one out (「The console's features」); the screens units bring stand only while their unit answers its manifest, under the manifest's
@@ -7987,20 +7984,20 @@ research screen (「Research screen」).
   Every tab reads and writes the company of the node chosen alone, and a tab that stands for one unit — 조직도,
   사용자, 초대, BMO, 에이전트, 앱·도구, 아티팩트 저장 and 조직 기억 — stands for the node chosen, the company itself where a company is chosen; none of
   them chooses an organisation or a unit of its own.
-  The console search finds each tab as it finds every screen's, and the sidebar's 조직 section lists each tab the
-  reader opens as an entry of its own (「Sidebar」).
+  The console search finds each tab as it finds every screen's; the sidebar lists the screen as one entry, 조직, and
+  the tabs stand in the screen's own row alone (「Sidebar」).
 - **A key of a section that moved away leads to where it stands now,** so a link made before it moved still lands
   on it: `research` to the research screen's 설정 tab, `briefing` to the settings dialog's 보이스브리핑 and `secrets`
   to its 비밀 보관함, each over this screen, `providers` and `secret-kinds` to those tabs of 관리자, and `permissions` to
   사용자 with the person's 권한 tab open, the person its `user=` named still chosen (「사용자」). The address is replaced
   rather than stepped, so the back gesture does not return to the old key.
-- **Who opens it.** The administrator opens every tab, and the sidebar's 조직 section lists each for them. A member who heads a unit may invite into it (`docs/accounts.md`, 「Invitations and a person's
+- **Who opens it.** The administrator opens every tab, and the sidebar lists 조직 for them. A member who heads a unit may invite into it (`docs/accounts.md`, 「Invitations and a person's
   machine」), sets who under it may personalise their BMO (`docs/accounts.md`, 「A person's BMO profile」) and which
-  apps stand on under it (「앱·도구」), and sets the agents of the people under it (「에이전트」) and where their documents are kept (「아티팩트 저장」), so their shell's 조직
-  section lists the tabs they open and the screen holds 초대, BMO, 에이전트, 앱·도구, 아티팩트 저장 and 조직 기억, 에이전트 and 아티팩트 저장 standing
+  apps stand on under it (「앱·도구」), and sets the agents of the people under it (「에이전트」) and where their documents are kept (「아티팩트 저장」), so their shell's sidebar
+  lists 조직 and the screen holds 초대, BMO, 에이전트, 앱·도구, 아티팩트 저장 and 조직 기억, 에이전트 and 아티팩트 저장 standing
   where they head a unit of the organisation chosen, and 사용자 and 직책·종류 where they head a company
   (「사용자」, 「직책·종류」). A member granted a unit's org memory write without heading one (`docs/accounts.md`, 「A unit's
-  org memory」) is listed the 조직 section as well, with the companies of those units, and the screen holds 조직 기억 for them beside
+  org memory」) is listed 조직 as well, with the companies of those units, and the screen holds 조직 기억 for them beside
   the tabs every member opens (「조직 기억」); a member who heads none and holds no such grant is listed no entry, and the
   address shows them 초대 saying they may invite into no unit. 공급 stands for the reader the account service's
   supply reach says holds the supply policy and credits of the organisation chosen — its credit manager or its head

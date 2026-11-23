@@ -31,11 +31,12 @@
       </template>
 
       <template #default="{ collapsed }">
-        <!-- The screens' sections they may open, each a menu of its own under its heading (docs/web.md, 「Sidebar」). -->
+        <!-- The screens' sections they may open, each a menu of its own under its heading where it stands one (docs/web.md,
+             「Sidebar」). -->
         <UNavigationMenu
           v-for="section in screenSections"
-          :key="section.heading"
-          :aria-label="section.heading"
+          :key="section.name"
+          :aria-label="section.name"
           :items="namedWhenFolded(section.items, collapsed)"
           :collapsed="collapsed"
           tooltip
@@ -88,7 +89,7 @@ import { featuredScreens, namedWhenFolded, roomItems, screensWithBundles, sectio
 import { useConsoleFeatures } from "~/domain/console-features";
 import { SIDEBAR_GROUP, SIDEBAR_WIDTH } from "~/domain/sidebar-width";
 import { useSidebarUnread } from "~/domain/sidebar-unread";
-import { ORGANIZATION_KEY, ORGANIZATION_PATH, organizationTabsFor, useKeepsUnits, useOrganizationReader } from "~/domain/organization";
+import { useKeepsUnits } from "~/domain/organization";
 import { accessOf, homeFor, screenMayRead, sectionsOfPath } from "#shared/sections";
 
 import type { NavigationMenuItem } from "@nuxt/ui";
@@ -148,25 +149,19 @@ async function roomOpened(room: RoomAdded): Promise<void> {
   await navigateTo(`/rooms/${room.chatId}`);
 }
 // The organisation screen stands for a member who heads a unit or writes a unit's org memory (docs/web.md,
-// 「Organisation」), with the tabs they open: of the organisation the screen has chosen where it is open, of any
-// organisation otherwise, so the organisation's section lists those alone.
+// 「Organisation」).
 const keepsUnits = useKeepsUnits();
-const organizationReader = useOrganizationReader(() => {
-  const chosen = Number(route.query[ORGANIZATION_KEY]);
-
-  return route.path === ORGANIZATION_PATH && Number.isInteger(chosen) && chosen > 0 ? chosen : null;
-});
 const screens = computed(() =>
-  screensWithBundles(bundles.value, featuredScreens(features.value)).flatMap((screen) => {
-    if (screen.administrator === true) return [];
-    if (screen.unitKeepers === true) return keepsUnits.value ? [{ ...screen, tabs: organizationTabsFor(organizationReader.value) }] : [];
-    if (sectionsOfPath(screen.to).length === 0) return [screen];
-    if (!accessReady.value) return [];
+  screensWithBundles(bundles.value, featuredScreens(features.value)).filter((screen) => {
+    if (screen.administrator === true) return false;
+    if (screen.unitKeepers === true) return keepsUnits.value;
+    if (sectionsOfPath(screen.to).length === 0) return true;
+    if (!accessReady.value) return false;
 
-    return screenMayRead(access.value, screen.to) ? [screen] : [];
+    return screenMayRead(access.value, screen.to);
   })
 );
 // The counts the bundles declare, read for this reader while the sidebar stands (docs/web.md, 「Sidebar」).
 const unread = useSidebarUnread();
-const screenSections = computed<SectionMenu[]>(() => sectionItems(t, route.path, undefined, sidebarFolded.value, screens.value, unread.value, route.query));
+const screenSections = computed<SectionMenu[]>(() => sectionItems(t, route.path, undefined, sidebarFolded.value, screens.value, unread.value));
 </script>

@@ -1,0 +1,211 @@
+{
+ "items": [
+  {
+   "machineName": "local",
+   "at": 1795426178000,
+   "spanMs": 1000,
+   "cpu": {
+    "usePct": {
+     "min": 60.7,
+     "max": 60.7,
+     "mean": 60.7
+    },
+    "celsius": {
+     "min": 89.6,
+     "max": 89.6,
+     "mean": 89.6
+    },
+    "watts": {
+     "min": 89.0,
+     "max": 89.0,
+     "mean": 89.0
+    },
+    "mhz": {
+     "min": 4811.0,
+     "max": 4811.0,
+     "mean": 4811.0
+    }
+   },
+   "memory": {
+    "usedGb": {
+     "min": 14.29,
+     "max": 14.29,
+     "mean": 14.29
+    },
+    "availableGb": {
+     "min": 16.14,
+     "max": 16.14,
+     "mean": 16.14
+    },
+    "shmemGb": {
+     "min": 0.33,
+     "max": 0.33,
+     "mean": 0.33
+    },
+    "swapUsedGb": {
+     "min": 20.53,
+     "max": 20.53,
+     "mean": 20.53
+    }
+   },
+   "gpus": [
+    {
+     "index": 0,
+     "usePct": {
+      "min": 0.0,
+      "max": 0.0,
+      "mean": 0.0
+     },
+     "celsius": {
+      "min": 36.0,
+      "max": 36.0,
+      "mean": 36.0
+     },
+     "watts": {
+      "min": 15.1,
+      "max": 15.1,
+      "mean": 15.1
+     },
+     "mhz": {
+      "min": 210.0,
+      "max": 210.0,
+      "mean": 210.0
+     },
+     "vramUsedGb": {
+      "min": 8.39,
+      "max": 8.39,
+      "mean": 8.39
+     }
+    }
+   ],
+   "storage": [
+    {
+     "key": "nvme0n1",
+     "usedGb": {
+      "min": 771.81,
+      "max": 771.81,
+      "mean": 771.81
+     },
+     "celsius": {
+      "min": 63.9,
+      "max": 63.9,
+      "mean": 63.9
+     }
+    },
+    {
+     "key": "sda",
+     "usedGb": {
+      "min": 120.07,
+      "max": 120.07,
+      "mean": 120.07
+     }
+    }
+   ],
+   "fans": []
+  },
+  {
+   "machineName": "local",
+   "at": 1795426179000,
+   "spanMs": 1000,
+   "cpu": {
+    "usePct": {
+     "min": 49.9,
+     "max": 49.9,
+     "mean": 49.9
+    },
+    "celsius": {
+     "min": 89.5,
+     "max": 89.5,
+     "mean": 89.5
+    },
+    "watts": {
+     "min": 90.0,
+     "max": 90.0,
+     "mean": 90.0
+    },
+    "mhz": {
+     "min": 4505.0,
+     "max": 4505.0,
+     "mean": 4505.0
+    }
+   },
+   "memory": {
+    "usedGb": {
+     "min": 14.64,
+     "max": 14.64,
+     "mean": 14.64
+    },
+    "availableGb": {
+     "min": 15.79,
+     "max": 15.79,
+     "mean": 15.79
+    },
+    "shmemGb": {
+     "min": 0.33,
+     "max": 0.33,
+     "mean": 0.33
+    },
+    "swapUsedGb": {
+     "min": 20.59,
+     "max": 20.59,
+     "mean": 20.59
+    }
+   },
+   "gpus": [
+    {
+     "index": 0,
+     "usePct": {
+      "min": 0.0,
+      "max": 0.0,
+      "mean": 0.0
+     },
+     "celsius": {
+      "min": 36.0,
+      "max": 36.0,
+      "mean": 36.0
+     },
+     "watts": {
+      "min": 15.0,
+      "max": 15.0,
+      "mean": 15.0
+     },
+     "mhz": {
+      "min": 210.0,
+      "max": 210.0,
+      "mean": 210.0
+     },
+     "vramUsedGb": {
+      "min": 8.39,
+      "max": 8.39,
+      "mean": 8.39
+     }
+    }
+   ],
+   "storage": [
+    {
+     "key": "nvme0n1",
+     "usedGb": {
+      "min": 771.81,
+      "max": 771.81,
+      "mean": 771.81
+     },
+     "celsius": {
+      "min": 63.9,
+      "max": 63.9,
+      "mean": 63.9
+     }
+    },
+    {
+     "key": "sda",
+     "usedGb": {
+      "min": 120.07,
+      "max": 120.07,
+      "mean": 120.07
+     }
+    }
+   ],
+   "fans": []
+  }
+ ],
+ "more": false
+}

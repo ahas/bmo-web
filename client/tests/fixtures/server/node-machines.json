@@ -1,0 +1,844 @@
+{
+ "items": [
+  {
+   "name": "local",
+   "label": "host-a",
+   "kind": "local",
+   "tracking": true,
+   "cpuLimit": 95.0,
+   "readAt": 1795426144000,
+   "hardware": {
+    "host": "host-a",
+    "kernel": "7.0.0-42-generic",
+    "os": "Ubuntu 24.04.4 LTS",
+    "hostOs": null,
+    "wsl": false,
+    "sensorLibrary": null,
+    "uptimeSeconds": 868598.1,
+    "load": [
+     18.48,
+     20.35,
+     18.45
+    ],
+    "cpu": {
+     "model": "AMD Ryzen 9 7900 12-Core Processor",
+     "threadCount": 24,
+     "usage": 0.6360576923076923,
+     "celsius": 90.0,
+     "limitCelsius": null,
+     "mhz": 4942.0,
+     "peakMhz": 5043.0,
+     "watts": 90.1,
+     "chip": {
+      "label": "AMD Ryzen 9 7900 12-Core Processor",
+      "celsius": 90.0,
+      "rows": [
+       [
+        {
+         "label": "Die",
+         "role": "compute",
+         "celsius": 82.1,
+         "direction": "column",
+         "items": [
+          {
+           "kind": "cluster",
+           "label": "L3 0",
+           "cache": "L3 32 MB",
+           "left": [
+            {
+             "label": "C0",
+             "usage": 0.7234028334669874,
+             "mhz": 5024.0,
+             "celsius": null,
+             "threads": [
+              {
+               "cpu": 0.0,
+               "usage": 0.5747126436781609
+              },
+              {
+               "cpu": 12.0,
+               "usage": 0.872093023255814
+              }
+             ]
+            },
+            {
+             "label": "C1",
+             "usage": 0.693103448275862,
+             "mhz": 5043.0,
+             "celsius": null,
+             "threads": [
+              {
+               "cpu": 1.0,
+               "usage": 0.5862068965517241
+              },
+              {
+               "cpu": 13.0,
+               "usage": 0.8
+              }
+             ]
+            },
+            {
+             "label": "C2",
+             "usage": 0.7143226139739118,
+             "mhz": 5042.0,
+             "celsius": null,
+             "threads": [
+              {
+               "cpu": 2.0,
+               "usage": 0.5747126436781609
+              },
+              {
+               "cpu": 14.0,
+               "usage": 0.8539325842696629
+              }
+             ]
+            }
+           ],
+           "right": [
+            {
+             "label": "C3",
+             "usage": 0.6573275862068966,
+             "mhz": 5043.0,
+             "celsius": null,
+             "threads": [
+              {
+               "cpu": 3.0,
+               "usage": 0.6896551724137931
+              },
+              {
+               "cpu": 15.0,
+               "usage": 0.625
+              }
+             ]
+            },
+            {
+             "label": "C4",
+             "usage": 0.6763565891472868,
+             "mhz": 5035.0,
+             "celsius": null,
+             "threads": [
+              {
+               "cpu": 4.0,
+               "usage": 0.6666666666666666
+              },
+              {
+               "cpu": 16.0,
+               "usage": 0.686046511627907
+              }
+             ]
+            },
+            {
+             "label": "C5",
+             "usage": 0.6120982492814215,
+             "mhz": 5025.0,
+             "celsius": null,
+             "threads": [
+              {
+               "cpu": 5.0,
+               "usage": 0.6511627906976745
+              },
+              {
+               "cpu": 17.0,
+               "usage": 0.5730337078651685
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "kind": "cluster",
+           "label": "L3 1",
+           "cache": "L3 32 MB",
+           "left": [
+            {
+             "label": "C8",
+             "usage": 0.5542711598746082,
+             "mhz": 4856.0,
+             "celsius": null,
+             "threads": [
+              {
+               "cpu": 6.0,
+               "usage": 0.5517241379310345
+              },
+              {
+               "cpu": 18.0,
+               "usage": 0.5568181818181818
+              }
+             ]
+            },
+            {
+             "label": "C9",
+             "usage": 0.5666265704357124,
+             "mhz": 4891.0,
+             "celsius": null,
+             "threads": [
+              {
+               "cpu": 7.0,
+               "usage": 0.5402298850574713
+              },
+              {
+               "cpu": 19.0,
+               "usage": 0.5930232558139535
+              }
+             ]
+            },
+            {
+             "label": "C10",
+             "usage": 0.6511627906976745,
+             "mhz": 4864.0,
+             "celsius": null,
+             "threads": [
+              {
+               "cpu": 8.0,
+               "usage": 0.5348837209302325
+              },
+              {
+               "cpu": 20.0,
+               "usage": 0.7674418604651163
+              }
+             ]
+            }
+           ],
+           "right": [
+            {
+             "label": "C11",
+             "usage": 0.6232620320855615,
+             "mhz": 4864.0,
+             "celsius": null,
+             "threads": [
+              {
+               "cpu": 9.0,
+               "usage": 0.5647058823529412
+              },
+              {
+               "cpu": 21.0,
+               "usage": 0.6818181818181818
+              }
+             ]
+            },
+            {
+             "label": "C12",
+             "usage": 0.5913382594417077,
+             "mhz": 4880.0,
+             "celsius": null,
+             "threads": [
+              {
+               "cpu": 10.0,
+               "usage": 0.5517241379310345
+              },
+              {
+               "cpu": 22.0,
+               "usage": 0.6309523809523809
+              }
+             ]
+            },
+            {
+             "label": "C13",
+             "usage": 0.5932386747802569,
+             "mhz": 4870.0,
+             "celsius": null,
+             "threads": [
+              {
+               "cpu": 11.0,
+               "usage": 0.5747126436781609
+              },
+              {
+               "cpu": 23.0,
+               "usage": 0.611764705882353
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      ]
+     },
+     "sensors": [
+      {
+       "chip": "k10temp",
+       "device": "0000:00:18.3",
+       "label": "Tctl",
+       "celsius": 90.0,
+       "limitCelsius": null
+      },
+      {
+       "chip": "k10temp",
+       "device": "0000:00:18.3",
+       "label": "Tccd1",
+       "celsius": 82.1,
+       "limitCelsius": null
+      },
+      {
+       "chip": "k10temp",
+       "device": "0000:00:18.3",
+       "label": "Tccd2",
+       "celsius": 78.5,
+       "limitCelsius": null
+      }
+     ]
+    },
+    "memory": {
+     "usedKb": 13404304.0,
+     "totalKb": 31907684.0,
+     "share": 0.4200964256760221,
+     "swapUsedKb": 20773840.0,
+     "swapTotalKb": 53960220.0,
+     "swapShare": 0.3849843458755357,
+     "shmemKb": 336460.0
+    },
+    "gpus": [
+     {
+      "index": 0.0,
+      "name": "NVIDIA GeForce RTX 3080",
+      "usage": 0.0,
+      "celsius": 36.0,
+      "limitCelsius": 95.0,
+      "throttling": false,
+      "mhz": 210.0,
+      "maxMhz": 2100.0,
+      "memoryMhz": 405.0,
+      "watts": 15.03,
+      "wattLimit": 250.0,
+      "wattShare": 0.06012,
+      "memoryUsedMb": 8596.0,
+      "memoryTotalMb": 10240.0,
+      "memoryShare": 0.839453125,
+      "fanPercent": 0.0
+     }
+    ],
+    "storage": [
+     {
+      "key": "sda",
+      "name": "Disk model A",
+      "kind": "usb",
+      "sizeBytes": 512110190592.0,
+      "celsius": null,
+      "limitCelsius": null,
+      "volumes": [
+       {
+        "mount": "/mnt/volume-a",
+        "fsType": "ext4",
+        "totalKb": 491134172.0,
+        "usedKb": 125904600.0,
+        "availableKb": 340207860.0,
+        "share": 0.2701163577562376
+       }
+      ],
+      "usedKb": 125904600.0,
+      "totalKb": 466112460.0,
+      "share": 0.2701163577562376
+     },
+     {
+      "key": "nvme0n1",
+      "name": "Disk model B",
+      "kind": "nvme",
+      "sizeBytes": 1000204886016.0,
+      "celsius": 62.9,
+      "limitCelsius": 87.9,
+      "volumes": [
+       {
+        "mount": "/",
+        "fsType": "ext4",
+        "totalKb": 957199192.0,
+        "usedKb": 807012372.0,
+        "availableKb": 103257368.0,
+        "share": 0.8865639892632265
+       },
+       {
+        "mount": "/mnt/volume-b",
+        "fsType": "ext4",
+        "totalKb": 1992552.0,
+        "usedKb": 556324.0,
+        "availableKb": 1314988.0,
+        "share": 0.2972908846841147
+       },
+       {
+        "mount": "/mnt/volume-b",
+        "fsType": "vfat",
+        "totalKb": 1046508.0,
+        "usedKb": 8572.0,
+        "availableKb": 1037936.0,
+        "share": 0.008191050617864364
+       }
+      ],
+      "usedKb": 807577268.0,
+      "totalKb": 913187560.0,
+      "share": 0.8843498349889918
+     }
+    ],
+    "board": {
+     "sensors": [
+      {
+       "chip": "r8169_0_400:00",
+       "device": "r8169-0-400:00",
+       "label": "temp1",
+       "celsius": 69.0,
+       "limitCelsius": 120.0
+      },
+      {
+       "chip": "spd5118",
+       "device": "2-0051",
+       "label": "temp1",
+       "celsius": 65.5,
+       "limitCelsius": 85.0
+      },
+      {
+       "chip": "amdgpu",
+       "device": "0000:05:00.0",
+       "label": "edge",
+       "celsius": 73.0,
+       "limitCelsius": null
+      }
+     ],
+     "fans": []
+    },
+    "services": {
+     "running": 174.0,
+     "failed": []
+    }
+   },
+   "failure": null,
+   "standing": null
+  },
+  {
+   "name": "node-a",
+   "label": "node-a",
+   "kind": "hub",
+   "tracking": true,
+   "cpuLimit": null,
+   "readAt": 1795426142000,
+   "hardware": {
+    "host": "node-a",
+    "kernel": "5.15.0-191-generic",
+    "os": "Ubuntu 22.04.5 LTS",
+    "hostOs": null,
+    "wsl": false,
+    "sensorLibrary": null,
+    "uptimeSeconds": 657070.51,
+    "load": [
+     1.45,
+     1.42,
+     1.14
+    ],
+    "cpu": {
+     "model": "Intel(R) Core(TM) i9-9900KF CPU @ 3.60GHz",
+     "threadCount": 16,
+     "usage": 0.07827175954915466,
+     "celsius": 66.0,
+     "limitCelsius": 100.0,
+     "mhz": 3993.0,
+     "peakMhz": 4928.0,
+     "watts": 24.0,
+     "chip": {
+      "label": "Intel(R) Core(TM) i9-9900KF CPU @ 3.60GHz",
+      "celsius": 66.0,
+      "rows": [
+       [
+        {
+         "label": "Die",
+         "role": "compute",
+         "celsius": 66.0,
+         "direction": "row",
+         "items": [
+          {
+           "kind": "part",
+           "label": "GPU",
+           "off": true
+          },
+          {
+           "kind": "cluster",
+           "label": "Ring",
+           "cache": "LLC 16 MB",
+           "left": [
+            {
+             "label": "C0",
+             "usage": 0.4898989898989899,
+             "mhz": 4928.0,
+             "celsius": 66.0,
+             "threads": [
+              {
+               "cpu": 0.0,
+               "usage": 0.41414141414141414
+              },
+              {
+               "cpu": 8.0,
+               "usage": 0.5656565656565656
+              }
+             ]
+            },
+            {
+             "label": "C1",
+             "usage": 0.01485148514851485,
+             "mhz": 3639.0,
+             "celsius": 54.0,
+             "threads": [
+              {
+               "cpu": 1.0,
+               "usage": 0.0
+              },
+              {
+               "cpu": 9.0,
+               "usage": 0.0297029702970297
+              }
+             ]
+            },
+            {
+             "label": "C2",
+             "usage": 0.010101010101010102,
+             "mhz": 4169.0,
+             "celsius": 53.0,
+             "threads": [
+              {
+               "cpu": 2.0,
+               "usage": 0.020202020202020204
+              },
+              {
+               "cpu": 10.0,
+               "usage": 0.0
+              }
+             ]
+            },
+            {
+             "label": "C3",
+             "usage": 0.024851485148514853,
+             "mhz": 4741.0,
+             "celsius": 52.0,
+             "threads": [
+              {
+               "cpu": 3.0,
+               "usage": 0.0297029702970297
+              },
+              {
+               "cpu": 11.0,
+               "usage": 0.02
+              }
+             ]
+            },
+            {
+             "label": "C4",
+             "usage": 0.015,
+             "mhz": 4122.0,
+             "celsius": 54.0,
+             "threads": [
+              {
+               "cpu": 4.0,
+               "usage": 0.03
+              },
+              {
+               "cpu": 12.0,
+               "usage": 0.0
+              }
+             ]
+            },
+            {
+             "label": "C5",
+             "usage": 0.015,
+             "mhz": 4069.0,
+             "celsius": 52.0,
+             "threads": [
+              {
+               "cpu": 5.0,
+               "usage": 0.03
+              },
+              {
+               "cpu": 13.0,
+               "usage": 0.0
+              }
+             ]
+            },
+            {
+             "label": "C6",
+             "usage": 0.035101010101010105,
+             "mhz": 4076.0,
+             "celsius": 53.0,
+             "threads": [
+              {
+               "cpu": 6.0,
+               "usage": 0.020202020202020204
+              },
+              {
+               "cpu": 14.0,
+               "usage": 0.05
+              }
+             ]
+            },
+            {
+             "label": "C7",
+             "usage": 0.010101010101010102,
+             "mhz": 4559.0,
+             "celsius": 52.0,
+             "threads": [
+              {
+               "cpu": 7.0,
+               "usage": 0.020202020202020204
+              },
+              {
+               "cpu": 15.0,
+               "usage": 0.0
+              }
+             ]
+            }
+           ],
+           "right": []
+          },
+          {
+           "kind": "part",
+           "label": "System Agent",
+           "off": false
+          }
+         ]
+        }
+       ]
+      ]
+     },
+     "sensors": [
+      {
+       "chip": "coretemp",
+       "device": "coretemp.0",
+       "label": "Package id 0",
+       "celsius": 66.0,
+       "limitCelsius": 100.0
+      },
+      {
+       "chip": "coretemp",
+       "device": "coretemp.0",
+       "label": "Core 0",
+       "celsius": 66.0,
+       "limitCelsius": 100.0
+      },
+      {
+       "chip": "coretemp",
+       "device": "coretemp.0",
+       "label": "Core 1",
+       "celsius": 54.0,
+       "limitCelsius": 100.0
+      },
+      {
+       "chip": "coretemp",
+       "device": "coretemp.0",
+       "label": "Core 2",
+       "celsius": 53.0,
+       "limitCelsius": 100.0
+      },
+      {
+       "chip": "coretemp",
+       "device": "coretemp.0",
+       "label": "Core 3",
+       "celsius": 52.0,
+       "limitCelsius": 100.0
+      },
+      {
+       "chip": "coretemp",
+       "device": "coretemp.0",
+       "label": "Core 4",
+       "celsius": 54.0,
+       "limitCelsius": 100.0
+      },
+      {
+       "chip": "coretemp",
+       "device": "coretemp.0",
+       "label": "Core 5",
+       "celsius": 52.0,
+       "limitCelsius": 100.0
+      },
+      {
+       "chip": "coretemp",
+       "device": "coretemp.0",
+       "label": "Core 6",
+       "celsius": 53.0,
+       "limitCelsius": 100.0
+      },
+      {
+       "chip": "coretemp",
+       "device": "coretemp.0",
+       "label": "Core 7",
+       "celsius": 52.0,
+       "limitCelsius": 100.0
+      }
+     ]
+    },
+    "memory": {
+     "usedKb": 11520740.0,
+     "totalKb": 65750556.0,
+     "share": 0.17521889852916225,
+     "swapUsedKb": 302592.0,
+     "swapTotalKb": 8388604.0,
+     "swapShare": 0.036071794544122,
+     "shmemKb": 36520.0
+    },
+    "gpus": [
+     {
+      "index": 0.0,
+      "name": "NVIDIA GeForce RTX 4070",
+      "usage": 1.0,
+      "celsius": 76.0,
+      "limitCelsius": null,
+      "throttling": false,
+      "mhz": 2745.0,
+      "maxMhz": 3105.0,
+      "memoryMhz": 10251.0,
+      "watts": 199.59,
+      "wattLimit": 200.0,
+      "wattShare": 0.99795,
+      "memoryUsedMb": 11039.0,
+      "memoryTotalMb": 12282.0,
+      "memoryShare": 0.8987949845302068,
+      "fanPercent": 72.0
+     }
+    ],
+    "storage": [
+     {
+      "key": "sda",
+      "name": "Disk model A",
+      "kind": "hdd",
+      "sizeBytes": 3000592982016.0,
+      "celsius": 36.0,
+      "limitCelsius": 60.0,
+      "volumes": [
+       {
+        "mount": "/mnt/volume-a",
+        "fsType": "xfs",
+        "totalKb": 2928835792.0,
+        "usedKb": 1825852096.0,
+        "availableKb": 1102983696.0,
+        "share": 0.6234054162364593
+       }
+      ],
+      "usedKb": 1825852096.0,
+      "totalKb": 2928835792.0,
+      "share": 0.6234054162364593
+     },
+     {
+      "key": "nvme0n1",
+      "name": "Disk model B",
+      "kind": "nvme",
+      "sizeBytes": 1000204886016.0,
+      "celsius": 57.9,
+      "limitCelsius": 84.9,
+      "volumes": [
+       {
+        "mount": "/",
+        "fsType": "ext4",
+        "totalKb": 960300048.0,
+        "usedKb": 700447532.0,
+        "availableKb": 210998196.0,
+        "share": 0.7685016348005748
+       }
+      ],
+      "usedKb": 700447532.0,
+      "totalKb": 911445728.0,
+      "share": 0.7685016348005748
+     }
+    ],
+    "board": {
+     "sensors": [
+      {
+       "chip": "acpitz",
+       "device": "thermal_zone0",
+       "label": "temp1",
+       "celsius": 27.8,
+       "limitCelsius": 119.0
+      },
+      {
+       "chip": "nct6798",
+       "device": "nct6775.656",
+       "label": "SYSTIN",
+       "celsius": 34.0,
+       "limitCelsius": 80.0
+      },
+      {
+       "chip": "nct6798",
+       "device": "nct6775.656",
+       "label": "CPUTIN",
+       "celsius": 50.5,
+       "limitCelsius": 80.0
+      },
+      {
+       "chip": "nct6798",
+       "device": "nct6775.656",
+       "label": "AUXTIN0",
+       "celsius": 26.0,
+       "limitCelsius": null
+      },
+      {
+       "chip": "nct6798",
+       "device": "nct6775.656",
+       "label": "AUXTIN1",
+       "celsius": 15.0,
+       "limitCelsius": null
+      },
+      {
+       "chip": "nct6798",
+       "device": "nct6775.656",
+       "label": "AUXTIN2",
+       "celsius": 17.0,
+       "limitCelsius": null
+      },
+      {
+       "chip": "nct6798",
+       "device": "nct6775.656",
+       "label": "AUXTIN3",
+       "celsius": 26.0,
+       "limitCelsius": null
+      },
+      {
+       "chip": "nct6798",
+       "device": "nct6775.656",
+       "label": "PECI Agent 0 Calibration",
+       "celsius": 57.0,
+       "limitCelsius": null
+      }
+     ],
+     "fans": [
+      {
+       "chip": "nct6798",
+       "label": "fan1",
+       "rpm": 0.0
+      },
+      {
+       "chip": "nct6798",
+       "label": "fan2",
+       "rpm": 847.0
+      },
+      {
+       "chip": "nct6798",
+       "label": "fan3",
+       "rpm": 0.0
+      },
+      {
+       "chip": "nct6798",
+       "label": "fan4",
+       "rpm": 0.0
+      },
+      {
+       "chip": "nct6798",
+       "label": "fan5",
+       "rpm": 0.0
+      },
+      {
+       "chip": "nct6798",
+       "label": "fan6",
+       "rpm": 0.0
+      },
+      {
+       "chip": "nct6798",
+       "label": "fan7",
+       "rpm": 0.0
+      }
+     ]
+    },
+    "services": {
+     "running": 35.0,
+     "failed": [
+      "unit-a.service (user)"
+     ]
+    }
+   },
+   "failure": null,
+   "standing": null
+  }
+ ],
+ "more": false
+}

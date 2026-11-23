@@ -1,4 +1,4 @@
-import { HISTORY_SPANS, LIVE_KEEP_SECONDS, measures, seriesKey } from "#shared/hardware";
+import { HISTORY_SPANS, LIVE_CHART_SECONDS, LIVE_KEEP_SECONDS, measures, seriesKey } from "#shared/hardware";
 import { wording } from "#shared/wording";
 
 import { unitFetch } from "./units";
@@ -212,11 +212,13 @@ async function readings(name: string, spanMs: number, afterMs: number, limit: nu
   return page.items ?? [];
 }
 
-/** A machine's live readings since an instant, in seconds, no further back than the live record reaches, and only
- * the figures measuring what `metrics` lists where it lists any. */
+/** A machine's live readings since an instant, in seconds, no further back than the live record reaches, or over the
+ * last chart minute of the console's own clock where none is named; only the figures measuring what `metrics` lists
+ * where it lists any; and that clock as it answered. */
 export async function machineLive(name: string, since: number | null, metrics: readonly string[], now: number = Date.now()): Promise<LiveRange> {
-  const reach = Math.floor(now / 1000) - LIVE_KEEP_SECONDS;
-  const from = since === null ? reach : Math.max(reach, Math.floor(since));
+  const nowSeconds = Math.floor(now / 1000);
+  const reach = nowSeconds - LIVE_KEEP_SECONDS;
+  const from = Math.max(reach, since === null ? nowSeconds - LIVE_CHART_SECONDS : Math.floor(since));
   const read = await readings(name, 1_000, from * 1000, LIVE_KEEP_SECONDS + 1);
   const at = read.map((reading) => Math.floor(reading.at / 1000));
   const series: Record<string, (number | null)[]> = {};
@@ -229,7 +231,7 @@ export async function machineLive(name: string, since: number | null, metrics: r
     }
   });
 
-  return { at, series };
+  return { at, series, now: nowSeconds };
 }
 
 /** One span of a machine's record, ending now, gathered into the span's points. */

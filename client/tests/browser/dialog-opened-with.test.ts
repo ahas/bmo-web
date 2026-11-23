@@ -361,7 +361,7 @@ describe.skipIf(!origin || !touchReady())("a console dialog holds a change only 
         const rest = new URL(route.request().url()).pathname.split("/api/hardware/machines")[1] ?? "";
 
         if (rest === "" || rest === "/") return await route.fulfill({ json: [machine("node-a")] });
-        if (rest.endsWith("/live")) return await route.fulfill({ json: { at: [], series: {} } });
+        if (rest.endsWith("/live")) return await route.fulfill({ json: { at: [], series: {}, now: Math.floor(Date.now() / 1000) } });
         if (rest.endsWith("/history")) return await route.fulfill({ json: { at: [], pointSeconds: 5, series: {} } });
 
         return await route.fulfill({ json: machine(decodeURIComponent(rest.slice(1))) });

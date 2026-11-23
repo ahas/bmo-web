@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-import { againstText, capacityText, celsiusText, cpuLimitOf, driveSizeText, fillCriteria, fillHeat, fillText, fillWidest, gigabytesValue, gpuShortName, keepLive, LIVE_CHART_SECONDS, liveKeeping, loadText, machineName, mhzFigure, mhzText, monitorMachines, percentText, rangeLivePoints, rpmText, spanPollMs, spanUrl, storageKindWord, temperatureCriteria, temperatureHeat, uptimeText, vramText, vramWidest, wattsFigure, wattsText } from "../../../apps/web/app/domain/hardware";
+import { againstText, capacityText, celsiusText, consoleSeconds, cpuLimitOf, driveSizeText, fillCriteria, fillHeat, fillText, fillWidest, gigabytesValue, gpuShortName, keepLive, learnConsoleClock, LIVE_CHART_SECONDS, liveKeeping, loadText, machineName, mhzFigure, mhzText, monitorMachines, percentText, rangeLivePoints, rpmText, spanPollMs, spanUrl, storageKindWord, temperatureCriteria, temperatureHeat, uptimeText, vramText, vramWidest, wattsFigure, wattsText } from "../../../apps/web/app/domain/hardware";
 
 import type { CpuView, HardwareView, MachineHardware, MemoryView, MonitorNode } from "../../../apps/web/shared/types";
 
@@ -183,6 +183,22 @@ describe("keepLive", () => {
     expect(kept.points.value.map((one) => one.at)).toEqual([1_001 + LIVE_CHART_SECONDS]);
   });
 
+  test("a browser whose clock stands minutes ahead keeps the console's readings, reckoning the minute by the console's clock", () => {
+    const kept = liveKeeping({ url: "/api/hardware/live/test-ahead", metrics: [] });
+    // The console answers at 1_000_000 while the browser reads its own clock 153 seconds later, as a machine whose
+    // clock ran ahead was seen to.
+    const browserMs = (1_000_000 + 153) * 1000;
+
+    learnConsoleClock(1_000_000, browserMs);
+    expect(consoleSeconds(browserMs + 2_000)).toBe(1_000_002);
+
+    keepLive(kept, answer(1_000_002), consoleSeconds(browserMs + 2_000));
+    expect(kept.points.value.map((one) => one.at)).toEqual([1_000_002]);
+    expect(kept.now.value).toBe(1_000_002);
+
+    learnConsoleClock(0, 0);
+  });
+
   test("a screen keeps into the place of what it asked for, so a tile and a monitor each keep their own", () => {
     const monitor = { url: "/api/hardware/machines/alpha/live", metrics: [] };
 
@@ -192,7 +208,7 @@ describe("keepLive", () => {
   });
 
   test("the live record's columns become readings, each carrying only the figures it has", () => {
-    expect(rangeLivePoints({ at: [10, 11], series: { "cpu|use": [5, 6], "cpu|temp": [null, 40] } })).toEqual([
+    expect(rangeLivePoints({ at: [10, 11], series: { "cpu|use": [5, 6], "cpu|temp": [null, 40] }, now: 12 })).toEqual([
       { at: 10, sample: { "cpu|use": 5 } },
       { at: 11, sample: { "cpu|use": 6, "cpu|temp": 40 } },
     ]);

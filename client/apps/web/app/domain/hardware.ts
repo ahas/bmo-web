@@ -494,6 +494,22 @@ interface Kept extends LiveKeeping {
 // a monitor each keep their own. It lives as long as the page does.
 const liveKept = new Map<string, Kept>();
 
+// How far the console's clock stands ahead of the browser's, in seconds, as the last live answer said it. Every
+// instant a reading and the record carry is the console's side's, and a browser's clock may stand minutes off it,
+// so the live drawing reckons its last minute by the console's clock (docs/web.md, 「Monitor screen」).
+let consoleAhead = 0;
+
+// The console's clock now, in whole seconds, as far as the browser can tell it.
+export function consoleSeconds(nowMs: number = Date.now()): number {
+  return Math.floor(nowMs / 1000 + consoleAhead);
+}
+
+// The console's clock taken from a live answer, at the browser's instant it came back; an answer naming none leaves
+// what was known.
+export function learnConsoleClock(now: number | undefined, nowMs: number = Date.now()): void {
+  if (typeof now === "number" && Number.isFinite(now)) consoleAhead = now - nowMs / 1000;
+}
+
 function keptOf(source: LiveSource): Kept {
   const key = `${source.url}?${source.metrics.join(",")}`;
   let kept = liveKept.get(key);
@@ -559,16 +575,21 @@ async function fillLive(source: LiveSource): Promise<void> {
 
   if (kept.filling !== null) return await kept.filling;
 
-  const nowSeconds = Math.floor(Date.now() / 1000);
-  const since = kept.points.value.at(-1)?.at ?? nowSeconds - LIVE_CHART_SECONDS;
-  const query = source.metrics.length > 0 ? { since, metrics: source.metrics.join(",") } : { since };
+  // A first fill names no instant, so the console answers its own last minute; a later one asks for what came after
+  // the last reading kept, an instant of the console's.
+  const since = kept.points.value.at(-1)?.at;
+  const query = { ...(since === undefined ? {} : { since }), ...(source.metrics.length > 0 ? { metrics: source.metrics.join(",") } : {}) };
 
   kept.filling = (async () => {
     try {
       const range = (await $fetch(source.url, { query })) as LiveRange;
 
-      keepPoints(kept, rangeLivePoints(range), Math.floor(Date.now() / 1000));
-      if (kept.now.value === 0) kept.now.value = nowSeconds;
+      learnConsoleClock(range.now);
+
+      const now = consoleSeconds();
+
+      keepPoints(kept, rangeLivePoints(range), now);
+      kept.now.value = now;
     } catch {
       // A record that cannot be asked leaves the drawing to the readings the screen takes itself.
     } finally {
@@ -585,7 +606,7 @@ export function useMachineLive(live: LiveSource, reading?: () => MachineHardware
   const kept = keptOf(live);
 
   if (reading !== undefined) {
-    watch(reading, (answer) => keepLive(kept, answer, Math.floor(Date.now() / 1000)));
+    watch(reading, (answer) => keepLive(kept, answer, consoleSeconds()));
   }
 
   function onVisible(): void {
@@ -610,7 +631,7 @@ export function useMachineLive(live: LiveSource, reading?: () => MachineHardware
 export function useMachineHardware(url: Ref<string | null>, live: LiveSource): { machine: Ref<MachineHardware | null>; status: Ref<ReadStatus>; error: Ref<string | null>; missing: Ref<boolean>; live: LiveKeeping } {
   const kept = useMachineLive(live);
   const { value, status, error, missing } = usePolledRead<MachineHardware>(url, LIVE_PERIOD_MS, (answer) => {
-    keepLive(kept, answer, Math.floor(Date.now() / 1000));
+    keepLive(kept, answer, consoleSeconds());
   });
 
   return { machine: value, status, error, missing, live: kept };

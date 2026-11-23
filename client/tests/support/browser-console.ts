@@ -18,6 +18,7 @@ import { WatchedChildren } from "./children";
 import { manifestFields } from "./console-manifest";
 import { HARNESS_SCREEN_UNITS } from "./harness-screens";
 import { jobLogAnswer } from "./job-log";
+import { capturedMachines, capturedReadings } from "./node-machines";
 import { rawNumber } from "./raw-number";
 import { roleLogAnswer } from "./role-log";
 import { HIGH_ALBUM, HIGH_ANSWERED, HIGH_FILE, HIGH_FILE_NAME, HIGH_FILE_WORDS, HIGH_LINE, HIGH_PICTURE, HIGH_ROOM, highSent, highWords } from "./high-room";
@@ -1524,6 +1525,24 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     }
   },
   BRAIN: () => null,
+  // The node service, its machines as a running one answers them (tests/support/node-machines.ts), stamped now: the
+  // monitor's own reads are served from them, so a file driving the monitor through the console's server reads what
+  // the service sends. It lists no node, so the monitor's tiles are the machines its answer names.
+  NODE: (path, request) => {
+    if (path === "/nodes") return Response.json({ items: [], more: false });
+    if (path === "/machines") return Response.json(capturedMachines());
+
+    const readings = /^\/machines\/([^/]+)\/readings$/.exec(path);
+
+    if (readings !== null) {
+      return Response.json(capturedReadings(decodeURIComponent(readings[1]!), Number(new URL(request.url).searchParams.get("after"))));
+    }
+
+    const one = /^\/machines\/([^/]+)$/.exec(path);
+    const machine = one === null ? undefined : capturedMachines().items.find((item) => item.name === decodeURIComponent(one[1]!));
+
+    return machine === undefined ? null : Response.json(machine);
+  },
   // The first screen names the console's own members service under `calls`, and the second names nothing; the third
   // is released while the console runs.
   SCREEN_A: (path) => screenUnit(HARNESS_SCREEN_UNITS[0], path, ["people"]),

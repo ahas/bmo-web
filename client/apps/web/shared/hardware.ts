@@ -277,10 +277,12 @@ export const LIVE_CHART_SECONDS = 60;
 export const LIVE_GAP_SECONDS = (5 * LIVE_PERIOD_MS) / 1_000;
 
 // The live record's readings of one machine: when each was taken, and each figure's value at each of those
-// instants, null where that reading did not carry it.
+// instants, null where that reading did not carry it; and the console's clock as it answered, which the readings'
+// instants are reckoned by, so a screen windows its drawing by it rather than by the browser's own clock.
 export interface LiveRange {
   at: number[];
   series: Record<string, (number | null)[]>;
+  now: number;
 }
 
 // Whether a figure measures one of the given things; what a screen that draws only some of them asks for.

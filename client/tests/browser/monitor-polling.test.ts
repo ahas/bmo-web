@@ -65,7 +65,7 @@ async function open(width = 1_280, height = 900): Promise<BrowserContext> {
     const rest = new URL(route.request().url()).pathname.split("/api/hardware/machines")[1] ?? "";
 
     if (rest === "" || rest === "/") return await route.fulfill({ json: ["local", ...NODES.map((one) => one.name)].map(reading) });
-    if (rest.endsWith("/live")) return await route.fulfill({ json: { at: [], series: {} } });
+    if (rest.endsWith("/live")) return await route.fulfill({ json: { at: [], series: {}, now: Math.floor(Date.now() / 1000) } });
     if (rest.endsWith("/history")) return await route.fulfill({ json: { at: [], pointSeconds: 5, series: {} } });
 
     return await route.fulfill({ json: reading(decodeURIComponent(rest.slice(1))) });
@@ -162,6 +162,44 @@ describe.skipIf(!origin || !touchReady())("the monitor's devices tab", () => {
       // One column: every tile shares the left edge, and none reaches past the screen.
       expect(new Set(boxes.map((one) => one.left)).size).toBe(1);
       expect(boxes.every((one) => one.right <= 360)).toBe(true);
+    } finally {
+      await context.close();
+    }
+  }, 120_000);
+
+  test("reads every machine's figures through the console from the node service's own answer, the browser's clock minutes ahead", async () => {
+    // No route of the page's own: the console's server asks the harness's node service, which answers as a running
+    // one does (tests/support/node-machines.ts). The browser's clock stands 153 seconds ahead of the console's, as a
+    // machine's was seen to, which once dropped every reading out of the last minute and left each figure unread.
+    const context = await browser!.newContext({ viewport: { width: 1_280, height: 900 }, serviceWorkers: "block", reducedMotion: "reduce" });
+    const at = cookie.indexOf("=");
+
+    await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
+    await context.addInitScript((ahead) => {
+      const real = Date.now;
+
+      Date.now = () => real() + ahead;
+    }, 153_000);
+
+    const page = await context.newPage();
+
+    try {
+      await page.goto(`${origin}/monitor`, { waitUntil: "domcontentloaded" });
+      await page.waitForFunction(() => document.querySelectorAll("[data-machine-tile]").length === 2, undefined, { timeout: 30_000 });
+
+      // Every tile's CPU and GPU stand with a use and a temperature.
+      const lines = page.locator("[data-machine-tile] [data-tile-pieces] li");
+
+      await page.waitForFunction(() => {
+        const read = [...document.querySelectorAll("[data-machine-tile] [data-tile-pieces] li")].map((one) => (one as HTMLElement).innerText.replace(/\s+/g, " ").trim());
+
+        return read.length === 4 && read.every((line) => /^(CPU|GPU) \d+% · \d+°C$/.test(line));
+      }, undefined, { timeout: 20_000 });
+
+      const read = (await lines.allInnerTexts()).map((line) => line.replace(/\s+/g, " ").trim());
+
+      expect(read).toHaveLength(4);
+      for (const line of read) expect(line).toMatch(/^(CPU|GPU) \d+% · \d+°C$/);
     } finally {
       await context.close();
     }

@@ -129,7 +129,7 @@ async function open(width: number, height: number, users: "answer" | "hold" | "f
     const rest = new URL(route.request().url()).pathname.split("/api/hardware/machines")[1] ?? "";
 
     if (rest === "" || rest === "/") return await route.fulfill({ json: ["local", ...MONITORED].filter((one) => !served.missing.has(one)).map(reading) });
-    if (rest.endsWith("/live")) return await route.fulfill({ json: { at: [], series: {} } });
+    if (rest.endsWith("/live")) return await route.fulfill({ json: { at: [], series: {}, now: Math.floor(Date.now() / 1000) } });
     if (rest.endsWith("/history")) return await route.fulfill({ json: { at: [], pointSeconds: 5, series: {} } });
 
     const name = decodeURIComponent(rest.slice(1));

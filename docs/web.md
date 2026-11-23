@@ -2862,6 +2862,13 @@ archive and this week's tokens remain. That is all that can actually be known th
   screen's whole subject. The live charts are filled from the node service's live record on opening and on coming
   back, and a record is a span of the node service's readings gathered into the span's points (bmo-node's
   `docs/hardware.md`, 「History」). The console keeps no copy of either.
+- **The live drawing goes by the console's clock, never the browser's.** Every instant a reading and the record
+  carry is stamped by the machines' side, and a browser's clock may stand minutes off it, which would put every
+  reading outside the last minute and leave every use and temperature 읽지 못함. So the console's live answer
+  carries its own clock as it answered; the screen reckons the last minute, where its charts end and which
+  readings it keeps, by that clock, carried on by the time passed since; and a first fill asks for the last minute
+  as the console counts it, a later one for what came after the last reading kept, so no instant of the browser's
+  is ever sent.
 - Every figure that is a share of a whole — a use, a fill, a power against its limit, a temperature against a
   hundred degrees — is a bar, coloured only where its figure has steps: a temperature against its part's limit
   and a fill, a use never. The bars of one card stand as one group: the names in a column, the bars starting on

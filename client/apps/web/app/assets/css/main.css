@@ -264,48 +264,34 @@
 }
 
 
-/* A message's bubble while it is being judged: a heartbeat of a ring around it, two quick swells of its
-   brightness and a rest, looping until the judging is over (docs/web.md, 「판정」). The ring stands on a layer of its
-   own over the bubble's edge, so nothing inside moves and the arrival's rise is left alone. A reader who asked for
-   less movement sees the ring stand still at half its strength. */
+/* A message's bubble while it is being judged: a thin ring around it breathing, fading slowly in and out, until
+   the judging is over (docs/web.md, 「판정」). The ring stands on a layer of its own over the bubble's edge, so
+   nothing inside moves and the arrival's rise is left alone. A reader who asked for less movement sees the ring
+   stand still, faint. */
 .bubble-beat::after {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
-  box-shadow: 0 0 0 2px var(--ui-border-accented);
-  animation: bubble-beat 1.2s ease-in-out infinite;
+  box-shadow: 0 0 0 1px var(--ui-border-accented);
+  animation: bubble-breathe 2.4s ease-in-out infinite alternate;
 }
 
-@keyframes bubble-beat {
-  0%,
-  45%,
-  100% {
-    opacity: 0.15;
-    box-shadow: 0 0 0 1px var(--ui-border-accented);
+@keyframes bubble-breathe {
+  from {
+    opacity: 0.1;
   }
 
-  12% {
-    opacity: 1;
-    box-shadow: 0 0 0 3px var(--ui-border-accented);
-  }
-
-  24% {
-    opacity: 0.45;
-    box-shadow: 0 0 0 2px var(--ui-border-accented);
-  }
-
-  34% {
-    opacity: 0.9;
-    box-shadow: 0 0 0 3px var(--ui-border-accented);
+  to {
+    opacity: 0.85;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .bubble-beat::after {
     animation: none;
-    opacity: 0.5;
+    opacity: 0.4;
   }
 }
 

@@ -4917,7 +4917,7 @@ Four bounds keep it from growing forever.
   turn's thinking」) is told by that kind and never by its words. It stands in the agent's run as a bubble like any
   of its lines, its words muted, and its meta line opens on the label 생각 at the leading end, where an answer's
   chips stand. It is no answer: it carries no chip, no waiting time and no voice briefing chip.
-- **판정** — a person's message carries no verdict mark. While it is being judged its bubble beats (below);
+- **판정** — a person's message carries no verdict mark. While it is being judged its bubble breathes (below);
   once judged it stands still, and what judged the round — the turn's own word, the gates' cards and the
   situation note it read last — stands in the round's answer's record, under 판정 기록, and a round that left
   no answer leaves nothing to open. An answer carries no mark either, so its waiting time stands by its time
@@ -4931,45 +4931,32 @@ Four bounds keep it from growing forever.
     them all under its answer: a verdict filed under an agent's message that is not the answer's stands under the
     person's message carrying the same round's verdicts on the page, and under nothing where the page has none.
     An answer's verdict whose round's answer the page does not carry stands under nothing.
-  - **While the message is being judged its bubble beats** — a heartbeat of a ring around the bubble, two quick
-    swells of its brightness and width and a rest, over and over, in the accented border's grey, drawn on a layer
-    of its own over the bubble's edge so nothing inside the bubble moves and nothing under a finger changes; a
-    screen reader reads 판정 중 in the bubble. A message is being
+  - **While the message is being judged its bubble breathes** — a thin ring around the bubble fading slowly in and
+    out, in the accented border's grey, drawn on a layer of its own over the bubble's edge so nothing inside the
+    bubble moves and nothing under a finger changes; a screen reader reads 판정 중 in the bubble. A message is being
     judged while it waits for the chat agent's turn, and while the chat agent's turn that read it last is
     still going, from the turn's start until the room has read its answer.
     - **The wait counts from the moment the receiver puts the message into the room's queue for the chat agent**, through
       the queue's quiet delay and whatever the round waits on before it opens, until a turn of theirs takes it, so
-      the bubble beats from the send itself. The bot's picture holds that message as queued, the newest of the
+      the bubble breathes from the send itself. The bot's picture holds that message as queued, the newest of the
       room's only, since the round reads the newest last and the earlier ones only along with it
       (docs/live-state.md, 「A message waiting for its turn」).
     - The turn names the message it reads last from its start, in its start event and in the bot's picture,
       and moves on to a message pushed into it, so a screen that came in after the turn began knows it as well
-      (docs/live-state.md, 「What a running turn says of itself」), and the bubble beats on through the gaps
+      (docs/live-state.md, 「What a running turn says of itself」), and the bubble breathes on through the gaps
       between its gates before any verdict has arrived.
     - A turn of any supervisor but the default answerer writes its verdict on its own answer, so the message it
       read is not being judged.
-    - A reader who asked for less movement sees the ring stand still at half its strength, for as long as it
-      would beat.
+    - A reader who asked for less movement sees the ring stand still and faint, for as long as it would
+      breathe.
     - **A verdict that ends a stage's work is final.** A message holding a verdict written since its judging
       began that opens with an ending word — `SKIP`, `CLEAN`, `DEFUSE`, `REPLY`, `SENT`, `PASS`, `FAIL` or
       `FAILED` — is judged no longer, whatever the queue or the turns in the receiver's picture still say of it:
       a round the gate ended at a skip takes no turn, and a picture still holding the message queued or its turn
-      going would otherwise beat the mark until something else moved it. The beat stands again only for judging
-      that begins after that verdict.
+      going would otherwise keep the bubble breathing until something else moved it. The breathing starts again
+      only for judging that begins after that verdict.
     - The live runs of the gates are served by no unit (`docs/boundary.md`, 「Gaps the console meets」), so a
-      picture naming none leaves the beat to the queue and the turns.
-  - **Once judging is over the mark takes the colour of the whole**: the bubble's green mark ink where at least
-    one verdict passed, answered, went out or came out clean — `PASS`, `REPLY`, `SENT`, `CLEAN` — and none failed
-    (판정 통과), its red mark ink where any failed — `FAIL`, `FAILED` — (판정 실패), and the chip's own grey where
-    none of them did either — a skip, a defuse, a pick, a `none`, 함께 읽음 (판정). The two
-    marks are the inks 「The conversation's measures」 gives a mark inside a bubble: the green vivid at its full
-    strength, each reading at 3:1 or better on the bubble and on the open chip's wash, the owner's and everyone
-    else's alike. The change of colour takes the quick length.
-  - A mark that comes while the message is on screen with verdicts already settled — no judging seen before
-    them — pops in, a short scale and fade on the pop length. A message read in with its mark already there
-    stands it at once, and a reader who asked for less movement sees it stand at once.
-  - A message sent in the last ten minutes keeps room on its meta line for the mark from the start, so the time
-    and the bubble do not move when it comes.
+      picture naming none leaves the breathing to the queue and the turns.
   - A spread card stands the stage name, its time, how long that stage took, the verdict in words, and the road
     that run walked. A length of time stands in seconds to one decimal, 「11.8초」, never in milliseconds.
     - **The verdict's words**: 선택 with the names chosen, 선택 없음, 후보 없음, 이상 없음 for a sanitiser's `CLEAN`,

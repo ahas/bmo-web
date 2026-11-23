@@ -62,7 +62,7 @@ async function open(judging: boolean, reducedMotion: "reduce" | "no-preference")
 }
 
 describe.skipIf(!origin || !touchReady())("a message being judged", () => {
-  test("beats its bubble at a phone's width, says so to a screen reader and carries no mark", async () => {
+  test("breathes its bubble at a phone's width, says so to a screen reader and carries no mark", async () => {
     const context = await open(true, "no-preference");
     const page = await context.newPage();
 
@@ -74,14 +74,14 @@ describe.skipIf(!origin || !touchReady())("a message being judged", () => {
       await bubble.waitFor({ timeout: 30_000 });
       await page.locator("[data-message] [data-bubble].bubble-beat").first().waitFor({ timeout: 20_000 });
 
-      // The ring beats on a layer of its own over the bubble's edge, so nothing inside the bubble moves.
+      // The ring breathes on a layer of its own over the bubble's edge, so nothing inside the bubble moves.
       const ring = await bubble.evaluate((node) => {
         const after = getComputedStyle(node, "::after");
 
         return { animation: after.animationName, events: after.pointerEvents };
       });
 
-      expect(ring).toEqual({ animation: "bubble-beat", events: "none" });
+      expect(ring).toEqual({ animation: "bubble-breathe", events: "none" });
       expect(await page.locator("[data-message] [data-judging]").first().textContent()).toBe(wording("room.label.chip_verdicts_judging"));
       expect(await page.locator("[data-message] [data-verdict-mark]").count()).toBe(0);
 

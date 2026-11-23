@@ -1139,11 +1139,14 @@ section states what each does.
 
 ## Whose work a job is
 
-- **A job another user filed is checked by bmo-job as it launches:** `POST /checks/object` for the user's
-  `run` on the worker and `change` on its repository. Whether the user holds a Claude account of their own is
-  the agency's to answer.
-- **What a check decides is the grants and nothing else.** Which item runs on whose authority is the job
-  service's own record.
+- **Work stands only on a repository of its holder's side,** as the agency holds it (bmo-agency's
+  `docs/api.md`, 「A repository takes the work of its own side alone」): an item filed, a worker held, a job
+  launched and a repository lent are refused where the supervisor's account and the repository's owner
+  differ, the platform's side being the repositories of no account or of the administrator's own. Whether the
+  user holds a Claude account of their own is the agency's to answer too.
+- **A member changes their own account's agents alone:** the console sections decide which part of agent
+  management a member reaches, and the agency then refuses a change to a supervisor, a repository or a role
+  agent filed under another account or the platform's (bmo-agency's `docs/api.md`, 「Who a caller acts for」).
 
 ## The tables
 

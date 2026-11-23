@@ -6,7 +6,7 @@ import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, BrowserContext } from "playwright-core";
 
-// A person's message being judged beats its bubble; judged or not, its line carries no verdict mark (docs/web.md, the room screen's verdicts).
+// A person's message being judged breathes its bubble; judged or not, its line carries no verdict mark (docs/web.md, the room screen's verdicts).
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up, serves the
 // room's page through the page's own route, and hands the live picture the bot's event stream carries, with the
@@ -72,16 +72,31 @@ describe.skipIf(!origin || !touchReady())("a message being judged", () => {
       const bubble = page.locator("[data-message] [data-bubble]").first();
 
       await bubble.waitFor({ timeout: 30_000 });
-      await page.locator("[data-message] [data-bubble].bubble-beat").first().waitFor({ timeout: 20_000 });
+      const beat = bubble.locator("[data-beat]");
 
-      // The ring breathes on a layer of its own over the bubble's edge, so nothing inside the bubble moves.
-      const ring = await bubble.evaluate((node) => {
-        const after = getComputedStyle(node, "::after");
+      await beat.waitFor({ timeout: 20_000 });
 
-        return { animation: after.animationName, events: after.pointerEvents };
+      // The ring breathes on a layer of its own under the bubble's words, so nothing inside the bubble moves.
+      const ring = await beat.evaluate((node) => {
+        const style = getComputedStyle(node);
+
+        return { animation: style.animationName, events: style.pointerEvents };
       });
 
       expect(ring).toEqual({ animation: "bubble-breathe", events: "none" });
+
+      // The layer carries the bubble's tail grown by the ring's width round its outer edges, so the ring runs round
+      // the bubble and its tail as one shape, to within layout's own rounding.
+      const reach = await beat.evaluate((node) => {
+        const width = parseFloat(getComputedStyle(node).getPropertyValue("--bubble-beat-width"));
+        const tail = node.parentElement!.querySelector(":scope > .bubble-tail")!.getBoundingClientRect();
+        const grown = node.querySelector(".bubble-tail-grown")!.getBoundingClientRect();
+        const outward = tail.left - grown.left > 0 ? tail.left - grown.left : grown.right - tail.right;
+
+        return { outward: outward - width, under: grown.bottom - tail.bottom - width, top: grown.top - tail.top };
+      });
+
+      for (const gap of Object.values(reach)) expect(Math.abs(gap)).toBeLessThan(0.05);
       expect(await page.locator("[data-message] [data-judging]").first().textContent()).toBe(wording("room.label.chip_verdicts_judging"));
       expect(await page.locator("[data-message] [data-verdict-mark]").count()).toBe(0);
 
@@ -102,10 +117,10 @@ describe.skipIf(!origin || !touchReady())("a message being judged", () => {
     try {
       await page.goto(`${origin}/rooms/${CHAT}`, { waitUntil: "domcontentloaded" });
 
-      const bubble = page.locator("[data-message] [data-bubble].bubble-beat").first();
+      const beat = page.locator("[data-message] [data-bubble] [data-beat]").first();
 
-      await bubble.waitFor({ timeout: 30_000 });
-      expect(await bubble.evaluate((node) => getComputedStyle(node, "::after").animationName)).toBe("none");
+      await beat.waitFor({ timeout: 30_000 });
+      expect(await beat.evaluate((node) => getComputedStyle(node).animationName)).toBe("none");
     } finally {
       await context.close();
     }
@@ -121,7 +136,7 @@ describe.skipIf(!origin || !touchReady())("a message being judged", () => {
 
       expect(await page.locator("[data-message] [data-verdict-mark]").count()).toBe(0);
 
-      expect(await page.locator("[data-message] [data-bubble].bubble-beat").count()).toBe(0);
+      expect(await page.locator("[data-message] [data-beat]").count()).toBe(0);
       expect(await page.locator("[data-message] [data-judging]").count()).toBe(0);
     } finally {
       await context.close();

@@ -148,10 +148,12 @@
                   ref="bubble"
                   data-bubble
                   class="relative"
-                  :class="[bubbleClass, albumed ? 'w-80 max-w-full' : pictured ? 'w-fit max-w-80' : 'w-fit max-w-full', props.arriving ? 'bubble-rise' : '', beating ? 'bubble-beat' : '', !bare && stuck && props.item.look.side === 'right' ? 'ms-auto' : '', bare && pictured ? 'rounded-(--chat-radius)' : '']"
+                  :class="[bubbleClass, albumed ? 'w-80 max-w-full' : pictured ? 'w-fit max-w-80' : 'w-fit max-w-full', props.arriving ? 'bubble-rise' : '', !bare && stuck && props.item.look.side === 'right' ? 'ms-auto' : '', bare && pictured ? 'rounded-(--chat-radius)' : '']"
                 >
                   <!-- A message being judged says so to a screen reader, as its beat says it to the eye. -->
                   <span v-if="beating" data-judging class="sr-only">{{ $t("room.label.chip_verdicts_judging") }}</span>
+                  <!-- Its beat stands under everything it holds and rings its tail with it. -->
+                  <BubbleBeat v-if="beating" :tail="tailed ? props.item.look.side : null" />
                   <div class="relative flex flex-col overflow-hidden rounded-inherit">
                     <!-- The sender's name, once at the head of the run's first bubble, and the
                          message this one answers: a line pressed to go there, one the archive does

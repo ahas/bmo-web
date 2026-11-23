@@ -4932,8 +4932,10 @@ Four bounds keep it from growing forever.
     person's message carrying the same round's verdicts on the page, and under nothing where the page has none.
     An answer's verdict whose round's answer the page does not carry stands under nothing.
   - **While the message is being judged its bubble breathes** — a thin ring around the bubble fading slowly in and
-    out, in the accented border's grey, drawn on a layer of its own over the bubble's edge so nothing inside the
-    bubble moves and nothing under a finger changes; a screen reader reads 판정 중 in the bubble. A message is being
+    out, in the accented border's grey. The ring runs round the bubble and its tail as one shape, down the tail's
+    arc and along its foot with no line where the tail meets the bubble, and a bubble with no ground of its own
+    breathes round its box. It is drawn on a layer of its own under everything the bubble holds, so nothing inside
+    the bubble moves and nothing under a finger changes; a screen reader reads 판정 중 in the bubble. A message is being
     judged while it waits for the chat agent's turn, and while the chat agent's turn that read it last is
     still going, from the turn's start until the room has read its answer.
     - **The wait counts from the moment the receiver puts the message into the room's queue for the chat agent**, through

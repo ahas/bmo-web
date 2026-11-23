@@ -1,0 +1,242 @@
+# What installing the console and its server on a fresh machine needs, read by the testbed's install verb
+# (bmo-testbed's docs/install.md, 「The install declaration」). The server's settings and the console's environment
+# stand under the data root (docs/web.md, 「Running as a service」; docs/boundary.md, 「Settings」); every unit the
+# console calls adds its own address and token lines to the console's environment in its own declaration, so the
+# environment written here holds the console's own keys alone.
+
+install = 1
+
+# The server and the console, each a user unit of the deploy tree.
+restart = "systemctl --user restart bmo-web-server.service bmo-web.service"
+
+report = "{{input.web.public-address}}"
+
+[[needs]]
+program = "cargo"
+what = "Rust's Cargo, which a deployment builds the server with: `curl https://sh.rustup.rs -sSf | sh`."
+
+[[needs]]
+program = "cc"
+what = "A C toolchain, whose linker Cargo links the server with: the `build-essential` package."
+
+[[needs]]
+check = 'test -x "$HOME/.bun/bin/bun"'
+what = "Bun at ~/.bun/bin/bun, which builds the console, runs it as a service and runs its account script: `curl -fsSL https://bun.sh/install | bash`."
+
+[[needs]]
+program = "git"
+what = "git, which the console's build step names its release by: the `git` package."
+
+[[needs]]
+program = "psql"
+what = "PostgreSQL, the server's database, reached on its local socket by a role named after the user the install runs as, allowed to create databases: the `postgresql` package, then `sudo -u postgres createuser --createdb \"$USER\"`."
+
+[[needs]]
+check = '''psql --dbname=postgres --no-psqlrc --tuples-only --no-align --command "select 1 from pg_available_extensions where name = 'uuid-ossp'" | grep -qx 1'''
+what = "PostgreSQL's contributed extensions, whose uuid-ossp the server's migrations make in its database: the `postgresql-contrib` package."
+
+[[needs]]
+check = '{ valkey-cli ping || redis-cli ping; } 2>/dev/null | grep -qx PONG'
+what = "Valkey (or Redis) answering on 127.0.0.1:6379, where the server keeps its sign-in sessions: the `valkey` package (or `redis-server`), its service enabled."
+
+[[needs]]
+program = "curl"
+what = "curl, which the after-steps call the server's routes with: the `curl` package."
+
+[[needs]]
+program = "jq"
+what = "jq, which the after-steps read the server's answers with: the `jq` package."
+
+[[port]]
+name = "web.server"
+number = 3240
+
+[[port]]
+name = "web.console"
+number = 3210
+
+# The bearer every caller of the server presents (docs/accounts.md, 「Where it answers」).
+[[token]]
+name = "web.server"
+file = "env/web.token"
+
+# The key the console seals its session cookie with, at least 32 characters.
+[[token]]
+name = "web.session"
+file = "env/web-session.key"
+
+[[input]]
+name = "web.owner-name"
+what = "The name the owner signs in to the console with: 2 to 64 letters, digits, dots, underscores and hyphens, chosen by the person installing."
+file = "install/inputs/web.owner-name"
+
+[[input]]
+name = "web.owner-password"
+what = "The password the owner signs in to the console with, 8 characters or more, chosen by the person installing."
+file = "env/web-owner-password"
+secret = true
+
+[[input]]
+name = "web.public-address"
+what = "The console's public address as a browser opens it, its scheme, host and the base path /bmo/ with its closing slash, such as https://console.example/bmo/; the machine's own address where nothing outside reaches it."
+file = "install/inputs/web.public-address"
+default = "http://127.0.0.1:3210/bmo/"
+
+# Where the other units reach the server.
+[[value]]
+name = "web.address"
+value = "http://127.0.0.1:{{port.web.server}}"
+
+# The owner's user on the account service: the data move makes the console's one account the first user of a fresh
+# database (docs/accounts.md, 「The data move」), and user ids count from 1.
+[[value]]
+name = "web.owner-account"
+value = "1"
+
+[[database]]
+name = "bmo_web"
+
+# The server's settings.local.toml (docs/boundary.md, 「Settings」).
+[[settings]]
+file = "env/web.toml"
+text = '''
+[server]
+listen = "127.0.0.1:{{port.web.server}}"
+token = "{{token.web.server}}"
+
+[database]
+url = "postgres:///bmo_web?host=/var/run/postgresql"
+
+[sessions]
+valkey = "redis://127.0.0.1:6379/13"
+
+[receiver]
+base = "http://127.0.0.1:{{port.receiver.server}}"
+token = "{{token.receiver.service}}"
+
+[agency]
+base = "http://127.0.0.1:{{port.agency.control}}"
+token = "{{token.agency.control}}"
+
+[names]
+chat_agent = "{{value.agent.label}}"
+
+[secrets]
+dir = "{{data_root}}/env"
+'''
+
+# The console's own environment (client/apps/web/.env.example), which its unit and its build read. The control
+# socket is not among them: it stands under the user's runtime directory, which no value here names, and the
+# tool-socket after-step adds it.
+[[settings]]
+file = "env/web-console.env"
+text = '''
+PORT={{port.web.console}}
+BMO_WEB_BASE_URL=/bmo/
+NUXT_SESSION_PASSWORD={{token.web.session}}
+WEB_DATABASE_URL=postgres:///bmo_web?host=/var/run/postgresql
+WEB_SERVER_ADDRESS={{value.web.address}}
+WEB_SERVER_TOKEN={{token.web.server}}
+NUXT_PUBLIC_CHAT_AGENT_NAME={{value.agent.name}}
+NUXT_PUBLIC_CHAT_AGENT_LABEL={{value.agent.label}}
+NUXT_PUBLIC_CONSOLE_ADDRESS={{input.web.public-address}}
+WEB_DATA_DIR={{data_root}}/web
+WEB_FEATURES_FILE={{data_root}}/env/console-features.toml
+POCKET_SESSION_TOKEN_FILE={{data_root}}/tool-host/held/console.token
+KEEPALIVE_CONSUMER=receiver
+BMO_WEB_SERVER_BIN={{home}}/.local/share/bmo-web/deploy/bin/bmo-web-server
+BMO_WEB_SERVER_DIR={{home}}/.local/share/bmo-web/deploy/server
+DEPLOY_ROOTS={{home}}/.local/share/bmo-cli:{{home}}/.local/share/bmo-pocket:{{home}}/.local/share/bmo-testbed:{{home}}/.local/share/bmo-web:{{home}}/.local/share/bmo-job:{{home}}/.local/share/bmo-brain:{{home}}/.local/share/bmo-cache-warmer:{{home}}/.local/share/bmo-agency:{{home}}/.local/share/bmo-receiver:{{home}}/.local/share/bmo-gate:{{home}}/.local/share/bmo-explorer:{{home}}/.local/share/bmo-telegram:{{home}}/.local/share/bmo-discord:{{home}}/.local/share/bmo-artifact:{{home}}/.local/share/bmo-note:{{home}}/.local/share/bmo-calendar:{{home}}/.local/share/bmo-drive:{{home}}/.local/share/bmo-mail:{{home}}/.local/share/bmo-remote:{{home}}/.local/share/bmo-review:{{home}}/.local/share/bmo-research:{{home}}/.local/share/bmo-node:{{home}}/.local/share/bmo-arbiter:{{home}}/.local/share/bmo-voice:{{home}}/.local/share/bmo-eye:{{home}}/.local/share/bmo-face:{{home}}/.local/share/bmo-voc:{{home}}/.local/share/bmo-cache-siren:{{home}}/.local/share/bmo-theater:{{home}}/.local/share/jake-hub
+'''
+
+# The server's address and token for the units that ask the account service and read them from this file, the
+# agency among them.
+[[settings]]
+file = "env/web.env"
+text = '''
+WEB_ADDRESS={{value.web.address}}
+WEB_TOKEN={{token.web.server}}
+'''
+
+# The console's held session on the tool host (bmo-pocket's docs/api.md, 「A console's tool session」): the two
+# explorer entries a link card's page and picture are read through, and no other (docs/boundary.md, 「The web beyond
+# the units」). The host issues it and writes its token beside it, the file POCKET_SESSION_TOKEN_FILE names.
+[[settings]]
+file = "tool-host/held/console.json"
+text = '''
+{
+  "holderName": "console",
+  "namespaces": ["explorer"],
+  "capabilities": [],
+  "grants": [],
+  "entries": ["explorer/link_preview", "explorer/fetch_raster"],
+  "variables": { "BMO_DATA_DIR": "{{data_root}}" }
+}
+'''
+
+# The first account, made by the console's account script (docs/web.md, 「Making an account and resetting a
+# password」) from the deployment's build tree, where its packages stand installed. The script takes the name and
+# the password as words, so they are put into its words inside the process from the input files and never stand on
+# a command line.
+[[after]]
+id = "first-account"
+inputs = ["web.owner-name", "web.owner-password"]
+run = '''
+set -eu
+set -a
+. "$BMO_DATA_DIR/env/web-console.env"
+set +a
+cd "$HOME/.local/share/bmo-web/deploy-expand/client/apps/web"
+"$HOME/.bun/bin/bun" -e '
+const read = (name) => require("node:fs").readFileSync(process.env[name], "utf8").replace(/\r?\n$/, "");
+process.argv.splice(1, process.argv.length - 1, "scripts/user.ts", "set", read("BMO_INPUT_WEB_OWNER_NAME"), read("BMO_INPUT_WEB_OWNER_PASSWORD"), "--administrator");
+await import("./scripts/user.ts");
+'
+'''
+done = '''psql --dbname=bmo_web --no-psqlrc --tuples-only --no-align --command "select 1 from web_users limit 1" | grep -qx 1'''
+
+# The data move (docs/accounts.md, 「The data move」), which brings the account model into force and makes the
+# console's one account the platform administrator. A fresh machine has no owner's sender and no room to carry:
+# the console links the owner's sender to that account itself once the receiver names one.
+[[after]]
+id = "data-move"
+run = '''
+set -eu
+env="$BMO_DATA_DIR/env/web-console.env"
+field() { sed -n "s/^$1=//p" "$env" | tail -n 1; }
+header="$(mktemp)"
+trap 'rm -f "$header"' EXIT
+printf 'Authorization: Bearer %s\n' "$(field WEB_SERVER_TOKEN)" > "$header"
+printf '%s' '{"ownerSenders": [], "rooms": []}' |
+  curl -sf -o /dev/null -H @"$header" -H 'Content-Type: application/json' --data-binary @- "$(field WEB_SERVER_ADDRESS)/accounts/move"
+'''
+done = '''
+set -eu
+env="$BMO_DATA_DIR/env/web-console.env"
+field() { sed -n "s/^$1=//p" "$env" | tail -n 1; }
+header="$(mktemp)"
+trap 'rm -f "$header"' EXIT
+printf 'Authorization: Bearer %s\n' "$(field WEB_SERVER_TOKEN)" > "$header"
+curl -sf -H @"$header" "$(field WEB_SERVER_ADDRESS)/accounts/model" | jq -e '.inForce == true' > /dev/null
+'''
+
+# The tool host's control socket, which stands under the user's runtime directory, added to the console's
+# environment and the console restarted to read it.
+[[after]]
+id = "tool-socket"
+run = '''
+set -eu
+env="$BMO_DATA_DIR/env/web-console.env"
+printf 'BMO_MCP_HOST_SOCKET=%s\n' "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/bmo/mcp-host.sock" >> "$env"
+systemctl --user restart bmo-web.service
+'''
+done = '''grep -q '^BMO_MCP_HOST_SOCKET=' "$BMO_DATA_DIR/env/web-console.env"'''
+
+[[verify]]
+id = "console-answers"
+what = "the console answers at its own port under its base path"
+run = '''
+set -eu
+port="$(sed -n 's/^PORT=//p' "$BMO_DATA_DIR/env/web-console.env" | tail -n 1)"
+curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$port/bmo/" | grep -qE '^(2|3)[0-9][0-9]$'
+'''

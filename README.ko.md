@@ -19,7 +19,7 @@
 | `docs/` | 콘솔과 서버의 동작에 대한 기준 문서, 그리고 이 저장소가 분리되어 나온 단일 저장소에서 가져온 것의 목록 |
 
 루트에는 `server/`와 `server/client/`를 멤버로 둔 Cargo 워크스페이스 매니페스트와 그 lockfile, `VERSION`의 버전,
-`testbed.toml`(이 저장소를 어떻게 테스트·검사·빌드·배포하는지에 대한 테스트베드 선언), `rustfmt.toml`,
+`testbed.toml`(이 저장소를 어떻게 테스트·검사·빌드·배포하는지에 대한 테스트베드 선언), `install.toml`(새 기계에 설치할 때 필요한 것을 적은, 테스트베드의 install 동사가 읽는 선언), `rustfmt.toml`,
 `LICENSE`(MIT), `PERSONAL-DATA.md`(어떤 파일에도 들어가면 안 되는 개인정보), `WORDING.md`(콘솔이 보여 주는
 한국어에 대한 가이드), `CLAUDE.md`, 그리고 `korean-ledger.json`(코드 파일에 남은 한국어 기록으로, 테스트베드의
 한국어 점검이 모든 파일을 이것에 비추어 확인합니다. 이 저장소의 코드 파일에는 한국어가 하나도 없습니다)이 있습니다.

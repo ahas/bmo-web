@@ -21,7 +21,7 @@ Web コンソール `bmo-web` です。言語パックを備えた sumida ベー
 
 ルートには、`server/` と `server/client/` をメンバーとする Cargo ワークスペースのマニフェストとそのロックファイル、
 `VERSION` のバージョン、`testbed.toml`(このリポジトリのテスト、チェック、ビルド、デプロイの方法を示すテストベッドの
-宣言)、`rustfmt.toml`、`LICENSE`(MIT)、`PERSONAL-DATA.md`(どのファイルにも置いてはならない個人データ)、
+宣言)、`install.toml`(新しいマシンへのインストールに必要なものを記した、テストベッドの install 動詞が読む宣言)、`rustfmt.toml`、`LICENSE`(MIT)、`PERSONAL-DATA.md`(どのファイルにも置いてはならない個人データ)、
 `WORDING.md`(コンソールが表示する韓国語のガイド)、`CLAUDE.md`、そして `korean-ledger.json`(コードファイルに
 残る韓国語の台帳で、テストベッドの韓国語スイープがすべてのファイルをこれと突き合わせます。このリポジトリのコード
 ファイルには韓国語は一切ありません)があります。

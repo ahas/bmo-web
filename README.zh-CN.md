@@ -18,7 +18,7 @@ Web 控制台 `bmo-web`。它由两部分组成：服务器，即基于 sumida�
 | `docs/` | 描述控制台及其服务器行为的规范文档，以及本仓库从其拆分出来的单一仓库中所接收内容的清单 |
 
 根目录下有成员为 `server/` 和 `server/client/` 的 Cargo 工作区清单及其锁文件；`VERSION` 中的版本；
-`testbed.toml`(测试台对本仓库如何测试、检查、构建和部署的声明)；`rustfmt.toml`；`LICENSE`(MIT)；
+`testbed.toml`(测试台对本仓库如何测试、检查、构建和部署的声明)；`install.toml`(说明在新机器上安装时需要什么，由测试台的 install 动词读取)；`rustfmt.toml`；`LICENSE`(MIT)；
 `PERSONAL-DATA.md`(任何文件都不得包含的个人数据)；`WORDING.md`(控制台所显示韩语的指南)；`CLAUDE.md`；以及
 `korean-ledger.json`(代码文件中保留的韩语台账，测试台的韩语扫描以它核对每个文件；本仓库的代码文件中没有任何韩语)。
 

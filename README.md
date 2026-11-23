@@ -21,7 +21,7 @@ answers in English messages and codes, which these packs render.
 
 At the root stand the Cargo workspace manifest, whose members are `server/` and `server/client/`, and its lockfile; the version in
 `VERSION`; `testbed.toml` (the testbed's declaration of how this repository is tested, checked, built and
-deployed); `rustfmt.toml`; `LICENSE` (MIT); `PERSONAL-DATA.md` (the personal data no file may hold); `WORDING.md` (the
+deployed); `install.toml` (what installing it on a fresh machine needs, read by the testbed's install verb); `rustfmt.toml`; `LICENSE` (MIT); `PERSONAL-DATA.md` (the personal data no file may hold); `WORDING.md` (the
 guide to the Korean the console shows); `CLAUDE.md`; and `korean-ledger.json` (the Korean left in a code file, which
 the testbed's Korean sweep holds every file to; no code file of this repository holds any).
 

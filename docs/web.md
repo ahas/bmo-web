@@ -9380,8 +9380,9 @@ bmo-ui's console plugin contract, bmo-ui's `docs/console-bundles.md`, which is t
 manifest holds, what a bundle and a service owe, and what a console owes them; this section states what the
 console adds of its own. The console attaches each bundle by its manifest while it runs: no unit's screen is built
 into it, and nothing here names one. Of the contract's optional parts it serves every one: the share pages and
-their head, the sidebar count, the sidebar section, the moved screens, the notices, the translator, its title bar (「The title bar」),
-its people directory and the members of the reader's company.
+their head, the sidebar count, the sidebar section with its sections by role and the reader's own menu, the moved
+screens, the notices with the readers each kind rings, the console's version, the translator, its title bar (「The
+title bar」), its people directory and the members of the reader's company.
 
 - **The console runs one release of bmo-ui,** the file bmo-ui's release verb wrote for the version bmo-chat's
   shared versions pin, vendored under `client/vendor/` as it stands. It attaches a bundle built on any release
@@ -9467,6 +9468,11 @@ its people directory and the members of the reader's company.
   directly, whose translating route the relay hands on as the bullet on such units says. How many originals one ask carries and how many asks a tab holds out at once are the same
   configuration's (`NUXT_PUBLIC_BMO_UI_TRANSLATOR_BATCH` and `NUXT_PUBLIC_BMO_UI_TRANSLATOR_ASKS_AT_ONCE`),
   bmo-ui's defaults standing where neither is set.
+- **The console states its version** in its app configuration, as bmo-ui's `consoleVersion`, so a screen that
+  carries where it was used from, a report a reader sends among them, names the console it was used in. The
+  version is the short form of the commit the console was built from, read from git as the build runs: a
+  deployment builds the console in a checkout standing at the commit it deploys, and names the commit in no
+  setting of its own. A build outside any checkout states it empty.
 - **A reader is handed the screens their role opens.** The console's `GET /api/console-bundles` answers the
   bundles the signed-in reader may open, as the contract's 「Roles and the owner key」 has the console offer them:
   each with its name, title and icon, its screen path, the section it stands in for the reader's role

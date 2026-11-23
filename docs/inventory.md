@@ -37,7 +37,7 @@ bmo-artifact bundle already carries at the same path is not carried; a test goes
 | A screen of bmo-review | 32 | not carried: bmo-review's console bundle |
 | A screen of bmo-drive | 27 | not carried: bmo-drive's console bundle |
 | A screen of bmo-voice, not yet split | 14 | not carried: placeholder (build-8) |
-| A screen of bmo-graph, not yet split | 16 | not carried: placeholder (build-8) |
+| A screen of the code-graph unit, not yet split | 16 | not carried: placeholder (build-8) |
 | A screen of bmo-arbiter | 10 | carried as the monitor screen's services tab, reading the card master |
 | A screen of bmo-gate, not yet split | 8 | not carried: placeholder (build-8) |
 | The phone app, dropped with `android/` | 11 | not carried: dropped (build-8) |
@@ -409,7 +409,7 @@ through the console's relay. The files below are bmo-artifact's, whose bundle th
 
 ### Screens of the units that ship no console bundle (92 files)
 
-The files of bmo-graph, bmo-gate and bmo-voice are not carried: each unit's own console bundle carries its
+The files of the code-graph unit, bmo-gate and bmo-voice are not carried: each unit's own console bundle carries its
 screen when it publishes one. Until then the console shows a placeholder in the screen's place (build-8;
 `docs/boundary.md`, 「Screens of units not yet split」), from these files written for it:
 
@@ -439,7 +439,7 @@ folder's page at `/share/files/{token}` — stand as no page, and a link to one 
 - **bmo-review (32 files), carried by bmo-review's console bundle:** `app/components/CodeDefinitionList.vue`; `app/components/CodeExplorer.vue`; `app/components/CodeReviewComposer.vue`; `app/components/CodeReviewPane.vue`; `app/components/CodeReviewRow.vue`; `app/components/CodeReviewSheet.vue`; `app/components/CodeReviewTodo.vue`; `app/components/CodeViewer.test.ts`; `app/components/CodeViewer.vue`; `app/domain/code.test.ts`; `app/domain/code.ts`; `app/pages/code.test.ts`; `app/pages/code.vue`; `browser/code-review-touch.test.ts`; `server/api/code/` (12 files); `server/utils/code-request.ts`; `server/utils/code-reviews.ts`; `server/utils/workspace.test.ts`; `server/utils/workspace.ts`; `shared/definitions.test.ts`; `shared/definitions.ts`.
 - **bmo-drive (27 files), carried by bmo-drive's console bundle:** `app/components/FilesItem.vue`; `app/components/FilesList.vue`; `app/components/FilesPreview.vue`; `app/components/FilesShareList.vue`; `app/components/FilesTree.vue`; `app/domain/files.test.ts`; `app/domain/files.ts`; `app/pages/files.vue`; `app/pages/share/files/[token].vue`; `server/api/files/` (12 files); `server/api/share/files/` (2 files); `server/utils/file-shares.ts`; `server/utils/files.test.ts`; `server/utils/files.ts`; `shared/file-shares.ts`.
 - **bmo-voice (14 files):** `app/components/BriefingPlayer.test.ts`; `app/components/BriefingPlayer.vue`; `app/domain/briefing-position.test.ts`; `app/domain/briefing-position.ts`; `app/domain/briefing.test.ts`; `app/domain/briefing.ts`; `public/briefing-trial.ogg`; `server/api/briefing/events.get.ts`; `server/api/briefing/stop.post.test.ts`; `server/api/briefing/stop.post.ts`; `server/utils/briefing-stream.ts`; `server/utils/presence.test.ts`; `server/utils/presence.ts`; `shared/spoken.test.ts`.
-- **bmo-graph (16 files):** `app/components/GraphCode.test.ts`; `app/components/GraphCode.vue`; `app/components/GraphMap.test.ts`; `app/components/GraphMap.vue`; `app/components/GraphNodes.test.ts`; `app/components/GraphNodes.vue`; `app/domain/graph.test.ts`; `app/domain/graph.ts`; `app/pages/graph.test.ts`; `app/pages/graph.vue`; `app/workers.d.ts`; `server/api/graph/` (3 files); `server/utils/checkouts.ts`; `server/utils/graph.ts`.
+- **The code-graph unit (16 files):** `app/components/GraphCode.test.ts`; `app/components/GraphCode.vue`; `app/components/GraphMap.test.ts`; `app/components/GraphMap.vue`; `app/components/GraphNodes.test.ts`; `app/components/GraphNodes.vue`; `app/domain/graph.test.ts`; `app/domain/graph.ts`; `app/pages/graph.test.ts`; `app/pages/graph.vue`; `app/workers.d.ts`; `server/api/graph/` (3 files); `server/utils/checkouts.ts`; `server/utils/graph.ts`.
 - **bmo-arbiter (10 files):** `app/components/CardNodeTile.vue`; `app/components/CardsArbiter.vue`; `app/components/CardsBoard.vue`; `app/components/CardsBoardChart.vue`; `app/domain/cards.test.ts`; `app/domain/cards.ts`; `app/pages/cards.vue`; `server/api/cards/` (2 files); `shared/cards.ts`.
 - **bmo-gate (8 files):** `app/domain/gates.test.ts`; `app/domain/gates.ts`; `app/pages/gates/` (2 files); `server/api/gate.post.ts`; `server/api/gate/[stage].get.ts`; `server/api/laya.get.ts`; `server/utils/console.ts`.
 

@@ -58,6 +58,7 @@
 
 <script setup lang="ts">
 import { useAdministrator, useSignedUser } from "~/domain/access";
+import { useDesktopApp } from "~/domain/desktop-app";
 import { useOpenings } from "bmo-ui/app/domain/openings";
 import { organizationAddress, organizationMovedAway, organizationTabNamed } from "~/domain/organization";
 import { SETTINGS_SECTIONS, openSettings, sectionOf, sectionsFor, settingsAsked, useSettings } from "~/domain/settings-dialog";
@@ -110,7 +111,9 @@ watch(
   },
   { immediate: true }
 );
-const sections = computed(() => sectionsFor(administrator.value, signedUser.value !== null, ownBmo.value?.personalize === true && ownBmo.value.hasBmo));
+// The desktop section stands only in the desktop app's window, told by the app's bridge answering.
+const desktopApp = useDesktopApp();
+const sections = computed(() => sectionsFor(administrator.value, signedUser.value !== null, ownBmo.value?.personalize === true && ownBmo.value.hasBmo, desktopApp.value !== null));
 const section = computed(() => sectionOf(state.value.section, sections.value));
 const sectionLabel = computed(() => t(section.value.label));
 

@@ -742,3 +742,25 @@ body {
 input[type="file"][hidden] {
   display: none !important;
 }
+
+/* The desktop app's window (docs/web.md, 「The desktop app's window」): where the system's own window buttons stand
+   inset at the top left, the sidebar's head starts after them, a folded sidebar's head under them, and on a narrow
+   screen, whose sidebar is a drawer, the title bar starts after them. Only the app marks the page's root, so a
+   browser keeps no room. */
+html[data-window-controls="inset"] {
+  --bmo-window-inset: 5rem;
+}
+
+html[data-window-controls="inset"] .bmo-window-inset {
+  padding-inline-start: var(--bmo-window-inset);
+}
+
+html[data-window-controls="inset"] .bmo-window-inset-folded {
+  padding-top: 1.75rem;
+}
+
+@media (width < 64rem) {
+  html[data-window-controls="inset"] [data-title-bar] {
+    padding-inline-start: var(--bmo-window-inset);
+  }
+}

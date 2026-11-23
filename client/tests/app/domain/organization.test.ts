@@ -34,13 +34,21 @@ import { SCREENS, tabAddress } from "../../../apps/web/app/domain/screens";
 
 describe("the settings dialog", () => {
   test("holds the personal sections alone, the voice briefing under its own name", () => {
-    expect(SETTINGS_SECTIONS.map((section) => section.key)).toEqual(["account", "agent", "machine", "secrets", "supply", "theme", "palette", "notifications", "briefing"]);
+    expect(SETTINGS_SECTIONS.map((section) => section.key)).toEqual(["account", "agent", "machine", "desktop", "secrets", "supply", "theme", "palette", "notifications", "briefing"]);
     expect(SETTINGS_SECTIONS.find((section) => section.key === "briefing")?.label).toBe("settings.label.briefing");
   });
 
   test("shows a member their account, machine, secrets, theme and palette, and the administrator the notifications and the player too", () => {
     expect(sectionsFor(false, true).map((section) => section.key)).toEqual(["account", "machine", "secrets", "supply", "theme", "palette"]);
     expect(sectionsFor(true, true).map((section) => section.key)).toEqual(["account", "machine", "secrets", "supply", "theme", "palette", "notifications", "briefing"]);
+  });
+
+  test("shows the desktop app's section only in the app's window, to every reader", () => {
+    for (const [administrator, user] of [[false, true], [true, true], [true, false]] as const) {
+      expect(sectionsFor(administrator, user).map((section) => section.key)).not.toContain("desktop");
+      expect(sectionsFor(administrator, user, false, true).map((section) => section.key)).toContain("desktop");
+    }
+    expect(sectionsFor(false, true, false, true).map((section) => section.key)).toEqual(["account", "machine", "desktop", "secrets", "supply", "theme", "palette"]);
   });
 
   test("shows no secrets and no machine to a login with no user, which holds no space and no machine", () => {

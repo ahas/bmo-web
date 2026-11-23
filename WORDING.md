@@ -296,6 +296,11 @@
   an installer → 설치 파일, or its format's own name, AppImage, deb 패키지; a file's size → 크기, written `{size}
   ({bytes}바이트)`; its digest → SHA-256; the steps of using it → 사용 방법. A warning Windows shows is named by the
   words Windows itself shows: Windows의 PC 보호, 추가 정보, 실행. Never 인스톨러, 셋업 파일, 릴리스, 배포일 or 해시값.
+- the app's own settings, in the console's settings → 데스크톱, the section's name, as the owner named it: its switches
+  are 잠금 중 원격 제어 유지, 창을 닫으면 트레이로 이동, 로그인할 때 시작, 트레이에서 시작 and 절전 모드 방지, the app's
+  tray → 트레이 and its file → 설정 파일. Never 데탑, 시스템 트레이, 알림 영역 or 슬립.
+- the app's window controls the console draws → 최소화, 최대화, 이전 크기로 (restoring a maximised window, as Windows
+  says it) and 닫기. Never 최대화 해제, 복원, 창 닫기 or 종료, which is quitting the app.
 - the largest file a place takes, which a room's chat service or the agency declares → 보낼 수 있는 크기: in the
   box `{by}에서 보낼 수 있는 크기({limit})보다 큰 파일이라 첨부하지 않았습니다`, the file named beneath it; for a send
   `{name} 파일이 {by}에서 보낼 수 있는 크기({limit})보다 커서 보내지 않았습니다`; with no chat service named, 이 방에서

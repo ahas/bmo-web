@@ -68,6 +68,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["todo-form-box", "fixture-password-3767"],
   ["todo-tabs-line", "fixture-password-3849"],
   ["topbar-square", "fixture-password-1444"],
+  ["desktop-window", "fixture-password-3811"],
   ["briefing-autoplay", "fixture-password-2331"],
   ["mention-agents", "fixture-password-2346"],
   ["brain-translation", "fixture-password-2355"],

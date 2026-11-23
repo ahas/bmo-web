@@ -9,21 +9,25 @@
       v-bind="SIDEBAR_WIDTH"
       mode="drawer"
       :menu="{ direction: 'left', handle: false, handleOnly: true }"
-      :ui="{ content: 'flex-col w-4/5 max-w-xs' }"
+      :ui="{ content: 'flex-col w-4/5 max-w-xs', header: sidebarFolded ? 'bmo-window-inset-folded' : 'bmo-window-inset' }"
     >
       <template #header="{ collapsed }">
-        <NuxtLink
-          v-if="!collapsed"
-          :to="home"
-          class="flex items-center gap-2 rounded-md px-2.5 py-1 transition-colors hover:bg-elevated active:bg-accented"
-        >
-          <BmoMark class="size-5 shrink-0" />
-          <span class="font-bold text-highlighted">{{ consoleName($t) }}</span>
-        </NuxtLink>
+        <!-- In the desktop app's window the head is the window's drag region beside the title bar, and leaves the room
+             of the system's own window buttons where they stand inset (docs/web.md, 「The desktop app's window」). -->
+        <div class="flex min-w-0 flex-1 items-center self-stretch" :data-tauri-drag-region="desktopApp === null ? undefined : 'deep'">
+          <NuxtLink
+            v-if="!collapsed"
+            :to="home"
+            class="flex items-center gap-2 rounded-md px-2.5 py-1 transition-colors hover:bg-elevated active:bg-accented"
+          >
+            <BmoMark class="size-5 shrink-0" />
+            <span class="font-bold text-highlighted">{{ consoleName($t) }}</span>
+          </NuxtLink>
 
-        <UTooltip :text="collapsed ? $t('common.action.expand') : $t('common.action.collapse')" :content="{ side: 'right' }">
-          <UDashboardSidebarCollapse class="ms-auto hidden lg:flex" />
-        </UTooltip>
+          <UTooltip :text="collapsed ? $t('common.action.expand') : $t('common.action.collapse')" :content="{ side: 'right' }">
+            <UDashboardSidebarCollapse class="ms-auto hidden lg:flex" />
+          </UTooltip>
+        </div>
       </template>
 
       <template #default="{ collapsed }">
@@ -70,6 +74,7 @@
 <script setup lang="ts">
 import { provideConsolePeople } from "~/domain/people-offer";
 import { provideConsoleTitleBar, useTitleBarTarget } from "~/domain/title-bar";
+import { useDesktopApp } from "~/domain/desktop-app";
 import { MEMBER_HOME } from "~/domain/access";
 import { consoleName } from "#shared/agent-names";
 import { useInitialRead } from "bmo-ui/app/domain/loading";
@@ -106,6 +111,8 @@ provideConsoleTitleBar();
 provideConsolePeople();
 const { t } = useI18n();
 const open = ref(false);
+// The desktop app the console runs in, where it does (docs/web.md, 「The desktop app's window」).
+const desktopApp = useDesktopApp();
 const sidebarFolded = ref(false);
 
 // Their rooms, each with how many of its messages they have not read, read again whenever a message lands in one

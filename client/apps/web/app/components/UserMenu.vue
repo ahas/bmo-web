@@ -27,6 +27,7 @@
 </template>
 
 <script setup lang="ts">
+import { useDesktopApp } from "~/domain/desktop-app";
 import { accountItems, accountUnread } from "~/domain/screens";
 import { openSettings, useSettings } from "~/domain/settings-dialog";
 
@@ -53,6 +54,8 @@ const avatar = computed<AvatarProps>(() => ({
 
 const colorMode = useColorMode();
 const settings = useSettings();
+// In the desktop app's window the app is already there, so its download page is not offered (docs/web.md, 「Sidebar」).
+const desktopApp = useDesktopApp();
 const { user, clear } = useUserSession();
 // The person's name people read the account by, its login where none stands (docs/accounts.md, 「Users and senders」).
 const name = computed(() => (user.value?.fullName || user.value?.name) ?? t("app.label.account"));
@@ -82,7 +85,7 @@ const items = computed<(DropdownMenuItem | AccountItem)[][]>(() => [
   ...(screenEntries.value.length === 0 ? [] : [screenEntries.value]),
   [
     { label: t("settings.title.settings"), icon: "i-material-symbols-settings-outline", onSelect: () => openSettings(settings) },
-    { label: t("desktop.title.page"), icon: "i-material-symbols-desktop-windows-outline", to: "/desktop" },
+    ...(desktopApp.value === null ? [{ label: t("desktop.title.page"), icon: "i-material-symbols-desktop-windows-outline", to: "/desktop" }] : []),
     {
       label: t("app.label.color_mode"),
       icon: "i-material-symbols-contrast",

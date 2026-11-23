@@ -8,6 +8,9 @@
       <NuxtPage />
     </NuxtLayout>
 
+    <!-- A page with no shell has no title bar, so in the desktop app's window the console lays the window's bar over
+         its top edge (docs/web.md, 「The desktop app's window」). -->
+    <DesktopWindowStrip v-if="desktopApp !== null && route.meta.layout === false" />
     <SettingsModal v-if="loggedIn" />
     <SecretRequestHost v-if="loggedIn" />
     <MessageIsland />
@@ -20,9 +23,12 @@
 import { ko } from "@nuxt/ui/locale";
 import { TOOLTIP_PROVIDER } from "bmo-ui/app/domain/tooltip";
 import { consoleName } from "#shared/agent-names";
+import { useDesktopApp } from "~/domain/desktop-app";
 
 const { t } = useI18n();
 const { loggedIn } = useUserSession();
+const route = useRoute();
+const desktopApp = useDesktopApp();
 
 // The sidebar's drawer names itself with keys Nuxt UI's own locales do not carry, so a screen
 // reader would read the key; the console supplies them. Its fold button is named as the console

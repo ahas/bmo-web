@@ -1844,7 +1844,8 @@ Four groups.
   positive count at the item's end as a count badge (「Count badges」) in the primary colour, and while any of
   them is positive the menu's button carries a primary dot on its avatar's rim at about two o'clock, spread and
   folded alike, its accessible description naming each count. The menu's own items: open the settings
-  (「Settings」), open the desktop app's download page (「The desktop app's download page」), change the screen mode to
+  (「Settings」), open the desktop app's download page (「The desktop app's download page」) everywhere but in the
+  desktop app's own window, which needs no download (「The desktop app's window」), change the screen mode to
   light, dark or system, or log out. A reader who never chose a mode reads dark, and the mode is
   kept in a cookie for a year (「Themes」), so the server paints the first frame in it and knows it for a page it sends (bmo-artifact's `docs/artifact.md`, 「How a
   document is drawn」). The menu opens above its button, aligned to
@@ -7478,8 +7479,9 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
   the dialog's left under the title 설정, each section one line of an icon and its name; the open one
   is marked. The section's own name heads the right, with the dialog's close mark at its right end,
   and its content scrolls under it.
-  - The sections are 계정, 내 BMO, 기기, 비밀 보관함, 공급, 테마, 대화방, 알림 and 보이스브리핑. A member is shown 계정, 기기,
-    비밀 보관함, 공급, 테마 and 대화방; 알림 and 보이스브리핑 are the administrator's, since the console rings and plays briefings for
+  - The sections are 계정, 내 BMO, 기기, 데스크톱, 비밀 보관함, 공급, 테마, 대화방, 알림 and 보이스브리핑. A member is shown 계정, 기기,
+    비밀 보관함, 공급, 테마 and 대화방; 데스크톱 stands for any reader, but only in the desktop app's window
+    (「데스크톱」); 알림 and 보이스브리핑 are the administrator's, since the console rings and plays briefings for
     the administrator alone. 내 BMO is shown to a person who may personalise their BMO and owns one (「내 BMO」). A login with no user of the account service, which holds no secret space and no machine, is not
     shown 기기 or 비밀 보관함, and 공급 is no section for it either, what it sets standing against that user.
   - A section's content stands in groups under small headings, each group a column of rows parted by
@@ -7493,7 +7495,7 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
 - **On a narrow screen the dialog fills the screen** and opens on the list of sections alone, over the
   sidebar drawer it was opened from (「Floating things」). A tap on one goes into it: the head then carries
   a back arrow before the section's name, and the arrow or the back gesture returns to the list. The close mark stands at the head's right end on both.
-- **An address opens it at one section:** `?settings=` and a section's key — `account`, `agent`, `machine`, `secrets`, `supply`, `theme`,
+- **An address opens it at one section:** `?settings=` and a section's key — `account`, `agent`, `machine`, `desktop`, `secrets`, `supply`, `theme`,
   `palette`, `notifications`, `briefing` — on any address of the console opens the dialog at that
   section, gone into on a narrow screen, and at the first section the reader may open where the key
   names none of them. A member sent on from an address they may not open to their own home is sent with the key, so
@@ -7567,6 +7569,27 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
 - A person connects their machine through the desktop app; connecting an account to another machine, declaring it
   shared, and taking another person's machine away are the administrator's, on 조직 (「Organisation」).
 - A read that fails says so in the section with 새로고침.
+
+#### 데스크톱
+
+- **It stands only while the console runs in the desktop app's window,** told by the app's bridge answering
+  (「The desktop app's window」); in a browser it is no section, and its key opens the first section instead.
+- **It holds the app's own settings,** read from the app through the bridge each time the section opens and
+  changed through it one at a time (jake's `docs/desktop.md`, 「Settings」). The app hands over the switches its
+  platform offers, and the section draws those alone, in the app's order, each a row with its switch:
+  - 잠금 중 원격 제어 유지, with the line that turning it off ends the agent's connection while the PC is locked;
+  - 창을 닫으면 트레이로 이동, with the line that turning it off quits the app when the window is closed;
+  - 로그인할 때 시작;
+  - 트레이에서 시작, with the line that starting at sign-in then opens no window;
+  - 절전 모드 방지, with the line that the PC does not sleep while the agent runs.
+  A switch the console has no words for is not drawn.
+- **A switch takes effect as it is turned,** the switch spinning until the app answers. A change the app refuses
+  puts the switch back and says 변경하지 못했습니다 under the row's name in the error colour, the app's reason
+  under it in the monospace face.
+- **A settings file the app cannot read** says so at the section's head, 설정 파일을 읽을 수 없어 변경할 수 없습니다,
+  the app's reason under it in the monospace face, and every switch stands off-limits.
+- While it is read, the rows' names stand and the switches wait as bars. A read that fails says so in the section
+  with 새로고침.
 
 #### 비밀 보관함
 
@@ -8263,7 +8286,8 @@ Where a company's own words for its roles and its unit kinds are kept (`docs/acc
   can carry the mark too, so it changes only where the page says the app's code is, never whether the code is
   compared.
 - **The app shows its code in its window's title bar,** the one place it stays in view while the page fills the
-  window (jake's `docs/desktop.md`, 「Pairing」). The page's own title never carries the code, so a browser tab
+  window (jake's `docs/desktop.md`, 「Pairing」). The window has no native title bar, so the bar the console draws
+  over a page with no shell holds the window's title as the app sets it (「The desktop app's window」). The page's own title never carries the code, so a browser tab
   opened from a link never shows a code that would seem to match.
 - **It says what approving does, then the code, then where to compare it.** First one line naming the act: in the
   app's window, that this PC's desktop app is connected to the reader's account; elsewhere, that the desktop app is.
@@ -8602,6 +8626,39 @@ and `/api/supply/credits/audit`.
   its subject, then the moment, whose act and what it changed. The service audits each of these in its own table
   as it takes the write, and this one route answers the whole record.
 - No balance is shown for anyone here, and no top-up control stands: payments are off.
+
+### The desktop app's window
+
+- **The console knows it runs in the desktop app by the app's bridge alone** (jake's `docs/desktop.md`, 「The
+  window and what the console may call」): once, as a page is first drawn in the browser, it asks the bridge for
+  the app's settings, and a page the bridge answers stands in the app's window. A browser has no bridge, so nothing
+  of the app is drawn there: no 데스크톱 section, no controls, no room kept for them. Nothing is read from the user
+  agent, and a server render draws nothing of the app.
+- **The bridge is the app's commands the app grants the console's address,** and the console calls nothing else:
+  `settings`, which reads the app's settings and who draws the window's controls; `change_setting`, which changes
+  one setting by its key; and the window's own minimise, maximise toggle, close, start dragging, maximised state
+  and title.
+- **In the app the console is the window's frame.** The window has no native title bar, so the top of the
+  console is the window's top edge:
+  - **The title bar is the window's drag region,** and the sidebar's head beside it: pressed and dragged where
+    nothing pressable stands, it moves the window, and a double press maximises or restores it, as a system's
+    title bar does. The buttons, links and fields in them stay pressable.
+  - **Where the app says the console draws the window's controls,** three square icon buttons stand at the title
+    bar's right end after the set of buttons (「The title bar」): 최소화, then 최대화 or 이전 크기로 by whether the
+    window is maximised, then 닫기, each a ghost button of the library in the console's colours and its light or
+    dark mode, named in its tooltip, 닫기 filling in the error colour under the pointer and a press. 닫기 is the
+    window's close, which the app answers as its settings say. The set's one instance holds them, so they move
+    with it from screen to screen.
+  - **Where the app says the system's own buttons stand inset at the top left,** the console draws none and
+    leaves them their room: the sidebar's head starts after it, a folded sidebar's head under it, and on a
+    narrow screen, whose sidebar is a drawer, the title bar starts after it.
+  - **A page with no shell** — the login, the desktop pairing page, the join page — has no title bar, so the
+    console lays a thin bar over the page's top edge: the window's title at its left, read from the window as it
+    changes, which is where the app's pairing code stands, the controls at its right where the console draws them,
+    and the room left at its left where the system's stand, the whole bar the drag region.
+- `client/tests/browser/desktop-window.test.ts` stands the bridge in for the app and holds the 데스크톱 section,
+  the user menu's entry, the drag region, the controls and the room kept for them to whether it answers, at a
+  desk's width and a phone's.
 
 ### Messages
 

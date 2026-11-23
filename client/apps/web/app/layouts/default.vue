@@ -9,27 +9,31 @@
       v-bind="SIDEBAR_WIDTH"
       mode="drawer"
       :menu="{ direction: 'left', handle: false, handleOnly: true }"
-      :ui="{ content: 'flex-col w-4/5 max-w-xs' }"
+      :ui="{ content: 'flex-col w-4/5 max-w-xs', header: sidebarFolded ? 'bmo-window-inset-folded' : 'bmo-window-inset' }"
     >
       <template #header="{ collapsed }">
-        <!-- The console's own mark rather than a stock icon: the tab's icon in the console's own
-             colours, so the picture on a tab, on a home screen and at the top of the sidebar are read
-             as one. It is pressed like every row under it, so it wears their box — the same height and
-             the same inner inset, which puts the mark on the column the sidebar's icons stand on and
-             answers a hover and a press in their colours. -->
-        <NuxtLink
-          v-if="!collapsed"
-          to="/"
-          class="flex items-center gap-2 rounded-md px-2.5 py-1 transition-colors hover:bg-elevated active:bg-accented"
-        >
-          <BmoMark class="size-5 shrink-0" />
-          <span class="font-bold text-highlighted">{{ consoleName($t) }}</span>
-        </NuxtLink>
+        <!-- In the desktop app's window the head is the window's drag region beside the title bar, and leaves the room
+             of the system's own window buttons where they stand inset (docs/web.md, 「The desktop app's window」). -->
+        <div class="flex min-w-0 flex-1 items-center self-stretch" :data-tauri-drag-region="desktopApp === null ? undefined : 'deep'">
+          <!-- The console's own mark rather than a stock icon: the tab's icon in the console's own
+               colours, so the picture on a tab, on a home screen and at the top of the sidebar are read
+               as one. It is pressed like every row under it, so it wears their box — the same height and
+               the same inner inset, which puts the mark on the column the sidebar's icons stand on and
+               answers a hover and a press in their colours. -->
+          <NuxtLink
+            v-if="!collapsed"
+            to="/"
+            class="flex items-center gap-2 rounded-md px-2.5 py-1 transition-colors hover:bg-elevated active:bg-accented"
+          >
+            <BmoMark class="size-5 shrink-0" />
+            <span class="font-bold text-highlighted">{{ consoleName($t) }}</span>
+          </NuxtLink>
 
-        <!-- Collapsing is a desktop affair; the drawer below lg is closed by tapping away. -->
-        <UTooltip :text="collapsed ? $t('common.action.expand') : $t('common.action.collapse')" :content="{ side: 'right' }">
-          <UDashboardSidebarCollapse class="ms-auto hidden lg:flex" />
-        </UTooltip>
+          <!-- Collapsing is a desktop affair; the drawer below lg is closed by tapping away. -->
+          <UTooltip :text="collapsed ? $t('common.action.expand') : $t('common.action.collapse')" :content="{ side: 'right' }">
+            <UDashboardSidebarCollapse class="ms-auto hidden lg:flex" />
+          </UTooltip>
+        </div>
       </template>
 
       <template #default="{ collapsed }">
@@ -169,6 +173,7 @@
 <script setup lang="ts">
 import { provideConsolePeople } from "~/domain/people-offer";
 import { provideConsoleTitleBar, useTitleBarTarget } from "~/domain/title-bar";
+import { useDesktopApp } from "~/domain/desktop-app";
 import { useBriefings } from "~/domain/briefing";
 import { useInitialRead } from "bmo-ui/app/domain/loading";
 import { useOpenings } from "bmo-ui/app/domain/openings";
@@ -247,6 +252,8 @@ onMounted(() => nextTick(openAskedTodo));
 
 // Whether the sidebar stands folded. The menu's rows are built from it: a folded row is its icon
 // alone, and a mark it carries is drawn over that icon rather than given a cell of its own.
+// The desktop app the console runs in, where it does (docs/web.md, 「The desktop app's window」).
+const desktopApp = useDesktopApp();
 const sidebarFolded = ref(false);
 // The screens units bring take their manifest's own name and icon; the console's own screens stand as they are
 // (docs/web.md, 「Screens a unit brings」). The sidebar stands them in its two sections, and the user menu those

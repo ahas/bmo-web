@@ -1840,6 +1840,7 @@ settings:
     bmo: BMO
     providers: 공급자
     machine: 기기
+    desktop: 데스크톱
     secrets: 비밀 보관함
     supply: 공급
     supervisor_none: 감독관 없음
@@ -2410,18 +2411,35 @@ desktop:
     nsis: 설치 파일
     appimage: AppImage
     deb: deb 패키지
+    keep_control_while_locked: 잠금 중 원격 제어 유지
+    close_to_tray: 창을 닫으면 트레이로 이동
+    start_at_sign_in: 로그인할 때 시작
+    start_in_tray: 트레이에서 시작
+    keep_awake: 절전 모드 방지
   action:
     download: 다운로드
+    minimize: 최소화
+    maximize: 최대화
+    restore: 이전 크기로
+    close_window: 닫기
   message:
     step_install: 설치 파일을 다운로드해 설치합니다.
     step_open: 데스크톱 앱을 열면 앱 창 제목 표시줄에 연결 코드가 표시되고 앱 연결 페이지가 열립니다.
     step_approve: 앱 연결 페이지의 연결 코드가 앱 창 제목 표시줄의 코드와 같은지 확인하고 승인합니다.
+    keep_control_while_locked: 끄면 PC가 잠겨 있는 동안 에이전트 연결을 끊습니다.
+    close_to_tray: 끄면 창을 닫을 때 앱을 종료합니다.
+    start_in_tray: 로그인할 때 시작하면 창을 열지 않습니다.
+    keep_awake: 에이전트 실행 중에는 PC가 절전 모드로 전환되지 않습니다.
     unsigned: "코드 서명이 없는 설치 파일이라 Windows가 처음 실행할 때 경고할 수 있습니다.\nWindows의 PC 보호 창이 나오면 추가 정보를 누르고 실행을 누르면 설치됩니다."
   status:
     loading: 데스크톱 앱 정보 불러오는 중…
     none: 공개된 버전 없음
+    settings_loading: 데스크톱 앱 설정 불러오는 중…
   error:
     unreadable: 데스크톱 앱 정보를 불러오지 못했습니다.
+    settings_failed: 데스크톱 앱 설정을 불러오지 못했습니다.
+    settings_unreadable: 설정 파일을 읽을 수 없어 변경할 수 없습니다.
+    change_failed: 변경하지 못했습니다.
 secrets:
   title:
     add: 비밀 추가

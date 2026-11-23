@@ -10,7 +10,7 @@
     "check": "bun run typecheck && bun test"
   },
   "dependencies": {
-    "bmo-ui": "file:./vendor/bmo-ui-0.1.0-rev.73.tgz"
+    "bmo-ui": "file:./vendor/bmo-ui-0.2.0-nightly.20261123.tgz"
   },
   "devDependencies": {
     "@happy-dom/global-registrator": "20.14.5",

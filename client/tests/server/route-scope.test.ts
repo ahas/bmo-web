@@ -151,7 +151,10 @@ describe("a console route as another user meets it", () => {
       { file: "organization/units/[unit]/apps.get", method: "GET", path: "/api/organization/units/1/apps" },
       { file: "organization/units/[unit]/apps/[app].put", method: "PUT", path: "/api/organization/units/1/apps/app-a" },
       { file: "account/apps.get", method: "GET", path: "/api/account/apps" },
-      { file: "account/apps/[app].put", method: "PUT", path: "/api/account/apps/app-a" }
+      { file: "account/apps/[app].put", method: "PUT", path: "/api/account/apps/app-a" },
+      { file: "account/personal-apps.get", method: "GET", path: "/api/account/personal-apps" },
+      { file: "account/personal-apps/[name]/back.post", method: "POST", path: "/api/account/personal-apps/weekly/back" },
+      { file: "account/personal-apps/[name].delete", method: "DELETE", path: "/api/account/personal-apps/weekly" }
     ]) {
       expect({ route: route.file, status: await answer(route) }).toEqual({ route: route.file, status: 200 });
     }

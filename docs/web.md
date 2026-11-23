@@ -7499,12 +7499,12 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
   the dialog's left under the title 설정, each section one line of an icon and its name; the open one
   is marked. The section's own name heads the right, with the dialog's close mark at its right end,
   and its content scrolls under it.
-  - The sections are 계정, 내 BMO, 기기, 데스크톱, 비밀 보관함, 공급, 내 앱·도구, 테마, 대화방, 알림 and 보이스브리핑. A member is
-    shown 계정, 기기, 비밀 보관함, 공급, 내 앱·도구, 테마 and 대화방; 데스크톱 stands for any reader, but only in the desktop
+  - The sections are 계정, 내 BMO, 기기, 데스크톱, 비밀 보관함, 공급, 내 앱·도구, 내 개인 앱, 테마, 대화방, 알림 and 보이스브리핑. A
+    member is shown 계정, 기기, 비밀 보관함, 공급, 내 앱·도구, 내 개인 앱, 테마 and 대화방; 데스크톱 stands for any reader, but only in the desktop
     app's window (「데스크톱」); 알림 and 보이스브리핑 are the administrator's, since the console rings and plays
     briefings for the administrator alone. 내 BMO is shown to a person who may personalise their BMO and owns one (「내
     BMO」). A login with no user of the account service, which holds no secret space and no machine, is not
-    shown 기기 or 비밀 보관함, and 공급 and 내 앱·도구 are no sections for it either, what they set standing against that
+    shown 기기 or 비밀 보관함, and 공급, 내 앱·도구 and 내 개인 앱 are no sections for it either, what they set standing against that
     user.
   - A section's content stands in groups under small headings, each group a column of rows parted by
     hairlines. A row carries its name and, where the name needs it, one muted line under it at the
@@ -7807,6 +7807,27 @@ there.
   failed says its reason with 새로고침.
 - **A change reaches the reader's screens as the list is next read,** the next page or sign-in, and every relayed call
   at once.
+
+#### 내 개인 앱
+
+The reader's personal apps: tools of their own, which their BMO makes and builds on their PC and their sessions alone
+reach (the agency's `docs/person-nodes.md`, 「Personal apps」). Every person with a user of the account service sees it.
+The console reads and changes them through its own routes (`GET /api/account/personal-apps`, `POST
+/api/account/personal-apps/{name}/back`, `DELETE /api/account/personal-apps/{name}`), which ask the agency for the
+account the reader's user is, so a reader reaches their own apps alone.
+
+- **One row per app,** by its name: its entry's title where it gives one, else its name. Under it, in muted lines,
+  what its entry does, when it was put, its version in the monospace face, and what it may reach beyond its own
+  data — 자기 데이터만 사용 where it asks for nothing more.
+- **이전 버전으로** sends the app back to the version before the one in place, which the PC keeps; it is off where the PC
+  keeps none older. It asks first, saying the version in place is deleted from the PC.
+- **삭제** asks first, naming the app and saying its source and data stay on the PC; a delete that goes through takes the
+  row away, and the reader's BMO no longer reaches the app from its next call.
+- **A PC that cannot be reached** leaves the rows standing from the description kept at home, one muted line above them
+  saying the earlier versions cannot be read, and every 이전 버전으로 off.
+- **None says 개인 앱 없음.** The rows keep their place with a skeleton while they are first read; a read that failed says
+  its reason with 새로고침, and a change refused says its reason under the list, the rows read again.
+- **A change reaches the reader's BMO from its next turn,** as the tool host reads the registry again.
 
 #### 테마
 

@@ -89,6 +89,11 @@ export const openedRoutes: readonly OpenedRoute[] = [
   { method: "PUT", path: /^\/api\/account\/agent-persona$/, scope: "user" },
   { method: "GET", path: /^\/api\/account\/apps$/, scope: "user" },
   { method: "PUT", path: /^\/api\/account\/apps\/[^/]+$/, scope: "user" },
+  // The reader's personal apps: every signed-in login asks for their own, the agency holding each account's apart
+  // (docs/web.md, 「Settings」, the personal apps section).
+  { method: "GET", path: /^\/api\/account\/personal-apps$/, scope: "user" },
+  { method: "POST", path: /^\/api\/account\/personal-apps\/[^/]+\/back$/, scope: "user" },
+  { method: "DELETE", path: /^\/api\/account\/personal-apps\/[^/]+$/, scope: "user" },
   // A person marked left: every signed-in login asks, and the account service lets the administrator and the person's
   // heads alone (docs/accounts.md, 「A person who leaves」).
   { method: "POST", path: /^\/api\/organization\/users\/\d+\/leave$/, scope: "user" },

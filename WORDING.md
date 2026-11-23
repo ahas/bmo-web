@@ -103,6 +103,10 @@
   상위 조직에서 잠금 on 조직 and 조직에서 잠금 in 설정; the platform letting a company use one → 제공, one it does not →
   제공되지 않음; a call to an app turned off → 조직 설정으로 꺼진 앱입니다. 잠금 here is the delegation chain's own word.
   Never 활성화, 비활성화, 사용 설정, 차단. 애플리케이션 stays the sidebar section's word.
+- a tool of a person's own, which their BMO makes on their PC → 개인 앱: 개인 앱, 내 개인 앱 (its settings section),
+  개인 앱 없음; one placed build of it → 버전, when it was put → `{time} 업데이트`; going to the one before → 이전 버전으로,
+  its question 이전 버전으로 되돌릴까요?; what it may reach → `자기 데이터만 사용`, `네트워크 사용 {addresses}`, `비밀 사용
+  {names}`. Never 나만의 앱, 커스텀 도구, 롤백, 복원.
 - the platform's word on an app on 관리자 → 전역 설정, its choices 제공 or 제공 안 함 and 켬 or 끔; the platform's word for
   one company or unit → 회사별 제공; a row's line → 모든 회사에 제공 (`{n}곳 제외` after it), `{n}곳에 제공` or 제공하지
   않음, a company or a unit counted by 곳. Turning an app off everywhere at once → 긴급 회수, its question

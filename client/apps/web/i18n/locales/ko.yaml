@@ -1844,6 +1844,7 @@ settings:
     secrets: 비밀 보관함
     supply: 공급
     apps: 내 앱·도구
+    personal_apps: 내 개인 앱
     supervisor_none: 감독관 없음
     theme: 테마
   action:
@@ -4133,6 +4134,37 @@ apps:
     no_app: 앱을 찾을 수 없습니다.
     read_failed: 앱 설정을 불러오지 못했습니다.
     failed: 앱 설정을 저장하지 못했습니다.
+
+# The personal apps section (docs/web.md, 「Settings」, the personal apps section): a reader's own tools, made and run on
+# their PC, each with its version, when it was put and what it may reach.
+personal_apps:
+  label:
+    none: 개인 앱 없음
+    unreached: PC에 연결되지 않아 이전 버전을 확인할 수 없습니다.
+    updated: "{time} 업데이트"
+    version: 버전
+    own_data: 자기 데이터만 사용
+    network: "네트워크 사용 {addresses}"
+    secrets: "비밀 사용 {names}"
+  action:
+    back: 이전 버전으로
+  message:
+    back_confirm: 이전 버전으로 되돌릴까요?
+    back_effect: "지금 버전은 PC에서 삭제됩니다."
+    delete_confirm: 개인 앱을 삭제할까요?
+    delete_effect: "BMO가 더 이상 이 앱을 쓰지 못합니다.\n원본과 데이터는 PC에 남습니다."
+  status:
+    loading: 개인 앱 불러오는 중…
+  error:
+    read_failed: 개인 앱을 불러오지 못했습니다.
+    back_failed: 이전 버전으로 되돌리지 못했습니다.
+    delete_failed: 개인 앱을 삭제하지 못했습니다.
+    no_runner: 개인 앱을 실행할 PC가 없습니다.
+    unreached: "PC에 연결할 수 없습니다.\nPC가 켜져 있는지 확인해 주세요."
+    no_older: PC에 남은 이전 버전이 없습니다.
+    refused: PC가 이 버전을 받지 않았습니다.
+    not_found: 개인 앱을 찾을 수 없습니다.
+    no_user: 사용자 계정이 없어 개인 앱을 쓸 수 없습니다.
 
 # The supply screens (docs/web.md, the 공급 sections): a person's own logins, keys and order, an organisation's
 # policy, plan and wallet, and the administrator's plans and credits. Words the five sources take, the states a

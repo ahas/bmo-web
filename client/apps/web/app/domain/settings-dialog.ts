@@ -37,6 +37,7 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   { key: "secrets", label: "settings.label.secrets", icon: "i-material-symbols-key-outline", administrator: false, user: true, load: () => import("~/components/SettingsSecrets.vue") },
   { key: "supply", label: "settings.label.supply", icon: "i-material-symbols-bolt-outline", administrator: false, user: true, load: () => import("~/components/SettingsSupply.vue") },
   { key: "apps", label: "settings.label.apps", icon: "i-material-symbols-apps", administrator: false, user: true, load: () => import("~/components/SettingsApps.vue") },
+  { key: "personal-apps", label: "settings.label.personal_apps", icon: "i-material-symbols-widgets-outline", administrator: false, user: true, load: () => import("~/components/SettingsPersonalApps.vue") },
   { key: "theme", label: "settings.label.theme", icon: "i-material-symbols-contrast", administrator: false, user: false, load: () => import("~/components/SettingsTheme.vue") },
   { key: "palette", label: "settings.label.palette", icon: "i-material-symbols-chat-bubble-outline", administrator: false, user: false, load: () => import("~/components/SettingsPalette.vue") },
   { key: "notifications", label: "settings.label.notifications", icon: "i-material-symbols-notifications-outline", administrator: true, user: false, load: () => import("~/components/SettingsNotifications.vue") },

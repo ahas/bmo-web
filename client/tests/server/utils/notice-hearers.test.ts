@@ -61,8 +61,42 @@ test("each login is read as the account the account service names, and a login i
 
   expect(await hearers.hears("agent-a", administrators)).toBe(true);
   expect(await hearers.hears("agent-b", administrators)).toBe(false);
-  expect(await hearers.hears("console-login", administrators)).toBe(true);
   expect(await hearers.hears("agent-b", { account: "2" })).toBe(true);
   expect(await hearers.hears("agent-a", { account: null })).toBe(false);
   expect(reads).toBe(1);
+  expect(await hearers.hears("console-login", administrators)).toBe(true);
+  expect(reads).toBe(2);
+});
+
+test("a login the held answer does not name has the service asked again, so an account made since is read as itself", async () => {
+  let users = [ADMINISTRATOR];
+  let reads = 0;
+  const hearers = new NoticeHearers({
+    users: async () => {
+      reads += 1;
+
+      return users.map((account) => ({ user: String(account.id), name: account.name, administrator: account.administrator }));
+    },
+    now: () => 0,
+    holdMs: 60_000
+  });
+
+  expect(await hearers.hears("agent-a", { role: "administrator" })).toBe(true);
+  users = [ADMINISTRATOR, MEMBER];
+
+  expect(await hearers.hears("agent-b", { role: "administrator" })).toBe(false);
+  expect(reads).toBe(2);
+});
+
+test("a notice for members rings every login with no read of the account service, which may be away", async () => {
+  const hearers = new NoticeHearers({
+    users: async () => {
+      throw new Error("the account service is away");
+    },
+    now: () => 0,
+    holdMs: 60_000
+  });
+
+  expect(await hearers.hears("agent-b", { allowed: "member" })).toBe(true);
+  expect(await hearers.hears("agent-b", { role: "member" })).toBe(true);
 });

@@ -9150,8 +9150,10 @@ and `/api/supply/credits/audit`.
     owner key writes it, and a member whose field holds no key rings nobody;
   - a kind the manifest names no readers for rings every account whose role the manifest's role allows.
   Whether an account is a platform administrator is the account service's word, read as the rooms' ringing reads
-  each login (`GET /users`, held a minute), a login the service does not name standing as the
-  administrator's. A device's own refusals hold over all of it.
+  each login (`GET /users`, held a minute); a login the held answer does not name has the service asked again, so an
+  account made within the minute is read as itself, and only a login the fresh answer does not name stands as the
+  administrator's. Readers holding the member's role are every login, rung with no read of the account service, so
+  its absence silences no such notice. A device's own refusals hold over all of it.
 - **A device receives a kind unless it was turned off there.** What a device stores is what it refused, so a kind added
   after the device subscribed reaches it too.
 - **The test button rings a test of its own,** not one of the kinds, and reaches every device of the account whatever

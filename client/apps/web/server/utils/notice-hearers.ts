@@ -32,6 +32,9 @@ export class NoticeHearers {
   /** Whether a notice for these readers rings the devices of a login. */
   async hears(login: string, readers: NoticeReaders): Promise<boolean> {
     if ("account" in readers && readers.account === null) return false;
+    // Every account holds the member's role, so a notice for members rings every login with no account read: the
+    // account service being away never silences it.
+    if (!("account" in readers) && ("role" in readers ? readers.role : readers.allowed) === "member") return true;
 
     return noticeHeard(await this.accounts.of(login), readers);
   }

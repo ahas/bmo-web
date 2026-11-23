@@ -3,6 +3,7 @@ import { wording } from "#shared/wording";
 
 import { companyMembers, listUnits, listUsers, unitView } from "./account-service";
 import { agencyRoute } from "./agency";
+import { readerReach } from "./app-permissions";
 import { fail } from "./fail";
 import { callerOf } from "./organization";
 
@@ -76,9 +77,9 @@ async function namesOf(read: AgencyCatalogue, signed: SignedIn): Promise<{ peopl
 
 /** The reader's company's catalogue as they see it, with the names it mentions. */
 export async function readCatalogue(signed: SignedIn): Promise<Catalogue> {
-  const read = await agencyRoute<AgencyCatalogue>("GET", `/catalogue/${accountOf(signed)}`, undefined, CALL);
+  const [read, reach] = await Promise.all([agencyRoute<AgencyCatalogue>("GET", `/catalogue/${accountOf(signed)}`, undefined, CALL), readerReach(signed)]);
 
-  return { company: read.company, ceiling: read.ceiling, apps: read.apps, notices: read.notices, seenAt: read.seenAt ?? null, ...(await namesOf(read, signed)) };
+  return { company: read.company, ceiling: read.ceiling, apps: read.apps, notices: read.notices, seenAt: read.seenAt ?? null, reach, ...(await namesOf(read, signed)) };
 }
 
 /** A version's source, the newest where none is named. */

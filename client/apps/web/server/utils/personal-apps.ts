@@ -2,6 +2,7 @@ import { personalAppName } from "#shared/personal-apps";
 import { wording } from "#shared/wording";
 
 import { agencyRoute } from "./agency";
+import { readerReach } from "./app-permissions";
 import { fail } from "./fail";
 
 import type { SignedIn } from "./accounts";
@@ -72,10 +73,10 @@ function appOf(value: AgencyApp): PersonalApp {
 
 /** The reader's personal apps, by name, and whether their PC was reached. */
 export async function ownPersonalApps(signed: SignedIn): Promise<PersonalApps> {
-  const read = await agencyRoute<{ items?: AgencyApp[]; reached?: boolean }>("GET", `/personal-apps/${accountOf(signed)}`, undefined, CALL);
+  const [read, reach] = await Promise.all([agencyRoute<{ items?: AgencyApp[]; reached?: boolean }>("GET", `/personal-apps/${accountOf(signed)}`, undefined, CALL), readerReach(signed)]);
   const items = (read.items ?? []).map(appOf).toSorted((one, other) => one.name.localeCompare(other.name));
 
-  return { items, reached: read.reached === true };
+  return { items, reached: read.reached === true, reach };
 }
 
 /** The reader's app sent back to the version before the one in place. */

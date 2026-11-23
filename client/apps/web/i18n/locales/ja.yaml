@@ -4215,10 +4215,6 @@ app_catalogue:
     installs_count: "{count}人がインストール"
     targets: 共有先
     permissions: 要求する権限
-    permissions_line: "要求する権限: {permissions}"
-    own_data: 自分のデータのみ使用
-    network: "ネットワーク使用 {addresses}"
-    secrets: "シークレット使用 {names}"
     review: レビュー報告
     review_pending: レビュー中
     review_failed: レビュー報告を作成できませんでした。
@@ -4303,9 +4299,6 @@ personal_apps:
     unreached: PC に接続されていないため、以前のバージョンを確認できません。
     updated: "{time} 更新"
     version: バージョン
-    own_data: 自分のデータのみ使用
-    network: "ネットワークを使用 {addresses}"
-    secrets: "シークレットを使用 {names}"
   action:
     back: 以前のバージョンに戻す
   message:
@@ -4329,6 +4322,20 @@ personal_apps:
     refused: PC がこのバージョンを受け付けませんでした。
     not_found: 個人アプリが見つかりません。
     no_user: ユーザーアカウントがないため、個人アプリを使えません。
+
+# What a personal app may reach beyond its own data (docs/web.md, 「App catalogue」 and 「Settings」, the personal apps
+# section), said line by line in the catalogue and the personal apps section.
+app_permissions:
+  label:
+    own_data: 自分のデータのみ使用
+    network: ネットワーク使用
+    network_note: 記載したアドレスにのみ接続し、ほかには接続できません。
+    network_withheld: 組織の設定でネットワークを使えないため、このアプリは実行されません。
+    secrets: シークレット使用
+    secrets_note: 実行中のみシークレット保管庫から値を受け取り、値はBMOには見えません。
+    secrets_missing: シークレット保管庫にありません
+    secrets_withheld: 組織の設定でシークレットを使えないため、このアプリは実行されません。
+
 supply:
   title:
     logins: 供給ログイン

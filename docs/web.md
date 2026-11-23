@@ -7860,8 +7860,8 @@ The console reads and changes them through its own routes (`GET /api/account/per
 account the reader's user is, so a reader reaches their own apps alone.
 
 - **One row per app,** by its name: its entry's title where it gives one, else its name. Under it, in muted lines,
-  what its entry does, when it was put, its version in the monospace face, and what it may reach beyond its own
-  data — 자기 데이터만 사용 where it asks for nothing more.
+  what its entry does, when it was put and its version in the monospace face; then what it may reach beyond its own
+  data, line by line as 「App catalogue」 words it — 자기 데이터만 사용 where it asks for nothing more.
 - **공유** opens the app's share, a dialog titled 앱 공유 with the app's name under it: three boxes, 팀, 상위 조직장 and 회사
   전체, whom the app is shared with in the reader's company (「App catalogue」), each open as far as the reader's organisation
   lets them share and the first two chosen as it opens. 공유 at its foot shares the version in place through the console's
@@ -8754,14 +8754,14 @@ so a reader sees and does what their own account may alone, and the agency's wor
   설치됨 or 조직에서 설치 where the reader holds a copy — and how many installed it, in a column of its own at the row's
   end. None says 공유된 앱 없음. The rows keep their place with a
   skeleton while they are first read, and a read that failed says its reason with 새로고침.
-- **The details open in a dialog titled with the app's name:** its description; 만든 사람, 버전, 공유 시각, 설치, 공유
-  대상 and 요구 권한 as a list of names and values, 요구 권한 saying 자기 데이터만 사용 where it asks for nothing more,
-  with a menu beside it of the acts the reader may take besides installing; 조직 설정 for a head; 검토 보고서, the review
+- **The details open in a dialog titled with the app's name:** its description; 만든 사람, 버전, 공유 시각, 설치 and
+  공유 대상 as a list of names and values, with a menu beside it of the acts the reader may take besides installing;
+  요구 권한, what the app may reach beyond its own data, line by line (below); 조직 설정 for a head; 검토 보고서, the review
   the agency's reviewer wrote, 검토 중 while it is written; and 원본, whose 원본 보기 reads the version's source and shows
   every file under its path in a coloured code block. 설치, or 업데이트 where the reader's copy has a newer version, stands
   in the dialog's foot. What the reader may do is the agency's word alone.
-  - **설치** asks first, naming the app, what it asks for and that the reader's PC fetches its source and builds it with
-    its data staying there; then the copy is installed.
+  - **설치** asks first, naming the app, what it asks for in the same lines as plain text and that the reader's PC
+    fetches its source and builds it with its data staying there; then the copy is installed.
   - **업데이트** moves the reader's copy onto the newest version, asked first, saying where the new version asks for more
     than the copy did; a version asking for nothing more reaches the copy by itself as the reader's PC is next heard.
   - **The menu** holds 승인, which approves the newest version, for a head of the maker's unit where the organisation
@@ -8774,6 +8774,21 @@ so a reader sees and does what their own account may alone, and the agency's wor
     회수. 조직에 켜기 turns the app on for everyone under the unit, locked where the switch says so, and their PCs install
     it; 회수, asked first, takes it off every PC under the unit and locks it off there.
   - A refusal is said in the dialog under the acts, and every act answers the app as it then stands.
+- **What an app may reach is said plainly, line by line,** wherever it is shown — the details, the questions of 설치
+  and 업데이트, and 내 개인 앱 (「Settings」) — for the reader's own PC (the agency's `docs/person-nodes.md`, 「The network and
+  secrets of a call」):
+  - 자기 데이터만 사용, alone, where it asks for nothing more;
+  - 네트워크 사용 and the addresses its manifest lists, each in the monospace face, and under it, muted, that it reaches
+    those addresses and nowhere else;
+  - 비밀 사용 and the names of the secrets it reads, each in the monospace face, and under it, muted, that it receives
+    their values from the reader's 비밀 보관함 only while it runs and that BMO never sees them;
+  - in the warning colour, 비밀 보관함에 없음 and the names the reader's own secret space does not hold, and where the
+    reader's organisation does not let their personal apps have the network or secrets, that the app does not run
+    for that reason.
+  The console's server reads the last two for the reader as it answers the catalogue and the personal apps: the
+  names their space holds, as the secret store lists them, and the delegation chain's `personal-apps.network` and
+  `personal-apps.secrets` resolved for them, each off where it does not resolve, and both on for the administrator,
+  whom the agency holds to neither. The answer carries them as `reach`, `{network, secrets, held}`.
 
 ### Administration
 

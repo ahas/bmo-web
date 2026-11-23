@@ -6,6 +6,7 @@ import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 import type { Catalogue, CatalogueApp } from "../../apps/web/shared/app-catalogue";
+import type { PermissionReach } from "../../apps/web/shared/app-permissions";
 import type { PersonalApps } from "../../apps/web/shared/personal-apps";
 
 // The app catalogue (docs/web.md, 「App catalogue」) and the personal apps section's share (「Settings」), worked by hand at a
@@ -71,13 +72,14 @@ function app(id: string, title: string, more: Partial<CatalogueApp>): CatalogueA
   };
 }
 
-function catalogue(apps: CatalogueApp[]): Catalogue {
+function catalogue(apps: CatalogueApp[], reach: PermissionReach = { network: true, secrets: true, held: [] }): Catalogue {
   return {
     company: "3",
     ceiling: ["team", "heads"],
     apps,
     notices: [{ kind: "shared", app: "17-weekly", at: 1_763_900_000_000 }],
     seenAt: null,
+    reach,
     people: { "17": "Maker One" },
     units: { "40": "Unit Forty" }
   };
@@ -170,7 +172,7 @@ describe.skipIf(!origin || !touchReady())("the app catalogue", () => {
         const dialog = page.locator("[data-catalogue-dialog]");
 
         await dialog.waitFor({ timeout: 10_000 });
-        await expect(dialog.locator("[data-catalogue-properties]").textContent()).resolves.toContain(wording("app_catalogue.label.own_data"));
+        await expect(dialog.locator("[data-catalogue-permissions] [data-app-permission='own']").textContent()).resolves.toBe(wording("app_permissions.label.own_data"));
         await expect(dialog.locator("[data-catalogue-review-text]").textContent()).resolves.toContain("Nothing in it reaches beyond its own data.");
 
         // The install is asked first, naming what it asks for, then made.
@@ -179,7 +181,7 @@ describe.skipIf(!origin || !touchReady())("the app catalogue", () => {
         const installing = page.getByRole("dialog").filter({ hasText: wording("app_catalogue.title.install") });
 
         await installing.waitFor({ timeout: 10_000 });
-        await expect(installing.textContent()).resolves.toContain(wording("app_catalogue.label.permissions_line", { permissions: wording("app_catalogue.label.own_data") }));
+        await expect(installing.textContent()).resolves.toContain(wording("app_permissions.label.own_data"));
         await press(page, installing.getByRole("button", { name: wording("app_catalogue.action.install") }), phone);
         await weeklyRow.locator("[data-catalogue-mark='installed']").waitFor({ timeout: 10_000 });
         expect(asked).toEqual(["POST /17-weekly/install {}"]);
@@ -202,6 +204,77 @@ describe.skipIf(!origin || !touchReady())("the app catalogue", () => {
       }
     }, 120_000);
 
+    test(`says plainly what an app asks for, what the reader lacks and what the organisation does not allow, ${width}px wide`, async () => {
+      const context = await contextAt(width, height, phone);
+      const asked: string[] = [];
+      const rates = app("21-rates", "Rates", {
+        maker: "21",
+        targets: [{ company: true }],
+        permissions: { network: ["rates.example.org", "*.example.net:8443"], secrets: ["rates-key", "team-key"] }
+      });
+
+      await context.route(/\/api\/account\/app-catalogue(?:\/|$|\?)/, async (route) => {
+        const request = route.request();
+        const path = new URL(request.url()).pathname.replace(/^.*\/api\/account\/app-catalogue/, "");
+
+        if (request.method() === "GET" && path === "") return await route.fulfill({ json: catalogue([rates], { network: true, secrets: false, held: ["team-key"] }) });
+
+        asked.push(`${request.method()} ${path}`);
+        await route.fulfill({ json: rates });
+      });
+
+      try {
+        const page = await context.newPage();
+
+        await page.goto(`${origin}/app-catalogue`, { waitUntil: "load" });
+
+        const ratesRow = page.locator("[data-catalogue-app='21-rates']");
+
+        await ratesRow.waitFor({ timeout: 30_000 });
+        await press(page, ratesRow, phone);
+
+        const listed = page.locator("[data-catalogue-dialog] [data-catalogue-permissions]");
+        const line = (key: string) => listed.locator(`[data-app-permission='${key}']`);
+        const values = async (key: string) => await line(key).locator("[data-app-permission-value]").allTextContents();
+
+        await listed.waitFor({ timeout: 10_000 });
+        // The addresses, each in its own face, and that nothing else is reached.
+        await expect(line("network").textContent()).resolves.toContain(wording("app_permissions.label.network"));
+        await expect(values("network")).resolves.toEqual(["rates.example.org", "*.example.net:8443"]);
+        await expect(line("network-note").textContent()).resolves.toBe(wording("app_permissions.label.network_note"));
+        await expect(line("network-withheld").count()).resolves.toBe(0);
+        // The secrets, read only as it runs; the one the reader's space lacks, and the organisation's word against them.
+        await expect(values("secrets")).resolves.toEqual(["rates-key", "team-key"]);
+        await expect(line("secrets-note").textContent()).resolves.toBe(wording("app_permissions.label.secrets_note"));
+        await expect(values("secrets-missing")).resolves.toEqual(["rates-key"]);
+        await expect(line("secrets-withheld").textContent()).resolves.toBe(wording("app_permissions.label.secrets_withheld"));
+
+        // Every line within the screen's width, and the warnings drawn in the warning colour.
+        const widest = await listed.locator("[data-app-permission]").evaluateAll((items) => Math.max(...items.map((item) => item.getBoundingClientRect().right)));
+
+        expect(widest).toBeLessThanOrEqual(width);
+        await expect(line("secrets-missing").getAttribute("class")).resolves.toContain("text-warning");
+
+        // The install asks first, naming the same, and a cancel installs nothing.
+        await press(page, page.locator("[data-catalogue-install]"), phone);
+
+        const installing = page.getByRole("dialog").filter({ hasText: wording("app_catalogue.title.install") });
+
+        await installing.waitFor({ timeout: 10_000 });
+
+        const question = (await installing.textContent()) ?? "";
+
+        expect(question).toContain(`${wording("app_permissions.label.network")} rates.example.org, *.example.net:8443`);
+        expect(question).toContain(`${wording("app_permissions.label.secrets_missing")} rates-key`);
+        expect(question).toContain(wording("app_permissions.label.secrets_withheld"));
+        await press(page, installing.getByRole("button", { name: wording("common.action.cancel") }), phone);
+        await installing.waitFor({ state: "detached", timeout: 10_000 });
+        expect(asked).toEqual([]);
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+
     test(`shares a personal app with the team and the heads, ${width}px wide`, async () => {
       const context = await contextAt(width, height, phone);
       const shared: unknown[] = [];
@@ -209,7 +282,8 @@ describe.skipIf(!origin || !touchReady())("the app catalogue", () => {
       await context.route(/\/api\/account\/personal-apps(?:\/|$|\?)/, async (route) => {
         const listed: PersonalApps = {
           items: [{ name: "weekly", version: "1763900000000-b2c3d4", putAt: 1_763_900_000_000, entries: [{ name: "my/weekly", title: "Weekly summary", description: "Sums up the week." }], permissions: { network: [], secrets: [] }, kept: [] }],
-          reached: true
+          reached: true,
+          reach: { network: false, secrets: false, held: [] }
         };
 
         await route.fulfill({ json: listed });

@@ -35,7 +35,7 @@
                 {{ $t("personal_apps.label.version") }}
                 <span class="font-mono">{{ app.version }}</span>
               </span>
-              <span class="text-sm text-muted" data-personal-app-permissions>{{ permissionsLine(app) }}</span>
+              <AppPermissionList :permissions="app.permissions" :reach="apps.reach" class="mt-1" data-personal-app-permissions />
             </template>
 
             <IconButton
@@ -105,16 +105,6 @@ const sharedNote = ref("");
 // An app by its entry's title where it gives one, else by its name.
 function appLabel(app: PersonalApp): string {
   return app.entries[0]?.title ?? app.name;
-}
-
-// What the app may reach beyond its own data, said in words.
-function permissionsLine(app: PersonalApp): string {
-  const parts: string[] = [];
-
-  if (app.permissions.network.length > 0) parts.push(t("personal_apps.label.network", { addresses: app.permissions.network.join(", ") }));
-  if (app.permissions.secrets.length > 0) parts.push(t("personal_apps.label.secrets", { names: app.permissions.secrets.join(", ") }));
-
-  return parts.length === 0 ? t("personal_apps.label.own_data") : parts.join(" · ");
 }
 
 // Whether the PC keeps a version older than the one in place.

@@ -1,6 +1,8 @@
 // A company's catalogue of the personal apps its people share (docs/web.md, 「App catalogue」; the agency's
 // `docs/person-nodes.md`, 「Shared apps」): each app as its reader sees it, what they may do with it, and their notices.
 
+import type { AppPermissions, PermissionReach } from "./app-permissions";
+
 /** A target an app is shared with: the maker's team, the heads on their line, the whole company, or one person, group
  * or unit. */
 export type CatalogueTarget =
@@ -17,10 +19,7 @@ export const SHARE_SCOPES = ["team", "heads", "company"] as const;
 export type ShareScope = (typeof SHARE_SCOPES)[number];
 
 /** What an app's version asks for beyond its own data. */
-export interface CataloguePermissions {
-  network: string[];
-  secrets: string[];
-}
+export type CataloguePermissions = AppPermissions;
 
 /** A version's review report: pending, written with its text, or failed with why. */
 export interface CatalogueReview {
@@ -90,6 +89,8 @@ export interface Catalogue {
   apps: CatalogueApp[];
   notices: CatalogueNotice[];
   seenAt: number | null;
+  // What the reader's own apps may have of what an app asks for.
+  reach: PermissionReach;
   // The names of the makers and the units the reader's controls name, by id.
   people: Record<string, string>;
   units: Record<string, string>;

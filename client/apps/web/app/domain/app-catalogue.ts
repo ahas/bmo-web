@@ -1,10 +1,10 @@
 import { sharedWith } from "#shared/app-catalogue";
 
-import type { Catalogue, CatalogueApp, CataloguePermissions, ShareScope } from "#shared/app-catalogue";
+import type { Catalogue, CatalogueApp, ShareScope } from "#shared/app-catalogue";
 import type { Translate } from "#shared/wording";
 
-// The app catalogue screen's reading of what it shows (docs/web.md, 「App catalogue」): what an app asks for in words, the
-// line under its name, its state marks, the filter by whom it is shared with, and a source file as a code block.
+// The app catalogue screen's reading of what it shows (docs/web.md, 「App catalogue」): the line under an app's name,
+// its state marks, the filter by whom it is shared with, and a source file as a code block.
 
 /** The filters of the catalogue's list: every app, or those shared with one scope, or directly with someone. */
 export const CATALOGUE_FILTERS = ["all", "team", "heads", "company", "direct"] as const;
@@ -34,16 +34,6 @@ export const ASKED_ACTS: Readonly<Record<"clone" | "uninstall" | "withdraw" | "p
   withdraw: { title: "app_catalogue.title.withdraw", effect: "app_catalogue.message.withdraw_effect", confirm: "app_catalogue.action.withdraw" },
   promote: { title: "app_catalogue.title.promote", effect: "app_catalogue.message.promote_effect", confirm: "app_catalogue.action.promote" }
 };
-
-/** What an app asks for beyond its own data, said in words. */
-export function permissionsLine(t: Translate, permissions: CataloguePermissions): string {
-  const parts: string[] = [];
-
-  if (permissions.network.length > 0) parts.push(t("app_catalogue.label.network", { addresses: permissions.network.join(", ") }));
-  if (permissions.secrets.length > 0) parts.push(t("app_catalogue.label.secrets", { names: permissions.secrets.join(", ") }));
-
-  return parts.length === 0 ? t("app_catalogue.label.own_data") : parts.join(" · ");
-}
 
 /** A person by their name where the reader's company names them, else by their account in the monospace face's
  * stead. */

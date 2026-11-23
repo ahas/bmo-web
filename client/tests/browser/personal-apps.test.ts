@@ -8,7 +8,8 @@ import type { Browser, Locator, Page } from "playwright-core";
 import type { PersonalApp, PersonalApps } from "../../apps/web/shared/personal-apps";
 
 // The personal apps section (docs/web.md, 「Settings」, the personal apps section), worked by hand at a desk's width and
-// a phone's: each app's row shows its name, what it does, its version and what it may reach; its way back is off where
+// a phone's: each app's row shows its name, what it does, its version and what it may reach, line by line, with what
+// the reader's organisation does not allow and the secrets their space lacks; its way back is off where
 // the PC keeps no older version, and sends an app back once asked; its delete asks, a cancel leaves the app, and a delete that
 // goes through takes the row away. Every press lands on the control it says, nothing standing over it. The console's
 // own routes are served through the page, standing for the agency. It drives the console
@@ -49,7 +50,7 @@ function apps(): PersonalApp[] {
       version: "1763700000000-0f0f0f",
       putAt: 1_763_700_000_000,
       entries: [{ name: "my/fetch_rates", title: null, description: "Reads today's rates." }],
-      permissions: { network: ["rates.example.org"], secrets: [] },
+      permissions: { network: ["rates.example.org"], secrets: ["rates-key"] },
       kept: []
     }
   ];
@@ -93,7 +94,7 @@ describe.skipIf(!origin || !touchReady())("the personal apps section", () => {
         const path = new URL(request.url()).pathname.replace(/^.*\/api\/account\/personal-apps/, "");
 
         if (request.method() === "GET") {
-          const listed: PersonalApps = { items: standing, reached: true };
+          const listed: PersonalApps = { items: standing, reached: true, reach: { network: false, secrets: true, held: [] } };
 
           return await route.fulfill({ json: listed });
         }
@@ -123,11 +124,18 @@ describe.skipIf(!origin || !touchReady())("the personal apps section", () => {
         await expect(weekly.textContent()).resolves.toContain("Weekly summary");
         await expect(weekly.textContent()).resolves.toContain("Sums up the week's notes.");
         await expect(weekly.locator("[data-personal-app-version]").textContent()).resolves.toContain("1763900000000-b2c3d4");
-        await expect(weekly.locator("[data-personal-app-permissions]").textContent()).resolves.toBe(wording("personal_apps.label.own_data"));
+        await expect(weekly.locator("[data-personal-app-permissions]").textContent()).resolves.toBe(wording("app_permissions.label.own_data"));
         await expect(rates.textContent()).resolves.toContain("fetch_rates");
-        await expect(rates.locator("[data-personal-app-permissions]").textContent()).resolves.toBe(
-          wording("personal_apps.label.network", { addresses: "rates.example.org" })
-        );
+
+        // What an app asking for more may reach, line by line: the address and that it reaches nothing else, the
+        // organisation's word against the network, and the secret its reader's space lacks.
+        const line = (key: string) => rates.locator(`[data-app-permission='${key}']`);
+
+        await expect(line("network").locator("[data-app-permission-value]").allTextContents()).resolves.toEqual(["rates.example.org"]);
+        await expect(line("network-note").textContent()).resolves.toBe(wording("app_permissions.label.network_note"));
+        await expect(line("network-withheld").textContent()).resolves.toBe(wording("app_permissions.label.network_withheld"));
+        await expect(line("secrets-missing").locator("[data-app-permission-value]").allTextContents()).resolves.toEqual(["rates-key"]);
+        await expect(line("secrets-withheld").count()).resolves.toBe(0);
 
         // No older version kept: its way back is off.
         await expect(rates.locator("[data-personal-app-back]").isDisabled()).resolves.toBe(true);

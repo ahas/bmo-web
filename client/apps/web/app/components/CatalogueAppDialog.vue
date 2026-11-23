@@ -65,6 +65,10 @@
         </SettingsRow>
       </SettingsGroup>
 
+      <SettingsGroup :title="$t('app_catalogue.label.permissions')" data-catalogue-permissions>
+        <AppPermissionList :permissions="props.app.permissions" :reach="props.catalogue.reach" class="py-3" />
+      </SettingsGroup>
+
       <SettingsGroup :title="$t('app_catalogue.label.review')" data-catalogue-review>
         <p class="whitespace-pre-line break-keep break-words py-3 text-sm" :class="props.app.review.state === 'written' ? 'text-default' : 'text-muted'" data-catalogue-review-text>
           {{ reviewText }}
@@ -105,7 +109,8 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { formatStamp } from "bmo-ui/app/domain/time";
 
 import { useConfirm } from "~/domain/confirm";
-import { ASKED_ACTS, permissionsLine, personName, sourceBlock } from "~/domain/app-catalogue";
+import { ASKED_ACTS, personName, sourceBlock } from "~/domain/app-catalogue";
+import { permissionText } from "~/domain/app-permissions";
 
 import { linkUnit } from "#shared/app-catalogue";
 
@@ -165,8 +170,7 @@ const properties = computed(() => {
     { label: t("app_catalogue.label.version"), value: props.app.version, mono: true },
     ...(latest ? [{ label: t("app_catalogue.label.shared"), value: formatStamp(Math.floor(latest.sharedAt / 1000)) }] : []),
     { label: t("app_catalogue.label.installs"), value: t("app_catalogue.label.installs_count", { count: props.app.installs.toLocaleString() }) },
-    { label: t("app_catalogue.label.targets"), value: props.app.targets.map(targetWord).join(", ") },
-    { label: t("app_catalogue.label.permissions"), value: permissionsLine(t, props.app.permissions) }
+    { label: t("app_catalogue.label.targets"), value: props.app.targets.map(targetWord).join(", ") }
   ];
 });
 
@@ -221,7 +225,7 @@ async function act(kind: string, body: Record<string, unknown> = {}, path = kind
 
 // What an install or an update asks for and what its review says, said in the question.
 function asksEffect(effect: string): string {
-  return [t("app_catalogue.label.permissions_line", { permissions: permissionsLine(t, props.app.permissions) }), effect].join("\n");
+  return [t("app_catalogue.label.permissions"), permissionText(t, props.app.permissions, props.catalogue.reach), "", effect].join("\n");
 }
 
 async function install(): Promise<void> {

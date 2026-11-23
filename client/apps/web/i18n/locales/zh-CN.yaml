@@ -4215,10 +4215,6 @@ app_catalogue:
     installs_count: "{count} 人已安装"
     targets: 共享对象
     permissions: 所需权限
-    permissions_line: "所需权限：{permissions}"
-    own_data: 仅使用自己的数据
-    network: "使用网络 {addresses}"
-    secrets: "使用密钥 {names}"
     review: 审查报告
     review_pending: 审查中
     review_failed: 未能写出审查报告。
@@ -4303,9 +4299,6 @@ personal_apps:
     unreached: 未连接到 PC，无法查看以前的版本。
     updated: "{time} 更新"
     version: 版本
-    own_data: 仅使用自身数据
-    network: "使用网络 {addresses}"
-    secrets: "使用密钥 {names}"
   action:
     back: 恢复到以前的版本
   message:
@@ -4329,6 +4322,20 @@ personal_apps:
     refused: PC 未接受此版本。
     not_found: 找不到个人应用。
     no_user: 没有用户账号，无法使用个人应用。
+
+# What a personal app may reach beyond its own data (docs/web.md, 「App catalogue」 and 「Settings」, the personal apps
+# section), said line by line in the catalogue and the personal apps section.
+app_permissions:
+  label:
+    own_data: 仅使用自己的数据
+    network: 使用网络
+    network_note: 只连接列出的地址，无法连接其他地方。
+    network_withheld: 组织设置不允许使用网络，因此此应用无法运行。
+    secrets: 使用密钥
+    secrets_note: 仅在运行时从密钥保管库接收值，BMO 看不到这些值。
+    secrets_missing: 密钥保管库中没有
+    secrets_withheld: 组织设置不允许使用密钥，因此此应用无法运行。
+
 supply:
   title:
     logins: 供给登录

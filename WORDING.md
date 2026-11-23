@@ -109,7 +109,10 @@
 - a tool of a person's own, which their BMO makes on their PC → 개인 앱: 개인 앱, 내 개인 앱 (its settings section),
   개인 앱 없음; one placed build of it → 버전, when it was put → `{time} 업데이트`; going to the one before → 이전 버전으로,
   its question 이전 버전으로 되돌릴까요?; what it may reach → `자기 데이터만 사용`, `네트워크 사용 {addresses}`, `비밀 사용
-  {names}`. Never 나만의 앱, 커스텀 도구, 롤백, 복원.
+  {names}`, each said under it — 적어 둔 주소에만 접속하고, 다른 곳에는 접속할 수 없습니다; 실행할 때만 내 비밀 보관함에서 값을
+  받고, 값은 BMO에게 보이지 않습니다 — and what keeps it from running → `비밀 보관함에 없음 {names}`, 조직 설정으로 네트워크를 쓸
+  수 없어 이 앱은 실행되지 않습니다, 조직 설정으로 비밀을 쓸 수 없어 이 앱은 실행되지 않습니다. Never 나만의 앱, 커스텀 도구,
+  롤백, 복원, 인터넷 권한.
 - the screens of a person's own apps, as the sidebar groups them → 내 앱; a screen of one that cannot open because the
   person's PC does not answer → `PC가 꺼져 있어 열 수 없습니다.` Never 오프라인, 연결 끊김 for it.
 - the company's shelf of shared personal apps → 앱 카탈로그; sharing one → 공유, whom with → 공유 대상, the three scopes →

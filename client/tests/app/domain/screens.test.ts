@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-import { broughtScreens, isScreenActive, namedWhenFolded, SCREENS, screenItems, screenSections, screensWithBundles, sectionItems, sidebarOrder, tabAddress } from "../../../apps/web/app/domain/screens";
+import { ACCOUNT_ITEM_SLOT, accountItems, accountScreens, accountUnread, broughtScreens, isScreenActive, namedWhenFolded, SCREENS, screenItems, screenSections, screensWithBundles, sectionItems, sidebarOrder, tabAddress } from "../../../apps/web/app/domain/screens";
 
 import type { Screen } from "../../../apps/web/app/domain/screens";
 import KO from "../../fixtures/app/domain/screens.test.ko.json";
@@ -84,6 +84,34 @@ test("a screen a unit brings stands under the administrator services where its m
   const sectionOf = (path: string) => screens.find((entry) => entry.to === path)!.section;
 
   expect([sectionOf("/elsewhere"), sectionOf("/mail")]).toEqual(["administration", "application"]);
+});
+
+test("a screen a unit brings into the reader's own menu stands in no section of the sidebar, and in the user menu by its name", () => {
+  const screens = screensWithBundles([brought("/voc", "voc", { sidebarSection: "account" }), brought("/files", "files", { sidebarSection: "account" }), brought("/mail", "mail")]);
+  const t = named({ "voc.title.screen": "Voice", "files.title.screen": "files" });
+
+  expect(sectionItems(t, "/", undefined, false, screens).flatMap((menu) => menu.items).map((item) => item.to)).not.toContain("/voc");
+  expect(sectionItems(t, "/", undefined, false, screens).flatMap((menu) => menu.items).map((item) => item.to)).toContain("/mail");
+  expect(accountScreens(t, screens).map((screen) => screen.to)).toEqual(["/files", "/voc"]);
+});
+
+test("the user menu's screen stands under its name and icon, leads to its address, and carries a positive count as a badge said with it", () => {
+  const screens = screensWithBundles([brought("/voc", "voc", { sidebarSection: "account", counted: true, title: "screens.label.mail" })]);
+  const [quiet] = accountItems(wording, screens, {});
+  const [counted] = accountItems(wording, screens, { "/voc": 3 });
+
+  expect(quiet).toEqual({ label: wording("screens.label.mail"), icon: "i-material-symbols-circle", to: "/voc", slot: ACCOUNT_ITEM_SLOT });
+  expect(counted!.badge).toMatchObject({ label: "3", color: "primary" });
+  expect(counted!["aria-description"]).toBe(wording("screens.aria.screen_unread", { name: wording("screens.label.mail"), count: "3" }));
+  expect(accountUnread(wording, screens, {})).toBeNull();
+  expect(accountUnread(wording, screens, { "/voc": 3 })).toBe(counted!["aria-description"]);
+});
+
+test("a count on a screen of the sidebar puts nothing on the user menu", () => {
+  const screens = screensWithBundles([brought("/mail", "mail", { counted: true })]);
+
+  expect(accountItems(wording, screens, { "/mail": 5 })).toEqual([]);
+  expect(accountUnread(wording, screens, { "/mail": 5 })).toBeNull();
 });
 
 test("a manifest at the address of a screen of the list keeps that screen's section", () => {

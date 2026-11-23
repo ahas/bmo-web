@@ -1520,7 +1520,8 @@ edit to that file alone, once the guide below carries the word.
   - The screens and their tabs are one list in the code, read by both the sidebar and the search, so a screen
     added to one is in the other. A screen a unit brings takes its manifest's own title and icon, merged into
     the list from the manifests the reader may open (「Screens a unit brings」). The search lists the screens in
-    the sidebar's order, the 관리자 서비스 first and the 애플리케이션 after them.
+    the sidebar's order, the 관리자 서비스 first and the 애플리케이션 after them, and then the screens the user
+    menu holds for the reader, by name as a section's are.
 
 Four groups.
 
@@ -1533,10 +1534,15 @@ Four groups.
   - **애플리케이션** holds every other screen a unit brings: mail, 파일, 아티팩트, 캘린더, 노트, 일정 관리
     and 극장 among them.
   - **Which section a screen stands in is the screen's own.** Each of the console's own screens names its section
-    where it is listed. A screen a unit brings stands in the section its manifest names under `sidebarSection`
-    (bmo-ui's `docs/console-bundles.md`, the sidebar section): 관리자 서비스 for `administration`, 애플리케이션 for
-    `application` and for a manifest that names none. The console keeps no list of addresses of its own for a
-    screen a unit brings, so a unit moves its screen by its manifest alone.
+    where it is listed. A screen a unit brings stands in the section its manifest names for the reader's role
+    (bmo-ui's `docs/console-bundles.md`, the sidebar section and 「A section by role」): the one `sidebarSections`
+    names for the role the reader holds, else `sidebarSection`, as bmo-ui's `sectionFor` answers it. 관리자 서비스
+    stands for `administration`, 애플리케이션 for `application` and for a manifest that names none, and the user
+    menu for `account` (below), where the screen stands in neither section. The console's server reads the section
+    for each reader and hands the browser that one alone, so a screen whose face differs by role stands once for
+    each reader, where their role places it: a platform administrator never meets a member's entry of it. The
+    console keeps no list of addresses of its own for a screen a unit brings, so a unit moves its screen by its
+    manifest alone.
   - **Within a section the screens stand by the name the reader sees,** compared as English collation compares
     them: names in Latin letters first, a to z with case set aside, then names in Hangul, ㄱ to ㅎ. A screen a
     unit brings is ordered by the name its manifest gives it, so where a unit renames its screen it moves to its
@@ -1562,7 +1568,8 @@ Four groups.
     another unit for it. The console draws a positive count at the line's end as a count badge (「Count badges」)
     in the primary colour, the reader's mail count among them. Folded, it stands on the icon's rim at about two
     o'clock instead, as the rooms' dots do, with the number itself in a pill there, placed from the row's centre
-    so the folded column keeps one centre. The console reads the counts when the sidebar stands, again on its
+    so the folded column keeps one centre. A screen in the user menu carries its count on its item there instead
+    (below). The console reads the counts when the sidebar stands, again on its
     own pacing clock while the tab is open and shown, and again at once whenever the tab's stream carries the
     `sidebar-counts` word. The console's server follows the event stream of every unit whose manifest names
     both a count and its events, and tells every open tab that word on any event of it, since which change
@@ -1830,7 +1837,13 @@ Four groups.
     it, and the number turns as it changes (「Motion」).
 - The drawer closes on an outside press. Swiping horizontally does not drag the drawer along — a panel dragged whenever a
   hand skimming the list flows sideways cannot be read. At the bottom is the user menu, its button and its head
-  naming the reader by their person's name, their login where none stands: open the settings
+  naming the reader by their person's name, their login where none stands, in the administrator's console and the
+  member's shell alike. Above its own items stand the screens units bring whose section for the reader is the
+  reader's own menu (「Which section a screen stands in」 above), by name as a section's are, each under its
+  manifest's title in the bundle's words and its icon, leading to its screen path. A counted one carries its
+  positive count at the item's end as a count badge (「Count badges」) in the primary colour, and while any of
+  them is positive the menu's button carries a primary dot on its avatar's rim at about two o'clock, spread and
+  folded alike, its accessible description naming each count. The menu's own items: open the settings
   (「Settings」), open the desktop app's download page (「The desktop app's download page」), change the screen mode to
   light, dark or system, or log out. A reader who never chose a mode reads dark, and the mode is
   kept in a cookie for a year (「Themes」), so the server paints the first frame in it and knows it for a page it sends (bmo-artifact's `docs/artifact.md`, 「How a
@@ -9445,8 +9458,9 @@ its people directory and the members of the reader's company.
   bmo-ui's defaults standing where neither is set.
 - **A reader is handed the screens their role opens.** The console's `GET /api/console-bundles` answers the
   bundles the signed-in reader may open, as the contract's 「Roles and the owner key」 has the console offer them:
-  each with its name, title and icon, its screen path, the relay addresses of its module and its stylesheet, its
-  words, and whether its manifest names a `sidebarUnread`, whose count the console reads itself (「Sidebar」). A
+  each with its name, title and icon, its screen path, the section it stands in for the reader's role
+  (「Sidebar」), the relay addresses of its module and its stylesheet, its words, and whether its manifest names a
+  `sidebarUnread`, whose count the console reads itself (「Sidebar」). A
   page drawn on the server reads the same list, so the sidebar names every screen on its first frame, and the words
   are merged into the console's pack under the bundle's namespace as the list is read. The list is read again as
   somebody signs in or out, since a login reaches the console's screens with no new page to read it on, and the

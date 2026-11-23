@@ -18,7 +18,7 @@ export interface ConsoleScreen {
   // Whether the bundle's manifest names a sidebar count, which the console reads itself (bmo-ui's
   // `docs/console-bundles.md`, the sidebar count; docs/web.md, 「Sidebar」).
   counted: boolean;
-  // The section of the sidebar the bundle's manifest names for its entry (bmo-ui's `docs/console-bundles.md`, the
-  // sidebar section; docs/web.md, 「Sidebar」).
+  // The section the bundle's manifest names for its entry for the reader's role: one of the sidebar's two, or the
+  // reader's own menu (bmo-ui's `docs/console-bundles.md`, the sidebar section; docs/web.md, 「Sidebar」).
   sidebarSection: ConsoleSidebarSection;
 }

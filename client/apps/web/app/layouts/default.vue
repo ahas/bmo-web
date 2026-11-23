@@ -106,7 +106,7 @@
               <span v-if="!collapsed" class="truncate">{{ streamNotice.label }}</span>
             </NuxtLink>
           </UTooltip>
-          <UserMenu :collapsed="collapsed" />
+          <UserMenu :collapsed="collapsed" :screens="screens" :counts="unread" />
         </div>
       </template>
     </UDashboardSidebar>
@@ -249,7 +249,8 @@ onMounted(() => nextTick(openAskedTodo));
 // alone, and a mark it carries is drawn over that icon rather than given a cell of its own.
 const sidebarFolded = ref(false);
 // The screens units bring take their manifest's own name and icon; the console's own screens stand as they are
-// (docs/web.md, 「Screens a unit brings」). The sidebar stands them in its two sections (「Sidebar」).
+// (docs/web.md, 「Screens a unit brings」). The sidebar stands them in its two sections, and the user menu those
+// the reader's role places in it (「Sidebar」).
 const bundles = useConsoleScreens();
 const screens = screensWithBundles(bundles.value);
 // The counts the bundles declare, read for this reader while the sidebar stands (docs/web.md, 「Sidebar」).

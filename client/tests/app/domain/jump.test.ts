@@ -3,7 +3,7 @@ import { describe, expect, test } from "bun:test";
 import { wording } from "../../../apps/web/shared/wording";
 
 import { jumpGroups, markedHtml, screenGroup } from "../../../apps/web/app/domain/jump";
-import { SCREENS, sectionItems, sidebarOrder } from "../../../apps/web/app/domain/screens";
+import { SCREENS, screensWithBundles, sectionItems, sidebarOrder } from "../../../apps/web/app/domain/screens";
 
 import type { JumpGroup } from "../../../apps/web/app/domain/jump";
 import KO from "../../fixtures/app/domain/jump.test.ko.json";
@@ -69,5 +69,13 @@ describe("the console's screens", () => {
 
     expect(listed).toEqual(sidebarOrder(wording, SCREENS).map((screen) => screen.to));
     expect(sectionItems(wording, "/").flatMap((menu) => menu.items.slice(1)).map((item) => item.to)).toEqual(listed);
+  });
+
+  test("the screens of the user menu are found after the sidebar's", () => {
+    const bundle = { name: "voc", title: "screens.label.mail", icon: "i-material-symbols-circle", role: "member" as const, module: "/m.js", stylesheet: null, words: {}, counted: false };
+    const screens = screensWithBundles([{ ...bundle, screenPath: "/voc", sidebarSection: "account" }]);
+    const listed = screenGroup(wording, screens).entries.filter((entry) => entry.prefix === undefined).map((entry) => entry.to);
+
+    expect(listed).toEqual([...sidebarOrder(wording, SCREENS).map((screen) => screen.to), "/voc"]);
   });
 });

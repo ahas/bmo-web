@@ -12,9 +12,10 @@ import type { AvatarIndex } from "./avatars";
 import type { RoomsPresent } from "./presence";
 import type { RoomReading } from "./room-list";
 import type { ConsoleScreen } from "#shared/console-bundles";
+import type { ConsoleSidebarSection } from "bmo-ui/shared/console-manifest";
 import type { ListedRoom } from "#shared/types";
 import type { Translate } from "#shared/wording";
-import type { NavigationMenuItem } from "@nuxt/ui";
+import type { BadgeProps, DropdownMenuItem, NavigationMenuItem } from "@nuxt/ui";
 
 // The sections the sidebar stands its screens in, in the order they stand, each under its heading
 // (docs/web.md, 「Sidebar」): what the administrator keeps the deployment running with, and every other screen.
@@ -23,7 +24,9 @@ export const SCREEN_SECTIONS = [
   { id: "application", heading: "screens.label.section_application" }
 ] as const;
 
-export type ScreenSection = (typeof SCREEN_SECTIONS)[number]["id"];
+// Where a screen's entry stands: one of the sidebar's sections, or `account`, the user menu, the reader's own menu,
+// which stands in neither section (bmo-ui's `docs/console-bundles.md`, the sidebar section).
+export type ScreenSection = ConsoleSidebarSection;
 
 // The console's screens at the top of the sidebar, each in its section. The sidebar and the console search both
 // read this list, so a screen added here is in both.
@@ -31,7 +34,7 @@ export interface Screen {
   label: string;
   to: string;
   icon: string;
-  // The section of the sidebar the screen stands in.
+  // The section of the sidebar the screen stands in, or the user menu.
   section: ScreenSection;
   // Whether the screen's own pages under its address light it as well.
   nested: boolean;
@@ -140,17 +143,29 @@ function broughtScreen(bundle: ConsoleScreen, section: ScreenSection): Screen {
 // in its own order. The Korean collation puts Hangul first, which is not the sidebar's order.
 const BY_NAME = new Intl.Collator("en");
 
+// The screens standing in one place, by the name the reader reads.
+function byName(t: Translate, screens: readonly Screen[], section: ScreenSection): Screen[] {
+  return screens.filter((screen) => screen.section === section).sort((one, other) => BY_NAME.compare(t(one.label), t(other.label)));
+}
+
 /** The screens of each section the reader is shown, by the name they read, and only the sections holding any. */
 export function screenSections(t: Translate, screens: readonly Screen[]): { heading: string; screens: Screen[] }[] {
-  return SCREEN_SECTIONS.map((section) => ({
-    heading: section.heading,
-    screens: screens.filter((screen) => screen.section === section.id).sort((one, other) => BY_NAME.compare(t(one.label), t(other.label)))
-  })).filter((section) => section.screens.length > 0);
+  return SCREEN_SECTIONS.map((section) => ({ heading: section.heading, screens: byName(t, screens, section.id) })).filter((section) => section.screens.length > 0);
 }
 
 /** The screens in the order the sidebar stands them, section after section. */
 export function sidebarOrder(t: Translate, screens: readonly Screen[]): Screen[] {
   return screenSections(t, screens).flatMap((section) => section.screens);
+}
+
+/** The screens the user menu holds for the reader, by the name they read (docs/web.md, 「Sidebar」). */
+export function accountScreens(t: Translate, screens: readonly Screen[]): Screen[] {
+  return byName(t, screens, "account");
+}
+
+/** The screens in the order the console search lists them: the sidebar's, then the user menu's. */
+export function searchOrder(t: Translate, screens: readonly Screen[]): Screen[] {
+  return [...sidebarOrder(t, screens), ...accountScreens(t, screens)];
 }
 
 /** The screens units bring alone, as a member's shell lists them. */
@@ -206,6 +221,38 @@ export function screenItems(t: Translate, path: string, live: ScreenLive = QUIET
       ? { ...countedEntry, ui: { link: `${FOLDED_MARK} ${status.folded}` }, "aria-description": said ?? t(status.label) }
       : { ...countedEntry, trailingIcon: status.icon, ui: { linkTrailingIcon: status.tone }, "aria-description": said ?? t(status.label) };
   });
+}
+
+// The slot the user menu draws its screens' items through, whose end carries a count badge.
+export const ACCOUNT_ITEM_SLOT = "account-screen" as const;
+
+// A screen of the user menu as its item: drawn through its own slot, with the count badge it carries.
+export type AccountItem = DropdownMenuItem & { slot: typeof ACCOUNT_ITEM_SLOT; badge?: BadgeProps };
+
+/**
+ * The user menu's screens as its items (docs/web.md, 「Sidebar」): each under its name and icon, leading to its
+ * address, and a positive count its bundle declares as a count badge at the item's end, said with the item.
+ */
+export function accountItems(t: Translate, screens: readonly Screen[], counts: ScreenCounts = {}): AccountItem[] {
+  return accountScreens(t, screens).map((screen): AccountItem => {
+    const count = screen.counted === true ? (counts[screen.to] ?? 0) : 0;
+    const entry: AccountItem = { label: t(screen.label), icon: screen.icon, to: screen.to, slot: ACCOUNT_ITEM_SLOT };
+
+    return count > 0
+      ? {
+          ...entry,
+          badge: { ...COUNT_BADGE, label: unreadLabel(count) ?? String(count), color: "primary" as const },
+          "aria-description": t("screens.aria.screen_unread", { name: t(screen.label), count: countText(count) })
+        }
+      : entry;
+  });
+}
+
+/** What the user menu's button says of its screens' positive counts, one count after another; null where none is. */
+export function accountUnread(t: Translate, screens: readonly Screen[], counts: ScreenCounts = {}): string | null {
+  const said = accountItems(t, screens, counts).flatMap((item) => (typeof item["aria-description"] === "string" ? [item["aria-description"]] : []));
+
+  return said.length === 0 ? null : said.join(", ");
 }
 
 // One section of the sidebar's screens as its menu draws it: the heading it is named by, and its rows.

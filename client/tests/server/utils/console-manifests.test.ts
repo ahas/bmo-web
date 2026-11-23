@@ -205,24 +205,31 @@ test("the relay lets through the API prefix, the module and the stylesheet, and 
   expect(relayedPath(manifest, "/console/words")).toBe(false);
   expect(sharePage(manifest, "/unit-a/share/token-a")).toBe(true);
   expect(sharePage(manifest, "/unit-a/sharing")).toBe(false);
-  expect(screenOf({ manifest, unit, words: {} }, "/base/").module).toBe("/base/api/unit-a/console/bundle.js");
+  expect(screenOf({ manifest, unit, words: {} }, "/base/", "member").module).toBe("/base/api/unit-a/console/bundle.js");
 });
 
 test("a bundle that names a sidebar count is handed over as counted, never with an address the browser would read it at", () => {
   const counted = consoleManifest(manifestOf({ sidebarUnread: { path: "/summary", field: "unreadCount" } }));
   const plain = consoleManifest(manifestOf());
 
-  expect(screenOf({ manifest: counted, unit, words: {} }, "/base/").counted).toBe(true);
-  expect(screenOf({ manifest: plain, unit, words: {} }, "/base/").counted).toBe(false);
-  expect(JSON.stringify(screenOf({ manifest: counted, unit, words: {} }, "/base/"))).not.toContain("/summary");
+  expect(screenOf({ manifest: counted, unit, words: {} }, "/base/", "member").counted).toBe(true);
+  expect(screenOf({ manifest: plain, unit, words: {} }, "/base/", "member").counted).toBe(false);
+  expect(JSON.stringify(screenOf({ manifest: counted, unit, words: {} }, "/base/", "member"))).not.toContain("/summary");
 });
 
 test("a bundle is handed over with the sidebar section its manifest names, an application where it names none", () => {
   const administration = consoleManifest(manifestOf({ sidebarSection: "administration" }));
   const plain = consoleManifest(manifestOf());
 
-  expect(screenOf({ manifest: administration, unit, words: {} }, "/base/").sidebarSection).toBe("administration");
-  expect(screenOf({ manifest: plain, unit, words: {} }, "/base/").sidebarSection).toBe("application");
+  expect(screenOf({ manifest: administration, unit, words: {} }, "/base/", "member").sidebarSection).toBe("administration");
+  expect(screenOf({ manifest: plain, unit, words: {} }, "/base/", "administrator").sidebarSection).toBe("application");
+});
+
+test("a bundle is handed to each reader in the section its manifest names for the role they hold, and with no reader in its own", () => {
+  const byRole = consoleManifest(manifestOf({ sidebarSection: "account", sidebarSections: { administrator: "administration" } }));
+  const screen = (role: "administrator" | "member" | null) => screenOf({ manifest: byRole, unit, words: {} }, "/base/", role).sidebarSection;
+
+  expect([screen("administrator"), screen("member"), screen(null)]).toEqual(["administration", "account", "account"]);
 });
 
 test("the relay lets through a route the manifest relays by its method and path, beside what its prefix lets through", () => {

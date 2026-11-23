@@ -1,4 +1,4 @@
-import { CONSOLE_MANIFEST_ROUTE, LAYER_BOUND, LAYER_VERSION, consoleManifest, movedScreenAddress, onThisLayer, relaysRoute, roleAllows, screensCall } from "bmo-ui/shared/console-manifest";
+import { CONSOLE_MANIFEST_ROUTE, LAYER_BOUND, LAYER_VERSION, consoleManifest, movedScreenAddress, onThisLayer, relaysRoute, roleAllows, screensCall, sectionFor } from "bmo-ui/shared/console-manifest";
 
 import { ownerKeyOf, ownerRoleOf } from "./owner-key";
 import { unitHeaders } from "./units";
@@ -262,8 +262,12 @@ export function relayPath(baseURL: string, manifest: ConsoleManifest, path: stri
   return `${baseURL.replace(/\/+$/, "")}/api/${manifest.serviceName}${path}`;
 }
 
-/** A bundle as a browser is handed it. */
-export function screenOf(bundle: AttachedBundle, baseURL: string): ConsoleScreen {
+/**
+ * A bundle as a browser is handed it, for a reader holding a role: its entry in the section the manifest names for
+ * that role (bmo-ui's `docs/console-bundles.md`, 「A section by role」). With no reader, as a share page is handed it,
+ * the manifest's own sidebar section.
+ */
+export function screenOf(bundle: AttachedBundle, baseURL: string, role: ConsoleRole | null): ConsoleScreen {
   const { manifest } = bundle;
 
   return {
@@ -276,7 +280,7 @@ export function screenOf(bundle: AttachedBundle, baseURL: string): ConsoleScreen
     stylesheet: manifest.stylesheet === undefined ? null : relayPath(baseURL, manifest, manifest.stylesheet),
     words: bundle.words,
     counted: manifest.sidebarUnread !== undefined,
-    sidebarSection: manifest.sidebarSection
+    sidebarSection: role === null ? manifest.sidebarSection : sectionFor(manifest, role)
   };
 }
 

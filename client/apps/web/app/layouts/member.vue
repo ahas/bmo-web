@@ -49,7 +49,7 @@
       </template>
 
       <template #footer="{ collapsed }">
-        <UserMenu :collapsed="collapsed" />
+        <UserMenu :collapsed="collapsed" :screens="screens" :counts="unread" />
       </template>
     </UDashboardSidebar>
 

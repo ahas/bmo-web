@@ -199,6 +199,10 @@ section states what each does.
   and what the routes below call `name`; the person's name, sumida's full name, is what people read them by, and
   every answer carries it as `fullName`, an empty string where none stands. A screen shows the person's name
   and the login only where none stands; the console's sign-in form and its 로그인 정보 show the login itself.
+- **A login is one line of 1 to 254 characters with no control character,** the spaces around it trimmed; an
+  email address is a login like any other. The console reads every login it is handed by this one rule — an
+  invitation's acceptance, the sign-in, a rename on 로그인 정보 and the console's `scripts/user.ts` — so every login
+  an invitation makes is one the sign-in takes.
 - **`GET /users`** — every user, with their login, their person's name and whether they are a platform
   administrator, for an administrator alone.
 - **`GET /users/{user}`** — a user's login, their person's name, whether they are a platform administrator

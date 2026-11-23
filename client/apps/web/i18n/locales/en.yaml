@@ -1792,7 +1792,7 @@ account:
     presence_no_account: "A sign-in without an account can't show or hide its presence."
     presence_read_failed: "Couldn't load the presence setting."
     bad_new_password: The new password is too short or too long.
-    user_name_shape: "User IDs must be {min}–{max} characters of letters, digits, dots, underscores and hyphens."
+    user_name_shape: "A user ID must be one line of {min}–{max} characters. An email address works too."
     user_password_short: "Passwords must be at least {min} characters."
     user_service_failed: "Couldn't create the user in the account service: {reason}"
     bad_palette: "That palette doesn't exist."

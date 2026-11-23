@@ -1796,7 +1796,7 @@ account:
     presence_no_account: アカウントのないログインでは、オンライン状態を公開・非公開にできません。
     presence_read_failed: オンライン状態の公開設定を読み込めませんでした。
     bad_new_password: 新しいパスワードが短すぎるか長すぎます。
-    user_name_shape: "ユーザーIDは{min}～{max}文字の英字、数字、ピリオド、アンダースコア、ハイフンで入力してください。"
+    user_name_shape: "ユーザーIDは{min}～{max}文字の1行で入力してください。メールアドレスも使えます。"
     user_password_short: "パスワードは{min}文字以上にしてください。"
     user_service_failed: "アカウントサービスのユーザーを作成できませんでした: {reason}"
     bad_palette: 存在しないパレットです。

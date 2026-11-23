@@ -12,10 +12,9 @@ import { parseArgs } from "node:util";
 import { modelState } from "../server/utils/account-service";
 
 import { closeWebSql, useWebSql } from "../server/utils/db";
-import { MAX_NAME_LENGTH, MIN_NAME_LENGTH, MIN_PASSWORD_LENGTH } from "../shared/config";
+import { MIN_PASSWORD_LENGTH } from "../shared/config";
+import { MAX_LOGIN_LENGTH, MIN_LOGIN_LENGTH, loginOf } from "../shared/logins";
 import { wording } from "../shared/wording";
-
-const NAME_PATTERN = /^[A-Za-z0-9._-]+$/;
 
 // What the command line says, or null where it says something this command does not read.
 function readArgs(): { positionals: string[]; values: { administrator?: boolean } } | null {
@@ -33,16 +32,18 @@ if (parsed === null) {
   process.exit(2);
 }
 
-const [command, name, password] = parsed.positionals;
+const [command, given, password] = parsed.positionals;
 const administrator = parsed.values.administrator === true;
 
-if (command !== "set" || name === undefined || password === undefined || parsed.positionals.length !== 3) {
+if (command !== "set" || given === undefined || password === undefined || parsed.positionals.length !== 3) {
   console.error(wording("account.message.user_usage"));
   process.exit(2);
 }
 
-if (name.length < MIN_NAME_LENGTH || name.length > MAX_NAME_LENGTH || !NAME_PATTERN.test(name)) {
-  console.error(wording("account.error.user_name_shape", { min: MIN_NAME_LENGTH, max: MAX_NAME_LENGTH }));
+const name = loginOf(given);
+
+if (name === null) {
+  console.error(wording("account.error.user_name_shape", { min: MIN_LOGIN_LENGTH, max: MAX_LOGIN_LENGTH }));
   process.exit(2);
 }
 

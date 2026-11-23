@@ -237,8 +237,6 @@ export const PASTE_ENTRY_CHARS = 2_000;
 export const WORKER_WORD_FILES = 10;
 export const WORKER_WORD_FILE_BYTES = 8 * 1024 * 1024;
 
-export const MIN_NAME_LENGTH = 2;
-export const MAX_NAME_LENGTH = 64;
 export const MIN_PASSWORD_LENGTH = 8;
 export const MAX_PASSWORD_LENGTH = 200;
 

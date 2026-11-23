@@ -1796,7 +1796,7 @@ account:
     presence_no_account: 没有账号的登录无法公开或隐藏在线状态。
     presence_read_failed: 无法加载在线状态公开设置。
     bad_new_password: 新密码太短或太长。
-    user_name_shape: "用户名须为 {min}–{max} 个字符，只能包含英文字母、数字、点、下划线和连字符。"
+    user_name_shape: "用户名须为一行 {min}–{max} 个字符，也可以使用电子邮件地址。"
     user_password_short: "密码至少需要 {min} 个字符。"
     user_service_failed: "无法在账号服务中创建用户：{reason}"
     bad_palette: 该调色板不存在。

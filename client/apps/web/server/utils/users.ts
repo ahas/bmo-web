@@ -1,12 +1,11 @@
-import { MAX_NAME_LENGTH, MAX_PASSWORD_LENGTH, MIN_NAME_LENGTH, MIN_PASSWORD_LENGTH } from "#shared/config";
+import { MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH } from "#shared/config";
+import { loginOf } from "#shared/logins";
 
 export interface WebUser {
   name: string;
   passwordHash: string;
   createdAt: number;
 }
-
-const NAME_PATTERN = /^[A-Za-z0-9._-]+$/;
 
 // Verifying against this when the name is unknown keeps a wrong name and a wrong password
 // the same amount of work, so the response time tells them apart no better than the message does.
@@ -47,19 +46,9 @@ export async function changePassword(name: string, password: string): Promise<vo
   await useWebSql().run("UPDATE web_users SET password_hash = $1 WHERE name = $2", hash, name);
 }
 
-// The name as it will be stored, or null when it is not a name this app accepts.
+// The login as it will be stored, or null when it is not a login (shared/logins.ts).
 export function normalizeName(value: unknown): string | null {
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const name = value.trim();
-
-  if (name.length < MIN_NAME_LENGTH || name.length > MAX_NAME_LENGTH) {
-    return null;
-  }
-
-  return NAME_PATTERN.test(name) ? name : null;
+  return loginOf(value);
 }
 
 export function normalizePassword(value: unknown): string | null {

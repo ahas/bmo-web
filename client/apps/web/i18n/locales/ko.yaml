@@ -1814,7 +1814,7 @@ account:
     presence_no_account: 계정이 없는 로그인은 접속 상태를 공개하거나 숨길 수 없습니다.
     presence_read_failed: 접속 상태 공개 설정을 불러오지 못했습니다.
     bad_new_password: 새 비밀번호가 너무 짧거나 깁니다.
-    user_name_shape: "아이디는 {min}~{max}자의 영문, 숫자, 점, 밑줄, 하이픈이어야 합니다."
+    user_name_shape: "아이디는 {min}~{max}자의 한 줄로 입력해 주세요. 이메일 주소도 쓸 수 있습니다."
     user_password_short: "비밀번호는 {min}자 이상이어야 합니다."
     user_service_failed: "계정 서비스의 사용자를 만들지 못했습니다: {reason}"
     bad_palette: 없는 팔레트입니다.

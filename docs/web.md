@@ -391,7 +391,9 @@ console page. No answer says which framework drew it. Strict transport is the re
 **Once the multi-user model is in force, the sign-in is the account service's**
 (`docs/accounts.md`).
 
-- **Signing in** posts the name and the password to the service, and the seal this app keeps holds
+- **Signing in** posts the login and the password to the service, the login read by the one rule every login
+  is read by (`docs/accounts.md`, 「Users and senders」), so an email address an invitation took signs in as it was typed,
+  and the seal this app keeps holds
   the sumida session it is handed, the user and whether the service named that user a platform administrator
   then.
   Every request carrying such a seal asks the service whether its session still stands, at most once
@@ -8344,7 +8346,8 @@ Where a company's own words for its roles and its unit kinds are kept (`docs/acc
   takes nothing.
 - **The person's name, a login and a password make the account.** 이름 comes first, filled with the name the
   invitation was made with for the person to correct; the page does not take the account without it. 아이디 and
-  비밀번호 follow. A call that gives no name, as a script may, leaves the account the invitation's name. The page then shows the person's machine's one-line installs,
+  비밀번호 follow, the login taken by the rule the sign-in reads it by (`docs/accounts.md`, 「Users and senders」) and refused
+  with that rule's words where it falls outside it. A call that gives no name, as a script may, leaves the account the invitation's name. The page then shows the person's machine's one-line installs,
   Linux or WSL and Windows, each with its copy mark, and asks every few seconds whether the machine has attached.
   A press of the mark puts the line on the clipboard and turns the mark to a check named 「복사됨」, in its tooltip
   as in its name, until another line is copied. The copy reaches the clipboard on an address the browser holds insecure too, through the
@@ -10213,7 +10216,8 @@ cd <checkout>/client/apps/web
 bun scripts/user.ts set <id> <password>
 ```
 
-An id is 2–64 letters, digits, dots, underscores and hyphens. A password is 8 characters or more. A password is
+An id is a login as every login is read (`docs/accounts.md`, 「Users and senders」): one line of 1 to 254 characters
+with no control character, an email address among them. A password is 8 characters or more. A password is
 hashed with argon2id so the original stays nowhere.
 
 Where the model is in force, the sign-in is the account service's, so the command also makes or resets the

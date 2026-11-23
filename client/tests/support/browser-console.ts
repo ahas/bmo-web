@@ -154,6 +154,15 @@ const MEMBERS: readonly { name: string; password: string; sections: readonly { s
       { section: "account", read: true, write: true }
     ]
   },
+  // A member whose login is an email address, as an invitation takes one (docs/accounts.md, 「Users and senders」).
+  {
+    name: "email-member@example.com",
+    password: "fixture-password-4501",
+    sections: [
+      { section: "rooms", read: true, write: false },
+      { section: "account", read: true, write: true }
+    ]
+  },
   {
     name: "org-member",
     password: "fixture-password-2667",

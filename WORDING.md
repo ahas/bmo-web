@@ -591,6 +591,16 @@
 - what a record belongs to, a unit, and the company a person belongs to → 소속: 소속, 소속 조직 구성원, 소속 회사가
   없습니다; a record that belongs to none shows 없음. Never 소속
   없음, and never 담당 or 담당자 for it, which is who keeps or approves a thing.
+- the customers' voice box, where a person sends the platform's maker a word and the maker answers, its entry and its
+  screen → 고객의 소리. Never 피드백, VOC, 의견함.
+- one word a person sends there → 의견: 의견 보내기, 새 의견 보내기, 의견을 보냈습니다, 의견을 보내지 못했습니다; its
+  kinds → 버그, a fault the sender met, and 건의, something the sender wants changed or added. Never 버그 리포트 or
+  제안 on this screen. 의견 on 일정 관리 stays a reader's remark on a work, each on its own screen.
+- its states → 접수, as it arrives, 검토 중, 완료 and 반려. 반려 is the same word an approval document and a job review
+  take, and 접수 here is a word's arrival, not a handling unit taking an approval document; each on its own screen.
+- the maker's word on a sent 의견 → 답변: 답변, 답변했습니다, 답변하지 못했습니다; the sender's word back on the same
+  의견 → 추가 의견: 추가 의견 보내기, 추가 의견을 보냈습니다, 추가 의견을 보내지 못했습니다. Never 답글, 댓글 or 회신
+  for either.
 - **One screen speaks in one style.** A notice, a guidance line and an error end in 합니다 and
   했습니다 throughout; 어요 is never mixed into them.
 - **No dash between words.** A range is written `{min}~{max}`; a caveat on a title stands on its

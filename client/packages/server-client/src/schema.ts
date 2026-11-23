@@ -2272,6 +2272,12 @@ export interface components {
             /** @constant */
             code: "person-left";
             person: components["schemas"]["LinePerson"];
+        } | {
+            /** @constant */
+            code: "supply-closed";
+            /** Format: int64 */
+            until?: number | null;
+            why: string;
         };
         /** @description A grant made: a room and a relation there, or a kind, an object and a relation. */
         GrantAsk: {

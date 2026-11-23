@@ -530,6 +530,7 @@ locks against its value is refused 403 `locked-by-platform`.
   | `unit-let-in` | `unitName`, `by` (`unit` and `accounts` are carried and not read) | `fixed-lines.unit_let_in`, the organisation's name with the object particle its last sound takes |
   | `people-joined` | `people`, `by` where given | `fixed-lines.people_joined_by` where `by` is given, else `fixed-lines.people_joined`, the people named as a list |
   | `person-left` | `person`, `by` where given | `fixed-lines.person_taken_out` where `by` is given, else `fixed-lines.person_left` |
+  | `supply-closed` | `why` (`until` is carried and not read) | `fixed-lines.supply_closed` of the reason: `no-order`, `withheld`, `no-personal`, `own-refused`, `no-organisation`, `organisation-refused`, `no-lendable`, `owned`, `refused` or `ran-out` (the agency's `docs/supply.md`, 「Why none is left」), each saying what the person can do; a reason the pack holds no sentence for, `other`. A line naming no reason is refused 400 `bad-request` |
 
 - **The chat agent's name** in a line is the server's `names.chat_agent` setting; no name stands in the pack.
 - **An account a line names** — `account`, each of `accounts` and `by`, each an account's key as a number or its decimal text — stands

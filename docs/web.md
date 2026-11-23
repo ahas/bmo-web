@@ -10464,6 +10464,13 @@ journalctl --user -u <unit> -f
   moment it was taken, so a browser keeps what it holds until a new picture changes the address. A list the
   receiver stops answering partway leaves the pictures already read standing, a receiver not reached or not named
   in the settings leaves none, and a room or a person with no picture in the list stands as its letter.
+- **A reader sees the pictures of what they share, and no other.** The administrator sees every picture; anyone else
+  only those of the rooms they read (「Access」) and of the people they share one of those rooms with — every sender
+  that has stood in it and every account that is its member, by the identities linked to it — beside their own
+  identities and the person number each chat agent they see speaks under, their own and the deployment's
+  (「Access」). The list leaves every other picture out, and a picture asked for by
+  its address outside it answers as if it did not stand, so no person's or room's picture of another company, nor
+  the number it is kept under, reaches a member. What a reader shares is read again at most every thirty seconds.
 - When a photo is added, changed or deleted the receiver's stream carries a refresh event and the left room list and
   conversation profiles re-read the common list. While disconnected it checks at one-minute intervals, and re-reads at
   once on reconnect. Opening a screen calls no chat service.

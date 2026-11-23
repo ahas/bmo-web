@@ -346,6 +346,60 @@ async fn draw_is_the_line_a_person_checks_it_from() {
 }
 
 #[tokio::test]
+async fn supply_closed_says_why_in_one_sentence_to_each_reason_in_every_language() {
+  let words = &FIXED_LINES.supply_closed;
+  let reasons = [
+    ("no-order", &words.no_order),
+    ("withheld", &words.withheld),
+    ("no-personal", &words.no_personal),
+    ("own-refused", &words.own_refused),
+    ("no-organisation", &words.no_organisation),
+    ("organisation-refused", &words.organisation_refused),
+    ("no-lendable", &words.no_lendable),
+    ("owned", &words.owned),
+    ("refused", &words.refused),
+    ("ran-out", &words.ran_out),
+  ];
+
+  for (why, sentence) in reasons {
+    assert_eq!(
+      rendered("supply-closed", json!({ "why": why, "until": 1_700_000_000 })).await,
+      *sentence,
+      "{why}"
+    );
+  }
+
+  // A reason the pack does not know is said in the general sentence, never as its word.
+  assert_eq!(
+    rendered("supply-closed", json!({ "why": "a-new-reason", "until": null })).await,
+    words.other
+  );
+
+  // Every language says each reason in a sentence of its own, none the general one's.
+  for language in Language::ALL {
+    let mut said = BTreeSet::new();
+
+    for (why, _) in reasons.iter().chain([("a-new-reason", &words.other)].iter()) {
+      let (status, body) =
+        render_with("supply-closed", json!({ "why": why }), language.code(), Some(TOKEN)).await;
+
+      assert_eq!(status, StatusCode::OK, "{why} in {}: {body}", language.code());
+      said.insert(body["text"].as_str().unwrap().to_owned());
+    }
+
+    assert_eq!(said.len(), reasons.len() + 1, "{} says two reasons alike", language.code());
+  }
+
+  let (status, body) = render_with("supply-closed", json!({}), LANGUAGE, Some(TOKEN)).await;
+
+  assert_eq!(
+    (status, body["code"].as_str()),
+    (StatusCode::BAD_REQUEST, Some("bad-request")),
+    "a line naming no reason does not read: {body}"
+  );
+}
+
+#[tokio::test]
 async fn a_code_or_a_language_the_pack_lacks_is_refused_by_its_code() {
   let (status, body) = render_with("no-such-line", json!({}), LANGUAGE, Some(TOKEN)).await;
 

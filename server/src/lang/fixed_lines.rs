@@ -38,6 +38,26 @@ pub struct FixedLines {
   pub person_left: String,
   /// A person taken out of a room of a chat service by another.
   pub person_taken_out: String,
+  /// A person's run found no supply source left, one sentence to each reason.
+  pub supply_closed: SupplyClosed,
+}
+
+/// What a room is told as a person's run finds no supply source left, by the reason the agency names.
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SupplyClosed {
+  pub no_order: String,
+  pub withheld: String,
+  pub no_personal: String,
+  pub own_refused: String,
+  pub no_organisation: String,
+  pub organisation_refused: String,
+  pub no_lendable: String,
+  pub owned: String,
+  pub refused: String,
+  pub ran_out: String,
+  /// A reason the pack holds no sentence for.
+  pub other: String,
 }
 
 crate::part!(pub FIXED_LINES: FixedLines = "fixed-lines");

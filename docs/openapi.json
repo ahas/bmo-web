@@ -1467,6 +1467,30 @@
               "person"
             ],
             "type": "object"
+          },
+          {
+            "description": "A person's run found no supply source left: `why`, the reason as the agency names it; the `until` it carries\nis not read.",
+            "properties": {
+              "code": {
+                "const": "supply-closed",
+                "type": "string"
+              },
+              "until": {
+                "format": "int64",
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "why": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "code",
+              "why"
+            ],
+            "type": "object"
           }
         ]
       },

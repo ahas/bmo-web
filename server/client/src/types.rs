@@ -1222,6 +1222,13 @@ pub enum FixedLineAsk {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     by: Option<LinePerson>,
   },
+  /// A person's run found no supply source left: `why`, the reason as the agency names it; the `until` it carries
+  /// is not read.
+  SupplyClosed {
+    why: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    until: Option<i64>,
+  },
 }
 
 /// A person as a chat service's line names them: their number in the room's sender numbering, which the line

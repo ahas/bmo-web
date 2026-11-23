@@ -1,9 +1,9 @@
 import { drawnStep, WIDTH_FIELD } from "#shared/drawn-pictures";
 import { wording } from "#shared/wording";
 
+import { seesAvatar } from "../../../utils/avatar-reach";
 import { avatarPicture, isAvatarKind } from "../../../utils/avatars";
 import { drawnCopy } from "../../../utils/drawn-pictures";
-import { requireReadableRoom } from "../../../utils/room-reach";
 
 // A profile picture is served by whose it is, never by a path the browser names. These are personal
 // pictures, so they sit behind the same login as everything else here, and a room's behind the room's own reach.
@@ -21,8 +21,11 @@ export default defineEventHandler(async (event) => {
     throw fail(400, wording("room.error.bad_avatar_id"));
   }
 
-  // A room's picture is the room's, read by whoever reads the room and answering anyone else as if it did not stand.
-  if (kind === "room") await requireReadableRoom(event, id);
+  // A room's picture is read by whoever reads the room, and a person's by whoever shares a room with them; anyone else
+  // is answered as if it did not stand.
+  if (!(await seesAvatar(event, kind, id))) {
+    throw createError({ statusCode: 404, statusMessage: "Not Found" });
+  }
 
   const picture = await avatarPicture(kind, id);
 

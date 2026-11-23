@@ -91,9 +91,54 @@ pub enum FixedLine {
     person: LinePerson,
     by: Option<LinePerson>,
   },
+  /// A person's run found no supply source left: why, as the agency names it; the moment the source reopens, which it
+  /// also carries, is not read.
+  SupplyClosed {
+    why: SupplyShortfall,
+  },
   /// A code the pack holds no sentence for.
   #[serde(other)]
   Unknown,
+}
+
+/// Why a person's run found no supply source left, as the agency names it (its docs/supply.md, 「Why none is left」).
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum SupplyShortfall {
+  NoOrder,
+  Withheld,
+  NoPersonal,
+  OwnRefused,
+  NoOrganisation,
+  OrganisationRefused,
+  NoLendable,
+  Owned,
+  Refused,
+  RanOut,
+  /// A reason this pack holds no sentence for, said in the general sentence.
+  #[serde(other)]
+  Other,
+}
+
+impl SupplyShortfall {
+  fn text(&self) -> String {
+    let words = &FIXED_LINES.supply_closed;
+
+    match self {
+      Self::NoOrder => &words.no_order,
+      Self::Withheld => &words.withheld,
+      Self::NoPersonal => &words.no_personal,
+      Self::OwnRefused => &words.own_refused,
+      Self::NoOrganisation => &words.no_organisation,
+      Self::OrganisationRefused => &words.organisation_refused,
+      Self::NoLendable => &words.no_lendable,
+      Self::Owned => &words.owned,
+      Self::Refused => &words.refused,
+      Self::RanOut => &words.ran_out,
+      Self::Other => &words.other,
+    }
+    .clone()
+  }
 }
 
 /// An account as a line names it: its key, a number or the decimal text of one.
@@ -378,6 +423,7 @@ impl FixedLine {
           fill_marks(&FIXED_LINES.person_taken_out, &[("person", &person.shown()), ("by", &by.shown())])
         }
       },
+      Self::SupplyClosed { why } => why.text(),
       Self::Unknown => return None,
     })
   }

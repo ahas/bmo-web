@@ -70,17 +70,15 @@ async function openSituation(page: Page): Promise<void> {
   const sheet = roomInfo(page);
 
   await opener.waitFor({ timeout: 30_000 });
-  // A press made before the page's handlers land is lost, so the room's name is pressed once more where the room
-  // information did not come up.
+  // The server's page draws the room's name before the app's handlers land on it, and a press made before then is
+  // lost, so the press waits for the app to stand.
+  await page.waitForFunction(() => {
+    const root: (Element & { __vue_app__?: { $nuxt?: { isHydrating?: boolean } } }) | null = document.querySelector("#__nuxt");
+
+    return root?.__vue_app__?.$nuxt?.isHydrating === false;
+  }, undefined, { timeout: 60_000 });
   await opener.click();
-
-  try {
-    await sheet.waitFor({ state: "visible", timeout: 5_000 });
-  } catch {
-    await opener.click();
-    await sheet.waitFor({ state: "visible", timeout: 10_000 });
-  }
-
+  await sheet.waitFor({ state: "visible", timeout: 10_000 });
   await sheet.getByRole("tab", { name: situationTab, exact: true }).click();
   await page.locator("[data-situation-note]").waitFor({ timeout: 20_000 });
 }

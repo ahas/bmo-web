@@ -89,6 +89,12 @@ describe.skipIf(!origin || !touchReady())("the TODO state chip's mark", () => {
         const page = await context.newPage();
 
         await page.goto(`${origin}/?todo=${ITEM}`, { waitUntil: "load" });
+        // The item opens once the app stands, which a loaded machine's development server takes its time over.
+        await page.waitForFunction(() => {
+          const root: (Element & { __vue_app__?: { $nuxt?: { isHydrating?: boolean } } }) | null = document.querySelector("#__nuxt");
+
+          return root?.__vue_app__?.$nuxt?.isHydrating === false;
+        });
 
         expect(await chipTurning(page)).toBe(turning);
       } finally {

@@ -82,7 +82,9 @@ describe.skipIf(!origin || !touchReady())("a screen a unit brings standing at it
 
     try {
       await page.goto(`${origin}/siren`, { waitUntil: "load" });
-      await page.waitForTimeout(1_000);
+      // The move is made by the app's own router, so the app has to stand first: the page's load comes before the
+      // app has mounted on a loaded machine.
+      await page.waitForFunction("document.querySelector('#__nuxt')?.__vue_app__?.$nuxt?.isHydrating === false", undefined, { timeout: 30_000 });
       // A built console's page never carries one; a development console's tooling stood this before the app booted.
       await page.evaluate("delete globalThis.process");
       await go(page, "/screen-a");

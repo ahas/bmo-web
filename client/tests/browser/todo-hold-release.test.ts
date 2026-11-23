@@ -205,11 +205,18 @@ async function open(look: (typeof LOOKS)[number], job: Job, touch = false): Prom
   return context;
 }
 
-// The list, where the panel stands open beside the page, or behind the drawer's button where it does not.
+// The list, where the panel stands open beside the page, or behind the drawer's button where it does not. The server's
+// page draws neither, so the list is looked for once the app stands, which a loaded machine's development server takes
+// its time over.
 async function showList(page: Page): Promise<void> {
   const row = page.locator('li[data-todo-id="1"]:visible').first();
   const opener = page.getByRole("button", { name: wording("todo.action.open_todo") });
 
+  await page.waitForFunction(() => {
+    const root: (Element & { __vue_app__?: { $nuxt?: { isHydrating?: boolean } } }) | null = document.querySelector("#__nuxt");
+
+    return root?.__vue_app__?.$nuxt?.isHydrating === false;
+  }, undefined, { timeout: 60_000 });
   await row.or(opener).first().waitFor({ timeout: 30_000 });
 
   if (!(await row.isVisible())) {

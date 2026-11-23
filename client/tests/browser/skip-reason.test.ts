@@ -244,10 +244,21 @@ describe.skipIf(!origin || !touchReady())("a silent turn's reason", () => {
     const context = await open(WIDTHS[1]!, "no-preference");
     const page = await context.newPage();
 
+    // The entering lasts one unfold, shorter than a locator's wait between its looks, so the page itself notes the
+    // moment the line stands entering, from before the app loads.
+    await page.addInitScript(() => {
+      new MutationObserver((_, observer) => {
+        if (document.querySelector('[data-skipped="m701"] [data-skip-reason].bmo-list-enter-active') === null) return;
+
+        document.documentElement.dataset.reasonUnfolded = "";
+        observer.disconnect();
+      }).observe(document, { subtree: true, childList: true, attributes: true, attributeFilter: ["class"] });
+    });
+
     try {
       await enter(page);
       // The line comes in as a list item does, its height unfolding from nothing (the moving list's own entering).
-      await page.locator('[data-skipped="m701"] [data-skip-reason].bmo-list-enter-active').waitFor({ state: "attached", timeout: 20_000 });
+      await page.locator("html[data-reason-unfolded]").waitFor({ state: "attached", timeout: 20_000 });
     } finally {
       await context.close();
     }

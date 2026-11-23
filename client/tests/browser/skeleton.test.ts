@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { chromium, type Browser, type Locator, type Page } from 'playwright-core';
 import { wording } from '../../apps/web/shared/wording';
+import { openRoomInfo } from './room-info';
 import { touchReady } from './touch';
 
 import type { TodoBoard, TodoItem } from '../../apps/web/shared/types';
@@ -195,8 +196,8 @@ describe.skipIf(!origin || !touchReady())('a block of figures stands named while
         await page.route('**/api/rooms/*/stats*', async route => { await hold; await route.continue(); });
         await page.goto(`${origin}/rooms/${chatId}`, { waitUntil: 'domcontentloaded' });
         await page.waitForFunction(() => (document.querySelector('#__nuxt') as any)?.__vue_app__?.$nuxt?.isHydrating === false);
-        await page.getByRole('button', { name: KO.line_194, exact: true }).filter({ visible: true }).first().click();
-        await page.getByRole('menuitem', { name: new RegExp(KO.line_195) }).click();
+        // The session figures are a tab of the room information the room's name opens.
+        await openRoomInfo(page, wording('room_info.label.session'));
 
         const busy = page.getByRole('status', { name: wording('room.status.session_loading'), exact: true });
         await busy.waitFor();

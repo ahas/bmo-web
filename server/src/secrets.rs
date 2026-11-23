@@ -1,7 +1,8 @@
 //! The secret store (docs/accounts.md, 「The secret store」; docs/boundary.md, 「The secret store」): the files under
 //! the data root's `env/` every unit reads a secret from by its name, the platform's space and one to each other
-//! person. The platform's space is the folder itself, held by every platform administrator, and every other
-//! person's a folder of their own under `users/`. The store writes a value under a name in a space and answers the
+//! person, and one to each organisation unit. The platform's space is the folder itself, held by every platform
+//! administrator, every other person's a folder of their own under `users/`, and a unit's a folder of its own under
+//! `units/`, held by the unit's heads. The store writes a value under a name in a space and answers the
 //! name, its size and its time; no route reads a value back, and nothing here logs one. The list reads only the keys
 //! of a file's lines, to name the kind it reads as. A space is its own holders' alone, the platform's included.
 
@@ -36,6 +37,9 @@ pub const ADMINISTRATOR: &str = "administrator";
 /// The folder under the store's own that every person's space but the administrator's stands in, and so a name no
 /// secret of the administrator's takes.
 pub const PEOPLE: &str = "users";
+/// The folder under the store's own that every organisation unit's space stands in, and so another name no secret
+/// of the administrator's takes.
+pub const UNITS: &str = "units";
 
 /// A file's mode: its owner reads and writes it, and nobody else anything.
 const FILE_MODE: u32 = 0o600;
@@ -57,6 +61,8 @@ pub struct Store {
 pub enum Space {
   Administrator,
   Person(i32),
+  /// An organisation unit's, held by its heads and the platform administrator (「An organisation's space」).
+  Unit(i32),
 }
 
 impl Space {
@@ -65,6 +71,7 @@ impl Space {
     match self {
       Self::Administrator => store.to_path_buf(),
       Self::Person(user) => store.join(PEOPLE).join(user.to_string()),
+      Self::Unit(unit) => store.join(UNITS).join(unit.to_string()),
     }
   }
 
@@ -72,10 +79,10 @@ impl Space {
   fn takes(self, name: &str) -> Result<(), Refusal> {
     named(name)?;
 
-    if self == Self::Administrator && name == PEOPLE {
+    if self == Self::Administrator && (name == PEOPLE || name == UNITS) {
       return Err(
         Refusal::bad(format!(
-          "`{PEOPLE}` is the folder every other person's secrets stand in, and no secret's name"
+          "`{name}` is a folder other people's or organisations' secrets stand in, and no secret's name"
         ))
         .coded("bad-name"),
       );
@@ -374,6 +381,21 @@ async fn space_of(service: &Service, headers: &HeaderMap, user: &str) -> Result<
   Ok(if administrator { Space::Administrator } else { Space::Person(user) })
 }
 
+/// The space of the unit the path names, for a call made by one of its heads or the platform administrator; a unit
+/// the reader's company does not hold is absent.
+async fn unit_space_of(service: &Service, headers: &HeaderMap, unit: &str) -> Result<Space, Refusal> {
+  let reader = crate::readers::reader(&service.db, headers).await?;
+  let (unit, _) = reader.reached(&service.db, unit).await?;
+
+  if !reader.heads(&service.db, unit).await? {
+    return Err(Refusal::forbidden(
+      "a unit's secrets are its heads': the call's `Owner-Key` heads no such unit",
+    ));
+  }
+
+  Ok(Space::Unit(unit))
+}
+
 /// The bytes a value carries under its encoding. A value that does not decode is refused naming nothing of it.
 pub fn bytes_of(value: String, encoding: SecretEncoding) -> Result<Vec<u8>, Refusal> {
   match encoding {
@@ -408,6 +430,69 @@ pub fn routes() -> Router<Service> {
   Router::new()
     .route("/users/{user}/secrets", get(list))
     .route("/users/{user}/secrets/{name}", put(write).delete(delete))
+    .route("/units/{unit}/secrets", get(unit_list))
+    .route("/units/{unit}/secrets/{name}", put(unit_write).delete(unit_delete))
+}
+
+/// `GET /units/{unit}/secrets`: every secret's name, size and time in the unit's space, as a person's are listed.
+pub async fn unit_list(
+  State(service): State<Service>,
+  headers: HeaderMap,
+  Segment(unit): Segment<String>,
+) -> Result<Json<Secrets>, Refusal> {
+  let space = unit_space_of(&service, &headers, &unit).await?;
+  let store = store_of(&service)?;
+  let kinds = secret_kinds::kept(&service.db).await?;
+  let secrets = blocking(move || store.list_with_kinds(space, &kinds)).await?;
+
+  Ok(Json(Secrets { secrets }))
+}
+
+/// `PUT /units/{unit}/secrets/{name}`: a value written under a name in the unit's space, as a person's is.
+pub async fn unit_write(
+  State(service): State<Service>,
+  headers: HeaderMap,
+  Segment((unit, name)): Segment<(String, String)>,
+  body: Bytes,
+) -> Result<(StatusCode, Json<Secret>), Refusal> {
+  let space = unit_space_of(&service, &headers, &unit).await?;
+
+  put_in(&service, space, name, &body).await
+}
+
+/// `DELETE /units/{unit}/secrets/{name}`: the secret moved aside to `<name>.previous` in the unit's space.
+pub async fn unit_delete(
+  State(service): State<Service>,
+  headers: HeaderMap,
+  Segment((unit, name)): Segment<(String, String)>,
+) -> Result<StatusCode, Refusal> {
+  let space = unit_space_of(&service, &headers, &unit).await?;
+  let store = store_of(&service)?;
+
+  blocking(move || store.remove(space, &name)).await?;
+
+  Ok(StatusCode::NO_CONTENT)
+}
+
+// A value written under a name in a space, answered with the status of what the write did.
+async fn put_in(
+  service: &Service,
+  space: Space,
+  name: String,
+  body: &[u8],
+) -> Result<(StatusCode, Json<Secret>), Refusal> {
+  let ask: SecretAsk = serde_json::from_slice(body).map_err(|_| {
+    Refusal::bad("the body does not read as a secret's `value`, `replace?` and `encoding?`")
+  })?;
+  let store = store_of(service)?;
+  let value = bytes_of(ask.value, ask.encoding)?;
+  let (kept, written) = blocking(move || store.put(space, &name, &value, ask.replace)).await?;
+  let status = match written {
+    Written::Made => StatusCode::CREATED,
+    Written::Replaced => StatusCode::OK,
+  };
+
+  Ok((status, Json(kept)))
 }
 
 /// `GET /users/{user}/secrets`: every secret's name, size and time in the user's space, and the kind each reads as.
@@ -434,18 +519,7 @@ pub async fn write(
 ) -> Result<(StatusCode, Json<Secret>), Refusal> {
   let space = space_of(&service, &headers, &user).await?;
 
-  let ask: SecretAsk = serde_json::from_slice(&body).map_err(|_| {
-    Refusal::bad("the body does not read as a secret's `value`, `replace?` and `encoding?`")
-  })?;
-  let store = store_of(&service)?;
-  let value = bytes_of(ask.value, ask.encoding)?;
-  let (kept, written) = blocking(move || store.put(space, &name, &value, ask.replace)).await?;
-  let status = match written {
-    Written::Made => StatusCode::CREATED,
-    Written::Replaced => StatusCode::OK,
-  };
-
-  Ok((status, Json(kept)))
+  put_in(&service, space, name, &body).await
 }
 
 /// `DELETE /users/{user}/secrets/{name}`: the secret moved aside to `<name>.previous` in the user's space.

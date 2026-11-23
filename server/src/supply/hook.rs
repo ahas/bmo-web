@@ -121,7 +121,7 @@ async fn could_reserve(
         .await?
         .is_some_and(|wallet| wallet.spendable() >= settings.reservation_credits),
     ),
-    Source::Stop => Ok(false),
+    Source::Organisation | Source::Stop => Ok(false),
   }
 }
 
@@ -246,7 +246,7 @@ pub(crate) fn kind_text(kind: &OwnerKind) -> &'static str {
 /// The wallet a source pays from: the person's organisation for its credits, the person for their own.
 fn wallet_owner(source: Source, user: i64, unit: i64) -> (OwnerKind, i32) {
   match source {
-    Source::OrgCredits => (OwnerKind::Organization, unit as i32),
+    Source::OrgCredits | Source::Organisation => (OwnerKind::Organization, unit as i32),
     _ => (OwnerKind::Personal, user as i32),
   }
 }
@@ -296,14 +296,23 @@ async fn reserve(
   let id = format!("res_{}", tail());
 
   // Nothing is refused while nothing is enforced. Enforced, a source the resolved order does not hold — closed
-  // by a layer, switched off, left off by an overridable default or past the person's own cap — is refused.
-  if settings.enforce && !resolved.order.contains(&source) {
+  // by a layer, switched off, left off by an overridable default or past the person's own cap — is refused. The
+  // organisation's own supply stands in no order: the agency opened it on the chain, and it is refused once the
+  // person's organisation-credit spend of the month reaches their allowance.
+  if settings.enforce && source != Source::Organisation && !resolved.order.contains(&source) {
+    return Ok(refused(None));
+  }
+  if settings.enforce && source == Source::Organisation && allowance_spent(&service.db, user).await? {
     return Ok(refused(None));
   }
 
   // A person's own credential reserves nothing, and nothing is held while nothing is enforced: the row stands
-  // here alone, recorded so the run's cost settles against it, and no sumida hold is opened.
-  if !settings.enforce || source == Source::Personal {
+  // here alone, recorded so the run's cost settles against it, and no sumida hold is opened. Nor is one for the
+  // organisation's own supply where the organisation keeps no credit wallet: its cost is recorded alone.
+  let unattributed =
+    source == Source::Organisation && wallet(&service.db, "organization", unit).await?.is_none();
+
+  if !settings.enforce || source == Source::Personal || unattributed {
     let expires = crate::now_ms() + ttl_ms();
 
     let opening = Opening {
@@ -427,7 +436,7 @@ async fn reserve_source<C: ConnectionTrait>(
         Err(_) => Err(None),
       }
     }
-    source @ (Source::OrgCredits | Source::PersonalCredits) => {
+    source @ (Source::OrgCredits | Source::PersonalCredits | Source::Organisation) => {
       let (kind, owner) = wallet_owner(source, user, unit);
 
       match CreditService::<crate::Service>::reserve_in_txn(
@@ -464,6 +473,15 @@ async fn reserve_source<C: ConnectionTrait>(
     }
     _ => Err(None),
   }
+}
+
+/// Whether a person's organisation-credit spend of the month has reached their allowance, where one stands.
+async fn allowance_spent(db: &DatabaseConnection, user: i64) -> Result<bool, Refusal> {
+  let Some((allowance, _)) = super::credit_allowance(db, user).await? else {
+    return Ok(false);
+  };
+
+  Ok(super::spent(db, user, Source::Organisation).await? >= allowance)
 }
 
 /// `extend`: one reservation unit more on a standing reservation, its expiry restarted, and its whole

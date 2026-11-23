@@ -224,6 +224,26 @@ fn a_person_s_space_stands_in_a_folder_of_their_own_under_the_people_s_and_lists
   assert!(store.put(Space::Person(7), "users", VALUE.as_bytes(), false).is_ok());
 }
 
+#[test]
+fn a_unit_s_space_stands_in_a_folder_of_its_own_under_the_units_and_no_platform_secret_takes_its_name() {
+  let (_root, env) = folder();
+  let store = Store::at(&env);
+
+  store.put(Space::Unit(12), "team.key", OTHER_VALUE.as_bytes(), false).unwrap();
+
+  let space = env.join("units").join("12");
+
+  assert_eq!(fs::read_to_string(space.join("team.key")).unwrap(), OTHER_VALUE);
+  assert_eq!(mode(&space), 0o700);
+  assert_eq!(mode(&space.join("team.key")), 0o600);
+  assert_eq!(store.list(Space::Person(12)).unwrap(), vec![]);
+  assert_eq!(store.list(Space::Administrator).unwrap(), vec![]);
+  assert_eq!(
+    store.put(Space::Administrator, "units", VALUE.as_bytes(), true).unwrap_err().code,
+    "bad-name"
+  );
+}
+
 /// A request with the token and, where one is given, the user the console hands on, and the status and the body's
 /// text it is answered with.
 async fn asked(
@@ -620,4 +640,32 @@ async fn a_server_whose_settings_name_no_folder_says_so() {
 
   assert_eq!(status, StatusCode::SERVICE_UNAVAILABLE);
   assert_eq!(read(&said)["code"], "no-secret-store");
+}
+
+// A unit's space is written and listed by the platform administrator, who heads every unit, and refused to a member
+// who heads none of it, before anything is read or written.
+#[tokio::test]
+async fn a_unit_s_space_is_its_heads_and_refused_to_anyone_else() {
+  let (_root, env) = folder();
+  let (scratch, app, boss, member) = app(&env).await;
+  let unit = bmo_web_server::supply::home_unit(scratch.db(), i64::from(member)).await.unwrap();
+  let ask = json!({ "value": VALUE }).to_string();
+  let named = format!("/units/{unit}/secrets/team.key");
+  let (refused, said) = asked(&app, Method::PUT, &named, Some(ask.clone()), Some(member)).await;
+
+  assert_eq!(refused, StatusCode::FORBIDDEN, "{said}");
+  assert!(!env.join("units").exists());
+
+  let (status, made) = asked(&app, Method::PUT, &named, Some(ask), Some(boss)).await;
+
+  assert_eq!(status, StatusCode::CREATED, "{made}");
+  assert!(!made.contains(VALUE));
+  assert_eq!(
+    fs::read_to_string(env.join("units").join(unit.to_string()).join("team.key")).unwrap(),
+    VALUE
+  );
+
+  let (_, listed) = asked(&app, Method::GET, &format!("/units/{unit}/secrets"), None, Some(boss)).await;
+
+  assert_eq!(read(&listed)["secrets"][0]["name"], "team.key");
 }

@@ -984,6 +984,99 @@ async fn a_wallet_hold_reserves_extends_captures_and_releases_against_sumida() {
   assert_eq!(wallet(&scratch, "organization", company).await, (balance, 0, 0));
 }
 
+// "Organisation supply is a source the agency takes on its own reading of the chain": no policy names it, its cost
+// counts as organisation credits — recorded alone where the organisation keeps no wallet, held against the wallet
+// where it does — and once the month's organisation-credit spend reaches the person's allowance it is refused.
+#[tokio::test]
+async fn organisation_supply_counts_as_organisation_credits_and_is_recorded_alone_where_no_wallet_stands() {
+  ready();
+  let scratch = fresh().await;
+  let app = app(&scratch).await;
+  let boss = boss(&scratch).await;
+  let company = org(&scratch, "company-a", None).await;
+  let tester = person(&scratch, "tester", company).await;
+  subscription(&scratch, "personal", tester, Some(0), true).await;
+  enforce(&scratch, true).await;
+
+  // No wallet: accepted, no hold opened, and its cost recorded under the organisation's own supply.
+  let (_, said) = hook(
+    &app,
+    json!({ "op": "reserve", "run": 60, "step": 1, "account": tester, "source": "organisation", "key": "60:1:reserve" }),
+  )
+  .await;
+  assert_eq!(said["answer"]["accepted"], true, "{said}");
+  let reservation = said["answer"]["reservation"].as_str().unwrap().to_owned();
+  assert_eq!(
+    scratch
+      .count(
+        r#"SELECT COUNT(*) FROM "supply_reservations" WHERE "id" = $1 AND "sumida_reference" IS NULL"#,
+        vec![reservation.clone().into()]
+      )
+      .await,
+    1
+  );
+  let (_, said) = hook(
+    &app,
+    json!({ "op": "capture", "run": 60, "step": 2, "account": tester, "source": "organisation", "reservation": reservation, "costUsd": 0.1, "key": "60:2:capture" }),
+  )
+  .await;
+  assert_eq!(said["answer"]["taken"], true, "{said}");
+  assert_eq!(
+    scratch
+      .count(
+        r#"SELECT COUNT(*) FROM "supply_costs" WHERE "user_id" = $1 AND "source" = 'organisation'"#,
+        vec![tester.into()]
+      )
+      .await,
+    1
+  );
+  let (_, said) = asked(&app, Method::GET, "/supply/me", None, Some(tester), "member").await;
+  assert!(
+    said["usage"].as_array().unwrap().iter().any(|row| row["source"] == "organisation"),
+    "{said}"
+  );
+
+  // A wallet stands: held against it as organisation credits are.
+  credit(&scratch, "organization", company, 1000).await;
+  let (_, said) = hook(
+    &app,
+    json!({ "op": "reserve", "run": 61, "step": 1, "account": tester, "source": "organisation", "key": "61:1:reserve" }),
+  )
+  .await;
+  assert_eq!(said["answer"]["accepted"], true, "{said}");
+  assert_eq!(wallet(&scratch, "organization", company).await.1, 200);
+
+  // The month's 150 reaches an allowance of 100: refused.
+  let (status, said) = asked(
+    &app,
+    Method::PUT,
+    &format!("/chain/kinds/supply.credit-allowance/links/unit:{company}/value"),
+    Some(json!({ "value": 100 })),
+    Some(boss),
+    "administrator",
+  )
+  .await;
+  assert_eq!(status, StatusCode::OK, "{said}");
+  let (_, said) = hook(
+    &app,
+    json!({ "op": "reserve", "run": 62, "step": 1, "account": tester, "source": "organisation", "key": "62:1:reserve" }),
+  )
+  .await;
+  assert_eq!(said["answer"]["accepted"], false, "{said}");
+
+  // No policy names it.
+  let (status, _) = asked(
+    &app,
+    Method::PUT,
+    &format!("/supply/org/{company}"),
+    Some(json!({ "allowed": ["personal", "organisation"], "order": ["personal", "organisation", "stop"] })),
+    Some(boss),
+    "administrator",
+  )
+  .await;
+  assert_eq!(status, StatusCode::BAD_REQUEST);
+}
+
 #[tokio::test]
 async fn a_capture_may_run_into_debt_of_one_reservation_unit_and_no_further() {
   ready();
@@ -1755,8 +1848,8 @@ async fn the_overrides_migration_renews_a_seeded_platform_row_and_keeps_an_admin
   };
 
   // The row as an administrator set it before the overrides stood, and each person's old switch: the overrides
-  // taken down with the move onto the delegation chain that stands after them.
-  Migrator::down(scratch.db(), Some(2)).await.unwrap();
+  // taken down with the move onto the delegation chain and the organisation's BMO default's that stand after them.
+  Migrator::down(scratch.db(), Some(3)).await.unwrap();
   scratch
     .run(
       r#"UPDATE "supply_platform_policy"
@@ -1800,7 +1893,7 @@ async fn the_overrides_migration_renews_a_seeded_platform_row_and_keeps_an_admin
   );
 
   // A row still standing as seeded takes the new defaults.
-  Migrator::down(scratch.db(), Some(2)).await.unwrap();
+  Migrator::down(scratch.db(), Some(3)).await.unwrap();
   scratch
     .run(
       r#"UPDATE "supply_platform_policy"

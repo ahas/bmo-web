@@ -726,6 +726,23 @@ export async function listSecrets(user: string, options: ServiceOptions = {}): P
 }
 
 /**
+ * A value written under a name in an organisation unit's space, by a head of the unit or the platform administrator
+ * the caller names (docs/accounts.md, 「The secret store」); the name, its size and its time, never the value.
+ */
+export async function keepUnitSecret(unit: number, name: string, value: string, caller: ProfileCaller, options: ServiceOptions = {}): Promise<KeptSecret> {
+  const reply = await sent(
+    options,
+    clientOf(options).PUT("/units/{unit}/secrets/{name}", {
+      params: { path: { unit: String(unit), name }, header: { "Owner-Key": caller.key } },
+      body: { value, encoding: "text", replace: true }
+    })
+  );
+  const kept = answered(reply);
+
+  return { name: kept.name, bytes: kept.bytes, changedAt: kept.changedAt };
+}
+
+/**
  * A value written under a name in the login's own space, replacing the one the name holds only where `replace` says
  * so; the name, its size and its time, never the value. A refusal is the server's code, which never carries the
  * value either.

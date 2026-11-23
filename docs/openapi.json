@@ -724,6 +724,14 @@
               "null"
             ]
           },
+          "path": {
+            "default": [],
+            "description": "Every link of the subject's chain, top first, whether or not it says anything: the platform, each unit down\nto the subject's and, for a person, the person.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
           "rule": {
             "description": "Whom the rule the value came from names, where a rule gave it.",
             "type": [
@@ -742,7 +750,8 @@
         "required": [
           "kind",
           "subject",
-          "layers"
+          "layers",
+          "path"
         ],
         "type": "object"
       },
@@ -7091,6 +7100,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "description": "The unit that declared the kind, which judged the json value it writes.",
+            "in": "header",
+            "name": "Declared-By",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -7130,7 +7148,7 @@
             "bearerAuth": []
           }
         ],
-        "summary": "A link's value written, null to follow above; a json kind's is its consumer's alone.",
+        "summary": "A link's value written, null to follow above; a json kind's is its consumer's alone, written by the unit that declared it naming itself in Declared-By.",
         "tags": [
           "The delegation chain"
         ],
@@ -13535,6 +13553,234 @@
           "other-company",
           "left",
           "no-such-role",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/units/{unit}/secrets": {
+      "get": {
+        "operationId": "unitSecrets",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "unit",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Secrets"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, no-secret-store, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Every secret an organisation unit's space holds, by its name, with its size and when it last changed; never a value. Asked by a head of the unit or the platform administrator.",
+        "tags": [
+          "Secret store"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "no-secret-store",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/units/{unit}/secrets/{name}": {
+      "delete": {
+        "operationId": "deleteUnitSecret",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "unit",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done; no content."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-name, unauthorized, forbidden, not-found, not-a-file, no-secret-store, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Moves a secret's file in an organisation unit's space to <name>.previous. Asked by a head of the unit or the platform administrator.",
+        "tags": [
+          "Secret store"
+        ],
+        "x-codes": [
+          "bad-name",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "not-a-file",
+          "no-secret-store",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "put": {
+        "operationId": "putUnitSecret",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "unit",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SecretAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Secret"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Secret"
+                }
+              }
+            },
+            "description": "Made."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, bad-name, bad-value, empty-value, unauthorized, forbidden, not-found, secret-exists, not-a-file, no-secret-store, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Writes a value under a name in an organisation unit's space, as a person's is written. Asked by a head of the unit or the platform administrator.",
+        "tags": [
+          "Secret store"
+        ],
+        "x-codes": [
+          "bad-request",
+          "bad-name",
+          "bad-value",
+          "empty-value",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "secret-exists",
+          "not-a-file",
+          "no-secret-store",
           "not-in-force",
           "database",
           "failed"

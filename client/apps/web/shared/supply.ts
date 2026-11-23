@@ -24,9 +24,13 @@ export interface SupplySourceState {
   reason?: SupplyReason;
 }
 
+/** A source a run's spend names: the five, and the organisation's own supply, which the agency takes on its own
+ * reading of the delegation chain and no policy names. */
+export type SpentSource = SupplySource | "organisation";
+
 /** What went out this month on one source. */
 export interface SupplyUsage {
-  source: SupplySource;
+  source: SpentSource;
   credits: number;
   costMicros: number;
 }
@@ -75,7 +79,7 @@ export interface SupplyPlanInfo {
 /** What one member of a unit cost this month on one source, the member named by their id. */
 export interface SupplyMemberUsage {
   user: string;
-  source: SupplySource;
+  source: SpentSource;
   credits: number;
 }
 

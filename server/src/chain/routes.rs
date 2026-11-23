@@ -165,8 +165,10 @@ async fn value_route(
   Body(ask): Body<ChainValueAsk>,
 ) -> Answer<ChainEntry> {
   let (who, kind, link) = writer(&service, &headers, &key, &link).await?;
+  let declarer = headers.get("declared-by").and_then(|value| value.to_str().ok()).map(str::trim);
 
-  if kind.shape == ChainShape::Json {
+  // A `json` value is judged by its consumer, which writes it naming itself as the unit that declared the kind.
+  if kind.shape == ChainShape::Json && declarer != Some(kind.declared_by.as_str()) {
     return Err(
       Refusal::new(StatusCode::CONFLICT, format!("`{key}` is judged and written by its consumer alone"))
         .coded("consumer-written"),

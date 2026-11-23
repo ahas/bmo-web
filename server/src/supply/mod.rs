@@ -52,6 +52,9 @@ pub enum Source {
   OrgCredits,
   /// The platform's credential, paid from the person's own credit wallet.
   PersonalCredits,
+  /// The person's organisation's own credential, its usage counted as organisation credits: a source the agency
+  /// takes on its own reading of the delegation chain, never one a policy names (「Organisation supply」).
+  Organisation,
   /// Nothing left; always last in every order, never answered to the agency.
   Stop,
 }
@@ -64,6 +67,7 @@ impl Source {
       Source::Global => "global",
       Source::OrgCredits => "org_credits",
       Source::PersonalCredits => "personal_credits",
+      Source::Organisation => "organisation",
       Source::Stop => "stop",
     }
   }
@@ -74,6 +78,7 @@ impl Source {
       "global" => Some(Source::Global),
       "org_credits" => Some(Source::OrgCredits),
       "personal_credits" => Some(Source::PersonalCredits),
+      "organisation" => Some(Source::Organisation),
       "stop" => Some(Source::Stop),
       _ => None,
     }
@@ -82,6 +87,18 @@ impl Source {
   /// Whether the source is one a run goes out on; `stop` is nothing left.
   pub fn payable(self) -> bool {
     !matches!(self, Source::Stop)
+  }
+
+  /// Whether a policy or a person's own setting may name it: every source but the organisation's own supply,
+  /// which the delegation chain opens and no policy orders.
+  pub fn ordered(self) -> bool {
+    !matches!(self, Source::Organisation)
+  }
+
+  /// Whether its spend counts as organisation credits, which a person's allowance and an organisation's member cap
+  /// hold.
+  pub fn organisation_credits(self) -> bool {
+    matches!(self, Source::OrgCredits | Source::Organisation)
   }
 }
 
@@ -717,14 +734,25 @@ pub async fn usage<C: ConnectionTrait>(db: &C, user: i64) -> Result<Vec<(Source,
   Ok(out)
 }
 
-/// What one source has cost a person this calendar month, in credits.
+/// What one source has cost a person this calendar month, in credits: organisation credits counting the
+/// organisation's own supply beside them.
 pub async fn spent<C: ConnectionTrait>(db: &C, user: i64, source: Source) -> Result<i64, Refusal> {
+  let counted = if source.organisation_credits() {
+    vec![Source::OrgCredits.key(), Source::Organisation.key()]
+  } else {
+    vec![source.key()]
+  };
+
   Ok(
     one(
       db,
       r#"SELECT COALESCE(SUM("credits")::bigint, 0) AS "spent" FROM "supply_costs"
-         WHERE "user_id" = $1 AND "source" = $2 AND "period" = $3"#,
-      vec![user.into(), source.key().into(), period(crate::now_ms()).into()],
+         WHERE "user_id" = $1 AND "source" = ANY($2::text[]) AND "period" = $3"#,
+      vec![
+        user.into(),
+        sea_orm::Value::from(counted.into_iter().map(str::to_owned).collect::<Vec<_>>()),
+        period(crate::now_ms()).into(),
+      ],
     )
     .await?
     .map(|row| row.try_get::<i64>("", "spent"))
@@ -965,7 +993,11 @@ fn named(list: &[String]) -> Result<Vec<Source>, Refusal> {
   let mut out = Vec::with_capacity(list.len());
 
   for key in list {
-    out.push(Source::parse(key).ok_or_else(|| Refusal::bad(format!("`{key}` is no source key")))?);
+    out.push(
+      Source::parse(key)
+        .filter(|source| source.ordered())
+        .ok_or_else(|| Refusal::bad(format!("`{key}` is no source key")))?,
+    );
   }
 
   Ok(out)

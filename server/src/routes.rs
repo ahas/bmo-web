@@ -60,6 +60,9 @@ pub async fn stand(
   // The setting kinds the service's own consumers keep on the delegation chain, each declared by its consumer.
   for kind in [
     crate::agents::personalize_kind(),
+    crate::agents::default_kinds()[0].clone(),
+    crate::agents::default_kinds()[1].clone(),
+    crate::agents::default_kinds()[2].clone(),
     crate::supply::policy_kind(),
     crate::supply::own_kind(),
     crate::supply::allowance_kind(),

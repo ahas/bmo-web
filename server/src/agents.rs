@@ -284,25 +284,77 @@ fn names_in(row: &QueryResult) -> Result<Vec<String>, Refusal> {
 // ---------------------------------------------------------------------------------------------------------
 // A company's default
 
-/// A company's default, every part empty where none is set.
-pub async fn company_agent<C: ConnectionTrait>(db: &C, company: i32) -> Result<CompanyAgent, Refusal> {
-  let row = one(
-    db,
-    r#"SELECT "name", array_to_json("call_names")::text AS "call_names", "picture" IS NOT NULL AS "has_picture"
-       FROM "company_agents" WHERE "company_id" = $1"#,
-    vec![company.into()],
-  )
-  .await?;
-
-  let Some(row) = row else {
-    return Ok(CompanyAgent::default());
+/// The kinds an organisation's default for its people's BMOs stands as on the delegation chain (docs/accounts.md,
+/// 「A person's BMO profile」): the name, the names that call it, and whether the link keeps a picture, each
+/// resolved nearest first down a person's units, set at a unit by its heads and locked there for the units below.
+pub fn default_kinds() -> [ChainKind; 3] {
+  let kind = |key: &str, description: &str, shape: ChainShape| ChainKind {
+    key: key.to_owned(),
+    declared_by: crate::holdings::UNIT.to_owned(),
+    description: description.to_owned(),
+    shape,
+    choices: vec![],
+    mode: ChainMode::Nearest,
+    default: None,
+    rules: false,
+    levels: vec![ChainLevel::Platform, ChainLevel::Unit],
+    unit_permission: crate::units::HEADS.to_owned(),
+    person_writer: ChainPersonWriter::Heads,
   };
 
+  [
+    kind(
+      NAME_KIND,
+      "The name the BMOs of the people here are called by, where they set none of their own.",
+      ChainShape::Text,
+    ),
+    kind(
+      CALL_NAMES_KIND,
+      "The names that call the BMOs of the people here in a room, where they set none of their own.",
+      ChainShape::Json,
+    ),
+    kind(
+      PICTURE_KIND,
+      "Whether the BMOs of the people here show the picture this link keeps, where they set none of their own.",
+      ChainShape::Flag,
+    ),
+  ]
+}
+
+/// The default's name on the chain.
+pub const NAME_KIND: &str = "agent-profile.name";
+/// The default's call names on the chain, a list judged here.
+pub const CALL_NAMES_KIND: &str = "agent-profile.call-names";
+/// Whether a link's own picture stands as the default; the bytes are kept beside the chain by the unit.
+pub const PICTURE_KIND: &str = "agent-profile.picture";
+
+fn default_kind(key: &str) -> ChainKind {
+  default_kinds()
+    .into_iter()
+    .find(|kind| kind.key == key)
+    .expect("a default kind is declared")
+}
+
+/// A unit's own default as its links hold it, every part empty where none is set.
+pub async fn company_agent<C: ConnectionTrait>(db: &C, company: i32) -> Result<CompanyAgent, Refusal> {
+  let link = Link::Unit(company);
+  let name = chain::value_at(db, NAME_KIND, link).await?;
+  let call_names = chain::value_at(db, CALL_NAMES_KIND, link).await?;
+  let picture = chain::value_at(db, PICTURE_KIND, link).await?;
+
   Ok(CompanyAgent {
-    name: row.try_get("", "name")?,
-    call_names: names_in(&row)?,
-    picture: row.try_get("", "has_picture")?,
+    name: name.and_then(|name| name.as_str().map(str::to_owned)),
+    call_names: listed_names(call_names.as_ref()),
+    picture: picture.and_then(|on| on.as_bool()).unwrap_or(false),
   })
+}
+
+/// The call names a value of the chain holds, none where it holds no list of texts.
+fn listed_names(value: Option<&serde_json::Value>) -> Vec<String> {
+  value
+    .and_then(serde_json::Value::as_array)
+    .map(|names| names.iter().filter_map(|name| name.as_str().map(str::to_owned)).collect())
+    .unwrap_or_default()
 }
 
 async fn set_company_agent<C: ConnectionTrait>(
@@ -313,20 +365,12 @@ async fn set_company_agent<C: ConnectionTrait>(
 ) -> Result<(), Refusal> {
   let name = name_of(ask.name.as_deref())?;
   let call_names = call_names_of(&ask.call_names)?;
+  let link = Link::Unit(company);
+  let names = (!call_names.is_empty()).then(|| serde_json::json!(call_names));
 
-  run(
-    db,
-    &format!(
-      r#"INSERT INTO "company_agents" ("company_id", "name", "call_names", "set_by", "set_at")
-         VALUES ($1, $2, {BOUND_NAMES}, $4, $5)
-         ON CONFLICT ("company_id") DO UPDATE SET
-           "name" = $2, "call_names" = EXCLUDED."call_names", "set_by" = $4, "set_at" = $5"#
-    ),
-    vec![company.into(), name.into(), bound_names(&call_names), by.into(), now_ms().into()],
-  )
-  .await?;
-
-  Ok(())
+  chain::put_value(db, &default_kind(NAME_KIND), link, name.map(serde_json::Value::from).as_ref(), by)
+    .await?;
+  chain::put_value(db, &default_kind(CALL_NAMES_KIND), link, names.as_ref(), by).await
 }
 
 async fn set_company_picture<C: ConnectionTrait>(
@@ -335,22 +379,28 @@ async fn set_company_picture<C: ConnectionTrait>(
   by: Option<i32>,
   picture: Option<(Vec<u8>, &'static str)>,
 ) -> Result<(), Refusal> {
-  let (bytes, kind) = match picture {
-    Some((bytes, kind)) => (Some(bytes), Some(kind.to_owned())),
-    None => (None, None),
-  };
+  let kept = picture.is_some();
 
-  run(
-    db,
-    r#"INSERT INTO "company_agents" ("company_id", "picture", "picture_type", "set_by", "set_at")
-       VALUES ($1, $2, $3, $4, $5)
-       ON CONFLICT ("company_id") DO UPDATE SET
-         "picture" = $2, "picture_type" = $3, "set_by" = $4, "set_at" = $5"#,
-    vec![company.into(), bytes.into(), kind.into(), by.into(), now_ms().into()],
-  )
-  .await?;
+  match picture {
+    Some((bytes, kind)) => {
+      run(
+        db,
+        r#"INSERT INTO "company_agents" ("company_id", "picture", "picture_type", "set_by", "set_at")
+           VALUES ($1, $2, $3, $4, $5)
+           ON CONFLICT ("company_id") DO UPDATE SET
+             "picture" = $2, "picture_type" = $3, "set_by" = $4, "set_at" = $5"#,
+        vec![company.into(), bytes.into(), kind.into(), by.into(), now_ms().into()],
+      )
+      .await?;
+    }
+    None => {
+      run(db, r#"DELETE FROM "company_agents" WHERE "company_id" = $1"#, vec![company.into()]).await?;
+    }
+  }
 
-  Ok(())
+  let on = kept.then_some(serde_json::Value::Bool(true));
+
+  chain::put_value(db, &default_kind(PICTURE_KIND), Link::Unit(company), on.as_ref(), by).await
 }
 
 /// The bytes of a picture a row keeps, with their type.
@@ -525,6 +575,8 @@ struct Standing {
   personalize: bool,
   company: Option<UnitRef>,
   default: CompanyAgent,
+  /// The unit whose kept picture is the default's, where one is.
+  picture_unit: Option<i32>,
   own: OwnAgent,
 }
 
@@ -532,9 +584,28 @@ impl Standing {
   async fn of<C: ConnectionTrait>(db: &C, user: i32, unit: i32) -> Result<Self, Refusal> {
     let personalize = may_personalize(db, user, unit).await?;
     let company = path_of(db, unit).await?.into_iter().next();
-    let default = match company_of(db, unit).await? {
-      Some(company) => company_agent(db, company).await?,
-      None => CompanyAgent::default(),
+    let path = chain::Path::of_person(chain::units_down_to(db, unit).await?, user);
+    let nearest = |key: &'static str| {
+      let path = &path;
+
+      async move {
+        let kind = default_kind(key);
+        let held = chain::entries(db, &kind.key, Some(&path.links)).await?;
+
+        Ok::<_, Refusal>(chain::resolve_on(&kind, path, &held, &[]))
+      }
+    };
+    let name = nearest(NAME_KIND).await?;
+    let call_names = nearest(CALL_NAMES_KIND).await?;
+    let picture = nearest(PICTURE_KIND).await?;
+    let picture_unit = match (picture.value.as_ref().and_then(serde_json::Value::as_bool), picture.from) {
+      (Some(true), Some(Link::Unit(unit))) => Some(unit),
+      _ => None,
+    };
+    let default = CompanyAgent {
+      name: name.value.as_ref().and_then(|name| name.as_str().map(str::to_owned)),
+      call_names: listed_names(call_names.value.as_ref()),
+      picture: picture_unit.is_some(),
     };
     let own = own_agent(db, user).await?;
 
@@ -542,6 +613,7 @@ impl Standing {
       personalize,
       company,
       default,
+      picture_unit,
       own,
     })
   }
@@ -564,6 +636,7 @@ impl Standing {
       company,
       default,
       own,
+      ..
     } = &self;
     let name = match (personalize, &own.name, &default.name) {
       (true, Some(name), _) => AgentName {
@@ -632,10 +705,12 @@ async fn profile_picture<C: ConnectionTrait>(
   user: i32,
   unit: i32,
 ) -> Result<Option<(Vec<u8>, String)>, Refusal> {
-  match Standing::of(db, user, unit).await?.picture_from() {
+  let standing = Standing::of(db, user, unit).await?;
+
+  match standing.picture_from() {
     AgentSource::Own => picture_kept(db, OWN_PICTURE, user).await,
-    AgentSource::Company => match company_of(db, unit).await? {
-      Some(company) => picture_kept(db, COMPANY_PICTURE, company).await,
+    AgentSource::Company => match standing.picture_unit {
+      Some(unit) => picture_kept(db, COMPANY_PICTURE, unit).await,
       None => Ok(None),
     },
     AgentSource::Deployment => Ok(None),

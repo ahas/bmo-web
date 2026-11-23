@@ -1,7 +1,8 @@
 <template>
   <!-- The join page (docs/web.md, 「The join page」): an invitation's link, opened with no sign-in. It shows the unit
        and its company, takes the person's name, a login and a password, hands back the one-line install of the person's machine, and
-       says the account is ready once the machine has attached. Like the login, it stands on no shell. -->
+       says the account is ready once the machine has attached — and, where only the person's own supply can carry their
+       runs, that the login leads first to setting one up. Like the login, it stands on no shell. -->
   <div class="relative flex overflow-y-auto bg-default p-4 text-default" :style="{ top: 'var(--bmo-screen-top)', height: 'var(--bmo-screen)' }">
     <UCard class="m-auto w-full max-w-lg">
       <template #header>
@@ -50,7 +51,7 @@
               />
             </div>
           </div>
-          <UAlert v-if="active" color="success" variant="subtle" :description="$t('join.message.active')" :ui="{ description: 'whitespace-pre-line' }" />
+          <UAlert v-if="active" color="success" variant="subtle" :description="agentLogin ? $t('join.message.agent_login') : $t('join.message.active')" :ui="{ description: 'whitespace-pre-line' }" data-join-active />
           <p v-else class="text-sm text-muted">{{ $t("join.message.waiting") }}</p>
         </template>
       </div>
@@ -60,6 +61,7 @@
         <div class="flex justify-end">
           <UButton v-if="view && view.state === 'open' && accepted === null" type="submit" form="join-form" :label="$t('join.action.accept')" :loading="pending" />
           <UButton v-else-if="accepted && !active" color="neutral" variant="subtle" :label="$t('join.action.check')" :loading="pending" @click="prove" />
+          <UButton v-else-if="active && agentLogin" :to="{ path: '/login', query: { to: AGENT_LOGIN_PATH } }" :label="$t('agent_login.action.login')" data-join-agent-login />
           <UButton v-else-if="active" to="/login" :label="$t('app.action.login')" />
         </div>
       </template>
@@ -72,6 +74,7 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { useIsland } from "bmo-ui/app/domain/island";
 import { formatStamp } from "bmo-ui/app/domain/time";
 
+import { AGENT_LOGIN_PATH } from "~/domain/agent-login";
 import { copyText } from "~/domain/copy";
 
 import { placeOf } from "~/domain/invites";
@@ -92,6 +95,8 @@ const token = computed(() => String(route.params.token ?? ""));
 const view = ref<InviteView | null>(null);
 const accepted = ref<Accepted | null>(null);
 const active = ref(false);
+// Whether the account, once ready, must set up a login of its own before it starts.
+const agentLogin = ref(false);
 const failure = ref("");
 const pending = ref(false);
 const copied = ref<string | null>(null);
@@ -139,7 +144,10 @@ async function accept(): Promise<void> {
 // Asked again every few seconds while the person installs, and at once when they say they have.
 async function prove(): Promise<void> {
   try {
-    active.value = (await $fetch<{ active: boolean }>(`/api/join/${token.value}/proof`, { method: "POST" })).active;
+    const proof = await $fetch<{ active: boolean; agentLogin?: boolean }>(`/api/join/${token.value}/proof`, { method: "POST" });
+
+    agentLogin.value = proof.agentLogin === true;
+    active.value = proof.active;
     if (active.value && timer !== undefined) clearInterval(timer);
   } catch (error) {
     failure.value = failureText(error, t("invites.error.failed"));

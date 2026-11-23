@@ -2323,8 +2323,70 @@ join:
     install: "계정을 만들었습니다.\n이 계정을 쓸 PC에서 아래 명령 중 하나를 실행해 jake를 설치하세요.\n설치되어 연결되면 계정이 활성화됩니다."
     waiting: 기기 연결을 기다리는 중입니다…
     active: "기기가 연결되어 계정이 활성화되었습니다.\n이제 로그인할 수 있습니다."
+    agent_login: "기기가 연결되어 계정이 활성화되었습니다.\n이 조직에서는 내 공급 로그인이나 공급 키로만 에이전트를 쓸 수 있습니다. 로그인하면 바로 에이전트 로그인 설정이 열립니다."
   error:
     full_name_empty: 이름을 입력해 주세요.
+agent_login:
+  title:
+    page: 에이전트 로그인 설정
+  message:
+    lead: "이 조직에서는 내 공급 로그인이나 공급 키로만 에이전트가 일합니다.\n아래에서 Claude 로그인을 하거나 공급 키를 추가한 뒤 시작하세요."
+    still_needed: 아직 켜진 공급 로그인이나 공급 키가 없습니다.
+  action:
+    login: 로그인하고 설정하기
+    start: 시작하기
+org_agents:
+  title:
+    sources: 에이전트 공급원
+    keys: 조직 공급 키
+    composition: 가입 구성
+    key_add: 조직 공급 키 추가
+  label:
+    source_personal: 개인 공급
+    source_organisation: 조직 공급
+    source_platform: 플랫폼 공급
+    closed_above: 상위 조직에서 꺼짐
+    not_provided: 제공되지 않음
+    locked_above: 상위 조직에서 잠금
+    below: 하위 조직
+    delegation_allow: 하위 조직 허용
+    delegation_lock: 하위 조직 잠금
+    delegation_inherit: 위를 따름
+    company_provided: 이 회사에 조직 공급 제공
+    keys_none: 조직 공급 키 없음
+    keys_closed: 조직 공급이 제공되지 않아 키를 추가할 수 없습니다.
+    road: 공급자
+    road_claude: Claude (Anthropic API 키)
+    name: 이름
+    name_note: 조직 비밀 저장소에 이 이름으로 보관합니다.
+    value: 키
+    status_ready: 사용 가능
+    status_refused: 키 거부됨
+    status_off: 꺼짐
+    choice_inherit: 위를 따름
+    choice_off: 막음
+    choice_none: 에이전트 없음
+    choice_agents: "에이전트 {count}"
+    stands_platform: 플랫폼 규칙을 따름
+    stands_off: 위를 따라 막음
+    stands_agents: "위를 따라 에이전트 {count}"
+  aria:
+    source_switch: "{name} 켬"
+    delegation: "{name} 하위 조직 위임"
+    key_switch: "{name} 켬"
+    key_remove: "{name} 지우기"
+    role_choice: "{name} 가입 구성"
+  message:
+    key_remove: 이 조직 공급 키를 지울까요?
+    key_remove_effect: 이 키로 일하던 에이전트는 다음 실행부터 다른 공급원을 씁니다. 키 값은 조직 비밀 저장소에 남습니다.
+  error:
+    locked: 상위 조직에서 잠가 바꿀 수 없습니다.
+    forbidden: 이 조직의 에이전트를 설정할 권한이 없습니다.
+    closed: 조직 공급이 제공되지 않아 키를 추가할 수 없습니다.
+    taken: 이미 같은 이름의 조직 공급 키가 있습니다.
+    unknown_road: 이 공급자는 지금 쓸 수 없습니다.
+    bad_composition: 가입 구성을 저장할 수 없습니다.
+    unchecked: 권한을 확인하지 못했습니다. 잠시 뒤 다시 시도해 주세요.
 pairing:
   title:
     page: 데스크톱 앱 연결
@@ -4063,6 +4125,7 @@ supply:
     source_global: 전역 공급
     source_org_credits: 조직 크레딧
     source_personal_credits: 개인 크레딧
+    source_organisation: 조직 공급
     source_stop: 중단
     reason_not_in_plan: 계획에 없음
     reason_blocked_by_organisation: 조직에서 막음

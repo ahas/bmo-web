@@ -82,6 +82,9 @@
       <p v-if="failure !== ''" role="alert" class="break-words text-sm text-error">{{ failure }}</p>
     </template>
 
+    <!-- The agents' supply of the unit chosen, read on its own (「Organisation」, the supply tab). -->
+    <OrganizationAgentSupply :company="company" />
+
     <SupplyPolicyDialog v-model:open="editing" :title="$t('supply.title.policy_set')" :draft="draft" :available="view?.available ?? []" :send="writePolicy" @saved="void read()" />
 
     <!-- Credits granted to the unit's wallet: an amount and a line of words kept with it. A grant is the reader's

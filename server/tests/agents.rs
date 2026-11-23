@@ -258,6 +258,59 @@ async fn each_part_stands_from_the_persons_own_then_the_company_then_the_deploym
   assert_eq!(said["persona"]["from"], "own", "{said}");
 }
 
+// "An organisation sets a default for its people's BMOs" on the delegation chain: a unit below the company names its
+// own where the company leaves it open, the nearest unit's standing for its people, and a company's lock holds its own
+// for every unit below it.
+#[tokio::test]
+async fn a_unit_below_names_its_own_default_where_the_company_does_not_lock_it() {
+  ready();
+  let tree = tree().await;
+  let company = format!("/companies/{}/agent", tree.company);
+  let (status, said) = asked(
+    &tree.app,
+    Method::PUT,
+    &company,
+    Some(json!({ "name": "Helper", "callNames": [] })),
+    tree.admin,
+  )
+  .await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+
+  let centre_name = format!("/chain/kinds/agent-profile.name/links/unit:{}/value", tree.centre);
+  let (status, said) =
+    asked(&tree.app, Method::PUT, &centre_name, Some(json!({ "value": "Dear" })), tree.centre_head).await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert_eq!(tree.profile(tree.person).await["name"], json!({ "from": "company", "name": "Dear" }));
+  assert_eq!(
+    tree.profile(tree.company_head).await["name"],
+    json!({ "from": "company", "name": "Helper" })
+  );
+
+  let lock = format!("/chain/kinds/agent-profile.name/links/unit:{}/delegation", tree.company);
+  let (status, said) =
+    asked(&tree.app, Method::PUT, &lock, Some(json!({ "delegation": "lock" })), tree.admin).await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert_eq!(
+    tree.profile(tree.person).await["name"]["name"],
+    "Helper",
+    "a lock above holds the company's"
+  );
+
+  let (status, said) = asked(
+    &tree.app,
+    Method::PUT,
+    &centre_name,
+    Some(json!({ "value": "Other" })),
+    tree.centre_head,
+  )
+  .await;
+
+  assert_eq!((status, said["code"].as_str()), (StatusCode::CONFLICT, Some("locked")));
+}
+
 #[tokio::test]
 async fn the_permission_is_read_nearest_first_and_withheld_where_none_is_set() {
   ready();

@@ -85,6 +85,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["todo-testbed", "fixture-password-2771"],
   ["todo-row-unfold", "fixture-password-2784"],
   ["org-settings", "fixture-password-2666"],
+  ["org-agents", "fixture-password-3901"],
   ["copy-marks", "fixture-password-3291"],
   ["machine-unbind", "fixture-password-3583"],
   ["todo-run-figures", "fixture-password-2826"],
@@ -149,6 +150,16 @@ const MEMBERS: readonly { name: string; password: string; sections: readonly { s
   {
     name: "org-member",
     password: "fixture-password-2667",
+    sections: [
+      { section: "rooms", read: true, write: false },
+      { section: "account", read: true, write: true }
+    ]
+  },
+  // The person whose runs only their own supply can carry, who sets up a login of their own before they start
+  // (docs/web.md, 「The join page」).
+  {
+    name: "agent-login",
+    password: "fixture-password-3902",
     sections: [
       { section: "rooms", read: true, write: false },
       { section: "account", read: true, write: true }
@@ -832,6 +843,87 @@ function releasedUnit(name: string, path: string, request: Request): Response | 
 const catalogueView = () => ({ entries: [...entries.values()], uses });
 const notFound = () => Response.json({ code: "not-found", error: "not served by this stand-in" }, { status: 404 });
 
+// A unit's own supply as the agency's stand-in keeps it, by unit (the agency's `docs/api.md`, 「accounts, rest and
+// usage」): open for every unit, its items added, switched and removed as the agency keeps them.
+const unitSupply = new Map<number, { id: string; road: string; secret: string; enabled: boolean; refusedAt: number | null }[]>();
+let unitSupplyNext = 1;
+// The people the agency's stand-in answers as able to run on their own supply alone, holding none of their own.
+const ownSupplyOnly = new Set<string>();
+// The account service's port, which the agency's stand-in asks the chain at as the agency does.
+let accountServicePort = 0;
+
+async function organisationSupplyAnswer(path: string, request: Request): Promise<Response | null> {
+  const named = /^\/organisation-supply\/(\d+)(?:\/([^/]+))?$/.exec(path);
+
+  if (named === null) return null;
+
+  const unit = Number(named[1]);
+  const items = unitSupply.get(unit) ?? [];
+  const page = () => Response.json({ unit, open: true, items });
+
+  unitSupply.set(unit, items);
+
+  if (named[2] === undefined && request.method === "GET") return page();
+  if (named[2] === undefined && request.method === "POST") {
+    const body = (await request.json()) as { road: string; secret: string };
+    const item = { id: `key-${unitSupplyNext++}`, road: body.road, secret: body.secret, enabled: true, refusedAt: null };
+
+    items.push(item);
+
+    return Response.json(item, { status: 201 });
+  }
+
+  const at = items.findIndex((one) => one.id === decodeURIComponent(named[2] ?? ""));
+
+  if (at < 0) return Response.json({ code: "unknown-supply", error: "no such supply" }, { status: 404 });
+  if (request.method === "PATCH") {
+    items[at]!.enabled = ((await request.json()) as { enabled: boolean }).enabled;
+
+    return page();
+  }
+  if (request.method === "DELETE") {
+    items.splice(at, 1);
+
+    return new Response(null, { status: 204 });
+  }
+
+  return null;
+}
+
+// The sign-up composition as the agency's stand-in answers it: what stands read off the account service's chain as
+// the agency reads it, and a write judged as any composition of known roles and put on the chain in the caller's name,
+// naming the agency as the kind's declarer (the agency's `docs/role-agents.md`, 「The agents an account is given」).
+async function compositionAnswer(path: string, request: Request): Promise<Response | null> {
+  const service = `http://127.0.0.1:${accountServicePort}`;
+
+  if (path === "/signup-composition" && request.method === "GET") {
+    const unit = new URL(request.url).searchParams.get("unit");
+    const resolved = (await (await fetch(`${service}/chain/kinds/signup.composition/resolve?unit=${unit}`, { headers: { authorization: `Bearer ${TOKEN}` } })).json()) as {
+      layers: { link: string; value: { roles?: Record<string, { off?: boolean; agents?: unknown[] }> } }[];
+    };
+    const roles = ROLES.map((role) => {
+      const said = resolved.layers.map((layer) => ({ link: layer.link, word: layer.value.roles?.[role.name as string] })).filter((one) => one.word !== undefined);
+      const agents = said.filter((one) => Array.isArray(one.word!.agents)).at(-1);
+
+      return { role: role.name, off: said.some((one) => one.word!.off === true), agents: agents?.word!.agents ?? null, from: agents?.link ?? null };
+    });
+
+    return Response.json({ subject: `unit:${unit}`, roles, own: null });
+  }
+
+  const link = /^\/signup-composition\/([^/]+)$/.exec(path)?.[1];
+
+  if (link === undefined || request.method !== "PUT") return null;
+
+  const body = (await request.json()) as { value: unknown };
+
+  return await fetch(`${service}/chain/kinds/signup.composition/links/${link}/value`, {
+    method: "PUT",
+    headers: { authorization: `Bearer ${TOKEN}`, "owner-key": request.headers.get("owner-key") ?? "", "declared-by": "agency", "content-type": "application/json" },
+    body: JSON.stringify(body)
+  });
+}
+
 // What each unit's stand-in answers, read from that unit's documented routes; anything else is the unit's own
 // not-found. The tests serve the rest of what they measure through the page's routes themselves.
 const UNITS: Record<string, (path: string, request: Request) => Response | null | Promise<Response | null>> = {
@@ -850,6 +942,23 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     const askedLog = askedRunLogAnswer(new URL(request.url));
 
     if (askedLog !== null) return askedLog;
+
+    const organisationSupply = await organisationSupplyAnswer(path, request);
+
+    if (organisationSupply !== null) return organisationSupply;
+
+    const composition = await compositionAnswer(path, request);
+
+    if (composition !== null) return composition;
+
+    // A person's own keys, of which the step's person holds none.
+    if (path === "/personal-supply" && request.method === "GET") return Response.json({ items: [] });
+
+    if (path === "/supply-sources") {
+      const only = ownSupplyOnly.has(request.headers.get("owner-key") ?? "");
+
+      return Response.json({ personal: true, platform: !only, organisation: false, organisationSupply: false, personalOnly: only, ownSupply: false });
+    }
 
     // The two axes and the places: two supervisors, a handful of roles with runs going and waiting, and the
     // repositories.
@@ -1693,6 +1802,8 @@ try {
   await admin.close();
 
   const serverPort = freePort();
+
+  accountServicePort = serverPort;
   const serverEnv = {
     BMO_WEB_SERVER_DATABASE__URL: databaseUrl,
     BMO_WEB_SERVER_SERVER__TOKEN: TOKEN,
@@ -1876,6 +1987,40 @@ try {
 
     if (!declared.ok) throw new Error(`the app kind ${key} was refused: ${declared.status} ${await declared.text()}`);
   }
+
+  // The agency's own kinds on the delegation chain, declared as the agency declares them as it stands: the three supply
+  // sources and the sign-up composition (the agency's `policy/organisation.toml`).
+  for (const [key, shape, mode, levels, fallback] of [
+    ["supply.platform", "flag", "narrowing", ["platform", "unit", "person"], true],
+    ["supply.organisation", "flag", "narrowing", ["platform", "unit"], false],
+    ["supply.personal", "flag", "narrowing", ["platform", "unit", "person"], true],
+    ["signup.composition", "json", "nearest", ["platform", "unit", "person"], undefined]
+  ] as const) {
+    const declared = await service(`/chain/kinds/${key}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        key,
+        declaredBy: "agency",
+        description: key,
+        shape,
+        choices: [],
+        mode,
+        ...(fallback === undefined ? {} : { default: fallback }),
+        rules: shape !== "json",
+        levels,
+        unitPermission: "manage",
+        personWriter: "heads"
+      })
+    });
+
+    if (!declared.ok) throw new Error(`the agency's kind ${key} was refused: ${declared.status} ${await declared.text()}`);
+  }
+
+  const ownOnly = users.find((user) => user.name === "agent-login");
+
+  if (ownOnly === undefined) throw new Error("agent-login stands in no users list");
+
+  ownSupplyOnly.add(ownOnly.user);
 
   // The media room's reader and the sticker room's each have a sender of their own, linked as the administrator links
   // one.

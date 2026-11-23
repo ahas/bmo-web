@@ -170,7 +170,7 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** A link's value written, null to follow above; a json kind's is its consumer's alone. */
+        /** A link's value written, null to follow above; a json kind's is its consumer's alone, written by the unit that declared it naming itself in Declared-By. */
         put: operations["setChainValue"];
         post?: never;
         delete?: never;
@@ -1362,6 +1362,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/units/{unit}/secrets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every secret an organisation unit's space holds, by its name, with its size and when it last changed; never a value. Asked by a head of the unit or the platform administrator. */
+        get: operations["unitSecrets"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/units/{unit}/secrets/{name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Writes a value under a name in an organisation unit's space, as a person's is written. Asked by a head of the unit or the platform administrator. */
+        put: operations["putUnitSecret"];
+        post?: never;
+        /** Moves a secret's file in an organisation unit's space to <name>.previous. Asked by a head of the unit or the platform administrator. */
+        delete: operations["deleteUnitSecret"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/units/{unit}/subtree": {
         parameters: {
             query?: never;
@@ -2039,6 +2074,12 @@ export interface components {
             link?: components["schemas"]["ChainLinkStanding"] | null;
             /** @description The link whose lock cut the chain. */
             lockedBy?: string | null;
+            /**
+             * @description Every link of the subject's chain, top first, whether or not it says anything: the platform, each unit down
+             *     to the subject's and, for a person, the person.
+             * @default []
+             */
+            path: string[];
             /** @description Whom the rule the value came from names, where a rule gave it. */
             rule?: string | null;
             /** @description `person:<user>` or `unit:<id>`. */
@@ -4249,6 +4290,8 @@ export interface operations {
             header: {
                 /** @description The user of the login the call is made for, its id written as a decimal number. */
                 "Owner-Key": string;
+                /** @description The unit that declared the kind, which judged the json value it writes. */
+                "Declared-By"?: string;
             };
             path: {
                 key: string;
@@ -7565,6 +7608,121 @@ export interface operations {
                 content?: never;
             };
             /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    unitSecrets: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                unit: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Secrets"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, no-secret-store, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    putUnitSecret: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                unit: string;
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SecretAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Secret"];
+                };
+            };
+            /** @description Made. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Secret"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, bad-name, bad-value, empty-value, unauthorized, forbidden, not-found, secret-exists, not-a-file, no-secret-store, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    deleteUnitSecret: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                unit: string;
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Done; no content. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: bad-name, unauthorized, forbidden, not-found, not-a-file, no-secret-store, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;

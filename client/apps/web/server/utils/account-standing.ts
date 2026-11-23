@@ -7,25 +7,15 @@ import { defaultAnswerer } from "./owner";
 import { setPersonNode } from "./person-node";
 import { receiver, receiverCall } from "./receiver";
 
-import type { components } from "@agency/client/schema";
 import type { components as ReceiverComponents } from "@bmo/receiver-client/schema";
 
-type Schemas = components["schemas"];
-
 export { ownTitles, type OwnTitles } from "./bmo-profile";
-
-// The agency's agent row as it answers it, with the account the seat belongs to, which its published schema leaves
-// out (the agency's `docs/api.md`, 「Role agents」).
-type HeldAgent = Schemas["RoleAgent"] & { ownerAccount?: string | null };
-
-// The settings of an agent a new account's agent of the same role takes on.
-type TakenOver = Schemas["RoleAgentChange"] & { role: string; name: string; ownerAccount: string };
 
 /**
  * An account made ready, given its own BMO and its agents (docs/web.md, 「The join page」): a supervisor of the account
  * on the provider and model of the default answerer's road, titled by the person's name, its identity on the record
- * road named by the name it is shown by and linked to it (docs/accounts.md, 「Users and senders」), one agent of the account for every role with an agent of
- * no account, and its machine as the node its runs stand on. The BMO and the agents are made once, the identity is the
+ * road named by the name it is shown by and linked to it (docs/accounts.md, 「Users and senders」), the agents its
+ * sign-up composition gives it, and its machine as the node its runs stand on. The BMO and the agents are made once, the identity is the
  * same one every time, and the BMO's titles and the node are set every time; a part that cannot be made is written to
  * the log and the rest goes on.
  */
@@ -113,37 +103,8 @@ function nameOf(user: number, person: { name: string; fullName: string } | null)
 }
 
 async function standAgents(user: number): Promise<void> {
-  const account = String(user);
-  const roles = (await agencyCall(agency().GET("/roles"))).roles;
-
-  for (const role of roles) {
-    const agents = (role.agents ?? []) as HeldAgent[];
-
-    if (agents.some((agent) => agent.ownerAccount === account)) continue;
-
-    const shared = agents.find((agent) => (agent.ownerAccount ?? null) === null && agent.enabled);
-
-    if (shared === undefined) continue;
-
-    const taken: TakenOver = {
-      role: role.name,
-      name: `${role.name}-u${user}`.slice(0, 32),
-      ownerAccount: account,
-      provider: shared.provider,
-      model: shared.model,
-      effort: shared.effort,
-      thinking: shared.thinking,
-      answerTokens: shared.answerTokens,
-      advisor: shared.advisor,
-      enabled: true,
-      keepsCache: shared.keepsCache,
-      sessions: shared.sessions,
-      foldRatio: shared.foldRatio,
-      prompt: shared.prompt,
-      bundles: shared.bundles,
-      skills: shared.skills
-    };
-
-    await agencyCall(agency().POST("/role-agents", { body: taken }));
-  }
+  // The agency makes them as the sign-up composition the delegation chain resolves for the person says, the platform's
+  // own rule — one agent for every role with an agent of no account, on its road and settings — where nothing is set
+  // (the agency's `docs/role-agents.md`, 「The agents an account is given」).
+  await agencyCall(agency().POST("/composed-agents/{ownerAccount}", { params: { path: { ownerAccount: user } } }));
 }

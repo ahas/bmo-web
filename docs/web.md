@@ -8257,12 +8257,24 @@ Where a company's own words for its roles and its unit kinds are kept (`docs/acc
   browser's older selection copy, and one the browser refuses all the same is said on the island; a mark never
   turns to a check for a copy that did not land.
   설치했어요, 확인하기 asks at once. Attached, the account is ready and the page leads to the login.
+- **Where only the person's own supply can carry their runs, the login leads first to setting one up.** As the
+  proof answers the account active, the console's server asks the agency in the person's name which supply sources
+  their chain leaves open (the agency's `docs/supply.md`, 「The sources a person's chain leaves open」): where the
+  platform's supply is closed to them, no unit of theirs holds supply of its own and they hold no login or key of
+  their own that is on, the page says so and its button, 로그인하고 설정하기, signs in onto 에이전트 로그인 설정. That page,
+  `/agent-login`, holds the settings' own 공급 section (「Settings」) — a Claude login on their own machine, a 공급 키 —
+  under one line saying why, and 시작하기, which asks again and leads home once one of their own is on, saying 아직
+  켜진 공급 로그인이나 공급 키가 없습니다 while none is. Until then every other page a member opens leads there; the
+  question is read once a session and again at 시작하기, and an agency that does not answer asks nothing of the
+  person, so nobody is held at the door by an outage. The administrator is never asked.
 - **An account made ready is given its own BMO and its agents,** by the console's server as the account turns
   active, each once: a supervisor of the account, named `u<user>` and titled by the person's name, on the provider
   and model of the road of the supervisor that answers rooms naming none, with a console room of its own and one
-  session across its rooms; and, for every role that has an agent of no account, one agent of the account on that
-  agent's road and settings, switched on. An account that already holds a supervisor, or an agent of a role, is
-  given none again there. The machine the account is bound to is set as the node its runs stand on in agency,
+  session across its rooms; and the agents its sign-up composition gives it, which the agency makes as the
+  delegation chain resolves the composition for the person (the agency's `docs/role-agents.md`, 「The agents an
+  account is given」) — with nothing set anywhere, for every role that has an agent of no account, one agent of the
+  account on that agent's road and settings, switched on. An account that already holds a supervisor, or an agent of
+  a role, is given none again there. The machine the account is bound to is set as the node its runs stand on in agency,
   at every proof that answers it active (`docs/accounts.md`, 「Invitations and a person's machine」). A part that
   cannot be made is written to the console's log and the account stands ready all the same.
 - **A person's own BMO and its private room are titled by the name people read the person by,** their person's
@@ -8376,6 +8388,15 @@ Where a company's own words for its roles and its unit kinds are kept (`docs/acc
   허용 and 막음 alone, `막음 (기본값)` being what nothing set runs on. A row that follows says under its name what it comes to, 상위 조직을
   따라 허용 or 상위 조직을 따라 막음. A choice is saved as it is made and the tree read again, since a unit's choice
   moves every row under it; a refusal is said under the row, which goes back to what stood.
+- **가입 구성** is the sign-up composition of the unit chosen in the tree, the company where none is (the agency's
+  `docs/role-agents.md`, 「The agents an account is given」): each role by its label
+  with a choice of 위를 따름, 막음, 에이전트 없음 and 에이전트 1 to 3 — the agents a person here is given as their account
+  is made ready, each on the road of the role's own agent — a role following above saying under its name what that
+  comes to: 플랫폼 규칙을 따름 (one agent on the road of the role's own agent), 위를 따라 막음 or 위를 따라 에이전트 `{n}`. A choice is saved as it is made, through
+  the agency's composition route in the reader's name, and the group read again; a refusal is said under the group.
+  A first row, 하위 조직, is what the units below may do with it, 위를 따름, 하위 조직 허용 or 하위 조직 잠금, written on
+  the delegation chain; under a lock above the choices stand disabled with 상위 조직에서 잠금. A head reads and writes their own units',
+  the administrator every unit's.
 - **A saved default, picture or choice is applied at once** to the BMO of every person it reaches (「A person's BMO
   profile on the agency and the receiver」), and a person's 설정 shows or drops 내 BMO the next time it opens.
 
@@ -8497,6 +8518,22 @@ stands on it.
 - **이번 달 사용량** lists the unit's people's runs this month by source, one row each: the member as the service
   names them, by their user id, the source's word under it, the credits spent at its end in tabular figures;
   사용량 없음 where none went. A member spending on two sources stands on two rows.
+- **에이전트 공급원** is the unit chosen in the tree, the company where none is, and the three supply sources a run
+  of a person under it takes, in that order: 개인 공급, 조직 공급 and 플랫폼 공급 (the agency's `docs/supply.md`, 「The
+  sources a person's chain leaves open」). Each row's switch says whether the source stands
+  open there and closes it at the unit, or opens it again to follow above; a source closed above stands off and
+  disabled with 상위 조직에서 꺼짐 under it, and 조직 공급 the platform has not opened 제공되지 않음. Its select is what the
+  units below may do with it, 위를 따름, 하위 조직 허용 or 하위 조직 잠금; under a lock above both stand disabled with 상위 조직에서 잠금. A
+  unit only closes a source: opening one the links above close is theirs. For the administrator on a company, a
+  first row, 이 회사에 조직 공급 제공, opens organisation supply to the company or closes it again, a rule naming the
+  company at the platform's link. Each switch and choice is written on the delegation chain as the reader, and the
+  group read again.
+- **조직 공급 키** stands for a head of the unit and the administrator: the unit's own keys and Claude accounts (the
+  agency's `docs/supply.md`, 「Organisation supply」), each by its secret's name with its 공급자 and 사용 가능, 키 거부됨
+  or 꺼짐, its switch and its delete, asked first. The add at the heading's end opens 조직 공급 키 추가: 공급자 — Claude
+  (Anthropic API 키), Codex, DeepSeek or OpenRouter — 이름, the name it is kept under in the unit's secret store, and
+  키, typed once; the value goes into the unit's space of the secret store and nowhere else, and the agency is handed
+  the name. While organisation supply stands closed for the unit the add is disabled and the group says why.
 - The tab's groups read on their own, each keeping its place with a skeleton while it is first read and saying its
   reason with 새로고침 where its read failed, as every tab of this screen does (「Organisation」).
 

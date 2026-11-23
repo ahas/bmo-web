@@ -563,16 +563,21 @@ section states what each does.
   may make one, and answers the profile that stands for a person. The agency keeps the supervisor's label, call
   names and persona, and the receiver its picture, as the console applies them from this answer (`docs/web.md`,
   「A person's BMO profile on the agency and the receiver」); neither decides one.
-- **A company sets a default for its people's BMOs:** a name, the names that call it, and a picture. A company is a
-  unit with no parent (「Companies and organisation units」), and the default stands for every person of that company.
-  Any part of it may stand empty. The platform administrator and the company's heads set it: a head of the company
-  unit itself, by sumida's `manage` on it, so a head of a unit below the company does not.
+- **An organisation sets a default for its people's BMOs:** a name, the names that call it, and a picture, each a
+  setting of the delegation chain (「The delegation chain」): `agent-profile.name`, a text; `agent-profile.call-names`,
+  a list this service judges; and `agent-profile.picture`, a flag saying the link's own kept picture stands. Each is
+  held at the platform's link and a unit's, resolved nearest first down the person's units, so a unit below the
+  company sets its own where the company leaves it open and a company's lock holds its own for every unit below
+  it. Any part may stand empty. The company's own default is set on the company's routes below by the platform
+  administrator and the company's heads — a head of the company unit itself, by sumida's `manage` on it — and a
+  unit's below it on the chain's own routes by that unit's heads, its picture's bytes kept beside the chain under
+  the unit whose link holds the flag.
 - **A person may set their own,** where they may personalise their BMO: a name, the names that call it, a picture and
   a persona. Each part may stand empty. What they set is kept whether or not they may use it, so a permission taken
   away and given back finds it as it was.
 - **Each part of the profile stands by one order:**
   1. the person's own part, where they may personalise their BMO and the part is set;
-  2. the company's default part, where it is set;
+  2. the organisation's default part, the nearest unit's of the person's path that sets it;
   3. the deployment's own: the name the language pack gives a BMO, the label alone and no further names to call it by, no
      picture of the console's (the receiver's own or the initials stand), and no persona of the person's (the
      agency's own composition stands).
@@ -588,20 +593,21 @@ section states what each does.
 - **The routes.** Each takes the login it is made for in `Owner-Key` and `Owner-Role`, as the profile's routes do; a
   caller the route does not name is refused 403 `forbidden`, a company or unit that does not stand 404 `not-found`,
   and a unit that is no company where a company is named 404 `not-found` as well.
-  - **`GET /companies/{company}/agent`** answers the company's default, `name?`, `callNames` and `picture` (whether
-    one is kept), for the administrator and anyone of the company; **`PUT`** with `name?` and `callNames` replaces
-    them and answers the default as it stands, for the administrator and the company's heads.
+  - **`GET /companies/{company}/agent`** answers the company's own default, `name?`, `callNames` and `picture`
+    (whether one is kept), its own link's values, for the administrator and anyone of the company; **`PUT`** with
+    `name?` and `callNames` writes them on the company's link and answers the default as it stands, for the
+    administrator and the company's heads, refused 409 `locked` where the platform locks them.
   - **`GET`, `PUT` and `DELETE /companies/{company}/agent/picture`**: the default picture's bytes with their type, 404
     `not-found` where none is kept, read by the callers of the default's `GET`; set from the request's body, the
     bytes as they are, and taken away by the callers of its `PUT`, both answering 204. Bytes that are no PNG, JPEG, WebP or GIF are
     refused 400 `not-a-picture`, and more than 10 MB 413 `picture-too-large`.
   - **`GET /users/{user}/agent`** answers the profile standing for the user: `personalize`, whether they may
     personalise their BMO; `company?`, their company as a unit reference; `name`, `callNames`, `persona` and `picture`, each with `from`,
-    `own`, `company` or `deployment`, and the value where it is text (`name?`, `callNames`, `persona?`; the
+    `own`, `company` (the organisation's default, whichever unit of the person's path set it) or `deployment`, and the value where it is text (`name?`, `callNames`, `persona?`; the
     deployment's name is null, for the console's pack to say); and `own`, the person's own parts as kept, `name?`,
     `callNames`, `persona?` and `picture`. For the user themselves, the administrator and a head of the user's unit.
   - **`GET /users/{user}/agent/picture`** answers the bytes of the picture standing for the user, their own or their
-    company's, 404 `not-found` where the deployment's stands, for the same callers.
+    organisation's, 404 `not-found` where the deployment's stands, for the same callers.
   - **`PUT /users/{user}/agent`** with `name?`, `callNames` and `persona?` replaces the person's own parts and answers
     the profile as it stands; **`PUT` and `DELETE /users/{user}/agent/picture`** set and take away their own picture
     as the company's are. For the user themselves alone, 403 `personalize-withheld` where they may not personalise
@@ -871,8 +877,9 @@ section states what each does.
 
 - **The store is the data root's `env/` folder,** the one the server's `secrets.dir` setting names, and its whole
   work is to write a file under a name; agents and settings are then given the name, never the value.
-- **A secret is a person's, or the platform's.** The store holds the platform's space and one space for each other
-  person, and a space is listed, written and emptied by those it is held by alone: the console hands on the
+- **A secret is a person's, an organisation unit's, or the platform's.** The store holds the platform's space, one
+  space for each other person and one for each unit, and a space is listed, written and emptied by those it is held
+  by alone: the console hands on the
   signed-in login's user in `Owner-Key`, and every route of the store refuses a call whose key is not the space's
   user. Nobody lists another person's names, an administrator included; a login with no user holds no space.
 - **Where a space stands:**
@@ -889,8 +896,13 @@ section states what each does.
     platform administrator writes into `users/<user>/` from then on, and what they wrote in `env/` stays the
     platform's, with the administrators who remain; a user made an administrator writes into `env/` from then on,
     and what stands in their own folder stays there, listed by nobody while they are one.
-- **A secret's address** is its space and its name, relative to `env/`: `<name>` for the platform's, and
-  `users/<user>/<name>` for anyone else's.
+  - **An organisation unit's space is `units/<unit>/` under it,** held by the unit's heads, by sumida's `manage` on
+    it, and the platform administrator; `units` is no secret's name in `env/` either. It keeps the keys the unit
+    registers as its own supply (agency's `docs/supply.md`, 「Organisation supply」), read by agency where a run of a
+    person of the unit's path goes out on it. `GET /units/{unit}/secrets`, `PUT` and `DELETE
+    /units/{unit}/secrets/{name}` list, write and empty it as a person's routes do theirs, for its holders alone.
+- **A secret's address** is its space and its name, relative to `env/`: `<name>` for the platform's,
+  `users/<user>/<name>` for a person's and `units/<unit>/<name>` for a unit's.
 - **Who reads a secret:**
   - **A unit reads the deployment's secrets** by the path its own settings name under `env/`, as it always has.
   - **The administrator's agents** (the supervisor of no account, and the workers and runners it orders) are handed
@@ -998,7 +1010,9 @@ section states what each does.
   else of a declaration may change.
 - **A `json` kind's value is written by its consumer alone.** The service cannot judge such a value, so the chain's
   own write of a value refuses it 409 `consumer-written`; the consumer judges it on its own routes and writes it on
-  the chain from there. Its delegation is written on the chain's route as any kind's is.
+  the chain from there: this service's own consumers in place, a unit through the chain's route in the person's name,
+  naming itself in `Declared-By` as the unit that declared the kind. Its delegation is written on the chain's route as
+  any kind's is.
 
 ### A link's entry
 
@@ -1049,8 +1063,9 @@ What stands for a person, or for a unit, is read up its chain, the subject's own
    link's own value; and a lock above overrides everything below it.
 
 - **The answer names where it came from:** the value, the link and the rule it came from where one did, every link's
-  word top first (the layers), the link holding the lock that cut the chain, and, for a link a caller asks after,
-  whether that link may change the setting.
+  word top first (the layers), the link holding the lock that cut the chain, every link of the subject's chain top
+  first whether or not it says anything (the path), and, for a link a caller asks after, whether that link may change
+  the setting.
 - **Nothing announces a change.** The service emits no event; a consumer asks the resolution afresh whenever it acts
   on a setting, and keeps no answer, as a run's supply order is asked for every run.
 
@@ -1077,6 +1092,9 @@ Each is declared by the module that uses it, as the service stands, under the un
 | `supply.policy` | the platform's, an organisation's and the per-user supply policy (「Supply」) | `json`, `layered` | the platform, units and people; `manage_credit`, `heads` |
 | `supply.own` | a person's own supply setting (「Supply」) | `json`, `nearest` | people; `self` |
 | `supply.credit-allowance` | a person's monthly limit of organisation credits: the organisation credits one person may spend in a calendar month (「How an order is resolved」) | an amount, `narrowing`, `unlimited` by default, with rules | the platform, units and people; `manage_credit`, `heads` |
+| `agent-profile.name` | the name an organisation's default gives its people's BMOs (「A person's BMO profile」) | a text, `nearest` | the platform and units; `manage` |
+| `agent-profile.call-names` | the names that call them | `json`, a list this service judges, `nearest` | the platform and units; `manage` |
+| `agent-profile.picture` | whether the link's own kept picture stands as theirs | a flag, `nearest` | the platform and units; `manage` |
 
 - **The org memory's lock stands in the brain,** as a mark on each memory of an org brain, and the brain resolves a
   topic by the same rule a lock follows here: the farthest unit on the path holding a locked memory of it, else the
@@ -1227,6 +1245,14 @@ Each is declared by the module that uses it, as the service stands, under the un
   (sumida's quota holds), `org_credits` against the wallet of the ask account's own organisation and
   `personal_credits` against the person's own wallet (sumida's holds, captures and releases). Every platform
   source reserves and settles in credits, converted at the standing `credits_per_dollar`.
+- **Organisation supply is a source the agency takes on its own reading of the chain,** `organisation`: a person's
+  run on a credential their organisation registered (agency's `docs/supply.md`, 「Organisation supply」). No policy
+  names it and no order answered names it; the agency reserves for it through the hook as for a platform source.
+  Its cost counts as organisation credits: it is recorded in `supply_costs` under `organisation`, counts toward the
+  person's month of organisation-credit spend that their credit allowance and an organisation's member cap hold,
+  and, while `enforce` is on, is refused once that spend reaches their allowance and reserved against the wallet of
+  the person's organisation as `org_credits` is. Where that organisation keeps no credit wallet, the cost cannot be
+  charged anywhere and is recorded alone.
 - **While `enforce` is false** every ask records and answers as though the source were unlimited: the order
   is resolved and answered, a `reserve` is accepted at the full size and opens no sumida hold, nothing is ever
   refused, and so a run is never stopped by supply. `capture` and `release` still answer taken, still move
@@ -1341,7 +1367,7 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 | `user_nodes` | the machine each invited account is bound to, whether the administrator bound it shared, when the account was connected to it, and when it was last proven |
 | `user_departures` | each account marked left: when, and by whom |
 | `user_sign_ins` | when each user last signed in (「The people roster」) |
-| `company_agents` | each company's default for its people's BMOs: the name, the call names and the picture with its type, and who set it and when (「A person's BMO profile」) |
+| `company_agents` | the picture of an organisation's default for its people's BMOs, by the unit whose link of `agent-profile.picture` holds it: the bytes with their type, and who set it and when (「A person's BMO profile」) |
 | `own_agents` | each person's own BMO profile: the name, the call names, the persona and the picture with its type, kept whether or not they may use it |
 | `secret_kinds` | each secret kind: its key, name, description and fields, and the order kinds were added in |
 | `settings` | the service's own keys: the mark that the move is written, and the move's administrator's user (「The platform administrators」) |

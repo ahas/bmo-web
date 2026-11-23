@@ -69,6 +69,13 @@ export const openedRoutes: readonly OpenedRoute[] = [
   // decides who writes which link of the delegation chain (docs/accounts.md, 「Who changes a link」).
   { method: "GET", path: /^\/api\/organization\/units\/\d+\/apps$/, scope: "user" },
   { method: "PUT", path: /^\/api\/organization\/units\/\d+\/apps\/[^/]+$/, scope: "user" },
+  // An organisation's agents — its supply sources, its own keys and its sign-up composition: every signed-in login
+  // asks, and the account service and the agency decide who heads what (docs/web.md, 「Organisation」).
+  { method: "GET", path: /^\/api\/organization\/units\/\d+\/(?:supply|composition)$/, scope: "user" },
+  { method: "PUT", path: /^\/api\/organization\/units\/\d+\/(?:composition|supply\/company|supply\/sources\/[a-z]+)$/, scope: "user" },
+  { method: "POST", path: /^\/api\/organization\/units\/\d+\/supply\/keys$/, scope: "user" },
+  { method: "PATCH", path: /^\/api\/organization\/units\/\d+\/supply\/keys\/[^/]+$/, scope: "user" },
+  { method: "DELETE", path: /^\/api\/organization\/units\/\d+\/supply\/keys\/[^/]+$/, scope: "user" },
   { method: "GET", path: /^\/api\/account\/apps$/, scope: "user" },
   { method: "PUT", path: /^\/api\/account\/apps\/[^/]+$/, scope: "user" },
   // A person marked left: every signed-in login asks, and the account service lets the administrator and the person's
@@ -114,6 +121,8 @@ export const openedRoutes: readonly OpenedRoute[] = [
   { method: "GET", path: /^\/api\/me\/sections$/, scope: "user" },
   // The reader's own supervisors, whose log and turns open to them.
   { method: "GET", path: /^\/api\/me\/agents$/, scope: "user" },
+  // Whether the reader must set up a login of their own before they start (docs/web.md, 「The join page」).
+  { method: "GET", path: /^\/api\/me\/agent-login$/, scope: "user" },
 
   // The account's own surface.
   section(ACCOUNT, "POST", /^\/api\/account$/),

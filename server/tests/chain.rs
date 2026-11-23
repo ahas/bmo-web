@@ -425,7 +425,10 @@ async fn a_kind_is_declared_by_its_unit_and_held_to_its_shape() {
   assert_eq!(
     keys,
     [
+      "agent-profile.call-names",
+      "agent-profile.name",
       "agent-profile.personalize",
+      "agent-profile.picture",
       "supply.credit-allowance",
       "supply.own",
       "supply.policy",
@@ -456,6 +459,62 @@ async fn a_kind_is_declared_by_its_unit_and_held_to_its_shape() {
   reshaped["mode"] = json!("nearest");
   let (status, said) = tree.declare(reshaped).await;
   assert_eq!((status, said["code"].clone()), (StatusCode::CONFLICT, json!("kind-in-use")));
+}
+
+// "A json kind's value is written by its consumer alone": the chain's own write refuses it, but for the unit that
+// declared the kind naming itself, which judged the value; and a resolution names every link of the subject's chain,
+// whether or not it says anything.
+#[tokio::test]
+async fn a_json_value_is_written_by_its_declarer_and_a_resolution_names_the_subject_s_whole_path() {
+  let tree = tree().await;
+  let declaration = json!({
+    "key": "test.shape", "declaredBy": "unit-a", "shape": "json", "mode": "nearest",
+    "rules": false, "levels": ["platform", "unit", "person"],
+  });
+
+  assert_eq!(tree.declare(declaration).await.0, StatusCode::OK);
+
+  let link = format!("unit:{}", tree.centre);
+  let write = |declarer: Option<&'static str>| {
+    let mut request = Request::builder()
+      .method(Method::PUT)
+      .uri(format!("/chain/kinds/test.shape/links/{link}/value"))
+      .header("x-real-ip", "127.0.0.1")
+      .header(header::AUTHORIZATION, format!("Bearer {TOKEN}"))
+      .header("owner-key", tree.centre_head.0.to_string())
+      .header("owner-role", tree.centre_head.1)
+      .header(header::CONTENT_TYPE, "application/json");
+
+    if let Some(declarer) = declarer {
+      request = request.header("declared-by", declarer);
+    }
+
+    request.body(Body::from(json!({ "value": { "roles": {} } }).to_string())).unwrap()
+  };
+
+  for (declarer, status) in [
+    (None, StatusCode::CONFLICT),
+    (Some("unit-b"), StatusCode::CONFLICT),
+    (Some("unit-a"), StatusCode::OK),
+  ] {
+    let answer = tree.app.clone().oneshot(write(declarer)).await.unwrap();
+
+    assert_eq!(answer.status(), status, "{declarer:?}");
+  }
+
+  let said = tree.resolve("test.shape", &format!("person={}", tree.person.0)).await;
+
+  assert_eq!(said["value"], json!({ "roles": {} }));
+  assert_eq!(
+    said["path"],
+    json!([
+      "platform",
+      format!("unit:{}", tree.company),
+      format!("unit:{}", tree.centre),
+      format!("unit:{}", tree.team),
+      format!("person:{}", tree.person.0)
+    ])
+  );
 }
 
 #[tokio::test]
@@ -720,8 +779,9 @@ async fn the_settings_moved_onto_the_chain_answer_every_old_question_as_they_did
   let (admin, person, centre_head, company_head) =
     (tree.admin, tree.person, tree.centre_head, tree.company_head);
 
-  // The settings as they stood before the move, written into the tables they stood in.
-  Migrator::down(scratch.db(), Some(1)).await.unwrap();
+  // The settings as they stood before the move, written into the tables they stood in: the move taken down with the
+  // one of the organisation's BMO default that stands after it.
+  Migrator::down(scratch.db(), Some(2)).await.unwrap();
   scratch
     .run(
       r#"INSERT INTO "agent_permissions" ("unit_id", "user_id", "allowed", "set_by", "set_at")
@@ -849,7 +909,7 @@ async fn the_settings_moved_onto_the_chain_answer_every_old_question_as_they_did
   );
 
   // Taken down again, the old tables hold what they held.
-  Migrator::down(scratch.db(), Some(1)).await.unwrap();
+  Migrator::down(scratch.db(), Some(2)).await.unwrap();
   for (table, rows) in [
     ("agent_permissions", 3),
     ("supply_platform_policy", 1),

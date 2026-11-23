@@ -91,6 +91,17 @@ fn owner_key() -> Value {
   })
 }
 
+/// The unit that declared a kind, as it names itself writing a `json` value it judged.
+fn declared_by() -> Value {
+  json!({
+    "name": "Declared-By",
+    "in": "header",
+    "required": false,
+    "description": "The unit that declared the kind, which judged the json value it writes.",
+    "schema": { "type": "string" },
+  })
+}
+
 /// The address of the browser a call is made for, as the console's proxy names it.
 fn real_ip() -> Value {
   json!({
@@ -1601,6 +1612,45 @@ pub fn openapi() -> Value {
   );
   add!(
     "GET",
+    "/units/{unit}/secrets",
+    "unitSecrets",
+    "Secret store",
+    "Every secret an organisation unit's space holds, by its name, with its size and when it last changed; never a value. Asked by a head of the unit or the platform administrator.",
+    params: vec![string_path("unit"), owner_key()],
+    body: None,
+    answers: vec![(200, json_answer::<Secrets>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "no-secret-store", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PUT",
+    "/units/{unit}/secrets/{name}",
+    "putUnitSecret",
+    "Secret store",
+    "Writes a value under a name in an organisation unit's space, as a person's is written. Asked by a head of the unit or the platform administrator.",
+    params: vec![string_path("unit"), string_path("name"), owner_key()],
+    body: Some(json!(generator.subschema_for::<SecretAsk>())),
+    answers: vec![(200, json_answer::<Secret>(&mut generator)), (201, json_answer::<Secret>(&mut generator))],
+    codes: vec!["bad-request", "bad-name", "bad-value", "empty-value", "unauthorized", "forbidden", "not-found", "secret-exists", "not-a-file", "no-secret-store", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "DELETE",
+    "/units/{unit}/secrets/{name}",
+    "deleteUnitSecret",
+    "Secret store",
+    "Moves a secret's file in an organisation unit's space to <name>.previous. Asked by a head of the unit or the platform administrator.",
+    params: vec![string_path("unit"), string_path("name"), owner_key()],
+    body: None,
+    answers: vec![(204, no_answer())],
+    codes: vec!["bad-name", "unauthorized", "forbidden", "not-found", "not-a-file", "no-secret-store", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
     "/secret-kinds",
     "secretKinds",
     "Secret kinds",
@@ -1734,8 +1784,8 @@ pub fn openapi() -> Value {
     "/chain/kinds/{key}/links/{link}/value",
     "setChainValue",
     "The delegation chain",
-    "A link's value written, null to follow above; a json kind's is its consumer's alone.",
-    params: vec![string_path("key"), string_path("link"), owner_key()],
+    "A link's value written, null to follow above; a json kind's is its consumer's alone, written by the unit that declared it naming itself in Declared-By.",
+    params: vec![string_path("key"), string_path("link"), owner_key(), declared_by()],
     body: Some(json!(generator.subschema_for::<ChainValueAsk>())),
     answers: vec![(200, json_answer::<ChainEntry>(&mut generator))],
     codes: vec!["bad-request", "bad-link", "forbidden", "not-found", "no-such-kind", "locked", "unauthorized", "not-in-force", "database", "failed", "bad-value", "consumer-written"],

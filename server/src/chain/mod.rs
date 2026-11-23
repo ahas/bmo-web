@@ -262,6 +262,8 @@ pub struct Resolved {
   /// Every link's word, top first, the links below the lock that cut the chain left out.
   pub layers: Vec<Layer>,
   pub locked_by: Option<Link>,
+  /// Every link of the subject's chain, top first.
+  pub path: Vec<Link>,
 }
 
 impl Resolved {
@@ -288,6 +290,7 @@ impl Resolved {
         })
         .collect(),
       locked_by: self.locked_by.map(|link| link.to_string()),
+      path: self.path.iter().map(Link::to_string).collect(),
       link,
     }
   }
@@ -449,6 +452,7 @@ pub fn resolve_on(
     rule,
     layers,
     locked_by,
+    path: path.links.clone(),
   }
 }
 

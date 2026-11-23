@@ -215,6 +215,10 @@ pub struct ChainResolution {
   pub rule: Option<String>,
   /// Every link's word for the subject, top first, below the lock that cut the chain left out.
   pub layers: Vec<ChainLayer>,
+  /// Every link of the subject's chain, top first, whether or not it says anything: the platform, each unit down
+  /// to the subject's and, for a person, the person.
+  #[serde(default)]
+  pub path: Vec<String>,
   /// The link whose lock cut the chain.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub locked_by: Option<String>,

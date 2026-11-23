@@ -3,7 +3,7 @@ import { dayKey, toUnixSeconds } from "bmo-ui/app/domain/time";
 import { accountName } from "./nodes";
 import { countText } from "./numbers";
 
-import type { GatewayMember, PersonalSupplyKey, SupplyAppliedPlan, SupplyCataloguePlan, SupplyMe, SupplyMeSetting, SupplyOrgPlans, SupplyPlanEntry, SupplyPolicy, SupplyReason, SupplySource, SupplyUnit } from "#shared/supply";
+import type { GatewayMember, PersonalSupplyKey, SupplyAppliedPlan, SupplyCataloguePlan, SupplyMe, SupplyMeSetting, SupplyOrgPlans, SupplyPlanEntry, SupplyPolicy, SpentSource, SupplyReason, SupplySource, SupplyUnit } from "#shared/supply";
 import type { ClaudeAccountView } from "#shared/types";
 import type { Translate } from "#shared/wording";
 import type { ComputedRef } from "vue";
@@ -32,8 +32,11 @@ export const SUPPLY_ROADS: readonly { value: string; label: string }[] = [
   { value: "openrouter", label: "supply.label.road_openrouter" }
 ];
 
-/** The word a source is shown by, whole from the pack. */
-export function sourceLabel(t: Translate, source: SupplySource): string {
+/** The word a source is shown by, whole from the pack; the organisation's own supply, which a run's usage names and
+ * no policy does, among them. */
+export function sourceLabel(t: Translate, source: SupplySource | SpentSource): string {
+  if (source === "organisation") return t("supply.label.source_organisation");
+
   return t(SUPPLY_SOURCES.find((one) => one.value === source)?.label ?? "supply.label.source_stop");
 }
 

@@ -1,12 +1,14 @@
 import { proveInvite } from "../../../utils/account-service";
 import { standAccount } from "../../../utils/account-standing";
+import { agentLoginNeeded } from "../../../utils/agent-login";
 import { inviteFailure } from "../../../utils/invites";
 
 import type { Proof } from "@web/server-client";
 
-// Whether the invited person's machine is attached, the account enabled where it is, and an account made ready
-// given its own BMO and its agents (docs/web.md, 「The join page」).
-export default defineEventHandler(async (event): Promise<Proof> => {
+// Whether the invited person's machine is attached, the account enabled where it is, an account made ready given its
+// own BMO and its agents, and whether it must set up a login of its own before it starts (docs/web.md, 「The join
+// page」).
+export default defineEventHandler(async (event): Promise<Proof & { agentLogin: boolean }> => {
   let proof: Proof;
 
   try {
@@ -15,7 +17,11 @@ export default defineEventHandler(async (event): Promise<Proof> => {
     throw inviteFailure(error);
   }
 
-  if (proof.active && typeof proof.user === "string" && /^\d+$/.test(proof.user)) await standAccount(Number(proof.user));
+  const user = proof.active && typeof proof.user === "string" && /^\d+$/.test(proof.user) ? Number(proof.user) : null;
 
-  return proof;
+  if (user === null) return { ...proof, agentLogin: false };
+
+  await standAccount(user);
+
+  return { ...proof, agentLogin: await agentLoginNeeded(user) };
 });

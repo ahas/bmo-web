@@ -233,6 +233,16 @@
   공급원, the five being 개인 공급, 전역 공급, 조직 크레딧, 개인 크레딧 and the end of the fall, 중단. The order
   a run falls through them is 공급 순서. Never 조달, 급전, 리소스 for the thing, and never 소스 for a member of
   the list.
+- the three sources a unit opens or closes for its people's agents → 에이전트 공급원: 개인 공급, 조직 공급 (a unit's own
+  keys, its 조직 공급 키) and 플랫폼 공급 (everything the platform pays for, 전역 공급 and the credits among them); a
+  source closed above → 상위 조직에서 꺼짐, organisation supply the platform has not opened → 제공되지 않음, the
+  administrator's opening of it → 이 회사에 조직 공급 제공. What the units below may do with a setting → 하위 조직, its
+  choice 위를 따름, 하위 조직 허용 or 하위 조직 잠금, the delegation chain's own words. Never 소스, 차단.
+- the agents a person is given as their account is made ready → 가입 구성: each role 위를 따름, 막음, 에이전트 없음 or
+  에이전트 `{n}`, a following role saying 플랫폼 규칙을 따름, 위를 따라 막음 or 위를 따라 에이전트 `{n}`. Never 초기 설정,
+  온보딩.
+- the step a person whose runs only their own supply can carry takes before they start → 에이전트 로그인 설정, its way
+  in from the join page 로그인하고 설정하기 and its way through 시작하기. Never 온보딩.
 - what a provider, an account or a slot has left of its limits → 남은 사용량: its windows 세션 and 주간, each as
   `{share}%` with `{time} 초기화` for how long is left until it resets and 초기화 지남 once past; a balance 잔액 with
   `{wait} 전` for when it was read; a request allowance 하루 요청 or 무료 모델 요청 as `{left} / {limit} 남음`; and

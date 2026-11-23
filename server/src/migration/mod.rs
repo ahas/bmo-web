@@ -24,6 +24,7 @@ pub mod m20261118_000002_node_bound_at;
 pub mod m20261119_000001_supply;
 pub mod m20261120_000001_supply_overrides;
 pub mod m20261123_000001_delegation_chain;
+pub mod m20261124_000001_agent_defaults_on_chain;
 mod secret_kind_seeds;
 
 pub struct Migrator;
@@ -58,6 +59,8 @@ impl MigratorTrait for Migrator {
       Box::new(m20261120_000001_supply_overrides::Migration),
       // The delegation chain, which the BMO setting permission and the supply policies move onto.
       Box::new(m20261123_000001_delegation_chain::Migration),
+      // An organisation's default for its people's BMOs, which moves onto the chain.
+      Box::new(m20261124_000001_agent_defaults_on_chain::Migration),
     ]
   }
 }

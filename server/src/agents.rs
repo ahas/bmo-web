@@ -17,12 +17,14 @@ use axum::response::{IntoResponse, Response};
 use axum::routing::{get, put};
 use bmo_web_client::{
   AgentCallNames, AgentName, AgentPermissionAsk, AgentPermissionPerson, AgentPermissionUnit,
-  AgentPermissions, AgentPersona, AgentPicture, AgentProfile, AgentSetting, AgentSource, CompanyAgent,
-  CompanyAgentAsk, OWNER_KEY, OWNER_ROLE, OwnAgent, OwnAgentAsk, UnitRef,
+  AgentPermissions, AgentPersona, AgentPicture, AgentProfile, AgentSetting, AgentSource, ChainKind,
+  ChainLevel, ChainMode, ChainPersonWriter, ChainShape, CompanyAgent, CompanyAgentAsk, OWNER_KEY,
+  OWNER_ROLE, OwnAgent, OwnAgentAsk, UnitRef,
 };
 use sea_orm::{ConnectionTrait, QueryResult, Value};
 use sumida::api::authz::Authz;
 
+use crate::chain::{self, Link, Subject};
 use crate::ids::shown;
 use crate::profiles::ADMINISTRATOR;
 use crate::routes::{Answer, Body, user_in};
@@ -447,91 +449,71 @@ fn setting_of(allowed: Option<bool>) -> AgentSetting {
   }
 }
 
-/// The setting on a person themselves, none where they follow their unit.
-async fn person_setting<C: ConnectionTrait>(db: &C, user: i32) -> Result<Option<bool>, Refusal> {
-  Ok(
-    one(
-      db,
-      r#"SELECT "allowed" FROM "agent_permissions" WHERE "user_id" = $1"#,
-      vec![user.into()],
-    )
-    .await?
-    .map(|row| row.try_get::<bool>("", "allowed"))
-    .transpose()?,
-  )
+/// The kind the permission to personalise one's BMO stands as on the delegation chain (docs/accounts.md, 「A
+/// person's BMO profile」): a flag resolved nearest first, set on units and people by their heads, withheld where
+/// nothing is set.
+pub fn personalize_kind() -> ChainKind {
+  ChainKind {
+    key: "agent-profile.personalize".to_owned(),
+    declared_by: crate::holdings::UNIT.to_owned(),
+    description:
+      "Whether a person may personalise their own BMO: its name, call names, picture and persona."
+        .to_owned(),
+    shape: ChainShape::Flag,
+    choices: vec![],
+    mode: ChainMode::Nearest,
+    default: Some(serde_json::Value::Bool(false)),
+    rules: false,
+    levels: vec![ChainLevel::Unit, ChainLevel::Person],
+    unit_permission: crate::units::HEADS.to_owned(),
+    person_writer: ChainPersonWriter::Heads,
+  }
 }
 
-/// What a unit resolves to: the nearest setting on it or on a unit above it, up to the company; withheld where
-/// none of them is set.
+/// A stored flag read as a setting's own value, none where the link follows above.
+fn flag_of(value: Option<serde_json::Value>) -> Option<bool> {
+  value.and_then(|value| value.as_bool())
+}
+
+/// What a unit resolves to: the nearest setting on it or on a unit above it, up to the company, a lock above
+/// standing over what lies below it; withheld where none of them is set.
 pub async fn unit_allows<C: ConnectionTrait>(db: &C, unit: i32) -> Result<bool, Refusal> {
-  Ok(
-    one(
-      db,
-      r#"SELECT p."allowed"
-         FROM "org_closure" c
-         JOIN "agent_permissions" p ON p."unit_id" = c."ancestor_id"
-         WHERE c."descendant_id" = $1
-         ORDER BY c."depth"
-         LIMIT 1"#,
-      vec![unit.into()],
-    )
-    .await?
-    .map(|row| row.try_get::<bool>("", "allowed"))
-    .transpose()?
-    .unwrap_or(false),
-  )
+  let (_, resolved) = chain::resolve(db, &personalize_kind(), Subject::Unit(unit)).await?;
+
+  Ok(flag_of(resolved.value).unwrap_or(false))
 }
 
 async fn is_administrator<C: ConnectionTrait>(db: &C, user: i32) -> Result<bool, Refusal> {
   Ok(Authz::is_superuser(&user_subject(db, user).await?, db).await?)
 }
 
-/// Whether a person may personalise their BMO: always for a platform administrator, else their own setting,
-/// else what their unit resolves to.
+/// Whether a person standing in `unit` may personalise their BMO: always for a platform administrator, else as the
+/// chain resolves for them, their own setting first.
 pub async fn may_personalize<C: ConnectionTrait>(db: &C, user: i32, unit: i32) -> Result<bool, Refusal> {
   if is_administrator(db, user).await? {
     return Ok(true);
   }
 
-  match person_setting(db, user).await? {
-    Some(allowed) => Ok(allowed),
-    None => unit_allows(db, unit).await,
-  }
+  let kind = personalize_kind();
+  let path = chain::Path::of_person(chain::units_down_to(db, unit).await?, user);
+  let held = chain::entries(db, &kind.key, Some(&path.links)).await?;
+
+  Ok(flag_of(chain::resolve_on(&kind, &path, &held, &[]).value).unwrap_or(false))
 }
 
 async fn set_permission<C: ConnectionTrait>(
   db: &C,
-  column: &str,
-  key: i32,
+  link: Link,
   by: Option<i32>,
   setting: AgentSetting,
 ) -> Result<(), Refusal> {
-  let allowed = match setting {
-    AgentSetting::Allow => true,
-    AgentSetting::Deny => false,
-    AgentSetting::Inherit => {
-      run(
-        db,
-        &format!(r#"DELETE FROM "agent_permissions" WHERE "{column}" = $1"#),
-        vec![key.into()],
-      )
-      .await?;
-
-      return Ok(());
-    }
+  let value = match setting {
+    AgentSetting::Allow => Some(serde_json::Value::Bool(true)),
+    AgentSetting::Deny => Some(serde_json::Value::Bool(false)),
+    AgentSetting::Inherit => None,
   };
 
-  run(
-    db,
-    &format!(
-      r#"INSERT INTO "agent_permissions" ("{column}", "allowed", "set_by", "set_at") VALUES ($1, $2, $3, $4)
-         ON CONFLICT ("{column}") DO UPDATE SET "allowed" = $2, "set_by" = $3, "set_at" = $4"#
-    ),
-    vec![key.into(), allowed.into(), by.into(), now_ms().into()],
-  )
-  .await?;
-
-  Ok(())
+  chain::put_value(db, &personalize_kind(), link, value.as_ref(), by).await
 }
 
 // ---------------------------------------------------------------------------------------------------------
@@ -880,7 +862,7 @@ async fn set_unit_permission_route(
     ));
   }
 
-  set_permission(db, "unit_id", unit, caller.user, ask.setting).await?;
+  set_permission(db, Link::Unit(unit), caller.user, ask.setting).await?;
 
   Ok(StatusCode::NO_CONTENT)
 }
@@ -901,57 +883,57 @@ async fn set_user_permission_route(
     ));
   }
 
-  set_permission(db, "user_id", user, caller.user, ask.setting).await?;
+  set_permission(db, Link::Person(user), caller.user, ask.setting).await?;
 
   Ok(StatusCode::NO_CONTENT)
 }
 
 /// The permission across a unit: the unit and every unit below it, each after its parent, and every person
-/// standing in one of them, each with its own setting and what it resolves to.
+/// standing in one of them, each with its own setting and what the chain resolves it to.
 pub async fn permissions<C: ConnectionTrait>(db: &C, unit: i32) -> Result<AgentPermissions, Refusal> {
+  let kind = personalize_kind();
+  let held = chain::entries(db, &kind.key, None).await?;
   let rows = all(
     db,
-    r#"SELECT o."id", o."name", o."parent_id", p."allowed",
+    r#"SELECT o."id", o."name", o."parent_id",
          (SELECT string_agg(lpad(c."ancestor_id"::text, 10, '0'), '/' ORDER BY c."depth" DESC)
             FROM "org_closure" c WHERE c."descendant_id" = o."id") AS "place"
        FROM "organizations" o
-       LEFT JOIN "agent_permissions" p ON p."unit_id" = o."id"
        WHERE o."id" IN (SELECT "descendant_id" FROM "org_closure" WHERE "ancestor_id" = $1)
        ORDER BY "place""#,
     vec![unit.into()],
   )
   .await?;
-  let mut resolved: HashMap<i32, bool> = HashMap::new();
+  let own = |link: Link| flag_of(held.get(&link).and_then(|entry| entry.value.clone()));
+  let mut paths: HashMap<i32, Vec<i32>> = HashMap::new();
   let mut units = Vec::with_capacity(rows.len());
 
   for row in &rows {
     let id: i32 = row.try_get("", "id")?;
     let parent: Option<i32> = row.try_get("", "parent_id")?;
-    let setting: Option<bool> = row.try_get("", "allowed")?;
-    // Every unit comes after its parent, so a unit below the asked one follows what its parent resolved to;
-    // the asked unit follows the units above it.
-    let allowed = match (setting, parent.and_then(|parent| resolved.get(&parent).copied())) {
-      (Some(allowed), _) => allowed,
-      (None, Some(above)) => above,
-      (None, None) => unit_allows(db, id).await?,
+    // Every unit comes after its parent, so a unit below the asked one stands on its parent's path; the asked
+    // unit's path is read from the tree.
+    let path = match parent.and_then(|parent| paths.get(&parent)) {
+      Some(above) => above.iter().copied().chain(std::iter::once(id)).collect(),
+      None => chain::units_down_to(db, id).await?,
     };
+    let allowed = flag_of(chain::resolve_on(&kind, &chain::Path::of_units(path.clone()), &held, &[]).value)
+      .unwrap_or(false);
 
-    resolved.insert(id, allowed);
+    paths.insert(id, path);
     units.push(AgentPermissionUnit {
       id: i64::from(id),
       name: row.try_get("", "name")?,
       parent: parent.map(i64::from),
-      setting: setting_of(setting),
+      setting: setting_of(own(Link::Unit(id))),
       allowed,
     });
   }
 
   let rows = all(
     db,
-    r#"SELECT u."id", COALESCE(NULLIF(u."full_name", ''), u."username") AS "name", u."organization_id",
-         p."allowed"
+    r#"SELECT u."id", COALESCE(NULLIF(u."full_name", ''), u."username") AS "name", u."organization_id"
        FROM "users" u
-       LEFT JOIN "agent_permissions" p ON p."user_id" = u."id"
        WHERE u."organization_id" IN (SELECT "descendant_id" FROM "org_closure" WHERE "ancestor_id" = $1)
        ORDER BY lower(COALESCE(NULLIF(u."full_name", ''), u."username")), u."id""#,
     vec![unit.into()],
@@ -962,15 +944,15 @@ pub async fn permissions<C: ConnectionTrait>(db: &C, unit: i32) -> Result<AgentP
   for row in &rows {
     let user: i32 = row.try_get("", "id")?;
     let stands_in: i32 = row.try_get("", "organization_id")?;
-    let setting: Option<bool> = row.try_get("", "allowed")?;
+    let path = chain::Path::of_person(paths.get(&stands_in).cloned().unwrap_or_default(), user);
     let allowed = is_administrator(db, user).await?
-      || setting.unwrap_or_else(|| resolved.get(&stands_in).copied().unwrap_or(false));
+      || flag_of(chain::resolve_on(&kind, &path, &held, &[]).value).unwrap_or(false);
 
     people.push(AgentPermissionPerson {
       user: shown(user),
       name: row.try_get("", "name")?,
       unit: i64::from(stands_in),
-      setting: setting_of(setting),
+      setting: setting_of(own(Link::Person(user))),
       allowed,
     });
   }

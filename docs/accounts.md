@@ -577,12 +577,14 @@ section states what each does.
      picture of the console's (the receiver's own or the initials stand), and no persona of the person's (the
      agency's own composition stands).
   The account's administrators are no exception for their own BMO, and nothing of one person's profile reaches another.
-- **Whether a person may personalise their BMO is set as 허용 or 막음 on a person or on a unit.** It is read nearest
-  first: the person's own setting, then their unit's, then each unit above it up to the company. Where none of them
-  is set it is withheld: nothing is open until it is granted. A platform administrator may always.
+- **Whether a person may personalise their BMO is set as 허용 or 막음 on a person or on a unit.** It is the delegation
+  chain's `agent-profile.personalize` (「The delegation chain」), a flag resolved nearest first: the person's own
+  setting, then their unit's, then each unit above it up to the company. Where none of them is set it is withheld:
+  nothing is open until it is granted. A platform administrator may always.
 - **Who sets it:** the platform administrator anywhere; a unit's head on that unit and every unit below it, and on every
   person standing in one of them, by sumida's `manage` on the unit. A setting is taken away by setting it to follow
-  the unit above, which removes it.
+  the unit above, which removes it. Where a unit above locks the setting on the chain, a change below the lock is
+  refused 409 `locked`, and what was set below it stands unread.
 - **The routes.** Each takes the login it is made for in `Owner-Key` and `Owner-Role`, as the profile's routes do; a
   caller the route does not name is refused 403 `forbidden`, a company or unit that does not stand 404 `not-found`,
   and a unit that is no company where a company is named 404 `not-found` as well.
@@ -952,6 +954,133 @@ section states what each does.
   stands, so a deployment made before gains the two once and keeps every kind it holds. From then on they are the
   owner's to change or remove like any other.
 
+## The delegation chain
+
+- **The delegation chain (위임 사슬) is how a setting reaches a person from above,** one link at a time: the
+  platform, the person's company, each unit under it down to their home unit at any depth, and the person. At each
+  link, for each setting, whoever administers that link says what the setting is there and whether the links below
+  may change it. The service keeps the links and answers what stands; what a setting does is its consumer's.
+- **A unit's chain is its own path:** the platform, its company and each unit down to it. A person's chain is their
+  home unit's chain and then the person. A post in another unit puts nothing on it (「Concurrent posts」).
+- **Every route stands in `docs/boundary.md`, 「The delegation chain」;** this section states what they keep and
+  how a setting is resolved.
+
+### A setting kind
+
+- **A setting kind is declared by the unit that uses it,** never listed here: a unit declares its kinds on `PUT
+  /chain/kinds/{key}` as it starts, as it registers a hook, and the service's own consumers declare theirs as the
+  service stands (「The kinds the service's own consumers declare」). The service supplies the storage and the
+  resolution and holds no kind of its own; a kind nobody declared is answered 404 `no-such-kind`.
+- **A declaration says:**
+  - `key`: 1 to 64 characters of lowercase letters, digits, hyphens and dots, beginning with a letter, kept as long
+    as the kind stands;
+  - `declaredBy`: the unit declaring it, 1 to 40 characters of lowercase letters, digits and hyphens. A kind is
+    declared again by the same unit alone; any other is refused 409 `kind-declared-elsewhere`;
+  - `description`: what the setting is, for a screen to show;
+  - `shape`: `flag` (true or false), `text` (at most 100,000 characters), `amount` (`"unlimited"` or a whole number
+    of zero or more), `keys` (distinct keys out of the declaration's `choices`, in an order) or `json` (an object or
+    a list the consumer judges);
+  - `mode`: `nearest`, `narrowing` or `layered` (「Resolution」); `narrowing` stands for a flag, an amount or keys
+    alone;
+  - `default`: the value standing where no link says one, fitting the shape, or none;
+  - `rules`: whether a link may set the value apart for a person, a group or a unit (「Rules and groups」); a `json`
+    kind takes none;
+  - `levels`: which of `platform`, `unit` and `person` may hold an entry, at least one;
+  - `unitPermission`: the sumida organisation permission that lets a person write a unit's link, `manage` — a head
+    — where none is named, or `manage_credit` for one the unit's credit manager keeps as well. Both reach down the
+    tree, so a head of a unit above writes every link below it;
+  - `personWriter`: who writes a person's link: `heads`, whoever holds `unitPermission` on the person's home unit
+    (the default); `self`, the person alone; or `both`.
+- **A declaration out of that shape is refused 400 `bad-kind`.** One that changes the shape or the mode of a kind
+  some link holds an entry of, or takes away a choice a stored value names, is refused 409 `kind-in-use`; anything
+  else of a declaration may change.
+- **A `json` kind's value is written by its consumer alone.** The service cannot judge such a value, so the chain's
+  own write of a value refuses it 409 `consumer-written`; the consumer judges it on its own routes and writes it on
+  the chain from there. Its delegation is written on the chain's route as any kind's is.
+
+### A link's entry
+
+- **At each link a kind may hold an entry:** a `value`, none where the link follows what stands above it; a
+  `delegation`; and for a kind with rules, its rules. A link holding no value, `inherit` and no rule holds no entry.
+- **The delegation says whether the links below may change the setting:** `allow`, `lock`, or `inherit`, following
+  the link above. The console words them 허용, 잠금 and 위를 따름, the words of the BMO setting permission.
+  - **A lock binds every link below it, at any depth:** none of them changes the setting, and what they held before
+    it was set stays kept and unread, so taking the lock away finds it as it was.
+  - **`allow` and `inherit` resolve alike:** neither lifts a lock above it. `allow` says a link means to keep the
+    setting open below, for a screen to show; it reopens nothing a link above locked.
+  - **A person's link has nothing below it** and holds `inherit` alone; another delegation there is refused 400
+    `bad-link`.
+
+### Rules and groups
+
+- **A rule sets the value apart for some of the people under a link,** at the platform or at a unit: for one person,
+  for a named group of people, or for a unit, each with a value of the kind's shape. A link holds at most one rule
+  for each, and its rules are written whole. The person must stand at or under the link, the unit must be the
+  link's own or one under it, and the group must be kept by a unit of the link's company; the platform's rules name
+  anyone. A rule out of that shape is refused 400 `bad-rule`. A person's link holds no rules.
+- **A group is a named list of people kept by a unit:** its name, one line of 1 to 40 characters, no two of one unit
+  alike, case set aside (409 `group-exists`); and its members, people of the unit's company (409 `other-company` for
+  anyone else). The platform administrator and a head of the unit make, rename, refill and remove it; anyone of the
+  company reads the groups its units keep. A group a rule names is not removed (409 `group-in-use`).
+
+### Resolution
+
+What stands for a person, or for a unit, is read up its chain, the subject's own link last:
+
+1. **What each link says to the subject.** A person's own link says its value. The platform and a unit say the
+   first of: the rule naming the person; the rules naming a group the person belongs to — the narrowest of their
+   values for a `narrowing` kind, otherwise the rule of the group made first; the rule naming the unit nearest the
+   person on their path; and the link's own value. For a unit as the subject, the rules naming a unit on its path
+   alone count.
+2. **A lock cuts the chain.** Where links above the subject's own hold `lock`, the farthest of them ends it: nothing
+   the links below that one say is read.
+3. **The value, by the kind's mode:**
+   - `nearest`: what the nearest link still read says, and the default where none says anything. Under a lock the
+     nearest link read is the locking one or one above it, so a value set above a lock stands over every value
+     below it.
+   - `narrowing`: every link still read narrows what those above it say, so no link widens it: a flag holds where
+     every link says it does, an amount is the smallest said (`unlimited` the widest), and keys are those every link
+     names, in the order the nearest names them. The default stands where none says anything. A wider value below is
+     kept and has no effect; it is never refused, since under rules what stands above differs from person to person.
+   - `layered`: no one value. The answer is every link's word, top first, and the consumer composes them its own way.
+4. **In one line:** the nearer link first; within one link, a person's rule, then a group's, then a unit's, then the
+   link's own value; and a lock above overrides everything below it.
+
+- **The answer names where it came from:** the value, the link and the rule it came from where one did, every link's
+  word top first (the layers), the link holding the lock that cut the chain, and, for a link a caller asks after,
+  whether that link may change the setting.
+- **Nothing announces a change.** The service emits no event; a consumer asks the resolution afresh whenever it acts
+  on a setting, and keeps no answer, as a run's supply order is asked for every run.
+
+### Who changes a link
+
+- **A link changes a setting only where no link above it holds `lock`,** read as resolution's second rule reads it.
+  A write below a lock is refused 409 `locked`, naming the link holding it, whoever writes, the platform
+  administrator included: the lock is lifted where it was set. A link that is not one of the kind's `levels` is
+  refused 400 `bad-link`.
+- **Who writes a link:** the platform's, a platform administrator; a unit's, a platform administrator and whoever
+  holds the kind's `unitPermission` on the unit; a person's, as the kind's `personWriter` says, the platform
+  administrator among `heads`. Anyone else is refused 403 `forbidden`.
+- **Who reads a link's entry:** whoever writes it, and the person at their own link. The resolution answers any
+  caller holding the server's token, since every unit asks it on its own account.
+
+### The kinds the service's own consumers declare
+
+Each is declared by the module that uses it, as the service stands, under the unit name `web`:
+
+| Kind | What it is | Shape and mode | Levels and writers |
+|---|---|---|---|
+| `agent-profile.personalize` | the BMO setting permission (「A person's BMO profile」) | a flag, `nearest`, withheld by default | units and people; `manage`, `heads` |
+| `supply.policy` | the platform's, an organisation's and the per-user supply policy (「Supply」) | `json`, `layered` | the platform, units and people; `manage_credit`, `heads` |
+| `supply.own` | a person's own supply setting (「Supply」) | `json`, `nearest` | people; `self` |
+| `supply.credit-allowance` | the organisation credits one person may spend in a calendar month (「How an order is resolved」) | an amount, `narrowing`, `unlimited` by default, with rules | the platform, units and people; `manage_credit`, `heads` |
+
+- **The org memory's lock stands in the brain,** as a mark on each memory of an org brain, and the brain resolves a
+  topic by the same rule a lock follows here: the farthest unit on the path holding a locked memory of it, else the
+  nearest holding one (the brain's `docs/design.md`, 「Org brains」). The lock belongs to the memory it marks, not
+  to a setting of a unit, and the brain calls no unit, so it is not kept on the chain. The service says who writes a
+  unit's org memory (「A unit's org memory」).
+
 ## Supply
 
 - **Supply is who pays for a run, and on whose credential it goes out** (the agency's `docs/supply.md`). The
@@ -979,10 +1108,12 @@ section states what each does.
   pass: sumida's own maintenance — the releasing of expired holds, the sweeping of ended lots and the notices,
   advisory-locked so several instances run each pass once — and then the renewal of the applied plans
   (「An organisation's plans」).
-- **What each source stands on** (「The tables」): the platform default policy and the platform's money
-  settings each in their one row, an organisation's and a person's administrator-set policy and a person's own
-  setting each in their own table, every platform reservation this service opens in `supply_reservations`,
-  and every settled cost in `supply_costs`. The seeded defaults are the platform policy of `allowed` =
+- **What each source stands on** (「The tables」): the platform default policy, an organisation's policy and a
+  person's administrator-set policy on the delegation chain as the links of `supply.policy` — the platform's link,
+  a unit's and the person's — and a person's own setting as their link of `supply.own` (「The delegation chain」);
+  the platform's money settings in their one row; every platform reservation this service opens in
+  `supply_reservations`; and every settled cost in `supply_costs`. The supply routes judge each policy and write it
+  on the chain; the chain's own route writes no supply value, a policy being `json` the supply judges. The seeded defaults are the platform policy of `allowed` =
   `personal`, `order` = `personal, stop`, `overridable` = `personal` and the order overridable, so every
   platform source stays off until the administrator turns it on; and the settings `credits_per_dollar` 1500,
   `reservation_credits` 200 and `enforce` false. The first values an organisation policy takes are `allowed`
@@ -1012,8 +1143,8 @@ section states what each does.
      the nearest unit going up from theirs that holds one. A plan includes global supply with an amount quota
      for its period and says whether credits may be used at all: `global` drops out where the plan includes
      none or its quota is spent, and `org_credits` and `personal_credits` where the plan forbids credits;
-  3. the nearest organisation policy going up the unit tree, a unit with no row inheriting its parent's;
-  4. the administrator's per-user policy, where one stands;
+  3. the nearest organisation policy going up the unit tree, a unit setting none inheriting its parent's;
+  4. the administrator's per-user policy, where one stands, and the person's credit allowance;
   5. the person's own setting, which reorders where the order is overridable and switches an overridable
      source on or off against the platform's default; a source it names neither way stands as the default
      says, and a locked source stands as the platform says whatever the setting holds.
@@ -1022,6 +1153,12 @@ section states what each does.
   it is dropped; named anywhere else it is refused 400. An organisation credit cap — where one stands —
   takes `org_credits` out of a person's order once their organisation-credit spend of the calendar month has
   reached it, and a person's own cap does the same to `personal_credits`.
+- **A person's credit allowance** is the delegation chain's `supply.credit-allowance` resolved for them: `unlimited`,
+  or the organisation credits they may spend in a calendar month, set at the platform, at any unit and on the
+  person, for one person, a named group or a unit by rules, each link narrowing what stands above it. Once their
+  organisation-credit spend of the month reaches it, `org_credits` leaves their order, closed by
+  `blocked-by-administrator` where the person's own link set the smallest allowance and by
+  `blocked-by-organisation` otherwise. Where nothing is set it is `unlimited` and closes nothing.
 - **A write naming a source its earlier layers do not allow is refused.** A policy write closed by the
   platform answers 403 `source-not-allowed`; a person's own write answers the code of the layer that closed
   it — `not-in-plan`, `blocked-by-organisation` or `blocked-by-administrator` — so the screen can say the
@@ -1178,7 +1315,6 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 | `user_sign_ins` | when each user last signed in (「The people roster」) |
 | `company_agents` | each company's default for its people's BMOs: the name, the call names and the picture with its type, and who set it and when (「A person's BMO profile」) |
 | `own_agents` | each person's own BMO profile: the name, the call names, the persona and the picture with its type, kept whether or not they may use it |
-| `agent_permissions` | each `allow` or `deny` set on a unit or on a person for personalising one's BMO, who set it and when; `inherit` is no row |
 | `secret_kinds` | each secret kind: its key, name, description and fields, and the order kinds were added in |
 | `settings` | the service's own keys: the mark that the move is written, and the move's administrator's user (「The platform administrators」) |
 | `web_users` | the console's own accounts, the sign-in that stands before the model is in force |
@@ -1189,11 +1325,12 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 | `web_presence_hidden` | each account that turned its presence off, by its user, and when; an account showing its presence has no row (「Showing one's presence」) |
 | `web_room_reads` | how far each user has read each room |
 | `document_talk` | the console's threads about a document: each word said over one, by whom, with the passage, heading and version it was said over (`docs/documents-viewer.md`, 「The record」) |
-| `supply_platform_policy` | the platform's one policy row (`id` = 1): `allowed`, `order` and `overridable` as JSON arrays of source keys, `order_overridable`, and who set them and when (「Supply」) |
+| `chain_kinds` | each setting kind declared on the delegation chain: its key, the unit that declared it, the declaration whole as JSON, and when it was last declared (「The delegation chain」) |
+| `chain_links` | each link's entry of a kind: the kind, the link (`platform`, `unit:<id>` or `person:<id>`, with the unit or the person it names), its value (JSON, null where it follows above), its delegation, and who set it and when; a link holding no value, `inherit` and no rule has no row. The supply policy's links hold `allowed`, `order` and, at the platform, `overridable` and `orderOverridable`, below it `memberCreditCredits`; a person's own supply setting holds `order`, `off`, `on` and `personalCreditCredits` |
+| `chain_rules` | each rule of a link at the platform or a unit: the kind, the link, whom it names (`person:<id>`, `group:<id>` or `unit:<id>`, with the person, group or unit), its value, and who set it and when |
+| `chain_groups` | each named group of people: the unit keeping it, its name, and who set it and when |
+| `chain_group_members` | each member of a group |
 | `supply_settings` | the platform's one supply settings row (`id` = 1): `credits_per_dollar`, `reservation_credits`, `enforce`, and who set them and when (「Supply」) |
-| `supply_org_policies` | each organisation unit that set its own supply policy: `org_id`, `allowed`, `order`, `member_credit_credits` (the per-person monthly cap on organisation credits, null for none), and who set it and when; no row means the unit inherits (「Supply」) |
-| `supply_user_policies` | each per-user supply policy an administrator set: `user_id`, `allowed`, `order`, `member_credit_credits`, and who set it and when; no row means the person follows their organisation's (「Supply」) |
-| `supply_user_settings` | each person's own supply setting: `order`, `off` and `on` (the overridable sources the person switched off and on against the platform's default), `personal_credit_credits` (their monthly cap on personal credits), and when it changed (「Supply」) |
 | `supply_plan_exposures` | each plan exposed to an organisation unit: `org_id`, `plan_id`, `applied` (the plan the unit runs on, one a unit at most), and who exposed it and when (「An organisation's plans」) |
 | `supply_reservations` | every platform reservation this service opened: its `id` as answered to the agency, `run`, `step`, `user_id`, `source`, `amount_credits`, `spent_credits`, `expires_at`, `state` (`open`, `captured`, `released`), `sumida_reference`, the `key` it was opened on (unique), and its moments (「Supply」) |
 | `supply_costs` | every settled cost, one row per accepted capture and every personal-supply cost recorded: `run`, `user_id`, `org_id`, `source`, `credits` (0 for personal supply), `cost_micros`, `settled_at` and its `period` (`YYYY-MM`) (「Supply」) |
@@ -1303,5 +1440,15 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
   the unit on the plan it stood on, that the applied plan's exposure is not taken away, that a unit whose applied
   plan was retired still reads it applied, whole, while its subscription lives, and that an applied plan whose
   period ended is subscribed again on the membership pass.
+- **The delegation chain's tests** resolve a kind of each mode over a chain held in memory — the nearest value, a
+  lock above cutting what the links below say, a narrowing amount and narrowing keys that no lower link widens, a
+  layered kind's words top first, and a person's rule before a group's before a unit's before the link's own value,
+  the nearer link first — and stand the routes on the scratch database: a kind declared, declared again by its own
+  unit, refused to another and refused a shape change while in use; who writes which link and who is refused; a
+  write below a lock refused `locked`; a `json` value refused `consumer-written`; rules and groups kept and refused
+  out of shape; the resolution and whether a link may change it; and the credit allowance closing organisation
+  credits once a month's spend reaches it. The move of the stored settings onto the chain is tested by taking it
+  down, writing the BMO setting permission and the supply policies as they stood before it, bringing it up again,
+  and asking each old route the old question: the same settings, the same resolved answers, and the same orders.
 - **The console's side tests against a stand-in** answering these routes, so a console test needs neither the
   binary nor Valkey.

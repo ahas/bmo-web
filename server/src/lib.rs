@@ -10,6 +10,7 @@ pub mod attributes;
 pub mod callers;
 // The supply domain: what the service answers of who pays, both to the agency and to the console.
 pub mod catalogue;
+pub mod chain;
 pub mod checks;
 pub mod data_move;
 pub mod grants;

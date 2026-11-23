@@ -9,6 +9,7 @@ use schemars::Schema;
 use schemars::generate::{SchemaGenerator, SchemaSettings};
 use serde_json::{Map, Value, json};
 
+use crate::chain::*;
 use crate::organisation::*;
 use crate::supply::*;
 use crate::types::*;
@@ -1660,6 +1661,188 @@ pub fn openapi() -> Value {
     body: render_body(&mut generator),
     answers: vec![(200, json_answer::<Rendered>(&mut generator))],
     codes: vec!["bad-request", "not-found", "unknown-language", "unknown-code", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/chain/kinds",
+    "chainKinds",
+    "The delegation chain",
+    "Every setting kind declared on the delegation chain, by key.",
+    params: vec![],
+    body: None,
+    answers: vec![(200, json_answer::<ChainKinds>(&mut generator))],
+    codes: vec!["unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/chain/kinds/{key}",
+    "chainKind",
+    "The delegation chain",
+    "One setting kind as its unit declared it.",
+    params: vec![string_path("key")],
+    body: None,
+    answers: vec![(200, json_answer::<ChainKind>(&mut generator))],
+    codes: vec!["no-such-kind", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PUT",
+    "/chain/kinds/{key}",
+    "declareChainKind",
+    "The delegation chain",
+    "Declares a setting kind, or declares it again by the unit that declared it; a shape or mode changed while an entry stands is refused.",
+    params: vec![string_path("key")],
+    body: Some(json!(generator.subschema_for::<ChainKind>())),
+    answers: vec![(200, json_answer::<ChainKind>(&mut generator))],
+    codes: vec!["bad-request", "bad-kind", "kind-declared-elsewhere", "kind-in-use", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/chain/kinds/{key}/resolve",
+    "resolveChain",
+    "The delegation chain",
+    "A setting resolved for a person or a unit: its value, the link and rule it came from, every link's word top first, the lock that cut the chain, and whether a link asked after may change it.",
+    params: vec![string_path("key"), parameter("person", "string", false), parameter("unit", "integer", false), parameter("link", "string", false)],
+    body: None,
+    answers: vec![(200, json_answer::<ChainResolution>(&mut generator))],
+    codes: vec!["bad-request", "bad-link", "not-found", "no-such-kind", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/chain/kinds/{key}/links/{link}",
+    "chainEntry",
+    "The delegation chain",
+    "A link's entry of a kind, with the lock above it and whether the caller may change it now; for its writers and the person at their own link.",
+    params: vec![string_path("key"), string_path("link"), owner_key()],
+    body: None,
+    answers: vec![(200, json_answer::<ChainEntry>(&mut generator))],
+    codes: vec!["bad-request", "bad-link", "forbidden", "not-found", "no-such-kind", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PUT",
+    "/chain/kinds/{key}/links/{link}/value",
+    "setChainValue",
+    "The delegation chain",
+    "A link's value written, null to follow above; a json kind's is its consumer's alone.",
+    params: vec![string_path("key"), string_path("link"), owner_key()],
+    body: Some(json!(generator.subschema_for::<ChainValueAsk>())),
+    answers: vec![(200, json_answer::<ChainEntry>(&mut generator))],
+    codes: vec!["bad-request", "bad-link", "forbidden", "not-found", "no-such-kind", "locked", "unauthorized", "not-in-force", "database", "failed", "bad-value", "consumer-written"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PUT",
+    "/chain/kinds/{key}/links/{link}/delegation",
+    "setChainDelegation",
+    "The delegation chain",
+    "A link's delegation written: allow, lock or inherit.",
+    params: vec![string_path("key"), string_path("link"), owner_key()],
+    body: Some(json!(generator.subschema_for::<ChainDelegationAsk>())),
+    answers: vec![(200, json_answer::<ChainEntry>(&mut generator))],
+    codes: vec!["bad-request", "bad-link", "forbidden", "not-found", "no-such-kind", "locked", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PUT",
+    "/chain/kinds/{key}/links/{link}/rules",
+    "setChainRules",
+    "The delegation chain",
+    "A link's rules written whole, each naming a person, a group or a unit under the link.",
+    params: vec![string_path("key"), string_path("link"), owner_key()],
+    body: Some(json!(generator.subschema_for::<ChainRulesAsk>())),
+    answers: vec![(200, json_answer::<ChainEntry>(&mut generator))],
+    codes: vec!["bad-request", "bad-link", "forbidden", "not-found", "no-such-kind", "locked", "unauthorized", "not-in-force", "database", "failed", "bad-rule"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "DELETE",
+    "/chain/kinds/{key}/links/{link}",
+    "clearChainEntry",
+    "The delegation chain",
+    "A link's entry taken away whole, the link following above.",
+    params: vec![string_path("key"), string_path("link"), owner_key()],
+    body: None,
+    answers: vec![(204, no_answer())],
+    codes: vec!["bad-request", "bad-link", "forbidden", "not-found", "no-such-kind", "locked", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/chain/groups",
+    "chainGroups",
+    "The delegation chain",
+    "The named groups of people a unit keeps; for the administrator and anyone of its company.",
+    params: vec![parameter("unit", "integer", true), owner_key()],
+    body: None,
+    answers: vec![(200, json_answer::<ChainGroups>(&mut generator))],
+    codes: vec!["bad-request", "forbidden", "not-found", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "POST",
+    "/chain/groups",
+    "makeChainGroup",
+    "The delegation chain",
+    "A named group of people made in a unit, by the administrator or a head of the unit.",
+    params: vec![owner_key()],
+    body: Some(json!(generator.subschema_for::<ChainGroupAsk>())),
+    answers: vec![(201, json_answer::<ChainGroup>(&mut generator))],
+    codes: vec!["bad-request", "forbidden", "not-found", "group-exists", "other-company", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/chain/groups/{group}",
+    "chainGroup",
+    "The delegation chain",
+    "One group, for its readers.",
+    params: vec![integer_path("group"), owner_key()],
+    body: None,
+    answers: vec![(200, json_answer::<ChainGroup>(&mut generator))],
+    codes: vec!["forbidden", "not-found", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PUT",
+    "/chain/groups/{group}",
+    "changeChainGroup",
+    "The delegation chain",
+    "A group's name and members written whole, by its keepers.",
+    params: vec![integer_path("group"), owner_key()],
+    body: Some(json!(generator.subschema_for::<ChainGroupAsk>())),
+    answers: vec![(200, json_answer::<ChainGroup>(&mut generator))],
+    codes: vec!["bad-request", "forbidden", "not-found", "group-exists", "other-company", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "DELETE",
+    "/chain/groups/{group}",
+    "removeChainGroup",
+    "The delegation chain",
+    "A group removed by its keepers; refused while a rule names it.",
+    params: vec![integer_path("group"), owner_key()],
+    body: None,
+    answers: vec![(204, no_answer())],
+    codes: vec!["forbidden", "not-found", "group-in-use", "unauthorized", "not-in-force", "database", "failed"],
     refusal: Refusal::Wire,
     security: bearer()
   );

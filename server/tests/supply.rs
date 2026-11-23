@@ -220,7 +220,8 @@ async fn enforce(scratch: &Scratch, on: bool) {
 async fn open_platform(scratch: &Scratch, sources: &str) {
   scratch
     .run(
-      r#"UPDATE "supply_platform_policy" SET "allowed" = $1::jsonb WHERE "id" = 1"#,
+      r#"UPDATE "chain_links" SET "value" = jsonb_set("value", '{allowed}', $1::text::jsonb)
+          WHERE "kind" = 'supply.policy' AND "link" = 'platform'"#,
       vec![sources.into()],
     )
     .await;
@@ -370,7 +371,8 @@ async fn an_organisation_policy_narrows_every_person_beneath_it_and_the_unit_inh
   // The platform opens the credit sources for the test, so the organisation's closing is what shows.
   scratch
     .run(
-      r#"UPDATE "supply_platform_policy" SET "allowed" = '["personal", "global", "org_credits"]' WHERE "id" = 1"#,
+      r#"UPDATE "chain_links" SET "value" = jsonb_set("value", '{allowed}', '["personal", "global", "org_credits"]')
+          WHERE "kind" = 'supply.policy' AND "link" = 'platform'"#,
       vec![],
     )
     .await;
@@ -440,9 +442,10 @@ async fn an_organisation_policy_narrows_every_person_beneath_it_and_the_unit_inh
 async fn platform(scratch: &Scratch, allowed: &str, overridable: &str, order_overridable: bool) {
   scratch
     .run(
-      r#"UPDATE "supply_platform_policy"
-             SET "allowed" = $1::jsonb, "overridable" = $2::jsonb, "order_overridable" = $3
-           WHERE "id" = 1"#,
+      r#"UPDATE "chain_links"
+             SET "value" = "value" || jsonb_build_object('allowed', $1::text::jsonb, 'overridable', $2::text::jsonb,
+                                                         'orderOverridable', $3::boolean)
+           WHERE "kind" = 'supply.policy' AND "link" = 'platform'"#,
       vec![allowed.into(), overridable.into(), order_overridable.into()],
     )
     .await;
@@ -549,8 +552,9 @@ async fn a_locked_source_and_a_locked_order_stand_as_the_platform_says_and_the_p
   // A setting written before the lock, switching the source off and reordering, is not read.
   scratch
     .run(
-      r#"INSERT INTO "supply_user_settings" ("user_id", "order", "off", "on", "updated_at")
-         VALUES ($1, '["global", "personal"]', '["personal"]', '[]', 0)"#,
+      r#"INSERT INTO "chain_links" ("kind", "link", "user_id", "value", "set_at")
+         VALUES ('supply.own', 'person:' || $1::bigint, $1::bigint,
+                 '{"order": ["global", "personal"], "off": ["personal"], "on": []}', 0)"#,
       vec![tester.into()],
     )
     .await;
@@ -589,7 +593,8 @@ async fn a_locked_source_and_a_locked_order_stand_as_the_platform_says_and_the_p
   assert_eq!(
     scratch
       .count(
-        r#"SELECT COUNT(*) FROM "supply_user_settings" WHERE "user_id" = $1 AND "order" = '["global", "personal"]'"#,
+        r#"SELECT COUNT(*) FROM "chain_links"
+            WHERE "kind" = 'supply.own' AND "user_id" = $1 AND "value" -> 'order' = '["global", "personal"]'"#,
         vec![tester.into()],
       )
       .await,
@@ -636,7 +641,8 @@ async fn a_person_s_own_write_is_judged_by_what_it_changes() {
   assert_eq!(
     scratch
       .count(
-        r#"SELECT COUNT(*) FROM "supply_user_settings" WHERE "user_id" = $1 AND "order" = '["personal"]'"#,
+        r#"SELECT COUNT(*) FROM "chain_links"
+            WHERE "kind" = 'supply.own' AND "user_id" = $1 AND "value" -> 'order' = '["personal"]'"#,
         vec![tester.into()],
       )
       .await,
@@ -657,8 +663,9 @@ async fn a_reservation_opens_only_for_a_source_the_resolved_order_holds() {
   open_platform(&scratch, r#"["personal", "personal_credits"]"#).await;
   scratch
     .run(
-      r#"INSERT INTO "supply_user_settings" ("user_id", "order", "off", "on", "personal_credit_credits", "updated_at")
-         VALUES ($1, '[]', '[]', '[]', 100, 0)"#,
+      r#"INSERT INTO "chain_links" ("kind", "link", "user_id", "value", "set_at")
+         VALUES ('supply.own', 'person:' || $1::bigint, $1::bigint,
+                 '{"order": [], "off": [], "on": [], "personalCreditCredits": 100}', 0)"#,
       vec![tester.into()],
     )
     .await;
@@ -696,7 +703,8 @@ async fn a_member_cap_closed_out_by_the_month_s_spend_takes_the_source_it_caps()
   subscription(&scratch, "personal", tester, Some(1000), true).await;
   scratch
     .run(
-      r#"UPDATE "supply_platform_policy" SET "allowed" = '["personal", "org_credits"]' WHERE "id" = 1"#,
+      r#"UPDATE "chain_links" SET "value" = jsonb_set("value", '{allowed}', '["personal", "org_credits"]')
+          WHERE "kind" = 'supply.policy' AND "link" = 'platform'"#,
       vec![],
     )
     .await;
@@ -733,6 +741,92 @@ async fn a_member_cap_closed_out_by_the_month_s_spend_takes_the_source_it_caps()
 
   assert_eq!(source["allowed"], false, "{said}");
   assert_eq!(source["reason"], "blocked-by-organisation", "{said}");
+}
+
+#[tokio::test]
+async fn a_credit_allowance_on_the_chain_closes_organisation_credits_once_the_month_reaches_it() {
+  ready();
+  let scratch = fresh().await;
+  let app = app(&scratch).await;
+  let boss = boss(&scratch).await;
+  let company = org(&scratch, "company-a", None).await;
+  let team = org(&scratch, "team-a", Some(company)).await;
+  let tester = person(&scratch, "tester", team).await;
+  let other = person(&scratch, "other", team).await;
+  subscription(&scratch, "personal", tester, Some(1000), true).await;
+  subscription(&scratch, "personal", other, Some(1000), true).await;
+  scratch
+    .run(
+      r#"UPDATE "chain_links" SET "value" = jsonb_set("value", '{allowed}', '["personal", "org_credits"]')
+          WHERE "kind" = 'supply.policy' AND "link" = 'platform'"#,
+      vec![],
+    )
+    .await;
+  let org_credits = |said: &Value| {
+    said["sources"]
+      .as_array()
+      .unwrap()
+      .iter()
+      .find(|row| row["source"] == "org_credits")
+      .unwrap()
+      .clone()
+  };
+
+  // Nothing set on the chain: the allowance is unlimited and closes nothing, whatever the month's spend.
+  for user in [tester, other] {
+    scratch
+      .run(
+        r#"INSERT INTO "supply_costs" ("run", "user_id", "org_id", "source", "credits", "cost_micros", "settled_at", "period")
+           VALUES (1, $1, $2, 'org_credits', 150, 100_000, 1, to_char(now(), 'YYYY-MM'))"#,
+        vec![user.into(), company.into()],
+      )
+      .await;
+  }
+  let (_, said) = asked(&app, Method::GET, "/supply/me", None, Some(tester), "member").await;
+  assert_eq!(org_credits(&said)["allowed"], true, "{said}");
+
+  // The company allows 1000 a month, and a rule holds the tester alone to 100: the month's 150 closes their
+  // organisation credits, named by the organisation, and leaves the other person's standing.
+  let (status, said) = asked(
+    &app,
+    Method::PUT,
+    &format!("/chain/kinds/supply.credit-allowance/links/unit:{company}/value"),
+    Some(json!({ "value": 1000 })),
+    Some(boss),
+    "administrator",
+  )
+  .await;
+  assert_eq!(status, StatusCode::OK, "{said}");
+  let (status, said) = asked(
+    &app,
+    Method::PUT,
+    &format!("/chain/kinds/supply.credit-allowance/links/unit:{company}/rules"),
+    Some(json!({ "rules": [{ "who": format!("person:{tester}"), "value": 100 }] })),
+    Some(boss),
+    "administrator",
+  )
+  .await;
+  assert_eq!(status, StatusCode::OK, "{said}");
+
+  let (_, said) = asked(&app, Method::GET, "/supply/me", None, Some(tester), "member").await;
+  assert_eq!(org_credits(&said)["allowed"], false, "{said}");
+  assert_eq!(org_credits(&said)["reason"], "blocked-by-organisation", "{said}");
+  let (_, said) = asked(&app, Method::GET, "/supply/me", None, Some(other), "member").await;
+  assert_eq!(org_credits(&said)["allowed"], true, "{said}");
+
+  // An allowance set on the other person's own link, the smallest on their chain, is the administrator's word.
+  asked(
+    &app,
+    Method::PUT,
+    &format!("/chain/kinds/supply.credit-allowance/links/person:{other}/value"),
+    Some(json!({ "value": 120 })),
+    Some(boss),
+    "administrator",
+  )
+  .await;
+  let (_, said) = asked(&app, Method::GET, "/supply/me", None, Some(other), "member").await;
+  assert_eq!(org_credits(&said)["allowed"], false, "{said}");
+  assert_eq!(org_credits(&said)["reason"], "blocked-by-administrator", "{said}");
 }
 
 // ---- the hook against sumida's reservations ----
@@ -939,7 +1033,8 @@ async fn the_order_never_names_a_platform_source_the_service_would_refuse_to_res
   subscription(&scratch, "personal", tester, Some(100), true).await;
   scratch
     .run(
-      r#"UPDATE "supply_platform_policy" SET "allowed" = '["personal", "global", "org_credits"]' WHERE "id" = 1"#,
+      r#"UPDATE "chain_links" SET "value" = jsonb_set("value", '{allowed}', '["personal", "global", "org_credits"]')
+          WHERE "kind" = 'supply.policy' AND "link" = 'platform'"#,
       vec![],
     )
     .await;
@@ -1639,9 +1734,10 @@ async fn the_overrides_migration_renews_a_seeded_platform_row_and_keeps_an_admin
   let platform_row = || async {
     let row = bmo_web_server::one(
       scratch.db(),
-      r#"SELECT "allowed"::text AS "allowed", "order"::text AS "order", "overridable"::text AS "overridable",
-                "order_overridable"
-           FROM "supply_platform_policy" WHERE "id" = 1"#,
+      r#"SELECT ("value" -> 'allowed')::text AS "allowed", ("value" -> 'order')::text AS "order",
+                ("value" -> 'overridable')::text AS "overridable",
+                ("value" ->> 'orderOverridable')::boolean AS "order_overridable"
+           FROM "chain_links" WHERE "kind" = 'supply.policy' AND "link" = 'platform'"#,
       vec![],
     )
     .await
@@ -1658,8 +1754,9 @@ async fn the_overrides_migration_renews_a_seeded_platform_row_and_keeps_an_admin
     )
   };
 
-  // The row as an administrator set it before the overrides stood, and each person's old switch.
-  Migrator::down(scratch.db(), Some(1)).await.unwrap();
+  // The row as an administrator set it before the overrides stood, and each person's old switch: the overrides
+  // taken down with the move onto the delegation chain that stands after them.
+  Migrator::down(scratch.db(), Some(2)).await.unwrap();
   scratch
     .run(
       r#"UPDATE "supply_platform_policy"
@@ -1692,9 +1789,10 @@ async fn the_overrides_migration_renews_a_seeded_platform_row_and_keeps_an_admin
   assert_eq!(
     scratch
       .count(
-        r#"SELECT COUNT(*) FROM "supply_user_settings"
-            WHERE ("user_id" = $1 AND "on" = '["personal_credits"]' AND "off" = '[]')
-               OR ("user_id" = $2 AND "on" = '[]' AND "off" = '[]')"#,
+        r#"SELECT COUNT(*) FROM "chain_links"
+            WHERE "kind" = 'supply.own'
+              AND (("user_id" = $1 AND "value" -> 'on' = '["personal_credits"]' AND "value" -> 'off' = '[]')
+                OR ("user_id" = $2 AND "value" -> 'on' = '[]' AND "value" -> 'off' = '[]'))"#,
         vec![switched_on.into(), left_off.into()],
       )
       .await,
@@ -1702,7 +1800,7 @@ async fn the_overrides_migration_renews_a_seeded_platform_row_and_keeps_an_admin
   );
 
   // A row still standing as seeded takes the new defaults.
-  Migrator::down(scratch.db(), Some(1)).await.unwrap();
+  Migrator::down(scratch.db(), Some(2)).await.unwrap();
   scratch
     .run(
       r#"UPDATE "supply_platform_policy"

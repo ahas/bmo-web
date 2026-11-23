@@ -38,6 +38,164 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/chain/groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The named groups of people a unit keeps; for the administrator and anyone of its company. */
+        get: operations["chainGroups"];
+        put?: never;
+        /** A named group of people made in a unit, by the administrator or a head of the unit. */
+        post: operations["makeChainGroup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chain/groups/{group}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One group, for its readers. */
+        get: operations["chainGroup"];
+        /** A group's name and members written whole, by its keepers. */
+        put: operations["changeChainGroup"];
+        post?: never;
+        /** A group removed by its keepers; refused while a rule names it. */
+        delete: operations["removeChainGroup"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chain/kinds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every setting kind declared on the delegation chain, by key. */
+        get: operations["chainKinds"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chain/kinds/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One setting kind as its unit declared it. */
+        get: operations["chainKind"];
+        /** Declares a setting kind, or declares it again by the unit that declared it; a shape or mode changed while an entry stands is refused. */
+        put: operations["declareChainKind"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chain/kinds/{key}/links/{link}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A link's entry of a kind, with the lock above it and whether the caller may change it now; for its writers and the person at their own link. */
+        get: operations["chainEntry"];
+        put?: never;
+        post?: never;
+        /** A link's entry taken away whole, the link following above. */
+        delete: operations["clearChainEntry"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chain/kinds/{key}/links/{link}/delegation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** A link's delegation written: allow, lock or inherit. */
+        put: operations["setChainDelegation"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chain/kinds/{key}/links/{link}/rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** A link's rules written whole, each naming a person, a group or a unit under the link. */
+        put: operations["setChainRules"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chain/kinds/{key}/links/{link}/value": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** A link's value written, null to follow above; a json kind's is its consumer's alone. */
+        put: operations["setChainValue"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chain/kinds/{key}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A setting resolved for a person or a unit: its value, the link and rule it came from, every link's word top first, the lock that cut the chain, and whether a link asked after may change it. */
+        get: operations["resolveChain"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/checks/entry": {
         parameters: {
             query?: never;
@@ -1769,6 +1927,140 @@ export interface components {
         CatalogueEntry: {
             key: string;
             name: string;
+        };
+        /** @description Whether the links below a link may change a setting. */
+        ChainDelegation: "allow" | "lock" | "inherit";
+        /** @description A link's delegation written. */
+        ChainDelegationAsk: {
+            delegation: components["schemas"]["ChainDelegation"];
+        };
+        /** @description A link's entry of one kind. */
+        ChainEntry: {
+            delegation: components["schemas"]["ChainDelegation"];
+            kind: string;
+            /** @description `platform`, `unit:<id>` or `person:<user>`. */
+            link: string;
+            /** @description The farthest link above holding a lock, where one does: nothing here changes then. */
+            lockedBy?: string | null;
+            /** @default [] */
+            rules: components["schemas"]["ChainRule"][];
+            /** Format: int64 */
+            setAt?: number | null;
+            setBy?: string | null;
+            /** @description The link's own value, none where it follows above. */
+            value?: unknown;
+            /** @description Whether the caller may change the entry now. */
+            writable: boolean;
+        };
+        /** @description A named group of people a unit keeps. */
+        ChainGroup: {
+            /** Format: int64 */
+            id: number;
+            /** @description The members' user ids. */
+            members: string[];
+            name: string;
+            /** Format: int64 */
+            unit: number;
+        };
+        /** @description A group made or changed: its unit on a make, its name and its members whole. */
+        ChainGroupAsk: {
+            members: string[];
+            name: string;
+            /** Format: int64 */
+            unit?: number | null;
+        };
+        /** @description The groups a unit keeps. */
+        ChainGroups: {
+            groups: components["schemas"]["ChainGroup"][];
+        };
+        /** @description A setting kind, as the unit using it declares it. */
+        ChainKind: {
+            /**
+             * @description The keys a `keys` value is chosen from.
+             * @default []
+             */
+            choices: string[];
+            /** @description The unit that declared it. */
+            declaredBy: string;
+            /** @description The value standing where no link says one. */
+            default?: unknown;
+            /** @default  */
+            description: string;
+            key: string;
+            levels: components["schemas"]["ChainLevel"][];
+            mode: components["schemas"]["ChainMode"];
+            /** @default heads */
+            personWriter: components["schemas"]["ChainPersonWriter"];
+            /**
+             * @description Whether a link may set the value apart for a person, a group or a unit.
+             * @default false
+             */
+            rules: boolean;
+            shape: components["schemas"]["ChainShape"];
+            /**
+             * @description The sumida organisation permission that lets a person write a unit's link.
+             * @default manage
+             */
+            unitPermission: string;
+        };
+        /** @description Every kind declared. */
+        ChainKinds: {
+            kinds: components["schemas"]["ChainKind"][];
+        };
+        /** @description One link's word for a subject: its value, and whom the rule it came from names where one did. */
+        ChainLayer: {
+            link: string;
+            rule?: string | null;
+            value: unknown;
+        };
+        /**
+         * @description A level of the chain a kind may hold an entry at.
+         * @enum {string}
+         */
+        ChainLevel: "platform" | "unit" | "person";
+        /** @description Whether a link asked after may change a setting, and the link whose lock withholds it. */
+        ChainLinkStanding: {
+            link: string;
+            lockedBy?: string | null;
+            mayChange: boolean;
+        };
+        /** @description How the links' words make one answer. */
+        ChainMode: "nearest" | "narrowing" | "layered";
+        /** @description Who writes a person's link. */
+        ChainPersonWriter: "heads" | "self" | "both";
+        /** @description A setting resolved for a person or a unit (docs/accounts.md, 「Resolution」). */
+        ChainResolution: {
+            /** @description The link the value came from; none where the default stands or the kind narrows. */
+            from?: string | null;
+            kind: string;
+            /** @description Every link's word for the subject, top first, below the lock that cut the chain left out. */
+            layers: components["schemas"]["ChainLayer"][];
+            /** @description The link asked after. */
+            link?: components["schemas"]["ChainLinkStanding"] | null;
+            /** @description The link whose lock cut the chain. */
+            lockedBy?: string | null;
+            /** @description Whom the rule the value came from names, where a rule gave it. */
+            rule?: string | null;
+            /** @description `person:<user>` or `unit:<id>`. */
+            subject: string;
+            /** @description The value standing; none for a layered kind, and where nothing is said and no default stands. */
+            value?: unknown;
+        };
+        /** @description One rule of a link: whom it names (`person:<user>`, `group:<id>` or `unit:<id>`) and its value. */
+        ChainRule: {
+            value: unknown;
+            who: string;
+        };
+        /** @description A link's rules written whole. */
+        ChainRulesAsk: {
+            rules: components["schemas"]["ChainRule"][];
+        };
+        /** @description The shape a kind's value takes. */
+        ChainShape: "flag" | "text" | "amount" | "keys" | "json";
+        /** @description A link's value written, null to follow above. */
+        ChainValueAsk: {
+            /** @default null */
+            value: unknown;
         };
         /** @description What a check answered. */
         CheckAnswer: {
@@ -3526,6 +3818,495 @@ export interface operations {
                 };
             };
             /** @description A refusal or failure: bad-request, conflict, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    chainGroups: {
+        parameters: {
+            query: {
+                unit: number;
+            };
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChainGroups"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, forbidden, not-found, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    makeChainGroup: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChainGroupAsk"];
+            };
+        };
+        responses: {
+            /** @description Made. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChainGroup"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, forbidden, not-found, group-exists, other-company, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    chainGroup: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                group: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChainGroup"];
+                };
+            };
+            /** @description A refusal or failure: forbidden, not-found, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    changeChainGroup: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                group: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChainGroupAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChainGroup"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, forbidden, not-found, group-exists, other-company, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    removeChainGroup: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                group: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Done; no content. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: forbidden, not-found, group-in-use, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    chainKinds: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChainKinds"];
+                };
+            };
+            /** @description A refusal or failure: unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    chainKind: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChainKind"];
+                };
+            };
+            /** @description A refusal or failure: no-such-kind, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    declareChainKind: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChainKind"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChainKind"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, bad-kind, kind-declared-elsewhere, kind-in-use, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    chainEntry: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                key: string;
+                link: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChainEntry"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, bad-link, forbidden, not-found, no-such-kind, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    clearChainEntry: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                key: string;
+                link: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Done; no content. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: bad-request, bad-link, forbidden, not-found, no-such-kind, locked, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    setChainDelegation: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                key: string;
+                link: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChainDelegationAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChainEntry"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, bad-link, forbidden, not-found, no-such-kind, locked, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    setChainRules: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                key: string;
+                link: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChainRulesAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChainEntry"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, bad-link, forbidden, not-found, no-such-kind, locked, unauthorized, not-in-force, database, failed, bad-rule */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    setChainValue: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                key: string;
+                link: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChainValueAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChainEntry"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, bad-link, forbidden, not-found, no-such-kind, locked, unauthorized, not-in-force, database, failed, bad-value, consumer-written */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    resolveChain: {
+        parameters: {
+            query?: {
+                person?: string;
+                unit?: number;
+                link?: string;
+            };
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChainResolution"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, bad-link, not-found, no-such-kind, unauthorized, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;

@@ -57,6 +57,15 @@ pub async fn stand(
   crate::sections::backfill_rooms_write(&db).await?;
   crate::sections::split_agents(&db).await?;
   crate::sections::backfill_supply(&db).await?;
+  // The setting kinds the service's own consumers keep on the delegation chain, each declared by its consumer.
+  for kind in [
+    crate::agents::personalize_kind(),
+    crate::supply::policy_kind(),
+    crate::supply::own_kind(),
+    crate::supply::allowance_kind(),
+  ] {
+    crate::chain::declare(&db, &kind).await?;
+  }
 
   Ok(Service {
     db,
@@ -227,6 +236,7 @@ fn own() -> Router<Service> {
     .merge(crate::machines::routes())
     .merge(crate::pairings::routes())
     .merge(crate::supply::routes::routes())
+    .merge(crate::chain::routes::routes())
 }
 
 async fn health(State(service): State<Service>) -> Json<WireHealth> {

@@ -354,6 +354,469 @@
         ],
         "type": "object"
       },
+      "ChainDelegation": {
+        "description": "Whether the links below a link may change a setting.",
+        "oneOf": [
+          {
+            "const": "allow",
+            "description": "The links below may change it.",
+            "type": "string"
+          },
+          {
+            "const": "lock",
+            "description": "No link below changes it.",
+            "type": "string"
+          },
+          {
+            "const": "inherit",
+            "description": "The link follows the link above.",
+            "type": "string"
+          }
+        ]
+      },
+      "ChainDelegationAsk": {
+        "description": "A link's delegation written.",
+        "properties": {
+          "delegation": {
+            "$ref": "#/components/schemas/ChainDelegation"
+          }
+        },
+        "required": [
+          "delegation"
+        ],
+        "type": "object"
+      },
+      "ChainEntry": {
+        "description": "A link's entry of one kind.",
+        "properties": {
+          "delegation": {
+            "$ref": "#/components/schemas/ChainDelegation"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "link": {
+            "description": "`platform`, `unit:<id>` or `person:<user>`.",
+            "type": "string"
+          },
+          "lockedBy": {
+            "description": "The farthest link above holding a lock, where one does: nothing here changes then.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rules": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ChainRule"
+            },
+            "type": "array"
+          },
+          "setAt": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "setBy": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "value": {
+            "description": "The link's own value, none where it follows above."
+          },
+          "writable": {
+            "description": "Whether the caller may change the entry now.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "kind",
+          "link",
+          "delegation",
+          "rules",
+          "writable"
+        ],
+        "type": "object"
+      },
+      "ChainGroup": {
+        "description": "A named group of people a unit keeps.",
+        "properties": {
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "members": {
+            "description": "The members' user ids.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "name": {
+            "type": "string"
+          },
+          "unit": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "unit",
+          "name",
+          "members"
+        ],
+        "type": "object"
+      },
+      "ChainGroupAsk": {
+        "description": "A group made or changed: its unit on a make, its name and its members whole.",
+        "properties": {
+          "members": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "name": {
+            "type": "string"
+          },
+          "unit": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "members"
+        ],
+        "type": "object"
+      },
+      "ChainGroups": {
+        "description": "The groups a unit keeps.",
+        "properties": {
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/ChainGroup"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "groups"
+        ],
+        "type": "object"
+      },
+      "ChainKind": {
+        "description": "A setting kind, as the unit using it declares it.",
+        "properties": {
+          "choices": {
+            "default": [],
+            "description": "The keys a `keys` value is chosen from.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "declaredBy": {
+            "description": "The unit that declared it.",
+            "type": "string"
+          },
+          "default": {
+            "description": "The value standing where no link says one."
+          },
+          "description": {
+            "default": "",
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "levels": {
+            "items": {
+              "$ref": "#/components/schemas/ChainLevel"
+            },
+            "type": "array"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/ChainMode"
+          },
+          "personWriter": {
+            "$ref": "#/components/schemas/ChainPersonWriter",
+            "default": "heads"
+          },
+          "rules": {
+            "default": false,
+            "description": "Whether a link may set the value apart for a person, a group or a unit.",
+            "type": "boolean"
+          },
+          "shape": {
+            "$ref": "#/components/schemas/ChainShape"
+          },
+          "unitPermission": {
+            "default": "manage",
+            "description": "The sumida organisation permission that lets a person write a unit's link.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "declaredBy",
+          "description",
+          "shape",
+          "choices",
+          "mode",
+          "rules",
+          "levels",
+          "unitPermission",
+          "personWriter"
+        ],
+        "type": "object"
+      },
+      "ChainKinds": {
+        "description": "Every kind declared.",
+        "properties": {
+          "kinds": {
+            "items": {
+              "$ref": "#/components/schemas/ChainKind"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "kinds"
+        ],
+        "type": "object"
+      },
+      "ChainLayer": {
+        "description": "One link's word for a subject: its value, and whom the rule it came from names where one did.",
+        "properties": {
+          "link": {
+            "type": "string"
+          },
+          "rule": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "value": true
+        },
+        "required": [
+          "link",
+          "value"
+        ],
+        "type": "object"
+      },
+      "ChainLevel": {
+        "description": "A level of the chain a kind may hold an entry at.",
+        "enum": [
+          "platform",
+          "unit",
+          "person"
+        ],
+        "type": "string"
+      },
+      "ChainLinkStanding": {
+        "description": "Whether a link asked after may change a setting, and the link whose lock withholds it.",
+        "properties": {
+          "link": {
+            "type": "string"
+          },
+          "lockedBy": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "mayChange": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "link",
+          "mayChange"
+        ],
+        "type": "object"
+      },
+      "ChainMode": {
+        "description": "How the links' words make one answer.",
+        "oneOf": [
+          {
+            "const": "nearest",
+            "description": "The nearest link's word stands.",
+            "type": "string"
+          },
+          {
+            "const": "narrowing",
+            "description": "Every link narrows what the links above it say.",
+            "type": "string"
+          },
+          {
+            "const": "layered",
+            "description": "Every link's word, top first, for the consumer to compose.",
+            "type": "string"
+          }
+        ]
+      },
+      "ChainPersonWriter": {
+        "description": "Who writes a person's link.",
+        "oneOf": [
+          {
+            "const": "heads",
+            "description": "Whoever holds the kind's unit permission on the person's home unit, the platform administrator among them.",
+            "type": "string"
+          },
+          {
+            "const": "self",
+            "description": "The person alone.",
+            "type": "string"
+          },
+          {
+            "const": "both",
+            "description": "Either.",
+            "type": "string"
+          }
+        ]
+      },
+      "ChainResolution": {
+        "description": "A setting resolved for a person or a unit (docs/accounts.md, 「Resolution」).",
+        "properties": {
+          "from": {
+            "description": "The link the value came from; none where the default stands or the kind narrows.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "kind": {
+            "type": "string"
+          },
+          "layers": {
+            "description": "Every link's word for the subject, top first, below the lock that cut the chain left out.",
+            "items": {
+              "$ref": "#/components/schemas/ChainLayer"
+            },
+            "type": "array"
+          },
+          "link": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ChainLinkStanding"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The link asked after."
+          },
+          "lockedBy": {
+            "description": "The link whose lock cut the chain.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rule": {
+            "description": "Whom the rule the value came from names, where a rule gave it.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "subject": {
+            "description": "`person:<user>` or `unit:<id>`.",
+            "type": "string"
+          },
+          "value": {
+            "description": "The value standing; none for a layered kind, and where nothing is said and no default stands."
+          }
+        },
+        "required": [
+          "kind",
+          "subject",
+          "layers"
+        ],
+        "type": "object"
+      },
+      "ChainRule": {
+        "description": "One rule of a link: whom it names (`person:<user>`, `group:<id>` or `unit:<id>`) and its value.",
+        "properties": {
+          "value": true,
+          "who": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "who",
+          "value"
+        ],
+        "type": "object"
+      },
+      "ChainRulesAsk": {
+        "description": "A link's rules written whole.",
+        "properties": {
+          "rules": {
+            "items": {
+              "$ref": "#/components/schemas/ChainRule"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "rules"
+        ],
+        "type": "object"
+      },
+      "ChainShape": {
+        "description": "The shape a kind's value takes.",
+        "oneOf": [
+          {
+            "const": "flag",
+            "description": "`true` or `false`.",
+            "type": "string"
+          },
+          {
+            "const": "text",
+            "description": "A string.",
+            "type": "string"
+          },
+          {
+            "const": "amount",
+            "description": "`\"unlimited\"` or a whole number of zero or more.",
+            "type": "string"
+          },
+          {
+            "const": "keys",
+            "description": "Distinct keys out of the kind's choices, in an order.",
+            "type": "string"
+          },
+          {
+            "const": "json",
+            "description": "An object or a list the consumer judges.",
+            "type": "string"
+          }
+        ]
+      },
+      "ChainValueAsk": {
+        "description": "A link's value written, null to follow above.",
+        "properties": {
+          "value": {
+            "default": null
+          }
+        },
+        "required": [
+          "value"
+        ],
+        "type": "object"
+      },
       "CheckAnswer": {
         "description": "What a check answered.",
         "properties": {
@@ -5800,6 +6263,968 @@
         "x-codes": [
           "bad-request",
           "conflict",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/chain/groups": {
+      "get": {
+        "operationId": "chainGroups",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "unit",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChainGroups"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, forbidden, not-found, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The named groups of people a unit keeps; for the administrator and anyone of its company.",
+        "tags": [
+          "The delegation chain"
+        ],
+        "x-codes": [
+          "bad-request",
+          "forbidden",
+          "not-found",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "post": {
+        "operationId": "makeChainGroup",
+        "parameters": [
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChainGroupAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChainGroup"
+                }
+              }
+            },
+            "description": "Made."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, forbidden, not-found, group-exists, other-company, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A named group of people made in a unit, by the administrator or a head of the unit.",
+        "tags": [
+          "The delegation chain"
+        ],
+        "x-codes": [
+          "bad-request",
+          "forbidden",
+          "not-found",
+          "group-exists",
+          "other-company",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/chain/groups/{group}": {
+      "delete": {
+        "operationId": "removeChainGroup",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "group",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done; no content."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: forbidden, not-found, group-in-use, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A group removed by its keepers; refused while a rule names it.",
+        "tags": [
+          "The delegation chain"
+        ],
+        "x-codes": [
+          "forbidden",
+          "not-found",
+          "group-in-use",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "get": {
+        "operationId": "chainGroup",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "group",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChainGroup"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: forbidden, not-found, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "One group, for its readers.",
+        "tags": [
+          "The delegation chain"
+        ],
+        "x-codes": [
+          "forbidden",
+          "not-found",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "put": {
+        "operationId": "changeChainGroup",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "group",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChainGroupAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChainGroup"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, forbidden, not-found, group-exists, other-company, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A group's name and members written whole, by its keepers.",
+        "tags": [
+          "The delegation chain"
+        ],
+        "x-codes": [
+          "bad-request",
+          "forbidden",
+          "not-found",
+          "group-exists",
+          "other-company",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/chain/kinds": {
+      "get": {
+        "operationId": "chainKinds",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChainKinds"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Every setting kind declared on the delegation chain, by key.",
+        "tags": [
+          "The delegation chain"
+        ],
+        "x-codes": [
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/chain/kinds/{key}": {
+      "get": {
+        "operationId": "chainKind",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChainKind"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: no-such-kind, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "One setting kind as its unit declared it.",
+        "tags": [
+          "The delegation chain"
+        ],
+        "x-codes": [
+          "no-such-kind",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "put": {
+        "operationId": "declareChainKind",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChainKind"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChainKind"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, bad-kind, kind-declared-elsewhere, kind-in-use, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Declares a setting kind, or declares it again by the unit that declared it; a shape or mode changed while an entry stands is refused.",
+        "tags": [
+          "The delegation chain"
+        ],
+        "x-codes": [
+          "bad-request",
+          "bad-kind",
+          "kind-declared-elsewhere",
+          "kind-in-use",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/chain/kinds/{key}/links/{link}": {
+      "delete": {
+        "operationId": "clearChainEntry",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "link",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done; no content."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, bad-link, forbidden, not-found, no-such-kind, locked, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A link's entry taken away whole, the link following above.",
+        "tags": [
+          "The delegation chain"
+        ],
+        "x-codes": [
+          "bad-request",
+          "bad-link",
+          "forbidden",
+          "not-found",
+          "no-such-kind",
+          "locked",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "get": {
+        "operationId": "chainEntry",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "link",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChainEntry"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, bad-link, forbidden, not-found, no-such-kind, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A link's entry of a kind, with the lock above it and whether the caller may change it now; for its writers and the person at their own link.",
+        "tags": [
+          "The delegation chain"
+        ],
+        "x-codes": [
+          "bad-request",
+          "bad-link",
+          "forbidden",
+          "not-found",
+          "no-such-kind",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/chain/kinds/{key}/links/{link}/delegation": {
+      "put": {
+        "operationId": "setChainDelegation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "link",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChainDelegationAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChainEntry"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, bad-link, forbidden, not-found, no-such-kind, locked, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A link's delegation written: allow, lock or inherit.",
+        "tags": [
+          "The delegation chain"
+        ],
+        "x-codes": [
+          "bad-request",
+          "bad-link",
+          "forbidden",
+          "not-found",
+          "no-such-kind",
+          "locked",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/chain/kinds/{key}/links/{link}/rules": {
+      "put": {
+        "operationId": "setChainRules",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "link",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChainRulesAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChainEntry"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, bad-link, forbidden, not-found, no-such-kind, locked, unauthorized, not-in-force, database, failed, bad-rule"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A link's rules written whole, each naming a person, a group or a unit under the link.",
+        "tags": [
+          "The delegation chain"
+        ],
+        "x-codes": [
+          "bad-request",
+          "bad-link",
+          "forbidden",
+          "not-found",
+          "no-such-kind",
+          "locked",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed",
+          "bad-rule"
+        ]
+      }
+    },
+    "/chain/kinds/{key}/links/{link}/value": {
+      "put": {
+        "operationId": "setChainValue",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "link",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChainValueAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChainEntry"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, bad-link, forbidden, not-found, no-such-kind, locked, unauthorized, not-in-force, database, failed, bad-value, consumer-written"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A link's value written, null to follow above; a json kind's is its consumer's alone.",
+        "tags": [
+          "The delegation chain"
+        ],
+        "x-codes": [
+          "bad-request",
+          "bad-link",
+          "forbidden",
+          "not-found",
+          "no-such-kind",
+          "locked",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed",
+          "bad-value",
+          "consumer-written"
+        ]
+      }
+    },
+    "/chain/kinds/{key}/resolve": {
+      "get": {
+        "operationId": "resolveChain",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "person",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "unit",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "link",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChainResolution"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, bad-link, not-found, no-such-kind, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A setting resolved for a person or a unit: its value, the link and rule it came from, every link's word top first, the lock that cut the chain, and whether a link asked after may change it.",
+        "tags": [
+          "The delegation chain"
+        ],
+        "x-codes": [
+          "bad-request",
+          "bad-link",
+          "not-found",
+          "no-such-kind",
+          "unauthorized",
+          "not-in-force",
           "database",
           "failed"
         ]

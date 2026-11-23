@@ -14,11 +14,13 @@ pub mod routes;
 
 use std::collections::BTreeMap;
 
+use bmo_web_client::{ChainKind, ChainLevel, ChainMode, ChainPersonWriter, ChainShape};
 use sea_orm::{ConnectionTrait, TransactionTrait};
 use serde_json::json;
 use sumida::api::authz::Authz;
 use sumida::entity::membership::OwnerKind;
 
+use crate::chain::{self, Link, Subject};
 use crate::users::user_subject;
 use crate::{Refusal, one, run};
 
@@ -285,31 +287,138 @@ fn keys(sources: &[Source]) -> Vec<&'static str> {
   sources.iter().map(|source| source.key()).collect()
 }
 
-/// A stored source list column, read whole.
-fn list_of(row: &sea_orm::QueryResult, column: &str) -> Result<Vec<Source>, Refusal> {
-  let list: serde_json::Value =
-    serde_json::from_str(&row.try_get::<String>("", column)?).expect("a stored list is JSON");
-
-  sources_of(&list)
+/// The kind the supply policies stand as on the delegation chain (docs/accounts.md, 「The delegation chain」): the
+/// platform's link holds `allowed`, `order`, `overridable` and `orderOverridable`, a unit's and a person's
+/// `allowed`, `order` and `memberCreditCredits`, and supply composes the layers itself.
+pub fn policy_kind() -> ChainKind {
+  ChainKind {
+    key: "supply.policy".to_owned(),
+    declared_by: crate::holdings::UNIT.to_owned(),
+    description:
+      "The supply policy: the platform's, an organisation's and an administrator's for one person."
+        .to_owned(),
+    shape: ChainShape::Json,
+    choices: vec![],
+    mode: ChainMode::Layered,
+    default: Some(json!({
+      "allowed": ["personal"],
+      "order": ["personal", "stop"],
+      "overridable": ["personal"],
+      "orderOverridable": true,
+    })),
+    rules: false,
+    levels: vec![ChainLevel::Platform, ChainLevel::Unit, ChainLevel::Person],
+    unit_permission: CREDIT.to_owned(),
+    person_writer: ChainPersonWriter::Heads,
+  }
 }
 
-/// The platform policy, as it stands.
+/// The kind a person's own supply setting stands as: `order`, `off`, `on` and `personalCreditCredits` on their link.
+pub fn own_kind() -> ChainKind {
+  ChainKind {
+    key: "supply.own".to_owned(),
+    declared_by: crate::holdings::UNIT.to_owned(),
+    description:
+      "A person's own supply setting: their order, the sources switched off and on, and their cap."
+        .to_owned(),
+    shape: ChainShape::Json,
+    choices: vec![],
+    mode: ChainMode::Nearest,
+    default: None,
+    rules: false,
+    levels: vec![ChainLevel::Person],
+    unit_permission: CREDIT.to_owned(),
+    person_writer: ChainPersonWriter::Own,
+  }
+}
+
+/// The kind a person's credit allowance stands as: the organisation credits they may spend in a calendar month,
+/// `unlimited` where nothing narrows it, set for a person, a group or a unit by rules at any link.
+pub fn allowance_kind() -> ChainKind {
+  ChainKind {
+    key: "supply.credit-allowance".to_owned(),
+    declared_by: crate::holdings::UNIT.to_owned(),
+    description: "The organisation credits one person may spend in a calendar month.".to_owned(),
+    shape: ChainShape::Amount,
+    choices: vec![],
+    mode: ChainMode::Narrowing,
+    default: Some(json!(crate::chain::UNLIMITED)),
+    rules: true,
+    levels: vec![ChainLevel::Platform, ChainLevel::Unit, ChainLevel::Person],
+    unit_permission: CREDIT.to_owned(),
+    person_writer: ChainPersonWriter::Heads,
+  }
+}
+
+/// The sumida organisation permission a unit's supply is kept under: its credit manager's and its heads'.
+const CREDIT: &str = "manage_credit";
+
+/// The platform policy as its link stores it.
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct StoredPlatform {
+  allowed: Vec<String>,
+  order: Vec<String>,
+  overridable: Vec<String>,
+  order_overridable: bool,
+}
+
+/// An organisation's or a per-user policy as its link stores it.
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct StoredPolicy {
+  allowed: Vec<String>,
+  order: Vec<String>,
+  #[serde(default)]
+  member_credit_credits: Option<i64>,
+}
+
+/// A person's own setting as their link stores it.
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct StoredOwn {
+  order: Vec<String>,
+  off: Vec<String>,
+  on: Vec<String>,
+  #[serde(default)]
+  personal_credit_credits: Option<i64>,
+}
+
+fn unstored<T: serde::de::DeserializeOwned>(value: serde_json::Value) -> Result<T, Refusal> {
+  serde_json::from_value(value).map_err(|why| {
+    Refusal::new(axum::http::StatusCode::INTERNAL_SERVER_ERROR, format!("a stored supply value: {why}"))
+  })
+}
+
+fn listed(keys: &[String]) -> Result<Vec<Source>, Refusal> {
+  sources_of(&json!(keys))
+}
+
+fn policy_of(value: serde_json::Value, from: Option<i64>) -> Result<Policy, Refusal> {
+  let stored: StoredPolicy = unstored(value)?;
+
+  Ok(Policy {
+    allowed: listed(&stored.allowed)?,
+    order: listed(&stored.order)?,
+    member_credit_credits: stored.member_credit_credits,
+    from,
+  })
+}
+
+/// The platform policy, as it stands: the platform's link, the kind's default where it holds none.
 pub async fn platform_policy(db: &impl ConnectionTrait) -> Result<PlatformPolicy, Refusal> {
-  let row = one(
-    db,
-    r#"SELECT "allowed"::text AS "allowed", "order"::text AS "order",
-              "overridable"::text AS "overridable", "order_overridable"
-       FROM "supply_platform_policy" WHERE "id" = 1"#,
-    vec![],
-  )
-  .await?
-  .expect("the migration seeds the platform policy");
+  let kind = policy_kind();
+  let value = chain::value_at(db, &kind.key, Link::Platform)
+    .await?
+    .or(kind.default)
+    .expect("the policy kind carries a default");
+  let stored: StoredPlatform = unstored(value)?;
 
   Ok(PlatformPolicy {
-    allowed: list_of(&row, "allowed")?,
-    order: list_of(&row, "order")?,
-    overridable: list_of(&row, "overridable")?,
-    order_overridable: row.try_get("", "order_overridable")?,
+    allowed: listed(&stored.allowed)?,
+    order: listed(&stored.order)?,
+    overridable: listed(&stored.overridable)?,
+    order_overridable: stored.order_overridable,
   })
 }
 
@@ -347,67 +456,30 @@ pub async fn parent_of(db: &impl ConnectionTrait, unit: i64) -> Result<Option<i6
   )
 }
 
-/// A policy row read whole, wherever it stands.
-async fn policy_row<C: ConnectionTrait>(
-  db: &C,
-  table: &str,
-  column: &str,
-  id: i64,
-) -> Result<Option<Policy>, Refusal> {
-  let Some(row) = one(
-    db,
-    &format!(
-      r#"SELECT "allowed"::text AS "allowed", "order"::text AS "order", "member_credit_credits"
-         FROM "{table}" WHERE "{column}" = $1"#
-    ),
-    vec![id.into()],
-  )
-  .await?
-  else {
-    return Ok(None);
-  };
-
-  Ok(Some(Policy {
-    allowed: list_of(&row, "allowed")?,
-    order: list_of(&row, "order")?,
-    member_credit_credits: row.try_get("", "member_credit_credits")?,
-    from: Some(id),
-  }))
-}
-
-/// The organisation policy in force for a unit: its own row, else the nearest one going up, else none.
+/// The organisation policy in force for a unit: its own, else the nearest one going up, else none.
 pub async fn org_policy<C: ConnectionTrait>(db: &C, unit: i64) -> Result<Option<Policy>, Refusal> {
-  let mut here = unit;
+  let (_, resolved) = chain::resolve(db, &policy_kind(), Subject::Unit(unit as i32)).await?;
+  let nearest = resolved.layers.into_iter().rev().find_map(|layer| match layer.link {
+    Link::Unit(from) => Some((from, layer.value)),
+    _ => None,
+  });
 
-  loop {
-    if let Some(policy) = policy_row(db, "supply_org_policies", "org_id", here).await? {
-      return Ok(Some(policy));
-    }
-
-    match parent_of(db, here).await? {
-      Some(parent) => here = parent,
-      None => return Ok(None),
-    }
-  }
+  nearest.map(|(from, value)| policy_of(value, Some(i64::from(from)))).transpose()
 }
 
 /// The per-user policy standing for a person, where an administrator set one.
 pub async fn user_policy<C: ConnectionTrait>(db: &C, user: i64) -> Result<Option<Policy>, Refusal> {
-  policy_row(db, "supply_user_policies", "user_id", user).await
+  let (_, resolved) = chain::resolve(db, &policy_kind(), Subject::Person(user as i32)).await?;
+  let own = resolved.layers.into_iter().find(|layer| layer.link == Link::Person(user as i32));
+
+  own.map(|layer| policy_of(layer.value, Some(user))).transpose()
 }
 
 /// The person's own setting, or the default: no order of their own, nothing switched either way against the
 /// platform's default and no cap of their own.
 pub async fn own_setting<C: ConnectionTrait>(db: &C, user: i64) -> Result<OwnSetting, Refusal> {
-  let Some(row) = one(
-    db,
-    r#"SELECT "order"::text AS "order", "off"::text AS "off", "on"::text AS "on",
-              "personal_credit_credits"
-         FROM "supply_user_settings" WHERE "user_id" = $1"#,
-    vec![user.into()],
-  )
-  .await?
-  else {
+  let (_, resolved) = chain::resolve(db, &own_kind(), Subject::Person(user as i32)).await?;
+  let Some(value) = resolved.value else {
     return Ok(OwnSetting {
       order: Vec::new(),
       off: Vec::new(),
@@ -415,13 +487,32 @@ pub async fn own_setting<C: ConnectionTrait>(db: &C, user: i64) -> Result<OwnSet
       personal_credit_credits: None,
     });
   };
+  let stored: StoredOwn = unstored(value)?;
 
   Ok(OwnSetting {
-    order: list_of(&row, "order")?,
-    off: list_of(&row, "off")?,
-    on: list_of(&row, "on")?,
-    personal_credit_credits: row.try_get("", "personal_credit_credits")?,
+    order: listed(&stored.order)?,
+    off: listed(&stored.off)?,
+    on: listed(&stored.on)?,
+    personal_credit_credits: stored.personal_credit_credits,
   })
+}
+
+/// A person's credit allowance as the chain resolves it, and whether the person's own link set the smallest; none
+/// where it is unlimited.
+pub async fn credit_allowance<C: ConnectionTrait>(
+  db: &C,
+  user: i64,
+) -> Result<Option<(i64, bool)>, Refusal> {
+  let (_, resolved) = chain::resolve(db, &allowance_kind(), Subject::Person(user as i32)).await?;
+  let Some(allowance) = resolved.value.as_ref().and_then(serde_json::Value::as_i64) else {
+    return Ok(None);
+  };
+  let by_person = resolved
+    .layers
+    .iter()
+    .any(|layer| layer.link == Link::Person(user as i32) && layer.value.as_i64() == Some(allowance));
+
+  Ok(Some((allowance, by_person)))
 }
 
 /// The live subscription a person's supply stands under, read whole with this period's usage and holds. A
@@ -768,6 +859,16 @@ pub async fn resolve_to<C: ConnectionTrait>(
     close(&mut order, &mut standing, Source::OrgCredits, Closed::BlockedByAdministrator);
   }
 
+  // The person's credit allowance on the chain closes organisation credits once the month's spend reaches it.
+  if matches!(depth, Depth::Administrator | Depth::Own)
+    && let Some((allowance, by_person)) = credit_allowance(db, user).await?
+    && spent(db, user, Source::OrgCredits).await? >= allowance
+  {
+    let by = if by_person { Closed::BlockedByAdministrator } else { Closed::BlockedByOrganisation };
+
+    close(&mut order, &mut standing, Source::OrgCredits, by);
+  }
+
   // The person's own setting: each overridable source switched against the platform's default or standing as
   // it says, a locked one as the platform says whatever the setting holds, and a reorder where the platform
   // reads the person's order.
@@ -967,29 +1068,19 @@ pub async fn set_platform(
     allowed.is_some() || order.is_some() || overridable.is_some() || ask.order_overridable.is_some();
   let settings_changed =
     ask.credits_per_dollar.is_some() || ask.reservation_credits.is_some() || ask.enforce.is_some();
-  let listed = |list: &Option<Vec<Source>>| list.as_deref().map(|list| json!(keys(list)).to_string());
   let txn = db.begin().await?;
 
   if policy_changed {
-    run(
-      &txn,
-      r#"UPDATE "supply_platform_policy"
-             SET "allowed" = COALESCE($1::jsonb, "allowed"),
-                 "order" = COALESCE($2::jsonb, "order"),
-                 "overridable" = COALESCE($3::jsonb, "overridable"),
-                 "order_overridable" = COALESCE($4, "order_overridable"),
-                 "updated_at" = $5, "updated_by" = $6
-           WHERE "id" = 1"#,
-      vec![
-        listed(&allowed).into(),
-        listed(&order.as_deref().map(order_with_stop)).into(),
-        listed(&overridable).into(),
-        ask.order_overridable.into(),
-        crate::now_ms().into(),
-        actor.into(),
-      ],
-    )
-    .await?;
+    let standing = platform_policy(&txn).await?;
+    let stored = StoredPlatform {
+      allowed: keys_of(&allowed.clone().unwrap_or(standing.allowed)),
+      order: keys_of(&order.as_deref().map(order_with_stop).unwrap_or(standing.order)),
+      overridable: keys_of(&overridable.clone().unwrap_or(standing.overridable)),
+      order_overridable: ask.order_overridable.unwrap_or(standing.order_overridable),
+    };
+
+    chain::put_value(&txn, &policy_kind(), Link::Platform, Some(&json!(stored)), Some(actor as i32))
+      .await?;
   }
   if settings_changed {
     run(
@@ -1050,6 +1141,29 @@ pub async fn set_platform(
   Ok(())
 }
 
+/// Source keys as a stored list holds them.
+fn keys_of(sources: &[Source]) -> Vec<String> {
+  keys(sources).into_iter().map(str::to_owned).collect()
+}
+
+/// An organisation's or a per-user policy written on its link, `stop` last in its order.
+async fn put_policy<C: ConnectionTrait>(
+  db: &C,
+  link: Link,
+  allowed: &[Source],
+  order: &[Source],
+  cap: Option<i64>,
+  actor: i64,
+) -> Result<(), Refusal> {
+  let stored = StoredPolicy {
+    allowed: keys_of(allowed),
+    order: keys_of(&order_with_stop(order)),
+    member_credit_credits: cap,
+  };
+
+  chain::put_value(db, &policy_kind(), link, Some(&json!(stored)), Some(actor as i32)).await
+}
+
 fn join(sources: &[Source]) -> String {
   keys(sources).join(",")
 }
@@ -1088,24 +1202,7 @@ pub async fn set_org_policy(
 
   let txn = db.begin().await?;
 
-  run(
-    &txn,
-    r#"INSERT INTO "supply_org_policies"
-         ("org_id", "allowed", "order", "member_credit_credits", "updated_at", "updated_by")
-       VALUES ($1, $2::jsonb, $3::jsonb, $4, $5, $6)
-       ON CONFLICT ("org_id") DO UPDATE
-         SET "allowed" = $2::jsonb, "order" = $3::jsonb, "member_credit_credits" = $4,
-             "updated_at" = $5, "updated_by" = $6"#,
-    vec![
-      unit.into(),
-      json!(keys(&allowed)).to_string().into(),
-      json!(keys(&order_with_stop(&order))).to_string().into(),
-      ask.member_credit_credits.into(),
-      crate::now_ms().into(),
-      actor.into(),
-    ],
-  )
-  .await?;
+  put_policy(&txn, Link::Unit(unit as i32), &allowed, &order, ask.member_credit_credits, actor).await?;
   audit(
     &txn,
     actor,
@@ -1132,7 +1229,7 @@ pub async fn clear_org_policy(
 ) -> Result<(), Refusal> {
   let txn = db.begin().await?;
 
-  run(&txn, r#"DELETE FROM "supply_org_policies" WHERE "org_id" = $1"#, vec![unit.into()]).await?;
+  chain::put_value(&txn, &policy_kind(), Link::Unit(unit as i32), None, Some(actor as i32)).await?;
   audit(&txn, actor, "policy", &format!("org {unit}"), "inherited").await?;
   txn.commit().await?;
 
@@ -1158,24 +1255,7 @@ pub async fn set_user_policy(
 
   let txn = db.begin().await?;
 
-  run(
-    &txn,
-    r#"INSERT INTO "supply_user_policies"
-         ("user_id", "allowed", "order", "member_credit_credits", "updated_at", "updated_by")
-       VALUES ($1, $2::jsonb, $3::jsonb, $4, $5, $6)
-       ON CONFLICT ("user_id") DO UPDATE
-         SET "allowed" = $2::jsonb, "order" = $3::jsonb, "member_credit_credits" = $4,
-             "updated_at" = $5, "updated_by" = $6"#,
-    vec![
-      user.into(),
-      json!(keys(&allowed)).to_string().into(),
-      json!(keys(&order_with_stop(&order))).to_string().into(),
-      ask.member_credit_credits.into(),
-      crate::now_ms().into(),
-      actor.into(),
-    ],
-  )
-  .await?;
+  put_policy(&txn, Link::Person(user as i32), &allowed, &order, ask.member_credit_credits, actor).await?;
   audit(
     &txn,
     actor,
@@ -1202,7 +1282,7 @@ pub async fn clear_user_policy(
 ) -> Result<(), Refusal> {
   let txn = db.begin().await?;
 
-  run(&txn, r#"DELETE FROM "supply_user_policies" WHERE "user_id" = $1"#, vec![user.into()]).await?;
+  chain::put_value(&txn, &policy_kind(), Link::Person(user as i32), None, Some(actor as i32)).await?;
   audit(&txn, actor, "policy", &format!("user {user}"), "follows the organisation").await?;
   txn.commit().await?;
 
@@ -1283,24 +1363,15 @@ pub async fn set_own_setting(
 
   let txn = db.begin().await?;
 
-  run(
-    &txn,
-    r#"INSERT INTO "supply_user_settings"
-         ("user_id", "order", "off", "on", "personal_credit_credits", "updated_at")
-       VALUES ($1, $2::jsonb, $3::jsonb, $4::jsonb, $5, $6)
-       ON CONFLICT ("user_id") DO UPDATE
-         SET "order" = $2::jsonb, "off" = $3::jsonb, "on" = $4::jsonb,
-             "personal_credit_credits" = $5, "updated_at" = $6"#,
-    vec![
-      user.into(),
-      json!(keys(&order)).to_string().into(),
-      json!(keys(&off)).to_string().into(),
-      json!(keys(&on)).to_string().into(),
-      ask.personal_credit_credits.into(),
-      crate::now_ms().into(),
-    ],
-  )
-  .await?;
+  let stored = StoredOwn {
+    order: keys_of(&order),
+    off: keys_of(&off),
+    on: keys_of(&on),
+    personal_credit_credits: ask.personal_credit_credits,
+  };
+
+  chain::put_value(&txn, &own_kind(), Link::Person(user as i32), Some(&json!(stored)), Some(user as i32))
+    .await?;
   audit(
     &txn,
     user,

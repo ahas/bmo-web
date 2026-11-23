@@ -5,6 +5,7 @@ mod support;
 
 mod agents;
 mod callers;
+mod chain;
 mod document_talk;
 mod grants;
 mod import;

@@ -4,6 +4,7 @@ use reqwest::{Client, Method, RequestBuilder, StatusCode, Url};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 
+use crate::chain::{ChainKind, ChainResolution, ChainResolveAsk};
 use crate::organisation::{MemoryWriters, OrgMemoryUnits, UnitSubtree};
 use crate::supply::*;
 use crate::types::*;
@@ -103,6 +104,16 @@ impl AccountClient {
   /// `GET /health`.
   pub async fn health(&self) -> Answer<Health> {
     Self::answered(self.request(Method::GET, &["health"])).await
+  }
+
+  /// `PUT /chain/kinds/{key}`: a setting kind declared by the unit that uses it.
+  pub async fn declare_chain_kind(&self, kind: &ChainKind) -> Answer<ChainKind> {
+    Self::answered(self.send(Method::PUT, &["chain", "kinds", &kind.key], kind)).await
+  }
+
+  /// `GET /chain/kinds/{key}/resolve`: a setting resolved for a person or a unit.
+  pub async fn resolve_chain(&self, key: &str, ask: &ChainResolveAsk) -> Answer<ChainResolution> {
+    Self::answered(self.get(&["chain", "kinds", key, "resolve"], ask)).await
   }
 
   /// `GET /accounts/model`.

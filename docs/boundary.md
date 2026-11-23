@@ -217,7 +217,8 @@ types; `server/client/` is the Rust crate the server answers with and that docum
 | `PUT /users/{user}/agent-permission` | the same headers, and `setting` | 204: the setting on the person, `inherit` removing it; for the administrator and a head of the person's unit |
 
 - **A caller a route does not name is refused 403 `forbidden`;** a company or unit that does not stand, and a unit
-  that is no company where a company is named, 404 `not-found` (`docs/accounts.md`, 「A person's BMO profile」).
+  that is no company where a company is named, 404 `not-found` (`docs/accounts.md`, 「A person's BMO profile」). A
+  permission change below a unit that locks it on the delegation chain is refused 409 `locked`.
 - **A name** is one line of 1 to 40 characters, a call name 1 to 40 with no comma, at most 10 of them and no two the
   same but for case, and a persona at most 100,000 characters; an empty name or persona is none. A picture is sent
   as the request's body, the bytes as they are, and read by its first bytes, whatever type the request names.
@@ -409,6 +410,38 @@ falls away after two minutes without one.
   - A kind of several fields takes `line` fields alone, since its file is one `KEY=VALUE` line to a field; a `lines`
     or `file` field stands alone in its kind.
   - A body whose `key` is not the path's is refused 400 `bad-kind` as well: a kind's key does not change.
+
+### The delegation chain
+
+How a setting reaches a person from the platform down through their company and units (docs/accounts.md, 「The
+delegation chain」). A link is named `platform`, `unit:<id>` or `person:<user>`; a rule names whom it is for as
+`person:<user>`, `group:<id>` or `unit:<id>`. A value is JSON of the kind's shape: `true` or `false` for a flag, a
+string for text, `"unlimited"` or a whole number for an amount, a list of keys, or an object or a list for `json`.
+The reads and writes of a link and of a group name the login they are made for in `Owner-Key`; the kinds and the
+resolution answer any caller.
+
+| Route | Request | Answer |
+|---|---|---|
+| `GET /chain/kinds` | | `kinds`: every kind declared, by key |
+| `GET /chain/kinds/{key}` | | the kind; 404 `no-such-kind` |
+| `PUT /chain/kinds/{key}` | a kind: `key` (the path's), `declaredBy`, `description`, `shape` (`flag`, `text`, `amount`, `keys`, `json`), `choices`, `mode` (`nearest`, `narrowing`, `layered`), `default?`, `rules`, `levels` (of `platform`, `unit`, `person`), `unitPermission` (`manage` where absent), `personWriter` (`heads`, `self`, `both`; `heads` where absent) | 200, the kind as kept; 400 `bad-kind`, 409 `kind-declared-elsewhere` for another unit's key, 409 `kind-in-use` for a shape or mode changed, or a choice taken away, while an entry stands |
+| `GET /chain/kinds/{key}/resolve?person=&unit=&link=` | `person` or `unit`, the subject; `link`, a link to ask after | `kind`, `subject`, `value?` (none for a `layered` kind, and where nothing is said and no default stands), `from?` (the link it came from, none where the default stands or the kind narrows), `rule?` (whom the rule it came from names), `layers` (every link's word for the subject, top first, each `link`, `value` and `rule?`), `lockedBy?` (the link whose lock cut the chain), `link?` (for the link asked: `link`, `mayChange`, `lockedBy?`); 404 `no-such-kind`, 404 for a subject that does not stand, 400 for none or both |
+| `GET /chain/kinds/{key}/links/{link}` | `Owner-Key` | the entry: `kind`, `link`, `value?`, `delegation` (`allow`, `lock`, `inherit`), `rules` (each `who` and `value`), `setBy?`, `setAt?`, `lockedBy?` (the farthest link above holding a lock), `writable` (whether the caller may change it now); for whoever writes the link and the person at their own |
+| `PUT /chain/kinds/{key}/links/{link}/value` | `Owner-Key`, `value?` (null to follow above) | 200, the entry; 409 `consumer-written` for a `json` kind |
+| `PUT /chain/kinds/{key}/links/{link}/delegation` | `Owner-Key`, `delegation` | 200, the entry |
+| `PUT /chain/kinds/{key}/links/{link}/rules` | `Owner-Key`, `rules` whole, each `who` and `value` | 200, the entry; 400 `bad-rule` |
+| `DELETE /chain/kinds/{key}/links/{link}` | `Owner-Key` | 204: the entry taken away, the link following above |
+| `GET /chain/groups?unit=` | `Owner-Key` | `groups`: the groups the unit keeps, by name, each `id`, `unit`, `name`, `members` (user ids); for the administrator and anyone of the unit's company |
+| `POST /chain/groups` | `Owner-Key`, `unit`, `name`, `members` | 201, the group; 409 `group-exists`, 409 `other-company` |
+| `GET /chain/groups/{group}` | `Owner-Key` | the group, for its readers |
+| `PUT /chain/groups/{group}` | `Owner-Key`, `name`, `members` | 200, the group; as its `POST` |
+| `DELETE /chain/groups/{group}` | `Owner-Key` | 204; 409 `group-in-use` while a rule names it |
+
+- **A link's write** is refused 403 `forbidden` to anyone but its writers (docs/accounts.md, 「Who changes a link」),
+  409 `locked` below a link holding a lock, 400 `bad-link` for a link that is not of the kind's levels or a
+  delegation other than `inherit` on a person's link, and 400 `bad-value` for a value not of the kind's shape. A
+  link naming a unit or a person that does not stand is 404.
+- **A group's write** is the administrator's and a head's of the unit keeping it; anyone else is refused 403.
 
 ### Supply
 

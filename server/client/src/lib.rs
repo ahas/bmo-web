@@ -7,6 +7,7 @@
 //! answer carrying `code` and `error`. A user's id is the exception the service's own document states: it is
 //! answered as the digits of sumida's whole number, a string a caller hands on as it stands.
 
+mod chain;
 mod client;
 mod openapi;
 mod organisation;
@@ -14,6 +15,7 @@ mod supply;
 mod types;
 mod wire;
 
+pub use chain::*;
 pub use client::{AccountClient, OWNER_KEY, OWNER_ROLE};
 pub use openapi::{openapi, openapi_json};
 pub use organisation::*;

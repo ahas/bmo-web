@@ -610,11 +610,17 @@ describe("the translator's ask of a unit the console calls directly", () => {
     expect(unit.asked).toEqual([{ method: "POST", path: "/translations", body: { language: "ko", originals: ["Likes tea"] } }]);
   });
 
-  test("is refused from a bundle's page that does not name the unit, and from a page that is no bundle's", async () => {
+  test("reaches the unit from a page of the console's own, whose screens share the same translation", async () => {
+    unit.asked.length = 0;
+
+    expect(await translating("agents")).toBe(200);
+    expect(unit.asked).toEqual([{ method: "POST", path: "/translations", body: { language: "ko", originals: ["Likes tea"] } }]);
+  });
+
+  test("is refused from a bundle's page that does not name the unit", async () => {
     unit.asked.length = 0;
 
     expect(await translating("other")).toBe(403);
-    expect(await translating("settings")).toBe(403);
     expect(unit.asked).toEqual([]);
   });
 

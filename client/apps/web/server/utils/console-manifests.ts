@@ -389,10 +389,11 @@ export function translatorAsk(serviceName: string, method: string, path: string)
   return service !== "" && route !== "" && service === serviceName && route === path && method.toUpperCase() === "POST";
 }
 
-/** Whether a page may ask a unit the console calls directly for a translation: a bundle's page whose manifest names
- * the unit under `calls`, which the reader may open. Any other page translates through the console's own routes. */
+/** Whether a page may ask a unit the console calls directly for a translation: a page of the console's own, whose
+ * shared translation asks the same route, or a bundle's page whose manifest names the unit under `calls`, which the
+ * reader may open. */
 export function pageTranslates(page: AttachedBundle | null, serviceName: string, reader: Reader): boolean {
-  return page !== null && screensCall(page.manifest, serviceName) && readerMay(reader, page.manifest);
+  return page === null || (screensCall(page.manifest, serviceName) && readerMay(reader, page.manifest));
 }
 
 /** Whether a page names a service it calls: a page that is no bundle's screen does, and a bundle's page does where

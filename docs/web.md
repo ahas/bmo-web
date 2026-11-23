@@ -9392,9 +9392,10 @@ its people directory and the members of the reader's company.
   route of the console's own, held to the rules of what it changes (「Access」), so a change asked of the relay is
   absent and no change goes around those rules. The one call past a read is the translator's ask, which changes
   nothing: where the translator the console names is such a unit, a `POST` of its translating route is relayed to
-  the unit at the address its setting names, with its token and the reader's owner key and role, from a bundle's
-  page whose manifest names the unit under `calls` and that the reader may open; from any other page it is refused
-  403, and any other method or path of the unit stays absent.
+  the unit at the address its setting names, with its token and the reader's owner key and role, from a page of
+  the console's own, whose screens translate through the same shared reading a bundle's does, and from a bundle's
+  page whose manifest names the unit under `calls` and that the reader may open; from any other bundle's page it is
+  refused 403, and any other method or path of the unit stays absent.
 - **The people directory is every company's for the platform administrator,** the console's own addition to the
   contract's 「How a bundle mounts」 (the people directory). Its `search` and `person` read the account service's
   directory for the signed-in login, which for the platform administrator holds the people of every company

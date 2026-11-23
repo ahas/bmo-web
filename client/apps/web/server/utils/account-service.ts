@@ -1374,3 +1374,48 @@ export async function unitSubtree(unit: number, caller: ProfileCaller, options: 
 
   return answered(reply);
 }
+
+// --- The delegation chain (docs/accounts.md, 「The delegation chain」) ---
+
+/** A setting kind as the unit using it declared it. */
+export type ChainKindView = Wire["ChainKind"];
+/** A setting resolved for a subject. */
+export type ChainResolutionView = Wire["ChainResolution"];
+/** A link's entry of a kind. */
+export type ChainEntryView = Wire["ChainEntry"];
+/** One rule of a link. */
+export type ChainRuleView = Wire["ChainRule"];
+
+/** Every kind declared on the chain. */
+export async function chainKinds(options: ServiceOptions = {}): Promise<ChainKindView[]> {
+  return answered(await sent(options, clientOf(options).GET("/chain/kinds"))).kinds;
+}
+
+/** A kind resolved for a person or a unit, with the standing of one link asked after where `link` names it. */
+export async function resolveChain(key: string, subject: { person: string } | { unit: number }, link?: string, options: ServiceOptions = {}): Promise<ChainResolutionView> {
+  const query = { ...subject, ...(link === undefined ? {} : { link }) };
+
+  return answered(await sent(options, clientOf(options).GET("/chain/kinds/{key}/resolve", { params: { path: { key }, query } })));
+}
+
+/** A link's entry, read as the login `caller` names. */
+export async function chainEntry(key: string, link: string, caller: ProfileCaller, options: ServiceOptions = {}): Promise<ChainEntryView> {
+  return answered(await sent(options, clientOf(options).GET("/chain/kinds/{key}/links/{link}", { params: { path: { key, link }, header: { "Owner-Key": caller.key } } })));
+}
+
+/** A link's value written as the login `caller` names, null to follow above. */
+export async function setChainValue(key: string, link: string, value: unknown, caller: ProfileCaller, options: ServiceOptions = {}): Promise<ChainEntryView> {
+  return answered(await sent(options, clientOf(options).PUT("/chain/kinds/{key}/links/{link}/value", { params: { path: { key, link }, header: { "Owner-Key": caller.key } }, body: { value } })));
+}
+
+/** A link's delegation written as the login `caller` names. */
+export async function setChainDelegation(key: string, link: string, delegation: Wire["ChainDelegation"], caller: ProfileCaller, options: ServiceOptions = {}): Promise<ChainEntryView> {
+  return answered(
+    await sent(options, clientOf(options).PUT("/chain/kinds/{key}/links/{link}/delegation", { params: { path: { key, link }, header: { "Owner-Key": caller.key } }, body: { delegation } }))
+  );
+}
+
+/** A link's rules written whole as the login `caller` names. */
+export async function setChainRules(key: string, link: string, rules: ChainRuleView[], caller: ProfileCaller, options: ServiceOptions = {}): Promise<ChainEntryView> {
+  return answered(await sent(options, clientOf(options).PUT("/chain/kinds/{key}/links/{link}/rules", { params: { path: { key, link }, header: { "Owner-Key": caller.key } }, body: { rules } })));
+}

@@ -1841,6 +1841,7 @@ settings:
     desktop: 데스크톱
     secrets: 비밀 보관함
     supply: 공급
+    apps: 내 앱·도구
     supervisor_none: 감독관 없음
     theme: 테마
   action:
@@ -3979,6 +3980,40 @@ bmo_profile:
     not_found: 회사나 조직을 찾을 수 없습니다.
     read_failed: BMO 설정을 불러오지 못했습니다.
     failed: BMO 설정을 저장하지 못했습니다.
+
+# The apps a person turns on and off (docs/web.md, 「Screens a unit brings」, the 앱·도구 tab of 조직 and the 내 앱·도구
+# section of 설정): an app's state, where it comes from, the lock and the offer, and the refusals.
+apps:
+  label:
+    tab: 앱·도구
+    none: 앱 없음
+    "on": 켬
+    "off": 끔
+    follow_above: 상위 조직 따름
+    follow_platform: 전역 설정 따름
+    follows_above_on: 상위 조직을 따라 켬
+    follows_above_off: 상위 조직을 따라 끔
+    follows_platform_on: 전역 설정을 따라 켬
+    follows_platform_off: 전역 설정을 따라 끔
+    follows_organization: 조직을 따름
+    own: 직접 정함
+    locked_above: 상위 조직에서 잠금
+    locked_organization: 조직에서 잠금
+    not_offered: 제공되지 않음
+    offer: 제공
+  action:
+    lock: 하위 조직 잠금
+    unlock: 잠금 해제
+    follow: 되돌리기
+  status:
+    loading: 앱 불러오는 중…
+  error:
+    "off": 조직 설정으로 꺼진 앱입니다.
+    locked: 상위 조직에서 잠근 앱이라 바꿀 수 없습니다.
+    forbidden: 이 앱 설정을 바꿀 권한이 없습니다.
+    no_app: 앱을 찾을 수 없습니다.
+    read_failed: 앱 설정을 불러오지 못했습니다.
+    failed: 앱 설정을 저장하지 못했습니다.
 
 # The supply screens (docs/web.md, the 공급 sections): a person's own logins, keys and order, an organisation's
 # policy, plan and wallet, and the administrator's plans and credits. Words the five sources take, the states a

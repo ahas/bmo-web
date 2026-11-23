@@ -81,7 +81,12 @@ async function follow(attached: AttachedBundle, duty: StreamDuty, words: NoticeW
 
           const readers = noticeReaders(bundle, event.name, memberOf(event.data));
 
-          await ring(noticeOf(bundle, event.name, event.data, words, useRuntimeConfig().app.baseURL), new Set(), async (login) => await hearers.hears(login, readers));
+          // A reader whose organisation turned the service's app off for them is rung nothing of it.
+          await ring(
+            noticeOf(bundle, event.name, event.data, words, useRuntimeConfig().app.baseURL),
+            new Set(),
+            async (login) => (await hearers.hears(login, readers)) && (await hearers.opens(login, bundle))
+          );
         }
       }
     } catch (error) {

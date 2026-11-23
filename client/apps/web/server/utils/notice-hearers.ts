@@ -2,12 +2,14 @@ import { roleAllows } from "bmo-ui/shared/console-manifest";
 
 import { ROOM_REACH_REFRESH_MS } from "#shared/config";
 
+import { AppGate, CHAIN_DEPS } from "./app-gate";
 import { LoginAccounts, usersForRinging } from "./login-accounts";
 import { ownerKeyOf, ownerRoleOf } from "./owner-key";
 
 import type { SignedIn } from "./accounts";
+import type { AppGateDeps } from "./app-gate";
 import type { LoginAccountsDeps } from "./login-accounts";
-import type { NoticeReaders } from "bmo-ui/shared/console-manifest";
+import type { ConsoleManifest, NoticeReaders } from "bmo-ui/shared/console-manifest";
 
 // Whose devices a bundle's notice rings (docs/web.md, 「Notifications」; bmo-ui's `docs/console-bundles.md`, 「Who a
 // notice rings」): the readers bmo-ui's `noticeReaders` names for its kind. Readers holding a role are every account
@@ -25,8 +27,17 @@ export function noticeHeard(account: SignedIn, readers: NoticeReaders): boolean 
 export class NoticeHearers {
   private readonly accounts: LoginAccounts;
 
-  constructor(deps: LoginAccountsDeps) {
+  constructor(
+    deps: LoginAccountsDeps,
+    private readonly chain: AppGateDeps = CHAIN_DEPS
+  ) {
     this.accounts = new LoginAccounts(deps);
+  }
+
+  /** Whether a bundle's screen stands open for the account a login signs in as, its app on for them, so its notice
+   * may ring their devices (docs/web.md, 「Screens a unit brings」). */
+  async opens(login: string, manifest: ConsoleManifest): Promise<boolean> {
+    return await new AppGate(ownerKeyOf(await this.accounts.of(login)), this.chain).opens(manifest);
   }
 
   /** Whether a notice for these readers rings the devices of a login. */

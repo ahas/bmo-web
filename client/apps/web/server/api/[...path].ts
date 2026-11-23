@@ -7,6 +7,7 @@ import { wording } from "#shared/wording";
 import { CONTROL_UNREACHABLE } from "#shared/config";
 import { shareRead } from "bmo-ui/shared/console-manifest";
 
+import { APP_OFF, appGateOf } from "../utils/app-gate";
 import { relayedRest, socketRelay } from "../utils/bundle-relay";
 import { attachedService, bundleFile, bundleFiles, bundleOfPage, pageReaches, pageTranslates, readManifestAgain, readerMay, readerOf, relayedCall, translatorAsk } from "../utils/console-manifests";
 import { ownerHeaders } from "../utils/owner-key";
@@ -33,6 +34,9 @@ import { unitAt } from "../utils/units";
 // A bundle's page reaches another service a manifest names only where its own manifest names that service under
 // `calls`, on that service's own terms; the page is the address the browser sends as the call's referrer. Any other
 // bundle's page is refused, but for a read of that service's own files, which a screen opened from it loads.
+//
+// A service that is an app turned off for the reader by the delegation chain is refused 403 `app-off` (docs/web.md,
+// 「Screens a unit brings」), its share reads aside.
 //
 // A share link is the one road with no session behind it: a reader holding the token opens the bundle's
 // share page, and every read that page makes is a share read its manifest names, each carrying the token, which
@@ -127,6 +131,13 @@ async function relayed(event: H3Event): Promise<Response> {
   // A screen a reader may not open is one that does not stand for them, and so is its service.
   if (session.user !== undefined && attached !== null && !shared && !readerMay(readerOf(await signedInUser(event)), attached.manifest)) {
     throw createError({ statusCode: 404, statusMessage: "Not Found" });
+  }
+
+  // A service whose app the delegation chain does not stand on for the reader is refused by the console's own policy,
+  // in words saying so, whatever its manifest opens (docs/web.md, 「Screens a unit brings」); a share read is held to
+  // its token alone.
+  if (session.user !== undefined && attached !== null && !shared && !(await appGateOf(event, await signedInUser(event)).opens(attached.manifest))) {
+    throw createError({ statusCode: 403, message: wording("apps.error.off"), data: { code: APP_OFF } });
   }
 
   // A bundle's page calling a service its manifest does not name is refused, whatever the reader may open; a unit the

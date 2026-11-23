@@ -139,7 +139,19 @@ export default defineNuxtConfig({
     output: { dir: process.env.BMO_WEB_OUTPUT_DIR ?? ".output" },
     // The runtime's own modules stay imports, not bundled files.
     rollupConfig: { external: [/^bun$/, /^bun:/], plugins: [yamlData] },
-    typescript: { tsConfig: { compilerOptions: { types: ["@types/bun"] } } }
+    typescript: { tsConfig: { compilerOptions: { types: ["@types/bun"] } } },
+    hooks: {
+      // A route that answers no read and whose address holds no parameter is left out of the map `$fetch` and
+      // `useFetch` are typed against. Every typed call matches its address against every route in the map, and past
+      // some two hundred and forty of them TypeScript gives up on the console's calls (docs/web.md, 「Running in
+      // development」); such a route's callers write its address whole and name the type of what it answers, so the
+      // map gives them nothing but its weight.
+      "types:extend"(types) {
+        for (const [route, methods] of Object.entries(types.routes)) {
+          if (!("get" in methods) && !("default" in methods) && !/[:*]/.test(route)) delete types.routes[route];
+        }
+      }
+    }
   },
   // The four units the console calls publish a client whose entry is TypeScript. Nitro's esbuild pass skips
   // node_modules, so its bundler would read that entry as JavaScript and stop; the filter is stated whole here,

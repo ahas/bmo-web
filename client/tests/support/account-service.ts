@@ -167,6 +167,9 @@ export interface StandIn {
   hub: Set<string>;
   // The machine names revoked at the hub, in the order they were.
   revoked: string[];
+  // The delegation chain's kinds a test declares, each with the value it resolves to for a person, by the person's
+  // id; a kind it does not hold is refused as no such kind.
+  chain: Map<string, Map<string, unknown>>;
   stop(): void;
 }
 
@@ -225,6 +228,7 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
   const revoked: string[] = [];
   const pairings = new Map<string, StandInPairing>();
   const pairingAddresses: string[] = [];
+  const chain = new Map<string, Map<string, unknown>>();
   const userOfSender = (sender: number | null): StandInUser | undefined =>
     sender === null ? undefined : users.find((user) => (user.senders ?? []).includes(sender));
   const holds = (kind: string, object: string, relation: string, subjects: string[]): boolean =>
@@ -287,6 +291,18 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
       }
 
       if (path === "/health") return json({ ok: true, version: "0.0.0", inForce: state.inForce });
+
+      const resolved = /^\/chain\/kinds\/([^/]+)\/resolve$/.exec(path);
+
+      if (resolved !== null && request.method === "GET") {
+        const key = decodeURIComponent(resolved[1]!);
+        const values = chain.get(key);
+        const person = new URL(request.url).searchParams.get("person") ?? "";
+
+        if (values === undefined) return refused(404, "no-such-kind", `no kind ${key}`);
+
+        return json({ kind: key, subject: `person:${person}`, layers: [], ...(values.has(person) ? { value: values.get(person) } : {}) });
+      }
       if (request.headers.get("authorization") !== `Bearer ${TOKEN}`) return refused(401, "unauthorized", "the token is missing or wrong");
       if (path === "/accounts/model") {
         return json(state.inForce ? { inForce: true } : { inForce: false, why: "the data move has not been written" });
@@ -768,6 +784,7 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
     revoked,
     pairings,
     pairingAddresses,
+    chain,
     stop() {
       server.stop(true);
     }

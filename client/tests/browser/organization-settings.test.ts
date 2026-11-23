@@ -31,7 +31,7 @@ const RUN = Date.now().toString(36);
 const PERSONAL = ["settings.label.account", "settings.label.secrets", "settings.label.supply", "settings.label.theme", "settings.label.palette"];
 const ADMINISTRATOR_PERSONAL = [...PERSONAL, "settings.label.notifications", "settings.label.briefing"];
 const MOVED = ["settings.label.invites", "settings.label.permissions", "settings.label.providers", "secrets.label.kinds", "research.title.supervisor"];
-const TABS = ["organization.label.chart", "roster.label.tab", "catalogue.label.tab", "settings.label.invites", "settings.label.bmo", "org_memory.label.tab", "supply.label.tab", "supply.label.plans"];
+const TABS = ["organization.label.chart", "roster.label.tab", "catalogue.label.tab", "settings.label.invites", "settings.label.bmo", "apps.label.tab", "org_memory.label.tab", "supply.label.tab", "supply.label.plans"];
 const ADMIN_TABS = ["settings.label.providers", "secrets.label.kinds", "supply.label.plans", "supply.label.credits"];
 
 let browser: Browser | null = null;
@@ -480,7 +480,7 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
           await column(page).getByText(wording("catalogue.label.kinds"), { exact: true }).waitFor({ timeout: 20_000 });
           // A head of a company writes the org memory of the units they head and manages that company's supply, so the
           // org memory, supply and plans tabs stand for them too (docs/web.md, 「Organisation」).
-          expect({ pass, tabs: await tabNames(page) }).toEqual({ pass, tabs: ["roster.label.tab", "catalogue.label.tab", "settings.label.invites", "settings.label.bmo", "org_memory.label.tab", "supply.label.tab", "supply.label.plans"].map((key) => wording(key)) });
+          expect({ pass, tabs: await tabNames(page) }).toEqual({ pass, tabs: ["roster.label.tab", "catalogue.label.tab", "settings.label.invites", "settings.label.bmo", "apps.label.tab", "org_memory.label.tab", "supply.label.tab", "supply.label.plans"].map((key) => wording(key)) });
           expect(await page.locator('[role="tab"][aria-selected="true"]').allInnerTexts()).toEqual([wording("catalogue.label.tab")]);
 
           // The row's underline stands under the chosen tab, though a tab came in before it once the head was known.
@@ -699,7 +699,7 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
           // The row holds the tabs every member opens until the org memory read says which units the head writes, and
           // the org memory tab comes in then (docs/web.md, 「Organisation」), so the row is read once it stands.
           await page.locator(`[aria-label="${wording("organization.aria.tabs")}"]`).getByRole("tab", { name: wording("org_memory.label.tab"), exact: true }).waitFor({ timeout: 20_000 });
-          expect(await tabNames(page)).toEqual([wording("settings.label.invites"), wording("settings.label.bmo"), wording("org_memory.label.tab")]);
+          expect(await tabNames(page)).toEqual([wording("settings.label.invites"), wording("settings.label.bmo"), wording("apps.label.tab"), wording("org_memory.label.tab")]);
 
           // A head asks for a link into their unit from the tab row's add and its dialog, and the service
           // takes the ask as theirs: a link stands among the open ones, or, where the deployment names no machine hub

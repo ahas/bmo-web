@@ -6,6 +6,7 @@ import { attachBundles, attachedService, readManifests } from "../../../apps/web
 import { manifestFields, manifestOf } from "../../support/console-manifest";
 import { routeOf } from "../../support/nitro";
 import { answer, standIn } from "../../support/units";
+import { standInAccountService } from "../../support/account-service";
 
 import type { RouteEvent } from "../../support/nitro";
 
@@ -23,6 +24,19 @@ globals.getUserSession = async () => session;
 globals.useRuntimeConfig = () => ({ app: { baseURL: "/" } });
 // No bundle stands but those a test attaches, whatever a file run before this one left attached.
 attachBundles([]);
+
+// The account service the relay asks whether a service's app stands on for the reader (docs/web.md, 「Screens a unit
+// brings」): it holds the kinds a test declares, and no app's kind but those.
+const accounts = standInAccountService();
+
+process.env.WEB_SERVER_ADDRESS = accounts.address;
+process.env.WEB_SERVER_TOKEN = accounts.token;
+
+afterAll(() => {
+  accounts.stop();
+  delete process.env.WEB_SERVER_ADDRESS;
+  delete process.env.WEB_SERVER_TOKEN;
+});
 
 const unit = standIn("RELAYED", () => answer({ ok: true }));
 const handler = await routeOf<Response>("../../apps/web/server/api/[...path]");
@@ -219,6 +233,36 @@ describe("the relay of a service a manifest names", () => {
   test("hands on a path under the API prefix to the unit that answered the manifest", async () => {
     expect(await call("screened/screen/items")).toBe(200);
     expect(heard.at(-1)).toBe("/screen/items");
+  });
+
+  test("refuses a service whose app is off for the reader with its own code, and lets it through once it is on", async () => {
+    const asked = heard.length;
+    const refusal = await handler({ params: { path: "screened/screen/items" }, node: {} } as RouteEvent).then(
+      () => null,
+      (error: { statusCode?: number; data?: { code?: string } }) => ({ status: error.statusCode, code: error.data?.code })
+    );
+
+    expect(refusal).toBeNull();
+
+    accounts.chain.set("app.screened.on", new Map([["1", false]]));
+
+    try {
+      const off = await handler({ params: { path: "screened/screen/items" }, node: {} } as RouteEvent).then(
+        () => null,
+        (error: { statusCode?: number; data?: { code?: string } }) => ({ status: error.statusCode, code: error.data?.code })
+      );
+
+      expect(off).toEqual({ status: 403, code: "app-off" });
+      expect(heard.length).toBe(asked + 1);
+
+      // A screen only the administrator opens is never an app, whatever the chain says of its service.
+      accounts.chain.set("app.guarded.on", new Map([["1", false]]));
+      expect(await call("guarded/screen/items")).toBe(200);
+    } finally {
+      accounts.chain.clear();
+    }
+
+    expect(await call("screened/screen/items")).toBe(200);
   });
 
   test("hands on the module, the stylesheet and a chunk in the module's folder outside the prefix, and nothing else", async () => {

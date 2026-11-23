@@ -81,6 +81,9 @@ machine's own socket's `bmo_test`, and every name carries the process that made 
     owner's account: a file that reads the owner's words as the reader's own signs in with it. The accounts the media
     room's and the sticker room's files sign in with each have a sender of their own linked to them, so what each said
     in its room stands on the right;
+  - the second stand-in screen's two app kinds on the delegation chain (`docs/accounts.md`, 「An app's two settings」),
+    declared as the unit publishing it would, offered and on wherever nobody says otherwise, so a file turns the app
+    off for a company of its own and every other file reads the screen as before;
   - the console's development server, under the base path `/console/`, with a build folder of its own,
     `.nuxt-browser-tests`. Only the development server serves the screen-measuring module `console-ids` reads.
     The app's own type settings still stand in `.nuxt`, so a checkout the app was never prepared in is prepared

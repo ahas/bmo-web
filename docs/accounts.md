@@ -965,7 +965,7 @@ section states what each does.
   setting a unit holds reaches the people whose home unit is at or under it and never one who only holds a post
   there (「Concurrent posts」).
 - **Every route stands in `docs/boundary.md`, 「The delegation chain」;** this section states what they keep and
-  how a setting is resolved.
+  how a setting is resolved, and 「An app's two settings」 the pair of kinds every app is switched by.
 
 ### A setting kind
 
@@ -1083,6 +1083,24 @@ Each is declared by the module that uses it, as the service stands, under the un
   nearest holding one (the brain's `docs/design.md`, 「Org brains」). The lock belongs to the memory it marks, not
   to a setting of a unit, and the brain calls no unit, so it is not kept on the chain. The service says who writes a
   unit's org memory (「A unit's org memory」).
+
+### An app's two settings
+
+- **An app is a screen and the tools that share one key,** switched on and off for people as one, never a screen
+  apart from its tools. Its key is a kebab-case name, the service name a screen's manifest gives (bmo-ui's
+  `docs/console-bundles.md`), and the tools sharing it are declared under the same key where they are published. The
+  system's own screens and tools — the console's own screens, rooms, the brain and their kin — are no app and are
+  never switched.
+- **Each app stands on two kinds,** declared by the unit that publishes the app, never by this service:
+  - `app.<key>.offered`, whether the app may be used under a link: a flag, `narrowing`, with rules, at the platform
+    and units, written by a unit's head. A link below only narrows what is offered above, so the platform's rule for
+    one company offers an app to that company alone, and its default says whether an app nobody named is offered.
+  - `app.<key>.on`, whether the app is on: a flag, `nearest`, at the platform, units and people, a person's link
+    written by the person and by their heads alike (`personWriter` `both`), its default what a new app starts at.
+    A unit that locks it decides it for everyone under it.
+- **An app is usable by a person where both resolve true for them;** a kind nobody declared says nothing against
+  it. Every consumer asks both afresh as it acts — the console as it lists a reader's screens and relays each call
+  (`docs/web.md`, 「Screens a unit brings」), the issuer of a session as it hands one its tools — and keeps no answer.
 
 ## Supply
 

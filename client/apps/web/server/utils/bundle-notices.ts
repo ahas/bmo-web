@@ -84,7 +84,7 @@ export function filled(text: unknown, fields: Fields): string {
 }
 
 // The word at a dotted key of a bundle's pack, where the dots divide the pack's tree.
-function wordAt(words: NoticeWords, path: readonly string[]): unknown {
+export function wordAt(words: NoticeWords, path: readonly string[]): unknown {
   let held: unknown = words;
 
   for (const part of path) {

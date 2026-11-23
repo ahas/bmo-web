@@ -96,6 +96,13 @@
   워드, 별칭; 호출 stays the mention's never-word.
 - a company's default for its people's BMOs → 기본 BMO; who may set their own BMO → BMO 설정 권한, each row 허용, 막음
   or 상위 조직 따름, a following row saying 상위 조직을 따라 허용 or 상위 조직을 따라 막음. Never 개인화 권한, 커스터마이즈.
+- a screen and its tools switched on and off as one → 앱; where they are switched → 앱·도구 on 조직 and 내 앱·도구 in
+  설정. Its state → 켬 or 끔; a unit's choice of it → 켬, 끔 or 상위 조직 따름 (전역 설정 따름 on a company), a following
+  row saying 상위 조직을 따라 켬 or 전역 설정을 따라 끔; a person's row → 직접 정함 or 조직을 따름, their own word taken
+  back by 되돌리기; a unit deciding it for everyone below → 하위 조직 잠금, its undoing 잠금 해제, a row under it saying
+  상위 조직에서 잠금 on 조직 and 조직에서 잠금 in 설정; the platform letting a company use one → 제공, one it does not →
+  제공되지 않음; a call to an app turned off → 조직 설정으로 꺼진 앱입니다. 잠금 here is the delegation chain's own word.
+  Never 활성화, 비활성화, 사용 설정, 차단. 애플리케이션 stays the sidebar section's word.
 - where a part of a BMO's profile came from → 직접 정함, 회사에서 정함; the deployment's own wears the default's mark,
   `BMO (기본값)`. How a BMO speaks and behaves, as text → 페르소나. Never 성격, 말투 설정, 프롬프트.
 - a role's slot, one of the runs its agents let in at once → 역할 슬롯, 슬롯; a slot kept by a reservation → 예약, counted

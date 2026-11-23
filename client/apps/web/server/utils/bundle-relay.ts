@@ -1,8 +1,9 @@
 import { defineWebSocket, unsealSession } from "h3";
 
 import { proxiedAddress, sealState, signedInOf } from "./accounts";
+import { AppGate } from "./app-gate";
 import { attachedService, readerMay, readerOf, relayedPath } from "./console-manifests";
-import { ownerHeaders } from "./owner-key";
+import { ownerHeaders, ownerKeyOf } from "./owner-key";
 import { unitHeaders } from "./units";
 
 import type { Sealed, SignedIn } from "./accounts";
@@ -148,7 +149,9 @@ export const socketRelay = defineWebSocket({
       return;
     }
 
-    if (signed === null || !readerMay(readerOf(signed), asked.bundle.manifest)) {
+    // A reader the manifest's role does not allow, or whose organisation turned the service's app off for them, is no
+    // reader of its socket (docs/web.md, 「Screens a unit brings」).
+    if (signed === null || !readerMay(readerOf(signed), asked.bundle.manifest) || !(await new AppGate(ownerKeyOf(signed)).opens(asked.bundle.manifest))) {
       peer.close(1008, "unauthorized");
 
       return;

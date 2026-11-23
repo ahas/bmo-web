@@ -34,13 +34,13 @@ import { SCREENS, tabAddress } from "../../../apps/web/app/domain/screens";
 
 describe("the settings dialog", () => {
   test("holds the personal sections alone, the voice briefing under its own name", () => {
-    expect(SETTINGS_SECTIONS.map((section) => section.key)).toEqual(["account", "agent", "machine", "desktop", "secrets", "supply", "theme", "palette", "notifications", "briefing"]);
+    expect(SETTINGS_SECTIONS.map((section) => section.key)).toEqual(["account", "agent", "machine", "desktop", "secrets", "supply", "apps", "theme", "palette", "notifications", "briefing"]);
     expect(SETTINGS_SECTIONS.find((section) => section.key === "briefing")?.label).toBe("settings.label.briefing");
   });
 
   test("shows a member their account, machine, secrets, theme and palette, and the administrator the notifications and the player too", () => {
-    expect(sectionsFor(false, true).map((section) => section.key)).toEqual(["account", "machine", "secrets", "supply", "theme", "palette"]);
-    expect(sectionsFor(true, true).map((section) => section.key)).toEqual(["account", "machine", "secrets", "supply", "theme", "palette", "notifications", "briefing"]);
+    expect(sectionsFor(false, true).map((section) => section.key)).toEqual(["account", "machine", "secrets", "supply", "apps", "theme", "palette"]);
+    expect(sectionsFor(true, true).map((section) => section.key)).toEqual(["account", "machine", "secrets", "supply", "apps", "theme", "palette", "notifications", "briefing"]);
   });
 
   test("shows the desktop app's section only in the app's window, to every reader", () => {
@@ -48,7 +48,7 @@ describe("the settings dialog", () => {
       expect(sectionsFor(administrator, user).map((section) => section.key)).not.toContain("desktop");
       expect(sectionsFor(administrator, user, false, true).map((section) => section.key)).toContain("desktop");
     }
-    expect(sectionsFor(false, true, false, true).map((section) => section.key)).toEqual(["account", "machine", "desktop", "secrets", "supply", "theme", "palette"]);
+    expect(sectionsFor(false, true, false, true).map((section) => section.key)).toEqual(["account", "machine", "desktop", "secrets", "supply", "apps", "theme", "palette"]);
   });
 
   test("shows no secrets and no machine to a login with no user, which holds no space and no machine", () => {
@@ -85,7 +85,7 @@ const UNKNOWN_MEMBER: OrganizationReader = { administrator: false, roster: false
 
 describe("the organisation screen", () => {
   test("stands its tabs in order, the units first", () => {
-    expect(ORGANIZATION_TABS.map((tab) => tab.value)).toEqual(["organization", "people", "catalogue", "invites", "agent", "memory", "supply", "plans"]);
+    expect(ORGANIZATION_TABS.map((tab) => tab.value)).toEqual(["organization", "people", "catalogue", "invites", "agent", "apps", "memory", "supply", "plans"]);
   });
 
   test("leads the keys of the sections that moved away to where they stand now, and no other key", () => {
@@ -107,13 +107,13 @@ describe("the organisation screen", () => {
 
   test("opens every tab to the administrator, the people and the roles and kinds tabs to a member who heads a company, and the invitations and BMO tabs to every member", () => {
     expect(organizationTabsFor(ADMINISTRATOR)).toHaveLength(ORGANIZATION_TABS.length);
-    expect(organizationTabsFor(COMPANY_HEAD).map((tab) => tab.value)).toEqual(["people", "catalogue", "invites", "agent", "memory", "supply", "plans"]);
-    expect(organizationTabsFor(MEMORY_WRITER).map((tab) => tab.value)).toEqual(["invites", "agent", "memory"]);
-    expect(organizationTabsFor(MEMBER).map((tab) => tab.value)).toEqual(["invites", "agent"]);
+    expect(organizationTabsFor(COMPANY_HEAD).map((tab) => tab.value)).toEqual(["people", "catalogue", "invites", "agent", "apps", "memory", "supply", "plans"]);
+    expect(organizationTabsFor(MEMORY_WRITER).map((tab) => tab.value)).toEqual(["invites", "agent", "apps", "memory"]);
+    expect(organizationTabsFor(MEMBER).map((tab) => tab.value)).toEqual(["invites", "agent", "apps"]);
   });
 
   test("opens the plans tab and not the supply tab to a reader who holds the company's plan alone", () => {
-    expect(organizationTabsFor(PLAN_KEEPER).map((tab) => tab.value)).toEqual(["invites", "agent", "plans"]);
+    expect(organizationTabsFor(PLAN_KEEPER).map((tab) => tab.value)).toEqual(["invites", "agent", "apps", "plans"]);
   });
 
   test("opens the first tab a reader may for a key naming none of theirs", () => {
@@ -130,9 +130,9 @@ describe("the organisation screen", () => {
   });
 
   test("holds the tab the address names in the row while who reads is read, and only the reader's once known", () => {
-    expect(organizationRowTabs(UNKNOWN_MEMBER, "catalogue").map((tab) => tab.value)).toEqual(["catalogue", "invites", "agent"]);
-    expect(organizationRowTabs(UNKNOWN_MEMBER, undefined).map((tab) => tab.value)).toEqual(["invites", "agent"]);
-    expect(organizationRowTabs(MEMBER, "catalogue").map((tab) => tab.value)).toEqual(["invites", "agent"]);
+    expect(organizationRowTabs(UNKNOWN_MEMBER, "catalogue").map((tab) => tab.value)).toEqual(["catalogue", "invites", "agent", "apps"]);
+    expect(organizationRowTabs(UNKNOWN_MEMBER, undefined).map((tab) => tab.value)).toEqual(["invites", "agent", "apps"]);
+    expect(organizationRowTabs(MEMBER, "catalogue").map((tab) => tab.value)).toEqual(["invites", "agent", "apps"]);
   });
 
   test("keeps a tab in the address, the first being the organisation's own, and lets the keys of the tab left go with it while the node chosen stays", () => {
@@ -168,7 +168,7 @@ describe("the organisation screen", () => {
 
     expect(screen.to).toBe(ORGANIZATION_PATH);
     expect(screen.unitKeepers).toBe(true);
-    expect(screen.tabs?.map((tab) => tabAddress(screen, tab))).toEqual(["/organization", "/organization?tab=people", "/organization?tab=catalogue", "/organization?tab=invites", "/organization?tab=agent", "/organization?tab=memory", "/organization?tab=supply", "/organization?tab=plans"]);
+    expect(screen.tabs?.map((tab) => tabAddress(screen, tab))).toEqual(["/organization", "/organization?tab=people", "/organization?tab=catalogue", "/organization?tab=invites", "/organization?tab=agent", "/organization?tab=apps", "/organization?tab=memory", "/organization?tab=supply", "/organization?tab=plans"]);
     expect(admin.to).toBe(ADMIN_PATH);
     expect(admin.administrator).toBe(true);
     expect(admin.tabs?.map((tab) => tabAddress(admin, tab))).toEqual(["/admin", "/admin?tab=secret-kinds", "/admin?tab=plans", "/admin?tab=credits"]);

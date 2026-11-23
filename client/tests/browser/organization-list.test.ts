@@ -350,7 +350,7 @@ describe.skipIf(!origin || !touchReady())("the organisation list", () => {
           await fresh.getByRole("dialog").waitFor({ state: "detached", timeout: 10_000 });
         }
         await fresh.locator("[data-plans-applied-row]").waitFor({ timeout: 20_000 });
-        expect((await fresh.locator(`[aria-label="${wording("organization.aria.tabs")}"]`).getByRole("tab").allInnerTexts()).map((one) => one.trim())).toEqual(["settings.label.invites", "settings.label.bmo", "supply.label.plans"].map((key) => wording(key)));
+        expect((await fresh.locator(`[aria-label="${wording("organization.aria.tabs")}"]`).getByRole("tab").allInnerTexts()).map((one) => one.trim())).toEqual(["settings.label.invites", "settings.label.bmo", "apps.label.tab", "supply.label.plans"].map((key) => wording(key)));
       } finally {
         await context.close();
         await administer(`/api/organization/units/${team}/heads/${encodeURIComponent(member)}`, "DELETE").catch(() => null);

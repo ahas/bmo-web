@@ -7471,11 +7471,13 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
   the dialog's left under the title 설정, each section one line of an icon and its name; the open one
   is marked. The section's own name heads the right, with the dialog's close mark at its right end,
   and its content scrolls under it.
-  - The sections are 계정, 내 BMO, 기기, 데스크톱, 비밀 보관함, 공급, 테마, 대화방, 알림 and 보이스브리핑. A member is shown 계정, 기기,
-    비밀 보관함, 공급, 테마 and 대화방; 데스크톱 stands for any reader, but only in the desktop app's window
-    (「데스크톱」); 알림 and 보이스브리핑 are the administrator's, since the console rings and plays briefings for
-    the administrator alone. 내 BMO is shown to a person who may personalise their BMO and owns one (「내 BMO」). A login with no user of the account service, which holds no secret space and no machine, is not
-    shown 기기 or 비밀 보관함, and 공급 is no section for it either, what it sets standing against that user.
+  - The sections are 계정, 내 BMO, 기기, 데스크톱, 비밀 보관함, 공급, 내 앱·도구, 테마, 대화방, 알림 and 보이스브리핑. A member is
+    shown 계정, 기기, 비밀 보관함, 공급, 내 앱·도구, 테마 and 대화방; 데스크톱 stands for any reader, but only in the desktop
+    app's window (「데스크톱」); 알림 and 보이스브리핑 are the administrator's, since the console rings and plays
+    briefings for the administrator alone. 내 BMO is shown to a person who may personalise their BMO and owns one (「내
+    BMO」). A login with no user of the account service, which holds no secret space and no machine, is not
+    shown 기기 or 비밀 보관함, and 공급 and 내 앱·도구 are no sections for it either, what they set standing against that
+    user.
   - A section's content stands in groups under small headings, each group a column of rows parted by
     hairlines. A row carries its name and, where the name needs it, one muted line under it at the
     left, and its control at the right: a choice of two or three a segmented control, a longer one a
@@ -7487,7 +7489,7 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
 - **On a narrow screen the dialog fills the screen** and opens on the list of sections alone, over the
   sidebar drawer it was opened from (「Floating things」). A tap on one goes into it: the head then carries
   a back arrow before the section's name, and the arrow or the back gesture returns to the list. The close mark stands at the head's right end on both.
-- **An address opens it at one section:** `?settings=` and a section's key — `account`, `agent`, `machine`, `desktop`, `secrets`, `supply`, `theme`,
+- **An address opens it at one section:** `?settings=` and a section's key — `account`, `agent`, `machine`, `desktop`, `secrets`, `supply`, `apps`, `theme`,
   `palette`, `notifications`, `briefing` — on any address of the console opens the dialog at that
   section, gone into on a narrow screen, and at the first section the reader may open where the key
   names none of them. A member sent on from an address they may not open to their own home is sent with the key, so
@@ -7743,6 +7745,27 @@ a row shows of a key is the secret's name, and of a login the path it is reached
 - A read that failed says its reason in the section with 새로고침; the groups read on their own, and one that came
   stands while another waits.
 
+#### 내 앱·도구
+
+The apps offered to the reader, each switched on or off for them alone (「Screens a unit brings」; `docs/accounts.md`,
+「An app's two settings」). Every person with a user of the account service sees it. The console reads and writes the
+reader's own link of each app's `on` kind through its own routes (`GET /api/account/apps`, `PUT
+/api/account/apps/{app}`), which hand the account service the reader as the writer, so a lock above refuses the write
+there.
+
+- **One row per app offered to the reader,** an app not offered to them standing nowhere in it: the app's icon and its
+  name — the title its screen's bundle gives, else the app's key in the monospace face — with one muted line under it
+  saying where its state comes from, and its switch at the row's end.
+  - **직접 정함** where the reader set it, with 되돌리기, an icon button before the switch, that takes the reader's own
+    word away so the organisation's stands again; **조직을 따름** where they set nothing; **조직에서 잠금** where a unit
+    above locks it, the switch disabled and showing what the lock holds.
+  - A switch is written as it is turned and the row read again; a refusal is said under the row, which goes back to
+    what stood.
+- **None offered says 앱 없음.** The rows keep their place with a skeleton while they are first read, and a read that
+  failed says its reason with 새로고침.
+- **A change reaches the reader's screens as the list is next read,** the next page or sign-in, and every relayed call
+  at once.
+
 #### 테마
 
 - **화면 모드** chooses 시스템, 밝게 or 어둡게 for this browser, the same choice the user menu offers.
@@ -7846,13 +7869,13 @@ research screen (「Research screen」).
     administrator finds 회사 추가 beside it, so the first company is made there.
   - **A link naming a person but no organisation** — a person's tab from before the list, the console search's
     person — opens the organisation that person stands in.
-- **Inside the organisation chosen, a tab to a section.** The tabs are 조직도, 사용자, 직책·종류, 초대, BMO, 조직 기억, 공급
-  and 플랜, keyed in the address as `?tab=` with `people`, `catalogue`, `invites`, `agent`, `memory`, `supply` and
-  `plans`, 조직도
+- **Inside the organisation chosen, a tab to a section.** The tabs are 조직도, 사용자, 직책·종류, 초대, BMO, 앱·도구, 조직
+  기억, 공급 and 플랜, keyed in the address as `?tab=` with `people`, `catalogue`, `invites`, `agent`, `apps`, `memory`,
+  `supply` and `plans`, 조직도
   being the organisation's own address; a shared link opens the same tab, moving between tabs is a step of the
   history and keeps the organisation chosen, and a key naming no tab the reader may open opens the first they may.
   Every tab reads and writes the company of the node chosen alone, and a tab that stands for one unit — 조직도,
-  사용자, 초대, BMO and 조직 기억 — stands for the node chosen, the company itself where a company is chosen; none of
+  사용자, 초대, BMO, 앱·도구 and 조직 기억 — stands for the node chosen, the company itself where a company is chosen; none of
   them chooses an organisation or a unit of its own.
   The console search finds each tab as it finds every screen's.
 - **A key of a section that moved away leads to where it stands now,** so a link made before it moved still lands
@@ -7862,8 +7885,9 @@ research screen (「Research screen」).
   rather than stepped, so the back gesture does not return to the old key.
 - **Who opens it.** The administrator opens every tab, and the sidebar lists 조직 for them after the console's
   own screens. A member who heads a unit may invite into it (`docs/accounts.md`, 「Invitations and a person's
-  machine」) and sets who under it may personalise their BMO (`docs/accounts.md`, 「A person's BMO profile」), so
-  their shell lists 조직 too and the screen holds 초대, BMO and 조직 기억, and 사용자 and 직책·종류 where they head a company
+  machine」), sets who under it may personalise their BMO (`docs/accounts.md`, 「A person's BMO profile」) and which
+  apps stand on under it (「앱·도구」), so their shell lists 조직 too and the screen holds 초대, BMO, 앱·도구 and 조직 기억,
+  and 사용자 and 직책·종류 where they head a company
   (「사용자」, 「직책·종류」). A member granted a unit's org memory write without heading one (`docs/accounts.md`, 「A unit's
   org memory」) is listed 조직 as well, with the companies of those units, and the screen holds 조직 기억 for them beside
   the tabs every member opens (「조직 기억」); a member who heads none and holds no such grant is listed no entry, and the
@@ -8338,6 +8362,31 @@ Where a company's own words for its roles and its unit kinds are kept (`docs/acc
   moves every row under it; a refusal is said under the row, which goes back to what stood.
 - **A saved default, picture or choice is applied at once** to the BMO of every person it reaches (「A person's BMO
   profile on the agency and the receiver」), and a person's 설정 shows or drops 내 BMO the next time it opens.
+
+#### 앱·도구
+
+Which apps stand on for the people under the node chosen (「Screens a unit brings」; `docs/accounts.md`, 「An app's two
+settings」). The administrator opens it, and so does every member who heads a unit. The console reads and writes the
+node's links of each app's two kinds through its own routes (`GET /api/organization/units/{unit}/apps`, `PUT
+/api/organization/units/{unit}/apps/{app}`), handing the account service the reader as the writer, so who may change
+a link, and a lock above it, are the service's word.
+
+- **One row per app the chain holds,** in the order of their names: the app's icon and its name — the title its
+  screen's bundle gives, else the app's key in the monospace face — with one muted line under it saying how it stands
+  for the node, and its controls at the row's end, under the name where they do not fit beside it.
+  - **The state line:** 직접 정함 where the node sets it; 상위 조직을 따라 켬 or 끔 where it follows the unit above, and
+    전역 설정을 따라 켬 or 끔 on a company's own row; 상위 조직에서 잠금 where a link above locks it; 제공되지 않음
+    where the app is not offered to the node, its controls disabled.
+  - **켬, 끔 or 상위 조직 따름** (전역 설정 따름 on a company) is the node's own word, a choice saved as it is made.
+  - **하위 조직 잠금** is an icon button beside it, pressed while the node locks the app for every unit and person under
+    it, its tooltip saying 하위 조직 잠금 or 잠금 해제; a person under a lock cannot turn the app the other way.
+  - **제공**, a switch the administrator alone is shown, offers the app to the node or withholds it: the platform's
+    rule for that unit (`docs/accounts.md`, 「Rules and groups」), so no head below it can offer it back.
+  - Controls the reader may not change — a lock above, a link they do not write — stand disabled.
+- **A change is saved as it is made,** the rows read again, and a refusal said under its row, which goes back to what
+  stood. It reaches the people under the node at their next relayed call and their next read of the screens.
+- **None held says 앱 없음.** The rows keep their place with a skeleton while they are first read, and a read that
+  failed says its reason with 새로고침, as every tab of this screen does.
 
 #### 조직 기억
 
@@ -9213,7 +9262,8 @@ and `/api/supply/credits/audit`.
     administrators alone, and for `member`, every account, since an administrator holds every role a member holds;
   - one account a member's field names rings that account's devices alone, the field holding its user id as the
     owner key writes it, and a member whose field holds no key rings nobody;
-  - a kind the manifest names no readers for rings every account whose role the manifest's role allows.
+  - a kind the manifest names no readers for rings every account whose role the manifest's role allows;
+  - and of those, none for whom the bundle's app stands off (「Screens a unit brings」).
   Whether an account is a platform administrator is the account service's word, read as the rooms' ringing reads
   each login (`GET /users`, held a minute); a login the held answer does not name has the service asked again, so an
   account made within the minute is read as itself, and only a login the fresh answer does not name stands as the
@@ -9549,6 +9599,23 @@ title bar」), its people directory and the members of the reader's company.
   are merged into the console's pack under the bundle's namespace as the list is read. The list is read again as
   somebody signs in or out, since a login reaches the console's screens with no new page to read it on, and the
   sidebar stands whole from the first screen after it.
+- **A screen that is an app is handed only to a reader it stands on for,** the console's own policy over the
+  contract's offer (bmo-ui's `docs/console-bundles.md`, 「Roles and the owner key」). A bundle's screen is an app where
+  its service name is the key of an app whose kinds stand on the delegation chain (`docs/accounts.md`, 「An app's two
+  settings」); a screen no app's kinds name, a screen whose manifest's role is `administrator` — one the system is
+  run with — and every screen of the console's own are never switched.
+  - **The console asks the chain for the signed-in reader** whether each app is offered and on for them, both
+    resolved for their person afresh as it acts and asked once within one request; a kind nobody declared says
+    nothing against the app, and a resolution the account service refuses or does not answer holds the app off. A
+    login with no user of the account service has no person to resolve for, so nothing is held from it.
+  - **An app off for the reader stands nowhere for them:** out of the list of screens, so out of the sidebar, its
+    count, the console search and the member's home; no notice of it rings their devices; a socket to its service is
+    closed as unauthorized; and every relayed call to its service but a share read is refused 403 with the code
+    `app-off` and the pack's sentence saying the organisation's setting turned the app off. A screen already open
+    meets that refusal at its next call, and its address, opened again, leads a member to their home as any address
+    they may not open does (「Access」).
+  - **Where an app is turned on and off** is 「Organisation」's 앱 tab, for a unit and those under it, and
+    「Settings」' 앱 section, for the reader alone.
 - **A screen's module is loaded the first time its path is opened.** The browser reads the module through the
   relay and, before it runs, points every import of a shared library at the console's own copy. A file of the
   bundle the module imports is read the same way, one imported only when it is reached at the moment it is
@@ -9924,6 +9991,13 @@ process holds at its peak, near two gigabytes, meets the default limit of a mach
 memory or less, where the collector runs until the process dies for want of heap. So the app's `typecheck` script
 raises the limit to four gigabytes (`NODE_OPTIONS=--max-old-space-size=4096`), which `nuxi typecheck` hands on to
 the `vue-tsc` it starts.
+
+The map of routes `$fetch` and `useFetch` are typed against holds no route that answers no read and whose address
+holds no parameter. Nitro writes every route of the server into that one map, and each typed call matches its address
+against every route in it; past some two hundred and forty routes TypeScript stops short on the console's calls, says
+the instantiation is too deep and leaves their answers untyped. A change at a fixed address is called by that address
+whole and read by the type its caller names, so the console's configuration leaves such routes out of the map, and
+the map keeps every read and every address with a parameter, whose methods and answers it checks.
 
 Do not build by hand. The one road to put the console up is the deployment, and the build is its step.
 

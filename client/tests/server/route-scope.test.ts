@@ -141,6 +141,22 @@ describe("a console route as another user meets it", () => {
     }
   });
 
+  // docs/accounts.md, 「Who changes a link」: the account service decides who writes which link of the delegation chain,
+  // so the console's scope lets every member ask for a unit's apps and their own, whatever sections they hold.
+  test("a member asks for a unit's apps and their own, the account service deciding", async () => {
+    service.sections.set(4, new Map());
+    session = { user: { name: "no-account", id: 4 }, sid: "bmo.sid=no-account", administrator: false };
+
+    for (const route of [
+      { file: "organization/units/[unit]/apps.get", method: "GET", path: "/api/organization/units/1/apps" },
+      { file: "organization/units/[unit]/apps/[app].put", method: "PUT", path: "/api/organization/units/1/apps/app-a" },
+      { file: "account/apps.get", method: "GET", path: "/api/account/apps" },
+      { file: "account/apps/[app].put", method: "PUT", path: "/api/account/apps/app-a" }
+    ]) {
+      expect({ route: route.file, status: await answer(route) }).toEqual({ route: route.file, status: 200 });
+    }
+  });
+
   // docs/accounts.md, 「A person who leaves」: the account service decides who may mark a person left, the administrator
   // or the person's heads, so the console's scope lets every member ask.
   test("a member asks to mark a person left, the account service deciding", async () => {

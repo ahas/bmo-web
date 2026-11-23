@@ -65,6 +65,12 @@ export const openedRoutes: readonly OpenedRoute[] = [
   { method: "DELETE", path: /^\/api\/organization\/companies\/\d+\/agent\/picture$/, scope: "user" },
   { method: "GET", path: /^\/api\/organization\/units\/\d+\/agent-permissions$/, scope: "user" },
   { method: "PUT", path: /^\/api\/organization\/(?:units|users)\/\d+\/agent-permission$/, scope: "user" },
+  // The apps standing on under a unit and for the reader alone: every signed-in login asks, and the account service
+  // decides who writes which link of the delegation chain (docs/accounts.md, 「Who changes a link」).
+  { method: "GET", path: /^\/api\/organization\/units\/\d+\/apps$/, scope: "user" },
+  { method: "PUT", path: /^\/api\/organization\/units\/\d+\/apps\/[^/]+$/, scope: "user" },
+  { method: "GET", path: /^\/api\/account\/apps$/, scope: "user" },
+  { method: "PUT", path: /^\/api\/account\/apps\/[^/]+$/, scope: "user" },
   // A person marked left: every signed-in login asks, and the account service lets the administrator and the person's
   // heads alone (docs/accounts.md, 「A person who leaves」).
   { method: "POST", path: /^\/api\/organization\/users\/\d+\/leave$/, scope: "user" },

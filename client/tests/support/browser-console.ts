@@ -119,6 +119,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["choice-select", "fixture-password-3413"],
   ["input-menu-name", "fixture-password-3562"],
   ["qa-admin", "fixture-password-3765"],
+  ["app-screens", "fixture-password-3901"],
   ["todo-awaiting", "fixture-password-3826"]
 ];
 
@@ -201,6 +202,15 @@ const MEMBERS: readonly { name: string; password: string; sections: readonly { s
     name,
     password: `fixture-password-329${at}`,
     sections: [{ section: "account", read: true, write: true }]
+  })),
+  // The person an app is turned off for by their organisation, and the head of their company who turns it off.
+  ...["app-member", "app-head"].map((name, at) => ({
+    name,
+    password: `fixture-password-390${at + 2}`,
+    sections: [
+      { section: "rooms", read: true, write: false },
+      { section: "account", read: true, write: true }
+    ]
   })),
   // The research screen opened to a member, research the first section they read.
   {
@@ -1805,6 +1815,31 @@ try {
       return `event: bot\ndata: ${JSON.stringify(told)}\n\n`;
     })
     .join("");
+
+  // The second stand-in screen is an app (docs/accounts.md, 「An app's two settings」): its two kinds declared as the
+  // unit publishing it would declare them, offered and on wherever nobody says otherwise, so every reader holds it as
+  // they always have until a test turns it off for a company of its own.
+  for (const [setting, mode, levels] of [["offered", "narrowing", ["platform", "unit"]], ["on", "nearest", ["platform", "unit", "person"]]] as const) {
+    const key = `app.${HARNESS_SCREEN_UNITS[1]}.${setting}`;
+    const declared = await service(`/chain/kinds/${key}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        key,
+        declaredBy: HARNESS_SCREEN_UNITS[1],
+        description: `Whether the ${HARNESS_SCREEN_UNITS[1]} app is ${setting}`,
+        shape: "flag",
+        choices: [],
+        mode,
+        default: true,
+        rules: setting === "offered",
+        levels,
+        unitPermission: "manage",
+        personWriter: "both"
+      })
+    });
+
+    if (!declared.ok) throw new Error(`the app kind ${key} was refused: ${declared.status} ${await declared.text()}`);
+  }
 
   // The media room's reader and the sticker room's each have a sender of their own, linked as the administrator links
   // one.

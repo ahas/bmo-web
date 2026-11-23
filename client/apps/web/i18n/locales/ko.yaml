@@ -2416,6 +2416,10 @@ desktop:
     start_at_sign_in: 로그인할 때 시작
     start_in_tray: 트레이에서 시작
     keep_awake: 절전 모드 방지
+    update_channel: 업데이트 채널
+    channel_stable: 안정판
+    channel_nightly: 나이틀리
+    default_value: "{value} (기본값)"
   action:
     download: 다운로드
     minimize: 최소화
@@ -2430,6 +2434,7 @@ desktop:
     close_to_tray: 끄면 창을 닫을 때 앱을 종료합니다.
     start_in_tray: 로그인할 때 시작하면 창을 열지 않습니다.
     keep_awake: 에이전트 실행 중에는 PC가 절전 모드로 전환되지 않습니다.
+    update_channel: 나이틀리는 매일 만드는 빌드라 제대로 동작하지 않을 수 있습니다.
     unsigned: "코드 서명이 없는 설치 파일이라 Windows가 처음 실행할 때 경고할 수 있습니다.\nWindows의 PC 보호 창이 나오면 추가 정보를 누르고 실행을 누르면 설치됩니다."
   status:
     loading: 데스크톱 앱 정보 불러오는 중…

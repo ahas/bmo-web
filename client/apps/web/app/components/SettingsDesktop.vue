@@ -1,8 +1,9 @@
 <template>
   <!-- The desktop section (docs/web.md, 「Settings」, the desktop section): the desktop app's own settings, read from
        the app through its bridge each time the section opens and changed through it one at a time. Only the switches
-       the app's platform offers are handed over, and only those the console has words for are drawn. A switch takes
-       effect as it is turned; one the app refuses goes back, with the reason under its name. -->
+       the app's platform offers are handed over, and only those the console has words for are drawn; under them the
+       update channel, where the app hands one over. A switch takes effect as it is turned and the channel as it is
+       chosen; a change the app refuses goes back, with the reason under its name. -->
   <div class="flex flex-col gap-3" data-desktop-settings>
     <div v-if="view?.unreadable" role="alert" class="flex flex-col gap-1 text-sm text-error" data-desktop-unreadable>
       <p>{{ $t("desktop.error.settings_unreadable") }}</p>
@@ -34,6 +35,24 @@
             @update:model-value="(on: boolean) => void turn(one.key, on)"
           />
         </SettingsRow>
+        <SettingsRow v-if="channel !== null" :label="$t('desktop.label.update_channel')" data-desktop-channel>
+          <template #description>
+            <span class="text-sm text-muted">{{ $t("desktop.message.update_channel") }}</span>
+            <span v-if="refusals[CHANNEL]" role="alert" class="flex flex-col text-sm text-error" data-desktop-refusal>
+              <span>{{ $t("desktop.error.change_failed") }}</span>
+              <span class="font-mono break-all">{{ refusals[CHANNEL] }}</span>
+            </span>
+          </template>
+          <!-- A fieldset holds the choices while the app answers or cannot change its file, as a switch is held. -->
+          <fieldset :disabled="Boolean(view.unreadable) || changing !== null">
+            <SettingsSegment
+              :model-value="channel"
+              :items="channelItems"
+              :label="$t('desktop.label.update_channel')"
+              @update:model-value="(value: string) => void choose(value)"
+            />
+          </fieldset>
+        </SettingsRow>
       </template>
     </SettingsGroup>
   </div>
@@ -42,21 +61,52 @@
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
 
-import { DESKTOP_SWITCH_WORDS, changeDesktopSetting, isKnownSwitch, readDesktopSettings } from "~/domain/desktop-app";
+import {
+  DESKTOP_CHANNELS,
+  DESKTOP_CHANNEL_DEFAULT,
+  DESKTOP_CHANNEL_WORDS,
+  DESKTOP_SWITCH_WORDS,
+  changeDesktopChannel,
+  changeDesktopSetting,
+  isDesktopChannel,
+  isKnownSwitch,
+  readDesktopSettings
+} from "~/domain/desktop-app";
 
 import type { DesktopSettings, DesktopSwitchKey } from "~/domain/desktop-app";
+
+// The update channel's key, beside the switches' keys, for the change in flight and a refusal.
+const CHANNEL = "updateChannel";
+
+type SettingKey = DesktopSwitchKey | typeof CHANNEL;
 
 const { t } = useI18n();
 
 const view = ref<DesktopSettings | null>(null);
 const reading = ref(false);
 const failure = ref("");
-const changing = ref<DesktopSwitchKey | null>(null);
-const refusals = ref<Partial<Record<DesktopSwitchKey, string>>>({});
+const changing = ref<SettingKey | null>(null);
+const refusals = ref<Partial<Record<SettingKey, string>>>({});
 
 // The switches the app handed over, in its order, those the console has no words for left out.
 const shown = computed(() =>
   (view.value?.switches ?? []).flatMap((one) => (isKnownSwitch(one.switch) ? [{ key: one.switch, on: one.on, ...DESKTOP_SWITCH_WORDS[one.switch] }] : []))
+);
+
+// The channel the app runs on, where it hands one over that the console knows.
+const channel = computed(() => {
+  const chosen = view.value?.updateChannel;
+
+  return isDesktopChannel(chosen) ? chosen : null;
+});
+
+// The channels' real values, in the app's order, the default marked as such.
+const channelItems = computed(() =>
+  DESKTOP_CHANNELS.map((value) => {
+    const label = t(DESKTOP_CHANNEL_WORDS[value]);
+
+    return { label: value === DESKTOP_CHANNEL_DEFAULT ? t("desktop.label.default_value", { value: label }) : label, value };
+  })
 );
 
 // The app's reason for a refusal, as the bridge hands it: the app's own words, or the call's error.
@@ -82,12 +132,25 @@ async function read(): Promise<void> {
 // One switch turned: written by the app at once, the switch spinning until it answers; a refusal leaves the saved
 // value standing, read again, with the reason under the row's name.
 async function turn(key: DesktopSwitchKey, on: boolean): Promise<void> {
+  await change(key, () => changeDesktopSetting(key, on));
+}
+
+// The channel chosen: written by the app at once, its choices held until it answers, a refusal as a switch's.
+async function choose(value: string): Promise<void> {
+  if (!isDesktopChannel(value) || value === channel.value) return;
+
+  await change(CHANNEL, () => changeDesktopChannel(value));
+}
+
+// One change at a time through the bridge, the settings as the app answers them, or the saved ones read again
+// with the reason under the row's name.
+async function change(key: SettingKey, through: () => Promise<DesktopSettings>): Promise<void> {
   if (changing.value !== null) return;
 
   changing.value = key;
   refusals.value = { ...refusals.value, [key]: undefined };
   try {
-    view.value = await changeDesktopSetting(key, on);
+    view.value = await through();
   } catch (error) {
     refusals.value = { ...refusals.value, [key]: reasonOf(error) };
     await read();

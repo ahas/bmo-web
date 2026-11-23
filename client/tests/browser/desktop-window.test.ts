@@ -9,7 +9,7 @@ import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 
 // The desktop app's window (docs/web.md, 「The desktop app's window」 and 「Settings」, the desktop section): the console
 // draws nothing of the app in a browser, and in the app — the app's bridge stood in here, answering as the app does —
-// the settings gain the desktop section, whose switches are the app's and change through it, the user menu drops the download page,
+// the settings gain the desktop section, whose switches and update channel are the app's and change through it, the user menu drops the download page,
 // the title bar is the window's drag region, the window's controls stand at its right end where the app says the
 // console draws them and call the window's commands, the room for the system's own is kept where they stand inset,
 // and a page with no shell carries the window's bar. Each is read at a desk's width and a phone's, from what is drawn.
@@ -62,17 +62,24 @@ async function pageFor(width: number, height: number, controls: Controls | null)
           { switch: "laterSwitch", on: true }
         ];
         let maximized = false;
-        const view = () => ({ switches: switches.map((one) => ({ ...one })), unreadable: null, windowControls });
+        let updateChannel = "stable";
+        const view = () => ({ switches: switches.map((one) => ({ ...one })), updateChannel, unreadable: null, windowControls });
 
         Object.assign(window, { bridgeCalls: calls });
         Object.assign(window, { __TAURI_INTERNALS__: {
-          invoke: async (command: string, args?: { setting?: string; on?: boolean }) => {
+          invoke: async (command: string, args?: { setting?: string; on?: boolean; value?: string }) => {
             calls.push([command, args ?? null]);
             switch (command) {
               case "settings":
                 return view();
               case "change_setting": {
                 if (args?.setting === "keepAwake") throw "keepAwake is not offered on this platform";
+                if (args?.setting === "updateChannel") {
+                  if (args.value !== "stable" && args.value !== "nightly") throw "updateChannel takes a value, stable or nightly";
+                  updateChannel = args.value;
+
+                  return view();
+                }
 
                 const one = switches.find((entry) => entry.switch === args?.setting)!;
 
@@ -210,6 +217,66 @@ describe.skipIf(!origin || !touchReady())("the desktop app's window", () => {
           expect(box.x).toBeGreaterThanOrEqual(0);
           expect(box.x + box.width).toBeLessThanOrEqual(width);
         }
+      } finally {
+        await context.close();
+      }
+    }, 180_000);
+
+    test(`in the app the update channel is chosen through it, the default marked, at ${width}px`, async () => {
+      const { context, page } = await pageFor(width, height, "console");
+
+      try {
+        await page.goto(`${origin}/?settings=desktop`, { waitUntil: "load", timeout: 120_000 });
+        await standing(page);
+
+        const row = page.locator("[data-desktop-settings] [data-desktop-channel]");
+
+        await row.waitFor({ timeout: 20_000 });
+        expect(await row.textContent()).toContain(wording("desktop.label.update_channel"));
+        expect(await row.textContent()).toContain(wording("desktop.message.update_channel"));
+
+        // The two real values, the default marked, as one group of radios named by the setting.
+        const group = row.getByRole("radiogroup", { name: wording("desktop.label.update_channel") });
+        const stable = wording("desktop.label.default_value", { value: wording("desktop.label.channel_stable") });
+        const nightly = wording("desktop.label.channel_nightly");
+
+        expect((await group.getByRole("radio").allTextContents()).map((text) => text.trim())).toEqual([stable, nightly]);
+        await expect(group.getByRole("radio", { name: stable }).getAttribute("aria-checked")).resolves.toBe("true");
+
+        // Each choice stands inside the window, and nothing stands over it where a finger presses it.
+        for (const choice of await group.getByRole("radio").all()) {
+          await choice.scrollIntoViewIfNeeded();
+
+          const box = (await choice.boundingBox())!;
+
+          expect(box.x).toBeGreaterThanOrEqual(0);
+          expect(box.x + box.width).toBeLessThanOrEqual(width);
+          expect(await choice.evaluate((one) => {
+            const { x, y, width: w, height: h } = one.getBoundingClientRect();
+
+            return one.contains(document.elementFromPoint(x + w / 2, y + h / 2));
+          })).toBe(true);
+        }
+
+        // Choosing the nightly asks the app, which answers with it chosen; choosing the default goes back the same way.
+        await group.getByRole("radio", { name: nightly }).click();
+        await page.waitForFunction(
+          (name) => [...document.querySelectorAll("[data-desktop-channel] [role='radio']")].some((one) => one.textContent?.trim() === name && one.getAttribute("aria-checked") === "true"),
+          nightly,
+          { timeout: 10_000 }
+        );
+        await expect(group.getByRole("radio", { name: stable }).getAttribute("aria-checked")).resolves.toBe("false");
+        await group.getByRole("radio", { name: stable }).click();
+        await page.waitForFunction(
+          (name) => [...document.querySelectorAll("[data-desktop-channel] [role='radio']")].some((one) => one.textContent?.trim() === name && one.getAttribute("aria-checked") === "true"),
+          stable,
+          { timeout: 10_000 }
+        );
+        expect((await bridgeCalls(page)).filter(([command]) => command === "change_setting")).toEqual([
+          ["change_setting", { setting: "updateChannel", value: "nightly" }],
+          ["change_setting", { setting: "updateChannel", value: "stable" }]
+        ]);
+        expect(await row.locator("[data-desktop-refusal]").count()).toBe(0);
       } finally {
         await context.close();
       }

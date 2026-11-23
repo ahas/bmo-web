@@ -7583,11 +7583,16 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
   - 트레이에서 시작, with the line that starting at sign-in then opens no window;
   - 절전 모드 방지, with the line that the PC does not sleep while the agent runs.
   A switch the console has no words for is not drawn.
-- **A switch takes effect as it is turned,** the switch spinning until the app answers. A change the app refuses
-  puts the switch back and says 변경하지 못했습니다 under the row's name in the error colour, the app's reason
-  under it in the monospace face.
+- **Under the switches, 업데이트 채널** chooses where the app's updates come from (jake's `docs/desktop.md`, 「The
+  update channel」), a segmented control of the two channels the app takes, its real values with the default
+  marked: 안정판 (기본값) and 나이틀리. The line under its name says that 나이틀리 is a build made every day and may
+  not work properly. It stands only where the app hands the channel over; an app that hands none over offers no
+  channel, and the row is not drawn.
+- **A switch takes effect as it is turned, and the channel as it is chosen,** the switch spinning, or the channel's
+  choices held, until the app answers. A change the app refuses puts the switch or the channel back and says
+  변경하지 못했습니다 under the row's name in the error colour, the app's reason under it in the monospace face.
 - **A settings file the app cannot read** says so at the section's head, 설정 파일을 읽을 수 없어 변경할 수 없습니다,
-  the app's reason under it in the monospace face, and every switch stands off-limits.
+  the app's reason under it in the monospace face, and every switch and the channel stand off-limits.
 - While it is read, the rows' names stand and the switches wait as bars. A read that fails says so in the section
   with 새로고침.
 
@@ -8636,7 +8641,8 @@ and `/api/supply/credits/audit`.
   agent, and a server render draws nothing of the app.
 - **The bridge is the app's commands the app grants the console's address,** and the console calls nothing else:
   `settings`, which reads the app's settings and who draws the window's controls; `change_setting`, which changes
-  one setting by its key; and the window's own minimise, maximise toggle, close, start dragging, maximised state
+  one setting by its key, a switch with `on`, true or false, and the update channel, `updateChannel`, with `value`,
+  `stable` or `nightly`; and the window's own minimise, maximise toggle, close, start dragging, maximised state
   and title.
 - **In the app the console is the window's frame.** The window has no native title bar, so the top of the
   console is the window's top edge:
@@ -8657,8 +8663,8 @@ and `/api/supply/credits/audit`.
     changes, which is where the app's pairing code stands, the controls at its right where the console draws them,
     and the room left at its left where the system's stand, the whole bar the drag region.
 - `client/tests/browser/desktop-window.test.ts` stands the bridge in for the app and holds the 데스크톱 section,
-  the user menu's entry, the drag region, the controls and the room kept for them to whether it answers, at a
-  desk's width and a phone's.
+  its switches and its update channel, the user menu's entry, the drag region, the controls and the room kept for
+  them to whether it answers, at a desk's width and a phone's.
 
 ### Messages
 

@@ -299,6 +299,9 @@
 - the app's own settings, in the console's settings → 데스크톱, the section's name, as the owner named it: its switches
   are 잠금 중 원격 제어 유지, 창을 닫으면 트레이로 이동, 로그인할 때 시작, 트레이에서 시작 and 절전 모드 방지, the app's
   tray → 트레이 and its file → 설정 파일. Never 데탑, 시스템 트레이, 알림 영역 or 슬립.
+- where the desktop app's updates come from → 업데이트 채널: the set's releases → 안정판, `안정판 (기본값)` among the
+  choices; the day's build between them → 나이틀리, as the owner named it; what a nightly is → 매일 만드는 빌드. Never
+  정식판, 베타, 개발판, 스테이블 or 릴리스 채널.
 - the app's window controls the console draws → 최소화, 최대화, 이전 크기로 (restoring a maximised window, as Windows
   says it) and 닫기. Never 최대화 해제, 복원, 창 닫기 or 종료, which is quitting the app.
 - the largest file a place takes, which a room's chat service or the agency declares → 보낼 수 있는 크기: in the

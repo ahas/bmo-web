@@ -356,6 +356,7 @@ async fn supply_closed_says_why_in_one_sentence_to_each_reason_in_every_language
     ("no-organisation", &words.no_organisation),
     ("organisation-refused", &words.organisation_refused),
     ("no-lendable", &words.no_lendable),
+    ("shared-node", &words.shared_node),
     ("owned", &words.owned),
     ("refused", &words.refused),
     ("ran-out", &words.ran_out),

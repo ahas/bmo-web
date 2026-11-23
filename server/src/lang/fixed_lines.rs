@@ -53,6 +53,7 @@ pub struct SupplyClosed {
   pub no_organisation: String,
   pub organisation_refused: String,
   pub no_lendable: String,
+  pub shared_node: String,
   pub owned: String,
   pub refused: String,
   pub ran_out: String,

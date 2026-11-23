@@ -23,6 +23,7 @@ supply_closed:
   no_organisation: "Your organisation's supply has no key or sign-in that works right now, so it can't answer. Ask your organisation's administrator."
   organisation_refused: "Your organisation has no credits left, so it can't answer right now. Ask your organisation's administrator to grant credits."
   no_lendable: "No Claude account can be lent to other people's agents right now, so it can't answer. Add your own Claude supply sign-in under Supply in your settings, or ask the platform administrator."
+  shared_node: "Your PC is shared with other people, where no lent Claude account is used, so it can't answer. Add your own Claude supply sign-in under Supply in your settings, or ask the platform administrator for a PC of your own."
   owned: "This agent's model belongs to another person, so platform supply can't run it. Change the agent's model."
   refused: "You have no credits left, so it can't answer right now. Check your credits or change the supply order under Supply in your settings."
   ran_out: "The credits ran out partway through the answer, so it stopped. Check your credits or change the supply order under Supply in your settings."

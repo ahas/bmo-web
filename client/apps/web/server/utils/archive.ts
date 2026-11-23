@@ -17,6 +17,7 @@ import { exactAnswer, exactHoldingMessages, exactMessage, exactMessages, receive
 
 import type { ArchivedMessage, ExactMessageId, ForwardedFrom, Judgement, JudgementMark, MessageAttachment, MessageBriefing, MessagePage, MessageReaction, ReplyQuote, RoomHolding, RoomHoldingPage, RoomSummary, RoundFiguresOf, Situation, TelegramExpression, TelegramFormat, VoiceBriefing } from "#shared/types";
 import type { KeptLine } from "./account-service";
+import type { MessageMedia } from "./message-media";
 import type { ExactMessage, ReceiverRoom } from "./receiver";
 import type { JudgementSpan } from "./gate";
 
@@ -224,15 +225,15 @@ function attachmentsOf(message: ReceivedMessage): MessageAttachment[] {
 // from it — its page names a file, or it is not an agent's answer and has words of its own; an agent's answer
 // without files is drawn as its markdown and asks nothing. A list that cannot be read is no reason to fail the
 // page, and the line names its files as unavailable instead.
-async function mediaOf(chatId: number, message: ReceivedMessage, wordsFromMetadata: boolean): Promise<{ attachments: MessageAttachment[]; expressions: TelegramExpression[]; formats: TelegramFormat[] }> {
+async function mediaOf(chatId: number, message: ReceivedMessage, wordsFromMetadata: boolean): Promise<MessageMedia> {
   const listed = carriesFiles(message.files);
 
-  if (!listed && !wordsFromMetadata) return { attachments: [], expressions: [], formats: [] };
+  if (!listed && !wordsFromMetadata) return { attachments: [], expressions: [], formats: [], stickerEmoji: null };
 
   try {
     return await messageMedia(chatId, message.messageId, message.text, listed);
   } catch {
-    return { attachments: attachmentsOf(message), expressions: [], formats: [] };
+    return { attachments: attachmentsOf(message), expressions: [], formats: [], stickerEmoji: null };
   }
 }
 
@@ -459,6 +460,7 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
         notice: message.kind === FIXED_LINE || (agent && isSystemNotice(message.text)),
         ...(agent && message.kind === THINKING ? { thinking: true } : {}),
         ...(message.kind === STICKER ? { sticker: true } : {}),
+        ...(files.stickerEmoji === null ? {} : { stickerEmoji: files.stickerEmoji }),
         attachments: files.attachments,
         expressions: files.expressions,
         formats: files.formats,

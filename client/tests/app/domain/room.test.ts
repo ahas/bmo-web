@@ -31,6 +31,7 @@ import {
   senderRuns,
   settledAnswers,
   standingRuns,
+  stickerEmojiOf,
   turnAnswer,
   sideLayout,
   sideOf,
@@ -809,6 +810,40 @@ describe("a message that is only what it carried", () => {
     expect(drawn === undefined ? null : copyItemOf(drawn).text).toBe(mark);
     expect(missing?.look.variant).toBe("soft");
     expect(missing?.shownText).toBe(mark);
+  });
+
+  // A chat service may hand a sticker over before its file, which follows; until it is kept, and where it never is,
+  // the sticker stands as the emoji its chat service named.
+  test("stands a sticker nothing of which is kept to draw as its emoji, and a kept one as its file", () => {
+    const mark = "[Sticker 💭]";
+    const gathering = rowOf({ ...archived(6, mark), stickerEmoji: "💭" });
+    const unkept = rowOf({ ...archived(7, mark), stickerEmoji: "💭", attachments: [{ ...sticker, available: false }] });
+    const kept = rowOf({ ...archived(8, mark), stickerEmoji: "💭", sticker: true, attachments: [sticker] });
+    const pictured = rowOf({ ...archived(9, mark), stickerEmoji: "💭", sticker: true, imagePath: "/kept/9.webp" });
+    const deleted = rowOf({ ...archived(10, mark), stickerEmoji: "💭", deletedAt: 1 });
+
+    for (const row of [gathering, unkept]) {
+      expect(row?.stickerEmoji).toBe("💭");
+      expect(row?.look.variant).toBe("naked");
+      expect(row?.shownText).toBe("");
+      expect(row === undefined ? null : copyItemOf(row).text).toBe(mark);
+    }
+
+    expect(kept?.stickerEmoji).toBeUndefined();
+    expect(kept?.look.variant).toBe("naked");
+    expect(pictured?.stickerEmoji).toBeUndefined();
+    expect(pictured?.stickerPicture).toBe(true);
+    expect(deleted?.stickerEmoji).toBeUndefined();
+  });
+
+  test("names a sticker's emoji only where nothing of it is kept to draw", () => {
+    const file = { kind: "sticker", available: true } as const;
+
+    expect(stickerEmojiOf("💭", false, [])).toBe("💭");
+    expect(stickerEmojiOf("💭", false, [{ ...file, available: false }])).toBe("💭");
+    expect(stickerEmojiOf("💭", false, [file])).toBeNull();
+    expect(stickerEmojiOf("💭", true, [])).toBeNull();
+    expect(stickerEmojiOf(undefined, false, [])).toBeNull();
   });
 
   // A provider may hand a sticker over as a picture, which the receiver keeps as the message's picture under the

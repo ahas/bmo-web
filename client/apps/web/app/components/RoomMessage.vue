@@ -131,7 +131,7 @@
                   class="flex mb-(--chat-message-gap)"
                   :class="[props.item.look.side === 'right' ? 'justify-end' : '', props.arriving ? 'bubble-rise' : '']"
                 >
-                  <MessageSticker :src="stickerPicture" :attachment="stickerFile" :chat-id="props.chatId" :message-id="archivedId" :alt="$t('room.label.sticker_preview')" />
+                  <MessageSticker :src="stickerPicture" :attachment="stickerFile" :emoji="stickerEmoji" :chat-id="props.chatId" :message-id="archivedId" :alt="$t('room.label.sticker_preview')" />
                 </div>
 
                 <!-- Everything the message says of itself stands inside its bubble (docs/web.md,
@@ -230,7 +230,7 @@
                       :style="wordsLast && metaRoom !== null ? { '--chat-meta-room': `${metaRoom}px` } : undefined"
                     >
                       <!-- A sticker sent alone stands as the picture alone in its fixed box, its time beside its foot. -->
-                      <MessageSticker v-if="bare && stuck" :src="stickerPicture" :attachment="stickerFile" :chat-id="props.chatId" :message-id="archivedId" :alt="$t('room.label.sticker_preview')" />
+                      <MessageSticker v-if="bare && stuck" :src="stickerPicture" :attachment="stickerFile" :emoji="stickerEmoji" :chat-id="props.chatId" :message-id="archivedId" :alt="$t('room.label.sticker_preview')" />
 
                       <!-- A row standing for a turn still running holds what that turn is at; every
                            other row holds what was said. Nothing around the two differs, because
@@ -575,12 +575,13 @@ function pressLink(event: MouseEvent): void {
 const reactions = computed(() => (props.item.deleted ? [] : (props.item.reactions ?? [])));
 
 // A message that said nothing and carried nothing says that it is empty, in the place its words
-// would have stood; one that carried a picture or a file is that picture or that file alone.
+// would have stood; one that carried a picture or a file is that picture or that file alone, and a
+// sticker standing as its emoji is that emoji alone.
 // Whether the words a message deleted on its messenger still holds stand opened under its line.
 const showingDeleted = ref(false);
 
 const empty = computed<boolean>(
-  () => !props.item.shownText && props.item.imageUrl === null && (props.item.attachments ?? []).length === 0
+  () => !props.item.shownText && props.item.imageUrl === null && (props.item.attachments ?? []).length === 0 && stickerEmoji.value === null
 );
 const worded = computed<boolean>(() => props.item.shownText !== "" || props.item.fileName !== null || empty.value);
 
@@ -651,19 +652,25 @@ const tailed = computed<boolean>(() => message.value && props.item.look.variant 
 const attachments = computed<MessageAttachment[]>(() => props.item.attachments ?? []);
 
 // The sticker the message was sent as, which stands as the picture alone outside any bubble (docs/web.md, the room screen's
-// wordless messages): the message's picture where it was kept so, else the sticker file it kept. A sticker whose file is not kept
-// stands among the files as its words.
+// wordless messages): the message's picture where it was kept so, else the sticker file it kept, else the emoji it was sent
+// for, large in the sticker's box. A sticker with none of the three stands among the files as its words.
 const stickerPicture = computed<string | null>(() => (props.item.stickerPicture === true ? props.item.imageUrl : null));
 const stickerFile = computed<MessageAttachment | null>(() =>
   stickerPicture.value === null ? (attachments.value.find((attachment) => attachment.kind === "sticker" && attachment.available) ?? null) : null
 );
-const stuck = computed<boolean>(() => stickerPicture.value !== null || stickerFile.value !== null);
+const stickerEmoji = computed<string | null>(() => props.item.stickerEmoji ?? null);
+const stuck = computed<boolean>(() => stickerPicture.value !== null || stickerFile.value !== null || stickerEmoji.value !== null);
 
 // The animations the message carried whose files are kept, each standing as a picture does.
 const moving = computed<MessageAttachment[]>(() => attachments.value.filter((attachment) => attachment.kind === "animation" && attachment.available));
 
-// The files that stand in the bubble: every one but the sticker and the animations standing as pictures.
-const filed = computed<MessageAttachment[]>(() => attachments.value.filter((attachment) => attachment !== stickerFile.value && !moving.value.includes(attachment)));
+// The files that stand in the bubble: every one but the sticker, the sticker file its emoji stands for, and the animations
+// standing as pictures.
+const filed = computed<MessageAttachment[]>(() =>
+  attachments.value.filter(
+    (attachment) => attachment !== stickerFile.value && !(stickerEmoji.value !== null && attachment.kind === "sticker") && !moving.value.includes(attachment)
+  )
+);
 
 // Whether the bubble names its sender: the head of a run of someone else's, since the right side is
 // the reader's own and needs no name.

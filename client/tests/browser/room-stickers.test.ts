@@ -9,8 +9,8 @@ import type { Browser, BrowserContext, Page } from "playwright-core";
 // the count its own file holds, or stands still on its first frame where the reader asked for less movement
 // (docs/web.md, the room screen's wordless messages). The room holds a still sticker, a video sticker, a moving emoticon kept as the
 // message's picture whose file plays it once, a GIF sticker that plays once, the emoticon sent with words, an
-// animated sticker's scene, the emoticon sent with a word by the reader, on the right, and an APNG sticker that plays
-// once. An APNG's loop is held in each browser engine, which plays the file itself. It drives the console
+// animated sticker's scene, the emoticon sent with a word by the reader, on the right, an APNG sticker that plays
+// once, and a sticker whose file the chat service is still gathering, which stands as the emoji it was sent for. An APNG's loop is held in each browser engine, which plays the file itself. It drives the console
 // tests/support/browser-console.ts stands up; the suite stands up no console, so there it skips.
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
@@ -25,6 +25,7 @@ const WORDED = "m5";
 const SCENE = "m6";
 const OWN = "m7";
 const APNG = "m8";
+const GATHERING = "m9";
 // The browser engines an APNG's loop is held in, and the widths it is read at.
 const ENGINES = { chromium, firefox, webkit } as const;
 const WIDTHS = [{ width: 1280, height: 1000 }, { width: 360, height: 780 }] as const;
@@ -207,6 +208,53 @@ describe.skipIf(!origin || !touchReady())("a room's stickers", () => {
       await context.close();
     }
   }, 120_000);
+
+  // A sticker nothing of which is kept yet stands in the sticker's box as the emoji it was sent for, drawn large, alone,
+  // and never as its mark, on a phone as on a desk.
+  for (const viewport of WIDTHS) {
+    test(`a sticker with nothing kept to draw stands as its emoji at ${viewport.width}px`, async () => {
+      const context = await browsers.chromium!.newContext({ viewport, isMobile: viewport.width < 600, hasTouch: viewport.width < 600, serviceWorkers: "block" });
+
+      try {
+        const page = await opened(context);
+        const row = page.locator(`[data-message="${GATHERING}"]`);
+
+        await row.scrollIntoViewIfNeeded();
+
+        const drawn = await row.evaluate((message) => {
+          const box = message.querySelector("[data-sticker]")!.getBoundingClientRect();
+          const emoji = message.querySelector<HTMLElement>("[data-sticker] [data-sticker-emoji]")!;
+          const glyph = emoji.getBoundingClientRect();
+          const middle = document.elementFromPoint(glyph.left + glyph.width / 2, glyph.top + glyph.height / 2);
+
+          return {
+            emoji: emoji.innerText.trim(),
+            label: emoji.getAttribute("aria-label"),
+            box: [Math.round(box.width), Math.round(box.height)],
+            fontSize: Number.parseFloat(getComputedStyle(emoji).fontSize),
+            onTop: middle !== null && emoji.contains(middle),
+            inView: glyph.top >= 0 && glyph.bottom <= window.innerHeight,
+            bubbles: message.querySelectorAll(".chat-bubble").length,
+            words: message.querySelectorAll("[data-words]").length,
+            marked: (message.textContent ?? "").includes("[Sticker")
+          };
+        });
+
+        expect(drawn.emoji).toBe("\u{1F4AD}");
+        expect(drawn.label).toBe("\u{1F4AD}");
+        expect(drawn.box).toEqual([160, 160]);
+        expect(drawn.fontSize).toBeGreaterThanOrEqual(96);
+        expect(drawn.onTop).toBe(true);
+        expect(drawn.inView).toBe(true);
+        expect(drawn.bubbles).toBe(0);
+        // Nothing stands beside it: no words, and no mark saying the message is empty.
+        expect(drawn.words).toBe(0);
+        expect(drawn.marked).toBe(false);
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+  }
 
   test("a reader who asked for less movement sees every sticker still on its first frame, on a phone", async () => {
     const context = await browsers.chromium!.newContext({

@@ -4662,7 +4662,13 @@ Four bounds keep it from growing forever.
   - Its meta line stands outside the box, beside its trailing edge at its foot, as the image overlay chip; where
     the line carries more than the time and its marks, or spreads anything, it stands under the sticker instead.
   - The same holds for a sticker from any sender and any provider that keeps the sticker's file, a moving one
-    included; a sticker whose file is not kept keeps its mark in a bubble.
+    included.
+  - A sticker nothing of which is kept to draw — its file still on its way from the chat service, or never kept —
+    stands in the same box as the emoji it was sent for, drawn large, its mark not shown, wherever the chat service
+    named that emoji in the metadata it handed over (`sticker.emoji`, the shape bmo-telegram's `docs/reader.md`
+    gives both its accounts). The receiver tells the room when a file it gathered later is kept (its
+    `docs/room-files.md`, 「Message files」), and the row, read again, draws the file in the emoji's place. A sticker
+    whose chat service named no emoji and kept no file keeps its mark in a bubble.
   - A sticker kept as a file stands as one whatever it is named; only a custom emoji's picture, which its words
     draw in place, stands among the words instead. Where the message kept several, the last stands.
   - A sticker a provider handed over as a picture stands the same way: the receiver keeps it as the message's
@@ -6385,7 +6391,8 @@ Four bounds keep it from growing forever.
   results, photos and voice — every road the chat agent speaks stays that way. Another bot's custom emoji the reader receives has
   its identifier preserved too, and static, WEBM and TGS stickers are stored. A static sticker and custom emoji show
   as the original picture, a WEBM as a silent looping video and a TGS as its scene unpacked and played in the browser
-  (**말 없는 메시지**). Without a supporting asset, the original emoji/sticker description stays. An ordinary Unicode emoji uses
+  (**말 없는 메시지**). Without a supporting asset, a sticker stands as its emoji where the metadata names one, and the
+  original emoji/sticker description stays otherwise. An ordinary Unicode emoji uses
   the browser font as before. This is web display and does not change custom-emoji sending eligibility. Entities and
   sticker IDs lost from an earlier record are not guessed as a description string.
 

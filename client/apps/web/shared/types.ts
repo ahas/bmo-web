@@ -345,6 +345,8 @@ export interface ArchivedMessage {
   // Whether the receiver's record holds the message under the sticker kind, so a picture it kept is the sticker it
   // was sent as rather than a photo. Absent on every other message.
   sticker?: boolean;
+  // The emoji the sticker a message is was sent for, as its chat service named it; absent on every other message.
+  stickerEmoji?: string;
   // How long the room waited for this answer, in whole seconds, on messages an agent answered with.
   // Null for everything anybody else said, and for an answer the archive holds no measurement
   // of.

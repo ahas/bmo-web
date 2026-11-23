@@ -59,8 +59,18 @@ function assetOf(file: ReceivedFile): Asset {
   };
 }
 
-/** A message's files, the expressions its words drew and the formatting its words were sent with, as the room screen draws them. `listedFiles` says whether the message's page named a file worth listing; without one its files are none. */
-export async function messageMedia(chatId: number, messageId: ExactMessageId, text: string, listedFiles: boolean): Promise<{ attachments: MessageAttachment[]; expressions: TelegramExpression[]; formats: TelegramFormat[] }> {
+/** What a message carried as the room screen draws it: its files, the expressions and the formatting its words were
+ * drawn with, and the emoji a sticker was sent for, or null where the message is no sticker or its chat service named
+ * none. */
+export interface MessageMedia {
+  attachments: MessageAttachment[];
+  expressions: TelegramExpression[];
+  formats: TelegramFormat[];
+  stickerEmoji: string | null;
+}
+
+/** A message's media, as the room screen draws it. `listedFiles` says whether the message's page named a file worth listing; without one its files are none. */
+export async function messageMedia(chatId: number, messageId: ExactMessageId, text: string, listedFiles: boolean): Promise<MessageMedia> {
   const [files, metadata] = await Promise.all([
     listedFiles ? messageFiles(chatId, messageId) : Promise.resolve([] as ReceivedFile[]),
     receiverCall(
@@ -81,7 +91,19 @@ export async function messageMedia(chatId: number, messageId: ExactMessageId, te
     .filter((asset) => asset.file.kind !== "sticker" || asset === latestSticker)
     .map((asset) => (SHAPED.includes(asset.attachment.kind) && shape !== null ? { ...asset.attachment, shape } : asset.attachment));
 
-  return { attachments, expressions: expressionsOf(text, described, assets), formats: formatsOf(text, described) };
+  return { attachments, expressions: expressionsOf(text, described, assets), formats: formatsOf(text, described), stickerEmoji: stickerEmojiOf(described) };
+}
+
+// The emoji the sticker a message is was sent for, as the metadata names it under `sticker`, in the shape Telegram's
+// both accounts hand a sticker over in (bmo-telegram's `docs/reader.md`); null where the metadata names none.
+function stickerEmojiOf(metadata: Record<string, unknown> | null): string | null {
+  const sticker = metadata?.sticker;
+
+  if (typeof sticker !== "object" || sticker === null) return null;
+
+  const { emoji } = sticker as { emoji?: unknown };
+
+  return typeof emoji === "string" && emoji.trim() !== "" ? emoji.trim() : null;
 }
 
 // The metadata's own words and where they stand in the stored ones: the room's line may carry marks before them,

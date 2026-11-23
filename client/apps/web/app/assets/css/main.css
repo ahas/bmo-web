@@ -67,7 +67,8 @@
      square, hung a little outside the reading column, and the photo's gap from it. A message on the
      leading side slides aside by it, and a bubble's widest keeps that much clear on its far side.
    - The meta line under the words: one size and one line height for everything on it.
-   - The square box a sticker alone stands in, held before its file loads.
+   - The square box a sticker alone stands in, held before its file loads, and the size its emoji is drawn at in
+     that box where nothing of the sticker is kept.
    - The room above and below the input box in the bar along the foot.
    - The colours a sender's name is drawn in at the head of a bubble, one per person by their number:
      eight of the theme's own colours, at the step that reads at 4.5:1 or better on the bubble's
@@ -110,6 +111,7 @@
      padding from the words above it, as a picture stands from its caption. */
   --chat-media-step: calc(var(--chat-pad-y) - var(--chat-meta-gap));
   --chat-sticker: 160px;
+  --chat-sticker-emoji: 112px;
   --chat-bar-pad: 8px;
 }
 

@@ -460,6 +460,10 @@ const STICKER_FILES: Record<number, { name: string; type: string; bytes: Uint8Ar
   8: { name: "sticker-once.png", type: "image/png", bytes: await fixture("room-sticker-once.png") }
 };
 const EMOTICON = await fixture("room-emoticon-once.webp");
+// The sticker room's message whose sticker the chat service is still gathering: it stands under its mark, with no
+// file yet, and its metadata names the emoji it was sent for.
+const GATHERING_STICKER = 9;
+const GATHERING_EMOJI = "\u{1F4AD}";
 // The sender linked to the account the sticker room's file signs in with.
 const STICKERS_SENDER = 10;
 // The lone picture room's messages, by message: an emoticon a chat service handed over as a plain square picture with
@@ -1177,10 +1181,10 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     }
 
     const stickerRoom = { ...room, id: STICKER_CHAT, title: "sticker-room", ownerRoom: false, workRoom: STICKER_CHAT, lastMessageAt: LINE_AT - 400 };
-    const stickerLine = [1, 2, 3, 4, 5, 6, 7, 8].map((id) => ({
-      id, room: STICKER_CHAT, sentAt: LINE_AT - 3_000 + id, kind: "sticker",
+    const stickerLine = [1, 2, 3, 4, 5, 6, 7, 8, GATHERING_STICKER].map((id) => ({
+      id, room: STICKER_CHAT, sentAt: LINE_AT - 3_000 + id, kind: id === GATHERING_STICKER ? null : "sticker",
       ...(id === 7 ? { senderId: STICKERS_SENDER, senderName: "stickers" } : { senderId: 7, senderName: "person-b" }),
-      text: id === 5 ? "words sent with the emoticon" : id === 7 ? "ok" : "", imagePath: EMOTICON_MESSAGES.includes(id) ? `images/${STICKER_CHAT}/${id}.webp` : null,
+      text: id === 5 ? "words sent with the emoticon" : id === 7 ? "ok" : id === GATHERING_STICKER ? `[Sticker ${GATHERING_EMOJI}]` : "", imagePath: EMOTICON_MESSAGES.includes(id) ? `images/${STICKER_CHAT}/${id}.webp` : null,
       replyToMessageId: null, answerSeconds: null, round: null, album: null, via: null,
       files: STICKER_FILES[id] ? [{ kind: "sticker", source: STICKER_FILES[id].name, storedPath: "kept", collectedAt: LINE_AT }] : []
     }));
@@ -1198,7 +1202,9 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       const file = STICKER_FILES[id];
 
       if (stickerAsked[2] === "/picture") return new Response(EMOTICON, { headers: { "content-type": "image/webp" } });
-      if (stickerAsked[2] === "/metadata") return Response.json({ metadata: null });
+      if (stickerAsked[2] === "/metadata") {
+        return Response.json({ metadata: id === GATHERING_STICKER ? { text: "", entities: [], sticker: { emoji: GATHERING_EMOJI, is_animated: true, is_video: false } } : null });
+      }
       if (stickerAsked[2] === "/files" && stickerAsked[3] === undefined) {
         return Response.json({ items: file ? [{ place: 0, kind: "sticker", name: file.name, size: file.bytes.byteLength, type: file.type, kept: true }] : [], more: false });
       }

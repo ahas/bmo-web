@@ -283,6 +283,9 @@ export interface FeedItem {
   // Whether that picture is the sticker the message was sent as, standing in the sticker's box rather than as a
   // photo. Absent on every other row.
   stickerPicture?: boolean;
+  // The emoji a sticker stands as, large in the sticker's box, where nothing of it is kept to draw. Absent on every
+  // other row.
+  stickerEmoji?: string;
   // The picture's shape as the console's server read it, which keeps its room before it has loaded. Absent where none
   // was read.
   imageShape?: MediaShape;
@@ -422,6 +425,8 @@ export interface CarriedMedia {
   attachments: readonly { kind: string; name: string; available: boolean }[];
   pictured: boolean;
   sticker?: boolean;
+  // Whether the sticker the message is stands as its emoji, nothing of it kept to draw.
+  stickerEmoji?: boolean;
 }
 
 // The marks the receiver writes at the head of a message for what it carried, where the row stands the thing
@@ -457,14 +462,14 @@ function escaped(text: string): string {
 // A mark at the head of a message says nothing the file's line or the picture under it does not,
 // so the bubble leaves it out and keeps the caption after it. The expressions and the formats are
 // placed by their offset into the text, so they move back by what was taken off. A sticker carries
-// no caption, so the words of a message whose sticker is drawn are its mark alone, and none of
-// them is shown.
+// no caption, so the words of a message whose sticker is drawn, as its file or as its emoji, are its
+// mark alone, and none of them is shown.
 export function withoutMediaMark(
   text: string,
   media: CarriedMedia,
   words: TelegramWords
 ): { text: string; expressions: TelegramExpression[]; formats: TelegramFormat[] } {
-  if (media.attachments.some((attachment) => attachment.kind === "sticker" && attachment.available)) {
+  if (media.stickerEmoji === true || media.attachments.some((attachment) => attachment.kind === "sticker" && attachment.available)) {
     return { text: "", expressions: [], formats: [] };
   }
 
@@ -1231,6 +1236,19 @@ export function carriedKinds(pictured: "sticker" | "picture" | null, attachments
   ];
 }
 
+// The emoji a sticker stands as where nothing of it is kept to draw (docs/web.md, the room screen's wordless messages):
+// the one its chat service named it for, on a message that kept neither a sticker picture nor a sticker file that
+// can be drawn; null on every other message.
+export function stickerEmojiOf(
+  emoji: string | undefined,
+  stickerPicture: boolean,
+  attachments: readonly Pick<MessageAttachment, "kind" | "available">[]
+): string | null {
+  if (emoji === undefined || stickerPicture || attachments.some((attachment) => attachment.kind === "sticker" && attachment.available)) return null;
+
+  return emoji;
+}
+
 // The kinds of picture that stand alone when a message is that one picture and nothing else.
 const LONE_PICTURES: readonly string[] = ["picture", "animation"];
 
@@ -1702,9 +1720,11 @@ function feedItemOf(
   const pictured = !deleted && message.imagePath !== null;
   // A picture the message was sent as a sticker stands as a sticker, never as a photo.
   const sticker = pictured && message.sticker === true;
-  const shown = withoutMediaMark(message.text, { attachments, pictured, sticker }, { expressions: message.expressions ?? [], formats: message.formats ?? [] });
+  // A sticker nothing of which is kept to draw stands as its emoji, in the sticker's box.
+  const emoji = deleted ? null : stickerEmojiOf(message.stickerEmoji, sticker, attachments);
+  const shown = withoutMediaMark(message.text, { attachments, pictured, sticker, stickerEmoji: emoji !== null }, { expressions: message.expressions ?? [], formats: message.formats ?? [] });
   const headed = message.replyQuote != null || message.forwardedFrom != null;
-  const bare = !deleted && bareMedia(shown.text, carriedKinds(pictured ? (sticker ? "sticker" : "picture") : null, attachments), headed);
+  const bare = !deleted && bareMedia(shown.text, carriedKinds(sticker || emoji !== null ? "sticker" : pictured ? "picture" : null, attachments), headed);
 
   return {
     key: `m${message.messageId}`,
@@ -1718,6 +1738,7 @@ function feedItemOf(
     quote: deleted ? null : (message.replyQuote ?? null),
     imageUrl: !pictured ? null : imageUrlFor(message.chatId, message.messageId),
     ...(sticker ? { stickerPicture: true } : {}),
+    ...(emoji === null ? {} : { stickerEmoji: emoji }),
     ...(!pictured || message.imageShape === undefined ? {} : { imageShape: message.imageShape }),
     attachments: deleted ? [] : message.attachments,
     expressions: shown.expressions,

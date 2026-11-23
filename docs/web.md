@@ -8527,7 +8527,8 @@ stands on it.
   unit only closes a source: opening one the links above close is theirs. For the administrator on a company, a
   first row, 이 회사에 조직 공급 제공, opens organisation supply to the company or closes it again, a rule naming the
   company at the platform's link. Each switch and choice is written on the delegation chain as the reader, and the
-  group read again.
+  group read again. A reader who writes none of the unit's source links, a credit manager heading nothing there, is
+  shown neither this group nor the next.
 - **조직 공급 키** stands for a head of the unit and the administrator: the unit's own keys and Claude accounts (the
   agency's `docs/supply.md`, 「Organisation supply」), each by its secret's name with its 공급자 and 사용 가능, 키 거부됨
   or 꺼짐, its switch and its delete, asked first. The add at the heading's end opens 조직 공급 키 추가: 공급자 — Claude

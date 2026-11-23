@@ -3,7 +3,7 @@
        company where none is — which of the three supply sources stand open under it, each closed here or following
        above with what the links below may do, and the unit's own keys where it holds organisation supply. A key's
        value is typed once into the form and goes to the unit's secret store; a row says of a key its name alone. -->
-  <div class="flex flex-col gap-4" data-agent-supply>
+  <div v-if="!withheld" class="flex flex-col gap-4" data-agent-supply>
     <ContentSkeleton v-if="view === null && failure === ''" :rows="3" list-class="flex flex-col divide-y divide-default" :label="$t('supply.status.loading')">
       <div class="flex items-center gap-4 py-3">
         <SkeletonLine width="w-1/3" />
@@ -116,6 +116,9 @@ const unit = computed(() => {
 });
 const isCompany = computed(() => unit.value === props.company.id);
 const view = ref<UnitSupplyView | null>(null);
+// Whether the reader holds no link of the unit's sources, a credit manager who heads nothing among them: the groups
+// stand for nobody else, so none is drawn.
+const withheld = ref(false);
 const failure = ref("");
 const reading = ref(false);
 const busy = ref("");
@@ -173,7 +176,9 @@ async function read(): Promise<void> {
   failure.value = "";
   try {
     view.value = await $fetch<UnitSupplyView>(`/api/organization/units/${unit.value}/supply`, { query: { company: String(isCompany.value) } });
+    withheld.value = false;
   } catch (error) {
+    withheld.value = (error as { statusCode?: number }).statusCode === 403;
     failure.value = failureText(error, t("org_agents.error.forbidden"));
   } finally {
     reading.value = false;

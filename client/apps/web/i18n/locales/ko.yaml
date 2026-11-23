@@ -1987,6 +1987,10 @@ organization:
     list: 조직 목록
     list_none: 설정할 조직 없음
     list_no_match: 찾은 조직 없음
+    platform: 플랫폼 전체
+    platform_none: 이 탭에는 플랫폼 설정이 없습니다.
+    person: 나
+    person_none: 이 탭에는 개인 설정이 없습니다.
     name: 이름
     parent: 상위 조직
     heads: 조직장
@@ -4207,24 +4211,16 @@ apps:
     follows_platform_off: 전역 설정을 따라 끔
     follows_organization: 조직을 따름
     own: 직접 정함
+    follows_declared: 기본값을 따름
     locked_above: 상위 조직에서 잠금
     locked_organization: 조직에서 잠금
     not_offered: 제공되지 않음
     offer: 제공
-    withhold: 제공 안 함
-    state: 상태
-    platform: 전역 설정
-    by_company: 회사별 제공
-    offered_everywhere: 모든 회사에 제공
-    offered_nowhere: 제공하지 않음
-    offered_to: "{count}곳에 제공"
-    withheld_from: "{count}곳 제외"
     recalled: 긴급 회수됨
   action:
     lock: 하위 조직 잠금
     unlock: 잠금 해제
     follow: 되돌리기
-    settings: 설정
     recall: 긴급 회수
     recall_confirm: 회수
     lift: 회수 해제

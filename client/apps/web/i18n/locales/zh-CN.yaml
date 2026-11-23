@@ -1968,6 +1968,10 @@ organization:
     list: 组织列表
     list_none: 没有可设置的组织
     list_no_match: 未找到组织
+    platform: 整个平台
+    platform_none: 此标签页没有平台设置。
+    person: 我
+    person_none: 此标签页没有个人设置。
     name: 名称
     parent: 上级组织
     heads: 负责人
@@ -4223,24 +4227,16 @@ apps:
     follows_platform_off: 遵循全局设置：关闭
     follows_organization: 遵循组织
     own: 自行设定
+    follows_declared: 遵循默认值
     locked_above: 已被上级组织锁定
     locked_organization: 已被组织锁定
     not_offered: 未提供
     offer: 提供
-    withhold: 不提供
-    state: 状态
-    platform: 全局设置
-    by_company: 按公司提供
-    offered_everywhere: 向所有公司提供
-    offered_nowhere: 不提供
-    offered_to: "向 {count} 处提供"
-    withheld_from: "排除 {count} 处"
     recalled: 已紧急收回
   action:
     lock: 锁定下级组织
     unlock: 解除锁定
     follow: 恢复
-    settings: 设置
     recall: 紧急收回
     recall_confirm: 收回
     lift: 解除收回

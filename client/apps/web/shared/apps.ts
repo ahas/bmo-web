@@ -54,17 +54,8 @@ export interface PlatformWord {
   declared: boolean;
 }
 
-/** A platform rule offering an app to one unit or withholding it: the unit, its name, the name of the company it stands
- * under where it is not one itself, and the rule's word. */
-export interface AppOffer {
-  unit: number;
-  name: string;
-  company: string | null;
-  offered: boolean;
-}
-
-/** An app as the administrator's apps tab shows it, for the whole platform. */
-export interface AdminApp extends AppName {
+/** An app as the organisation screen's apps tab shows it with the platform chosen: the platform's own link of it. */
+export interface PlatformApp extends AppName {
   // Whether it is offered where no rule says otherwise; null where its publisher declared no offer.
   offered: PlatformWord | null;
   // Whether it is on where nobody below the platform says otherwise.
@@ -73,14 +64,6 @@ export interface AdminApp extends AppName {
   locks: boolean;
   // Whether it is recalled: off under the platform's lock.
   recalled: boolean;
-  // The platform's rules naming a unit, companies first and each in the order of its name.
-  offers: AppOffer[];
-}
-
-/** The administrator's apps tab: every app, and every company an offer may name. */
-export interface AdminApps {
-  apps: AdminApp[];
-  companies: { id: number; name: string }[];
 }
 
 /** A change of the platform's own word on an app: whether it is offered and whether it is on, each true or false, or

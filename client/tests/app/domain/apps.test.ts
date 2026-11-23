@@ -1,13 +1,13 @@
 import { expect, test } from "bun:test";
 
-import { adminAppLine, appTitle, choiceWord, flagChoices, OFFER_WORDS, offerRows, ownAppLine, unitAppChoice, unitAppChoices, unitAppLine, wordFor } from "../../../apps/web/app/domain/apps";
+import { appTitle, choiceWord, flagChoices, ON_WORDS, ownAppLine, platformAppLine, unitAppChoice, unitAppChoices, unitAppLine, wordFor } from "../../../apps/web/app/domain/apps";
 import { sectionsFor } from "../../../apps/web/app/domain/settings-dialog";
 
-import type { AdminApp, OwnApp, UnitApp } from "../../../apps/web/shared/apps";
+import type { OwnApp, PlatformApp, UnitApp } from "../../../apps/web/shared/apps";
 
-// The apps a reader turns on and off as their rows read (docs/web.md, 「Administration」 and 「Organisation」, the apps
-// tabs, and 「Settings」, the own apps section): the line saying how an app stands, the choice a word stands at, and the
-// section shown to a reader with a user alone.
+// The apps a reader turns on and off as their rows read (docs/web.md, 「Organisation」, the apps tab at a unit and at
+// the platform, and 「Settings」, the own apps section): the line saying how an app stands, the choice a word stands at,
+// and the section shown to a reader with a user alone.
 
 const t = (key: string, named?: Record<string, unknown>) => (named === undefined ? key : `${key} ${JSON.stringify(named)}`);
 
@@ -51,59 +51,31 @@ test("the own apps section stands for a reader with a user alone", () => {
   expect(sectionsFor(false, false).map((one) => one.key)).not.toContain("apps");
 });
 
-const ADMIN: AdminApp = {
+const PLATFORM: PlatformApp = {
   app: "app-a",
   title: "App A",
   icon: null,
   offered: { value: true, own: null, declared: true },
   on: { value: true, own: null, declared: true },
   locks: false,
-  recalled: false,
-  offers: []
+  recalled: false
 };
 
-test("the administrator's row says to whom the app is offered, how many apart, and its lock", () => {
-  expect(adminAppLine(t, ADMIN)).toBe("apps.label.offered_everywhere");
-  expect(adminAppLine(t, { ...ADMIN, locks: true })).toBe("apps.label.offered_everywhere · apps.action.lock");
-
-  const apart = { ...ADMIN, offers: [{ unit: 1, name: "c", company: null, offered: false }, { unit: 2, name: "d", company: null, offered: true }] };
-
-  expect(adminAppLine(t, apart)).toBe('apps.label.offered_everywhere · apps.label.withheld_from {"count":"1"}');
-
-  const nowhere = { ...ADMIN, offered: { value: false, own: null, declared: false } };
-
-  expect(adminAppLine(t, nowhere)).toBe("apps.label.offered_nowhere");
-  expect(adminAppLine(t, { ...nowhere, offers: [{ unit: 1, name: "c", company: null, offered: true }] })).toBe('apps.label.offered_to {"count":"1"}');
-  expect(adminAppLine(t, { ...ADMIN, recalled: true, locks: true })).toBe("apps.label.recalled");
+test("the platform's row says whether it sets the app itself or follows what its publisher declared, a recall before all", () => {
+  expect(platformAppLine(t, PLATFORM)).toBe("apps.label.follows_declared");
+  expect(platformAppLine(t, { ...PLATFORM, on: { value: false, own: false, declared: true } })).toBe("apps.label.own");
+  expect(platformAppLine(t, { ...PLATFORM, offered: { value: false, own: false, declared: true } })).toBe("apps.label.own");
+  expect(platformAppLine(t, { ...PLATFORM, offered: null })).toBe("apps.label.follows_declared");
+  expect(platformAppLine(t, { ...PLATFORM, recalled: true, locks: true, on: { value: false, own: false, declared: true } })).toBe("apps.label.recalled");
 });
 
 test("a flag's choices hold the real values alone, the default marked, and choosing it takes the word away", () => {
-  const choices = flagChoices(t, OFFER_WORDS, false);
+  const choices = flagChoices(t, ON_WORDS, false);
 
   expect(choices.map((one) => one.value)).toEqual([true, false]);
-  expect(choices[0]!.label).toBe("apps.label.offer");
-  expect(choices[1]!.label).toBe('organization.label.default_mark {"label":"apps.label.withhold"}');
+  expect(choices[0]!.label).toBe("apps.label.on");
+  expect(choices[1]!.label).toBe('organization.label.default_mark {"label":"apps.label.off"}');
   expect(wordFor(false, false)).toBeNull();
   expect(wordFor(true, false)).toBe(true);
   expect(wordFor(false, true)).toBe(false);
-});
-
-test("the offers by company list every company, then every unit below one a rule names", () => {
-  const app = {
-    ...ADMIN,
-    offers: [
-      { unit: 2, name: "Company B", company: null, offered: false },
-      { unit: 7, name: "Team", company: "Company A", offered: true }
-    ]
-  };
-  const rows = offerRows(app, [
-    { id: 1, name: "Company A" },
-    { id: 2, name: "Company B" }
-  ]);
-
-  expect(rows).toEqual([
-    { unit: 1, name: "Company A", rule: null },
-    { unit: 2, name: "Company B", rule: false },
-    { unit: 7, name: "Company A · Team", rule: true }
-  ]);
 });

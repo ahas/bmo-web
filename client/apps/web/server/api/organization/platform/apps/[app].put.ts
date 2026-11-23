@@ -1,12 +1,12 @@
 import { wording } from "#shared/wording";
 
-import { appParam, appWord, appsFailure, changePlatformApp } from "../../../utils/apps";
-import { fail } from "../../../utils/fail";
+import { appParam, appWord, appsFailure, changePlatformApp } from "../../../../utils/apps";
+import { fail } from "../../../../utils/fail";
 
 import type { PlatformAppChange } from "#shared/apps";
 
 // The platform's own word on an app changed: `offered` and `on`, each true, false, or null to follow the app's
-// publisher, and `locks`, its lock on the app's on, each where the body names it (docs/web.md, 「Administration」, the
+// publisher, and `locks`, its lock on the app's on, each where the body names it (docs/web.md, 「Organisation」, the
 // apps tab): the administrator's.
 export default defineEventHandler(async (event): Promise<null> => {
   const signed = await requireAdministrator(event);

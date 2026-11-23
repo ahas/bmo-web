@@ -7880,25 +7880,9 @@ a row shows of a key is the secret's name, and of a login the path it is reached
 
 #### 내 앱·도구
 
-The apps offered to the reader, each switched on or off for them alone (「Screens a unit brings」; `docs/accounts.md`,
-「An app's two settings」). Every person with a user of the account service sees it. The console reads and writes the
-reader's own link of each app's `on` kind through its own routes (`GET /api/account/apps`, `PUT
-/api/account/apps/{app}`), which hand the account service the reader as the writer, so a lock above refuses the write
-there.
-
-- **One row per app offered to the reader,** an app not offered to them, and another company's shared app, standing
-  nowhere in it: the app's icon and its
-  name — the title its screen's bundle gives, else the app's key in the monospace face — with one muted line under it
-  saying where its state comes from, and its switch at the row's end.
-  - **직접 정함** where the reader set it, with 되돌리기, an icon button before the switch, that takes the reader's own
-    word away so the organisation's stands again; **조직을 따름** where they set nothing; **조직에서 잠금** where a unit
-    above locks it, the switch disabled and showing what the lock holds.
-  - A switch is written as it is turned and the row read again; a refusal is said under the row, which goes back to
-    what stood.
-- **None offered says 앱 없음.** The rows keep their place with a skeleton while they are first read, and a read that
-  failed says its reason with 새로고침.
-- **A change reaches the reader's screens as the list is next read,** the next page or sign-in, and every relayed call
-  at once.
+A door to the one apps screen (「Organisation」, 「앱·도구」): one row, 앱·도구, with 열기, which opens 조직's 앱·도구 with 나
+chosen, the dialog left behind as the address moves. Every person with a user of the account service sees it, the
+organisation screen standing for every such reader at 나 whether or not the sidebar lists it.
 
 #### 내 개인 앱
 
@@ -7994,10 +7978,18 @@ account the reader's user is, so a reader reaches their own apps alone.
 조직 is the screen of the organisations and the people in them. An organisation, a company at the top of the
 tree of units, is chosen first; everything else is set inside the one chosen: its units and who stands in them,
 every person looked up one at a time, the invitations into its units, its people's BMOs and their agents, its
-supply and its plans. What is set for the platform itself —
-the providers and the Claude accounts
+apps, its supply and its plans.
+
+**One setting stands on one screen, drawn by the reader's reach.** A setting kept on the delegation chain is read and
+written here, at one link of the chain at a time: the tree at the screen's left holds exactly the links the reader
+may write — 플랫폼 전체 for the administrator, the companies and units they head, and 나, their own link, for every
+reader with a user — and the tab at its right shows the link chosen: each value, where it comes from (위를 따름 or
+직접 정함), and a lock above it, which leaves the value standing and its control disabled. The same tab draws the same
+setting for every reader, one node at a time, and no list names the companies or units a value is set for; another
+screen that sets the same thing for a reader is a door to this one (「Settings」). What else is set for the
+platform itself — the providers and the Claude accounts
 every run goes out on, the kinds every person's secret form asks in, the platform's own supply, its plans and
-its credits, and the apps every company is offered — is the administrator's screen, 플랫폼 설정
+its credits — is the administrator's screen, 플랫폼 설정
 (「Administration」). What a person sets for themselves alone, their secrets and the voice briefing among it, is the
 settings dialog's (「Settings」), and the research supervisor stands with the research unit's settings on the
 research screen (「Research screen」).
@@ -8009,14 +8001,18 @@ research screen (「Research screen」).
     member's holds the companies where they head a unit, hold a part of the supply — its policy and credits, or its
     plan — write a unit's org memory, or head the company itself, and under each the units they may invite into and
     the units whose org memory they write, each under its parent where the parent stands among them and under its
-    company otherwise. A company leads with a building and a unit with a group of people. What a unit is called —
+    company otherwise. A company leads with a building and a unit with a group of people. Above the companies stand
+    the link nodes, each a link of the chain of its own and holding nothing under it: first 나, the reader's own
+    link, led by a person, in the tree of every reader with a user of the account service; then 플랫폼 전체, the
+    platform itself, led by a globe, in the administrator's tree alone. What a unit is called —
     본부, 센터, 팀, 파트 — is its name alone (`docs/accounts.md`, 「Companies and organisation units」); a unit
     carrying a kind wears it as a small neutral badge after its name, in its company's words.
   - **Choosing a node is a step of the history** and stands in the address: a company as `?company=` and its
-    number, a unit as `?unit=` and its number beside its company's `?company=`, so a shared link opens the same
-    node. Where the address names no company, or one the reader may not set, the first is chosen with no step; where
-    it names no unit of the company chosen's tree, the company itself is chosen. The node chosen stays as the reader
-    moves between tabs.
+    number, a unit as `?unit=` and its number beside its company's `?company=`, the reader's own as `?company=me`
+    and the platform as `?company=platform`, so a shared link opens the same node. Where the address names no
+    company, or one the reader may not set — the platform for a member among them — the first company is chosen
+    with no step, and 나 where the reader sets no company; where it names no unit of the company chosen's tree, the
+    company itself is chosen. The node chosen stays as the reader moves between tabs.
   - **The tree is bmo-ui's side tree** (`ChoiceTree`, bmo-ui's `docs/components.md`, 「Choosing from a side
     tree」), the one 일정 관리's organisation tree stands on. Every node above the one chosen stands open and
     marked, and the node chosen open; a branch opens and closes by the chevron at its row's end, whose tooltip
@@ -8030,8 +8026,8 @@ research screen (「Research screen」).
     tree opens as a bottom drawer from the button at the start of the tab row, which carries the node's name, a
     name cut short reading whole in its tooltip; choosing a node there closes the drawer, and opening or closing a
     branch leaves it open.
-  - **A reader with no organisation to set** is shown 설정할 조직 없음 alone, with no list and no tab; the
-    administrator finds 회사 추가 beside it, so the first company is made there.
+  - **A reader with no node to set** — no organisation, and no user of their own — is shown 설정할 조직 없음 alone,
+    with no list and no tab. A reader with a user and no organisation is shown the tree of 나 alone, chosen.
   - **A link naming a person but no organisation** — a person's tab from before the list, the console search's
     person — opens the organisation that person stands in.
 - **Inside the organisation chosen, a tab to a section.** The tabs are 조직도, 사용자, 직책·종류, 초대, BMO, 에이전트,
@@ -8044,6 +8040,16 @@ research screen (「Research screen」).
   them chooses an organisation or a unit of its own.
   The console search finds each tab as it finds every screen's; the sidebar lists the screen as one entry, 조직, among
   the 시스템 서비스, and the tabs stand in the screen's own row alone (「Sidebar」).
+- **With a link node chosen, every tab stands for that link of its settings.** The row keeps the tabs the reader
+  opens, and the tab open stays as a link node is chosen and as a company or a unit is chosen from it, so one tab is
+  read node by node down the tree. Each tab says for itself what it shows at each link node: a view of its own that
+  reads and writes that link of the kinds the tab sets — the platform's, the administrator's alone, or the reader's
+  own — in the centred reading column; a tab that declares none for the node shows one muted line there, 이 탭에는
+  플랫폼 설정이 없습니다 or 이 탭에는 개인 설정이 없습니다, and nothing else. A tab takes a link node on by declaring its
+  view, and nothing outside the tab changes. 앱·도구 declares both (「앱·도구」); 조직도, 사용자, 직책·종류, 초대, BMO, 에이전트,
+  아티팩트 저장, 조직 기억, 공급 and 플랜 declare neither, what the platform holds of the supply standing on 플랫폼 설정's 크레딧
+  (「Administration」) and what a person sets of their own supply, secrets and BMO in the settings dialog (「Settings」).
+  An address naming a link node beside a unit loses the unit, replaced with no step.
 - **A key of a section that moved away leads to where it stands now,** so a link made before it moved still lands
   on it: `research` to the research screen's 설정 tab, `briefing` to the settings dialog's 보이스브리핑 and `secrets`
   to its 비밀 보관함, each over this screen, `providers` and `secret-kinds` to those tabs of 플랫폼 설정, and `permissions` to
@@ -8057,7 +8063,7 @@ research screen (「Research screen」).
   (「사용자」, 「직책·종류」). A member granted a unit's org memory write without heading one (`docs/accounts.md`, 「A unit's
   org memory」) is listed 조직 as well, with the companies of those units, and the screen holds 조직 기억 for them beside
   the tabs every member opens (「조직 기억」); a member who heads none and holds no such grant is listed no entry, and the
-  address shows them 초대 saying they may invite into no unit. 공급 stands for the reader the account service's
+  address shows them the tree of 나 alone, the settings dialog's 내 앱·도구 being their door to it (「Settings」). 공급 stands for the reader the account service's
   supply reach says holds the supply policy and credits of the organisation chosen — its credit manager or its head
   — and 플랜 for one it says holds any part of its supply, its subscription manager among them; both stand for the
   administrator wherever they stand, and a reader the reach says nothing for is held the tab no longer than it says
@@ -8628,10 +8634,14 @@ it, are the account service's word.
 #### 앱·도구
 
 Which apps stand on for the people under the node chosen (「Screens a unit brings」; `docs/accounts.md`, 「An app's two
-settings」). The administrator opens it, and so does every member who heads a unit. The console reads and writes the
-node's links of each app's two kinds through its own routes (`GET /api/organization/units/{unit}/apps`, `PUT
-/api/organization/units/{unit}/apps/{app}`), handing the account service the reader as the writer, so who may change
-a link, and a lock above it, are the service's word.
+settings」). It is the one screen where an app is set for the platform, a company or a unit: the node is chosen in the
+tree and the tab shows that node's link of each app, so an app's word is read one node at a time and no list names
+the companies or units an app is offered to. Every reader opens it: the administrator at every node, a member at
+the units they head and at 나.
+The console reads and writes a unit's links of each app's two kinds through its own routes (`GET
+/api/organization/units/{unit}/apps`, `PUT /api/organization/units/{unit}/apps/{app}`), handing the account service
+the reader as the writer, so who may change a link, and a lock above it, are the service's word; the platform's link
+through routes of the same set naming the platform in the unit's place, the administrator's alone (below).
 
 - **One row per app the chain holds for the node's company,** in the order of their names — every platform app and
   the company's own shared apps, never another company's (`docs/accounts.md`, 「An app's two settings」): the app's
@@ -8646,6 +8656,56 @@ a link, and a lock above it, are the service's word.
   - **제공**, a switch the administrator alone is shown, offers the app to the node or withholds it: the platform's
     rule for that unit (`docs/accounts.md`, 「Rules and groups」), so no head below it can offer it back.
   - Controls the reader may not change — a lock above, a link they do not write — stand disabled.
+- **With 나 chosen, the rows are the apps offered to the reader,** each switched on or off for them alone, read and
+  written through the reader's own routes (`GET /api/account/apps`, `PUT /api/account/apps/{app}`), which hand the
+  account service the reader as the writer, so a lock above refuses the write there. An app not offered to them, and
+  another company's shared app, stands nowhere in it. A row is the app's icon and name with one muted line saying
+  where its state comes from, and its switch at the row's end:
+  - **직접 정함** where the reader set it, with 되돌리기, an icon button before the switch, that takes the reader's own
+    word away so the organisation's stands again; **조직을 따름** where they set nothing; **조직에서 잠금** where a unit
+    above locks it, the switch disabled and showing what the lock holds.
+  - A change reaches the reader's screens as the list is next read, the next page or sign-in, and every relayed call
+    at once.
+- **With 플랫폼 전체 chosen, the rows are every app the chain holds,** every company's shared apps among them, each the
+  platform's own link: what the app is where no company, unit or person says otherwise, and its recall. The row has
+  the same shape, its controls at its end:
+  - **The state line:** 직접 정함 where the platform says its own word on either kind; 기본값을 따름 where it says
+    none and the values its publisher declared stand; 긴급 회수됨, in the error colour, while the app is recalled.
+  - **제공**, a switch, whether the app is offered where no rule says otherwise. Its publisher's declaration is the
+    value standing with no word: turning the switch to that value takes the platform's own word away, so the
+    declaration stands again, and turning it the other way writes the platform's word. An app whose publisher
+    declared no offer has no switch.
+  - **켬 or 끔**, a choice of the two, whether the app is on where nobody under the platform says otherwise, the
+    value its publisher declared marked `(기본값)` (「The default among choices」); choosing it takes the platform's
+    own word away.
+  - **하위 조직 잠금**, the same icon button as a unit's, locking the app's on for every company, unit and person.
+  - **긴급 회수**, an icon button in the error colour, below. While the app is recalled, 회수 해제, an icon button,
+    stands in its place, and 켬 or 끔 and 하위 조직 잠금 stand disabled.
+  - The platform's rules for one unit are written on that unit's own row, by its 제공 switch; a rule naming a person
+    or a group, which no screen writes, is kept as it stands and shown nowhere.
+- **긴급 회수 turns the app off everywhere at once:** the platform's link of its on holds 끔 and a lock, so every
+  company, unit and person under it is off whatever they said, and any platform rule turning it on for someone is
+  taken away. A screen of it meets 403 `app-off` at its next relayed call and leaves every reader's list at their next
+  read of the screens, and a session's issuer withholds its tools from the next turn on. What companies, units and
+  people said below stays kept and unread, so lifting the recall finds it as it was. Taking a tool out of the tool
+  host at once, mid-turn, stays the tool host's own `take` (bmo-pocket's `docs/registry.md`).
+  - **It is asked first as a step the row grows** (「Messages」), marked on its leading edge in the error colour:
+    `<app> 앱을 모든 곳에서 끌까요?`, then what it does — off for every company and person at once, nobody turning it
+    back on until the recall is lifted, and their own settings coming back then — and 취소 and then 회수, the way
+    through in the error colour, at its trailing edge, the keyboard's place handed to 취소 as it opens and back to the
+    row as it closes.
+  - **회수 해제** lifts the lock and takes the platform's own word on its on away, so the value its publisher declared
+    and everything said below it stand again, at once and with no question, since it only gives back.
+- **플랫폼 앱 요청** stands under the platform's apps, a group under its heading: every company's request to make a
+  shared personal app a platform app (「App catalogue」), newest first, each a row of the app's title with the company,
+  who asked and when under it, and the note they gave; 요청 없음 where none stands. The administrator reads the app's
+  source and, where it is to ship, puts it as a platform tool (bmo-pocket's `docs/catalogue.md`, 「A promotion」).
+- **The platform's routes** are the administrator's alone: `GET /api/organization/platform/apps` reads every app's
+  platform link, the value standing, the platform's own word or none and the value its publisher declared for each
+  kind, its lock and whether it is recalled; `PUT /api/organization/platform/apps/{app}` writes the platform's own
+  word, `offered` and `on` each true, false or null and `locks`, each where the body names it; `POST` and `DELETE
+  /api/organization/platform/apps/{app}/recall` recall the app and lift it; and `GET
+  /api/organization/platform/app-requests` reads the requests from the agency.
 - **A change is saved as it is made,** the rows read again, and a refusal said under its row, which goes back to what
   stood. It reaches the people under the node at their next relayed call and their next read of the screens.
 - **None held says 앱 없음.** The rows keep their place with a skeleton while they are first read, and a read that
@@ -8863,14 +8923,16 @@ so a reader sees and does what their own account may alone, and the agency's wor
 
 플랫폼 설정 is the administrator's screen of what is set for the platform itself: the providers and the Claude accounts
 every run goes out on, how often the agency puts every waiting commit live, the kinds every person's secret form
-asks in, the plans the platform sells and the credits they and the platform's supply run on, and the apps every
-company is offered and their recall. No member opens it.
+asks in, and the plans the platform sells and the credits they and the platform's supply run on. The apps every
+company is offered, and their recall, are set on 조직's 앱·도구 with 플랫폼 전체 chosen (「Organisation」, 「앱·도구」). No
+member opens it.
 
-- **It stands at `/admin`, a tab to a section.** The tabs are 공급자, 비밀 종류, 플랜, 크레딧 and 앱·도구, keyed in the
-  address as `?tab=` with `secret-kinds`, `plans`, `credits` and `apps`, 공급자 being the screen's own address; a shared link opens
+- **It stands at `/admin`, a tab to a section.** The tabs are 공급자, 비밀 종류, 플랜 and 크레딧, keyed in the
+  address as `?tab=` with `secret-kinds`, `plans` and `credits`, 공급자 being the screen's own address; a shared link opens
   the same tab, moving between tabs is a step of the history, and a key naming no tab opens the first. The console
   search finds each tab as it finds every screen's. A link to `/organization` naming `providers` or `secret-kinds`
-  lands on the same tab here.
+  lands on the same tab here, and a link here naming `apps` lands on 조직's 앱·도구 with 플랫폼 전체 chosen, the
+  address replaced rather than stepped.
 - **Who opens it.** The administrator alone, and the sidebar lists 플랫폼 설정 for them after 조직; a member is listed
   no entry, and the address takes them home as any screen they may not open does.
 - **The tab row, a tab's content and its groups** stand as 조직's do (「Organisation」): the open tab's own add at
@@ -9032,56 +9094,6 @@ and `/api/supply/credits/audit`.
   its subject, then the moment, whose act and what it changed. The service audits each of these in its own table
   as it takes the write, and this one route answers the whole record.
 - No balance is shown for anyone here, and no top-up control stands: payments are off.
-
-#### 앱·도구
-
-Every app the delegation chain holds as it stands for the whole platform (「Screens a unit brings」; `docs/accounts.md`,
-「An app's two settings」): what it is where no link says otherwise, the companies and units the platform offers it to
-or withholds it from, and its recall. The console reads the platform's link of each app's two kinds, the defaults their
-publisher declared and the platform's rules naming a unit, and writes them through its own routes, the
-administrator's alone: `GET /api/admin/apps`, `PUT /api/admin/apps/{app}` for the platform's own word, and `POST` and
-`DELETE /api/admin/apps/{app}/recall` for the recall; a unit's offer is written through 조직's route for that unit
-(「앱·도구」 under 「Organisation」).
-
-- **One row per app the chain holds,** in the order of their names, as 조직's 앱·도구 rows stand: the app's icon and its
-  name — the title its screen's bundle gives, else the app's key in the monospace face — with one muted line under it,
-  and at the row's end 설정, an icon button that opens the app's settings, and 긴급 회수, an icon button in the error
-  colour.
-  - **The line says to whom it is offered:** 모든 회사에 제공, with `{n}곳 제외` after a middle dot where rules withhold
-    it from some; where it is not offered by default, `{n}곳에 제공`, or 제공하지 않음 where no rule offers it; and,
-    after a middle dot, 하위 조직 잠금 where the platform locks it.
-- **설정 opens a dialog titled with the app's name,** each choice saved as it is made, so closing it never asks:
-  - **전역 설정:** 제공, whether the app is offered where no rule says otherwise, a list of 제공 and 제공 안 함; 상태,
-    whether it is on where nobody under the platform says otherwise, a list of 켬 and 끔; and 하위 조직 잠금, a switch
-    locking the app's on for every company, unit and person. In each list the value its publisher declared is marked
-    `(기본값)`, and choosing it takes the platform's own word away, so the declaration stands again.
-  - **회사별 제공:** every company, and every unit below one that a platform rule names, each a row of its name — a
-    unit under a company as the company, a middle dot and the unit — and a list of 제공 and 제공 안 함 in which the
-    platform's own offer is marked `(기본값)`; choosing another writes the platform's rule for that unit, and choosing
-    the marked one takes the rule away. A rule naming a person or a group, which no screen writes, is kept as it stands
-    and not listed.
-  - While the app is recalled, 상태 and 하위 조직 잠금 stand disabled.
-  - A refusal is said under its row, which goes back to what stood.
-- **플랫폼 앱 요청** stands under the apps: every company's request to make a shared personal app a platform app (「App
-  catalogue」), newest first, each a row of the app's title with the company, who asked and when under it, and the note
-  they gave; 요청 없음 where none stands. The administrator reads the app's source and, where it is to ship, puts it as a
-  platform tool (bmo-pocket's `docs/catalogue.md`, 「A promotion」).
-- **긴급 회수 turns the app off everywhere at once:** the platform's link of its on holds 끔 and a lock, so every
-  company, unit and person under it is off whatever they said, and any platform rule turning it on for someone is
-  taken away. A screen of it meets 403 `app-off` at its next relayed call and leaves every reader's list at their next
-  read of the screens, and a session's issuer withholds its tools from the next turn on. What companies, units and
-  people said below stays kept and unread, so lifting the recall finds it as it was. Taking a tool out of the tool
-  host at once, mid-turn, stays the tool host's own `take` (bmo-pocket's `docs/registry.md`).
-  - **It is asked first as a step the row grows** (「Messages」), marked on its leading edge in the error colour:
-    `<app> 앱을 모든 곳에서 끌까요?`, then what it does — off for every company and person at once, nobody turning it
-    back on until the recall is lifted, and their own settings coming back then — and 취소 and then 회수, the way
-    through in the error colour, at its trailing edge, the keyboard's place handed to 취소 as it opens and back to the
-    row as it closes.
-  - **A recalled app's line says 긴급 회수됨** in the error colour, and 회수 해제 stands in place of 긴급 회수: it lifts
-    the lock and takes the platform's own word on its on away, so the value its publisher declared and everything
-    said below it stand again, at once and with no question, since it only gives back.
-- **None held says 앱 없음.** The rows keep their place with a skeleton while they are first read, and a read that
-  failed says its reason with 새로고침, as every tab of this screen does.
 
 ### The desktop app's window
 
@@ -10015,9 +10027,9 @@ title bar」), its people directory and the members of the reader's company.
     `app-off` and the pack's sentence saying the organisation's setting turned the app off. A screen already open
     meets that refusal at its next call, and its address, opened again, leads a member to their home as any address
     they may not open does (「Access」).
-  - **Where an app is turned on and off** is 「Administration」's 앱·도구 tab, for the platform, every company it is
-    offered to and its recall; 「Organisation」's 앱·도구 tab, for a unit and those under it; and 「Settings」' 내 앱·도구
-    section, for the reader alone.
+  - **Where an app is turned on and off** is 「Organisation」's 앱·도구 tab alone, one node of the tree at a time: the
+    platform, with its recall, a company or a unit and those under it, and the reader's own at 나, the settings
+    dialog's 내 앱·도구 being a door to it.
 - **A screen's module is loaded the first time its path is opened.** The browser reads the module through the
   relay and, before it runs, points every import of a shared library at the console's own copy. A file of the
   bundle the module imports is read the same way, one imported only when it is reached at the moment it is

@@ -3,6 +3,8 @@ import { describe, expect, test } from "bun:test";
 import {
   ORGANIZATION_PATH,
   ORGANIZATION_TABS,
+  PERSON_NODE,
+  PLATFORM_NODE,
   administratorTreeUnits,
   branchesAbove,
   chosenOrganization,
@@ -14,6 +16,10 @@ import {
   organizationMovedAway,
   organizationNodeAddress,
   organizationNodes,
+  linkChosen,
+  linkNode,
+  linkNodesFor,
+  organizationLinkAddress,
   organizationRowTabs,
   organizationTabNamed,
   organizationTabOf,
@@ -24,7 +30,7 @@ import {
 
 import type { OrganizationReader, UnitBranch, UnitPlace, UnitStanding } from "../../../apps/web/app/domain/organization";
 import type { SideNode } from "bmo-ui/app/domain/side-parts";
-import { ADMIN_PATH } from "../../../apps/web/app/domain/administration";
+import { ADMIN_MOVED_TO_PLATFORM, ADMIN_PATH } from "../../../apps/web/app/domain/administration";
 import { SETTINGS_SECTIONS, sectionsFor } from "../../../apps/web/app/domain/settings-dialog";
 import { SCREENS, tabAddress } from "../../../apps/web/app/domain/screens";
 
@@ -174,7 +180,7 @@ describe("the organisation screen", () => {
     expect(screen.tabs?.map((tab) => tabAddress(screen, tab))).toEqual(["/organization", "/organization?tab=people", "/organization?tab=catalogue", "/organization?tab=invites", "/organization?tab=agent", "/organization?tab=agents", "/organization?tab=apps", "/organization?tab=storage", "/organization?tab=memory", "/organization?tab=supply", "/organization?tab=plans"]);
     expect(admin.to).toBe(ADMIN_PATH);
     expect(admin.administrator).toBe(true);
-    expect(admin.tabs?.map((tab) => tabAddress(admin, tab))).toEqual(["/admin", "/admin?tab=secret-kinds", "/admin?tab=plans", "/admin?tab=credits", "/admin?tab=apps"]);
+    expect(admin.tabs?.map((tab) => tabAddress(admin, tab))).toEqual(["/admin", "/admin?tab=secret-kinds", "/admin?tab=plans", "/admin?tab=credits"]);
     expect([screen.section, admin.section]).toEqual(["administration", "administration"]);
   });
 });
@@ -352,5 +358,50 @@ describe("a move of several people", () => {
 
   test("leaves out a person no unit holds", () => {
     expect(movePlan(units, [{ user: "99", head: false }], 3)).toEqual([]);
+  });
+});
+
+// The link nodes of the tree (docs/web.md, 「Organisation」): the reader's own for every reader with a user and the
+// platform for the administrator, above every company, chosen by `?company=me` and `?company=platform`, every tab
+// standing for them and saying for itself what it shows there.
+describe("the link nodes", () => {
+  const ADMIN = { administrator: true, user: true };
+  const PERSON = { administrator: false, user: true };
+  const LOGIN = { administrator: true, user: false };
+
+  test("stand in the tree by the reader's reach, their own first", () => {
+    expect(linkNodesFor(ADMIN)).toEqual([PERSON_NODE, PLATFORM_NODE]);
+    expect(linkNodesFor(PERSON)).toEqual([PERSON_NODE]);
+    expect(linkNodesFor(LOGIN)).toEqual([PLATFORM_NODE]);
+    expect(linkNodesFor({ administrator: false, user: false })).toEqual([]);
+  });
+
+  test("are chosen by the address where the reader's tree holds them", () => {
+    expect(linkChosen({ company: PLATFORM_NODE }, ADMIN)).toBe(PLATFORM_NODE);
+    expect(linkChosen({ company: PLATFORM_NODE }, PERSON)).toBeNull();
+    expect(linkChosen({ company: PERSON_NODE }, PERSON)).toBe(PERSON_NODE);
+    expect(linkChosen({ company: PERSON_NODE }, LOGIN)).toBeNull();
+    expect(linkChosen({ company: "1" }, ADMIN)).toBeNull();
+  });
+
+  test("are drawn with their own mark and words", () => {
+    expect(linkNode(PLATFORM_NODE, (key) => key)).toEqual({ key: PLATFORM_NODE, label: "organization.label.platform", icon: "i-material-symbols-public" });
+    expect(linkNode(PERSON_NODE, (key) => key)).toEqual({ key: PERSON_NODE, label: "organization.label.person", icon: "i-material-symbols-person-outline" });
+  });
+
+  test("keep the tab open as they are chosen, and drop the unit and what the tab held of the company", () => {
+    expect(organizationLinkAddress(PLATFORM_NODE, { company: "1", unit: "4", tab: "apps" })).toEqual({ path: ORGANIZATION_PATH, query: { company: PLATFORM_NODE, tab: "apps" } });
+    expect(organizationLinkAddress(PERSON_NODE, { company: "1", tab: "people", q: "kim", user: "7" })).toEqual({ path: ORGANIZATION_PATH, query: { company: PERSON_NODE, tab: "people" } });
+    expect(organizationLinkAddress(PLATFORM_NODE, { company: "1" })).toEqual({ path: ORGANIZATION_PATH, query: { company: PLATFORM_NODE } });
+    expect(organizationLinkAddress(PERSON_NODE, { company: "1", tab: "people" }, "apps")).toEqual({ path: ORGANIZATION_PATH, query: { company: PERSON_NODE, tab: "apps" } });
+  });
+
+  test("are shown by the tabs that declare a view of them, the apps tab declaring both", () => {
+    expect(ORGANIZATION_TABS.filter((tab) => tab.links !== undefined).map((tab) => [tab.value, Object.keys(tab.links!).toSorted()])).toEqual([["apps", ["me", "platform"]]]);
+    expect(organizationTabsFor(ADMINISTRATOR)).toHaveLength(ORGANIZATION_TABS.length);
+  });
+
+  test("hold where the administrator's old apps tab leads", () => {
+    expect(ADMIN_MOVED_TO_PLATFORM).toEqual({ apps: "apps" });
   });
 });

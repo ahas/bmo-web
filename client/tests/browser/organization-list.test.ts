@@ -278,7 +278,8 @@ describe.skipIf(!origin || !touchReady())("the organisation list", () => {
       await open(page, "/organization?tab=catalogue");
       await page.waitForURL((url) => url.searchParams.get("company") !== null, { timeout: 15_000 });
 
-      const first = (await page.locator("[data-choice-tree-row]").first().getAttribute("data-choice-tree-row"))!;
+      // The link nodes stand above the companies, so the first company is the first row naming a number.
+      const first = (await page.locator('[data-choice-tree-row^="number:"]').first().getAttribute("data-choice-tree-row"))!;
 
       expect(`number:${company(page)}`).toBe(first);
       expect(new URL(page.url()).searchParams.get("tab")).toBe("catalogue");
@@ -288,7 +289,7 @@ describe.skipIf(!origin || !touchReady())("the organisation list", () => {
   }, 120_000);
 
   for (const [width, height] of WIDTHS) {
-    test(`keeps the administrator's add through an empty list, so the first company is made there, at ${width}px`, async () => {
+    test(`keeps the administrator's tree and its add through an empty list, so the first company is made there, at ${width}px`, async () => {
       const context = await contextFor(ADMINISTRATOR.name, width, height);
 
       try {
@@ -298,15 +299,20 @@ describe.skipIf(!origin || !touchReady())("the organisation list", () => {
         await page.route(/\/api\/organization\/units$/, async (route) => (route.request().method() === "GET" ? await route.fulfill({ status: 200, contentType: "application/json", body: "[]" }) : await route.continue()));
         await open(page, "/organization");
 
-        const none = page.locator("[data-organization-none]");
+        // The link nodes stand with no company, the first of them chosen, and the add at the search's end.
+        const section = page.locator("[data-organization-node]");
 
-        expect(await none.innerText({ timeout: 20_000 })).toBe(wording("organization.label.list_none"));
-        expect(await page.locator("[data-choice-sidebar-list], [data-choice-sidebar-open]").count()).toBe(0);
-        expect(await none.locator("[data-organization-add]").count()).toBe(1);
-        expect(await page.locator(`[aria-label="${wording("organization.aria.tabs")}"]`).count()).toBe(0);
+        await section.waitFor({ timeout: 20_000 });
+        expect(["me", "platform"]).toContain((await section.getAttribute("data-organization-node")) ?? "");
+        expect(await page.locator("[data-organization-none]").count()).toBe(0);
+
+        const list = await organizationList(page, width);
+        const add = list.locator("[data-organization-add]");
+
+        expect(await add.count()).toBe(1);
 
         // Its add opens the form of one name, which closes untouched asking nothing.
-        await none.locator("[data-organization-add]").click();
+        await add.click();
         await page.locator("[data-company-add-name]").waitFor({ timeout: 10_000 });
         await page.keyboard.press("Escape");
         await page.locator("[data-company-add-name]").waitFor({ state: "detached", timeout: 10_000 });
@@ -317,15 +323,17 @@ describe.skipIf(!origin || !touchReady())("the organisation list", () => {
   }
 
   for (const [width, height] of WIDTHS) {
-    test(`holds a member the companies where they head a unit or hold a part of the supply, with no add, and none where they hold nothing, at ${width}px`, async () => {
+    test(`holds a member the companies where they head a unit or hold a part of the supply, with no add, and their own node alone where they hold nothing, at ${width}px`, async () => {
       const context = await contextFor(MEMBER.name, width, height);
 
       try {
         const page = await context.newPage();
 
+        // Holding nothing, their own node stands alone and chosen, with the tabs every member opens.
         await open(page, "/organization");
-        expect(await page.locator("[data-organization-none]").innerText({ timeout: 20_000 })).toBe(wording("organization.label.list_none"));
-        expect(await page.getByRole("tab").count()).toBe(0);
+        await page.locator('[data-organization-node="me"]').waitFor({ timeout: 20_000 });
+        expect(await page.locator("[data-organization-none]").count()).toBe(0);
+        expect(await page.getByRole("tab").count()).toBeGreaterThan(0);
 
         await administer(`/api/organization/units/${team}/heads/${encodeURIComponent(member)}`, "PUT");
         await open(page, "/organization");

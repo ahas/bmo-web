@@ -50,7 +50,8 @@
 <script setup lang="ts">
 import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
 
-import { ADMIN_TABS, adminAddress, adminTabOf } from "~/domain/administration";
+import { ADMIN_MOVED_TO_PLATFORM, ADMIN_TABS, adminAddress, adminTabOf } from "~/domain/administration";
+import { PLATFORM_NODE, organizationLinkAddress } from "~/domain/organization";
 import { TAB_ADD_ICON } from "~/domain/tab-create";
 import { revealOpenTab } from "~/domain/tab-row";
 
@@ -67,11 +68,18 @@ const { t } = useI18n();
 const tab = computed(() => adminTabOf(route.query.tab));
 const tabItems = computed(() => ADMIN_TABS.map((one) => ({ value: one.value, icon: one.icon, label: t(one.label) })));
 
-// An address naming no tab is taken to the first, with no step of the history.
+// An address naming a tab that moved onto the organisation screen's platform is taken there, and one naming no tab to
+// the first, each with no step of the history.
 watch(
   () => route.query.tab,
   (asked) => {
     if (!import.meta.client || asked === undefined || ADMIN_TABS.some((one) => one.value === asked)) return;
+
+    if (typeof asked === "string" && Object.hasOwn(ADMIN_MOVED_TO_PLATFORM, asked)) {
+      void router.replace(organizationLinkAddress(PLATFORM_NODE, {}, ADMIN_MOVED_TO_PLATFORM[asked]));
+
+      return;
+    }
 
     void router.replace(adminAddress(ADMIN_TABS[0]!.value, route.query));
   },

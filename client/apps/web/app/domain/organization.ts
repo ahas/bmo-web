@@ -26,6 +26,18 @@ export const ORGANIZATION_KEY = "company";
  * tabs; absent where the company itself is chosen. */
 export const UNIT_KEY = "unit";
 
+/** The node of the administrator's tree standing for the platform itself, above every company, and the value of
+ * `?company=` that chooses it (docs/web.md, 「Organisation」). */
+export const PLATFORM_NODE = "platform";
+
+/** The node of every tree of a reader with a user standing for the reader's own link, and the value of `?company=`
+ * that chooses it. */
+export const PERSON_NODE = "me";
+
+/** A node of the tree that is a link of the delegation chain of its own rather than a company or a unit of one: the
+ * platform's, or the reader's own. */
+export type LinkNode = typeof PLATFORM_NODE | typeof PERSON_NODE;
+
 /** Who reads the screen, as far as which tabs stand for them: the platform administrator, whether the people
  * roster answers them the organisation chosen to look through (docs/accounts.md, 「The people roster」), and which
  * part of its supply they hold. `known` is false until what decides it has been read, so a tab not yet known to stand
@@ -60,6 +72,9 @@ export interface OrganizationTab {
   wide: boolean;
   // The tab's own component, loaded when it is first opened.
   load: () => Promise<{ default: Component }>;
+  // The components it shows while a link node is chosen, each reading and writing that link of the tab's settings:
+  // the platform's own, and the reader's own. A tab declaring none for a node says it holds no setting there.
+  links?: Partial<Record<LinkNode, () => Promise<{ default: Component }>>>;
 }
 
 // Every reader the screen stands for: the administrator, and a member who heads a unit, whose invitations tab says so
@@ -107,7 +122,7 @@ export const ORGANIZATION_TABS: readonly OrganizationTab[] = [
   { value: "invites", label: "settings.label.invites", icon: "i-material-symbols-person-add-outline", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationInvites.vue") },
   { value: "agent", label: "settings.label.bmo", icon: "i-material-symbols-face-outline", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationBmo.vue") },
   { value: "agents", label: "org_agents.label.tab", icon: "i-material-symbols-smart-toy-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationAgents.vue") },
-  { value: "apps", label: "apps.label.tab", icon: "i-material-symbols-apps", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationApps.vue") },
+  { value: "apps", label: "apps.label.tab", icon: "i-material-symbols-apps", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationApps.vue"), links: { platform: () => import("~/components/OrganizationPlatformApps.vue"), me: () => import("~/components/OrganizationPersonApps.vue") } },
   { value: "storage", label: "org_storage.label.tab", icon: "i-material-symbols-hard-drive-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationArtifactStorage.vue") },
   { value: "memory", label: "org_memory.label.tab", icon: "i-material-symbols-psychology-outline", opens: memoryReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationMemory.vue") },
   // The supply tab stands only for a reader who holds the organisation's supply policy, and the plans tab for one who
@@ -197,6 +212,45 @@ export function organizationNodeAddress(company: number, unit: number | null, qu
   const rest = Object.fromEntries(Object.entries(query).filter(([key]) => key !== UNIT_KEY && (same || key === PERSON_PANE_KEY || !TAB_KEYS.has(key))));
 
   return { path: ORGANIZATION_PATH, query: { ...rest, [ORGANIZATION_KEY]: String(company), ...(unit === null ? {} : { [UNIT_KEY]: String(unit) }) } };
+}
+
+/**
+ * The address of a link node chosen in the tree: the tab open stays, what it held of the company before goes, and the
+ * unit with it; `tab` names the tab to open instead, as a door to one tab's settings at that link does.
+ */
+export function organizationLinkAddress(node: LinkNode, query: LocationQuery = {}, tab?: string): { path: string; query: LocationQuery } {
+  const rest = Object.fromEntries(Object.entries(query).filter(([key]) => key !== UNIT_KEY && !TAB_KEYS.has(key) && (tab === undefined || key !== "tab")));
+  const open: LocationQuery = tab === undefined || tab === ORGANIZATION_TABS[0]!.value ? {} : { tab };
+
+  return { path: ORGANIZATION_PATH, query: { ...rest, [ORGANIZATION_KEY]: node, ...open } };
+}
+
+/** Who the link nodes stand for: the platform for the administrator, and the reader's own link for a reader with a
+ * user of the account service. */
+export interface LinkReach {
+  administrator: boolean;
+  user: boolean;
+}
+
+/** The link nodes a reader's tree holds, in the tree's order: their own first, then the platform. */
+export function linkNodesFor(reach: LinkReach): LinkNode[] {
+  return [...(reach.user ? [PERSON_NODE] : []), ...(reach.administrator ? [PLATFORM_NODE] : [])] as LinkNode[];
+}
+
+/** The link node an address chooses, where it names one the reader's tree holds. */
+export function linkChosen(query: LocationQuery, reach: LinkReach): LinkNode | null {
+  return linkNodesFor(reach).find((node) => node === query[ORGANIZATION_KEY]) ?? null;
+}
+
+/** What each link node is called and marked by in the tree, and the pack's line a tab declaring nothing at it shows. */
+export const LINK_NODES: Readonly<Record<LinkNode, { icon: string; label: string; none: string }>> = {
+  me: { icon: "i-material-symbols-person-outline", label: "organization.label.person", none: "organization.label.person_none" },
+  platform: { icon: "i-material-symbols-public", label: "organization.label.platform", none: "organization.label.platform_none" }
+};
+
+/** A link node of the tree, named in the reader's words. */
+export function linkNode(node: LinkNode, t: (key: string) => string): SideNode {
+  return { key: node, label: t(LINK_NODES[node].label), icon: LINK_NODES[node].icon };
 }
 
 /** A unit of the organisation tree: where it stands, the company it stands in, and the kind it carries in its

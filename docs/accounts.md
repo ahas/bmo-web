@@ -1145,7 +1145,7 @@ Each is declared by the module that uses it, as the service stands, under the un
   (`docs/web.md`, 「Screens a unit brings」), the issuer of a session as it hands one its tools — and keeps no answer.
 - **An app is recalled by the platform's link alone:** its `on` holding false under a lock, with no platform rule
   turning it on for anyone, cuts every link below, so the app is off for everyone at every consumer's next ask, and
-  what the links below hold stands again once the lock is lifted (`docs/web.md`, 「Administration」, 앱·도구).
+  what the links below hold stands again once the lock is lifted (`docs/web.md`, 「Organisation」, 앱·도구).
 
 ## Supply
 

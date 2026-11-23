@@ -104,7 +104,9 @@
   row saying 상위 조직을 따라 켬 or 전역 설정을 따라 끔; a person's row → 직접 정함 or 조직을 따름, their own word taken
   back by 되돌리기; a unit deciding it for everyone below → 하위 조직 잠금, its undoing 잠금 해제, a row under it saying
   상위 조직에서 잠금 on 조직 and 조직에서 잠금 in 설정; the platform letting a company use one → 제공, one it does not →
-  제공되지 않음; a call to an app turned off → 조직 설정으로 꺼진 앱입니다. 잠금 here is the delegation chain's own word.
+  제공되지 않음; the platform's own row → 직접 정함 or 기본값을 따름 (what its publisher declared), its recall → 긴급
+  회수, 긴급 회수됨 and 회수 해제; a call to an app turned off → 조직 설정으로 꺼진 앱입니다. 잠금 here is the delegation
+  chain's own word.
   Never 활성화, 비활성화, 사용 설정, 차단. 애플리케이션 stays the sidebar section's word.
 - a tool of a person's own, which their BMO makes on their PC → 개인 앱: 개인 앱, 내 개인 앱 (its settings section),
   개인 앱 없음; one placed build of it → 버전, when it was put → `{time} 업데이트`; going to the one before → 이전 버전으로,
@@ -262,6 +264,9 @@
 - the agents a person is given as their account is made ready → 가입 구성: each role 위를 따름, 막음, 에이전트 없음 or
   에이전트 `{n}`, a following role saying 플랫폼 규칙을 따름, 위를 따라 막음 or 위를 따라 에이전트 `{n}`. Never 초기 설정,
   온보딩.
+- the platform itself as a node of the organisation tree, above every company → 플랫폼 전체; a tab with nothing set
+  there → 이 탭에는 플랫폼 설정이 없습니다. Never 전체 플랫폼, 시스템 전체. The reader's own link as a node of the same
+  tree → 나; a tab with nothing set there → 이 탭에는 개인 설정이 없습니다. Never 내 설정, 본인.
 - the sidebar's section of what the heads of the organisations set → 조직, its entries the organisation screen's tab
   names; the tab of every setting about the agents of a unit's people → 에이전트. Never 조직 관리, 조직 설정 for the
   section.

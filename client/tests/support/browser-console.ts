@@ -255,7 +255,7 @@ const MEMBERS: readonly { name: string; password: string; sections: readonly { s
       { section: "account", read: true, write: true }
     ]
   })),
-  // The person an app is offered to or recalled from on the administrator's apps tab.
+  // The person an app is offered to, recalled from and switched for themselves on the organisation screen's apps tab.
   {
     name: "apps-reader",
     password: "fixture-password-3912",

@@ -27,7 +27,7 @@
         <div class="flex min-w-0 grow basis-40 items-center gap-3">
           <UIcon :name="row.icon ?? APP_ICON" class="size-5 shrink-0 text-muted" />
           <div class="flex min-w-0 flex-col">
-            <span :class="['truncate text-sm text-highlighted', row.title === null ? 'font-mono' : '']">{{ appTitle(row) }}</span>
+            <HintTip :text="appTitle(row)" cut press data-app-title :class="['block min-w-0 truncate text-sm text-highlighted', row.title === null ? 'font-mono' : '']">{{ appTitle(row) }}</HintTip>
             <span class="text-sm text-muted" data-app-state>{{ unitAppLine(t, row, company) }}</span>
           </div>
         </div>

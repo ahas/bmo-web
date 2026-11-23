@@ -1964,6 +1964,10 @@ organization:
     list: Organizations
     list_none: No organizations to set up
     list_no_match: No organizations found
+    platform: Whole platform
+    platform_none: This tab has no platform settings.
+    person: Me
+    person_none: This tab has no personal settings.
     name: Name
     parent: Parent organization
     heads: Heads
@@ -4189,24 +4193,16 @@ apps:
     follows_platform_off: "Off, following global settings"
     follows_organization: Follows organization
     own: Set by you
+    follows_declared: Follows the default
     locked_above: Locked by parent organization
     locked_organization: Locked by organization
     not_offered: Not offered
     offer: Offer
-    withhold: "Don't offer"
-    state: Status
-    platform: Global settings
-    by_company: Offered per company
-    offered_everywhere: Offered to all companies
-    offered_nowhere: Not offered
-    offered_to: "Offered to {count}"
-    withheld_from: "{count} excluded"
     recalled: Emergency recalled
   action:
     lock: Lock for sub-organizations
     unlock: Unlock
     follow: Revert
-    settings: Settings
     recall: Emergency recall
     recall_confirm: Recall
     lift: Lift recall

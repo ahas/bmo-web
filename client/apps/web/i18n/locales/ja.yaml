@@ -1968,6 +1968,10 @@ organization:
     list: 組織一覧
     list_none: 設定する組織なし
     list_no_match: 該当する組織なし
+    platform: プラットフォーム全体
+    platform_none: このタブにはプラットフォーム設定がありません。
+    person: 自分
+    person_none: このタブには個人設定がありません。
     name: 名前
     parent: 上位組織
     heads: 組織長
@@ -4223,24 +4227,16 @@ apps:
     follows_platform_off: 全体設定に従いオフ
     follows_organization: 組織に従う
     own: 自分で設定
+    follows_declared: 既定値に従う
     locked_above: 上位組織でロック
     locked_organization: 組織でロック
     not_offered: 提供されていません
     offer: 提供
-    withhold: 提供しない
-    state: 状態
-    platform: 全体設定
-    by_company: 会社別の提供
-    offered_everywhere: すべての会社に提供
-    offered_nowhere: 提供しない
-    offered_to: "{count}か所に提供"
-    withheld_from: "{count}か所を除外"
     recalled: 緊急回収済み
   action:
     lock: 下位組織をロック
     unlock: ロック解除
     follow: 元に戻す
-    settings: 設定
     recall: 緊急回収
     recall_confirm: 回収
     lift: 回収を解除

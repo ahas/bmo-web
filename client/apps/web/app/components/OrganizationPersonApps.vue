@@ -1,7 +1,8 @@
 <template>
-  <!-- The own apps section (docs/web.md, 「Settings」, the own apps section): every app offered to the reader, each a
-       row of its icon, its name and where its state comes from, with its switch; a word of the reader's own taken back
-       by the row's own button, and an app their organisation locks standing with its switch disabled. -->
+  <!-- The organisation screen's apps tab with the reader's own node chosen (docs/web.md, 「Organisation」, the apps
+       tab): every app offered to the reader, each a row of its icon, its name and where its state comes from, with its
+       switch; a word of the reader's own taken back by the row's own button, and an app their organisation locks
+       standing with its switch disabled. -->
   <SettingsGroup>
     <ContentSkeleton v-if="rows === null && failure === ''" :rows="3" listClass="flex flex-col divide-y divide-default" :label="$t('apps.status.loading')">
       <div class="flex items-center gap-3 py-3">
@@ -26,7 +27,7 @@
         <div class="flex min-w-0 grow basis-40 items-center gap-3">
           <UIcon :name="row.icon ?? APP_ICON" class="size-5 shrink-0 text-muted" />
           <div class="flex min-w-0 flex-col">
-            <span :class="['truncate text-sm text-highlighted', row.title === null ? 'font-mono' : '']">{{ appTitle(row) }}</span>
+            <HintTip :text="appTitle(row)" cut press data-app-title :class="['block min-w-0 truncate text-sm text-highlighted', row.title === null ? 'font-mono' : '']">{{ appTitle(row) }}</HintTip>
             <span class="text-sm text-muted" data-app-state>{{ ownAppLine(t, row) }}</span>
           </div>
         </div>

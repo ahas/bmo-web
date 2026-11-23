@@ -27,10 +27,10 @@
         :no-match-text="$t('organization.label.list_no_match')"
         opener-in-body
         :drop-types="treeDrop?.types ?? []"
-        :drop-takes="(key: string | number) => treeDrop?.takes(Number(key)) ?? false"
-        @choose="choose(Number($event))"
+        :drop-takes="(key: string | number) => (typeof key === 'number' && treeDrop?.takes(key)) || false"
+        @choose="choose"
         @retry="organizations.refresh"
-        @drop="(key: string | number, event: DragEvent) => treeDrop?.onto(Number(key), event)"
+        @drop="(key: string | number, event: DragEvent) => typeof key === 'number' && treeDrop?.onto(key, event)"
       >
         <template v-if="administrator" #actions>
           <IconButton size="sm" :icon="TAB_ADD_ICON" :label="$t('organization.action.add_company')" data-organization-add @click="openAdd" />
@@ -39,10 +39,9 @@
         <template #default="{ opener }">
           <div v-if="none" class="mx-auto flex w-full max-w-3xl items-center gap-2 p-4" data-organization-none>
             <p class="min-w-0 flex-1 text-sm text-muted">{{ $t("organization.label.list_none") }}</p>
-            <IconButton v-if="administrator" size="sm" :icon="TAB_ADD_ICON" :label="$t('organization.action.add_company')" data-organization-add @click="openAdd" />
           </div>
 
-          <section v-else class="flex min-h-0 min-w-0 flex-1 flex-col" :aria-label="chosenName" :data-organization-chosen="chosen?.id" :data-organization-node="chosenNode ?? undefined">
+          <section v-else class="flex min-h-0 min-w-0 flex-1 flex-col" :aria-label="chosenName" :data-organization-chosen="link !== null ? undefined : chosen?.id" :data-organization-node="chosenNode ?? undefined">
             <!-- On a phone the tree's button stands at the row's start, giving way to the tabs. -->
             <div ref="tabRow" :class="['flex h-12 shrink-0 items-center gap-2 ps-2 pe-4 sm:ps-4', TAB_ROW_LINE, OPENER_GIVES_WAY]">
               <component :is="opener" />
@@ -71,13 +70,21 @@
               />
             </div>
 
-            <div v-if="tab === null || chosen === null" class="flex min-h-0 min-w-0 flex-1 flex-col" aria-busy="true" data-organization-body data-organization-waiting />
+            <div v-if="tab === null || (chosen === null && link === null)" class="flex min-h-0 min-w-0 flex-1 flex-col" aria-busy="true" data-organization-body data-organization-waiting />
+            <!-- A link node chosen, the platform or the reader's own: the tab's own view of that link of its settings,
+                 which stands for no company, or the line saying the tab holds none there. -->
+            <div v-else-if="link !== null" class="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto p-4" data-organization-body>
+              <div class="mx-auto flex w-full min-w-0 max-w-3xl flex-col" data-organization-column>
+                <component :is="tabComponent" v-if="tabComponent !== null" :key="link" ref="section" />
+                <p v-else class="text-sm text-muted" data-organization-link-none>{{ $t(LINK_NODES[link].none) }}</p>
+              </div>
+            </div>
             <div v-else-if="tab.wide" class="flex min-h-0 min-w-0 flex-1 flex-col" data-organization-body>
-              <component :is="tabComponent" :key="chosen.id" ref="section" :company="chosen" />
+              <component :is="tabComponent" :key="chosen!.id" ref="section" :company="chosen" />
             </div>
             <div v-else class="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto p-4" data-organization-body>
               <div class="mx-auto flex w-full min-w-0 max-w-3xl flex-col" data-organization-column>
-                <component :is="tabComponent" :key="chosen.id" ref="section" :company="chosen" />
+                <component :is="tabComponent" :key="chosen!.id" ref="section" :company="chosen" />
               </div>
             </div>
           </section>
@@ -106,13 +113,20 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
 
-import { useAdministrator } from "~/domain/access";
+import { useAdministrator, useSignedUser } from "~/domain/access";
 import {
+  LINK_NODES,
   ORGANIZATION_KEY,
   ORGANIZATION_PATH,
+  PERSON_NODE,
+  PLATFORM_NODE,
   UNIT_KEY,
   chosenOrganization,
   companyOfNode,
+  linkChosen,
+  linkNode,
+  linkNodesFor,
+  organizationLinkAddress,
   organizationAddress,
   organizationMovedAway,
   organizationNodeAddress,
@@ -126,7 +140,7 @@ import {
 import { TAB_ADD_ICON } from "~/domain/tab-create";
 import { revealOpenTab } from "~/domain/tab-row";
 
-import type { TreeDrop } from "~/domain/organization";
+import type { LinkNode, TreeDrop } from "~/domain/organization";
 import type { TabCreate } from "~/domain/tab-create";
 import type { RosterDetail } from "#shared/roster";
 import type { Component } from "vue";
@@ -139,6 +153,9 @@ const route = useRoute();
 const router = useRouter();
 const { t } = useI18n();
 const administrator = useAdministrator();
+const signedUser = useSignedUser();
+// The link nodes the reader's tree holds: their own where they have a user, the platform for the administrator.
+const reach = computed(() => ({ administrator: administrator.value, user: signedUser.value !== null }));
 
 // The organisations the reader may set anything in, and the one the address chooses among them: the one it names, a
 // link's unit's own, or the first. The list stands once the page is in the browser's hands: the server draws none, and
@@ -185,7 +202,8 @@ const chosen = computed(() => {
 
   return chosenOrganization(company === null ? route.query : { ...route.query, [ORGANIZATION_KEY]: String(company) }, listed.value, organizations.companyOf);
 });
-const none = computed(() => listed.value !== null && listed.value.length === 0 && organizations.failure.value === "");
+// None to set: no organisation, and no link node of the reader's own either.
+const none = computed(() => listed.value !== null && listed.value.length === 0 && organizations.failure.value === "" && linkNodesFor(reach.value).length === 0);
 
 // The unit the address names beside its company, where the tree holds it under the company chosen; the company itself
 // is the node chosen otherwise.
@@ -200,18 +218,32 @@ const chosenUnit = computed(() => {
 
   return treeUnits.value?.find((unit) => unit.id === askedUnit.value && unit.company === company && unit.id !== company) ?? null;
 });
-const chosenNode = computed(() => chosenUnit.value?.id ?? chosen.value?.id ?? null);
-const chosenName = computed(() => chosenUnit.value?.name ?? chosen.value?.name);
+// The link node chosen — the reader's own, or the platform for the administrator — where the address names one; a
+// reader with no organisation to set stands on the first of theirs where it names nothing.
+const link = computed<LinkNode | null>(() => {
+  const named = linkChosen(route.query, reach.value);
 
-// The organisations as the tree's nodes, each company's units under it; none until both are read.
-const nodes = computed(() => (listed.value === null || treeUnits.value === null ? null : organizationNodes(listed.value, treeUnits.value)));
+  if (named !== null) return named;
+
+  return listed.value !== null && listed.value.length === 0 ? (linkNodesFor(reach.value)[0] ?? null) : null;
+});
+const chosenNode = computed(() => link.value ?? chosenUnit.value?.id ?? chosen.value?.id ?? null);
+const chosenName = computed(() => (link.value !== null ? t(LINK_NODES[link.value].label) : (chosenUnit.value?.name ?? chosen.value?.name)));
+
+// The tree's nodes: the link nodes the reader's tree holds, then the organisations, each company's units under it;
+// none until both are read.
+const nodes = computed(() => {
+  if (listed.value === null || treeUnits.value === null) return null;
+
+  return [...linkNodesFor(reach.value).map((node) => linkNode(node, t)), ...organizationNodes(listed.value, treeUnits.value)];
+});
 
 // Each tab says which readers it stands for; who reads is known at once for the administrator, and for a member once
 // the people roster and the supply read have said whether they cover the organisation chosen. Until then the row
 // holds the tab the address names as well, chosen, and the region draws no tab not yet known to stand for the reader:
 // the server draws the page before it knows, and a tab it drew that the browser then took away would leave the
 // server's markup behind on the page.
-const reader = useOrganizationReader(() => chosen.value?.id ?? null);
+const reader = useOrganizationReader(() => (link.value !== null ? null : (chosen.value?.id ?? null)));
 
 const tabs = computed(() => organizationTabsFor(reader.value));
 const tab = computed(() => organizationTabOf(route.query.tab, reader.value));
@@ -229,7 +261,7 @@ const rowKey = computed(() => tabItems.value.map((one) => one.value).join(" "));
 // leave the page on the address before it.
 onMounted(() =>
   watch(
-    () => [route.query.tab, tabs.value, reader.value.known, chosen.value?.id, treeUnits.value, chosenUnit.value] as const,
+    () => [route.query.tab, tabs.value, reader.value.known, chosen.value?.id, treeUnits.value, chosenUnit.value, link.value, route.query[UNIT_KEY]] as const,
     ([asked, list, , company, units, unit]) => {
       // Once the page is being left, its address is no longer its own to set.
       if (router.currentRoute.value.path !== ORGANIZATION_PATH) return;
@@ -244,6 +276,13 @@ onMounted(() =>
 
       if (asked !== undefined && reader.value.known && !list.some((one) => one.value === asked)) {
         void router.replace(organizationAddress(list[0]!.value, route.query));
+
+        return;
+      }
+
+      // A link node chosen holds no company and no unit of one.
+      if (link.value !== null) {
+        if (route.query[UNIT_KEY] !== undefined) void router.replace(organizationLinkAddress(link.value, route.query));
 
         return;
       }
@@ -271,9 +310,17 @@ function setTab(next: string): void {
 }
 
 // Choosing a node of the tree is a step of the history and stands in the address, so a shared link opens the same one:
-// a company by its number, a unit by its own beside its company's.
-function choose(node: number): void {
+// a company by its number, a unit by its own beside its company's, and a link node by its own key.
+function choose(node: string | number): void {
   if (node === chosenNode.value || listed.value === null) return;
+
+  if (node === PLATFORM_NODE || node === PERSON_NODE) {
+    void router.push(organizationLinkAddress(node, route.query));
+
+    return;
+  }
+
+  if (typeof node !== "number") return;
 
   const company = companyOfNode(listed.value, treeUnits.value ?? [], node);
 
@@ -318,10 +365,13 @@ const tabComponent = computed(() => {
   if (tab.value === null) return null;
 
   const { value, load } = tab.value;
+  const shown = link.value !== null ? tab.value.links?.[link.value] : load;
+  const key = link.value !== null ? `${link.value}:${value}` : value;
 
-  if (!components.has(value)) components.set(value, defineAsyncComponent(load));
+  if (shown === undefined) return null;
+  if (!components.has(key)) components.set(key, defineAsyncComponent(shown));
 
-  return components.get(value)!;
+  return components.get(key)!;
 });
 
 

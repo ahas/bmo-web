@@ -177,15 +177,19 @@ text = '''
 # The first account, made by the console's account script (docs/web.md, 「Making an account and resetting a
 # password」) from the deployment's build tree, where its packages stand installed. The script takes the name and
 # the password as words, so they are put into its words inside the process from the input files and never stand on
-# a command line.
+# a command line. The console's environment file is exported a line at a time, each value verbatim: read by the
+# shell as a script, a value holding `&`, as the database address does, would end its own assignment.
 [[after]]
 id = "first-account"
 inputs = ["web.owner-name", "web.owner-password"]
 run = '''
 set -eu
-set -a
-. "$BMO_DATA_DIR/env/web-console.env"
-set +a
+while IFS= read -r line; do
+  case "$line" in
+    '' | '#'*) ;;
+    *) export "$line" ;;
+  esac
+done < "$BMO_DATA_DIR/env/web-console.env"
 cd "$BMO_INSTALL_PREFIX/bmo-web/deploy-expand/client/apps/web"
 "$HOME/.bun/bin/bun" -e '
 const read = (name) => require("node:fs").readFileSync(process.env[name], "utf8").replace(/\r?\n$/, "");

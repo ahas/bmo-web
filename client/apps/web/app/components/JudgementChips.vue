@@ -93,12 +93,12 @@
              it travels with the time it is measured to. -->
         <slot name="took" />
 
-        <!-- The verdict mark alone, beating while the message is being judged and then coloured by how
-             the whole of it went, named by its tooltip; it presses nothing, since what judged the round
-             stands in the answer's record (docs/web.md, the room screen's verdicts). A mark that comes
-             with its verdicts already settled while the message is on screen pops in; a message read in
-             with it stands it at once. A message sent a moment ago keeps the mark's room, so the time
-             beside it does not move when it comes. -->
+        <!-- The verdict mark alone, once the message's judging is over, coloured by how the whole of it went
+             and named by its tooltip; while it is judged the bubble beats instead. It presses nothing, since
+             what judged the round stands in the answer's record (docs/web.md, the room screen's verdicts). A
+             mark that comes while the message is on screen pops in; a message read in with it stands it at
+             once. A message sent a moment ago keeps the mark's room, so the time beside it does not move
+             when it comes. -->
         <HintTip
           v-if="marked"
           data-verdict-mark
@@ -362,7 +362,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 // How wide the line stands at the end of the words' last line, which the words keep blank for it;
 // null while it stands on a line of its own.
-const emit = defineEmits<{ room: [width: number | null] }>();
+const emit = defineEmits<{ room: [width: number | null]; judging: [judging: boolean] }>();
 const { t } = useI18n();
 const slots = useSlots();
 // Which of the line's parts the row fills: who reacted at its lead, how long the room waited. A part coming or going
@@ -771,7 +771,13 @@ const full = computed<boolean>(() => chipped.value || filled.value.took);
 
 // Whether the verdict mark stands: once the message is being judged, and from then on wherever it
 // has a verdict.
-const marked = computed<boolean>(() => !props.answer && (props.judging || verdicts.value.length > 0));
+// Whether the message is being judged now: its bubble beats instead of a mark, and the mark comes once the
+// judging is over (docs/web.md, the room screen's verdicts).
+const judgingNow = computed<boolean>(() => !props.answer && verdictState(verdicts.value, props.judging) === "judging");
+
+watch(judgingNow, (judging) => emit("judging", judging), { immediate: true });
+
+const marked = computed<boolean>(() => !props.answer && !judgingNow.value && verdicts.value.length > 0);
 
 // Whether the line has anything to stand: a chip, the wait, the verdict mark, or the clock. A running
 // turn with none of them carries no line at all.
@@ -865,21 +871,12 @@ const lineLook = computed<string>(() => {
   return "basis-full text-muted";
 });
 
-// What the mark says of the message's verdicts as a whole, and how it says it. Its colour changes on
-// the quick length. A row read in with its mark stands it at once; a mark that comes later pops in
-// only where it comes with its verdicts settled, since one that comes beating has said it came.
+// What the mark says of the message's verdicts as a whole, and how it says it. A row read in with its mark
+// stands it at once; a mark that comes later, as the judging ends, pops in.
 const markLook = computed<VerdictChip>(() => verdictChip(verdictState(verdicts.value, props.judging)));
 const markStood = marked.value;
-const beaten = ref(props.judging);
 
-watch(
-  () => props.judging,
-  (judging) => {
-    beaten.value ||= judging;
-  }
-);
-
-const markClass = computed<string>(() => ["transition-colors", markLook.value.iconClass, !markStood && !beaten.value ? "verdict-pop" : ""].join(" "));
+const markClass = computed<string>(() => ["transition-colors", markLook.value.iconClass, !markStood ? "verdict-pop" : ""].join(" "));
 
 // How long after it was sent a message may still come to be judged: such a message keeps the mark's
 // room from the start, so nothing beside it moves when it comes. An answer keeps none, since no mark

@@ -91,6 +91,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["work-view", "fixture-password-2311"],
   ["tool-clock", "fixture-password-3071"],
   ["record-verdicts", "fixture-password-3145"],
+  ["judging-beat", "fixture-password-3146"],
   ["screen-stands", "fixture-password-2411"],
   ["hidden-inputs", "fixture-password-2412"],
   ["secret-request", "fixture-password-2649"],

@@ -162,7 +162,7 @@ describe("the judgement", () => {
   });
 
   test("an answer carries no mark of its own", () => {
-    expect(script).toContain("const marked = computed<boolean>(() => !props.answer && (props.judging || verdicts.value.length > 0));");
+    expect(script).toContain("const marked = computed<boolean>(() => !props.answer && !judgingNow.value && verdicts.value.length > 0);");
   });
 
   test("a thinking message opens its line on its own label, where an answer's chips stand", () => {
@@ -219,9 +219,13 @@ describe("the line itself", () => {
     expect(watcher.indexOf("    measure();")).toBeLessThan(watcher.indexOf("observer.observe(element)"));
   });
 
-  test("a mark that came beating has said it came; only one that comes settled pops", () => {
+  test("a mark that comes as the judging ends pops in, and one read in with the row stands at once", () => {
     expect(script).toContain("const markStood = marked.value;");
-    expect(script).toContain('!markStood && !beaten.value ? "verdict-pop" : ""');
+    expect(script).toContain('!markStood ? "verdict-pop" : ""');
+  });
+
+  test("a message being judged carries no mark and says so for its bubble to beat", () => {
+    expect(script).toContain('watch(judgingNow, (judging) => emit("judging", judging), { immediate: true });');
   });
 
   test("each chip stands exactly when its own thing is there, and the row when any of them is", () => {

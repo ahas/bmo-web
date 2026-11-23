@@ -89,9 +89,9 @@ export function briefingChip(state: MessageBriefing["state"]): BriefingChip {
   }
 }
 
-// How the verdict chip's mark looks at each state of its message's verdicts: beating in the chip's
-// own grey while the message is being judged, then the bubble's green or red mark ink, or the chip's
-// grey again; the name says the state in the tooltip (docs/web.md, 「Room screen」).
+// How the verdict chip's mark looks at each state of its message's verdicts: the bubble's green or red mark
+// ink, or the chip's grey; while the message is being judged no mark stands and its bubble beats instead.
+// The name says the state in the tooltip (docs/web.md, 「Room screen」).
 export interface VerdictChip {
   iconClass: string;
   label: string;
@@ -100,7 +100,7 @@ export interface VerdictChip {
 export function verdictChip(state: VerdictState): VerdictChip {
   switch (state) {
     case "judging":
-      return { iconClass: "verdict-beat", label: "room.label.chip_verdicts_judging" };
+      return { iconClass: "", label: "room.label.chip_verdicts_judging" };
     case "success":
       return { iconClass: "text-(--chat-mark-success)", label: "room.label.chip_verdicts_passed" };
     case "error":

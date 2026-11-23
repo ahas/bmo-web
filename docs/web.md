@@ -4913,8 +4913,8 @@ Four bounds keep it from growing forever.
   of its lines, its words muted, and its meta line opens on the label 생각 at the leading end, where an answer's
   chips stand. It is no answer: it carries no chip, no waiting time and no voice briefing chip.
 - **판정** — a person's message carries the verdict mark alone, with no dot and no count, standing just before the
-  time: it beats while the message is being judged, then takes the colour of how the whole of it went, and its
-  tooltip names it and what it says. The mark presses nothing and spreads nothing. A person's message sent within
+  time, once its judging is over: it takes the colour of how the whole of it went, and its tooltip names it and
+  what it says. While the message is being judged no mark stands and its bubble beats instead. The mark presses nothing and spreads nothing. A person's message sent within
   the last ten minutes keeps the mark's room before its time from the start, so the time does not move when the
   mark comes; a line over or beside a picture keeps none. An agent's answer carries no verdict mark and keeps no
   room for one, so its waiting time stands by its time at the line's own gap: what judged the round, what
@@ -4930,23 +4930,25 @@ Four bounds keep it from growing forever.
     them all under its answer: a verdict filed under an agent's message that is not the answer's stands under the
     person's message carrying the same round's verdicts on the page, and under nothing where the page has none.
     An answer's verdict whose round's answer the page does not carry stands under nothing.
-  - **While the message is being judged the mark beats** — a heartbeat, two quick swells of its size and
-    brightness and a rest, over and over, in the chip's own grey; its tooltip says 판정 중. A message is being
+  - **While the message is being judged its bubble beats** — a heartbeat of a ring around the bubble, two quick
+    swells of its brightness and width and a rest, over and over, in the accented border's grey, drawn on a layer
+    of its own over the bubble's edge so nothing inside the bubble moves and nothing under a finger changes; a
+    screen reader reads 판정 중 in the bubble. The mark comes as the judging ends and pops in. A message is being
     judged while it waits for the chat agent's turn, and while the chat agent's turn that read it last is
     still going, from the turn's start until the room has read its answer.
     - **The wait counts from the moment the receiver puts the message into the room's queue for the chat agent**, through
       the queue's quiet delay and whatever the round waits on before it opens, until a turn of theirs takes it, so
-      the mark beats from the send itself. The bot's picture holds that message as queued, the newest of the
+      the bubble beats from the send itself. The bot's picture holds that message as queued, the newest of the
       room's only, since the round reads the newest last and the earlier ones only along with it
       (docs/live-state.md, 「A message waiting for its turn」).
     - The turn names the message it reads last from its start, in its start event and in the bot's picture,
       and moves on to a message pushed into it, so a screen that came in after the turn began knows it as well
-      (docs/live-state.md, 「What a running turn says of itself」), and the mark beats on through the gaps
+      (docs/live-state.md, 「What a running turn says of itself」), and the bubble beats on through the gaps
       between its gates before any verdict has arrived.
     - A turn of any supervisor but the default answerer writes its verdict on its own answer, so the message it
       read is not being judged.
-    - A reader who asked for less movement sees the mark stand still, dimmed to half its colour, for as long as
-      it would beat.
+    - A reader who asked for less movement sees the ring stand still at half its strength, for as long as it
+      would beat.
     - **A verdict that ends a stage's work is final.** A message holding a verdict written since its judging
       began that opens with an ending word — `SKIP`, `CLEAN`, `DEFUSE`, `REPLY`, `SENT`, `PASS`, `FAIL` or
       `FAILED` — is judged no longer, whatever the queue or the turns in the receiver's picture still say of it:

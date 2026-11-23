@@ -148,8 +148,10 @@
                   ref="bubble"
                   data-bubble
                   class="relative"
-                  :class="[bubbleClass, albumed ? 'w-80 max-w-full' : pictured ? 'w-fit max-w-80' : 'w-fit max-w-full', props.arriving ? 'bubble-rise' : '', !bare && stuck && props.item.look.side === 'right' ? 'ms-auto' : '', bare && pictured ? 'rounded-(--chat-radius)' : '']"
+                  :class="[bubbleClass, albumed ? 'w-80 max-w-full' : pictured ? 'w-fit max-w-80' : 'w-fit max-w-full', props.arriving ? 'bubble-rise' : '', beating ? 'bubble-beat' : '', !bare && stuck && props.item.look.side === 'right' ? 'ms-auto' : '', bare && pictured ? 'rounded-(--chat-radius)' : '']"
                 >
+                  <!-- A message being judged says so to a screen reader, as its beat says it to the eye. -->
+                  <span v-if="beating" data-judging class="sr-only">{{ $t("room.label.chip_verdicts_judging") }}</span>
                   <div class="relative flex flex-col overflow-hidden rounded-inherit">
                     <!-- The sender's name, once at the head of the run's first bubble, and the
                          message this one answers: a line pressed to go there, one the archive does
@@ -386,6 +388,7 @@
                         :answer="props.item.look.role === 'assistant'"
                         :thinking="props.item.thinking"
                         @room="metaRoom = $event"
+                        @judging="beating = $event"
                       >
                         <!-- How long the room waited for this answer; a message the archive holds no
                              measurement of says nothing at all. -->
@@ -737,6 +740,8 @@ const bodyLook = computed<string>(() => {
 // the update that puts in what it holds, so a sent bubble's flight copies it at its fitted width, and
 // again whenever the room round it or what it holds changes size.
 const bubble = useTemplateRef<HTMLElement>("bubble");
+// Whether the message is being judged, as its meta line reads it: the bubble beats meanwhile.
+const beating = ref(false);
 const fitted = computed<boolean>(() => message.value && !pictured.value && wordsLast.value);
 let fitting: ReturnType<typeof keepFitted> | null = null;
 

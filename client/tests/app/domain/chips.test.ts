@@ -81,7 +81,7 @@ describe("the verdict mark", () => {
   test("beats while judged, then is green, red or the chip's own grey, each named", () => {
     const looks = (["judging", "success", "error", "neutral"] as const).map((state) => verdictChip(state));
 
-    expect(looks.map((look) => look.iconClass)).toEqual(["verdict-beat", "text-(--chat-mark-success)", "text-(--chat-mark-error)", ""]);
+    expect(looks.map((look) => look.iconClass)).toEqual(["", "text-(--chat-mark-success)", "text-(--chat-mark-error)", ""]);
     expect(looks.map((look) => wording(look.label))).toEqual([KO.line_84, wording("room.label.chip_verdicts_passed"), wording("room.label.chip_verdicts_failed"), KO.line_84_2]);
   });
 });

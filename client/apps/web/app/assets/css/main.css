@@ -289,39 +289,46 @@
   }
 }
 
-/* The verdict mark while its message is being judged: a heartbeat, two quick swells of its size and
-   brightness and a rest, looping like a spinner's turn until the judging is over (docs/web.md,
-   「판정」). A reader who asked for less movement sees it stand still, dimmed to half its colour. */
-.verdict-beat {
-  animation: verdict-beat 1.2s ease-in-out infinite;
+/* A message's bubble while it is being judged: a heartbeat of a ring around it, two quick swells of its
+   brightness and a rest, looping until the judging is over (docs/web.md, 「판정」). The ring stands on a layer of its
+   own over the bubble's edge, so nothing inside moves and the arrival's rise is left alone. A reader who asked for
+   less movement sees the ring stand still at half its strength. */
+.bubble-beat::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: 0 0 0 2px var(--ui-border-accented);
+  animation: bubble-beat 1.2s ease-in-out infinite;
 }
 
-@keyframes verdict-beat {
+@keyframes bubble-beat {
   0%,
   45%,
   100% {
-    opacity: 0.6;
-    transform: scale(1);
+    opacity: 0.15;
+    box-shadow: 0 0 0 1px var(--ui-border-accented);
   }
 
   12% {
     opacity: 1;
-    transform: scale(1.25);
+    box-shadow: 0 0 0 3px var(--ui-border-accented);
   }
 
   24% {
-    opacity: 0.75;
-    transform: scale(1.05);
+    opacity: 0.45;
+    box-shadow: 0 0 0 2px var(--ui-border-accented);
   }
 
   34% {
-    opacity: 1;
-    transform: scale(1.2);
+    opacity: 0.9;
+    box-shadow: 0 0 0 3px var(--ui-border-accented);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .verdict-beat {
+  .bubble-beat::after {
     animation: none;
     opacity: 0.5;
   }

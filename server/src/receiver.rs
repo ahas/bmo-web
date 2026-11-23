@@ -59,8 +59,10 @@ impl ReceiverClient {
   }
 }
 
+// A message as the receiver serves it (bmo-receiver's `docs/api.md`, `Message`): its sender is `senderId`.
 #[derive(Deserialize)]
 struct Message {
+  #[serde(rename = "senderId")]
   sender: Option<i64>,
 }
 

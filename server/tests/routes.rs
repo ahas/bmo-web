@@ -507,7 +507,7 @@ async fn stand_in_receiver() -> (String, Heard) {
       "/rooms/{chat}/messages/{message}",
       get(|axum::extract::Path((chat, message)): axum::extract::Path<(i64, i64)>| async move {
         if (chat, message) == (ROOM, 1) {
-          Ok(Json(json!({ "sender": OWNER, "sent_at": 1, "text": "words" })))
+          Ok(Json(json!({ "id": 1, "room": ROOM, "senderId": OWNER, "sentAt": 1, "text": "words" })))
         } else {
           Err(StatusCode::NOT_FOUND)
         }

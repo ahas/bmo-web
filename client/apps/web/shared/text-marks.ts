@@ -13,6 +13,7 @@ interface TextMarks {
     video: string[];
     video_note: string[];
     audio: string[];
+    labels: { picture: string[]; pictures: string[]; video: string[]; sticker: string[] };
   };
   filed: { branch: string };
 }
@@ -29,6 +30,22 @@ export const MEDIA_MARKS = {
   videoNote: MARKS.video_note,
   audio: MARKS.audio
 };
+
+/** The labels a chat client keeps as the whole text of a line that carried a thing and no words, each kind's every
+ * label, matched whatever the letters' case: a picture, a count of pictures, a video and an emoticon. */
+export const MEDIA_LABELS = {
+  picture: labelPattern(MARKS.labels.picture),
+  pictures: labelPattern(MARKS.labels.pictures),
+  video: labelPattern(MARKS.labels.video),
+  sticker: labelPattern(MARKS.labels.sticker)
+};
+
+/** A pattern matching a whole text that is one of the labels, `{n}` in one standing for a number. */
+function labelPattern(labels: readonly string[]): RegExp {
+  const alternatives = labels.map((label) => label.split("{n}").map(escaped).join(String.raw`\d+`));
+
+  return new RegExp(`^(?:${alternatives.join("|")})$`, "iu");
+}
 
 /** The word a Claude Workflow's branch is filed under in the name a run stores, ahead of its number. */
 export const BRANCH_WORD = (data as TextMarks).filed.branch;

@@ -735,6 +735,34 @@ describe("the mark a kept file or picture leaves in the words", () => {
     expect(withoutMediaMark(KO.line_582, filed, { expressions: [], formats: [] }).text).toBe(KO.line_582);
   });
 
+  test("is not shown where the words are only the label a chat client keeps for what the message carried", () => {
+    const none = { expressions: [], formats: [] };
+    const pictured = { attachments: [], pictured: true };
+    const video = { attachments: [{ ...document, kind: "video" as const, name: "1-0.mp4" }], pictured: false };
+    const clip = { attachments: [{ ...document, name: "20261118_071900.mp4" }], pictured: false };
+
+    expect(withoutMediaMark(KO.label_picture, pictured, none).text).toBe("");
+    expect(withoutMediaMark(KO.label_pictures, pictured, none).text).toBe("");
+    expect(withoutMediaMark("photo", pictured, none).text).toBe("");
+    expect(withoutMediaMark("Photo", pictured, none).text).toBe("");
+    expect(withoutMediaMark(KO.label_marked_picture, pictured, none).text).toBe("");
+    expect(withoutMediaMark(KO.label_video, video, none).text).toBe("");
+    expect(withoutMediaMark(KO.label_sticker, { attachments: [], pictured: true, sticker: true }, none).text).toBe("");
+    expect(withoutMediaMark("20261118_071900.mp4", clip, none).text).toBe("");
+  });
+
+  test("of a chat client stays where the message carries no such thing, and a caption stays", () => {
+    const none = { expressions: [], formats: [] };
+    const pictured = { attachments: [], pictured: true };
+
+    expect(withoutMediaMark(KO.label_picture, { attachments: [], pictured: false }, none).text).toBe(KO.label_picture);
+    expect(withoutMediaMark(KO.label_video, pictured, none).text).toBe(KO.label_video);
+    expect(withoutMediaMark(KO.label_sticker, { attachments: [], pictured: false }, none).text).toBe(KO.label_sticker);
+    expect(withoutMediaMark(KO.label_caption, pictured, none).text).toBe(KO.label_caption);
+    expect(withoutMediaMark(KO.label_marked_caption, pictured, none).text).toBe(KO.label_caption);
+    expect(withoutMediaMark("plan.pdf", filed, none).text).toBe("plan.pdf");
+  });
+
   test("moves the expressions back by what it took off", () => {
     const expression = { offset: 16, length: 2, attachment: { ...document, kind: "sticker" as const } };
     const shown = withoutMediaMark(KO.line_587, filed, { expressions: [expression], formats: [] });

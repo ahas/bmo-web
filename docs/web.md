@@ -4766,6 +4766,13 @@ Four bounds keep it from growing forever.
     server read or the chat service said. A photo opens in the picture viewer when pressed, as one in a bubble does.
   - A picture a chat service handed over as a plain photo with no words stands this way whatever it shows, so an
     emoticon KakaoTalk passed on unmarked stands alone as well, at its own shape.
+  - Words that are only the label a chat client keeps for a line that carried a thing and no words count as no
+    words: the whole of a message's words, or what follows its archive mark, being the label for the picture, the
+    count of pictures, the video or the emoticon the message carries — the labels standing in no brackets, matched
+    whatever the letters' case, the data file's beside the language pack — or the name of a file it carries,
+    which the file's own line already names. The label stays in the archive and in what an agent reads; where the
+    message carries no such thing, or more words stand beside the label, the words stand as they came, the mark
+    alone taken off.
   - A message whose picture comes with anything else keeps its bubble: words or a caption, a quote of the message
     it answers or the mark of where it was forwarded from (both stand in the bubble's head), several pictures sent
     as one album, a file beside it, a video with sound, which keeps its player, and a picture or an animation not

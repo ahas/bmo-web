@@ -27,6 +27,7 @@ import { HIGH_ALBUM, HIGH_ANSWERED, HIGH_FILE, HIGH_FILE_NAME, HIGH_FILE_WORDS, 
 import { UNREAD_LINE, UNREAD_ROOM } from "./unread-room";
 import { ASKED_RUN, askedRunLogAnswer } from "./asked-run";
 import { addressOf, BROWSER_CONSOLE_PREFIX, dropScratchDatabase, sweepScratchDatabases } from "./web-database";
+import { LABELS } from "./media-labels";
 
 const CLIENT = new URL("../..", import.meta.url).pathname;
 const CONSOLE_DIR = join(CLIENT, "apps/web");
@@ -514,18 +515,27 @@ const STICKERS_SENDER = 10;
 // The lone picture room's messages, by message: an emoticon a chat service handed over as a plain square picture with
 // no words, a photo under its mark alone, a GIF under its mark with the shape the chat service said, a photo with no
 // words from the account that reads the room, so it stands on the right, a photo with a caption, a photo with no words
-// answering another message, and words from the reader. Each picture is an SVG of its size, and the GIF is a short
-// WebM clip.
+// answering another message, and words from the reader; then lines a chat client handed over with its own label for what
+// they carried as their whole words, as the record keeps them: a photo under the picture label, one under the count of
+// pictures, one under the lower-case English label, a video under the video label and a file under its own name, and a
+// photo whose words hold the picture label among more. Each picture is an SVG of its size, and the GIF and the video are
+// a short WebM clip.
 const svgPicture = (width: number, height: number, fill: string): Uint8Array<ArrayBuffer> =>
   new TextEncoder().encode(`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><rect width="${width}" height="${height}" fill="${fill}"/></svg>`);
-const LONE_PICTURES: Record<number, { text: string; picture?: Uint8Array<ArrayBuffer>; animation?: { width: number; height: number }; senderId?: number; replyTo?: number }> = {
+const LONE_PICTURES: Record<number, { text: string; picture?: Uint8Array<ArrayBuffer>; animation?: { width: number; height: number }; filed?: { kind: "video" | "document"; name: string }; senderId?: number; replyTo?: number }> = {
   9: { text: "", picture: svgPicture(360, 360, "#e94") },
   10: { text: "[Photo]", picture: svgPicture(1280, 960, "#49e") },
   11: { text: "[GIF 0:01]", animation: { width: 800, height: 600 } },
   12: { text: "", picture: svgPicture(600, 1280, "#4a6"), senderId: STICKERS_SENDER },
   13: { text: "[Photo] a caption under the photo", picture: svgPicture(1280, 960, "#a4e") },
   14: { text: "[Photo]", picture: svgPicture(1280, 960, "#e4a"), replyTo: 10 },
-  15: { text: "ok", senderId: STICKERS_SENDER }
+  15: { text: "ok", senderId: STICKERS_SENDER },
+  16: { text: LABELS.picture, picture: svgPicture(960, 1280, "#6ae") },
+  17: { text: LABELS.pictures, picture: svgPicture(1280, 960, "#ea6") },
+  18: { text: "photo", picture: svgPicture(1280, 960, "#a6e") },
+  19: { text: LABELS.video, filed: { kind: "video", name: "1-0.webm" } },
+  20: { text: "20261118_071900.mp4", filed: { kind: "document", name: "20261118_071900.mp4" } },
+  21: { text: `${LABELS.picture} from the trip`, picture: svgPicture(1280, 960, "#6ea") }
 };
 const EMOTICON_MESSAGES = [3, 5, 7];
 // The kept files that stand as file lines, by message, as the receiver lists each.
@@ -1679,7 +1689,9 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
         ...(lone.senderId === undefined ? { senderId: 7, senderName: "person-b" } : { senderId: lone.senderId, senderName: "stickers" }),
         text: lone.text, imagePath: lone.picture === undefined ? null : `images/${LONE_CHAT}/${id}.svg`,
         replyToMessageId: lone.replyTo ?? null, answerSeconds: null, round: null, album: null, via: null,
-        files: lone.animation === undefined ? [] : [{ kind: "animation", source: "gif.mp4", storedPath: "kept", collectedAt: LINE_AT }]
+        files: lone.filed !== undefined
+          ? [{ kind: lone.filed.kind, source: lone.filed.name, storedPath: "kept", collectedAt: LINE_AT }]
+          : lone.animation === undefined ? [] : [{ kind: "animation", source: "gif.mp4", storedPath: "kept", collectedAt: LINE_AT }]
       };
     });
 
@@ -1697,8 +1709,18 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
       if (loneAsked[2] === "/picture" && lone?.picture !== undefined) return new Response(lone.picture, { headers: { "content-type": "image/svg+xml" } });
       if (loneAsked[2] === "/picture") return Response.json({ code: "not-found", error: "no picture is kept" }, { status: 404 });
-      if (loneAsked[2] === "/metadata") return Response.json({ metadata: lone?.animation === undefined ? null : { attachment: lone.animation } });
+      if (loneAsked[2] === "/metadata") {
+        const shape = lone?.filed?.kind === "video" ? VIDEOS[11]!.shape : lone?.animation;
+
+        return Response.json({ metadata: shape === undefined ? null : { attachment: shape } });
+      }
       if (loneAsked[2] === "/files" && loneAsked[3] === undefined) {
+        if (lone?.filed !== undefined) {
+          const type = lone.filed.kind === "video" ? "video/webm" : "video/mp4";
+
+          return Response.json({ items: [{ place: 0, kind: lone.filed.kind, name: lone.filed.name, size: VIDEOS[11]!.bytes.byteLength, type, kept: true }], more: false });
+        }
+
         return Response.json({ items: lone?.animation === undefined ? [] : [{ place: 0, kind: "animation", name: "gif.mp4", size: VIDEOS[11]!.bytes.byteLength, type: "video/webm", kept: true }], more: false });
       }
       if (loneAsked[2] === "/files") return new Response(VIDEOS[11]!.bytes, { headers: { "content-type": "video/webm" } });

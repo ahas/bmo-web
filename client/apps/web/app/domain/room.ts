@@ -1,4 +1,4 @@
-import { markWords, MEDIA_MARKS, VOICE_MARK } from "#shared/text-marks";
+import { markWords, MEDIA_LABELS, MEDIA_MARKS, VOICE_MARK } from "#shared/text-marks";
 import { PAGING, POLL_INTERVAL_MS, ROUND_FIGURES_AT_ONCE } from "#shared/config";
 import { chatAgent } from "#shared/agent-names";
 import { SKIPPED_STAGE } from "#shared/types";
@@ -461,17 +461,37 @@ function escaped(text: string): string {
   return text.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
 }
 
+// Whether a message's whole words are only the label its chat client keeps for a line that carried a thing and no
+// words — the label for the picture, the pictures, the video or the emoticon it carries, or the name of a file it
+// carries, which the file's own line already names.
+function onlyLabel(text: string, media: CarriedMedia): boolean {
+  const words = text.trim();
+  const played = media.attachments.some((attachment) => attachment.kind === "video" || attachment.kind === "animation");
+  const named = media.attachments.some((attachment) => attachment.kind !== "sticker" && attachment.name.trim() === words);
+  const labels = [
+    ...(media.pictured ? (media.sticker === true ? [MEDIA_LABELS.sticker] : [MEDIA_LABELS.picture, MEDIA_LABELS.pictures]) : []),
+    ...(played ? [MEDIA_LABELS.video] : [])
+  ];
+
+  return words !== "" && (named || labels.some((label) => label.test(words)));
+}
+
 // A mark at the head of a message says nothing the file's line or the picture under it does not,
 // so the bubble leaves it out and keeps the caption after it. The expressions and the formats are
 // placed by their offset into the text, so they move back by what was taken off. A sticker carries
 // no caption, so the words of a message whose sticker is drawn, as its file or as its emoji, are its
-// mark alone, and none of them is shown.
+// mark alone, and none of them is shown. Words that are only the label a chat client keeps for what
+// the message carried say no more than the mark would, and none of them is shown either.
 export function withoutMediaMark(
   text: string,
   media: CarriedMedia,
   words: TelegramWords
 ): { text: string; expressions: TelegramExpression[]; formats: TelegramFormat[] } {
-  if (media.stickerEmoji === true || media.attachments.some((attachment) => attachment.kind === "sticker" && attachment.available)) {
+  if (
+    media.stickerEmoji === true ||
+    media.attachments.some((attachment) => attachment.kind === "sticker" && attachment.available) ||
+    onlyLabel(text, media)
+  ) {
     return { text: "", expressions: [], formats: [] };
   }
 
@@ -484,6 +504,11 @@ export function withoutMediaMark(
 
     const rest = text.slice(found[0].length);
     const kept = rest.replace(/^\s+/, "");
+
+    if (onlyLabel(kept, media)) {
+      return { text: "", expressions: [], formats: [] };
+    }
+
     const cut = text.length - kept.length;
     const keptAfter = <T extends { offset: number }>(placements: readonly T[]): T[] =>
       placements.filter((one) => one.offset >= cut).map((one) => ({ ...one, offset: one.offset - cut }));

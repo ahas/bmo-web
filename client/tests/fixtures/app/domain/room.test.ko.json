@@ -173,5 +173,12 @@
   "line_976": "하나",
   "line_976_2": "둘",
   "line_977": "하나",
-  "line_977_2": "둘"
+  "line_977_2": "둘",
+  "label_picture": "사진",
+  "label_pictures": "사진 2장",
+  "label_video": "동영상",
+  "label_sticker": "이모티콘",
+  "label_marked_picture": "[사진] 사진",
+  "label_caption": "사진 잘 나왔다",
+  "label_marked_caption": "[사진] 사진 잘 나왔다"
 }

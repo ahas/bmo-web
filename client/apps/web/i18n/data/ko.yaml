@@ -19,6 +19,14 @@ marks:
   video: ["동영상", "Video"]
   video_note: ["동영상 메모", "Video note"]
   audio: ["오디오", "Audio"]
+  # What a chat client keeps as the whole text of a line that carried a thing and no words, in no brackets: its
+  # label for a picture, for a count of pictures ({n} standing for the number), for a video and for an emoticon,
+  # matched whatever the letters' case.
+  labels:
+    picture: ["사진", "photo"]
+    pictures: ["사진 {n}장", "{n} photos"]
+    video: ["동영상", "video"]
+    sticker: ["이모티콘", "emoticon"]
 
 # The word bmo-job files a co-work branch's span under in the name it stores, ahead of the branch's number.
 filed:

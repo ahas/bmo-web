@@ -553,7 +553,7 @@ locks against its value is refused 403 `locked-by-platform`.
 
   | Code | Fields read | The sentence |
   |---|---|---|
-  | `rest-begins` | `until`, epoch seconds or null | `fixed-lines.rest_begins.until`, said as the chat agent, the moment told in the owner's time zone (「Settings」, `time.zone`): `rest_begins.today`, its hour and minute, where it falls on the day the line is said, else `rest_begins.another_day`, the month's word from `rest_begins.months`, the day, the hour and the minute; `fixed-lines.rest_begins.soon` where `until` is null or absent |
+  | `rest-begins` | `until`, epoch seconds or null | `fixed-lines.rest_begins.until`, a system notice that names no agent, the moment told in the owner's time zone (「Settings」, `time.zone`): `rest_begins.today`, its hour and minute, where it falls on the day the line is said, else `rest_begins.another_day`, the month's word from `rest_begins.months`, the day, the hour and the minute; `fixed-lines.rest_begins.soon` where `until` is null or absent |
   | `provider-down` | none | `chat-health.rest.outage`, said as the chat agent |
   | `compacting` | none | `chat-health.fold.going` |
   | `compact-failed` | none | `chat-health.fold.failed` |

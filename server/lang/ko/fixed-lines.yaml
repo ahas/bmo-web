@@ -1,14 +1,14 @@
 # The fixed lines no other part holds (docs/boundary.md, 「Fixed lines」): lines the receiver posts under a code
 # where no agent's session can say them. Each `{name}` is filled in with what it names.
 
-# What a room is told as a usage limit begins, said as the {chat_agent}: until the moment the rest is kept to,
+# What a room is told as a usage limit begins, as a system notice and not in the agent's voice: until the moment the rest is kept to,
 # {until}, where the line names one, else that it comes back soon. The moment is told in the owner's time zone
 # (the server's `time.zone` setting): `today` where it falls on the day the line is said, else `another_day`, each
 # {hour} and {minute} two digits on a 24-hour clock, {day} the day of the month and {month} that month's word in
 # `months`, January first.
 rest_begins:
-  until: "{chat_agent} 오늘 머리를 너무 많이 썼어... {until}까지 잠깐 쉬러 갈게."
-  soon: "{chat_agent} 오늘 머리를 너무 많이 썼어... 잠깐 쉬고 곧 돌아올게."
+  until: "사용량 한도에 도달해 {until}까지 응답이 멈춥니다."
+  soon: "사용량 한도에 도달해 잠시 응답이 멈춥니다."
   today: "{hour}:{minute}"
   another_day: "{month} {day}일 {hour}:{minute}"
   months: ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"]

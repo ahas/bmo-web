@@ -1,7 +1,7 @@
 # Translation of server/lang/ko/fixed-lines.yaml; that file says what each line is for.
 rest_begins:
-  until: "{chat_agent} used way too much brainpower today... going to rest a bit until {until}."
-  soon: "{chat_agent} used way too much brainpower today... going to rest a bit and be back soon."
+  until: "The usage limit was reached. Answers pause until {until}."
+  soon: "The usage limit was reached. Answers pause for a while."
   today: "{hour}:{minute}"
   another_day: "{month} {day}, {hour}:{minute}"
   months: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]

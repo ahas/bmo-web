@@ -232,8 +232,9 @@ fn every_part_the_server_reads_reads_in_every_language() {
     assert!(!draws::DRAWS.in_language(language).line.head.is_empty());
     let rest_begins = &fixed_lines::FIXED_LINES.in_language(language).rest_begins;
 
-    assert!(rest_begins.until.contains("{chat_agent}") && rest_begins.until.contains("{until}"));
-    assert!(rest_begins.soon.contains("{chat_agent}"));
+    // A system notice, not the agent's own words: it names when answers resume and no agent.
+    assert!(rest_begins.until.contains("{until}") && !rest_begins.until.contains("{chat_agent}"));
+    assert!(!rest_begins.soon.contains("{chat_agent}"));
     assert_eq!(rest_begins.months.len(), 12);
     assert!(job_titles::JOB_TITLES.in_language(language).both.contains("{rank}"));
     let _ = &particles::PARTICLES.in_language(language).subject;

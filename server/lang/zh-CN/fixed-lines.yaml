@@ -1,7 +1,7 @@
 # Translation of server/lang/ko/fixed-lines.yaml; that file says what each line is for.
 rest_begins:
-  until: "{chat_agent} 今天脑子用得太多了… 我先去歇一会儿，{until}回来。"
-  soon: "{chat_agent} 今天脑子用得太多了… 我先去歇一会儿，马上回来。"
+  until: "已达到用量上限，{until}前暂停回复。"
+  soon: "已达到用量上限，暂时停止回复。"
   today: "{hour}:{minute}"
   another_day: "{month}{day}日 {hour}:{minute}"
   months: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"]

@@ -2,14 +2,14 @@
   <!-- The second factor's enrolment (docs/web.md, 「Settings」, 계정's 2단계 인증): the QR code the account service drew
        with its key written out under it, then the code that confirms it, then the recovery codes, shown once. -->
   <SettingsDialog v-model:open="open" :title="$t('security.label.second_factor')" :dirty="codes === null && code !== ''">
-    <UAlert v-if="props.required && codes === null" color="warning" variant="subtle" :description="$t('security.message.enrol_required')" />
+    <UAlert v-if="props.required && codes === null" color="warning" variant="subtle" :description="$t('security.message.enrol_required')" :ui="{ description: 'whitespace-pre-line' }" />
 
     <template v-if="codes !== null">
       <RecoveryCodes :codes="codes" />
     </template>
 
     <template v-else-if="enrolment !== null">
-      <p class="text-sm text-muted">{{ $t("security.message.enrol_scan") }}</p>
+      <p class="whitespace-pre-line text-sm text-muted">{{ $t("security.message.enrol_scan") }}</p>
       <img class="mx-auto size-60 rounded-lg bg-white" :src="qrSource" :alt="$t('security.label.second_factor')" data-enrol-qr />
       <div class="flex flex-col gap-1">
         <span class="text-sm text-muted">{{ $t("security.label.secret_key") }}</span>
@@ -26,7 +26,7 @@
       <SkeletonBar class="mx-auto block size-60 rounded-lg" />
     </SkeletonStatus>
 
-    <p v-if="failure !== ''" role="alert" class="text-sm text-error">{{ failure }}</p>
+    <p v-if="failure !== ''" role="alert" class="whitespace-pre-line text-sm text-error">{{ failure }}</p>
 
     <template #footer="{ close }">
       <template v-if="codes !== null">

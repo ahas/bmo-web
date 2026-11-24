@@ -32,7 +32,7 @@
 
           <UCheckbox v-model="form.remember" :label="$t('app.label.remember')" />
 
-          <UAlert v-if="failure" color="error" variant="subtle" :description="failure" />
+          <UAlert v-if="failure" color="error" variant="subtle" :description="failure" :ui="{ description: 'whitespace-pre-line' }" />
         </div>
       </UForm>
 
@@ -57,7 +57,7 @@
             <UButton color="neutral" variant="link" class="px-0" :label="recovering ? $t('security.action.use_code') : $t('security.action.use_recovery')" data-login-recovery @click="toggleRecovery()" />
           </div>
 
-          <UAlert v-if="failure" color="error" variant="subtle" :description="failure" />
+          <UAlert v-if="failure" color="error" variant="subtle" :description="failure" :ui="{ description: 'whitespace-pre-line' }" />
         </div>
       </UForm>
 

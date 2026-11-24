@@ -144,7 +144,20 @@ const ACCOUNTS: readonly [string, string][] = [
   ["session-acts", "fixture-password-4115"],
   ["axis-admin", "fixture-password-4121"],
   ["tree-admin", "fixture-password-4611"],
-  ["join-signed-in", "fixture-password-4131"]
+  ["join-signed-in", "fixture-password-4131"],
+  // The administrator who resets a person's password on the people tab (tests/browser/account-security.test.ts).
+  ["security-admin", "fixture-password-5100"]
+];
+
+// The account security files' members, by the name and password each signs in with; each keeps the email
+// `<name>@example.test`, verified through the mail the stand-in bmo-mail keeps.
+const SECURITY_MEMBERS: readonly [string, string][] = [
+  ["security-forgot-1280", "fixture-password-5101"],
+  ["security-forgot-360", "fixture-password-5102"],
+  ["security-factor-1280", "fixture-password-5103"],
+  ["security-factor-360", "fixture-password-5104"],
+  ["security-target-1280", "fixture-password-5105"],
+  ["security-target-360", "fixture-password-5106"]
 ];
 
 // The member accounts a test signs in with to read a section by its permission rather than as the administrator,
@@ -336,7 +349,17 @@ const MEMBERS: readonly { name: string; password: string; sections: readonly { s
       { section: "rooms", read: true, write: false },
       { section: "account", read: true, write: false }
     ]
-  }
+  },
+  // The account security files' members, each with a verified email: one who forgets their password, one who sets up a
+  // second factor and one whose password the administrator resets, at each width (tests/browser/account-security.test.ts).
+  ...SECURITY_MEMBERS.map(([name, password]) => ({
+    name,
+    password,
+    sections: [
+      { section: "rooms", read: true, write: true },
+      { section: "account", read: true, write: true }
+    ]
+  }))
 ];
 
 // The owner's room, which the receiver's stand-in names as theirs and lists, and a room an account meets two behind.
@@ -623,6 +646,8 @@ if (binary === "") {
 
 const scratch = mkdtempSync(join(tmpdir(), "bmo-web-browser-console-"));
 const servers: { stop: (force?: boolean) => void }[] = [];
+// The stand-in bmo-mail's address, once it stands.
+let mailAddress = "";
 const database = `${BROWSER_CONSOLE_PREFIX}${process.pid}`;
 const databaseUrl = addressOf(database);
 
@@ -2239,6 +2264,33 @@ try {
     }
   }));
 
+  // A stand-in for bmo-mail, the road the platform's own mail goes through (docs/accounts.md, 「The platform's own
+  // mail」): one outgoing server kept for the platform, and every system mail handed to it kept, read back at
+  // `GET /sent` by the files that follow a mail's link.
+  const sentMails: Record<string, unknown>[] = [];
+  const mail = Bun.serve({
+    hostname: "127.0.0.1",
+    port: 0,
+    fetch: async (request) => {
+      const path = new URL(request.url).pathname;
+
+      if (path === "/sent") return Response.json({ mails: sentMails });
+      if (request.headers.get("authorization") !== `Bearer ${TOKEN}`) return Response.json({ code: "unauthorized", error: "no token" }, { status: 401 });
+      if (path === "/outgoing-servers") return Response.json({ items: [{ id: "relay-a", name: "Relay A", host: "relay.example.test" }], more: false });
+
+      if (path === "/system-mails" && request.method === "POST") {
+        sentMails.push((await request.json()) as Record<string, unknown>);
+
+        return Response.json({ sent: true });
+      }
+
+      return Response.json({ code: "not-found", error: "no such route" }, { status: 404 });
+    }
+  });
+
+  servers.push(mail);
+  mailAddress = `http://127.0.0.1:${mail.port}`;
+
   await sweepScratchDatabases(BROWSER_CONSOLE_PREFIX);
 
   const admin = new SQL(connectionOf(addressOf("postgres")) as SQL.Options);
@@ -2258,7 +2310,9 @@ try {
     BMO_WEB_SERVER_AGENCY__BASE: units.AGENCY_ADDRESS!,
     BMO_WEB_SERVER_AGENCY__TOKEN: TOKEN,
     // The secret store writes into the scratch folder, standing in for the data root's env/.
-    BMO_WEB_SERVER_SECRETS__DIR: join(scratch, "env")
+    BMO_WEB_SERVER_SECRETS__DIR: join(scratch, "env"),
+    BMO_WEB_SERVER_MAIL__BASE: mailAddress,
+    BMO_WEB_SERVER_MAIL__TOKEN: TOKEN
   };
 
   await run(binary, ["migrate"], serverEnv, SERVER_DIR);
@@ -2268,6 +2322,8 @@ try {
   const consolePort = freePort();
   const consoleEnv = {
     ...units,
+    // The public address a mailed link is written under, the console's own.
+    NUXT_PUBLIC_CONSOLE_ADDRESS: `http://127.0.0.1:${consolePort}${BASE.replace(/\/$/, "")}`,
     NUXT_SESSION_PASSWORD: "browser-console-session-password-0123456789",
     WEB_DATABASE_URL: databaseUrl,
     WEB_SERVER_ADDRESS: `http://127.0.0.1:${serverPort}`,
@@ -2555,7 +2611,31 @@ try {
     if (!linked.ok) throw new Error(`the ${name} sender link was refused: ${linked.status} ${await linked.text()}`);
   }
 
+  // The system mail set to the stand-in's server, and each account security member's email kept and verified through
+  // the link it was mailed.
+  const mailSet = await service("/mail", { method: "PUT", body: JSON.stringify({ server: "relay-a", from: "system@example.test", fromName: "BMO", secret: null }) });
+
+  if (!mailSet.ok) throw new Error(`the system mail was refused: ${mailSet.status} ${await mailSet.text()}`);
+
+  for (const [name] of SECURITY_MEMBERS) {
+    const one = users.find((user) => user.name === name);
+
+    if (one === undefined) throw new Error(`${name} stands in no users list`);
+
+    const own = { authorization: `Bearer ${TOKEN}`, "owner-key": one.user, "owner-role": "member", "content-type": "application/json" };
+    const at = `http://127.0.0.1:${serverPort}/users/${one.user}`;
+    const profiled = await fetch(`${at}/profile`, { method: "POST", headers: own, body: JSON.stringify({ fullName: name, jobTitle: "", landline: "", mobile: "", email: `${name}@example.test` }) });
+    const asked = await fetch(`${at}/email/verification`, { method: "POST", headers: own, body: JSON.stringify({ linkBase: origin }) });
+    const link = String((sentMails.at(-1) as { text?: string } | undefined)?.text ?? "");
+    const token = /token=([^\s]+)/.exec(link)?.[1] ?? "";
+    const verified = await fetch(`http://127.0.0.1:${serverPort}/email-verifications/${token}`, { method: "POST", headers: { authorization: `Bearer ${TOKEN}` } });
+
+    if (!profiled.ok || !asked.ok || !verified.ok) throw new Error(`${name}'s email was not verified: ${profiled.status} ${asked.status} ${verified.status}`);
+  }
+
   console.log(origin);
+  // The stand-in bmo-mail, whose `GET /sent` the account security files read the mails from.
+  console.log(`BMO_CONSOLE_TEST_MAIL=${mailAddress}`);
   // The features file a test writes and takes back, which the console reads at each page (tests/browser/sidebar-features.test.ts).
   console.log(`BMO_CONSOLE_TEST_FEATURES=${join(scratch, "console-features.toml")}`);
 } catch (error) {

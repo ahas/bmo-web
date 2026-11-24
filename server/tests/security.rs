@@ -502,7 +502,7 @@ async fn a_second_factor_is_enrolled_then_asked_at_the_sign_in_and_taken_once() 
     &world.app,
     Method::POST,
     &format!("{path}/confirm"),
-    Some(json!({ "code": code(&secret, -1) })),
+    Some(json!({ "code": code(&secret, 0) })),
     &by(world.member),
   )
   .await;
@@ -528,7 +528,7 @@ async fn a_second_factor_is_enrolled_then_asked_at_the_sign_in_and_taken_once() 
     &world.app,
     Method::POST,
     "/sign-ins/second-factor",
-    Some(json!({ "ticket": ticket, "code": code(&secret, 0), "remember": true })),
+    Some(json!({ "ticket": ticket, "code": code(&secret, 1), "remember": true })),
     &[],
   )
   .await;
@@ -545,7 +545,7 @@ async fn a_second_factor_is_enrolled_then_asked_at_the_sign_in_and_taken_once() 
     &world.app,
     Method::POST,
     "/sign-ins/second-factor",
-    Some(json!({ "ticket": ticket, "code": code(&secret, 0), "remember": false })),
+    Some(json!({ "ticket": ticket, "code": code(&secret, 1), "remember": false })),
     &[],
   )
   .await;

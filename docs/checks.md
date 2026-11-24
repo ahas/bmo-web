@@ -71,6 +71,10 @@ which stands.
   - the account service's secret store on a folder of the scratch directory, in place of the data root's `env/`,
     and the agency's stand-in named to it, so a fixed line naming a supervisor names it by the label the stand-in
     gives it;
+  - a stand-in for bmo-mail, the road the platform's own mail goes through: one outgoing server kept for the platform,
+    every system mail handed to it kept and read back at its `GET /sent`; the account service is named it, the system
+    mail is set to its server, the console's public address is the console's own, and the account security files'
+    members each keep an email verified through the link it was mailed;
   - a stand-in for each unit the console reads, answering the agent list, the owner's room and its figures, the
     Claude accounts with what each has left and the user each belongs to, one of them a fixture account's and the
     rest the platform's, a provider keeping a balance, the model gateway's members with the account each belongs
@@ -116,7 +120,8 @@ which stands.
     first, by `bun run typecheck` in `client/` or `nuxi prepare` in `client/apps/web`. The development server
     bundles every library the console's own files import before any page opens, as the console's Nuxt settings
     name them, since one it met only once a page stood would reload every open page and lose what a test built.
-- **What it prints:** the console's address, once it answers.
+- **What it prints:** the console's address, once it answers, and `BMO_CONSOLE_TEST_MAIL=` with the stand-in
+  bmo-mail's address, which `account-security` reads the mails from and skips without.
 - **When it stops:** on an interrupt, stopping everything it started, dropping the database and removing its scratch
   directory. It watches every process it started: where one ends while it stands, the account service or the
   development server alike, it names that process and how it ended, stops the rest the same way, keeps the scratch
@@ -141,6 +146,7 @@ nowhere until a test writes it (`docs/web.md`, 「The console's features」); th
 
 ```
 BMO_CONSOLE_TEST_URL=<the address> BMO_CONSOLE_TEST_FEATURES=<the file> bmo-testbed run -- bun test tests/browser/sidebar-features.test.ts
+BMO_CONSOLE_TEST_URL=<the address> BMO_CONSOLE_TEST_MAIL=<the stand-in> bmo-testbed run -- bun test tests/browser/account-security.test.ts
 ```
 
 The console the script stands up listens on this machine's loopback address alone, so a file is run on the

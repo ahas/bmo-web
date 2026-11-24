@@ -19,7 +19,7 @@
               <span class="break-all text-sm text-muted">{{ view.security.email }}</span>
               <UBadge :color="view.security.emailVerified ? 'success' : 'neutral'" variant="subtle" size="sm" :label="view.security.emailVerified ? $t('security.label.verified') : $t('security.label.unverified')" data-email-state />
             </span>
-            <span v-if="emailNote !== ''" class="text-sm text-muted" data-email-note>{{ emailNote }}</span>
+            <span v-if="emailNote !== ''" class="whitespace-pre-line text-sm text-muted" data-email-note>{{ emailNote }}</span>
           </template>
           <UButton
             v-if="view.security.email !== '' && !view.security.emailVerified && view.security.mail"
@@ -45,7 +45,7 @@
         </SettingsRow>
       </template>
 
-      <p v-if="actFailure !== ''" role="alert" class="break-words py-3 text-sm text-error" data-security-failure>{{ actFailure }}</p>
+      <p v-if="actFailure !== ''" role="alert" class="whitespace-pre-line break-words py-3 text-sm text-error" data-security-failure>{{ actFailure }}</p>
     </SettingsGroup>
 
     <SettingsGroup v-if="view !== null" :title="$t('security.label.devices')" data-devices>
@@ -56,9 +56,9 @@
         <UBadge v-if="device.current" color="primary" variant="subtle" size="sm" :label="$t('security.label.this_device')" data-device-current />
         <UButton v-else color="neutral" variant="outline" :label="$t('security.action.sign_out')" :loading="ending === device.id" :disabled="ending !== null" data-device-end @click="void endDevice(device.id)" />
       </SettingsRow>
-      <SettingsRow v-if="view.devices.some((one) => !one.current)" :label="$t('security.action.sign_out_others')">
+      <div v-if="view.devices.some((one) => !one.current)" class="flex justify-end py-3">
         <UButton color="error" variant="ghost" :label="$t('security.action.sign_out_others')" :loading="ending === 'others'" :disabled="ending !== null" data-devices-others @click="void endOthers()" />
-      </SettingsRow>
+      </div>
       <p v-if="view.devices.length === 0" class="py-3 text-sm text-muted">{{ $t("security.message.no_devices") }}</p>
     </SettingsGroup>
 

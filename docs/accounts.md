@@ -1536,8 +1536,9 @@ under its token; the console is the one caller, and a browser reaches none of th
 - **A person who forgot their password asks for a link** on the login screen, by their login or their email:
   **`POST /password-resets`**. The answer is the same 202 whatever was asked, so it tells nobody whether an
   account stands. Where the words name an enabled account with a verified email and mail is set up, a link is mailed
-  to it: one use, 30 minutes. Each account is mailed three such links an hour at most, and each address asks ten
-  times an hour at most; past either, nothing is sent and the answer is the same.
+  to it: one use, 30 minutes. Each account is mailed three such links an hour at most, counted since its password was
+  last set by one, and each address asks ten times an hour at most; past either, nothing is sent and the answer is
+  the same.
 - **`GET /password-resets/{token}`** reads whether a link stands and the login it is for; **`POST
   /password-resets/{token}`** sets the new password, of eight characters or more, ends every session of the account
   and every other link of it, and mails the person that their password was changed. A link used, replaced or past its

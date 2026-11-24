@@ -5,7 +5,7 @@
       <SkeletonBar class="block h-4 w-48" />
     </SkeletonStatus>
     <p v-else-if="address !== null" class="break-all text-sm text-default" data-verified>{{ $t("security.message.email_verified", { address }) }}</p>
-    <p v-else class="text-sm text-default" data-verify-failed>{{ failure }}</p>
+    <p v-else class="whitespace-pre-line text-sm text-default" data-verify-failed>{{ failure }}</p>
   </SignInCard>
 </template>
 

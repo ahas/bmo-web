@@ -17,7 +17,7 @@ setup = ["cd client && bun install --frozen-lockfile"]
 [runner]
 # The console-driven browser files read the address of a console standing on this machine's loopback, so a run
 # naming one stays on this machine (docs/checks.md, 「Running the console-driven browser files」).
-local_variables = ["BMO_CONSOLE_TEST_URL", "BMO_SKELETON_TEST_URL"]
+local_variables = ["BMO_CONSOLE_TEST_URL", "BMO_SKELETON_TEST_URL", "BMO_CONSOLE_TEST_MAIL"]
 
 [check]
 # The sweeps that read the tree before anything runs: Korean in the code, the README's folder table, the

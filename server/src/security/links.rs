@@ -227,10 +227,12 @@ async fn set_route(
     vec![id.into(), now.into()],
   )
   .await?;
+  // Every other reset link of the account goes, the ones replaced before it among them, so an hour's share of mailed
+  // links counts from the password set.
   run(
     &txn,
-    r#"UPDATE "account_links" SET "used_at" = $2 WHERE "user_id" = $1 AND "kind" = 'reset' AND "used_at" IS NULL"#,
-    vec![user.into(), now.into()],
+    r#"DELETE FROM "account_links" WHERE "user_id" = $1 AND "kind" = 'reset' AND "id" <> $2"#,
+    vec![user.into(), id.into()],
   )
   .await?;
   run(

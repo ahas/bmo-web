@@ -92,7 +92,7 @@
       <template v-if="resetMade !== null">
         <p v-if="resetMade.mailed" class="text-sm text-default" data-reset-mailed>{{ $t("security.message.reset_mailed", { address: resetMade.address ?? "" }) }}</p>
         <template v-else>
-          <p class="text-sm text-default">{{ $t("security.message.reset_handed") }}</p>
+          <p class="whitespace-pre-line text-sm text-default">{{ $t("security.message.reset_handed") }}</p>
           <code class="break-all rounded-md bg-elevated p-3 font-mono text-sm text-highlighted" data-reset-link>{{ resetMade.link }}</code>
         </template>
       </template>

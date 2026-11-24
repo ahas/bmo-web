@@ -7,8 +7,8 @@
         <UInput v-model="form.who" class="w-full" autocomplete="username" data-forgot-who />
       </UFormField>
     </UForm>
-    <p v-else class="text-sm text-default" data-forgot-sent>{{ $t("security.message.link_sent") }}</p>
-    <UAlert v-if="failure" color="error" variant="subtle" :description="failure" />
+    <p v-else class="whitespace-pre-line text-sm text-default" data-forgot-sent>{{ $t("security.message.link_sent") }}</p>
+    <UAlert v-if="failure" color="error" variant="subtle" :description="failure" :ui="{ description: 'whitespace-pre-line' }" />
 
     <template #actions>
       <UButton v-if="!sent" type="submit" form="forgot-form" :label="$t('security.action.send_link')" :loading="pending" :disabled="pending || form.who.trim() === ''" data-forgot-send />

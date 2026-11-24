@@ -2,15 +2,13 @@
   <!-- A new password set by a reset link (docs/web.md, 「Pages with no sign-in」): the link read first, then the new
        password twice; a link used or past its time leads to asking a new one. -->
   <SignInCard>
-    <SkeletonStatus v-if="login === null && failure === ''" :label="$t('security.message.reading_link')">
+    <p v-if="gone" class="whitespace-pre-line text-sm text-default" data-reset-gone>{{ $t("security.message.link_gone") }}</p>
+
+    <SkeletonStatus v-else-if="login === null && failure === ''" :label="$t('security.message.reading_link')">
       <SkeletonBar class="block h-4 w-48" />
     </SkeletonStatus>
 
-    <template v-else-if="gone">
-      <p class="text-sm text-default" data-reset-gone>{{ $t("security.message.link_gone") }}</p>
-    </template>
-
-    <p v-else-if="done" class="text-sm text-default" data-reset-done>{{ $t("security.message.password_changed") }}</p>
+    <p v-else-if="done" class="whitespace-pre-line text-sm text-default" data-reset-done>{{ $t("security.message.password_changed") }}</p>
 
     <UForm v-else-if="login !== null" id="reset-form" :state="form" class="flex flex-col gap-4" @submit="submit">
       <p class="text-sm text-muted">{{ $t("security.message.reset_for", { login }) }}</p>
@@ -22,7 +20,7 @@
       </UFormField>
     </UForm>
 
-    <UAlert v-if="failure !== ''" color="error" variant="subtle" :description="failure" />
+    <UAlert v-if="failure !== ''" color="error" variant="subtle" :description="failure" :ui="{ description: 'whitespace-pre-line' }" />
 
     <template #actions>
       <UButton v-if="gone" to="/forgot-password" :label="$t('security.action.ask_again')" data-reset-ask-again />

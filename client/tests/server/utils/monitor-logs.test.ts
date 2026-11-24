@@ -73,15 +73,15 @@ function reading(run: LogCommandRun): LogReading {
 }
 
 const journal: Entry[] = [
-  { cursor: "c9", unit: "init.scope", slice: "-.slice", about: "bmo-unit-b.service", priority: 3, message: "Failed to start bmo-unit-b.service." },
-  { cursor: "c8", unit: "bmo-unit-b.service", slice: "bmo-backup.slice", message: "snapshot failed" },
+  { cursor: "c9", unit: "init.scope", slice: "-.slice", about: "bmo-attendance.service", priority: 3, message: "Failed to start bmo-attendance.service." },
+  { cursor: "c8", unit: "bmo-attendance.service", slice: "bmo-backup.slice", message: "snapshot failed" },
   { cursor: "c7", unit: "other-unit.service", message: "not ours" },
-  { cursor: "c6", unit: "bmo-unit-a.service", priority: 4, message: "API_TOKEN=abcdef123456 slow" },
-  { cursor: "c5", unit: "bmo-unit-a.service", message: [27, 91, 51, 49, 109, 114, 101, 100, 27, 91, 48, 109] },
-  { cursor: "c4", unit: "bmo-unit-a.service", message: "line four" },
-  { cursor: "c3", unit: "bmo-unit-a.service", message: "line three" },
-  { cursor: "c2", unit: "bmo-unit-a.service", message: "line two" },
-  { cursor: "c1", unit: "bmo-unit-a.service", message: "line one" }
+  { cursor: "c6", unit: "bmo-approval.service", priority: 4, message: "API_TOKEN=abcdef123456 slow" },
+  { cursor: "c5", unit: "bmo-approval.service", message: [27, 91, 51, 49, 109, 114, 101, 100, 27, 91, 48, 109] },
+  { cursor: "c4", unit: "bmo-approval.service", message: "line four" },
+  { cursor: "c3", unit: "bmo-approval.service", message: "line three" },
+  { cursor: "c2", unit: "bmo-approval.service", message: "line two" },
+  { cursor: "c1", unit: "bmo-approval.service", message: "line one" }
 ];
 
 describe("a line", () => {
@@ -89,8 +89,8 @@ describe("a line", () => {
     const entries = logJournalEntries(`${printed([journal[0]!, journal[4]!])}\nnot json\n`);
 
     expect(entries.map((one) => [one.cursor, one.ownUnit, one.managerUnit])).toEqual([
-      ["c9", "init.scope", "bmo-unit-b.service"],
-      ["c5", "bmo-unit-a.service", null]
+      ["c9", "init.scope", "bmo-attendance.service"],
+      ["c5", "bmo-approval.service", null]
     ]);
     expect(entries[1]!.message).toBe("\u001b[31mred\u001b[0m");
   });
@@ -114,7 +114,7 @@ describe("a line", () => {
 
 describe("what journalctl is asked to narrow to", () => {
   test("is a unit's lines and the manager's about it, or a category's slice and the manager's lines, with the level", () => {
-    expect(logJournalMatches({ ...ALL, unit: "bmo-unit-a.service" }, "bmo-")).toEqual(["_SYSTEMD_USER_UNIT=bmo-unit-a.service", "+", "USER_UNIT=bmo-unit-a.service"]);
+    expect(logJournalMatches({ ...ALL, unit: "bmo-approval.service" }, "bmo-")).toEqual(["_SYSTEMD_USER_UNIT=bmo-approval.service", "+", "USER_UNIT=bmo-approval.service"]);
     expect(logJournalMatches({ ...ALL, category: "backup", level: "error" }, "bmo-")).toEqual(["-p", "0..3", "_SYSTEMD_USER_SLICE=bmo-backup.slice", "+", "_SYSTEMD_USER_UNIT=init.scope"]);
     expect(logJournalMatches({ ...ALL, category: "service", level: "other" }, "bmo-")).toEqual(["-p", "5..7"]);
     expect(logJournalMatches(ALL, "bmo-")).toEqual([]);
@@ -127,14 +127,14 @@ describe("a page of older lines", () => {
     const page = await readOlderLogLines(ALL, null, reading(run));
 
     expect(page.lines.map((one) => [one.id, one.unit, one.category, one.level])).toEqual([
-      ["c9", "bmo-unit-b.service", "backup", "error"],
-      ["c8", "bmo-unit-b.service", "backup", "other"],
-      ["c6", "bmo-unit-a.service", "service", "warning"],
-      ["c5", "bmo-unit-a.service", "service", "other"],
-      ["c4", "bmo-unit-a.service", "service", "other"],
-      ["c3", "bmo-unit-a.service", "service", "other"],
-      ["c2", "bmo-unit-a.service", "service", "other"],
-      ["c1", "bmo-unit-a.service", "service", "other"]
+      ["c9", "bmo-attendance.service", "backup", "error"],
+      ["c8", "bmo-attendance.service", "backup", "other"],
+      ["c6", "bmo-approval.service", "service", "warning"],
+      ["c5", "bmo-approval.service", "service", "other"],
+      ["c4", "bmo-approval.service", "service", "other"],
+      ["c3", "bmo-approval.service", "service", "other"],
+      ["c2", "bmo-approval.service", "service", "other"],
+      ["c1", "bmo-approval.service", "service", "other"]
     ]);
     expect(page.lines[2]!.text).toBe(`API_TOKEN=${MASK} slow`);
     expect(page.lines[3]!.text).toBe("red");
@@ -166,7 +166,7 @@ describe("a page of older lines", () => {
 
     expect((await readOlderLogLines({ ...ALL, category: "backup" }, null, reading(run))).lines.map((one) => one.id)).toEqual(["c9", "c8"]);
     expect((await readOlderLogLines({ ...ALL, query: "LINE T" }, null, reading(run))).lines.map((one) => one.id)).toEqual(["c3", "c2"]);
-    expect((await readOlderLogLines({ ...ALL, query: "unit-b" }, null, reading(run))).lines.map((one) => one.id)).toEqual(["c9", "c8"]);
+    expect((await readOlderLogLines({ ...ALL, query: "attendance" }, null, reading(run))).lines.map((one) => one.id)).toEqual(["c9", "c8"]);
     expect((await readOlderLogLines({ ...ALL, query: "abcdef" }, null, reading(run))).lines).toEqual([]);
   });
 });
@@ -198,17 +198,17 @@ describe("new lines", () => {
 describe("a unit's slice", () => {
   test("is the slice its own newest line carries, else systemd's, a timer standing in its unit's, and is kept", async () => {
     const { run, calls } = standInMachine(journal, {
-      "--user show -p Unit --value bmo-unit-b.timer": "bmo-unit-b.service\n",
-      "--user show -p Slice --value bmo-unit-c.service": "bmo-upkeep.slice\n"
+      "--user show -p Unit --value bmo-attendance.timer": "bmo-attendance.service\n",
+      "--user show -p Slice --value bmo-schedule.service": "bmo-upkeep.slice\n"
     });
     const book = new SliceBook(run);
 
-    expect(await book.sliceOf("bmo-unit-b.timer")).toBe("bmo-backup.slice");
-    expect(await book.sliceOf("bmo-unit-c.service")).toBe("bmo-upkeep.slice");
+    expect(await book.sliceOf("bmo-attendance.timer")).toBe("bmo-backup.slice");
+    expect(await book.sliceOf("bmo-schedule.service")).toBe("bmo-upkeep.slice");
 
     const asked = calls.length;
 
-    expect(await book.sliceOf("bmo-unit-c.service")).toBe("bmo-upkeep.slice");
+    expect(await book.sliceOf("bmo-schedule.service")).toBe("bmo-upkeep.slice");
     expect(calls.length).toBe(asked);
   });
 
@@ -217,12 +217,12 @@ describe("a unit's slice", () => {
     let now = 0;
     const book = new SliceBook(run, () => now);
 
-    await book.sliceOf("bmo-unit-a.service");
+    await book.sliceOf("bmo-approval.service");
 
     const asked = calls.length;
 
     now = 11 * 60_000;
-    await book.sliceOf("bmo-unit-a.service");
+    await book.sliceOf("bmo-approval.service");
 
     expect(calls.length).toBeGreaterThan(asked);
   });
@@ -233,12 +233,12 @@ describe("what the filters offer", () => {
     const { run } = standInMachine(journal, {
       "--user list-unit-files --type=slice -o json --no-pager bmo-*": JSON.stringify([{ unit_file: "bmo-backup.slice" }, { unit_file: "bmo-deploy.slice" }]),
       "--user list-units --all --type=slice -o json --no-pager bmo-*": JSON.stringify([{ unit: "bmo-suite.slice" }]),
-      "--user list-units --all --type=service -o json --no-pager bmo-*": JSON.stringify([{ unit: "bmo-unit-b.service" }, { unit: "bmo-unit-a.service" }])
+      "--user list-units --all --type=service -o json --no-pager bmo-*": JSON.stringify([{ unit: "bmo-attendance.service" }, { unit: "bmo-approval.service" }])
     });
 
     expect(await readLogSources(reading(run))).toEqual({
       categories: [
-        { key: "service", units: ["bmo-unit-a.service"] },
+        { key: "service", units: ["bmo-approval.service"] },
         { key: "backup", units: [] },
         { key: "deploy", units: [] },
         { key: "suite", units: [] }

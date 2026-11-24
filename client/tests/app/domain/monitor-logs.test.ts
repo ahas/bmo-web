@@ -19,9 +19,9 @@ describe("the filter in the address", () => {
   });
 
   test("is written back with nothing for what is not set, and says whether anything narrows the lines", () => {
-    const filter: LogFilter = { category: null, unit: "bmo-unit-a.service", level: "error", query: " " };
+    const filter: LogFilter = { category: null, unit: "bmo-approval.service", level: "error", query: " " };
 
-    expect(logFilterQuery(filter)).toEqual({ category: undefined, unit: "bmo-unit-a.service", level: "error", q: undefined });
+    expect(logFilterQuery(filter)).toEqual({ category: undefined, unit: "bmo-approval.service", level: "error", q: undefined });
     expect(logFilterFrom(logFilterQuery(filter))).toEqual({ ...filter, query: "" });
     expect(logFiltered(NONE)).toBe(false);
     expect(logFiltered({ ...NONE, query: "x" })).toBe(true);
@@ -30,7 +30,7 @@ describe("the filter in the address", () => {
 });
 
 describe("the category dropdown", () => {
-  const sources = { categories: [{ key: "service", units: ["bmo-unit-a.service"] }, { key: "backup", units: [] }, { key: "newkind", units: [] }] };
+  const sources = { categories: [{ key: "service", units: ["bmo-approval.service"] }, { key: "backup", units: [] }, { key: "newkind", units: [] }] };
 
   test("offers every category, each category, then the servers' units under their category's name", () => {
     const [head, units] = sourceChoices(wording, sources, NONE);
@@ -41,17 +41,17 @@ describe("the category dropdown", () => {
       { label: wording("monitor_logs.label.category_backup"), value: "backup" },
       { label: "newkind", value: "newkind" }
     ]);
-    expect(units).toEqual([{ label: wording("monitor_logs.label.category_service"), type: "label" }, { label: "bmo-unit-a.service", value: "unit:bmo-unit-a.service" }]);
+    expect(units).toEqual([{ label: wording("monitor_logs.label.category_service"), type: "label" }, { label: "bmo-approval.service", value: "unit:bmo-approval.service" }]);
   });
 
   test("keeps a unit the address names that the sources no longer list", () => {
     const [, units] = sourceChoices(wording, sources, { ...NONE, unit: "bmo-unit-gone.service" });
 
-    expect(units?.map((one) => one.value)).toEqual([undefined, "unit:bmo-unit-gone.service", "unit:bmo-unit-a.service"]);
+    expect(units?.map((one) => one.value)).toEqual([undefined, "unit:bmo-unit-gone.service", "unit:bmo-approval.service"]);
   });
 
   test("holds a choice as the filter it stands for, and back", () => {
-    for (const filter of [NONE, { ...NONE, category: "backup" }, { ...NONE, unit: "bmo-unit-a.service" }]) {
+    for (const filter of [NONE, { ...NONE, category: "backup" }, { ...NONE, unit: "bmo-approval.service" }]) {
       expect(sourceFilter(sourceValue(filter))).toEqual({ category: filter.category, unit: filter.unit });
     }
   });

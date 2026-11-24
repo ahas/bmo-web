@@ -2756,10 +2756,13 @@ export interface AttachLimits {
   most: number | null;
 }
 
+// A room's chat services as the room information shows them, for the administrator alone (docs/web.md, the room
+// screen's chat services): the providers the room stands on, in the receiver's order, each by its name in the pack,
+// and whether one of them offers the avatar mode. Which services carry an added room is fixed as it is added, so
+// nothing here changes them.
 export interface RoomProvidersView {
-  providers: { key: string; label: string }[];
-  on: string[];
-  chosen: boolean;
+  on: { key: string; label: string }[];
+  avatarOffered: boolean;
 }
 
 // A room's mode as its registration holds it, for the administrator alone: `avatar`, its agents answering under the

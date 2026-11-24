@@ -503,7 +503,6 @@ room:
     records_loading: 기록 불러오는 중…
     providers_loading: 채팅 서비스를 불러오는 중…
     mode_saving: 방의 모드를 바꾸는 중
-    providers_saving: 채팅 서비스를 바꾸는 중…
     removal_loading: 삭제할 기록을 불러오는 중…
     room_loading: 방 불러오는 중…
     selected_count: "{n}개 선택됨"
@@ -606,8 +605,6 @@ room:
     mode_read_failed: 방의 모드를 불러오지 못했습니다.
     mode_save_failed: 방의 모드를 바꾸지 못했습니다.
     mode_takes_no_avatar: 이 방은 채팅 서비스가 답을 받지 않는 방이라 아바타 모드를 켤 수 없습니다.
-    providers_save_failed: 채팅 서비스를 바꾸지 못했습니다.
-    providers_shape: 켤 채팅 서비스를 하나 이상 골라 주세요.
     removal_read_failed: 삭제할 기록을 불러오지 못했습니다.
     removal_seeded_room: 감독관 설정이 정해 둔 방이라 지울 수 없습니다.
     reply_missing: 답장할 메시지가 기록에 없습니다.
@@ -954,14 +951,13 @@ room:
     messages_copied: "메시지 {n}개를 복사했습니다."
     removal_done: 방 등록과 그 기록을 삭제했습니다.
     removal_goes: 삭제하면 아래 기록과 파일이 함께 삭제되며 복원할 수 없습니다.
-    providers_rule: 대화 기록만 켠 방은 어느 메신저와도 이어지지 않고, 말한 것은 기록과 이 콘솔에만 남습니다. 메신저를 켜면 그때부터 이 방에 남는 메시지가 그 메신저로도 가고, 끄면 멈춥니다. 방은 한 곳에는 켜져 있어야 합니다.
-    mode_rule: 켜면 이 방의 에이전트가 내 계정으로 답하고, 끄면 읽고 기록만 하며 답하지 않습니다.
+    providers_rule: 채팅 서비스는 방을 추가할 때 정해지고, 그 뒤로는 바꿀 수 없습니다.
+    mode_avatar_on: 이 방에서 BMO가 내 계정으로 대신 답합니다.
+    mode_avatar_off: 기록만 하고 답하지 않습니다.
     background_every_minutes: "{n}분마다 확인"
     background_every_seconds: "{n}초마다 확인"
     background_since: "{time}부터"
     background_until: "{time}에 알림"
-    mode_unadded: 추가된 방이 아니라 모드가 없습니다.
-    providers_unset: 정해 둔 적이 없어, 지금 이 방이 이어진 곳을 보여 줍니다.
     removal_refused: 이 방은 등록을 삭제할 수 없습니다.
     removal_stays: 이 방에서 만든 항목, Job, Job의 질문, 검색, 사용량은 남습니다.
     room_removed: 이 방의 등록이 삭제되어 홈으로 이동했습니다.
@@ -2295,20 +2291,9 @@ members:
     entry_forbidden: 이 방에 대화상대를 추가하거나 내보낼 권한이 없습니다.
     entry_unknown: 그 사람을 찾을 수 없습니다.
 callers:
-  label:
-    none: 호출 권한이 있는 사람 없음
-    person: 사람
-    find: 이름으로 찾기
-    allow: 호출 허용
-    heads_only: 이 방을 이끄는 사람이나 그 조직의 조직장, 플랫폼 관리자가 아니어서 내가 조직장인 조직의 사람만 바꿀 수 있습니다.
-  action:
-    add: 추가
-  status:
-    loading: 호출 권한 불러오는 중…
   error:
-    failed: 호출 권한을 바꾸지 못했습니다.
-    forbidden: 이 사람의 호출 권한을 바꿀 수 없습니다.
-    load_failed: 호출 권한을 불러오지 못했습니다.
+    failed: 대화상대로 추가한 사람이 이 방에서 자기 BMO를 부를 수 있게 하지 못했습니다.
+    forbidden: 이 사람이 이 방에서 자기 BMO를 부를 수 있게 할 수 없습니다.
     not_found: 사용자를 찾을 수 없습니다.
     unreachable: 계정 서비스에 연결되지 않았습니다.
 room_info:
@@ -2322,7 +2307,6 @@ room_info:
     music: 음악
     voice: 음성
     situation: 상황
-    callers: 호출 권한
     session: 세션 정보
     providers: 채팅 서비스
     tone: 말투

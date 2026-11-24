@@ -496,7 +496,6 @@ room:
     records_loading: 記録を読み込み中…
     providers_loading: チャットサービスを読み込み中…
     mode_saving: ルームのモードを変更中
-    providers_saving: チャットサービスを変更中…
     removal_loading: 削除する記録を読み込み中…
     room_loading: ルームを読み込み中…
     selected_count: "{n}件選択中"
@@ -599,8 +598,6 @@ room:
     mode_read_failed: ルームのモードを読み込めませんでした。
     mode_save_failed: ルームのモードを変更できませんでした。
     mode_takes_no_avatar: このルームはチャットサービスが返信を受け付けないため、アバターモードをオンにできません。
-    providers_save_failed: チャットサービスを変更できませんでした。
-    providers_shape: オンにするチャットサービスを1つ以上選んでください。
     removal_read_failed: 削除する記録を読み込めませんでした。
     removal_seeded_room: スーパーバイザーの設定で決められたルームのため削除できません。
     reply_missing: 返信先のメッセージが記録にありません。
@@ -947,14 +944,13 @@ room:
     messages_copied: "メッセージ{n}件をコピーしました。"
     removal_done: ルームの登録とその記録を削除しました。
     removal_goes: 削除すると、以下の記録とファイルも一緒に削除され、復元できません。
-    providers_rule: 会話記録だけをオンにしたルームはどのメッセンジャーにもつながらず、話した内容は記録とこのコンソールにだけ残ります。メッセンジャーをオンにすると、その時点からこのルームに残るメッセージがそのメッセンジャーにも送られ、オフにすると止まります。ルームは少なくとも1か所でオンにしておく必要があります。
-    mode_rule: オンにするとこのルームのエージェントがあなたのアカウントとして返信し、オフにすると読んで記録するだけで返信しません。
+    providers_rule: チャットサービスはルームを追加するときに決まり、その後は変更できません。
+    mode_avatar_on: このルームでは、BMO があなたのアカウントで代わりに返信します。
+    mode_avatar_off: 記録だけして、返信しません。
     background_every_minutes: "{n}分ごとに確認"
     background_every_seconds: "{n}秒ごとに確認"
     background_since: "{time}から"
     background_until: "{time}に通知"
-    mode_unadded: 追加されたルームではないため、モードがありません。
-    providers_unset: 設定されたことがないため、今このルームがつながっている先を表示しています。
     removal_refused: このルームは登録を削除できません。
     removal_stays: このルームで作成した項目、Job、Job の質問、検索、使用量は残ります。
     room_removed: このルームの登録が削除されたため、ホームに移動しました。
@@ -2290,20 +2286,9 @@ members:
     entry_forbidden: このルームにメンバーを追加・退出させる権限がありません。
     entry_unknown: その人が見つかりません。
 callers:
-  label:
-    none: 呼び出し権限を持つ人なし
-    person: メンバー
-    find: 名前で検索
-    allow: 呼び出しを許可
-    heads_only: このルームの主導者でも、その組織の組織長や管理者でもないため、自分が組織長を務める組織の人のみ変更できます。
-  action:
-    add: 追加
-  status:
-    loading: 呼び出し権限を読み込み中…
   error:
-    failed: 呼び出し権限を変更できませんでした。
-    forbidden: この人の呼び出し権限は変更できません。
-    load_failed: 呼び出し権限を読み込めませんでした。
+    failed: 追加した人がこのルームで自分の BMO を呼べるようにできませんでした。
+    forbidden: この人がこのルームで自分の BMO を呼べるようにすることはできません。
     not_found: ユーザーが見つかりません。
     unreachable: アカウントサービスに接続できませんでした。
 room_info:
@@ -2317,7 +2302,6 @@ room_info:
     music: 音楽
     voice: 音声
     situation: 状況
-    callers: 呼び出し権限
     session: セッション情報
     providers: チャットサービス
     tone: 話し方

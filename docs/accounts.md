@@ -124,20 +124,24 @@ section states what each does.
 
 ### A room's callers
 
-- **A room's callers are the users granted `ask` on the room directly:** each may call their own supervisor into
-  the room by name, and the receiver asks the check of `ask` for the sender who calls.
-- **They are set from the console with no message to make the grant on,** by the administrator, by the room's
-  leader, the user who owns a supervisor the room names, by a head of the unit the room belongs to, the leader's, or
-  by a head of the user's unit. The person adding a
-  member to a room sets it then, and anyone of them changes it later from the room's list of callers.
-- **Callers stay within one company:** a user of another company than the one who sets it is never made a caller,
+- **Membership is the call right.** Every member of a room calls their own supervisor into it by name: a console
+  member, an account the receiver holds among the room's members, or a chat service's member whose sender is linked
+  to a user, whose words reach the receiver over the chat service carrying the room. The receiver reads membership
+  itself (its `docs/wake.md`, 「Who reaches the session」) and asks the check of `ask` only for a sender who is no
+  member. Nobody manages a list of callers: no screen shows or changes who may call.
+- **The `ask` grant on the room is the mechanism under it.** The console grants it to each person it lets into a
+  room in the same act, and takes it away as it takes a person out, where the one taking them out may change it. The
+  grant is set from the console with no message to make it on, by the administrator, by the room's leader, the
+  user who owns a supervisor the room names, by a head of the unit the room belongs to, the leader's, or by a head
+  of the user's unit (`docs/boundary.md`, 「A room's callers」).
+- **The grant stays within one company:** a user of another company than the one who sets it is never granted it,
   but by the administrator.
 - **Letting a person into a room and the call grant are set together.** A console room's members are accounts, kept
   by the receiver; the console asks `POST /checks/entry` before it lets a person in or takes one out, and with the
-  person let in sets their call grant in the same act where the one letting them in asks for it.
+  person let in sets their call grant in the same act.
 - **Who may let a person in:** the room's opener, a head of the opener's unit, or the administrator. A room opened in
   the console names its opener's own BMO as its leader, so its opener is its leader and the room belongs to the
-  opener's unit; the check reads them as the callers' check does, through the room's leaders.
+  opener's unit; the check reads them as the call grant's check does, through the room's leaders.
 - **Only within the room's company.** The room stands in its leader's company, and a person of another company is
   never let in, by the administrator neither; a room with no leader is bounded by the company of the one letting in,
   but for the administrator. Leaving is every member's own and asks no check.

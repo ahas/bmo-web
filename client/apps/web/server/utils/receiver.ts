@@ -334,9 +334,10 @@ export async function roomProviders(roomId: number): Promise<RoomProvidersView> 
     receiverCall(asking.GET("/rooms/{roomId}/providers", { params: { path: { roomId } } }))
   ]);
 
+  const offersAvatar = new Set(listed.items.filter((provider) => provider.roomModes.includes("avatar")).map((provider) => provider.key));
+
   return {
-    providers: listed.items.map((provider) => ({ key: provider.key, label: chatRoadName(provider.key) })),
-    on: room.providers,
-    chosen: room.chosen
+    on: room.providers.map((key) => ({ key, label: chatRoadName(key) })),
+    avatarOffered: room.providers.some((key) => offersAvatar.has(key))
   };
 }

@@ -24,7 +24,6 @@ import {
   type OrgMemoryUnit,
   type InviteView,
   type Proof,
-  type RoomCallers,
   type SenderLink,
   type Unit,
   type Rebound,
@@ -949,14 +948,6 @@ export async function setUnitKinds(company: number, kinds: Wire["CatalogueEntry"
   return answered(reply).kinds;
 }
 
-/** A room's callers, and whether the login may change them, asked as the login `key` acts for. */
-export async function roomCallers(room: number, key: string, options: ServiceOptions = {}): Promise<RoomCallers> {
-  const client = clientOf(options);
-  const reply = await sent(options, client.GET("/rooms/{chat}/callers", { params: { path: { chat: room }, header: { "Owner-Key": key } } }));
-
-  return answered(reply);
-}
-
 /** Whether the user `actor` may let `user` into a room or take them out (docs/accounts.md, 「A room's callers」). */
 export async function checkEntry(room: number, actor: UserId | number, user: UserId | number, options: ServiceOptions = {}): Promise<CheckAnswer> {
   const client = clientOf(options);
@@ -978,7 +969,8 @@ export async function linkSender(user: UserId | number, sender: number, options:
   if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
 }
 
-/** A user made a caller of a room, or no longer one, asked as the login `key` acts for. */
+/** A user granted `ask` on a room, the call right membership gives, or no longer granted it, asked as the login `key`
+ * acts for (docs/accounts.md, 「A room's callers」). */
 export async function setRoomCaller(room: number, user: UserId, caller: boolean, key: string, options: ServiceOptions = {}): Promise<void> {
   const client = clientOf(options);
   const params = { path: { chat: room, user }, header: { "Owner-Key": key } };

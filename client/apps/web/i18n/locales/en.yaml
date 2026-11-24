@@ -496,7 +496,6 @@ room:
     records_loading: Loading records…
     providers_loading: Loading chat services…
     mode_saving: "Changing the room's mode"
-    providers_saving: Changing chat services…
     removal_loading: Loading the records to delete…
     room_loading: Loading room…
     selected_count: "{n} selected"
@@ -599,8 +598,6 @@ room:
     mode_read_failed: "Couldn't load the room's mode."
     mode_save_failed: "Couldn't change the room's mode."
     mode_takes_no_avatar: "This room's chat service doesn't take replies, so avatar mode can't be turned on."
-    providers_save_failed: "Couldn't change chat services."
-    providers_shape: Choose at least one chat service to turn on.
     removal_read_failed: "Couldn't load the records to delete."
     removal_seeded_room: "This room is set by a supervisor's configuration, so it can't be deleted."
     reply_missing: "The message to reply to isn't in the records."
@@ -947,14 +944,13 @@ room:
     messages_copied: "Copied {n} messages."
     removal_done: The room registration and its records were deleted.
     removal_goes: "Deleting removes the records and files below with it, and they can't be restored."
-    providers_rule: "A room with only Room record turned on isn't connected to any messenger, and what is said stays only in the records and this console. Turn on a messenger and, from then on, messages left in this room also go to that messenger; turn it off and they stop. A room must be on in at least one place."
-    mode_rule: "When on, this room's agent answers as your account; when off, it only reads and records, and doesn't answer."
+    providers_rule: "A room's chat service is chosen when the room is added, and can't be changed after that."
+    mode_avatar_on: "In this room, BMO answers for you as your account."
+    mode_avatar_off: "Only records, and doesn't answer."
     background_every_minutes: "Checks every {n} min"
     background_every_seconds: "Checks every {n}s"
     background_since: "Since {time}"
     background_until: "Notifies at {time}"
-    mode_unadded: "This room hasn't been added, so it has no mode."
-    providers_unset: "This was never set, so it shows where the room is connected now."
     removal_refused: "This room's registration can't be deleted."
     removal_stays: "Items, Jobs, Job questions, searches and usage made from this room stay."
     room_removed: "This room's registration was deleted, so you've been moved to Home."
@@ -2274,20 +2270,9 @@ members:
     entry_forbidden: "You don't have permission to add or remove members in this room."
     entry_unknown: "That person couldn't be found."
 callers:
-  label:
-    none: No one can call
-    person: Person
-    find: Search by name
-    allow: Allow calling
-    heads_only: "You don't lead this room and aren't a head of its organization or an administrator, so you can change only people in organizations you head."
-  action:
-    add: Add
-  status:
-    loading: Loading call permissions…
   error:
-    failed: "Couldn't change call permissions."
-    forbidden: "You can't change this person's call permission."
-    load_failed: "Couldn't load call permissions."
+    failed: "Couldn't let the people added call their own BMO in this room."
+    forbidden: "You can't let this person call their own BMO in this room."
     not_found: User not found.
     unreachable: "Couldn't reach the account service."
 room_info:
@@ -2301,7 +2286,6 @@ room_info:
     music: Music
     voice: Voice
     situation: Situation
-    callers: Call permissions
     session: Session info
     providers: Chat services
     tone: Tone

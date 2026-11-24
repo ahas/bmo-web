@@ -121,7 +121,7 @@ describe("people let into a room at once", () => {
   test("an organisation goes to the receiver in a call of its own, its departed account never asked about, and each person it let in is granted the call", async () => {
     reset();
 
-    expect((await asked(letInMany, { params: { chatId: String(GROUP) }, body: { units: [TEAM], caller: true } })).status).toBe(200);
+    expect((await asked(letInMany, { params: { chatId: String(GROUP) }, body: { units: [TEAM] } })).status).toBe(200);
     expect(writes()).toEqual([["POST", `/rooms/${GROUP}/unit-accounts`, { unit: TEAM, by: READER }]]);
     expect(callersSet()).toEqual([`/rooms/${GROUP}/callers/${TEAMMATE}`]);
   });
@@ -129,12 +129,13 @@ describe("people let into a room at once", () => {
   test("people beside an organisation go in one more call, those it already took in left out", async () => {
     reset();
 
-    expect((await asked(letInMany, { params: { chatId: String(GROUP) }, body: { accounts: [String(COLLEAGUE), String(POSTED)], units: [PART], caller: false } })).status).toBe(200);
+    expect((await asked(letInMany, { params: { chatId: String(GROUP) }, body: { accounts: [String(COLLEAGUE), String(POSTED)], units: [PART] } })).status).toBe(200);
     expect(writes()).toEqual([
       ["POST", `/rooms/${GROUP}/unit-accounts`, { unit: PART, by: READER }],
       ["POST", `/rooms/${GROUP}/accounts`, { accounts: [COLLEAGUE], by: READER }]
     ]);
-    expect(callersSet()).toEqual([]);
+    // Membership is the call right, so everyone let in is granted the call, those beside the organisation too.
+    expect(callersSet()).toEqual([COLLEAGUE, POSTED].map((one) => `/rooms/${GROUP}/callers/${one}`).sort());
   });
 
   test("an organisation whose people are all members already is not asked of the receiver", async () => {

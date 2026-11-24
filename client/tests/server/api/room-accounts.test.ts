@@ -120,19 +120,19 @@ describe("an account with no chat service's identity", () => {
     expect(writes()).toEqual([]);
   });
 
-  test("lets a person of its company in with the call granted, and is refused one of another company", async () => {
+  test("lets a person of its company in, the call granted with membership, and is refused one of another company", async () => {
     signedAs(INVITED);
     receiver.asked.length = 0;
     accounts.asked.length = 0;
 
-    expect((await asked(letIn, { params: { chatId: String(GROUP), user: String(COLLEAGUE) }, body: { caller: true } })).status).toBe(200);
+    expect((await asked(letIn, { params: { chatId: String(GROUP), user: String(COLLEAGUE) } })).status).toBe(200);
     expect(writes()).toEqual([["PUT", `/rooms/${GROUP}/accounts/${COLLEAGUE}`, { by: INVITED }]]);
     expect(accounts.asked.filter((one) => one.method === "PUT").map((one) => one.path)).toEqual([`/rooms/${GROUP}/callers/${COLLEAGUE}`]);
     expect(members.get(GROUP)?.has(String(COLLEAGUE))).toBe(true);
 
     receiver.asked.length = 0;
 
-    expect((await asked(letIn, { params: { chatId: String(GROUP), user: String(OUTSIDER) }, body: { caller: true } })).status).toBe(403);
+    expect((await asked(letIn, { params: { chatId: String(GROUP), user: String(OUTSIDER) } })).status).toBe(403);
     expect(writes()).toEqual([]);
   });
 

@@ -3,8 +3,8 @@
        people in): one search finds the people of the reader's directory, each wearing their letter with the dot of
        their presence and its words after their organisation (docs/web.md, 「Presence and typing」), and the
        organisations of the reader's company, each standing for the people it lets in. Each one pressed joins the
-       choice, which the field shows as a chip each, an organisation's wearing its mark, and the switch allowing the
-       call stands on so the call into the room is set as they are let in. The account service says who may; a
+       choice, which the field shows as a chip each, an organisation's wearing its mark. Each person let in may call
+       their own BMO into the room from then on, membership being the call right. The account service says who may; a
        refusal is said here and nothing changes. -->
   <SettingsDialog :key="openings" v-model:open="open" :title="$t('members.title.let_in')" :description="props.title" :dirty="changes">
     <form id="room-let-in-form" class="flex min-w-0 flex-col gap-3" @submit.prevent="void letIn()">
@@ -29,7 +29,6 @@
           </template>
         </ChoiceSelect>
       </UFormField>
-      <USwitch v-model="caller" :label="$t('callers.label.allow')" />
       <p v-if="failure !== ''" role="alert" class="text-sm text-error">{{ failure }}</p>
     </form>
 
@@ -90,15 +89,14 @@ const emit = defineEmits<{ added: [] }>();
 const { t } = useI18n();
 
 const picked = ref<string[]>([]);
-const caller = ref(true);
 const busy = ref(false);
 const failure = ref("");
 
 // Mounted afresh at each opening, so it stands over the members sheet it is opened from, which a narrow screen draws as
 // a drawer mounted after it (docs/web.md, 「Floating things」).
 const openings = useOpenings(() => open.value);
-// Closing asks first while the dialog holds a choice not yet let in, or the call switched off from where it opened.
-const changes = useOpenedWith(() => ({ picked: picked.value, caller: caller.value }), { open });
+// Closing asks first while the dialog holds a choice not yet let in.
+const changes = useOpenedWith(() => picked.value, { open });
 
 async function letIn(): Promise<void> {
   if (picked.value.length === 0) return;
@@ -112,7 +110,7 @@ async function letIn(): Promise<void> {
   failure.value = "";
 
   try {
-    await $fetch(`/api/rooms/${props.chatId}/accounts`, { method: "POST", body: { ...asked, caller: caller.value } });
+    await $fetch(`/api/rooms/${props.chatId}/accounts`, { method: "POST", body: asked });
     emit("added");
     open.value = false;
   } catch (error) {
@@ -212,13 +210,12 @@ async function findChoices(words: string): Promise<(Offered | Heading)[]> {
   return groups.flatMap((group) => [{ type: "label" as const, label: group.label }, ...group.items]);
 }
 
-// Each opening starts empty, the switch standing on.
+// Each opening starts empty.
 watch(open, (standing) => {
   if (!standing) return;
 
   picked.value = [];
   seen.clear();
-  caller.value = true;
   failure.value = "";
 });
 </script>

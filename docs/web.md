@@ -481,20 +481,20 @@ console page. No answer says which framework drew it. Strict transport is the re
   the one place the rule stands. The administrator's reach is the superadmin's of `STRUCTURE.md` (「Accounts,
   companies and units」: the superadmin reaches everything and changes nothing of another's), so in another
   person's private room he reads alone: saying, attaching, a voice note, a sticker, a reaction, an edit, a pin of a
-  message or of the room, a delete, a forward out of it or into it, reading a line aloud, its picture, its chat
-  providers and its mode, removing it, and changing its callers or its members answer him 403. In a group room his
-  acts as the administrator of the organisation — its callers, letting people in, its archive — stand. A room's
+  message or of the room, a delete, a forward out of it or into it, reading a line aloud, its picture, its mode,
+  removing it, and changing its members answer him 403. In a group room his
+  acts as the administrator of the organisation — letting people in, its archive — stand. A room's
   picture is read by whoever reads the room alone.
 - **The room screen stands read-only for him there and in a sealed room,** as it does for a reader whose rooms section
   only reads, by the room list's word of which rooms the reader may change: no box
-  to write in and no act on a message, no pin or removal in the room's menu, no picture, providers or tone layer in 방 정보, a callers list with
-  nothing to change, nobody to let in, and no such room to forward a message into. Nothing on the screen says why,
+  to write in and no act on a message, no pin or removal in the room's menu, no picture, avatar mode or tone layer in 방 정보,
+  nobody to let in, and no such room to forward a message into. Nothing on the screen says why,
   and nobody else is told he is reading.
 - **Every change the console makes in a room for a person names the account it is made as,** so the receiver refuses
   a change in another account's private room or a sealed one by its own rule and the console's refusal is a second
   line before it:
   the words, files and voice notes, the reactions, edits, pins, deletes, stickers, forwards, a line read aloud, the
-  room's pin, its picture, its chat providers, its mode, its tone layer, a group's own supervisor, its removal and its members. A read
+  room's pin, its picture, its mode, its tone layer, a group's own supervisor, its removal and its members. A read
   mark is the console's own row and reaches the receiver as nothing. The account whose private room it is changes it as any member does a room, its
   members alone being the receiver's to keep as they stand. A console login standing before the account model writes
   on the owner's own road, which acts for the owner's account where his sender stands linked to one and for no account
@@ -596,8 +596,8 @@ nothing.
     conversation is.
   - The messages route hands a member the messages alone, with none of the verdicts recorded on them.
 - **The bot's stream reaches a member scoped to the rooms they may read,** as those stand while the stream is
-  open: a room the member is let into or opens is heard from then on, and one they leave, are taken out of or lose
-  the call grant of falls silent at once on every stream of theirs, until their rooms, read again, say they still
+  open: a room the member is let into or opens is heard from then on, and one they leave or are taken out of falls
+  silent at once on every stream of theirs, until their rooms, read again, say they still
   read it. Their rooms are read again each minute besides, for what changes outside the console, such as their own
   BMO's private room standing.
   - It carries a message arriving, a turn beginning and the way it ended, each with the room, the
@@ -2403,8 +2403,8 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   setting, a person to add. No screen stands the component library's select, select menu or input menu bare, nor a
   dropdown menu of choices in its place, and none decides whether its list searches: the layer gives a search field
   at the top of the opened list once it holds more than seven choices, and never with seven or fewer, so a list
-  read from data takes its search as it grows. A list found on the server, such as the people a room's let-in and
-  callers dialogs find by name, hands the select the road that finds them and always searches. Its words — the
+  read from data takes its search as it grows. A list found on the server, such as the people a room's let-in
+  dialog finds by name, hands the select the road that finds them and always searches. Its words — the
   search field's placeholder, no match, no choices and a refused find — are the language pack's
   `common.placeholder.search`, `common.status.no_match`, `common.status.no_choices` and
   `common.error.choices_find_failed`, the same on every screen. A list a preview stands beside, the theme's and
@@ -6085,15 +6085,13 @@ Four bounds keep it from growing forever.
   letter has nothing to open. For the owner, in a room he may change, a 방 사진 button stands at the head's end and
   opens the room's picture setting as a dialog over the view (「Profile photos」).
 - **Its tabs stand on one row of the component library's tabs under the head,** the row scrolling sideways where it
-  is narrower than its tabs, in this order: 대화상대, 미디어, 파일, 링크, 음악, 음성, 상황, 호출 권한, then for the
+  is narrower than its tabs, in this order: 대화상대, 미디어, 파일, 링크, 음악, 음성, 상황, then for the
   owner 세션 정보, and for the owner in a room he may change 채팅 서비스 and 말투. The view opens on 대화상대, and on the tab it
   last showed while the room's screen stands; changing tabs adds no step to the history.
 - **A tab reads what it shows the first time it is shown in an opening,** with its skeleton while the read runs, and
   keeps it while the view stays open, so a tab gone back to stands as it was left; each opening reads afresh. A
   refused read stands in the tab's error band with the refresh that reads again.
-- **Closing the view while 호출 권한 holds a person picked and not added, or its switch turned off,** asks first
-  whether to throw that away, as every form does (「Forms」); the view holds nothing else that waits to be saved. While
-  such a change waits, the drawer stands still under a drag rather than slide away, and its other ways out ask.
+- **Nothing in the view waits to be saved,** so every way out closes it at once.
 - **미디어, 파일, 링크, 음악 and 음성 collect what the room's messages carried, newest first.** Each reads a page at a
   time of the room's messages holding its kind, as the receiver answers them (its `docs/api.md`, 「Messages」, a
   room's messages by what they hold), and reads the next page as the reader nears the list's end. A message carrying
@@ -6118,7 +6116,7 @@ Four bounds keep it from growing forever.
     message into view, marked as a pressed quote's is.
   - A tab with nothing to show says so in one line: 미디어 없음, 파일 없음, 링크 없음, 음악 없음 or 음성 메시지 없음.
 - **The other tabs are the room's own sections:** 대화상대 (「대화상대」), 상황, the room's situation note as it stands
-  (the room's situation as it stands now, above), 호출 권한 (「호출 권한」), 세션 정보 (「세션 정보」),
+  (the room's situation as it stands now, above), 세션 정보 (「세션 정보」),
   채팅 서비스 (「채팅 서비스」) and 말투 (「말투」).
 
 #### 대화에서 찾기
@@ -6156,33 +6154,28 @@ Four bounds keep it from growing forever.
   is one setting of its registration, which the receiver keeps (its `docs/receiver.md`, 「A room's chat
   providers」), so nobody else signed in sees it, and the console's server refuses its routes for anyone but the
   administrator.
-- **The tab lists every provider the receiver names,** in the receiver's order, each a row with its
-  name and a switch that stands on where the room is on it. A room whose list
-  was never set shows the providers it stands on now, and a line saying so.
+- **The tab shows which chat services carry the room, and changes none of them.** Each provider the room stands on
+  now is a row with its name, in the receiver's order, with nothing to turn. A line under them says the rule: a
+  room's chat service is chosen as the room is added (채팅 서비스 방 추가) or opened (방 만들기), and stays. The
+  receiver refuses a change of an added room's providers (its `providers-fixed`), and the console offers none.
 - **A road is named by its key, in the pack's words (「A chat road's name」).**
-- **A switch saves the whole list at once:** turned on, the provider is added at the list's end; turned off, it
-  is taken out. A room is on one provider at least, so the last switch on cannot be turned off. While the list is
-  written every switch waits; a refused write is said in the tab by the pack's sentence for the receiver's code,
-  and the switches stand as the receiver last answered.
-- **The tab opens on the room's mode, 아바타 모드, as a switch above the providers:** on where the receiver
-  holds the room in `avatar`, its agents answering under the owner's account, and off in `record-only`, read and
-  recorded and never answered, each said in a line under it. Turning it sets the mode at once as the
-  administrator (the receiver's `PUT /rooms/{roomId}/registration`), the switch waiting while it is written
-  and standing as the receiver answers; a refusal — a chat service that does not offer the mode, a room on none, a
-  room whose service is never answered in — is said in the tab by the pack's sentence for the receiver's code. A
-  room that was never added has no mode: its switch stands off and disabled, with a line saying so.
-- **The rule the tab states:** a room on the room's record alone — the receiver's own road, which this console
-  reads — reaches no messenger, and what is said there stands in the archive and the console; turning a messenger
-  on starts carrying every message kept from then on to it, and turning it off stops that. The rule is the
-  receiver's and turns on the list alone: the console names no provider apart from the others, in its code or in
-  what it sends.
+- **아바타 모드 stands above the providers only where it can apply:** a room that was added (the receiver holds a
+  mode for it) on a chat service the room stands on whose `roomModes` offer `avatar`, or a room the receiver already
+  holds in `avatar`. Anywhere else the tab shows no switch and no line about it. The switch stands on where the
+  receiver holds the room in `avatar` and off in `record-only`, with one line under it for each: 이 방에서 BMO가 내
+  계정으로 대신 답합니다 when on, 기록만 하고 답하지 않습니다 when off. Turning it sets the mode at once as the
+  administrator (the receiver's `PUT /rooms/{roomId}/registration`), the switch waiting while it is written and
+  standing as the receiver answers; a refusal — a chat service that does not offer the mode, a room on none, a
+  room whose service is never answered in — is said in the tab by the pack's sentence for the receiver's code.
+- **The console names no provider apart from the others,** in its code or in what it sends: whether the switch
+  stands turns on what the receiver says of the room and of each provider alone.
 
 #### A chat road's name
 
 - **Every chat road the receiver names is called by its key, in the reader's language pack.** The receiver gives
   each road a label of its own, which is English and is never shown; the console keeps one word per road key the
   receiver declares — its own record (대화 기록) and each chat service a receiver configuration names a road for —
-  in all four packs, and says it wherever a road is named: the 채팅 서비스 tab's rows and switches, the chat services
+  in all four packs, and says it wherever a road is named: the 채팅 서비스 tab's rows, the chat services
   채팅 서비스 방 추가 offers, the line where a room's past begins and the chat service a file past its limit names.
 - **A road the pack holds no word for is called by the pack's word for a messenger with its key beside it**
   (「메신저 (key)」), so two such roads stay apart and the receiver's English still never shows. A road key the
@@ -6253,24 +6246,15 @@ Four bounds keep it from growing forever.
   the BMO reads the reader's own thread of the group room as every turn there does. A reader with no BMO of their
   own, or one that answers no room alone, is told so in the panel.
 
-#### 호출 권한
-
-- **방 정보 carries 호출 권한 for everyone signed in,** a tab of the room's callers (「방 정보」):
-  the people who may call their own BMO into the room by name, the grant of `ask` on the room (the account
-  service's `docs/accounts.md`, 「A room's callers」).
-- **Each caller stands as a row** with their name and a switch that stands on; turning it off takes the grant away
-  and the row goes. Below the list, a person picked from the reader's directory is added with a
-  switch 호출 허용 that stands on, so the permission is set as the person is added; added with it off, nothing is
-  written. Letting a person into the room sets the same grant at the same moment (「방 만들기와 대화상대 추가」).
-- **Who changes it is the account service's to say:** the administrator, the room's leader (the owner of a BMO the
-  room names), a head of the leader's unit, or a head of the person's unit. Where the reader is none of the first
-  three, a line says that only a head of the person's unit may change it; a refused change is said by the pack's sentence
-  for the account service's code, and the list stands as it was.
-
 #### 대화상대
 
 - **방 정보 carries 대화상대, for everyone signed in,** as its first tab, which the view opens on the first time
   (「방 정보」); the presence dot on the room's picture opens the view on it.
+- **Membership is the call right.** Every member of a room — a console member, and a chat service's member whose
+  sender is linked to an account — calls their own BMO into the room by its name, though the room does not name it
+  (the receiver's `docs/wake.md`, 「Who reaches the session」; the account service's `docs/accounts.md`, 「A room's
+  callers」). No screen lists who may call or changes it: letting a person in gives the right, and leaving or being
+  taken out ends it.
 - **A room's members are accounts, by either road** (`STRUCTURE.md`, 「Accounts, companies and units」): the
   accounts let into the room in the console, as the receiver answers them (`GET /rooms/{roomId}/accounts`), and the
   people the chat service carrying the room read as its members (`GET /rooms/{roomId}/members`), each read every time
@@ -6316,8 +6300,7 @@ Four bounds keep it from growing forever.
 - **대화상대 추가 lets people in, several at once.** The 대화상대 tab carries it for a reader who may let people
   in: the room's opener, a head of the opener's unit, or the administrator, as the account service answers it
   (`POST /checks/entry`). It opens a dialog with one select of several values, the console's one select, whose
-  search finds both the people of the reader's directory and the organisations of the reader's company, a switch
-  호출 허용 standing on, and 추가.
+  search finds both the people of the reader's directory and the organisations of the reader's company, and 추가.
   - What the search found stands in two groups under their headings, 사람 and then 조직, an organisation with the
     names of the organisations above it and 구성원 and its count. Each pressed joins the choice, which stands in the
     field as a chip each, an organisation's wearing its mark; pressing a chosen one again lets it go. A person
@@ -6336,10 +6319,11 @@ Four bounds keep it from growing forever.
     and the people chosen beside them who are not among its people (`POST /rooms/{roomId}/accounts`). The receiver
     writes one line for each call into the room: who let the organisation in, or who let whom in, the first person
     named and the rest counted. An organisation or a choice of people with nobody new in it is not told at all.
-  - Closing the dialog while it holds a choice, or with the switch turned off, asks first whether to throw it away,
-    as every form's dialog does; one holding nothing closes at once.
-  - With the switch on, each person let in is granted the call into the room at the same moment (「호출 권한」).
-    They read the room from its first line on, as a chat service's group would show it.
+  - Closing the dialog while it holds a choice asks first whether to throw it away, as every form's dialog does;
+    one holding nothing closes at once.
+  - Each person let in is granted `ask` on the room at the same moment, the account service's mark of the call
+    right membership gives (the account service's `docs/accounts.md`, 「A room's callers」). They read the room
+    from its first line on, as a chat service's group would show it.
 - **A member leaves by themselves, and one who may let people in takes a member out.** A console member's row
   carries 나가기 for the reader's own row and 내보내기 for the others where the reader may let people in. Taken out
   (`DELETE /rooms/{roomId}/accounts/{account}`), the receiver writes who took whom out, or that a person left,

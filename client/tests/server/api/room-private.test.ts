@@ -127,7 +127,7 @@ interface WriteAct {
   name: string;
   handler: (event: RouteEvent) => Promise<unknown>;
   event: (room: number) => RouteEvent;
-  // Where the change goes: the receiver, or the account service, which keeps the callers.
+  // Where the change goes: the receiver, or the account service, which keeps the call grant.
   unit: "receiver" | "accounts";
 }
 
@@ -145,9 +145,7 @@ const PERSON_ACTS: WriteAct[] = [
   { name: "pin a message", handler: await route("rooms/[chatId]/messages/[messageId]/pin.put"), event: (room) => message(room, { body: { on: true } }), unit: "receiver" },
   { name: "delete", handler: await route("rooms/[chatId]/messages/[messageId]/remove.delete"), event: (room) => message(room), unit: "receiver" },
   { name: "read aloud", handler: await route("rooms/[chatId]/messages/[messageId]/reading.post"), event: (room) => message(room), unit: "receiver" },
-  { name: "make a caller", handler: await route("rooms/[chatId]/callers/[user].put"), event: (room) => person(room), unit: "accounts" },
-  { name: "drop a caller", handler: await route("rooms/[chatId]/callers/[user].delete"), event: (room) => person(room), unit: "accounts" },
-  { name: "let in", handler: await route("rooms/[chatId]/accounts/[user].put"), event: (room) => person(room, { body: { caller: false } }), unit: "receiver" },
+  { name: "let in", handler: await route("rooms/[chatId]/accounts/[user].put"), event: (room) => person(room), unit: "receiver" },
   { name: "take out", handler: await route("rooms/[chatId]/accounts/[user].delete"), event: (room) => person(room), unit: "receiver" }
 ];
 
@@ -161,7 +159,6 @@ const ADMINISTRATOR_ACTS: WriteAct[] = [
   { name: "forward into", handler: forward, event: (room) => message(GROUP, { body: { to: room } }), unit: "receiver" },
   { name: "forward out of", handler: forward, event: (room) => message(room, { body: { to: GROUP } }), unit: "receiver" },
   { name: "pin the room", handler: await route("rooms/[chatId]/pin.post"), event: (room) => roomOnly(room, { body: { pinned: true } }), unit: "receiver" },
-  { name: "set its providers", handler: await route("rooms/[chatId]/providers.put"), event: (room) => roomOnly(room, { body: { providers: ["record"] } }), unit: "receiver" },
   { name: "set its mode", handler: await route("rooms/[chatId]/mode.put"), event: (room) => roomOnly(room, { body: { mode: "record-only" } }), unit: "receiver" },
   { name: "set its picture", handler: await route("avatars/[kind]/[id].put"), event: (room) => roomPicture(room, { parts: [picture] }), unit: "receiver" },
   { name: "drop its picture", handler: await route("avatars/[kind]/[id].delete"), event: (room) => roomPicture(room), unit: "receiver" },

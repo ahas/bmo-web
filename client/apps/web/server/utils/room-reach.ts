@@ -80,7 +80,7 @@ export async function ownRooms(signed: SignedIn): Promise<ReadonlySet<number>> {
 }
 
 /** A change of the rooms an account reads, made through the console: a room it was let into or opened, or one it
- * left, was taken out of or lost the call grant of. */
+ * left or was taken out of. */
 export interface ReachChange {
   account: number;
   room: number;

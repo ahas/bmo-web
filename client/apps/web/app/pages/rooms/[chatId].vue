@@ -132,7 +132,6 @@
                 :avatars="avatars"
                 :administrator="administrator"
                 :manages="manages"
-                :read-only="!roomWritable"
                 @enlarge="roomFaceOpen = true"
                 @left="void roomLeft()"
                 @show="showInMessage"

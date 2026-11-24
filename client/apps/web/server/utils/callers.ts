@@ -3,8 +3,8 @@ import { fail } from "./fail";
 
 import { wording } from "#shared/wording";
 
-// A room's callers as the console says their refusals (docs/web.md, the room screen's callers entry): the account
-// service's codes (docs/boundary.md, 「A room's callers」) to the pack's keys.
+// The call grant set as a person is let into a room, its refusals as the console says them (docs/accounts.md, 「A
+// room's callers」): the account service's codes (docs/boundary.md, 「A room's callers」) to the pack's keys.
 
 const CALLER_CODES: Record<string, string> = {
   forbidden: "callers.error.forbidden",

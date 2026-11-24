@@ -25,7 +25,6 @@ describe("the room screen's write controls", () => {
   test("leave the administrator nothing to change in a room he may not change", () => {
     expect(script).toContain("const manages = computed<boolean>(() => administrator.value && roomWritable.value);");
     expect(template).toContain(':administrator="manages"');
-    expect(template).toContain(':read-only="!roomWritable"');
 
     expect(template).toContain('<RoomRemovalDialog v-if="manages"');
     expect(template).toContain(':manages="manages"');

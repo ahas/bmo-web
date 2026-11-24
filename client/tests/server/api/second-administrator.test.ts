@@ -69,7 +69,7 @@ const receiver = standIn("RECEIVER", (one) => {
   if (one.method === "GET") return answer({ code: "failed", error: "Not served here." }, 500);
   if (path.endsWith("/words")) return answer({ id: rawNumber(HIGH) }, 201);
   if (path.startsWith("/pinned-rooms")) return answer({ roomIds: [room] });
-  if (path.endsWith("/providers")) return answer({ providers: one.body?.providers, chosen: true });
+  if (path.endsWith("/tone")) return answer({ tone: one.body?.tone ?? null, tones: [] });
 
   return answer({ code: "failed", error: "Not served here." }, 500);
 });
@@ -121,7 +121,7 @@ const ADMINISTRATOR_ROUTES: [string, string][] = [
   ["GET", "/api/organization/units"],
   ["GET", "/api/users"],
   ["GET", `/api/rooms/${GROUP}/mode`],
-  ["PUT", `/api/rooms/${GROUP}/providers`],
+  ["PUT", `/api/rooms/${GROUP}/tone`],
   ["POST", `/api/rooms/${GROUP}/pin`]
 ];
 
@@ -154,7 +154,7 @@ describe("an administrator the account command made, whose seal recorded none", 
     receiver.asked.length = 0;
 
     expect((await asked(await route("rooms/[chatId]/pin.post"), roomOnly(GROUP, { pinned: true }))).status).toBe(200);
-    expect((await asked(await route("rooms/[chatId]/providers.put"), roomOnly(GROUP, { providers: ["record"] }))).status).toBe(200);
+    expect((await asked(await route("rooms/[chatId]/tone.put"), roomOnly(GROUP, { tone: null }))).status).toBe(200);
     expect(receiverWrites().map((one) => one.body?.account)).toEqual([SECOND, SECOND]);
   });
 
@@ -168,7 +168,7 @@ describe("an administrator the account command made, whose seal recorded none", 
     for (const [file, body] of [
       ["rooms/[chatId]/say.post", { text: "hello" }],
       ["rooms/[chatId]/pin.post", { pinned: true }],
-      ["rooms/[chatId]/providers.put", { providers: ["record"] }]
+      ["rooms/[chatId]/tone.put", { tone: null }]
     ] as const) {
       expect({ file, ...(await asked(await route(file), roomOnly(PRIVATE, body))) }).toMatchObject({ file, status: 403, message: wording("room.error.private_room") });
     }

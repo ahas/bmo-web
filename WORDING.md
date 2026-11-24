@@ -418,7 +418,14 @@
   tree of them → 조직도; a unit at the tree's top → 회사, a new one 새 회사. Never 단위, the English unit's twin.
 - a unit's head → 조직장: 조직장 지정, 조직장 해제. Never 장 alone, 책임자.
 - the one view a room's name opens, of what the room is and what it holds → 방 정보; its tabs → 대화상대, 미디어,
-  파일, 링크, 음악, 음성, 상황, 호출 권한, 세션 정보, 채팅 서비스, 말투. Never 방 설정, 채팅방 정보, 방 서랍.
+  파일, 링크, 음악, 음성, 상황, 세션 정보, 채팅 서비스, 말투. Never 방 설정, 채팅방 정보, 방 서랍.
+- a room added in the mode where BMO answers as the person's own account → 아바타 모드, its line on → 이 방에서
+  BMO가 내 계정으로 대신 답합니다, off → 기록만 하고 답하지 않습니다; where the mode cannot apply nothing of it is shown.
+  Never 모드가 없습니다 or any line explaining its absence.
+- who may call their own BMO into a room is no setting: every member may, so no screen names a 호출 권한 or 호출
+  허용. Letting a member in that fails to give that right → 이 방에서 자기 BMO를 부를 수 있게 하지 못했습니다.
+- a room's chat service, fixed as the room is added → 채팅 서비스는 방을 추가할 때 정해지고, 그 뒤로는 바꿀 수
+  없습니다. Never a switch or 켜기/끄기 for a chat service in 방 정보.
 - a chat road a room is on, as 채팅 서비스 and the console name it → the receiver's own record 대화 기록, each chat
   service by its exact official name in that language (Telegram, 카카오톡, Microsoft Teams, Discord), never a nickname
   such as 팀즈, and one the pack has no name for →

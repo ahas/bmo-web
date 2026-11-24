@@ -7,14 +7,15 @@ import { goInApp, holdsFocus, standsOnTop } from "./top-layer";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, Page } from "playwright-core";
-import type { ArchivedMessage, RoomHolding, RoomHoldingPage, RoomMembersView, RoomPicturePage } from "../../apps/web/shared/types";
+import type { ArchivedMessage, RoomHolding, RoomHoldingPage, RoomMembersView, RoomMode, RoomPicturePage, RoomProvidersView } from "../../apps/web/shared/types";
 
 // The room information the room's name opens (docs/web.md, the room screen's room information), in the room the
 // console made on the record road that the harness's receiver stands: its tabs stand on one row at every width, the
 // room's menu no longer carries what it holds, each kind of what the messages carried stands newest first across its
-// pages with what it says when it holds none, a line's show-in-message closes it onto the message, and closing it with
-// the callers' switch turned off asks first while a switch turned back asks nothing, as the room's picture does with a
-// picture picked and not saved. What opens over the view (a picture or a video of the media tab, the room's picture,
+// pages with what it says when it holds none, a line's show-in-message closes it onto the message, it carries no
+// callers' tab and closes at once since nothing in it waits, while the room's picture asks first with a picture picked
+// and not saved, and its chat services tab stands read-only, the avatar mode's switch standing above it only where the
+// mode can apply. What opens over the view (a picture or a video of the media tab, the room's picture,
 // its picture setting and the search the shortcut opens) stands over it, after a return to the room and across the
 // narrow width too, and back or Esc closes it alone. What each tab reads is served
 // through the page's own routes, since the harness's receiver keeps no such messages. It drives the console
@@ -91,11 +92,13 @@ interface RoomSetUp {
   pictured?: boolean;
   // What the media tab is answered in place of its usual page.
   media?: RoomHoldingPage[];
+  // What the chat services tab is answered: the providers and the mode, the mode written as asked.
+  services?: { providers: RoomProvidersView; mode: RoomMode | null };
 }
 
 // The room open at a width, every tab's read answered here, and the number of the room's newest message.
 async function roomOpen(width: number, height: number, phone: boolean, setUp: RoomSetUp = {}): Promise<{ page: Page; close: () => Promise<void> }> {
-  const context = await browser!.newContext({ viewport: { width, height }, isMobile: phone, hasTouch: phone, serviceWorkers: "block", reducedMotion: "reduce" });
+  const context = await browser!.newContext({ viewport: { width, height }, isMobile: phone, hasTouch: phone, serviceWorkers: "block", reducedMotion: "reduce", locale: "ko-KR" });
   const at = cookie.indexOf("=");
 
   await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
@@ -104,7 +107,15 @@ async function roomOpen(width: number, height: number, phone: boolean, setUp: Ro
   let answered: Record<RoomHolding, RoomHoldingPage[]> | null = null;
 
   await page.route(`**/api/rooms/${RECORD_CHAT}/members`, (route) => route.fulfill({ json: MEMBERS }));
-  await page.route(`**/api/rooms/${RECORD_CHAT}/callers`, (route) => route.fulfill({ json: { room: RECORD_CHAT, callers: [], mayChange: true } }));
+  if (setUp.services) {
+    const services = setUp.services;
+
+    await page.route(`**/api/rooms/${RECORD_CHAT}/providers`, (route) => route.fulfill({ json: services.providers }));
+    await page.route(`**/api/rooms/${RECORD_CHAT}/mode`, async (route) => {
+      if (route.request().method() === "PUT") services.mode = (route.request().postDataJSON() as { mode: RoomMode }).mode;
+      await route.fulfill({ json: { mode: services.mode } });
+    });
+  }
   await page.route("**/api/images/**", (route) => route.fulfill({ contentType: "image/png", body: PIXEL }));
   await page.route(`**/api/rooms/${RECORD_CHAT}/pictures?*`, (route) => route.fulfill({ json: PICTURES }));
   if (setUp.pictured) {
@@ -128,7 +139,11 @@ async function roomOpen(width: number, height: number, phone: boolean, setUp: Ro
   return { page, close: () => context.close() };
 }
 
-const TABS = ["members", "media", "files", "links", "music", "voice", "situation", "callers", "session", "providers", "tone"] as const;
+const TABS = ["members", "media", "files", "links", "music", "voice", "situation", "session", "providers", "tone"] as const;
+
+// A provider the pack holds no name for, called by the pack's word for a messenger with its key.
+const PROVIDER_A = { key: "provider-a", label: wording("room.label.road_other", { key: "provider-a" }) };
+const RECORD = { key: "record", label: wording("room.label.road_record") };
 
 describe.skipIf(!origin || !touchReady())("the room information", () => {
   for (const [width, height, phone] of [[1280, 900, false], [360, 780, true]] as const) {
@@ -141,7 +156,7 @@ describe.skipIf(!origin || !touchReady())("the room information", () => {
 
         const entries = await page.getByRole("menuitem").allInnerTexts();
 
-        for (const name of ["members", "situation", "callers", "session", "providers", "tone"] as const) {
+        for (const name of ["members", "situation", "session", "providers", "tone"] as const) {
           expect(entries.map((entry) => entry.trim())).not.toContain(wording(`room_info.label.${name}`));
         }
         await page.keyboard.press("Escape");
@@ -209,31 +224,15 @@ describe.skipIf(!origin || !touchReady())("the room information", () => {
       }
     }, 90_000);
 
-    test(`asks before closing while the callers' switch stands turned off or a picked picture waits, and not once the switch is turned back, ${width}px wide`, async () => {
+    test(`closes at once, and asks before closing only while a picked room picture waits, ${width}px wide`, async () => {
       const { page, close } = await roomOpen(width, height, phone);
 
       try {
-        const sheet = await openRoomInfo(page, wording("room_info.label.callers"));
-        const allow = sheet.getByRole("switch", { name: wording("callers.label.allow") });
-
-        await allow.waitFor({ timeout: 10_000 });
-        await allow.click();
-        await page.keyboard.press("Escape");
-
-        const question = page.getByRole("alertdialog").or(page.getByRole("dialog", { name: wording("common.title.discard_changes") }));
-
-        await question.waitFor({ timeout: 10_000 });
-
-        // Back answers the question as staying: the view stands with the switch as it was left.
-        await page.goBack();
-        await question.waitFor({ state: "detached", timeout: 10_000 });
-        expect(await roomInfo(page).isVisible()).toBe(true);
-        expect(await allow.getAttribute("aria-checked")).toBe("false");
-
-        // Turned back, the view holds nothing, and closing asks nothing.
-        await allow.click();
+        await openRoomInfo(page, wording("room_info.label.media"));
         await page.keyboard.press("Escape");
         await roomInfo(page).waitFor({ state: "detached", timeout: 10_000 });
+
+        const question = page.getByRole("alertdialog").or(page.getByRole("dialog", { name: wording("common.title.discard_changes") }));
 
         // The room's picture, opened from the head, asks before it closes while a picked picture waits unsaved.
         await (await openRoomInfo(page)).locator("[data-room-info-set-picture]").click();
@@ -250,6 +249,59 @@ describe.skipIf(!origin || !touchReady())("the room information", () => {
         await close();
       }
     }, 90_000);
+
+    test(`shows the chat services read-only, and the avatar mode's switch with its line where the mode applies, ${width}px wide`, async () => {
+      const services = { providers: { on: [PROVIDER_A, RECORD], avatarOffered: true }, mode: "record-only" as RoomMode | null };
+      const { page, close } = await roomOpen(width, height, phone, { services });
+
+      try {
+        const sheet = await openRoomInfo(page, wording("room_info.label.providers"));
+        const rows = sheet.locator("[data-room-providers]");
+        const avatar = sheet.getByRole("switch", { name: wording("room.label.mode_avatar") });
+
+        await rows.waitFor({ timeout: 10_000 });
+        expect(await rows.innerText()).toContain(PROVIDER_A.label);
+        expect(await rows.innerText()).toContain(RECORD.label);
+        // Nothing turns a provider: the service is fixed as the room is added.
+        expect(await rows.getByRole("switch").count()).toBe(0);
+        await sheet.getByText(wording("room.message.providers_rule"), { exact: true }).waitFor({ timeout: 10_000 });
+
+        // Off, it records alone; turned, it answers as the account, the line saying so.
+        expect(await avatar.getAttribute("aria-checked")).toBe("false");
+        await sheet.getByText(wording("room.message.mode_avatar_off"), { exact: true }).waitFor({ timeout: 10_000 });
+        expect(await standsOnTop(avatar)).toBe(true);
+        await avatar.click();
+        await sheet.getByText(wording("room.message.mode_avatar_on"), { exact: true }).waitFor({ timeout: 10_000 });
+        expect(await avatar.getAttribute("aria-checked")).toBe("true");
+        expect(services.mode).toBe("avatar");
+      } finally {
+        await close();
+      }
+    }, 90_000);
+
+    const unapplied: [string, RoomProvidersView, RoomMode | null][] = [
+      ["a room never added", { on: [PROVIDER_A, RECORD], avatarOffered: true }, null],
+      ["a room whose chat service offers no avatar mode", { on: [PROVIDER_A, RECORD], avatarOffered: false }, "record-only"],
+      ["a room on the record alone", { on: [RECORD], avatarOffered: false }, "record-only"]
+    ];
+
+    for (const [why, providers, mode] of unapplied) {
+      test(`shows nothing of the avatar mode for ${why}, ${width}px wide`, async () => {
+        const { page, close } = await roomOpen(width, height, phone, { services: { providers, mode } });
+
+        try {
+          const sheet = await openRoomInfo(page, wording("room_info.label.providers"));
+
+          await sheet.locator("[data-room-providers]").waitFor({ timeout: 10_000 });
+          expect(await sheet.locator("[data-room-mode]").count()).toBe(0);
+          expect(await sheet.getByRole("switch").count()).toBe(0);
+          expect(await sheet.getByText(wording("room.label.mode_avatar")).count()).toBe(0);
+          expect(await sheet.getByText(wording("room.message.mode_avatar_off")).count()).toBe(0);
+        } finally {
+          await close();
+        }
+      }, 90_000);
+    }
 
     // What opens over the view stands over it, and back or Esc closes it alone (docs/web.md, 「Floating things」).
     test(`stands a picture and a video opened from the media tab over the view, back and Esc closing them alone, ${width}px wide`, async () => {

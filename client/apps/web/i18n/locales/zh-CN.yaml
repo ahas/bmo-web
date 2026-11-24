@@ -496,7 +496,6 @@ room:
     records_loading: 正在加载记录…
     providers_loading: 正在加载聊天服务…
     mode_saving: 正在更改房间模式
-    providers_saving: 正在更改聊天服务…
     removal_loading: 正在加载要删除的记录…
     room_loading: 正在加载房间…
     selected_count: "已选择{n}项"
@@ -599,8 +598,6 @@ room:
     mode_read_failed: 无法加载房间模式。
     mode_save_failed: 无法更改房间模式。
     mode_takes_no_avatar: 此房间的聊天服务不接收回复，无法开启代答模式。
-    providers_save_failed: 无法更改聊天服务。
-    providers_shape: 请至少选择一个要开启的聊天服务。
     removal_read_failed: 无法加载要删除的记录。
     removal_seeded_room: 这是主管配置指定的房间，无法删除。
     reply_missing: 记录中没有要回复的消息。
@@ -947,14 +944,13 @@ room:
     messages_copied: "已复制{n}条消息。"
     removal_done: 已删除房间登记及其记录。
     removal_goes: 删除后，下列记录和文件将一并删除，且无法恢复。
-    providers_rule: 只开启对话记录的房间不连接任何即时通讯工具，所说的内容只保留在记录和此控制台中。开启某个即时通讯工具后，从那时起留在此房间的消息也会发送到该工具；关闭后即停止。房间必须至少在一处保持开启。
-    mode_rule: 开启后，此房间的智能体以你的账号回复；关闭后只读取和记录，不回复。
+    providers_rule: 聊天服务在添加房间时确定，之后无法更改。
+    mode_avatar_on: 在此房间中，BMO 以你的账号代你回复。
+    mode_avatar_off: 只记录，不回复。
     background_every_minutes: "每{n}分钟检查一次"
     background_every_seconds: "每{n}秒检查一次"
     background_since: "自{time}起"
     background_until: "{time}提醒"
-    mode_unadded: 此房间未被添加，因此没有模式。
-    providers_unset: 从未设置过，因此显示此房间当前连接的位置。
     removal_refused: 此房间的登记无法删除。
     removal_stays: 在此房间创建的条目、Job、Job 提问、搜索和用量将保留。
     room_removed: 此房间的登记已删除，已跳转到首页。
@@ -2290,20 +2286,9 @@ members:
     entry_forbidden: 你没有在此房间添加或移出成员的权限。
     entry_unknown: 找不到该人员。
 callers:
-  label:
-    none: 无人拥有呼叫权限
-    person: 人员
-    find: 按姓名搜索
-    allow: 允许呼叫
-    heads_only: 你不是此房间的主导者、其组织的负责人或管理员，因此只能更改你担任负责人的组织中的人员。
-  action:
-    add: 添加
-  status:
-    loading: 正在加载呼叫权限…
   error:
-    failed: 无法更改呼叫权限。
-    forbidden: 无法更改此人的呼叫权限。
-    load_failed: 无法加载呼叫权限。
+    failed: 未能让添加的人在此房间中呼叫自己的 BMO。
+    forbidden: 无法让此人在此房间中呼叫自己的 BMO。
     not_found: 找不到该用户。
     unreachable: 无法连接到账号服务。
 room_info:
@@ -2317,7 +2302,6 @@ room_info:
     music: 音乐
     voice: 语音
     situation: 情况
-    callers: 呼叫权限
     session: 会话信息
     providers: 聊天服务
     tone: 语气

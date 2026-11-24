@@ -2,20 +2,16 @@
   <!-- The room information the room's name opens (docs/web.md, the room screen's room information): its head the room's
        picture and name, and under it one row of tabs over what the room is and what it holds. A side sheet on a wide
        screen and a drawer from the bottom on a narrow one, at one height whichever tab stands. A tab reads what it
-       shows the first time it is shown in an opening and keeps it while the view stays open. A drawer dragged away
-       slides off before any refusal could hold it, so while a change waits it holds itself, standing still under a
-       drag, and hands each refused close to the guard, which asks; the sheet stays where the guard refuses, and is
-       left to dismiss itself. -->
+       shows the first time it is shown in an opening and keeps it while the view stays open. Nothing in it waits to
+       be saved, so every way out closes it at once. -->
   <component
     :is="narrow ? UDrawer : USlideover"
     :open="open"
     :title="props.title"
     :description="$t('room_info.title.sheet')"
     :ui="narrow ? DRAWER_UI : SHEET_UI"
-    :dismissible="narrow ? guard.dismissible.value : true"
     data-room-info
-    @update:open="(standing: boolean) => (standing ? (open = true) : void guard.leave())"
-    @close:prevent="void guard.leave()"
+    @update:open="(standing: boolean) => (open = standing)"
   >
     <template #title>
       <span class="flex min-w-0 items-center gap-3">
@@ -45,7 +41,6 @@
     </template>
 
     <template #close="{ ui }">
-      <!-- Pressed, it reaches the guard through the sheet's own close alone, so it asks only once. -->
       <ShellClose :class="ui.close()" />
     </template>
 
@@ -73,10 +68,9 @@
           @left="emit('left')"
         />
         <template v-for="holding in ROOM_HOLDINGS" :key="holding">
-          <RoomHoldingPanel v-if="shown.has(holding)" v-show="tab === holding" :chat-id="props.chatId" :holding="holding" @show="(messageId) => void showInMessage(messageId)" />
+          <RoomHoldingPanel v-if="shown.has(holding)" v-show="tab === holding" :chat-id="props.chatId" :holding="holding" @show="showInMessage" />
         </template>
         <RoomSituationPanel v-if="shown.has('situation')" v-show="tab === 'situation'" :chat-id="props.chatId" />
-        <RoomCallersPanel v-if="shown.has('callers')" v-show="tab === 'callers'" v-model:holding="callersHolding" :chat-id="props.chatId" :read-only="props.readOnly" />
         <RoomSessionPanel v-if="props.administrator && shown.has('session')" v-show="tab === 'session'" :chat-id="props.chatId" />
         <RoomProvidersPanel v-if="props.manages && shown.has('providers')" v-show="tab === 'providers'" :chat-id="props.chatId" />
         <RoomTonePanel v-if="props.manages && shown.has('tone')" v-show="tab === 'tone'" :chat-id="props.chatId" />
@@ -97,7 +91,6 @@
 </template>
 
 <script setup lang="ts">
-import { useCloseGuard } from "bmo-ui/app/domain/form-save";
 import { useOpenings } from "bmo-ui/app/domain/openings";
 import { useNarrow } from "bmo-ui/app/domain/screen";
 import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
@@ -118,11 +111,9 @@ interface Props {
   avatars: AvatarIndex;
   // Whether the reader is the administrator, who reads the room's figures.
   administrator: boolean;
-  // Whether the reader is the administrator in a room he may change, who sets its picture, its chat services and its
-  // tone layer.
+  // Whether the reader is the administrator in a room he may change, who sets its picture, its avatar mode and its
+  // tone layer, and reads its chat services.
   manages: boolean;
-  // Whether the room is one the reader may not change at all (docs/web.md, 「Access」).
-  readOnly: boolean;
 }
 
 // The sheet as wide as its whole row of tabs, and the drawer at one height whichever tab stands; the tabs stand
@@ -145,7 +136,6 @@ const TAB_LABELS: Record<RoomInfoTab, string> = {
   music: "room_info.label.music",
   voice: "room_info.label.voice",
   situation: "room_info.label.situation",
-  callers: "room_info.label.callers",
   session: "room_info.label.session",
   providers: "room_info.label.providers",
   tone: "room_info.label.tone"
@@ -165,7 +155,6 @@ const tabs = computed<TabsItem[]>(() =>
     "members" as const,
     ...ROOM_HOLDINGS,
     "situation" as const,
-    "callers" as const,
     ...(props.administrator ? ["session" as const] : []),
     ...(props.manages ? ["providers" as const, "tone" as const] : [])
   ].map((value) => ({ value, label: t(TAB_LABELS[value]) }))
@@ -192,19 +181,9 @@ const pictureOpen = ref(false);
 // the screen crosses the narrow width (docs/web.md, 「Floating things」).
 const pictureOpenings = useOpenings(() => pictureOpen.value);
 
-// A person picked in the callers tab and not added waits there, and closing the view asks first (docs/web.md,
-// 「Forms」).
-const callersHolding = ref(false);
-const guard = useCloseGuard(open, () => callersHolding.value, t);
-
-watch(open, (standing) => {
-  if (standing) callersHolding.value = false;
-});
-
-// A line's show-in-message is a way out like any other: it closes the view through the guard, and the room brings the
-// message into view only once the view has gone.
-async function showInMessage(messageId: ExactMessageId): Promise<void> {
-  await guard.leave();
-  if (!open.value) emit("show", messageId);
+// A line's show-in-message closes the view, and the room brings the message into view once the view has gone.
+function showInMessage(messageId: ExactMessageId): void {
+  open.value = false;
+  emit("show", messageId);
 }
 </script>

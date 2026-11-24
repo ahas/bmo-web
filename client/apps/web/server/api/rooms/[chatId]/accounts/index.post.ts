@@ -13,15 +13,15 @@ import { wording } from "#shared/wording";
 // and letting people in): the accounts chosen, and the people of each organisation chosen, those already members
 // passed over. The account service says who may let whom in, and one refused refuses the whole before the receiver is
 // told anything; the receiver keeps the members and writes one line for each organisation and one for the people
-// chosen beside them. With `caller` the call into the room is granted to each person let in at the same moment. Each
-// person's open streams hear the room from then on.
+// chosen beside them. Each person let in is granted `ask` on the room at the same moment, the call right membership
+// gives (docs/accounts.md, 「A room's callers」), and each person's open streams hear the room from then on.
 export default defineEventHandler(async (event): Promise<void> => {
   const signed = await signedInUser(event);
   const room = requireChatId(event);
 
   await requireWritableRoom(event, room);
 
-  const body = await readBody<{ accounts?: unknown; units?: unknown; caller?: unknown } | null>(event);
+  const body = await readBody<{ accounts?: unknown; units?: unknown } | null>(event);
   const accounts = listOf(body?.accounts, (one): one is string => typeof one === "string" && /^\d+$/.test(one));
   const units = listOf(body?.units, (one): one is number => typeof one === "number" && Number.isSafeInteger(one));
 
@@ -48,12 +48,10 @@ export default defineEventHandler(async (event): Promise<void> => {
 
   for (const account of letIn) roomReachChanged({ account: Number(account), room, left: false });
 
-  if (body?.caller === true) {
-    try {
-      await Promise.all(letIn.map((account) => setRoomCaller(room, account, true, by)));
-    } catch (error) {
-      throw callerFailure(error);
-    }
+  try {
+    await Promise.all(letIn.map((account) => setRoomCaller(room, account, true, by)));
+  } catch (error) {
+    throw callerFailure(error);
   }
 
   setResponseStatus(event, 204);

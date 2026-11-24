@@ -90,7 +90,7 @@ function addressOf(options: ServiceOptions): string {
   return (options.address ?? process.env.WEB_SERVER_ADDRESS ?? "").replace(/\/+$/, "");
 }
 
-function clientOf(options: ServiceOptions): AccountServiceClient {
+export function clientOf(options: ServiceOptions): AccountServiceClient {
   const address = addressOf(options);
 
   if (address === "") throw new AccountServiceDown("(no address)", "no address is set for the server");
@@ -109,7 +109,7 @@ function sumidaClientOf(options: ServiceOptions): AccountServiceClient {
 }
 
 // A call nothing answered is the service down; a call it answered is read by its status.
-async function sent<T>(options: ServiceOptions, asked: Promise<Reply<T>>): Promise<Reply<T>> {
+export async function sent<T>(options: ServiceOptions, asked: Promise<Reply<T>>): Promise<Reply<T>> {
   try {
     return await asked;
   } catch (error) {
@@ -118,7 +118,7 @@ async function sent<T>(options: ServiceOptions, asked: Promise<Reply<T>>): Promi
 }
 
 // The server's own refusal is `{ code, error }`; sumida's session routes answer `{ code, statusCode, reason? }`.
-function refusalOf(response: Response, body: RefusalBody | undefined): AccountRefusal {
+export function refusalOf(response: Response, body: RefusalBody | undefined): AccountRefusal {
   if (body === undefined) return new AccountRefusal(response.status, "failed", `the account service answered ${response.status}`);
 
   return "statusCode" in body
@@ -126,7 +126,7 @@ function refusalOf(response: Response, body: RefusalBody | undefined): AccountRe
     : new AccountRefusal(response.status, body.code, body.error);
 }
 
-function answered<T>(reply: Reply<T>): T {
+export function answered<T>(reply: Reply<T>): T {
   if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
 
   if (reply.data === undefined) {
@@ -209,8 +209,9 @@ function signedHeaders(address: string, cookie?: string): Record<string, string>
 }
 
 /**
- * A sign-in with a name and a password: the session's cookie, as `name=value`, or null where the
- * service refuses the credentials. `address` is the browser's.
+ * A sign-in with a name and a password through the service's own sign-in (docs/accounts.md, 「Signing in」): the
+ * session's cookie, as `name=value`, or null where the service refuses the credentials or asks a second factor.
+ * `address` is the browser's.
  */
 export async function signIn(
   name: string,
@@ -218,17 +219,18 @@ export async function signIn(
   address: string,
   options: ServiceOptions = {}
 ): Promise<string | null> {
-  const client = sumidaClientOf(options);
+  const client = clientOf(options);
   const reply = await sent(
     options,
-    client.POST("/sumida/auth/session", {
-      body: { username: name, password, rememberMe: false },
-      headers: signedHeaders(address)
+    client.POST("/sign-ins", {
+      params: { header: { "X-Real-IP": address } },
+      body: { login: name, password, deviceToken: null }
     })
   );
 
   if (reply.response.status === 401 || reply.response.status === 403) return null;
   if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+  if (reply.data?.outcome !== "signed-in") return null;
 
   const cookie = reply.response.headers.get("set-cookie")?.split(";")[0]?.trim();
 
@@ -285,7 +287,7 @@ export function shownName(user: { name: string; fullName: string }): string {
   return user.fullName === "" ? user.name : user.fullName;
 }
 
-const userPath = (user: UserId | number) => String(user);
+export const userPath = (user: UserId | number) => String(user);
 
 /** A user, or null where none has that id. */
 export async function userOf(id: UserId | number, options: ServiceOptions = {}): Promise<ServiceUser | null> {
@@ -311,28 +313,6 @@ export async function senderLinks(senders: readonly number[], options: ServiceOp
   const reply = await sent(options, client.POST("/senders/users", { body: { senders: [...senders] } }));
 
   return answered(reply).links;
-}
-
-/** A user's password changed on the strength of their current one; false where that does not match. */
-export async function changeUserPassword(
-  id: UserId | number,
-  current: string,
-  next: string,
-  options: ServiceOptions = {}
-): Promise<boolean> {
-  const client = clientOf(options);
-  const reply = await sent(
-    options,
-    client.POST("/users/{user}/password", {
-      params: { path: { user: userPath(id) } },
-      body: { current, next }
-    })
-  );
-
-  if (reply.response.ok) return true;
-  if (reply.error?.code === "wrong-password") return false;
-
-  throw refusalOf(reply.response, reply.error);
 }
 
 /** A user given another name; false where another user holds it. */

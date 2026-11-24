@@ -41,7 +41,11 @@ export type HistoryChange =
   | "post-given"
   | "post-changed"
   | "post-taken"
-  | "left";
+  | "left"
+  | "password-reset"
+  | "second-factor-reset"
+  | "disabled"
+  | "enabled";
 
 /** One change of a person's place, the units by the names they have now and a role by the name it had then. */
 export interface HistoryView {

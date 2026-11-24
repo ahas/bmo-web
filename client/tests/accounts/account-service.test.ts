@@ -8,7 +8,6 @@ import {
   AccountRefusal,
   addSecretKind,
   adoptPhone,
-  changeUserPassword,
   checkObject,
   checkRoom,
   deletePhoneKey,
@@ -28,6 +27,7 @@ import {
   signOut,
   userOf
 } from "../../apps/web/server/utils/account-service";
+import { changePasswordKeeping } from "../../apps/web/server/utils/account-security";
 import { standInAccountService } from "../support/account-service";
 import { OWNER_ID, ROOM_ID } from "../support/ids";
 
@@ -95,8 +95,10 @@ describe("users", () => {
   });
 
   test("a password changes only on the current one", async () => {
-    expect(await changeUserPassword(2, "not it", "another password", options)).toBe(false);
-    expect(await changeUserPassword(2, "a password", "another password", options)).toBe(true);
+    const browser = { address: BROWSER, userAgent: "" };
+
+    expect(await changePasswordKeeping(2, "not it", "another password", null, browser, options)).toBe(false);
+    expect(await changePasswordKeeping(2, "a password", "another password", null, browser, options)).toEqual({ cookie: null });
     expect(await signIn("member-a", "another password", BROWSER, options)).not.toBeNull();
   });
 

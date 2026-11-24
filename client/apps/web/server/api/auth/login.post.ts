@@ -1,6 +1,5 @@
-import { sessionUser, signIn, userNode, userOf } from "../../utils/account-service";
-import { followPersonName } from "../../utils/account-standing";
-import { settleMachine, standPersonNode } from "../../utils/person-node";
+import { signInWith } from "../../utils/account-security";
+import { browserOf, rememberedDevice, sealSignIn, securityFailure } from "../../utils/sign-in";
 
 import { wording } from "#shared/wording";
 
@@ -12,7 +11,14 @@ interface LoginBody {
   remember?: unknown;
 }
 
-export default defineEventHandler(async (event): Promise<{ user: AccountUser }> => {
+/** What a sign-in answers: the user signed in, or the ticket a code is asked with; and whether to lead to enrolment. */
+export interface LoginAnswer {
+  user?: AccountUser;
+  ticket?: string;
+  enrol?: boolean;
+}
+
+export default defineEventHandler(async (event): Promise<LoginAnswer> => {
   const body = await readBody<LoginBody>(event);
   const name = normalizeName(body?.name);
   const password = normalizePassword(body?.password);
@@ -33,46 +39,20 @@ export default defineEventHandler(async (event): Promise<{ user: AccountUser }> 
   }
 
   if (model === "on") {
-    const address = browserAddress(event);
-    const sid = await signIn(name, password, address);
+    let signed;
 
-    if (sid === null) {
-      throw fail(401, wording("app.error.wrong_credentials"));
+    try {
+      signed = await signInWith(name, password, rememberedDevice(event), browserOf(event));
+    } catch (error) {
+      throw securityFailure(error);
     }
 
-    const session = await sessionUser(sid, address);
-    const user = session === null ? null : await userOf(session.id);
+    // The password matched and the account asks a code: the ticket goes back for the code to finish with.
+    if (signed.answer.outcome === "second-factor") return { ticket: signed.answer.ticket ?? "" };
 
-    if (user === null) {
-      throw fail(401, wording("app.error.wrong_credentials"));
-    }
+    await sealSignIn(event, signed, remember);
 
-    // An account bound to a machine is used only while the hub holds that machine (docs/accounts.md,
-    // 「Invitations and a person's machine」).
-    if (!user.administrator) {
-      const node = await userNode(user.id);
-
-      if (node.agent !== undefined && !node.attached) {
-        throw fail(403, wording("app.error.machine_gone"));
-      }
-
-      // A machine the administrator bound the account to is proven, and set as its node, at the first sign-in
-      // after it attaches; nobody reads a refusal here, so it goes to the log.
-      if (typeof node.agent === "string" && (node.provenAt ?? null) === null) {
-        await settleMachine(user.id).catch((error: unknown) => console.error(`account ${user.id}: its machine could not be settled: ${String(error)}`));
-      } else if (typeof node.agent === "string") {
-        // Every sign-in sets the node again, so one the node service listed late, past its round of asks, lands now.
-        void standPersonNode(user.id).catch((error: unknown) => console.error(`account ${user.id}: its node could not be set: ${String(error)}`));
-      }
-    }
-
-    void followPersonName(Number(user.id)).catch((error: unknown) => console.error(`account ${user.id}: its BMO could not follow its name: ${String(error)}`));
-
-    const fullName = user.fullName === "" ? {} : { fullName: user.fullName };
-
-    await setUserSession(event, { user: { name, id: Number(user.id), ...fullName }, sid, administrator: user.administrator, loggedInAt: Date.now(), remember }, sessionLife(remember));
-
-    return { user: { name } };
+    return { user: { name }, enrol: signed.answer.enrol === true };
   }
 
   const user = await findWebUser(name);

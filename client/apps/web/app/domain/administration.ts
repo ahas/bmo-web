@@ -14,7 +14,8 @@ export function administratorOpens(reader: Pick<OrganizationReader, "administrat
 
 export const ADMIN_TABS: readonly OrganizationTab[] = [
   { value: "providers", label: "settings.label.providers", icon: "i-material-symbols-hub-outline", opens: administratorOpens, keys: [], wide: false, load: () => import("~/components/OrganizationProviders.vue") },
-  { value: "secret-kinds", label: "secrets.label.kinds", icon: "i-material-symbols-key-outline", opens: administratorOpens, keys: [], wide: false, load: () => import("~/components/OrganizationSecretKinds.vue") }
+  { value: "secret-kinds", label: "secrets.label.kinds", icon: "i-material-symbols-key-outline", opens: administratorOpens, keys: [], wide: false, load: () => import("~/components/OrganizationSecretKinds.vue") },
+  { value: "mail", label: "security.label.mail_tab", icon: "i-material-symbols-mail-outline", opens: administratorOpens, keys: [], wide: false, load: () => import("~/components/AdminMail.vue") }
 ];
 
 /** The keys of tabs that moved from this screen onto the organisation screen with the platform chosen there, each by

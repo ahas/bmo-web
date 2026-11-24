@@ -88,6 +88,19 @@
     />
     <OrganizationMachineDialog v-model:open="machineOpen" :user="props.user" :name="person?.name ?? ''" @changed="actDone" />
     <ProfileDialog v-model:open="profileOpen" :user="props.user" :profile="profile" :description="person?.name" @saved="actDone" />
+    <SettingsDialog v-model:open="resetOpen" :title="$t('security.action.reset_password')">
+      <template v-if="resetMade !== null">
+        <p v-if="resetMade.mailed" class="text-sm text-default" data-reset-mailed>{{ $t("security.message.reset_mailed", { address: resetMade.address ?? "" }) }}</p>
+        <template v-else>
+          <p class="text-sm text-default">{{ $t("security.message.reset_handed") }}</p>
+          <code class="break-all rounded-md bg-elevated p-3 font-mono text-sm text-highlighted" data-reset-link>{{ resetMade.link }}</code>
+        </template>
+      </template>
+      <template #footer>
+        <UButton v-if="resetMade?.link" color="neutral" variant="outline" icon="i-material-symbols-content-copy-outline" :label="copied ? $t('security.message.copied') : $t('security.action.copy')" data-reset-copy @click="void copyLink()" />
+        <UButton :label="$t('security.action.done')" @click="resetOpen = false" />
+      </template>
+    </SettingsDialog>
   </article>
 </template>
 
@@ -96,8 +109,10 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
 
 import { useAdministrator, useSignedUser } from "~/domain/access";
+import { securityActs, usePersonSecurity } from "~/domain/account-security";
 import { identityMark } from "~/domain/avatars";
 import { useConfirm } from "~/domain/confirm";
+import { copyText } from "~/domain/copy";
 import { keepDialogFocus } from "~/domain/menu-focus";
 import { organizationAddress } from "~/domain/organization";
 import { PERSON_PANES, personAdministrator, personBase, personPaneOf, personPaneRefused, personPanesFor, withPersonPane } from "~/domain/person-panes";
@@ -105,6 +120,7 @@ import { useSupplyReader, useSupplyUnits } from "~/domain/supply";
 import { ROSTER_STATE_FACES, rosterActs } from "~/domain/roster";
 import { revealOpenTab } from "~/domain/tab-row";
 
+import type { SecurityAct } from "~/domain/account-security";
 import type { RosterAct } from "~/domain/roster";
 import type { RoleView, RosterDetail, RosterPerson } from "#shared/roster";
 import type { InviteUnit, UnitRow } from "@web/server-client";
@@ -172,9 +188,66 @@ const ACT_ITEMS: Readonly<Record<RosterAct, { label: string; icon: string; color
   leave: { label: "organization.action.mark_left_confirm", icon: "i-material-symbols-person-off-outline", color: "error" }
 };
 
-const menu = computed<DropdownMenuItem[]>(() =>
-  acts.value.map((act) => ({ label: t(ACT_ITEMS[act].label), icon: ACT_ITEMS[act].icon, color: ACT_ITEMS[act].color, onSelect: () => void take(act) }))
+// The account acts (docs/web.md, 「Organisation」, the people tab): they stand before marking the person left.
+const { security, read: readSecurity } = usePersonSecurity(() => String(props.user));
+const accountActs = computed<SecurityAct[]>(() =>
+  securityActs({ administrator: administrator.value, user: signed.value === null ? null : String(signed.value) }, String(props.user), security.value)
 );
+
+const SECURITY_ITEMS: Readonly<Record<SecurityAct, { label: string; icon: string; color?: "error" }>> = {
+  password: { label: "security.action.reset_password", icon: "i-material-symbols-lock-reset" },
+  factor: { label: "security.action.reset_factor", icon: "i-material-symbols-phonelink-lock-outline" },
+  disable: { label: "security.action.disable", icon: "i-material-symbols-block", color: "error" },
+  enable: { label: "security.action.enable", icon: "i-material-symbols-check-circle-outline" }
+};
+
+const menu = computed<DropdownMenuItem[]>(() => {
+  const items = (list: RosterAct[]): DropdownMenuItem[] =>
+    list.map((act) => ({ label: t(ACT_ITEMS[act].label), icon: ACT_ITEMS[act].icon, color: ACT_ITEMS[act].color, onSelect: () => void take(act) }));
+  const before = acts.value.filter((act) => act !== "leave");
+  const leaving = acts.value.filter((act) => act === "leave");
+  const account = accountActs.value.map((act) => ({ label: t(SECURITY_ITEMS[act].label), icon: SECURITY_ITEMS[act].icon, color: SECURITY_ITEMS[act].color, onSelect: () => void takeSecurity(act) }));
+
+  return [...items(before), ...account, ...items(leaving)];
+});
+
+// The link a reset handed back, shown once for the reader to give the person, or the address it was mailed to.
+const resetMade = ref<{ mailed: boolean; address?: string | null; link?: string | null } | null>(null);
+const resetOpen = ref(false);
+
+async function takeSecurity(act: SecurityAct): Promise<void> {
+  actFailure.value = "";
+
+  const name = person.value?.name ?? "";
+  const asked =
+    act === "password"
+      ? { title: t("security.message.reset_ask"), effect: t("security.message.reset_ask_detail"), confirm: t("security.action.reset_password") }
+      : act === "factor"
+        ? { title: t("security.message.factor_reset_ask"), effect: t("security.message.factor_reset_detail"), confirm: t("security.action.reset_factor") }
+        : act === "disable"
+          ? { title: t("security.message.disable_ask"), effect: t("security.message.disable_detail"), confirm: t("security.action.disable") }
+          : { title: t("security.message.enable_ask"), effect: t("security.message.enable_detail"), confirm: t("security.action.enable") };
+
+  if (!(await confirm({ ...asked, item: name }))) return;
+
+  const base = `/api/organization/users/${encodeURIComponent(props.user)}`;
+  const done = await prepared(async () => {
+    if (act === "password") return await $fetch<{ mailed: boolean; address?: string | null; link?: string | null }>(`${base}/password-reset`, { method: "POST" });
+    if (act === "factor") return await $fetch(`${base}/second-factor`, { method: "DELETE" });
+
+    return await $fetch(`${base}/enabled`, { method: "PUT", body: { enabled: act === "enable" } });
+  });
+
+  if (done === null) return;
+
+  if (act === "password") {
+    resetMade.value = done as { mailed: boolean; address?: string | null; link?: string | null };
+    resetOpen.value = true;
+  }
+
+  await readSecurity(t("security.error.read_failed"));
+  await actDone();
+}
 
 async function take(act: RosterAct): Promise<void> {
   actFailure.value = "";
@@ -320,6 +393,16 @@ async function markLeft(): Promise<void> {
   if (done !== null) await actDone();
 }
 
+const copied = ref(false);
+
+async function copyLink(): Promise<void> {
+  copied.value = await copyText(resetMade.value?.link ?? "");
+}
+
+watch(resetOpen, (opened) => {
+  if (!opened) copied.value = false;
+});
+
 // --- The tabs ---
 
 // Each tab says which readers it stands for, and the address names the one open. The supply tab stands for the
@@ -389,5 +472,12 @@ watch(
   { flush: "post" }
 );
 
-onMounted(() => void readPerson());
+onMounted(() => {
+  void readPerson();
+  void readSecurity(t("security.error.read_failed"));
+});
+watch(
+  () => props.user,
+  () => void readSecurity(t("security.error.read_failed"))
+);
 </script>

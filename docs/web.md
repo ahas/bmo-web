@@ -9296,11 +9296,12 @@ a row shows of a key is the secret's name, and of a login the path it is reached
 
 #### 보안
 
-- **2단계 인증 요구** — one row with its switch: whether the people under the node chosen must hold a second factor,
+- **2단계 인증 요구** — one row with its choice, 위를 따름, 요구함 or 요구 안 함 (the platform's own link has no 위를 따름):
+  whether the people under the node chosen must hold a second factor,
   the chain's kind `account.second-factor-required` (`docs/accounts.md`, 「The second factor」). It stands at a
   company or a unit for the administrator and its heads, and at 플랫폼 전체 for the administrator, the tab declaring
   that link node's view; 나 holds none. The row's line says 위를 따름 with what the links above come to, or 직접 정함,
-  and a lock above it as every tab says one, its switch disabled. A second row, 아래 조직, sets the link's delegation
+  and a lock above it as every tab says one, its choice disabled. A second row, 아래 조직, sets the link's delegation
   as 아티팩트 저장's does. A change is saved as it is made, through `GET`/`PUT /api/organization/security`, the node in
   `unit=` or `link=platform`.
 - **A person it holds for who holds no second factor** is led to enrol at their next sign-in (「Access」).

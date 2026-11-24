@@ -2,7 +2,7 @@ import { MEMBER_HOME, MEMBER_LAYOUT, isAdministrator } from "~/domain/access";
 import { AGENT_LOGIN_PATH, agentLoginNeeded } from "~/domain/agent-login";
 import { openScreen, screenAt, screenOpened, sharePath, useConsoleScreens, useScreensReader } from "~/domain/console-screens";
 import { standUnavailable, unavailableRoute } from "~/domain/screen-unavailable";
-import { loginRoute, returnPath } from "~/domain/login-end";
+import { NO_SIGN_IN_PAGES, loginRoute, returnPath } from "~/domain/login-end";
 import { settingsKept } from "~/domain/settings-dialog";
 import { ensureSectionAccess } from "~/domain/section-access";
 import { featureLeftOut, featuredScreens, screensWithBundles } from "~/domain/screens";
@@ -41,6 +41,10 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   // An invitation's link is opened by a person who has no account yet.
   if (to.path.startsWith("/join/")) return;
+
+  // The pages of a forgotten password and of an email's link stand with no sign-in (docs/web.md, 「Pages with no
+  // sign-in」).
+  if (NO_SIGN_IN_PAGES.includes(to.path)) return;
 
   const { loggedIn, session } = useUserSession();
 

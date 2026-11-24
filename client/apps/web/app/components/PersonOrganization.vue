@@ -100,6 +100,14 @@ function historyLine(entry: HistoryView): string {
       return t("roster.label.history_post_taken", { unit });
     case "left":
       return t("roster.label.history_left");
+    case "password-reset":
+      return t("roster.label.history_password_reset");
+    case "second-factor-reset":
+      return t("roster.label.history_second_factor_reset");
+    case "disabled":
+      return t("roster.label.history_disabled");
+    case "enabled":
+      return t("roster.label.history_enabled");
   }
 }
 </script>

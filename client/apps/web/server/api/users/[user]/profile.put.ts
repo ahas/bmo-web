@@ -2,7 +2,9 @@ import { wording } from "#shared/wording";
 
 import { followPersonName } from "../../../utils/account-standing";
 import { followSessionName } from "../../../utils/accounts";
+import { mailVerification } from "../../../utils/account-security";
 import { nameRecordIdentity } from "../../../utils/console-rooms";
+import { linkBase } from "../../../utils/sign-in";
 
 import type { UserProfile } from "#shared/types";
 
@@ -24,13 +26,20 @@ export default defineEventHandler(async (event): Promise<UserProfile> => {
   if (profile === null) throw fail(400, wording("account.error.profile_shape"));
 
   const caller = profileCaller(signed);
-  const before = (await profileOf(user, caller)).fullName;
+  const previous = await profileOf(user, caller);
+  const before = previous.fullName;
   const saved = await setProfile(user, profile, caller);
 
   if (saved.fullName !== before) {
     await followPersonName(user, before).catch((error: unknown) => console.error(`account ${user}: its BMO could not follow its name: ${String(error)}`));
     await nameRecordIdentity(user).catch((error: unknown) => console.error(`account ${user}: its record identity could not follow its name: ${String(error)}`));
     if (signed.id === user) await followSessionName(event, saved.fullName);
+  }
+
+  const base = linkBase(event, true);
+
+  if (saved.email !== "" && saved.email !== previous.email && base !== null) {
+    await mailVerification(user, base, caller).catch((error: unknown) => console.error(`account ${user}: its email's verification was not mailed: ${String(error)}`));
   }
 
   return saved;

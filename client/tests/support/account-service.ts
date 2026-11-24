@@ -268,16 +268,18 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
           : ((await request.json().catch(() => null)) as StandInBody | null);
 
       // sumida's own session routes take the session cookie, not the token.
-      if (path === "/sumida/auth/session" && request.method === "POST") {
-        const user = users.find((one) => one.name === body?.username && one.password !== undefined && one.password === body?.password);
+      // The service's own sign-in makes sumida's session, its cookie set on the answer.
+      if (path === "/sign-ins" && request.method === "POST") {
+        const asked = body as { login?: unknown; password?: unknown } | null;
+        const user = users.find((one) => one.name === asked?.login && one.password !== undefined && one.password === asked?.password);
 
-        if (user === undefined) return refused(401, "unauthorized", "no account answers to that name");
+        if (user === undefined) return refused(401, "wrong-credentials", "the login or the password does not match");
 
         const id = crypto.randomUUID();
 
         sessions.set(`bmo.sid=${id}`, user.id);
 
-        return json({}, 200, { "set-cookie": `bmo.sid=${id}; HttpOnly; Path=/` });
+        return json({ outcome: "signed-in", user: String(user.id), enrol: false }, 200, { "set-cookie": `bmo.sid=${id}; HttpOnly; Path=/` });
       }
       if (path === "/sumida/auth/session" && request.method === "DELETE") {
         sessions.delete(cookieOf(request) ?? "");

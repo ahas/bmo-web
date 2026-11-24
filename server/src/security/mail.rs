@@ -385,6 +385,17 @@ async fn write_route(
     return Err(Refusal::bad("`from` is no mail address").coded("bad-mail"));
   }
 
+  // The server is one bmo-mail offers the platform, where bmo-mail answers its list.
+  if let Some(server) = &server
+    && let Ok(servers) = service.mail.servers().await
+    && !servers.iter().any(|offered| &offered.id == server)
+  {
+    return Err(
+      Refusal::bad("`server` is none of the outgoing servers bmo-mail offers the platform")
+        .coded("bad-mail"),
+    );
+  }
+
   if let Some(secret) = &secret {
     crate::secrets::named(secret)
       .map_err(|_| Refusal::bad("`secret` is no secret's name").coded("bad-mail"))?;

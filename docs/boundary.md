@@ -359,8 +359,8 @@ The service's own (`docs/accounts.md`, 「Account security」). `holder` is the 
 
 | Route | Request | Answer |
 |---|---|---|
-| `GET /mail` | `Owner-Role` | `server` (bmo-mail's outgoing server id, or null), `from`, `fromName`, `secret` (a secret's name or null), `configured`, `secretStands`, `mailService` (bmo-mail answered), `servers`: each `id`, `name`, `host`; 403 to anyone but the administrator |
-| `PUT /mail` | `server`, `from`, `fromName`, `secret` | the system mail as now set; 400 `bad-mail` naming the field out of shape |
+| `GET /mail` | `Owner-Key` | `server` (bmo-mail's outgoing server id, or null), `from`, `fromName`, `secret` (a secret's name or null), `configured`, `secretStands`, `mailService` (bmo-mail answered), `servers`: each `id`, `name`, `host`; 403 to anyone but the platform administrator, a unit's head among them |
+| `PUT /mail` | `server`, `from`, `fromName`, `secret` | the system mail as now set; 400 `bad-mail` for a field out of shape or a server bmo-mail does not offer the platform |
 | `POST /mail/test` | `to` | 204; 409 `mail-unset`; 502 `mail-failed` with bmo-mail's sentence |
 | `POST /sign-ins` | `login`, `password`, `deviceToken?`; `X-Real-IP`, `User-Agent` | `outcome` `signed-in` with `user` and `enrol`, the session cookie set on the answer; or `second-factor` with `ticket`. 401 `wrong-credentials`, 403 `account-disabled`, 429 `throttled` and 423 `locked` with `Retry-After` |
 | `POST /sign-ins/second-factor` | `ticket`, `code`, `remember`; the same headers | `signed-in` as above, with `deviceToken` where `remember` was asked; 401 `wrong-code`, 410 `ticket-gone`, 429, 423 |
@@ -641,7 +641,7 @@ Each goes to the unit's base address with that unit's token as a bearer, as the 
 | the agency | register the supply hook | `PUT /hooks/supply` (`url`, `token`) | once as the server starts, where the settings name the agency, so the agency asks who pays for a person's run; `DELETE /hooks/supply` takes it away |
 | the agency | read an agent's label | `GET /supervisors/{supervisorName}`, answered its row's `label` | the name an agent a fixed line names stands as (「Fixed lines」); a refusal, no answer within three seconds or no label names it by its key |
 | the agency | read a person's personal supply roads | `GET /personal-supply`, answered `people` | whose personal supply an administrator's read of `GET /supply/user/{user}` names, with that person in `Owner-Key` and `Owner-Role: administrator` |
-| bmo-mail, at `mail.base` with `mail.token` | list its outgoing servers | `GET /outgoing-servers`, answered `items`: each `id`, `name`, `host` | the choice of the system mail's server on 플랫폼 설정 (`docs/accounts.md`, 「The platform's own mail」) |
+| bmo-mail, at `mail.base` with `mail.token` | list the outgoing servers it keeps for the platform | `GET /outgoing-servers`, answered `items`: each `id`, `name`, `host` | the choice of the system mail's server on 플랫폼 설정 (`docs/accounts.md`, 「The platform's own mail」) |
 | bmo-mail, the same way | send one system mail | `POST /system-mails` (`server`, `from`, `fromName`, `secret` or null, `to`, `subject`, `text`, `html`, `kind`), answered `sent` true; a refusal in its common shape, `code` and `error` | a reset link, an email's verification, a test and a security notice; the secret named is read by bmo-mail off the data root's `env/`, and its value never travels |
 | the jake hub, at its loopback control address with its control token | read the attached agents | `GET /status` | whether a bound machine is attached, as a node read, a proof and a pairing answer it |
 | the jake hub, the same way | revoke a machine name | `POST /revoke?agent=<name>`, answered `ok`, `agent`, `left` | a machine taken away from the account bound to it, once no account holds its name |

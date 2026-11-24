@@ -257,9 +257,57 @@ fn code(secret: &str, step_offset: i64) -> String {
 async fn the_system_mail_is_the_administrators_and_names_its_secret_alone() {
   let world = world().await;
 
-  let refused = ask(&world.app, Method::GET, "/mail", None, &by(world.member)).await;
+  // Neither a member nor a unit's head reaches the system mail: it is the platform administrator's alone.
+  let company: i32 = world
+    .scratch
+    .count(
+      r#"SELECT "organization_id"::bigint FROM "users" WHERE "id" = $1"#,
+      vec![world.member.into()],
+    )
+    .await
+    .try_into()
+    .unwrap();
+  let headed = ask(
+    &world.app,
+    Method::PUT,
+    &format!("/units/{company}/heads/{}", world.member),
+    None,
+    &[("owner-key", world.boss.to_string()), ("owner-role", "administrator".into())],
+  )
+  .await;
 
-  assert_eq!(refused.status, StatusCode::FORBIDDEN);
+  assert!(headed.status.is_success(), "{}", headed.body);
+
+  let set = json!({ "server": "server-a", "from": "system@example.com", "fromName": "", "secret": null });
+
+  for (method, path, body) in [
+    (Method::GET, "/mail", None),
+    (Method::PUT, "/mail", Some(set.clone())),
+    (Method::POST, "/mail/test", Some(json!({ "to": "a@example.com" }))),
+  ] {
+    let refused = ask(
+      &world.app,
+      method,
+      path,
+      body,
+      &[("owner-key", world.member.to_string()), ("owner-role", "administrator".into())],
+    )
+    .await;
+
+    assert_eq!(refused.status, StatusCode::FORBIDDEN, "{path}: {}", refused.body);
+  }
+
+  // A server bmo-mail does not offer the platform is refused.
+  let other = ask(
+    &world.app,
+    Method::PUT,
+    "/mail",
+    Some(json!({ "server": "server-z", "from": "system@example.com", "fromName": "", "secret": null })),
+    &by(world.boss),
+  )
+  .await;
+
+  assert_eq!(other.body["code"], json!("bad-mail"), "{}", other.body);
 
   let unset = ask(
     &world.app,

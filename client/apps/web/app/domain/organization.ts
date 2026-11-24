@@ -124,7 +124,10 @@ export const ORGANIZATION_TABS: readonly OrganizationTab[] = [
   { value: PERMISSIONS_TAB, label: "settings.label.permissions", icon: "i-material-symbols-admin-panel-settings-outline", opens: headReaderOpens, keys: ["user"], wide: false, load: () => import("~/components/OrganizationPermissions.vue") },
   // The supply tab stands for a reader who holds any part of the organisation's supply — its policy and credits, or
   // its plan alone — the administrator everywhere (docs/web.md, 「Organisation」, the supply tab).
-  { value: "supply", label: "supply.label.tab", icon: "i-material-symbols-bolt-outline", opens: supplyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationSupplyTab.vue"), links: { platform: () => import("~/components/OrganizationPlatformSupply.vue"), me: () => import("~/components/OrganizationPersonSupply.vue") } }
+  { value: "supply", label: "supply.label.tab", icon: "i-material-symbols-bolt-outline", opens: supplyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationSupplyTab.vue"), links: { platform: () => import("~/components/OrganizationPlatformSupply.vue"), me: () => import("~/components/OrganizationPersonSupply.vue") } },
+  // Whether the people under a node must hold a second factor: its heads and the administrator, and the platform's own
+  // link for the administrator (docs/web.md, 「Organisation」, the security tab).
+  { value: "security", label: "security.label.security_tab", icon: "i-material-symbols-shield-lock-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationSecurity.vue"), links: { platform: () => import("~/components/OrganizationPlatformSecurity.vue") } }
 ];
 
 // Where a section that once stood here as a tab stands now, by the key its tab had, so a link made before it moved

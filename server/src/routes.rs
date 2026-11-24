@@ -419,6 +419,11 @@ async fn password_route(
 
   crate::users::change_password(&service.db, user, &ask.current, &ask.next).await?;
 
+  // The same password again, as a check of the current one alone, ends nothing.
+  if ask.next == ask.current {
+    return Ok(StatusCode::NO_CONTENT);
+  }
+
   if headers.contains_key(bmo_web_client::SESSION_ID) {
     crate::security::account::renew(&service, &headers, &mut session, user).await?;
   } else {

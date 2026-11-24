@@ -3,6 +3,10 @@ import type { RouteLocationRaw } from "vue-router";
 // A login that ends while a tab holds it, and the road to the login screen and back (docs/web.md,
 // 「Access」).
 
+/** The pages that stand with no sign-in: a forgotten password asked and set by its link, and an email's link used
+ * (docs/web.md, 「Pages with no sign-in」). */
+export const NO_SIGN_IN_PAGES: readonly string[] = ["/forgot-password", "/reset-password", "/verify-email"];
+
 /** The login screen, carrying the address to return to and whether a login ended on the way. */
 export function loginRoute(from: string, ended: boolean): RouteLocationRaw {
   const query: Record<string, string> = {};

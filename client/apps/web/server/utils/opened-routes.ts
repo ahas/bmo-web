@@ -50,6 +50,23 @@ export const openedRoutes: readonly OpenedRoute[] = [
   { method: "POST", path: /^\/api\/auth\/(login|logout)$/, scope: "user" },
   { method: "GET", path: /^\/api\/auth\/me$/, scope: "user" },
   { method: "GET", path: /^\/api\/_auth\/session$/, scope: "user" },
+  // The second factor's code and the pages with no sign-in — a reset asked, a reset link read and used, an email's
+  // link used — which a signed-in login may open too (docs/web.md, 「Access」).
+  { method: "POST", path: /^\/api\/auth\/(?:second-factor|password-resets)$/, scope: "user" },
+  { method: "GET", path: /^\/api\/auth\/password-resets\/[^/]+$/, scope: "user" },
+  { method: "POST", path: /^\/api\/auth\/(?:password-resets|email-verifications)\/[^/]+$/, scope: "user" },
+  // One's own account's security: every signed-in login keeps their own (docs/web.md, 「Settings」, 계정's 보안).
+  { method: "GET", path: /^\/api\/account\/security$/, scope: "user" },
+  { method: "POST", path: /^\/api\/account\/(?:email-verification|second-factor|second-factor\/confirm|second-factor\/off|recovery-codes|devices\/others)$/, scope: "user" },
+  { method: "DELETE", path: /^\/api\/account\/devices\/\d+$/, scope: "user" },
+  // A person's account security read, their password and second factor reset, and whether a node asks a second factor:
+  // every signed-in login asks, and the account service lets the administrator and the person's heads alone
+  // (docs/accounts.md, 「Account security」).
+  { method: "GET", path: /^\/api\/organization\/users\/\d+\/security$/, scope: "user" },
+  { method: "POST", path: /^\/api\/organization\/users\/\d+\/password-reset$/, scope: "user" },
+  { method: "DELETE", path: /^\/api\/organization\/users\/\d+\/second-factor$/, scope: "user" },
+  { method: "GET", path: /^\/api\/organization\/security$/, scope: "user" },
+  { method: "PUT", path: /^\/api\/organization\/security$/, scope: "user" },
   { method: "DELETE", path: /^\/api\/_auth\/session$/, scope: "user" },
   { method: "GET", path: /^\/api\/_nuxt_icon\/[^/]+\.json$/, scope: "user" },
   { method: "GET", path: /^\/api\/console-bundles(?:\/unread)?$/, scope: "user" },

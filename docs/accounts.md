@@ -1422,7 +1422,7 @@ under its token; the console is the one caller, and a browser reaches none of th
 
 - **The platform sends mail of its own** — reset links, an email's verification, security notices — through
   bmo-mail, which keeps the mail servers as records many accounts choose from. The administrator sets the system mail
-  on 플랫폼 설정 (`docs/web.md`, 「메일」): one of bmo-mail's outgoing server records, the sender's address and name, and
+  on 플랫폼 설정 (`docs/web.md`, 「메일」): one of the outgoing server records bmo-mail keeps for the platform, the sender's address and name, and
   the name of a secret in the platform's space of the secret store (「The secret store」) of the kind `account-login`,
   whose `USERNAME` and `PASSWORD` the server is signed in with. It is kept in the service's `settings` under
   `mail.system`.
@@ -1444,9 +1444,11 @@ under its token; the console is the one caller, and a browser reaches none of th
   and the act stands.
 - **`GET /mail`** — the system mail as set, with whether it is set up, whether the secret it names stands, and the
   outgoing servers bmo-mail offers, an empty list and `mailService` false where bmo-mail is not named or does not
-  answer; the administrator's alone. **`PUT /mail`** writes it whole; no server leaves it not set up. **`POST
+  answer. **`PUT /mail`** writes it whole, a server bmo-mail does not offer refused 400 `bad-mail`; no server leaves it
+  not set up. **`POST
   /mail/test`** sends one test mail to the address named, in the administrator's language, and answers bmo-mail's
-  refusal where it refuses.
+  refusal where it refuses. All three are the platform administrator's alone, by sumida's word for the user `Owner-Key`
+  names: no unit's head and no member reaches them, whatever `Owner-Role` says.
 
 ### A verified email
 
@@ -1525,7 +1527,8 @@ under its token; the console is the one caller, and a browser reaches none of th
   the session check refuses it from then on. **`POST /users/{user}/devices/others`** ends every other one and answers
   a fresh session for this one, set on the answer, which the console's seal takes in place of the old.
 - **A password set ends every other session:** a change of one's own password ends every session but a fresh one
-  answered for the device that changed it, as above; a reset ends every one. Both stand on sumida's own mark of when
+  answered for the device that changed it, as above; a reset ends every one. The current password handed again as
+  the next, which the console sends to check it alone, ends nothing. Both stand on sumida's own mark of when
   an account's credentials were last reset, which refuses every session made before it.
 
 ### A password set again

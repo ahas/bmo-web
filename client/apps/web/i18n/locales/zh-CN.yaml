@@ -2827,6 +2827,7 @@ secrets:
     unreachable: 无法连接到账号服务。
 agents:
   action:
+    rest_end: "结束休息"
     sign_in_again: 重新登录
     open_sign_in: 打开登录页面
     sign_in_finish: 完成登录
@@ -2919,10 +2920,12 @@ agents:
     log_read_failed: 无法读取日志。请稍后重试。
     models_load_failed: 无法加载模型列表。
     no_such_agent: 找不到智能体。
+    notice_switches_read_failed: "无法加载通知设置。"
     pick_account: 请选择账号。
     provider_off: 此提供商已关闭。请选择自动或已开启的提供商。
     registry_read_failed: 无法加载注册模型。
     registry_value: 请发送注册模型的名称和模型。
+    rest_end_failed: "无法结束休息。"
     supervisor_add: 请发送主管的名称、显示名称、房间名称、提供商、模型和工作仓库。
     default_answerer_failed: 无法保存默认回复主管。
     supervisor_default_answerer: "{label} 是默认回复主管，无法删除。请先将其他主管设为默认回复主管，再删除。"
@@ -2970,6 +2973,12 @@ agents:
   label:
     agency: 代理中心
     account_kind_sign_in: 在此登录
+    notice_rest: "休息通知"
+    notice_rest_note: "在休息开始时和解除时发送通知。"
+    notice_restart: "重启通知"
+    notice_restart_note: "在服务停止时和恢复时发送通知。"
+    rest_limit: "用量上限"
+    rest_outage: "提供方故障"
     sign_in_code: 验证码
     account_chosen: 已选账号
     default_answerer: 默认回复主管
@@ -3233,6 +3242,9 @@ agents:
     stages_none: 没有指令阶段
     stages_unused: 未使用的阶段
   message:
+    rest_end_confirm: "要结束休息吗？"
+    rest_end_takes: "平台的 Claude 登录会立即重新应答，仍达上限的登录会在下次用量检查时再次休息。"
+    rest_still: "有登录再次达到上限，休息仍在继续。"
     sign_in_steps: 请打开登录页面，用此账号批准后，粘贴页面上显示的代码。
     account_delete_confirm: 要删除此账号吗？
     catalogue_delete_confirm: 要从列表中删除此模型文件吗？
@@ -3289,6 +3301,7 @@ agents:
     no_catalogue: 没有已注册的模型文件
     no_log: 没有记录的日志
     no_registrations: 没有已注册的模型
+    notice_switches_loading: "正在加载通知设置…"
     older_loading: 正在加载之前的行…
     registry_loading: 正在加载注册模型
     road_codex_missing: 本设备上没有 Codex 可执行文件，无法选择。
@@ -3339,6 +3352,7 @@ agents:
     deploy_flush_loading: 正在加载批量部署间隔…
     stages_loading: 正在加载指令阶段…
   title:
+    notices: "通知"
     sign_in: "登录 {name}"
     account_add: 添加 Claude 账号
     key_of: "{name} 密钥"
@@ -3389,6 +3403,8 @@ live:
     stop_target_wrong: 要停止的对象无效。
   label:
     agent_idle: 空闲
+    agent_resting: "休息中"
+    agent_resting_until: "休息中 · 至 {until}"
     answering: "回复中 · {rooms}"
     deadline_passed: 已过期限
     last_check_met: "上次检查 {ago}前 · 已满足"
@@ -3902,7 +3918,6 @@ job:
     not_built: 运行中的 bmo-job 不包含此操作。
     not_held: 该条目未暂缓。
     not_merged: 该条目未被合并。
-    not_restable: 非所有者添加的工作器无法休眠或唤醒。
     note_needs_number: 追加内容只能按编号删除。
     nothing_to_change: 没有要更改的内容。
     nothing_to_edit: 没有要编辑的指示或模型。

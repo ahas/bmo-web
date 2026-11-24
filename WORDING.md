@@ -139,6 +139,10 @@
 - what an agent is doing now → 상태, its column's name: an agent with nothing going → 유휴; a supervisor answering in
   rooms → 답변 중; a run of a role's agent → the pack's word for the source that asked it (Job, 협업, 요청 …)
   and what it works on. Never 쉬는 중, 대기 or 비어 있음 for an idle agent: 대기 is a run waiting in its role's line.
+- the whole deployment resting while the platform's Claude logins are at their limit or the service is down → 휴식:
+  an agent whose road it closes → `휴식 중 · {time}까지`, or 휴식 중 alone where it names no moment; its kinds → 사용량
+  한도, 공급자 장애; ending it by hand → 휴식 끝내기. The owner's chat told of a restart and of a rest → 재시작 알림, 휴식
+  알림. Never 쉬는 중, 휴면 or 잠자기.
 - a repository the agency runs jobs in → 저장소: 저장소, 저장소 추가. Never 리포지토리, 레포, 워커 for the place.
 - a supervisor's road, the one provider and model its turns go out on → 공급자 · 모델, its fields 공급자, 모델, 강도,
   생각 and 답변 상한; a session's compaction threshold → 압축 기준; keeping a prefix warm → 캐시 유지;

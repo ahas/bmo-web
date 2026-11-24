@@ -1,5 +1,10 @@
 # Translation of server/lang/ko/fixed-lines.yaml; that file says what each line is for.
-rest_begins: "{chat_agent} 今日は頭を使いすぎた… 上限が解除されるまでちょっと休んでくるね。"
+rest_begins:
+  until: "{chat_agent} 今日は頭を使いすぎた… {until}までちょっと休んでくるね。"
+  soon: "{chat_agent} 今日は頭を使いすぎた… ちょっと休んで、すぐ戻ってくるね。"
+  today: "{hour}:{minute}"
+  another_day: "{month}{day}日 {hour}:{minute}"
+  months: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"]
 chat_denied: "このルームはブロックされたよ。ここでの話はもう聞かないし、保存もしないね。"
 still_working: "まだ回答を準備しています。少々お待ちください。"
 supervisor_cut: "{name} の今回のターンを打ち切りました。{reason} 次の発言からは新しいセッションで答えます。"

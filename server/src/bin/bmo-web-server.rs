@@ -143,7 +143,8 @@ async fn stopped() {
 }
 
 /// The settings a deployment must set, without which the service does not stand: the token every caller presents,
-/// and the chat agent's name a fixed line says it as. The token answers where both stand.
+/// and the chat agent's name a fixed line says it as; and a time zone, where one is set, that reads as one. The token
+/// answers where they stand.
 fn standing(settings: &Settings) -> Result<String, String> {
   let token = settings
     .server
@@ -155,6 +156,8 @@ fn standing(settings: &Settings) -> Result<String, String> {
   if settings.names.chat_agent.trim().is_empty() {
     return Err("the server does not stand without the chat agent's name, `names.chat_agent`".to_owned());
   }
+
+  settings.time.zone()?;
 
   Ok(token)
 }
@@ -185,7 +188,7 @@ async fn serve(settings: Settings) -> Result<(), String> {
     Some(nodes) => service.with_nodes(nodes),
     None => service,
   };
-  let service = service.calling_agency(agency.clone());
+  let service = service.calling_agency(agency.clone()).in_zone(settings.time.zone()?);
   // The membership domain's expiry, renewal and notices, run hourly on this service's own state and its
   // own advisory lock, as sumida's membership guide asks, and every applied plan whose period ended subscribed
   // again after them (docs/accounts.md, 「Supply」, 「An organisation's plans」).

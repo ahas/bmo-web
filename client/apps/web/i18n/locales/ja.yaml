@@ -2827,6 +2827,7 @@ secrets:
     unreachable: アカウントサービスに接続できませんでした。
 agents:
   action:
+    rest_end: "休憩を終える"
     sign_in_again: 再ログイン
     open_sign_in: ログインページを開く
     sign_in_finish: ログインを完了
@@ -2919,10 +2920,12 @@ agents:
     log_read_failed: ログを読み取れませんでした。しばらくしてからもう一度お試しください。
     models_load_failed: モデルの一覧を読み込めませんでした。
     no_such_agent: エージェントが見つかりません。
+    notice_switches_read_failed: "通知設定を読み込めませんでした。"
     pick_account: アカウントを選択してください。
     provider_off: オフのプロバイダーです。自動か、オンのプロバイダーを選択してください。
     registry_read_failed: 登録モデルを読み込めませんでした。
     registry_value: 登録モデルの名前とモデルを送ってください。
+    rest_end_failed: "休憩を終えられませんでした。"
     supervisor_add: スーパーバイザーの名前、表示名、ルーム名、プロバイダー、モデル、作業リポジトリを送ってください。
     default_answerer_failed: デフォルト応答スーパーバイザーを保存できませんでした。
     supervisor_default_answerer: "{label} はデフォルト応答スーパーバイザーのため削除できません。別のスーパーバイザーをデフォルト応答スーパーバイザーにしてから削除してください。"
@@ -2970,6 +2973,12 @@ agents:
   label:
     agency: エージェンシー
     account_kind_sign_in: ここでログイン
+    notice_rest: "休憩通知"
+    notice_rest_note: "休憩が始まるときと解除されたときに知らせます。"
+    notice_restart: "再起動通知"
+    notice_restart_note: "サービスが停止するときと戻ったときに知らせます。"
+    rest_limit: "使用量上限"
+    rest_outage: "プロバイダー障害"
     sign_in_code: 認証コード
     account_chosen: 選択したアカウント
     default_answerer: デフォルト応答スーパーバイザー
@@ -3233,6 +3242,9 @@ agents:
     stages_none: 指示ステージなし
     stages_unused: 使用していないステージ
   message:
+    rest_end_confirm: "休憩を終えますか？"
+    rest_end_takes: "プラットフォームの Claude ログインはすぐにまた応答し、まだ上限に達しているログインは次の使用量確認でまた休憩します。"
+    rest_still: "上限に再び達したログインがあるため、休憩が続きます。"
     sign_in_steps: ログインページを開いてこのアカウントで承認し、ページに表示されたコードを貼り付けてください。
     account_delete_confirm: このアカウントを削除しますか？
     catalogue_delete_confirm: このモデルファイルを一覧から削除しますか？
@@ -3289,6 +3301,7 @@ agents:
     no_catalogue: 登録されたモデルファイルなし
     no_log: 記録されたログなし
     no_registrations: 登録されたモデルなし
+    notice_switches_loading: "通知設定を読み込み中…"
     older_loading: 前の行を読み込み中…
     registry_loading: 登録モデルを読み込み中
     road_codex_missing: このデバイスに Codex の実行ファイルがないため選択できません。
@@ -3339,6 +3352,7 @@ agents:
     deploy_flush_loading: 一括デプロイの間隔を読み込み中…
     stages_loading: 指示ステージを読み込み中…
   title:
+    notices: "通知"
     sign_in: "{name} にログイン"
     account_add: Claude アカウントを追加
     key_of: "{name} のキー"
@@ -3389,6 +3403,8 @@ live:
     stop_target_wrong: 停止する対象が正しくありません。
   label:
     agent_idle: 待機中
+    agent_resting: "休憩中"
+    agent_resting_until: "休憩中 · {until}まで"
     answering: "回答中 · {rooms}"
     deadline_passed: 期限切れ
     last_check_met: "最終確認 {ago}前 · 達成"
@@ -3902,7 +3918,6 @@ job:
     not_built: 実行中の bmo-job にはこの操作が含まれていません。
     not_held: 保留されていない項目です。
     not_merged: 統合されていない項目です。
-    not_restable: オーナーが追加していないワーカーは休止も再開もできません。
     note_needs_number: 追記は番号でのみ削除できます。
     nothing_to_change: 変更するものがありません。
     nothing_to_edit: 編集する指示またはモデルがありません。

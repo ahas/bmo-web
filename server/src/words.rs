@@ -6,6 +6,8 @@
 use std::collections::HashMap;
 
 use axum::http::StatusCode;
+use chrono::{DateTime, Datelike, TimeZone, Timelike, Utc};
+use chrono_tz::Tz;
 use sea_orm::ConnectionTrait;
 use serde::Deserialize;
 use serde_json::{Map, Value};
@@ -26,8 +28,11 @@ use crate::{Refusal, one};
 #[derive(Debug, Deserialize)]
 #[serde(tag = "code", rename_all = "kebab-case")]
 pub enum FixedLine {
-  /// A usage limit begins; the line names no time, so the `until` it carries is not read.
-  RestBegins {},
+  /// A usage limit begins, kept until `until`, epoch seconds, where the line names a moment.
+  RestBegins {
+    #[serde(default)]
+    until: Option<i64>,
+  },
   ProviderDown,
   Compacting,
   CompactFailed,
@@ -270,6 +275,48 @@ pub enum DrawResult {
   Shuffle { order: Vec<String> },
 }
 
+/// When a line is rendered, and the zone a moment it names is told in: the owner's.
+#[derive(Clone, Copy, Debug)]
+pub struct Clock {
+  pub now: DateTime<Utc>,
+  pub zone: Tz,
+}
+
+// What a room is told as a usage limit begins, as the chat agent: until the moment kept, told in the owner's zone as
+// a time where it falls on the day the line is said and as a day and a time otherwise; that it comes back soon where
+// no moment is kept, or the moment does not read as one.
+fn rest_begins(until: Option<i64>, chat_agent: &str, clock: Clock) -> String {
+  let words = &FIXED_LINES.rest_begins;
+  let agent = ("chat_agent", chat_agent);
+  let Some(until) = until.and_then(|until| clock.zone.timestamp_opt(until, 0).single()) else {
+    return fill_marks(&words.soon, &[agent]);
+  };
+  let today = clock.now.with_timezone(&clock.zone).date_naive() == until.date_naive();
+  let hour = format!("{:02}", until.hour());
+  let minute = format!("{:02}", until.minute());
+  let moment = if today {
+    fill_marks(&words.today, &[("hour", &hour), ("minute", &minute)])
+  } else {
+    let month = words
+      .months
+      .get(until.month0() as usize)
+      .cloned()
+      .unwrap_or_else(|| until.month().to_string());
+
+    fill_marks(
+      &words.another_day,
+      &[
+        ("month", &month),
+        ("day", &until.day().to_string()),
+        ("hour", &hour),
+        ("minute", &minute),
+      ],
+    )
+  };
+
+  fill_marks(&words.until, &[agent, ("until", &moment)])
+}
+
 /// The sentence a render request asks for: its `language`, a language tag the pack holds a folder for by its
 /// primary subtag, then its code with the fields beside it. A language the pack does not have and a code it holds
 /// no sentence for are refused 404; a request that does not read as its code's shape, 400.
@@ -277,6 +324,7 @@ pub async fn rendered<C: ConnectionTrait>(
   db: &C,
   mut asked: Map<String, Value>,
   names: &Names,
+  zone: Tz,
 ) -> Result<String, Refusal> {
   let language = match asked.remove("language") {
     Some(Value::String(language)) => language,
@@ -308,7 +356,12 @@ pub async fn rendered<C: ConnectionTrait>(
 
   let accounts = shown_names(db, &line.accounts()).await?;
 
-  speaking_now(language, || line.text(names, &accounts)).ok_or_else(|| {
+  let clock = Clock {
+    now: Utc::now(),
+    zone,
+  };
+
+  speaking_now(language, || line.text(names, &accounts, clock)).ok_or_else(|| {
     Refusal::new(StatusCode::NOT_FOUND, format!("the pack holds no line for `{code}`"))
       .coded("unknown-code")
   })
@@ -354,13 +407,13 @@ impl FixedLine {
   }
 
   /// The line's sentence, or none for a code the pack holds no sentence for; an account it names stands as its
-  /// shown name in `accounts`.
-  pub fn text(&self, names: &Names, accounts: &HashMap<i64, String>) -> Option<String> {
+  /// shown name in `accounts`, and a moment it names is told against `clock`.
+  pub fn text(&self, names: &Names, accounts: &HashMap<i64, String>, clock: Clock) -> Option<String> {
     let health = &CHAT_HEALTH_WORDS;
     let agent_name = [("chat_agent", names.chat_agent.as_str())];
 
     Some(match self {
-      Self::RestBegins {} => fill_marks(&FIXED_LINES.rest_begins, &agent_name),
+      Self::RestBegins { until } => rest_begins(*until, &names.chat_agent, clock),
       Self::ProviderDown => fill_marks(&health.rest.outage, &agent_name),
       Self::Compacting => health.fold.going.clone(),
       Self::CompactFailed => health.fold.failed.clone(),

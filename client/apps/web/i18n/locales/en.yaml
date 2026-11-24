@@ -2797,6 +2797,7 @@ secrets:
     unreachable: "Couldn't reach the account service."
 agents:
   action:
+    rest_end: "End rest"
     sign_in_again: Sign in again
     open_sign_in: Open sign-in page
     sign_in_finish: Finish sign-in
@@ -2889,10 +2890,12 @@ agents:
     log_read_failed: "Couldn't read the log. Try again in a moment."
     models_load_failed: "Couldn't load the model list."
     no_such_agent: Agent not found.
+    notice_switches_read_failed: "Couldn't load the notice settings."
     pick_account: Choose an account.
     provider_off: "This provider is off. Choose Auto or a provider that's on."
     registry_read_failed: "Couldn't load registered models."
     registry_value: "Send the registered model's name and model."
+    rest_end_failed: "Couldn't end the rest."
     supervisor_add: "Send the supervisor's name, display name, room name, provider, model and work repository."
     default_answerer_failed: "Couldn't save the default supervisor."
     supervisor_default_answerer: "{label} is the default supervisor and can't be deleted. Choose another supervisor as the default first, then delete it."
@@ -2940,6 +2943,12 @@ agents:
   label:
     agency: Agency
     account_kind_sign_in: Sign in here
+    notice_rest: "Rest notices"
+    notice_rest_note: "Tells when a rest begins and when it lifts."
+    notice_restart: "Restart notices"
+    notice_restart_note: "Tells when the service goes down and when it is back."
+    rest_limit: "Usage limit"
+    rest_outage: "Provider outage"
     sign_in_code: Authorization code
     account_chosen: Selected account
     default_answerer: Default supervisor
@@ -3203,6 +3212,9 @@ agents:
     stages_none: No instruction stages
     stages_unused: Unused stages
   message:
+    rest_end_confirm: "End the rest?"
+    rest_end_takes: "The platform's Claude logins answer again at once, and a login still at its limit rests again at the next usage check."
+    rest_still: "A login reads full again, so the rest goes on."
     sign_in_steps: "Open the sign-in page, approve with this account, then paste the code shown on the page."
     account_delete_confirm: Delete this account?
     catalogue_delete_confirm: Remove this model file from the list?
@@ -3257,6 +3269,7 @@ agents:
     no_catalogue: No registered model files
     no_log: No log recorded
     no_registrations: No registered models
+    notice_switches_loading: "Loading notice settings…"
     older_loading: Loading earlier lines…
     registry_loading: Loading registered models
     road_codex_missing: "Unavailable because the Codex executable isn't on this device."
@@ -3307,6 +3320,7 @@ agents:
     deploy_flush_loading: Loading batch deploy interval…
     stages_loading: Loading instruction stages…
   title:
+    notices: "Notices"
     sign_in: "Sign in to {name}"
     account_add: Add Claude account
     key_of: "{name} key"
@@ -3357,6 +3371,8 @@ live:
     stop_target_wrong: "That isn't a valid run to stop."
   label:
     agent_idle: Idle
+    agent_resting: "Resting"
+    agent_resting_until: "Resting · until {until}"
     answering: "Answering · {rooms}"
     deadline_passed: Past deadline
     last_check_met: "Last checked {ago} ago · met"
@@ -3868,7 +3884,6 @@ job:
     not_built: "The running bmo-job doesn't include this action."
     not_held: "The item isn't on hold."
     not_merged: "The item isn't merged."
-    not_restable: "Workers the owner didn't add can't be rested or woken."
     note_needs_number: A note can only be deleted by its number.
     nothing_to_change: "There's nothing to change."
     nothing_to_edit: "There's no instruction or model to edit."

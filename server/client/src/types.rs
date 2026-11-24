@@ -1178,7 +1178,8 @@ pub struct Holdings {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(tag = "code", rename_all = "kebab-case")]
 pub enum FixedLineAsk {
-  /// A usage limit begins; the `until` it carries is not read.
+  /// A usage limit begins: the moment the rest is kept to, epoch seconds, which the line tells in the owner's time
+  /// zone, or none for a rest kept to no known moment.
   RestBegins {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     until: Option<i64>,

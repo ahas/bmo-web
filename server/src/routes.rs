@@ -80,6 +80,7 @@ pub async fn stand(
     nodes: None,
     pairings: Arc::default(),
     agency: Arc::new(crate::agency::NoAgency),
+    zone: chrono_tz::UTC,
   })
 }
 
@@ -562,6 +563,6 @@ async fn render_route(
   Body(asked): Body<Map<String, Value>>,
 ) -> Answer<WireRendered> {
   Ok(Json(WireRendered {
-    text: words::rendered(&service.db, asked, &service.names).await?,
+    text: words::rendered(&service.db, asked, &service.names, service.zone).await?,
   }))
 }

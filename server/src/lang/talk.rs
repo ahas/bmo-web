@@ -2,17 +2,6 @@
 
 use serde::Deserialize;
 
-/// Why a turn came back with nothing.
-#[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct Unanswered {
-  pub resting: String,
-  pub limit: String,
-  pub outage: String,
-  pub silent: String,
-  pub other: String,
-}
-
 /// The code review's refusals of a row filed out of it.
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -34,7 +23,6 @@ pub struct TranslationWords {
 #[serde(deny_unknown_fields)]
 pub struct TalkWords {
   pub busy: String,
-  pub unanswered: Unanswered,
   pub code_review: CodeReviewWords,
   pub seek_unanswered: String,
   pub translation: TranslationWords,

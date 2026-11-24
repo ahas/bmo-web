@@ -2790,7 +2790,7 @@ archive and this week's tokens remain. That is all that can actually be known th
 - **Asking about a passage.** Dragging to select text in any box pops up 「〈이름〉에게 질문」 beside the selection.
   Pressing opens the talk drawer, and the selected passage attaches as a quote above the words box. The drawer
   stands the talk about that document in order, and each of the owner's words stands with the passage of that time as
-  a quote. Pressing the quote goes to that passage's heading. Answers come as notices like item talk — a sent
+  a quote. Pressing the quote goes to that passage's heading. An answer comes as a notice — a sent
   word stands at once, while the chat agent answers it stands as answering, and when the answer ends the drawer rereads.
   A word unanswered because of a 휴식 상태 is marked so. The drawer opens without a passage too, to ask about
   the whole document. It stands at the side on a wide screen and rises from the bottom on a phone, and back
@@ -3548,6 +3548,26 @@ alone (「Access」); another account's agents are reached from 조직's 사용�
     read from the receiver's live picture the console's stream already holds: the rooms a turn of it runs in now,
     a turn naming no speaker being the default answerer's. Until the stream has handed that picture the cell holds a
     dash, since a record not yet told of any turn says nothing of whether one runs.
+  - **While the deployment rests, an agent its rest closes reads 휴식 중 in place of 유휴 or the dash.** The rest is the whole
+    deployment resting while the platform's own Claude logins are at their usage limit or the service is down (the
+    agency's `docs/api.md`, 「accounts, rest and usage」). The console's `GET /api/rest` reads the agency's `GET
+    /rest` and, only while it rests, which agents of the reader's lists it closes: a supervisor whose
+    `GET /supervisors/{supervisorName}/road` answers that it takes no turn now, and a role's agent whose own road
+    is on Claude Code and filed under no account, the platform's own supply; a role's agent that follows the
+    supervisor asking it names no road of its own and is not marked. The tab reads it every three seconds while it
+    stands and the browser tab is seen, the cadence its role slots are read at, since no stream the console holds
+    carries the rest's beginning or its end; a read that fails keeps what the last one answered. The cell then
+    stands its own mark, a recharging battery in the warning tone, and `휴식 중 · {until}까지`, the moment the rest is
+    kept to as the clock alone on the day it falls and with its date on another, or 휴식 중 alone where the rest
+    names no moment. An agent at work keeps its working line.
+  - **The rest stands once more as a band at the head of the tab,** over the default answerer: the same mark and
+    words with the rest's kind after them, 사용량 한도 or 공급자 장애, standing only while it rests. For the platform
+    administrator it carries **휴식 끝내기**, asked first in the question dialog (「휴식을 끝낼까요?」, saying the
+    platform's logins answer again at once and a login still at its limit rests again at its next usage check); on
+    confirming, the console's `DELETE /api/rest`, the administrator's alone, ends it through the agency's
+    `DELETE /rest`, and the band and the cells stand as the agency then answers. Where the agency still rests after
+    the end, a login read full again, a notice says the rest goes on; a refusal is said in a notice. The receiver
+    notices the end on its own clock and tells the rooms; the console calls the route alone.
   - **An agent with nothing going reads 유휴**, muted, under a resting mark. An agent at work carries the spinning
     mark and one line: for a role's agent, the source that asked its run by the pack's word — Job, 협업, 요청,
     검색 and the rest — then what it works on, the item's number as `#n` for a job of an item, else the line naming
@@ -6819,10 +6839,10 @@ Four bounds keep it from growing forever.
       refused or failed, or one still too busy after its waits. A reading the translator could not render every part
       of says that some parts stand in the original.
   - **Right: 의논 and 관리** — the talk about the item and what the owner does to it.
-    - **의논** is the talk with the chat agent about the item. The talk takes the tab's whole height and the words box, the room's
-      own box, attaches to the tab's bottom edge — with no turns yet, while they load and when they fail alike, the empty
-      place above it takes the height; the talk drops to its end when a new word comes. The turns scroll on their own,
-      and the column around them does not scroll.
+    - **의논** is the place for a talk with the chat agent about the item (「Talking about an item」 below). The talk takes the tab's
+      whole height and the words box, the room's own box, attaches to the tab's bottom edge — with no turns yet, while they load
+      and when they fail alike, the empty place above it takes the height; the talk drops to its end when a new word comes. The
+      turns scroll on their own, and the column around them does not scroll.
     - **관리** is approval/order/hold/stop/notices/discard. On an approval-awaiting line their first act is approve or discard, so those
       buttons are at the top, under the item's assignment alone where the dialog is too narrow for two columns and the
       form block carries only its approval line. It carries nothing about an unfinished-item, which is written about where it is read. A
@@ -6881,7 +6901,7 @@ Four bounds keep it from growing forever.
 - What changes by width is how the tabs stand, and what stands is the same. In a sheet and a modal below 1024px the six
   tabs stand as one row over one scroll. From 1024px the modal uses nearly the whole window and the two sets stand as two
   columns, each with its own tab row and its own scroll, so a long instruction is read on the left while the talk stays
-  in place on the right. When the chat agent rewrites the draft in talk, the work order on the left is seen changing beside it.
+  in place on the right.
 - The TODO is bmo-job's, read through its listings and its readings of an item (`docs/boundary.md`, 「Calls the console
   makes」), and here is where the owner handles those lines. Three groups stand top to bottom in this order.
   - **결재 대기** — the items in the `draft` state, requests another room's chat agent received from a room's person and filed,
@@ -7329,46 +7349,17 @@ Four bounds keep it from growing forever.
   has been handed to a job, and also where the word itself carries a handing time of its own. The same road is a shell's too, its
   answer saying the same in the same case, and a word already taken back is not taken back a second time.
 - The word-appending box stands right above the talk place because both are where they write on an open line, and above because a word
-  written here attaches to the item as their words as is, while the talk is a conversation with the chat agent about the item. It stands off the words
+  written here attaches to the item as their words as is, while the talk is the place for a conversation with the chat agent about the item. It stands off the words
   above it by the gap this modal keeps between its own sections rather than the one it keeps between two words said, or the place one more
   word is written into reads as one more word already said. The talk's own box stands off its turns the same way, for the same reason.
-- **Talking about an item.** Opening a line opens that item's talk place too. The owner speaks here about the item — and about what is attached
-  to it — and the chat agent answers. What it was told to do, what a job did, what it left, how a question was decided, whether it is still worth
-  doing, and the like. And while an item is a draft, **the draft is kept edited here** as it is talked over. Exchanged words stay bound to
-  that item, so reopening later reads that talk as is.
-- **The chat agent itself answers.** Words said here enter the chat agent's conversation session — the very session receiving the owner's private chat — as one turn
-  of the private chat. So it knows the talk exchanged about that item in the private chat and holds the private chat's rights and tools.
-  But that turn is no room's turn. The answer goes to no Telegram room and returns only here, the output gate does not read it, and no
-  room's window, read position or typing indicator moves. One session takes every room's turns in one line, so if the chat agent is answering in a
-  room the talk turn runs after that turn ends. During a 휴식 상태 no turn is taken, and those words are marked answered-not because of the
-  휴식 상태.
-- A turn does not carry the item's record whole. The chat agent reads the item directly with its tools — to read the current shape after an earlier
-  turn rewrote it. What a turn carries is which item (number, title, state), this place's rules, the last few turns of talk, the words just
-  said. The last few turns are re-carried because a session forgets earlier turns when folded or newly opened, and the whole talk stays in
-  the table.
-- **The chat agent rewrites the item.** For an unfinished item with no running job it rewrites the title and the three parts the chat agent wrote on intake —
-  what the work is, what to do, conclusion (the chat agent's judgement for a line it filed itself) — and if the work order is still a draft its intent
-  and instruction too (`--edit`). The exchanged-conversation original, instruction original and source unfinished-items are transcribed
-  words so are not edited. Editing the conclusion or to-do changes the work-order-draft field still saying the same thing, and a field
-  written separately in the console is left. When the item changes the panel re-reads at once, so the body beside the talk shows what it now
-  says. A finished item is a record of what was done so is not edited, and a running item runs on the words that job got so is not edited —
-  adding a condition to such an item is done by an appended word when the owner asks. Approval, hold, discard and order are still their buttons, and
-  the chat agent does them only when they tell it in talk.
-- **The answer comes as a notice.** One turn can take minutes so the console does not hold the answer waiting. A sent word is written and
-  stands the moment the bot receives it. While the chat agent writes an answer it stands so, and when the turn ends the bot flows a notice that that
-  item's talk moved and the panel re-reads. A turn with no answer keeps only their word and writes nothing after — that word was really said,
-  and there being no answer really happened. Why it did not come (휴식 상태, usage limit, API failure, just did not come) the bot holds and
-  stands below that word. Sending again while answering an earlier word in one item is refused — a session that has not answered the first
-  word at all would read the second.
-- **The queue runs while talking too.** A talk turn is one turn of the chat agent's session, not a job. It takes no job lock, writes no job line, and
-  is not caught by the "running job" that holds a checkout. So while auto-progress stands, the chat agent is told of a free worker and launches
-  its next item even while the owner talks over one item.
-- **It opens the same on an item with an unfinished-item too.** The talk place does not care about a line's state so it opens on a finished
-  item and one with an unfinished-item too. The item the chat agent reads stands the **unfinished-item original whole** — an unfinished-item is a
-  divider-less prose paragraph so several branches often mix in one paragraph, and pre-cutting the branches invents a structure not in the
-  text. Reading the branches is what the talk does, so the paragraph is left and cutting is the reader's. An already-resolved unfinished-item
-  stands, below the original, the reason it is no longer unfinished, so the chat agent does not speak of it as still remaining work.
-- **What can be done after talking is right there.** Having talked over an unfinished-item, the owner has three acts — mark that unfinished-item
+- **Talking about an item.** Opening a line opens that item's talk place, 의논, on every item whatever its state. No unit keeps
+  the talk of an item or answers one: bmo-job's fixed API keeps none, and the receiver's talks answer one turn and keep
+  none (`docs/boundary.md`, 「Gaps the console meets」). So the talk reads as having no turns, 대화 없음, and nothing in it is
+  ever answering. A word sent from its box is refused before anything is written, the pack's 「항목에 대한 대화를 아직 남길 수
+  없습니다.」 standing under the box in the error tone, and the words stay in the box to send again; an empty box sends
+  nothing, and a word past the talk's length is refused by its own sentence. The chat agent rewrites no item from here, and
+  approval, hold, discard and order stay with their buttons on 관리.
+- **What can be done with an unfinished-item is right there.** Over an unfinished-item the owner has three acts — mark that unfinished-item
   resolved, stand a new item from it, or leave it. Resolving stands as a button in the unfinished-item cell, and standing a new item is
   **항목 만들기** in the dialog's head, which opens its form in that same cell under the words. Where the note numbers
   its strands, the form's **미결 건** chooser names each by its number and its first words, and he picks the ones the new
@@ -7403,9 +7394,6 @@ Four bounds keep it from growing forever.
   block, as above; the new line's `from-todo` label names each strand picked as `<item>:<strand>` and a note with no
   strands by its item alone, and each of those notes resolves on its own once the lines raised from it are done and
   take up every strand (「미결 해소」).
-- **The talk knows lines already stood.** The item the chat agent reads stands, below the unfinished-item, the lines already stood from it with their
-  number, title and whether finished. Without it, it would say to stand a branch already a line again — the unfinished-item paragraph does not
-  record what has already been stood. A link is a table fact so it is not read from prose but read and carried in.
 - **After standing, go straight to that line.** If the guidance after standing said only the number, that line would have to be found in the
   awaiting-approval group. The message pill names the new line, and pressing it goes to the very address a notification uses to open an item.
   Changing the address opens that line, so it opens even pressed with the console already open. That pill is news of a line the reader has not
@@ -9018,7 +9006,8 @@ so a reader sees and does what their own account may alone, and the agency's wor
 ### Administration
 
 플랫폼 설정 is the administrator's screen of what is set for the platform itself: the providers and the Claude accounts
-every run goes out on, how often the agency puts every waiting commit live, the kinds every person's secret form
+every run goes out on, how often the agency puts every waiting commit live, which operating notices the owner's
+private chat is told, the kinds every person's secret form
 asks in, and the plans the platform sells and the credits they and the platform's supply run on. The apps every
 company is offered, and their recall, are set on 조직's 앱·도구 with 플랫폼 전체 chosen (「Organisation」, 「앱·도구」). No
 member opens it.
@@ -9122,6 +9111,13 @@ member opens it.
   stands a skeleton row, and a failed read stands its reason with 새로고침 under the heading. The console's
   `GET`/`PUT /api/deploy-flush-minutes`, the administrator's alone, read the minutes and change them, `minutes` a
   number or null; a number that is no whole number is the agency's to refuse.
+- **알림** — the owner's private chat's two notice switches, the receiver's (its `docs/api.md`, 「Notices」), one row
+  each with its switch: 재시작 알림, the going-down line and the notice the service is back, and 휴식 알림, the line
+  a rest begins with and the notice of its lifting. Each is on until it is switched off, is set as it is pressed
+  and stands as the receiver answers; one the receiver refused springs back with the refusal under the group. While
+  they are first read the group stands a skeleton row, and a failed read stands its reason with 새로고침. The
+  console's `GET /api/notice-switches` and `PUT /api/notice-switches/{kind}`, `kind` `restart` or `rest` and the body
+  `on`, the administrator's alone, read both and set one, answering both.
 - Every change here takes effect as it is made, as everything on this screen does.
 
 #### 비밀 종류
@@ -10686,7 +10682,7 @@ journalctl --user -u <unit> -f
   instruction are still the item's own words, those two cells do not stand and only a line saying so and 「따로 작성」 stand — the same
   text already stands in the 지시 group right above, so standing them as cells makes two copies on one screen. Pressing 따로 적기 opens
   the cell holding that text, and a draft once written separately always stands as a cell thereafter. The builder model is what the
-  item does not say so always stands. A cell nobody typed follows a draft edited elsewhere — the chat agent's edit in item talk — as read, and a
+  item does not say so always stands. A cell nobody typed follows a draft edited elsewhere — the chat agent's edit through bmo-job — as read, and a
   cell someone typed keeps its text until saved or left. Automatic, or a model of a provider whose program carries the worker line, can be chosen — the providers as the
   agency's `GET /providers` lists them, in its order and by the pack's word, a provider turned off standing disabled — and
   after progress the steps of the order are read as below. A task done in one go stands no round — every task runs once so that

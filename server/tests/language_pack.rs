@@ -59,7 +59,7 @@ fn every_part_reads_as_its_type() {
   assert!(!tool_probe::TOOL_PROBE.columns.line.is_empty());
   assert!(!browse::BROWSE.run_title.is_empty());
   assert!(!draws::DRAWS.line.head.is_empty());
-  assert!(fixed_lines::FIXED_LINES.rest_begins.contains("{chat_agent}"));
+  assert!(fixed_lines::FIXED_LINES.rest_begins.until.contains("{until}"));
   assert!(!particles::PARTICLES.subject.unknown.is_empty());
   assert!(search::SEARCH.reading.untitled.contains("{place}"));
   assert!(!secret_kinds::SECRET_KINDS.kinds.is_empty());
@@ -75,7 +75,7 @@ fn every_part_reads_as_its_type() {
   assert!(!gate_eval::GATE_EVAL.status.head.is_empty());
   assert!(!memory_verbs::MEMORY_VERBS.usage.is_empty());
   assert!(!run_stop::RUN_STOP.done.asked.is_empty());
-  assert!(!status_line::STATUS_LINE.resting.is_empty());
+  assert!(!status_line::STATUS_LINE.person.is_empty());
   assert!(!run_stop::RUNNING_REPORT.kinds.is_empty());
   assert!(!models::MODEL_WORDS.listing.defaults.is_empty());
   assert!(!node_land::NODE_LAND.pending.is_empty());
@@ -230,7 +230,11 @@ fn every_part_the_server_reads_reads_in_every_language() {
   for language in Language::ALL {
     assert!(!chat_health::CHAT_HEALTH_WORDS.in_language(language).account.line.is_empty());
     assert!(!draws::DRAWS.in_language(language).line.head.is_empty());
-    assert!(fixed_lines::FIXED_LINES.in_language(language).rest_begins.contains("{chat_agent}"));
+    let rest_begins = &fixed_lines::FIXED_LINES.in_language(language).rest_begins;
+
+    assert!(rest_begins.until.contains("{chat_agent}") && rest_begins.until.contains("{until}"));
+    assert!(rest_begins.soon.contains("{chat_agent}"));
+    assert_eq!(rest_begins.months.len(), 12);
     assert!(job_titles::JOB_TITLES.in_language(language).both.contains("{rank}"));
     let _ = &particles::PARTICLES.in_language(language).subject;
     assert!(!roads::ROAD_WORDS.in_language(language).telegram.kinds.photo.is_empty());

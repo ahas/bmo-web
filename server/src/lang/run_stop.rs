@@ -239,7 +239,7 @@ pub struct Deployment {
   pub backlog_count: String,
 }
 
-/// The four switches, each by its label and its state.
+/// The three switches, each by its label and its state.
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Switches {
@@ -248,11 +248,6 @@ pub struct Switches {
   pub queue_on: String,
   pub hold: String,
   pub hold_none: String,
-  pub rest: String,
-  pub rest_none: String,
-  pub rest_on: String,
-  pub rest_limit: String,
-  pub rest_outage: String,
   pub keepalive: String,
   pub keepalive_stopped: String,
   pub keepalive_on: String,

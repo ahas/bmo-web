@@ -43,6 +43,7 @@
           :known="agentRuns != null"
           :now="now * 1000"
           :stopping="runsOf(row.original.name).some((run) => run.stop !== null && stops.isStopping(run.stop))"
+          :rest="restMarkOf($t, props.rest, row.original.name, now)"
           @open="(at: number) => openLog(row.original, at)"
         />
       </template>
@@ -127,19 +128,22 @@ import { runDoing, runsOfAgent, STATE_CEILING } from "~/domain/agent-state";
 import { defaultThreshold, fractionOf, percentOf, roadText, sessionsText, thresholdText, useProviders } from "~/domain/axes";
 import { useConfirm } from "~/domain/confirm";
 import { usePolling } from "~/domain/polling";
+import { restMarkOf } from "~/domain/rest";
 import { useRoomList } from "~/domain/room-list";
 import { CELL_BUTTON, CELL_TEXT } from "~/domain/settings-cells";
 import { stopKey, useStops } from "~/domain/stopping";
 
 import type { AgentRun } from "#shared/agent-runs";
 import type { RoleAgentView, RoleSessions, RolesView } from "#shared/axes";
+import type { RestView } from "#shared/rest";
 import type { DropdownMenuItem } from "@nuxt/ui";
 import type { AgentDoing } from "~/domain/agent-state";
 import type { LogPlace } from "~/domain/log";
 import type { CellChoice } from "~/domain/settings-cells";
 import type { SettingsColumn } from "~/domain/settings-columns";
 
-const props = withDefaults(defineProps<{ query?: string; readonly?: boolean }>(), { query: "", readonly: false });
+// `rest` is the deployment's rest as the supervisors' table above reads it, none until it is read.
+const props = withDefaults(defineProps<{ query?: string; readonly?: boolean; rest?: RestView | null }>(), { query: "", readonly: false, rest: null });
 const { t } = useI18n();
 const { data: providers } = useProviders();
 const askFirst = useConfirm();

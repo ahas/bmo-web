@@ -25,3 +25,8 @@ dir = "~/.local/share/bmo/data/env"
 # The names the language pack's lines are filled with: `chat_agent`, the name the chat agent goes by in a room,
 # without which the server does not stand; a deployment sets it.
 [names]
+
+# The owner's time zone, an IANA name, which a fixed line naming a moment tells it in: the zone the console shows
+# every time in.
+[time]
+zone = "Asia/Seoul"

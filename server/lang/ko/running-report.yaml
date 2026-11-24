@@ -156,7 +156,7 @@ hold:
   waiting: "기다리는 Job {count}개: {jobs}"
   passing: " · 기다리지 않는 Job {count}개: {jobs}"
 
-# 「[스위치]」: the four switches, each by its label and its state.
+# 「[스위치]」: the three switches, each by its label and its state.
 switches:
   queue: "자동 진행: {state}"
   # The queue paused by the {owner}, named.
@@ -164,11 +164,6 @@ switches:
   queue_on: "켜짐"
   hold: "배포 대기: {state}"
   hold_none: "없음"
-  rest: "휴식 상태: {state}"
-  rest_none: "아님"
-  rest_on: "{kind}, {until}까지"
-  rest_limit: "사용량 한도"
-  rest_outage: "API 장애"
   keepalive: "킵얼라이브: {state}"
   keepalive_stopped: "멈춤"
   keepalive_on: "켜짐"

@@ -28,6 +28,9 @@ pub struct Settings {
   pub agency: Unit,
   #[serde(default)]
   pub names: Names,
+  /// Nothing set here tells every moment in UTC.
+  #[serde(default)]
+  pub time: Time,
   /// Nothing set here leaves the secret store standing on no folder.
   #[serde(default)]
   pub secrets: SecretStore,
@@ -78,6 +81,24 @@ pub struct Names {
   /// The name the chat agent goes by in a room; the server does not stand without one.
   #[serde(default)]
   pub chat_agent: String,
+}
+
+/// How a moment a person reads is told.
+#[derive(Clone, Debug, Default, Deserialize)]
+pub struct Time {
+  /// The owner's time zone, an IANA name, which a fixed line naming a moment tells it in: the zone the console
+  /// shows every time in.
+  pub zone: Option<String>,
+}
+
+impl Time {
+  /// The zone as set, UTC where none is set, or why the name set reads as no zone.
+  pub fn zone(&self) -> Result<chrono_tz::Tz, String> {
+    match self.zone.as_deref().map(str::trim).filter(|zone| !zone.is_empty()) {
+      None => Ok(chrono_tz::UTC),
+      Some(zone) => zone.parse().map_err(|_| format!("`time.zone` names no time zone: `{zone}`")),
+    }
+  }
 }
 
 /// The HTTP server.

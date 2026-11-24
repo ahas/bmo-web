@@ -1,9 +1,6 @@
 # The one line at the foot of a resident program's screen (docs/agent-control.md, 「What a resident turn
-# reads」): what is going and since when, or since when the agent has been resting and which run it last did.
-# A run is named by its {name} and {title}, and each moment is an {at} on Seoul's clock.
+# reads」): what is going and since when. A run is named by its {name} and {title}, and each moment is an {at} on
+# Seoul's clock.
 
-resting: "休息中"
 person: "直接输入 · {at} 开始"
 running: "运行中 · {name} · {title} · {at} 开始"
-rested_after_person: "休息中 · 自 {at} · 最后为直接输入"
-rested_after_run: "休息中 · 自 {at} · 最后运行 {name}"

@@ -15,8 +15,6 @@ heal_on_off: "--downgrade-heal 은 on 이나 off 입니다."
 # An account named by an id or a name {named} that no account has.
 no_account: "{named}이라는 계정이 없습니다."
 credential_kind: "자격 증명은 설정 디렉터리(directory)이거나 토큰 파일(token)입니다."
-# A worker {worker} the owner did not add, set to rest or woken.
-not_restable: "{worker}는 쉬게 하거나 깨울 수 있는 워커가 아닙니다: 직접 더한 워커만 쉬고, Built-in 워커와 추가지원 워커는 쉬지 않습니다."
 no_worker: "{worker}라는 워커가 없습니다."
 # A worker brought back from a node with no path of this machine to work in.
 back_here_path: "이 기기로 돌아올 때는 이 기기의 경로를 --path로 입력해 주세요."

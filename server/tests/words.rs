@@ -4,7 +4,7 @@
 
 use crate::support;
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use axum::Router;
 use axum::body::Body;
@@ -19,13 +19,14 @@ use bmo_web_server::lang::supervisors::SUPERVISOR_WORDS;
 use bmo_web_server::marks::fill_marks;
 use bmo_web_server::routes::in_force;
 use bmo_web_server::wording::document_wording;
-use bmo_web_server::words::as_subject;
+use bmo_web_server::words::{Clock, FixedLine, as_subject};
+use chrono::{TimeZone, Utc};
 
 // The language a room speaks where a test names none: the source the pack is written in.
 const LANGUAGE: &str = Language::SOURCE.code();
 use http_body_util::BodyExt;
 use serde_json::{Map, Value, json};
-use support::{CHAT_AGENT, Scratch, SharedDatabase, ready};
+use support::{CHAT_AGENT, Scratch, SharedDatabase, names, ready};
 use tower::ServiceExt;
 
 const TOKEN: &str = "the server's token";
@@ -81,12 +82,75 @@ async fn rendered(code: &str, fields: Value) -> String {
   body["text"].as_str().unwrap().to_owned()
 }
 
-#[tokio::test]
-async fn rest_begins_is_said_as_the_chat_agent() {
-  let expected = fill_marks(&FIXED_LINES.rest_begins, &[("chat_agent", CHAT_AGENT)]);
+// A rest's line as `text` renders it against a clock standing at `now` in `zone`, both as epoch seconds and a name.
+fn rest_line(until: Option<i64>, now: i64, zone: &str) -> String {
+  let line: FixedLine = serde_json::from_value(json!({ "code": "rest-begins", "until": until })).unwrap();
+  let clock = Clock {
+    now: Utc.timestamp_opt(now, 0).unwrap(),
+    zone: zone.parse().unwrap(),
+  };
 
-  assert_eq!(rendered("rest-begins", json!({ "until": 1_700_000_000 })).await, expected);
+  line.text(&names(), &HashMap::new(), clock).unwrap()
+}
+
+// The rest's line naming the moment it is kept to, `moment` already told.
+fn rest_until(moment: &str) -> String {
+  fill_marks(&FIXED_LINES.rest_begins.until, &[("chat_agent", CHAT_AGENT), ("until", moment)])
+}
+
+// The moment on another day, by its month (January as 1), day, hour and minute.
+fn another_day(month: usize, day: &str, hour: &str, minute: &str) -> String {
+  let words = &FIXED_LINES.rest_begins;
+
+  fill_marks(
+    &words.another_day,
+    &[("month", &words.months[month - 1]), ("day", day), ("hour", hour), ("minute", minute)],
+  )
+}
+
+#[tokio::test]
+async fn rest_begins_with_no_moment_says_the_agent_comes_back_soon() {
+  let expected = fill_marks(&FIXED_LINES.rest_begins.soon, &[("chat_agent", CHAT_AGENT)]);
+
   assert_eq!(rendered("rest-begins", json!({ "until": null })).await, expected);
+  assert_eq!(rendered("rest-begins", json!({})).await, expected);
+}
+
+#[tokio::test]
+async fn rest_begins_on_another_day_names_the_day_and_the_time() {
+  // The service tells moments in UTC where no zone is set: 4 March 2100, 05:06.
+  let until = Utc.with_ymd_and_hms(2100, 3, 4, 5, 6, 0).unwrap().timestamp();
+
+  assert_eq!(
+    rendered("rest-begins", json!({ "until": until })).await,
+    rest_until(&another_day(3, "4", "05", "06"))
+  );
+}
+
+#[test]
+fn rest_begins_on_the_same_day_in_the_owners_zone_names_the_time_alone() {
+  let now = Utc.with_ymd_and_hms(2026, 11, 24, 10, 0, 0).unwrap().timestamp();
+  // 12:30 UTC is 21:30 in Seoul, the same day there.
+  let until = Utc.with_ymd_and_hms(2026, 11, 24, 12, 30, 0).unwrap().timestamp();
+  let today = fill_marks(&FIXED_LINES.rest_begins.today, &[("hour", "21"), ("minute", "30")]);
+
+  assert_eq!(rest_line(Some(until), now, "Asia/Seoul"), rest_until(&today));
+}
+
+#[test]
+fn rest_begins_past_midnight_in_the_owners_zone_names_the_day() {
+  let now = Utc.with_ymd_and_hms(2026, 11, 24, 10, 0, 0).unwrap().timestamp();
+  // 16:30 UTC is the same day in UTC but 01:30 the next day in Seoul.
+  let until = Utc.with_ymd_and_hms(2026, 11, 24, 16, 30, 0).unwrap().timestamp();
+
+  assert_eq!(
+    rest_line(Some(until), now, "Asia/Seoul"),
+    rest_until(&another_day(11, "25", "01", "30"))
+  );
+  assert_eq!(
+    rest_line(Some(until), now, "UTC"),
+    rest_until(&fill_marks(&FIXED_LINES.rest_begins.today, &[("hour", "16"), ("minute", "30")]))
+  );
 }
 
 #[tokio::test]

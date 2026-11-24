@@ -4,15 +4,6 @@
 # A second word while the first is still being answered.
 busy: "{chat_agent_subject}仍在回复上一条消息。"
 
-# Why a turn came back with nothing, shown under the unanswered line: the chat agent resting, the usage limit, the API
-# not answering, a turn that said nothing, and any other.
-unanswered:
-  resting: "{chat_agent_subject}处于休息状态，这条消息没能回复。"
-  limit: "已达到使用上限，这条消息没能回复。"
-  outage: "API 没有响应，这条消息没能回复。"
-  silent: "{chat_agent_subject}对这条消息什么也没说。"
-  other: "这条消息没有收到回复。"
-
 # The code review: a row filed while the chat agent still answers in its thread, and one for a {worker} the catalogue no
 # longer has.
 code_review:

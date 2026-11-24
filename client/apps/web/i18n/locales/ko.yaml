@@ -2812,6 +2812,7 @@ secrets:
     unreachable: 계정 서비스에 연결되지 않았습니다.
 agents:
   action:
+    rest_end: "휴식 끝내기"
     sign_in_again: 다시 로그인
     open_sign_in: 로그인 페이지 열기
     sign_in_finish: 로그인 완료
@@ -2904,10 +2905,12 @@ agents:
     log_read_failed: 로그를 읽지 못했습니다. 잠시 뒤 다시 시도해 주세요.
     models_load_failed: 모델 목록을 불러오지 못했습니다.
     no_such_agent: 에이전트를 찾을 수 없습니다.
+    notice_switches_read_failed: "알림 설정을 불러오지 못했습니다."
     pick_account: 계정을 선택해 주세요.
     provider_off: 꺼진 공급자입니다. 자동 또는 켜진 공급자를 선택해 주세요.
     registry_read_failed: 등록 모델을 불러오지 못했습니다.
     registry_value: 등록 모델의 이름과 모델을 보내 주세요.
+    rest_end_failed: "휴식을 끝내지 못했습니다."
     supervisor_add: 감독관의 이름, 표시 이름, 방 이름, 공급자, 모델, 작업 저장소를 보내 주세요.
     default_answerer_failed: 기본 응답 감독관을 저장하지 못했습니다.
     supervisor_default_answerer: "{label}은(는) 기본 응답 감독관이라 삭제할 수 없습니다. 다른 감독관을 기본 응답 감독관으로 고른 뒤 삭제해 주세요."
@@ -2955,6 +2958,12 @@ agents:
   label:
     agency: 에이전시
     account_kind_sign_in: 여기서 로그인
+    notice_rest: "휴식 알림"
+    notice_rest_note: "휴식이 시작될 때와 풀렸을 때 알립니다."
+    notice_restart: "재시작 알림"
+    notice_restart_note: "서비스가 내려갈 때와 돌아왔을 때 알립니다."
+    rest_limit: "사용량 한도"
+    rest_outage: "공급자 장애"
     sign_in_code: 인증 코드
     account_chosen: 선택한 계정
     default_answerer: 기본 응답 감독관
@@ -3216,6 +3225,9 @@ agents:
     stages_none: 지시 단계 없음
     stages_unused: 사용하지 않는 단계
   message:
+    rest_end_confirm: "휴식을 끝낼까요?"
+    rest_end_takes: "플랫폼의 Claude 로그인이 바로 다시 답하고, 한도가 아직 찬 로그인은 다음 사용량 확인 때 다시 쉽니다."
+    rest_still: "한도가 다시 가득 찬 로그인이 있어 휴식이 이어집니다."
     sign_in_steps: 로그인 페이지를 열어 이 계정으로 승인한 뒤, 페이지에 나온 코드를 붙여 넣어 주세요.
     account_delete_confirm: 계정을 삭제할까요?
     catalogue_delete_confirm: 모델 파일을 목록에서 삭제할까요?
@@ -3272,6 +3284,7 @@ agents:
     no_catalogue: 등록된 모델 파일 없음
     no_log: 기록된 로그 없음
     no_registrations: 등록된 모델 없음
+    notice_switches_loading: "알림 설정 불러오는 중…"
     older_loading: 이전 줄 불러오는 중…
     registry_loading: 등록 모델 불러오는 중
     road_codex_missing: 이 기기에 Codex 실행 파일이 없어 선택할 수 없습니다.
@@ -3322,6 +3335,7 @@ agents:
     deploy_flush_loading: 일괄 배포 주기 불러오는 중…
     stages_loading: 지시 단계 불러오는 중…
   title:
+    notices: "알림"
     sign_in: "{name} 로그인"
     account_add: Claude 계정 추가
     key_of: "{name} 키"
@@ -3372,6 +3386,8 @@ live:
     stop_target_wrong: 멈출 대상이 올바르지 않습니다.
   label:
     agent_idle: 유휴
+    agent_resting: "휴식 중"
+    agent_resting_until: "휴식 중 · {until}까지"
     answering: "답변 중 · {rooms}"
     deadline_passed: 기한 지남
     last_check_met: "마지막 확인 {ago} 전 · 충족"
@@ -3883,7 +3899,6 @@ job:
     not_built: 실행 중인 bmo-job에 이 동작이 들어 있지 않습니다.
     not_held: 보류되지 않은 항목입니다.
     not_merged: 병합되지 않은 항목입니다.
-    not_restable: 소유자가 추가하지 않은 워커는 쉬게 하거나 깨울 수 없습니다.
     note_needs_number: 덧붙인 말은 번호로만 지울 수 있습니다.
     nothing_to_change: 바꿀 것이 없습니다.
     nothing_to_edit: 고칠 지시나 모델이 없습니다.

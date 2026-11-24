@@ -24,6 +24,8 @@ axum.workspace = true
 # A secret's value sent as base64, decoded under the standard alphabet into the bytes the store writes.
 base64 = "0.22.1"
 chrono = { version = "0.4.45", default-features = false, features = ["std", "clock"] }
+# The owner's time zone, which a fixed line naming a moment tells it in.
+chrono-tz = { version = "0.10.4", default-features = false, features = ["std"] }
 clap = { version = "4.6.7", features = ["derive", "env"] }
 # The settings files and the environment, layered in that order.
 config = { version = "0.15", default-features = false, features = ["toml"] }

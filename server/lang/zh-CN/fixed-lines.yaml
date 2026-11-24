@@ -1,5 +1,10 @@
 # Translation of server/lang/ko/fixed-lines.yaml; that file says what each line is for.
-rest_begins: "{chat_agent} 今天脑子用得太多了… 等额度恢复前我先去歇一会儿。"
+rest_begins:
+  until: "{chat_agent} 今天脑子用得太多了… 我先去歇一会儿，{until}回来。"
+  soon: "{chat_agent} 今天脑子用得太多了… 我先去歇一会儿，马上回来。"
+  today: "{hour}:{minute}"
+  another_day: "{month}{day}日 {hour}:{minute}"
+  months: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"]
 chat_denied: "此房间已被屏蔽。这里的话我以后既不听也不保存了。"
 still_working: "还在准备回答，请稍等。"
 supervisor_cut: "已中断 {name} 的这一轮。{reason} 从下一条消息起将在新会话中回答。"

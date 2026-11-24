@@ -7,7 +7,7 @@ use serde::Deserialize;
 #[serde(deny_unknown_fields)]
 pub struct FixedLines {
   /// A usage limit begins.
-  pub rest_begins: String,
+  pub rest_begins: RestBegins,
   /// The owner shut the room.
   pub chat_denied: String,
   /// A supervisor's turn its guard cut short.
@@ -69,6 +69,23 @@ pub struct SessionCauses {
   pub full: String,
   pub road: String,
   pub documents: String,
+}
+
+/// What a room is told as a usage limit begins: until when, where the line names it, else that it comes back
+/// soon, and the words that moment is told in.
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RestBegins {
+  /// The rest kept to a moment, `{until}`.
+  pub until: String,
+  /// The rest kept to no known moment.
+  pub soon: String,
+  /// The moment on the day the line is said.
+  pub today: String,
+  /// The moment on another day.
+  pub another_day: String,
+  /// Each month's word, January first.
+  pub months: Vec<String>,
 }
 
 /// What a room is told as a person's run finds no supply source left, by the reason the agency names.

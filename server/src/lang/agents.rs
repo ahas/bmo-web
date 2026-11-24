@@ -15,7 +15,6 @@ pub struct AgentsWords {
   pub heal_on_off: String,
   pub no_account: String,
   pub credential_kind: String,
-  pub not_restable: String,
   pub no_worker: String,
   pub back_here_path: String,
   pub nothing_to_change: String,

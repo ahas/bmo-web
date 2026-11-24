@@ -85,6 +85,8 @@ pub struct Service {
   /// The agency the supply hook is registered at and whose personal supply an administrator reads, one that
   /// refuses every read where the settings name none (docs/accounts.md, 「Supply」).
   pub agency: Arc<dyn agency::Agency>,
+  /// The owner's time zone, which a fixed line naming a moment tells it in; UTC until it is set.
+  pub zone: chrono_tz::Tz,
 }
 
 impl Service {
@@ -110,6 +112,12 @@ impl Service {
   /// read of whose personal supply serves which roads.
   pub fn calling_agency(mut self, agency: Arc<dyn agency::Agency>) -> Self {
     self.agency = agency;
+    self
+  }
+
+  /// The same service telling a moment a line names in `zone`.
+  pub fn in_zone(mut self, zone: chrono_tz::Tz) -> Self {
+    self.zone = zone;
     self
   }
 }

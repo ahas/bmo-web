@@ -7,7 +7,8 @@
        tooltip of its own, the shared one of a cut line standing in where the line is cut. An agent carrying several
        runs stands the earliest on its line with how many it carries beside it; its tooltip lists them all, and a press
        offers each run's log. Where what it is doing could not be read, or has not been told yet, the cell holds a
-       dash. -->
+       dash. An agent with nothing going whose road the deployment's rest closes reads the rest's mark, until when,
+       in place of the idle word or the dash, since the rest is known whether or not what it does has been told. -->
   <component
     :is="single.item === null ? HintTip : ItemTip"
     v-if="single !== null"
@@ -49,6 +50,13 @@
     </HintTip>
   </UDropdownMenu>
 
+  <!-- Resting: the deployment rests and the rest closes this agent's road, so it takes nothing until the rest ends or is
+       ended; its own mark in the warning tone, apart from the idle one. -->
+  <span v-else-if="props.rest !== null" :class="CELL_TEXT_LINE" data-agent-state="resting">
+    <UIcon name="i-material-symbols-battery-charging-20-outline" class="size-4 shrink-0 text-warning" />
+    <span class="min-w-0 truncate text-sm text-toned">{{ props.rest }}</span>
+  </span>
+
   <span v-else-if="!props.known" :class="CELL_TEXT" class="text-sm text-muted" data-agent-state="unknown">—</span>
 
   <span v-else :class="CELL_TEXT_LINE" data-agent-state="idle">
@@ -66,7 +74,12 @@ import { CELL_BUTTON_LINE, CELL_TEXT, CELL_TEXT_LINE } from "~/domain/settings-c
 import type { DropdownMenuItem } from "@nuxt/ui";
 import type { AgentDoing } from "~/domain/agent-state";
 
-const props = withDefaults(defineProps<{ doings: readonly AgentDoing[]; now: number; stopping?: boolean; known?: boolean }>(), { stopping: false, known: true });
+// `rest` is the rest's mark where the deployment's rest closes this agent's road, none otherwise.
+const props = withDefaults(defineProps<{ doings: readonly AgentDoing[]; now: number; stopping?: boolean; known?: boolean; rest?: string | null }>(), {
+  stopping: false,
+  known: true,
+  rest: null
+});
 
 const emit = defineEmits<{ open: [at: number] }>();
 

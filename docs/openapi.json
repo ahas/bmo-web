@@ -1222,7 +1222,7 @@
         "description": "A fixed line asked for, with the fields its code carries.",
         "oneOf": [
           {
-            "description": "A usage limit begins; the `until` it carries is not read.",
+            "description": "A usage limit begins: the moment the rest is kept to, epoch seconds, which the line tells in the owner's time\nzone, or none for a rest kept to no known moment.",
             "properties": {
               "code": {
                 "const": "rest-begins",

@@ -132,7 +132,6 @@ export const JOB_CODES: Readonly<Record<string, string>> = {
   not_built: "job.error.not_built",
   not_held: "job.error.not_held",
   not_merged: "job.error.not_merged",
-  not_restable: "job.error.not_restable",
   note_needs_number: "job.error.note_needs_number",
   nothing_to_change: "job.error.nothing_to_change",
   nothing_to_edit: "job.error.nothing_to_edit",

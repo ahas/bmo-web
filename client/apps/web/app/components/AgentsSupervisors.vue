@@ -14,6 +14,9 @@
     />
     <p v-else-if="supervisors !== undefined && supervisors.length === 0" class="px-4 py-3 text-sm text-muted">{{ $t("agents.status.no_supervisors") }}</p>
 
+    <!-- The deployment's rest, while it rests, with its end for the administrator. -->
+    <RestBand :rest="rest" :now="now" :take="takeRest" />
+
     <!-- The default answerer, the supervisor that answers every room naming none, as the receiver's setting holds it:
          every supervisor offered, the one it names chosen; a choice is saved as it is made. -->
     <div v-if="supervisors !== undefined && supervisors.length > 0" class="px-4">
@@ -54,7 +57,7 @@
       <!-- What the supervisor is doing now: the rooms its turns run in, read from the console's stream, and a dash until
            the stream has handed the bot's picture. -->
       <template #state-cell="{ row }">
-        <AgentStateCell :doings="doingsOf(row.original.name)" :known="turns !== null" :now="now * 1000" @open="openLog(row.original.name)" />
+        <AgentStateCell :doings="doingsOf(row.original.name)" :known="turns !== null" :now="now * 1000" :rest="restMarkOf($t, rest, row.original.name, now)" @open="openLog(row.original.name)" />
       </template>
 
       <template #road-cell="{ row }">
@@ -122,7 +125,7 @@
     <p v-if="removeFailed !== ''" role="alert" class="px-4 py-2 break-words text-sm text-error">{{ removeFailed }}</p>
 
     <!-- The agents of the roles stand under the supervisors: every agent of the screen in the one tab. -->
-    <AgentsRoleAgents class="mt-6" :query="props.query" :readonly="props.readonly" />
+    <AgentsRoleAgents class="mt-6" :query="props.query" :readonly="props.readonly" :rest="rest" />
     <AgentSessionDialog v-model:open="sessionOpen" :ask="sessionAsk" />
 
     <AgentLogDialog v-if="log !== null" v-model:open="logOpen" :name="log.name" :place="log.place" :rooms="rooms ?? []" />
@@ -181,6 +184,7 @@ import { agentMetaOf, roomTitle } from "~/domain/agents";
 import { useAgentCatalogue } from "~/domain/catalogue";
 import { useConfirm } from "~/domain/confirm";
 import { useReadFailure, useSupervisorTurns } from "~/domain/events";
+import { restMarkOf, useRest } from "~/domain/rest";
 import { useRoomList } from "~/domain/room-list";
 import { CELL_TEXT } from "~/domain/settings-cells";
 
@@ -227,6 +231,10 @@ const columns = computed<SettingsColumn<SupervisorView>[]>(() => [
 // second.
 const turns = useSupervisorTurns();
 const { now } = useNowSeconds(1_000);
+
+// Whether the deployment rests and whose road it closes, read on its own clock for this table and the roles' agents'
+// under it.
+const { data: rest, take: takeRest } = useRest();
 
 // Its turns as the one thing it is doing, its rooms on one line; nothing where it runs none.
 function doingsOf(name: string): AgentDoing[] {

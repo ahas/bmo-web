@@ -87,6 +87,8 @@
     </SettingsGroup>
 
     <DeployFlushSetting />
+
+    <NoticeSwitchSetting />
   </div>
 </template>
 

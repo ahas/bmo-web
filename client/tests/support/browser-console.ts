@@ -43,6 +43,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["home-repository", "fixture-password-3052"],
   ["agents-general", "fixture-password-2301"],
   ["agents-state", "fixture-password-3049"],
+  ["agents-rest", "fixture-password-4417"],
   ["bubble-wrap", "fixture-password-1477"],
   ["composer-view", "fixture-password-2170"],
   ["console-ids", "fixture-password-789"],

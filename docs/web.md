@@ -3403,7 +3403,10 @@ alone (「Access」); another account's agents are reached from 조직's 사용�
   the check button.
 - **The settings dialog** is one form with one 저장 at its foot: 표시 이름; 공급자, 모델, 강도, 생각, 답변 상한 and 어드바이저, the
   road's editor in place; 캐시 유지 and 압축 기준 as the cells set them; 작업 저장소, the repository its TODO items go to,
-  a list of the repositories; and, for a supervisor whose turns its settings' pieces make (its `turnShape`), its own
+  a list of the repositories; 수면, whether it sleeps each night (매일 밤 수면) and at what hour (수면 시각), each hour of the
+  day with the agency's own marked `(기본값)`, and the night it last slept, as the agency holds them (its `docs/sleep.md`,
+  「Its setting」, `GET` and `PUT /supervisors/{supervisorName}/sleep`); and, for a supervisor whose turns its settings'
+  pieces make (its `turnShape`), its own
   settings as the agency holds them (its `docs/api.md`, 「supervisors」, a supervisor's settings): 생성 파라미터, each
   setting with what it is for and its bounds and an empty box the engine's own default, saying how many room sessions
   a change of them starts afresh; 참조 주입; 페르소나, its own text or its file's; and 보낼 시스템 프롬프트, what the next

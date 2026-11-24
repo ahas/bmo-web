@@ -51,3 +51,8 @@ session_handed_over:
     full: "上下文已满"
     road: "提供方 · 模型已更改"
     documents: "指示已更改"
+
+# What the owner's private room keeps, in its record alone, as an agent slept the night through (the agency's
+# docs/sleep.md): the {agent}'s name with its subject particle, {subject}, the {date} it slept for, and how many
+# memories it {learned}, {merged} and {closed}.
+slept: "{subject} 在{date}夜里睡了一觉，整理了记忆 · 新学到 {learned} · 合并 {merged} · 结束 {closed}"

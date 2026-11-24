@@ -2866,6 +2866,7 @@ agents:
     stage_text_of: "{name} 내용"
     stage_up: "{name} 위로"
   error:
+    sleep_read_failed: "수면 설정을 읽지 못했어요."
     login_which: 다시 로그인할 계정이나 새 계정의 이름 중 하나만 정해 주세요.
     login_not_directory: 설정 디렉터리 계정만 여기서 로그인할 수 있습니다.
     login_directory_taken: 이 이름의 설정 디렉터리가 이미 있습니다. 다른 이름을 정해 주세요.
@@ -2952,6 +2953,8 @@ agents:
     stage_name: "이름은 소문자로 시작하고 소문자·숫자·대시로 된 {max}자 이하의 한 단어입니다."
     stage_add_unfinished: 추가할 단계의 이름과 내용을 확인하거나 추가를 취소하세요.
   label:
+    sleep_on: "매일 밤 수면"
+    sleep_hour: "수면 시각"
     agency: 에이전시
     account_kind_sign_in: 여기서 로그인
     notice_rest: "휴식 알림"
@@ -3224,6 +3227,8 @@ agents:
     rest_end_confirm: "휴식을 끝낼까요?"
     rest_end_takes: "플랫폼의 Claude 로그인이 바로 다시 답하고, 한도가 아직 찬 로그인은 다음 사용량 확인 때 다시 쉽니다."
     rest_still: "한도가 다시 가득 찬 로그인이 있어 휴식이 이어집니다."
+    sleep_never: "아직 잔 적이 없어요."
+    sleep_last: "지난 수면: {date} 밤"
     sign_in_steps: 로그인 페이지를 열어 이 계정으로 승인한 뒤, 페이지에 나온 코드를 붙여 넣어 주세요.
     account_delete_confirm: 계정을 삭제할까요?
     catalogue_delete_confirm: 모델 파일을 목록에서 삭제할까요?
@@ -3264,6 +3269,7 @@ agents:
     registry_name: 영문 소문자·숫자·하이픈
     token_path: 토큰 파일의 절대 경로
   status:
+    sleep_loading: "수면 설정을 읽는 중"
     call_running: 실행 중
     chat_documents_loading: 시스템 프롬프트 불러오는 중…
     chat_document_stored: 저장된 글
@@ -3332,6 +3338,7 @@ agents:
     stages_loading: 지시 단계 불러오는 중…
   title:
     notices: "알림"
+    sleep: "수면"
     sign_in: "{name} 로그인"
     account_add: Claude 계정 추가
     key_of: "{name} 키"

@@ -119,3 +119,8 @@ session_handed_over:
     full: "대화 맥락이 가득 참"
     road: "공급자 · 모델이 바뀜"
     documents: "지침이 바뀜"
+
+# What the owner's private room keeps, in its record alone, as an agent slept the night through (the agency's
+# docs/sleep.md): the {agent}'s name with its subject particle, {subject}, the {date} it slept for, and how many
+# memories it {learned}, {merged} and {closed}.
+slept: "{subject} {date} 밤에 잠들어 기억을 정리했어요 · 새로 익힘 {learned} · 합침 {merged} · 끝냄 {closed}"

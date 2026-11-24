@@ -42,6 +42,8 @@ pub struct FixedLines {
   pub supply_closed: SupplyClosed,
   /// An agent's session handed over or reset, and why.
   pub session_handed_over: SessionHandedOver,
+  /// An agent slept the night through: the day and what it learned, merged and closed.
+  pub slept: String,
 }
 
 /// What a room is told as an agent's session is handed over or reset: the line, then why and who asked where the

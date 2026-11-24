@@ -109,6 +109,15 @@ pub enum FixedLine {
     reason: Option<String>,
     by: Option<AccountKey>,
   },
+  /// An agent slept the night through (the agency's `docs/sleep.md`): the agent by its name, the day it slept for and
+  /// how many memories it learned, merged and closed.
+  Slept {
+    agent: String,
+    date: String,
+    learned: i64,
+    merged: i64,
+    closed: i64,
+  },
   /// A code the pack holds no sentence for.
   #[serde(other)]
   Unknown,
@@ -508,6 +517,23 @@ impl FixedLine {
         reason,
         by,
       } => session_handed_over(agent, cause, reason.as_deref(), by.as_ref().map(|by| by.shown(accounts))),
+      Self::Slept {
+        agent,
+        date,
+        learned,
+        merged,
+        closed,
+      } => fill_marks(
+        &FIXED_LINES.slept,
+        &[
+          ("agent", agent),
+          ("subject", &as_subject(agent)),
+          ("date", date),
+          ("learned", &learned.to_string()),
+          ("merged", &merged.to_string()),
+          ("closed", &closed.to_string()),
+        ],
+      ),
       Self::Unknown => return None,
     })
   }

@@ -2881,6 +2881,7 @@ agents:
     stage_text_of: "{name} 的内容"
     stage_up: "上移 {name}"
   error:
+    sleep_read_failed: "无法读取睡眠设置。"
     login_which: 请只指定要重新登录的账号或新账号的名称之一。
     login_not_directory: 只有配置目录账号可以在此登录。
     login_directory_taken: 已有同名的配置目录。请换一个名称。
@@ -2967,6 +2968,8 @@ agents:
     stage_name: "名称须为以小写字母开头、由小写字母、数字和短横线组成、不超过 {max} 个字符的单个词。"
     stage_add_unfinished: 请确认要添加的阶段名称和内容，或取消添加。
   label:
+    sleep_on: "每晚睡眠"
+    sleep_hour: "睡眠时间"
     agency: 代理中心
     account_kind_sign_in: 在此登录
     notice_rest: "休息通知"
@@ -3241,6 +3244,8 @@ agents:
     rest_end_confirm: "要结束休息吗？"
     rest_end_takes: "平台的 Claude 登录会立即重新应答，仍达上限的登录会在下次用量检查时再次休息。"
     rest_still: "有登录再次达到上限，休息仍在继续。"
+    sleep_never: "还没有睡过。"
+    sleep_last: "上次睡眠：{date}夜"
     sign_in_steps: 请打开登录页面，用此账号批准后，粘贴页面上显示的代码。
     account_delete_confirm: 要删除此账号吗？
     catalogue_delete_confirm: 要从列表中删除此模型文件吗？
@@ -3281,6 +3286,7 @@ agents:
     registry_name: 小写字母、数字、连字符
     token_path: 令牌文件的绝对路径
   status:
+    sleep_loading: "正在读取睡眠设置"
     call_running: 运行中
     chat_documents_loading: 正在加载系统提示词…
     chat_document_stored: 已保存的文本
@@ -3349,6 +3355,7 @@ agents:
     stages_loading: 正在加载指令阶段…
   title:
     notices: "通知"
+    sleep: "睡眠"
     sign_in: "登录 {name}"
     account_add: 添加 Claude 账号
     key_of: "{name} 密钥"

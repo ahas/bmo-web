@@ -367,6 +367,31 @@ async fn session_handed_over_says_the_line_then_why_then_who_asked() {
 }
 
 #[tokio::test]
+async fn slept_names_the_agent_the_day_and_what_its_sleep_learned_merged_and_closed() {
+  let expected = fill_marks(
+    &FIXED_LINES.slept,
+    &[
+      ("agent", "agent-a"),
+      ("subject", &as_subject("agent-a")),
+      ("date", "2026-11-24"),
+      ("learned", "3"),
+      ("merged", "1"),
+      ("closed", "2"),
+    ],
+  );
+
+  assert_eq!(
+    rendered(
+      "slept",
+      json!({ "agent": "agent-a", "date": "2026-11-24", "learned": 3, "merged": 1, "closed": 2 })
+    )
+    .await,
+    expected
+  );
+  assert!(!expected.contains('{'), "{expected}");
+}
+
+#[tokio::test]
 async fn draw_is_the_line_a_person_checks_it_from() {
   let line = &DRAWS.line;
   let expected = |head: String, asked: String, result: String, number: &str, answered: Option<&str>| {

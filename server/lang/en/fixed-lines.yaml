@@ -51,3 +51,8 @@ session_handed_over:
     full: "its context was full"
     road: "its provider · model changed"
     documents: "its instructions changed"
+
+# What the owner's private room keeps, in its record alone, as an agent slept the night through (the agency's
+# docs/sleep.md): the {agent}'s name with its subject particle, {subject}, the {date} it slept for, and how many
+# memories it {learned}, {merged} and {closed}.
+slept: "{subject} slept on the night of {date} and tidied its memories · learned {learned} · merged {merged} · closed {closed}"

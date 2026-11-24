@@ -18,6 +18,9 @@ const listing = await server("api/chat-documents.get.ts");
 const changing = await server("api/chat-documents/[documentName].patch.ts");
 const patch = await server("api/supervisors/[name].patch.ts");
 const road = await read("components/RoadField.vue");
+const sleep = await read("components/SupervisorSleepFields.vue");
+const sleepRead = await server("api/supervisors/[name]/sleep.get.ts");
+const sleepSave = await server("api/supervisors/[name]/sleep.put.ts");
 
 describe("a supervisor's settings", () => {
   test("are one dialog, opened by the tab and the supervisor's own screen", () => {
@@ -53,6 +56,18 @@ describe("a supervisor's settings", () => {
     expect(road).toContain("change({ model, effort: keptEffort(model), advisor: null });");
     expect(road).toContain("road.value = { provider: name, model: \"\", effort: null, thinking: null, answerTokens: null, advisor: null };");
     expect(road).toContain('t("agents.message.advisor_follows")');
+  });
+
+  // A supervisor's nightly sleep (the agency's docs/sleep.md, 「Its setting」): a block of the same form, every hour of
+  // the day a choice with the agency's own marked as the default, carried to the agency's own sleep route.
+  test("hold whether the supervisor sleeps each night and at what hour, saved with the form", () => {
+    expect(dialog.indexOf("<SupervisorFields")).toBeLessThan(dialog.indexOf("<SupervisorSleepFields"));
+    expect(sleep).toContain("useFormPart(");
+    expect(sleep).toContain("markedDefault(t,");
+    expect(sleep).toContain("hour === held.value?.defaultHour ? null : hour");
+    expect(sleepRead).toContain('agencyRoute<SupervisorSleepView>("GET", `/supervisors/${encodeURIComponent(name)}/sleep`)');
+    expect(sleepSave).toContain('agencyRoute<SupervisorSleepView>("PUT", `/supervisors/${encodeURIComponent(name)}/sleep`, { on: body.on, hour })');
+    expect(sleepSave).toContain("requireOwnSupervisor(event, name)");
   });
 
   test("are carried to the agency by the console's own routes", () => {

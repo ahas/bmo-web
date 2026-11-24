@@ -2881,6 +2881,7 @@ agents:
     stage_text_of: "{name} の内容"
     stage_up: "{name} を上へ"
   error:
+    sleep_read_failed: "睡眠の設定を読み込めませんでした。"
     login_which: 再ログインするアカウントか、新しいアカウントの名前のどちらか一方だけを指定してください。
     login_not_directory: ここでログインできるのは設定ディレクトリのアカウントだけです。
     login_directory_taken: この名前の設定ディレクトリがすでにあります。別の名前を指定してください。
@@ -2967,6 +2968,8 @@ agents:
     stage_name: "名前は小文字で始まり、小文字・数字・ダッシュからなる {max} 文字以内の 1 語です。"
     stage_add_unfinished: 追加するステージの名前と内容を確認するか、追加をキャンセルしてください。
   label:
+    sleep_on: "毎晩眠る"
+    sleep_hour: "睡眠の時刻"
     agency: エージェンシー
     account_kind_sign_in: ここでログイン
     notice_rest: "休憩通知"
@@ -3241,6 +3244,8 @@ agents:
     rest_end_confirm: "休憩を終えますか？"
     rest_end_takes: "プラットフォームの Claude ログインはすぐにまた応答し、まだ上限に達しているログインは次の使用量確認でまた休憩します。"
     rest_still: "上限に再び達したログインがあるため、休憩が続きます。"
+    sleep_never: "まだ眠ったことがありません。"
+    sleep_last: "前回の睡眠: {date}の夜"
     sign_in_steps: ログインページを開いてこのアカウントで承認し、ページに表示されたコードを貼り付けてください。
     account_delete_confirm: このアカウントを削除しますか？
     catalogue_delete_confirm: このモデルファイルを一覧から削除しますか？
@@ -3281,6 +3286,7 @@ agents:
     registry_name: 英小文字・数字・ハイフン
     token_path: トークンファイルの絶対パス
   status:
+    sleep_loading: "睡眠の設定を読み込み中"
     call_running: 実行中
     chat_documents_loading: システムプロンプトを読み込み中…
     chat_document_stored: 保存されたテキスト
@@ -3349,6 +3355,7 @@ agents:
     stages_loading: 指示ステージを読み込み中…
   title:
     notices: "通知"
+    sleep: "睡眠"
     sign_in: "{name} にログイン"
     account_add: Claude アカウントを追加
     key_of: "{name} のキー"

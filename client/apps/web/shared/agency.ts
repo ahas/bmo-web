@@ -118,6 +118,16 @@ export interface ModelView {
   thinking?: boolean | null;
 }
 
+// Whether a supervisor sleeps each night and its own hour, none for the agency's, beside the agency's hour, the day it
+// last slept for and the moment it last tried (the agency's `docs/sleep.md`, 「Its setting」).
+export interface SupervisorSleepView {
+  on: boolean;
+  hour: number | null;
+  defaultHour: number;
+  sleptOn: string | null;
+  triedAt: number | null;
+}
+
 // One of the chat agent's own documents the owner may keep a text of (the agency's `docs/api.md`,
 // 「chat-documents」): the text it stands as now, where that text comes from, and when it was last saved.
 export interface ChatDocumentView {

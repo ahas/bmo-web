@@ -51,3 +51,8 @@ session_handed_over:
     full: "会話の文脈がいっぱいになった"
     road: "プロバイダー · モデルが変わった"
     documents: "指示が変わった"
+
+# What the owner's private room keeps, in its record alone, as an agent slept the night through (the agency's
+# docs/sleep.md): the {agent}'s name with its subject particle, {subject}, the {date} it slept for, and how many
+# memories it {learned}, {merged} and {closed}.
+slept: "{subject}が{date}の夜に眠って記憶を整理しました · 新しく覚えた {learned} · まとめた {merged} · 終えた {closed}"

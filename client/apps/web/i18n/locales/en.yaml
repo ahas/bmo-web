@@ -2851,6 +2851,7 @@ agents:
     stage_text_of: "{name} text"
     stage_up: "Move {name} up"
   error:
+    sleep_read_failed: "The sleep setting could not be read."
     login_which: "Choose either an account to sign in again or a name for a new account, not both."
     login_not_directory: Only config directory accounts can sign in here.
     login_directory_taken: A config directory with this name already exists. Choose another name.
@@ -2937,6 +2938,8 @@ agents:
     stage_name: "The name is one word of up to {max} lowercase letters, digits and dashes, starting with a lowercase letter."
     stage_add_unfinished: "Check the new stage's name and text, or cancel adding it."
   label:
+    sleep_on: "Sleep every night"
+    sleep_hour: "Sleep hour"
     agency: Agency
     account_kind_sign_in: Sign in here
     notice_rest: "Rest notices"
@@ -3211,6 +3214,8 @@ agents:
     rest_end_confirm: "End the rest?"
     rest_end_takes: "The platform's Claude logins answer again at once, and a login still at its limit rests again at the next usage check."
     rest_still: "A login reads full again, so the rest goes on."
+    sleep_never: "It has not slept yet."
+    sleep_last: "Last slept: the night of {date}"
     sign_in_steps: "Open the sign-in page, approve with this account, then paste the code shown on the page."
     account_delete_confirm: Delete this account?
     catalogue_delete_confirm: Remove this model file from the list?
@@ -3249,6 +3254,7 @@ agents:
     registry_name: "Lowercase letters, digits, hyphens"
     token_path: Absolute path of the token file
   status:
+    sleep_loading: "Reading the sleep setting"
     call_running: Running
     chat_documents_loading: Loading system prompt…
     chat_document_stored: Saved text
@@ -3317,6 +3323,7 @@ agents:
     stages_loading: Loading instruction stages…
   title:
     notices: "Notices"
+    sleep: "Sleep"
     sign_in: "Sign in to {name}"
     account_add: Add Claude account
     key_of: "{name} key"

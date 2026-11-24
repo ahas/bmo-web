@@ -17,6 +17,8 @@
     <div v-else class="flex flex-col gap-8">
       <SupervisorFields :supervisor="supervisor" @saved="(saved) => (supervisor = saved)" />
 
+      <SupervisorSleepFields :name="props.name" />
+
       <template v-if="supervisor.turnShape === 'pieces'">
         <p v-if="piecesFailed" role="alert" class="text-sm text-error">{{ $t("agents.error.supervisors_read_failed") }}</p>
         <ContentSkeleton v-else-if="pieces === null" :rows="1" :label="$t('agents.status.supervisors_loading')">

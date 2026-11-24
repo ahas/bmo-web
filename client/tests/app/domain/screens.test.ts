@@ -182,7 +182,7 @@ test("each section is a menu of its own named from the pack under its name, and 
 
   expect(names(both)).toEqual([wording("screens.label.section_administration"), wording("screens.label.section_application")]);
   expect(both.map((menu) => menu.items.filter((item) => item.type === "label"))).toEqual([[{ label: names(both)[0], type: "label" }], [{ label: names(both)[1], type: "label" }]]);
-  expect(both[1]!.items.slice(1).map((item) => item.to)).toEqual(["/mail", "/app-catalogue"]);
+  expect(both[1]!.items.slice(1).map((item) => item.to)).toEqual(["/mail"]);
   expect(names(sectionItems(wording, "/", undefined, false, screensWithBundles([mail], [])))).toEqual([wording("screens.label.section_application")]);
   expect(sectionItems(wording, "/", undefined, false, [])).toEqual([]);
 });

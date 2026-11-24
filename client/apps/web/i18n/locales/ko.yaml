@@ -42,6 +42,10 @@ app:
 
 common:
   title:
+    page_not_found: 페이지를 찾을 수 없습니다
+    no_permission: 권한이 없습니다
+    unreachable: 연결할 수 없습니다
+    page_failed: 오류가 발생했습니다
     delete_named: "{name} 삭제"
     discard_changes: 저장하지 않은 변경을 버릴까요?
     share: 공유
@@ -120,6 +124,9 @@ common:
     view: 보기
     volume: 볼륨
   action:
+    go_back: 뒤로
+    go_home: 홈으로
+    retry: 다시 시도
     share: 공유
     show_translation: 번역 보기
     show_original: 원문 보기
@@ -234,6 +241,10 @@ common:
     went_back: "{n}초 뒤로"
     went_forward: "{n}초 앞으로"
   message:
+    page_not_found: 주소가 잘못되었거나 삭제된 페이지입니다.
+    no_permission: 이 계정으로는 이 페이지를 볼 수 없습니다.
+    unreachable: 서버에 연결하지 못했습니다.
+    page_failed: 서버가 이 페이지를 불러오지 못했습니다.
     translator_absent: 번역기가 없어 번역할 수 없습니다.
     link_copied: 링크를 복사했습니다.
     preview_badge: 진행 중

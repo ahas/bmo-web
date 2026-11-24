@@ -156,7 +156,9 @@ const ACCOUNTS: readonly [string, string][] = [
   // The administrator whose tab signs out and hands over to a member's login (tests/browser/sign-in-sidebar.test.ts).
   ["sign-in-admin", "fixture-password-5201"],
   // The administrator who resets a person's password on the people tab (tests/browser/account-security.test.ts).
-  ["security-admin", "fixture-password-5100"]
+  ["security-admin", "fixture-password-5100"],
+  // The administrator who opens an address no page answers (tests/browser/error-page.test.ts).
+  ["error-page", "fixture-password-4404"]
 ];
 
 // The account security files' members, by the name and password each signs in with; each keeps the email

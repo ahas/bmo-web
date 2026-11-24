@@ -41,6 +41,10 @@ app:
     accounts_down: 账号服务无响应，目前无法登录。
 common:
   title:
+    page_not_found: 找不到页面
+    no_permission: 没有权限
+    unreachable: 无法连接
+    page_failed: 出错了
     delete_named: "删除{name}"
     discard_changes: 要放弃未保存的更改吗？
     share: 共享
@@ -119,6 +123,9 @@ common:
     view: 查看
     volume: 音量
   action:
+    go_back: 返回
+    go_home: 返回首页
+    retry: 重试
     share: 共享
     show_translation: 查看译文
     show_original: 查看原文
@@ -233,6 +240,10 @@ common:
     went_back: "已后退{n}秒"
     went_forward: "已前进{n}秒"
   message:
+    page_not_found: 地址有误或页面已被删除。
+    no_permission: 此账号无法查看此页面。
+    unreachable: 无法连接到服务器。
+    page_failed: 服务器未能加载此页面。
     translator_absent: 没有可用的翻译器，无法翻译。
     link_copied: 链接已复制。
     preview_badge: 进行中

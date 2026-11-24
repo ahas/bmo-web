@@ -2536,6 +2536,20 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
     which a row of tabs measures its active line again whenever a tab comes or goes and watches the size of
     every tab it holds.
 
+### A page that cannot be shown
+
+- **The console shows bmo-ui's error page, never the framework's** (bmo-ui's `docs/components.md`, "The error
+  page"), and stands no error page of its own. An address under the base path that no page of the console's and
+  no screen a unit brings answers draws it as not found, for a signed-in reader; a reader with no session is
+  taken to the login first (「Access」). A page that throws an error in place of its page draws it the same way,
+  by the error's status: not found, no permission, unreachable or a failure.
+- **It stands alone, with no sidebar and no title bar,** on the screen mode and the theme the reader chose, and
+  speaks the reader's language from the console's pack. Its way to the start, 홈으로, opens the base path, which is
+  each reader's own home (「Access」); its second action is 뒤로 where the reader came from a page of the console,
+  and 다시 시도 where the page may come on a second ask.
+- **A person never reads the server's message or a stack on it.** The development server alone shows them, under
+  a fold below the actions.
+
 ### Home screen
 
 The first place on entering, where what is running on this machine is skimmed a line per branch. Five groups.

@@ -41,6 +41,10 @@ app:
     accounts_down: アカウントサービスが応答しないため、現在ログインできません。
 common:
   title:
+    page_not_found: ページが見つかりません
+    no_permission: 権限がありません
+    unreachable: 接続できません
+    page_failed: エラーが発生しました
     delete_named: "{name}を削除"
     discard_changes: 保存していない変更を破棄しますか？
     share: 共有
@@ -119,6 +123,9 @@ common:
     view: 表示
     volume: 音量
   action:
+    go_back: 戻る
+    go_home: ホームへ
+    retry: 再試行
     share: 共有
     show_translation: 翻訳を表示
     show_original: 原文を表示
@@ -233,6 +240,10 @@ common:
     went_back: "{n}秒戻りました"
     went_forward: "{n}秒進みました"
   message:
+    page_not_found: アドレスが間違っているか、ページが削除されました。
+    no_permission: このアカウントではこのページを表示できません。
+    unreachable: サーバーに接続できませんでした。
+    page_failed: サーバーがこのページを読み込めませんでした。
     translator_absent: 翻訳機がないため翻訳できません。
     link_copied: リンクをコピーしました。
     preview_badge: 進行中

@@ -557,6 +557,9 @@
   오픈그래프, OG.
 - collapse, expand a panel → 닫기, 열기; collapse, expand in place → 축소, 확장. Never 접기, 펴기, 펼치기.
 - the way back to the screen the reader came from → 뒤로. Never 돌아가기, 이전 화면.
+- a page the console cannot show → its case as the title: 페이지를 찾을 수 없습니다, 권한이 없습니다, 연결할 수 없습니다,
+  오류가 발생했습니다, each with one line saying what happened; the way to the console's start → 홈으로, and loading
+  the page again → 다시 시도. Never 404 페이지, 에러, 접근 거부, 오프라인, and never the server's own message.
 - reach a limit → 도달; a match → 일치, 해당; tied to → 연결된. Never 걸리다, 걸린 곳.
 - reach a service → 연결되다: 봇에 연결되지 않아. Never 닿다.
 - request → 요청하다. Never 청하다.

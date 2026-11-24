@@ -41,6 +41,10 @@ app:
     accounts_down: "The account service isn't responding, so you can't sign in right now."
 common:
   title:
+    page_not_found: Page not found
+    no_permission: No permission
+    unreachable: Can't connect
+    page_failed: Something went wrong
     delete_named: "Delete {name}"
     discard_changes: Discard unsaved changes?
     share: Share
@@ -119,6 +123,9 @@ common:
     view: View
     volume: Volume
   action:
+    go_back: Back
+    go_home: Home
+    retry: Try again
     share: Share
     show_translation: Show translation
     show_original: Show original
@@ -233,6 +240,10 @@ common:
     went_back: "Back {n}s"
     went_forward: "Forward {n}s"
   message:
+    page_not_found: The address is wrong or the page was deleted.
+    no_permission: This account can't view this page.
+    unreachable: Couldn't reach the server.
+    page_failed: The server couldn't load this page.
     translator_absent: "No translator is available, so this can't be translated."
     link_copied: Link copied.
     preview_badge: In progress

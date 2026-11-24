@@ -105,8 +105,8 @@
   설정 권한, each row 허용, 막음 or 상위 조직 따름 (전역 설정 따름 on a company), a following row saying 상위 조직을 따라 허용 or
   상위 조직을 따라 막음 (전역 설정을 따라 허용 or 막음 on a company); the platform's own row → 자기 BMO 설정, its choices
   기본값을 따름, 허용 and 막음. Never 개인화 권한, 커스터마이즈.
-- a screen and its tools switched on and off as one → 앱; where they are switched → 앱·도구 on 조직 and 내 앱·도구 in
-  설정. Its state → 켬 or 끔; a unit's choice of it → 켬, 끔 or 상위 조직 따름 (전역 설정 따름 on a company), a following
+- a screen and its tools switched on and off as one → 앱; where they are switched → 앱·도구·스킬 on 조직 and 내 앱·도구·스킬
+  in 설정, a shared skill and MCP server switched there as an app is. Its state → 켬 or 끔; a unit's choice of it → 켬, 끔 or 상위 조직 따름 (전역 설정 따름 on a company), a following
   row saying 상위 조직을 따라 켬 or 전역 설정을 따라 끔; a person's row → 직접 정함 or 조직을 따름, their own word taken
   back by 되돌리기; a unit deciding it for everyone below → 하위 조직 잠금, its undoing 잠금 해제, a row under it saying who
   locks it as every lock line does (below); the platform letting a company use one → 제공, one it does not →
@@ -130,6 +130,17 @@
   공유 중단 (공유 중단됨); a head turning it on for a unit → 조직에 켜기, off → 조직에서 끄기, taking it off every PC there →
   회수; the reviewer's text → 검토 보고서 (검토 중 while it is written); a head's consent → 승인 (승인 대기); the request to
   ship it for every company → 플랫폼 앱 요청; what it asks for → 요구 권한. Never 스토어, 마켓, 배포 for a share, 철회, 롤백.
+- the three kinds the 스토어 shares → 종류: 앱, 스킬 and MCP, every kind at once in its filter → 모든 종류 (MCP 서버 in a
+  sentence and a heading, as 이 MCP 서버의 도구);
+  a skill asking for nothing → 권한 없음, under it 붙인 에이전트에게만 지침으로 쓰입니다; how an MCP server connects → 연결,
+  its 방식 원격 or 내 PC에서 실행, its 주소, 인증 (없음, Bearer 토큰, `{header} 헤더`), 비밀 and 명령; an item's text filled in
+  the other languages by the translator → 다른 언어 채우기, and text a translation wrote → 번역기로 번역됨. Never 기계 번역
+  (기계 is a machine, 「기기」), 자동 번역 for the stored text (that is the browser's own reading on view), 플러그인, 확장.
+- a person's skills kept at home → 내 스킬 (its settings section), 스킬 없음, 새 스킬, 스킬 편집; its parts → 이름, 설명 (what
+  the agent reads to know when to use it), 본문, 참조 파일; where it came from → 직접 만듦 or 스토어에서 설치.
+- giving an agent a skill or an MCP server → 붙이다: 붙인 에이전트, `붙인 에이전트: {agents}`, the agent's control and its
+  form → 스킬·MCP; an agent whose line takes none → `이 에이전트에는 스킬을 붙일 수 없습니다.` Never 연결, 장착, 할당 or 활성화
+  for attaching.
 - the platform's word on an app on 플랫폼 설정 → 전역 설정, its choices 제공 or 제공 안 함 and 켬 or 끔; the platform's word for
   one company or unit → 회사별 제공; a row's line → 모든 회사에 제공 (`{n}곳 제외` after it), `{n}곳에 제공` or 제공하지
   않음, a company or a unit counted by 곳. Turning an app off everywhere at once → 긴급 회수, its question
@@ -762,3 +773,4 @@
 - 인물 (the person an org memory is about) → person / 人物 / 人员.
 - 전역 베이스 → global base / グローバルベース / 全局库.
 - 스토어 → Store / ストア / 应用商店; 회수 → recall / 回収 / 收回; 복제 → clone / 複製 / 复制.
+- 스킬 → skill / スキル / 技能; 붙이다 → attach / 付ける / 附加.

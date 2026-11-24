@@ -7653,13 +7653,14 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
   the dialog's left under the title 설정, each section one line of an icon and its name; the open one
   is marked. The section's own name heads the right, with the dialog's close mark at its right end,
   and its content scrolls under it.
-  - The sections are 계정, 내 에이전트, 기기, 데스크톱, 비밀 보관함, 공급, 내 앱·도구, 내 개인 앱, 테마, 대화방, 알림 and
-    보이스브리핑. A member is shown 계정, 내 에이전트, 기기, 비밀 보관함, 공급, 내 앱·도구, 내 개인 앱, 테마 and 대화방; 데스크톱 stands for any reader, but only in the desktop
+  - The sections are 계정, 내 에이전트, 기기, 데스크톱, 비밀 보관함, 공급, 내 앱·도구·스킬, 내 개인 앱, 내 스킬, 테마, 대화방,
+    알림 and 보이스브리핑. A member is shown 계정, 내 에이전트, 기기, 비밀 보관함, 공급, 내 앱·도구·스킬, 내 개인 앱, 내 스킬, 테마
+    and 대화방; 데스크톱 stands for any reader, but only in the desktop
     app's window (「데스크톱」); 알림 and 보이스브리핑 are the administrator's, since the console rings and plays
     briefings for the administrator alone. A login with no user of the account service, which holds no secret space and no machine, is not
-    shown 기기 or 비밀 보관함, and 내 에이전트, 공급, 내 앱·도구 and 내 개인 앱 are no sections for it either, what they set standing against that
+    shown 기기 or 비밀 보관함, and 내 에이전트, 공급, 내 앱·도구·스킬, 내 개인 앱 and 내 스킬 are no sections for it either, what they set standing against that
     user.
-  - **내 에이전트, 공급 and 내 앱·도구 are doors** (「Doors to the organisation screen」): what they set is the reader's own
+  - **내 에이전트, 공급 and 내 앱·도구·스킬 are doors** (「Doors to the organisation screen」): what they set is the reader's own
     link of settings 조직's tabs draw at every link, so it stands there, at 나, and the section only leads to it.
   - A section's content stands in groups under small headings, each group a column of rows parted by
     hairlines. A row carries its name and, where the name needs it, one muted line under it at the
@@ -7672,7 +7673,7 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
 - **On a narrow screen the dialog fills the screen** and opens on the list of sections alone, over the
   sidebar drawer it was opened from (「Floating things」). A tap on one goes into it: the head then carries
   a back arrow before the section's name, and the arrow or the back gesture returns to the list. The close mark stands at the head's right end on both.
-- **An address opens it at one section:** `?settings=` and a section's key — `account`, `own-agents` (`agent` naming it as well), `machine`, `desktop`, `secrets`, `supply`, `apps`, `theme`,
+- **An address opens it at one section:** `?settings=` and a section's key — `account`, `own-agents` (`agent` naming it as well), `machine`, `desktop`, `secrets`, `supply`, `apps`, `personal-apps`, `skills`, `theme`,
   `palette`, `notifications`, `briefing` — on any address of the console opens the dialog at that
   section, gone into on a narrow screen, and at the first section the reader may open where the key
   names none of them. A member sent on from an address they may not open to their own home is sent with the key, so
@@ -7737,11 +7738,11 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
 
 #### Doors to the organisation screen
 
-내 에이전트, 공급 and 내 앱·도구 are each one row naming a tab of 조직 — 에이전트, 공급 and 앱·도구 — with 열기, which opens that tab
+내 에이전트, 공급 and 내 앱·도구·스킬 are each one row naming a tab of 조직 — 에이전트, 공급 and 앱·도구·스킬 — with 열기, which opens that tab
 with 나 chosen, the dialog left behind as the address moves. Every person with a user of the account service sees them,
 the organisation screen standing for every such reader at 나 whether or not the sidebar lists it. What each sets of the
 reader's own — their BMO and their agents, their own logins, keys and the order their runs fall through, their apps —
-stands in that tab's view of 나 (「Organisation」, 「에이전트」, 「공급」 and 「앱·도구」).
+stands in that tab's view of 나 (「Organisation」, 「에이전트」, 「공급」 and 「앱·도구·스킬」).
 
 #### 기기
 
@@ -7906,14 +7907,17 @@ person sees their own space and nobody else's, the administrator included.
 
 #### 내 개인 앱
 
-The reader's personal apps: tools of their own, which their BMO makes and builds on their PC and their sessions alone
-reach (the agency's `docs/person-nodes.md`, 「Personal apps」). Every person with a user of the account service sees it.
+The reader's personal apps: tools of their own and MCP servers, which their BMO makes and builds on their PC and their
+sessions alone reach, an MCP server only the agents the reader attaches it to (the agency's `docs/person-nodes.md`,
+「Personal apps」). Every person with a user of the account service sees it.
 The console reads and changes them through its own routes (`GET /api/account/personal-apps`, `POST
 /api/account/personal-apps/{name}/back`, `DELETE /api/account/personal-apps/{name}`), which ask the agency for the
 account the reader's user is, so a reader reaches their own apps alone.
 
-- **One row per app,** by its name: its entry's title where it gives one, else its name. Under it, in muted lines,
-  what its entry does, when it was put and its version in the monospace face; then what it may reach beyond its own
+- **One row per app,** by its kind's icon and its name: its entry's title where it gives one, else its name. Under it, in
+  muted lines, its kind, 앱 or MCP, as the agency's answer names it (an app where it names none), what its entry does, when
+  it was put and its version in the monospace face; the name and what it does in another language than the reader's are
+  read through the translator as the 스토어's text is (「App catalogue」), the name following the line over what it does; then what it may reach beyond its own
   data, line by line as 「App catalogue」 words it — 자기 데이터만 사용 where it asks for nothing more.
 - **공유** opens the app's share, a dialog titled 앱 공유 with the app's name under it: three boxes, 팀, 상위 조직장 and 회사
   전체, whom the app is shared with in the reader's company (「App catalogue」), each open as far as the reader's organisation
@@ -7929,6 +7933,36 @@ account the reader's user is, so a reader reaches their own apps alone.
 - **None says 개인 앱 없음.** The rows keep their place with a skeleton while they are first read; a read that failed says
   its reason with 새로고침, and a change refused says its reason under the list, the rows read again.
 - **A change reaches the reader's BMO from its next turn,** as the tool host reads the registry again.
+
+#### 내 스킬
+
+The reader's skills: instructions an agent reads, each a `SKILL.md` and its reference files kept at home, the reader's own
+or a copy installed from the 스토어, reaching only the agents the reader attaches them to (「내 에이전트」; the agency's
+`docs/api.md`, 「personal-skills」). Every person with a user of the account service sees it. The console reads and changes
+them through its own routes (`GET /api/account/personal-skills`, `GET`, `PUT` and `DELETE
+/api/account/personal-skills/{name}`), which ask the agency for the account the reader's user is, so a reader reaches
+their own skills alone; whether they may make one is the delegation chain's `personal-apps.make`, the agency's word.
+
+- **One row per skill,** in the order of their names: the skill's icon and its title in the reader's locale where it
+  carries one, else the maker's, else its name; under it, in muted lines, its summary or else its description, read
+  through the translator where it is in another language than the reader's, where it came from — 직접 만듦 or 스토어에서
+  설치 — and `붙인 에이전트: {agents}` where it is attached to any.
+- **새 스킬**, an icon button at the group's head named by its tooltip, and **편집**, on a skill of the reader's own, open
+  its form, a dialog of its own (「Forms」): 이름, for a new skill alone, a lower-case letter and then lower-case letters, digits and `-`, at most 64, a name
+  off that alphabet or one the reader already holds said under the field; 설명, what the agent reads to know when to use
+  it, which must not be empty; 본문, the instructions, in the monospace face; and 참조 파일, the paths of its other files,
+  listed as they stand and never changed here. 저장 writes the skill through `PUT`: the console's server reads the skill
+  as it stands, writes `SKILL.md` from the form — its YAML front matter, read and written by a YAML library, keeping
+  every key it held and setting `name` and `description`, then the body — and hands the agency every file, the reference
+  files as they stood. A refusal is said in the form: a name an installed copy holds, a skill the agency cannot read, a
+  bundle too large, and the organisation withholding the making.
+- **공유**, on a skill of the reader's own, opens the share as 내 개인 앱's does, titled 스킬 공유, the share naming the
+  kind `skill` and the reader's language (「App catalogue」); one muted line under the list then says it was shared.
+- **삭제** asks first, naming the skill and that it is taken off the agents it is attached to; the reader's own skill is
+  deleted through the agency, an installed copy dropped from the 스토어 (`DELETE
+  /api/account/app-catalogue/{id}/install`) and saying the reader's copy is deleted.
+- **None says 스킬 없음.** The rows keep their place with a skeleton while they are first read; a read that failed says its
+  reason with 새로고침, and a change refused says its reason under the list, the rows read again.
 
 #### 테마
 
@@ -8051,13 +8085,13 @@ settings on the research screen (「Research screen」).
   - **A link naming a person but no organisation** — a person's tab from before the list, the console search's
     person — opens the organisation that person stands in.
 - **Inside the organisation chosen, a tab to a section.** The tabs are 조직도, 사용자, 직책·종류, 초대, 에이전트,
-  앱·도구, 아티팩트 저장, 메일 서버, 비밀 보관함, 조직 기억, 권한, 공급 and 보안, keyed in the address as `?tab=` with
+  앱·도구·스킬, 아티팩트 저장, 메일 서버, 비밀 보관함, 조직 기억, 권한, 공급 and 보안, keyed in the address as `?tab=` with
   `people`, `catalogue`, `invites`, `agents`, `apps`, `storage`, `mail-servers`, `secrets`, `memory`, `permissions`,
   `supply` and `security`, 조직도
   being the organisation's own address; a shared link opens the same tab, moving between tabs is a step of the
   history and keeps the organisation chosen, and a key naming no tab the reader may open opens the first they may.
   Every tab reads and writes the company of the node chosen alone, and a tab that stands for one unit — 조직도,
-  사용자, 초대, 에이전트, 앱·도구, 아티팩트 저장, 메일 서버, 비밀 보관함, 조직 기억, 권한 and 공급 — stands for the node chosen, the company itself where a company is chosen; none of
+  사용자, 초대, 에이전트, 앱·도구·스킬, 아티팩트 저장, 메일 서버, 비밀 보관함, 조직 기억, 권한 and 공급 — stands for the node chosen, the company itself where a company is chosen; none of
   them chooses an organisation or a unit of its own.
   The console search finds each tab as it finds every screen's; the sidebar lists the screen as one entry, 조직, among
   the 시스템 서비스, and the tabs stand in the screen's own row alone (「Sidebar」).
@@ -8068,7 +8102,7 @@ settings on the research screen (「Research screen」).
   of its own that reads and writes that link of the kinds the tab sets — the platform's, the administrator's alone, or
   the reader's own — in the centred reading column; a tab that declares none for the node shows one muted line there,
   이 탭에는 플랫폼 설정이 없습니다 or 이 탭에는 개인 설정이 없습니다, and nothing else. A tab takes a link node on by declaring
-  its view, and nothing outside the tab changes. 에이전트 (「에이전트」), 앱·도구 (「앱·도구」), 비밀 보관함 (「비밀 보관함」) and
+  its view, and nothing outside the tab changes. 에이전트 (「에이전트」), 앱·도구·스킬 (「앱·도구·스킬」), 비밀 보관함 (「비밀 보관함」) and
   공급 (「공급」) declare both, and 조직 기억 (「조직 기억」), 메일 서버 (「메일 서버」) and 보안 (「보안」) declare 플랫폼 전체; 조직도, 사용자, 직책·종류, 초대, 아티팩트 저장
   and 권한 declare neither. An address naming a link node beside a unit loses the unit, replaced with no step.
 - **A lock above the node is said by who holds it.** Wherever a setting stands locked by a link above the node — a
@@ -8083,10 +8117,10 @@ settings on the research screen (「Research screen」).
   rather than stepped, so the back gesture does not return to the old key.
 - **Who opens it.** The administrator opens every tab, and the sidebar lists 조직 for them among the 시스템 서비스. A member who heads a unit may invite into it (`docs/accounts.md`, 「Invitations and a person's
   machine」), sets who under it may personalise their BMO (`docs/accounts.md`, 「A person's BMO profile」) and which
-  apps stand on under it (「앱·도구」), sets the agents of the people under it (「에이전트」) and where their documents are kept
+  apps stand on under it (「앱·도구·스킬」), sets the agents of the people under it (「에이전트」) and where their documents are kept
   (「아티팩트 저장」), sets the mail servers offered to them (「메일 서버」), keeps the unit's secrets (「비밀 보관함」) and gives its
   people console sections (「권한」), so their shell's sidebar lists 조직 under 시스템 서비스 and the screen holds 초대, 에이전트,
-  앱·도구, 아티팩트 저장, 메일 서버, 비밀 보관함, 조직 기억 and 권한, 에이전트, 아티팩트 저장, 메일 서버, 비밀 보관함 and 권한 standing
+  앱·도구·스킬, 아티팩트 저장, 메일 서버, 비밀 보관함, 조직 기억 and 권한, 에이전트, 아티팩트 저장, 메일 서버, 비밀 보관함 and 권한 standing
   where they head a unit of the organisation chosen, and
   사용자 and 직책·종류 where they head a company
   (「사용자」, 「직책·종류」). A member granted a unit's org memory write without heading one (`docs/accounts.md`, 「A unit's
@@ -8757,10 +8791,19 @@ by the agency for them; the console decides none of it.
   변경 opening a form of one text of several lines held to the agency's ceiling, its count shown under it. 저장 writes the
   instructions whole. Withheld, the rows stand with 변경 disabled and a line saying `내 지침: 조직이 정함 · {unit}`; what the
   reader wrote stays kept and is given to no agent until it is allowed again.
+- **스킬·MCP**, on each of the reader's supervisors and each agent they hold, opens what that agent is given beyond its
+  line, read as the view opens through the console's `GET /api/account/attachments` (the agency's `docs/api.md`,
+  「attachments」): a dialog of two groups of boxes, 스킬 and MCP 서버, each the reader's own and installed items by their
+  title in the reader's locale, else the maker's, else the name, with 직접 만듦 or 스토어에서 설치 under each, checked where
+  the agent holds it. A group the agent's line takes none of (`takes`) stands disabled with one line saying so, `이
+  에이전트에는 스킬을 붙일 수 없습니다.` or its MCP 서버 sentence. 저장 writes both groups whole through `PUT
+  /api/account/attachments/{kind}/{name}`, `kind` `supervisor` or `agent`, and closes the dialog; the agency's refusal
+  that the line takes none of a kind is said in the form by that kind's sentence, the choice kept. An agent the agency
+  names no holder for carries no 스킬·MCP, and a read that failed leaves every agent without one.
 - **A change reaches the agents at once:** a road and a switch at the agent's next run, instructions at each agent's next
-  turn. A read that failed says its reason with 새로고침, and a refused act is said under the list, which is read again.
+  turn, an attached skill or MCP server at the agent's next turn. A read that failed says its reason with 새로고침, and a refused act is said under the list, which is read again.
 
-#### 앱·도구
+#### 앱·도구·스킬
 
 Which apps stand on for the people under the node chosen (「Screens a unit brings」; `docs/accounts.md`, 「An app's two
 settings」). It is the one screen where an app is set for the platform, a company or a unit: the node is chosen in the
@@ -8786,8 +8829,11 @@ through routes of the same set naming the platform in the unit's place, the admi
   - **제공**, a switch the administrator alone is shown, offers the app to the node or withholds it: the platform's
     rule for that unit (`docs/accounts.md`, 「Rules and groups」), so no head below it can offer it back.
   - Controls the reader may not change — a lock above, a link they do not write — stand disabled.
-- **A company's own shared app** (「App catalogue」) stands on a unit's row as every app does, and what a head does
-  there reaches its people's PCs (the agency's `docs/person-nodes.md`, 「Shared apps」):
+- **A company's own shared app** (「App catalogue」) — an app, a skill or an MCP server — stands on a unit's row as every
+  app does, its kind's icon in place of a screen's, its title the catalogue's where it has no screen of its own, and its
+  kind's word, 앱, 스킬 or MCP, before its state line, read off the company's catalogue as the reader reads it; one the
+  catalogue does not hold for the reader stands as an app with no screen. What a head does there reaches its people's
+  PCs and, for a skill, their skill stores (the agency's `docs/person-nodes.md`, 「Shared apps」):
   - **켬** asks the agency to turn the app on for the unit, with the row's lock, so every member's PC under it installs
     a copy, at once or as it is next heard; 끔, 상위 조직 따름 and the lock alone are written on the chain as for every
     app, the copies staying where the chain withholds them.
@@ -9309,9 +9355,12 @@ a row shows of a key is the secret's name, and of a login the path it is reached
 
 ### App catalogue
 
-The 스토어: the personal apps people of the reader's company share (the agency's `docs/person-nodes.md`, 「Shared apps」): each one
-another person's BMO made on their PC and shared into the company's catalogue, which the reader installs on their own PC,
-a head turns on for a unit and recalls there on 조직's 앱·도구 (「앱·도구」). Nothing of another company stands in it. It stands at `/app-catalogue` in
+The 스토어: what people of the reader's company share (the agency's `docs/person-nodes.md`, 「Shared apps」), of three kinds —
+a personal app another person's BMO made on their PC, a skill, the instructions an agent reads kept at home, and an MCP
+server, put on a PC as a personal app is and reaching a remote server or running one there. The reader installs one for
+themselves, a head turns it on for a unit and recalls it there on 조직's 앱·도구·스킬 (「앱·도구·스킬」); a skill and an
+MCP server reach only the agents the reader attaches them to (「내 에이전트」). Every mechanism below holds for every kind
+unless it says otherwise. Nothing of another company stands in it. It stands at `/app-catalogue` in
 the sidebar's 시스템 서비스 as 스토어 and opens to every person with a user of the account service; the console reads and changes it
 through its own routes under `/api/account/app-catalogue`, which ask the agency for the account the reader's user is,
 so a reader sees and does what their own account may alone, and the agency's word is what every control shows.
@@ -9319,39 +9368,63 @@ so a reader sees and does what their own account may alone, and the agency's wor
 - **Every reader reads their own company's catalogue,** the administrator theirs as any member does: the console's
   server names the administrator's home company to the agency on every read and act of theirs, since the agency
   answers the administrator's account an empty catalogue where no company is named. Another company's shared apps
-  are turned on and recalled for its units on 조직's 앱·도구 at that company's nodes (「앱·도구」), and recalled
+  are turned on and recalled for its units on 조직's 앱·도구·스킬 at that company's nodes (「앱·도구·스킬」), and recalled
   everywhere at 플랫폼 전체; no second choice of an organisation stands here.
-- **A search and a filter stand over the list,** on one row: 앱 찾기, matching an app's title, its description and its
-  name as the reader types, and 공유 범위 — 전체, 팀, 상위 조직장, 회사 전체 and 직접 지정 — leaving the apps shared with
-  that scope, 직접 지정 being those shared with a person, a group or a unit by name.
+- **A search and two filters stand over the list,** on one row at a desk and the filters on a row of their own under the
+  search on a phone: 앱 찾기, matching an item's title, its description and its name, the maker's and those of the
+  reader's language alike, as the reader types; 공유 범위 — 전체, 팀, 상위 조직장, 회사 전체 and 직접 지정 — leaving the items
+  shared with that scope, 직접 지정 being those shared with a person, a group or a unit by name; and 종류 — 모든 종류, 앱,
+  스킬 and MCP — leaving the items of that kind.
 - **알림 stands above the list where the reader has any,** one row each with 보기, which opens the app: an app shared
   with the reader since they last looked, `{app} 앱이 공유되었습니다.`; a copy waiting for them to confirm what its new
   version asks for, `{app} 업데이트에 확인이 필요합니다.`; and a version waiting for their approval as a head,
   `{app} 앱이 승인을 기다립니다.`. 모두 확인 beside the heading keeps that they looked, and the shared ones go.
-- **One row per app,** in the order of their titles, a press opening its details: its title, and under it who made it
-  and what it does; then its states as icons, each named by its tooltip — 공유 중단됨, 승인 대기, 업데이트 있음, and
-  설치됨 or 조직에서 설치 where the reader holds a copy — and how many installed it, in a column of its own at the row's
-  end. None says 공유된 앱 없음. The rows keep their place with a
+- **One row per item,** in the order of their titles, a press opening its details: its kind's icon, named by its
+  tooltip; its title, and under it its kind's word, who made it and what it does; then its states as icons, each named by
+  its tooltip — 번역기로 번역됨 where the text the reader reads was written by a translation, 공유 중단됨, 승인 대기, 업데이트
+  있음, and 설치됨 or 조직에서 설치 where the reader holds a copy — and how many installed it, in a column of its own at the
+  row's end. None says 공유된 앱 없음. The rows keep their place with a
   skeleton while they are first read, and a read that failed says its reason with 새로고침.
-- **The details open in a dialog titled with the app's name:** its description; 만든 사람, 버전, 공유 시각, 설치 and
+- **An item's text is read in the reader's language.** Its title and description stand in the reader's locale where the
+  item carries that locale's text (its `titles` and `descriptions`), marked 번역기로 번역됨 where a translation wrote it
+  (`machine`); where it carries none, the maker's text is read through the console's translator on view, exactly as a
+  text a worker wrote is (「The original, and its translation in its place」), with the same reading kept for the tab and
+  the same browser choice of reading on opening: a row stands the reading in the original's place where the browser
+  reads on opening, and the details carry the line with 원문 보기 and 번역 보기 over the description, the title following
+  it. The review report is read the same way. Nothing a reader reads is written back into the item.
+- **The details open in a dialog titled with the item's name:** its description; 종류, 만든 사람, 버전, 공유 시각, 설치 and
   공유 대상 as a list of names and values, with a menu beside it of the acts the reader may take besides installing;
-  요구 권한, what the app may reach beyond its own data, line by line (below); 조직에서 설정 for a head; 검토 보고서, the review
-  the agency's reviewer wrote, drawn as markdown as every written report in the console is, 검토 중 while it is written;
-  and 원본, whose 원본 보기 reads the version's source and shows
-  every file under its path in a coloured code block. 설치, or 업데이트 where the reader's copy has a newer version, stands
-  in the dialog's foot. What the reader may do is the agency's word alone.
-  - **설치** asks first, naming the app, what it asks for in the same lines as plain text and that the reader's PC
-    fetches its source and builds it with its data staying there; then the copy is installed.
-  - **업데이트** moves the reader's copy onto the newest version, asked first, saying where the new version asks for more
+  for an MCP server, 연결 (below); 요구 권한, what the item may reach beyond its own data, line by line (below), and for a
+  skill 권한 없음 with, muted under it, that it is used as instructions by the agents it is attached to alone; 조직에서 설정
+  for a head; 검토 보고서, the review the agency's reviewer wrote, drawn as markdown as every written report in the console
+  is, 검토 중 while it is written; and 원본, whose 원본 보기 reads the version's source and shows every file under its
+  path in a coloured code block — a skill's `SKILL.md` and every reference file of it. 설치, or 업데이트 where the reader's
+  copy has a newer version, stands in the dialog's foot. What the reader may do is the agency's word alone.
+  - **연결**, an MCP server's, read from its newest version's `mcp.toml` as the details open (bmo-pocket's
+    `docs/catalogue.md`): 방식 원격, its 주소 in the monospace face, 인증 — 없음, Bearer 토큰 or the header's name with 헤더 —
+    and 비밀, the name of the secret it reads in the reader's own 비밀 보관함, with 비밀 보관함에 없음 and the name in the
+    warning colour where the reader's space does not hold it; or 방식 내 PC에서 실행 and its 명령 in the monospace face.
+    The console's server reads it through `GET /api/account/app-catalogue/{id}/connection`, the source's `mcp.toml` read
+    as TOML; a source holding none that reads says it could not be read.
+  - **설치** asks first, naming the item and what it asks for in the same lines as plain text, then what installing it
+    does: for an app, that the reader's PC fetches its source and builds it with its data staying there; for a skill,
+    that it is kept by BMO and only the agents the reader attaches it to use it; for an MCP server, that it is installed
+    on the reader's PC and only the agents the reader attaches it to use its tools. Each kind's question is titled with
+    its own word: 앱을, 스킬을 or MCP 서버를 설치할까요?. Then the copy is installed.
+  - **업데이트** moves the reader's copy onto the newest version, asked first under its kind's own title, saying where the new version asks for more
     than the copy did; a version asking for nothing more reaches the copy by itself as the reader's PC is next heard.
   - **The menu** holds 승인, which approves the newest version, for a head of the maker's unit where the organisation
     asks for one; 복제, which makes the copy the reader's own personal app, receiving no update again; 플랫폼 앱 요청,
-    which asks the administrator to make it a platform app; and, in the error colour, 삭제, which takes the copy off the
+    which asks the administrator to make it a platform app; 다른 언어 채우기, for the maker, the owner and a head of the
+    maker's unit where the agency's `may.translate` says so, which has the agency write the text of every one of the
+    console's four languages the item lacks through its translator, each marked as a translation's, answered with the
+    item as it then stands (`POST /api/account/app-catalogue/{id}/translate`); and, in the error colour, 삭제, which takes the copy off the
     reader's PC, its data staying there, and 공유 중단, the owner's or the maker's, saying nobody installs it from then
-    and every copy goes on. Each but 승인 asks first, and a lock of the organisation's refuses 복제 and 삭제.
+    and every copy goes on. Each but 승인 and 다른 언어 채우기 asks first, and a lock of the organisation's refuses 복제 and
+    삭제.
   - **조직에서 설정**, for a head: one row naming the nearest unit they head on their path with 열기, a door to 조직's
-    앱·도구 at that unit, the dialog closing as it is followed, where the app is turned on, locked and recalled for a
-    unit like every other app (「앱·도구」).
+    앱·도구·스킬 at that unit, the dialog closing as it is followed, where the app is turned on, locked and recalled for a
+    unit like every other app (「앱·도구·스킬」).
   - A refusal is said in the dialog under the acts, and every act answers the app as it then stands.
 - **What an app may reach is said plainly, line by line,** wherever it is shown — the details, the questions of 설치
   and 업데이트, and 내 개인 앱 (「Settings」) — for the reader's own PC (the agency's `docs/person-nodes.md`, 「The network and
@@ -9375,7 +9448,7 @@ so a reader sees and does what their own account may alone, and the agency's wor
 delegation chain: the providers every run goes out on, switched on and off with what they have left, the secrets the
 agency's provider tools read, how often the agency puts every waiting commit live, which operating notices the
 owner's private chat is told, and the kinds every person's secret form asks in. What the platform sets on the chain
-stands on 조직 with 플랫폼 전체 chosen (「Organisation」): the apps every company is offered and their recall on 앱·도구, the
+stands on 조직 with 플랫폼 전체 chosen (「Organisation」): the apps every company is offered and their recall on 앱·도구·스킬, the
 agents' defaults on 에이전트, and its supply — the default policy, the plans it sells, its credits, its own keys and
 Claude accounts — on 공급. No member opens it.
 
@@ -9383,7 +9456,7 @@ Claude accounts — on 공급. No member opens it.
   `secret-kinds` and `mail`, 공급자 being the screen's own address; a shared link opens the same tab, moving between tabs is a step
   of the history, and a key naming no tab opens the first. The console search finds each tab as it finds every
   screen's. A link to `/organization` naming `providers` or `secret-kinds` lands on the same tab here, and a link here
-  naming `apps` lands on 조직's 앱·도구 with 플랫폼 전체 chosen, and one naming `plans` or `credits` on its 공급, the
+  naming `apps` lands on 조직's 앱·도구·스킬 with 플랫폼 전체 chosen, and one naming `plans` or `credits` on its 공급, the
   address replaced rather than stepped.
 - **Who opens it.** The administrator alone, and the sidebar lists 플랫폼 설정 for them after 조직; a member is listed
   no entry, and the address takes them home as any screen they may not open does.
@@ -10410,9 +10483,9 @@ title bar」), its people directory and the members of the reader's company.
     `app-off` and the pack's sentence saying the organisation's setting turned the app off. A screen already open
     meets that refusal at its next call, and its address, opened again, leads a member to their home as any address
     they may not open does (「Access」).
-  - **Where an app is turned on and off** is 「Organisation」's 앱·도구 tab alone, one node of the tree at a time: the
+  - **Where an app is turned on and off** is 「Organisation」's 앱·도구·스킬 tab alone, one node of the tree at a time: the
     platform, with its recall, a company or a unit and those under it, and the reader's own at 나, the settings
-    dialog's 내 앱·도구 being a door to it.
+    dialog's 내 앱·도구·스킬 being a door to it.
 - **A screen's module is loaded the first time its path is opened.** The browser reads the module through the
   relay and, before it runs, points every import of a shared library at the console's own copy. A file of the
   bundle the module imports is read the same way, one imported only when it is reached at the moment it is

@@ -1,8 +1,8 @@
 <template>
   <!-- The organisation screen's org memory tab (docs/web.md, 「Organisation」, the org memory tab): one unit's
        memory, which every agent serving its people and the people under it is given — its own memories, the
-       proposals waiting on it, the memories of the units above it, and, for a head, who may write it without
-       heading it. -->
+       proposals waiting on it, the memories of the units above it, for a head who may write it without heading it,
+       and whether the base and the org brains are read for its people. -->
   <div class="flex flex-col gap-4">
     <ContentSkeleton v-if="!answered" :rows="1" list-class="flex flex-col divide-y divide-default" :label="$t('org_memory.status.loading')">
       <div class="flex items-center gap-4 py-3">
@@ -105,6 +105,8 @@
             <p v-if="writersFailure !== ''" role="alert" class="break-words py-3 text-sm text-error">{{ writersFailure }}</p>
           </template>
         </SettingsGroup>
+
+        <BrainLayersGroup :unit="unit" />
 
         <p v-if="failure !== ''" role="alert" class="break-words text-sm text-error">{{ failure }}</p>
       </template>

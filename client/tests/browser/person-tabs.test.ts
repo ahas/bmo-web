@@ -7,9 +7,10 @@ import { wording } from "../../apps/web/shared/wording";
 import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 
 // One person on the organisation screen's people tab stands as a head over a row of tabs, one tab a part of what is
-// theirs, the address naming the tab open; the sections a person may use are set on their permissions tab, which a link to the
-// screen's old permissions tab lands on, and which, with the activity tab, stands for the administrator alone (docs/web.md,
-// 「Organisation」, the people tab). Read at a desk's width and a phone's, by the administrator and by a company head.
+// theirs, the address naming the tab open, and the activity tab standing for the administrator alone; a link to the
+// person's old permissions tab lands on the organisation's permissions tab with the person open, where their sections are
+// set (docs/web.md, 「Organisation」, the people and permissions tabs). Read at a desk's width and a phone's, by the
+// administrator and by a company head.
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up.
 
@@ -20,13 +21,12 @@ const HEAD = { name: "person-tabs-head", password: "fixture-password-3364" };
 const SUBJECT = "person-tabs-subject";
 const RUN = Date.now().toString(36);
 
-const ADMINISTRATOR_TABS = ["settings.label.account", "people.label.organization", "settings.label.permissions", "settings.label.bmo", "supply.label.tab", "roster.label.activity"];
+const ADMINISTRATOR_TABS = ["settings.label.account", "people.label.organization", "settings.label.bmo", "supply.label.tab", "roster.label.activity"];
 const HEAD_TABS = ["settings.label.account", "people.label.organization", "settings.label.bmo"];
 // Each tab's key in the address, the first standing as none, and what it shows once open.
 const PANES: readonly { key: string | null; label: string; shows: string }[] = [
   { key: null, label: "settings.label.account", shows: "[data-person-account]" },
   { key: "organization", label: "people.label.organization", shows: "[data-roster-history]" },
-  { key: "permissions", label: "settings.label.permissions", shows: "[data-permissions-table]" },
   { key: "bmo", label: "settings.label.bmo", shows: "[data-person-bmo]" },
   { key: "activity", label: "roster.label.activity", shows: "[data-roster-runs], [data-person-activity] p" }
 ];
@@ -126,14 +126,6 @@ async function landed(page: Page, user: string | null, pane: string | null): Pro
   );
 }
 
-// An organisation chosen from the tree: beside the organisation at a desk's width, in its drawer on a phone.
-async function choose(page: Page, width: number, company: number): Promise<void> {
-  if (width < 640) await page.locator("[data-choice-sidebar-open]").click();
-
-  await page.locator(`[data-choice-tree-row="number:${company}"]`).click();
-  await page.waitForURL((url) => url.searchParams.get("company") === String(company), { timeout: 20_000 });
-}
-
 // The region the person scrolls in: beside the list at a desk's width, over it on a phone.
 function region(page: Page, width: number): Locator {
   return width >= 1024 ? page.locator("[data-roster-person-region]") : page.locator("[data-roster-person-sheet] > div");
@@ -147,33 +139,6 @@ async function find(page: Page, user: string, words = "person-tabs-"): Promise<v
 
   await row.waitFor({ timeout: 20_000 });
   await row.click();
-}
-
-// Where the permissions table stood on every frame since the page began: on any frame it stood at all, and on those its
-// sections' names stood on.
-declare global {
-  interface Window {
-    tableTops?: { any: number[]; named: number[] };
-  }
-}
-
-function watchTable(): void {
-  const tops = { any: [] as number[], named: [] as number[] };
-  const look = (): void => {
-    const table = document.querySelector("[data-permissions-table]");
-
-    if (table !== null) {
-      const top = Math.round(table.getBoundingClientRect().top);
-
-      tops.any.push(top);
-      if (table.querySelector("[data-permission-label]") !== null) tops.named.push(top);
-    }
-
-    requestAnimationFrame(look);
-  };
-
-  window.tableTops = tops;
-  requestAnimationFrame(look);
 }
 
 // An element's ground at rest, under the pointer and pressed, the press let go away from it so it opens nothing.
@@ -206,17 +171,17 @@ describe.skipIf(!origin || !touchReady())("one person's tabs on the people tab",
       try {
         const page = await context.newPage();
 
-        // A link to the screen's old permissions tab lands on the person it named, at their permissions tab, and the
-        // sections stand there.
-        await page.goto(`${origin}/organization?tab=permissions&user=${subject}`, { waitUntil: "load" });
-        await landed(page, subject, "permissions");
-        await standing(page);
-        expect(await paneNames(page)).toEqual(ADMINISTRATOR_TABS.map((key) => wording(key)));
-        await opened(page, "settings.label.permissions");
-        await page.locator("[data-permissions-table]").waitFor({ timeout: 20_000 });
+        // A link to the person's old permissions tab lands on the organisation's permissions tab with them open, and
+        // their sections stand there.
+        await page.goto(`${origin}/organization?tab=people&company=${company}&user=${subject}&pane=permissions`, { waitUntil: "load" });
+        await page.waitForURL((url) => url.searchParams.get("tab") === "permissions" && url.searchParams.get("user") === subject, { timeout: 20_000 });
+
+        const table = page.locator(`[data-org-permission-person="${subject}"] [data-permissions-table]`);
+
+        await table.waitFor({ timeout: 20_000 });
 
         // A switch changed is saved as it is made, and stands so on the service; changed back, it stands as before.
-        const first = page.locator('[data-permissions-table] [role="switch"]').first();
+        const first = table.locator('[role="switch"]').first();
         const before = (await first.getAttribute("aria-checked")) === "true";
         const held = async (): Promise<string> => JSON.stringify(await administer<unknown>(`/api/users/${subject}/sections`, "GET"));
         const stood = await held();
@@ -229,6 +194,15 @@ describe.skipIf(!origin || !touchReady())("one person's tabs on the people tab",
           expect(await first.getAttribute("aria-checked")).toBe(String(want));
           expect((await held()) === stood).toBe(want === before);
         }
+
+        // The person on the people tab, their tabs standing without the sections, read in a window short enough that their
+        // account runs past the region.
+        await page.goto(`${origin}/organization?tab=people&company=${company}&user=${subject}`, { waitUntil: "load" });
+        await landed(page, subject, null);
+        await standing(page);
+        expect(await paneNames(page)).toEqual(ADMINISTRATOR_TABS.map((key) => wording(key)));
+        await page.locator("[data-person-account]").first().waitFor({ timeout: 20_000 });
+        await page.setViewportSize({ width, height: 320 });
 
         // The row stays at the top of the region once the head has scrolled away, its hairline from edge to edge.
         const scroller = region(page, width);
@@ -258,6 +232,7 @@ describe.skipIf(!origin || !touchReady())("one person's tabs on the people tab",
         expect(Math.abs(stuck.top)).toBeLessThanOrEqual(1);
         expect(Math.abs(stuck.left)).toBeLessThanOrEqual(1);
         expect(Math.abs(stuck.right)).toBeLessThanOrEqual(1);
+        await page.setViewportSize({ width, height });
 
         // Every tab opens with a step of the history, its key in the address, and stands at the top of what it shows,
         // the open tab in the row's view.
@@ -294,59 +269,13 @@ describe.skipIf(!origin || !touchReady())("one person's tabs on the people tab",
         await landed(page, head, "activity");
         await opened(page, "roster.label.activity");
 
-        // The settings dialog's old permissions key lands on the people tab with the permissions tab kept for the person chosen
-        // next.
+        // The settings dialog's old permissions key lands on the organisation's permissions tab.
         await page.goto(`${origin}/?settings=permissions`, { waitUntil: "load" });
-        await landed(page, null, "permissions");
+        await page.waitForURL((url) => url.pathname.endsWith("/organization") && url.searchParams.get("tab") === "permissions" && !url.searchParams.has("settings"), { timeout: 20_000 });
         await standing(page);
-        // The key names no person, so it lands on the first organisation; the person's own is chosen from the list.
-        await choose(page, width, company);
-        await find(page, subject);
-        await landed(page, subject, "permissions");
-        await opened(page, "settings.label.permissions");
 
         // Nothing runs past the screen's edge sideways.
         expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
-      } finally {
-        await context.close();
-      }
-    }, 120_000);
-
-    test(`a platform administrator's note stands before their sections do, at ${width}px`, async () => {
-      const context = await contextFor(ADMINISTRATOR.name, width, height);
-
-      try {
-        const page = await context.newPage();
-        const administrator = (await administer<{ user: string; name: string }[]>("/api/users", "GET")).find((one) => one.name === ADMINISTRATOR.name)!.user;
-        const settled = async (): Promise<{ any: number[]; named: number[] }> => {
-          await page.locator("[data-permissions-administrator]").waitFor({ timeout: 20_000 });
-          await page.locator('[data-permissions-table] [role="switch"]').first().waitFor({ timeout: 20_000 });
-          await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-
-          return await page.evaluate(() => window.tableTops!);
-        };
-
-        await page.addInitScript(watchTable);
-
-        // Opened from the list, whose row says the person is a platform administrator, the note stands with the table's
-        // first frame, so the table never moves.
-        await page.goto(`${origin}/organization?tab=people&pane=permissions`, { waitUntil: "load" });
-        await standing(page);
-        await find(page, administrator, ADMINISTRATOR.name);
-        await landed(page, administrator, "permissions");
-
-        const listed = await settled();
-
-        expect(listed.any.length).toBeGreaterThan(0);
-        expect(new Set(listed.any).size).toBe(1);
-
-        // Opened by its address, the sections' names stand only once the note is settled, and stay where they stood.
-        await page.goto(`${origin}/organization?tab=people&user=${administrator}&pane=permissions`, { waitUntil: "load" });
-
-        const linked = await settled();
-
-        expect(linked.named.length).toBeGreaterThan(0);
-        expect(new Set(linked.named).size).toBe(1);
       } finally {
         await context.close();
       }
@@ -426,16 +355,18 @@ describe.skipIf(!origin || !touchReady())("one person's tabs on the people tab",
       try {
         const page = await context.newPage();
 
-        // A tab the head may not open is taken off the address, and the person opens at the account tab with no permissions or activity tab.
-        for (const old of [`/organization?tab=people&user=${subject}&pane=permissions`, `/organization?tab=permissions&user=${subject}`]) {
-          await page.goto(`${origin}${old}`, { waitUntil: "load" });
-          await landed(page, subject, null);
-          await standing(page);
-          expect({ old, tabs: await paneNames(page) }).toEqual({ old, tabs: HEAD_TABS.map((key) => wording(key)) });
-          await opened(page, "settings.label.account");
-        }
+        // The person's old permissions tab leads the head to the organisation's permissions tab with the person open, whose
+        // sections a head sets within their own.
+        await page.goto(`${origin}/organization?tab=people&company=${company}&user=${subject}&pane=permissions`, { waitUntil: "load" });
+        await page.waitForURL((url) => url.searchParams.get("tab") === "permissions" && url.searchParams.get("user") === subject, { timeout: 20_000 });
+        await page.locator(`[data-org-permission-person="${subject}"] [data-permissions-table]`).waitFor({ timeout: 20_000 });
 
-        expect(await page.locator("[data-permissions-table]").count()).toBe(0);
+        // A tab the head may not open is taken off the address, and the person opens at the account tab with no activity tab.
+        await page.goto(`${origin}/organization?tab=people&company=${company}&user=${subject}&pane=activity`, { waitUntil: "load" });
+        await landed(page, subject, null);
+        await standing(page);
+        expect(await paneNames(page)).toEqual(HEAD_TABS.map((key) => wording(key)));
+        await opened(page, "settings.label.account");
 
         // The head marks the person left from the management menu, asked first; Back on the question leaves them as
         // they stood (docs/web.md, 「Organisation」, the people tab).

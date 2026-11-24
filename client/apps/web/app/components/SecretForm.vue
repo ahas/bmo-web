@@ -94,9 +94,11 @@ interface Props {
   kinds: readonly SecretKind[];
   // The secrets the store holds, so a name standing already asks for replacing.
   secrets: readonly KeptSecret[];
+  // The route the value is written through: the reader's own space's, or an organisation unit's.
+  target?: string;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), { target: "/api/secrets" });
 const emit = defineEmits<{ saved: [kept: KeptSecret, kind: string]; kindAdded: [kind: SecretKind] }>();
 const open = defineModel<boolean>("open", { default: false });
 
@@ -285,7 +287,7 @@ async function submit(): Promise<void> {
     const asked = { name: form.name, value: file.value, encoding: file.encoding, replace: standing.value && form.replace };
 
     try {
-      const kept = await $fetch<KeptSecret>("/api/secrets", { method: "POST", body: asked });
+      const kept = await $fetch<KeptSecret>(props.target, { method: "POST", body: asked });
 
       forgetValues();
       emit("saved", kept, words);

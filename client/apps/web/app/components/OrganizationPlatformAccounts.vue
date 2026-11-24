@@ -1,7 +1,7 @@
 <template>
   <!-- The platform's own credentials on the supply tab with the platform chosen (docs/web.md, 「Organisation」, the
        supply tab): the keys the providers read from a file of the platform administrator's secret space, each held or
-       not with the way to set it, then the Claude accounts in the order the Claude Code provider walks them, each
+       not with the way to set it on the secrets tab at the platform, the one place the platform's secrets are kept, then the Claude accounts in the order the Claude Code provider walks them, each
        saying whose it is, a new one added from the group's heading. No key, token or credential is read here. -->
   <div class="flex flex-col gap-4" data-platform-credentials>
     <SettingsGroup :title="$t('supply.title.platform_keys')" data-platform-keys>
@@ -14,11 +14,9 @@
           <span v-if="keyOf(one.keyFile!) !== null" class="break-words text-sm tabular-nums text-muted">{{ $t("agents.label.key_held", { time: formatStamp(Math.floor(keyOf(one.keyFile!)!.changedAt / 1000)) }) }}</span>
           <span v-else class="break-words text-sm text-warning">{{ $t("agents.label.key_missing") }}</span>
         </template>
-        <UButton color="neutral" variant="outline" :label="$t('agents.action.key_set')" @click="keyFor = one" />
+        <UButton color="neutral" variant="outline" :label="$t('agents.action.key_set')" :to="keyAddress(one.keyFile!)" data-provider-key-set />
       </SettingsRow>
     </SettingsGroup>
-
-    <ProviderKeyDialog v-if="keyFor !== null && keyFor.keyFile !== null" v-model:open="keyOpen" :label="keyFor.label" :file="keyFor.keyFile" @kept="keyKept" />
 
     <AgentsAccounts v-if="fallback.accounts.length > 0 || fallbackStatus === 'success'" :accounts="fallback.accounts" :reread="rereadFallback" :usage="accountsUsage" :names="names" />
     <SettingsGroup v-else :title="$t('agents.title.accounts')">
@@ -35,15 +33,16 @@ import { formatStamp } from "bmo-ui/app/domain/time";
 
 import { emptyFallbackView } from "~/domain/agent-settings";
 import { useProviders } from "~/domain/axes";
+import { PLATFORM_NODE, organizationLinkAddress } from "~/domain/organization";
+import { API_KEY_KIND } from "~/domain/secret-form";
 import { useAccountNames } from "~/domain/nodes";
 import { usageGroups } from "~/domain/usage";
 import { useUsageRead } from "~/domain/usage-read";
 
-import type { ProviderView } from "#shared/axes";
 import type { FallbackView, SecretList } from "#shared/types";
 import type { UsageFiguresRead } from "~/domain/usage";
 
-const { data: providers, refresh } = useProviders();
+const { data: providers } = useProviders();
 const { names } = useAccountNames();
 const { data: fallback, refresh: refreshFallback, status: fallbackStatus } = useFetch<FallbackView>("/api/fallback", { key: "fallback", lazy: true, server: false, default: emptyFallbackView });
 
@@ -59,23 +58,18 @@ const accountsUsage = computed<UsageFiguresRead>(() => ({ groups: usageGroups(us
 const keyed = computed(() => (providers.value ?? []).filter((one) => one.keyFile !== null));
 
 // The administrator's secrets by name, to say whether a provider's key file stands; none until read.
-const { data: secrets, refresh: refreshSecrets } = useFetch<SecretList>("/api/secrets", { key: "provider-keys", lazy: true, server: false });
+const { data: secrets } = useFetch<SecretList>("/api/secrets", { key: "provider-keys", lazy: true, server: false });
 
 function keyOf(file: string): { changedAt: number } | null {
   return secrets.value?.secrets.find((one) => one.name === file) ?? null;
 }
 
-// The provider whose key is being set, its dialog open while it is.
-const keyFor = ref<ProviderView | null>(null);
-const keyOpen = computed({
-  get: () => keyFor.value !== null,
-  set: (open: boolean) => {
-    if (!open) keyFor.value = null;
-  }
-});
+// Where a provider's key is set: the organisation screen's secrets tab at the platform, the one place the platform's
+// secrets are kept, with the secret form open on the file's name in the kind of an API key (docs/web.md,
+// 「Organisation」, the supply tab and the secrets tab).
+function keyAddress(file: string): { path: string; query: Record<string, string> } {
+  const tab = organizationLinkAddress(PLATFORM_NODE, {}, "secrets");
 
-// A key kept: the files and the providers read again, so the row says the key stands and its reason clears.
-async function keyKept(): Promise<void> {
-  await Promise.all([refreshSecrets(), refresh()]);
+  return { path: tab.path, query: { ...(tab.query as Record<string, string>), secret: file, kind: API_KEY_KIND } };
 }
 </script>

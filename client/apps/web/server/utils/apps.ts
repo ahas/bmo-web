@@ -3,6 +3,7 @@ import { spokenLanguage, wording, WORDING_LANGUAGE } from "#shared/wording";
 import { AccountRefusal, chainEntry, chainKinds, homeUnit, resolveChain, setChainDelegation, setChainRules, setChainValue, unitView } from "./account-service";
 import { appKind, appOfKind } from "./app-gate";
 import { unitNamed } from "./chain-names";
+import { recallSharedApp, turnOnSharedApp } from "./app-catalogue";
 import { wordAt } from "./bundle-notices";
 import { attachedService } from "./console-manifests";
 import { fail } from "./fail";
@@ -173,6 +174,7 @@ export async function unitApps(unit: number, signed: SignedIn): Promise<UnitApp[
         lockedAbove,
         locker: await unitNamed(lockedBy),
         writable: entry?.writable === true && !lockedAbove,
+        shared: sharedAppCompany(app) !== null,
         ...offer
       };
     })
@@ -188,8 +190,11 @@ export async function changeUnitApp(unit: number, app: string, change: UnitAppCh
   const link = `unit:${unit}`;
   const onKey = appKind(app, "on");
 
+  const shared = sharedAppCompany(app);
+  const company = shared === null ? null : (await unitView(unit)).company.id;
+
   // Another company's shared app is no app of the unit's: it is never shown there, and never written there.
-  if (sharedAppCompany(app) !== null && sharedAppCompany(app) !== (await unitView(unit)).company.id) throw fail(404, wording("apps.error.no_app"));
+  if (shared !== null && shared !== company) throw fail(404, wording("apps.error.no_app"));
 
   if (change.offer !== undefined) {
     if (!signed.administrator) throw fail(403, wording("apps.error.forbidden"));
@@ -200,8 +205,27 @@ export async function changeUnitApp(unit: number, app: string, change: UnitAppCh
     await setChainRules(offerKey, "platform", change.offer === null ? kept : [...kept, { who: link, value: change.offer }], caller);
   }
 
+  // The company's own shared app turned on goes through the agency, which has every PC under the unit install a copy;
+  // the lock it keeps is the one asked, else the one standing.
+  if (company !== null && change.on === true) {
+    const locks = change.locks ?? (await entryOrNone(onKey, link, caller))?.delegation === "lock";
+
+    await turnOnSharedApp(signed, unit, company, app, locks);
+
+    return;
+  }
+
   if (change.on !== undefined) await setChainValue(onKey, link, change.on, caller);
   if (change.locks !== undefined) await setChainDelegation(onKey, link, change.locks ? "lock" : "inherit", caller);
+}
+
+/** The company's own shared app recalled at a unit through the agency (docs/web.md, 「Organisation」, the apps tab). */
+export async function recallUnitApp(unit: number, app: string, signed: SignedIn): Promise<void> {
+  const shared = sharedAppCompany(app);
+
+  if (shared === null || shared !== (await unitView(unit)).company.id) throw fail(404, wording("apps.error.no_app"));
+
+  await recallSharedApp(signed, unit, shared, app);
 }
 
 // The platform's link, as the chain names it.

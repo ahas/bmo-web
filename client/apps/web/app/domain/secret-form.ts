@@ -15,6 +15,9 @@ import type { ComputedRef, Ref } from "vue";
 // the only place one stands.
 
 /** What the form is opened with: a name, the kind or the fields to ask in, and what the secret is for. */
+/** The kind an API key is asked in, one of the kinds the deployment seeds (docs/accounts.md, 「Secret kinds」). */
+export const API_KEY_KIND = "api-key";
+
 export interface SecretAsk {
   name: string;
   kind: string | null;

@@ -9,13 +9,13 @@
       <UFormField :label="$t('org_memory.label.topic')" name="topic">
         <ChoiceSelect v-model="draft.topic" :items="topicItems" create-item class="w-full" :aria-label="$t('org_memory.label.topic')" data-org-memory-topic />
       </UFormField>
-      <UFormField :label="$t('org_memory.label.person')" :help="$t('org_memory.label.person_help')" name="about">
+      <UFormField v-if="!props.platform" :label="$t('org_memory.label.person')" :help="$t('org_memory.label.person_help')" name="about">
         <ChoiceSelect v-model="draft.about" :items="personItems" value-key="value" class="w-full" :aria-label="$t('org_memory.label.person')" data-org-memory-person />
       </UFormField>
       <UFormField :label="$t('org_memory.label.locked')" :help="$t('org_memory.label.locked_help')" name="locked">
         <USwitch v-model="draft.locked" data-org-memory-locked />
       </UFormField>
-      <UFormField :label="$t('org_memory.label.internal')" :help="$t('org_memory.label.internal_help')" name="internalOnly">
+      <UFormField v-if="!props.platform" :label="$t('org_memory.label.internal')" :help="$t('org_memory.label.internal_help')" name="internalOnly">
         <USwitch v-model="draft.internalOnly" data-org-memory-internal />
       </UFormField>
       <UAlert v-if="failure !== ''" color="error" variant="subtle" :description="failure" class="whitespace-pre-line" />
@@ -47,9 +47,11 @@ interface Props {
   saved?: OrgMemory | null;
   // Where the form's draft goes: written for a new memory, a version for one edited.
   send: (draft: OrgMemoryDraft) => Promise<void>;
+  // Whether the memory is the base's, which holds none about a person and keeps none from a room.
+  platform?: boolean;
 }
 
-const props = withDefaults(defineProps<Props>(), { saved: null, people: () => [] });
+const props = withDefaults(defineProps<Props>(), { saved: null, people: () => [], platform: false });
 const emit = defineEmits<{ saved: [] }>();
 const open = defineModel<boolean>("open", { default: false });
 
@@ -79,7 +81,7 @@ watch(open, (now) => {
 
   const saved = props.saved;
 
-  Object.assign(draft, { text: saved?.text ?? "", topic: saved?.topic ?? "", locked: saved?.locked ?? false, internalOnly: saved?.internalOnly ?? true, about: saved?.about?.user ?? NOBODY });
+  Object.assign(draft, { text: saved?.text ?? "", topic: saved?.topic ?? "", locked: saved?.locked ?? false, internalOnly: props.platform ? false : (saved?.internalOnly ?? true), about: saved?.about?.user ?? NOBODY });
   failure.value = "";
 });
 

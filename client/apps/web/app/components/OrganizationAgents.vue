@@ -191,6 +191,7 @@
             <template #description>
               <span class="font-mono text-sm text-muted wrap-anywhere">{{ one.path }}</span>
             </template>
+            <IconButton size="xs" icon="i-material-symbols-settings-outline" :label="$t('org_agents.aria.repository_settings', { name: one.label ?? one.name })" :disabled="busy !== ''" data-org-repository-settings @click="openRepositorySettings(one.name)" />
             <IconButton size="xs" color="error" icon="i-material-symbols-delete-outline" :label="$t('org_agents.aria.repository_remove', { name: one.label ?? one.name })" :disabled="busy !== ''" @click="void removeRepository(one)" />
           </SettingsRow>
         </template>
@@ -211,6 +212,8 @@
         <UButton type="submit" form="org-instructions-form" :label="$t('common.action.save')" :loading="busy === 'instructions-text'" :disabled="busy !== '' || !instructionsChanged" />
       </template>
     </SettingsDialog>
+
+    <RepositorySettingsDialog v-if="repositoryName !== null" :key="`${unit}:${repositoryName}`" v-model:open="repositoryOpen" :name="repositoryName" :unit="unit" @saved="void readRepositories()" />
 
     <!-- A repository added under the unit: its name, the name it is shown by, and its base checkout's directory. -->
     <SettingsDialog v-model:open="addingRepository" :title="$t('org_agents.title.repository_add')" :dirty="repositoryChanges">
@@ -419,6 +422,15 @@ async function saveInstructions(): Promise<void> {
 }
 
 // --- The unit's own repositories ---
+
+// A repository of the unit opened in agent management's repository dialog, through the unit's own routes.
+const repositoryOpen = ref(false);
+const repositoryName = ref<string | null>(null);
+
+function openRepositorySettings(name: string): void {
+  repositoryName.value = name;
+  repositoryOpen.value = true;
+}
 
 const addingRepository = ref(false);
 const repositoryDraft = reactive({ name: "", label: "", path: "" });

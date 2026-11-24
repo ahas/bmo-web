@@ -9,7 +9,7 @@ import { callerOf } from "./organization";
 
 import type { SignedIn } from "./accounts";
 import type { AgencyCall } from "./agency";
-import type { Catalogue, CatalogueApp, CatalogueCompany, CatalogueNotice, CataloguePromotion, CatalogueSource, CatalogueTarget, ShareScope } from "#shared/app-catalogue";
+import type { Catalogue, CatalogueApp, CatalogueNotice, CataloguePromotion, CatalogueSource, CatalogueTarget, ShareScope } from "#shared/app-catalogue";
 
 // The reader's company's catalogue of shared personal apps, read and changed through the agency (docs/web.md, 「App
 // catalogue」; the agency's `docs/api.md`, 「catalogue」): asked as the deployment's own for the account the signed-in
@@ -63,15 +63,6 @@ function withQuery(path: string, ...parts: string[]): string {
   return query === "" ? path : `${path}?${query}`;
 }
 
-// The companies the administrator may choose a catalogue of, none for anyone else.
-async function companiesOf(signed: SignedIn): Promise<CatalogueCompany[]> {
-  if (!signed.administrator) return [];
-
-  const units = await listUnits(callerOf(signed)).catch(() => []);
-
-  return units.filter((unit) => unit.parent === undefined || unit.parent === null).map((unit) => ({ id: String(unit.id), name: unit.name }));
-}
-
 /** The app a route's path names, refused where it is no app's id. */
 export function catalogueParam(id: string | undefined): string {
   if (id === undefined || !catalogueId(id)) throw fail(400, wording("app_catalogue.error.not_found"));
@@ -103,14 +94,13 @@ async function namesOf(read: AgencyCatalogue, signed: SignedIn): Promise<{ peopl
 }
 
 /** The reader's company's catalogue as they see it, with the names it mentions; for the administrator, the company
- * `asked` names, else their home company, and the companies they may choose among. */
+ * `asked` names, else their home company. */
 export async function readCatalogue(signed: SignedIn, asked?: unknown): Promise<Catalogue> {
   const path = withQuery(`/catalogue/${accountOf(signed)}`, await companyQuery(signed, asked));
-  const [read, reach, companies] = await Promise.all([agencyRoute<AgencyCatalogue>("GET", path, undefined, CALL), readerReach(signed), companiesOf(signed)]);
+  const [read, reach] = await Promise.all([agencyRoute<AgencyCatalogue>("GET", path, undefined, CALL), readerReach(signed)]);
 
   return {
     company: read.company,
-    companies,
     ceiling: read.ceiling,
     apps: read.apps,
     notices: read.notices,
@@ -186,4 +176,29 @@ export async function cataloguePromotions(signed: SignedIn): Promise<CataloguePr
   const unitNames = new Map(units.map((unit) => [String(unit.id), unit.name]));
 
   return items.map((item) => ({ ...item, companyName: unitNames.get(item.company) ?? item.company, byName: userNames.get(item.by) ?? item.by }));
+}
+
+// --- A company's shared app on a unit's row of the organisation screen's apps tab ---
+
+// The id the agency's catalogue of the company keeps a shared app under, as the reader reads it there.
+async function catalogueIdOf(signed: SignedIn, key: string, company: number): Promise<string> {
+  const path = withQuery(`/catalogue/${accountOf(signed)}`, await companyQuery(signed, String(company)));
+  const read = await agencyRoute<AgencyCatalogue>("GET", path, undefined, CALL);
+  const id = read.apps.find((app) => app.key === key)?.id;
+
+  if (id === undefined) throw fail(404, wording("app_catalogue.error.not_found"));
+
+  return id;
+}
+
+/** A company's shared app turned on for a unit through the agency, locked below where `lock` says, so every PC under the
+ * unit installs a copy (docs/web.md, 「Organisation」, the apps tab). */
+export async function turnOnSharedApp(signed: SignedIn, unit: number, company: number, key: string, lock: boolean): Promise<void> {
+  await actOnApp(signed, await catalogueIdOf(signed, key, company), "unit", { unit, on: true, lock }, String(company));
+}
+
+/** A company's shared app recalled at a unit through the agency: its offer off and locked there, and every copy under it
+ * taken off its PC. */
+export async function recallSharedApp(signed: SignedIn, unit: number, company: number, key: string): Promise<void> {
+  await actOnApp(signed, await catalogueIdOf(signed, key, company), "recall", { unit }, String(company));
 }

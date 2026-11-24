@@ -1971,11 +1971,16 @@ permissions:
     read: 閲覧
     section: セクション
     write: 編集
+    search: "名前で探す"
+    people_none: "人なし"
+    people_no_match: "見つかった人なし"
   status:
     sections_loading: 権限を読み込み中…
+    people_loading: "人を読み込み中…"
   error:
     sections_read_failed: 権限を読み込めませんでした。
     sections_write_failed: 権限を保存できませんでした。
+    people_read_failed: "人の一覧を読み込めませんでした。"
   aria:
     read_of: "{name}の閲覧"
     write_of: "{name}の編集"
@@ -2158,12 +2163,28 @@ org_memory:
     instead_locked: "{unit}の固定された記憶が代わりに適用されます。"
     source_work_pattern: 勤務パターンから取り込んだ記憶です。
     source_other: 別のサービスが管理している記憶です。
+    layers: "読む範囲"
+    layer_global: "全体の記憶を読む"
+    layer_organisation: "組織の記憶を読む"
+    base: "全体の記憶"
+    base_none: "全体の記憶なし"
+    review: "レビュー {count}件"
+    review_none: "レビューする候補なし"
+    review_source: "{brain} · 記憶 {id}"
+    type_tip: "ヒント"
+    type_check: "点検"
+    type_knowledge: "知識"
+    type_other: "その他"
   action:
     add: 記憶を追加
     edit: 記憶を編集
     delete: 記憶を削除
     accept: 受け入れる
     decline: 断る
+    raise: "全体へ"
+    keep: "{brain}に残す"
+    keep_short: "残す"
+    drop: "捨てる"
     grant: 権限を付与
     revoke: "{name}の権限を解除"
     add_info: "情報を追加"
@@ -2174,6 +2195,8 @@ org_memory:
     delete: この記憶を削除しますか？
     delete_effect: この組織と下位組織のBMOは、今後この記憶を受け取らなくなります。
     decline: この提案を断りますか？
+    keep_effect: "全体の記憶には上げず、{brain}にだけ残します。"
+    drop_effect: "全体の記憶に上げず、{brain}でも無効にし、どこからも読まれなくなります。"
   status:
     loading: 組織の記憶を読み込み中…
   error:
@@ -2190,6 +2213,7 @@ org_memory:
     writer_left: 退会した人には権限を付与できません。
     person_outside: "この組織または下位組織にいる人だけを選べます。"
     no_unit: "所属組織がないため、情報を共有できません。"
+    layers_forbidden: "この組織の読む範囲を決める権限がありません。"
 catalogue:
   label:
     tab: 役職・種類
@@ -2456,6 +2480,7 @@ org_agents:
     key_remove: "{name}を削除"
     role_choice: "{name}の加入時の構成"
     repository_remove: "{name} を削除"
+    repository_settings: "{name} 設定"
   message:
     repository_remove: この組織のリポジトリを削除しますか?
     repository_remove_effect: リポジトリの登録だけを削除し、ディスク上のチェックアウトはそのまま残します。Job がチェックアウトを使っている間は削除できません。
@@ -2751,6 +2776,10 @@ secrets:
     name_hint: 英字、数字、ドット、アンダースコア、ハイフン
     none: 保管中のシークレットなし
     note: 自分のシークレットは自分だけが見られます。エージェントと各サービスの設定には名前だけを渡します。値は保管庫のファイルにだけ残り、会話やログには残りません。
+    unit_note: "この組織の秘密で、組織長とプラットフォーム管理者だけが見られます。\nエージェントとサービスには名前だけを渡し、値は保管庫のファイルにだけ残ります。"
+    platform_note: "プラットフォームの秘密で、プラットフォーム管理者が共有し、各サービスは設定にあるファイル名でこの値を読みます。\nエージェントには名前だけを渡します。"
+    administrator_own: "管理者の秘密はプラットフォーム全体の秘密保管庫にあります。"
+    unit_forbidden: "この組織の秘密を管理する権限がありません。"
     replace: 既存の値を置き換え
     replace_note: "以前の値は {name}.previous ファイルに残ります。"
     row: "{bytes} バイト · {time} に変更"
@@ -3342,7 +3371,6 @@ agents:
     sleep: "睡眠"
     sign_in: "{name} にログイン"
     account_add: Claude アカウントを追加
-    key_of: "{name} のキー"
     providers: プロバイダー
     repository_add: リポジトリを追加
     session_history: セッション履歴
@@ -4311,13 +4339,16 @@ apps:
     recall: 緊急回収
     recall_confirm: 回収
     lift: 回収を解除
+    unit_recall: "回収"
   title:
     personal_apps: "個人アプリ"
     recall: "{app} アプリをすべての場所でオフにしますか？"
+    unit_recall: "{app} アプリをこの組織から回収しますか？"
   message:
     recall: 'すべての会社と人に対してすぐにオフになり、回収を解除するまで誰もオンにできません。
 
       会社、組織、人が設定した値は残り、回収を解除すると再び適用されます。'
+    unit_recall: "この組織と下位組織のすべての PC からアプリを削除し、この組織でオフのままロックします。"
   status:
     loading: アプリを読み込み中…
   error:
@@ -4331,7 +4362,6 @@ apps:
 # the personal apps section and the administrator's platform app requests.
 app_catalogue:
   label:
-    company: 会社
     none: 共有されたアプリはありません
     scope: 共有範囲
     scope_all: すべて
@@ -4359,20 +4389,16 @@ app_catalogue:
     notice_shared: "{app} が共有されました。"
     notice_update: "{app} のアップデートに確認が必要です。"
     notice_approval: "{app} が承認を待っています。"
-    unit: 組織
-    lock: 下位組織をロック
     promotions: プラットフォームアプリの依頼
     promotion_line: "{company} · {by} · {time}"
     no_promotions: 依頼はありません
+    unit_door: "組織 → アプリ・ツールでオン・ロック・回収します。"
   placeholder:
     search: アプリを探す
   action:
     install: インストール
     update: アップデート
     clone: 複製
-    turn_on: 組織でオン
-    turn_off: 組織でオフ
-    recall: 回収
     withdraw: 共有停止
     approve: 承認
     promote: プラットフォームアプリを依頼
@@ -4387,7 +4413,6 @@ app_catalogue:
     uninstall: アプリを削除しますか?
     withdraw: 共有を停止しますか?
     promote: プラットフォームアプリとして依頼しますか?
-    recall: アプリを回収しますか?
     share: アプリを共有
     unit: 組織の設定
   message:
@@ -4398,7 +4423,6 @@ app_catalogue:
     uninstall_effect: "自分の PC からアプリを削除します。\nデータは PC に残ります。"
     withdraw_effect: "新しくインストールできなくなります。\nインストール済みの人は使い続けます。"
     promote_effect: "管理者が確認してからプラットフォームアプリとして配布します。"
-    recall_effect: "この組織のすべての PC からアプリが削除され、オフのままロックされます。"
     shared: "{app} を共有しました。"
   status:
     loading: カタログを読み込み中…

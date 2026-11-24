@@ -329,8 +329,13 @@ section states what each does.
   `bmo_section` object named by the section. They are checked through sumida's point check as every other
   relation is (`server/src/bmo.sz`); a write is also a read, so nobody changes what they may not see.
 - **Every platform administrator passes every section.**
-- **A user's grants are sumida's relation tuples,** so the service keeps no table of them. An administrator
-  writes one user's set whole, and a section named no more is taken away.
+- **A user's grants are sumida's relation tuples,** so the service keeps no table of them. One user's set is
+  written whole, and a section named no more is taken away.
+- **The administrator writes anyone's set, and a head the set of a person standing in a unit they head,** the
+  person's home unit or a unit where they hold a post, at it or below it. A head passes on only what the platform
+  gave them: a write that would change a section's read or write the head does not hold themselves is refused 403
+  `forbidden` whole, so a head gives no section and takes none away beyond their own. The person, the administrator
+  and such a head read the set; nobody else does.
 - **The defaults in force let a person use the console as a messenger of its own:** `rooms` read and written,
   so a person reads their rooms, speaks in them and in their own BMO's private room, and opens a room, with no
   grant asked of anyone; `account` read and

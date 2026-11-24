@@ -73,8 +73,8 @@ describe("the settings dialog", () => {
     expect(organizationTabNamed("account")).toBeNull();
     expect(organizationTabNamed("research")).toBeNull();
     expect(organizationTabNamed("briefing")).toBeNull();
-    expect(organizationTabNamed("secrets")).toBeNull();
-    expect(organizationTabNamed("permissions")).toBeNull();
+    expect(organizationTabNamed("secrets")?.value).toBe("secrets");
+    expect(organizationTabNamed("permissions")?.value).toBe("permissions");
   });
 });
 
@@ -93,14 +93,12 @@ const UNKNOWN_MEMBER: OrganizationReader = { administrator: false, roster: false
 
 describe("the organisation screen", () => {
   test("stands its tabs in order, the units first", () => {
-    expect(ORGANIZATION_TABS.map((tab) => tab.value)).toEqual(["organization", "people", "catalogue", "invites", "agents", "apps", "storage", "memory", "supply"]);
+    expect(ORGANIZATION_TABS.map((tab) => tab.value)).toEqual(["organization", "people", "catalogue", "invites", "agents", "apps", "storage", "secrets", "memory", "permissions", "supply"]);
   });
 
   test("leads the keys of the sections that moved away to where they stand now, and no other key", () => {
     expect(organizationMovedAway("research")).toEqual({ path: "/research", query: { tab: "settings" } });
     expect(organizationMovedAway("briefing")).toEqual({ path: ORGANIZATION_PATH, query: { settings: "briefing" } });
-    expect(organizationMovedAway("secrets")).toEqual({ path: ORGANIZATION_PATH, query: { settings: "secrets" } });
-    expect(organizationMovedAway("secrets", { user: "7" })).toEqual({ path: ORGANIZATION_PATH, query: { settings: "secrets" } });
 
     for (const key of [...ORGANIZATION_TABS.map((tab) => tab.value), "account", "toString", undefined, ["research"]]) {
       expect({ key, moved: organizationMovedAway(key) }).toEqual({ key, moved: null });
@@ -112,16 +110,16 @@ describe("the organisation screen", () => {
     expect(organizationMovedAway("plans", { company: "3" })).toEqual({ path: ORGANIZATION_PATH, query: { company: "3", tab: "supply" } });
   });
 
-  test("leads the permissions key to the person it named on the people tab, at their permissions tab", () => {
-    expect(organizationMovedAway("permissions", { tab: "permissions", user: "7", q: "a" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "people", user: "7", pane: "permissions" } });
-    expect(organizationMovedAway("permissions", { tab: "permissions", company: "3", user: "7" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "people", company: "3", user: "7", pane: "permissions" } });
-    expect(organizationMovedAway("permissions")).toEqual({ path: ORGANIZATION_PATH, query: { tab: "people", pane: "permissions" } });
+  test("leads a person's permissions pane on the people tab to the permissions tab with that person open", () => {
+    expect(organizationMovedAway("people", { tab: "people", pane: "permissions", user: "7", q: "a" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "permissions", user: "7" } });
+    expect(organizationMovedAway("people", { tab: "people", pane: "permissions", company: "3", user: "7" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "permissions", company: "3", user: "7" } });
+    expect(organizationMovedAway("people", { tab: "people", pane: "bmo", user: "7" })).toBeNull();
   });
 
   test("opens every tab to the administrator, the people and the roles and kinds tabs to a member who heads a company, the agents tab to a member who heads a unit, and the invitations tab to every member", () => {
     expect(organizationTabsFor(ADMINISTRATOR)).toHaveLength(ORGANIZATION_TABS.length);
-    expect(organizationTabsFor(COMPANY_HEAD).map((tab) => tab.value)).toEqual(["people", "catalogue", "invites", "agents", "apps", "storage", "memory", "supply"]);
-    expect(organizationTabsFor(UNIT_HEAD).map((tab) => tab.value)).toEqual(["invites", "agents", "apps", "storage", "memory"]);
+    expect(organizationTabsFor(COMPANY_HEAD).map((tab) => tab.value)).toEqual(["people", "catalogue", "invites", "agents", "apps", "storage", "secrets", "memory", "permissions", "supply"]);
+    expect(organizationTabsFor(UNIT_HEAD).map((tab) => tab.value)).toEqual(["invites", "agents", "apps", "storage", "secrets", "memory", "permissions"]);
     expect(organizationTabsFor(MEMORY_WRITER).map((tab) => tab.value)).toEqual(["invites", "apps", "memory"]);
     expect(organizationTabsFor(MEMBER).map((tab) => tab.value)).toEqual(["invites", "apps"]);
   });
@@ -131,7 +129,7 @@ describe("the organisation screen", () => {
   });
 
   test("opens at a link node every tab declaring a view of it, for every reader the node stands for", () => {
-    expect(organizationTabsFor(MEMBER, PERSON_NODE).map((tab) => tab.value)).toEqual(["invites", "agents", "apps", "supply"]);
+    expect(organizationTabsFor(MEMBER, PERSON_NODE).map((tab) => tab.value)).toEqual(["invites", "agents", "apps", "secrets", "supply"]);
     expect(organizationTabsFor(MEMBER, null).map((tab) => tab.value)).toEqual(["invites", "apps"]);
   });
 
@@ -187,7 +185,7 @@ describe("the organisation screen", () => {
 
     expect(screen.to).toBe(ORGANIZATION_PATH);
     expect(screen.unitKeepers).toBe(true);
-    expect(screen.tabs?.map((tab) => tabAddress(screen, tab))).toEqual(["/organization", "/organization?tab=people", "/organization?tab=catalogue", "/organization?tab=invites", "/organization?tab=agents", "/organization?tab=apps", "/organization?tab=storage", "/organization?tab=memory", "/organization?tab=supply"]);
+    expect(screen.tabs?.map((tab) => tabAddress(screen, tab))).toEqual(["/organization", "/organization?tab=people", "/organization?tab=catalogue", "/organization?tab=invites", "/organization?tab=agents", "/organization?tab=apps", "/organization?tab=storage", "/organization?tab=secrets", "/organization?tab=memory", "/organization?tab=permissions", "/organization?tab=supply"]);
     expect(admin.to).toBe(ADMIN_PATH);
     expect(admin.administrator).toBe(true);
     expect(admin.tabs?.map((tab) => tabAddress(admin, tab))).toEqual(["/admin", "/admin?tab=secret-kinds"]);
@@ -313,7 +311,9 @@ describe("the organisation tree", () => {
       [2, "i-material-symbols-domain"],
       [6, "i-material-symbols-domain"]
     ]);
-    expect(nodes[0]!.children![0]!.icon).toBe("i-material-symbols-groups-outline");
+    // A unit under a company carries no mark of its own.
+    expect(nodes[0]!.children![0]!.icon).toBeUndefined();
+    expect(nodes[0]!.children![0]!.children![0]!.icon).toBeUndefined();
     expect(units.map((unit) => unit.company)).toEqual([2, 2, 2, 6]);
   });
 
@@ -406,10 +406,12 @@ describe("the link nodes", () => {
     expect(organizationLinkAddress(PERSON_NODE, { company: "1", tab: "people" }, "apps")).toEqual({ path: ORGANIZATION_PATH, query: { company: PERSON_NODE, tab: "apps" } });
   });
 
-  test("are shown by the tabs that declare a view of them, the agents, apps and supply tabs declaring both", () => {
+  test("are shown by the tabs that declare a view of them, the agents, apps, secrets and supply tabs declaring both and the org memory tab the platform", () => {
     expect(ORGANIZATION_TABS.filter((tab) => tab.links !== undefined).map((tab) => [tab.value, Object.keys(tab.links!).toSorted()])).toEqual([
       ["agents", ["me", "platform"]],
       ["apps", ["me", "platform"]],
+      ["secrets", ["me", "platform"]],
+      ["memory", ["platform"]],
       ["supply", ["me", "platform"]]
     ]);
     expect(organizationTabsFor(ADMINISTRATOR)).toHaveLength(ORGANIZATION_TABS.length);

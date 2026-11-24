@@ -251,8 +251,8 @@ describe("a list searches once it holds more than seven choices, and only then",
     try {
       const page = await context.newPage();
 
-      await page.goto(`${origin}/?settings=secrets`, { waitUntil: "load" });
-      await page.locator("[data-secret-add]").click({ timeout: 30_000 });
+      await page.goto(`${origin}/organization?company=platform&tab=secrets`, { waitUntil: "load" });
+      await page.locator("[data-tab-add]:enabled").click({ timeout: 30_000 });
 
       const chooser = page.locator("[data-secret-kind]");
 

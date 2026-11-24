@@ -10,17 +10,6 @@
     <template #body>
       <div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto p-4" data-catalogue-body>
         <div class="mx-auto flex w-full min-w-0 max-w-3xl flex-col gap-6" data-catalogue-column>
-          <ChoiceSelect
-            v-if="companyItems.length > 0"
-            v-model="company"
-            :items="companyItems"
-            value-key="value"
-            class="w-full sm:w-60"
-            :aria-label="$t('app_catalogue.label.company')"
-            data-catalogue-company
-            @update:model-value="void read()"
-          />
-
           <div class="flex items-center gap-2">
             <UInput
               v-model="query"
@@ -118,17 +107,13 @@ const dialogOpen = ref(false);
 const filterItems = computed(() => CATALOGUE_FILTERS.map((value) => ({ value, label: t(FILTER_WORDS[value]) })));
 const shown = computed(() => (catalogue.value === null ? [] : filteredApps(catalogue.value.apps, filter.value, query.value)));
 const chosen = computed(() => catalogue.value?.apps.find((app) => app.id === chosenId.value) ?? null);
-// The company whose catalogue the administrator reads, their home company until they choose; anyone else reads their own.
-const company = ref<string | null>(null);
-const companyItems = computed(() => (catalogue.value?.companies ?? []).map((one) => ({ value: one.id, label: one.name })));
 
 async function read(): Promise<void> {
   reading.value = true;
   failure.value = "";
 
   try {
-    catalogue.value = await $fetch<Catalogue>("/api/account/app-catalogue", { query: company.value === null ? {} : { company: company.value } });
-    company.value = catalogue.value.company;
+    catalogue.value = await $fetch<Catalogue>("/api/account/app-catalogue");
   } catch (error) {
     catalogue.value = null;
     failure.value = failureText(error, t("app_catalogue.error.read_failed"));

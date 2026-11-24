@@ -138,7 +138,8 @@ const ACCOUNTS: readonly [string, string][] = [
   ["shared-info", "fixture-password-4113"],
   ["own-agents", "fixture-password-4114"],
   ["session-acts", "fixture-password-4115"],
-  ["axis-admin", "fixture-password-4121"]
+  ["axis-admin", "fixture-password-4121"],
+  ["tree-admin", "fixture-password-4611"]
 ];
 
 // The member accounts a test signs in with to read a section by its permission rather than as the administrator,
@@ -259,6 +260,25 @@ const MEMBERS: readonly { name: string; password: string; sections: readonly { s
       { section: "account", read: true, write: true }
     ]
   })),
+  // A head of a unit, who gives its people only the sections they hold, and a person of that unit, on the organisation
+  // screen's secrets and permissions tabs.
+  {
+    name: "tree-head",
+    password: "fixture-password-4612",
+    sections: [
+      { section: "rooms", read: true, write: true },
+      { section: "account", read: true, write: true },
+      { section: "research", read: true, write: false }
+    ]
+  },
+  {
+    name: "tree-member",
+    password: "fixture-password-4613",
+    sections: [
+      { section: "rooms", read: true, write: false },
+      { section: "account", read: true, write: true }
+    ]
+  },
   // The person an app is offered to, recalled from and switched for themselves on the organisation screen's apps tab.
   {
     name: "apps-reader",
@@ -1327,11 +1347,12 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       return Response.json(added, { status: 201 });
     }
     if (/^\/repositories\/[^/]+$/.test(path) && request.method === "DELETE" && unitRepositories.delete(decodeURIComponent(path.slice("/repositories/".length)))) return new Response(null, { status: 204 });
-    // A repository's change is answered as the agency keeps it, nothing kept past the answer; an umbrella left with a
-    // support checkout or a node checkout is refused as the agency refuses it.
+    // A repository's change is answered as the agency keeps it, nothing kept past the answer but a unit's own
+    // repository's, which stands changed; an umbrella left with a support checkout or a node checkout is refused as
+    // the agency refuses it.
     if (/^\/repositories\/[^/]+$/.test(path) && request.method === "PATCH") {
       const name = decodeURIComponent(path.slice("/repositories/".length));
-      const held = heldRepositories().find((one) => one.name === name);
+      const held = heldRepositories().find((one) => one.name === name) ?? unitRepositories.get(name);
 
       if (held === undefined) return Response.json({ code: "not-found", error: `There is no repository ${name}.` }, { status: 404 });
 
@@ -1341,6 +1362,8 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       if (changed.umbrella === true && (changed.supportCount !== 0 || nodeCheckouts)) {
         return Response.json({ code: "bad-request", error: "An umbrella takes no support checkouts and no node checkouts.", field: "umbrella" }, { status: 400 });
       }
+
+      if (unitRepositories.has(name)) unitRepositories.set(name, changed);
 
       return Response.json(changed);
     }
@@ -2432,6 +2455,17 @@ try {
     });
 
     if (!declared.ok) throw new Error(`the agency's kind ${key} was refused: ${declared.status} ${await declared.text()}`);
+  }
+
+  // The brain's two layers a reading may leave out, declared as the brain declares them as it stands (its
+  // `docs/design.md`, 「The layers a reading takes」): flags narrowing down the chain, read by default.
+  for (const key of ["brain.global", "brain.organisation"]) {
+    const declared = await service(`/chain/kinds/${key}`, {
+      method: "PUT",
+      body: JSON.stringify({ key, declaredBy: "brain", description: key, shape: "flag", choices: [], mode: "narrowing", default: true, rules: true, levels: ["platform", "unit"], unitPermission: "manage", personWriter: "heads" })
+    });
+
+    if (!declared.ok) throw new Error(`the brain's kind ${key} was refused: ${declared.status} ${await declared.text()}`);
   }
 
   // bmo-artifact's storage setting, declared as bmo-artifact declares it as it stands (its `docs/artifact.md`, 「The

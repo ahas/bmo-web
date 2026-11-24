@@ -1971,11 +1971,16 @@ permissions:
     read: 读取
     section: 板块
     write: 写入
+    search: "按姓名查找"
+    people_none: "没有人员"
+    people_no_match: "未找到人员"
   status:
     sections_loading: 正在加载权限…
+    people_loading: "正在加载人员…"
   error:
     sections_read_failed: 无法加载权限。
     sections_write_failed: 无法保存权限。
+    people_read_failed: "无法加载人员列表。"
   aria:
     read_of: "读取{name}"
     write_of: "写入{name}"
@@ -2158,12 +2163,28 @@ org_memory:
     instead_locked: "改为适用{unit}的固定记忆。"
     source_work_pattern: 此记忆来自工作模式。
     source_other: 此记忆由其他服务管理。
+    layers: "读取范围"
+    layer_global: "读取全局记忆"
+    layer_organisation: "读取组织记忆"
+    base: "全局记忆"
+    base_none: "没有全局记忆"
+    review: "待审 {count} 条"
+    review_none: "没有待审候选"
+    review_source: "{brain} · 记忆 {id}"
+    type_tip: "提示"
+    type_check: "检查"
+    type_knowledge: "知识"
+    type_other: "其他"
   action:
     add: 添加记忆
     edit: 编辑记忆
     delete: 删除记忆
     accept: 接受
     decline: 拒绝
+    raise: "提升为全局"
+    keep: "保留在 {brain}"
+    keep_short: "保留"
+    drop: "丢弃"
     grant: 授予权限
     revoke: "解除{name}的权限"
     add_info: "添加信息"
@@ -2174,6 +2195,8 @@ org_memory:
     delete: 要删除这条记忆吗？
     delete_effect: 本组织及下级组织的 BMO 将不再收到这条记忆。
     decline: 要拒绝这条提议吗？
+    keep_effect: "不提升为全局记忆，只保留在 {brain} 中。"
+    drop_effect: "不提升，并在 {brain} 中也设为无效，任何地方都不再读取。"
   status:
     loading: 正在加载组织记忆…
   error:
@@ -2190,6 +2213,7 @@ org_memory:
     writer_left: 不能为已离职的人授予权限。
     person_outside: "只能选择本组织或下级组织中的人员。"
     no_unit: "你不属于任何组织，因此无法共享信息。"
+    layers_forbidden: "你无权设置该组织的读取范围。"
 catalogue:
   label:
     tab: 职务·类型
@@ -2456,6 +2480,7 @@ org_agents:
     key_remove: "删除{name}"
     role_choice: "{name}加入时配置"
     repository_remove: "删除 {name}"
+    repository_settings: "{name} 设置"
   message:
     repository_remove: 要删除此组织仓库吗？
     repository_remove_effect: 仅删除仓库的登记，磁盘上的检出保持不变。Job 正在使用检出时无法删除。
@@ -2751,6 +2776,10 @@ secrets:
     name_hint: 字母、数字、点、下划线、连字符
     none: 没有已保存的机密
     note: 你的机密只有你自己能看到。智能体和各服务的设置中只传递名称。值只保留在机密库的文件中，不会出现在对话和日志里。
+    unit_note: "这是该组织的机密，只有组织负责人和平台管理员能看到。\n代理和服务只拿到名称，值只保存在保管库的文件里。"
+    platform_note: "这是平台的机密，由所有平台管理员共用，各服务按其设置中的文件名读取。\n代理只拿到名称。"
+    administrator_own: "管理员的机密位于整个平台的机密保管库中。"
+    unit_forbidden: "你无权管理该组织的机密。"
     replace: 替换现有值
     replace_note: "之前的值会保留在 {name}.previous 文件中。"
     row: "{bytes} 字节 · {time} 更改"
@@ -3342,7 +3371,6 @@ agents:
     sleep: "睡眠"
     sign_in: "登录 {name}"
     account_add: 添加 Claude 账号
-    key_of: "{name} 密钥"
     providers: 提供商
     repository_add: 添加仓库
     session_history: 会话记录
@@ -4311,13 +4339,16 @@ apps:
     recall: 紧急收回
     recall_confirm: 收回
     lift: 解除收回
+    unit_recall: "收回"
   title:
     personal_apps: "个人应用"
     recall: "要在所有地方关闭 {app} 应用吗？"
+    unit_recall: "要从该组织收回 {app} 应用吗？"
   message:
     recall: '所有公司和人员将立即关闭该应用，在解除收回之前任何人都无法开启。
 
       公司、组织和人员设定的值会保留，解除收回后重新生效。'
+    unit_recall: "该应用会从本组织及下级组织的所有电脑上移除，并在此保持关闭和锁定。"
   status:
     loading: 正在加载应用…
   error:
@@ -4331,7 +4362,6 @@ apps:
 # the personal apps section and the administrator's platform app requests.
 app_catalogue:
   label:
-    company: 公司
     none: 没有共享的应用
     scope: 共享范围
     scope_all: 全部
@@ -4359,20 +4389,16 @@ app_catalogue:
     notice_shared: "{app} 已共享给你。"
     notice_update: "{app} 的更新需要你确认。"
     notice_approval: "{app} 正在等待批准。"
-    unit: 组织
-    lock: 锁定下级组织
     promotions: 平台应用申请
     promotion_line: "{company} · {by} · {time}"
     no_promotions: 没有申请
+    unit_door: "在 组织 → 应用·工具 中开启、锁定和收回。"
   placeholder:
     search: 查找应用
   action:
     install: 安装
     update: 更新
     clone: 复制
-    turn_on: 为组织开启
-    turn_off: 为组织关闭
-    recall: 收回
     withdraw: 停止共享
     approve: 批准
     promote: 申请平台应用
@@ -4387,7 +4413,6 @@ app_catalogue:
     uninstall: 要删除此应用吗？
     withdraw: 要停止共享吗？
     promote: 要申请为平台应用吗？
-    recall: 要收回此应用吗？
     share: 共享应用
     unit: 组织设置
   message:
@@ -4398,7 +4423,6 @@ app_catalogue:
     uninstall_effect: "将从你的 PC 删除此应用。\n数据会保留在 PC 上。"
     withdraw_effect: "之后无法再安装。\n已安装的人可以继续使用。"
     promote_effect: "管理员审查后将作为平台应用发布。"
-    recall_effect: "将从该组织的所有 PC 删除此应用，并锁定为关闭。"
     shared: "已共享 {app}。"
   status:
     loading: 正在加载目录…

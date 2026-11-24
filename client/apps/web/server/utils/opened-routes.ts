@@ -88,6 +88,23 @@ export const openedRoutes: readonly OpenedRoute[] = [
   { method: "PUT", path: /^\/api\/organization\/units\/\d+\/agent-settings$/, scope: "user" },
   { method: "POST", path: /^\/api\/organization\/units\/\d+\/repositories$/, scope: "user" },
   { method: "DELETE", path: /^\/api\/organization\/units\/\d+\/repositories\/[^/]+$/, scope: "user" },
+  // A unit's repository read and changed whole, with what its dialog's choices offer: every signed-in login asks, the
+  // console reading the unit's link of repository management as the reader and the agency judging the change by
+  // whether they head the unit (docs/web.md, 「Organisation」, the agents tab).
+  { method: "GET", path: /^\/api\/organization\/units\/\d+\/repositories\/[^/]+(?:\/models\/[^/]+)?$/, scope: "user" },
+  { method: "PATCH", path: /^\/api\/organization\/units\/\d+\/repositories\/[^/]+$/, scope: "user" },
+  // A unit's secret space, its people's console sections and the brain layers read for its people: every signed-in
+  // login asks, and the account service decides who heads the unit (docs/web.md, 「Organisation」, the secrets, org
+  // memory and permissions tabs).
+  { method: "GET", path: /^\/api\/organization\/units\/\d+\/(?:secrets|people|brain-layers)$/, scope: "user" },
+  { method: "POST", path: /^\/api\/organization\/units\/\d+\/secrets$/, scope: "user" },
+  { method: "DELETE", path: /^\/api\/organization\/units\/\d+\/secrets\/[^/]+$/, scope: "user" },
+  { method: "PUT", path: /^\/api\/organization\/units\/\d+\/brain-layers$/, scope: "user" },
+  { method: "GET", path: /^\/api\/users\/\d+\/sections$/, scope: "user" },
+  { method: "PUT", path: /^\/api\/users\/\d+\/sections$/, scope: "user" },
+  // A company's own shared app recalled for a unit: every signed-in login asks, and the agency judges who heads it
+  // (docs/web.md, 「Organisation」, the apps tab).
+  { method: "POST", path: /^\/api\/organization\/units\/\d+\/apps\/[^/]+\/recall$/, scope: "user" },
   // The supply sources and the persona's choice as they stand for the reader alone, a unit above deciding some of
   // them (docs/web.md, 「Settings」).
   { method: "GET", path: /^\/api\/account\/(?:supply-sources|agent-persona)$/, scope: "user" },
@@ -112,7 +129,7 @@ export const openedRoutes: readonly OpenedRoute[] = [
   { method: "GET", path: /^\/api\/account\/app-catalogue$/, scope: "user" },
   { method: "POST", path: /^\/api\/account\/app-catalogue(?:\/seen)?$/, scope: "user" },
   { method: "GET", path: /^\/api\/account\/app-catalogue\/[^/]+\/source$/, scope: "user" },
-  { method: "POST", path: /^\/api\/account\/app-catalogue\/[^/]+\/(?:install|update|clone|withdraw|approve|promote|recall|units\/\d+)$/, scope: "user" },
+  { method: "POST", path: /^\/api\/account\/app-catalogue\/[^/]+\/(?:install|update|clone|withdraw|approve|promote)$/, scope: "user" },
   { method: "DELETE", path: /^\/api\/account\/app-catalogue\/[^/]+\/install$/, scope: "user" },
   // A person marked left: every signed-in login asks, and the account service lets the administrator and the person's
   // heads alone (docs/accounts.md, 「A person who leaves」).

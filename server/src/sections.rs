@@ -2,8 +2,9 @@
 //! docs/boundary.md, 「Users and senders」): a section is one entry of the console's navigation, and its `read`
 //! and `write` are two relations of the deployment's rules, checked through sumida's point check like every
 //! other relation this service holds. A user's grants are sumida's relation tuples, so no table is the
-//! service's own; an administrator sets them whole for one person, and a user made is given the defaults in
-//! force before this surface stood.
+//! service's own; an administrator sets them whole for one person, a head for a person standing in a unit they
+//! head within the sections the head holds, and a user made is given the defaults in force before this surface
+//! stood.
 
 use axum::Json;
 use axum::Router;
@@ -381,7 +382,26 @@ async fn users(State(service): State<Service>, headers: HeaderMap) -> Answer<Use
   Ok(Json(UserList { users: listed }))
 }
 
-/// One user's sections: the account's holder's or an administrator's.
+/// Whether a user heads a unit the person stands in: their home unit, or a unit where they hold a post.
+async fn heads_person<C: ConnectionTrait>(db: &C, head: i32, person: i32) -> Result<bool, Refusal> {
+  let mut units: Vec<i32> = crate::units::unit_of_user(db, person).await?.into_iter().collect();
+
+  for post in crate::posts::posts_of(db, person).await? {
+    if let Ok(unit) = i32::try_from(post.unit.id) {
+      units.push(unit);
+    }
+  }
+
+  for unit in units {
+    if crate::units::heads(db, head, unit).await? {
+      return Ok(true);
+    }
+  }
+
+  Ok(false)
+}
+
+/// One user's sections: the account's holder's, an administrator's, or a head's of a unit the person stands in.
 async fn read(
   State(service): State<Service>,
   Path(user): Path<String>,
@@ -389,10 +409,14 @@ async fn read(
 ) -> Answer<Sections> {
   let user = user_in(&user)?;
   let (key, _) = caller(&headers);
+  let heads = match key {
+    Some(key) if key != user && !administrator(&headers) => heads_person(&service.db, key, user).await?,
+    _ => false,
+  };
 
-  if !administrator(&headers) && key != Some(user) {
+  if !administrator(&headers) && key != Some(user) && !heads {
     return Err(Refusal::forbidden(
-      "a user's sections are their own or an administrator's: the call names neither",
+      "a user's sections are their own, an administrator's or their head's: the call names none of them",
     ));
   }
 
@@ -401,18 +425,88 @@ async fn read(
   }))
 }
 
-/// One user's sections written whole, by an administrator alone.
+/// What a set written whole changes of what the person holds, as tuples: each section and relation it turns on or
+/// off.
+async fn changes<C: ConnectionTrait>(
+  db: &C,
+  user: i32,
+  asked: &[SectionRow],
+) -> Result<Vec<(String, &'static str)>, Refusal> {
+  let subject = SubjectKey::user(user).key();
+  let rows = crate::all(
+    db,
+    r#"SELECT "resource_id", "relation" FROM "relation_tuples"
+       WHERE "resource_type" = $1 AND "subject_key" = $2 AND "relation" IN ('read', 'write')
+         AND ("expires_at" IS NULL OR "expires_at" > now())"#,
+    vec![KIND.into(), subject.into()],
+  )
+  .await?;
+  let mut held: Vec<(String, String)> = Vec::new();
+
+  for row in &rows {
+    held.push((row.try_get("", "resource_id")?, row.try_get("", "relation")?));
+  }
+
+  let holds =
+    |section: &str, relation: &str| held.iter().any(|(one, how)| one == section && how == relation);
+  let mut sections: Vec<String> = held.iter().map(|(section, _)| section.clone()).collect();
+
+  sections.extend(asked.iter().map(|row| row.section.clone()));
+  sections.sort();
+  sections.dedup();
+
+  let mut changed = Vec::new();
+
+  for section in sections {
+    let wanted = asked.iter().find(|row| row.section == section);
+    let write = wanted.is_some_and(|row| row.write);
+    let read = wanted.is_some_and(|row| row.read || row.write);
+
+    for (relation, on) in [("read", read), ("write", write)] {
+      if holds(&section, relation) != on {
+        changed.push((section.clone(), relation));
+      }
+    }
+  }
+
+  Ok(changed)
+}
+
+/// One user's sections written whole, by an administrator, or by a head of a unit the person stands in within the
+/// sections the head holds: a change of a read or a write the head does not hold refuses the whole write.
 async fn write(
   State(service): State<Service>,
   Path(user): Path<String>,
   headers: HeaderMap,
   Body(asked): Body<Sections>,
 ) -> Answer<Sections> {
-  if !administrator(&headers) {
-    return Err(Refusal::forbidden("the sections are an administrator's to set"));
-  }
-
   let user = user_in(&user)?;
+
+  if !administrator(&headers) {
+    let (key, _) = caller(&headers);
+    let Some(head) = key.filter(|key| *key != user) else {
+      return Err(Refusal::forbidden("the sections are an administrator's or a head's to set"));
+    };
+
+    if !heads_person(&service.db, head, user).await? {
+      return Err(Refusal::forbidden("the sections are an administrator's or a head's to set"));
+    }
+
+    let own = of(&service.db, head).await?;
+
+    for (section, relation) in changes(&service.db, user, &asked.sections).await? {
+      let held = own
+        .iter()
+        .find(|row| row.section == section)
+        .is_some_and(|row| if relation == "write" { row.write } else { row.read });
+
+      if !held {
+        return Err(Refusal::forbidden(format!(
+          "the head does not hold the {relation} of the section `{section}` to give or take"
+        )));
+      }
+    }
+  }
 
   Ok(Json(Sections {
     sections: set(&service.db, user, &asked.sections).await?,

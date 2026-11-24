@@ -1,4 +1,5 @@
 import { setSections } from "../../../utils/account-service";
+import { signedInUser } from "../../../utils/accounts";
 import { forgetSectionAccess } from "../../../utils/section-access";
 import { ownerKeyOf, ownerRoleOf } from "../../../utils/owner-key";
 
@@ -8,10 +9,11 @@ interface SectionsBody {
   sections?: SectionRow[];
 }
 
-// One user's console sections written whole, by an administrator (docs/web.md, 「Access」). The account service
-// refuses any other login before a tuple is written.
+// One user's console sections written whole, by an administrator or by a head of a unit the person stands in, within
+// the sections the head holds (docs/web.md, 「Organisation」, the permissions tab). The account service judges the
+// writer and refuses anyone else before a tuple is written.
 export default defineEventHandler(async (event): Promise<SectionRow[]> => {
-  const signed = await requireAdministrator(event);
+  const signed = await signedInUser(event);
   const user = getRouterParam(event, "user") ?? "";
   const body = await readBody<SectionsBody>(event);
   const asked = (body.sections ?? []).map(({ section, read, write }) => ({ section, read, write }));

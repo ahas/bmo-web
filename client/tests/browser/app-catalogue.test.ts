@@ -12,7 +12,8 @@ import type { PersonalApps } from "../../apps/web/shared/personal-apps";
 // The app catalogue (docs/web.md, 「App catalogue」) and the personal apps section's share (「Settings」), worked by hand at a
 // desk's width and a phone's: the notices and the apps listed, the filter by whom an app is shared with leaving the
 // apps shared that way, an app's details opened with what it asks for, its install asked first and then made, its
-// turning on for a unit the reader heads sent with the unit and the lock, and its source read in code blocks; and a
+// way to the apps tab of the unit the reader heads, and its source read in code blocks; the administrator's home
+// company's catalogue with no choice of another; and a
 // personal app shared with the team and the heads, the company left closed where the reader's organisation keeps it
 // so. Every press lands on the control it says, nothing standing over it. The console's own routes are served through
 // the page, standing for the agency. It drives the console tests/support/browser-console.ts stands up; the suite
@@ -75,7 +76,6 @@ function app(id: string, title: string, more: Partial<CatalogueApp>): CatalogueA
 function catalogue(apps: CatalogueApp[], reach: PermissionReach = { network: true, secrets: true, held: [] }): Catalogue {
   return {
     company: "3",
-    companies: [],
     ceiling: ["team", "heads"],
     apps,
     notices: [{ kind: "shared", app: "17-weekly", at: 1_763_900_000_000 }],
@@ -187,14 +187,9 @@ describe.skipIf(!origin || !touchReady())("the app catalogue", () => {
         await weeklyRow.locator("[data-catalogue-mark='installed']").waitFor({ timeout: 10_000 });
         expect(asked).toEqual(["POST /17-weekly/install {}"]);
 
-        // Turned on for the unit the reader heads, locked.
-        await expect(dialog.locator("[data-catalogue-unit]").textContent()).resolves.toContain("Unit Forty");
-        await press(page, dialog.locator("[data-catalogue-lock]"), phone);
-        const turnedOn = page.waitForResponse((response) => response.url().includes("/17-weekly/units/40"), { timeout: 10_000 });
-
-        await press(page, dialog.locator("[data-catalogue-unit-on]"), phone);
-        await turnedOn;
-        expect(asked.at(-1)).toBe('POST /17-weekly/units/40 {"on":true,"lock":true}');
+        // A head is led to the unit's apps tab, where the app is turned on and recalled like every app.
+        await expect(dialog.locator("[data-catalogue-units]").textContent()).resolves.toContain("Unit Forty");
+        await expect(dialog.locator("[data-catalogue-unit-door]").getAttribute("href")).resolves.toContain("/organization?company=3&unit=40&tab=apps");
 
         // The source, each file under its path in a code block.
         await press(page, dialog.locator("[data-catalogue-source-open]"), phone);
@@ -326,27 +321,15 @@ describe.skipIf(!origin || !touchReady())("the app catalogue", () => {
       }
     }, 120_000);
 
-    test(`lets the administrator choose the company whose catalogue they read, and acts in it, ${width}px wide`, async () => {
+    test(`shows the administrator their home company's catalogue with no choice of another, ${width}px wide`, async () => {
       const context = await contextAt(width, height, phone);
       const asked: string[] = [];
-      const companies = [
-        { id: "1", name: "Company One" },
-        { id: "2", name: "Company Two" }
-      ];
-      const ofCompany = (company: string) => (company === "2" ? app("31-ledger", "Ledger", { maker: "31" }) : app("17-weekly", "Weekly summary", {}));
 
       await context.route(/\/api\/account\/app-catalogue(?:\/|$|\?)/, async (route) => {
-        const request = route.request();
-        const url = new URL(request.url());
-        const path = url.pathname.replace(/^.*\/api\/account\/app-catalogue/, "");
-        // The home company where the screen names none, as the console's server reads it.
-        const company = url.searchParams.get("company") ?? "1";
+        const url = new URL(route.request().url());
 
-        asked.push(`${request.method()} ${path} company=${url.searchParams.get("company") ?? ""}`);
-
-        if (request.method() === "GET" && path === "") return await route.fulfill({ json: { ...catalogue([ofCompany(company)]), company, companies, notices: [] } });
-
-        await route.fulfill({ json: ofCompany(company) });
+        asked.push(`${route.request().method()} ${url.pathname.replace(/^.*\/api\/account\/app-catalogue/, "")} company=${url.searchParams.get("company") ?? ""}`);
+        await route.fulfill({ json: { ...catalogue([app("17-weekly", "Weekly summary", {})]), company: "1", notices: [] } });
       });
 
       try {
@@ -355,28 +338,7 @@ describe.skipIf(!origin || !touchReady())("the app catalogue", () => {
         await page.goto(`${origin}/app-catalogue`, { waitUntil: "load" });
         await page.locator("[data-catalogue-app='17-weekly']").waitFor({ timeout: 30_000 });
         expect(asked[0]).toBe("GET  company=");
-
-        // The company chosen, its catalogue read.
-        await press(page, page.locator("[data-catalogue-company]"), phone);
-        await press(page, page.getByRole("option", { name: "Company Two", exact: true }), phone);
-
-        const ledger = page.locator("[data-catalogue-app='31-ledger']");
-
-        await ledger.waitFor({ timeout: 10_000 });
-        expect(asked).toContain("GET  company=2");
-
-        // An act on one of its apps goes in that company.
-        await press(page, ledger, phone);
-        await page.locator("[data-catalogue-dialog]").waitFor({ timeout: 10_000 });
-        await press(page, page.locator("[data-catalogue-install]"), phone);
-
-        const installing = page.getByRole("dialog").filter({ hasText: wording("app_catalogue.title.install") });
-        const installed = page.waitForResponse((response) => response.url().includes("/31-ledger/install"), { timeout: 10_000 });
-
-        await installing.waitFor({ timeout: 10_000 });
-        await press(page, installing.getByRole("button", { name: wording("app_catalogue.action.install") }), phone);
-        await installed;
-        expect(asked).toContain("POST /31-ledger/install company=2");
+        expect(await page.locator("[data-catalogue-company]").count()).toBe(0);
       } finally {
         await context.close();
       }

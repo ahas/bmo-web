@@ -45,8 +45,8 @@ function everyReaderOpens(): boolean {
   return true;
 }
 
-// The parts only the administrator reads or sets: a person's sections, and their rooms, agents, sessions and runs,
-// which quote what they said in their own rooms (docs/web.md, 「Access」).
+// The parts only the administrator reads: a person's rooms, agents, sessions and runs, which quote what they said in
+// their own rooms (docs/web.md, 「Access」).
 function administratorOpens(reader: PersonPaneReader): boolean {
   return reader.administrator;
 }
@@ -60,7 +60,6 @@ function supplyReaderOpens(reader: PersonPaneReader): boolean {
 export const PERSON_PANES: readonly PersonPane[] = [
   { value: "account", label: "settings.label.account", opens: everyReaderOpens, load: () => import("~/components/PersonAccount.vue") },
   { value: "organization", label: "people.label.organization", opens: everyReaderOpens, load: () => import("~/components/PersonOrganization.vue") },
-  { value: "permissions", label: "settings.label.permissions", opens: administratorOpens, load: () => import("~/components/PersonPermissions.vue") },
   { value: "bmo", label: "settings.label.bmo", opens: everyReaderOpens, load: () => import("~/components/PersonBmo.vue") },
   { value: "supply", label: "supply.label.tab", opens: supplyReaderOpens, load: () => import("~/components/PersonSupply.vue") },
   { value: "activity", label: "roster.label.activity", opens: administratorOpens, load: () => import("~/components/PersonActivity.vue") }

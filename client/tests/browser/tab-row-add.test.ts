@@ -148,22 +148,11 @@ describe.skipIf(!origin)("the row adds", () => {
         await page.locator("[data-reka-popper-content-wrapper]").filter({ hasText: wording("secrets.action.kind_add") }).first().waitFor({ timeout: 5_000 });
         await page.mouse.move(0, 0);
 
-        // A secret, made in the reader's own store in the settings dialog, is the grey icon centred on the list's
-        // heading, named by its tooltip.
-        await page.goto(`${origin}/?settings=secrets`, { waitUntil: "load" });
-
-        const secretAdd = page.locator("[data-secret-add]");
-
-        await secretAdd.waitFor({ timeout: 20_000 });
-        expect(await secretAdd.getAttribute("aria-label")).toBe(wording("secrets.action.add"));
-        expect(
-          await secretAdd.evaluate((button) => {
-            const mark = button.getBoundingClientRect();
-            const head = button.closest("section")!.querySelector("h3")!.getBoundingClientRect();
-
-            return Math.abs(mark.top + mark.height / 2 - (head.top + head.height / 2));
-          })
-        ).toBeLessThanOrEqual(1);
+        // A secret, made in the platform's space on the organisation screen's secrets tab, is the tab row's add, named by
+        // what it makes.
+        await open(page, "/organization?company=platform&tab=secrets");
+        await page.locator('[data-secret-space="own"] [data-secret], [data-secret-space="own"] [data-secrets-none]').first().waitFor({ timeout: 20_000 });
+        expect(await page.locator("[data-tab-add]:enabled").getAttribute("aria-label")).toBe(wording("secrets.action.add"));
 
         await roomAddBesideHeading(page);
 

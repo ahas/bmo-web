@@ -2,6 +2,8 @@
 // tab): the unit's own memories, the proposals waiting on it and the memories of the units above it, each memory with
 // where it stands.
 
+import type { DecidedBy } from "./organisation-agents";
+
 /** One memory of a unit's org brain. */
 export interface OrgMemory {
   id: number;
@@ -88,3 +90,52 @@ export function topicKey(typed: string | null | undefined): string | null {
 
   return key === "" ? null : key;
 }
+
+/** A candidate of the base waiting for the administrator's decision (docs/web.md, 「Organisation」, the org memory tab
+ * with the platform chosen): its words, its type, the model's reason and the memory it was raised from. */
+export interface BaseCandidate {
+  id: number;
+  text: string;
+  type: string;
+  reason: string | null;
+  // The brain and the memory it was raised from, with the brain's name; null where its labels name none.
+  source: { brainId: number; memoryId: number; name: string } | null;
+}
+
+/** The base as the tab shows it with the platform chosen: its standing memories, its candidates oldest first and the
+ * topics it holds. */
+export interface BaseMemoryView {
+  memories: OrgMemory[];
+  candidates: BaseCandidate[];
+  topics: string[];
+}
+
+/** What the administrator decides of a candidate: raised into the base, kept in its source, or dropped with its
+ * source. */
+export const BASE_DECISIONS = ["raise", "keep", "drop"] as const;
+
+export type BaseDecision = (typeof BASE_DECISIONS)[number];
+
+/** The two layers a reading may leave out for the people under a link (the brain's `docs/design.md`, 「The layers a
+ * reading takes」). */
+export const BRAIN_LAYERS = ["global", "organisation"] as const;
+
+export type BrainLayer = (typeof BRAIN_LAYERS)[number];
+
+/** One layer's link as the tab shows it: whether it stands read there, the link's own word (false to leave it out,
+ * null to follow above), who closed it above where a link above did, what the units below may do, whether the reader
+ * writes the link now, and the link above locking it where one does. */
+export interface BrainLayerSetting {
+  read: boolean;
+  own: boolean | null;
+  closedAbove: boolean;
+  delegation: "allow" | "lock" | "inherit";
+  writable: boolean;
+  lockedBy: string | null;
+  // The links that closed it above and that lock it, named for the reader; none where none does.
+  closer: DecidedBy;
+  locker: DecidedBy;
+}
+
+/** The layers' links of one node, each none where the reader may not read it. */
+export type BrainLayersView = Record<BrainLayer, BrainLayerSetting | null>;

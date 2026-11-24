@@ -11,28 +11,28 @@ const HEAD = personPanesFor({ administrator: false });
 const SUPPLY_MANAGER = personPanesFor({ administrator: false, supply: true });
 
 describe("a person's tabs", () => {
-  test("stand in order, six at most, the account first", () => {
-    expect(PERSON_PANES.map((pane) => pane.value)).toEqual(["account", "organization", "permissions", "bmo", "supply", "activity"]);
+  test("stand in order, five at most, the account first", () => {
+    expect(PERSON_PANES.map((pane) => pane.value)).toEqual(["account", "organization", "bmo", "supply", "activity"]);
   });
 
-  test("open every tab to the administrator, and to a company head neither the permissions nor the activity", () => {
+  test("open every tab to the administrator, and to a company head not the activity", () => {
     expect(ADMINISTRATOR).toHaveLength(PERSON_PANES.length);
     expect(HEAD.map((pane) => pane.value)).toEqual(["account", "organization", "bmo"]);
     expect(SUPPLY_MANAGER.map((pane) => pane.value)).toEqual(["account", "organization", "bmo", "supply"]);
   });
 
   test("open the tab the address names, and the account where it names none the reader may open", () => {
-    expect(personPaneOf({ pane: "permissions" }, ADMINISTRATOR).value).toBe("permissions");
+    expect(personPaneOf({ pane: "activity" }, ADMINISTRATOR).value).toBe("activity");
     expect(personPaneOf({ pane: ["activity", "bmo"] }, ADMINISTRATOR).value).toBe("activity");
     expect(personPaneOf({}, ADMINISTRATOR).value).toBe("account");
-    expect(personPaneOf({ pane: "permissions" }, HEAD).value).toBe("account");
+    expect(personPaneOf({ pane: "activity" }, HEAD).value).toBe("account");
     expect(personPaneOf({ pane: "toString" }, ADMINISTRATOR).value).toBe("account");
   });
 
   test("take off the address a tab the reader may not open or that is no tab, and nothing else", () => {
-    expect(personPaneRefused({ pane: "permissions" }, HEAD)).toBe(true);
+    expect(personPaneRefused({ pane: "activity" }, HEAD)).toBe(true);
     expect(personPaneRefused({ pane: "unknown" }, ADMINISTRATOR)).toBe(true);
-    expect(personPaneRefused({ pane: "permissions" }, ADMINISTRATOR)).toBe(false);
+    expect(personPaneRefused({ pane: "activity" }, ADMINISTRATOR)).toBe(false);
     expect(personPaneRefused({ pane: "account" }, HEAD)).toBe(false);
     expect(personPaneRefused({ user: "7" }, HEAD)).toBe(false);
   });

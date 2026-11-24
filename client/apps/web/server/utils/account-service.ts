@@ -790,6 +790,42 @@ export async function dropSecret(name: string, user: string, options: ServiceOpt
   if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
 }
 
+/** Every secret an organisation unit's space holds, in the order of their names, for a head of the unit or the
+ * platform administrator the caller names (docs/accounts.md, 「The secret store」); never a value. */
+export async function listUnitSecrets(unit: number, caller: ProfileCaller, options: ServiceOptions = {}): Promise<KeptSecret[]> {
+  const reply = await sent(
+    options,
+    clientOf(options).GET("/units/{unit}/secrets", { params: { path: { unit: String(unit) }, header: { "Owner-Key": caller.key } } })
+  );
+
+  return answered(reply).secrets.map(({ name, bytes, changedAt, kind }) => ({ name, bytes, changedAt, ...(kind ? { kind } : {}) }));
+}
+
+/** A value written under a name in an organisation unit's space, replacing the one the name holds only where `replace`
+ * says so; the name, its size and its time, never the value. */
+export async function writeUnitSecret(unit: number, name: string, file: SecretFile, replace: boolean, caller: ProfileCaller, options: ServiceOptions = {}): Promise<KeptSecret> {
+  const reply = await sent(
+    options,
+    clientOf(options).PUT("/units/{unit}/secrets/{name}", {
+      params: { path: { unit: String(unit), name }, header: { "Owner-Key": caller.key } },
+      body: { value: file.value, encoding: file.encoding, replace }
+    })
+  );
+  const kept = answered(reply);
+
+  return { name: kept.name, bytes: kept.bytes, changedAt: kept.changedAt };
+}
+
+/** The secret under a name in an organisation unit's space moved aside to `<name>.previous`. */
+export async function dropUnitSecret(unit: number, name: string, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  const reply = await sent(
+    options,
+    clientOf(options).DELETE("/units/{unit}/secrets/{name}", { params: { path: { unit: String(unit), name }, header: { "Owner-Key": caller.key } } })
+  );
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}
+
 /** A kind as the console reads it, from the server's wire shape. */
 function kindOf(kind: SecretKind): SecretKind {
   return {

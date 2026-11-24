@@ -106,8 +106,9 @@ function headReaderOpens(reader: OrganizationReader): boolean {
   return reader.administrator || reader.heads;
 }
 
-// The people tab's key, which a section moved into one person's tab leads to.
+// The people tab's key, and the permissions tab's, where a person's sections moved from their pane on the people tab.
 const PEOPLE_TAB = "people";
+const PERMISSIONS_TAB = "permissions";
 
 export const ORGANIZATION_TABS: readonly OrganizationTab[] = [
   { value: "organization", label: "organization.label.chart", icon: "i-material-symbols-account-tree-outline", opens: administratorOpens, keys: [], wide: false, load: () => import("~/components/OrganizationUnits.vue") },
@@ -117,29 +118,40 @@ export const ORGANIZATION_TABS: readonly OrganizationTab[] = [
   { value: "agents", label: "org_agents.label.tab", icon: "i-material-symbols-smart-toy-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationAgents.vue"), links: { platform: () => import("~/components/OrganizationPlatformAgents.vue"), me: () => import("~/components/OrganizationPersonAgents.vue") } },
   { value: "apps", label: "apps.label.tab", icon: "i-material-symbols-apps", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationApps.vue"), links: { platform: () => import("~/components/OrganizationPlatformApps.vue"), me: () => import("~/components/OrganizationPersonApps.vue") } },
   { value: "storage", label: "org_storage.label.tab", icon: "i-material-symbols-hard-drive-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationArtifactStorage.vue") },
-  { value: "memory", label: "org_memory.label.tab", icon: "i-material-symbols-psychology-outline", opens: memoryReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationMemory.vue") },
+  { value: "secrets", label: "settings.label.secrets", icon: "i-material-symbols-key-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationSecrets.vue"), links: { platform: () => import("~/components/OrganizationPlatformSecrets.vue"), me: () => import("~/components/OrganizationPersonSecrets.vue") } },
+  { value: "memory", label: "org_memory.label.tab", icon: "i-material-symbols-psychology-outline", opens: memoryReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationMemory.vue"), links: { platform: () => import("~/components/OrganizationPlatformMemory.vue") } },
+  { value: PERMISSIONS_TAB, label: "settings.label.permissions", icon: "i-material-symbols-admin-panel-settings-outline", opens: headReaderOpens, keys: ["user"], wide: false, load: () => import("~/components/OrganizationPermissions.vue") },
   // The supply tab stands for a reader who holds any part of the organisation's supply — its policy and credits, or
   // its plan alone — the administrator everywhere (docs/web.md, 「Organisation」, the supply tab).
   { value: "supply", label: "supply.label.tab", icon: "i-material-symbols-bolt-outline", opens: supplyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationSupplyTab.vue"), links: { platform: () => import("~/components/OrganizationPlatformSupply.vue"), me: () => import("~/components/OrganizationPersonSupply.vue") } }
 ];
 
 // Where a section that once stood here as a tab stands now, by the key its tab had, so a link made before it moved
-// still lands on it: the research supervisor with the research unit's settings, the voice briefing and a person's own
-// secrets in the settings dialog over this screen, the providers and the secret kinds on the administrator's screen,
-// and a person's sections on that person's own tab of the people tab. `carries` names the keys of the old address the
-// new one keeps, such as the person it was open at.
+// still lands on it: the research supervisor with the research unit's settings, the voice briefing in the settings
+// dialog over this screen, and the providers and the secret kinds on the administrator's screen. `carries` names the
+// keys of the old address the new one keeps, such as the person it was open at.
 const MOVED_AWAY: Readonly<Record<string, { path: string; query: LocationQuery; carries?: readonly string[] }>> = {
   // A company's BMO default and who may personalise a BMO stand on the agents tab, and the plans on the supply tab.
   agent: { path: ORGANIZATION_PATH, query: { tab: "agents" }, carries: [ORGANIZATION_KEY, UNIT_KEY] },
   plans: { path: ORGANIZATION_PATH, query: { tab: "supply" }, carries: [ORGANIZATION_KEY, UNIT_KEY] },
   research: { path: "/research", query: { tab: "settings" } },
-  briefing: { path: ORGANIZATION_PATH, query: { [SETTINGS_QUERY]: "briefing" } },
-  secrets: { path: ORGANIZATION_PATH, query: { [SETTINGS_QUERY]: "secrets" } },
-  permissions: { path: ORGANIZATION_PATH, query: { tab: PEOPLE_TAB, [PERSON_PANE_KEY]: "permissions" }, carries: ["user", ORGANIZATION_KEY] }
+  briefing: { path: ORGANIZATION_PATH, query: { [SETTINGS_QUERY]: "briefing" } }
 };
+
+// A person's pane that moved off the people tab, by its key: their sections, now the permissions tab's with the person
+// open, the organisation kept.
+const MOVED_PANES: Readonly<Record<string, string>> = { permissions: PERMISSIONS_TAB };
 
 /** The address a key of a tab that moved away from this screen now leads to, where it names one, read off the address it was asked on. */
 export function organizationMovedAway(key: unknown, query: LocationQuery = {}): { path: string; query: LocationQuery } | null {
+  const pane = query[PERSON_PANE_KEY];
+
+  if (key === PEOPLE_TAB && typeof pane === "string" && Object.hasOwn(MOVED_PANES, pane)) {
+    const carried = Object.fromEntries(["user", ORGANIZATION_KEY].flatMap((one) => (query[one] === undefined ? [] : [[one, query[one]]])));
+
+    return { path: ORGANIZATION_PATH, query: { ...carried, tab: MOVED_PANES[pane]! } };
+  }
+
   // A key this screen's own tab holds stands here, whatever tab of the administrator's carries the same key.
   if (typeof key === "string" && organizationTabNamed(key) !== null) return null;
 
@@ -273,9 +285,9 @@ export interface TreeUnit extends UnitPlace {
   kind?: string;
 }
 
-// The tree's marks: a building for a company, a group of people for a unit.
+// The tree's mark of a company, a building. Only the top level carries a mark: every node under a company is a unit,
+// told apart by its indentation and its branch's chevron alone.
 const COMPANY_ICON = "i-material-symbols-domain";
-const UNIT_ICON = "i-material-symbols-groups-outline";
 
 /**
  * The organisation tree (docs/web.md, 「Organisation」): each company the reader may set at the top level, in its
@@ -286,7 +298,6 @@ export function organizationNodes(companies: readonly Organization[], units: rea
   const nodeOf = (branch: UnitBranch<TreeUnit>): SideNode => ({
     key: branch.unit.id,
     label: branch.unit.name,
-    icon: UNIT_ICON,
     ...(branch.unit.kind ? { badge: branch.unit.kind } : {}),
     ...(branch.children.length === 0 ? {} : { children: branch.children.map(nodeOf) })
   });

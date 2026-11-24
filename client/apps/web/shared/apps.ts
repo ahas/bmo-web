@@ -39,6 +39,9 @@ export interface UnitApp extends AppName {
   locker: DecidedBy;
   // Whether the reader may change the unit's word and lock now.
   writable: boolean;
+  // Whether it is a company's own shared app, which a unit's head turns on and recalls through the agency so its
+  // people's PCs install it and give it up.
+  shared?: boolean;
   // The platform's rule offering the app to the unit or withholding it, null where none stands: read for the
   // administrator alone, and absent for anyone else.
   offer?: boolean | null;

@@ -1,7 +1,9 @@
 // The brain standing in for the console's organisation memories (docs/boundary.md, the brain's row of 「Calls the
 // console makes」): org brains made and found by their keys, each holding the memories written into it, listed by the
 // filters the console names and moved to `invalidated`, with what stands for a topic answered empty. It keeps what it
-// is told while the console stands, so a page read again shows what a write left.
+// is told while the console stands, so a page read again shows what a write left. The base stands from the start with
+// one candidate raised from an agent's brain, `agent-a`, waiting for the administrator's decision, and another raised
+// whenever none is left, so every run of a file finds one.
 
 interface Held {
   id: number;
@@ -17,16 +19,41 @@ interface Held {
   actorName: string;
   validFrom: number;
   createdAt: number;
+  labels: Record<string, string>;
 }
 
 const brains = new Map<string, number>();
+const names = new Map<number, string>();
 const memories: Held[] = [];
 let next = 1;
+
+function held(brainId: number, text: string, more: Partial<Held> = {}): Held {
+  return { id: next++, brainId, key: null, type: "tip", text, subjects: [], locked: false, internalOnly: false, shared: false, status: "active", actorName: "agent-a", validFrom: Date.now(), createdAt: Date.now(), labels: {}, ...more };
+}
+
+// An agent's brain holding a tip, and the base holding that tip as a pending candidate whose labels name its source.
+const SOURCE = next++;
+const BASE = next++;
+
+names.set(SOURCE, "agent-a");
+names.set(BASE, "platform");
+brains.set("platform/platform", BASE);
+
+const sourceTip = held(SOURCE, "Read the error before retrying a command.");
+
+function candidate(): Held {
+  return held(BASE, sourceTip.text, { status: "pending", labels: { sourceBrainId: String(SOURCE), sourceMemoryId: String(sourceTip.id), candidateReason: "It holds for any agent." } });
+}
+
+memories.push(sourceTip, candidate());
 
 function listed(brainId: number, query: URLSearchParams): Held[] {
   const types = query.get("type")?.split(",");
   const excluded = query.get("excludeTypes")?.split(",") ?? [];
   const statuses = query.get("status")?.split(",") ?? ["active", "pending"];
+
+  // The base's review never runs dry: where no candidate is left, the source's tip is raised again.
+  if (brainId === BASE && statuses.includes("pending") && !memories.some((one) => one.brainId === BASE && one.status === "pending")) memories.push(candidate());
 
   return memories
     .filter((one) => one.brainId === brainId && statuses.includes(one.status))
@@ -43,14 +70,19 @@ export async function orgBrainAnswer(path: string, request: Request): Promise<Re
     return Response.json({ items: id === undefined ? [] : [{ id, kind: "org" }], more: false });
   }
   if (path === "/brains" && request.method === "POST") {
-    const asked = (await request.json()) as { accountKey: string; agentKey: string };
+    const asked = (await request.json()) as { accountKey: string; agentKey: string; name?: string };
     const id = next++;
 
     brains.set(`${asked.accountKey}/${asked.agentKey}`, id);
+    names.set(id, asked.name ?? asked.agentKey);
 
     return Response.json({ id, kind: "org" }, { status: 201 });
   }
   if (path === "/org-topics") return Response.json([]);
+
+  const brain = /^\/brains\/(\d+)$/.exec(path);
+
+  if (brain !== null && request.method === "GET" && names.has(Number(brain[1]))) return Response.json({ id: Number(brain[1]), name: names.get(Number(brain[1])) });
 
   const many = /^\/brains\/(\d+)\/memories$/.exec(path);
 
@@ -70,7 +102,8 @@ export async function orgBrainAnswer(path: string, request: Request): Promise<Re
       status: "active",
       actorName: asked.actorName ?? "",
       validFrom: Date.now(),
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      labels: {}
     };
 
     memories.push(memory);

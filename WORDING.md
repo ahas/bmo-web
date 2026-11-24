@@ -111,7 +111,8 @@
   back by 되돌리기; a unit deciding it for everyone below → 하위 조직 잠금, its undoing 잠금 해제, a row under it saying who
   locks it as every lock line does (below); the platform letting a company use one → 제공, one it does not →
   제공되지 않음; the platform's own row → 직접 정함 or 기본값을 따름 (what its publisher declared), its recall → 긴급
-  회수, 긴급 회수됨 and 회수 해제; a call to an app turned off → 조직 설정으로 꺼진 앱입니다. 잠금 here is the delegation
+  회수, 긴급 회수됨 and 회수 해제; a unit taking a company's shared app off its people's PCs → 회수, its question
+  `<앱> 앱을 이 조직에서 회수할까요?`; a call to an app turned off → 조직 설정으로 꺼진 앱입니다. 잠금 here is the delegation
   chain's own word.
   Never 활성화, 비활성화, 사용 설정, 차단. 애플리케이션 stays the sidebar section's word.
 - a tool of a person's own, which their BMO makes on their PC → 개인 앱: 개인 앱, 내 개인 앱 (its settings section),
@@ -249,7 +250,10 @@
 - put a file of the reader's into a note → 업로드: 업로드, `{size}보다 작은 파일만 업로드할 수 있습니다` for a file over the
   largest the note takes. Never 올리기, 업로드 한도 or 최대 용량.
 - secret, a value a unit reads by its file name → 비밀; the console's store of them, each person's own → 비밀 보관함,
-  and one's own → 내 비밀; putting a value in place of the one a name holds → 교체. Never 시크릿, 키 보관소, 개인 금고.
+  and one's own → 내 비밀; putting a value in place of the one a name holds → 교체. A unit's and the platform's stand
+  on 조직's 비밀 보관함 under the same words. Never 시크릿, 키 보관소, 개인 금고.
+- which console sections a unit's people use → 권한, each person's sections 읽기 and 쓰기; the list's search 이름으로 찾기,
+  찾은 사람 없음, 사람 없음. Never 역할 for a section, 접근 제어.
 - the shape a secret is asked in → 비밀 종류; one of its fields → 항목, its key 키 and its label 이름; fields put
   together by hand → 직접 구성; a field whose value is drawn as dots → 값 숨김; how a field is typed → 입력 (한 줄,
   여러 줄, 파일); an agent asking for a secret → 비밀 요청, and one answered → 저장됨. Never 필드, 마스킹, 템플릿.
@@ -639,9 +643,10 @@
   공통 기억, 잠금 for 고정, 대외비 for 사내 한정, nor 승인 or 반려 for a proposal, which stay an approval's words.
 - a memory of the organisation about one person, what it may know of them → its field and mark 인물; the person's own
   such memories on 계정 → 조직에 공유한 내 정보: 정보 추가, 정보 삭제, 공유한 정보 없음. Never 신상, 개인 정보 for it.
-- what every agent may read, above every company → 전역 베이스 in Korean text; on the brain screen, its
-  candidates' review → 검토, each decided 전역으로, `{brain}에 남김` or 버림; a tip kept by an agent → 요령. Never 공용
-  기억 or 글로벌 for the base.
+- what every agent may read, above every company → 전역 베이스 in Korean text; on 조직 기억 with 플랫폼 전체 chosen, its
+  candidates' review → 검토, each decided 전역으로, `{brain}에 남김` or 버림; a tip kept by an agent → 요령, a check worth
+  running each time → 점검, reference knowledge → 지식. Whether a unit's people have a layer read → 읽기 범위: 전역 베이스
+  읽기, 조직 기억 읽기. Never 공용 기억 or 글로벌 for the base.
 - the record of changes to a person's place → 이력: 이력 없음. Never 히스토리, 로그, 발령 내역.
 - the one screen of the organisation's works, its menu and its title → 일정 관리. 업무 is never a menu's or a screen's
   name.

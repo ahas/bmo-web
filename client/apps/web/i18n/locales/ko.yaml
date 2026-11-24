@@ -1990,11 +1990,16 @@ permissions:
     read: 읽기
     section: 섹션
     write: 쓰기
+    search: "이름으로 찾기"
+    people_none: "사람 없음"
+    people_no_match: "찾은 사람 없음"
   status:
     sections_loading: 권한 불러오는 중…
+    people_loading: "사람 불러오는 중…"
   error:
     sections_read_failed: 권한을 불러오지 못했습니다.
     sections_write_failed: 권한을 저장하지 못했습니다.
+    people_read_failed: "사람 목록을 불러오지 못했습니다."
   aria:
     read_of: "{name} 읽기"
     write_of: "{name} 쓰기"
@@ -2167,12 +2172,28 @@ org_memory:
     instead_locked: "{unit}의 고정 기억이 대신 적용됩니다."
     source_work_pattern: 근무 패턴에서 가져온 기억입니다.
     source_other: 다른 서비스가 관리하는 기억입니다.
+    layers: "읽기 범위"
+    layer_global: "전역 베이스 읽기"
+    layer_organisation: "조직 기억 읽기"
+    base: "전역 베이스"
+    base_none: "전역 베이스 없음"
+    review: "검토 {count}건"
+    review_none: "검토할 후보 없음"
+    review_source: "{brain} · 기억 {id}"
+    type_tip: "요령"
+    type_check: "점검"
+    type_knowledge: "지식"
+    type_other: "기타"
   action:
     add: 기억 추가
     edit: 기억 편집
     delete: 기억 삭제
     accept: 수락
     decline: 거절
+    raise: "전역으로"
+    keep: "{brain}에 남김"
+    keep_short: "남김"
+    drop: "버림"
     grant: 권한 부여
     revoke: "{name} 권한 해제"
     add_info: 정보 추가
@@ -2183,6 +2204,8 @@ org_memory:
     delete: 이 기억을 삭제할까요?
     delete_effect: 이 조직과 하위 조직의 BMO가 더 이상 이 기억을 받지 않습니다.
     decline: 이 제안을 거절할까요?
+    keep_effect: "전역 베이스에 올리지 않고 {brain}에만 남깁니다."
+    drop_effect: "전역 베이스에 올리지 않고 {brain}에서도 무효로 해, 어디에서도 읽지 않습니다."
   status:
     loading: 조직 기억 불러오는 중…
   error:
@@ -2197,6 +2220,7 @@ org_memory:
     writer_left: 탈퇴한 사람에게는 권한을 줄 수 없습니다.
     person_outside: 이 조직이나 하위 조직에 있는 사람만 고를 수 있습니다.
     no_unit: 소속 조직이 없어 정보를 공유할 수 없습니다.
+    layers_forbidden: "이 조직의 읽기 범위를 정할 권한이 없습니다."
 catalogue:
   label:
     tab: 직책·종류
@@ -2449,6 +2473,7 @@ org_agents:
     key_remove: "{name} 지우기"
     role_choice: "{name} 가입 구성"
     repository_remove: "{name} 삭제"
+    repository_settings: "{name} 설정"
   message:
     repository_remove: 이 조직 저장소를 삭제할까요?
     repository_remove_effect: 저장소 등록만 삭제하고 디스크의 체크아웃은 그대로 둡니다. Job이 체크아웃을 쓰는 동안에는 삭제할 수 없습니다.
@@ -2736,6 +2761,10 @@ secrets:
     name_hint: 영문, 숫자, 점, 밑줄, 하이픈
     none: 보관된 비밀 없음
     note: 내 비밀은 나만 봅니다. 에이전트와 각 서비스의 설정에는 이름만 전합니다. 값은 보관함의 파일에만 남고 대화와 로그에는 남지 않습니다.
+    unit_note: "이 조직의 비밀이며, 조직장과 플랫폼 관리자만 봅니다.\n에이전트와 서비스에는 이름만 전하고, 값은 보관함의 파일에만 남습니다."
+    platform_note: "플랫폼의 비밀이며, 플랫폼 관리자가 함께 보고 각 서비스는 설정에 적힌 파일 이름으로 이 값을 읽습니다.\n에이전트에는 이름만 전합니다."
+    administrator_own: "관리자의 비밀은 플랫폼 전체의 비밀 보관함에 있습니다."
+    unit_forbidden: "이 조직의 비밀을 관리할 권한이 없습니다."
     replace: 기존 값 교체
     replace_note: "이전 값은 {name}.previous 파일로 남습니다."
     row: "{bytes}바이트 · {time} 변경"
@@ -3325,7 +3354,6 @@ agents:
     sleep: "수면"
     sign_in: "{name} 로그인"
     account_add: Claude 계정 추가
-    key_of: "{name} 키"
     providers: 공급자
     repository_add: 저장소 추가
     session_history: 세션 기록
@@ -4295,11 +4323,14 @@ apps:
     recall: 긴급 회수
     recall_confirm: 회수
     lift: 회수 해제
+    unit_recall: "회수"
   title:
     personal_apps: "개인 앱"
     recall: "{app} 앱을 모든 곳에서 끌까요?"
+    unit_recall: "{app} 앱을 이 조직에서 회수할까요?"
   message:
     recall: "모든 회사와 사람에게서 바로 꺼지고, 회수를 풀 때까지 아무도 켤 수 없습니다.\n회사와 조직, 사람이 정한 값은 남아 있다가 회수를 풀면 다시 적용됩니다."
+    unit_recall: "이 조직과 하위 조직의 모든 PC에서 앱을 지우고, 이 조직에서 꺼진 채로 잠급니다."
   status:
     loading: 앱 불러오는 중…
   error:
@@ -4314,7 +4345,6 @@ apps:
 # the personal apps section and the administrator's platform app requests.
 app_catalogue:
   label:
-    company: 회사
     none: 공유된 앱 없음
     scope: 공유 범위
     scope_all: 전체
@@ -4342,20 +4372,16 @@ app_catalogue:
     notice_shared: "{app} 앱이 공유되었습니다."
     notice_update: "{app} 업데이트에 확인이 필요합니다."
     notice_approval: "{app} 앱이 승인을 기다립니다."
-    unit: 조직
-    lock: 하위 조직 잠금
     promotions: 플랫폼 앱 요청
     promotion_line: "{company} · {by} · {time}"
     no_promotions: 요청 없음
+    unit_door: "조직 → 앱·도구에서 켜고 잠그고 회수합니다."
   placeholder:
     search: 앱 찾기
   action:
     install: 설치
     update: 업데이트
     clone: 복제
-    turn_on: 조직에 켜기
-    turn_off: 조직에서 끄기
-    recall: 회수
     withdraw: 공유 중단
     approve: 승인
     promote: 플랫폼 앱 요청
@@ -4370,7 +4396,6 @@ app_catalogue:
     uninstall: 앱을 삭제할까요?
     withdraw: 공유를 중단할까요?
     promote: 플랫폼 앱으로 요청할까요?
-    recall: 앱을 회수할까요?
     share: 앱 공유
     unit: 조직 설정
   message:
@@ -4381,7 +4406,6 @@ app_catalogue:
     uninstall_effect: "내 PC에서 앱을 삭제합니다.\n데이터는 PC에 남습니다."
     withdraw_effect: "새로 설치할 수 없습니다.\n이미 설치한 사람은 계속 씁니다."
     promote_effect: "플랫폼 관리자가 검토한 뒤 플랫폼 앱으로 배포합니다."
-    recall_effect: "이 조직의 모든 PC에서 앱이 삭제되고, 다시 켤 수 없게 잠깁니다."
     shared: "{app} 앱을 공유했습니다."
   status:
     loading: 카탈로그 불러오는 중…

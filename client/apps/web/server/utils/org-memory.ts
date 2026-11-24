@@ -15,7 +15,7 @@ import type { OrgMemory, OrgMemoryDraft, OrgMemoryPerson, OrgMemoryView, OrgMemo
 // the reader first and names the brain write's standing from its answer, `head` for a writer and `member` for anyone
 // else, whose word the brain keeps as a proposal. The brain is reached under its service token, `ORG_BRAIN`.
 
-const BRAIN = "ORG_BRAIN";
+export const BRAIN = "ORG_BRAIN";
 
 // The brain's refusals as the tab says them.
 const BRAIN_CODES: Readonly<Record<string, string>> = {
@@ -24,7 +24,7 @@ const BRAIN_CODES: Readonly<Record<string, string>> = {
   "not-found": "org_memory.error.not_found",
   conflict: "org_memory.error.conflict"
 };
-const BRAIN_CALL: UnitCall = { codes: BRAIN_CODES };
+export const BRAIN_CALL: UnitCall = { codes: BRAIN_CODES };
 
 // The keys a service that is the source of a fact writes its org memory under, each with the pack's sentence saying
 // where it comes from (docs/boundary.md, 「The codes the packs render」); a key standing in none is said by the general
@@ -49,13 +49,13 @@ export function sourceLine(key: string | null | undefined): string | null {
 
 // The types an org memory carries that are no standing fact: a proposal, and a record of what happened.
 const PROPOSAL = "rumor";
-const NOT_STANDING = `${PROPOSAL},episode`;
+export const NOT_STANDING = `${PROPOSAL},episode`;
 // The subject type a memory stands for its topic by.
 const TOPIC = "topic";
 // The subject type a shared memory names the person it is about by, keyed by the user's id.
 const PERSON = "person";
 
-interface BrainRow {
+export interface BrainRow {
   id: number;
   brainId: number;
   key: string | null;
@@ -68,9 +68,11 @@ interface BrainRow {
   actorName: string;
   validFrom: number | null;
   createdAt: number;
+  status?: string;
+  labels?: Record<string, unknown> | null;
 }
 
-interface Page<T> {
+export interface Page<T> {
   items: T[];
   more: boolean;
 }
@@ -113,13 +115,14 @@ async function brainMade(company: number, unit: { id: number; name: string }): P
   }
 }
 
-/** Every memory of a brain a query names, page by page, read as no use. */
-async function memoriesOf(brainId: number, asked: Record<string, string>): Promise<BrainRow[]> {
+/** Every memory of a brain a query names, page by page, read as no use: the standing ones where the query names no
+ * status. */
+export async function memoriesOf(brainId: number, asked: Record<string, string>): Promise<BrainRow[]> {
   const rows: BrainRow[] = [];
   let after: number | null = null;
 
   for (;;) {
-    const query = new URLSearchParams({ ...asked, status: "active", record: "false", limit: "500", ...(after === null ? {} : { after: String(after) }) });
+    const query = new URLSearchParams({ status: "active", ...asked, record: "false", limit: "500", ...(after === null ? {} : { after: String(after) }) });
     const page: Page<BrainRow> = await unitFetch<Page<BrainRow>>(BRAIN, `/brains/${brainId}/memories?${query}`, undefined, BRAIN_CALL);
 
     rows.push(...page.items);
@@ -130,7 +133,7 @@ async function memoriesOf(brainId: number, asked: Record<string, string>): Promi
   }
 }
 
-function topicOf(row: BrainRow): string | null {
+export function topicOf(row: BrainRow): string | null {
   return row.subjects.find((subject) => subject.type === TOPIC)?.key ?? null;
 }
 
@@ -271,7 +274,7 @@ async function checkedPerson(signed: SignedIn, unit: number, draft: OrgMemoryDra
   if (!people.some((person) => person.user === draft.about)) throw fail(409, wording("org_memory.error.person_outside"));
 }
 
-function posted(path: string, body: Record<string, unknown>, method = "POST"): Promise<unknown> {
+export function posted(path: string, body: Record<string, unknown>, method = "POST"): Promise<unknown> {
   return unitFetch(BRAIN, path, { method, headers: { "content-type": "application/json" }, body: JSON.stringify(body) }, BRAIN_CALL);
 }
 

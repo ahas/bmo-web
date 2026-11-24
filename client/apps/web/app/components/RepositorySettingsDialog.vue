@@ -195,14 +195,17 @@ import { countText } from "~/domain/numbers";
 import { useRowDrag } from "~/domain/row-drag";
 
 import type { GenerationSetting } from "#shared/agency";
-import type { NodeCheckoutAsk, RepositoryView, SupportCount, WorkNodeView } from "#shared/axes";
+import type { NodeCheckoutAsk, ProviderView, RepositoryView, SupportCount, UnitRepositoryDetail, WorkNodeView } from "#shared/axes";
 
 interface Props {
   // The repository to edit; none opens the dialog for a new one.
   name?: string | null;
+  // The organisation unit whose repository it is, read and saved through the unit's own routes so a head needs no part
+  // of agent management (docs/web.md, 「Organisation」, the agents tab); none on agent management's repository tab.
+  unit?: number | null;
 }
 
-const props = withDefaults(defineProps<Props>(), { name: null });
+const props = withDefaults(defineProps<Props>(), { name: null, unit: null });
 const open = defineModel<boolean>("open", { required: true });
 const emit = defineEmits<{ saved: [repository: RepositoryView] }>();
 
@@ -216,12 +219,24 @@ const DEV_COMMAND_MOST = 1_000;
 const ROLE_ORDER = "@roles";
 const HERE = "@here";
 
+// A unit's repository is read whole with the choices its dialog offers through the unit's own route; agent management's
+// reads stand untouched then.
+const forUnit = props.unit !== null;
+const unitAddress = computed(() => `/api/organization/units/${props.unit}/repositories/${encodeURIComponent(props.name ?? "")}`);
+const unitDetail = useFetch<UnitRepositoryDetail>(() => unitAddress.value, { lazy: true, server: false, immediate: false, watch: false });
 // The repositories tab reads the same answer under the same key.
-const { data: repositories, refresh } = useFetch<RepositoryView[]>("/api/repositories", { key: "repositories", lazy: true, server: false });
+const listed = useFetch<RepositoryView[]>("/api/repositories", { key: "repositories", lazy: true, server: false, immediate: !forUnit });
 // The nodes the agency places jobs on; one the repository names that takes none now still stands as its own choice.
-const { data: nodes } = useFetch<WorkNodeView[]>("/api/work-nodes", { key: "work-nodes", lazy: true, server: false });
-const { data: providers } = useProviders();
-const models = useProviderModels();
+const nodesRead = useFetch<WorkNodeView[]>("/api/work-nodes", { key: "work-nodes", lazy: true, server: false, immediate: !forUnit });
+const providersRead = forUnit ? null : useProviders();
+const repositories = computed<RepositoryView[] | null>(() => (forUnit ? (unitDetail.data.value ? [unitDetail.data.value.repository] : null) : (listed.data.value ?? null)));
+const nodes = computed<WorkNodeView[] | null>(() => (forUnit ? (unitDetail.data.value?.nodes ?? null) : (nodesRead.data.value ?? null)));
+const providers = computed<ProviderView[] | null>(() => (forUnit ? (unitDetail.data.value?.providers ?? null) : (providersRead?.data.value ?? null)));
+const models = useProviderModels(forUnit ? (provider) => `${unitAddress.value}/models/${encodeURIComponent(provider)}` : undefined);
+
+async function refresh(): Promise<void> {
+  await (forUnit ? unitDetail.refresh() : listed.refresh());
+}
 
 const adding = computed(() => props.name === null);
 const held = computed<RepositoryView | null>(() => (props.name === null ? null : (repositories.value?.find((one) => one.name === props.name) ?? null)));
@@ -507,7 +522,7 @@ async function save(): Promise<void> {
   try {
     const answered = adding.value
       ? await $fetch<RepositoryView>("/api/repositories", { method: "POST", body: body() })
-      : await $fetch<RepositoryView>(`/api/repositories/${encodeURIComponent(form.value.name)}`, { method: "PATCH", body: body() });
+      : await $fetch<RepositoryView>(forUnit ? unitAddress.value : `/api/repositories/${encodeURIComponent(form.value.name)}`, { method: "PATCH", body: body() });
 
     open.value = false;
     emit("saved", answered);

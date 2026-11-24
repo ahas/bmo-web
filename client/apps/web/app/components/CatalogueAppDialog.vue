@@ -1,7 +1,7 @@
 <template>
   <!-- One shared app's details (docs/web.md, 「App catalogue」): what it is and who made it, what it asks for, its review
-       report and its source, and what the reader may do with it — install, update, delete and clone their copy, turn
-       it on for a unit they head or recall it there, withdraw it, approve it and put it forward as a platform app.
+       report and its source, and what the reader may do with it — install, update, delete and clone their copy,
+       withdraw it, approve it and put it forward as a platform app, and for a head the way to the unit's apps tab.
        Every act that changes what runs on a PC is asked first. -->
   <SettingsDialog v-model:open="open" :title="props.app.title" wide>
     <div class="flex flex-col gap-6" data-catalogue-dialog>
@@ -25,43 +25,11 @@
 
       <p v-if="refusal !== ''" role="alert" class="text-sm text-error" data-catalogue-refusal>{{ refusal }}</p>
 
-      <SettingsGroup v-if="units.length > 0" :title="$t('app_catalogue.title.unit')" data-catalogue-units>
-        <SettingsRow v-if="mayTurnOn" :label="$t('app_catalogue.label.lock')">
-          <USwitch v-model="lock" :aria-label="$t('app_catalogue.label.lock')" data-catalogue-lock />
-        </SettingsRow>
-        <SettingsRow :label="$t('app_catalogue.label.unit')">
-          <ChoiceSelect v-model="unit" :items="units" value-key="value" size="sm" class="w-40" :aria-label="$t('app_catalogue.label.unit')" data-catalogue-unit />
-          <IconButton
-            v-if="mayTurnOn"
-            size="sm"
-            icon="i-material-symbols-toggle-on-outline"
-            :label="$t('app_catalogue.action.turn_on')"
-            :loading="busy === 'unit-on'"
-            :disabled="busy !== null"
-            data-catalogue-unit-on
-            @click="void switchUnit(true)"
-          />
-          <IconButton
-            v-if="mayTurnOn"
-            size="sm"
-            icon="i-material-symbols-toggle-off-outline"
-            :label="$t('app_catalogue.action.turn_off')"
-            :loading="busy === 'unit-off'"
-            :disabled="busy !== null"
-            data-catalogue-unit-off
-            @click="void switchUnit(false)"
-          />
-          <IconButton
-            v-if="mayRecall"
-            size="sm"
-            color="error"
-            icon="i-material-symbols-block"
-            :label="$t('app_catalogue.action.recall')"
-            :loading="busy === 'recall'"
-            :disabled="busy !== null"
-            data-catalogue-recall
-            @click="void recall()"
-          />
+      <!-- A head turns the app on, locks it and recalls it for a unit on the organisation screen's apps tab, like every
+           other app: a door to the nearest unit they head on their path. -->
+      <SettingsGroup v-if="nearest !== null" :title="$t('app_catalogue.title.unit')" data-catalogue-units>
+        <SettingsRow :label="nearest.label" :description="$t('app_catalogue.label.unit_door')">
+          <UButton color="neutral" variant="outline" trailing-icon="i-material-symbols-arrow-forward" :label="$t('common.action.open')" :to="unitAddress" data-catalogue-unit-door @click="open = false" />
         </SettingsRow>
       </SettingsGroup>
 
@@ -133,7 +101,6 @@ const busy = ref<string | null>(null);
 const SECONDARY: readonly string[] = ["clone", "uninstall", "approve", "promote", "withdraw"];
 const refusal = ref("");
 const source = ref<CatalogueSource | null>(null);
-const lock = ref(false);
 
 // The units the reader heads on their path, by the links the agency names them by.
 const units = computed(() => {
@@ -145,12 +112,14 @@ const units = computed(() => {
     return id === null ? [] : [{ value: id, label: props.catalogue.units[String(id)] ?? String(id) }];
   });
 });
-const unit = ref<number | null>(null);
+// The nearest of them, which the door leads to, and the organisation screen's apps tab at it.
+const nearest = computed(() => units.value.at(-1) ?? null);
+const unitAddress = computed(() => {
+  const company = props.catalogue.company;
+  const unit = nearest.value === null || String(nearest.value.value) === company ? {} : { unit: String(nearest.value.value) };
 
-watch(units, (now) => (unit.value = unit.value !== null && now.some((one) => one.value === unit.value) ? unit.value : (now.at(-1)?.value ?? null)), { immediate: true });
-
-const mayTurnOn = computed(() => unit.value !== null && props.app.may.turnOn.includes(`unit:${unit.value}`));
-const mayRecall = computed(() => unit.value !== null && props.app.may.recall.includes(`unit:${unit.value}`));
+  return { path: "/organization", query: { company, ...unit, tab: "apps" } };
+});
 
 // Whom a target names, in words.
 function targetWord(target: CatalogueTarget): string {
@@ -251,21 +220,5 @@ async function simple(kind: keyof typeof ASKED_ACTS): Promise<void> {
 
   if (kind === "uninstall") await act("uninstall", {}, "install", "DELETE");
   else await act(kind);
-}
-
-async function switchUnit(on: boolean): Promise<void> {
-  if (unit.value === null) return;
-
-  await act(on ? "unit-on" : "unit-off", { on, lock: on && lock.value }, `units/${unit.value}`);
-}
-
-async function recall(): Promise<void> {
-  if (unit.value === null) return;
-
-  const name = units.value.find((one) => one.value === unit.value)?.label ?? "";
-
-  if (await confirm({ title: t("app_catalogue.title.recall"), item: `${props.app.title} · ${name}`, effect: t("app_catalogue.message.recall_effect"), confirm: t("app_catalogue.action.recall") })) {
-    await act("recall", { unit: unit.value });
-  }
 }
 </script>

@@ -162,9 +162,47 @@ describe("a console route as another user meets it", () => {
       { file: "account/app-catalogue/[id]/source.get", method: "GET", path: "/api/account/app-catalogue/17-weekly/source" },
       { file: "account/app-catalogue/[id]/install.post", method: "POST", path: "/api/account/app-catalogue/17-weekly/install" },
       { file: "account/app-catalogue/[id]/install.delete", method: "DELETE", path: "/api/account/app-catalogue/17-weekly/install" },
-      { file: "account/app-catalogue/[id]/units/[unit].post", method: "POST", path: "/api/account/app-catalogue/17-weekly/units/40" }
+      { file: "organization/units/[unit]/apps/[app]/recall.post", method: "POST", path: "/api/organization/units/1/apps/app-a/recall" }
     ]) {
       expect({ route: route.file, status: await answer(route) }).toEqual({ route: route.file, status: 200 });
+    }
+  });
+
+  // A unit's secrets, its people's sections, the layers its people read and its repositories' dialog are every member's to
+  // ask, the account service and the agency deciding who heads the unit (docs/web.md, 「Organisation」).
+  test("a member asks for a unit's secrets, people, sections, read layers and repository, the units deciding", async () => {
+    service.sections.set(4, new Map());
+    session = { user: { name: "no-account", id: 4 }, sid: "bmo.sid=no-account", administrator: false };
+
+    for (const route of [
+      { file: "organization/units/[unit]/secrets.get", method: "GET", path: "/api/organization/units/1/secrets" },
+      { file: "organization/units/[unit]/secrets.post", method: "POST", path: "/api/organization/units/1/secrets" },
+      { file: "organization/units/[unit]/secrets/[name].delete", method: "DELETE", path: "/api/organization/units/1/secrets/KEY_A" },
+      { file: "organization/units/[unit]/people.get", method: "GET", path: "/api/organization/units/1/people" },
+      { file: "organization/units/[unit]/brain-layers.get", method: "GET", path: "/api/organization/units/1/brain-layers" },
+      { file: "organization/units/[unit]/brain-layers.put", method: "PUT", path: "/api/organization/units/1/brain-layers" },
+      { file: "users/[user]/sections.get", method: "GET", path: "/api/users/2/sections" },
+      { file: "users/[user]/sections.put", method: "PUT", path: "/api/users/2/sections" },
+      { file: "organization/units/[unit]/repositories/[name].get", method: "GET", path: "/api/organization/units/1/repositories/repo-a" },
+      { file: "organization/units/[unit]/repositories/[name].patch", method: "PATCH", path: "/api/organization/units/1/repositories/repo-a" },
+      { file: "organization/units/[unit]/repositories/[name]/models/[provider].get", method: "GET", path: "/api/organization/units/1/repositories/repo-a/models/provider-a" }
+    ]) {
+      expect({ route: route.file, status: await answer(route) }).toEqual({ route: route.file, status: 200 });
+    }
+  });
+
+  // The base and the platform's read layers are the administrator's alone.
+  test("a member meets nothing at the platform's memory and read layers", async () => {
+    service.sections.set(4, new Map());
+    session = { user: { name: "no-account", id: 4 }, sid: "bmo.sid=no-account", administrator: false };
+
+    for (const route of [
+      { file: "organization/platform/memory.get", method: "GET", path: "/api/organization/platform/memory" },
+      { file: "organization/platform/memory.post", method: "POST", path: "/api/organization/platform/memory" },
+      { file: "organization/platform/memory/candidates/[memory].post", method: "POST", path: "/api/organization/platform/memory/candidates/1" },
+      { file: "organization/platform/brain-layers.put", method: "PUT", path: "/api/organization/platform/brain-layers" }
+    ]) {
+      expect({ route: route.file, status: await answer(route) }).toEqual({ route: route.file, status: 404 });
     }
   });
 

@@ -447,3 +447,167 @@ async fn the_users_list_answers_the_administrator_alone() {
       .any(|user| user["user"] == boss && user["administrator"] == true)
   );
 }
+
+/// A unit of its own, under `parent` where one is named.
+async fn unit_made(scratch: &Scratch, name: &str, parent: Option<i32>) -> i32 {
+  bmo_web_server::one(
+    scratch.db(),
+    r#"INSERT INTO "organizations" ("name", "parent_id") VALUES ($1, $2) RETURNING "id""#,
+    vec![name.into(), parent.into()],
+  )
+  .await
+  .unwrap()
+  .unwrap()
+  .try_get::<i32>("", "id")
+  .unwrap()
+}
+
+/// A member standing in `unit`, heading it where `heads` says, with the defaults in force.
+async fn standing_in(scratch: &Scratch, name: &str, unit: i32, heads: bool) -> String {
+  let user = set_sign_in(scratch.db(), name, "the password", false).await.unwrap().user;
+
+  scratch
+    .run(
+      r#"UPDATE "users" SET "organization_id" = $1 WHERE "id" = $2"#,
+      vec![unit.into(), user.into()],
+    )
+    .await;
+
+  if heads {
+    scratch
+      .run(
+        r#"INSERT INTO "relation_tuples"
+             ("resource_type", "resource_id", "relation", "subject_type", "subject_id", "subject_relation")
+           VALUES ('organization', $1, 'manager', 'user', $2, '')"#,
+        vec![unit.to_string().into(), user.to_string().into()],
+      )
+      .await;
+  }
+
+  user.to_string()
+}
+
+#[tokio::test]
+async fn a_head_gives_their_people_only_the_sections_they_hold() {
+  ready();
+  let scratch = fresh().await;
+  let app = app(&scratch).await;
+  let company = unit_made(&scratch, "company-sections", None).await;
+  let team = unit_made(&scratch, "team-sections", Some(company)).await;
+  let head = standing_in(&scratch, "head-sections", company, true).await;
+  let member = standing_in(&scratch, "member-sections", team, false).await;
+  let outsider =
+    standing_in(&scratch, "outsider-sections", unit_made(&scratch, "other-company", None).await, false)
+      .await;
+  let defaults = |extra: Vec<Value>| {
+    let mut rows = vec![
+      json!({ "section": "rooms", "read": true, "write": true }),
+      json!({ "section": "account", "read": true, "write": true }),
+      json!({ "section": "supply", "read": true, "write": true }),
+      json!({ "section": "files", "read": true, "write": false }),
+    ];
+
+    rows.extend(extra);
+    json!({ "sections": rows })
+  };
+
+  // The administrator gives the head the files' read beside the defaults, and the member the defaults alone.
+  for (user, files) in [(&head, true), (&member, false)] {
+    let body = defaults(vec![]);
+    let body = if files {
+      body
+    } else {
+      json!({ "sections": body["sections"].as_array().unwrap()[..3] })
+    };
+    let (status, said) = asked(
+      &app,
+      Method::PUT,
+      &format!("/users/{user}/sections"),
+      Some(body),
+      Some(&head),
+      Some("administrator"),
+    )
+    .await;
+
+    assert_eq!(status, StatusCode::OK, "{said}");
+  }
+
+  // The head reads the sections of a person under the unit they head, and not of one outside it.
+  let (status, said) = asked(
+    &app,
+    Method::GET,
+    &format!("/users/{member}/sections"),
+    None,
+    Some(&head),
+    Some("member"),
+  )
+  .await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+
+  let (status, said) = asked(
+    &app,
+    Method::GET,
+    &format!("/users/{outsider}/sections"),
+    None,
+    Some(&head),
+    Some("member"),
+  )
+  .await;
+
+  assert_eq!(status, StatusCode::FORBIDDEN, "{said}");
+
+  // The head holds the files' read alone, so they give it, and the write they do not hold is refused whole.
+  let (status, said) = asked(
+    &app,
+    Method::PUT,
+    &format!("/users/{member}/sections"),
+    Some(defaults(vec![])),
+    Some(&head),
+    Some("member"),
+  )
+  .await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert_eq!(section(&said, "files")["read"], true, "{said}");
+
+  for asked_for in [
+    json!({ "section": "monitor", "read": true, "write": false }),
+    json!({ "section": "files", "read": true, "write": true }),
+  ] {
+    let mut rows: Vec<Value> = defaults(vec![])["sections"].as_array().unwrap()[..3].to_vec();
+
+    rows.push(json!({ "section": "files", "read": true, "write": false }));
+    rows.retain(|row| row["section"] != asked_for["section"]);
+    rows.push(asked_for.clone());
+
+    let body = json!({ "sections": rows });
+    let (status, said) = asked(
+      &app,
+      Method::PUT,
+      &format!("/users/{member}/sections"),
+      Some(body),
+      Some(&head),
+      Some("member"),
+    )
+    .await;
+
+    assert_eq!(status, StatusCode::FORBIDDEN, "{asked_for} {said}");
+    assert!(!check(&app, &member, "read", "monitor").await);
+  }
+
+  // Nor does a head write a person outside the units they head, or their own set.
+  for user in [&outsider, &head] {
+    let (status, said) = asked(
+      &app,
+      Method::PUT,
+      &format!("/users/{user}/sections"),
+      Some(defaults(vec![])),
+      Some(&head),
+      Some("member"),
+    )
+    .await;
+
+    assert_eq!(status, StatusCode::FORBIDDEN, "{user} {said}");
+  }
+}

@@ -1,8 +1,9 @@
 <template>
-  <!-- One person's permissions tab, the administrator's alone (docs/web.md, 「Organisation」, the people tab; 「Access」): each
-       section of the console a row with its read and its write, read as the tab first opens. A change is saved as it
-       is made; a write is also a read. A platform administrator passes every section, so their table stands closed to
-       change. -->
+  <!-- One person's console sections on the organisation screen's permissions tab (docs/web.md, 「Organisation」, the
+       permissions tab; 「Access」): each section of the console a row with its read and its write, read as the table
+       first opens. A change is saved as it is made; a write is also a read. A platform administrator passes every
+       section, so their table stands closed to change, and a head changes only the reads and writes they hold
+       themselves, every other switch standing disabled. -->
   <div class="flex flex-col gap-4" data-person-permissions>
     <UAlert v-if="props.administrator === true" color="neutral" variant="subtle" :description="$t('permissions.label.administrator')" data-permissions-administrator />
 
@@ -36,7 +37,7 @@
               v-else
               :model-value="row.original.read"
               :loading="saving && changing === row.original.section"
-              :disabled="saving || locked"
+              :disabled="saving || locked || !mayChange(row.original.section, 'read')"
               :aria-label="$t('permissions.aria.read_of', { name: $t(row.original.label) })"
               @update:model-value="(on: boolean) => void change(row.original, 'read', on)"
             />
@@ -50,7 +51,7 @@
               v-else
               :model-value="row.original.write"
               :loading="saving && changing === row.original.section"
-              :disabled="saving || locked"
+              :disabled="saving || locked || !mayChange(row.original.section, 'write')"
               :aria-label="$t('permissions.aria.write_of', { name: $t(row.original.label) })"
               @update:model-value="(on: boolean) => void change(row.original, 'write', on)"
             />
@@ -79,7 +80,13 @@ interface PermissionRow extends SectionRow {
   icon: string;
 }
 
-const props = defineProps<PersonPaneProps>();
+interface Props extends PersonPaneProps {
+  // The sections the reader holds, which bound what they may change; none for the administrator, who changes every
+  // one.
+  holds?: readonly SectionRow[] | null;
+}
+
+const props = withDefaults(defineProps<Props>(), { holds: null });
 
 const { t } = useI18n();
 
@@ -98,6 +105,16 @@ const loaded = computed(() => rows.value !== null && decided.value);
 
 // A platform administrator passes every section, and nothing is changed while the person is not yet read.
 const locked = computed(() => props.administrator !== false);
+
+// Whether the reader may change one switch: every one for the administrator, and for a head the read or the write
+// of a section they hold themselves.
+function mayChange(section: string, field: "read" | "write"): boolean {
+  if (props.holds === null) return true;
+
+  const held = props.holds.find((row) => row.section === section);
+
+  return held !== undefined && held[field];
+}
 
 const columns = computed<SettingsColumn<PermissionRow>[]>(() => [
   { id: "section", header: t("permissions.label.section") },
@@ -140,7 +157,7 @@ async function read(): Promise<void> {
 // One switch changed, the whole set written as it now stands. A write is also a read, and a read taken away takes
 // the write with it; a refusal puts the row back as it stood and says why under the table.
 async function change(row: PermissionRow, field: "read" | "write", on: boolean): Promise<void> {
-  if (saving.value || rows.value === null || locked.value) return;
+  if (saving.value || rows.value === null || locked.value || !mayChange(row.section, field)) return;
 
   const before = { read: row.read, write: row.write };
 

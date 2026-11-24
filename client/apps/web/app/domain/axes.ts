@@ -168,7 +168,9 @@ export interface ProviderModelsState {
 
 const held = new Map<string, Ref<ProviderModelsState>>();
 
-export function useProviderModels(): { stateOf: (provider: string) => Ref<ProviderModelsState>; read: (provider: string, failed: (error: unknown) => string) => Promise<void> } {
+export function useProviderModels(
+  address: (provider: string) => string = (provider) => `/api/provider-models/${encodeURIComponent(provider)}`
+): { stateOf: (provider: string) => Ref<ProviderModelsState>; read: (provider: string, failed: (error: unknown) => string) => Promise<void> } {
   function stateOf(provider: string): Ref<ProviderModelsState> {
     let state = held.get(provider);
 
@@ -188,7 +190,7 @@ export function useProviderModels(): { stateOf: (provider: string) => Ref<Provid
     state.value = { ...state.value, reading: true, failure: null };
 
     try {
-      state.value = { view: await $fetch<ProviderModelsView>(`/api/provider-models/${encodeURIComponent(provider)}`), failure: null, reading: false };
+      state.value = { view: await $fetch<ProviderModelsView>(address(provider)), failure: null, reading: false };
     } catch (error) {
       state.value = { view: null, failure: failed(error), reading: false };
     }

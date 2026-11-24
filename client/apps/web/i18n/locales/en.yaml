@@ -1967,11 +1967,16 @@ permissions:
     read: Read
     section: Section
     write: Write
+    search: "Find by name"
+    people_none: "No people"
+    people_no_match: "Nobody found"
   status:
     sections_loading: Loading permissions…
+    people_loading: "Loading people…"
   error:
     sections_read_failed: "Couldn't load permissions."
     sections_write_failed: "Couldn't save permissions."
+    people_read_failed: "Could not load the people."
   aria:
     read_of: "Read {name}"
     write_of: "Write {name}"
@@ -2144,12 +2149,28 @@ org_memory:
     instead_locked: "{unit}'s fixed memory applies instead."
     source_work_pattern: This memory comes from a work pattern.
     source_other: This memory is managed by another service.
+    layers: "Reading"
+    layer_global: "Read the platform memory"
+    layer_organisation: "Read the organisation memory"
+    base: "Platform memory"
+    base_none: "No platform memory"
+    review: "Review {count}"
+    review_none: "No candidates to review"
+    review_source: "{brain} · memory {id}"
+    type_tip: "Tip"
+    type_check: "Check"
+    type_knowledge: "Knowledge"
+    type_other: "Other"
   action:
     add: Add memory
     edit: Edit memory
     delete: Delete memory
     accept: Accept
     decline: Decline
+    raise: "Raise to the platform"
+    keep: "Keep in {brain}"
+    keep_short: "Keep"
+    drop: "Drop"
     grant: Grant access
     revoke: "Revoke {name}'s access"
     add_info: "Add information"
@@ -2160,6 +2181,8 @@ org_memory:
     delete: Delete this memory?
     delete_effect: BMOs in this organization and its sub-organizations will no longer receive this memory.
     decline: Decline this proposal?
+    keep_effect: "It is not raised to the platform and stays in {brain} alone."
+    drop_effect: "It is not raised, and it is invalidated in {brain} as well, so nothing reads it again."
   status:
     loading: Loading organization memory…
   error:
@@ -2176,6 +2199,7 @@ org_memory:
     writer_left: "A person who has left can't be granted access."
     person_outside: "You can only choose people in this organization or its sub-organizations."
     no_unit: "You don't belong to an organization, so there's nothing to share."
+    layers_forbidden: "You may not set what this unit reads."
 catalogue:
   label:
     tab: "Positions & types"
@@ -2432,6 +2456,7 @@ org_agents:
     key_remove: "Delete {name}"
     role_choice: "{name} signup setup"
     repository_remove: "Delete {name}"
+    repository_settings: "{name} settings"
   message:
     repository_remove: Delete this organization repository?
     repository_remove_effect: "Only the repository's registration is deleted; the checkout on disk stays. It can't be deleted while a Job is using the checkout."
@@ -2721,6 +2746,10 @@ secrets:
     name_hint: "Letters, digits, dots, underscores, hyphens"
     none: No stored secrets
     note: "Only you can see your secrets. Agents and services are given only their names in their settings. Values stay only in files in the secret store, never in chats or logs."
+    unit_note: "These are this unit's secrets, seen by its heads and the platform administrator alone.\nAgents and services are given the name; the value stays in the store's file."
+    platform_note: "These are the platform's secrets, shared by every platform administrator; each service reads its value by the file name its settings name.\nAgents are given the name alone."
+    administrator_own: "An administrator's secrets are the platform's, kept under the whole platform."
+    unit_forbidden: "You may not manage this unit's secrets."
     replace: Replace existing value
     replace_note: "The previous value is kept in the file {name}.previous."
     row: "{bytes} bytes · changed {time}"
@@ -3310,7 +3339,6 @@ agents:
     sleep: "Sleep"
     sign_in: "Sign in to {name}"
     account_add: Add Claude account
-    key_of: "{name} key"
     providers: Providers
     repository_add: Add repository
     session_history: Session history
@@ -4277,11 +4305,14 @@ apps:
     recall: Emergency recall
     recall_confirm: Recall
     lift: Lift recall
+    unit_recall: "Recall"
   title:
     personal_apps: "Personal apps"
     recall: "Turn off the {app} app everywhere?"
+    unit_recall: "Recall {app} from this unit?"
   message:
     recall: "It turns off right away for every company and person, and no one can turn it on until the recall is lifted.\nValues set by companies, organizations and people are kept and apply again once the recall is lifted."
+    unit_recall: "The app is taken off every PC under this unit and stays off, locked, here."
   status:
     loading: Loading apps…
   error:
@@ -4295,7 +4326,6 @@ apps:
 # the personal apps section and the administrator's platform app requests.
 app_catalogue:
   label:
-    company: Company
     none: No shared apps
     scope: Shared with
     scope_all: All
@@ -4323,20 +4353,16 @@ app_catalogue:
     notice_shared: "{app} was shared with you."
     notice_update: "{app}'s update needs your confirmation."
     notice_approval: "{app} awaits your approval."
-    unit: Organisation
-    lock: Lock below
     promotions: Platform app requests
     promotion_line: "{company} · {by} · {time}"
     no_promotions: No requests
+    unit_door: "Turned on, locked and recalled on Organization → Apps."
   placeholder:
     search: Find an app
   action:
     install: Install
     update: Update
     clone: Clone
-    turn_on: Turn on
-    turn_off: Turn off
-    recall: Recall
     withdraw: Stop sharing
     approve: Approve
     promote: Request platform app
@@ -4351,7 +4377,6 @@ app_catalogue:
     uninstall: Delete the app?
     withdraw: Stop sharing it?
     promote: Request it as a platform app?
-    recall: Recall the app?
     share: Share the app
     unit: Organisation
   message:
@@ -4362,7 +4387,6 @@ app_catalogue:
     uninstall_effect: "The app is deleted from your PC.\nIts data stays on the PC."
     withdraw_effect: "Nobody can install it from now on.\nThose who installed it keep using it."
     promote_effect: "The administrator reviews it and ships it as a platform app."
-    recall_effect: "The app is deleted from every PC of the organisation, and locked off."
     shared: "Shared {app}."
   status:
     loading: Loading the catalogue…

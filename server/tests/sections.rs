@@ -2,7 +2,7 @@
 //! a user is made with, and the administrator's written set. A permitted read and write open through sumida's
 //! point check, and a refused one does not.
 
-use crate::support::{OWNER, ROOM, Scratch, SharedDatabase, console_hash, ready};
+use crate::support::{OWNER, Scratch, SharedDatabase, console_hash, ready};
 use axum::Router;
 use axum::body::Body;
 use axum::http::{Method, Request, StatusCode, header};
@@ -27,8 +27,6 @@ async fn seed(scratch: Scratch) -> Scratch {
     scratch.db(),
     MoveAsk {
       owner_senders: vec![OWNER],
-      rooms: vec![ROOM],
-      room_rules: vec![],
     },
   )
   .await
@@ -50,8 +48,6 @@ async fn fresh() -> Scratch {
     scratch.db(),
     MoveAsk {
       owner_senders: vec![OWNER],
-      rooms: vec![ROOM],
-      room_rules: vec![],
     },
   )
   .await

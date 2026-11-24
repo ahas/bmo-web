@@ -1,6 +1,0 @@
-# What `bmo room rules` says when a room's delegations are changed from a shell (docs/unified-bmo.md,
-# 「Delegations」).
-
-# A grant is saved or taken away only on the owner's own message in that room, and this is the refusal
-# of one made on any other message.
-owner_message: "방 규약은 이 방의 실제 소유자 메시지가 있어야 변경할 수 있습니다."

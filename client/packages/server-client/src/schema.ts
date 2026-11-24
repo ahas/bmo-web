@@ -213,23 +213,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/checks/message": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Whether the sender of a message in a room holds a relation there. */
-        post: operations["checkMessage"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/checks/object": {
         parameters: {
             query?: never;
@@ -258,23 +241,6 @@ export interface paths {
         put?: never;
         /** Whether a user writes an organisation unit's org memory, heading it or a unit above it or holding the unit's grant. */
         post: operations["checkOrgMemory"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/checks/room": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Whether a sender holds a room relation in a room; a null sender is the room's members alone. */
-        post: operations["checkRoom"];
         delete?: never;
         options?: never;
         head?: never;
@@ -468,25 +434,6 @@ export interface paths {
         /** Uses a verification link: the email it was made for is verified. */
         post: operations["emailVerified"];
         delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/grants": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** The grants standing on a room, in the order they were written, none past its expiry. */
-        get: operations["grants"];
-        put?: never;
-        /** Grants a relation on a room or an object, on the authority of the message's sender. */
-        post: operations["grant"];
-        /** Takes a grant back, on the authority of the message's sender. */
-        delete: operations["revoke"];
         options?: never;
         head?: never;
         patch?: never;
@@ -932,58 +879,6 @@ export interface paths {
         };
         /** Every removal record, the newest first, at most 200; for a platform administrator. */
         get: operations["removals"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/rooms/{chat}/callers": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** A room's callers, the users granted ask on it, and whether the signed-in user may change them. */
-        get: operations["roomCallers"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/rooms/{chat}/callers/{user}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** A user granted ask on a room, by the administrator, the room's leader or a head of the user's unit. */
-        put: operations["grantRoomCaller"];
-        post?: never;
-        /** A user's ask grant on a room taken away, by the administrator, the room's leader or a head of the user's unit. */
-        delete: operations["revokeRoomCaller"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/rooms/{chat}/holdings": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** What a room holds of the service's, each holding it has at least one of. */
-        get: operations["roomHoldings"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2620,8 +2515,6 @@ export interface components {
         CheckAnswer: {
             allowed: boolean;
             grant: string;
-            /** Format: int64 */
-            sender?: number | null;
             user?: string | null;
         };
         /** @description A code typed. */
@@ -2830,44 +2723,6 @@ export interface components {
             until?: number | null;
             why: string;
         };
-        /** @description A grant made: a room and a relation there, or a kind, an object and a relation. */
-        GrantAsk: {
-            /**
-             * Format: int64
-             * @description Epoch milliseconds.
-             */
-            expiresAt?: number | null;
-            kind?: string | null;
-            message: components["schemas"]["On"];
-            object?: string | null;
-            relation: string;
-            /** Format: int64 */
-            room?: number | null;
-            to: components["schemas"]["Holder"];
-            words?: string | null;
-        };
-        /** @description A grant standing on a room. */
-        GrantRow: {
-            /**
-             * Format: int64
-             * @description Epoch milliseconds.
-             */
-            expiresAt?: number | null;
-            relation: string;
-            /** @description The holder's subject key, such as `user:12` or `bmo_member:-7`. */
-            subjectKey: string;
-            words?: string | null;
-        };
-        /** @description What a grant wrote: the grant, its subject, and the holder's user where it is one. */
-        Granted: {
-            grant: string;
-            subject: string;
-            user?: string | null;
-        };
-        /** @description The grants standing on a room. */
-        Grants: {
-            grants: components["schemas"]["GrantRow"][];
-        };
         /** @description Whether the service is up, its version, and whether the account model is in force. */
         Health: {
             inForce: boolean;
@@ -2889,24 +2744,6 @@ export interface components {
             unit?: components["schemas"]["UnitRef"] | null;
             /** Format: int64 */
             until?: number | null;
-        };
-        /** @description Whom a grant is to: a sender, a user, or every member of the room. */
-        Holder: {
-            members?: boolean;
-            /** Format: int64 */
-            sender?: number | null;
-            user?: string | null;
-        };
-        /** @description One holding a room has of the service's, as a code and its count. */
-        Holding: {
-            /** @description `room_grants` or `room_senders`. */
-            code: string;
-            /** Format: int64 */
-            count: number;
-        };
-        /** @description What a room holds of the service's. */
-        Holdings: {
-            holdings: components["schemas"]["Holding"][];
         };
         /** @description The one-line installs of a machine. */
         Installs: {
@@ -3070,24 +2907,14 @@ export interface components {
         MemoryWriters: {
             writers: components["schemas"]["MemoryWriter"][];
         };
-        /** @description A room relation asked of a message's sender. */
-        MessageCheckAsk: {
-            /** Format: int64 */
-            message: number;
-            relation: string;
-            /** Format: int64 */
-            room: number;
-        };
         /** @description Where the account model stands, and why it is not in force where it is not. */
         ModelState: {
             inForce: boolean;
             why?: string | null;
         };
-        /** @description What the data move is handed: what only the other units hold. */
+        /** @description What the data move is handed: the senders the deployment's configuration names as the owner's. */
         MoveAsk: {
             ownerSenders: number[];
-            roomRules?: components["schemas"]["RoomRule"][];
-            rooms: number[];
         };
         /** @description What the data move answered. */
         Moved: {
@@ -3139,13 +2966,6 @@ export interface components {
             object: string;
             relation: string;
             user: string;
-        };
-        /** @description The message a grant is made or revoked on. */
-        On: {
-            /** Format: int64 */
-            id: number;
-            /** Format: int64 */
-            room: number;
         };
         /**
          * @description One unit whose org memory a login writes: its parent, absent for a company, its company, itself for a company,
@@ -3457,22 +3277,6 @@ export interface components {
             link?: string | null;
             mailed: boolean;
         };
-        /** @description A grant revoked. */
-        RevokeAsk: {
-            kind?: string | null;
-            message: components["schemas"]["On"];
-            object?: string | null;
-            relation: string;
-            /** Format: int64 */
-            room?: number | null;
-            to: components["schemas"]["Holder"];
-        };
-        /** @description What a revoke took back. */
-        Revoked: {
-            grant: string;
-            /** Format: int64 */
-            revoked: number;
-        };
         /** @description A person standing for a role for a unit: where they hold it and whether through a post. */
         RoleHolder: {
             concurrent: boolean;
@@ -3502,35 +3306,6 @@ export interface components {
             role: components["schemas"]["RoleRef"];
             /** @description The role the holders hold; none where nobody stands. */
             standing: components["schemas"]["RoleRef"] | null;
-        };
-        /** @description One caller of a room: a user granted `ask` on it. */
-        RoomCaller: {
-            name: string;
-            user: string;
-        };
-        /** @description A room's callers, and whether the signed-in user is the administrator or leads the room. */
-        RoomCallers: {
-            callers: components["schemas"]["RoomCaller"][];
-            mayChange: boolean;
-            /** Format: int64 */
-            room: number;
-        };
-        /** @description A room relation asked of a sender. */
-        RoomCheckAsk: {
-            relation: string;
-            /** Format: int64 */
-            room: number;
-            /** Format: int64 */
-            sender?: number | null;
-        };
-        /** @description One room rule the deployment answers, handed to the data move. */
-        RoomRule: {
-            id: string;
-            /** Format: int64 */
-            room: number;
-            /** Format: int64 */
-            subject: number;
-            words: string;
         };
         /**
          * @description The companies the reader looks through in the people roster (docs/accounts.md, 「The people roster」), in
@@ -5199,39 +4974,6 @@ export interface operations {
             };
         };
     };
-    checkMessage: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["MessageCheckAsk"];
-            };
-        };
-        responses: {
-            /** @description Answered. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CheckAnswer"];
-                };
-            };
-            /** @description A refusal or failure: bad-request, unauthorized, not-found, no-such-message, no-receiver, upstream-failed, not-in-force, database, failed */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WireError"];
-                };
-            };
-        };
-    };
     checkObject: {
         parameters: {
             query?: never;
@@ -5288,39 +5030,6 @@ export interface operations {
                 };
             };
             /** @description A refusal or failure: bad-request, unauthorized, not-found, not-in-force, database, failed */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WireError"];
-                };
-            };
-        };
-    };
-    checkRoom: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RoomCheckAsk"];
-            };
-        };
-        responses: {
-            /** @description Answered. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CheckAnswer"];
-                };
-            };
-            /** @description A refusal or failure: bad-request, unauthorized, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -5883,103 +5592,6 @@ export interface operations {
                 };
             };
             /** @description A refusal or failure: unauthorized, link-gone, not-in-force, database, failed */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WireError"];
-                };
-            };
-        };
-    };
-    grants: {
-        parameters: {
-            query: {
-                room: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Answered. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Grants"];
-                };
-            };
-            /** @description A refusal or failure: bad-request, unauthorized, not-in-force, database, failed */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WireError"];
-                };
-            };
-        };
-    };
-    grant: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["GrantAsk"];
-            };
-        };
-        responses: {
-            /** @description Answered. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Granted"];
-                };
-            };
-            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, no-receiver, upstream-failed, not-in-force, database, failed */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WireError"];
-                };
-            };
-        };
-    };
-    revoke: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RevokeAsk"];
-            };
-        };
-        responses: {
-            /** @description Answered. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Revoked"];
-                };
-            };
-            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, no-receiver, upstream-failed, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -7045,137 +6657,6 @@ export interface operations {
                 };
             };
             /** @description A refusal or failure: unauthorized, forbidden, not-in-force, database, failed */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WireError"];
-                };
-            };
-        };
-    };
-    roomCallers: {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description The user of the login the call is made for, its id written as a decimal number. */
-                "Owner-Key": string;
-            };
-            path: {
-                chat: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Answered. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RoomCallers"];
-                };
-            };
-            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-in-force, database, failed */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WireError"];
-                };
-            };
-        };
-    };
-    grantRoomCaller: {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description The user of the login the call is made for, its id written as a decimal number. */
-                "Owner-Key": string;
-            };
-            path: {
-                chat: number;
-                user: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Done; no content. */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, upstream-failed, database, failed */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WireError"];
-                };
-            };
-        };
-    };
-    revokeRoomCaller: {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description The user of the login the call is made for, its id written as a decimal number. */
-                "Owner-Key": string;
-            };
-            path: {
-                chat: number;
-                user: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Done; no content. */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, upstream-failed, database, failed */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WireError"];
-                };
-            };
-        };
-    };
-    roomHoldings: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                chat: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Answered. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Holdings"];
-                };
-            };
-            /** @description A refusal or failure: bad-request, unauthorized, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;

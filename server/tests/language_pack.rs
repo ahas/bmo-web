@@ -88,7 +88,6 @@ fn every_part_reads_as_its_type() {
   assert!(!remote_desktop::REMOTE_DESKTOP.dials.is_empty());
   assert!(!resident_turn::TURN_WORDS.confirm.mark.is_empty());
   assert!(!roads::ROAD_WORDS.telegram.kinds.photo.is_empty());
-  assert!(!room_grants::ROOM_GRANTS.owner_message.is_empty());
   assert!(!room_removal::ROOM_REMOVAL.warned.road.is_empty());
   assert!(!sends::SENDS.capabilities.is_empty());
   assert!(!songs::SONGS.run_title.is_empty());

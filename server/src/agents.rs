@@ -291,7 +291,7 @@ fn names_in(row: &QueryResult) -> Result<Vec<String>, Refusal> {
 pub fn default_kinds() -> [ChainKind; 3] {
   let kind = |key: &str, description: &str, shape: ChainShape| ChainKind {
     key: key.to_owned(),
-    declared_by: crate::holdings::UNIT.to_owned(),
+    declared_by: crate::UNIT.to_owned(),
     description: description.to_owned(),
     shape,
     choices: vec![],
@@ -520,7 +520,7 @@ fn setting_of(allowed: Option<bool>) -> AgentSetting {
 pub fn personalize_kind() -> ChainKind {
   ChainKind {
     key: "agent-profile.personalize".to_owned(),
-    declared_by: crate::holdings::UNIT.to_owned(),
+    declared_by: crate::UNIT.to_owned(),
     description:
       "Whether a person may personalise their own BMO: its name, call names, picture and persona."
         .to_owned(),

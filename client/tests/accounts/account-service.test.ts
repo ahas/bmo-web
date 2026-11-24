@@ -9,7 +9,6 @@ import {
   addSecretKind,
   adoptPhone,
   checkObject,
-  checkRoom,
   deletePhoneKey,
   dropSecret,
   dropSecretKind,
@@ -29,7 +28,7 @@ import {
 } from "../../apps/web/server/utils/account-service";
 import { changePasswordKeeping } from "../../apps/web/server/utils/account-security";
 import { standInAccountService } from "../support/account-service";
-import { OWNER_ID, ROOM_ID } from "../support/ids";
+import { OWNER_ID } from "../support/ids";
 
 const MEMBER = 777;
 const BROWSER = "127.0.0.1";
@@ -39,7 +38,7 @@ const service = standInAccountService({
     { id: 1, name: "owner-a", password: "the password", administrator: true, senders: [OWNER_ID] },
     { id: 2, name: "member-a", password: "a password", senders: [MEMBER] }
   ],
-  grants: [{ object: String(ROOM_ID), relation: "rule", subject: "user:2" }]
+  grants: [{ kind: "bmo_worker", object: "worker", relation: "run", subject: "user:2" }]
 });
 const options = { address: service.address, token: service.token };
 
@@ -81,10 +80,10 @@ describe("the model", () => {
   });
 
   test("the move is handed in the common wire format and answers its administrator", async () => {
-    const moved = await runMove({ ownerSenders: [OWNER_ID], rooms: [ROOM_ID], roomRules: [] }, options);
+    const moved = await runMove({ ownerSenders: [OWNER_ID] }, options);
 
     expect(moved).toEqual({ done: true, written: true, administrator: "1" });
-    expect(service.moves.at(-1)).toEqual({ ownerSenders: [OWNER_ID], rooms: [ROOM_ID], roomRules: [] });
+    expect(service.moves.at(-1)).toEqual({ ownerSenders: [OWNER_ID] });
   });
 });
 
@@ -123,19 +122,14 @@ describe("users", () => {
 });
 
 describe("checks", () => {
-  test("a room's rule opens the room to its user, and the administrator passes", async () => {
-    expect(await checkRoom(ROOM_ID, MEMBER, "approve", options)).toEqual({ allowed: true, grant: `bmo_room:${ROOM_ID}#approve`, user: "2" });
-    expect(await checkRoom(-200, MEMBER, "approve", options)).toMatchObject({ allowed: false, user: "2" });
-    expect(await checkRoom(-200, OWNER_ID, "approve", options)).toMatchObject({ allowed: true, user: "1" });
-    expect(await checkRoom(-200, null, "approve", options)).toMatchObject({ allowed: false, user: null });
-  });
-
-  test("an object check names its grant and its user", async () => {
+  test("an object check names its grant and its user, opens to a grant's holder and passes the administrator", async () => {
     expect(await checkObject("bmo_worker", "worker", "run", 2, options)).toEqual({
-      allowed: false,
+      allowed: true,
       grant: "bmo_worker:worker#run",
       user: "2"
     });
+    expect(await checkObject("bmo_worker", "another", "run", 2, options)).toMatchObject({ allowed: false, user: "2" });
+    expect(await checkObject("bmo_worker", "another", "run", 1, options)).toMatchObject({ allowed: true, user: "1" });
   });
 });
 

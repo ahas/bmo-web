@@ -21,8 +21,7 @@ use crate::wire::{SessionError, WireError};
 const SCHEMAS: &str = "/components/schemas";
 
 const DESCRIPTION: &str = "The web console's server: the account service on sumida, which holds the users, the \
-  senders linked to them, the grants they hold, the account model they stand in, the room holdings the \
-  receiver asks about, the fixed lines a room says, the supply the agency asks who pays for — the sources, \
+  senders linked to them, the grants they hold, the account model they stand in, the fixed lines a room says, the supply the agency asks who pays for — the sources, \
   the policy layers, the reservations and the settled costs — and the secret store, which writes each person's secrets \
   as files in a space of their own, the administrator's the folder every unit reads the deployment's secrets \
   from, and answers no value, with the kinds its form asks a value in. Its own routes answer \
@@ -1142,32 +1141,6 @@ pub fn openapi() -> Value {
   );
   add!(
     "POST",
-    "/checks/room",
-    "checkRoom",
-    "Checks",
-    "Whether a sender holds a room relation in a room; a null sender is the room's members alone.",
-    params: vec![],
-    body: Some(json!(generator.subschema_for::<RoomCheckAsk>())),
-    answers: vec![(200, json_answer::<CheckAnswer>(&mut generator))],
-    codes: vec!["bad-request", "unauthorized", "not-in-force", "database", "failed"],
-    refusal: Refusal::Wire,
-    security: bearer()
-  );
-  add!(
-    "POST",
-    "/checks/message",
-    "checkMessage",
-    "Checks",
-    "Whether the sender of a message in a room holds a relation there.",
-    params: vec![],
-    body: Some(json!(generator.subschema_for::<MessageCheckAsk>())),
-    answers: vec![(200, json_answer::<CheckAnswer>(&mut generator))],
-    codes: vec!["bad-request", "unauthorized", "not-found", "no-such-message", "no-receiver", "upstream-failed", "not-in-force", "database", "failed"],
-    refusal: Refusal::Wire,
-    security: bearer()
-  );
-  add!(
-    "POST",
     "/checks/object",
     "checkObject",
     "Checks",
@@ -1267,45 +1240,6 @@ pub fn openapi() -> Value {
     body: Some(json!(generator.subschema_for::<UnitChange>())),
     answers: vec![(200, json_answer::<UnitView>(&mut generator))],
     codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "other-company", "cycle", "short-name-taken", "no-such-kind", "not-in-force", "database", "failed"],
-    refusal: Refusal::Wire,
-    security: bearer()
-  );
-  add!(
-    "GET",
-    "/rooms/{chat}/callers",
-    "roomCallers",
-    "Grants",
-    "A room's callers, the users granted ask on it, and whether the signed-in user may change them.",
-    params: vec![integer_path("chat"), owner_key()],
-    body: None,
-    answers: vec![(200, json_answer::<RoomCallers>(&mut generator))],
-    codes: vec!["bad-request", "unauthorized", "forbidden", "not-in-force", "database", "failed"],
-    refusal: Refusal::Wire,
-    security: bearer()
-  );
-  add!(
-    "PUT",
-    "/rooms/{chat}/callers/{user}",
-    "grantRoomCaller",
-    "Grants",
-    "A user granted ask on a room, by the administrator, the room's leader or a head of the user's unit.",
-    params: vec![integer_path("chat"), string_path("user"), owner_key()],
-    body: None,
-    answers: vec![(204, no_answer())],
-    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "upstream-failed", "database", "failed"],
-    refusal: Refusal::Wire,
-    security: bearer()
-  );
-  add!(
-    "DELETE",
-    "/rooms/{chat}/callers/{user}",
-    "revokeRoomCaller",
-    "Grants",
-    "A user's ask grant on a room taken away, by the administrator, the room's leader or a head of the user's unit.",
-    params: vec![integer_path("chat"), string_path("user"), owner_key()],
-    body: None,
-    answers: vec![(204, no_answer())],
-    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "upstream-failed", "database", "failed"],
     refusal: Refusal::Wire,
     security: bearer()
   );
@@ -1596,45 +1530,6 @@ pub fn openapi() -> Value {
     security: bearer()
   );
   add!(
-    "GET",
-    "/grants",
-    "grants",
-    "Grants",
-    "The grants standing on a room, in the order they were written, none past its expiry.",
-    params: vec![parameter("room", "integer", true)],
-    body: None,
-    answers: vec![(200, json_answer::<Grants>(&mut generator))],
-    codes: vec!["bad-request", "unauthorized", "not-in-force", "database", "failed"],
-    refusal: Refusal::Wire,
-    security: bearer()
-  );
-  add!(
-    "POST",
-    "/grants",
-    "grant",
-    "Grants",
-    "Grants a relation on a room or an object, on the authority of the message's sender.",
-    params: vec![],
-    body: Some(json!(generator.subschema_for::<GrantAsk>())),
-    answers: vec![(200, json_answer::<Granted>(&mut generator))],
-    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "no-receiver", "upstream-failed", "not-in-force", "database", "failed"],
-    refusal: Refusal::Wire,
-    security: bearer()
-  );
-  add!(
-    "DELETE",
-    "/grants",
-    "revoke",
-    "Grants",
-    "Takes a grant back, on the authority of the message's sender.",
-    params: vec![],
-    body: Some(json!(generator.subschema_for::<RevokeAsk>())),
-    answers: vec![(200, json_answer::<Revoked>(&mut generator))],
-    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "no-receiver", "upstream-failed", "not-in-force", "database", "failed"],
-    refusal: Refusal::Wire,
-    security: bearer()
-  );
-  add!(
     "POST",
     "/phones",
     "makePhoneKey",
@@ -1682,19 +1577,6 @@ pub fn openapi() -> Value {
     params: vec![string_path("hash")],
     body: None,
     answers: vec![(204, no_answer())],
-    codes: vec!["bad-request", "unauthorized", "not-in-force", "database", "failed"],
-    refusal: Refusal::Wire,
-    security: bearer()
-  );
-  add!(
-    "GET",
-    "/rooms/{chat}/holdings",
-    "roomHoldings",
-    "Rooms",
-    "What a room holds of the service's, each holding it has at least one of.",
-    params: vec![integer_path("chat")],
-    body: None,
-    answers: vec![(200, json_answer::<Holdings>(&mut generator))],
     codes: vec!["bad-request", "unauthorized", "not-in-force", "database", "failed"],
     refusal: Refusal::Wire,
     security: bearer()

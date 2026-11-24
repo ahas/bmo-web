@@ -2337,12 +2337,6 @@ members:
     entry_failed: 无法更改成员。
     entry_forbidden: 你没有在此房间添加或移出成员的权限。
     entry_unknown: 找不到该人员。
-callers:
-  error:
-    failed: 未能让添加的人在此房间中呼叫自己的 BMO。
-    forbidden: 无法让此人在此房间中呼叫自己的 BMO。
-    not_found: 找不到该用户。
-    unreachable: 无法连接到账号服务。
 room_info:
   title:
     sheet: 房间信息

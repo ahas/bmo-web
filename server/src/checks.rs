@@ -1,6 +1,5 @@
-//! The checks (docs/accounts.md, 「Checks」): whether a sender holds a relation in a room, whether a message's
-//! sender does, and whether a user holds a relation on a worker, a repository or a tool capability. Each is
-//! one of sumida's point checks over the deployment's rules; nothing here decides by itself.
+//! The object check (docs/accounts.md, 「Checks」): whether a user holds a relation on a worker, a repository or a
+//! tool capability, one of sumida's point checks over the deployment's rules; nothing here decides by itself.
 
 use sea_orm::ConnectionTrait;
 use serde::Serialize;
@@ -8,12 +7,8 @@ use sumida::api::authz::Authz;
 use sumida::api::authz::subject::SubjectSet;
 
 use crate::Refusal;
-use crate::receiver::Receiver;
 use crate::rules::RULES;
-use crate::users::{sender_subject, user_subject};
-
-/// The kind a room is in the deployment's rules.
-pub const ROOM: &str = "bmo_room";
+use crate::users::user_subject;
 
 /// What a check answered: whether it opens, the grant it asked for, and the user it was made for.
 #[derive(Debug, Serialize, PartialEq, Eq)]
@@ -22,16 +17,6 @@ pub struct Answer {
   pub allowed: bool,
   pub grant: String,
   pub user: Option<i32>,
-}
-
-/// What a check on a message answered, with the sender it was made for.
-#[derive(Debug, Serialize, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct MessageAnswer {
-  pub allowed: bool,
-  pub grant: String,
-  pub user: Option<i32>,
-  pub sender: Option<i64>,
 }
 
 /// The permission that opens a relation, as the deployment's rules name it.
@@ -69,48 +54,6 @@ async fn checked<C: ConnectionTrait>(
   subject: &SubjectSet,
 ) -> Result<bool, Refusal> {
   Ok(Authz::check(kind, object, &permission(relation), subject, db).await?)
-}
-
-/// Whether a sender holds a relation in a room. A sender of no linked user is checked as the room's members
-/// alone; no sender at all is the members alone as well.
-pub async fn check_room<C: ConnectionTrait>(
-  db: &C,
-  room: i64,
-  sender: Option<i64>,
-  relation: &str,
-) -> Result<Answer, Refusal> {
-  declared(ROOM, relation)?;
-
-  let object = room.to_string();
-  let (subject, user) = sender_subject(db, room, sender).await?;
-
-  Ok(Answer {
-    allowed: checked(db, ROOM, &object, relation, &subject).await?,
-    grant: grant_of(ROOM, &object, relation),
-    user,
-  })
-}
-
-/// Whether a message's sender holds a relation in the room the message stands in; the receiver says who
-/// sent it, and refuses a message it does not hold there.
-pub async fn check_message<C: ConnectionTrait>(
-  db: &C,
-  receiver: &dyn Receiver,
-  room: i64,
-  message: i64,
-  relation: &str,
-) -> Result<MessageAnswer, Refusal> {
-  declared(ROOM, relation)?;
-
-  let sender = receiver.sender_of(room, message).await?;
-  let answer = check_room(db, room, sender, relation).await?;
-
-  Ok(MessageAnswer {
-    allowed: answer.allowed,
-    grant: answer.grant,
-    user: answer.user,
-    sender,
-  })
 }
 
 /// Whether a user holds a relation on a worker, a repository or a tool capability.

@@ -3,7 +3,7 @@
 //! sumida stand as every other test file has them; the clock is never waited on, and every moment a test
 //! names is fixed into the rows it reads back.
 
-use crate::support::{OWNER, ROOM, Scratch, console_hash, ready};
+use crate::support::{OWNER, Scratch, console_hash, ready};
 use axum::Router;
 use axum::body::Body;
 use axum::http::{Method, Request, StatusCode, header};
@@ -26,8 +26,6 @@ async fn fresh() -> Scratch {
     scratch.db(),
     MoveAsk {
       owner_senders: vec![OWNER],
-      rooms: vec![ROOM],
-      room_rules: vec![],
     },
   )
   .await

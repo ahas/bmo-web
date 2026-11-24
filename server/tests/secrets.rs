@@ -22,7 +22,7 @@ use http_body_util::BodyExt;
 use serde_json::{Value, json};
 use sumida::api::authz::Authz;
 use sumida::api::authz::write::{SubjectKey, TupleFilter};
-use support::{OWNER, ROOM, Scratch, console_hash};
+use support::{OWNER, Scratch, console_hash};
 use tower::ServiceExt;
 
 const VALUE: &str = "the value itself, never answered";
@@ -285,8 +285,6 @@ async fn moved() -> (Scratch, i32, i32) {
     scratch.db(),
     MoveAsk {
       owner_senders: vec![OWNER],
-      rooms: vec![ROOM],
-      room_rules: vec![],
     },
   )
   .await

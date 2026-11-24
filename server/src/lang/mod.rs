@@ -52,7 +52,6 @@ pub mod remote_browser;
 pub mod remote_desktop;
 pub mod resident_turn;
 pub mod roads;
-pub mod room_grants;
 pub mod room_removal;
 pub mod run_stop;
 pub mod search;

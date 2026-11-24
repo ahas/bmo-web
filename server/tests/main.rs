@@ -5,10 +5,9 @@ mod support;
 
 mod agents;
 mod baseline;
-mod callers;
 mod chain;
 mod document_talk;
-mod grants;
+mod entry;
 mod import;
 mod invites;
 mod language_pack;

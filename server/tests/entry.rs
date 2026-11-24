@@ -1,6 +1,5 @@
-//! A room's callers (docs/accounts.md, 「A room's callers」): the users granted `ask` on a room directly, set with
-//! no message by the administrator, the room's leader or a head of the user's unit, never across companies but by
-//! the administrator, and refused to anyone else.
+//! Who lets a person into a room (docs/accounts.md, 「A room's callers」): its opener, a head of the opener's unit or
+//! the administrator, within the room's company; and a sender linked to a user by the administrator alone.
 
 use crate::support::{OWNER, ROOM, Scratch, console_hash, ready};
 use axum::Router;
@@ -40,117 +39,6 @@ async fn placed(scratch: &Scratch, name: &str, unit: i32, administrator: bool) -
     .await;
 
   user
-}
-
-async fn asked(app: &Router, method: Method, path: &str, user: i32) -> (StatusCode, Value) {
-  let request = Request::builder()
-    .method(method)
-    .uri(path)
-    .header("x-real-ip", "127.0.0.1")
-    .header(header::AUTHORIZATION, format!("Bearer {TOKEN}"))
-    .header("owner-key", user.to_string())
-    .body(Body::empty())
-    .unwrap();
-  let answer = app.clone().oneshot(request).await.unwrap();
-  let status = answer.status();
-  let bytes = answer.into_body().collect().await.unwrap().to_bytes();
-  let said = if bytes.is_empty() { Value::Null } else { serde_json::from_slice(&bytes).unwrap() };
-
-  (status, said)
-}
-
-fn callers(said: &Value) -> Vec<String> {
-  said["callers"]
-    .as_array()
-    .unwrap()
-    .iter()
-    .map(|one| one["user"].as_str().unwrap().to_owned())
-    .collect()
-}
-
-#[tokio::test]
-async fn a_rooms_callers_are_set_by_the_administrator_its_leader_or_a_head_and_by_nobody_else() {
-  ready();
-  let scratch = Scratch::new().await;
-
-  scratch.console_account("boss", &console_hash("the password")).await;
-  run_move(
-    scratch.db(),
-    MoveAsk {
-      owner_senders: vec![OWNER],
-      rooms: vec![ROOM],
-      room_rules: vec![],
-    },
-  )
-  .await
-  .unwrap();
-
-  let company = unit(&scratch, "company-a", None).await;
-  let centre = unit(&scratch, "centre-a", Some(company)).await;
-  let team = unit(&scratch, "team-a", Some(centre)).await;
-  let other = unit(&scratch, "company-b", None).await;
-  let member = placed(&scratch, "member-a", team, false).await;
-  let head = placed(&scratch, "head-a", centre, false).await;
-  let outsider = placed(&scratch, "outsider", other, false).await;
-  let admin = placed(&scratch, "admin-a", other, true).await;
-
-  scratch
-    .run(
-      r#"INSERT INTO "relation_tuples"
-           ("resource_type", "resource_id", "relation", "subject_type", "subject_id", "subject_relation")
-         VALUES ('organization', $1, 'manager', 'user', $2, '')"#,
-      vec![centre.to_string().into(), head.to_string().into()],
-    )
-    .await;
-
-  let app = in_force(scratch.service.clone(), TOKEN.into()).await.unwrap();
-  let path = format!("/rooms/{ROOM}/callers");
-  let of = |user: i32| format!("{path}/{user}");
-
-  // Nobody calls yet, and a member who neither leads the room nor heads anyone changes nothing.
-  let (status, said) = asked(&app, Method::GET, &path, member).await;
-
-  assert_eq!(status, StatusCode::OK, "{said}");
-  assert_eq!(said, json!({ "room": ROOM, "callers": [], "mayChange": false }));
-  assert_eq!(asked(&app, Method::PUT, &of(member), member).await.0, StatusCode::FORBIDDEN);
-
-  // A head of the member's unit makes them a caller, with no message to make it on.
-  assert_eq!(asked(&app, Method::PUT, &of(member), head).await.0, StatusCode::NO_CONTENT);
-  assert_eq!(callers(&asked(&app, Method::GET, &path, head).await.1), [member.to_string()]);
-
-  // The room's leader sets a caller of the same company, and never one of another.
-  scratch.messages.2.lock().unwrap().insert(ROOM, vec![member]);
-
-  assert_eq!(asked(&app, Method::GET, &path, member).await.1["mayChange"], json!(true));
-  assert_eq!(asked(&app, Method::PUT, &of(head), member).await.0, StatusCode::NO_CONTENT);
-  assert_eq!(asked(&app, Method::PUT, &of(outsider), member).await.0, StatusCode::FORBIDDEN);
-
-  // A head of the leader's unit sets a caller too, as one heading the room's unit.
-  let leader = outsider_leader(&scratch, team).await;
-
-  scratch.messages.2.lock().unwrap().insert(ROOM, vec![leader]);
-  assert_eq!(asked(&app, Method::GET, &path, head).await.1["mayChange"], json!(true));
-  scratch.messages.2.lock().unwrap().insert(ROOM, vec![member]);
-
-  // The administrator sets anyone.
-  assert_eq!(asked(&app, Method::PUT, &of(outsider), admin).await.0, StatusCode::NO_CONTENT);
-  assert_eq!(
-    callers(&asked(&app, Method::GET, &path, admin).await.1),
-    [member.to_string(), head.to_string(), outsider.to_string()]
-  );
-
-  // Taken away, the grant is gone.
-  assert_eq!(asked(&app, Method::DELETE, &of(member), head).await.0, StatusCode::NO_CONTENT);
-  assert_eq!(
-    callers(&asked(&app, Method::GET, &path, admin).await.1),
-    [head.to_string(), outsider.to_string()]
-  );
-  assert_eq!(asked(&app, Method::PUT, &of(9999), admin).await.0, StatusCode::NOT_FOUND);
-}
-
-// A user standing in the unit given, who leads a room in a test that names them its leader.
-async fn outsider_leader(scratch: &Scratch, unit: i32) -> i32 {
-  placed(scratch, "leader-a", unit, false).await
 }
 
 async fn sent(
@@ -196,8 +84,6 @@ async fn a_person_is_let_into_a_room_by_its_opener_a_head_of_the_openers_unit_or
     scratch.db(),
     MoveAsk {
       owner_senders: vec![OWNER],
-      rooms: vec![ROOM],
-      room_rules: vec![],
     },
   )
   .await
@@ -223,7 +109,7 @@ async fn a_person_is_let_into_a_room_by_its_opener_a_head_of_the_openers_unit_or
     )
     .await;
   // The room was opened by the opener, whose own BMO leads it.
-  scratch.messages.2.lock().unwrap().insert(ROOM, vec![opener]);
+  scratch.leaders.0.lock().unwrap().insert(ROOM, vec![opener]);
 
   let app = in_force(scratch.service.clone(), TOKEN.into()).await.unwrap();
   let entry = |actor: i32, user: i32, room: i64| json!({ "room": room, "actor": actor.to_string(), "user": user.to_string() });
@@ -280,8 +166,6 @@ async fn the_administrator_links_a_sender_to_a_user_once_and_never_moves_one_lin
     scratch.db(),
     MoveAsk {
       owner_senders: vec![OWNER],
-      rooms: vec![ROOM],
-      room_rules: vec![],
     },
   )
   .await

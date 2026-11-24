@@ -7,10 +7,10 @@ import { ROOM_ID } from "../../support/ids";
 import { answer, standIn } from "../../support/units";
 
 // The rooms a user other than the administrator reads on the console (docs/web.md, 「Access」), by their account: their
-// console memberships, the rooms their linked identities reach and hold the console grant in, and their own BMO's
-// private room, and nothing else. The account service answers the user's senders and the grant; the receiver answers
-// the rooms with the senders that have stood in each, an account's memberships and a room's accounts; the agency
-// answers whose BMO each supervisor is.
+// console memberships and their own BMO's private room, and nothing else, their linked identities reaching no room of
+// their own; the rooms an administrator's identities reach are his own. The account service answers the user's
+// senders; the receiver answers the rooms with the senders that have stood in each, an account's memberships and a
+// room's accounts; the agency answers whose BMO each supervisor is.
 
 const member = 77;
 // An account made by an invitation, with no chat service's identity at all, and a colleague it lets in.
@@ -19,17 +19,15 @@ const colleague = 4;
 const PRIVATE = -50;
 const GROUP = -51;
 
+// An administrator whose linked identity is the member's.
+const linkedBoss = 9;
+
 const service = standInAccountService({
   users: [
     { id: 2, name: "member", senders: [member] },
     { id: invited, name: "invited" },
-    { id: colleague, name: "colleague" }
-  ],
-  grants: [
-    { object: String(ROOM_ID), relation: "console", subject: "user:2" },
-    { object: String(member), relation: "console", subject: "user:2" },
-    { object: "-310", relation: "console", subject: "user:2" },
-    { object: "-320", relation: "console", subject: "user:2" }
+    { id: colleague, name: "colleague" },
+    { id: linkedBoss, name: "linked-boss", administrator: true, senders: [member] }
   ]
 });
 
@@ -39,8 +37,8 @@ const memberships = new Map<number, number[]>([[invited, [GROUP, PRIVATE]]]);
 const roomAccounts = new Map<number, number[]>([[PRIVATE, [invited]]]);
 
 // The receiver's room list: the member has spoken in the room and in -300, someone else in -200, and the
-// member's own private room is theirs. The member has spoken too, holding the grant, in a sealed room (-310) and in
-// the invited account's private room (-320), neither of which is theirs to read. The invited account's memberships hold its BMO's private room and the group
+// member's own private room is theirs. The member has spoken too in a sealed room (-310) and in the invited
+// account's private room (-320), neither of which is theirs to read. The invited account's memberships hold its BMO's private room and the group
 // room it opened.
 // A read of an account's memberships may be held after it is answered and before the answer goes, as a slow receiver
 // holds it; `membershipReads` counts the reads.
@@ -126,12 +124,12 @@ const read = async () => [...((await readableRooms(event())) as Set<number>)].so
 const status = async (room: number) => await requireReadableRoom(event(), room).then(() => 200, (error: { statusCode: number }) => error.statusCode);
 
 describe("the rooms a user reads on the console", () => {
-  test("for a person reached through a messenger with no console membership, are exactly the rooms their identities reach", async () => {
+  test("for a person reached through a messenger with no console membership, are none: an identity reaches no room of its own", async () => {
     signedAs(2, "member");
 
-    expect(await read()).toEqual([ROOM_ID, member]);
+    expect(await read()).toEqual([]);
 
-    for (const absent of [-200, -300, -310, -320, PRIVATE, GROUP]) {
+    for (const absent of [ROOM_ID, member, -200, -300, -310, -320, PRIVATE, GROUP]) {
       expect(await status(absent)).toBe(404);
     }
   });
@@ -178,6 +176,12 @@ describe("the rooms a user reads on the console", () => {
     memberships.set(1, [member]);
     expect([...(await ownRooms(boss))]).toEqual([member]);
     memberships.delete(1);
+  });
+
+  test("hold the rooms an administrator's linked identities reach as his own, never a sealed room or another's private room", async () => {
+    const boss = { name: "linked-boss", id: linkedBoss, administrator: true };
+
+    expect([...(await ownRooms(boss))].sort((a, b) => a - b)).toEqual([ROOM_ID, -300, member].sort((a, b) => a - b));
   });
 });
 

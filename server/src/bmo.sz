@@ -1,13 +1,10 @@
 // The deployment's rules, registered with sumida's at the account service's start (docs/accounts.md).
 // sumida's own file holds the platform, users, roles and organizations; this one holds what a grant of the
-// deployment's can name. Every object is named by a string, so none has a table.
+// deployment's can name. Every object is named by a string, so none has a table. A room is no kind here: what a
+// room's members may have the chat agent do is the owner's room rules in the agent's brain.
 //
 // Every permission ends in `platform:root->superuser`: the platform administrator passes every check, and
 // only the administrator grants.
-
-// Every member of one room at once: `bmo_member:<chat id>`. A check made in a room carries it as a subject
-// always, so a grant to it is the room's member grant, and it is never a subject in another room.
-definition bmo_member { }
 
 // One console section, by its id (docs/accounts.md, 「Console sections」): whether a user may open it and
 // whether they may change what it holds. A write is also a read, so `may_read` takes the write relation too;
@@ -19,44 +16,6 @@ definition bmo_section {
   permission may_read  = read | write | platform:root->superuser
   permission may_write = write | platform:root->superuser
   permission grant     = platform:root->superuser
-}
-
-// A room, by its chat id. A grant names what its holder may have the chat agent do there; `system` lets its
-// holder ask the agent about its own system, which it otherwise answers the owner alone; `rule` is a room rule
-// carried over, whose words the agent judges, and it opens every relation of the room for its holder.
-definition bmo_room {
-  relation ask:         user | bmo_member
-  relation search:      user | bmo_member
-  relation notes:       user | bmo_member
-  relation memories:    user | bmo_member
-  relation reminders:   user | bmo_member
-  relation file_todo:   user | bmo_member
-  relation approve:     user | bmo_member
-  relation launch:      user | bmo_member
-  relation watch:       user | bmo_member
-  relation room_rules:  user | bmo_member
-  relation deploy:      user | bmo_member
-  relation worker_talk: user | bmo_member
-  relation console:     user | bmo_member
-  relation system:      user | bmo_member
-  relation rule:        user
-
-  permission may_ask         = ask | rule | platform:root->superuser
-  permission may_search      = search | rule | platform:root->superuser
-  permission may_notes       = notes | rule | platform:root->superuser
-  permission may_memories    = memories | rule | platform:root->superuser
-  permission may_reminders   = reminders | rule | platform:root->superuser
-  permission may_file_todo   = file_todo | rule | platform:root->superuser
-  permission may_approve     = approve | rule | platform:root->superuser
-  permission may_launch      = launch | rule | platform:root->superuser
-  permission may_watch       = watch | rule | platform:root->superuser
-  permission may_room_rules  = room_rules | rule | platform:root->superuser
-  permission may_deploy      = deploy | rule | platform:root->superuser
-  permission may_worker_talk = worker_talk | rule | platform:root->superuser
-  permission may_console     = console | rule | platform:root->superuser
-  permission may_system      = system | rule | platform:root->superuser
-  permission may_rule        = rule | platform:root->superuser
-  permission grant           = platform:root->superuser
 }
 
 // A worker, by name: whether a user's jobs may run on it.

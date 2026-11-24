@@ -1,7 +1,7 @@
 //! What the server's tests stand on: a database of the test's own on the test server, copied from a
 //! template this binary migrates once, or a database a module's tests share, seeded once; the rules
 //! standing on it; sumida's settings, set once before its first reading; and a receiver stand-in that knows
-//! the messages a test put in rooms. A copy is dropped when its guard goes, and the test fails if it cannot
+//! the leaders a test gave rooms. A copy is dropped when its guard goes, and the test fails if it cannot
 //! be; before a binary makes its first database, the templates, copies and shared databases a binary that is
 //! gone left behind are dropped (`docs/checks.md`, 「The scratch databases」).
 
@@ -10,7 +10,7 @@ use std::str::FromStr;
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::{Arc, Mutex, Once};
 
-use bmo_web_server::receiver::{Holding, Receiver, no_such_message};
+use bmo_web_server::receiver::Receiver;
 use bmo_web_server::routes::stand;
 use bmo_web_server::settings::Names;
 use bmo_web_server::{Refusal, Service, store};
@@ -182,34 +182,14 @@ pub async fn connect(database: &str) -> DatabaseConnection {
     .expect("the database answers")
 }
 
-/// The messages standing in rooms, as the receiver would say who sent them, and the holders declared to it.
+/// The leaders of rooms, as the receiver would answer them: the users who own a supervisor a room names.
 #[derive(Clone, Default)]
-pub struct Messages(
-  Arc<Mutex<HashMap<(i64, i64), i64>>>,
-  pub Arc<Mutex<Vec<(String, String)>>>,
-  pub Arc<Mutex<HashMap<i64, Vec<i32>>>>,
-);
+pub struct Leaders(pub Arc<Mutex<HashMap<i64, Vec<i32>>>>);
 
 #[async_trait::async_trait]
-impl Receiver for Messages {
-  async fn sender_of(&self, room: i64, message: i64) -> Result<Option<i64>, Refusal> {
-    let held = self.0.lock().expect("the messages are readable").get(&(room, message)).copied();
-
-    held.map(Some).ok_or_else(|| no_such_message(room, message))
-  }
-
-  async fn declare_holder(&self, unit: &str, address: &str, _holdings: &[Holding]) -> Result<(), Refusal> {
-    self
-      .1
-      .lock()
-      .expect("the declarations are writable")
-      .push((unit.to_owned(), address.to_owned()));
-
-    Ok(())
-  }
-
+impl Receiver for Leaders {
   async fn leaders_of(&self, room: i64) -> Result<Vec<i32>, Refusal> {
-    Ok(self.2.lock().expect("the leaders are readable").get(&room).cloned().unwrap_or_default())
+    Ok(self.0.lock().expect("the leaders are readable").get(&room).cloned().unwrap_or_default())
   }
 }
 
@@ -217,14 +197,14 @@ impl Receiver for Messages {
 pub struct Scratch {
   database: String,
   pub service: Service,
-  pub messages: Messages,
+  pub leaders: Leaders,
   kept: bool,
 }
 
 /// A database a module's tests share, made and seeded by the first test to ask, one for each value of this type.
 /// Each test stands the service on a pool of its own, since a pool lives no longer than the runtime of the test
 /// that made it.
-pub struct SharedDatabase(tokio::sync::OnceCell<(String, Messages)>);
+pub struct SharedDatabase(tokio::sync::OnceCell<(String, Leaders)>);
 
 impl SharedDatabase {
   pub const fn new() -> SharedDatabase {
@@ -236,24 +216,24 @@ impl SharedDatabase {
     F: FnOnce(Scratch) -> Seeded,
     Seeded: Future<Output = Scratch>,
   {
-    let (database, messages) = self
+    let (database, leaders) = self
       .0
       .get_or_init(|| async {
         let name = format!("{SHARED}{}_{}", std::process::id(), SHAREDS.fetch_add(1, Ordering::SeqCst));
         let seeded = seed(Scratch::made(&name, true).await).await;
 
-        (seeded.database.clone(), seeded.messages.clone())
+        (seeded.database.clone(), seeded.leaders.clone())
       })
       .await
       .clone();
-    let service = stand(connect(&database).await, Arc::new(messages.clone()), names())
+    let service = stand(connect(&database).await, Arc::new(leaders.clone()), names())
       .await
       .expect("the rules stand");
 
     Scratch {
       database,
       service,
-      messages,
+      leaders,
       kept: true,
     }
   }
@@ -274,15 +254,15 @@ impl Scratch {
     create(&mut admin, database, &format!("\"{template}\"")).await;
     admin.close().await.expect("the server connection closes");
 
-    let messages = Messages::default();
-    let service = stand(connect(database).await, Arc::new(messages.clone()), names())
+    let leaders = Leaders::default();
+    let service = stand(connect(database).await, Arc::new(leaders.clone()), names())
       .await
       .expect("the rules stand");
 
     Scratch {
       database: database.to_owned(),
       service,
-      messages,
+      leaders,
       kept,
     }
   }
@@ -303,16 +283,6 @@ impl Scratch {
       .execute(Statement::from_sql_and_values(DbBackend::Postgres, sql, values))
       .await
       .expect("the statement runs");
-  }
-
-  /// A message standing in a room, sent by a sender, as the receiver keeps it.
-  pub fn message(&self, room: i64, message: i64, sender: i64) {
-    self
-      .messages
-      .0
-      .lock()
-      .expect("the messages are writable")
-      .insert((room, message), sender);
   }
 
   /// The console's one account, with a hash of the form the console makes.

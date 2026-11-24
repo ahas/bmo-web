@@ -656,8 +656,6 @@ async fn an_account_line_names_each_account_by_its_shown_name_and_one_not_held_b
     scratch.db(),
     bmo_web_server::data_move::MoveAsk {
       owner_senders: vec![support::OWNER],
-      rooms: vec![support::ROOM],
-      room_rules: vec![],
     },
   )
   .await

@@ -47,8 +47,6 @@ async fn the_moved_account_signs_in_with_its_own_password() {
     scratch.db(),
     MoveAsk {
       owner_senders: vec![1],
-      rooms: vec![],
-      room_rules: vec![],
     },
   )
   .await

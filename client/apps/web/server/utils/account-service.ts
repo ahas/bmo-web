@@ -634,23 +634,6 @@ export interface CheckAnswer {
   user: UserId | null;
 }
 
-/** Whether a sender holds a room relation in a room; a null sender is the room's members alone. */
-export async function checkRoom(
-  room: number,
-  sender: number | null,
-  relation: string,
-  options: ServiceOptions = {}
-): Promise<CheckAnswer> {
-  const client = clientOf(options);
-  const reply = await sent(
-    options,
-    client.POST("/checks/room", { body: { room, sender, relation } })
-  );
-  const said = answered(reply);
-
-  return { allowed: said.allowed, grant: said.grant, user: said.user ?? null };
-}
-
 /** Whether a user holds a relation on a worker, a repository or a tool capability. */
 export async function checkObject(
   kind: string,
@@ -680,11 +663,10 @@ export async function checkUnit(unit: number, id: UserId | number, options: Serv
   return answered(reply).allowed;
 }
 
-/** What the data move is handed: what only the other units hold (docs/accounts.md, 「The data move」). */
+/** What the data move is handed: the senders the deployment's configuration names as the owner's (docs/accounts.md,
+ * 「The data move」). */
 export interface MoveRequest {
   ownerSenders: number[];
-  rooms: number[];
-  roomRules: { room: number; id: string; subject: number; words: string }[];
 }
 
 /** The data move, run once; a second call answers that it is done. */
@@ -696,7 +678,7 @@ export async function runMove(
   const reply = await sent(
     options,
     client.POST("/accounts/move", {
-      body: { ownerSenders: request.ownerSenders, rooms: request.rooms, roomRules: request.roomRules }
+      body: { ownerSenders: request.ownerSenders }
     })
   );
   const said = answered(reply);
@@ -987,16 +969,6 @@ export async function linkSender(user: UserId | number, sender: number, options:
     options,
     client.PUT("/users/{user}/senders/{sender}", { params: { path: { user: userPath(user), sender }, header: { "Owner-Role": "administrator" } } })
   );
-
-  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
-}
-
-/** A user granted `ask` on a room, the call right membership gives, or no longer granted it, asked as the login `key`
- * acts for (docs/accounts.md, 「A room's callers」). */
-export async function setRoomCaller(room: number, user: UserId, caller: boolean, key: string, options: ServiceOptions = {}): Promise<void> {
-  const client = clientOf(options);
-  const params = { path: { chat: room, user }, header: { "Owner-Key": key } };
-  const reply = await sent(options, caller ? client.PUT("/rooms/{chat}/callers/{user}", { params }) : client.DELETE("/rooms/{chat}/callers/{user}", { params }));
 
   if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
 }

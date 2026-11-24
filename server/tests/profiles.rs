@@ -28,8 +28,6 @@ async fn seeded() -> (Scratch, i32, i32) {
     scratch.db(),
     MoveAsk {
       owner_senders: vec![],
-      rooms: vec![],
-      room_rules: vec![],
     },
   )
   .await

@@ -5,8 +5,10 @@
 - **The server, in `server/`:** one Rust process linking sumida's users, sessions, API keys and permission
   layers, with the deployment's own rules file registered beside sumida's.
 - **It holds the decisions, never the policy of a screen or a room.** Who a session is, who a phone key
-  belongs to, whether a sender holds a relation in a room: the service answers. What a screen shows and what
+  belongs to, whether a user may let a person into a room: the service answers. What a screen shows and what
   a unit does with a refusal are the console's and that unit's.
+- **It keeps no permission on what a room's members may have the chat agent do.** A group room's delegated
+  permissions are the owner's room rules in the chat agent's brain, which this service neither holds nor reads.
 - **It stands on its own PostgreSQL database** and on a Valkey for sumida's sessions. Its tables are its own:
   sumida's and the service's, all made by the service's migrations (「The tables」 below). No other unit's table is
   read or written.
@@ -23,7 +25,7 @@ flowchart TD
   Console[console server] --> Server[the server]
   Units[other units: the receiver, bmo-job] --> Server
   Server --> Sumida[sumida: users, sessions, keys, grants]
-  Server --> Own[the deployment's routes: model, checks, grants, phones, holdings, fixed lines]
+  Server --> Own[the deployment's routes: model, checks, phones, fixed lines]
   Server --> Store[the secret store]
   Sumida --> PG[(the server's database)]
   Own --> PG
@@ -91,59 +93,29 @@ section states what each does.
 
 ### Checks
 
-- **`POST /checks/room`** — a room, a sender id and a room relation. Answers whether the sender holds the
-  relation there, the grant that was asked for (`bmo_room:<chat id>#<relation>`), and the user the sender is
-  linked to, where one is.
-- **`POST /checks/message`** — a room, a message id and a room relation. The service asks the receiver for the
-  message and checks its sender in that room. It refuses, saying so, where no such message stands in that room.
 - **`POST /checks/object`** — a kind (`bmo_worker`, `bmo_repository`, `bmo_tools`), an object, a relation and a
   user. Answers whether the user holds it, and the grant asked for.
 - **`POST /checks/entry`** — a room, the user acting and the user to let in or take out. Answers whether the one
   acting may let that person into the room (「A room's callers」), the decision asked for named as
-  `bmo_room:<chat id>#entry`, and the person it was asked for.
-- **What a check builds:** the sender's user where their identity is linked, and the room's members, always.
-  Every platform administrator passes every check but the entry check's company bound.
-
-### Grants
-
-- **`GET /grants?room=`** — the grants standing on a room, each with its relation, its subject, its expiry and
-  the words beside it.
-- **`POST /grants`** — what is granted (a room and a relation, or a kind, an object and a relation), to whom (a
-  sender id, a user, or the room's members), the granter's words where any, an expiry where any, and the
-  message it is granted on (its room and id).
-  - The granter is that message's sender's user, and sumida checks they may grant it, so nobody gives what they
-    do not hold.
-  - A sender with no user yet is given one in the first company, with the default role and no way to sign in,
-    and linked.
-  - Granting again moves the expiry and the words.
-- **`DELETE /grants`** — the same selector and the message it is revoked on, checked the same way.
-- **A room's relations are the deployment's rules' own,** each a thing its holder may have the chat agent do in
-  the room: `ask`, `search`, `notes`, `memories`, `reminders`, `file_todo`, `approve`, `launch`, `watch`,
-  `room_rules`, `deploy`, `worker_talk` and `console`; `system`, asking the agent about its own system, which it
-  answers nobody else; and `rule`, a standing rule whose words the agent judges, which opens every other relation
-  of the room for its holder and is held by a user alone. Every relation but `rule` may be granted to a user or
-  to the room's members.
+  `bmo_room:<chat id>#entry`, and the person it was asked for. The name is a label alone: the deployment's rules
+  declare no kind for a room, and the decision is computed from the room's leaders, never read from a grant.
+- **What a check builds:** the user's own subjects, their role and their company among them. Every platform
+  administrator passes every check but the entry check's company bound.
 
 ### A room's callers
 
 - **Membership is the call right.** Every member of a room calls their own supervisor into it by name: a console
   member, an account the receiver holds among the room's members, or a chat service's member whose sender is linked
   to a user, whose words reach the receiver over the chat service carrying the room. The receiver reads membership
-  itself (its `docs/wake.md`, 「Who reaches the session」) and asks the check of `ask` only for a sender who is no
-  member. Nobody manages a list of callers: no screen shows or changes who may call.
-- **The `ask` grant on the room is the mechanism under it.** The console grants it to each person it lets into a
-  room in the same act, and takes it away as it takes a person out, where the one taking them out may change it. The
-  grant is set from the console with no message to make it on, by the administrator, by the room's leader, the
-  user who owns a supervisor the room names, by a head of the unit the room belongs to, the leader's, or by a head
-  of the user's unit (`docs/boundary.md`, 「A room's callers」).
-- **The grant stays within one company:** a user of another company than the one who sets it is never granted it,
-  but by the administrator.
-- **Letting a person into a room and the call grant are set together.** A console room's members are accounts, kept
-  by the receiver; the console asks `POST /checks/entry` before it lets a person in or takes one out, and with the
-  person let in sets their call grant in the same act.
+  itself (its `docs/wake.md`, 「Who reaches the session」); no grant stands under it, and this service is not asked.
+  Nobody manages a list of callers: no screen shows or changes who may call.
+- **Letting a person into a room is the one act.** A console room's members are accounts, kept by the receiver; the
+  console asks `POST /checks/entry` before it lets a person in or takes one out, and the receiver's membership is
+  then the person's call right, with nothing written here.
 - **Who may let a person in:** the room's opener, a head of the opener's unit, or the administrator. A room opened in
   the console names its opener's own BMO as its leader, so its opener is its leader and the room belongs to the
-  opener's unit; the check reads them as the call grant's check does, through the room's leaders.
+  opener's unit; the check reads them through the room's leaders, the users who own a supervisor the room names, as
+  the receiver answers them (`docs/boundary.md`, 「Calls the server makes」).
 - **Only within the room's company.** The room stands in its leader's company, and a person of another company is
   never let in, by the administrator neither; a room with no leader is bounded by the company of the one letting in,
   but for the administrator. Leaving is every member's own and asks no check.
@@ -151,18 +123,17 @@ section states what each does.
 ### The data move
 
 - **`POST /accounts/move`** — the caller hands the service what the move needs out of the deployment's
-  configuration: the sender ids the configuration names as the owner's, the rooms the deployment answers, and
-  the room rules with their rooms, subjects and words. The console's one account becomes the platform
-  administrator's user, its password carried as it stands; a console holding more than one account is refused
-  with 409. The service writes the whole move in one transaction with sumida's own machinery and marks it done
-  in its own `settings` table; a second call answers that it is done and writes nothing.
+  configuration: the sender ids the configuration names as the owner's. The console's one account becomes the
+  platform administrator's user, its password carried as it stands; a console holding more than one account is
+  refused with 409. The service writes the whole move in one transaction with sumida's own machinery and marks it
+  done in its own `settings` table; a second call answers that it is done and writes nothing.
 - **It makes the deployment's first company and its default role,** `member`, which every user holds. The
   company is named `bmo` at first and may be renamed like any unit; nothing reads it by its name after the
   move. A user made outside an invitation, by the account command or for a sender, goes into the first
   company, the unit with no parent made before every other one.
-- **What the move writes is the service's own:** the users, their links to senders, every room's member grant
-  at the deployment's defaults, the rules' grants and their words, and a user's id on the console's own tables
-  that are keyed by user. A table of another unit is that unit's to key.
+- **What the move writes is the service's own:** the administrator's user and its standing, the owner's senders
+  linked to it, and that user's id on the console's own tables that are keyed by user. A table of another unit is
+  that unit's to key.
 
 ### The platform administrators
 
@@ -198,7 +169,7 @@ section states what each does.
   repeats nothing that stands.
 - **`GET /senders/{sender}/user`** — the user a sender is linked to, or nothing found.
 - **`POST /senders/users`** — of the senders asked, those linked to a user, each with that user and whether they
-  may sign in. A user made for a sender by a grant, an invitation not yet accepted and an account that has left
+  may sign in. A user made for a sender alone, an invitation not yet accepted and an account that has left
   cannot; the console marks a room's member as a console user only where they can (`docs/web.md`, the room
   screen's 대화상대).
 - **A user has a login and a person's name.** The login, sumida's user name, is what the person signs in with
@@ -901,8 +872,7 @@ section states what each does.
   - `sessions`, `remembered-devices`, `second-factors`, `recovery-codes`, `account-links` and `email-checks`: what
     keeps the account its holder's (「Account security」);
   - `senders`: the identities linked to it;
-  - `grants`: every relation tuple naming the user, as a subject or as an object, with the words a grant was made
-    with;
+  - `grants`: every relation tuple naming the user, as a subject or as an object;
   - `roles`, `posts`, `appointments` and `history`: the person's role in their home unit, their posts, their acting
     appointments and their history;
   - `invitations`: the invitation the account was made by and sumida's own invitations of the user;
@@ -949,8 +919,7 @@ section states what each does.
   count of each kind of row the removal would delete here:
   - `units`: the organisations themselves, with sumida's closure rows;
   - `posts` and `appointments`: every post and acting appointment in those units, whoever holds them;
-  - `grants`: every relation tuple on those units or naming them as subjects — head grants, org memory writers —
-    with the words a grant was made with;
+  - `grants`: every relation tuple on those units or naming them as subjects — head grants, org memory writers;
   - `chain-settings`: the units' links of the delegation chain, their rules, the rules naming them and the groups they
     keep with their members;
   - `supply`: the plans exposed to them, their settled costs and the supply audit's entries about them;
@@ -1054,16 +1023,6 @@ section states what each does.
   becomes a secured key of that user, so the phone goes on without signing in again.
 - **`POST /phones/who`** — a key; answers whose it is, or 401 where it is no live key of a user who may sign in.
 - **`DELETE /phones/{hash}`** — a key taken away.
-
-### A room's holdings
-
-- **`GET /rooms/{chat}/holdings`** — what the service keeps for a room: the grants made on it or to its members,
-  and the senders whose user holds a grant on it. The receiver asks it before it removes a room, and shows the
-  answer as what the removal would take; the grants stay, and open nothing once the room is gone.
-- **The service declares itself a holder** to the receiver as it starts, under the unit name `web`, naming its
-  address — `http://` and its listen address, an unspecified host as the loopback one — and these two holdings:
-  `room_grants`, which the receiver warns of, and `room_senders`, which stay. A declaration that does not land
-  is said on the service's error stream, and the service declares again at its next start.
 
 ### The secret store
 
@@ -1737,9 +1696,16 @@ under its token; the console is the one caller, and a browser reaches none of th
   migration of that release, sumida's among them, and nothing else, already holds the baseline's schema: the
   record is rewritten to name the baseline alone, in one transaction, and no table and no row is touched. A
   database whose record names only part of them is refused, with the migration it stopped at; it is brought to
-  the last release before 1.0.0 by that release first.
+  the last release before 1.0.0 by that release first. The migrations after the baseline then run on it as on
+  any other database.
+- **`m20261201_000002_no_room_grants` takes the room relations away.** Its way up deletes every relation tuple on a
+  room (`bmo_room`) and every tuple whose subject is a room's members (`bmo_member`), the room kind's rows of the
+  rules' projection, `relation_definitions` and `permission_definitions`, and the table of a grant's words,
+  `grant_words`. Its way down makes `grant_words` again, empty, and the room kind's fifteen relations in
+  `relation_definitions`, holding no tuple. The service's start writes the projection from the rules it runs, so a
+  release declaring no room kind drops those rows again, and one declaring it writes its permissions back.
 
-Beside sumida's own, the baseline makes:
+Beside sumida's own, the schema holds:
 
 | Table | What it holds |
 |---|---|
@@ -1752,7 +1718,6 @@ Beside sumida's own, the baseline makes:
 | `unit_posts` | each post: the person, the unit, its role or none, who gave it and when (「Concurrent posts」) |
 | `unit_appointments` | each acting appointment: the unit, the person, its end, who made it and when, and who ended it early and when; the grant itself is sumida's tuple (「Acting」) |
 | `org_history` | each change of a person's place (「A person's history」) |
-| `grant_words` | the words a grant was made with, beside the grant |
 | `user_invites` | each invitation: its token, its unit, whether it makes a head, the person's name it was made for (empty where none was given), who made it, when it closes, and who used it and when |
 | `user_nodes` | the machine each invited account is bound to, whether the administrator bound it shared, when the account was connected to it, and when it was last proven |
 | `machine_share_asks` | each invited account's ask to share a machine: the machine's name, when it was asked, whether it is asked, approved or refused, and who decided it and when |
@@ -1794,15 +1759,15 @@ Beside sumida's own, the baseline makes:
 
 ## Tests
 
-- **The baseline's tests** migrate a blank database and find it shaped as the baseline laid on a blank database,
-  its record naming the baseline alone and its starting rows standing; take an install at the last release before
-  1.0.0, holding a row, to a record naming the baseline alone with its shape and its row unchanged, a second run
-  changing nothing; refuse an install holding only part of that release's record and leave it as it was; and take
-  the baseline down to a blank database.
-- **The grant tests run against sumida itself,** in `server/tests/` on a database of their own: no grant
-  refuses every acting relation with the grant named; a grant in one room opens nothing in another; an expired
-  grant refuses as an absent one; every room's member grant after the data move is the deployment's default;
-  the administrator passes every check in every room.
+- **The baseline's tests** migrate a blank database and find it shaped as the baseline and the migrations after it
+  laid on a blank database, its record naming each of them and its starting rows standing; take an install at the
+  last release before 1.0.0, holding a row, to a record naming the baseline and the migrations after it, shaped as a
+  blank database migrated and its row unchanged, a second run changing nothing; refuse an install holding only part
+  of that release's record and leave it as it was; and take every migration down to a blank database.
+- **The room relations' removal tests** stand a database at the baseline holding room grants, a room members'
+  grant and a grant's words, run the migration after it, and find every room tuple, the room kind's projection and
+  `grant_words` gone and every other tuple standing; its way down makes `grant_words` empty again with the room
+  kind's fifteen relations; and the service stands on the database either way.
 - **The section tests** stand a user made, read the defaults they are given, have an administrator write one
   person's read and write, and ask the check for a permitted and a refused relation; a user other than the
   administrator is refused the write and the users list.

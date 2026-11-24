@@ -109,8 +109,8 @@ id = "wording"
 phase = "before-flip"
 command = "bin/bmo-web-server wording ."
 
-# The server's database brought up to date before the flip; every migration only adds, so the release still serving
-# reads on through it.
+# The server's database brought up to date before the flip; every migration only adds, or takes away only what no
+# caller of the release still serving asks it for, so that release reads on through it.
 [[deploy.step]]
 id = "migrate"
 phase = "before-flip"

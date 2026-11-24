@@ -179,7 +179,7 @@ pub fn link_base(base: &str) -> Result<String, Refusal> {
 pub fn second_factor_kind() -> ChainKind {
   ChainKind {
     key: "account.second-factor-required".to_owned(),
-    declared_by: crate::holdings::UNIT.to_owned(),
+    declared_by: crate::UNIT.to_owned(),
     description: "Whether the people under a link must hold a second factor to sign in.".to_owned(),
     shape: ChainShape::Flag,
     choices: vec![],

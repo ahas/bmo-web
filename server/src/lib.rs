@@ -7,15 +7,13 @@ pub mod acting;
 pub mod agency;
 pub mod agents;
 pub mod attributes;
-pub mod callers;
 // The supply domain: what the service answers of who pays, both to the agency and to the console.
 pub mod catalogue;
 pub mod chain;
 pub mod checks;
 pub mod data_move;
-pub mod grants;
+pub mod entry;
 pub mod history;
-pub mod holdings;
 pub mod ids;
 pub mod import;
 pub mod invites;
@@ -68,8 +66,11 @@ use crate::settings::Names;
 /// The server's version, the repository's.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
+/// The unit name the service declares what it owns under: the setting kinds it keeps on the delegation chain.
+pub const UNIT: &str = "web";
+
 /// What every handler stands on: the service's database, where sumida's tables stand beside the service's
-/// own, the receiver a message's sender is asked of, the names the pack's lines are filled with, and whether
+/// own, the receiver a room's leaders are asked of, the names the pack's lines are filled with, and whether
 /// the model has been seen in force, which once seen stays.
 #[derive(Clone)]
 pub struct Service {

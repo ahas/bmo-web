@@ -80,8 +80,6 @@ async fn world() -> World {
     scratch.db(),
     MoveAsk {
       owner_senders: vec![],
-      rooms: vec![],
-      room_rules: vec![],
     },
   )
   .await

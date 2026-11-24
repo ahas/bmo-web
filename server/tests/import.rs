@@ -50,7 +50,7 @@ fn fixture() -> (tempfile::TempDir, PathBuf) {
     (
       "relation_tuples",
       vec![
-        json!({"id": 1, "resource_type": "bmo_room", "resource_id": "90000001", "relation": "ask", "subject_type": "user", "subject_id": "1", "subject_relation": "", "subject_key": "user:1", "resource_id_int": 90000001, "expires_at": null, "created_at": "2026-10-07T04:39:29.751574+09:00", "created_by": "data-move"}),
+        json!({"id": 1, "resource_type": "bmo_worker", "resource_id": "worker-a", "relation": "run", "subject_type": "user", "subject_id": "1", "subject_relation": "", "subject_key": "user:1", "resource_id_int": 90000001, "expires_at": null, "created_at": "2026-10-07T04:39:29.751574+09:00", "created_by": "data-move"}),
       ],
       vec!["id"],
     ),

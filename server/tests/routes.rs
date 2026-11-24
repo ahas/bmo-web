@@ -4,14 +4,11 @@
 
 use crate::support;
 
-use std::sync::{Arc, Mutex};
-
 use axum::body::Body;
 use axum::http::{Method, Request, StatusCode, header};
-use axum::routing::{get, put};
+use axum::routing::get;
 use axum::{Json, Router};
-use bmo_web_server::data_move::{MoveAsk, RoomRule, run_move};
-use bmo_web_server::holdings::HOLDINGS;
+use bmo_web_server::data_move::{MoveAsk, run_move};
 use bmo_web_server::receiver::{Receiver, ReceiverClient};
 use bmo_web_server::routes::in_force;
 use bmo_web_server::users::{set_sign_in, user_for_sender};
@@ -21,13 +18,9 @@ use support::{OWNER, ROOM, Scratch, SharedDatabase, console_hash, ready};
 use tower::ServiceExt;
 
 const TOKEN: &str = "the server's token";
-const MEMBER: i64 = 777;
-const OTHER: i64 = -200;
-const UNANSWERED: i64 = -300;
 
-/// A database the move has run on, with the owner's account, two rooms the deployment answers, a room rule
-/// for a member in the first, and messages in both. Shared by the tests that only read or grant to holders
-/// of their own.
+/// A database the move has run on, with the owner's account. Shared by the tests that only read or write rows of
+/// their own.
 async fn moved() -> Scratch {
   static SHARED: SharedDatabase = SharedDatabase::new();
 
@@ -36,20 +29,10 @@ async fn moved() -> Scratch {
 
 async fn seed(scratch: Scratch) -> Scratch {
   scratch.console_account("boss", &console_hash("the password")).await;
-  for (room, message, sender) in [(ROOM, 1, OWNER), (ROOM, 2, MEMBER), (OTHER, 1, OWNER)] {
-    scratch.message(room, message, sender);
-  }
   run_move(
     scratch.db(),
     MoveAsk {
       owner_senders: vec![OWNER],
-      rooms: vec![ROOM, OTHER],
-      room_rules: vec![RoomRule {
-        room: ROOM,
-        id: "a-rule".into(),
-        subject: MEMBER,
-        words: "may have their own items approved".into(),
-      }],
     },
   )
   .await
@@ -119,9 +102,8 @@ async fn the_health_answers_without_a_token_and_every_other_route_refuses_withou
     (Method::GET, "/accounts/model"),
     (Method::POST, "/accounts/move"),
     (Method::GET, "/senders/42/user"),
-    (Method::POST, "/checks/room"),
-    (Method::GET, "/grants?room=-100"),
-    (Method::GET, "/rooms/-100/holdings"),
+    (Method::POST, "/checks/object"),
+    (Method::POST, "/checks/entry"),
     (Method::GET, "/users/1/secrets"),
     (Method::PUT, "/users/1/secrets/a-name"),
     (Method::GET, "/secret-kinds"),
@@ -151,12 +133,14 @@ async fn the_model_stands_once_the_move_is_written_and_nothing_needing_it_answer
   assert_eq!(said["inForce"], false);
   assert!(said["why"].is_string(), "{said}");
 
-  let (status, said) =
-    ask(&app, Method::POST, "/checks/room", Some(json!({ "room": ROOM, "relation": "ask" }))).await;
+  let check =
+    |user: &str| json!({ "kind": "bmo_worker", "object": "worker", "relation": "run", "user": user });
+  let (status, said) = ask(&app, Method::POST, "/checks/object", Some(check("1"))).await;
 
   assert_eq!(status, StatusCode::SERVICE_UNAVAILABLE);
   assert_eq!(said["code"], "not-in-force", "{said}");
 
+  // A field the move reads no more, such as the rooms it once granted on, is passed over.
   let the_move = json!({ "ownerSenders": [OWNER], "rooms": [ROOM] });
   let (status, said) = ask(&app, Method::POST, "/accounts/move", Some(the_move.clone())).await;
 
@@ -168,12 +152,10 @@ async fn the_model_stands_once_the_move_is_written_and_nothing_needing_it_answer
   let (_, again) = ask(&app, Method::POST, "/accounts/move", Some(the_move)).await;
 
   assert_eq!(again["written"], false);
-  assert_eq!(
-    ask(&app, Method::POST, "/checks/room", Some(json!({ "room": ROOM, "relation": "ask" })))
-      .await
-      .0,
-    StatusCode::OK
-  );
+
+  let user = owner_user(&app).await;
+
+  assert_eq!(ask(&app, Method::POST, "/checks/object", Some(check(&user))).await.0, StatusCode::OK);
 }
 
 #[tokio::test]
@@ -207,7 +189,7 @@ async fn a_sender_names_its_user_and_a_user_names_its_senders() {
 async fn the_senders_asked_answer_their_users_and_whether_each_may_sign_in() {
   ready();
   let scratch = moved().await;
-  // A sender a grant gave a user, which has no way to sign in.
+  // A sender given a user of its own, which has no way to sign in.
   const GRANTED: i64 = 4321;
   let granted = user_for_sender(scratch.db(), GRANTED).await.unwrap();
   let app = app(&scratch).await;
@@ -244,8 +226,6 @@ async fn a_password_changes_on_the_current_one_and_a_name_another_user_holds_is_
     scratch.db(),
     MoveAsk {
       owner_senders: vec![OWNER],
-      rooms: vec![],
-      room_rules: vec![],
     },
   )
   .await
@@ -290,57 +270,11 @@ async fn a_password_changes_on_the_current_one_and_a_name_another_user_holds_is_
 }
 
 #[tokio::test]
-async fn the_checks_answer_for_a_room_a_message_and_an_object() {
+async fn the_object_check_answers_for_a_kind_of_the_rules_and_refuses_a_room() {
   ready();
   let scratch = moved().await;
   let app = app(&scratch).await;
   let user = owner_user(&app).await;
-  let (status, said) = ask(
-    &app,
-    Method::POST,
-    "/checks/room",
-    Some(json!({ "room": ROOM, "sender": MEMBER, "relation": "deploy" })),
-  )
-  .await;
-
-  assert_eq!(status, StatusCode::OK, "{said}");
-  assert_eq!(said["allowed"], true, "the member's standing rule opens every relation of the room");
-  assert_eq!(said["grant"], format!("bmo_room:{ROOM}#deploy"));
-  assert!(said["user"].is_string());
-
-  let (_, said) = ask(
-    &app,
-    Method::POST,
-    "/checks/room",
-    Some(json!({ "room": UNANSWERED, "relation": "ask" })),
-  )
-  .await;
-
-  assert_eq!(said["allowed"], false);
-  assert_eq!(said["user"], Value::Null);
-
-  let (status, said) = ask(
-    &app,
-    Method::POST,
-    "/checks/message",
-    Some(json!({ "room": ROOM, "message": 2, "relation": "launch" })),
-  )
-  .await;
-
-  assert_eq!(status, StatusCode::OK, "{said}");
-  assert_eq!((said["allowed"].clone(), said["sender"].clone()), (json!(true), json!(MEMBER)));
-
-  let (status, said) = ask(
-    &app,
-    Method::POST,
-    "/checks/message",
-    Some(json!({ "room": OTHER, "message": 9, "relation": "launch" })),
-  )
-  .await;
-
-  assert_eq!(status, StatusCode::NOT_FOUND);
-  assert_eq!(said["code"], "no-such-message");
-
   let (status, said) = ask(
     &app,
     Method::POST,
@@ -361,66 +295,27 @@ async fn the_checks_answer_for_a_room_a_message_and_an_object() {
   .await;
 
   assert_eq!(status, StatusCode::BAD_REQUEST, "a relation the rules do not declare: {said}");
-}
 
-#[tokio::test]
-async fn a_grant_is_made_listed_and_revoked_on_a_message_of_its_room() {
-  ready();
-  let scratch = moved().await;
-  let app = app(&scratch).await;
-  let holder = 8_101;
-  let grant = json!({
-    "room": ROOM,
-    "relation": "launch",
-    "to": { "sender": holder },
-    "words": "may launch the room's jobs",
-    "message": { "room": ROOM, "id": 1 },
-  });
-  let (status, said) = ask(&app, Method::POST, "/grants", Some(grant)).await;
+  // A room is no kind of the rules, so nothing is checked on it.
+  let (status, said) = ask(
+    &app,
+    Method::POST,
+    "/checks/object",
+    Some(json!({ "kind": "bmo_room", "object": ROOM.to_string(), "relation": "ask", "user": user })),
+  )
+  .await;
 
-  assert_eq!(status, StatusCode::OK, "{said}");
-  assert_eq!(said["grant"], format!("bmo_room:{ROOM}#launch"));
+  assert_eq!(status, StatusCode::BAD_REQUEST, "{said}");
 
-  let user = said["user"].as_str().expect("the holder's user").to_owned();
-  let (status, said) = ask(&app, Method::GET, &format!("/grants?room={ROOM}"), None).await;
-
-  assert_eq!(status, StatusCode::OK);
-
-  let listed = said["grants"].as_array().unwrap();
-  let made = listed
-    .iter()
-    .find(|one| one["subjectKey"] == format!("user:{user}"))
-    .expect("the grant stands");
-
-  assert_eq!(made["relation"], "launch");
-  assert_eq!(made["words"], "may launch the room's jobs");
-  assert_eq!(made["expiresAt"], Value::Null);
-  assert!(listed.iter().any(|one| one["subjectKey"] == format!("bmo_member:{ROOM}")));
-
-  // By a member, who holds no authority to grant.
-  let refused = json!({
-    "room": ROOM, "relation": "deploy", "to": { "user": user }, "message": { "room": ROOM, "id": 2 },
-  });
-
-  assert_eq!(ask(&app, Method::POST, "/grants", Some(refused)).await.0, StatusCode::FORBIDDEN);
-
-  let revoke = json!({
-    "room": ROOM, "relation": "launch", "to": { "user": user }, "message": { "room": ROOM, "id": 1 },
-  });
-  let (status, said) = ask(&app, Method::DELETE, "/grants", Some(revoke)).await;
-
-  assert_eq!(status, StatusCode::OK, "{said}");
-  assert_eq!(said["revoked"], 1);
-
-  let (_, said) = ask(&app, Method::GET, &format!("/grants?room={ROOM}"), None).await;
-
-  assert!(
-    !said["grants"]
-      .as_array()
-      .unwrap()
-      .iter()
-      .any(|one| one["subjectKey"] == format!("user:{user}"))
-  );
+  for (method, path) in [
+    (Method::POST, "/checks/room"),
+    (Method::POST, "/checks/message"),
+    (Method::GET, "/grants?room=-100"),
+    (Method::GET, "/rooms/-100/holdings"),
+    (Method::GET, "/rooms/-100/callers"),
+  ] {
+    assert_eq!(ask(&app, method.clone(), path, None).await.0, StatusCode::NOT_FOUND, "{method} {path}");
+  }
 }
 
 #[tokio::test]
@@ -458,114 +353,57 @@ async fn a_phone_key_is_made_read_adopted_and_taken_away() {
 }
 
 #[tokio::test]
-async fn a_room_names_what_it_holds_and_a_room_with_nothing_names_nothing() {
-  ready();
-  let scratch = moved().await;
-  let app = app(&scratch).await;
-  let (status, said) = ask(&app, Method::GET, &format!("/rooms/{ROOM}/holdings"), None).await;
-
-  assert_eq!(status, StatusCode::OK, "{said}");
-
-  let holdings = said["holdings"].as_array().unwrap();
-  let count = |code: &str| holdings.iter().find(|one| one["code"] == code).map(|one| one["count"].clone());
-
-  assert!(
-    count("room_grants").and_then(|count| count.as_i64()).is_some_and(|count| count > 0),
-    "{said}"
-  );
-  assert!(
-    count("room_senders").and_then(|count| count.as_i64()).is_some_and(|count| count >= 1),
-    "{said}"
-  );
-
-  let (_, said) = ask(&app, Method::GET, &format!("/rooms/{UNANSWERED}/holdings"), None).await;
-
-  assert_eq!(said["holdings"], json!([]));
-}
-
-#[tokio::test]
 async fn a_body_that_does_not_read_is_refused_naming_why() {
   ready();
   let scratch = moved().await;
   let app = app(&scratch).await;
-  let (status, said) = ask(&app, Method::POST, "/checks/room", Some(json!({ "room": "a room" }))).await;
+  let (status, said) = ask(&app, Method::POST, "/checks/object", Some(json!({ "kind": 7 }))).await;
 
   assert_eq!(status, StatusCode::BAD_REQUEST);
   assert_eq!(said["code"], "bad-request");
   assert!(said["error"].as_str().unwrap().contains("the body does not read"), "{said}");
 }
 
-/// What the stand-in receiver was asked: the declarations it took.
-#[derive(Clone, Default)]
-struct Heard(Arc<Mutex<Vec<(String, Value)>>>);
-
-async fn stand_in_receiver() -> (String, Heard) {
-  let heard = Heard::default();
-  let kept = heard.clone();
-  let app = Router::new()
-    .route(
-      "/rooms/{chat}/messages/{message}",
-      get(|axum::extract::Path((chat, message)): axum::extract::Path<(i64, i64)>| async move {
-        if (chat, message) == (ROOM, 1) {
-          Ok(Json(json!({ "id": 1, "room": ROOM, "senderId": OWNER, "sentAt": 1, "text": "words" })))
-        } else {
-          Err(StatusCode::NOT_FOUND)
+/// A stand-in receiver answering a room's leaders to its token alone: one leader for `ROOM`, none for any other.
+async fn stand_in_receiver() -> String {
+  let app = Router::new().route(
+    "/rooms/{chat}/leaders",
+    get(
+      |axum::extract::Path(chat): axum::extract::Path<i64>, headers: axum::http::HeaderMap| async move {
+        if headers.get(header::AUTHORIZATION).and_then(|value| value.to_str().ok())
+          != Some("Bearer the receiver's token")
+        {
+          return Err(StatusCode::UNAUTHORIZED);
         }
-      }),
-    )
-    .route(
-      "/room-holders/{unit}",
-      put(
-        move |axum::extract::Path(unit): axum::extract::Path<String>,
-              headers: axum::http::HeaderMap,
-              Json(body): Json<Value>| {
-          let kept = kept.clone();
 
-          async move {
-            if headers.get(header::AUTHORIZATION).and_then(|value| value.to_str().ok())
-              != Some("Bearer the receiver's token")
-            {
-              return StatusCode::UNAUTHORIZED;
-            }
-            kept.0.lock().unwrap().push((unit, body));
-
-            StatusCode::NO_CONTENT
-          }
-        },
-      ),
-    );
+        Ok(Json(json!({ "leaders": if chat == ROOM { vec![42] } else { vec![] } })))
+      },
+    ),
+  );
   let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
   let address = format!("http://{}", listener.local_addr().unwrap());
 
   tokio::spawn(async move { axum::serve(listener, app).await });
 
-  (address, heard)
+  address
 }
 
 #[tokio::test]
-async fn the_receivers_client_reads_a_senders_message_and_declares_the_holder() {
+async fn the_receivers_client_reads_a_rooms_leaders() {
   ready();
-  let (address, heard) = stand_in_receiver().await;
+  let address = stand_in_receiver().await;
   let client = ReceiverClient::new(&address, "the receiver's token").unwrap();
 
-  assert_eq!(client.sender_of(ROOM, 1).await.unwrap(), Some(OWNER));
-  assert_eq!(client.sender_of(ROOM, 2).await.unwrap_err().code, "no-such-message");
-
-  client.declare_holder("web", "http://127.0.0.1:3240", &HOLDINGS).await.unwrap();
-
-  let heard = heard.0.lock().unwrap().clone();
-
-  assert_eq!(heard.len(), 1);
-  assert_eq!(heard[0].0, "web");
+  assert_eq!(client.leaders_of(ROOM).await.unwrap(), vec![42]);
+  assert_eq!(client.leaders_of(ROOM - 1).await.unwrap(), Vec::<i32>::new());
   assert_eq!(
-    heard[0].1,
-    json!({
-      "address": "http://127.0.0.1:3240",
-      "holdings": [
-        { "name": "room_grants", "effect": "warns" },
-        { "name": "room_senders", "effect": "kept" },
-      ],
-    })
+    ReceiverClient::new(&address, "not the token")
+      .unwrap()
+      .leaders_of(ROOM)
+      .await
+      .unwrap_err()
+      .code,
+    "upstream-failed"
   );
   assert!(ReceiverClient::new("https://elsewhere.example", "a token").is_err());
 }

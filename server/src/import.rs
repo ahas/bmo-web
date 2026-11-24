@@ -169,20 +169,6 @@ pub const TABLES: &[TableMap] = &[
     ],
   },
   TableMap {
-    source: "grant_words",
-    target: "grant_words",
-    columns: &[
-      "resource_type",
-      "resource_id",
-      "relation",
-      "subject_key",
-      "words",
-      "message_chat",
-      "message_id",
-      "written_at",
-    ],
-  },
-  TableMap {
     source: "document_talk",
     target: "document_talk",
     columns: &[

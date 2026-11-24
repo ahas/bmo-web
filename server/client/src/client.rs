@@ -306,16 +306,6 @@ impl AccountClient {
     .await
   }
 
-  /// `POST /checks/room`.
-  pub async fn check_room(&self, ask: &RoomCheckAsk) -> Answer<CheckAnswer> {
-    Self::answered(self.send(Method::POST, &["checks", "room"], ask)).await
-  }
-
-  /// `POST /checks/message`.
-  pub async fn check_message(&self, ask: &MessageCheckAsk) -> Answer<CheckAnswer> {
-    Self::answered(self.send(Method::POST, &["checks", "message"], ask)).await
-  }
-
   /// `POST /checks/object`.
   pub async fn check_object(&self, ask: &ObjectCheckAsk) -> Answer<CheckAnswer> {
     Self::answered(self.send(Method::POST, &["checks", "object"], ask)).await
@@ -496,28 +486,6 @@ impl AccountClient {
     .await
   }
 
-  /// `GET /rooms/{chat}/callers`, asked as the login `key` acts for.
-  pub async fn room_callers(&self, room: i64, key: &str) -> Answer<RoomCallers> {
-    Self::answered(
-      self
-        .request(Method::GET, &["rooms", &room.to_string(), "callers"])
-        .header(OWNER_KEY, key),
-    )
-    .await
-  }
-
-  /// `PUT /rooms/{chat}/callers/{user}` where `caller`, else `DELETE`, asked as the login `key` acts for.
-  pub async fn set_room_caller(&self, room: i64, user: &str, caller: bool, key: &str) -> Answer<()> {
-    let method = if caller { Method::PUT } else { Method::DELETE };
-
-    Self::nothing(
-      self
-        .request(method, &["rooms", &room.to_string(), "callers", user])
-        .header(OWNER_KEY, key),
-    )
-    .await
-  }
-
   /// `PUT /units/{unit}/heads/{user}` where `head`, else `DELETE`, asked as the login `key` acts for in `role`.
   pub async fn set_head(&self, unit: i64, user: &str, head: bool, key: &str, role: &str) -> Answer<()> {
     let method = if head { Method::PUT } else { Method::DELETE };
@@ -639,21 +607,6 @@ impl AccountClient {
     Self::answered(self.send(Method::POST, &["users", user, "node", "proof"], &serde_json::json!({}))).await
   }
 
-  /// `GET /grants?room=`.
-  pub async fn grants(&self, room: i64) -> Answer<Grants> {
-    Self::answered(self.get(&["grants"], &[("room", room.to_string())])).await
-  }
-
-  /// `POST /grants`.
-  pub async fn grant(&self, ask: &GrantAsk) -> Answer<Granted> {
-    Self::answered(self.send(Method::POST, &["grants"], ask)).await
-  }
-
-  /// `DELETE /grants`.
-  pub async fn revoke(&self, ask: &RevokeAsk) -> Answer<Revoked> {
-    Self::answered(self.send(Method::DELETE, &["grants"], ask)).await
-  }
-
   /// `POST /phones`.
   pub async fn make_phone_key(&self, user: &str) -> Answer<PhoneMade> {
     Self::answered(self.send(
@@ -688,11 +641,6 @@ impl AccountClient {
   /// `DELETE /phones/{hash}`.
   pub async fn delete_phone_key(&self, hash: &str) -> Answer<()> {
     Self::nothing(self.request(Method::DELETE, &["phones", hash])).await
-  }
-
-  /// `GET /rooms/{chat}/holdings`.
-  pub async fn room_holdings(&self, chat: i64) -> Answer<Holdings> {
-    Self::answered(self.request(Method::GET, &["rooms", &chat.to_string(), "holdings"])).await
   }
 
   /// `GET /users/{user}/secrets`, asked by `user`, the user the console's login is, in their own space.

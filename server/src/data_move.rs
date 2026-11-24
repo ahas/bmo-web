@@ -6,8 +6,7 @@ use serde::Serialize;
 use sumida::api::authz::Authz;
 use sumida::api::authz::write::{SubjectKey, TupleWrite};
 
-use crate::checks::ROOM;
-use crate::users::{ORGANIZATION, ROLE, link, member_of, user_for_sender};
+use crate::users::{ORGANIZATION, ROLE, link};
 use crate::{Refusal, all, now_ms, one, run};
 
 /// The settings key the move is marked done under.
@@ -19,13 +18,10 @@ pub const ADMINISTRATOR: &str = "users_administrator";
 /// The tables that hold a user's own rows and that the move hands to the user it makes.
 pub const USER_KEYED: [&str; 2] = ["web_push_devices", "web_tab_states"];
 
-/// What everyone in a room may have the chat agent do: the room's member grant.
-pub const MEMBER_DEFAULTS: [&str; 6] = ["ask", "search", "notes", "memories", "reminders", "file_todo"];
-
 /// What the move is written as when nobody grants it, in a tuple's `created_by`.
 const MOVER: &str = "data-move";
 
-pub use bmo_web_client::{MoveAsk, RoomRule};
+pub use bmo_web_client::MoveAsk;
 
 /// What the move answered: whether it is done, whether this call wrote it, and the administrator's user.
 #[derive(Debug, Serialize, PartialEq, Eq)]
@@ -131,36 +127,6 @@ async fn written<C: ConnectionTrait>(txn: &C, ask: MoveAsk) -> Result<Moved, Ref
 
   for sender in &ask.owner_senders {
     link(txn, *sender, administrator).await?;
-  }
-
-  for room in &ask.rooms {
-    let members = SubjectKey::parse(&member_of(*room))?;
-
-    for relation in MEMBER_DEFAULTS {
-      write(txn, ROOM, &room.to_string(), relation, members.clone()).await?;
-    }
-  }
-
-  for rule in &ask.room_rules {
-    let user = user_for_sender(txn, rule.subject).await?;
-    let subject = SubjectKey::user(user);
-
-    write(txn, ROOM, &rule.room.to_string(), "rule", subject.clone()).await?;
-    run(
-      txn,
-      r#"INSERT INTO "grant_words" ("resource_type", "resource_id", "relation", "subject_key", "words", "written_at")
-         VALUES ($1, $2, 'rule', $3, $4, $5)
-         ON CONFLICT ("resource_type", "resource_id", "relation", "subject_key") DO UPDATE SET
-           "words" = "grant_words"."words" || E'\n' || EXCLUDED."words""#,
-      vec![
-        ROOM.into(),
-        rule.room.to_string().into(),
-        subject.key().into(),
-        rule.words.clone().into(),
-        now_ms().into(),
-      ],
-    )
-    .await?;
   }
 
   for table in USER_KEYED {

@@ -6,16 +6,15 @@ use std::sync::Arc;
 use std::sync::atomic::Ordering;
 
 use axum::extract::rejection::JsonRejection;
-use axum::extract::{FromRequest, Path, Query, Request, State};
+use axum::extract::{FromRequest, Path, Request, State};
 use axum::http::{StatusCode, header};
 use axum::middleware::{Next, from_fn, from_fn_with_state};
 use axum::response::{IntoResponse, Response};
 use axum::routing::{get, post};
 use axum::{Json, Router};
 use bmo_web_client::{
-  CheckAnswer as WireCheck, Granted as WireGranted, Grants as WireGrants, Health as WireHealth,
-  Holdings as WireHoldings, ModelState as WireModel, Moved as WireMoved, PhoneAdopted as WireAdopted,
-  PhoneHolder as WireHolder, PhoneMade as WireMade, Rendered as WireRendered, Revoked as WireRevoked,
+  CheckAnswer as WireCheck, Health as WireHealth, ModelState as WireModel, Moved as WireMoved,
+  PhoneAdopted as WireAdopted, PhoneHolder as WireHolder, PhoneMade as WireMade, Rendered as WireRendered,
   SenderLink as WireSenderLink, SenderLinks as WireSenderLinks, SenderUser as WireSenderUser,
   Senders as WireSenders, SendersAsk, UserView as WireUser,
 };
@@ -26,15 +25,14 @@ use serde_json::{Map, Value};
 use sumida::api::Sumida;
 use sumida::api::authz::Authz;
 
-use crate::checks::{check_message, check_object, check_room};
+use crate::checks::check_object;
 use crate::data_move::{MoveAsk, moved, run_move};
-use crate::grants::{GrantAsk, RevokeAsk, grant, revoke, standing_in};
 use crate::ids::{parsed, shown};
 use crate::receiver::Receiver;
 use crate::rules::RULES;
 use crate::settings::Names;
 use crate::users::{link, linked_senders, user_of_sender, user_subject};
-use crate::{Refusal, Service, VERSION, all, holdings, one, phones, words};
+use crate::{Refusal, Service, VERSION, all, one, phones, words};
 
 /// Where sumida's own router is mounted: apart from the deployment's routes, whose paths other units name
 /// and some of which sumida's own (its users among them) would take.
@@ -230,15 +228,11 @@ fn own() -> Router<Service> {
     .route("/users/{user}/senders/{sender}", axum::routing::put(link_route))
     .route("/users/{user}/password", post(password_route))
     .route("/users/{user}/name", post(name_route))
-    .route("/checks/room", post(room_check))
-    .route("/checks/message", post(message_check))
     .route("/checks/object", post(object_check))
-    .route("/grants", get(grants_route).post(grant_route).delete(revoke_route))
     .route("/phones", post(phone_make))
     .route("/phones/adopt", post(phone_adopt))
     .route("/phones/who", post(phone_who))
     .route("/phones/{hash}", axum::routing::delete(phone_delete))
-    .route("/rooms/{chat}/holdings", get(holdings_route))
     .route("/watching", get(crate::watching::get).put(crate::watching::put))
     .merge(crate::profiles::routes())
     .merge(crate::security::routes())
@@ -255,7 +249,7 @@ fn own() -> Router<Service> {
     .merge(crate::lines::routes())
     .merge(crate::subtree::routes())
     .merge(crate::org_memory::routes())
-    .merge(crate::callers::routes())
+    .merge(crate::entry::routes())
     .merge(crate::invites::routes())
     .merge(crate::machines::routes())
     .merge(crate::machine_shares::routes())
@@ -448,49 +442,12 @@ async fn name_route(
 }
 
 #[derive(Deserialize)]
-struct RoomAsk {
-  room: i64,
-  sender: Option<i64>,
-  relation: String,
-}
-
-#[derive(Deserialize)]
-struct MessageAsk {
-  room: i64,
-  message: i64,
-  relation: String,
-}
-
-#[derive(Deserialize)]
 struct ObjectAsk {
   kind: String,
   object: String,
   relation: String,
   #[serde(deserialize_with = "crate::ids::user")]
   user: i32,
-}
-
-async fn room_check(State(service): State<Service>, Body(ask): Body<RoomAsk>) -> Answer<WireCheck> {
-  let answer = check_room(&service.db, ask.room, ask.sender, &ask.relation).await?;
-
-  Ok(Json(WireCheck {
-    allowed: answer.allowed,
-    grant: answer.grant,
-    user: answer.user.map(shown),
-    sender: None,
-  }))
-}
-
-async fn message_check(State(service): State<Service>, Body(ask): Body<MessageAsk>) -> Answer<WireCheck> {
-  let answer =
-    check_message(&service.db, service.receiver.as_ref(), ask.room, ask.message, &ask.relation).await?;
-
-  Ok(Json(WireCheck {
-    allowed: answer.allowed,
-    grant: answer.grant,
-    user: answer.user.map(shown),
-    sender: answer.sender,
-  }))
 }
 
 async fn object_check(State(service): State<Service>, Body(ask): Body<ObjectAsk>) -> Answer<WireCheck> {
@@ -500,34 +457,7 @@ async fn object_check(State(service): State<Service>, Body(ask): Body<ObjectAsk>
     allowed: answer.allowed,
     grant: answer.grant,
     user: None,
-    sender: None,
   }))
-}
-
-#[derive(Deserialize)]
-struct RoomQuery {
-  room: i64,
-}
-
-async fn grants_route(
-  State(service): State<Service>,
-  Query(query): Query<RoomQuery>,
-) -> Answer<WireGrants> {
-  Ok(Json(WireGrants {
-    grants: standing_in(&service.db, query.room).await?,
-  }))
-}
-
-async fn grant_route(State(service): State<Service>, Body(ask): Body<GrantAsk>) -> Answer<WireGranted> {
-  let granted = grant(&service.db, service.receiver.as_ref(), ask).await?;
-
-  Ok(Json(granted))
-}
-
-async fn revoke_route(State(service): State<Service>, Body(ask): Body<RevokeAsk>) -> Answer<WireRevoked> {
-  let revoked = revoke(&service.db, service.receiver.as_ref(), ask).await?;
-
-  Ok(Json(revoked))
 }
 
 #[derive(Deserialize)]
@@ -577,12 +507,6 @@ async fn phone_delete(State(service): State<Service>, Path(hash): Path<String>) 
   phones::delete(&service.db, &hash).await?;
 
   Ok(StatusCode::NO_CONTENT)
-}
-
-async fn holdings_route(State(service): State<Service>, Path(chat): Path<i64>) -> Answer<WireHoldings> {
-  Ok(Json(WireHoldings {
-    holdings: holdings::held(&service.db, chat).await?,
-  }))
 }
 
 async fn render_route(

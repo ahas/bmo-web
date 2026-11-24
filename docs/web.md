@@ -460,9 +460,10 @@ console page. No answer says which framework drew it. Strict transport is the re
   three, and nobody needs a chat service's identity for any of them:
   1. **its console memberships:** the rooms it was let into or opened, and its own BMO's private room (3.), as the
      receiver answers them now (`GET /accounts/{account}/rooms`);
-  2. **the rooms its linked identities reach:** a room one of the senders linked to the account has stood as a
-     sender in, and the one-to-one each such identity is, in which the account holds the console grant
-     (`docs/accounts.md`, 「Checks」);
+  2. **for a platform administrator, the rooms his linked identities reach:** a room one of the senders linked to
+     his account has stood as a sender in, and the one-to-one each such identity is. Anyone else's identities reach
+     no room of their own: the account service keeps no grant on a room (`docs/accounts.md`, 「What it is」), so a
+     chat service's room is read in the console by being let into it;
   3. **its own BMO's private room:** the room the receiver says is the account's private room (the `privateOf` of the
      room, its `docs/api.md`, 「Rooms」), its BMO's own record room.
 - **Whose private room a room is, is the receiver's to say,** by the `privateOf` and `sealed` it keeps for every room
@@ -6369,7 +6370,7 @@ Four bounds keep it from growing forever.
   name or a status line too long for the row is cut and shown whole in the tooltip every cut line gets.
 - **A member the platform knows as an account carries 콘솔 사용자.** The console's server asks the account
   service which of the members' person numbers is linked to a user (`docs/accounts.md`, 「Users and senders」),
-  and marks a member only where that user may sign in, so a user made for a sender by a grant, an invitation not
+  and marks a member only where that user may sign in, so a user made for a sender alone, an invitation not
   yet accepted and an account that has left carry no mark. A marked row opens that person's page
   (「Person's page」) for a reader who may read the account section; for anyone else it carries the mark alone.
 - **A member the platform does not know stands as a member alone:** their face, name and status line, with no
@@ -6419,14 +6420,14 @@ Four bounds keep it from growing forever.
     named and the rest counted. An organisation or a choice of people with nobody new in it is not told at all.
   - Closing the dialog while it holds a choice asks first whether to throw it away, as every form's dialog does;
     one holding nothing closes at once.
-  - Each person let in is granted `ask` on the room at the same moment, the account service's mark of the call
-    right membership gives (the account service's `docs/accounts.md`, 「A room's callers」). They read the room
-    from its first line on, as a chat service's group would show it.
+  - Membership is each person's call right from then on, with nothing else written (the account service's
+    `docs/accounts.md`, 「A room's callers」). They read the room from its first line on, as a chat service's group
+    would show it.
 - **A member leaves by themselves, and one who may let people in takes a member out.** A console member's row
   carries 나가기 for the reader's own row and 내보내기 for the others where the reader may let people in. Taken out
   (`DELETE /rooms/{roomId}/accounts/{account}`), the receiver writes who took whom out, or that a person left,
-  into the room; the person's call grant there goes with them where the one taking them out may change it, and the
-  room leaves their list at once, so they read it no more.
+  into the room; their call right there goes with the membership, and the room leaves their list at once, so they
+  read it no more.
 - **A refusal is said in the dialog or the tab** by the pack's sentence for its code, and the list stands as it was.
 
 #### 방 등록 삭제

@@ -456,16 +456,18 @@ The account service stands in `server/`, one Rust project on sumida (build-2, bu
 
 | Old member | Stands here as | Carried by |
 |---|---|---|
-| `bot/bmo-server/src/bmo.sz`, `checks.rs`, `data_move.rs`, `grants.rs`, `phones.rs`, `routes.rs`, `rules.rs`, `users.rs` (the eight files the account-service crate split of commit `2d1704af` moved) | `server/src/` of the same names | build-2 |
+| `bot/bmo-server/src/bmo.sz`, `checks.rs`, `data_move.rs`, `phones.rs`, `routes.rs`, `rules.rs`, `users.rs` (seven of the eight files the account-service crate split of commit `2d1704af` moved) | `server/src/` of the same names, without the room's kind and its checks | build-2 |
+| `bot/bmo-server/src/grants.rs`, the eighth | not carried: the service keeps no room grant (`docs/accounts.md`, 「What it is」) | — |
 | the `Service` and `Refusal` of `bot/bmo-server/src/lib.rs` | `server/src/lib.rs` | build-2 |
 | `settle_sumida`, `account` and `account_apart`, and the `user` command, of `bot/bmo-server/src/main.rs` | the server's binary, `server/src/bin/bmo-web-server.rs`: `serve`, `migrate` and `user` | build-2 |
 | `bot/bmo-server/src/settings.toml`, sumida's settings for the account service | `server/sumida.toml`; the server's own settings in `server/settings.toml` | build-2 |
 | the statement helpers of the old archive pool (`one`, `all`, `run`, the pool and the replanned statement) | `server/src/store.rs` | build-2 |
 | `fill_marks` of the old shared policy crate | `server/src/marks.rs` | build-2 |
 | the `sumida` git dependency at rev `1ecbf4e48f052ecfd1c12f936fdcb1417d8e5ae0` | `server/Cargo.toml` | build-2 |
-| the read of a message's sender out of the shared `messages` table, which a message check and a grant are made on | the receiver port, `server/src/receiver.rs`, asking the receiver's `GET /rooms/{chat}/messages/{message}` | build-2 |
-| the room record the account service declared its holdings to | the holdings route and the declaration to the receiver | build-3 |
-| `bot/bmo-server/tests/integration/grants.rs` and `sign_in.rs`, and the scratch archive and test ids they stood on | `server/tests/grants.rs`, `server/tests/sign_in/main.rs` and `server/tests/support/`: 11 tests and 1 | build-2 |
+| the read of a message's sender out of the shared `messages` table, which a message check and a grant are made on | not carried: no check or grant is made on a message; the receiver port, `server/src/receiver.rs`, asks the receiver for a room's leaders alone | — |
+| the room record the account service declared its holdings to | not carried: the service holds nothing for a room, so it serves no holdings and declares itself no holder | — |
+| `bot/bmo-server/tests/integration/sign_in.rs`, and the scratch archive and test ids it stood on | `server/tests/sign_in/main.rs` and `server/tests/support/` | build-2 |
+| `bot/bmo-server/tests/integration/grants.rs` | not carried: the grants it tested are room grants, which the service keeps no more | — |
 | the two tests of `grants.rs` on whose work an item is (`requester_run`, approvals on a standing rule) | not carried: bmo-job's, standing on its items and the agency's Claude accounts | — |
 | `bot/accounts/account-service.ts` | `client/packages/accounts/account-service.ts`: the same functions, asking the server over HTTP at `WEB_SERVER_ADDRESS` with its token instead of the old socket, on the routes `docs/boundary.md` states, a user named by the string id the server gives | build-6 |
 | `bot/accounts/account-service-fixture.ts` | `client/tests/support/account-service.ts`, the stand-in on a loopback port, answering those routes | build-6 |
@@ -476,8 +478,8 @@ The account service stands in `server/`, one Rust project on sumida (build-2, bu
 
 ### The tables
 
-Web's own migrations make these 10 tables beside sumida's own, which sumida's migrations make:
-`user_senders`, `grant_words`, `settings` (web's keys only: the users-moved mark and the administrator),
+Web's own migrations make these 9 tables beside sumida's own, which sumida's migrations make:
+`user_senders`, `settings` (web's keys only: the users-moved mark and the administrator),
 `web_users`, `web_push_devices`, `web_tab_states`, `web_palettes`, `web_themes`, `web_room_reads` (build-2),
 and `document_talk` (build-18, a migration of its own). They come from `archive/bmo-archive/src/migration/archive.sql`,
 `m20261006_000000_extensions`, `m20261006_000001_users`, `m20261007_000002_room_reads`,

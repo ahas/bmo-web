@@ -8,8 +8,8 @@ import type { RoomAdded, RoomOverlay, SentMessage } from "../../../apps/web/shar
 
 // An account with no chat service's identity in the console (docs/web.md, the room screen's section on opening a room
 // and letting people in): it speaks in its own BMO's private room, opens a group room naming its own BMO, lets a
-// person of its own company in with the call granted at the same moment — never one of another company — and takes
-// them out again. The account service says who may let whom in; the receiver keeps the members.
+// person of its own company in, the membership their call right, never one of another company, and takes them out
+// again. The account service says who may let whom in and is asked nothing more; the receiver keeps the members.
 
 const INVITED = 3;
 const COLLEAGUE = 4;
@@ -71,7 +71,6 @@ const accounts = standIn("WEB_SERVER", (one) => {
 
     return answer({ allowed, grant: `bmo_room:${String(one.body?.room)}#entry`, user: one.body?.user });
   }
-  if (/^\/rooms\/-?\d+\/callers\/\d+$/.test(one.path)) return new Response(null, { status: 204 });
 
   return answer({ code: "failed", error: "Not served here." }, 500);
 });
@@ -120,14 +119,14 @@ describe("an account with no chat service's identity", () => {
     expect(writes()).toEqual([]);
   });
 
-  test("lets a person of its company in, the call granted with membership, and is refused one of another company", async () => {
+  test("lets a person of its company in, writing nothing on the account service, and is refused one of another company", async () => {
     signedAs(INVITED);
     receiver.asked.length = 0;
     accounts.asked.length = 0;
 
     expect((await asked(letIn, { params: { chatId: String(GROUP), user: String(COLLEAGUE) } })).status).toBe(200);
     expect(writes()).toEqual([["PUT", `/rooms/${GROUP}/accounts/${COLLEAGUE}`, { by: INVITED }]]);
-    expect(accounts.asked.filter((one) => one.method === "PUT").map((one) => one.path)).toEqual([`/rooms/${GROUP}/callers/${COLLEAGUE}`]);
+    expect(accounts.asked.filter((one) => one.method === "PUT" || one.method === "DELETE")).toEqual([]);
     expect(members.get(GROUP)?.has(String(COLLEAGUE))).toBe(true);
 
     receiver.asked.length = 0;
@@ -136,14 +135,14 @@ describe("an account with no chat service's identity", () => {
     expect(writes()).toEqual([]);
   });
 
-  test("takes the person out, their call grant going with them, and the person may leave by themselves", async () => {
+  test("takes the person out, their call right going with the membership, and the person may leave by themselves", async () => {
     signedAs(INVITED);
     receiver.asked.length = 0;
     accounts.asked.length = 0;
 
     expect((await asked(takeOut, { params: { chatId: String(GROUP), user: String(COLLEAGUE) } })).status).toBe(200);
     expect(writes()).toEqual([["DELETE", `/rooms/${GROUP}/accounts/${COLLEAGUE}?by=${INVITED}`, null]]);
-    expect(accounts.asked.filter((one) => one.method === "DELETE").map((one) => one.path)).toEqual([`/rooms/${GROUP}/callers/${COLLEAGUE}`]);
+    expect(accounts.asked.filter((one) => one.method === "PUT" || one.method === "DELETE")).toEqual([]);
     expect(members.get(GROUP)?.has(String(COLLEAGUE))).toBe(false);
 
     // Leaving asks nobody whether it may.

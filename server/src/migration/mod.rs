@@ -1,7 +1,7 @@
-//! The service's migrations (docs/accounts.md, 「The tables」), from the 1.0.0 baseline, which makes the whole
-//! schema, sumida's tables among it, run by sea-orm's migrator, which keeps the versions it ran in its own table.
-//! sumida runs no migrations of its own on this database; its boards and files stay unmade, and its rules over
-//! them read as absent. Every place that migrates goes through `up`.
+//! The service's migrations (docs/accounts.md, 「The tables」): the 1.0.0 baseline, which makes the whole schema,
+//! sumida's tables among it, and the migrations after it, run by sea-orm's migrator, which keeps the versions it
+//! ran in its own table. sumida runs no migrations of its own on this database; its boards and files stay unmade,
+//! and its rules over them read as absent. Every place that migrates goes through `up`.
 
 use sea_orm_migration::prelude::*;
 use sea_orm_migration::sea_orm::{
@@ -9,6 +9,7 @@ use sea_orm_migration::sea_orm::{
 };
 
 pub mod m20261201_000001_baseline;
+pub mod m20261201_000002_no_room_grants;
 mod secret_kind_seeds;
 
 /// The table the migrator keeps its record in, which is no part of the service's shape.
@@ -16,6 +17,10 @@ pub const MIGRATIONS_TABLE: &str = "seaql_migrations";
 
 /// The migration that makes the schema whole.
 pub const BASELINE: &str = m20261201_000001_baseline::NAME;
+
+/// The migrations after the baseline, in the order they run, each with its way up as SQL.
+pub const LATER: [(&str, &str); 1] =
+  [(m20261201_000002_no_room_grants::NAME, m20261201_000002_no_room_grants::UP)];
 
 /// The record an install from before 1.0.0 holds once every migration of its last release ran, sumida's among
 /// them, in the order that release ran them. Its schema is the baseline's.
@@ -58,7 +63,10 @@ pub struct Migrator;
 #[async_trait::async_trait]
 impl MigratorTrait for Migrator {
   fn migrations() -> Vec<Box<dyn MigrationTrait>> {
-    vec![Box::new(m20261201_000001_baseline::Migration)]
+    vec![
+      Box::new(m20261201_000001_baseline::Migration),
+      Box::new(m20261201_000002_no_room_grants::Migration),
+    ]
   }
 }
 

@@ -16,11 +16,6 @@ pub const ORGANIZATION: &str = "bmo";
 /// The deployment's default role, which every user holds, by name.
 pub const ROLE: &str = "member";
 
-/// The subject every member of a room is checked as, in that room alone.
-pub fn member_of(room: i64) -> String {
-  format!("bmo_member:{room}")
-}
-
 /// Whether the name a console change is recorded under is the platform administrator's: a console login,
 /// which only the administrator holds, or the username of the user the data move named the administrator. A
 /// change that names nobody is no administrator's.
@@ -153,28 +148,7 @@ pub async fn user_subjects<C: ConnectionTrait>(
   ))
 }
 
-/// What one sender in one room is checked as: their user where their identity is linked, and the room's
-/// members always.
-pub async fn sender_subject<C: ConnectionTrait>(
-  db: &C,
-  room: i64,
-  sender: Option<i64>,
-) -> Result<(SubjectSet, Option<i32>), Refusal> {
-  let user = match sender {
-    Some(sender) => user_of_sender(db, sender).await?,
-    None => None,
-  };
-  let (mut keys, ids) = match user {
-    Some(user) => user_subjects(db, user).await?,
-    None => (Vec::new(), Vec::new()),
-  };
-
-  keys.push(member_of(room));
-
-  Ok((SubjectSet::from_parts(keys, ids), user))
-}
-
-/// What a user is checked as outside any room.
+/// What a user is checked as.
 pub async fn user_subject<C: ConnectionTrait>(db: &C, user: i32) -> Result<SubjectSet, Refusal> {
   let (keys, ids) = user_subjects(db, user).await?;
 

@@ -2321,12 +2321,6 @@ members:
     entry_failed: "Couldn't change members."
     entry_forbidden: "You don't have permission to add or remove members in this room."
     entry_unknown: "That person couldn't be found."
-callers:
-  error:
-    failed: "Couldn't let the people added call their own BMO in this room."
-    forbidden: "You can't let this person call their own BMO in this room."
-    not_found: User not found.
-    unreachable: "Couldn't reach the account service."
 room_info:
   title:
     sheet: Room info

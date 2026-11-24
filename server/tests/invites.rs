@@ -7,7 +7,7 @@
 
 use std::sync::{Arc, Mutex};
 
-use crate::support::{OWNER, ROOM, Scratch, console_hash, ready};
+use crate::support::{OWNER, Scratch, console_hash, ready};
 use axum::Router;
 use axum::body::Body;
 use axum::http::{Method, Request, StatusCode, header};
@@ -79,8 +79,6 @@ async fn stood() -> Stood {
     scratch.db(),
     MoveAsk {
       owner_senders: vec![OWNER],
-      rooms: vec![ROOM],
-      room_rules: vec![],
     },
   )
   .await

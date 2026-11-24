@@ -312,7 +312,7 @@ fn keys(sources: &[Source]) -> Vec<&'static str> {
 pub fn policy_kind() -> ChainKind {
   ChainKind {
     key: "supply.policy".to_owned(),
-    declared_by: crate::holdings::UNIT.to_owned(),
+    declared_by: crate::UNIT.to_owned(),
     description:
       "The supply policy: the platform's, an organisation's and an administrator's for one person."
         .to_owned(),
@@ -336,7 +336,7 @@ pub fn policy_kind() -> ChainKind {
 pub fn own_kind() -> ChainKind {
   ChainKind {
     key: "supply.own".to_owned(),
-    declared_by: crate::holdings::UNIT.to_owned(),
+    declared_by: crate::UNIT.to_owned(),
     description:
       "A person's own supply setting: their order, the sources switched off and on, and their cap."
         .to_owned(),
@@ -356,7 +356,7 @@ pub fn own_kind() -> ChainKind {
 pub fn allowance_kind() -> ChainKind {
   ChainKind {
     key: "supply.credit-allowance".to_owned(),
-    declared_by: crate::holdings::UNIT.to_owned(),
+    declared_by: crate::UNIT.to_owned(),
     description: "The organisation credits one person may spend in a calendar month.".to_owned(),
     shape: ChainShape::Amount,
     choices: vec![],
@@ -375,7 +375,7 @@ pub fn allowance_kind() -> ChainKind {
 pub fn organisation_kind() -> ChainKind {
   ChainKind {
     key: ORGANISATION_KIND.to_owned(),
-    declared_by: crate::holdings::UNIT.to_owned(),
+    declared_by: crate::UNIT.to_owned(),
     description: "Whether a person here may run on their organisation's own supply, the keys and Claude accounts a \
                   unit registers. Off until the platform turns it on for a company, by a rule naming it at the \
                   platform's link; a link below only turns it off."

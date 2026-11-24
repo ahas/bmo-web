@@ -2,8 +2,7 @@
 // `docs/boundary.md` states, on a loopback port of a test's own and behind a token of its own, answering
 // out of what the test seeds rather than out of sumida, so a console test needs neither the server's binary
 // nor Valkey. What it decides follows the rules the server's own tests hold sumida to: the administrator
-// passes every check; a sender is checked as their linked user and the room's members; a standing rule
-// opens its room; an expired grant is none.
+// passes every check, and an expired grant is none.
 
 import type { SecretKind } from "../../apps/web/shared/secret-kinds";
 
@@ -20,13 +19,12 @@ export interface StandInUser {
 }
 
 export interface StandInGrant {
-  kind?: string;
+  kind: string;
   object: string;
   relation: string;
-  // `user:<id>` or `bmo_member:<room>`.
+  // `user:<id>`.
   subject: string;
   expiresAt?: number;
-  words?: string;
 }
 
 export interface StandInSeed {
@@ -39,8 +37,6 @@ export interface StandInSeed {
   hub?: string[];
   // The machine names whose revoke the hub refuses.
   refusedRevokes?: string[];
-  // The messages a check on a message reads: room, message, sender.
-  messages?: [number, number, number | null][];
 }
 
 /** One section's permission as the stand-in keeps it, by the user's id. */
@@ -54,14 +50,6 @@ export interface StandInSection {
 // What the data move was handed, as the stand-in kept it.
 export interface StandInMove {
   ownerSenders?: number[];
-  rooms?: number[];
-  roomRules?: { room: number; id: string; subject: number; words: string }[];
-}
-
-// The message a grant is made on.
-interface StandInOn {
-  room: number;
-  id: number;
 }
 
 // A body any route of the stand-in reads. A route reads the fields it names; the rest stand unused.
@@ -74,17 +62,10 @@ interface StandInBody {
   current?: string;
   next?: string;
   name?: string;
-  room?: number;
-  sender?: number;
-  // A message check names the message's number; a grant names the message and its room.
-  message?: number | StandInOn;
   relation?: string;
   kind?: string;
   object?: string;
   user?: string;
-  to?: { user?: string; sender?: number; members?: boolean };
-  expiresAt?: number;
-  words?: string;
   key?: string;
   token?: string;
   // A secret's value, whether it replaces the one its name holds, and how the value carries its bytes.
@@ -173,7 +154,6 @@ export interface StandIn {
   stop(): void;
 }
 
-const ROOM = "bmo_room";
 const TOKEN = "a stand-in token";
 
 function hashOf(key: string): string {
@@ -215,7 +195,6 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
       ["account", { read: true, write: true }]
     ]);
   };
-  const messages = new Map((seed.messages ?? []).map(([room, message, sender]) => [`${room}:${message}`, sender]));
   const sessions = new Map<string, number>();
   const keys = new Map<string, { user: number; key: string }>();
   const moves: StandInMove[] = [];
@@ -229,27 +208,15 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
   const pairings = new Map<string, StandInPairing>();
   const pairingAddresses: string[] = [];
   const chain = new Map<string, Map<string, unknown>>();
-  const userOfSender = (sender: number | null): StandInUser | undefined =>
-    sender === null ? undefined : users.find((user) => (user.senders ?? []).includes(sender));
   const holds = (kind: string, object: string, relation: string, subjects: string[]): boolean =>
     grants.some(
       (one) =>
-        (one.kind ?? ROOM) === kind &&
+        one.kind === kind &&
         one.object === object &&
-        (one.relation === relation || (kind === ROOM && one.relation === "rule")) &&
+        one.relation === relation &&
         subjects.includes(one.subject) &&
         (one.expiresAt === undefined || one.expiresAt > Date.now())
     );
-  const checkRoom = (room: number, sender: number | null, relation: string) => {
-    const user = userOfSender(sender);
-    const subjects = [`bmo_member:${room}`, ...(user === undefined ? [] : [`user:${user.id}`])];
-
-    return {
-      allowed: user?.administrator === true || holds(ROOM, String(room), relation, subjects),
-      grant: `${ROOM}:${room}#${relation}`,
-      user: user === undefined ? null : String(user.id)
-    };
-  };
   const json = (body: object, status = 200, headers: Record<string, string> = {}): Response =>
     new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json", ...headers } });
   const refused = (status: number, code: string, error: string): Response => json({ code, error }, status);
@@ -576,20 +543,6 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
         return json({ fullName: user.fullName, ...profile });
       }
 
-      if (path === "/checks/room") {
-        return json(checkRoom(body?.room ?? 0, body?.sender ?? null, body?.relation ?? ""));
-      }
-      if (path === "/checks/message") {
-        const room = body?.room ?? 0;
-        const message = typeof body?.message === "number" ? body.message : 0;
-        const key = `${room}:${message}`;
-
-        if (!messages.has(key)) return refused(404, "no-such-message", `no message ${message} stands in room ${room}`);
-
-        const sender = messages.get(key) ?? null;
-
-        return json({ ...checkRoom(room, sender, body?.relation ?? ""), sender });
-      }
       if (path === "/checks/object") {
         const kind = body?.kind ?? "";
         const object = body?.object ?? "";
@@ -602,50 +555,6 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
           allowed: user?.administrator === true || (kind === "bmo_section" ? bySection : holds(kind, object, relation, [`user:${body?.user ?? ""}`])),
           grant: `${kind}:${object}#${relation}`
         });
-      }
-      if (path === "/grants" && request.method !== "GET") {
-        const on = typeof body?.message === "number" ? null : body?.message;
-        const granter = userOfSender(on === null || on === undefined ? null : (messages.get(`${on.room}:${on.id}`) ?? null));
-        const kind = body?.room === undefined ? (body?.kind ?? "") : ROOM;
-        const object = body?.room === undefined ? (body?.object ?? "") : String(body.room);
-        const relation = body?.relation ?? "";
-
-        if (granter?.administrator !== true) return refused(403, "forbidden", "the sender may not grant");
-
-        let subject: string;
-        let user: string | null = null;
-        const to = body?.to ?? {};
-
-        if (to.members === true) {
-          subject = `bmo_member:${object}`;
-        } else {
-          let holder = to.user !== undefined ? userNamed(to.user) : userOfSender(to.sender ?? null);
-
-          if (holder === undefined && to.sender !== undefined && request.method === "POST") {
-            holder = { id: Math.max(0, ...users.map((one) => one.id)) + 1, name: `member-${to.sender}`, senders: [to.sender] };
-            users.push(holder);
-          }
-          if (holder === undefined) return json({ grant: `${kind}:${object}#${relation}`, revoked: 0 });
-
-          subject = `user:${holder.id}`;
-          user = String(holder.id);
-        }
-
-        const same = (one: StandInGrant): boolean =>
-          (one.kind ?? ROOM) === kind && one.object === object && one.relation === relation && one.subject === subject;
-
-        if (request.method === "DELETE") {
-          const before = grants.length;
-
-          grants.splice(0, grants.length, ...grants.filter((one) => !same(one)));
-
-          return json({ grant: `${kind}:${object}#${relation}`, revoked: before - grants.length });
-        }
-
-        grants.splice(0, grants.length, ...grants.filter((one) => !same(one)));
-        grants.push({ kind, object, relation, subject, expiresAt: body?.expiresAt, words: body?.words });
-
-        return json({ grant: `${kind}:${object}#${relation}`, subject, user });
       }
       if (path === "/phones" && request.method === "POST") {
         const key = crypto.randomUUID().replaceAll("-", "") + crypto.randomUUID().replaceAll("-", "");

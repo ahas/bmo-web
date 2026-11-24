@@ -44,9 +44,8 @@ types; `server/client/` is the Rust crate the server answers with and that docum
   401 `unauthorized` for a missing or wrong token; 403 `forbidden` for one the asker may not make; 404
   `not-found` for what does not exist; 409 `conflict` for a conflict with the present state; 500 `database`
   for the server's database, `failed` for any other failure on its side; 502 `upstream-failed` for a call on
-  another unit that failed; and 503 `not-in-force` while the account model is not in force, `no-receiver`
-  where a message is asked after and no receiver is named, `no-agency` where a person's personal supply roads
-  are asked after and no agency is named. sumida's session routes answer sumida's own refusal shape,
+  another unit that failed; and 503 `not-in-force` while the account model is not in force, `no-agency` where a
+  person's personal supply roads are asked after and no agency is named. sumida's session routes answer sumida's own refusal shape,
   documented in the same OpenAPI document. The supply refusals `source-not-allowed`, `not-in-plan`,
   `blocked-by-organisation` and `blocked-by-administrator` are 403s of their own codes (「Supply」).
 
@@ -63,7 +62,7 @@ types; `server/client/` is the Rust crate the server answers with and that docum
 | Route | Request | Answer |
 |---|---|---|
 | `GET /accounts/model` | | `inForce`; `why?`, where it is not in force |
-| `POST /accounts/move` | `ownerSenders` (each a sender), `rooms` (each a room the deployment answers), `roomRules?` (each `room`, `id`, `subject`, the sender the rule is for, and `words`) | `done`, `written`: true where this call wrote the move, false where it stood already, and `administrator?`, the user the move made the platform administrator |
+| `POST /accounts/move` | `ownerSenders` (each a sender); any other field is passed over | `done`, `written`: true where this call wrote the move, false where it stood already, and `administrator?`, the user the move made the platform administrator |
 
 - **The model is in force** once the move has been written; the server stands only on its database with
   sumida's tables and its rules registered. Until then every route but `GET /health`, `GET /accounts/model` and
@@ -289,22 +288,18 @@ types; `server/client/` is the Rust crate the server answers with and that docum
   (`docs/accounts.md`, 「Desktop pairing」).
 
 ### Checks
-### Checks
 
 | Route | Request | Answer |
 |---|---|---|
-| `POST /checks/room` | `room`, `sender?`, `relation` | `allowed`, `grant`, `user?` |
-| `POST /checks/message` | `room`, `message`, `relation` | `allowed`, `grant`, `user?`, `sender?` |
 | `POST /checks/object` | `kind`, `object`, `relation`, `user` | `allowed`, `grant` |
 | `POST /checks/unit` | `unit`, `user` | `allowed`: whether the user heads the unit or a unit above it, `grant` (`organization:<unit>#manage`); 404 where there is no such unit |
 | `POST /checks/org-memory` | `unit`, `user` | `allowed`: whether the user writes the unit's org memory, heading the unit or a unit above it or holding the unit's org memory write, `grant` (`bmo_org_memory:<unit>#may_write`), `user`; 404 where there is no such unit or user |
 | `POST /checks/entry` | `room`, `actor` (the user acting), `user` (the user let in or taken out) | `allowed`: whether the actor may let the user into the room, `grant` (`bmo_room:<room>#entry`), `user`; 404 where there is no such user |
 
-- **`grant`** is what was asked for, `kind:object#relation` (`bmo_room:<room>#<relation>` for a room), as a
-  caller names it when it says what a user lacks.
-- **A room check** builds the sender's user where their identity is linked, and the room's members, always.
-- **A message check** asks the receiver for the message's sender (「Calls the server makes」) and checks that
-  sender in the room; a message the receiver does not hold in that room is refused 404 `no-such-message`.
+- **`grant`** is what was asked for, `kind:object#relation`, as a caller names it when it says what a user lacks;
+  the entry check's names the decision alone, since the rules declare no kind for a room.
+- **No check answers for a room's relation:** what a room's members may have the chat agent do is no grant of the
+  server's (`docs/accounts.md`, 「What it is」).
 - **An object's `kind`** is one the server's rules declare: `bmo_worker` (relation `run`), `bmo_repository`
   (relation `change`) or `bmo_tools`. A kind or a relation the rules do not declare is refused 400.
 - **An entry check** reads the room's leaders from the receiver (「Calls the server makes」): the actor may where they
@@ -312,36 +307,6 @@ types; `server/client/` is the Rust crate the server answers with and that docum
   company, its leaders' — or, for a room with no leader, the actor's, but for the administrator; a receiver that
   does not answer is 502 `upstream-failed`.
 - **The platform administrator passes every check** but the entry check's company bound.
-
-### Grants
-
-| Route | Request | Answer |
-|---|---|---|
-| `GET /grants?room=` | | `grants`: each `relation`, `subjectKey` (`user:{user}`, `bmo_member:{room}` or another key), `expiresAt?`, `words?`, the grants made on the room in the order they were written, none past its expiry |
-| `POST /grants` | `room?`, or `kind` and `object`; `relation`; `to` (`sender?`, `user?`, `members`: true for every member of the room); `words?`; `expiresAt?`; `message` (`room`, `id`) | `grant`, `subject` (the holder's subject key), `user?` (the holder's user) |
-| `DELETE /grants` | as `POST /grants`, without `words` and `expiresAt` | `grant`, `revoked` (how many went) |
-
-- **The granter is the sender of the message a grant is made on,** and sumida checks that their user may grant
-  what they give, so nobody gives what they do not hold.
-- **A sender with no user yet is given one,** with no way to sign in, and linked.
-- **Granting again** moves the expiry and the words.
-
-### A room's callers
-
-| Route | Request | Answer |
-|---|---|---|
-| `GET /rooms/{chat}/callers` | `Owner-Key` | `room`, `callers` (each `user` and `name`, the users granted `ask` on the room directly, in the order they were granted) and `mayChange`, whether the signed-in user is the administrator, leads the room or heads its leader's unit |
-| `PUT /rooms/{chat}/callers/{user}` | `Owner-Key` | 204: the user is granted `ask` on the room |
-| `DELETE /rooms/{chat}/callers/{user}` | `Owner-Key` | 204: the grant is taken away |
-
-- **A room's callers are its members, and these routes keep the grant under that right,** `ask` on the room to
-  the user (docs/accounts.md, 「A room's callers」): the console grants it as it lets a person in and takes it away
-  as it takes one out, and no screen lists or changes it.
-- **The signed-in user changes the grant where they are the administrator, lead the room, head the room's unit or head
-  the user's unit:** a room's leader is a user who owns a supervisor the room names, as the receiver answers
-  (「Calls the server makes」); the room belongs to its leader's unit; and a head is one whose unit stands at or
-  above the unit named. Anyone else is refused 403, and a user of
-  another company than the signed-in user's is refused 403 but for the administrator.
 
 ### Phone keys
 
@@ -352,11 +317,6 @@ types; `server/client/` is the Rust crate the server answers with and that docum
 | `POST /phones/who` | `key` | `user`, `name`, `hash`; 401 where it is no live key of a user who may sign in |
 | `DELETE /phones/{hash}` | | 204 |
 
-### A room's holdings
-
-| Route | Answer |
-|---|---|
-| `GET /rooms/{chat}/holdings` | `holdings`: each holding the room has at least one of, as `code` and `count` — `room_grants`, the grants made on the room or to its members, and `room_senders`, the senders whose user holds a grant on the room; none for a room holding nothing of the server's |
 ### The rooms a console has open
 
 | Route | Request | Answer |
@@ -367,12 +327,6 @@ types; `server/client/` is the Rust crate the server answers with and that docum
 The console server reports the set as the tabs of every signed-in account open, close, hide or show a room, and the receiver reads it as its
 restart hands each open room's unread lines to the chat agent, one room at a time. The report is kept in memory and
 falls away after two minutes without one.
-
-
-
-- **The server declares itself a holder** to the receiver as it starts (「Calls the server makes」), with the
-  holdings `room_grants` (`effect` `warns`) and `room_senders` (`effect` `kept`), so the receiver shows what a
-  room's removal would take before it removes the room.
 
 ### Account security
 
@@ -657,9 +611,7 @@ Each goes to the unit's base address with that unit's token as a bearer, as the 
 
 | Unit | Call | Route | Why |
 |---|---|---|---|
-| the receiver | declare a holder | `PUT /room-holders/{unit}` (`address`, `holdings`) | once as the server starts, so a room's removal asks the server's holdings |
-| the receiver | read a message | `GET /rooms/{chat}/messages/{message}` | a message check's sender |
-| the receiver | read a room's leaders | `GET /rooms/{chat}/leaders` | whether the signed-in user leads a room whose call grant they change, and whether the one acting may let a person into it |
+| the receiver | read a room's leaders | `GET /rooms/{chat}/leaders` | whether the one acting may let a person into a room (「Checks」, the entry check) |
 | the agency | register the supply hook | `PUT /hooks/supply` (`url`, `token`) | once as the server starts, where the settings name the agency, so the agency asks who pays for a person's run; `DELETE /hooks/supply` takes it away |
 | the agency | read an agent's label | `GET /supervisors/{supervisorName}`, answered its row's `label` | the name an agent a fixed line names stands as (「Fixed lines」); a refusal, no answer within three seconds or no label names it by its key |
 | the agency | read a person's personal supply roads | `GET /personal-supply`, answered `people` | whose personal supply an administrator's read of `GET /supply/user/{user}` names, with that person in `Owner-Key` and `Owner-Role: administrator` |
@@ -668,8 +620,8 @@ Each goes to the unit's base address with that unit's token as a bearer, as the 
 | the jake hub, at its loopback control address with its control token | read the attached agents | `GET /status` | whether a bound machine is attached, as a node read, a proof and a pairing answer it |
 | the jake hub, the same way | revoke a machine name | `POST /revoke?agent=<name>`, answered `ok`, `agent`, `left` | a machine taken away from the account bound to it, once no account holds its name |
 
-- **A call that does not reach the receiver** is a failure of the call: the start goes on and declares again
-  on its next start; a message check and a change of a room's call grant answer 502 `upstream-failed`.
+- **A call that does not reach the receiver** is a failure of the call: an entry check answers 502
+  `upstream-failed`.
 - **A call on the agency** carries the agency's token as its bearer. A registration that does not land is
   said on the service's error stream, and the service stands: the agency's rule for no registration is that
   a person's run takes personal supply alone, and the service registers again at its next start. A read of a

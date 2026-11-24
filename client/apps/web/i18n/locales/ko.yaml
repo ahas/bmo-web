@@ -2342,12 +2342,6 @@ members:
     entry_failed: 대화상대를 바꾸지 못했습니다.
     entry_forbidden: 이 방에 대화상대를 추가하거나 내보낼 권한이 없습니다.
     entry_unknown: 그 사람을 찾을 수 없습니다.
-callers:
-  error:
-    failed: 대화상대로 추가한 사람이 이 방에서 자기 BMO를 부를 수 있게 하지 못했습니다.
-    forbidden: 이 사람이 이 방에서 자기 BMO를 부를 수 있게 할 수 없습니다.
-    not_found: 사용자를 찾을 수 없습니다.
-    unreachable: 계정 서비스에 연결되지 않았습니다.
 room_info:
   title:
     sheet: 방 정보

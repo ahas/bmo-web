@@ -90,17 +90,11 @@ fn account_kinds() -> Vec<Kind> {
     kind("senders", vec![Rows::new("user_senders", by_user)]),
     kind(
       "grants",
-      vec![
-        Rows::new(
-          "grant_words",
-          r#""subject_key" = 'user:' || $1::bigint OR ("resource_type" = 'user' AND "resource_id" = $1::bigint::text)"#,
-        ),
-        Rows::new(
-          "relation_tuples",
-          r#"("subject_type" = 'user' AND "subject_id" = $1::bigint::text)
+      vec![Rows::new(
+        "relation_tuples",
+        r#"("subject_type" = 'user' AND "subject_id" = $1::bigint::text)
              OR ("resource_type" = 'user' AND "resource_id" = $1::bigint::text)"#,
-        ),
-      ],
+      )],
     ),
     kind("roles", vec![Rows::new("user_roles", by_user)]),
     kind("posts", vec![Rows::new("unit_posts", by_user)]),
@@ -184,7 +178,6 @@ fn account_kinds() -> Vec<Kind> {
 fn unit_kinds(ids: &[i32]) -> Vec<Kind> {
   let numbers = ids.iter().map(i32::to_string).collect::<Vec<_>>().join(", ");
   let texts = ids.iter().map(|id| format!("'{id}'")).collect::<Vec<_>>().join(", ");
-  let subjects = ids.iter().map(|id| format!("'organization:{id}'")).collect::<Vec<_>>().join(", ");
   let audits = ids.iter().map(|id| format!("'org {id}'")).collect::<Vec<_>>().join(", ");
   let groups = format!(r#"(SELECT "id" FROM "chain_groups" WHERE "unit_id" IN ({numbers}))"#);
   let owned = format!(r#""owner_kind" = 'organization' AND "owner_id" IN ({numbers})"#);
@@ -200,16 +193,10 @@ fn unit_kinds(ids: &[i32]) -> Vec<Kind> {
     ),
     kind(
       "grants",
-      vec![
-        Rows::new(
-          "grant_words",
-          format!(r#"({resources}) OR split_part("subject_key", '#', 1) IN ({subjects})"#),
-        ),
-        Rows::new(
-          "relation_tuples",
-          format!(r#"({resources}) OR ("subject_type" = 'organization' AND "subject_id" IN ({texts}))"#),
-        ),
-      ],
+      vec![Rows::new(
+        "relation_tuples",
+        format!(r#"({resources}) OR ("subject_type" = 'organization' AND "subject_id" IN ({texts}))"#),
+      )],
     ),
     kind(
       "chain-settings",

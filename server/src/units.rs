@@ -349,7 +349,6 @@ async fn unit_check(State(service): State<Service>, Body(ask): Body<UnitCheckAsk
     allowed: heads(&service.db, user, unit).await?,
     grant: head_grant(unit),
     user: Some(shown(user)),
-    sender: None,
   }))
 }
 

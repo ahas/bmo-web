@@ -19,7 +19,7 @@ use bmo_web_server::rules::RULES;
 use bmo_web_server::settings::Settings;
 use bmo_web_server::users::set_sign_in;
 use bmo_web_server::wording::{document_wording, wording_file};
-use bmo_web_server::{holdings, migration, secrets, store};
+use bmo_web_server::{migration, secrets, store};
 use clap::{Parser, Subcommand};
 use sumida::api::authz::Authz;
 use tokio::net::TcpListener;
@@ -120,7 +120,7 @@ fn settle_sumida(settings: &Settings) -> io::Result<()> {
   Ok(())
 }
 
-/// The receiver the settings name, or one that refuses every ask where they name none.
+/// The receiver the settings name, or one naming no room's leader where they name none.
 fn receiver(settings: &Settings) -> Result<Arc<dyn Receiver>, String> {
   match (&settings.receiver.base, &settings.receiver.token) {
     (Some(base), Some(token)) => Ok(Arc::new(ReceiverClient::new(base, token)?)),
@@ -163,9 +163,9 @@ fn standing(settings: &Settings) -> Result<String, String> {
   Ok(token)
 }
 
-/// The account service on its address, until the process is stopped. Once it listens it declares itself a
-/// holder of rooms to the receiver and registers its supply hook at the agency; neither call going through
-/// is said, and the service stands, each made again at its next start (docs/accounts.md, 「Supply」).
+/// The account service on its address, until the process is stopped. Once it listens it registers its supply hook
+/// at the agency; a registration not going through is said, and the service stands, registering again at its next
+/// start (docs/accounts.md, 「Supply」).
 async fn serve(settings: Settings) -> Result<(), String> {
   let token = standing(&settings)?;
 
@@ -178,7 +178,7 @@ async fn serve(settings: Settings) -> Result<(), String> {
     .map_err(|why| format!("the service's database could not be reached: {why}"))?;
   let receiver = receiver(&settings)?;
   let agency = agency(&settings)?;
-  let service = stand(db, receiver.clone(), settings.names.clone())
+  let service = stand(db, receiver, settings.names.clone())
     .await
     .map_err(|why| format!("the rules do not stand on the service's database: {why}"))?;
   let service = match settings.secrets.folder() {
@@ -204,11 +204,6 @@ async fn serve(settings: Settings) -> Result<(), String> {
 
   let hook_url = format!("{address}/supply/hook");
 
-  tokio::spawn(async move {
-    if let Err(why) = receiver.declare_holder(holdings::UNIT, &address, &holdings::HOLDINGS).await {
-      eprintln!("bmo-web-server: {why}");
-    }
-  });
   tokio::spawn(async move {
     if let Err(why) = agency.register_supply(&hook_url, &token).await {
       eprintln!("bmo-web-server: {why}");

@@ -3,7 +3,7 @@
 //! every company, a head of a company's own unit through that company alone and without contact details,
 //! and a head of a unit below a company or a member through none.
 
-use crate::support::{OWNER, ROOM, Scratch, SharedDatabase, console_hash, ready};
+use crate::support::{OWNER, Scratch, SharedDatabase, console_hash, ready};
 use axum::Router;
 use axum::body::Body;
 use axum::http::{Method, Request, StatusCode, header};
@@ -95,8 +95,6 @@ async fn seed(scratch: Scratch) -> Scratch {
     scratch.db(),
     MoveAsk {
       owner_senders: vec![OWNER],
-      rooms: vec![ROOM],
-      room_rules: vec![],
     },
   )
   .await

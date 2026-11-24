@@ -2558,7 +2558,7 @@ try {
   const move = await fetch(`http://127.0.0.1:${serverPort}/accounts/move`, {
     method: "POST",
     headers: { "content-type": "application/json", authorization: `Bearer ${TOKEN}` },
-    body: JSON.stringify({ ownerSenders: [1], rooms: [OWNER_CHAT, UNREAD_CHAT, RECORD_CHAT, MEDIA_CHAT, STICKER_CHAT] })
+    body: JSON.stringify({ ownerSenders: [1] })
   });
 
   if (!move.ok) throw new Error(`the data move was refused: ${move.status} ${await move.text()}`);

@@ -5,7 +5,7 @@
 //! appointments, posts, everyone under a unit in one read, the history of a person's place, and a person's rank,
 //! duty and the title composed from them.
 
-use crate::support::{OWNER, ROOM, Scratch, console_hash, ready};
+use crate::support::{OWNER, Scratch, console_hash, ready};
 use axum::Router;
 use axum::body::Body;
 use axum::http::{Method, Request, StatusCode, header};
@@ -86,8 +86,6 @@ async fn world() -> World {
     scratch.db(),
     MoveAsk {
       owner_senders: vec![OWNER],
-      rooms: vec![ROOM],
-      room_rules: vec![],
     },
   )
   .await

@@ -330,8 +330,6 @@ async fn tree() -> Tree {
     scratch.db(),
     MoveAsk {
       owner_senders: vec![],
-      rooms: vec![],
-      room_rules: vec![],
     },
   )
   .await

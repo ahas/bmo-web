@@ -230,6 +230,5 @@ async fn check_route(State(service): State<Service>, Body(ask): Body<UnitCheckAs
     allowed: writes(db, user, unit).await?,
     grant: memory_grant(unit),
     user: Some(shown(user)),
-    sender: None,
   }))
 }

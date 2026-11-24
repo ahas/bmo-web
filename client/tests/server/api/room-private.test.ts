@@ -106,7 +106,6 @@ const accounts = standIn("WEB_SERVER", (one) => {
 
   if (user !== undefined) return answer({ user, name: `account-${user}`, administrator: user === String(ADMINISTRATOR), senders: [] });
   if (one.path === "/checks/entry") return answer({ allowed: true, grant: "bmo_room:0#entry", user: one.body?.user });
-  if (/^\/rooms\/-?\d+\/callers\/\d+$/.test(one.path)) return new Response(null, { status: 204 });
 
   return answer({ code: "failed", error: "Not served here." }, 500);
 });

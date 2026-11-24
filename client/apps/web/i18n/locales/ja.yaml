@@ -2337,12 +2337,6 @@ members:
     entry_failed: メンバーを変更できませんでした。
     entry_forbidden: このルームにメンバーを追加・退出させる権限がありません。
     entry_unknown: その人が見つかりません。
-callers:
-  error:
-    failed: 追加した人がこのルームで自分の BMO を呼べるようにできませんでした。
-    forbidden: この人がこのルームで自分の BMO を呼べるようにすることはできません。
-    not_found: ユーザーが見つかりません。
-    unreachable: アカウントサービスに接続できませんでした。
 room_info:
   title:
     sheet: ルーム情報

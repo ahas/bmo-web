@@ -1,7 +1,7 @@
 import { ROOM_REACH_REFRESH_MS } from "#shared/config";
 import { wording } from "#shared/wording";
 
-import { checkRoom, userOf } from "./account-service";
+import { userOf } from "./account-service";
 
 import { signedInUser } from "./accounts";
 import { SHARED, accountRooms, privacyOf, readableBy, roomPrivacies, writableBy } from "./console-rooms";
@@ -15,10 +15,10 @@ import type { OwnerStanding } from "./owner";
 import type { H3Event } from "h3";
 
 // The rooms a signed-in user reads on the console (docs/web.md, 「Access」): every room for the administrator; for
-// anyone else the rooms they read by their account, the union of three — their console memberships, the rooms their
-// linked identities reach and hold the console grant in, and their own BMO's private room. A room outside them
-// answers as if it did not stand. The same three are the administrator's own rooms; every other room he reads, the
-// owner's private chat among them where his account is not the owner's, leaves nothing its people can see.
+// anyone else the rooms they read by their account, their console memberships and their own BMO's private room. A
+// room outside them answers as if it did not stand. Those and the rooms his linked identities reach are the
+// administrator's own rooms; every other room he reads, the owner's private chat among them where his account is not
+// the owner's, leaves nothing its people can see.
 
 /** Every room, or the ones a user may read. */
 export type ReadableRooms = "all" | ReadonlySet<number>;
@@ -32,29 +32,21 @@ async function roomsSpokenIn(senders: readonly number[]): Promise<number[]> {
   return page.items.filter((room) => room.senders.some((sender) => ours.has(sender))).map((room) => room.id);
 }
 
-// The rooms the account's linked identities reach — where one has a message, and the one-to-one each is — in which
-// the account holds the console grant.
+// The rooms an administrator's linked identities reach: where one has a message, and the one-to-one each is. Anyone
+// else's identities reach no room of their own, since the account service keeps no grant on a room.
 async function linkedRooms(account: number, administrator: boolean): Promise<number[]> {
-  const senders = [...((await userOf(account))?.senders ?? [])].sort((one, other) => one - other);
+  if (!administrator) return [];
+
+  const senders = (await userOf(account))?.senders ?? [];
 
   if (senders.length === 0) return [];
 
-  const reached = new Set([...(await roomsSpokenIn(senders)), ...senders]);
-
-  if (administrator) return [...reached];
-
-  const readable: number[] = [];
-
-  for (const room of reached) {
-    if ((await checkRoom(room, senders[0]!, "console")).allowed) readable.push(room);
-  }
-
-  return readable;
+  return [...new Set([...(await roomsSpokenIn(senders)), ...senders])];
 }
 
 /** The rooms an account reads as any person does: its console memberships, its own private rooms among them — the
- * owner's private chat for the owner's account alone, as the receiver answers them — and its linked identities' rooms,
- * each held to whose private room it is now, so a membership never outlives its room becoming another's or sealed. The
+ * owner's private chat for the owner's account alone, as the receiver answers them — and, for an administrator, his
+ * linked identities' rooms, each held to whose private room it is now, so a membership never outlives its room becoming another's or sealed. The
  * owner's private chat is the owner's account's own, the moment the console stands it (docs/accounts.md, 「The owner's
  * account」), and a console login standing before the account model, which is the owner's, holds it alone. */
 export async function ownRooms(signed: SignedIn): Promise<ReadonlySet<number>> {

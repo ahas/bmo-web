@@ -1,4 +1,3 @@
-import { setRoomCaller } from "../../../../utils/account-service";
 import { signedInUser } from "../../../../utils/accounts";
 import { takeOutOfRoom } from "../../../../utils/console-rooms";
 import { fail } from "../../../../utils/fail";
@@ -9,8 +8,8 @@ import { wording } from "#shared/wording";
 
 // A member taken out of the room (docs/web.md, the room screen's section on opening a room and letting people in): the
 // signed-in login leaving, which asks no one, or taking another out where the account service says they may let people
-// in, the person's call grant there going with them. The receiver writes who took whom out, and the person reads the
-// room no more, their open streams falling silent on it at once.
+// in, their call right there going with the membership. The receiver writes who took whom out, and the person reads
+// the room no more, their open streams falling silent on it at once.
 export default defineEventHandler(async (event): Promise<void> => {
   const signed = await signedInUser(event);
   const room = requireChatId(event);
@@ -26,13 +25,5 @@ export default defineEventHandler(async (event): Promise<void> => {
 
   await takeOutOfRoom(room, user, leaving ? user : String(signed.id));
   roomReachChanged({ account: Number(user), room, left: true });
-
-  // The grant goes where the one taking the person out may change it; one who may not leaves it to those who may.
-  if (!leaving) {
-    await setRoomCaller(room, user, false, String(signed.id)).catch((error: unknown) => {
-      console.warn(`room ${room}: the call grant of ${user} stayed as they were taken out: ${String(error)}`);
-    });
-  }
-
   setResponseStatus(event, 204);
 });

@@ -79,7 +79,6 @@ const accounts = standIn("WEB_SERVER", (one) => {
 
     return answer({ allowed, grant: `bmo_room:${String(one.body?.room)}#entry`, user: one.body?.user });
   }
-  if (/^\/rooms\/-?\d+\/callers\/\d+$/.test(one.path)) return new Response(null, { status: 204 });
 
   return answer({ code: "failed", error: "Not served here." }, 500);
 });
@@ -102,8 +101,8 @@ const reset = () => {
   accounts.asked.length = 0;
 };
 
-// The calls granted, in no order: they are asked together.
-const callersSet = () => accounts.asked.filter((one) => one.method === "PUT").map((one) => one.path).sort();
+// What the account service was asked to write: nothing, since membership is the call right.
+const serviceWrites = () => accounts.asked.filter((one) => one.method === "PUT" || one.method === "DELETE");
 
 describe("people let into a room at once", () => {
   test("finds the organisations of the reader's company alone, each with the units above it and its people who have not left", async () => {
@@ -118,12 +117,12 @@ describe("people let into a room at once", () => {
     expect((await asked(findUnits, { query: { q: "ZQ" } })).answer).toEqual([{ id: PART, name: "part-a", shortName: "zq", path: ["company-a", "team-a"], people: 1 }]);
   });
 
-  test("an organisation goes to the receiver in a call of its own, its departed account never asked about, and each person it let in is granted the call", async () => {
+  test("an organisation goes to the receiver in a call of its own, its departed account never asked about, and nothing is written on the account service", async () => {
     reset();
 
     expect((await asked(letInMany, { params: { chatId: String(GROUP) }, body: { units: [TEAM] } })).status).toBe(200);
     expect(writes()).toEqual([["POST", `/rooms/${GROUP}/unit-accounts`, { unit: TEAM, by: READER }]]);
-    expect(callersSet()).toEqual([`/rooms/${GROUP}/callers/${TEAMMATE}`]);
+    expect(serviceWrites()).toEqual([]);
   });
 
   test("people beside an organisation go in one more call, those it already took in left out", async () => {
@@ -134,8 +133,8 @@ describe("people let into a room at once", () => {
       ["POST", `/rooms/${GROUP}/unit-accounts`, { unit: PART, by: READER }],
       ["POST", `/rooms/${GROUP}/accounts`, { accounts: [COLLEAGUE], by: READER }]
     ]);
-    // Membership is the call right, so everyone let in is granted the call, those beside the organisation too.
-    expect(callersSet()).toEqual([COLLEAGUE, POSTED].map((one) => `/rooms/${GROUP}/callers/${one}`).sort());
+    // Membership is the call right, so nobody let in is granted anything on the account service.
+    expect(serviceWrites()).toEqual([]);
   });
 
   test("an organisation whose people are all members already is not asked of the receiver", async () => {

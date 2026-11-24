@@ -928,13 +928,6 @@
           "grant": {
             "type": "string"
           },
-          "sender": {
-            "format": "int64",
-            "type": [
-              "integer",
-              "null"
-            ]
-          },
           "user": {
             "type": [
               "string",
@@ -1697,127 +1690,6 @@
           }
         ]
       },
-      "GrantAsk": {
-        "description": "A grant made: a room and a relation there, or a kind, an object and a relation.",
-        "properties": {
-          "expiresAt": {
-            "description": "Epoch milliseconds.",
-            "format": "int64",
-            "type": [
-              "integer",
-              "null"
-            ]
-          },
-          "kind": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "message": {
-            "$ref": "#/components/schemas/On"
-          },
-          "object": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "relation": {
-            "type": "string"
-          },
-          "room": {
-            "format": "int64",
-            "type": [
-              "integer",
-              "null"
-            ]
-          },
-          "to": {
-            "$ref": "#/components/schemas/Holder"
-          },
-          "words": {
-            "type": [
-              "string",
-              "null"
-            ]
-          }
-        },
-        "required": [
-          "relation",
-          "to",
-          "message"
-        ],
-        "type": "object"
-      },
-      "GrantRow": {
-        "description": "A grant standing on a room.",
-        "properties": {
-          "expiresAt": {
-            "description": "Epoch milliseconds.",
-            "format": "int64",
-            "type": [
-              "integer",
-              "null"
-            ]
-          },
-          "relation": {
-            "type": "string"
-          },
-          "subjectKey": {
-            "description": "The holder's subject key, such as `user:12` or `bmo_member:-7`.",
-            "type": "string"
-          },
-          "words": {
-            "type": [
-              "string",
-              "null"
-            ]
-          }
-        },
-        "required": [
-          "relation",
-          "subjectKey"
-        ],
-        "type": "object"
-      },
-      "Granted": {
-        "description": "What a grant wrote: the grant, its subject, and the holder's user where it is one.",
-        "properties": {
-          "grant": {
-            "type": "string"
-          },
-          "subject": {
-            "type": "string"
-          },
-          "user": {
-            "type": [
-              "string",
-              "null"
-            ]
-          }
-        },
-        "required": [
-          "grant",
-          "subject"
-        ],
-        "type": "object"
-      },
-      "Grants": {
-        "description": "The grants standing on a room.",
-        "properties": {
-          "grants": {
-            "items": {
-              "$ref": "#/components/schemas/GrantRow"
-            },
-            "type": "array"
-          }
-        },
-        "required": [
-          "grants"
-        ],
-        "type": "object"
-      },
       "Health": {
         "description": "Whether the service is up, its version, and whether the account model is in force.",
         "properties": {
@@ -1947,61 +1819,6 @@
         "required": [
           "at",
           "change"
-        ],
-        "type": "object"
-      },
-      "Holder": {
-        "description": "Whom a grant is to: a sender, a user, or every member of the room.",
-        "properties": {
-          "members": {
-            "type": "boolean"
-          },
-          "sender": {
-            "format": "int64",
-            "type": [
-              "integer",
-              "null"
-            ]
-          },
-          "user": {
-            "type": [
-              "string",
-              "null"
-            ]
-          }
-        },
-        "type": "object"
-      },
-      "Holding": {
-        "description": "One holding a room has of the service's, as a code and its count.",
-        "properties": {
-          "code": {
-            "description": "`room_grants` or `room_senders`.",
-            "type": "string"
-          },
-          "count": {
-            "format": "int64",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "code",
-          "count"
-        ],
-        "type": "object"
-      },
-      "Holdings": {
-        "description": "What a room holds of the service's.",
-        "properties": {
-          "holdings": {
-            "items": {
-              "$ref": "#/components/schemas/Holding"
-            },
-            "type": "array"
-          }
-        },
-        "required": [
-          "holdings"
         ],
         "type": "object"
       },
@@ -2499,28 +2316,6 @@
         ],
         "type": "object"
       },
-      "MessageCheckAsk": {
-        "description": "A room relation asked of a message's sender.",
-        "properties": {
-          "message": {
-            "format": "int64",
-            "type": "integer"
-          },
-          "relation": {
-            "type": "string"
-          },
-          "room": {
-            "format": "int64",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "room",
-          "message",
-          "relation"
-        ],
-        "type": "object"
-      },
       "ModelState": {
         "description": "Where the account model stands, and why it is not in force where it is not.",
         "properties": {
@@ -2540,22 +2335,9 @@
         "type": "object"
       },
       "MoveAsk": {
-        "description": "What the data move is handed: what only the other units hold.",
+        "description": "What the data move is handed: the senders the deployment's configuration names as the owner's.",
         "properties": {
           "ownerSenders": {
-            "items": {
-              "format": "int64",
-              "type": "integer"
-            },
-            "type": "array"
-          },
-          "roomRules": {
-            "items": {
-              "$ref": "#/components/schemas/RoomRule"
-            },
-            "type": "array"
-          },
-          "rooms": {
             "items": {
               "format": "int64",
               "type": "integer"
@@ -2564,8 +2346,7 @@
           }
         },
         "required": [
-          "ownerSenders",
-          "rooms"
+          "ownerSenders"
         ],
         "type": "object"
       },
@@ -2720,24 +2501,6 @@
           "object",
           "relation",
           "user"
-        ],
-        "type": "object"
-      },
-      "On": {
-        "description": "The message a grant is made or revoked on.",
-        "properties": {
-          "id": {
-            "format": "int64",
-            "type": "integer"
-          },
-          "room": {
-            "format": "int64",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "room",
-          "id"
         ],
         "type": "object"
       },
@@ -3655,62 +3418,6 @@
         ],
         "type": "object"
       },
-      "RevokeAsk": {
-        "description": "A grant revoked.",
-        "properties": {
-          "kind": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "message": {
-            "$ref": "#/components/schemas/On"
-          },
-          "object": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "relation": {
-            "type": "string"
-          },
-          "room": {
-            "format": "int64",
-            "type": [
-              "integer",
-              "null"
-            ]
-          },
-          "to": {
-            "$ref": "#/components/schemas/Holder"
-          }
-        },
-        "required": [
-          "relation",
-          "to",
-          "message"
-        ],
-        "type": "object"
-      },
-      "Revoked": {
-        "description": "What a revoke took back.",
-        "properties": {
-          "grant": {
-            "type": "string"
-          },
-          "revoked": {
-            "format": "int64",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "grant",
-          "revoked"
-        ],
-        "type": "object"
-      },
       "RoleHolder": {
         "description": "A person standing for a role for a unit: where they hold it and whether through a post.",
         "properties": {
@@ -3817,96 +3524,6 @@
           "standing",
           "acting",
           "reason"
-        ],
-        "type": "object"
-      },
-      "RoomCaller": {
-        "description": "One caller of a room: a user granted `ask` on it.",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "user": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "user",
-          "name"
-        ],
-        "type": "object"
-      },
-      "RoomCallers": {
-        "description": "A room's callers, and whether the signed-in user is the administrator or leads the room.",
-        "properties": {
-          "callers": {
-            "items": {
-              "$ref": "#/components/schemas/RoomCaller"
-            },
-            "type": "array"
-          },
-          "mayChange": {
-            "type": "boolean"
-          },
-          "room": {
-            "format": "int64",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "room",
-          "callers",
-          "mayChange"
-        ],
-        "type": "object"
-      },
-      "RoomCheckAsk": {
-        "description": "A room relation asked of a sender.",
-        "properties": {
-          "relation": {
-            "type": "string"
-          },
-          "room": {
-            "format": "int64",
-            "type": "integer"
-          },
-          "sender": {
-            "format": "int64",
-            "type": [
-              "integer",
-              "null"
-            ]
-          }
-        },
-        "required": [
-          "room",
-          "relation"
-        ],
-        "type": "object"
-      },
-      "RoomRule": {
-        "description": "One room rule the deployment answers, handed to the data move.",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "room": {
-            "format": "int64",
-            "type": "integer"
-          },
-          "subject": {
-            "format": "int64",
-            "type": "integer"
-          },
-          "words": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "room",
-          "id",
-          "subject",
-          "words"
         ],
         "type": "object"
       },
@@ -7114,7 +6731,7 @@
     }
   },
   "info": {
-    "description": "The web console's server: the account service on sumida, which holds the users, the senders linked to them, the grants they hold, the account model they stand in, the room holdings the receiver asks about, the fixed lines a room says, the supply the agency asks who pays for — the sources, the policy layers, the reservations and the settled costs — and the secret store, which writes each person's secrets as files in a space of their own, the administrator's the folder every unit reads the deployment's secrets from, and answers no value, with the kinds its form asks a value in. Its own routes answer in the common wire format: camelCase keys, times as integers of epoch milliseconds, ids as signed 64-bit integers, and every failure as a non-2xx answer carrying code and error. sumida's session routes are mounted under /sumida and take the session cookie instead of the bearer token; their refusals are sumida's own shape. A user's id is answered as the digits of sumida's whole number, a string a caller hands on as it stands.",
+    "description": "The web console's server: the account service on sumida, which holds the users, the senders linked to them, the grants they hold, the account model they stand in, the fixed lines a room says, the supply the agency asks who pays for — the sources, the policy layers, the reservations and the settled costs — and the secret store, which writes each person's secrets as files in a space of their own, the administrator's the folder every unit reads the deployment's secrets from, and answers no value, with the kinds its form asks a value in. Its own routes answer in the common wire format: camelCase keys, times as integers of epoch milliseconds, ids as signed 64-bit integers, and every failure as a non-2xx answer carrying code and error. sumida's session routes are mounted under /sumida and take the session cookie instead of the bearer token; their refusals are sumida's own shape. A user's id is answered as the digits of sumida's whole number, a string a caller hands on as it stands.",
     "title": "bmo-web-server",
     "version": "0.1.0-rev.1"
   },
@@ -8238,63 +7855,6 @@
         ]
       }
     },
-    "/checks/message": {
-      "post": {
-        "operationId": "checkMessage",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MessageCheckAsk"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CheckAnswer"
-                }
-              }
-            },
-            "description": "Answered."
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WireError"
-                }
-              }
-            },
-            "description": "A refusal or failure: bad-request, unauthorized, not-found, no-such-message, no-receiver, upstream-failed, not-in-force, database, failed"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "summary": "Whether the sender of a message in a room holds a relation there.",
-        "tags": [
-          "Checks"
-        ],
-        "x-codes": [
-          "bad-request",
-          "unauthorized",
-          "not-found",
-          "no-such-message",
-          "no-receiver",
-          "upstream-failed",
-          "not-in-force",
-          "database",
-          "failed"
-        ]
-      }
-    },
     "/checks/object": {
       "post": {
         "operationId": "checkObject",
@@ -8396,59 +7956,6 @@
           "bad-request",
           "unauthorized",
           "not-found",
-          "not-in-force",
-          "database",
-          "failed"
-        ]
-      }
-    },
-    "/checks/room": {
-      "post": {
-        "operationId": "checkRoom",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RoomCheckAsk"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CheckAnswer"
-                }
-              }
-            },
-            "description": "Answered."
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WireError"
-                }
-              }
-            },
-            "description": "A refusal or failure: bad-request, unauthorized, not-in-force, database, failed"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "summary": "Whether a sender holds a room relation in a room; a null sender is the room's members alone.",
-        "tags": [
-          "Checks"
-        ],
-        "x-codes": [
-          "bad-request",
-          "unauthorized",
           "not-in-force",
           "database",
           "failed"
@@ -9524,169 +9031,6 @@
         "x-codes": [
           "unauthorized",
           "link-gone",
-          "not-in-force",
-          "database",
-          "failed"
-        ]
-      }
-    },
-    "/grants": {
-      "delete": {
-        "operationId": "revoke",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RevokeAsk"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Revoked"
-                }
-              }
-            },
-            "description": "Answered."
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WireError"
-                }
-              }
-            },
-            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, no-receiver, upstream-failed, not-in-force, database, failed"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "summary": "Takes a grant back, on the authority of the message's sender.",
-        "tags": [
-          "Grants"
-        ],
-        "x-codes": [
-          "bad-request",
-          "unauthorized",
-          "forbidden",
-          "not-found",
-          "no-receiver",
-          "upstream-failed",
-          "not-in-force",
-          "database",
-          "failed"
-        ]
-      },
-      "get": {
-        "operationId": "grants",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "room",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Grants"
-                }
-              }
-            },
-            "description": "Answered."
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WireError"
-                }
-              }
-            },
-            "description": "A refusal or failure: bad-request, unauthorized, not-in-force, database, failed"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "summary": "The grants standing on a room, in the order they were written, none past its expiry.",
-        "tags": [
-          "Grants"
-        ],
-        "x-codes": [
-          "bad-request",
-          "unauthorized",
-          "not-in-force",
-          "database",
-          "failed"
-        ]
-      },
-      "post": {
-        "operationId": "grant",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GrantAsk"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Granted"
-                }
-              }
-            },
-            "description": "Answered."
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WireError"
-                }
-              }
-            },
-            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, no-receiver, upstream-failed, not-in-force, database, failed"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "summary": "Grants a relation on a room or an object, on the authority of the message's sender.",
-        "tags": [
-          "Grants"
-        ],
-        "x-codes": [
-          "bad-request",
-          "unauthorized",
-          "forbidden",
-          "not-found",
-          "no-receiver",
-          "upstream-failed",
           "not-in-force",
           "database",
           "failed"
@@ -11673,256 +11017,6 @@
         "x-codes": [
           "unauthorized",
           "forbidden",
-          "not-in-force",
-          "database",
-          "failed"
-        ]
-      }
-    },
-    "/rooms/{chat}/callers": {
-      "get": {
-        "operationId": "roomCallers",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "chat",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          },
-          {
-            "description": "The user of the login the call is made for, its id written as a decimal number.",
-            "in": "header",
-            "name": "Owner-Key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RoomCallers"
-                }
-              }
-            },
-            "description": "Answered."
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WireError"
-                }
-              }
-            },
-            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-in-force, database, failed"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "summary": "A room's callers, the users granted ask on it, and whether the signed-in user may change them.",
-        "tags": [
-          "Grants"
-        ],
-        "x-codes": [
-          "bad-request",
-          "unauthorized",
-          "forbidden",
-          "not-in-force",
-          "database",
-          "failed"
-        ]
-      }
-    },
-    "/rooms/{chat}/callers/{user}": {
-      "delete": {
-        "operationId": "revokeRoomCaller",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "chat",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "path",
-            "name": "user",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "The user of the login the call is made for, its id written as a decimal number.",
-            "in": "header",
-            "name": "Owner-Key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Done; no content."
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WireError"
-                }
-              }
-            },
-            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, upstream-failed, database, failed"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "summary": "A user's ask grant on a room taken away, by the administrator, the room's leader or a head of the user's unit.",
-        "tags": [
-          "Grants"
-        ],
-        "x-codes": [
-          "bad-request",
-          "unauthorized",
-          "forbidden",
-          "not-found",
-          "not-in-force",
-          "upstream-failed",
-          "database",
-          "failed"
-        ]
-      },
-      "put": {
-        "operationId": "grantRoomCaller",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "chat",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "path",
-            "name": "user",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "The user of the login the call is made for, its id written as a decimal number.",
-            "in": "header",
-            "name": "Owner-Key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Done; no content."
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WireError"
-                }
-              }
-            },
-            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, upstream-failed, database, failed"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "summary": "A user granted ask on a room, by the administrator, the room's leader or a head of the user's unit.",
-        "tags": [
-          "Grants"
-        ],
-        "x-codes": [
-          "bad-request",
-          "unauthorized",
-          "forbidden",
-          "not-found",
-          "not-in-force",
-          "upstream-failed",
-          "database",
-          "failed"
-        ]
-      }
-    },
-    "/rooms/{chat}/holdings": {
-      "get": {
-        "operationId": "roomHoldings",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "chat",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Holdings"
-                }
-              }
-            },
-            "description": "Answered."
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WireError"
-                }
-              }
-            },
-            "description": "A refusal or failure: bad-request, unauthorized, not-in-force, database, failed"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "summary": "What a room holds of the service's, each holding it has at least one of.",
-        "tags": [
-          "Rooms"
-        ],
-        "x-codes": [
-          "bad-request",
-          "unauthorized",
           "not-in-force",
           "database",
           "failed"

@@ -1,10 +1,14 @@
-//! The schema's starting point (docs/accounts.md, 「The tables」): a blank database gets the baseline whole, with
-//! the rows it starts with; an install holding the record of the last release before 1.0.0 is taken as it stands;
-//! one holding part of it is refused; and the baseline's way down leaves the database blank.
+//! The schema's starting point and what follows it (docs/accounts.md, 「The tables」): a blank database gets the
+//! baseline whole and the migrations after it, with the rows it starts with; an install holding the record of the
+//! last release before 1.0.0 is taken as it stands; one holding part of it is refused; every migration's way down
+//! leaves the database blank; and the room relations' removal takes what room grants held and gives it back empty.
 
-use crate::support::Blank;
+use std::sync::Arc;
 
-use bmo_web_server::migration::{BASELINE, BEFORE, MIGRATIONS_TABLE, Migrator, up};
+use crate::support::{Blank, Leaders, names, ready};
+
+use bmo_web_server::migration::{BASELINE, BEFORE, LATER, MIGRATIONS_TABLE, Migrator, up};
+use bmo_web_server::routes::stand;
 use sea_orm::{ConnectionTrait, DatabaseConnection, DbBackend, Statement};
 use sea_orm_migration::MigratorTrait;
 
@@ -49,6 +53,26 @@ async fn recorded(db: &DatabaseConnection) -> Vec<String> {
   texts(db, &format!(r#"SELECT "version" FROM "{MIGRATIONS_TABLE}" ORDER BY "version""#)).await
 }
 
+// Every migration's record, in the order the record is read: the baseline's and each later one's.
+fn every_migration() -> Vec<String> {
+  let mut names: Vec<String> = std::iter::once(BASELINE)
+    .chain(LATER.iter().map(|(name, _)| *name))
+    .map(str::to_owned)
+    .collect();
+
+  names.sort();
+  names
+}
+
+// The baseline laid by hand and every later migration's way up after it.
+async fn laid_whole(db: &DatabaseConnection) {
+  db.execute_unprepared(SCHEMA).await.unwrap();
+  for (_, sql) in LATER {
+    db.execute_unprepared(sql).await.unwrap();
+  }
+  record_table(db).await;
+}
+
 // The record table, as the migrator makes it, standing where a laid schema has none.
 async fn record_table(db: &DatabaseConnection) {
   db.execute_unprepared(&format!(
@@ -81,11 +105,10 @@ async fn a_blank_database_gets_the_baseline_whole_with_the_rows_it_starts_with()
   let laid = Blank::new().await;
 
   up(&migrated.db).await.unwrap();
-  laid.db.execute_unprepared(SCHEMA).await.unwrap();
-  record_table(&laid.db).await;
+  laid_whole(&laid.db).await;
 
   assert_eq!(shape(&migrated.db).await, shape(&laid.db).await);
-  assert_eq!(recorded(&migrated.db).await, [BASELINE]);
+  assert_eq!(recorded(&migrated.db).await, every_migration());
 
   let counted = |table: &str| format!(r#"SELECT COUNT(*)::text FROM "{table}""#);
 
@@ -114,22 +137,25 @@ async fn a_blank_database_gets_the_baseline_whole_with_the_rows_it_starts_with()
 }
 
 #[tokio::test]
-async fn an_install_at_the_last_release_before_the_baseline_only_has_its_record_rewritten() {
+async fn an_install_at_the_last_release_before_the_baseline_has_its_record_rewritten_and_runs_what_follows()
+{
   let blank = Blank::new().await;
+  let migrated = Blank::new().await;
 
   installed(&blank, BEFORE.len()).await;
+  up(&migrated.db).await.unwrap();
 
-  let before = shape(&blank.db).await;
+  let before = shape(&migrated.db).await;
 
   up(&blank.db).await.unwrap();
-  assert_eq!(recorded(&blank.db).await, [BASELINE]);
+  assert_eq!(recorded(&blank.db).await, every_migration());
   assert_eq!(shape(&blank.db).await, before);
   assert_eq!(texts(&blank.db, r#"SELECT COUNT(*)::text FROM "web_users""#).await, ["1"]);
   assert_eq!(texts(&blank.db, r#"SELECT COUNT(*)::text FROM "secret_kinds""#).await, ["0"]);
 
-  // A second start finds the baseline recorded and changes nothing.
+  // A second start finds every migration recorded and changes nothing.
   up(&blank.db).await.unwrap();
-  assert_eq!(recorded(&blank.db).await, [BASELINE]);
+  assert_eq!(recorded(&blank.db).await, every_migration());
   assert_eq!(shape(&blank.db).await, before);
 }
 
@@ -146,7 +172,7 @@ async fn an_install_short_of_the_last_release_before_the_baseline_is_refused() {
 }
 
 #[tokio::test]
-async fn the_baseline_taken_down_leaves_the_database_blank() {
+async fn every_migration_taken_down_leaves_the_database_blank() {
   let migrated = Blank::new().await;
   let blank = Blank::new().await;
 
@@ -160,4 +186,88 @@ async fn the_baseline_taken_down_leaves_the_database_blank() {
     texts(&migrated.db, "SELECT COUNT(*)::text FROM pg_extension WHERE extname = 'uuid-ossp'").await,
     ["0"]
   );
+}
+
+// One count a statement answers, as text.
+async fn count(db: &DatabaseConnection, sql: &str) -> String {
+  texts(db, &format!("SELECT ({sql})::text")).await.remove(0)
+}
+
+#[tokio::test]
+async fn the_room_relations_removal_takes_what_room_grants_held_and_its_way_down_gives_it_back_empty() {
+  ready();
+  let blank = Blank::new().await;
+  let baseline = Blank::new().await;
+
+  Migrator::up(&blank.db, Some(1)).await.unwrap();
+  baseline.db.execute_unprepared(SCHEMA).await.unwrap();
+  record_table(&baseline.db).await;
+
+  // What a release keeping room grants left: the room kind's projection, a grant to a user and one to the room's
+  // members with the words beside them, and a worker's grant, which stays.
+  blank
+    .db
+    .execute_unprepared(
+      r#"INSERT INTO "relation_definitions" ("resource_type", "relation", "kind", "subject_types") VALUES
+           ('bmo_room', 'ask', 'stored', '{user,bmo_member}'), ('bmo_room', 'rule', 'stored', '{user}'),
+           ('bmo_worker', 'run', 'stored', '{user}');
+         INSERT INTO "permission_definitions" ("resource_type", "permission", "rewrite") VALUES
+           ('bmo_room', 'may_ask', '{}');
+         INSERT INTO "relation_tuples"
+           ("resource_type", "resource_id", "relation", "subject_type", "subject_id", "subject_relation") VALUES
+           ('bmo_room', '-100', 'ask', 'user', '1', ''), ('bmo_room', '-100', 'ask', 'bmo_member', '-100', ''),
+           ('bmo_room', '-100', 'rule', 'user', '2', ''), ('bmo_worker', 'worker-a', 'run', 'user', '1', '');
+         INSERT INTO "grant_words" ("resource_type", "resource_id", "relation", "subject_key", "words", "written_at")
+           VALUES ('bmo_room', '-100', 'rule', 'user:2', 'may have their own items approved', 1);"#,
+    )
+    .await
+    .unwrap();
+
+  Migrator::up(&blank.db, None).await.unwrap();
+
+  let tuples = r#"SELECT COUNT(*) FROM "relation_tuples""#;
+
+  assert_eq!(count(&blank.db, &format!(r#"{tuples} WHERE "resource_type" = 'bmo_room'"#)).await, "0");
+  assert_eq!(count(&blank.db, &format!(r#"{tuples} WHERE "subject_type" = 'bmo_member'"#)).await, "0");
+  assert_eq!(
+    count(&blank.db, &format!(r#"{tuples} WHERE "resource_type" = 'bmo_worker'"#)).await,
+    "1"
+  );
+  for projection in ["relation_definitions", "permission_definitions"] {
+    assert_eq!(
+      count(
+        &blank.db,
+        &format!(r#"SELECT COUNT(*) FROM "{projection}" WHERE "resource_type" = 'bmo_room'"#)
+      )
+      .await,
+      "0",
+      "{projection}"
+    );
+  }
+  assert_eq!(
+    count(&blank.db, "SELECT COUNT(*) FROM pg_tables WHERE tablename = 'grant_words'").await,
+    "0"
+  );
+
+  // The service stands on it, the rules it runs declaring no room kind.
+  stand(blank.db.clone(), Arc::new(Leaders::default()), names())
+    .await
+    .expect("the rules stand");
+
+  // Taken down, the table stands empty in the baseline's shape and the room kind's relations stand again, holding no
+  // tuple; the service's start then drops the relations its rules do not declare.
+  Migrator::down(&blank.db, Some(1)).await.unwrap();
+
+  assert_eq!(shape(&blank.db).await, shape(&baseline.db).await);
+  assert_eq!(count(&blank.db, r#"SELECT COUNT(*) FROM "grant_words""#).await, "0");
+
+  let room_relations = r#"SELECT COUNT(*) FROM "relation_definitions" WHERE "resource_type" = 'bmo_room'"#;
+
+  assert_eq!(count(&blank.db, room_relations).await, "15");
+  assert_eq!(count(&blank.db, &format!(r#"{tuples} WHERE "resource_type" = 'bmo_room'"#)).await, "0");
+
+  stand(blank.db.clone(), Arc::new(Leaders::default()), names())
+    .await
+    .expect("the rules stand");
+  assert_eq!(count(&blank.db, room_relations).await, "0");
 }

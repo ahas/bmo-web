@@ -2,7 +2,7 @@
 //! unit with no parent, a user stands in one unit and belongs to its company, a unit answers its path, its
 //! children, its heads and its members, and a head of a unit heads every unit below it and none above.
 
-use crate::support::{OWNER, ROOM, Scratch, console_hash, ready};
+use crate::support::{OWNER, Scratch, console_hash, ready};
 use axum::Router;
 use axum::body::Body;
 use axum::http::{Method, Request, StatusCode, header};
@@ -72,8 +72,6 @@ async fn tree() -> Tree {
     scratch.db(),
     MoveAsk {
       owner_senders: vec![OWNER],
-      rooms: vec![ROOM],
-      room_rules: vec![],
     },
   )
   .await

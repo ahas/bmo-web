@@ -19,12 +19,12 @@
             :color="barColor(shareTone(liveWindow(window, props.now)))"
             aria-hidden="true"
           />
-          <span class="col-start-3 row-start-1 text-right tabular-nums" :class="figureClass(shareTone(liveWindow(window, props.now)))">{{ shareText(liveWindow(window, props.now)) }}</span>
-          <!-- How long is left of the window, not the hour it turns over at: the length is what the figure beside it
-               is read against. More than a day out, the day it turns over on stands beside it, since that day is what
+          <span class="col-start-4 row-start-1 text-right tabular-nums" :class="figureClass(shareTone(liveWindow(window, props.now)))">{{ shareText(liveWindow(window, props.now)) }}</span>
+          <!-- How long is left of the window, not the hour it turns over at, standing before the figure it is read
+               against so every row ends on its figure. More than a day out, the day it turns over on stands beside it, since that day is what
                tells one login's week from another's. The clock face is in the shared tooltip, for a reader who wants
                it. -->
-          <HintTip as="span" :text="resetClock($t, window)" class="col-start-4 row-start-1 text-right tabular-nums whitespace-nowrap text-muted">
+          <HintTip as="span" :text="resetClock($t, window)" class="col-start-3 row-start-1 text-right tabular-nums whitespace-nowrap text-muted">
             {{ resetText($t, window, props.now) }}<template v-if="resetDay($t, window, props.now) !== ''"> · {{ resetDay($t, window, props.now) }}</template>
           </HintTip>
         </dd>
@@ -34,8 +34,8 @@
       <div v-if="props.group.balance !== null" class="col-span-full grid grid-cols-subgrid items-center" data-usage-balance>
         <dt class="col-start-1 max-w-32 min-w-0 truncate text-muted">{{ $t("usage.label.balance") }}</dt>
         <dd class="contents">
-          <span class="col-start-3 text-right tabular-nums whitespace-nowrap text-default">{{ moneyText(props.group.balance) }}</span>
-          <span class="col-start-4 text-right tabular-nums whitespace-nowrap text-muted">{{ $t("usage.label.balance_seen", { wait: elapsedText($t, Math.max(0, props.now - props.group.balance.seenAt)) }) }}</span>
+          <span class="col-start-4 text-right tabular-nums whitespace-nowrap text-default">{{ moneyText(props.group.balance) }}</span>
+          <span class="col-start-3 text-right tabular-nums whitespace-nowrap text-muted">{{ $t("usage.label.balance_seen", { wait: elapsedText($t, Math.max(0, props.now - props.group.balance.seenAt)) }) }}</span>
         </dd>
       </div>
 
@@ -52,7 +52,7 @@
             color="primary"
             aria-hidden="true"
           />
-          <span class="col-start-3 row-start-1 text-right tabular-nums whitespace-nowrap text-default">{{ requestsText($t, props.group.balance.requests) }}</span>
+          <span class="col-start-4 row-start-1 text-right tabular-nums whitespace-nowrap text-default">{{ requestsText($t, props.group.balance.requests) }}</span>
         </dd>
       </div>
     </dl>

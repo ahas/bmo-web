@@ -68,7 +68,9 @@ which stands.
 - **What it starts:**
   - the account service, the binary `BMO_WEB_SERVER_BIN` names, on a scratch database of the test server
     (`BMO_TEST_POSTGRES`, or the machine's own socket where it names none);
-  - the account service's secret store on a folder of the scratch directory, in place of the data root's `env/`;
+  - the account service's secret store on a folder of the scratch directory, in place of the data root's `env/`,
+    and the agency's stand-in named to it, so a fixed line naming a supervisor names it by the label the stand-in
+    gives it;
   - a stand-in for each unit the console reads, answering the agent list, the owner's room and its figures, the
     Claude accounts with what each has left and the user each belongs to, one of them a fixture account's and the
     rest the platform's, a provider keeping a balance, the model gateway's members with the account each belongs
@@ -91,6 +93,9 @@ which stands.
     any account in a sealed room, is refused 403 `private-room` as the receiver refuses it; and, on its event stream
     as it opens, three members online in a room no fixture account stands in: one of the fixture's company, one of it
     who turned their presence off, and one the script moves into a company of its own;
+  - in the receiver's stand-in, a room of system lines: a person's words, a row kept with the old notice mark under
+    a sender the room does not answer as, the service's stop kept as a fixed line, and a session handed over naming a
+    supervisor by its key;
   - a stand-in for the tool host's control socket on a Unix socket in the scratch directory, with the console's tool
     session token in a file beside it, answering bmo-explorer's link preview for the pages the media room's link
     messages lead to and its card picture for the picture one of them names (`docs/boundary.md`, 「The web beyond the

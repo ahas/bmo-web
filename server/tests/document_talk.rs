@@ -1,13 +1,11 @@
 //! The talk about a document (`docs/documents-viewer.md`, 「The record」; `docs/accounts.md`, 「The tables」):
-//! the migrations make `document_talk` as the console writes and reads it, the owner's words with the passage,
+//! the baseline makes `document_talk` as the console writes and reads it, the owner's words with the passage,
 //! heading and version they were said over, the chat agent's answer bare, read back by the document's name in
-//! the order said; and the last migrations taken down drop their tables.
+//! the order said.
 
 use crate::support;
 
-use bmo_web_server::migration::Migrator;
 use sea_orm::{ConnectionTrait, DbBackend, Statement, Value};
-use sea_orm_migration::MigratorTrait;
 use support::Scratch;
 
 const SAY: &str = r#"INSERT INTO "document_talk" ("document", "speaker", "text", "said_at", "passage", "heading", "version", "translated")
@@ -114,71 +112,4 @@ async fn a_documents_talk_reads_back_in_the_order_it_was_said() {
       .await,
     1
   );
-}
-
-#[tokio::test]
-async fn the_last_migrations_taken_down_drop_their_tables() {
-  let scratch = Scratch::new().await;
-
-  // The repository's own migrations stand from `document_talk` up through the machine share asks', with
-  // sumida's membership and metering migrations between the service's earlier ones and its last eleven: taking this
-  // repository's block down means taking down everything above its base tables, sumida's two with it. Only the
-  // tables this repository's migrations make are checked — never one a sumida feature owns.
-  Migrator::down(scratch.db(), Some(26)).await.expect("the last migrations go down");
-
-  for table in [
-    "document_talk",
-    "sign_in_tries",
-    "sign_in_locks",
-    "account_links",
-    "reset_asks",
-    "email_checks",
-    "second_factors",
-    "recovery_codes",
-    "remembered_devices",
-    "account_devices",
-    "user_profiles",
-    "user_invites",
-    "user_nodes",
-    "user_departures",
-    "secret_kinds",
-    "company_agents",
-    "own_agents",
-    "agent_permissions",
-    "user_sign_ins",
-    "web_presence_hidden",
-    "company_roles",
-    "unit_kinds",
-    "unit_attributes",
-    "user_roles",
-    "unit_posts",
-    "unit_appointments",
-    "org_history",
-    "supply_platform_policy",
-    "supply_settings",
-    "supply_org_policies",
-    "supply_user_policies",
-    "supply_user_settings",
-    "supply_reservations",
-    "supply_costs",
-    "supply_audit",
-    "supply_plan_exposures",
-    "chain_kinds",
-    "chain_links",
-    "chain_rules",
-    "chain_groups",
-    "chain_group_members",
-    "web_languages",
-    "web_guides",
-    "removals",
-    "machine_share_asks",
-  ] {
-    let counted = format!("SELECT count(*) FROM pg_tables WHERE tablename = '{table}'");
-
-    assert_eq!(
-      scratch.count(&counted, vec![]).await,
-      0,
-      "{table} outlived the rollback of its own migration"
-    );
-  }
 }

@@ -5,9 +5,8 @@ use crate::support;
 
 use bmo_web_server::Refusal;
 use bmo_web_server::checks::{check_message, check_object, check_room};
-use bmo_web_server::data_move::{MEMBER_DEFAULTS, MoveAsk, RoomRule, run_move};
+use bmo_web_server::data_move::{MEMBER_DEFAULTS, MoveAsk, RoomRule, USER_KEYED, run_move};
 use bmo_web_server::grants::{GrantAsk, Holder, On, RevokeAsk, Target, grant, revoke};
-use bmo_web_server::migration::m20261019_000001_tables::USER_KEYED;
 use bmo_web_server::phones;
 use support::{OWNER, ROOM, Scratch, SharedDatabase, console_hash};
 

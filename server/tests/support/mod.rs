@@ -10,13 +10,11 @@ use std::str::FromStr;
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::{Arc, Mutex, Once};
 
-use bmo_web_server::migration::Migrator;
 use bmo_web_server::receiver::{Holding, Receiver, no_such_message};
 use bmo_web_server::routes::stand;
 use bmo_web_server::settings::Names;
 use bmo_web_server::{Refusal, Service, store};
 use sea_orm::{ConnectionTrait, DatabaseConnection, DbBackend, Statement, Value};
-use sea_orm_migration::MigratorTrait;
 use sqlx::postgres::{PgConnectOptions, PgConnection};
 use sqlx::{Connection as _, Executor};
 
@@ -92,7 +90,7 @@ async fn template() -> String {
 
       let db = connect(&name).await;
 
-      Migrator::up(&db, None).await.expect("the template migrates");
+      bmo_web_server::migration::up(&db).await.expect("the template migrates");
       db.close().await.expect("the template's connection closes");
 
       name
@@ -342,37 +340,67 @@ impl Scratch {
 
 impl Drop for Scratch {
   fn drop(&mut self) {
-    if self.kept {
-      return;
+    if !self.kept {
+      dropped(std::mem::take(&mut self.database));
     }
+  }
+}
 
-    let database = std::mem::take(&mut self.database);
+/// A blank database of the test's own, made from no template, for the tests of the migrations themselves; its
+/// name is a copy's, so the sweep drops it where its binary left it.
+pub struct Blank {
+  database: String,
+  pub db: DatabaseConnection,
+}
 
-    // The database goes on a thread of its own, since a guard dropped inside the runtime may not block on
-    // it.
-    let dropped = std::thread::spawn(move || {
-      tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()
-        .expect("a runtime is built")
-        .block_on(async move {
-          let mut admin = server().await.map_err(|error| error.to_string())?;
-          let dropped = drop_database(&mut admin, &database)
-            .await
-            .map_err(|error| format!("{database}: {error}"));
-          let _ = admin.close().await;
+impl Blank {
+  pub async fn new() -> Blank {
+    // The template's making sweeps what dead binaries left first, so the sweep never meets this database.
+    template().await;
 
-          dropped
-        })
-    })
-    .join()
-    .expect("the drop ends");
+    let database = format!("{COPY}{}_{}", std::process::id(), COPIES.fetch_add(1, Ordering::SeqCst));
+    let mut admin = server().await.expect("the test server answers");
 
-    if let Err(error) = dropped
-      && !std::thread::panicking()
-    {
-      panic!("the scratch database is dropped: {error}");
-    }
+    create(&mut admin, &database, "template0 ENCODING 'UTF8' LC_COLLATE 'C' LC_CTYPE 'C'").await;
+    admin.close().await.expect("the server connection closes");
+
+    let db = connect(&database).await;
+
+    Blank { database, db }
+  }
+}
+
+impl Drop for Blank {
+  fn drop(&mut self) {
+    dropped(std::mem::take(&mut self.database));
+  }
+}
+
+/// A test's own database dropped as its guard goes, the test failing where it cannot be. The database goes on a
+/// thread of its own, since a guard dropped inside the runtime may not block on it.
+fn dropped(database: String) {
+  let dropped = std::thread::spawn(move || {
+    tokio::runtime::Builder::new_current_thread()
+      .enable_all()
+      .build()
+      .expect("a runtime is built")
+      .block_on(async move {
+        let mut admin = server().await.map_err(|error| error.to_string())?;
+        let dropped = drop_database(&mut admin, &database)
+          .await
+          .map_err(|error| format!("{database}: {error}"));
+        let _ = admin.close().await;
+
+        dropped
+      })
+  })
+  .join()
+  .expect("the drop ends");
+
+  if let Err(error) = dropped
+    && !std::thread::panicking()
+  {
+    panic!("the scratch database is dropped: {error}");
   }
 }
 

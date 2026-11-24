@@ -1,7 +1,6 @@
 //! The delegation chain (docs/accounts.md, 「The delegation chain」 and 「Tests」): resolution over a chain held in
 //! memory, by each mode, under a lock and through rules; the routes on a scratch database — declaring a kind, who
-//! writes which link, a lock withholding the links below it, rules and groups; and the stored settings moved onto
-//! the chain answering every old question as they did.
+//! writes which link, a lock withholding the links below it, rules and groups.
 
 use std::collections::HashMap;
 
@@ -292,7 +291,8 @@ struct Tree {
   centre_head: Login,
   company_head: Login,
   outsider: Login,
-  scratch: Scratch,
+  // The tree's database, standing as long as the tree does.
+  _scratch: Scratch,
 }
 
 async fn unit(app: &Router, admin: Login, name: &str, parent: Option<i64>) -> i64 {
@@ -353,7 +353,7 @@ async fn tree() -> Tree {
     company,
     centre,
     team,
-    scratch,
+    _scratch: scratch,
   }
 }
 
@@ -766,174 +766,4 @@ async fn rules_name_people_groups_and_units_and_a_group_is_kept_by_its_unit() {
   let (status, _) =
     tree.ask(Method::DELETE, &format!("/chain/groups/{group_id}"), None, company_head).await;
   assert_eq!(status, StatusCode::NO_CONTENT);
-}
-
-// ---------------------------------------------------------------------------------------------------------
-// The stored settings moved onto the chain
-
-#[tokio::test]
-async fn the_settings_moved_onto_the_chain_answer_every_old_question_as_they_did() {
-  use bmo_web_server::migration::Migrator;
-  use sea_orm_migration::MigratorTrait;
-
-  let tree = tree().await;
-  let scratch = &tree.scratch;
-  let (admin, person, centre_head, company_head) =
-    (tree.admin, tree.person, tree.centre_head, tree.company_head);
-
-  // The settings as they stood before the move, written into the tables they stood in: the move taken down with the
-  // ones of the organisation's BMO default, the accounts' languages, the supply run keys, the supply sources' move,
-  // the account security's, the start guide's, the removal record's and the machine share asks' that stand after it.
-  Migrator::down(scratch.db(), Some(9)).await.unwrap();
-  scratch
-    .run(
-      r#"INSERT INTO "agent_permissions" ("unit_id", "user_id", "allowed", "set_by", "set_at")
-         VALUES ($1, NULL, true, NULL, 1), ($2, NULL, false, NULL, 1), (NULL, $3, true, NULL, 1)"#,
-      vec![tree.company.into(), tree.centre.into(), i64::from(centre_head.0).into()],
-    )
-    .await;
-  scratch
-    .run(
-      r#"UPDATE "supply_platform_policy"
-            SET "allowed" = '["personal", "global", "org_credits"]', "order" = '["global", "personal", "org_credits", "stop"]',
-                "overridable" = '["personal"]', "order_overridable" = false, "updated_by" = $1
-          WHERE "id" = 1"#,
-      vec![i64::from(admin.0).into()],
-    )
-    .await;
-  scratch
-    .run(
-      r#"INSERT INTO "supply_org_policies" ("org_id", "allowed", "order", "member_credit_credits", "updated_at")
-         VALUES ($1, '["personal", "org_credits"]', '["org_credits", "personal", "stop"]', 50, 1)"#,
-      vec![tree.centre.into()],
-    )
-    .await;
-  scratch
-    .run(
-      r#"INSERT INTO "supply_user_policies" ("user_id", "allowed", "order", "member_credit_credits", "updated_at")
-         VALUES ($1, '["personal"]', '["personal", "stop"]', NULL, 1)"#,
-      vec![i64::from(person.0).into()],
-    )
-    .await;
-  scratch
-    .run(
-      r#"INSERT INTO "supply_user_settings" ("user_id", "order", "off", "on", "personal_credit_credits", "updated_at")
-         VALUES ($1, '[]', '["personal"]', '[]', 70, 1)"#,
-      vec![i64::from(company_head.0).into()],
-    )
-    .await;
-  Migrator::up(scratch.db(), None).await.unwrap();
-  // The service stands again after its migration, its consumers declaring their kinds as they do at every start.
-  bmo_web_server::routes::stand(
-    scratch.db().clone(),
-    std::sync::Arc::new(scratch.messages.clone()),
-    crate::support::names(),
-  )
-  .await
-  .unwrap();
-
-  // The BMO setting permission: each setting as it was set, and each resolved as it was, nearest first.
-  let (status, said) = tree
-    .ask(Method::GET, &format!("/units/{}/agent-permissions", tree.company), None, admin)
-    .await;
-  assert_eq!(status, StatusCode::OK, "{said}");
-  let units: Vec<(Value, Value)> = said["units"]
-    .as_array()
-    .unwrap()
-    .iter()
-    .map(|unit| (unit["setting"].clone(), unit["allowed"].clone()))
-    .collect();
-  assert_eq!(
-    units,
-    [
-      (json!("allow"), json!(true)),
-      (json!("deny"), json!(false)),
-      (json!("inherit"), json!(false))
-    ]
-  );
-  let people: HashMap<String, (Value, Value)> = said["people"]
-    .as_array()
-    .unwrap()
-    .iter()
-    .map(|row| {
-      (
-        row["user"].as_str().unwrap().to_owned(),
-        (row["setting"].clone(), row["allowed"].clone()),
-      )
-    })
-    .collect();
-  assert_eq!(people[&person.0.to_string()], (json!("inherit"), json!(false)));
-  assert_eq!(people[&centre_head.0.to_string()], (json!("allow"), json!(true)));
-  assert_eq!(people[&company_head.0.to_string()], (json!("inherit"), json!(true)));
-  for (login, personalizes) in [(person, false), (centre_head, true), (company_head, true)] {
-    let (_, said) = tree.ask(Method::GET, &format!("/users/{}/agent", login.0), None, login).await;
-    assert_eq!(said["personalize"], personalizes, "{said}");
-  }
-
-  // The supply policies: the platform's, the centre's standing for the team, the person's own policy and setting.
-  let (_, said) = tree.ask(Method::GET, "/supply/platform", None, admin).await;
-  assert_eq!(said["allowed"], json!(["personal", "global", "org_credits"]), "{said}");
-  assert_eq!(said["order"], json!(["global", "personal", "org_credits", "stop"]), "{said}");
-  assert_eq!(
-    (said["overridable"].clone(), said["orderOverridable"].clone()),
-    (json!(["personal"]), json!(false))
-  );
-  let (_, said) = tree.ask(Method::GET, &format!("/supply/org/{}", tree.team), None, admin).await;
-  assert_eq!(said["inherits"], true, "{said}");
-  assert_eq!(said["policy"]["from"], tree.centre, "{said}");
-  assert_eq!(said["policy"]["allowed"], json!(["personal", "org_credits"]), "{said}");
-  assert_eq!(said["policy"]["memberCreditCredits"], 50, "{said}");
-  let (_, said) = tree.ask(Method::GET, &format!("/supply/org/{}", tree.centre), None, admin).await;
-  assert_eq!(said["inherits"], false, "{said}");
-  // The per-user policy stands on the person's link, and their order is resolved through it as it was.
-  let said = tree.resolve("supply.policy", &format!("person={}", person.0)).await;
-  let own = format!("person:{}", person.0);
-  let theirs = said["layers"]
-    .as_array()
-    .unwrap()
-    .iter()
-    .find(|layer| layer["link"] == own.as_str())
-    .unwrap();
-  assert_eq!(theirs["value"]["allowed"], json!(["personal"]), "{said}");
-  let (_, said) = tree.ask(Method::GET, "/supply/me", None, person).await;
-  assert_eq!(said["order"], json!(["personal", "stop"]), "{said}");
-  let (_, said) = tree.ask(Method::GET, "/supply/me", None, company_head).await;
-  assert_eq!(said["personalCreditCredits"], 70, "{said}");
-  let personal = said["sources"]
-    .as_array()
-    .unwrap()
-    .iter()
-    .find(|row| row["source"] == "personal")
-    .unwrap();
-  assert_eq!(
-    (personal["own"].clone(), personal["off"].clone()),
-    (json!("off"), json!(true)),
-    "{said}"
-  );
-
-  // Taken down again, the old tables hold what they held.
-  Migrator::down(scratch.db(), Some(9)).await.unwrap();
-  for (table, rows) in [
-    ("agent_permissions", 3),
-    ("supply_platform_policy", 1),
-    ("supply_org_policies", 1),
-    ("supply_user_policies", 1),
-    ("supply_user_settings", 1),
-  ] {
-    assert_eq!(
-      scratch.count(&format!(r#"SELECT COUNT(*) FROM "{table}""#), vec![]).await,
-      rows,
-      "{table}"
-    );
-  }
-  assert_eq!(
-    scratch
-      .count(
-        r#"SELECT COUNT(*) FROM "supply_platform_policy"
-            WHERE "order_overridable" = false AND "overridable" = '["personal"]' AND "updated_by" = $1"#,
-        vec![i64::from(admin.0).into()],
-      )
-      .await,
-    1
-  );
 }

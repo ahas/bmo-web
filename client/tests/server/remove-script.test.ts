@@ -23,7 +23,8 @@ const ADMINISTRATOR = "17";
 const database = await scratchWebDatabase();
 const sql = new SQL(connectionOf(database) as SQL.Options);
 
-await sql.unsafe(`CREATE FUNCTION bmo_administrator() RETURNS bigint LANGUAGE sql STABLE AS 'SELECT ${ADMINISTRATOR}::bigint'`);
+// The administrator the database names, in place of the fixture's reading of the settings.
+await sql.unsafe(`CREATE OR REPLACE FUNCTION bmo_administrator() RETURNS bigint LANGUAGE sql STABLE AS 'SELECT ${ADMINISTRATOR}::bigint'`);
 await sql.close();
 
 const service = { removed: false };

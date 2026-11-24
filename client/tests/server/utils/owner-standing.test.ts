@@ -120,9 +120,6 @@ describe("the owner's words from the console", () => {
     const database = new SQL(connectionOf(address) as SQL.Options);
 
     await database.unsafe(`INSERT INTO "settings" ("key", "value") VALUES ('users_administrator', '${MOVED}')`);
-    // The server's migration reads the administrator through this function, which the tables' fixture leaves out.
-    await database.unsafe(`CREATE OR REPLACE FUNCTION "bmo_administrator"() RETURNS bigint LANGUAGE sql STABLE AS
-      $$ SELECT CAST("value" AS bigint) FROM "settings" WHERE "key" = 'users_administrator' $$`);
     await database.close();
 
     const globals: Record<string, unknown> = globalThis;

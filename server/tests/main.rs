@@ -4,6 +4,7 @@
 mod support;
 
 mod agents;
+mod baseline;
 mod callers;
 mod chain;
 mod document_talk;

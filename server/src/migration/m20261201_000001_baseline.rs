@@ -1,33 +1,16 @@
-//! The secret kinds (docs/accounts.md, 「Secret kinds」, 「The tables」): the shapes the console's secret form asks
-//! a value in, never a value, each kept with the order kinds were added in. The table is made with the first
-//! defaults, seeded once as every default kind is (`secret_kind_seeds`).
+//! The service's schema at 1.0.0, whole (docs/accounts.md, 「The tables」): every table with its indexes,
+//! sumida's among them, the rows a blank database starts with, and the default secret kinds; its way down drops
+//! them all.
 
 use bmo_web_client::SecretInput;
 use sea_orm_migration::prelude::*;
 
 use super::secret_kind_seeds::{FieldSeed, KindSeed, MASKED, OPTIONAL, REQUIRED, SHOWN, seed};
 
-pub struct Migration;
+pub const NAME: &str = "m20261201_000001_baseline";
 
-impl MigrationName for Migration {
-  fn name(&self) -> &str {
-    "m20261112_000001_secret_kinds"
-  }
-}
-
-pub const SECRET_KINDS_TABLE: &str = r#"
-CREATE TABLE IF NOT EXISTS "secret_kinds" (
-  "key" text PRIMARY KEY,
-  "name" text NOT NULL,
-  "description" text NOT NULL,
-  "fields" jsonb NOT NULL,
-  "position" bigint NOT NULL,
-  "updated_at" bigint NOT NULL
-);
-"#;
-
-/// The first default kinds, in the order they are seeded.
-const SEEDS: &[KindSeed] = &[
+/// The default secret kinds, in the order they are seeded (docs/accounts.md, 「Secret kinds」).
+const SECRET_KINDS: &[KindSeed] = &[
   ("api-key", &[FieldSeed("API_KEY", MASKED, SecretInput::Line, REQUIRED)]),
   (
     "account-login",
@@ -63,21 +46,45 @@ const SEEDS: &[KindSeed] = &[
   ),
   ("ssh-private-key", &[FieldSeed("SSH_PRIVATE_KEY", MASKED, SecretInput::Lines, REQUIRED)]),
   ("file", &[FieldSeed("FILE", SHOWN, SecretInput::File, REQUIRED)]),
+  (
+    "card",
+    &[
+      FieldSeed("CARD_NUMBER", MASKED, SecretInput::Line, REQUIRED),
+      FieldSeed("CARD_EXPIRY", SHOWN, SecretInput::Line, REQUIRED),
+      FieldSeed("CARD_CVC", MASKED, SecretInput::Line, REQUIRED),
+      FieldSeed("CARD_HOLDER_NAME", SHOWN, SecretInput::Line, REQUIRED),
+    ],
+  ),
+  (
+    "delivery-address",
+    &[
+      FieldSeed("RECIPIENT", SHOWN, SecretInput::Line, REQUIRED),
+      FieldSeed("PHONE", SHOWN, SecretInput::Line, REQUIRED),
+      FieldSeed("POSTAL_CODE", SHOWN, SecretInput::Line, REQUIRED),
+      FieldSeed("ADDRESS", SHOWN, SecretInput::Line, REQUIRED),
+      FieldSeed("ADDRESS_DETAIL", SHOWN, SecretInput::Line, OPTIONAL),
+    ],
+  ),
 ];
+
+pub struct Migration;
+
+impl MigrationName for Migration {
+  fn name(&self) -> &str {
+    NAME
+  }
+}
 
 #[async_trait::async_trait]
 impl MigrationTrait for Migration {
   async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-    manager.get_connection().execute_unprepared(SECRET_KINDS_TABLE).await?;
+    manager.get_connection().execute_unprepared(include_str!("baseline.sql")).await?;
 
-    seed(manager, SEEDS).await
+    seed(manager, SECRET_KINDS).await
   }
 
   async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-    manager
-      .get_connection()
-      .execute_unprepared(r#"DROP TABLE IF EXISTS "secret_kinds""#)
-      .await?;
+    manager.get_connection().execute_unprepared(include_str!("baseline.down.sql")).await?;
 
     Ok(())
   }

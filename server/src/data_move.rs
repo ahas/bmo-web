@@ -7,7 +7,6 @@ use sumida::api::authz::Authz;
 use sumida::api::authz::write::{SubjectKey, TupleWrite};
 
 use crate::checks::ROOM;
-use crate::migration::m20261019_000001_tables::USER_KEYED;
 use crate::users::{ORGANIZATION, ROLE, link, member_of, user_for_sender};
 use crate::{Refusal, all, now_ms, one, run};
 
@@ -16,6 +15,9 @@ pub const MOVED: &str = "users_moved_at";
 /// The settings key naming the platform administrator's user, whose accounts carry the platform's own
 /// work.
 pub const ADMINISTRATOR: &str = "users_administrator";
+
+/// The tables that hold a user's own rows and that the move hands to the user it makes.
+pub const USER_KEYED: [&str; 2] = ["web_push_devices", "web_tab_states"];
 
 /// What everyone in a room may have the chat agent do: the room's member grant.
 pub const MEMBER_DEFAULTS: [&str; 6] = ["ask", "search", "notes", "memories", "reminders", "file_todo"];

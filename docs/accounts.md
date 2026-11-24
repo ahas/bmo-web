@@ -8,7 +8,8 @@
   belongs to, whether a sender holds a relation in a room: the service answers. What a screen shows and what
   a unit does with a refusal are the console's and that unit's.
 - **It stands on its own PostgreSQL database** and on a Valkey for sumida's sessions. Its tables are its own:
-  sumida's, and the ones its migrations make (「The tables」 below). No other unit's table is read or written.
+  sumida's and the service's, all made by the service's migrations (「The tables」 below). No other unit's table is
+  read or written.
 - **Beside its database it writes one folder:** the data root's `env/`, where the secret store keeps the files every
   unit reads its secrets from, and under it each person's own secret space (「The secret store」 below).
 - **It answers on a runtime of its own, two threads named `account-service`.** sumida reads the operating
@@ -1154,10 +1155,8 @@ section states what each does.
   expiry `CARD_EXPIRY`, the security code `CARD_CVC` masked and the holder's name `CARD_HOLDER_NAME`; and delivery
   address (`delivery-address`), the recipient `RECIPIENT`, the phone `PHONE`, the postal code `POSTAL_CODE`, the
   address `ADDRESS` and the detail `ADDRESS_DETAIL`, the detail alone optional. Every field of the last two is one
-  line. The migration that makes the table seeds the first seven, and a later migration the card and the delivery
-  address; each puts its kinds after every kind standing and leaves a kind standing under one of its keys as it
-  stands, so a deployment made before gains the two once and keeps every kind it holds. From then on they are the
-  owner's to change or remove like any other.
+  line. The migration that makes the table seeds all nine in that order, their names, descriptions and labels
+  taken from the server's pack. From then on they are the owner's to change or remove like any other.
 
 ## The delegation chain
 
@@ -1346,7 +1345,7 @@ Each is declared by the module that uses it, as the service stands, under the un
   | `stop` | nothing left; always last in every order, never answered to the agency |
 
 - **The service stands on sumida's membership domain for it,** with the `membership` and `mail-form` features
-  on, sumida's `membership` and `membership_metering` migrations registered after the service's own, and
+  on, sumida's membership tables standing in the service's schema (「The tables」), and
   sumida's `[membership]` settings written beside the service as sumida reads them: the default currency, a
   one-hour lifetime for a hold the caller gives no lifetime of its own, and the payment provider `none` —
   nothing is bought; credits arrive by a grant alone. A plan includes global supply as its amount quota on
@@ -1725,7 +1724,22 @@ under its token; the console is the one caller, and a browser reaches none of th
 
 ## The tables
 
-Beside sumida's own, which sumida's migrations make, the service's migrations make:
+- **The schema starts at the 1.0.0 baseline,** one migration that makes every table of the database, sumida's
+  among them — its users, keys, relation tuples, access log and membership domain, with their functions, triggers
+  and the `uuid-ossp` extension they are made with — and seeds what a blank database starts with: sumida's
+  bootstrap relation definitions and mail forms, the platform's supply policy and settings rows, and the default
+  secret kinds (「Secret kinds」). Its way down drops all of it. sumida's boards and files stay unmade, and its rules
+  over them read as absent. Every later change to the schema is a migration after the baseline; sumida runs no
+  migrations of its own on this database. Migrations are run by sea-orm's migrator, which keeps the ones it ran in
+  its own table, `seaql_migrations`, through the one entry point the `migrate` command, the import and the tests
+  all call.
+- **An install from the last release before 1.0.0 is taken as it stands.** A database whose record names every
+  migration of that release, sumida's among them, and nothing else, already holds the baseline's schema: the
+  record is rewritten to name the baseline alone, in one transaction, and no table and no row is touched. A
+  database whose record names only part of them is refused, with the migration it stopped at; it is brought to
+  the last release before 1.0.0 by that release first.
+
+Beside sumida's own, the baseline makes:
 
 | Table | What it holds |
 |---|---|
@@ -1780,6 +1794,11 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 
 ## Tests
 
+- **The baseline's tests** migrate a blank database and find it shaped as the baseline laid on a blank database,
+  its record naming the baseline alone and its starting rows standing; take an install at the last release before
+  1.0.0, holding a row, to a record naming the baseline alone with its shape and its row unchanged, a second run
+  changing nothing; refuse an install holding only part of that release's record and leave it as it was; and take
+  the baseline down to a blank database.
 - **The grant tests run against sumida itself,** in `server/tests/` on a database of their own: no grant
   refuses every acting relation with the grant named; a grant in one room opens nothing in another; an expired
   grant refuses as an absent one; every room's member grant after the data move is the deployment's default;
@@ -1867,11 +1886,9 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
   listing the other's; an administrator the account command made writing into and listing the folder the move's
   administrator does, and their own folder again once their standing is taken away; and every route refused to a
   key that is not its space's user, an administrator's included.
-- **The secret kind tests** read the seeded defaults with their fields, migrate a store made before the card and
-  delivery-address kinds and see it gain both once after every kind it keeps, the owner's changes and a kind of its
-  own under a seeded key left as they stand, add, change and remove a kind as the administrator, refuse each
-  rule a kind can break and a key that does not match its path, read the kinds as a member, and refuse a member
-  every change.
+- **The secret kind tests** read the seeded defaults with their fields, add, change and remove a kind as the
+  administrator, refuse each rule a kind can break and a key that does not match its path, read the kinds as a
+  member, and refuse a member every change.
 - **The supply tests** stand sumida's membership domain on the scratch database and resolve orders through
   every layer: each layer only narrowing what the layers above allow, a later layer never switching a source
   on, `stop` always last, an organisation policy inherited by walking up the tree until one stands, an
@@ -1897,9 +1914,7 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
   unit, refused to another and refused a shape change while in use; who writes which link and who is refused; a
   write below a lock refused `locked`; a `json` value refused `consumer-written`; rules and groups kept and refused
   out of shape; the resolution and whether a link may change it; and the credit allowance closing organisation
-  credits once a month's spend reaches it. The move of the stored settings onto the chain is tested by taking it
-  down, writing the BMO setting permission and the supply policies as they stood before it, bringing it up again,
-  and asking each old route the old question: the same settings, the same resolved answers, and the same orders.
+  credits once a month's spend reaches it.
 - **The account security tests** stand the service on the scratch database with a stand-in bmo-mail that keeps what
   it is handed: the system mail set and read with no value of its secret answered; a test mail sent; a verification mailed and
   used, and undone by a change of the email; a sign-in answered `signed-in` and one answered `second-factor` and

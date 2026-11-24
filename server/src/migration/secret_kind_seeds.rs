@@ -1,6 +1,6 @@
 //! How a migration seeds default secret kinds (docs/accounts.md, 「Secret kinds」): each kind's key and its fields'
 //! shapes are the migration's, their words the server's pack's. A kind goes after every kind that stands, and one
-//! already standing under its key is left as it stands, so the owner's change or removal is never undone.
+//! already standing under its key is left as it stands.
 
 use bmo_web_client::{SecretField, SecretInput};
 use sea_orm_migration::prelude::*;

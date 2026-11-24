@@ -6,7 +6,7 @@ import type { TransactionSQL } from "bun";
 
 // The console's own tables, which stand in the server's database beside sumida's (docs/accounts.md, 「The
 // tables」; docs/web.md, 「Tables」): the console accounts, the push devices, the tab states, the palettes and
-// themes, how far each user has read each room and the talk about each document. The server's migrations make them; the console reads and
+// themes, how far each user has read each room and the talk about each document. The server's baseline migration makes them; the console reads and
 // writes them and no other unit's. `WEB_DATABASE_URL` names the database.
 
 /** A value a statement may be given for one of its parameters. */

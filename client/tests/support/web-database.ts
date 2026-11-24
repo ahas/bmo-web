@@ -6,10 +6,10 @@ import { SQL } from "bun";
 import { closeWebSql, connectionOf } from "../../apps/web/server/utils/db";
 
 // A database of the server's shape for a console test (docs/accounts.md, 「The tables」): a fresh PostgreSQL
-// database on the test server, holding the console's own tables as the server's migrations make them, named
-// by `WEB_DATABASE_URL` for the file that asked for it and dropped when that file is done, the file failing if
-// it cannot be (docs/checks.md, 「The scratch databases」). The statements are the fixture `web-tables.sql`, which
-// a test holds to the server's migration word for word.
+// database on the test server, holding the console's own tables as the server's baseline migration makes them,
+// named by `WEB_DATABASE_URL` for the file that asked for it and dropped when that file is done, the file failing
+// if it cannot be (docs/checks.md, 「The scratch databases」). The statements are the fixture `web-tables.sql`,
+// which a test holds to the server's baseline word for word.
 
 const TABLES = readFileSync(new URL("../fixtures/web-tables.sql", import.meta.url), "utf8");
 

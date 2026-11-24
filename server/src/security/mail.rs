@@ -120,10 +120,41 @@ impl MailClient {
   }
 }
 
+/// bmo-mail's outgoing servers as it answers them: each id a number, kept here as the opaque string the console
+/// names a server by.
 #[derive(Deserialize)]
 struct Servers {
   #[serde(default)]
-  items: Vec<MailServer>,
+  items: Vec<WireServer>,
+}
+
+#[derive(Deserialize)]
+struct WireServer {
+  id: serde_json::Value,
+  name: String,
+  host: String,
+}
+
+impl WireServer {
+  fn into_server(self) -> MailServer {
+    let id = match self.id {
+      serde_json::Value::String(id) => id,
+      other => other.to_string(),
+    };
+
+    MailServer { id, name: self.name, host: self.host }
+  }
+}
+
+/// One mail as bmo-mail's system send reads it: the server by its number where the kept id is one.
+fn wire(mail: &Outgoing) -> serde_json::Value {
+  let mut body = serde_json::to_value(mail).unwrap_or_default();
+
+  if let (Some(object), Ok(number)) = (body.as_object_mut(), mail.server.parse::<i64>()) {
+    object.insert("server".to_owned(), serde_json::Value::from(number));
+  }
+
+  body
 }
 
 #[derive(Deserialize)]
@@ -151,7 +182,7 @@ impl MailService for MailClient {
       return Err(unreached(format!("it answered {}", answer.status())));
     }
 
-    Ok(answer.json::<Servers>().await.map_err(unreached)?.items)
+    Ok(answer.json::<Servers>().await.map_err(unreached)?.items.into_iter().map(WireServer::into_server).collect())
   }
 
   async fn send(&self, mail: &Outgoing) -> Result<(), Refusal> {
@@ -159,7 +190,7 @@ impl MailService for MailClient {
       .http
       .post(format!("{}/system-mails", self.base))
       .bearer_auth(&self.token)
-      .json(mail)
+      .json(&wire(mail))
       .send()
       .await
       .map_err(unreached)?;

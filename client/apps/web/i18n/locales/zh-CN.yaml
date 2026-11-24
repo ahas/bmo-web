@@ -484,6 +484,7 @@ room:
     not_sent: 未发送
     nothing_after: 当天之后没有对话
     outcome_run_failed: "{name}的运行失败了。"
+    outcome_run_cut: "{name}的运行被中断，将接着继续。"
     outcome_run_stopped: "已停止{name}的运行。"
     outcome_skipped: "{subject}这次没有回复。"
     outcome_skipped_times: "{subject}有{n}次没有回复。"

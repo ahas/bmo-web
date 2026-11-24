@@ -484,6 +484,7 @@ room:
     not_sent: Not sent
     nothing_after: No messages after that day
     outcome_run_failed: "{name}'s run failed."
+    outcome_run_cut: "{name}'s run was cut and will carry on."
     outcome_run_stopped: "{name}'s run was stopped."
     outcome_skipped: "{subject} didn't answer this time."
     outcome_skipped_times: "{subject} didn't answer {n} times."

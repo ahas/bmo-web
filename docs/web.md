@@ -5885,7 +5885,8 @@ Four bounds keep it from growing forever.
       start there, or until a picture holds no turn of that speaker in that room.
   A verdict attaches
   to that message before the archive is re-read. A turn ended with no answer shows its reason briefly and
-  disappears — when it waited expecting more words, when the run failed, when somebody stopped it. The reason
+  disappears — when it waited expecting more words, when the run failed, when the agency's restart or the rest
+  cut it, saying it was cut and is carried on rather than that it failed, when somebody stopped it. The reason
   names the agent whose turn it was, by the same name its running row wore, so a supervisor's failed turn says
   that supervisor failed. That reason is not a bubble but a line standing centred like a date mark, with no photo,
   so the agent does not appear to have said what it did not. It stands at the conversation's foot.

@@ -954,6 +954,8 @@ export const SKIPPED_OUTCOME = "room.status.outcome_skipped";
 const SILENT_OUTCOMES: Record<string, string> = {
   skipped: SKIPPED_OUTCOME,
   "run-failed": "room.status.outcome_run_failed",
+  // A turn the agency's restart or the rest cut is said as cut and carried on, never as failed or finished.
+  "run-cut": "room.status.outcome_run_cut",
   "run-stopped": "room.status.outcome_run_stopped",
   // The commonest silent ending of the lot: the turn read what was said and judged that the
   // person is still typing, so it said nothing and left the room to finish.

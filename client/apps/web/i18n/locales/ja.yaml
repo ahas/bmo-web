@@ -484,6 +484,7 @@ room:
     not_sent: 送信できませんでした
     nothing_after: その日以降の会話なし
     outcome_run_failed: "{name}の実行が失敗しました。"
+    outcome_run_cut: "{name}の実行が中断されました。続きから再開します。"
     outcome_run_stopped: "{name}の実行を停止しました。"
     outcome_skipped: "{subject}は今回は返信しませんでした。"
     outcome_skipped_times: "{subject}は{n}回返信しませんでした。"

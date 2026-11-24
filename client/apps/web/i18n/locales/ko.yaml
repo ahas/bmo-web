@@ -491,6 +491,7 @@ room:
     not_sent: 보내지 못함
     nothing_after: 그날 이후 대화 없음
     outcome_run_failed: "{name}의 실행이 실패했습니다."
+    outcome_run_cut: "{name}의 실행이 중단되었습니다. 이어서 진행합니다."
     outcome_run_stopped: "{name}의 실행을 중지했습니다."
     outcome_skipped: "{subject} 이번에는 답하지 않았습니다."
     outcome_skipped_times: "{subject} {n}번 답하지 않았습니다."

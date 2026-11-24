@@ -566,6 +566,8 @@
   a run's log names them. Never 완료 for the end, which a stopped or failed job never reached, and never 종료.
 - stop a run → 중지; pause and resume a timer → 정지, 재개; run out of time → 시간 초과. Never 멈추기,
   다시 흐르게, 때를 놓침.
+- a turn the agency's restart or the rest cut before it ended, which the room's next turn carries on → 중단되었습니다,
+  followed by 이어서 진행합니다. Never 실패 for it, which reads as broken, nor 완료, which it never reached.
 - a thing a unit stopped before it was made, a voice briefing among them → 중지됨; asking for it again → 다시
   요청: 보이스브리핑 중지됨 · 다시 요청 가능. Never 재요청, 멈춤.
 - leave the queue → 대기열에서 제외. Never 대기열에서 빠지다.

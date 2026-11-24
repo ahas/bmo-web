@@ -1051,6 +1051,9 @@ export type BotEventType =
   | "sent"
   | "skipped"
   | "run-failed"
+  // The round's turn was cut before it ended, by the agency's restart or the rest, and the room's next round
+  // carries its work on: nothing broke, and nothing is finished either.
+  | "run-cut"
   // The round ended because somebody stopped the run: nothing failed and nothing is reported as a
   // breakdown.
   | "run-stopped"
@@ -1175,11 +1178,11 @@ export interface AccountPresenceEvent {
   lastSeenAt: number | null;
 }
 
-// The ways a turn ends: the bot answered, it held its peace, its run failed, somebody stopped it,
-// or it did nothing but wait for the rest of what someone is typing. Whatever a turn moves — a
+// The ways a turn ends: the bot answered, it held its peace, its run failed, its run was cut to be carried on,
+// somebody stopped it, or it did nothing but wait for the rest of what someone is typing. Whatever a turn moves — a
 // session's context, a usage window, the archive of a room — stands still again by the time one
 // arrives.
-export const TURN_ENDED: readonly BotEventType[] = ["sent", "skipped", "run-failed", "run-stopped", "waited"];
+export const TURN_ENDED: readonly BotEventType[] = ["sent", "skipped", "run-failed", "run-cut", "run-stopped", "waited"];
 
 // What a listener needs of a briefing beyond the message it went out as.
 export interface BriefingNews {

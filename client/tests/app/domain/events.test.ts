@@ -68,7 +68,7 @@ describe("a screen with something in hand", () => {
 
 describe("what ends a turn", () => {
   test("the endings are the whole of it, a stop among them", () => {
-    expect([...TURN_ENDED].sort()).toEqual(["run-failed", "run-stopped", "sent", "skipped", "waited"]);
+    expect([...TURN_ENDED].sort()).toEqual(["run-cut", "run-failed", "run-stopped", "sent", "skipped", "waited"]);
   });
 
   test("a downgraded model is not an ending: the run goes on to answer", () => {
@@ -586,6 +586,14 @@ describe("the block a room shows while the chat agent is answering it", () => {
       screen.write("bot", botEvent({ type: "skipped", messageId: null }));
 
       expect(screen.outcome()).toEqual({ key: "room.status.outcome_skipped" });
+    });
+  });
+
+  test("a turn the agency's restart cut is said as cut, never as failed", () => {
+    watching(-1003, (screen) => {
+      screen.write("bot", botEvent({ type: "run-cut", messageId: "41", speaker: { id: 11, name: KO.line_545 } }));
+
+      expect(screen.outcome()).toEqual({ key: "room.status.outcome_run_cut", speaker: { id: 11, name: KO.line_547 } });
     });
   });
 

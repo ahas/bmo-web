@@ -5156,6 +5156,9 @@ removal:
       jobs: Job
       rooms: 房间
       private_rooms: 个人房间
+      identities: 对话身份
+      names: 显示名称
+      mutes: 房间静音
       memberships_in_rooms: 房间成员资格
       messages: 消息
       files: 文件

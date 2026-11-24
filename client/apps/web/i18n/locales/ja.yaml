@@ -5156,6 +5156,9 @@ removal:
       jobs: Job
       rooms: ルーム
       private_rooms: 個人ルーム
+      identities: 会話の識別子
+      names: 表示名
+      mutes: ルームのミュート
       memberships_in_rooms: ルーム参加
       messages: メッセージ
       files: ファイル

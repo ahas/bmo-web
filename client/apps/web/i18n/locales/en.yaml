@@ -5126,6 +5126,9 @@ removal:
       jobs: Jobs
       rooms: Rooms
       private_rooms: Private rooms
+      identities: Chat identities
+      names: Shown names
+      mutes: Room mutes
       memberships_in_rooms: Room memberships
       messages: Messages
       files: Files

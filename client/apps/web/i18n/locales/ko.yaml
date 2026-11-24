@@ -5148,6 +5148,9 @@ removal:
       jobs: Job
       rooms: 방
       private_rooms: 개인 대화방
+      identities: 대화 신원
+      names: 표시 이름
+      mutes: 방 알림 끔
       memberships_in_rooms: 방 참여
       messages: 메시지
       files: 파일

@@ -2558,12 +2558,12 @@ agent_session:
     reason: "例如：为了从头开始新的工作"
   message:
     handoff_effect: "{name} 的会话会进入睡眠，整理记忆并写下交接备忘。\n从下一条消息起，它在新会话中醒来，读取备忘后继续。"
-    reset_effect: "结束 {name} 当前的会话，从下一条消息起以新会话开始。\n会话中保留的工作上下文不会原样延续。"
+    reset_effect: "{name} 的会话会进入睡眠整理记忆，不写交接备忘就结束。\n从下一条消息起以不继承任何内容的新会话开始。"
     record_stays: "对话记录保持不变。\n房间的消息、文件和智能体的记忆都不会被删除。"
     handoff_asked: "已请求交接会话"
     handoff_asked_detail: "{name} 结束当前这一轮后会进入睡眠整理记忆。\n从下一条消息起在新会话中醒来继续。"
     reset_asked: "已请求重置会话"
-    reset_asked_detail: "{name} 将从下一条消息起以新会话开始。"
+    reset_asked_detail: "当前这一轮结束后，{name} 的会话会进入睡眠整理记忆。\n从下一条消息起以没有备忘的新会话开始。"
     none: "没有可以交接或重置的会话"
     none_detail: "{name} 当前没有打开的会话。\n下一条消息到来时会开启新会话。"
   error:

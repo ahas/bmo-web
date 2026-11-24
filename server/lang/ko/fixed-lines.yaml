@@ -109,7 +109,7 @@ session_handed_over:
   # The session wrote its handoff note, and the next turn opens a fresh session reading it.
   handed_over: "{subject} 잠들어 기억을 정리하고 새 세션으로 깨어납니다"
   # The session was reset, and the next turn opens a new one.
-  reset: "{agent}의 세션을 새로 시작했습니다. 대화 기록은 그대로 남습니다"
+  reset: "{agent}의 세션이 잠들어 기억을 정리하고 새로 시작했습니다. 대화 기록은 그대로 남습니다"
   # Why, after the line: the asker's words, or the words of its cause.
   why: " · {why}"
   # Who asked, after the line and its why, by their shown name.

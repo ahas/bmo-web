@@ -3799,11 +3799,12 @@ hidden, and the dialog says so in so many words (대화 기록은 그대로 남�
     carries out as that session's handover: the session writes its note in one more turn and the next generation
     opens on it (the agency's `docs/supervisors.md`, 「Clearing it」). Asked from a row rather than a room, every room
     session the supervisor holds is asked so.
-- **세션 초기화** asks first, in a confirmation saying what goes and what stays: the session the agent works in now
-  ends and the next turn opens a new one, so what the session held in its context does not go on as it was; the
-  room's conversation, its files and the agent's memories stay. Confirmed, it asks the agency's `POST /session-reset`
-  for the agent, and for the room where its sessions are kept in each room, with the reader's account as `by`; the
-  agency settles it once nothing of that session runs (the agency's `docs/session-resets.md`).
+- **세션 초기화** starts the session clean and asks first, in a confirmation saying what goes and what stays: the
+  agent sleeps to tidy its memories, writes no handoff note, and the next turn opens a new session that carries
+  nothing of the old one; the room's conversation, its files and the agent's memories stay. Confirmed, it asks the
+  agency's `POST /session-reset` `clean` for the agent, and for the room where its sessions are kept in each room,
+  with the reader's account as `by`; the agency settles it once nothing of that session runs (the agency's
+  `docs/session-resets.md`). A room's session handed over is the same ask without `clean`, which keeps the note.
 - **What happened is said in plain words** once the unit answers, in a notice at the head of the screen, one short
   line and what follows it under it, the dialog closing:
   - 넘기기 asked: the session hands over once the agent's current turn ends, and the next turn starts a fresh session
@@ -3816,7 +3817,7 @@ hidden, and the dialog says so in so many words (대화 기록은 그대로 남�
   whoever asked it, the console, the receiver's `handoff` command or the agent's own replacement — kept in the room's
   record alone and sent to no chat service (the receiver's `docs/unified-bmo.md`, 「The room's line」), and the console
   stands it as every fixed line (「Room screen」, a fixed line), a handover said as the agent sleeping to tidy its
-  memories and waking in a fresh session, rendered from the code `session-handed-over`
+  memories and waking in a fresh session and a reset as its session sleeping and starting afresh, rendered from the code `session-handed-over`
   (`docs/boundary.md`, 「Fixed lines」).
 
 

@@ -41,7 +41,7 @@ session_handed_over:
   # The session wrote its handoff note, and the next turn opens a fresh session reading it.
   handed_over: "{subject} 进入睡眠整理记忆，将在新会话中醒来"
   # The session was reset, and the next turn opens a new one.
-  reset: "已重新开始 {agent} 的会话。对话记录保持不变"
+  reset: "{agent} 的会话进入睡眠整理记忆后重新开始。对话记录保持不变"
   # Why, after the line: the asker's words, or the words of its cause.
   why: " · {why}"
   # Who asked, after the line and its why, by their shown name.

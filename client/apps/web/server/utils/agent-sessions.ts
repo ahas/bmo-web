@@ -76,11 +76,11 @@ async function roomSessions(name: string): Promise<number[]> {
   return [...new Set(page.items.flatMap((session) => (session.roomId === null ? [] : [session.roomId])))];
 }
 
-// One reset asked of the agency: asked, or nothing to act on where the agency holds no such session, which it
-// refuses about the field `session`.
-async function askReset(agent: string, room: number | null, by: number | null): Promise<SessionActOutcome> {
+// One reset asked of the agency, clean where the session is to start with no handoff note: asked, or nothing to act
+// on where the agency holds no such session, which it refuses about the field `session`.
+async function askReset(agent: string, room: number | null, by: number | null, clean: boolean): Promise<SessionActOutcome> {
   try {
-    await agencyRoute("POST", "/session-reset", { agent, ...(room === null ? {} : { chatId: room }), ...(by === null ? {} : { by: String(by) }) });
+    await agencyRoute("POST", "/session-reset", { agent, clean, ...(room === null ? {} : { chatId: room }), ...(by === null ? {} : { by: String(by) }) });
 
     return "asked";
   } catch (error) {
@@ -93,17 +93,17 @@ async function askReset(agent: string, room: number | null, by: number | null): 
 }
 
 // A reset of every room session a supervisor holds, or of the one `room` names: asked where any was.
-async function askRoomResets(name: string, room: number | null, by: number | null): Promise<SessionActOutcome> {
+async function askRoomResets(name: string, room: number | null, by: number | null, clean: boolean): Promise<SessionActOutcome> {
   const rooms = room === null ? await roomSessions(name) : [room];
-  const outcomes = await Promise.all(rooms.map((one) => askReset(name, one, by)));
+  const outcomes = await Promise.all(rooms.map((one) => askReset(name, one, by, clean)));
 
   return outcomes.includes("asked") ? "asked" : "none";
 }
 
 /** A supervisor's session handed over: its one session through the receiver's handover, a room's session through the
- * agency's reset, which a room session carries out as its handover. */
+ * agency's reset that is not clean, which a room session carries out as its handover with its note. */
 export async function handOver(supervisor: SessionSupervisor, reason: string, room: number | null, by: number | null): Promise<SessionActOutcome> {
-  if (supervisor.scope === "room") return await askRoomResets(supervisor.name, room, by);
+  if (supervisor.scope === "room") return await askRoomResets(supervisor.name, room, by, false);
 
   try {
     await receiverRoute(`/handovers/${encodeURIComponent(supervisor.name)}`, {
@@ -117,18 +117,19 @@ export async function handOver(supervisor: SessionSupervisor, reason: string, ro
 
     if (status === 404) return "none";
     // The receiver finds the agent keeps a session in each room after all: the room's session is the agency's.
-    if (status === 409) return await askRoomResets(supervisor.name, room, by);
+    if (status === 409) return await askRoomResets(supervisor.name, room, by, false);
 
     throw error;
   }
 }
 
-/** A supervisor's session reset through the agency: its one session, or its session of `room`, or every room
- * session it holds where no room is named. */
+/** A supervisor's session reset clean through the agency — it consolidates its brain, writes no handoff note and the
+ * next session opens on none: its one session, or its session of `room`, or every room session it holds where no room
+ * is named. */
 export async function resetSession(supervisor: SessionSupervisor, room: number | null, by: number | null): Promise<SessionActOutcome> {
-  if (supervisor.scope === "room") return await askRoomResets(supervisor.name, room, by);
+  if (supervisor.scope === "room") return await askRoomResets(supervisor.name, room, by, true);
 
-  return await askReset(supervisor.name, room, by);
+  return await askReset(supervisor.name, room, by, true);
 }
 
 /** The reason a handover body carries, trimmed and held to its limit; refused where it is empty or too long. */

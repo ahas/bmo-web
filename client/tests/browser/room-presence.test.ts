@@ -8,7 +8,7 @@ import type { Browser, BrowserContext, Page } from "playwright-core";
 
 // Who is here and who writes, as a room draws them (docs/web.md, 「Presence and typing」): the dot on the head's
 // picture and on the room's row, the mark on the row of a room not open, and the room's typing picture naming who
-// writes by their faces, collapsing past three into a count, each standing with nothing else moving and covering
+// writes by their faces, collapsing past three into a count, its band taking room only while it stands, covering
 // neither the box nor the newest line, its faces and words on its vertical centre, at a desk's width and a phone's,
 // and fading only where motion is welcome.
 //
@@ -228,7 +228,7 @@ async function visit(context: BrowserContext, writing: Writing): Promise<{ page:
   const page = await context.newPage();
 
   await page.goto(`${origin}/rooms/${CHAT}`, { waitUntil: "networkidle" });
-  await page.locator("[data-typing-band]").waitFor();
+  await page.locator("[data-typing-band]").waitFor({ state: "attached" });
   await page.locator("[data-message]").first().waitFor();
 
   if (writing !== "nobody") await page.locator("[data-typing-picture]").waitFor();
@@ -253,7 +253,7 @@ const said = (count: number): string => wording("room.label.typing_names", { nam
 
 describe.skipIf(!origin || !touchReady())("who is here and who writes in a room", () => {
   for (const viewport of WIDTHS) {
-    test(`the typing picture names who writes, collapses past three, and stands with nothing else moving, ${viewport.width}px`, async () => {
+    test(`the typing picture names who writes, collapses past three, and takes room only while it stands, ${viewport.width}px`, async () => {
       const contexts = await Promise.all((["nobody", "one", "five"] as const).map(async (writing) => await open(viewport, writing)));
 
       try {
@@ -277,10 +277,14 @@ describe.skipIf(!origin || !touchReady())("who is here and who writes in a room"
         for (const busy of [one!, five!]) {
           const picture = busy.drawn.picture!;
 
-          // Nothing moves as the picture comes, and it stands inside its band, clear of the box and the newest line.
-          expect(busy.drawn.band).toEqual(quiet!.drawn.band);
+          // The band takes room only while the picture stands: the box stays where it stood, the band stands on it, and
+          // the newest line keeps its step above the band as it kept it above the box. The picture stands inside its
+          // band, clear of the box and the newest line.
+          expect(quiet!.drawn.band.bottom - quiet!.drawn.band.top).toBe(0);
+          expect(busy.drawn.band.bottom - busy.drawn.band.top).toBeGreaterThan(0);
+          expect(busy.drawn.band.bottom).toBe(busy.drawn.foot.top);
           expect(busy.drawn.foot).toEqual(quiet!.drawn.foot);
-          expect(busy.drawn.newest).toEqual(quiet!.drawn.newest);
+          expect(Math.round(busy.drawn.band.top - busy.drawn.newest.bottom)).toBe(Math.round(quiet!.drawn.foot.top - quiet!.drawn.newest.bottom));
           expect(busy.drawn.menuLeft).toBe(quiet!.drawn.menuLeft);
           expect(picture.top).toBeGreaterThanOrEqual(busy.drawn.band.top);
           expect(picture.bottom).toBeLessThanOrEqual(busy.drawn.foot.top);
@@ -386,7 +390,7 @@ describe.skipIf(!origin || !touchReady())("who is here and who writes in a room"
       const asked = page.waitForRequest(new RegExp(`/api/rooms/${CHAT}/members$`));
 
       await page.goto(`${origin}/rooms/${CHAT}`, { waitUntil: "load" });
-      await page.locator("[data-typing-band]").waitFor();
+      await page.locator("[data-typing-band]").waitFor({ state: "attached" });
       await asked;
 
       expect(await page.locator("[data-typing-picture]").isVisible()).toBe(false);

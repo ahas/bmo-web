@@ -4451,8 +4451,8 @@ Four bounds keep it from growing forever.
 - **One photo to a run, beside its last bubble.** The photo stands on the run's outer side, its foot level with
   the foot of the run's last bubble.
   - While the run goes on below the visible part of the conversation, the photo holds to the foot of that part,
-    a small step above the top edge of the typing band over the input bar, or of the input bar in a room with no
-    band, and follows that edge as the bar grows or shrinks — a second line of words, a picture waiting to go —
+    a small step above the top edge of the typing band over the input bar while it stands, else of the input bar,
+    and follows that edge as the bar grows or shrinks — a second line of words, a picture waiting to go —
     sliding with the scroll until it meets the last bubble, where it stops. It never stands behind the input bar,
     and never meets the room's typing picture (「Presence and typing」).
   - Each run has its own photo, and it never leaves its run: scrolled past the run's head, it goes up with it.
@@ -4519,8 +4519,9 @@ Four bounds keep it from growing forever.
     line written in an input box keeps its breaks while the writing goes on」). Once sent they stand at a
     bubble's breaks, between words and at the bubble's narrower width, and the flight shows them at those
     breaks from its first frame (「What arrives comes in at the end, and nothing standing moves」).
-  - Over the bar stands the band the room's typing picture floats in, in every room but the owner's own private
-    chat, keeping its height whether or not anybody writes (「Presence and typing」).
+  - Over the bar stands the band the room's typing picture floats in, only while the picture stands; while nobody
+    else writes, the conversation's end stands the same step above the bar in every room, the owner's own private
+    chat's (「Presence and typing」).
   - Choosing opens no bar of its own: the top bar grows downward and the choosing row unfolds inside it, on the
     same ground, under the same edge, and folds back the same way when choosing ends (「선택」). The grown bar lies over
     the conversation, which keeps only the resting bar's height as its room at the top, so no message moves by a pixel
@@ -10261,16 +10262,19 @@ in a table.
     wears an unnamed face, and is named 누군가 in the tooltip and the accessible name alone; the others stand by
     their names.
   - **Where it stands:** in a band of its own over the input bar, the conversation's foot for a reader with no
-    box, at the leading gutter, where the lines of the others stand. The band keeps its height whether or not anybody
-    writes, and the conversation's end stands above it, so the picture covers neither the box nor the newest line.
+    box, at the leading gutter, where the lines of the others stand. The band takes its height only while the picture
+    stands, from the moment a writer is drawn until the picture's fade out has ended, and the conversation's end
+    stands above it, so the picture covers neither the box nor the newest line; a reader at the end stays at the end
+    as the band comes and goes. While nobody writes, no room is kept for it, and the conversation's end stands as far
+    above the input bar as in the owner's own private chat.
     The band is a bar at the screen's foot to the briefing's player, which stands above it, so the two never
     overlap at any width. The picture is not dragged and leads nowhere: a pointer resting on it or a tap brings
     up its tooltip, and the band around it takes no press.
   - **It comes and goes by fading,** having no press behind it, and a reader who asked for less motion sees it
     stand and go at once.
-- **Nothing moves the screen's layout.** The typing band keeps its height whether or not anybody writes, in every
-  room but the owner's own private chat, where nobody else writes; the dot rides the picture's corner and the
-  typing mark takes room the row's name gives up, each standing and going at once.
+- **Nothing else moves the screen's layout.** The typing band alone takes room, and only while its picture stands;
+  the dot rides the picture's corner and the typing mark takes room the row's name gives up, each standing and going
+  at once.
 - **A person of the reader's company outside a room** wears the presence handed by account, and a person of another
   company, or one whose presence nobody told, wears nothing:
   - **a person's page** (「Person's page」) carries a row 접속 상태 under the job title while the person is here or

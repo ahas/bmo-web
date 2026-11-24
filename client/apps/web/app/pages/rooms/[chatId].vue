@@ -408,6 +408,7 @@
         :chat-id="chatId"
         class="absolute inset-x-0 z-20 h-(--room-typing) pe-(--feed-gutter)"
         :style="{ bottom: 'calc(var(--room-foot) + var(--bmo-foot-lift, 0px))' }"
+        @standing="typingStanding = $event"
       />
       <!-- The foot of the room is a column that can be squeezed, and what gives way in it is the
            question stack rather than the box they type in: the foot takes whatever the conversation
@@ -1089,9 +1090,12 @@ function rowSkipReason(item: FeedItem): SkipReason | null {
 const ownsTodo = computed<boolean>(() => owner.value.chatId === chatId);
 // The owner's own private chat, where nobody but him and his BMO writes.
 const ownersOwnChat = computed<boolean>(() => (owner.value.chatId ?? control.value?.ownerChatId ?? null) === chatId);
-// The height of the band the room's typing picture floats in, kept whether or not anybody writes, and none in the
-// owner's own chat, where nobody else writes (docs/web.md, 「Presence and typing」).
-const typingBand = computed<number>(() => (ownersOwnChat.value ? 0 : TYPING_BAND_PX));
+// Whether the room's typing picture stands, its fade out included, as the picture tells it.
+const typingStanding = ref(false);
+// The height of the band the room's typing picture floats in: the picture's room while it stands and none otherwise,
+// so the conversation's end stands as far above the input bar in every room as in the owner's own chat, where nobody
+// else writes (docs/web.md, 「Presence and typing」).
+const typingBand = computed<number>(() => (!ownersOwnChat.value && typingStanding.value ? TYPING_BAND_PX : 0));
 // The reader's own writing in the box, told to the room's other readers (docs/web.md, 「Presence and typing」).
 const typingTeller = useTypingTeller(chatId, writable);
 
@@ -2937,6 +2941,10 @@ function readBars(): void {
 
   void nextTick(() => bottom?.keep());
 }
+
+// The typing band coming and going changes the room under the conversation as a bar does, so a reader at the end stays
+// there.
+watch(typingBand, () => void nextTick(() => bottom?.keep()));
 
 onMounted(() => {
   barSizes = new ResizeObserver(readBars);

@@ -1,9 +1,10 @@
 <template>
   <!-- The band over a room's input bar, and the room's typing picture floating in it while somebody writes
-       (docs/web.md, 「Presence and typing」, the room's typing picture). The band keeps its height whether or not
-       anybody writes, and the conversation's end stands above it, so the picture covers neither the box nor the
-       newest line; it is a bar at the screen's foot to what floats over the page area, which stands above it. The
-       band itself takes no press, so what lies under its empty part is pressed as it would be. -->
+       (docs/web.md, 「Presence and typing」, the room's typing picture). The band takes the picture's room only while the
+       picture stands, its fade out included, and tells the room so through `standing`; the conversation's end stands
+       above it, so the picture covers neither the box nor the newest line; it is a bar at the screen's foot to what
+       floats over the page area, which stands above it. The band itself takes no press, so what lies under its empty
+       part is pressed as it would be. -->
   <div data-typing-band data-screen-foot class="pointer-events-none">
     <UContainer class="flex h-full items-center">
       <!-- What a screen reader hears, standing whether or not anybody writes, so each change is announced. -->
@@ -18,6 +19,7 @@
         leave-active-class="transition-opacity duration-(--bmo-motion-quick) ease-(--bmo-ease-exit) motion-reduce:transition-none"
         enter-from-class="opacity-0"
         leave-to-class="opacity-0"
+        @after-leave="emit('standing', false)"
       >
         <!-- The faces stand 4px inside its rounded ends, so their curves are concentric with the picture's. -->
         <PipFrame v-show="writing" data-typing-picture role="img" :aria-label="shownSaid" class="pointer-events-auto relative h-7 ps-1 pe-3">
@@ -47,6 +49,8 @@ import type { Typist } from "~/domain/presence";
 import type { PresenceWho, RoomMember, RoomMembersView } from "#shared/types";
 
 const props = defineProps<{ chatId: number }>();
+// Whether the picture stands, from the moment a writer is drawn until its fade out has ended.
+const emit = defineEmits<{ standing: [standing: boolean] }>();
 
 const { t } = useI18n();
 const typing = useTyping();
@@ -109,6 +113,14 @@ const named = computed<PresenceWho[]>(() => writers.value.filter((who) => !await
 const typists = computed<Typist[]>(() => typistsOf(named.value, members.value, avatars.value));
 const said = computed<string | null>(() => typingWords(t, typists.value));
 const writing = computed<boolean>(() => typists.value.length > 0);
+
+watch(
+  writing,
+  (now) => {
+    if (now) emit("standing", true);
+  },
+  { immediate: true }
+);
 
 // What the picture draws: the writers now, and while it fades out the last writers it showed.
 // It is held whole rather than made deeply reactive, since each writer is replaced, never changed in place.

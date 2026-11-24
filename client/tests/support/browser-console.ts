@@ -234,6 +234,16 @@ const MEMBERS: readonly { name: string; password: string; sections: readonly { s
       { section: "account", read: true, write: true }
     ]
   },
+  // The person who brings a local AI of their own, whose own supply is all that carries their runs and whose PC the
+  // agency reaches (docs/web.md, 「The start guide」 and 「Settings」, the supply section's local AIs).
+  {
+    name: "local-ai-member",
+    password: "fixture-password-4203",
+    sections: [
+      { section: "rooms", read: true, write: false },
+      { section: "account", read: true, write: true }
+    ]
+  },
   // The person whose organisation supplies their runs, who may add their own beside it or put it off in the start
   // guide (docs/web.md, 「The start guide」).
   {
@@ -983,6 +993,23 @@ let ownedBmo: number | null = null;
 const unitRepositories = new Map<string, Record<string, unknown>>();
 // The people the agency's stand-in answers as able to run on their own supply alone, holding none of their own.
 const ownSupplyOnly = new Set<string>();
+// The people who may add a local AI of their own, their chain allowing it and a PC of theirs reached, and the local AIs
+// each keeps, by the name they gave it (the agency's `docs/supply.md`, 「A person's local AI」).
+const localAiOwners = new Set<string>();
+const localAis = new Map<string, Record<string, unknown>[]>();
+// The address a local AI standing in answers at, as a person's PC reaches it; any other the PC does not reach.
+const LOCAL_AI_HOST = "localhost:11434";
+
+// Whether an address is the local AI standing in.
+function localAiAnswers(url: unknown): boolean {
+  if (typeof url !== "string") return false;
+
+  try {
+    return new URL(url).host === LOCAL_AI_HOST;
+  } catch {
+    return false;
+  }
+}
 // Each person's own gateway keys as the agency's stand-in keeps them, by their owner key: a person holding one holds
 // supply of their own that is on.
 const personalKeys = new Map<string, Record<string, unknown>[]>();
@@ -1415,15 +1442,64 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
     if (path === "/supply-sources") {
       const only = ownSupplyOnly.has(owner);
+      const own = (personalKeys.get(owner) ?? []).length + (localAis.get(owner) ?? []).length > 0;
 
-      return Response.json({ personal: true, platform: !only, organisation: false, organisationSupply: false, personalOnly: only, ownSupply: (personalKeys.get(owner) ?? []).length > 0 });
+      return Response.json({ personal: true, platform: !only, organisation: false, organisationSupply: false, personalOnly: only, ownSupply: own, localAi: localAiOwners.has(owner) });
     }
 
-    // A source tried for the start guide: the stand-in's providers always answer.
+    // A source tried for the start guide: the stand-in's providers always answer; a person's local AI answers where it
+    // is the one standing in, tried before it is kept or named as one they keep.
     if (path === "/supply-test" && request.method === "POST") {
-      const body = (await request.json()) as { road?: string };
+      const body = (await request.json()) as { road?: string; model?: string; local?: { url?: string } };
+
+      if (body.road === "registered" && localAiOwners.has(owner)) {
+        // A registration is named by its key or by its name alone, as the agency reads either.
+        const kept = (localAis.get(owner) ?? []).find((one) => one.model === body.model || one.model === `registered::${body.model ?? ""}`);
+        const ok = body.local !== undefined ? localAiAnswers(body.local.url) : kept !== undefined;
+        const reasonCode = ok ? null : body.local !== undefined ? "unreachable" : "no-source";
+
+        return Response.json({ road: body.road, ok, reasonCode, reason: ok ? null : reasonCode });
+      }
 
       return Response.json({ road: body.road ?? "", ok: true, reasonCode: null, reason: null });
+    }
+
+    // A person's own local AIs, kept, switched and taken away as the agency keeps them.
+    if (path === "/personal-models" && request.method === "GET") {
+      return Response.json({ allowed: localAiOwners.has(owner), items: localAis.get(owner) ?? [] });
+    }
+
+    const localAi = /^\/personal-models\/([^/]+)$/.exec(path)?.[1];
+
+    if (localAi !== undefined) {
+      const name = decodeURIComponent(localAi);
+      const held = localAis.get(owner) ?? [];
+
+      if (request.method === "PUT") {
+        if (!localAiOwners.has(owner)) return Response.json({ error: "withheld", code: "personal-local-ai-withheld" }, { status: 403 });
+
+        const body = (await request.json()) as { url?: string; modelName?: string; keyName?: string | null };
+        const kept = { name, model: `registered::u${owner}-${name}`, url: body.url ?? "", modelName: body.modelName ?? "", keyName: body.keyName ?? null, contextTokens: 32768, enabled: true, addedAt: Math.floor(Date.now() / 1000) };
+
+        localAis.set(owner, [...held.filter((one) => one.name !== name), kept]);
+
+        return Response.json(kept, { status: held.some((one) => one.name === name) ? 200 : 201 });
+      }
+
+      if (request.method === "PATCH") {
+        const body = (await request.json()) as { enabled?: boolean };
+        const changed = held.map((one) => (one.name === name ? { ...one, enabled: body.enabled === true } : one));
+
+        localAis.set(owner, changed);
+
+        return Response.json(changed.find((one) => one.name === name) ?? {});
+      }
+
+      if (request.method === "DELETE") {
+        localAis.set(owner, held.filter((one) => one.name !== name));
+
+        return new Response(null, { status: 204 });
+      }
     }
 
     // The account service registers its supply hook as it starts, and takes it away as it stops.
@@ -2586,7 +2662,8 @@ try {
   }
 
   // The agency's own kinds on the delegation chain, declared as the agency declares them as it stands: the sign-up
-  // composition, repository management and personal apps (the agency's `policy/organisation.toml`), and the
+  // composition, repository management, personal apps and a person's own local AI (the agency's
+  // `policy/organisation.toml`), and the
   // organisation's instructions, the persona's choice and the person's own instructions (its `policy/prompt-layers.toml`),
   // and what a person may change of the agents supplied to them. Whether organisation supply stands open is the account
   // service's own kind, declared as it stands.
@@ -2597,6 +2674,7 @@ try {
     { key: "personal-apps.share-scope", shape: "keys", mode: "narrowing", levels: ["platform", "unit"], fallback: ["team", "heads"], choices: ["team", "heads", "company"], rules: true, personWriter: "heads" },
     { key: "personal-apps.share-review", shape: "flag", mode: "nearest", levels: ["platform", "unit"], fallback: false, rules: true, personWriter: "heads" },
     { key: "personal-apps.install", shape: "flag", mode: "narrowing", levels: ["platform", "unit", "person"], fallback: true, rules: true, personWriter: "heads" },
+    { key: "supply.personal-local-ai", shape: "flag", mode: "narrowing", levels: ["platform", "unit", "person"], fallback: true, rules: true, personWriter: "heads" },
     { key: "signup.composition", shape: "json", mode: "nearest", levels: ["platform", "unit", "person"], rules: false, personWriter: "heads" },
     { key: "repositories.manage", shape: "flag", mode: "nearest", levels: ["platform", "unit", "person"], fallback: true, rules: true, personWriter: "heads" },
     { key: "agency.org-instructions", shape: "text", mode: "layered", levels: ["platform", "unit"], rules: false, personWriter: "heads" },
@@ -2686,6 +2764,13 @@ try {
   if (ownOnly === undefined) throw new Error("agent-login stands in no users list");
 
   ownSupplyOnly.add(ownOnly.user);
+
+  const localMember = users.find((user) => user.name === "local-ai-member");
+
+  if (localMember === undefined) throw new Error("local-ai-member stands in no users list");
+
+  ownSupplyOnly.add(localMember.user);
+  localAiOwners.add(localMember.user);
   guideAdministrator = users.find((user) => user.name === "guide-admin")?.user ?? null;
 
   // The media room's reader and the sticker room's each have a sender of their own, linked as the administrator links

@@ -81,7 +81,7 @@ export async function supplyService<T>(event: H3Event, method: "GET" | "PUT" | "
  * whoever signs in, and the agency then keeps the call to that person's accounts and keys (its `docs/api.md`,
  * 「Who a caller acts for」).
  */
-export async function supplyAgency<T>(event: H3Event, method: "GET" | "POST" | "PATCH" | "DELETE", path: string, body?: unknown): Promise<T> {
+export async function supplyAgency<T>(event: H3Event, method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE", path: string, body?: unknown, call: AgencyCall = PERSONAL_SUPPLY_CALL): Promise<T> {
   const unit = unitAt("AGENCY");
 
   if (unit === null) throw fail(503, wording(CONTROL_UNREACHABLE));
@@ -98,7 +98,7 @@ export async function supplyAgency<T>(event: H3Event, method: "GET" | "POST" | "
     return response.ok ? { data: parsed as T, response } : { error: (parsed ?? {}) as { code?: string; error?: string; field?: string }, response };
   });
 
-  return await agencyCall<T, { code?: string; error?: string; field?: string }>(asked, PERSONAL_SUPPLY_CALL);
+  return await agencyCall<T, { code?: string; error?: string; field?: string }>(asked, call);
 }
 
 // How a supply route reads a path or a body field; what does not read as its kind is none.

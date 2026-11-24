@@ -70,7 +70,12 @@ export async function supplySourcesOf(event: H3Event): Promise<SupplySourcesRead
   try {
     const answer = await agency(event).GET("/supply-sources");
 
-    return answer.data === undefined ? null : { personal: answer.data.personal, personalOnly: answer.data.personalOnly, ownSupply: answer.data.ownSupply };
+    if (answer.data === undefined) return null;
+
+    // `localAi` is read as the agency answers it, whether or not the client's types name it yet.
+    const read: typeof answer.data & { localAi?: unknown } = answer.data;
+
+    return { personal: read.personal, personalOnly: read.personalOnly, ownSupply: read.ownSupply, localAi: read.localAi === true };
   } catch {
     return null;
   }
@@ -143,12 +148,14 @@ interface GuideFacts {
   kept: GuideKept | null;
   live: SupplyNeed;
   providers: GuideProvider[] | null;
+  // Whether a member may add a local AI of their own now.
+  localAi: boolean;
 }
 
 async function factsOf(event: H3Event, signed: SignedIn): Promise<GuideFacts> {
   const account = signed.id;
 
-  if (account === null) return { flow: null, kept: null, live: "supplied", providers: null };
+  if (account === null) return { flow: null, kept: null, live: "supplied", providers: null, localAi: false };
 
   const kept = await keptGuide(account);
 
@@ -156,10 +163,12 @@ async function factsOf(event: H3Event, signed: SignedIn): Promise<GuideFacts> {
     const providers = await providersOf(event);
     const flow = guideFlowFor({ administrator: true, account: true }, kept, await platformWorking(event, signed, providers));
 
-    return { flow, kept: kept?.flow === flow ? kept : null, live: "supplied", providers };
+    return { flow, kept: kept?.flow === flow ? kept : null, live: "supplied", providers, localAi: false };
   }
 
-  return { flow: "member", kept: kept?.flow === "member" ? kept : null, live: supplyNeedOf(await supplySourcesOf(event)), providers: null };
+  const sources = await supplySourcesOf(event);
+
+  return { flow: "member", kept: kept?.flow === "member" ? kept : null, live: supplyNeedOf(sources), providers: null, localAi: sources?.localAi === true };
 }
 
 /** Whether the guide opens by itself for the reader now, read with no more than its gate needs. */
@@ -179,11 +188,15 @@ export async function guideViewOf(event: H3Event, signed: SignedIn): Promise<Gui
 
   if (facts.flow === null || signed.id === null) return none;
 
-  const [attached, features, roads] = await Promise.all([
+  const [attached, features, providers, members] = await Promise.all([
     facts.flow === "member" ? machineAttached(signed.id) : Promise.resolve(true),
     consoleFeatures(),
-    Promise.all([facts.providers ?? providersOf(event), memberRoads()]).then(([providers, members]) => guideRoads(facts.flow!, providers ?? [], members))
+    facts.providers ?? providersOf(event),
+    memberRoads()
   ]);
+  // A member's local AI is offered where the agency says they may add one now: their chain allows it and a PC of their
+  // own reaches its address.
+  const roads = guideRoads(facts.flow, providers ?? [], members, facts.localAi);
   const steps = guideSteps(facts.flow, { need, supplyLater, machineAttached: attached, organisations: features.organizations });
 
   return {

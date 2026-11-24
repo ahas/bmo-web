@@ -16,6 +16,8 @@
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
 
+import { testReasonKey } from "#shared/guide";
+
 import type { GuideTest } from "#shared/guide";
 
 interface Props {
@@ -34,18 +36,8 @@ const failure = ref("");
 // A source not ready yet is still being made, no failure: it is said in the quiet colour.
 const waiting = computed(() => failure.value === "" && result.value?.reasonCode === "not-ready");
 
-// The agency's reasons, each with its sentence in the pack; one the pack has no sentence for reads as a failed try.
-const REASONS: Readonly<Record<string, string>> = {
-  "no-source": "guide.message.reason_no_source",
-  "login-needed": "guide.message.reason_login_needed",
-  "not-ready": "guide.message.reason_not_ready",
-  refused: "guide.message.reason_refused",
-  off: "guide.message.reason_off",
-  failed: "guide.message.reason_failed"
-};
-
 function reasonText(code: string | null): string {
-  return t(REASONS[code ?? "failed"] ?? "guide.message.reason_failed");
+  return t(testReasonKey(code));
 }
 
 async function run(): Promise<void> {

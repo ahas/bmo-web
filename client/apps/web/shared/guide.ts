@@ -29,6 +29,8 @@ export interface SupplySourcesRead {
   personal: boolean;
   personalOnly: boolean;
   ownSupply: boolean;
+  // Whether they may add a local AI of their own now: their chain allows it and they hold a PC of their own.
+  localAi: boolean;
 }
 
 /** What the console keeps of a person's progress. */
@@ -228,17 +230,19 @@ export function platformWorks(providers: readonly GuideProvider[], accounts: rea
 }
 
 /**
- * The roads the provider step offers. A member: Claude, signed in on their own PC, and a key of every gateway road
- * switched on whose road holds a member of the gateway. The administrator: Claude signed in on the server, a key of
+ * The roads the provider step offers. A member: Claude, signed in on their own PC, a key of every gateway road
+ * switched on whose road holds a member of the gateway, and a local AI their own PC reaches where `localOpen` says
+ * they may add one now. The administrator: Claude signed in on the server, a key of
  * every switched-on provider that reads its own key from a file, and a local AI.
  */
-export function guideRoads(flow: GuideFlow, providers: readonly GuideProvider[], memberRoads: ReadonlySet<string>): GuideRoad[] {
+export function guideRoads(flow: GuideFlow, providers: readonly GuideProvider[], memberRoads: ReadonlySet<string>, localOpen = false): GuideRoad[] {
   const on = providers.filter((one) => one.enabled);
 
   if (flow === "member") {
     return on.flatMap((one): GuideRoad[] => {
       if (one.name === CLAUDE_ROAD) return [{ road: one.name, kind: "login", keyFile: null }];
-      if (one.gateway && !one.registered && memberRoads.has(one.name)) return [{ road: one.name, kind: "key", keyFile: null }];
+      if (one.registered) return localOpen ? [{ road: one.name, kind: "local", keyFile: null }] : [];
+      if (one.gateway && memberRoads.has(one.name)) return [{ road: one.name, kind: "key", keyFile: null }];
 
       return [];
     });
@@ -251,4 +255,23 @@ export function guideRoads(flow: GuideFlow, providers: readonly GuideProvider[],
 
     return [];
   });
+}
+
+/** The agency's reasons a source's test answers, each with its sentence in the pack; one the pack has no sentence for
+ * reads as a failed try. */
+const TEST_REASONS: Readonly<Record<string, string>> = {
+  "no-source": "guide.message.reason_no_source",
+  "login-needed": "guide.message.reason_login_needed",
+  "not-ready": "guide.message.reason_not_ready",
+  refused: "guide.message.reason_refused",
+  off: "guide.message.reason_off",
+  failed: "guide.message.reason_failed",
+  withheld: "guide.message.reason_withheld",
+  "no-pc": "guide.message.reason_no_pc",
+  unreachable: "guide.message.reason_unreachable"
+};
+
+/** The pack's key of the sentence for a test's reason. */
+export function testReasonKey(code: string | null): string {
+  return TEST_REASONS[code ?? "failed"] ?? "guide.message.reason_failed";
 }

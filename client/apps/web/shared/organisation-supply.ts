@@ -6,9 +6,9 @@ import type { OwnProvider, OwnRoad } from "./own-agents";
 // agents its people are given as their accounts are made ready. No secret value stands in any shape here: what a
 // screen learns of a key is its name.
 
-/** The source a unit opens or closes below it on the chain: its own supply. Which other sources stand is the supply
- * policy's. */
-export type SourceKind = "organisation";
+/** What a unit opens or closes below it on the chain: its own supply, and whether its people may add a local AI of
+ * their own. Which other sources stand is the supply policy's. */
+export type SourceKind = "organisation" | "personal-local-ai";
 
 /** Whether the links below a unit may change a setting: allowed, locked, or following the link above. */
 export type ChainDelegation = "allow" | "lock" | "inherit";

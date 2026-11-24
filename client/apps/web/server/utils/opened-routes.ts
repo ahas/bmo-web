@@ -90,7 +90,7 @@ export const openedRoutes: readonly OpenedRoute[] = [
   // asks, and the account service and the agency decide who heads what (docs/web.md, 「Organisation」).
   { method: "GET", path: /^\/api\/organization\/units\/\d+\/(?:supply|composition)$/, scope: "user" },
   { method: "GET", path: /^\/api\/organization\/units\/\d+\/composition\/models\/[^/]+$/, scope: "user" },
-  { method: "PUT", path: /^\/api\/organization\/units\/\d+\/(?:composition|supply\/company|supply\/sources\/[a-z]+)$/, scope: "user" },
+  { method: "PUT", path: /^\/api\/organization\/units\/\d+\/(?:composition|supply\/company|supply\/sources\/[a-z-]+)$/, scope: "user" },
   { method: "POST", path: /^\/api\/organization\/units\/\d+\/supply\/keys$/, scope: "user" },
   { method: "PATCH", path: /^\/api\/organization\/units\/\d+\/supply\/keys\/[^/]+$/, scope: "user" },
   { method: "DELETE", path: /^\/api\/organization\/units\/\d+\/supply\/keys\/[^/]+$/, scope: "user" },
@@ -209,13 +209,13 @@ export const openedRoutes: readonly OpenedRoute[] = [
   // The reader's own supervisors, whose log and turns open to them.
   { method: "GET", path: /^\/api\/me\/agents$/, scope: "user" },
   // The reader's own start guide: where it stands, whether it opens by itself, its progress written, a source of the
-  // reader's tried and the room its last step opens (docs/web.md, 「The start guide」). Adding a local AI is the
-  // administrator's.
+  // reader's tried and the room its last step opens (docs/web.md, 「The start guide」). A local AI added there is a
+  // member's own, or the platform's where the administrator adds it.
   { method: "GET", path: /^\/api\/me\/guide$/, scope: "user" },
   { method: "PUT", path: /^\/api\/me\/guide$/, scope: "user" },
   { method: "GET", path: /^\/api\/me\/guide\/(?:opens|room)$/, scope: "user" },
   { method: "POST", path: /^\/api\/me\/guide\/test$/, scope: "user" },
-  { method: "POST", path: /^\/api\/me\/guide\/local-ai$/, scope: "user", administrator: true },
+  { method: "POST", path: /^\/api\/me\/guide\/local-ai$/, scope: "user" },
 
   // The account's own surface.
   section(ACCOUNT, "POST", /^\/api\/account$/),

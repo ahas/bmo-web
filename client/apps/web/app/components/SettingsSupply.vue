@@ -1,6 +1,6 @@
 <template>
   <!-- The reader's own supply (docs/web.md, 「Organisation」, the supply tab with the reader's own node chosen): their
-       own Claude logins and gateway keys, each with its place in the walk, its switch and what it can do now, then the
+       own Claude logins, gateway keys and local AIs, each with its switch and what it can do now, then the
        order a run of theirs falls through every source, the organisation's own among them, this month's spend and what
        their supply has left. No credential and no secret value stands on this screen: what a
        row says of a key is its name. -->
@@ -77,6 +77,36 @@
         </template>
       </SettingsGroup>
 
+      <!-- The reader's own local AIs: servers their own PC reaches, each tried from that PC before it is kept. -->
+      <ContentSkeleton v-if="localReading && localView === null" :rows="1" list-class="flex flex-col divide-y divide-default" :label="$t('supply.status.loading')">
+        <div class="flex items-center gap-4 py-3">
+          <SkeletonLine width="w-1/3" />
+          <SkeletonBar class="ms-auto h-5 w-9 shrink-0 rounded-full" />
+        </div>
+      </ContentSkeleton>
+      <div v-else-if="localView !== null" class="flex flex-col" data-supply-local-ai>
+        <SettingsGroup :title="$t('supply.title.local_ai')">
+          <template #aside>
+            <UTooltip :text="$t('supply.action.local_ai_add')">
+              <UButton size="sm" color="neutral" variant="ghost" icon="i-material-symbols-add" :aria-label="$t('supply.action.local_ai_add')" :disabled="busy !== '' || !localView.allowed" data-supply-local-ai-add @click="openLocalAdd" />
+            </UTooltip>
+          </template>
+
+          <SettingsRow v-if="localView.items.length === 0" :label="$t('supply.label.local_ai_none')" />
+          <SettingsRow v-for="one in localView.items" v-else :key="one.name" :label="one.name" :data-supply-local-ai-row="one.name">
+            <template #description>
+              <span class="flex min-w-0 flex-col text-sm">
+                <span class="truncate font-mono text-muted">{{ one.url }}</span>
+                <span class="truncate text-muted">{{ one.modelName }}</span>
+              </span>
+            </template>
+            <IconButton size="xs" color="error" icon="i-material-symbols-delete-outline" :label="$t('supply.aria.local_ai_remove', { name: one.name })" :disabled="busy !== ''" @click="removeLocal(one)" />
+            <USwitch :model-value="one.enabled" :loading="busy === `local:${one.name}`" :disabled="busy !== '' || (!one.enabled && !localView.allowed)" :aria-label="$t('supply.aria.local_ai_switch', { name: one.name })" @update:model-value="(on: boolean) => void setLocal(one, on)" />
+          </SettingsRow>
+        </SettingsGroup>
+        <p v-if="!localView.allowed" class="text-sm text-muted" data-supply-local-ai-withheld>{{ $t("supply.label.local_ai_withheld") }}</p>
+      </div>
+
       <!-- The order: each source the reader may shape with its arrows and its switch, one the platform locks with its
            switch disabled and the words saying so, the end of the fall last, and the sources a later layer closes greyed under them
            all with their reason. The personal credits' monthly cap stands under their row. -->
@@ -136,6 +166,31 @@
       </template>
     </SettingsDialog>
 
+    <!-- A local AI added: its name, the address as the reader's own PC reaches it, its model and one of the reader's own
+         secrets by name where it asks a key; tried from their PC, and kept only once it answers. -->
+    <SettingsDialog v-model:open="addingLocal" :title="$t('supply.title.local_ai_add')" :dirty="localChanges">
+      <form id="supply-local-ai-form" class="flex flex-col gap-4" @submit.prevent="void addLocal()">
+        <UFormField :label="$t('guide.label.name')" name="name" :error="localField === 'name' ? localFailed : undefined">
+          <UInput v-model="localForm.name" class="w-full font-mono" autocomplete="off" spellcheck="false" placeholder="ollama" data-supply-local-ai-name />
+        </UFormField>
+        <UFormField :label="$t('guide.label.address')" name="url" :help="$t('supply.label.local_ai_address_note')" :error="localField === 'url' ? localFailed : undefined">
+          <UInput v-model="localForm.url" class="w-full font-mono" type="url" autocomplete="off" spellcheck="false" placeholder="http://localhost:11434/v1" data-supply-local-ai-url />
+        </UFormField>
+        <UFormField :label="$t('guide.label.model')" name="modelName" :error="localField === 'modelName' ? localFailed : undefined">
+          <UInput v-model="localForm.modelName" class="w-full font-mono" autocomplete="off" spellcheck="false" placeholder="qwen3" data-supply-local-ai-model />
+        </UFormField>
+        <UFormField :label="$t('guide.label.key')" :hint="$t('common.label.optional')" name="keyName">
+          <ChoiceSelect v-model="localForm.keyName" :items="localKeyChoices" value-key="value" class="w-full" :aria-label="$t('guide.label.key')" data-supply-local-ai-key />
+        </UFormField>
+        <p v-if="localFailed !== '' && localField === null" role="alert" class="break-words text-sm text-error" data-supply-local-ai-failure>{{ localFailed }}</p>
+      </form>
+
+      <template #footer="{ close }">
+        <UButton :label="$t('common.action.cancel')" color="neutral" variant="ghost" @click="close()" />
+        <UButton type="submit" form="supply-local-ai-form" :label="$t('supply.action.local_ai_save')" :loading="busy === 'local-add'" :disabled="busy !== '' || !localReady" data-supply-local-ai-save />
+      </template>
+    </SettingsDialog>
+
     <!-- A key added: the provider, and one of the reader's own secrets picked by name — or the way to the secret
          store where their space holds none yet. The value never passes through this form. -->
     <SettingsDialog v-model:open="addingKey" :title="$t('supply.title.key_add')" :dirty="keyChanges">
@@ -172,7 +227,10 @@ import { useConfirm } from "~/domain/confirm";
 import { costText, creditsText, keyStatus, loginStatus, meSetting, movedSourceOrder, orderRows, roadLabel, sourceLabel, sourceReasonText, SUPPLY_ROADS } from "~/domain/supply";
 import { openSettings, useSettings } from "~/domain/settings-dialog";
 
+import { localAiNamed } from "#shared/local-ai";
+
 import type { PersonalSupplyKey, SupplyMe, SupplyMeSetting, SpentSource } from "#shared/supply";
+import type { LocalAi, LocalAiView } from "#shared/local-ai";
 import type { ClaudeAccountView, ClaudeLoginStarted, FallbackView, KeptSecret, SecretList } from "#shared/types";
 import type { DropdownMenuItem } from "@nuxt/ui";
 
@@ -215,11 +273,96 @@ async function load(): Promise<void> {
     logins.value = fallback.accounts;
     keys.value = keptKeys;
     secrets.value = kept.secrets.map((one: KeptSecret) => one.name);
+    void loadLocal();
     capWords.value = ownView.personalCreditCredits === null ? "" : String(ownView.personalCreditCredits);
   } catch (error) {
     failure.value = failureText(error, t("supply.error.read_failed"));
   } finally {
     reading.value = false;
+  }
+}
+
+// --- The reader's own local AIs, at the agency ---
+
+// Read on their own after the section: an agency that keeps none yet leaves the group out rather than the section.
+const localView = ref<LocalAiView | null>(null);
+const localReading = ref(true);
+// A choice holds no empty value, so no key stands as a word no secret's name can be: one never begins with a dot.
+const NO_KEY = ".";
+const addingLocal = ref(false);
+const localForm = reactive({ name: "", url: "", modelName: "", keyName: NO_KEY });
+const localFailed = ref("");
+const localField = ref<string | null>(null);
+const localChanges = useOpenedWith(() => ({ ...localForm }), { open: addingLocal });
+const localReady = computed(() => localAiNamed(localForm.name) && localForm.url.trim() !== "" && localForm.modelName.trim() !== "");
+// No key first, then each of the reader's own secrets by name.
+const localKeyChoices = computed(() => [{ value: NO_KEY, label: t("supply.label.local_ai_no_key") }, ...secrets.value.map((one) => ({ value: one, label: one }))]);
+
+async function loadLocal(): Promise<void> {
+  try {
+    localView.value = await $fetch<LocalAiView>("/api/supply/local-ai");
+  } catch {
+    localView.value = null;
+  } finally {
+    localReading.value = false;
+  }
+}
+
+function openLocalAdd(): void {
+  Object.assign(localForm, { name: "", url: "", modelName: "", keyName: NO_KEY });
+  localFailed.value = "";
+  localField.value = null;
+  addingLocal.value = true;
+}
+
+async function addLocal(): Promise<void> {
+  if (!localReady.value || busy.value !== "") return;
+
+  busy.value = "local-add";
+  localFailed.value = "";
+  localField.value = null;
+  try {
+    const name = localForm.name.trim();
+
+    await $fetch(`/api/supply/local-ai/${encodeURIComponent(name)}`, {
+      method: "PUT",
+      body: { url: localForm.url.trim(), modelName: localForm.modelName.trim(), keyName: localForm.keyName === NO_KEY ? null : localForm.keyName }
+    });
+    addingLocal.value = false;
+    await loadLocal();
+  } catch (error) {
+    localFailed.value = failureText(error, t("supply.error.local_ai_failed"));
+    localField.value = (error as { data?: { data?: { field?: string } } }).data?.data?.field ?? null;
+  } finally {
+    busy.value = "";
+  }
+}
+
+async function setLocal(one: LocalAi, on: boolean): Promise<void> {
+  busy.value = `local:${one.name}`;
+  try {
+    await $fetch(`/api/supply/local-ai/${encodeURIComponent(one.name)}`, { method: "PATCH", body: { enabled: on } });
+    await loadLocal();
+  } catch (error) {
+    failure.value = failureText(error, t("supply.error.local_ai_failed"));
+  } finally {
+    busy.value = "";
+  }
+}
+
+async function removeLocal(one: LocalAi): Promise<void> {
+  const taken = await confirm({ title: t("supply.message.local_ai_delete", { name: one.name }), effect: t("supply.message.local_ai_delete_effect"), confirm: t("common.action.delete") });
+
+  if (!taken) return;
+
+  busy.value = `local:${one.name}`;
+  try {
+    await $fetch(`/api/supply/local-ai/${encodeURIComponent(one.name)}`, { method: "DELETE" });
+    await loadLocal();
+  } catch (error) {
+    failure.value = failureText(error, t("supply.error.local_ai_failed"));
+  } finally {
+    busy.value = "";
   }
 }
 

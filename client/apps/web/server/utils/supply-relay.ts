@@ -4,6 +4,7 @@ import { emptyFallbackView } from "../../app/domain/agent-settings";
 
 import { policyBody, sourceList, sourceOwner, sourceScope, supplyAgency, supplyService, textValue, wholeValue } from "./supply";
 import { signedInUser } from "./accounts";
+import { keepLocalAi, localAiAsked, localAiIncomplete, localAis, removeLocalAi, switchLocalAi, tryLocalAi } from "./local-ai";
 import { mayRead, mayWrite } from "#shared/sections";
 import { sectionAccessOf } from "./section-access";
 
@@ -34,6 +35,10 @@ import type { H3Event } from "h3";
 //   POST personal                   a key added: a road and the name of one of the reader's own secrets
 //   PATCH personal/{key}            one key's place or switch
 //   DELETE personal/{key}           one key taken away; the secret itself stays in the store
+//   GET  local-ai                   the reader's own local AIs, and whether their organisation lets them add one
+//   POST local-ai/test              a local AI tried from the reader's PC before it is kept
+//   PUT  local-ai/{name}            a local AI tried from the reader's PC and kept once it answers
+//   PATCH local-ai/{name}           one local AI's switch;  DELETE local-ai/{name} takes it away
 //   GET  logins                     the reader's own Claude logins, in their order
 //   POST logins                     the reader's own change: the order, a switch, a row removed
 //   POST signin                     a sign-in started on the reader's node: a new one, named by the agency where
@@ -82,7 +87,7 @@ export async function supplyRelay(event: H3Event): Promise<unknown> {
 
   if (head === "platform" || head === "plans" || head === "credits") {
     if (!signed.administrator) throw absent();
-  } else if (head === "me" || head === "logins" || head === "signin" || head === "personal") {
+  } else if (head === "me" || head === "logins" || head === "signin" || head === "personal" || head === "local-ai") {
     if (!signed.administrator) {
       if (signed.id === null) throw absent();
 
@@ -119,6 +124,7 @@ export async function supplyRelay(event: H3Event): Promise<unknown> {
   }
 
   if (head === "personal") return await keys(event, method, parts, body);
+  if (head === "local-ai") return await localAi(event, method, parts, body);
   if (head === "logins" && parts.length === 0) return await logins(event, method, body);
   if (head === "signin") return await signIn(event, method, parts, body);
   if (head === "org") return await org(event, method, parts, body);
@@ -227,6 +233,50 @@ async function keys(event: H3Event, method: string, parts: string[], body: Recor
     setResponseStatus(event, 204);
 
     await supplyAgency<void>(event, "DELETE", `/personal-supply/${encodeURIComponent(key)}`);
+
+    return null;
+  }
+
+  throw absent();
+}
+
+// The reader's own local AIs, at the agency (docs/web.md, 「Settings」, the supply section's local AIs).
+async function localAi(event: H3Event, method: string, parts: string[], body: Record<string, unknown>): Promise<unknown> {
+  if (parts.length === 0) {
+    if (method === "GET") return await localAis(event);
+
+    throw absent();
+  }
+
+  const name = textValue(parts[0]);
+
+  if (parts.length !== 1 || name === null) throw absent();
+
+  if (name === "test" && method === "POST") {
+    const asked = localAiAsked({ ...body, name: "test" });
+
+    if (asked === null) throw localAiIncomplete();
+
+    return await tryLocalAi(event, asked);
+  }
+
+  if (method === "PUT") {
+    const asked = localAiAsked(body, name);
+
+    if (asked === null) throw localAiIncomplete();
+
+    return await keepLocalAi(event, asked);
+  }
+
+  if (method === "PATCH") {
+    if (typeof body.enabled !== "boolean") throw bad();
+
+    return await switchLocalAi(event, name, body.enabled);
+  }
+
+  if (method === "DELETE") {
+    setResponseStatus(event, 204);
+    await removeLocalAi(event, name);
 
     return null;
   }

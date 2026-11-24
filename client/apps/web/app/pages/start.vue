@@ -165,7 +165,9 @@ const line = computed(() => {
     case "provider":
       return t(flowName.value === "platform" ? "guide.message.step_platform" : "guide.message.step_provider");
     case "connect":
-      return t(road.value?.kind === "login" ? "guide.message.step_connect_login" : road.value?.kind === "local" ? "guide.message.step_connect_local" : "guide.message.step_connect_key");
+      if (road.value?.kind === "local") return t(flowName.value === "platform" ? "guide.message.step_connect_local" : "guide.message.step_connect_local_member");
+
+      return t(road.value?.kind === "login" ? "guide.message.step_connect_login" : "guide.message.step_connect_key");
     case null:
       return "";
     default:
@@ -179,7 +181,9 @@ const roadItems = computed(() =>
     if (one.kind === "login") {
       return { value: one.road, label: t("supply.label.road_claude"), description: t(flowName.value === "platform" ? "guide.label.road_login_platform" : "guide.label.road_login_member") };
     }
-    if (one.kind === "local") return { value: one.road, label: t("guide.label.road_local"), description: t("guide.label.road_local_line") };
+    if (one.kind === "local") {
+      return { value: one.road, label: t("guide.label.road_local"), description: t(flowName.value === "platform" ? "guide.label.road_local_line" : "guide.label.road_local_member_line") };
+    }
 
     return { value: one.road, label: t("guide.label.road_key", { provider: roadLabel(t, one.road) }), description: t("guide.label.road_key_line") };
   })

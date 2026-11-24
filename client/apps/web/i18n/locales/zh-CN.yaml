@@ -2440,6 +2440,7 @@ guide:
     road_key_line: 输入一次密钥
     road_local: 本地 AI
     road_local_line: OpenAI 兼容地址
+    road_local_member_line: "你的电脑能访问的 OpenAI 兼容地址"
   action:
     next: 下一步
     back: 上一步
@@ -2485,6 +2486,10 @@ guide:
     reason_refused: 密钥被拒绝。
     reason_off: 提供方已关闭。
     reason_failed: 无法连接。
+    step_connect_local_member: "用你的电脑能访问的 OpenAI 兼容地址注册你自己的本地 AI。\n先在你的电脑上试过再保存。"
+    reason_withheld: "你的组织不允许个人本地 AI。"
+    reason_no_pc: "本地 AI 要从你自己的电脑访问。\n请先连接你的电脑。"
+    reason_unreachable: "你的电脑无法访问这个地址。\n请确认电脑已开机且本地 AI 正在运行。"
   error:
     failed: 无法保存入门指南。
     read_failed: 无法加载入门指南。
@@ -2562,6 +2567,7 @@ org_agents:
     stands_platform: 遵循平台规则
     stands_off: 沿用上级，禁止
     stands_agents: "沿用上级，智能体 {count}"
+    source_personal_local_ai: "个人本地 AI"
   aria:
     composition_road: "更改 {name} 智能体 {count} 的提供商 · 模型"
     source_switch: "开启{name}"
@@ -4748,6 +4754,8 @@ supply:
     plan_edit: 编辑套餐
     plan_applied: 已应用套餐
     plan_exposed: 可见套餐
+    local_ai: "本地 AI"
+    local_ai_add: "添加本地 AI"
   label:
     cap_follows: "遵循上级"
     platform_keys_none: "没有从文件读取密钥的供应商"
@@ -4856,6 +4864,10 @@ supply:
     personal_none: 无个人供给
     providers: 个人供给提供方
     resolved_order: 供给顺序
+    local_ai_none: "没有本地 AI"
+    local_ai_withheld: "你的组织不允许添加本地 AI。"
+    local_ai_address_note: "你的电脑能访问的地址。localhost 指你的电脑。"
+    local_ai_no_key: "无密钥"
   action:
     login_add: 添加供给登录
     login_again: 登录
@@ -4869,6 +4881,8 @@ supply:
     plan_change: 更改
     plan_apply: 应用
     more: 加载更多
+    local_ai_add: "添加本地 AI"
+    local_ai_save: "测试后保存"
   aria:
     login_switch: "开启 {name} 供给登录"
     key_switch: "开启 {name} 供给密钥"
@@ -4876,6 +4890,8 @@ supply:
     source_overridable: "允许 {name} 个人设置"
     order_overridable: 允许顺序个人设置
     plan_exposed: "显示 {name}"
+    local_ai_switch: "开启 {name}"
+    local_ai_remove: "删除 {name}"
   status:
     loading: 正在加载供给信息…
     ledger_loading: 正在加载账本…
@@ -4890,6 +4906,8 @@ supply:
     policy_delete_effect_user: 此人将遵循所属组织的策略。
     plan_delete: "要删除 {name} 套餐吗？"
     plan_delete_effect: 此后不会再有人新购买此套餐。
+    local_ai_delete: "要删除本地 AI {name} 吗?"
+    local_ai_delete_effect: "使用它的智能体会寻找其他供给。密钥仍保留在机密保管库中。"
   error:
     read_failed: 无法加载供给信息。
     logins_failed: 无法更改供给登录。
@@ -4923,6 +4941,14 @@ supply:
     node_off: 设备未连接，无法开始登录。
     node_setting_up: 设备仍在准备中，请几分钟后再试。
     secret_name: 密钥名称无效。
+    local_ai_failed: "无法保存本地 AI。"
+    local_ai_url: "地址必须是以 http 开头的 OpenAI 兼容地址。"
+    local_ai_key: "机密名称无效。"
+    local_ai_withheld: "你的组织不允许个人本地 AI。"
+    local_ai_no_pc: "本地 AI 要从你自己的电脑访问。请先连接你的电脑。"
+    local_ai_no_port: "没有空位再连接本地 AI。"
+    local_ai_gone: "该本地 AI 不存在。"
+    local_ai_unchecked: "无法确认组织设置。请稍后重试。"
 security:
   label:
     forgot: "忘记密码？"

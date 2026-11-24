@@ -1,7 +1,8 @@
 <template>
   <!-- The supply tab's organisation supply (docs/web.md, 「Organisation」, the supply tab): the unit chosen in the tree,
-       the company where none is — whether the platform offers it to the company, whether it stands open under the
-       unit, closed here or following above with what the links below may do, and the unit's own keys. A key's value
+       the company where none is — whether the platform offers it to the company, whether it and a person's own local
+       AI stand open under the unit, closed here or following above with what the links below may do, and the unit's
+       own keys. A key's value
        is typed once into the form and goes to the unit's secret store; a row says of a key its name alone. -->
   <div v-if="!withheld" class="flex flex-col gap-4" data-agent-supply>
     <ContentSkeleton v-if="view === null && failure === ''" :rows="3" list-class="flex flex-col divide-y divide-default" :label="$t('supply.status.loading')">
@@ -137,7 +138,8 @@ const delegations = computed(() => [
 ]);
 // Each source's word, from the pack whole.
 const SOURCE_WORDS: Readonly<Record<SourceKind, string>> = {
-  organisation: "org_agents.label.source_organisation"
+  organisation: "org_agents.label.source_organisation",
+  "personal-local-ai": "org_agents.label.source_personal_local_ai"
 };
 // The roads a unit registers a key for: Claude Code on an Anthropic API key, and the gateway's roads.
 const roads = computed(() => [

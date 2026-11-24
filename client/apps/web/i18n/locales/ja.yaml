@@ -2440,6 +2440,7 @@ guide:
     road_key_line: キーを一度入力
     road_local: ローカルAI
     road_local_line: OpenAI互換のアドレス
+    road_local_member_line: "自分のPCから届くOpenAI互換アドレス"
   action:
     next: 次へ
     back: 戻る
@@ -2485,6 +2486,10 @@ guide:
     reason_refused: キーが拒否されました。
     reason_off: プロバイダーがオフです。
     reason_failed: 接続できませんでした。
+    step_connect_local_member: "自分のPCから届くOpenAI互換アドレスで自分のローカルAIを登録します。\n自分のPCで試してから保存します。"
+    reason_withheld: "組織が個人のローカルAIを許可していません。"
+    reason_no_pc: "ローカルAIは自分のPCから接続します。\n先に自分のPCを接続してください。"
+    reason_unreachable: "自分のPCからこのアドレスに届きませんでした。\nPCが起動していてローカルAIが動いているか確認してください。"
   error:
     failed: はじめにを保存できませんでした。
     read_failed: はじめにを読み込めませんでした。
@@ -2562,6 +2567,7 @@ org_agents:
     stands_platform: プラットフォームのルールに従う
     stands_off: 上位に従いブロック
     stands_agents: "上位に従いエージェント {count}"
+    source_personal_local_ai: "個人のローカルAI"
   aria:
     composition_road: "{name} エージェント {count} のプロバイダー · モデルを変更"
     source_switch: "{name}をオン"
@@ -4748,6 +4754,8 @@ supply:
     plan_edit: プランを編集
     plan_applied: 適用プラン
     plan_exposed: 公開プラン
+    local_ai: "ローカルAI"
+    local_ai_add: "ローカルAIを追加"
   label:
     cap_follows: "上位に従う"
     platform_keys_none: "ファイルからキーを読む供給元なし"
@@ -4856,6 +4864,10 @@ supply:
     personal_none: 個人供給なし
     providers: 個人供給の提供元
     resolved_order: 供給順序
+    local_ai_none: "ローカルAIなし"
+    local_ai_withheld: "組織がローカルAIの追加を許可していません。"
+    local_ai_address_note: "自分のPCから届くアドレスです。localhostは自分のPCを指します。"
+    local_ai_no_key: "キーなし"
   action:
     login_add: 供給ログインを追加
     login_again: ログイン
@@ -4869,6 +4881,8 @@ supply:
     plan_change: 変更
     plan_apply: 適用
     more: さらに読み込む
+    local_ai_add: "ローカルAIを追加"
+    local_ai_save: "試して保存"
   aria:
     login_switch: "{name} の供給ログインをオン"
     key_switch: "{name} の供給キーをオン"
@@ -4876,6 +4890,8 @@ supply:
     source_overridable: "{name} の個人設定を許可"
     order_overridable: 順序の個人設定を許可
     plan_exposed: "{name} を公開"
+    local_ai_switch: "{name}をオン"
+    local_ai_remove: "{name}を削除"
   status:
     loading: 供給情報を読み込み中…
     ledger_loading: 台帳を読み込み中…
@@ -4890,6 +4906,8 @@ supply:
     policy_delete_effect_user: この人は所属組織のポリシーに従います。
     plan_delete: "{name} プランを削除しますか？"
     plan_delete_effect: 今後このプランを新たに購入する人はいなくなります。
+    local_ai_delete: "ローカルAI {name} を削除しますか?"
+    local_ai_delete_effect: "このローカルAIを使っていたエージェントは別の供給を探します。キーはシークレット保管庫に残ります。"
   error:
     read_failed: 供給情報を読み込めませんでした。
     logins_failed: 供給ログインを変更できませんでした。
@@ -4923,6 +4941,14 @@ supply:
     node_off: デバイスが接続されていないため、ログインを開始できません。
     node_setting_up: デバイスはまだ準備中です。数分後にもう一度お試しください。
     secret_name: シークレット名が正しくありません。
+    local_ai_failed: "ローカルAIを保存できませんでした。"
+    local_ai_url: "アドレスはhttpで始まるOpenAI互換のアドレスである必要があります。"
+    local_ai_key: "シークレット名が正しくありません。"
+    local_ai_withheld: "組織が個人のローカルAIを許可していません。"
+    local_ai_no_pc: "ローカルAIは自分のPCから接続します。先に自分のPCを接続してください。"
+    local_ai_no_port: "これ以上ローカルAIを接続する空きがありません。"
+    local_ai_gone: "そのローカルAIはありません。"
+    local_ai_unchecked: "組織の設定を確認できませんでした。しばらくしてから再試行してください。"
 security:
   label:
     forgot: "パスワードをお忘れですか?"

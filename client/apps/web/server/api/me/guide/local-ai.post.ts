@@ -1,14 +1,26 @@
 import { wording } from "#shared/wording";
 import { completionsAddress, REGISTRY_ROAD } from "#shared/guide";
 
-// A local AI added for the administrator's start guide (docs/web.md, 「The start guide」): the model registered with the
-// agency under its name, and its one address set on node `local`, naming the key file the console's secret store wrote
-// in the platform's space where one was given (the agency's `docs/api.md`, 「providers, models and model files」). A
+import { keepLocalAi, localAiAsked, localAiIncomplete } from "../../../utils/local-ai";
+
+// A local AI added in the start guide (docs/web.md, 「The start guide」): a member's own, kept by the agency as theirs;
+// the administrator's, the model registered with the agency under its name, and its one address set on node `local`,
+// naming the key file the console's secret store wrote in the platform's space where one was given (the agency's `docs/api.md`, 「providers, models and model files」). A
 // registration whose address the agency refuses is taken away again, so nothing half made stands.
 const NODE = "local";
 
 export default defineEventHandler(async (event): Promise<{ model: string }> => {
-  await requireAdministrator(event);
+  const signed = await signedInUser(event);
+
+  // A member's own local AI, reached from their PC: its key their own secret by name, tried there first and kept once
+  // it answers (docs/web.md, 「The start guide」; the agency's `docs/supply.md`, 「A person's local AI」).
+  if (!signed.administrator) {
+    const asked = localAiAsked(await readBody<Record<string, unknown>>(event));
+
+    if (asked === null) throw localAiIncomplete();
+
+    return { model: (await keepLocalAi(event, asked)).model };
+  }
 
   const body = await readBody<{ name?: unknown; url?: unknown; model?: unknown; keyFile?: unknown }>(event);
   const text = (value: unknown): string => (typeof value === "string" ? value.trim() : "");

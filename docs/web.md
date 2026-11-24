@@ -7704,8 +7704,10 @@ the screen, the screen's whole width on a phone, opened to every signed-in perso
   with its line under it:
   - a member's: Claude, signed in on their own PC, where Claude Code is on; and a key of Codex, DeepSeek or OpenRouter
     where that provider is on and its road holds a member of the gateway (the agency's `GET /gateway-members`), since
-    a person's key is laid beside the road's members (the agency's `docs/own-llm.md`, 「Personal members」). A local
-    AI is no member's choice: a registration is the platform's to make.
+    a person's key is laid beside the road's members (the agency's `docs/own-llm.md`, 「Personal members」); and 로컬
+    AI, a server their own PC reaches, where the registry's provider is on and the agency says they may add one now
+    — their chain allows it and a PC of their own reaches the address (its `GET /supply-sources`, `localAi`; its
+    `docs/supply.md`, 「A person's local AI」).
   - the administrator's, under 플랫폼 공급: Claude, signed in on the server; a key of every switched-on provider that
     reads its own key from a file (its `keyFile`); and 로컬 AI, an OpenAI-compatible address.
   - Where none stands, the step says so in one line and offers 나중에 alone.
@@ -7719,15 +7721,22 @@ the screen, the screen's whole width on a phone, opened to every signed-in perso
   - the administrator's key: written into the platform's space under the file name the provider reads, as 플랫폼 공급
     키's 키 설정 leads to;
   - 로컬 AI: 이름, the registration's name by the registry's rule; 주소, the OpenAI-compatible base address, to which
-    the chat completions path is added where it does not end in it; 모델; and 키 (선택), written into the platform's
-    space under `local-ai-{name}`. The console's server registers the model with the agency (`POST /models`) and sets
-    its one address, node `local`, naming that file (`PUT /models/{modelKey}/addresses/{node}`), through
-    `POST /api/me/guide/local-ai`; a refusal is said under the field it names.
+    the chat completions path is added where it does not end in it; 모델; and 키 (선택), all through
+    `POST /api/me/guide/local-ai`, a refusal said under the field it names:
+    - the administrator's: the key written into the platform's space under `local-ai-{name}`; the console's server
+      registers the model with the agency (`POST /models`) and sets its one address, node `local`, naming that file
+      (`PUT /models/{modelKey}/addresses/{node}`);
+    - a member's: the key written into their own space under `local-ai-{name}`, the address as their own PC reaches
+      it, `localhost` being the PC's own; the console's server asks the agency to try it from their PC first, in their
+      name (`POST /supply-test` with `local`), and keeps it only once it answers (`PUT /personal-models/{name}`), so a
+      local AI that does not answer is said under the form with the agency's reason and nothing is kept.
   A step's 다음 stands off until what it asks is done, and a refusal is said under the form in the pack's words.
 - **연결 시험 asks the agency to try the source now** (`POST /supply-test`, as the reader, through
   `POST /api/me/guide/test`): the person's own on the road chosen, the platform's on it for the administrator, a local
-  AI by its registration. It says 연결됨, or the pack's sentence for the agency's reason — no source of the kind on, a
-  login needed, not ready yet (a few seconds more), the key refused, the provider switched off, or the try failed —
+  AI by its registration, a member's from their own PC. It says 연결됨, or the pack's sentence for the agency's reason
+  — no source of the kind on, a login needed, not ready yet (a few seconds more), the key refused, the provider
+  switched off, the try failed, their organisation forbidding a local AI, no PC of their own, or their PC not
+  reaching it —
   with 다시 시험. 다음 opens once the test has passed; an optional supply may go on with 나중에 all the same.
 - **기기** stands where the person's machine is not attached (`GET /api/me/machine`): the desktop app's way of the join
   page — the download, the console's address for the app, and the code from the app's title bar, approved for the
@@ -9278,6 +9287,12 @@ stands on it.
   administrator on a company, a first row, 이 회사에 조직 공급 제공, opens organisation supply to the company or closes it
   again, a rule naming the company at the platform's link. Each switch and choice is written on the delegation chain
   as the reader, and the group read again.
+- **개인 로컬 AI** is whether the people under the unit may add a local AI of their own (the agency's `docs/supply.md`,
+  「A person's local AI」), the delegation chain's `supply.personal-local-ai`, which the agency declares, on unless a
+  link turns it off: one row in the same group, its switch saying whether it stands open there and closing it at the
+  unit, or opening it again to follow above, beside its select of what the units below may do with it, as 조직 공급's
+  row stands; under a lock above both stand disabled with 조직이 정함 · and the locking unit's name. It stands on this
+  tab alone.
 - **조직 공급 키** stands for a head of the unit and the administrator: the unit's own keys and Claude accounts (the
   agency's `docs/supply.md`, 「Organisation supply」), each by its secret's name with its 공급자 and 사용 가능, 키 거부됨
   or 꺼짐, its switch and its delete, asked first. The add at the heading's end opens 조직 공급 키 추가: 공급자 — Claude
@@ -9445,6 +9460,18 @@ a row shows of a key is the secret's name, and of a login the path it is reached
   from the names the reader's space holds and the choice standing empty with one line leading to 비밀 보관함 where
   it holds none; the form hands the name alone, and a provider the reader already carries a key for, or one the
   gateways serve none of, is refused in the dialog.
+- **로컬 AI** lists the reader's own local AIs (the agency's `docs/supply.md`, 「A person's local AI」), one row each:
+  the name they gave it as the label, its address in the monospace face and its model under it, and its switch and
+  its 삭제, asked first. A local AI is their own supply, so it goes out where 개인 공급 stands in 공급 순서, for an
+  agent of theirs whose road names it. 로컬 AI 추가 at the heading's end opens a form of 이름 — lowercase letters,
+  digits and hyphens —, 주소, the OpenAI-compatible base address as their own PC reaches it, `localhost` being the
+  PC's own, the chat completions path added where it does not end in it, 모델, and 키 (선택), one of the reader's
+  own secrets chosen by name, as 키 추가 chooses one; 시험 후 저장 asks the agency to try it from their PC
+  (`POST /api/supply/local-ai/test`, the agency's `POST /supply-test` with `local`) and saves it only once it answers
+  (`PUT /api/supply/local-ai/{name}`), the agency's reason said in the form otherwise. Where the chain does not let
+  the reader add one, the add stands disabled and one muted line under the group says their organisation does not
+  allow it; their rows stand as they are. The rows and the add read `GET`, `PUT`, `PATCH` and `DELETE
+  /api/supply/local-ai`, relayed to the agency's `/personal-models` in the reader's name.
 - **공급 순서** stands the sources a run may fall through, in the order resolved for the reader, 조직 공급 among them
   where the platform offers it to the reader's company — in the order while it stands open, its switch disabled and
   its arrows moving it not, since the account service places it before every platform source; among the closed rows,

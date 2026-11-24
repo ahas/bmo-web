@@ -2424,6 +2424,7 @@ guide:
     road_key_line: Enter a key once
     road_local: Local AI
     road_local_line: OpenAI-compatible address
+    road_local_member_line: "An OpenAI-compatible address your PC reaches"
   action:
     next: Next
     back: Back
@@ -2469,6 +2470,10 @@ guide:
     reason_refused: The key was refused.
     reason_off: The provider is turned off.
     reason_failed: Could not connect.
+    step_connect_local_member: "Register your own local AI by an OpenAI-compatible address your PC reaches.\nIt is tried from your PC before it is saved."
+    reason_withheld: "Your organization does not allow a local AI of your own."
+    reason_no_pc: "A local AI is reached from your own PC.\nConnect your PC first."
+    reason_unreachable: "Your PC could not reach this address.\nCheck that your PC is on and the local AI is running."
   error:
     failed: Could not save getting started.
     read_failed: Could not load getting started.
@@ -2546,6 +2551,7 @@ org_agents:
     stands_platform: Follows platform rules
     stands_off: "Blocked, following parent"
     stands_agents: "{count} agents, following parent"
+    source_personal_local_ai: "Personal local AI"
   aria:
     composition_road: "Change provider · model of {name} agent {count}"
     source_switch: "Turn on {name}"
@@ -4718,6 +4724,8 @@ supply:
     plan_edit: Edit plan
     plan_applied: Applied plan
     plan_exposed: Visible plans
+    local_ai: "Local AI"
+    local_ai_add: "Add local AI"
   label:
     cap_follows: "Follows above"
     platform_keys_none: "No provider reads its key from a file"
@@ -4826,6 +4834,10 @@ supply:
     personal_none: No personal supply
     providers: Personal supply providers
     resolved_order: Supply order
+    local_ai_none: "No local AI"
+    local_ai_withheld: "Your organization does not allow adding a local AI."
+    local_ai_address_note: "The address as your PC reaches it. localhost means your PC."
+    local_ai_no_key: "No key"
   action:
     login_add: Add supply login
     login_again: Log in
@@ -4839,6 +4851,8 @@ supply:
     plan_change: Change
     plan_apply: Apply
     more: Load more
+    local_ai_add: "Add local AI"
+    local_ai_save: "Test and save"
   aria:
     login_switch: "Turn on supply login {name}"
     key_switch: "Turn on supply key {name}"
@@ -4846,6 +4860,8 @@ supply:
     source_overridable: "Allow personal settings for {name}"
     order_overridable: Allow personal settings for order
     plan_exposed: "Show {name}"
+    local_ai_switch: "Turn {name} on"
+    local_ai_remove: "Delete {name}"
   status:
     loading: Loading supply info…
     ledger_loading: Loading ledger…
@@ -4860,6 +4876,8 @@ supply:
     policy_delete_effect_user: "This person will follow their organization's policy."
     plan_delete: "Delete plan {name}?"
     plan_delete_effect: No one new will be able to buy this plan.
+    local_ai_delete: "Delete local AI {name}?"
+    local_ai_delete_effect: "Your agents that used it look for another supply. Its key stays in your secret store."
   error:
     read_failed: "Couldn't load supply info."
     logins_failed: "Couldn't change the supply login."
@@ -4893,6 +4911,14 @@ supply:
     node_off: "The device isn't connected, so the login can't start."
     node_setting_up: Your device is still being set up. Try again in a few minutes.
     secret_name: "The secret name isn't valid."
+    local_ai_failed: "Could not save the local AI."
+    local_ai_url: "The address must be an OpenAI-compatible address starting with http."
+    local_ai_key: "The secret name is not valid."
+    local_ai_withheld: "Your organization does not allow a local AI of your own."
+    local_ai_no_pc: "A local AI is reached from your own PC. Connect your PC first."
+    local_ai_no_port: "There is no room to connect another local AI."
+    local_ai_gone: "That local AI does not exist."
+    local_ai_unchecked: "Your organization's setting could not be checked. Try again shortly."
 security:
   label:
     forgot: "Forgot your password?"

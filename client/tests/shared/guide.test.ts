@@ -11,7 +11,8 @@ import {
   needOf,
   platformWorks,
   stepAt,
-  supplyNeedOf
+  supplyNeedOf,
+  testReasonKey
 } from "../../apps/web/shared/guide";
 
 import type { GuideKept, GuideProvider } from "../../apps/web/shared/guide";
@@ -25,22 +26,22 @@ const facts = { supplyLater: false, machineAttached: true, organisations: true }
 
 describe("a member's supply step by their chain", () => {
   test("stands as no step where the organisation or the platform supplies everything", () => {
-    expect(supplyNeedOf({ personal: false, personalOnly: false, ownSupply: false })).toBe("supplied");
+    expect(supplyNeedOf({ personal: false, personalOnly: false, ownSupply: false, localAi: true })).toBe("supplied");
     expect(guideSteps("member", { ...facts, need: "supplied" })).toEqual(["welcome", "talk"]);
   });
 
   test("stands as no step where one of their own is on already", () => {
-    expect(supplyNeedOf({ personal: true, personalOnly: true, ownSupply: true })).toBe("supplied");
+    expect(supplyNeedOf({ personal: true, personalOnly: true, ownSupply: true, localAi: true })).toBe("supplied");
   });
 
   test("is optional where their own may stand beside what is supplied, and put off it passes the setup over", () => {
-    expect(supplyNeedOf({ personal: true, personalOnly: false, ownSupply: false })).toBe("optional");
+    expect(supplyNeedOf({ personal: true, personalOnly: false, ownSupply: false, localAi: true })).toBe("optional");
     expect(guideSteps("member", { ...facts, need: "optional" })).toEqual(["welcome", "supply", "provider", "connect", "test", "talk"]);
     expect(guideSteps("member", { ...facts, need: "optional", supplyLater: true })).toEqual(["welcome", "supply", "talk"]);
   });
 
   test("is required where their own is all there is, and putting it off does not pass it over", () => {
-    expect(supplyNeedOf({ personal: true, personalOnly: true, ownSupply: false })).toBe("required");
+    expect(supplyNeedOf({ personal: true, personalOnly: true, ownSupply: false, localAi: true })).toBe("required");
     expect(guideSteps("member", { ...facts, need: "required", supplyLater: true })).toEqual(["welcome", "supply", "provider", "connect", "test", "talk"]);
   });
 
@@ -132,6 +133,22 @@ describe("the roads offered", () => {
       { road: "claude-code", kind: "login", keyFile: null },
       { road: "deepseek", kind: "key", keyFile: null }
     ]);
+  });
+
+  test("to a member whose chain allows a local AI and whose machine is attached: a local AI of their own as well", () => {
+    expect(guideRoads("member", providers, new Set(["deepseek"]), true)).toEqual([
+      { road: "claude-code", kind: "login", keyFile: null },
+      { road: "deepseek", kind: "key", keyFile: null },
+      { road: "registered", kind: "local", keyFile: null }
+    ]);
+  });
+
+  test("names each reason a test answers by its sentence, an unknown one as a failed try", () => {
+    expect(testReasonKey("unreachable")).toBe("guide.message.reason_unreachable");
+    expect(testReasonKey("no-pc")).toBe("guide.message.reason_no_pc");
+    expect(testReasonKey("withheld")).toBe("guide.message.reason_withheld");
+    expect(testReasonKey("something-new")).toBe("guide.message.reason_failed");
+    expect(testReasonKey(null)).toBe("guide.message.reason_failed");
   });
 
   test("to the administrator: Claude, the keys read from a file, and a local AI", () => {

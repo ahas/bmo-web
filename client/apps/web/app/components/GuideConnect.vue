@@ -1,7 +1,7 @@
 <template>
   <!-- The start guide's connect step (docs/web.md, 「The start guide」): what the road chosen asks — a Claude sign-in, on the
        reader's own PC for a member and on the server for the administrator; a key typed once into the secret store; or a
-       local AI's address registered with the agency. No credential is read back: a key goes to the secret store alone. -->
+       local AI's address registered with the agency, a member's tried from their own PC before it is kept. No credential is read back: a key goes to the secret store alone. -->
   <div class="flex flex-col gap-4" :data-guide-connect="road.kind">
     <template v-if="road.kind === 'login'">
       <template v-if="done">
@@ -40,8 +40,8 @@
         <UFormField :label="$t('guide.label.name')" name="name" :error="fieldError('name')">
           <UInput v-model="local.name" class="w-full font-mono" autocomplete="off" spellcheck="false" placeholder="local-model" data-guide-local-name />
         </UFormField>
-        <UFormField :label="$t('guide.label.address')" name="url" :error="fieldError('url')">
-          <UInput v-model="local.url" class="w-full font-mono" type="url" autocomplete="off" spellcheck="false" placeholder="http://localhost:8000/v1" data-guide-local-url />
+        <UFormField :label="$t('guide.label.address')" name="url" :help="platform ? undefined : $t('supply.label.local_ai_address_note')" :error="fieldError('url')">
+          <UInput v-model="local.url" class="w-full font-mono" type="url" autocomplete="off" spellcheck="false" :placeholder="platform ? 'http://localhost:8000/v1' : 'http://localhost:11434/v1'" data-guide-local-url />
         </UFormField>
         <UFormField :label="$t('guide.label.model')" name="model" :error="fieldError('model')">
           <UInput v-model="local.model" class="w-full font-mono" autocomplete="off" spellcheck="false" data-guide-local-model />
@@ -179,7 +179,8 @@ async function saveKey(): Promise<void> {
   }
 }
 
-// --- A local AI: its key into the platform's space, then its registration and its one address ---
+// --- A local AI: the administrator's, its key into the platform's space, then its registration and its one address;
+// a member's, its key into their own space, then tried from their PC and kept as theirs once it answers ---
 
 const local = reactive({ name: "", url: "", model: "", key: "" });
 
@@ -200,10 +201,10 @@ async function saveLocal(): Promise<void> {
     const keyFile = local.key.trim() === "" ? null : `local-ai-${name}`;
 
     if (keyFile !== null) await keepSecret(keyFile, local.key.trim());
-    await $fetch("/api/me/guide/local-ai", { method: "POST", body: { name, url: local.url.trim(), model: local.model.trim(), keyFile } });
+    const kept = await $fetch<{ model: string }>("/api/me/guide/local-ai", { method: "POST", body: { name, url: local.url.trim(), model: local.model.trim(), keyFile } });
     local.key = "";
     done.value = true;
-    emit("registered", `${REGISTRY_ROAD}::${name}`);
+    emit("registered", platform.value ? `${REGISTRY_ROAD}::${name}` : kept.model);
   } catch (error) {
     refused(error, "guide.error.failed");
   } finally {

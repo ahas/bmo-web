@@ -101,7 +101,7 @@ async function tab(page: Page, name: string): Promise<void> {
 
 describe.skipIf(!origin || !touchReady())("an organisation's agents", () => {
   for (const width of WIDTHS) {
-    test(`the administrator opens organisation supply to a company and adds a key of its own at ${width}px`, async () => {
+    test(`the administrator opens organisation supply to a company, closes a person's local AI there and adds a key of its own at ${width}px`, async () => {
       const context = await contextFor(ADMINISTRATOR.name, width);
       const page = await context.newPage();
 
@@ -110,7 +110,24 @@ describe.skipIf(!origin || !touchReady())("an organisation's agents", () => {
       const sources = page.locator("[data-agent-supply]");
 
       await sources.locator("[data-agent-supply-organisation]").waitFor({ timeout: 20_000 });
-      expect(await sources.locator("[data-agent-source]").evaluateAll((rows) => rows.map((row) => (row as HTMLElement).dataset.agentSource))).toEqual(["organisation"]);
+      expect(await sources.locator("[data-agent-source]").evaluateAll((rows) => rows.map((row) => (row as HTMLElement).dataset.agentSource))).toEqual(["organisation", "personal-local-ai"]);
+
+      // A person's own local AI stands open until a link closes it; closed at the company it reads closed again, and
+      // opened again it follows above.
+      const local = sources.locator('[data-agent-source="personal-local-ai"]');
+      const localSwitch = '[data-agent-source="personal-local-ai"] [role="switch"]';
+
+      expect(await local.innerText()).toContain(wording("org_agents.label.source_personal_local_ai"));
+      await page.waitForFunction((at) => document.querySelector(at)?.getAttribute("aria-checked") === "true", localSwitch, { timeout: 15_000 });
+      expect(await reachable(local.getByRole("switch"))).toBe(true);
+      await local.getByRole("switch").click();
+      await page.waitForFunction((at) => document.querySelector(at)?.getAttribute("aria-checked") === "false", localSwitch, { timeout: 15_000 });
+      await page.reload({ waitUntil: "load" });
+      await standing(page);
+      await page.waitForFunction((at) => document.querySelector(at)?.getAttribute("aria-checked") === "false", localSwitch, { timeout: 20_000 });
+      await sources.locator('[data-agent-source="personal-local-ai"]').getByRole("switch").click();
+      await page.waitForFunction((at) => document.querySelector(at)?.getAttribute("aria-checked") === "true", localSwitch, { timeout: 15_000 });
+      expect(await overflows(page)).toBe(false);
 
       // Organisation supply stands closed until the company is given it, and the key's add with it.
       const organisation = sources.locator('[data-agent-source="organisation"]');

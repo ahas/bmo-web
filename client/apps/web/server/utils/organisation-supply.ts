@@ -23,11 +23,13 @@ import type { H3Event } from "h3";
 
 /** The chain's kind of each source a unit opens or closes, as the account service declares it. */
 const SOURCE_KINDS: Readonly<Record<SourceKind, string>> = {
-  organisation: "supply.organisation"
+  organisation: "supply.organisation",
+  // The agency's kind, declared with its others (its `docs/supply.md`, 「A person's local AI」).
+  "personal-local-ai": "supply.personal-local-ai"
 };
 
-/** The sources a unit opens or closes on the chain. */
-export const SOURCES: readonly SourceKind[] = ["organisation"];
+/** What a unit opens or closes on the chain. */
+export const SOURCES: readonly SourceKind[] = ["organisation", "personal-local-ai"];
 
 /** The chain's kind of the sign-up composition. */
 const COMPOSITION_KIND = "signup.composition";
@@ -86,7 +88,9 @@ async function sourceAt(unit: number, source: SourceKind, signed: SignedIn): Pro
 
   return {
     source,
-    stands: organisationOpen(resolved.layers, resolved.value),
+    // Organisation supply stands open only where the platform opened it; a person's local AI stands unless a link
+    // closes it.
+    stands: source === "organisation" ? organisationOpen(resolved.layers, resolved.value) : resolved.value !== false,
     closedHere: entry.value === false,
     delegation: entry.delegation,
     writable: entry.writable,
@@ -117,7 +121,10 @@ async function itemsOf(event: H3Event, unit: number): Promise<UnitSupplyItem[] |
 
 /** The agent supply of a unit as the reader stands to it; `company` says the unit is a company. */
 export async function unitSupply(event: H3Event, unit: number, company: boolean, signed: SignedIn): Promise<UnitSupplyView> {
-  const sources = (await Promise.all(SOURCES.map((source) => sourceAt(unit, source, signed)))).filter((one): one is UnitSourceView => one !== null);
+  // A kind the agency has not declared yet answers nothing, and leaves its row out rather than the tab.
+  const at = async (source: SourceKind): Promise<UnitSourceView | null> =>
+    source === "organisation" ? await sourceAt(unit, source, signed) : await sourceAt(unit, source, signed).catch(() => null);
+  const sources = (await Promise.all(SOURCES.map(at))).filter((one): one is UnitSourceView => one !== null);
 
   if (sources.length === 0) throw fail(403, wording("org_agents.error.forbidden"));
 

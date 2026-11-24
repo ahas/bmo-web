@@ -84,7 +84,9 @@ which stands.
     added and removed as the agency keeps them, a sign-up composition read off and written onto the account service's
     chain as the agency does, one fixture member whose runs only their
     own supply can carry, each person's own gateway keys added, listed and taken away as the agency keeps them, a
-    person holding one holding supply of their own, every supply source tried answering, one fixture administrator
+    person holding one holding supply of their own, every supply source tried answering, another fixture member of
+    that kind who may add a local AI of their own, whose local AIs are kept, switched and taken away as the agency
+    keeps them and tried answering at `localhost:11434` alone, every other address unreached from their PC, one fixture administrator
     answered a platform with no working source — every provider but Claude Code unable to answer and no Claude
     account — and a registration's address set, and every other road with the unit's own not-found;
   - the agency's own kinds on the delegation chain, declared as the agency declares them as it stands;

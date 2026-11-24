@@ -3,13 +3,15 @@
 # the reader reads the console in. A code file holds none.
 
 # The marks a message's text opens with where it stands for something other than words. A voice message's
-# text is its mark, with the recording's length where one is known, then the words it says; a line an agent sends
-# as the service rather than in its own voice opens with the notice mark and a space. A chat service writes a mark
-# in the words of its own policy, which are not this pack's language, and the archive keeps rows written in more
+# text is its mark, with the recording's length where one is known, then the words it says. A chat service writes a
+# mark in the words of its own policy, which are not this pack's language, and the archive keeps rows written in more
 # than one, so each mark that stands for what a message carried lists every word it is written with.
 marks:
   voice: ["음성", "Voice"]
-  notice: "[봇 알림]"
+  # The mark, followed by a space, that a line the service said as itself opens with in rows the archive kept before
+  # such a line was kept as a fixed line, in every language it was written in: read only so such a row is drawn as a
+  # system line, its words standing without the mark. The service writes it no more.
+  notice: ["[봇 알림]", "[Bot notice]", "[ボット通知]", "[机器人通知]"]
   # What a message carried, as it is marked at the head of its text: a kept file with its name, a kept picture, a
   # sticker kept as its picture, alone or with what it shows after a colon or a space, a kept video or round video
   # note, and a kept sound with its name.

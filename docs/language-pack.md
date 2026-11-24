@@ -63,7 +63,10 @@
   - A name the pack cannot know is handed in with its particle already joined by the code's particle helper,
     and its mark says so: `{subject}` is a name with 이 or 가, `{topic}` a word with 은 or 는. The server's
     helper takes the particles from the pack's `particles` part, which a language that joins none to a name
-    holds empty, so the mark is the bare name there.
+    holds empty, so the mark is the bare name there. It reads a name's last sound past any closing bracket or
+    quotation mark: a Hangul syllable by its final, a figure as it is read aloud, and a name ending in capital
+    letters by the last letter's own name, L, M, N and R closing on a consonant; a name it cannot read takes the
+    pack's form holding both.
   - A short piece joined between parts of a line — a separator, a lead space — is a key of its own where it is
     wording, and stays in the code where it is markup.
 

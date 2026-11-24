@@ -1,7 +1,7 @@
 //! What the service asks of the agency (docs/boundary.md, 「Calls the server makes」): the registration of
 //! the supply hook as the server starts, and the administrator's read of whose personal supply serves which
-//! roads. The agency holds the credentials themselves, on the person's node and in the secret store; nothing
-//! read here is ever a key or a secret's value.
+//! roads, and the label an agent is shown by, which a fixed line names it with. The agency holds the credentials
+//! themselves, on the person's node and in the secret store; nothing read here is ever a key or a secret's value.
 
 use axum::http::StatusCode;
 use serde::Deserialize;
@@ -18,6 +18,12 @@ pub trait Agency: Send + Sync {
 
   /// The roads one person's personal supply serves, as the agency's administrator read answers them.
   async fn supply_roads(&self, user: &str) -> Result<Vec<String>, Refusal>;
+
+  /// The label a supervisor is shown by, as its row at the agency carries it: none where it carries none, no
+  /// supervisor has the name, or the agency does not answer, so the caller names the agent by its key.
+  async fn label(&self, _agent: &str) -> Option<String> {
+    None
+  }
 }
 
 /// The agency over HTTP, at its base address with its token.
@@ -53,6 +59,12 @@ struct Person {
   user: serde_json::Value,
   #[serde(default)]
   roads: Vec<String>,
+}
+
+#[derive(Deserialize)]
+struct Supervisor {
+  #[serde(default)]
+  label: Option<String>,
 }
 
 fn unreached(call: &str, why: impl std::fmt::Display) -> Refusal {
@@ -109,6 +121,31 @@ impl Agency for AgencyClient {
         .map(|person| person.roads)
         .unwrap_or_default(),
     )
+  }
+
+  async fn label(&self, agent: &str) -> Option<String> {
+    let mut address = reqwest::Url::parse(&format!("{}/supervisors", self.base)).ok()?;
+
+    address.path_segments_mut().ok()?.push(agent);
+
+    // A line is never held up by the agency: one that does not answer in time names the agent by its key.
+    let answer = self
+      .http
+      .get(address)
+      .bearer_auth(&self.token)
+      .timeout(std::time::Duration::from_secs(3))
+      .send()
+      .await
+      .ok()?;
+
+    if !answer.status().is_success() {
+      return None;
+    }
+
+    let label = answer.json::<Supervisor>().await.ok()?.label?;
+    let label = label.trim();
+
+    (!label.is_empty()).then(|| label.to_owned())
   }
 }
 

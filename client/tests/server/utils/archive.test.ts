@@ -12,6 +12,9 @@ import { answer, standIn } from "../../support/units";
 // were sent with, read of the metadata for a message that carries files or is not an agent's answer, a reply
 // carrying what it answers, and no judgements beside a page.
 
+// The marks the service's own lines opened with in rows kept before such a line was kept as a fixed line.
+const NOTICE_MARKS = (marks as { marks: { notice: string[] } }).marks.notice;
+
 const message = (id: number, over: Record<string, unknown> = {}) => ({
   id,
   room: -7,
@@ -36,7 +39,7 @@ const thought = message(6, { senderId: 22, senderName: "agent-a", kind: "thinkin
 const page = [
   message(1, { forwardedFrom: { room: -5, messageId: 3, senderName: "person-b" } }),
   message(2, { senderId: 22, senderName: "agent-a", answerSeconds: 4, round: "round:-7:1:1" }),
-  message(3, { senderId: 22, senderName: "agent-a", text: `${(marks as { marks: { notice: string } }).marks.notice} restarting` }),
+  message(3, { senderId: 22, senderName: "agent-a", text: `${NOTICE_MARKS[0]} restarting` }),
   message(4, {
     replyToMessageId: 1,
     files: [
@@ -76,10 +79,12 @@ const voiced = [
   message(22, { room: -9, senderId: 33, senderName: "person-owner", round: "round:-9:1:2" })
 ];
 // A room's change in its members as the record files it, a fixed line under no sender of the room, and a person's
-// words that read the same under no kind.
+// words that read the same under no kind; then the service's stop as rows kept before it was kept as a fixed line
+// hold it, its mark in each language it was written in, filed under a sender the room does not answer as.
 const membership = [
   message(50, { room: -14, senderId: null, senderName: "agent-a", kind: "fixed-line", line: { code: "account-let-in", fields: { account: 4, by: 3 } }, text: "person-a let person-b in" }),
-  message(51, { room: -14, text: "person-a let person-b in" })
+  message(51, { room: -14, text: "person-a let person-b in" }),
+  ...NOTICE_MARKS.map((mark, at) => message(52 + at, { room: -14, senderId: 99, senderName: "service", text: `${mark} restarting` }))
 ];
 // Lines a chat service handed over, kept as fixed lines beside the plain sentence it wrote: two the server's pack
 // words, the first of them twice, one whose code it holds no sentence for, and a reply quoting the first.
@@ -301,6 +306,7 @@ describe("a page of a room", () => {
       ["3", true, true],
       ["4", false, false]
     ]);
+    expect(read.messages[2]!.text).toBe("restarting");
     expect(read.messages[1]).toMatchObject({ answerSeconds: 4, round: "round:-7:1:1", spend: null, actions: null });
     // What the round spent and did is read apart from the page, so the page asks the agency for nothing but its agents'
     // labels.
@@ -389,8 +395,16 @@ describe("a page of a room", () => {
 
     expect(read.map((one) => [one.messageId, one.notice])).toEqual([
       ["50", true],
-      ["51", false]
+      ["51", false],
+      ...NOTICE_MARKS.map((_, at) => [String(52 + at), true])
     ]);
+  });
+
+  test("a row kept as the service's marked line stands as a system line, its words without the mark", async () => {
+    const read = (await readMessagePage(-14, null, 50)).messages.filter((one) => Number(one.messageId) >= 52);
+
+    expect(NOTICE_MARKS.length).toBe(4);
+    expect(read.map((one) => [one.notice, one.agent, one.text])).toEqual(NOTICE_MARKS.map(() => [true, false, "restarting"]));
   });
 
   test("a fixed line's words, and a reply's quote of it, are the server's rendering of its line, and the kept words where it renders none", async () => {

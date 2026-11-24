@@ -6,7 +6,7 @@ import data from "../i18n/data/ko.yaml";
 interface TextMarks {
   marks: {
     voice: string[];
-    notice: string;
+    notice: string[];
     file: string[];
     picture: string[];
     sticker: string[];
@@ -62,9 +62,12 @@ export function markWords(words: readonly string[]): string {
 /** A voice message's mark: a voice word in brackets, with the recording's length where one is known. */
 export const VOICE_MARK = new RegExp(`^\\[${markWords(MARKS.voice)}(?: \\d+:\\d{2})?\\]`);
 
-/** Whether a line is sent as the service rather than in an agent's voice: it opens with the notice mark. */
-export function isSystemNotice(text: string): boolean {
-  return text.startsWith(`${MARKS.notice} `);
+/** The words of a row the archive kept, before the service's own lines were kept as fixed lines, as the service's
+ * line opening with the notice mark: its words after the mark, or null for a row that is no such line. */
+export function noticeWords(text: string): string | null {
+  const mark = MARKS.notice.find((word) => text.startsWith(`${word} `));
+
+  return mark === undefined ? null : text.slice(mark.length + 1);
 }
 
 /** The words a voice message says, as its line holds them after the mark; null for a line that is not one. */

@@ -522,8 +522,8 @@ locks against its value is refused 403 `locked-by-platform`.
   | `compact-failed` | none | `chat-health.fold.failed` |
   | `run-broken` | `agent`, `cause`, `record` | `chat-health.account.line` opened by `account.broke`, its cause `causes.unknown` where none was read and its record line where one is kept; then `last_resort.speaking` with the agent and its subject particle |
   | `chat-denied` | none | `fixed-lines.chat_denied` |
-  | `going-down-for-update` | `items` | `roads.service.mark`, then `service.stopping.deploying` with the items as `#n` where any |
-  | `going-down` | none | `roads.service.mark`, then `service.stopping.restarting` |
+  | `going-down-for-update` | `items` | `roads.service.stopping.deploying` with the items as `#n` where any, opening with no mark: the receiver keeps it as a fixed line, which the console draws as a system line |
+  | `going-down` | none | `roads.service.stopping.restarting`, opening with no mark as the deployment's |
   | `supervisor-engine-error` | `kind` | `supervisors.engine_error` of the kind |
   | `supervisor-cut` | `agent`, `reason` | `fixed-lines.supervisor_cut` |
   | `still-working` | none | `fixed-lines.still_working`, rendered for a unit that names it; the receiver, whose rounds have no time bound, names it no more |
@@ -541,6 +541,11 @@ locks against its value is refused 403 `locked-by-platform`.
   | `slept` | `agent`, `date`, `learned`, `merged`, `closed` | `fixed-lines.slept`, the agent by its name with the subject particle its last sound takes, the day it slept for and the three counts (the agency's `docs/sleep.md`) |
 
 - **The chat agent's name** in a line is the server's `names.chat_agent` setting; no name stands in the pack.
+- **An agent a line names** — `agent` on `run-broken`, `supervisor-cut`, `session-handed-over` and `slept`, the
+  agent's key — stands as the name the console shows it by: the label its row at the agency carries
+  (`GET /supervisors/{supervisorName}`, 「Calls the server makes」), and its key where the agency gives no label,
+  names no such supervisor, is not named in the settings or does not answer within three seconds. Its particle
+  is chosen by that name.
 - **An account a line names** — `account`, each of `accounts` and `by` (on `session-handed-over` too), each an account's key as a number or its decimal text — stands
   as its shown name, its full name where it keeps one and else its username, read from the service's own users; a
   key no user holds stands as the key.
@@ -597,6 +602,7 @@ Each goes to the unit's base address with that unit's token as a bearer, as the 
 | the receiver | read a message | `GET /rooms/{chat}/messages/{message}` | a message check's sender |
 | the receiver | read a room's leaders | `GET /rooms/{chat}/leaders` | whether the signed-in user leads a room whose call grant they change, and whether the one acting may let a person into it |
 | the agency | register the supply hook | `PUT /hooks/supply` (`url`, `token`) | once as the server starts, where the settings name the agency, so the agency asks who pays for a person's run; `DELETE /hooks/supply` takes it away |
+| the agency | read an agent's label | `GET /supervisors/{supervisorName}`, answered its row's `label` | the name an agent a fixed line names stands as (「Fixed lines」); a refusal, no answer within three seconds or no label names it by its key |
 | the agency | read a person's personal supply roads | `GET /personal-supply`, answered `people` | whose personal supply an administrator's read of `GET /supply/user/{user}` names, with that person in `Owner-Key` and `Owner-Role: administrator` |
 | the jake hub, at its loopback control address with its control token | read the attached agents | `GET /status` | whether a bound machine is attached, as a node read, a proof and a pairing answer it |
 | the jake hub, the same way | revoke a machine name | `POST /revoke?agent=<name>`, answered `ok`, `agent`, `left` | a machine taken away from the account bound to it, once no account holds its name |

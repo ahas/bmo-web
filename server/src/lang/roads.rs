@@ -68,11 +68,11 @@ pub struct TeamsRefusals {
   pub owner_unknown_room: String,
 }
 
-/// The lines the service says as itself rather than in the chat agent's voice.
+/// The lines the service says as itself rather than in the chat agent's voice, kept as fixed lines and drawn as system
+/// lines, so none opens with a mark.
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Service {
-  pub mark: String,
   pub stopping: Stopping,
 }
 

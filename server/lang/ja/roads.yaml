@@ -1,6 +1,5 @@
 # Translated from server/lang/ko/roads.yaml; its comments say what each value is.
 service:
-  mark: "[ボット通知]"
   stopping:
     deploying: "アップデート{items}のため、サービスが一時停止します。"
     items: " ({items}) "

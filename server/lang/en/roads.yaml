@@ -1,6 +1,5 @@
 # Translated from server/lang/ko/roads.yaml; its comments say what each value is.
 service:
-  mark: "[Bot notice]"
   stopping:
     deploying: "The service is stopping briefly for an update{items}."
     items: " ({items})"

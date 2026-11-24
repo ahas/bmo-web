@@ -12,6 +12,7 @@ use sea_orm::ConnectionTrait;
 use serde::Deserialize;
 use serde_json::{Map, Value};
 
+use crate::agency::Agency;
 use crate::lang::chat_health::CHAT_HEALTH_WORDS;
 use crate::lang::draws::DRAWS;
 use crate::lang::fixed_lines::FIXED_LINES;
@@ -331,6 +332,7 @@ fn rest_begins(until: Option<i64>, chat_agent: &str, clock: Clock) -> String {
 /// no sentence for are refused 404; a request that does not read as its code's shape, 400.
 pub async fn rendered<C: ConnectionTrait>(
   db: &C,
+  agency: &dyn Agency,
   mut asked: Map<String, Value>,
   names: &Names,
   zone: Tz,
@@ -348,7 +350,7 @@ pub async fn rendered<C: ConnectionTrait>(
   };
 
   let code = asked.get("code").and_then(Value::as_str).unwrap_or_default().to_owned();
-  let line = serde_json::from_value::<FixedLine>(Value::Object(asked))
+  let mut line = serde_json::from_value::<FixedLine>(Value::Object(asked))
     .map_err(|why| Refusal::bad(format!("the `{code}` line does not read: {why}")))?;
 
   if let FixedLine::AccountsLetIn { accounts, .. } = &line
@@ -364,6 +366,13 @@ pub async fn rendered<C: ConnectionTrait>(
   }
 
   let accounts = shown_names(db, &line.accounts()).await?;
+
+  // An agent a line names stands as the label the console shows it by, its key where the agency gives none.
+  if let Some(agent) = line.agent_mut()
+    && let Some(label) = agency.label(agent).await
+  {
+    *agent = label;
+  }
 
   let clock = Clock {
     now: Utc::now(),
@@ -399,6 +408,17 @@ async fn shown_names<C: ConnectionTrait>(db: &C, keys: &[i64]) -> Result<HashMap
 }
 
 impl FixedLine {
+  /// The agent the line names, by the key it was said with, where it names one.
+  fn agent_mut(&mut self) -> Option<&mut String> {
+    match self {
+      Self::RunBroken { agent, .. }
+      | Self::SupervisorCut { agent, .. }
+      | Self::SessionHandedOver { agent, .. }
+      | Self::Slept { agent, .. } => Some(agent),
+      _ => None,
+    }
+  }
+
   /// The accounts the line names, by key.
   fn accounts(&self) -> Vec<i64> {
     match self {
@@ -595,11 +615,12 @@ fn run_broken(agent: &str, cause: Option<&str>, record: Option<&str>) -> String 
   format!("{}\n{speaking}", account.trim_end())
 }
 
-// The service's notice as it stops: for a deployment, with the items going live where it named any, and for a
+// The service's line as it stops, kept and drawn as a system line and so carrying no mark: for a deployment, with the items going live where it named any, and for a
 // restart no deployment announced.
 fn going_down(items: Option<&[i64]>) -> String {
   let words = &ROAD_WORDS.service;
-  let line = match items {
+
+  match items {
     None => words.stopping.restarting.clone(),
     Some(items) => {
       let named = if items.is_empty() {
@@ -612,9 +633,7 @@ fn going_down(items: Option<&[i64]>) -> String {
 
       fill_marks(&words.stopping.deploying, &[("items", &named)])
     }
-  };
-
-  format!("{} {line}", words.mark)
+  }
 }
 
 impl DrawLine {
@@ -725,14 +744,22 @@ const SYLLABLES: std::ops::RangeInclusive<u32> = 0xAC00..=0xD7A3;
 const FINALS: u32 = 28;
 
 // Whether a name's last sound closes on a consonant, past any closing bracket or quotation mark: a Hangul
-// syllable by its own final, a figure as it is read aloud, and anything else unknown.
+// syllable by its own final, a figure as it is read aloud, a capital letter closing a name of capitals as the
+// letter's own name is read (L, M, N and R close on a consonant), and anything else unknown.
 fn final_sound(name: &str) -> Option<bool> {
-  let last = name
-    .trim_end_matches([
-      ')', ']', '}', '\u{300D}', '\u{300F}', '"', '\'', '\u{201D}', '\u{2019}', '\u{300B}', '\u{3009}',
-    ])
-    .chars()
-    .last()?;
+  let trimmed = name.trim_end_matches([
+    ')', ']', '}', '\u{300D}', '\u{300F}', '"', '\'', '\u{201D}', '\u{2019}', '\u{300B}', '\u{3009}',
+  ]);
+  let tail = trimmed
+    .rsplit(|character: char| !character.is_ascii_alphabetic())
+    .next()
+    .unwrap_or_default();
+
+  if !tail.is_empty() && tail.chars().all(|letter| letter.is_ascii_uppercase()) {
+    return tail.chars().last().map(|letter| matches!(letter, 'L' | 'M' | 'N' | 'R'));
+  }
+
+  let last = trimmed.chars().last()?;
 
   match last {
     syllable if SYLLABLES.contains(&(syllable as u32)) => {

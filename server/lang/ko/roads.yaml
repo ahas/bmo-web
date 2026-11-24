@@ -1,12 +1,11 @@
 # The lines a road says of itself where a person reads them (docs/chat-providers.md, 「Where the receiver
 # runs」), said by whichever process speaks on the road.
 
-# The lines the service says as itself rather than in the chat agent's voice (docs/voiced-notices.md, 「System notices」):
-# the mark such a line opens with, which sets it apart from the chat agent's words on a road and makes it a system line
-# on the console; and what the service says as it stops, for a deployment with the {items} going live where
-# it named any, and for a stop no deployment announced.
+# The lines the service says as itself rather than in the chat agent's voice (the receiver's docs/voiced-notices.md,
+# 「System notices」), kept as fixed lines the console draws as system lines and so opening with no mark: what the
+# service says as it stops, for a deployment with the {items} going live where it named any, and for a stop no
+# deployment announced.
 service:
-  mark: "[봇 알림]"
   stopping:
     deploying: "업데이트{items}로 서비스가 잠시 중지됩니다."
     items: "({items})"

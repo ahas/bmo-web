@@ -1,6 +1,5 @@
 # Translated from server/lang/ko/roads.yaml; its comments say what each value is.
 service:
-  mark: "[机器人通知]"
   stopping:
     deploying: "因更新{items}，服务将暂时停止。"
     items: "（{items}）"

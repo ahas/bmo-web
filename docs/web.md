@@ -3834,7 +3834,8 @@ hidden, and the dialog says so in so many words (대화 기록은 그대로 남�
   record alone and sent to no chat service (the receiver's `docs/unified-bmo.md`, 「The room's line」), and the console
   stands it as every fixed line (「Room screen」, a fixed line), a handover said as the agent sleeping to tidy its
   memories and waking in a fresh session and a reset as its session sleeping and starting afresh, rendered from the code `session-handed-over`
-  (`docs/boundary.md`, 「Fixed lines」).
+  (`docs/boundary.md`, 「Fixed lines」), the agent named by the label the console shows it by everywhere else, with
+  the particle that label takes.
 
 
 ### Agent screen
@@ -5867,9 +5868,13 @@ Four bounds keep it from growing forever.
     language for as long as it runs, so a reason is translated once. A translation that fails, or comes back not
     whole, stands as the English line the turn wrote, and is asked for again on the next read. The reasons are the
     verdicts' words, so a member who reads the room but not its verdicts (「Access」) is answered none.
-- **A system notice stands as a system line, not a bubble.** A line the bot sent as the service —
-  filed under the bot's own sender name, its words opening with the system notice mark
-  (the receiver's `docs/voiced-notices.md`, 「System notices」) — is the server's answer `notice` on that message.
+- **A system notice stands as a system line, not a bubble.** A line the service says as itself rather than in an
+  agent's voice — its stop for a deployment or a restart (the receiver's `docs/voiced-notices.md`, 「System
+  notices」) — is kept as a fixed line, so it is the server's answer `notice` by its kind (「A fixed line stands as a
+  system line too」), and its words open with no mark in any language, in the console as on a chat service. A row
+  the archive kept before such a line was kept as a fixed line opens with the notice mark the service then wrote,
+  in any of the languages it wrote it in, whoever it is filed under; it is read as the server's answer `notice` too,
+  and its words stand without the mark. The mark is read for that drawing alone and never written.
   - It stands centred and muted like the date mark, its time after its words, with no photo, no name
     line and no bubble, so the chat agent is not seen to have said it.
   - Its words break where they have a space, as a bubble's do, so a Korean word never folds a syllable onto a

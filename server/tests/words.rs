@@ -218,29 +218,35 @@ async fn chat_denied_tells_the_shut_room() {
   assert_eq!(rendered("chat-denied", json!({})).await, FIXED_LINES.chat_denied);
 }
 
+// The service's stop is kept and drawn as a system line (the receiver's `docs/voiced-notices.md`, 「System
+// notices」), so its words open with no mark in any language.
 #[tokio::test]
-async fn going_down_for_update_names_its_items_under_the_service_mark() {
+async fn going_down_for_update_names_its_items_with_no_mark() {
   let words = &ROAD_WORDS.service;
   let items = fill_marks(&words.stopping.items, &[("items", "#12, #34")]);
 
   assert_eq!(
     rendered("going-down-for-update", json!({ "items": [12, 34] })).await,
-    format!("{} {}", words.mark, fill_marks(&words.stopping.deploying, &[("items", &items)])),
+    fill_marks(&words.stopping.deploying, &[("items", &items)]),
   );
   assert_eq!(
     rendered("going-down-for-update", json!({ "items": [] })).await,
-    format!("{} {}", words.mark, fill_marks(&words.stopping.deploying, &[("items", "")])),
+    fill_marks(&words.stopping.deploying, &[("items", "")]),
   );
 }
 
 #[tokio::test]
-async fn going_down_is_the_restart_under_the_service_mark() {
-  let words = &ROAD_WORDS.service;
+async fn going_down_is_the_restart_alone_in_every_language() {
+  for language in Language::ALL {
+    let (status, body) = render_with("going-down", json!({}), language.code(), Some(TOKEN)).await;
 
-  assert_eq!(
-    rendered("going-down", json!({})).await,
-    format!("{} {}", words.mark, words.stopping.restarting)
-  );
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert_eq!(
+      body["text"].as_str(),
+      Some(ROAD_WORDS.in_language(language).service.stopping.restarting.as_str()),
+      "{language:?}"
+    );
+  }
 }
 
 #[tokio::test]
@@ -748,4 +754,102 @@ async fn an_account_line_names_each_account_by_its_shown_name_and_one_not_held_b
       &[("unit", &format!("unit-a{}", PARTICLES.object.unknown)), ("by", "opener-a")]
     )
   );
+}
+
+/// A stand-in agency answering the label each agent it lists is shown by.
+struct Labels(Vec<(&'static str, &'static str)>);
+
+#[async_trait::async_trait]
+impl bmo_web_server::agency::Agency for Labels {
+  async fn register_supply(&self, _url: &str, _token: &str) -> Result<(), bmo_web_server::Refusal> {
+    Ok(())
+  }
+
+  async fn supply_roads(&self, _user: &str) -> Result<Vec<String>, bmo_web_server::Refusal> {
+    Ok(Vec::new())
+  }
+
+  async fn label(&self, agent: &str) -> Option<String> {
+    self.0.iter().find(|(key, _)| *key == agent).map(|(_, label)| (*label).to_owned())
+  }
+}
+
+// An agent a line names stands as the label the agency shows it by, with the particle that label's last sound takes;
+// an agent the agency gives no label stands as its key.
+#[tokio::test]
+async fn a_line_naming_an_agent_names_it_by_its_label_and_one_with_none_by_its_key() {
+  ready();
+  let mut scratch = Scratch::new().await;
+
+  scratch.service.agency = std::sync::Arc::new(Labels(vec![("agent-a", "ABC"), ("agent-b", "XYL")]));
+
+  let app = in_force(scratch.service.clone(), TOKEN.into()).await.unwrap();
+  let said = |fields: Value| {
+    let mut body = fields.as_object().cloned().unwrap_or_default();
+
+    body.insert("language".into(), LANGUAGE.into());
+
+    let request = Request::builder()
+      .method(Method::POST)
+      .uri("/words/render")
+      .header(header::CONTENT_TYPE, "application/json")
+      .header(header::AUTHORIZATION, format!("Bearer {TOKEN}"))
+      .body(Body::from(Value::Object(body).to_string()))
+      .unwrap();
+    let app = app.clone();
+
+    async move {
+      let answer = app.oneshot(request).await.unwrap();
+      let bytes = answer.into_body().collect().await.unwrap().to_bytes();
+      let body: Value = serde_json::from_slice(&bytes).unwrap();
+
+      body["text"].as_str().unwrap().to_owned()
+    }
+  };
+  let words = &FIXED_LINES.session_handed_over;
+  let handed =
+    |name: &str| fill_marks(&words.handed_over, &[("agent", name), ("subject", &as_subject(name))]);
+
+  assert_eq!(
+    said(json!({ "code": "session-handed-over", "agent": "agent-a", "cause": "asked" })).await,
+    handed("ABC")
+  );
+  assert_eq!(
+    said(json!({ "code": "session-handed-over", "agent": "agent-b", "cause": "asked" })).await,
+    handed("XYL")
+  );
+  assert_eq!(
+    said(json!({ "code": "session-handed-over", "agent": "agent-c", "cause": "asked" })).await,
+    handed("agent-c"),
+    "an agent the agency gives no label stands as its key"
+  );
+  assert_eq!(
+    said(json!({
+      "code": "slept", "agent": "agent-a", "date": "2026-11-24", "learned": 1, "merged": 0, "closed": 0,
+    }))
+    .await,
+    fill_marks(
+      &FIXED_LINES.slept,
+      &[
+        ("agent", "ABC"),
+        ("subject", &as_subject("ABC")),
+        ("date", "2026-11-24"),
+        ("learned", "1"),
+        ("merged", "0"),
+        ("closed", "0"),
+      ],
+    )
+  );
+}
+
+// A name of capitals takes the particle its last letter's own name closes with, so no such name stands with both.
+#[test]
+fn a_name_of_capitals_takes_the_particle_its_last_letters_name_closes_with() {
+  let subject = &PARTICLES.subject;
+
+  assert_eq!(as_subject("ABC"), format!("ABC{}", subject.open));
+  assert_eq!(as_subject("XYL"), format!("XYL{}", subject.closed));
+  assert_eq!(as_subject("agent-M"), format!("agent-M{}", subject.closed));
+  assert_eq!(as_subject("(ABN)"), format!("(ABN){}", subject.closed));
+  assert_eq!(as_subject("agent-a"), format!("agent-a{}", subject.unknown));
 }

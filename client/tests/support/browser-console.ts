@@ -25,6 +25,7 @@ import { rawNumber } from "./raw-number";
 import { roleLogAnswer } from "./role-log";
 import { HIGH_ALBUM, HIGH_ANSWERED, HIGH_FILE, HIGH_FILE_NAME, HIGH_FILE_WORDS, HIGH_LINE, HIGH_PICTURE, HIGH_ROOM, highSent, highWords } from "./high-room";
 import { UNREAD_LINE, UNREAD_ROOM } from "./unread-room";
+import { SYSTEM_ROOM, systemRoom } from "./system-room";
 import { ASKED_RUN, askedRunLogAnswer } from "./asked-run";
 import { addressOf, BROWSER_CONSOLE_PREFIX, dropScratchDatabase, sweepScratchDatabases } from "./web-database";
 import { LABELS } from "./media-labels";
@@ -64,6 +65,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["skip-reason", "fixture-password-3444"],
   ["room-find", "fixture-password-2261"],
   ["room-past", "fixture-password-2943"],
+  ["system-lines", "fixture-password-4127"],
   ["pictures", "fixture-password-2262"],
   ["stickers", "fixture-password-3303"],
   ["skeleton259", "fixture-password-259"],
@@ -376,7 +378,7 @@ const PRESENCE_PEOPLE = ["presence-here", "presence-hidden", "presence-other"] a
 const presence = { frames: "" };
 // Every fixture room stands under a number of its own: the receiver's stand-in answers a room's reads by its number, so
 // two rooms on one number would hand one of them the other's line. The harness refuses to stand where two share one.
-const FIXTURE_ROOMS: Record<string, number> = { OWNER_CHAT, UNREAD_CHAT, RECORD_CHAT, MEDIA_CHAT, STICKER_CHAT, LONE_CHAT, NUMBERED_CHAT, PAST_CHAT, PAGED_CHAT, PRIVATE_CHAT, PRESENCE_CHAT, HIGH_ROOM };
+const FIXTURE_ROOMS: Record<string, number> = { OWNER_CHAT, UNREAD_CHAT, RECORD_CHAT, MEDIA_CHAT, STICKER_CHAT, LONE_CHAT, NUMBERED_CHAT, PAST_CHAT, PAGED_CHAT, PRIVATE_CHAT, PRESENCE_CHAT, HIGH_ROOM, SYSTEM_ROOM };
 const sharedRooms = Object.entries(FIXTURE_ROOMS).filter(([, id], at, all) => all.findIndex(([, other]) => other === id) !== at);
 
 if (sharedRooms.length > 0) {
@@ -1318,6 +1320,9 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       return Response.json({ personal: true, platform: !only, organisation: false, organisationSupply: false, personalOnly: only, ownSupply: false });
     }
 
+    // The account service registers its supply hook as it starts, and takes it away as it stops.
+    if (path === "/hooks/supply" && (request.method === "PUT" || request.method === "DELETE")) return new Response(null, { status: 204 });
+
     // The two axes and the places: two supervisors, a handful of roles with runs going and waiting, and the
     // repositories.
     // The deployment's own read, carrying no owner, holds as well the BMO a fixture person owns, so their own-BMO
@@ -2016,7 +2021,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       return Response.json({ items: ids.filter((id) => id === "8").map((id) => ({ id: Number(id), name: "person-c" })), more: false });
     }
 
-    const paged = pagedRoom(path, new URL(request.url).searchParams);
+    const paged = pagedRoom(path, new URL(request.url).searchParams) ?? systemRoom(path, LINE_AT);
 
     if (paged !== null) return paged;
 
@@ -2235,6 +2240,9 @@ try {
     BMO_WEB_SERVER_SERVER__TOKEN: TOKEN,
     BMO_WEB_SERVER_SERVER__LISTEN: `127.0.0.1:${serverPort}`,
     BMO_WEB_SERVER_NAMES__CHAT_AGENT: "agent-a",
+    // The agency stand-in, so a fixed line naming a supervisor names it by the label the agency gives it.
+    BMO_WEB_SERVER_AGENCY__BASE: units.AGENCY_ADDRESS!,
+    BMO_WEB_SERVER_AGENCY__TOKEN: TOKEN,
     // The secret store writes into the scratch folder, standing in for the data root's env/.
     BMO_WEB_SERVER_SECRETS__DIR: join(scratch, "env")
   };

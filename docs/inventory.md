@@ -286,8 +286,9 @@ How the receiver screens stand here:
   `app/domain/room-copy.ts` and `app/domain/turn-actions-fold.ts`, the
   parts of the old copy and settings modules the room screen reads; `shared/particles.ts`, the subject particle a
   name from another unit takes, its two forms in the data file. `app/components/PalettePreview.vue` comes from the
-  shell's list. The marks a message's text opens with for what it carried, the service's notice mark and the paste
-  mark stand in the data file beside the pack, read in `shared/text-marks.ts`.
+  shell's list. The marks a message's text opens with for what it carried, the notice mark rows kept before the
+  service's own lines were fixed lines open with, and the paste mark stand in the data file beside the pack, read in
+  `shared/text-marks.ts`.
 - **The chat agent is named by its role** in code, tests and comments, and by the deployment's settings where a room
   falls back to it; the old fixed sender name is not carried. The tests stand the receiver in on a loopback port,
   and their Korean stands in `client/tests/fixtures/` at each test's own path.

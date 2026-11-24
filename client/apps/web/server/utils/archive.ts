@@ -1,5 +1,5 @@
 import { PAGING, roomLabel } from "#shared/config";
-import { isSystemNotice } from "#shared/text-marks";
+import { noticeWords } from "#shared/text-marks";
 import { readingStateOf } from "#shared/voice-briefings";
 import { spokenLanguage, wording } from "#shared/wording";
 
@@ -399,10 +399,11 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
   const shapes = new Map(received.map((message) => [message.messageId, message.imagePath === null || message.deletedAt !== null ? Promise.resolve(null) : pictureShape(chatId, message.messageId)]));
   // A fixed line's words are the server pack's rendering of its line, each line asked once a page; where the pack
   // holds none for its code or the server does not answer, the words it was kept with stand (docs/web.md, 「A fixed
-  // line stands as a system line too」).
+  // line stands as a system line too」). A row kept as the service's marked line stands without its mark.
   const lines = new Map<string, Promise<string | null>>();
   const wordsOf = async (message: ReceivedMessage): Promise<string> => {
-    if (message.kind !== FIXED_LINE || message.line === null) return message.text;
+    if (message.kind !== FIXED_LINE) return noticeWords(message.text) ?? message.text;
+    if (message.line === null) return message.text;
 
     const key = JSON.stringify(message.line);
     let rendered = lines.get(key);
@@ -457,7 +458,7 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
         ...(voicedBy === undefined ? {} : { voicedBy }),
         ...(speaker === undefined ? {} : { speaker }),
         ...(speakerLabel === undefined ? {} : { speakerLabel }),
-        notice: message.kind === FIXED_LINE || (agent && isSystemNotice(message.text)),
+        notice: message.kind === FIXED_LINE || noticeWords(message.text) !== null,
         ...(agent && message.kind === THINKING ? { thinking: true } : {}),
         ...(message.kind === STICKER ? { sticker: true } : {}),
         ...(files.stickerEmoji === null ? {} : { stickerEmoji: files.stickerEmoji }),

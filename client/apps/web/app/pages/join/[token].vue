@@ -2,8 +2,9 @@
   <!-- The join page (docs/web.md, 「The join page」): an invitation's link, opened with no sign-in. It shows the unit
        and its company, takes the person's name, a login and a password, then connects the person's machine one of two
        ways — the desktop app, approving its pairing with the invitation, or jake's one-line install — and says the
-       account is ready once the machine has attached, and, where only the person's own supply can carry their runs,
-       that the login leads first to setting one up. Like the login, it stands on no shell. -->
+       account is ready once the machine has attached, its login leading into the start guide, and, where only the
+       person's own supply can carry their runs, that their own login or key comes first. Like the login, it stands on
+       no shell. -->
   <div class="relative flex overflow-y-auto bg-default p-4 text-default" :style="{ top: 'var(--bmo-screen-top)', height: 'var(--bmo-screen)' }">
     <UCard class="m-auto w-full max-w-lg">
       <template #header>
@@ -55,56 +56,7 @@
           />
 
           <div v-if="way === 'desktop'" class="flex flex-col gap-4" data-join-desktop>
-            <ContentSkeleton v-if="releaseState === 'loading'" :rows="1" :label="$t('desktop.status.loading')">
-              <SkeletonLine width="w-2/3" />
-            </ContentSkeleton>
-            <UAlert v-else-if="installers.length === 0" color="neutral" variant="subtle" :description="$t('join.message.desktop_unavailable')" :ui="{ description: 'whitespace-pre-line break-keep' }" data-join-desktop-unavailable />
-            <ol v-else class="flex list-decimal flex-col gap-4 ps-6">
-              <li class="ps-1 marker:font-medium marker:text-highlighted"><div class="flex flex-col gap-2">
-                <span class="font-medium text-highlighted">{{ $t("join.label.step_download") }}</span>
-                <p class="break-keep text-sm text-toned">{{ $t("join.message.desktop_download") }}</p>
-                <div class="flex flex-wrap gap-2">
-                  <UButton
-                    v-for="file in installers"
-                    :key="file.file"
-                    :to="file.url"
-                    external
-                    download
-                    icon="i-material-symbols-download"
-                    :color="file.platform === platform ? 'primary' : 'neutral'"
-                    :variant="file.platform === platform ? 'solid' : 'subtle'"
-                    :label="$t('join.label.installer', { platform: platformName(file.platform), format: formatName(file) })"
-                    :data-join-download="file.platform"
-                  />
-                </div>
-              </div></li>
-              <li class="ps-1 marker:font-medium marker:text-highlighted"><div class="flex flex-col gap-2">
-                <span class="font-medium text-highlighted">{{ $t("join.label.step_open") }}</span>
-                <p class="break-keep text-sm text-toned">{{ $t("join.message.desktop_open") }}</p>
-                <div class="flex items-start gap-2">
-                  <code class="min-w-0 flex-1 break-all rounded-md bg-elevated p-2 text-sm" data-join-server>{{ serverAddress }}</code>
-                  <IconButton
-                    :icon="copied === serverAddress ? 'i-material-symbols-check' : 'i-material-symbols-content-copy-outline'"
-                    :label="copied === serverAddress ? $t('invites.status.copied') : $t('join.action.copy')"
-                    data-server-copy
-                    @click="copy(serverAddress)"
-                  />
-                </div>
-              </div></li>
-              <li class="ps-1 marker:font-medium marker:text-highlighted"><div class="flex flex-col gap-2">
-                <span class="font-medium text-highlighted">{{ $t("join.label.step_code") }}</span>
-                <template v-if="approved === null">
-                  <p class="break-keep text-sm text-toned">{{ $t("join.message.desktop_code") }}</p>
-                  <UForm id="join-pair" :state="pairForm" class="flex items-start gap-2" @submit="pair">
-                    <UFormField name="code" :error="codeFailure || undefined" class="min-w-0 flex-1">
-                      <UInput v-model="pairForm.code" class="w-full" :aria-label="$t('pairing.label.code')" autocomplete="off" autocapitalize="characters" spellcheck="false" :ui="{ base: 'font-mono uppercase' }" data-join-code />
-                    </UFormField>
-                    <UButton type="submit" :label="$t('join.action.connect')" :loading="pairing" data-join-connect />
-                  </UForm>
-                </template>
-                <p v-else class="text-sm text-toned" data-join-approved>{{ $t("join.message.desktop_connecting") }}</p>
-              </div></li>
-            </ol>
+            <DesktopAppSteps form-id="join-pair" :address="serverAddress" :approved="approved !== null" :pairing="pairing" :code-failure="codeFailure" @pair="(code: string) => void pair(code)" @release="chooseWay" />
           </div>
 
           <div v-else class="flex flex-col gap-4" data-join-jake>
@@ -134,8 +86,8 @@
         <div class="flex justify-end">
           <UButton v-if="view && view.state === 'open' && accepted === null" type="submit" form="join-form" :label="$t('join.action.accept')" :loading="pending" />
           <UButton v-else-if="accepted && !active" color="neutral" variant="subtle" :label="$t('join.action.check')" :loading="pending" data-join-check @click="prove" />
-          <UButton v-else-if="active && agentLogin" :label="$t('agent_login.action.login')" :loading="leaving" data-join-agent-login @click="signInAsNew(AGENT_LOGIN_PATH)" />
-          <UButton v-else-if="active" :label="$t('app.action.login')" :loading="leaving" data-join-login @click="signInAsNew(null)" />
+          <UButton v-else-if="active && agentLogin" :label="$t('guide.action.login_setup')" :loading="leaving" data-join-agent-login @click="signInAsNew()" />
+          <UButton v-else-if="active" :label="$t('app.action.login')" :loading="leaving" data-join-login @click="signInAsNew()" />
         </div>
       </template>
     </UCard>
@@ -147,16 +99,14 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { useIsland } from "bmo-ui/app/domain/island";
 import { formatStamp } from "bmo-ui/app/domain/time";
 
-import { AGENT_LOGIN_PATH } from "~/domain/agent-login";
+import { GUIDE_PATH } from "~/domain/guide";
 import { copyText } from "~/domain/copy";
 
 import { placeOf } from "~/domain/invites";
-import { installersFor, readerPlatform, typedCode } from "~/domain/join-desktop";
 
 import { useVisibleShell } from "~/domain/overlay";
 
 import type { FormError } from "@nuxt/ui";
-import type { DesktopRelease, DesktopReleaseFile, DesktopReleaseRead } from "#shared/desktop-release";
 import type { Accepted, InviteView, PairingApproved } from "@web/server-client";
 
 definePageMeta({ layout: false });
@@ -193,15 +143,15 @@ const signedInAs = computed(() => (loggedIn.value ? ((user.value?.fullName || us
 const leaving = ref(false);
 
 // The login opened for the account just made: any session the browser holds signed out through the console's own
-// sign-out first, then the login with the new login filled in, and the page it leads to where one is named.
-async function signInAsNew(to: string | null): Promise<void> {
+// sign-out first, then the login with the new login filled in, leading into the start guide.
+async function signInAsNew(): Promise<void> {
   leaving.value = true;
   try {
     if (loggedIn.value) {
       await $fetch("/api/auth/logout", { method: "POST" });
       await clear();
     }
-    await navigateTo({ path: "/login", query: { name: form.name.trim(), ...(to === null ? {} : { to }) } });
+    await navigateTo({ path: "/login", query: { name: form.name.trim(), to: GUIDE_PATH } });
   } catch (error) {
     failure.value = failureText(error, t("invites.error.failed"));
   } finally {
@@ -218,60 +168,26 @@ const ways = computed(() => [
   { label: t("join.label.tab_desktop"), value: "desktop" },
   { label: t("join.label.tab_jake"), value: "jake" }
 ]);
-const release = ref<DesktopRelease | null>(null);
-const releaseState = ref<"loading" | "read">("loading");
-// The platform the reader's browser names, whose installer leads.
-const platform = ref<string | null>(null);
-const installers = computed(() => (release.value === null ? [] : installersFor(release.value, platform.value)));
 // The address the app asks for: the console's public address, else the address the page was reached at.
 const { baseURL } = useRuntimeConfig().app;
-const configuredAddress = String(useRuntimeConfig().public.consoleAddress ?? "").trim();
-const serverAddress = ref(configuredAddress);
-const pairForm = reactive({ code: "" });
+const serverAddress = ref(String(useRuntimeConfig().public.consoleAddress ?? "").trim());
 const pairing = ref(false);
 const codeFailure = ref("");
 const approved = ref<PairingApproved | null>(null);
 
-// The words for the platforms and the formats the release contract names; one the pack has no word for stands by its
-// own name, a platform by its key and an installer by its file name.
-const PLATFORM_WORDS: Record<string, string> = { windows: "desktop.label.windows", linux: "desktop.label.linux" };
-const FORMAT_WORDS: Record<string, string> = { nsis: "desktop.label.nsis", appimage: "desktop.label.appimage", deb: "desktop.label.deb" };
+// The desktop way is chosen until the release is first read; where none stands to download, jake's command is chosen
+// once, and the person may still open the desktop tab to read that it is not available yet.
+let wayChosen = false;
 
-function platformName(name: string): string {
-  const key = PLATFORM_WORDS[name];
-
-  return key === undefined ? name : t(key);
-}
-
-function formatName(file: DesktopReleaseFile): string {
-  const key = FORMAT_WORDS[file.format];
-
-  return key === undefined ? file.file : t(key);
-}
-
-// The release read with no sign-in; none published, or a read that fails, leaves the desktop app unavailable and
-// chooses jake's command.
-async function readRelease(): Promise<void> {
-  try {
-    release.value = (await $fetch<DesktopReleaseRead>("/api/desktop/release")).release;
-  } catch {
-    release.value = null;
-  }
-  releaseState.value = "read";
-  if (installers.value.length === 0) way.value = "jake";
+function chooseWay(available: boolean): void {
+  if (!wayChosen && !available) way.value = "jake";
+  wayChosen = true;
 }
 
 // The code typed from the app's title bar, approved with the invitation; from there the page waits for the app's agent
 // as for any machine.
-async function pair(): Promise<void> {
-  const code = typedCode(pairForm.code);
-
+async function pair(code: string): Promise<void> {
   codeFailure.value = "";
-  if (code === "") {
-    codeFailure.value = t("join.error.code_empty");
-
-    return;
-  }
   pairing.value = true;
   try {
     approved.value = await $fetch<PairingApproved>(`/api/join/${token.value}/pair`, { method: "POST", body: { code } });
@@ -337,10 +253,8 @@ async function copy(text: string): Promise<void> {
 }
 
 onMounted(() => {
-  platform.value = readerPlatform(navigator.userAgent);
   if (serverAddress.value === "") serverAddress.value = `${location.origin}${baseURL}`;
   void read();
-  void readRelease();
 });
 onBeforeUnmount(() => {
   if (timer !== undefined) clearInterval(timer);

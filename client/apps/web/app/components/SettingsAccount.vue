@@ -46,6 +46,8 @@
       </SettingsRow>
     </SettingsGroup>
 
+    <SettingsGuideRow v-if="account !== undefined" />
+
     <SettingsSecurity v-if="account !== undefined" />
 
     <SettingsSharedInfo v-if="account !== undefined" />

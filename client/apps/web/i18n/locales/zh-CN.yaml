@@ -2404,26 +2404,95 @@ join:
     active: '设备已连接，账号已激活。
 
       现在可以登录了。'
-    agent_login: '设备已连接，账号已激活。
-
-      在此组织中，智能体只能使用你自己的供给登录或供给密钥。登录后会立即打开智能体登录设置。'
+    agent_login: "设备已连接，账号已激活。\n在此组织中，智能体只使用你自己的登录或密钥工作。\n登录后，入门指南会先引导你连接。"
   error:
     full_name_empty: 请输入姓名。
     code_empty: "请输入连接码。"
     code_closed: "此连接码已过期或已被使用。请在应用中重试。"
     code_not_found: "找不到连接码。请确认与应用窗口标题栏中的代码一致。"
     account_active: "此账号已激活。请登录后再连接应用。"
-agent_login:
+guide:
   title:
-    page: 智能体登录设置
-  message:
-    lead: '在此组织中，智能体只使用你自己的供给登录或供给密钥工作。
-
-      请在下方登录 Claude 或添加供给密钥，然后开始。'
-    still_needed: 还没有已开启的供给登录或供给密钥。
+    page: 入门指南
+    welcome: 欢迎
+    supply: 供给
+    provider: 提供方
+    platform: 平台供给
+    connect: 连接
+    test: 连接测试
+    machine: 设备
+    model: 默认模型
+    company: 公司名称
+    talk: 第一次对话
+  label:
+    again: 再次查看入门指南
+    progress: "{at}/{of} {share}%"
+    key: 密钥
+    name: 名称
+    address: 地址
+    model: 模型
+    provider: 提供方
+    company: 公司名称
+    words: 消息
+    road_login_member: 在自己的电脑上登录
+    road_login_platform: 在服务器上登录
+    road_key: "{provider} 密钥"
+    road_key_line: 输入一次密钥
+    road_local: 本地 AI
+    road_local_line: OpenAI 兼容地址
   action:
-    login: 登录并设置
-    start: 开始
+    next: 下一步
+    back: 上一步
+    later: 稍后
+    now: 现在设置
+    close: 关闭
+    login_setup: 登录并设置
+    sign_in: 开始登录
+    test_again: 重新测试
+    send: 发送
+    open_room: 打开会话
+    done: 完成
+  status:
+    loading: 正在加载入门指南…
+    testing: 正在测试连接…
+    connected: 已连接
+    signed_in: 已登录。
+    key_saved: 密钥已保存。
+    local_saved: "已注册本地 AI {name}。"
+    waiting_machine: 正在等待设备连接。
+    machine_attached: 设备已连接。
+  message:
+    no_roads: 没有可选择的提供方。
+    no_room: 你的 BMO 还没有会话。
+    first_words: 你好！你能为我做什么？
+    desktop_unavailable: "桌面应用暂时无法获取。\n之后可以在设置的设备中连接设备。"
+    step_welcome: 逐步设置 BMO 为你工作所需的内容。
+    step_supply_optional: "你的组织负责智能体的供给。\n你也可以同时添加自己的 Claude 登录或密钥。"
+    step_supply_required: "在此组织中，智能体只使用你自己的登录或密钥工作。\n请先连接一个。"
+    step_provider: 选择你的智能体使用的提供方。
+    step_platform: 选择平台智能体使用的提供方。
+    step_connect_login: 登录 Claude 以连接此账号。
+    step_connect_key: 输入一次提供方密钥，保存到密钥库。
+    step_connect_local: 通过 OpenAI 兼容地址注册本地 AI。
+    step_test: 测试所选供给现在是否响应。
+    step_machine: 连接你的电脑，让 BMO 在上面工作。
+    step_model: 选择回答未指定对象的会话的 BMO 的提供方和模型。
+    step_company: 设置组织架构最上层的公司名称。
+    step_talk: 给你的 BMO 发送第一条消息。
+    reason_no_source: 没有已开启的供给。
+    reason_login_needed: 需要登录。
+    reason_not_ready: "尚未就绪。\n请几秒后重新测试。"
+    reason_refused: 密钥被拒绝。
+    reason_off: 提供方已关闭。
+    reason_failed: 无法连接。
+  error:
+    failed: 无法保存入门指南。
+    read_failed: 无法加载入门指南。
+    local_fields: 请填写名称、地址和模型。
+    local_name: 名称以小写字母开头，只能包含小写字母、数字和连字符。
+    local_url: 地址必须是以 http 或 https 开头的 OpenAI 兼容地址。
+    local_model: 请检查模型名称。
+    local_key: 密钥文件名无效。
 org_agents:
   title:
     person_changes: "个人设置许可"

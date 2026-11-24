@@ -150,8 +150,8 @@ describe.skipIf(!origin || !touchReady())("the join page's two ways", () => {
         expect(await downloads.evaluateAll((buttons) => buttons.map((button) => button.getAttribute("data-join-download")))).toEqual(["windows", "linux"]);
         expect(await downloads.first().getAttribute("href")).toBe(RELEASE.files[0]!.url);
 
-        // The address the app asks for is the console's own.
-        expect((await page.locator("[data-join-server]").innerText()).trim()).toBe(`${new URL(origin!).origin}/console/`);
+        // The address the app asks for is the console's public address, which the console's own stands as.
+        expect((await page.locator("[data-join-server]").innerText()).trim()).toBe(`${new URL(origin!).origin}/console`);
 
         // The code typed as the title bar shows it, in either case, approved with the invitation.
         await page.locator("[data-join-code]").fill("abcd-efgh");
@@ -201,6 +201,8 @@ describe.skipIf(!origin || !touchReady())("the join page's two ways", () => {
         // The login for the new account, its login filled in, and the old session gone.
         await page.waitForURL(/\/login(\?|$)/, { timeout: 20_000 });
         expect(await page.locator('input[autocomplete="username"]').inputValue()).toBe("joined-b");
+        // The login leads the new account into the start guide (docs/web.md, 「The start guide」).
+        expect(new URL(page.url()).searchParams.get("to")).toBe("/start");
         const me = await page.evaluate(async () => (await fetch(`${location.pathname.replace(/\/login$/, "")}/api/auth/me`)).status);
 
         expect(me).not.toBe(200);

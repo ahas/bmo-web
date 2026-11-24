@@ -7651,6 +7651,90 @@ Four bounds keep it from growing forever.
 - **A person of the reader's company carries 접속 상태** while their presence is known, as 「Presence and typing」
   draws it; the row stands and goes with the presence, and a page of another company's person carries none.
 
+### The start guide
+
+`/start` is 시작 안내: what a person sets before their BMO can answer them, a step at a time, ending in their first
+words with it. It holds an invited member's first run and a self-hosting administrator's first sign-in on a deployment
+whose platform supply has no working source. It stands on no shell, as the join page does: one card in the middle of
+the screen, the screen's whole width on a phone, opened to every signed-in person whatever sections they hold.
+
+- **The console's server chooses the flow** (`GET /api/me/guide`), and answers its steps, the step reached and the
+  choices the steps offer:
+  - **A member's:** 환영, 공급, 공급자, 연결, 연결 시험, 기기 and 첫 대화, each standing only where it has something to
+    do (below).
+  - **The administrator's:** 플랫폼 공급, 연결 시험, 기본 모델, 회사 이름 and 첫 대화. It begins only on a deployment
+    whose platform supply has no working source: no provider but Claude Code switched on and able to answer here (the
+    agency's `GET /providers`, `enabled` with no `reasonCode`), and no Claude account on whose login stands among those
+    no other person owns (the agency's `GET /fallback`). One begun goes on to its end whatever the platform comes to
+    hold meanwhile; with a working source and none begun, or one finished, the administrator has no flow and the page
+    leads home.
+  - A login with no user of the account service has neither.
+- **What 공급 is follows the delegation chain,** read of the agency in the person's name (`GET /supply-sources`;
+  its `docs/supply.md`, 「The sources a person's chain leaves open」):
+  - where the order their runs walk holds no personal supply, or they already hold one of their own that is on, the
+    organisation supplies all there is to supply, and 공급, 공급자, 연결 and 연결 시험 stand as no steps;
+  - where their own is all that can carry their runs and none of theirs is on, it is required: it has no way past it,
+    and nothing after it opens until a source of their own passes its test;
+  - otherwise it is optional: one line says their organisation supplies their runs and their own Claude login or key
+    may stand beside it, with 나중에, which passes over 공급자, 연결 and 연결 시험, and 지금 설정.
+  The need is read as the flow begins and kept with the progress, so the steps never move under the person as their
+  own source comes on; a guide begun again from its start reads it afresh.
+- **공급자 lists what may be brought, among the providers the platform has switched on** (`enabled`), one choice a row
+  with its line under it:
+  - a member's: Claude, signed in on their own PC, where Claude Code is on; and a key of Codex, DeepSeek or OpenRouter
+    where that provider is on and its road holds a member of the gateway (the agency's `GET /gateway-members`), since
+    a person's key is laid beside the road's members (the agency's `docs/own-llm.md`, 「Personal members」). A local
+    AI is no member's choice: a registration is the platform's to make.
+  - the administrator's, under 플랫폼 공급: Claude, signed in on the server; a key of every switched-on provider that
+    reads its own key from a file (its `keyFile`); and 로컬 AI, an OpenAI-compatible address.
+  - Where none stands, the step says so in one line and offers 나중에 alone.
+- **연결 does what the choice asks:**
+  - a member's Claude: the sign-in the agency runs on the person's own node, as 공급 로그인 runs it (「공급」, 「나」);
+  - a member's key: 키, typed once, written into the person's own space of the secret store under `{road}-key`, a name
+    standing there replaced, then added as their 공급 키 for the road under that name (`POST /api/supply/personal`); the
+    value goes to the secret store alone;
+  - the administrator's Claude: the platform's own 여기서 로그인 (「플랫폼 전체」, Claude 계정);
+  - the administrator's key: written into the platform's space under the file name the provider reads, as 플랫폼 공급
+    키's 키 설정 leads to;
+  - 로컬 AI: 이름, the registration's name by the registry's rule; 주소, the OpenAI-compatible base address, to which
+    the chat completions path is added where it does not end in it; 모델; and 키 (선택), written into the platform's
+    space under `local-ai-{name}`. The console's server registers the model with the agency (`POST /models`) and sets
+    its one address, node `local`, naming that file (`PUT /models/{modelKey}/addresses/{node}`), through
+    `POST /api/me/guide/local-ai`; a refusal is said under the field it names.
+  A step's 다음 stands off until what it asks is done, and a refusal is said under the form in the pack's words.
+- **연결 시험 asks the agency to try the source now** (`POST /supply-test`, as the reader, through
+  `POST /api/me/guide/test`): the person's own on the road chosen, the platform's on it for the administrator, a local
+  AI by its registration. It says 연결됨, or the pack's sentence for the agency's reason — no source of the kind on, a
+  login needed, not ready yet (a few seconds more), the key refused, the provider switched off, or the try failed —
+  with 다시 시험. 다음 opens once the test has passed; an optional supply may go on with 나중에 all the same.
+- **기기** stands where the person's machine is not attached (`GET /api/me/machine`): the desktop app's way of the join
+  page — the download, the console's address for the app, and the code from the app's title bar, approved for the
+  reader as the desktop pairing page approves one (「The desktop pairing page」) — and it asks every few seconds whether
+  the machine has attached (`POST /api/me/machine/proof`), 다음 opening once it has; 나중에 passes it over, and where no
+  release stands to download it says the machine may be connected later from 설정's 기기.
+- **기본 모델** is the road of the supervisor that answers rooms naming none (기본 응답 감독관, 「에이전트」 under 「Agent
+  management screen」): 공급자, among those switched on that can answer, then 모델, among the models it holds, both
+  opening on the road as it stands; 다음 writes it onto that supervisor's road as its row writes a road.
+- **회사 이름** names the company: the first company unit renamed, or one made where none stands (「조직도」). It stands
+  only where the deployment's features hold the organisation (「The console's features」).
+- **첫 대화** opens the reader's own BMO (`GET /api/me/guide/room`): their first own supervisor's private room, or, for
+  an administrator who owns none, the first room the default answerer has spoken in. One message stands suggested in a
+  field the reader may change, with 보내기, which says it in that room as the room's input box does and opens the room;
+  대화방 열기 opens it saying nothing. Where no room stands it says so, and 완료 leads home.
+- **Every step says what it does in one line** under its title, and the card's head shows where the flow stands as
+  `{n}/{m} {pct}%` over a bar. 이전 goes back a step and 다음 forward.
+- **The progress is the person's, kept by the console's server** in `web_guides` (`docs/accounts.md`, 「The tables」):
+  the flow, the step reached, the supply's need as read when the flow began, whether that supply was put off, the road
+  chosen, and when the guide was finished or put aside. `PUT /api/me/guide` writes it as a step is passed, and the
+  page opens at the step kept.
+- **Leaving is allowed but at a required supply.** The card's close mark puts the guide aside and leads home at any
+  step but those of a supply that is required while none of the person's own is on; 완료 on the last step finishes it.
+- **Where it opens by itself:** a member whose own supply is required and holds none on is led here from every other
+  page until one is on, the question read once a session and an agency that does not answer asking nothing; the
+  administrator is led here once a session while their flow stands neither finished nor put aside; and the join page's
+  way to the login leads a new account here. Otherwise it opens from 설정's 계정, 시작 안내 다시 보기, at the step kept,
+  or from its start once finished. `/agent-login` leads here.
+
 ### Settings
 
 The settings are one large dialog over whatever screen is open, opened by 설정 in the user menu at the
@@ -7725,6 +7809,9 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
 - **접속 상태 공개** is the account's presence switch (「Presence and typing」, 「The switch」): one row with its switch,
   on unless the account turned it off, and one muted line saying what turning it off hides. It takes effect as it
   is switched. A console login standing before the account model, which has no account, is shown no such row.
+- **시작 안내 다시 보기** is one row with 열기, standing while the console's server answers the reader a flow of the start
+  guide (「The start guide」): it opens the guide at the step kept, or from its start where it was finished, the dialog
+  left behind as the address moves.
 
 - **보안** stands for a login with a user of the account service, its rows read through `GET /api/account/security`
   (`docs/accounts.md`, 「Account security」):
@@ -8517,16 +8604,12 @@ Where a company's own words for its roles and its unit kinds are kept (`docs/acc
   account signs that one out. The page's way to the login, 로그인 or 로그인하고 설정하기 alike, ends that session
   first, through the console's own sign-out on the server, and then opens the login with the new account's login
   filled in, so the person signs in as the account they just made and never lands in the other one's console.
-- **Where only the person's own supply can carry their runs, the login leads first to setting one up.** As the
-  proof answers the account active, the console's server asks the agency in the person's name which supply sources
-  their chain leaves open (the agency's `docs/supply.md`, 「The sources a person's chain leaves open」): where the
-  platform's supply is closed to them, no unit of theirs holds supply of its own and they hold no login or key of
-  their own that is on, the page says so and its button, 로그인하고 설정하기, signs in onto 에이전트 로그인 설정. That page,
-  `/agent-login`, holds the settings' own 공급 section (「Settings」) — a Claude login on their own machine, a 공급 키 —
-  under one line saying why, and 시작하기, which asks again and leads home once one of their own is on, saying 아직
-  켜진 공급 로그인이나 공급 키가 없습니다 while none is. Until then every other page a member opens leads there; the
-  question is read once a session and again at 시작하기, and an agency that does not answer asks nothing of the
-  person, so nobody is held at the door by an outage. The administrator is never asked.
+- **The way to the login leads the new account into 시작 안내** (「The start guide」): the login opens with `/start`
+  as the page it returns to. As the proof answers the account active, the console's server asks the agency in the
+  person's name which supply sources their chain leaves open (the agency's `docs/supply.md`, 「The sources a person's
+  chain leaves open」): where the platform's supply is closed to them, no unit of theirs holds supply of its own and
+  they hold no login or key of their own that is on, the page says their own login or key comes first and its button
+  reads 로그인하고 설정하기; otherwise it reads 로그인. Either way the guide is where the new account lands.
 - **An account made ready is given its own BMO and its agents,** by the console's server as the account turns
   active, each once: a supervisor of the account, named `u<user>` and titled by the person's name, on the provider
   and model of the road of the supervisor that answers rooms naming none, with a console room of its own and one

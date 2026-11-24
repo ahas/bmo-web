@@ -1,5 +1,5 @@
 import { MEMBER_HOME, MEMBER_LAYOUT, isAdministrator } from "~/domain/access";
-import { AGENT_LOGIN_PATH, agentLoginNeeded } from "~/domain/agent-login";
+import { GUIDE_PATH, guideOpens, guideOpensState } from "~/domain/guide";
 import { openScreen, screenAt, screenOpened, sharePath, useConsoleScreens, useScreensReader } from "~/domain/console-screens";
 import { standUnavailable, unavailableRoute } from "~/domain/screen-unavailable";
 import { NO_SIGN_IN_PAGES, loginRoute, returnPath } from "~/domain/login-end";
@@ -64,11 +64,16 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   if (featureLeftOut(features, to.path)) return navigateTo({ path: "/", query: settingsKept(to.query) });
 
-  if (isAdministrator(session.value)) return;
+  // The start guide opens by itself (docs/web.md, 「The start guide」): a member whose runs only their own supply can
+  // carry, holding none that is on, is held to it until one is; the administrator with no working platform source is
+  // led to it once a session.
+  if (to.path !== GUIDE_PATH && (await guideOpens())) {
+    if (isAdministrator(session.value)) guideOpensState().value = false;
 
-  // A member whose runs only their own supply can carry, holding none that is on, sets one up before anything else
-  // opens to them (docs/web.md, 「The join page」).
-  if (to.path !== AGENT_LOGIN_PATH && (await agentLoginNeeded())) return navigateTo(AGENT_LOGIN_PATH);
+    return navigateTo(GUIDE_PATH);
+  }
+
+  if (isAdministrator(session.value)) return;
 
   // A member opens only the sections their permission opens, each in the member's own shell; any other
   // address would open onto routes that answer them as absent (docs/web.md, 「Access」). The account service

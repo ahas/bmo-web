@@ -2388,22 +2388,95 @@ join:
     active: 'The machine is connected and your account is active.
 
       You can sign in now.'
-    agent_login: "The machine is connected and your account is active.\nIn this organization, agents can only use your own supply sign-in or supply key. Signing in opens agent sign-in setup right away."
+    agent_login: "The machine is connected and your account is active.\nIn this organization, agents work only with your own sign-in or key.\nAfter signing in, getting started connects one first."
   error:
     full_name_empty: Enter your name.
     code_empty: "Enter the connection code."
     code_closed: "This connection code has expired or was already used. Try again from the app."
     code_not_found: "Connection code not found. Check that it matches the code in the app window's title bar."
     account_active: "This account is already active. Sign in, then connect the app."
-agent_login:
+guide:
   title:
-    page: Agent sign-in setup
-  message:
-    lead: "In this organization, agents work only with your own supply sign-in or supply key.\nSign in to Claude or add a supply key below, then start."
-    still_needed: No supply sign-in or supply key is turned on yet.
+    page: Getting started
+    welcome: Welcome
+    supply: Supply
+    provider: Provider
+    platform: Platform supply
+    connect: Connect
+    test: Connection test
+    machine: Machine
+    model: Default model
+    company: Company name
+    talk: First chat
+  label:
+    again: Show getting started again
+    progress: "{at}/{of} {share}%"
+    key: Key
+    name: Name
+    address: Address
+    model: Model
+    provider: Provider
+    company: Company name
+    words: Message
+    road_login_member: Sign in on your PC
+    road_login_platform: Sign in on the server
+    road_key: "{provider} key"
+    road_key_line: Enter a key once
+    road_local: Local AI
+    road_local_line: OpenAI-compatible address
   action:
-    login: Sign in and set up
-    start: Start
+    next: Next
+    back: Back
+    later: Later
+    now: Set up now
+    close: Close
+    login_setup: Sign in and set up
+    sign_in: Start sign-in
+    test_again: Test again
+    send: Send
+    open_room: Open chat
+    done: Done
+  status:
+    loading: Loading getting started…
+    testing: Testing the connection…
+    connected: Connected
+    signed_in: Signed in.
+    key_saved: The key is saved.
+    local_saved: "Local AI {name} is registered."
+    waiting_machine: Waiting for the machine to connect.
+    machine_attached: The machine is connected.
+  message:
+    no_roads: No provider can be chosen.
+    no_room: Your BMO has no chat yet.
+    first_words: Hi! What can you do for me?
+    desktop_unavailable: "The desktop app is not available yet.\nYou can connect a machine later under Machine in settings."
+    step_welcome: Set up what BMO needs to work for you, one step at a time.
+    step_supply_optional: "Your organization supplies your agents.\nYou can add your own Claude sign-in or key beside it."
+    step_supply_required: "In this organization, agents work only with your own sign-in or key.\nConnect one first."
+    step_provider: Choose the provider your agents use.
+    step_platform: Choose the provider the platform's agents use.
+    step_connect_login: Sign in to Claude to connect this account.
+    step_connect_key: Enter the provider's key once to keep it in your secrets.
+    step_connect_local: Register a local AI by its OpenAI-compatible address.
+    step_test: Test whether the chosen supply answers now.
+    step_machine: Connect your PC so BMO works on it.
+    step_model: Choose the provider and model of the BMO that answers rooms naming no one.
+    step_company: Name the company at the top of the organization chart.
+    step_talk: Send your BMO a first message.
+    reason_no_source: No supply is turned on.
+    reason_login_needed: A sign-in is needed.
+    reason_not_ready: "Not ready yet.\nTest again in a few seconds."
+    reason_refused: The key was refused.
+    reason_off: The provider is turned off.
+    reason_failed: Could not connect.
+  error:
+    failed: Could not save getting started.
+    read_failed: Could not load getting started.
+    local_fields: Enter a name, an address and a model.
+    local_name: A name starts with a lowercase letter and holds only lowercase letters, digits and hyphens.
+    local_url: The address must be an OpenAI-compatible address starting with http or https.
+    local_model: Check the model name.
+    local_key: The key file name is not valid.
 org_agents:
   title:
     person_changes: "Personal changes"

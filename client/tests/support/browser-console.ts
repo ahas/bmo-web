@@ -97,6 +97,9 @@ const ACCOUNTS: readonly [string, string][] = [
   ["todo-row-unfold", "fixture-password-2784"],
   ["org-settings", "fixture-password-2666"],
   ["org-agents", "fixture-password-3901"],
+  // The administrator of a platform with no working source, whom the start guide leads through its flow
+  // (tests/browser/start-guide.test.ts).
+  ["guide-admin", "fixture-password-4201"],
   ["org-group", "fixture-password-3903"],
   ["org-storage", "fixture-password-3921"],
   ["org-mail", "fixture-password-3931"],
@@ -225,6 +228,16 @@ const MEMBERS: readonly { name: string; password: string; sections: readonly { s
   {
     name: "agent-login",
     password: "fixture-password-3902",
+    sections: [
+      { section: "rooms", read: true, write: false },
+      { section: "account", read: true, write: true }
+    ]
+  },
+  // The person whose organisation supplies their runs, who may add their own beside it or put it off in the start
+  // guide (docs/web.md, 「The start guide」).
+  {
+    name: "guide-member",
+    password: "fixture-password-4202",
     sections: [
       { section: "rooms", read: true, write: false },
       { section: "account", read: true, write: true }
@@ -969,6 +982,12 @@ let ownedBmo: number | null = null;
 const unitRepositories = new Map<string, Record<string, unknown>>();
 // The people the agency's stand-in answers as able to run on their own supply alone, holding none of their own.
 const ownSupplyOnly = new Set<string>();
+// Each person's own gateway keys as the agency's stand-in keeps them, by their owner key: a person holding one holds
+// supply of their own that is on.
+const personalKeys = new Map<string, Record<string, unknown>[]>();
+// The administrator the stand-in answers a platform with no working source: every provider but Claude Code unable to
+// answer, and no Claude account (docs/web.md, 「The start guide」).
+let guideAdministrator: string | null = null;
 // The account service's port, which the agency's stand-in asks the chain at as the agency does.
 let accountServicePort = 0;
 
@@ -1372,13 +1391,38 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
     if (own !== null) return own;
 
-    // A person's own keys, of which the step's person holds none.
-    if (path === "/personal-supply" && request.method === "GET") return Response.json({ items: [] });
+    // A person's own keys, added, listed and taken away as the agency keeps them.
+    const owner = request.headers.get("owner-key") ?? "";
+
+    if (path === "/personal-supply" && request.method === "GET") return Response.json({ items: personalKeys.get(owner) ?? [] });
+    if (path === "/personal-supply" && request.method === "POST") {
+      const body = (await request.json()) as { road?: string; secret?: string };
+      const held = personalKeys.get(owner) ?? [];
+      const added = { id: `key-${owner}-${held.length + 1}-${Date.now()}`, road: body.road ?? "", secret: body.secret ?? "", place: held.length + 1, enabled: true, refusedAt: null, addedAt: Date.now() };
+
+      personalKeys.set(owner, [...held, added]);
+
+      return Response.json(added, { status: 201 });
+    }
+    const personalKey = /^\/personal-supply\/([^/]+)$/.exec(path)?.[1];
+
+    if (personalKey !== undefined && request.method === "DELETE") {
+      personalKeys.set(owner, (personalKeys.get(owner) ?? []).filter((one) => one.id !== decodeURIComponent(personalKey)));
+
+      return new Response(null, { status: 204 });
+    }
 
     if (path === "/supply-sources") {
-      const only = ownSupplyOnly.has(request.headers.get("owner-key") ?? "");
+      const only = ownSupplyOnly.has(owner);
 
-      return Response.json({ personal: true, platform: !only, organisation: false, organisationSupply: false, personalOnly: only, ownSupply: false });
+      return Response.json({ personal: true, platform: !only, organisation: false, organisationSupply: false, personalOnly: only, ownSupply: (personalKeys.get(owner) ?? []).length > 0 });
+    }
+
+    // A source tried for the start guide: the stand-in's providers always answer.
+    if (path === "/supply-test" && request.method === "POST") {
+      const body = (await request.json()) as { road?: string };
+
+      return Response.json({ road: body.road ?? "", ok: true, reasonCode: null, reason: null });
     }
 
     // The account service registers its supply hook as it starts, and takes it away as it stops.
@@ -1487,6 +1531,16 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
         more: false
       });
     }
+    if (path === "/providers" && guideAdministrator !== null && request.headers.get("owner-key") === guideAdministrator) {
+      return Response.json({
+        items: [
+          provider("claude-code", "Claude Code"),
+          provider("deepseek", "DeepSeek", { gateway: true, ownersEngine: false, reason: "The key is not set.", reasonCode: "deepseek-key-unset", keyFile: "deepseek.key" }),
+          provider("registered", "Registered models", { registered: true, gateway: true, reason: "No registration is offered.", reasonCode: "registered-none" })
+        ],
+        more: false
+      });
+    }
     if (path === "/providers") {
       return Response.json({
         items: [
@@ -1533,6 +1587,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     if (path === "/prompt-documents") return Response.json({ items: [], more: false });
 
     if (path === "/events") return silentStream();
+    if (path === "/fallback" && guideAdministrator !== null && request.headers.get("owner-key") === guideAdministrator) return Response.json({ ...usageFallback(), accounts: [] });
     if (path === "/fallback") return Response.json(usageFallback());
     if (path === "/gateway-members") return Response.json(gatewayMembers());
     if (path === "/accounts") return Response.json(usageAccounts());
@@ -1566,6 +1621,16 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       models.set(name, made);
 
       return Response.json(made, { status: 201 });
+    }
+
+    // A registration's one address set, as the start guide sets a local AI's.
+    const addressed = /^\/models\/([^/]+)\/addresses\/([^/]+)$/.exec(path);
+
+    if (addressed !== null && request.method === "PUT") {
+      const asked = decodeURIComponent(addressed[1]!);
+      const held = models.get(asked.includes("::") ? asked.slice(asked.indexOf("::") + 2) : asked);
+
+      return held === undefined ? notFound() : Response.json(held);
     }
 
     const one = /^\/models\/([^/]+)$/.exec(path);
@@ -2620,6 +2685,7 @@ try {
   if (ownOnly === undefined) throw new Error("agent-login stands in no users list");
 
   ownSupplyOnly.add(ownOnly.user);
+  guideAdministrator = users.find((user) => user.name === "guide-admin")?.user ?? null;
 
   // The media room's reader and the sticker room's each have a sender of their own, linked as the administrator links
   // one.

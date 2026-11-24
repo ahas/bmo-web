@@ -120,11 +120,11 @@ async fn a_documents_talk_reads_back_in_the_order_it_was_said() {
 async fn the_last_migrations_taken_down_drop_their_tables() {
   let scratch = Scratch::new().await;
 
-  // The repository's own migrations stand from `document_talk` up through the account security's, with sumida's
-  // membership and metering migrations between the service's earlier ones and its last eight: taking this
+  // The repository's own migrations stand from `document_talk` up through the start guide's, with sumida's
+  // membership and metering migrations between the service's earlier ones and its last nine: taking this
   // repository's block down means taking down everything above its base tables, sumida's two with it. Only the
   // tables this repository's migrations make are checked — never one a sumida feature owns.
-  Migrator::down(scratch.db(), Some(23)).await.expect("the last migrations go down");
+  Migrator::down(scratch.db(), Some(24)).await.expect("the last migrations go down");
 
   for table in [
     "document_talk",
@@ -169,6 +169,7 @@ async fn the_last_migrations_taken_down_drop_their_tables() {
     "chain_groups",
     "chain_group_members",
     "web_languages",
+    "web_guides",
   ] {
     let counted = format!("SELECT count(*) FROM pg_tables WHERE tablename = '{table}'");
 

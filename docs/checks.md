@@ -83,7 +83,10 @@ which stands.
     neutral, stamped as they are asked, a unit's own supply kept as the agency keeps it, a unit's own repositories
     added and removed as the agency keeps them, a sign-up composition read off and written onto the account service's
     chain as the agency does, one fixture member whose runs only their
-    own supply can carry, and every other road with the unit's own not-found;
+    own supply can carry, each person's own gateway keys added, listed and taken away as the agency keeps them, a
+    person holding one holding supply of their own, every supply source tried answering, one fixture administrator
+    answered a platform with no working source — every provider but Claude Code unable to answer and no Claude
+    account — and a registration's address set, and every other road with the unit's own not-found;
   - the agency's own kinds on the delegation chain, declared as the agency declares them as it stands;
   - in the brain's stand-in for organisations' memories, the org brains made and found by their keys, each keeping
     the memories written into it and moved to `invalidated`, so a page read again shows what a write left, and the

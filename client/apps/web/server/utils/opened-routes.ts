@@ -208,8 +208,14 @@ export const openedRoutes: readonly OpenedRoute[] = [
   { method: "GET", path: /^\/api\/me\/sections$/, scope: "user" },
   // The reader's own supervisors, whose log and turns open to them.
   { method: "GET", path: /^\/api\/me\/agents$/, scope: "user" },
-  // Whether the reader must set up a login of their own before they start (docs/web.md, 「The join page」).
-  { method: "GET", path: /^\/api\/me\/agent-login$/, scope: "user" },
+  // The reader's own start guide: where it stands, whether it opens by itself, its progress written, a source of the
+  // reader's tried and the room its last step opens (docs/web.md, 「The start guide」). Adding a local AI is the
+  // administrator's.
+  { method: "GET", path: /^\/api\/me\/guide$/, scope: "user" },
+  { method: "PUT", path: /^\/api\/me\/guide$/, scope: "user" },
+  { method: "GET", path: /^\/api\/me\/guide\/(?:opens|room)$/, scope: "user" },
+  { method: "POST", path: /^\/api\/me\/guide\/test$/, scope: "user" },
+  { method: "POST", path: /^\/api\/me\/guide\/local-ai$/, scope: "user", administrator: true },
 
   // The account's own surface.
   section(ACCOUNT, "POST", /^\/api\/account$/),

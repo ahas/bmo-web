@@ -782,9 +782,9 @@ async fn the_settings_moved_onto_the_chain_answer_every_old_question_as_they_did
     (tree.admin, tree.person, tree.centre_head, tree.company_head);
 
   // The settings as they stood before the move, written into the tables they stood in: the move taken down with the
-  // ones of the organisation's BMO default, the accounts' languages, the supply run keys, the supply sources' move and
-  // the account security's that stand after it.
-  Migrator::down(scratch.db(), Some(6)).await.unwrap();
+  // ones of the organisation's BMO default, the accounts' languages, the supply run keys, the supply sources' move,
+  // the account security's and the start guide's that stand after it.
+  Migrator::down(scratch.db(), Some(7)).await.unwrap();
   scratch
     .run(
       r#"INSERT INTO "agent_permissions" ("unit_id", "user_id", "allowed", "set_by", "set_at")
@@ -912,7 +912,7 @@ async fn the_settings_moved_onto_the_chain_answer_every_old_question_as_they_did
   );
 
   // Taken down again, the old tables hold what they held.
-  Migrator::down(scratch.db(), Some(6)).await.unwrap();
+  Migrator::down(scratch.db(), Some(7)).await.unwrap();
   for (table, rows) in [
     ("agent_permissions", 3),
     ("supply_platform_policy", 1),

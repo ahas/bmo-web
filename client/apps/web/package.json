@@ -11,7 +11,7 @@
     "typecheck": "NODE_OPTIONS=--max-old-space-size=4096 nuxi typecheck"
   },
   "dependencies": {
-    "@agency/client": "file:../../vendor/agency-client-0.1.0-rev.10-55c2acf8.tgz",
+    "@agency/client": "file:../../vendor/agency-client-0.1.0-rev.10-cf862921.tgz",
     "@bmo/receiver-client": "file:../../vendor/bmo-receiver-client-0.1.0-rev.1-a46d294.tgz",
     "@internationalized/date": "3.12.4",
     "@nuxt/ui": "4.12.2",

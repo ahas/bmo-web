@@ -7,8 +7,8 @@ import { wording } from "../../apps/web/shared/wording";
 import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 
 // An organisation's agents and its own supply (docs/web.md, 「Organisation」, the agents and supply tabs, and 「The join
-// page」): the supply tab's group of the unit's own supply and its keys, the agents tab's sign-up composition with a road for each agent it gives, what
-// its people may change of the agents it supplies, and the agent login step a person whose runs only their own supply can carry is held at. Each is worked as a hand works it at a phone's width and a desk's: what a
+// page」): the supply tab's group of the unit's own supply and its keys, the agents tab's sign-up composition with a road for each agent it gives, and what
+// its people may change of the agents it supplies. Each is worked as a hand works it at a phone's width and a desk's: what a
 // press lands on is the control it names, nothing runs off the side, and what a press does is read back off the screen
 // after the page is read again.
 //
@@ -17,7 +17,6 @@ import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ADMINISTRATOR = { name: "org-agents", password: "fixture-password-3901" };
-const OWN_ONLY = { name: "agent-login", password: "fixture-password-3902" };
 const RUN = Date.now().toString(36);
 const WIDTHS = [360, 1280] as const;
 
@@ -37,7 +36,6 @@ beforeAll(async () => {
   if (!origin || !touchReady()) return;
 
   cookies.set(ADMINISTRATOR.name, await login(ADMINISTRATOR));
-  cookies.set(OWN_ONLY.name, await login(OWN_ONLY));
 
   const made = await fetch(`${origin}/api/organization/units`, {
     method: "POST",
@@ -246,26 +244,6 @@ describe.skipIf(!origin || !touchReady())("an organisation's agents", () => {
       await page.locator('[data-org-person-change="roadChoice"]').getByText(wording("org_agents.label.manage_stands_allow"), { exact: true }).waitFor({ timeout: 15_000 });
       await choose(page, page.locator('[data-composition-role="builder"] button[aria-haspopup="listbox"]'), wording("org_agents.label.choice_inherit"));
       await page.locator('[data-composition-agent="builder:0"]').waitFor({ state: "detached", timeout: 15_000 });
-
-      await context.close();
-    }, 120_000);
-
-    test(`a person only their own supply can carry is held at the agent login step at ${width}px`, async () => {
-      const context = await contextFor(OWN_ONLY.name, width);
-      const page = await context.newPage();
-
-      await page.goto(`${origin}/`, { waitUntil: "load" });
-      await standing(page);
-      await page.waitForURL((address) => address.pathname.endsWith("/agent-login"), { timeout: 20_000 });
-      await page.getByRole("heading", { name: wording("agent_login.title.page"), exact: true }).waitFor({ timeout: 20_000 });
-
-      const start = page.locator("[data-agent-login-start]");
-
-      expect(await reachable(start)).toBe(true);
-      await start.click();
-      await page.locator("[data-agent-login-still]").waitFor({ timeout: 15_000 });
-      expect(new URL(page.url()).pathname.endsWith("/agent-login")).toBe(true);
-      expect(await overflows(page)).toBe(false);
 
       await context.close();
     }, 120_000);

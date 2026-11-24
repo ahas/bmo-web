@@ -2404,26 +2404,95 @@ join:
     active: 'デバイスが接続され、アカウントが有効になりました。
 
       ログインできます。'
-    agent_login: 'デバイスが接続され、アカウントが有効になりました。
-
-      この組織では、自分の供給ログインまたは供給キーでのみエージェントを使えます。ログインすると、すぐにエージェントのログイン設定が開きます。'
+    agent_login: "デバイスが接続され、アカウントが有効になりました。\nこの組織では、自分のログインまたはキーでのみエージェントが動作します。\nログインすると、はじめにでまず接続します。"
   error:
     full_name_empty: 名前を入力してください。
     code_empty: "接続コードを入力してください。"
     code_closed: "期限切れか、すでに使われた接続コードです。アプリでもう一度お試しください。"
     code_not_found: "接続コードが見つかりません。アプリウィンドウのタイトルバーのコードと同じか確認してください。"
     account_active: "すでに有効なアカウントです。ログインしてからアプリを接続してください。"
-agent_login:
+guide:
   title:
-    page: エージェントのログイン設定
-  message:
-    lead: 'この組織では、自分の供給ログインまたは供給キーでのみエージェントが動作します。
-
-      以下でClaudeにログインするか供給キーを追加してから、開始してください。'
-    still_needed: オンになっている供給ログインまたは供給キーがまだありません。
+    page: はじめに
+    welcome: ようこそ
+    supply: 供給
+    provider: プロバイダー
+    platform: プラットフォーム供給
+    connect: 接続
+    test: 接続テスト
+    machine: デバイス
+    model: 既定のモデル
+    company: 会社名
+    talk: 最初の会話
+  label:
+    again: はじめにをもう一度見る
+    progress: "{at}/{of} {share}%"
+    key: キー
+    name: 名前
+    address: アドレス
+    model: モデル
+    provider: プロバイダー
+    company: 会社名
+    words: メッセージ
+    road_login_member: 自分のPCでログイン
+    road_login_platform: サーバーでログイン
+    road_key: "{provider}のキー"
+    road_key_line: キーを一度入力
+    road_local: ローカルAI
+    road_local_line: OpenAI互換のアドレス
   action:
-    login: ログインして設定
-    start: 開始
+    next: 次へ
+    back: 戻る
+    later: あとで
+    now: いま設定
+    close: 閉じる
+    login_setup: ログインして設定
+    sign_in: ログインを開始
+    test_again: もう一度テスト
+    send: 送信
+    open_room: ルームを開く
+    done: 完了
+  status:
+    loading: はじめにを読み込み中…
+    testing: 接続をテスト中…
+    connected: 接続済み
+    signed_in: ログインしました。
+    key_saved: キーを保存しました。
+    local_saved: "ローカルAI {name} を登録しました。"
+    waiting_machine: デバイスの接続を待っています。
+    machine_attached: デバイスが接続されました。
+  message:
+    no_roads: 選べるプロバイダーがありません。
+    no_room: 自分のBMOのルームがまだありません。
+    first_words: こんにちは！あなたは私のために何ができる？
+    desktop_unavailable: "デスクトップアプリはまだ入手できません。\nデバイスはあとで設定のデバイスから接続できます。"
+    step_welcome: BMOがあなたのために働けるよう、必要なことを順に設定します。
+    step_supply_optional: "組織がエージェントの供給を担っています。\n自分のClaudeログインやキーを並べて置くこともできます。"
+    step_supply_required: "この組織では、自分のログインまたはキーでのみエージェントが動作します。\nまず一つ接続してください。"
+    step_provider: エージェントが使うプロバイダーを選びます。
+    step_platform: プラットフォームのエージェントが使うプロバイダーを選びます。
+    step_connect_login: Claudeにログインしてこのアカウントを接続します。
+    step_connect_key: プロバイダーのキーを一度入力してシークレットに保管します。
+    step_connect_local: OpenAI互換のアドレスでローカルAIを登録します。
+    step_test: 選んだ供給がいま応答するかをテストします。
+    step_machine: PCを接続して、BMOがそのPCで働けるようにします。
+    step_model: 担当が決まっていないルームに答えるBMOのプロバイダーとモデルを選びます。
+    step_company: 組織図の最上位に置く会社名を決めます。
+    step_talk: 自分のBMOに最初のメッセージを送ります。
+    reason_no_source: オンになっている供給がありません。
+    reason_login_needed: ログインが必要です。
+    reason_not_ready: "まだ準備中です。\n数秒後にもう一度テストしてください。"
+    reason_refused: キーが拒否されました。
+    reason_off: プロバイダーがオフです。
+    reason_failed: 接続できませんでした。
+  error:
+    failed: はじめにを保存できませんでした。
+    read_failed: はじめにを読み込めませんでした。
+    local_fields: 名前、アドレス、モデルをすべて入力してください。
+    local_name: 名前は英小文字で始め、英小文字・数字・ハイフンのみを使います。
+    local_url: アドレスはhttpまたはhttpsで始まるOpenAI互換のアドレスである必要があります。
+    local_model: モデル名を確認してください。
+    local_key: キーファイル名が正しくありません。
 org_agents:
   title:
     person_changes: "個人設定の許可"

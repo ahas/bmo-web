@@ -29,6 +29,7 @@ pub mod m20261125_000001_languages;
 pub mod m20261126_000001_supply_run_keys;
 pub mod m20261127_000001_supply_sources_one;
 pub mod m20261128_000001_account_security;
+pub mod m20261129_000001_guides;
 mod secret_kind_seeds;
 
 pub struct Migrator;
@@ -73,6 +74,8 @@ impl MigratorTrait for Migrator {
       Box::new(m20261127_000001_supply_sources_one::Migration),
       // What keeps an account its holder's beyond the password.
       Box::new(m20261128_000001_account_security::Migration),
+      // Each account's progress through the start guide.
+      Box::new(m20261129_000001_guides::Migration),
     ]
   }
 }

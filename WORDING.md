@@ -322,8 +322,10 @@
 - a setting a unit above or the platform decided or locks, wherever a lock or a decision shows — a person's own row, a
   unit's, a company's — → 조직이 정함 · `{unit}`, 조직이 정함 where no unit is named, 전역 설정으로 정함 for the platform;
   its state → 켜짐 or 꺼짐. Never 관리자 지정, 강제됨, 상위 조직에서 잠금, 조직에서 잠금.
-- the step a person whose runs only their own supply can carry takes before they start → 에이전트 로그인 설정, its way
-  in from the join page 로그인하고 설정하기 and its way through 시작하기. Never 온보딩.
+- the guided first run, a step at a time, before a person's BMO can answer them → 시작 안내, opened again from 계정 by
+  시작 안내 다시 보기; its steps 환영, 공급, 공급자, 연결, 연결 시험, 기기, 첫 대화, and the administrator's 플랫폼 공급,
+  기본 모델, 회사 이름; its way in from the join page where their own supply comes first 로그인하고 설정하기; putting a
+  step off 나중에, taking it now 지금 설정; a source that answered 연결됨. Never 온보딩, 튜토리얼, 마법사.
 - what a provider, an account or a slot has left of its limits → 남은 사용량: its windows 세션 and 주간, each as
   `{share}%` with `{time} 초기화` for how long is left until it resets and 초기화 지남 once past; a balance 잔액 with
   `{wait} 전` for when it was read; a request allowance 하루 요청 or 무료 모델 요청 as `{left} / {limit} 남음`; and

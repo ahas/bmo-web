@@ -38,9 +38,10 @@
       </SettingsGroup>
 
       <SettingsGroup :title="$t('app_catalogue.label.review')" data-catalogue-review>
-        <p class="whitespace-pre-line break-keep break-words py-3 text-sm" :class="props.app.review.state === 'written' ? 'text-default' : 'text-muted'" data-catalogue-review-text>
-          {{ reviewText }}
-        </p>
+        <div class="min-w-0 py-3" data-catalogue-review-text>
+          <MarkdownText v-if="props.app.review.state === 'written'" :text="reviewText" class="break-words text-sm" />
+          <p v-else class="whitespace-pre-line break-keep break-words text-sm text-muted">{{ reviewText }}</p>
+        </div>
       </SettingsGroup>
 
       <SettingsGroup :title="$t('app_catalogue.label.source')" data-catalogue-source>

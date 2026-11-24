@@ -9180,7 +9180,8 @@ so a reader sees and does what their own account may alone, and the agency's wor
 - **The details open in a dialog titled with the app's name:** its description; 만든 사람, 버전, 공유 시각, 설치 and
   공유 대상 as a list of names and values, with a menu beside it of the acts the reader may take besides installing;
   요구 권한, what the app may reach beyond its own data, line by line (below); 조직에서 설정 for a head; 검토 보고서, the review
-  the agency's reviewer wrote, 검토 중 while it is written; and 원본, whose 원본 보기 reads the version's source and shows
+  the agency's reviewer wrote, drawn as markdown as every written report in the console is, 검토 중 while it is written;
+  and 원본, whose 원본 보기 reads the version's source and shows
   every file under its path in a coloured code block. 설치, or 업데이트 where the reader's copy has a newer version, stands
   in the dialog's foot. What the reader may do is the agency's word alone.
   - **설치** asks first, naming the app, what it asks for in the same lines as plain text and that the reader's PC

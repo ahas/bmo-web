@@ -60,7 +60,7 @@ tower-sessions = "0.14.0"
 # domain beside them — the plans, wallets, quotas and holds the supply answers stand on (docs/accounts.md,
 # 「Supply」); mail-form because the membership schema seeds its notices' forms. sumida builds its token
 # routes only with a secret store chosen, and the static one is chosen; no token is ever issued here.
-sumida = { git = "https://github.com/ahas/sumida", rev = "ba121d8e75669b898c94b5f50c0b7e594e0b846a", default-features = false, features = ["session-store-redis", "jwt-secret-store-static", "membership", "mail-form"] }
+sumida = { git = "https://github.com/ahas/sumida", rev = "0eb770ba682aca2f2b46abdbfcd6f7e2ff43b50f", default-features = false, features = ["session-store-redis", "jwt-secret-store-static", "membership", "mail-form"] }
 thiserror = "2.0.21"
 tokio.workspace = true
 

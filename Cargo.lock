@@ -123,7 +123,7 @@ checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
 [[package]]
 name = "api"
 version = "0.2.0"
-source = "git+https://github.com/ahas/sumida?rev=ba121d8e75669b898c94b5f50c0b7e594e0b846a#ba121d8e75669b898c94b5f50c0b7e594e0b846a"
+source = "git+https://github.com/ahas/sumida?rev=0eb770ba682aca2f2b46abdbfcd6f7e2ff43b50f#0eb770ba682aca2f2b46abdbfcd6f7e2ff43b50f"
 dependencies = [
  "anyhow",
  "argon2",
@@ -1810,7 +1810,7 @@ dependencies = [
 [[package]]
 name = "entity"
 version = "0.2.0"
-source = "git+https://github.com/ahas/sumida?rev=ba121d8e75669b898c94b5f50c0b7e594e0b846a#ba121d8e75669b898c94b5f50c0b7e594e0b846a"
+source = "git+https://github.com/ahas/sumida?rev=0eb770ba682aca2f2b46abdbfcd6f7e2ff43b50f#0eb770ba682aca2f2b46abdbfcd6f7e2ff43b50f"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1841,7 +1841,7 @@ dependencies = [
 [[package]]
 name = "error"
 version = "0.2.0"
-source = "git+https://github.com/ahas/sumida?rev=ba121d8e75669b898c94b5f50c0b7e594e0b846a#ba121d8e75669b898c94b5f50c0b7e594e0b846a"
+source = "git+https://github.com/ahas/sumida?rev=0eb770ba682aca2f2b46abdbfcd6f7e2ff43b50f#0eb770ba682aca2f2b46abdbfcd6f7e2ff43b50f"
 dependencies = [
  "anyhow",
  "aws-sdk-s3",
@@ -2753,7 +2753,7 @@ dependencies = [
 [[package]]
 name = "infra"
 version = "0.2.0"
-source = "git+https://github.com/ahas/sumida?rev=ba121d8e75669b898c94b5f50c0b7e594e0b846a#ba121d8e75669b898c94b5f50c0b7e594e0b846a"
+source = "git+https://github.com/ahas/sumida?rev=0eb770ba682aca2f2b46abdbfcd6f7e2ff43b50f#0eb770ba682aca2f2b46abdbfcd6f7e2ff43b50f"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -5386,7 +5386,7 @@ checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
 [[package]]
 name = "sumida"
 version = "0.2.0"
-source = "git+https://github.com/ahas/sumida?rev=ba121d8e75669b898c94b5f50c0b7e594e0b846a#ba121d8e75669b898c94b5f50c0b7e594e0b846a"
+source = "git+https://github.com/ahas/sumida?rev=0eb770ba682aca2f2b46abdbfcd6f7e2ff43b50f#0eb770ba682aca2f2b46abdbfcd6f7e2ff43b50f"
 dependencies = [
  "api",
  "aws-smithy-types",

@@ -7925,10 +7925,12 @@ stands in that tab's view of 나 (「Organisation」, 「에이전트」, 「공
   taken shows 앱을 다시 시작합니다 in the form while the app starts again on the new server, and the form holds
   still until the window goes. An address the app already runs on closes the form with nothing changed.
 - **Under the server, 업데이트 채널** chooses where the app's updates come from (jake's `docs/desktop.md`, 「The
-  update channel」), a segmented control of the two channels the app takes, its real values with the default
-  marked: 안정판 (기본값) and 나이틀리. The line under its name says that 나이틀리 is a build made every day and may
-  not work properly. It stands only where the app hands the channel over; an app that hands none over offers no
-  channel, and the row is not drawn.
+  update channel」), a segmented control of the three channels the app takes, in the app's order, its real values
+  with the default marked: 안정판 (기본값), the stable releases alone; 프리뷰, the alphas, betas and release
+  candidates as well; and 나이틀리, every build, the day's build between releases among them. The line under its
+  name says that 프리뷰 takes the versions published ahead of 안정판 and 나이틀리 the builds made every day as well,
+  and that either may not work properly. It stands only where the app hands the channel over; an app that hands
+  none over, or hands over a channel the console does not know, offers no channel, and the row is not drawn.
 - **A switch takes effect as it is turned, and the channel as it is chosen,** the switch spinning, or the channel's
   choices held, until the app answers. A change the app refuses puts the switch or the channel back and says
   변경하지 못했습니다 under the row's name in the error colour, the app's reason under it in the monospace face.
@@ -9712,9 +9714,9 @@ written through `GET`/`PUT /api/admin/mail`.
 - **The bridge is the app's commands the app grants the console's address,** and the console calls nothing else:
   `settings`, which reads the app's settings, the server's address among them, and who draws the window's
   controls; `change_setting`, which changes one setting by its key, a switch with `on`, true or false, the update
-  channel, `updateChannel`, with `value`, `stable` or `nightly`, and the server, `consoleUrl`, with `value`, the
-  address as entered; and the window's own minimise, maximise toggle, close, start dragging, maximised state and
-  title.
+  channel, `updateChannel`, with `value`, `stable`, `preview` or `nightly`, and the server, `consoleUrl`, with
+  `value`, the address as entered; and the window's own minimise, maximise toggle, close, start dragging, maximised
+  state and title.
 - **In the app the console is the window's frame.** The window has no native title bar, so the top of the
   console is the window's top edge:
   - **The title bar is the window's drag region,** and the sidebar's head beside it: pressed and dragged where

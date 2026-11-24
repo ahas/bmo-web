@@ -2850,6 +2850,7 @@ desktop:
     keep_awake: スリープを防止
     update_channel: 更新チャネル
     channel_stable: 安定版
+    channel_preview: プレビュー
     channel_nightly: ナイトリー
     default_value: "{value}（デフォルト）"
     server: BMO サーバー
@@ -2872,7 +2873,7 @@ desktop:
     close_to_tray: オフにすると、ウィンドウを閉じたときにアプリを終了します。
     start_in_tray: ログイン時に起動するとき、ウィンドウを開きません。
     keep_awake: エージェントの実行中は PC がスリープしません。
-    update_channel: ナイトリーは毎日作られるビルドのため、正しく動作しないことがあります。
+    update_channel: プレビューは安定版より先に公開されるバージョンを、ナイトリーは毎日作られるビルドまで受け取るため、正しく動作しないことがあります。
     unsigned: 'コード署名のないインストーラーのため、初回実行時に Windows が警告することがあります。
 
       Windows によって PC が保護されました、と表示されたら、詳細情報を押してから実行を押すとインストールされます。'

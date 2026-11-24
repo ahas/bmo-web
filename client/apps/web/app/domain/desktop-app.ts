@@ -14,7 +14,7 @@ export interface DesktopSwitch {
 }
 
 /** The update channels the app takes (jake's docs/desktop.md, 「The update channel」), in the order they are offered. */
-export const DESKTOP_CHANNELS = ["stable", "nightly"] as const;
+export const DESKTOP_CHANNELS = ["stable", "preview", "nightly"] as const;
 
 export type DesktopChannel = (typeof DESKTOP_CHANNELS)[number];
 
@@ -24,6 +24,7 @@ export const DESKTOP_CHANNEL_DEFAULT: DesktopChannel = "stable";
 /** Each channel's name, by its key in the language pack. */
 export const DESKTOP_CHANNEL_WORDS = {
   stable: "desktop.label.channel_stable",
+  preview: "desktop.label.channel_preview",
   nightly: "desktop.label.channel_nightly"
 } as const satisfies Record<DesktopChannel, string>;
 

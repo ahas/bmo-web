@@ -2850,6 +2850,7 @@ desktop:
     keep_awake: 防止休眠
     update_channel: 更新渠道
     channel_stable: 稳定版
+    channel_preview: 预览版
     channel_nightly: 每夜版
     default_value: "{value}（默认）"
     server: BMO 服务器
@@ -2872,7 +2873,7 @@ desktop:
     close_to_tray: 关闭后，关闭窗口时将退出应用。
     start_in_tray: 登录时启动不会打开窗口。
     keep_awake: 智能体运行期间，电脑不会进入休眠。
-    update_channel: 每夜版是每天构建的版本，可能无法正常运行。
+    update_channel: 预览版会收到早于稳定版发布的版本，每夜版还会收到每天构建的版本，因此可能无法正常运行。
     unsigned: '此安装程序没有代码签名，首次运行时 Windows 可能会发出警告。
 
       如果出现 Windows 已保护你的电脑，请点击更多信息，再点击仍要运行即可安装。'

@@ -83,7 +83,7 @@ async function pageFor(width: number, height: number, controls: Controls | null)
                   return view();
                 }
                 if (args?.setting === "updateChannel") {
-                  if (args.value !== "stable" && args.value !== "nightly") throw "updateChannel takes a value, stable or nightly";
+                  if (args.value !== "stable" && args.value !== "preview" && args.value !== "nightly") throw "updateChannel takes a value, stable, preview or nightly";
                   updateChannel = args.value;
 
                   return view();
@@ -243,12 +243,13 @@ describe.skipIf(!origin || !touchReady())("the desktop app's window", () => {
         expect(await row.textContent()).toContain(wording("desktop.label.update_channel"));
         expect(await row.textContent()).toContain(wording("desktop.message.update_channel"));
 
-        // The two real values, the default marked, as one group of radios named by the setting.
+        // The three real values in the app's order, the default marked, as one group of radios named by the setting.
         const group = row.getByRole("radiogroup", { name: wording("desktop.label.update_channel") });
         const stable = wording("desktop.label.default_value", { value: wording("desktop.label.channel_stable") });
+        const preview = wording("desktop.label.channel_preview");
         const nightly = wording("desktop.label.channel_nightly");
 
-        expect((await group.getByRole("radio").allTextContents()).map((text) => text.trim())).toEqual([stable, nightly]);
+        expect((await group.getByRole("radio").allTextContents()).map((text) => text.trim())).toEqual([stable, preview, nightly]);
         await expect(group.getByRole("radio", { name: stable }).getAttribute("aria-checked")).resolves.toBe("true");
 
         // Each choice stands inside the window, and nothing stands over it where a finger presses it.
@@ -266,21 +267,19 @@ describe.skipIf(!origin || !touchReady())("the desktop app's window", () => {
           })).toBe(true);
         }
 
-        // Choosing the nightly asks the app, which answers with it chosen; choosing the default goes back the same way.
-        await group.getByRole("radio", { name: nightly }).click();
-        await page.waitForFunction(
-          (name) => [...document.querySelectorAll("[data-desktop-channel] [role='radio']")].some((one) => one.textContent?.trim() === name && one.getAttribute("aria-checked") === "true"),
-          nightly,
-          { timeout: 10_000 }
-        );
-        await expect(group.getByRole("radio", { name: stable }).getAttribute("aria-checked")).resolves.toBe("false");
-        await group.getByRole("radio", { name: stable }).click();
-        await page.waitForFunction(
-          (name) => [...document.querySelectorAll("[data-desktop-channel] [role='radio']")].some((one) => one.textContent?.trim() === name && one.getAttribute("aria-checked") === "true"),
-          stable,
-          { timeout: 10_000 }
-        );
+        // Choosing a channel asks the app, which answers with it chosen and the others not; choosing the default goes
+        // back the same way.
+        for (const name of [preview, nightly, stable]) {
+          await group.getByRole("radio", { name, exact: true }).click();
+          await page.waitForFunction(
+            (chosen) => [...document.querySelectorAll("[data-desktop-channel] [role='radio']")].some((one) => one.textContent?.trim() === chosen && one.getAttribute("aria-checked") === "true"),
+            name,
+            { timeout: 10_000 }
+          );
+          expect((await group.getByRole("radio", { checked: true }).allTextContents()).map((text) => text.trim())).toEqual([name]);
+        }
         expect((await bridgeCalls(page)).filter(([command]) => command === "change_setting")).toEqual([
+          ["change_setting", { setting: "updateChannel", value: "preview" }],
           ["change_setting", { setting: "updateChannel", value: "nightly" }],
           ["change_setting", { setting: "updateChannel", value: "stable" }]
         ]);

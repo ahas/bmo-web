@@ -2830,6 +2830,7 @@ desktop:
     keep_awake: Prevent sleep
     update_channel: Update channel
     channel_stable: Stable
+    channel_preview: Preview
     channel_nightly: Nightly
     default_value: "{value} (default)"
     server: BMO server
@@ -2852,7 +2853,7 @@ desktop:
     close_to_tray: "When off, closing the window quits the app."
     start_in_tray: "When starting at sign-in, the window isn't opened."
     keep_awake: "The PC won't go to sleep while an agent is running."
-    update_channel: Nightly builds are made every day and may not work properly.
+    update_channel: Preview also takes versions published ahead of Stable, and Nightly the builds made every day as well, so either may not work properly.
     unsigned: "The installer isn't code-signed, so Windows may warn you the first time you run it.\nIf Windows protected your PC appears, select More info, then Run anyway to install."
   status:
     loading: Loading desktop app info…

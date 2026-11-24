@@ -6,12 +6,12 @@ import { wording } from "../../apps/web/shared/wording";
 
 import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 
-// The sidebar's organisation entry and the agents tab (docs/web.md, 「Sidebar」 and 「Organisation」, the agents
-// tab), and what a company decided read in a person's own settings (「Settings」, the supply and own-BMO sections).
-// The entry stands among the administrator services by its name, alone under their heading for a head who opens no
-// other of them, and opens the organisation screen, which keeps its own tab row; the agents tab sets a company's instructions, persona, supply sources and
-// repositories, each with what the units below may do; and a person under the company reads the persona and the
-// supply source it locked or closed as decided by the company, named, with nothing to change. Each is worked as a hand
+// The sidebar's organisation entry and the agents tab (docs/web.md, 「Sidebar」 and 「Organisation」, the agents and
+// supply tabs), and what a company decided read at a person's own node. The entry stands among the administrator
+// services by its name, alone under their heading for a head who opens no other of them, and opens the organisation
+// screen, which keeps its own tab row; the agents tab sets a company's instructions, persona and repositories, each with
+// what the units below may do; and a person under the company reads the persona it locked as decided by the company,
+// named, with nothing to change, and the supply its policy closed as closed by the organisation. Each is worked as a hand
 // works it at a phone's width and a desk's: what a press lands on is the control it names, nothing runs off the side,
 // and what a press does is read back off the screen after the page is read again.
 //
@@ -250,16 +250,6 @@ describe.skipIf(!origin || !touchReady())("the organisation entry and the agents
         await choose(page, page.locator('[data-org-delegation="persona"]'), wording("org_agents.label.delegation_lock"));
         await page.waitForFunction((lock) => document.querySelector('[data-org-delegation="persona"]')?.textContent?.includes(lock) === true, wording("org_agents.label.delegation_lock"), { timeout: 15_000 });
 
-        // Personal supply closed at the company.
-        const personal = page.locator('[data-agent-source="personal"]').getByRole("switch");
-
-        await personal.waitFor({ timeout: 20_000 });
-        if ((await personal.getAttribute("aria-checked")) === "true") {
-          expect(await reachable(personal)).toBe(true);
-          await personal.click();
-          await page.waitForFunction(() => document.querySelector('[data-agent-source="personal"] [role="switch"]')?.getAttribute("aria-checked") === "false", null, { timeout: 15_000 });
-        }
-
         // A repository added under the company stands as a row by its name and path, and its delete takes it away.
         const name = `team-tools-${width}-${RUN}`;
         const add = page.locator("[data-org-repository-add]");
@@ -296,15 +286,18 @@ describe.skipIf(!origin || !touchReady())("the organisation entry and the agents
       }
     }, 120_000);
 
-    test(`a person under the company reads the persona and the supply source it decided as the company's, named, with nothing to change, and a head's sidebar stands the organisation entry, at ${width}px`, async () => {
+    test(`a person under the company reads the persona and the supply it decided as the company's, with nothing to change, and a head's sidebar stands the organisation entry, at ${width}px`, async () => {
       const context = await contextFor(PERSON.name, width);
 
       try {
         const page = await context.newPage();
         const decided = wording("org_agents.label.decided_named", { name: COMPANY_NAME });
 
-        // The own-BMO section: the persona's choice the company locked reads as the company's, its switch off and disabled.
-        await page.goto(`${origin}/rooms?settings=agent`, { waitUntil: "load" });
+        // Personal supply closed by the company's policy, the platform's own sources standing as they are.
+        await administer(`/api/supply/org/${company}`, "PUT", { allowed: [], order: ["stop"] });
+
+        // Their own BMO at their own node: the persona's choice the company locked reads as the company's, its switch off and disabled.
+        await page.goto(`${origin}/organization?company=me&tab=agents`, { waitUntil: "load" });
         await standing(page);
 
         const state = page.locator("[data-persona-state]");
@@ -319,17 +312,16 @@ describe.skipIf(!origin || !touchReady())("the organisation entry and the agents
         expect(await page.locator("[data-persona-follow]").count()).toBe(0);
         expect(await overflows(page)).toBe(false);
 
-        // The supply section: personal supply the company closed reads off, as the company's, with no control on its row.
-        await page.goto(`${origin}/rooms?settings=supply`, { waitUntil: "load" });
+        // Their own supply at their own node: personal supply the company's policy closed reads closed by the organisation, with no
+        // control on its row.
+        await page.goto(`${origin}/organization?company=me&tab=supply`, { waitUntil: "load" });
         await standing(page);
 
-        const source = page.locator('[data-own-source="personal"]');
+        const source = page.locator('[data-supply-source="personal"]');
 
         await source.waitFor({ timeout: 20_000 });
-        expect(await source.innerText()).toContain(decided);
-        expect(await source.innerText()).toContain(wording("org_agents.label.state_off"));
+        expect(await source.innerText()).toContain(wording("supply.label.reason_blocked_by_organisation"));
         expect(await source.locator("button, [role='switch'], input").count()).toBe(0);
-        expect(await page.locator('[data-own-source="platform"]').innerText()).toContain(wording("org_agents.label.state_on"));
         expect(await overflows(page)).toBe(false);
 
         // A head of the team who opens no other administrator service: the section stands for them under its heading,
@@ -346,6 +338,7 @@ describe.skipIf(!origin || !touchReady())("the organisation entry and the agents
       } finally {
         await context.close();
         await administer(`/api/organization/units/${team}/heads/${encodeURIComponent(person)}`, "DELETE").catch(() => null);
+        await administer(`/api/supply/org/${company}`, "DELETE").catch(() => null);
       }
     }, 120_000);
   }

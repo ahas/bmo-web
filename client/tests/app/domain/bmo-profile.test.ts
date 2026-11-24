@@ -1,13 +1,12 @@
 import { describe, expect, test } from "bun:test";
 
-import { callNameProblem, followsLine, headsCompany, permissionRows, permissionTops, settingItems, shownSetting, withCallName } from "../../../apps/web/app/domain/bmo-profile";
-import { sectionsFor } from "../../../apps/web/app/domain/settings-dialog";
+import { callNameProblem, followsLine, headsCompany, nodeRows, permissionRows, settingItems, shownSetting, withCallName } from "../../../apps/web/app/domain/bmo-profile";
 
 import type { PermissionTree } from "../../../apps/web/shared/bmo-profile";
 
-// The BMO profile's screens as their domain lays them out (docs/web.md, 「Organisation」, its BMO tab, and 「Settings」,
-// its own-BMO section): a call name checked before it is added, the permission tree as rows with what a following row
-// resolves to, the units a head reads it from, and the own-BMO section shown only to a reader who may personalise.
+// The BMO profile's groups as their domain lays them out (docs/web.md, 「Organisation」, the agents tab): a call name
+// checked before it is added, the permission rows of one node with what a following row resolves to, and the company's
+// default set by its own heads alone.
 
 const t = (key: string) => key;
 
@@ -50,12 +49,17 @@ describe("the permission tree", () => {
     ]);
   });
 
-  test("offers a company allow and deny alone, and shows a company with nothing set as denied", () => {
+  test("offers every row allow, deny and following above, a company following the platform's word", () => {
     const [company, unit] = permissionRows(TREE, new Set());
 
-    expect(settingItems(t, company!.company).map((item) => item.value)).toEqual(["allow", "deny"]);
+    expect(settingItems(t, company!.company).map((item) => [item.value, item.label])).toEqual([
+      ["allow", "bmo_profile.label.allow"],
+      ["deny", "bmo_profile.label.deny"],
+      ["inherit", "bmo_profile.label.inherit_platform"]
+    ]);
     expect(settingItems(t, unit!.company).map((item) => item.value)).toEqual(["allow", "deny", "inherit"]);
-    expect(shownSetting({ setting: "inherit", company: true })).toBe("deny");
+    expect(shownSetting({ setting: "inherit", company: true })).toBe("inherit");
+    expect(followsLine(t, { setting: "inherit", allowed: false, company: true })).toBe("bmo_profile.label.follows_platform_denied");
   });
 
   test("says what a following row resolves to, and nothing under a row set on its own", () => {
@@ -65,23 +69,21 @@ describe("the permission tree", () => {
     expect(followsLine(t, rows.find((row) => row.key === "unit:3")!)).toBeNull();
   });
 
-  test("is read from the highest units a head heads in the company, and its default set by a head of the company alone", () => {
+  test("stands one node's own row and the people standing in it, a unit below set at its own node", () => {
+    expect(nodeRows(TREE, 2).map((row) => [row.key, row.depth])).toEqual([
+      ["unit:2", 1],
+      ["person:12", 2]
+    ]);
+  });
+
+  test("has its default set by a head of the company alone", () => {
     const headed = [
       { id: 2, parent: 1, company: { id: 1 } },
       { id: 3, parent: 2, company: { id: 1 } },
       { id: 9, parent: 8, company: { id: 7 } }
     ];
 
-    expect(permissionTops(headed, 1)).toEqual([2]);
     expect(headsCompany(headed, 1)).toBe(false);
     expect(headsCompany([{ id: 1, parent: null, company: { id: 1 } }, ...headed], 1)).toBe(true);
-  });
-});
-
-describe("the own-BMO section", () => {
-  test("is listed only for a reader with a user who may personalise their BMO", () => {
-    expect(sectionsFor(false, true, true).some((section) => section.key === "agent")).toBe(true);
-    expect(sectionsFor(false, true, false).some((section) => section.key === "agent")).toBe(false);
-    expect(sectionsFor(true, false, true).some((section) => section.key === "agent")).toBe(false);
   });
 });

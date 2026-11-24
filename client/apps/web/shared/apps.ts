@@ -1,3 +1,5 @@
+import type { DecidedBy } from "./organisation-agents";
+
 // The apps a reader turns on and off (docs/web.md, 「Organisation」, the apps tab, and 「Settings」, the own apps
 // section; docs/accounts.md, 「An app's two settings」): each app by its key, with the name and icon its screen's bundle
 // gives it where one does, and what the delegation chain says of it for the link the screen stands for.
@@ -17,6 +19,8 @@ export interface OwnApp extends AppName {
   own: boolean | null;
   // Whether a unit above locks it, so the reader's word changes nothing.
   locked: boolean;
+  // Who locks it above the reader, for the line saying so.
+  locker: DecidedBy;
 }
 
 /** An app as a unit's row on the organisation screen shows it. */
@@ -31,6 +35,8 @@ export interface UnitApp extends AppName {
   locks: boolean;
   // Whether a link above locks it.
   lockedAbove: boolean;
+  // Who locks it above the unit, for the line saying so.
+  locker: DecidedBy;
   // Whether the reader may change the unit's word and lock now.
   writable: boolean;
   // The platform's rule offering the app to the unit or withholding it, null where none stands: read for the

@@ -19,25 +19,27 @@ export interface SettingsSection {
   administrator: boolean;
   // Whether only a reader with a user of the account service is shown it, what it sets standing against that user.
   user: boolean;
-  // Whether only a reader who may personalise their own BMO, and owns one, is shown it (docs/web.md, 「Settings」,
-  // the own-BMO section).
-  personalize?: boolean;
   // Whether it stands only in the desktop app's window, what it sets being the app's (docs/web.md, 「Settings」, the
   // desktop section).
   app?: boolean;
-  // The section's own component, loaded when it is first opened.
+  // The section's own component, loaded when it is first opened, and what it is handed.
   load: () => Promise<{ default: Component }>;
+  props?: Record<string, unknown>;
+  // The keys of sections that once stood apart and are this one now, so an address naming one still opens it.
+  aliases?: readonly string[];
 }
+
+// A door to a tab of the organisation screen at the reader's own node (docs/web.md, 「Settings」).
+const door = (): Promise<{ default: Component }> => import("~/components/SettingsDoor.vue");
 
 export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   { key: "account", label: "settings.label.account", icon: "i-material-symbols-person-outline", administrator: false, user: false, load: () => import("~/components/SettingsAccount.vue") },
-  { key: "agent", label: "settings.label.agent", icon: "i-material-symbols-face-outline", administrator: false, user: true, personalize: true, load: () => import("~/components/SettingsBmo.vue") },
-  { key: "own-agents", label: "settings.label.own_agents", icon: "i-material-symbols-smart-toy-outline", administrator: false, user: true, load: () => import("~/components/SettingsOwnAgents.vue") },
+  { key: "own-agents", label: "settings.label.own_agents", icon: "i-material-symbols-smart-toy-outline", administrator: false, user: true, load: door, props: { tab: "agents", label: "org_agents.label.tab" }, aliases: ["agent"] },
   { key: "machine", label: "settings.label.machine", icon: "i-material-symbols-computer-outline", administrator: false, user: true, load: () => import("~/components/SettingsMachine.vue") },
   { key: "desktop", label: "settings.label.desktop", icon: "i-material-symbols-desktop-windows-outline", administrator: false, user: false, app: true, load: () => import("~/components/SettingsDesktop.vue") },
   { key: "secrets", label: "settings.label.secrets", icon: "i-material-symbols-key-outline", administrator: false, user: true, load: () => import("~/components/SettingsSecrets.vue") },
-  { key: "supply", label: "settings.label.supply", icon: "i-material-symbols-bolt-outline", administrator: false, user: true, load: () => import("~/components/SettingsSupply.vue") },
-  { key: "apps", label: "settings.label.apps", icon: "i-material-symbols-apps", administrator: false, user: true, load: () => import("~/components/SettingsAppsDoor.vue") },
+  { key: "supply", label: "settings.label.supply", icon: "i-material-symbols-bolt-outline", administrator: false, user: true, load: door, props: { tab: "supply", label: "supply.label.tab" } },
+  { key: "apps", label: "settings.label.apps", icon: "i-material-symbols-apps", administrator: false, user: true, load: door, props: { tab: "apps", label: "apps.label.tab" } },
   { key: "personal-apps", label: "settings.label.personal_apps", icon: "i-material-symbols-widgets-outline", administrator: false, user: true, load: () => import("~/components/SettingsPersonalApps.vue") },
   { key: "theme", label: "settings.label.theme", icon: "i-material-symbols-contrast", administrator: false, user: false, load: () => import("~/components/SettingsTheme.vue") },
   { key: "palette", label: "settings.label.palette", icon: "i-material-symbols-chat-bubble-outline", administrator: false, user: false, load: () => import("~/components/SettingsPalette.vue") },
@@ -49,17 +51,14 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
 export const SETTINGS_QUERY = "settings";
 
 // The sections a reader may open, in the list's order: by whether they are the administrator, whether they have a
-// user of the account service, whether they may personalise a BMO of their own, and whether the console runs in the
-// desktop app's window.
-export function sectionsFor(administrator: boolean, user: boolean, personalize = false, app = false): SettingsSection[] {
-  return SETTINGS_SECTIONS.filter(
-    (section) => (administrator || !section.administrator) && (user || !section.user) && (personalize || section.personalize !== true) && (app || section.app !== true)
-  );
+// user of the account service, and whether the console runs in the desktop app's window.
+export function sectionsFor(administrator: boolean, user: boolean, app = false): SettingsSection[] {
+  return SETTINGS_SECTIONS.filter((section) => (administrator || !section.administrator) && (user || !section.user) && (app || section.app !== true));
 }
 
 // The section a key names among those a reader may open, the first of them where it names none.
 export function sectionOf(key: unknown, sections: readonly SettingsSection[]): SettingsSection {
-  return sections.find((section) => section.key === key) ?? sections[0]!;
+  return sections.find((section) => section.key === key || (typeof key === "string" && (section.aliases ?? []).includes(key))) ?? sections[0]!;
 }
 
 // The address that opens the dialog at a section: the reader's home, the administrator's or a member's, with the key.

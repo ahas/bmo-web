@@ -1,3 +1,5 @@
+import { decidedLine } from "./chain-decided";
+
 import type { AppName, OwnApp, PlatformApp, UnitApp } from "#shared/apps";
 import type { Translate } from "#shared/wording";
 
@@ -37,7 +39,7 @@ export function unitAppChoices(t: Translate, company: boolean): { value: AppChoi
 /** How an app stands for a unit, in one line: not offered, locked above, its own word, or what it follows. */
 export function unitAppLine(t: Translate, row: UnitApp, company: boolean): string {
   if (!row.offered) return t("apps.label.not_offered");
-  if (row.lockedAbove) return t("apps.label.locked_above");
+  if (row.lockedAbove) return decidedLine(t, row.locker) ?? t("org_agents.label.decided_unit");
   if (row.own !== null) return t("apps.label.own");
 
   if (company) return row.on ? t("apps.label.follows_platform_on") : t("apps.label.follows_platform_off");
@@ -47,7 +49,7 @@ export function unitAppLine(t: Translate, row: UnitApp, company: boolean): strin
 
 /** How an app stands for the reader, in one line: locked by their organisation, their own word, or following it. */
 export function ownAppLine(t: Translate, row: OwnApp): string {
-  if (row.locked) return t("apps.label.locked_organization");
+  if (row.locked) return decidedLine(t, row.locker) ?? t("org_agents.label.decided_unit");
 
   return row.own === null ? t("apps.label.follows_organization") : t("apps.label.own");
 }

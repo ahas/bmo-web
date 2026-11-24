@@ -1,9 +1,9 @@
 <template>
-  <!-- The organisation screen's plans tab (docs/web.md, 「Organisation」, the plans tab): the plan the organisation
-       chosen runs on, changed in a dialog among the plans it is shown, and the plans it is shown — every
-       organisation-scope plan with its switch for the administrator, the plans shown alone, read only, for anyone
-       else. The plans themselves are designed on the administrator's plans tab; the account service owns every
-       refusal, said in the dialog or under the row. -->
+  <!-- The supply tab's plans (docs/web.md, 「Organisation」, the supply tab): the plan the unit chosen in the tree runs
+       on, changed in a dialog among the plans it is shown, and the plans it is shown — every organisation-scope plan
+       with its switch for the administrator, the plans shown alone, read only, for anyone else. The plans themselves
+       are designed at the platform's node of the same tab; the account service owns every refusal, said in the dialog
+       or under the row. -->
   <div class="flex flex-col gap-4">
     <FailedRead v-if="plans === null && failure !== ''" :message="failure" :reading="reading" @retry="read" />
 
@@ -92,6 +92,7 @@
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 
+import { useChosenUnit } from "~/domain/organization";
 import { NO_PLAN, applyChoices, appliedPlanEntry, planChoice, planTermText, withExposure } from "~/domain/supply";
 
 import type { Organization } from "~/domain/organization";
@@ -103,6 +104,8 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+// The unit chosen in the tree, the company where none is.
+const unit = useChosenUnit(() => props.company.id);
 
 const { t } = useI18n();
 
@@ -119,7 +122,7 @@ const termText = computed(() => (applied.value === null ? "" : planTermText(t, a
 async function read(): Promise<void> {
   reading.value = true;
   try {
-    plans.value = await $fetch<SupplyOrgPlans>(`/api/supply/org/${props.company.id}/plans`);
+    plans.value = await $fetch<SupplyOrgPlans>(`/api/supply/org/${unit.value}/plans`);
     failure.value = "";
   } catch (error) {
     failure.value = failureText(error, t("supply.error.read_failed"));
@@ -141,7 +144,7 @@ async function expose(plan: number, on: boolean): Promise<void> {
   exposing.value = plan;
   refusals.value = { ...refusals.value, [plan]: "" };
   try {
-    plans.value = await $fetch<SupplyOrgPlans>(`/api/supply/org/${props.company.id}/plans/exposed`, { method: "PUT", body: { plans: withExposure(standing, plan, on) } });
+    plans.value = await $fetch<SupplyOrgPlans>(`/api/supply/org/${unit.value}/plans/exposed`, { method: "PUT", body: { plans: withExposure(standing, plan, on) } });
   } catch (error) {
     refusals.value = { ...refusals.value, [plan]: failureText(error, t("supply.error.plan_failed")) };
   } finally {
@@ -173,7 +176,7 @@ async function apply(): Promise<void> {
   applyBusy.value = true;
   applyFailure.value = "";
   try {
-    plans.value = await $fetch<SupplyOrgPlans>(`/api/supply/org/${props.company.id}/plans/applied`, { method: "PUT", body: { plan: choice.value === NO_PLAN ? null : Number(choice.value) } });
+    plans.value = await $fetch<SupplyOrgPlans>(`/api/supply/org/${unit.value}/plans/applied`, { method: "PUT", body: { plan: choice.value === NO_PLAN ? null : Number(choice.value) } });
     applying.value = false;
   } catch (error) {
     applyFailure.value = failureText(error, t("supply.error.plan_failed"));
@@ -182,5 +185,6 @@ async function apply(): Promise<void> {
   }
 }
 
+watch(unit, () => void read());
 onMounted(() => void read());
 </script>

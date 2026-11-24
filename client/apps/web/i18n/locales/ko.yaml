@@ -2391,7 +2391,6 @@ agent_login:
 org_agents:
   title:
     person_changes: "개인 설정 허용"
-    sources: 에이전트 공급원
     keys: 조직 공급 키
     composition: 가입 구성
     key_add: 조직 공급 키 추가
@@ -2402,6 +2401,8 @@ org_agents:
   status:
     loading: 에이전트 설정 불러오는 중…
   label:
+    personalize: "자기 BMO 설정"
+    choice_default: "기본값을 따름"
     road_role_default: "역할 에이전트를 따름"
     composition_agent: "{name} 에이전트 {count}"
     person_change_instructions: "내 지침"
@@ -2431,14 +2432,9 @@ org_agents:
     decided_named: "조직이 정함 · {name}"
     decided_unit: 조직이 정함
     decided_platform: 전역 설정으로 정함
-    state_on: 켜짐
     state_off: 꺼짐
-    source_personal: 개인 공급
     source_organisation: 조직 공급
-    source_platform: 플랫폼 공급
-    closed_above: 상위 조직에서 꺼짐
     not_provided: 제공되지 않음
-    locked_above: 상위 조직에서 잠금
     below: 하위 조직
     delegation_allow: 하위 조직 허용
     delegation_lock: 하위 조직 잠금
@@ -4220,6 +4216,10 @@ admin:
     tabs: 플랫폼 설정 탭
 bmo_profile:
   label:
+    platform_default: "전역 기본 BMO"
+    inherit_platform: "전역 설정 따름"
+    follows_platform_allowed: "전역 설정을 따라 허용"
+    follows_platform_denied: "전역 설정을 따라 막음"
     company_default: 기본 BMO
     name: 이름
     call_names: 부르는 이름
@@ -4236,7 +4236,6 @@ bmo_profile:
     follows_allowed: 상위 조직을 따라 허용
     follows_denied: 상위 조직을 따라 막음
     persona_count: "{count}/{max}자"
-    no_companies: 설정할 수 있는 회사가 없습니다.
     no_call_names: 부르는 이름 없음
     company_picture_note: 저장하면 이 사진이 회사 사람들의 BMO 사진이 됩니다.
     own_picture_note: 저장하면 이 사진이 내 BMO 사진이 됩니다.
@@ -4271,6 +4270,17 @@ bmo_profile:
 # section of 설정): an app's state, where it comes from, the lock and the offer, and the refusals.
 apps:
   label:
+    personal_make: "개인 앱 만들기"
+    personal_network: "네트워크 사용 요청"
+    personal_secrets: "비밀 사용 요청"
+    personal_share_scope: "공유 대상"
+    personal_share_review: "공유 버전 승인"
+    personal_install: "공유 앱 설치"
+    personal_offered: "이 회사에 {name} 제공"
+    personal_follows: "위를 따라 {value}"
+    scope_team: "팀"
+    scope_heads: "팀과 상위 조직장"
+    scope_company: "회사 전체"
     tab: 앱·도구
     none: 앱 없음
     "on": 켬
@@ -4284,8 +4294,6 @@ apps:
     follows_organization: 조직을 따름
     own: 직접 정함
     follows_declared: 기본값을 따름
-    locked_above: 상위 조직에서 잠금
-    locked_organization: 조직에서 잠금
     not_offered: 제공되지 않음
     offer: 제공
     recalled: 긴급 회수됨
@@ -4297,6 +4305,7 @@ apps:
     recall_confirm: 회수
     lift: 회수 해제
   title:
+    personal_apps: "개인 앱"
     recall: "{app} 앱을 모든 곳에서 끌까요?"
   message:
     recall: "모든 회사와 사람에게서 바로 꺼지고, 회수를 풀 때까지 아무도 켤 수 없습니다.\n회사와 조직, 사람이 정한 값은 남아 있다가 회수를 풀면 다시 적용됩니다."
@@ -4453,12 +4462,13 @@ app_permissions:
 # credential stands in, and the sentences every refusal and question is said in.
 supply:
   title:
+    ledger: "장부"
+    platform_keys: "플랫폼 공급 키"
     logins: 공급 로그인
     keys: 공급 키
     order: 공급 순서
     usage: 이번 달 사용량
     policy: 공급 정책
-    plan: 플랜
     platform_policy: 플랫폼 기본 정책
     audit: 감사 기록
     key_add: 공급 키 추가
@@ -4469,6 +4479,10 @@ supply:
     plan_applied: 적용 플랜
     plan_exposed: 노출 플랜
   label:
+    cap_follows: "위를 따름"
+    platform_keys_none: "파일에서 키를 읽는 공급자 없음"
+    personal_credits: "개인 크레딧"
+    personal_granted: "{amount}를 부여했습니다."
     note: 로그인과 키의 값은 이 화면에 나타나지 않습니다. 이름과 상태만 보입니다.
     tab: 공급
     plans: 플랜
@@ -4511,7 +4525,6 @@ supply:
     logins_none: 공급 로그인 없음
     keys_none: 공급 키 없음
     usable: 사용 가능
-    usable_off: 사용 안 함
     login_off: 꺼짐
     login_needed: 로그인 필요
     login_none: 로그인 안 됨
@@ -4530,7 +4543,6 @@ supply:
     follows_above: 상위 조직을 따름
     follows_unit: 조직을 따름
     member_credit_cap: 개인 크레딧 월 상한
-    plan_name: 이름
     price: 가격
     price_whole: 한 주기 가격, 원 단위
     period: 주기
@@ -4553,7 +4565,6 @@ supply:
     scope: 대상
     scope_personal: 개인
     scope_organisation: 조직
-    owner: 대상
     amount: 금액
     words: 메모
     words_placeholder: 선택
@@ -4609,8 +4620,6 @@ supply:
     policy_delete_effect_user: 이 사람은 소속 조직의 정책을 따릅니다.
     plan_delete: "{name} 플랜을 삭제할까요?"
     plan_delete_effect: 새로 이 플랜을 사는 사람은 없습니다.
-  placeholder:
-    find_person: 사람 찾기
   error:
     read_failed: 공급 정보를 불러오지 못했습니다.
     logins_failed: 공급 로그인을 변경하지 못했습니다.

@@ -1282,6 +1282,22 @@ export async function companyBmoOf(company: number, caller: ProfileCaller, optio
   return { name: answer.name ?? null, callNames: answer.callNames, picture: answer.picture };
 }
 
+/** The platform's own default for every company's people's BMOs, which a company setting none follows. */
+export async function platformBmoOf(caller: ProfileCaller, options: ServiceOptions = {}): Promise<CompanyBmoView> {
+  const reply = await sent(options, clientOf(options).GET("/platform/agent", { params: { header: profileHeaders(caller) } }));
+  const answer = answered(reply);
+
+  return { name: answer.name ?? null, callNames: answer.callNames, picture: false };
+}
+
+/** The platform's own default name and call names replaced, the platform administrator's; answered as they now stand. */
+export async function setPlatformBmo(ask: { name: string | null; callNames: string[] }, caller: ProfileCaller, options: ServiceOptions = {}): Promise<CompanyBmoView> {
+  const reply = await sent(options, clientOf(options).PUT("/platform/agent", { params: { header: profileHeaders(caller) }, body: ask }));
+  const answer = answered(reply);
+
+  return { name: answer.name ?? null, callNames: answer.callNames, picture: false };
+}
+
 /** A company's default name and call names replaced, answered as they now stand. */
 export async function setCompanyBmo(company: number, ask: { name: string | null; callNames: string[] }, caller: ProfileCaller, options: ServiceOptions = {}): Promise<CompanyBmoView> {
   const reply = await sent(options, clientOf(options).PUT("/companies/{company}/agent", { params: { path: { company }, header: profileHeaders(caller) }, body: ask }));

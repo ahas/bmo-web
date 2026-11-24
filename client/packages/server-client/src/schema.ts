@@ -732,6 +732,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/platform/agent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The platform's own default for every company's people's BMOs, which a company setting none follows: its name and call names; for any caller. */
+        get: operations["platformAgent"];
+        /** Replaces the platform's own default name and call names, by the platform administrator; answers the default as it stands. */
+        put: operations["setPlatformAgent"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/rooms/{chat}/callers": {
         parameters: {
             query?: never;
@@ -5706,6 +5724,78 @@ export interface operations {
                 content?: never;
             };
             /** @description A refusal or failure: bad-request, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    platformAgent: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyAgent"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    setPlatformAgent: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompanyAgentAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyAgent"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, bad-agent-profile, unauthorized, forbidden, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;

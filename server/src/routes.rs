@@ -66,6 +66,7 @@ pub async fn stand(
     crate::supply::policy_kind(),
     crate::supply::own_kind(),
     crate::supply::allowance_kind(),
+    crate::supply::organisation_kind(),
   ] {
     crate::chain::declare(&db, &kind).await?;
   }

@@ -317,8 +317,8 @@ section states what each does.
 
 - **Agent management's screen opens on any one of its parts the reader may read,** and each tab on its own
   part alone. Its shared reads — the agent list, a provider's models, the provider switches and the fallback,
-  an agent's face and tool marks — open on any part read; the provider switches and the fallback are changed on
-  플랫폼 설정's 공급자 tab, which only the administrator opens. An agent's own page stands under the three parts
+  an agent's face and tool marks — open on any part read; the provider switches are changed on 플랫폼 설정's 공급자 tab
+  and the fallback on 조직's 공급 with the platform chosen, which only the administrator opens. An agent's own page stands under the three parts
   whose rows open it: the supervisors, the roles and the repositories.
 
 - **A section's permission is two relations of the deployment's rules,** `read` and `write`, on a
@@ -586,7 +586,9 @@ section states what each does.
   it. Any part may stand empty. The company's own default is set on the company's routes below by the platform
   administrator and the company's heads — a head of the company unit itself, by sumida's `manage` on it — and a
   unit's below it on the chain's own routes by that unit's heads, its picture's bytes kept beside the chain under
-  the unit whose link holds the flag.
+  the unit whose link holds the flag. The platform's own name and call names, the default of every company that sets
+  none, are the platform administrator's, on the platform's route below; a picture stands at a unit alone, since its
+  bytes are kept under the unit.
 - **A person may set their own,** where they may personalise their BMO: a name, the names that call it, a picture and
   a persona. Each part may stand empty. What they set is kept whether or not they may use it, so a permission taken
   away and given back finds it as it was.
@@ -597,11 +599,11 @@ section states what each does.
      picture of the console's (the receiver's own or the initials stand), and no persona of the person's (the
      agency's own composition stands).
   The account's administrators are no exception for their own BMO, and nothing of one person's profile reaches another.
-- **Whether a person may personalise their BMO is set as 허용 or 막음 on a person or on a unit.** It is the delegation
-  chain's `agent-profile.personalize` (「The delegation chain」), a flag resolved nearest first: the person's own
-  setting, then their unit's, then each unit above it up to the company. Where none of them is set it is withheld:
-  nothing is open until it is granted. A platform administrator may always.
-- **Who sets it:** the platform administrator anywhere; a unit's head on that unit and every unit below it, and on every
+- **Whether a person may personalise their BMO is set as 허용 or 막음 on a person, on a unit or for the platform.** It
+  is the delegation chain's `agent-profile.personalize` (「The delegation chain」), a flag resolved nearest first: the
+  person's own setting, then their unit's, then each unit above it up to the company, then the platform's own. Where
+  none of them is set it is withheld: nothing is open until it is granted. A platform administrator may always.
+- **Who sets it:** the platform administrator anywhere, the platform's link among it; a unit's head on that unit and every unit below it, and on every
   person standing in one of them, by sumida's `manage` on the unit. A setting is taken away by setting it to follow
   the unit above, which removes it. Where a unit above locks the setting on the chain, a change below the lock is
   refused 409 `locked` to anyone but the platform administrator, and what was set below it stands unread.
@@ -612,6 +614,9 @@ section states what each does.
     (whether one is kept), its own link's values, for the administrator and anyone of the company; **`PUT`** with
     `name?` and `callNames` writes them on the company's link and answers the default as it stands, for the
     administrator and the company's heads, refused 409 `locked` where the platform locks them.
+  - **`GET /platform/agent`** answers the platform's own default the same way, `name?` and `callNames`, its `picture`
+    always false, for any caller; **`PUT`** with `name?` and `callNames` writes them on the platform's link and answers
+    it as it stands, for the platform administrator alone.
   - **`GET`, `PUT` and `DELETE /companies/{company}/agent/picture`**: the default picture's bytes with their type, 404
     `not-found` where none is kept, read by the callers of the default's `GET`; set from the request's body, the
     bytes as they are, and taken away by the callers of its `PUT`, both answering 204. Bytes that are no PNG, JPEG, WebP or GIF are
@@ -1102,10 +1107,11 @@ Each is declared by the module that uses it, as the service stands, under the un
 
 | Kind | What it is | Shape and mode | Levels and writers |
 |---|---|---|---|
-| `agent-profile.personalize` | the BMO setting permission (「A person's BMO profile」) | a flag, `nearest`, withheld by default | units and people; `manage`, `heads` |
+| `agent-profile.personalize` | the BMO setting permission (「A person's BMO profile」) | a flag, `nearest`, withheld by default | the platform, units and people; `manage`, `heads` |
 | `supply.policy` | the platform's, an organisation's and the per-user supply policy (「Supply」) | `json`, `layered` | the platform, units and people; `manage_credit`, `heads` |
 | `supply.own` | a person's own supply setting (「Supply」) | `json`, `nearest` | people; `self` |
-| `supply.credit-allowance` | a person's monthly limit of organisation credits: the organisation credits one person may spend in a calendar month (「How an order is resolved」) | an amount, `narrowing`, `unlimited` by default, with rules | the platform, units and people; `manage_credit`, `heads` |
+| `supply.credit-allowance` | a person's monthly limit of organisation credits: the organisation credits one person may spend in a calendar month, the 월 상한 of a unit's and a per-user policy (「How an order is resolved」) | an amount, `narrowing`, `unlimited` by default, with rules | the platform, units and people; `manage_credit`, `heads` |
+| `supply.organisation` | whether a person may run on their organisation's own supply (「Organisation supply」) | a flag, `narrowing`, off by default, with rules | the platform and units; `manage`, `heads` |
 | `agent-profile.name` | the name an organisation's default gives its people's BMOs (「A person's BMO profile」) | a text, `nearest` | the platform and units; `manage` |
 | `agent-profile.call-names` | the names that call them | `json`, a list this service judges, `nearest` | the platform and units; `manage` |
 | `agent-profile.picture` | whether the link's own kept picture stands as theirs | a flag, `nearest` | the platform and units; `manage` |
@@ -1154,11 +1160,12 @@ Each is declared by the module that uses it, as the service stands, under the un
   answers, through the agency's `supply` hook point, which sources a run may take and whether a source the
   platform pays for takes it. A run's provider and model never change with its source, and the agency is the
   only consumer of an order.
-- **The five sources, keyed everywhere by these keys:**
+- **The sources, keyed everywhere by these keys:**
 
   | Key | What it is |
   |---|---|
   | `personal` | the person's own credential, paid to the provider |
+  | `organisation` | the credential of a unit on the person's path, its cost counted as organisation credits (「Organisation supply」) |
   | `global` | the platform's credential, paid from the plan's included usage |
   | `org_credits` | the platform's credential, paid from the organisation's credit wallet |
   | `personal_credits` | the platform's credential, paid from the person's own credit wallet |
@@ -1174,9 +1181,14 @@ Each is declared by the module that uses it, as the service stands, under the un
   pass: sumida's own maintenance — the releasing of expired holds, the sweeping of ended lots and the notices,
   advisory-locked so several instances run each pass once — and then the renewal of the applied plans
   (「An organisation's plans」).
+- **This service alone decides which sources a person's runs may take.** The agency follows the order the hook
+  answers and shapes it no further (the agency's `docs/supply.md`, 「The sources a run walks」); every setting that
+  opens or closes a source is one this service declares and judges.
 - **What each source stands on** (「The tables」): the platform default policy, an organisation's policy and a
   person's administrator-set policy on the delegation chain as the links of `supply.policy` — the platform's link,
-  a unit's and the person's — and a person's own setting as their link of `supply.own` (「The delegation chain」);
+  a unit's and the person's —, the monthly limit of organisation credits as the links of `supply.credit-allowance`,
+  whether organisation supply is open as the links of `supply.organisation`, and a person's own setting as their
+  link of `supply.own` (「The delegation chain」);
   the platform's money settings in their one row; every platform reservation this service opens in
   `supply_reservations`; and every settled cost in `supply_costs`. The supply routes judge each policy and write it
   on the chain; the chain's own route writes no supply value, a policy being `json` the supply judges. The seeded defaults are the platform policy of `allowed` =
@@ -1211,20 +1223,22 @@ Each is declared by the module that uses it, as the service stands, under the un
      none or its quota is spent, and `org_credits` and `personal_credits` where the plan forbids credits;
   3. the nearest organisation policy going up the unit tree, a unit setting none inheriting its parent's;
   4. the administrator's per-user policy, where one stands, and the person's credit allowance;
+     then organisation supply, placed where it stands open (「Organisation supply」);
   5. the person's own setting, which reorders where the order is overridable and switches an overridable
      source on or off against the platform's default; a source it names neither way stands as the default
      says, and a locked source stands as the platform says whatever the setting holds.
 - **`stop` is appended to every stored order last and cannot be removed;** a hook answer leaves it out, since
   the agency says the stop itself when no source is left. A write may name it last, as every order is read, and
-  it is dropped; named anywhere else it is refused 400. An organisation credit cap — where one stands —
-  takes `org_credits` out of a person's order once their organisation-credit spend of the calendar month has
-  reached it, and a person's own cap does the same to `personal_credits`.
-- **A person's credit allowance is their monthly limit of organisation credits:** the delegation chain's
-  `supply.credit-allowance` resolved for them, `unlimited` or the organisation credits they may spend in a calendar
-  month, set at the platform, at any unit and on the person, for one person, a named group or a unit by rules, each
-  link narrowing what stands above it. Once their organisation-credit spend of the month reaches it, `org_credits`
-  leaves their order, closed by `blocked-by-administrator` where the person's own link set the smallest allowance
-  and by `blocked-by-organisation` otherwise. Where nothing is set it is `unlimited` and closes nothing.
+  it is dropped; named anywhere else it is refused 400. A person's own cap takes `personal_credits` out of their
+  order once their spend of it in the calendar month has reached it.
+- **A person's credit allowance is their monthly limit of organisation credits,** the one 월 상한 a unit's and a
+  per-user policy show: the delegation chain's `supply.credit-allowance` resolved for them, `unlimited` or the
+  organisation credits they may spend in a calendar month, set at the platform, at any unit and on the person, for
+  one person, a named group or a unit by rules, each link narrowing what stands above it. A policy holds no cap of
+  its own: the policy routes read and write the link's allowance beside the policy (「Who may change and read
+  what」). Once their organisation-credit spend of the month reaches it, `org_credits` and `organisation` leave
+  their order, closed by `blocked-by-administrator` where the person's own link set the smallest allowance and by
+  `blocked-by-organisation` otherwise. Where nothing is set it is `unlimited` and closes nothing.
 - **A write naming a source its earlier layers do not allow is refused.** A policy write closed by the
   platform answers 403 `source-not-allowed`; a person's own write answers the code of the layer that closed
   it — `not-in-plan`, `blocked-by-organisation` or `blocked-by-administrator` — so the screen can say the
@@ -1266,14 +1280,12 @@ Each is declared by the module that uses it, as the service stands, under the un
   (sumida's quota holds), `org_credits` against the wallet of the ask account's own organisation and
   `personal_credits` against the person's own wallet (sumida's holds, captures and releases). Every platform
   source reserves and settles in credits, converted at the standing `credits_per_dollar`.
-- **Organisation supply is a source the agency takes on its own reading of the chain,** `organisation`: a person's
-  run on a credential their organisation registered (agency's `docs/supply.md`, 「Organisation supply」). No policy
-  names it and no order answered names it; the agency reserves for it through the hook as for a platform source.
-  Its cost counts as organisation credits: it is recorded in `supply_costs` under `organisation`, counts toward the
-  person's month of organisation-credit spend that their credit allowance and an organisation's member cap hold,
-  and, while `enforce` is on, is refused once that spend reaches their allowance and reserved against the wallet of
-  the person's organisation as `org_credits` is. Where that organisation keeps no credit wallet, the cost cannot be
-  charged anywhere and is recorded alone.
+- **Organisation supply is reserved through the hook as a platform source is,** under `organisation` (「Organisation
+  supply」). Its cost counts as organisation credits: it is recorded in `supply_costs` under `organisation`, counts
+  toward the person's month of organisation-credit spend that their credit allowance holds, and, while `enforce` is
+  on, is refused where the person's resolved order does not hold it and reserved against the wallet of the person's
+  organisation as `org_credits` is. Where that organisation keeps no credit wallet, the cost cannot be charged
+  anywhere and is recorded alone.
 - **While `enforce` is false** every ask records and answers as though the source were unlimited: the order
   is resolved and answered, a `reserve` is accepted at the full size and opens no sumida hold, nothing is ever
   refused, and so a run is never stopped by supply. `capture` and `release` still answer taken, still move
@@ -1285,6 +1297,22 @@ Each is declared by the module that uses it, as the service stands, under the un
   goes on, the agency's rule for that case being that a person's run then takes personal supply alone.
   `DELETE /hooks/supply` takes the registration away. The `order` answer never names a platform source the
   service would refuse a reservation for.
+
+### Organisation supply
+
+- **A unit may hold supply of its own:** keys and Claude accounts it registers at the agency, which its people's runs
+  go out on (the agency's `docs/supply.md`, 「Organisation supply」). Whether a person may take it is the delegation
+  chain's `supply.organisation`, a flag this service declares, `narrowing` and off by default, held at the platform's
+  link and a unit's with rules. A unit's word alone never opens it: it stands open for a person only where the
+  platform's own link says so for them — its value, or a rule naming them, a group of theirs or a unit on their path,
+  as the platform administrator opens it for one company — and no link below closes it. A head writes their unit's
+  link; a lock keeps the units below from closing it further.
+- **No policy names it, and a person's own setting does not switch it.** Where it stands open and the person's credit
+  allowance is not spent, the resolution places `organisation` in the order before every platform source — after
+  `personal` wherever the order puts that first — and the hook answers it there; the agency takes the credential of
+  the nearest unit of the person's path that holds one for the run's road. `GET /supply/me` answers its standing
+  beside the other sources, locked, closed by `blocked-by-organisation` where a unit closed it or the allowance is
+  spent and by `blocked-by-administrator` where the platform does not open it.
 
 ### An organisation's plans
 
@@ -1328,9 +1356,12 @@ Each is declared by the module that uses it, as the service stands, under the un
   its `subscription_manager`'s or a platform administrator's, and reading the unit's plans is theirs and its
   `credit_manager`'s and `manager`'s as well;
   a person's own setting is the person's alone; and a per-user policy is the `credit_manager` or `manager` of
-  the unit the person stands in, a platform administrator everywhere. `GET /supply/units` reads these relations
-  back for the console: each company whose policy and credits or whose plan the reader holds, saying which, and
-  every company for a platform administrator.
+  the unit the person stands in, a platform administrator everywhere. A unit's and a per-user policy's routes
+  carry the link's credit allowance beside the policy as `memberCreditCredits`: a read answers the link's own
+  allowance where the policy is its own and the one standing from above otherwise, a write writes the link's
+  allowance (none taking its own away), and a policy taken away takes the link's allowance with it. `GET /supply/units` reads these relations
+  back for the console: each company whose policy and credits — its own or a unit's under it — or whose plan the
+  reader holds, saying which, and every company for a platform administrator.
 - **Of another person's personal supply an administrator reads which providers it serves, never a credential
   and never a secret's value:** the roads come from the agency's own administrator read (`GET
   /personal-supply` under the person's `Owner-Key`), and the credentials stand in the agency and the secret
@@ -1402,7 +1433,7 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 | `web_room_reads` | how far each user has read each room |
 | `document_talk` | the console's threads about a document: each word said over one, by whom, with the passage, heading and version it was said over (`docs/documents-viewer.md`, 「The record」) |
 | `chain_kinds` | each setting kind declared on the delegation chain: its key, the unit that declared it, the declaration whole as JSON, and when it was last declared (「The delegation chain」) |
-| `chain_links` | each link's entry of a kind: the kind, the link (`platform`, `unit:<id>` or `person:<id>`, with the unit or the person it names), its value (JSON, null where it follows above), its delegation, and who set it and when; a link holding no value, `inherit` and no rule has no row. The supply policy's links hold `allowed`, `order` and, at the platform, `overridable` and `orderOverridable`, below it `memberCreditCredits`; a person's own supply setting holds `order`, `off`, `on` and `personalCreditCredits` |
+| `chain_links` | each link's entry of a kind: the kind, the link (`platform`, `unit:<id>` or `person:<id>`, with the unit or the person it names), its value (JSON, null where it follows above), its delegation, and who set it and when; a link holding no value, `inherit` and no rule has no row. The supply policy's links hold `allowed`, `order` and, at the platform, `overridable` and `orderOverridable`; a person's own supply setting holds `order`, `off`, `on` and `personalCreditCredits` |
 | `chain_rules` | each rule of a link at the platform or a unit: the kind, the link, whom it names (`person:<id>`, `group:<id>` or `unit:<id>`, with the person, group or unit), its value, and who set it and when |
 | `chain_groups` | each named group of people: the unit keeping it, its name, and who set it and when |
 | `chain_group_members` | each member of a group |

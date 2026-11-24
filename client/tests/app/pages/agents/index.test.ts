@@ -24,6 +24,7 @@ const roadField = await read("../../components/RoadField.vue");
 const roadCell = await read("../../components/SupervisorRoadCell.vue");
 const supervisorFields = await read("../../components/SupervisorFields.vue");
 const providersSection = await read("../../components/OrganizationProviders.vue");
+const platformCredentials = await read("../../components/OrganizationPlatformAccounts.vue");
 const accounts = await read("../../components/AgentsAccounts.vue");
 const axes = await Bun.file(new URL("../../../../apps/web/app/domain/axes.ts", import.meta.url)).text();
 const organization = await Bun.file(new URL("../../../../apps/web/app/domain/administration.ts", import.meta.url)).text();
@@ -328,15 +329,15 @@ describe("the model screens", () => {
 });
 
 describe("the providers and the Claude accounts", () => {
-  test("stand on the administrator's screen's providers tab, each switch taking effect as it is thrown", () => {
+  test("stand on the administrator's screen's providers tab, each switch taking effect as it is thrown, the accounts on the platform's supply", () => {
     expect(organization).toContain('{ value: "providers", label: "settings.label.providers"');
-    expect(templateOf(providersSection)).toContain("<AgentsAccounts");
+    expect(templateOf(platformCredentials)).toContain("<AgentsAccounts");
     expect(scriptOf(providersSection)).toContain("`/api/providers/${encodeURIComponent(provider.name)}`, { method: \"PATCH\", body: { enabled: on } }");
   });
 
   // The one rule the Claude accounts are held to: a path is all it ever shows or sends of a login.
   test("never render, accept or echo a credential — only the path to it", () => {
-    for (const source of [accounts, providersSection, page]) {
+    for (const source of [accounts, providersSection, platformCredentials, page]) {
       for (const word of ["accessToken", "refreshToken", ".credentials.json", "CLAUDE_CODE_OAUTH_TOKEN", "credentialText"]) {
         expect(source).not.toContain(word);
       }

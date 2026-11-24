@@ -88,15 +88,9 @@ function rosterReaderOpens(reader: OrganizationReader): boolean {
   return reader.administrator || reader.roster;
 }
 
-// The supply tab's readers: the administrator, and a member the account service's read says holds the supply policy
-// and credits of the organisation chosen (「Organisation」, the supply tab).
+// The supply tab's readers: the administrator, and a member the account service's read says holds any part of the
+// organisation's supply — its policy and credits, or its plan alone (「Organisation」, the supply tab).
 function supplyReaderOpens(reader: OrganizationReader): boolean {
-  return reader.administrator || reader.supply;
-}
-
-// The plans tab's readers: the administrator, and a member the account service's read says holds any part of the
-// organisation's supply — its policy, or its plan alone (「Organisation」, the plans tab).
-function plansReaderOpens(reader: OrganizationReader): boolean {
   return reader.administrator || reader.supply || reader.plans;
 }
 
@@ -120,16 +114,13 @@ export const ORGANIZATION_TABS: readonly OrganizationTab[] = [
   { value: PEOPLE_TAB, label: "roster.label.tab", icon: "i-material-symbols-group-outline", opens: rosterReaderOpens, keys: ["q", "kind", "role", "state", "user", PERSON_PANE_KEY], wide: true, load: () => import("~/components/OrganizationPeople.vue") },
   { value: "catalogue", label: "catalogue.label.tab", icon: "i-material-symbols-category-outline", opens: rosterReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationCatalogue.vue") },
   { value: "invites", label: "settings.label.invites", icon: "i-material-symbols-person-add-outline", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationInvites.vue") },
-  { value: "agent", label: "settings.label.bmo", icon: "i-material-symbols-face-outline", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationBmo.vue") },
-  { value: "agents", label: "org_agents.label.tab", icon: "i-material-symbols-smart-toy-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationAgents.vue") },
+  { value: "agents", label: "org_agents.label.tab", icon: "i-material-symbols-smart-toy-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationAgents.vue"), links: { platform: () => import("~/components/OrganizationPlatformAgents.vue"), me: () => import("~/components/OrganizationPersonAgents.vue") } },
   { value: "apps", label: "apps.label.tab", icon: "i-material-symbols-apps", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationApps.vue"), links: { platform: () => import("~/components/OrganizationPlatformApps.vue"), me: () => import("~/components/OrganizationPersonApps.vue") } },
   { value: "storage", label: "org_storage.label.tab", icon: "i-material-symbols-hard-drive-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationArtifactStorage.vue") },
   { value: "memory", label: "org_memory.label.tab", icon: "i-material-symbols-psychology-outline", opens: memoryReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationMemory.vue") },
-  // The supply tab stands only for a reader who holds the organisation's supply policy, and the plans tab for one who
-  // holds any part of its supply — the administrator everywhere (docs/web.md, 「Organisation」, the supply and plans
-  // tabs).
-  { value: "supply", label: "supply.label.tab", icon: "i-material-symbols-bolt-outline", opens: supplyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationSupply.vue") },
-  { value: "plans", label: "supply.label.plans", icon: "i-material-symbols-receipt-long-outline", opens: plansReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationPlans.vue") }
+  // The supply tab stands for a reader who holds any part of the organisation's supply — its policy and credits, or
+  // its plan alone — the administrator everywhere (docs/web.md, 「Organisation」, the supply tab).
+  { value: "supply", label: "supply.label.tab", icon: "i-material-symbols-bolt-outline", opens: supplyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationSupplyTab.vue"), links: { platform: () => import("~/components/OrganizationPlatformSupply.vue"), me: () => import("~/components/OrganizationPersonSupply.vue") } }
 ];
 
 // Where a section that once stood here as a tab stands now, by the key its tab had, so a link made before it moved
@@ -138,6 +129,9 @@ export const ORGANIZATION_TABS: readonly OrganizationTab[] = [
 // and a person's sections on that person's own tab of the people tab. `carries` names the keys of the old address the
 // new one keeps, such as the person it was open at.
 const MOVED_AWAY: Readonly<Record<string, { path: string; query: LocationQuery; carries?: readonly string[] }>> = {
+  // A company's BMO default and who may personalise a BMO stand on the agents tab, and the plans on the supply tab.
+  agent: { path: ORGANIZATION_PATH, query: { tab: "agents" }, carries: [ORGANIZATION_KEY, UNIT_KEY] },
+  plans: { path: ORGANIZATION_PATH, query: { tab: "supply" }, carries: [ORGANIZATION_KEY, UNIT_KEY] },
   research: { path: "/research", query: { tab: "settings" } },
   briefing: { path: ORGANIZATION_PATH, query: { [SETTINGS_QUERY]: "briefing" } },
   secrets: { path: ORGANIZATION_PATH, query: { [SETTINGS_QUERY]: "secrets" } },
@@ -161,17 +155,24 @@ export function organizationMovedAway(key: unknown, query: LocationQuery = {}): 
   return { path, query: { ...carried, ...lands } };
 }
 
-/** The tabs a reader opens, each by its own say. */
-export function organizationTabsFor(reader: OrganizationReader): OrganizationTab[] {
-  return ORGANIZATION_TABS.filter((tab) => tab.opens(reader));
+// Whether a reader opens a tab at the node chosen: by its own say, or, at a link node, because it declares a view of
+// that link, which stands for every reader the node does.
+function opensAt(tab: OrganizationTab, reader: OrganizationReader, link: LinkNode | null): boolean {
+  return tab.opens(reader) || (link !== null && tab.links?.[link] !== undefined);
+}
+
+/** The tabs a reader opens at the node chosen, each by its own say; at a link node, every tab declaring that link as
+ * well. */
+export function organizationTabsFor(reader: OrganizationReader, link: LinkNode | null = null): OrganizationTab[] {
+  return ORGANIZATION_TABS.filter((tab) => opensAt(tab, reader, link));
 }
 
 /**
  * The tabs the row holds: those the reader opens, and while who reads is still read, the one the address names as
  * well, so the tab asked for stands chosen from the server's picture on.
  */
-export function organizationRowTabs(reader: OrganizationReader, asked: unknown): OrganizationTab[] {
-  return ORGANIZATION_TABS.filter((tab) => tab.opens(reader) || (!reader.known && tab.value === asked));
+export function organizationRowTabs(reader: OrganizationReader, asked: unknown, link: LinkNode | null = null): OrganizationTab[] {
+  return ORGANIZATION_TABS.filter((tab) => opensAt(tab, reader, link) || (!reader.known && tab.value === asked));
 }
 
 /**
@@ -179,8 +180,8 @@ export function organizationRowTabs(reader: OrganizationReader, asked: unknown):
  * it, else the first they open once who reads is known. None while who reads is still read and the tab is not yet
  * known to stand for them, so the server's picture never holds a tab the browser then takes away.
  */
-export function organizationTabOf(asked: unknown, reader: OrganizationReader): OrganizationTab | null {
-  const tabs = organizationTabsFor(reader);
+export function organizationTabOf(asked: unknown, reader: OrganizationReader, link: LinkNode | null = null): OrganizationTab | null {
+  const tabs = organizationTabsFor(reader, link);
   const named = tabs.find((tab) => tab.value === (asked ?? ORGANIZATION_TABS[0]!.value));
 
   return named ?? (reader.known ? (tabs[0] ?? null) : null);
@@ -247,6 +248,18 @@ export const LINK_NODES: Readonly<Record<LinkNode, { icon: string; label: string
   me: { icon: "i-material-symbols-person-outline", label: "organization.label.person", none: "organization.label.person_none" },
   platform: { icon: "i-material-symbols-public", label: "organization.label.platform", none: "organization.label.platform_none" }
 };
+
+/** The unit a tab of the screen stands for: the one the tree chooses, `?unit=` beside its company, else the company
+ * itself. */
+export function useChosenUnit(company: () => number): ComputedRef<number> {
+  const route = useRoute();
+
+  return computed(() => {
+    const chosen = Number(route.query[UNIT_KEY]);
+
+    return Number.isInteger(chosen) && chosen > 0 ? chosen : company();
+  });
+}
 
 /** A link node of the tree, named in the reader's words. */
 export function linkNode(node: LinkNode, t: (key: string) => string): SideNode {

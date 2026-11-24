@@ -137,7 +137,8 @@ const ACCOUNTS: readonly [string, string][] = [
   ["browser-language", "fixture-password-4402"],
   ["shared-info", "fixture-password-4113"],
   ["own-agents", "fixture-password-4114"],
-  ["session-acts", "fixture-password-4115"]
+  ["session-acts", "fixture-password-4115"],
+  ["axis-admin", "fixture-password-4121"]
 ];
 
 // The member accounts a test signs in with to read a section by its permission rather than as the administrator,
@@ -262,6 +263,15 @@ const MEMBERS: readonly { name: string; password: string; sections: readonly { s
   {
     name: "apps-reader",
     password: "fixture-password-3912",
+    sections: [
+      { section: "rooms", read: true, write: false },
+      { section: "account", read: true, write: true }
+    ]
+  },
+  // The person whose own agents and supply stand at their own node on the organisation screen, reached through the settings' doors.
+  {
+    name: "axis-reader",
+    password: "fixture-password-4122",
     sections: [
       { section: "rooms", read: true, write: false },
       { section: "account", read: true, write: true }
@@ -2382,14 +2392,18 @@ try {
     if (!declared.ok) throw new Error(`the app kind ${key} was refused: ${declared.status} ${await declared.text()}`);
   }
 
-  // The agency's own kinds on the delegation chain, declared as the agency declares them as it stands: the three supply
-  // sources, the sign-up composition and repository management (the agency's `policy/organisation.toml`), and the
+  // The agency's own kinds on the delegation chain, declared as the agency declares them as it stands: the sign-up
+  // composition, repository management and personal apps (the agency's `policy/organisation.toml`), and the
   // organisation's instructions, the persona's choice and the person's own instructions (its `policy/prompt-layers.toml`),
-  // and what a person may change of the agents supplied to them.
+  // and what a person may change of the agents supplied to them. Whether organisation supply stands open is the account
+  // service's own kind, declared as it stands.
   const agencyKinds: readonly { key: string; shape: string; mode: string; levels: readonly string[]; fallback?: unknown; choices?: readonly string[]; rules: boolean; personWriter: string }[] = [
-    { key: "supply.platform", shape: "flag", mode: "narrowing", levels: ["platform", "unit", "person"], fallback: true, rules: true, personWriter: "heads" },
-    { key: "supply.organisation", shape: "flag", mode: "narrowing", levels: ["platform", "unit"], fallback: false, rules: true, personWriter: "heads" },
-    { key: "supply.personal", shape: "flag", mode: "narrowing", levels: ["platform", "unit", "person"], fallback: true, rules: true, personWriter: "heads" },
+    { key: "personal-apps.make", shape: "flag", mode: "narrowing", levels: ["platform", "unit", "person"], fallback: true, rules: true, personWriter: "heads" },
+    { key: "personal-apps.network", shape: "flag", mode: "narrowing", levels: ["platform", "unit"], fallback: false, rules: true, personWriter: "heads" },
+    { key: "personal-apps.secrets", shape: "flag", mode: "narrowing", levels: ["platform", "unit"], fallback: false, rules: true, personWriter: "heads" },
+    { key: "personal-apps.share-scope", shape: "keys", mode: "narrowing", levels: ["platform", "unit"], fallback: ["team", "heads"], choices: ["team", "heads", "company"], rules: true, personWriter: "heads" },
+    { key: "personal-apps.share-review", shape: "flag", mode: "nearest", levels: ["platform", "unit"], fallback: false, rules: true, personWriter: "heads" },
+    { key: "personal-apps.install", shape: "flag", mode: "narrowing", levels: ["platform", "unit", "person"], fallback: true, rules: true, personWriter: "heads" },
     { key: "signup.composition", shape: "json", mode: "nearest", levels: ["platform", "unit", "person"], rules: false, personWriter: "heads" },
     { key: "repositories.manage", shape: "flag", mode: "nearest", levels: ["platform", "unit", "person"], fallback: true, rules: true, personWriter: "heads" },
     { key: "agency.org-instructions", shape: "text", mode: "layered", levels: ["platform", "unit"], rules: false, personWriter: "heads" },

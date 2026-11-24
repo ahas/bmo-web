@@ -1,6 +1,7 @@
 import { wording } from "#shared/wording";
 
 import { AccountRefusal, chainEntry, resolveChain, setChainDelegation } from "./account-service";
+import { unitNamed } from "./chain-names";
 import { fail } from "./fail";
 import { callerOf, organizationFailure } from "./organization";
 import { ownerHeaders } from "./owner-key";
@@ -111,7 +112,8 @@ export async function unitStorage(unit: number, signed: SignedIn): Promise<UnitS
     stands: valueOf(resolved.value),
     delegation: entry.delegation,
     writable: entry.writable,
-    lockedBy: entry.lockedBy ?? null
+    lockedBy: entry.lockedBy ?? null,
+    locker: await unitNamed(entry.lockedBy)
   };
 }
 

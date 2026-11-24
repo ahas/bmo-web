@@ -1,12 +1,14 @@
+import type { DecidedBy } from "./organisation-agents";
 import type { OwnProvider, OwnRoad } from "./own-agents";
 
-// An organisation's agents as its heads set them on the delegation chain (docs/web.md, 「Organisation」, the agents
-// tab): which supply sources stand open under a unit, the unit's own keys, and the agents its people are
-// given as their accounts are made ready. No secret value stands in any shape here: what a screen learns of a key
-// is its name.
+// An organisation's supply and agents as its heads set them on the delegation chain (docs/web.md, 「Organisation」,
+// the supply and agents tabs): whether organisation supply stands open under a unit, the unit's own keys, and the
+// agents its people are given as their accounts are made ready. No secret value stands in any shape here: what a
+// screen learns of a key is its name.
 
-/** The three supply sources a unit opens or closes below it, in the order a run takes them. */
-export type SourceKind = "personal" | "organisation" | "platform";
+/** The source a unit opens or closes below it on the chain: its own supply. Which other sources stand is the supply
+ * policy's. */
+export type SourceKind = "organisation";
 
 /** Whether the links below a unit may change a setting: allowed, locked, or following the link above. */
 export type ChainDelegation = "allow" | "lock" | "inherit";
@@ -21,8 +23,9 @@ export interface UnitSourceView {
   delegation: ChainDelegation;
   // Whether the reader may change the unit's link now: a head, under no lock above, or the administrator.
   writable: boolean;
-  // The link whose lock above holds it, where one does.
+  // The link whose lock above holds it, where one does, and who that link is.
   lockedBy: string | null;
+  locker: DecidedBy;
 }
 
 /** One key or Claude account of the unit's own supply, by its secret's name. */
@@ -69,4 +72,5 @@ export interface CompositionView {
   delegation: ChainDelegation;
   writable: boolean;
   lockedBy: string | null;
+  locker: DecidedBy;
 }

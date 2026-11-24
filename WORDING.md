@@ -98,16 +98,18 @@
 - a person's own supervisor, as it is titled → `{name}의 BMO`, the person's name with BMO, or with the name its
   profile stands with where a company or the person set one (`{name}의 Dear`); its private room → the person's name
   alone, `{name}`. The person's name stands there, the login only where none stands; never the login with BMO beside
-  a name, nor 비서, 개인 감독관 or 전용 BMO. The person themselves calls it 내 BMO, and its settings section is 내 BMO.
+  a name, nor 비서, 개인 감독관 or 전용 BMO. The person themselves calls it 내 BMO, and its group on 조직's 에이전트 at 나 is 내 BMO.
 - the names that call a BMO in a room → 부르는 이름: 부르는 이름, 부르는 이름 없음, 추가할 이름. Never 호출 이름, 웨이크
   워드, 별칭; 호출 stays the mention's never-word.
-- a company's default for its people's BMOs → 기본 BMO; who may set their own BMO → BMO 설정 권한, each row 허용, 막음
-  or 상위 조직 따름, a following row saying 상위 조직을 따라 허용 or 상위 조직을 따라 막음. Never 개인화 권한, 커스터마이즈.
+- a company's default for its people's BMOs → 기본 BMO, the platform's → 전역 기본 BMO; who may set their own BMO → BMO
+  설정 권한, each row 허용, 막음 or 상위 조직 따름 (전역 설정 따름 on a company), a following row saying 상위 조직을 따라 허용 or
+  상위 조직을 따라 막음 (전역 설정을 따라 허용 or 막음 on a company); the platform's own row → 자기 BMO 설정, its choices
+  기본값을 따름, 허용 and 막음. Never 개인화 권한, 커스터마이즈.
 - a screen and its tools switched on and off as one → 앱; where they are switched → 앱·도구 on 조직 and 내 앱·도구 in
   설정. Its state → 켬 or 끔; a unit's choice of it → 켬, 끔 or 상위 조직 따름 (전역 설정 따름 on a company), a following
   row saying 상위 조직을 따라 켬 or 전역 설정을 따라 끔; a person's row → 직접 정함 or 조직을 따름, their own word taken
-  back by 되돌리기; a unit deciding it for everyone below → 하위 조직 잠금, its undoing 잠금 해제, a row under it saying
-  상위 조직에서 잠금 on 조직 and 조직에서 잠금 in 설정; the platform letting a company use one → 제공, one it does not →
+  back by 되돌리기; a unit deciding it for everyone below → 하위 조직 잠금, its undoing 잠금 해제, a row under it saying who
+  locks it as every lock line does (below); the platform letting a company use one → 제공, one it does not →
   제공되지 않음; the platform's own row → 직접 정함 or 기본값을 따름 (what its publisher declared), its recall → 긴급
   회수, 긴급 회수됨 and 회수 해제; a call to an app turned off → 조직 설정으로 꺼진 앱입니다. 잠금 here is the delegation
   chain's own word.
@@ -261,11 +263,14 @@
   공급원, the five being 개인 공급, 전역 공급, 조직 크레딧, 개인 크레딧 and the end of the fall, 중단. The order
   a run falls through them is 공급 순서. Never 조달, 급전, 리소스 for the thing, and never 소스 for a member of
   the list.
-- the three sources a unit opens or closes for its people's agents → 에이전트 공급원: 개인 공급, 조직 공급 (a unit's own
-  keys, its 조직 공급 키) and 플랫폼 공급 (everything the platform pays for, 전역 공급 and the credits among them); a
-  source closed above → 상위 조직에서 꺼짐, organisation supply the platform has not opened → 제공되지 않음, the
-  administrator's opening of it → 이 회사에 조직 공급 제공. What the units below may do with a setting → 하위 조직, its
-  choice 위를 따름, 하위 조직 허용 or 하위 조직 잠금, the delegation chain's own words. Never 소스, 차단.
+- a unit's own supply, which its people's runs may take → 조직 공급 (a unit's own keys, its 조직 공급 키); organisation
+  supply the platform has not opened → 제공되지 않음, the administrator's opening of it → 이 회사에 조직 공급 제공; the
+  monthly cap on organisation credits → 월 상한; the platform's own keys → 플랫폼 공급 키, its record of credit movements →
+  장부. What the units below may do with a setting → 하위 조직, its choice 위를 따름, 하위 조직 허용 or 하위 조직 잠금,
+  the delegation chain's own words; the platform's own choice of no word → 기본값을 따름. Never 소스, 차단.
+- what the people under a unit may do with personal apps → 개인 앱: 개인 앱 만들기, 네트워크 사용 요청, 비밀 사용 요청,
+  공유 대상 (팀, 팀과 상위 조직장, 회사 전체), 공유 버전 승인, 공유 앱 설치; the administrator opening one for a company →
+  `이 회사에 {setting} 제공`.
 - where a company's archive documents are kept → 아티팩트 저장: its tab and form; the place → 저장 위치, the local place 이 서버
   and a SharePoint library SharePoint, a following unit's 위를 따라 `{place}`; SharePoint's settings 사이트 ID, 드라이브 ID, 폴더
   and 토큰 계정, an unnamed account 문서 주인. Never 스토리지, 보관소.
@@ -293,9 +298,9 @@
   agent's → 역할 에이전트를 따름. Never 권한 위임, 사용자 설정 허용.
 - whether a unit's people add and change repositories → 저장소 관리, its choices 위를 따름, 허용, 막음; the repositories
   a unit owns → 조직 저장소, 조직 저장소 추가, 조직 저장소 없음. Never 레포 권한.
-- a setting a unit above or the platform decided for a person, as their own settings say it → 조직이 정함 · `{unit}`,
-  조직이 정함 where no unit is named, 전역 설정으로 정함 for the platform; its state → 켜짐 or 꺼짐. Never 관리자 지정,
-  강제됨.
+- a setting a unit above or the platform decided or locks, wherever a lock or a decision shows — a person's own row, a
+  unit's, a company's — → 조직이 정함 · `{unit}`, 조직이 정함 where no unit is named, 전역 설정으로 정함 for the platform;
+  its state → 켜짐 or 꺼짐. Never 관리자 지정, 강제됨, 상위 조직에서 잠금, 조직에서 잠금.
 - the step a person whose runs only their own supply can carry takes before they start → 에이전트 로그인 설정, its way
   in from the join page 로그인하고 설정하기 and its way through 시작하기. Never 온보딩.
 - what a provider, an account or a slot has left of its limits → 남은 사용량: its windows 세션 and 주간, each as

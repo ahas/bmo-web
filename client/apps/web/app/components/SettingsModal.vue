@@ -28,7 +28,7 @@
               </div>
 
               <div ref="sheetBody" tabindex="-1" class="min-h-0 flex-1 overflow-y-auto px-4 pb-4 outline-none">
-                <component :is="sectionComponent" />
+                <component :is="sectionComponent" v-bind="section.props ?? {}" />
               </div>
             </div>
           </template>
@@ -48,7 +48,7 @@
           </div>
 
           <div ref="sectionBody" tabindex="-1" class="min-h-0 flex-1 overflow-y-auto px-4 pb-4 outline-none">
-            <component :is="sectionComponent" />
+            <component :is="sectionComponent" v-bind="section.props ?? {}" />
           </div>
         </div>
       </div>
@@ -64,7 +64,6 @@ import { organizationAddress, organizationMovedAway, organizationTabNamed } from
 import { SETTINGS_SECTIONS, openSettings, sectionOf, sectionsFor, settingsAsked, useSettings } from "~/domain/settings-dialog";
 import { useNarrow } from "bmo-ui/app/domain/screen";
 
-import type { OwnBmoView } from "#shared/bmo-profile";
 import type { NavigationMenuItem } from "@nuxt/ui";
 import type { Component } from "vue";
 
@@ -100,20 +99,9 @@ function focusing(region: () => HTMLElement | null): { onOpenAutoFocus: (event: 
 const DIALOG = focusing(() => (narrow.value ? listBody.value : sectionBody.value));
 const SHEET = focusing(() => sheetBody.value);
 
-// Whether the reader may personalise a BMO of their own, read whenever the dialog opens, so the own-BMO section
-// stands only for them (docs/web.md, 「Settings」, the own-BMO section).
-const { data: ownBmo, refresh: readOwnBmo } = useFetch<OwnBmoView | null>("/api/account/agent", { key: "bmo-profile", server: false, lazy: true, default: () => null, immediate: false });
-
-watch(
-  () => state.value.open,
-  (opened) => {
-    if (opened && signedUser.value !== null) void readOwnBmo();
-  },
-  { immediate: true }
-);
 // The desktop section stands only in the desktop app's window, told by the app's bridge answering.
 const desktopApp = useDesktopApp();
-const sections = computed(() => sectionsFor(administrator.value, signedUser.value !== null, ownBmo.value?.personalize === true && ownBmo.value.hasBmo, desktopApp.value !== null));
+const sections = computed(() => sectionsFor(administrator.value, signedUser.value !== null, desktopApp.value !== null));
 const section = computed(() => sectionOf(state.value.section, sections.value));
 const sectionLabel = computed(() => t(section.value.label));
 
@@ -174,7 +162,7 @@ async function answerAddress(): Promise<void> {
   // A key the dialog holds no section for was made before its section moved away: one a tab of the organisation
   // screen holds leads to that tab, and one that moved on from there to where it stands now — the administrator's
   // screen among them — the dialog staying shut (docs/web.md, 「Settings」).
-  const own = SETTINGS_SECTIONS.some((one) => one.key === asked.key);
+  const own = SETTINGS_SECTIONS.some((one) => one.key === asked.key || (one.aliases ?? []).includes(asked.key));
   const tab = own ? null : organizationTabNamed(asked.key);
   const moved = own ? null : tab !== null ? organizationAddress(tab.value) : organizationMovedAway(asked.key, asked.rest);
 
@@ -185,9 +173,6 @@ async function answerAddress(): Promise<void> {
   }
 
   await router.replace({ path: route.path, query: asked.rest, hash: route.hash });
-
-  // A section shown only to a reader who may personalise their BMO waits for that read before it is chosen.
-  if (SETTINGS_SECTIONS.some((one) => one.key === asked.key && one.personalize === true) && signedUser.value !== null) await readOwnBmo();
 
   openSettings(state, sectionOf(asked.key, sections.value).key);
 }

@@ -1,15 +1,16 @@
 import { wording } from "#shared/wording";
 
-import { AccountRefusal, chainEntry, resolveChain, setChainDelegation, setChainValue, unitView } from "./account-service";
+import { AccountRefusal, chainEntry, resolveChain, setChainDelegation, setChainValue } from "./account-service";
 import { agency, agencyCall } from "./agency";
+import { unitNamed } from "./chain-names";
 import { fail } from "./fail";
 import { callerOf } from "./organization";
 import { ownerKeyOf } from "./owner-key";
 
 import type { ChainEntryView, ChainResolutionView } from "./account-service";
 import type { SignedIn } from "./accounts";
-import type { AgentSettingKey, DecidedBy, OwnPersona, OwnSupplySource, PersonaChoice, UnitAgentSettings, UnitChainSetting, UnitInstructions, UnitRepository } from "#shared/organisation-agents";
-import type { ChainDelegation, SourceKind } from "#shared/organisation-supply";
+import type { AgentSettingKey, OwnPersona, PersonaChoice, UnitAgentSettings, UnitChainSetting, UnitInstructions, UnitRepository } from "#shared/organisation-agents";
+import type { ChainDelegation } from "#shared/organisation-supply";
 import type { H3Event } from "h3";
 
 // An organisation's agent settings (docs/web.md, 「Organisation」, the agents tab; the agency's
@@ -28,17 +29,9 @@ const KINDS: Readonly<Record<AgentSettingKey, string>> = {
   repositories: "repositories.manage",
   ownAgents: "agency.own-agents",
   roadChoice: "agency.road-choice",
-  personalInstructions: "agency.personal-instructions"
+  personalInstructions: "agency.personal-instructions",
+  personalize: "agent-profile.personalize"
 };
-
-/** The chain's kind of each supply source, as the agency declares it. */
-const SOURCE_KINDS: Readonly<Record<SourceKind, string>> = {
-  personal: "supply.personal",
-  organisation: "supply.organisation",
-  platform: "supply.platform"
-};
-
-const SOURCES: readonly SourceKind[] = ["personal", "organisation", "platform"];
 
 // The codes the agency answers a repository's add and removal with, each with the pack's key for its sentence.
 const REPOSITORY_CODES: Readonly<Record<string, string>> = {
@@ -50,7 +43,7 @@ const REPOSITORY_CODES: Readonly<Record<string, string>> = {
 // The fields of an add the agency may refuse, each with the pack's key for what the form says under it.
 const REPOSITORY_FIELDS: Readonly<Record<string, string>> = { name: "org_agents.error.repository_name", path: "org_agents.error.repository_path" };
 
-const SETTINGS: readonly AgentSettingKey[] = ["instructions", "persona", "repositories", "ownAgents", "roadChoice", "personalInstructions"];
+const SETTINGS: readonly AgentSettingKey[] = ["instructions", "persona", "repositories", "ownAgents", "roadChoice", "personalInstructions", "personalize"];
 
 /** Whether a word names an agents-tab setting. */
 export function isAgentSetting(value: unknown): value is AgentSettingKey {
@@ -83,34 +76,56 @@ function textOf(value: unknown): string | null {
   return typeof value === "string" && value.trim() !== "" ? value : null;
 }
 
-function settingOf<Value>(entry: ChainEntryView, own: Value | null, stands: Value): UnitChainSetting<Value> {
-  return { own, stands, delegation: entry.delegation, writable: entry.writable, lockedBy: entry.lockedBy ?? null };
+/** A link of the chain an agents tab view stands for: a unit, or the platform's own. */
+export type AgentsLink = { unit: number } | "platform";
+
+function linkWord(at: AgentsLink): string {
+  return at === "platform" ? "platform" : `unit:${at.unit}`;
 }
 
-async function instructionsAt(unit: number, signed: SignedIn): Promise<UnitInstructions | null> {
-  const link = `unit:${unit}`;
-  const [entry, resolved] = await Promise.all([entryOrNone(KINDS.instructions, link, signed), resolveChain(KINDS.instructions, { unit })]);
+// What stands at a link, read up its chain: a unit's resolution, or none for the platform, whose own word or the
+// kind's default stands.
+async function resolvedAt(key: string, at: AgentsLink): Promise<ChainResolutionView | null> {
+  return at === "platform" ? null : await resolveChain(key, { unit: at.unit });
+}
+
+async function settingOf<Value>(entry: ChainEntryView, own: Value | null, stands: Value): Promise<UnitChainSetting<Value>> {
+  return { own, stands, delegation: entry.delegation, writable: entry.writable, lockedBy: entry.lockedBy ?? null, locker: await unitNamed(entry.lockedBy) };
+}
+
+async function instructionsAt(at: AgentsLink, signed: SignedIn): Promise<UnitInstructions | null> {
+  const link = linkWord(at);
+  const [entry, resolved] = await Promise.all([entryOrNone(KINDS.instructions, link, signed), resolvedAt(KINDS.instructions, at)]);
 
   if (entry === null) return null;
 
-  const above = resolved.layers.filter((layer) => layer.link !== link).flatMap((layer) => (textOf(layer.value) === null ? [] : [String(layer.value)]));
+  const above = (resolved?.layers ?? []).filter((layer) => layer.link !== link).flatMap((layer) => (textOf(layer.value) === null ? [] : [String(layer.value)]));
 
-  return { own: textOf(entry.value), above, delegation: entry.delegation, writable: entry.writable, lockedBy: entry.lockedBy ?? null };
+  return { own: textOf(entry.value), above, delegation: entry.delegation, writable: entry.writable, lockedBy: entry.lockedBy ?? null, locker: await unitNamed(entry.lockedBy) };
 }
 
-async function personaAt(unit: number, signed: SignedIn): Promise<UnitChainSetting<PersonaChoice> | null> {
-  const [entry, resolved] = await Promise.all([entryOrNone(KINDS.persona, `unit:${unit}`, signed), resolveChain(KINDS.persona, { unit })]);
+async function personaAt(at: AgentsLink, signed: SignedIn): Promise<UnitChainSetting<PersonaChoice> | null> {
+  const [entry, resolved] = await Promise.all([entryOrNone(KINDS.persona, linkWord(at), signed), resolvedAt(KINDS.persona, at)]);
 
-  return entry === null ? null : settingOf(entry, personaOf(entry.value), personaOf(resolved.value) ?? "own");
+  if (entry === null) return null;
+
+  return await settingOf(entry, personaOf(entry.value), personaOf(resolved === null ? entry.value : resolved.value) ?? "own");
 }
 
-// A flag of the unit's, allowed where nothing says otherwise; none where the reader may not read it, or where the unit
-// that declares it has not declared it yet, so the tab stands without it.
-async function flagAt(setting: AgentSettingKey, unit: number, signed: SignedIn): Promise<UnitChainSetting<boolean> | null> {
+// A flag of the link's, standing as `fallback` says where nothing says otherwise — allowed for most, withheld for
+// the BMO setting permission; none where the reader may not read it, or where the unit that declares it has not
+// declared it yet, so the tab stands without it.
+async function flagAt(setting: AgentSettingKey, at: AgentsLink, signed: SignedIn): Promise<UnitChainSetting<boolean> | null> {
+  const fallback = setting !== "personalize";
+
   try {
-    const [entry, resolved] = await Promise.all([entryOrNone(KINDS[setting], `unit:${unit}`, signed), resolveChain(KINDS[setting], { unit })]);
+    const [entry, resolved] = await Promise.all([entryOrNone(KINDS[setting], linkWord(at), signed), resolvedAt(KINDS[setting], at)]);
 
-    return entry === null ? null : settingOf(entry, flagOf(entry.value), resolved.value !== false);
+    if (entry === null) return null;
+
+    const stands = resolved === null ? (flagOf(entry.value) ?? fallback) : (flagOf(resolved.value) ?? fallback);
+
+    return await settingOf(entry, flagOf(entry.value), stands);
   } catch (error) {
     if (error instanceof AccountRefusal && error.status === 404) return null;
 
@@ -118,20 +133,22 @@ async function flagAt(setting: AgentSettingKey, unit: number, signed: SignedIn):
   }
 }
 
-/** The agent settings of a unit as the reader stands to them; a reader who writes none of them is refused. */
-export async function unitAgentSettings(unit: number, signed: SignedIn): Promise<UnitAgentSettings> {
-  const [instructions, persona, repositories, ownAgents, roadChoice, personalInstructions] = await Promise.all([
-    instructionsAt(unit, signed),
-    personaAt(unit, signed),
-    flagAt("repositories", unit, signed),
-    flagAt("ownAgents", unit, signed),
-    flagAt("roadChoice", unit, signed),
-    flagAt("personalInstructions", unit, signed)
+/** The agent settings of a link — a unit, or the platform for the administrator — as the reader stands to them; a
+ * reader who writes none of them is refused. */
+export async function linkAgentSettings(at: AgentsLink, signed: SignedIn): Promise<UnitAgentSettings> {
+  const [instructions, persona, repositories, ownAgents, roadChoice, personalInstructions, personalize] = await Promise.all([
+    instructionsAt(at, signed),
+    personaAt(at, signed),
+    flagAt("repositories", at, signed),
+    flagAt("ownAgents", at, signed),
+    flagAt("roadChoice", at, signed),
+    flagAt("personalInstructions", at, signed),
+    at === "platform" ? flagAt("personalize", at, signed) : Promise.resolve(null)
   ]);
 
   if ([instructions, persona, repositories, ownAgents, roadChoice, personalInstructions].every((one) => one === null)) throw fail(403, wording("org_agents.error.forbidden"));
 
-  return { unit, instructions, persona, repositories, ownAgents, roadChoice, personalInstructions };
+  return { unit: at === "platform" ? null : at.unit, instructions, persona, repositories, ownAgents, roadChoice, personalInstructions, personalize };
 }
 
 /** The chain's value of a setting as the screen sends it: undefined where it is none of the setting's, null to follow
@@ -144,9 +161,9 @@ export function settingValue(setting: AgentSettingKey, value: unknown): unknown 
   return typeof value === "boolean" ? value : undefined;
 }
 
-/** A unit's word on one setting written, null to follow above, and its delegation set. */
-export async function changeAgentSetting(unit: number, setting: AgentSettingKey, change: { value?: unknown; delegation?: ChainDelegation }, signed: SignedIn): Promise<void> {
-  const link = `unit:${unit}`;
+/** A link's word on one setting written, null to follow above, and its delegation set. */
+export async function changeAgentSetting(at: AgentsLink, setting: AgentSettingKey, change: { value?: unknown; delegation?: ChainDelegation }, signed: SignedIn): Promise<void> {
+  const link = linkWord(at);
   const caller = callerOf(signed);
 
   if (change.value !== undefined) await setChainValue(KINDS[setting], link, change.value, caller);
@@ -179,51 +196,6 @@ export async function removeUnitRepository(event: H3Event, unit: number, name: s
 }
 
 // --- A person's own reading of the chain ---
-
-/** Who a link of the chain is, as a person's settings name it: a unit by its name, the platform, or nobody where it
- * names none. */
-export async function unitNamed(link: string | null | undefined): Promise<DecidedBy> {
-  if (link === null || link === undefined) return null;
-  if (link === "platform") return { by: "platform" };
-
-  const unit = /^unit:(\d+)$/.exec(link)?.[1];
-
-  if (unit === undefined) return { by: "unit", name: null };
-
-  return { by: "unit", name: await unitView(Number(unit)).then((one) => one.name, () => null) };
-}
-
-// Who closed a source that narrows down the chain: the outermost link whose word is off, else the lock over the
-// reader's own link.
-async function closer(resolved: ChainResolutionView): Promise<DecidedBy> {
-  const closed = resolved.layers.find((layer) => layer.value === false);
-
-  return await unitNamed(closed?.link ?? resolved.link?.lockedBy);
-}
-
-/** The three supply sources as they stand for the signed-in reader, each with who decided it where anybody did. */
-export async function ownSupplySources(signed: SignedIn): Promise<OwnSupplySource[]> {
-  const person = ownerKeyOf(signed);
-
-  if (person === null) return [];
-
-  return await Promise.all(
-    SOURCES.map(async (source): Promise<OwnSupplySource> => {
-      const resolved = await resolveChain(SOURCE_KINDS[source], { person }, `person:${person}`);
-
-      if (source === "organisation") {
-        const provided = resolved.layers.some((layer) => layer.link === "platform" && layer.value === true);
-        const on = provided && resolved.value === true;
-
-        return { source, on, decided: on ? null : provided ? await closer(resolved) : { by: "platform" } };
-      }
-
-      const on = resolved.value !== false;
-
-      return { source, on, decided: on && (resolved.link?.lockedBy ?? null) === null ? null : await closer(resolved) };
-    })
-  );
-}
 
 /** The persona's choice as it stands for the signed-in reader, with the unit whose lock decides it where one does. */
 export async function ownPersona(signed: SignedIn): Promise<OwnPersona> {

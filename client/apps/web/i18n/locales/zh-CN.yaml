@@ -2398,7 +2398,6 @@ agent_login:
 org_agents:
   title:
     person_changes: "个人设置许可"
-    sources: 智能体供给来源
     keys: 组织供给密钥
     composition: 加入时配置
     key_add: 添加组织供给密钥
@@ -2409,6 +2408,8 @@ org_agents:
   status:
     loading: 正在加载智能体设置…
   label:
+    personalize: "自己的 BMO 设置"
+    choice_default: "遵循默认值"
     road_role_default: "跟随角色智能体"
     composition_agent: "{name} 智能体 {count}"
     person_change_instructions: "我的指示"
@@ -2438,14 +2439,9 @@ org_agents:
     decided_named: "由组织设定 · {name}"
     decided_unit: 由组织设定
     decided_platform: 由全局设置设定
-    state_on: 开启
     state_off: 关闭
-    source_personal: 个人供给
     source_organisation: 组织供给
-    source_platform: 平台供给
-    closed_above: 已被上级组织关闭
     not_provided: 未提供
-    locked_above: 已被上级组织锁定
     below: 下级组织
     delegation_allow: 允许下级组织
     delegation_lock: 锁定下级组织
@@ -4239,6 +4235,10 @@ admin:
     tabs: 平台设置标签页
 bmo_profile:
   label:
+    platform_default: "全局默认 BMO"
+    inherit_platform: "遵循全局设置"
+    follows_platform_allowed: "遵循全局设置：允许"
+    follows_platform_denied: "遵循全局设置：阻止"
     company_default: 默认 BMO
     name: 名称
     call_names: 称呼
@@ -4255,7 +4255,6 @@ bmo_profile:
     follows_allowed: 遵循上级组织：允许
     follows_denied: 遵循上级组织：禁止
     persona_count: "{count}/{max} 字"
-    no_companies: 没有可设置的公司。
     no_call_names: 无称呼
     company_picture_note: 保存后，此照片将成为公司成员的 BMO 照片。
     own_picture_note: 保存后，此照片将成为我的 BMO 照片。
@@ -4287,6 +4286,17 @@ bmo_profile:
     failed: 无法保存 BMO 设置。
 apps:
   label:
+    personal_make: "制作个人应用"
+    personal_network: "请求使用网络"
+    personal_secrets: "请求使用密钥"
+    personal_share_scope: "共享对象"
+    personal_share_review: "审批共享版本"
+    personal_install: "安装共享应用"
+    personal_offered: "向此公司提供{name}"
+    personal_follows: "遵循上级：{value}"
+    scope_team: "团队"
+    scope_heads: "团队和上级负责人"
+    scope_company: "整个公司"
     tab: 应用与工具
     none: 无应用
     "on": 开启
@@ -4300,8 +4310,6 @@ apps:
     follows_organization: 遵循组织
     own: 自行设定
     follows_declared: 遵循默认值
-    locked_above: 已被上级组织锁定
-    locked_organization: 已被组织锁定
     not_offered: 未提供
     offer: 提供
     recalled: 已紧急收回
@@ -4313,6 +4321,7 @@ apps:
     recall_confirm: 收回
     lift: 解除收回
   title:
+    personal_apps: "个人应用"
     recall: "要在所有地方关闭 {app} 应用吗？"
   message:
     recall: '所有公司和人员将立即关闭该应用，在解除收回之前任何人都无法开启。
@@ -4469,12 +4478,13 @@ app_permissions:
 
 supply:
   title:
+    ledger: "账本"
+    platform_keys: "平台供应密钥"
     logins: 供给登录
     keys: 供给密钥
     order: 供给顺序
     usage: 本月用量
     policy: 供给策略
-    plan: 套餐
     platform_policy: 平台默认策略
     audit: 审计记录
     key_add: 添加供给密钥
@@ -4485,6 +4495,10 @@ supply:
     plan_applied: 已应用套餐
     plan_exposed: 可见套餐
   label:
+    cap_follows: "遵循上级"
+    platform_keys_none: "没有从文件读取密钥的供应商"
+    personal_credits: "个人积分"
+    personal_granted: "已发放 {amount}。"
     note: 登录和密钥的值不会显示在此页面，只显示名称和状态。
     tab: 供给
     plans: 套餐
@@ -4527,7 +4541,6 @@ supply:
     logins_none: 无供给登录
     keys_none: 无供给密钥
     usable: 可用
-    usable_off: 不使用
     login_off: 已关闭
     login_needed: 需要登录
     login_none: 未登录
@@ -4546,7 +4559,6 @@ supply:
     follows_above: 遵循上级组织
     follows_unit: 遵循组织
     member_credit_cap: 个人积分每月上限
-    plan_name: 名称
     price: 价格
     price_whole: 每周期价格，以韩元计
     period: 周期
@@ -4569,7 +4581,6 @@ supply:
     scope: 对象
     scope_personal: 个人
     scope_organisation: 组织
-    owner: 对象
     amount: 金额
     words: 备注
     words_placeholder: 可选
@@ -4625,8 +4636,6 @@ supply:
     policy_delete_effect_user: 此人将遵循所属组织的策略。
     plan_delete: "要删除 {name} 套餐吗？"
     plan_delete_effect: 此后不会再有人新购买此套餐。
-  placeholder:
-    find_person: 查找人员
   error:
     read_failed: 无法加载供给信息。
     logins_failed: 无法更改供给登录。

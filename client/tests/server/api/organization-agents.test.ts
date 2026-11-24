@@ -55,9 +55,6 @@ const resolutions: Record<string, unknown> = {
 };
 // What each kind resolves to for the member, as their own settings read it.
 const personal: Record<string, unknown> = {
-  "supply.personal": { kind: "supply.personal", subject: `person:${MEMBER}`, path: [], layers: [{ link: `unit:${UNIT}`, value: false }], value: false, link: { link: `person:${MEMBER}`, mayChange: false } },
-  "supply.platform": { kind: "supply.platform", subject: `person:${MEMBER}`, path: [], layers: [], value: true, link: { link: `person:${MEMBER}`, mayChange: false } },
-  "supply.organisation": { kind: "supply.organisation", subject: `person:${MEMBER}`, path: [], layers: [], value: false, link: { link: `person:${MEMBER}`, mayChange: false } },
   "agency.persona": {
     kind: "agency.persona",
     subject: `person:${MEMBER}`,
@@ -127,7 +124,6 @@ const settings = await routeOf(`${api}/organization/units/[unit]/agent-settings.
 const change = await routeOf(`${api}/organization/units/[unit]/agent-settings.put`);
 const repositories = await routeOf(`${api}/organization/units/[unit]/repositories.get`);
 const addRepository = await routeOf(`${api}/organization/units/[unit]/repositories.post`);
-const sources = await routeOf(`${api}/account/supply-sources.get`);
 const persona = await routeOf(`${api}/account/agent-persona.get`);
 const setPersona = await routeOf(`${api}/account/agent-persona.put`);
 
@@ -139,13 +135,30 @@ describe("the organisation's agent settings", () => {
 
     expect(await settings({ params: { unit: String(UNIT) } } as RouteEvent)).toEqual({
       unit: UNIT,
-      instructions: { own: "Keep the team's records in the team's folder.", above: ["Never reach for another company's systems."], delegation: "inherit", writable: true, lockedBy: null },
-      persona: { own: null, stands: "none", delegation: "lock", writable: true, lockedBy: null },
-      repositories: { own: false, stands: false, delegation: "inherit", writable: true, lockedBy: null },
-      ownAgents: { own: null, stands: true, delegation: "inherit", writable: true, lockedBy: null },
-      roadChoice: { own: false, stands: false, delegation: "lock", writable: true, lockedBy: null },
-      personalInstructions: null
+      instructions: { own: "Keep the team's records in the team's folder.", above: ["Never reach for another company's systems."], delegation: "inherit", writable: true, lockedBy: null, locker: null },
+      persona: { own: null, stands: "none", delegation: "lock", writable: true, lockedBy: null, locker: null },
+      repositories: { own: false, stands: false, delegation: "inherit", writable: true, lockedBy: null, locker: null },
+      ownAgents: { own: null, stands: true, delegation: "inherit", writable: true, lockedBy: null, locker: null },
+      roadChoice: { own: false, stands: false, delegation: "lock", writable: true, lockedBy: null, locker: null },
+      personalInstructions: null,
+      personalize: null
     });
+  });
+
+  test("names the unit whose lock above holds a setting, so the line under it says who decided it", async () => {
+    reader = HEAD;
+
+    const standing = unitLinks["agency.own-agents"];
+
+    unitLinks["agency.own-agents"] = entry("agency.own-agents", `unit:${UNIT}`, null, "inherit", `unit:${COMPANY}`);
+
+    try {
+      const view = (await settings({ params: { unit: String(UNIT) } } as RouteEvent)) as { ownAgents: { lockedBy: string | null; locker: unknown } };
+
+      expect({ lockedBy: view.ownAgents.lockedBy, locker: view.ownAgents.locker }).toEqual({ lockedBy: `unit:${COMPANY}`, locker: { by: "unit", name: "Company" } });
+    } finally {
+      unitLinks["agency.own-agents"] = standing!;
+    }
   });
 
   test("a choice is written on the chain in the head's name, the persona as its key and a lock as the delegation", async () => {
@@ -206,16 +219,6 @@ describe("the organisation's agent settings", () => {
 });
 
 describe("a person's own reading of the chain", () => {
-  test("names the unit that closed a supply source for them, the platform where it opens none, and nobody where the default stands", async () => {
-    reader = MEMBER;
-
-    expect(await sources({} as RouteEvent)).toEqual([
-      { source: "personal", on: false, decided: { by: "unit", name: "Team" } },
-      { source: "organisation", on: false, decided: { by: "platform" } },
-      { source: "platform", on: true, decided: null }
-    ]);
-  });
-
   test("names the unit whose lock decides their persona, and its lock refuses their own word", async () => {
     reader = MEMBER;
 

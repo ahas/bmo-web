@@ -2374,7 +2374,6 @@ agent_login:
 org_agents:
   title:
     person_changes: "Personal changes"
-    sources: Agent supply sources
     keys: Organization supply keys
     composition: Signup setup
     key_add: Add organization supply key
@@ -2385,6 +2384,8 @@ org_agents:
   status:
     loading: Loading agent settings…
   label:
+    personalize: "Own BMO settings"
+    choice_default: "Follow the default"
     road_role_default: "Follow the role agent"
     composition_agent: "{name} agent {count}"
     person_change_instructions: "My instructions"
@@ -2414,14 +2415,9 @@ org_agents:
     decided_named: "Set by the organization · {name}"
     decided_unit: Set by the organization
     decided_platform: Set by the global settings
-    state_on: "On"
     state_off: "Off"
-    source_personal: Personal supply
     source_organisation: Organization supply
-    source_platform: Platform supply
-    closed_above: Turned off by a parent organization
     not_provided: Not provided
-    locked_above: Locked by a parent organization
     below: Sub-organizations
     delegation_allow: Allow sub-organizations
     delegation_lock: Lock sub-organizations
@@ -4205,6 +4201,10 @@ admin:
     tabs: Platform settings tabs
 bmo_profile:
   label:
+    platform_default: "Platform default BMO"
+    inherit_platform: "Follow the platform setting"
+    follows_platform_allowed: "Allowed by the platform setting"
+    follows_platform_denied: "Blocked by the platform setting"
     company_default: Default BMO
     name: Name
     call_names: Call names
@@ -4221,7 +4221,6 @@ bmo_profile:
     follows_allowed: "Allowed, following parent organization"
     follows_denied: "Blocked, following parent organization"
     persona_count: "{count}/{max} characters"
-    no_companies: There are no companies you can set up.
     no_call_names: No call names
     company_picture_note: "Once saved, this photo becomes the BMO photo for people in the company."
     own_picture_note: "Once saved, this photo becomes your BMO's photo."
@@ -4253,6 +4252,17 @@ bmo_profile:
     failed: "Couldn't save BMO settings."
 apps:
   label:
+    personal_make: "Make personal apps"
+    personal_network: "Ask to use the network"
+    personal_secrets: "Ask to use secrets"
+    personal_share_scope: "Share with"
+    personal_share_review: "Approve shared versions"
+    personal_install: "Install shared apps"
+    personal_offered: "Offer {name} to this company"
+    personal_follows: "Follows above: {value}"
+    scope_team: "Team"
+    scope_heads: "Team and heads above"
+    scope_company: "Whole company"
     tab: "Apps & tools"
     none: No apps
     "on": "On"
@@ -4266,8 +4276,6 @@ apps:
     follows_organization: Follows organization
     own: Set by you
     follows_declared: Follows the default
-    locked_above: Locked by parent organization
-    locked_organization: Locked by organization
     not_offered: Not offered
     offer: Offer
     recalled: Emergency recalled
@@ -4279,6 +4287,7 @@ apps:
     recall_confirm: Recall
     lift: Lift recall
   title:
+    personal_apps: "Personal apps"
     recall: "Turn off the {app} app everywhere?"
   message:
     recall: "It turns off right away for every company and person, and no one can turn it on until the recall is lifted.\nValues set by companies, organizations and people are kept and apply again once the recall is lifted."
@@ -4431,12 +4440,13 @@ app_permissions:
 
 supply:
   title:
+    ledger: "Ledger"
+    platform_keys: "Platform supply keys"
     logins: Supply logins
     keys: Supply keys
     order: Supply order
     usage: Usage this month
     policy: Supply policy
-    plan: Plan
     platform_policy: Platform default policy
     audit: Audit log
     key_add: Add supply key
@@ -4447,6 +4457,10 @@ supply:
     plan_applied: Applied plan
     plan_exposed: Visible plans
   label:
+    cap_follows: "Follows above"
+    platform_keys_none: "No provider reads its key from a file"
+    personal_credits: "Personal credits"
+    personal_granted: "Granted {amount}."
     note: Login and key values never appear on this screen. Only names and statuses are shown.
     tab: Supply
     plans: Plans
@@ -4489,7 +4503,6 @@ supply:
     logins_none: No supply logins
     keys_none: No supply keys
     usable: Available
-    usable_off: Not in use
     login_off: "Off"
     login_needed: Login required
     login_none: Not signed in
@@ -4508,7 +4521,6 @@ supply:
     follows_above: Follows parent organization
     follows_unit: Follows organization
     member_credit_cap: Personal credit monthly cap
-    plan_name: Name
     price: Price
     price_whole: "Price per period, in won"
     period: Period
@@ -4531,7 +4543,6 @@ supply:
     scope: Target
     scope_personal: Personal
     scope_organisation: Organization
-    owner: Target
     amount: Amount
     words: Note
     words_placeholder: Optional
@@ -4587,8 +4598,6 @@ supply:
     policy_delete_effect_user: "This person will follow their organization's policy."
     plan_delete: "Delete plan {name}?"
     plan_delete_effect: No one new will be able to buy this plan.
-  placeholder:
-    find_person: Find people
   error:
     read_failed: "Couldn't load supply info."
     logins_failed: "Couldn't change the supply login."

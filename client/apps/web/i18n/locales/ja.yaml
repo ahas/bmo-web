@@ -2398,7 +2398,6 @@ agent_login:
 org_agents:
   title:
     person_changes: "個人設定の許可"
-    sources: エージェントの供給元
     keys: 組織の供給キー
     composition: 加入時の構成
     key_add: 組織の供給キーを追加
@@ -2409,6 +2408,8 @@ org_agents:
   status:
     loading: エージェント設定を読み込み中…
   label:
+    personalize: "自分のBMOの設定"
+    choice_default: "既定値に従う"
     road_role_default: "ロールのエージェントに従う"
     composition_agent: "{name} エージェント {count}"
     person_change_instructions: "自分の指示"
@@ -2438,14 +2439,9 @@ org_agents:
     decided_named: "組織が設定 · {name}"
     decided_unit: 組織が設定
     decided_platform: 全体設定で設定
-    state_on: オン
     state_off: オフ
-    source_personal: 個人供給
     source_organisation: 組織供給
-    source_platform: プラットフォーム供給
-    closed_above: 上位組織でオフ
     not_provided: 提供されていません
-    locked_above: 上位組織でロック
     below: 下位組織
     delegation_allow: 下位組織に許可
     delegation_lock: 下位組織をロック
@@ -4239,6 +4235,10 @@ admin:
     tabs: プラットフォーム設定タブ
 bmo_profile:
   label:
+    platform_default: "全体の既定BMO"
+    inherit_platform: "全体設定に従う"
+    follows_platform_allowed: "全体設定に従い許可"
+    follows_platform_denied: "全体設定に従いブロック"
     company_default: 標準 BMO
     name: 名前
     call_names: 呼び名
@@ -4255,7 +4255,6 @@ bmo_profile:
     follows_allowed: 上位組織に従い許可
     follows_denied: 上位組織に従いブロック
     persona_count: "{count}/{max}文字"
-    no_companies: 設定できる会社がありません。
     no_call_names: 呼び名なし
     company_picture_note: 保存すると、この写真が会社のメンバーの BMO の写真になります。
     own_picture_note: 保存すると、この写真があなたの BMO の写真になります。
@@ -4287,6 +4286,17 @@ bmo_profile:
     failed: BMO の設定を保存できませんでした。
 apps:
   label:
+    personal_make: "個人アプリの作成"
+    personal_network: "ネットワーク使用の要求"
+    personal_secrets: "シークレット使用の要求"
+    personal_share_scope: "共有先"
+    personal_share_review: "共有バージョンの承認"
+    personal_install: "共有アプリのインストール"
+    personal_offered: "この会社に{name}を提供"
+    personal_follows: "上位に従い{value}"
+    scope_team: "チーム"
+    scope_heads: "チームと上位組織長"
+    scope_company: "会社全体"
     tab: アプリ・ツール
     none: アプリなし
     "on": オン
@@ -4300,8 +4310,6 @@ apps:
     follows_organization: 組織に従う
     own: 自分で設定
     follows_declared: 既定値に従う
-    locked_above: 上位組織でロック
-    locked_organization: 組織でロック
     not_offered: 提供されていません
     offer: 提供
     recalled: 緊急回収済み
@@ -4313,6 +4321,7 @@ apps:
     recall_confirm: 回収
     lift: 回収を解除
   title:
+    personal_apps: "個人アプリ"
     recall: "{app} アプリをすべての場所でオフにしますか？"
   message:
     recall: 'すべての会社と人に対してすぐにオフになり、回収を解除するまで誰もオンにできません。
@@ -4469,12 +4478,13 @@ app_permissions:
 
 supply:
   title:
+    ledger: "台帳"
+    platform_keys: "プラットフォーム供給キー"
     logins: 供給ログイン
     keys: 供給キー
     order: 供給順序
     usage: 今月の利用量
     policy: 供給ポリシー
-    plan: プラン
     platform_policy: プラットフォームの基本ポリシー
     audit: 監査記録
     key_add: 供給キーを追加
@@ -4485,6 +4495,10 @@ supply:
     plan_applied: 適用プラン
     plan_exposed: 公開プラン
   label:
+    cap_follows: "上位に従う"
+    platform_keys_none: "ファイルからキーを読む供給元なし"
+    personal_credits: "個人クレジット"
+    personal_granted: "{amount}を付与しました。"
     note: ログインとキーの値はこの画面に表示されません。名前と状態のみ表示されます。
     tab: 供給
     plans: プラン
@@ -4527,7 +4541,6 @@ supply:
     logins_none: 供給ログインなし
     keys_none: 供給キーなし
     usable: 利用可能
-    usable_off: 使用しない
     login_off: オフ
     login_needed: ログインが必要
     login_none: 未ログイン
@@ -4546,7 +4559,6 @@ supply:
     follows_above: 上位組織に従う
     follows_unit: 組織に従う
     member_credit_cap: 個人クレジットの月間上限
-    plan_name: 名前
     price: 価格
     price_whole: 1周期の価格（ウォン単位）
     period: 周期
@@ -4569,7 +4581,6 @@ supply:
     scope: 対象
     scope_personal: 個人
     scope_organisation: 組織
-    owner: 対象
     amount: 金額
     words: メモ
     words_placeholder: 任意
@@ -4625,8 +4636,6 @@ supply:
     policy_delete_effect_user: この人は所属組織のポリシーに従います。
     plan_delete: "{name} プランを削除しますか？"
     plan_delete_effect: 今後このプランを新たに購入する人はいなくなります。
-  placeholder:
-    find_person: 人を検索
   error:
     read_failed: 供給情報を読み込めませんでした。
     logins_failed: 供給ログインを変更できませんでした。

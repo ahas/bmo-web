@@ -114,28 +114,34 @@ export function permissionRows(tree: PermissionTree, open: ReadonlySet<number>):
   return rows;
 }
 
-/** The choices a row offers: a company allows or denies, its deny marked as what nothing set runs on, and every other
- * unit and every person may also follow above. */
+/** The choices a row offers: allow, deny, or follow above — the unit above, or the platform's own word for a
+ * company. */
 export function settingItems(t: Translate, company: boolean): { label: string; value: PermissionSetting }[] {
-  const deny = t("bmo_profile.label.deny");
-  const items: { label: string; value: PermissionSetting }[] = [
+  return [
     { label: t("bmo_profile.label.allow"), value: "allow" },
-    { label: company ? t("bmo_profile.label.default_value", { value: deny }) : deny, value: "deny" }
+    { label: t("bmo_profile.label.deny"), value: "deny" },
+    { label: t(company ? "bmo_profile.label.inherit_platform" : "bmo_profile.label.inherit"), value: "inherit" }
   ];
-
-  return company ? items : [...items, { label: t("bmo_profile.label.inherit"), value: "inherit" }];
 }
 
-/** The choice a row shows: a company with nothing set shows deny, which is what nothing set resolves to. */
+/** The choice a row shows: its own setting, or following above where it sets none. */
 export function shownSetting(row: Pick<PermissionRow, "setting" | "company">): PermissionSetting {
-  return row.company && row.setting === "inherit" ? "deny" : row.setting;
+  return row.setting;
 }
 
-/** The muted line under a row that follows the unit above: what it resolves to. None for a row set on its own. */
+/** The muted line under a row that follows above: what it resolves to, the unit above's word or, for a company, the
+ * platform's. None for a row set on its own. */
 export function followsLine(t: Translate, row: Pick<PermissionRow, "setting" | "allowed" | "company">): string | null {
-  if (row.company || row.setting !== "inherit") return null;
+  if (row.setting !== "inherit") return null;
+  if (row.company) return t(row.allowed ? "bmo_profile.label.follows_platform_allowed" : "bmo_profile.label.follows_platform_denied");
 
   return t(row.allowed ? "bmo_profile.label.follows_allowed" : "bmo_profile.label.follows_denied");
+}
+
+/** The rows of one node of the organisation tree: the unit itself and the people standing in it, one step deeper; a
+ * unit below it is set at its own node. */
+export function nodeRows(tree: PermissionTree, node: number): PermissionRow[] {
+  return permissionRows(tree, new Set([node])).filter((row) => (row.kind === "unit" ? row.subject === String(node) : tree.people.some((person) => person.user === row.subject && person.unit === node)));
 }
 
 /** A unit the reader may set things under, with its parent and its company, as the invitations' list answers it. */
@@ -148,13 +154,4 @@ export interface HeadedUnit {
 /** Whether the reader may set a company's default: they reach the company unit itself among the units they head. */
 export function headsCompany(units: readonly HeadedUnit[], company: number): boolean {
   return units.some((unit) => unit.id === company);
-}
-
-/** The units of a company the permission tree is read from: those the reader heads whose parent they do not, so
- * every unit they may set stands once, under the highest of them. */
-export function permissionTops(units: readonly HeadedUnit[], company: number): number[] {
-  const mine = units.filter((unit) => unit.company.id === company);
-  const ids = new Set(mine.map((unit) => unit.id));
-
-  return mine.filter((unit) => unit.parent === null || unit.parent === undefined || !ids.has(unit.parent)).map((unit) => unit.id);
 }

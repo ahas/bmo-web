@@ -14,14 +14,12 @@ export function administratorOpens(reader: Pick<OrganizationReader, "administrat
 
 export const ADMIN_TABS: readonly OrganizationTab[] = [
   { value: "providers", label: "settings.label.providers", icon: "i-material-symbols-hub-outline", opens: administratorOpens, keys: [], wide: false, load: () => import("~/components/OrganizationProviders.vue") },
-  { value: "secret-kinds", label: "secrets.label.kinds", icon: "i-material-symbols-key-outline", opens: administratorOpens, keys: [], wide: false, load: () => import("~/components/OrganizationSecretKinds.vue") },
-  { value: "plans", label: "supply.label.plans", icon: "i-material-symbols-receipt-long-outline", opens: administratorOpens, keys: [], wide: false, load: () => import("~/components/AdminPlans.vue") },
-  { value: "credits", label: "supply.label.credits", icon: "i-material-symbols-payments-outline", opens: administratorOpens, keys: [], wide: false, load: () => import("~/components/AdminCredits.vue") }
+  { value: "secret-kinds", label: "secrets.label.kinds", icon: "i-material-symbols-key-outline", opens: administratorOpens, keys: [], wide: false, load: () => import("~/components/OrganizationSecretKinds.vue") }
 ];
 
 /** The keys of tabs that moved from this screen onto the organisation screen with the platform chosen there, each by
  * the tab it opens there (docs/web.md, 「Administration」). */
-export const ADMIN_MOVED_TO_PLATFORM: Readonly<Record<string, string>> = { apps: "apps" };
+export const ADMIN_MOVED_TO_PLATFORM: Readonly<Record<string, string>> = { apps: "apps", plans: "supply", credits: "supply" };
 
 /** The tab an address asks for, the first where it names none. */
 export function adminTabOf(asked: unknown): OrganizationTab {

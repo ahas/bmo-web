@@ -121,7 +121,14 @@ async fn could_reserve(
         .await?
         .is_some_and(|wallet| wallet.spendable() >= settings.reservation_credits),
     ),
-    Source::Organisation | Source::Stop => Ok(false),
+    // Organisation supply is reserved against the organisation's wallet where it keeps one, and recorded alone
+    // where it keeps none; the resolution has already closed it once the person's allowance is spent.
+    Source::Organisation => Ok(
+      wallet(&service.db, "organization", unit)
+        .await?
+        .is_none_or(|wallet| wallet.spendable() >= settings.reservation_credits),
+    ),
+    Source::Stop => Ok(false),
   }
 }
 
@@ -296,13 +303,9 @@ async fn reserve(
   let id = format!("res_{}", tail());
 
   // Nothing is refused while nothing is enforced. Enforced, a source the resolved order does not hold — closed
-  // by a layer, switched off, left off by an overridable default or past the person's own cap — is refused. The
-  // organisation's own supply stands in no order: the agency opened it on the chain, and it is refused once the
-  // person's organisation-credit spend of the month reaches their allowance.
-  if settings.enforce && source != Source::Organisation && !resolved.order.contains(&source) {
-    return Ok(refused(None));
-  }
-  if settings.enforce && source == Source::Organisation && allowance_spent(&service.db, user).await? {
+  // by a layer, switched off, left off by an overridable default, past the person's own cap or, for
+  // organisation credits and the organisation's own supply, past their allowance — is refused.
+  if settings.enforce && !resolved.order.contains(&source) {
     return Ok(refused(None));
   }
 
@@ -473,15 +476,6 @@ async fn reserve_source<C: ConnectionTrait>(
     }
     _ => Err(None),
   }
-}
-
-/// Whether a person's organisation-credit spend of the month has reached their allowance, where one stands.
-async fn allowance_spent(db: &DatabaseConnection, user: i64) -> Result<bool, Refusal> {
-  let Some((allowance, _)) = super::credit_allowance(db, user).await? else {
-    return Ok(false);
-  };
-
-  Ok(super::spent(db, user, Source::Organisation).await? >= allowance)
 }
 
 /// `extend`: one reservation unit more on a standing reservation, its expiry restarted, and its whole

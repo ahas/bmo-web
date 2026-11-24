@@ -1,5 +1,5 @@
 import { unitNumber } from "../../../../utils/organization";
-import { unitAgentSettings } from "../../../../utils/organisation-agents";
+import { linkAgentSettings } from "../../../../utils/organisation-agents";
 import { orgAgentsFailure } from "../../../../utils/organisation-supply";
 
 import type { UnitAgentSettings } from "#shared/organisation-agents";
@@ -10,7 +10,7 @@ export default defineEventHandler(async (event): Promise<UnitAgentSettings> => {
   const unit = unitNumber(getRouterParam(event, "unit"));
 
   try {
-    return await unitAgentSettings(unit, await signedInUser(event));
+    return await linkAgentSettings({ unit }, await signedInUser(event));
   } catch (error) {
     throw orgAgentsFailure(error);
   }

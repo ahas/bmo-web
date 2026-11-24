@@ -1,7 +1,8 @@
 <template>
-  <!-- The administration screen's plans tab (docs/web.md, 「Administration」, the supply tab): the membership plans
-       the platform sells, each with its price, scope, period, included credits and whether credits may be used on
-       it. The service owns every rule a plan breaks; its refusal is said in the dialog or under the row. -->
+  <!-- The supply tab's plans with the platform chosen (docs/web.md, 「Organisation」, the supply tab): the membership
+       plans the platform sells, each with its price, scope, period, included credits and whether credits may be used
+       on it, a new one added from the group's heading. The service owns every rule a plan breaks; its refusal is said
+       in the dialog or under the row. -->
   <div class="flex flex-col gap-4">
     <ContentSkeleton v-if="plans === null && failure === ''" :rows="3" list-class="flex flex-col divide-y divide-default" :label="$t('supply.status.loading')">
       <div class="flex items-center gap-4 py-3">
@@ -19,7 +20,12 @@
     </div>
 
     <template v-else>
-      <SettingsGroup>
+      <SettingsGroup :title="$t('supply.label.plans')" data-platform-plans>
+        <template #aside>
+          <UTooltip :text="$t('supply.action.plan_add')">
+            <UButton size="sm" color="neutral" variant="ghost" icon="i-material-symbols-add" :aria-label="$t('supply.action.plan_add')" data-plan-add @click="openAdd" />
+          </UTooltip>
+        </template>
         <SettingsRow v-if="plans.length === 0" :label="$t('supply.label.plans_none')" />
         <template v-else>
           <SupplyPlanRow v-for="one in plans" :key="one.id" :plan="one">
@@ -193,7 +199,6 @@ async function remove(plan: SupplyPlanEntry): Promise<void> {
 }
 
 // The tab row's add, which the screen hands this component by its own name (docs/web.md, 「Administration」).
-defineExpose({ addLabel: computed(() => t("supply.action.plan_add")), openAdd });
 
 onMounted(() => void read());
 </script>

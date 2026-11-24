@@ -609,6 +609,32 @@ pub fn openapi() -> Value {
   );
   add!(
     "GET",
+    "/platform/agent",
+    "platformAgent",
+    "BMO profiles",
+    "The platform's own default for every company's people's BMOs, which a company setting none follows: its name and call names; for any caller.",
+    params: vec![owner_key(), owner_role()],
+    body: None,
+    answers: vec![(200, json_answer::<CompanyAgent>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PUT",
+    "/platform/agent",
+    "setPlatformAgent",
+    "BMO profiles",
+    "Replaces the platform's own default name and call names, by the platform administrator; answers the default as it stands.",
+    params: vec![owner_key(), owner_role()],
+    body: Some(json!(generator.subschema_for::<CompanyAgentAsk>())),
+    answers: vec![(200, json_answer::<CompanyAgent>(&mut generator))],
+    codes: vec!["bad-request", "bad-agent-profile", "unauthorized", "forbidden", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
     "/companies/{company}/agent/picture",
     "companyAgentPicture",
     "BMO profiles",

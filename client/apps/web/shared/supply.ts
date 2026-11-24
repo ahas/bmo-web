@@ -11,9 +11,10 @@ export type SupplySource = "personal" | "global" | "org_credits" | "personal_cre
  * is answered 403 with the same code. */
 export type SupplyReason = "not-in-plan" | "blocked-by-organisation" | "blocked-by-administrator";
 
-/** One source as the reader's own view stands it. */
+/** One source as the reader's own view stands it: the five, and the organisation's own supply, which the delegation
+ * chain opens and the account service places, always locked, so the reader neither switches nor orders it. */
 export interface SupplySourceState {
-  source: SupplySource;
+  source: SpentSource;
   allowed: boolean;
   // A source out of the reader's order: switched off, standing off as the platform's default, or held by the cap.
   off: boolean;
@@ -24,8 +25,7 @@ export interface SupplySourceState {
   reason?: SupplyReason;
 }
 
-/** A source a run's spend names: the five, and the organisation's own supply, which the agency takes on its own
- * reading of the delegation chain and no policy names. */
+/** A source a run's spend names: the five, and the organisation's own supply, which no policy names. */
 export type SpentSource = SupplySource | "organisation";
 
 /** What went out this month on one source. */
@@ -38,7 +38,8 @@ export interface SupplyUsage {
 /** The reader's own supply view (`GET /api/supply/me`), and the answer of the write too. The personal-credit cap
  * reached shows on the `personal_credits` source's standing, as off. */
 export interface SupplyMe {
-  order: SupplySource[];
+  // The resolved order, the organisation's own supply among it where it stands open, `stop` last.
+  order: SpentSource[];
   // Whether the platform holds the order for everyone, so the reader's own order is not read.
   orderLocked: boolean;
   sources: SupplySourceState[];

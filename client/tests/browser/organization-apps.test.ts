@@ -318,7 +318,7 @@ describe.skipIf(!origin || !touchReady())("the organisation screen's one apps ta
         await page.goto(`${origin}/?settings=apps`, { waitUntil: "load" });
         await standing(page);
 
-        const door = page.locator("[data-apps-door]");
+        const door = page.locator('[data-settings-door="apps"]');
 
         await door.waitFor({ timeout: 20_000 });
         await press(page, door, viewport.phone);

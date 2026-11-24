@@ -1,7 +1,8 @@
 <template>
   <!-- One person's supply tab, for a reader who may set their supply (docs/web.md, 「Organisation」, the people
        tab): the per-user policy or the organisation's they follow, the providers their own credentials serve —
-       names alone, never a credential — and the order resolved for them. -->
+       names alone, never a credential — the order resolved for them, and for the platform administrator the way to
+       grant credits into the person's own wallet. -->
   <div class="flex flex-col gap-4" data-person-supply>
     <ContentSkeleton v-if="view === null && failure === '' && unknown === ''" :rows="3" list-class="flex flex-col divide-y divide-default" :label="$t('supply.status.loading')">
       <div class="flex items-center gap-4 py-3">
@@ -49,8 +50,32 @@
         </SettingsRow>
       </SettingsGroup>
 
+      <!-- Credits into the person's own wallet, the platform administrator's act: an amount and a line of words kept
+           with it. A grant is not a payment; no top-up stands. -->
+      <SettingsGroup v-if="administrator" :title="$t('supply.label.personal_credits')" data-person-supply-credits>
+        <SettingsRow :label="$t('supply.action.credit_grant')" :description="granted === null ? '' : $t('supply.label.personal_granted', { amount: creditsText(t, granted) })">
+          <UButton color="neutral" variant="outline" :label="$t('supply.action.grant')" :disabled="busy" data-person-credit-grant @click="openGrant" />
+        </SettingsRow>
+      </SettingsGroup>
+
       <p v-if="failure !== ''" role="alert" class="break-words text-sm text-error">{{ failure }}</p>
     </template>
+
+    <SettingsDialog v-model:open="granting" :title="$t('supply.title.credit_grant')" :dirty="grantChanges">
+      <form id="person-grant-form" class="flex flex-col gap-4" @submit.prevent="void grant()">
+        <UFormField :label="$t('supply.label.amount')" name="amount">
+          <UInput v-model="grantAmount" class="w-full text-end tabular-nums" inputmode="numeric" placeholder="0" :aria-label="$t('supply.label.amount')" data-person-grant-amount />
+        </UFormField>
+        <UFormField :label="$t('supply.label.words')" name="words">
+          <UInput v-model="grantWords" class="w-full" autocomplete="off" :placeholder="$t('supply.label.words_placeholder')" :aria-label="$t('supply.label.words')" />
+        </UFormField>
+        <p v-if="grantFailed !== ''" role="alert" class="break-words text-sm text-error">{{ grantFailed }}</p>
+      </form>
+      <template #footer="{ close }">
+        <UButton :label="$t('common.action.cancel')" color="neutral" variant="ghost" :disabled="grantBusy" @click="close()" />
+        <UButton type="submit" form="person-grant-form" :label="$t('supply.action.grant')" :loading="grantBusy" :disabled="grantBusy || !/^[1-9][0-9]*$/.test(grantAmount.trim())" />
+      </template>
+    </SettingsDialog>
 
     <SupplyPolicyDialog v-model:open="editing" :title="$t('supply.title.policy_set')" :draft="draft" :send="writePolicy" @saved="void read()" />
   </div>
@@ -58,7 +83,9 @@
 
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
+import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 
+import { useAdministrator } from "~/domain/access";
 import { useConfirm } from "~/domain/confirm";
 import { creditsText, policyDraft, providerLabel, sourceLabel } from "~/domain/supply";
 
@@ -125,6 +152,41 @@ async function removePolicy(): Promise<void> {
     view.value = await $fetch<SupplyUserView>(`/api/supply/user/${encodeURIComponent(props.user)}`, { method: "DELETE" });
   } catch (error) {
     failure.value = failureText(error, t("supply.error.policy_failed"));
+  }
+}
+
+// --- A grant into the person's own wallet, the platform administrator's ---
+
+const administrator = useAdministrator();
+const granting = ref(false);
+const grantBusy = ref(false);
+const grantAmount = ref("");
+const grantWords = ref("");
+const grantFailed = ref("");
+const granted = ref<number | null>(null);
+const grantChanges = useOpenedWith(() => ({ amount: grantAmount.value, words: grantWords.value }), { open: granting });
+
+function openGrant(): void {
+  grantAmount.value = "";
+  grantWords.value = "";
+  grantFailed.value = "";
+  granting.value = true;
+}
+
+async function grant(): Promise<void> {
+  const amount = Number(grantAmount.value.trim());
+  const words = grantWords.value.trim();
+
+  grantBusy.value = true;
+  grantFailed.value = "";
+  try {
+    await $fetch("/api/supply/credits", { method: "POST", body: { ownerKind: "user", ownerId: Number(props.user), amount, ...(words === "" ? {} : { words }) } });
+    granted.value = amount;
+    granting.value = false;
+  } catch (error) {
+    grantFailed.value = failureText(error, t("supply.error.grant_failed"));
+  } finally {
+    grantBusy.value = false;
   }
 }
 

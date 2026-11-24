@@ -8,10 +8,10 @@ import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, Locator, Page } from "playwright-core";
 
-// What each provider and Claude account has left, on the administration screen's providers tab (docs/web.md,
-// 「Administration」, the providers tab): no account marked as the one in use and no line naming it, each account on
+// What each Claude account and provider has left (docs/web.md, 「Organisation」, the supply tab with the platform chosen,
+// and 「Administration」, the providers tab): no account marked as the one in use and no line naming it, each account on
 // its own row with its windows and their bars, an account that is off with none, and a provider's own road with its
-// balance and request allowance on the provider's row. The rows stand on shared columns, a bar beside its figure on a
+// balance and request allowance on the provider's row of the administration screen. The rows stand on shared columns, a bar beside its figure on a
 // wide screen and on a line of its own under it on a phone. The console, with the agency's stand-in answering this
 // account's reads with two accounts on, one off and a road keeping a balance, is the one given in
 // BMO_CONSOLE_TEST_URL, which tests/support/browser-console.ts stands up. The suite stands up no console, so there it
@@ -19,7 +19,8 @@ import type { Browser, Locator, Page } from "playwright-core";
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "provider-usage", password: "fixture-password-3768" };
-const DESK = { width: 1280, height: 900 };
+// A desk wide enough that the reading column beside the organisation tree holds a bar beside its figure.
+const DESK = { width: 1600, height: 900 };
 const PHONE = { width: 360, height: 780 };
 const TEST_MS = 120_000;
 
@@ -48,7 +49,7 @@ async function opened(viewport: { width: number; height: number }, colorScheme: 
 
   const page = await context.newPage();
 
-  await page.goto(`${origin}/admin`, { waitUntil: "load" });
+  await page.goto(`${origin}/organization?company=platform&tab=supply`, { waitUntil: "load" });
   await page.locator('[data-account-usage="acct-b"] [data-usage-window]').first().waitFor({ timeout: 30_000 });
 
   return page;
@@ -86,15 +87,6 @@ async function holdsFigures(page: Page): Promise<void> {
   // A login never signed in on the agency's machine says so on its row, never standing as signed in.
   expect(await texts(page.locator('[data-account="acct-d"] [data-account-marks]'))).toEqual([wording("agents.label.login_none")]);
 
-  // A provider whose figures are its accounts' stands none of its own; a road's balance and allowance stand on its row.
-  await expect(page.locator('[data-provider="claude-code"] [data-provider-usage]').count()).resolves.toBe(0);
-
-  const road = page.locator('[data-provider="deepseek"] [data-provider-usage="road:deepseek"]');
-
-  expect(await texts(road.locator("[data-usage-balance] dd > span").first())).toEqual([moneyText({ amount: 12.5, currency: "USD", seenAt: 0, requests: null })]);
-  expect(await texts(road.locator("[data-usage-requests] dt"))).toEqual([wording("usage.label.requests_free_models")]);
-  expect(await texts(road.locator("[data-usage-requests] dd > span"))).toEqual([wording("usage.label.requests_left", { left: "988", limit: "1,000" })]);
-
   // An account's figures close its row as far from its bottom edge as its name stands from its top, measured inside
   // the hairlines the list parts its rows with.
   const row = page.locator('[data-account="acct-a"]');
@@ -111,6 +103,21 @@ async function holdsFigures(page: Page): Promise<void> {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
 
   expect(overflow).toBeLessThanOrEqual(0);
+}
+
+// What the providers tab holds: a provider whose figures are its accounts' stands none of its own, and a road's balance
+// and allowance stand on its row.
+async function providersHold(page: Page): Promise<void> {
+  await page.goto(`${origin}/admin`, { waitUntil: "load" });
+  await page.locator('[data-provider="deepseek"] [data-provider-usage="road:deepseek"]').waitFor({ timeout: 30_000 });
+
+  await expect(page.locator('[data-provider="claude-code"] [data-provider-usage]').count()).resolves.toBe(0);
+
+  const road = page.locator('[data-provider="deepseek"] [data-provider-usage="road:deepseek"]');
+
+  expect(await texts(road.locator("[data-usage-balance] dd > span").first())).toEqual([moneyText({ amount: 12.5, currency: "USD", seenAt: 0, requests: null })]);
+  expect(await texts(road.locator("[data-usage-requests] dt"))).toEqual([wording("usage.label.requests_free_models")]);
+  expect(await texts(road.locator("[data-usage-requests] dd > span"))).toEqual([wording("usage.label.requests_left", { left: "988", limit: "1,000" })]);
 }
 
 // The bars of one group start on one line and the figures end on one line.
@@ -131,7 +138,7 @@ async function readable(page: Page): Promise<void> {
   for (const one of read) expect({ text: one.text, readable: one.ratio >= 4.5 }).toEqual({ text: one.text, readable: true });
 }
 
-describe.skipIf(!origin || !touchReady())("what the providers tab says each provider and account has left", () => {
+describe.skipIf(!origin || !touchReady())("what the platform's supply and the providers tab say each account and provider has left", () => {
   test("on a desk, each bar beside its figure on the row's own line", async () => {
     const page = await opened(DESK);
 
@@ -153,6 +160,7 @@ describe.skipIf(!origin || !touchReady())("what the providers tab says each prov
       const shape = new RegExp(`^${clock.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/1|W|0/g, ".+")}$`);
 
       expect((await page.getByRole("tooltip").first().textContent())?.trim()).toMatch(shape);
+      await providersHold(page);
     } finally {
       await page.context().close();
     }
@@ -186,6 +194,7 @@ describe.skipIf(!origin || !touchReady())("what the providers tab says each prov
       expect(panelBar.y).toBeGreaterThanOrEqual(panelShare.y + panelShare.height);
       await expect(panel.evaluate((element) => element.scrollWidth - element.clientWidth)).resolves.toBeLessThanOrEqual(0);
       expect(panelBar.x + panelBar.width).toBeLessThanOrEqual(PHONE.width);
+      await providersHold(page);
     } finally {
       await page.context().close();
     }

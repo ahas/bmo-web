@@ -3,7 +3,7 @@ import { wording } from "#shared/wording";
 
 import { agencyRoute } from "./agency";
 import { fail } from "./fail";
-import { unitNamed } from "./organisation-agents";
+import { unitNamed } from "./chain-names";
 
 import type { SignedIn } from "./accounts";
 import type { AgencyCall } from "./agency";

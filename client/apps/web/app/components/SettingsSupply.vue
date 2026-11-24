@@ -1,8 +1,8 @@
 <template>
-  <!-- The supply section of the settings (docs/web.md, 「Settings」, the supply section): the agent supply sources
-       standing for the reader, then the reader's own Claude logins and gateway keys, each with its place in the walk,
-       its switch and what it can do now, then the order a run of theirs falls through the platform's supply, this
-       month's spend and what their supply has left. No credential and no secret value stands on this screen: what a
+  <!-- The reader's own supply (docs/web.md, 「Organisation」, the supply tab with the reader's own node chosen): their
+       own Claude logins and gateway keys, each with its place in the walk, its switch and what it can do now, then the
+       order a run of theirs falls through every source, the organisation's own among them, this month's spend and what
+       their supply has left. No credential and no secret value stands on this screen: what a
        row says of a key is its name. -->
   <div class="flex flex-col gap-6">
     <p class="text-sm text-muted">{{ $t("supply.label.note") }}</p>
@@ -25,8 +25,6 @@
     </div>
 
     <template v-else>
-      <SupplySourcesStanding />
-
       <SettingsGroup :title="$t('supply.title.logins')">
         <template #aside>
           <UTooltip :text="$t('supply.action.login_add')">
@@ -174,7 +172,7 @@ import { useConfirm } from "~/domain/confirm";
 import { costText, creditsText, keyStatus, loginStatus, meSetting, movedSourceOrder, orderRows, roadLabel, sourceLabel, sourceReasonText, SUPPLY_ROADS } from "~/domain/supply";
 import { openSettings, useSettings } from "~/domain/settings-dialog";
 
-import type { PersonalSupplyKey, SupplyMe, SupplyMeSetting, SupplySource } from "#shared/supply";
+import type { PersonalSupplyKey, SupplyMe, SupplyMeSetting, SpentSource } from "#shared/supply";
 import type { ClaudeAccountView, ClaudeLoginStarted, FallbackView, KeptSecret, SecretList } from "#shared/types";
 import type { DropdownMenuItem } from "@nuxt/ui";
 
@@ -450,7 +448,7 @@ async function moveSource(from: number, to: number): Promise<void> {
   await saveSetting(meSetting(rows.value, me.value?.personalCreditCredits ?? null, { order: movedSourceOrder(rows.value, from, to) }));
 }
 
-async function setSource(source: SupplySource, on: boolean): Promise<void> {
+async function setSource(source: SpentSource, on: boolean): Promise<void> {
   await saveSetting(meSetting(rows.value, me.value?.personalCreditCredits ?? null, { source, on }), `source:${source}`);
 }
 

@@ -430,6 +430,7 @@ async fn a_kind_is_declared_by_its_unit_and_held_to_its_shape() {
       "agent-profile.personalize",
       "agent-profile.picture",
       "supply.credit-allowance",
+      "supply.organisation",
       "supply.own",
       "supply.policy",
       "test.limit"
@@ -780,8 +781,9 @@ async fn the_settings_moved_onto_the_chain_answer_every_old_question_as_they_did
     (tree.admin, tree.person, tree.centre_head, tree.company_head);
 
   // The settings as they stood before the move, written into the tables they stood in: the move taken down with the
-  // ones of the organisation's BMO default, the accounts' languages and the supply run keys that stand after it.
-  Migrator::down(scratch.db(), Some(4)).await.unwrap();
+  // ones of the organisation's BMO default, the accounts' languages, the supply run keys and the supply sources' move
+  // that stand after it.
+  Migrator::down(scratch.db(), Some(5)).await.unwrap();
   scratch
     .run(
       r#"INSERT INTO "agent_permissions" ("unit_id", "user_id", "allowed", "set_by", "set_at")
@@ -909,7 +911,7 @@ async fn the_settings_moved_onto_the_chain_answer_every_old_question_as_they_did
   );
 
   // Taken down again, the old tables hold what they held.
-  Migrator::down(scratch.db(), Some(4)).await.unwrap();
+  Migrator::down(scratch.db(), Some(5)).await.unwrap();
   for (table, rows) in [
     ("agent_permissions", 3),
     ("supply_platform_policy", 1),

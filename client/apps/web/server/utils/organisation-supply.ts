@@ -5,6 +5,7 @@ import { agency, agencyCall } from "./agency";
 import { readProviderModels } from "./axes";
 import { fail } from "./fail";
 import { callerOf, organizationFailure } from "./organization";
+import { unitNamed } from "./chain-names";
 
 import type { ChainEntryView } from "./account-service";
 import type { SignedIn } from "./accounts";
@@ -12,22 +13,21 @@ import type { OwnModel, OwnRoad } from "#shared/own-agents";
 import type { ChainDelegation, CompositionChoice, CompositionView, SourceKind, UnitSourceView, UnitSupplyItem, UnitSupplyView } from "#shared/organisation-supply";
 import type { H3Event } from "h3";
 
-// An organisation's agents (docs/web.md, 「Organisation」, the agents tab; the agency's `docs/supply.md`,
-// 「The sources a person's chain leaves open」 and 「Organisation supply」, and `docs/role-agents.md`, 「The agents an
-// account is given」): the three source settings and the sign-up composition are the agency's kinds on the
+// An organisation's supply and agents (docs/web.md, 「Organisation」, the supply and agents tabs; docs/accounts.md,
+// 「Organisation supply」; the agency's `docs/supply.md`, 「Organisation supply」, and `docs/role-agents.md`, 「The agents
+// an account is given」): whether organisation supply stands open is the account service's kind and the sign-up
+// composition the agency's, both on the
 // delegation chain, read and written on the chain's own routes as the signed-in login, so who writes a link and a
 // lock above it are the account service's word; a unit's own keys and its composition are the agency's, asked as the
 // signed-in login. A key's value goes from the form into the unit's space of the secret store and nowhere else.
 
-/** The chain's kind of each source, as the agency declares it. */
+/** The chain's kind of each source a unit opens or closes, as the account service declares it. */
 const SOURCE_KINDS: Readonly<Record<SourceKind, string>> = {
-  personal: "supply.personal",
-  organisation: "supply.organisation",
-  platform: "supply.platform"
+  organisation: "supply.organisation"
 };
 
-/** The sources in the order a run takes them. */
-export const SOURCES: readonly SourceKind[] = ["personal", "organisation", "platform"];
+/** The sources a unit opens or closes on the chain. */
+export const SOURCES: readonly SourceKind[] = ["organisation"];
 
 /** The chain's kind of the sign-up composition. */
 const COMPOSITION_KIND = "signup.composition";
@@ -84,15 +84,14 @@ async function sourceAt(unit: number, source: SourceKind, signed: SignedIn): Pro
 
   if (entry === null) return null;
 
-  const stands = source === "organisation" ? organisationOpen(resolved.layers, resolved.value) : resolved.value !== false;
-
   return {
     source,
-    stands,
+    stands: organisationOpen(resolved.layers, resolved.value),
     closedHere: entry.value === false,
     delegation: entry.delegation,
     writable: entry.writable,
-    lockedBy: entry.lockedBy ?? null
+    lockedBy: entry.lockedBy ?? null,
+    locker: await unitNamed(entry.lockedBy)
   };
 }
 
@@ -220,7 +219,8 @@ export async function unitComposition(event: H3Event, unit: number, signed: Sign
     providers: providers.filter((one) => one.enabled).map((one) => ({ name: one.name, label: one.label, lines: one.lines })),
     delegation: entry.delegation,
     writable: entry.writable,
-    lockedBy: entry.lockedBy ?? null
+    lockedBy: entry.lockedBy ?? null,
+    locker: await unitNamed(entry.lockedBy)
   };
 }
 

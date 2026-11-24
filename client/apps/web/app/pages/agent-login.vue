@@ -1,7 +1,7 @@
 <template>
   <!-- The agent login step (docs/web.md, 「The join page」): a person whose runs only their own supply can carry, and
-       who holds none that is on, sets up a Claude login or a key here before anything else opens to them — the
-       settings' own supply section — and starts once one of their own is on. -->
+       who holds none that is on, sets up a Claude login or a key here before anything else opens to them — the part of
+       the supply tab their own node shows — and starts once one of their own is on. -->
   <UDashboardPanel id="agent-login">
     <template #body>
       <div class="mx-auto flex w-full min-w-0 max-w-3xl flex-col gap-4 p-4" data-agent-login>

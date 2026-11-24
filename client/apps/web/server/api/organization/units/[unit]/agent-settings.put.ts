@@ -21,7 +21,7 @@ export default defineEventHandler(async (event): Promise<{ ok: true }> => {
   if (value === undefined && delegation === undefined) throw fail(400, wording("organization.error.bad_request"));
 
   try {
-    await changeAgentSetting(unit, setting, { value, delegation }, await signedInUser(event));
+    await changeAgentSetting({ unit }, setting, { value, delegation }, await signedInUser(event));
   } catch (error) {
     throw orgAgentsFailure(error);
   }

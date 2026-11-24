@@ -1245,10 +1245,10 @@ writing the words. A wording fix is an edit to the packs alone, once the guide b
   that does not scroll is drawn where nothing can reach it.
 - **It leads to the accounts.** The panel's own heading carries the way to the Claude 계정 list,
   where the logins, their order and their switches are — what the figures are read against, and the
-  only place any of it is changed. The way is the administration screen's 공급자 tab at its Claude 계정 group,
-  `/admin#accounts`, which opens with that group brought to the top of the body (「Administration」). The figures
-  stand for the administrator alone (「The title bar」), the one reader that screen opens to, so no member meets a
-  way that would take them home.
+  only place any of it is changed. The way is 조직's 공급 with 플랫폼 전체 chosen, at its Claude 계정 group,
+  `/organization?company=platform&tab=supply#accounts`, which opens with that group brought to the top of the body
+  (「Organisation」, 「공급」). The figures stand for the administrator alone (「The title bar」), the one reader that node
+  opens to, so no member meets a way that would take them home.
 
 - **Tokens stand as four — 「읽기」, 「쓰기」, 「캐시읽기」, 「캐시쓰기」 — with 「총 …」 beside them.** Those
   four are the tokens one run reports: what was sent, what was written, what was read from cache, what was
@@ -1465,8 +1465,8 @@ writing the words. A wording fix is an edit to the packs alone, once the guide b
   - **a room's,** from 방 정보's head, 방 사진, for the administrator (「방 정보」);
   - **one's own,** in 설정 › 계정, 프로필 사진: the sender linked to the account, the owner's for the administrator.
   Two more stand in the same shape but are kept by the account service rather than the receiver (`docs/accounts.md`,
-  「A person's BMO profile」): a company's default for its people's BMOs, on 조직's BMO tab, its way back 사진 지우기, and
-  one's own BMO's, on 설정 › 내 BMO, its way back 회사 사진으로 되돌리기. Neither is a receiver's picture until the
+  「A person's BMO profile」): a company's default for its people's BMOs, on 조직's 에이전트 at the company, its way back 사진 지우기, and
+  one's own BMO's, on 조직's 에이전트 at 나, its way back 회사 사진으로 되돌리기. Neither is a receiver's picture until the
   console's server applies it to a person's BMO (「A person's BMO profile on the agency and the receiver」).
   Each is one shape: the picture standing now, 사진 고르기 picking a file, the picked one shown in its place with
   저장 and 취소, and 제공자 사진으로 되돌리기, which drops the console's picture so the provider's stands again (the
@@ -3740,8 +3740,8 @@ alone (「Access」); another account's agents are reached from 조직's 사용�
 
 #### Around the tabs
 
-- **The provider switches and the Claude accounts** are 플랫폼 설정's 공급자 tab (「Administration」), since
-  they are no supervisor's, role's or repository's.
+- **The provider switches** are 플랫폼 설정's 공급자 tab (「Administration」), and the Claude accounts 조직's 공급 with
+  플랫폼 전체 chosen (「Organisation」, 「공급」), since they are no supervisor's, role's or repository's.
 - **The research unit's settings and the research supervisor** are the research screen's 설정 tab (「Research
   screen」).
 - The run prompt put into a job, search or gate has nothing to do with the length of one Telegram message. A web
@@ -7613,13 +7613,14 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
   the dialog's left under the title 설정, each section one line of an icon and its name; the open one
   is marked. The section's own name heads the right, with the dialog's close mark at its right end,
   and its content scrolls under it.
-  - The sections are 계정, 내 BMO, 내 에이전트, 기기, 데스크톱, 비밀 보관함, 공급, 내 앱·도구, 내 개인 앱, 테마, 대화방, 알림 and
+  - The sections are 계정, 내 에이전트, 기기, 데스크톱, 비밀 보관함, 공급, 내 앱·도구, 내 개인 앱, 테마, 대화방, 알림 and
     보이스브리핑. A member is shown 계정, 내 에이전트, 기기, 비밀 보관함, 공급, 내 앱·도구, 내 개인 앱, 테마 and 대화방; 데스크톱 stands for any reader, but only in the desktop
     app's window (「데스크톱」); 알림 and 보이스브리핑 are the administrator's, since the console rings and plays
-    briefings for the administrator alone. 내 BMO is shown to a person who may personalise their BMO and owns one (「내
-    BMO」). A login with no user of the account service, which holds no secret space and no machine, is not
+    briefings for the administrator alone. A login with no user of the account service, which holds no secret space and no machine, is not
     shown 기기 or 비밀 보관함, and 내 에이전트, 공급, 내 앱·도구 and 내 개인 앱 are no sections for it either, what they set standing against that
     user.
+  - **내 에이전트, 공급 and 내 앱·도구 are doors** (「Doors to the organisation screen」): what they set is the reader's own
+    link of settings 조직's tabs draw at every link, so it stands there, at 나, and the section only leads to it.
   - A section's content stands in groups under small headings, each group a column of rows parted by
     hairlines. A row carries its name and, where the name needs it, one muted line under it at the
     left, and its control at the right: a choice of two or three a segmented control, a longer one a
@@ -7631,7 +7632,7 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
 - **On a narrow screen the dialog fills the screen** and opens on the list of sections alone, over the
   sidebar drawer it was opened from (「Floating things」). A tap on one goes into it: the head then carries
   a back arrow before the section's name, and the arrow or the back gesture returns to the list. The close mark stands at the head's right end on both.
-- **An address opens it at one section:** `?settings=` and a section's key — `account`, `agent`, `own-agents`, `machine`, `desktop`, `secrets`, `supply`, `apps`, `theme`,
+- **An address opens it at one section:** `?settings=` and a section's key — `account`, `own-agents` (`agent` naming it as well), `machine`, `desktop`, `secrets`, `supply`, `apps`, `theme`,
   `palette`, `notifications`, `briefing` — on any address of the console opens the dialog at that
   section, gone into on a narrow screen, and at the first section the reader may open where the key
   names none of them. A member sent on from an address they may not open to their own home is sent with the key, so
@@ -7673,80 +7674,13 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
   on unless the account turned it off, and one muted line saying what turning it off hides. It takes effect as it
   is switched. A console login standing before the account model, which has no account, is shown no such row.
 
-#### 내 BMO
+#### Doors to the organisation screen
 
-- **It is shown to a person who may personalise their BMO** (`docs/accounts.md`, 「A person's BMO profile」) and owns
-  one, read each time the dialog opens; for anyone else it is no section, and the console's routes behind it refuse
-  with the pack's sentence for `personalize-withheld`.
-- **이름, 부르는 이름 and 페르소나** each stand as a row with what stands now and, muted under it, where it came from:
-  직접 정함 or 회사에서 정함, nothing for the deployment's own, whose name wears its `(기본값)` mark. 변경 on the name's
-  row opens one form of the three (「Forms」), the call names as on 기본 BMO and 페르소나 a text of several lines held to
-  the agency's ceiling, its count shown as it nears it; 저장 is open only while one differs.
-- **페르소나 사용** follows them: whether the reader's BMO keeps its persona, the delegation chain's `agency.persona`
-  at the reader's own link, read and written through the console's own routes (`GET` and `PUT
-  /api/account/agent-persona`), which hand the account service the reader as the writer. Its switch is written as it
-  is turned; the line under it says 직접 정함, with 되돌리기 before the switch taking the reader's word away, or 조직을
-  따름 where they set nothing; where a unit above locks it, 조직이 정함 · and the locking unit's name, the switch
-  disabled showing what the lock holds. Off, the BMO keeps its name and picture and is given no tone or character
-  instruction, the persona above it standing kept and unread.
-- **프로필 사진** is set in the picture shape, its way back 회사 사진으로 되돌리기, which drops the person's own picture
-  so the company's, or none, stands again.
-- **초기화** empties the person's own parts and picture after the console's question dialog asks (「Messages」), so
-  the company's default stands for each again; it stands off while the person has set nothing.
-
-#### 내 에이전트
-
-The reader's own agents: the set their organisation supplies, and the reader's own changes laid over it (the agency's
-`docs/role-agents.md`, 「A person's own agents」, and `docs/prompt-layers.md`, 「The person's instructions」). Every
-person with a user of the account service sees it. The console reads and changes them through its own routes (`GET`
-and `POST /api/account/own-agents`, `PATCH` and `DELETE /api/account/own-agents/{name}`, `POST
-/api/account/own-agents/{name}/back`, `GET /api/account/own-agents/models/{provider}`, `GET` and `PUT
-/api/account/own-instructions`), which ask the agency as the deployment's own for the account the reader's user is, so
-a reader reaches their own agents alone. Whether the reader may make each change is the delegation chain's word, read
-by the agency for them; the console decides none of it.
-
-- **One setting, rendered by the reader's reach.** The agent settings are the same items at every link of the
-  delegation chain, each link's view showing that link's values with where they came from and the locks above it: the
-  person's own link is this section, the 「나」 of the settings, which takes no other input than the signed-in reader;
-  a unit's link is 조직's 에이전트 tab for the node chosen in its tree, for the reader who heads it; and the platform's
-  defaults stand on 관리자's 에이전시 screen, the administrator's alone. A head never needs that screen for what their
-  organisation supplies: the composition's roles and roads, the organisation's instructions and what the people may
-  change all stand on the 에이전트 tab.
-- **The model is the organisation's set and the person's layer over it.** What the reader's company and units supply —
-  the agents of each role and their roads, set on 조직's 에이전트 tab as 가입 구성, and their 조직 지침 — stands first,
-  each item saying where it came from; what the reader changes stands over it and is taken back with 되돌리기, so the
-  supplied value stands again. Each kind of change is allowed or withheld by the organisation, set by its heads on the
-  same tab (개인 설정 허용), allowed where nobody set it, so with nothing set a person may make every change.
-- **The reader's own supervisors stand first in 에이전트,** their BMO first, each a row of its label and a more-menu
-  holding 세션 넘기기 and 세션 초기화 (「A supervisor's session handed over or reset」).
-- **에이전트** lists the reader's agents role by role, the seats supplied first: each row the role's label and the agent's
-  name, under it its 공급자 · 모델 on one line — 요청한 감독관을 따름 for an agent that names none — and where it came
-  from: 받은 에이전트 · and the unit that supplied it, 받은 에이전트 · 기본 for the platform's own rule, 직접 정함 for a
-  seat the reader changed (`· 꺼짐` where they switched it off), 받은 에이전트 · 지금 없음 for a seat that no longer stands,
-  and 직접 추가 for an agent of their own. Its controls stand at the row's end:
-  - **되돌리기**, an icon button on a seat the reader changed or that no longer stands, which puts it back as supplied;
-  - **공급자 · 모델**, which opens the agent's road in a form of its own: 공급자, its first choice 요청한 감독관을 따름
-    and then every provider whose program carries the role's line; 모델, the provider's models less any another person
-    owns, a model the reader's supply does not carry standing disabled with 공급 없음; and 강도 where the model takes
-    levels, 기본 first. 저장 sends the road whole, a refusal said in the form;
-  - **its switch**, which turns the agent on and off; a supplied agent switched off is the reader's own change, so its
-    switch stands disabled while on where the organisation withholds 에이전트 추가·끄기;
-  - **삭제**, on an agent of the reader's own alone, asked first and disabled while the agent carries a run.
-  **에이전트 추가** at the group's heading drops a menu of every role that does not stand off and holds fewer than the
-  most agents of one role; the one picked is given one more agent on the road of the role's own agent, and the list is
-  read again. A role the organisation turned off stands as a row of its own, 쓸 수 없는 역할 · and who decided it.
-- **A change the organisation withholds** stands disabled, and a line at the group's head says which and who decided
-  it, as 내 BMO's rows do: `에이전트 추가·끄기: 조직이 정함 · {unit}`, `공급자 · 모델 선택: 조직이 정함 · {unit}`, 조직이 정함
-  alone where the unit cannot be named and 전역 설정으로 정함 for the platform.
-- **조직 지침** follows, read only: every text the organisations above the reader hold, outermost first, each under who
-  set it, and a line saying they apply before the reader's own; 조직 지침 없음 where none stands.
-- **내 지침** last: 모든 에이전트, the text every agent of the reader's is given, then one row for each agent — their BMO by
-  its name and each role agent as its role's label and name — with its own text, each 지침 없음 where none stands, and
-  변경 opening a form of one text of several lines held to the agency's ceiling, its count shown under it. 저장 writes the
-  instructions whole. Withheld, the rows stand with 변경 disabled and a line saying `내 지침: 조직이 정함 · {unit}`; what the
-  reader wrote stays kept and is given to no agent until it is allowed again.
-- **A change reaches the agents at once:** a road and a switch at the agent's next run, instructions at each agent's next
-  turn. A read that failed says its reason with 새로고침, and a refused act is said under the list, which is read again.
+내 에이전트, 공급 and 내 앱·도구 are each one row naming a tab of 조직 — 에이전트, 공급 and 앱·도구 — with 열기, which opens that tab
+with 나 chosen, the dialog left behind as the address moves. Every person with a user of the account service sees them,
+the organisation screen standing for every such reader at 나 whether or not the sidebar lists it. What each sets of the
+reader's own — their BMO and their agents, their own logins, keys and the order their runs fall through, their apps —
+stands in that tab's view of 나 (「Organisation」, 「에이전트」, 「공급」 and 「앱·도구」).
 
 #### 기기
 
@@ -7910,64 +7844,6 @@ person sees their own space and nobody else's, the administrator included.
   so not even the administrator reads one. A login with no user is shown neither the section, the clip's 비밀 nor
   the form, and the routes answer it as if nothing stood there (「Access」).
 
-#### 공급
-
-What the reader's own runs go out on: the credentials they bring, the order a run falls through what the platform
-offers them, and what their supply has spent and has left. Every person with a user of the account service sees it.
-The account service holds the policy, the caps, the usage and the balances; the person's logins
-and keys stand at the agency (its `docs/api.md`, 「accounts, rest and usage」), and the section reads and changes
-them through the console's own relay of those routes (`GET`/`PUT /api/supply/me`, `/api/supply/logins`,
-`/api/supply/signin`, `/api/supply/personal`). No credential and no secret value reaches the screen from either unit: what
-a row shows of a key is the secret's name, and of a login the path it is reached by.
-
-- **에이전트 공급원** stands first: the three supply sources a run of the reader's takes, 개인 공급, 조직 공급 and 플랫폼
-  공급, as the delegation chain resolves them for the reader (`GET /api/account/supply-sources`; the agency's
-  `docs/supply.md`, 「The sources a person's chain leaves open」), each a row with 켜짐 or 꺼짐 at its end. Where a unit
-  above decided a source — closed it, or locked the reader's link of it — the row says 조직이 정함 · and that unit's
-  name under it, 조직이 정함 alone where the unit cannot be named; where the platform did, 전역 설정으로 정함, which 조직
-  공급 the platform has not opened to the reader's company says too; where nobody did, nothing. The reader writes none
-  of the three, their heads do, so no row carries a control. The group reads on its own beside the others.
-- **공급 로그인** lists the reader's Claude logins in the order their runs walk them, one row each: the name, its
-  place in the order, its state in one word — 사용 가능, 창 가득 참, 로그인 필요, 로그인 안 됨 — and its switch. The arrows move
-  one row, the whole order written as it is dropped; a refusal leaves the order the agency holds. 로그인 추가 at
-  the heading's end asks a name and starts the sign-in the agency runs on the reader's own node: the box opens the
-  sign-in's address in the reader's browser, the code that page shows is pasted into 인증 코드 and handed back with
-  로그인 완료, and closing the box gives the sign-in up, each as the administrator's box does (「Administration」);
-  a reader whose node stands off is told so and nothing starts. A login that has ended carries its own 로그인
-  row-action, the same flow on the standing account. 삭제, asked first, takes one away.
-- **공급 키** lists the reader's gateway keys, one row each: the secret's name as the label, the provider's own name
-  and its state under it — 사용 가능, 키 거부됨 — and its switch, its arrows moving it within its provider and its
-  삭제 asking first. 키 추가 opens a form of provider (Codex, DeepSeek or OpenRouter) and secret, the secret chosen
-  from the names the reader's space holds and the choice standing empty with one line leading to 비밀 보관함 where
-  it holds none; the form hands the name alone, and a provider the reader already carries a key for, or one the
-  gateways serve none of, is refused in the dialog.
-- **공급 순서** stands the sources a run may fall through, in the order resolved for the reader: each usable source a
-  row with its arrows and its switch, and a source the reader themselves closed stands among them with its switch
-  off, ready back in; a source a layer above closes stands greyed under them all, its reason in one line — 계획에
-  없음, 조직에서 막힘 or 플랫폼 관리자가 막힘 — and it carries no control, a write that opened it back standing refused 403
-  with that closer's reason. 중단 always stands last and moves as nothing. A source the platform locks stands
-  with its switch disabled and 전역 설정으로 고정 under it, on or off as the platform holds it; with the order
-  locked the arrows stand disabled and one muted line under the group says 순서 전역 설정으로 고정. Every other
-  source stands as the platform's default until the reader switches it the other way, 개인 크레딧 among them, whose
-  월 상한 row under it takes the credits a month may go out on it, 상한 없음 by default — the cap the person sets,
-  never above what the organisation's cap leaves; the source reads closed while the cap is spent as well as while
-  its switch is off. Each change is written whole as it is made and answered with the view as it
-  now stands: the order of the sources standing open, and every choice the reader holds, on or off, a choice of a
-  source a layer closes or the platform locks sent back as it stands, so a write never erases one; the account service is the owner of every refusal, and a refused write leaves the section as it stood,
-  its reason under the group.
-- **이번 달 사용량** lists what went out this month, one row per source with its credits and its cost, and beneath
-  them 계획 남은 공급, the plan's included usage still left, and 개인 크레딧 잔액, the reader's own credit balance,
-  each `—` where it holds none. No top-up control stands anywhere: payments are off, and a balance low reads as a
-  figure, never as a way to fill it.
-- A read that failed says its reason in the section with 새로고침; the groups read on their own, and one that came
-  stands while another waits.
-
-#### 내 앱·도구
-
-A door to the one apps screen (「Organisation」, 「앱·도구」): one row, 앱·도구, with 열기, which opens 조직's 앱·도구 with 나
-chosen, the dialog left behind as the address moves. Every person with a user of the account service sees it, the
-organisation screen standing for every such reader at 나 whether or not the sidebar lists it.
-
 #### 내 개인 앱
 
 The reader's personal apps: tools of their own, which their BMO makes and builds on their PC and their sessions alone
@@ -8062,7 +7938,7 @@ account the reader's user is, so a reader reaches their own apps alone.
 조직 is the screen of the organisations and the people in them. An organisation, a company at the top of the
 tree of units, is chosen first; everything else is set inside the one chosen: its units and who stands in them,
 every person looked up one at a time, the invitations into its units, its people's BMOs and their agents, its
-apps, its supply and its plans.
+apps, and its supply with its plans.
 
 **One setting stands on one screen, drawn by the reader's reach.** A setting kept on the delegation chain is read and
 written here, at one link of the chain at a time: the tree at the screen's left holds exactly the links the reader
@@ -8071,12 +7947,10 @@ reader with a user — and the tab at its right shows the link chosen: each valu
 직접 정함), and a lock above it, which leaves the value standing and its control disabled. The same tab draws the same
 setting for every reader, one node at a time, and no list names the companies or units a value is set for; another
 screen that sets the same thing for a reader is a door to this one (「Settings」). What else is set for the
-platform itself — the providers and the Claude accounts
-every run goes out on, the kinds every person's secret form asks in, the platform's own supply, its plans and
-its credits — is the administrator's screen, 플랫폼 설정
-(「Administration」). What a person sets for themselves alone, their secrets and the voice briefing among it, is the
-settings dialog's (「Settings」), and the research supervisor stands with the research unit's settings on the
-research screen (「Research screen」).
+platform itself — the providers every run goes out on, switched on and off with what they have left, and the kinds
+every person's secret form asks in — is the administrator's screen, 플랫폼 설정 (「Administration」). What a person sets
+for themselves alone, their secrets and the voice briefing among it, is the settings dialog's (「Settings」), and the
+research supervisor stands with the research unit's settings on the research screen (「Research screen」).
 
 - **It stands at `/organization`: one tree of the organisations at its left, the node chosen at its right.**
   - **The organisation tree** is a region of its own: a search box at its head, then every company the reader may
@@ -8114,44 +7988,50 @@ research screen (「Research screen」).
     with no list and no tab. A reader with a user and no organisation is shown the tree of 나 alone, chosen.
   - **A link naming a person but no organisation** — a person's tab from before the list, the console search's
     person — opens the organisation that person stands in.
-- **Inside the organisation chosen, a tab to a section.** The tabs are 조직도, 사용자, 직책·종류, 초대, BMO, 에이전트,
-  앱·도구, 아티팩트 저장, 조직 기억, 공급 and 플랜, keyed in the address as `?tab=` with `people`, `catalogue`, `invites`, `agent`,
-  `agents`, `apps`, `storage`, `memory`, `supply` and `plans`, 조직도
+- **Inside the organisation chosen, a tab to a section.** The tabs are 조직도, 사용자, 직책·종류, 초대, 에이전트,
+  앱·도구, 아티팩트 저장, 조직 기억 and 공급, keyed in the address as `?tab=` with `people`, `catalogue`, `invites`,
+  `agents`, `apps`, `storage`, `memory` and `supply`, 조직도
   being the organisation's own address; a shared link opens the same tab, moving between tabs is a step of the
   history and keeps the organisation chosen, and a key naming no tab the reader may open opens the first they may.
   Every tab reads and writes the company of the node chosen alone, and a tab that stands for one unit — 조직도,
-  사용자, 초대, BMO, 에이전트, 앱·도구, 아티팩트 저장 and 조직 기억 — stands for the node chosen, the company itself where a company is chosen; none of
+  사용자, 초대, 에이전트, 앱·도구, 아티팩트 저장, 조직 기억 and 공급 — stands for the node chosen, the company itself where a company is chosen; none of
   them chooses an organisation or a unit of its own.
   The console search finds each tab as it finds every screen's; the sidebar lists the screen as one entry, 조직, among
   the 시스템 서비스, and the tabs stand in the screen's own row alone (「Sidebar」).
 - **With a link node chosen, every tab stands for that link of its settings.** The row keeps the tabs the reader
-  opens, and the tab open stays as a link node is chosen and as a company or a unit is chosen from it, so one tab is
-  read node by node down the tree. Each tab says for itself what it shows at each link node: a view of its own that
-  reads and writes that link of the kinds the tab sets — the platform's, the administrator's alone, or the reader's
-  own — in the centred reading column; a tab that declares none for the node shows one muted line there, 이 탭에는
-  플랫폼 설정이 없습니다 or 이 탭에는 개인 설정이 없습니다, and nothing else. A tab takes a link node on by declaring its
-  view, and nothing outside the tab changes. 앱·도구 declares both (「앱·도구」); 조직도, 사용자, 직책·종류, 초대, BMO, 에이전트,
-  아티팩트 저장, 조직 기억, 공급 and 플랜 declare neither, what the platform holds of the supply standing on 플랫폼 설정's 크레딧
-  (「Administration」) and what a person sets of their own supply, secrets and BMO in the settings dialog (「Settings」).
-  An address naming a link node beside a unit loses the unit, replaced with no step.
+  opens there — those they open anywhere, and every tab that declares a view of that link, which stands for every
+  reader the node does — and the tab open stays as a link node is chosen and as a company or a unit is chosen from
+  it, so one tab is read node by node down the tree. Each tab says for itself what it shows at each link node: a view
+  of its own that reads and writes that link of the kinds the tab sets — the platform's, the administrator's alone, or
+  the reader's own — in the centred reading column; a tab that declares none for the node shows one muted line there,
+  이 탭에는 플랫폼 설정이 없습니다 or 이 탭에는 개인 설정이 없습니다, and nothing else. A tab takes a link node on by declaring
+  its view, and nothing outside the tab changes. 에이전트 (「에이전트」), 앱·도구 (「앱·도구」) and 공급 (「공급」) declare both;
+  조직도, 사용자, 직책·종류, 초대, 아티팩트 저장 and 조직 기억 declare neither, what a person sets of their own secrets standing
+  in the settings dialog (「Settings」). An address naming a link node beside a unit loses the unit, replaced with no
+  step.
+- **A lock above the node is said by who holds it.** Wherever a setting stands locked by a link above the node — a
+  row's line, a group's line — it reads 조직이 정함 · and the locking unit's name, which the console's server reads off
+  the account service for the link the lock stands at; 조직이 정함 alone where the unit cannot be named, and 전역 설정으로
+  정함 where the platform holds it. The control the lock holds stands disabled showing what the lock holds.
 - **A key of a section that moved away leads to where it stands now,** so a link made before it moved still lands
-  on it: `research` to the research screen's 설정 tab, `briefing` to the settings dialog's 보이스브리핑 and `secrets`
+  on it: `agent` to 에이전트 and `plans` to 공급, each keeping the node the address named, `research` to the research
+  screen's 설정 tab, `briefing` to the settings dialog's 보이스브리핑 and `secrets`
   to its 비밀 보관함, each over this screen, `providers` and `secret-kinds` to those tabs of 플랫폼 설정, and `permissions` to
   사용자 with the person's 권한 tab open, the person its `user=` named still chosen (「사용자」). The address is replaced
   rather than stepped, so the back gesture does not return to the old key.
 - **Who opens it.** The administrator opens every tab, and the sidebar lists 조직 for them among the 시스템 서비스. A member who heads a unit may invite into it (`docs/accounts.md`, 「Invitations and a person's
   machine」), sets who under it may personalise their BMO (`docs/accounts.md`, 「A person's BMO profile」) and which
   apps stand on under it (「앱·도구」), and sets the agents of the people under it (「에이전트」) and where their documents are kept (「아티팩트 저장」), so their shell's sidebar
-  lists 조직 under 시스템 서비스 and the screen holds 초대, BMO, 에이전트, 앱·도구, 아티팩트 저장 and 조직 기억, 에이전트 and 아티팩트 저장 standing
+  lists 조직 under 시스템 서비스 and the screen holds 초대, 에이전트, 앱·도구, 아티팩트 저장 and 조직 기억, 에이전트 and 아티팩트 저장 standing
   where they head a unit of the organisation chosen, and 사용자 and 직책·종류 where they head a company
   (「사용자」, 「직책·종류」). A member granted a unit's org memory write without heading one (`docs/accounts.md`, 「A unit's
   org memory」) is listed 조직 as well, with the companies of those units, and the screen holds 조직 기억 for them beside
   the tabs every member opens (「조직 기억」); a member who heads none and holds no such grant is listed no entry, and the
-  address shows them the tree of 나 alone, the settings dialog's 내 앱·도구 being their door to it (「Settings」). 공급 stands for the reader the account service's
-  supply reach says holds the supply policy and credits of the organisation chosen — its credit manager or its head
-  — and 플랜 for one it says holds any part of its supply, its subscription manager among them; both stand for the
-  administrator wherever they stand, and a reader the reach says nothing for is held the tab no longer than it says
-  nothing. A head marks a person of their unit left as well
+  address shows them the tree of 나 alone, the settings dialog's doors leading them to it (「Settings」). 공급 stands for
+  the reader the account service's supply reach says holds any part of the supply of the organisation chosen — its
+  policy and credits, or those of a unit under it, as a credit manager or a head, or its plan, as its subscription
+  manager — for the administrator wherever it stands, and for every reader at 나; a reader the reach says nothing for
+  is held the tab no longer than it says nothing. A head marks a person of their unit left as well
   (`docs/accounts.md`, 「A person who leaves」): the route stands open to every signed-in login and the account
   service refuses anyone but the person's heads, and the screen offers the act on 사용자, so a head of a unit below a
   company marks a person left through the route alone. A head gives and takes a post in a unit they head, and names
@@ -8338,7 +8218,7 @@ account's rooms or agents (「Access」).
     by their path, for the administrator and a company's head alike, a refusal of it saying that only the
     administrator and a head of the unit or a unit above give a post; 기기 연결, the machine dialog of 조직도; 프로필
     변경, the profile form of 계정 for this person;
-    BMO 설정 권한, which opens the BMO tab at the person's company with their unit open; and 탈퇴 처리, asked first as
+    BMO 설정 권한, which opens 에이전트 at the person's company with their unit chosen; and 탈퇴 처리, asked first as
     on 조직도, for the administrator and a company's head alike and never for the reader themselves, a refusal of it
     saying that only the administrator and the person's heads mark them left. An act stands only where the route
     behind it lets the reader do it, and a person who left keeps only what still applies to them. Once an act goes through, the person is read again, and the list row with them.
@@ -8612,43 +8492,38 @@ Where a company's own words for its roles and its unit kinds are kept (`docs/acc
   approval is said in the card.
 - **The credential is never on the page:** the app's own side reads it from the console's server.
 
-#### BMO
-
-- **It sets what a company's people's BMOs stand as, and who may make their own** (`docs/accounts.md`, 「A person's BMO
-  profile」). The administrator opens it, and so does every member who heads a unit.
-- **The organisation chosen is the company it sets.** `?unit=` in the address names a unit of its tree to open with
-  its people, so 사용자's BMO 설정 권한 opens the tab at that person's organisation and unit.
-- **기본 BMO** stands for the administrator and the company's own heads alone: 이름, the name its people's BMOs stand
-  with, `BMO (기본값)` where none is set; 부르는 이름, the names that call one in a room, or 부르는 이름 없음; and its
-  picture. 변경 on the name's row opens the form of the name and the call names (「Forms」): each call name a chip with
-  its own remove and a field adding the name typed on Enter, a name refused there said under the field, and 저장 at the
-  form's foot open only while one differs. The picture is set in the one shape every picture of the console is set in
-  (「Profile photos」), its way back 사진 지우기.
-- **BMO 설정 권한** is the company's tree from each of the highest units the reader heads in it down, the whole of it
-  for the administrator and the company's heads: each unit a row indented under its parent, with a press opening the
-  people standing in it as rows under it, and every row a choice of 허용, 막음 and 상위 조직 따름, the company's own row
-  허용 and 막음 alone, `막음 (기본값)` being what nothing set runs on. A row that follows says under its name what it comes to, 상위 조직을
-  따라 허용 or 상위 조직을 따라 막음. A choice is saved as it is made and the tree read again, since a unit's choice
-  moves every row under it; a refusal is said under the row, which goes back to what stood.
-- **A saved default, picture or choice is applied at once** to the BMO of every person it reaches (「A person's BMO
-  profile on the agency and the receiver」), and a person's 설정 shows or drops 내 BMO the next time it opens.
-
 #### 에이전트
 
-Every setting of the delegation chain about the agents of the people under the node chosen, in one place: what they
-are told, whether they keep a persona, what their runs go out on, the agents the unit supplies them and on which roads,
-what they may change of those agents themselves, and the repositories their work stands on. It is the unit's view of
-the same settings a person sees of their own link in 설정's 내 에이전트 (「Settings」). The administrator opens it, and so does a member who heads a unit of the
-organisation chosen, its company or a unit below it. Each setting is a kind the agency declares on the chain (the
-agency's `docs/prompt-layers.md`, `docs/supply.md`, `docs/role-agents.md` and `docs/repositories.md`), read and
-written as the reader on the chain's own routes or the agency's, so who may change the node's link, and a lock above
+Every setting of the delegation chain about the BMOs and the agents of the people under the node chosen, in one
+place: what their BMOs are called and whether they may make their own, what their agents are told, whether they keep
+a persona, the agents the unit supplies them and on which roads, what they may change of those agents themselves, and
+the repositories their work stands on. The same settings stand at every link: a company's or a unit's view below, the
+platform's at 플랫폼 전체 and the reader's own at 나 (both below). At a company or a unit the administrator opens it, and
+so does a member who heads a unit of the organisation chosen, its company or a unit below it; at 나 every reader with a
+user of the account service, and 설정's 내 에이전트 is a door to it (「Settings」). Each agent setting is a kind the agency declares on the chain (the
+agency's `docs/prompt-layers.md`, `docs/role-agents.md` and `docs/repositories.md`) and each BMO setting one of the
+account service's (`docs/accounts.md`, 「A person's BMO profile」), read and written as the reader on the chain's own
+routes, the account service's or the agency's, so who may change the node's link, and a lock above
 it, are the account service's word.
 
 - **The unit is the node chosen in the tree,** the company where none is; the tab chooses none of its own.
 - **Every setting offers what the units below may do with it:** the choice of 위를 따름, 하위 조직 허용 and 하위 조직
   잠금, on a row 하위 조직 of its own or beside the setting's own control, written on the chain beside the unit's own
-  value. Under a lock above, a setting's controls
-  stand disabled with 상위 조직에서 잠금 under its row, and a control the reader may not change stands disabled.
+  value. Under a lock above, a setting's controls stand disabled with 조직이 정함 · and the locking unit's name under its
+  row (「Organisation」), and a control the reader may not change stands disabled.
+- **기본 BMO** stands at a company, for the administrator and the company's own heads (`docs/accounts.md`, 「A person's
+  BMO profile」): 이름, the name its people's BMOs stand with, `BMO (기본값)` where none is set; 부르는 이름, the names
+  that call one in a room, or 부르는 이름 없음; and its picture. 변경 on the name's row opens the form of the name and the
+  call names (「Forms」): each call name a chip with its own remove and a field adding the name typed on Enter, a name
+  refused there said under the field, and 저장 at the form's foot open only while one differs. The picture is set in
+  the one shape every picture of the console is set in (「Profile photos」), its way back 사진 지우기.
+- **BMO 설정 권한** is who under the node may personalise their BMO, for a reader who heads the node: the unit's own row
+  first, then one row for each person standing in it, every row a choice of 허용, 막음 and 상위 조직 따름 — 전역 설정 따름
+  on a company, which follows the platform's word — a row that follows saying under its name what it comes to, 상위
+  조직을 따라 허용 or 상위 조직을 따라 막음, 전역 설정을 따라 허용 or 막음 on a company. A unit below is set at its own node.
+  A choice is saved as it is made and the rows read again; a refusal is said under the row, which goes back to what
+  stood. A saved default, picture or choice is applied at once to the BMO of every person it reaches (「A person's
+  BMO profile on the agency and the receiver」).
 - **조직 지침** is the organisation's instructions (`agency.org-instructions`): 지침, the unit's own text, its
   first lines under the row or 지침 없음, with 상위 조직 지침 `{n}`개가 먼저 적용됩니다 under it where the links above
   hold any, since every agent serving a person here is given them all, the outermost first. 변경 opens the form of
@@ -8657,21 +8532,6 @@ it, are the account service's word.
 - **페르소나** is the persona's choice (`agency.persona`): its row 적용, a choice of 위를 따름, 페르소나 사용 or 페르소나
   없음, a row following above saying under its name 위를 따라 페르소나 사용 or 위를 따라 페르소나 없음. 페르소나 없음
   leaves the agents their name and picture alone. Then its 하위 조직 row.
-- **에이전트 공급원** is the three supply sources a run of a person under the unit takes, in that order: 개인 공급,
-  조직 공급 and 플랫폼 공급 (the agency's `docs/supply.md`, 「The sources a person's chain leaves open」). Each row's
-  switch says whether the source stands open there and closes it at the unit, or opens it again to follow above; a
-  source closed above stands off and disabled with 상위 조직에서 꺼짐 under it, and 조직 공급 the platform has not opened 제공되지 않음. Its select is what the
-  units below may do with it, 위를 따름, 하위 조직 허용 or 하위 조직 잠금; under a lock above both stand disabled with 상위 조직에서 잠금. A
-  unit only closes a source: opening one the links above close is theirs. For the administrator on a company, a
-  first row, 이 회사에 조직 공급 제공, opens organisation supply to the company or closes it again, a rule naming the
-  company at the platform's link. Each switch and choice is written on the delegation chain as the reader, and the
-  group read again.
-- **조직 공급 키** stands for a head of the unit and the administrator: the unit's own keys and Claude accounts (the
-  agency's `docs/supply.md`, 「Organisation supply」), each by its secret's name with its 공급자 and 사용 가능, 키 거부됨
-  or 꺼짐, its switch and its delete, asked first. The add at the heading's end opens 조직 공급 키 추가: 공급자 — Claude
-  (Anthropic API 키), Codex, DeepSeek or OpenRouter — 이름, the name it is kept under in the unit's secret store, and
-  키, typed once; the value goes into the unit's space of the secret store and nowhere else, and the agency is handed
-  the name. While organisation supply stands closed for the unit the add is disabled and the group says why.
 - **가입 구성** is the unit's sign-up composition (the agency's `docs/role-agents.md`, 「The agents an account is
   given」 and 「A person's own agents」): the set of agents the unit supplies its people, each role by its label with a
   choice of 위를 따름, 막음, 에이전트 없음 and 에이전트 1 to 3 — the agents a person here is given, which their 설정's 내
@@ -8684,7 +8544,7 @@ it, are the account service's word.
   comes to: 플랫폼 규칙을 따름 (one agent on the road of the role's own agent), 위를 따라 막음 or 위를 따라 에이전트 `{n}`. A choice is saved as it is made, through
   the agency's composition route in the reader's name, and the group read again; a refusal is said under the group.
   A first row, 하위 조직, is what the units below may do with it, 위를 따름, 하위 조직 허용 or 하위 조직 잠금, written on
-  the delegation chain; under a lock above the choices stand disabled with 상위 조직에서 잠금. A head reads and writes their own units',
+  the delegation chain; under a lock above the choices stand disabled with 조직이 정함 · and the locking unit's name. A head reads and writes their own units',
   the administrator every unit's.
 - **개인 설정 허용** is what the unit's people may change of the agents it supplies, each a flag of the delegation chain
   the agency declares (the agency's `docs/role-agents.md`, 「A person's own agents」, and `docs/prompt-layers.md`, 「The
@@ -8692,7 +8552,7 @@ it, are the account service's word.
   supplied one off; 공급자 · 모델 선택 (`agency.road-choice`); and 내 지침 (`agency.personal-instructions`). Each row holds
   two choices side by side, its own — 위를 따름, 허용 or 막음, a row following above saying under its name 위를 따라 허용 or
   위를 따라 막음 — and what the units below may do with it, 위를 따름, 하위 조직 허용 or 하위 조직 잠금, both disabled with
-  상위 조직에서 잠금 under a lock above. Nothing set anywhere allows them all.
+  조직이 정함 · and the locking unit's name under a lock above. Nothing set anywhere allows them all.
 - **조직 저장소** is the repositories the unit owns, whose people's agents alone work on them (the agency's
   `docs/repositories.md`, 「An organisation's repository」), and whether its people add and change repositories:
   - **저장소 관리** (`repositories.manage`) is the unit's choice of 위를 따름, 허용 and 막음, a row following above saying
@@ -8711,9 +8571,95 @@ it, are the account service's word.
   에이전트를 설정할 권한이 없습니다. Each group reads on its own, keeps its place with a skeleton while it is first read
   and says its reason with 새로고침 where its read failed, and a refusal of a choice is said under its group, the
   choice going back to what stands.
-- **A change reaches the agents at once:** the instructions and the persona at each person's next turn, the sources at
-  the next run's start, what the people may change at their next change; the composition is what each person's 내
+- **A change reaches the agents at once:** the instructions and the persona at each person's next turn, what the people
+  may change at their next change; the composition is what each person's 내
   에이전트 reads as received from then on, and what a new account is given as it is made ready.
+- **With 플랫폼 전체 chosen, the groups are the platform's own link,** the administrator's: what every company stands on
+  where it sets none, read and written on the console's platform routes (`GET` and `PUT
+  /api/organization/platform/agent-settings`, `GET` and `PUT /api/organization/platform/agent`).
+  - **전역 기본 BMO**: its 이름 and 부르는 이름, changed in the same form as a company's; no picture stands at the platform,
+    since a picture's bytes are kept under a unit. A saved default is applied at once to every person's BMO.
+  - **BMO 설정 권한**: one row, 자기 BMO 설정, a choice of 기본값을 따름, 허용 and 막음, nothing set withholding it, with its
+    하위 조직 row.
+  - **조직 지침, 페르소나, 개인 설정 허용 and 저장소 관리** as a unit's groups stand, each choice's first word 기본값을 따름 in
+    place of 위를 따름, and no row saying what following comes to; the platform holds no repositories of its own and no
+    sign-up composition, its rule being one agent of each role on the road of the role's own agent.
+- **With 나 chosen, the groups are the reader's own link** (the agency's `docs/role-agents.md`, 「A person's own
+  agents」, and `docs/prompt-layers.md`, 「The person's instructions」): their BMO, where they may personalise it and own
+  one, then their own agents and instructions, below.
+
+##### 내 BMO
+
+- **It stands for a person who may personalise their BMO** (`docs/accounts.md`, 「A person's BMO profile」) and owns
+  one, read as the view opens, under its heading 내 BMO; for anyone else it stands not at all, and the console's routes
+  behind it refuse with the pack's sentence for `personalize-withheld`.
+- **이름, 부르는 이름 and 페르소나** each stand as a row with what stands now and, muted under it, where it came from:
+  직접 정함 or 회사에서 정함, nothing for the deployment's own, whose name wears its `(기본값)` mark. 변경 on the name's
+  row opens one form of the three (「Forms」), the call names as on 기본 BMO and 페르소나 a text of several lines held to
+  the agency's ceiling, its count shown as it nears it; 저장 is open only while one differs.
+- **페르소나 사용** follows them: whether the reader's BMO keeps its persona, the delegation chain's `agency.persona`
+  at the reader's own link, read and written through the console's own routes (`GET` and `PUT
+  /api/account/agent-persona`), which hand the account service the reader as the writer. Its switch is written as it
+  is turned; the line under it says 직접 정함, with 되돌리기 before the switch taking the reader's word away, or 조직을
+  따름 where they set nothing; where a unit above locks it, 조직이 정함 · and the locking unit's name, the switch
+  disabled showing what the lock holds. Off, the BMO keeps its name and picture and is given no tone or character
+  instruction, the persona above it standing kept and unread.
+- **프로필 사진** is set in the picture shape, its way back 회사 사진으로 되돌리기, which drops the person's own picture
+  so the company's, or none, stands again.
+- **초기화** empties the person's own parts and picture after the console's question dialog asks (「Messages」), so
+  the company's default stands for each again; it stands off while the person has set nothing.
+
+##### 내 에이전트
+
+The reader's own agents: the set their organisation supplies, and the reader's own changes laid over it (the agency's
+`docs/role-agents.md`, 「A person's own agents」, and `docs/prompt-layers.md`, 「The person's instructions」). Every
+person with a user of the account service sees it. The console reads and changes them through its own routes (`GET`
+and `POST /api/account/own-agents`, `PATCH` and `DELETE /api/account/own-agents/{name}`, `POST
+/api/account/own-agents/{name}/back`, `GET /api/account/own-agents/models/{provider}`, `GET` and `PUT
+/api/account/own-instructions`), which ask the agency as the deployment's own for the account the reader's user is, so
+a reader reaches their own agents alone. Whether the reader may make each change is the delegation chain's word, read
+by the agency for them; the console decides none of it.
+
+- **One setting, rendered by the reader's reach.** The agent settings are the same items at every link of the
+  delegation chain, each link's view showing that link's values with where they came from and the locks above it: the
+  person's own link is this view, which takes no other input than the signed-in reader; a unit's link is the tab's
+  view of a company or a unit, for the reader who heads it; and the platform's is the view of 플랫폼 전체, the
+  administrator's alone.
+- **The model is the organisation's set and the person's layer over it.** What the reader's company and units supply —
+  the agents of each role and their roads, set on 조직's 에이전트 tab as 가입 구성, and their 조직 지침 — stands first,
+  each item saying where it came from; what the reader changes stands over it and is taken back with 되돌리기, so the
+  supplied value stands again. Each kind of change is allowed or withheld by the organisation, set by its heads on the
+  same tab (개인 설정 허용), allowed where nobody set it, so with nothing set a person may make every change.
+- **The reader's own supervisors stand first in 에이전트,** their BMO first, each a row of its label and a more-menu
+  holding 세션 넘기기 and 세션 초기화 (「A supervisor's session handed over or reset」).
+- **에이전트** lists the reader's agents role by role, the seats supplied first: each row the role's label and the agent's
+  name, under it its 공급자 · 모델 on one line — 요청한 감독관을 따름 for an agent that names none — and where it came
+  from: 받은 에이전트 · and the unit that supplied it, 받은 에이전트 · 기본 for the platform's own rule, 직접 정함 for a
+  seat the reader changed (`· 꺼짐` where they switched it off), 받은 에이전트 · 지금 없음 for a seat that no longer stands,
+  and 직접 추가 for an agent of their own. Its controls stand at the row's end:
+  - **되돌리기**, an icon button on a seat the reader changed or that no longer stands, which puts it back as supplied;
+  - **공급자 · 모델**, which opens the agent's road in a form of its own: 공급자, its first choice 요청한 감독관을 따름
+    and then every provider whose program carries the role's line; 모델, the provider's models less any another person
+    owns, a model the reader's supply does not carry standing disabled with 공급 없음; and 강도 where the model takes
+    levels, 기본 first. 저장 sends the road whole, a refusal said in the form;
+  - **its switch**, which turns the agent on and off; a supplied agent switched off is the reader's own change, so its
+    switch stands disabled while on where the organisation withholds 에이전트 추가·끄기;
+  - **삭제**, on an agent of the reader's own alone, asked first and disabled while the agent carries a run.
+  **에이전트 추가** at the group's heading drops a menu of every role that does not stand off and holds fewer than the
+  most agents of one role; the one picked is given one more agent on the road of the role's own agent, and the list is
+  read again. A role the organisation turned off stands as a row of its own, 쓸 수 없는 역할 · and who decided it.
+- **A change the organisation withholds** stands disabled, and a line at the group's head says which and who decided
+  it, as 내 BMO's rows do: `에이전트 추가·끄기: 조직이 정함 · {unit}`, `공급자 · 모델 선택: 조직이 정함 · {unit}`, 조직이 정함
+  alone where the unit cannot be named and 전역 설정으로 정함 for the platform.
+- **조직 지침** follows, read only: every text the organisations above the reader hold, outermost first, each under who
+  set it, and a line saying they apply before the reader's own; 조직 지침 없음 where none stands.
+- **내 지침** last: 모든 에이전트, the text every agent of the reader's is given, then one row for each agent — their BMO by
+  its name and each role agent as its role's label and name — with its own text, each 지침 없음 where none stands, and
+  변경 opening a form of one text of several lines held to the agency's ceiling, its count shown under it. 저장 writes the
+  instructions whole. Withheld, the rows stand with 변경 disabled and a line saying `내 지침: 조직이 정함 · {unit}`; what the
+  reader wrote stays kept and is given to no agent until it is allowed again.
+- **A change reaches the agents at once:** a road and a switch at the agent's next run, instructions at each agent's next
+  turn. A read that failed says its reason with 새로고침, and a refused act is said under the list, which is read again.
 
 #### 앱·도구
 
@@ -8732,7 +8678,8 @@ through routes of the same set naming the platform in the unit's place, the admi
   icon and its name — the title its screen's bundle gives, else the app's key in the monospace face — with one muted
   line under it saying how it stands for the node, and its controls at the row's end, under the name where they do not fit beside it.
   - **The state line:** 직접 정함 where the node sets it; 상위 조직을 따라 켬 or 끔 where it follows the unit above, and
-    전역 설정을 따라 켬 or 끔 on a company's own row; 상위 조직에서 잠금 where a link above locks it; 제공되지 않음
+    전역 설정을 따라 켬 or 끔 on a company's own row; 조직이 정함 · and the locking unit's name where a link above locks
+    it (「Organisation」); 제공되지 않음
     where the app is not offered to the node, its controls disabled.
   - **켬, 끔 or 상위 조직 따름** (전역 설정 따름 on a company) is the node's own word, a choice saved as it is made.
   - **하위 조직 잠금** is an icon button beside it, pressed while the node locks the app for every unit and person under
@@ -8746,8 +8693,8 @@ through routes of the same set naming the platform in the unit's place, the admi
   another company's shared app, stands nowhere in it. A row is the app's icon and name with one muted line saying
   where its state comes from, and its switch at the row's end:
   - **직접 정함** where the reader set it, with 되돌리기, an icon button before the switch, that takes the reader's own
-    word away so the organisation's stands again; **조직을 따름** where they set nothing; **조직에서 잠금** where a unit
-    above locks it, the switch disabled and showing what the lock holds.
+    word away so the organisation's stands again; **조직을 따름** where they set nothing; **조직이 정함 ·** and the locking
+    unit's name where a unit above locks it, the switch disabled and showing what the lock holds.
   - A change reaches the reader's screens as the list is next read, the next page or sign-in, and every relayed call
     at once.
 - **With 플랫폼 전체 chosen, the rows are every app the chain holds,** every company's shared apps among them, each the
@@ -8790,6 +8737,21 @@ through routes of the same set naming the platform in the unit's place, the admi
   word, `offered` and `on` each true, false or null and `locks`, each where the body names it; `POST` and `DELETE
   /api/organization/platform/apps/{app}/recall` recall the app and lift it; and `GET
   /api/organization/platform/app-requests` reads the requests from the agency.
+- **개인 앱** stands under the apps at a company, a unit and 플랫폼 전체: what the people under the node may do with
+  personal apps (the agency's `docs/person-nodes.md`, 「Personal apps」 and 「Shared apps」), six settings the agency
+  declares on the delegation chain, one row each, read and written through the console's own routes (`GET` and `PUT
+  /api/organization/units/{unit}/personal-apps`, and `/api/organization/platform/personal-apps` for the platform's
+  link) as the reader, so who may change a link and a lock above it are the account service's word:
+  - 개인 앱 만들기 (`personal-apps.make`), 네트워크 사용 요청 (`personal-apps.network`), 비밀 사용 요청
+    (`personal-apps.secrets`), 공유 버전 승인 (`personal-apps.share-review`) and 공유 앱 설치 (`personal-apps.install`):
+    each a choice of 위를 따름 — 기본값을 따름 at the platform —, 허용 and 막음;
+  - 공유 대상 (`personal-apps.share-scope`): a choice of 위를 따름 or 기본값을 따름, 팀, 팀과 상위 조직장 and 회사 전체, each
+    naming whom an app may be shared with, the widest last;
+  - beside each, what the links below may do with it, 위를 따름, 하위 조직 허용 or 하위 조직 잠금; under it 조직이 정함 · and
+    the locking unit's name where a lock above holds it, else what following comes to, 위를 따라 허용 or 막음;
+  - 네트워크 사용 요청 and 비밀 사용 요청 stay off until the platform opens them for a company, by a rule naming it at the
+    platform's link: on a company's row the administrator finds a switch, `이 회사에 {setting} 제공`, before the choice.
+  A reader who writes none of them is shown no group, and a refusal is said under the group, which is read again.
 - **A change is saved as it is made,** the rows read again, and a refusal said under its row, which goes back to what
   stood. It reaches the people under the node at their next relayed call and their next read of the screens.
 - **None held says 앱 없음.** The rows keep their place with a skeleton while they are first read, and a read that
@@ -8812,7 +8774,7 @@ through routes of the same set naming the platform in the unit's place, the admi
   on the chain in the reader's name; a refusal is said under the form. 변경 stands disabled where the reader may not
   write the unit's link now.
 - **하위 조직** is what the units below may do with it, 위를 따름, 하위 조직 허용 or 하위 조직 잠금, saved as it is chosen on the
-  delegation chain; under a lock above both stand disabled with 상위 조직에서 잠금.
+  delegation chain; under a lock above both stand disabled with 조직이 정함 · and the locking unit's name.
 - **A saved place reaches the documents filed after it;** a document already filed stays where it was kept.
 
 #### 조직 기억
@@ -8876,8 +8838,9 @@ write's standing from its answer (`docs/boundary.md`, 「Calls the console makes
 
 #### 공급
 
-The supply of the organisation chosen: what runs there go out on, the plan it stands on, and the credits that pay
-for them. The account service holds every one of these and owns every refusal (`docs/accounts.md`); the tab
+The supply of the node chosen: what runs there go out on, the plan it stands on, and the credits that pay for them.
+The same settings stand at every link: a company's or a unit's view here, the platform's at 플랫폼 전체 and the reader's
+own at 나 (both below), 설정's 공급 being a door to the last (「Settings」). The account service holds every one of these and owns every refusal (`docs/accounts.md`); the tab
 is read and written on its routes through the console's relay (`/api/supply/org/{unit}` and its `credits`, and
 `/api/supply/units` for the units the tab may stand for — the companies the account service's `GET /supply/units`
 says the reader holds a part of the supply of: every company for the administrator, and for anyone else each company
@@ -8888,7 +8851,11 @@ members' spend, each of those read by the hand that may read it and none for the
 write and the policy's taking-away are answered with the unit as it now stands. No credential and no secret value
 stands on it.
 
-- **The unit is the organisation chosen;** the tab chooses none of its own.
+- **The unit is the node chosen in the tree,** the company where none is; the tab chooses none of its own. A unit's
+  policy, cap and plan lie over its company's for everyone at or under it, so a head or a credit manager of a unit
+  below the company sets theirs at their own node. Each group stands for the reader who holds its part — the policy,
+  the credits and the spend for one holding the unit's policy and credits, 조직 공급 for its heads, the plans for its
+  subscription manager as well — and reads on its own.
 - **공급 정책** stands under its heading: where the unit sets no policy of its own, the row says it follows the
   unit above, muted under the name, and the policy actually in force from above stands as the rows' values, the
   allowed sources in order; 정책 설정 at the heading's end opens the form (「Forms」). Where a policy stands, its
@@ -8902,9 +8869,25 @@ stands on it.
   per-source lock binds a person's own setting alone: a source the platform turns off but leaves to a person, and
   one it locks on, stand open here, and the unit's policy narrows them as it narrows every source. Any refusal is
   the service's, its reason said in the dialog.
-- **플랜** holds the plan the organisation runs on, read only, as its 플랜 tab sets it (「플랜」 below): its 이름, its
-  price in whole won over its period, its period, the 크레딧 it includes each period and whether 크레딧 may be used
-  on it, each a row; 계획 없음 where it stands on none.
+- **월 상한** stands under the policy whatever it follows: the organisation credits one person under the unit may spend
+  in a calendar month, the unit's credit allowance (`docs/accounts.md`, 「How an order is resolved」), 상한 없음 where
+  none stands, muted 위를 따름 under it where the unit follows the unit above. The policy form writes it with the
+  policy, and taking the policy away takes it with it.
+- **조직 공급** is whether the people under the unit may run on their organisation's own supply (`docs/accounts.md`,
+  「Organisation supply」), for the unit's heads and the administrator: one row, 조직 공급, its switch saying whether it
+  stands open there and closing it at the unit, or opening it again to follow above, beside its select of what the
+  units below may do with it, 위를 따름, 하위 조직 허용 or 하위 조직 잠금; where the platform has not opened it the row says
+  제공되지 않음 and its switch stands disabled, and under a lock above both stand disabled with 조직이 정함 · and the
+  locking unit's name. A unit only closes it: opening it where the links above close it is theirs. For the
+  administrator on a company, a first row, 이 회사에 조직 공급 제공, opens organisation supply to the company or closes it
+  again, a rule naming the company at the platform's link. Each switch and choice is written on the delegation chain
+  as the reader, and the group read again.
+- **조직 공급 키** stands for a head of the unit and the administrator: the unit's own keys and Claude accounts (the
+  agency's `docs/supply.md`, 「Organisation supply」), each by its secret's name with its 공급자 and 사용 가능, 키 거부됨
+  or 꺼짐, its switch and its delete, asked first. The add at the heading's end opens 조직 공급 키 추가: 공급자 — Claude
+  (Anthropic API 키), Codex, DeepSeek or OpenRouter — 이름, the name it is kept under in the unit's secret store, and
+  키, typed once; the value goes into the unit's space of the secret store and nowhere else, and the agency is handed
+  the name. While organisation supply stands closed for the unit the add is disabled and the group says why.
 - **크레딧** is the unit's wallet: the balance whole with its thousands, and 크레딧 부여 at the heading's end — an
   amount in credits, 한 줄 of words kept with the grant where the granter writes any, and 부여 at the dialog's foot.
   A grant that goes through reads the balance again; a refusal is said in the dialog. No top-up control stands:
@@ -8914,14 +8897,11 @@ stands on it.
   사용량 없음 where none went. A member spending on two sources stands on two rows.
 - The tab's groups read on their own, each keeping its place with a skeleton while it is first read and saying its
   reason with 새로고침 where its read failed, as every tab of this screen does (「Organisation」).
+- **The plans** the unit chosen is shown and the one it runs on follow (`docs/accounts.md`, 「An organisation's plans」).
+  The plans themselves are designed at 플랫폼 전체 (below); a unit only chooses among them. The groups read `GET
+  /api/supply/org/{unit}/plans` and write `PUT /api/supply/org/{unit}/plans/exposed` and `/applied`.
 
-#### 플랜
-
-The plans the organisation chosen is shown and the one it runs on (`docs/accounts.md`, 「An organisation's plans」).
-The plans themselves are designed on 플랫폼 설정's 플랜 tab (「Administration」); this tab only chooses among them. It reads
-`GET /api/supply/org/{unit}/plans` and writes `PUT /api/supply/org/{unit}/plans/exposed` and `/applied`.
-
-- **적용 플랜** stands first: the plan applied, one row as 플랫폼 설정's 플랜 rows stand — its name as the label, its scope
+- **적용 플랜**: the plan applied, one row as the platform's 플랜 rows stand — its name as the label, its scope
   and period, its price and its included credits under it, and whether 크레딧 may be used on it — with 적용 기간, when
   it was applied and when its period ends, under it; 적용 플랜 없음 where none is. The row is read off the applied
   plan the service answers, so a plan no longer exposed or retired stands here as long as its subscription lives.
@@ -8934,12 +8914,152 @@ The plans themselves are designed on 플랫폼 설정's 플랜 tab (「Administr
   stands on and disabled, its tooltip saying 적용 중인 플랜은 노출을 끌 수 없습니다. A refusal turns the switch back and
   says why under the row. A reader who is not the administrator sees the exposed plans alone, read only. With no
   organisation-scope plan designed it says 플랜 없음.
-- **Who opens it.** Every reader 공급 stands for, and the organisation's subscription manager, whom the supply reach
-  names for its plan alone. The administrator exposes and applies; the organisation's subscription manager applies
-  one of its exposed plans and exposes none; any other reader reads the tab alone,
-  and 변경 is refused them by the account service, said in the dialog.
-- The groups read on their own, each keeping its place with a skeleton while it is first read and saying its
-  reason with 새로고침 where its read failed, as every tab of this screen does (「Organisation」).
+- **Who sets the plans.** The administrator exposes and applies; the unit's subscription manager applies one of its
+  exposed plans and exposes none; any other reader of the groups reads them alone, and 변경 is refused them by the
+  account service, said in the dialog.
+
+##### 플랫폼 전체
+
+With 플랫폼 전체 chosen, the tab is the platform's own supply, the administrator's: its default policy and the numbers it
+runs on, its ledger and audit, the plans it sells, and its own keys and Claude accounts. Each group reads on its own.
+The providers themselves, switched on and off with what they have left, stand on 플랫폼 설정 (「Administration」).
+
+- **The groups of the platform's supply** read and write `GET`/`PUT /api/supply/platform`,
+  `/api/supply/credits/ledger` and `/api/supply/credits/audit`.
+- **플랫폼 기본 정책** stands first: each source on or off by default, whether a person's own setting may change it, and
+  their order, edited through the same policy form a unit's view uses (above), so the platform's default is one policy written like any other and stands with the numbers below. Its
+  rows say each source's value and, under it in one muted line, 개인 설정 허용 or 고정; the order's row says the
+  same of the order. The form for the platform carries, beside each source's switch, a second switch, 개인 설정 허용,
+  and under the sources one more row of it for 순서; the organisation's form carries neither (`docs/accounts.md`,
+  「How an order is resolved」).
+- **전환율 and 예약** stand under it, each a row that takes effect as it is changed: 전환율, the fixed 크레딧 one US
+  dollar of cost converts to, and 예약 크레딧, the size every reservation opens at and grows by.
+- **공급 제한 적용** is the enforcement switch, on its own row with one muted line saying what it does: while it is
+  off nothing is refused and every cost is only recorded, so no run is ever stopped by its supply. Turning it on
+  makes every limit real. The row carries it as a switch, refused at once if it is refused, its reason under the
+  name.
+- **A grant is made at the wallet it fills:** an organisation's on its own node's 크레딧 (above), a person's on 사용자's
+  공급 for that person (「사용자」).
+- **장부** lists every credit movement the service answers, newest first, the console's shared list read a page at
+  a time the way 사용자's list is (「사용자」): one row each, the owner as the ledger keeps them — 사용자 or 조직 and
+  their number —, the kind, when, and the words kept with it or nothing under it, and the amount signed at its end.
+- **감사 기록** stands under its heading: every grant, every change of a policy, of the 전환율 or the 예약 size or
+  of 공급 제한 적용, and every plan act, newest first — one row each, the act's kind — 부여, 정책, 설정 or 플랜 — and
+  its subject, then the moment, whose act and what it changed. The service audits each of these in its own table
+  as it takes the write, and this one route answers the whole record.
+- No balance is shown for anyone here, and no top-up control stands: payments are off.
+- **플랜** is the membership plans the platform sells (`docs/accounts.md`): who pays, for what period, and what the
+  period includes. Every plan the service holds stands one row each, newest first, and the administrator writes them.
+  A plan is made whole and answered as the plan it became; a change carries the fields that moved and is answered
+  with the plan whole; a retirement is answered with the plans as they now stand. The group reads `GET`/`POST
+  /api/supply/plans` and `PATCH`/`DELETE /api/supply/plans/{plan}`.
+
+- **The plans stand one row each,** newest first: the plan's name as the row's label, its scope —
+  개인 or 조직 — and its period, its price in whole won and its included credits under it, — where the plan carries
+  no included amount that place stands —, whether 크레딧 may be used
+  on it, and its more-menu of 편집 and 삭제 at the row's end. 삭제 asks first, naming the plan; a plan people stand
+  on is refused and the refusal is said under the row. A platform holding none says 플랜 없음.
+- **플랜 추가**, at the group heading's end, and 편집 open the plan's form, a dialog of its own (「Forms」): 이름; 가격, whole
+  won, what a period costs; 대상, 개인 or 조직; 주기, the period the plan runs on and is bought over; 기간 포함, the
+  크레딧 each period brings, none where the box is left at nothing; and 크레딧 사용 가능, a switch for whether credits
+  may pay on the plan at all. A plan's 대상 does not move once the plan is made: an edit names it and does not
+  offer it as a field. 저장 is
+  open only while a field differs from what stands, and a rule the service breaks is said in the dialog.
+- **A plan changed or added takes effect on what the service resolves from it onward** — the supply orders every
+  person's falls through — and nothing here re-reads anyone's standing.
+- **플랫폼 공급 키**: each provider that reads its own key from a file of the platform administrator's secret space —
+  the agency's `keyFile`, OpenRouter's and DeepSeek's — one row, its name, under it whether that file stands, 키 있음
+  with when it last changed or 키 없음, and 키 설정. It opens a dialog of one hidden field, the key, and 저장 writes it
+  under the file's name in that space, the data root's `env/`, replacing what stood (the console's `POST
+  /api/secrets`), so the provider reads it at its next look. The key is never read back or shown, a refusal is said in
+  the dialog by the pack's sentence, and the row is read again once it is kept; 파일에서 키를 읽는 공급자 없음 where none
+  does.
+- **Claude 계정** — the Claude accounts in the order the Claude Code provider walks them, a group under its heading
+  with 계정 추가 at the heading's right end, which opens the add form below. The address
+  `/organization?company=platform&tab=supply#accounts` names the group: the tab opens with it brought to the top of the
+  body once it stands, which is where the title bar's usage panel leads (「Usage in the title bar」). Its rows are parted by hairlines with no box round them, one row each: a drag
+  handle, the place in the order, a mark saying whether that login is standing, near its end, gone or never signed in on the agency's
+  machine — a login near its end also carrying how long is left, one that has ended carrying 로그인 필요, and one
+  the agency holds no login for there (its `login` of `none`) carrying 로그인 안 됨 — the name the owner gave it,
+  where its credential is reached, a configuration directory or a token file shown as that path, the up and down
+  arrows, the row's more-menu and the enable switch. Under the name stands its 소유, 공용 or 개인 with the owning
+  person's name after a middle dot, read off the account's `userId` (the agency's `docs/supply.md`, 「Owned
+  supply」), and the account the owner chose carries 고른 계정. Under the
+  row, as wide as the row past its handle, stands what that account has left: its own group of the title bar panel,
+  its session and weekly windows with how long is left until each resets and its balance where it keeps one, a
+  skeleton line while the figures are first read, and 「읽은 사용량 없음」 where the agency states none. An account that is
+  off stands no figures, since it answers nothing. No row is marked as the one in use and no line names the account
+  runs go out on, since the chat agent and each of a role's agents run on roads of their own and one mark cannot say
+  whose run it means; an account at its limit reads as 0% with the time its window resets. A row's more-menu holds
+  지금 이 계정으로, which makes that account the chosen one, disabled on an account that is off; the chosen row's menu
+  holds 순서대로 in its place, which lets the choice go (the agency's `docs/cache-fallback.md`, 「Running on one account
+  now」). Claude 계정
+  추가 opens a box for a new account's name and how it is reached: 여기서 로그인, offered first, or
+  one of the two ways its credential is reached with the path it is reached by; a row's more-menu edits the name, the
+  way and the path, or removes the account.
+- **여기서 로그인 signs an account in with no terminal.** The agency runs the Claude CLI's own sign-in for it (the
+  agency's `docs/cache-fallback.md`, 「Signing an account in from the console」), and a box titled with the account's
+  name says what to do: 로그인 페이지 열기 opens the sign-in's address in the administrator's own browser, where they
+  approve it signed in to that account, and the code the page then shows is pasted into 인증 코드 and handed back
+  with 로그인 완료. A new account so signed in is added once its login is written, its configuration directory one
+  the agency makes for it; an account whose directory is its credential carries 다시 로그인 in its more-menu, for a
+  login that has ended or is about to. Closing the box gives the sign-in up, and a code the sign-in does not take ends
+  it, said in the box. The address and the code pass through the console's server to the agency and are kept by
+  neither, and only the administrator reaches the routes. Accounts are numbered by name,
+  `claude-01`, `claude-02` and on, as many as the owner adds: the box for a new one opens with the next number
+  already written, one past the highest the list holds, and the owner may write another name over it. Dragging a handle saves the whole order
+  at once, by mouse and finger alike, and the arrows move one row the same way; turning off the last one on is
+  refused by the agency. **No row, box or answer carries a token, a cookie or anything out of a credential file** —
+  the path is the whole of what is shown.
+
+##### 나
+
+With 나 chosen, the tab is what the reader's own runs go out on: the credentials they bring, the order a run falls
+through every source standing for them, and what their supply has spent and has left. Every person with a user of the
+account service sees it.
+The account service holds the policy, the caps, the usage and the balances; the person's logins
+and keys stand at the agency (its `docs/api.md`, 「accounts, rest and usage」), and the section reads and changes
+them through the console's own relay of those routes (`GET`/`PUT /api/supply/me`, `/api/supply/logins`,
+`/api/supply/signin`, `/api/supply/personal`). No credential and no secret value reaches the screen from either unit: what
+a row shows of a key is the secret's name, and of a login the path it is reached by.
+
+- **공급 로그인** lists the reader's Claude logins in the order their runs walk them, one row each: the name, its
+  place in the order, its state in one word — 사용 가능, 창 가득 참, 로그인 필요, 로그인 안 됨 — and its switch. The arrows move
+  one row, the whole order written as it is dropped; a refusal leaves the order the agency holds. 로그인 추가 at
+  the heading's end asks a name and starts the sign-in the agency runs on the reader's own node: the box opens the
+  sign-in's address in the reader's browser, the code that page shows is pasted into 인증 코드 and handed back with
+  로그인 완료, and closing the box gives the sign-in up, each as the platform's Claude 계정 box does (「공급」);
+  a reader whose node stands off is told so and nothing starts. A login that has ended carries its own 로그인
+  row-action, the same flow on the standing account. 삭제, asked first, takes one away.
+- **공급 키** lists the reader's gateway keys, one row each: the secret's name as the label, the provider's own name
+  and its state under it — 사용 가능, 키 거부됨 — and its switch, its arrows moving it within its provider and its
+  삭제 asking first. 키 추가 opens a form of provider (Codex, DeepSeek or OpenRouter) and secret, the secret chosen
+  from the names the reader's space holds and the choice standing empty with one line leading to 비밀 보관함 where
+  it holds none; the form hands the name alone, and a provider the reader already carries a key for, or one the
+  gateways serve none of, is refused in the dialog.
+- **공급 순서** stands the sources a run may fall through, in the order resolved for the reader, 조직 공급 among them
+  where the platform offers it to the reader's company — in the order while it stands open, its switch disabled and
+  its arrows moving it not, since the account service places it before every platform source; among the closed rows,
+  with its reason, where a unit or the allowance closes it: each usable source a
+  row with its arrows and its switch, and a source the reader themselves closed stands among them with its switch
+  off, ready back in; a source a layer above closes stands greyed under them all, its reason in one line — 계획에
+  없음, 조직에서 막힘 or 플랫폼 관리자가 막힘 — and it carries no control, a write that opened it back standing refused 403
+  with that closer's reason. 중단 always stands last and moves as nothing. A source the platform locks stands
+  with its switch disabled and 전역 설정으로 고정 under it, on or off as the platform holds it; with the order
+  locked the arrows stand disabled and one muted line under the group says 순서 전역 설정으로 고정. Every other
+  source stands as the platform's default until the reader switches it the other way, 개인 크레딧 among them, whose
+  월 상한 row under it takes the credits a month may go out on it, 상한 없음 by default — the cap the person sets,
+  never above what the organisation's cap leaves; the source reads closed while the cap is spent as well as while
+  its switch is off. Each change is written whole as it is made and answered with the view as it
+  now stands: the order of the sources standing open, and every choice the reader holds, on or off, a choice of a
+  source a layer closes or the platform locks sent back as it stands, so a write never erases one; the account service is the owner of every refusal, and a refused write leaves the section as it stood,
+  its reason under the group.
+- **이번 달 사용량** lists what went out this month, one row per source with its credits and its cost, and beneath
+  them 계획 남은 공급, the plan's included usage still left, and 개인 크레딧 잔액, the reader's own credit balance,
+  each `—` where it holds none. No top-up control stands anywhere: payments are off, and a balance low reads as a
+  figure, never as a way to fill it.
+- A read that failed says its reason in the section with 새로고침; the groups read on their own, and one that came
+  stands while another waits.
 
 ### App catalogue
 
@@ -9005,25 +9125,25 @@ so a reader sees and does what their own account may alone, and the agency's wor
 
 ### Administration
 
-플랫폼 설정 is the administrator's screen of what is set for the platform itself: the providers and the Claude accounts
-every run goes out on, how often the agency puts every waiting commit live, which operating notices the owner's
-private chat is told, the kinds every person's secret form
-asks in, and the plans the platform sells and the credits they and the platform's supply run on. The apps every
-company is offered, and their recall, are set on 조직's 앱·도구 with 플랫폼 전체 chosen (「Organisation」, 「앱·도구」). No
-member opens it.
+플랫폼 설정 is the administrator's screen of what is set for the platform itself and stands on no link of the
+delegation chain: the providers every run goes out on, switched on and off with what they have left, the secrets the
+agency's provider tools read, how often the agency puts every waiting commit live, which operating notices the
+owner's private chat is told, and the kinds every person's secret form asks in. What the platform sets on the chain
+stands on 조직 with 플랫폼 전체 chosen (「Organisation」): the apps every company is offered and their recall on 앱·도구, the
+agents' defaults on 에이전트, and its supply — the default policy, the plans it sells, its credits, its own keys and
+Claude accounts — on 공급. No member opens it.
 
-- **It stands at `/admin`, a tab to a section.** The tabs are 공급자, 비밀 종류, 플랜 and 크레딧, keyed in the
-  address as `?tab=` with `secret-kinds`, `plans` and `credits`, 공급자 being the screen's own address; a shared link opens
-  the same tab, moving between tabs is a step of the history, and a key naming no tab opens the first. The console
-  search finds each tab as it finds every screen's. A link to `/organization` naming `providers` or `secret-kinds`
-  lands on the same tab here, and a link here naming `apps` lands on 조직's 앱·도구 with 플랫폼 전체 chosen, the
+- **It stands at `/admin`, a tab to a section.** The tabs are 공급자 and 비밀 종류, keyed in the address as `?tab=` with
+  `secret-kinds`, 공급자 being the screen's own address; a shared link opens the same tab, moving between tabs is a step
+  of the history, and a key naming no tab opens the first. The console search finds each tab as it finds every
+  screen's. A link to `/organization` naming `providers` or `secret-kinds` lands on the same tab here, and a link here
+  naming `apps` lands on 조직's 앱·도구 with 플랫폼 전체 chosen, and one naming `plans` or `credits` on its 공급, the
   address replaced rather than stepped.
 - **Who opens it.** The administrator alone, and the sidebar lists 플랫폼 설정 for them after 조직; a member is listed
   no entry, and the address takes them home as any screen they may not open does.
 - **The tab row, a tab's content and its groups** stand as 조직's do (「Organisation」): the open tab's own add at
-  the row's right end, 종류 추가 on 비밀 종류 and 플랜 추가 on 플랜 and none on 공급자, whose add stands in its Claude 계정
-  heading, nor on 크레딧, whose grant stands in its own heading; each tab in the centred reading column;
-  a kind's 편집 and 삭제 on 비밀 종류 as icon buttons named by their tooltips.
+  the row's right end, 종류 추가 on 비밀 종류 and none on 공급자; each tab in the centred reading column; a kind's 편집 and
+  삭제 on 비밀 종류 as icon buttons named by their tooltips.
 
 #### 공급자
 
@@ -9035,18 +9155,14 @@ member opens it.
   English as its tooltip, and the owner's switch. What it has left is the title bar panel's own figures, read under
   the same key so both stand the same numbers (「Usage in the title bar」), drawn as that panel draws a group: the
   slot the chat runs on where that slot is this provider with no login, its own road's balance with its request
-  allowance, and each of its accounts the Claude 계정 list does not carry, under the account's name. A provider whose
+  allowance, and each of its accounts the Claude 계정 list on 조직's 공급 does not carry, under the account's name
+  (「공급」). A provider whose
   figures are its accounts' — Claude Code — stands none of its own, since each account carries its own on its row,
   and a provider that is off or reports nothing stands none. A failed read of the figures is said once in the error
   band above the groups and keeps what was read last. Lowering a switch turns that provider off at once and every
   order passes it over; its row stands dimmed. Turning off the last one on is refused by the agency, its sentence said
-  in a notice. No key the agency holds is read here.
-  - **A provider that reads its own key from a file** — the agency's `keyFile`, OpenRouter's and DeepSeek's — carries
-    under its name whether that file stands in the platform administrator's secret space, 키 있음 with when it last
-    changed or 키 없음, and a 키 설정 button. It opens a dialog of one hidden field, the key, and 저장 writes it under
-    the file's name in that space, the data root's `env/`, replacing what stood (the console's `POST /api/secrets`,
-    「Settings」, 비밀 보관함), so the provider reads it at its next look. The key is never read back or shown, a
-    refusal is said in the dialog by the pack's sentence, and the row and its reason are read again once it is kept.
+  in a notice. No key the agency holds is read here; a provider's own key file is set on 조직's 공급 with 플랫폼 전체
+  chosen (「공급」).
 - **공급자 비밀** — the secrets the agency's provider tools read, one row to each of the agency's settings naming a
   secret of the platform administrator's space (its `docs/api.md`, 「settings」): the card the DeepSeek top-up pays
   with, its setting `deepseekCardSecret` of the kind `card`, labelled DeepSeek 결제 카드, then the login it signs in
@@ -9058,43 +9174,6 @@ member opens it.
   said by the pack's sentence for a refused value, and the row stays as the agency holds it. The console's
   `GET`/`PUT /api/secret-settings`, the administrator's alone, read every such setting and change one, its field
   and a secret's name or null; another setting of the same shape is one more entry in the console's list of them.
-- **Claude 계정** — the Claude accounts in the order the Claude Code provider walks them, a group under its heading as
-  공급자 is, with 계정 추가 at the heading's right end, which opens the add form below. The address `/admin#accounts`
-  names the group: the tab opens with it brought to the top of the body once it stands, which is where the title
-  bar's usage panel leads (「Usage in the title bar」). Its rows are parted by hairlines with no box round them, one row each: a drag
-  handle, the place in the order, a mark saying whether that login is standing, near its end, gone or never signed in on the agency's
-  machine — a login near its end also carrying how long is left, one that has ended carrying 로그인 필요, and one
-  the agency holds no login for there (its `login` of `none`) carrying 로그인 안 됨 — the name the owner gave it,
-  where its credential is reached, a configuration directory or a token file shown as that path, the up and down
-  arrows, the row's more-menu and the enable switch. Under the name stands its 소유, 공용 or 개인 with the owning
-  person's name after a middle dot, read off the account's `userId` (the agency's `docs/supply.md`, 「Owned
-  supply」), and the account the owner chose carries 고른 계정. Under the
-  row, as wide as the row past its handle, stands what that account has left: its own group of the title bar panel,
-  its session and weekly windows with how long is left until each resets and its balance where it keeps one, a
-  skeleton line while the figures are first read, and 「읽은 사용량 없음」 where the agency states none. An account that is
-  off stands no figures, since it answers nothing. No row is marked as the one in use and no line names the account
-  runs go out on, since the chat agent and each of a role's agents run on roads of their own and one mark cannot say
-  whose run it means; an account at its limit reads as 0% with the time its window resets. A row's more-menu holds
-  지금 이 계정으로, which makes that account the chosen one, disabled on an account that is off; the chosen row's menu
-  holds 순서대로 in its place, which lets the choice go (the agency's `docs/cache-fallback.md`, 「Running on one account
-  now」). Claude 계정
-  추가, the tab row's add, opens a box for a new account's name and how it is reached: 여기서 로그인, offered first, or
-  one of the two ways its credential is reached with the path it is reached by; a row's more-menu edits the name, the
-  way and the path, or removes the account.
-- **여기서 로그인 signs an account in with no terminal.** The agency runs the Claude CLI's own sign-in for it (the
-  agency's `docs/cache-fallback.md`, 「Signing an account in from the console」), and a box titled with the account's
-  name says what to do: 로그인 페이지 열기 opens the sign-in's address in the administrator's own browser, where they
-  approve it signed in to that account, and the code the page then shows is pasted into 인증 코드 and handed back
-  with 로그인 완료. A new account so signed in is added once its login is written, its configuration directory one
-  the agency makes for it; an account whose directory is its credential carries 다시 로그인 in its more-menu, for a
-  login that has ended or is about to. Closing the box gives the sign-in up, and a code the sign-in does not take ends
-  it, said in the box. The address and the code pass through the console's server to the agency and are kept by
-  neither, and only the administrator reaches the routes. Accounts are numbered by name,
-  `claude-01`, `claude-02` and on, as many as the owner adds: the box for a new one opens with the next number
-  already written, one past the highest the list holds, and the owner may write another name over it. Dragging a handle saves the whole order
-  at once, by mouse and finger alike, and the arrows move one row the same way; turning off the last one on is
-  refused by the agency. **No row, box or answer carries a token, a cookie or anything out of a credential file** —
-  the path is the whole of what is shown.
 - **배포** — one row, 일괄 배포 주기: the minutes between two of the agency's flushes of the deploy queue, each of
   which puts every commit waiting for its repository's batch deployment live at once (the agency's
   `docs/agent-control.md`, 「The deploy queue is flushed every hour」). The row holds one number box in minutes, `분`
@@ -9133,59 +9212,6 @@ by the administrator. Every login reads them, since every person's form asks in 
   the fields, each a row of its 키, 이름, 입력 (한 줄, 여러 줄 or 파일), 값 숨김 and 필수, removed by its own mark, with
   항목 추가 under them. A rule the kind breaks is said under the field it names, and 저장 stays off while one is
   broken.
-
-#### 플랜
-
-The membership plans the platform sells (`docs/accounts.md`): who pays, for what period, and what the
-period includes. Every plan the service holds stands one row each, newest first, and the administrator writes them.
-A plan is made whole and answered as the plan it became; a change carries the fields that moved and is answered
-with the plan whole; a retirement is answered with the plans as they now stand. The tab reads `GET`/`POST
-/api/supply/plans` and `PATCH`/`DELETE /api/supply/plans/{plan}`.
-
-- **The plans stand one row each,** newest first: the plan's name as the row's label, its scope —
-  개인 or 조직 — and its period, its price in whole won and its included credits under it, — where the plan carries
-  no included amount that place stands —, whether 크레딧 may be used
-  on it, and its more-menu of 편집 and 삭제 at the row's end. 삭제 asks first, naming the plan; a plan people stand
-  on is refused and the refusal is said under the row. A platform holding none says 플랜 없음.
-- **플랜 추가**, the tab row's add, and 편집 open the plan's form, a dialog of its own (「Forms」): 이름; 가격, whole
-  won, what a period costs; 대상, 개인 or 조직; 주기, the period the plan runs on and is bought over; 기간 포함, the
-  크레딧 each period brings, none where the box is left at nothing; and 크레딧 사용 가능, a switch for whether credits
-  may pay on the plan at all. A plan's 대상 does not move once the plan is made: an edit names it and does not
-  offer it as a field. 저장 is
-  open only while a field differs from what stands, and a rule the service breaks is said in the dialog.
-- **A plan changed or added takes effect on what the service resolves from it onward** — the supply orders every
-  person's falls through — and nothing here re-reads anyone's standing.
-
-#### 크레딧
-
-The credits the platform's supply is paid in, and the numbers it runs on, all the platform administrator's. The
-tab reads and writes `GET`/`PUT /api/supply/platform`, `POST /api/supply/credits`, `/api/supply/credits/ledger`
-and `/api/supply/credits/audit`.
-
-- **플랫폼 기본 정책** stands first, above everything else on the tab: each source on or off by default, whether a
-  person's own setting may change it, and their order, edited through the same policy form 조직's 공급 tab uses
-  (「공급」), so the platform's default is one policy written like any other and stands with the numbers below. Its
-  rows say each source's value and, under it in one muted line, 개인 설정 허용 or 고정; the order's row says the
-  same of the order. The form for the platform carries, beside each source's switch, a second switch, 개인 설정 허용,
-  and under the sources one more row of it for 순서; the organisation's form carries neither (`docs/accounts.md`,
-  「How an order is resolved」).
-- **전환율 and 예약** stand under it, each a row that takes effect as it is changed: 전환율, the fixed 크레딧 one US
-  dollar of cost converts to, and 예약 크레딧, the size every reservation opens at and grows by.
-- **공급 제한 적용** is the enforcement switch, on its own row with one muted line saying what it does: while it is
-  off nothing is refused and every cost is only recorded, so no run is ever stopped by its supply. Turning it on
-  makes every limit real. The row carries it as a switch, refused at once if it is refused, its reason under the
-  name.
-- **크레딧 부여** is a group under its own heading: the owner — 한 person, found by name in the people directory, or
-  an organisation, chosen from the tree by its path — the amount in credits and 한 줄 of words kept with the grant,
-  and 부여, open once an owner and an amount stand. What goes through is said by the ledger read again.
-- **장부** lists every credit movement the service answers, newest first, the console's shared list read a page at
-  a time the way 사용자's list is (「사용자」): one row each, the owner as the ledger keeps them — 사용자 or 조직 and
-  their number —, the kind, when, and the words kept with it or nothing under it, and the amount signed at its end.
-- **감사 기록** stands under its heading: every grant, every change of a policy, of the 전환율 or the 예약 size or
-  of 공급 제한 적용, and every plan act, newest first — one row each, the act's kind — 부여, 정책, 설정 or 플랜 — and
-  its subject, then the moment, whose act and what it changed. The service audits each of these in its own table
-  as it takes the write, and this one route answers the whole record.
-- No balance is shown for anyone here, and no top-up control stands: payments are off.
 
 ### The desktop app's window
 

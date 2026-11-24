@@ -1,8 +1,8 @@
 <template>
-  <!-- The organisation screen's supply tab (docs/web.md, 「Organisation」, the supply tab): the supply of the
-       organisation chosen — its policy or what it follows, the plan its plans tab applies, read only, its credit
-       wallet and this month's spend by member — and the way to grant it credits. No credential stands here; credits
-       are the platform's own, not a payment. -->
+  <!-- The supply tab's policy and credits (docs/web.md, 「Organisation」, the supply tab): of the unit chosen in the
+       tree, the company where none is — its policy or what it follows, the monthly cap on organisation credits, its
+       credit wallet and this month's spend by member — and the way to grant it credits, for a reader holding its
+       policy and credits. No credential stands here; credits are the platform's own, not a payment. -->
   <div class="flex flex-col gap-4">
     <ContentSkeleton v-if="view === null && failure === ''" :rows="4" list-class="flex flex-col divide-y divide-default" :label="$t('supply.status.loading')">
       <div class="flex items-center gap-4 py-3">
@@ -19,7 +19,7 @@
       <UButton color="neutral" variant="subtle" icon="i-material-symbols-refresh" :label="$t('common.action.refresh')" :loading="reading" @click="read" />
     </div>
 
-    <template v-else>
+    <template v-else-if="view.wallet !== null">
       <SettingsGroup :title="$t('supply.title.policy')">
         <template #aside>
           <UButton v-if="view.inherits" size="sm" color="neutral" variant="outline" :label="$t('supply.action.policy_set')" :disabled="busy" @click="editing = true" />
@@ -32,30 +32,9 @@
         <SettingsRow :label="$t('supply.label.policy')" :description="view.inherits ? forceLine : ''" :data-supply-policy="view.inherits ? 'inherits' : 'own'">
           <span class="text-sm" :class="view.inherits ? 'text-muted' : 'text-highlighted'">{{ view.inherits ? fromLine : allowedLine }}</span>
         </SettingsRow>
-        <SettingsRow v-if="!view.inherits" :label="$t('supply.label.member_credit_cap')">
+        <SettingsRow :label="$t('supply.label.member_credit_cap')" :description="view.inherits ? $t('supply.label.cap_follows') : ''" data-supply-cap>
           <span class="text-sm tabular-nums text-highlighted">{{ view.policy?.memberCreditCredits === null || view.policy?.memberCreditCredits === undefined ? $t('supply.label.cap_none') : creditsText(t, view.policy.memberCreditCredits) }}</span>
         </SettingsRow>
-      </SettingsGroup>
-
-      <SettingsGroup :title="$t('supply.title.plan')">
-        <SettingsRow v-if="view.plan === null" :label="$t('supply.label.plan_none')" />
-        <template v-else>
-          <SettingsRow :label="$t('supply.label.plan_name')">
-            <span class="text-sm text-highlighted">{{ view.plan.name }}</span>
-          </SettingsRow>
-          <SettingsRow :label="$t('supply.label.price')">
-            <span class="text-sm tabular-nums text-highlighted">{{ wonText(t, view.plan.price) }}</span>
-          </SettingsRow>
-          <SettingsRow :label="$t('supply.label.period')">
-            <span class="text-sm text-highlighted">{{ periodLabel(t, view.plan.period) }}</span>
-          </SettingsRow>
-          <SettingsRow :label="$t('supply.label.included')">
-            <span class="text-sm tabular-nums text-highlighted">{{ view.plan.includedCredits === null ? '—' : creditsText(t, view.plan.includedCredits) }}</span>
-          </SettingsRow>
-          <SettingsRow :label="$t('supply.label.credits_usable')">
-            <span class="text-sm text-highlighted">{{ view.plan.creditsUsable ? $t('supply.label.usable') : $t('supply.label.usable_off') }}</span>
-          </SettingsRow>
-        </template>
       </SettingsGroup>
 
       <SettingsGroup :title="$t('supply.label.credits')">
@@ -110,7 +89,8 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 
 import { useConfirm } from "~/domain/confirm";
-import { creditsText, periodLabel, policyDraft, sourceLabel, useSupplyUnits, wonText } from "~/domain/supply";
+import { useChosenUnit } from "~/domain/organization";
+import { creditsText, policyDraft, sourceLabel, useSupplyUnits } from "~/domain/supply";
 
 import type { Organization } from "~/domain/organization";
 import type { PolicyDraft } from "~/domain/supply";
@@ -129,7 +109,7 @@ const { t } = useI18n();
 const confirm = useConfirm();
 const managed = useSupplyUnits();
 
-const unit = computed(() => props.company.id);
+const unit = useChosenUnit(() => props.company.id);
 const view = ref<SupplyOrgView | null>(null);
 const failure = ref("");
 const reading = ref(false);
@@ -220,5 +200,6 @@ async function grant(): Promise<void> {
   }
 }
 
+watch(unit, () => void read());
 onMounted(() => void read());
 </script>

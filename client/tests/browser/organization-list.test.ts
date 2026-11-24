@@ -222,8 +222,8 @@ describe.skipIf(!origin || !touchReady())("the organisation list", () => {
         await page.getByRole("tab", { name: wording("roster.label.tab"), exact: true }).click();
         await page.waitForURL((url) => url.searchParams.get("tab") === "people", { timeout: 15_000 });
         expect([company(page), unit(page)]).toEqual([String(beta), String(team)]);
-        await page.getByRole("tab", { name: wording("supply.label.plans"), exact: true }).click();
-        await page.waitForURL((url) => url.searchParams.get("tab") === "plans", { timeout: 15_000 });
+        await page.getByRole("tab", { name: wording("supply.label.tab"), exact: true }).click();
+        await page.waitForURL((url) => url.searchParams.get("tab") === "supply", { timeout: 15_000 });
         expect([company(page), unit(page)]).toEqual([String(beta), String(team)]);
 
         // Back walks the tabs and then each choice back, one step each.
@@ -344,13 +344,14 @@ describe.skipIf(!origin || !touchReady())("the organisation list", () => {
         await administer(`/api/organization/units/${team}/heads/${encodeURIComponent(member)}`, "DELETE");
 
         // Heading nothing, the company whose plan they hold, as the account service's supply reach names it, stands
-        // listed with its plans tab and no supply tab, and the tab reads the company's plans.
+        // listed with its supply tab, which reads the company's plans, an old plans address landing there.
         const fresh = await context.newPage();
 
         await page.close();
         await fresh.route(/\/api\/supply\/units$/, async (route) => await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([{ id: alpha, name: `alpha-${RUN}`, parent: null, policy: false, plan: true }]) }));
         await plansStandIn(fresh, alpha);
         await open(fresh, "/organization?tab=plans");
+        await fresh.waitForURL((url) => url.searchParams.get("tab") === "supply", { timeout: 15_000 });
         await companyIs(fresh, alpha);
         expect(await runRows(await organizationList(fresh, width))).toEqual([`alpha-${RUN}`]);
         if (width < 640) {
@@ -358,7 +359,7 @@ describe.skipIf(!origin || !touchReady())("the organisation list", () => {
           await fresh.getByRole("dialog").waitFor({ state: "detached", timeout: 10_000 });
         }
         await fresh.locator("[data-plans-applied-row]").waitFor({ timeout: 20_000 });
-        expect((await fresh.locator(`[aria-label="${wording("organization.aria.tabs")}"]`).getByRole("tab").allInnerTexts()).map((one) => one.trim())).toEqual(["settings.label.invites", "settings.label.bmo", "apps.label.tab", "supply.label.plans"].map((key) => wording(key)));
+        expect((await fresh.locator(`[aria-label="${wording("organization.aria.tabs")}"]`).getByRole("tab").allInnerTexts()).map((one) => one.trim())).toEqual(["settings.label.invites", "apps.label.tab", "supply.label.tab"].map((key) => wording(key)));
       } finally {
         await context.close();
         await administer(`/api/organization/units/${team}/heads/${encodeURIComponent(member)}`, "DELETE").catch(() => null);
@@ -426,7 +427,7 @@ describe.skipIf(!origin || !touchReady())("the plans tab", () => {
         const page = await context.newPage();
         const { writes } = await plansStandIn(page, beta);
 
-        await open(page, `/organization?company=${beta}&tab=plans`);
+        await open(page, `/organization?company=${beta}&tab=supply`);
 
         const appliedRow = page.locator("[data-plans-applied-row]");
 
@@ -590,7 +591,9 @@ describe.skipIf(!origin || !touchReady())("the providers tab", () => {
         expect(await road("registered").locator("[data-provider-owner]").count()).toBe(0);
         expect(await road("claude-code").locator("[data-provider-owner]").count()).toBe(0);
 
-        // The Claude accounts: the person's says so by their name, the platform's as shared.
+        // The Claude accounts stand on the platform's supply: the person's says so by their name, the platform's as shared.
+        await open(page, "/organization?company=platform&tab=supply");
+
         const account = (id: string) => page.locator(`[data-account="${id}"] [data-account-owner]`);
 
         await account("acct-b").waitFor({ timeout: 20_000 });
@@ -639,7 +642,7 @@ describe.skipIf(!origin || !touchReady())("the platform's policy form", () => {
           await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ policy: { allowed: platform.allowed, order: platform.order, memberCreditCredits: null }, overridable: platform.overridable, orderOverridable: platform.orderOverridable, creditsPerDollar: platform.creditsPerDollar, reservationCredits: platform.reservationCredits, enforce: platform.enforce }) });
         });
 
-        await open(page, "/admin?tab=credits");
+        await open(page, "/organization?company=platform&tab=supply");
 
         const row = (source: string) => page.locator(`[data-platform-source="${source}"]`);
 
@@ -771,7 +774,7 @@ describe.skipIf(!origin || !touchReady())("the settings' supply order", () => {
         });
         await page.route(/\/api\/supply\/logins$/, async (route) => await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ active: null, accounts: [] }) }));
         await page.route(/\/api\/supply\/personal$/, async (route) => await route.fulfill({ status: 200, contentType: "application/json", body: "[]" }));
-        await open(page, "/organization?settings=supply");
+        await open(page, "/organization?company=me&tab=supply");
 
         const source = (name: string) => page.locator(`[data-supply-source="${name}"]`);
 
@@ -808,7 +811,7 @@ describe.skipIf(!origin || !touchReady())("the settings' supply order", () => {
 
         // With the order the person's again, a move writes every source left to them, in the order moved.
         me.orderLocked = false;
-        await open(page, "/organization?settings=supply");
+        await open(page, "/organization?company=me&tab=supply");
         await source("personal").waitFor({ timeout: 20_000 });
 
         const moved = page.waitForRequest((request) => request.url().endsWith("/api/supply/me") && request.method() === "PUT");

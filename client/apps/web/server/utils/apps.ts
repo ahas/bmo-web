@@ -2,6 +2,7 @@ import { spokenLanguage, wording, WORDING_LANGUAGE } from "#shared/wording";
 
 import { AccountRefusal, chainEntry, chainKinds, homeUnit, resolveChain, setChainDelegation, setChainRules, setChainValue, unitView } from "./account-service";
 import { appKind, appOfKind } from "./app-gate";
+import { unitNamed } from "./chain-names";
 import { wordAt } from "./bundle-notices";
 import { attachedService } from "./console-manifests";
 import { fail } from "./fail";
@@ -118,7 +119,9 @@ export async function ownApps(signed: SignedIn): Promise<OwnApp[]> {
 
       if (!offered) return null;
 
-      return { ...appName(app), on: said(on), own: on.from === link ? ownWord(on.value) : null, locked: (on.link?.lockedBy ?? null) !== null };
+      const lockedBy = on.link?.lockedBy ?? null;
+
+      return { ...appName(app), on: said(on), own: on.from === link ? ownWord(on.value) : null, locked: lockedBy !== null, locker: await unitNamed(lockedBy) };
     })
   );
 
@@ -157,7 +160,8 @@ export async function unitApps(unit: number, signed: SignedIn): Promise<UnitApp[
         entryOrNone(onKey, link, caller),
         signed.administrator && settings.has("offered") ? chainEntry(offerKey, "platform", caller) : null
       ]);
-      const lockedAbove = (on.link?.lockedBy ?? null) !== null;
+      const lockedBy = on.link?.lockedBy ?? null;
+      const lockedAbove = lockedBy !== null;
       const offer = signed.administrator ? { offer: ownWord(platform?.rules.find((rule) => rule.who === link)?.value) } : {};
 
       return {
@@ -167,6 +171,7 @@ export async function unitApps(unit: number, signed: SignedIn): Promise<UnitApp[
         own: on.from === link ? ownWord(on.value) : null,
         locks: entry?.delegation === "lock",
         lockedAbove,
+        locker: await unitNamed(lockedBy),
         writable: entry?.writable === true && !lockedAbove,
         ...offer
       };

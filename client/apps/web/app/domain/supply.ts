@@ -178,7 +178,9 @@ export function draftRows(draft: Pick<PolicyDraft, "allowed" | "order">): Supply
 export function useSupplyUnits(): ComputedRef<SupplyUnit[]> {
   const { data, status } = useFetch<SupplyUnit[]>("/api/supply/units", { key: "supply-units", lazy: true, server: false, default: () => [] });
 
-  return computed(() => (status.value === "success" ? (data.value ?? []) : []));
+  // The units last answered stand while a tab that reads them asks them again as it opens, so the organisations the
+  // screen lists, and the tab standing, never fall away for the length of that read; a read that failed holds none.
+  return computed(() => (status.value === "error" ? [] : (data.value ?? [])));
 }
 
 // Whether the reader may open a supply tab somewhere, and whether the read that says so has answered: known once it
@@ -237,7 +239,7 @@ export function unitPathLabel(units: readonly SupplyUnit[], unit: SupplyUnit): s
  * `closed` row is one a layer below the platform closes, with its reason, greyed under them all. `allowed` says
  * whether the layers above the reader leave it to them at all — a source the platform locks off is not. */
 export interface OrderRow {
-  source: SupplySource;
+  source: SpentSource;
   kind: "live" | "stop" | "closed";
   on: boolean;
   locked: boolean;
@@ -249,20 +251,22 @@ export interface OrderRow {
 
 /** The reader's order as its rows stand: the resolved order first, then the sources out of it the reader or the
  * platform's default leaves off — a locked one among them where the platform holds it off — then `stop`, then the
- * sources a later layer closed. */
+ * sources a later layer closed. The organisation's own supply stands only where the platform offers it to the reader's
+ * company: in the order while it stands open, locked, and among the closed rows where a unit or the allowance closes
+ * it. */
 export function orderRows(me: Pick<SupplyMe, "order" | "sources">): OrderRow[] {
-  const states = me.sources.filter((one) => one.source !== "stop");
-  const stateOf = (source: SupplySource) => states.find((one) => one.source === source);
+  const states = me.sources.filter((one) => one.source !== "stop" && !(one.source === "organisation" && !one.allowed && one.reason === "blocked-by-administrator"));
+  const stateOf = (source: SpentSource) => states.find((one) => one.source === source);
   // A source closed with no reason of a later layer's is one the platform holds off for everyone.
-  const closedByLayer = (source: SupplySource) => {
+  const closedByLayer = (source: SpentSource) => {
     const one = stateOf(source);
 
     return one !== undefined && !one.allowed && one.reason !== undefined;
   };
   const open = me.order.filter((one) => one !== "stop" && !closedByLayer(one));
   const off = states.filter((one) => !open.includes(one.source) && !closedByLayer(one.source)).map((one) => one.source);
-  const ownOf = (source: SupplySource) => stateOf(source)?.own ?? null;
-  const live = (source: SupplySource, on: boolean): OrderRow => ({ source, kind: "live", on, locked: stateOf(source)?.locked === true, allowed: stateOf(source)?.allowed === true, own: ownOf(source), reason: null });
+  const ownOf = (source: SpentSource) => stateOf(source)?.own ?? null;
+  const live = (source: SpentSource, on: boolean): OrderRow => ({ source, kind: "live", on, locked: stateOf(source)?.locked === true, allowed: stateOf(source)?.allowed === true, own: ownOf(source), reason: null });
 
   return [
     ...open.map((one) => live(one, true)),
@@ -279,22 +283,24 @@ export function orderRows(me: Pick<SupplyMe, "order" | "sources">): OrderRow[] {
  * service writes the choices whole, so a choice of a source a layer above closes, or one the platform locks, is sent
  * back as it stands: the service passes a choice already held, and leaving it out would erase it. Only a source the
  * reader may switch takes the change. */
-export function meSetting(rows: readonly OrderRow[], cap: number | null, change: { order?: SupplySource[]; source?: SupplySource; on?: boolean; cap?: number | null } = {}): SupplyMeSetting {
+export function meSetting(rows: readonly OrderRow[], cap: number | null, change: { order?: SpentSource[]; source?: SpentSource; on?: boolean; cap?: number | null } = {}): SupplyMeSetting {
+  // The organisation's own supply is placed by the service and named in no write.
+  const named = (source: SpentSource): source is SupplySource => source !== "organisation";
   const open = new Set(rows.filter((one) => one.kind === "live" && one.allowed).map((one) => one.source));
   const switchable = (row: OrderRow) => open.has(row.source) && !row.locked;
   const choiceOf = (row: OrderRow): "on" | "off" | null => (row.source === change.source && change.on !== undefined && switchable(row) ? (change.on ? "on" : "off") : row.own);
-  const held = rows.filter((one) => one.kind !== "stop");
+  const held = rows.filter((one) => one.kind !== "stop" && named(one.source));
 
   return {
-    order: (change.order ?? rows.filter((one) => one.kind === "live").map((one) => one.source)).filter((one) => open.has(one)),
-    off: held.filter((one) => choiceOf(one) === "off").map((one) => one.source),
-    on: held.filter((one) => choiceOf(one) === "on").map((one) => one.source),
+    order: (change.order ?? rows.filter((one) => one.kind === "live").map((one) => one.source)).filter((one) => open.has(one)).filter(named),
+    off: held.filter((one) => choiceOf(one) === "off").map((one) => one.source).filter(named),
+    on: held.filter((one) => choiceOf(one) === "on").map((one) => one.source).filter(named),
     personalCreditCredits: change.cap === undefined ? cap : change.cap
   };
 }
 
 /** A source of the order moved one place among the live rows, the order the write then carries. */
-export function movedSourceOrder(rows: readonly OrderRow[], from: number, to: number): SupplySource[] {
+export function movedSourceOrder(rows: readonly OrderRow[], from: number, to: number): SpentSource[] {
   const order = rows.filter((one) => one.kind === "live").map((one) => one.source);
   const [moved] = order.splice(from, 1);
 

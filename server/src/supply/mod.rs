@@ -4,8 +4,9 @@
 //! sumida's amount quota, and a credit wallet as sumida's hold. The agency is the one consumer of an order;
 //! the console reads and changes the same rows through the routes beside this one.
 //!
-//! A source key is one of `personal`, `global`, `org_credits` and `personal_credits`; `stop` names the end
-//! of an order and is never a source. The keys are this service's own data: nothing here names a unit, an
+//! A source key is one of `personal`, `organisation`, `global`, `org_credits` and `personal_credits`; `stop`
+//! names the end of an order and is never a source. This service alone decides which of them a person's runs may
+//! take: the agency walks the order the hook answers and shapes it no further. The keys are this service's own data: nothing here names a unit, an
 //! agent or a person.
 
 pub mod hook;
@@ -28,9 +29,10 @@ use crate::{Refusal, one, run};
 /// the credit cost all stand on it.
 pub const ACTION: &str = "supply";
 
-/// The five source keys, `stop` last.
-pub const ALL: [Source; 5] = [
+/// Every source key as a person's view lists them, `stop` last.
+pub const ALL: [Source; 6] = [
   Source::Personal,
+  Source::Organisation,
   Source::Global,
   Source::OrgCredits,
   Source::PersonalCredits,
@@ -52,8 +54,9 @@ pub enum Source {
   OrgCredits,
   /// The platform's credential, paid from the person's own credit wallet.
   PersonalCredits,
-  /// The person's organisation's own credential, its usage counted as organisation credits: a source the agency
-  /// takes on its own reading of the delegation chain, never one a policy names (「Organisation supply」).
+  /// The person's organisation's own credential, its usage counted as organisation credits: opened by the
+  /// delegation chain's `supply.organisation` and placed by the resolution, never one a policy names
+  /// (「Organisation supply」).
   Organisation,
   /// Nothing left; always last in every order, never answered to the agency.
   Stop,
@@ -90,7 +93,7 @@ impl Source {
   }
 
   /// Whether a policy or a person's own setting may name it: every source but the organisation's own supply,
-  /// which the delegation chain opens and no policy orders.
+  /// which the delegation chain opens and the resolution places.
   pub fn ordered(self) -> bool {
     !matches!(self, Source::Organisation)
   }
@@ -187,13 +190,12 @@ impl PlatformSettings {
   }
 }
 
-/// A policy as one unit or one person holds it. The member credit cap is a cap on what one person may spend
-/// of the capped source in a calendar month; none where it is absent.
+/// A policy as one unit or one person holds it. Its monthly cap on organisation credits is the link's credit
+/// allowance, kept on the chain beside it.
 #[derive(Debug, Clone)]
 pub struct Policy {
   pub allowed: Vec<Source>,
   pub order: Vec<Source>,
-  pub member_credit_credits: Option<i64>,
   /// The unit whose row stands, where the unit named inherits one from above.
   pub from: Option<i64>,
 }
@@ -367,6 +369,31 @@ pub fn allowance_kind() -> ChainKind {
   }
 }
 
+/// The kind whether organisation supply stands open is kept as (「Organisation supply」): a flag narrowing down the
+/// chain, off until the platform's own link opens it for a person — by its value, or a rule naming them, their
+/// group or a unit on their path — and closed by any link below.
+pub fn organisation_kind() -> ChainKind {
+  ChainKind {
+    key: ORGANISATION_KIND.to_owned(),
+    declared_by: crate::holdings::UNIT.to_owned(),
+    description: "Whether a person here may run on their organisation's own supply, the keys and Claude accounts a \
+                  unit registers. Off until the platform turns it on for a company, by a rule naming it at the \
+                  platform's link; a link below only turns it off."
+      .to_owned(),
+    shape: ChainShape::Flag,
+    choices: vec![],
+    mode: ChainMode::Narrowing,
+    default: Some(json!(false)),
+    rules: true,
+    levels: vec![ChainLevel::Platform, ChainLevel::Unit],
+    unit_permission: crate::units::HEADS.to_owned(),
+    person_writer: ChainPersonWriter::Heads,
+  }
+}
+
+/// The key of the kind organisation supply is opened by.
+pub const ORGANISATION_KIND: &str = "supply.organisation";
+
 /// The sumida organisation permission a unit's supply is kept under: its credit manager's and its heads'.
 const CREDIT: &str = "manage_credit";
 
@@ -386,8 +413,6 @@ struct StoredPlatform {
 struct StoredPolicy {
   allowed: Vec<String>,
   order: Vec<String>,
-  #[serde(default)]
-  member_credit_credits: Option<i64>,
 }
 
 /// A person's own setting as their link stores it.
@@ -417,7 +442,6 @@ fn policy_of(value: serde_json::Value, from: Option<i64>) -> Result<Policy, Refu
   Ok(Policy {
     allowed: listed(&stored.allowed)?,
     order: listed(&stored.order)?,
-    member_credit_credits: stored.member_credit_credits,
     from,
   })
 }
@@ -530,6 +554,41 @@ pub async fn credit_allowance<C: ConnectionTrait>(
     .any(|layer| layer.link == Link::Person(user as i32) && layer.value.as_i64() == Some(allowance));
 
   Ok(Some((allowance, by_person)))
+}
+
+/// A link's own credit allowance, none where it follows above or sets it `unlimited`.
+pub async fn allowance_at<C: ConnectionTrait>(db: &C, link: Link) -> Result<Option<i64>, Refusal> {
+  Ok(chain::value_at(db, &allowance_kind().key, link).await?.and_then(|value| value.as_i64()))
+}
+
+/// The credit allowance standing for a unit, read up its chain; none where it is unlimited.
+pub async fn unit_allowance<C: ConnectionTrait>(db: &C, unit: i64) -> Result<Option<i64>, Refusal> {
+  let (_, resolved) = chain::resolve(db, &allowance_kind(), Subject::Unit(unit as i32)).await?;
+
+  Ok(resolved.value.as_ref().and_then(serde_json::Value::as_i64))
+}
+
+/// A link's own credit allowance written, none taking it away so the link follows above.
+pub async fn put_allowance<C: ConnectionTrait>(
+  db: &C,
+  link: Link,
+  cap: Option<i64>,
+  actor: i64,
+) -> Result<(), Refusal> {
+  chain::put_value(db, &allowance_kind(), link, cap.map(|cap| json!(cap)).as_ref(), Some(actor as i32))
+    .await
+}
+
+/// Whether organisation supply stands open for a person: the platform's own word opens it for them and no link
+/// below closes it.
+pub async fn organisation_open<C: ConnectionTrait>(db: &C, user: i64) -> Result<(bool, bool), Refusal> {
+  let (_, resolved) = chain::resolve(db, &organisation_kind(), Subject::Person(user as i32)).await?;
+  let offered = resolved
+    .layers
+    .iter()
+    .any(|layer| layer.link == Link::Platform && layer.value == json!(true));
+
+  Ok((offered, offered && resolved.value == Some(json!(true))))
 }
 
 /// The live subscription a person's supply stands under, read whole with this period's usage and holds. A
@@ -874,27 +933,39 @@ pub async fn resolve_to<C: ConnectionTrait>(
     order = narrowed(&policy.order, &policy.allowed, &order);
   }
 
-  // A member cap the month's spend has reached closes the source it caps: the organisation's cap on
-  // organisation credits is the organisation's standing, and a per-user cap is the administrator's.
-  if let Some(cap) = org.as_ref().and_then(|org| org.member_credit_credits)
-    && spent(db, user, Source::OrgCredits).await? >= cap
-  {
-    close(&mut order, &mut standing, Source::OrgCredits, Closed::BlockedByOrganisation);
-  }
-  if let Some(cap) = personal.as_ref().and_then(|personal| personal.member_credit_credits)
-    && spent(db, user, Source::OrgCredits).await? >= cap
-  {
-    close(&mut order, &mut standing, Source::OrgCredits, Closed::BlockedByAdministrator);
+  // Organisation supply: open where the platform opens it for the person and no unit below closes it, placed
+  // before every platform source — after personal supply wherever the order puts that first. No policy names it
+  // and a person's own setting does not switch it.
+  let (offered, open) = organisation_open(db, user).await?;
+
+  standing.insert(
+    Source::Organisation.key(),
+    Standing {
+      allowed: open,
+      closed_by: match (offered, open) {
+        (_, true) => None,
+        (true, false) => Some(Closed::BlockedByOrganisation),
+        (false, _) => Some(Closed::BlockedByAdministrator),
+      },
+      off: false,
+      locked: true,
+    },
+  );
+  if open {
+    let at = order.iter().position(|source| *source != Source::Personal).unwrap_or(order.len());
+
+    order.insert(at, Source::Organisation);
   }
 
-  // The person's credit allowance on the chain closes organisation credits once the month's spend reaches it.
-  if matches!(depth, Depth::Administrator | Depth::Own)
-    && let Some((allowance, by_person)) = credit_allowance(db, user).await?
+  // The person's credit allowance on the chain closes organisation credits, and organisation supply whose cost
+  // counts as them, once the month's spend reaches it.
+  if let Some((allowance, by_person)) = credit_allowance(db, user).await?
     && spent(db, user, Source::OrgCredits).await? >= allowance
   {
     let by = if by_person { Closed::BlockedByAdministrator } else { Closed::BlockedByOrganisation };
 
     close(&mut order, &mut standing, Source::OrgCredits, by);
+    close(&mut order, &mut standing, Source::Organisation, by);
   }
 
   // The person's own setting: each overridable source switched against the platform's default or standing as
@@ -927,8 +998,10 @@ pub async fn resolve_to<C: ConnectionTrait>(
       switch_off(&mut order, &mut standing, Source::PersonalCredits);
     }
     if platform.order_overridable && !setting.order.is_empty() {
-      let allowed: Vec<Source> =
-        PAYABLE.into_iter().filter(|source| standing[source.key()].allowed).collect();
+      let allowed: Vec<Source> = ALL
+        .into_iter()
+        .filter(|source| source.payable() && standing[source.key()].allowed)
+        .collect();
 
       order = narrowed(&setting.order, &allowed, &order);
     }
@@ -1178,7 +1251,8 @@ fn keys_of(sources: &[Source]) -> Vec<String> {
   keys(sources).into_iter().map(str::to_owned).collect()
 }
 
-/// An organisation's or a per-user policy written on its link, `stop` last in its order.
+/// An organisation's or a per-user policy written on its link, `stop` last in its order, and the link's credit
+/// allowance beside it.
 async fn put_policy<C: ConnectionTrait>(
   db: &C,
   link: Link,
@@ -1190,10 +1264,10 @@ async fn put_policy<C: ConnectionTrait>(
   let stored = StoredPolicy {
     allowed: keys_of(allowed),
     order: keys_of(&order_with_stop(order)),
-    member_credit_credits: cap,
   };
 
-  chain::put_value(db, &policy_kind(), link, Some(&json!(stored)), Some(actor as i32)).await
+  chain::put_value(db, &policy_kind(), link, Some(&json!(stored)), Some(actor as i32)).await?;
+  put_allowance(db, link, cap, actor).await
 }
 
 fn join(sources: &[Source]) -> String {
@@ -1262,6 +1336,7 @@ pub async fn clear_org_policy(
   let txn = db.begin().await?;
 
   chain::put_value(&txn, &policy_kind(), Link::Unit(unit as i32), None, Some(actor as i32)).await?;
+  put_allowance(&txn, Link::Unit(unit as i32), None, actor).await?;
   audit(&txn, actor, "policy", &format!("org {unit}"), "inherited").await?;
   txn.commit().await?;
 
@@ -1315,6 +1390,7 @@ pub async fn clear_user_policy(
   let txn = db.begin().await?;
 
   chain::put_value(&txn, &policy_kind(), Link::Person(user as i32), None, Some(actor as i32)).await?;
+  put_allowance(&txn, Link::Person(user as i32), None, actor).await?;
   audit(&txn, actor, "policy", &format!("user {user}"), "follows the organisation").await?;
   txn.commit().await?;
 

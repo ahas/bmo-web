@@ -245,10 +245,10 @@ const nodes = computed(() => {
 // server's markup behind on the page.
 const reader = useOrganizationReader(() => (link.value !== null ? null : (chosen.value?.id ?? null)));
 
-const tabs = computed(() => organizationTabsFor(reader.value));
-const tab = computed(() => organizationTabOf(route.query.tab, reader.value));
+const tabs = computed(() => organizationTabsFor(reader.value, link.value));
+const tab = computed(() => organizationTabOf(route.query.tab, reader.value, link.value));
 const tabChosen = computed(() => tab.value?.value ?? String(route.query.tab ?? ""));
-const tabItems = computed(() => organizationRowTabs(reader.value, route.query.tab).map((one) => ({ value: one.value, icon: one.icon, label: t(one.label) })));
+const tabItems = computed(() => organizationRowTabs(reader.value, route.query.tab, link.value).map((one) => ({ value: one.value, icon: one.icon, label: t(one.label) })));
 // The row is drawn again whenever the tabs it holds change, so its underline is measured afresh under the chosen tab
 // where a tab came in before it.
 const rowKey = computed(() => tabItems.value.map((one) => one.value).join(" "));

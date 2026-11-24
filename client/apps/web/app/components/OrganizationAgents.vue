@@ -1,10 +1,12 @@
 <template>
   <!-- The organisation screen's agents tab (docs/web.md, 「Organisation」, the agents tab): every setting of the
-       delegation chain about the agents of the people under the unit chosen in the tree, the company where none is —
-       its instructions, its persona's choice, its supply sources and keys, its sign-up composition, what its people may
-       change of the agents it supplies and its own repositories — each with what the units below may do with it. Each group reads on its own, and each choice is
-       saved as it is made. -->
+       delegation chain about the agents of the people under the node chosen in the tree — a unit, the company where none
+       is, or the platform's own link — its people's BMOs, its instructions, its persona's choice, its sign-up
+       composition, what its people may change of the agents it supplies and its own repositories, each with what the
+       links below may do with it. Each group reads on its own, and each choice is saved as it is made. -->
   <div class="flex flex-col gap-4" data-org-agents>
+    <OrganizationBmo v-if="company !== undefined" :company="company" :unit="unit" />
+
     <ContentSkeleton v-if="view === null && failure === ''" :rows="2" list-class="flex flex-col divide-y divide-default" :label="$t('org_agents.status.loading')">
       <div class="flex items-center gap-4 py-3">
         <SkeletonLine width="w-1/3" />
@@ -24,7 +26,7 @@
             <span v-if="view.instructions.own !== null" class="line-clamp-3 whitespace-pre-wrap text-sm text-default wrap-anywhere" data-org-instructions-own>{{ view.instructions.own }}</span>
             <span v-else class="text-sm text-muted">{{ $t("org_agents.label.instructions_none") }}</span>
             <span v-if="view.instructions.above.length > 0" class="text-sm text-muted" data-org-instructions-above>{{ $t("org_agents.label.instructions_above", { count: view.instructions.above.length }) }}</span>
-            <span v-if="view.instructions.lockedBy !== null" class="text-sm text-muted">{{ $t("org_agents.label.locked_above") }}</span>
+            <span v-if="view.instructions.lockedBy !== null" class="text-sm text-muted">{{ lockLine(view.instructions) }}</span>
           </template>
           <UButton color="neutral" variant="outline" :label="$t('account.action.change')" :disabled="busy !== '' || !view.instructions.writable" data-org-instructions-change @click="openInstructions" />
         </SettingsRow>
@@ -71,11 +73,40 @@
         </SettingsRow>
       </SettingsGroup>
 
+      <!-- The platform's own word on whether people may personalise their BMO, what every company stands on where it
+           sets none; a unit sets its own on its BMO permission rows. -->
+      <SettingsGroup v-if="view.personalize !== null" :title="$t('bmo_profile.label.permission')" data-org-personalize>
+        <SettingsRow :label="$t('org_agents.label.personalize')" :description="manageLine(view.personalize)">
+          <ChoiceSelect
+            :model-value="view.personalize.own === null ? 'inherit' : view.personalize.own ? 'allow' : 'deny'"
+            :items="personalizeChoices"
+            value-key="value"
+            class="w-40"
+            :loading="busy === 'personalize'"
+            :disabled="busy !== '' || !view.personalize.writable"
+            :aria-label="$t('org_agents.label.personalize')"
+            data-org-personalize-choice
+            @update:model-value="(value: unknown) => void choose('personalize', value === 'inherit' ? 'inherit' : value === 'allow')"
+          />
+        </SettingsRow>
+        <SettingsRow :label="$t('org_agents.label.below')">
+          <ChoiceSelect
+            :model-value="view.personalize.delegation"
+            :items="delegations"
+            value-key="value"
+            class="w-40"
+            :disabled="busy !== '' || !view.personalize.writable"
+            :aria-label="$t('org_agents.aria.delegation', { name: $t('org_agents.label.personalize') })"
+            data-org-delegation="personalize"
+            @update:model-value="(value: unknown) => void delegate('personalize', value)"
+          />
+        </SettingsRow>
+      </SettingsGroup>
+
       <p v-if="failure !== ''" role="alert" class="break-words text-sm text-error" data-org-agents-refusal>{{ failure }}</p>
     </template>
 
-    <OrganizationAgentSupply :company="company" />
-    <OrganizationComposition :company="company" />
+    <OrganizationComposition v-if="company !== undefined" :company="company" />
 
     <!-- What the unit's people may change of the agents it supplies, each allowed, withheld or following above, with what
          the units below may do with it beside it. -->
@@ -110,7 +141,7 @@
     <!-- The unit's own repositories: whether its people add and change repositories, and the repositories it owns,
          whose people's agents alone work on them. -->
     <SettingsGroup v-if="view !== null && view.repositories !== null" :title="$t('org_agents.title.repositories')" data-org-repositories>
-      <template #aside>
+      <template v-if="platform === false" #aside>
         <UTooltip :text="$t('org_agents.title.repository_add')">
           <UButton
             size="sm"
@@ -149,20 +180,22 @@
           @update:model-value="(value: unknown) => void delegate('repositories', value)"
         />
       </SettingsRow>
-      <p v-if="repositories === null && repositoriesFailure !== ''" role="alert" class="py-3 text-sm text-error">{{ repositoriesFailure }}</p>
-      <ContentSkeleton v-else-if="repositories === null" :rows="1" list-class="flex flex-col" :label="$t('org_agents.status.loading')">
-        <div class="flex items-center py-3"><SkeletonLine width="w-1/3" /></div>
-      </ContentSkeleton>
-      <SettingsRow v-else-if="repositories.length === 0" :label="$t('org_agents.label.repositories_none')" />
-      <template v-else>
-        <SettingsRow v-for="one in repositories" :key="one.name" :label="one.label ?? one.name" :data-org-repository="one.name">
-          <template #description>
-            <span class="font-mono text-sm text-muted wrap-anywhere">{{ one.path }}</span>
-          </template>
-          <IconButton size="xs" color="error" icon="i-material-symbols-delete-outline" :label="$t('org_agents.aria.repository_remove', { name: one.label ?? one.name })" :disabled="busy !== ''" @click="void removeRepository(one)" />
-        </SettingsRow>
+      <template v-if="platform === false">
+        <p v-if="repositories === null && repositoriesFailure !== ''" role="alert" class="py-3 text-sm text-error">{{ repositoriesFailure }}</p>
+        <ContentSkeleton v-else-if="repositories === null" :rows="1" list-class="flex flex-col" :label="$t('org_agents.status.loading')">
+          <div class="flex items-center py-3"><SkeletonLine width="w-1/3" /></div>
+        </ContentSkeleton>
+        <SettingsRow v-else-if="repositories.length === 0" :label="$t('org_agents.label.repositories_none')" />
+        <template v-else>
+          <SettingsRow v-for="one in repositories" :key="one.name" :label="one.label ?? one.name" :data-org-repository="one.name">
+            <template #description>
+              <span class="font-mono text-sm text-muted wrap-anywhere">{{ one.path }}</span>
+            </template>
+            <IconButton size="xs" color="error" icon="i-material-symbols-delete-outline" :label="$t('org_agents.aria.repository_remove', { name: one.label ?? one.name })" :disabled="busy !== ''" @click="void removeRepository(one)" />
+          </SettingsRow>
+        </template>
+        <p v-if="repositories !== null && repositoriesFailure !== ''" role="alert" class="break-words py-3 text-sm text-error">{{ repositoriesFailure }}</p>
       </template>
-      <p v-if="repositories !== null && repositoriesFailure !== ''" role="alert" class="break-words py-3 text-sm text-error">{{ repositoriesFailure }}</p>
     </SettingsGroup>
 
     <!-- The unit's own instructions, typed as one text; an empty text leaves the unit saying none. -->
@@ -205,6 +238,7 @@
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 
+import { decidedLine } from "~/domain/chain-decided";
 import { useConfirm } from "~/domain/confirm";
 import { UNIT_KEY } from "~/domain/organization";
 
@@ -215,10 +249,14 @@ import type { AgentSettingKey, PersonaChoice, UnitAgentSettings, UnitChainSettin
 
 interface Props {
   // The organisation chosen; the unit read is the one the tree chooses under it, the company itself where none is.
-  company: Organization;
+  // None where the platform's own link is read instead.
+  company?: Organization;
+  // Whether the view stands for the platform's own link (docs/web.md, 「Organisation」, the agents tab with the
+  // platform chosen), the administrator's.
+  platform?: boolean;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), { company: undefined, platform: false });
 
 const { t } = useI18n();
 const route = useRoute();
@@ -227,8 +265,10 @@ const confirm = useConfirm();
 const unit = computed(() => {
   const chosen = Number(route.query[UNIT_KEY]);
 
-  return Number.isInteger(chosen) && chosen > 0 ? chosen : props.company.id;
+  return Number.isInteger(chosen) && chosen > 0 ? chosen : (props.company?.id ?? 0);
 });
+// Where the link's settings are read and written: the unit's routes, or the platform's.
+const base = computed(() => (props.platform ? "/api/organization/platform" : `/api/organization/units/${unit.value}`));
 const view = ref<UnitAgentSettings | null>(null);
 const failure = ref("");
 const reading = ref(false);
@@ -241,13 +281,20 @@ const delegations = computed(() => [
   { value: "allow", label: t("org_agents.label.delegation_allow") },
   { value: "lock", label: t("org_agents.label.delegation_lock") }
 ]);
+// The choice that writes no word of the link's own: following the link above, or at the platform the kind's default.
+const inheritLabel = computed(() => (props.platform ? t("org_agents.label.choice_default") : t("org_agents.label.choice_inherit")));
 const personaChoices = computed(() => [
-  { value: "inherit", label: t("org_agents.label.choice_inherit") },
+  { value: "inherit", label: inheritLabel.value },
   { value: "own", label: t("org_agents.label.persona_own") },
   { value: "none", label: t("org_agents.label.persona_none") }
 ]);
+const personalizeChoices = computed(() => [
+  { value: "inherit", label: inheritLabel.value },
+  { value: "allow", label: t("org_agents.label.manage_allow") },
+  { value: "deny", label: t("org_agents.label.choice_off") }
+]);
 const manageChoices = computed(() => [
-  { value: "inherit", label: t("org_agents.label.choice_inherit") },
+  { value: "inherit", label: inheritLabel.value },
   { value: "allow", label: t("org_agents.label.manage_allow") },
   { value: "deny", label: t("org_agents.label.choice_off") }
 ]);
@@ -268,18 +315,24 @@ const personChanges = computed(() =>
   })
 );
 
+// Who locks a setting above the link, as every lock line says it: the locking unit by its name.
+function lockLine(setting: { locker: UnitChainSetting<unknown>["locker"] }): string {
+  return decidedLine(t, setting.locker) ?? t("org_agents.label.decided_unit");
+}
+
 // What the persona's row says under its name: a lock above, or what following above comes to.
 function personaLine(setting: UnitChainSetting<PersonaChoice>): string {
-  if (setting.lockedBy !== null) return t("org_agents.label.locked_above");
-  if (setting.own !== null) return "";
+  if (setting.lockedBy !== null) return lockLine(setting);
+  if (setting.own !== null || props.platform) return "";
 
   return setting.stands === "none" ? t("org_agents.label.persona_stands_none") : t("org_agents.label.persona_stands_own");
 }
 
 // What repository management's row says under its name, as the persona's does.
 function manageLine(setting: UnitChainSetting<boolean>): string {
-  if (setting.lockedBy !== null) return t("org_agents.label.locked_above");
+  if (setting.lockedBy !== null) return lockLine(setting);
   if (setting.own !== null) return "";
+  if (props.platform) return "";
 
   return setting.stands ? t("org_agents.label.manage_stands_allow") : t("org_agents.label.manage_stands_deny");
 }
@@ -298,7 +351,7 @@ async function read(): Promise<void> {
   reading.value = true;
   failure.value = "";
   try {
-    view.value = await $fetch<UnitAgentSettings>(`/api/organization/units/${unit.value}/agent-settings`);
+    view.value = await $fetch<UnitAgentSettings>(`${base.value}/agent-settings`);
   } catch (error) {
     view.value = null;
     failure.value = failureText(error, t("org_agents.error.forbidden"));
@@ -306,7 +359,7 @@ async function read(): Promise<void> {
     reading.value = false;
   }
 
-  if (view.value?.repositories !== null && view.value?.repositories !== undefined) await readRepositories();
+  if (!props.platform && view.value?.repositories !== null && view.value?.repositories !== undefined) await readRepositories();
 }
 
 // One write of a setting, the view read again after it; a refusal is said under the groups, kept across the read, so
@@ -318,7 +371,7 @@ async function write(key: string, body: Record<string, unknown>): Promise<boolea
   let refused = "";
 
   try {
-    await $fetch(`/api/organization/units/${unit.value}/agent-settings`, { method: "PUT", body });
+    await $fetch(`${base.value}/agent-settings`, { method: "PUT", body });
   } catch (error) {
     refused = failureText(error, t("org_agents.error.forbidden"));
   } finally {

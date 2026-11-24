@@ -24,6 +24,7 @@ use super::{
   holds_subscription, home_unit, org_policy, plans, platform_policy, platform_settings, resolve_to,
   session, set_org_policy, set_own_setting, set_platform, set_user_policy, user_policy, wallet,
 };
+use crate::chain::Link;
 use crate::readers::{Reader, reader};
 use crate::routes::{Answer, Body, user_in};
 use crate::{Refusal, Service, ids, one};
@@ -154,6 +155,25 @@ fn sources(resolved: &Resolution, setting: &OwnSetting) -> Vec<bmo_web_client::S
 
 // ---- an organisation's supply ----
 
+/// Whether the reader holds the policy and credits of the company or of any unit under it, so a unit's credit
+/// manager or head below the company finds the company's tree and their unit's supply in it.
+async fn holds_credit_within<C: ConnectionTrait>(db: &C, user: i64, company: i64) -> Result<bool, Refusal> {
+  let units = crate::all(
+    db,
+    r#"SELECT "descendant_id"::bigint AS "unit" FROM "org_closure" WHERE "ancestor_id" = $1 ORDER BY "depth""#,
+    vec![(company as i32).into()],
+  )
+  .await?;
+
+  for row in &units {
+    if holds_credit(db, user, row.try_get::<i64>("", "unit")?).await? {
+      return Ok(true);
+    }
+  }
+
+  Ok(false)
+}
+
 /// `GET /supply/units`: the companies whose supply the reader holds a part of — its policy and credits, its plan,
 /// or both — by sumida's own relations on the company; every company for a platform administrator.
 async fn units_read(State(service): State<Service>, headers: HeaderMap) -> Answer<SupplyUnits> {
@@ -173,7 +193,7 @@ async fn units_read(State(service): State<Service>, headers: HeaderMap) -> Answe
       (true, true)
     } else {
       (
-        holds_credit(&service.db, user, id).await?,
+        holds_credit_within(&service.db, user, id).await?,
         holds_subscription(&service.db, user, id).await?,
       )
     };
@@ -326,7 +346,7 @@ async fn org_policy_of<C: ConnectionTrait>(db: &C, unit: i64) -> Result<Option<S
     return Ok(Some(SupplyPolicyView {
       allowed: super::PAYABLE.iter().filter(open).map(|source| source.key().to_owned()).collect(),
       order: platform.order.iter().filter(open).map(|source| source.key().to_owned()).collect(),
-      member_credit_credits: None,
+      member_credit_credits: super::unit_allowance(db, unit).await?,
       from: None,
     }));
   };
@@ -334,7 +354,13 @@ async fn org_policy_of<C: ConnectionTrait>(db: &C, unit: i64) -> Result<Option<S
   Ok(Some(SupplyPolicyView {
     allowed: standing.allowed.iter().map(|source| source.key().to_owned()).collect(),
     order: standing.order.iter().map(|source| source.key().to_owned()).collect(),
-    member_credit_credits: standing.member_credit_credits,
+    // The cap is the credit allowance: the unit's own beside its own policy, the one standing from above beside
+    // a policy it follows.
+    member_credit_credits: if standing.from == Some(unit) {
+      super::allowance_at(db, Link::Unit(unit as i32)).await?
+    } else {
+      super::unit_allowance(db, unit).await?
+    },
     from: standing.from.filter(|from| *from != unit),
   }))
 }
@@ -520,10 +546,12 @@ async fn person_view(service: &Service, user: i64) -> Result<bmo_web_client::Sup
 }
 
 async fn policy_view<C: ConnectionTrait>(db: &C, user: i64) -> Result<Option<SupplyPolicyView>, Refusal> {
-  Ok(user_policy(db, user).await?.map(|policy| SupplyPolicyView {
+  let Some(policy) = user_policy(db, user).await? else { return Ok(None) };
+
+  Ok(Some(SupplyPolicyView {
     allowed: policy.allowed.iter().map(|source| source.key().to_owned()).collect(),
     order: policy.order.iter().map(|source| source.key().to_owned()).collect(),
-    member_credit_credits: policy.member_credit_credits,
+    member_credit_credits: super::allowance_at(db, Link::Person(user as i32)).await?,
     from: None,
   }))
 }

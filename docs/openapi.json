@@ -9789,6 +9789,150 @@
         ]
       }
     },
+    "/platform/agent": {
+      "get": {
+        "operationId": "platformAgent",
+        "parameters": [
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyAgent"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The platform's own default for every company's people's BMOs, which a company setting none follows: its name and call names; for any caller.",
+        "tags": [
+          "BMO profiles"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "put": {
+        "operationId": "setPlatformAgent",
+        "parameters": [
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompanyAgentAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyAgent"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, bad-agent-profile, unauthorized, forbidden, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Replaces the platform's own default name and call names, by the platform administrator; answers the default as it stands.",
+        "tags": [
+          "BMO profiles"
+        ],
+        "x-codes": [
+          "bad-request",
+          "bad-agent-profile",
+          "unauthorized",
+          "forbidden",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
     "/rooms/{chat}/callers": {
       "get": {
         "operationId": "roomCallers",

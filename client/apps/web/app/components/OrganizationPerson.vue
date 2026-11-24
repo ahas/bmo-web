@@ -301,7 +301,7 @@ async function openProfile(): Promise<void> {
 function openBmoPermission(): void {
   const one = person.value;
 
-  if (one !== null) void router.push(organizationAddress("agent", route.query, { company: String(one.company.id), unit: String(one.unit.id) }));
+  if (one !== null) void router.push(organizationAddress("agents", route.query, { company: String(one.company.id), unit: String(one.unit.id) }));
 }
 
 // Marking the person left, asked first as the chart asks it.

@@ -101,6 +101,8 @@
       </template>
     </SettingsGroup>
 
+    <OrganizationPersonalApps platform />
+
     <OrganizationAppRequests />
   </div>
 </template>

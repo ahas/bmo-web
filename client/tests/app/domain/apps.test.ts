@@ -11,8 +11,8 @@ import type { OwnApp, PlatformApp, UnitApp } from "../../../apps/web/shared/apps
 
 const t = (key: string, named?: Record<string, unknown>) => (named === undefined ? key : `${key} ${JSON.stringify(named)}`);
 
-const UNIT: UnitApp = { app: "app-a", title: null, icon: null, offered: true, on: true, own: null, locks: false, lockedAbove: false, writable: true };
-const OWN: OwnApp = { app: "app-a", title: "App A", icon: null, on: true, own: null, locked: false };
+const UNIT: UnitApp = { app: "app-a", title: null, icon: null, offered: true, on: true, own: null, locks: false, lockedAbove: false, locker: null, writable: true };
+const OWN: OwnApp = { app: "app-a", title: "App A", icon: null, on: true, own: null, locked: false, locker: null };
 
 test("an app reads by its screen's title, else by its key", () => {
   expect(appTitle(UNIT)).toBe("app-a");
@@ -21,7 +21,8 @@ test("an app reads by its screen's title, else by its key", () => {
 
 test("a unit's row says how the app stands there, not offered and a lock above before its own word", () => {
   expect(unitAppLine(t, { ...UNIT, offered: false, own: true }, false)).toBe("apps.label.not_offered");
-  expect(unitAppLine(t, { ...UNIT, lockedAbove: true, own: true }, false)).toBe("apps.label.locked_above");
+  expect(unitAppLine(t, { ...UNIT, lockedAbove: true, locker: { by: "unit", name: "team-a" }, own: true }, false)).toBe('org_agents.label.decided_named {"name":"team-a"}');
+  expect(unitAppLine(t, { ...UNIT, lockedAbove: true, locker: { by: "platform" }, own: true }, false)).toBe("org_agents.label.decided_platform");
   expect(unitAppLine(t, { ...UNIT, own: false, on: false }, false)).toBe("apps.label.own");
   expect(unitAppLine(t, UNIT, false)).toBe("apps.label.follows_above_on");
   expect(unitAppLine(t, { ...UNIT, on: false }, false)).toBe("apps.label.follows_above_off");
@@ -41,7 +42,8 @@ test("a unit's word stands as a choice of on, off or following, and writes back 
 });
 
 test("a reader's row says whether their organisation locks it, they set it or they follow it", () => {
-  expect(ownAppLine(t, { ...OWN, locked: true, own: true })).toBe("apps.label.locked_organization");
+  expect(ownAppLine(t, { ...OWN, locked: true, locker: { by: "unit", name: "team-a" }, own: true })).toBe('org_agents.label.decided_named {"name":"team-a"}');
+  expect(ownAppLine(t, { ...OWN, locked: true, locker: { by: "unit", name: null }, own: true })).toBe("org_agents.label.decided_unit");
   expect(ownAppLine(t, { ...OWN, own: false })).toBe("apps.label.own");
   expect(ownAppLine(t, OWN)).toBe("apps.label.follows_organization");
 });

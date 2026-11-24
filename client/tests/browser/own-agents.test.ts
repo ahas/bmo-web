@@ -6,7 +6,7 @@ import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, Locator, Page } from "playwright-core";
 
-// The own-agents section (docs/web.md, 「Settings」, the own-agents section), worked by hand at a desk's width and a
+// The reader's own agents (docs/web.md, 「Organisation」, the agents tab with the reader's own node chosen), worked by hand at a desk's width and a
 // phone's: the agents the reader's organisation supplies stand with where they came from and their road; an agent
 // added to a role stands as the reader's own; a road a supply does not carry stands disabled in the road's form, and
 // one it carries is saved and makes the seat the reader's own change, which its way back puts back; a supplied agent is
@@ -81,7 +81,7 @@ describe.skipIf(!origin || !touchReady())("the own-agents section", () => {
       try {
         const page = await context.newPage();
 
-        await page.goto(`${origin}/siren?settings=own-agents`, { waitUntil: "load" });
+        await page.goto(`${origin}/organization?company=me&tab=agents`, { waitUntil: "load" });
 
         const list = page.locator("[data-own-agents-list]");
         const worker = list.locator("[data-own-agent^='worker-u']").first();

@@ -45,6 +45,7 @@ pub const PERSONA_MOST: usize = 100_000;
 pub fn routes() -> Router<Service> {
   Router::new()
     .route("/companies/{company}/agent", get(company_route).put(set_company_route))
+    .route("/platform/agent", get(platform_route).put(set_platform_route))
     .route(
       "/companies/{company}/agent/picture",
       get(company_picture_route)
@@ -337,7 +338,12 @@ fn default_kind(key: &str) -> ChainKind {
 
 /// A unit's own default as its links hold it, every part empty where none is set.
 pub async fn company_agent<C: ConnectionTrait>(db: &C, company: i32) -> Result<CompanyAgent, Refusal> {
-  let link = Link::Unit(company);
+  link_agent(db, Link::Unit(company)).await
+}
+
+/// A link's own default as it holds it, every part empty where none is set: a company's, or the platform's, which
+/// keeps no picture.
+async fn link_agent<C: ConnectionTrait>(db: &C, link: Link) -> Result<CompanyAgent, Refusal> {
   let name = chain::value_at(db, NAME_KIND, link).await?;
   let call_names = chain::value_at(db, CALL_NAMES_KIND, link).await?;
   let picture = chain::value_at(db, PICTURE_KIND, link).await?;
@@ -363,9 +369,18 @@ async fn set_company_agent<C: ConnectionTrait>(
   by: Option<i32>,
   ask: &CompanyAgentAsk,
 ) -> Result<(), Refusal> {
+  set_link_agent(db, Link::Unit(company), by, ask).await
+}
+
+/// A link's own name and call names written, a company's or the platform's.
+async fn set_link_agent<C: ConnectionTrait>(
+  db: &C,
+  link: Link,
+  by: Option<i32>,
+  ask: &CompanyAgentAsk,
+) -> Result<(), Refusal> {
   let name = name_of(ask.name.as_deref())?;
   let call_names = call_names_of(&ask.call_names)?;
-  let link = Link::Unit(company);
   let names = (!call_names.is_empty()).then(|| serde_json::json!(call_names));
 
   chain::put_value(db, &default_kind(NAME_KIND), link, name.map(serde_json::Value::from).as_ref(), by)
@@ -514,7 +529,7 @@ pub fn personalize_kind() -> ChainKind {
     mode: ChainMode::Nearest,
     default: Some(serde_json::Value::Bool(false)),
     rules: false,
-    levels: vec![ChainLevel::Unit, ChainLevel::Person],
+    levels: vec![ChainLevel::Platform, ChainLevel::Unit, ChainLevel::Person],
     unit_permission: crate::units::HEADS.to_owned(),
     person_writer: ChainPersonWriter::Heads,
   }
@@ -748,6 +763,29 @@ async fn company_set_by<C: ConnectionTrait>(db: &C, path: &str, caller: &Caller)
   }
 
   Ok(company)
+}
+
+/// `GET /platform/agent`: the platform's own default, which every company setting none follows; any caller.
+async fn platform_route(State(service): State<Service>) -> Answer<CompanyAgent> {
+  Ok(Json(link_agent(&service.db, Link::Platform).await?))
+}
+
+/// `PUT /platform/agent`: the platform's own name and call names, the platform administrator's alone.
+async fn set_platform_route(
+  State(service): State<Service>,
+  headers: HeaderMap,
+  Body(ask): Body<CompanyAgentAsk>,
+) -> Answer<CompanyAgent> {
+  let db = &service.db;
+  let caller = caller(&headers);
+
+  if !caller.administrator {
+    return Err(Refusal::forbidden("the platform's default is set by the platform administrator"));
+  }
+
+  set_link_agent(db, Link::Platform, caller.user, &ask).await?;
+
+  Ok(Json(link_agent(db, Link::Platform).await?))
 }
 
 async fn set_company_route(

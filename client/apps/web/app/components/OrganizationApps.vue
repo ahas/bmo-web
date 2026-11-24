@@ -2,73 +2,76 @@
   <!-- The organisation screen's apps tab (docs/web.md, 「Organisation」, the apps tab): every app the delegation chain
        holds as it stands for the node chosen, each a row of its icon, its name and how it stands there, with the node's
        own word on it, its lock for everything under it and, for the administrator, the platform's offer to it, each
-       saved as it is made. -->
-  <SettingsGroup>
-    <ContentSkeleton v-if="rows === null && failure === ''" :rows="3" listClass="flex flex-col divide-y divide-default" :label="$t('apps.status.loading')">
-      <div class="flex items-center gap-3 py-3">
-        <SkeletonBar class="size-5 shrink-0 rounded-md" />
-        <div class="flex min-w-0 flex-1 flex-col gap-1">
-          <SkeletonLine width="w-1/3" />
-          <SkeletonLine width="w-1/2" />
-        </div>
-        <SkeletonBar class="ms-auto h-8 w-36 shrink-0 rounded-md" />
-      </div>
-    </ContentSkeleton>
-
-    <div v-else-if="rows === null" class="flex flex-col items-end gap-3 py-3">
-      <UAlert class="w-full" color="error" variant="subtle" :description="failure" />
-      <UButton color="neutral" variant="subtle" icon="i-material-symbols-refresh" :label="$t('common.action.refresh')" :loading="reading" @click="read()" />
-    </div>
-
-    <p v-else-if="rows.length === 0" class="py-3 text-sm text-muted" data-apps-none>{{ $t("apps.label.none") }}</p>
-
-    <template v-else>
-      <div v-for="row in rows" :key="row.app" class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-3" :data-app-row="row.app">
-        <div class="flex min-w-0 grow basis-40 items-center gap-3">
-          <UIcon :name="row.icon ?? APP_ICON" class="size-5 shrink-0 text-muted" />
-          <div class="flex min-w-0 flex-col">
-            <HintTip :text="appTitle(row)" cut press data-app-title :class="['block min-w-0 truncate text-sm text-highlighted', row.title === null ? 'font-mono' : '']">{{ appTitle(row) }}</HintTip>
-            <span class="text-sm text-muted" data-app-state>{{ unitAppLine(t, row, company) }}</span>
+       saved as it is made; under them what its people may do with personal apps. -->
+  <div class="flex flex-col gap-4">
+    <SettingsGroup>
+      <ContentSkeleton v-if="rows === null && failure === ''" :rows="3" listClass="flex flex-col divide-y divide-default" :label="$t('apps.status.loading')">
+        <div class="flex items-center gap-3 py-3">
+          <SkeletonBar class="size-5 shrink-0 rounded-md" />
+          <div class="flex min-w-0 flex-1 flex-col gap-1">
+            <SkeletonLine width="w-1/3" />
+            <SkeletonLine width="w-1/2" />
           </div>
+          <SkeletonBar class="ms-auto h-8 w-36 shrink-0 rounded-md" />
         </div>
+      </ContentSkeleton>
 
-        <div class="ms-auto flex shrink-0 items-center gap-2">
-          <USwitch
-            v-if="row.offer !== undefined"
-            :model-value="row.offered"
-            :label="$t('apps.label.offer')"
-            :disabled="saving !== null"
-            data-app-offer
-            @update:model-value="(offered: boolean) => change(row, { offer: offered })"
-          />
-          <ChoiceSelect
-            :model-value="unitAppChoice(row)"
-            :items="unitAppChoices(t, company)"
-            value-key="value"
-            size="sm"
-            class="w-36"
-            :aria-label="appTitle(row)"
-            :loading="saving === row.app"
-            :disabled="saving !== null || !row.writable || !row.offered"
-            data-app-choice
-            @update:model-value="(value: AppChoice) => change(row, { on: choiceWord(value) })"
-          />
-          <IconButton
-            size="sm"
-            :color="row.locks ? 'primary' : 'neutral'"
-            :icon="row.locks ? 'i-material-symbols-lock-outline' : 'i-material-symbols-lock-open-outline'"
-            :label="row.locks ? $t('apps.action.unlock') : $t('apps.action.lock')"
-            :aria-pressed="row.locks"
-            :disabled="saving !== null || !row.writable || !row.offered"
-            data-app-lock
-            @click="change(row, { locks: !row.locks })"
-          />
-        </div>
-
-        <p v-if="refusals[row.app]" role="alert" class="basis-full text-sm text-error">{{ refusals[row.app] }}</p>
+      <div v-else-if="rows === null" class="flex flex-col items-end gap-3 py-3">
+        <UAlert class="w-full" color="error" variant="subtle" :description="failure" />
+        <UButton color="neutral" variant="subtle" icon="i-material-symbols-refresh" :label="$t('common.action.refresh')" :loading="reading" @click="read()" />
       </div>
-    </template>
-  </SettingsGroup>
+
+      <p v-else-if="rows.length === 0" class="py-3 text-sm text-muted" data-apps-none>{{ $t("apps.label.none") }}</p>
+
+      <template v-else>
+        <div v-for="row in rows" :key="row.app" class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-3" :data-app-row="row.app">
+          <div class="flex min-w-0 grow basis-40 items-center gap-3">
+            <UIcon :name="row.icon ?? APP_ICON" class="size-5 shrink-0 text-muted" />
+            <div class="flex min-w-0 flex-col">
+              <HintTip :text="appTitle(row)" cut press data-app-title :class="['block min-w-0 truncate text-sm text-highlighted', row.title === null ? 'font-mono' : '']">{{ appTitle(row) }}</HintTip>
+              <span class="text-sm text-muted" data-app-state>{{ unitAppLine(t, row, company) }}</span>
+            </div>
+          </div>
+
+          <div class="ms-auto flex shrink-0 items-center gap-2">
+            <USwitch
+              v-if="row.offer !== undefined"
+              :model-value="row.offered"
+              :label="$t('apps.label.offer')"
+              :disabled="saving !== null"
+              data-app-offer
+              @update:model-value="(offered: boolean) => change(row, { offer: offered })"
+            />
+            <ChoiceSelect
+              :model-value="unitAppChoice(row)"
+              :items="unitAppChoices(t, company)"
+              value-key="value"
+              size="sm"
+              class="w-36"
+              :aria-label="appTitle(row)"
+              :loading="saving === row.app"
+              :disabled="saving !== null || !row.writable || !row.offered"
+              data-app-choice
+              @update:model-value="(value: AppChoice) => change(row, { on: choiceWord(value) })"
+            />
+            <IconButton
+              size="sm"
+              :color="row.locks ? 'primary' : 'neutral'"
+              :icon="row.locks ? 'i-material-symbols-lock-outline' : 'i-material-symbols-lock-open-outline'"
+              :label="row.locks ? $t('apps.action.unlock') : $t('apps.action.lock')"
+              :aria-pressed="row.locks"
+              :disabled="saving !== null || !row.writable || !row.offered"
+              data-app-lock
+              @click="change(row, { locks: !row.locks })"
+            />
+          </div>
+
+          <p v-if="refusals[row.app]" role="alert" class="basis-full text-sm text-error">{{ refusals[row.app] }}</p>
+        </div>
+      </template>
+    </SettingsGroup>
+    <OrganizationPersonalApps :company="$props.company" />
+  </div>
 </template>
 
 <script setup lang="ts">

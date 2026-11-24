@@ -94,7 +94,12 @@ async function sidebar(page: Page, phone: boolean): Promise<Locator> {
 // The screens' sections read top to bottom, each a menu named by its section: the heading it shows and the names of
 // the screens under it.
 async function sections(holder: Locator): Promise<[string, string[]][]> {
-  await holder.locator(`nav[aria-label="${APPLICATION}"]`).waitFor({ timeout: 20_000 });
+  const applications = holder.locator(`nav[aria-label="${APPLICATION}"]`);
+
+  await applications.waitFor({ timeout: 20_000 });
+  // The app catalogue's entry comes in once the reader's screens are read, after the units' own; the sections are read
+  // once it stands, so the read never catches the list half drawn.
+  await applications.locator("[data-slot='link'] [data-slot='linkLabel']", { hasText: wording("screens.label.catalogue") }).waitFor({ timeout: 20_000 });
 
   return holder.evaluate((root, headings) => {
     const read: [string, string[]][] = [];

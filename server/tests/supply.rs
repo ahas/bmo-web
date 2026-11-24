@@ -312,7 +312,7 @@ async fn the_order_is_the_platform_default_until_a_later_layer_narrows_it() {
 
   // The administrator's own resolution sees every source the platform itself allows.
   let (_, said) = asked(&app, Method::GET, "/supply/me", None, Some(boss), "administrator").await;
-  assert_eq!(said["sources"].as_array().unwrap().len(), 5, "{said}");
+  assert_eq!(said["sources"].as_array().unwrap().len(), 6, "{said}");
 }
 
 #[tokio::test]
@@ -984,9 +984,144 @@ async fn a_wallet_hold_reserves_extends_captures_and_releases_against_sumida() {
   assert_eq!(wallet(&scratch, "organization", company).await, (balance, 0, 0));
 }
 
-// "Organisation supply is a source the agency takes on its own reading of the chain": no policy names it, its cost
-// counts as organisation credits — recorded alone where the organisation keeps no wallet, held against the wallet
-// where it does — and once the month's organisation-credit spend reaches the person's allowance it is refused.
+// "Organisation supply is reserved through the hook as a platform source is": no policy names it, its cost counts
+// as organisation credits — recorded alone where the organisation keeps no wallet, held against the wallet where it
+// does — and once the month's organisation-credit spend reaches the person's allowance it is refused.
+/// Organisation supply opened for one company by the platform's rule naming it, as the administrator opens it.
+async fn open_organisation(app: &Router, boss: i32, company: i32) {
+  let (status, said) = asked(
+    app,
+    Method::PUT,
+    "/chain/kinds/supply.organisation/links/platform/rules",
+    Some(json!({ "rules": [{ "who": format!("unit:{company}"), "value": true }] })),
+    Some(boss),
+    "administrator",
+  )
+  .await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+}
+
+// "Organisation supply ... the resolution places `organisation` in the order before every platform source — after
+// `personal` wherever the order puts that first": closed until the platform opens it for the company, closed again by
+// a unit below, and named in the person's view with who closed it.
+#[tokio::test]
+async fn organisation_supply_is_placed_in_the_order_where_the_platform_opens_it_and_no_unit_closes_it() {
+  ready();
+  let scratch = fresh().await;
+  let app = app(&scratch).await;
+  let boss = boss(&scratch).await;
+  let company = org(&scratch, "company-a", None).await;
+  let team = org(&scratch, "team-a", Some(company)).await;
+  let tester = person(&scratch, "tester", team).await;
+  subscription(&scratch, "personal", tester, Some(10_000), true).await;
+  open_platform(&scratch, r#"["personal", "global"]"#).await;
+  let ask = json!({ "op": "order", "run": "job-70-1", "account": tester, "provider": "p", "model": "m", "kind": "job" });
+
+  let (_, said) = hook(&app, ask.clone()).await;
+  assert!(!order(&said).contains(&"organisation".to_owned()), "{said}");
+  let (_, view) = asked(&app, Method::GET, "/supply/me", None, Some(tester), "member").await;
+  let standing = |view: &Value| {
+    view["sources"]
+      .as_array()
+      .unwrap()
+      .iter()
+      .find(|one| one["source"] == "organisation")
+      .cloned()
+      .unwrap()
+  };
+  assert_eq!(standing(&view)["reason"], "blocked-by-administrator", "{view}");
+
+  open_organisation(&app, boss, company).await;
+  let (_, said) = hook(&app, ask.clone()).await;
+  assert_eq!(order(&said), vec!["personal", "organisation", "global"], "{said}");
+  let (_, view) = asked(&app, Method::GET, "/supply/me", None, Some(tester), "member").await;
+  assert_eq!(standing(&view)["allowed"], true, "{view}");
+  assert_eq!(standing(&view)["locked"], true, "{view}");
+
+  // The team closes it: out of the order, closed by the organisation.
+  let (status, said) = asked(
+    &app,
+    Method::PUT,
+    &format!("/chain/kinds/supply.organisation/links/unit:{team}/value"),
+    Some(json!({ "value": false })),
+    Some(boss),
+    "administrator",
+  )
+  .await;
+  assert_eq!(status, StatusCode::OK, "{said}");
+  let (_, said) = hook(&app, ask).await;
+  assert_eq!(order(&said), vec!["personal", "global"], "{said}");
+  let (_, view) = asked(&app, Method::GET, "/supply/me", None, Some(tester), "member").await;
+  assert_eq!(standing(&view)["reason"], "blocked-by-organisation", "{view}");
+}
+
+// "A policy holds no cap of its own: the policy routes read and write the link's allowance beside the policy".
+#[tokio::test]
+async fn a_policy_s_monthly_cap_is_the_link_s_credit_allowance() {
+  ready();
+  let scratch = fresh().await;
+  let app = app(&scratch).await;
+  let boss = boss(&scratch).await;
+  let company = org(&scratch, "company-a", None).await;
+  let team = org(&scratch, "team-a", Some(company)).await;
+  open_platform(&scratch, r#"["personal", "global", "org_credits"]"#).await;
+
+  let (status, said) = asked(
+    &app,
+    Method::PUT,
+    &format!("/supply/org/{company}"),
+    Some(json!({ "allowed": ["personal", "org_credits"], "order": ["personal", "org_credits", "stop"], "memberCreditCredits": 300 })),
+    Some(boss),
+    "administrator",
+  )
+  .await;
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert_eq!(said["policy"]["memberCreditCredits"], 300, "{said}");
+  let stored = scratch
+    .count(
+      r#"SELECT ("value")::text::bigint FROM "chain_links" WHERE "kind" = 'supply.credit-allowance' AND "link" = $1"#,
+      vec![format!("unit:{company}").into()],
+    )
+    .await;
+  assert_eq!(stored, 300);
+  assert_eq!(
+    scratch
+      .count(
+        r#"SELECT COUNT(*) FROM "chain_links" WHERE "kind" = 'supply.policy' AND "value" ? 'memberCreditCredits'"#,
+        vec![]
+      )
+      .await,
+    0
+  );
+
+  // The team follows: the cap standing from above.
+  let (_, said) =
+    asked(&app, Method::GET, &format!("/supply/org/{team}"), None, Some(boss), "administrator").await;
+  assert_eq!(said["policy"]["memberCreditCredits"], 300, "{said}");
+
+  // The policy taken away takes the cap with it.
+  let (status, _) = asked(
+    &app,
+    Method::DELETE,
+    &format!("/supply/org/{company}"),
+    None,
+    Some(boss),
+    "administrator",
+  )
+  .await;
+  assert_eq!(status, StatusCode::OK);
+  assert_eq!(
+    scratch
+      .count(
+        r#"SELECT COUNT(*) FROM "chain_links" WHERE "kind" = 'supply.credit-allowance' AND "value" IS NOT NULL"#,
+        vec![]
+      )
+      .await,
+    0
+  );
+}
+
 #[tokio::test]
 async fn organisation_supply_counts_as_organisation_credits_and_is_recorded_alone_where_no_wallet_stands() {
   ready();
@@ -997,6 +1132,7 @@ async fn organisation_supply_counts_as_organisation_credits_and_is_recorded_alon
   let tester = person(&scratch, "tester", company).await;
   subscription(&scratch, "personal", tester, Some(0), true).await;
   enforce(&scratch, true).await;
+  open_organisation(&app, boss, company).await;
 
   // No wallet: accepted, no hold opened, and its cost recorded under the organisation's own supply.
   let (_, said) = hook(
@@ -1378,8 +1514,9 @@ async fn the_units_read_names_each_company_by_the_part_of_its_supply_the_reader_
   assert_eq!(units(credit_keeper, "member").await, [(company, true, false)]);
   assert_eq!(units(plan_keeper, "member").await, [(company, false, true)]);
   assert_eq!(units(head, "member").await, [(company, true, true)]);
-  // A unit below a company is no company, and a member or a head below holds no company's supply.
-  assert_eq!(units(team_head, "member").await, []);
+  // A unit below a company is no company: a head below holds the company's listing for their own unit's policy and
+  // credits, and a member holds no company's supply.
+  assert_eq!(units(team_head, "member").await, [(company, true, false)]);
   assert_eq!(units(member, "member").await, []);
   let every = units(boss, "administrator").await;
   assert!(
@@ -1848,9 +1985,9 @@ async fn the_overrides_migration_renews_a_seeded_platform_row_and_keeps_an_admin
   };
 
   // The row as an administrator set it before the overrides stood, and each person's old switch: the overrides
-  // taken down with the move onto the delegation chain, the organisation's BMO default's, the accounts' languages' and
-  // the supply run keys' that stand after them.
-  Migrator::down(scratch.db(), Some(5)).await.unwrap();
+  // taken down with the move onto the delegation chain, the organisation's BMO default's, the accounts' languages',
+  // the supply run keys' and the supply sources' move that stand after them.
+  Migrator::down(scratch.db(), Some(6)).await.unwrap();
   scratch
     .run(
       r#"UPDATE "supply_platform_policy"
@@ -1894,7 +2031,7 @@ async fn the_overrides_migration_renews_a_seeded_platform_row_and_keeps_an_admin
   );
 
   // A row still standing as seeded takes the new defaults.
-  Migrator::down(scratch.db(), Some(5)).await.unwrap();
+  Migrator::down(scratch.db(), Some(6)).await.unwrap();
   scratch
     .run(
       r#"UPDATE "supply_platform_policy"
@@ -2371,5 +2508,109 @@ async fn the_agency_s_captured_order_and_reserve_asks_are_answered() {
       .await,
     1,
     "the reservation is kept under the agency's run key"
+  );
+}
+
+// The supply sources' move: the agency's `supply.personal` and `supply.platform` read into the policies they duplicate,
+// a policy's cap into its link's credit allowance, and `supply.organisation` made this service's own.
+#[tokio::test]
+async fn the_sources_move_reads_the_agency_s_flags_into_the_policies_and_the_caps_into_allowances() {
+  use bmo_web_server::migration::Migrator;
+  use sea_orm_migration::MigratorTrait;
+
+  ready();
+  let scratch = fresh().await;
+  let company = org(&scratch, "company-a", None).await;
+  let team = org(&scratch, "team-a", Some(company)).await;
+  let squad = org(&scratch, "squad-a", Some(team)).await;
+  let tester = person(&scratch, "tester", company).await;
+
+  Migrator::down(scratch.db(), Some(1)).await.unwrap();
+  scratch
+    .run(
+      r#"INSERT INTO "chain_kinds" ("key", "declared_by", "declaration", "declared_at") VALUES
+           ('supply.personal', 'agency', '{"key":"supply.personal","declaredBy":"agency"}', 0),
+           ('supply.platform', 'agency', '{"key":"supply.platform","declaredBy":"agency"}', 0)
+         ON CONFLICT ("key") DO NOTHING"#,
+      vec![],
+    )
+    .await;
+  scratch
+    .run(
+      r#"UPDATE "chain_kinds" SET "declared_by" = 'agency',
+                "declaration" = jsonb_set("declaration", '{declaredBy}', '"agency"')
+          WHERE "key" = 'supply.organisation'"#,
+      vec![],
+    )
+    .await;
+  scratch
+    .run(
+      r#"INSERT INTO "chain_links" ("kind", "link", "unit_id", "user_id", "value", "delegation", "set_at") VALUES
+           ('supply.policy', 'unit:' || $1, $1, NULL,
+            '{"allowed":["personal","global"],"order":["personal","global","stop"],"memberCreditCredits":500}', 'inherit', 0),
+           ('supply.policy', 'unit:' || $3, $3, NULL,
+            '{"allowed":["personal","global","org_credits"],"order":["global","personal","org_credits","stop"]}', 'inherit', 0),
+           ('supply.personal', 'unit:' || $2, $2, NULL, 'false', 'inherit', 0),
+           ('supply.platform', 'person:' || $4, NULL, $4, 'false', 'inherit', 0)"#,
+      vec![company.into(), team.into(), squad.into(), tester.into()],
+    )
+    .await;
+  Migrator::up(scratch.db(), None).await.unwrap();
+
+  let policy = |link: String| {
+    let scratch = &scratch;
+
+    async move {
+      let row = bmo_web_server::one(
+        scratch.db(),
+        r#"SELECT "value"::text AS "value" FROM "chain_links" WHERE "kind" = 'supply.policy' AND "link" = $1"#,
+        vec![link.into()],
+      )
+      .await
+      .unwrap()
+      .unwrap();
+
+      serde_json::from_str::<Value>(&row.try_get::<String>("", "value").unwrap()).unwrap()
+    }
+  };
+
+  // The team, which held no policy, takes the company's less personal supply; the squad's own loses it too.
+  assert_eq!(
+    policy(format!("unit:{team}")).await,
+    json!({ "allowed": ["global"], "order": ["global", "stop"] })
+  );
+  assert_eq!(
+    policy(format!("unit:{squad}")).await,
+    json!({ "allowed": ["global", "org_credits"], "order": ["global", "org_credits", "stop"] })
+  );
+  // The company's own stands, its cap now its allowance.
+  assert_eq!(
+    policy(format!("unit:{company}")).await,
+    json!({ "allowed": ["personal", "global"], "order": ["personal", "global", "stop"] })
+  );
+  assert_eq!(
+    scratch
+      .count(
+        r#"SELECT ("value")::text::bigint FROM "chain_links" WHERE "kind" = 'supply.credit-allowance' AND "link" = $1"#,
+        vec![format!("unit:{company}").into()],
+      )
+      .await,
+    500
+  );
+  // The person closed out of the platform's sources holds a per-user policy of their own supply alone.
+  assert_eq!(
+    policy(format!("person:{tester}")).await,
+    json!({ "allowed": ["personal"], "order": ["personal", "stop"] })
+  );
+  // The flags are gone, and organisation supply is this service's.
+  assert_eq!(
+    scratch
+      .count(
+        r#"SELECT COUNT(*) FROM "chain_kinds" WHERE "key" IN ('supply.personal', 'supply.platform')
+              OR ("key" = 'supply.organisation' AND "declared_by" <> 'web')"#,
+        vec![]
+      )
+      .await,
+    0
   );
 }

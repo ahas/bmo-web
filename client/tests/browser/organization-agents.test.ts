@@ -6,8 +6,8 @@ import { wording } from "../../apps/web/shared/wording";
 
 import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 
-// An organisation's agents (docs/web.md, 「Organisation」, the agents tab, and 「The join page」): the agents tab's
-// groups of the unit's supply sources and its own keys, its sign-up composition with a road for each agent it gives, what
+// An organisation's agents and its own supply (docs/web.md, 「Organisation」, the agents and supply tabs, and 「The join
+// page」): the supply tab's group of the unit's own supply and its keys, the agents tab's sign-up composition with a road for each agent it gives, what
 // its people may change of the agents it supplies, and the agent login step a person whose runs only their own supply can carry is held at. Each is worked as a hand works it at a phone's width and a desk's: what a
 // press lands on is the control it names, nothing runs off the side, and what a press does is read back off the screen
 // after the page is read again.
@@ -107,12 +107,12 @@ describe.skipIf(!origin || !touchReady())("an organisation's agents", () => {
       const context = await contextFor(ADMINISTRATOR.name, width);
       const page = await context.newPage();
 
-      await tab(page, "agents");
+      await tab(page, "supply");
 
       const sources = page.locator("[data-agent-supply]");
 
-      await sources.getByText(wording("org_agents.title.sources"), { exact: true }).waitFor({ timeout: 20_000 });
-      expect(await sources.locator("[data-agent-source]").evaluateAll((rows) => rows.map((row) => (row as HTMLElement).dataset.agentSource))).toEqual(["personal", "organisation", "platform"]);
+      await sources.locator("[data-agent-supply-organisation]").waitFor({ timeout: 20_000 });
+      expect(await sources.locator("[data-agent-source]").evaluateAll((rows) => rows.map((row) => (row as HTMLElement).dataset.agentSource))).toEqual(["organisation"]);
 
       // Organisation supply stands closed until the company is given it, and the key's add with it.
       const organisation = sources.locator('[data-agent-source="organisation"]');

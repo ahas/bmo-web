@@ -1,4 +1,4 @@
-import { ADMIN_PATH } from "./administration";
+import { ORGANIZATION_PATH, PLATFORM_NODE } from "./organization";
 import { AUTO_LABEL } from "./agent-settings";
 import { untilText } from "./usage";
 
@@ -10,10 +10,10 @@ import type { Translate } from "#shared/wording";
 // reached and how its login stands; nothing here has a credential to show, because nothing the bot
 // answers with carries one.
 
-// The name the accounts group answers to in an address: the administration screen's first tab, at that group
-// (docs/web.md, 「Administration」).
+// The name the accounts group answers to in an address: the organisation screen's supply tab with the platform chosen,
+// at that group (docs/web.md, 「Organisation」, the supply tab).
 export const ACCOUNTS_GROUP = "accounts";
-export const ACCOUNTS_ADDRESS = `${ADMIN_PATH}#${ACCOUNTS_GROUP}`;
+export const ACCOUNTS_ADDRESS = `${ORGANIZATION_PATH}?company=${PLATFORM_NODE}&tab=supply#${ACCOUNTS_GROUP}`;
 
 // The way a new account's box offers beside the two kinds: its login made here, through the agency's own run of the
 // CLI's sign-in, into a configuration directory the agency makes for it (docs/web.md, 「Administration」).

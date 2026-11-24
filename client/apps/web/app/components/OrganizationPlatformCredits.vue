@@ -1,8 +1,8 @@
 <template>
-  <!-- The administration screen's credits tab (docs/web.md, 「Administration」, the supply tab): the platform's
-       own supply standing — the default policy, the conversion, the reservation and the switch that makes limits
-       refuse — beside the grants, the ledger and the audit. No balance of anyone's is shown, and no top-up stands:
-       payments are off, and every credit here is the platform's own. -->
+  <!-- The supply tab's platform policy and credits (docs/web.md, 「Organisation」, the supply tab with the platform
+       chosen): the platform's own supply standing — the default policy, the conversion, the reservation and the switch
+       that makes limits refuse — beside the ledger and the audit. No balance of anyone's is shown, and no top-up stands:
+       payments are off, and every credit here is the platform's own; a grant is made at the wallet it fills. -->
   <div class="flex flex-col gap-4">
     <ContentSkeleton v-if="platform === null && failure === ''" :rows="4" list-class="flex flex-col divide-y divide-default" :label="$t('supply.status.loading')">
       <div class="flex items-center gap-4 py-3">
@@ -42,13 +42,7 @@
         </SettingsRow>
       </SettingsGroup>
 
-      <SettingsGroup :title="$t('supply.label.credits')">
-        <template #aside>
-          <UTooltip :text="$t('supply.action.grant')">
-            <UButton size="sm" color="neutral" variant="ghost" icon="i-material-symbols-add" :aria-label="$t('supply.action.grant')" :disabled="busy" @click="openGrant" />
-          </UTooltip>
-        </template>
-
+      <SettingsGroup :title="$t('supply.title.ledger')">
         <FailedRead v-if="ledgerFailure !== ''" class="py-3" :message="ledgerFailure" :reading="false" @retry="void readLedger()" />
         <ContentSkeleton v-else-if="ledger === null" :rows="3" list-class="flex flex-col divide-y divide-default" :label="$t('supply.status.ledger_loading')">
           <div class="flex items-center gap-4 py-3">
@@ -113,54 +107,23 @@
 
     <SupplyPolicyDialog v-model:open="editing" :title="$t('supply.title.platform_policy')" :draft="draft" :cap="false" overrides :send="writePolicy" @saved="void read()" />
 
-    <!-- A grant: a person found by name or an organisation chosen by its path, an amount and the words kept with it
-         (docs/web.md, 「Administration」, the supply tab). The person search is the directory's own. -->
-    <SettingsDialog v-model:open="granting" :title="$t('supply.title.credit_grant')" :dirty="grantChanges">
-      <form id="supply-credit-form" class="flex flex-col gap-4" @submit.prevent="void grant()">
-        <UFormField :label="$t('supply.label.scope')" name="scope">
-          <SettingsSegment v-model="ownerKind" :items="ownerKindItems" :label="$t('supply.label.scope')" />
-        </UFormField>
-
-        <UFormField :label="$t('supply.label.owner')" name="owner">
-          <ChoiceSelect v-if="ownerKind === 'user'" v-model="ownerId" :items="[]" :find="findPeople" value-key="value" class="w-full" :placeholder="$t('supply.placeholder.find_person')" :aria-label="$t('supply.label.owner')" />
-          <ChoiceSelect v-else v-model="ownerId" :items="unitChoices" value-key="value" class="w-full" :aria-label="$t('supply.label.owner')" />
-        </UFormField>
-
-        <UFormField :label="$t('supply.label.amount')" name="amount">
-          <UInput v-model="amount" class="w-full text-end tabular-nums" inputmode="numeric" placeholder="0" :aria-label="$t('supply.label.amount')" />
-        </UFormField>
-        <UFormField :label="$t('supply.label.words')" name="words">
-          <UInput v-model="words" class="w-full" autocomplete="off" :placeholder="$t('supply.label.words_placeholder')" :aria-label="$t('supply.label.words')" />
-        </UFormField>
-
-        <p v-if="grantFailed !== ''" role="alert" class="break-words text-sm text-error">{{ grantFailed }}</p>
-      </form>
-
-      <template #footer="{ close }">
-        <UButton :label="$t('common.action.cancel')" color="neutral" variant="ghost" :disabled="reading" @click="close()" />
-        <UButton type="submit" form="supply-credit-form" :label="$t('supply.action.grant')" :loading="reading" :disabled="reading || ownerId === '' || !whole(amount) || !grantChanges.dirty.value" @click="void grant()" />
-      </template>
-    </SettingsDialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
-import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 import { formatStamp } from "bmo-ui/app/domain/time";
 
-import { POLICY_SOURCES, policyDraft, sourceLabel, unitPathLabel, useSupplyUnits } from "~/domain/supply";
+import { POLICY_SOURCES, policyDraft, sourceLabel } from "~/domain/supply";
 
 import { countText } from "~/domain/numbers";
 
 import type { PolicyDraft, PolicyWrite } from "~/domain/supply";
 import type { SupplyAuditPage, SupplyLedgerPage, SupplyPlatformView, SupplyPolicy } from "#shared/supply";
-import type { PersonView } from "#shared/people";
 import type { Translate } from "#shared/wording";
-import type { SelectMenuItem } from "@nuxt/ui";
 
-// The platform's supply standing and the credit road, all the administrator's (docs/web.md, 「Administration」,
-// the supply tab). Every switch and field here takes effect as it is changed; the service is the owner of each
+// The platform's supply standing, its ledger and its audit, all the administrator's (docs/web.md, 「Organisation」,
+// the supply tab with the platform chosen). Every switch and field here takes effect as it is changed; the service is the owner of each
 // refusal, which is said under the group.
 
 const { t } = useI18n();
@@ -180,18 +143,6 @@ const audit = ref<SupplyAuditPage | null>(null);
 const auditFailure = ref("");
 const auditReading = ref(false);
 
-// The grant's organisation choice: every unit the administrator manages — which for them is every unit.
-const managed = useSupplyUnits();
-const granting = ref(false);
-const ownerKind = ref<"user" | "organisation">("user");
-const ownerId = ref("");
-const amount = ref("");
-const words = ref("");
-const grantFailed = ref("");
-const grantChanges = useOpenedWith(() => ({ kind: ownerKind.value, owner: ownerId.value, amount: amount.value, words: words.value }), { open: granting });
-
-const ownerKindItems = [{ value: "user", label: t("supply.label.scope_personal") }, { value: "organisation", label: t("supply.label.scope_organisation") }];
-const unitChoices = computed(() => managed.value.map((one) => ({ label: unitPathLabel(managed.value, one), value: String(one.id) })));
 const draft = computed<PolicyDraft>(() => policyDraft(platform.value?.policy ?? null, platform.value ?? undefined));
 
 function whole(value: string): boolean {
@@ -227,14 +178,6 @@ function kindText(t: Translate, kind: string): string {
   const key = keys[kind];
 
   return key === undefined ? t("supply.label.kind_named", { kind }) : t(key);
-}
-
-async function findPeople(words: string): Promise<SelectMenuItem[]> {
-  if (words.trim() === "") return [];
-
-  const found = await $fetch<PersonView[]>("/api/people/search", { query: { q: words } });
-
-  return found.slice(0, 20).map((one) => ({ label: one.name, description: one.organization, value: one.user }));
 }
 
 async function read(): Promise<void> {
@@ -344,33 +287,6 @@ async function moreAudit(): Promise<void> {
     auditFailure.value = failureText(error, t("supply.error.audit_failed"));
   } finally {
     auditReading.value = false;
-  }
-}
-
-function openGrant(): void {
-  ownerKind.value = "user";
-  ownerId.value = "";
-  amount.value = "";
-  words.value = "";
-  grantFailed.value = "";
-  granting.value = true;
-}
-
-async function grant(): Promise<void> {
-  if (!whole(amount.value) || ownerId.value === "" || reading.value) return;
-
-  reading.value = true;
-  grantFailed.value = "";
-  try {
-    const body = words.value.trim() === "" ? { ownerKind: ownerKind.value, ownerId: Number(ownerId.value), amount: Number(amount.value.trim()) } : { ownerKind: ownerKind.value, ownerId: Number(ownerId.value), amount: Number(amount.value.trim()), words: words.value.trim() };
-
-    await $fetch("/api/supply/credits", { method: "POST", body });
-    granting.value = false;
-    await readLedger();
-  } catch (error) {
-    grantFailed.value = failureText(error, t("supply.error.grant_failed"));
-  } finally {
-    reading.value = false;
   }
 }
 

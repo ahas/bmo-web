@@ -13,7 +13,7 @@
       </div>
     </ContentSkeleton>
     <template v-else>
-      <SettingsRow :label="$t('org_agents.label.below')" :description="view.lockedBy !== null ? $t('org_agents.label.locked_above') : ''">
+      <SettingsRow :label="$t('org_agents.label.below')" :description="view.lockedBy !== null ? (decidedLine($t, view.locker) ?? $t('org_agents.label.decided_unit')) : ''">
         <ChoiceSelect
           :model-value="view.delegation"
           :items="delegations"
@@ -77,6 +77,7 @@
 </template>
 
 <script setup lang="ts">
+import { decidedLine } from "~/domain/chain-decided";
 import { failureText } from "bmo-ui/app/domain/errors";
 
 import { UNIT_KEY } from "~/domain/organization";

@@ -1,0 +1,29 @@
+# The Korean part's translation into Simplified Chinese.
+
+test:
+  subject: "BMO 系统邮件测试"
+  body: "BMO 系统邮件已设置完成。收件地址: {address}"
+
+verify:
+  subject: "验证您的 BMO 邮箱地址"
+  body: "要将此地址用作 {login} 账户的邮箱，请打开下面的链接。链接在 {span} 内只能使用一次。\n\n{link}\n\n如果您没有提出过此请求，可以删除这封邮件。"
+
+reset:
+  subject: "重置 BMO 密码"
+  body: "要为 {login} 账户设置新密码，请打开下面的链接。链接在 {span} 内只能使用一次。\n\n{link}\n\n如果您没有提出过此请求，可以删除这封邮件。密码保持不变。"
+
+changed:
+  subject: "您的 BMO 密码已更改"
+  body: "{login} 账户的密码已于 {time} 更改，所有设备均已退出登录。\n\n如果不是您本人更改的，请立即告知管理员。"
+
+locked:
+  subject: "您的 BMO 账户已暂时锁定"
+  body: "由于连续登录失败，{login} 账户已锁定 {span}。最后一次尝试发生在 {time}，地址为 {address}。\n\n如果不是您本人，请在解锁后更改密码。"
+
+new_device:
+  subject: "BMO 新浏览器登录"
+  body: "{login} 账户在一个从未用过的浏览器上登录了。\n\n时间: {time}\n地址: {address}\n浏览器: {agent}\n\n如果不是您本人，请更改密码，并在 设置 > 账户 的已登录设备中将该设备退出登录。"
+
+spans:
+  minutes: "{count} 分钟"
+  hours: "{count} 小时"

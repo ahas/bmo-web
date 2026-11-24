@@ -352,6 +352,43 @@ falls away after two minutes without one.
   holdings `room_grants` (`effect` `warns`) and `room_senders` (`effect` `kept`), so the receiver shows what a
   room's removal would take before it removes the room.
 
+### Account security
+
+The service's own (`docs/accounts.md`, 「Account security」). `holder` is the user `Owner-Key` names being the path's
+`{user}`; `heads` the administrator or a head of the unit the person stands in or one above it.
+
+| Route | Request | Answer |
+|---|---|---|
+| `GET /mail` | `Owner-Role` | `server` (bmo-mail's outgoing server id, or null), `from`, `fromName`, `secret` (a secret's name or null), `configured`, `secretStands`, `mailService` (bmo-mail answered), `servers`: each `id`, `name`, `host`; 403 to anyone but the administrator |
+| `PUT /mail` | `server`, `from`, `fromName`, `secret` | the system mail as now set; 400 `bad-mail` naming the field out of shape |
+| `POST /mail/test` | `to` | 204; 409 `mail-unset`; 502 `mail-failed` with bmo-mail's sentence |
+| `POST /sign-ins` | `login`, `password`, `deviceToken?`; `X-Real-IP`, `User-Agent` | `outcome` `signed-in` with `user` and `enrol`, the session cookie set on the answer; or `second-factor` with `ticket`. 401 `wrong-credentials`, 403 `account-disabled`, 429 `throttled` and 423 `locked` with `Retry-After` |
+| `POST /sign-ins/second-factor` | `ticket`, `code`, `remember`; the same headers | `signed-in` as above, with `deviceToken` where `remember` was asked; 401 `wrong-code`, 410 `ticket-gone`, 429, 423 |
+| `POST /password-resets` | `who` (a login or an email), `linkBase`; `X-Real-IP` | 202, whatever was asked |
+| `GET /password-resets/{token}` | | `login`; 404 `link-gone` |
+| `POST /password-resets/{token}` | `password` | 204; 400 `weak-password`; 404 `link-gone` |
+| `POST /users/{user}/password-reset` | `linkBase`; `Owner-Key`, `Owner-Role` | `mailed`, and `address` (partly hidden) where mailed or `link` where not; 403 to anyone but `heads` |
+| `POST /users/{user}/email/verification` | `linkBase`; `Owner-Key`, `Owner-Role` | 204; 400 `no-email`; 409 `mail-unset`; 502 `mail-failed`; the holder or the administrator |
+| `POST /email-verifications/{token}` | | `address`; 404 `link-gone` |
+| `GET /users/{user}/security` | `Owner-Key`, `Owner-Role` | `email`, `emailVerified`, `secondFactor`, `recoveryCodesLeft`, `secondFactorRequired`, `enabled`, `left`, `lastSignIn?`, `mail`; the holder or `heads` |
+| `POST /users/{user}/second-factor` | `Owner-Key` | `secret`, `uri`, `qr` (an SVG); the holder's |
+| `POST /users/{user}/second-factor/confirm` | `code`; `Owner-Key` | `recoveryCodes`; 401 `wrong-code`, 409 `nothing-waiting` |
+| `POST /users/{user}/recovery-codes` | `Owner-Key` | `recoveryCodes`; 409 `no-second-factor` |
+| `POST /users/{user}/second-factor/off` | `password`; `Owner-Key` | 204; 401 `wrong-password`, 409 `second-factor-required` |
+| `DELETE /users/{user}/second-factor` | `Owner-Key`, `Owner-Role` | 204; `heads` alone |
+| `GET /users/{user}/devices` | `Owner-Key`, `Session-Id?` | `devices`: each `id`, `address`, `userAgent`, `madeAt`, `seenAt`, `current`; the holder's |
+| `DELETE /users/{user}/devices/{device}` | `Owner-Key` | 204; 404 where the account holds no such device standing |
+| `POST /users/{user}/devices/others` | `Owner-Key`, `Session-Id`; `X-Real-IP`, `User-Agent` | `{}` with a fresh session cookie set on the answer; 409 `no-session` where `Session-Id` names none of the account's |
+| `GET /users/{user}/sign-ins` | `Owner-Key`, `Owner-Role` | `tries`: each `at`, `outcome`, `address`, `userAgent`, the newest 50; the holder or the administrator |
+| `PUT /users/{user}/enabled` | `enabled`; `Owner-Key`, `Owner-Role` | 204; 409 `own-account`, 409 `left`; the administrator's |
+
+- **`POST /users/{user}/password`** takes `Session-Id` as well: where it names the holder's session, the answer sets a
+  fresh session cookie for it, every other session of the account having ended.
+- **`Session-Id`** is the value of the session cookie the console holds, `bmo.sid`'s, which the service reads only to
+  find the device it names.
+- **`linkBase`** is the console's public address, which a link mailed or handed opens under: `<linkBase>/reset-password?token=`
+  and `<linkBase>/verify-email?token=`.
+
 ### The secret store
 
 | Route | Request | Answer |
@@ -588,9 +625,9 @@ bans read (`docs/accounts.md`, 「sumida's own routes」).
 
 | Route | What it is |
 |---|---|
-| `POST /sumida/auth/session` | sign-in, with the name and the password; answers the session cookie, `bmo.sid`, or 401; the moment of a sign-in that answers with a session is kept for the people roster below |
+| `POST /sumida/auth/session` | 404: the sign-in is the service's own `POST /sign-ins` (「Account security」), which makes the same session |
 | `DELETE /sumida/auth/session` | sign-out, with the cookie |
-| `GET /sumida/me` | who a session is, with the cookie; 401 where it is no live session |
+| `GET /sumida/me` | who a session is, with the cookie; 401 where it is no live session or its device was ended |
 
 ## Calls the server makes
 
@@ -604,6 +641,8 @@ Each goes to the unit's base address with that unit's token as a bearer, as the 
 | the agency | register the supply hook | `PUT /hooks/supply` (`url`, `token`) | once as the server starts, where the settings name the agency, so the agency asks who pays for a person's run; `DELETE /hooks/supply` takes it away |
 | the agency | read an agent's label | `GET /supervisors/{supervisorName}`, answered its row's `label` | the name an agent a fixed line names stands as (「Fixed lines」); a refusal, no answer within three seconds or no label names it by its key |
 | the agency | read a person's personal supply roads | `GET /personal-supply`, answered `people` | whose personal supply an administrator's read of `GET /supply/user/{user}` names, with that person in `Owner-Key` and `Owner-Role: administrator` |
+| bmo-mail, at `mail.base` with `mail.token` | list its outgoing servers | `GET /outgoing-servers`, answered `items`: each `id`, `name`, `host` | the choice of the system mail's server on 플랫폼 설정 (`docs/accounts.md`, 「The platform's own mail」) |
+| bmo-mail, the same way | send one system mail | `POST /system-mails` (`server`, `from`, `fromName`, `secret` or null, `to`, `subject`, `text`, `html`, `kind`), answered `sent` true; a refusal in its common shape, `code` and `error` | a reset link, an email's verification, a test and a security notice; the secret named is read by bmo-mail off the data root's `env/`, and its value never travels |
 | the jake hub, at its loopback control address with its control token | read the attached agents | `GET /status` | whether a bound machine is attached, as a node read, a proof and a pairing answer it |
 | the jake hub, the same way | revoke a machine name | `POST /revoke?agent=<name>`, answered `ok`, `agent`, `left` | a machine taken away from the account bound to it, once no account holds its name |
 
@@ -735,6 +774,7 @@ data root's `env/web-console.env`, which its unit reads and its build reads for 
 | server | `time.zone` | the owner's time zone, an IANA name, the zone the console shows every time in, which a fixed line naming a moment tells it in (「Fixed lines」); `settings.toml` names `Asia/Seoul`, UTC stands where none is set, and the server does not stand on a name that reads as no zone |
 | server | `jake.hub_url`, `jake.install_base`, `jake.agent_key`, `jake.control`, `jake.control_token` | the jake hub an invited machine attaches to, the folder its install scripts are served under, the key its credentials are made with, and the hub's loopback control address and token the service asks which machines are attached; with none, no invitation is made and every machine reads as gone |
 | server | `secrets.dir` | the folder the secret store writes, the data root's `env/`, the platform's space every platform administrator holds and the folder every other person's stands under; a leading `~/` stands for the home of the user the server runs as, and `settings.toml` names the data root's `env/` under it |
+| server | `mail.base`, `mail.token` | bmo-mail, which the platform's own mail goes through (`docs/accounts.md`, 「The platform's own mail」), and the credential bmo-mail's settings name for the account service's system sends, set together or not at all; with neither, system mail is not set up and every act that would send one offers the handed link in its place |
 | console | `PORT` | the port the console listens on |
 | console | `BMO_WEB_BASE_URL` | the base path every road of the console stands under, fixed as the console is built |
 | console | `WEB_SERVER_ADDRESS`, `WEB_SERVER_TOKEN` | the server |
@@ -742,7 +782,7 @@ data root's `env/web-console.env`, which its unit reads and its build reads for 
 | console | `NUXT_PUBLIC_CHAT_AGENT_NAME`, `NUXT_PUBLIC_CHAT_AGENT_LABEL` | the name the chat agent's messages stand under, and the label a room calls it by |
 | console | `BMO_MCP_HOST_SOCKET` | the tool host's control socket, a Unix socket path, which a link card's page and picture are read through; with none, every card stands plain |
 | console | `POCKET_SESSION_TOKEN_FILE` | the file the tool host writes the console's tool session token to, read afresh on every call; with none, every card stands plain |
-| console | `NUXT_PUBLIC_CONSOLE_ADDRESS` | the console's public address, its scheme, public name and base path, which a link to one of its screens is written under; the console reads a link under it as its own (`docs/web.md`, 「비밀 보관함」), and a unit that writes such a link, the chat agent asking for a secret among them, is given the same address in its own settings |
+| console | `NUXT_PUBLIC_CONSOLE_ADDRESS` | the console's public address, its scheme, public name and base path, which a link to one of its screens is written under; the console reads a link under it as its own (`docs/web.md`, 「비밀 보관함」), and a unit that writes such a link, the chat agent asking for a secret among them, is given the same address in its own settings; the links the platform mails — a reset, an email's verification — are written under it too, and a reset asked from the login screen sends none where it is not set, since the address a request reached is the asker's to choose |
 | console | `AGENCY_ADDRESS`, `AGENCY_TOKEN` | the agency |
 | console | `JOB_ADDRESS`, `JOB_TOKEN` | bmo-job |
 | console | `RECEIVER_ADDRESS`, `RECEIVER_TOKEN` | the receiver; the token is the console's own credential the receiver's settings name for it (`[console] token`), not the receiver's service token, so the receiver takes from it the routes that file a person's words, which it refuses under its service token |

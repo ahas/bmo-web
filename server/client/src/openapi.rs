@@ -11,6 +11,7 @@ use serde_json::{Map, Value, json};
 
 use crate::chain::*;
 use crate::organisation::*;
+use crate::security::*;
 use crate::supply::*;
 use crate::types::*;
 use crate::wire::{SessionError, WireError};
@@ -98,6 +99,28 @@ fn declared_by() -> Value {
     "in": "header",
     "required": false,
     "description": "The unit that declared the kind, which judged the json value it writes.",
+    "schema": { "type": "string" },
+  })
+}
+
+/// The session the console holds for the call, the value of its `bmo.sid` cookie.
+fn session_id(required: bool) -> Value {
+  json!({
+    "name": "Session-Id",
+    "in": "header",
+    "required": required,
+    "description": "The value of the session cookie the console holds for the signed-in person, which names their device.",
+    "schema": { "type": "string" },
+  })
+}
+
+/// The browser's user agent, as the console hands it on.
+fn user_agent() -> Value {
+  json!({
+    "name": "User-Agent",
+    "in": "header",
+    "required": false,
+    "description": "The browser's user agent, which the sign-in keeps for its record and its notice of a new browser.",
     "schema": { "type": "string" },
   })
 }
@@ -534,8 +557,8 @@ pub fn openapi() -> Value {
     "/users/{user}/password",
     "changePassword",
     "Users and senders",
-    "Changes a user's password on the strength of their current one.",
-    params: vec![string_path("user")],
+    "Changes a user's password on the strength of their current one and ends every other session of the account; with `Session-Id` naming the caller's own, a fresh session for it is set on the answer.",
+    params: vec![string_path("user"), session_id(false), real_ip(), user_agent()],
     body: Some(json!(generator.subschema_for::<PasswordAsk>())),
     answers: vec![(204, no_answer())],
     codes: vec!["bad-request", "unauthorized", "wrong-password", "not-found", "not-in-force", "database", "failed"],
@@ -2234,18 +2257,161 @@ pub fn openapi() -> Value {
     refusal: Refusal::Wire,
     security: bearer()
   );
+
+  // Account security (docs/accounts.md, 「Account security」).
   add!(
-    "POST",
-    "/sumida/auth/session",
-    "signIn",
-    "Sessions",
-    "Signs in with a name and a password; the session cookie is in Set-Cookie and the body carries nothing.",
-    params: vec![],
-    body: Some(json!(generator.subschema_for::<LoginAsk>())),
+    "GET", "/mail", "systemMail", "Account security",
+    "The system mail as set, whether it is set up, whether its secret stands, and bmo-mail's outgoing servers; the administrator's.",
+    params: vec![owner_key()], body: None,
+    answers: vec![(200, json_answer::<SystemMail>(&mut generator))],
+    codes: vec!["unauthorized", "forbidden", "not-in-force", "database", "failed"]
+  );
+  add!(
+    "PUT", "/mail", "setSystemMail", "Account security",
+    "Writes the system mail whole: bmo-mail's outgoing server, the sender and the secret's name; the administrator's.",
+    params: vec![owner_key()], body: Some(json!(generator.subschema_for::<SystemMailAsk>())),
+    answers: vec![(200, json_answer::<SystemMail>(&mut generator))],
+    codes: vec!["bad-request", "bad-mail", "unauthorized", "forbidden", "not-in-force", "database", "failed"]
+  );
+  add!(
+    "POST", "/mail/test", "testSystemMail", "Account security",
+    "Sends one test mail through the system mail; the administrator's.",
+    params: vec![owner_key()], body: Some(json!(generator.subschema_for::<MailTestAsk>())),
+    answers: vec![(204, no_answer())],
+    codes: vec!["bad-request", "bad-mail", "unauthorized", "forbidden", "mail-unset", "mail-failed", "not-in-force", "database", "failed"]
+  );
+  add!(
+    "POST", "/sign-ins", "signIn", "Account security",
+    "Signs in with a login and a password: the session cookie in Set-Cookie, or a ticket where the account asks a second factor.",
+    params: vec![real_ip(), user_agent()], body: Some(json!(generator.subschema_for::<SignInAsk>())),
+    answers: vec![(200, json_answer::<SignedIn>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "wrong-credentials", "account-disabled", "throttled", "locked", "not-in-force", "database", "failed"]
+  );
+  add!(
+    "POST", "/sign-ins/second-factor", "signInSecondFactor", "Account security",
+    "Finishes a sign-in with a code from the authenticator or a recovery code; the session cookie in Set-Cookie.",
+    params: vec![real_ip(), user_agent()], body: Some(json!(generator.subschema_for::<SecondFactorAsk>())),
+    answers: vec![(200, json_answer::<SignedIn>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "wrong-code", "ticket-gone", "throttled", "locked", "not-in-force", "database", "failed"]
+  );
+  add!(
+    "POST", "/password-resets", "askPasswordReset", "Account security",
+    "Asks a reset link by a login or an email; the answer is the same whatever was asked.",
+    params: vec![real_ip()], body: Some(json!(generator.subschema_for::<ResetAsk>())),
+    answers: vec![(202, no_answer())],
+    codes: vec!["bad-request", "bad-link-base", "unauthorized", "not-in-force", "database", "failed"]
+  );
+  add!(
+    "GET", "/password-resets/{token}", "passwordReset", "Account security",
+    "Whether a reset link stands, and the login it is for.",
+    params: vec![string_path("token")], body: None,
+    answers: vec![(200, json_answer::<ResetLink>(&mut generator))],
+    codes: vec!["unauthorized", "link-gone", "not-in-force", "database", "failed"]
+  );
+  add!(
+    "POST", "/password-resets/{token}", "setPasswordByLink", "Account security",
+    "Sets a new password by a reset link and ends every session of the account.",
+    params: vec![string_path("token")], body: Some(json!(generator.subschema_for::<NewPasswordAsk>())),
+    answers: vec![(204, no_answer())],
+    codes: vec!["bad-request", "weak-password", "unauthorized", "link-gone", "not-in-force", "database", "failed"]
+  );
+  add!(
+    "POST", "/users/{user}/password-reset", "resetPassword", "Account security",
+    "Makes a reset link for a person, mailed or answered to hand over, and ends their sessions; the administrator's and the person's heads'.",
+    params: vec![string_path("user"), owner_key()], body: Some(json!(generator.subschema_for::<LinkAsk>())),
+    answers: vec![(200, json_answer::<ResetMade>(&mut generator))],
+    codes: vec!["bad-request", "bad-link-base", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"]
+  );
+  add!(
+    "POST", "/users/{user}/email/verification", "verifyEmail", "Account security",
+    "Mails a verification link to the profile's email; the holder's or the administrator's.",
+    params: vec![string_path("user"), owner_key()], body: Some(json!(generator.subschema_for::<LinkAsk>())),
+    answers: vec![(204, no_answer())],
+    codes: vec!["bad-request", "bad-link-base", "no-email", "unauthorized", "forbidden", "mail-unset", "mail-failed", "not-in-force", "database", "failed"]
+  );
+  add!(
+    "POST", "/email-verifications/{token}", "emailVerified", "Account security",
+    "Uses a verification link: the email it was made for is verified.",
+    params: vec![string_path("token")], body: None,
+    answers: vec![(200, json_answer::<EmailVerified>(&mut generator))],
+    codes: vec!["unauthorized", "link-gone", "not-in-force", "database", "failed"]
+  );
+  add!(
+    "GET", "/users/{user}/security", "accountSecurity", "Account security",
+    "What stands of an account's security; the holder's, the administrator's and the person's heads'.",
+    params: vec![string_path("user"), owner_key()], body: None,
+    answers: vec![(200, json_answer::<AccountSecurity>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"]
+  );
+  add!(
+    "POST", "/users/{user}/second-factor", "enrolSecondFactor", "Account security",
+    "Makes a second factor waiting to be confirmed: its secret, its otpauth address and its QR code; the holder's.",
+    params: vec![string_path("user"), owner_key()], body: None,
+    answers: vec![(200, json_answer::<Enrolment>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"]
+  );
+  add!(
+    "DELETE", "/users/{user}/second-factor", "resetSecondFactor", "Account security",
+    "Takes a person's second factor, recovery codes and remembered browsers away; the administrator's and the person's heads'.",
+    params: vec![string_path("user"), owner_key()], body: None,
+    answers: vec![(204, no_answer())],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"]
+  );
+  add!(
+    "POST", "/users/{user}/second-factor/confirm", "confirmSecondFactor", "Account security",
+    "Confirms the waiting second factor with a code, answering ten recovery codes once; the holder's.",
+    params: vec![string_path("user"), owner_key()], body: Some(json!(generator.subschema_for::<CodeAsk>())),
+    answers: vec![(200, json_answer::<RecoveryCodes>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "wrong-code", "nothing-waiting", "forbidden", "not-found", "not-in-force", "database", "failed"]
+  );
+  add!(
+    "POST", "/users/{user}/second-factor/off", "turnSecondFactorOff", "Account security",
+    "Turns the second factor off with the password; the holder's.",
+    params: vec![string_path("user"), owner_key()], body: Some(json!(generator.subschema_for::<PasswordConfirm>())),
+    answers: vec![(204, no_answer())],
+    codes: vec!["bad-request", "unauthorized", "wrong-password", "second-factor-required", "forbidden", "not-found", "not-in-force", "database", "failed"]
+  );
+  add!(
+    "POST", "/users/{user}/recovery-codes", "freshRecoveryCodes", "Account security",
+    "Makes ten new recovery codes in place of the old; the holder's.",
+    params: vec![string_path("user"), owner_key()], body: None,
+    answers: vec![(200, json_answer::<RecoveryCodes>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "no-second-factor", "forbidden", "not-in-force", "database", "failed"]
+  );
+  add!(
+    "GET", "/users/{user}/devices", "accountDevices", "Account security",
+    "The account's devices standing, the one `Session-Id` names marked; the holder's.",
+    params: vec![string_path("user"), owner_key(), session_id(false)], body: None,
+    answers: vec![(200, json_answer::<Devices>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-in-force", "database", "failed"]
+  );
+  add!(
+    "POST", "/users/{user}/devices/others", "endOtherDevices", "Account security",
+    "Ends every other session of the account and sets a fresh one for the caller's on the answer; the holder's.",
+    params: vec![string_path("user"), owner_key(), session_id(true), real_ip(), user_agent()], body: None,
     answers: vec![(200, json_answer::<Empty>(&mut generator))],
-    codes: vec!["unauthorized"],
-    refusal: Refusal::Session,
-    security: open()
+    codes: vec!["bad-request", "unauthorized", "no-session", "forbidden", "not-in-force", "database", "failed"]
+  );
+  add!(
+    "DELETE", "/users/{user}/devices/{device}", "endDevice", "Account security",
+    "Ends one session of the account; the holder's.",
+    params: vec![string_path("user"), integer_path("device"), owner_key()], body: None,
+    answers: vec![(204, no_answer())],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"]
+  );
+  add!(
+    "GET", "/users/{user}/sign-ins", "signInTries", "Account security",
+    "The account's newest 50 sign-ins tried; the holder's or the administrator's.",
+    params: vec![string_path("user"), owner_key()], body: None,
+    answers: vec![(200, json_answer::<SignInTries>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-in-force", "database", "failed"]
+  );
+  add!(
+    "PUT", "/users/{user}/enabled", "setAccountEnabled", "Account security",
+    "Disables an account, ending its sessions, or enables it again; the administrator's.",
+    params: vec![string_path("user"), owner_key()], body: Some(json!(generator.subschema_for::<EnabledAsk>())),
+    answers: vec![(204, no_answer())],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "own-account", "left", "not-found", "not-in-force", "database", "failed"]
   );
   add!(
     "DELETE",

@@ -6,11 +6,8 @@
 
 use axum::Json;
 use axum::Router;
-use axum::body::{Body, to_bytes};
-use axum::extract::{Path, Query, Request, State};
-use axum::http::{HeaderMap, Method, StatusCode};
-use axum::middleware::Next;
-use axum::response::{IntoResponse, Response};
+use axum::extract::{Path, Query, State};
+use axum::http::{HeaderMap, StatusCode};
 use axum::routing::get;
 use base64::Engine;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
@@ -28,14 +25,11 @@ use crate::people::role_of;
 use crate::routes::{Answer, user_in};
 use crate::units::{HEAD_GRANT, UNIT, company_of, path_of};
 use crate::users::user_subject;
-use crate::{Refusal, Service, all, one, run};
+use crate::{Refusal, Service, all, one};
 
 /// How many people a page answers where the call names no limit, and the most it ever answers.
 const DEFAULT_LIMIT: i64 = 50;
 const MAX_LIMIT: i64 = 100;
-
-/// The most a sign-in's body is read to before it is handed on.
-const SIGN_IN_BODY: usize = 64 * 1024;
 
 /// The routes of this module.
 pub fn routes() -> Router<Service> {
@@ -566,55 +560,4 @@ async fn person_route(
   let user = user_in(&user)?;
 
   Ok(Json(detail(&service.db, &reader, user).await?))
-}
-
-/// What the roster reads of a sign-in's body: the login it names.
-#[derive(Deserialize)]
-struct SignInAsk {
-  username: String,
-}
-
-/// The moment a user signed in kept, written over the last.
-async fn record_sign_in<C: ConnectionTrait>(db: &C, login: &str) -> Result<(), Refusal> {
-  run(
-    db,
-    r#"INSERT INTO "user_sign_ins" ("user_id", "signed_in_at")
-       SELECT "id", $2 FROM "users" WHERE "username" = $1
-       ON CONFLICT ("user_id") DO UPDATE SET "signed_in_at" = EXCLUDED."signed_in_at""#,
-    vec![login.into(), crate::now_ms().into()],
-  )
-  .await?;
-
-  Ok(())
-}
-
-/// The layer over sumida's routes that keeps when each user last signed in: a sign-in's body is read for
-/// the login it names and handed on whole, and where sumida answers it with a session the moment is kept. A
-/// moment that is not kept is said on the error stream and leaves the sign-in as sumida answered it.
-pub async fn sign_ins(State(service): State<Service>, request: Request, next: Next) -> Response {
-  if request.method() != Method::POST
-    || request.uri().path() != sumida::api::controller::auth::session::MOUNT
-  {
-    return next.run(request).await;
-  }
-
-  let (parts, body) = request.into_parts();
-  let bytes = match to_bytes(body, SIGN_IN_BODY).await {
-    Ok(bytes) => bytes,
-    Err(why) => {
-      return Refusal::new(StatusCode::PAYLOAD_TOO_LARGE, format!("the sign-in does not read: {why}"))
-        .into_response();
-    }
-  };
-  let login = serde_json::from_slice::<SignInAsk>(&bytes).ok().map(|ask| ask.username);
-  let answer = next.run(Request::from_parts(parts, Body::from(bytes))).await;
-
-  if answer.status().is_success()
-    && let Some(login) = login
-    && let Err(why) = record_sign_in(&service.db, &login).await
-  {
-    eprintln!("bmo-web-server: a sign-in's moment is not kept: {why}");
-  }
-
-  answer
 }

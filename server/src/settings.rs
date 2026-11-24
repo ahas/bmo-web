@@ -26,6 +26,9 @@ pub struct Settings {
   /// supply roads are readable (docs/accounts.md, 「Supply」).
   #[serde(default)]
   pub agency: Unit,
+  /// Nothing set here leaves system mail not set up (docs/accounts.md, 「The platform's own mail」).
+  #[serde(default)]
+  pub mail: Unit,
   #[serde(default)]
   pub names: Names,
   /// Nothing set here tells every moment in UTC.

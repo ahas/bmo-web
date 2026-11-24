@@ -456,6 +456,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/email-verifications/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Uses a verification link: the email it was made for is verified. */
+        post: operations["emailVerified"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/grants": {
         parameters: {
             query?: never;
@@ -613,6 +630,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/mail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The system mail as set, whether it is set up, whether its secret stands, and bmo-mail's outgoing servers; the administrator's. */
+        get: operations["systemMail"];
+        /** Writes the system mail whole: bmo-mail's outgoing server, the sender and the secret's name; the administrator's. */
+        put: operations["setSystemMail"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/mail/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sends one test mail through the system mail; the administrator's. */
+        post: operations["testSystemMail"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/org-memory/units": {
         parameters: {
             query?: never;
@@ -624,6 +676,41 @@ export interface paths {
         get: operations["orgMemoryUnits"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/password-resets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Asks a reset link by a login or an email; the answer is the same whatever was asked. */
+        post: operations["askPasswordReset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/password-resets/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Whether a reset link stands, and the login it is for. */
+        get: operations["passwordReset"];
+        put?: never;
+        /** Sets a new password by a reset link and ends every session of the account. */
+        post: operations["setPasswordByLink"];
         delete?: never;
         options?: never;
         head?: never;
@@ -889,6 +976,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/sign-ins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Signs in with a login and a password: the session cookie in Set-Cookie, or a ticket where the account asks a second factor. */
+        post: operations["signIn"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sign-ins/second-factor": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Finishes a sign-in with a code from the authenticator or a recovery code; the session cookie in Set-Cookie. */
+        post: operations["signInSecondFactor"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/sumida/auth/session": {
         parameters: {
             query?: never;
@@ -898,8 +1019,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Signs in with a name and a password; the session cookie is in Set-Cookie and the body carries nothing. */
-        post: operations["signIn"];
+        post?: never;
         /** Ends the session this request arrives on. */
         delete: operations["signOut"];
         options?: never;
@@ -1571,6 +1691,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users/{user}/devices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The account's devices standing, the one `Session-Id` names marked; the holder's. */
+        get: operations["accountDevices"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{user}/devices/others": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ends every other session of the account and sets a fresh one for the caller's on the answer; the holder's. */
+        post: operations["endOtherDevices"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{user}/devices/{device}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Ends one session of the account; the holder's. */
+        delete: operations["endDevice"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{user}/email/verification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mails a verification link to the profile's email; the holder's or the administrator's. */
+        post: operations["verifyEmail"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{user}/enabled": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Disables an account, ending its sessions, or enables it again; the administrator's. */
+        put: operations["setAccountEnabled"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/{user}/leave": {
         parameters: {
             query?: never;
@@ -1667,8 +1872,25 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Changes a user's password on the strength of their current one. */
+        /** Changes a user's password on the strength of their current one and ends every other session of the account; with `Session-Id` naming the caller's own, a fresh session for it is set on the answer. */
         post: operations["changePassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{user}/password-reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Makes a reset link for a person, mailed or answered to hand over, and ends their sessions; the administrator's and the person's heads'. */
+        post: operations["resetPassword"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1721,6 +1943,75 @@ export interface paths {
         put?: never;
         /** Writes a user's job title and contact details whole, and their rank and duty where named, by the account's holder or an administrator. */
         post: operations["setUserProfile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{user}/recovery-codes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Makes ten new recovery codes in place of the old; the holder's. */
+        post: operations["freshRecoveryCodes"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{user}/second-factor": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Makes a second factor waiting to be confirmed: its secret, its otpauth address and its QR code; the holder's. */
+        post: operations["enrolSecondFactor"];
+        /** Takes a person's second factor, recovery codes and remembered browsers away; the administrator's and the person's heads'. */
+        delete: operations["resetSecondFactor"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{user}/second-factor/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirms the waiting second factor with a code, answering ten recovery codes once; the holder's. */
+        post: operations["confirmSecondFactor"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{user}/second-factor/off": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Turns the second factor off with the password; the holder's. */
+        post: operations["turnSecondFactorOff"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1780,6 +2071,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users/{user}/security": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** What stands of an account's security; the holder's, the administrator's and the person's heads'. */
+        get: operations["accountSecurity"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/{user}/senders": {
         parameters: {
             query?: never;
@@ -1807,6 +2115,23 @@ export interface paths {
         get?: never;
         /** A sender linked to a user where it is linked to none, by the administrator. */
         put: operations["linkSender"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{user}/sign-ins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The account's newest 50 sign-ins tried; the holder's or the administrator's. */
+        get: operations["signInTries"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -1887,6 +2212,21 @@ export interface components {
             hubUrl: string;
             install: components["schemas"]["Installs"];
             user: string;
+        };
+        /** @description What stands of an account's security. */
+        AccountSecurity: {
+            email: string;
+            emailVerified: boolean;
+            enabled: boolean;
+            /** Format: int64 */
+            lastSignIn?: number | null;
+            left: boolean;
+            /** @description Mail is set up. */
+            mail: boolean;
+            /** Format: int64 */
+            recoveryCodesLeft: number;
+            secondFactor: boolean;
+            secondFactorRequired: boolean;
         };
         /** @description An appointment of a person's running: the unit they act for and until when. */
         ActingFor: {
@@ -2146,6 +2486,10 @@ export interface components {
             sender?: number | null;
             user?: string | null;
         };
+        /** @description A code typed. */
+        CodeAsk: {
+            code: string;
+        };
         /**
          * @description A company's default for its people's BMOs (docs/accounts.md, 「A person's BMO profile」): its name, the names
          *     that call it and whether it keeps a picture. A name absent and no call names are none set.
@@ -2174,6 +2518,23 @@ export interface components {
             head: boolean;
             role?: components["schemas"]["RoleRef"] | null;
             user: string;
+        };
+        /** @description One session the sign-in made. */
+        Device: {
+            address: string;
+            /** @description The session the call's `Session-Id` names. */
+            current: boolean;
+            /** Format: int64 */
+            id: number;
+            /** Format: int64 */
+            madeAt: number;
+            /** Format: int64 */
+            seenAt: number;
+            userAgent: string;
+        };
+        /** @description An account's devices standing. */
+        Devices: {
+            devices: components["schemas"]["Device"][];
         };
         /** @description What a draw asked, by its shape. */
         DrawAsked: {
@@ -2238,13 +2599,30 @@ export interface components {
             /** @constant */
             shape: "shuffle";
         };
+        /** @description An email verified. */
+        EmailVerified: {
+            address: string;
+        };
         /** @description What a route that answers with nothing in particular sends: an empty object. */
         Empty: Record<string, never>;
+        /** @description An account enabled or disabled. */
+        EnabledAsk: {
+            enabled: boolean;
+        };
         /**
          * @description How a supervisor's engine ended its turn.
          * @enum {string}
          */
         EngineError: "busy" | "refused" | "too-long" | "failed";
+        /** @description A second factor waiting to be confirmed. */
+        Enrolment: {
+            /** @description The address drawn as a QR code, an SVG document. */
+            qr: string;
+            /** @description The secret in base32, for an authenticator that cannot scan. */
+            secret: string;
+            /** @description The `otpauth://` address. */
+            uri: string;
+        };
         /** @description Whether one user may let another into a room, or take them out of it, asked. */
         EntryCheckAsk: {
             /** @description The user acting. */
@@ -2358,11 +2736,8 @@ export interface components {
             ok: boolean;
             version: string;
         };
-        /**
-         * @description What one change of a person's place was.
-         * @enum {string}
-         */
-        HistoryChange: "placed" | "role" | "head-granted" | "head-taken" | "acting" | "acting-ended" | "post-given" | "post-changed" | "post-taken" | "left";
+        /** @description What one change of a person's place was. */
+        HistoryChange: ("placed" | "role" | "head-granted" | "head-taken" | "acting" | "acting-ended" | "post-given" | "post-changed" | "post-taken" | "left" | "enabled") | "password-reset" | "second-factor-reset" | "disabled";
         /** @description One change of a person's place. */
         HistoryEntry: {
             after?: components["schemas"]["RoleMark"] | null;
@@ -2502,12 +2877,9 @@ export interface components {
         };
         /** @description How a step of a line was reached from the one before it. */
         LineVia: "start" | "reports-to" | "parent";
-        /** @description A sign-in's name and password. */
-        LoginAsk: {
-            password: string;
-            /** @description Omitted, the session lasts as long as the browser keeps it; true gives it the longer window. */
-            rememberMe?: boolean | null;
-            username: string;
+        /** @description A link to be made, opening under the console's public address. */
+        LinkAsk: {
+            linkBase: string;
         };
         /**
          * @description How the agent the hub holds for a machine is connected: the desktop app's built-in agent, or one installed apart.
@@ -2518,6 +2890,17 @@ export interface components {
         MachineRevoked: {
             agent: string;
             left: boolean;
+        };
+        /** @description One of bmo-mail's outgoing server records, as the system mail is chosen from them. */
+        MailServer: {
+            host: string;
+            /** @description bmo-mail's opaque id of the record. */
+            id: string;
+            name: string;
+        };
+        /** @description A test mail asked. */
+        MailTestAsk: {
+            to: string;
         };
         /**
          * @description One member of the reader's company as a picker finds and shows them (docs/accounts.md, 「The people
@@ -2583,6 +2966,10 @@ export interface components {
             /** Format: int64 */
             id: number;
             name: string;
+        };
+        /** @description A new password set by a link. */
+        NewPasswordAsk: {
+            password: string;
         };
         /**
          * @description A unit to make: a company where it names no parent; its kind by key, its short name and the unit it reports
@@ -2689,6 +3076,10 @@ export interface components {
         PasswordAsk: {
             current: string;
             next: string;
+        };
+        /** @description A password asked to confirm an act. */
+        PasswordConfirm: {
+            password: string;
         };
         /** @description The people a search found, in the organisation's own order. */
         People: {
@@ -2854,9 +3245,30 @@ export interface components {
             /** @description Whether the binding is to a machine several accounts share. */
             shared: boolean;
         };
+        /** @description The recovery codes, shown once. */
+        RecoveryCodes: {
+            recoveryCodes: string[];
+        };
         /** @description The sentence a fixed line renders as. */
         Rendered: {
             text: string;
+        };
+        /** @description A reset link asked from the login screen. */
+        ResetAsk: {
+            /** @description The console's public address the link opens under. */
+            linkBase: string;
+            /** @description A login or an email. */
+            who: string;
+        };
+        /** @description What a reset link stands for. */
+        ResetLink: {
+            login: string;
+        };
+        /** @description A password reset made for a person: mailed, with the address it went to partly hidden, or the link to hand over. */
+        ResetMade: {
+            address?: string | null;
+            link?: string | null;
+            mailed: boolean;
         };
         /** @description A grant revoked. */
         RevokeAsk: {
@@ -3079,6 +3491,17 @@ export interface components {
          * @enum {string}
          */
         RosterState: "active" | "pending" | "left";
+        /** @description A sign-in finished with a code. */
+        SecondFactorAsk: {
+            /** @description A code from the authenticator, or a recovery code. */
+            code: string;
+            /**
+             * @description Whether this browser is asked no code for 30 days.
+             * @default false
+             */
+            remember: boolean;
+            ticket: string;
+        };
         /** @description A secret the store holds, by its name: its size and when it last changed, never its value. */
         Secret: {
             /** Format: int64 */
@@ -3200,6 +3623,45 @@ export interface components {
             reason?: string | null;
             /** Format: uint16 */
             statusCode: number;
+        };
+        /** @description A sign-in tried with a login and a password. */
+        SignInAsk: {
+            /**
+             * @description The token of a browser remembered for the second factor, where the browser holds one.
+             * @default null
+             */
+            deviceToken: string | null;
+            login: string;
+            password: string;
+        };
+        /** @description How a sign-in stands. */
+        SignInOutcome: "signed-in" | "second-factor";
+        /** @description An account's sign-ins tried, the newest first. */
+        SignInTries: {
+            tries: components["schemas"]["SignInTry"][];
+        };
+        /** @description One sign-in tried. */
+        SignInTry: {
+            address: string;
+            /** Format: int64 */
+            at: number;
+            outcome: components["schemas"]["TryOutcome"];
+            userAgent: string;
+        };
+        /** @description What a sign-in answers. */
+        SignedIn: {
+            /** @description The token of this browser remembered, where `remember` was asked. */
+            deviceToken?: string | null;
+            /**
+             * @description The organisation asks a second factor the account does not hold yet.
+             * @default false
+             */
+            enrol: boolean;
+            outcome: components["schemas"]["SignInOutcome"];
+            /** @description The ticket a code is handed back with. */
+            ticket?: string | null;
+            /** @description The user signed in, its id's digits. */
+            user?: string | null;
         };
         /** @description Why the people standing for a role hold another one. */
         StandReason: "no-holder";
@@ -3633,6 +4095,54 @@ export interface components {
             /** Format: int64 */
             reserved: number;
         };
+        /**
+         * @description The system mail as set, with whether it is set up, whether the secret it names stands, and the outgoing servers
+         *     bmo-mail offers.
+         */
+        SystemMail: {
+            /** @description bmo-mail is reached, a server is chosen and a sender's address stands. */
+            configured: boolean;
+            from: string;
+            fromName: string;
+            /** @description bmo-mail answered the list of its outgoing servers. */
+            mailService: boolean;
+            /** @default null */
+            secret: string | null;
+            /** @description The secret named stands in the platform's space; true where none is named. */
+            secretStands: boolean;
+            /** @default null */
+            server: string | null;
+            servers: components["schemas"]["MailServer"][];
+        };
+        /**
+         * @description The system mail as the administrator sets it: one of bmo-mail's outgoing servers, the sender's address and name,
+         *     and the secret it signs in with.
+         */
+        SystemMailAsk: {
+            /** @description The sender's address every mail goes from. */
+            from: string;
+            /**
+             * @description The sender's name, empty for none.
+             * @default
+             */
+            fromName: string;
+            /**
+             * @description The name of a secret of the kind `account-login` in the platform's space, which bmo-mail signs in to the server
+             *     with; none for a server that asks for no sign-in.
+             * @default null
+             */
+            secret: string | null;
+            /**
+             * @description The outgoing server's id at bmo-mail; none leaves system mail not set up.
+             * @default null
+             */
+            server: string | null;
+        };
+        /**
+         * @description How a sign-in tried ended.
+         * @enum {string}
+         */
+        TryOutcome: "signed-in" | "second-factor" | "wrong-password" | "wrong-code" | "throttled" | "locked" | "disabled";
         /**
          * @description A unit renamed or moved under another parent of its company, its kind, short name and the unit it reports to
          *     set: each of the last three left as it stands where absent and taken away where null.
@@ -5097,6 +5607,37 @@ export interface operations {
             };
         };
     };
+    emailVerified: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmailVerified"];
+                };
+            };
+            /** @description A refusal or failure: unauthorized, link-gone, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
     grants: {
         parameters: {
             query: {
@@ -5514,6 +6055,108 @@ export interface operations {
             };
         };
     };
+    systemMail: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SystemMail"];
+                };
+            };
+            /** @description A refusal or failure: unauthorized, forbidden, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    setSystemMail: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SystemMailAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SystemMail"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, bad-mail, unauthorized, forbidden, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    testSystemMail: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MailTestAsk"];
+            };
+        };
+        responses: {
+            /** @description Done; no content. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: bad-request, bad-mail, unauthorized, forbidden, mail-unset, mail-failed, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
     orgMemoryUnits: {
         parameters: {
             query?: never;
@@ -5538,6 +6181,104 @@ export interface operations {
                 };
             };
             /** @description A refusal or failure: forbidden, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    askPasswordReset: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The address the console's proxy took the connection from, which a pairing's limit is kept by. */
+                "X-Real-IP": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResetAsk"];
+            };
+        };
+        responses: {
+            /** @description Waiting; no content yet. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: bad-request, bad-link-base, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    passwordReset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResetLink"];
+                };
+            };
+            /** @description A refusal or failure: unauthorized, link-gone, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    setPasswordByLink: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NewPasswordAsk"];
+            };
+        };
+        responses: {
+            /** @description Done; no content. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: bad-request, weak-password, unauthorized, link-gone, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -6188,13 +6929,18 @@ export interface operations {
     signIn: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                /** @description The address the console's proxy took the connection from, which a pairing's limit is kept by. */
+                "X-Real-IP": string;
+                /** @description The browser's user agent, which the sign-in keeps for its record and its notice of a new browser. */
+                "User-Agent"?: string;
+            };
             path?: never;
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["LoginAsk"];
+                "application/json": components["schemas"]["SignInAsk"];
             };
         };
         responses: {
@@ -6204,16 +6950,54 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Empty"];
+                    "application/json": components["schemas"]["SignedIn"];
                 };
             };
-            /** @description A refusal or failure: unauthorized */
+            /** @description A refusal or failure: bad-request, unauthorized, wrong-credentials, account-disabled, throttled, locked, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SessionError"];
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    signInSecondFactor: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The address the console's proxy took the connection from, which a pairing's limit is kept by. */
+                "X-Real-IP": string;
+                /** @description The browser's user agent, which the sign-in keeps for its record and its notice of a new browser. */
+                "User-Agent"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SecondFactorAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SignedIn"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, wrong-code, ticket-gone, throttled, locked, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
                 };
             };
         };
@@ -8270,6 +9054,187 @@ export interface operations {
             };
         };
     };
+    accountDevices: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The value of the session cookie the console holds for the signed-in person, which names their device. */
+                "Session-Id"?: string;
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Devices"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    endOtherDevices: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The value of the session cookie the console holds for the signed-in person, which names their device. */
+                "Session-Id": string;
+                /** @description The address the console's proxy took the connection from, which a pairing's limit is kept by. */
+                "X-Real-IP": string;
+                /** @description The browser's user agent, which the sign-in keeps for its record and its notice of a new browser. */
+                "User-Agent"?: string;
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Empty"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, no-session, forbidden, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    endDevice: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                user: string;
+                device: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Done; no content. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    verifyEmail: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LinkAsk"];
+            };
+        };
+        responses: {
+            /** @description Done; no content. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: bad-request, bad-link-base, no-email, unauthorized, forbidden, mail-unset, mail-failed, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    setAccountEnabled: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EnabledAsk"];
+            };
+        };
+        responses: {
+            /** @description Done; no content. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, own-account, left, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
     markLeft: {
         parameters: {
             query?: never;
@@ -8516,7 +9481,14 @@ export interface operations {
     changePassword: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                /** @description The value of the session cookie the console holds for the signed-in person, which names their device. */
+                "Session-Id"?: string;
+                /** @description The address the console's proxy took the connection from, which a pairing's limit is kept by. */
+                "X-Real-IP": string;
+                /** @description The browser's user agent, which the sign-in keeps for its record and its notice of a new browser. */
+                "User-Agent"?: string;
+            };
             path: {
                 user: string;
             };
@@ -8536,6 +9508,44 @@ export interface operations {
                 content?: never;
             };
             /** @description A refusal or failure: bad-request, unauthorized, wrong-password, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    resetPassword: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LinkAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResetMade"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, bad-link-base, unauthorized, forbidden, not-found, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -8682,6 +9692,180 @@ export interface operations {
                 };
             };
             /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    freshRecoveryCodes: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecoveryCodes"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, no-second-factor, forbidden, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    enrolSecondFactor: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Enrolment"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    resetSecondFactor: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Done; no content. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    confirmSecondFactor: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CodeAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecoveryCodes"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, wrong-code, nothing-waiting, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    turnSecondFactorOff: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordConfirm"];
+            };
+        };
+        responses: {
+            /** @description Done; no content. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, wrong-password, second-factor-required, forbidden, not-found, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -8883,6 +10067,40 @@ export interface operations {
             };
         };
     };
+    accountSecurity: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountSecurity"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
     userSenders: {
         parameters: {
             query?: never;
@@ -8937,6 +10155,40 @@ export interface operations {
                 content?: never;
             };
             /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, sender-linked, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    signInTries: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SignInTries"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;

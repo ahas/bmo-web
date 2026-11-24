@@ -22,12 +22,11 @@ use support::{Scratch, console_hash};
 use tower::ServiceExt;
 
 fn sign_in(name: &str, password: &str) -> Request<Body> {
-  Request::post("/sumida/auth/session")
+  Request::post("/sign-ins")
     .header(header::CONTENT_TYPE, "application/json")
+    .header(header::AUTHORIZATION, "Bearer a token")
     .header("x-real-ip", "127.0.0.1")
-    .body(Body::from(format!(
-      r#"{{"username":"{name}","password":"{password}","rememberMe":false}}"#
-    )))
+    .body(Body::from(format!(r#"{{"login":"{name}","password":"{password}"}}"#)))
     .unwrap()
 }
 

@@ -1,0 +1,39 @@
+# The mail the platform sends of its own (docs/accounts.md, 「Account security」): one subject and one body to each
+# kind, the body plain text whose lines the HTML copy keeps. Each `{name}` is filled in with what it names: `{login}`
+# the account's login, `{link}` the link it carries, `{span}` how long the link stands as `spans` words it, `{time}`
+# a moment in the owner's zone, `{address}` a browser's address or a mail address, `{agent}` a browser's user agent.
+
+# A test of the system mail, sent to {address}.
+test:
+  subject: "BMO 시스템 메일 테스트"
+  body: "BMO 시스템 메일이 제대로 설정되었습니다. 받는 주소: {address}"
+
+# An email's verification link for the account {login}, standing {span}.
+verify:
+  subject: "BMO 이메일 주소 인증"
+  body: "{login} 계정의 이메일로 이 주소를 쓰려면 아래 링크를 여세요. 링크는 {span} 동안 한 번만 쓸 수 있습니다.\n\n{link}\n\n요청한 적이 없다면 이 메일은 삭제해도 됩니다."
+
+# A password reset link for the account {login}, standing {span}.
+reset:
+  subject: "BMO 비밀번호 재설정"
+  body: "{login} 계정의 비밀번호를 새로 정하려면 아래 링크를 여세요. 링크는 {span} 동안 한 번만 쓸 수 있습니다.\n\n{link}\n\n요청한 적이 없다면 이 메일은 삭제해도 됩니다. 비밀번호는 그대로입니다."
+
+# The password of the account {login} changed at {time}, every device signed out.
+changed:
+  subject: "BMO 비밀번호가 변경되었습니다"
+  body: "{login} 계정의 비밀번호가 {time}에 변경되어 모든 기기에서 로그아웃되었습니다.\n\n직접 바꾼 게 아니라면 관리자에게 바로 알려 주세요."
+
+# The account {login} locked for {span} after failed sign-ins, the last at {time} from {address}.
+locked:
+  subject: "BMO 계정이 잠시 잠겼습니다"
+  body: "{login} 계정에 로그인 실패가 이어져 {span} 동안 잠갔습니다. 마지막 시도: {time}, 주소 {address}\n\n직접 시도한 게 아니라면 잠금이 풀린 뒤 비밀번호를 바꿔 주세요."
+
+# The account {login} signed in from a browser it never used, at {time} from {address} with {agent}.
+new_device:
+  subject: "BMO 새 브라우저에서 로그인"
+  body: "{login} 계정에 처음 보는 브라우저로 로그인했습니다.\n\n시각: {time}\n주소: {address}\n브라우저: {agent}\n\n본인이 아니라면 비밀번호를 바꾸고, 설정 > 계정의 로그인한 기기에서 그 기기를 로그아웃하세요."
+
+# How long a link stands, as `{span}` reads: {count} minutes or {count} hours.
+spans:
+  minutes: "{count}분"
+  hours: "{count}시간"

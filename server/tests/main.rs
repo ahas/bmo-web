@@ -25,6 +25,7 @@ mod routes;
 mod secret_kinds;
 mod secrets;
 mod sections;
+mod security;
 mod supply;
 mod units;
 mod words;

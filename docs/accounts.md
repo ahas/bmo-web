@@ -73,12 +73,13 @@ among them) never take one other units name; these are the ones the console call
     appended behind them, so taking any of them would let a browser name a fresh address at every attempt.
   - **The console's port is reached through the proxy alone.** A request reaching the port directly writes its
     own `X-Real-IP`, so the deployment keeps the port off every network but the proxy's.
-- **Sign-in:** `POST /sumida/auth/session` with the name and the password. The console always asks for the ordinary
-  window, an idle one of seven days which the service extends at every request a session is read on, so
-  staying signed in stays the console's own seal (`docs/web.md`, 「Access」). The answer carries the session
-  cookie, `bmo.sid`; a refusal is 401.
+- **Sign-in is the service's own `POST /sign-ins`** (「Signing in」), which makes sumida's session as sumida's
+  sign-in does; sumida's `POST /sumida/auth/session` answers 404. The session is the ordinary window, an idle one
+  of seven days which the service extends at every request a session is read on, so staying signed in stays the
+  console's own seal (`docs/web.md`, 「Access」). The answer carries the session cookie, `bmo.sid`.
 - **Sign-out:** `DELETE /sumida/auth/session` with that cookie.
-- **Who a session is:** `GET /sumida/me` with the cookie; 401 where it is no live session.
+- **Who a session is:** `GET /sumida/me` with the cookie; 401 where it is no live session, a device its person
+  ended among them (「Sessions and devices」).
 - **sumida's settings** are written beside the service at its start and named for sumida, with the database's
   address and Valkey's handed in their own variables; no token is issued here, so no secret is kept.
 
@@ -907,8 +908,9 @@ section states what each does.
   history, the newest first (「A person's history」), when they left and who marked it where they did, and their
   machine's standing, its name, whether it is shared and when it was last proven. 404 `not-found` where the person
   stands in no company the reader looks through.
-- **The service keeps when each user last signed in:** the moment a `POST /sumida/auth/session` answered with a
-  session, one row a user, written over at each sign-in. Nothing else of a sign-in is kept, its address among it.
+- **The service keeps when each user last signed in:** the moment a sign-in answered with a session, one row a
+  user, written over at each sign-in. What else a sign-in keeps is its person's own record of tries
+  (「Signing in」).
 
 ### Phones
 
@@ -1409,6 +1411,152 @@ Each is declared by the module that uses it, as the service stands, under the un
   the acts it reports: every grant, every change of a policy, the rate or `enforce`, and every change of a
   plan.
 
+## Account security
+
+What keeps an account its holder's beyond the password: the mail the platform sends of its own, a verified email,
+a forgotten password set again by mail, a second factor, the sessions a person sees and ends, the guard on the
+sign-in, and what the administrator and a person's heads do to an account. Every route here is the service's own,
+under its token; the console is the one caller, and a browser reaches none of them.
+
+### The platform's own mail
+
+- **The platform sends mail of its own** — reset links, an email's verification, security notices — through
+  bmo-mail, which keeps the mail servers as records many accounts choose from. The administrator sets the system mail
+  on 플랫폼 설정 (`docs/web.md`, 「메일」): one of bmo-mail's outgoing server records, the sender's address and name, and
+  the name of a secret in the platform's space of the secret store (「The secret store」) of the kind `account-login`,
+  whose `USERNAME` and `PASSWORD` the server is signed in with. It is kept in the service's `settings` under
+  `mail.system`.
+- **No password of the mail server stands here.** The setting names the secret alone, and the send names it to
+  bmo-mail, which reads it off the data root's `env/` as every unit reads a secret by its name; the service never
+  reads its value, and no route answers it.
+- **The service reaches bmo-mail at the address and with the credential its settings name,** `mail.base` and
+  `mail.token` (`docs/boundary.md`, 「Calls the server makes」): bmo-mail's list of its outgoing servers, for the
+  choice, and its system send, one mail a call.
+- **System mail is set up** where bmo-mail is named in the settings, an outgoing server is chosen and a sender's
+  address stands. Until then every act that would send mail says plainly that mail is not set up, and the console
+  offers what stands in its place: the administrator's one-time link to hand over (「A password set again」).
+- **A mail is written in its reader's language,** the one their account reads the console in, Korean where they
+  chose none; its words are the server's pack's `account-mail` part. Each goes as plain text and as HTML, with one
+  link where it carries one, and with a kind bmo-mail's log keeps it by: `test`, `email-verification`,
+  `password-reset`, `password-changed`, `account-locked` or `new-device`.
+- **A mail that does not go is said:** the act that sent it answers 502 `mail-failed` with bmo-mail's sentence, and a
+  notice that goes beside another act — a lock, a new browser, a changed password — is written to the error stream
+  and the act stands.
+- **`GET /mail`** — the system mail as set, with whether it is set up, whether the secret it names stands, and the
+  outgoing servers bmo-mail offers, an empty list and `mailService` false where bmo-mail is not named or does not
+  answer; the administrator's alone. **`PUT /mail`** writes it whole; no server leaves it not set up. **`POST
+  /mail/test`** sends one test mail to the address named, in the administrator's language, and answers bmo-mail's
+  refusal where it refuses.
+
+### A verified email
+
+- **An account's email is the profile's** (「Users and senders」). It is verified by a link mailed to it, and only a
+  verified email is sent a reset link or a security notice.
+- **A change of the email undoes its verification:** a verification holds the address it was made for, so a profile
+  naming another one reads unverified until the new address is verified in turn. The console asks for the mail as the
+  email is changed, where mail is set up.
+- **`POST /users/{user}/email/verification`** — mails a verification link to the profile's email, by the account's
+  holder or the administrator; 409 `mail-unset` where mail is not set up, 400 `no-email` where the profile keeps none.
+  The link stands 24 hours and for one use. **`POST /email-verifications/{token}`** — the link used: the email it
+  was made for is verified, where the profile still names it; 404 `link-gone` otherwise.
+
+### Signing in
+
+- **The console signs a person in through `POST /sign-ins`,** never through sumida's own route: the login, the
+  password, the token of a device remembered for the second factor where the browser holds one, the browser's
+  address in `X-Real-IP` and its `User-Agent`. The answer is one of two:
+  - `signed-in`, with the session's cookie set on the answer as sumida sets it, the user, and `enrol` where the
+    organisation asks a second factor the account does not hold yet (「The second factor」);
+  - `second-factor`, with a ticket: the password matched and the account holds a second factor. The ticket stands
+    five minutes and takes five wrong codes; `POST /sign-ins/second-factor` hands it back with a code from the
+    authenticator or a recovery code, and `remember` to have this browser asked no code for 30 days, which answers a
+    device token beside the session.
+- **Refusals say nothing of whether the login stands:** a login no account answers to and a wrong password are both
+  401 `wrong-credentials`, the password checked at the same cost either way. A disabled account is said only after
+  its password matched, 403 `account-disabled`. A wrong code is 401 `wrong-code`, and a ticket used up or past its
+  five minutes 410 `ticket-gone`.
+- **sumida's own sign-in, `POST /sumida/auth/session`, is closed** (404): a sign-in that skipped the guard and the
+  second factor would be a road around both.
+- **The guard on the sign-in counts failures** — a wrong password and a wrong code alike — by the login as it was
+  typed, its case set aside, so a login that names nobody is held as one that does, and by the browser's address:
+  - **By the login:** from the third failure in a row, within 15 minutes, the next try waits 2, 4, 8 seconds and so
+    on, at most 60; the tenth locks it for 15 minutes, its password matching or not, and the person is mailed once
+    that their account was locked, where the login names an account with a verified email.
+  - **By the address:** from its tenth failure within 15 minutes the next try waits likewise, at most 300 seconds,
+    and its fiftieth shuts the address out for 15 minutes.
+  - **A try made too soon is not tried:** it answers 429 `throttled`, and a locked login 423 `locked`, each with
+    `Retry-After` in seconds; neither is counted. A sign-in that goes through ends the login's run.
+- **A sign-in from a new browser is told to its person:** where an account that signed in before signs in with a
+  browser it never signed in with — its user agent read with its version numbers set aside — a notice is mailed to
+  its verified email, naming the browser, the address and the moment.
+- **Every try is kept for the person:** the moment, the address, the user agent and how it ended (`signed-in`,
+  `second-factor`, `wrong-password`, `wrong-code`, `throttled`, `locked`, `disabled`), for 90 days.
+  **`GET /users/{user}/sign-ins`** answers the newest 50, to the account's holder or the administrator.
+- **When each user last signed in** is kept as it was (「The people roster」), written by a sign-in that went through.
+
+### The second factor
+
+- **The second factor is a time-based code** (RFC 6238: SHA-1, six digits, 30 seconds), from any authenticator.
+  A code is taken one step either side of now, and a step once: a code used is refused if typed again.
+- **A person enrols from their own account:** **`POST /users/{user}/second-factor`** makes a secret waiting to be
+  confirmed and answers it, its `otpauth://` address and that address drawn as a QR code, an SVG made by the service
+  itself, so no other site sees the secret. **`POST /users/{user}/second-factor/confirm`** with a code from it
+  confirms it and answers ten recovery codes, shown this once and kept hashed, each good for one sign-in in place of
+  a code. **`POST /users/{user}/recovery-codes`** makes ten new ones in their place. All three are the account's
+  holder's alone.
+- **A person turns it off** with their password, **`POST /users/{user}/second-factor/off`**; refused 409
+  `second-factor-required` where their organisation asks for it.
+- **The administrator and the person's heads reset it:** **`DELETE /users/{user}/second-factor`** takes the factor,
+  the recovery codes and the remembered devices away, and is kept in the person's history (「A person's history」).
+  A head is one who heads the unit the person stands in or a unit above it, as for a departure (「A person who
+  leaves」).
+- **An organisation asks a second factor of its people** by the chain's kind `account.second-factor-required`, a
+  flag, nearest link first, at the platform, a company and a unit (「The delegation chain」); the console sets it on
+  조직's 보안 tab. A person it holds for who holds none is answered `enrol` at each sign-in, which the console leads
+  to the enrolment.
+
+### Sessions and devices
+
+- **Every session the sign-in makes is kept as a device of its account:** the session's id hashed, the address and
+  the user agent it was made from, when it was made and when it was last seen, the session check moving the last
+  at most once a minute.
+- **`GET /users/{user}/devices`** — the account's devices standing, the newest seen first, the one the call's
+  `Session-Id` names marked as this one; the holder's alone. **`DELETE /users/{user}/devices/{device}`** ends one:
+  the session check refuses it from then on. **`POST /users/{user}/devices/others`** ends every other one and answers
+  a fresh session for this one, set on the answer, which the console's seal takes in place of the old.
+- **A password set ends every other session:** a change of one's own password ends every session but a fresh one
+  answered for the device that changed it, as above; a reset ends every one. Both stand on sumida's own mark of when
+  an account's credentials were last reset, which refuses every session made before it.
+
+### A password set again
+
+- **A person who forgot their password asks for a link** on the login screen, by their login or their email:
+  **`POST /password-resets`**. The answer is the same 202 whatever was asked, so it tells nobody whether an
+  account stands. Where the words name an enabled account with a verified email and mail is set up, a link is mailed
+  to it: one use, 30 minutes. Each account is mailed three such links an hour at most, and each address asks ten
+  times an hour at most; past either, nothing is sent and the answer is the same.
+- **`GET /password-resets/{token}`** reads whether a link stands and the login it is for; **`POST
+  /password-resets/{token}`** sets the new password, of eight characters or more, ends every session of the account
+  and every other link of it, and mails the person that their password was changed. A link used, replaced or past its
+  time is 404 `link-gone`.
+- **The administrator and the person's heads reset a password** from the person's row: **`POST
+  /users/{user}/password-reset`**. Nobody sets or reads the password: a link is made, one use and 24 hours, the
+  account's sessions end, and the act is kept in the person's history. Where mail is set up and the email is
+  verified the link is mailed and the answer names the address it went to, partly hidden; otherwise the answer
+  carries the link itself, once, for the one who made it to hand over.
+- **The account command** sets a password from the machine as it always did (「The account command」).
+
+### The administrator's acts on an account
+
+- **`GET /users/{user}/security`** — what stands of an account's security: its email and whether it is verified,
+  whether it holds a second factor and how many recovery codes are left, whether its organisation asks one, whether
+  it is enabled, when it last signed in, and whether mail is set up. The holder, the administrator and the person's
+  heads read it.
+- **`PUT /users/{user}/enabled`** — the administrator disables an account or enables it again; a disabled account
+  signs in no more and every session of it ends at its next check. The administrator's own account is refused 409
+  `own-account`, and an account marked left 409 `left`, since leaving is for good. Each is kept in the person's
+  history.
+
 ## The account command
 
 - **The server's binary makes the user a name signs in as, or gives one standing a new password,** with the
@@ -1455,10 +1603,18 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 | `user_nodes` | the machine each invited account is bound to, whether the administrator bound it shared, when the account was connected to it, and when it was last proven |
 | `user_departures` | each account marked left: when, and by whom |
 | `user_sign_ins` | when each user last signed in (「The people roster」) |
+| `sign_in_tries` | each sign-in tried, kept 90 days: the login as typed in lower case, the user it named or none, the address, the user agent, how it ended, whether it counts as a failure, and when (「Signing in」) |
+| `sign_in_locks` | each login locked: until when, and whether its person was mailed |
+| `account_links` | each link mailed or handed — a reset or an email's verification: its kind, the user, the token hashed, the address it was made for, who made it, when it stands until and when it was used |
+| `email_checks` | the address each account's email was verified as, and when |
+| `second_factors` | each account's second factor: its secret, a secret waiting to be confirmed, when it was confirmed and the last step a code was taken at |
+| `recovery_codes` | each account's recovery codes, hashed, and when each was used |
+| `remembered_devices` | each browser remembered for the second factor: the token hashed, the user and when it stands until |
+| `account_devices` | each session the sign-in made: its id hashed, the user, the address, the user agent, when it was made, last seen and ended |
 | `company_agents` | the picture of an organisation's default for its people's BMOs, by the unit whose link of `agent-profile.picture` holds it: the bytes with their type, and who set it and when (「A person's BMO profile」) |
 | `own_agents` | each person's own BMO profile: the name, the call names, the persona and the picture with its type, kept whether or not they may use it |
 | `secret_kinds` | each secret kind: its key, name, description and fields, and the order kinds were added in |
-| `settings` | the service's own keys: the mark that the move is written, and the move's administrator's user (「The platform administrators」) |
+| `settings` | the service's own keys: the mark that the move is written, the move's administrator's user (「The platform administrators」), and the system mail (「The platform's own mail」) |
 | `web_users` | the console's own accounts, the sign-in that stands before the model is in force |
 | `web_push_devices` | a user's browsers that take push notices |
 | `web_tab_states` | a user's open tabs per screen |
@@ -1593,5 +1749,14 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
   credits once a month's spend reaches it. The move of the stored settings onto the chain is tested by taking it
   down, writing the BMO setting permission and the supply policies as they stood before it, bringing it up again,
   and asking each old route the old question: the same settings, the same resolved answers, and the same orders.
+- **The account security tests** stand the service on the scratch database with a stand-in bmo-mail that keeps what
+  it is handed: the system mail set and read with no value of its secret answered; a test mail sent; a verification mailed and
+  used, and undone by a change of the email; a sign-in answered `signed-in` and one answered `second-factor` and
+  finished with a code and with a recovery code, a code used twice refused; the same refusal for a login that names
+  nobody and a wrong password; the waits by the login and by the address and the lock with its one mail; a reset asked
+  by login and by email answering the same as one for nobody, the link used once and the sessions ended; a reset by
+  the administrator and by a head, mailed or handed, refused to anyone else and kept in the history; the second factor
+  reset; a device ended and refused by the session check; and an account disabled and enabled, its own refused. The
+  sessions themselves stand in the sign-in target, on the machine's Valkey.
 - **The console's side tests against a stand-in** answering these routes, so a console test needs neither the
   binary nor Valkey.

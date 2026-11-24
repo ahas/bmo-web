@@ -305,6 +305,13 @@ pub enum HistoryChange {
   PostChanged,
   PostTaken,
   Left,
+  /// A password reset by the administrator or a head (docs/accounts.md, 「A password set again」).
+  PasswordReset,
+  /// A second factor reset by the administrator or a head.
+  SecondFactorReset,
+  /// An account disabled or enabled by the administrator.
+  Disabled,
+  Enabled,
 }
 
 /// A role as a change of a person's place kept it: its key and the name it had then.

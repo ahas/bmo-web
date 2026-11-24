@@ -51,6 +51,55 @@
         ],
         "type": "object"
       },
+      "AccountSecurity": {
+        "description": "What stands of an account's security.",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "emailVerified": {
+            "type": "boolean"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "lastSignIn": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "left": {
+            "type": "boolean"
+          },
+          "mail": {
+            "description": "Mail is set up.",
+            "type": "boolean"
+          },
+          "recoveryCodesLeft": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "secondFactor": {
+            "type": "boolean"
+          },
+          "secondFactorRequired": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "email",
+          "emailVerified",
+          "secondFactor",
+          "recoveryCodesLeft",
+          "secondFactorRequired",
+          "enabled",
+          "left",
+          "mail"
+        ],
+        "type": "object"
+      },
       "ActingFor": {
         "description": "An appointment of a person's running: the unit they act for and until when.",
         "properties": {
@@ -855,6 +904,18 @@
         ],
         "type": "object"
       },
+      "CodeAsk": {
+        "description": "A code typed.",
+        "properties": {
+          "code": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "type": "object"
+      },
       "CompanyAgent": {
         "description": "A company's default for its people's BMOs (docs/accounts.md, 「A person's BMO profile」): its name, the names\nthat call it and whether it keeps a picture. A name absent and no call names are none set.",
         "properties": {
@@ -955,6 +1016,57 @@
         "required": [
           "user",
           "head"
+        ],
+        "type": "object"
+      },
+      "Device": {
+        "description": "One session the sign-in made.",
+        "properties": {
+          "address": {
+            "type": "string"
+          },
+          "current": {
+            "description": "The session the call's `Session-Id` names.",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "madeAt": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "seenAt": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "userAgent": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "address",
+          "userAgent",
+          "madeAt",
+          "seenAt",
+          "current"
+        ],
+        "type": "object"
+      },
+      "Devices": {
+        "description": "An account's devices standing.",
+        "properties": {
+          "devices": {
+            "items": {
+              "$ref": "#/components/schemas/Device"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "devices"
         ],
         "type": "object"
       },
@@ -1181,8 +1293,32 @@
           }
         ]
       },
+      "EmailVerified": {
+        "description": "An email verified.",
+        "properties": {
+          "address": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "address"
+        ],
+        "type": "object"
+      },
       "Empty": {
         "description": "What a route that answers with nothing in particular sends: an empty object.",
+        "type": "object"
+      },
+      "EnabledAsk": {
+        "description": "An account enabled or disabled.",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "enabled"
+        ],
         "type": "object"
       },
       "EngineError": {
@@ -1194,6 +1330,29 @@
           "failed"
         ],
         "type": "string"
+      },
+      "Enrolment": {
+        "description": "A second factor waiting to be confirmed.",
+        "properties": {
+          "qr": {
+            "description": "The address drawn as a QR code, an SVG document.",
+            "type": "string"
+          },
+          "secret": {
+            "description": "The secret in base32, for an authenticator that cannot scan.",
+            "type": "string"
+          },
+          "uri": {
+            "description": "The `otpauth://` address.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "secret",
+          "uri",
+          "qr"
+        ],
+        "type": "object"
       },
       "EntryCheckAsk": {
         "description": "Whether one user may let another into a room, or take them out of it, asked.",
@@ -1637,19 +1796,39 @@
       },
       "HistoryChange": {
         "description": "What one change of a person's place was.",
-        "enum": [
-          "placed",
-          "role",
-          "head-granted",
-          "head-taken",
-          "acting",
-          "acting-ended",
-          "post-given",
-          "post-changed",
-          "post-taken",
-          "left"
-        ],
-        "type": "string"
+        "oneOf": [
+          {
+            "enum": [
+              "placed",
+              "role",
+              "head-granted",
+              "head-taken",
+              "acting",
+              "acting-ended",
+              "post-given",
+              "post-changed",
+              "post-taken",
+              "left",
+              "enabled"
+            ],
+            "type": "string"
+          },
+          {
+            "const": "password-reset",
+            "description": "A password reset by the administrator or a head (docs/accounts.md, 「A password set again」).",
+            "type": "string"
+          },
+          {
+            "const": "second-factor-reset",
+            "description": "A second factor reset by the administrator or a head.",
+            "type": "string"
+          },
+          {
+            "const": "disabled",
+            "description": "An account disabled or enabled by the administrator.",
+            "type": "string"
+          }
+        ]
       },
       "HistoryEntry": {
         "description": "One change of a person's place.",
@@ -2123,26 +2302,15 @@
           }
         ]
       },
-      "LoginAsk": {
-        "description": "A sign-in's name and password.",
+      "LinkAsk": {
+        "description": "A link to be made, opening under the console's public address.",
         "properties": {
-          "password": {
-            "type": "string"
-          },
-          "rememberMe": {
-            "description": "Omitted, the session lasts as long as the browser keeps it; true gives it the longer window.",
-            "type": [
-              "boolean",
-              "null"
-            ]
-          },
-          "username": {
+          "linkBase": {
             "type": "string"
           }
         },
         "required": [
-          "username",
-          "password"
+          "linkBase"
         ],
         "type": "object"
       },
@@ -2167,6 +2335,39 @@
         "required": [
           "agent",
           "left"
+        ],
+        "type": "object"
+      },
+      "MailServer": {
+        "description": "One of bmo-mail's outgoing server records, as the system mail is chosen from them.",
+        "properties": {
+          "host": {
+            "type": "string"
+          },
+          "id": {
+            "description": "bmo-mail's opaque id of the record.",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "host"
+        ],
+        "type": "object"
+      },
+      "MailTestAsk": {
+        "description": "A test mail asked.",
+        "properties": {
+          "to": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "to"
         ],
         "type": "object"
       },
@@ -2372,6 +2573,18 @@
         "required": [
           "id",
           "name"
+        ],
+        "type": "object"
+      },
+      "NewPasswordAsk": {
+        "description": "A new password set by a link.",
+        "properties": {
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "password"
         ],
         "type": "object"
       },
@@ -2691,6 +2904,18 @@
         "required": [
           "current",
           "next"
+        ],
+        "type": "object"
+      },
+      "PasswordConfirm": {
+        "description": "A password asked to confirm an act.",
+        "properties": {
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "password"
         ],
         "type": "object"
       },
@@ -3172,6 +3397,21 @@
         ],
         "type": "object"
       },
+      "RecoveryCodes": {
+        "description": "The recovery codes, shown once.",
+        "properties": {
+          "recoveryCodes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "recoveryCodes"
+        ],
+        "type": "object"
+      },
       "Rendered": {
         "description": "The sentence a fixed line renders as.",
         "properties": {
@@ -3181,6 +3421,60 @@
         },
         "required": [
           "text"
+        ],
+        "type": "object"
+      },
+      "ResetAsk": {
+        "description": "A reset link asked from the login screen.",
+        "properties": {
+          "linkBase": {
+            "description": "The console's public address the link opens under.",
+            "type": "string"
+          },
+          "who": {
+            "description": "A login or an email.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "who",
+          "linkBase"
+        ],
+        "type": "object"
+      },
+      "ResetLink": {
+        "description": "What a reset link stands for.",
+        "properties": {
+          "login": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "login"
+        ],
+        "type": "object"
+      },
+      "ResetMade": {
+        "description": "A password reset made for a person: mailed, with the address it went to partly hidden, or the link to hand over.",
+        "properties": {
+          "address": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "link": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "mailed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "mailed"
         ],
         "type": "object"
       },
@@ -3840,6 +4134,29 @@
         ],
         "type": "string"
       },
+      "SecondFactorAsk": {
+        "description": "A sign-in finished with a code.",
+        "properties": {
+          "code": {
+            "description": "A code from the authenticator, or a recovery code.",
+            "type": "string"
+          },
+          "remember": {
+            "default": false,
+            "description": "Whether this browser is asked no code for 30 days.",
+            "type": "boolean"
+          },
+          "ticket": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ticket",
+          "code",
+          "remember"
+        ],
+        "type": "object"
+      },
       "Secret": {
         "description": "A secret the store holds, by its name: its size and when it last changed, never its value.",
         "properties": {
@@ -4201,6 +4518,125 @@
         "required": [
           "code",
           "statusCode"
+        ],
+        "type": "object"
+      },
+      "SignInAsk": {
+        "description": "A sign-in tried with a login and a password.",
+        "properties": {
+          "deviceToken": {
+            "default": null,
+            "description": "The token of a browser remembered for the second factor, where the browser holds one.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "login": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "login",
+          "password",
+          "deviceToken"
+        ],
+        "type": "object"
+      },
+      "SignInOutcome": {
+        "description": "How a sign-in stands.",
+        "oneOf": [
+          {
+            "const": "signed-in",
+            "description": "The session is made, its cookie set on the answer.",
+            "type": "string"
+          },
+          {
+            "const": "second-factor",
+            "description": "The password matched, and the account asks a code.",
+            "type": "string"
+          }
+        ]
+      },
+      "SignInTries": {
+        "description": "An account's sign-ins tried, the newest first.",
+        "properties": {
+          "tries": {
+            "items": {
+              "$ref": "#/components/schemas/SignInTry"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "tries"
+        ],
+        "type": "object"
+      },
+      "SignInTry": {
+        "description": "One sign-in tried.",
+        "properties": {
+          "address": {
+            "type": "string"
+          },
+          "at": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "outcome": {
+            "$ref": "#/components/schemas/TryOutcome"
+          },
+          "userAgent": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "at",
+          "outcome",
+          "address",
+          "userAgent"
+        ],
+        "type": "object"
+      },
+      "SignedIn": {
+        "description": "What a sign-in answers.",
+        "properties": {
+          "deviceToken": {
+            "description": "The token of this browser remembered, where `remember` was asked.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "enrol": {
+            "default": false,
+            "description": "The organisation asks a second factor the account does not hold yet.",
+            "type": "boolean"
+          },
+          "outcome": {
+            "$ref": "#/components/schemas/SignInOutcome"
+          },
+          "ticket": {
+            "description": "The ticket a code is handed back with.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "user": {
+            "description": "The user signed in, its id's digits.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "outcome",
+          "enrol"
         ],
         "type": "object"
       },
@@ -5573,6 +6009,110 @@
           "debt"
         ],
         "type": "object"
+      },
+      "SystemMail": {
+        "description": "The system mail as set, with whether it is set up, whether the secret it names stands, and the outgoing servers\nbmo-mail offers.",
+        "properties": {
+          "configured": {
+            "description": "bmo-mail is reached, a server is chosen and a sender's address stands.",
+            "type": "boolean"
+          },
+          "from": {
+            "type": "string"
+          },
+          "fromName": {
+            "type": "string"
+          },
+          "mailService": {
+            "description": "bmo-mail answered the list of its outgoing servers.",
+            "type": "boolean"
+          },
+          "secret": {
+            "default": null,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "secretStands": {
+            "description": "The secret named stands in the platform's space; true where none is named.",
+            "type": "boolean"
+          },
+          "server": {
+            "default": null,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "servers": {
+            "items": {
+              "$ref": "#/components/schemas/MailServer"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "server",
+          "from",
+          "fromName",
+          "secret",
+          "configured",
+          "secretStands",
+          "mailService",
+          "servers"
+        ],
+        "type": "object"
+      },
+      "SystemMailAsk": {
+        "description": "The system mail as the administrator sets it: one of bmo-mail's outgoing servers, the sender's address and name,\nand the secret it signs in with.",
+        "properties": {
+          "from": {
+            "description": "The sender's address every mail goes from.",
+            "type": "string"
+          },
+          "fromName": {
+            "default": "",
+            "description": "The sender's name, empty for none.",
+            "type": "string"
+          },
+          "secret": {
+            "default": null,
+            "description": "The name of a secret of the kind `account-login` in the platform's space, which bmo-mail signs in to the server\nwith; none for a server that asks for no sign-in.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "server": {
+            "default": null,
+            "description": "The outgoing server's id at bmo-mail; none leaves system mail not set up.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "server",
+          "from",
+          "fromName",
+          "secret"
+        ],
+        "type": "object"
+      },
+      "TryOutcome": {
+        "description": "How a sign-in tried ended.",
+        "enum": [
+          "signed-in",
+          "second-factor",
+          "wrong-password",
+          "wrong-code",
+          "throttled",
+          "locked",
+          "disabled"
+        ],
+        "type": "string"
       },
       "UnitChange": {
         "description": "A unit renamed or moved under another parent of its company, its kind, short name and the unit it reports to\nset: each of the last three left as it stands where absent and taken away where null.",
@@ -8571,6 +9111,54 @@
         ]
       }
     },
+    "/email-verifications/{token}": {
+      "post": {
+        "operationId": "emailVerified",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailVerified"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: unauthorized, link-gone, not-in-force, database, failed"
+          }
+        },
+        "summary": "Uses a verification link: the email it was made for is verified.",
+        "tags": [
+          "Account security"
+        ],
+        "x-codes": [
+          "unauthorized",
+          "link-gone",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
     "/grants": {
       "delete": {
         "operationId": "revoke",
@@ -9335,6 +9923,170 @@
         ]
       }
     },
+    "/mail": {
+      "get": {
+        "operationId": "systemMail",
+        "parameters": [
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SystemMail"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: unauthorized, forbidden, not-in-force, database, failed"
+          }
+        },
+        "summary": "The system mail as set, whether it is set up, whether its secret stands, and bmo-mail's outgoing servers; the administrator's.",
+        "tags": [
+          "Account security"
+        ],
+        "x-codes": [
+          "unauthorized",
+          "forbidden",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "put": {
+        "operationId": "setSystemMail",
+        "parameters": [
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SystemMailAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SystemMail"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, bad-mail, unauthorized, forbidden, not-in-force, database, failed"
+          }
+        },
+        "summary": "Writes the system mail whole: bmo-mail's outgoing server, the sender and the secret's name; the administrator's.",
+        "tags": [
+          "Account security"
+        ],
+        "x-codes": [
+          "bad-request",
+          "bad-mail",
+          "unauthorized",
+          "forbidden",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/mail/test": {
+      "post": {
+        "operationId": "testSystemMail",
+        "parameters": [
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MailTestAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Done; no content."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, bad-mail, unauthorized, forbidden, mail-unset, mail-failed, not-in-force, database, failed"
+          }
+        },
+        "summary": "Sends one test mail through the system mail; the administrator's.",
+        "tags": [
+          "Account security"
+        ],
+        "x-codes": [
+          "bad-request",
+          "bad-mail",
+          "unauthorized",
+          "forbidden",
+          "mail-unset",
+          "mail-failed",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
     "/org-memory/units": {
       "get": {
         "operationId": "orgMemoryUnits",
@@ -9396,6 +10148,158 @@
         "x-codes": [
           "forbidden",
           "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/password-resets": {
+      "post": {
+        "operationId": "askPasswordReset",
+        "parameters": [
+          {
+            "description": "The address the console's proxy took the connection from, which a pairing's limit is kept by.",
+            "in": "header",
+            "name": "X-Real-IP",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Waiting; no content yet."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, bad-link-base, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "summary": "Asks a reset link by a login or an email; the answer is the same whatever was asked.",
+        "tags": [
+          "Account security"
+        ],
+        "x-codes": [
+          "bad-request",
+          "bad-link-base",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/password-resets/{token}": {
+      "get": {
+        "operationId": "passwordReset",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResetLink"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: unauthorized, link-gone, not-in-force, database, failed"
+          }
+        },
+        "summary": "Whether a reset link stands, and the login it is for.",
+        "tags": [
+          "Account security"
+        ],
+        "x-codes": [
+          "unauthorized",
+          "link-gone",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "post": {
+        "operationId": "setPasswordByLink",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewPasswordAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Done; no content."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, weak-password, unauthorized, link-gone, not-in-force, database, failed"
+          }
+        },
+        "summary": "Sets a new password by a reset link and ends every session of the account.",
+        "tags": [
+          "Account security"
+        ],
+        "x-codes": [
+          "bad-request",
+          "weak-password",
+          "unauthorized",
+          "link-gone",
           "not-in-force",
           "database",
           "failed"
@@ -10606,6 +11510,150 @@
         ]
       }
     },
+    "/sign-ins": {
+      "post": {
+        "operationId": "signIn",
+        "parameters": [
+          {
+            "description": "The address the console's proxy took the connection from, which a pairing's limit is kept by.",
+            "in": "header",
+            "name": "X-Real-IP",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The browser's user agent, which the sign-in keeps for its record and its notice of a new browser.",
+            "in": "header",
+            "name": "User-Agent",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignInAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignedIn"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, wrong-credentials, account-disabled, throttled, locked, not-in-force, database, failed"
+          }
+        },
+        "summary": "Signs in with a login and a password: the session cookie in Set-Cookie, or a ticket where the account asks a second factor.",
+        "tags": [
+          "Account security"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "wrong-credentials",
+          "account-disabled",
+          "throttled",
+          "locked",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/sign-ins/second-factor": {
+      "post": {
+        "operationId": "signInSecondFactor",
+        "parameters": [
+          {
+            "description": "The address the console's proxy took the connection from, which a pairing's limit is kept by.",
+            "in": "header",
+            "name": "X-Real-IP",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The browser's user agent, which the sign-in keeps for its record and its notice of a new browser.",
+            "in": "header",
+            "name": "User-Agent",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SecondFactorAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignedIn"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, wrong-code, ticket-gone, throttled, locked, not-in-force, database, failed"
+          }
+        },
+        "summary": "Finishes a sign-in with a code from the authenticator or a recovery code; the session cookie in Set-Cookie.",
+        "tags": [
+          "Account security"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "wrong-code",
+          "ticket-gone",
+          "throttled",
+          "locked",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
     "/sumida/auth/session": {
       "delete": {
         "operationId": "signOut",
@@ -10637,49 +11685,6 @@
           }
         ],
         "summary": "Ends the session this request arrives on.",
-        "tags": [
-          "Sessions"
-        ],
-        "x-codes": [
-          "unauthorized"
-        ]
-      },
-      "post": {
-        "operationId": "signIn",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/LoginAsk"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Empty"
-                }
-              }
-            },
-            "description": "Answered."
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SessionError"
-                }
-              }
-            },
-            "description": "A refusal or failure: unauthorized"
-          }
-        },
-        "security": [],
-        "summary": "Signs in with a name and a password; the session cookie is in Set-Cookie and the body carries nothing.",
         "tags": [
           "Sessions"
         ],
@@ -14832,6 +15837,349 @@
         ]
       }
     },
+    "/users/{user}/devices": {
+      "get": {
+        "operationId": "accountDevices",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The value of the session cookie the console holds for the signed-in person, which names their device.",
+            "in": "header",
+            "name": "Session-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Devices"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-in-force, database, failed"
+          }
+        },
+        "summary": "The account's devices standing, the one `Session-Id` names marked; the holder's.",
+        "tags": [
+          "Account security"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/users/{user}/devices/others": {
+      "post": {
+        "operationId": "endOtherDevices",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The value of the session cookie the console holds for the signed-in person, which names their device.",
+            "in": "header",
+            "name": "Session-Id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The address the console's proxy took the connection from, which a pairing's limit is kept by.",
+            "in": "header",
+            "name": "X-Real-IP",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The browser's user agent, which the sign-in keeps for its record and its notice of a new browser.",
+            "in": "header",
+            "name": "User-Agent",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Empty"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, no-session, forbidden, not-in-force, database, failed"
+          }
+        },
+        "summary": "Ends every other session of the account and sets a fresh one for the caller's on the answer; the holder's.",
+        "tags": [
+          "Account security"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "no-session",
+          "forbidden",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/users/{user}/devices/{device}": {
+      "delete": {
+        "operationId": "endDevice",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "device",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done; no content."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "summary": "Ends one session of the account; the holder's.",
+        "tags": [
+          "Account security"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/users/{user}/email/verification": {
+      "post": {
+        "operationId": "verifyEmail",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Done; no content."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, bad-link-base, no-email, unauthorized, forbidden, mail-unset, mail-failed, not-in-force, database, failed"
+          }
+        },
+        "summary": "Mails a verification link to the profile's email; the holder's or the administrator's.",
+        "tags": [
+          "Account security"
+        ],
+        "x-codes": [
+          "bad-request",
+          "bad-link-base",
+          "no-email",
+          "unauthorized",
+          "forbidden",
+          "mail-unset",
+          "mail-failed",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/users/{user}/enabled": {
+      "put": {
+        "operationId": "setAccountEnabled",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnabledAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Done; no content."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, own-account, left, not-found, not-in-force, database, failed"
+          }
+        },
+        "summary": "Disables an account, ending its sessions, or enables it again; the administrator's.",
+        "tags": [
+          "Account security"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "own-account",
+          "left",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
     "/users/{user}/leave": {
       "post": {
         "operationId": "markLeft",
@@ -15328,6 +16676,33 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "description": "The value of the session cookie the console holds for the signed-in person, which names their device.",
+            "in": "header",
+            "name": "Session-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The address the console's proxy took the connection from, which a pairing's limit is kept by.",
+            "in": "header",
+            "name": "X-Real-IP",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The browser's user agent, which the sign-in keeps for its record and its notice of a new browser.",
+            "in": "header",
+            "name": "User-Agent",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -15360,7 +16735,7 @@
             "bearerAuth": []
           }
         ],
-        "summary": "Changes a user's password on the strength of their current one.",
+        "summary": "Changes a user's password on the strength of their current one and ends every other session of the account; with `Session-Id` naming the caller's own, a fresh session for it is set on the answer.",
         "tags": [
           "Users and senders"
         ],
@@ -15368,6 +16743,76 @@
           "bad-request",
           "unauthorized",
           "wrong-password",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/users/{user}/password-reset": {
+      "post": {
+        "operationId": "resetPassword",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResetMade"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, bad-link-base, unauthorized, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "summary": "Makes a reset link for a person, mailed or answered to hand over, and ends their sessions; the administrator's and the person's heads'.",
+        "tags": [
+          "Account security"
+        ],
+        "x-codes": [
+          "bad-request",
+          "bad-link-base",
+          "unauthorized",
+          "forbidden",
           "not-found",
           "not-in-force",
           "database",
@@ -15670,6 +17115,309 @@
         "x-codes": [
           "bad-request",
           "unauthorized",
+          "forbidden",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/users/{user}/recovery-codes": {
+      "post": {
+        "operationId": "freshRecoveryCodes",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecoveryCodes"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, no-second-factor, forbidden, not-in-force, database, failed"
+          }
+        },
+        "summary": "Makes ten new recovery codes in place of the old; the holder's.",
+        "tags": [
+          "Account security"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "no-second-factor",
+          "forbidden",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/users/{user}/second-factor": {
+      "delete": {
+        "operationId": "resetSecondFactor",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done; no content."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "summary": "Takes a person's second factor, recovery codes and remembered browsers away; the administrator's and the person's heads'.",
+        "tags": [
+          "Account security"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "post": {
+        "operationId": "enrolSecondFactor",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Enrolment"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "summary": "Makes a second factor waiting to be confirmed: its secret, its otpauth address and its QR code; the holder's.",
+        "tags": [
+          "Account security"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/users/{user}/second-factor/confirm": {
+      "post": {
+        "operationId": "confirmSecondFactor",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CodeAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecoveryCodes"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, wrong-code, nothing-waiting, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "summary": "Confirms the waiting second factor with a code, answering ten recovery codes once; the holder's.",
+        "tags": [
+          "Account security"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "wrong-code",
+          "nothing-waiting",
+          "forbidden",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/users/{user}/second-factor/off": {
+      "post": {
+        "operationId": "turnSecondFactorOff",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordConfirm"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Done; no content."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, wrong-password, second-factor-required, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "summary": "Turns the second factor off with the password; the holder's.",
+        "tags": [
+          "Account security"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "wrong-password",
+          "second-factor-required",
           "forbidden",
           "not-found",
           "not-in-force",
@@ -16068,6 +17816,65 @@
         ]
       }
     },
+    "/users/{user}/security": {
+      "get": {
+        "operationId": "accountSecurity",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountSecurity"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "summary": "What stands of an account's security; the holder's, the administrator's and the person's heads'.",
+        "tags": [
+          "Account security"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
     "/users/{user}/senders": {
       "get": {
         "operationId": "userSenders",
@@ -16187,6 +17994,64 @@
           "forbidden",
           "not-found",
           "sender-linked",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/users/{user}/sign-ins": {
+      "get": {
+        "operationId": "signInTries",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignInTries"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-in-force, database, failed"
+          }
+        },
+        "summary": "The account's newest 50 sign-ins tried; the holder's or the administrator's.",
+        "tags": [
+          "Account security"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
           "not-in-force",
           "database",
           "failed"

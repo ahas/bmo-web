@@ -6,6 +6,7 @@ use serde::de::DeserializeOwned;
 
 use crate::chain::{ChainEntry, ChainKind, ChainResolution, ChainResolveAsk, ChainValueAsk};
 use crate::organisation::{MemoryWriters, OrgMemoryUnits, UnitSubtree};
+use crate::security::SignInAsk;
 use crate::supply::*;
 use crate::types::*;
 use crate::wire::{Answer, ClientFailure};
@@ -981,9 +982,10 @@ impl AccountClient {
     Self::answered(request).await
   }
 
-  /// `POST /sumida/auth/session`: the session's cookie as `name=value`, with the answer it came with.
-  pub async fn sign_in(&self, ask: &LoginAsk) -> Answer<String> {
-    let answer = Self::sent(self.http.post(self.url(&["sumida", "auth", "session"])).json(ask)).await?;
+  /// `POST /sign-ins`: the session's cookie as `name=value`, where the sign-in made one; an account asking a second
+  /// factor answers with none, and its ticket is the console's to carry on.
+  pub async fn sign_in(&self, ask: &SignInAsk) -> Answer<String> {
+    let answer = Self::sent(self.send(Method::POST, &["sign-ins"], ask)).await?;
     let cookie = answer
       .headers()
       .get(reqwest::header::SET_COOKIE)

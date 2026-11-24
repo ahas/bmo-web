@@ -67,6 +67,7 @@ pub async fn stand(
     crate::supply::own_kind(),
     crate::supply::allowance_kind(),
     crate::supply::organisation_kind(),
+    crate::security::second_factor_kind(),
   ] {
     crate::chain::declare(&db, &kind).await?;
   }
@@ -82,6 +83,8 @@ pub async fn stand(
     pairings: Arc::default(),
     agency: Arc::new(crate::agency::NoAgency),
     zone: chrono_tz::UTC,
+    mail: Arc::new(crate::security::mail::NoMail),
+    tickets: Arc::default(),
   })
 }
 
@@ -115,7 +118,7 @@ pub async fn in_force(service: Service, token: String) -> Result<Router, Refusal
         Sumida::new(RULES)
           .set_state(&service)
           .router()
-          .layer(from_fn_with_state(service.clone(), crate::roster::sign_ins)),
+          .layer(from_fn_with_state(service.clone(), crate::security::sign_in::sumida_guard)),
       )
       .merge(guarded)
       .route("/health", get(health))
@@ -238,6 +241,7 @@ fn own() -> Router<Service> {
     .route("/rooms/{chat}/holdings", get(holdings_route))
     .route("/watching", get(crate::watching::get).put(crate::watching::put))
     .merge(crate::profiles::routes())
+    .merge(crate::security::routes())
     .merge(crate::agents::routes())
     .merge(crate::people::routes())
     .merge(crate::roster::routes())
@@ -401,12 +405,27 @@ struct NameAsk {
   name: String,
 }
 
+/// A password changed on the strength of the current one, and every other session of the account ended: where the
+/// call names its own session in `Session-Id`, a fresh one is answered for it, set on the answer; where it names
+/// none, every session ends (docs/accounts.md, 「Sessions and devices」).
 async fn password_route(
   State(service): State<Service>,
   Path(user): Path<String>,
+  headers: axum::http::HeaderMap,
+  mut session: sumida::infra::session::UserSession,
   Body(ask): Body<PasswordAsk>,
 ) -> Done {
-  crate::users::change_password(&service.db, user_in(&user)?, &ask.current, &ask.next).await?;
+  let user = user_in(&user)?;
+
+  crate::users::change_password(&service.db, user, &ask.current, &ask.next).await?;
+
+  if headers.contains_key(bmo_web_client::SESSION_ID) {
+    crate::security::account::renew(&service, &headers, &mut session, user).await?;
+  } else {
+    crate::security::end_sessions(&service.db, user).await?;
+  }
+
+  crate::security::links::changed(&service, user).await?;
 
   Ok(StatusCode::NO_CONTENT)
 }

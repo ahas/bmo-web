@@ -647,6 +647,39 @@ nothing.
 - **The next login returns to the screen the tab was on,** its address carried in the login screen's
   own; an address outside this app is never followed, and with none the login goes home.
 
+**The login screen guards the account as the account service does** (`docs/accounts.md`, 「Account security」).
+
+- **The sign-in goes to the service's `POST /sign-ins`,** with the browser's address and its user agent, so the
+  service's guard, its record of tries and its notice of a new browser read the browser and never this server.
+- **An account holding a second factor is asked its code** in the same card once its password matched: the fields
+  give way to one box of six digits, 인증 코드, with 이 기기 기억 (30일), off until it is asked for, and 복구 코드 사용,
+  which turns the box into one for a recovery code. 로그인 sends it; 뒤로 returns to the password. A wrong code is
+  said in the error line and the box is emptied; a ticket past its five minutes takes the card back to the password
+  with that said. A browser remembered is kept in an `HttpOnly` cookie of this app's, `bmo.device`, 30 days, and
+  handed to the sign-in, which asks no code where it stands for the account.
+- **A try made too soon or a locked account is said with its wait:** 잠시 후 다시 시도하세요 with the seconds the
+  service named, and 계정이 잠시 잠겼어요 with the minutes; the button stays open, and the service answers the next
+  try as it stands then.
+- **A person whose organisation asks a second factor and who holds none** is taken, once signed in, to the settings
+  dialog's 계정 with its enrolment open (「계정」), and told in it that their organisation asks for it.
+- **비밀번호를 잊으셨나요?** stands under the password as a link to `/forgot-password` (「Pages with no sign-in」).
+
+**Pages with no sign-in stand for a forgotten password and an email's link.** Each is a card on no shell, as the login
+screen is, with 로그인으로 at its foot.
+
+- **`/forgot-password`** asks 아이디 또는 이메일 and sends it with 재설정 링크 받기. Whatever was asked, the card then
+  says one line: that a link has been mailed where the words name an account with a verified email, and that one
+  with none asks the administrator. The console's server sends the ask only where the console's public address is
+  set, since the link is written under it (`docs/boundary.md`, 「Settings」).
+- **`/reset-password?token=`** reads the link first: a link that stands shows its login and asks 새 비밀번호 and
+  새 비밀번호 확인, eight characters or more and the same twice, with 비밀번호 변경; a link used or past its time says so
+  with 재설정 링크 다시 받기, leading to `/forgot-password`. Once set, the card says the password was changed and that
+  every signed-in device was signed out, with 로그인으로.
+- **`/verify-email?token=`** uses the link as the page opens and says the address verified, or that the link is used
+  or past its time.
+- **The three pages' calls** stand under `api/auth/` with no sign-in: `password-resets`, `password-resets/<token>`
+  and `email-verifications/<token>`, beside the sign-in's own `login` and `second-factor`.
+
 **A login stands for one of two spans, and the login screen picks between them.** The switch there —
 로그인 유지 — is off unless it is asked for. Every seal carries an end of its own either way, past which the
 server refuses it, so no copy of a cookie opens the console for ever.
@@ -7680,6 +7713,27 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
   on unless the account turned it off, and one muted line saying what turning it off hides. It takes effect as it
   is switched. A console login standing before the account model, which has no account, is shown no such row.
 
+- **보안** stands for a login with a user of the account service, its rows read through `GET /api/account/security`
+  (`docs/accounts.md`, 「Account security」):
+  - **이메일 인증** — the profile's email with 인증됨 or 인증 안 됨 as a chip, and 인증 메일 보내기 while it is not
+    verified, which mails the link and says so under the row; 이메일 없음 where the profile keeps none, and where mail
+    is not set up a muted line saying so instead of the button. A changed email is sent its link as the profile is
+    saved, where mail is set up.
+  - **2단계 인증** — 사용 중 with the recovery codes left, or 사용 안 함, and at its right 설정 or, while it is on, a menu of
+    복구 코드 새로 만들기 and 끄기. 설정 opens the enrolment dialog: its steps are the QR code with the secret written
+    out under it in the monospace face for a phone that cannot scan, then 인증 코드, six digits, with 확인; the codes
+    are then shown once, ten in two columns in the monospace face, with 복사 and 다운로드, and 완료 closes it. 끄기
+    asks the password in a dialog of its own; an organisation asking for it refuses it in the pack's words. 복구 코드
+    새로 만들기 shows the new codes in the same way.
+  - **로그인한 기기** — one row each, the newest seen first: the browser and the operating system read off the user
+    agent by the console, the address coarsened to its first half (`203.0.*` or `2001:db8:*`), and 마지막 활동 with the
+    moment; 이 기기 as a chip on the current one, 로그아웃 on every other, and 다른 기기 모두 로그아웃 under them while
+    another stands. Both take effect at once; the seal takes the fresh session the service answers for this device.
+  - **로그인 기록** — the newest 20 tries, each the moment, how it ended in the pack's words, the browser and the
+    address coarsened, a failure in the error colour; 기록 없음 where none stands.
+- **A changed password ends every other session.** The password form's 저장 says so in its muted line, and the seal
+  takes the fresh session the service answers.
+
 #### Doors to the organisation screen
 
 내 에이전트, 공급 and 내 앱·도구 are each one row naming a tab of 조직 — 에이전트, 공급 and 앱·도구 — with 열기, which opens that tab
@@ -7996,8 +8050,9 @@ settings on the research screen (「Research screen」).
   - **A link naming a person but no organisation** — a person's tab from before the list, the console search's
     person — opens the organisation that person stands in.
 - **Inside the organisation chosen, a tab to a section.** The tabs are 조직도, 사용자, 직책·종류, 초대, 에이전트,
-  앱·도구, 아티팩트 저장, 메일 서버, 비밀 보관함, 조직 기억, 권한 and 공급, keyed in the address as `?tab=` with `people`,
-  `catalogue`, `invites`, `agents`, `apps`, `storage`, `mail-servers`, `secrets`, `memory`, `permissions` and `supply`, 조직도
+  앱·도구, 아티팩트 저장, 메일 서버, 비밀 보관함, 조직 기억, 권한, 공급 and 보안, keyed in the address as `?tab=` with
+  `people`, `catalogue`, `invites`, `agents`, `apps`, `storage`, `mail-servers`, `secrets`, `memory`, `permissions`,
+  `supply` and `security`, 조직도
   being the organisation's own address; a shared link opens the same tab, moving between tabs is a step of the
   history and keeps the organisation chosen, and a key naming no tab the reader may open opens the first they may.
   Every tab reads and writes the company of the node chosen alone, and a tab that stands for one unit — 조직도,
@@ -8013,7 +8068,7 @@ settings on the research screen (「Research screen」).
   the reader's own — in the centred reading column; a tab that declares none for the node shows one muted line there,
   이 탭에는 플랫폼 설정이 없습니다 or 이 탭에는 개인 설정이 없습니다, and nothing else. A tab takes a link node on by declaring
   its view, and nothing outside the tab changes. 에이전트 (「에이전트」), 앱·도구 (「앱·도구」), 비밀 보관함 (「비밀 보관함」) and
-  공급 (「공급」) declare both, and 조직 기억 (「조직 기억」) and 메일 서버 (「메일 서버」) declare 플랫폼 전체; 조직도, 사용자, 직책·종류, 초대, 아티팩트 저장
+  공급 (「공급」) declare both, and 조직 기억 (「조직 기억」), 메일 서버 (「메일 서버」) and 보안 (「보안」) declare 플랫폼 전체; 조직도, 사용자, 직책·종류, 초대, 아티팩트 저장
   and 권한 declare neither. An address naming a link node beside a unit loses the unit, replaced with no step.
 - **A lock above the node is said by who holds it.** Wherever a setting stands locked by a link above the node — a
   row's line, a group's line — it reads 조직이 정함 · and the locking unit's name, which the console's server reads off
@@ -8227,7 +8282,8 @@ account's rooms or agents (「Access」).
     by their path, for the administrator and a company's head alike, a refusal of it saying that only the
     administrator and a head of the unit or a unit above give a post; 기기 연결, the machine dialog of 조직도; 프로필
     변경, the profile form of 계정 for this person;
-    BMO 설정 권한, which opens 에이전트 at the person's company with their unit chosen; and 탈퇴 처리, asked first as
+    BMO 설정 권한, which opens 에이전트 at the person's company with their unit chosen; 비밀번호 재설정, 2단계 인증 초기화 and
+    계정 비활성화 or 계정 활성화 (below); and 탈퇴 처리, asked first as
     on 조직도, for the administrator and a company's head alike and never for the reader themselves, a refusal of it
     saying that only the administrator and the person's heads mark them left. An act stands only where the route
     behind it lets the reader do it, and a person who left keeps only what still applies to them. Once an act goes through, the person is read again, and the list row with them.
@@ -8269,7 +8325,21 @@ account's rooms or agents (「Access」).
     cut last, and a row that opens something is pressed as a whole. A value that is not set stands as a dash alone in
     its place.
 - **계정:** 아이디, 이름, 직함, 직위, 담당업무, then 유선 전화, 휴대전화 and 이메일 for the administrator alone; 상태, with when the
-  person left and who marked it; 만든 날짜; and 최근 로그인, or 기록 없음.
+  person left and who marked it; 만든 날짜; and 최근 로그인, or 기록 없음. Under them, **보안**, read through
+  `GET /api/organization/users/<user>/security` for the administrator and the person's heads: 이메일 인증 (인증됨 or 인증
+  안 됨), 2단계 인증 (사용 중 or 사용 안 함, with 조직에서 요구 muted under it where the organisation asks for it) and
+  로그인 (사용 가능 or 비활성).
+- **The head's three account acts** (`docs/accounts.md`, 「Account security」), each asked first as a step the head grows:
+  - **비밀번호 재설정** — for the administrator and the person's heads, never for the reader themselves. Nobody sets or
+    sees a password: where the service mailed the link the step says to which address, partly hidden; where mail is not
+    set up or the email is not verified it shows the link once, in the monospace face with 복사, saying it stands 24
+    hours and once, for the reader to hand over. Every session of the person ends.
+  - **2단계 인증 초기화** — for the same readers, where the person holds a second factor: it is taken away with the
+    recovery codes and the remembered browsers, and the person enrols again at will, or at the next sign-in where their
+    organisation asks for it.
+  - **계정 비활성화** and **계정 활성화** — the administrator's alone, never for the reader themselves or a person who
+    left: a disabled account signs in no more and its sessions end.
+  Each act is kept in the person's history, under 이력.
 - **조직** holds three groups, what the person's place is, the posts beside it and how it came to be.
   - **소속:** 회사; 조직, the unit's path from the company down, whole; 역할; 직책; 조직장인 조직, the units they head
     directly, where they head any; and 직무대행, each unit they act for by its path with `{date}까지`, where they act
@@ -9224,6 +9294,17 @@ a row shows of a key is the secret's name, and of a login the path it is reached
 - A read that failed says its reason in the section with 새로고침; the groups read on their own, and one that came
   stands while another waits.
 
+#### 보안
+
+- **2단계 인증 요구** — one row with its switch: whether the people under the node chosen must hold a second factor,
+  the chain's kind `account.second-factor-required` (`docs/accounts.md`, 「The second factor」). It stands at a
+  company or a unit for the administrator and its heads, and at 플랫폼 전체 for the administrator, the tab declaring
+  that link node's view; 나 holds none. The row's line says 위를 따름 with what the links above come to, or 직접 정함,
+  and a lock above it as every tab says one, its switch disabled. A second row, 아래 조직, sets the link's delegation
+  as 아티팩트 저장's does. A change is saved as it is made, through `GET`/`PUT /api/organization/security`, the node in
+  `unit=` or `link=platform`.
+- **A person it holds for who holds no second factor** is led to enrol at their next sign-in (「Access」).
+
 ### App catalogue
 
 The 스토어: the personal apps people of the reader's company share (the agency's `docs/person-nodes.md`, 「Shared apps」): each one
@@ -9296,8 +9377,8 @@ stands on 조직 with 플랫폼 전체 chosen (「Organisation」): the apps eve
 agents' defaults on 에이전트, and its supply — the default policy, the plans it sells, its credits, its own keys and
 Claude accounts — on 공급. No member opens it.
 
-- **It stands at `/admin`, a tab to a section.** The tabs are 공급자 and 비밀 종류, keyed in the address as `?tab=` with
-  `secret-kinds`, 공급자 being the screen's own address; a shared link opens the same tab, moving between tabs is a step
+- **It stands at `/admin`, a tab to a section.** The tabs are 공급자, 비밀 종류 and 메일, keyed in the address as `?tab=` with
+  `secret-kinds` and `mail`, 공급자 being the screen's own address; a shared link opens the same tab, moving between tabs is a step
   of the history, and a key naming no tab opens the first. The console search finds each tab as it finds every
   screen's. A link to `/organization` naming `providers` or `secret-kinds` lands on the same tab here, and a link here
   naming `apps` lands on 조직's 앱·도구 with 플랫폼 전체 chosen, and one naming `plans` or `credits` on its 공급, the
@@ -9375,6 +9456,22 @@ by the administrator. Every login reads them, since every person's form asks in 
   the fields, each a row of its 키, 이름, 입력 (한 줄, 여러 줄 or 파일), 값 숨김 and 필수, removed by its own mark, with
   항목 추가 under them. A rule the kind breaks is said under the field it names, and 저장 stays off while one is
   broken.
+
+#### 메일
+
+The system mail the platform sends its own mail through (`docs/accounts.md`, 「The platform's own mail」), read and
+written through `GET`/`PUT /api/admin/mail`.
+
+- **시스템 메일** — a form in the tab itself: 발송 서버, a choice of bmo-mail's outgoing servers by name with the host
+  muted beside it, then 없음; 보내는 주소; 보내는 이름; and 로그인 비밀, a choice of the administrator's own secrets of the
+  kind `account-login` by name, then 없음 for a server that asks for no sign-in. The secret's value is never read here:
+  비밀 보관함 keeps it, and a name chosen that no longer stands is said under the choice. Where bmo-mail is not named or
+  does not answer, the group says so in one line and 발송 서버 offers none. 저장 is open while a field differs from what
+  was read; a refusal is said under the form.
+- **상태** — 설정됨 or 설정 안 됨 as a chip at the group's heading.
+- **테스트 메일 보내기** — one row with 받는 주소, the reader's own email filled in where they keep one, and 보내기, which
+  sends one mail and says under the row that it went or bmo-mail's sentence in the error colour. It stands open only
+  once system mail is set up and saved.
 
 ### The desktop app's window
 
@@ -10677,7 +10774,9 @@ The install is the client workspace's one install, for the console and its packa
 ## Making an account and resetting a password
 
 The first account cannot be made in the browser. The command below makes an account, and overwrites the password
-for an existing name. It also restores a forgotten password.
+for an existing name. A person who forgot their password asks for a link on the login screen, and the administrator
+or the person's heads reset it from 조직's 사용자 (「Pages with no sign-in」, 「사용자」); the command restores a password
+from the machine where neither can, the administrator's own among them.
 
 ```
 cd <checkout>/client/apps/web

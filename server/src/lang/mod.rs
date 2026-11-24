@@ -9,6 +9,7 @@ use std::sync::OnceLock;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 
+pub mod account_mail;
 pub mod agent_catalogue;
 pub mod agents;
 pub mod archive_docs;

@@ -1,0 +1,29 @@
+# The Korean part's translation into Japanese.
+
+test:
+  subject: "BMO システムメールのテスト"
+  body: "BMO のシステムメールは正しく設定されています。宛先: {address}"
+
+verify:
+  subject: "BMO メールアドレスの確認"
+  body: "このアドレスを {login} アカウントのメールとして使うには、下のリンクを開いてください。リンクは {span} の間、一度だけ使えます。\n\n{link}\n\n心当たりがない場合は、このメールを削除してください。"
+
+reset:
+  subject: "BMO パスワードの再設定"
+  body: "{login} アカウントのパスワードを新しく設定するには、下のリンクを開いてください。リンクは {span} の間、一度だけ使えます。\n\n{link}\n\n心当たりがない場合は、このメールを削除してください。パスワードはそのままです。"
+
+changed:
+  subject: "BMO のパスワードが変更されました"
+  body: "{login} アカウントのパスワードが {time} に変更され、すべての端末からログアウトしました。\n\nご自身で変更していない場合は、すぐに管理者に知らせてください。"
+
+locked:
+  subject: "BMO アカウントが一時的にロックされました"
+  body: "ログインの失敗が続いたため、{login} アカウントを {span} ロックしました。最後の試行は {time}、アドレス {address} からでした。\n\nご自身の試行でない場合は、ロックが解けたあとにパスワードを変更してください。"
+
+new_device:
+  subject: "BMO 新しいブラウザからのログイン"
+  body: "{login} アカウントに、初めてのブラウザからログインがありました。\n\n日時: {time}\nアドレス: {address}\nブラウザ: {agent}\n\nご自身でない場合は、パスワードを変更し、設定 > アカウントのログイン中の端末からその端末をログアウトしてください。"
+
+spans:
+  minutes: "{count} 分"
+  hours: "{count} 時間"

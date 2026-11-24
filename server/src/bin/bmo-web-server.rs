@@ -188,7 +188,9 @@ async fn serve(settings: Settings) -> Result<(), String> {
     Some(nodes) => service.with_nodes(nodes),
     None => service,
   };
-  let service = service.calling_agency(agency.clone()).in_zone(settings.time.zone()?);
+  let mail =
+    bmo_web_server::security::mail::named(settings.mail.base.as_ref(), settings.mail.token.as_ref())?;
+  let service = service.calling_agency(agency.clone()).sending_mail(mail).in_zone(settings.time.zone()?);
   // The membership domain's expiry, renewal and notices, run hourly on this service's own state and its
   // own advisory lock, as sumida's membership guide asks, and every applied plan whose period ended subscribed
   // again after them (docs/accounts.md, 「Supply」, 「An organisation's plans」).

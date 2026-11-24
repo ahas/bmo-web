@@ -1,0 +1,29 @@
+# The Korean part's translation into English.
+
+test:
+  subject: "BMO system mail test"
+  body: "BMO's system mail is set up. Sent to: {address}"
+
+verify:
+  subject: "Verify your BMO email address"
+  body: "To use this address as the email of the account {login}, open the link below. It works once, for {span}.\n\n{link}\n\nIf you did not ask for this, you can delete this mail."
+
+reset:
+  subject: "Reset your BMO password"
+  body: "To set a new password for the account {login}, open the link below. It works once, for {span}.\n\n{link}\n\nIf you did not ask for this, you can delete this mail. Your password stays as it is."
+
+changed:
+  subject: "Your BMO password was changed"
+  body: "The password of the account {login} was changed at {time}, and every device was signed out.\n\nIf you did not change it, tell your administrator at once."
+
+locked:
+  subject: "Your BMO account is locked for a while"
+  body: "After repeated failed sign-ins, the account {login} is locked for {span}. The last try was at {time}, from {address}.\n\nIf it was not you, change your password once the lock ends."
+
+new_device:
+  subject: "BMO sign-in from a new browser"
+  body: "The account {login} signed in from a browser it has not used before.\n\nTime: {time}\nAddress: {address}\nBrowser: {agent}\n\nIf it was not you, change your password and sign that device out under Settings > Account, Signed-in devices."
+
+spans:
+  minutes: "{count} minutes"
+  hours: "{count} hours"

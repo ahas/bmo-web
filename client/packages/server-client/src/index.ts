@@ -91,6 +91,23 @@ export type SecretAsk = Schemas["SecretAsk"];
 export type Session = Schemas["Session"];
 export type WireError = Schemas["WireError"];
 export type SessionError = Schemas["SessionError"];
+export type SystemMail = Schemas["SystemMail"];
+export type SystemMailAsk = Schemas["SystemMailAsk"];
+export type MailServer = Schemas["MailServer"];
+export type SignInAsk = Schemas["SignInAsk"];
+export type SignedIn = Schemas["SignedIn"];
+export type SecondFactorAsk = Schemas["SecondFactorAsk"];
+export type ResetMade = Schemas["ResetMade"];
+export type ResetLink = Schemas["ResetLink"];
+export type AccountSecurity = Schemas["AccountSecurity"];
+export type Enrolment = Schemas["Enrolment"];
+export type RecoveryCodes = Schemas["RecoveryCodes"];
+export type Devices = Schemas["Devices"];
+export type Device = Schemas["Device"];
+export type SignInTries = Schemas["SignInTries"];
+export type SignInTry = Schemas["SignInTry"];
+export type TryOutcome = Schemas["TryOutcome"];
+export type EmailVerified = Schemas["EmailVerified"];
 
 export type AccountServiceClient = Client<paths>;
 

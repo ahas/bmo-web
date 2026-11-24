@@ -28,6 +28,7 @@ pub mod m20261124_000001_agent_defaults_on_chain;
 pub mod m20261125_000001_languages;
 pub mod m20261126_000001_supply_run_keys;
 pub mod m20261127_000001_supply_sources_one;
+pub mod m20261128_000001_account_security;
 mod secret_kind_seeds;
 
 pub struct Migrator;
@@ -70,6 +71,8 @@ impl MigratorTrait for Migrator {
       Box::new(m20261126_000001_supply_run_keys::Migration),
       // The supply sources a person's runs may take, decided by the supply policy and this service's own kinds.
       Box::new(m20261127_000001_supply_sources_one::Migration),
+      // What keeps an account its holder's beyond the password.
+      Box::new(m20261128_000001_account_security::Migration),
     ]
   }
 }

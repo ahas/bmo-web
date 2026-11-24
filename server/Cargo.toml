@@ -44,8 +44,13 @@ sea-orm = { version = "1.1.17", default-features = false, features = ["macros", 
 sea-orm-migration = { version = "1.1.17", default-features = false, features = ["runtime-tokio-rustls", "sqlx-postgres"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.145"
-# The stable sample the import's compare picks by hashing a row's key.
+# The stable sample the import's compare picks by hashing a row's key, and every token, code and session id kept
+# hashed (docs/accounts.md, 「Account security」).
 sha2 = "0.10.9"
+# The second factor's time-based codes (RFC 6238) and their otpauth address.
+totp-rs = { version = "6.0.0", default-features = false, features = ["std", "otpauth"] }
+# The otpauth address drawn as a QR code, in SVG, by the service itself.
+qrcode = { version = "0.14.1", default-features = false, features = ["svg"] }
 # PostgreSQL's client under sea-orm, taken by itself for the pool's options.
 sqlx = { version = "0.8.6", default-features = false, features = ["postgres", "runtime-tokio"] }
 # The inert session a credit grant is judged under: sumida's membership services read the acting person

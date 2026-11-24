@@ -39,6 +39,7 @@ pub mod rules;
 pub mod secret_kinds;
 pub mod secrets;
 pub mod sections;
+pub mod security;
 pub mod settings;
 pub mod store;
 pub mod subtree;
@@ -87,6 +88,10 @@ pub struct Service {
   pub agency: Arc<dyn agency::Agency>,
   /// The owner's time zone, which a fixed line naming a moment tells it in; UTC until it is set.
   pub zone: chrono_tz::Tz,
+  /// bmo-mail, which the platform's own mail goes through; one that sends nothing where the settings name none.
+  pub mail: Arc<dyn security::mail::MailService>,
+  /// The second factor's tickets standing, held in memory alone.
+  pub tickets: Arc<security::sign_in::Tickets>,
 }
 
 impl Service {
@@ -112,6 +117,12 @@ impl Service {
   /// read of whose personal supply serves which roads.
   pub fn calling_agency(mut self, agency: Arc<dyn agency::Agency>) -> Self {
     self.agency = agency;
+    self
+  }
+
+  /// The same service sending the platform's own mail through `mail`.
+  pub fn sending_mail(mut self, mail: Arc<dyn security::mail::MailService>) -> Self {
+    self.mail = mail;
     self
   }
 

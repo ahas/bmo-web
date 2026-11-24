@@ -1,4 +1,5 @@
 import { BUNDLE_AREA, loadBundle } from "./bundle-loader";
+import { screenWords } from "./own-screen-names";
 
 import type { ConsoleScreen } from "#shared/console-bundles";
 import type { RouteLocationNormalizedLoaded, Router } from "vue-router";
@@ -147,9 +148,10 @@ export async function openScreen(router: Router, screen: ConsoleScreen, reread: 
   }
 }
 
-/** Merges every screen's words into the console's pack, under each bundle's own namespace. */
+/** Merges every screen's words into the console's pack, under each bundle's own namespace, a reader's own screen's in
+ * every language of the console's (docs/web.md, 「A reader's own screens」). */
 export function mergeWords(merge: (locale: string, words: Record<string, unknown>) => void, screens: readonly ConsoleScreen[]): void {
   for (const screen of screens) {
-    for (const [locale, words] of Object.entries(screen.words)) merge(locale, words);
+    for (const [locale, words] of screenWords(screen)) merge(locale, words);
   }
 }

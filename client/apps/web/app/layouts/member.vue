@@ -41,7 +41,12 @@
           :collapsed="collapsed"
           tooltip
           orientation="vertical"
-        />
+        >
+          <!-- A reader's own screen named in a reading keeps the maker's name in its tooltip. -->
+          <template #read-name-label="{ item }">
+            <SidebarReadName :name="String(item.label)" :original="item.original" />
+          </template>
+        </UNavigationMenu>
 
         <ContentSkeleton v-if="roomsInitial && roomsRead" :rows="3" listClass="flex flex-col" :label="$t('screens.status.rooms_loading')">
           <div class="flex h-8 items-center gap-1.5 px-2.5">
@@ -86,6 +91,8 @@ import { useRoomsPresent } from "~/domain/presence";
 import { useConsoleScreens } from "~/domain/console-screens";
 import { useSectionAccess, useSectionAccessReady } from "~/domain/section-access";
 import { featuredScreens, namedWhenFolded, roomItems, screensWithBundles, sectionItems } from "~/domain/screens";
+import { namedBy, withReadNames } from "~/domain/own-screen-names";
+import { useReadScreenNames } from "~/domain/own-screen-readings";
 import { useConsoleFeatures } from "~/domain/console-features";
 import { SIDEBAR_GROUP, SIDEBAR_WIDTH } from "~/domain/sidebar-width";
 import { useSidebarUnread } from "~/domain/sidebar-unread";
@@ -94,7 +101,7 @@ import { accessOf, homeFor, screenMayRead, sectionsOfPath } from "#shared/sectio
 
 import type { NavigationMenuItem } from "@nuxt/ui";
 import type { AvatarIndex } from "~/domain/avatars";
-import type { SectionMenu } from "~/domain/screens";
+import type { ReadNameSection } from "~/domain/own-screen-names";
 import type { RoomAdded } from "#shared/types";
 
 // A member's shell (docs/web.md, 「Access」): the screens units bring that they may open, the rooms they
@@ -163,5 +170,9 @@ const screens = computed(() =>
 );
 // The counts the bundles declare, read for this reader while the sidebar stands (docs/web.md, 「Sidebar」).
 const unread = useSidebarUnread();
-const screenSections = computed<SectionMenu[]>(() => sectionItems(t, route.path, undefined, sidebarFolded.value, screens.value, unread.value));
+// The reader's own screens whose words carry no name in their language, named by its reading (docs/web.md, 「Sidebar」).
+const readNames = useReadScreenNames(() => bundles.value);
+const screenSections = computed<ReadNameSection[]>(() =>
+  withReadNames(sectionItems(namedBy(t, readNames.value), route.path, undefined, sidebarFolded.value, screens.value, unread.value), readNames.value)
+);
 </script>

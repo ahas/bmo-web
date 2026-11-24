@@ -1244,6 +1244,7 @@ screens:
     section_administration: 系统服务
     section_application: 应用
     section_mine: 我的应用
+    name_original: "原文：{name}"
     internal_name: 内部名称
     live: 实时状态
     mail: 邮件

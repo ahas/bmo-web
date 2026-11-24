@@ -88,6 +88,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["personal-apps", "fixture-password-4101"],
   ["personal-screens", "fixture-password-4102"],
   ["app-catalogue", "fixture-password-4103"],
+  ["personal-names", "fixture-password-4104"],
   ["monitor-polling", "fixture-password-2372"],
   ["monitor-nodes", "fixture-password-3688"],
   ["todo-models", "fixture-password-2298"],
@@ -1222,6 +1223,8 @@ async function storageAnswer(path: string, request: Request): Promise<Response |
 // with the PC off once it has turned it off through the screen itself.
 let personalAccount: string | null = null;
 let personalPc = true;
+// Another account's own screen, its words in English alone, which a reader of another language reads by its reading.
+let namesAccount: string | null = null;
 
 const PERSONAL_WORDS = Object.fromEntries(
   ["ko", "en", "ja", "zh-CN"].map((locale) => [locale, { "my-weekly-notes": { title: "Weekly notes", action: { load: "Load", off: "Turn the PC off" } } }])
@@ -1264,6 +1267,26 @@ const PERSONAL_DIGEST = sha256(PERSONAL_INDEX);
 // The tool host's app face as its stand-in answers it, or null for a path it does not serve.
 async function personalFace(path: string, request: Request): Promise<Response | null> {
   if (!path.startsWith("/screens")) return null;
+
+  if (namesAccount !== null && request.headers.get("authorization") === `Bearer screen-${namesAccount}`) {
+    if (path !== "/screens") return Response.json({ code: "not-found", error: "no such screen" }, { status: 404 });
+
+    const item = {
+      tool: "ticket_board",
+      version: "1763900000000-c3d4e5",
+      name: "my-ticket-board",
+      screenPath: "/my/ticket-board",
+      title: "my-ticket-board.title",
+      icon: "i-material-symbols-apps",
+      layer: LAYER_VERSION,
+      words: { en: { "my-ticket-board": { title: "Ticket board" } } },
+      digest: PERSONAL_DIGEST,
+      module: `/screens/ticket_board/${PERSONAL_DIGEST}/module.js`,
+      stylesheet: null
+    };
+
+    return Response.json({ items: [item], reached: true });
+  }
 
   if (personalAccount === null || request.headers.get("authorization") !== `Bearer screen-${personalAccount}`) {
     return Response.json({ code: "unauthorized", error: "no session" }, { status: 401 });
@@ -1313,11 +1336,11 @@ async function personalFace(path: string, request: Request): Promise<Response | 
 // not-found. The tests serve the rest of what they measure through the page's routes themselves.
 const UNITS: Record<string, (path: string, request: Request) => Response | null | Promise<Response | null>> = {
   AGENCY: async (path, request) => {
-    // A reader's own screens' session, issued for the personal-screens account alone.
+    // A reader's own screens' session, issued for the personal-screens and personal-names accounts alone.
     const screened = /^\/personal-apps\/([^/]+)\/screen-session$/.exec(path)?.[1];
 
     if (screened !== undefined && request.method === "POST") {
-      return screened === personalAccount
+      return screened === personalAccount || screened === namesAccount
         ? Response.json({ token: `screen-${screened}`, expiresAt: Date.now() + 600_000 }, { status: 201 })
         : Response.json({ code: "no-runner", error: "the account has no PC its personal apps run on" }, { status: 409 });
     }
@@ -2396,6 +2419,7 @@ try {
   const users = (await listed.json()) as { user: string; name: string }[];
 
   personalAccount = users.find((user) => user.name === "personal-screens")?.user ?? null;
+  namesAccount = users.find((user) => user.name === "personal-names")?.user ?? null;
 
   for (const member of MEMBERS) {
     const one = users.find((user) => user.name === member.name);

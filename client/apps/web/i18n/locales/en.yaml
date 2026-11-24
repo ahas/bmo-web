@@ -1244,6 +1244,7 @@ screens:
     section_administration: System services
     section_application: Applications
     section_mine: My apps
+    name_original: "Original: {name}"
     internal_name: Internal name
     live: Live status
     mail: Mail

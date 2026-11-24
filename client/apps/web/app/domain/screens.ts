@@ -312,15 +312,15 @@ export function sectionItems(t: Translate, path: string, live: ScreenLive = QUIE
 
 // Folded, a row's words are gone and it is its icon alone, so its name is handed to it as its
 // accessible name as well as its tooltip.
-export function namedWhenFolded(items: NavigationMenuItem[], folded: boolean): NavigationMenuItem[] {
+export function namedWhenFolded<Item extends NavigationMenuItem>(items: Item[], folded: boolean): Item[] {
   return folded ? items.map((item) => (item.type === "label" ? item : foldedItem(item))) : items;
 }
 
 // The folded form of each item, made once for the item, so an entry handed the same item is handed the same form.
 const foldedItems = new WeakMap<NavigationMenuItem, NavigationMenuItem>();
 
-function foldedItem(item: NavigationMenuItem): NavigationMenuItem {
-  let folded = foldedItems.get(item);
+function foldedItem<Item extends NavigationMenuItem>(item: Item): Item {
+  let folded = foldedItems.get(item) as Item | undefined;
 
   if (folded === undefined) {
     folded = { ...item, "aria-label": item.label };

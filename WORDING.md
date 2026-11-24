@@ -136,6 +136,8 @@
   its 방식 원격 or 내 PC에서 실행, its 주소, 인증 (없음, Bearer 토큰, `{header} 헤더`), 비밀 and 명령; an item's text filled in
   the other languages by the translator → 다른 언어 채우기, and text a translation wrote → 번역기로 번역됨. Never 기계 번역
   (기계 is a machine, 「기기」), 자동 번역 for the stored text (that is the browser's own reading on view), 플러그인, 확장.
+  A name read in the reader's language where no line has room for 원문 보기 — a 내 앱 row of the sidebar — keeps the
+  maker's in its tooltip as `원문: {name}`.
 - a person's skills kept at home → 내 스킬 (its settings section), 스킬 없음, 새 스킬, 스킬 편집; its parts → 이름, 설명 (what
   the agent reads to know when to use it), 본문, 참조 파일; where it came from → 직접 만듦 or 스토어에서 설치.
 - giving an agent a skill or an MCP server → 붙이다: 붙인 에이전트, `붙인 에이전트: {agents}`, the agent's control and its

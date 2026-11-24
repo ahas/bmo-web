@@ -1253,6 +1253,7 @@ screens:
     section_administration: 시스템 서비스
     section_application: 애플리케이션
     section_mine: 내 앱
+    name_original: "원문: {name}"
     internal_name: 내부 이름
     live: 실시간 상태
     mail: 메일

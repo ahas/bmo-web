@@ -1244,6 +1244,7 @@ screens:
     section_administration: システムサービス
     section_application: アプリケーション
     section_mine: マイアプリ
+    name_original: "原文: {name}"
     internal_name: 内部名
     live: リアルタイム状態
     mail: メール

@@ -172,3 +172,47 @@ export function useFollowedReading(text: () => string, follow: () => boolean): C
 
   return computed(() => (follow() && reading.value.kind === "read" ? reading.value.text : text()));
 }
+
+/** Short texts that stand where no line has room — names in a list — each read in the reader's language where it
+ * takes a reading and this browser reads on opening, by its original; a text whose reading has not come, did not come
+ * or is not wanted is absent, its original standing. Each reading is asked once, as every other reading is. */
+export function useOpenedReadings(texts: () => readonly string[]): ComputedRef<ReadonlyMap<string, string>> {
+  const { locale } = useI18n();
+  const language = computed(() => readerLanguage(locale.value));
+  const auto = useAutoTranslate();
+  // Every reading that came, by language and original.
+  const came = ref(new Map<string, string>());
+
+  watch(
+    [texts, language, auto],
+    () => {
+      if (!import.meta.client || !auto.value || !hasTranslator()) return;
+
+      for (const text of new Set(texts())) {
+        const into = language.value;
+        const key = `${into}\u0000${text}`;
+
+        if (!wantsReading(text, into) || came.value.has(key)) continue;
+
+        readingOf(text, into)
+          .then((read) => {
+            if (read.untranslated !== true) came.value = new Map(came.value).set(key, read.text);
+          })
+          .catch(() => undefined);
+      }
+    },
+    { immediate: true }
+  );
+
+  return computed(() => {
+    if (!auto.value) return new Map();
+
+    return new Map(
+      texts().flatMap((text) => {
+        const read = came.value.get(`${language.value}\u0000${text}`);
+
+        return read === undefined ? [] : [[text, read] as const];
+      })
+    );
+  });
+}

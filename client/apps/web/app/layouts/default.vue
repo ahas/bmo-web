@@ -52,7 +52,12 @@
           :collapsed="collapsed"
           tooltip
           orientation="vertical"
-        />
+        >
+          <!-- A reader's own screen named in a reading keeps the maker's name in its tooltip. -->
+          <template #read-name-label="{ item }">
+            <SidebarReadName :name="String(item.label)" :original="item.original" />
+          </template>
+        </UNavigationMenu>
         <ContentSkeleton v-if="roomsInitial" :rows="3" listClass="flex flex-col" :label="$t('screens.status.rooms_loading')">
           <div class="flex h-8 items-center gap-1.5 px-2.5">
             <SkeletonBar class="size-5 shrink-0 rounded-sm" />
@@ -198,6 +203,8 @@ import { useRoomsPresent } from "~/domain/presence";
 import { useConsoleFeatures } from "~/domain/console-features";
 import { useConsoleScreens } from "~/domain/console-screens";
 import { featuredScreens, namedWhenFolded, roomItems, screensWithBundles, sectionItems } from "~/domain/screens";
+import { namedBy, withReadNames } from "~/domain/own-screen-names";
+import { useReadScreenNames } from "~/domain/own-screen-readings";
 import { SIDEBAR_GROUP, SIDEBAR_WIDTH } from "~/domain/sidebar-width";
 import { useSidebarUnread } from "~/domain/sidebar-unread";
 import { sameKept, sameRowsKept } from "~/domain/same-kept";
@@ -209,7 +216,7 @@ import type { RosterPage, RosterPerson } from "#shared/roster";
 import type { AvatarProps, NavigationMenuItem } from "@nuxt/ui";
 import type { AgentGroup, AgentGroupKey, AgentMeta, AgentRun, AgentSession, Folds } from "~/domain/agents";
 import type { JumpGroup } from "~/domain/jump";
-import type { SectionMenu } from "~/domain/screens";
+import type { ReadNameSection } from "~/domain/own-screen-names";
 
 // Where the title bar's one set of buttons stands: the standing screen's bar.
 const titleBarTarget = useTitleBarTarget();
@@ -264,7 +271,11 @@ const bundles = useConsoleScreens();
 const screens = screensWithBundles(bundles.value, featuredScreens(useConsoleFeatures().value));
 // The counts the bundles declare, read for this reader while the sidebar stands (docs/web.md, 「Sidebar」).
 const unread = useSidebarUnread();
-const screenSections = computed<SectionMenu[]>((before) => sameKept(before, sectionItems(t, route.path, undefined, sidebarFolded.value, screens, unread.value)));
+// The reader's own screens whose words carry no name in their language, named by its reading (「Sidebar」).
+const readNames = useReadScreenNames(() => bundles.value);
+const screenSections = computed<ReadNameSection[]>((before) =>
+  sameKept(before, withReadNames(sectionItems(namedBy(t, readNames.value), route.path, undefined, sidebarFolded.value, screens, unread.value), readNames.value))
+);
 
 // The picture every session in this sidebar wears.
 const avatars = useAvatars();

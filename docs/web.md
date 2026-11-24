@@ -1622,6 +1622,16 @@ Four groups.
   - **내 앱** holds the screens of the reader's own personal apps (「A reader's own screens」), each under the name its
     words give it, and stands below the other three. No unit's manifest names this section, and no screen of it is
     any other reader's.
+  - **A 내 앱 name is read in the reader's language.** Where a screen's words carry its name in the reader's locale, that
+    name stands. Where they carry none, the maker's name — that of the first language its words carry — is read through
+    the console's translator on view, as a store item's title is (「App catalogue」), with the same reading kept for the
+    tab and the same browser choice of reading on opening (「The original, and its translation in its place」): where
+    the browser reads on opening, the reading stands in the row in the original's place once it comes, and the rows
+    stand by the names so read. A row is a link with no room for the line that offers 원문 보기, so the shared tooltip
+    carries the original instead (「Tooltips」): the reading whole, and under it `원문: {name}` with the maker's name,
+    brought by a pointer, the keyboard's focus or a held finger, a tap still opening the screen. Folded, the row's icon
+    is named by the reading. Where the browser does not read on opening, or while the reading has not come or where it
+    did not come, the maker's name stands, with no tooltip.
   - **Which section a screen stands in is the screen's own.** Each of the console's own screens names its section
     where it is listed. A screen a unit brings stands in the section its manifest names for the reader's role
     (bmo-ui's `docs/console-bundles.md`, the sidebar section and 「A section by role」): the one `sidebarSections`
@@ -10567,6 +10577,10 @@ reader (bmo-ui's `docs/console-bundles.md`, 「A bundle that differs per reader�
   app face answers — role `member`, the owner key asked, its module and stylesheet the relay addresses below — and
   left out where it does not read or its layer stands outside the console's range, said in the log. Each carries
   whether its PC answered, and stands in 내 앱.
+- **Its words stand in every language of the console's.** A screen's words carry the languages its maker wrote them in;
+  in a language of the console's they carry none of, its words read as the maker's, those of the first language they
+  carry, so the screen, its title bar and the search name it by the maker's words rather than by their keys. The
+  sidebar reads its name in the reader's language besides (「Sidebar」).
 - **Its page is drawn in the browser,** as a bundle's is: the server answers every address under `/my/` with the app's
   shell, whoever asks, and the browser draws the screen once its module is in.
 - **The relay of a reader's own screen** is `/api/my-<name>/`, for the signed-in reader alone and only for a screen of

@@ -4394,7 +4394,7 @@ app_catalogue:
     install_effect: "你的 PC 会获取源代码并构建。\n数据只保存在你的 PC 上。"
     update_effect: "会获取新版本并构建。"
     update_grown: "新版本需要更多权限。"
-    clone_effect: "之后不再接收更新。"
+    clone_effect: "它会成为你自己的个人应用，可以让 BMO 帮你修改。\n它与原应用断开联系，因此不再接收作者的新版本。"
     uninstall_effect: "将从你的 PC 删除此应用。\n数据会保留在 PC 上。"
     withdraw_effect: "之后无法再安装。\n已安装的人可以继续使用。"
     promote_effect: "管理员审查后将作为平台应用发布。"

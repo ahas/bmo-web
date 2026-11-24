@@ -4377,7 +4377,7 @@ app_catalogue:
     install_effect: "내 PC가 원본을 받아 빌드합니다.\n데이터는 내 PC에만 쌓입니다."
     update_effect: "새 버전을 받아 빌드합니다."
     update_grown: "새 버전이 더 많은 권한을 요구합니다."
-    clone_effect: "더 이상 업데이트를 받지 않습니다."
+    clone_effect: "내 개인 앱이 되어 BMO에게 고쳐 달라고 할 수 있습니다.\n원본과 연결이 끊겨, 만든 사람의 새 버전은 더 이상 받지 않습니다."
     uninstall_effect: "내 PC에서 앱을 삭제합니다.\n데이터는 PC에 남습니다."
     withdraw_effect: "새로 설치할 수 없습니다.\n이미 설치한 사람은 계속 씁니다."
     promote_effect: "플랫폼 관리자가 검토한 뒤 플랫폼 앱으로 배포합니다."

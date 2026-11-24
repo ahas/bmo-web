@@ -4358,7 +4358,7 @@ app_catalogue:
     install_effect: "Your PC fetches the source and builds it.\nIts data stays on your PC."
     update_effect: "Your PC fetches the new version and builds it."
     update_grown: "The new version asks for more permissions."
-    clone_effect: "It no longer receives updates."
+    clone_effect: "It becomes your own personal app, which your BMO can change for you.\nIt is cut off from the original, so it no longer receives its maker's new versions."
     uninstall_effect: "The app is deleted from your PC.\nIts data stays on the PC."
     withdraw_effect: "Nobody can install it from now on.\nThose who installed it keep using it."
     promote_effect: "The administrator reviews it and ships it as a platform app."

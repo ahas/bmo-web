@@ -28,7 +28,7 @@ pub struct Settings {
   pub agency: Unit,
   /// Nothing set here leaves system mail not set up (docs/accounts.md, 「The platform's own mail」).
   #[serde(default)]
-  pub mail: Unit,
+  pub mail: Mail,
   #[serde(default)]
   pub names: Names,
   /// Nothing set here tells every moment in UTC.
@@ -54,6 +54,47 @@ pub struct Jake {
   /// The hub's loopback control address, `http://host:port`.
   pub control: Option<String>,
   pub control_token: Option<String>,
+}
+
+/// bmo-mail, which the platform's own mail goes through (docs/accounts.md, 「The platform's own mail」): its address,
+/// and the credential its settings name for the account service's system sends, given as itself or as the file that
+/// holds it.
+#[derive(Clone, Debug, Default, Deserialize)]
+pub struct Mail {
+  pub base: Option<String>,
+  pub token: Option<String>,
+  /// A file holding the credential, read as the service starts; a leading `~/` stands for the home of the user the
+  /// server runs as.
+  pub token_file: Option<String>,
+}
+
+impl Mail {
+  /// The credential: the one `token` names, else the one `token_file` holds, its surrounding white space trimmed;
+  /// none where neither is set, and why where the file cannot be read. The value is never said.
+  pub fn credential(&self) -> Result<Option<String>, String> {
+    if let Some(token) = self.token.as_deref().map(str::trim).filter(|token| !token.is_empty()) {
+      return Ok(Some(token.to_owned()));
+    }
+
+    let Some(file) = self.token_file.as_deref().map(str::trim).filter(|file| !file.is_empty()) else {
+      return Ok(None);
+    };
+    let path = match file.strip_prefix("~/") {
+      Some(rest) => std::env::var_os("HOME")
+        .map(|home| std::path::PathBuf::from(home).join(rest))
+        .ok_or_else(|| "`mail.token_file` names the home, and no home is known".to_owned())?,
+      None => file.into(),
+    };
+    let held = std::fs::read_to_string(&path)
+      .map_err(|why| format!("`mail.token_file` {} cannot be read: {}", path.display(), why.kind()))?;
+    let token = held.trim();
+
+    if token.is_empty() {
+      return Err(format!("`mail.token_file` {} holds no credential", path.display()));
+    }
+
+    Ok(Some(token.to_owned()))
+  }
 }
 
 /// The folder the secret store writes (docs/accounts.md, 「The secret store」).

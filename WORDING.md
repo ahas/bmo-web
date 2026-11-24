@@ -124,7 +124,7 @@
   롤백, 복원, 인터넷 권한.
 - the screens of a person's own apps, as the sidebar groups them → 내 앱; a screen of one that cannot open because the
   person's PC does not answer → `PC가 꺼져 있어 열 수 없습니다.` Never 오프라인, 연결 끊김 for it.
-- the company's shelf of shared personal apps → 앱 카탈로그; sharing one → 공유, whom with → 공유 대상, the three scopes →
+- the company's shelf of shared personal apps → 스토어, never 앱 카탈로그; sharing one → 공유, whom with → 공유 대상, the three scopes →
   팀, 상위 조직장, 회사 전체, and one named by hand → 직접 지정; putting a copy on one's PC → 설치 (설치됨, 조직에서 설치 where a
   head's turning on did), moving it to the newest → 업데이트, making it one's own → 복제; the owner ending a share →
   공유 중단 (공유 중단됨); a head turning it on for a unit → 조직에 켜기, off → 조직에서 끄기, taking it off every PC there →
@@ -756,4 +756,4 @@
 - 아티팩트 → artifact / アーティファクト / 制品.
 - 인물 (the person an org memory is about) → person / 人物 / 人员.
 - 전역 베이스 → global base / グローバルベース / 全局库.
-- 앱 카탈로그 → app catalogue / アプリカタログ / 应用目录; 회수 → recall / 回収 / 收回; 복제 → clone / 複製 / 复制.
+- 스토어 → Store / ストア / 应用商店; 회수 → recall / 回収 / 收回; 복제 → clone / 複製 / 复制.

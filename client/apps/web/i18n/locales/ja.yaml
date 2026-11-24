@@ -1256,7 +1256,7 @@ screens:
     siren: キャッシュサイレン
     rooms: ルーム
     brain: ブレイン
-    catalogue: アプリカタログ
+    catalogue: ストア
     todo_description: 待ち行列と承認待ち
   placeholder:
     find: 画面・ルーム・エージェントを検索
@@ -4441,9 +4441,9 @@ app_catalogue:
     promote_effect: "管理者が確認してからプラットフォームアプリとして配布します。"
     shared: "{app} を共有しました。"
   status:
-    loading: カタログを読み込み中…
+    loading: ストアを読み込み中…
   error:
-    read_failed: カタログを読み込めませんでした。
+    read_failed: ストアを読み込めませんでした。
     act_failed: 依頼を処理できませんでした。
     source_failed: ソースを読み込めませんでした。
     share_failed: 共有できませんでした。
@@ -4462,7 +4462,7 @@ app_catalogue:
     name_taken: 同じ名前の個人アプリがすでにあります。
     locked: 組織がロックしているため変更できません。
     forbidden: この操作を行う権限がありません。
-    no_user: ユーザーアカウントがないため、カタログを使えません。
+    no_user: ユーザーアカウントがないため、ストアを使えません。
 
 personal_apps:
   label:

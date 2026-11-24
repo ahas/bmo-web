@@ -24,21 +24,25 @@ const ROOM_READER = { name: "room-reader", password: "fixture-password-2402" };
 
 const ADMINISTRATION = wording("screens.label.section_administration");
 const APPLICATION = wording("screens.label.section_application");
-// The stand-in units' screens, each named by its unit, in Latin letters, then the app catalogue every reader opens,
-// named in Hangul.
-const BROUGHT = [...HARNESS_SCREEN_UNITS, wording("screens.label.catalogue")];
+// The stand-in units' screens, each named by its unit.
+const BROUGHT = [...HARNESS_SCREEN_UNITS];
+// The store every reader opens, standing in 시스템 서비스.
+const STORE = wording("screens.label.catalogue");
 
 // The sidebar as each reader reads it, section by section: the heading it shows and its screens' names.
 const EXPECTED = {
   [ADMINISTRATOR.name]: [
-    [ADMINISTRATION, ["db", "research", "monitor", "documents", "agents", "organization", "siren", "admin"].map((key) => wording(`screens.label.${key}`))],
+    [ADMINISTRATION, ["db", "research", "monitor", "documents", "catalogue", "agents", "organization", "siren", "admin"].map((key) => wording(`screens.label.${key}`))],
     [APPLICATION, BROUGHT]
   ],
   [SECTION_READER.name]: [
-    [ADMINISTRATION, ["db", "research", "monitor", "documents", "agents", "siren"].map((key) => wording(`screens.label.${key}`))],
+    [ADMINISTRATION, ["db", "research", "monitor", "documents", "catalogue", "agents", "siren"].map((key) => wording(`screens.label.${key}`))],
     [APPLICATION, BROUGHT]
   ],
-  [ROOM_READER.name]: [[APPLICATION, BROUGHT]]
+  [ROOM_READER.name]: [
+    [ADMINISTRATION, [STORE]],
+    [APPLICATION, BROUGHT]
+  ]
 } as const;
 
 const WIDTHS = [
@@ -94,12 +98,12 @@ async function sidebar(page: Page, phone: boolean): Promise<Locator> {
 // The screens' sections read top to bottom, each a menu named by its section: the heading it shows and the names of
 // the screens under it.
 async function sections(holder: Locator): Promise<[string, string[]][]> {
-  const applications = holder.locator(`nav[aria-label="${APPLICATION}"]`);
+  const administration = holder.locator(`nav[aria-label="${ADMINISTRATION}"]`);
 
-  await applications.waitFor({ timeout: 20_000 });
-  // The app catalogue's entry comes in once the reader's screens are read, after the units' own; the sections are read
-  // once it stands, so the read never catches the list half drawn.
-  await applications.locator("[data-slot='link'] [data-slot='linkLabel']", { hasText: wording("screens.label.catalogue") }).waitFor({ timeout: 20_000 });
+  await holder.locator(`nav[aria-label="${APPLICATION}"]`).waitFor({ timeout: 20_000 });
+  // The store's entry comes in once the reader's screens are read, after the units' own; the sections are read once it
+  // stands, so the read never catches the list half drawn.
+  await administration.locator("[data-slot='link'] [data-slot='linkLabel']", { hasText: STORE }).waitFor({ timeout: 20_000 });
 
   return holder.evaluate((root, headings) => {
     const read: [string, string[]][] = [];

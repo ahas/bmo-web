@@ -1570,10 +1570,11 @@ writing the words. A wording fix is an edit to the packs alone, once the guide b
 Four groups.
 
 - **The screens** — in three sections, each under its heading: **시스템 서비스**, what the administrator needs to keep
-  the deployment running and what the heads of the organisations set for the people under them; **애플리케이션**,
+  the deployment running, what the heads of the organisations set for the people under them, and the company's
+  스토어 every person opens; **애플리케이션**,
   every other screen a unit brings; and **내 앱**, the reader's own screens.
   - **시스템 서비스** holds the console's own cache siren, DB, document viewer, agent management (에이전시),
-    리서치, monitor, 조직 and 플랫폼 설정, and every screen a unit brings whose manifest names it: the brain's (브레인),
+    리서치, monitor, 조직, 스토어 (「App catalogue」) and 플랫폼 설정, and every screen a unit brings whose manifest names it: the brain's (브레인),
     code review's, BMO's face (비모 얼굴), the tool host's (도구) and the remote
     machines' (원격) among them.
   - **조직** is one entry of 시스템 서비스, the organisation screen (「Organisation」), which leads to the screen and is lit
@@ -1581,7 +1582,9 @@ Four groups.
     administrator and for a member the screen stands for — one who heads a unit or writes a unit's org memory — and for
     nobody else, so a member who heads nothing meets no entry there. A member it stands for who opens no other
     administrator service meets 시스템 서비스 under its heading with 조직 its one entry.
-  - **애플리케이션** holds the console's own 앱 카탈로그 (「App catalogue」) and every other screen a unit brings: mail, 파일,
+  - **스토어** is one entry of 시스템 서비스 that stands for every person with a user of the account service, so every
+    such person meets 시스템 서비스 under its heading with 스토어 in it.
+  - **애플리케이션** holds every screen a unit brings that names no other section: mail, 파일,
     아티팩트, 캘린더, 노트, 일정 관리 and 극장 among them.
   - **내 앱** holds the screens of the reader's own personal apps (「A reader's own screens」), each under the name its
     words give it, and stands below the other three. No unit's manifest names this section, and no screen of it is
@@ -9181,10 +9184,10 @@ a row shows of a key is the secret's name, and of a login the path it is reached
 
 ### App catalogue
 
-The personal apps people of the reader's company share (the agency's `docs/person-nodes.md`, 「Shared apps」): each one
+The 스토어: the personal apps people of the reader's company share (the agency's `docs/person-nodes.md`, 「Shared apps」): each one
 another person's BMO made on their PC and shared into the company's catalogue, which the reader installs on their own PC,
 a head turns on for a unit and recalls there on 조직's 앱·도구 (「앱·도구」). Nothing of another company stands in it. It stands at `/app-catalogue` in
-the sidebar's 애플리케이션 and opens to every person with a user of the account service; the console reads and changes it
+the sidebar's 시스템 서비스 as 스토어 and opens to every person with a user of the account service; the console reads and changes it
 through its own routes under `/api/account/app-catalogue`, which ask the agency for the account the reader's user is,
 so a reader sees and does what their own account may alone, and the agency's word is what every control shows.
 

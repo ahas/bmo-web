@@ -1256,7 +1256,7 @@ screens:
     siren: 缓存警报
     rooms: 房间
     brain: Brain
-    catalogue: 应用目录
+    catalogue: 应用商店
     todo_description: 队列与待审批
   placeholder:
     find: 查找界面·房间·智能体
@@ -4441,9 +4441,9 @@ app_catalogue:
     promote_effect: "管理员审查后将作为平台应用发布。"
     shared: "已共享 {app}。"
   status:
-    loading: 正在加载目录…
+    loading: 正在加载应用商店…
   error:
-    read_failed: 无法加载目录。
+    read_failed: 无法加载应用商店。
     act_failed: 无法处理请求。
     source_failed: 无法加载源代码。
     share_failed: 无法共享。
@@ -4462,7 +4462,7 @@ app_catalogue:
     name_taken: 已有同名的个人应用。
     locked: 组织已锁定，无法更改。
     forbidden: 你无权执行此操作。
-    no_user: 没有用户账户，无法使用目录。
+    no_user: 没有用户账户，无法使用应用商店。
 
 personal_apps:
   label:

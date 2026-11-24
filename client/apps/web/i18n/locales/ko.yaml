@@ -1265,7 +1265,7 @@ screens:
     siren: 캐시 사이렌
     rooms: 방
     brain: 브레인
-    catalogue: 앱 카탈로그
+    catalogue: 스토어
     todo_description: 대기열과 결재 대기
   placeholder:
     find: 화면·방·에이전트 찾기
@@ -4428,9 +4428,9 @@ app_catalogue:
     promote_effect: "플랫폼 관리자가 검토한 뒤 플랫폼 앱으로 배포합니다."
     shared: "{app} 앱을 공유했습니다."
   status:
-    loading: 카탈로그 불러오는 중…
+    loading: 스토어 불러오는 중…
   error:
-    read_failed: 카탈로그를 불러오지 못했습니다.
+    read_failed: 스토어를 불러오지 못했습니다.
     act_failed: 요청을 처리하지 못했습니다.
     source_failed: 원본을 불러오지 못했습니다.
     share_failed: 공유하지 못했습니다.
@@ -4449,7 +4449,7 @@ app_catalogue:
     name_taken: 같은 이름의 개인 앱이 이미 있습니다.
     locked: 조직에서 잠가 바꿀 수 없습니다.
     forbidden: 이 작업을 할 권한이 없습니다.
-    no_user: 사용자 계정이 없어 카탈로그를 쓸 수 없습니다.
+    no_user: 사용자 계정이 없어 스토어를 쓸 수 없습니다.
 
 # The personal apps section (docs/web.md, 「Settings」, the personal apps section): a reader's own tools, made and run on
 # their PC, each with its version, when it was put and what it may reach.

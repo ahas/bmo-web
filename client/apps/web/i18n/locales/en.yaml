@@ -1256,7 +1256,7 @@ screens:
     siren: Cache siren
     rooms: Rooms
     brain: Brain
-    catalogue: App catalogue
+    catalogue: Store
     todo_description: Queue and pending approvals
   placeholder:
     find: "Find a screen, room or agent"
@@ -4409,9 +4409,9 @@ app_catalogue:
     promote_effect: "The administrator reviews it and ships it as a platform app."
     shared: "Shared {app}."
   status:
-    loading: Loading the catalogue…
+    loading: Loading the store…
   error:
-    read_failed: The catalogue could not be loaded.
+    read_failed: The store could not be loaded.
     act_failed: The request could not be done.
     source_failed: The source could not be loaded.
     share_failed: The app could not be shared.
@@ -4430,7 +4430,7 @@ app_catalogue:
     name_taken: You already have a personal app of that name.
     locked: Your organisation locked it.
     forbidden: You may not do this.
-    no_user: There is no user account, so the catalogue can't be used.
+    no_user: There is no user account, so the store can't be used.
 
 personal_apps:
   label:

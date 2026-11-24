@@ -65,14 +65,15 @@ describe("the console search in the sidebar", () => {
   test("reads the sidebar counts the bundles declare, and hands them to the screen entries", () => {
     expect(layout).toContain("const unread = useSidebarUnread();");
     expect(layout).toContain(
-      "sectionItems(namedBy(t, readNames.value), route.path, undefined, sidebarFolded.value, screens, unread.value)",
+      "sectionItems(namedBy(t, readNames.value), route.path, undefined, sidebarFolded.value, screens.value, unread.value)",
     );
   });
 
   test("lists the screens the search lists, one list of them both", () => {
     expect(layout).toContain("sectionItems(namedBy(t, readNames.value), route.path, ");
-    expect(layout).toContain("screenGroup(namedBy(t, readNames.value), screens, readNames.value)");
-    expect(layout).toContain("screensWithBundles(bundles.value, featuredScreens(useConsoleFeatures().value))");
+    expect(layout).toContain("screenGroup(namedBy(t, readNames.value), screens.value, readNames.value)");
+    // The one list follows the screens as they are read, a login's read after the shell first drew among them.
+    expect(layout).toContain("const screens = computed(() => screensWithBundles(bundles.value, featuredScreens(features.value)));");
   });
 });
 

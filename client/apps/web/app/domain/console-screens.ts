@@ -20,16 +20,22 @@ export type ScreensReader = (path: string) => Promise<ConsoleScreen[] | null>;
 
 /** What reads the list again: the list it reads stands as the page's and its words are merged into the pack; a list
  * that cannot be read leaves the page's as it was and reads as null. With no session the list is asked for the
- * address the page stands at, since only a share page's own bundle is answered then, and only there. */
+ * address the page stands at, since only a share page's own bundle is answered then, and only there. The last read
+ * asked is the one that stands: one answering after a later read was asked, as one asked for a login that has since
+ * changed does, is dropped, and reads as the list standing then (docs/web.md, 「Access」). */
 export function useScreensReader(): ScreensReader {
   const screens = useConsoleScreens();
+  const asked = useState<number>("console-screens-asked", () => 0);
   const fetching = useRequestFetch();
   const { loggedIn } = useUserSession();
   const i18n = useNuxtApp().$i18n as { mergeLocaleMessage: (locale: string, words: Record<string, unknown>) => void };
 
   return async (path) => {
     const query = loggedIn.value ? {} : { path };
+    const ask = ++asked.value;
     const read = await fetching<ConsoleScreen[]>("/api/console-bundles", { query }).catch(() => null);
+
+    if (ask !== asked.value) return screens.value;
 
     if (read !== null) {
       screens.value = read;

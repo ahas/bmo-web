@@ -151,6 +151,8 @@ const ACCOUNTS: readonly [string, string][] = [
   ["axis-admin", "fixture-password-4121"],
   ["tree-admin", "fixture-password-4611"],
   ["join-signed-in", "fixture-password-4131"],
+  // The administrator whose tab signs out and hands over to a member's login (tests/browser/sign-in-sidebar.test.ts).
+  ["sign-in-admin", "fixture-password-5201"],
   // The administrator who resets a person's password on the people tab (tests/browser/account-security.test.ts).
   ["security-admin", "fixture-password-5100"]
 ];
@@ -234,6 +236,17 @@ const MEMBERS: readonly { name: string; password: string; sections: readonly { s
       { section: "account", read: true, write: true }
     ]
   },
+  // The member a tab signs in as once another login has signed out of it, and the new members whose first sign-in
+  // the start guide holds, one for each width, whose runs only their own supply can carry
+  // (tests/browser/sign-in-sidebar.test.ts).
+  ...["sign-in-member", "first-sign-in-1280", "first-sign-in-360"].map((name, at) => ({
+    name,
+    password: `fixture-password-${5202 + at}`,
+    sections: [
+      { section: "rooms", read: true, write: false },
+      { section: "account", read: true, write: true }
+    ]
+  })),
   // The person who brings a local AI of their own, whose own supply is all that carries their runs and whose PC the
   // agency reaches (docs/web.md, 「The start guide」 and 「Settings」, the supply section's local AIs).
   {
@@ -2771,6 +2784,13 @@ try {
 
   ownSupplyOnly.add(localMember.user);
   localAiOwners.add(localMember.user);
+
+  for (const name of ["first-sign-in-1280", "first-sign-in-360"]) {
+    const first = users.find((user) => user.name === name);
+
+    if (first === undefined) throw new Error(`${name} stands in no users list`);
+    ownSupplyOnly.add(first.user);
+  }
   guideAdministrator = users.find((user) => user.name === "guide-admin")?.user ?? null;
 
   // The media room's reader and the sticker room's each have a sender of their own, linked as the administrator links

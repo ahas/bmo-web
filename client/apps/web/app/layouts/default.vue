@@ -276,13 +276,16 @@ const sidebarFolded = ref(false);
 // the reader's role places in it (「Sidebar」).
 const bundles = useConsoleScreens();
 // The console's own screens stand as the deployment's features leave them (docs/web.md, 「The console's features」).
-const screens = screensWithBundles(bundles.value, featuredScreens(useConsoleFeatures().value));
+// The list is followed as it stands, so a login's screens, read as it signs in while this shell already stands,
+// stand in the sidebar, the search and the user menu at once (docs/web.md, 「Access」).
+const features = useConsoleFeatures();
+const screens = computed(() => screensWithBundles(bundles.value, featuredScreens(features.value)));
 // The counts the bundles declare, read for this reader while the sidebar stands (docs/web.md, 「Sidebar」).
 const unread = useSidebarUnread();
 // The reader's own screens whose words carry no name in their language, named by its reading (「Sidebar」).
 const readNames = useReadScreenNames(() => bundles.value);
 const screenSections = computed<ReadNameSection[]>((before) =>
-  sameKept(before, withReadNames(sectionItems(namedBy(t, readNames.value), route.path, undefined, sidebarFolded.value, screens, unread.value), readNames.value))
+  sameKept(before, withReadNames(sectionItems(namedBy(t, readNames.value), route.path, undefined, sidebarFolded.value, screens.value, unread.value), readNames.value))
 );
 
 // The picture every session in this sidebar wears.
@@ -512,7 +515,7 @@ onBeforeUnmount(() => {
 });
 
 const jumpSources = computed<JumpGroup[]>((before) => sameKept(before, [
-  screenGroup(namedBy(t, readNames.value), screens, readNames.value),
+  screenGroup(namedBy(t, readNames.value), screens.value, readNames.value),
   searchesRoster.value ? rosterGroup(t, rosterPeople.value) : peopleGroup(t, people.value),
   {
     id: "rooms",

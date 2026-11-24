@@ -573,6 +573,14 @@ nothing.
   초대 where they head a unit. Beside them stand the rooms they may read, and the screens units bring whose
   manifest's role is `member` and whose section the administrator has left read — and, where the manifest asks
   for the owner key, only when their login has a user.
+- **What a tab knows of its reader belongs to the login it was read for.** The screens they may open (「Screens a
+  unit brings」), the sections their permission reads and whether the start guide opens by itself for them
+  (「The start guide」) are read once for a login and kept for the tab while it stands. Signing in, signing out and
+  one login handing over to another in the same tab, as the join page's way to the login does, drop all three and
+  read them again for the login that stands now, with no new page to read them on; an answer read for a login
+  that no longer stands is never kept over the one read for the login after it. Every shell draws its sidebar,
+  its search and its user menu from the list as it stands, so the screens a login brings stand from the first
+  screen after it, at a phone's width and a desk's alike.
 - **Asking for a screen a member may not open takes them to the first one they may:** the first screen of the
   navigation, the console's own or a unit's, standing under a section they read, else their rooms. The way there
   never leads back to the address refused: where the first one they may open is that address, as for a member who
@@ -7762,10 +7770,10 @@ the screen, the screen's whole width on a phone, opened to every signed-in perso
 - **Leaving is allowed but at a required supply.** The card's close mark puts the guide aside and leads home at any
   step but those of a supply that is required while none of the person's own is on; 완료 on the last step finishes it.
 - **Where it opens by itself:** a member whose own supply is required and holds none on is led here from every other
-  page until one is on, the question read once a session and an agency that does not answer asking nothing; the
-  administrator is led here once a session while their flow stands neither finished nor put aside; and the join page's
-  way to the login leads a new account here. Otherwise it opens from 설정's 계정, 시작 안내 다시 보기, at the step kept,
-  or from its start once finished. `/agent-login` leads here.
+  page until one is on, the question read once for each login (「Access」) and an agency that does not answer asking
+  nothing; the administrator is led here once for each login while their flow stands neither finished nor put aside;
+  and the join page's way to the login leads a new account here. Otherwise it opens from 설정's 계정, 시작 안내 다시
+  보기, at the step kept, or from its start once finished. `/agent-login` leads here.
 
 ### Settings
 
@@ -10623,8 +10631,10 @@ title bar」), its people directory and the members of the reader's company.
   `sidebarUnread`, whose count the console reads itself (「Sidebar」). A
   page drawn on the server reads the same list, so the sidebar names every screen on its first frame, and the words
   are merged into the console's pack under the bundle's namespace as the list is read. The list is read again as
-  somebody signs in or out, since a login reaches the console's screens with no new page to read it on, and the
-  sidebar stands whole from the first screen after it.
+  somebody signs in or out or one login hands over to another, since a login reaches the console's screens with no
+  new page to read it on; the last read asked stands, an earlier one answering after it being dropped, and the
+  sidebar, drawn from the list as it stands rather than as it stood when the shell first drew, stands whole from
+  the first screen after it (「Access」).
 - **A screen that is an app is handed only to a reader it stands on for,** the console's own policy over the
   contract's offer (bmo-ui's `docs/console-bundles.md`, 「Roles and the owner key」). A bundle's screen is an app where
   its service name is the key of an app whose kinds stand on the delegation chain (`docs/accounts.md`, 「An app's two

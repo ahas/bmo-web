@@ -9156,6 +9156,73 @@
         ]
       }
     },
+    "/invites/{token}/pairings/{code}/approve": {
+      "post": {
+        "operationId": "approveInvitePairing",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "code",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PairingApproved"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: not-found, invite-open, account-active, pairing-closed, left, no-hub, upstream-failed, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A desktop pairing approved with the invitation that made the account, while that account waits for its machine.",
+        "tags": [
+          "Desktop pairing"
+        ],
+        "x-codes": [
+          "not-found",
+          "invite-open",
+          "account-active",
+          "pairing-closed",
+          "left",
+          "no-hub",
+          "upstream-failed",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
     "/invites/{token}/proof": {
       "post": {
         "operationId": "proveInvite",

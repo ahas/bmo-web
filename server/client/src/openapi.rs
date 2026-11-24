@@ -1027,6 +1027,19 @@ pub fn openapi() -> Value {
   );
   add!(
     "POST",
+    "/invites/{token}/pairings/{code}/approve",
+    "approveInvitePairing",
+    "Desktop pairing",
+    "A desktop pairing approved with the invitation that made the account, while that account waits for its machine.",
+    params: vec![string_path("token"), string_path("code")],
+    body: None,
+    answers: vec![(200, json_answer::<PairingApproved>(&mut generator))],
+    codes: vec!["not-found", "invite-open", "account-active", "pairing-closed", "left", "no-hub", "upstream-failed", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "POST",
     "/desktop/pairings/code/{code}/refuse",
     "refusePairing",
     "Desktop pairing",

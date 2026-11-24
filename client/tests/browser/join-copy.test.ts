@@ -74,6 +74,8 @@ async function acceptedPage(width: number, clipboard: ClipboardRoad, on: Browser
   await context.route(new RegExp(`/api/join/${TOKEN}/accept$`), (route) => route.fulfill({ json: accepted }));
   await context.route(new RegExp(`/api/join/${TOKEN}/proof$`), (route) => route.fulfill({ json: { active: false } }));
   await context.route(new RegExp(`/api/join/${TOKEN}$`), (route) => route.fulfill({ json: view }));
+  // No desktop release, so the page chooses jake's command and its install lines stand.
+  await context.route(/\/api\/desktop\/release$/, (route) => route.fulfill({ json: { release: null } }));
 
   const page = await context.newPage();
 

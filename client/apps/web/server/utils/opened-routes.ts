@@ -156,7 +156,7 @@ export const openedRoutes: readonly OpenedRoute[] = [
   { method: "GET", path: /^\/api\/organization\/people(?:\/companies)?$/, scope: "user" },
   { method: "GET", path: /^\/api\/organization\/people\/\d+(?:\/bmo(?:\/picture)?)?$/, scope: "user" },
   { method: "GET", path: /^\/api\/join\/[0-9a-f]+$/, scope: "user" },
-  { method: "POST", path: /^\/api\/join\/[0-9a-f]+\/(accept|proof)$/, scope: "user" },
+  { method: "POST", path: /^\/api\/join\/[0-9a-f]+\/(accept|proof|pair)$/, scope: "user" },
   // The desktop app's pairing, asked and read with or without a session; its code read and answered by every
   // signed-in login for their own machine, and that machine's proof.
   { method: "POST", path: /^\/api\/desktop\/pairings$/, scope: "user" },

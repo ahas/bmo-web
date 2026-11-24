@@ -2371,22 +2371,41 @@ join:
     full_name: 이름
     linux: Linux·WSL
     windows: Windows
+    tab_desktop: "데스크톱 앱으로 시작"
+    tab_jake: "jake 명령으로 시작"
+    installer: "{platform} {format}"
+    step_download: "앱 다운로드"
+    step_open: "앱 열기"
+    step_code: "연결 코드 입력"
   action:
     accept: 계정 만들기
     check: 설치했어요, 확인하기
     copy: 복사
+    connect: "연결"
   message:
     invited: "{place}에 초대되었습니다."
     invited_head: "{place}에 조직장으로 초대되었습니다."
     until: "{time}까지 유효한 초대입니다."
     expired: "만료된 초대입니다.\n초대한 사람에게 새 링크를 받아 주세요."
     used: 이미 사용된 초대입니다.
-    install: "계정을 만들었습니다.\n이 계정을 쓸 PC에서 아래 명령 중 하나를 실행해 jake를 설치하세요.\n설치되어 연결되면 계정이 활성화됩니다."
+    created: "계정을 만들었습니다.\n이 계정을 쓸 PC를 연결하면 계정이 활성화됩니다."
+    install: "이 계정을 쓸 PC에서 아래 명령 중 하나를 실행해 jake를 설치합니다."
+    desktop_download: "이 계정을 쓸 PC에 BMO 데스크톱 앱을 설치합니다."
+    desktop_open: "설치한 앱을 엽니다. 앱이 BMO 서버 주소를 물으면 아래 주소를 입력합니다."
+    desktop_code: "앱 창 맨 위 제목 표시줄에 보이는 연결 코드를 입력하고 연결을 누릅니다."
+    desktop_unavailable: "데스크톱 앱은 아직 받을 수 없습니다.\njake 명령으로 시작해야 합니다."
+    desktop_connecting: "앱 연결을 승인했습니다. 앱이 연결하는 중입니다…"
+    one_agent: "jake를 설치한 PC에서 데스크톱 앱을 열면 앱은 설치된 jake를 그대로 쓰며, 둘이 함께 켜지지 않습니다."
+    signed_in_as: "지금 {name} 계정으로 로그인되어 있습니다.\n새 계정으로 로그인하면 이 계정은 로그아웃됩니다."
     waiting: 기기 연결을 기다리는 중입니다…
     active: "기기가 연결되어 계정이 활성화되었습니다.\n이제 로그인할 수 있습니다."
     agent_login: "기기가 연결되어 계정이 활성화되었습니다.\n이 조직에서는 내 공급 로그인이나 공급 키로만 에이전트를 쓸 수 있습니다. 로그인하면 바로 에이전트 로그인 설정이 열립니다."
   error:
     full_name_empty: 이름을 입력해 주세요.
+    code_empty: "연결 코드를 입력해야 합니다."
+    code_closed: "만료되었거나 이미 쓴 연결 코드입니다. 앱에서 다시 시도해야 합니다."
+    code_not_found: "연결 코드를 찾을 수 없습니다. 앱 창 제목 표시줄의 코드와 같은지 확인해야 합니다."
+    account_active: "이미 활성화된 계정입니다. 로그인한 뒤 앱을 연결해야 합니다."
 agent_login:
   title:
     page: 에이전트 로그인 설정
@@ -2620,6 +2639,7 @@ pairing:
     effect_new: "이 연결 코드를 보여 주는 앱이 새로 만든 내 기기로 연결됩니다.\n앱 창 제목 표시줄의 코드와 같을 때만 승인해야 합니다."
     machines: "연결된 기기는 {link}에서 볼 수 있습니다."
     sign_in: 데스크톱 앱을 연결하려면 로그인해야 합니다.
+    sign_in_invited: "초대 링크로 가입하는 중이라면 이 창 제목 표시줄의 연결 코드를 초대 페이지에 입력합니다."
     connecting: 앱이 연결하는 중입니다…
     connected: 앱이 연결되었습니다.
     refused: 거부했습니다.

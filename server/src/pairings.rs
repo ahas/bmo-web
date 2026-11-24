@@ -18,7 +18,7 @@ use bmo_web_client::{
 use rand::{Rng, RngCore};
 use sea_orm::ConnectionTrait;
 
-use crate::invites::node_of;
+use crate::invites::{node_of, waiting_account};
 use crate::machines::rebind;
 use crate::nodes::Nodes;
 use crate::routes::Answer;
@@ -48,6 +48,7 @@ pub fn routes() -> Router<Service> {
     .route("/desktop/pairings/code/{code}", get(view_route))
     .route("/desktop/pairings/code/{code}/approve", post(approve_route))
     .route("/desktop/pairings/code/{code}/refuse", post(refuse_route))
+    .route("/invites/{token}/pairings/{code}/approve", post(invite_approve_route))
 }
 
 #[derive(Clone, PartialEq, Eq)]
@@ -478,4 +479,15 @@ async fn refuse_route(
   service.pairings.refuse(&code)?;
 
   Ok(StatusCode::NO_CONTENT)
+}
+
+/// A pairing approved with the invitation that made the account, while that account waits for its machine.
+async fn invite_approve_route(
+  State(service): State<Service>,
+  Path((token, code)): Path<(String, String)>,
+) -> Answer<PairingApproved> {
+  let nodes = hub(&service)?;
+  let user = waiting_account(&service.db, &token).await?;
+
+  Ok(Json(service.pairings.approve(&service.db, nodes, &code, user).await?))
 }

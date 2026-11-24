@@ -640,7 +640,10 @@ nothing.
   above the fields, and says nothing when it was simply opened.
 - **The login screen says the desktop app is being connected** where the address it carries is the desktop pairing
   page's (「The desktop pairing page」), in one neutral line above the fields, so a person the app sent to sign in
-  knows why.
+  knows why, and a second line that a person joining by an invitation types the code in the window's title bar
+  into the join page instead (「The join page」), since their account signs in only once the app has connected.
+- **A login named in the login screen's address, as `name`, stands filled in 아이디,** as the join page hands over
+  the login it just made (「The join page」); the password is never carried in an address.
 - **The next login returns to the screen the tab was on,** its address carried in the login screen's
   own; an address outside this app is never followed, and with none the login goes home.
 
@@ -8123,7 +8126,7 @@ settings on the research screen (「Research screen」).
     with it, or the person alone where they are not chosen; the unit under the pointer stands lit, and the drop
     opens the same dialog at its second step, that unit as where they go and each a 구성원, 뒤로 changing either.
   - The machine mark opens the person's machine in a dialog: the machine their account is bound to and whether it
-    is connected, or none. 기기 연결, or 다른 기기로 연결 where one is bound, binds the account to the machine named in
+    is connected, and while it is, how — 데스크톱 앱 or 설치형 프로그램, as the settings' 기기 says it — or none. 기기 연결, or 다른 기기로 연결 where one is bound, binds the account to the machine named in
     기기 이름, or to a fresh name where it is left empty, and as a machine several accounts share where 여러 계정이
     함께 쓰는 기기 is turned on; a machine not yet connected shows its one-line installs, Linux or WSL and Windows,
     each with its copy mark, which copies and turns to a check as the join page's does (「The join page」), and is
@@ -8354,13 +8357,38 @@ Where a company's own words for its roles and its unit kinds are kept (`docs/acc
 - **The person's name, a login and a password make the account.** 이름 comes first, filled with the name the
   invitation was made with for the person to correct; the page does not take the account without it. 아이디 and
   비밀번호 follow, the login taken by the rule the sign-in reads it by (`docs/accounts.md`, 「Users and senders」) and refused
-  with that rule's words where it falls outside it. A call that gives no name, as a script may, leaves the account the invitation's name. The page then shows the person's machine's one-line installs,
-  Linux or WSL and Windows, each with its copy mark, and asks every few seconds whether the machine has attached.
-  A press of the mark puts the line on the clipboard and turns the mark to a check named 「복사됨」, in its tooltip
-  as in its name, until another line is copied. The copy reaches the clipboard on an address the browser holds insecure too, through the
-  browser's older selection copy, and one the browser refuses all the same is said on the island; a mark never
-  turns to a check for a copy that did not land.
-  설치했어요, 확인하기 asks at once. Attached, the account is ready and the page leads to the login.
+  with that rule's words where it falls outside it. A call that gives no name, as a script may, leaves the account the invitation's name.
+- **The account made, the page connects the person's machine, one of two ways, as two tabs:** 데스크톱 앱으로 시작
+  and jake 명령으로 시작 (`docs/accounts.md`, 「Invitations and a person's machine」). The desktop tab stands first and
+  is chosen, where the desktop app's release read (「The desktop app's download page」) answers a release; where it
+  answers none, or cannot be read, the desktop tab says the desktop app is not available yet and the jake tab is
+  chosen. The tabs stand at the card's full width, a phone's among them, and each holds its steps as a numbered
+  list. Both lead to the one wait and the one end: the page asks every few seconds whether the machine has attached,
+  설치했어요, 확인하기 asks at once, and attached, the account is ready and the page leads to the login, whichever
+  tab connected it.
+  - **데스크톱 앱으로 시작** holds three steps. First the download: the release's installer for the reader's own
+    platform, as the browser names it, as the primary button, and every other platform's first installer beside
+    it as a quieter one, each named by its platform and format, so a person who opened the link on a phone can
+    fetch the PC's installer too. Then opening the app: where it asks for 「BMO 서버 주소」, the console's own
+    address, its public address or the page's own origin and base where none is set, stands in the monospace face
+    with its copy mark. Last, 연결 코드: the app shows its code in its window's title bar (jake's `docs/desktop.md`,
+    「Pairing」), and the person types it into the field here, read in either case with or without its hyphen, and
+    presses 연결. The page approves that pairing with the invitation (`POST /api/join/<token>/pair`,
+    `docs/accounts.md`, 「Desktop pairing」), says the app is connecting, and from there waits as above. A code
+    refused is said under the field in the pack's words — expired or already used, not found, the account already
+    active — and the field stays for another try.
+  - **jake 명령으로 시작** holds the person's machine's one-line installs, Linux or WSL and Windows, each with its
+    copy mark. A press of the mark puts the line on the clipboard and turns the mark to a check named 「복사됨」, in its
+    tooltip as in its name, until another line is copied. The copy reaches the clipboard on an address the browser
+    holds insecure too, through the browser's older selection copy, and one the browser refuses all the same is
+    said on the island; a mark never turns to a check for a copy that did not land. One muted line says a PC that
+    has jake installed and opens the desktop app as well keeps using the installed jake, never both.
+- **The way to the login signs the new account in, never a session the browser already holds.** Where the browser
+  is signed in to another account as the page opens, one neutral line above the card's content says so, naming the
+  account by the name people read it by: `지금 {name} 계정으로 로그인되어 있습니다`, and that signing in to the new
+  account signs that one out. The page's way to the login, 로그인 or 로그인하고 설정하기 alike, ends that session
+  first, through the console's own sign-out on the server, and then opens the login with the new account's login
+  filled in, so the person signs in as the account they just made and never lands in the other one's console.
 - **Where only the person's own supply can carry their runs, the login leads first to setting one up.** As the
   proof answers the account active, the console's server asks the agency in the person's name which supply sources
   their chain leaves open (the agency's `docs/supply.md`, 「The sources a person's chain leaves open」): where the

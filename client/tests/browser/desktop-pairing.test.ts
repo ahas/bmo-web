@@ -99,7 +99,9 @@ describe.skipIf(!origin || !touchReady())("the desktop pairing page", () => {
       await page.goto(`${origin}${AS_APP}`, { waitUntil: "load" });
       await page.waitForURL(/\/login\?/, { timeout: 20_000 });
       expect(new URL(page.url()).searchParams.get("to")).toBe(AS_APP);
-      await page.locator("[data-login-pairing]").getByText(wording("pairing.message.sign_in"), { exact: true }).waitFor({ timeout: 20_000 });
+      await page.locator("[data-login-pairing]").getByText(wording("pairing.message.sign_in")).waitFor({ timeout: 20_000 });
+      // A person joining by an invitation is told to type the code on the join page instead.
+      await page.locator("[data-login-pairing]").getByText(wording("pairing.message.sign_in_invited")).waitFor({ timeout: 5_000 });
     } finally {
       await context.close();
     }

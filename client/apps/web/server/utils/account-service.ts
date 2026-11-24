@@ -1128,6 +1128,14 @@ export async function proveInvite(token: string, options: ServiceOptions = {}): 
   return answered(reply);
 }
 
+/** A desktop pairing approved with the invitation that made the account, while that account waits for its machine. */
+export async function approveInvitePairing(token: string, code: string, options: ServiceOptions = {}): Promise<PairingApproved> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.POST("/invites/{token}/pairings/{code}/approve", { params: { path: { token, code } } }));
+
+  return answered(reply);
+}
+
 /** The machine an account is bound to and whether the hub holds it. */
 export async function userNode(id: UserId | number, options: ServiceOptions = {}): Promise<UserNode> {
   const client = clientOf(options);

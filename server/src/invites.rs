@@ -312,6 +312,32 @@ pub async fn node_of<C: ConnectionTrait>(
   })
 }
 
+/// The account an invitation made, while it waits for its machine: the invitation accepted and the account not yet
+/// enabled, so the invitation may approve a desktop pairing for it (docs/accounts.md, 「Desktop pairing」).
+pub async fn waiting_account<C: ConnectionTrait>(db: &C, token: &str) -> Result<i32, Refusal> {
+  let invite = stored(db, token).await?;
+  let user = invite.used_by.ok_or_else(|| {
+    Refusal::new(StatusCode::CONFLICT, "the invitation is not accepted yet").coded("invite-open")
+  })?;
+  let enabled: bool =
+    one(db, r#"SELECT "is_enabled" FROM "users" WHERE "id" = $1::bigint"#, vec![user.into()])
+      .await?
+      .ok_or_else(|| Refusal::absent("the invitation's account is gone"))?
+      .try_get("", "is_enabled")?;
+
+  if enabled {
+    return Err(
+      Refusal::new(
+        StatusCode::CONFLICT,
+        "the invitation's account is enabled, so its person approves signed in",
+      )
+      .coded("account-active"),
+    );
+  }
+
+  Ok(user)
+}
+
 /// An invited account enabled once the hub holds its machine.
 pub async fn prove<C: ConnectionTrait>(db: &C, nodes: &Nodes, token: &str) -> Result<Proof, Refusal> {
   let invite = stored(db, token).await?;

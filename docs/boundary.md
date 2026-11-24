@@ -239,6 +239,7 @@ types; `server/client/` is the Rust crate the server answers with and that docum
 | `GET /invites/{token}` | | `unit`, `company`, `head`, `fullName`, `expiresAt`, `state` (`open`, `expired`, `used`); 404 where no invitation has the token |
 | `POST /invites/{token}/accept` | `name` (the login), `password`, `fullName?` (the person's name, the invitation's where absent or empty) | 201, `user`, `agent` (the machine name), `credential`, `hubUrl`, and `install`: `linux` and `windows`, the one-line installs; 409 `invite-closed` where it is expired or used, 409 `name-taken` where the name stands, 409 `not-ready` where the deployment's default role does not stand |
 | `POST /invites/{token}/proof` | | `active`: whether the account's machine is attached and the account now enabled; `user?`, the account, where it is |
+| `POST /invites/{token}/pairings/{code}/approve` | | `machine`: the desktop pairing of that code approved for the machine the invitation's account is bound to, as the account's own approval binds it (「Desktop pairing」); 409 `invite-open` where the invitation is not accepted yet, 409 `account-active` where its account is enabled already, 410 `pairing-closed` where the pairing no longer waits, 404 where no invitation has the token or no pairing the code, 503 `no-hub` where the settings name no hub |
 | `GET /users/{user}/node` | | `agent?` (the machine bound, none for an account bound to none), `shared`, whether the administrator bound it as a shared machine, `attached`, `kind?` (`desktop` or `installed`, how the agent the hub holds is connected, while it holds one), `provenAt?`, `boundAt?` (when the account was connected to the machine, none where it was not recorded), `left`, whether the account has left |
 | `PUT /users/{user}/node` | `Owner-Key`, `Owner-Role`; `agent?`, the machine's name, letters, digits, `-` and `_`, at most 63; `shared?`, true to bind a machine several accounts share, false where absent | the administrator's alone, 403 for anyone else: the account bound to the machine named, or to a fresh name where none is; `agent`, `shared`, `credential`, `hubUrl`, `install` (`linux`, `windows`) and `attached`, whether the hub holds it, the binding proven where it does; 400 for a name that does not read as one, 404 for no such user, 409 `node-taken` where another account is bound to it and this binding or that one is not shared, 409 `left` for an account that has left, 503 `no-hub` where the settings name no hub |
 | `PUT /users/{user}/node/shared` | `Owner-Key`, `Owner-Role`; `shared` | the administrator's alone, 403 for anyone else: the account's machine declared shared with other accounts, or no longer shared, the machine and its proof kept, answered as `GET /users/{user}/node` answers it; 404 where the account is bound to none, 409 `node-taken` for a declaration taken back while another account is bound to the machine, 503 `no-hub` where the settings name no hub |
@@ -247,8 +248,9 @@ types; `server/client/` is the Rust crate the server answers with and that docum
 | `POST /users/{user}/node/proof` | | the account's machine as `GET /users/{user}/node` answers it, the binding recorded as proven where the hub holds it; 503 `no-hub` where the settings name no hub |
 | `POST /users/{user}/leave` | `Owner-Key`, `Owner-Role` | 204: the account is marked left and its sign-in disabled, by the administrator or a head of the user's unit; 403 for anyone else |
 
-- **The accept, the proof and the read of an invitation take the server's token alone,** with no owner key: the
-  console calls them for a person who has no account yet, by the token in the link (`docs/accounts.md`,
+- **The accept, the proof, the pairing's approval and the read of an invitation take the server's token alone,**
+  with no owner key: the console calls them for a person who has no account they can sign in with yet, by the token
+  in the link (`docs/accounts.md`,
   「Invitations and a person's machine」).
 
 ### Desktop pairing

@@ -2350,10 +2350,17 @@ join:
     full_name: Name
     linux: Linux·WSL
     windows: Windows
+    tab_desktop: "Start with the desktop app"
+    tab_jake: "Start with the jake command"
+    installer: "{platform} {format}"
+    step_download: "Download the app"
+    step_open: "Open the app"
+    step_code: "Enter the connection code"
   action:
     accept: Create account
     check: "I've installed it, check"
     copy: Copy
+    connect: "Connect"
   message:
     invited: "You're invited to {place}."
     invited_head: "You're invited to {place} as a head."
@@ -2362,7 +2369,15 @@ join:
 
       Ask the person who invited you for a new link.'
     used: This invite has already been used.
-    install: "Your account has been created.\nRun one of the commands below on the PC you'll use with this account to install jake.\nThe account is activated once it's installed and connected."
+    created: "Your account has been created.\nIt's activated once you connect the PC you'll use with it."
+    install: "Run one of the commands below on the PC you'll use with this account to install jake."
+    desktop_download: "Install the BMO desktop app on the PC you'll use with this account."
+    desktop_open: "Open the app you installed. When it asks for the BMO server address, enter the address below."
+    desktop_code: "Enter the connection code shown in the title bar at the top of the app window, then press Connect."
+    desktop_unavailable: "The desktop app isn't available yet.\nStart with the jake command instead."
+    desktop_connecting: "You approved the app connection. The app is connecting…"
+    one_agent: "If you open the desktop app on a PC where jake is installed, the app keeps using the installed jake, and the two never run together."
+    signed_in_as: "You're signed in as {name} right now.\nSigning in to the new account signs this one out."
     waiting: Waiting for the machine to connect…
     active: 'The machine is connected and your account is active.
 
@@ -2370,6 +2385,10 @@ join:
     agent_login: "The machine is connected and your account is active.\nIn this organization, agents can only use your own supply sign-in or supply key. Signing in opens agent sign-in setup right away."
   error:
     full_name_empty: Enter your name.
+    code_empty: "Enter the connection code."
+    code_closed: "This connection code has expired or was already used. Try again from the app."
+    code_not_found: "Connection code not found. Check that it matches the code in the app window's title bar."
+    account_active: "This account is already active. Sign in, then connect the app."
 agent_login:
   title:
     page: Agent sign-in setup
@@ -2605,6 +2624,7 @@ pairing:
     effect_new: "The app showing this pairing code will be connected as a new machine of yours.\nApprove only if it matches the code in the app window's title bar."
     machines: "You can see connected machines in {link}."
     sign_in: Sign in to connect the desktop app.
+    sign_in_invited: "If you're joining by an invite link, enter the connection code from this window's title bar on the invite page."
     connecting: The app is connecting…
     connected: The app is connected.
     refused: Declined.

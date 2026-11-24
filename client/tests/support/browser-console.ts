@@ -139,7 +139,8 @@ const ACCOUNTS: readonly [string, string][] = [
   ["own-agents", "fixture-password-4114"],
   ["session-acts", "fixture-password-4115"],
   ["axis-admin", "fixture-password-4121"],
-  ["tree-admin", "fixture-password-4611"]
+  ["tree-admin", "fixture-password-4611"],
+  ["join-signed-in", "fixture-password-4131"]
 ];
 
 // The member accounts a test signs in with to read a section by its permission rather than as the administrator,

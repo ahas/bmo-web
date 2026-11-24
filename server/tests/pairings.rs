@@ -374,3 +374,74 @@ async fn an_address_is_refused_past_its_tenth_pairing_until_its_window_passes() 
     StatusCode::CREATED
   );
 }
+
+#[tokio::test]
+async fn an_invitation_approves_a_pairing_for_its_account_only_while_that_account_waits_for_its_machine() {
+  ready();
+  let stood = stood().await;
+  let machine = format!("u{}", stood.bound);
+  let approve = |token: &'static str, code: String| {
+    let stood = &stood;
+    async move {
+      stood
+        .asked(Method::POST, &format!("/invites/{token}/pairings/{code}/approve"), None, "192.0.2.9")
+        .await
+    }
+  };
+
+  // The invitation the account `bound` was made by, accepted, the account not yet enabled; and one still open.
+  stood
+    .scratch
+    .run(
+      r#"INSERT INTO "user_invites" ("token", "unit_id", "head", "made_by", "created_at", "expires_at", "used_by", "used_at")
+         VALUES ('accepted', 1, false, 0, 0, 9223372036854775807, $1::bigint, 1),
+                ('unaccepted', 1, false, 0, 0, 9223372036854775807, NULL, NULL)"#,
+      vec![stood.bound.into()],
+    )
+    .await;
+  stood
+    .scratch
+    .run(
+      r#"UPDATE "users" SET "is_enabled" = false WHERE "id" = $1::bigint"#,
+      vec![stood.bound.into()],
+    )
+    .await;
+
+  let (_, code) = stood.paired().await;
+  let (status, refused) = approve("unaccepted", code.clone()).await;
+  assert_eq!(
+    (status, refused["code"].clone()),
+    (StatusCode::CONFLICT, json!("invite-open")),
+    "{refused}"
+  );
+  assert_eq!(approve("unknown", code.clone()).await.0, StatusCode::NOT_FOUND);
+
+  // Approved with the invitation, the pairing is bound to the account's machine, and the app reads its credential.
+  let (pairing, code) = stood.paired().await;
+  let (status, approved) = approve("accepted", code.clone()).await;
+  assert_eq!(status, StatusCode::OK, "{approved}");
+  assert_eq!(approved["machine"], json!(machine));
+  let (status, read) = stood.read(&pairing).await;
+  assert_eq!(status, StatusCode::OK, "{read}");
+  assert!(verified(read["credential"].as_str().unwrap(), &machine), "{read}");
+  // A code once approved approves nothing again.
+  let (status, closed) = approve("accepted", code).await;
+  assert_eq!(status, StatusCode::NOT_FOUND, "{closed}");
+
+  // Once the account is enabled, the link approves nothing: its person signs in and approves there.
+  stood
+    .scratch
+    .run(
+      r#"UPDATE "users" SET "is_enabled" = true WHERE "id" = $1::bigint"#,
+      vec![stood.bound.into()],
+    )
+    .await;
+  let (_, code) = stood.paired().await;
+  let (status, refused) = approve("accepted", code.clone()).await;
+  assert_eq!(
+    (status, refused["code"].clone()),
+    (StatusCode::CONFLICT, json!("account-active")),
+    "{refused}"
+  );
+  assert_eq!(stood.view(&code, stood.bound).await.1["state"], "waiting");
+}

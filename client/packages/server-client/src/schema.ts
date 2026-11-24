@@ -562,6 +562,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/invites/{token}/pairings/{code}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A desktop pairing approved with the invitation that made the account, while that account waits for its machine. */
+        post: operations["approveInvitePairing"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/invites/{token}/proof": {
         parameters: {
             query?: never;
@@ -5393,6 +5410,38 @@ export interface operations {
                 };
             };
             /** @description A refusal or failure: bad-request, not-found, invite-closed, name-taken, no-hub, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    approveInvitePairing: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PairingApproved"];
+                };
+            };
+            /** @description A refusal or failure: not-found, invite-open, account-active, pairing-closed, left, no-hub, upstream-failed, unauthorized, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;

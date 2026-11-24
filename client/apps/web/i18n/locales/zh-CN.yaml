@@ -2366,10 +2366,17 @@ join:
     full_name: 姓名
     linux: Linux·WSL
     windows: Windows
+    tab_desktop: "使用桌面应用开始"
+    tab_jake: "使用 jake 命令开始"
+    installer: "{platform} {format}"
+    step_download: "下载应用"
+    step_open: "打开应用"
+    step_code: "输入连接码"
   action:
     accept: 创建账号
     check: 已安装，检查
     copy: 复制
+    connect: "连接"
   message:
     invited: "你已受邀加入{place}。"
     invited_head: "你已受邀以负责人身份加入{place}。"
@@ -2378,11 +2385,15 @@ join:
 
       请向邀请人索取新链接。'
     used: 此邀请已被使用。
-    install: '账号已创建。
-
-      请在将使用此账号的电脑上运行以下任一命令来安装 jake。
-
-      安装并连接后，账号即会激活。'
+    created: "账号已创建。\n连接将使用此账号的电脑后，账号即会激活。"
+    install: "请在将使用此账号的电脑上运行以下任一命令来安装 jake。"
+    desktop_download: "在将使用此账号的电脑上安装 BMO 桌面应用。"
+    desktop_open: "打开已安装的应用。应用询问 BMO 服务器地址时，输入下面的地址。"
+    desktop_code: "输入应用窗口顶部标题栏中显示的连接码，然后点击连接。"
+    desktop_unavailable: "桌面应用暂不可用。\n请使用 jake 命令开始。"
+    desktop_connecting: "已批准应用连接。应用正在连接…"
+    one_agent: "在已安装 jake 的电脑上打开桌面应用时，应用会继续使用已安装的 jake，两者不会同时运行。"
+    signed_in_as: "当前已以 {name} 的账号登录。\n登录新账号后，此账号将退出登录。"
     waiting: 正在等待设备连接…
     active: '设备已连接，账号已激活。
 
@@ -2392,6 +2403,10 @@ join:
       在此组织中，智能体只能使用你自己的供给登录或供给密钥。登录后会立即打开智能体登录设置。'
   error:
     full_name_empty: 请输入姓名。
+    code_empty: "请输入连接码。"
+    code_closed: "此连接码已过期或已被使用。请在应用中重试。"
+    code_not_found: "找不到连接码。请确认与应用窗口标题栏中的代码一致。"
+    account_active: "此账号已激活。请登录后再连接应用。"
 agent_login:
   title:
     page: 智能体登录设置
@@ -2633,6 +2648,7 @@ pairing:
       仅在与应用窗口标题栏中的连接码一致时批准。'
     machines: "可以在{link}中查看已连接的设备。"
     sign_in: 需要登录才能连接桌面应用。
+    sign_in_invited: "如果正在通过邀请链接注册，请将此窗口标题栏中的连接码输入到邀请页面。"
     connecting: 应用正在连接…
     connected: 应用已连接。
     refused: 已拒绝。

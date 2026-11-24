@@ -382,6 +382,10 @@
   an installer → 설치 파일, or its format's own name, AppImage, deb 패키지; a file's size → 크기, written `{size}
   ({bytes}바이트)`; its digest → SHA-256; the steps of using it → 사용 방법. A warning Windows shows is named by the
   words Windows itself shows: Windows의 PC 보호, 추가 정보, 실행. Never 인스톨러, 셋업 파일, 릴리스, 배포일 or 해시값.
+- the join page's two ways to connect the machine → 데스크톱 앱으로 시작 and jake 명령으로 시작, as tabs; their steps →
+  앱 다운로드, 앱 열기, 연결 코드 입력, with 연결 as the code's button; an installer offered by its platform →
+  `{platform} {format}`, as `Windows 설치 파일`. The installed program on the desktop app's own page → 설치된 jake, and
+  moving to the app's own agent → 내장 에이전트로 전환. Never 설치 프로그램으로 시작, 커맨드, 페어링 or 바꾸기.
 - the app's own settings, in the console's settings → 데스크톱, the section's name, as the owner named it: its switches
   are 잠금 중 원격 제어 유지, 창을 닫으면 트레이로 이동, 로그인할 때 시작, 트레이에서 시작 and 절전 모드 방지, the app's
   tray → 트레이 and its file → 설정 파일. Never 데탑, 시스템 트레이, 알림 영역 or 슬립.

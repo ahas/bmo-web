@@ -13,6 +13,7 @@
           <template v-if="machine.agent !== undefined && machine.agent !== null">
             <code class="text-sm">{{ machine.agent }}</code>
             <UBadge :color="machine.attached ? 'success' : 'warning'" variant="subtle" :label="machine.attached ? $t('organization.status.attached') : $t('organization.status.waiting')" />
+            <UBadge v-if="machine.attached && machine.kind != null" color="neutral" variant="subtle" :label="$t(machine.kind === 'desktop' ? 'machines.label.desktop' : 'machines.label.installed')" data-machine-kind />
             <UBadge v-if="machine.shared" color="neutral" variant="subtle" :label="$t('organization.status.shared')" data-machine-shared-state />
           </template>
           <span v-else class="text-sm text-muted">{{ $t("organization.label.machine_none") }}</span>

@@ -671,10 +671,17 @@ section states what each does.
   organisation is the invitation's unit, so no unit's or company's name is read, and a company renamed after
   the invitation was made takes it in just the same. Where the default role does not stand, acceptance is refused 409
   `not-ready`, and the console says the deployment is not ready to make accounts.
-- **An account is enabled only once its machine is proven:** the person installs jake with the command the
-  acceptance answers, which names the machine and carries a credential made for that name alone (jake's
-  `docs/architecture.md`), and the service asks the jake hub whether an agent of that name is attached. Attached,
-  the account is enabled and the machine recorded as proven.
+- **An account is enabled only once its machine is proven,** connected one of two ways: the person opens the
+  console's desktop app on their PC and approves its pairing with the invitation (「Desktop pairing」), or installs
+  jake with the command the acceptance answers, which names the machine and carries a credential made for that name
+  alone (jake's `docs/architecture.md`). Either way the service asks the jake hub whether an agent of that name is
+  attached. Attached, the account is enabled and the machine recorded as proven.
+- **One machine, one agent.** A machine name is served by the desktop app's built-in agent or by an installed jake
+  agent, never by both attached at once: the desktop app keeps its built-in agent off where a jake agent of its
+  machine's name is installed on the PC, offering to switch to it by stopping the installed one through its own
+  uninstaller, which keeps its configuration; and the hub refuses a hello under a name another install already
+  holds, the one attached first keeping it (jake's `docs/desktop.md`, 「One agent per name」, and
+  `docs/architecture.md`, 「Many agents, one hub」). The machine read answers which of the two is connected.
 - **An account made ready is given its own BMO and its identity on the record road.** As the proof answers the
   account active, the console's server has the receiver stand the account's BMO with its private room and the
   account's record identity, and links that identity to the account (「Users and senders」), so the person reads and
@@ -757,8 +764,9 @@ section states what each does.
 
 - **The console's desktop app is given its person's machine credential by pairing,** never by asking for a secret:
   the app asks for a pairing with no sign-in, the person approves it on the console's page while signed in
-  (`docs/web.md`, 「The desktop pairing page」), and the app then reads the machine and its credential once. It
-  stands beside the invitation and its one-line installs, which go on as they are.
+  (`docs/web.md`, 「The desktop pairing page」), or on the join page with the invitation that made their account
+  while that account waits for its machine, and the app then reads the machine and its credential once. It stands
+  beside the invitation's one-line installs, which go on as they are.
 - **A pairing is asked with no sign-in** and answers an unguessable id, which the app alone keeps; a code of eight
   letters and digits, leaving out 0, 1, I and O and written as two groups of four, which the app and the console's
   page both show so the person can see they are one; when it closes; and how many seconds the app waits between
@@ -776,6 +784,13 @@ section states what each does.
   one where no name is named, `u<user>` and a random tail. From then on the account is bound to that machine as any
   bound account is, so an account other than the administrator's signs in only while the hub holds it. An account
   that has left is refused 409 `left`.
+- **An invitation approves a pairing for the account it made, before that account is enabled.** Its link is all
+  the person holds then, since an account bound to a machine signs in only once the machine is attached, so the
+  join page approves with the invitation's token and no sign-in (`POST /invites/{token}/pairings/{code}/approve`):
+  the pairing is bound to the account's machine `u<user>` exactly as the account's own approval binds it, and the
+  app's agent attaching proves the machine as the invitation's proof reads it. An invitation not yet accepted is
+  refused 409 `invite-open`, and one whose account is enabled already 409 `account-active`, so a link kept past
+  the account's first proof approves nothing; its person signs in and approves on the pairing page instead.
 - **Refusing closes the pairing.** A pairing approved, refused or expired is approved or refused no more, 410
   `pairing-closed`, and one being approved at that moment is refused to a second approver the same way.
 - **The app reads its pairing by the id:** 202 while it waits; once approved, 200 with the machine's name, its

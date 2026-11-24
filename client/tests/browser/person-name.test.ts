@@ -109,7 +109,7 @@ describe.skipIf(!origin || !touchReady())("the person's name", () => {
         // Corrected, it goes with the login and the password.
         await name.fill("Person Ay");
         await page.getByRole("button", { name: wording("join.action.accept"), exact: true }).click();
-        await page.getByText(wording("join.message.install"), { exact: true }).waitFor({ timeout: 10_000 });
+        await page.getByText(wording("join.message.created").split("\n")[0]!).waitFor({ timeout: 10_000 });
         expect(accepted).toEqual([{ fullName: "Person Ay", name: "person-a", password: "a password" }]);
       } finally {
         await context.close();

@@ -1,8 +1,9 @@
 <template>
   <!-- The join page (docs/web.md, 「The join page」): an invitation's link, opened with no sign-in. It shows the unit
-       and its company, takes the person's name, a login and a password, hands back the one-line install of the person's machine, and
-       says the account is ready once the machine has attached — and, where only the person's own supply can carry their
-       runs, that the login leads first to setting one up. Like the login, it stands on no shell. -->
+       and its company, takes the person's name, a login and a password, then connects the person's machine one of two
+       ways — the desktop app, approving its pairing with the invitation, or jake's one-line install — and says the
+       account is ready once the machine has attached, and, where only the person's own supply can carry their runs,
+       that the login leads first to setting one up. Like the login, it stands on no shell. -->
   <div class="relative flex overflow-y-auto bg-default p-4 text-default" :style="{ top: 'var(--bmo-screen-top)', height: 'var(--bmo-screen)' }">
     <UCard class="m-auto w-full max-w-lg">
       <template #header>
@@ -11,6 +12,8 @@
 
       <div class="flex flex-col gap-4">
         <UAlert v-if="failure" color="error" variant="subtle" :description="failure" />
+        <!-- A session the browser already holds, which the way to the login ends before the new account signs in. -->
+        <UAlert v-if="signedInAs !== null" color="neutral" variant="subtle" icon="i-material-symbols-account-circle-outline" :description="$t('join.message.signed_in_as', { name: signedInAs })" :ui="{ description: 'whitespace-pre-line break-keep' }" data-join-signed-in />
 
         <template v-if="view && view.state !== 'open' && accepted === null">
           <UAlert
@@ -38,19 +41,89 @@
         </template>
 
         <template v-else-if="accepted">
-          <p class="whitespace-pre-line">{{ $t("join.message.install") }}</p>
-          <div v-for="install in installs" :key="install.label" class="flex flex-col gap-1">
-            <span class="text-sm font-medium">{{ install.label }}</span>
-            <div class="flex items-start gap-2">
-              <code class="min-w-0 flex-1 break-all rounded-md bg-elevated p-2 text-sm">{{ install.line }}</code>
-              <IconButton
-                :icon="copied === install.line ? 'i-material-symbols-check' : 'i-material-symbols-content-copy-outline'"
-                :label="copied === install.line ? $t('invites.status.copied') : $t('join.action.copy')"
-                data-install-copy
-                @click="copy(install.line)"
-              />
-            </div>
+          <p class="whitespace-pre-line break-keep">{{ $t("join.message.created") }}</p>
+
+          <!-- The two ways at the card's full width, each label wrapping rather than cut at a phone's width. -->
+          <UTabs
+            v-model="way"
+            :items="ways"
+            :content="false"
+            color="neutral"
+            class="w-full"
+            :ui="{ trigger: 'min-w-0 flex-1', label: 'whitespace-normal break-keep text-center' }"
+            data-join-ways
+          />
+
+          <div v-if="way === 'desktop'" class="flex flex-col gap-4" data-join-desktop>
+            <ContentSkeleton v-if="releaseState === 'loading'" :rows="1" :label="$t('desktop.status.loading')">
+              <SkeletonLine width="w-2/3" />
+            </ContentSkeleton>
+            <UAlert v-else-if="installers.length === 0" color="neutral" variant="subtle" :description="$t('join.message.desktop_unavailable')" :ui="{ description: 'whitespace-pre-line break-keep' }" data-join-desktop-unavailable />
+            <ol v-else class="flex list-decimal flex-col gap-4 ps-6">
+              <li class="ps-1 marker:font-medium marker:text-highlighted"><div class="flex flex-col gap-2">
+                <span class="font-medium text-highlighted">{{ $t("join.label.step_download") }}</span>
+                <p class="break-keep text-sm text-toned">{{ $t("join.message.desktop_download") }}</p>
+                <div class="flex flex-wrap gap-2">
+                  <UButton
+                    v-for="file in installers"
+                    :key="file.file"
+                    :to="file.url"
+                    external
+                    download
+                    icon="i-material-symbols-download"
+                    :color="file.platform === platform ? 'primary' : 'neutral'"
+                    :variant="file.platform === platform ? 'solid' : 'subtle'"
+                    :label="$t('join.label.installer', { platform: platformName(file.platform), format: formatName(file) })"
+                    :data-join-download="file.platform"
+                  />
+                </div>
+              </div></li>
+              <li class="ps-1 marker:font-medium marker:text-highlighted"><div class="flex flex-col gap-2">
+                <span class="font-medium text-highlighted">{{ $t("join.label.step_open") }}</span>
+                <p class="break-keep text-sm text-toned">{{ $t("join.message.desktop_open") }}</p>
+                <div class="flex items-start gap-2">
+                  <code class="min-w-0 flex-1 break-all rounded-md bg-elevated p-2 text-sm" data-join-server>{{ serverAddress }}</code>
+                  <IconButton
+                    :icon="copied === serverAddress ? 'i-material-symbols-check' : 'i-material-symbols-content-copy-outline'"
+                    :label="copied === serverAddress ? $t('invites.status.copied') : $t('join.action.copy')"
+                    data-server-copy
+                    @click="copy(serverAddress)"
+                  />
+                </div>
+              </div></li>
+              <li class="ps-1 marker:font-medium marker:text-highlighted"><div class="flex flex-col gap-2">
+                <span class="font-medium text-highlighted">{{ $t("join.label.step_code") }}</span>
+                <template v-if="approved === null">
+                  <p class="break-keep text-sm text-toned">{{ $t("join.message.desktop_code") }}</p>
+                  <UForm id="join-pair" :state="pairForm" class="flex items-start gap-2" @submit="pair">
+                    <UFormField name="code" :error="codeFailure || undefined" class="min-w-0 flex-1">
+                      <UInput v-model="pairForm.code" class="w-full" :aria-label="$t('pairing.label.code')" autocomplete="off" autocapitalize="characters" spellcheck="false" :ui="{ base: 'font-mono uppercase' }" data-join-code />
+                    </UFormField>
+                    <UButton type="submit" :label="$t('join.action.connect')" :loading="pairing" data-join-connect />
+                  </UForm>
+                </template>
+                <p v-else class="text-sm text-toned" data-join-approved>{{ $t("join.message.desktop_connecting") }}</p>
+              </div></li>
+            </ol>
           </div>
+
+          <div v-else class="flex flex-col gap-4" data-join-jake>
+            <p class="whitespace-pre-line break-keep text-sm text-toned">{{ $t("join.message.install") }}</p>
+            <div v-for="install in installs" :key="install.label" class="flex flex-col gap-1">
+              <span class="text-sm font-medium">{{ install.label }}</span>
+              <div class="flex items-start gap-2">
+                <code class="min-w-0 flex-1 break-all rounded-md bg-elevated p-2 text-sm">{{ install.line }}</code>
+                <IconButton
+                  :icon="copied === install.line ? 'i-material-symbols-check' : 'i-material-symbols-content-copy-outline'"
+                  :label="copied === install.line ? $t('invites.status.copied') : $t('join.action.copy')"
+                  data-install-copy
+                  @click="copy(install.line)"
+                />
+              </div>
+            </div>
+            <p class="break-keep text-sm text-muted">{{ $t("join.message.one_agent") }}</p>
+          </div>
+
           <UAlert v-if="active" color="success" variant="subtle" :description="agentLogin ? $t('join.message.agent_login') : $t('join.message.active')" :ui="{ description: 'whitespace-pre-line' }" data-join-active />
           <p v-else class="text-sm text-muted">{{ $t("join.message.waiting") }}</p>
         </template>
@@ -60,9 +133,9 @@
       <template #footer>
         <div class="flex justify-end">
           <UButton v-if="view && view.state === 'open' && accepted === null" type="submit" form="join-form" :label="$t('join.action.accept')" :loading="pending" />
-          <UButton v-else-if="accepted && !active" color="neutral" variant="subtle" :label="$t('join.action.check')" :loading="pending" @click="prove" />
-          <UButton v-else-if="active && agentLogin" :to="{ path: '/login', query: { to: AGENT_LOGIN_PATH } }" :label="$t('agent_login.action.login')" data-join-agent-login />
-          <UButton v-else-if="active" to="/login" :label="$t('app.action.login')" />
+          <UButton v-else-if="accepted && !active" color="neutral" variant="subtle" :label="$t('join.action.check')" :loading="pending" data-join-check @click="prove" />
+          <UButton v-else-if="active && agentLogin" :label="$t('agent_login.action.login')" :loading="leaving" data-join-agent-login @click="signInAsNew(AGENT_LOGIN_PATH)" />
+          <UButton v-else-if="active" :label="$t('app.action.login')" :loading="leaving" data-join-login @click="signInAsNew(null)" />
         </div>
       </template>
     </UCard>
@@ -78,11 +151,13 @@ import { AGENT_LOGIN_PATH } from "~/domain/agent-login";
 import { copyText } from "~/domain/copy";
 
 import { placeOf } from "~/domain/invites";
+import { installersFor, readerPlatform, typedCode } from "~/domain/join-desktop";
 
 import { useVisibleShell } from "~/domain/overlay";
 
 import type { FormError } from "@nuxt/ui";
-import type { Accepted, InviteView } from "@web/server-client";
+import type { DesktopRelease, DesktopReleaseFile, DesktopReleaseRead } from "#shared/desktop-release";
+import type { Accepted, InviteView, PairingApproved } from "@web/server-client";
 
 definePageMeta({ layout: false });
 
@@ -111,6 +186,102 @@ const installs = computed(() =>
       ]
 );
 let timer: ReturnType<typeof setInterval> | undefined;
+
+// The session the browser already holds, named as people read it, which the way to the login ends first.
+const { loggedIn, user, clear } = useUserSession();
+const signedInAs = computed(() => (loggedIn.value ? ((user.value?.fullName || user.value?.name) ?? t("app.label.account")) : null));
+const leaving = ref(false);
+
+// The login opened for the account just made: any session the browser holds signed out through the console's own
+// sign-out first, then the login with the new login filled in, and the page it leads to where one is named.
+async function signInAsNew(to: string | null): Promise<void> {
+  leaving.value = true;
+  try {
+    if (loggedIn.value) {
+      await $fetch("/api/auth/logout", { method: "POST" });
+      await clear();
+    }
+    await navigateTo({ path: "/login", query: { name: form.name.trim(), ...(to === null ? {} : { to }) } });
+  } catch (error) {
+    failure.value = failureText(error, t("invites.error.failed"));
+  } finally {
+    leaving.value = false;
+  }
+}
+
+// The two ways the machine is connected: the desktop app first, chosen where a release is published, and jake's
+// command, chosen where none is.
+type Way = "desktop" | "jake";
+
+const way = ref<Way>("desktop");
+const ways = computed(() => [
+  { label: t("join.label.tab_desktop"), value: "desktop" },
+  { label: t("join.label.tab_jake"), value: "jake" }
+]);
+const release = ref<DesktopRelease | null>(null);
+const releaseState = ref<"loading" | "read">("loading");
+// The platform the reader's browser names, whose installer leads.
+const platform = ref<string | null>(null);
+const installers = computed(() => (release.value === null ? [] : installersFor(release.value, platform.value)));
+// The address the app asks for: the console's public address, else the address the page was reached at.
+const { baseURL } = useRuntimeConfig().app;
+const configuredAddress = String(useRuntimeConfig().public.consoleAddress ?? "").trim();
+const serverAddress = ref(configuredAddress);
+const pairForm = reactive({ code: "" });
+const pairing = ref(false);
+const codeFailure = ref("");
+const approved = ref<PairingApproved | null>(null);
+
+// The words for the platforms and the formats the release contract names; one the pack has no word for stands by its
+// own name, a platform by its key and an installer by its file name.
+const PLATFORM_WORDS: Record<string, string> = { windows: "desktop.label.windows", linux: "desktop.label.linux" };
+const FORMAT_WORDS: Record<string, string> = { nsis: "desktop.label.nsis", appimage: "desktop.label.appimage", deb: "desktop.label.deb" };
+
+function platformName(name: string): string {
+  const key = PLATFORM_WORDS[name];
+
+  return key === undefined ? name : t(key);
+}
+
+function formatName(file: DesktopReleaseFile): string {
+  const key = FORMAT_WORDS[file.format];
+
+  return key === undefined ? file.file : t(key);
+}
+
+// The release read with no sign-in; none published, or a read that fails, leaves the desktop app unavailable and
+// chooses jake's command.
+async function readRelease(): Promise<void> {
+  try {
+    release.value = (await $fetch<DesktopReleaseRead>("/api/desktop/release")).release;
+  } catch {
+    release.value = null;
+  }
+  releaseState.value = "read";
+  if (installers.value.length === 0) way.value = "jake";
+}
+
+// The code typed from the app's title bar, approved with the invitation; from there the page waits for the app's agent
+// as for any machine.
+async function pair(): Promise<void> {
+  const code = typedCode(pairForm.code);
+
+  codeFailure.value = "";
+  if (code === "") {
+    codeFailure.value = t("join.error.code_empty");
+
+    return;
+  }
+  pairing.value = true;
+  try {
+    approved.value = await $fetch<PairingApproved>(`/api/join/${token.value}/pair`, { method: "POST", body: { code } });
+    void prove();
+  } catch (error) {
+    codeFailure.value = failureText(error, t("pairing.error.failed"));
+  } finally {
+    pairing.value = false;
+  }
+}
 
 // The account is not taken without the person's name, so everyone made through an invitation has one.
 function validate(state: typeof form): FormError[] {
@@ -165,7 +336,12 @@ async function copy(text: string): Promise<void> {
   }
 }
 
-onMounted(() => void read());
+onMounted(() => {
+  platform.value = readerPlatform(navigator.userAgent);
+  if (serverAddress.value === "") serverAddress.value = `${location.origin}${baseURL}`;
+  void read();
+  void readRelease();
+});
 onBeforeUnmount(() => {
   if (timer !== undefined) clearInterval(timer);
 });

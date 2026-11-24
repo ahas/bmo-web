@@ -16,7 +16,7 @@
       <UForm id="login-form" :state="form" @submit="submit">
         <div class="flex flex-col gap-4">
           <UAlert v-if="ended && !failure" color="warning" variant="subtle" :title="$t('app.message.session_ended')" :description="$t('app.message.login_again')" />
-          <UAlert v-else-if="pairing" data-login-pairing color="neutral" variant="subtle" icon="i-material-symbols-computer-outline" :description="$t('pairing.message.sign_in')" :ui="{ description: 'break-keep' }" />
+          <UAlert v-else-if="pairing" data-login-pairing color="neutral" variant="subtle" icon="i-material-symbols-computer-outline" :description="`${$t('pairing.message.sign_in')}\n${$t('pairing.message.sign_in_invited')}`" :ui="{ description: 'whitespace-pre-line break-keep' }" />
 
           <UFormField :label="$t('app.label.user_id')" name="name" required>
             <UInput v-model="form.name" class="w-full" autocomplete="username" />
@@ -69,7 +69,8 @@ const pending = ref(false);
 
 // Keeping the login is off until it is asked for: the console is one account's own and reachable
 // from outside, so a browser left on a machine is not logged in again by itself unless it was said.
-const form = reactive({ name: "", password: "", remember: false });
+// A login named in the address, as the join page hands over the one it just made, stands filled in.
+const form = reactive({ name: typeof route.query.name === "string" ? route.query.name : "", password: "", remember: false });
 
 async function submit(): Promise<void> {
   pending.value = true;

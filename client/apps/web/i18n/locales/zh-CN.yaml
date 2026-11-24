@@ -1854,8 +1854,9 @@ settings:
     desktop: 桌面
     secrets: 密钥保管库
     supply: 供给
-    apps: 我的应用·工具
+    apps: 我的应用·工具·技能
     personal_apps: 我的个人应用
+    skills: 我的技能
     supervisor_none: 无主管
     theme: 主题
   action:
@@ -4385,7 +4386,7 @@ apps:
     scope_team: "团队"
     scope_heads: "团队和上级负责人"
     scope_company: "整个公司"
-    tab: 应用与工具
+    tab: 应用·工具·技能
     none: 无应用
     "on": 开启
     "off": 关闭
@@ -4438,6 +4439,26 @@ app_catalogue:
     scope_heads: 上级负责人
     scope_company: 全公司
     scope_direct: 直接指定
+    kind: 类型
+    kind_all: 所有类型
+    kind_app: 应用
+    kind_skill: 技能
+    kind_mcp: MCP
+    machine: 由翻译器翻译
+    connection: 连接
+    connection_unread: 未能读取连接信息。
+    transport: 方式
+    transport_remote: 远程
+    transport_local: 在我的电脑上运行
+    address: 地址
+    command: 命令
+    auth: 认证
+    auth_none: 无
+    auth_bearer: Bearer 令牌
+    auth_header: "{header} 请求头"
+    secret: 密钥
+    skill_permissions: 无权限
+    skill_permissions_note: 仅作为指令供所附加的智能体使用。
     maker: 创建者
     version: 版本
     shared: 共享时间
@@ -4461,7 +4482,7 @@ app_catalogue:
     promotions: 平台应用申请
     promotion_line: "{company} · {by} · {time}"
     no_promotions: 没有申请
-    unit_door: "在 组织 → 应用·工具 中开启、锁定和收回。"
+    unit_door: "在 组织 → 应用·工具·技能 中开启、锁定和收回。"
   placeholder:
     search: 查找应用
   action:
@@ -4475,6 +4496,7 @@ app_catalogue:
     source: 查看源代码
     seen: 全部已读
     open: 查看
+    translate: 补全其他语言
   title:
     install: 要安装此应用吗？
     update: 要更新此应用吗？
@@ -4484,6 +4506,11 @@ app_catalogue:
     promote: 要申请为平台应用吗？
     share: 共享应用
     unit: 组织设置
+    install_skill: 要安装该技能吗?
+    update_skill: 要更新该技能吗?
+    install_mcp: 要安装该 MCP 服务器吗?
+    update_mcp: 要更新该 MCP 服务器吗?
+    share_skill: 共享技能
   message:
     install_effect: "你的 PC 会获取源代码并构建。\n数据只保存在你的 PC 上。"
     update_effect: "会获取新版本并构建。"
@@ -4493,6 +4520,9 @@ app_catalogue:
     withdraw_effect: "之后无法再安装。\n已安装的人可以继续使用。"
     promote_effect: "管理员审查后将作为平台应用发布。"
     shared: "已共享 {app}。"
+    install_skill_effect: "它保存在 BMO 中。\n只有你附加的智能体会使用此技能。"
+    install_mcp_effect: "将安装到你的电脑上。\n只有你附加的智能体会使用此 MCP 服务器的工具。"
+    shared_skill: "已共享 {app} 技能。"
   status:
     loading: 正在加载应用商店…
   error:
@@ -4516,6 +4546,7 @@ app_catalogue:
     locked: 组织已锁定，无法更改。
     forbidden: 你无权执行此操作。
     no_user: 没有用户账户，无法使用应用商店。
+    translator_unavailable: 没有翻译器,未能补全其他语言。
 
 personal_apps:
   label:
@@ -4546,6 +4577,69 @@ personal_apps:
     refused: PC 未接受此版本。
     not_found: 找不到个人应用。
     no_user: 没有用户账号，无法使用个人应用。
+
+# The skills section (docs/web.md, 「Settings」, the skills section): a reader's skills kept at home, their own and
+# those installed from the store, and the form an own one is made and edited in.
+skills:
+  label:
+    none: 没有技能
+    own: 自己创建
+    installed: 从应用商店安装
+    attached: "已附加的智能体: {agents}"
+    name: 名称
+    name_hint: 小写英文字母、数字、-
+    description: 说明
+    description_hint: 智能体据此决定何时使用该技能。
+    body: 正文
+    references: 参考文件
+  action:
+    add: 新建技能
+    edit: 编辑
+  title:
+    add: 新建技能
+    edit: 编辑技能
+  message:
+    delete_confirm: 要删除该技能吗?
+    delete_effect: 也会从所附加的智能体中移除。
+    delete_installed_effect: "将删除你的副本。\n也会从所附加的智能体中移除。"
+  status:
+    loading: 正在加载技能…
+  error:
+    read_failed: 未能加载技能。
+    save_failed: 未能保存技能。
+    delete_failed: 未能删除技能。
+    not_found: 找不到该技能。
+    name_taken: 已有从应用商店安装的同名技能。
+    make_withheld: 组织设置不允许你创建技能。
+    refused: "无法保存该技能。\n请检查 SKILL.md 及其文件。"
+    too_large: 技能文件过大。
+    no_user: 没有用户账号,无法使用技能。
+    name_invalid: 须以小写英文字母开头,只能使用小写字母、数字和 -。
+    name_held: 已有同名技能。
+    description_empty: 请输入说明。
+
+# What a reader's agent is given of their skills and MCP servers (docs/web.md, 「Organisation」, the agents tab at 나).
+attachments:
+  title:
+    dialog: 技能·MCP
+  action:
+    open: 技能·MCP
+  aria:
+    open: "{name} 的技能·MCP"
+  label:
+    skills: 技能
+    mcp: MCP 服务器
+    skills_none: 没有技能
+    mcp_none: 没有 MCP 服务器
+    takes_no_skills: 无法给此智能体附加技能。
+    takes_no_mcp: 无法给此智能体附加 MCP 服务器。
+  error:
+    takes_no_skills: 无法给此智能体附加技能。
+    takes_no_mcp: 无法给此智能体附加 MCP 服务器。
+    not_found: 找不到该智能体或条目。
+    forbidden: 你无权更改此智能体。
+    no_user: 没有用户账号,无法附加技能和 MCP。
+    save_failed: 未能保存。
 
 # What a personal app may reach beyond its own data (docs/web.md, 「App catalogue」 and 「Settings」, the personal apps
 # section), said line by line in the catalogue and the personal apps section.

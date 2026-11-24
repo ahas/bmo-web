@@ -1854,8 +1854,9 @@ settings:
     desktop: デスクトップ
     secrets: シークレット保管庫
     supply: 供給
-    apps: マイアプリ・ツール
+    apps: マイアプリ・ツール・スキル
     personal_apps: マイ個人アプリ
+    skills: マイスキル
     supervisor_none: スーパーバイザーなし
     theme: テーマ
   action:
@@ -4385,7 +4386,7 @@ apps:
     scope_team: "チーム"
     scope_heads: "チームと上位組織長"
     scope_company: "会社全体"
-    tab: アプリ・ツール
+    tab: アプリ・ツール・スキル
     none: アプリなし
     "on": オン
     "off": オフ
@@ -4438,6 +4439,26 @@ app_catalogue:
     scope_heads: 上位の組織長
     scope_company: 会社全体
     scope_direct: 個別指定
+    kind: 種類
+    kind_all: すべての種類
+    kind_app: アプリ
+    kind_skill: スキル
+    kind_mcp: MCP
+    machine: 翻訳機で翻訳
+    connection: 接続
+    connection_unread: 接続情報を読み取れませんでした。
+    transport: 方式
+    transport_remote: リモート
+    transport_local: 自分のPCで実行
+    address: アドレス
+    command: コマンド
+    auth: 認証
+    auth_none: なし
+    auth_bearer: Bearer トークン
+    auth_header: "{header} ヘッダー"
+    secret: シークレット
+    skill_permissions: 権限なし
+    skill_permissions_note: 付けたエージェントだけが指示として使います。
     maker: 作成者
     version: バージョン
     shared: 共有日時
@@ -4461,7 +4482,7 @@ app_catalogue:
     promotions: プラットフォームアプリの依頼
     promotion_line: "{company} · {by} · {time}"
     no_promotions: 依頼はありません
-    unit_door: "組織 → アプリ・ツールでオン・ロック・回収します。"
+    unit_door: "組織 → アプリ・ツール・スキルでオン・ロック・回収します。"
   placeholder:
     search: アプリを探す
   action:
@@ -4475,6 +4496,7 @@ app_catalogue:
     source: ソースを見る
     seen: すべて確認
     open: 表示
+    translate: 他の言語を補う
   title:
     install: アプリをインストールしますか?
     update: アプリをアップデートしますか?
@@ -4484,6 +4506,11 @@ app_catalogue:
     promote: プラットフォームアプリとして依頼しますか?
     share: アプリを共有
     unit: 組織の設定
+    install_skill: スキルをインストールしますか?
+    update_skill: スキルをアップデートしますか?
+    install_mcp: MCP サーバーをインストールしますか?
+    update_mcp: MCP サーバーをアップデートしますか?
+    share_skill: スキルの共有
   message:
     install_effect: "自分の PC がソースを受け取ってビルドします。\nデータは自分の PC にだけ保存されます。"
     update_effect: "新しいバージョンを受け取ってビルドします。"
@@ -4493,6 +4520,9 @@ app_catalogue:
     withdraw_effect: "新しくインストールできなくなります。\nインストール済みの人は使い続けます。"
     promote_effect: "管理者が確認してからプラットフォームアプリとして配布します。"
     shared: "{app} を共有しました。"
+    install_skill_effect: "BMO に保管されます。\n付けたエージェントだけがこのスキルを使います。"
+    install_mcp_effect: "自分の PC にインストールします。\n付けたエージェントだけがこの MCP サーバーのツールを使います。"
+    shared_skill: "{app} スキルを共有しました。"
   status:
     loading: ストアを読み込み中…
   error:
@@ -4516,6 +4546,7 @@ app_catalogue:
     locked: 組織がロックしているため変更できません。
     forbidden: この操作を行う権限がありません。
     no_user: ユーザーアカウントがないため、ストアを使えません。
+    translator_unavailable: 翻訳機がないため、他の言語を補えませんでした。
 
 personal_apps:
   label:
@@ -4546,6 +4577,69 @@ personal_apps:
     refused: PC がこのバージョンを受け付けませんでした。
     not_found: 個人アプリが見つかりません。
     no_user: ユーザーアカウントがないため、個人アプリを使えません。
+
+# The skills section (docs/web.md, 「Settings」, the skills section): a reader's skills kept at home, their own and
+# those installed from the store, and the form an own one is made and edited in.
+skills:
+  label:
+    none: スキルはありません
+    own: 自分で作成
+    installed: ストアからインストール
+    attached: "付けたエージェント: {agents}"
+    name: 名前
+    name_hint: 英小文字、数字、-
+    description: 説明
+    description_hint: エージェントがいつこのスキルを使うかを決めるときに読みます。
+    body: 本文
+    references: 参照ファイル
+  action:
+    add: 新しいスキル
+    edit: 編集
+  title:
+    add: 新しいスキル
+    edit: スキルの編集
+  message:
+    delete_confirm: スキルを削除しますか?
+    delete_effect: 付けたエージェントからも外れます。
+    delete_installed_effect: "自分のコピーを削除します。\n付けたエージェントからも外れます。"
+  status:
+    loading: スキルを読み込み中…
+  error:
+    read_failed: スキルを読み込めませんでした。
+    save_failed: スキルを保存できませんでした。
+    delete_failed: スキルを削除できませんでした。
+    not_found: スキルが見つかりません。
+    name_taken: ストアからインストールした同じ名前のスキルがあります。
+    make_withheld: 組織の設定によりスキルを作成できません。
+    refused: "スキルを保存できません。\nSKILL.md とファイルを確認してください。"
+    too_large: スキルのファイルが大きすぎます。
+    no_user: ユーザーアカウントがないためスキルを使えません。
+    name_invalid: 英小文字で始め、小文字・数字・- だけを使えます。
+    name_held: 同じ名前のスキルがすでにあります。
+    description_empty: 説明を入力してください。
+
+# What a reader's agent is given of their skills and MCP servers (docs/web.md, 「Organisation」, the agents tab at 나).
+attachments:
+  title:
+    dialog: スキル・MCP
+  action:
+    open: スキル・MCP
+  aria:
+    open: "{name} のスキル・MCP"
+  label:
+    skills: スキル
+    mcp: MCP サーバー
+    skills_none: スキルはありません
+    mcp_none: MCP サーバーはありません
+    takes_no_skills: このエージェントにはスキルを付けられません。
+    takes_no_mcp: このエージェントには MCP サーバーを付けられません。
+  error:
+    takes_no_skills: このエージェントにはスキルを付けられません。
+    takes_no_mcp: このエージェントには MCP サーバーを付けられません。
+    not_found: エージェントまたは項目が見つかりません。
+    forbidden: このエージェントを変更する権限がありません。
+    no_user: ユーザーアカウントがないためスキル・MCP を付けられません。
+    save_failed: 保存できませんでした。
 
 # What a personal app may reach beyond its own data (docs/web.md, 「App catalogue」 and 「Settings」, the personal apps
 # section), said line by line in the catalogue and the personal apps section.

@@ -6,7 +6,7 @@
 </template>
 
 <script setup lang="ts">
-import { readerLanguage, useAskedReading, useAutoTranslate, wantsReading } from "~/domain/text-reading";
+import { useFollowedReading } from "~/domain/text-reading";
 
 interface Props {
   text: string;
@@ -16,24 +16,8 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const { locale } = useI18n();
-const language = computed(() => readerLanguage(locale.value));
-const wanted = computed(() => wantsReading(props.text, language.value));
-const { reading, ask } = useAskedReading(
+const standing = useFollowedReading(
   () => props.text,
-  () => language.value
+  () => props.follow
 );
-const auto = useAutoTranslate();
-
-// Asked as the text it follows is: as it opens where this browser translates on its own, else once that text's
-// reading is pressed for.
-watch(
-  [() => props.text, auto, () => props.follow],
-  () => {
-    if (wanted.value && (auto.value || props.follow) && reading.value.kind === "none") ask();
-  },
-  { immediate: true }
-);
-
-const standing = computed(() => (props.follow && reading.value.kind === "read" ? reading.value.text : props.text));
 </script>

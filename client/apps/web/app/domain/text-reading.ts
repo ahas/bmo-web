@@ -3,7 +3,7 @@ import { textLanguage } from "#shared/translation";
 
 import type { Reading } from "bmo-ui/app/domain/translation";
 import type { DocumentLanguage } from "#shared/types";
-import type { Ref } from "vue";
+import type { ComputedRef, Ref } from "vue";
 
 // A text a worker or a job wrote, read in the reader's own language in the original's place (docs/web.md, 「The
 // original, and its translation in its place」). The reading is asked of the gate's translating route through the console's own
@@ -151,4 +151,24 @@ const AUTO_TRANSLATE_KEPT_S = 365 * 24 * 60 * 60;
  * keeps it (docs/web.md, 「The original, and its translation in its place」): on unless it is turned off. */
 export function useAutoTranslate(): Ref<boolean> {
   return useCookie<boolean>(AUTO_TRANSLATE_COOKIE, { default: () => true, maxAge: AUTO_TRANSLATE_KEPT_S, sameSite: "lax" });
+}
+
+/** A short text read in the reader's language exactly while `follow` says so, as a text beside a TranslatedText that
+ * carries the one line for both: its reading is asked as that text opens where this browser translates on its own,
+ * else once `follow` turns, and the original stands otherwise. */
+export function useFollowedReading(text: () => string, follow: () => boolean): ComputedRef<string> {
+  const { locale } = useI18n();
+  const language = computed(() => readerLanguage(locale.value));
+  const { reading, ask } = useAskedReading(text, () => language.value);
+  const auto = useAutoTranslate();
+
+  watch(
+    [text, auto, follow],
+    () => {
+      if (wantsReading(text(), language.value) && (auto.value || follow()) && reading.value.kind === "none") ask();
+    },
+    { immediate: true }
+  );
+
+  return computed(() => (follow() && reading.value.kind === "read" ? reading.value.text : text()));
 }

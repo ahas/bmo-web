@@ -18,6 +18,15 @@ export const SHARE_SCOPES = ["team", "heads", "company"] as const;
 
 export type ShareScope = (typeof SHARE_SCOPES)[number];
 
+/** The kinds of item the catalogue shares: a personal app, a skill an agent reads, and an MCP server (bmo-pocket's
+ * `docs/catalogue.md`); a record naming none is an app. */
+export const CATALOGUE_KINDS = ["app", "skill", "mcp"] as const;
+
+export type CatalogueKind = (typeof CATALOGUE_KINDS)[number];
+
+/** The locales an item's text may be written in, the console's own. */
+export const TEXT_LOCALES = ["ko", "en", "ja", "zh-CN"] as const;
+
 /** What an app's version asks for beyond its own data. */
 export type CataloguePermissions = AppPermissions;
 
@@ -48,15 +57,26 @@ export interface CatalogueMay {
   promote: boolean;
   recall: string[];
   turnOn: string[];
+  // Whether the reader may fill the other languages' text by the translator, and correct one locale's text: the maker,
+  // the owner and a head of the maker's unit.
+  translate: boolean;
+  text: boolean;
 }
 
 /** A shared app as its reader sees it. */
 export interface CatalogueApp {
   id: string;
   key: string;
+  kind: CatalogueKind;
   name: string;
+  // The maker's text, in the maker's language, and the text of each locale it carries, the locales a translation
+  // wrote named in `machine`.
   title: string;
   description: string;
+  language: string | null;
+  titles: Record<string, string>;
+  descriptions: Record<string, string>;
+  machine: string[];
   maker: string;
   owner: string;
   targets: CatalogueTarget[];
@@ -102,6 +122,12 @@ export interface CatalogueSource {
   sourceHash: string;
   files: Record<string, string>;
 }
+
+/** How an MCP item connects: a remote server at an address with the auth it asks and the name of the secret it reads
+ * in the reader's own secret space, or a program run in its folder on the reader's PC. */
+export type CatalogueConnection =
+  | { transport: "remote"; url: string; auth: "none" | "bearer" | "header"; header: string | null; secret: string | null }
+  | { transport: "local"; command: string[] };
 
 /** One request to make a shared app a platform app. */
 export interface CataloguePromotion {

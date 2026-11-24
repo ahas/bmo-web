@@ -5,7 +5,7 @@ import { wording } from "../../apps/web/shared/wording";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
-import type { Catalogue, CatalogueApp } from "../../apps/web/shared/app-catalogue";
+import type { Catalogue, CatalogueApp, CatalogueConnection } from "../../apps/web/shared/app-catalogue";
 import type { PermissionReach } from "../../apps/web/shared/app-permissions";
 import type { PersonalApps } from "../../apps/web/shared/personal-apps";
 
@@ -15,7 +15,10 @@ import type { PersonalApps } from "../../apps/web/shared/personal-apps";
 // way to the apps tab of the unit the reader heads, and its source read in code blocks; the administrator's home
 // company's catalogue with no choice of another; and a
 // personal app shared with the team and the heads, the company left closed where the reader's organisation keeps it
-// so. Every press lands on the control it says, nothing standing over it. The console's own routes are served through
+// so; the kind filter leaving the apps, the skills or the MCP servers, each row's kind, a skill's details saying it asks
+// for nothing and reaches its attached agents alone, an MCP server's how it connects, remote with the secret the reader
+// lacks or run on the reader's PC; and a Korean reader reading an English item in Korean, its stored Korean text marked as
+// a translation's, and putting the original back. Every press lands on the control it says, nothing standing over it. The console's own routes are served through
 // the page, standing for the agency. It drives the console tests/support/browser-console.ts stands up; the suite
 // stands up no console, so there it skips.
 
@@ -43,9 +46,14 @@ function app(id: string, title: string, more: Partial<CatalogueApp>): CatalogueA
   return {
     id,
     key: `shared-3-${id}`,
+    kind: "app",
     name: id.split("-")[1]!,
     title,
     description: `${title} does its one thing.`,
+    language: "en",
+    titles: {},
+    descriptions: {},
+    machine: [],
     maker: "17",
     owner: "17",
     targets: [{ team: true }, { heads: true }],
@@ -68,7 +76,7 @@ function app(id: string, title: string, more: Partial<CatalogueApp>): CatalogueA
     installed: null,
     updateWaiting: false,
     permissionsGrown: false,
-    may: { install: true, update: false, uninstall: false, clone: false, withdraw: false, approve: false, promote: false, recall: ["unit:40"], turnOn: ["unit:40"] },
+    may: { install: true, update: false, uninstall: false, clone: false, withdraw: false, approve: false, promote: false, recall: ["unit:40"], turnOn: ["unit:40"], translate: false, text: false },
     ...more
   };
 }
@@ -110,11 +118,16 @@ async function press(page: Page, control: Locator, phone: boolean): Promise<void
   else await control.click();
 }
 
-async function contextAt(width: number, height: number, phone: boolean): Promise<BrowserContext> {
+// A Korean reader's browser; the text of an item in another language is read as written unless `translates` says this
+// browser reads it in the reader's own as it opens (docs/web.md, 「The original, and its translation in its place」).
+async function contextAt(width: number, height: number, phone: boolean, translates = false): Promise<BrowserContext> {
   const context = await browser!.newContext({ viewport: { width, height }, isMobile: phone, hasTouch: phone, locale: "ko-KR", serviceWorkers: "block", reducedMotion: "reduce" });
   const at = cookie.indexOf("=");
 
-  await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
+  await context.addCookies([
+    { name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! },
+    { name: "console_auto_translate", value: String(translates), url: origin! }
+  ]);
   return context;
 }
 
@@ -154,7 +167,7 @@ describe.skipIf(!origin || !touchReady())("the app catalogue", () => {
 
         // The notice and each row: its title, who made it and what it does, and how many installed it, thousands parted.
         await expect(page.locator("[data-catalogue-notice='shared']").textContent()).resolves.toContain(wording("app_catalogue.label.notice_shared", { app: "Weekly summary" }));
-        await expect(weeklyRow.locator("[data-catalogue-app-line]").textContent()).resolves.toBe("Maker One · Weekly summary does its one thing.");
+        await expect(weeklyRow.locator("[data-catalogue-app-line]").textContent()).resolves.toBe(`${wording("app_catalogue.label.kind_app")} · Maker One · Weekly summary does its one thing.`);
         await expect(weeklyRow.locator("[data-catalogue-app-installs]").textContent()).resolves.toBe("1,204");
         await ratesRow.waitFor({ timeout: 5_000 });
 
@@ -277,7 +290,7 @@ describe.skipIf(!origin || !touchReady())("the app catalogue", () => {
 
       await context.route(/\/api\/account\/personal-apps(?:\/|$|\?)/, async (route) => {
         const listed: PersonalApps = {
-          items: [{ name: "weekly", version: "1763900000000-b2c3d4", putAt: 1_763_900_000_000, entries: [{ name: "my/weekly", title: "Weekly summary", description: "Sums up the week." }], permissions: { network: [], secrets: [] }, kept: [] }],
+          items: [{ name: "weekly", kind: "app", version: "1763900000000-b2c3d4", putAt: 1_763_900_000_000, entries: [{ name: "my/weekly", title: "Weekly summary", description: "Sums up the week." }], permissions: { network: [], secrets: [] }, kept: [] }],
           reached: true,
           reach: { network: false, secrets: false, held: [] }
         };
@@ -315,7 +328,7 @@ describe.skipIf(!origin || !touchReady())("the app catalogue", () => {
         await expect(scope("heads").getAttribute("aria-checked")).resolves.toBe("true");
         await press(page, page.locator("[data-catalogue-share-confirm]"), phone);
         await page.locator("[data-personal-apps-shared]").waitFor({ timeout: 10_000 });
-        expect(shared).toEqual([{ name: "weekly", targets: [{ team: true }, { heads: true }] }]);
+        expect(shared).toEqual([{ name: "weekly", targets: [{ team: true }, { heads: true }], kind: "app", language: "ko" }]);
       } finally {
         await context.close();
       }
@@ -339,6 +352,167 @@ describe.skipIf(!origin || !touchReady())("the app catalogue", () => {
         await page.locator("[data-catalogue-app='17-weekly']").waitFor({ timeout: 30_000 });
         expect(asked[0]).toBe("GET  company=");
         expect(await page.locator("[data-catalogue-company]").count()).toBe(0);
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+
+    test(`filters by kind and shows a skill's and an MCP server's details, ${width}px wide`, async () => {
+      const context = await contextAt(width, height, phone);
+      const asked: string[] = [];
+      const weekly = app("17-weekly", "Weekly summary", {});
+      const notes = app("17-notes", "Notes", { kind: "skill", name: "notes" });
+      const tickets = app("17-tickets", "Tickets", { kind: "mcp", name: "tickets", permissions: { network: ["tickets.example.org"], secrets: ["tickets-token"] } });
+      const lint = app("21-lint", "Lint", { kind: "mcp", name: "lint", maker: "21" });
+      const connections: Record<string, CatalogueConnection> = {
+        "17-tickets": { transport: "remote", url: "https://tickets.example.org/mcp", auth: "bearer", header: null, secret: "tickets-token" },
+        "21-lint": { transport: "local", command: ["node", "server.js"] }
+      };
+
+      await context.route(/\/api\/account\/app-catalogue(?:\/|$|\?)/, async (route) => {
+        const request = route.request();
+        const path = new URL(request.url()).pathname.replace(/^.*\/api\/account\/app-catalogue/, "");
+        const connection = /^\/([^/]+)\/connection$/.exec(path)?.[1];
+
+        if (request.method() === "GET" && path === "") return await route.fulfill({ json: catalogue([weekly, notes, tickets, lint], { network: true, secrets: true, held: [] }) });
+        if (request.method() === "GET" && connection !== undefined) return await route.fulfill({ json: connections[connection] ?? null });
+
+        asked.push(`${request.method()} ${path}`);
+        await route.fulfill({ json: notes });
+      });
+
+      try {
+        const page = await context.newPage();
+
+        await page.goto(`${origin}/app-catalogue`, { waitUntil: "load" });
+
+        const row = (id: string) => page.locator(`[data-catalogue-app='${id}']`);
+
+        await row("17-notes").waitFor({ timeout: 30_000 });
+
+        // Each row says its kind, by its icon and its word.
+        await expect(row("17-weekly").locator("[data-catalogue-app-kind='app']").textContent()).resolves.toContain(wording("app_catalogue.label.kind_app"));
+        await expect(row("17-notes").locator("[data-catalogue-app-kind='skill']").textContent()).resolves.toContain(wording("app_catalogue.label.kind_skill"));
+        await expect(row("17-tickets").locator("[data-catalogue-app-icon='mcp']").count()).resolves.toBe(1);
+
+        // The kind filter leaves the skills, then the MCP servers, then everything again.
+        const kindTo = async (word: string) => {
+          await press(page, page.locator("[data-catalogue-kind]"), phone);
+          await press(page, page.getByRole("option", { name: wording(word), exact: true }), phone);
+        };
+
+        await kindTo("app_catalogue.label.kind_skill");
+        await row("17-weekly").waitFor({ state: "detached", timeout: 10_000 });
+        await expect(page.locator("[data-catalogue-app]").count()).resolves.toBe(1);
+        await kindTo("app_catalogue.label.kind_mcp");
+        await row("17-tickets").waitFor({ timeout: 10_000 });
+        await expect(page.locator("[data-catalogue-app]").count()).resolves.toBe(2);
+        await kindTo("app_catalogue.label.kind_all");
+        await row("17-weekly").waitFor({ timeout: 10_000 });
+
+        // A skill asks for nothing and reaches its attached agents alone; its install says so first, and a cancel
+        // installs nothing.
+        await press(page, row("17-notes"), phone);
+
+        const skill = page.locator("[data-catalogue-dialog='skill']");
+
+        await skill.waitFor({ timeout: 10_000 });
+        await expect(skill.locator("[data-app-permission='none']").textContent()).resolves.toBe(wording("app_catalogue.label.skill_permissions"));
+        await expect(skill.locator("[data-app-permission='none-note']").textContent()).resolves.toBe(wording("app_catalogue.label.skill_permissions_note"));
+        await expect(skill.locator("[data-catalogue-connection]").count()).resolves.toBe(0);
+        await press(page, page.locator("[data-catalogue-install]"), phone);
+
+        const installing = page.getByRole("dialog").filter({ hasText: wording("app_catalogue.title.install_skill") });
+
+        await installing.waitFor({ timeout: 10_000 });
+        await expect(installing.textContent()).resolves.toContain(wording("app_catalogue.message.install_skill_effect").split("\n")[0]!);
+        await press(page, installing.getByRole("button", { name: wording("common.action.cancel") }), phone);
+        await installing.waitFor({ state: "detached", timeout: 10_000 });
+        await page.keyboard.press("Escape");
+        await skill.waitFor({ state: "detached", timeout: 10_000 });
+
+        // A remote MCP server: its address in the monospace face, its auth, and the secret the reader's space lacks in
+        // the warning colour; what it asks for, as an app's.
+        await press(page, row("17-tickets"), phone);
+
+        const remote = page.locator("[data-catalogue-dialog='mcp'] [data-catalogue-connection]");
+
+        await remote.getByText("https://tickets.example.org/mcp").waitFor({ timeout: 10_000 });
+        await expect(remote.textContent()).resolves.toContain(wording("app_catalogue.label.transport_remote"));
+        await expect(remote.textContent()).resolves.toContain(wording("app_catalogue.label.auth_bearer"));
+        await expect(remote.getByText("https://tickets.example.org/mcp").getAttribute("class")).resolves.toContain("font-mono");
+        await expect(remote.locator("[data-catalogue-connection-missing]").textContent()).resolves.toContain("tickets-token");
+        await expect(remote.locator("[data-catalogue-connection-missing]").getAttribute("class")).resolves.toContain("text-warning");
+        await expect(page.locator("[data-catalogue-dialog='mcp'] [data-app-permission='network'] [data-app-permission-value]").allTextContents()).resolves.toEqual(["tickets.example.org"]);
+
+        const widest = await page.locator("[data-catalogue-dialog='mcp']").evaluate((element) => element.getBoundingClientRect().right);
+
+        expect(widest).toBeLessThanOrEqual(width);
+        await page.keyboard.press("Escape");
+        await remote.waitFor({ state: "detached", timeout: 10_000 });
+
+        // One run on the reader's PC: its command.
+        await press(page, row("21-lint"), phone);
+
+        const local = page.locator("[data-catalogue-dialog='mcp'] [data-catalogue-connection]");
+
+        await local.getByText("node server.js").waitFor({ timeout: 10_000 });
+        await expect(local.textContent()).resolves.toContain(wording("app_catalogue.label.transport_local"));
+        await expect(local.locator("[data-catalogue-connection-missing]").count()).resolves.toBe(0);
+        expect(asked).toEqual([]);
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+
+    test(`reads an item in the reader's language and puts the original back, ${width}px wide`, async () => {
+      const context = await contextAt(width, height, phone, true);
+      const translated: string[] = [];
+      const weekly = app("17-weekly", "Weekly summary", { description: "Sums up the week's notes." });
+      // An item carrying the reader's language, written by a translation, which is read as it stands.
+      const rates = app("21-rates", "Rates", { maker: "21", titles: { ko: "Rates in the reader's language" }, descriptions: { ko: "Today's rates, in the reader's language." }, machine: ["ko"] });
+
+      await context.route(/\/api\/account\/app-catalogue(?:\/|$|\?)/, async (route) => await route.fulfill({ json: catalogue([weekly, rates]) }));
+      // The translator reads each text with a mark before it, so its reading is told apart from the original.
+      await context.route(/\/api\/translations$/, async (route) => {
+        const asked = route.request().postDataJSON() as { originals: string[] };
+
+        translated.push(...asked.originals);
+        await route.fulfill({ json: { readings: asked.originals.map((text) => ({ text: `[read] ${text}`, whole: true })) } });
+      });
+
+      try {
+        const page = await context.newPage();
+
+        await page.goto(`${origin}/app-catalogue`, { waitUntil: "load" });
+
+        const weeklyRow = page.locator("[data-catalogue-app='17-weekly']");
+        const ratesRow = page.locator("[data-catalogue-app='21-rates']");
+
+        // The English item's row stands read in the reader's language; the item carrying it stands as it is, marked as a
+        // translation's.
+        await weeklyRow.locator("[data-catalogue-app-title]").getByText("[read] Weekly summary").waitFor({ timeout: 30_000 });
+        await expect(weeklyRow.locator("[data-catalogue-app-line]").textContent()).resolves.toContain("[read] Sums up the week's notes.");
+        await expect(ratesRow.locator("[data-catalogue-app-title]").textContent()).resolves.toBe("Rates in the reader's language");
+        await expect(ratesRow.locator("[data-catalogue-mark='machine']").count()).resolves.toBe(1);
+        expect(translated).not.toContain("Rates");
+
+        // Its details stand read the same, the title following the description; the original is put back by a press.
+        await press(page, weeklyRow, phone);
+
+        const dialog = page.locator("[data-catalogue-dialog]");
+
+        await dialog.locator("[data-catalogue-description]").getByText("[read] Sums up the week's notes.").waitFor({ timeout: 10_000 });
+        await page.getByRole("dialog").getByText("[read] Weekly summary").first().waitFor({ timeout: 10_000 });
+        await press(page, dialog.locator("[data-catalogue-description] [data-reading-original]"), phone);
+        await dialog.locator("[data-catalogue-description]").getByText("Sums up the week's notes.", { exact: true }).waitFor({ timeout: 10_000 });
+        await page.getByRole("dialog").getByText("Weekly summary", { exact: true }).first().waitFor({ timeout: 10_000 });
+        await expect(dialog.locator("[data-catalogue-description] [data-reading-translate]").count()).resolves.toBe(1);
+        await page.keyboard.press("Escape");
+
+        // The item carrying the reader's language says its text was written by a translation.
+        await press(page, ratesRow, phone);
+        await expect(page.locator("[data-catalogue-dialog] [data-catalogue-machine]").textContent()).resolves.toContain(wording("app_catalogue.label.machine"));
       } finally {
         await context.close();
       }

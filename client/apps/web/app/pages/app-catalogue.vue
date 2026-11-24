@@ -1,7 +1,9 @@
 <template>
-  <!-- The app catalogue (docs/web.md, 「App catalogue」): the personal apps the reader's company shares, as the agency lets
-       the reader see them. A search and the filter by whom an app is shared with stand over the list, the notices
-       above it; a row opens the app's details, where it is installed, turned on for a unit and recalled. -->
+  <!-- The app catalogue (docs/web.md, 「App catalogue」): the apps, skills and MCP servers the reader's company shares, as
+       the agency lets the reader see them. A search and the filters by whom an item is shared with and by its kind stand
+       over the list, on one row at a desk and the filters on a row of their own on a phone, the notices above it; a row
+       opens the item's details, where it is installed, turned on for a unit and recalled. Each item's text stands in
+       the reader's language where it carries it, else read through the translator on view. -->
   <UDashboardPanel id="app-catalogue" :ui="{ body: 'p-0 sm:p-0 gap-0 [&>*]:max-w-none' }">
     <template #header>
       <ConsoleTitleBar :title="$t('screens.label.catalogue')" icon="i-material-symbols-apps" />
@@ -10,23 +12,33 @@
     <template #body>
       <div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto p-4" data-catalogue-body>
         <div class="mx-auto flex w-full min-w-0 max-w-3xl flex-col gap-6" data-catalogue-column>
-          <div class="flex items-center gap-2">
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
             <UInput
               v-model="query"
               icon="i-material-symbols-search"
               :placeholder="$t('app_catalogue.placeholder.search')"
               :aria-label="$t('app_catalogue.placeholder.search')"
-              class="min-w-0 flex-1"
+              class="min-w-0 sm:flex-1"
               data-catalogue-search
             />
-            <ChoiceSelect
-              v-model="filter"
-              :items="filterItems"
-              value-key="value"
-              class="w-32 shrink-0 sm:w-40"
-              :aria-label="$t('app_catalogue.label.scope')"
-              data-catalogue-filter
-            />
+            <div class="grid grid-cols-2 gap-2 sm:flex sm:shrink-0">
+              <ChoiceSelect
+                v-model="filter"
+                :items="filterItems"
+                value-key="value"
+                class="min-w-0 sm:w-40"
+                :aria-label="$t('app_catalogue.label.scope')"
+                data-catalogue-filter
+              />
+              <ChoiceSelect
+                v-model="kind"
+                :items="kindItems"
+                value-key="value"
+                class="min-w-0 sm:w-32"
+                :aria-label="$t('app_catalogue.label.kind')"
+                data-catalogue-kind
+              />
+            </div>
           </div>
 
           <ContentSkeleton v-if="catalogue === null && failure === ''" :rows="3" listClass="flex flex-col divide-y divide-default" :label="$t('app_catalogue.status.loading')">
@@ -62,13 +74,25 @@
                 :data-catalogue-app="app.id"
                 @click="open(app.id)"
               >
-                <UIcon name="i-material-symbols-widgets-outline" class="size-5 shrink-0 text-muted" />
+                <UTooltip :text="$t(KIND_WORDS[app.kind])">
+                  <UIcon :name="KIND_ICONS[app.kind]" class="size-5 shrink-0 text-muted" :aria-label="$t(KIND_WORDS[app.kind])" role="img" :data-catalogue-app-icon="app.kind" />
+                </UTooltip>
                 <span class="flex min-w-0 flex-1 flex-col">
-                  <span class="truncate text-sm text-highlighted">{{ app.title }}</span>
-                  <span class="truncate text-sm text-muted" data-catalogue-app-line>{{ appLine(catalogue, app) }}</span>
+                  <span class="truncate text-sm text-highlighted" data-catalogue-app-title>
+                    <span v-if="shownText(app, locale).own">{{ shownText(app, locale).title }}</span>
+                    <TranslatedInline v-else :text="app.title" :follow="auto" />
+                  </span>
+                  <span class="truncate text-sm text-muted" data-catalogue-app-line>
+                    <span :data-catalogue-app-kind="app.kind">{{ appLine(t, catalogue, app) }}</span>
+                    <template v-if="shownText(app, locale).description !== ''">
+                      <span> · </span>
+                      <span v-if="shownText(app, locale).own">{{ shownText(app, locale).description }}</span>
+                      <TranslatedInline v-else :text="app.description" :follow="auto" />
+                    </template>
+                  </span>
                 </span>
                 <span class="flex shrink-0 items-center gap-1">
-                  <UTooltip v-for="mark in stateMarks(t, app)" :key="mark.key" :text="mark.label">
+                  <UTooltip v-for="mark in stateMarks(t, app, locale)" :key="mark.key" :text="mark.label">
                     <UIcon :name="mark.icon" :class="['size-5', mark.tone]" :aria-label="mark.label" role="img" :data-catalogue-mark="mark.key" />
                   </UTooltip>
                 </span>
@@ -88,12 +112,15 @@
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
 
-import { CATALOGUE_FILTERS, FILTER_WORDS, NOTICE_WORDS, appLine, filteredApps, stateMarks } from "~/domain/app-catalogue";
+import { CATALOGUE_FILTERS, FILTER_WORDS, KIND_FILTERS, KIND_ICONS, KIND_WORDS, NOTICE_WORDS, appLine, filteredApps, shownText, stateMarks } from "~/domain/app-catalogue";
+import { useAutoTranslate } from "~/domain/text-reading";
 
-import type { CatalogueFilter } from "~/domain/app-catalogue";
+import type { CatalogueFilter, KindFilter } from "~/domain/app-catalogue";
 import type { Catalogue, CatalogueApp, CatalogueNotice } from "#shared/app-catalogue";
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
+// Whether this browser reads a text in another language in the reader's own as it opens.
+const auto = useAutoTranslate();
 
 const catalogue = ref<Catalogue | null>(null);
 const failure = ref("");
@@ -101,11 +128,13 @@ const reading = ref(false);
 const busy = ref<string | null>(null);
 const query = ref("");
 const filter = ref<CatalogueFilter>("all");
+const kind = ref<KindFilter>("all");
 const chosenId = ref<string | null>(null);
 const dialogOpen = ref(false);
 
 const filterItems = computed(() => CATALOGUE_FILTERS.map((value) => ({ value, label: t(FILTER_WORDS[value]) })));
-const shown = computed(() => (catalogue.value === null ? [] : filteredApps(catalogue.value.apps, filter.value, query.value)));
+const kindItems = computed(() => KIND_FILTERS.map((value) => ({ value, label: t(KIND_WORDS[value]) })));
+const shown = computed(() => (catalogue.value === null ? [] : filteredApps(catalogue.value.apps, filter.value, query.value, kind.value, locale.value)));
 const chosen = computed(() => catalogue.value?.apps.find((app) => app.id === chosenId.value) ?? null);
 
 async function read(): Promise<void> {
@@ -124,11 +153,11 @@ async function read(): Promise<void> {
 
 onMounted(() => void read());
 
-// A notice in words, naming its app by its title.
+// A notice in words, naming its app by its title as the reader's locale reads it.
 function noticeLine(notice: CatalogueNotice): string {
   const app = catalogue.value?.apps.find((one) => one.id === notice.app);
 
-  return t(NOTICE_WORDS[notice.kind], { app: app?.title ?? notice.app });
+  return t(NOTICE_WORDS[notice.kind], { app: app === undefined ? notice.app : shownText(app, locale.value).title });
 }
 
 function open(id: string): void {

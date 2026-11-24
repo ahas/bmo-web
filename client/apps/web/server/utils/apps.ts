@@ -3,7 +3,7 @@ import { spokenLanguage, wording, WORDING_LANGUAGE } from "#shared/wording";
 import { AccountRefusal, chainEntry, chainKinds, homeUnit, resolveChain, setChainDelegation, setChainRules, setChainValue, unitView } from "./account-service";
 import { appKind, appOfKind } from "./app-gate";
 import { unitNamed } from "./chain-names";
-import { recallSharedApp, turnOnSharedApp } from "./app-catalogue";
+import { recallSharedApp, sharedItems, turnOnSharedApp } from "./app-catalogue";
 import { wordAt } from "./bundle-notices";
 import { attachedService } from "./console-manifests";
 import { fail } from "./fail";
@@ -14,6 +14,7 @@ import type { ChainEntryView, ChainKindView, ChainResolutionView, ProfileCaller 
 import type { SignedIn } from "./accounts";
 import type { AppSetting } from "./app-gate";
 import type { AppName, OwnApp, PlatformApp, PlatformAppChange, PlatformWord, UnitApp, UnitAppChange } from "#shared/apps";
+import type { CatalogueApp } from "#shared/app-catalogue";
 
 // The apps a reader turns on and off (docs/web.md, 「Organisation」, the apps tab, and 「Settings」, the own apps
 // section; docs/accounts.md, 「An app's two settings」): every app whose kinds the delegation chain holds, read and
@@ -149,6 +150,7 @@ export async function unitApps(unit: number, signed: SignedIn): Promise<UnitApp[
   const link = `unit:${unit}`;
   const [declared, view] = await Promise.all([declaredApps(), unitView(unit)]);
   const apps = companyApps(declared, view.company.id);
+  const items = [...apps.keys()].some((app) => sharedAppCompany(app) !== null) ? await sharedItems(signed, view.company.id) : new Map<string, CatalogueApp>();
   const rows = await Promise.all(
     [...apps].map(async ([app, settings]): Promise<UnitApp | null> => {
       if (!settings.has("on")) return null;
@@ -165,8 +167,15 @@ export async function unitApps(unit: number, signed: SignedIn): Promise<UnitApp[
       const lockedAbove = lockedBy !== null;
       const offer = signed.administrator ? { offer: ownWord(platform?.rules.find((rule) => rule.who === link)?.value) } : {};
 
+      const item = items.get(app);
+      const named = appName(app);
+
       return {
-        ...appName(app),
+        ...named,
+        // A shared item with no screen of its own is named by its title in the catalogue, in the console's language
+        // where the item carries it.
+        ...(named.title === null && item !== undefined ? { title: item.titles[consoleLocale()] ?? item.title } : {}),
+        ...(item === undefined ? {} : { kind: item.kind }),
         offered,
         on: said(on),
         own: on.from === link ? ownWord(on.value) : null,

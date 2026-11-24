@@ -1,4 +1,6 @@
-import { catalogueCompany, catalogueId, linkUnit } from "#shared/app-catalogue";
+import { parseTOML } from "confbox";
+
+import { CATALOGUE_KINDS, catalogueCompany, catalogueId, linkUnit } from "#shared/app-catalogue";
 import { wording } from "#shared/wording";
 
 import { companyMembers, homeUnit, listUnits, listUsers, unitView } from "./account-service";
@@ -9,7 +11,17 @@ import { callerOf } from "./organization";
 
 import type { SignedIn } from "./accounts";
 import type { AgencyCall } from "./agency";
-import type { Catalogue, CatalogueApp, CatalogueNotice, CataloguePromotion, CatalogueSource, CatalogueTarget, ShareScope } from "#shared/app-catalogue";
+import type {
+  Catalogue,
+  CatalogueApp,
+  CatalogueConnection,
+  CatalogueKind,
+  CatalogueNotice,
+  CataloguePromotion,
+  CatalogueSource,
+  CatalogueTarget,
+  ShareScope
+} from "#shared/app-catalogue";
 
 // The reader's company's catalogue of shared personal apps, read and changed through the agency (docs/web.md, 「App
 // catalogue」; the agency's `docs/api.md`, 「catalogue」): asked as the deployment's own for the account the signed-in
@@ -32,6 +44,7 @@ const CALL: AgencyCall = {
     "awaiting-approval": "app_catalogue.error.awaiting_approval",
     "not-offered": "app_catalogue.error.not_offered",
     "name-taken": "app_catalogue.error.name_taken",
+    "translator-unavailable": "app_catalogue.error.translator_unavailable",
     locked: "app_catalogue.error.locked",
     forbidden: "app_catalogue.error.forbidden"
   },
@@ -70,6 +83,31 @@ export function catalogueParam(id: string | undefined): string {
   return id;
 }
 
+// A map of locales to text as the agency answers it, every value a string.
+function texts(value: unknown): Record<string, string> {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) return {};
+
+  return Object.fromEntries(Object.entries(value).filter((entry): entry is [string, string] => typeof entry[1] === "string" && entry[1] !== ""));
+}
+
+/** A shared item as the agency answers it, read with what a record written before the catalogue held kinds and
+ * languages lacks: an app, its maker's text alone, and nothing the reader may translate. */
+export function catalogueAppOf(value: CatalogueApp): CatalogueApp {
+  const raw = value as Partial<CatalogueApp> & Record<string, unknown>;
+  const kind: CatalogueKind = (CATALOGUE_KINDS as readonly unknown[]).includes(raw.kind) ? (raw.kind as CatalogueKind) : "app";
+  const may = (raw.may ?? {}) as Partial<CatalogueApp["may"]>;
+
+  return {
+    ...value,
+    kind,
+    language: typeof raw.language === "string" && raw.language !== "" ? raw.language : null,
+    titles: texts(raw.titles),
+    descriptions: texts(raw.descriptions),
+    machine: Array.isArray(raw.machine) ? raw.machine.filter((one): one is string => typeof one === "string") : [],
+    may: { ...value.may, translate: may.translate === true, text: may.text === true }
+  };
+}
+
 interface AgencyCatalogue {
   company: string;
   ceiling: ShareScope[];
@@ -102,7 +140,7 @@ export async function readCatalogue(signed: SignedIn, asked?: unknown): Promise<
   return {
     company: read.company,
     ceiling: read.ceiling,
-    apps: read.apps,
+    apps: read.apps.map(catalogueAppOf),
     notices: read.notices,
     seenAt: read.seenAt ?? null,
     reach,
@@ -118,13 +156,63 @@ export async function catalogueSource(signed: SignedIn, id: string, version: str
   return await agencyRoute<CatalogueSource>("GET", path, undefined, CALL);
 }
 
-/** One of the reader's personal apps shared with the targets named. */
-export async function shareApp(signed: SignedIn, name: string, targets: CatalogueTarget[]): Promise<CatalogueApp> {
-  return await agencyRoute<CatalogueApp>("POST", `/catalogue/${accountOf(signed)}/apps`, { name, targets }, CALL);
+// What `mcp.toml`'s `[server]` table holds of how the item connects, read as TOML by confbox.
+interface ServerTable {
+  transport?: unknown;
+  command?: unknown;
+  url?: unknown;
+  auth?: unknown;
+  header?: unknown;
+  secret?: unknown;
+}
+
+function word(value: unknown): string | null {
+  return typeof value === "string" && value !== "" ? value : null;
+}
+
+/** How an MCP item connects, read from the `mcp.toml` of its newest version (bmo-pocket's `docs/catalogue.md`); null
+ * where the source holds none that reads. */
+export function connectionOf(source: CatalogueSource): CatalogueConnection | null {
+  const text = source.files["mcp.toml"];
+
+  if (text === undefined) return null;
+
+  let server: ServerTable;
+
+  try {
+    server = (parseTOML<{ server?: ServerTable }>(text).server ?? {}) as ServerTable;
+  } catch {
+    return null;
+  }
+
+  if (server.transport === "local") {
+    const command = Array.isArray(server.command) ? server.command.filter((one): one is string => typeof one === "string") : [];
+
+    return { transport: "local", command };
+  }
+
+  if (server.transport !== "remote" || word(server.url) === null) return null;
+
+  const auth = server.auth === "bearer" || server.auth === "header" ? server.auth : "none";
+
+  return { transport: "remote", url: word(server.url)!, auth, header: auth === "header" ? word(server.header) : null, secret: auth === "none" ? null : word(server.secret) };
+}
+
+/** How the MCP item a reader sees connects, read off its newest version's source. */
+export async function catalogueConnection(signed: SignedIn, id: string, asked?: unknown): Promise<CatalogueConnection | null> {
+  return connectionOf(await catalogueSource(signed, id, null, asked));
+}
+
+/** One of the reader's own items shared with the targets named: a personal app or an MCP item read from their PC, or a
+ * skill of theirs kept at home, written in the language the reader reads the console in. */
+export async function shareApp(signed: SignedIn, name: string, targets: CatalogueTarget[], kind: "app" | "skill" = "app", language?: string): Promise<CatalogueApp> {
+  const body = { name, targets, kind, ...(language === undefined ? {} : { language }) };
+
+  return catalogueAppOf(await agencyRoute<CatalogueApp>("POST", `/catalogue/${accountOf(signed)}/apps`, body, CALL));
 }
 
 /** The acts on one app, each answered with the app as it then stands. */
-export type CatalogueAct = "install" | "update" | "uninstall" | "clone" | "withdraw" | "approve" | "promote" | "recall" | "unit";
+export type CatalogueAct = "install" | "update" | "uninstall" | "clone" | "withdraw" | "approve" | "promote" | "translate" | "recall" | "unit";
 
 /** One act on an app as the reader, its body where it takes one; for the administrator, in the company `asked` names,
  * else their home company. */
@@ -138,17 +226,17 @@ export async function actOnApp(
   const base = `/catalogue/${accountOf(signed)}/apps/${id}`;
   const company = await companyQuery(signed, asked);
 
-  if (act === "uninstall") return await agencyRoute<CatalogueApp>("DELETE", withQuery(`${base}/install`, company), undefined, CALL);
+  if (act === "uninstall") return catalogueAppOf(await agencyRoute<CatalogueApp>("DELETE", withQuery(`${base}/install`, company), undefined, CALL));
 
   if (act === "unit") {
     const unit = Number(body.unit);
 
     if (!Number.isInteger(unit)) throw fail(400, wording("app_catalogue.error.not_found"));
 
-    return await agencyRoute<CatalogueApp>("POST", withQuery(`${base}/units/${unit}`, company), { on: body.on === true, lock: body.lock === true }, CALL);
+    return catalogueAppOf(await agencyRoute<CatalogueApp>("POST", withQuery(`${base}/units/${unit}`, company), { on: body.on === true, lock: body.lock === true }, CALL));
   }
 
-  return await agencyRoute<CatalogueApp>("POST", withQuery(`${base}/${act}`, company), body, CALL);
+  return catalogueAppOf(await agencyRoute<CatalogueApp>("POST", withQuery(`${base}/${act}`, company), body, CALL));
 }
 
 /** The handler of one act a route's path names on a shared app, its body handed on and the company its query names. */
@@ -189,6 +277,21 @@ async function catalogueIdOf(signed: SignedIn, key: string, company: number): Pr
   if (id === undefined) throw fail(404, wording("app_catalogue.error.not_found"));
 
   return id;
+}
+
+/** The company's shared items by their key on the delegation chain, each with its kind and its text, as the reader
+ * reads the company's catalogue; none where the reader holds no user or the catalogue cannot be read. */
+export async function sharedItems(signed: SignedIn, company: number): Promise<Map<string, CatalogueApp>> {
+  if (signed.id === null) return new Map();
+
+  try {
+    const path = withQuery(`/catalogue/${accountOf(signed)}`, await companyQuery(signed, String(company)));
+    const read = await agencyRoute<AgencyCatalogue>("GET", path, undefined, CALL);
+
+    return new Map(read.apps.map(catalogueAppOf).map((app) => [app.key, app]));
+  } catch {
+    return new Map();
+  }
 }
 
 /** A company's shared app turned on for a unit through the agency, locked below where `lock` says, so every PC under the

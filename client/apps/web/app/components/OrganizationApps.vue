@@ -3,7 +3,8 @@
        holds as it stands for the node chosen, each a row of its icon, its name and how it stands there, with the node's
        own word on it, its lock for everything under it and, for the administrator, the platform's offer to it, each
        saved as it is made; under them what its people may do with personal apps. A company's own shared app is turned on
-       through the agency, so its people's PCs install it, and recalled there, asked first as a step the row grows. -->
+       through the agency, so its people's PCs install it, and recalled there, asked first as a step the row grows; its
+       kind, an app, a skill or an MCP server, stands before its state. -->
   <div class="flex flex-col gap-4">
     <SettingsGroup>
       <ContentSkeleton v-if="rows === null && failure === ''" :rows="3" listClass="flex flex-col divide-y divide-default" :label="$t('apps.status.loading')">
@@ -27,10 +28,12 @@
       <template v-else>
         <div v-for="row in rows" :key="row.app" class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-3" :data-app-row="row.app">
           <div class="flex min-w-0 grow basis-40 items-center gap-3">
-            <UIcon :name="row.icon ?? APP_ICON" class="size-5 shrink-0 text-muted" />
+            <UIcon :name="row.icon ?? (row.kind === undefined ? APP_ICON : KIND_ICONS[row.kind])" class="size-5 shrink-0 text-muted" />
             <div class="flex min-w-0 flex-col">
               <HintTip :text="appTitle(row)" cut press data-app-title :class="['block min-w-0 truncate text-sm text-highlighted', row.title === null ? 'font-mono' : '']">{{ appTitle(row) }}</HintTip>
-              <span class="text-sm text-muted" data-app-state>{{ unitAppLine(t, row, company) }}</span>
+              <span class="text-sm text-muted" data-app-state>
+                <template v-if="row.kind !== undefined"><span :data-app-kind="row.kind">{{ $t(KIND_WORDS[row.kind]) }}</span> · </template>{{ unitAppLine(t, row, company) }}
+              </span>
             </div>
           </div>
 
@@ -98,6 +101,7 @@
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
 
+import { KIND_ICONS, KIND_WORDS } from "~/domain/app-catalogue";
 import { APP_ICON, appTitle, choiceWord, unitAppChoice, unitAppChoices, unitAppLine } from "~/domain/apps";
 import { UNIT_KEY } from "~/domain/organization";
 

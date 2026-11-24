@@ -1,3 +1,4 @@
+import type { CatalogueKind } from "./app-catalogue";
 import type { DecidedBy } from "./organisation-agents";
 
 // The apps a reader turns on and off (docs/web.md, 「Organisation」, the apps tab, and 「Settings」, the own apps
@@ -42,6 +43,9 @@ export interface UnitApp extends AppName {
   // Whether it is a company's own shared app, which a unit's head turns on and recalls through the agency so its
   // people's PCs install it and give it up.
   shared?: boolean;
+  // A shared item's kind, an app, a skill or an MCP server, read off the company's catalogue; absent where it is no
+  // shared item or the catalogue does not hold it for the reader.
+  kind?: CatalogueKind;
   // The platform's rule offering the app to the unit or withholding it, null where none stands: read for the
   // administrator alone, and absent for anyone else.
   offer?: boolean | null;

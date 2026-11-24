@@ -1873,8 +1873,9 @@ settings:
     desktop: 데스크톱
     secrets: 비밀 보관함
     supply: 공급
-    apps: 내 앱·도구
+    apps: 내 앱·도구·스킬
     personal_apps: 내 개인 앱
+    skills: 내 스킬
     supervisor_none: 감독관 없음
     theme: 테마
   action:
@@ -4373,7 +4374,7 @@ apps:
     scope_team: "팀"
     scope_heads: "팀과 상위 조직장"
     scope_company: "회사 전체"
-    tab: 앱·도구
+    tab: 앱·도구·스킬
     none: 앱 없음
     "on": 켬
     "off": 끔
@@ -4425,6 +4426,26 @@ app_catalogue:
     scope_heads: 상위 조직장
     scope_company: 회사 전체
     scope_direct: 직접 지정
+    kind: 종류
+    kind_all: 모든 종류
+    kind_app: 앱
+    kind_skill: 스킬
+    kind_mcp: MCP
+    machine: 번역기로 번역됨
+    connection: 연결
+    connection_unread: 연결 정보를 읽지 못했습니다.
+    transport: 방식
+    transport_remote: 원격
+    transport_local: 내 PC에서 실행
+    address: 주소
+    command: 명령
+    auth: 인증
+    auth_none: 없음
+    auth_bearer: Bearer 토큰
+    auth_header: "{header} 헤더"
+    secret: 비밀
+    skill_permissions: 권한 없음
+    skill_permissions_note: 붙인 에이전트에게만 지침으로 쓰입니다.
     maker: 만든 사람
     version: 버전
     shared: 공유 시각
@@ -4448,7 +4469,7 @@ app_catalogue:
     promotions: 플랫폼 앱 요청
     promotion_line: "{company} · {by} · {time}"
     no_promotions: 요청 없음
-    unit_door: "조직 → 앱·도구에서 켜고 잠그고 회수합니다."
+    unit_door: "조직 → 앱·도구·스킬에서 켜고 잠그고 회수합니다."
   placeholder:
     search: 앱 찾기
   action:
@@ -4462,6 +4483,7 @@ app_catalogue:
     source: 원본 보기
     seen: 모두 확인
     open: 보기
+    translate: 다른 언어 채우기
   title:
     install: 앱을 설치할까요?
     update: 앱을 업데이트할까요?
@@ -4471,6 +4493,11 @@ app_catalogue:
     promote: 플랫폼 앱으로 요청할까요?
     share: 앱 공유
     unit: 조직 설정
+    install_skill: 스킬을 설치할까요?
+    update_skill: 스킬을 업데이트할까요?
+    install_mcp: MCP 서버를 설치할까요?
+    update_mcp: MCP 서버를 업데이트할까요?
+    share_skill: 스킬 공유
   message:
     install_effect: "내 PC가 원본을 받아 빌드합니다.\n데이터는 내 PC에만 쌓입니다."
     update_effect: "새 버전을 받아 빌드합니다."
@@ -4480,6 +4507,9 @@ app_catalogue:
     withdraw_effect: "새로 설치할 수 없습니다.\n이미 설치한 사람은 계속 씁니다."
     promote_effect: "플랫폼 관리자가 검토한 뒤 플랫폼 앱으로 배포합니다."
     shared: "{app} 앱을 공유했습니다."
+    install_skill_effect: "BMO에 보관됩니다.\n내가 붙인 에이전트만 이 스킬을 씁니다."
+    install_mcp_effect: "내 PC에 설치합니다.\n내가 붙인 에이전트만 이 MCP 서버의 도구를 씁니다."
+    shared_skill: "{app} 스킬을 공유했습니다."
   status:
     loading: 스토어 불러오는 중…
   error:
@@ -4503,6 +4533,7 @@ app_catalogue:
     locked: 조직에서 잠가 바꿀 수 없습니다.
     forbidden: 이 작업을 할 권한이 없습니다.
     no_user: 사용자 계정이 없어 스토어를 쓸 수 없습니다.
+    translator_unavailable: 번역기가 없어 다른 언어를 채우지 못했습니다.
 
 # The personal apps section (docs/web.md, 「Settings」, the personal apps section): a reader's own tools, made and run on
 # their PC, each with its version, when it was put and what it may reach.
@@ -4531,6 +4562,69 @@ personal_apps:
     refused: PC가 이 버전을 받지 않았습니다.
     not_found: 개인 앱을 찾을 수 없습니다.
     no_user: 사용자 계정이 없어 개인 앱을 쓸 수 없습니다.
+
+# The skills section (docs/web.md, 「Settings」, the skills section): a reader's skills kept at home, their own and
+# those installed from the store, and the form an own one is made and edited in.
+skills:
+  label:
+    none: 스킬 없음
+    own: 직접 만듦
+    installed: 스토어에서 설치
+    attached: "붙인 에이전트: {agents}"
+    name: 이름
+    name_hint: 영어 소문자, 숫자, -
+    description: 설명
+    description_hint: 에이전트가 언제 이 스킬을 쓸지 정할 때 읽습니다.
+    body: 본문
+    references: 참조 파일
+  action:
+    add: 새 스킬
+    edit: 편집
+  title:
+    add: 새 스킬
+    edit: 스킬 편집
+  message:
+    delete_confirm: 스킬을 삭제할까요?
+    delete_effect: 붙인 에이전트에게서도 제거됩니다.
+    delete_installed_effect: "내 사본을 삭제합니다.\n붙인 에이전트에게서도 제거됩니다."
+  status:
+    loading: 스킬 불러오는 중…
+  error:
+    read_failed: 스킬을 불러오지 못했습니다.
+    save_failed: 스킬을 저장하지 못했습니다.
+    delete_failed: 스킬을 삭제하지 못했습니다.
+    not_found: 스킬을 찾을 수 없습니다.
+    name_taken: 스토어에서 설치한 같은 이름의 스킬이 있습니다.
+    make_withheld: 조직 설정으로 스킬을 만들 수 없습니다.
+    refused: "스킬을 저장할 수 없습니다.\nSKILL.md와 파일을 확인해 주세요."
+    too_large: 스킬 파일이 너무 큽니다.
+    no_user: 사용자 계정이 없어 스킬을 쓸 수 없습니다.
+    name_invalid: 영어 소문자로 시작하고 소문자, 숫자, -만 쓸 수 있습니다.
+    name_held: 같은 이름의 스킬이 이미 있습니다.
+    description_empty: 설명을 입력해 주세요.
+
+# What a reader's agent is given of their skills and MCP servers (docs/web.md, 「Organisation」, the agents tab at 나).
+attachments:
+  title:
+    dialog: 스킬·MCP
+  action:
+    open: 스킬·MCP
+  aria:
+    open: "{name} 스킬·MCP"
+  label:
+    skills: 스킬
+    mcp: MCP 서버
+    skills_none: 스킬 없음
+    mcp_none: MCP 서버 없음
+    takes_no_skills: 이 에이전트에는 스킬을 붙일 수 없습니다.
+    takes_no_mcp: 이 에이전트에는 MCP 서버를 붙일 수 없습니다.
+  error:
+    takes_no_skills: 이 에이전트에는 스킬을 붙일 수 없습니다.
+    takes_no_mcp: 이 에이전트에는 MCP 서버를 붙일 수 없습니다.
+    not_found: 에이전트나 스킬을 찾을 수 없습니다.
+    forbidden: 이 에이전트를 바꿀 권한이 없습니다.
+    no_user: 사용자 계정이 없어 스킬·MCP를 붙일 수 없습니다.
+    save_failed: 저장하지 못했습니다.
 
 # What a personal app may reach beyond its own data (docs/web.md, 「App catalogue」 and 「Settings」, the personal apps
 # section), said line by line in the catalogue and the personal apps section.

@@ -1,22 +1,31 @@
 <template>
-  <!-- One shared app's details (docs/web.md, 「App catalogue」): what it is and who made it, what it asks for, its review
-       report and its source, and what the reader may do with it — install, update, delete and clone their copy,
-       withdraw it, approve it and put it forward as a platform app, and for a head the way to the unit's apps tab.
-       Every act that changes what runs on a PC is asked first. -->
-  <SettingsDialog v-model:open="open" :title="props.app.title" wide>
-    <div class="flex flex-col gap-6" data-catalogue-dialog>
-      <p v-if="props.app.description" class="break-keep break-words text-sm text-default">{{ props.app.description }}</p>
+  <!-- One shared item's details (docs/web.md, 「App catalogue」): what it is and who made it, what it asks for — an
+       app's and an MCP server's reach, a skill's none — how an MCP server connects, its review report and its source,
+       and what the reader may do with it — install, update, delete and clone their copy, withdraw it, approve it, fill
+       its other languages and put it forward as a platform app, and for a head the way to the unit's apps tab. Every
+       act that changes what the reader holds is asked first. Its text stands in the reader's language where the item
+       carries it, else read through the translator on view, its title following its description's line. -->
+  <SettingsDialog v-model:open="open" :title="shownTitle" wide>
+    <div class="flex flex-col gap-6" :data-catalogue-dialog="props.app.kind">
+      <div v-if="shown.description !== '' || shown.machine" class="flex min-w-0 flex-col gap-1" data-catalogue-description>
+        <TranslatedText v-if="!shown.own && shown.description !== ''" :text="shown.description" text-class="break-keep text-sm text-default" @shown="described = $event" />
+        <p v-else-if="shown.description !== ''" class="break-keep break-words text-sm text-default">{{ shown.description }}</p>
+        <p v-if="shown.machine" class="flex items-center gap-1 text-sm text-muted" data-catalogue-machine>
+          <UIcon name="i-material-symbols-translate" class="size-4 shrink-0" />
+          <span>{{ $t("app_catalogue.label.machine") }}</span>
+        </p>
+      </div>
 
       <div class="flex items-start justify-between gap-4">
         <PropertyList :rows="properties" class="min-w-0 flex-1" data-catalogue-properties />
         <UDropdownMenu v-if="menu.length > 0" :items="menu" :content="{ align: 'end' }">
-          <UTooltip :text="$t('common.aria.menu_of', { name: props.app.title })">
+          <UTooltip :text="$t('common.aria.menu_of', { name: shownTitle })">
             <UButton
               color="neutral"
               variant="ghost"
               icon="i-material-symbols-more-vert"
               :loading="busy !== null && SECONDARY.includes(busy)"
-              :aria-label="$t('common.aria.menu_of', { name: props.app.title })"
+              :aria-label="$t('common.aria.menu_of', { name: shownTitle })"
               data-catalogue-menu
             />
           </UTooltip>
@@ -33,13 +42,31 @@
         </SettingsRow>
       </SettingsGroup>
 
+      <!-- How an MCP server connects: an address the reader's agents reach with the secret their own secret space holds
+           by its name, or a program run on the reader's PC. -->
+      <SettingsGroup v-if="props.app.kind === 'mcp'" :title="$t('app_catalogue.label.connection')" data-catalogue-connection>
+        <ContentSkeleton v-if="connection === undefined" :rows="2" listClass="flex flex-col gap-2 py-3" :label="$t('app_catalogue.status.loading')">
+          <SkeletonLine width="w-1/2" />
+        </ContentSkeleton>
+        <p v-else-if="connection === null" class="py-3 text-sm text-muted" data-catalogue-connection-none>{{ $t("app_catalogue.label.connection_unread") }}</p>
+        <PropertyList v-else :rows="connectionRows" class="py-3" />
+        <p v-if="missingSecret !== null" class="pb-3 text-sm text-warning" data-catalogue-connection-missing>
+          {{ $t("app_permissions.label.secrets_missing") }}
+          <span class="ms-1 font-mono">{{ missingSecret }}</span>
+        </p>
+      </SettingsGroup>
+
       <SettingsGroup :title="$t('app_catalogue.label.permissions')" data-catalogue-permissions>
-        <AppPermissionList :permissions="props.app.permissions" :reach="props.catalogue.reach" class="py-3" />
+        <ul v-if="props.app.kind === 'skill'" class="flex min-w-0 flex-col gap-1 py-3 text-sm" data-app-permissions>
+          <li class="text-default" data-app-permission="none">{{ $t("app_catalogue.label.skill_permissions") }}</li>
+          <li class="break-keep text-muted" data-app-permission="none-note">{{ $t("app_catalogue.label.skill_permissions_note") }}</li>
+        </ul>
+        <AppPermissionList v-else :permissions="props.app.permissions" :reach="props.catalogue.reach" class="py-3" />
       </SettingsGroup>
 
       <SettingsGroup :title="$t('app_catalogue.label.review')" data-catalogue-review>
         <div class="min-w-0 py-3" data-catalogue-review-text>
-          <MarkdownText v-if="props.app.review.state === 'written'" :text="reviewText" class="break-words text-sm" />
+          <TranslatedText v-if="props.app.review.state === 'written'" :text="reviewText" kind="document" text-class="break-words text-sm" />
           <p v-else class="whitespace-pre-line break-keep break-words text-sm text-muted">{{ reviewText }}</p>
         </div>
       </SettingsGroup>
@@ -78,12 +105,13 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { formatStamp } from "bmo-ui/app/domain/time";
 
 import { useConfirm } from "~/domain/confirm";
-import { ASKED_ACTS, personName, sourceBlock } from "~/domain/app-catalogue";
+import { ASKED_ACTS, KIND_ASKS, KIND_WORDS, personName, shownText, sourceBlock } from "~/domain/app-catalogue";
 import { permissionText } from "~/domain/app-permissions";
+import { useAutoTranslate, useFollowedReading } from "~/domain/text-reading";
 
 import { linkUnit } from "#shared/app-catalogue";
 
-import type { Catalogue, CatalogueApp, CatalogueSource, CatalogueTarget } from "#shared/app-catalogue";
+import type { Catalogue, CatalogueApp, CatalogueConnection, CatalogueSource, CatalogueTarget } from "#shared/app-catalogue";
 
 interface Props {
   app: CatalogueApp;
@@ -93,15 +121,79 @@ interface Props {
 const props = defineProps<Props>();
 const open = defineModel<boolean>("open", { default: false });
 const emit = defineEmits<{ changed: [app: CatalogueApp] }>();
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const confirm = useConfirm();
 
 const busy = ref<string | null>(null);
 
 // The acts the menu holds, which its button spins for while one goes.
-const SECONDARY: readonly string[] = ["clone", "uninstall", "approve", "promote", "withdraw"];
+const SECONDARY: readonly string[] = ["clone", "uninstall", "approve", "promote", "withdraw", "translate"];
 const refusal = ref("");
 const source = ref<CatalogueSource | null>(null);
+
+// The item's text as the reader's locale reads it; where it is the maker's in another language, the title follows the
+// description's line into the reader's language, or the browser's own reading where there is no description to carry it.
+const shown = computed(() => shownText(props.app, locale.value));
+const auto = useAutoTranslate();
+const described = ref(false);
+const followedTitle = useFollowedReading(
+  () => props.app.title,
+  () => !shown.value.own && (shown.value.description === "" ? auto.value : described.value)
+);
+const shownTitle = computed(() => (shown.value.own ? shown.value.title : followedTitle.value));
+
+// How an MCP item connects, read as its details open: undefined while it is read, null where it reads as none.
+const connection = ref<CatalogueConnection | null | undefined>(undefined);
+
+async function readConnection(): Promise<void> {
+  connection.value = undefined;
+
+  try {
+    connection.value = await $fetch<CatalogueConnection | null>(`/api/account/app-catalogue/${props.app.id}/connection`, { query: { company: props.catalogue.company } });
+  } catch {
+    connection.value = null;
+  }
+}
+
+watch(
+  () => [open.value, props.app.id, props.app.version] as const,
+  ([standing]) => {
+    if (standing && props.app.kind === "mcp") void readConnection();
+  },
+  { immediate: true }
+);
+
+const AUTH_WORDS: Readonly<Record<"none" | "bearer" | "header", string>> = {
+  none: "app_catalogue.label.auth_none",
+  bearer: "app_catalogue.label.auth_bearer",
+  header: "app_catalogue.label.auth_header"
+};
+
+const connectionRows = computed(() => {
+  const held = connection.value;
+
+  if (held === null || held === undefined) return [];
+  if (held.transport === "local") {
+    return [
+      { label: t("app_catalogue.label.transport"), value: t("app_catalogue.label.transport_local") },
+      { label: t("app_catalogue.label.command"), value: held.command.join(" "), mono: true }
+    ];
+  }
+
+  return [
+    { label: t("app_catalogue.label.transport"), value: t("app_catalogue.label.transport_remote") },
+    { label: t("app_catalogue.label.address"), value: held.url, mono: true },
+    { label: t("app_catalogue.label.auth"), value: t(AUTH_WORDS[held.auth], { header: held.header ?? "" }) },
+    ...(held.secret === null ? [] : [{ label: t("app_catalogue.label.secret"), value: held.secret, mono: true }])
+  ];
+});
+
+// The secret a remote MCP item reads that the reader's own secret space does not hold.
+const missingSecret = computed(() => {
+  const held = connection.value;
+
+  return held?.transport === "remote" && held.secret !== null && !props.catalogue.reach.held.includes(held.secret) ? held.secret : null;
+});
 
 // The units the reader heads on their path, by the links the agency names them by.
 const units = computed(() => {
@@ -136,6 +228,7 @@ const properties = computed(() => {
   const latest = props.app.versions.at(-1);
 
   return [
+    { label: t("app_catalogue.label.kind"), value: t(KIND_WORDS[props.app.kind]) },
     { label: t("app_catalogue.label.maker"), value: personName(props.catalogue, props.app.maker) },
     { label: t("app_catalogue.label.version"), value: props.app.version, mono: true },
     ...(latest ? [{ label: t("app_catalogue.label.shared"), value: formatStamp(Math.floor(latest.sharedAt / 1000)) }] : []),
@@ -152,6 +245,7 @@ const menu = computed(() => {
   return [
     ...item(may.approve, t("app_catalogue.action.approve"), "i-material-symbols-check-circle-outline", () => void act("approve", { version: props.app.version })),
     ...item(may.clone, t("app_catalogue.action.clone"), "i-material-symbols-content-copy-outline", () => void simple("clone")),
+    ...item(may.translate, t("app_catalogue.action.translate"), "i-material-symbols-translate", () => void act("translate")),
     ...item(may.promote && props.app.promotion === null, t("app_catalogue.action.promote"), "i-material-symbols-rocket-launch-outline", () => void simple("promote")),
     ...item(may.uninstall, t("common.action.delete"), "i-material-symbols-delete-outline", () => void simple("uninstall"), "error"),
     ...item(may.withdraw, t("app_catalogue.action.withdraw"), "i-material-symbols-block", () => void simple("withdraw"), "error")
@@ -196,28 +290,33 @@ async function act(kind: string, body: Record<string, unknown> = {}, path = kind
   }
 }
 
-// What an install or an update asks for and what its review says, said in the question.
+// What an install or an update asks for and what it does, said in the question: an app's and an MCP server's reach,
+// and a skill's none.
 function asksEffect(effect: string): string {
-  return [t("app_catalogue.label.permissions"), permissionText(t, props.app.permissions, props.catalogue.reach), "", effect].join("\n");
+  const permissions = props.app.kind === "skill" ? t("app_catalogue.label.skill_permissions") : permissionText(t, props.app.permissions, props.catalogue.reach);
+
+  return [t("app_catalogue.label.permissions"), permissions, "", effect].join("\n");
 }
 
 async function install(): Promise<void> {
-  const asked = { title: t("app_catalogue.title.install"), item: props.app.title, effect: asksEffect(t("app_catalogue.message.install_effect")), confirm: t("app_catalogue.action.install") };
+  const asks = KIND_ASKS[props.app.kind];
+  const asked = { title: t(asks.install), item: shownTitle.value, effect: asksEffect(t(asks.installEffect)), confirm: t("app_catalogue.action.install") };
 
   if (await confirm(asked)) await act("install");
 }
 
 async function update(): Promise<void> {
   const effect = props.app.permissionsGrown ? t("app_catalogue.message.update_grown") : t("app_catalogue.message.update_effect");
+  const asked = { title: t(KIND_ASKS[props.app.kind].update), item: shownTitle.value, effect: asksEffect(effect), confirm: t("app_catalogue.action.update") };
 
-  if (await confirm({ title: t("app_catalogue.title.update"), item: props.app.title, effect: asksEffect(effect), confirm: t("app_catalogue.action.update") })) await act("update");
+  if (await confirm(asked)) await act("update");
 }
 
 // A clone, a delete, a withdrawal and a request to make it a platform app, each asked first.
 async function simple(kind: keyof typeof ASKED_ACTS): Promise<void> {
   const asked = ASKED_ACTS[kind];
 
-  if (!(await confirm({ title: t(asked.title), item: props.app.title, effect: t(asked.effect), confirm: t(asked.confirm) }))) return;
+  if (!(await confirm({ title: t(asked.title), item: shownTitle.value, effect: t(asked.effect), confirm: t(asked.confirm) }))) return;
 
   if (kind === "uninstall") await act("uninstall", {}, "install", "DELETE");
   else await act(kind);

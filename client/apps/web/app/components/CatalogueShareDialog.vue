@@ -1,8 +1,9 @@
 <template>
-  <!-- A personal app's share (docs/web.md, 「Settings」, the personal apps section): whom it is shared with in the
-       reader's company — their team, the heads on their line, the whole company — each open as far as their
-       organisation lets them, the team and the heads chosen as it opens. The share at the foot shares it. -->
-  <SettingsDialog v-model:open="open" :title="$t('app_catalogue.title.share')" :description="props.title" :dirty="dirty">
+  <!-- A personal app's, an MCP item's or a skill's share (docs/web.md, 「Settings」, the personal apps and skills
+       sections): whom it is shared with in the reader's company — their team, the heads on their line, the whole
+       company — each open as far as their organisation lets them, the team and the heads chosen as it opens. The share
+       at the foot shares it, written in the language the reader reads the console in. -->
+  <SettingsDialog v-model:open="open" :title="props.kind === 'skill' ? $t('app_catalogue.title.share_skill') : $t('app_catalogue.title.share')" :description="props.title" :dirty="dirty">
     <div class="flex flex-col gap-4" data-catalogue-share>
       <ContentSkeleton v-if="ceiling === null && failure === ''" :rows="3" listClass="flex flex-col gap-3" :label="$t('app_catalogue.status.loading')">
         <SkeletonLine width="w-1/3" />
@@ -42,15 +43,17 @@ import { SHARE_SCOPES } from "#shared/app-catalogue";
 import type { Catalogue, CatalogueApp, ShareScope } from "#shared/app-catalogue";
 
 interface Props {
-  // The personal app's name, and its title as the section shows it.
+  // The item's name, and its title as the section shows it.
   name: string;
   title: string;
+  // A personal app or an MCP item read from the reader's PC, or a skill kept at home.
+  kind?: "app" | "skill";
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), { kind: "app" });
 const open = defineModel<boolean>("open", { default: false });
 const emit = defineEmits<{ shared: [app: CatalogueApp] }>();
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const DEFAULT: readonly ShareScope[] = ["team", "heads"];
 
@@ -92,7 +95,7 @@ async function share(): Promise<void> {
 
   try {
     const targets = chosen.value.map((scope) => ({ [scope]: true }));
-    const shared = await $fetch<CatalogueApp>("/api/account/app-catalogue", { method: "POST", body: { name: props.name, targets } });
+    const shared = await $fetch<CatalogueApp>("/api/account/app-catalogue", { method: "POST", body: { name: props.name, targets, kind: props.kind, language: locale.value } });
 
     emit("shared", shared);
     chosen.value = [...DEFAULT];

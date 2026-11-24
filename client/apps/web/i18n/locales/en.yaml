@@ -1850,8 +1850,9 @@ settings:
     desktop: Desktop
     secrets: Secrets
     supply: Supply
-    apps: "My apps & tools"
+    apps: "My apps, tools & skills"
     personal_apps: My personal apps
+    skills: My skills
     supervisor_none: No supervisor
     theme: Theme
   action:
@@ -4355,7 +4356,7 @@ apps:
     scope_team: "Team"
     scope_heads: "Team and heads above"
     scope_company: "Whole company"
-    tab: "Apps & tools"
+    tab: "Apps, tools & skills"
     none: No apps
     "on": "On"
     "off": "Off"
@@ -4406,6 +4407,26 @@ app_catalogue:
     scope_heads: Heads above
     scope_company: Whole company
     scope_direct: Named directly
+    kind: Kind
+    kind_all: All kinds
+    kind_app: App
+    kind_skill: Skill
+    kind_mcp: MCP
+    machine: Translated by the translator
+    connection: Connection
+    connection_unread: The connection could not be read.
+    transport: Runs
+    transport_remote: Remote
+    transport_local: Runs on my PC
+    address: Address
+    command: Command
+    auth: Authentication
+    auth_none: None
+    auth_bearer: Bearer token
+    auth_header: "{header} header"
+    secret: Secret
+    skill_permissions: No permissions
+    skill_permissions_note: Used as instructions by the agents it is attached to alone.
     maker: Made by
     version: Version
     shared: Shared
@@ -4429,7 +4450,7 @@ app_catalogue:
     promotions: Platform app requests
     promotion_line: "{company} · {by} · {time}"
     no_promotions: No requests
-    unit_door: "Turned on, locked and recalled on Organization → Apps."
+    unit_door: "Turned on, locked and recalled on Organization → Apps, tools & skills."
   placeholder:
     search: Find an app
   action:
@@ -4443,6 +4464,7 @@ app_catalogue:
     source: View source
     seen: Mark all read
     open: View
+    translate: Fill other languages
   title:
     install: Install the app?
     update: Update the app?
@@ -4452,6 +4474,11 @@ app_catalogue:
     promote: Request it as a platform app?
     share: Share the app
     unit: Organisation
+    install_skill: Install the skill?
+    update_skill: Update the skill?
+    install_mcp: Install the MCP server?
+    update_mcp: Update the MCP server?
+    share_skill: Share skill
   message:
     install_effect: "Your PC fetches the source and builds it.\nIts data stays on your PC."
     update_effect: "Your PC fetches the new version and builds it."
@@ -4461,6 +4488,9 @@ app_catalogue:
     withdraw_effect: "Nobody can install it from now on.\nThose who installed it keep using it."
     promote_effect: "The administrator reviews it and ships it as a platform app."
     shared: "Shared {app}."
+    install_skill_effect: "It is kept by BMO.\nOnly the agents you attach it to use it."
+    install_mcp_effect: "It is installed on your PC.\nOnly the agents you attach it to use its tools."
+    shared_skill: "{app} skill shared."
   status:
     loading: Loading the store…
   error:
@@ -4484,6 +4514,7 @@ app_catalogue:
     locked: Your organisation locked it.
     forbidden: You may not do this.
     no_user: There is no user account, so the store can't be used.
+    translator_unavailable: There is no translator, so the other languages could not be filled.
 
 personal_apps:
   label:
@@ -4512,6 +4543,69 @@ personal_apps:
     refused: "The PC didn't accept this version."
     not_found: "Couldn't find the personal app."
     no_user: "There's no user account, so personal apps can't be used."
+
+# The skills section (docs/web.md, 「Settings」, the skills section): a reader's skills kept at home, their own and
+# those installed from the store, and the form an own one is made and edited in.
+skills:
+  label:
+    none: No skills
+    own: Made by you
+    installed: Installed from the Store
+    attached: "Attached to: {agents}"
+    name: Name
+    name_hint: Lower-case letters, digits, -
+    description: Description
+    description_hint: Agents read it to decide when to use the skill.
+    body: Body
+    references: Reference files
+  action:
+    add: New skill
+    edit: Edit
+  title:
+    add: New skill
+    edit: Edit skill
+  message:
+    delete_confirm: Delete the skill?
+    delete_effect: It is removed from the agents it is attached to as well.
+    delete_installed_effect: "Your copy is deleted.\nIt is removed from the agents it is attached to as well."
+  status:
+    loading: Loading skills…
+  error:
+    read_failed: The skills could not be loaded.
+    save_failed: The skill could not be saved.
+    delete_failed: The skill could not be deleted.
+    not_found: The skill cannot be found.
+    name_taken: A skill of that name was installed from the Store.
+    make_withheld: Your organisation's settings do not let you make skills.
+    refused: "The skill cannot be saved.\nPlease check SKILL.md and its files."
+    too_large: The skill's files are too large.
+    no_user: Skills need a user account.
+    name_invalid: Start with a lower-case letter, then use lower-case letters, digits and - only.
+    name_held: A skill of that name already exists.
+    description_empty: Please enter a description.
+
+# What a reader's agent is given of their skills and MCP servers (docs/web.md, 「Organisation」, the agents tab at 나).
+attachments:
+  title:
+    dialog: Skills · MCP
+  action:
+    open: Skills · MCP
+  aria:
+    open: "{name} skills · MCP"
+  label:
+    skills: Skills
+    mcp: MCP servers
+    skills_none: No skills
+    mcp_none: No MCP servers
+    takes_no_skills: Skills cannot be attached to this agent.
+    takes_no_mcp: MCP servers cannot be attached to this agent.
+  error:
+    takes_no_skills: Skills cannot be attached to this agent.
+    takes_no_mcp: MCP servers cannot be attached to this agent.
+    not_found: The agent or the item cannot be found.
+    forbidden: You may not change this agent.
+    no_user: Attaching skills and MCP servers needs a user account.
+    save_failed: Could not be saved.
 
 # What a personal app may reach beyond its own data (docs/web.md, 「App catalogue」 and 「Settings」, the personal apps
 # section), said line by line in the catalogue and the personal apps section.

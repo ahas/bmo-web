@@ -675,7 +675,10 @@ section states what each does.
 - **An account is enabled only once its machine is proven,** connected one of two ways: the person opens the
   console's desktop app on their PC and approves its pairing with the invitation (「Desktop pairing」), or installs
   jake with the command the acceptance answers, which names the machine and carries a credential made for that name
-  alone (jake's `docs/architecture.md`). Either way the service asks the jake hub whether an agent of that name is
+  alone (jake's `docs/architecture.md`). Where the service's settings name the ports the machine's agent lets the hub
+  stream to, the command names them too (jake's `--stream-ports`, `-StreamPorts` on Windows), so the agent offers
+  agency's link to a person's PC its two ports from its first start (agency's `docs/person-nodes.md`, 「What the PC
+  needs」) and the PC's workplace is set up and linked with nothing done on the PC by hand. Either way the service asks the jake hub whether an agent of that name is
   attached. Attached, the account is enabled and the machine recorded as proven.
 - **One machine, one agent.** A machine name is served by the desktop app's built-in agent or by an installed jake
   agent, never by both attached at once: the desktop app keeps its built-in agent off where a jake agent of its

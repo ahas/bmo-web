@@ -83,6 +83,7 @@ async fn stood() -> Stood {
     hub_url: "wss://hub.invalid".into(),
     install_base: "https://install.invalid/jake".into(),
     agent_key: AGENT_KEY.into(),
+    stream_ports: Vec::new(),
   };
   let service = scratch
     .service

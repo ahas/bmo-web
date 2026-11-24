@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-import { accountCellText, accountChoices, accountKindLabel, accountLoginText, accountMark, nextAccountName } from "../../../apps/web/app/domain/accounts";
+import { accountCellText, accountChoices, accountKindLabel, accountLoginText, accountMark } from "../../../apps/web/app/domain/accounts";
 
 import type { ClaudeAccountView } from "../../../apps/web/shared/types";
 import { ACCOUNT_ID } from "../../support/ids";
@@ -103,18 +103,5 @@ describe("how a credential is reached", () => {
   test("is said as what it is, never as a credential", () => {
     expect(accountKindLabel(wording, "directory")).toBe(wording("agents.label.account_kind_directory"));
     expect(accountKindLabel(wording, "token")).toBe(wording("agents.label.account_kind_token"));
-  });
-});
-
-describe("the name a new account's box opens with", () => {
-  test("is the next number of the list's own numbering, in two digits", () => {
-    expect(nextAccountName([])).toBe("claude-01");
-    expect(nextAccountName(["claude-01", "claude-02"])).toBe("claude-03");
-    expect(nextAccountName(["claude-09", "claude-02"])).toBe("claude-10");
-  });
-
-  test("passes over a name of another shape, and goes one past the highest where a number is missing", () => {
-    expect(nextAccountName(["gateway-members", "claude-01", "claude-04"])).toBe("claude-05");
-    expect(nextAccountName(["claude-main", "claude-2b", " claude-03 "])).toBe("claude-04");
   });
 });

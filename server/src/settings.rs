@@ -54,6 +54,10 @@ pub struct Jake {
   /// The hub's loopback control address, `http://host:port`.
   pub control: Option<String>,
   pub control_token: Option<String>,
+  /// The ports an invited machine's agent lets the hub stream to, which its one-line installs name; none leaves the
+  /// agent's own default.
+  #[serde(default)]
+  pub stream_ports: Vec<u16>,
 }
 
 /// bmo-mail, which the platform's own mail goes through (docs/accounts.md, 「The platform's own mail」): its address,

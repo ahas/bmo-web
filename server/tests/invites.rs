@@ -126,6 +126,7 @@ async fn stood() -> Stood {
     hub_url: "wss://hub.invalid".into(),
     install_base: "https://install.invalid/jake".into(),
     agent_key: "agent-key".into(),
+    stream_ports: vec![22, 47201, 47202],
   };
   let app = in_force(scratch.service.clone().with_nodes(nodes), TOKEN.into()).await.unwrap();
 
@@ -501,6 +502,19 @@ async fn an_accepted_invitation_makes_a_disabled_account_enabled_once_its_machin
   assert_eq!(agent, format!("u{user}"));
   assert!(accepted["credential"].as_str().unwrap().starts_with(&format!("{agent}.")));
   assert!(accepted["install"]["linux"].as_str().unwrap().contains(&agent));
+  // The agent lets the hub stream to the ports agency's link to a person's PC needs from its first start.
+  assert!(
+    accepted["install"]["linux"]
+      .as_str()
+      .unwrap()
+      .ends_with(" --stream-ports '22,47201,47202'")
+  );
+  assert!(
+    accepted["install"]["windows"]
+      .as_str()
+      .unwrap()
+      .ends_with(" -StreamPorts '22,47201,47202'\"")
+  );
 
   // Disabled, placed, a head as the invitation said; the invitation is used.
   let row = one(

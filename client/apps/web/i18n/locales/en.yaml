@@ -3022,6 +3022,8 @@ agents:
     login_name_taken: Another account already uses this name. Start again with another name.
     login_name_refused: "A login can't be added under this name."
     login_no_link: "The sign-in page's address didn't arrive. Start it again."
+    login_unknown: "This login isn't yours, or it no longer exists."
+    login_elsewhere: This login was signed in on another device. Add a new login instead.
     account_fields_needed: Enter the account name and the credential file path.
     account_order_list: Send the account order as a list.
     account_switch_needed: An account and an on/off value are required.
@@ -3413,6 +3415,7 @@ agents:
   placeholder:
     sign_in_code: Paste code
     account_name: claude-01
+    account_name_auto: Leave empty to have a name given
     directory_path: Absolute path of the config directory
     find_settings: Find settings
     registry_name: "Lowercase letters, digits, hyphens"
@@ -4888,6 +4891,7 @@ supply:
     key_taken: This provider already has a key.
     key_gone: Supply key not found.
     node_off: "The device isn't connected, so the login can't start."
+    node_setting_up: Your device is still being set up. Try again in a few minutes.
     secret_name: "The secret name isn't valid."
 security:
   label:

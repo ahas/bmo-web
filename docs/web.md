@@ -7710,11 +7710,12 @@ the screen, the screen's whole width on a phone, opened to every signed-in perso
     reads its own key from a file (its `keyFile`); and 로컬 AI, an OpenAI-compatible address.
   - Where none stands, the step says so in one line and offers 나중에 alone.
 - **연결 does what the choice asks:**
-  - a member's Claude: the sign-in the agency runs on the person's own node, as 공급 로그인 runs it (「공급」, 「나」);
+  - a member's Claude: the sign-in the agency runs on the person's own node, as 공급 로그인 runs it, naming no name
+    (「공급」, 「나」);
   - a member's key: 키, typed once, written into the person's own space of the secret store under `{road}-key`, a name
     standing there replaced, then added as their 공급 키 for the road under that name (`POST /api/supply/personal`); the
     value goes to the secret store alone;
-  - the administrator's Claude: the platform's own 여기서 로그인 (「플랫폼 전체」, Claude 계정);
+  - the administrator's Claude: the platform's own 여기서 로그인, naming no name (「플랫폼 전체」, Claude 계정);
   - the administrator's key: written into the platform's space under the file name the provider reads, as 플랫폼 공급
     키's 키 설정 leads to;
   - 로컬 AI: 이름, the registration's name by the registry's rule; 주소, the OpenAI-compatible base address, to which
@@ -9401,8 +9402,11 @@ The providers themselves, switched on and off with what they have left, stand on
   login that has ended or is about to. Closing the box gives the sign-in up, and a code the sign-in does not take ends
   it, said in the box. The address and the code pass through the console's server to the agency and are kept by
   neither, and only the administrator reaches the routes. Accounts are numbered by name,
-  `claude-01`, `claude-02` and on, as many as the owner adds: the box for a new one opens with the next number
-  already written, one past the highest the list holds, and the owner may write another name over it. Dragging a handle saves the whole order
+  `claude-01`, `claude-02` and on, as many as the owner adds: a new one signed in here leaves its name empty, the
+  field saying the agency names it, and the agency names it one number past every account's `claude-NN`, the
+  people's own among them, which this list does not show, and the box's title carries the name it answered; the
+  owner may write a name instead, and one another account holds is refused in a sentence of its own. Every refusal
+  of a sign-in is said so, as 「나」's 공급 로그인 says it. Dragging a handle saves the whole order
   at once, by mouse and finger alike, and the arrows move one row the same way; turning off the last one on is
   refused by the agency. **No row, box or answer carries a token, a cookie or anything out of a credential file** —
   the path is the whole of what is shown.
@@ -9429,8 +9433,12 @@ a row shows of a key is the secret's name, and of a login the path it is reached
   a reader whose node stands off is told so and nothing starts. Every refusal is said in the box in a sentence of
   its own, never the one for a refused value: a sign-in the agency no longer holds — ended, past its time, or lost
   to the agency's restart — as expired, to be started again; a code the sign-in did not take, a code missing, a
-  name another account holds and a sign-in that gave no address each as what it is. A login that has ended carries its own 로그인
-  row-action, the same flow on the standing account. 삭제, asked first, takes one away.
+  name another account holds and a sign-in that gave no address each as what it is; and for a login signed in
+  again, one that stands on another machine than the reader's now, one that keeps no login of its own and one no
+  longer there, and a machine whose workplace is still being set up, each as what it is. A login that has ended
+  carries its own 로그인 row-action, the same flow on the standing account: the agency signs the reader's own login
+  in again in its own directory on their node (its `docs/supply.md`, 「Signing a person's login in」). 삭제, asked
+  first, takes one away.
 - **공급 키** lists the reader's gateway keys, one row each: the secret's name as the label, the provider's own name
   and its state under it — 사용 가능, 키 거부됨 — and its switch, its arrows moving it within its provider and its
   삭제 asking first. 키 추가 opens a form of provider (Codex, DeepSeek or OpenRouter) and secret, the secret chosen

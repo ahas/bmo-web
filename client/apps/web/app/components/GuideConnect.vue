@@ -62,12 +62,10 @@
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
 
-import { nextAccountName } from "~/domain/accounts";
-
 import { REGISTRY_ROAD } from "#shared/guide";
 
 import type { GuideFlow, GuideRoad } from "#shared/guide";
-import type { ClaudeLoginStarted, FallbackView } from "#shared/types";
+import type { ClaudeLoginStarted } from "#shared/types";
 
 interface Props {
   flow: GuideFlow;
@@ -105,10 +103,9 @@ async function startSignIn(): Promise<void> {
   busy.value = true;
   failure.value = "";
   try {
-    const listed = await $fetch<FallbackView>(platform.value ? "/api/fallback" : "/api/supply/logins");
-    const name = nextAccountName(listed.accounts.map((one) => one.name));
-
-    signIn.value = await $fetch<ClaudeLoginStarted>(platform.value ? "/api/claude-logins" : "/api/supply/signin", { method: "POST", body: { name } });
+    // No name is sent: account names are one namespace across every owner, of which the reader's list shows only
+    // their own, so the agency names the new login past them all.
+    signIn.value = await $fetch<ClaudeLoginStarted>(platform.value ? "/api/claude-logins" : "/api/supply/signin", { method: "POST", body: {} });
     code.value = "";
   } catch (error) {
     refused(error, "supply.error.signin_failed");

@@ -49,12 +49,16 @@ export const PERSONAL_SUPPLY_CALL: AgencyCall = {
     "unknown-supply": "supply.error.key_gone",
     forbidden: "supply.error.forbidden",
     "node-not-attached": "supply.error.node_off",
+    "node-not-ready": "supply.error.node_setting_up",
     "not-a-directory": "agents.error.login_not_directory",
     "directory-taken": "agents.error.login_directory_taken",
     "no-sign-in": "agents.error.login_gone",
     "sign-in-refused": "agents.error.login_refused",
     "name-taken": "agents.error.login_name_taken",
-    "no-link": "agents.error.login_no_link"
+    "no-link": "agents.error.login_no_link",
+    "unknown-account": "agents.error.login_unknown",
+    "login-elsewhere": "agents.error.login_elsewhere",
+    "account-or-name": "agents.error.login_which"
   },
   fields: { secret: "supply.error.secret_name", code: "agents.error.login_code_needed", name: "agents.error.login_name_refused" }
 };

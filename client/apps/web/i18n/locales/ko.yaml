@@ -3037,6 +3037,8 @@ agents:
     login_name_taken: 다른 계정이 이미 쓰는 이름입니다. 다른 이름으로 다시 시작해 주세요.
     login_name_refused: 이 이름으로는 로그인을 추가할 수 없습니다.
     login_no_link: 로그인 페이지 주소를 받지 못했습니다. 다시 시작해 주세요.
+    login_unknown: 본인의 로그인이 아니거나 더 이상 없는 로그인입니다.
+    login_elsewhere: 다른 기기에서 로그인한 계정입니다. 새 로그인을 추가해 주세요.
     account_fields_needed: 계정 이름과 자격 증명 파일 경로를 입력해 주세요.
     account_order_list: 계정 순서를 목록으로 보내 주세요.
     account_switch_needed: 계정과 켬·끔 값이 필요합니다.
@@ -3428,6 +3430,7 @@ agents:
   placeholder:
     sign_in_code: 코드 붙여 넣기
     account_name: claude-01
+    account_name_auto: 비워 두면 이름을 자동으로 정합니다
     directory_path: 설정 디렉터리의 절대 경로
     find_settings: 설정 찾기
     registry_name: 영문 소문자·숫자·하이픈
@@ -4910,6 +4913,7 @@ supply:
     key_taken: 이 공급처에는 이미 키가 있습니다.
     key_gone: 공급 키를 찾을 수 없습니다.
     node_off: 기기가 연결되어 있지 않아 로그인을 시작할 수 없습니다.
+    node_setting_up: 기기를 아직 준비하고 있습니다. 몇 분 뒤에 다시 시도해 주세요.
     secret_name: 비밀 이름이 올바르지 않습니다.
 security:
   label:

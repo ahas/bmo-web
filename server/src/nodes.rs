@@ -129,6 +129,8 @@ pub struct Nodes {
   pub hub_url: String,
   pub install_base: String,
   pub agent_key: String,
+  /// The ports the installs name for the agent to let the hub stream to, none leaving the agent's own default.
+  pub stream_ports: Vec<u16>,
 }
 
 impl Nodes {
@@ -147,6 +149,7 @@ impl Nodes {
       hub_url: filled(&jake.hub_url)?,
       install_base: filled(&jake.install_base)?.trim_end_matches('/').to_owned(),
       agent_key: filled(&jake.agent_key)?,
+      stream_ports: jake.stream_ports.clone(),
     })
   }
 
@@ -170,18 +173,25 @@ pub fn agent_of(user: i32) -> String {
 }
 
 impl Nodes {
-  /// The one-line installs of a machine, Linux or WSL and Windows, each naming the hub, the credential and the name.
+  /// The one-line installs of a machine, Linux or WSL and Windows, each naming the hub, the credential and the name,
+  /// and the ports the agent lets the hub stream to where the settings name them.
   pub fn installs(&self, agent: &str) -> (String, String) {
     let credential = self.credential(agent);
     let base = &self.install_base;
     let hub = &self.hub_url;
+    let ports = self.stream_ports.iter().map(u16::to_string).collect::<Vec<_>>().join(",");
+    let (linux_ports, windows_ports) = if ports.is_empty() {
+      (String::new(), String::new())
+    } else {
+      (format!(" --stream-ports '{ports}'"), format!(" -StreamPorts '{ports}'"))
+    };
 
     (
       format!(
-        "curl -fsSL {base}/install.sh | bash -s -- --hub-url '{hub}' --secret '{credential}' --agent-name '{agent}'"
+        "curl -fsSL {base}/install.sh | bash -s -- --hub-url '{hub}' --secret '{credential}' --agent-name '{agent}'{linux_ports}"
       ),
       format!(
-        "powershell -c \"& ([scriptblock]::Create((irm {base}/install.ps1))) -HubUrl '{hub}' -Secret '{credential}' -AgentName '{agent}'\""
+        "powershell -c \"& ([scriptblock]::Create((irm {base}/install.ps1))) -HubUrl '{hub}' -Secret '{credential}' -AgentName '{agent}'{windows_ports}\""
       ),
     )
   }

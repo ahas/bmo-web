@@ -89,7 +89,7 @@
     <SettingsDialog v-model:open="editing" :title="adding ? $t('agents.title.account_add') : editName" :description="adding ? undefined : editId" :dirty="changes">
       <form id="account-form" class="flex flex-col gap-4" @submit.prevent="save">
         <UFormField :label="$t('common.label.name')" name="name">
-          <UInput v-model="editName" class="w-full" :placeholder="$t('agents.placeholder.account_name')" :aria-label="$t('common.label.name')" />
+          <UInput v-model="editName" class="w-full" :placeholder="adding && editKind === 'sign-in' ? $t('agents.placeholder.account_name_auto') : $t('agents.placeholder.account_name')" :aria-label="$t('common.label.name')" />
         </UFormField>
 
         <UFormField :label="$t('agents.label.credential')" name="kind">
@@ -141,7 +141,7 @@
 
 <script setup lang="ts">
 import { useOpenedWith } from "bmo-ui/app/domain/form-save";
-import { ACCOUNT_KINDS, ACCOUNTS_GROUP, SIGN_IN_KIND, accountLoginText, accountMark, nextAccountName } from "~/domain/accounts";
+import { ACCOUNT_KINDS, ACCOUNTS_GROUP, SIGN_IN_KIND, accountLoginText, accountMark } from "~/domain/accounts";
 import { movedOrder } from "~/domain/agents";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { usePolling } from "~/domain/polling";
@@ -267,8 +267,9 @@ const changes = useOpenedWith(() => ({ name: editName.value, kind: editKind.valu
 function openAdd(): void {
   adding.value = true;
   editId.value = "";
-  // The next number of the list's own numbering, which the owner may write over.
-  editName.value = nextAccountName(props.accounts.map((one) => one.name));
+  // Left empty, the agency names the login past every account's names, the people's among them, which this list
+  // does not show; the owner may write a name instead.
+  editName.value = "";
   editKind.value = "sign-in";
   editPath.value = "";
   formFailed.value = "";
@@ -330,8 +331,9 @@ async function setEnabled(account: ClaudeAccountView, enabled: boolean): Promise
   }
 }
 
-// A sign-in started at the agency for an account there or a new one, its box opened on the address it answered.
-async function startSignIn(body: { account: string } | { name: string }, name: string, into: Ref<string>): Promise<boolean> {
+// A sign-in started at the agency for an account there or a new one, its box opened on the address it answered and
+// titled by the account's name it answered, the one the agency gave a new login named by none.
+async function startSignIn(body: { account: string } | { name: string } | Record<string, never>, name: string, into: Ref<string>): Promise<boolean> {
   busy.value = "sign-in";
   into.value = "";
 
@@ -340,7 +342,7 @@ async function startSignIn(body: { account: string } | { name: string }, name: s
 
     signInId.value = started.login;
     signInUrl.value = started.url;
-    signInName.value = name;
+    signInName.value = started.name || name;
     signInCode.value = "";
     signInFailed.value = "";
     signingIn.value = true;
@@ -390,7 +392,9 @@ async function giveUpSignIn(): Promise<void> {
 
 async function save(): Promise<void> {
   if (adding.value && editKind.value === "sign-in") {
-    if (await startSignIn({ name: editName.value.trim() }, editName.value.trim(), formFailed)) editing.value = false;
+    const name = editName.value.trim();
+
+    if (await startSignIn(name === "" ? {} : { name }, name, formFailed)) editing.value = false;
 
     return;
   }

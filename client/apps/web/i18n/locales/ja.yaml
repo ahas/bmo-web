@@ -3044,6 +3044,8 @@ agents:
     login_name_taken: ほかのアカウントがすでに使っている名前です。別の名前でもう一度始めてください。
     login_name_refused: この名前ではログインを追加できません。
     login_no_link: ログインページのアドレスを受け取れませんでした。もう一度始めてください。
+    login_unknown: ご自身のログインではないか、すでに存在しないログインです。
+    login_elsewhere: 別のデバイスでサインインしたログインです。新しいログインを追加してください。
     account_fields_needed: アカウント名と認証情報ファイルのパスを入力してください。
     account_order_list: アカウントの順序をリストで送ってください。
     account_switch_needed: アカウントとオン・オフの値が必要です。
@@ -3437,6 +3439,7 @@ agents:
   placeholder:
     sign_in_code: コードを貼り付け
     account_name: claude-01
+    account_name_auto: 空欄のままにすると名前が自動で付きます
     directory_path: 設定ディレクトリの絶対パス
     find_settings: 設定を検索
     registry_name: 英小文字・数字・ハイフン
@@ -4918,6 +4921,7 @@ supply:
     key_taken: このプロバイダーにはすでにキーがあります。
     key_gone: 供給キーが見つかりません。
     node_off: デバイスが接続されていないため、ログインを開始できません。
+    node_setting_up: デバイスはまだ準備中です。数分後にもう一度お試しください。
     secret_name: シークレット名が正しくありません。
 security:
   label:

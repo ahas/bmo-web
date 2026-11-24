@@ -9,8 +9,9 @@ interface StartBody {
 
 const text = (value: unknown): string | null => (typeof value === "string" && value.trim() !== "" ? value.trim() : null);
 
-// A Claude account's sign-in started: an account there signed in again by its id, or a new one by its name, one of the
-// two. The answer is the sign-in's identifier and the address the administrator approves it at in their own browser.
+// A Claude account's sign-in started: an account there signed in again by its id, or a new one by its name or by the
+// name the agency gives where the body names neither. The answer is the sign-in's identifier, the address the
+// administrator approves it at in their own browser, and the account's name.
 export default defineEventHandler(async (event): Promise<ClaudeLoginStarted> => {
   await requireUserSession(event);
 
@@ -18,9 +19,9 @@ export default defineEventHandler(async (event): Promise<ClaudeLoginStarted> => 
   const account = text(body?.account);
   const name = text(body?.name);
 
-  if ((account === null) === (name === null)) throw fail(400, wording("agents.error.login_which"));
+  if (account !== null && name !== null) throw fail(400, wording("agents.error.login_which"));
 
   setResponseStatus(event, 201);
 
-  return await agencyRoute<ClaudeLoginStarted>("POST", "/claude-logins", account === null ? { name } : { account }, CLAUDE_LOGIN_CALL);
+  return await agencyRoute<ClaudeLoginStarted>("POST", "/claude-logins", account !== null ? { account } : name !== null ? { name } : {}, CLAUDE_LOGIN_CALL);
 });

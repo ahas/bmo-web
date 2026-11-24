@@ -10,6 +10,8 @@ export const CLAUDE_LOGIN_CALL: UnitAnswerCall = {
     "no-sign-in": "agents.error.login_gone",
     "sign-in-refused": "agents.error.login_refused",
     "name-taken": "agents.error.login_name_taken",
-    "no-link": "agents.error.login_no_link"
+    "no-link": "agents.error.login_no_link",
+    "unknown-account": "agents.error.login_unknown",
+    "account-or-name": "agents.error.login_which"
   }
 };

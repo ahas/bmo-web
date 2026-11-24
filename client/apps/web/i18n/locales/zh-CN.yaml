@@ -3044,6 +3044,8 @@ agents:
     login_name_taken: 其他账号已在使用这个名称。请换一个名称重新开始。
     login_name_refused: 无法以这个名称添加登录。
     login_no_link: 未收到登录页面的地址。请重新开始。
+    login_unknown: 这不是你的登录，或该登录已不存在。
+    login_elsewhere: 此登录是在另一台设备上登录的。请改为添加新的登录。
     account_fields_needed: 请输入账号名称和凭据文件路径。
     account_order_list: 请以列表形式发送账号顺序。
     account_switch_needed: 需要账号和开/关值。
@@ -3437,6 +3439,7 @@ agents:
   placeholder:
     sign_in_code: 粘贴代码
     account_name: claude-01
+    account_name_auto: 留空则自动命名
     directory_path: 配置目录的绝对路径
     find_settings: 查找设置
     registry_name: 小写字母、数字、连字符
@@ -4918,6 +4921,7 @@ supply:
     key_taken: 该供给方已有密钥。
     key_gone: 找不到该供给密钥。
     node_off: 设备未连接，无法开始登录。
+    node_setting_up: 设备仍在准备中，请几分钟后再试。
     secret_name: 密钥名称无效。
 security:
   label:

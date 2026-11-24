@@ -153,7 +153,7 @@ export const openedRoutes: readonly OpenedRoute[] = [
   // judging what each sees and may do (docs/web.md, 「App catalogue」).
   { method: "GET", path: /^\/api\/account\/app-catalogue$/, scope: "user" },
   { method: "POST", path: /^\/api\/account\/app-catalogue(?:\/seen)?$/, scope: "user" },
-  { method: "GET", path: /^\/api\/account\/app-catalogue\/[^/]+\/(?:source|connection)$/, scope: "user" },
+  { method: "GET", path: /^\/api\/account\/app-catalogue\/[^/]+\/source$/, scope: "user" },
   { method: "POST", path: /^\/api\/account\/app-catalogue\/[^/]+\/(?:install|update|clone|withdraw|approve|promote|translate)$/, scope: "user" },
   { method: "DELETE", path: /^\/api\/account\/app-catalogue\/[^/]+\/install$/, scope: "user" },
   // The reader's skills: every signed-in login asks for their own, the agency holding each account's apart and judging

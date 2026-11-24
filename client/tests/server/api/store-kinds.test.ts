@@ -5,14 +5,14 @@ import { asked, routeOf } from "../../support/nitro";
 import { answer, standIn } from "../../support/units";
 
 import type { AttachmentHolder, Attachments } from "../../../apps/web/shared/attachments";
-import type { CatalogueApp, CatalogueConnection } from "../../../apps/web/shared/app-catalogue";
+import type { CatalogueApp } from "../../../apps/web/shared/app-catalogue";
 import type { PersonalSkills, SkillForm } from "../../../apps/web/shared/personal-skills";
 
 // The console's routes of the store's kinds (docs/web.md, 「App catalogue」, 「Settings」 and the agents tab at the reader's own node;
 // docs/boundary.md): the reader's skills read, written from their form into `SKILL.md` and deleted through the agency's
 // personal-skills routes; what each of the reader's agents is given, read and written through its attachments routes,
-// a line taking none of a kind said by that kind's sentence; how a shared MCP item connects, read off its `mcp.toml`;
-// a skill shared by its kind and the reader's language; and the fill of an item's other languages.
+// a line taking none of a kind said by that kind's sentence; a shared item read as its type, an MCP item's server as
+// the agency answers it; a skill shared by its kind and the reader's language; and the fill of an item's other languages.
 
 const SKILL_FILE = ["---", "name: notes", "description: Keep notes of a meeting.", "title:", "  en: Notes", "language: en", "---", "", "Write the notes as a list.", ""].join("\n");
 
@@ -22,10 +22,12 @@ const skills: Record<string, { origin: string; files: Record<string, string> }> 
   "review-steps": { origin: "installed", files: { "SKILL.md": "---\nname: review-steps\ndescription: Steps.\n---\nRead.\n" } }
 };
 const holder = { kind: "agent", name: "agent-a", label: null, role: "worker", line: "worker", takes: { skills: true, mcp: false }, skills: [], mcp: [] };
-const sources: Record<string, Record<string, string>> = {
-  "1-tickets": { "mcp.toml": '[server]\nname = "tickets"\ntitle = "Tickets"\ndescription = "Reads tickets."\ntransport = "remote"\nurl = "https://tickets.example.org/mcp"\nauth = "header"\nheader = "X-Api-Key"\nsecret = "tickets-key"\n' },
-  "1-lint": { "mcp.toml": '[server]\nname = "lint"\ntitle = "Lint"\ndescription = "Lints."\ntransport = "local"\ncommand = ["node", "server.js"]\n' },
-  "1-broken": { "mcp.toml": "[server\nname = " }
+// How each shared MCP item is reached, as the agency answers it off the item's `mcp.toml`.
+const servers: Record<string, unknown> = {
+  "1-tickets": { transport: "remote", url: "https://tickets.example.org/mcp", auth: "header", header: "X-Api-Key", secret: "tickets-key", command: null },
+  "1-lint": { transport: "local", url: null, auth: null, header: null, secret: null, command: ["node", "server.js"] },
+  "1-broken": { transport: "remote", url: null, auth: "bearer", header: null, secret: "x", command: null },
+  "1-none": null
 };
 
 const agency = standIn("AGENCY", (call) => {
@@ -64,9 +66,11 @@ const agency = standIn("AGENCY", (call) => {
     return answer({ ...holder, skills: call.body?.skills });
   }
 
-  const source = /^\/catalogue\/1\/apps\/([^/]+)\/source$/.exec(path)?.[1];
+  const mcp = /^\/catalogue\/1\/apps\/([^/]+)\/translate$/.exec(path)?.[1];
 
-  if (source !== undefined) return answer({ version: "v1", sourceHash: "ab", files: sources[source] ?? {} });
+  if (call.method === "POST" && mcp !== undefined && mcp in servers) {
+    return answer({ id: mcp, key: `shared-3-${mcp}`, kind: "mcp", name: mcp.slice(2), title: "Server", description: "", server: servers[mcp], may: {} });
+  }
 
   if (call.method === "POST" && /^\/catalogue\/1\/apps(?:\/[^/]+\/translate)?$/.test(path)) {
     return answer({ id: "1-notes", key: "shared-3-1-notes", kind: call.body?.kind ?? "skill", name: "notes", title: "Notes", description: "", titles: { ja: "Notes in ja" }, machine: ["ja"], may: { install: false } });
@@ -81,7 +85,6 @@ const writeSkill = await routeOf<SkillForm>("../../apps/web/server/api/account/p
 const removeSkill = await routeOf<null>("../../apps/web/server/api/account/personal-skills/[name].delete");
 const readAttachments = await routeOf<Attachments>("../../apps/web/server/api/account/attachments.get");
 const writeAttachments = await routeOf<AttachmentHolder>("../../apps/web/server/api/account/attachments/[kind]/[name].put");
-const connection = await routeOf<CatalogueConnection | null>("../../apps/web/server/api/account/app-catalogue/[id]/connection.get");
 const share = await routeOf<CatalogueApp>("../../apps/web/server/api/account/app-catalogue.post");
 const translate = await routeOf<CatalogueApp>("../../apps/web/server/api/account/app-catalogue/[id]/translate.post");
 
@@ -194,17 +197,13 @@ describe("what the reader's agents are given", () => {
 });
 
 describe("a shared item of the store", () => {
-  test("an MCP item's connection is read off its mcp.toml, remote or local, and none where it does not read", async () => {
-    expect((await asked(connection, { params: { id: "1-tickets" } })).answer).toEqual({
-      transport: "remote",
-      url: "https://tickets.example.org/mcp",
-      auth: "header",
-      header: "X-Api-Key",
-      secret: "tickets-key"
-    });
-    expect((await asked(connection, { params: { id: "1-lint" } })).answer).toEqual({ transport: "local", command: ["node", "server.js"] });
-    expect((await asked(connection, { params: { id: "1-broken" } })).answer).toBeNull();
-    expect((await asked(connection, { params: { id: "1-none" } })).answer).toBeNull();
+  test("an MCP item's server is read as the agency answers it, remote or local, and none where it does not read", async () => {
+    const server = async (id: string) => (await asked(translate, { params: { id }, body: {} })).answer?.server;
+
+    expect(await server("1-tickets")).toEqual({ transport: "remote", url: "https://tickets.example.org/mcp", auth: "header", header: "X-Api-Key", secret: "tickets-key" });
+    expect(await server("1-lint")).toEqual({ transport: "local", command: ["node", "server.js"] });
+    expect(await server("1-broken")).toBeNull();
+    expect(await server("1-none")).toBeNull();
   });
 
   test("a skill is shared by its kind and the reader's language, the answer read with what it lacks filled", async () => {
@@ -215,6 +214,7 @@ describe("a shared item of the store", () => {
     expect(got.descriptions).toEqual({});
     expect(got.language).toBeNull();
     expect(got.may.translate).toBe(false);
+    expect(got.server).toBeNull();
 
     // A personal app's name is held to its own alphabet, a language outside the console's left out.
     expect((await asked(share, { body: { name: "fresh-one", targets: [] } })).status).toBe(400);

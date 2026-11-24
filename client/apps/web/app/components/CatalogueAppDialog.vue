@@ -45,10 +45,7 @@
       <!-- How an MCP server connects: an address the reader's agents reach with the secret their own secret space holds
            by its name, or a program run on the reader's PC. -->
       <SettingsGroup v-if="props.app.kind === 'mcp'" :title="$t('app_catalogue.label.connection')" data-catalogue-connection>
-        <ContentSkeleton v-if="connection === undefined" :rows="2" listClass="flex flex-col gap-2 py-3" :label="$t('app_catalogue.status.loading')">
-          <SkeletonLine width="w-1/2" />
-        </ContentSkeleton>
-        <p v-else-if="connection === null" class="py-3 text-sm text-muted" data-catalogue-connection-none>{{ $t("app_catalogue.label.connection_unread") }}</p>
+        <p v-if="props.app.server === null" class="py-3 text-sm text-muted" data-catalogue-connection-none>{{ $t("app_catalogue.label.connection_unread") }}</p>
         <PropertyList v-else :rows="connectionRows" class="py-3" />
         <p v-if="missingSecret !== null" class="pb-3 text-sm text-warning" data-catalogue-connection-missing>
           {{ $t("app_permissions.label.secrets_missing") }}
@@ -111,7 +108,7 @@ import { useAutoTranslate, useFollowedReading } from "~/domain/text-reading";
 
 import { linkUnit } from "#shared/app-catalogue";
 
-import type { Catalogue, CatalogueApp, CatalogueConnection, CatalogueSource, CatalogueTarget } from "#shared/app-catalogue";
+import type { Catalogue, CatalogueApp, CatalogueSource, CatalogueTarget } from "#shared/app-catalogue";
 
 interface Props {
   app: CatalogueApp;
@@ -142,37 +139,17 @@ const followedTitle = useFollowedReading(
 );
 const shownTitle = computed(() => (shown.value.own ? shown.value.title : followedTitle.value));
 
-// How an MCP item connects, read as its details open: undefined while it is read, null where it reads as none.
-const connection = ref<CatalogueConnection | null | undefined>(undefined);
-
-async function readConnection(): Promise<void> {
-  connection.value = undefined;
-
-  try {
-    connection.value = await $fetch<CatalogueConnection | null>(`/api/account/app-catalogue/${props.app.id}/connection`, { query: { company: props.catalogue.company } });
-  } catch {
-    connection.value = null;
-  }
-}
-
-watch(
-  () => [open.value, props.app.id, props.app.version] as const,
-  ([standing]) => {
-    if (standing && props.app.kind === "mcp") void readConnection();
-  },
-  { immediate: true }
-);
-
 const AUTH_WORDS: Readonly<Record<"none" | "bearer" | "header", string>> = {
   none: "app_catalogue.label.auth_none",
   bearer: "app_catalogue.label.auth_bearer",
   header: "app_catalogue.label.auth_header"
 };
 
+// How an MCP item connects, as the agency read it off its newest version.
 const connectionRows = computed(() => {
-  const held = connection.value;
+  const held = props.app.server;
 
-  if (held === null || held === undefined) return [];
+  if (held === null) return [];
   if (held.transport === "local") {
     return [
       { label: t("app_catalogue.label.transport"), value: t("app_catalogue.label.transport_local") },
@@ -190,7 +167,7 @@ const connectionRows = computed(() => {
 
 // The secret a remote MCP item reads that the reader's own secret space does not hold.
 const missingSecret = computed(() => {
-  const held = connection.value;
+  const held = props.app.server;
 
   return held?.transport === "remote" && held.secret !== null && !props.catalogue.reach.held.includes(held.secret) ? held.secret : null;
 });

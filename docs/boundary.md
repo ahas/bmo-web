@@ -1008,13 +1008,14 @@ for it, and no file or table of that unit is read meanwhile.
   routes are asked on the agency's address as every unit call is made, outside its published client, and their answers
   are read field by field (`docs/web.md`, 「App catalogue」, 「내 개인 앱」, 「내 스킬」 and 「내 에이전트」): a shared item's
   `kind` (`app`, `skill` or `mcp`, an app where it names none), `language`, `titles`, `descriptions` and `machine` (none
-  where absent), and `may.translate` and `may.text` (off where absent); a personal app's `kind` (`mcp` or else an app);
+  where absent), `server` for an MCP item (`transport`, and `url`, `auth`, `header` and `secret` for a remote one or
+  `command` for a local one; none where it is absent, names neither transport, or names a remote one with no `url`),
+  and `may.translate` and `may.text` (off where absent); a personal app's `kind` (`mcp` or else an app);
   a skill's `name`, `description`, `title`, `summary`, `titles`, `summaries`, `language`, `version`, `origin`, `app` and
   `attachedTo`, and its `files` by path; a holder's `kind`, `name`, `label`, `role`, `line`, `takes` (each kind off where
   absent), `skills` and `mcp`, and each attachable item's `name`, `title`, `titles` and `origin`. The agency's 409
   `line-takes-none` is said by the sentence of the kind it names, by `kind` or `field`, MCP for `mcp` and skills
-  otherwise. How an MCP item connects is no field of the catalogue: the console reads it from the `mcp.toml` of the
-  item's newest version's source.
+  otherwise.
 
 ## Screens of units not yet split
 

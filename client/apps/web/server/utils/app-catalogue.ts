@@ -1,5 +1,3 @@
-import { parseTOML } from "confbox";
-
 import { CATALOGUE_KINDS, catalogueCompany, catalogueId, linkUnit } from "#shared/app-catalogue";
 import { wording } from "#shared/wording";
 
@@ -14,10 +12,10 @@ import type { AgencyCall } from "./agency";
 import type {
   Catalogue,
   CatalogueApp,
-  CatalogueConnection,
   CatalogueKind,
   CatalogueNotice,
   CataloguePromotion,
+  CatalogueServer,
   CatalogueSource,
   CatalogueTarget,
   ShareScope
@@ -90,8 +88,36 @@ function texts(value: unknown): Record<string, string> {
   return Object.fromEntries(Object.entries(value).filter((entry): entry is [string, string] => typeof entry[1] === "string" && entry[1] !== ""));
 }
 
+// A word the agency answers, or null where it answers none.
+function word(value: unknown): string | null {
+  return typeof value === "string" && value !== "" ? value : null;
+}
+
+// How an MCP item is reached, as the agency answers it (its `docs/api.md`, 「catalogue」): `transport` with, for a
+// remote server, its `url`, `auth`, `header` and `secret` and, for a local one, its `command`, each null where the
+// manifest names none; null where it answers none or one that does not read.
+function catalogueServerOf(value: unknown): CatalogueServer | null {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) return null;
+
+  const raw = value as Record<string, unknown>;
+
+  if (raw.transport === "local") {
+    const command = Array.isArray(raw.command) ? raw.command.filter((one): one is string => typeof one === "string") : [];
+
+    return { transport: "local", command };
+  }
+
+  const url = word(raw.url);
+
+  if (raw.transport !== "remote" || url === null) return null;
+
+  const auth = raw.auth === "bearer" || raw.auth === "header" ? raw.auth : "none";
+
+  return { transport: "remote", url, auth, header: auth === "header" ? word(raw.header) : null, secret: auth === "none" ? null : word(raw.secret) };
+}
+
 /** A shared item as the agency answers it, read with what a record written before the catalogue held kinds and
- * languages lacks: an app, its maker's text alone, and nothing the reader may translate. */
+ * languages lacks: an app, its maker's text alone, nothing the reader may translate, and no server. */
 export function catalogueAppOf(value: CatalogueApp): CatalogueApp {
   const raw = value as Partial<CatalogueApp> & Record<string, unknown>;
   const kind: CatalogueKind = (CATALOGUE_KINDS as readonly unknown[]).includes(raw.kind) ? (raw.kind as CatalogueKind) : "app";
@@ -104,6 +130,7 @@ export function catalogueAppOf(value: CatalogueApp): CatalogueApp {
     titles: texts(raw.titles),
     descriptions: texts(raw.descriptions),
     machine: Array.isArray(raw.machine) ? raw.machine.filter((one): one is string => typeof one === "string") : [],
+    server: kind === "mcp" ? catalogueServerOf(raw.server) : null,
     may: { ...value.may, translate: may.translate === true, text: may.text === true }
   };
 }
@@ -154,53 +181,6 @@ export async function catalogueSource(signed: SignedIn, id: string, version: str
   const path = withQuery(`/catalogue/${accountOf(signed)}/apps/${id}/source`, named, await companyQuery(signed, asked));
 
   return await agencyRoute<CatalogueSource>("GET", path, undefined, CALL);
-}
-
-// What `mcp.toml`'s `[server]` table holds of how the item connects, read as TOML by confbox.
-interface ServerTable {
-  transport?: unknown;
-  command?: unknown;
-  url?: unknown;
-  auth?: unknown;
-  header?: unknown;
-  secret?: unknown;
-}
-
-function word(value: unknown): string | null {
-  return typeof value === "string" && value !== "" ? value : null;
-}
-
-/** How an MCP item connects, read from the `mcp.toml` of its newest version (bmo-pocket's `docs/catalogue.md`); null
- * where the source holds none that reads. */
-export function connectionOf(source: CatalogueSource): CatalogueConnection | null {
-  const text = source.files["mcp.toml"];
-
-  if (text === undefined) return null;
-
-  let server: ServerTable;
-
-  try {
-    server = (parseTOML<{ server?: ServerTable }>(text).server ?? {}) as ServerTable;
-  } catch {
-    return null;
-  }
-
-  if (server.transport === "local") {
-    const command = Array.isArray(server.command) ? server.command.filter((one): one is string => typeof one === "string") : [];
-
-    return { transport: "local", command };
-  }
-
-  if (server.transport !== "remote" || word(server.url) === null) return null;
-
-  const auth = server.auth === "bearer" || server.auth === "header" ? server.auth : "none";
-
-  return { transport: "remote", url: word(server.url)!, auth, header: auth === "header" ? word(server.header) : null, secret: auth === "none" ? null : word(server.secret) };
-}
-
-/** How the MCP item a reader sees connects, read off its newest version's source. */
-export async function catalogueConnection(signed: SignedIn, id: string, asked?: unknown): Promise<CatalogueConnection | null> {
-  return connectionOf(await catalogueSource(signed, id, null, asked));
 }
 
 /** One of the reader's own items shared with the targets named: a personal app or an MCP item read from their PC, or a

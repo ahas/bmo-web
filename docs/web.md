@@ -9400,12 +9400,11 @@ so a reader sees and does what their own account may alone, and the agency's wor
   is, 검토 중 while it is written; and 원본, whose 원본 보기 reads the version's source and shows every file under its
   path in a coloured code block — a skill's `SKILL.md` and every reference file of it. 설치, or 업데이트 where the reader's
   copy has a newer version, stands in the dialog's foot. What the reader may do is the agency's word alone.
-  - **연결**, an MCP server's, read from its newest version's `mcp.toml` as the details open (bmo-pocket's
-    `docs/catalogue.md`): 방식 원격, its 주소 in the monospace face, 인증 — 없음, Bearer 토큰 or the header's name with 헤더 —
-    and 비밀, the name of the secret it reads in the reader's own 비밀 보관함, with 비밀 보관함에 없음 and the name in the
-    warning colour where the reader's space does not hold it; or 방식 내 PC에서 실행 and its 명령 in the monospace face.
-    The console's server reads it through `GET /api/account/app-catalogue/{id}/connection`, the source's `mcp.toml` read
-    as TOML; a source holding none that reads says it could not be read.
+  - **연결**, an MCP server's, as the agency answers it with the item, read off its newest version's `mcp.toml`
+    (the agency's `docs/api.md`, 「catalogue」, the item's `server`): 방식 원격, its 주소 in the monospace face, 인증 — 없음,
+    Bearer 토큰 or the header's name with 헤더 — and 비밀, the name of the secret it reads in the reader's own 비밀 보관함,
+    with 비밀 보관함에 없음 and the name in the warning colour where the reader's space does not hold it; or 방식 내 PC에서
+    실행 and its 명령 in the monospace face. An MCP item the agency answers no server for says it could not be read.
   - **설치** asks first, naming the item and what it asks for in the same lines as plain text, then what installing it
     does: for an app, that the reader's PC fetches its source and builds it with its data staying there; for a skill,
     that it is kept by BMO and only the agents the reader attaches it to use it; for an MCP server, that it is installed

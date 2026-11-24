@@ -77,6 +77,9 @@ export interface CatalogueApp {
   titles: Record<string, string>;
   descriptions: Record<string, string>;
   machine: string[];
+  // How an MCP item is reached, as the agency reads it off its newest version's `mcp.toml`; null for any other kind,
+  // and for an MCP item whose manifest the agency could not read.
+  server: CatalogueServer | null;
   maker: string;
   owner: string;
   targets: CatalogueTarget[];
@@ -125,7 +128,7 @@ export interface CatalogueSource {
 
 /** How an MCP item connects: a remote server at an address with the auth it asks and the name of the secret it reads
  * in the reader's own secret space, or a program run in its folder on the reader's PC. */
-export type CatalogueConnection =
+export type CatalogueServer =
   | { transport: "remote"; url: string; auth: "none" | "bearer" | "header"; header: string | null; secret: string | null }
   | { transport: "local"; command: string[] };
 

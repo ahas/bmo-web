@@ -5,7 +5,7 @@ import { wording } from "../../apps/web/shared/wording";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
-import type { Catalogue, CatalogueApp, CatalogueConnection } from "../../apps/web/shared/app-catalogue";
+import type { Catalogue, CatalogueApp } from "../../apps/web/shared/app-catalogue";
 import type { PermissionReach } from "../../apps/web/shared/app-permissions";
 import type { PersonalApps } from "../../apps/web/shared/personal-apps";
 
@@ -54,6 +54,7 @@ function app(id: string, title: string, more: Partial<CatalogueApp>): CatalogueA
     titles: {},
     descriptions: {},
     machine: [],
+    server: null,
     maker: "17",
     owner: "17",
     targets: [{ team: true }, { heads: true }],
@@ -362,20 +363,19 @@ describe.skipIf(!origin || !touchReady())("the app catalogue", () => {
       const asked: string[] = [];
       const weekly = app("17-weekly", "Weekly summary", {});
       const notes = app("17-notes", "Notes", { kind: "skill", name: "notes" });
-      const tickets = app("17-tickets", "Tickets", { kind: "mcp", name: "tickets", permissions: { network: ["tickets.example.org"], secrets: ["tickets-token"] } });
-      const lint = app("21-lint", "Lint", { kind: "mcp", name: "lint", maker: "21" });
-      const connections: Record<string, CatalogueConnection> = {
-        "17-tickets": { transport: "remote", url: "https://tickets.example.org/mcp", auth: "bearer", header: null, secret: "tickets-token" },
-        "21-lint": { transport: "local", command: ["node", "server.js"] }
-      };
+      const tickets = app("17-tickets", "Tickets", {
+        kind: "mcp",
+        name: "tickets",
+        permissions: { network: ["tickets.example.org"], secrets: ["tickets-token"] },
+        server: { transport: "remote", url: "https://tickets.example.org/mcp", auth: "bearer", header: null, secret: "tickets-token" }
+      });
+      const lint = app("21-lint", "Lint", { kind: "mcp", name: "lint", maker: "21", server: { transport: "local", command: ["node", "server.js"] } });
 
       await context.route(/\/api\/account\/app-catalogue(?:\/|$|\?)/, async (route) => {
         const request = route.request();
         const path = new URL(request.url()).pathname.replace(/^.*\/api\/account\/app-catalogue/, "");
-        const connection = /^\/([^/]+)\/connection$/.exec(path)?.[1];
 
         if (request.method() === "GET" && path === "") return await route.fulfill({ json: catalogue([weekly, notes, tickets, lint], { network: true, secrets: true, held: [] }) });
-        if (request.method() === "GET" && connection !== undefined) return await route.fulfill({ json: connections[connection] ?? null });
 
         asked.push(`${request.method()} ${path}`);
         await route.fulfill({ json: notes });

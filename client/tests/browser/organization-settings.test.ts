@@ -31,7 +31,7 @@ const RUN = Date.now().toString(36);
 const PERSONAL = ["settings.label.account", "settings.label.secrets", "settings.label.supply", "settings.label.theme", "settings.label.palette"];
 const ADMINISTRATOR_PERSONAL = [...PERSONAL, "settings.label.notifications", "settings.label.briefing"];
 const MOVED = ["settings.label.invites", "settings.label.permissions", "settings.label.providers", "secrets.label.kinds", "research.title.supervisor"];
-const TABS = ["organization.label.chart", "roster.label.tab", "catalogue.label.tab", "settings.label.invites", "org_agents.label.tab", "apps.label.tab", "org_storage.label.tab", "settings.label.secrets", "org_memory.label.tab", "settings.label.permissions", "supply.label.tab"];
+const TABS = ["organization.label.chart", "roster.label.tab", "catalogue.label.tab", "settings.label.invites", "org_agents.label.tab", "apps.label.tab", "org_storage.label.tab", "org_mail.label.tab", "settings.label.secrets", "org_memory.label.tab", "settings.label.permissions", "supply.label.tab"];
 const ADMIN_TABS = ["settings.label.providers", "secrets.label.kinds"];
 
 let browser: Browser | null = null;
@@ -485,7 +485,7 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
           await column(page).getByText(wording("catalogue.label.kinds"), { exact: true }).waitFor({ timeout: 20_000 });
           // A head of a company writes the org memory of the units they head, sets their agents and manages that company's
           // supply, so the agents, org memory, supply and plans tabs stand for them too (docs/web.md, 「Organisation」).
-          expect({ pass, tabs: await tabNames(page) }).toEqual({ pass, tabs: ["roster.label.tab", "catalogue.label.tab", "settings.label.invites", "org_agents.label.tab", "apps.label.tab", "org_storage.label.tab", "settings.label.secrets", "org_memory.label.tab", "settings.label.permissions", "supply.label.tab"].map((key) => wording(key)) });
+          expect({ pass, tabs: await tabNames(page) }).toEqual({ pass, tabs: ["roster.label.tab", "catalogue.label.tab", "settings.label.invites", "org_agents.label.tab", "apps.label.tab", "org_storage.label.tab", "org_mail.label.tab", "settings.label.secrets", "org_memory.label.tab", "settings.label.permissions", "supply.label.tab"].map((key) => wording(key)) });
           expect(await page.locator('[role="tab"][aria-selected="true"]').allInnerTexts()).toEqual([wording("catalogue.label.tab")]);
 
           // The row's underline stands under the chosen tab, though a tab came in before it once the head was known.
@@ -715,7 +715,7 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
           await page.locator(`[aria-label="${wording("organization.aria.tabs")}"]`).getByRole("tab", { name: wording("org_memory.label.tab"), exact: true }).waitFor({ timeout: 20_000 });
           // A head of a unit holds its supply too, so the supply tab comes in once the supply reach has answered.
           await page.locator(`[aria-label="${wording("organization.aria.tabs")}"]`).getByRole("tab", { name: wording("supply.label.tab"), exact: true }).waitFor({ timeout: 20_000 });
-          expect(await tabNames(page)).toEqual([wording("settings.label.invites"), wording("org_agents.label.tab"), wording("apps.label.tab"), wording("org_storage.label.tab"), wording("settings.label.secrets"), wording("org_memory.label.tab"), wording("settings.label.permissions"), wording("supply.label.tab")]);
+          expect(await tabNames(page)).toEqual([wording("settings.label.invites"), wording("org_agents.label.tab"), wording("apps.label.tab"), wording("org_storage.label.tab"), wording("org_mail.label.tab"), wording("settings.label.secrets"), wording("org_memory.label.tab"), wording("settings.label.permissions"), wording("supply.label.tab")]);
 
           // A head asks for a link into their unit from the tab row's add and its dialog, and the service
           // takes the ask as theirs: a link stands among the open ones, or, where the deployment names no machine hub

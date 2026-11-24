@@ -2599,6 +2599,54 @@ org_storage:
     bad_value: "The storage location setting isn't valid."
     unavailable: "Can't connect to the artifact service. Try again in a moment."
     failed: "Couldn't set the artifact storage."
+org_mail:
+  title:
+    edit: Edit server
+  label:
+    tab: Mail servers
+    incoming: Incoming servers
+    outgoing: Outgoing servers
+    incoming_none: No incoming servers
+    outgoing_none: No outgoing servers
+    accounts: "{count} accounts"
+    protocol: Protocol
+    protocol_imap: IMAP
+    protocol_pop3: POP3
+    protocol_smtp: SMTP
+    host: Host
+    port: Port
+    security: Security
+    security_tls: TLS
+    security_starttls: STARTTLS
+    security_none: No encryption
+    tls_name: Certificate name
+    auth: Sign-in
+    auth_password: Account sign-in
+    auth_none: No sign-in
+    test_reached: Connected
+    test_unreached: Not connected
+  placeholder:
+    port: "{port} (default)"
+  action:
+    add: Add server
+    edit: Edit
+    test: Test connection
+  status:
+    loading: Loading mail servers…
+  message:
+    delete_confirm: Delete this server?
+    not_installed: The mail service isn't installed.
+  error:
+    forbidden: "You don't have permission to set this organization's mail servers."
+    locked: "An organization above has locked this, so it can't be changed."
+    in_use: "Accounts are using this server, so it can't be deleted."
+    bad_value: "The server settings aren't valid."
+    not_found: "Can't find the server."
+    unavailable: "Can't connect to the mail service. Try again in a moment."
+    not_ready: "The mail service has no account service set up."
+    read_failed: "Couldn't load the mail servers."
+    test_failed: "Couldn't test the connection."
+    failed: "Couldn't set the mail servers."
 pairing:
   title:
     page: Connect desktop app

@@ -19,6 +19,7 @@ import { WatchedChildren } from "./children";
 import { manifestFields } from "./console-manifest";
 import { HARNESS_SCREEN_UNITS } from "./harness-screens";
 import { jobLogAnswer } from "./job-log";
+import { mailServersAnswer } from "./mail-servers";
 import { orgBrainAnswer } from "./org-brain";
 import { capturedMachines, capturedReadings } from "./node-machines";
 import { rawNumber } from "./raw-number";
@@ -97,6 +98,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["org-agents", "fixture-password-3901"],
   ["org-group", "fixture-password-3903"],
   ["org-storage", "fixture-password-3921"],
+  ["org-mail", "fixture-password-3931"],
   ["copy-marks", "fixture-password-3291"],
   ["machine-unbind", "fixture-password-3583"],
   ["todo-run-figures", "fixture-password-2826"],
@@ -178,6 +180,16 @@ const MEMBERS: readonly { name: string; password: string; sections: readonly { s
   {
     name: "org-member",
     password: "fixture-password-2667",
+    sections: [
+      { section: "rooms", read: true, write: false },
+      { section: "account", read: true, write: true }
+    ]
+  },
+  // A head of a unit under a company that locks its mail servers, who reads the lock and may change nothing
+  // (tests/browser/organization-mail-servers.test.ts).
+  {
+    name: "mail-head",
+    password: "fixture-password-3932",
     sections: [
       { section: "rooms", read: true, write: false },
       { section: "account", read: true, write: true }
@@ -2085,6 +2097,8 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
   SCREEN_B: (path) => screenUnit(HARNESS_SCREEN_UNITS[1], path),
   SCREEN_RELEASED: (path, request) => releasedUnit(HARNESS_SCREEN_UNITS[2], path, request),
   ARTIFACT: (path, request) => storageAnswer(decodeURIComponent(path), request),
+  // bmo-mail, for the organisation screen's mail servers (tests/support/mail-servers.ts).
+  MAIL: (path, request) => mailServersAnswer(path, request, `http://127.0.0.1:${accountServicePort}`, TOKEN),
   TELEGRAM: () => null,
   CACHE_SIREN: () => null,
   CACHE_WARMER: (path) => path === "/round" ? Response.json({ stopped: false }) : null
@@ -2496,6 +2510,25 @@ try {
   });
 
   if (!storage.ok) throw new Error(`the artifact's storage kind was refused: ${storage.status} ${await storage.text()}`);
+
+  // bmo-mail's servers a link offers, declared as bmo-mail declares it as it stands (its `docs/api.md`, 「Servers」).
+  const mailServers = await service("/chain/kinds/mail.servers", {
+    method: "PUT",
+    body: JSON.stringify({
+      key: "mail.servers",
+      declaredBy: "mail",
+      description: "mail.servers",
+      shape: "json",
+      choices: [],
+      mode: "layered",
+      rules: false,
+      levels: ["platform", "unit"],
+      unitPermission: "manage",
+      personWriter: "heads"
+    })
+  });
+
+  if (!mailServers.ok) throw new Error(`the mail servers kind was refused: ${mailServers.status} ${await mailServers.text()}`);
 
   const bmoOwner = users.find((user) => user.name === "org-group-person");
 

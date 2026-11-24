@@ -278,6 +278,10 @@
 - where a company's archive documents are kept → 아티팩트 저장: its tab and form; the place → 저장 위치, the local place 이 서버
   and a SharePoint library SharePoint, a following unit's 위를 따라 `{place}`; SharePoint's settings 사이트 ID, 드라이브 ID, 폴더
   and 토큰 계정, an unnamed account 문서 주인. Never 스토리지, 보관소.
+- the mail servers a node offers its people → 메일 서버: its groups 받는 서버 and 보내는 서버, none 받는 서버 없음 or 보내는 서버
+  없음, the add 서버 추가, a row's 수정 and 삭제, the form's title 서버 수정; the form's fields 프로토콜, 호스트, 포트, 보안 (TLS,
+  STARTTLS or 암호화 없음), 인증서 이름 and 로그인 방식 (계정 로그인 or 로그인 없음); its check 연결 테스트, saying 연결됨 or 연결
+  안 됨; the accounts standing on a server 계정 `{n}`개. Never 수신 서버, 발신 서버, 메일 호스트, 접속 테스트.
 - the agents a person is given as their account is made ready → 가입 구성: each role 위를 따름, 막음, 에이전트 없음 or
   에이전트 `{n}`, a following role saying 플랫폼 규칙을 따름, 위를 따라 막음 or 위를 따라 에이전트 `{n}`. Never 초기 설정,
   온보딩.

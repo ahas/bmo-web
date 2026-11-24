@@ -93,7 +93,7 @@ const UNKNOWN_MEMBER: OrganizationReader = { administrator: false, roster: false
 
 describe("the organisation screen", () => {
   test("stands its tabs in order, the units first", () => {
-    expect(ORGANIZATION_TABS.map((tab) => tab.value)).toEqual(["organization", "people", "catalogue", "invites", "agents", "apps", "storage", "secrets", "memory", "permissions", "supply"]);
+    expect(ORGANIZATION_TABS.map((tab) => tab.value)).toEqual(["organization", "people", "catalogue", "invites", "agents", "apps", "storage", "mail-servers", "secrets", "memory", "permissions", "supply"]);
   });
 
   test("leads the keys of the sections that moved away to where they stand now, and no other key", () => {
@@ -118,8 +118,8 @@ describe("the organisation screen", () => {
 
   test("opens every tab to the administrator, the people and the roles and kinds tabs to a member who heads a company, the agents tab to a member who heads a unit, and the invitations tab to every member", () => {
     expect(organizationTabsFor(ADMINISTRATOR)).toHaveLength(ORGANIZATION_TABS.length);
-    expect(organizationTabsFor(COMPANY_HEAD).map((tab) => tab.value)).toEqual(["people", "catalogue", "invites", "agents", "apps", "storage", "secrets", "memory", "permissions", "supply"]);
-    expect(organizationTabsFor(UNIT_HEAD).map((tab) => tab.value)).toEqual(["invites", "agents", "apps", "storage", "secrets", "memory", "permissions"]);
+    expect(organizationTabsFor(COMPANY_HEAD).map((tab) => tab.value)).toEqual(["people", "catalogue", "invites", "agents", "apps", "storage", "mail-servers", "secrets", "memory", "permissions", "supply"]);
+    expect(organizationTabsFor(UNIT_HEAD).map((tab) => tab.value)).toEqual(["invites", "agents", "apps", "storage", "mail-servers", "secrets", "memory", "permissions"]);
     expect(organizationTabsFor(MEMORY_WRITER).map((tab) => tab.value)).toEqual(["invites", "apps", "memory"]);
     expect(organizationTabsFor(MEMBER).map((tab) => tab.value)).toEqual(["invites", "apps"]);
   });
@@ -185,7 +185,7 @@ describe("the organisation screen", () => {
 
     expect(screen.to).toBe(ORGANIZATION_PATH);
     expect(screen.unitKeepers).toBe(true);
-    expect(screen.tabs?.map((tab) => tabAddress(screen, tab))).toEqual(["/organization", "/organization?tab=people", "/organization?tab=catalogue", "/organization?tab=invites", "/organization?tab=agents", "/organization?tab=apps", "/organization?tab=storage", "/organization?tab=secrets", "/organization?tab=memory", "/organization?tab=permissions", "/organization?tab=supply"]);
+    expect(screen.tabs?.map((tab) => tabAddress(screen, tab))).toEqual(["/organization", "/organization?tab=people", "/organization?tab=catalogue", "/organization?tab=invites", "/organization?tab=agents", "/organization?tab=apps", "/organization?tab=storage", "/organization?tab=mail-servers", "/organization?tab=secrets", "/organization?tab=memory", "/organization?tab=permissions", "/organization?tab=supply"]);
     expect(admin.to).toBe(ADMIN_PATH);
     expect(admin.administrator).toBe(true);
     expect(admin.tabs?.map((tab) => tabAddress(admin, tab))).toEqual(["/admin", "/admin?tab=secret-kinds"]);
@@ -406,10 +406,11 @@ describe("the link nodes", () => {
     expect(organizationLinkAddress(PERSON_NODE, { company: "1", tab: "people" }, "apps")).toEqual({ path: ORGANIZATION_PATH, query: { company: PERSON_NODE, tab: "apps" } });
   });
 
-  test("are shown by the tabs that declare a view of them, the agents, apps, secrets and supply tabs declaring both and the org memory tab the platform", () => {
+  test("are shown by the tabs that declare a view of them, the agents, apps, secrets and supply tabs declaring both and the mail servers and org memory tabs the platform", () => {
     expect(ORGANIZATION_TABS.filter((tab) => tab.links !== undefined).map((tab) => [tab.value, Object.keys(tab.links!).toSorted()])).toEqual([
       ["agents", ["me", "platform"]],
       ["apps", ["me", "platform"]],
+      ["mail-servers", ["platform"]],
       ["secrets", ["me", "platform"]],
       ["memory", ["platform"]],
       ["supply", ["me", "platform"]]

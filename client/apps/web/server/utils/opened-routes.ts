@@ -81,6 +81,14 @@ export const openedRoutes: readonly OpenedRoute[] = [
   // unit's link of the delegation chain, bmo-artifact judging the value (docs/web.md, 「Organisation」, the storage tab).
   { method: "GET", path: /^\/api\/organization\/storage$/, scope: "user" },
   { method: "PUT", path: /^\/api\/organization\/storage$/, scope: "user" },
+  // A node's mail servers and what the units below may do with them: every signed-in login asks, and the account
+  // service decides who writes the node's link of the delegation chain, bmo-mail judging the servers (docs/web.md,
+  // 「Organisation」, the mail servers tab).
+  { method: "GET", path: /^\/api\/organization\/mail-servers$/, scope: "user" },
+  { method: "POST", path: /^\/api\/organization\/(?:mail-servers|mail-server-tests)$/, scope: "user" },
+  { method: "PATCH", path: /^\/api\/organization\/mail-servers$/, scope: "user" },
+  { method: "DELETE", path: /^\/api\/organization\/mail-servers$/, scope: "user" },
+  { method: "PUT", path: /^\/api\/organization\/mail-servers$/, scope: "user" },
   // An organisation's agent settings — its instructions, its persona's choice, repository management — and its own
   // repositories: every signed-in login asks, and the account service and the agency decide who heads what
   // (docs/web.md, 「Organisation」, the agents tab).

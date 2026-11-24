@@ -7993,12 +7993,12 @@ settings on the research screen (「Research screen」).
   - **A link naming a person but no organisation** — a person's tab from before the list, the console search's
     person — opens the organisation that person stands in.
 - **Inside the organisation chosen, a tab to a section.** The tabs are 조직도, 사용자, 직책·종류, 초대, 에이전트,
-  앱·도구, 아티팩트 저장, 비밀 보관함, 조직 기억, 권한 and 공급, keyed in the address as `?tab=` with `people`, `catalogue`,
-  `invites`, `agents`, `apps`, `storage`, `secrets`, `memory`, `permissions` and `supply`, 조직도
+  앱·도구, 아티팩트 저장, 메일 서버, 비밀 보관함, 조직 기억, 권한 and 공급, keyed in the address as `?tab=` with `people`,
+  `catalogue`, `invites`, `agents`, `apps`, `storage`, `mail-servers`, `secrets`, `memory`, `permissions` and `supply`, 조직도
   being the organisation's own address; a shared link opens the same tab, moving between tabs is a step of the
   history and keeps the organisation chosen, and a key naming no tab the reader may open opens the first they may.
   Every tab reads and writes the company of the node chosen alone, and a tab that stands for one unit — 조직도,
-  사용자, 초대, 에이전트, 앱·도구, 아티팩트 저장, 비밀 보관함, 조직 기억, 권한 and 공급 — stands for the node chosen, the company itself where a company is chosen; none of
+  사용자, 초대, 에이전트, 앱·도구, 아티팩트 저장, 메일 서버, 비밀 보관함, 조직 기억, 권한 and 공급 — stands for the node chosen, the company itself where a company is chosen; none of
   them chooses an organisation or a unit of its own.
   The console search finds each tab as it finds every screen's; the sidebar lists the screen as one entry, 조직, among
   the 시스템 서비스, and the tabs stand in the screen's own row alone (「Sidebar」).
@@ -8010,7 +8010,7 @@ settings on the research screen (「Research screen」).
   the reader's own — in the centred reading column; a tab that declares none for the node shows one muted line there,
   이 탭에는 플랫폼 설정이 없습니다 or 이 탭에는 개인 설정이 없습니다, and nothing else. A tab takes a link node on by declaring
   its view, and nothing outside the tab changes. 에이전트 (「에이전트」), 앱·도구 (「앱·도구」), 비밀 보관함 (「비밀 보관함」) and
-  공급 (「공급」) declare both, and 조직 기억 declares 플랫폼 전체 (「조직 기억」); 조직도, 사용자, 직책·종류, 초대, 아티팩트 저장
+  공급 (「공급」) declare both, and 조직 기억 (「조직 기억」) and 메일 서버 (「메일 서버」) declare 플랫폼 전체; 조직도, 사용자, 직책·종류, 초대, 아티팩트 저장
   and 권한 declare neither. An address naming a link node beside a unit loses the unit, replaced with no step.
 - **A lock above the node is said by who holds it.** Wherever a setting stands locked by a link above the node — a
   row's line, a group's line — it reads 조직이 정함 · and the locking unit's name, which the console's server reads off
@@ -8025,9 +8025,10 @@ settings on the research screen (「Research screen」).
 - **Who opens it.** The administrator opens every tab, and the sidebar lists 조직 for them among the 시스템 서비스. A member who heads a unit may invite into it (`docs/accounts.md`, 「Invitations and a person's
   machine」), sets who under it may personalise their BMO (`docs/accounts.md`, 「A person's BMO profile」) and which
   apps stand on under it (「앱·도구」), sets the agents of the people under it (「에이전트」) and where their documents are kept
-  (「아티팩트 저장」), keeps the unit's secrets (「비밀 보관함」) and gives its people console sections (「권한」), so their
-  shell's sidebar lists 조직 under 시스템 서비스 and the screen holds 초대, 에이전트, 앱·도구, 아티팩트 저장, 비밀 보관함, 조직 기억
-  and 권한, 에이전트, 아티팩트 저장, 비밀 보관함 and 권한 standing where they head a unit of the organisation chosen, and
+  (「아티팩트 저장」), sets the mail servers offered to them (「메일 서버」), keeps the unit's secrets (「비밀 보관함」) and gives its
+  people console sections (「권한」), so their shell's sidebar lists 조직 under 시스템 서비스 and the screen holds 초대, 에이전트,
+  앱·도구, 아티팩트 저장, 메일 서버, 비밀 보관함, 조직 기억 and 권한, 에이전트, 아티팩트 저장, 메일 서버, 비밀 보관함 and 권한 standing
+  where they head a unit of the organisation chosen, and
   사용자 and 직책·종류 where they head a company
   (「사용자」, 「직책·종류」). A member granted a unit's org memory write without heading one (`docs/accounts.md`, 「A unit's
   org memory」) is listed 조직 as well, with the companies of those units, and the screen holds 조직 기억 for them beside
@@ -8813,6 +8814,39 @@ through routes of the same set naming the platform in the unit's place, the admi
 - **하위 조직** is what the units below may do with it, 위를 따름, 하위 조직 허용 or 하위 조직 잠금, saved as it is chosen on the
   delegation chain; under a lock above both stand disabled with 조직이 정함 · and the locking unit's name.
 - **A saved place reaches the documents filed after it;** a document already filed stays where it was kept.
+
+#### 메일 서버
+
+- **It sets the mail servers offered to the people under the node chosen,** the company where none is chosen, and at
+  플랫폼 전체 the platform's, which everyone is offered (bmo-mail's `docs/mail.md`, 「Mail servers」): a server is kept
+  once and chosen by any number of mail accounts, so a company sets its IMAP and SMTP once and each of its people
+  adds only their address and password on the mail screen. The servers are bmo-mail's records, and which link offers
+  them is the delegation chain's setting `mail.servers`, bmo-mail's kind. The administrator opens it at every node
+  and a member who heads a unit at the units they head; anyone else is told they may not set it. A person's own
+  servers are the mail screen's, so the tab declares no view of 나.
+- **The platform's outgoing servers are the system mail's choice.** The system mail is the administrator's alone, set
+  on 플랫폼 설정, and its server is one of the outgoing servers kept here at 플랫폼 전체 — never a company's, a unit's or a
+  person's; bmo-mail refuses a system send through any other.
+- **Two groups, 받는 서버 and 보내는 서버,** the node's own incoming servers (IMAP or POP3) and outgoing servers (SMTP),
+  one row each: the name as the row's label and under it the protocol, `host:port`, the security — TLS, STARTTLS or
+  암호화 없음 — and 계정 {count}개 where accounts stand on it; 수정 and 삭제 at its end. 받는 서버 없음 or 보내는 서버 없음
+  where the node holds none. 서버 추가 stands at the tab row's right end. The list keeps its place with a skeleton
+  while it is first read, and a read that failed says its reason with 새로고침.
+- **The server form** (「Forms」) asks 프로토콜 (IMAP, POP3 or SMTP, fixed once the server is kept), 이름 marked 선택
+  (the host where none is given), 호스트, 포트 (the protocol's usual port for the security chosen as its placeholder,
+  sent where none is given), 보안 (POP3 offering TLS and 암호화 없음 alone), 인증서 이름 marked 선택 where the security
+  is not 암호화 없음, and 로그인 방식, 계정 로그인 or 로그인 없음, for SMTP alone. 연결 테스트 at its foot asks bmo-mail
+  to reach the server as the form holds it and says under it 연결됨 or 연결 안 됨; 저장 is open while the form differs
+  and the host is given, and a refusal is said under the form. 삭제 asks first, naming the server, and is refused
+  while an account stands on it, said as 사용 중인 계정이 있어 삭제할 수 없습니다.
+- **Every change goes through bmo-mail,** which writes the node's list of servers on the delegation chain in the
+  reader's name, so who may change it and a lock above are the account service's word: 수정, 삭제 and 서버 추가 stand
+  disabled where the reader may not write the node's link now.
+- **하위 조직** is what the units below may do with it, 위를 따름, 하위 조직 허용 or 하위 조직 잠금, saved as it is chosen on the
+  delegation chain: a unit that locks it holds its servers for everyone under it, and the servers the units below
+  hold are offered to nobody while the lock stands. Under a lock above both stand disabled with 조직이 정함 · and the
+  locking unit's name, 전역 설정으로 정함 where the platform holds it.
+- **Where bmo-mail is not installed** the tab holds one muted line, 메일 서비스가 설치되어 있지 않습니다, and nothing else.
 
 #### 비밀 보관함
 

@@ -100,7 +100,7 @@ function memoryReaderOpens(reader: OrganizationReader): boolean {
   return reader.administrator || reader.memory;
 }
 
-// The agents and storage tabs' readers: the administrator, and a member who heads a unit of the organisation chosen, a company's
+// The agents, storage and mail servers tabs' readers: the administrator, and a member who heads a unit of the organisation chosen, a company's
 // head or a unit's below it (「Organisation」, the agents tab).
 function headReaderOpens(reader: OrganizationReader): boolean {
   return reader.administrator || reader.heads;
@@ -118,6 +118,7 @@ export const ORGANIZATION_TABS: readonly OrganizationTab[] = [
   { value: "agents", label: "org_agents.label.tab", icon: "i-material-symbols-smart-toy-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationAgents.vue"), links: { platform: () => import("~/components/OrganizationPlatformAgents.vue"), me: () => import("~/components/OrganizationPersonAgents.vue") } },
   { value: "apps", label: "apps.label.tab", icon: "i-material-symbols-apps", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationApps.vue"), links: { platform: () => import("~/components/OrganizationPlatformApps.vue"), me: () => import("~/components/OrganizationPersonApps.vue") } },
   { value: "storage", label: "org_storage.label.tab", icon: "i-material-symbols-hard-drive-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationArtifactStorage.vue") },
+  { value: "mail-servers", label: "org_mail.label.tab", icon: "i-material-symbols-mail-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationMailServers.vue"), links: { platform: () => import("~/components/OrganizationPlatformMailServers.vue") } },
   { value: "secrets", label: "settings.label.secrets", icon: "i-material-symbols-key-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationSecrets.vue"), links: { platform: () => import("~/components/OrganizationPlatformSecrets.vue"), me: () => import("~/components/OrganizationPersonSecrets.vue") } },
   { value: "memory", label: "org_memory.label.tab", icon: "i-material-symbols-psychology-outline", opens: memoryReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationMemory.vue"), links: { platform: () => import("~/components/OrganizationPlatformMemory.vue") } },
   { value: PERMISSIONS_TAB, label: "settings.label.permissions", icon: "i-material-symbols-admin-panel-settings-outline", opens: headReaderOpens, keys: ["user"], wide: false, load: () => import("~/components/OrganizationPermissions.vue") },

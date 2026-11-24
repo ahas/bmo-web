@@ -2619,6 +2619,54 @@ org_storage:
     bad_value: 保存先の設定が正しくありません。
     unavailable: アーティファクトサービスに接続できません。しばらくしてからもう一度お試しください。
     failed: アーティファクトの保存を設定できませんでした。
+org_mail:
+  title:
+    edit: サーバーを編集
+  label:
+    tab: メールサーバー
+    incoming: 受信サーバー
+    outgoing: 送信サーバー
+    incoming_none: 受信サーバーなし
+    outgoing_none: 送信サーバーなし
+    accounts: "アカウント {count}件"
+    protocol: プロトコル
+    protocol_imap: IMAP
+    protocol_pop3: POP3
+    protocol_smtp: SMTP
+    host: ホスト
+    port: ポート
+    security: セキュリティ
+    security_tls: TLS
+    security_starttls: STARTTLS
+    security_none: 暗号化なし
+    tls_name: 証明書の名前
+    auth: ログイン方式
+    auth_password: アカウントでログイン
+    auth_none: ログインなし
+    test_reached: 接続済み
+    test_unreached: 接続できません
+  placeholder:
+    port: "{port}（デフォルト）"
+  action:
+    add: サーバーを追加
+    edit: 編集
+    test: 接続テスト
+  status:
+    loading: メールサーバーを読み込み中…
+  message:
+    delete_confirm: サーバーを削除しますか？
+    not_installed: メールサービスがインストールされていません。
+  error:
+    forbidden: この組織のメールサーバーを設定する権限がありません。
+    locked: 上位組織がロックしているため変更できません。
+    in_use: このサーバーを使用しているアカウントがあるため削除できません。
+    bad_value: サーバーの設定が正しくありません。
+    not_found: サーバーが見つかりません。
+    unavailable: メールサービスに接続できません。しばらくしてからもう一度お試しください。
+    not_ready: メールサービスにアカウントサービスが設定されていません。
+    read_failed: メールサーバーを読み込めませんでした。
+    test_failed: 接続をテストできませんでした。
+    failed: メールサーバーを設定できませんでした。
 pairing:
   title:
     page: デスクトップアプリの接続

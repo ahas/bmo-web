@@ -2619,6 +2619,54 @@ org_storage:
     bad_value: 存储位置设置无效。
     unavailable: 无法连接到制品服务。请稍后再试。
     failed: 无法设置制品存储。
+org_mail:
+  title:
+    edit: 编辑服务器
+  label:
+    tab: 邮件服务器
+    incoming: 收件服务器
+    outgoing: 发件服务器
+    incoming_none: 没有收件服务器
+    outgoing_none: 没有发件服务器
+    accounts: "{count} 个账户"
+    protocol: 协议
+    protocol_imap: IMAP
+    protocol_pop3: POP3
+    protocol_smtp: SMTP
+    host: 主机
+    port: 端口
+    security: 安全
+    security_tls: TLS
+    security_starttls: STARTTLS
+    security_none: 不加密
+    tls_name: 证书名称
+    auth: 登录方式
+    auth_password: 账户登录
+    auth_none: 不登录
+    test_reached: 已连接
+    test_unreached: 未连接
+  placeholder:
+    port: "{port}（默认）"
+  action:
+    add: 添加服务器
+    edit: 编辑
+    test: 测试连接
+  status:
+    loading: 正在加载邮件服务器…
+  message:
+    delete_confirm: 删除此服务器？
+    not_installed: 未安装邮件服务。
+  error:
+    forbidden: 你没有权限设置此组织的邮件服务器。
+    locked: 上级组织已锁定，无法更改。
+    in_use: 有账户正在使用此服务器，无法删除。
+    bad_value: 服务器设置无效。
+    not_found: 找不到服务器。
+    unavailable: 无法连接到邮件服务。请稍后再试。
+    not_ready: 邮件服务未设置账户服务。
+    read_failed: 无法加载邮件服务器。
+    test_failed: 无法测试连接。
+    failed: 无法设置邮件服务器。
 pairing:
   title:
     page: 连接桌面应用

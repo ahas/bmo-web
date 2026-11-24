@@ -27,7 +27,7 @@ test("the organisation screen stands among the administrator services by its nam
   const administration = SCREENS.filter((screen) => screen.section === "administration").map((screen) => wording(screen.label));
 
   expect(ORGANIZATION.section).toBe("administration");
-  expect(menus.map((menu) => menu.name)).toEqual(["screens.label.section_administration", "screens.label.section_application"].map((key) => wording(key)));
+  expect(menus.map((menu) => menu.name)).toEqual([wording("screens.label.section_administration")]);
   expect(menus[0]!.items.slice(1).map((item) => item.label)).toEqual([...administration].sort(new Intl.Collator("en").compare));
   expect(menus[0]!.items.map((item) => item.to)).toContain("/organization");
   expect(alone).toEqual([
@@ -98,8 +98,8 @@ test("a unit's screen takes its manifest's own name and icon, and stands only wh
   expect(screens.some((entry) => entry.to === "/files")).toBe(false);
 });
 
-test("the console's own screens all stand under the administrator services, the organisation screen among them, and the app catalogue among the applications", () => {
-  expect(SCREENS.filter((screen) => screen.section !== "administration").map((screen) => [screen.to, screen.section])).toEqual([["/app-catalogue", "application"]]);
+test("the console's own screens all stand under the administrator services, the organisation screen and the store among them", () => {
+  expect(SCREENS.filter((screen) => screen.section !== "administration").map((screen) => [screen.to, screen.section])).toEqual([]);
 });
 
 test("a screen a unit brings stands under the administrator services where its manifest names them, and is an application where it names the applications", () => {

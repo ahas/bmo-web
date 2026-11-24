@@ -26,7 +26,7 @@ const ADMINISTRATION = wording("screens.label.section_administration");
 const APPLICATION = wording("screens.label.section_application");
 // The stand-in units' screens, each named by its unit.
 const BROUGHT = [...HARNESS_SCREEN_UNITS];
-// The store every reader opens, standing in 시스템 서비스.
+// The store every reader opens, standing among the administrator services.
 const STORE = wording("screens.label.catalogue");
 
 // The sidebar as each reader reads it, section by section: the heading it shows and its screens' names.

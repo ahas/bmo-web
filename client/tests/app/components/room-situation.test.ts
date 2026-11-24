@@ -12,9 +12,10 @@ const screen = await read("pages/rooms/[chatId].vue");
 const dialog = await read("components/RoomSituationPanel.vue");
 
 describe("the note in the answer's record", () => {
-  test("stands last in the record, with the mark a round's own change wears", () => {
+  test("stands last in the record, in the reader's language through the translated text, with the mark a round's own change wears", () => {
     expect(chips).toContain("data-situation");
-    expect(chips).toContain("{{ entry.situation.text }}");
+    expect(chips).toContain('<TranslatedText :text="entry.situation.text">');
+    expect(chips).not.toContain("{{ entry.situation.text }}");
     expect(chips).toContain('$t("room.label.situation")');
     expect(chips).toContain('<UBadge v-if="entry.situation.changed"');
     expect(chips).toContain('$t("room.label.situation_changed")');

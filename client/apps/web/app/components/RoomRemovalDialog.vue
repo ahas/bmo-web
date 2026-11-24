@@ -49,7 +49,7 @@
         <dd class="text-toned">
           <span class="tabular-nums">{{ countText(groups.copies.length) }}</span>
           <span v-for="copy in groups.copies" :key="copy.path" class="block whitespace-nowrap font-mono text-muted">
-            <span class="tabular-nums">{{ countText(copy.rows ?? 0) }}</span> · {{ copy.path }}<template v-if="copy.failure !== null"> · {{ copy.failure }}</template>
+            <span class="tabular-nums">{{ countText(copy.rows ?? 0) }}</span> · {{ copy.path }}<template v-if="copy.failure !== null"> · {{ $t("room.label.removal_copy_failed") }}</template>
           </span>
         </dd>
       </dl>
@@ -98,7 +98,7 @@
         <dd class="text-toned">
           <span class="tabular-nums">{{ countText(done.copies.length) }}</span>
           <span v-for="copy in done.copies" :key="copy.path" class="block whitespace-nowrap font-mono text-muted">
-            <span class="tabular-nums">{{ countText(copy.rows ?? 0) }}</span> · {{ copy.path }}<template v-if="copy.failure !== null"> · {{ copy.failure }}</template>
+            <span class="tabular-nums">{{ countText(copy.rows ?? 0) }}</span> · {{ copy.path }}<template v-if="copy.failure !== null"> · {{ $t("room.label.removal_copy_failed") }}</template>
           </span>
         </dd>
         <template v-if="done.left.length > 0">

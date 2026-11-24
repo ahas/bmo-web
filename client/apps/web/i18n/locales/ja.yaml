@@ -560,6 +560,11 @@ room:
     file_not_found: ファイルが見つかりません。
     file_too_large_named: "{name}はこのルームで送信できるサイズを超えるため送信しませんでした。"
     file_over_limit_named: "{name}は{by}で送信できるサイズ（{limit}）を超えるため送信しませんでした。"
+    file_unsent_named: "{name}を送信できませんでした。"
+    file_refused_platform: "メッセンジャーが{name}を受け付けなかったため送信できませんでした。"
+    file_refused_unsupported: "{name}はこのルームのメッセンジャーが受け付けない種類のため送信できませんでした。"
+    file_refused_not_ready: "メッセンジャーの準備がまだできていないため{name}を送信できませんでした。"
+    file_refused_failed: "{name}をルームに保管できなかったため送信できませんでした。"
     file_with_voice: ボイスメモを送信するまでファイルは添付できません。
     instruction_read_failed: 指示の原文を読み込めませんでした。
     forward_failed: メッセージを転送できませんでした。
@@ -716,6 +721,7 @@ room:
     draft_end_message: メッセージ送信
     draft_end_skip: 送信しない
     draft_kind_end: 終了
+    draft_kind_other: "その他の記録"
     draft_kind_supervisor: 判断
     draft_kind_turn: ターン
     draft_outcome_answered: 返信済み
@@ -806,6 +812,14 @@ room:
     removal_stays: 残る行
     removal_undeclared: 宣言されていない設定（残ります）
     removal_warnings: 確認事項
+    removal_warning_answerers: "このルームに答える他の監督者がいます: {names}。監督者は残り、このルームではもう答えません。"
+    removal_warning_road: "{road}からまだこのルームに届くため、後でメッセージが来るとルームが新しく登録されます。"
+    removal_warning_private: "{user}さんの個人チャットです。"
+    removal_warning_other: "確認すべき点がもう一つあります。"
+    removal_left_outside: "{path}: データフォルダーの外にあるため残しました。"
+    removal_left_not_removed: "{path}: 削除できませんでした。"
+    removal_left_other: "削除できなかったものがあります。"
+    removal_copy_failed: "読み取れません"
     road_answered: 応答済み
     road_busy_skip: 混雑のためスキップ
     road_error: エラー
@@ -813,6 +827,7 @@ room:
     road_timeout: タイムアウト
     road_too_large: サイズ超過で拒否
     road_unavailable: なし
+    road_outcome_other: "その他の結果"
     room_add_added_avatar: アバターとして追加済み
     room_add_added_record_only: 記録のみで追加済み
     room_add_group_title: グループ名
@@ -865,6 +880,7 @@ room:
     sort_supervisor_cut: スーパーバイザーによる中断
     sort_unfinished: 未決事項
     sort_watch: ウォッチ
+    sort_other: "その他の指示"
     span_days: "{n}日目"
     span_months: "{n}か月目"
     span_speakers: "{span} · 参加者 {n}人"
@@ -881,6 +897,7 @@ room:
     stage_sanitizer: 無害化
     stage_send: 送信
     stage_skipped: 返信なし
+    stage_other: "その他の段階"
     stage_supervisor: スーパーバイザー
     stage_wake_again: 起動条件の書き直し
     stage_wording_again: 禁止語の書き直し
@@ -915,6 +932,7 @@ room:
     draft_kind_stage: 指示段階
     draft_outcome_pass: 通過
     draft_outcome_revised: 修正済み
+    draft_outcome_other: "その他の結果"
     draft_turn_message: メッセージ作成
     draft_kind_audit: 呼び方の確認
     draft_turn_audit: 呼び方の確認
@@ -2969,6 +2987,8 @@ agents:
     bundle_web_read: Web の読み取り
     bundle_web_rulebooks: ルールブック
     bundle_web_sites: サイトツール
+    bundle_brain_lessons: "ブレインのコツ"
+    bundle_other: "その他の機能セット"
     call_done: 完了
     call_failed: 失敗
     characters_unit: 文字

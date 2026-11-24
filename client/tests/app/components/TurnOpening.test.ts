@@ -9,8 +9,8 @@ const template = source.slice(0, source.indexOf("<script"));
 const script = source.slice(source.indexOf("<script"));
 
 describe("a line of the turn's opening", () => {
-  test("is the producer's sort, worded by the one rule every turn's line reads, and the one-line summary", () => {
-    expect(template).toContain(':label="sortOf(instruction)"');
+  test("is the producer's sort, worded by the one rule every turn's line reads, its key in the administrator's tooltip where it has no word, and the one-line summary", () => {
+    expect(template).toContain('<CodeWord class="truncate" :text="sortOf(instruction)" :code="sortCode(instruction.sort)" />');
     expect(template).toContain(":class=\"isOpen(instruction.id) ? 'wrap-anywhere' : 'truncate'\">{{ instruction.summary }}");
     expect(script).toContain("sortLabel(t, instruction.sort)");
   });

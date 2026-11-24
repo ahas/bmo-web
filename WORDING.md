@@ -413,6 +413,10 @@
 - a chat road a room is on, as 채팅 서비스 and the console name it → the receiver's own record 대화 기록, each chat
   service by the name people say for it (텔레그램, 카카오톡, 팀즈, 디스코드), and one the pack has no name for →
   메신저 ({key}). Never 이 방의 기록 for the record, and never the receiver's English label.
+- a code a unit gives that the pack has no word for → the generic word for its sort: a verdict's stage 기타 단계, an
+  outcome 기타 결과, a draft row's kind 기타 기록, a quiet instruction's sort 기타 지시, a role's bundle 기타 기능 묶음;
+  a removal's warning of another code 확인할 점이 하나 더 있습니다, and a file refused for another reason 「{name} 파일을
+  보내지 못했습니다.」. Never the code itself, and never the unit's English sentence.
 - what a room's messages carried, collected by kind in 방 정보 → the pictures and videos together 미디어, a file that is no
   picture, video or sound 파일, a web address the words hold 링크, a sound that is no voice note 음악, voice notes 음성
   as the tab and 음성 메시지 for one; a tab with none → 미디어 없음, 파일 없음, 링크 없음, 음악 없음, 음성 메시지 없음; a

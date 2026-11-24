@@ -126,6 +126,45 @@ describe("a file the receiver answers as not sent", () => {
     expect(sent?.failed).toEqual([{ name: "b.png", reason: overLimit("b.png") }]);
   });
 
+  test("refused is said by the pack's sentence for its refusal code, never the road's English", async () => {
+    filesAnswer = () =>
+      answer({
+        sent: [],
+        checking: [],
+        failed: [
+          { name: "a.png", reason: { kind: "refused", name: "a.png", code: "platform", reason: "Bad Request: file type not allowed" } },
+          { name: "b.png", reason: { kind: "refused", name: "b.png", code: "upstream-failed", reason: "the agency did not answer" } }
+        ]
+      });
+
+    const { answer: sent } = await sentTwo();
+
+    expect(sent?.failed).toEqual([
+      { name: "a.png", reason: wording("room.error.file_refused_platform", { name: "a.png" }) },
+      { name: "b.png", reason: wording("room.error.file_refused_failed", { name: "b.png" }) }
+    ]);
+  });
+
+  test("refused under a code the pack holds no sentence for, or with no kind, is said as a file that could not be sent", async () => {
+    filesAnswer = () =>
+      answer({
+        sent: [],
+        checking: [],
+        failed: [
+          { name: "a.png", reason: { kind: "refused", name: "a.png", code: "code-z", reason: "something English" } },
+          { name: "b.png", reason: "something English" }
+        ]
+      });
+
+    const { answer: sent } = await sentTwo();
+
+    expect(sent?.failed).toEqual([
+      { name: "a.png", reason: wording("room.error.file_unsent_named", { name: "a.png" }) },
+      { name: "b.png", reason: wording("room.error.file_unsent_named", { name: "b.png" }) }
+    ]);
+    expect(JSON.stringify(sent)).not.toContain("English");
+  });
+
   test("is written to the log with the receiver's reason as it gave it", async () => {
     filesAnswer = () => answer({ sent: [], checking: [], failed: [{ name: "b.png", reason: { kind: "refused", reason: "the road is down" } }] });
 

@@ -97,19 +97,25 @@ export function endsJudging(verdict: string): boolean {
   return ENDING_MARKERS.some((marker) => opensWith(verdict, marker));
 }
 
-// A stage the app does not know keeps its own name rather than disappearing.
+// A stage the app does not know stands as the pack's word for another stage, never as the code the record wrote
+// (docs/web.md, 「A code the console has no word for」); `stageCode` hands the code on for the administrator's tooltip.
 export function stageLabel(t: Translate, stage: string): string {
   // The chat stage is the chat agent's own turn, called by the label the deployment gives it.
   if (stage === "chat" && chatAgent().label !== "") return chatAgent().label;
 
   const key = STAGE_LABELS.get(stage);
 
-  return key === undefined ? stage : t(key);
+  return key === undefined ? t("room.label.stage_other") : t(key);
+}
+
+/** The stage's own code where the console has no word for it, for the administrator's tooltip; null where it has. */
+export function stageCode(stage: string): string | null {
+  return STAGE_LABELS.has(stage) ? null : stage;
 }
 
 // A quiet instruction's sort in the owner's words: the key its producer named, worded here as every
-// screen word is (the receiver's docs/bmo-window.md, 「Quiet instruction」). A key the app does not know keeps its own
-// name, and a row that names none stands as a quiet instruction.
+// screen word is (the receiver's docs/bmo-window.md, 「Quiet instruction」). A key the app does not know stands as the
+// pack's word for another instruction, and a row that names none stands as a quiet instruction.
 const INSTRUCTION_SORTS = new Map([
   ["browse", "room.label.sort_browse"],
   ["console_talk", "room.label.sort_console_talk"],
@@ -140,7 +146,12 @@ export function sortLabel(t: Translate, sort: string | null): string {
 
   const key = INSTRUCTION_SORTS.get(sort);
 
-  return key === undefined ? sort : t(key);
+  return key === undefined ? t("room.label.sort_other") : t(key);
+}
+
+/** The sort's own key where the console has no word for it, for the administrator's tooltip; null where it has. */
+export function sortCode(sort: string | null): string | null {
+  return sort === null || INSTRUCTION_SORTS.has(sort) ? null : sort;
 }
 
 // One stretch of an instruction's whole text: words as they were written, or a line of facts the
@@ -227,8 +238,8 @@ function factRows(value: unknown, path: string[]): FactRow[] {
   return [{ label, value: String(value) }];
 }
 
-// How a road ended, in the owner's words. An outcome the app does not know keeps the word the
-// record used, the same way a stage does.
+// How a road ended, in the owner's words. An outcome the app does not know stands as the pack's word for another
+// result, the same way a stage does.
 const ROAD_OUTCOMES = new Map([
   ["answered", "room.label.road_answered"],
   ["timeout", "room.label.road_timeout"],
@@ -242,7 +253,12 @@ const ROAD_OUTCOMES = new Map([
 export function roadOutcome(t: Translate, outcome: string): string {
   const key = ROAD_OUTCOMES.get(outcome);
 
-  return key === undefined ? outcome : t(key);
+  return key === undefined ? t("room.label.road_outcome_other") : t(key);
+}
+
+/** The outcome's own code where the console has no word for it, for the administrator's tooltip; null where it has. */
+export function roadOutcomeCode(outcome: string): string | null {
+  return ROAD_OUTCOMES.has(outcome) ? null : outcome;
 }
 
 // Which road it was, as the record names it: the provider, and the model where the road got as

@@ -164,7 +164,7 @@ export function roleViewsOf(roles: readonly Role[]): RoleView[] {
   return roles.map((role) => ({
     name: role.name,
     label: role.name,
-    bundles: role.bundles.map((bundle) => ({ name: bundle.name, label: bundleWordOf(bundle.code, bundle.name, bundle.label) }))
+    bundles: role.bundles.map((bundle) => ({ name: bundle.name, label: bundleWordOf(bundle.code, bundle.name) }))
   }));
 }
 

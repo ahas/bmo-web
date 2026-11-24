@@ -3,7 +3,8 @@ import { wording } from "#shared/wording";
 // The agency's codes for what it says in English — why a road cannot be taken, a provider and a bundle — each with the
 // pack's key for its words (the agency's `docs/api.md`). A role is never worded here: every screen shows it by its name
 // alone (docs/web.md, the roles tab). The codes are the agency's and its providers' own; the
-// table is where the console says them. A code the pack holds no words for is said as the code itself.
+// table is where the console says them. A code the pack holds no words for is said by the pack's generic word for its
+// sort, never by the agency's English.
 
 const ROAD_REASONS: Readonly<Record<string, string>> = {
   "openrouter-key-unset": "agents.status.road_openrouter_key_unset",
@@ -24,7 +25,9 @@ const PROVIDER_LABELS: Readonly<Record<string, string>> = {
   laya: "agents.label.provider_laya"
 };
 
-const BUNDLE_LABELS: Readonly<Record<string, string>> = {
+// The bundles a role may give, by code: every one the agency's policy declares (its `policy/roles.toml`, `[[bundles]]`)
+// among them.
+export const BUNDLE_LABELS: Readonly<Record<string, string>> = {
   "room-chat": "agents.label.bundle_room_chat",
   "room-send": "agents.label.bundle_room_send",
   "web-read": "agents.label.bundle_web_read",
@@ -33,7 +36,8 @@ const BUNDLE_LABELS: Readonly<Record<string, string>> = {
   "web-branches": "agents.label.bundle_web_branches",
   "web-rulebooks": "agents.label.bundle_web_rulebooks",
   "graph-read": "agents.label.bundle_graph_read",
-  "queue-read": "agents.label.bundle_queue_read"
+  "queue-read": "agents.label.bundle_queue_read",
+  "brain-lessons": "agents.label.bundle_brain_lessons"
 };
 
 /** Why a road cannot be taken, in the pack's words, beside the agency's own sentence — its fuller `detail` where it
@@ -50,19 +54,17 @@ export function roadReasonOf(reason: unknown, code: unknown, detail?: unknown): 
   return { reason: said, reasonEnglish: english };
 }
 
-function labelOf(table: Readonly<Record<string, string>>, code: unknown, name: string): string {
+// The pack's key for a code, the code being the agency's where it sends one and the name otherwise.
+function keyOf(table: Readonly<Record<string, string>>, code: unknown, name: string): { named: string; key: string | undefined } {
   const named = typeof code === "string" && code !== "" ? code : name;
-  const key = table[named];
 
-  return key === undefined ? wording("agents.label.unknown_code", { code: named }) : wording(key);
+  return { named, key: Object.hasOwn(table, named) ? table[named] : undefined };
 }
 
-// A code the pack holds words for is said in them; any other is said by the label the agency keeps for it.
-function wordOr(table: Readonly<Record<string, string>>, code: unknown, name: string, label: string): string {
-  const named = typeof code === "string" && code !== "" ? code : name;
-  const key = table[named];
+function labelOf(table: Readonly<Record<string, string>>, code: unknown, name: string): string {
+  const { named, key } = keyOf(table, code, name);
 
-  return key === undefined ? (label === "" ? named : label) : wording(key);
+  return key === undefined ? wording("agents.label.unknown_code", { code: named }) : wording(key);
 }
 
 // The sources a slot is asked under, as the agency's `docs/role-slots.md` names them, each with the pack's key for its
@@ -86,14 +88,11 @@ export function slotSourceOf(source: string | null): string {
   return key === undefined ? wording("agents.label.unknown_code", { code: source }) : wording(key);
 }
 
-/** A bundle the screen names, in the pack's words where the pack holds them, by its agency label otherwise. */
-export function bundleWordOf(code: unknown, name: string, label: string): string {
-  return wordOr(BUNDLE_LABELS, code, name, label);
-}
+/** A bundle the screen names, in the pack's words by its code, and as another bundle where the pack holds none. */
+export function bundleWordOf(code: unknown, name: string): string {
+  const { key } = keyOf(BUNDLE_LABELS, code, name);
 
-/** A bundle's name in the pack's words, by its code. */
-export function bundleLabelOf(code: unknown, name: string): string {
-  return labelOf(BUNDLE_LABELS, code, name);
+  return wording(key ?? "agents.label.bundle_other");
 }
 
 /** A provider's name in the pack's words, by its code. */

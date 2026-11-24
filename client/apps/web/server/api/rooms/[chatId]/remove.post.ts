@@ -1,5 +1,6 @@
 import { removalQuery } from "../../../utils/console-rooms";
 import { receiverRoute } from "../../../utils/receiver";
+import { removalLeft } from "../../../utils/room-removal";
 import { requireWritableRoom } from "../../../utils/room-reach";
 
 import type { RoomRemovalAnswer } from "#shared/types";
@@ -15,7 +16,8 @@ interface RemovalRead {
   cleared?: RoomRemovalAnswer["cleared"];
   pictures?: string[];
   folders?: RoomRemovalAnswer["folders"];
-  couldNot?: string[];
+  // Each a kind with its path, said here in the pack's sentence for it.
+  couldNot?: unknown[];
 }
 
 export default defineEventHandler(async (event): Promise<RoomRemovalAnswer> => {
@@ -34,6 +36,6 @@ export default defineEventHandler(async (event): Promise<RoomRemovalAnswer> => {
     settings: [],
     folders: answer.folders ?? [],
     copies: [],
-    left: answer.couldNot ?? []
+    left: removalLeft(answer.couldNot)
   };
 });

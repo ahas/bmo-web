@@ -163,8 +163,8 @@
             <div v-else-if="entry.kind === 'draft'" data-record-draft class="flex w-full min-w-0 flex-col gap-1">
               <div class="flex w-full min-w-0 flex-wrap items-center gap-x-2 px-1 text-sm text-muted tabular-nums">
                 <span class="text-dimmed">{{ countText(entry.line.number) }}</span>
-                <span class="text-highlighted">{{ entry.line.asked }}</span>
-                <span :class="entry.line.failed ? 'text-error' : ''">{{ entry.line.decided }}</span>
+                <CodeWord class="text-highlighted" :text="entry.line.asked" :code="entry.line.askedCode" />
+                <CodeWord :class="entry.line.failed ? 'text-error' : ''" :text="entry.line.decided" :code="entry.line.decidedCode" />
                 <span v-if="entry.line.chars !== null">{{ $t("room.label.draft_chars", { n: countText(entry.line.chars) }) }}</span>
                 <span v-if="entry.line.changed">{{ $t("room.label.draft_changed") }}</span>
                 <span v-if="entry.line.ms !== null" class="inline-flex items-center gap-1" :class="entry.line.slow ? 'text-warning' : ''">
@@ -181,7 +181,7 @@
 
             <p v-else-if="entry.kind === 'end'" data-draft-end class="flex flex-wrap items-center gap-x-2 px-1 text-sm text-muted tabular-nums">
               <UIcon name="i-material-symbols-flag-outline" aria-hidden="true" class="size-4 shrink-0 text-dimmed" />
-              <span class="text-highlighted">{{ entry.outcome }}</span>
+              <CodeWord class="text-highlighted" :text="entry.outcome" :code="entry.outcomeCode" />
               <span v-if="entry.ms !== null">{{ secondsText($t, entry.ms) }}</span>
               <time v-if="entry.at !== null" class="ms-auto text-dimmed">{{ formatClock(entry.at) }}</time>
             </p>
@@ -190,7 +190,7 @@
                  read, what it narrowed and kept, the roads it walked, and its original verdict whole. -->
             <div v-else-if="entry.kind === 'judgement'" class="w-full" data-record-card>
               <div class="flex flex-wrap items-center gap-2 text-sm">
-                <span class="font-medium text-highlighted">{{ stageLabel($t, entry.judgement.stage) }}</span>
+                <CodeWord class="font-medium text-highlighted" :text="stageLabel($t, entry.judgement.stage)" :code="stageCode(entry.judgement.stage)" />
                 <time class="text-dimmed">{{ formatStamp(entry.judgement.createdAt) }}</time>
                 <span v-if="tookOf(entry.judgement) !== ''" class="text-dimmed tabular-nums">{{ tookOf(entry.judgement) }}</span>
               </div>
@@ -222,7 +222,7 @@
                 <li v-for="road in roadsOf(entry.judgement)" :key="road.id" class="flex flex-wrap items-baseline gap-2 text-sm text-dimmed">
                   <span class="font-mono break-all text-muted">{{ roadName(road) }}</span>
                   <span class="flex items-baseline gap-2 whitespace-nowrap">
-                    <span>{{ roadOutcome($t, road.outcome) }}</span>
+                    <CodeWord :text="roadOutcome($t, road.outcome)" :code="roadOutcomeCode(road.outcome)" />
                     <span class="tabular-nums">{{ secondsText($t, road.ms) }}</span>
                   </span>
                 </li>
@@ -233,12 +233,19 @@
               </UChatTool>
             </div>
 
-            <!-- The room's situation note as the round read it, and whether the round wrote it afresh. -->
-            <p v-else-if="entry.kind === 'situation'" data-situation class="flex min-w-0 flex-wrap items-baseline gap-x-2 text-sm">
-              <span class="shrink-0 text-muted">{{ $t("room.label.situation") }}</span>
-              <span class="min-w-0 break-words text-highlighted">{{ entry.situation.text }}</span>
-              <UBadge v-if="entry.situation.changed" color="primary" variant="subtle" size="sm" data-situation-changed>{{ $t("room.label.situation_changed") }}</UBadge>
-            </p>
+            <!-- The room's situation note as the round read it, in the reader's language as the situation tab reads it, and
+                 whether the round wrote it afresh. -->
+            <div v-else-if="entry.kind === 'situation'" data-situation class="flex min-w-0 flex-col gap-1 text-sm">
+              <p class="flex min-w-0 flex-wrap items-baseline gap-x-2">
+                <span class="shrink-0 text-muted">{{ $t("room.label.situation") }}</span>
+                <UBadge v-if="entry.situation.changed" color="primary" variant="subtle" size="sm" data-situation-changed>{{ $t("room.label.situation_changed") }}</UBadge>
+              </p>
+              <TranslatedText :text="entry.situation.text">
+                <template #default="{ text: standing }">
+                  <p data-situation-note class="min-w-0 break-words whitespace-pre-wrap text-highlighted">{{ standing }}</p>
+                </template>
+              </TranslatedText>
+            </div>
           </template>
 
           <!-- A turn longer than the page the log answers, or than the picture the bot holds, comes back short of its
@@ -263,7 +270,7 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { useBotEvents } from "~/domain/events";
 import { readRunLines } from "~/domain/log";
 import { countText, secondsText } from "~/domain/numbers";
-import { decidesMessage, judgesAnswer, keptOffer, lineAnswer, lineKept, narrowedOffer, readWholeJudgements, roadName, roadOutcome, stageLabel, verdictState, verdictWords, wholeOf } from "~/domain/judgements";
+import { decidesMessage, judgesAnswer, keptOffer, lineAnswer, lineKept, narrowedOffer, readWholeJudgements, roadName, roadOutcome, roadOutcomeCode, stageCode, stageLabel, verdictState, verdictWords, wholeOf } from "~/domain/judgements";
 import { brainActions, progressLines, turnActions } from "~/domain/working";
 import { formatClock, formatStamp } from "bmo-ui/app/domain/time";
 import { roundChip } from "~/domain/turns";
@@ -518,7 +525,7 @@ type RecordEntry =
   | { kind: "call"; row: LogRow }
   | { kind: "said"; text: string }
   | { kind: "draft"; line: RoundLine; diff: DraftDiffLine[]; versions: DraftVersion[]; at: number }
-  | { kind: "end"; outcome: string; ms: number | null; at: number | null }
+  | { kind: "end"; outcome: string; outcomeCode: string | null; ms: number | null; at: number | null }
   | { kind: "opening"; opening: NonNullable<Judgement["opening"]> }
   | {
       kind: "judgement";

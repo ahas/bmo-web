@@ -1951,6 +1951,10 @@ Four groups.
   code. A field whose value is itself an object stands its fields one level in, under its name.
 - **A value of a kind the screen does not know** stands as a sentence saying so, naming what it is, never as the
   value's own JSON.
+- **A code the console has no word for** — a verdict's stage, a road's or a draft row's outcome, a draft row's kind,
+  a quiet instruction's sort — stands as the pack's generic word for its sort (기타 단계, 기타 결과, 기타 기록, 기타
+  지시), never as the code a unit wrote. The code itself stands in that word's tooltip for the platform administrator
+  alone, so a new code can be told apart and given its word.
 
 ### Model names where room is short
 
@@ -3592,8 +3596,8 @@ alone (「Access」); another account's agents are reached from 조직's 사용�
 - **One table of the roles the agency holds,** one row each in the order the agency lists them, read from its
   `GET /roles`: 역할, its name alone — the kebab-case key the agency holds it under, never a translated word and
   never the row's label — the title column; 실행 라인, the line its runs go out on; 기능 묶음, the bundles it gives as
-  chips, each by the pack's short name for its code and by the agency's label where the pack holds none, or 기능
-  묶음 없음; 스킬, the skills it names on one line under a ceiling of its own, `(기본값)` where it names none and
+  chips, each by the pack's short name for its code — the pack holds one for every bundle the agency's policy
+  declares — and as 기타 기능 묶음 where it holds none, never by the agency's English label, or 기능 묶음 없음; 스킬, the skills it names on one line under a ceiling of its own, `(기본값)` where it names none and
   its runs carry the whole plugin the agency's release places for it, and 스킬 없음 for a list that names none;
   역할 프롬프트, 있음 or 없음; and 에이전트, how many of its agents are switched on with how many of its
   runs go, are kept by a reservation and wait beside it — `2/3 실행 · 1 예약 · 1 대기`, each part after the first
@@ -5075,7 +5079,8 @@ Four bounds keep it from growing forever.
     - The live runs of the gates are served by no unit (`docs/boundary.md`, 「Gaps the console meets」), so a
       picture naming none leaves the breathing to the queue and the turns.
   - A spread card stands the stage name, its time, how long that stage took, the verdict in words, and the road
-    that run walked. A length of time stands in seconds to one decimal, 「11.8초」, never in milliseconds.
+    that run walked. A stage the console has no name for stands as 기타 단계 (「A code the console has no word
+    for」). A length of time stands in seconds to one decimal, 「11.8초」, never in milliseconds.
     - **The verdict's words**: 선택 with the names chosen, 선택 없음, 후보 없음, 이상 없음 for a sanitiser's `CLEAN`,
       무력화, 통과, 실패 with what failed, 건너뜀, 답을 읽지 못함 for `UNREADABLE`, 답 없음 for `NO-ANSWER`, a
       situation rule's 적용 and 사용 each with its names, and 함께 읽음. The names chosen stand as their slugs, the
@@ -5085,8 +5090,8 @@ Four bounds keep it from growing forever.
       copy's (「What a copy holds」).
     - **The road** is one line each, writing the provider and model by their recorded names, then how that road
       ended — 응답함, 시간 초과, 크기 초과로 거부, 오류, 없음 — and its seconds. A gate has one road so one line
-      stands, and only a run split by size stands one line per part. A result the screen does not know stands by
-      the recorded words, so an old verdict's line reads by the words of that time. A non-gate stage and a verdict
+      stands, and only a run split by size stands one line per part. A result the screen does not know stands as
+      기타 결과 (「A code the console has no word for」). A non-gate stage and a verdict
       from before road records existed have no road.
   - **A picker's card stands what its model was asked.** A verdict of a picker or the matcher — 시스템 문서, 방
     규칙, 라이브러리 지식, 사람 찾기, 방 기억, 상황 규칙 — carries the lines the model read of its candidates
@@ -5098,7 +5103,8 @@ Four bounds keep it from growing forever.
     its lines where the stream hands them, and the record's read of its round's verdicts whole carries them all the same.
   - **What opened the turn stands with its verdicts.** Spread, a message's verdicts are headed, for each
     turn they belong to, by the quiet instructions that turn carried: one line each, its sort and its one-line
-    summary, cut to the line. Pressing a line spreads the instruction's whole text under it, read the moment it
+    summary, cut to the line; a sort the console has no word for stands as 기타 지시 (「A code the console has no
+    word for」). Pressing a line spreads the instruction's whole text under it, read the moment it
     is first asked for, with a spinner on the line's mark until it is in; pressing again folds it. Spread, the
     line stands its whole summary over as many lines as it takes, and the text never runs past the bubble: a long
     unbroken run of it — a path, a record — breaks where the bubble ends. A line of the text that is a record the
@@ -5250,8 +5256,8 @@ Four bounds keep it from growing forever.
     turn, 도착 확인 for the arrived check, 호칭 확인 for the fixed audit before the stages of how the message addresses
     the people it answers, 판단 for the agent's judgement before the round, and a stage by its own name, as the
     supervisor's settings name it — what it decided — 답함, 보냄, 사유 없이 넘김 (a skip naming no reason, asked once
-    more), 넘김 or 실패 for a turn, 통과, 수정함 or 실패 for the audit and a stage, or the receiver's word for one the
-    console does not know — how long its answer is, 「110자」, and how long it took, 「11.8초」. 바뀜 follows where the answer
+    more), 넘김 or 실패 for a turn, 통과, 수정함 or 실패 for the audit and a stage, or 기타 결과 for one the console does
+    not know, as a row of a kind it does not know is 기타 기록 (「A code the console has no word for」) — how long its answer is, 「110자」, and how long it took, 「11.8초」. 바뀜 follows where the answer
     differs from the one before it.
   - **The slow turn is marked**: where more than one turn ran, the turn that took longest, when it took at
     least twice as long as any other, wears a clock mark and its time in the warning colour.
@@ -5711,7 +5717,10 @@ Four bounds keep it from growing forever.
     already in the room never goes up twice. The line's failed mark names its own file's reason on hover and on
     press. A send the receiver refuses as a whole hands every file in it the refusal's sentence, naming the file
     once, and a file the receiver turns away as past the room's limit says the chat service and the largest it
-    takes, as the box says it. Every file that does not go, or is not yet known to have gone, is written to the
+    takes, as the box says it. A file the receiver answers as not kept is said by the pack's sentence for the
+    refusal's code it carries — a chat road's refusal code or the receiver's own — naming the file; a code the pack
+    holds no sentence for is said by the pack's sentence for a file that could not be sent, naming it, and the
+    receiver's English reason is never shown. Every file that does not go, or is not yet known to have gone, is written to the
     console server's log, one line each with the room, the file's name and why: the receiver's own status and
     words where it refused the send, and its own reason where it answered for that file. A photo, voice, audio or
     ordinary file stays as the message the receive update recorded in the archive. When the file's storage
@@ -6022,7 +6031,9 @@ Four bounds keep it from growing forever.
 - **A round's situation note stands in its answer's record** as that round read it, last in the panel: the note's
   words, and a 갱신 mark beside them where that round wrote it afresh (the receiver's `docs/instruction.md`, 「The
   situation note」). The note is the room's live state and not the agent's memory, so it is read beside the verdicts
-  and never as a verdict; a round that left no answer stands no note there.
+  and never as a verdict; a round that left no answer stands no note there. The note's words carry the 번역 action
+  of a text read in the reader's language, as the 상황 tab's do (「The original, and its translation in its
+  place」).
 - **The room's situation as it stands now** is 방 정보's 상황 tab (「방 정보」): the note and the moment it last
   changed, read from the receiver each time the tab is first shown in an opening (`GET /rooms/{roomId}/situation`); a room with no
   note yet says so rather than standing an empty box. The note carries the 번역 action of a text read in the
@@ -6316,11 +6327,16 @@ Four bounds keep it from growing forever.
     it;
   - what stays: the items, jobs, job questions and searches filed from the room, and its usage;
   - the warnings: each supervisor the room names, the open items and questions filed there,
-    another user's private chat by that user's name, and a road that can still reach the room;
+    another user's private chat by that user's name, and a road that can still reach the room, by its name
+    (「A chat road's name」). Each is the pack's sentence for the code the receiver gives it (the receiver's
+    `docs/codes.md`, `RoomRemovalWarning`), and a code the pack holds none for is said as one more thing to check;
   - the settings naming the room that no declaration matches, listed as kept.
 - **A refused room shows the reason and no confirm;** the foot carries 닫기 alone.
 - **Otherwise the foot carries 취소 and 삭제,** and 삭제 is on only once the list is read. Pressed, it
-  asks no further, and the dialog turns into what the removal took, with anything it could not remove.
+  asks no further, and the dialog turns into what the removal took, with anything it could not remove: each by its
+  path in the pack's sentence for the kind the receiver gives it (`RemovalLeft`), outside the data folder or not
+  removed, and one of a kind the pack holds no sentence for as something that could not be removed. An archive copy
+  that could not be read says so in the pack's words. No sentence of the receiver's stands in the dialog.
 - **The `room-removed` event closes the room everywhere:** the sidebar drops the room, and a room
   screen open on it, on this device or another, goes to the home screen with a notice that the room's
   registration was removed. A screen whose own removal dialog stands open goes once the dialog is

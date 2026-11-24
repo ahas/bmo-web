@@ -560,6 +560,11 @@ room:
     file_not_found: 找不到文件。
     file_too_large_named: "{name}文件超过了此房间可发送的大小，未发送。"
     file_over_limit_named: "{name}文件超过了{by}可发送的大小（{limit}），未发送。"
+    file_unsent_named: "{name}文件未能发送。"
+    file_refused_platform: "通讯工具拒绝接收{name}文件，未能发送。"
+    file_refused_unsupported: "此房间的通讯工具无法接收{name}这类文件，未能发送。"
+    file_refused_not_ready: "通讯工具尚未就绪，{name}文件未能发送。"
+    file_refused_failed: "在房间中保存{name}文件时失败，未能发送。"
     file_with_voice: 发送语音备忘之前无法添加文件。
     instruction_read_failed: 无法读取指令原文。
     forward_failed: 消息转发失败。
@@ -716,6 +721,7 @@ room:
     draft_end_message: 已发送消息
     draft_end_skip: 未发送
     draft_kind_end: 结束
+    draft_kind_other: "其他记录"
     draft_kind_supervisor: 判断
     draft_kind_turn: 轮次
     draft_outcome_answered: 已回复
@@ -806,6 +812,14 @@ room:
     removal_stays: 保留的行
     removal_undeclared: 未声明的设置（保留）
     removal_warnings: 注意事项
+    removal_warning_answerers: "还有其他监督者回答此房间：{names}。他们会保留，但不再在此房间回答。"
+    removal_warning_road: "{road}仍可到达此房间，之后来消息时会重新登记该房间。"
+    removal_warning_private: "这是用户{user}的私人聊天。"
+    removal_warning_other: "还有一项需要确认。"
+    removal_left_outside: "{path}：位于数据文件夹之外，已保留。"
+    removal_left_not_removed: "{path}：未能删除。"
+    removal_left_other: "有内容未能删除。"
+    removal_copy_failed: "无法读取"
     road_answered: 已响应
     road_busy_skip: 因繁忙跳过
     road_error: 错误
@@ -813,6 +827,7 @@ room:
     road_timeout: 超时
     road_too_large: 因超出大小被拒
     road_unavailable: 无
+    road_outcome_other: "其他结果"
     room_add_added_avatar: 已以代答方式添加
     room_add_added_record_only: 已以仅记录方式添加
     room_add_group_title: 群组名称
@@ -865,6 +880,7 @@ room:
     sort_supervisor_cut: 主管中止
     sort_unfinished: 待决事项
     sort_watch: 监视
+    sort_other: "其他指令"
     span_days: "第{n}天"
     span_months: "第{n}个月"
     span_speakers: "{span} · {n}位参与者"
@@ -881,6 +897,7 @@ room:
     stage_sanitizer: 净化
     stage_send: 发送
     stage_skipped: 未回复
+    stage_other: "其他阶段"
     stage_supervisor: 主管
     stage_wake_again: 唤醒条件重写
     stage_wording_again: 禁用词重写
@@ -915,6 +932,7 @@ room:
     draft_kind_stage: 指令阶段
     draft_outcome_pass: 通过
     draft_outcome_revised: 已修改
+    draft_outcome_other: "其他结果"
     draft_turn_message: 撰写消息
     draft_kind_audit: 称呼检查
     draft_turn_audit: 称呼检查
@@ -2969,6 +2987,8 @@ agents:
     bundle_web_read: 读取网页
     bundle_web_rulebooks: 规则手册
     bundle_web_sites: 站点工具
+    bundle_brain_lessons: "Brain 技巧"
+    bundle_other: "其他功能组"
     call_done: 完成
     call_failed: 失败
     characters_unit: 字

@@ -24,7 +24,7 @@
             />
           </span>
           <span class="flex flex-wrap items-center gap-1">
-            <UBadge color="neutral" variant="subtle" size="sm" :label="sortOf(instruction)" class="max-w-40" />
+            <UBadge color="neutral" variant="subtle" size="sm" class="max-w-40"><CodeWord class="truncate" :text="sortOf(instruction)" :code="sortCode(instruction.sort)" /></UBadge>
           </span>
         </button>
 
@@ -60,7 +60,7 @@
 
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
-import { instructionParts, sortLabel } from "~/domain/judgements";
+import { instructionParts, sortCode, sortLabel } from "~/domain/judgements";
 
 import type { InstructionPart } from "~/domain/judgements";
 import type { TurnInstruction } from "#shared/types";

@@ -11,7 +11,8 @@ import type { Translate } from "#shared/wording";
 export const DRAFT_STAGE = "draft";
 
 // A row's kind and how it ended, each by the key of the words it is said in; one the receiver names that the
-// pack does not hold stands as the receiver's word.
+// pack does not hold stands as the pack's word for another entry or result (docs/web.md, 「A code the console has no
+// word for」).
 const KIND_LABELS: Record<string, string> = {
   supervisor: "room.label.draft_kind_supervisor",
   turn: "room.label.draft_kind_turn",
@@ -73,16 +74,27 @@ export function draftAsked(summary: DraftSummary | null, drafts: readonly Judgem
 }
 
 export function draftKindText(t: Translate, kind: string): string {
-  const key = KIND_LABELS[kind];
+  const key = Object.hasOwn(KIND_LABELS, kind) ? KIND_LABELS[kind] : undefined;
 
-  return key === undefined ? kind : t(key);
+  return key === undefined ? t("room.label.draft_kind_other") : t(key);
+}
+
+/** The kind's own code where the pack holds no word for it, for the administrator's tooltip; null where it does. */
+export function draftKindCode(kind: string): string | null {
+  return Object.hasOwn(KIND_LABELS, kind) ? null : kind;
 }
 
 /** How a row ended: a turn's or a stage's outcome, or the pipeline's end's where the row is its end. */
 export function draftOutcomeText(t: Translate, outcome: string, kind: string): string {
-  const key = (kind === "end" ? END_LABELS : OUTCOME_LABELS)[outcome];
+  const table = kind === "end" ? END_LABELS : OUTCOME_LABELS;
+  const key = Object.hasOwn(table, outcome) ? table[outcome] : undefined;
 
-  return key === undefined ? outcome : t(key);
+  return key === undefined ? t("room.label.draft_outcome_other") : t(key);
+}
+
+/** The outcome's own code where the pack holds no word for it, for the administrator's tooltip; null where it does. */
+export function draftOutcomeCode(outcome: string, kind: string): string | null {
+  return Object.hasOwn(kind === "end" ? END_LABELS : OUTCOME_LABELS, outcome) ? null : outcome;
 }
 
 /** Whether a row's answer stands under it: the audit's or a stage's that revised the message, its answer being the
@@ -146,6 +158,9 @@ export interface RoundLine {
   number: number;
   asked: string;
   decided: string;
+  // The kind's and the outcome's own codes where the pack holds no word for them, for the administrator's tooltip.
+  askedCode: string | null;
+  decidedCode: string | null;
   failed: boolean;
   // How long its answer is and how long it took, where the line knows them.
   chars: number | null;
@@ -182,6 +197,8 @@ export function roundLines(t: Translate, rows: readonly DraftRow[]): RoundLine[]
         number: row.number,
         asked: askedText(t, row.kind, row.question),
         decided: draftOutcomeText(t, row.outcome, row.kind),
+        askedCode: row.kind !== "supervisor" && row.question === "" ? draftKindCode(row.kind) : null,
+        decidedCode: draftOutcomeCode(row.outcome, row.kind),
         failed: row.outcome === "failed",
         chars: row.answerChars,
         ms: row.ms,
@@ -210,6 +227,8 @@ export function gateRoundLines(t: Translate, drafts: readonly JudgementMark[]): 
         number: Number(round[1]),
         asked: draftTurnLabel(t, round[2]!),
         decided: draftOutcomeText(t, round[3]!, "stage"),
+        askedCode: null,
+        decidedCode: draftOutcomeCode(round[3]!, "stage"),
         failed: round[3] === "failed",
         chars: null,
         ms: null,
@@ -222,15 +241,20 @@ export function gateRoundLines(t: Translate, drafts: readonly JudgementMark[]): 
 
 /** How the round ended, as its end line says it: what went out and how long the whole took, from the round log's end
  * row, else from the gate's end verdict, else from the page's summary. */
-export function endLine(t: Translate, rows: readonly DraftRow[] | null, drafts: readonly JudgementMark[], summary: DraftSummary | null): { outcome: string; ms: number | null } | null {
+export function endLine(
+  t: Translate,
+  rows: readonly DraftRow[] | null,
+  drafts: readonly JudgementMark[],
+  summary: DraftSummary | null
+): { outcome: string; outcomeCode: string | null; ms: number | null } | null {
   const end = rows?.findLast((row) => row.kind === "end");
 
-  if (end !== undefined) return { outcome: draftOutcomeText(t, end.outcome, "end"), ms: end.ms };
+  if (end !== undefined) return { outcome: draftOutcomeText(t, end.outcome, "end"), outcomeCode: draftOutcomeCode(end.outcome, "end"), ms: end.ms };
 
   const gate = drafts.map((judgement) => GATE_END.exec(judgement.verdict.trim())?.[1]).findLast((outcome) => outcome !== undefined);
   const outcome = gate ?? summary?.end ?? null;
 
-  return outcome === null ? null : { outcome: draftOutcomeText(t, outcome, "end"), ms: null };
+  return outcome === null ? null : { outcome: draftOutcomeText(t, outcome, "end"), outcomeCode: draftOutcomeCode(outcome, "end"), ms: null };
 }
 
 /** The pieces a round read, by how it read them, in the chip's order; a way it read none of stands as no group. */

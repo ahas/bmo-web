@@ -66,8 +66,21 @@ describe("the draft chip", () => {
       [5, "tone", wording("room.label.draft_outcome_revised"), false, true, "the message, revised"],
       [6, "sources", wording("room.label.draft_outcome_failed"), false, false, null]
     ]);
-    expect(endLine(wording, [logRow(5, { kind: "end", outcome: "message", ms: 15_333 })], [], null)).toEqual({ outcome: wording("room.label.draft_end_message"), ms: 15_333 });
+    expect(endLine(wording, [logRow(5, { kind: "end", outcome: "message", ms: 15_333 })], [], null)).toEqual({ outcome: wording("room.label.draft_end_message"), outcomeCode: null, ms: 15_333 });
     expect(roundLines(wording, [logRow(1, { ms: 100 }), logRow(2, { ms: 120 })]).some((line) => line.slow)).toBe(false);
+  });
+
+  test("says a kind or an outcome the pack holds no word for by its generic word, its code kept for the tooltip alone", () => {
+    const [line] = roundLines(wording, [logRow(1, { question: "", kind: "kind-z", outcome: "outcome-z" })]);
+
+    expect([line?.asked, line?.askedCode, line?.decided, line?.decidedCode]).toEqual([
+      wording("room.label.draft_kind_other"),
+      "kind-z",
+      wording("room.label.draft_outcome_other"),
+      "outcome-z"
+    ]);
+    expect(endLine(wording, [logRow(2, { kind: "end", outcome: "end-z", ms: 1 })], [], null)).toEqual({ outcome: wording("room.label.draft_outcome_other"), outcomeCode: "end-z", ms: 1 });
+    expect(draftKindText(wording, "toString")).toBe(wording("room.label.draft_kind_other"));
   });
 
   test("stands the gate's rows for the turns where the log holds none, with no length and no time", () => {
@@ -76,7 +89,7 @@ describe("the draft chip", () => {
 
     expect(lines.map((line) => [line.number, line.asked, line.decided, line.chars, line.ms])).toEqual([[1, "review", wording("room.label.draft_outcome_pass"), null, null]]);
     expect(endLine(wording, null, drafts, null)?.outcome).toBe(wording("room.label.draft_end_message"));
-    expect(endLine(wording, null, [], { round: "round-1", asked: 1, end: "skip", reads: [] })).toEqual({ outcome: wording("room.label.draft_end_skip"), ms: null });
+    expect(endLine(wording, null, [], { round: "round-1", asked: 1, end: "skip", reads: [] })).toEqual({ outcome: wording("room.label.draft_end_skip"), outcomeCode: null, ms: null });
   });
 
   test("lists what was read new before what was held, and names the room's due memories", () => {
@@ -102,9 +115,9 @@ describe("the draft chip", () => {
     expect(draftKindText(wording, "audit")).toBe(wording("room.label.draft_kind_audit"));
   });
 
-  test("says a turn's outcome and the end's apart, and an outcome it does not know as it came", () => {
+  test("says a turn's outcome and the end's apart, and an outcome it does not know as another result", () => {
     expect(draftOutcomeText(wording, "skip", "turn")).toBe(wording("room.label.draft_outcome_skip"));
     expect(draftOutcomeText(wording, "skip", "end")).toBe(wording("room.label.draft_end_skip"));
-    expect(draftOutcomeText(wording, "later", "end")).toBe("later");
+    expect(draftOutcomeText(wording, "later", "end")).toBe(wording("room.label.draft_outcome_other"));
   });
 });

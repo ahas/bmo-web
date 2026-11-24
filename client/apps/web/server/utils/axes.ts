@@ -241,7 +241,7 @@ export async function changeSupervisor(name: string, change: Schemas["Supervisor
 
 // A bundle is worded by its code, the name with each dot a hyphen (the agency's `docs/api.md`, 「roles」).
 function bundleOf(bundle: Schemas["RoleBundle"]): RoleBundleView {
-  return { name: bundle.name, label: bundleWordOf(bundle.code, bundle.name, bundle.label) };
+  return { name: bundle.name, label: bundleWordOf(bundle.code, bundle.name) };
 }
 
 // Whether an agent or a role follows the supervisor that asks a run of it (the agency's `docs/role-agents.md`, 「An

@@ -560,6 +560,11 @@ room:
     file_not_found: File not found.
     file_too_large_named: "{name} is larger than this room can send, so it wasn't sent."
     file_over_limit_named: "{name} is larger than {by} can send ({limit}), so it wasn't sent."
+    file_unsent_named: "{name} couldn't be sent."
+    file_refused_platform: "The messenger turned {name} away, so it wasn't sent."
+    file_refused_unsupported: "This room's messenger can't take a file like {name}, so it wasn't sent."
+    file_refused_not_ready: "The messenger isn't ready yet, so {name} wasn't sent."
+    file_refused_failed: "Keeping {name} in the room failed, so it wasn't sent."
     file_with_voice: "You can't attach files until the voice memo is sent."
     instruction_read_failed: "Couldn't read the original instruction."
     forward_failed: "Couldn't forward the message."
@@ -716,6 +721,7 @@ room:
     draft_end_message: Message sent
     draft_end_skip: Not sent
     draft_kind_end: End
+    draft_kind_other: "Other entry"
     draft_kind_supervisor: Judgement
     draft_kind_turn: Turn
     draft_outcome_answered: Answered
@@ -806,6 +812,14 @@ room:
     removal_stays: Rows that stay
     removal_undeclared: Undeclared settings (stay)
     removal_warnings: Things to check
+    removal_warning_answerers: "Other supervisors answer this room: {names}. They stay, and no longer answer here."
+    removal_warning_road: "{road} can still reach this room, so a later message registers it anew."
+    removal_warning_private: "This is {user}'s private chat."
+    removal_warning_other: "There is one more thing to check."
+    removal_left_outside: "{path}: outside the data folder, so it was left."
+    removal_left_not_removed: "{path}: couldn't be removed."
+    removal_left_other: "Something couldn't be removed."
+    removal_copy_failed: "Couldn't be read"
     road_answered: Answered
     road_busy_skip: Skipped while busy
     road_error: Error
@@ -813,6 +827,7 @@ room:
     road_timeout: Timed out
     road_too_large: Refused as too large
     road_unavailable: Unavailable
+    road_outcome_other: "Other result"
     room_add_added_avatar: Added as avatar
     room_add_added_record_only: Added as record only
     room_add_group_title: Group name
@@ -865,6 +880,7 @@ room:
     sort_supervisor_cut: Supervisor stop
     sort_unfinished: Open issues
     sort_watch: Watch
+    sort_other: "Other instruction"
     span_days: "Day {n}"
     span_months: "Month {n}"
     span_speakers: "{span} · {n} participants"
@@ -881,6 +897,7 @@ room:
     stage_sanitizer: Sanitizer
     stage_send: Send
     stage_skipped: "Didn't answer"
+    stage_other: "Other stage"
     stage_supervisor: Supervisor
     stage_wake_again: Wake condition rewrite
     stage_wording_again: Banned word rewrite
@@ -915,6 +932,7 @@ room:
     draft_kind_stage: Instruction stage
     draft_outcome_pass: Passed
     draft_outcome_revised: Revised
+    draft_outcome_other: "Other result"
     draft_turn_message: Writing a message
     draft_kind_audit: Form of address check
     draft_turn_audit: Form of address check
@@ -2939,6 +2957,8 @@ agents:
     bundle_web_read: Read the web
     bundle_web_rulebooks: Rulebooks
     bundle_web_sites: Site tools
+    bundle_brain_lessons: "Brain tips"
+    bundle_other: "Other bundle"
     call_done: Done
     call_failed: Failed
     characters_unit: characters

@@ -1,5 +1,6 @@
 import { removalQuery } from "../../../utils/console-rooms";
 import { receiverRoute } from "../../../utils/receiver";
+import { removalWarnings } from "../../../utils/room-removal";
 import { requireWritableRoom } from "../../../utils/room-reach";
 
 import type { RoomRemovalPreview } from "#shared/types";
@@ -17,7 +18,8 @@ interface RemovalRead {
   pictures?: string[];
   settings?: RoomRemovalPreview["settings"];
   folders?: RoomRemovalPreview["folders"];
-  warned?: string[];
+  // Each a warning code with its fields, said here in the pack's sentence for it.
+  warned?: unknown[];
 }
 
 export default defineEventHandler(async (event): Promise<RoomRemovalPreview> => {
@@ -31,7 +33,7 @@ export default defineEventHandler(async (event): Promise<RoomRemovalPreview> => 
   return {
     chat: chatId,
     refused: null,
-    warnings: answer.warned ?? [],
+    warnings: removalWarnings(answer.warned),
     goes: answer.goes ?? [],
     stays: answer.stays ?? [],
     pictures: answer.pictures ?? [],

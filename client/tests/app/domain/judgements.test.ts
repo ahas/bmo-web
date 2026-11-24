@@ -3,7 +3,7 @@ import { describe, expect, test } from "bun:test";
 import { wording } from "../../../apps/web/shared/wording";
 import { secondsText } from "../../../apps/web/app/domain/numbers";
 
-import { endsJudging, homedJudgements, instructionParts, judgedNow, verdictWords, judgementText, keptOffer, lineAnswer, lineKept, narrowedOffer, openedCards, openedTurns, roadName, roadOutcome, sortLabel, verdictState, verdictTone, wholeOf } from "../../../apps/web/app/domain/judgements";
+import { endsJudging, homedJudgements, instructionParts, judgedNow, verdictWords, judgementText, keptOffer, lineAnswer, lineKept, narrowedOffer, openedCards, openedTurns, roadName, roadOutcome, roadOutcomeCode, sortCode, sortLabel, stageCode, stageLabel, verdictState, verdictTone, wholeOf } from "../../../apps/web/app/domain/judgements";
 
 import type { GateOfferRecord, Judgement, RoundOpening } from "../../../apps/web/shared/types";
 import { WORKER } from "../../support/ids";
@@ -175,10 +175,13 @@ describe("what opened a turn", () => {
     expect(keptOffer(judgement(6, "room-rules", "r2", null))).toBeNull();
   });
 
-  test("an instruction's sort reads in the owner's words, an unknown one as its own key and none as a quiet instruction", () => {
+  test("an instruction's sort reads in the owner's words, an unknown one as another instruction with its key for the tooltip, and none as a quiet instruction", () => {
     expect(sortLabel(wording, "run_state")).toBe(wording("room.label.sort_run_state"));
-    expect(sortLabel(wording, "new_kind")).toBe("new_kind");
+    expect(sortLabel(wording, "new_kind")).toBe(wording("room.label.sort_other"));
+    expect(sortCode("new_kind")).toBe("new_kind");
+    expect(sortCode("run_state")).toBeNull();
     expect(sortLabel(wording, null)).toBe(wording("room.label.quiet_instruction"));
+    expect(sortCode(null)).toBeNull();
   });
 
   test("an instruction's whole text reads its recorded facts as names and values, and its words as written", () => {
@@ -220,12 +223,21 @@ describe("what opened a turn", () => {
 // The road is what the item this screen serves was asked to measure: which provider answered, and
 // what was waited out before it.
 describe("how a road reads", () => {
-  test("says how it ended in the owner's words, and keeps a word it does not know", () => {
+  test("says how it ended in the owner's words, and one it does not know as another result with its code for the tooltip", () => {
     expect(roadOutcome(wording, "answered")).toBe(wording("room.label.road_answered"));
     expect(roadOutcome(wording, "timeout")).toBe(KO.line_192);
     expect(roadOutcome(wording, "busy-skip")).toBe(wording("room.label.road_busy_skip"));
     expect(roadOutcome(wording, "stopped")).toBe(KO.line_194);
-    expect(roadOutcome(wording, "something-new")).toBe("something-new");
+    expect(roadOutcome(wording, "something-new")).toBe(wording("room.label.road_outcome_other"));
+    expect(roadOutcomeCode("something-new")).toBe("something-new");
+    expect(roadOutcomeCode("answered")).toBeNull();
+  });
+
+  test("names a stage it does not know as another stage, its code kept for the tooltip alone", () => {
+    expect(stageLabel(wording, "room-rules")).toBe(wording("gates.label.room_rules"));
+    expect(stageCode("room-rules")).toBeNull();
+    expect(stageLabel(wording, "stage-z")).toBe(wording("room.label.stage_other"));
+    expect(stageCode("stage-z")).toBe("stage-z");
   });
 
   test("names the provider and its model, and the provider alone where the road named no model", () => {

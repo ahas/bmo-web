@@ -266,28 +266,29 @@
 }
 
 
-/* A message's bubble while it is being judged: a thin ring around it breathing, fading slowly in and out, until
-   the judging is over (docs/web.md, 「판정」). The ring is drawn round the bubble's shape, its box and its tail
-   together, on a layer of its own under everything the bubble holds, so the tail breathes with the bubble, no
-   line crosses where the two meet, nothing inside moves and the arrival's rise is left alone. On that layer the
-   bubble's box spreads the ring round its own corners, and its tail stands grown by the ring's width in the ring's
-   colour beneath the box; the box is painted in the bubble's own ground, so where the layer lies under the bubble or
-   its tail it is the colour already there, and only the ring shows past the bubble's edge. A bubble with no ground
-   of its own, a picture standing alone, hangs no tail, so its box paints nothing inside and whatever the row stands
-   on shows through the picture as it does without the ring. The whole layer takes the ring's strength at once, so the ring is one even shade where the
-   box's ring and the tail's meet. A reader who asked for less movement sees the ring stand still, faint. */
+/* A message's bubble while it is being judged: a thin ring in the theme's primary colour around it breathing,
+   fading slowly in and out, until the judging is over (docs/web.md, 「판정」). The ring is drawn round the
+   bubble's shape, its box and its tail together, on a layer of its own under everything the bubble holds, so
+   the tail breathes with the bubble, no line crosses where the two meet, nothing inside moves and the arrival's
+   rise is left alone. On that layer the bubble's box spreads the ring round its own corners, and its tail stands
+   grown by the ring's width in the ring's colour beneath the box; the box is painted in the bubble's own ground,
+   so where the layer lies under the bubble or its tail it is the colour already there, and only the ring shows
+   past the bubble's edge. A bubble with no ground of its own, a picture standing alone, hangs no tail, so its box
+   paints nothing inside and whatever the row stands on shows through the picture as it does without the ring. The
+   whole layer takes the ring's strength at once, so the ring is one even shade where the box's ring and the tail's
+   meet. A reader who asked for less movement sees the ring stand still, faint. */
 .bubble-beat {
   --bubble-beat-width: 1px;
   --tail-grow: var(--bubble-beat-width);
   border-radius: inherit;
-  color: var(--ui-border-accented);
+  color: var(--bmo-focus);
   animation: bubble-breathe 2.4s ease-in-out infinite alternate;
 }
 
 .bubble-beat-ground {
   border-radius: inherit;
   background-color: var(--bubble, transparent);
-  box-shadow: 0 0 0 var(--bubble-beat-width) var(--ui-border-accented);
+  box-shadow: 0 0 0 var(--bubble-beat-width) var(--bmo-focus);
 }
 
 @keyframes bubble-breathe {

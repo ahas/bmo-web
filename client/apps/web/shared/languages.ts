@@ -1,3 +1,5 @@
+import { standsInScripts, textLanguage } from "./translation-parts";
+
 // The languages the console speaks (docs/web.md, 「Wording and the language pack」): Korean, the source the wording
 // guide governs, and English, Japanese and Simplified Chinese, each a pack holding the same keys. A reader reads the
 // console in the language their account chose, and where it chose none, in the one their browser asks for.
@@ -16,18 +18,21 @@ export const LANGUAGE_COOKIE = "bmo-language";
 export const LANGUAGE_COOKIE_SECONDS = 365 * 24 * 60 * 60;
 
 /** What the rest of the page reads a language by: the tag figures and the document's `lang` are written in, the
- * dayjs locale dates' words are, and the tag its own name is written in, in its own script. */
+ * dayjs locale dates' words are, the tag its own name is written in, in its own script, and whether a text already
+ * stands in it, so a text a reader of it meets is read through the translator only where it does not
+ * (docs/web.md, 「The original, and its translation in its place」). */
 export interface LanguageLook {
   tag: string;
   dateLocale: string;
   ownScript: string;
+  writes: (text: string) => boolean;
 }
 
 export const LANGUAGE_LOOKS: Record<ConsoleLanguage, LanguageLook> = {
-  ko: { tag: "ko-KR", dateLocale: "ko", ownScript: "ko" },
-  en: { tag: "en-US", dateLocale: "en", ownScript: "en" },
-  ja: { tag: "ja-JP", dateLocale: "ja", ownScript: "ja" },
-  "zh-CN": { tag: "zh-CN", dateLocale: "zh-cn", ownScript: "zh-Hans" }
+  ko: { tag: "ko-KR", dateLocale: "ko", ownScript: "ko", writes: (text) => textLanguage(text) === "ko" },
+  en: { tag: "en-US", dateLocale: "en", ownScript: "en", writes: (text) => textLanguage(text) === "en" },
+  ja: { tag: "ja-JP", dateLocale: "ja", ownScript: "ja", writes: (text) => standsInScripts(text, /[\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}]/u) },
+  "zh-CN": { tag: "zh-CN", dateLocale: "zh-cn", ownScript: "zh-Hans", writes: (text) => standsInScripts(text, /\p{Script=Han}/u) }
 };
 
 export function isConsoleLanguage(value: unknown): value is ConsoleLanguage {

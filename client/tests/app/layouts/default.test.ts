@@ -71,7 +71,7 @@ describe("the console search in the sidebar", () => {
 
   test("lists the screens the search lists, one list of them both", () => {
     expect(layout).toContain("sectionItems(namedBy(t, readNames.value), route.path, ");
-    expect(layout).toContain("screenGroup(t, screens)");
+    expect(layout).toContain("screenGroup(namedBy(t, readNames.value), screens, readNames.value)");
     expect(layout).toContain("screensWithBundles(bundles.value, featuredScreens(useConsoleFeatures().value))");
   });
 });

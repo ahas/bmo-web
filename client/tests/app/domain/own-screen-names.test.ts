@@ -71,3 +71,30 @@ test("a reader's own screen's words stand as the maker's in every language they 
   ]);
   expect(screenWords(unit)).toEqual([["ko", { "my-unit": { title: "Unit" } }]]);
 });
+
+test("the search and the user menu name a reader's own screen by its reading, its original beside it", async () => {
+  const { jumpGroups, screenGroup } = await import("../../../apps/web/app/domain/jump");
+  const { accountItems, screensWithBundles } = await import("../../../apps/web/app/domain/screens");
+  const names = new Map([["/my/ticket-board", { key: "my-ticket-board.title", text: "Read board", original: "Ticket board" }]]);
+  const t = (key: string): string => (key === "common.label.original" ? "Original" : `pack:${key}`);
+  const named = namedBy(t, names);
+  const screens = screensWithBundles([ENGLISH, { ...ENGLISH, name: "my-menu", title: "my-menu.title", screenPath: "/my/menu", sidebarSection: "account" }]);
+  const entry = screenGroup(named, screens, names).entries.find((one) => one.to === "/my/ticket-board")!;
+
+  expect(entry).toMatchObject({ label: "Read board", original: "Ticket board", hidden: [{ label: "Original", text: "Ticket board" }] });
+
+  // Typed, the maker's name finds the row, shown under it as the original it matched; the row is drawn through the slot
+  // whose tooltip carries the original.
+  const [found] = jumpGroups(named, [screenGroup(named, screens, names)], "ticket");
+
+  expect(found!.items).toEqual([
+    expect.objectContaining({ label: "Read board", slot: READ_NAME_SLOT, original: "Ticket board", description: "Original · Ticket board" })
+  ]);
+
+  const menuNames = new Map([["/my/menu", { key: "my-menu.title", text: "Read menu", original: "Menu" }]]);
+
+  expect(accountItems(namedBy(t, menuNames), screens, {}, menuNames)).toEqual([
+    expect.objectContaining({ label: "Read menu", to: "/my/menu", original: "Menu" })
+  ]);
+  expect(accountItems(t, screens)).toEqual([expect.not.objectContaining({ original: expect.anything() })]);
+});

@@ -1,8 +1,8 @@
 import { hasTranslator } from "bmo-ui/app/domain/translation";
-import { textLanguage } from "#shared/translation";
+import { LANGUAGE_LOOKS, languageOfTag, SOURCE_LANGUAGE } from "#shared/languages";
 
 import type { Reading } from "bmo-ui/app/domain/translation";
-import type { DocumentLanguage } from "#shared/types";
+import type { ConsoleLanguage } from "#shared/languages";
 import type { ComputedRef, Ref } from "vue";
 
 // A text a worker or a job wrote, read in the reader's own language in the original's place (docs/web.md, 「The
@@ -69,14 +69,15 @@ function readingOf(text: string, language: string): Promise<Reading> {
   return ask;
 }
 
-/** The language a reader reads, by the primary subtag of the console's locale. */
-export function readerLanguage(locale: string): DocumentLanguage {
-  return locale.split("-")[0]!.toLowerCase() === "en" ? "en" : "ko";
+/** The language a reader reads, the console's locale as the translator is asked for it: one of the console's four,
+ * by its primary subtag, and the source language for a locale the console does not speak. */
+export function readerLanguage(locale: string): ConsoleLanguage {
+  return languageOfTag(locale) ?? SOURCE_LANGUAGE;
 }
 
 /** Whether a text takes a reading for a reader of a language: it holds words, and they are in another language. */
-export function wantsReading(text: string, language: DocumentLanguage): boolean {
-  return text.trim() !== "" && textLanguage(text) !== language;
+export function wantsReading(text: string, language: ConsoleLanguage): boolean {
+  return text.trim() !== "" && !LANGUAGE_LOOKS[language].writes(text);
 }
 
 /** Why a press cannot ask for a reading now: the console names no translator, or the translator answered too busy. */
@@ -85,7 +86,7 @@ export type ReadingBlock = "absent" | "busy";
 /** One text's reading in the reader's language, asked when `ask` is pressed and asked again on the same press. */
 export function useAskedReading(
   text: () => string,
-  language: () => DocumentLanguage
+  language: () => ConsoleLanguage
 ): { reading: Ref<TextReading>; blocked: Ref<ReadingBlock | null>; ask: () => void } {
   const reading = ref<TextReading>({ kind: "none" });
   const blocked = ref<ReadingBlock | null>(null);

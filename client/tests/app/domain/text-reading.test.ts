@@ -21,6 +21,8 @@ let named = true;
 let answer: (texts: readonly string[]) => Promise<{ text: string; whole: boolean; untranslated?: boolean }[]> = async (texts) =>
   texts.map((text) => ({ text: `ko:${text}`, whole: true }));
 const asks: string[][] = [];
+// The language each ask named, in order.
+const languages: string[] = [];
 
 class Refused extends Error {
   constructor(readonly statusCode: number) {
@@ -29,10 +31,11 @@ class Refused extends Error {
 }
 
 // The console's own translation route, as the composable asks it.
-globals.$fetch = async (url: string, options: { body: { originals: string[] } }) => {
+globals.$fetch = async (url: string, options: { body: { language: string; originals: string[] } }) => {
   if (url !== "/api/translations") throw new Error(`unexpected ${url}`);
 
   asks.push([...options.body.originals]);
+  languages.push(options.body.language);
 
   return { readings: await answer(options.body.originals) };
 };
@@ -52,6 +55,10 @@ describe("a text's reading", () => {
     expect(wantsReading("The work is done.", "ko")).toBe(true);
     expect(readerLanguage("ko-KR")).toBe("ko");
     expect(readerLanguage("en")).toBe("en");
+    expect(readerLanguage("ja")).toBe("ja");
+    expect(readerLanguage("zh-CN")).toBe("zh-CN");
+    expect(readerLanguage("zh-TW")).toBe("zh-CN");
+    expect(readerLanguage("fr")).toBe("ko");
 
     asks.length = 0;
     const { reading, ask } = useAskedReading(() => KO.done, () => "ko");
@@ -60,6 +67,34 @@ describe("a text's reading", () => {
     await settle();
     expect(reading.value).toEqual({ kind: "none" });
     expect(asks).toEqual([]);
+  });
+
+  test("a Japanese and a Chinese reader take a reading of a text not already in their language", async () => {
+    // Kana and Han characters counted out of their blocks, so no letter of either language is written here.
+    const kana = (many: number): string => String.fromCodePoint(...Array.from({ length: many }, (_, at) => 0x3042 + at * 2));
+    const han = (many: number): string => String.fromCodePoint(...Array.from({ length: many }, (_, at) => 0x4e00 + at * 7));
+    const japanese = `${kana(6)}${han(3)} React ${kana(2)}`;
+    const chinese = `${han(6)} React`;
+
+    expect(wantsReading("The work is done.", "ja")).toBe(true);
+    expect(wantsReading(KO.done, "ja")).toBe(true);
+    expect(wantsReading(japanese, "ja")).toBe(false);
+    expect(wantsReading("The work is done.", "zh-CN")).toBe(true);
+    expect(wantsReading(KO.done, "zh-CN")).toBe(true);
+    expect(wantsReading(japanese, "zh-CN")).toBe(true);
+    expect(wantsReading(chinese, "zh-CN")).toBe(false);
+    expect(wantsReading("`code` 42", "ja")).toBe(false);
+
+    asks.length = 0;
+    answer = async (texts) => texts.map(() => ({ text: japanese, whole: true }));
+
+    const { reading, ask } = useAskedReading(() => "Read in Japanese.", () => "ja");
+
+    ask();
+    await settle();
+    expect(reading.value).toEqual({ kind: "read", text: japanese, whole: true });
+    expect(asks).toEqual([["Read in Japanese."]]);
+    expect(languages.at(-1)).toBe("ja");
   });
 
   test("an English text is asked for on a press and lands as it arrives, and two places share one ask", async () => {

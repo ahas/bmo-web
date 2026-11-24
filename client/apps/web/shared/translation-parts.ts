@@ -6,14 +6,31 @@ import { halveText, markdownSections } from "./markdown-structure";
 
 export type TextLanguage = "ko" | "en";
 
+// A text's words outside code: its fenced blocks and its inline code taken out.
+function proseOf(text: string): string {
+  return text.replace(/^ {0,3}(`{3,}|~{3,})[^\n]*\n[\s\S]*?^ {0,3}\1[ \t]*$/gm, "").replace(/`[^`\n]*`/g, "");
+}
+
 // Which language a text is written in, by its letters outside code: a text with few Hangul letters
 // against its Latin letters is English, and every other text is Korean.
 export function textLanguage(text: string): TextLanguage {
-  const prose = text.replace(/^ {0,3}(`{3,}|~{3,})[^\n]*\n[\s\S]*?^ {0,3}\1[ \t]*$/gm, "").replace(/`[^`\n]*`/g, "");
+  const prose = proseOf(text);
   const hangul = prose.match(/\p{Script=Hangul}/gu)?.length ?? 0;
   const latin = prose.match(/[A-Za-z]/g)?.length ?? 0;
 
   return hangul * 4 < latin ? "en" : "ko";
+}
+
+// Whether a text stands in a language written in the scripts `letters` matches, by its letters outside code, as the
+// gate's translator weighs them (the gate's `docs/api.md`, 「Translations」): those letters weigh at least as much as
+// every other letter it holds, a Latin letter weighing a quarter of any other. A text with no letters stands in it.
+export function standsInScripts(text: string, letters: RegExp): boolean {
+  const prose = proseOf(text);
+  const own = prose.match(new RegExp(letters.source, "gu"))?.length ?? 0;
+  const latin = prose.match(/[A-Za-z]/g)?.length ?? 0;
+  const every = prose.match(/\p{L}/gu)?.length ?? 0;
+
+  return own * 4 >= latin + Math.max(0, every - own - latin) * 4;
 }
 
 // A rough count of the tokens a text costs a model: a Hangul syllable or other non-ASCII character

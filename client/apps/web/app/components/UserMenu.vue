@@ -20,6 +20,11 @@
         :square="props.collapsed"
       />
     </UTooltip>
+    <!-- A reader's own screen named in a reading keeps the maker's name in its tooltip, as its sidebar row does. -->
+    <template #account-screen-label="{ item }">
+      <SidebarReadName v-if="item.original !== undefined" :name="String(item.label)" :original="item.original" />
+      <template v-else>{{ item.label }}</template>
+    </template>
     <template #account-screen-trailing="{ item }">
       <UBadge v-if="item.badge !== undefined" v-bind="item.badge" />
     </template>
@@ -28,10 +33,12 @@
 
 <script setup lang="ts">
 import { useDesktopApp } from "~/domain/desktop-app";
+import { namedBy } from "~/domain/own-screen-names";
 import { accountItems, accountUnread } from "~/domain/screens";
 import { openSettings, useSettings } from "~/domain/settings-dialog";
 
 import type { AvatarProps, DropdownMenuItem } from "@nuxt/ui";
+import type { ReadName } from "~/domain/own-screen-names";
 import type { AccountItem, Screen, ScreenCounts } from "~/domain/screens";
 
 interface Props {
@@ -40,13 +47,15 @@ interface Props {
   screens?: readonly Screen[];
   // The sidebar counts as the shell last read them, by the address of the screen each stands on.
   counts?: ScreenCounts;
+  // The reader's own screens named by their reading, by address, as the sidebar names them (docs/web.md, 「Sidebar」).
+  readNames?: ReadonlyMap<string, ReadName>;
 }
 
 const { t } = useI18n();
-const props = withDefaults(defineProps<Props>(), { collapsed: false, screens: () => [], counts: () => ({}) });
+const props = withDefaults(defineProps<Props>(), { collapsed: false, screens: () => [], counts: () => ({}), readNames: () => new Map() });
 
-const screenEntries = computed<AccountItem[]>(() => accountItems(t, props.screens, props.counts));
-const unread = computed<string | null>(() => accountUnread(t, props.screens, props.counts));
+const screenEntries = computed<AccountItem[]>(() => accountItems(namedBy(t, props.readNames), props.screens, props.counts, props.readNames));
+const unread = computed<string | null>(() => accountUnread(namedBy(t, props.readNames), props.screens, props.counts));
 const avatar = computed<AvatarProps>(() => ({
   icon: "i-material-symbols-person-outline",
   ...(unread.value === null ? {} : { chip: { color: "primary" as const, position: "top-right" as const } })

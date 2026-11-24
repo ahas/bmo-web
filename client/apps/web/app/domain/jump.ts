@@ -1,7 +1,9 @@
 import { highlightParts, matchFields, searchPhrase } from "bmo-ui/shared/search";
 
+import { READ_NAME_SLOT } from "./own-screen-names";
 import { SCREENS, searchOrder, tabAddress } from "./screens";
 
+import type { ReadName } from "./own-screen-names";
 import type { Screen } from "./screens";
 import type { SearchField } from "bmo-ui/shared/search";
 import type { Translate } from "#shared/wording";
@@ -12,7 +14,8 @@ import type { AvatarProps, CommandPaletteGroup, CommandPaletteItem } from "@nuxt
 
 // One place the search can go to. What a row shows — its prefix and label, and the name of the
 // group it stands in — is matched and marked; `hidden` is matched too and, when only it matched,
-// shown as one line under the row.
+// shown as one line under the row. A reader's own screen named by its reading carries the maker's
+// `original`, which its row's tooltip shows.
 export interface JumpEntry {
   id: string;
   label: string;
@@ -20,6 +23,7 @@ export interface JumpEntry {
   prefix?: string;
   icon?: string;
   avatar?: AvatarProps;
+  original?: string;
   hidden: readonly { label: string; text: string }[];
 }
 
@@ -30,12 +34,20 @@ export interface JumpGroup {
 }
 
 // The screens, the sidebar's and then the user menu's, each tab a screen keeps in its address standing under that
-// screen.
-export function screenGroup(t: Translate, screens: readonly Screen[] = SCREENS): JumpGroup {
+// screen. `t` names a reader's own screen by its reading where one stands, as the sidebar does, and `names` carries
+// each such screen's original by its address, which its row matches under the original's label and shows in its
+// tooltip (docs/web.md, 「Sidebar」).
+export function screenGroup(t: Translate, screens: readonly Screen[] = SCREENS, names: ReadonlyMap<string, ReadName> = new Map()): JumpGroup {
   const entries: JumpEntry[] = [];
 
   for (const screen of searchOrder(t, screens)) {
-    entries.push({ id: screen.to, label: t(screen.label), to: screen.to, icon: screen.icon, hidden: [] });
+    const read = names.get(screen.to);
+
+    entries.push(
+      read === undefined
+        ? { id: screen.to, label: t(screen.label), to: screen.to, icon: screen.icon, hidden: [] }
+        : { id: screen.to, label: t(screen.label), to: screen.to, icon: screen.icon, original: read.original, hidden: [{ label: t("common.label.original"), text: read.original }] }
+    );
 
     for (const tab of screen.tabs ?? []) {
       entries.push({
@@ -87,6 +99,7 @@ function itemOf(
     to: entry.to,
     icon: entry.icon,
     avatar: entry.avatar,
+    ...(entry.original === undefined ? {} : { slot: READ_NAME_SLOT, original: entry.original }),
     description: hidden === null ? undefined : `${hidden.label} · ${hidden.snippet}`,
     descriptionHtml: hidden === null ? undefined : `${escaped(hidden.label)} · ${markedHtml(hidden.snippet, query)}`
   };

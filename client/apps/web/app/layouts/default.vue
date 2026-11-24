@@ -37,7 +37,7 @@
       </template>
 
       <template #default="{ collapsed }">
-        <UContentSearchButton :collapsed="collapsed" :tooltip="collapsed" class="shrink-0" />
+        <UContentSearchButton :collapsed="collapsed" :tooltip="collapsed" class="shrink-0" data-console-search />
         <!-- A folded row is its icon alone, and its mark is drawn over that icon rather than given a
              cell of its own, so the folded column keeps one centre. The menu is told which rows
              wear the mark that way, which is why the fold is read out here. Folded, every row names
@@ -115,7 +115,7 @@
               <span v-if="!collapsed" class="truncate">{{ streamNotice.label }}</span>
             </NuxtLink>
           </UTooltip>
-          <UserMenu :collapsed="collapsed" :screens="screens" :counts="unread" />
+          <UserMenu :collapsed="collapsed" :screens="screens" :counts="unread" :read-names="readNames" />
         </div>
       </template>
     </UDashboardSidebar>
@@ -141,11 +141,19 @@
       v-model:search-term="searchTerm"
       :groups="searchGroups"
       :color-mode="false"
+      :fuse="SEARCH_FUSE"
       shortcut="meta_k"
       :placeholder="$t('screens.placeholder.find')"
       :title="$t('screens.label.search')"
       :description="$t('screens.label.find_description')"
-    />
+    >
+      <!-- A reader's own screen named in a reading keeps the maker's name in its tooltip, as its sidebar row does. -->
+      <template #read-name-label="{ item, ui }">
+        <span data-slot="itemLabelBase" :class="ui.itemLabelBase()">
+          <SidebarReadName :name="String(item.label)" :original="item.original" :marked="item.labelHtml" />
+        </span>
+      </template>
+    </UContentSearch>
     <!-- The drawer stands in the app's own host for floating parts, right after the app, rather than at the page's
          end: a menu or a dialog opened over it is added at the end, and whatever stood last there is styled again
          whole, every row of the panel with it (docs/web.md, the TODO panel's section). -->
@@ -441,6 +449,10 @@ function runEntry(agent: AgentMeta, run: AgentRun): NavigationMenuItem {
 // The console search: what this sidebar lists, and the shortcut that opens it from anywhere.
 // Ctrl+K is ⌘K on a Mac; the shortcut layer reads `meta` as Ctrl elsewhere.
 const searchTerm = ref("");
+// The palette lists every entry its groups hold, typed or not, rather than the first dozen of each its library cuts a
+// group to (docs/web.md, 「Sidebar」): the groups are matched here already, and a group's later screens — a reader's own
+// among them — would otherwise never stand.
+const SEARCH_FUSE = { resultLimit: Number.POSITIVE_INFINITY };
 // Mounted afresh at each opening, so it stands over whatever its shortcut opens it over, a screen's dialog set up
 // after it included (docs/web.md, 「Floating things」).
 const { open: searchOpen } = useContentSearch();
@@ -500,7 +512,7 @@ onBeforeUnmount(() => {
 });
 
 const jumpSources = computed<JumpGroup[]>((before) => sameKept(before, [
-  screenGroup(t, screens),
+  screenGroup(namedBy(t, readNames.value), screens, readNames.value),
   searchesRoster.value ? rosterGroup(t, rosterPeople.value) : peopleGroup(t, people.value),
   {
     id: "rooms",

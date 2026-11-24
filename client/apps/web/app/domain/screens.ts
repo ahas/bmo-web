@@ -16,6 +16,7 @@ import type { ConsoleScreen } from "#shared/console-bundles";
 import type { ConsoleFeature, ConsoleFeatures } from "#shared/console-features";
 import type { ConsoleSidebarSection } from "bmo-ui/shared/console-manifest";
 import type { ListedRoom } from "#shared/types";
+import type { ReadName } from "./own-screen-names";
 import type { Translate } from "#shared/wording";
 import type { BadgeProps, DropdownMenuItem, NavigationMenuItem } from "@nuxt/ui";
 
@@ -262,16 +263,17 @@ function screenItem(t: Translate, path: string, live: ScreenLive, folded: boolea
 export const ACCOUNT_ITEM_SLOT = "account-screen" as const;
 
 // A screen of the user menu as its item: drawn through its own slot, with the count badge it carries.
-export type AccountItem = DropdownMenuItem & { slot: typeof ACCOUNT_ITEM_SLOT; badge?: BadgeProps };
+export type AccountItem = DropdownMenuItem & { slot: typeof ACCOUNT_ITEM_SLOT; badge?: BadgeProps; original?: string };
 
 /**
  * The user menu's screens as its items (docs/web.md, 「Sidebar」): each under its name and icon, leading to its
  * address, and a positive count its bundle declares as a count badge at the item's end, said with the item.
  */
-export function accountItems(t: Translate, screens: readonly Screen[], counts: ScreenCounts = {}): AccountItem[] {
+export function accountItems(t: Translate, screens: readonly Screen[], counts: ScreenCounts = {}, names: ReadonlyMap<string, ReadName> = new Map()): AccountItem[] {
   return accountScreens(t, screens).map((screen): AccountItem => {
     const count = screen.counted === true ? (counts[screen.to] ?? 0) : 0;
-    const entry: AccountItem = { label: t(screen.label), icon: screen.icon, to: screen.to, slot: ACCOUNT_ITEM_SLOT };
+    const original = names.get(screen.to)?.original;
+    const entry: AccountItem = { label: t(screen.label), icon: screen.icon, to: screen.to, slot: ACCOUNT_ITEM_SLOT, ...(original === undefined ? {} : { original }) };
 
     return count > 0
       ? {

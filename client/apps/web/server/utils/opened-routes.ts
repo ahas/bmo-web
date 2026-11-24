@@ -342,9 +342,12 @@ export const openedRoutes: readonly OpenedRoute[] = [
   section(["db"], "GET", /^\/api\/db\/.*$/),
   section(["db"], "POST", /^\/api\/db\/(query|stop)$/),
 
-  // The documents the viewer reads and the text the gate translates.
+  // The documents the viewer reads and their translation.
   section(DOCUMENTS, "GET", /^\/api\/documents(?:\/.*)?$/),
-  section(DOCUMENTS, "POST", /^\/api\/(documents\/.*|translations)$/),
+  section(DOCUMENTS, "POST", /^\/api\/documents\/.*$/),
+  // A text read in the reader's language on view, which every signed-in login meets: a store item's text and the
+  // reader's own screens' names among them (docs/web.md, 「The original, and its translation in its place」).
+  { method: "POST", path: /^\/api\/translations$/, scope: "user" },
 
   // What the provider's prompt cache did, as the siren on this machine saw it.
   section(SIREN, "GET", /^\/api\/siren$/),

@@ -1591,7 +1591,9 @@ writing the words. A wording fix is an edit to the packs alone, once the guide b
   - The typed phrase is matched through the console's shared list search, the same way every list matches.
     What a row shows — its name and the group it stands in — is marked where it matched; an agent's internal
     name, a room's chat number and a screen tab's key are matched too, and a hit only there shows as one line
-    under the row.
+    under the row. A reader's own screen named by its reading (「A 내 앱 name is read in the reader's language」)
+    stands in the search under that reading, ordered by it as the sidebar orders it, its name carrying the shared
+    tooltip with `원문: {name}` as the sidebar's row does, and its maker's name is matched too, under 원문.
   - With nothing typed it lists every entry. Choosing one goes to its screen and closes the palette and, on a
     phone, the drawer. The palette is a layer: the back gesture closes it. It carries no theme group — the
     screen mode is the user menu's.
@@ -1632,7 +1634,9 @@ Four groups.
     carries the original instead (「Tooltips」): the reading whole, and under it `원문: {name}` with the maker's name,
     brought by a pointer, the keyboard's focus or a held finger, a tap still opening the screen. Folded, the row's icon
     is named by the reading. Where the browser does not read on opening, or while the reading has not come or where it
-    did not come, the maker's name stands, with no tooltip.
+    did not come, the maker's name stands, with no tooltip. Wherever else the console names such a screen — a row of
+    the search (below), an item of the user menu — it names it by the same reading, with the same tooltip, from the
+    one reading the tab keeps.
   - **Which section a screen stands in is the screen's own.** Each of the console's own screens names its section
     where it is listed. A screen a unit brings stands in the section its manifest names for the reader's role
     (bmo-ui's `docs/console-bundles.md`, the sidebar section and 「A section by role」): the one `sidebarSections`
@@ -1940,7 +1944,9 @@ Four groups.
   naming the reader by their person's name, their login where none stands, in the administrator's console and the
   member's shell alike. Above its own items stand the screens units bring whose section for the reader is the
   reader's own menu (「Which section a screen stands in」 above), by name as a section's are, each under its
-  manifest's title in the bundle's words and its icon, leading to its screen path. A counted one carries its
+  manifest's title in the bundle's words and its icon, leading to its screen path; a reader's own screen standing
+  there would be named by its reading with the sidebar's tooltip, as everywhere (「A 내 앱 name is read in the
+  reader's language」). A counted one carries its
   positive count at the item's end as a count badge (「Count badges」) in the primary colour, and while any of
   them is positive the menu's button carries a primary dot on its avatar's rim at about two o'clock, spread and
   folded alike, its accessible description naming each count. The menu's own items: open the settings
@@ -6874,12 +6880,27 @@ Four bounds keep it from growing forever.
     offers **원문 보기** at the same right end, which puts the original back. The line's one button stands at its
     right end in every state, so neither its words changing nor a press moves it. The reading is never set under the
     original, and a text in the reader's language carries no line.
+    - **The reader's language** is the one they read the console in, of its four (「Wording and the language pack」):
+      Korean, English, Japanese or Simplified Chinese, asked of the translator by `ko`, `en`, `ja` or `zh-CN`. A
+      text takes a reading where it is not already in it: for a Korean or an English reader by its Hangul against
+      its Latin letters, as the console tells a text's language everywhere; for a Japanese or a Chinese reader by
+      the letters of that language's scripts — kana and Han characters, Han characters — against every other
+      letter, a Latin letter weighing a quarter of any other, as the gate weighs them (the gate's `docs/api.md`,
+      「Translations」).
     - **The road** is the gate's translating route, `POST /translations`, which the gate's `gate/translate` tool
       and a bundle's screens also take. The console asks it through a route of its own, `POST /api/translations`,
       on its own credential and for the reader's role, rather than through the relay: the relay judges a call by
       the page it came from, and the TODO dialog is the layout's, standing over a bundle's screen as much as over
       the console's own, where a call relayed from that page would be the bundle's and refused. A console that
       names no gate offers no reading, and its line stands disabled, saying why.
+    - **The road is every signed-in reader's.** A text read on view stands before a member as much as before the
+      administrator — a store item's title and description, a 내 앱 name in the sidebar, the search and the user
+      menu — so the route answers every signed-in login, of no section, and asks the gate with the reader's own
+      role in `Owner-Role`, `administrator` for the platform administrator and `member` for anyone else. It carries
+      only the texts the browser hands it, at most as many as one gate call takes, and reads nothing the reader
+      could not: the gate keeps a translation under its original and its language alone, whoever asked, so a reading
+      one reader made is answered to the next without the translator, and a member asking for a text learns nothing
+      but its translation.
     - **Each text is asked for once.** The gate keeps every translation it makes under its original and its
       language and answers a kept one without its translator, the tab keeps every whole reading for its life, and
       two places asking for the same text at once share the one ask. So pressing it again, reopening an item, or

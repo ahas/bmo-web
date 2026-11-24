@@ -2,16 +2,17 @@
   <!-- The desktop app's way of connecting a person's machine (docs/web.md, 「The join page」 and 「The start guide」): the
        release's installers, the reader's own platform's first; the console's address the app asks for, with its copy
        mark; and the code from the app's title bar, which the page that holds these steps approves. Where no release is
-       published, or it cannot be read, it says the desktop app is not available yet. -->
+       published, or it cannot be read, the download step says the app cannot be downloaded yet and offers nothing,
+       and the other two steps still pair an app already installed. -->
   <ContentSkeleton v-if="releaseState === 'loading'" :rows="1" :label="$t('desktop.status.loading')">
     <SkeletonLine width="w-2/3" />
   </ContentSkeleton>
-  <UAlert v-else-if="installers.length === 0" color="neutral" variant="subtle" :description="unavailable ?? $t('join.message.desktop_unavailable')" :ui="{ description: 'whitespace-pre-line break-keep' }" data-join-desktop-unavailable />
   <ol v-else class="flex list-decimal flex-col gap-4 ps-6">
     <li class="ps-1 marker:font-medium marker:text-highlighted"><div class="flex flex-col gap-2">
       <span class="font-medium text-highlighted">{{ $t("join.label.step_download") }}</span>
-      <p class="break-keep text-sm text-toned">{{ $t("join.message.desktop_download") }}</p>
-      <div class="flex flex-wrap gap-2">
+      <p v-if="installers.length === 0" class="whitespace-pre-line break-keep text-sm text-toned" data-join-desktop-unavailable>{{ unavailable ?? $t("join.message.desktop_unavailable") }}</p>
+      <p v-else class="break-keep text-sm text-toned">{{ $t("join.message.desktop_download") }}</p>
+      <div v-if="installers.length > 0" class="flex flex-wrap gap-2">
         <UButton
           v-for="file in installers"
           :key="file.file"
@@ -72,7 +73,7 @@ interface Props {
   codeFailure: string;
   // The id of the code's form.
   formId: string;
-  // What is said where the desktop app is not available yet, the join page's sentence where none is given.
+  // What the download step says where the app cannot be downloaded yet, the join page's sentence where none is given.
   unavailable?: string;
   // The address the app asks for, where the page holding these steps names it.
   address?: string;

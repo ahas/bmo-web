@@ -7761,7 +7761,7 @@ the screen, the screen's whole width on a phone, opened to every signed-in perso
   page — the download, the console's address for the app, and the code from the app's title bar, approved for the
   reader as the desktop pairing page approves one (「The desktop pairing page」) — and it asks every few seconds whether
   the machine has attached (`POST /api/me/machine/proof`), 다음 opening once it has; 나중에 passes it over, and where no
-  release stands to download it says the machine may be connected later from 설정's 기기.
+  release stands to download, its download step says so, the app already installed still paired by its code.
 - **기본 모델** is the road of the supervisor that answers rooms naming none (기본 응답 감독관, 「에이전트」 under 「Agent
   management screen」): 공급자, among those switched on that can answer, then 모델, among the models it holds, both
   opening on the road as it stands; 다음 writes it onto that supervisor's road as its row writes a road.
@@ -8652,6 +8652,11 @@ Where a company's own words for its roles and its unit kinds are kept (`docs/acc
   back by its two marks; the copy mark turns to a check once the link is copied, and a copy the browser refuses
   is said on the island, as on the join page (「The join page」). A reader who may invite into no unit
   is told so.
+- **기기 공유 요청 lists the asks the reader may decide** (`docs/accounts.md`, 「A machine shared at an invitation's
+  ask」), above the open invitations and only where one waits: each by the person's name, where they were invited,
+  the machine they ask to share and the accounts already on it, and when they asked, with 승인 and 거절. 승인 binds the
+  share and 거절 refuses it, each at once with no question, and the row leaves the list; a refusal of either is said on
+  the island.
 - **Where an invitation leads is said as the company, then the unit under it;** a unit that is the company itself is
   named once, here, in the copied words and on the join page.
 
@@ -8667,8 +8672,9 @@ Where a company's own words for its roles and its unit kinds are kept (`docs/acc
 - **The account made, the page connects the person's machine, one of two ways, as two tabs:** 데스크톱 앱으로 시작
   and jake 명령으로 시작 (`docs/accounts.md`, 「Invitations and a person's machine」). The desktop tab stands first and
   is chosen, where the desktop app's release read (「The desktop app's download page」) answers a release; where it
-  answers none, or cannot be read, the desktop tab says the desktop app is not available yet and the jake tab is
-  chosen. The tabs stand at the card's full width, a phone's among them, and each holds its steps as a numbered
+  answers none, or cannot be read, the jake tab is chosen, and the desktop tab still pairs an app already installed:
+  its download step says the app cannot be downloaded yet and offers nothing to download, and its other two steps
+  stand as ever. The tabs stand at the card's full width, a phone's among them, and each holds its steps as a numbered
   list. Both lead to the one wait and the one end: the page asks every few seconds whether the machine has attached,
   설치했어요, 확인하기 asks at once, and attached, the account is ready and the page leads to the login, whichever
   tab connected it.
@@ -8688,7 +8694,17 @@ Where a company's own words for its roles and its unit kinds are kept (`docs/acc
     tooltip as in its name, until another line is copied. The copy reaches the clipboard on an address the browser
     holds insecure too, through the browser's older selection copy, and one the browser refuses all the same is
     said on the island; a mark never turns to a check for a copy that did not land. One muted line says a PC that
-    has jake installed and opens the desktop app as well keeps using the installed jake, never both.
+    has jake installed and opens the desktop app as well keeps using the installed jake, never both, and one more
+    says plainly what a refusal means: one PC connects one jake, so on a PC that already has one the install changes
+    nothing and stops, naming the jake that holds the PC, and the way on is to share that PC (below).
+  - **이 PC를 공유 노드로 함께 쓰기** stands under the tabs, whichever is chosen, for a PC that already has an agent: one
+    muted line saying so, and the button, which opens the ask in place. It asks for 기기 이름, the name the install's
+    refusal named, filled with the machine the browser's signed-in account is bound to where it holds one, and 공유
+    요청 sends it (`POST /api/join/<token>/share`, `docs/accounts.md`, 「A machine shared at an invitation's ask」).
+    Where the browser is signed in to the account bound to that machine, the share is bound at once and the page
+    waits as above; otherwise it says the ask waits for the administrator or a head to approve it, reads the ask again
+    with every wait (`GET /api/join/<token>/share`), and says so where it is refused, the field standing for another
+    ask. A name the hub holds no agent of is said under the field.
 - **The way to the login signs the new account in, never a session the browser already holds.** Where the browser
   is signed in to another account as the page opens, one neutral line above the card's content says so, naming the
   account by the name people read it by: `지금 {name} 계정으로 로그인되어 있습니다`, and that signing in to the new

@@ -1020,6 +1020,65 @@ pub struct PairingApproved {
   pub machine: String,
 }
 
+/// An invited account's ask to share a machine another agent holds: the machine's name, and the account the asking
+/// browser is signed in to, where it is.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct ShareAsk {
+  pub machine: String,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub owner: Option<String>,
+}
+
+/// A share asked or bound: the machine, `bound` or `asked`, and the accounts whose binding was declared shared as it
+/// was bound, empty while it waits.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct ShareAnswer {
+  pub machine: String,
+  pub state: String,
+  pub holders: Vec<String>,
+}
+
+/// An invited account's ask as the invitation reads it back: the machine, when it was asked, and whether it is
+/// `asked`, `approved` or `refused`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct ShareAskState {
+  pub machine: String,
+  pub asked_at: i64,
+  pub state: String,
+}
+
+/// An account bound to a machine, as a share's decider reads it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct ShareHolder {
+  pub user: String,
+  pub login: String,
+  /// The person's name, empty where none is kept.
+  pub full_name: String,
+}
+
+/// An ask waiting for a decision: the asking account, where it was invited, the machine and who is on it already.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct ShareAskRow {
+  pub user: String,
+  pub login: String,
+  /// The person's name, empty where none is kept.
+  pub full_name: String,
+  pub unit: UnitRef,
+  pub company: UnitRef,
+  pub machine: String,
+  pub holders: Vec<ShareHolder>,
+  pub asked_at: i64,
+}
+
+/// The asks the reader may decide, oldest first.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct ShareAsks {
+  pub asks: Vec<ShareAskRow>,
+}
+
 /// What a check answered.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct CheckAnswer {

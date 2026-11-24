@@ -31,6 +31,7 @@ pub mod m20261127_000001_supply_sources_one;
 pub mod m20261128_000001_account_security;
 pub mod m20261129_000001_guides;
 pub mod m20261130_000001_removals;
+pub mod m20261130_000007_machine_share_asks;
 mod secret_kind_seeds;
 
 pub struct Migrator;
@@ -79,6 +80,8 @@ impl MigratorTrait for Migrator {
       Box::new(m20261129_000001_guides::Migration),
       // The record each permanent delete leaves.
       Box::new(m20261130_000001_removals::Migration),
+      // Each invited account's ask to share a machine another agent holds.
+      Box::new(m20261130_000007_machine_share_asks::Migration),
     ]
   }
 }

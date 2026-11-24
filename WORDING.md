@@ -387,7 +387,8 @@
 - machine → 기기: 이 기기, 기기 여유, 기기 이름. An account bound to a machine → 기기 연결: 기기 연결, 다른 기기로
   연결, 기기 연결 해제, 연결됨, 연결 대기 중. Never 기계, and never 바인딩, 묶기 or 풀기 for the binding. A machine
   several accounts are connected to → 공유 기기: 공유 기기, 공유, 공유 해제; the choice made as a machine is
-  connected → 여러 계정이 함께 쓰는 기기. Never 공용 기기, 같이 쓰기. A machine the hub holds that agency has not yet
+  connected → 여러 계정이 함께 쓰는 기기. Never 공용 기기, 같이 쓰기. An invited account asking to share the PC that
+  already has an agent → 이 PC를 공유 노드로 함께 쓰기, 공유 요청, 기기 공유 요청; deciding it → 승인, 거절. A machine the hub holds that agency has not yet
   taken as the account's node → 연결 확인 중. The machine an approval connects → 연결할 기기;
   when the account was connected to it → 연결한 날짜; how its program is connected → 연결 방식, 데스크톱 앱 or
   설치형 프로그램 for one installed by its command; the machines in a person's own settings → 설정의 기기. Never 에이전트

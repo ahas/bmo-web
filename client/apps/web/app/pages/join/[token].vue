@@ -3,8 +3,8 @@
        and its company, takes the person's name, a login and a password, then connects the person's machine one of two
        ways — the desktop app, approving its pairing with the invitation, or jake's one-line install — and says the
        account is ready once the machine has attached, its login leading into the start guide, and, where only the
-       person's own supply can carry their runs, that their own login or key comes first. Like the login, it stands on
-       no shell. -->
+       person's own supply can carry their runs, that their own login or key comes first. A PC that already has an
+       agent is asked to be shared instead, under the tabs. Like the login, it stands on no shell. -->
   <div class="relative flex overflow-y-auto bg-default p-4 text-default" :style="{ top: 'var(--bmo-screen-top)', height: 'var(--bmo-screen)' }">
     <UCard class="m-auto w-full max-w-lg">
       <template #header>
@@ -74,7 +74,11 @@
               </div>
             </div>
             <p class="break-keep text-sm text-muted">{{ $t("join.message.one_agent") }}</p>
+            <p class="break-keep text-sm text-muted" data-join-one-jake>{{ $t("join.message.one_jake") }}</p>
           </div>
+
+          <!-- A PC that already has an agent is shared rather than connected again, whichever tab is chosen. -->
+          <JoinShare v-if="!active" :token="token" @bound="prove" />
 
           <UAlert v-if="active" color="success" variant="subtle" :description="agentLogin ? $t('join.message.agent_login') : $t('join.message.active')" :ui="{ description: 'whitespace-pre-line' }" data-join-active />
           <p v-else class="text-sm text-muted">{{ $t("join.message.waiting") }}</p>
@@ -176,7 +180,7 @@ const codeFailure = ref("");
 const approved = ref<PairingApproved | null>(null);
 
 // The desktop way is chosen until the release is first read; where none stands to download, jake's command is chosen
-// once, and the person may still open the desktop tab to read that it is not available yet.
+// once, and the person may still open the desktop tab to pair an app already installed.
 let wayChosen = false;
 
 function chooseWay(available: boolean): void {

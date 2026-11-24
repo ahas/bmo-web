@@ -21,6 +21,7 @@ pub mod import;
 pub mod invites;
 pub mod lang;
 pub mod lines;
+pub mod machine_shares;
 pub mod machines;
 pub mod marks;
 pub mod migration;

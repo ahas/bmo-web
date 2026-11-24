@@ -4698,6 +4698,149 @@
         ],
         "type": "object"
       },
+      "ShareAnswer": {
+        "description": "A share asked or bound: the machine, `bound` or `asked`, and the accounts whose binding was declared shared as it\nwas bound, empty while it waits.",
+        "properties": {
+          "holders": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "machine": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "machine",
+          "state",
+          "holders"
+        ],
+        "type": "object"
+      },
+      "ShareAsk": {
+        "description": "An invited account's ask to share a machine another agent holds: the machine's name, and the account the asking\nbrowser is signed in to, where it is.",
+        "properties": {
+          "machine": {
+            "type": "string"
+          },
+          "owner": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "machine"
+        ],
+        "type": "object"
+      },
+      "ShareAskRow": {
+        "description": "An ask waiting for a decision: the asking account, where it was invited, the machine and who is on it already.",
+        "properties": {
+          "askedAt": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "company": {
+            "$ref": "#/components/schemas/UnitRef"
+          },
+          "fullName": {
+            "description": "The person's name, empty where none is kept.",
+            "type": "string"
+          },
+          "holders": {
+            "items": {
+              "$ref": "#/components/schemas/ShareHolder"
+            },
+            "type": "array"
+          },
+          "login": {
+            "type": "string"
+          },
+          "machine": {
+            "type": "string"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/UnitRef"
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user",
+          "login",
+          "fullName",
+          "unit",
+          "company",
+          "machine",
+          "holders",
+          "askedAt"
+        ],
+        "type": "object"
+      },
+      "ShareAskState": {
+        "description": "An invited account's ask as the invitation reads it back: the machine, when it was asked, and whether it is\n`asked`, `approved` or `refused`.",
+        "properties": {
+          "askedAt": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "machine": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "machine",
+          "askedAt",
+          "state"
+        ],
+        "type": "object"
+      },
+      "ShareAsks": {
+        "description": "The asks the reader may decide, oldest first.",
+        "properties": {
+          "asks": {
+            "items": {
+              "$ref": "#/components/schemas/ShareAskRow"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "asks"
+        ],
+        "type": "object"
+      },
+      "ShareHolder": {
+        "description": "An account bound to a machine, as a share's decider reads it.",
+        "properties": {
+          "fullName": {
+            "description": "The person's name, empty where none is kept.",
+            "type": "string"
+          },
+          "login": {
+            "type": "string"
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user",
+          "login",
+          "fullName"
+        ],
+        "type": "object"
+      },
       "SignInAsk": {
         "description": "A sign-in tried with a login and a password.",
         "properties": {
@@ -10088,6 +10231,343 @@
           "invite-open",
           "no-hub",
           "upstream-failed",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/invites/{token}/share": {
+      "get": {
+        "operationId": "inviteShare",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShareAskState"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: not-found, invite-open, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The invitation's account's ask to share a machine, as it stands.",
+        "tags": [
+          "Invitations"
+        ],
+        "x-codes": [
+          "not-found",
+          "invite-open",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "post": {
+        "operationId": "askInviteShare",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShareAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShareAnswer"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, not-found, no-machine, invite-open, account-active, no-hub, upstream-failed, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The invitation's waiting account asks to share a machine another agent holds; bound at once where the asking browser's account is bound to it.",
+        "tags": [
+          "Invitations"
+        ],
+        "x-codes": [
+          "bad-request",
+          "not-found",
+          "no-machine",
+          "invite-open",
+          "account-active",
+          "no-hub",
+          "upstream-failed",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/machine-shares": {
+      "get": {
+        "operationId": "machineShares",
+        "parameters": [
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShareAsks"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: forbidden, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The asks to share a machine the reader may decide, oldest first.",
+        "tags": [
+          "Invitations"
+        ],
+        "x-codes": [
+          "forbidden",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/machine-shares/{user}/approve": {
+      "post": {
+        "operationId": "approveMachineShare",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShareAnswer"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, forbidden, not-found, no-hub, upstream-failed, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "An ask to share a machine approved: every binding of the machine declared shared and the asking account bound to it shared.",
+        "tags": [
+          "Invitations"
+        ],
+        "x-codes": [
+          "bad-request",
+          "forbidden",
+          "not-found",
+          "no-hub",
+          "upstream-failed",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/machine-shares/{user}/refuse": {
+      "post": {
+        "operationId": "refuseMachineShare",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done; no content."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, forbidden, not-found, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "An ask to share a machine refused.",
+        "tags": [
+          "Invitations"
+        ],
+        "x-codes": [
+          "bad-request",
+          "forbidden",
+          "not-found",
           "unauthorized",
           "not-in-force",
           "database",

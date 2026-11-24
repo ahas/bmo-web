@@ -920,6 +920,71 @@ pub fn openapi() -> Value {
     security: bearer()
   );
   add!(
+    "POST",
+    "/invites/{token}/share",
+    "askInviteShare",
+    "Invitations",
+    "The invitation's waiting account asks to share a machine another agent holds; bound at once where the asking browser's account is bound to it.",
+    params: vec![string_path("token")],
+    body: Some(json!(generator.subschema_for::<ShareAsk>())),
+    answers: vec![(200, json_answer::<ShareAnswer>(&mut generator))],
+    codes: vec!["bad-request", "not-found", "no-machine", "invite-open", "account-active", "no-hub", "upstream-failed", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/invites/{token}/share",
+    "inviteShare",
+    "Invitations",
+    "The invitation's account's ask to share a machine, as it stands.",
+    params: vec![string_path("token")],
+    body: None,
+    answers: vec![(200, json_answer::<ShareAskState>(&mut generator))],
+    codes: vec!["not-found", "invite-open", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/machine-shares",
+    "machineShares",
+    "Invitations",
+    "The asks to share a machine the reader may decide, oldest first.",
+    params: vec![owner_key(), owner_role()],
+    body: None,
+    answers: vec![(200, json_answer::<ShareAsks>(&mut generator))],
+    codes: vec!["forbidden", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "POST",
+    "/machine-shares/{user}/approve",
+    "approveMachineShare",
+    "Invitations",
+    "An ask to share a machine approved: every binding of the machine declared shared and the asking account bound to it shared.",
+    params: vec![string_path("user"), owner_key(), owner_role()],
+    body: None,
+    answers: vec![(200, json_answer::<ShareAnswer>(&mut generator))],
+    codes: vec!["bad-request", "forbidden", "not-found", "no-hub", "upstream-failed", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "POST",
+    "/machine-shares/{user}/refuse",
+    "refuseMachineShare",
+    "Invitations",
+    "An ask to share a machine refused.",
+    params: vec![string_path("user"), owner_key(), owner_role()],
+    body: None,
+    answers: vec![(204, no_answer())],
+    codes: vec!["bad-request", "forbidden", "not-found", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
     "GET",
     "/users/{user}/node",
     "userNode",

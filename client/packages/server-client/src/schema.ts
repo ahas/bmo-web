@@ -613,6 +613,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/invites/{token}/share": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The invitation's account's ask to share a machine, as it stands. */
+        get: operations["inviteShare"];
+        put?: never;
+        /** The invitation's waiting account asks to share a machine another agent holds; bound at once where the asking browser's account is bound to it. */
+        post: operations["askInviteShare"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/machine-shares": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The asks to share a machine the reader may decide, oldest first. */
+        get: operations["machineShares"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/machine-shares/{user}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** An ask to share a machine approved: every binding of the machine declared shared and the asking account bound to it shared. */
+        post: operations["approveMachineShare"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/machine-shares/{user}/refuse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** An ask to share a machine refused. */
+        post: operations["refuseMachineShare"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/machines/{agent}/revoke": {
         parameters: {
             query?: never;
@@ -3742,6 +3811,57 @@ export interface components {
             /** Format: uint16 */
             statusCode: number;
         };
+        /**
+         * @description A share asked or bound: the machine, `bound` or `asked`, and the accounts whose binding was declared shared as it
+         *     was bound, empty while it waits.
+         */
+        ShareAnswer: {
+            holders: string[];
+            machine: string;
+            state: string;
+        };
+        /**
+         * @description An invited account's ask to share a machine another agent holds: the machine's name, and the account the asking
+         *     browser is signed in to, where it is.
+         */
+        ShareAsk: {
+            machine: string;
+            owner?: string | null;
+        };
+        /** @description An ask waiting for a decision: the asking account, where it was invited, the machine and who is on it already. */
+        ShareAskRow: {
+            /** Format: int64 */
+            askedAt: number;
+            company: components["schemas"]["UnitRef"];
+            /** @description The person's name, empty where none is kept. */
+            fullName: string;
+            holders: components["schemas"]["ShareHolder"][];
+            login: string;
+            machine: string;
+            unit: components["schemas"]["UnitRef"];
+            user: string;
+        };
+        /**
+         * @description An invited account's ask as the invitation reads it back: the machine, when it was asked, and whether it is
+         *     `asked`, `approved` or `refused`.
+         */
+        ShareAskState: {
+            /** Format: int64 */
+            askedAt: number;
+            machine: string;
+            state: string;
+        };
+        /** @description The asks the reader may decide, oldest first. */
+        ShareAsks: {
+            asks: components["schemas"]["ShareAskRow"][];
+        };
+        /** @description An account bound to a machine, as a share's decider reads it. */
+        ShareHolder: {
+            /** @description The person's name, empty where none is kept. */
+            fullName: string;
+            login: string;
+            user: string;
+        };
         /** @description A sign-in tried with a login and a password. */
         SignInAsk: {
             /**
@@ -6149,6 +6269,176 @@ export interface operations {
                 };
             };
             /** @description A refusal or failure: not-found, invite-open, no-hub, upstream-failed, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    inviteShare: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShareAskState"];
+                };
+            };
+            /** @description A refusal or failure: not-found, invite-open, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    askInviteShare: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShareAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShareAnswer"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, not-found, no-machine, invite-open, account-active, no-hub, upstream-failed, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    machineShares: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShareAsks"];
+                };
+            };
+            /** @description A refusal or failure: forbidden, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    approveMachineShare: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShareAnswer"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, forbidden, not-found, no-hub, upstream-failed, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    refuseMachineShare: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Done; no content. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: bad-request, forbidden, not-found, unauthorized, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;

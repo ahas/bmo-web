@@ -30,7 +30,7 @@ pub fn routes() -> Router<Service> {
 }
 
 /// A machine name an administrator named: letters, digits, `-` and `_`, as an install line carries it unquoted.
-fn named(agent: &str) -> Result<String, Refusal> {
+pub(crate) fn named(agent: &str) -> Result<String, Refusal> {
   let agent = agent.trim();
   let fits = !agent.is_empty()
     && agent.len() <= LONGEST_NAME

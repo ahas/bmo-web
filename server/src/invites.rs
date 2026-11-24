@@ -43,7 +43,7 @@ pub fn routes() -> Router<Service> {
 }
 
 /// The login the console names: its user and whether it is the administrator.
-fn login(headers: &HeaderMap) -> Result<(i32, bool), Refusal> {
+pub(crate) fn login(headers: &HeaderMap) -> Result<(i32, bool), Refusal> {
   let user = headers
     .get(OWNER_KEY)
     .and_then(|value| value.to_str().ok())
@@ -72,7 +72,10 @@ fn fresh_token() -> String {
 }
 
 /// A unit and its company, as references.
-async fn unit_and_company<C: ConnectionTrait>(db: &C, unit: i32) -> Result<(UnitRef, UnitRef), Refusal> {
+pub(crate) async fn unit_and_company<C: ConnectionTrait>(
+  db: &C,
+  unit: i32,
+) -> Result<(UnitRef, UnitRef), Refusal> {
   let path = path_of(db, unit).await?;
 
   match (path.last().cloned(), path.first().cloned()) {
@@ -336,6 +339,13 @@ pub async fn waiting_account<C: ConnectionTrait>(db: &C, token: &str) -> Result<
   }
 
   Ok(user)
+}
+
+/// The account an invitation made, whether or not it is enabled yet; refused `invite-open` before it is accepted.
+pub async fn account_of<C: ConnectionTrait>(db: &C, token: &str) -> Result<i32, Refusal> {
+  stored(db, token).await?.used_by.ok_or_else(|| {
+    Refusal::new(StatusCode::CONFLICT, "the invitation is not accepted yet").coded("invite-open")
+  })
 }
 
 /// An invited account enabled once the hub holds its machine.

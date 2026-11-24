@@ -730,7 +730,8 @@ section states what each does.
 - **A person takes their own machine away too.** Taking an account's machine away is the administrator's for any
   account, and the account's own for itself: the person signed in as that account, named in `Owner-Key`, takes it
   from the settings' machine section (`docs/web.md`, 「Settings」). Anyone else is refused 403. Binding to another
-  machine and declaring sharing stay the administrator's alone.
+  machine and declaring sharing stay the administrator's alone, but for the share an invited account asks for its
+  person's PC, which a head decides too (「A machine shared at an invitation's ask」).
 - **A machine taken away is revoked, so its credential works no more.** A machine's credential is made from its name
   alone, so once the binding is removed the console's server asks the service to revoke the name
   (`POST /machines/{agent}/revoke`), and the service asks the hub through its own control (`POST /revoke`, jake's
@@ -747,7 +748,8 @@ section states what each does.
   to share a machine its binding never declared shared. The binding keeps whether it is shared and answers it on
   every read of the account's machine. Each account on a shared machine works in a root of its own there, and its
   programs still read the other accounts' roots (agency's `docs/person-nodes.md`, 「Several accounts on one node」).
-  An invitation never binds a shared machine: acceptance always binds the person's own `u<user>`.
+  An invitation never binds a shared machine as it is accepted: acceptance always binds the person's own `u<user>`,
+  and a share is asked for afterwards (「A machine shared at an invitation's ask」).
 - **The account already on a machine is declared shared where it stands,** with no new binding: the administrator
   declares it from the organisation screen (`PUT /users/{user}/node/shared`), and a second account can be bound to
   the machine shared from then on. The declaration keeps the machine, its credential and its proof, and is taken
@@ -776,6 +778,36 @@ section states what each does.
   no machine — the administrator's, and every account made before invitations — is held to none of this.
 - **The credential is made with the hub's agent key,** which the service's settings carry beside the hub's address,
   its control address and its control token; a service whose settings name no hub makes no invitation.
+
+### A machine shared at an invitation's ask
+
+- **One PC carries one agent,** so a person whose PC already serves another machine name cannot connect it as the
+  invited account's own `u<user>`: the install stops before changing anything, naming the agent that holds the
+  machine, and the hub refuses a second agent of one machine anyway (jake's `docs/install.md`, 「One jake per
+  machine」, and `docs/architecture.md`, 「Many agents, one hub」). The account then asks to share that machine
+  instead, by its name, while it waits for its machine, with the invitation's token and no sign-in, as a pairing
+  is approved (`POST /invites/{token}/share`): an invitation not yet accepted is refused 409 `invite-open`, one whose
+  account is enabled already 409 `account-active`.
+- **Only a machine the hub holds now is asked for,** by the name a machine is bound by, and a name the hub holds no
+  agent of is refused 404 `no-machine`, so a mistyped name asks nobody anything.
+- **The asker's own machine binds at once.** The console names, as `owner`, the account the browser that asks is
+  signed in to; where that account is bound to the machine and has not left, the machine is the same person's, and
+  the share is bound as the ask is made. Otherwise the ask waits for a decision, one per account, a later ask
+  replacing the account's earlier one.
+- **The administrator decides any ask, and a head one wholly within their units:** a head of the asking account's
+  unit, or one above it, who heads the unit of every account bound to the machine as well, so no head shares the
+  machine of a person outside their units; a machine bound to no account is the administrator's alone to share.
+  `GET /machine-shares` lists the asks the reader may decide, each with the asking account, its unit and company,
+  the machine and the accounts bound to it; `POST /machine-shares/{user}/approve` binds it and
+  `POST /machine-shares/{user}/refuse` refuses it; anyone else is refused 403, and an ask that no longer waits 404.
+- **Binding a share** declares every account already bound to the machine shared, where it was not, and binds the
+  asking account to the machine shared, proven at once where the hub holds it, as the administrator's shared binding
+  is made (「Invitations and a person's machine」). The answer names the accounts whose binding was declared shared,
+  so the console's server sets agency's record of each as shared, a refusal written to its log. The asking account's
+  next proof then finds its machine attached and answers it active, as for any machine, and its node is set as
+  every proof sets it.
+- **The ask is read back with the token** (`GET /invites/{token}/share`): the machine, when it was asked, and
+  whether it is asked, approved or refused; 404 where the account asked for none.
 
 ### Desktop pairing
 
@@ -1709,6 +1741,7 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 | `grant_words` | the words a grant was made with, beside the grant |
 | `user_invites` | each invitation: its token, its unit, whether it makes a head, the person's name it was made for (empty where none was given), who made it, when it closes, and who used it and when |
 | `user_nodes` | the machine each invited account is bound to, whether the administrator bound it shared, when the account was connected to it, and when it was last proven |
+| `machine_share_asks` | each invited account's ask to share a machine: the machine's name, when it was asked, whether it is asked, approved or refused, and who decided it and when |
 | `user_departures` | each account marked left: when, and by whom |
 | `user_sign_ins` | when each user last signed in (「The people roster」) |
 | `sign_in_tries` | each sign-in tried, kept 90 days: the login as typed in lower case, the user it named or none, the address, the user agent, how it ended, whether it counts as a failure, and when (「Signing in」) |

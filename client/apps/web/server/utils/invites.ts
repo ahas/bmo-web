@@ -52,3 +52,46 @@ export function joinPairingFailure(error: unknown): Error {
 
   return fail(500, wording("pairing.error.failed"));
 }
+
+// The account service's codes on the join page's ask to share a machine (docs/boundary.md, 「Invitations」).
+const JOIN_SHARE_CODES: Readonly<Record<string, string>> = {
+  "no-machine": "join.error.share_no_machine",
+  "bad-request": "join.error.share_bad_name",
+  "account-active": "join.error.account_active",
+  "invite-open": "invites.error.failed",
+  "no-hub": "invites.error.no_hub",
+  "not-found": "invites.error.not_found"
+};
+
+/** What the join page's ask to share a machine came to, said in the pack's words. */
+export function joinShareFailure(error: unknown): Error {
+  if (error instanceof AccountServiceDown) return fail(503, wording("invites.error.unreachable"));
+
+  if (error instanceof AccountRefusal) {
+    const key = JOIN_SHARE_CODES[error.code];
+
+    return fail(key === undefined ? 502 : error.status, wording(key ?? "invites.error.failed"));
+  }
+
+  return fail(500, wording("invites.error.failed"));
+}
+
+// The account service's codes on a decision of an ask to share a machine.
+const SHARE_DECISION_CODES: Readonly<Record<string, string>> = {
+  forbidden: "invites.error.share_forbidden",
+  "not-found": "invites.error.share_gone",
+  "no-hub": "invites.error.no_hub"
+};
+
+/** What a decision of an ask to share a machine came to, said in the pack's words. */
+export function shareDecisionFailure(error: unknown): Error {
+  if (error instanceof AccountServiceDown) return fail(503, wording("invites.error.unreachable"));
+
+  if (error instanceof AccountRefusal) {
+    const key = SHARE_DECISION_CODES[error.code];
+
+    return fail(key === undefined ? 502 : error.status, wording(key ?? "invites.error.failed"));
+  }
+
+  return fail(500, wording("invites.error.failed"));
+}

@@ -30,6 +30,9 @@ import {
   type MachineRevoked,
   type Rendered,
   type PairingApproved,
+  type ShareAnswer,
+  type ShareAskRow,
+  type ShareAskState,
   type PairingCredential,
   type PairingMade,
   type PairingView,
@@ -1117,6 +1120,59 @@ export async function approveInvitePairing(token: string, code: string, options:
   const reply = await sent(options, client.POST("/invites/{token}/pairings/{code}/approve", { params: { path: { token, code } } }));
 
   return answered(reply);
+}
+
+/**
+ * The invitation's waiting account asks to share a machine another agent holds, bound at once where `owner`, the
+ * account the asking browser is signed in to, is bound to it (docs/accounts.md, 「A machine shared at an invitation's
+ * ask」).
+ */
+export async function askInviteShare(token: string, machine: string, owner: string | null, options: ServiceOptions = {}): Promise<ShareAnswer> {
+  const client = clientOf(options);
+  const body = owner === null ? { machine } : { machine, owner };
+  const reply = await sent(options, client.POST("/invites/{token}/share", { params: { path: { token } }, body }));
+
+  return answered(reply);
+}
+
+/** The invitation's account's ask to share a machine, or null where it asked for none. */
+export async function inviteShare(token: string, options: ServiceOptions = {}): Promise<ShareAskState | null> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.GET("/invites/{token}/share", { params: { path: { token } } }));
+
+  if (reply.response.status === 404) return null;
+
+  return answered(reply);
+}
+
+/** The asks to share a machine the reader may decide, oldest first. */
+export async function machineShares(caller: ProfileCaller, options: ServiceOptions = {}): Promise<ShareAskRow[]> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.GET("/machine-shares", { params: { header: { "Owner-Key": caller.key, "Owner-Role": caller.role } } }));
+
+  return answered(reply).asks;
+}
+
+/** An ask to share a machine approved, the share bound. */
+export async function approveMachineShare(user: UserId, caller: ProfileCaller, options: ServiceOptions = {}): Promise<ShareAnswer> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.POST("/machine-shares/{user}/approve", { params: { path: { user }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } } })
+  );
+
+  return answered(reply);
+}
+
+/** An ask to share a machine refused. */
+export async function refuseMachineShare(user: UserId, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.POST("/machine-shares/{user}/refuse", { params: { path: { user }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } } })
+  );
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
 }
 
 /** The machine an account is bound to and whether the hub holds it. */

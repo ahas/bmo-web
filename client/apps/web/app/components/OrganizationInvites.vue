@@ -4,10 +4,13 @@
        the organisation tree, with the role the person
        takes there and, where the maker gives it, the person's name, in a dialog the tab row's add opens; copied with its words and when it closes,
        in the press that makes it, or by a copy of its own in the dialog where the browser refused that; the open
-       ones into the organisation listed, each copied again or taken back by its two marks. While they are first read the list keeps its
+       ones into the organisation listed, each copied again or taken back by its two marks, under the asks to share a
+       machine the reader may decide. While they are first read the list keeps its
        place with a skeleton, and a read that failed says why in its place. -->
   <div class="flex flex-col gap-4">
     <p v-if="units !== null && treeUnits.length === 0" class="text-sm text-muted">{{ $t("invites.label.no_units") }}</p>
+
+    <InviteShareAsks :company="company" />
 
     <SettingsGroup :title="$t('invites.label.open')">
       <ContentSkeleton v-if="!loaded && readFailure === ''" :rows="1" listClass="flex flex-col divide-y divide-default" :label="$t('invites.status.loading')">

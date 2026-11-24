@@ -2259,13 +2259,21 @@ invites:
     none: 열린 초대 없음
     no_units: 초대할 수 있는 조직이 없습니다. 조직장이나 플랫폼 관리자만 초대할 수 있습니다.
     until: "{time}까지"
+    shares: "기기 공유 요청"
+    share_machine: "{machine} 공유 요청"
+    share_holders: "지금 쓰는 계정: {names}"
+    share_no_holders: "지금 쓰는 계정 없음"
   action:
     make: 링크 만들고 복사
     copy: 초대 문구 복사
     drop: 취소
+    approve: "승인"
+    refuse: "거절"
   status:
     copied: 복사됨
     loading: 초대 불러오는 중…
+    share_approved: "{name}님의 기기 공유를 승인했습니다."
+    share_refused: "{name}님의 기기 공유 요청을 거절했습니다."
   message:
     made_uncopied: "초대 링크를 만들었지만 브라우저가 자동 복사를 막았습니다.\n초대 문구 복사를 눌러 주세요."
     text: "{place}에 초대합니다. 아래 링크에서 계정을 만들고 안내에 따라 PC에 jake를 설치하면 계정이 활성화됩니다. {link} (유효 기간: {time}까지)"
@@ -2280,6 +2288,8 @@ invites:
     not_found: 초대를 찾을 수 없습니다.
     not_ready: 아직 계정을 만들 수 없는 상태입니다. 플랫폼 관리자에게 알려 주세요.
     unreachable: 계정 서비스에 연결되지 않았습니다.
+    share_forbidden: "이 요청을 승인하거나 거절할 수 없습니다. 플랫폼 관리자나 그 기기를 쓰는 모든 계정의 조직장만 할 수 있습니다."
+    share_gone: "이미 처리된 요청입니다."
 overlay:
   title:
     panel: 내 BMO
@@ -2384,11 +2394,14 @@ join:
     step_download: "앱 다운로드"
     step_open: "앱 열기"
     step_code: "연결 코드 입력"
+    share_machine: "기기 이름"
   action:
     accept: 계정 만들기
     check: 설치했어요, 확인하기
     copy: 복사
     connect: "연결"
+    share_open: "이 PC를 공유 노드로 함께 쓰기"
+    share_send: "공유 요청"
   message:
     invited: "{place}에 초대되었습니다."
     invited_head: "{place}에 조직장으로 초대되었습니다."
@@ -2400,19 +2413,28 @@ join:
     desktop_download: "이 계정을 쓸 PC에 BMO 데스크톱 앱을 설치합니다."
     desktop_open: "설치한 앱을 엽니다. 앱이 BMO 서버 주소를 물으면 아래 주소를 입력합니다."
     desktop_code: "앱 창 맨 위 제목 표시줄에 보이는 연결 코드를 입력하고 연결을 누릅니다."
-    desktop_unavailable: "데스크톱 앱은 아직 받을 수 없습니다.\njake 명령으로 시작해야 합니다."
+    desktop_unavailable: "데스크톱 앱 설치 파일은 아직 받을 수 없습니다.\n이 PC에 앱이 이미 설치되어 있으면 아래 단계로 연결합니다."
     desktop_connecting: "앱 연결을 승인했습니다. 앱이 연결하는 중입니다…"
     one_agent: "jake를 설치한 PC에서 데스크톱 앱을 열면 앱은 설치된 jake를 그대로 쓰며, 둘이 함께 켜지지 않습니다."
     signed_in_as: "지금 {name} 계정으로 로그인되어 있습니다.\n새 계정으로 로그인하면 이 계정은 로그아웃됩니다."
     waiting: 기기 연결을 기다리는 중입니다…
     active: "기기가 연결되어 계정이 활성화되었습니다.\n이제 로그인할 수 있습니다."
     agent_login: "기기가 연결되어 계정이 활성화되었습니다.\n이 조직에서는 내 로그인이나 키로만 에이전트가 일합니다.\n로그인하면 시작 안내에서 먼저 연결합니다."
+    one_jake: "한 PC에는 jake를 하나만 연결할 수 있습니다. 이 PC에 이미 jake가 있으면 설치는 아무것도 바꾸지 않고 멈추며, 그 jake의 이름을 알려 줍니다. 그때는 아래 「이 PC를 공유 노드로 함께 쓰기」에 그 이름을 입력합니다."
+    share_line: "이 PC에 이미 다른 계정의 jake나 데스크톱 앱이 연결되어 있으면, 이 계정도 그 PC를 함께 쓸 수 있습니다."
+    share_help: "설치가 멈추며 알려 준 jake 이름을 입력합니다. 이 브라우저가 그 PC의 계정으로 로그인되어 있으면 바로 연결되고, 아니면 관리자나 조직장이 승인한 뒤 연결됩니다."
+    share_asked: "{machine} 공유를 요청했습니다.\n관리자나 조직장이 승인하면 이 계정이 그 PC를 함께 씁니다."
+    share_bound: "{machine}에 연결했습니다."
+    share_refused: "{machine} 공유 요청이 거절되었습니다.\n다른 이름으로 다시 요청하거나 초대한 사람에게 문의해야 합니다."
   error:
     full_name_empty: 이름을 입력해 주세요.
     code_empty: "연결 코드를 입력해야 합니다."
     code_closed: "만료되었거나 이미 쓴 연결 코드입니다. 앱에서 다시 시도해야 합니다."
     code_not_found: "연결 코드를 찾을 수 없습니다. 앱 창 제목 표시줄의 코드와 같은지 확인해야 합니다."
     account_active: "이미 활성화된 계정입니다. 로그인한 뒤 앱을 연결해야 합니다."
+    share_empty: "기기 이름을 입력해야 합니다."
+    share_no_machine: "그 이름으로 연결된 기기가 없습니다. 설치가 알려 준 이름과 같은지 확인해야 합니다."
+    share_bad_name: "기기 이름에는 영문, 숫자, -, _만 쓸 수 있습니다."
 guide:
   title:
     page: 시작 안내
@@ -2468,7 +2490,7 @@ guide:
     no_roads: 고를 수 있는 공급자가 없습니다.
     no_room: 내 BMO의 대화방이 아직 없습니다.
     first_words: 안녕! 넌 나를 위해 뭘 할 수 있어?
-    desktop_unavailable: "데스크톱 앱은 아직 받을 수 없습니다.\n기기는 나중에 설정의 기기에서 연결할 수 있습니다."
+    desktop_unavailable: "데스크톱 앱 설치 파일은 아직 받을 수 없습니다.\n이 PC에 앱이 이미 설치되어 있으면 아래 단계로 연결하고, 아니면 나중에 설정의 기기에서 연결할 수 있습니다."
     step_welcome: BMO가 나를 위해 일하도록 필요한 것을 차례로 설정합니다.
     step_supply_optional: "조직이 에이전트 공급을 맡고 있습니다.\n내 Claude 로그인이나 키를 함께 둘 수 있습니다."
     step_supply_required: "이 조직에서는 내 로그인이나 키로만 에이전트가 일합니다.\n먼저 하나를 연결해야 합니다."

@@ -2238,13 +2238,21 @@ invites:
     none: No open invites
     no_units: There are no organizations you can invite to. Only heads and administrators can invite.
     until: "Until {time}"
+    shares: "Machine share requests"
+    share_machine: "Asks to share {machine}"
+    share_holders: "Accounts on it: {names}"
+    share_no_holders: "No account on it yet"
   action:
     make: Create and copy link
     copy: Copy invite text
     drop: Cancel
+    approve: "Approve"
+    refuse: "Refuse"
   status:
     copied: Copied
     loading: Loading invites…
+    share_approved: "Approved {name}'s machine share."
+    share_refused: "Refused {name}'s machine share request."
   message:
     made_uncopied: "The invite link was created, but the browser blocked automatic copying.\nPress Copy invite text."
     text: "You're invited to {place}. Create an account at the link below and install jake on your PC as instructed to activate it. {link} (Valid until {time})"
@@ -2259,6 +2267,8 @@ invites:
     not_found: Invite not found.
     not_ready: "Accounts can't be created yet. Let an administrator know."
     unreachable: "Couldn't reach the account service."
+    share_forbidden: "You can't decide this request. Only the platform administrator, or a head of every account on that machine, can."
+    share_gone: "This request has already been decided."
 overlay:
   title:
     panel: My BMO
@@ -2363,11 +2373,14 @@ join:
     step_download: "Download the app"
     step_open: "Open the app"
     step_code: "Enter the connection code"
+    share_machine: "Machine name"
   action:
     accept: Create account
     check: "I've installed it, check"
     copy: Copy
     connect: "Connect"
+    share_open: "Use this PC as a shared node"
+    share_send: "Ask to share"
   message:
     invited: "You're invited to {place}."
     invited_head: "You're invited to {place} as a head."
@@ -2381,7 +2394,7 @@ join:
     desktop_download: "Install the BMO desktop app on the PC you'll use with this account."
     desktop_open: "Open the app you installed. When it asks for the BMO server address, enter the address below."
     desktop_code: "Enter the connection code shown in the title bar at the top of the app window, then press Connect."
-    desktop_unavailable: "The desktop app isn't available yet.\nStart with the jake command instead."
+    desktop_unavailable: "The desktop app can't be downloaded yet.\nIf the app is already installed on this PC, connect it with the steps below."
     desktop_connecting: "You approved the app connection. The app is connecting…"
     one_agent: "If you open the desktop app on a PC where jake is installed, the app keeps using the installed jake, and the two never run together."
     signed_in_as: "You're signed in as {name} right now.\nSigning in to the new account signs this one out."
@@ -2390,12 +2403,21 @@ join:
 
       You can sign in now.'
     agent_login: "The machine is connected and your account is active.\nIn this organization, agents work only with your own sign-in or key.\nAfter signing in, getting started connects one first."
+    one_jake: "A PC connects only one jake. On a PC that already has one, the install changes nothing and stops, naming the jake that holds the PC. Then enter that name under “Use this PC as a shared node” below."
+    share_line: "If this PC already has another account's jake or desktop app connected, this account can share that PC."
+    share_help: "Enter the jake name the install gave as it stopped. If this browser is signed in to that PC's account, it connects at once; otherwise it connects once an administrator or a head approves."
+    share_asked: "Asked to share {machine}.\nOnce an administrator or a head approves, this account shares that PC."
+    share_bound: "Connected to {machine}."
+    share_refused: "The request to share {machine} was refused.\nAsk again with another name, or contact whoever invited you."
   error:
     full_name_empty: Enter your name.
     code_empty: "Enter the connection code."
     code_closed: "This connection code has expired or was already used. Try again from the app."
     code_not_found: "Connection code not found. Check that it matches the code in the app window's title bar."
     account_active: "This account is already active. Sign in, then connect the app."
+    share_empty: "Enter the machine name."
+    share_no_machine: "No machine is connected under that name. Check that it matches the name the install gave."
+    share_bad_name: "A machine name uses only letters, digits, - and _."
 guide:
   title:
     page: Getting started
@@ -2451,7 +2473,7 @@ guide:
     no_roads: No provider can be chosen.
     no_room: Your BMO has no chat yet.
     first_words: Hi! What can you do for me?
-    desktop_unavailable: "The desktop app is not available yet.\nYou can connect a machine later under Machine in settings."
+    desktop_unavailable: "The desktop app can't be downloaded yet.\nIf the app is already installed on this PC, connect it with the steps below; otherwise connect a machine later under Machine in settings."
     step_welcome: Set up what BMO needs to work for you, one step at a time.
     step_supply_optional: "Your organization supplies your agents.\nYou can add your own Claude sign-in or key beside it."
     step_supply_required: "In this organization, agents work only with your own sign-in or key.\nConnect one first."

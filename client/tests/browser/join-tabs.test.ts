@@ -9,7 +9,8 @@ import type { Browser, BrowserContext, Locator, Page, Route } from "playwright-c
 // The join page's two ways to connect the machine (docs/web.md, 「The join page」): the desktop app's tab first and
 // chosen where a release is published, its installers with the reader's own platform leading, the console's own
 // address to give the app, and the code from the app's title bar approved with the invitation; jake's command chosen
-// where none is published, the desktop tab saying the app is not available yet; both waiting for the same proof and
+// where none is published, the desktop tab then offering nothing to download but still pairing an app already
+// installed, and jake's tab saying what a refusal on a PC with a jake already means; both waiting for the same proof and
 // ending in the same state; and a browser already signed in to another account told so, its session ended by the way
 // to the login, which opens for the new account. Worked at a phone's width with a finger and at a desktop's with the mouse, reading what
 // the browser draws. It drives the console tests/support/browser-console.ts stands up, the join routes answered in the
@@ -86,6 +87,7 @@ async function joined(size: (typeof SIZES)[number], release: unknown, pairAnswer
 
     return json(route, pairAnswer.body, pairAnswer.status);
   });
+  await context.route(new RegExp(`/api/join/${TOKEN}/share$`), (route) => json(route, null));
   await context.route(new RegExp(`/api/join/${TOKEN}$`), (route) => json(route, view));
   await context.route(/\/api\/desktop\/release$/, (route) => json(route, { release }));
 
@@ -211,8 +213,8 @@ describe.skipIf(!origin || !touchReady())("the join page's two ways", () => {
       }
     }, 120_000);
 
-    test(`chooses jake's command where no release is published at ${size.width}px`, async () => {
-      const { context, page, press, attached } = await joined(size, null);
+    test(`chooses jake's command where no release is published and still pairs an installed app at ${size.width}px`, async () => {
+      const { context, page, press, paired } = await joined(size, null);
 
       try {
         await page.locator("[data-join-jake]").waitFor({ timeout: 10_000 });
@@ -220,16 +222,25 @@ describe.skipIf(!origin || !touchReady())("the join page's two ways", () => {
         expect(await page.locator("[data-install-copy]").count()).toBe(2);
         expect(await overflow(page)).toBeLessThanOrEqual(0);
 
-        // The desktop tab, pressed, says the app is not available yet and offers nothing to download.
+        // jake's tab says plainly what a refusal on a PC that already has a jake means.
+        expect(await page.locator("[data-join-one-jake]").innerText()).toBe(wording("join.message.one_jake"));
+
+        // The desktop tab, pressed, says the app cannot be downloaded yet and offers nothing to download, and still
+        // pairs an app already installed with the code from its title bar.
         await press(tab(page, "join.label.tab_desktop"));
         await page.locator("[data-join-desktop-unavailable]").waitFor({ timeout: 10_000 });
         expect(await page.locator("[data-join-download]").count()).toBe(0);
+        expect(await page.locator("[data-join-server]").isVisible()).toBe(true);
+        await page.locator("[data-join-code]").fill("wxyz-2345");
+        await press("[data-join-connect]");
+        await page.locator("[data-join-approved]").waitFor({ timeout: 10_000 });
+        expect(paired).toEqual([{ code: "WXYZ-2345" }]);
+        expect(await overflow(page)).toBeLessThanOrEqual(0);
 
-        // Back on jake's tab, the machine attaching ends the page as the desktop tab's does.
-        await press(tab(page, "join.label.tab_jake"));
-        attached.now = true;
-        await press("[data-join-check]");
+        // The app's agent attached, the page ends on jake's tab as on the desktop tab.
         await page.locator("[data-join-active]").waitFor({ timeout: 20_000 });
+        await press(tab(page, "join.label.tab_jake"));
+        expect(await page.locator("[data-join-active]").isVisible()).toBe(true);
       } finally {
         await context.close();
       }

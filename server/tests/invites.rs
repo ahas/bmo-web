@@ -923,3 +923,131 @@ async fn asked_as_administrator(
 ) -> (StatusCode, Value) {
   asked(app, method, &path, Some(body), Some((1, "administrator"))).await
 }
+
+/// An invitation into the team made by its head and accepted, answering its token and the account it made.
+async fn waiting_account(stood: &Stood, login: &str) -> (String, i32) {
+  let (status, invite) = asked(
+    &stood.app,
+    Method::POST,
+    "/invites",
+    Some(json!({ "unit": stood.team, "head": false })),
+    Some((stood.head, "member")),
+  )
+  .await;
+  assert_eq!(status, StatusCode::CREATED, "{invite}");
+  let token = invite["token"].as_str().unwrap().to_owned();
+  let user = accepted_as(stood, &token, login).await;
+
+  (token, user)
+}
+
+/// The machine an account is bound to and whether that binding is shared.
+async fn binding_of(stood: &Stood, user: i32) -> (String, bool) {
+  let row = one(
+    stood.scratch.db(),
+    r#"SELECT "agent", "shared" FROM "user_nodes" WHERE "user_id" = $1"#,
+    vec![user.into()],
+  )
+  .await
+  .unwrap()
+  .unwrap();
+
+  (row.try_get("", "agent").unwrap(), row.try_get("", "shared").unwrap())
+}
+
+/// The member's PC, attached under its own name and bound to the member.
+async fn members_pc(stood: &Stood) {
+  stood
+    .scratch
+    .run(
+      r#"INSERT INTO "user_nodes" ("user_id", "agent") VALUES ($1, 'pc-a')"#,
+      vec![stood.member.into()],
+    )
+    .await;
+  stood.hub.attach("pc-a", INSTALLED);
+}
+
+#[tokio::test]
+async fn an_invited_account_asks_to_share_a_held_machine_and_a_head_of_everyone_on_it_approves() {
+  ready();
+  let stood = stood().await;
+  members_pc(&stood).await;
+  let (token, user) = waiting_account(&stood, "newcomer").await;
+  let share = format!("/invites/{token}/share");
+
+  // A name the hub holds no agent of asks nobody anything.
+  let (status, said) =
+    asked(&stood.app, Method::POST, &share, Some(json!({ "machine": "pc-z" })), None).await;
+  assert_eq!((status, said["code"].as_str()), (StatusCode::NOT_FOUND, Some("no-machine")), "{said}");
+
+  let (status, answer) =
+    asked(&stood.app, Method::POST, &share, Some(json!({ "machine": "pc-a" })), None).await;
+  assert_eq!(status, StatusCode::OK, "{answer}");
+  assert_eq!(answer, json!({ "machine": "pc-a", "state": "asked", "holders": [] }));
+  let (_, read) = asked(&stood.app, Method::GET, &share, None, None).await;
+  assert_eq!(read["state"], "asked", "{read}");
+
+  // A member decides nothing; the team's head, who heads everyone on the machine, reads and approves it.
+  let (_, listed) =
+    asked(&stood.app, Method::GET, "/machine-shares", None, Some((stood.member, "member"))).await;
+  assert_eq!(listed["asks"], json!([]), "{listed}");
+  let approve = format!("/machine-shares/{user}/approve");
+  let (status, _) = asked(&stood.app, Method::POST, &approve, None, Some((stood.member, "member"))).await;
+  assert_eq!(status, StatusCode::FORBIDDEN);
+
+  let (_, listed) =
+    asked(&stood.app, Method::GET, "/machine-shares", None, Some((stood.head, "member"))).await;
+  let ask = &listed["asks"][0];
+  assert_eq!(ask["user"], user.to_string(), "{listed}");
+  assert_eq!(ask["login"], "newcomer");
+  assert_eq!(ask["machine"], "pc-a");
+  assert_eq!(ask["unit"]["id"], stood.team);
+  assert_eq!(ask["holders"][0]["login"], "member-a", "{listed}");
+
+  let (status, bound) = asked(&stood.app, Method::POST, &approve, None, Some((stood.head, "member"))).await;
+  assert_eq!(status, StatusCode::OK, "{bound}");
+  assert_eq!(
+    bound,
+    json!({ "machine": "pc-a", "state": "bound", "holders": [stood.member.to_string()] })
+  );
+  assert_eq!(binding_of(&stood, user).await, ("pc-a".to_owned(), true));
+  assert_eq!(binding_of(&stood, stood.member).await, ("pc-a".to_owned(), true));
+
+  // The account's own proof finds its machine attached, and the ask reads approved and waits no more.
+  let (_, proof) = asked(&stood.app, Method::POST, &format!("/invites/{token}/proof"), None, None).await;
+  assert_eq!(proof["active"], true, "{proof}");
+  let (_, read) = asked(&stood.app, Method::GET, &share, None, None).await;
+  assert_eq!(read["state"], "approved", "{read}");
+  let (status, _) = asked(&stood.app, Method::POST, &approve, None, Some((stood.head, "member"))).await;
+  assert_eq!(status, StatusCode::NOT_FOUND);
+}
+
+#[tokio::test]
+async fn the_asking_browsers_own_machine_binds_at_once_and_a_refused_ask_reads_refused() {
+  ready();
+  let stood = stood().await;
+  members_pc(&stood).await;
+
+  // The browser is signed in to the member, whose machine it is: bound as it is asked.
+  let (token, user) = waiting_account(&stood, "second-account").await;
+  let ask = json!({ "machine": "pc-a", "owner": stood.member.to_string() });
+  let (status, answer) =
+    asked(&stood.app, Method::POST, &format!("/invites/{token}/share"), Some(ask), None).await;
+  assert_eq!(status, StatusCode::OK, "{answer}");
+  assert_eq!(answer["state"], "bound", "{answer}");
+  assert_eq!(binding_of(&stood, user).await, ("pc-a".to_owned(), true));
+
+  // Signed in to someone not on the machine, the ask waits; the administrator refuses it.
+  let (token, user) = waiting_account(&stood, "third-account").await;
+  let share = format!("/invites/{token}/share");
+  let ask = json!({ "machine": "pc-a", "owner": stood.head.to_string() });
+  let (_, answer) = asked(&stood.app, Method::POST, &share, Some(ask), None).await;
+  assert_eq!(answer["state"], "asked", "{answer}");
+  let refuse = format!("/machine-shares/{user}/refuse");
+  let (status, _) =
+    asked(&stood.app, Method::POST, &refuse, None, Some((stood.head, "administrator"))).await;
+  assert_eq!(status, StatusCode::NO_CONTENT);
+  let (_, read) = asked(&stood.app, Method::GET, &share, None, None).await;
+  assert_eq!(read["state"], "refused", "{read}");
+  assert_eq!(binding_of(&stood, user).await, (format!("u{user}"), false));
+}

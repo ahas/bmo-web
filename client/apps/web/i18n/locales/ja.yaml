@@ -2397,6 +2397,7 @@ join:
     connect: "接続"
     share_open: "このPCを共有ノードとして一緒に使う"
     share_send: "共有をリクエスト"
+    open_app: "アプリで開く"
   message:
     invited: "{place}に招待されました。"
     invited_head: "{place}に組織長として招待されました。"
@@ -2425,6 +2426,8 @@ join:
     share_asked: "{machine} の共有をリクエストしました。\n管理者か組織長が承認すると、このアカウントがそのPCを一緒に使います。"
     share_bound: "{machine} に接続しました。"
     share_refused: "{machine} の共有リクエストは拒否されました。\n別の名前でもう一度リクエストするか、招待した人に問い合わせてください。"
+    open_app: "このPCに BMO デスクトップアプリがインストールされていればアプリが開き、サーバーアドレスと接続コードはアプリが処理します。"
+    app_not_opened: "アプリが開きませんでした。まだインストールしていない場合は、下からダウンロードしてインストールします。"
   error:
     full_name_empty: 名前を入力してください。
     code_empty: "接続コードを入力してください。"
@@ -2854,6 +2857,7 @@ desktop:
     page: デスクトップアプリ
     server: サーバーの変更
   label:
+    preview: "ベータ"
     version: バージョン
     published: 公開日
     file: ファイル

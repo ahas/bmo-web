@@ -2402,6 +2402,7 @@ join:
     connect: "연결"
     share_open: "이 PC를 공유 노드로 함께 쓰기"
     share_send: "공유 요청"
+    open_app: "앱에서 열기"
   message:
     invited: "{place}에 초대되었습니다."
     invited_head: "{place}에 조직장으로 초대되었습니다."
@@ -2426,6 +2427,8 @@ join:
     share_asked: "{machine} 공유를 요청했습니다.\n관리자나 조직장이 승인하면 이 계정이 그 PC를 함께 씁니다."
     share_bound: "{machine}에 연결했습니다."
     share_refused: "{machine} 공유 요청이 거절되었습니다.\n다른 이름으로 다시 요청하거나 초대한 사람에게 문의해야 합니다."
+    open_app: "이 PC에 BMO 데스크톱 앱이 설치되어 있으면 앱이 열리고, 서버 주소와 연결 코드는 앱이 알아서 처리합니다."
+    app_not_opened: "앱이 열리지 않았습니다. 아직 설치하지 않았다면 아래에서 내려받아 설치합니다."
   error:
     full_name_empty: 이름을 입력해 주세요.
     code_empty: "연결 코드를 입력해야 합니다."
@@ -2849,6 +2852,7 @@ desktop:
     page: 데스크톱 앱
     server: 서버 변경
   label:
+    preview: "베타"
     version: 버전
     published: 공개일
     file: 파일

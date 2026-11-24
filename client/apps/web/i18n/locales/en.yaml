@@ -2381,6 +2381,7 @@ join:
     connect: "Connect"
     share_open: "Use this PC as a shared node"
     share_send: "Ask to share"
+    open_app: "Open in the app"
   message:
     invited: "You're invited to {place}."
     invited_head: "You're invited to {place} as a head."
@@ -2409,6 +2410,8 @@ join:
     share_asked: "Asked to share {machine}.\nOnce an administrator or a head approves, this account shares that PC."
     share_bound: "Connected to {machine}."
     share_refused: "The request to share {machine} was refused.\nAsk again with another name, or contact whoever invited you."
+    open_app: "If the BMO desktop app is installed on this PC, it opens and takes care of the server address and the connection code itself."
+    app_not_opened: "The app didn't open. If it isn't installed yet, download and install it below."
   error:
     full_name_empty: Enter your name.
     code_empty: "Enter the connection code."
@@ -2834,6 +2837,7 @@ desktop:
     page: Desktop app
     server: Change server
   label:
+    preview: "Beta"
     version: Version
     published: Released
     file: File

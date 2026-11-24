@@ -13,11 +13,15 @@ export interface DesktopReleaseFile {
   url: string;
 }
 
-/** The current release: its version, when it was published, and its installers. */
+/** The channel a release stands on: a stable release, or a preview (an alpha, beta or release candidate). */
+export type DesktopReleaseChannel = "stable" | "preview";
+
+/** The current release: its version, when it was published, its installers, and the channel it stands on. */
 export interface DesktopRelease {
   version: string;
   date: string;
   files: DesktopReleaseFile[];
+  channel: DesktopReleaseChannel;
 }
 
 /** What the console's server answers the page with: the current release, or null where none is published. */

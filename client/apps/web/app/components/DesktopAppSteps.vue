@@ -8,8 +8,11 @@
     <SkeletonLine width="w-2/3" />
   </ContentSkeleton>
   <ol v-else class="flex list-decimal flex-col gap-4 ps-6">
-    <li class="ps-1 marker:font-medium marker:text-highlighted"><div class="flex flex-col gap-2">
-      <span class="font-medium text-highlighted">{{ $t("join.label.step_download") }}</span>
+    <li class="ps-1 marker:font-medium marker:text-highlighted" data-join-step-download><div class="flex flex-col gap-2">
+      <span class="flex flex-wrap items-center gap-2 font-medium text-highlighted">
+        {{ $t("join.label.step_download") }}
+        <UBadge v-if="installers.length > 0 && release?.channel === 'preview'" color="warning" variant="subtle" size="sm" :label="`${$t('desktop.label.preview')} ${release.version}`" data-join-preview />
+      </span>
       <p v-if="installers.length === 0" class="whitespace-pre-line break-keep text-sm text-toned" data-join-desktop-unavailable>{{ unavailable ?? $t("join.message.desktop_unavailable") }}</p>
       <p v-else class="break-keep text-sm text-toned">{{ $t("join.message.desktop_download") }}</p>
       <div v-if="installers.length > 0" class="flex flex-wrap gap-2">

@@ -169,6 +169,33 @@ describe.skipIf(!origin || !touchReady())("the join page's two ways", () => {
       }
     }, 120_000);
 
+    test(`labels a preview build as a beta and opens the installed app on the invitation at ${size.width}px`, async () => {
+      const { context, page, press } = await joined(size, { ...RELEASE, version: "1.0.0-beta.1", channel: "preview" });
+
+      try {
+        // A preview is offered all the same, its download step marked as a beta.
+        await page.locator("[data-join-download]").first().waitFor({ timeout: 10_000 });
+        expect(await page.locator("[data-join-preview]").innerText()).toContain(wording("desktop.label.preview"));
+
+        // The link carries the console's address and the invitation alone.
+        const address = `${new URL(origin!).origin}/console`;
+        const link = page.locator("[data-join-open-app]");
+
+        expect(await link.getAttribute("href")).toBe(`bmo://connect?server=${encodeURIComponent(address)}&invite=${TOKEN}`);
+
+        // No app here opens it, so the page says so and brings the download step into view.
+        await press(link);
+        await page.locator("[data-join-app-not-opened]").waitFor({ timeout: 10_000 });
+        const step = (await page.locator("[data-join-step-download]").boundingBox())!;
+
+        expect(step.y).toBeLessThan(size.height);
+        expect(step.y + 1).toBeGreaterThan(0);
+        expect(await overflow(page)).toBeLessThanOrEqual(0);
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+
     test(`says a refused code under the field and keeps it for another try at ${size.width}px`, async () => {
       const { context, page, paired, press } = await joined(size, RELEASE, { status: 410, body: { statusCode: 410, message: wording("join.error.code_closed") } });
 

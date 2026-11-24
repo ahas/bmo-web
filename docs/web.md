@@ -8689,6 +8689,13 @@ Where a company's own words for its roles and its unit kinds are kept (`docs/acc
     `docs/accounts.md`, 「Desktop pairing」), says the app is connecting, and from there waits as above. A code
     refused is said under the field in the pack's words — expired or already used, not found, the account already
     active — and the field stays for another try.
+  - **앱에서 열기** stands above the desktop tab's steps: a link,
+    `bmo://connect?server=<the console's address>&invite=<the invitation's token>`, that opens the app already
+    installed (jake's `docs/desktop.md`, 「Opening from a link」), which asks once before it connects to a server it
+    does not know, keeps the address, and approves its own pairing with the invitation, so the person neither copies
+    the address nor types a code; the page waits as above. The link carries nothing but the address and the
+    one-time invitation. Where nothing opens it, the page still in view a few seconds later, a line under it says
+    the app seems not to be installed, and the download step is brought into view.
   - **jake 명령으로 시작** holds the person's machine's one-line installs, Linux or WSL and Windows, each with its
     copy mark. A press of the mark puts the line on the clipboard and turns the mark to a check named 「복사됨」, in its
     tooltip as in its name, until another line is copied. The copy reaches the clipboard on an address the browser
@@ -8768,7 +8775,11 @@ Where a company's own words for its roles and its unit kinds are kept (`docs/acc
   holds the way back.
 - **It reads the app's current release through the console's server,** which reads the release read jake publishes
   (jake's `docs/desktop.md`, 「The read the console uses」) at the address `DESKTOP_RELEASE_URL` names
-  (`docs/boundary.md`, 「Settings」). The server hands on the version, the date and every installer entry it can read
+  (`docs/boundary.md`, 「Settings」). It reads the newest release of the channel that has one: the stable release
+  where one is published, and otherwise, where the address is a GitHub latest-release address, which never names a
+  pre-release, the newest pre-release of that repository, read through GitHub's release list and kept ten minutes.
+  The answer says which channel it is, and a preview stands labelled 베타 wherever the release is offered: beside the
+  version here, and beside the download step of the join page's desktop tab and of the start guide's 기기. The server hands on the version, the date and every installer entry it can read
   whole: a platform, an arch, a format and a file name, a size in bytes, a lowercase SHA-256 and a web address. A
   field it does not know is passed over and an entry it cannot read whole is left out.
 - **The release stands as its version and the moment it was published,** then one section a platform, Windows first,

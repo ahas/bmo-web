@@ -420,7 +420,8 @@
 - where the desktop app's updates come from → 업데이트 채널: the set's releases → 안정판, `안정판 (기본값)` among the
   choices; the alphas, betas and release candidates as well → 프리뷰, and what it takes → 안정판보다 먼저 공개하는
   버전; the day's build between them → 나이틀리, as the owner named it; what a nightly is → 매일 만드는 빌드. Never
-  정식판, 베타, 미리보기, 개발판, 스테이블 or 릴리스 채널.
+  정식판, 베타, 미리보기, 개발판, 스테이블 or 릴리스 채널 for the channel. A preview build offered for download where
+  no stable one is published → 베타, beside its version, as the owner named it.
 - the app's window controls the console draws → 최소화, 최대화, 이전 크기로 (restoring a maximised window, as Windows
   says it) and 닫기. Never 최대화 해제, 복원, 창 닫기 or 종료, which is quitting the app.
 - the largest file a place takes, which a room's chat service or the agency declares → 보낼 수 있는 크기: in the

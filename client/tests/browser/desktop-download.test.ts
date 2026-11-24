@@ -168,6 +168,24 @@ describe.skipIf(!origin || !touchReady())("the desktop app's download page", () 
       }, 120_000);
     }
 
+    test(`a preview read where no stable release stands is labelled as a beta beside its version, at ${width}px`, async () => {
+      const context = await contextFor(width, height, "light");
+
+      try {
+        const page = await context.newPage();
+
+        await releaseRead(page, json({ release: { ...RELEASE, version: "1.2.3-beta.1", channel: "preview" } }));
+        await page.goto(`${origin}/desktop`, { waitUntil: "load" });
+        await standing(page);
+        await page.locator("[data-desktop-preview]").getByText(wording("desktop.label.preview"), { exact: true }).waitFor({ timeout: 20_000 });
+        expect(await page.locator("[data-desktop-version]").innerText()).toContain("1.2.3-beta.1");
+        expect(await page.locator("[data-desktop-download]").count()).toBeGreaterThan(0);
+        expect(await overflow(page)).toBeLessThanOrEqual(0);
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+
     test(`no release published says so with nothing to download, and a failed read is read again, at ${width}px`, async () => {
       const context = await contextFor(width, height, "dark");
 

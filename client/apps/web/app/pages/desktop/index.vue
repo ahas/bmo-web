@@ -54,7 +54,10 @@
         <template v-else>
           <dl class="pair-list gap-x-4 gap-y-1 text-sm" data-desktop-release>
             <dt class="text-muted">{{ $t("desktop.label.version") }}</dt>
-            <dd class="font-medium text-highlighted tabular-nums" data-desktop-version>{{ release.version }}</dd>
+            <dd class="flex flex-wrap items-center gap-2 font-medium text-highlighted tabular-nums" data-desktop-version>
+              {{ release.version }}
+              <UBadge v-if="release.channel === 'preview'" color="warning" variant="subtle" size="sm" :label="$t('desktop.label.preview')" data-desktop-preview />
+            </dd>
             <dt class="text-muted">{{ $t("desktop.label.published") }}</dt>
             <dd class="text-highlighted tabular-nums">{{ published }}</dd>
           </dl>

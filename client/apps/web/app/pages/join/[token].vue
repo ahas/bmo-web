@@ -56,6 +56,12 @@
           />
 
           <div v-if="way === 'desktop'" class="flex flex-col gap-4" data-join-desktop>
+            <!-- The installed app opened on this invitation: it keeps the address and approves its own pairing. -->
+            <div class="flex flex-col gap-2">
+              <UButton :to="appLink" external icon="i-material-symbols-open-in-new" class="self-start" :label="$t('join.action.open_app')" data-join-open-app @click="watchAppOpening" />
+              <p class="break-keep text-sm text-muted">{{ $t("join.message.open_app") }}</p>
+              <p v-if="appNotOpened" role="status" class="break-keep text-sm text-toned" data-join-app-not-opened>{{ $t("join.message.app_not_opened") }}</p>
+            </div>
             <DesktopAppSteps form-id="join-pair" :address="serverAddress" :approved="approved !== null" :pairing="pairing" :code-failure="codeFailure" @pair="(code: string) => void pair(code)" @release="chooseWay" />
           </div>
 
@@ -188,6 +194,32 @@ function chooseWay(available: boolean): void {
   wayChosen = true;
 }
 
+// The link that opens the installed app on this invitation: the console's address and the one-time invitation alone.
+const appLink = computed(() => `bmo://connect?server=${encodeURIComponent(serverAddress.value)}&invite=${encodeURIComponent(token.value)}`);
+// Whether the link was followed and nothing seemed to open it, so the download step is brought into view.
+const appNotOpened = ref(false);
+let appWatch: ReturnType<typeof setTimeout> | undefined;
+
+// An app that opens takes the browser's focus or hides the page; where neither happens within a few seconds, the app
+// is taken as not installed.
+function watchAppOpening(): void {
+  appNotOpened.value = false;
+  if (appWatch !== undefined) clearTimeout(appWatch);
+
+  let left = false;
+  const leave = () => (left = true);
+
+  window.addEventListener("blur", leave, { once: true });
+  document.addEventListener("visibilitychange", leave, { once: true });
+  appWatch = setTimeout(() => {
+    window.removeEventListener("blur", leave);
+    document.removeEventListener("visibilitychange", leave);
+    if (left || document.visibilityState !== "visible") return;
+    appNotOpened.value = true;
+    void nextTick(() => document.querySelector("[data-join-step-download]")?.scrollIntoView({ block: "nearest" }));
+  }, 2500);
+}
+
 // The code typed from the app's title bar, approved with the invitation; from there the page waits for the app's agent
 // as for any machine.
 async function pair(code: string): Promise<void> {
@@ -262,5 +294,6 @@ onMounted(() => {
 });
 onBeforeUnmount(() => {
   if (timer !== undefined) clearInterval(timer);
+  if (appWatch !== undefined) clearTimeout(appWatch);
 });
 </script>

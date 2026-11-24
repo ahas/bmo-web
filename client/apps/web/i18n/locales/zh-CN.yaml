@@ -2397,6 +2397,7 @@ join:
     connect: "连接"
     share_open: "将此 PC 作为共享节点一起使用"
     share_send: "请求共享"
+    open_app: "在应用中打开"
   message:
     invited: "你已受邀加入{place}。"
     invited_head: "你已受邀以负责人身份加入{place}。"
@@ -2425,6 +2426,8 @@ join:
     share_asked: "已请求共享 {machine}。\n管理员或负责人批准后，此账号将共用该 PC。"
     share_bound: "已连接到 {machine}。"
     share_refused: "共享 {machine} 的请求已被拒绝。\n请用其他名称重新请求，或联系邀请你的人。"
+    open_app: "如果此 PC 上已安装 BMO 桌面应用，应用会打开，并自行处理服务器地址和连接码。"
+    app_not_opened: "应用没有打开。如果尚未安装，请在下方下载并安装。"
   error:
     full_name_empty: 请输入姓名。
     code_empty: "请输入连接码。"
@@ -2854,6 +2857,7 @@ desktop:
     page: 桌面应用
     server: 更改服务器
   label:
+    preview: "测试版"
     version: 版本
     published: 发布日期
     file: 文件

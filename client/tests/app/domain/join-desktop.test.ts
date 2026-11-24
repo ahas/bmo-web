@@ -20,7 +20,8 @@ const file = (platform: string, format: string): DesktopReleaseFile => ({
 const RELEASE = {
   version: "1.0.0",
   date: "2026-01-01T00:00:00Z",
-  files: [file("linux", "appimage"), file("linux", "deb"), file("other", "zip"), file("windows", "nsis")]
+  files: [file("linux", "appimage"), file("linux", "deb"), file("other", "zip"), file("windows", "nsis")],
+  channel: "stable" as const
 };
 
 describe("the reader's platform", () => {

@@ -1961,6 +1961,8 @@ export interface FallbackChanged {
 export interface ClaudeLoginStarted {
   login: string;
   url: string;
+  // The name of the account it signs in: the one the agency gave a new login whose start named none.
+  name: string;
 }
 
 // What the console may know about the warming round as a whole. Which agents are stopped one by

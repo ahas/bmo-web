@@ -3016,9 +3016,12 @@ agents:
     login_which: "Choose either an account to sign in again or a name for a new account, not both."
     login_not_directory: Only config directory accounts can sign in here.
     login_directory_taken: A config directory with this name already exists. Choose another name.
-    login_gone: The sign-in has ended or timed out. Start over.
+    login_gone: The sign-in has expired. Start it again.
     login_refused: "The sign-in didn't accept the code. Start over."
     login_code_needed: Paste the code shown on the sign-in page.
+    login_name_taken: Another account already uses this name. Start again with another name.
+    login_name_refused: "A login can't be added under this name."
+    login_no_link: "The sign-in page's address didn't arrive. Start it again."
     account_fields_needed: Enter the account name and the credential file path.
     account_order_list: Send the account order as a list.
     account_switch_needed: An account and an on/off value are required.

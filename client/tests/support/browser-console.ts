@@ -127,6 +127,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["sidebar-rooms", "fixture-password-2941"],
   ["room-head", "fixture-password-3051"],
   ["person-name", "fixture-password-3096"],
+  ["supply-signin", "fixture-password-4411"],
   ["console-load", "fixture-password-3127"],
   ["deploy-truth", "fixture-password-3187"],
   ["room-presence", "fixture-password-3124"],

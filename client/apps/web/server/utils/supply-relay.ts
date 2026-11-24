@@ -36,7 +36,8 @@ import type { H3Event } from "h3";
 //   DELETE personal/{key}           one key taken away; the secret itself stays in the store
 //   GET  logins                     the reader's own Claude logins, in their order
 //   POST logins                     the reader's own change: the order, a switch, a row removed
-//   POST signin                     a sign-in started on the reader's node: a new one by name, a standing login by its id
+//   POST signin                     a sign-in started on the reader's node: a new one, named by the agency where
+//                                   the body names none, or a standing login by its id
 //   POST signin/{login}/code        the code the sign-in page showed, handed back
 //   DELETE signin/{login}           a sign-in given up
 //   GET  org/{unit}                 a unit's policy, plan, wallet and members' spend
@@ -119,7 +120,7 @@ export async function supplyRelay(event: H3Event): Promise<unknown> {
 
   if (head === "personal") return await keys(event, method, parts, body);
   if (head === "logins" && parts.length === 0) return await logins(event, method, body);
-  if (head === "signin") return await signIn(event, method, parts);
+  if (head === "signin") return await signIn(event, method, parts, body);
   if (head === "org") return await org(event, method, parts, body);
   if (head === "user") return await person(event, method, parts, body);
   if (head === "platform" && parts.length === 0) return await platform(event, method, body);
@@ -271,20 +272,20 @@ async function logins(event: H3Event, method: string, body: Record<string, unkno
 }
 
 // A person's own sign-in: started, answered with its page's code, or given up (docs/web.md, the settings' supply
-// section). The address and the code pass through and are kept by neither.
-async function signIn(event: H3Event, method: string, parts: string[]): Promise<ClaudeLoginStarted | null> {
+// section). A new login's start may name no name, the agency then naming it past every account's names, which the
+// person cannot see. The address and the code pass through and are kept by neither.
+async function signIn(event: H3Event, method: string, parts: string[], body: Record<string, unknown>): Promise<ClaudeLoginStarted | null> {
   if (parts.length === 0) {
     if (method !== "POST") throw absent();
 
-    const body = await readBody<{ account?: unknown; name?: unknown }>(event);
-    const account = textValue(body?.account);
-    const name = textValue(body?.name);
+    const account = textValue(body.account);
+    const name = textValue(body.name);
 
-    if ((account === null) === (name === null)) throw fail(400, wording("agents.error.login_which"));
+    if (account !== null && name !== null) throw fail(400, wording("agents.error.login_which"));
 
     setResponseStatus(event, 201);
 
-    return await supplyAgency<ClaudeLoginStarted>(event, "POST", "/claude-logins", account === null ? { name } : { account });
+    return await supplyAgency<ClaudeLoginStarted>(event, "POST", "/claude-logins", account !== null ? { account } : name !== null ? { name } : {});
   }
 
   const login = textValue(parts[0]);
@@ -298,10 +299,9 @@ async function signIn(event: H3Event, method: string, parts: string[]): Promise<
   }
 
   if (parts.length === 2 && parts[1] === "code" && method === "POST") {
-    const body = await readBody<{ code?: unknown }>(event);
-    const code = textValue(body?.code);
+    const code = textValue(body.code);
 
-    if (code === null) throw bad();
+    if (code === null) throw createError({ statusCode: 400, message: wording("agents.error.login_code_needed"), data: { field: "code" } });
 
     await supplyAgency<void>(event, "POST", `/claude-logins/${encodeURIComponent(login)}/code`, { code });
 

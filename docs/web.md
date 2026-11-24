@@ -9421,10 +9421,15 @@ a row shows of a key is the secret's name, and of a login the path it is reached
 - **공급 로그인** lists the reader's Claude logins in the order their runs walk them, one row each: the name, its
   place in the order, its state in one word — 사용 가능, 창 가득 참, 로그인 필요, 로그인 안 됨 — and its switch. The arrows move
   one row, the whole order written as it is dropped; a refusal leaves the order the agency holds. 로그인 추가 at
-  the heading's end asks a name and starts the sign-in the agency runs on the reader's own node: the box opens the
+  the heading's end starts the sign-in the agency runs on the reader's own node, naming no name: account names are
+  one namespace across every owner and the reader sees only their own, so the agency names the new login, one
+  number past every account's `claude-NN`, and the box's title carries the name it answered. The box opens the
   sign-in's address in the reader's browser, the code that page shows is pasted into 인증 코드 and handed back with
   로그인 완료, and closing the box gives the sign-in up, each as the platform's Claude 계정 box does (「공급」);
-  a reader whose node stands off is told so and nothing starts. A login that has ended carries its own 로그인
+  a reader whose node stands off is told so and nothing starts. Every refusal is said in the box in a sentence of
+  its own, never the one for a refused value: a sign-in the agency no longer holds — ended, past its time, or lost
+  to the agency's restart — as expired, to be started again; a code the sign-in did not take, a code missing, a
+  name another account holds and a sign-in that gave no address each as what it is. A login that has ended carries its own 로그인
   row-action, the same flow on the standing account. 삭제, asked first, takes one away.
 - **공급 키** lists the reader's gateway keys, one row each: the secret's name as the label, the provider's own name
   and its state under it — 사용 가능, 키 거부됨 — and its switch, its arrows moving it within its provider and its

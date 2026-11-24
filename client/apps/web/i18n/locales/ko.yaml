@@ -3031,9 +3031,12 @@ agents:
     login_which: 다시 로그인할 계정이나 새 계정의 이름 중 하나만 정해 주세요.
     login_not_directory: 설정 디렉터리 계정만 여기서 로그인할 수 있습니다.
     login_directory_taken: 이 이름의 설정 디렉터리가 이미 있습니다. 다른 이름을 정해 주세요.
-    login_gone: 로그인이 끝났거나 시간이 지났습니다. 처음부터 다시 시작해 주세요.
+    login_gone: 로그인이 만료되었습니다. 다시 시작해 주세요.
     login_refused: 로그인이 코드를 받지 않았습니다. 처음부터 다시 시작해 주세요.
     login_code_needed: 로그인 페이지에 나온 코드를 붙여 넣어 주세요.
+    login_name_taken: 다른 계정이 이미 쓰는 이름입니다. 다른 이름으로 다시 시작해 주세요.
+    login_name_refused: 이 이름으로는 로그인을 추가할 수 없습니다.
+    login_no_link: 로그인 페이지 주소를 받지 못했습니다. 다시 시작해 주세요.
     account_fields_needed: 계정 이름과 자격 증명 파일 경로를 입력해 주세요.
     account_order_list: 계정 순서를 목록으로 보내 주세요.
     account_switch_needed: 계정과 켬·끔 값이 필요합니다.

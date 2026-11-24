@@ -282,17 +282,19 @@ const signInCode = ref("");
 const signInFailed = ref("");
 const signInChanges = useOpenedWith(() => signInCode.value, { open: signingIn });
 
+// A new login is named by the agency, which holds every account's name where the reader sees only their own; the
+// box's title carries the name it answered, and Claude's until it has.
 async function openSignIn(account: ClaudeAccountView | null): Promise<void> {
   signInFailed.value = "";
-  const name = account?.name ?? nextLoginName(shownLogins.value.map((one) => one.name));
+  const name = account?.name ?? "Claude";
 
   busy.value = "sign-in";
   try {
-    const started = await $fetch<ClaudeLoginStarted>("/api/supply/signin", { method: "POST", body: account === null ? { name } : { account: account.id } });
+    const started = await $fetch<ClaudeLoginStarted>("/api/supply/signin", { method: "POST", body: account === null ? {} : { account: account.id } });
 
     signInId.value = started.login;
     signInUrl.value = started.url;
-    signInName.value = name;
+    signInName.value = started.name || name;
     signInCode.value = "";
     signingIn.value = true;
   } catch (error) {
@@ -468,18 +470,6 @@ async function saveCap(): Promise<void> {
 
   await saveSetting(meSetting(rows.value, standing, { cap: Number(written) }));
   capWords.value = me.value?.personalCreditCredits === null ? "" : String(me.value?.personalCreditCredits ?? "");
-}
-
-// A new login's name, one past the highest the reader's own list holds — the numbering the administrator's box
-// uses too, so the names of one deployment read alike wherever they were added.
-function nextLoginName(names: readonly string[]): string {
-  const highest = names.reduce((most, name) => {
-    const numbered = /^claude-(\d+)$/.exec(name.trim());
-
-    return numbered === null ? most : Math.max(most, Number(numbered[1]));
-  }, 0);
-
-  return `claude-${String(highest + 1).padStart(2, "0")}`;
 }
 
 onMounted(() => void load());

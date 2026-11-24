@@ -52,9 +52,11 @@ export const PERSONAL_SUPPLY_CALL: AgencyCall = {
     "not-a-directory": "agents.error.login_not_directory",
     "directory-taken": "agents.error.login_directory_taken",
     "no-sign-in": "agents.error.login_gone",
-    "sign-in-refused": "agents.error.login_refused"
+    "sign-in-refused": "agents.error.login_refused",
+    "name-taken": "agents.error.login_name_taken",
+    "no-link": "agents.error.login_no_link"
   },
-  fields: { secret: "supply.error.secret_name" }
+  fields: { secret: "supply.error.secret_name", code: "agents.error.login_code_needed", name: "agents.error.login_name_refused" }
 };
 
 /**

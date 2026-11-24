@@ -142,7 +142,11 @@ impl WireServer {
       other => other.to_string(),
     };
 
-    MailServer { id, name: self.name, host: self.host }
+    MailServer {
+      id,
+      name: self.name,
+      host: self.host,
+    }
   }
 }
 
@@ -182,7 +186,16 @@ impl MailService for MailClient {
       return Err(unreached(format!("it answered {}", answer.status())));
     }
 
-    Ok(answer.json::<Servers>().await.map_err(unreached)?.items.into_iter().map(WireServer::into_server).collect())
+    Ok(
+      answer
+        .json::<Servers>()
+        .await
+        .map_err(unreached)?
+        .items
+        .into_iter()
+        .map(WireServer::into_server)
+        .collect(),
+    )
   }
 
   async fn send(&self, mail: &Outgoing) -> Result<(), Refusal> {

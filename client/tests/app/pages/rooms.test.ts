@@ -26,12 +26,19 @@ describe("the room screen's write controls", () => {
     expect(script).toContain("const manages = computed<boolean>(() => administrator.value && roomWritable.value);");
     expect(template).toContain(':administrator="manages"');
 
-    expect(template).toContain('<RoomRemovalDialog v-if="manages"');
     expect(template).toContain(':manages="manages"');
     expect(info).toContain('<PictureDialog\n    v-if="props.manages"');
     expect(info).toContain('<RoomProvidersPanel v-if="props.manages');
 
     expect(script).toContain("room.chatId !== chatId && room.writable !== false");
+  });
+
+  // The permanent delete is the one change his in every room he reads (docs/web.md, 「Access」): the removal dialog
+  // stands for the administrator, opened from the room information's own mark.
+  test("leave the administrator the removal of any room", () => {
+    expect(template).toContain('<RoomRemovalDialog v-if="administrator"');
+    expect(template).toContain('@remove="removalOpen = true"');
+    expect(info).toContain('v-if="props.administrator"');
   });
 
   test("put the box to write in behind that permission rather than the administrator alone", () => {

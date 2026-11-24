@@ -25,12 +25,14 @@
 
           <UFormField :label="$t('app.label.password')" name="password" required>
             <UInput v-model="form.password" class="w-full" type="password" autocomplete="current-password" />
-            <template #hint>
-              <ULink to="/forgot-password" class="text-sm text-muted hover:text-default active:text-highlighted" data-login-forgot>{{ $t("security.label.forgot") }}</ULink>
-            </template>
           </UFormField>
 
-          <UCheckbox v-model="form.remember" :label="$t('app.label.remember')" />
+          <!-- The way to a new password stands after the fields, beside the remembering, so a Tab from the
+               name goes straight on to the password and reaches it only after the fields. -->
+          <div class="flex items-center justify-between gap-3">
+            <UCheckbox v-model="form.remember" :label="$t('app.label.remember')" />
+            <ULink to="/forgot-password" class="text-sm text-muted hover:text-default active:text-highlighted pointer-coarse:py-3" data-login-forgot>{{ $t("security.label.forgot") }}</ULink>
+          </div>
 
           <UAlert v-if="failure" color="error" variant="subtle" :description="failure" :ui="{ description: 'whitespace-pre-line' }" />
         </div>

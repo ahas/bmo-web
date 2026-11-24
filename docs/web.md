@@ -662,7 +662,8 @@ nothing.
   try as it stands then.
 - **A person whose organisation asks a second factor and who holds none** is taken, once signed in, to the settings
   dialog's 계정 with its enrolment open (「계정」), and told in it that their organisation asks for it.
-- **비밀번호를 잊으셨나요?** stands under the password as a link to `/forgot-password` (「Pages with no sign-in」).
+- **비밀번호를 잊으셨나요?** stands after the fields, at the end of the row 로그인 상태 유지 stands on, as a link to
+  `/forgot-password` (「Pages with no sign-in」), so a Tab goes from the name to the password and reaches it only after them.
 
 **Pages with no sign-in stand for a forgotten password and an email's link.** Each is a card on no shell, as the login
 screen is, with 로그인으로 at its foot.

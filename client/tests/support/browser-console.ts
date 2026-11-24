@@ -30,6 +30,7 @@ import { SYSTEM_ROOM, systemRoom } from "./system-room";
 import { ASKED_RUN, askedRunLogAnswer } from "./asked-run";
 import { addressOf, BROWSER_CONSOLE_PREFIX, dropScratchDatabase, sweepScratchDatabases } from "./web-database";
 import { LABELS } from "./media-labels";
+import { removalAnswer } from "./removal-units";
 
 const CLIENT = new URL("../..", import.meta.url).pathname;
 const CONSOLE_DIR = join(CLIENT, "apps/web");
@@ -105,6 +106,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["org-mail", "fixture-password-3931"],
   ["copy-marks", "fixture-password-3291"],
   ["machine-unbind", "fixture-password-3583"],
+  ["permanent-delete", "fixture-password-3611"],
   ["todo-run-figures", "fixture-password-2826"],
   ["todo-state-spin", "fixture-password-3877"],
   ["work-view", "fixture-password-2311"],
@@ -198,6 +200,15 @@ const MEMBERS: readonly { name: string; password: string; sections: readonly { s
       { section: "account", read: true, write: true }
     ]
   },
+  // The people the permanent delete's file deletes for good, one at each width (tests/browser/permanent-delete.test.ts).
+  ...["removal-target-1280", "removal-target-360"].map((name, index) => ({
+    name,
+    password: `fixture-password-36${20 + index}`,
+    sections: [
+      { section: "rooms", read: true, write: false },
+      { section: "account", read: true, write: true }
+    ]
+  })),
   {
     name: "org-member",
     password: "fixture-password-2667",
@@ -2394,7 +2405,7 @@ try {
       idleTimeout: 0,
       fetch: async (request) => {
         const path = new URL(request.url).pathname;
-        const answered = await answer(path, request);
+        const answered = removalAnswer(unit, path, request) ?? (await answer(path, request));
 
         // A route the agency does not serve is named on the harness's own output, so a run shows every call the
         // console made past the agency's documented routes.

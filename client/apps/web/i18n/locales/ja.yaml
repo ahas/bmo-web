@@ -5087,3 +5087,157 @@ security:
     own_account: "自分のアカウントは無効化できません。"
     left: "退会処理されたアカウントです。"
     bad_mail: "メールアドレスまたはシークレット名が正しくありません。"
+removal:
+  action:
+    delete: 完全に削除
+    delete_of: "{name}を完全に削除"
+    retry: 再試行
+    cancel: キャンセル
+    close: 閉じる
+  title:
+    account: "{name}のアカウントを完全に削除しますか？"
+    unit: "{name}の組織を完全に削除しますか？"
+  label:
+    irreversible: "元に戻せません。\n以下の記録がすべてのサービスから削除されます。"
+    nothing: 削除する記録なし
+    unset: 未設定のためスキップ
+    unread: 確認できません
+    not_left: まだ退職処理されていないアカウントです。
+    leave_first: 退職処理してから完全に削除
+    people: "メンバー{count}人"
+    with_people: メンバーも完全に削除
+    left_person: "{name}（退職）"
+    confirm: 名前の確認
+    confirm_help: 削除するには上の名前をそのまま入力してください。
+    removed: 削除済み
+    skipped: 未設定のためスキップ
+    failed: 失敗
+    pending: 未実行
+    finished: 完全に削除しました。
+    already: すでに削除されています。
+    stopped: "{unit}で止まりました。\n再試行すると止まったところから続けて削除します。"
+    person_stopped: "{name}のアカウントの削除中に止まりました。\n再試行すると止まったところから続けて削除します。"
+    person: "{name}のアカウント"
+    kind:
+      users: アカウント
+      sessions: セッション
+      remembered_devices: 記憶されたブラウザ
+      second_factors: 2段階認証
+      recovery_codes: 復旧コード
+      account_links: メールリンク
+      email_checks: メール認証
+      senders: 連携したチャットアカウント
+      grants: 権限
+      roles: 職責
+      posts: 兼務
+      appointments: 職務代行
+      history: 履歴
+      invitations: 招待
+      profiles: プロフィール
+      own_agents: 個人BMOプロフィール
+      console_settings: コンソール設定
+      sign_ins: ログイン記録
+      supply: 供給記録
+      memberships: プラン・クレジット
+      chain_settings: 委任設定
+      departures: 退職記録
+      machines: 機器の接続
+      keys: スマートフォンキー
+      access_records: アクセス記録
+      secrets: シークレット
+      units: 組織
+      unit_attributes: 組織の属性
+      unit_kinds: 組織の種類
+      company_agents: 会社のBMO写真
+      supervisors: スーパーバイザー
+      role_agents: 役割エージェント
+      repositories: リポジトリ
+      items: 項目
+      jobs: Job
+      rooms: ルーム
+      private_rooms: 個人ルーム
+      memberships_in_rooms: ルーム参加
+      messages: メッセージ
+      files: ファイル
+      folders: フォルダ
+      documents: 文書
+      brains: ブレイン
+      memories: 記憶
+      notes: ノート
+      member_shares: 共有
+      bookmarks: ブックマーク
+      opened: 閲覧記録
+      imports: インポート
+      reads: 既読記録
+      unit_shares: 組織共有
+      mails: メール
+      mailboxes: メールボックス
+      accounts: メールアカウント
+      servers: メールサーバー
+      servers_in_use: 使用中のメールサーバー
+      calendars: カレンダー
+      events: 予定
+      schedules: 勤務スケジュール
+      resources: 資源
+      bookings: 予約
+      reminders: リマインダー
+      watches: ウォッチ
+      calls: 非同期呼び出し
+      pictures: 写真
+      settings: 設定
+      slot_requests: ロールスロット要求
+      attachments: アタッチメント
+      mcp_servers: MCPサーバー
+      skills: スキル
+      repository_checkouts: リポジトリのチェックアウト
+      registered_models: 登録モデル
+      claude_accounts: Claudeアカウント
+      personal_supply: 個人供給
+      organisation_supply: 組織供給
+      supply_reservations: 供給の予約
+      call_keys: 呼び出しキー
+      gateway_requests: ゲートウェイ要求記録
+      person_nodes: 個人ノード
+      workplaces: 作業スペース
+      isolation_users: 分離ユーザー
+      personal_tools: 個人ツール
+      installs: インストール
+      seen_marks: 確認済みマーク
+      catalogue_apps: カタログアプリ
+      other: その他の記録
+    unit:
+      web: アカウントサービス
+      agency: エージェンシー
+      receiver: レシーバー
+      brain: ブレイン
+      artifact: アーティファクト
+      note: ノート
+      mail: メール
+      pocket: ツールホスト
+      calendar: カレンダー
+  message:
+    script_usage: "使い方: bun scripts/remove.ts account USER [--leave] / unit UNIT [--with-people] [--dry-run] [--yes] [--json] [--env-file FILE]"
+    script_env_unread: "環境ファイルを読み込めませんでした: {path}"
+    script_no_administrator: "プラットフォーム管理者が見つかりませんでした。\nWEB_DATABASE_URLがコンソールのデータベースを指しているか確認してください。"
+    script_needs_yes: 端末のない実行は --yes なしでは削除しません。
+    script_ask: "削除するには名前をそのまま入力してください（{name}）:"
+    script_account: "アカウント {user} · {name} · {login}"
+    script_unit: "組織 {unit} · {name} · {count}組織"
+    script_person: "メンバー {user} · {name}"
+    script_stopped: "止まりました。\n同じコマンドを再実行すると止まったところから続けて削除します。"
+  error:
+    confirm: 名前が一致しません。
+    own_account: 自分のアカウントは完全に削除できません。
+    owner_account: オーナーのアカウントは完全に削除できません。
+    last_administrator: 最後のプラットフォーム管理者は完全に削除できません。
+    not_left: 退職処理したアカウントのみ完全に削除できます。
+    unit_holds_administrator: プラットフォーム管理者が所属する組織は完全に削除できません。
+    unit_holds_people: "メンバーがいる組織です。\nメンバーも完全に削除を選んでください。"
+    refused_code: "完全に削除できません。\n不明なコード `{code}`"
+    unit_unreachable: 接続できませんでした。
+    unit_status: "{status}の応答で失敗しました。"
+    unit_code: "{status}の応答で失敗しました。\nコード `{code}`"
+    read_failed: 削除する記録を読み込めませんでした。
+    run_failed: 完全に削除できませんでした。
+  status:
+    loading: 削除する記録を読み込み中…

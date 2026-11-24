@@ -89,6 +89,10 @@ which stands.
     keeps them and tried answering at `localhost:11434` alone, every other address unreached from their PC, one fixture administrator
     answered a platform with no working source — every provider but Claude Code unable to answer and no Claude
     account — and a registration's address set, and every other road with the unit's own not-found;
+  - in the stand-ins of the agency, the receiver, the brain's organisation face, bmo-artifact and bmo-mail, each
+    unit's four removal routes, at the account path it serves, counting and removing a fixed few records of an
+    account and of an organisation unit, a kind the packs hold no word for among them, and answering every kind at
+    none once removed, so the permanent delete runs through every unit the harness names;
   - the agency's own kinds on the delegation chain, declared as the agency declares them as it stands;
   - in the brain's stand-in for organisations' memories, the org brains made and found by their keys, each keeping
     the memories written into it and moved to `invalidated`, so a page read again shows what a write left, and the

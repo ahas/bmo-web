@@ -51,6 +51,50 @@
         ],
         "type": "object"
       },
+      "AccountRemoval": {
+        "description": "What removing an account would take now: who it is, whether it has left, the refusal that would stop it, or\nnone, and the count of each kind of row the service would delete.",
+        "properties": {
+          "administrator": {
+            "type": "boolean"
+          },
+          "counts": {
+            "additionalProperties": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "type": "object"
+          },
+          "fullName": {
+            "default": "",
+            "type": "string"
+          },
+          "left": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "refusal": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user",
+          "name",
+          "fullName",
+          "left",
+          "administrator",
+          "refusal",
+          "counts"
+        ],
+        "type": "object"
+      },
       "AccountSecurity": {
         "description": "What stands of an account's security.",
         "properties": {
@@ -3412,6 +3456,139 @@
         ],
         "type": "object"
       },
+      "RemovalAsk": {
+        "description": "A removal asked: what every content unit removed before it, by the unit's name, which the record keeps.",
+        "properties": {
+          "units": {
+            "additionalProperties": {
+              "additionalProperties": {
+                "format": "int64",
+                "type": "integer"
+              },
+              "type": "object"
+            },
+            "default": {},
+            "type": "object"
+          }
+        },
+        "required": [
+          "units"
+        ],
+        "type": "object"
+      },
+      "RemovalPerson": {
+        "description": "A person whose home unit stands in a unit's subtree, as a unit's removal names them.",
+        "properties": {
+          "administrator": {
+            "type": "boolean"
+          },
+          "left": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user",
+          "name",
+          "left",
+          "administrator"
+        ],
+        "type": "object"
+      },
+      "RemovalRecord": {
+        "description": "One removal as its record keeps it: what went, an account or a unit, its id, its login and name as they stood,\nwho removed it and when, and every unit's result, the service's own under `web`.",
+        "properties": {
+          "at": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "by": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "login": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "additionalProperties": {
+                "format": "int64",
+                "type": "integer"
+              },
+              "type": "object"
+            },
+            "type": "object"
+          },
+          "subject": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "what": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "what",
+          "subject",
+          "login",
+          "name",
+          "by",
+          "at",
+          "result"
+        ],
+        "type": "object"
+      },
+      "Removals": {
+        "description": "The removal records, the newest first.",
+        "properties": {
+          "removals": {
+            "items": {
+              "$ref": "#/components/schemas/RemovalRecord"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "removals"
+        ],
+        "type": "object"
+      },
+      "Removed": {
+        "description": "What a removal took here, and the record it left.",
+        "properties": {
+          "record": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "removed": {
+            "additionalProperties": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "type": "object"
+          }
+        },
+        "required": [
+          "removed",
+          "record"
+        ],
+        "type": "object"
+      },
       "Rendered": {
         "description": "The sentence a fixed line renders as.",
         "properties": {
@@ -6241,6 +6418,57 @@
         "required": [
           "id",
           "name"
+        ],
+        "type": "object"
+      },
+      "UnitRemoval": {
+        "description": "What removing a unit and every unit under it would take now: the subtree the deepest first, the people standing\nin it, the refusal that would stop it, or none, and the count of each kind of row the service would delete.",
+        "properties": {
+          "company": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "counts": {
+            "additionalProperties": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "type": "object"
+          },
+          "name": {
+            "type": "string"
+          },
+          "people": {
+            "items": {
+              "$ref": "#/components/schemas/RemovalPerson"
+            },
+            "type": "array"
+          },
+          "refusal": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "unit": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "units": {
+            "items": {
+              "$ref": "#/components/schemas/UnitRef"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "unit",
+          "name",
+          "company",
+          "units",
+          "people",
+          "refusal",
+          "counts"
         ],
         "type": "object"
       },
@@ -10904,6 +11132,73 @@
         ]
       }
     },
+    "/removals": {
+      "get": {
+        "operationId": "removals",
+        "parameters": [
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Removals"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: unauthorized, forbidden, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Every removal record, the newest first, at most 200; for a platform administrator.",
+        "tags": [
+          "Permanent delete"
+        ],
+        "x-codes": [
+          "unauthorized",
+          "forbidden",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
     "/rooms/{chat}/callers": {
       "get": {
         "operationId": "roomCallers",
@@ -13628,6 +13923,94 @@
       }
     },
     "/units/{unit}": {
+      "delete": {
+        "operationId": "removeUnit",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "unit",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RemovalAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Removed"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, unit-holds-administrator, unit-holds-people, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A unit and every unit under it deleted for good with every row of them and their secret spaces, the units' results kept in the removal record; for a platform administrator.",
+        "tags": [
+          "Permanent delete"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "unit-holds-administrator",
+          "unit-holds-people",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
       "get": {
         "operationId": "unit",
         "parameters": [
@@ -14799,6 +15182,84 @@
         ]
       }
     },
+    "/units/{unit}/removal": {
+      "get": {
+        "operationId": "unitRemoval",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "unit",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnitRemoval"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "What deleting a unit and every unit under it for good would take now, changing nothing: the subtree the deepest first, the people standing in it, the refusal that would stop it or none, and the count of each kind of row; for a platform administrator.",
+        "tags": [
+          "Permanent delete"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
     "/units/{unit}/secrets": {
       "get": {
         "operationId": "unitSecrets",
@@ -15311,6 +15772,95 @@
       }
     },
     "/users/{user}": {
+      "delete": {
+        "operationId": "removeAccount",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RemovalAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Removed"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, own-account, owner-account, last-administrator, not-left, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "An account marked left deleted for good with every row of it and its secret space, the units' results kept in the removal record; for a platform administrator.",
+        "tags": [
+          "Permanent delete"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "own-account",
+          "owner-account",
+          "last-administrator",
+          "not-left",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
       "get": {
         "operationId": "user",
         "parameters": [
@@ -17176,6 +17726,83 @@
           "unauthorized",
           "no-second-factor",
           "forbidden",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/users/{user}/removal": {
+      "get": {
+        "operationId": "accountRemoval",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountRemoval"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "What deleting an account for good would take now, changing nothing: who it is, whether it has left, the refusal that would stop it or none, and the count of each kind of row; for a platform administrator.",
+        "tags": [
+          "Permanent delete"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
           "not-in-force",
           "database",
           "failed"

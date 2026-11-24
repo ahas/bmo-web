@@ -33,6 +33,7 @@ pub mod posts;
 pub mod profiles;
 pub mod readers;
 pub mod receiver;
+pub mod removal;
 pub mod roster;
 pub mod routes;
 pub mod rules;

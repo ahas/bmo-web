@@ -5079,3 +5079,157 @@ security:
     own_account: "자기 계정은 비활성화할 수 없습니다."
     left: "탈퇴 처리된 계정입니다."
     bad_mail: "메일 주소나 비밀 이름이 올바르지 않습니다."
+removal:
+  action:
+    delete: 영구 삭제
+    delete_of: "{name} 영구 삭제"
+    retry: 다시 시도
+    cancel: 취소
+    close: 닫기
+  title:
+    account: "{name} 계정을 영구 삭제할까요?"
+    unit: "{name} 조직을 영구 삭제할까요?"
+  label:
+    irreversible: "되돌릴 수 없습니다.\n아래 기록이 모든 서비스에서 삭제됩니다."
+    nothing: 삭제할 기록 없음
+    unset: 설정되지 않아 건너뜀
+    unread: 확인하지 못함
+    not_left: 아직 탈퇴 처리되지 않은 계정입니다.
+    leave_first: 탈퇴 처리 후 영구 삭제
+    people: "구성원 {count}명"
+    with_people: 구성원도 영구 삭제
+    left_person: "{name} (탈퇴)"
+    confirm: 이름 확인
+    confirm_help: 삭제하려면 위 이름을 그대로 입력하세요.
+    removed: 삭제됨
+    skipped: 설정되지 않아 건너뜀
+    failed: 실패
+    pending: 진행하지 않음
+    finished: 영구 삭제했습니다.
+    already: 이미 삭제되었습니다.
+    stopped: "{unit}에서 멈췄습니다.\n다시 시도하면 멈춘 곳부터 이어서 삭제합니다."
+    person_stopped: "{name} 계정을 삭제하다 멈췄습니다.\n다시 시도하면 멈춘 곳부터 이어서 삭제합니다."
+    person: "{name} 계정"
+    kind:
+      users: 계정
+      sessions: 세션
+      remembered_devices: 기억된 브라우저
+      second_factors: 2단계 인증
+      recovery_codes: 복구 코드
+      account_links: 메일 링크
+      email_checks: 이메일 인증
+      senders: 연결된 채팅 계정
+      grants: 권한
+      roles: 직책
+      posts: 겸직
+      appointments: 직무대행
+      history: 이력
+      invitations: 초대
+      profiles: 프로필
+      own_agents: 개인 BMO 프로필
+      console_settings: 콘솔 설정
+      sign_ins: 로그인 기록
+      supply: 공급 기록
+      memberships: 플랜·크레딧
+      chain_settings: 위임 설정
+      departures: 탈퇴 기록
+      machines: 기기 연결
+      keys: 휴대폰 키
+      access_records: 접속 기록
+      secrets: 비밀
+      units: 조직
+      unit_attributes: 조직 속성
+      unit_kinds: 조직 종류
+      company_agents: 회사 BMO 사진
+      supervisors: 감독관
+      role_agents: 역할 에이전트
+      repositories: 저장소
+      items: 항목
+      jobs: Job
+      rooms: 방
+      private_rooms: 개인 대화방
+      memberships_in_rooms: 방 참여
+      messages: 메시지
+      files: 파일
+      folders: 폴더
+      documents: 문서
+      brains: 브레인
+      memories: 기억
+      notes: 노트
+      member_shares: 공유
+      bookmarks: 북마크
+      opened: 열람 기록
+      imports: 가져오기
+      reads: 읽음 기록
+      unit_shares: 조직 공유
+      mails: 메일
+      mailboxes: 메일함
+      accounts: 메일 계정
+      servers: 메일 서버
+      servers_in_use: 사용 중인 메일 서버
+      calendars: 캘린더
+      events: 일정
+      schedules: 근무 일정
+      resources: 자원
+      bookings: 예약
+      reminders: 알림
+      watches: 지켜보기
+      calls: 비동기 호출
+      pictures: 사진
+      settings: 설정
+      slot_requests: 역할 슬롯 요청
+      attachments: 첨부 설정
+      mcp_servers: MCP 서버
+      skills: 스킬
+      repository_checkouts: 저장소 체크아웃
+      registered_models: 등록 모델
+      claude_accounts: Claude 계정
+      personal_supply: 개인 공급
+      organisation_supply: 조직 공급
+      supply_reservations: 공급 예약
+      call_keys: 호출 키
+      gateway_requests: 게이트웨이 요청 기록
+      person_nodes: 개인 노드
+      workplaces: 작업 공간
+      isolation_users: 격리 사용자
+      personal_tools: 개인 도구
+      installs: 설치
+      seen_marks: 확인 표시
+      catalogue_apps: 카탈로그 앱
+      other: 기타 기록
+    unit:
+      web: 계정 서비스
+      agency: 에이전시
+      receiver: 리시버
+      brain: 브레인
+      artifact: 아티팩트
+      note: 노트
+      mail: 메일
+      pocket: 도구 호스트
+      calendar: 캘린더
+  message:
+    script_usage: "사용법: bun scripts/remove.ts account USER [--leave] / unit UNIT [--with-people] [--dry-run] [--yes] [--json] [--env-file FILE]"
+    script_env_unread: "환경 파일을 읽지 못했습니다: {path}"
+    script_no_administrator: "플랫폼 관리자를 찾지 못했습니다.\nWEB_DATABASE_URL이 콘솔의 데이터베이스를 가리키는지 확인하세요."
+    script_needs_yes: 터미널이 없는 실행은 --yes 없이 삭제하지 않습니다.
+    script_ask: "삭제하려면 이름을 그대로 입력하세요 ({name}):"
+    script_account: "계정 {user} · {name} · {login}"
+    script_unit: "조직 {unit} · {name} · 조직 {count}개"
+    script_person: "구성원 {user} · {name}"
+    script_stopped: "멈췄습니다.\n같은 명령을 다시 실행하면 멈춘 곳부터 이어서 삭제합니다."
+  error:
+    confirm: 이름이 일치하지 않습니다.
+    own_account: 자기 계정은 영구 삭제할 수 없습니다.
+    owner_account: 소유자 계정은 영구 삭제할 수 없습니다.
+    last_administrator: 마지막 플랫폼 관리자는 영구 삭제할 수 없습니다.
+    not_left: 탈퇴 처리한 계정만 영구 삭제할 수 있습니다.
+    unit_holds_administrator: 플랫폼 관리자가 속한 조직은 영구 삭제할 수 없습니다.
+    unit_holds_people: "구성원이 있는 조직입니다.\n구성원도 영구 삭제를 선택하세요."
+    refused_code: "영구 삭제할 수 없습니다.\n알 수 없는 코드 `{code}`"
+    unit_unreachable: 연결되지 않았습니다.
+    unit_status: "{status} 응답으로 실패했습니다."
+    unit_code: "{status} 응답으로 실패했습니다.\n코드 `{code}`"
+    read_failed: 삭제할 기록을 불러오지 못했습니다.
+    run_failed: 영구 삭제하지 못했습니다.
+  status:
+    loading: 삭제할 기록 불러오는 중…

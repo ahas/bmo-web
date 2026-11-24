@@ -39,7 +39,10 @@ import {
   type UserList,
   type ProfileAsk as WireProfileAsk,
   type UserProfile as WireProfile,
-  type WireError
+  type WireError,
+  type AccountRemoval,
+  type UnitRemoval,
+  type Removed
 } from "@web/server-client";
 
 import { spokenLanguage } from "#shared/wording";
@@ -1445,6 +1448,51 @@ export async function unitSubtree(unit: number, caller: ProfileCaller, options: 
   const reply = await sent(options, clientOf(options).GET("/units/{unit}/subtree", { params: { path: { unit }, header: { "Owner-Key": caller.key } } }));
 
   return answered(reply);
+}
+
+// --- The permanent delete (docs/accounts.md, 「Deleting an account for good」, 「Deleting a unit or a company」) ---
+
+/** What a removal hands over of the units asked before the service: each unit's name and what it removed. */
+export type RemovalUnits = Record<string, Record<string, number>>;
+
+// The administrator's headers a removal is asked under.
+function removerHeaders(administrator: string): { "Owner-Key": string; "Owner-Role": OwnerRole } {
+  return { "Owner-Key": administrator, "Owner-Role": "administrator" };
+}
+
+// A removal's answer, or null where what it names does not stand, which a resumed removal takes as done.
+function standingOrGone<T>(reply: Reply<T>): T | null {
+  if (reply.response.status === 404) return null;
+
+  return answered(reply);
+}
+
+/** What removing an account would take now, or null where it does not stand. */
+export async function accountRemoval(user: UserId, administrator: string, options: ServiceOptions = {}): Promise<AccountRemoval | null> {
+  const params = { path: { user }, header: removerHeaders(administrator) };
+
+  return standingOrGone(await sent(options, clientOf(options).GET("/users/{user}/removal", { params })));
+}
+
+/** An account removed for good, the units' results kept in the record; null where it no longer stands. */
+export async function removeAccount(user: UserId, units: RemovalUnits, administrator: string, options: ServiceOptions = {}): Promise<Removed | null> {
+  const params = { path: { user }, header: removerHeaders(administrator) };
+
+  return standingOrGone(await sent(options, clientOf(options).DELETE("/users/{user}", { params, body: { units } })));
+}
+
+/** What removing a unit and every unit under it would take now, or null where it does not stand. */
+export async function unitRemoval(unit: number, administrator: string, options: ServiceOptions = {}): Promise<UnitRemoval | null> {
+  const params = { path: { unit }, header: removerHeaders(administrator) };
+
+  return standingOrGone(await sent(options, clientOf(options).GET("/units/{unit}/removal", { params })));
+}
+
+/** A unit and every unit under it removed for good; null where it no longer stands. */
+export async function removeUnit(unit: number, units: RemovalUnits, administrator: string, options: ServiceOptions = {}): Promise<Removed | null> {
+  const params = { path: { unit }, header: removerHeaders(administrator) };
+
+  return standingOrGone(await sent(options, clientOf(options).DELETE("/units/{unit}", { params, body: { units } })));
 }
 
 // --- The delegation chain (docs/accounts.md, 「The delegation chain」) ---

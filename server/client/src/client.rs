@@ -6,6 +6,7 @@ use serde::de::DeserializeOwned;
 
 use crate::chain::{ChainEntry, ChainKind, ChainResolution, ChainResolveAsk, ChainValueAsk};
 use crate::organisation::{MemoryWriters, OrgMemoryUnits, UnitSubtree};
+use crate::removal::{AccountRemoval, RemovalAsk, Removals, Removed, UnitRemoval};
 use crate::security::SignInAsk;
 use crate::supply::*;
 use crate::types::*;
@@ -436,6 +437,61 @@ impl AccountClient {
         .request(Method::POST, &["users", user, "leave"])
         .header(OWNER_KEY, key)
         .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
+  /// `GET /users/{user}/removal`, asked as the platform administrator `key`.
+  pub async fn account_removal(&self, user: &str, key: &str) -> Answer<AccountRemoval> {
+    Self::answered(
+      self
+        .request(Method::GET, &["users", user, "removal"])
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, "administrator"),
+    )
+    .await
+  }
+
+  /// `DELETE /users/{user}`, asked as the platform administrator `key`.
+  pub async fn remove_account(&self, user: &str, ask: &RemovalAsk, key: &str) -> Answer<Removed> {
+    Self::answered(
+      self
+        .send(Method::DELETE, &["users", user], ask)
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, "administrator"),
+    )
+    .await
+  }
+
+  /// `GET /units/{unit}/removal`, asked as the platform administrator `key`.
+  pub async fn unit_removal(&self, unit: i64, key: &str) -> Answer<UnitRemoval> {
+    Self::answered(
+      self
+        .request(Method::GET, &["units", &unit.to_string(), "removal"])
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, "administrator"),
+    )
+    .await
+  }
+
+  /// `DELETE /units/{unit}`, asked as the platform administrator `key`.
+  pub async fn remove_unit(&self, unit: i64, ask: &RemovalAsk, key: &str) -> Answer<Removed> {
+    Self::answered(
+      self
+        .send(Method::DELETE, &["units", &unit.to_string()], ask)
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, "administrator"),
+    )
+    .await
+  }
+
+  /// `GET /removals`, asked as the platform administrator `key`.
+  pub async fn removals(&self, key: &str) -> Answer<Removals> {
+    Self::answered(
+      self
+        .request(Method::GET, &["removals"])
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, "administrator"),
     )
     .await
   }

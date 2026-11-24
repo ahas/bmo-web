@@ -11,6 +11,7 @@ use serde_json::{Map, Value, json};
 
 use crate::chain::*;
 use crate::organisation::*;
+use crate::removal::*;
 use crate::security::*;
 use crate::supply::*;
 use crate::types::*;
@@ -2412,6 +2413,71 @@ pub fn openapi() -> Value {
     params: vec![string_path("user"), owner_key()], body: Some(json!(generator.subschema_for::<EnabledAsk>())),
     answers: vec![(204, no_answer())],
     codes: vec!["bad-request", "unauthorized", "forbidden", "own-account", "left", "not-found", "not-in-force", "database", "failed"]
+  );
+  add!(
+    "GET",
+    "/users/{user}/removal",
+    "accountRemoval",
+    "Permanent delete",
+    "What deleting an account for good would take now, changing nothing: who it is, whether it has left, the refusal that would stop it or none, and the count of each kind of row; for a platform administrator.",
+    params: vec![string_path("user"), owner_key(), owner_role()],
+    body: None,
+    answers: vec![(200, json_answer::<AccountRemoval>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "DELETE",
+    "/users/{user}",
+    "removeAccount",
+    "Permanent delete",
+    "An account marked left deleted for good with every row of it and its secret space, the units' results kept in the removal record; for a platform administrator.",
+    params: vec![string_path("user"), owner_key(), owner_role()],
+    body: Some(json!(generator.subschema_for::<RemovalAsk>())),
+    answers: vec![(200, json_answer::<Removed>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "own-account", "owner-account", "last-administrator", "not-left", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/units/{unit}/removal",
+    "unitRemoval",
+    "Permanent delete",
+    "What deleting a unit and every unit under it for good would take now, changing nothing: the subtree the deepest first, the people standing in it, the refusal that would stop it or none, and the count of each kind of row; for a platform administrator.",
+    params: vec![integer_path("unit"), owner_key(), owner_role()],
+    body: None,
+    answers: vec![(200, json_answer::<UnitRemoval>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "DELETE",
+    "/units/{unit}",
+    "removeUnit",
+    "Permanent delete",
+    "A unit and every unit under it deleted for good with every row of them and their secret spaces, the units' results kept in the removal record; for a platform administrator.",
+    params: vec![integer_path("unit"), owner_key(), owner_role()],
+    body: Some(json!(generator.subschema_for::<RemovalAsk>())),
+    answers: vec![(200, json_answer::<Removed>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "unit-holds-administrator", "unit-holds-people", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/removals",
+    "removals",
+    "Permanent delete",
+    "Every removal record, the newest first, at most 200; for a platform administrator.",
+    params: vec![owner_key(), owner_role()],
+    body: None,
+    answers: vec![(200, json_answer::<Removals>(&mut generator))],
+    codes: vec!["unauthorized", "forbidden", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
   );
   add!(
     "DELETE",

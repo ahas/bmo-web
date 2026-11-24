@@ -5057,3 +5057,157 @@ security:
     own_account: "You cannot disable your own account."
     left: "This account was marked as left."
     bad_mail: "An address or a secret's name is not valid."
+removal:
+  action:
+    delete: Delete permanently
+    delete_of: "Delete {name} permanently"
+    retry: Try again
+    cancel: Cancel
+    close: Close
+  title:
+    account: "Delete the account {name} permanently?"
+    unit: "Delete the organization {name} permanently?"
+  label:
+    irreversible: "This cannot be undone.\nThe records below are deleted from every service."
+    nothing: Nothing to delete
+    unset: Not set up, skipped
+    unread: Could not be checked
+    not_left: This account has not been marked as left.
+    leave_first: Mark as left, then delete permanently
+    people: "{count} members"
+    with_people: Delete the members permanently too
+    left_person: "{name} (left)"
+    confirm: Confirm the name
+    confirm_help: To delete, type the name above exactly.
+    removed: Deleted
+    skipped: Not set up, skipped
+    failed: Failed
+    pending: Not reached
+    finished: Deleted permanently.
+    already: Already deleted.
+    stopped: "Stopped at {unit}.\nTry again to carry on from where it stopped."
+    person_stopped: "Stopped while deleting the account {name}.\nTry again to carry on from where it stopped."
+    person: "Account {name}"
+    kind:
+      users: Accounts
+      sessions: Sessions
+      remembered_devices: Remembered browsers
+      second_factors: Two-step verification
+      recovery_codes: Recovery codes
+      account_links: Mailed links
+      email_checks: Email verifications
+      senders: Linked chat accounts
+      grants: Permissions
+      roles: Positions
+      posts: Concurrent posts
+      appointments: Acting appointments
+      history: History
+      invitations: Invitations
+      profiles: Profiles
+      own_agents: Own BMO profiles
+      console_settings: Console settings
+      sign_ins: Sign-in records
+      supply: Supply records
+      memberships: Plans and credits
+      chain_settings: Delegated settings
+      departures: Departure records
+      machines: Machine connections
+      keys: Phone keys
+      access_records: Access records
+      secrets: Secrets
+      units: Organizations
+      unit_attributes: Organization attributes
+      unit_kinds: Organization kinds
+      company_agents: Company BMO pictures
+      supervisors: Supervisors
+      role_agents: Role agents
+      repositories: Repositories
+      items: Items
+      jobs: Jobs
+      rooms: Rooms
+      private_rooms: Private rooms
+      memberships_in_rooms: Room memberships
+      messages: Messages
+      files: Files
+      folders: Folders
+      documents: Documents
+      brains: Brains
+      memories: Memories
+      notes: Notes
+      member_shares: Shares
+      bookmarks: Bookmarks
+      opened: Read records
+      imports: Imports
+      reads: Read marks
+      unit_shares: Organization shares
+      mails: Mails
+      mailboxes: Mailboxes
+      accounts: Mail accounts
+      servers: Mail servers
+      servers_in_use: Mail servers in use
+      calendars: Calendars
+      events: Events
+      schedules: Work schedules
+      resources: Resources
+      bookings: Bookings
+      reminders: Reminders
+      watches: Watches
+      calls: Asynchronous calls
+      pictures: Pictures
+      settings: Settings
+      slot_requests: Role slot requests
+      attachments: Attachments
+      mcp_servers: MCP servers
+      skills: Skills
+      repository_checkouts: Repository checkouts
+      registered_models: Registered models
+      claude_accounts: Claude accounts
+      personal_supply: Personal supply
+      organisation_supply: Organization supply
+      supply_reservations: Supply reservations
+      call_keys: Call keys
+      gateway_requests: Gateway requests
+      person_nodes: Personal nodes
+      workplaces: Workplaces
+      isolation_users: Isolation users
+      personal_tools: Personal tools
+      installs: Installs
+      seen_marks: Seen marks
+      catalogue_apps: Catalogue apps
+      other: Other records
+    unit:
+      web: Account service
+      agency: Agency
+      receiver: Receiver
+      brain: Brain
+      artifact: Artifact
+      note: Note
+      mail: Mail
+      pocket: Tool host
+      calendar: Calendar
+  message:
+    script_usage: "Usage: bun scripts/remove.ts account USER [--leave] / unit UNIT [--with-people] [--dry-run] [--yes] [--json] [--env-file FILE]"
+    script_env_unread: "The environment file could not be read: {path}"
+    script_no_administrator: "No platform administrator was found.\nCheck that WEB_DATABASE_URL names the console's database."
+    script_needs_yes: A run with no terminal deletes nothing without --yes.
+    script_ask: "To delete, type the name exactly ({name}):"
+    script_account: "Account {user} · {name} · {login}"
+    script_unit: "Organization {unit} · {name} · {count} organizations"
+    script_person: "Member {user} · {name}"
+    script_stopped: "Stopped.\nRun the same command again to carry on from where it stopped."
+  error:
+    confirm: The name does not match.
+    own_account: You cannot delete your own account permanently.
+    owner_account: The owner's account cannot be deleted permanently.
+    last_administrator: The last platform administrator cannot be deleted permanently.
+    not_left: Only an account marked as left can be deleted permanently.
+    unit_holds_administrator: An organization a platform administrator belongs to cannot be deleted permanently.
+    unit_holds_people: "Members belong to this organization.\nChoose to delete the members permanently too."
+    refused_code: "This cannot be deleted permanently.\nUnknown code `{code}`"
+    unit_unreachable: It could not be reached.
+    unit_status: "It failed with a {status} answer."
+    unit_code: "It failed with a {status} answer.\nCode `{code}`"
+    read_failed: Could not load what would be deleted.
+    run_failed: Could not delete permanently.
+  status:
+    loading: Loading what would be deleted…

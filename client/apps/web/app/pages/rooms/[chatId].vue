@@ -134,10 +134,11 @@
                 :manages="manages"
                 @enlarge="roomFaceOpen = true"
                 @left="void roomLeft()"
+                @remove="removalOpen = true"
                 @show="showInMessage"
               />
               <RoomOverlay v-if="group" v-model:open="overlayOpen" :chat-id="chatId" :title="title" />
-              <RoomRemovalDialog v-if="manages" v-model:open="removalOpen" :chat-id="chatId" :title="title" />
+              <RoomRemovalDialog v-if="administrator" v-model:open="removalOpen" :chat-id="chatId" :title="title" />
               <AgentSessionDialog v-model:open="sessionOpen" :ask="sessionAsk" />
             </template>
           </ConsoleTitleBar>

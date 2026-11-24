@@ -5087,3 +5087,157 @@ security:
     own_account: "不能停用自己的账户。"
     left: "此账户已办理退出。"
     bad_mail: "邮件地址或密钥名称无效。"
+removal:
+  action:
+    delete: 永久删除
+    delete_of: "永久删除{name}"
+    retry: 重试
+    cancel: 取消
+    close: 关闭
+  title:
+    account: "要永久删除账号{name}吗？"
+    unit: "要永久删除组织{name}吗？"
+  label:
+    irreversible: "此操作无法撤销。\n以下记录将从所有服务中删除。"
+    nothing: 没有要删除的记录
+    unset: 未设置，已跳过
+    unread: 无法确认
+    not_left: 该账号尚未办理离职。
+    leave_first: 办理离职后永久删除
+    people: "成员{count}人"
+    with_people: 同时永久删除成员
+    left_person: "{name}（已离职）"
+    confirm: 确认名称
+    confirm_help: 要删除，请原样输入上面的名称。
+    removed: 已删除
+    skipped: 未设置，已跳过
+    failed: 失败
+    pending: 未执行
+    finished: 已永久删除。
+    already: 已经删除。
+    stopped: "在{unit}处停止。\n重试将从停止处继续删除。"
+    person_stopped: "删除账号{name}时停止。\n重试将从停止处继续删除。"
+    person: "账号{name}"
+    kind:
+      users: 账号
+      sessions: 会话
+      remembered_devices: 已记住的浏览器
+      second_factors: 两步验证
+      recovery_codes: 恢复码
+      account_links: 邮件链接
+      email_checks: 邮箱验证
+      senders: 关联的聊天账号
+      grants: 权限
+      roles: 职务
+      posts: 兼职
+      appointments: 职务代理
+      history: 履历
+      invitations: 邀请
+      profiles: 个人资料
+      own_agents: 个人 BMO 资料
+      console_settings: 控制台设置
+      sign_ins: 登录记录
+      supply: 供给记录
+      memberships: 套餐与额度
+      chain_settings: 委托设置
+      departures: 离职记录
+      machines: 设备连接
+      keys: 手机密钥
+      access_records: 访问记录
+      secrets: 密钥
+      units: 组织
+      unit_attributes: 组织属性
+      unit_kinds: 组织类型
+      company_agents: 公司 BMO 头像
+      supervisors: 主管
+      role_agents: 角色智能体
+      repositories: 仓库
+      items: 条目
+      jobs: Job
+      rooms: 房间
+      private_rooms: 个人房间
+      memberships_in_rooms: 房间成员资格
+      messages: 消息
+      files: 文件
+      folders: 文件夹
+      documents: 文档
+      brains: Brain
+      memories: 记忆
+      notes: 笔记
+      member_shares: 共享
+      bookmarks: 书签
+      opened: 阅读记录
+      imports: 导入
+      reads: 已读记录
+      unit_shares: 组织共享
+      mails: 邮件
+      mailboxes: 邮箱
+      accounts: 邮件账号
+      servers: 邮件服务器
+      servers_in_use: 使用中的邮件服务器
+      calendars: 日历
+      events: 日程
+      schedules: 排班
+      resources: 资源
+      bookings: 预订
+      reminders: 提醒
+      watches: 关注
+      calls: 异步调用
+      pictures: 图片
+      settings: 设置
+      slot_requests: 角色槽位请求
+      attachments: 附加项
+      mcp_servers: MCP 服务器
+      skills: 技能
+      repository_checkouts: 仓库检出
+      registered_models: 已登记模型
+      claude_accounts: Claude 账号
+      personal_supply: 个人供给
+      organisation_supply: 组织供给
+      supply_reservations: 供给预留
+      call_keys: 调用密钥
+      gateway_requests: 网关请求记录
+      person_nodes: 个人节点
+      workplaces: 工作空间
+      isolation_users: 隔离用户
+      personal_tools: 个人工具
+      installs: 安装
+      seen_marks: 已查看标记
+      catalogue_apps: 目录应用
+      other: 其他记录
+    unit:
+      web: 账号服务
+      agency: 代理中心
+      receiver: 接收器
+      brain: Brain
+      artifact: 制品
+      note: 笔记
+      mail: 邮件
+      pocket: 工具宿主
+      calendar: 日历
+  message:
+    script_usage: "用法: bun scripts/remove.ts account USER [--leave] / unit UNIT [--with-people] [--dry-run] [--yes] [--json] [--env-file FILE]"
+    script_env_unread: "无法读取环境文件: {path}"
+    script_no_administrator: "未找到平台管理员。\n请确认 WEB_DATABASE_URL 指向控制台的数据库。"
+    script_needs_yes: 没有终端的运行在没有 --yes 时不会删除。
+    script_ask: "要删除，请原样输入名称（{name}）:"
+    script_account: "账号 {user} · {name} · {login}"
+    script_unit: "组织 {unit} · {name} · 共{count}个组织"
+    script_person: "成员 {user} · {name}"
+    script_stopped: "已停止。\n再次运行相同命令将从停止处继续删除。"
+  error:
+    confirm: 名称不一致。
+    own_account: 不能永久删除自己的账号。
+    owner_account: 不能永久删除所有者的账号。
+    last_administrator: 不能永久删除最后一位平台管理员。
+    not_left: 只有已办理离职的账号才能永久删除。
+    unit_holds_administrator: 不能永久删除平台管理员所在的组织。
+    unit_holds_people: "该组织中有成员。\n请选择同时永久删除成员。"
+    refused_code: "无法永久删除。\n未知代码 `{code}`"
+    unit_unreachable: 无法连接。
+    unit_status: "以 {status} 响应失败。"
+    unit_code: "以 {status} 响应失败。\n代码 `{code}`"
+    read_failed: 无法加载要删除的记录。
+    run_failed: 无法永久删除。
+  status:
+    loading: 正在加载要删除的记录…

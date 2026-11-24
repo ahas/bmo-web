@@ -481,13 +481,15 @@ console page. No answer says which framework drew it. Strict transport is the re
   the one place the rule stands. The administrator's reach is the superadmin's of `STRUCTURE.md` (「Accounts,
   companies and units」: the superadmin reaches everything and changes nothing of another's), so in another
   person's private room he reads alone: saying, attaching, a voice note, a sticker, a reaction, an edit, a pin of a
-  message or of the room, a delete, a forward out of it or into it, reading a line aloud, its picture, its mode,
-  removing it, and changing its members answer him 403. In a group room his
+  message or of the room, a delete, a forward out of it or into it, reading a line aloud, its picture, its mode
+  and changing its members answer him 403. Removing a room is his in every room, another person's private room and
+  a sealed one among them: the permanent delete reaches what nothing else of his does (「방 등록 삭제」). In a group room his
   acts as the administrator of the organisation — letting people in, its archive — stand. A room's
   picture is read by whoever reads the room alone.
 - **The room screen stands read-only for him there and in a sealed room,** as it does for a reader whose rooms section
   only reads, by the room list's word of which rooms the reader may change: no box
-  to write in and no act on a message, no pin or removal in the room's menu, no picture, avatar mode or tone layer in 방 정보,
+  to write in and no act on a message, no pin or removal in the room's menu, no picture, avatar mode or tone layer in 방 정보
+  (its 영구 삭제 aside, 「방 정보」),
   nobody to let in, and no such room to forward a message into. Nothing on the screen says why,
   and nobody else is told he is reading.
 - **Every change the console makes in a room for a person names the account it is made as,** so the receiver refuses
@@ -6162,7 +6164,9 @@ Four bounds keep it from growing forever.
   Back, Esc, its close button and a press outside close it, and opening and closing it leave the history as it was.
 - **Its head is the room's picture and its name.** The picture opens whole when pressed; a room standing as its
   letter has nothing to open. For the owner, in a room he may change, a 방 사진 button stands at the head's end and
-  opens the room's picture setting as a dialog over the view (「Profile photos」).
+  opens the room's picture setting as a dialog over the view (「Profile photos」). For the platform administrator, in
+  every room, another person's private room and a sealed one among them, 영구 삭제 stands last at the head's end, in
+  the error colour, and opens the room's removal dialog over the view (「방 등록 삭제」); nobody else sees it.
 - **Its tabs stand on one row of the component library's tabs under the head,** the row scrolling sideways where it
   is narrower than its tabs, in this order: 대화상대, 미디어, 파일, 링크, 음악, 음성, 상황, then for the
   owner 세션 정보, and for the owner in a room he may change 채팅 서비스 and 말투. The view opens on 대화상대, and on the tab it
@@ -6412,9 +6416,14 @@ Four bounds keep it from growing forever.
 
 #### 방 등록 삭제
 
-- **Every room's menu carries 방 등록 삭제 for the owner alone,** last, in a group of its own.
-  Nobody else signed in sees it, and the console's server refuses its two routes for anyone but the
+- **Every room's menu carries 방 등록 삭제 for the owner alone,** last, in a group of its own, in every room he may
+  change. Nobody else signed in sees it, and the console's server refuses its two routes for anyone but the
   administrator (the chat library's `docs/protocol.md`, 「Removing a room's registration」).
+- **The administrator removes any room,** another account's private room and a sealed one among them, where the
+  room's menu carries no removal since the screen only reads: 방 정보's 영구 삭제 opens the same dialog in every room
+  (「방 정보」). The routes read the room as he reads every room and ask nothing more of it, and the receiver takes the
+  administrator's removal of any room; another account's private room stands among the warnings by that person's
+  name.
 - **It opens a dialog that reads what the removal would take before anything is written:**
   - what goes, as a name and value list (「Name and value lists」): the count of each kind of record,
     the folders with their files, the brain's documents of the room and the archive copies that hold
@@ -8317,7 +8326,8 @@ settings on the research screen (「Research screen」).
   is made from the tree's 회사 추가 alone.
 - **The unit chosen** is headed by its name on a row of its own, with the path above it standing whole, wrapping onto
   more lines between its steps where the row is too narrow. 편집 stands on the row under the name, at its right end,
-  and opens the unit's form: its name; for a unit under a company, its parent among the units of its company that do not
+  with 영구 삭제 after it for the platform administrator alone, which opens the unit's permanent delete (「영구 삭제」).
+  편집 opens the unit's form: its name; for a unit under a company, its parent among the units of its company that do not
   stand under it; 종류, 없음 or one of its company's kinds; 약칭, one line of at most 20 characters; and, for a unit
   under a company, 결재 상위 조직, a unit of its company offered by its path, its parent marked `(기본값)`, which it
   reports to where none is set, so choosing the parent sets none. One 저장 stands at its foot, open only while a field differs
@@ -8387,6 +8397,8 @@ settings on the research screen (「Research screen」).
     dialog (`docs/accounts.md`, 「Invitations and a person's machine」).
   - The leave mark marks the person left, asked first with what it does and that it is not undone, their posts
     ending with it (`docs/accounts.md`, 「A person who leaves」); a person who left stands on in the list.
+  - For the platform administrator a third mark, 영구 삭제, stands at the end of every person's row, a person who left
+    among them, and opens the person's permanent delete (「영구 삭제」).
 - **겸직** lists the people holding a post in the unit, its heading carrying how many, one row each: the name, the
   post's 직책, 조직장 as a small badge where the post carries the head, and two marks at the row's end, 겸직 편집 and
   겸직 해제, the second asked first with what it takes away. 겸직 추가 at the right end of its heading opens the post
@@ -8459,7 +8471,8 @@ account's rooms or agents (「Access」).
     administrator and a head of the unit or a unit above give a post; 기기 연결, the machine dialog of 조직도; 프로필
     변경, the profile form of 계정 for this person;
     BMO 설정 권한, which opens 에이전트 at the person's company with their unit chosen; 비밀번호 재설정, 2단계 인증 초기화 and
-    계정 비활성화 or 계정 활성화 (below); and 탈퇴 처리, asked first as
+    계정 비활성화 or 계정 활성화 (below); 영구 삭제, the platform administrator's alone and never for the reader
+    themselves, which opens the person's permanent delete (「영구 삭제」); and 탈퇴 처리, asked first as
     on 조직도, for the administrator and a company's head alike and never for the reader themselves, a refusal of it
     saying that only the administrator and the person's heads mark them left. An act stands only where the route
     behind it lets the reader do it, and a person who left keeps only what still applies to them. Once an act goes through, the person is read again, and the list row with them.
@@ -8558,6 +8571,41 @@ account's rooms or agents (「Access」).
 - **A head reads their people's 계정 without the contact details, 조직 and BMO,** and no 활동: their rooms, agents,
   sessions and runs quote what a person said in their own rooms, which nobody but the person and the administrator
   reads (「Access」).
+
+#### 영구 삭제
+
+The platform administrator's permanent delete of a person's account, or of a unit with everything under it, a
+company among them (`docs/accounts.md`, 「Deleting an account for good」, 「Deleting a unit or a company」). It is
+offered on 조직도 for the unit chosen and for each person of its 구성원, and in 사용자's 관리 for the person open, to
+the platform administrator alone; nobody else sees it, and its routes answer anyone else as if nothing stood there.
+
+- **It opens a centred dialog whose title is the question,** `{name} 계정을 영구 삭제할까요?` or `{name} 조직을 영구
+  삭제할까요?`, the person named by their name, their login where none stands, and the unit by its name. It reads
+  what the removal would take before anything is written, keeping its place with skeleton rows while it reads.
+- **What goes, unit by unit:** each unit the console asks, under its name in the pack, and under it each kind of
+  record it would delete with how many, as a name and value list (「Name and value lists」), each kind in the pack's
+  word for it and every kind the pack holds no word for summed on one line, 기타 기록; a unit with nothing to delete
+  says 삭제할 기록 없음, one whose address is not set 설정되지 않아 건너뜀, and one that could not be read 확인하지 못함
+  in the error colour, the removal asking it all the same. No kind's key, code or JSON stands in the dialog.
+- **A person not marked left** is said so in one line, with the choice 탈퇴 처리 후 영구 삭제, which must be chosen
+  to go on; the removal then marks them left first, in the same act.
+- **A unit where people stand** lists them, each by name with (탈퇴) beside one who left, and offers 구성원도 영구
+  삭제, which must be chosen to go on; the removal then deletes each person's account first. A unit where a platform
+  administrator stands is refused whatever is chosen.
+- **A refusal** — the reader's own account, the move's administrator's, the last platform administrator, an
+  administrator standing in the unit — is said in the pack's sentence, and the foot carries 닫기 alone.
+- **The name is typed to go on:** the name the title carries stands in the monospace face over one field, and the
+  foot's 영구 삭제, in the error colour after 취소, is open only once the field holds that name exactly and every
+  choice asked is made.
+- **Pressed, it runs the cascade on the console's server** with a spinner on the button, and the dialog does not
+  close while it runs. The dialog then turns into what each unit removed, unit by unit in the same words, one skipped
+  as 설정되지 않아 건너뜀; where it stopped, the unit that failed with its reason and the units after it as 진행하지
+  않음, and 다시 시도, which runs it again and carries on from where it stopped. Once it has finished, the chart and the
+  tree are read again, a unit gone handing the choice to its parent, and a person gone leaves 사용자's list.
+- **The routes:** `GET /api/organization/users/<user>/removal` and `GET /api/organization/units/<unit>/removal` read
+  the account service's counts and each unit's; `POST` to the same addresses runs it, with `confirm`, the name
+  typed, and `leave` for a person or `withPeople` for a unit. A `confirm` that is not the name exactly is refused 400
+  before anything is asked.
 
 #### 직책·종류
 
@@ -11042,6 +11090,31 @@ service's user of that name through the account command (`docs/accounts.md`, 「
 `--administrator` makes that user the platform administrator. The command runs the binary `BMO_WEB_SERVER_BIN`
 names in the folder `BMO_WEB_SERVER_DIR` names, and refuses with neither set. The console account is written in
 the database `WEB_DATABASE_URL` names.
+
+## Deleting an account or a unit from the machine
+
+The permanent delete runs from the machine too, as the same cascade the dialog runs (「영구 삭제」), acting as the
+move's administrator (`docs/accounts.md`, 「The platform administrators」): whoever stands at the machine stands for
+him. It reads the console's environment — the units' addresses and tokens, the server's and `WEB_DATABASE_URL` —
+from the process, and from the file `--env-file` names where one is named, the release's `console.env`, each line's
+key before its first `=` and its value after it as it stands, a variable the process holds standing over the file's.
+
+```
+cd <release>/client/apps/web
+bun scripts/remove.ts account <user> [--leave] [--dry-run] [--yes] [--json] --env-file console.env
+bun scripts/remove.ts unit <unit> [--with-people] [--dry-run] [--yes] [--json] --env-file console.env
+```
+
+- **`--dry-run`** prints what the removal would take, unit by unit and kind by kind, and changes nothing.
+- **`--leave`** marks a person not yet left as left first; without it such an account is refused. **`--with-people`**
+  deletes every person standing in the unit's subtree first; without it a unit holding people is refused.
+- **It asks before it deletes,** the name typed as the dialog asks for it, where standard input is a terminal;
+  `--yes` stands for that answer in a run with none, and without either it deletes nothing.
+- **It prints one line for each step** as it goes: the unit, then removed, skipped where its address is not set, or
+  failed with the reason, and each kind it removed with how many, the kind by its key. A step that fails stops it
+  with a non-zero exit; running the same command again carries on from where it stopped, and a removal already
+  finished says so and exits 0. `--json` prints the result as one JSON object in place of the lines, for a script to
+  read.
 
 ## Running in development
 

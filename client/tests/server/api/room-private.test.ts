@@ -68,7 +68,12 @@ const receiver = standIn(
 
     // The receiver's own refusal: a write naming any account but the room's own in a private room — a forward's
     // source and the room it goes into both — and any change of a private room's members; and the room it holds as
-    // private where the console does not.
+    // private where the console does not. The administrator's removal of a room, which the receiver takes in every
+    // room, stands before it.
+    const removal = one.method === "DELETE" && /^\/rooms\/-?\d+$/.test(path);
+
+    if (removal && named(one) === ADMINISTRATOR) return answer({ goes: [], stays: [], taken: [], cleared: [], pictures: [], folders: [], warned: [] });
+
     const touched = path.endsWith("/forwards") ? [room, Number(one.body?.to)] : [room];
     const members = /\/accounts\/\d+$/.test(path);
     const refusedIn = touched.find((into) => into === REFUSED || into === SEALED || (PRIVATE_OF[into] !== undefined && (members || named(one) !== PRIVATE_OF[into])));
@@ -161,9 +166,11 @@ const ADMINISTRATOR_ACTS: WriteAct[] = [
   { name: "pin the room", handler: await route("rooms/[chatId]/pin.post"), event: (room) => roomOnly(room, { body: { pinned: true } }), unit: "receiver" },
   { name: "set its mode", handler: await route("rooms/[chatId]/mode.put"), event: (room) => roomOnly(room, { body: { mode: "record-only" } }), unit: "receiver" },
   { name: "set its picture", handler: await route("avatars/[kind]/[id].put"), event: (room) => roomPicture(room, { parts: [picture] }), unit: "receiver" },
-  { name: "drop its picture", handler: await route("avatars/[kind]/[id].delete"), event: (room) => roomPicture(room), unit: "receiver" },
-  { name: "remove it", handler: await route("rooms/[chatId]/remove.post"), event: (room) => roomOnly(room), unit: "receiver" }
+  { name: "drop its picture", handler: await route("avatars/[kind]/[id].delete"), event: (room) => roomPicture(room), unit: "receiver" }
 ];
+
+// A room's removal, which the administrator makes in every room he reads (docs/web.md, the room menu's removal of its registration).
+const REMOVE: WriteAct = { name: "remove it", handler: await route("rooms/[chatId]/remove.post"), event: (room) => roomOnly(room), unit: "receiver" };
 
 // The changes asked of a unit; the account service's read of whose senders are linked goes by POST and changes nothing.
 const writes = (stood: { asked: Asked[] }) => stood.asked.filter((one) => one.method !== "GET" && one.path !== "/senders/users");
@@ -214,15 +221,22 @@ describe("in their own private room, the account whose room it is", () => {
   }
 });
 
-describe("the preview of removing another account's private room", () => {
-  test("is refused the administrator before the receiver is asked", async () => {
+describe("removing a room, the administrator", () => {
+  for (const [what, room] of [["his own private chat", OWN_CHAT], ["another account's private room", PRIVATE], ["a sealed room", SEALED]] as const) {
+    test(`removes ${what}, the removal named as his account`, async () => {
+      expect((await act(REMOVE, room, AS_ADMINISTRATOR)).status).toBe(200);
+      expect(writes(receiver).map(named)).toEqual([ADMINISTRATOR]);
+    });
+  }
+
+  test("reads the preview of removing another account's private room from the receiver", async () => {
     session = AS_ADMINISTRATOR;
     receiver.asked.length = 0;
 
     const preview = await route("rooms/[chatId]/remove.get");
 
-    expect(await asked(preview, roomOnly(PRIVATE))).toMatchObject({ status: 403, message: wording("room.error.private_room") });
-    expect(receiver.asked.filter((one) => one.path.startsWith(`/rooms/${PRIVATE}?`))).toEqual([]);
+    expect((await asked(preview, roomOnly(PRIVATE))).status).toBe(200);
+    expect(receiver.asked.filter((one) => one.path.startsWith(`/rooms/${PRIVATE}?`))).toHaveLength(1);
   });
 });
 

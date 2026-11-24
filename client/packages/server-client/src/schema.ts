@@ -854,6 +854,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/removals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every removal record, the newest first, at most 200; for a platform administrator. */
+        get: operations["removals"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/rooms/{chat}/callers": {
         parameters: {
             query?: never;
@@ -1336,7 +1353,8 @@ export interface paths {
         get: operations["unit"];
         put?: never;
         post?: never;
-        delete?: never;
+        /** A unit and every unit under it deleted for good with every row of them and their secret spaces, the units' results kept in the removal record; for a platform administrator. */
+        delete: operations["removeUnit"];
         options?: never;
         head?: never;
         /** A unit renamed, moved under another parent of its company, or given its kind, short name and the unit it reports to, by the administrator. */
@@ -1517,6 +1535,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/units/{unit}/removal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** What deleting a unit and every unit under it for good would take now, changing nothing: the subtree the deepest first, the people standing in it, the refusal that would stop it or none, and the count of each kind of row; for a platform administrator. */
+        get: operations["unitRemoval"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/units/{unit}/secrets": {
         parameters: {
             query?: never;
@@ -1631,7 +1666,8 @@ export interface paths {
         get: operations["user"];
         put?: never;
         post?: never;
-        delete?: never;
+        /** An account marked left deleted for good with every row of it and its secret space, the units' results kept in the removal record; for a platform administrator. */
+        delete: operations["removeAccount"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1966,6 +2002,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users/{user}/removal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** What deleting an account for good would take now, changing nothing: who it is, whether it has left, the refusal that would stop it or none, and the count of each kind of row; for a platform administrator. */
+        get: operations["accountRemoval"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/{user}/second-factor": {
         parameters: {
             query?: never;
@@ -2211,6 +2264,22 @@ export interface components {
             credential: string;
             hubUrl: string;
             install: components["schemas"]["Installs"];
+            user: string;
+        };
+        /**
+         * @description What removing an account would take now: who it is, whether it has left, the refusal that would stop it, or
+         *     none, and the count of each kind of row the service would delete.
+         */
+        AccountRemoval: {
+            administrator: boolean;
+            counts: {
+                [key: string]: number;
+            };
+            /** @default  */
+            fullName: string;
+            left: boolean;
+            name: string;
+            refusal: string | null;
             user: string;
         };
         /** @description What stands of an account's security. */
@@ -3249,6 +3318,55 @@ export interface components {
         RecoveryCodes: {
             recoveryCodes: string[];
         };
+        /** @description A removal asked: what every content unit removed before it, by the unit's name, which the record keeps. */
+        RemovalAsk: {
+            /** @default {} */
+            units: {
+                [key: string]: {
+                    [key: string]: number;
+                };
+            };
+        };
+        /** @description A person whose home unit stands in a unit's subtree, as a unit's removal names them. */
+        RemovalPerson: {
+            administrator: boolean;
+            left: boolean;
+            name: string;
+            user: string;
+        };
+        /**
+         * @description One removal as its record keeps it: what went, an account or a unit, its id, its login and name as they stood,
+         *     who removed it and when, and every unit's result, the service's own under `web`.
+         */
+        RemovalRecord: {
+            /** Format: int64 */
+            at: number;
+            by: string | null;
+            /** Format: int64 */
+            id: number;
+            login: string;
+            name: string;
+            result: {
+                [key: string]: {
+                    [key: string]: number;
+                };
+            };
+            /** Format: int64 */
+            subject: number;
+            what: string;
+        };
+        /** @description The removal records, the newest first. */
+        Removals: {
+            removals: components["schemas"]["RemovalRecord"][];
+        };
+        /** @description What a removal took here, and the record it left. */
+        Removed: {
+            /** Format: int64 */
+            record: number;
+            removed: {
+                [key: string]: number;
+            };
+        };
         /** @description The sentence a fixed line renders as. */
         Rendered: {
             text: string;
@@ -4184,6 +4302,23 @@ export interface components {
             /** Format: int64 */
             id: number;
             name: string;
+        };
+        /**
+         * @description What removing a unit and every unit under it would take now: the subtree the deepest first, the people standing
+         *     in it, the refusal that would stop it, or none, and the count of each kind of row the service would delete.
+         */
+        UnitRemoval: {
+            /** Format: int64 */
+            company: number;
+            counts: {
+                [key: string]: number;
+            };
+            name: string;
+            people: components["schemas"]["RemovalPerson"][];
+            refusal: string | null;
+            /** Format: int64 */
+            unit: number;
+            units: components["schemas"]["UnitRef"][];
         };
         /** @description One unit of the whole tree, as the administrator reads it. */
         UnitRow: {
@@ -6596,6 +6731,40 @@ export interface operations {
             };
         };
     };
+    removals: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Removals"];
+                };
+            };
+            /** @description A refusal or failure: unauthorized, forbidden, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
     roomCallers: {
         parameters: {
             query?: never;
@@ -8012,6 +8181,46 @@ export interface operations {
             };
         };
     };
+    removeUnit: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                unit: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RemovalAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Removed"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, unit-holds-administrator, unit-holds-people, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
     changeUnit: {
         parameters: {
             query?: never;
@@ -8547,6 +8756,42 @@ export interface operations {
             };
         };
     };
+    unitRemoval: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                unit: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnitRemoval"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
     unitSecrets: {
         parameters: {
             query?: never;
@@ -8822,6 +9067,46 @@ export interface operations {
                 };
             };
             /** @description A refusal or failure: bad-request, unauthorized, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    removeAccount: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RemovalAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Removed"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, own-account, owner-account, last-administrator, not-left, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -9726,6 +10011,42 @@ export interface operations {
                 };
             };
             /** @description A refusal or failure: bad-request, unauthorized, no-second-factor, forbidden, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    accountRemoval: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountRemoval"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;

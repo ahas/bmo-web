@@ -46,8 +46,9 @@
             <ULink v-if="reportsToOf(chosen) !== null" class="text-start text-sm break-keep [overflow-wrap:anywhere]" data-unit-reports-to @click="choose(reportsToOf(chosen)!)">{{ $t("organization.label.reports_to_line", { path: pathText(reportsToOf(chosen)!, true) }) }}</ULink>
           </div>
         </div>
-        <div class="flex justify-end">
+        <div class="flex justify-end gap-2">
           <UButton color="neutral" variant="subtle" icon="i-material-symbols-edit-outline" :label="$t('organization.action.edit')" data-unit-edit @click="openEdit" />
+          <UButton v-if="administrator" color="error" variant="subtle" icon="i-material-symbols-delete-forever-outline" :label="$t('removal.action.delete')" data-unit-delete @click="openRemoval('unit', String(chosen.id), chosen.name)" />
         </div>
       </div>
 
@@ -150,12 +151,15 @@
                 @update:model-value="(value: string) => setRole(member, value)"
               />
             </div>
-            <div v-if="!gone(member)" class="flex shrink-0 items-center gap-1" data-member-marks>
-              <UTooltip :text="$t('organization.label.machine', { name: nameOf(member) })">
+            <div v-if="!gone(member) || administrator" class="flex shrink-0 items-center gap-1" data-member-marks>
+              <UTooltip v-if="!gone(member)" :text="$t('organization.label.machine', { name: nameOf(member) })">
                 <UButton color="neutral" variant="ghost" icon="i-material-symbols-computer-outline" :aria-label="$t('organization.label.machine', { name: nameOf(member) })" @click="openMachine(member)" />
               </UTooltip>
-              <UTooltip :text="$t('organization.action.mark_left', { name: nameOf(member) })">
+              <UTooltip v-if="!gone(member)" :text="$t('organization.action.mark_left', { name: nameOf(member) })">
                 <UButton color="neutral" variant="ghost" icon="i-material-symbols-person-off-outline" :aria-label="$t('organization.action.mark_left', { name: nameOf(member) })" :loading="working === `left:${member}`" :disabled="busy" @click="markLeft(member)" />
+              </UTooltip>
+              <UTooltip v-if="administrator" :text="$t('removal.action.delete_of', { name: nameOf(member) })">
+                <UButton color="error" variant="ghost" icon="i-material-symbols-delete-forever-outline" :aria-label="$t('removal.action.delete_of', { name: nameOf(member) })" :disabled="busy" data-member-delete @click="openRemoval('account', member, nameOf(member))" />
               </UTooltip>
             </div>
           </div>
@@ -234,6 +238,7 @@
     </SettingsDialog>
 
     <!-- A person's machine, and a move of the people chosen, each a dialog of its own the people tab opens too. -->
+    <PermanentDeleteDialog v-if="removal !== null" v-model:open="removalOpen" :kind="removal.kind" :subject="removal.subject" :name="removal.name" @removed="removed" />
     <OrganizationMachineDialog v-model:open="machineOpen" :user="machineUser" :name="machineUser === null ? '' : nameOf(machineUser)" />
     <OrganizationMoveDialog ref="moveDialog" v-model:open="moving" :units="units ?? []" :name-of="nameOf" :roles-of="rolesOf" @moved="chooseAll(false)" @settled="read" />
     <OrganizationActingDialog v-if="chosen !== null" v-model:open="actingOpen" :unit="chosen.id" :people="companyPeople(chosen.id, [])" :acting="view?.acting ? nameOf(view.acting.user) : null" @saved="read" />
@@ -259,6 +264,7 @@ import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 import { useNarrow } from "bmo-ui/app/domain/screen";
 import { dayKey, toUnixSeconds } from "bmo-ui/app/domain/time";
 
+import { useAdministrator } from "~/domain/access";
 import { useConfirm } from "~/domain/confirm";
 import { countText } from "~/domain/numbers";
 import { ORGANIZATION_UNITS_KEY, UNIT_KEY, isCompany, organizationNodeAddress, unitPath } from "~/domain/organization";
@@ -281,6 +287,7 @@ const route = useRoute();
 const router = useRouter();
 const narrow = useNarrow();
 const confirm = useConfirm();
+const administrator = useAdministrator();
 
 const units = ref<UnitRow[] | null>(null);
 const users = ref<UserSummary[]>([]);
@@ -379,6 +386,32 @@ async function read(): Promise<void> {
   } finally {
     reading.value = false;
   }
+}
+
+// --- The platform administrator's permanent delete of the unit chosen or of a person in it (docs/web.md, the organisation screen's permanent delete) ---
+
+const removal = ref<{ kind: "account" | "unit"; subject: string; name: string } | null>(null);
+const removalOpen = ref(false);
+
+function openRemoval(kind: "account" | "unit", subject: string, name: string): void {
+  removal.value = { kind, subject, name };
+  removalOpen.value = true;
+}
+
+// Once a removal has finished the units are read again; a unit gone hands the choice to its parent, and a company gone
+// to the screen's first organisation.
+async function removed(): Promise<void> {
+  if (removal.value?.kind === "unit") {
+    const parent = unitOf(Number(removal.value.subject))?.parent ?? null;
+
+    if (parent === null || parent === undefined) {
+      await router.replace({ query: { ...route.query, company: undefined, [UNIT_KEY]: undefined } });
+    } else {
+      choose(parent);
+    }
+  }
+
+  await read();
 }
 
 // --- The unit chosen read whole: the roles its people carry, the people holding a post in it, the appointment ---

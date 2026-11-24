@@ -575,7 +575,8 @@ section states what each does.
   where no person stands behind the call, as the account command's, keeps no one as its doer.
 - **The history holds what was done since the service kept it;** an appointment that runs to its end adds nothing
   as it ends, its entry naming the end.
-- **Nothing in it is changed or removed.** It is read on the roster's person read (「The people roster」), by the
+- **Nothing in it is changed or removed while the person stands.** Deleting the account for good removes it with
+  the account (「Deleting an account for good」). It is read on the roster's person read (「The people roster」), by the
   administrator and a head of the company's own unit.
 
 ### A person's BMO profile
@@ -828,8 +829,9 @@ section states what each does.
 
 ### A person who leaves
 
-- **A person who leaves is marked so, never removed:** the administrator, or a head of the unit the person stands
-  in, marks the account left. Being a head is sumida's `manage` on that unit (「Companies and organisation units」,
+- **Leaving seals an account; it removes nothing.** The administrator, or a head of the unit the person stands
+  in, marks the account left. What stands of the account is removed only by the platform administrator's permanent
+  delete (「Deleting an account for good」), which asks for the account to be marked left first. Being a head is sumida's `manage` on that unit (「Companies and organisation units」,
   「Acting」), so a head of a unit above it and an acting head mark the person too, and a head of a unit beside or
   below it does not. Its sign-in is disabled for good, the moment and who marked it are kept, and the account stays
   in its unit with everything it held, so what it did stays where it was done. Its posts end, with the head grants
@@ -843,6 +845,103 @@ section states what each does.
   changes none; nobody else is given them, the person included once their sign-in is gone.
 - **Their supervisor is woken nowhere again,** and a quiet instruction for it is let go (the receiver's
   `docs/wake.md`): the receiver reads the departure off the account's machine standing.
+
+### Deleting an account for good
+
+- **The platform administrator alone deletes an account for good,** and only an account marked left
+  (「A person who leaves」). The removal takes everything keyed to the account in every unit and then the account
+  itself, and nothing of it is kept to be brought back; only the removal record says it happened
+  (「The removal record」).
+- **The console runs it as one cascade, unit by unit** (`docs/web.md`, 「영구 삭제」): it asks this service whether the
+  account may go and what would go, marks it left where the administrator asked for both in one act, asks each
+  content unit — the agency, the receiver, the brain, bmo-artifact, bmo-note, bmo-mail, the tool host and
+  bmo-calendar, in that order — to remove what it keeps of the account, and asks this service last to remove its own
+  rows and the person's secret space, handing it every unit's result to keep. A unit whose address the console's
+  settings do not name is passed over and named; one that answers anything but its counts, a route it does not
+  serve yet among them, fails. A unit that fails stops the cascade
+  with what was removed so far, and running it again resumes it: every unit's removal is idempotent, and this
+  service's own rows go last, so an account the service no longer holds is a cascade already finished.
+- **`GET /users/{user}/removal`** answers, changing nothing, the person's login and name, whether the account has
+  left, the refusal that would stop the removal now or none, and the count of each kind of row the removal would
+  delete here:
+  - `users`: sumida's user itself;
+  - `sessions`, `remembered-devices`, `second-factors`, `recovery-codes`, `account-links` and `email-checks`: what
+    keeps the account its holder's (「Account security」);
+  - `senders`: the identities linked to it;
+  - `grants`: every relation tuple naming the user, as a subject or as an object, with the words a grant was made
+    with;
+  - `roles`, `posts`, `appointments` and `history`: the person's role in their home unit, their posts, their acting
+    appointments and their history;
+  - `invitations`: the invitation the account was made by and sumida's own invitations of the user;
+  - `profiles` and `own-agents`: the person's profile and their own BMO profile;
+  - `console-settings`: the console's own rows of the account — its guide, language, palette, theme, presence switch,
+    push devices, open tabs and how far it read each room, and the console login standing under its login;
+  - `sign-ins`: when it last signed in, every sign-in tried naming it and a lock on its login;
+  - `supply`: its supply reservations, its settled costs and the supply audit's entries about it;
+  - `memberships`: sumida's wallets, subscriptions, purchases and coupons the person owns, with everything kept under
+    them;
+  - `chain-settings`: its own link of the delegation chain, the rules naming it and its places in groups;
+  - `departures`, `machines` and `keys`: its departure, the machine bound to it and its phone keys;
+  - `access-records`: sumida's access logs, bans, preferences and verifications of the user;
+  - `secrets`: the files standing in the person's secret space.
+- **What it refuses,** in this order, each 409 with its code: the administrator's own account (`own-account`); the
+  move's administrator (`owner-account`, 「The platform administrators」); the last user holding the platform
+  administrator's standing (`last-administrator`); and an account not marked left (`not-left`). The read answers
+  the same code as `refusal` rather than refusing, so the console says why before anything is asked of another
+  unit.
+- **`DELETE /users/{user}`** removes those rows in one transaction, after the person's secret space folder,
+  `users/<user>/` under the store, so a removal broken half-way leaves the account standing to be removed again. It
+  answers what it removed and the removal record it kept. An account that does not stand is 404 `not-found`, which
+  the console takes as a removal already finished.
+- **What another account keeps of the person stays as a number:** who gave a post, made an invitation, marked a
+  departure or set a value, and the entries of other people's histories the person made, keep the user's id and
+  read as nobody, as a change nobody stands behind does (「A person's history」).
+- **Sessions on Valkey end with the account:** a sign-in disabled for good ends every session at its next check,
+  and a session whose user does not stand is no session.
+
+### Deleting a unit or a company
+
+- **The platform administrator alone deletes a unit for good, with every unit under it;** a company is a unit with
+  no parent, so the same removal deletes a whole company.
+- **Nobody may stand in what goes:** a unit whose subtree is any person's home unit is refused until each such person
+  is deleted for good, the console deleting them first where the administrator asks for it in the same act, and a
+  subtree any platform administrator stands in is refused whatever is asked, so the platform's own company stays
+  while an administrator stands in it.
+- **The console runs it as a cascade too:** each person's account first where asked, then for each unit of the
+  subtree, the deepest first, every content unit's removal of what it keeps of that unit, and this service's removal
+  last, once for the whole subtree.
+- **`GET /units/{unit}/removal`** answers, changing nothing, the unit's name and company, the units of its subtree
+  the deepest first, each id and name, the people whose home unit stands in it, each user id, name, whether they have
+  left and whether they are a platform administrator, the refusal that would stop the removal now or none, and the
+  count of each kind of row the removal would delete here:
+  - `units`: the organisations themselves, with sumida's closure rows;
+  - `posts` and `appointments`: every post and acting appointment in those units, whoever holds them;
+  - `grants`: every relation tuple on those units or naming them as subjects — head grants, org memory writers —
+    with the words a grant was made with;
+  - `chain-settings`: the units' links of the delegation chain, their rules, the rules naming them and the groups they
+    keep with their members;
+  - `supply`: the plans exposed to them, their settled costs and the supply audit's entries about them;
+  - `memberships`: sumida's wallets, subscriptions, purchases and coupons the units own;
+  - `invitations`: the invitations into them;
+  - `unit-attributes`: their kinds, short names and the units they report to;
+  - `roles`, `unit-kinds` and `company-agents`: a removed company's roles, unit kinds and its default picture for its
+    people's BMOs;
+  - `secrets`: the files standing in the units' secret spaces.
+- **What it refuses,** each 409: `unit-holds-administrator` where a platform administrator's home unit stands in
+  the subtree, and `unit-holds-people` where any other person's does. The read answers the code as `refusal`.
+- **`DELETE /units/{unit}`** removes those rows in one transaction, after the units' secret space folders,
+  `units/<unit>/` under the store. A unit of the same company outside the subtree that reported to a unit removed
+  reports to its parent again. A unit that does not stand is 404 `not-found`, which the console takes as a removal
+  already finished.
+- **Other people's histories keep their entries,** since nothing in a history is changed: an entry naming a removed
+  unit keeps its id and reads with no name.
+
+### The removal record
+
+- **Every removal leaves one record,** written in the same transaction as the rows it removes, in the table
+  `removals`: whether an account or a unit went, its id, its login and name as they stood, who removed it, when, and
+  the whole result — each content unit's removed counts the console handed over, and this service's own under `web`.
+- **`GET /removals`** answers them to the platform administrator alone, the newest first, at most 200.
 
 ### The people directory
 
@@ -976,7 +1075,9 @@ section states what each does.
     need a person's secret adds that reading by this address; none reads a person's space today.
   - **The console and this service never read a value back.**
 - **A person who leaves keeps their space as it stood,** sealed with their other private records (「A person who
-  leaves」): their sign-in disabled, nobody lists it, and nothing reads it for them.
+  leaves」): their sign-in disabled, nobody lists it, and nothing reads it for them. Deleting the account for good
+  removes the folder whole, and deleting a unit removes the unit's (「Deleting an account for good」, 「Deleting a unit
+  or a company」); the platform's space is never removed.
 - **`GET /users/{user}/secrets`** lists the names standing in the person's space, each with its size, the time it
   last changed and the kind its file reads as, and never what a file holds. The platform's lists `env/`'s own
   files, never a folder under it.
@@ -1641,6 +1742,7 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 | `supply_plan_exposures` | each plan exposed to an organisation unit: `org_id`, `plan_id`, `applied` (the plan the unit runs on, one a unit at most), and who exposed it and when (「An organisation's plans」) |
 | `supply_reservations` | every platform reservation this service opened: its `id` as answered to the agency, `run` (the agency's supply key, text), `step`, `user_id`, `source`, `amount_credits`, `spent_credits`, `expires_at`, `state` (`open`, `captured`, `released`), `sumida_reference`, the `key` it was opened on (unique), and its moments (「Supply」) |
 | `supply_costs` | every settled cost, one row per accepted capture and every personal-supply cost recorded: `run` (the agency's supply key, text), `user_id`, `org_id`, `source`, `credits` (0 for personal supply), `cost_micros`, `settled_at` and its `period` (`YYYY-MM`) (「Supply」) |
+| `removals` | each permanent delete (「The removal record」): `what` (`account` or `unit`), `subject` (the user's or the unit's id), `login` and `name` as they stood, `removed_by`, `removed_at`, and `result`, every unit's removed counts as JSON |
 | `supply_audit` | every supply act an outsider must be able to name: each grant of credits, each change of a policy, the conversion rate or `enforce`, and each change of a plan — who, when, what kind, its subject and its detail (「Supply」) |
 
 ## Tests
@@ -1717,6 +1819,14 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
   the post, and leaving ends every post.
 - **The history tests** read a person's moves, roles, head grants, appointments and posts back on the roster's
   person read, newest first, with who did each.
+- **The removal tests** stand a company with units under it, people in them and rows of every kind the removal
+  counts, and a secret store on a temporary folder: the read counts what the delete then removes, and a second read
+  finds the account or the unit gone; the refusals, the caller's own account, the move's administrator, an
+  account not left, a subtree holding people and one holding an administrator, the last administrator standing
+  beyond a test's reach since the caller is an administrator beside the account; a member, and a login naming the
+  role sumida does not hold an administrator, refused every route; the delete taking the person's and the units' secret folders and
+  leaving every other person's; another account's rows left as they stood; and the removal record kept with the
+  result handed over and read back by the administrator alone.
 - **Every route of `docs/boundary.md`'s 「What the server serves」 answers in a test.**
 - **The secret store's tests stand on a temporary folder** in place of the data root's `env/`: the modes a write
   leaves, the value kept before, the names refused, a base64 value written as its bytes, and that no answer and no

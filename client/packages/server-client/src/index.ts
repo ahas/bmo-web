@@ -108,6 +108,13 @@ export type SignInTries = Schemas["SignInTries"];
 export type SignInTry = Schemas["SignInTry"];
 export type TryOutcome = Schemas["TryOutcome"];
 export type EmailVerified = Schemas["EmailVerified"];
+export type AccountRemoval = Schemas["AccountRemoval"];
+export type UnitRemoval = Schemas["UnitRemoval"];
+export type RemovalPerson = Schemas["RemovalPerson"];
+export type RemovalAsk = Schemas["RemovalAsk"];
+export type Removed = Schemas["Removed"];
+export type RemovalRecord = Schemas["RemovalRecord"];
+export type Removals = Schemas["Removals"];
 
 export type AccountServiceClient = Client<paths>;
 

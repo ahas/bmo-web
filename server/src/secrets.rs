@@ -167,6 +167,28 @@ fn removed_if_there(path: &Path) -> io::Result<()> {
   }
 }
 
+/// The folder a removal may take: a person's or a unit's, never the platform's.
+fn removable(space: Space, store: &Path) -> Result<PathBuf, Refusal> {
+  match space {
+    Space::Administrator => Err(Refusal::forbidden("the platform's space is never removed")),
+    Space::Person(_) | Space::Unit(_) => Ok(space.folder(store)),
+  }
+}
+
+/// Every file under a folder, its folders' files among them; a link is counted as the file it is and never
+/// followed.
+fn files_under(folder: &Path) -> io::Result<i64> {
+  let mut count = 0;
+
+  for entry in fs::read_dir(folder)? {
+    let entry = entry?;
+
+    count += if entry.file_type()?.is_dir() { files_under(&entry.path())? } else { 1 };
+  }
+
+  Ok(count)
+}
+
 /// `value` written whole to a new file of mode 600 and brought to the disk.
 fn written_whole(path: &Path, value: &[u8]) -> io::Result<()> {
   removed_if_there(path)?;
@@ -192,6 +214,45 @@ impl Store {
 
   fn lock(&self) -> MutexGuard<'_, ()> {
     self.writing.lock().unwrap_or_else(PoisonError::into_inner)
+  }
+
+  /// How many files a person's or a unit's space holds, every file under its folder counted, a value kept before
+  /// among them; none where the folder does not stand. The platform's space is no space a removal reaches, and is
+  /// refused (docs/accounts.md, 「Deleting an account for good」).
+  pub fn files_in(&self, space: Space) -> Result<i64, Refusal> {
+    let folder = removable(space, &self.folder)?;
+
+    match fs::symlink_metadata(&folder) {
+      Ok(standing) if standing.is_dir() => {
+        files_under(&folder).map_err(|why| failed("the space's folder cannot be read", &why))
+      }
+      Ok(_) => Err(
+        Refusal::new(
+          StatusCode::CONFLICT,
+          "the space stands in the store's folder as something other than a folder",
+        )
+        .coded("not-a-folder"),
+      ),
+      Err(why) if why.kind() == ErrorKind::NotFound => Ok(0),
+      Err(why) => Err(failed("the space's folder cannot be read", &why)),
+    }
+  }
+
+  /// A person's or a unit's space removed whole, answering how many files it held; a space whose folder does not
+  /// stand holds none and is removed already. The platform's space is refused.
+  pub fn remove_space(&self, space: Space) -> Result<i64, Refusal> {
+    let _writing = self.lock();
+    let held = self.files_in(space)?;
+    let folder = removable(space, &self.folder)?;
+
+    match fs::remove_dir_all(&folder) {
+      Err(why) if why.kind() != ErrorKind::NotFound => {
+        return Err(failed("the space's folder cannot be removed", &why));
+      }
+      _ => {}
+    }
+
+    Ok(held)
   }
 
   /// Every secret a space holds, in the order of their names: its regular files whose names the store takes. A

@@ -195,7 +195,7 @@
       <!-- The person chosen, the whole of its region, which scrolls; or one line asking for one. -->
       <template #person>
         <div class="min-h-0 min-w-0 flex-1 overflow-y-auto [scrollbar-width:thin]" data-roster-person-region>
-          <OrganizationPerson v-if="user !== null" :key="user" :user="user" :listed="listedPerson" @changed="personChanged" />
+          <OrganizationPerson v-if="user !== null" :key="user" :user="user" :listed="listedPerson" @changed="personChanged" @removed="personRemoved" />
           <div v-else class="flex h-full items-center justify-center p-4">
             <p class="text-sm text-muted">{{ $t("roster.label.choose") }}</p>
           </div>
@@ -207,7 +207,7 @@
          the keyboard's reach while it is covered. -->
     <div v-if="covered && user !== null" ref="sheet" tabindex="-1" class="fixed inset-x-0 z-40 flex flex-col bg-default outline-none" :style="SCREEN_FRAME" data-roster-person-sheet>
       <div class="min-h-0 flex-1 overflow-y-auto">
-        <OrganizationPerson :key="user" :user="user" :listed="listedPerson" back @back="closePerson" @changed="personChanged" />
+        <OrganizationPerson :key="user" :user="user" :listed="listedPerson" back @back="closePerson" @changed="personChanged" @removed="personRemoved" />
       </div>
     </div>
 
@@ -492,6 +492,11 @@ function closePerson(): void {
 
   if (typeof back === "string" && router.resolve(back).fullPath === router.resolve({ query: rest }).fullPath) router.back();
   else void router.replace({ query: rest });
+}
+
+// A person deleted for good leaves the list, and stays open until their dialog closes over them.
+function personRemoved(removed: string): void {
+  if (people.value !== null) people.value = people.value.filter((one) => one.user !== removed);
 }
 
 // A person read again after an act stands as they now are in their row.

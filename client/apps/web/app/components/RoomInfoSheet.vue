@@ -38,6 +38,15 @@
         data-room-info-set-picture
         @click="pictureOpen = true"
       />
+      <!-- The platform administrator's permanent delete of the room, in every room (docs/web.md, the room screen's room information). -->
+      <IconButton
+        v-if="props.administrator"
+        icon="i-material-symbols-delete-forever-outline"
+        color="error"
+        :label="$t('removal.action.delete')"
+        data-room-info-delete
+        @click="emit('remove')"
+      />
     </template>
 
     <template #close="{ ui }">
@@ -145,7 +154,7 @@ const props = defineProps<Props>();
 const open = defineModel<boolean>("open", { required: true });
 // The tab standing, which the room's screen keeps while it stands, so the view opens on the tab it last showed.
 const tab = defineModel<RoomInfoTab>("tab", { required: true });
-const emit = defineEmits<{ enlarge: []; left: []; show: [messageId: ExactMessageId] }>();
+const emit = defineEmits<{ enlarge: []; left: []; show: [messageId: ExactMessageId]; remove: [] }>();
 
 const { t } = useI18n();
 const narrow = useNarrow();

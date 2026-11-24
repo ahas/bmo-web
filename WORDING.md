@@ -74,6 +74,10 @@
 - mention → 멘션: 멘션, 멘션 후보, 멘션할 이름. Never 호출, 부르기, 지칭.
 - a person who leaves the organisation, their account marked so → 탈퇴: 탈퇴, 탈퇴 처리, 탈퇴 처리할까요, (탈퇴) beside
   a name. Never 떠남, 퇴사, 삭제 — the account is kept, only its sign-in ends.
+- the platform administrator's removal of an account, a unit or a room with everything kept of it in every unit → 영구
+  삭제: 영구 삭제, 영구 삭제할까요, 영구 삭제했습니다, 영구 삭제하지 못했습니다; a removal stopped part-way and run
+  again → 다시 시도; a kind of record no word stands for → 기타 기록. Never 완전 삭제, 영구 제거, 파기 — and never 탈퇴,
+  which keeps the account.
 - an agent's role, which gives its function bundles → 역할: 역할, 역할 추가, 역할 프롬프트, 종류 기본. A co-work role a
   work key names (`role:`) is 역할 too; where it stands on a screen beside the agent role it is told apart as 작업 키
   역할, and the agent role keeps the bare word. A function bundle → 기능 묶음; how many of a role's runs go at once → 동시
@@ -775,6 +779,7 @@
 - 대화 기록 (the record road) → Room record / 会話記録 / 对话记录.
 - 항목 → item / 項目 / 条目.
 - 조직장 → head / 組織長 / 负责人.
+- 영구 삭제 → delete permanently / 完全に削除 / 永久删除.
 - 위임 사슬 → delegation chain / 委任チェーン / 委托链.
 - 아티팩트 → artifact / アーティファクト / 制品.
 - 인물 (the person an org memory is about) → person / 人物 / 人员.

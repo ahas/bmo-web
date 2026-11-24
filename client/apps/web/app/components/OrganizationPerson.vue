@@ -86,6 +86,7 @@
       :roles="personRoles"
       @saved="actDone"
     />
+    <PermanentDeleteDialog v-model:open="removalOpen" kind="account" :subject="props.user" :name="person?.name ?? ''" @removed="emit('removed', String(props.user))" />
     <OrganizationMachineDialog v-model:open="machineOpen" :user="props.user" :name="person?.name ?? ''" @changed="actDone" />
     <ProfileDialog v-model:open="profileOpen" :user="props.user" :profile="profile" :description="person?.name" @saved="actDone" />
     <SettingsDialog v-model:open="resetOpen" :title="$t('security.action.reset_password')">
@@ -138,7 +139,8 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), { back: false, listed: null });
 // `back` asks for the list again; `changed` hands on the person as read again after an act, for their row.
-const emit = defineEmits<{ back: []; changed: [person: RosterDetail] }>();
+// `removed` says the person was deleted for good, so the list drops them and closes them.
+const emit = defineEmits<{ back: []; changed: [person: RosterDetail]; removed: [user: string] }>();
 
 const { t } = useI18n();
 const route = useRoute();
@@ -208,12 +210,20 @@ const menu = computed<DropdownMenuItem[]>(() => {
   const leaving = acts.value.filter((act) => act === "leave");
   const account = accountActs.value.map((act) => ({ label: t(SECURITY_ITEMS[act].label), icon: SECURITY_ITEMS[act].icon, color: SECURITY_ITEMS[act].color, onSelect: () => void takeSecurity(act) }));
 
-  return [...items(before), ...account, ...items(leaving)];
+  // The platform administrator's permanent delete, never of the reader themselves (docs/web.md, the organisation screen's permanent delete).
+  const removing: DropdownMenuItem[] =
+    administrator.value && String(signed.value ?? "") !== String(props.user)
+      ? [{ label: t("removal.action.delete"), icon: "i-material-symbols-delete-forever-outline", color: "error", onSelect: () => void (removalOpen.value = true) }]
+      : [];
+
+  return [...items(before), ...account, ...items(leaving), ...removing];
 });
 
 // The link a reset handed back, shown once for the reader to give the person, or the address it was mailed to.
 const resetMade = ref<{ mailed: boolean; address?: string | null; link?: string | null } | null>(null);
 const resetOpen = ref(false);
+// The permanent delete's dialog.
+const removalOpen = ref(false);
 
 async function takeSecurity(act: SecurityAct): Promise<void> {
   actFailure.value = "";

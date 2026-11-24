@@ -14,7 +14,7 @@
       </template>
       <template #state>
         <span class="flex">
-          <UBadge :color="node?.attached ? 'success' : 'warning'" variant="subtle" size="sm" :label="node?.attached ? $t('machines.status.attached') : $t('machines.status.waiting')" />
+          <UBadge :color="state.color" variant="subtle" size="sm" :label="$t(state.label)" :data-machine-state="state.key" />
         </span>
       </template>
     </PairRows>
@@ -53,7 +53,21 @@ import type { MachineKind, UserNode } from "@web/server-client";
 
 const { t } = useI18n();
 
-const node = ref<UserNode | null>(null);
+// The machine as the console's server answers it: whether agency's record names it as the account's node rides beside
+// the binding while the hub holds it.
+const node = ref<(UserNode & { nodeSettled?: boolean }) | null>(null);
+// How often the section reads the machine again while its node has not landed in agency.
+const SETTLING_READ_MS = 5_000;
+let settlingTimer: ReturnType<typeof setTimeout> | undefined;
+
+// Waiting while the hub holds it not, being checked while the hub holds it and agency's record does not name it yet,
+// and connected once it does or where agency could not be read (docs/web.md, 「Settings」, the machine section).
+const state = computed(() => {
+  if (node.value?.attached !== true) return { key: "waiting", color: "warning" as const, label: "machines.status.waiting" };
+  if (node.value.nodeSettled === false) return { key: "settling", color: "neutral" as const, label: "machines.status.settling" };
+
+  return { key: "attached", color: "success" as const, label: "machines.status.attached" };
+});
 const reading = ref(false);
 const failure = ref("");
 const asking = ref(false);
@@ -102,8 +116,10 @@ const rows = computed<PairRow[] | null>(() => {
 async function read(): Promise<void> {
   reading.value = true;
   try {
-    node.value = await $fetch<UserNode>("/api/me/machine");
+    node.value = await $fetch<UserNode & { nodeSettled?: boolean }>("/api/me/machine");
     failure.value = "";
+    clearTimeout(settlingTimer);
+    if (state.value.key === "settling") settlingTimer = setTimeout(() => void read(), SETTLING_READ_MS);
   } catch (error) {
     failure.value = failureText(error, t("machines.error.failed"));
   } finally {
@@ -140,4 +156,5 @@ async function unbind(): Promise<void> {
 }
 
 onMounted(() => void read());
+onBeforeUnmount(() => clearTimeout(settlingTimer));
 </script>

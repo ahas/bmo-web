@@ -7695,8 +7695,11 @@ stands in that tab's view of 나 (「Organisation」, 「에이전트」, 「공
   「Invitations and a person's machine」). An account is connected to one machine at most, so it shows that one or
   none.
 - **The machine stands as a name and value list** (「Name and value lists」): 기기 이름, the machine's name in the
-  monospace face, with 공유 기기 muted under it where the administrator declared it shared; 상태, 연결됨 or 연결 대기
-  중 as a chip, by whether the hub holds it now; 연결 방식, 데스크톱 앱 or 설치형 프로그램 while the hub holds it and
+  monospace face, with 공유 기기 muted under it where the administrator declared it shared; 상태 as a chip, by whether
+  the hub holds it now and whether agency's record names it as the account's node (`docs/accounts.md`, 「Invitations
+  and a person's machine」): 연결 대기 중 while the hub holds it not, 연결 확인 중 while the hub holds it and agency's
+  record does not name it yet, and 연결됨 once it does or where agency cannot be read; while it says 연결 확인 중 the
+  section reads the machine again every few seconds until it says something else; 연결 방식, 데스크톱 앱 or 설치형 프로그램 while the hub holds it and
   `—` while it does not; and 연결한 날짜, the moment the account was connected to it, 기록 없음 where none was
   recorded. While it is read, the names stand and the values wait as bars.
 - **No machine says 연결된 기기 없음,** with one line that opening the desktop app connects one and 데스크톱 앱 leading to

@@ -33,7 +33,14 @@ afterAll(() => {
   delete process.env.WEB_SERVER_ADDRESS;
 });
 
-const agency = standIn("AGENCY", (call) => answer({ ownerAccount: call.path.split("/").pop(), node: call.body?.node, setAt: 1 }));
+// Agency's records of the accounts' nodes, as its list answers them.
+let records: { ownerAccount: string; node: string; shared: boolean; setAt: number }[] = [];
+
+const agency = standIn("AGENCY", (call) => {
+  if (call.method === "GET" && call.path === "/person-nodes") return answer({ items: records, more: false });
+
+  return answer({ ownerAccount: call.path.split("/").pop(), node: call.body?.node, setAt: 1 });
+});
 
 globalsRestoredAfter(["browserAddress", "ownerKeyOf", "signedInUser", "setResponseStatus", "setResponseHeader", "useRuntimeConfig", "getRequestURL"]);
 
@@ -165,10 +172,19 @@ describe("the desktop app's pairing", () => {
   test("reads the reader's own machine as the service answers it, and records no proof", async () => {
     agency.asked.length = 0;
     reader = 4;
+    records = [{ ownerAccount: "4", node: "u4", shared: false, setAt: 1 }];
 
-    expect((await asked(ownMachine, {})).answer).toMatchObject({ agent: "u4", attached: true, kind: "desktop", boundAt: 1_700_000_000_000 });
+    expect((await asked(ownMachine, {})).answer).toMatchObject({ agent: "u4", attached: true, kind: "desktop", boundAt: 1_700_000_000_000, nodeSettled: true });
     expect(service.users.find((user) => user.id === 4)?.node?.provenAt).toBeUndefined();
-    expect(agency.asked).toEqual([]);
+    // Agency's record is read, and nothing is written where it names the machine.
+    expect(agency.asked.map((call) => [call.method, call.path])).toEqual([["GET", "/person-nodes"]]);
+
+    // Where agency's record does not name it yet, the read says so and asks for it to be set.
+    agency.asked.length = 0;
+    records = [];
+    expect((await asked(ownMachine, {})).answer).toMatchObject({ agent: "u4", nodeSettled: false });
+    for (let waited = 0; !agency.asked.some((call) => call.method === "PUT") && waited < 1_000; waited += 5) await new Promise((resolve) => setTimeout(resolve, 5));
+    expect(agency.asked.filter((call) => call.method === "PUT").map((call) => [call.path, call.body])).toEqual([["/person-nodes/4", { node: "u4" }]]);
 
     // A reader connected to no machine reads none.
     reader = 5;

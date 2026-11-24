@@ -1,6 +1,6 @@
 import { sessionUser, signIn, userNode, userOf } from "../../utils/account-service";
 import { followPersonName } from "../../utils/account-standing";
-import { settleMachine } from "../../utils/person-node";
+import { settleMachine, standPersonNode } from "../../utils/person-node";
 
 import { wording } from "#shared/wording";
 
@@ -60,6 +60,9 @@ export default defineEventHandler(async (event): Promise<{ user: AccountUser }> 
       // after it attaches; nobody reads a refusal here, so it goes to the log.
       if (typeof node.agent === "string" && (node.provenAt ?? null) === null) {
         await settleMachine(user.id).catch((error: unknown) => console.error(`account ${user.id}: its machine could not be settled: ${String(error)}`));
+      } else if (typeof node.agent === "string") {
+        // Every sign-in sets the node again, so one the node service listed late, past its round of asks, lands now.
+        void standPersonNode(user.id).catch((error: unknown) => console.error(`account ${user.id}: its node could not be set: ${String(error)}`));
       }
     }
 

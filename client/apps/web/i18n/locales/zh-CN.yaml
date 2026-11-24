@@ -2737,6 +2737,7 @@ machines:
   status:
     loading: 正在加载设备…
     attached: 已连接
+    settling: "正在确认连接"
     waiting: 等待连接
   error:
     no_account: 不是账号服务用户的登录没有已连接的设备。

@@ -25,6 +25,101 @@ export async function setPersonNode(user: number | string, machine: string, shar
   });
 }
 
+/**
+ * How a node set agency refused because the node service has not listed the machine yet is asked again: every
+ * `everyMs` for `forMs` (docs/accounts.md, 「Invitations and a person's machine」). A test shortens them.
+ */
+export const nodeRetry = { everyMs: 5_000, forMs: 120_000 };
+
+// The accounts whose node set is being asked again now, so one round runs for an account at a time.
+const retrying = new Set<string>();
+
+/** Whether the account's node set is being asked again now. */
+export function nodeRetrying(user: number | string): boolean {
+  return retrying.has(String(user));
+}
+
+/** The code a refusal from agency carries, or none. */
+function codeOf(error: unknown): string | null {
+  return (error as { data?: { code?: string | null } } | null)?.data?.code ?? null;
+}
+
+// One ask: the machine the account is bound to set as its node where the hub holds it. `none` where there is nothing
+// to set, `not-listed` where the node service has not listed the machine yet; any other refusal is thrown with
+// agency's code.
+async function setOnce(user: string): Promise<"set" | "none" | "not-listed"> {
+  const machine = await userNode(user);
+
+  if (typeof machine.agent !== "string" || !machine.attached) return "none";
+
+  try {
+    await setPersonNode(user, machine.agent, machine.shared);
+
+    return "set";
+  } catch (error) {
+    if (codeOf(error) === "not-a-hub-node") return "not-listed";
+
+    throw new Error(`agency did not set ${machine.agent} (${codeOf(error) ?? "no code"})`, { cause: error });
+  }
+}
+
+// The asks after the first, each reading the binding afresh, until one lands or the span ends.
+async function askAgain(user: string): Promise<void> {
+  const until = Date.now() + nodeRetry.forMs;
+
+  while (Date.now() < until) {
+    await new Promise((resolve) => setTimeout(resolve, nodeRetry.everyMs));
+
+    try {
+      const outcome = await setOnce(user);
+
+      if (outcome === "set") console.info(`account ${user}: its node was set once the node service listed it`);
+      if (outcome !== "not-listed") return;
+    } catch (error) {
+      console.error(`account ${user}: its node could not be set: ${String(error)}`);
+
+      return;
+    }
+  }
+
+  console.error(`account ${user}: the node service did not list its machine within ${nodeRetry.forMs / 1000} s; it is asked again at the account's next sign-in`);
+}
+
+/**
+ * The machine the account is bound to set as the node its runs stand on, where the hub holds it. Where agency answers
+ * that the node service has not listed the machine yet, the set is asked again on its own every few seconds for a
+ * while, one round for an account at a time, and this resolves after the first ask; any other refusal is thrown.
+ */
+export async function standPersonNode(user: number | string): Promise<void> {
+  const key = String(user);
+
+  if (retrying.has(key)) return;
+  if ((await setOnce(key)) !== "not-listed") return;
+
+  console.warn(`account ${key}: the node service has not listed its machine yet; its node is asked again`);
+  retrying.add(key);
+  void askAgain(key).finally(() => retrying.delete(key));
+}
+
+/**
+ * Whether agency's record names `machine` as the account's node: false while a set is being asked again or the record
+ * names another or none, null where agency cannot be read or its list does not reach the account.
+ */
+export async function nodeSettled(user: number | string, machine: string): Promise<boolean | null> {
+  if (nodeRetrying(user)) return false;
+
+  try {
+    const list = await agencyCall(agency().GET("/person-nodes"));
+    const record = list.items.find((one) => one.ownerAccount === String(user));
+
+    if (record !== undefined) return record.node === machine;
+
+    return list.more ? null : false;
+  } catch {
+    return null;
+  }
+}
+
 /** The account's node taken away; an account agency holds no record of has nothing to take. */
 export async function dropPersonNode(user: number | string): Promise<void> {
   try {
@@ -41,7 +136,7 @@ export async function dropPersonNode(user: number | string): Promise<void> {
 export async function settleMachine(user: number | string): Promise<UserNode> {
   const machine = await proveNode(String(user));
 
-  if (typeof machine.agent === "string" && machine.attached) await setPersonNode(user, machine.agent, machine.shared);
+  if (typeof machine.agent === "string" && machine.attached) await standPersonNode(user);
 
   return machine;
 }

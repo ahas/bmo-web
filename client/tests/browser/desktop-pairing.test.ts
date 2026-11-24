@@ -243,6 +243,34 @@ describe.skipIf(!origin || !touchReady())("the desktop pairing page", () => {
       }
     }, 120_000);
 
+    test(`the settings say the machine is being checked until agency takes it as the node, at ${width}px`, async () => {
+      const context = await contextFor(width, height, "light", true);
+
+      try {
+        const page = await context.newPage();
+        const machine = { agent: "u9", shared: false, attached: true, kind: "installed", boundAt: Date.UTC(2026, 10, 18, 2, 47), left: false };
+        let reads = 0;
+
+        // The node service lists the machine late: agency's record names it from the third read on.
+        await page.route(/\/api\/me\/machine$/, (route) => {
+          reads += 1;
+
+          return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ...machine, nodeSettled: reads >= 3 }) });
+        });
+        await page.goto(`${origin}/rooms?settings=machine`, { waitUntil: "load" });
+        await standing(page);
+        const state = page.locator("[data-machines] [data-pair=\"state\"]");
+
+        await state.getByText(wording("machines.status.settling"), { exact: true }).waitFor({ timeout: 30_000 });
+        expect(await overflow(page)).toBeLessThanOrEqual(0);
+        // Read again on its own while it is being checked, it says connected once agency's record names it.
+        await state.getByText(wording("machines.status.attached"), { exact: true }).waitFor({ timeout: 20_000 });
+        expect(reads).toBe(3);
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+
     test(`the reader takes their own machine away, asked first with the machine and the app, at ${width}px`, async () => {
       const context = await contextFor(width, height, "light", true);
 

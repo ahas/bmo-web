@@ -1,10 +1,10 @@
-import { shownName, userNode, userOf } from "./account-service";
+import { shownName, userOf } from "./account-service";
 import { agency, agencyCall } from "./agency";
 import { recordNameOf, standRecordIdentity } from "./console-rooms";
 import { readSupervisors } from "./axes";
 import { ownTitles, standOwnBmo } from "./bmo-profile";
 import { defaultAnswerer } from "./owner";
-import { setPersonNode } from "./person-node";
+import { standPersonNode } from "./person-node";
 import { receiver, receiverCall } from "./receiver";
 
 import type { components as ReceiverComponents } from "@bmo/receiver-client/schema";
@@ -40,20 +40,10 @@ async function standNamedRecordIdentity(user: number): Promise<void> {
 }
 
 // The machine the account is bound to, set in agency as the node its runs stand on (docs/accounts.md, 「Invitations and
-// a person's machine」); only a machine the hub holds now is set. Nobody reads this refusal on a screen, so agency's
-// own code goes to the log.
+// a person's machine」); only a machine the hub holds now is set, and one the node service has not listed yet is asked
+// again on its own. Nobody reads a refusal on a screen, so agency's own code goes to the log.
 async function standNode(user: number): Promise<void> {
-  const machine = await userNode(user);
-
-  if (typeof machine.agent !== "string" || !machine.attached) return;
-
-  try {
-    await setPersonNode(user, machine.agent, machine.shared);
-  } catch (error) {
-    const code = (error as { data?: { code?: string | null } }).data?.code ?? "no code";
-
-    throw new Error(`agency did not set ${machine.agent} (${code})`, { cause: error });
-  }
+  await standPersonNode(user);
 }
 
 async function standSupervisor(user: number): Promise<void> {

@@ -691,8 +691,20 @@ section states what each does.
   `PUT /person-nodes/{ownerAccount}` with the user's id and `node` the machine's name (agency's
   `docs/person-nodes.md`, 「Which node is a person's」), so the person's BMO and agents run on their own PC. Every
   proof that answers active sets it again, so opening the invitation's link once more sets a record that did not
-  land. A refusal — 422 `not-a-hub-node`, where the node service keeps no hub node of that name free of every
-  service, or agency out of reach — is written to the console's log, and the account stands active all the same.
+  land. The account stands active whatever agency answers.
+- **A node the node service has not listed yet is asked again until it lands.** The node service lists a machine
+  some moments after it attaches, so agency may answer the first set 422 `not-a-hub-node` for a machine the hub
+  already holds. The console's server then asks again every 5 seconds for 2 minutes, each time reading the binding
+  afresh and stopping where the account is bound to another machine or the hub no longer holds it; one ask runs for
+  an account at a time. Past the 2 minutes it is asked again at the account's next sign-in and every time the account
+  is made ready again, each a fresh round of the same. Any other refusal, or agency out of reach, is written to the
+  console's log at once and asked again only at those moments. The same holds for the node set as the desktop
+  pairing page and a sign-in prove the machine.
+- **Whether the node landed is read from agency's own record** (`GET /person-nodes`): the reader's machine read
+  answers it beside the binding, as `nodeSettled` — true where agency's record names the machine, false while it
+  names another or none, and absent where agency cannot be read — so the settings' machine section says when the
+  account's runs cannot stand there yet; a read that finds it false with no ask running starts a round of asks, as a
+  sign-in does.
   The services that drive a program on a person's own PC reach the machine with nothing asked from here: the
   node service lists it as a personal node as it attaches, with the callers its configuration lets onto every
   personal node (bmo-node's `docs/nodes.md`, 「A node's callers」), and agency's record makes it the person's.

@@ -2713,6 +2713,7 @@ machines:
   status:
     loading: Loading devices…
     attached: Connected
+    settling: "Checking connection"
     waiting: Waiting to connect
   error:
     no_account: "Sign-ins that aren't account service users have no connected devices."

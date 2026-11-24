@@ -5,13 +5,15 @@ import { wording } from "../../apps/web/shared/wording";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, Locator, Page } from "playwright-core";
+import type { Attachments, AttachmentHolder } from "../../apps/web/shared/attachments";
 
 // The reader's own agents (docs/web.md, 「Organisation」, the agents tab with the reader's own node chosen), worked by hand at a desk's width and a
 // phone's: the agents the reader's organisation supplies stand with where they came from and their road; an agent
 // added to a role stands as the reader's own; a road a supply does not carry stands disabled in the road's form, and
 // one it carries is saved and makes the seat the reader's own change, which its way back puts back; a supplied agent is
 // switched off and on; a role the organisation turned off and the instructions it withholds say so, the organisation's
-// instructions read only. Every press lands on the control it says, nothing standing over it and nothing running off
+// instructions read only; an agent's skills and MCP button opens the skills and MCP servers it is given, the group its line takes
+// none of disabled and saying so, and saves what is checked, the agency's refusal said in the form. Every press lands on the control it says, nothing standing over it and nothing running off
 // the side. It drives the console tests/support/browser-console.ts stands up, whose agency stand-in keeps the
 // reader's agents; the suite stands up no console, so there it skips.
 
@@ -163,6 +165,86 @@ describe.skipIf(!origin || !touchReady())("the own-agents section", () => {
 
         await expect(own.locator("[data-own-instructions-decided]").textContent()).resolves.toContain(wording("org_agents.label.decided_unit"));
         await expect(own.locator("[data-own-instruction='all'] [data-own-instruction-change]").isDisabled()).resolves.toBe(true);
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+
+    test(`gives an agent the reader's skills and keeps a group its line takes none of off, ${width}px wide`, async () => {
+      const context = await browser!.newContext({ viewport: { width, height }, isMobile: phone, hasTouch: phone, locale: "ko-KR", serviceWorkers: "block", reducedMotion: "reduce" });
+      const at = cookie.indexOf("=");
+
+      await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
+
+      // The worker seat the agency's stand-in supplies, by its name, as the section reads it.
+      const own = (await (await context.request.get(`${origin}/api/account/own-agents`)).json()) as { roles: { agents: { name: string }[] }[] };
+      const worker = own.roles.flatMap((role) => role.agents).find((agent) => agent.name.startsWith("worker-u"))!.name;
+      const holder: AttachmentHolder = { kind: "agent", name: worker, label: null, role: "worker", line: "worker", takes: { skills: true, mcp: false }, skills: ["notes"], mcp: [] };
+      const listed: Attachments = {
+        holders: [holder],
+        skills: [
+          { name: "notes", title: "Notes", titles: {}, origin: "own" },
+          { name: "review-steps", title: null, titles: {}, origin: "installed" }
+        ],
+        mcp: [{ name: "tickets", title: "Tickets", titles: {}, origin: "installed" }]
+      };
+      const written: unknown[] = [];
+      let refuse = true;
+
+      await context.route(/\/api\/account\/attachments(?:\/|$|\?)/, async (route) => {
+        const request = route.request();
+
+        if (request.method() === "GET") return await route.fulfill({ json: listed });
+
+        written.push({ path: new URL(request.url()).pathname.replace(/^.*\/api\/account\/attachments/, ""), body: request.postDataJSON() });
+
+        // The first save is refused as the console answers the agency's refusal; the second goes through.
+        if (refuse) {
+          refuse = false;
+
+          return await route.fulfill({ status: 409, json: { statusCode: 409, message: wording("attachments.error.takes_no_mcp") } });
+        }
+
+        await route.fulfill({ json: { ...holder, ...(request.postDataJSON() as object) } });
+      });
+
+      try {
+        const page = await context.newPage();
+
+        await page.goto(`${origin}/organization?company=me&tab=agents`, { waitUntil: "load" });
+
+        const row = page.locator(`[data-own-agents-list] [data-own-agent='${worker}']`);
+
+        await row.locator("[data-own-attachments]").waitFor({ timeout: 30_000 });
+        await press(page, row.locator("[data-own-attachments]"), phone);
+
+        const form = page.locator("[data-attachments-form]");
+        const skills = form.locator("[data-attachments-group='skills']");
+        const mcp = form.locator("[data-attachments-group='mcp']");
+
+        await form.waitFor({ timeout: 10_000 });
+
+        // The MCP group stands disabled, saying the agent's line takes none; the skills group holds what is given.
+        await expect(mcp.locator("[data-attachments-takes-none]").textContent()).resolves.toBe(wording("attachments.label.takes_no_mcp"));
+        await expect(mcp.getByRole("checkbox", { name: "Tickets" }).isDisabled()).resolves.toBe(true);
+        await expect(skills.getByRole("checkbox", { name: "Notes" }).getAttribute("aria-checked")).resolves.toBe("true");
+        await expect(skills.getByRole("checkbox", { name: "review-steps" }).getAttribute("aria-checked")).resolves.toBe("false");
+        await expect(form.locator("[data-attachments-takes-none]").count()).resolves.toBe(1);
+
+        // Nothing changed, nothing to save; a skill checked opens the save.
+        await expect(page.locator("[data-attachments-save]").isDisabled()).resolves.toBe(true);
+        await press(page, skills.getByRole("checkbox", { name: "review-steps" }), phone);
+        await press(page, page.locator("[data-attachments-save]"), phone);
+
+        // The refusal stands in the form with the choice kept; the save again goes through and closes it.
+        await expect(form.locator("[data-attachments-refusal]").textContent()).resolves.toBe(wording("attachments.error.takes_no_mcp"));
+        await expect(skills.getByRole("checkbox", { name: "review-steps" }).getAttribute("aria-checked")).resolves.toBe("true");
+        await press(page, page.locator("[data-attachments-save]"), phone);
+        await form.waitFor({ state: "detached", timeout: 10_000 });
+        expect(written).toEqual([
+          { path: `/agent/${worker}`, body: { skills: ["notes", "review-steps"], mcp: [] } },
+          { path: `/agent/${worker}`, body: { skills: ["notes", "review-steps"], mcp: [] } }
+        ]);
       } finally {
         await context.close();
       }

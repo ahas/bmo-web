@@ -3,7 +3,8 @@
        supplies, each role's seats first with where they came from, and the reader's own changes over them — an agent
        added, a road chosen, a supplied agent switched off — each put back to what was supplied by its way back; then the
        organisation's instructions, read only, and the reader's own. A change a unit above withholds stands disabled
-       with who decided it. -->
+       with who decided it. Each supervisor and each agent opens what it is given of the reader's skills and MCP
+       servers through its skills and MCP button. -->
   <div class="flex flex-col gap-6" data-own-agents>
     <ContentSkeleton v-if="view === null && failure === ''" :rows="3" list-class="flex flex-col divide-y divide-default" :label="$t('own_agents.status.loading')">
       <div class="flex items-center gap-4 py-3">
@@ -41,7 +42,17 @@
         <!-- The reader's own supervisors, their BMO first, each with its session's two acts (docs/web.md, 「A supervisor's
              session handed over or reset」). -->
         <SettingsRow v-for="name in ownSupervisors" :key="`supervisor:${name}`" :label="agentLabel($t, name)" :data-own-supervisor="name">
-          <div class="ms-auto flex shrink-0 items-center justify-end">
+          <div class="ms-auto flex shrink-0 items-center justify-end gap-2">
+            <UButton
+              v-if="holderOf('supervisor', name) !== null"
+              color="neutral"
+              variant="outline"
+              :label="$t('attachments.action.open')"
+              :aria-label="$t('attachments.aria.open', { name: agentLabel($t, name) })"
+              :disabled="busy !== ''"
+              data-own-attachments
+              @click="openAttachments('supervisor', name, agentLabel($t, name))"
+            />
             <UDropdownMenu :items="sessionItemsOf(name)" :content="{ align: 'end' }">
               <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-more-vert" :aria-label="$t('agent_session.aria.menu', { name: agentLabel($t, name) })" data-own-supervisor-menu />
             </UDropdownMenu>
@@ -54,6 +65,16 @@
             <span class="text-sm text-muted" data-own-agent-origin>{{ originLine(row.agent) }}</span>
           </template>
           <div class="ms-auto flex shrink-0 flex-wrap items-center justify-end gap-2">
+            <UButton
+              v-if="row.agent.held && holderOf('agent', row.agent.name) !== null"
+              color="neutral"
+              variant="outline"
+              :label="$t('attachments.action.open')"
+              :aria-label="$t('attachments.aria.open', { name: row.agent.name })"
+              :disabled="busy !== ''"
+              data-own-attachments
+              @click="openAttachments('agent', row.agent.name, `${row.role.label} · ${row.agent.name}`)"
+            />
             <IconButton
               v-if="row.agent.supplied !== null && row.agent.changed"
               size="sm"
@@ -132,6 +153,15 @@
 
       <AgentSessionDialog v-model:open="sessionOpen" :ask="sessionAsk" />
 
+      <AttachmentsDialog
+        v-if="attachingHolder !== null && attachments !== null"
+        v-model:open="attaching"
+        :holder="attachingHolder"
+        :label="attachingLabel"
+        :items="{ skills: attachments.skills, mcp: attachments.mcp }"
+        @saved="saveHolder"
+      />
+
       <RoadDialog
         v-if="roadFor !== null"
         v-model:open="roadOpen"
@@ -170,6 +200,7 @@ import { useConfirm } from "~/domain/confirm";
 import { roadLine } from "~/domain/own-agents";
 
 import type { DropdownMenuItem } from "@nuxt/ui";
+import type { AttachmentHolder, Attachments } from "#shared/attachments";
 import type { AgentSessionAsk } from "~/domain/agent-session";
 import type { InstructedAgent, OwnAgentView, OwnAgentsView, OwnInstructionsView, OwnRoad, OwnRoleView } from "#shared/own-agents";
 
@@ -293,6 +324,39 @@ async function remove(agent: OwnAgentView): Promise<void> {
   await act(agent.name, () => $fetch<{ ok: true }>(`/api/account/own-agents/${encodeURIComponent(agent.name)}`, { method: "DELETE" }));
 }
 
+// --- What each agent is given of the reader's skills and MCP servers ---
+
+// Read as the section opens; where it cannot be read, no agent offers its skills and MCP button.
+const attachments = ref<Attachments | null>(null);
+const attaching = ref(false);
+const attachingAt = ref<{ kind: AttachmentHolder["kind"]; name: string } | null>(null);
+const attachingLabel = ref("");
+
+async function readAttachments(): Promise<void> {
+  attachments.value = await $fetch<Attachments>("/api/account/attachments").catch(() => null);
+}
+
+function holderOf(kind: AttachmentHolder["kind"], name: string): AttachmentHolder | null {
+  return attachments.value?.holders.find((holder) => holder.kind === kind && holder.name === name) ?? null;
+}
+
+const attachingHolder = computed(() => (attachingAt.value === null ? null : holderOf(attachingAt.value.kind, attachingAt.value.name)));
+
+function openAttachments(kind: AttachmentHolder["kind"], name: string, label: string): void {
+  attachingAt.value = { kind, name };
+  attachingLabel.value = label;
+  attaching.value = true;
+}
+
+// The agent as the agency answered it, in its place.
+function saveHolder(saved: AttachmentHolder): void {
+  const held = attachments.value;
+
+  if (held === null) return;
+
+  attachments.value = { ...held, holders: held.holders.map((holder) => (holder.kind === saved.kind && holder.name === saved.name ? saved : holder)) };
+}
+
 // --- One agent's road ---
 
 const roadFor = ref<{ role: OwnRoleView; agent: OwnAgentView } | null>(null);
@@ -369,5 +433,5 @@ async function saveInstruction(): Promise<void> {
   }
 }
 
-onMounted(() => void Promise.all([read(), readInstructions()]));
+onMounted(() => void Promise.all([read(), readInstructions(), readAttachments()]));
 </script>

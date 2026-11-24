@@ -41,6 +41,7 @@ export function personalAppParam(name: string | undefined): string {
 
 interface AgencyApp {
   name?: unknown;
+  kind?: unknown;
   version?: unknown;
   putAt?: unknown;
   entries?: unknown;
@@ -63,6 +64,7 @@ function entryOf(value: unknown): PersonalAppEntry | null {
 function appOf(value: AgencyApp): PersonalApp {
   return {
     name: String(value.name ?? ""),
+    kind: value.kind === "mcp" ? "mcp" : "app",
     version: String(value.version ?? ""),
     putAt: typeof value.putAt === "number" ? value.putAt : 0,
     entries: (Array.isArray(value.entries) ? value.entries : []).map(entryOf).filter((entry): entry is PersonalAppEntry => entry !== null),

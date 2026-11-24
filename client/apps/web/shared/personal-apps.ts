@@ -14,6 +14,9 @@ export interface PersonalAppEntry {
 /** A personal app as the reader's own section shows it. */
 export interface PersonalApp {
   name: string;
+  // A tool of the reader's own, or an MCP server put as one (the agency's `docs/person-nodes.md`); an answer naming
+  // none is an app.
+  kind: "app" | "mcp";
   // The version in place.
   version: string;
   // When it was put, in epoch milliseconds.

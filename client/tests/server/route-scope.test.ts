@@ -162,6 +162,14 @@ describe("a console route as another user meets it", () => {
       { file: "account/app-catalogue/[id]/source.get", method: "GET", path: "/api/account/app-catalogue/17-weekly/source" },
       { file: "account/app-catalogue/[id]/install.post", method: "POST", path: "/api/account/app-catalogue/17-weekly/install" },
       { file: "account/app-catalogue/[id]/install.delete", method: "DELETE", path: "/api/account/app-catalogue/17-weekly/install" },
+      { file: "account/app-catalogue/[id]/connection.get", method: "GET", path: "/api/account/app-catalogue/17-tickets/connection" },
+      { file: "account/app-catalogue/[id]/translate.post", method: "POST", path: "/api/account/app-catalogue/17-weekly/translate" },
+      { file: "account/personal-skills.get", method: "GET", path: "/api/account/personal-skills" },
+      { file: "account/personal-skills/[name].get", method: "GET", path: "/api/account/personal-skills/notes" },
+      { file: "account/personal-skills/[name].put", method: "PUT", path: "/api/account/personal-skills/notes" },
+      { file: "account/personal-skills/[name].delete", method: "DELETE", path: "/api/account/personal-skills/notes" },
+      { file: "account/attachments.get", method: "GET", path: "/api/account/attachments" },
+      { file: "account/attachments/[kind]/[name].put", method: "PUT", path: "/api/account/attachments/agent/agent-a" },
       { file: "organization/units/[unit]/apps/[app]/recall.post", method: "POST", path: "/api/organization/units/1/apps/app-a/recall" }
     ]) {
       expect({ route: route.file, status: await answer(route) }).toEqual({ route: route.file, status: 200 });

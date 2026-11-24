@@ -1,8 +1,9 @@
 <template>
-  <!-- The personal apps section (docs/web.md, 「Settings」, the personal apps section): every tool of the reader's own
-       their BMO made on their PC, each a row of its name, what it does, its version and when it was put, and what it
-       may reach, with its share into the company's catalogue, the way back to the version before and its deletion,
-       the last two asked first. -->
+  <!-- The personal apps section (docs/web.md, 「Settings」, the personal apps section): every tool and MCP server of the
+       reader's own their BMO made on their PC, each a row of its name, its kind, what it does, its version and when it
+       was put, and what it may reach, with its share into the company's catalogue, the way back to the version before
+       and its deletion, the last two asked first. Its name and description in another language than the reader's are
+       read through the translator on view, the name following the description's line. -->
   <div class="flex flex-col gap-6">
     <ContentSkeleton v-if="apps === null && failure === ''" :rows="2" listClass="flex flex-col divide-y divide-default" :label="$t('personal_apps.status.loading')">
       <div class="flex items-center gap-4 py-3">
@@ -27,9 +28,17 @@
         <p v-if="apps.items.length === 0" class="py-3 text-sm text-muted" data-personal-apps-none>{{ $t("personal_apps.label.none") }}</p>
 
         <template v-else>
-          <SettingsRow v-for="app in apps.items" :key="app.name" :label="appLabel(app)" :data-personal-app="app.name">
+          <!-- The row's name stands in its description, where it is read in the reader's language as the line under it is. -->
+          <SettingsRow v-for="app in apps.items" :key="app.name" label="" :data-personal-app="app.name" :data-personal-app-kind="app.kind">
             <template #description>
-              <span v-if="app.entries[0]?.description" class="text-sm text-muted">{{ app.entries[0].description }}</span>
+              <span class="flex min-w-0 items-center gap-2 text-sm text-highlighted" data-personal-app-name>
+                <UIcon :name="KIND_ICONS[app.kind]" class="size-5 shrink-0 text-muted" />
+                <TranslatedInline v-slot="{ text }" :text="appLabel(app)" :follow="readingShown[app.name] === true || (!app.entries[0]?.description && auto)">
+                  <span class="min-w-0 break-words">{{ text }}</span>
+                </TranslatedInline>
+              </span>
+              <span class="text-sm text-muted" data-personal-app-kind-word>{{ $t(KIND_WORDS[app.kind]) }}</span>
+              <TranslatedText v-if="app.entries[0]?.description" :text="app.entries[0].description" text-class="text-sm text-muted" @shown="readingShown[app.name] = $event" />
               <span class="text-sm text-muted">{{ $t("personal_apps.label.updated", { time: formatStamp(Math.floor(app.putAt / 1000)) }) }}</span>
               <span class="text-sm text-muted" data-personal-app-version>
                 {{ $t("personal_apps.label.version") }}
@@ -87,7 +96,9 @@
 import { failureText } from "bmo-ui/app/domain/errors";
 import { formatStamp } from "bmo-ui/app/domain/time";
 
+import { KIND_ICONS, KIND_WORDS } from "~/domain/app-catalogue";
 import { useConfirm } from "~/domain/confirm";
+import { useAutoTranslate } from "~/domain/text-reading";
 
 import type { PersonalApp, PersonalApps } from "#shared/personal-apps";
 
@@ -101,6 +112,10 @@ const busy = ref<string | null>(null);
 const refusal = ref("");
 const sharing = ref<PersonalApp | null>(null);
 const sharedNote = ref("");
+// Whether each app's description stands as its reading, which its name follows, and whether this browser reads a text
+// in another language in the reader's own as it opens.
+const readingShown = ref<Record<string, boolean>>({});
+const auto = useAutoTranslate();
 
 // An app by its entry's title where it gives one, else by its name.
 function appLabel(app: PersonalApp): string {

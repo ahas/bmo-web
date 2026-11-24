@@ -153,9 +153,18 @@ export const openedRoutes: readonly OpenedRoute[] = [
   // judging what each sees and may do (docs/web.md, 「App catalogue」).
   { method: "GET", path: /^\/api\/account\/app-catalogue$/, scope: "user" },
   { method: "POST", path: /^\/api\/account\/app-catalogue(?:\/seen)?$/, scope: "user" },
-  { method: "GET", path: /^\/api\/account\/app-catalogue\/[^/]+\/source$/, scope: "user" },
-  { method: "POST", path: /^\/api\/account\/app-catalogue\/[^/]+\/(?:install|update|clone|withdraw|approve|promote)$/, scope: "user" },
+  { method: "GET", path: /^\/api\/account\/app-catalogue\/[^/]+\/(?:source|connection)$/, scope: "user" },
+  { method: "POST", path: /^\/api\/account\/app-catalogue\/[^/]+\/(?:install|update|clone|withdraw|approve|promote|translate)$/, scope: "user" },
   { method: "DELETE", path: /^\/api\/account\/app-catalogue\/[^/]+\/install$/, scope: "user" },
+  // The reader's skills: every signed-in login asks for their own, the agency holding each account's apart and judging
+  // by the delegation chain who may make one (docs/web.md, 「Settings」, the skills section).
+  { method: "GET", path: /^\/api\/account\/personal-skills(?:\/[^/]+)?$/, scope: "user" },
+  { method: "PUT", path: /^\/api\/account\/personal-skills\/[^/]+$/, scope: "user" },
+  { method: "DELETE", path: /^\/api\/account\/personal-skills\/[^/]+$/, scope: "user" },
+  // What the reader attached to each of their agents: every signed-in login asks for their own (docs/web.md,
+  // 「Organisation」, the agents tab at the reader's own node).
+  { method: "GET", path: /^\/api\/account\/attachments$/, scope: "user" },
+  { method: "PUT", path: /^\/api\/account\/attachments\/[^/]+\/[^/]+$/, scope: "user" },
   // A person marked left: every signed-in login asks, and the account service lets the administrator and the person's
   // heads alone (docs/accounts.md, 「A person who leaves」).
   { method: "POST", path: /^\/api\/organization\/users\/\d+\/leave$/, scope: "user" },

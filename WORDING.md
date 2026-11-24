@@ -65,6 +65,10 @@
 - sticker → 스티커: 스티커, 스티커 보내기, 스티커를 보내지 못했습니다. Never 씰, 붙임, 이모지 그림.
 - spoiler (hidden message text) → 스포일러: 스포일러 표시, and its block folds by the in-place pair below.
   Never 가린 글, 숨김 글.
+- hand a supervisor's session over, its next turn opening a fresh session on the note it writes → 세션 넘기기: 세션
+  넘기기, 넘기기, 세션 넘기기를 요청했습니다, 인수인계 메모; start it afresh → 세션 초기화: 세션 초기화, 초기화, 새 세션으로
+  시작합니다. Never 핸드오프, 세션 리셋, 세션 삭제 — neither deletes anything of a room, which every sentence about them
+  keeps saying (대화 기록은 그대로 남습니다).
 - forward a message → 전달: 전달, 전달됨, 전달했습니다, 전달하지 못했습니다, 전달할 방. Never 포워딩, 넘기기,
   옮기기 — 옮기기 is moving a message's place, which this console does not do.
 - mention → 멘션: 멘션, 멘션 후보, 멘션할 이름. Never 호출, 부르기, 지칭.

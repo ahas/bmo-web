@@ -38,6 +38,15 @@
         </template>
         <p v-if="addLine !== null" class="py-2 text-sm text-muted" data-own-add-decided>{{ addLine }}</p>
         <p v-if="roadLocked !== null" class="py-2 text-sm text-muted" data-own-road-decided>{{ roadLocked }}</p>
+        <!-- The reader's own supervisors, their BMO first, each with its session's two acts (docs/web.md, 「A supervisor's
+             session handed over or reset」). -->
+        <SettingsRow v-for="name in ownSupervisors" :key="`supervisor:${name}`" :label="agentLabel($t, name)" :data-own-supervisor="name">
+          <div class="ms-auto flex shrink-0 items-center justify-end">
+            <UDropdownMenu :items="sessionItemsOf(name)" :content="{ align: 'end' }">
+              <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-more-vert" :aria-label="$t('agent_session.aria.menu', { name: agentLabel($t, name) })" data-own-supervisor-menu />
+            </UDropdownMenu>
+          </div>
+        </SettingsRow>
         <SettingsRow v-if="agentRows.length === 0" :label="$t('own_agents.label.no_agents')" />
         <SettingsRow v-for="row in agentRows" :key="row.agent.name" :label="`${row.role.label} · ${row.agent.name}`" :data-own-agent="row.agent.name">
           <template #description>
@@ -121,6 +130,8 @@
         </SettingsRow>
       </SettingsGroup>
 
+      <AgentSessionDialog v-model:open="sessionOpen" :ask="sessionAsk" />
+
       <RoadDialog
         v-if="roadFor !== null"
         v-model:open="roadOpen"
@@ -152,11 +163,14 @@
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
 
+import { agentSessionItems } from "~/domain/agent-session";
+import { agentLabel } from "~/domain/agents";
 import { decidedLine } from "~/domain/chain-decided";
 import { useConfirm } from "~/domain/confirm";
 import { roadLine } from "~/domain/own-agents";
 
 import type { DropdownMenuItem } from "@nuxt/ui";
+import type { AgentSessionAsk } from "~/domain/agent-session";
 import type { InstructedAgent, OwnAgentView, OwnAgentsView, OwnInstructionsView, OwnRoad, OwnRoleView } from "#shared/own-agents";
 
 const { t } = useI18n();
@@ -187,6 +201,19 @@ async function readInstructions(): Promise<void> {
     instructions.value = null;
     instructionsFailure.value = failureText(error, t("own_agents.error.read_failed"));
   }
+}
+
+// The supervisors filed under the reader's account, read as the section opens, and the session acts on each.
+const { data: ownSupervisorNames } = useFetch<string[]>("/api/me/agents", { key: "own-supervisors", lazy: true, server: false, default: () => [] });
+const ownSupervisors = computed(() => ownSupervisorNames.value ?? []);
+const sessionAsk = ref<AgentSessionAsk | null>(null);
+const sessionOpen = ref(false);
+
+function sessionItemsOf(name: string): DropdownMenuItem[] {
+  return agentSessionItems(t, [name], null, (ask) => {
+    sessionAsk.value = ask;
+    sessionOpen.value = true;
+  });
 }
 
 // Every agent of the reader's, role by role, the seats supplied before their own.

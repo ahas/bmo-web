@@ -3244,3 +3244,12 @@ export interface DeployLogLine {
   at: number;
   text: string;
 }
+
+/** What an ask on a supervisor's session came to (docs/web.md, 「A supervisor's session handed over or reset」):
+ * `asked`, the handover or reset is on its way; `none`, the agent holds no session there to act on. */
+export type SessionActOutcome = "asked" | "none";
+
+/** The answer of a session's handover or reset. */
+export interface SessionActAnswer {
+  outcome: SessionActOutcome;
+}

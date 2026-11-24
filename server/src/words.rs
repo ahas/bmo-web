@@ -96,6 +96,14 @@ pub enum FixedLine {
   SupplyClosed {
     why: SupplyShortfall,
   },
+  /// An agent's session handed over or reset (the receiver's `docs/unified-bmo.md`, 「Replacing the session」): the
+  /// agent by its name, the cause, the asker's words where one gave any and the account that asked where a person did.
+  SessionHandedOver {
+    agent: String,
+    cause: SessionCause,
+    reason: Option<String>,
+    by: Option<AccountKey>,
+  },
   /// A code the pack holds no sentence for.
   #[serde(other)]
   Unknown,
@@ -141,6 +149,20 @@ impl SupplyShortfall {
     }
     .clone()
   }
+}
+
+/// Why a session was handed over or reset, as the receiver names it.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum SessionCause {
+  Asked,
+  Reset,
+  Full,
+  Road,
+  Documents,
+  /// A cause this pack holds no words for, said as the line alone.
+  #[serde(other)]
+  Other,
 }
 
 /// An account as a line names it: its key, a number or the decimal text of one.
@@ -326,6 +348,7 @@ impl FixedLine {
         accounts.iter().chain([by]).filter_map(AccountKey::key).collect()
       }
       Self::UnitLetIn { by, .. } => by.key().into_iter().collect(),
+      Self::SessionHandedOver { by, .. } => by.iter().filter_map(AccountKey::key).collect(),
       _ => Vec::new(),
     }
   }
@@ -426,9 +449,51 @@ impl FixedLine {
         }
       },
       Self::SupplyClosed { why } => why.text(),
+      Self::SessionHandedOver {
+        agent,
+        cause,
+        reason,
+        by,
+      } => session_handed_over(agent, cause, reason.as_deref(), by.as_ref().map(|by| by.shown(accounts))),
       Self::Unknown => return None,
     })
   }
+}
+
+// An agent's session handed over or reset: the line, then the asker's words, else the words of its cause where the
+// pack holds any, then who asked where a person did.
+fn session_handed_over(
+  agent: &str,
+  cause: &SessionCause,
+  reason: Option<&str>,
+  by: Option<String>,
+) -> String {
+  let words = &FIXED_LINES.session_handed_over;
+  let line = match cause {
+    SessionCause::Reset => &words.reset,
+    _ => &words.handed_over,
+  };
+  let mut text = fill_marks(line, &[("agent", agent), ("subject", &as_subject(agent))]);
+  let why = reason
+    .map(str::trim)
+    .filter(|reason| !reason.is_empty())
+    .map(str::to_owned)
+    .or_else(|| match cause {
+      SessionCause::Full => Some(words.causes.full.clone()),
+      SessionCause::Road => Some(words.causes.road.clone()),
+      SessionCause::Documents => Some(words.causes.documents.clone()),
+      SessionCause::Asked | SessionCause::Reset | SessionCause::Other => None,
+    });
+
+  if let Some(why) = why {
+    text.push_str(&fill_marks(&words.why, &[("why", &why)]));
+  }
+
+  if let Some(by) = by {
+    text.push_str(&fill_marks(&words.by, &[("by", &by)]));
+  }
+
+  text
 }
 
 // The last resort where no session can answer an order about a broken run: the run's account, its cause

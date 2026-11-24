@@ -123,6 +123,7 @@
 
     <!-- The agents of the roles stand under the supervisors: every agent of the screen in the one tab. -->
     <AgentsRoleAgents class="mt-6" :query="props.query" :readonly="props.readonly" />
+    <AgentSessionDialog v-model:open="sessionOpen" :ask="sessionAsk" />
 
     <AgentLogDialog v-if="log !== null" v-model:open="logOpen" :name="log.name" :place="log.place" :rooms="rooms ?? []" />
 
@@ -170,6 +171,7 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { useIsland } from "bmo-ui/app/domain/island";
 import { useNowSeconds } from "bmo-ui/app/domain/time";
 
+import { agentSessionItems } from "~/domain/agent-session";
 import { settingsAnchor } from "~/domain/agent-settings";
 import { STATE_CEILING, turnsDoing } from "~/domain/agent-state";
 import { useSectionAccess } from "~/domain/section-access";
@@ -185,6 +187,7 @@ import { CELL_TEXT } from "~/domain/settings-cells";
 import type { DefaultAnswererView, RepositoryView, RoadView, SupervisorAddedView, SupervisorView } from "#shared/axes";
 import type { OwnerChat } from "#shared/types";
 import type { DropdownMenuItem } from "@nuxt/ui";
+import type { AgentSessionAsk } from "~/domain/agent-session";
 import type { AgentDoing } from "~/domain/agent-state";
 import type { LogPlace } from "~/domain/log";
 import type { SettingsColumn } from "~/domain/settings-columns";
@@ -345,11 +348,20 @@ async function rereadAll(): Promise<void> {
   await Promise.all([refresh(), rereadCatalogue(), rereadRooms()]);
 }
 
+// The session act its menu opened, carried out by the one session dialog.
+const sessionAsk = ref<AgentSessionAsk | null>(null);
+const sessionOpen = ref(false);
+
 // Its settings first, then its removal, which stands disabled, saying why, for one the deployment seeds — as the
 // agency's `seeded` answers it — and for the default answerer, which the receiver refuses to remove.
 function menuOf(supervisor: SupervisorView): DropdownMenuItem[] {
   return [
     { label: t("agents.action.settings"), icon: "i-material-symbols-settings-outline", onSelect: () => edit(supervisor.name) },
+    // Its session handed over or reset (docs/web.md, 「A supervisor's session handed over or reset」).
+    ...agentSessionItems(t, [supervisor.name], null, (ask) => {
+      sessionAsk.value = ask;
+      sessionOpen.value = true;
+    }),
     {
       label: t("common.action.delete"),
       icon: "i-material-symbols-delete-outline",

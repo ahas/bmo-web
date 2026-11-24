@@ -3738,6 +3738,64 @@ alone (「Access」); another account's agents are reached from 조직's 사용�
   read-only, and a gate takes no shell tool in the first place.
 
 
+### A supervisor's session handed over or reset
+
+A supervisor's session — the one session its rooms' rounds go on in, or the session it keeps in one room — is handed
+over or reset from the console with two actions, 세션 넘기기 and 세션 초기화, in one shared dialog every place that
+offers them opens alike. Both act on the session alone: no message, file, minute or record of a room is deleted or
+hidden, and the dialog says so in so many words (대화 기록은 그대로 남습니다).
+
+- **Where they stand.**
+  - **The room's menu** carries both, in a group of their own after its first group, for the supervisors answering
+    the room — those the room names, the default answerer where it names none — that the reader may act on (below);
+    where there are none the menu holds neither. Where more than one answers, the dialog opens with a choice of which, the first chosen.
+    The session acted on is the one that room goes on in: the supervisor's one session, or its session of that room
+    where it keeps one in each room.
+  - **설정's 내 에이전트** (「Settings」) carries a row for each supervisor filed under the reader's account, their BMO
+    first, its more-menu holding both; its session is the one session, or every room session it holds.
+  - **에이전시's 에이전트 tab** (「Agent management screen」) carries both in each supervisor row's more-menu, after
+    설정, for the administrator, every supervisor of the deployment.
+  - **The dialog is one component** a screen renders from its own rows, so a screen listing a unit's agents for its
+    heads offers the same two actions by rendering it.
+  - **A role's agent offers neither.** Its runs open a session of their own each, and the agency holds no session of
+    it to hand over or clear; the actions stand on supervisors alone.
+- **Who may.** The console's server judges every ask before it reaches a unit, and answers anyone else as if the
+  agent did not stand (404): the administrator on every supervisor; a person on the supervisors filed under their own
+  account; and a head on a supervisor filed under a person standing in a unit they head or in a unit below it, as
+  the account service's unit check answers for the person's unit and each unit they hold a post in. A supervisor
+  filed under no account is the deployment's, the administrator's alone.
+- **세션 넘기기** asks a short reason, one line of at most 200 characters, required, then 넘기기. The agent sleeps: its
+  session tidies its memories and writes its handoff note, and the next turn wakes a fresh session that reads it, which
+  the dialog and its notice say in those words (the receiver's `docs/unified-bmo.md`,
+  「Replacing the session」):
+  - the one session across rooms is asked through the receiver's `POST /handovers/{agentName}`, handed the reason,
+    the room it was asked from where it was asked from one, and the reader's account as `by`; the receiver replaces
+    it once the agent is quiet, at once where it is in no round, else as the round it is in ends;
+  - a session kept in each room is asked through the agency's `POST /session-reset` for that room, which the agency
+    carries out as that session's handover: the session writes its note in one more turn and the next generation
+    opens on it (the agency's `docs/supervisors.md`, 「Clearing it」). Asked from a row rather than a room, every room
+    session the supervisor holds is asked so.
+- **세션 초기화** asks first, in a confirmation saying what goes and what stays: the session the agent works in now
+  ends and the next turn opens a new one, so what the session held in its context does not go on as it was; the
+  room's conversation, its files and the agent's memories stay. Confirmed, it asks the agency's `POST /session-reset`
+  for the agent, and for the room where its sessions are kept in each room, with the reader's account as `by`; the
+  agency settles it once nothing of that session runs (the agency's `docs/session-resets.md`).
+- **What happened is said in plain words** once the unit answers, in a notice at the head of the screen, one short
+  line and what follows it under it, the dialog closing:
+  - 넘기기 asked: the session hands over once the agent's current turn ends, and the next turn starts a fresh session
+    reading the note;
+  - 초기화 asked: the next turn starts a new session;
+  - nothing to act on — the receiver knows no such agent, or the agency holds no session of it there: the agent
+    holds no session now, and its next turn opens a new one all the same;
+  - a refusal or a unit that does not answer, in the pack's words for it, the dialog staying open.
+- **The room shows it.** The receiver writes one system line into the room as the handover or reset is made —
+  whoever asked it, the console, the receiver's `handoff` command or the agent's own replacement — kept in the room's
+  record alone and sent to no chat service (the receiver's `docs/unified-bmo.md`, 「The room's line」), and the console
+  stands it as every fixed line (「Room screen」, a fixed line), a handover said as the agent sleeping to tidy its
+  memories and waking in a fresh session, rendered from the code `session-handed-over`
+  (`docs/boundary.md`, 「Fixed lines」).
+
+
 ### Agent screen
 
 - The place to read one agent's log. Not a summary or a verdict but the lines that agent actually left
@@ -7648,6 +7706,8 @@ by the agency for them; the console decides none of it.
   each item saying where it came from; what the reader changes stands over it and is taken back with 되돌리기, so the
   supplied value stands again. Each kind of change is allowed or withheld by the organisation, set by its heads on the
   same tab (개인 설정 허용), allowed where nobody set it, so with nothing set a person may make every change.
+- **The reader's own supervisors stand first in 에이전트,** their BMO first, each a row of its label and a more-menu
+  holding 세션 넘기기 and 세션 초기화 (「A supervisor's session handed over or reset」).
 - **에이전트** lists the reader's agents role by role, the seats supplied first: each row the role's label and the agent's
   name, under it its 공급자 · 모델 on one line — 요청한 감독관을 따름 for an agent that names none — and where it came
   from: 받은 에이전트 · and the unit that supplied it, 받은 에이전트 · 기본 for the platform's own rule, 직접 정함 for a

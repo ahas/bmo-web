@@ -686,6 +686,15 @@ export async function checkObject(
   return { allowed: said.allowed, grant: said.grant, user: userPath(id) };
 }
 
+/** Whether a user heads a unit or a unit above it (docs/boundary.md, 「Checks」); not where there is no such unit. */
+export async function checkUnit(unit: number, id: UserId | number, options: ServiceOptions = {}): Promise<boolean> {
+  const reply = await sent(options, clientOf(options).POST("/checks/unit", { body: { unit, user: userPath(id) } }));
+
+  if (reply.response.status === 404) return false;
+
+  return answered(reply).allowed;
+}
+
 /** What the data move is handed: what only the other units hold (docs/accounts.md, 「The data move」). */
 export interface MoveRequest {
   ownerSenders: number[];

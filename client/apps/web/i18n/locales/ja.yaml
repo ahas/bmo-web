@@ -2527,6 +2527,37 @@ own_agents:
     unknown_agent: "自分のエージェントではありません。"
     bad_instructions: "指示が長すぎます。"
     not_found: "そのエージェントはありません。"
+agent_session:
+  action:
+    handoff: "セッションを引き継ぐ"
+    reset: "セッションを初期化"
+    confirm_handoff: "引き継ぐ"
+    confirm_reset: "初期化"
+  title:
+    handoff: "セッションを引き継ぐ · {name}"
+    reset: "セッションを初期化 · {name}"
+  label:
+    agent: "スーパーバイザー"
+    reason: "理由"
+    reason_count: "{n}/{max}"
+  placeholder:
+    reason: "例: 新しい作業を最初から始めるため"
+  message:
+    handoff_effect: "{name}のセッションが眠って記憶を整理し、引き継ぎメモを書きます。\n次の発言から新しいセッションで目覚め、そのメモを読んで続けます。"
+    reset_effect: "{name}の今のセッションを終え、次の発言から新しいセッションで始めます。\nセッションが持っていた作業の文脈はそのままは引き継がれません。"
+    record_stays: "会話の記録はそのまま残ります。\nルームのメッセージ、ファイル、エージェントの記憶は削除されません。"
+    handoff_asked: "セッションの引き継ぎを依頼しました"
+    handoff_asked_detail: "{name}は今のターンを終えると眠って記憶を整理します。\n次の発言から新しいセッションで目覚めて続けます。"
+    reset_asked: "セッションの初期化を依頼しました"
+    reset_asked_detail: "{name}は次の発言から新しいセッションで始めます。"
+    none: "引き継ぎや初期化をするセッションがありません"
+    none_detail: "{name}には今開いているセッションがありません。\n次の発言が来ると新しいセッションが開きます。"
+  error:
+    reason: "理由を200文字以内で書いてください。"
+    handoff_failed: "セッションを引き継げませんでした。"
+    reset_failed: "セッションを初期化できませんでした。"
+  aria:
+    menu: "{name}のセッションメニュー"
 org_storage:
   title:
     storage: アーティファクトの保存

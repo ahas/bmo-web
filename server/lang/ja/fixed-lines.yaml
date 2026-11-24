@@ -28,3 +28,21 @@ supply_closed:
   refused: "クレジットが残っていないため、今は返答できません。設定の供給でクレジットを確認するか、供給順序を変更してください。"
   ran_out: "返答の途中でクレジットがなくなり、止まりました。設定の供給でクレジットを確認するか、供給順序を変更してください。"
   other: "このエージェントが使える供給元が残っていないため、今は返答できません。設定の供給を確認してください。"
+
+# What a room is told as an agent's session is handed over or reset (the receiver's docs/unified-bmo.md,
+# 「Replacing the session」): the line, by the {agent}'s name with its subject particle, {subject}, then why and who
+# asked where the line names them. Nothing of the room's record goes with it.
+session_handed_over:
+  # The session wrote its handoff note, and the next turn opens a fresh session reading it.
+  handed_over: "{subject}が眠って記憶を整理し、新しいセッションで目覚めます"
+  # The session was reset, and the next turn opens a new one.
+  reset: "{agent}のセッションを新しく始めました。会話の記録はそのまま残ります"
+  # Why, after the line: the asker's words, or the words of its cause.
+  why: " · {why}"
+  # Who asked, after the line and its why, by their shown name.
+  by: " · {by}さんの依頼"
+  # Why, where no asker gave words.
+  causes:
+    full: "会話の文脈がいっぱいになった"
+    road: "プロバイダー · モデルが変わった"
+    documents: "指示が変わった"

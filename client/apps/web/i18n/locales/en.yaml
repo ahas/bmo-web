@@ -2503,6 +2503,37 @@ own_agents:
     unknown_agent: "That is not one of your agents."
     bad_instructions: "The instructions are too long."
     not_found: "That agent does not exist."
+agent_session:
+  action:
+    handoff: "Hand over session"
+    reset: "Reset session"
+    confirm_handoff: "Hand over"
+    confirm_reset: "Reset"
+  title:
+    handoff: "Hand over session · {name}"
+    reset: "Reset session · {name}"
+  label:
+    agent: "Supervisor"
+    reason: "Reason"
+    reason_count: "{n}/{max}"
+  placeholder:
+    reason: "e.g. to start the new work from a clean slate"
+  message:
+    handoff_effect: "{name}'s session goes to sleep, tidies its memories and writes a handoff note.\nFrom the next message it wakes in a fresh session that reads the note and carries on."
+    reset_effect: "{name}'s current session ends and the next message starts a new one.\nWhat the session held in its working context does not carry on as it was."
+    record_stays: "The conversation history stays as it is.\nThe room's messages, files and the agent's memories are not deleted."
+    handoff_asked: "Asked to hand the session over"
+    handoff_asked_detail: "Once {name} finishes its current turn it sleeps and tidies its memories.\nFrom the next message it wakes in a fresh session and carries on."
+    reset_asked: "Asked to reset the session"
+    reset_asked_detail: "{name} starts in a new session from the next message."
+    none: "No session to hand over or reset"
+    none_detail: "{name} holds no open session right now.\nA new session opens when the next message comes."
+  error:
+    reason: "Write a reason of at most 200 characters."
+    handoff_failed: "Could not hand the session over."
+    reset_failed: "Could not reset the session."
+  aria:
+    menu: "{name} session menu"
 org_storage:
   title:
     storage: Artifact storage

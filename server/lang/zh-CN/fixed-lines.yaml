@@ -28,3 +28,21 @@ supply_closed:
   refused: "积分已用完，暂时无法回答。请在设置的供给中查看积分或更改供给顺序。"
   ran_out: "回答过程中积分用完，已停止。请在设置的供给中查看积分或更改供给顺序。"
   other: "此智能体已没有可用的供给源，暂时无法回答。请检查设置中的供给。"
+
+# What a room is told as an agent's session is handed over or reset (the receiver's docs/unified-bmo.md,
+# 「Replacing the session」): the line, by the {agent}'s name with its subject particle, {subject}, then why and who
+# asked where the line names them. Nothing of the room's record goes with it.
+session_handed_over:
+  # The session wrote its handoff note, and the next turn opens a fresh session reading it.
+  handed_over: "{subject} 进入睡眠整理记忆，将在新会话中醒来"
+  # The session was reset, and the next turn opens a new one.
+  reset: "已重新开始 {agent} 的会话。对话记录保持不变"
+  # Why, after the line: the asker's words, or the words of its cause.
+  why: " · {why}"
+  # Who asked, after the line and its why, by their shown name.
+  by: " · 由 {by} 请求"
+  # Why, where no asker gave words.
+  causes:
+    full: "上下文已满"
+    road: "提供方 · 模型已更改"
+    documents: "指示已更改"

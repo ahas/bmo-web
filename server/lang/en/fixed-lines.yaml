@@ -28,3 +28,21 @@ supply_closed:
   refused: "You have no credits left, so it can't answer right now. Check your credits or change the supply order under Supply in your settings."
   ran_out: "The credits ran out partway through the answer, so it stopped. Check your credits or change the supply order under Supply in your settings."
   other: "No supply source is left for this agent, so it can't answer right now. Check Supply in your settings."
+
+# What a room is told as an agent's session is handed over or reset (the receiver's docs/unified-bmo.md,
+# 「Replacing the session」): the line, by the {agent}'s name with its subject particle, {subject}, then why and who
+# asked where the line names them. Nothing of the room's record goes with it.
+session_handed_over:
+  # The session wrote its handoff note, and the next turn opens a fresh session reading it.
+  handed_over: "{subject} went to sleep to tidy its memories and wakes in a fresh session"
+  # The session was reset, and the next turn opens a new one.
+  reset: "Started {agent}'s session afresh. The conversation history stays as it is"
+  # Why, after the line: the asker's words, or the words of its cause.
+  why: " · {why}"
+  # Who asked, after the line and its why, by their shown name.
+  by: " · asked by {by}"
+  # Why, where no asker gave words.
+  causes:
+    full: "its context was full"
+    road: "its provider · model changed"
+    documents: "its instructions changed"

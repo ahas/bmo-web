@@ -134,7 +134,8 @@ const ACCOUNTS: readonly [string, string][] = [
   ["four-languages", "fixture-password-4401"],
   ["browser-language", "fixture-password-4402"],
   ["shared-info", "fixture-password-4113"],
-  ["own-agents", "fixture-password-4114"]
+  ["own-agents", "fixture-password-4114"],
+  ["session-acts", "fixture-password-4115"]
 ];
 
 // The member accounts a test signs in with to read a section by its permission rather than as the administrator,
@@ -1401,6 +1402,16 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
       return Response.json({ provider: named, models: ids.map((id, at) => ({ id, efforts: [], free: false, inService: at === 0, ...declared(at) })), staleReadAt: null });
     }
+    // A session's reset asked (the agency's docs/api.md, 「Sessions」): agent-a holds its one session, any other agent
+    // none, refused about the field `session`; an ask naming no asker is refused (tests/browser/session-acts.test.ts).
+    if (path === "/session-reset" && request.method === "POST") {
+      const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
+
+      if (typeof body.by !== "string") return Response.json({ code: "bad-request", error: "a reset names who asked" }, { status: 400 });
+      if (body.agent !== "agent-a") return Response.json({ error: "no session of that agent", field: "session" }, { status: 400 });
+
+      return Response.json({ id: "agent-a", agentName: "agent-a", scope: "agent", roomId: null, provider: "claude-code", model: "claude-opus-5-5", place: null, generation: 2, holder: null, prefixChangeReason: null, options: {}, context: null, foldsItself: false, supervisor: "agent-a", role: null });
+    }
     if (path === "/sessions" || path === "/runs") {
       const mine = activity.account !== 0 && new URL(request.url).searchParams.get("agentName") === ACTIVITY_AGENT;
 
@@ -1788,6 +1799,21 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
           : [],
         more: false
       });
+    }
+    // A supervisor's one session handed over (the receiver's docs/api.md, 「Handovers」): answered only where the ask
+    // carries a reason, the asking account and the room it was asked from as the console hands them on, so a notice
+    // saying it was asked shows the ask arrived whole (tests/browser/session-acts.test.ts).
+    const handover = /^\/handovers\/([^/]+)$/.exec(path)?.[1];
+
+    if (handover !== undefined && request.method === "POST") {
+      const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
+
+      if (handover !== "agent-a") return Response.json({ code: "not-found", error: "no such agent" }, { status: 404 });
+      if (typeof body.reason !== "string" || body.reason.trim() === "" || typeof body.by !== "number" || (body.room !== undefined && typeof body.room !== "number")) {
+        return Response.json({ code: "bad-request", error: "a handover carries a reason, by and a room" }, { status: 400 });
+      }
+
+      return Response.json({ agentName: handover, sessionReason: "asked" }, { status: 202 });
     }
     if (path === `/rooms/${RECORD_CHAT}/answerers`) return Response.json({ default: "agent-a", items: [{ agentName: "agent-a", defaultAnswerer: true }], more: false, voice: "agent-a" });
     if (path === `/rooms/${OWNER_CHAT}/own-number`) return Response.json({ number: new URL(request.url).searchParams.get("agentName") === "agent-a" ? AGENT_FACE : null });

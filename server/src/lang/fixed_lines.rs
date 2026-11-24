@@ -40,6 +40,35 @@ pub struct FixedLines {
   pub person_taken_out: String,
   /// A person's run found no supply source left, one sentence to each reason.
   pub supply_closed: SupplyClosed,
+  /// An agent's session handed over or reset, and why.
+  pub session_handed_over: SessionHandedOver,
+}
+
+/// What a room is told as an agent's session is handed over or reset: the line, then why and who asked where the
+/// line names them.
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SessionHandedOver {
+  /// The session handed over, the next turn opening a fresh one on its note.
+  pub handed_over: String,
+  /// The session reset, the next turn opening a new one.
+  pub reset: String,
+  /// Why, after the line.
+  pub why: String,
+  /// Who asked, after the line and its why.
+  pub by: String,
+  /// Why, where the line carries no words of an asker, by the cause it names.
+  pub causes: SessionCauses,
+}
+
+/// Why a session was handed over, where no asker gave words: the window filled, the road moved or the documents its
+/// prompt reads moved. A handover asked and one of another cause carry no words of their own.
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SessionCauses {
+  pub full: String,
+  pub road: String,
+  pub documents: String,
 }
 
 /// What a room is told as a person's run finds no supply source left, by the reason the agency names.

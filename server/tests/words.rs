@@ -19,6 +19,7 @@ use bmo_web_server::lang::supervisors::SUPERVISOR_WORDS;
 use bmo_web_server::marks::fill_marks;
 use bmo_web_server::routes::in_force;
 use bmo_web_server::wording::document_wording;
+use bmo_web_server::words::as_subject;
 
 // The language a room speaks where a test names none: the source the pack is written in.
 const LANGUAGE: &str = Language::SOURCE.code();
@@ -265,6 +266,39 @@ async fn supervisor_cut_names_the_supervisor_and_the_guards_reason() {
       &FIXED_LINES.supervisor_cut,
       &[("name", "agent-a"), ("reason", "The turn ran too long.")]
     ),
+  );
+}
+
+#[tokio::test]
+async fn session_handed_over_says_the_line_then_why_then_who_asked() {
+  let words = &FIXED_LINES.session_handed_over;
+  let handed = fill_marks(&words.handed_over, &[("agent", "agent-a"), ("subject", &as_subject("agent-a"))]);
+  let reset = fill_marks(&words.reset, &[("agent", "agent-a")]);
+  let why = |why: &str| fill_marks(&words.why, &[("why", why)]);
+  let by = |by: &str| fill_marks(&words.by, &[("by", by)]);
+
+  // The asker's words stand for why, and an account no user holds stands as its key.
+  assert_eq!(
+    rendered(
+      "session-handed-over",
+      json!({ "agent": "agent-a", "cause": "asked", "reason": "a fresh start", "by": 9999 })
+    )
+    .await,
+    format!("{handed}{}{}", why("a fresh start"), by("9999"))
+  );
+  // A cause the pack holds words for says them where nobody gave words; one asked by nobody names nobody.
+  assert_eq!(
+    rendered("session-handed-over", json!({ "agent": "agent-a", "cause": "full" })).await,
+    format!("{handed}{}", why(&words.causes.full))
+  );
+  assert_eq!(
+    rendered("session-handed-over", json!({ "agent": "agent-a", "cause": "reset", "by": "9999" })).await,
+    format!("{reset}{}", by("9999"))
+  );
+  // A cause the pack does not know reads as the line alone.
+  assert_eq!(
+    rendered("session-handed-over", json!({ "agent": "agent-a", "cause": "something-new" })).await,
+    handed
   );
 }
 

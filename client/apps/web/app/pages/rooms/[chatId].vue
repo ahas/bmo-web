@@ -139,6 +139,7 @@
               />
               <RoomOverlay v-if="group" v-model:open="overlayOpen" :chat-id="chatId" :title="title" />
               <RoomRemovalDialog v-if="manages" v-model:open="removalOpen" :chat-id="chatId" :title="title" />
+              <AgentSessionDialog v-model:open="sessionOpen" :ask="sessionAsk" />
             </template>
           </ConsoleTitleBar>
         </div>
@@ -495,6 +496,7 @@ import { MotionConfig } from "motion-v";
 import { countText } from "~/domain/numbers";
 import { roomMayWrite, useAdministrator, useSignedUser } from "~/domain/access";
 import { keepDialogFocus } from "~/domain/menu-focus";
+import { agentSessionItems } from "~/domain/agent-session";
 import { useSectionAccess, useSectionAccessReady } from "~/domain/section-access";
 import { useInitialRead } from "bmo-ui/app/domain/loading";
 import { POLL_INTERVAL_MS } from "#shared/config";
@@ -608,6 +610,7 @@ import type {
   SkipReason
 } from "#shared/types";
 import type { DropdownMenuItem } from "@nuxt/ui";
+import type { AgentSessionAsk } from "~/domain/agent-session";
 import type { WindowFrame } from "bmo-ui/app/domain/floating-window";
 import type { ComposedMessage, PickedFile } from "~/domain/attachments";
 import type { AvatarIndex } from "~/domain/avatars";
@@ -1134,10 +1137,23 @@ const menuItems = computed<DropdownMenuItem[][]>(() => [
       ? { label: t("room.action.unpin"), icon: "i-material-symbols-keep-off-outline", onSelect: () => void pin(false) }
       : { label: t("room.action.pin"), icon: "i-material-symbols-keep-outline", onSelect: () => void pin(true) }] : []),
   ],
+  // The session of a supervisor answering the room, handed over or reset, in a group of its own (docs/web.md, 「A
+  // supervisor's session handed over or reset」).
+  ...(sessionItems.value.length > 0 ? [sessionItems.value] : []),
   // Removing the room's registration stands last, in a group of its own (docs/web.md, the room
   // screen's registration removal).
   ...(manages.value ? [[{ label: t("room.action.remove_registration"), icon: "i-material-symbols-delete-outline", color: "error" as const, onSelect: () => { removalOpen.value = true; } }]] : [])
 ]);
+// The supervisors answering the room whose session the reader may hand over or reset, read as the screen opens.
+const { data: sessionAgents } = useFetch<string[]>(`/api/rooms/${chatId}/session-agents`, { key: `session-agents:${chatId}`, lazy: true, server: false, default: () => [] });
+const sessionAsk = ref<AgentSessionAsk | null>(null);
+const sessionOpen = ref(false);
+const sessionItems = computed(() =>
+  agentSessionItems(t, sessionAgents.value ?? [], chatId, (ask) => {
+    sessionAsk.value = ask;
+    sessionOpen.value = true;
+  })
+);
 // Whether the room stands in the pinned order, as the room list read it.
 const pinned = computed(() => listedRooms.value.some((room) => room.chatId === chatId && room.pinned));
 

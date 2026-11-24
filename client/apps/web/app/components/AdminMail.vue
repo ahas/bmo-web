@@ -1,7 +1,7 @@
 <template>
-  <!-- The administrator's 메일 tab (docs/web.md, 「Administration」, 메일): the system mail the platform sends its own mail
+  <!-- The administrator's mail tab (docs/web.md, 「Administration」, the mail tab): the system mail the platform sends its own mail
        through — one of bmo-mail's outgoing servers kept for the platform, the sender and the name of the secret it signs
-       in with, saved with 저장 — and a test mail sent through it once it is set up. -->
+       in with, saved with its one save — and a test mail sent through it once it is set up. -->
   <div class="flex flex-col gap-4" data-admin-mail>
     <FailedRead v-if="view === null && failure !== ''" class="py-3" :message="failure" :reading="reading" @retry="void read()" />
 
@@ -20,7 +20,7 @@
       <UForm v-else id="mail-form" :state="form" class="flex flex-col gap-4 py-3" @submit="void save()">
         <p v-if="!view.mailService" class="text-sm text-muted" data-mail-no-service>{{ $t("security.message.mail_no_service") }}</p>
         <UFormField :label="$t('security.label.mail_server')" name="server">
-          <USelect v-model="form.server" :items="serverItems" class="w-full" data-mail-server />
+          <ChoiceSelect v-model="form.server" :items="serverItems" value-key="value" class="w-full" data-mail-server />
         </UFormField>
         <UFormField :label="$t('security.label.from')" name="from">
           <UInput v-model="form.from" class="w-full" type="email" autocomplete="off" data-mail-from />
@@ -29,7 +29,7 @@
           <UInput v-model="form.fromName" class="w-full" autocomplete="off" />
         </UFormField>
         <UFormField :label="$t('security.label.login_secret')" name="secret" :error="secretMissing ? $t('security.message.secret_missing') : undefined">
-          <USelect v-model="form.secret" :items="secretItems" class="w-full" data-mail-secret />
+          <ChoiceSelect v-model="form.secret" :items="secretItems" value-key="value" class="w-full" data-mail-secret />
         </UFormField>
         <p v-if="saveFailure !== ''" role="alert" class="text-sm text-error">{{ saveFailure }}</p>
         <div class="flex justify-end">

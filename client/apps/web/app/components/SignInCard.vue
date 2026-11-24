@@ -1,6 +1,6 @@
 <template>
   <!-- A card on no shell, as the login screen stands (docs/web.md, 「Pages with no sign-in」): the console's name at its
-       head, the page's own content, and its actions at the foot's right end, 로그인으로 among them. -->
+       head, the page's own content, and its actions at the foot's right end, the way back to the sign-in among them. -->
   <div class="relative flex overflow-y-auto bg-default p-4 text-default" :style="{ top: 'var(--bmo-screen-top)', height: 'var(--bmo-screen)' }">
     <UCard class="m-auto w-full max-w-sm">
       <template #header>

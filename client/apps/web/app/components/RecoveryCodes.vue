@@ -1,6 +1,6 @@
 <template>
-  <!-- Recovery codes shown once (docs/web.md, 「Settings」, 계정's 2단계 인증): ten in two columns in the monospace face,
-       with what they are for, and 복사 and 다운로드 under them. -->
+  <!-- Recovery codes shown once (docs/web.md, 「Settings」, the account section's second factor): ten in two columns in the monospace face,
+       with what they are for, and the copy and the download under them. -->
   <div class="flex flex-col gap-4" data-recovery-codes>
     <p class="whitespace-pre-line text-sm text-muted">{{ $t("security.message.codes_once") }}</p>
     <ul class="grid grid-cols-2 gap-2 rounded-lg bg-elevated p-4 font-mono text-sm text-highlighted">

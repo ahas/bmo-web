@@ -4,7 +4,7 @@ import { securityFailure } from "../../../utils/sign-in";
 
 import { wording } from "#shared/wording";
 
-// One of the reader's devices signed out (docs/web.md, 「Settings」, 계정's 로그인한 기기).
+// One of the reader's devices signed out (docs/web.md, 「Settings」, the account section's devices).
 export default defineEventHandler(async (event): Promise<{ ok: true }> => {
   const signed = await signedInUser(event);
   const device = Number(getRouterParam(event, "device"));

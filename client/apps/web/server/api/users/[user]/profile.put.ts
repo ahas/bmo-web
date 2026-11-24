@@ -36,10 +36,14 @@ export default defineEventHandler(async (event): Promise<UserProfile> => {
     if (signed.id === user) await followSessionName(event, saved.fullName);
   }
 
-  const base = linkBase(event, true);
+  if (saved.email !== "" && saved.email !== previous.email) {
+    try {
+      const base = linkBase(event, true);
 
-  if (saved.email !== "" && saved.email !== previous.email && base !== null) {
-    await mailVerification(user, base, caller).catch((error: unknown) => console.error(`account ${user}: its email's verification was not mailed: ${String(error)}`));
+      if (base !== null) await mailVerification(user, base, caller);
+    } catch (error) {
+      console.error(`account ${user}: its email's verification was not mailed: ${String(error)}`);
+    }
   }
 
   return saved;

@@ -5,7 +5,7 @@ import { browserOfAgent, coarseAddress, failedTry, outcomeKey } from "../../../a
 
 import type { AccountSecurityView } from "../../../apps/web/shared/account-security";
 
-// Account security on the console's screens (docs/web.md, 「Organisation」, the people tab; 「Settings」, 계정's 보안):
+// Account security on the console's screens (docs/web.md, 「Organisation」, the people tab; 「Settings」, the account section's security):
 // the head's account acts, the browser and the address a device is shown by, and how a try is worded.
 
 const SECURITY: AccountSecurityView = {

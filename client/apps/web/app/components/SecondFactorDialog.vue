@@ -1,5 +1,5 @@
 <template>
-  <!-- The second factor's enrolment (docs/web.md, 「Settings」, 계정's 2단계 인증): the QR code the account service drew
+  <!-- The second factor's enrolment (docs/web.md, 「Settings」, the account section's second factor): the QR code the account service drew
        with its key written out under it, then the code that confirms it, then the recovery codes, shown once. -->
   <SettingsDialog v-model:open="open" :title="$t('security.label.second_factor')" :dirty="codes === null && code !== ''">
     <UAlert v-if="props.required && codes === null" color="warning" variant="subtle" :description="$t('security.message.enrol_required')" :ui="{ description: 'whitespace-pre-line' }" />

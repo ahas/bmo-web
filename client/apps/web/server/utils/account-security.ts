@@ -4,7 +4,14 @@
 // administrator's and a head's acts on an account, and the system mail. The service decides; this module asks it
 // through the client generated from its OpenAPI document and reads its answers into the console's shapes.
 
-import { AccountRefusal, answered, clientOf, refusalOf, sent, userPath } from "./account-service";
+import {
+  AccountRefusal,
+  accountAnswered as answered,
+  accountClientOf as clientOf,
+  accountRefusalOf as refusalOf,
+  accountSent as sent,
+  accountUserPath as userPath
+} from "./account-service";
 
 import type { ProfileCaller, ServiceOptions } from "./account-service";
 import type {
@@ -192,7 +199,7 @@ export async function resetFactor(user: number, caller: ProfileCaller, options: 
 }
 
 /** The account's devices, the one `cookie` names marked. */
-export async function devicesOf(user: number, cookie: string | null, caller: ProfileCaller, options: ServiceOptions = {}): Promise<Devices> {
+export async function accountDevices(user: number, cookie: string | null, caller: ProfileCaller, options: ServiceOptions = {}): Promise<Devices> {
   return answered(
     await sent(
       options,

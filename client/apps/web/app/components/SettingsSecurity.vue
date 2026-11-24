@@ -1,5 +1,5 @@
 <template>
-  <!-- The account section's security (docs/web.md, 「Settings」, 계정's 보안): the email's verification and the second
+  <!-- The account section's security (docs/web.md, 「Settings」, the account section's security): the email's verification and the second
        factor, the devices signed in with this one marked, and the newest sign-ins tried. -->
   <div class="flex flex-col gap-6" data-security>
     <SettingsGroup :title="$t('security.label.security')">

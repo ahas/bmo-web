@@ -1986,8 +1986,8 @@ async fn the_overrides_migration_renews_a_seeded_platform_row_and_keeps_an_admin
 
   // The row as an administrator set it before the overrides stood, and each person's old switch: the overrides
   // taken down with the move onto the delegation chain, the organisation's BMO default's, the accounts' languages',
-  // the supply run keys' and the supply sources' move that stand after them.
-  Migrator::down(scratch.db(), Some(6)).await.unwrap();
+  // the supply run keys', the supply sources' move and the account security's that stand after them.
+  Migrator::down(scratch.db(), Some(7)).await.unwrap();
   scratch
     .run(
       r#"UPDATE "supply_platform_policy"
@@ -2031,7 +2031,7 @@ async fn the_overrides_migration_renews_a_seeded_platform_row_and_keeps_an_admin
   );
 
   // A row still standing as seeded takes the new defaults.
-  Migrator::down(scratch.db(), Some(6)).await.unwrap();
+  Migrator::down(scratch.db(), Some(7)).await.unwrap();
   scratch
     .run(
       r#"UPDATE "supply_platform_policy"
@@ -2525,7 +2525,8 @@ async fn the_sources_move_reads_the_agency_s_flags_into_the_policies_and_the_cap
   let squad = org(&scratch, "squad-a", Some(team)).await;
   let tester = person(&scratch, "tester", company).await;
 
-  Migrator::down(scratch.db(), Some(1)).await.unwrap();
+  // The sources' move taken down, with the account security's standing after it.
+  Migrator::down(scratch.db(), Some(2)).await.unwrap();
   scratch
     .run(
       r#"INSERT INTO "chain_kinds" ("key", "declared_by", "declaration", "declared_at") VALUES

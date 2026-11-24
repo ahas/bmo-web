@@ -1,4 +1,4 @@
-// Account security as the console's screens read it (docs/web.md, 「Settings」, 계정's 보안, and 「Organisation」, the
+// Account security as the console's screens read it (docs/web.md, 「Settings」, the account section's security, and 「Organisation」, the
 // people tab): what stands of an account, its devices, its tries, and the browser and address a row is shown by.
 
 import Bowser from "bowser";

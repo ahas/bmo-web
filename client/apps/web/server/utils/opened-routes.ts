@@ -55,7 +55,7 @@ export const openedRoutes: readonly OpenedRoute[] = [
   { method: "POST", path: /^\/api\/auth\/(?:second-factor|password-resets)$/, scope: "user" },
   { method: "GET", path: /^\/api\/auth\/password-resets\/[^/]+$/, scope: "user" },
   { method: "POST", path: /^\/api\/auth\/(?:password-resets|email-verifications)\/[^/]+$/, scope: "user" },
-  // One's own account's security: every signed-in login keeps their own (docs/web.md, 「Settings」, 계정's 보안).
+  // One's own account's security: every signed-in login keeps their own (docs/web.md, 「Settings」, the account section's security).
   { method: "GET", path: /^\/api\/account\/security$/, scope: "user" },
   { method: "POST", path: /^\/api\/account\/(?:email-verification|second-factor|second-factor\/confirm|second-factor\/off|recovery-codes|devices\/others)$/, scope: "user" },
   { method: "DELETE", path: /^\/api\/account\/devices\/\d+$/, scope: "user" },

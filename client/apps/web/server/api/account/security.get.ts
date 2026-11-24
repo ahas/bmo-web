@@ -1,4 +1,4 @@
-import { accountSecurity, devicesOf, triesOf } from "../../utils/account-security";
+import { accountSecurity, accountDevices, triesOf } from "../../utils/account-security";
 import { profileCaller } from "../../utils/profile";
 import { securityFailure } from "../../utils/sign-in";
 
@@ -6,7 +6,7 @@ import { wording } from "#shared/wording";
 
 import type { OwnSecurity } from "#shared/account-security";
 
-// What stands of the reader's own account's security (docs/web.md, 「Settings」, 계정's 보안): its email and second
+// What stands of the reader's own account's security (docs/web.md, 「Settings」, the account section's security): its email and second
 // factor, its devices with this one marked, and its newest tries.
 export default defineEventHandler(async (event): Promise<OwnSecurity> => {
   const signed = await signedInUser(event);
@@ -19,7 +19,7 @@ export default defineEventHandler(async (event): Promise<OwnSecurity> => {
   try {
     const [security, devices, tries] = await Promise.all([
       accountSecurity(signed.id, caller),
-      devicesOf(signed.id, session.sid ?? null, caller),
+      accountDevices(signed.id, session.sid ?? null, caller),
       triesOf(signed.id, caller)
     ]);
 

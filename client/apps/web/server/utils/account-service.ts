@@ -90,7 +90,7 @@ function addressOf(options: ServiceOptions): string {
   return (options.address ?? process.env.WEB_SERVER_ADDRESS ?? "").replace(/\/+$/, "");
 }
 
-export function clientOf(options: ServiceOptions): AccountServiceClient {
+function clientOf(options: ServiceOptions): AccountServiceClient {
   const address = addressOf(options);
 
   if (address === "") throw new AccountServiceDown("(no address)", "no address is set for the server");
@@ -109,7 +109,7 @@ function sumidaClientOf(options: ServiceOptions): AccountServiceClient {
 }
 
 // A call nothing answered is the service down; a call it answered is read by its status.
-export async function sent<T>(options: ServiceOptions, asked: Promise<Reply<T>>): Promise<Reply<T>> {
+async function sent<T>(options: ServiceOptions, asked: Promise<Reply<T>>): Promise<Reply<T>> {
   try {
     return await asked;
   } catch (error) {
@@ -118,7 +118,7 @@ export async function sent<T>(options: ServiceOptions, asked: Promise<Reply<T>>)
 }
 
 // The server's own refusal is `{ code, error }`; sumida's session routes answer `{ code, statusCode, reason? }`.
-export function refusalOf(response: Response, body: RefusalBody | undefined): AccountRefusal {
+function refusalOf(response: Response, body: RefusalBody | undefined): AccountRefusal {
   if (body === undefined) return new AccountRefusal(response.status, "failed", `the account service answered ${response.status}`);
 
   return "statusCode" in body
@@ -126,7 +126,7 @@ export function refusalOf(response: Response, body: RefusalBody | undefined): Ac
     : new AccountRefusal(response.status, body.code, body.error);
 }
 
-export function answered<T>(reply: Reply<T>): T {
+function answered<T>(reply: Reply<T>): T {
   if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
 
   if (reply.data === undefined) {
@@ -287,7 +287,7 @@ export function shownName(user: { name: string; fullName: string }): string {
   return user.fullName === "" ? user.name : user.fullName;
 }
 
-export const userPath = (user: UserId | number) => String(user);
+const userPath = (user: UserId | number) => String(user);
 
 /** A user, or null where none has that id. */
 export async function userOf(id: UserId | number, options: ServiceOptions = {}): Promise<ServiceUser | null> {
@@ -1491,3 +1491,6 @@ export async function setChainDelegation(key: string, link: string, delegation: 
 export async function setChainRules(key: string, link: string, rules: ChainRuleView[], caller: ProfileCaller, options: ServiceOptions = {}): Promise<ChainEntryView> {
   return answered(await sent(options, clientOf(options).PUT("/chain/kinds/{key}/links/{link}/rules", { params: { path: { key, link }, header: { "Owner-Key": caller.key } }, body: { rules } })));
 }
+
+// The service's own call helpers under names of their own, for the modules that ask it beside this one.
+export { answered as accountAnswered, clientOf as accountClientOf, refusalOf as accountRefusalOf, sent as accountSent, userPath as accountUserPath };

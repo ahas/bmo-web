@@ -1,7 +1,7 @@
 <template>
-  <!-- The organisation screen's security tab (docs/web.md, 「Organisation」, 보안): whether the people under the node
+  <!-- The organisation screen's security tab (docs/web.md, 「Organisation」, the security tab): whether the people under the node
        chosen must hold a second factor — the node's own word or following above, with what that comes to — and what
-       the units below may do with it, each saved as it is changed. At 플랫폼 전체 it stands for the platform's own link. -->
+       the units below may do with it, each saved as it is changed. At the platform's node it stands for the platform's own link. -->
   <div class="flex flex-col gap-4" data-org-security>
     <div v-if="view === null && failure !== ''" class="flex flex-col items-end gap-3">
       <UAlert class="w-full" color="error" variant="subtle" :description="failure" />
@@ -65,7 +65,7 @@ import type { SecondFactorRequirement } from "#shared/account-security";
 interface Props {
   // The organisation chosen; the unit read is the one the tree chooses under it, the company itself where none is.
   company?: Organization | null;
-  // The platform's own link, chosen in the tree as 플랫폼 전체.
+  // The platform's own link, chosen in the tree.
   platform?: boolean;
 }
 

@@ -411,7 +411,8 @@
 - the one view a room's name opens, of what the room is and what it holds → 방 정보; its tabs → 대화상대, 미디어,
   파일, 링크, 음악, 음성, 상황, 호출 권한, 세션 정보, 채팅 서비스, 말투. Never 방 설정, 채팅방 정보, 방 서랍.
 - a chat road a room is on, as 채팅 서비스 and the console name it → the receiver's own record 대화 기록, each chat
-  service by the name people say for it (텔레그램, 카카오톡, 팀즈, 디스코드), and one the pack has no name for →
+  service by its exact official name in that language (Telegram, 카카오톡, Microsoft Teams, Discord), never a nickname
+  such as 팀즈, and one the pack has no name for →
   메신저 ({key}). Never 이 방의 기록 for the record, and never the receiver's English label.
 - a code a unit gives that the pack has no word for → the generic word for its sort: a verdict's stage 기타 단계, an
   outcome 기타 결과, a draft row's kind 기타 기록, a quiet instruction's sort 기타 지시, a role's bundle 기타 기능 묶음;

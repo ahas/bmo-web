@@ -851,10 +851,10 @@ room:
     room_add_room: 방
     room_add_search: 이름 검색
     road_record: 대화 기록
-    road_telegram: 텔레그램
+    road_telegram: Telegram
     road_kakao: 카카오톡
-    road_teams: 팀즈
-    road_discord: 디스코드
+    road_teams: Microsoft Teams
+    road_discord: Discord
     road_other: "메신저 ({key})"
     room_add_service: 채팅 서비스
     room_add_supervisor: 그룹 감독관

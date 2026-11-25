@@ -522,11 +522,12 @@ async fn a_second_factor_is_enrolled_then_asked_at_the_sign_in_and_taken_once() 
   assert!(asked.cookie().is_none());
 
   let ticket = asked.body["ticket"].as_str().unwrap().to_owned();
+  let taken = code(&secret, 1);
   let finished = ask(
     &world.app,
     Method::POST,
     "/sign-ins/second-factor",
-    Some(json!({ "ticket": ticket, "code": code(&secret, 1), "remember": true })),
+    Some(json!({ "ticket": ticket, "code": taken, "remember": true })),
     &[],
   )
   .await;
@@ -543,7 +544,7 @@ async fn a_second_factor_is_enrolled_then_asked_at_the_sign_in_and_taken_once() 
     &world.app,
     Method::POST,
     "/sign-ins/second-factor",
-    Some(json!({ "ticket": ticket, "code": code(&secret, 1), "remember": false })),
+    Some(json!({ "ticket": ticket, "code": taken, "remember": false })),
     &[],
   )
   .await;

@@ -1,4 +1,4 @@
-import { privateRoomsOf } from "../../../utils/console-rooms";
+import { privateRoomsOf } from "../../../utils/room-privacy";
 
 // The room the start guide's last step opens (docs/web.md, 「The start guide」): the signed-in reader's first own
 // supervisor's private room, or, for an administrator who owns none, the first room the default answerer speaks in.

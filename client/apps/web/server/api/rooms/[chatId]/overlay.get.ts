@@ -1,4 +1,4 @@
-import { privateRoomsOf } from "../../../utils/console-rooms";
+import { privateRoomsOf } from "../../../utils/room-privacy";
 import { requireReadableRoom } from "../../../utils/room-reach";
 
 import type { RoomOverlay } from "#shared/types";

@@ -63,12 +63,13 @@ let session: Record<string, unknown> = {};
 const signedIn = await import("../../../apps/web/server/utils/accounts");
 const reach = await import("../../../apps/web/server/utils/room-reach");
 const consoleRooms = await import("../../../apps/web/server/utils/console-rooms");
+const roomPrivacy = await import("../../../apps/web/server/utils/room-privacy");
 const { RoomHearers, listedRoomsOf } = await import("../../../apps/web/server/utils/room-hearers");
 
-globalsRestoredAfter(["requireUserSession", "getUserSession", "signedInUser", "unreadCounts", "ownSenders", "changeJudge", ...Object.keys(reach), ...Object.keys(consoleRooms)]);
+globalsRestoredAfter(["requireUserSession", "getUserSession", "signedInUser", "unreadCounts", "ownSenders", "changeJudge", ...Object.keys(reach), ...Object.keys(consoleRooms), ...Object.keys(roomPrivacy)]);
 
 // The room list route reads its reach and the rooms' privacies as the server's own imports.
-Object.assign(globals, reach, consoleRooms);
+Object.assign(globals, reach, consoleRooms, roomPrivacy);
 globals.requireUserSession = async () => session;
 globals.getUserSession = async () => session;
 globals.signedInUser = signedIn.signedInUser;

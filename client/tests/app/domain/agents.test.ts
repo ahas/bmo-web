@@ -40,7 +40,7 @@ import type { AgentMeta } from "../../../apps/web/app/domain/agents";
 import KO from "../../fixtures/app/domain/agents.test.ko.json";
 
 function room(chatId: number, title: string): RoomSummary {
-  return { chatId, title, messageCount: 0, lastMessageAt: null, pinned: false };
+  return { chatId, title, agent: null, messageCount: 0, lastMessageAt: null, pinned: false };
 }
 
 // The agent list as the console's server answers it: the agency's supervisors, roles and repositories, each under

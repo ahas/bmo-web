@@ -21,7 +21,7 @@ function gateRun(verdict: string): GateRunRecord {
   return { id: 1, agent: "content-judge", chatId: -1001, messageId: "7", verdict, ms: 1200, at: 100 };
 }
 
-const rooms: RoomSummary[] = [{ chatId: -1001, title: "Alpha Room", messageCount: 0, lastMessageAt: null, pinned: false }];
+const rooms: RoomSummary[] = [{ chatId: -1001, title: "Alpha Room", agent: null, messageCount: 0, lastMessageAt: null, pinned: false }];
 
 // The board's groups are the catalogue's own agents, so a test about them puts the catalogue in
 // hand the way every screen does.

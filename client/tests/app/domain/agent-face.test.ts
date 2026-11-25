@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { agentFacesOf, agentPicture, wearsFace } from "../../../apps/web/app/domain/agent-face";
+import { agentFacesOf, agentPicture, roomFace, wearsFace, withAgentFaces } from "../../../apps/web/app/domain/agent-face";
 import { avatarIndex } from "../../../apps/web/app/domain/avatars";
 
 // Every chat agent stands as its own face, decided in one place (docs/web.md, 「Profile photos」): the picture of the
@@ -47,5 +47,24 @@ describe("an agent's face", () => {
     expect(wearsFace({ group: "supervisor" })).toBe(true);
     expect(wearsFace({ group: "role" })).toBe(false);
     expect(wearsFace({ group: "repository" })).toBe(false);
+  });
+});
+
+describe("a room's face", () => {
+  const faces = withAgentFaces(avatars, agentFacesOf([{ name: "agent-a", personId: 501, rooms: [] }]));
+
+  test("is its agent's face in an agent's private room, never the room's own picture", () => {
+    expect(roomFace(faces, { chatId: -900, title: "Dear", agent: "agent-a" }).src).toBe("/api/avatars/person/501?v=1");
+  });
+
+  test("is the letter of the agent's own name where the agent has no picture", () => {
+    const face = roomFace(faces, { chatId: -900, title: "Dear", agent: "agent-z" });
+
+    expect(face.src).toBeUndefined();
+    expect(face.text).toBe("D");
+  });
+
+  test("is the room's own picture in any other room", () => {
+    expect(roomFace(faces, { chatId: -900, title: "Room A", agent: null }).src).toBe("/api/avatars/room/-900?v=1");
   });
 });

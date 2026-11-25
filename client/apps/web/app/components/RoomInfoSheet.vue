@@ -32,7 +32,7 @@
 
     <template #actions>
       <IconButton
-        v-if="props.manages"
+        v-if="props.pictureSettable"
         icon="i-material-symbols-add-photo-alternate-outline"
         :label="$t('room_info.action.picture')"
         data-room-info-set-picture
@@ -89,7 +89,7 @@
   </component>
 
   <PictureDialog
-    v-if="props.manages"
+    v-if="props.pictureSettable"
     :key="pictureOpenings"
     v-model:open="pictureOpen"
     :title="$t('picture.label.room')"
@@ -121,9 +121,12 @@ interface Props {
   avatars: AvatarIndex;
   // Whether the reader is the administrator, who reads the room's figures.
   administrator: boolean;
-  // Whether the reader is the administrator in a room he may change, who sets its picture, its avatar mode and its
-  // tone layer, and reads its chat services.
+  // Whether the reader is the administrator in a room he may change, who sets its avatar mode and its tone layer, and
+  // reads its chat services.
   manages: boolean;
+  // Whether the room's own picture is his to set here: a room he manages that stands as no agent, since an agent's
+  // private room wears its agent's picture, set on the agent's page.
+  pictureSettable: boolean;
 }
 
 // The sheet as wide as its whole row of tabs, and the drawer at one height whichever tab stands; the tabs stand

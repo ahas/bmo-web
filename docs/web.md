@@ -1495,8 +1495,19 @@ writing the words. A wording fix is an edit to the packs alone, once the guide b
   own face on the agents page, in the sidebar's agent branch, in the search, in its own screen's bar, in a room's
   header and beside its bubbles: the picture kept for the person number its words stand under, as the receiver
   names that number in the owner's room, in a room it speaks in (the agency's `GET /supervisors/{name}/rooms`) or in
-  any other room, or else the picture of the newest room it speaks in that keeps one; failing both, the first letter
-  of its label on its identity's colour.
+  any other room, or else the picture of the newest room it speaks in that keeps one and is no one's private room,
+  whose picture is its person's; failing both, the first letter of its label on its identity's colour.
+- **An agent's private room stands as its agent.** A room the receiver names someone's private room (its
+  `privateOf`), and the owner's private chat, is named and drawn by the agent that answers it wherever a room
+  stands: the sidebar and its search, the room list, the home screen, the agents' lists, a notification, the room's
+  bar and 방 정보's head. Its name is the one the agent answers to in the room: for a person's own BMO the name its
+  profile stands with (`docs/accounts.md`, 「A person's BMO profile」), the pack's word for a BMO where the profile
+  names none, and for an agent of no account its label; never a label made with the person's name. In a person's own
+  BMO's room that agent's own rows stand under the same name. The owner's private chat is answered by the supervisor
+  it names, else the default answerer, and keeps the name the console calls its chat agent by. Its face is the one
+  that agent wears everywhere (above), its name's letter on the agent's own colour where it has no picture. The person
+  stands only in 방 정보's 대화상대. The receiver's own title for the room stays the person's name, which the agent's
+  turns read (「The join page」).
 - **An agent's words wear the agent's face in every room.** The receiver names the agent whose words a message is
   on every send it makes, so each agent that speaks in a room — every supervisor alike — stands with its own
   face beside its lines, on a chat service's road and on the record road alike, where its words stand under no
@@ -1544,9 +1555,8 @@ writing the words. A wording fix is an edit to the packs alone, once the guide b
   place a broken image stands. A chat agent with no photo stands as its letter like everyone else.
   - **A person's or a room's letter stands on the hue its name is drawn in.** The circle takes the 700 step of
     the one of the conversation's eight name colours chosen by the same number (「The conversation's measures」),
-    so a person's face and the name at the head of their bubble are one colour, in every theme; a private
-    room is its person's number, so it wears the same hue in the room list. Everything else that stands as
-    a letter — a mail address, a machine — keeps the console's tones drawn from its own key.
+    so a person's face and the name at the head of their bubble are one colour, in every theme. Everything else
+    that stands as a letter — a mail address, a machine — keeps the console's tones drawn from its own key.
 - The photo is in the same place as the rest of this app. It does not open without login, its address is made
   only of a room or person number, and nothing goes out on it but what the receiver's picture routes answer.
 
@@ -1851,8 +1861,9 @@ Four groups.
     for.
   - **The picture is the agent's own.** A chat agent wears the picture of the person number its words stand under,
     whichever row of the catalogue it stands in — its own row and a session registered for a room alike — and failing
-    that the newest room it speaks in that keeps one, and failing both its label's letter. A room's
-    picture stands only where a room is what is shown: a room's header, a message's room, the room list. An agent that
+    that the newest room it speaks in that keeps one and is no one's private room, and failing both its label's
+    letter. A room's picture stands only where a room is what is shown: a room's header, a message's room, the room
+    list, where an agent's private room wears its agent's face (「Profile photos」). An agent that
     has a picture never stands without one, and one that has none stands its mark rather than nothing.
 - The three branches stand only while the agency answers, and a branch whose list is empty does not stand. An entry
   carries its name and, at the line's end, only a role's count badge and the chevron of a row with lines under
@@ -6179,10 +6190,11 @@ Four bounds keep it from growing forever.
   bottom on a narrow one,** at one height whichever tab is shown, so changing tabs moves nothing around it; the conversation stays where it stood.
   Back, Esc, its close button and a press outside close it, and opening and closing it leave the history as it was.
 - **Its head is the room's picture and its name.** The picture opens whole when pressed; a room standing as its
-  letter has nothing to open. For the owner, in a room he may change, a 방 사진 button stands at the head's end and
-  opens the room's picture setting as a dialog over the view (「Profile photos」). For the platform administrator, in
-  every room, another person's private room and a sealed one among them, 영구 삭제 stands last at the head's end, in
-  the error colour, and opens the room's removal dialog over the view (「방 등록 삭제」); nobody else sees it.
+  letter has nothing to open. An agent's private room stands there as its agent, its picture the agent's own and set
+  on the agent's page, so it carries no 방 사진 (「Profile photos」). For the owner, in any other room he may change, a
+  방 사진 button stands at the head's end and opens the room's picture setting as a dialog over the view. For the
+  platform administrator, in every room, another person's private room and a sealed one among them, 영구 삭제 stands
+  last at the head's end, in the error colour, and opens the room's removal dialog over the view (「방 등록 삭제」); nobody else sees it.
 - **Its tabs stand on one row of the component library's tabs under the head,** the row scrolling sideways where it
   is narrower than its tabs, in this order: 대화상대, 미디어, 파일, 링크, 음악, 음성, 상황, then for the
   owner 세션 정보, and for the owner in a room he may change 채팅 서비스 and 말투. The view opens on 대화상대, and on the tab it
@@ -8774,7 +8786,8 @@ Where a company's own words for its roles and its unit kinds are kept (`docs/acc
 - **A person's own BMO and its private room are titled by the name people read the person by,** their person's
   name, else their login: the BMO's label is that name with the name the BMO's profile stands with, `{name}의 BMO`
   where nothing else stands (「A person's BMO profile on the agency and the receiver」), and the room's title the name
-  alone, each in the language pack's words (WORDING.md). The titles follow the name: as the account is made
+  alone, each in the language pack's words (WORDING.md). The room's title is the receiver's, which the agent's turns
+  read; the console names the room by its agent (「Profile photos」). The titles follow the name: as the account is made
   ready, at every sign-in, and as the person's name is saved on 계정's 프로필, the console's server sets the BMO's
   label through the agency and the room's title through the receiver wherever either still stands as a title the
   console made itself — the account's key `u<user>`, the login, or the titles made from the login or from the

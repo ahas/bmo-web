@@ -29,7 +29,7 @@
             class="flex items-start gap-3 rounded-lg border border-default px-4 py-3 transition-colors hover:bg-elevated active:bg-accented"
             :to="`/rooms/${room.chatId}`"
           >
-            <UAvatar v-bind="{ ...avatarFor(pictures, 'room', room.chatId, room.title), chip: presenceChip(roomPresence(present.presence.get(room.chatId), present.me)) }" size="sm" />
+            <UAvatar v-bind="{ ...roomFace(pictures, room), chip: presenceChip(roomPresence(present.presence.get(room.chatId), present.me)) }" size="sm" />
             <p class="min-w-0 grow truncate text-sm font-medium">{{ room.title }}</p>
             <!-- While somebody writes in the room, a still mark after its name (docs/web.md, 「Presence and typing」). -->
             <UIcon
@@ -53,7 +53,7 @@
 
 <script setup lang="ts">
 import { useAdministrator } from "~/domain/access";
-import { avatarFor, useAvatars } from "~/domain/avatars";
+import { roomFace, useAgentAvatars } from "~/domain/agent-face";
 import { presenceChip, roomPresence, typingPeople, useRoomsPresent } from "~/domain/presence";
 import { formatStamp } from "bmo-ui/app/domain/time";
 
@@ -80,5 +80,5 @@ const present = useRoomsPresent();
 
 // The pictures are read off a route a member is not opened to, so for a member every room wears its
 // letter. Who is signed in does not change while the page stands, so the read is asked or not once.
-const pictures = useAdministrator().value ? useAvatars() : computed<AvatarIndex>(() => new Map());
+const pictures = useAdministrator().value ? useAgentAvatars() : computed<AvatarIndex>(() => new Map());
 </script>

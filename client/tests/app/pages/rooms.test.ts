@@ -27,7 +27,9 @@ describe("the room screen's write controls", () => {
     expect(template).toContain(':administrator="manages"');
 
     expect(template).toContain(':manages="manages"');
-    expect(info).toContain('<PictureDialog\n    v-if="props.manages"');
+    // The room's own picture is his only where he manages the room and it stands as no agent (docs/web.md, the room information).
+    expect(template).toContain(':picture-settable="manages && roomAgent === null"');
+    expect(info).toContain('<PictureDialog\n    v-if="props.pictureSettable"');
     expect(info).toContain('<RoomProvidersPanel v-if="props.manages');
 
     expect(script).toContain("room.chatId !== chatId && room.writable !== false");

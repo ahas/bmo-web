@@ -149,11 +149,21 @@ export interface TurnEntry {
 
 export interface RoomSummary {
   chatId: number;
+  // The name the room is called by: an agent's private room its agent's own name (docs/web.md, 「An agent's private
+  // room stands as its agent」), any other room its title.
   title: string;
+  // The registration name of the agent a private room stands as, whose face it wears; none for any other room.
+  agent: string | null;
   messageCount: number;
   lastMessageAt: number | null;
   // Whether the room stands in the pinned order the receiver keeps.
   pinned: boolean;
+}
+
+// The agent a private room stands as: its registration name and the name it answers to in the room.
+export interface RoomAgent {
+  name: string;
+  title: string;
 }
 
 // A place in a room's line: when the message was sent, and of those sent in one second the order

@@ -1,5 +1,5 @@
 import { listRooms } from "../../../../utils/archive";
-import { roomPrivacies, SHARED } from "../../../../utils/console-rooms";
+import { roomPrivacies, SHARED } from "../../../../utils/room-privacy";
 import { ownRooms } from "../../../../utils/room-reach";
 import { rosterPersonForAdministrator } from "../../../../utils/roster";
 

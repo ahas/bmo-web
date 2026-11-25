@@ -193,8 +193,8 @@ import { useOpenings } from "bmo-ui/app/domain/openings";
 import { consoleName } from "#shared/agent-names";
 import { useAgentFolds } from "~/domain/agent-folds";
 import { agentGroups, groupIcon, isAgentRunning, isUnfolded, runLink, sessionLink, withFolds } from "~/domain/agents";
-import { useAgentFace } from "~/domain/agent-face";
-import { avatarFor, useAvatars } from "~/domain/avatars";
+import { roomFace, useAgentAvatars, useAgentFace } from "~/domain/agent-face";
+import { avatarFor } from "~/domain/avatars";
 import { useAgentCatalogue } from "~/domain/catalogue";
 import { useBotEvents, useLiveRefresh, useSupervisorsAnswering } from "~/domain/events";
 import { COUNT_BADGE, countText } from "~/domain/numbers";
@@ -288,8 +288,9 @@ const screenSections = computed<ReadNameSection[]>((before) =>
   sameKept(before, withReadNames(sectionItems(namedBy(t, readNames.value), route.path, undefined, sidebarFolded.value, screens.value, unread.value), readNames.value))
 );
 
-// The picture every session in this sidebar wears.
-const avatars = useAvatars();
+// The picture every session in this sidebar wears, every chat agent's face laid in under its name for the rooms that
+// stand as their agent.
+const avatars = useAgentAvatars();
 const agentFace = useAgentFace();
 
 // The agents are the agency's to report; a catalogue it does not answer leaves the block saying so.
@@ -434,9 +435,16 @@ function sessionEntry(agent: AgentMeta, session: AgentSession): NavigationMenuIt
   return {
     label: session.label,
     to: sessionLink(agent.name, session),
-    avatar: avatarFor(avatars.value, "room", session.chatId, session.label),
+    avatar: sessionFace(session),
     active: agentPlace.value.path === `/agents/${agent.name}` && agentPlace.value.chat === String(session.chatId)
   };
+}
+
+// What a room session's row wears: its room's own face as the room list gives it, an agent's private room its agent's.
+function sessionFace(session: AgentSession): AvatarProps {
+  const room = rooms.value.find((one) => one.chatId === session.chatId);
+
+  return room === undefined ? avatarFor(avatars.value, "room", session.chatId, session.label) : roomFace(avatars.value, room);
 }
 
 // One run of a role, by what it works in, opening the role's log at that run.
@@ -524,7 +532,7 @@ const jumpSources = computed<JumpGroup[]>((before) => sameKept(before, [
       id: `room-${room.chatId}`,
       label: room.title,
       to: `/rooms/${room.chatId}`,
-      avatar: avatarFor(avatars.value, "room", room.chatId, room.title),
+      avatar: roomFace(avatars.value, room),
       hidden: [{ label: t("screens.label.chat_id"), text: String(room.chatId) }]
     }))
   },

@@ -142,8 +142,8 @@ describe("the numbers on the screen", () => {
 });
 
 const rooms: RoomSummary[] = [
-  { chatId: 10000001, title: OWNER_ROOM_TITLE, messageCount: 1, lastMessageAt: 1, pinned: false },
-  { chatId: -1000000000003, title: "Alpha Room", messageCount: 1, lastMessageAt: 1, pinned: false }
+  { chatId: 10000001, title: OWNER_ROOM_TITLE, agent: null, messageCount: 1, lastMessageAt: 1, pinned: false },
+  { chatId: -1000000000003, title: "Alpha Room", agent: null, messageCount: 1, lastMessageAt: 1, pinned: false }
 ];
 
 describe("what a request stands under", () => {

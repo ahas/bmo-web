@@ -3,7 +3,7 @@ import { MONITOR_TABS } from "./hardware";
 import { ADMIN_PATH, ADMIN_TABS } from "./administration";
 import { ORGANIZATION_PATH, ORGANIZATION_TABS } from "./organization";
 
-import { avatarFor } from "./avatars";
+import { roomFace } from "./agent-face";
 import { COUNT_BADGE, countText } from "./numbers";
 import { presenceChip, roomPresence, typingPeople } from "./presence";
 import { unreadLabel, unreadShown } from "./room-list";
@@ -345,7 +345,7 @@ export function roomItems(
   present: RoomsPresent | null = null
 ): NavigationMenuItem[] {
   return rooms.map((room) => {
-    const picture = avatarFor(avatars, "room", room.chatId, room.title);
+    const picture = roomFace(avatars, room);
     const active = path === `/rooms/${room.chatId}`;
     // The room open beside the list tells who writes in its own typing picture, so its row says nothing of it.
     const writing = !active && present !== null && typingPeople(present.typing.get(room.chatId), present.me).length > 0;

@@ -26,7 +26,7 @@ const refs: AvatarRef[] = [
 
 const index = avatarIndex(refs, (path) => `/console${path}`);
 
-const room: ListedRoom = { chatId: ROOM_ID, title: "room-a", messageCount: 1, lastMessageAt: null, pinned: false, unread: 0, firstUnread: null, readTo: null, writable: true };
+const room: ListedRoom = { chatId: ROOM_ID, title: "room-a", agent: null, messageCount: 1, lastMessageAt: null, pinned: false, unread: 0, firstUnread: null, readTo: null, writable: true };
 
 function said(senderId: number, senderName: string): ArchivedMessage {
   return { chatId: ROOM_ID, messageId: "1", senderId, senderName, agent: false, sentAt: 1_788_000_000, text: "a line", imagePath: null, replyToMessageId: null };

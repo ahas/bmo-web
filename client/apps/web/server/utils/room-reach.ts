@@ -6,13 +6,14 @@ import { userOf } from "./account-service";
 import { signedInUser } from "./accounts";
 import { publishConsoleEvent } from "./console-events";
 import { ROOMS_WORD } from "./room-stream";
-import { SHARED, accountRooms, privacyOf, readableBy, roomPrivacies, writableBy } from "./console-rooms";
+import { accountRooms } from "./console-rooms";
+import { SHARED, privacyOf, readableBy, roomPrivacies, writableBy } from "./room-privacy";
 import { fail } from "./fail";
 import { onOwnersRoad, ownerChat, ownerStanding } from "./owner";
 import { receiver, receiverCall } from "./receiver";
 
 import type { SignedIn } from "./accounts";
-import type { RoomPrivacy } from "./console-rooms";
+import type { RoomPrivacy } from "./room-privacy";
 import type { OwnerStanding } from "./owner";
 import type { H3Event } from "h3";
 

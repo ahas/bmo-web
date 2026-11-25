@@ -86,9 +86,10 @@ let session: Record<string, unknown> = {};
 
 const signedIn = await import("../../../apps/web/server/utils/accounts");
 const consoleRooms = await import("../../../apps/web/server/utils/console-rooms");
+const roomPrivacy = await import("../../../apps/web/server/utils/room-privacy");
 
-globalsRestoredAfter(["requireUserSession", "getUserSession", "signedInUser", ...Object.keys(consoleRooms)]);
-Object.assign(globals, consoleRooms);
+globalsRestoredAfter(["requireUserSession", "getUserSession", "signedInUser", ...Object.keys(consoleRooms), ...Object.keys(roomPrivacy)]);
+Object.assign(globals, consoleRooms, roomPrivacy);
 globals.requireUserSession = async () => session;
 globals.getUserSession = async () => session;
 globals.signedInUser = signedIn.signedInUser;

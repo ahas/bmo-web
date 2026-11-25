@@ -118,7 +118,7 @@ globals.requireUserSession = async () => session;
 globals.signedInUser = (await import("../../../apps/web/server/utils/accounts")).signedInUser;
 
 const { actingAccount, changeJudge } = await import("../../../apps/web/server/utils/room-reach");
-const { roomPrivacies } = await import("../../../apps/web/server/utils/console-rooms");
+const { roomPrivacies } = await import("../../../apps/web/server/utils/room-privacy");
 
 const AS_ADMINISTRATOR = { user: { name: "boss", id: ADMINISTRATOR }, sid: "bmo.sid=boss", administrator: true };
 const AS_OWNER = { user: { name: `account-${OWNER}`, id: OWNER }, sid: "bmo.sid=owner", administrator: false };

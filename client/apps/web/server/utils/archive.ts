@@ -11,6 +11,8 @@ import { figuresOf } from "./runfigures";
 import { judgementsWithin, markOf } from "./gate";
 import { withOpenings } from "./openings";
 import { ownerChat } from "./owner";
+import { roomPrivacies } from "./room-privacy";
+import { roomAgentOf, roomAgents } from "./room-agents";
 import { carriesFiles, messageMedia } from "./message-media";
 import { pictureShape } from "./picture-sizes";
 import { exactAnswer, exactHoldingMessages, exactMessage, exactMessages, receiver, receiverCall } from "./receiver";
@@ -179,17 +181,23 @@ export function isAdded(room: ReceiverRoom): boolean {
 }
 
 /** Every room that has been added, the pinned ones first in the owner's order, each under the name it is called by
- * (docs/web.md, 「Sidebar」). */
+ * (docs/web.md, 「Sidebar」): an agent's private room by its agent (「An agent's private room stands as its agent」). */
 export async function listRooms(): Promise<RoomSummary[]> {
-  const [every, owner] = await Promise.all([everyRoom(), ownerChat()]);
+  const [every, owner, privacies] = await Promise.all([everyRoom(), ownerChat(), roomPrivacies()]);
   const rooms = every.filter(isAdded);
-  const named = await peopleNamed(rooms.filter((room) => untitled(room.title) && room.id !== owner).map((room) => room.id));
+  const [named, agents] = await Promise.all([
+    peopleNamed(rooms.filter((room) => untitled(room.title) && room.id !== owner).map((room) => room.id)),
+    roomAgents(rooms.map((room) => ({ id: room.id, privateOf: privacies.get(room.id)?.privateOf ?? null, supervisors: room.supervisors })), owner)
+  ]);
 
   return await Promise.all(
     rooms.map(async (room): Promise<RoomSummary> => {
+      const agent = agents.get(room.id);
+
       return {
         chatId: room.id,
-        title: roomLabel(room.id, untitled(room.title) ? (named.get(room.id) ?? null) : room.title, owner),
+        title: agent?.title ?? roomLabel(room.id, untitled(room.title) ? (named.get(room.id) ?? null) : room.title, owner),
+        agent: agent?.name ?? null,
         messageCount: room.messageCount,
         lastMessageAt: room.lastMessageAt === null ? null : seconds(room.lastMessageAt),
         pinned: room.pinned
@@ -200,10 +208,12 @@ export async function listRooms(): Promise<RoomSummary[]> {
 
 /** One room by the name it is called by, the same name the room list gives it. */
 export async function roomTitleOf(chatId: number): Promise<string> {
-  const [{ title }, owner] = await Promise.all([
-    receiverCall(receiver().GET("/rooms/{roomId}/title", { params: { path: { roomId: chatId } } })),
-    ownerChat()
-  ]);
+  const owner = await ownerChat();
+  const agent = await roomAgentOf(chatId, owner).catch(() => null);
+
+  if (agent !== null) return agent.title;
+
+  const { title } = await receiverCall(receiver().GET("/rooms/{roomId}/title", { params: { path: { roomId: chatId } } }));
   const person = untitled(title) && chatId !== owner ? ((await peopleNamed([chatId])).get(chatId) ?? null) : null;
 
   return roomLabel(chatId, untitled(title) ? person : title, owner);
@@ -388,9 +398,16 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
   const room = await answererNumbers(chatId).catch(() => ({ numbers: new Map<number, string>(), voice: null }));
   const answerers = room.numbers;
   const agents = new Map(received.map((message) => [senderKey(message), message.agentName !== null || (message.senderId !== null && answerers.has(message.senderId))]));
-  // What each agent is called, as the agency holds it, so an agent's row stands under its label for every reader.
-  // Who each reactor is, named by the receiver, so a reactor with no words on the page is named all the same.
-  const [voiced, labels, reactors] = await Promise.all([ownerVoices(chatId, received, answerers), agentLabels(), reactorNames(received)]);
+  // What each agent is called, as the agency holds it, so an agent's row stands under its label for every reader; in a
+  // person's own BMO's private room that agent's rows stand under the name the room stands under (docs/web.md, 「An
+  // agent's private room stands as its agent」). Who each reactor is, named by the receiver, so a reactor with no words
+  // on the page is named all the same.
+  const [voiced, labels, reactors, standing] = await Promise.all([
+    ownerVoices(chatId, received, answerers),
+    agentLabels(),
+    reactorNames(received),
+    ownerChat().then((owner) => (owner === chatId ? null : roomAgentOf(chatId, owner))).catch(() => null)
+  ]);
   // Each message's files are read once, and a reply to a message the page holds quotes it from the page. A row
   // draws its words from the metadata it arrived with unless it is an agent's answer, which stands as its markdown.
   const media = new Map(received.map((message) => [message.messageId, mediaOf(chatId, message, message.text !== "" && agents.get(senderKey(message)) !== true)]));
@@ -436,7 +453,7 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
       const voicedBy = accountAgent(message, voiced);
       const speaker = speakerOf(message, agent, answerers, room.voice);
       const named = voicedBy ?? speaker;
-      const speakerLabel = named === undefined ? undefined : labels.get(named);
+      const speakerLabel = named === undefined ? undefined : named === standing?.name ? standing.title : labels.get(named);
       const files = await media.get(message.messageId)!;
       const imageShape = await shapes.get(message.messageId)!;
       const text = await wordsOf(message);

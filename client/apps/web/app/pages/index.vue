@@ -41,7 +41,7 @@
                 class="flex items-start gap-3 rounded-lg border border-default px-4 py-3 transition-colors hover:bg-elevated active:bg-accented"
                 :to="`/rooms/${room.chatId}`"
               >
-                <UAvatar v-bind="avatarFor(avatars, 'room', room.chatId, room.title)" size="sm" />
+                <UAvatar v-bind="roomFace(avatars, room)" size="sm" />
                 <!-- A room is its name here as everywhere else; its number is in the address
                      for anyone who needs it. Under the name stand the figures of the session
                      that serves it. -->
@@ -93,7 +93,7 @@ import { POLL_INTERVAL_MS } from "#shared/config";
 import { controlLine, controlLink } from "~/domain/control";
 import { agentNameLabel, defaultAnswererName, metaOf } from "~/domain/agents";
 import { useAgentCatalogue } from "~/domain/catalogue";
-import { avatarFor, useAvatars } from "~/domain/avatars";
+import { roomFace, useAgentAvatars } from "~/domain/agent-face";
 import { TURN_ENDED, useBmoTurns, useLivePicture, useLiveRefresh } from "~/domain/events";
 import { formatStamp } from "bmo-ui/app/domain/time";
 import { emptyUsage, usageOver } from "~/domain/usage";
@@ -145,8 +145,9 @@ const agents = computed<AgentList>(() => agentData.value);
 // Whether one supervisor answers every room that names nobody, which the catalogue says by its default answerer.
 const hasSharedBmo = computed(() => agents.value.agents.some(agent => agent.kind === "supervisor" && agent.defaultAnswerer));
 const usage = computed<UsageView>(() => usageData.value ?? emptyUsage());
-// The picture each room wears here, the same one the sidebar and the room itself wear.
-const avatars = useAvatars();
+// The picture each room wears here, the same one the sidebar and the room itself wear: an agent's private room its
+// agent's face.
+const avatars = useAgentAvatars();
 
 // What is running anywhere, and which chats are having their context folded. Both are asked for
 // once and then replaced by the picture the bot's own stream carries, so a row changes state

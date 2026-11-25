@@ -59,6 +59,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["room-copy", "fixture-password-2254"],
   ["room-members", "fixture-password-2995"],
   ["room-info", "fixture-password-3755"],
+  ["agent-room", "fixture-password-3961"],
   ["agents-listed", "fixture-password-2255"],
   ["briefing-chip", "fixture-password-2256"],
   ["bundle-bar", "fixture-password-2258"],
@@ -191,6 +192,15 @@ const MEMBERS: readonly { name: string; password: string; sections: readonly { s
     password: "fixture-password-3766",
     sections: [
       { section: "rooms", read: true, write: false },
+      { section: "account", read: true, write: true }
+    ]
+  },
+  // A person with a BMO of their own and its private room, whose profile names the BMO (tests/browser/agent-room.test.ts).
+  {
+    name: "agent-room-person",
+    password: "fixture-password-3962",
+    sections: [
+      { section: "rooms", read: true, write: true },
       { section: "account", read: true, write: true }
     ]
   },
@@ -479,11 +489,17 @@ const PRIVATE_ACCOUNT = 9_003_001;
 // A room only the presence fixture's people stand in, whose presence the receiver's stand-in tells as its stream opens:
 // each of the three online, written once their accounts stand. No fixture account shares the room with them.
 const PRESENCE_CHAT = -9_004_000_000_001;
+// A person's own BMO's private room, titled on the receiver by the person, its BMO labelled with the person's name and
+// its profile naming it `Dear`; the person's account is known once the accounts stand.
+const OWN_BMO_CHAT = -9_006_000_000_001;
+const OWN_BMO = "agent-room-bmo";
+const OWN_BMO_PERSON = "agent-room-person";
+let ownBmoAccount: number | null = null;
 const PRESENCE_PEOPLE = ["presence-here", "presence-hidden", "presence-other"] as const;
 const presence = { frames: "" };
 // Every fixture room stands under a number of its own: the receiver's stand-in answers a room's reads by its number, so
 // two rooms on one number would hand one of them the other's line. The harness refuses to stand where two share one.
-const FIXTURE_ROOMS: Record<string, number> = { OWNER_CHAT, UNREAD_CHAT, RECORD_CHAT, MEDIA_CHAT, STICKER_CHAT, LONE_CHAT, NUMBERED_CHAT, PAST_CHAT, PAGED_CHAT, PRIVATE_CHAT, PRESENCE_CHAT, HIGH_ROOM, SYSTEM_ROOM, INVITE_ROOM };
+const FIXTURE_ROOMS: Record<string, number> = { OWNER_CHAT, UNREAD_CHAT, RECORD_CHAT, MEDIA_CHAT, STICKER_CHAT, LONE_CHAT, NUMBERED_CHAT, PAST_CHAT, PAGED_CHAT, PRIVATE_CHAT, PRESENCE_CHAT, HIGH_ROOM, SYSTEM_ROOM, INVITE_ROOM, OWN_BMO_CHAT };
 const sharedRooms = Object.entries(FIXTURE_ROOMS).filter(([, id], at, all) => all.findIndex(([, other]) => other === id) !== at);
 
 if (sharedRooms.length > 0) {
@@ -559,7 +575,7 @@ function activitySession(): Record<string, unknown> {
 }
 
 function privacyOf(chat: number): { privateOf: number | null; sealed: boolean } {
-  return { privateOf: chat === PRIVATE_CHAT ? PRIVATE_ACCOUNT : null, sealed: chat === OWNER_CHAT && SEALED_OWNER };
+  return { privateOf: chat === PRIVATE_CHAT ? PRIVATE_ACCOUNT : chat === OWN_BMO_CHAT ? ownBmoAccount : null, sealed: chat === OWNER_CHAT && SEALED_OWNER };
 }
 
 // The rooms a write to the receiver changes, and the account it names in its query, its body or the relay's
@@ -1555,8 +1571,9 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     // section stands; what a signed-in reader is answered holds the two supervisors alone.
     if (path === "/supervisors") {
       const owned = request.headers.get("owner-key") === null && ownedBmo !== null ? [supervisor("agent-own", "Agent Own", { ownerAccount: ownedBmo })] : [];
+      const ownRoom = request.headers.get("owner-key") === null && ownBmoAccount !== null ? [supervisor(OWN_BMO, `${OWN_BMO_PERSON} Dear`, { ownerAccount: ownBmoAccount })] : [];
 
-      return Response.json({ items: [heldSupervisor("agent-a"), heldSupervisor("agent-c"), ...owned], more: false });
+      return Response.json({ items: [heldSupervisor("agent-a"), heldSupervisor("agent-c"), ...owned, ...ownRoom], more: false });
     }
     if (path === "/roles") return Response.json({ roles: ROLES, bundles: [{ name: "web.read", code: "web-read", label: "Web reading" }, { name: "web.sites", code: "web-sites", label: "Site tools" }], lines: ["worker", "search", "browse", "translate"] });
     if (/^\/roles\/[^/]+\/sessions$/.test(path)) {
@@ -2055,7 +2072,8 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       return Response.json({ goes: [], stays: [], pictures: [], settings: [], folders: [], warned: [], units: [], taken: [], cleared: [], holders: [], couldNot: [] });
     }
     // Every room the receiver reads carries whose private room it is.
-    const every = [room, listed, behind, recorded, media, stickerRoom, loneRoom, { ...room, id: HIGH_ROOM, title: "high-room", ownerRoom: false, workRoom: HIGH_ROOM, lastMessageAt: LINE_AT - 200 }, privateRoom, inviteRoomListed(room)]
+    const ownBmoRoom = { ...room, id: OWN_BMO_CHAT, title: OWN_BMO_PERSON, ownerRoom: false, workRoom: OWN_BMO_CHAT, supervisors: [OWN_BMO], lastMessageAt: LINE_AT - 400 };
+    const every = [room, listed, behind, recorded, media, stickerRoom, loneRoom, { ...room, id: HIGH_ROOM, title: "high-room", ownerRoom: false, workRoom: HIGH_ROOM, lastMessageAt: LINE_AT - 200 }, privateRoom, inviteRoomListed(room), ownBmoRoom]
       .map((one) => ({ ...one, ...privacyOf(one.id) }));
 
     if (path === "/rooms") return Response.json({ items: every, more: false });
@@ -2067,7 +2085,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     if (member !== null) {
       const account = Number(member[1]);
 
-      return Response.json({ rooms: [...(account === PRIVATE_ACCOUNT ? [PRIVATE_CHAT] : account === activity.account ? [UNREAD_CHAT] : []), ...inviteRoomsOf(account)] });
+      return Response.json({ rooms: [...(account === PRIVATE_ACCOUNT ? [PRIVATE_CHAT] : account === ownBmoAccount ? [OWN_BMO_CHAT] : account === activity.account ? [UNREAD_CHAT] : []), ...inviteRoomsOf(account)] });
     }
     if (path === `/rooms/${PRIVATE_CHAT}/messages`) {
       const after = new URL(request.url).searchParams.get("after");
@@ -2663,6 +2681,25 @@ try {
 
     return Number(one.user);
   });
+  // The person with a BMO of their own: allowed to personalise it, and naming it themselves, as their own-BMO section
+  // saves it.
+  const ownBmoPerson = users.find((user) => user.name === OWN_BMO_PERSON);
+
+  if (ownBmoPerson === undefined) throw new Error(`${OWN_BMO_PERSON} stands in no users list`);
+
+  const allowed = await service(`/users/${ownBmoPerson.user}/agent-permission`, { method: "PUT", body: JSON.stringify({ setting: "allow" }) });
+
+  if (!allowed.ok) throw new Error(`the BMO setting permission was refused: ${allowed.status} ${await allowed.text()}`);
+
+  const named = await fetch(`http://127.0.0.1:${serverPort}/users/${ownBmoPerson.user}/agent`, {
+    method: "PUT",
+    headers: { authorization: `Bearer ${TOKEN}`, "owner-key": ownBmoPerson.user, "owner-role": "member", "content-type": "application/json" },
+    body: JSON.stringify({ name: "Dear", callNames: [], persona: null })
+  });
+
+  if (!named.ok) throw new Error(`the BMO's own name was refused: ${named.status} ${await named.text()}`);
+  ownBmoAccount = Number(ownBmoPerson.user);
+
   const company = await service("/units", { method: "POST", body: JSON.stringify({ name: "presence-company" }) });
 
   if (!company.ok) throw new Error(`the other company was refused: ${company.status} ${await company.text()}`);

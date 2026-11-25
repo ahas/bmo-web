@@ -1,4 +1,5 @@
 import { agency, agencyCall } from "./agency";
+import { roomPrivacies } from "./room-privacy";
 import { ownerChat } from "./owner";
 import { receiver, receiverCall } from "./receiver";
 
@@ -8,8 +9,9 @@ import type { AgentFace } from "#shared/types";
 // 「Profile photos」), beside the rooms it speaks in (the agency's `GET /supervisors/{name}/rooms`), newest first. The
 // receiver names the number per room (`GET /rooms/{roomId}/own-number`), so each chat agent is asked for in the owner's
 // room, then in every room it speaks in, then in every other room — a room the console made on the record road numbers
-// no agent — and the first number answered in that order stands. The answer changes only as agents and rooms are made,
-// so it is kept for a minute.
+// no agent — and the first number answered in that order stands. The rooms a face falls back on leave out every private
+// room, whose picture is its person's, and are none while the rooms' privacy cannot be read. The answer changes only as
+// agents and rooms are made, so it is kept for a minute.
 
 const KEPT_MS = 60_000;
 
@@ -28,10 +30,11 @@ async function ownNumber(roomId: number, agentName: string): Promise<number | nu
 }
 
 async function readFaces(): Promise<AgentFace[]> {
-  const [supervisors, rooms, owner] = await Promise.all([
+  const [supervisors, rooms, owner, privacies] = await Promise.all([
     agencyCall(agency().GET("/supervisors")).then((answer) => answer.items).catch(() => []),
     receiverCall(receiver().GET("/rooms")).then((answer) => answer.items).catch(() => []),
-    ownerChat()
+    ownerChat(),
+    roomPrivacies().catch(() => null)
   ]);
   // The chat agents are the supervisors, every one alike (docs/web.md, 「Sidebar」).
   return await Promise.all(
@@ -42,7 +45,9 @@ async function readFaces(): Promise<AgentFace[]> {
       const places = [...new Set([...(owner === null ? [] : [owner]), ...spoken, ...rooms.map((room) => room.id)])];
       const numbers = await Promise.all(places.map((place) => ownNumber(place, name)));
 
-      return { name, personId: numbers.find((number) => number !== null) ?? null, rooms: spoken };
+      const shared = privacies === null ? [] : spoken.filter((room) => room !== owner && !privacies.has(room));
+
+      return { name, personId: numbers.find((number) => number !== null) ?? null, rooms: shared };
     })
   );
 }

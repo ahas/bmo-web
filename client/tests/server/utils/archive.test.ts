@@ -179,6 +179,12 @@ const receiver = standIn("RECEIVER", (one) => {
   if (path === "/rooms/-16/messages") return answer({ items: reacted, more: false });
 
   if (path === "/rooms") return answer({ items: rooms, more: false });
+  // A person's own BMO's private room, one line its agent said in it.
+  if (path === "/rooms/-24/answerers") return answer({ default: "", voice: "", items: [{ agentName: "u7", defaultAnswerer: false }], more: false });
+  if (path === "/rooms/-24/messages") return answer({ items: [message(31, { room: -24, senderId: null, senderName: "Person B Dear", agentName: "u7", text: "an answer" })], more: false });
+  // One room's own read, as the list holds it.
+  const listedRoom = rooms.find((one) => path === `/rooms/${String(one.id)}`);
+  if (listedRoom !== undefined) return answer(listedRoom);
 
   // The owner's room is the console-made one; their chat service's one-to-one is a room like any other.
   if (path === "/owner") return answer({ room: -11, senderId: 5 });
@@ -221,8 +227,19 @@ const agency = standIn("AGENCY", (one) => {
     return answer({ items: [{ id: 1, runId: 41, kind: "tool", text: "read a file", fields: { name: "read" }, at: 1 }], more: false });
   }
   if (url.pathname === "/log-lines") return answer({ items: [], more: false });
-  // What each supervisor is called: one with a label, and one the agency gives none.
-  if (url.pathname === "/supervisors") return answer({ items: [{ name: "agent-a", label: "Agent A" }, { name: "agent-b", label: null }], more: false });
+  // What each supervisor is called: one with a label, one the agency gives none, and two people's own BMOs, each
+  // labelled with its person's name.
+  if (url.pathname === "/supervisors") {
+    return answer({
+      items: [
+        { name: "agent-a", label: "Agent A" },
+        { name: "agent-b", label: null },
+        { name: "u7", label: "Person B Dear", ownerAccount: 7 },
+        { name: "u8", label: "Person C BMO", ownerAccount: 8 }
+      ],
+      more: false
+    });
+  }
 
   return answer({ code: "no-route", error: "no route" }, 404);
 });
@@ -233,9 +250,18 @@ const accounts = standIn("WEB_SERVER", (one) => {
   const code = one.body?.code;
 
   if (one.path === "/words/render" && (code === "people-joined" || code === "person-left")) return answer({ text: `said ${code}` });
+  // The BMO profiles standing for two people: one named by their company, one the deployment's own.
+  if (one.path === "/users/7/agent") return answer(profileNamed({ from: "company", name: "Dear" }));
+  if (one.path === "/users/8/agent") return answer(profileNamed({ from: "deployment" }));
 
   return answer({ code: "unknown-code", error: "the pack holds no line" }, 404);
 });
+
+function profileNamed(name: Record<string, unknown>): Record<string, unknown> {
+  const deployment = { from: "deployment" };
+
+  return { personalize: false, name, callNames: { ...deployment, callNames: [] }, persona: deployment, picture: deployment, own: { callNames: [], picture: false } };
+}
 
 const { listRooms, readDayStart, readMessagePage, readMessagesAfter, readWholeJudgements, roundFigures, roomTitleOf } = await import("../../../apps/web/server/utils/archive");
 const { registerChatAgent } = await import("../../../apps/web/shared/agent-names");
@@ -245,11 +271,11 @@ registerChatAgent({ name: "agent-a", label: "Agent A" });
 describe("the rooms", () => {
   test("stand in the receiver's order, the owner's own named by the chat agent, each pinned or not", async () => {
     expect(await listRooms()).toEqual([
-      { chatId: 5, title: "Person A", messageCount: 3, lastMessageAt: 100, pinned: true },
-      { chatId: -7, title: "Room A", messageCount: 4, lastMessageAt: 200, pinned: false },
-      { chatId: -11, title: "Agent A", messageCount: 1, lastMessageAt: 300, pinned: false },
-      { chatId: -22, title: "Listened", messageCount: 1, lastMessageAt: 40, pinned: false },
-      { chatId: -23, title: "Added", messageCount: 1, lastMessageAt: 30, pinned: false }
+      { chatId: 5, title: "Person A", agent: null, messageCount: 3, lastMessageAt: 100, pinned: true },
+      { chatId: -7, title: "Room A", agent: null, messageCount: 4, lastMessageAt: 200, pinned: false },
+      { chatId: -11, title: "Agent A", agent: "agent-a", messageCount: 1, lastMessageAt: 300, pinned: false },
+      { chatId: -22, title: "Listened", agent: null, messageCount: 1, lastMessageAt: 40, pinned: false },
+      { chatId: -23, title: "Added", agent: null, messageCount: 1, lastMessageAt: 30, pinned: false }
     ]);
     expect(await roomTitleOf(-7)).toBe("Room A");
   });
@@ -284,6 +310,32 @@ describe("the rooms", () => {
   test("the owner's private chat is the room the receiver names, and their one-to-one is called by the person it is with", async () => {
     expect(await roomTitleOf(-11)).toBe("Agent A");
     expect(await roomTitleOf(5)).toBe("Person A");
+  });
+
+  test("an agent's private room stands as its agent: the name its profile stands with, never its person's", async () => {
+    const own = [
+      room(-24, { title: "Person B", lastMessageAt: 20_000, supervisors: ["u7"], privateOf: 7 }),
+      room(-25, { title: "Person C", lastMessageAt: 10_000, supervisors: ["u8"], privateOf: 8 })
+    ];
+
+    rooms.push(...own);
+
+    try {
+      const listed = (await listRooms()).map(({ chatId, title, agent }) => ({ chatId, title, agent }));
+
+      expect(listed.filter((one) => one.agent !== null)).toEqual([
+        { chatId: -11, title: "Agent A", agent: "agent-a" },
+        { chatId: -24, title: "Dear", agent: "u7" },
+        { chatId: -25, title: wording("account.label.bmo_name"), agent: "u8" }
+      ]);
+      expect(await roomTitleOf(-24)).toBe("Dear");
+
+      const line = await readMessagePage(-24, null, 50);
+
+      expect(line.messages.map((one) => one.speakerLabel)).toEqual(["Dear"]);
+    } finally {
+      rooms.splice(rooms.length - own.length, own.length);
+    }
   });
 });
 

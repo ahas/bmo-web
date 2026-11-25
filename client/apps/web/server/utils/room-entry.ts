@@ -1,5 +1,5 @@
 import { AccountRefusal, AccountServiceDown, checkEntry } from "./account-service";
-import { privacyOf } from "./console-rooms";
+import { privacyOf } from "./room-privacy";
 import { fail } from "./fail";
 import { sectionAccessOf } from "./section-access";
 

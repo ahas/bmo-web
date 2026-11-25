@@ -133,6 +133,7 @@
                 :avatars="avatars"
                 :administrator="administrator"
                 :manages="manages"
+                :picture-settable="manages && roomAgent === null"
                 @enlarge="roomFaceOpen = true"
                 @left="void roomLeft()"
                 @remove="removalOpen = true"
@@ -509,8 +510,7 @@ import { agentLabel, agentNameLabel, bmoLabel, otherAnswererOf, roomTitle } from
 import { chatAgent } from "#shared/agent-names";
 import { useAgentCatalogue } from "~/domain/catalogue";
 import { attachmentBody } from "~/domain/attachments";
-import { useAgentAvatars } from "~/domain/agent-face";
-import { avatarFor } from "~/domain/avatars";
+import { roomFace, useAgentAvatars } from "~/domain/agent-face";
 import { followBottom } from "~/domain/bottom";
 import { flightTiming, riseOutOf, settleInto } from "~/domain/flight";
 import { measurePicture, messagePicture, releaseStandIn, rememberShape, shapeOf, standIn } from "~/domain/picture-shapes";
@@ -1035,11 +1035,13 @@ function roundSituationOf(item: FeedItem): Situation | null {
 const judged = computed<Set<ExactMessageId>>(() => judgedNow(chatId, queued.value, runs.value, judgementIndex.value));
 
 // The room's own name, from the one list every screen takes a room's name from, and the
-// picture the receiver keeps for it.
+// picture the receiver keeps for it; an agent's private room is its agent's name and face (docs/web.md, 「An agent's
+// private room stands as its agent」).
 const title = computed<string>(() => roomsInitial.value ? t("room.status.room_loading") : roomTitle(t, rooms.value, chatId));
 // The index names every room and person, so a member's feed draws its faces by their initials.
 const avatars = administrator.value ? useAgentAvatars() : computed<AvatarIndex>(() => new Map());
-const roomAvatar = computed(() => avatarFor(avatars.value, "room", chatId, title.value));
+const roomAgent = computed<string | null>(() => rooms.value.find((room) => room.chatId === chatId)?.agent ?? null);
+const roomAvatar = computed(() => roomFace(avatars.value, { chatId, title: title.value, agent: roomAgent.value }));
 // The room's people's presence, on the head's picture and in words (docs/web.md, 「Presence and typing」).
 const presenceHeld = usePresence();
 const { now: presenceNow } = useNowSeconds(60_000);

@@ -8,6 +8,7 @@ use axum::body::Body;
 use axum::http::{Method, Request, StatusCode, header};
 use bmo_web_server::data_move::{MoveAsk, run_move};
 use bmo_web_server::one;
+use bmo_web_server::receiver::MemberRights;
 use bmo_web_server::routes::in_force;
 use bmo_web_server::users::set_sign_in;
 use http_body_util::BodyExt;
@@ -209,6 +210,36 @@ async fn every_member_of_a_room_lets_a_person_in_and_only_its_leaders_heads_and_
   ));
   assert!(!allowed(
     sent(&app, Method::POST, "/checks/entry", None, Some(asked(stranger, guest, "let-in"))).await
+  ));
+
+  // A manager's grant of the let-in right reaches a person who is no member, and a grant of the take-out right
+  // lets a member take one out, the baseline alone could not. The grant never reaches past the room's company.
+  scratch.rooms.grants.lock().unwrap().insert(
+    (ROOM, stranger),
+    MemberRights {
+      let_in: true,
+      take_out: false,
+    },
+  );
+  assert!(allowed(
+    sent(&app, Method::POST, "/checks/entry", None, Some(asked(stranger, guest, "let-in"))).await
+  ));
+  assert!(!allowed(
+    sent(&app, Method::POST, "/checks/entry", None, Some(asked(stranger, outsider, "let-in"))).await
+  ));
+  // A let-in grant carries no take-out act.
+  assert!(!allowed(
+    sent(&app, Method::POST, "/checks/entry", None, Some(asked(stranger, opener, "take-out"))).await
+  ));
+  scratch.rooms.grants.lock().unwrap().insert(
+    (ROOM, member),
+    MemberRights {
+      let_in: false,
+      take_out: true,
+    },
+  );
+  assert!(allowed(
+    sent(&app, Method::POST, "/checks/entry", None, Some(asked(member, opener, "take-out"))).await
   ));
 
   let unknown = sent(&app, Method::POST, "/checks/entry", None, Some(asked(member, guest, "invite"))).await;

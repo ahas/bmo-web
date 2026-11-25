@@ -10,7 +10,7 @@ use std::str::FromStr;
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::{Arc, Mutex, Once};
 
-use bmo_web_server::receiver::Receiver;
+use bmo_web_server::receiver::{MemberRights, Receiver};
 use bmo_web_server::routes::stand;
 use bmo_web_server::settings::Names;
 use bmo_web_server::{Refusal, Service, store};
@@ -188,6 +188,8 @@ pub async fn connect(database: &str) -> DatabaseConnection {
 pub struct Rooms {
   pub leaders: Arc<Mutex<HashMap<i64, Vec<i32>>>>,
   pub members: Arc<Mutex<HashMap<i64, Vec<i32>>>>,
+  /// A member's rights over a room's people, keyed by the room and the account; absent stands for none granted.
+  pub grants: Arc<Mutex<HashMap<(i64, i32), MemberRights>>>,
 }
 
 #[async_trait::async_trait]
@@ -214,6 +216,16 @@ impl Receiver for Rooms {
         .cloned()
         .unwrap_or_default(),
     )
+  }
+
+  async fn member_rights(&self, room: i64, account: i32) -> MemberRights {
+    self
+      .grants
+      .lock()
+      .expect("the grants are readable")
+      .get(&(room, account))
+      .copied()
+      .unwrap_or_default()
   }
 }
 

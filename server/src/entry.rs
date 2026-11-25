@@ -1,7 +1,9 @@
 //! Who may let a person into a room or take them out (docs/accounts.md, 「A room's callers」): the administrator, the
 //! room's leader — its opener, for a room opened in the console — or a head of the leader's unit, and for letting in
-//! every member of the room besides, never across the room's company. Membership is the call right; nothing is
-//! granted here, and the decision is read from the room's leaders and members as the receiver answers them.
+//! every member of the room besides, never across the room's company. Beside that baseline a manager's grant of the
+//! right for the act stands, read from the receiver's `room_grants` row for the actor and added to it without
+//! replacing it, never carried across the company bound either. The decision is read from the room's leaders and
+//! members as the receiver answers them; a grant the receiver cannot answer reads as none.
 
 use axum::Json;
 use axum::Router;
@@ -56,8 +58,9 @@ pub enum EntryBound {
 
 /// Which people `act` reaches for `actor` in `room`: whether it reaches anybody at all is the actor's standing
 /// in the room — the administrator, a leader of the room or a head of a leader's unit for either act, and every
-/// member of the room for letting in; and which company it is bounded to is the room's own company, or the
-/// actor's for a room standing with no leader, the administrator unbounded there.
+/// member of the room for letting in, or the receiver's grant of the right for the act stood beside that
+/// baseline; and which company it is bounded to is the room's own company, or the actor's for a room standing
+/// with no leader, the administrator unbounded there. A grant never reaches past the company bound.
 pub async fn entry_set<C: ConnectionTrait>(
   db: &C,
   receiver: &dyn Receiver,
@@ -68,7 +71,14 @@ pub async fn entry_set<C: ConnectionTrait>(
   let administrator = administrator(db, actor).await?;
   let leads = leads(db, receiver, actor, room).await?;
   let member = receiver.members_of(room).await?.contains(&actor);
-  let allowed = administrator || leads || (act == EntryAct::LetIn && member);
+  // A manager's grant adds to who may act, the baseline of leaders and members untouched; the rights are read as
+  // silence where the receiver cannot answer them, so the baseline stands alone there.
+  let rights = receiver.member_rights(room, actor).await;
+  let granted = match act {
+    EntryAct::LetIn => rights.let_in,
+    EntryAct::TakeOut => rights.take_out,
+  };
+  let allowed = administrator || leads || (act == EntryAct::LetIn && member) || granted;
 
   match company_of_room(db, receiver, room).await? {
     Some(company) if allowed => Ok(EntryBound::Company(company)),

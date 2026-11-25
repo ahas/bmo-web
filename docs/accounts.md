@@ -98,8 +98,9 @@ section states what each does.
 - **`POST /checks/entry`** — a room, the user acting, the user to let in or take out, and the act asked about:
   letting in or taking out, taking out where none is named. Answers whether the one acting may do it to that person
   in the room (「A room's callers」), the decision asked for named as `bmo_room:<chat id>#entry`, and the person it
-  was asked for. The name is a label alone: the deployment's rules
-  declare no kind for a room, and the decision is computed from the room's leaders, never read from a grant.
+  was asked for. The name is a label alone: the deployment's rules declare no kind for a room, and the
+  decision is computed from the room's leaders and members and, beside that baseline, the receiver's grant
+  of the member's right for the act, never read from a delegation-chain kind.
 - **What a check builds:** the user's own subjects, their role and their company among them. Every platform
   administrator passes every check but the entry check's company bound.
 
@@ -114,11 +115,11 @@ section states what each does.
   console asks `POST /checks/entry` before it lets a person in or takes one out, and the receiver's membership is
   then the person's call right, with nothing written here.
 - **Who may let a person in:** every member of the room, the one who opened it among them, a head of the opener's
-  unit, or the administrator. A member is an account the receiver holds among the room's console members, read from
+  unit, the administrator, or a member the receiver grants the let-in right. A member is an account the receiver holds among the room's console members, read from
   the receiver as the check is made (`docs/boundary.md`, 「Calls the server makes」); whether the member may write in
   the room at all, by their rooms section and the room's privacy, is the console's to judge before it asks.
-- **Who may take a member out:** the room's opener, a head of the opener's unit, or the administrator, and no other
-  member. A room opened in the console names its opener's own BMO as its leader, so its opener is its leader and the
+- **Who may take a member out:** the room's opener, a head of the opener's unit, the administrator, or a member
+  the receiver grants the take-out right, and no other member. A room opened in the console names its opener's own BMO as its leader, so its opener is its leader and the
   room belongs to the opener's unit; the check reads them through the room's leaders, the users who own a supervisor
   the room names, as the receiver answers them (`docs/boundary.md`, 「Calls the server makes」).
 - **Only within the room's company.** The room stands in its leader's company, and a person of another company is

@@ -6414,8 +6414,8 @@ Four bounds keep it from growing forever.
   refusal puts the switch back and is said in the tab's band by the pack's sentence for its code. What the member may
   then do is the receiver's and the account service's word, not the screen's: membership stays the call right, and
   every member who writes in the room lets people in as before, so what is granted is added to what the entry check
-  answers for that person and takes nothing away. Where the receiver serves no route for rights, no rights and no
-  controls stand anywhere.
+  answers for that person and takes nothing away. Where a member's rights cannot be read at all — no route for them
+  yet, no row, or no answer — no rights and no controls stand anywhere, and the list itself stands as it would.
 - **A refusal stands in the tab's error band,** with the refresh that reads again, and the room stands as it
   was. The receiver's `members-unheld`, a chat service that could not read the room's members, is said by the pack's
   own sentence, 채팅 서비스에서 이 방의 대화상대를 읽지 못했습니다; every other code by the sentence every receiver

@@ -169,26 +169,18 @@ export interface RoomGrantsRead extends RoomGrants {
 // sentence the members tab says a refused right change in.
 const GRANTS = { ...CHANGES, codes: { "not-room-leader": "members.error.grant_forbidden" } };
 
-/** One member's rights in a room, and whether `by` may write them; none where the receiver serves no route for them
- * yet, which is read as no rights and no writing (docs/boundary.md, 「Gaps the console meets」). */
-export async function roomAccountGrants(room: number, account: string, by: string): Promise<RoomGrantsRead | null> {
-  let said: { letIn?: unknown; takeOut?: unknown; mayWrite?: unknown } | null;
-
-  try {
-    said = await receiverRoute<{ letIn?: unknown; takeOut?: unknown; mayWrite?: unknown } | null>(
-      `/rooms/${room}/accounts/${account}/grants?${new URLSearchParams({ by })}`
-    );
-  } catch (error) {
-    if (unserved(error)) return null;
-
-    throw error;
-  }
+/** One member's rights in a room, and whether `by` may write them, as the receiver answers them. */
+export async function roomAccountGrants(room: number, account: string, by: string): Promise<RoomGrantsRead> {
+  const said = await receiverRoute<{ letIn?: unknown; takeOut?: unknown; mayWrite?: unknown } | null>(
+    `/rooms/${room}/accounts/${account}/grants?${new URLSearchParams({ by })}`
+  );
 
   return { letIn: said?.letIn === true, takeOut: said?.takeOut === true, mayWrite: said?.mayWrite === true };
 }
 
 /** A member's right in a room given to them by `by`, the receiver keeping it beside the membership; the member's
- * rights as they now stand. */
+ * rights as they now stand. Whose standing in the room reaches writing them is the receiver's own word, refused in the
+ * pack's sentence. */
 export async function grantRoomRight(room: number, account: string, by: string, right: RoomRight): Promise<RoomGrants> {
   const said = await receiverRoute<{ letIn?: unknown; takeOut?: unknown } | null>(
     `/rooms/${room}/accounts/${account}/grants`,
@@ -199,7 +191,8 @@ export async function grantRoomRight(room: number, account: string, by: string, 
   return { letIn: said?.letIn === true, takeOut: said?.takeOut === true };
 }
 
-/** A member's right in a room taken away from them by `by`. */
+/** A member's right in a room taken away from them by `by`; the receiver puts its row down, as it does for a
+ * membership. */
 export async function revokeRoomRight(room: number, account: string, by: string, right: RoomRight): Promise<void> {
   await receiverRoute(`/rooms/${room}/accounts/${account}/grants?${new URLSearchParams({ by, right })}`, { method: "DELETE" }, GRANTS);
 }

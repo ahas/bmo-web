@@ -10,7 +10,8 @@ import type { RoomGrants, RoomMembersView } from "../../../apps/web/shared/types
 // A member's rights in a room (docs/web.md, the room screen's members entry): the receiver keeps them beside the
 // membership and says of its own accord whose standing in the room writes them, so the console asks one member's read
 // before the rest, folds what it is told into the members read, and hands each change straight on. A receiver that
-// serves no route for rights leaves the members tab with none at all (docs/boundary.md, 「Gaps the console meets」), and
+// a rights read that cannot be made leaves the members tab with none at all (docs/boundary.md, 「Gaps the console
+// meets」), and
 // a refusal the receiver answers with stands in the pack's own sentence. The signed-in login is the harness's
 // administrator, whose account is 1.
 
@@ -21,8 +22,9 @@ const FIRST = "7";
 const SECOND = "12";
 const OUTSIDER = "13";
 
-// What the receiver keeps: whose writing it accepts, whether it serves rights at all, and the rights of each member.
-let serves = true;
+// What the receiver keeps: whose writing it accepts, how it answers the rights read when it is asked for none, and the
+// rights of each member.
+let serves: { code: string; status: number } | null = null;
 let accepts = true;
 const rights = new Map<string, RoomGrants>([
   [FIRST, { letIn: false, takeOut: true }],
@@ -43,7 +45,7 @@ const receiver = standIn("RECEIVER", (one) => {
   if (path === `/rooms/${PRIVATE}/members`) return answer({ members: [] });
 
   if (granted === null) return answer({ code: "failed", error: "Not served here." }, 500);
-  if (!serves) return answer({ code: "no-route", error: "Not served here." }, 404);
+  if (one.method === "GET" && serves !== null) return answer({ code: serves.code, error: "Not served here." }, serves.status);
   if (query.get("by") !== BY && one.method === "GET") return answer({ code: "bad-request", error: "by is the asking account." }, 400);
 
   const held = rights.get(granted[2]!) ?? { letIn: false, takeOut: false };
@@ -130,18 +132,25 @@ describe("a member's rights in a room", () => {
     accepts = true;
   });
 
-  test("where the receiver serves no route for them, leave the members standing with none and no failure", async () => {
-    serves = false;
-    receiver.asked.length = 0;
+  // A rights read that cannot be made says nothing of anyone, so the members stand and no control does; which of the
+  // receiver's own answers it is does not matter, and the members read is never the one to fail.
+  for (const unserved of [{ code: "no-route", status: 404 }, { code: "not-found", status: 404 }, { code: "failed", status: 500 }]) {
+    test(`where the rights read answers ${unserved.code}, leave the members standing with no rights and no failure`, async () => {
+      serves = unserved;
+      receiver.asked.length = 0;
 
-    const askedRead = await asked(read, { params: { chatId: String(ROOM) } });
+      const askedRead = await asked(read, { params: { chatId: String(ROOM) } });
 
-    expect(askedRead.status).toBe(200);
-    expect(askedRead.answer?.mayGrant).toBe(false);
-    expect(askedRead.answer?.members.map((member) => member.grants)).toEqual([null, null]);
-    expect(grants()).toEqual([["GET", `/rooms/${ROOM}/accounts/${FIRST}/grants?by=${BY}`, null]]);
-    serves = true;
-  });
+      expect(askedRead.status).toBe(200);
+      expect(askedRead.answer?.members.map((member) => member.account)).toEqual([FIRST, SECOND]);
+      expect(askedRead.answer?.mayGrant).toBe(false);
+      expect(askedRead.answer?.members.map((member) => member.grants)).toEqual([null, null]);
+      // One read asks whether this reader writes here at all; nothing else is asked when it cannot say.
+      expect(grants()).toEqual([["GET", `/rooms/${ROOM}/accounts/${FIRST}/grants?by=${BY}`, null]]);
+
+      serves = null;
+    });
+  }
 
   test("of a room whose people the console keeps as they stand are not asked for at all", async () => {
     receiver.asked.length = 0;

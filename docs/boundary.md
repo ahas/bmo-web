@@ -822,7 +822,9 @@ for it, and no file or table of that unit is read meanwhile.
   on the receiver's address as every unit call is made and reads its answer field by field: `letIn` and `takeOut`, each
   false where the answer does not name it, and `mayWrite`, whose standing in the room the receiver's own rule says may
   write them. While the receiver serves no route for rights, its `no-route` refusal of the read reads as no rights and
-  no writing, so the room's members stand with no controls (`docs/web.md`, the room screen's 대화상대).
+  no writing, so the room's members stand with no controls. Any answer that says the read could not be made at all —
+  a route unwritten, a row unknown, the receiver not answering — reads the same way, and the members read never fails
+  for a rights read that failed (`docs/web.md`, the room screen's 대화상대).
 - **The rest's end and the owner's notice switches.** The agency's published client carries `GET /rest` and no
   `DELETE /rest`, and the receiver's carries neither `GET /notice-switches` nor `PUT /notice-switches/{kind}`; the
   console asks each on its unit's address as every unit call is made and reads its answer field by field as that

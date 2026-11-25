@@ -9,6 +9,7 @@ import { unitFetch } from "./units";
 
 import type { SignedIn } from "./accounts";
 import type { RoomChatMembers, RoomEntry, RoomGrants, RoomMember, RoomMembersView } from "#shared/types";
+import type { RoomGrantsRead } from "./console-rooms";
 
 // A room's members (docs/web.md, the room screen's members entry; docs/boundary.md, 「Calls the console makes」), by
 // either road: the receiver's list of them as the chat service carrying the room read it, with the account service's
@@ -160,11 +161,18 @@ function noRights(): MemberRights {
   return { mayGrant: false, byAccount: new Map() };
 }
 
+// One member's rights as the receiver answers them, or none where it could not be asked: a route it does not serve
+// yet, a row it does not hold, a receiver that does not answer. Nothing is then said of a member's rights and no
+// control stands for them (docs/boundary.md, 「Gaps the console meets」), the same rule every permission check of the
+// room's people follows: a check that cannot be made offers nothing.
+function readRights(room: number, account: string, by: string): Promise<RoomGrantsRead | null> {
+  return roomAccountGrants(room, account, by).catch(() => null);
+}
+
 /** What the reader may hand a member, and what each account among the room's people already holds. The receiver keeps
  * these beside the membership and says of its own accord whether the asking login writes them (docs/web.md, the room
  * screen's members entry), so it is asked only where the room's people are this login's to change in the console at
- * all and it stands as an account; a receiver that serves no route for rights answers none, which is the members tab
- * standing with no rights at all. One member's read carries the answer for every member, so the rest are asked only
+ * all and it stands as an account. One member's read carries the answer for every member, so the rest are asked only
  * where the first says the login writes here. */
 async function memberRights(signed: SignedIn, roomId: number, members: readonly ListedMember[], entry: RoomEntry): Promise<MemberRights> {
   const accounts = [...new Set(members.flatMap((member) => member.account ?? []))];
@@ -175,12 +183,12 @@ async function memberRights(signed: SignedIn, roomId: number, members: readonly 
   if (signed.id === null || accounts.length === 0 || !(entry.letIn || entry.takeOut)) return noRights();
 
   const by = String(signed.id);
-  const first = await roomAccountGrants(roomId, accounts[0]!, by);
+  const first = await readRights(roomId, accounts[0]!, by);
 
   if (first === null || !first.mayWrite) return noRights();
 
   const held = new Map<string, RoomGrants>([[accounts[0]!, { letIn: first.letIn, takeOut: first.takeOut }]]);
-  const rest = await Promise.all(accounts.slice(1).map((account) => roomAccountGrants(roomId, account, by)));
+  const rest = await Promise.all(accounts.slice(1).map((account) => readRights(roomId, account, by)));
 
   for (const [place, one] of rest.entries()) {
     if (one !== null) held.set(accounts[place + 1]!, { letIn: one.letIn, takeOut: one.takeOut });

@@ -4916,6 +4916,7 @@ supply:
     local_ai_add: "ローカルAIを追加"
     local_ai_save: "試して保存"
   aria:
+    records: "クレジット記録"
     login_switch: "{name} の供給ログインをオン"
     key_switch: "{name} の供給キーをオン"
     source_switch: "{name} の供給を使用"

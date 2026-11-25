@@ -4908,6 +4908,7 @@ supply:
     local_ai_add: "로컬 AI 추가"
     local_ai_save: "시험 후 저장"
   aria:
+    records: "크레딧 기록"
     login_switch: "{name} 공급 로그인 켜기"
     key_switch: "{name} 공급 키 켜기"
     source_switch: "{name} 공급 사용"

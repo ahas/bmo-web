@@ -4916,6 +4916,7 @@ supply:
     local_ai_add: "添加本地 AI"
     local_ai_save: "测试后保存"
   aria:
+    records: "积分记录"
     login_switch: "开启 {name} 供给登录"
     key_switch: "开启 {name} 供给密钥"
     source_switch: "使用 {name} 供给"

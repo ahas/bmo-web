@@ -9453,19 +9453,6 @@ The providers themselves, switched on and off with what they have left, stand on
   name.
 - **A grant is made at the wallet it fills:** an organisation's on its own node's 크레딧 (above), a person's on 사용자's
   공급 for that person (「사용자」).
-- **장부** lists every credit movement the service answers, newest first, the console's shared list read a page at
-  a time the way 사용자's list is (「사용자」): one row each, the owner as the ledger keeps them — 사용자 or 조직 and
-  their number —, the kind, when, and the words kept with it or nothing under it, and the amount signed at its end.
-- **감사 기록** stands under its heading: every grant, every change of a policy, of the 전환율 or the 예약 size or
-  of 공급 제한 적용, and every plan act, newest first — one row each, the act's kind — 부여, 정책, 설정 or 플랜 — and
-  its subject, then the moment, whose act and what it changed. The service audits each of these in its own table
-  as it takes the write, and this one route answers the whole record.
-- **장부 and 감사 기록 each scroll in a box of their own,** at most 384 pixels tall, so the end of 장부 comes into view
-  and 감사 기록 under it stays reachable. Each reads its next page as its end comes into view (bmo-ui's
-  `NextPageFoot`, its `docs/design.md`, 「Lists」): placeholder rows stand at the end while a page is on its way, a
-  page that fails leaves the rows already read and stands its reason with 다시 시도 in its place, and nothing stands
-  under the last row. Nothing is pressed to read more. A first read that failed says its reason in the section's
-  place with 새로고침.
 - No balance is shown for anyone here, and no top-up control stands: payments are off.
 - **플랜** is the membership plans the platform sells (`docs/accounts.md`): who pays, for what period, and what the
   period includes. Every plan the service holds stands one row each, newest first, and the administrator writes them.
@@ -9533,6 +9520,20 @@ The providers themselves, switched on and off with what they have left, stand on
   at once, by mouse and finger alike, and the arrows move one row the same way; turning off the last one on is
   refused by the agency. **No row, box or answer carries a token, a cookie or anything out of a credential file** —
   the path is the whole of what is shown.
+- **장부** lists every credit movement the service answers, newest first, the console's shared list read a page at
+  a time the way 사용자's list is (「사용자」): one row each, the owner as the ledger keeps them — 사용자 or 조직 and
+  their number —, the kind, when, and the words kept with it or nothing under it, and the amount signed at its end.
+- **감사 기록**, the switch's other choice, lists every grant, every change of a policy, of the 전환율 or the 예약 size or
+  of 공급 제한 적용, and every plan act, newest first — one row each, the act's kind — 부여, 정책, 설정 or 플랜 — and
+  its subject, then the moment, whose act and what it changed. The service audits each of these in its own table
+  as it takes the write, and this one route answers the whole record.
+- **장부 and 감사 기록 stand last on the tab, one at a time,** chosen by a view switch at their group's head (bmo-ui's
+  `TabSwitch`, named 크레딧 기록), so the list shown runs on with the tab's own scroll and nothing stands under it; each
+  keeps the pages it read while the other is shown. Each reads its next page as its end comes into view (bmo-ui's
+  `NextPageFoot`, its `docs/design.md`, 「Lists」): placeholder rows stand at the end while a page is on its way, a
+  page that fails leaves the rows already read and stands its reason with 다시 시도 in its place, and nothing stands
+  under the last row. Nothing is pressed to read more. A first read that failed says its reason in the list's place
+  with 새로고침.
 
 ##### 나
 

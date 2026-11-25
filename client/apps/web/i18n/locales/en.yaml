@@ -2303,6 +2303,9 @@ members:
     unit_people: "{count} members"
     choice: "People & organizations"
     find: Search by name or organization
+    rights: Permissions
+    right_let_in: Add members
+    right_take_out: Remove
   status:
     loading: Loading members…
   action:
@@ -2316,6 +2319,12 @@ members:
     entry_failed: "Couldn't change members."
     entry_forbidden: "You don't have permission to add or remove members in this room."
     entry_unknown: "That person couldn't be found."
+    grant_failed: "Couldn't grant the permission."
+    grant_revoke_failed: "Couldn't revoke the permission."
+    grant_forbidden: "You don't have permission to grant or revoke member permissions in this room."
+  aria:
+    right_let_in: "Permission to add members for {name}"
+    right_take_out: "Permission to remove members for {name}"
 room_info:
   title:
     sheet: Room info

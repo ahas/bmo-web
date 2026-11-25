@@ -2319,6 +2319,9 @@ members:
     unit_people: "{count} 名成员"
     choice: 人员·组织
     find: 按姓名或组织搜索
+    rights: 权限
+    right_let_in: 添加成员
+    right_take_out: 移出
   status:
     loading: 正在加载成员…
   action:
@@ -2332,6 +2335,12 @@ members:
     entry_failed: 无法更改成员。
     entry_forbidden: 你没有在此房间添加或移出成员的权限。
     entry_unknown: 找不到该人员。
+    grant_failed: 无法授予权限。
+    grant_revoke_failed: 无法撤销权限。
+    grant_forbidden: 你没有在此房间授予或撤销成员权限的权限。
+  aria:
+    right_let_in: "{name} 的添加成员权限"
+    right_take_out: "{name} 的移出成员权限"
 room_info:
   title:
     sheet: 房间信息

@@ -2319,6 +2319,9 @@ members:
     unit_people: "メンバー {count}人"
     choice: メンバー・組織
     find: 名前または組織で検索
+    rights: 権限
+    right_let_in: メンバーを追加
+    right_take_out: 退出させる
   status:
     loading: メンバーを読み込み中…
   action:
@@ -2332,6 +2335,12 @@ members:
     entry_failed: メンバーを変更できませんでした。
     entry_forbidden: このルームにメンバーを追加・退出させる権限がありません。
     entry_unknown: その人が見つかりません。
+    grant_failed: 権限を付与できませんでした。
+    grant_revoke_failed: 権限を取り消せませんでした。
+    grant_forbidden: このルームでメンバーに権限を付与・取り消しする権限がありません。
+  aria:
+    right_let_in: "{name}のメンバーを追加する権限"
+    right_take_out: "{name}を退出させる権限"
 room_info:
   title:
     sheet: ルーム情報

@@ -71,14 +71,15 @@ describe("a room's members", () => {
 
     expect((await asked(read, { params: { chatId: String(ROOM) } })).answer).toEqual({
       members: [
-        { person: KNOWN, name: "member-a", status: "status-a", account: "7", inConsole: true },
-        { person: UNKNOWN, name: "member-b", status: null, account: null, inConsole: false },
-        { person: GRANTED, name: "member-c", status: null, account: null, inConsole: false },
-        { person: null, name: "member-d", status: "status-d", account: null, inConsole: false },
-        { person: null, name: "person-12", status: null, account: "12", inConsole: true }
+        { person: KNOWN, name: "member-a", status: "status-a", account: "7", inConsole: true, grants: null },
+        { person: UNKNOWN, name: "member-b", status: null, account: null, inConsole: false, grants: null },
+        { person: GRANTED, name: "member-c", status: null, account: null, inConsole: false, grants: null },
+        { person: null, name: "member-d", status: "status-d", account: null, inConsole: false, grants: null },
+        { person: null, name: "person-12", status: null, account: "12", inConsole: true, grants: null }
       ],
       chatMembers: "listed",
-      entry: { letIn: true, takeOut: true }
+      entry: { letIn: true, takeOut: true },
+      mayGrant: false
     });
     // One lookup for every member with a number, and none for the member without one or the row with no name; then
     // the name of the one account let in that the chat service does not list.
@@ -96,16 +97,17 @@ describe("a room's members", () => {
   test("of a room no chat service carries are its accounts alone, each by its person's name, its login where none stands", async () => {
     expect((await asked(read, { params: { chatId: "-12" } })).answer).toEqual({
       members: [
-        { person: null, name: "person-12", status: null, account: "12", inConsole: true },
-        { person: null, name: "account-13", status: null, account: "13", inConsole: true }
+        { person: null, name: "person-12", status: null, account: "12", inConsole: true, grants: null },
+        { person: null, name: "account-13", status: null, account: "13", inConsole: true, grants: null }
       ],
       chatMembers: "no-service",
-      entry: { letIn: true, takeOut: true }
+      entry: { letIn: true, takeOut: true },
+      mayGrant: false
     });
   });
 
   test("of a room whose chat service lists no members are its accounts alone, none here, with no refusal", async () => {
-    expect((await asked(read, { params: { chatId: "-9" } })).answer).toEqual({ members: [], chatMembers: "unlisted", entry: { letIn: true, takeOut: true } });
+    expect((await asked(read, { params: { chatId: "-9" } })).answer).toEqual({ members: [], chatMembers: "unlisted", entry: { letIn: true, takeOut: true }, mayGrant: false });
   });
 
   test("say the receiver's refusal by the pack's sentence for its code, and ask the account service nothing", async () => {

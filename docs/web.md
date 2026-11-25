@@ -6400,6 +6400,22 @@ Four bounds keep it from growing forever.
   (「Person's page」) for a reader who may read the account section; for anyone else it carries the mark alone.
 - **A member the platform does not know stands as a member alone:** their face, name and status line, with no
   mark and nothing guessed from their name or anything else.
+- **A member's rights in the room stand under their row**, on the member's own column: what they may do to the room's
+  people besides being one, each right wearing its own act's word beside its switch and the pair under the word 권한.
+  The receiver keeps these beside the membership and says of its own accord whose standing in the room writes them —
+  the administrator, the room's leader or a head of the leader's unit, and nobody else (`docs/boundary.md`, 「Calls
+  the console makes」). The console asks one member's read before the rest, since that read carries the answer for
+  every member, and asks nowhere the room's people are not its to change in the console. A reader told it writes
+  nothing here sees the list without the controls, never a control that refuses, and a member the console does not
+  know as an account carries none. Every switch is named for the member whose right it stands.
+- **A right is given or taken back as it is pressed, and the switch stands as the answer says.** Giving one is a
+  change to that member's rights route and taking one back its removal, each naming the right and made as the signed-in
+  account; the receiver keeps it beside the membership and answers the member's rights as they now stand, and a
+  refusal puts the switch back and is said in the tab's band by the pack's sentence for its code. What the member may
+  then do is the receiver's and the account service's word, not the screen's: membership stays the call right, and
+  every member who writes in the room lets people in as before, so what is granted is added to what the entry check
+  answers for that person and takes nothing away. Where the receiver serves no route for rights, no rights and no
+  controls stand anywhere.
 - **A refusal stands in the tab's error band,** with the refresh that reads again, and the room stands as it
   was. The receiver's `members-unheld`, a chat service that could not read the room's members, is said by the pack's
   own sentence, 채팅 서비스에서 이 방의 대화상대를 읽지 못했습니다; every other code by the sentence every receiver

@@ -100,7 +100,7 @@ describe.skipIf(!origin || !touchReady())("a person's presence outside a shared 
   }, BROWSER_HOOK_MS);
 
   test("a person's page carries the presence of the reader's company's person alone", async () => {
-    const opened = await context({ members: [], chatMembers: "listed", entry: { letIn: false, takeOut: false } });
+    const opened = await context({ members: [], chatMembers: "listed", entry: { letIn: false, takeOut: false }, mayGrant: false });
 
     try {
       const page = await opened.newPage();
@@ -126,8 +126,8 @@ describe.skipIf(!origin || !touchReady())("a person's presence outside a shared 
   }, BROWSER_HOOK_MS);
 
   test("the members sheet draws the dot and the words on the reader's company's person alone", async () => {
-    const member = (who: Who) => ({ person: null, name: NAMES[who], status: null, account: ids[who], inConsole: true });
-    const opened = await context({ members: [member("here"), member("hidden"), member("other")], chatMembers: "listed", entry: { letIn: false, takeOut: false } });
+    const member = (who: Who) => ({ person: null, name: NAMES[who], status: null, account: ids[who], inConsole: true, grants: null });
+    const opened = await context({ members: [member("here"), member("hidden"), member("other")], chatMembers: "listed", entry: { letIn: false, takeOut: false }, mayGrant: false });
 
     try {
       const page = await opened.newPage();
@@ -148,7 +148,7 @@ describe.skipIf(!origin || !touchReady())("a person's presence outside a shared 
   }, BROWSER_HOOK_MS);
 
   test("the let-in picker draws the dot and the words on the reader's company's person alone", async () => {
-    const opened = await context({ members: [], chatMembers: "listed", entry: { letIn: true, takeOut: false } });
+    const opened = await context({ members: [], chatMembers: "listed", entry: { letIn: true, takeOut: false }, mayGrant: false });
 
     try {
       const page = await opened.newPage();

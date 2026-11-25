@@ -1,18 +1,21 @@
 import { wording } from "#shared/wording";
 
 import { AccountRefusal, AccountServiceDown, senderLinks, shownName, userOf } from "./account-service";
-import { roomAccounts } from "./console-rooms";
+import { roomAccountGrants, roomAccounts } from "./console-rooms";
 import { fail } from "./fail";
 import { RECEIVER_CODES } from "./receiver";
+import { roomEntry } from "./room-entry";
 import { unitFetch } from "./units";
 
-import type { RoomChatMembers, RoomMember } from "#shared/types";
+import type { SignedIn } from "./accounts";
+import type { RoomChatMembers, RoomEntry, RoomGrants, RoomMember, RoomMembersView } from "#shared/types";
 
 // A room's members (docs/web.md, the room screen's members entry; docs/boundary.md, 「Calls the console makes」), by
 // either road: the receiver's list of them as the chat service carrying the room read it, with the account service's
 // word on which of their person numbers is a console user, and the accounts let into the room in the console. The
 // receiver's published document carries neither route, so each call is made on the receiver's address as every unit
-// call is, and its answer is read field by field.
+// call is, and its answer is read field by field. Beside them stand the rights each account holds in the room, which
+// only a reader who may change them is told.
 
 // The receiver's refusal of the members read that is a failure, with the pack's key for the sentence a person reads;
 // every other code is said as every receiver route says it.
@@ -27,7 +30,9 @@ const NO_CHAT_MEMBERS: Readonly<Record<string, Exclude<RoomChatMembers, "listed"
   "members-unlisted": "unlisted"
 };
 
-type ReadMember = Omit<RoomMember, "account" | "inConsole">;
+// A member as the two roads give them, before what they may do in the room is read beside them.
+type ListedMember = Omit<RoomMember, "grants">;
+type ReadMember = Omit<ListedMember, "account" | "inConsole">;
 
 /** What a room's chat service gave of its members: its list, and whether it gave one. */
 export interface ReceivedMembers {
@@ -118,7 +123,7 @@ async function accountNames(accounts: readonly string[]): Promise<Map<string, st
 /** A room's members by either road: its chat service's, each marked with the console account they are where the
  * account service knows one, then every account let in in the console that its chat service does not list; and what
  * its chat service gave of them. */
-export async function roomMembers(roomId: number): Promise<{ members: RoomMember[]; chatMembers: RoomChatMembers }> {
+export async function roomMembers(roomId: number): Promise<{ members: ListedMember[]; chatMembers: RoomChatMembers }> {
   const [{ members, chatMembers }, inConsole] = await Promise.all([receivedMembers(roomId), roomAccounts(roomId)]);
   const people = [...new Set(members.flatMap((member) => member.person ?? []))];
   const linked = await consoleAccounts(people);
@@ -142,5 +147,58 @@ export async function roomMembers(roomId: number): Promise<{ members: RoomMember
       })
     ],
     chatMembers
+  };
+}
+
+// What a reader may change of the room's people, and what each account among them is allowed to do there.
+interface MemberRights {
+  mayGrant: boolean;
+  byAccount: Map<string, RoomGrants>;
+}
+
+function noRights(): MemberRights {
+  return { mayGrant: false, byAccount: new Map() };
+}
+
+/** What the reader may hand a member, and what each account among the room's people already holds. The receiver keeps
+ * these beside the membership and says of its own accord whether the asking login writes them (docs/web.md, the room
+ * screen's members entry), so it is asked only where the room's people are this login's to change in the console at
+ * all and it stands as an account; a receiver that serves no route for rights answers none, which is the members tab
+ * standing with no rights at all. One member's read carries the answer for every member, so the rest are asked only
+ * where the first says the login writes here. */
+async function memberRights(signed: SignedIn, roomId: number, members: readonly ListedMember[], entry: RoomEntry): Promise<MemberRights> {
+  const accounts = [...new Set(members.flatMap((member) => member.account ?? []))];
+
+  // Where the check of the room's people offers this login nothing, they are not its to change in the console at all:
+  // a private room, a sealed one, a login standing before the account model or writing nowhere here, one whose company
+  // is not the room's. A member's rights are no business of such a reader, and the receiver is not asked.
+  if (signed.id === null || accounts.length === 0 || !(entry.letIn || entry.takeOut)) return noRights();
+
+  const by = String(signed.id);
+  const first = await roomAccountGrants(roomId, accounts[0]!, by);
+
+  if (first === null || !first.mayWrite) return noRights();
+
+  const held = new Map<string, RoomGrants>([[accounts[0]!, { letIn: first.letIn, takeOut: first.takeOut }]]);
+  const rest = await Promise.all(accounts.slice(1).map((account) => roomAccountGrants(roomId, account, by)));
+
+  for (const [place, one] of rest.entries()) {
+    if (one !== null) held.set(accounts[place + 1]!, { letIn: one.letIn, takeOut: one.takeOut });
+  }
+
+  return { mayGrant: true, byAccount: held };
+}
+
+/** A room's members with what its chat service gave of them, what the reader may do to its people, and the rights each
+ * account among them holds where the reader may change them. */
+export async function roomMembersView(signed: SignedIn, roomId: number): Promise<RoomMembersView> {
+  const [{ members, chatMembers }, entry] = await Promise.all([roomMembers(roomId), roomEntry(signed, roomId)]);
+  const rights = await memberRights(signed, roomId, members, entry);
+
+  return {
+    members: members.map((member) => ({ ...member, grants: member.account === null ? null : (rights.byAccount.get(member.account) ?? null) })),
+    chatMembers,
+    entry,
+    mayGrant: rights.mayGrant
   };
 }

@@ -45,7 +45,7 @@ async function rendered(member: RoomMember, avatars: AvatarIndex = new Map(), pr
 
 describe("a member of a room", () => {
   test("says their presence under their name where it is shown, and nothing where it is not", async () => {
-    const member: RoomMember = { person: 9_000_000_000_103, name: "member-c", status: "status-c", account: null, inConsole: false };
+    const member: RoomMember = { person: 9_000_000_000_103, name: "member-c", status: "status-c", account: null, inConsole: false, grants: null };
     const shown = await rendered(member, new Map(), { chip: { show: true, color: "success", position: "bottom-right", size: "md" }, line: "presence-line" });
 
     expect(shown).toMatch(/<span[^>]*data-member-presence[^>]*>presence-line<\/span>/);
@@ -54,7 +54,7 @@ describe("a member of a room", () => {
   });
 
   test("known as an account carries the console user's mark under their name and status line", async () => {
-    const html = await rendered({ person: 9_000_000_000_101, name: "member-a", status: "status-a", account: "7", inConsole: false });
+    const html = await rendered({ person: 9_000_000_000_101, name: "member-a", status: "status-a", account: "7", inConsole: false, grants: null });
 
     expect(html).toContain("member-a");
     expect(html).toContain("status-a");
@@ -62,7 +62,7 @@ describe("a member of a room", () => {
   });
 
   test("the platform does not know stands as a member alone, with no mark and no status line it was not given", async () => {
-    const html = await rendered({ person: 9_000_000_000_102, name: "member-b", status: null, account: null, inConsole: false });
+    const html = await rendered({ person: 9_000_000_000_102, name: "member-b", status: null, account: null, inConsole: false, grants: null });
 
     expect(html).toContain("member-b");
     expect(html).not.toContain("data-badge");
@@ -72,8 +72,8 @@ describe("a member of a room", () => {
   test("wears the picture the receiver keeps for their number, and their letter where it keeps none", async () => {
     const avatars: AvatarIndex = new Map([["person:9000000000103", "/api/avatars/person/9000000000103?v=1"]]);
 
-    expect(await rendered({ person: 9_000_000_000_103, name: "member-c", status: null, account: null, inConsole: false }, avatars)).toContain('data-avatar="/api/avatars/person/9000000000103?v=1"');
-    expect(await rendered({ person: 9_000_000_000_104, name: "member-d", status: null, account: null, inConsole: false }, avatars)).toContain('data-avatar="M"');
+    expect(await rendered({ person: 9_000_000_000_103, name: "member-c", status: null, account: null, inConsole: false, grants: null }, avatars)).toContain('data-avatar="/api/avatars/person/9000000000103?v=1"');
+    expect(await rendered({ person: 9_000_000_000_104, name: "member-d", status: null, account: null, inConsole: false, grants: null }, avatars)).toContain('data-avatar="M"');
   });
 });
 
@@ -98,6 +98,15 @@ describe("the members tab", () => {
     expect(sheet).toContain('v-if="member.inConsole && member.account !== null && member.account === mine"');
     expect(sheet).toContain('v-else-if="member.inConsole && member.account !== null && entry.takeOut"');
     expect(sheet).toContain("await $fetch(`/api/rooms/${props.chatId}/accounts/${account}`, { method: \"DELETE\" });");
+  });
+
+  test("stands a member's rights in the room under their row for a reader the receiver would take a writing from, and nowhere else", () => {
+    expect(sheet).toContain('v-if="mayGrant && member.grants !== null"');
+    expect(sheet).toContain(':model-value="member.grants?.[offered.key] === true"');
+    expect(sheet).toContain('await $fetch<RoomGrants>(at, { method: "PUT", body: { right: offered.right } });');
+    expect(sheet).toContain('await $fetch(at, { method: "DELETE", query: { right: offered.right } });');
+    // Each switch is named for the member whose right it stands.
+    expect(sheet).toContain(':aria-label="$t(offered.aria, { name: member.name })"');
   });
 
   test("says a refused read in its error band, with the refresh that reads again", () => {

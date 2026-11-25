@@ -2973,17 +2973,31 @@ export interface RoomWindow {
   openFor: number;
 }
 
+// What one member is allowed to do to the room's members beyond what membership itself gives, kept by the receiver
+// beside the membership (docs/web.md, the room screen's members entry). Letting a person in and taking a member out
+// are what a room's manager may hand to a member; nothing else is.
+export interface RoomGrants {
+  letIn: boolean;
+  takeOut: boolean;
+}
+
+// One of those two rights, as the routes that write them name it.
+export type RoomRight = "let-in" | "take-out";
+
 // One of a room's members (docs/web.md, the room screen's members entry), by either road: one its chat service read,
 // with the person number the room's lines carry where one was given, their name and status line, and the console
 // account they are where that number is linked to a user who may sign in; or an account let into the room in the
 // console, by its account's name. `inConsole` says the account is a member in the console, so it may leave or be
-// taken out there. Nothing is told of a member the platform does not know.
+// taken out there. `grants` are the rights that account holds in the room, told only where this reader may change
+// them; nothing is asked about a member the console does not know as an account. Nothing else is told of a member the
+// platform does not know.
 export interface RoomMember {
   person: number | null;
   name: string;
   status: string | null;
   account: string | null;
   inConsole: boolean;
+  grants: RoomGrants | null;
 }
 
 // What a room's chat service gave of its members (docs/web.md, the room screen's members entry): its list, or none
@@ -2998,11 +3012,13 @@ export interface RoomEntry {
   takeOut: boolean;
 }
 
-// A room's members, what its chat service gave of them, and what the reader may do to them.
+// A room's members, what its chat service gave of them, what the reader may do to them, and whether the reader may
+// change what a member is allowed to do in the room.
 export interface RoomMembersView {
   members: RoomMember[];
   chatMembers: RoomChatMembers;
   entry: RoomEntry;
+  mayGrant: boolean;
 }
 
 // One room, counted: the messages kept for it, the session kept for the room, and the runs made for it.

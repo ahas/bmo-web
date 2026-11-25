@@ -4,7 +4,9 @@
        page, on a member the account service knows as an account. A member it does not know stands as a member alone.
        A reader who may let people in adds them, the room's menu opening the same dialog over this tab, and a member let
        in in the console leaves, or is taken out by a reader who may take members out, from their row (the room
-       screen's section on opening a room and letting people in). -->
+       screen's section on opening a room and letting people in). Under a member the console knows as an account stands
+       what that member may do to the room's people besides being one, which a reader the receiver would take such a
+       writing from sets there, and nobody else sees. -->
   <div class="flex min-w-0 flex-col">
     <div v-if="loaded && entry.letIn" class="mb-2 flex justify-end">
       <UButton size="sm" icon="i-material-symbols-person-add-outline" :label="$t('members.action.let_in')" data-room-let-in @click="letInOpen = true" />
@@ -34,38 +36,63 @@
       <li
         v-for="member in members"
         :key="member.person ?? `account:${member.account ?? member.name}`"
-        class="flex min-w-0 items-start gap-1"
+        class="flex min-w-0 flex-col"
         :data-room-member="member.person ?? ''"
       >
-        <NuxtLink
-          v-if="member.account !== null && mayOpenPeople"
-          :to="`/people/${member.account}`"
-          :class="[ROW, 'min-w-0 flex-1 transition-colors hover:bg-elevated active:bg-accented focus-inset']"
-          :data-console-user="member.account"
-        >
-          <RoomMemberLine :member="member" :avatars="props.avatars" :presence="presenceOf(member)" />
-        </NuxtLink>
-        <div v-else :class="[ROW, 'min-w-0 flex-1']" :data-console-user="member.account ?? undefined">
-          <RoomMemberLine :member="member" :avatars="props.avatars" :presence="presenceOf(member)" />
+        <div class="flex min-w-0 items-start gap-1">
+          <NuxtLink
+            v-if="member.account !== null && mayOpenPeople"
+            :to="`/people/${member.account}`"
+            :class="[ROW, 'min-w-0 flex-1 transition-colors hover:bg-elevated active:bg-accented focus-inset']"
+            :data-console-user="member.account"
+          >
+            <RoomMemberLine :member="member" :avatars="props.avatars" :presence="presenceOf(member)" />
+          </NuxtLink>
+          <div v-else :class="[ROW, 'min-w-0 flex-1']" :data-console-user="member.account ?? undefined">
+            <RoomMemberLine :member="member" :avatars="props.avatars" :presence="presenceOf(member)" />
+          </div>
+          <IconButton
+            v-if="member.inConsole && member.account !== null && member.account === mine"
+            icon="i-material-symbols-logout"
+            class="mt-2"
+            :label="$t('members.action.leave')"
+            :loading="busy === member.account"
+            data-room-leave
+            @click="void takeOut(member.account)"
+          />
+          <IconButton
+            v-else-if="member.inConsole && member.account !== null && entry.takeOut"
+            icon="i-material-symbols-person-remove-outline"
+            class="mt-2"
+            :label="$t('members.action.take_out')"
+            :loading="busy === member.account"
+            data-room-take-out
+            @click="void takeOut(member.account)"
+          />
         </div>
-        <IconButton
-          v-if="member.inConsole && member.account !== null && member.account === mine"
-          icon="i-material-symbols-logout"
-          class="mt-2"
-          :label="$t('members.action.leave')"
-          :loading="busy === member.account"
-          data-room-leave
-          @click="void takeOut(member.account)"
-        />
-        <IconButton
-          v-else-if="member.inConsole && member.account !== null && entry.takeOut"
-          icon="i-material-symbols-person-remove-outline"
-          class="mt-2"
-          :label="$t('members.action.take_out')"
-          :loading="busy === member.account"
-          data-room-take-out
-          @click="void takeOut(member.account)"
-        />
+        <!-- What this member may do to the room's people beyond what being a member gives them, which a reader who
+             may hand it out sets here: each right's own word beside its switch, the change going as it is made and
+             standing as the receiver keeps it. The line stands under the member it names, on the member's own
+             column, and only where the receiver would take this reader's writing of it. -->
+        <div
+          v-if="mayGrant && member.grants !== null"
+          class="flex flex-wrap items-center gap-x-4 gap-y-2 pb-2 pl-13"
+          role="group"
+          :aria-label="$t('members.label.rights')"
+          data-member-rights
+        >
+          <span class="text-sm text-muted">{{ $t("members.label.rights") }}</span>
+          <span v-for="offered in RIGHTS" :key="offered.right" class="flex items-center gap-2" :data-member-right="offered.right">
+            <span class="text-sm text-toned">{{ $t(offered.label) }}</span>
+            <USwitch
+              :model-value="member.grants?.[offered.key] === true"
+              :aria-label="$t(offered.aria, { name: member.name })"
+              :loading="granting === `${member.account}:${offered.key}`"
+              :disabled="granting !== ''"
+              @update:model-value="(on: boolean) => void setRight(member, offered, on)"
+            />
+          </span>
+        </div>
       </li>
     </ul>
     <p v-if="actFailure !== ''" role="alert" class="mt-2 text-sm text-error">{{ actFailure }}</p>
@@ -87,7 +114,15 @@ import { mayRead } from "#shared/sections";
 
 import type { AvatarIndex } from "~/domain/avatars";
 import type { MemberPresence } from "~/domain/presence";
-import type { RoomChatMembers, RoomEntry, RoomMember, RoomMembersView } from "#shared/types";
+import type { RoomChatMembers, RoomEntry, RoomGrants, RoomMember, RoomMembersView, RoomRight } from "#shared/types";
+
+// One right of a member, with its words on the row and the key the receiver keeps it under.
+interface OfferedRight {
+  right: RoomRight;
+  key: keyof RoomGrants;
+  label: string;
+  aria: string;
+}
 
 interface Props {
   chatId: number;
@@ -115,7 +150,18 @@ const mayOpenPeople = computed<boolean>(() => props.administrator || mayRead(acc
 
 const members = ref<RoomMember[]>([]);
 const entry = ref<RoomEntry>({ letIn: false, takeOut: false });
+// Whether this reader may hand a member the rights of letting people in and taking members out, as the receiver says
+// it beside the rights themselves.
+const mayGrant = ref(false);
 const chatMembers = ref<RoomChatMembers>("listed");
+
+// The two rights of the room's people a manager may hand out, each with the words it wears on the row and the key the
+// routes name it by.
+const RIGHTS: readonly OfferedRight[] = [
+  { right: "let-in", key: "letIn", label: "members.label.right_let_in", aria: "members.aria.right_let_in" },
+  { right: "take-out", key: "takeOut", label: "members.label.right_take_out", aria: "members.aria.right_take_out" }
+];
+
 // Why a room with no members has none of its chat service's, where its chat service gave none.
 const noneReason = computed<string | null>(() => {
   switch (chatMembers.value) {
@@ -130,6 +176,8 @@ const noneReason = computed<string | null>(() => {
 // The dialog that lets people in, which the room's menu opens too.
 const letInOpen = defineModel<boolean>("letIn", { default: false });
 const busy = ref<string | null>(null);
+// The right change under way, by its member and right, so no second one is written beside it.
+const granting = ref("");
 const actFailure = ref("");
 const signedUser = useSignedUser();
 const mine = computed<string | null>(() => (signedUser.value === null ? null : String(signedUser.value)));
@@ -162,6 +210,7 @@ async function read(): Promise<void> {
     if (mine !== generation) return;
     members.value = answer.members;
     entry.value = answer.entry;
+    mayGrant.value = answer.mayGrant;
     chatMembers.value = answer.chatMembers;
     loaded.value = true;
   } catch (error) {
@@ -191,6 +240,41 @@ async function takeOut(account: string): Promise<void> {
   } finally {
     busy.value = null;
   }
+}
+
+// One member's right in the room given or taken back. The switch stands as it was pressed while the write runs and as
+// the receiver answers it once the write is through; a refusal puts it back and is said under the list, which stands
+// as it was.
+async function setRight(member: RoomMember, offered: OfferedRight, on: boolean): Promise<void> {
+  const stood = member.grants;
+
+  if (member.account === null || stood === null || granting.value !== "") return;
+
+  const account = member.account;
+  const at = `/api/rooms/${props.chatId}/accounts/${account}/grants`;
+
+  member.grants = heldAs(stood, offered.key, on);
+  granting.value = `${account}:${offered.key}`;
+  actFailure.value = "";
+
+  try {
+    if (on) {
+      member.grants = await $fetch<RoomGrants>(at, { method: "PUT", body: { right: offered.right } });
+    } else {
+      await $fetch(at, { method: "DELETE", query: { right: offered.right } });
+      member.grants = heldAs(stood, offered.key, false);
+    }
+  } catch (error) {
+    member.grants = stood;
+    actFailure.value = failureText(error, t(on ? "members.error.grant_failed" : "members.error.grant_revoke_failed"));
+  } finally {
+    granting.value = "";
+  }
+}
+
+// What a member holds with one right stood as given or taken back.
+function heldAs(held: RoomGrants, key: keyof RoomGrants, on: boolean): RoomGrants {
+  return key === "letIn" ? { ...held, letIn: on } : { ...held, takeOut: on };
 }
 
 const failure = useReadFailure({

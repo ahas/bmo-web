@@ -109,11 +109,11 @@ describe("who writes in a room", () => {
 
 describe("the room's typing picture", () => {
   const members: RoomMember[] = [
-    { person: 501, name: "agent-a", status: null, account: "2", inConsole: true },
-    { person: 502, name: "agent-b", status: null, account: null, inConsole: false },
-    { person: 503, name: "agent-c", status: null, account: "3", inConsole: true },
-    { person: 504, name: "agent-d", status: null, account: "4", inConsole: true },
-    { person: 505, name: "agent-e", status: null, account: "5", inConsole: true }
+    { person: 501, name: "agent-a", status: null, account: "2", inConsole: true, grants: null },
+    { person: 502, name: "agent-b", status: null, account: null, inConsole: false, grants: null },
+    { person: 503, name: "agent-c", status: null, account: "3", inConsole: true, grants: null },
+    { person: 504, name: "agent-d", status: null, account: "4", inConsole: true, grants: null },
+    { person: 505, name: "agent-e", status: null, account: "5", inConsole: true, grants: null }
   ];
   const avatars = new Map([[avatarKey("person", 502), "/avatars/person-502"]]);
   const writersOf = (held: ReturnType<typeof stepTyping>) => typistsOf(typingPeople(held.get(ROOM), ME), members, avatars);

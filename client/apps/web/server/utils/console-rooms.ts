@@ -9,7 +9,7 @@ import { streamedForm } from "./streamed-forms";
 
 import type { SignedIn } from "./accounts";
 import type { SpooledFile } from "./streamed-forms";
-import type { ExactMessageId } from "#shared/types";
+import type { ExactMessageId, RoomGrants, RoomRight } from "#shared/types";
 
 // The rooms of the console (docs/web.md, 「Access」 and the room screen's section on opening a room and letting people
 // in): a room's members are accounts, kept by the receiver, and each account speaks there under an identity of its own
@@ -158,6 +158,50 @@ export async function letUnitIntoRoom(room: number, unit: number, by: string): P
 /** A member taken out of a room by an account, themselves where they leave; the receiver writes who did it. */
 export async function takeOutOfRoom(room: number, account: string, by: string): Promise<void> {
   await receiverRoute(`/rooms/${room}/accounts/${account}?by=${encodeURIComponent(by)}`, { method: "DELETE" }, CHANGES);
+}
+
+/** The rights one member holds, and whether the account asking for them may write them. */
+export interface RoomGrantsRead extends RoomGrants {
+  mayWrite: boolean;
+}
+
+// The receiver refuses a grants change to a reader whose standing in the room does not reach it, which is the
+// sentence the members tab says a refused right change in.
+const GRANTS = { ...CHANGES, codes: { "not-room-leader": "members.error.grant_forbidden" } };
+
+/** One member's rights in a room, and whether `by` may write them; none where the receiver serves no route for them
+ * yet, which is read as no rights and no writing (docs/boundary.md, 「Gaps the console meets」). */
+export async function roomAccountGrants(room: number, account: string, by: string): Promise<RoomGrantsRead | null> {
+  let said: { letIn?: unknown; takeOut?: unknown; mayWrite?: unknown } | null;
+
+  try {
+    said = await receiverRoute<{ letIn?: unknown; takeOut?: unknown; mayWrite?: unknown } | null>(
+      `/rooms/${room}/accounts/${account}/grants?${new URLSearchParams({ by })}`
+    );
+  } catch (error) {
+    if (unserved(error)) return null;
+
+    throw error;
+  }
+
+  return { letIn: said?.letIn === true, takeOut: said?.takeOut === true, mayWrite: said?.mayWrite === true };
+}
+
+/** A member's right in a room given to them by `by`, the receiver keeping it beside the membership; the member's
+ * rights as they now stand. */
+export async function grantRoomRight(room: number, account: string, by: string, right: RoomRight): Promise<RoomGrants> {
+  const said = await receiverRoute<{ letIn?: unknown; takeOut?: unknown } | null>(
+    `/rooms/${room}/accounts/${account}/grants`,
+    { method: "PUT", body: { by: Number(by), right } },
+    GRANTS
+  );
+
+  return { letIn: said?.letIn === true, takeOut: said?.takeOut === true };
+}
+
+/** A member's right in a room taken away from them by `by`. */
+export async function revokeRoomRight(room: number, account: string, by: string, right: RoomRight): Promise<void> {
+  await receiverRoute(`/rooms/${room}/accounts/${account}/grants?${new URLSearchParams({ by, right })}`, { method: "DELETE" }, GRANTS);
 }
 
 /** A room on the record alone, opened by an account: titled as asked, answered by the supervisor named, the account its

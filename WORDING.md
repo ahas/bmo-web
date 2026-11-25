@@ -510,6 +510,9 @@
   가입, and never a count of people in place of their names.
 - taking a member out of a room → 내보내기: 내보내기, 내보냈습니다, 내보내지 못했습니다; a member taking themselves
   out → 나가기: 나가기, 나갔습니다, 나가지 못했습니다. Never 강퇴, 추방, 퇴장.
+- what a member may do to a room's people besides being one → 대화상대 권한: the group's word 권한, each right named by
+  the act it is (대화상대 추가, 내보내기), the acts 권한 부여 and 권한 해제, each in every inflection (부여했습니다,
+  해제하지 못했습니다). Never 허가, 접근 권한, 위임, and never a name for a right beyond the act it is.
 - the sidebar's one entry that brings a room in, however the reader may → 새 채팅. Its menu names each way by what it
   brings: a room added from a chat service → 채팅 서비스 방 추가, its dialog 방 추가; a group room opened in the console →
   콘솔 방 만들기. Never 새 방, 대화 시작, 방 가져오기.

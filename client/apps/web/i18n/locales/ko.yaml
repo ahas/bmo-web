@@ -2324,6 +2324,9 @@ members:
     unit_people: "구성원 {count}명"
     choice: 사람·조직
     find: 이름이나 조직으로 찾기
+    rights: 권한
+    right_let_in: 대화상대 추가
+    right_take_out: 내보내기
   status:
     loading: 대화상대 불러오는 중…
   action:
@@ -2337,6 +2340,12 @@ members:
     entry_failed: 대화상대를 바꾸지 못했습니다.
     entry_forbidden: 이 방에 대화상대를 추가하거나 내보낼 권한이 없습니다.
     entry_unknown: 그 사람을 찾을 수 없습니다.
+    grant_failed: 권한을 부여하지 못했습니다.
+    grant_revoke_failed: 권한을 해제하지 못했습니다.
+    grant_forbidden: 이 방에서 대화상대에게 권한을 부여하거나 해제할 권한이 없습니다.
+  aria:
+    right_let_in: "{name} 대화상대 추가 권한"
+    right_take_out: "{name} 내보내기 권한"
 room_info:
   title:
     sheet: 방 정보

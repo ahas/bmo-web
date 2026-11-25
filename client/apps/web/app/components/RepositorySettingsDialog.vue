@@ -201,7 +201,7 @@ interface Props {
   // The repository to edit; none opens the dialog for a new one.
   name?: string | null;
   // The organisation unit whose repository it is, read and saved through the unit's own routes so a head needs no part
-  // of agent management (docs/web.md, 「Organisation」, the agents tab); none on agent management's repository tab.
+  // of agent management (docs/web.md, 「System and organisation」, the agents tab); none on agent management's repository tab.
   unit?: number | null;
 }
 

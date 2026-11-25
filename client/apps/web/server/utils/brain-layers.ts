@@ -9,7 +9,7 @@ import type { SignedIn } from "./accounts";
 import type { ChainDelegation } from "#shared/organisation-supply";
 import type { BrainLayer, BrainLayerSetting, BrainLayersView } from "#shared/org-memory";
 
-// Whether the base and the org brains are read for the people under a link (docs/web.md, 「Organisation」, the org
+// Whether the base and the org brains are read for the people under a link (docs/web.md, 「System and organisation」, the org
 // memory tab, the read layers; the brain's `docs/design.md`, 「The layers a reading takes」): two narrowing flags the brain
 // declares on the delegation chain, read and written on the chain's own routes as the reader, so who writes a link
 // and a lock above it are the account service's word. A link only turns a layer off: turning it on again follows

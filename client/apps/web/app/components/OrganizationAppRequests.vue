@@ -1,5 +1,5 @@
 <template>
-  <!-- The requests to make a shared personal app a platform app (docs/web.md, 「Organisation」, the apps tab with the
+  <!-- The requests to make a shared personal app a platform app (docs/web.md, 「System and organisation」, the apps tab with the
        platform chosen): every company's, newest first, each a row of the app's title and who asked when, with the
        note under it. The app ships as a platform tool once the administrator puts it. -->
   <SettingsGroup :title="$t('app_catalogue.label.promotions')" data-admin-promotions>

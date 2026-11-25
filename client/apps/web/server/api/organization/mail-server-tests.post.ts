@@ -3,7 +3,7 @@ import { mailFieldsOf, mailProtocolOf, mailServersFailure, testMailServer } from
 
 import type { MailServerTestView } from "#shared/mail-servers";
 
-// A connection test of the server form (docs/web.md, 「Organisation」, the mail servers tab): bmo-mail reaches the
+// A connection test of the server form (docs/web.md, 「System and organisation」, the mail servers tab): bmo-mail reaches the
 // server as the form holds it — `protocol`, `host`, `port`, `security` and `tlsName` — and keeps nothing.
 export default defineEventHandler(async (event): Promise<MailServerTestView> => {
   const body = await readBody<Record<string, unknown>>(event).catch(() => ({}) as Record<string, unknown>);

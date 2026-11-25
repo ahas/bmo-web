@@ -7,7 +7,7 @@ import { changeComposition, isDelegation, orgAgentsFailure } from "../../../../u
 
 import type { CompositionChoice } from "#shared/organisation-supply";
 
-// A unit's word on one role, and the composition's delegation (docs/web.md, 「Organisation」, the agents tab): `role` with
+// A unit's word on one role, and the composition's delegation (docs/web.md, 「System and organisation」, the agents tab): `role` with
 // `choice` — `{ off: true }`, `{ agents: n, roads }`, each road a provider, a model and an effort or null for the road
 // of the role's own agent, or null to follow above — and `delegation`, either or both.
 export default defineEventHandler(async (event): Promise<{ ok: true }> => {

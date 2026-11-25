@@ -456,7 +456,7 @@ describe("whose window the title bar shows", () => {
   });
 
   // The bar never shows the number the agency put in a login's name: it shows the number the console counted within
-  // the account that owns the login (docs/web.md, 「Organisation」, the supply tab).
+  // the account that owns the login (docs/web.md, 「System and organisation」, the supply tab).
   test("the login is named by its own account's number where the console counted one", () => {
     expect(slotLoginText(wording, active({ accountName: "claude-07", loginNumber: 3 }))).toBe(wording("supply.label.login_numbered", { number: "03" }));
     expect(slotLoginText(wording, active({ accountName: "hand-named", loginNumber: null }))).toBe("hand-named");

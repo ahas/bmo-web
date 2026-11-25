@@ -217,7 +217,7 @@ export function liveWindow<T extends HeadlineWindow>(window: T | null | undefine
 // What names the slot's login on the title bar, where the provider holds more than one to tell apart. With a single
 // login there is nothing to distinguish and the title says nothing about it, and a provider that holds none has no
 // login to name. Where the console counted the login's own number it names it by that, and not by the number the
-// agency put in its name (docs/web.md, 「Organisation」, the supply tab).
+// agency put in its name (docs/web.md, 「System and organisation」, the supply tab).
 export function titleAccountLabel(active: ActiveUsage | null): string | null {
   return active === null || active.logins < 2 ? null : active.accountName;
 }

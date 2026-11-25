@@ -1,6 +1,6 @@
 <template>
   <!-- The Claude logins the agency holds, in the order the Claude Code provider walks them (docs/web.md,
-       「Administration」, the providers tab). A row is carried by its handle alone, by the mouse and the finger
+       「System and organisation」, the providers tab). A row is carried by its handle alone, by the mouse and the finger
        the same way, and the order is saved the moment it is dropped. What a row says of a credential is the path it
        is reached by — no cell and no box here has a token to show, because none is ever sent to this screen. A new
        login is added from the add at the heading's right end, which opens the box this list keeps. The list stands as a group under its
@@ -226,7 +226,7 @@ function standingText(account: ClaudeAccountView): string {
 
 // What the screen calls one of the accounts: its number counted among the logins of the account that owns it, the
 // platform's own apart from the administrator's, never the number the agency put in its name (docs/web.md,
-// 「Organisation」, the supply tab).
+// 「System and organisation」, the supply tab).
 const ownNumbers = computed(() => loginNumbers(shown.value));
 
 function labelOf(account: ClaudeAccountView): string {

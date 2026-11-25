@@ -7,7 +7,7 @@ import { answer, standIn } from "../../support/units";
 import type { NoticeSwitchesView, RestEndView, RestView } from "../../../apps/web/shared/rest";
 
 // The rest as the agents' tables and the providers tab ask it (docs/web.md, 「What each agent is doing now」 and
-// 「Administration」; the agency's docs/api.md, 「accounts, rest and usage」; the receiver's docs/api.md, 「Notices」):
+// 「System and organisation」; the agency's docs/api.md, 「accounts, rest and usage」; the receiver's docs/api.md, 「Notices」):
 // whether the deployment rests and which agents of the reader's lists it closes, read only while it rests; the rest
 // ended by hand through the agency; and the owner's private chat's notice switches read and set through the receiver.
 

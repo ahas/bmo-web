@@ -1,5 +1,5 @@
 <template>
-  <!-- The secrets the agency's provider tools read (docs/web.md, 「Administration」, the providers tab): one row
+  <!-- The secrets the agency's provider tools read (docs/web.md, 「System and organisation」, the providers tab): one row
        to each setting naming a secret, its choices the reader's own secrets saved in the setting's kind and none, the
        choice saved as it is made. A refusal is said under the row's label, and the row stays as the agency holds it. -->
   <SettingsGroup :title="$t('agents.title.secret_settings')">

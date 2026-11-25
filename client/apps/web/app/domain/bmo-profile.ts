@@ -1,4 +1,4 @@
-// The BMO profile's screens (docs/web.md, 「Organisation」, its BMO tab, and 「Settings」, its own-BMO section): what
+// The BMO profile's screens (docs/web.md, 「System and organisation」, its BMO tab, and 「Settings」, its own-BMO section): what
 // a call name may be before it is added, how a part says where it came from, and the permission tree laid out as rows.
 // The decisions themselves are the account service's (docs/accounts.md, 「A person's BMO profile」); this only lays out
 // what it answered.

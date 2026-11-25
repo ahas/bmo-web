@@ -4,7 +4,7 @@ import { callerOf, organizationFailure, unitNumber } from "../../../utils/organi
 import type { Unit } from "@web/server-client";
 
 // A unit renamed, moved under another parent of its company, or given its kind, short name and the unit it reports to
-// (docs/web.md, 「Organisation」, its chart): each of the last three left as it stands where the body leaves it out and
+// (docs/web.md, 「System and organisation」, its chart): each of the last three left as it stands where the body leaves it out and
 // taken away where it names null.
 export default defineEventHandler(async (event): Promise<Unit> => {
   const signed = await requireAdministrator(event);

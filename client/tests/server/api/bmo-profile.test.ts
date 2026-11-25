@@ -8,7 +8,7 @@ import { wording } from "../../../apps/web/shared/wording";
 
 import type { CompanyBmoView, OwnBmoView } from "../../../apps/web/shared/bmo-profile";
 
-// The console's BMO profile routes (docs/web.md, 「Organisation」, its BMO tab, and 「Settings」, its own-BMO section):
+// The console's BMO profile routes (docs/web.md, 「System and organisation」, its BMO tab, and 「Settings」, its own-BMO section):
 // each hands the signed-in login to the account service, which decides (docs/accounts.md, 「A person's BMO profile」),
 // and says its refusal in the pack's words: a person who may not personalise their BMO is refused their own profile,
 // and a member who heads no company its default.

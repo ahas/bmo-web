@@ -4,7 +4,7 @@ import { securityFailure } from "../../utils/sign-in";
 
 import type { SystemMail } from "@web/server-client";
 
-// The system mail as set, with bmo-mail's outgoing servers, the administrator's alone (docs/web.md, 「Administration」,
+// The system mail as set, with bmo-mail's outgoing servers, the administrator's alone (docs/web.md, 「System and organisation」,
 // the mail tab).
 export default defineEventHandler(async (event): Promise<SystemMail> => {
   try {

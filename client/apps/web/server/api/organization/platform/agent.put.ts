@@ -8,7 +8,7 @@ import { callerOf } from "../../../utils/organization";
 import type { CompanyBmoView } from "#shared/bmo-profile";
 
 // The platform's own default name and call names saved, the administrator's, then applied to every person's BMO, since
-// any company setting none follows it (docs/web.md, 「Organisation」, the agents tab with the platform chosen).
+// any company setting none follows it (docs/web.md, 「System and organisation」, the agents tab with the platform chosen).
 export default defineEventHandler(async (event): Promise<CompanyBmoView> => {
   const signed = await requireAdministrator(event);
   const body = await readBody<{ name?: unknown; callNames?: unknown }>(event);

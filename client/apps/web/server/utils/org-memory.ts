@@ -9,7 +9,7 @@ import type { SignedIn } from "./accounts";
 import type { UnitCall } from "./units";
 import type { OrgMemory, OrgMemoryDraft, OrgMemoryPerson, OrgMemoryView, OrgMemoryWritersView, OwnMemoryView } from "#shared/org-memory";
 
-// A unit's org memory on the organisation screen's org memory tab (docs/web.md, 「Organisation」, the org memory tab;
+// A unit's org memory on the organisation screen's org memory tab (docs/web.md, 「System and organisation」, the org memory tab;
 // docs/boundary.md, 「Calls the console makes」): the brain keeps it in an org brain of each unit, keyed by the company's
 // id and the unit's, and the account service says who writes it. Every write asks the service's org memory check for
 // the reader first and names the brain write's standing from its answer, `head` for a writer and `member` for anyone

@@ -102,14 +102,14 @@
 - a person's own supervisor, as it is titled → `{name}의 BMO`, the person's name with BMO, or with the name its
   profile stands with where a company or the person set one (`{name}의 Dear`); its private room → the person's name
   alone, `{name}`. The person's name stands there, the login only where none stands; never the login with BMO beside
-  a name, nor 비서, 개인 감독관 or 전용 BMO. The person themselves calls it 내 BMO, and its group on 조직's 에이전트 at 나 is 내 BMO.
+  a name, nor 비서, 개인 감독관 or 전용 BMO. The person themselves calls it 내 BMO, and its group on 시스템 및 조직's 에이전트 at 나 is 내 BMO.
 - the names that call a BMO in a room → 부르는 이름: 부르는 이름, 부르는 이름 없음, 추가할 이름. Never 호출 이름, 웨이크
   워드, 별칭; 호출 stays the mention's never-word.
 - a company's default for its people's BMOs → 기본 BMO, the platform's → 전역 기본 BMO; who may set their own BMO → BMO
   설정 권한, each row 허용, 막음 or 상위 조직 따름 (전역 설정 따름 on a company), a following row saying 상위 조직을 따라 허용 or
   상위 조직을 따라 막음 (전역 설정을 따라 허용 or 막음 on a company); the platform's own row → 자기 BMO 설정, its choices
   기본값을 따름, 허용 and 막음. Never 개인화 권한, 커스터마이즈.
-- a screen and its tools switched on and off as one → 앱; where they are switched → 앱·도구·스킬 on 조직, at every node
+- a screen and its tools switched on and off as one → 앱; where they are switched → 앱·도구·스킬 on 시스템 및 조직, at every node
   of its tree 나 among them, a shared skill and MCP server switched there as an app is. Its state → 켬 or 끔; a unit's choice of it → 켬, 끔 or 상위 조직 따름 (전역 설정 따름 on a company), a following
   row saying 상위 조직을 따라 켬 or 전역 설정을 따라 끔; a person's row → 직접 정함 or 조직을 따름, their own word taken
   back by 되돌리기, and where a link above them decided it 조직이 정함 · `{unit}`, or 전역 설정으로 정함 for the
@@ -151,7 +151,7 @@
 - giving an agent a skill or an MCP server → 붙이다: 붙인 에이전트, `붙인 에이전트: {agents}`, the agent's control and its
   form → 스킬·MCP; an agent whose line takes none → `이 에이전트에는 스킬을 붙일 수 없습니다.` Never 연결, 장착, 할당 or 활성화
   for attaching.
-- the platform's word on an app on 플랫폼 설정 → 전역 설정, its choices 제공 or 제공 안 함 and 켬 or 끔; the platform's word for
+- the platform's word on an app at 플랫폼 전체 → 전역 설정, its choices 제공 or 제공 안 함 and 켬 or 끔; the platform's word for
   one company or unit → 회사별 제공; a row's line → 모든 회사에 제공 (`{n}곳 제외` after it), `{n}곳에 제공` or 제공하지
   않음, a company or a unit counted by 곳. Turning an app off everywhere at once → 긴급 회수, its question
   `<앱> 앱을 모든 곳에서 끌까요?` and its way through 회수; its state → 긴급 회수됨; its undoing → 회수 해제. Never 강제
@@ -275,7 +275,7 @@
   largest the note takes. Never 올리기, 업로드 한도 or 최대 용량.
 - secret, a value a unit reads by its file name → 비밀; the console's store of them, each person's own → 비밀 보관함,
   and one's own → 내 비밀; putting a value in place of the one a name holds → 교체. A unit's, the platform's and the
-  reader's own all stand on 조직's 비밀 보관함 under the same words, the reader's at 나. Never 시크릿, 키 보관소, 개인 금고.
+  reader's own all stand on 시스템 및 조직's 비밀 보관함 under the same words, the reader's at 나. Never 시크릿, 키 보관소, 개인 금고.
 - which console sections a unit's people use → 권한, each person's sections 읽기 and 쓰기; the list's search 이름으로 찾기,
   찾은 사람 없음, 사람 없음. Never 역할 for a section, 접근 제어.
 - the shape a secret is asked in → 비밀 종류; one of its fields → 항목, its key 키 and its label 이름; fields put
@@ -317,7 +317,7 @@
   section.
 - the organisation's instructions every agent of its people follows → 조직 지침, a unit's own text → 지침, none → 지침
   없음, the links above → 상위 조직 지침 `{n}`개가 먼저 적용됩니다. Never 시스템 프롬프트, 규칙, 정책 for them.
-- whether an agent keeps its persona, as a unit or a person chooses it → its row 적용 on 조직 and 페르소나 사용 in 설정,
+- whether an agent keeps its persona, as a unit or a person chooses it → its row 적용 on 시스템 및 조직 and 페르소나 사용 in 설정,
   its choices 페르소나 사용 and 페르소나 없음, a following row saying 위를 따라 페르소나 사용 or 위를 따라 페르소나 없음.
   Never 페르소나 끄기, 성격 없음.
 - a person's own agents, the set their organisation supplies with their own changes over it → 내 에이전트: a seat
@@ -524,11 +524,11 @@
   Everywhere else 역할 is an agent's role (below).
 - what an act will write, shown before it is written → 미리 보기; a row the act leaves as it stands → 변경 없음.
   Never 사전 확인, 변화 없음.
-- the screen of the organisation and the people in it → 조직; the administrator's screen of what is set for the
-  platform itself (providers, secret kinds, plans, credits) → 플랫폼 설정; the dialog of what a person sets for
-  themselves → 설정. Never 조직 설정, 관리자 or 관리자 설정 for a screen.
-- the sidebar's sections of screens: what the administrator keeps the deployment running with, and the organisation
-  screen beside it → 시스템 서비스; every other screen → 애플리케이션. Never 앱, 어플리케이션, 관리자 서비스, 관리
+- the screen of the platform's own settings and the organisations and the people in them → 시스템 및 조직; the
+  dialog of what a person sets for themselves → 설정. Never 조직, 플랫폼 설정, 조직 설정, 관리자 or 관리자 설정 for the
+  screen.
+- the sidebar's sections of screens: what the administrator keeps the deployment running with, and the 시스템 및 조직
+  screen among it → 시스템 서비스; every other screen → 애플리케이션. Never 앱, 어플리케이션, 관리자 서비스, 관리
   서비스 or 관리자 메뉴.
 - the person who administers the whole platform → 플랫폼 관리자: 플랫폼 관리자만 할 수 있습니다, 플랫폼 관리자나
   조직장만, 플랫폼 관리자에게 알려 주세요. Never 관리자 alone, which a reader cannot tell from a unit's 조직장; 관리자

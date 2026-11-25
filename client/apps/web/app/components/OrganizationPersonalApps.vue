@@ -1,5 +1,5 @@
 <template>
-  <!-- What the people under the node chosen may do with personal apps (docs/web.md, 「Organisation」, the apps tab): make
+  <!-- What the people under the node chosen may do with personal apps (docs/web.md, 「System and organisation」, the apps tab): make
        them, let them reach the network or be handed secrets, share them and with whom, have a head approve a shared
        version, and install a shared one — each the node's own word or following above, with what the links below may
        do with it. Network and secrets are opened by the platform one company at a time, the administrator's switch on

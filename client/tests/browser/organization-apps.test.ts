@@ -8,7 +8,7 @@ import { BROWSER_HOOK_MS, fingerOn, touchReady } from "./touch";
 import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 import KO from "../fixtures/browser/sidebar-sections.test.ko.json";
 
-// The one apps screen as a hand works it (docs/web.md, 「Organisation」, the apps tab): the organisation screen's tree
+// The one apps screen as a hand works it (docs/web.md, 「System and organisation」, the apps tab): the organisation screen's tree
 // holds the links the reader may write, and the apps tab draws the link chosen. The administrator chooses the platform
 // node from a company and the tab stays open on the platform's own word, where an app is recalled from everyone, asked
 // first on its row, and lifted again; a tab declaring nothing at the platform says so in one line. At a company the
@@ -332,7 +332,7 @@ describe.skipIf(!origin || !touchReady())("the organisation screen's one apps ta
         const page = await member.newPage();
 
         // The organisation entry stands for a reader with a user, and the screen opens at their own link of the chain
-        // on the tab the address names (docs/web.md, 「Sidebar」, 「Organisation」, the apps tab).
+        // on the tab the address names (docs/web.md, 「Sidebar」, 「System and organisation」, the apps tab).
         await page.goto(`${origin}/organization?company=me&tab=apps`, { waitUntil: "load" });
         await standing(page);
         await page.locator('[data-organization-node="me"]').waitFor({ timeout: 10_000 });
@@ -375,7 +375,7 @@ describe.skipIf(!origin || !touchReady())("the organisation screen's one apps ta
 
         await call(MEMBER.name, `/api/account/apps/${APP}`, "PUT", { on: null });
         // The organisation entry stands for a reader with a user, and the screen opens at their own link of the chain
-        // on the tab the address names (docs/web.md, 「Sidebar」, 「Organisation」, the apps tab).
+        // on the tab the address names (docs/web.md, 「Sidebar」, 「System and organisation」, the apps tab).
         await page.goto(`${origin}/organization?company=me&tab=apps`, { waitUntil: "load" });
         await standing(page);
         await page.locator('[data-organization-node="me"]').waitFor({ timeout: 10_000 });

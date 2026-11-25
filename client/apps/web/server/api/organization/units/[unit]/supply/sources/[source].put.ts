@@ -4,7 +4,7 @@ import { signedInUser } from "../../../../../../utils/accounts";
 import { unitNumber } from "../../../../../../utils/organization";
 import { changeSource, isDelegation, isSource, orgAgentsFailure } from "../../../../../../utils/organisation-supply";
 
-// One source closed at a unit or following above again, and its delegation (docs/web.md, 「Organisation」, the
+// One source closed at a unit or following above again, and its delegation (docs/web.md, 「System and organisation」, the
 // agents tab): `closed`, true or false, and `delegation`, `allow`, `lock` or `inherit`, either or both.
 export default defineEventHandler(async (event): Promise<{ ok: true }> => {
   const unit = unitNumber(getRouterParam(event, "unit"));

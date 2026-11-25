@@ -4,7 +4,7 @@ import { wording } from "../../../apps/web/shared/wording";
 import { asked, routeOf } from "../../support/nitro";
 import { answer, standIn } from "../../support/units";
 
-// A Claude account signed in from the console (docs/web.md, 「Administration」; the agency's docs/cache-fallback.md,
+// A Claude account signed in from the console (docs/web.md, 「System and organisation」; the agency's docs/cache-fallback.md,
 // 「Signing an account in from the console」): the start names an account there or a new one's name, never both, or
 // neither, for a new login the agency names past every account's names; the
 // code is handed to the sign-in the agency holds and nothing else is answered of it; giving up ends the sign-in; and

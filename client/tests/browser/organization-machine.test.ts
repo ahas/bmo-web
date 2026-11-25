@@ -6,7 +6,7 @@ import { wording } from "../../apps/web/shared/wording";
 
 import type { Browser, Locator, Page } from "playwright-core";
 
-// Taking a person's machine away in the organisation's machine dialog (docs/web.md, 「Organisation」, the people's
+// Taking a person's machine away in the organisation's machine dialog (docs/web.md, 「System and organisation」, the people's
 // machine mark): asked where its button stands, as a step the dialog's foot grows rather than a second dialog over it,
 // the question naming the machine and what becomes of it, wrapping at word boundaries as the dialog's other lines do,
 // the keyboard's place handed to the way out and back, and a mouse press drawing no ring. The way out takes nothing;

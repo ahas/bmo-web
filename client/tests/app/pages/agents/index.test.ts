@@ -27,7 +27,7 @@ const providersSection = await read("../../components/OrganizationProviders.vue"
 const platformCredentials = await read("../../components/OrganizationPlatformAccounts.vue");
 const accounts = await read("../../components/AgentsAccounts.vue");
 const axes = await Bun.file(new URL("../../../../apps/web/app/domain/axes.ts", import.meta.url)).text();
-const organization = await Bun.file(new URL("../../../../apps/web/app/domain/administration.ts", import.meta.url)).text();
+const organization = await Bun.file(new URL("../../../../apps/web/app/domain/organization.ts", import.meta.url)).text();
 const css = await Bun.file(new URL("../../../../apps/web/app/assets/css/main.css", import.meta.url)).text();
 const dialog = await Bun.file(new URL(import.meta.resolve("bmo-ui/app/components/SettingsDialog.vue"))).text();
 const table = await Bun.file(new URL(import.meta.resolve("bmo-ui/app/components/DataTable.vue"))).text();
@@ -329,7 +329,7 @@ describe("the model screens", () => {
 });
 
 describe("the providers and the Claude accounts", () => {
-  test("stand on the administrator's screen's providers tab, each switch taking effect as it is thrown, the accounts on the platform's supply", () => {
+  test("stand on the platform's providers tab at the platform node, each switch taking effect as it is thrown, the accounts on the platform's supply", () => {
     expect(organization).toContain('{ value: "providers", label: "settings.label.providers"');
     expect(templateOf(platformCredentials)).toContain("<AgentsAccounts");
     expect(scriptOf(providersSection)).toContain("`/api/providers/${encodeURIComponent(provider.name)}`, { method: \"PATCH\", body: { enabled: on } }");

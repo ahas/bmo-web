@@ -8,7 +8,7 @@ import type { UnitAppChange } from "#shared/apps";
 
 // A unit's word on an app changed: `on` (true, false, or null to follow above), `locks`, and the administrator's
 // `offer` (true, false, or null to take the platform's rule for the unit away), each where the body names it
-// (docs/web.md, 「Organisation」, the apps tab). Who writes the link, and a lock above it, are the account service's word.
+// (docs/web.md, 「System and organisation」, the apps tab). Who writes the link, and a lock above it, are the account service's word.
 export default defineEventHandler(async (event): Promise<null> => {
   const unit = unitNumber(getRouterParam(event, "unit"));
   const app = appParam(getRouterParam(event, "app"));

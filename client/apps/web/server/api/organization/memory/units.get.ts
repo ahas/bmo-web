@@ -3,7 +3,7 @@ import { callerOf, organizationFailure } from "../../../utils/organization";
 
 import type { OrgMemoryUnitView } from "#shared/org-memory";
 
-// The units whose org memory the reader writes, each with whether they head it (docs/web.md, 「Organisation」, the org
+// The units whose org memory the reader writes, each with whether they head it (docs/web.md, 「System and organisation」, the org
 // memory tab).
 export default defineEventHandler(async (event): Promise<OrgMemoryUnitView[]> => {
   const signed = await signedInUser(event);

@@ -1,8 +1,8 @@
 <template>
   <!-- One supply policy written whole: the sources it allows, in the order a run falls through them, and the
-       monthly cap on personal credits where the policy kind carries one (docs/web.md, 「Organisation」, the supply
+       monthly cap on personal credits where the policy kind carries one (docs/web.md, 「System and organisation」, the supply
        tab; the settings' supply section). The platform's form carries beside each source a second switch, whether a
-       person's own setting may change it, and under the sources one more of it for the order (「Administration」, the
+       person's own setting may change it, and under the sources one more of it for the order (「System and organisation」, the
        credits tab). An organisation's form is handed what the platform makes available, and a source out of it
        stands with its switch off and disabled and the words saying the platform has it off. One save at the foot
        sends the whole form, open only while it differs from what opened; the writer answers every refusal, which

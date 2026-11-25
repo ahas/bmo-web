@@ -6,7 +6,7 @@ import { fail } from "../../../../utils/fail";
 import type { AttachmentHolder } from "#shared/attachments";
 
 // What one of the signed-in reader's agents is given, its skills and its MCP items written whole, answered with the
-// agent as it then stands (docs/web.md, 「Organisation」, the agents tab at the reader's own node).
+// agent as it then stands (docs/web.md, 「System and organisation」, the agents tab at the reader's own node).
 export default defineEventHandler(async (event): Promise<AttachmentHolder> => {
   const kind = getRouterParam(event, "kind");
   const name = getRouterParam(event, "name");

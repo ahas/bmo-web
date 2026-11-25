@@ -1,5 +1,5 @@
 <template>
-  <!-- The platform's own credentials on the supply tab with the platform chosen (docs/web.md, 「Organisation」, the
+  <!-- The platform's own credentials on the supply tab with the platform chosen (docs/web.md, 「System and organisation」, the
        supply tab): the keys the providers read from a file of the platform administrator's secret space, each held or
        not with the way to set it on the secrets tab at the platform, the one place the platform's secrets are kept, then the Claude accounts in the order the Claude Code provider walks them, each
        saying whose it is, a new one added from the group's heading. No key, token or credential is read here. -->
@@ -66,7 +66,7 @@ function keyOf(file: string): { changedAt: number } | null {
 
 // Where a provider's key is set: the organisation screen's secrets tab at the platform, the one place the platform's
 // secrets are kept, with the secret form open on the file's name in the kind of an API key (docs/web.md,
-// 「Organisation」, the supply tab and the secrets tab).
+// 「System and organisation」, the supply tab and the secrets tab).
 function keyAddress(file: string): { path: string; query: Record<string, string> } {
   const tab = organizationLinkAddress(PLATFORM_NODE, {}, "secrets");
 

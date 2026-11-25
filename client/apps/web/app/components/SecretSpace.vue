@@ -1,5 +1,5 @@
 <template>
-  <!-- One space of the secret store (docs/web.md, 「Organisation」, the secrets tab): the reader's own — the platform's for
+  <!-- One space of the secret store (docs/web.md, 「System and organisation」, the secrets tab): the reader's own — the platform's for
        an administrator — or an organisation unit's. Its names, each with its size and its time and never its value,
        each replaced through the secret form or deleted, asked first; the tab row's add opens the form on no name. A
        space the account service does not let the reader hold says so in one line. -->

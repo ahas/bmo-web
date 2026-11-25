@@ -1,5 +1,5 @@
 <template>
-  <!-- The organisation screen's mail servers tab with the platform chosen (docs/web.md, 「Organisation」, the mail servers
+  <!-- The organisation screen's mail servers tab with the platform chosen (docs/web.md, 「System and organisation」, the mail servers
        tab): the platform's servers, which everyone is offered, the administrator's alone to set. -->
   <MailServerList ref="list" link="platform" />
 </template>

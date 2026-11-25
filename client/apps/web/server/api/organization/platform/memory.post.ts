@@ -1,7 +1,7 @@
 import { writeBaseMemory } from "../../../utils/base-memory";
 import { memoryDraft } from "../../../utils/org-memory-draft";
 
-// A memory written into the base, the administrator's alone (docs/web.md, 「Organisation」, the org memory tab with the
+// A memory written into the base, the administrator's alone (docs/web.md, 「System and organisation」, the org memory tab with the
 // platform chosen).
 export default defineEventHandler(async (event): Promise<null> => {
   const signed = await requireAdministrator(event);

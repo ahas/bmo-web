@@ -3,7 +3,7 @@ import { HEAD_CODES, callerOf, organizationFailure, unitNumber } from "../../../
 
 import type { RoleView } from "#shared/roster";
 
-// A company's roles, lowest first, for anyone of the company (docs/web.md, 「Organisation」, its roles and kinds tab).
+// A company's roles, lowest first, for anyone of the company (docs/web.md, 「System and organisation」, its roles and kinds tab).
 export default defineEventHandler(async (event): Promise<RoleView[]> => {
   const signed = await signedInUser(event);
   const company = unitNumber(getRouterParam(event, "company"));

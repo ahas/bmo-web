@@ -1,5 +1,5 @@
 // An organisation's agent settings as its heads set them on the delegation chain, beside its supply and its sign-up
-// composition (docs/web.md, 「Organisation」, the agents tab), and the settings of the chain a person reads in their own
+// composition (docs/web.md, 「System and organisation」, the agents tab), and the settings of the chain a person reads in their own
 // settings, a unit above deciding some of them (「Settings」, the supply and own-BMO sections).
 
 import type { ChainDelegation } from "./organisation-supply";

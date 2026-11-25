@@ -6,7 +6,7 @@ import { wording } from "../../apps/web/shared/wording";
 
 import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 
-// Where a company's documents are kept (docs/web.md, 「Organisation」, the storage tab): the place standing for a unit,
+// Where a company's documents are kept (docs/web.md, 「System and organisation」, the storage tab): the place standing for a unit,
 // changed in its form to a SharePoint library with its settings, a value bmo-artifact refuses said under the form,
 // and what the units below may do with it, each worked as a hand works it at a phone's width and a desk's: what a
 // press lands on is the control it names, nothing runs off the side, and what a press does is read back off the screen

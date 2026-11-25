@@ -4,7 +4,7 @@ import type { GatewayMember } from "#shared/supply";
 
 // The agency's model gateway members, each with its road and the account it belongs to (the agency's `docs/api.md`,
 // 「providers, models and model files」), for the administrator's providers tab to say whose a road is (docs/web.md,
-// 「Administration」, the providers tab). No route opens it to a member, so it answers the administrator alone; the
+// 「System and organisation」, the providers tab). No route opens it to a member, so it answers the administrator alone; the
 // published client names no type for it, so it is asked by its documented path.
 export default defineEventHandler(async (event): Promise<GatewayMember[]> => {
   await requireUserSession(event);

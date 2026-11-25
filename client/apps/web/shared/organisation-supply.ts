@@ -1,7 +1,7 @@
 import type { DecidedBy } from "./organisation-agents";
 import type { OwnProvider, OwnRoad } from "./own-agents";
 
-// An organisation's supply and agents as its heads set them on the delegation chain (docs/web.md, 「Organisation」,
+// An organisation's supply and agents as its heads set them on the delegation chain (docs/web.md, 「System and organisation」,
 // the supply and agents tabs): whether organisation supply stands open under a unit, the unit's own keys, and the
 // agents its people are given as their accounts are made ready. No secret value stands in any shape here: what a
 // screen learns of a key is its name.

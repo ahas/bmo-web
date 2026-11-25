@@ -8,7 +8,7 @@ import { wording } from "../../../apps/web/shared/wording";
 
 import type { RouteEvent } from "../../support/nitro";
 
-// A person's own Claude sign-in through the supply relay (docs/web.md, 「Organisation」, the supply tab at the
+// A person's own Claude sign-in through the supply relay (docs/web.md, 「System and organisation」, the supply tab at the
 // reader's own node): a new
 // login's start names no name, so the agency names it past every account's names, which the person cannot see;
 // and every refusal on the way is said in its own sentence, under the field it names where it names one, never as

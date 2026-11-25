@@ -30,7 +30,7 @@ const BROUGHT = [...HARNESS_SCREEN_UNITS];
 const STORE = wording("screens.label.catalogue");
 const ORGANIZATION = wording("screens.label.organization");
 const ADMINISTRATOR_SCREENS = [
-  ...["db", "research", "monitor", "documents", "catalogue", "agents", "organization", "siren", "admin"].map((key) => wording(`screens.label.${key}`)),
+  ...["db", "research", "monitor", "documents", "catalogue", "organization", "agents", "siren"].map((key) => wording(`screens.label.${key}`)),
   harnessNamedTitle("administrator")
 ];
 

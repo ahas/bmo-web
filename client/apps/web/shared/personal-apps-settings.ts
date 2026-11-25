@@ -1,7 +1,7 @@
 import type { DecidedBy } from "./organisation-agents";
 import type { ChainDelegation } from "./organisation-supply";
 
-// What the people under a link may do with personal apps (docs/web.md, 「Organisation」, the apps tab; the agency's
+// What the people under a link may do with personal apps (docs/web.md, 「System and organisation」, the apps tab; the agency's
 // `docs/person-nodes.md`, 「Personal apps」 and 「Shared apps」): six settings the agency declares on the delegation
 // chain, set on the apps tab at the platform's node and at a company's or a unit's.
 

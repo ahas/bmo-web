@@ -1,5 +1,5 @@
 <template>
-  <!-- The organisation screen (docs/web.md, 「Organisation」): one tree of the organisations at its left, companies at
+  <!-- The organisation screen (docs/web.md, 「System and organisation」): one tree of the organisations at its left, companies at
        its top and their units under them, and the node chosen at its right, two regions parted by a splitter whose
        width this browser keeps, each scrolling on its own. On a narrow screen the node chosen fills the body and the
        tree rises as a bottom drawer from the button at the start of the tab row, which carries its name. Inside the
@@ -9,11 +9,11 @@
        organisation to set is told so, with no tab. -->
   <UDashboardPanel id="organization" :ui="{ body: 'p-0 sm:p-0 gap-0 [&>*]:max-w-none' }">
     <template #header>
-      <ConsoleTitleBar :title="$t('screens.label.organization')" icon="i-material-symbols-domain" />
+      <ConsoleTitleBar :title="$t('screens.label.organization')" icon="i-material-symbols-settings" />
     </template>
 
     <template #body>
-      <!-- The organisations in bmo-ui's side tree (docs/web.md, 「Organisation」), the open tab taking people carried
+      <!-- The organisations in bmo-ui's side tree (docs/web.md, 「System and organisation」), the open tab taking people carried
            onto a unit of it where it takes any. With none to set, no tree and no tab: the words saying so alone, and the
            administrator's add of a company beside them, so the first is made there. -->
       <ChoiceTree
@@ -91,7 +91,7 @@
         </template>
       </ChoiceTree>
 
-      <!-- A new company: one name, and one save at its foot (docs/web.md, 「Organisation」). -->
+      <!-- A new company: one name, and one save at its foot (docs/web.md, 「System and organisation」). -->
       <SettingsDialog v-model:open="adding" :title="$t('organization.action.add_company')" :dirty="addChanges">
         <UForm id="company-add-form" :state="draft" class="flex flex-col gap-4" @submit="add">
           <UFormField :label="$t('organization.label.name')" name="name" required>
@@ -132,6 +132,7 @@ import {
   organizationNodeAddress,
   organizationNodes,
   organizationRowTabs,
+  platformOnlyTab,
   organizationTabOf,
   organizationTabsFor,
   useOrganizationReader,
@@ -146,7 +147,7 @@ import type { RosterDetail } from "#shared/roster";
 import type { Component } from "vue";
 
 // A member opens it for the organisations where they head a unit, manage the supply or head the company; one with
-// none is told so (docs/web.md, 「Organisation」).
+// none is told so (docs/web.md, 「System and organisation」).
 definePageMeta({ member: true });
 
 const route = useRoute();
@@ -270,6 +271,22 @@ onMounted(() =>
 
       if (moved !== null) {
         void router.replace(moved);
+
+        return;
+      }
+
+      // An address naming one of the platform's three tabs with no node chosen — the console search's entry and the
+      // settings dialog's door among them — names the platform's link for the administrator, with no step; a member
+      // opens none of the three, and the rule below lands them on the first tab they may (docs/web.md,
+      // 「System and organisation」).
+      if (
+        asked !== undefined &&
+        reader.value.administrator &&
+        route.query[ORGANIZATION_KEY] === undefined &&
+        personAsked.value === null &&
+        platformOnlyTab(asked) !== null
+      ) {
+        void router.replace(organizationLinkAddress(PLATFORM_NODE, route.query, String(Array.isArray(asked) ? asked[0] : asked)));
 
         return;
       }

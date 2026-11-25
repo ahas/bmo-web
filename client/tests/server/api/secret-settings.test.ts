@@ -7,7 +7,7 @@ import { answer, standIn } from "../../support/units";
 import type { SecretSettingsView } from "../../../apps/web/shared/secret-settings";
 
 // The agency's secret settings as the administration screen's providers tab reads and changes them (docs/web.md,
-// 「Administration」; the agency's docs/api.md, 「settings」): each read off `GET /settings` by its field, one changed
+// 「System and organisation」; the agency's docs/api.md, 「settings」): each read off `GET /settings` by its field, one changed
 // through `PATCH /settings` with its field alone, and the agency's refusal of a name said by the sentence for a refused
 // value, naming the field.
 

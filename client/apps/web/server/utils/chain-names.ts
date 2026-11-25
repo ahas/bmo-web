@@ -3,7 +3,7 @@ import { unitView } from "./account-service";
 import type { DecidedBy } from "#shared/organisation-agents";
 
 // Who a link of the delegation chain is, as a screen names the link that decided or locked a setting (docs/web.md,
-// 「Organisation」): a unit by its name, the platform, or nobody where no link is named.
+// 「System and organisation」): a unit by its name, the platform, or nobody where no link is named.
 
 /** A link named for a reader: a unit by its name — none where it cannot be read —, the platform, or null. */
 export async function unitNamed(link: string | null | undefined): Promise<DecidedBy> {

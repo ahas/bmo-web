@@ -1,5 +1,5 @@
 <template>
-  <!-- The text parts of a BMO profile changed in one form (docs/web.md, 「Organisation」, its BMO tab, and
+  <!-- The text parts of a BMO profile changed in one form (docs/web.md, 「System and organisation」, its BMO tab, and
        「Settings」, its own-BMO section): the name, the call names and, for one's own BMO, the persona with its count as
        it nears the ceiling; the save at its foot, open only while a part differs, and the refusal said in the form. -->
   <SettingsDialog v-model:open="open" :title="props.title" :dirty="changes">

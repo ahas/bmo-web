@@ -1,5 +1,5 @@
 <template>
-  <!-- The organisation screen's agents tab (docs/web.md, 「Organisation」, the agents tab): every setting of the
+  <!-- The organisation screen's agents tab (docs/web.md, 「System and organisation」, the agents tab): every setting of the
        delegation chain about the agents of the people under the node chosen in the tree — a unit, the company where none
        is, or the platform's own link — its people's BMOs, its instructions, its persona's choice, its sign-up
        composition, what its people may change of the agents it supplies and its own repositories, each with what the
@@ -254,7 +254,7 @@ interface Props {
   // The organisation chosen; the unit read is the one the tree chooses under it, the company itself where none is.
   // None where the platform's own link is read instead.
   company?: Organization;
-  // Whether the view stands for the platform's own link (docs/web.md, 「Organisation」, the agents tab with the
+  // Whether the view stands for the platform's own link (docs/web.md, 「System and organisation」, the agents tab with the
   // platform chosen), the administrator's.
   platform?: boolean;
 }

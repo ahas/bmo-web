@@ -8,7 +8,7 @@ import type { SignedIn } from "./accounts";
 import type { BrainRow, Page } from "./org-memory";
 import type { BaseCandidate, BaseDecision, BaseMemoryView, OrgMemory, OrgMemoryDraft } from "#shared/org-memory";
 
-// The base on the organisation screen's org memory tab with the platform chosen (docs/web.md, 「Organisation」, the org
+// The base on the organisation screen's org memory tab with the platform chosen (docs/web.md, 「System and organisation」, the org
 // memory tab; the brain's `docs/design.md`, 「The base」 and 「Raising a memory to the base」): the org brain keyed
 // `platform` for both its keys, written by the administrator alone, every write carrying the standing `head`, and its
 // candidates decided here. The brain is reached under its service token, as every unit's org brain is.

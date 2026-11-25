@@ -4,7 +4,7 @@ import { rosterPersonForAdministrator } from "../../../../utils/roster";
 
 import type { RosterAgent } from "#shared/roster";
 
-// The agents filed under a person's account, for the administrator alone (docs/web.md, 「Organisation」, the people
+// The agents filed under a person's account, for the administrator alone (docs/web.md, 「System and organisation」, the people
 // tab): their supervisors, then their role agents, each with its road and whether it is on.
 export default defineEventHandler(async (event): Promise<RosterAgent[]> => {
   const person = await rosterPersonForAdministrator(event);

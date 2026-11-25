@@ -8,7 +8,7 @@ import type { RosterAsk, RosterDetail, RosterPerson, RosterRole, RosterRun, Rost
 import type { ComputedRef, Ref } from "vue";
 import type { LocationQuery, LocationQueryRaw } from "vue-router";
 
-// The organisation screen's people tab (docs/web.md, 「Organisation」, the people tab; docs/accounts.md, 「The people
+// The organisation screen's people tab (docs/web.md, 「System and organisation」, the people tab; docs/accounts.md, 「The people
 // roster」): the view the address carries, the page it asks the roster for, what one person's management menu offers
 // the reader, and where a person found by the console search opens.
 
@@ -145,7 +145,7 @@ export interface RosterActor {
 }
 
 /**
- * The acts the reader may do for one person, in the menu's order (docs/web.md, 「Organisation」, the people tab). The
+ * The acts the reader may do for one person, in the menu's order (docs/web.md, 「System and organisation」, the people tab). The
  * administrator does every one; anyone else only what the console's routes open to them: the BMO permission of the
  * people under a unit they head, marking them left, and their own profile. Nobody marks themselves left. A person who
  * left keeps only their profile, the one record of theirs that still stands for anyone.
@@ -231,7 +231,7 @@ export function useRosterCompanies(): { companies: ComputedRef<RosterUnit[]>; st
 
 /**
  * A search hit that landed only in a field a row does not show — the job title, or the email the administrator reads —
- * said as one line under the row (docs/web.md, 「Organisation」, the people tab): its field's name and the words around
+ * said as one line under the row (docs/web.md, 「System and organisation」, the people tab): its field's name and the words around
  * the hit. None where the row's own words hold the hit, or where nothing is searched.
  */
 export function rosterHiddenHit(

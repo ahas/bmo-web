@@ -115,7 +115,7 @@ export async function supplyRelay(event: H3Event): Promise<unknown> {
     if (method !== "GET" || parts.length !== 0) throw absent();
 
     // The companies whose supply the reader holds a part of, as the account service judges them by its own
-    // relations (docs/web.md, 「Organisation」, the supply and plans tabs): every company for the administrator, and
+    // relations (docs/web.md, 「System and organisation」, the supply and plans tabs): every company for the administrator, and
     // for anyone else each company whose policy and credits they hold — its credit manager or its head — or whose
     // plan they hold — its subscription manager or its head —, each saying which.
     const answer = await supplyService<SupplyUnitsWire>(event, "GET", "/units");
@@ -240,7 +240,7 @@ async function keys(event: H3Event, method: string, parts: string[], body: Recor
   throw absent();
 }
 
-// The reader's own local AIs, at the agency (docs/web.md, 「Organisation」, the supply tab's local AIs at the reader's
+// The reader's own local AIs, at the agency (docs/web.md, 「System and organisation」, the supply tab's local AIs at the reader's
 // own node).
 async function localAi(event: H3Event, method: string, parts: string[], body: Record<string, unknown>): Promise<unknown> {
   if (parts.length === 0) {
@@ -322,7 +322,7 @@ async function logins(event: H3Event, method: string, body: Record<string, unkno
   return { ok: true };
 }
 
-// A person's own sign-in: started, answered with its page's code, or given up (docs/web.md, 「Organisation」, the
+// A person's own sign-in: started, answered with its page's code, or given up (docs/web.md, 「System and organisation」, the
 // supply tab at the reader's own node). A new login's start may name no name, the agency then naming it past every
 // account's names, which the person cannot see. The address and the code pass through and are kept by neither.
 async function signIn(event: H3Event, method: string, parts: string[], body: Record<string, unknown>): Promise<ClaudeLoginStarted | null> {

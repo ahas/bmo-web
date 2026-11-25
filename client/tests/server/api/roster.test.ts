@@ -7,7 +7,7 @@ import { answer, standIn } from "../../support/units";
 
 import type { RosterAgent, RosterDetail, RosterPage, RosterRoom, RosterRun, RosterUnit } from "../../../apps/web/shared/roster";
 
-// The organisation screen's people tab as the console serves it (docs/web.md, 「Organisation」, the people tab): the
+// The organisation screen's people tab as the console serves it (docs/web.md, 「System and organisation」, the people tab): the
 // account service decides whom a reader looks through, and the console hands the reader on and the ask as the address
 // names it; anyone it refuses, and a person outside the reader's reach, is answered as if nothing stood there. A
 // person's rooms, agents, sessions and runs are the administrator's alone, and a head of the person's company is

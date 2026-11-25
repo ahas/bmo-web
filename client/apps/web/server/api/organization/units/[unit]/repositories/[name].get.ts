@@ -4,7 +4,7 @@ import { unitRepositoryDetail } from "../../../../../utils/unit-repositories";
 
 import type { UnitRepositoryDetail } from "#shared/axes";
 
-// A unit's repository whole, with what its dialog's choices offer (docs/web.md, 「Organisation」, the agents tab).
+// A unit's repository whole, with what its dialog's choices offer (docs/web.md, 「System and organisation」, the agents tab).
 export default defineEventHandler(async (event): Promise<UnitRepositoryDetail> => {
   const unit = unitNumber(getRouterParam(event, "unit"));
 

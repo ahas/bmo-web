@@ -16,7 +16,7 @@ import type { AppSetting } from "./app-gate";
 import type { AppName, OwnApp, PlatformApp, PlatformAppChange, PlatformWord, UnitApp, UnitAppChange } from "#shared/apps";
 import type { CatalogueApp } from "#shared/app-catalogue";
 
-// The apps a reader turns on and off (docs/web.md, 「Organisation」, the apps tab, and 「Settings」, the own apps
+// The apps a reader turns on and off (docs/web.md, 「System and organisation」, the apps tab, and 「Settings」, the own apps
 // section; docs/accounts.md, 「An app's two settings」): every app whose kinds the delegation chain holds, read and
 // written on the chain's own routes as the signed-in login, so who writes a link and a lock above it are the account
 // service's word. No app is named here: the chain's kinds name them, and a screen's bundle names their title.
@@ -244,7 +244,7 @@ export async function changeUnitApp(unit: number, app: string, change: UnitAppCh
   if (change.locks !== undefined) await setChainDelegation(onKey, link, change.locks ? "lock" : "inherit", caller);
 }
 
-/** The company's own shared app recalled at a unit through the agency (docs/web.md, 「Organisation」, the apps tab). */
+/** The company's own shared app recalled at a unit through the agency (docs/web.md, 「System and organisation」, the apps tab). */
 export async function recallUnitApp(unit: number, app: string, signed: SignedIn): Promise<void> {
   const shared = sharedAppCompany(app);
 

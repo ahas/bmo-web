@@ -1,5 +1,5 @@
 <template>
-  <!-- The organisation screen's apps tab with the platform chosen (docs/web.md, 「Organisation」, the apps tab): every
+  <!-- The organisation screen's apps tab with the platform chosen (docs/web.md, 「System and organisation」, the apps tab): every
        app the delegation chain holds as it stands at the platform's own link, each a row of its icon, its name and how
        it stands there, with whether it is offered where no rule says otherwise, whether it is on, its lock and its
        recall at the row's end, each saved as it is made; the recall asked first as a step the row grows. The requests

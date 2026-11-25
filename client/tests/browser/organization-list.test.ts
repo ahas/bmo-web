@@ -6,7 +6,7 @@ import { wording } from "../../apps/web/shared/wording";
 
 import type { Browser, BrowserContext, Locator, Page, Route } from "playwright-core";
 
-// The organisation screen chooses a node of one organisation tree first (docs/web.md, 「Organisation」): the companies at
+// The organisation screen chooses a node of one organisation tree first (docs/web.md, 「System and organisation」): the companies at
 // its left with their units under them, searched by name, each chosen as a step of the history that stands in the
 // address, the way down to a unit chosen open and marked, and on a phone the tree rises as a bottom drawer from the
 // button at the start of the tab row carrying the node's name; moving between tabs keeps the node; and a member is
@@ -581,7 +581,7 @@ describe.skipIf(!origin || !touchReady())("the providers tab", () => {
         const owner = users.find((one) => one.name === "person-tabs-subject")!;
         const personal = wording("supply.label.owner_personal", { name: owner.fullName.trim() === "" ? owner.name : owner.fullName });
 
-        await open(page, "/admin");
+        await open(page, "/organization?company=platform&tab=providers");
 
         const road = (name: string) => page.locator(`[data-provider="${name}"]`);
 

@@ -1,5 +1,5 @@
 <template>
-  <!-- The organisation screen's storage tab (docs/web.md, 「Organisation」, the storage tab): where the documents of
+  <!-- The organisation screen's storage tab (docs/web.md, 「System and organisation」, the storage tab): where the documents of
        the people under the unit chosen in the tree, the company where none is, are kept — the place and its settings,
        the unit's own or following above with what that comes to, changed in a form — and what the units below may do
        with it, saved as it is chosen. -->

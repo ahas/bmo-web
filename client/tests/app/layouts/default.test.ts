@@ -73,7 +73,8 @@ describe("the console search in the sidebar", () => {
     expect(layout).toContain("sectionItems(namedBy(t, readNames.value), route.path, ");
     expect(layout).toContain("screenGroup(namedBy(t, readNames.value), screens.value, readNames.value)");
     // The one list follows the screens as they are read, a login's read after the shell first drew among them.
-    expect(layout).toContain("const screens = computed(() => screensWithBundles(bundles.value, featuredScreens(features.value)));");
+    // This is the administrator's shell: the read keeps the screens the administrator holds through a feature.
+    expect(layout).toContain("const screens = computed(() => screensWithBundles(bundles.value, featuredScreens(features.value, SCREENS, true)));");
   });
 });
 

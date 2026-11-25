@@ -4,7 +4,7 @@ import { callerOf, organizationFailure } from "./organization";
 import type { SignedIn } from "./accounts";
 import type { UnitPerson } from "#shared/unit-people";
 
-// The people standing in a unit or under it (docs/web.md, 「Organisation」, the permissions tab), read from the account
+// The people standing in a unit or under it (docs/web.md, 「System and organisation」, the permissions tab), read from the account
 // service's subtree in the reader's name, which it answers a head of the unit and the administrator alone. A person
 // counts where their home unit is, else the first unit they head or hold a post in; one who left is no longer listed.
 

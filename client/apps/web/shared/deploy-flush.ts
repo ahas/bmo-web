@@ -1,4 +1,4 @@
-// The minutes between two of the agency's flushes of the deploy queue (docs/web.md, 「Administration」, the providers
+// The minutes between two of the agency's flushes of the deploy queue (docs/web.md, 「System and organisation」, the providers
 // tab; the agency's `docs/api.md`, 「settings」, `deployFlushMinutes`).
 
 /** The minutes in force, as the agency answers them, or null where its answer carries none. */

@@ -1,5 +1,5 @@
 <template>
-  <!-- The names that call a BMO in a room (docs/web.md, 「Organisation」, its BMO tab, and 「Settings」, its own-BMO
+  <!-- The names that call a BMO in a room (docs/web.md, 「System and organisation」, its BMO tab, and 「Settings」, its own-BMO
        section): each standing name a chip with its own remove, and a field under them that adds the name typed on
        Enter, the reason a name cannot be added said under it. -->
   <div class="flex min-w-0 flex-col gap-2" data-call-names>

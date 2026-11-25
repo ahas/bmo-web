@@ -1,5 +1,5 @@
 <template>
-  <!-- The owner's private chat's notice switches (docs/web.md, 「Administration」, the providers tab; the receiver's
+  <!-- The owner's private chat's notice switches (docs/web.md, 「System and organisation」, the providers tab; the receiver's
        `docs/api.md`, 「Notices」): the restart switch, the going-down and back notices, and the rest switch, the rest's beginning and
        lifting, each set as it is pressed. One the receiver refused springs back, its refusal under the group. -->
   <SettingsGroup :title="$t('agents.title.notices')" data-notice-switches>

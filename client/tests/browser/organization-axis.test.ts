@@ -6,7 +6,7 @@ import { BROWSER_HOOK_MS, fingerOn, touchReady } from "./touch";
 
 import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 
-// One setting on one tab, drawn by the reader's reach (docs/web.md, 「Organisation」, the agents, apps and supply tabs):
+// One setting on one tab, drawn by the reader's reach (docs/web.md, 「System and organisation」, the agents, apps and supply tabs):
 // the administrator reads the platform's own supply and agents at the platform node, opens organisation supply and a personal
 // app's network to a company from its node and takes them back, and reads a lock set at a company named by that
 // company on a unit below it; a member follows the settings' doors to their own node, where their agents and their

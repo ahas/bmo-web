@@ -4,7 +4,7 @@ import { HEAD_CODES, callerOf, organizationFailure, unitNumber } from "../../../
 
 import { wording } from "#shared/wording";
 
-// A person's post in a unit taken away, with the head grant it carried (docs/web.md, 「Organisation」, its chart).
+// A person's post in a unit taken away, with the head grant it carried (docs/web.md, 「System and organisation」, its chart).
 export default defineEventHandler(async (event): Promise<void> => {
   const signed = await signedInUser(event);
   const unit = unitNumber(getRouterParam(event, "unit"));

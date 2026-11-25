@@ -13,7 +13,7 @@ import { wording } from "../../apps/web/shared/wording";
 
 import type { LoginRow } from "../../apps/web/shared/claude-logins";
 
-// What the console calls one of a reader's Claude logins (docs/web.md, 「Organisation」, the supply tab). The agency numbers
+// What the console calls one of a reader's Claude logins (docs/web.md, 「System and organisation」, the supply tab). The agency numbers
 // every login it names one past every login the platform holds, so the number standing in a name counts other
 // accounts' logins among them; the screen counts the logins of one account against each other from one, and leaves
 // the name standing where it has no number to count. Nothing of the name, the id or the owner is changed here.

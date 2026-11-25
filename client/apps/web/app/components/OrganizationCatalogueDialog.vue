@@ -1,5 +1,5 @@
 <template>
-  <!-- One of a company's own lists written whole (docs/web.md, 「Organisation」, the roles and kinds tab): every entry a
+  <!-- One of a company's own lists written whole (docs/web.md, 「System and organisation」, the roles and kinds tab): every entry a
        row of its key and its name, carried to another place by its handle, taken away by its mark, and added at the
        foot; a key saved before stands read-only, since other units name the entry by it. Nothing is written until its
        one save. -->

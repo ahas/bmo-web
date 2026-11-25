@@ -1,7 +1,7 @@
 import { markLeft } from "../../../../utils/account-service";
 import { LEAVE_CODES, callerOf, organizationFailure } from "../../../../utils/organization";
 
-// A person marked left, their account's sign-in disabled for good (docs/web.md, 「Organisation」; docs/accounts.md,
+// A person marked left, their account's sign-in disabled for good (docs/web.md, 「System and organisation」; docs/accounts.md,
 // 「A person who leaves」): the account service decides who may, the administrator or a head of the person's unit.
 export default defineEventHandler(async (event): Promise<void> => {
   const signed = await signedInUser(event);

@@ -1,5 +1,5 @@
 <template>
-  <!-- The people tab (docs/web.md, 「Organisation」, the people tab): the people the reader looks through, found by a
+  <!-- The people tab (docs/web.md, 「System and organisation」, the people tab): the people the reader looks through, found by a
        search on the server and narrowed by four filters, beside the person chosen, two regions across the whole body
        parted by a splitter whose widths this browser keeps. The address carries the words, the filters, the person and their tab.
        On a narrow screen the list fills the body, its filters in a bottom drawer, and a person chosen opens over it,

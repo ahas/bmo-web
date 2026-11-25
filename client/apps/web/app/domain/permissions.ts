@@ -48,7 +48,7 @@ export function permissionSections(bundles: readonly ConsoleScreen[], features: 
 
   for (const screen of screensWithBundles(bundles, featuredScreens(features))) {
     // A screen a member opens as every person with a user does, rather than by a section, is no section to grant.
-    if (screen.administrator === true || screen.everyone === true) continue;
+    if (screen.everyone === true) continue;
 
     const sections = sectionsOfPath(screen.to);
     const id = sections[0];

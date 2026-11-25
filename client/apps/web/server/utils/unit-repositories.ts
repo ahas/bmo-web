@@ -10,7 +10,7 @@ import type { components } from "@agency/client/schema";
 import type { H3Event } from "h3";
 import type { ProviderModelsView, RepositoryView, UnitRepositoryDetail } from "#shared/axes";
 
-// A unit's repository on the organisation screen (docs/web.md, 「Organisation」, the agents tab, the unit's repositories): the same
+// A unit's repository on the organisation screen (docs/web.md, 「System and organisation」, the agents tab, the unit's repositories): the same
 // dialog as agent management's repository tab, read and saved through the unit's own routes, so a head needs no part of
 // agent management. The console stands each call on the unit's link of repository management, which the chain answers
 // the unit's heads and the administrator; the agency's list and its choices are read as the deployment's own, and a

@@ -4,7 +4,7 @@ import { ACCOUNTS_ADDRESS } from "../../../apps/web/app/domain/accounts";
 import { ORGANIZATION_TABS, PLATFORM_NODE, organizationLinkAddress } from "../../../apps/web/app/domain/organization";
 
 // The platform's own keys and Claude accounts on the organisation screen's supply tab with the platform chosen, and the
-// way a key is set, read from the files that ship (docs/web.md, 「Organisation」, the supply tab).
+// way a key is set, read from the files that ship (docs/web.md, 「System and organisation」, the supply tab).
 
 const credentials = await Bun.file(new URL("../../../apps/web/app/components/OrganizationPlatformAccounts.vue", import.meta.url)).text();
 const providers = await Bun.file(new URL("../../../apps/web/app/components/OrganizationProviders.vue", import.meta.url)).text();

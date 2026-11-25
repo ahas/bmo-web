@@ -1,5 +1,5 @@
 <template>
-  <!-- One person's organisation tab (docs/web.md, 「Organisation」, the people tab): their place, the posts beside it and how it
+  <!-- One person's organisation tab (docs/web.md, 「System and organisation」, the people tab): their place, the posts beside it and how it
        came to be (docs/accounts.md, 「Concurrent posts」, 「A person's history」), all on the one read of the person; a
        failure of that read stands in the first group's place. -->
   <div class="flex flex-col gap-4" data-person-organization>

@@ -275,7 +275,7 @@ export async function sharedItems(signed: SignedIn, company: number): Promise<Ma
 }
 
 /** A company's shared app turned on for a unit through the agency, locked below where `lock` says, so every PC under the
- * unit installs a copy (docs/web.md, 「Organisation」, the apps tab). */
+ * unit installs a copy (docs/web.md, 「System and organisation」, the apps tab). */
 export async function turnOnSharedApp(signed: SignedIn, unit: number, company: number, key: string, lock: boolean): Promise<void> {
   await actOnApp(signed, await catalogueIdOf(signed, key, company), "unit", { unit, on: true, lock }, String(company));
 }

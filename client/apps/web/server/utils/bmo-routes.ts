@@ -7,7 +7,7 @@ import { fail } from "./fail";
 
 import type { H3Event } from "h3";
 
-// What the console's BMO profile routes share (docs/web.md, 「Organisation」, its BMO tab, and 「Settings」, its own-BMO
+// What the console's BMO profile routes share (docs/web.md, 「System and organisation」, its BMO tab, and 「Settings」, its own-BMO
 // section): the account service's refusals (docs/accounts.md, 「A person's BMO profile」) said in the pack's words, a
 // picture read off a form, and the people an act reaches, whose BMOs then take the profile standing for them.
 

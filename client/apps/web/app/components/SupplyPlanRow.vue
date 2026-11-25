@@ -1,5 +1,5 @@
 <template>
-  <!-- One plan as every plan list stands it (docs/web.md, 「Administration」, the plans tab, and 「Organisation」, the
+  <!-- One plan as every plan list stands it (docs/web.md, 「System and organisation」, the plans tab, and 「System and organisation」, the
        plans tab): its name as the label, its scope, its period with the credits it includes, and whether credits may
        be used on it under it, and its price at the row's end before whatever the list lays beside it. -->
   <SettingsRow :label="props.plan.name" :data-plan="props.plan.id">

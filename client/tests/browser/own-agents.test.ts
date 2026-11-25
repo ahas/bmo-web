@@ -7,7 +7,7 @@ import { BROWSER_HOOK_MS, touchReady } from "./touch";
 import type { Browser, Locator, Page } from "playwright-core";
 import type { Attachments, AttachmentHolder } from "../../apps/web/shared/attachments";
 
-// The reader's own agents (docs/web.md, 「Organisation」, the agents tab with the reader's own node chosen), worked by hand at a desk's width and a
+// The reader's own agents (docs/web.md, 「System and organisation」, the agents tab with the reader's own node chosen), worked by hand at a desk's width and a
 // phone's: the agents the reader's organisation supplies stand with where they came from and their road; an agent
 // added to a role stands as the reader's own; a road a supply does not carry stands disabled in the road's form, and
 // one it carries is saved and makes the seat the reader's own change, which its way back puts back; a supplied agent is

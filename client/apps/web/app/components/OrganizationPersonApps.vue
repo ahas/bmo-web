@@ -1,5 +1,5 @@
 <template>
-  <!-- The organisation screen's apps tab with the reader's own node chosen (docs/web.md, 「Organisation」, the apps
+  <!-- The organisation screen's apps tab with the reader's own node chosen (docs/web.md, 「System and organisation」, the apps
        tab): every app offered to the reader, each a row of its icon, its name and where its state comes from, with its
        switch, which stands open only where the reader's own word decides the app; a word of their own is taken back by
        the row's own button, and an app a link above them switched on or locks stands with its switch disabled and the

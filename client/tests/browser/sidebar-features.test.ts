@@ -8,9 +8,10 @@ import { BROWSER_HOOK_MS, touchReady } from "./touch";
 import type { Browser, Page } from "playwright-core";
 import KO from "../fixtures/browser/sidebar-features.test.ko.json";
 
-// A personal install's console at a phone's width (docs/web.md, 「The console's features」): with the organisations,
-// research, cache siren and monitor left out by the features file, the drawer a finger opens holds none of them, the
-// screens that stay are reached and pressed, and the organisation's address goes to the front door.
+// A personal install's console at a phone's width (docs/web.md, 「The console's features」): with the features file
+// leaving the organisations out, the research, cache siren and monitor screens go and the administrator keeps the
+// merged screen and its platform settings, the drawer a finger opens holds what stays and a tap opens it, and the old
+// administrator screen's address lands on the merged screen's platform node.
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up, and writes
 // the features file that console reads, which the script names as BMO_CONSOLE_TEST_FEATURES; it takes the file back
@@ -21,8 +22,9 @@ const featuresFile = process.env.BMO_CONSOLE_TEST_FEATURES;
 const ADMINISTRATOR = { name: "sidebar-sections", password: "fixture-password-3051" };
 const PHONE = { width: 360, height: 740 };
 
-const LEFT_OUT = ["organization", "research", "siren", "monitor"].map((key) => wording(`screens.label.${key}`));
-const STAYING = ["db", "documents", "agents", "admin"].map((key) => wording(`screens.label.${key}`));
+// The administrator keeps the merged screen whatever the feature says; the member's hold of it is the store's fellow.
+const LEFT_OUT = ["research", "siren", "monitor"].map((key) => wording(`screens.label.${key}`));
+const STAYING = ["db", "documents", "agents", "organization"].map((key) => wording(`screens.label.${key}`));
 
 let browser: Browser | null = null;
 let cookie = "";
@@ -76,8 +78,9 @@ describe.skipIf(!origin || !featuresFile || !touchReady())("a personal install's
       for (const name of LEFT_OUT) expect(shown).not.toContain(name);
       for (const name of STAYING) expect(shown).toContain(name);
 
-      // The last screen that stays is reached by scrolling the drawer, nothing stands over it, and a tap opens it.
-      const last = drawer.locator("[data-slot='link']", { hasText: wording("screens.label.admin") }).first();
+      // The last screen of the administrator services is reached by scrolling the drawer, nothing of that section
+      // stands over it, and a tap opens it.
+      const last = drawer.locator("[data-slot='link']", { hasText: wording("screens.label.agents") }).first();
 
       await last.scrollIntoViewIfNeeded();
 
@@ -86,22 +89,30 @@ describe.skipIf(!origin || !featuresFile || !touchReady())("a personal install's
       expect(box.y + box.height).toBeLessThanOrEqual(PHONE.height);
       expect(
         await page.evaluate(([x, y]) => document.elementFromPoint(x!, y!)?.closest("[data-slot='link']")?.textContent?.trim() ?? "", [box.x + box.width / 2, box.y + box.height / 2])
-      ).toContain(wording("screens.label.admin"));
+      ).toContain(wording("screens.label.agents"));
 
       await last.tap();
-      await page.waitForURL((url) => url.pathname.endsWith("/admin"), { timeout: 20_000 });
+      await page.waitForURL((url) => url.pathname.endsWith("/agents"), { timeout: 20_000 });
     } finally {
       await page.context().close();
     }
   }, 120_000);
 
-  test("the organisation's address goes to the front door", async () => {
+  test("the administrator keeps the merged screen, and the old administrator address lands on its platform node", async () => {
     const page = await phonePage();
 
     try {
       await drawn(page, "/organization");
 
-      expect(new URL(page.url()).pathname.replace(/\/$/, "")).toBe(new URL(`${origin}/`).pathname.replace(/\/$/, ""));
+      expect(new URL(page.url()).pathname).toMatch(/\/organization$/);
+
+      await drawn(page, "/admin?tab=secret-kinds");
+
+      const url = new URL(page.url());
+
+      expect(url.pathname).toMatch(/\/organization$/);
+      expect(url.searchParams.get("company")).toBe("platform");
+      expect(url.searchParams.get("tab")).toBe("secret-kinds");
     } finally {
       await page.context().close();
     }

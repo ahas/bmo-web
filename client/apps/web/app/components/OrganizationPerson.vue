@@ -1,5 +1,5 @@
 <template>
-  <!-- One person on the people tab (docs/web.md, 「Organisation」, the people tab): the head with the person's picture,
+  <!-- One person on the people tab (docs/web.md, 「System and organisation」, the people tab): the head with the person's picture,
        name, login, marks and the management menu at its right end, over a row of tabs, one tab a part of what is the
        person's. The head scrolls away with the content and the row stays at the top of the region once it reaches it,
        its hairline running the region from edge to edge; the head, the row's tabs and the tab open stand in one reading
@@ -190,7 +190,7 @@ const ACT_ITEMS: Readonly<Record<RosterAct, { label: string; icon: string; color
   leave: { label: "organization.action.mark_left_confirm", icon: "i-material-symbols-person-off-outline", color: "error" }
 };
 
-// The account acts (docs/web.md, 「Organisation」, the people tab): they stand before marking the person left.
+// The account acts (docs/web.md, 「System and organisation」, the people tab): they stand before marking the person left.
 const { security, read: readSecurity } = usePersonSecurity(() => String(props.user));
 const accountActs = computed<SecurityAct[]>(() =>
   securityActs({ administrator: administrator.value, user: signed.value === null ? null : String(signed.value) }, String(props.user), security.value)

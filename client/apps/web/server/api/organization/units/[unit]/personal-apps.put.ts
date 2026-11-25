@@ -5,7 +5,7 @@ import { isDelegation, orgAgentsFailure } from "../../../../utils/organisation-s
 import { changePersonalApp, isPersonalAppSetting, personalAppValue } from "../../../../utils/personal-apps-settings";
 
 // A unit's word on one personal app setting, its delegation, or for the administrator on a company the platform's rule
-// opening the setting to it (docs/web.md, 「Organisation」, the apps tab): `setting`, with `value`, `delegation` or
+// opening the setting to it (docs/web.md, 「System and organisation」, the apps tab): `setting`, with `value`, `delegation` or
 // `offered`, any of them.
 export default defineEventHandler(async (event): Promise<{ ok: true }> => {
   const unit = unitNumber(getRouterParam(event, "unit"));

@@ -1,7 +1,7 @@
 import type { CatalogueKind } from "./app-catalogue";
 import type { DecidedBy } from "./organisation-agents";
 
-// The apps a reader turns on and off (docs/web.md, 「Organisation」, the apps tab, and 「Settings」, the own apps
+// The apps a reader turns on and off (docs/web.md, 「System and organisation」, the apps tab, and 「Settings」, the own apps
 // section; docs/accounts.md, 「An app's two settings」): each app by its key, with the name and icon its screen's bundle
 // gives it where one does, and what the delegation chain says of it for the link the screen stands for.
 

@@ -14,7 +14,7 @@ interface SecretBody {
   encoding?: unknown;
 }
 
-// A secret written under a name in an organisation unit's space (docs/web.md, 「Organisation」, the secrets tab), as the
+// A secret written under a name in an organisation unit's space (docs/web.md, 「System and organisation」, the secrets tab), as the
 // reader's own secrets are written: the name travels in the body with the value, never in the address, the answer is
 // the name, the size and the time, and nothing here logs the body.
 export default defineEventHandler(async (event): Promise<KeptSecret> => {

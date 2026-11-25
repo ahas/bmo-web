@@ -17,7 +17,7 @@ function contextOf(value: unknown): RosterSession["context"] {
 }
 
 // The sessions of the agents filed under a person's account, as the agency answers them, for the administrator alone
-// (docs/web.md, 「Organisation」, the people tab).
+// (docs/web.md, 「System and organisation」, the people tab).
 export default defineEventHandler(async (event): Promise<RosterSession[]> => {
   const person = await rosterPersonForAdministrator(event);
   const [agents, rooms] = await Promise.all([personsAgents(Number(person.user)), listRooms()]);

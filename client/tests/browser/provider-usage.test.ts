@@ -8,8 +8,8 @@ import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, Locator, Page } from "playwright-core";
 
-// What each Claude account and provider has left (docs/web.md, 「Organisation」, the supply tab with the platform chosen,
-// and 「Administration」, the providers tab): no account marked as the one in use and no line naming it, each account on
+// What each Claude account and provider has left (docs/web.md, 「System and organisation」, the supply tab with the platform chosen,
+// and 「System and organisation」, the providers tab): no account marked as the one in use and no line naming it, each account on
 // its own row with its windows and their bars, an account that is off with none, and a provider's own road with its
 // balance and request allowance on the provider's row of the administration screen. The rows stand on shared columns, a bar beside its figure on a
 // wide screen and on a line of its own under it on a phone. The console, with the agency's stand-in answering this
@@ -108,7 +108,7 @@ async function holdsFigures(page: Page): Promise<void> {
 // What the providers tab holds: a provider whose figures are its accounts' stands none of its own, and a road's balance
 // and allowance stand on its row.
 async function providersHold(page: Page): Promise<void> {
-  await page.goto(`${origin}/admin`, { waitUntil: "load" });
+  await page.goto(`${origin}/organization?company=platform&tab=providers`, { waitUntil: "load" });
   await page.locator('[data-provider="deepseek"] [data-provider-usage="road:deepseek"]').waitFor({ timeout: 30_000 });
 
   await expect(page.locator('[data-provider="claude-code"] [data-provider-usage]').count()).resolves.toBe(0);

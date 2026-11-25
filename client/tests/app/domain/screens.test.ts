@@ -13,7 +13,7 @@ import type { ConsoleScreen } from "../../../apps/web/shared/console-bundles";
 // its section by the name the reader sees, lit on its own address and, where it is nested, on the pages below it.
 
 test("every screen of the console's own is listed, named from the pack, and stands always", () => {
-  expect(SCREENS.map((screen) => screen.to).sort()).toEqual(["/admin", "/agents", "/db", "/documents", "/monitor", "/organization", "/research", "/siren", "/store"]);
+  expect(SCREENS.map((screen) => screen.to).sort()).toEqual(["/agents", "/db", "/documents", "/monitor", "/organization", "/research", "/siren", "/store"]);
   expect(SCREENS.some((screen) => screen.brought === true)).toBe(false);
   expect(screensWithBundles([]).map((screen) => screen.to)).toEqual(SCREENS.map((screen) => screen.to));
   expect(screenItems(wording, "/").map((item) => item.label)).toEqual(SCREENS.map((screen) => wording(screen.label)));
@@ -23,7 +23,6 @@ test("every screen of the console's own is listed, named from the pack, and stan
 const ORGANIZATION = SCREENS.find((screen) => screen.to === "/organization")!;
 
 // Whom the member's shell lists each screen for (docs/web.md, 「Sidebar」, 「Access」).
-const ADMIN = SCREENS.find((screen) => screen.to === "/admin")!;
 const STORE = SCREENS.find((screen) => screen.to === "/store")!;
 const DOCUMENTS = SCREENS.find((screen) => screen.to === "/documents")!;
 const READS_DOCUMENTS: SectionAccessMap = { documents: { read: true, write: false } };
@@ -34,7 +33,6 @@ test("lists a member the organisation screen and the store for a reader with a u
   expect(memberListsScreen(STORE, {}, false, true)).toBe(true);
   expect(memberListsScreen(ORGANIZATION, HOLDS_DOCUMENTS, true, false)).toBe(false);
   expect(memberListsScreen(STORE, HOLDS_DOCUMENTS, true, false)).toBe(false);
-  expect(memberListsScreen(ADMIN, READS_DOCUMENTS, true, true)).toBe(false);
 });
 
 test("lists a member any other screen only once its section's read answers them, and reads it alone", () => {

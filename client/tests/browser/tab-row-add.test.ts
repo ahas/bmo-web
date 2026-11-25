@@ -16,14 +16,14 @@ import type { Browser, BrowserContext, Page } from "playwright-core";
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "row-add", password: "fixture-password-2885" };
 
-// Each screen with a tab row that adds, and what its add is named. The providers tab of /admin holds none: its Claude
-// login is added from the accounts heading.
+// Each screen with a tab row that adds, and what its add is named. The platform's providers tab holds none: its
+// Claude login is added from the accounts heading.
 const SCREENS = [
   { path: "/agents", label: "agents.title.role_add" },
   { path: "/research", label: "research.title.ask" },
   { path: "/organization", label: "organization.action.add" },
   { path: "/organization?tab=invites", label: "invites.label.make" },
-  { path: "/admin?tab=secret-kinds", label: "secrets.action.kind_add" }
+  { path: "/organization?company=platform&tab=secret-kinds", label: "secrets.action.kind_add" }
 ];
 
 const WIDE = { width: 1280, height: 800 };

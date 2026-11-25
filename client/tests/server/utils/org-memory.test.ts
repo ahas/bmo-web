@@ -10,7 +10,7 @@ import { wording } from "../../../apps/web/shared/wording";
 
 import type { SignedIn } from "../../../apps/web/server/utils/accounts";
 
-// A unit's org memory on the org memory tab (docs/web.md, 「Organisation」, the org memory tab): the console asks the
+// A unit's org memory on the org memory tab (docs/web.md, 「System and organisation」, the org memory tab): the console asks the
 // account service whether the reader writes the unit's memory before it reads or writes, names the brain write's
 // standing from that answer, shows which unit's memory stands for each topic as the brain answers it for the path, and
 // leaves a memory a service keeps under its own key as that service wrote it; a memory about one person of the unit is

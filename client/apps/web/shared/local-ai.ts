@@ -1,4 +1,4 @@
-// A person's own local AI as the console shows it (docs/web.md, 「Organisation」, the supply tab's local AIs at the
+// A person's own local AI as the console shows it (docs/web.md, 「System and organisation」, the supply tab's local AIs at the
 // reader's own node; the agency's
 // `docs/supply.md`, 「A person's local AI」): a server their own PC reaches, kept by the agency as theirs alone. What a
 // screen learns of its key is the secret's name.

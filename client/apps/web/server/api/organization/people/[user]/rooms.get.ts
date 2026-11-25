@@ -6,7 +6,7 @@ import { rosterPersonForAdministrator } from "../../../../utils/roster";
 import type { RosterRoom } from "#shared/roster";
 
 // The rooms a person reads by their account, the latest first, for the administrator alone (docs/web.md,
-// 「Organisation」, the people tab): their console memberships, their linked identities' rooms and their own BMO's
+// 「System and organisation」, the people tab): their console memberships, their linked identities' rooms and their own BMO's
 // private room, as any person's are read (「Access」).
 export default defineEventHandler(async (event): Promise<RosterRoom[]> => {
   const person = await rosterPersonForAdministrator(event);

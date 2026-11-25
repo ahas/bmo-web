@@ -1,5 +1,5 @@
 <template>
-  <!-- One agent's road chosen in its own form (docs/web.md, 「Settings」, the own-agents section; 「Organisation」, the
+  <!-- One agent's road chosen in its own form (docs/web.md, 「Settings」, the own-agents section; 「System and organisation」, the
        agents tab): the first choice names no road — the one the screen says that stands for — then every provider whose
        program carries the agent's line; under a provider its model, a model the reader's supply does not carry standing
        disabled with why, and its effort where the model takes levels. The save sends the road whole, and a refusal

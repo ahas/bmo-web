@@ -1,5 +1,5 @@
 <template>
-  <!-- One person's console sections on the organisation screen's permissions tab (docs/web.md, 「Organisation」, the
+  <!-- One person's console sections on the organisation screen's permissions tab (docs/web.md, 「System and organisation」, the
        permissions tab; 「Access」): each section of the console a row with its read and its write, read as the table
        first opens. A change is saved as it is made; a write is also a read. A platform administrator passes every
        section, so their table stands closed to change, and a head changes only the reads and writes they hold

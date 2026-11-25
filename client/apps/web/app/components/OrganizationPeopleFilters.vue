@@ -1,5 +1,5 @@
 <template>
-  <!-- The people tab's filters (docs/web.md, 「Organisation」, the people tab): the kind, where the organisation keeps
+  <!-- The people tab's filters (docs/web.md, 「System and organisation」, the people tab): the kind, where the organisation keeps
        any; the role and the state. The unit is the node chosen in the organisation tree, never a filter here. A filter set nowhere shows its own name, and the choice of every value sets it back. In the list's head they stand side by side, and in the
        narrow screen's drawer one under another, each under its name. -->
   <div :class="props.stacked ? 'flex flex-col gap-4' : 'flex flex-wrap items-center gap-2'" data-roster-filters>

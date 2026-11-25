@@ -1,5 +1,5 @@
 <template>
-  <!-- The administrator's mail tab (docs/web.md, 「Administration」, the mail tab): the system mail the platform sends its own mail
+  <!-- The system mail tab at the platform node (docs/web.md, 「System and organisation」, the mail tab): the system mail the platform sends its own mail
        through — one of bmo-mail's outgoing servers kept for the platform, the sender and the name of the secret it signs
        in with, saved with its one save — and a test mail sent through it once it is set up. -->
   <div class="flex flex-col gap-4" data-admin-mail>

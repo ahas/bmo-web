@@ -7,7 +7,7 @@ import { wording } from "../../apps/web/shared/wording";
 
 import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 
-// The mail servers a company offers its people (docs/web.md, 「Organisation」, the mail servers tab): an incoming server
+// The mail servers a company offers its people (docs/web.md, 「System and organisation」, the mail servers tab): an incoming server
 // added through the server form after its connection test, an outgoing one beside it, the first changed, the second's
 // removal refused while accounts stand on it, the units below locked out, and a unit under the lock seeing who holds it
 // with every change disabled; and the one line standing where bmo-mail is not installed. Each is worked as a hand works

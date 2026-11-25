@@ -8,10 +8,10 @@ import { wording } from "../../apps/web/shared/wording";
 
 import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 
-// The settings dialog holds what a person sets for themselves alone, the organisation screen the organisation and the
-// people in it, and the administrator's screen what is set for the platform itself, each screen a tab to a section;
+// The settings dialog holds what a person sets for themselves alone, and the merged screen the organisation, the
+// people in it and what is set for the platform itself at its platform node, a tab to a section;
 // the organisation's units tab stands the units as a tree beside the unit chosen, the tree a bottom drawer on a narrow
-// screen (docs/web.md, 「Settings」, 「Organisation」 and 「Administration」).
+// screen (docs/web.md, 「Settings」, 「System and organisation」).
 // The tree opens and closes each branch in place, three levels deep, without choosing. Several people chosen at once,
 // a run of them by Shift, move into another unit with their roles in one act after its preview, and a preview
 // closed moves nobody. The tree and the unit chosen are regions of their own behind a splitter, every name and path
@@ -53,7 +53,8 @@ const SECTION_POOL = [
 const PERSONAL = ["settings.label.account", "settings.label.machine", "settings.label.personal_apps", "settings.label.skills", "settings.label.theme", "settings.label.palette"];
 const ADMINISTRATOR_PERSONAL = [...PERSONAL, "settings.label.notifications", "settings.label.briefing"];
 const TABS = ["organization.label.chart", "roster.label.tab", "catalogue.label.tab", "settings.label.invites", "org_agents.label.tab", "apps.label.tab", "org_storage.label.tab", "org_mail.label.tab", "settings.label.secrets", "org_memory.label.tab", "settings.label.permissions", "supply.label.tab", "security.label.security_tab"];
-const ADMIN_TABS = ["settings.label.providers", "secrets.label.kinds", "security.label.mail_tab"];
+// The row the platform node holds: exactly the tabs declaring a view of it, the platform's three beside their kin.
+const PLATFORM_TABS = ["org_agents.label.tab", "apps.label.tab", "org_mail.label.tab", "security.label.mail_tab", "settings.label.secrets", "secrets.label.kinds", "org_memory.label.tab", "supply.label.tab", "settings.label.providers", "security.label.security_tab"];
 
 let browser: Browser | null = null;
 const cookies = new Map<string, string>();
@@ -430,11 +431,11 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
         await page.unroute(/\/api\/invites$/);
 
         // Every other tab stands in a reading column centred in the body: 768px of content at most, the body's 16px
-        // padding on every side outside it; the administrator's screen lays its tabs out the same way.
+        // padding on every side outside it; the platform's tabs stand in the same column.
         const columned = [
           { tab: "invites", path: "/organization?tab=invites", screen: "organization" },
-          { tab: "providers", path: "/admin", screen: "admin" },
-          { tab: "secret-kinds", path: "/admin?tab=secret-kinds", screen: "admin" }
+          { tab: "providers", path: "/organization?company=platform&tab=providers", screen: "organization" },
+          { tab: "secret-kinds", path: "/organization?company=platform&tab=secret-kinds", screen: "organization" }
         ];
 
         for (const { tab, path, screen } of columned) {
@@ -490,7 +491,7 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
     }, 120_000);
 
     // The server draws the page before it knows the reader heads a company, so the tab asked for is drawn only once
-    // who reads is known, and the page then holds that tab alone (docs/web.md, 「Organisation」).
+    // who reads is known, and the page then holds that tab alone (docs/web.md, 「System and organisation」).
     test(`a company head opening the roles and kinds tab by its address finds that tab alone, at ${width}px`, async () => {
       await administer(`/api/organization/units/${company}/heads/${encodeURIComponent(member)}`, "PUT");
 
@@ -508,7 +509,7 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
           await standing(page);
           await column(page).getByText(wording("catalogue.label.kinds"), { exact: true }).waitFor({ timeout: 20_000 });
           // A head of a company writes the org memory of the units they head, sets their agents and manages that company's
-          // supply, so the agents, org memory, supply and plans tabs stand for them too (docs/web.md, 「Organisation」).
+          // supply, so the agents, org memory, supply and plans tabs stand for them too (docs/web.md, 「System and organisation」).
           expect({ pass, tabs: await tabNames(page) }).toEqual({ pass, tabs: ["roster.label.tab", "catalogue.label.tab", "settings.label.invites", "org_agents.label.tab", "apps.label.tab", "org_storage.label.tab", "org_mail.label.tab", "settings.label.secrets", "org_memory.label.tab", "settings.label.permissions", "supply.label.tab", "security.label.security_tab"].map((key) => wording(key)) });
           expect(await page.locator('[role="tab"][aria-selected="true"]').allInnerTexts()).toEqual([wording("catalogue.label.tab")]);
 
@@ -562,25 +563,33 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
 
             await hit.waitFor({ timeout: 10_000 });
             await hit.click();
-            await page.waitForURL((url) => url.pathname.endsWith("/admin") && url.searchParams.get("tab") === "secret-kinds", { timeout: 10_000 });
+            await page.waitForURL((url) => url.pathname.endsWith("/organization") && url.searchParams.get("company") === "platform" && url.searchParams.get("tab") === "secret-kinds", { timeout: 10_000 });
           }
 
-          // A link made before the providers and the secret kinds moved to the administrator's screen lands on the same
-          // tab there, whether it names the organisation screen's old tab or a settings key; the providers are its
-          // first tab, the screen's own address.
-          const onAdmin = (tab: string | null) => (url: URL) => url.pathname.endsWith("/admin") && url.searchParams.get("tab") === tab && !url.searchParams.has("settings");
-          const movedToAdmin = [
-            { old: "/organization?tab=providers", tab: null, label: "settings.label.providers" },
+          // Every old way onto the providers, the secret kinds and the system mail lands on the same tab of the
+          // merged screen with the platform chosen: the screen's own tab key, a settings key, the old
+          // administrator screen's address, and an old key naming no tab of that screen onto its first tab.
+          const onPlatform = (tab: string) => (url: URL) => url.pathname.endsWith("/organization") && url.searchParams.get("company") === "platform" && url.searchParams.get("tab") === tab && !url.searchParams.has("settings");
+          const landsOnPlatform = [
+            { old: "/organization?tab=providers", tab: "providers", label: "settings.label.providers" },
             { old: "/organization?tab=secret-kinds", tab: "secret-kinds", label: "secrets.label.kinds" },
-            { old: "/?settings=providers", tab: null, label: "settings.label.providers" },
-            { old: "/?settings=secret-kinds", tab: "secret-kinds", label: "secrets.label.kinds" }
+            { old: "/?settings=providers", tab: "providers", label: "settings.label.providers" },
+            { old: "/?settings=secret-kinds", tab: "secret-kinds", label: "secrets.label.kinds" },
+            { old: "/admin", tab: "providers", label: "settings.label.providers" },
+            { old: "/admin?tab=providers", tab: "providers", label: "settings.label.providers" },
+            { old: "/admin?tab=secret-kinds", tab: "secret-kinds", label: "secrets.label.kinds" },
+            { old: "/admin?tab=mail", tab: "mail", label: "security.label.mail_tab" },
+            { old: "/admin?tab=apps", tab: "apps", label: "apps.label.tab" },
+            { old: "/admin?tab=plans", tab: "supply", label: "supply.label.tab" },
+            { old: "/admin?tab=stray", tab: "providers", label: "settings.label.providers" }
           ];
 
-          for (const { old, tab, label } of movedToAdmin) {
+          for (const { old, tab, label } of landsOnPlatform) {
             await page.goto(`${origin}${old}`, { waitUntil: "load" });
-            await page.waitForURL(onAdmin(tab), { timeout: 20_000 });
-            expect(await tabNames(page, "admin.aria.tabs")).toEqual(ADMIN_TABS.map((key) => wording(key)));
-            expect({ old, open: (await page.locator(`[aria-label="${wording("admin.aria.tabs")}"] [role="tab"][data-state="active"]`).innerText()).trim() }).toEqual({ old, open: wording(label) });
+            await page.waitForURL(onPlatform(tab), { timeout: 20_000 });
+            await standing(page);
+            expect({ old, row: await tabNames(page) }).toEqual({ old, row: PLATFORM_TABS.map((key) => wording(key)) });
+            expect({ old, open: (await page.locator(`[aria-label="${wording("organization.aria.tabs")}"] [role="tab"][data-state="active"]`).innerText()).trim() }).toEqual({ old, open: wording(label) });
           }
 
           // The organisation screen keeps the chart, the people, the roles and kinds, the invitations, the BMO, the
@@ -726,7 +735,7 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
 
           // The sidebar's organisation entry, among the administrator services: it stands for every reader with a
           // user of the account service, a member who heads nothing among them, the screen holding their own link of
-          // the chain for each of them (docs/web.md, 「Sidebar」, 「Organisation」).
+          // the chain for each of them (docs/web.md, 「Sidebar」, 「System and organisation」).
           // An invitation's dialog may still stand over the page as the entry is looked for, which hides the sidebar from
           // the page's roles, so the entry is found by its section's own label and its address.
           const entry = page.locator(`nav[aria-label="${wording("screens.label.section_administration")}"] a[href$="/organization"]`);
@@ -735,7 +744,7 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
             expect(await entry.count()).toBe(1);
 
             // Chosen at their own link of the chain, the screen holds exactly the tabs declaring a view of that link,
-            // arrives on the first of them and draws that view (docs/web.md, 「Organisation」, a link node's row).
+            // arrives on the first of them and draws that view (docs/web.md, 「System and organisation」, a link node's row).
             await page.goto(`${origin}/organization?company=me`, { waitUntil: "load" });
             await standing(page);
             const row = await tabNames(page);
@@ -754,7 +763,7 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
           await page.goto(`${origin}/organization`, { waitUntil: "load" });
           await standing(page);
           // The row holds the tabs every member opens until the org memory read says which units the head writes, and
-          // the org memory tab comes in then (docs/web.md, 「Organisation」), so the row is read once it stands.
+          // the org memory tab comes in then (docs/web.md, 「System and organisation」), so the row is read once it stands.
           await page.locator(`[aria-label="${wording("organization.aria.tabs")}"]`).getByRole("tab", { name: wording("org_memory.label.tab"), exact: true }).waitFor({ timeout: 20_000 });
           // A head of a unit holds its supply too, so the supply tab comes in once the supply reach has answered.
           await page.locator(`[aria-label="${wording("organization.aria.tabs")}"]`).getByRole("tab", { name: wording("supply.label.tab"), exact: true }).waitFor({ timeout: 20_000 });

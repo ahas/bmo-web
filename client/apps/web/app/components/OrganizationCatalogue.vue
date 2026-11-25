@@ -1,5 +1,5 @@
 <template>
-  <!-- The roles and kinds tab (docs/web.md, 「Organisation」, its roles and kinds tab; docs/accounts.md, 「Roles and unit
+  <!-- The roles and kinds tab (docs/web.md, 「System and organisation」, its roles and kinds tab; docs/accounts.md, 「Roles and unit
        kinds」): the organisation chosen's roles, the highest first, and its unit kinds in its order, each list in its
        own words and written whole in its form. -->
   <div class="flex flex-col gap-4">

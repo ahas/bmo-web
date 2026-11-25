@@ -1,5 +1,5 @@
 <template>
-  <!-- The organisation screen's org memory tab with the platform chosen (docs/web.md, 「Organisation」, the org memory
+  <!-- The organisation screen's org memory tab with the platform chosen (docs/web.md, 「System and organisation」, the org memory
        tab): the base, what holds for any agent anywhere — its standing memories, each edited or deleted, the review of
        its candidates, each raised, kept in its source or dropped with it, the last two asked first — and whether the
        base and the org brains are read under the platform. -->

@@ -5,7 +5,7 @@ import { securityFailure } from "../../utils/sign-in";
 import type { SystemMail } from "@web/server-client";
 
 // The system mail written whole: bmo-mail's outgoing server, the sender and the name of its sign-in secret, the
-// administrator's alone (docs/web.md, 「Administration」, the mail tab).
+// administrator's alone (docs/web.md, 「System and organisation」, the mail tab).
 export default defineEventHandler(async (event): Promise<SystemMail> => {
   const body = await readBody<Record<string, unknown>>(event).catch(() => ({}) as Record<string, unknown>);
   const text = (value: unknown) => (typeof value === "string" ? value.trim() : "");

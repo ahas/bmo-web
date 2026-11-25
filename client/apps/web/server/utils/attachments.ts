@@ -8,7 +8,7 @@ import type { AgencyCall } from "./agency";
 import type { RefusalBody } from "./unit-answer";
 import type { AttachableItem, AttachedKind, AttachmentChange, AttachmentHolder, Attachments } from "#shared/attachments";
 
-// What the reader attached to each of their agents, read and written through the agency (docs/web.md, 「Organisation」,
+// What the reader attached to each of their agents, read and written through the agency (docs/web.md, 「System and organisation」,
 // the agents tab at the reader's own node; the agency's `docs/api.md`, 「attachments」): asked as the deployment's own for the account the
 // signed-in login is, so a reader reaches their own agents alone.
 

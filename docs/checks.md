@@ -120,7 +120,7 @@ which stands.
     units」), so a card fills with no outside site asked;
   - the fixture accounts each file signs in with, made by the console's own `user` script. Every account made
     with the administrator flag is a platform administrator by the account service's word, and the members, made
-    without it, stay members, whose console sections are written whole as the administrator's screen writes them.
+    without it, stay members, whose console sections are written whole as the 시스템 및 조직's 권한 tab writes them.
     The first account is the data move's administrator, and the move links the owner's sender to it, so it is the
     owner's account: a file that reads the owner's words as the reader's own signs in with it. The accounts the media
     room's and the sticker room's files sign in with each have a sender of their own linked to them, so what each said

@@ -1,5 +1,5 @@
 <template>
-  <!-- The machine share requests (docs/web.md, 「Organisation」, the invitations tab; docs/accounts.md, 「A machine shared at an
+  <!-- The machine share requests (docs/web.md, 「System and organisation」, the invitations tab; docs/accounts.md, 「A machine shared at an
        invitation's ask」): the asks into the company chosen that the reader may decide, standing only where one waits,
        each by the person's name, where they were invited, the machine and the accounts already on it, and when they
        asked, with approve and refuse, each done at once. -->

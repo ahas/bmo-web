@@ -1,5 +1,5 @@
 <template>
-  <!-- The units tab (docs/web.md, 「Organisation」, its chart): the node chosen in the organisation tree, a unit or the
+  <!-- The units tab (docs/web.md, 「System and organisation」, its chart): the node chosen in the organisation tree, a unit or the
        company itself, with its heads, its people and its posts, in the tab's reading column; the tab draws no tree of
        its own. What a unit is called is its name alone. -->
   <div class="flex min-w-0 flex-col gap-4">

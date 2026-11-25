@@ -7,7 +7,7 @@ import { isDelegation } from "../../utils/organisation-supply";
 
 import type { StorageValue } from "#shared/artifact-storage";
 
-// A unit's storage value, and the setting's delegation (docs/web.md, 「Organisation」, the storage tab): `unit`, and
+// A unit's storage value, and the setting's delegation (docs/web.md, 「System and organisation」, the storage tab): `unit`, and
 // `value` — an object naming its kind of place in `place`, or null to follow above — and `delegation`, either or
 // both. The unit stands in the body for the reason the read's stands in its query.
 export default defineEventHandler(async (event): Promise<{ ok: true }> => {

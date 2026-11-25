@@ -210,7 +210,7 @@ import { useRoomList, useRoomReading } from "~/domain/room-list";
 import { useRoomsPresent } from "~/domain/presence";
 import { useConsoleFeatures } from "~/domain/console-features";
 import { useConsoleScreens } from "~/domain/console-screens";
-import { featuredScreens, namedWhenFolded, roomItems, screensWithBundles, sectionItems } from "~/domain/screens";
+import { featuredScreens, namedWhenFolded, roomItems, SCREENS, screensWithBundles, sectionItems } from "~/domain/screens";
 import { namedBy, withReadNames } from "~/domain/own-screen-names";
 import { useReadScreenNames } from "~/domain/own-screen-readings";
 import { SIDEBAR_GROUP, SIDEBAR_WIDTH } from "~/domain/sidebar-width";
@@ -279,7 +279,9 @@ const bundles = useConsoleScreens();
 // The list is followed as it stands, so a login's screens, read as it signs in while this shell already stands,
 // stand in the sidebar, the search and the user menu at once (docs/web.md, 「Access」).
 const features = useConsoleFeatures();
-const screens = computed(() => screensWithBundles(bundles.value, featuredScreens(features.value)));
+// This shell stands for the platform administrator, whose member layouts never serve: a deployment's feature leaves
+// no screen out of it that the administrator keeps (docs/web.md, 「The console's features」).
+const screens = computed(() => screensWithBundles(bundles.value, featuredScreens(features.value, SCREENS, true)));
 // The counts the bundles declare, read for this reader while the sidebar stands (docs/web.md, 「Sidebar」).
 const unread = useSidebarUnread();
 // The reader's own screens whose words carry no name in their language, named by its reading (「Sidebar」).

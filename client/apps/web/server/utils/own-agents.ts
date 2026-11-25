@@ -10,7 +10,7 @@ import type { AgencyCall } from "./agency";
 import type { DecidedBy } from "#shared/organisation-agents";
 import type { InstructedAgent, OwnAgentView, OwnAgentsView, OwnInstructionsView, OwnModel, OwnPermission, OwnProvider, OwnRoad, OwnRoleView } from "#shared/own-agents";
 
-// The reader's own agents and instructions (docs/web.md, 「Organisation」, the agents tab at the reader's own node;
+// The reader's own agents and instructions (docs/web.md, 「System and organisation」, the agents tab at the reader's own node;
 // the agency's `docs/api.md`, 「own-agents」): asked of the agency as the deployment's own for the account the
 // signed-in login is,
 // so a reader reaches their own alone. Whether they may make a change is the delegation chain's word, which the agency

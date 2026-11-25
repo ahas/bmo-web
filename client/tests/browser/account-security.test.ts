@@ -8,7 +8,7 @@ import type { Finger } from "./touch";
 import type { Browser, Locator, Page } from "playwright-core";
 
 // Account security as a hand works it (docs/web.md, 「Access」, 「Pages with no sign-in」, 「Settings」 and
-// 「Organisation」): a forgotten password asked on the login screen, its mailed link followed and a new password signed
+// 「System and organisation」): a forgotten password asked on the login screen, its mailed link followed and a new password signed
 // in with; a second factor set up from the account section and asked at the next sign-in; and a person's password
 // reset by the administrator from the people tab, mailed to them. Every press is aimed at what the browser draws, and
 // nothing stands over it. A desktop's width and a phone's, in Korean. It drives the console

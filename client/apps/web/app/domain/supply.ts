@@ -170,7 +170,7 @@ export function draftRows(draft: Pick<PolicyDraft, "allowed" | "order">): Supply
 }
 
 // The units a supply tab may stand for, read once where a screen needs to know whether to stand one at all
-// (docs/web.md, 「Organisation」, the supply tab): the companies the account service's roster read gives the reader —
+// (docs/web.md, 「System and organisation」, the supply tab): the companies the account service's roster read gives the reader —
 // every one for the administrator, the companies whose own unit they head for anyone else, none for the rest. The
 // service judges each read and write of a unit on its own; a unit this list names none for is refused, and its
 // reason is said where the read was to stand. A read that failed is no units: the tab a refused read opens would
@@ -320,7 +320,7 @@ export function movedSourceOrder(rows: readonly OrderRow[], from: number, to: nu
   return order;
 }
 
-// Whose a piece of supply is (docs/web.md, 「Administration」, the providers tab): the platform's, or one person's.
+// Whose a piece of supply is (docs/web.md, 「System and organisation」, the providers tab): the platform's, or one person's.
 
 /** The person a gateway road belongs to: the one account every member of the road names, where every one names the
  * same; none where the road is the platform's, mixed, or has no member. */
@@ -340,7 +340,7 @@ export function ownerText(t: Translate, owner: string | number | null | undefine
   return name === null ? t("supply.label.owner_shared") : t("supply.label.owner_personal", { name });
 }
 
-// An organisation's plans (docs/web.md, 「Organisation」, the plans tab): the one it runs on and those it is shown.
+// An organisation's plans (docs/web.md, 「System and organisation」, the plans tab): the one it runs on and those it is shown.
 
 /** The choice of none among a dialog's plans, since a choice's value is never empty. */
 export const NO_PLAN = "none";

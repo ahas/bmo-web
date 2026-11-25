@@ -291,7 +291,7 @@ export interface SupervisorRoadStateView {
   reason: string | null;
 }
 
-/** A unit's repository as its dialog on the organisation screen reads it (docs/web.md, 「Organisation」, the agents tab,
+/** A unit's repository as its dialog on the organisation screen reads it (docs/web.md, 「System and organisation」, the agents tab,
  * the unit's repositories): the repository whole, and what the dialog's choices offer — the nodes that take jobs and the providers a
  * pinned model may name. */
 export interface UnitRepositoryDetail {

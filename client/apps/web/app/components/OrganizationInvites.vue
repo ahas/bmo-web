@@ -1,5 +1,5 @@
 <template>
-  <!-- Invitations (docs/web.md, 「Organisation」, the invitations tab): a link made into a unit of the organisation
+  <!-- Invitations (docs/web.md, 「System and organisation」, the invitations tab): a link made into a unit of the organisation
        chosen the reader heads, or any for the administrator, chosen from its own tree opening on the node chosen in
        the organisation tree, with the role the person
        takes there and, where the maker gives it, the person's name, in a dialog the tab row's add opens; copied with its words and when it closes,

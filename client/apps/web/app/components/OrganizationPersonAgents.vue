@@ -1,5 +1,5 @@
 <template>
-  <!-- The agents tab with the reader's own node chosen (docs/web.md, 「Organisation」, the agents tab, and 「Settings」):
+  <!-- The agents tab with the reader's own node chosen (docs/web.md, 「System and organisation」, the agents tab, and 「Settings」):
        their own BMO, where they may personalise it and own one, then their own agents and instructions over the set
        their organisation supplies. -->
   <div class="flex flex-col gap-6" data-org-person-agents>

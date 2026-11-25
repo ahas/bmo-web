@@ -1,5 +1,5 @@
 <template>
-  <!-- The organisation screen's mail servers tab at a company or a unit (docs/web.md, 「Organisation」, the mail servers
+  <!-- The organisation screen's mail servers tab at a company or a unit (docs/web.md, 「System and organisation」, the mail servers
        tab): the servers the unit chosen in the tree offers the people under it, the company's where none is. -->
   <MailServerList ref="list" :link="`unit:${unit}`" />
 </template>

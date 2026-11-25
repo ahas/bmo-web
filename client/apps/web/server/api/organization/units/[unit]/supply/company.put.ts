@@ -4,7 +4,7 @@ import { signedInUser } from "../../../../../utils/accounts";
 import { unitNumber } from "../../../../../utils/organization";
 import { openToCompany, orgAgentsFailure } from "../../../../../utils/organisation-supply";
 
-// Organisation supply opened to a company or closed by the administrator (docs/web.md, 「Organisation」, the supply
+// Organisation supply opened to a company or closed by the administrator (docs/web.md, 「System and organisation」, the supply
 // tab): `opened`, true or false.
 export default defineEventHandler(async (event): Promise<{ ok: true }> => {
   const unit = unitNumber(getRouterParam(event, "unit"));

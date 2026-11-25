@@ -4,7 +4,7 @@ import { callerOf } from "../../../../utils/organization";
 
 import type { CompanyBmoView } from "#shared/bmo-profile";
 
-// A company's default for its people's BMOs (docs/web.md, 「Organisation」, the BMO tab).
+// A company's default for its people's BMOs (docs/web.md, 「System and organisation」, the BMO tab).
 export default defineEventHandler(async (event): Promise<CompanyBmoView> => {
   const signed = await signedInUser(event);
   const company = idParam(event, "company");

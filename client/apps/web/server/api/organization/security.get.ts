@@ -4,7 +4,7 @@ import { requirementAt, requirementFailure } from "../../utils/second-factor-cha
 
 import type { SecondFactorRequirement } from "#shared/account-security";
 
-// Whether a node asks a second factor of its people (docs/web.md, 「Organisation」, the security tab): a unit named by
+// Whether a node asks a second factor of its people (docs/web.md, 「System and organisation」, the security tab): a unit named by
 // `?unit=`, or the platform by `?link=platform`, as the reader stands to it.
 export default defineEventHandler(async (event): Promise<SecondFactorRequirement> => {
   const query = getQuery(event);

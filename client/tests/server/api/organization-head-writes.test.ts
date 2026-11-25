@@ -8,7 +8,7 @@ import { wording } from "../../../apps/web/shared/wording";
 
 import type { RouteEvent } from "../../support/nitro";
 
-// What a unit's heads write from the console (docs/web.md, 「Access」 and 「Organisation」; docs/accounts.md,
+// What a unit's heads write from the console (docs/web.md, 「Access」 and 「System and organisation」; docs/accounts.md,
 // 「Concurrent posts」, 「Acting」 and 「Roles and unit kinds」): a post given and taken, an acting head named and ended,
 // and a company's roles and unit kinds written. Each route hands the signed-in login to the account service, which
 // lets the administrator and the heads it names alone, and says its refusal in the pack's words. Who heads what is the

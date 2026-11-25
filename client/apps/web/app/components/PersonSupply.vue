@@ -1,5 +1,5 @@
 <template>
-  <!-- One person's supply tab, for a reader who may set their supply (docs/web.md, 「Organisation」, the people
+  <!-- One person's supply tab, for a reader who may set their supply (docs/web.md, 「System and organisation」, the people
        tab): the per-user policy or the organisation's they follow, the providers their own credentials serve —
        names alone, never a credential — the order resolved for them, and for the platform administrator the way to
        grant credits into the person's own wallet. -->

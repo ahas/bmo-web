@@ -3,7 +3,7 @@ import { wording } from "#shared/wording";
 import { changeAgentSetting, isAgentSetting, settingValue } from "../../../utils/organisation-agents";
 import { isDelegation, orgAgentsFailure } from "../../../utils/organisation-supply";
 
-// The platform's word on one of the agent settings, and that setting's delegation (docs/web.md, 「Organisation」, the
+// The platform's word on one of the agent settings, and that setting's delegation (docs/web.md, 「System and organisation」, the
 // agents tab with the platform chosen), as a unit's route takes them. The administrator's.
 export default defineEventHandler(async (event): Promise<{ ok: true }> => {
   const signed = await requireAdministrator(event);

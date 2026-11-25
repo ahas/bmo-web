@@ -4,7 +4,7 @@ import { compositionModels, orgAgentsFailure } from "../../../../../../utils/org
 
 import type { OwnModel } from "#shared/own-agents";
 
-// The models a road of a unit's sign-up composition may name on one provider (docs/web.md, 「Organisation」, the agents
+// The models a road of a unit's sign-up composition may name on one provider (docs/web.md, 「System and organisation」, the agents
 // tab), for a reader who reads the unit's composition.
 export default defineEventHandler(async (event): Promise<OwnModel[]> => {
   const unit = unitNumber(getRouterParam(event, "unit"));

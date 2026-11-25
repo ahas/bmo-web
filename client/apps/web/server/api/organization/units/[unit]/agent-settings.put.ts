@@ -4,7 +4,7 @@ import { unitNumber } from "../../../../utils/organization";
 import { changeAgentSetting, isAgentSetting, settingValue } from "../../../../utils/organisation-agents";
 import { isDelegation, orgAgentsFailure } from "../../../../utils/organisation-supply";
 
-// A unit's word on one of its agent settings, and that setting's delegation (docs/web.md, 「Organisation」, the agents
+// A unit's word on one of its agent settings, and that setting's delegation (docs/web.md, 「System and organisation」, the agents
 // tab): `setting`, `instructions`, `persona`, `repositories`, `ownAgents`, `roadChoice` or `personalInstructions`, with
 // `value` — a text, `own` or `none`, true or false,
 // or null to follow above — and `delegation`, `allow`, `lock` or `inherit`, either or both.

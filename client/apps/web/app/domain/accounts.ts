@@ -12,12 +12,12 @@ import type { Translate } from "#shared/wording";
 // answers with carries one.
 
 // The name the accounts group answers to in an address: the organisation screen's supply tab with the platform chosen,
-// at that group (docs/web.md, 「Organisation」, the supply tab).
+// at that group (docs/web.md, 「System and organisation」, the supply tab).
 export const ACCOUNTS_GROUP = "accounts";
 export const ACCOUNTS_ADDRESS = `${ORGANIZATION_PATH}?company=${PLATFORM_NODE}&tab=supply#${ACCOUNTS_GROUP}`;
 
 // The way a new account's box offers beside the two kinds: its login made here, through the agency's own run of the
-// CLI's sign-in, into a configuration directory the agency makes for it (docs/web.md, 「Administration」).
+// CLI's sign-in, into a configuration directory the agency makes for it (docs/web.md, 「System and organisation」).
 export const SIGN_IN_KIND = { value: "sign-in", label: "agents.label.account_kind_sign_in" } as const;
 
 export const ACCOUNT_KINDS = [
@@ -71,7 +71,7 @@ export function accountLoginText(t: Translate, account: ClaudeAccountView, now: 
 
 // The logins a work key may be put on: the automatic choice, which walks the account order, then every account
 // under the name its screen gives it — its number within the account that owns it, where the console counts one
-// (docs/web.md, 「Organisation」, the supply tab). One they turned off stands disabled with that as its reason.
+// (docs/web.md, 「System and organisation」, the supply tab). One they turned off stands disabled with that as its reason.
 export function accountChoices(t: Translate, accounts: readonly ClaudeAccountView[]): CellChoice[] {
   const numbers = loginNumbers(accounts);
 

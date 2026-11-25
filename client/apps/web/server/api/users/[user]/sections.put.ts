@@ -10,7 +10,7 @@ interface SectionsBody {
 }
 
 // One user's console sections written whole, by an administrator or by a head of a unit the person stands in, within
-// the sections the head holds (docs/web.md, 「Organisation」, the permissions tab). The account service judges the
+// the sections the head holds (docs/web.md, 「System and organisation」, the permissions tab). The account service judges the
 // writer and refuses anyone else before a tuple is written.
 export default defineEventHandler(async (event): Promise<SectionRow[]> => {
   const signed = await signedInUser(event);

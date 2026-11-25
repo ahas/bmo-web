@@ -8,7 +8,7 @@ import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 import type { SecretKind } from "../../apps/web/shared/secret-kinds";
 
 // The settings the organisation screen's tree holds beside the apps, as a hand works them (docs/web.md,
-// 「Organisation」): the tree marking its top level alone, the secrets tab at each node — the platform's space at the platform node, a unit's own at a unit, the
+// 「System and organisation」): the tree marking its top level alone, the secrets tab at each node — the platform's space at the platform node, a unit's own at a unit, the
 // reader's own at their own node and the administrator's door from there to the platform's, the settings dialog's section a door
 // to it — the org memory tab's base with its review and its read layers, the permissions tab where a head gives a
 // person of their unit only a section they hold, and a unit's repository opened in agent management's dialog. Every

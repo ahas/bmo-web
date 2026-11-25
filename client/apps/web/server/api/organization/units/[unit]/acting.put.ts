@@ -4,7 +4,7 @@ import { HEAD_CODES, callerOf, organizationFailure, unitNumber } from "../../../
 
 import { wording } from "#shared/wording";
 
-// A person named to act for a unit's head until a moment still to come (docs/web.md, 「Organisation」, its chart): the
+// A person named to act for a unit's head until a moment still to come (docs/web.md, 「System and organisation」, its chart): the
 // account service decides who may, the administrator or a head of a unit above.
 export default defineEventHandler(async (event): Promise<void> => {
   const signed = await signedInUser(event);

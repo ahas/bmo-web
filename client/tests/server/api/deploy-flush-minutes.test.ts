@@ -7,7 +7,7 @@ import { answer, standIn } from "../../support/units";
 import type { DeployFlushView } from "../../../apps/web/shared/deploy-flush";
 
 // The deploy queue's flush minutes as the administration screen's providers tab reads and changes them (docs/web.md,
-// 「Administration」; the agency's docs/api.md, 「settings」): read off `GET /settings` by their field, changed through
+// 「System and organisation」; the agency's docs/api.md, 「settings」): read off `GET /settings` by their field, changed through
 // `PATCH /settings` with that field alone, null returning to the agency's own, and the agency's refusal said by the
 // pack's sentence for the field.
 

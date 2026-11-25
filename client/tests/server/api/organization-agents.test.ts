@@ -8,7 +8,7 @@ import { wording } from "../../../apps/web/shared/wording";
 
 import type { RouteEvent } from "../../support/nitro";
 
-// The organisation screen's agents tab and a person's own reading of the chain (docs/web.md, 「Organisation」, the
+// The organisation screen's agents tab and a person's own reading of the chain (docs/web.md, 「System and organisation」, the
 // agents tab; 「Settings」, the supply and own-BMO sections): a unit's instructions, persona's choice and repository
 // management, and what its people may change of the agents it supplies, a kind not yet declared standing as none, read
 // off the chain as the signed-in head and written on its routes in their name; the unit's own

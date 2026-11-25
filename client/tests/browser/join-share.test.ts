@@ -6,7 +6,7 @@ import { wording } from "../../apps/web/shared/wording";
 
 import type { Browser, BrowserContext, Locator, Page, Route } from "playwright-core";
 
-// A PC that already has an agent, shared rather than connected again (docs/web.md, 「The join page」 and 「Organisation」,
+// A PC that already has an agent, shared rather than connected again (docs/web.md, 「The join page」 and 「System and organisation」,
 // the invitations tab; docs/accounts.md, 「A machine shared at an invitation's ask」): the join page's way to
 // share this PC under the tabs, its ask waiting for a decision and leading on once approved, bound at once where the
 // machine is the asking browser's own, said where refused, and an empty name refused before anything is asked; and the

@@ -1,5 +1,5 @@
 <template>
-  <!-- The server form of the mail servers tab (docs/web.md, 「Organisation」, the mail servers tab): a new server of a
+  <!-- The server form of the mail servers tab (docs/web.md, 「System and organisation」, the mail servers tab): a new server of a
        node or a kept one, its protocol fixed once it is kept, saved through bmo-mail, which judges it; the connection test at its
        foot asks bmo-mail to reach the server as the form holds it, and a refusal is said under the form. -->
   <SettingsDialog v-model:open="open" :title="props.server === null ? $t('org_mail.action.add') : $t('org_mail.title.edit')" :dirty="changes">

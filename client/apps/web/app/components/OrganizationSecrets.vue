@@ -1,5 +1,5 @@
 <template>
-  <!-- The organisation screen's secrets tab at a company or a unit (docs/web.md, 「Organisation」, the secrets tab): the
+  <!-- The organisation screen's secrets tab at a company or a unit (docs/web.md, 「System and organisation」, the secrets tab): the
        unit's own space of the secret store, which its heads and the administrator hold. -->
   <SecretSpace ref="space" :unit="unit" :note="$t('secrets.label.unit_note')" />
 </template>

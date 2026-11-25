@@ -3,7 +3,7 @@ import { describe, expect, test } from "bun:test";
 import { PERSON_PANES, personAdministrator, personPaneOf, personPaneRefused, personPanesFor, withPersonPane } from "../../../apps/web/app/domain/person-panes";
 
 // One person on the people tab stands over a row of tabs, the address naming the one open (docs/web.md,
-// 「Organisation」, the people tab).
+// 「System and organisation」, the people tab).
 
 const ADMINISTRATOR = personPanesFor({ administrator: true });
 const HEAD = personPanesFor({ administrator: false });

@@ -3,7 +3,7 @@ import { catalogueOf } from "../../../../utils/catalogue";
 import { HEAD_CODES, callerOf, organizationFailure, unitNumber } from "../../../../utils/organization";
 
 // A company's unit kinds written whole, by the administrator or a head of the company's own unit (docs/web.md,
-// 「Organisation」, its roles and kinds tab).
+// 「System and organisation」, its roles and kinds tab).
 export default defineEventHandler(async (event): Promise<{ key: string; name: string }[]> => {
   const signed = await signedInUser(event);
   const company = unitNumber(getRouterParam(event, "company"));

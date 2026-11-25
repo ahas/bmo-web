@@ -1,5 +1,5 @@
 <template>
-  <!-- What one of the reader's agents is given beyond its line (docs/web.md, 「Organisation」, the agents tab at the reader's own node): two
+  <!-- What one of the reader's agents is given beyond its line (docs/web.md, 「System and organisation」, the agents tab at the reader's own node): two
        groups of the reader's skills and MCP servers, own and installed, each checked where the agent holds it. A group
        the agent's line takes none of stands disabled with a line saying so. The save writes both groups whole. -->
   <SettingsDialog v-model:open="open" :title="$t('attachments.title.dialog')" :description="props.label" :dirty="changes">

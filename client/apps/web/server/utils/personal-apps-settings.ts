@@ -12,7 +12,7 @@ import type { AgentsLink } from "./organisation-agents";
 import type { ChainDelegation } from "#shared/organisation-supply";
 import type { PersonalAppSetting, PersonalAppSettings, PersonalAppSettingView, ShareScope } from "#shared/personal-apps-settings";
 
-// The personal app settings of a link (docs/web.md, 「Organisation」, the apps tab): the agency's kinds on the
+// The personal app settings of a link (docs/web.md, 「System and organisation」, the apps tab): the agency's kinds on the
 // delegation chain, read and written on the chain's own routes as the signed-in login, so who writes a link and a
 // lock above it are the account service's word. Network and secrets stay off until the platform opens them for a
 // company, by a rule naming it at the platform's link, which the administrator writes on the company's row.

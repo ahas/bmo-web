@@ -4,7 +4,7 @@ import { securityFailure } from "../../../../utils/sign-in";
 
 import { wording } from "#shared/wording";
 
-// A person's account disabled or enabled by the administrator (docs/web.md, 「Organisation」, the people tab).
+// A person's account disabled or enabled by the administrator (docs/web.md, 「System and organisation」, the people tab).
 export default defineEventHandler(async (event): Promise<void> => {
   const signed = await signedInUser(event);
   const user = Number(getRouterParam(event, "user"));

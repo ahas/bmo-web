@@ -3,7 +3,7 @@ import { wording } from "#shared/wording";
 import { isDelegation, orgAgentsFailure } from "../../../utils/organisation-supply";
 import { changePersonalApp, isPersonalAppSetting, personalAppValue } from "../../../utils/personal-apps-settings";
 
-// The platform's word on one personal app setting, and its delegation (docs/web.md, 「Organisation」, the apps tab with
+// The platform's word on one personal app setting, and its delegation (docs/web.md, 「System and organisation」, the apps tab with
 // the platform chosen). The administrator's.
 export default defineEventHandler(async (event): Promise<{ ok: true }> => {
   const signed = await requireAdministrator(event);

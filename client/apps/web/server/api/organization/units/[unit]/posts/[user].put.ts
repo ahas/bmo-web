@@ -5,7 +5,7 @@ import { HEAD_CODES, callerOf, organizationFailure, unitNumber } from "../../../
 import { wording } from "#shared/wording";
 
 // A post given to a person in a unit of their company, or changed: its role by key, none for no role, and the unit's
-// head or not (docs/web.md, 「Organisation」, its chart and the people tab).
+// head or not (docs/web.md, 「System and organisation」, its chart and the people tab).
 export default defineEventHandler(async (event): Promise<void> => {
   const signed = await signedInUser(event);
   const unit = unitNumber(getRouterParam(event, "unit"));

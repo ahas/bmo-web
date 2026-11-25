@@ -9,7 +9,7 @@ import type { SecretKindList } from "../../apps/web/shared/secret-kinds";
 import type { SecretSettingField, SecretSettingsView } from "../../apps/web/shared/secret-settings";
 
 // The secrets the agency's provider tools read, on the administration screen's providers tab (docs/web.md,
-// 「Administration」): a row to each setting, its choices the reader's own secrets whose file reads as the setting's
+// 「System and organisation」): a row to each setting, its choices the reader's own secrets whose file reads as the setting's
 // kind and none, a choice saved as it is made, and the agency's refusal said under the row's label. The console, with
 // the account service and its secret store on a scratch folder and the agency's stand-in, is the one given in
 // BMO_CONSOLE_TEST_URL, which tests/support/browser-console.ts stands up. The suite stands up no console, so there it
@@ -85,7 +85,7 @@ async function opened(viewport: { width: number; height: number }): Promise<Page
 
   const page = await context.newPage();
 
-  await page.goto(`${origin}/admin`, { waitUntil: "load" });
+  await page.goto(`${origin}/organization?company=platform&tab=providers`, { waitUntil: "load" });
   for (const row of ROWS) await rowOf(page, row.field).locator("button").waitFor({ timeout: 30_000 });
 
   return page;

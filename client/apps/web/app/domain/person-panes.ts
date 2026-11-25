@@ -2,7 +2,7 @@ import type { RosterDetail, RosterPerson } from "#shared/roster";
 import type { Component } from "vue";
 import type { LocationQuery, LocationQueryRaw } from "vue-router";
 
-// One person on the organisation screen's people tab (docs/web.md, 「Organisation」, the people tab): a head over a row
+// One person on the organisation screen's people tab (docs/web.md, 「System and organisation」, the people tab): a head over a row
 // of tabs, one tab a part of what is the person's. Each tab is a component of its own; this is only the order they
 // stand in, what each is called, who may open it and how the address carries the one open.
 
@@ -13,7 +13,7 @@ export const PERSON_PANE_KEY = "pane";
 export interface PersonPaneReader {
   administrator: boolean;
   // Whether the reader may open the person's supply tab: the administrator, or whoever the account service says
-  // manages supply for the unit this person stands in (docs/web.md, 「Organisation」, the people tab).
+  // manages supply for the unit this person stands in (docs/web.md, 「System and organisation」, the people tab).
   supply?: boolean;
 }
 
@@ -52,7 +52,7 @@ function administratorOpens(reader: PersonPaneReader): boolean {
 }
 
 // The supply tab stands for the administrator and for a reader who manages supply for the unit the person stands
-// in; the screen holds it where that reader's own read says so (docs/web.md, 「Organisation」, the people tab).
+// in; the screen holds it where that reader's own read says so (docs/web.md, 「System and organisation」, the people tab).
 function supplyReaderOpens(reader: PersonPaneReader): boolean {
   return reader.administrator || reader.supply === true;
 }

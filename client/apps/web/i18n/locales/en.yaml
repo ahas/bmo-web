@@ -1261,8 +1261,7 @@ screens:
     live: Live status
     mail: Mail
     monitor: Monitor
-    admin: Platform settings
-    organization: Organization
+    organization: System and Organization
     remote: Remote
     research: Research
     search: Search
@@ -1997,7 +1996,7 @@ permissions:
     write_of: "Write {name}"
 organization:
   aria:
-    tabs: Organization tabs
+    tabs: System and Organization tabs
   label:
     chart: Org chart
     none: No organizations
@@ -4412,9 +4411,6 @@ picture:
   message:
     cleared: "Reverted to the provider's photo."
     saved: Photo changed.
-admin:
-  aria:
-    tabs: Platform settings tabs
 bmo_profile:
   label:
     platform_default: "Platform default BMO"
@@ -4707,7 +4703,7 @@ skills:
     name_held: A skill of that name already exists.
     description_empty: Please enter a description.
 
-# What a reader's agent is given of their skills and MCP servers (docs/web.md, 「Organisation」, the agents tab at 나).
+# What a reader's agent is given of their skills and MCP servers (docs/web.md, 「System and organisation」, the agents tab at 나).
 attachments:
   title:
     dialog: Skills · MCP

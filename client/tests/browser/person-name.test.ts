@@ -7,7 +7,7 @@ import { wording } from "../../apps/web/shared/wording";
 import type { Browser, BrowserContext, Page, Route } from "playwright-core";
 
 // The person's name on the console's screens (docs/accounts.md, 「Users and senders」; docs/web.md, 「The join page」,
-// 「Settings」 and 「Organisation」): the join page offers the name the invitation was made with first and takes no
+// 「Settings」 and 「System and organisation」): the join page offers the name the invitation was made with first and takes no
 // account without one; the profile form takes the name first and the user menu reads it once saved; the invitation
 // dialog takes it first and the open link is listed by it. Each is read at a desk's width and a phone's, with
 // nothing wider than the window. The test console stands no jake hub, so the invitation's own calls are answered

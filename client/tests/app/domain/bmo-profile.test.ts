@@ -4,7 +4,7 @@ import { callNameProblem, followsLine, headsCompany, nodeRows, permissionRows, s
 
 import type { PermissionTree } from "../../../apps/web/shared/bmo-profile";
 
-// The BMO profile's groups as their domain lays them out (docs/web.md, 「Organisation」, the agents tab): a call name
+// The BMO profile's groups as their domain lays them out (docs/web.md, 「System and organisation」, the agents tab): a call name
 // checked before it is added, the permission rows of one node with what a following row resolves to, and the company's
 // default set by its own heads alone.
 

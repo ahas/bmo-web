@@ -1,5 +1,5 @@
 <template>
-  <!-- The read layers on the organisation screen's org memory tab (docs/web.md, 「Organisation」, the org memory tab): whether the
+  <!-- The read layers on the organisation screen's org memory tab (docs/web.md, 「System and organisation」, the org memory tab): whether the
        base and the org brains are read for the people under the node, each a switch that turns the layer off here or
        on again to follow above, beside what the units below may do with it. A layer off above stands off and
        disabled; the group stands only where the chain answers the reader the node's link. -->

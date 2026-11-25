@@ -149,7 +149,7 @@ describe("each account's windows", () => {
 
   // The number the screen gives a login is counted within the account that owns it, over every login the reader is
   // told of — a login whose figures are left out is counted all the same, so the number never moves with the panel
-  // (docs/web.md, 「Organisation」, the supply tab).
+  // (docs/web.md, 「System and organisation」, the supply tab).
   test("each account carries the number its own account counts it as", () => {
     const answer = {
       routes: [],

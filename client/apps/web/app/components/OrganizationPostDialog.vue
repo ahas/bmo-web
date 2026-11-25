@@ -1,5 +1,5 @@
 <template>
-  <!-- A post given or changed (docs/web.md, 「Organisation」, its chart and the people tab; docs/accounts.md, 「Concurrent
+  <!-- A post given or changed (docs/web.md, 「System and organisation」, its chart and the people tab; docs/accounts.md, 「Concurrent
        posts」): the person, or the unit, where the opener has not fixed it, the post's role and whether it carries the
        unit's head, written by its one save. -->
   <SettingsDialog v-model:open="open" :title="props.title" :dirty="changes">

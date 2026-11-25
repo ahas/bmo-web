@@ -88,7 +88,7 @@ describe("the logins a work key is offered", () => {
   });
 
   // A login the agency numbered is offered under the number of the account that owns it, never the number counting
-  // every other account's logins among them (docs/web.md, 「Organisation」, the supply tab).
+  // every other account's logins among them (docs/web.md, 「System and organisation」, the supply tab).
   test("one numbered by the agency is offered under its own account's number", () => {
     const items = accountChoices(wording, [account({ id: "late", name: "claude-07", userId: 7 }), account({ id: "first", name: "claude-03", userId: 7 })]);
 

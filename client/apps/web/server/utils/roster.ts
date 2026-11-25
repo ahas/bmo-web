@@ -13,7 +13,7 @@ import type { SignedIn } from "./accounts";
 import type { RosterAsk, RosterDetail, RosterRole, RosterState } from "#shared/roster";
 import type { H3Event } from "h3";
 
-// The people roster's console routes (docs/web.md, 「Organisation」, the people tab; docs/accounts.md, 「The people
+// The people roster's console routes (docs/web.md, 「System and organisation」, the people tab; docs/accounts.md, 「The people
 // roster」): the account service decides who looks through whom, and a reader it refuses, or a person outside what they
 // look through, is answered as if nothing stood there. The groups that quote what a person said or ran are the
 // administrator's alone, and are asked only once the person is found among those he looks through.

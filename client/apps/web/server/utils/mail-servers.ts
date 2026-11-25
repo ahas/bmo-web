@@ -11,7 +11,7 @@ import type { SignedIn } from "./accounts";
 import type { ChainDelegation } from "#shared/organisation-supply";
 import type { MailAuth, MailLink, MailProtocol, MailSecurity, MailServerFields, MailServerTestView, MailServerView, MailServersView } from "#shared/mail-servers";
 
-// The mail servers a node offers the people under it (docs/web.md, 「Organisation」, the mail servers tab; bmo-mail's
+// The mail servers a node offers the people under it (docs/web.md, 「System and organisation」, the mail servers tab; bmo-mail's
 // `docs/api.md`, 「Servers」): bmo-mail's records, reached with the console's credential for the mail screen,
 // `MAIL_TOKEN`, and the signed-in login's owner headers. bmo-mail writes a link's list of servers on the delegation
 // chain's kind `mail.servers` in the reader's name, so the account service judges who may change them and a lock

@@ -10,7 +10,7 @@ import type { PermissionSetting } from "#shared/bmo-profile";
 const SETTINGS: readonly PermissionSetting[] = ["allow", "deny", "inherit"];
 
 // The personalisation setting on a unit, for the administrator and a head of the unit, then applied to the BMO of every
-// person under it (docs/web.md, 「Organisation」, the BMO tab).
+// person under it (docs/web.md, 「System and organisation」, the BMO tab).
 export default defineEventHandler(async (event): Promise<null> => {
   const signed = await signedInUser(event);
   const unit = idParam(event, "unit");

@@ -1,4 +1,4 @@
-// The agency's settings that name a secret of the platform administrator's space (docs/web.md, 「Administration」,
+// The agency's settings that name a secret of the platform administrator's space (docs/web.md, 「System and organisation」,
 // the providers tab; the agency's `docs/api.md`, 「settings」): each by the field the agency keeps it under, the kind
 // its secret is saved in, and the pack's key for its label. A setting of the same shape is one more entry here and
 // its label in the pack.

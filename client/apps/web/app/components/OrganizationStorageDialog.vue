@@ -1,5 +1,5 @@
 <template>
-  <!-- The storage form of the storage tab (docs/web.md, 「Organisation」, the storage tab): the place a unit keeps its
+  <!-- The storage form of the storage tab (docs/web.md, 「System and organisation」, the storage tab): the place a unit keeps its
        people's documents at, or following above, and the settings the place takes, saved together through
        bmo-artifact, which judges them; a refusal is said under the form. -->
   <SettingsDialog v-model:open="open" :title="$t('org_storage.title.storage')" :dirty="changes">

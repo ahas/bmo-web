@@ -1,5 +1,5 @@
 <template>
-  <!-- The supply tab's plans with the platform chosen (docs/web.md, 「Organisation」, the supply tab): the membership
+  <!-- The supply tab's plans with the platform chosen (docs/web.md, 「System and organisation」, the supply tab): the membership
        plans the platform sells, each with its price, scope, period, included credits and whether credits may be used
        on it, a new one added from the group's heading. The service owns every rule a plan breaks; its refusal is said
        in the dialog or under the row. -->
@@ -86,7 +86,7 @@ import { useConfirm } from "~/domain/confirm";
 
 import type { SupplyPlanEntry } from "#shared/supply";
 
-// The plans the platform sells, read whole (docs/web.md, 「Administration」, the supply tab). The tab row's add opens
+// The plans the platform sells, read whole (docs/web.md, 「System and organisation」, the supply tab). The tab row's add opens
 // the form; each row edits and removes on its own.
 const { t } = useI18n();
 const confirm = useConfirm();
@@ -198,7 +198,7 @@ async function remove(plan: SupplyPlanEntry): Promise<void> {
   }
 }
 
-// The tab row's add, which the screen hands this component by its own name (docs/web.md, 「Administration」).
+// The tab row's add, which the screen hands this component by its own name (docs/web.md, 「System and organisation」).
 
 onMounted(() => void read());
 </script>

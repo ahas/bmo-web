@@ -1,7 +1,7 @@
 import { signedInUser } from "../../utils/accounts";
 import { mailServerIdOf, mailServersFailure, removeMailServer } from "../../utils/mail-servers";
 
-// A kept mail server removed (docs/web.md, 「Organisation」, the mail servers tab), named by `?id=`; refused while an
+// A kept mail server removed (docs/web.md, 「System and organisation」, the mail servers tab), named by `?id=`; refused while an
 // account stands on it.
 export default defineEventHandler(async (event): Promise<{ ok: true }> => {
   const id = mailServerIdOf(getQuery(event).id);

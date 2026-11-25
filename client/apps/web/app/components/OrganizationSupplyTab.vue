@@ -1,5 +1,5 @@
 <template>
-  <!-- The organisation screen's supply tab at a company or a unit (docs/web.md, 「Organisation」, the supply tab): its
+  <!-- The organisation screen's supply tab at a company or a unit (docs/web.md, 「System and organisation」, the supply tab): its
        policy and credits, its own supply and the plan it runs on, each group read on its own and standing only for a
        reader who holds that part. -->
   <div class="flex flex-col gap-4" data-org-supply>

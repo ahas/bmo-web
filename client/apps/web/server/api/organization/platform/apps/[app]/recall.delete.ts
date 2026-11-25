@@ -1,7 +1,7 @@
 import { appParam, appsFailure, liftRecall } from "../../../../../utils/apps";
 
 // An app's recall lifted, so its publisher's declaration and every link below stand again (docs/web.md,
-// 「Organisation」, the apps tab): the administrator's.
+// 「System and organisation」, the apps tab): the administrator's.
 export default defineEventHandler(async (event): Promise<null> => {
   const signed = await requireAdministrator(event);
   const app = appParam(getRouterParam(event, "app"));

@@ -7,7 +7,7 @@ import { BROWSER_HOOK_MS, touchReady } from "./touch";
 import type { Browser, Page } from "playwright-core";
 import type { DeployFlushView } from "../../apps/web/shared/deploy-flush";
 
-// The deploy queue's flush minutes on the administration screen's providers tab (docs/web.md, 「Administration」): one
+// The deploy queue's flush minutes on the administration screen's providers tab (docs/web.md, 「System and organisation」): one
 // box in minutes showing what the agency holds in force, saved as it is left, emptied to return to the agency's own,
 // and the agency's refusal said under the row's label while the box keeps what was written. The console, with the
 // agency's stand-in, is the one given in BMO_CONSOLE_TEST_URL, which tests/support/browser-console.ts stands up; the
@@ -58,7 +58,7 @@ async function opened(viewport: { width: number; height: number }): Promise<Page
 
   const page = await context.newPage();
 
-  await page.goto(`${origin}/admin`, { waitUntil: "load" });
+  await page.goto(`${origin}/organization?company=platform&tab=providers`, { waitUntil: "load" });
   await boxOf(page).waitFor({ timeout: 30_000 });
 
   return page;

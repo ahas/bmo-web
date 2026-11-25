@@ -1,5 +1,5 @@
 <template>
-  <!-- The reader's own supply (docs/web.md, 「Organisation」, the supply tab with the reader's own node chosen): their
+  <!-- The reader's own supply (docs/web.md, 「System and organisation」, the supply tab with the reader's own node chosen): their
        own Claude logins, gateway keys and local AIs, each with its switch and what it can do now, then the
        order a run of theirs falls through every source, the organisation's own among them, this month's spend and what
        their supply has left. No credential and no secret value stands on this screen: what a
@@ -234,7 +234,7 @@ import type { ClaudeAccountView, ClaudeLoginStarted, FallbackView, KeptSecret, S
 import type { DropdownMenuItem } from "@nuxt/ui";
 
 // The reader's own supply, read whole when the tab opens and written one setting at a time (docs/web.md,
-// 「Organisation」, the supply tab with the reader's own node chosen). Every refusal is the agency's or the account
+// 「System and organisation」, the supply tab with the reader's own node chosen). Every refusal is the agency's or the account
 // service's, said by the pack's sentence for its code; nothing is decided here.
 
 const { t } = useI18n();
@@ -256,7 +256,7 @@ const shownLogins = computed(() => (logins.value ?? []).slice().sort((one, other
 const shownKeys = computed(() => (keys.value ?? []).slice().sort((one, other) => (one.road === other.road ? one.place - other.place : one.road.localeCompare(other.road))));
 
 // What the screen calls one of the reader's logins: its number counted among their own, never the number the agency
-// put in its name, which counts every other account's logins among them (docs/web.md, 「Organisation」, the supply tab).
+// put in its name, which counts every other account's logins among them (docs/web.md, 「System and organisation」, the supply tab).
 const ownNumbers = computed(() => loginNumbers(shownLogins.value));
 
 function labelOf(login: ClaudeAccountView): string {

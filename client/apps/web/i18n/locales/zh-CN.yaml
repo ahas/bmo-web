@@ -1261,8 +1261,7 @@ screens:
     live: 实时状态
     mail: 邮件
     monitor: 监控
-    admin: 平台设置
-    organization: 组织
+    organization: 系统及组织
     remote: 远程
     research: 调研
     search: 搜索
@@ -2001,7 +2000,7 @@ permissions:
     write_of: "写入{name}"
 organization:
   aria:
-    tabs: 组织标签页
+    tabs: 系统及组织标签页
   label:
     chart: 组织架构图
     none: 无组织
@@ -4438,9 +4437,6 @@ picture:
   message:
     cleared: 已恢复为提供方照片。
     saved: 照片已更换。
-admin:
-  aria:
-    tabs: 平台设置标签页
 bmo_profile:
   label:
     platform_default: "全局默认 BMO"
@@ -4737,7 +4733,7 @@ skills:
     name_held: 已有同名技能。
     description_empty: 请输入说明。
 
-# What a reader's agent is given of their skills and MCP servers (docs/web.md, 「Organisation」, the agents tab at 나).
+# What a reader's agent is given of their skills and MCP servers (docs/web.md, 「System and organisation」, the agents tab at 나).
 attachments:
   title:
     dialog: 技能·MCP

@@ -4,7 +4,7 @@ import { signedInUser } from "../../utils/accounts";
 import { delegateMailServers, mailLinkOf, mailServersFailure } from "../../utils/mail-servers";
 import { isDelegation } from "../../utils/organisation-supply";
 
-// What the units below a node may do with its mail servers (docs/web.md, 「Organisation」, the mail servers tab):
+// What the units below a node may do with its mail servers (docs/web.md, 「System and organisation」, the mail servers tab):
 // `link` and `delegation`, written on the chain's own route as the signed-in login.
 export default defineEventHandler(async (event): Promise<{ ok: true }> => {
   const body = await readBody<{ link?: unknown; delegation?: unknown }>(event).catch(() => ({}) as Record<string, unknown>);

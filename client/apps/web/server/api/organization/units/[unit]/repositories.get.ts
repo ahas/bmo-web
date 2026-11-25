@@ -4,7 +4,7 @@ import { orgAgentsFailure } from "../../../../utils/organisation-supply";
 
 import type { UnitRepository } from "#shared/organisation-agents";
 
-// The repositories a unit owns, for its heads and the administrator (docs/web.md, 「Organisation」, the agents tab).
+// The repositories a unit owns, for its heads and the administrator (docs/web.md, 「System and organisation」, the agents tab).
 export default defineEventHandler(async (event): Promise<UnitRepository[]> => {
   const unit = unitNumber(getRouterParam(event, "unit"));
 

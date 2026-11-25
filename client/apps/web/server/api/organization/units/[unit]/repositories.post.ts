@@ -4,7 +4,7 @@ import { unitNumber } from "../../../../utils/organization";
 import { addUnitRepository } from "../../../../utils/organisation-agents";
 import { orgAgentsFailure } from "../../../../utils/organisation-supply";
 
-// A repository added under a unit, in the reader's name (docs/web.md, 「Organisation」, the agents tab): `name`,
+// A repository added under a unit, in the reader's name (docs/web.md, 「System and organisation」, the agents tab): `name`,
 // `path`, the base checkout's directory, and `label`, or none.
 export default defineEventHandler(async (event): Promise<{ ok: true }> => {
   const unit = unitNumber(getRouterParam(event, "unit"));

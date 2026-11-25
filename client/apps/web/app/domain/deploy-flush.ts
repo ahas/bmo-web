@@ -1,6 +1,6 @@
 import { countText } from "./numbers";
 
-// The minutes box of the administration screen's flush minutes row (docs/web.md, 「Administration」, the providers tab):
+// The minutes box of the platform's flush minutes row (docs/web.md, 「System and organisation」, the providers tab):
 // what a figure written in it asks of the agency.
 
 /** A figure written: minutes for the agency to take or refuse, null to return to its own, or none to send. */

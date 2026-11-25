@@ -1,5 +1,5 @@
 <template>
-  <!-- The organisation screen's apps tab (docs/web.md, 「Organisation」, the apps tab): every app the delegation chain
+  <!-- The organisation screen's apps tab (docs/web.md, 「System and organisation」, the apps tab): every app the delegation chain
        holds as it stands for the node chosen, each a row of its icon, its name and how it stands there, with the node's
        own word on it, its lock for everything under it and, for the administrator, the platform's offer to it, each
        saved as it is made; under them what its people may do with personal apps. A company's own shared app is turned on

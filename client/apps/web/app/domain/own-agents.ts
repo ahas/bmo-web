@@ -1,6 +1,6 @@
 import type { OwnProvider, OwnRoad } from "#shared/own-agents";
 
-// A road as one line a person reads (docs/web.md, 「Settings」, the own-agents section; 「Organisation」, the agents
+// A road as one line a person reads (docs/web.md, 「Settings」, the own-agents section; 「System and organisation」, the agents
 // tab): the provider by its label, the model and the effort, joined by middle dots; a road naming none by the words the
 // screen says that stands for.
 

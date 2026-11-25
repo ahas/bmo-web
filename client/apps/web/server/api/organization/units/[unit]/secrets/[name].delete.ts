@@ -5,7 +5,7 @@ import { secretFailure } from "../../../../../utils/secrets";
 import { SECRET_NAME_MAX, secretNameIsPlain } from "#shared/secrets";
 import { wording } from "#shared/wording";
 
-// A secret taken out of an organisation unit's space (docs/web.md, 「Organisation」, the secrets tab): the server moves
+// A secret taken out of an organisation unit's space (docs/web.md, 「System and organisation」, the secrets tab): the server moves
 // its file aside to `<name>.previous`. The name is one the list showed, so it may stand in the address.
 export default defineEventHandler(async (event): Promise<{ name: string }> => {
   const unit = unitNumber(getRouterParam(event, "unit"));

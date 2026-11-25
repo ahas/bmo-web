@@ -1,5 +1,5 @@
 <template>
-  <!-- The supply tab's plans (docs/web.md, 「Organisation」, the supply tab): the plan the unit chosen in the tree runs
+  <!-- The supply tab's plans (docs/web.md, 「System and organisation」, the supply tab): the plan the unit chosen in the tree runs
        on, changed in a dialog among the plans it is shown, and the plans it is shown — every organisation-scope plan
        with its switch for the administrator, the plans shown alone, read only, for anyone else. The plans themselves
        are designed at the platform's node of the same tab; the account service owns every refusal, said in the dialog

@@ -3,7 +3,7 @@ import { decidedLine } from "./chain-decided";
 import type { AppName, OwnApp, PlatformApp, UnitApp } from "#shared/apps";
 import type { Translate } from "#shared/wording";
 
-// The apps a reader turns on and off (docs/web.md, 「Organisation」, the apps tab, and 「Settings」, the own apps
+// The apps a reader turns on and off (docs/web.md, 「System and organisation」, the apps tab, and 「Settings」, the own apps
 // section): what a row reads as, and the choice a word stands as.
 
 /** The icon an app stands under where no screen of it gives one. */

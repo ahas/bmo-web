@@ -8,7 +8,7 @@ import { callerOf } from "../../../../utils/organization";
 import type { CompanyBmoView } from "#shared/bmo-profile";
 
 // A company's default name and call names saved, for the administrator and the company's heads, then applied to the BMO
-// of every person of the company (docs/web.md, 「Organisation」, the BMO tab).
+// of every person of the company (docs/web.md, 「System and organisation」, the BMO tab).
 export default defineEventHandler(async (event): Promise<CompanyBmoView> => {
   const signed = await signedInUser(event);
   const company = idParam(event, "company");

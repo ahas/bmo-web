@@ -1,4 +1,4 @@
-// What reaches each of a reader's agents beyond what their line carries (docs/web.md, 「Organisation」, the agents tab
+// What reaches each of a reader's agents beyond what their line carries (docs/web.md, 「System and organisation」, the agents tab
 // at the reader's own node; the agency's `docs/api.md`, 「attachments」): the skills and MCP items the reader attached to it, from those
 // they own or installed. A skill or an MCP item reaches no agent it is not attached to.
 

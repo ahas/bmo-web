@@ -1,5 +1,5 @@
 <template>
-  <!-- The supply tab's credit records with the platform chosen (docs/web.md, 「Organisation」, the supply tab): the
+  <!-- The supply tab's credit records with the platform chosen (docs/web.md, 「System and organisation」, the supply tab): the
        ledger and the audit, one at a time by the switch at the group's head. They stand last on the tab, so the list
        shown runs on with the tab's own scroll and reads its next page as its end comes into view, with nothing under
        it; each keeps the pages it read while the other is shown. -->
@@ -92,7 +92,7 @@ import type { SwitchItem } from "bmo-ui/app/domain/tabs";
 import type { SupplyAuditPage, SupplyLedgerPage } from "#shared/supply";
 import type { Translate } from "#shared/wording";
 
-// The platform's ledger and audit, the administrator's (docs/web.md, 「Organisation」, the supply tab with the platform
+// The platform's ledger and audit, the administrator's (docs/web.md, 「System and organisation」, the supply tab with the platform
 // chosen). Each is read when the tab opens and keeps what it read while the other is shown.
 
 type CreditRecord = "ledger" | "audit";

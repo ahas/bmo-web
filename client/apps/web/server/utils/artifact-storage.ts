@@ -11,7 +11,7 @@ import type { SignedIn } from "./accounts";
 import type { ChainDelegation } from "#shared/organisation-supply";
 import type { StoragePlaceView, StorageValue, UnitStorageView } from "#shared/artifact-storage";
 
-// Where a company's documents are kept (docs/web.md, 「Organisation」, the storage tab; bmo-artifact's
+// Where a company's documents are kept (docs/web.md, 「System and organisation」, the storage tab; bmo-artifact's
 // `docs/api.md`, 「Storage places」): the setting `artifact.storage` is bmo-artifact's kind on the delegation chain. Its
 // entry and what stands for a unit are read on the chain's own routes as the signed-in login, and its delegation is
 // written there; its value is bmo-artifact's to judge, so it is written through bmo-artifact's own route, reached with

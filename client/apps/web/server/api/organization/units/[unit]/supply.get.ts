@@ -4,7 +4,7 @@ import { orgAgentsFailure, unitSupply } from "../../../../utils/organisation-sup
 
 import type { UnitSupplyView } from "#shared/organisation-supply";
 
-// A unit's agent supply as the reader stands to it (docs/web.md, 「Organisation」, the agents tab): the three sources
+// A unit's agent supply as the reader stands to it (docs/web.md, 「System and organisation」, the agents tab): the three sources
 // with what stands and what the reader may change, and the unit's own keys where they head it. `company` says the
 // unit is a company, for the administrator's opening of organisation supply to it.
 export default defineEventHandler(async (event): Promise<UnitSupplyView> => {

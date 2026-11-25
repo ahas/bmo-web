@@ -1,5 +1,5 @@
 <template>
-  <!-- The organisation screen's permissions tab (docs/web.md, 「Organisation」, the permissions tab): the people standing
+  <!-- The organisation screen's permissions tab (docs/web.md, 「System and organisation」, the permissions tab): the people standing
        in the node chosen or under it, narrowed by a search of their names, each a row that opens into the person's
        console sections, one person open at a time and named in the address. A head changes only what they hold. -->
   <div class="flex flex-col gap-4" data-org-permissions>

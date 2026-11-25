@@ -1,5 +1,5 @@
 <template>
-  <!-- The minutes between two of the agency's flushes of the deploy queue (docs/web.md, 「Administration」, the providers
+  <!-- The minutes between two of the agency's flushes of the deploy queue (docs/web.md, 「System and organisation」, the providers
        tab): one box in minutes, saved once it is left or Enter is pressed, emptied to return to the agency's own. A
        refusal is said under the row's label, the box keeping what was written. -->
   <SettingsGroup :title="$t('agents.title.deploy')" data-deploy-flush>

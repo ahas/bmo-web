@@ -20,7 +20,7 @@ import {
 import type { RosterView } from "../../../apps/web/app/domain/roster";
 import type { RosterDetail, RosterPerson } from "../../../apps/web/shared/roster";
 
-// The organisation screen's people tab (docs/web.md, 「Organisation」, the people tab): the address carries the words,
+// The organisation screen's people tab (docs/web.md, 「System and organisation」, the people tab): the address carries the words,
 // the four filters and the person open; the list asks the roster a page at a time for what the address shows; each
 // person's management menu offers only what the routes behind it let the reader do.
 

@@ -1,5 +1,5 @@
 <template>
-  <!-- The providers tab of the administration screen (docs/web.md, 「Administration」, the providers tab): every
+  <!-- The providers tab of the administration screen (docs/web.md, 「System and organisation」, the providers tab): every
        provider the agency carries, in its order, with whose its gateway road is where one person owns it all, what it
        has left, why it cannot answer now and the owner's switch, each taking effect as it is thrown; under them the
        secrets the agency's provider tools read, and last the minutes between the agency's flushes of the deploy queue.

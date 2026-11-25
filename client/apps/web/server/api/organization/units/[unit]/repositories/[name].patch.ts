@@ -6,7 +6,7 @@ import { changeUnitRepository } from "../../../../../utils/unit-repositories";
 
 import type { RepositoryView } from "#shared/axes";
 
-// A unit's repository changed in the reader's name, the fields its dialog sends (docs/web.md, 「Organisation」, the
+// A unit's repository changed in the reader's name, the fields its dialog sends (docs/web.md, 「System and organisation」, the
 // agents tab); the agency judges whether they head the unit.
 export default defineEventHandler(async (event): Promise<RepositoryView> => {
   const unit = unitNumber(getRouterParam(event, "unit"));

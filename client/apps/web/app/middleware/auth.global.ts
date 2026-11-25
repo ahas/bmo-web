@@ -1,4 +1,6 @@
 import { MEMBER_HOME, MEMBER_LAYOUT, isAdministrator } from "~/domain/access";
+import { adminLanding } from "~/domain/organization";
+import { SCREENS } from "~/domain/screens";
 import { GUIDE_PATH, guideOpens, guideOpensState } from "~/domain/guide";
 import { openScreen, screenAt, screenOpened, sharePath, useConsoleScreens, useScreensReader } from "~/domain/console-screens";
 import { standUnavailable, unavailableRoute } from "~/domain/screen-unavailable";
@@ -13,6 +15,10 @@ import { homeFor, inConsoleSections, screenMayRead } from "#shared/sections";
 // login screen carries the address asked for, so the next login returns there, and says the login
 // ended where a page drawn on the server found its session gone (docs/web.md, 「Access」).
 export default defineNuxtRouteMiddleware(async (to) => {
+  // The old administrator screen is the merged screen's platform node now: every address under it lands there with
+  // the tab its key held, before any page draws (docs/web.md, 「System and organisation」).
+  if (to.path === "/admin") return navigateTo(adminLanding(to.query), { replace: true });
+
   const screens = useConsoleScreens().value;
   // The screen a unit brings that the address stands under, among those the reader may open; its bundle is loaded
   // the first time the address is opened, and the address asked again so it finds the bundle's route (docs/web.md,
@@ -62,7 +68,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   // (docs/web.md, 「The console's features」).
   const features = useConsoleFeatures().value;
 
-  if (featureLeftOut(features, to.path)) return navigateTo({ path: "/", query: settingsKept(to.query) });
+  if (featureLeftOut(features, to.path, isAdministrator(session.value))) return navigateTo({ path: "/", query: settingsKept(to.query) });
 
   // The start guide opens by itself (docs/web.md, 「The start guide」): a member whose runs only their own supply can
   // carry, holding none that is on, is held to it until one is; the administrator with no working platform source is

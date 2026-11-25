@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { minutesWords, minutesWritten } from "../../../apps/web/app/domain/deploy-flush";
 
-// The minutes box of the administration screen's flush minutes row (docs/web.md, 「Administration」, the providers
+// The minutes box of the administration screen's flush minutes row (docs/web.md, 「System and organisation」, the providers
 // tab): what the words written in it ask of the agency, and the words it shows for the minutes in force.
 
 describe("the flush minutes box", () => {

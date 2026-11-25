@@ -1,6 +1,5 @@
 import { AGENT_TABS } from "./agent-settings";
 import { MONITOR_TABS } from "./hardware";
-import { ADMIN_PATH, ADMIN_TABS } from "./administration";
 import { ORGANIZATION_PATH, ORGANIZATION_TABS } from "./organization";
 
 import { roomFace } from "./agent-face";
@@ -50,12 +49,13 @@ export interface Screen {
   brought?: true;
   // The tabs a screen keeps in its address as `?tab=`. The first is the screen's own address.
   tabs?: readonly ScreenTab[];
-  // Whether the screen is the administrator's alone, so no member's shell lists it and no section grants it
-  // (docs/web.md, 「Administration」).
-  administrator?: true;
+  // Whether the deployment's feature leaves the screen out of a member's reach alone: the platform administrator
+  // keeps its sidebar entry, its address and its platform's tabs whatever the feature says (docs/web.md,
+  // 「The console's features」).
+  administratorKeeps?: true;
   // Whether the member's shell lists it for every person with a user of the account service and for nobody else, what
   // it shows being their own account's and their own link of the organisation's, so no section grants it
-  // (docs/web.md, 「App catalogue」, 「Organisation」).
+  // (docs/web.md, 「App catalogue」, 「System and organisation」).
   everyone?: true;
   // Whether the screen's entry carries a sidebar count, which the console reads itself (bmo-ui's
   // `docs/console-bundles.md`, the sidebar count; docs/web.md, 「Sidebar」). Only a screen a unit brings whose
@@ -114,28 +114,29 @@ export const SCREENS: readonly Screen[] = [
   // Every machine's hardware, bmo-node's, and the card master's board of every node's card, a tab each. Each
   // machine's own monitor stands below its address.
   { label: "screens.label.monitor", to: "/monitor", icon: "i-material-symbols-monitor-heart-outline", nested: true, tabs: MONITOR_TABS, feature: "monitor", section: "administration" },
-  // The organisation and the people in it, a tab to a section. The screen holds every reader's own link of the
-  // delegation chain, so its entry stands for every person with a user of the account service.
-  { label: "screens.label.organization", to: ORGANIZATION_PATH, icon: "i-material-symbols-domain", nested: false, tabs: ORGANIZATION_TABS, everyone: true, feature: "organizations", section: "administration" },
+  // The organisation and the people in it, and the platform's own settings at its platform node, a tab to a section.
+  // The screen holds every reader's own link of the delegation chain, so its entry stands for every person with a
+  // user of the account service.
+  { label: "screens.label.organization", to: ORGANIZATION_PATH, icon: "i-material-symbols-settings", nested: false, tabs: ORGANIZATION_TABS, everyone: true, administratorKeeps: true, feature: "organizations", section: "administration" },
   // The store: the personal apps the reader's company shares, as the reader may see them: browsed, installed, turned on for a unit
   // and recalled.
-  { label: "screens.label.catalogue", to: "/store", icon: "i-material-symbols-storefront-outline", nested: false, everyone: true, feature: "organizations", section: "administration" },
-  // What is set for the platform itself, the administrator's alone: the providers and the secret kinds.
-  { label: "screens.label.admin", to: ADMIN_PATH, icon: "i-material-symbols-shield-person-outline", nested: false, tabs: ADMIN_TABS, administrator: true, section: "administration" }
+  { label: "screens.label.catalogue", to: "/store", icon: "i-material-symbols-storefront-outline", nested: false, everyone: true, feature: "organizations", section: "administration" }
 ];
 
-/** The console's own screens the deployment's features leave standing (docs/web.md, 「The console's features」). */
-export function featuredScreens(features: ConsoleFeatures, screens: readonly Screen[] = SCREENS): Screen[] {
-  return screens.filter((screen) => screen.feature === undefined || features[screen.feature]);
+/** The console's own screens the deployment's features leave standing (docs/web.md, 「The console's features」):
+ * for the administrator's shell, a screen the administrator keeps through a feature stands whatever it says. */
+export function featuredScreens(features: ConsoleFeatures, screens: readonly Screen[] = SCREENS, administrator = false): Screen[] {
+  return screens.filter((screen) => screen.feature === undefined || features[screen.feature] || (administrator && screen.administratorKeeps === true));
 }
 
 /** Whether an address stands under a screen the deployment's features leave out: below its address, or in its one
  * section, as the card board stands in the monitor's. */
-export function featureLeftOut(features: ConsoleFeatures, path: string, screens: readonly Screen[] = SCREENS): boolean {
+export function featureLeftOut(features: ConsoleFeatures, path: string, administrator = false, screens: readonly Screen[] = SCREENS): boolean {
   const asked = sectionsOfPath(path);
 
   return screens.some((screen) => {
     if (screen.feature === undefined || features[screen.feature]) return false;
+    if (administrator && screen.administratorKeeps === true) return false;
 
     const own = sectionsOfPath(screen.to);
 
@@ -150,7 +151,6 @@ export function featureLeftOut(features: ConsoleFeatures, path: string, screens:
  * nothing of its own, the manifest's role having opened it; and any other by their permission on its section.
  */
 export function memberListsScreen(screen: Screen, access: SectionAccessMap, ready: boolean, user: boolean): boolean {
-  if (screen.administrator === true) return false;
   if (screen.everyone === true) return user;
   if (sectionsOfPath(screen.to).length === 0) return true;
   if (!ready) return false;

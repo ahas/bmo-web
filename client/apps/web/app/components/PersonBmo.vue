@@ -1,5 +1,5 @@
 <template>
-  <!-- One person's BMO tab (docs/web.md, 「Organisation」, the people tab): their own BMO as its profile stands for
+  <!-- One person's BMO tab (docs/web.md, 「System and organisation」, the people tab): their own BMO as its profile stands for
        them, read as the tab first opens, a tab of one group with no heading of its own. -->
   <div data-person-bmo>
     <SettingsGroup>

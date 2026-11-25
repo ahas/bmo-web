@@ -1,5 +1,5 @@
 <template>
-  <!-- One person's activity tab, the administrator's alone (docs/web.md, 「Organisation」, the people tab): their rooms, their
+  <!-- One person's activity tab, the administrator's alone (docs/web.md, 「System and organisation」, the people tab): their rooms, their
        agents, those agents' sessions and their latest runs, each group read on its own as the tab first opens, with
        skeletons shaped like its rows and a failure said in its place. -->
   <div class="flex flex-col gap-4" data-person-activity>

@@ -1,4 +1,4 @@
-// A unit's org memory as the organisation screen's org memory tab reads it (docs/web.md, 「Organisation」, the org memory
+// A unit's org memory as the organisation screen's org memory tab reads it (docs/web.md, 「System and organisation」, the org memory
 // tab): the unit's own memories, the proposals waiting on it and the memories of the units above it, each memory with
 // where it stands.
 
@@ -91,7 +91,7 @@ export function topicKey(typed: string | null | undefined): string | null {
   return key === "" ? null : key;
 }
 
-/** A candidate of the base waiting for the administrator's decision (docs/web.md, 「Organisation」, the org memory tab
+/** A candidate of the base waiting for the administrator's decision (docs/web.md, 「System and organisation」, the org memory tab
  * with the platform chosen): its words, its type, the model's reason and the memory it was raised from. */
 export interface BaseCandidate {
   id: number;

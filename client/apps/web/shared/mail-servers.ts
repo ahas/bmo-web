@@ -1,7 +1,7 @@
 import type { DecidedBy } from "./organisation-agents";
 import type { ChainDelegation } from "./organisation-supply";
 
-// The mail servers a node of the organisation tree offers the people under it (docs/web.md, 「Organisation」, the
+// The mail servers a node of the organisation tree offers the people under it (docs/web.md, 「System and organisation」, the
 // mail servers tab; bmo-mail's `docs/api.md`, 「Servers」): bmo-mail's records, each kept once and chosen by any number
 // of mail accounts, and the link's list of them on the delegation chain's kind `mail.servers`.
 

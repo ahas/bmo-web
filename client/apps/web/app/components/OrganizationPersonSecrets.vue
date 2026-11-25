@@ -1,5 +1,5 @@
 <template>
-  <!-- The organisation screen's secrets tab with the reader's own node chosen (docs/web.md, 「Organisation」, the secrets
+  <!-- The organisation screen's secrets tab with the reader's own node chosen (docs/web.md, 「System and organisation」, the secrets
        tab): their own space. An administrator's own space is the platform's, listed at the platform node, so for them this
        node says so with the way there, and the platform's space stands in one place. -->
   <SettingsGroup v-if="administrator" data-secrets-platform-door>

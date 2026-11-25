@@ -22,6 +22,8 @@ import {
   organizationLinkAddress,
   organizationRowTabs,
   organizationTabNamed,
+  adminLanding,
+  platformOnlyTab,
   organizationTabOf,
   organizationTabsFor,
   unitBranches,
@@ -30,14 +32,13 @@ import {
 
 import type { OrganizationReader, UnitBranch, UnitPlace, UnitStanding } from "../../../apps/web/app/domain/organization";
 import type { SideNode } from "bmo-ui/app/domain/side-parts";
-import { ADMIN_MOVED_TO_PLATFORM, ADMIN_PATH } from "../../../apps/web/app/domain/administration";
 import { SETTINGS_SECTIONS, sectionsFor } from "../../../apps/web/app/domain/settings-dialog";
 import { SCREENS, tabAddress } from "../../../apps/web/app/domain/screens";
 
 // The settings dialog holds what a person sets for themselves alone, their own apps and skills and the voice briefing
 // among it, and the organisation screen what is set for other people and for the reader's own link of the delegation
 // chain, a tab to a section; the research supervisor stands on the research screen (docs/web.md, 「Settings」 and
-// 「Organisation」).
+// 「System and organisation」).
 
 describe("the settings dialog", () => {
   test("holds the reader's own sections alone, the voice briefing under its own name", () => {
@@ -75,13 +76,10 @@ describe("the settings dialog", () => {
     expect(keys).not.toContain("skills");
   });
 
-  test("leads every key that moved to its tab of the organisation screen or the administrator's, and keeps its own keys", () => {
-    for (const key of ["organization", "invites"]) {
+  test("leads every key that moved to its tab of the merged screen, and keeps its own keys", () => {
+    for (const key of ["organization", "invites", "providers", "secret-kinds", "mail"]) {
       expect({ key, moved: organizationTabNamed(key)?.value ?? null }).toEqual({ key, moved: key });
     }
-
-    expect(organizationMovedAway("providers")).toEqual({ path: ADMIN_PATH, query: {} });
-    expect(organizationMovedAway("secret-kinds")).toEqual({ path: ADMIN_PATH, query: { tab: "secret-kinds" } });
 
     expect(organizationTabNamed("account")).toBeNull();
     expect(organizationTabNamed("research")).toBeNull();
@@ -96,7 +94,7 @@ const ADMINISTRATOR: OrganizationReader = { administrator: true, roster: true, s
 const COMPANY_HEAD: OrganizationReader = { administrator: false, roster: true, supply: true, plans: true, memory: true, heads: true, known: true };
 // A subscription manager who heads nothing holds the company's plan alone.
 const PLAN_KEEPER: OrganizationReader = { administrator: false, roster: false, supply: false, plans: true, memory: false, heads: false, known: true };
-// A member granted a unit's org memory write without heading one (docs/web.md, 「Organisation」, the org memory tab).
+// A member granted a unit's org memory write without heading one (docs/web.md, 「System and organisation」, the org memory tab).
 const MEMORY_WRITER: OrganizationReader = { administrator: false, roster: false, supply: false, plans: false, memory: true, heads: false, known: true };
 // A member who heads a unit below the company, so writes its memory and sets its agents.
 const UNIT_HEAD: OrganizationReader = { administrator: false, roster: false, supply: false, plans: false, memory: true, heads: true, known: true };
@@ -105,8 +103,18 @@ const MEMBER: OrganizationReader = { administrator: false, roster: false, supply
 const UNKNOWN_MEMBER: OrganizationReader = { administrator: false, roster: false, supply: false, plans: false, memory: false, heads: false, known: false };
 
 describe("the organisation screen", () => {
-  test("stands its tabs in order, the units first", () => {
-    expect(ORGANIZATION_TABS.map((tab) => tab.value)).toEqual(["organization", "people", "catalogue", "invites", "agents", "apps", "storage", "mail-servers", "secrets", "memory", "permissions", "supply", "security"]);
+  test("stands its tabs in order, the units first, the platform's three beside their kin", () => {
+    expect(ORGANIZATION_TABS.map((tab) => tab.value)).toEqual(["organization", "people", "catalogue", "invites", "agents", "apps", "storage", "mail-servers", "mail", "secrets", "secret-kinds", "memory", "permissions", "supply", "providers", "security"]);
+  });
+
+  test("stands the platform's three tabs at the platform link node alone, and knows them by their keys", () => {
+    for (const key of ["providers", "secret-kinds", "mail"]) {
+      expect(platformOnlyTab(key)?.value).toBe(key);
+    }
+
+    for (const key of ["organization", "apps", "secrets", "supply", "security", "memory", "people", "stray", undefined]) {
+      expect(platformOnlyTab(key)).toBeNull();
+    }
   });
 
   test("leads the keys of the sections that moved away to where they stand now, and no other key", () => {
@@ -130,8 +138,10 @@ describe("the organisation screen", () => {
     expect(organizationMovedAway("people", { tab: "people", pane: "bmo", user: "7" })).toBeNull();
   });
 
-  test("opens every tab to the administrator, the people and the roles and kinds tabs to a member who heads a company, the agents tab to a member who heads a unit, and the invitations tab to every member", () => {
-    expect(organizationTabsFor(ADMINISTRATOR)).toHaveLength(ORGANIZATION_TABS.length);
+  test("opens every tab but the platform's three to the administrator at a company, the people and the roles and kinds tabs to a member who heads a company, the agents tab to a member who heads a unit, and the invitations tab to every member", () => {
+    expect(organizationTabsFor(ADMINISTRATOR)).toHaveLength(ORGANIZATION_TABS.length - 3);
+    expect(organizationTabsFor(ADMINISTRATOR).map((tab) => tab.value)).not.toContain("providers");
+    expect(organizationTabsFor(ADMINISTRATOR, PLATFORM_NODE)).toHaveLength(ORGANIZATION_TABS.length - 6);
     expect(organizationTabsFor(COMPANY_HEAD).map((tab) => tab.value)).toEqual(["people", "catalogue", "invites", "agents", "apps", "storage", "mail-servers", "secrets", "memory", "permissions", "supply", "security"]);
     expect(organizationTabsFor(UNIT_HEAD).map((tab) => tab.value)).toEqual(["invites", "agents", "apps", "storage", "mail-servers", "secrets", "memory", "permissions", "security"]);
     expect(organizationTabsFor(MEMORY_WRITER).map((tab) => tab.value)).toEqual(["invites", "apps", "memory"]);
@@ -147,7 +157,7 @@ describe("the organisation screen", () => {
     expect(organizationTabsFor(MEMBER, PERSON_NODE).map((tab) => tab.value)).toEqual(["agents", "apps", "secrets", "supply"]);
     expect(organizationTabsFor(UNIT_HEAD, PERSON_NODE).map((tab) => tab.value)).toEqual(["agents", "apps", "secrets", "supply"]);
     expect(organizationTabsFor(ADMINISTRATOR, PERSON_NODE).map((tab) => tab.value)).toEqual(["agents", "apps", "secrets", "supply"]);
-    expect(organizationTabsFor(ADMINISTRATOR, PLATFORM_NODE).map((tab) => tab.value)).toEqual(["agents", "apps", "mail-servers", "secrets", "memory", "supply", "security"]);
+    expect(organizationTabsFor(ADMINISTRATOR, PLATFORM_NODE).map((tab) => tab.value)).toEqual(["agents", "apps", "mail-servers", "mail", "secrets", "secret-kinds", "memory", "supply", "providers", "security"]);
     expect(organizationTabsFor(MEMBER, null).map((tab) => tab.value)).toEqual(["invites", "apps"]);
   });
 
@@ -206,7 +216,7 @@ describe("the organisation screen", () => {
     // The row of a link is its declared views before the reads answer as after them, and an address naming a tab the
     // node does not hold is drawn on the node's arrival tab rather than left waiting over nothing.
     expect(organizationRowTabs(UNKNOWN_MEMBER, "invites", PERSON_NODE).map((tab) => tab.value)).toEqual(["agents", "apps", "secrets", "supply"]);
-    expect(organizationRowTabs(UNKNOWN_MEMBER, "storage", PLATFORM_NODE).map((tab) => tab.value)).toEqual(["agents", "apps", "mail-servers", "secrets", "memory", "supply", "security"]);
+    expect(organizationRowTabs(UNKNOWN_MEMBER, "storage", PLATFORM_NODE).map((tab) => tab.value)).toEqual(["agents", "apps", "mail-servers", "mail", "secrets", "secret-kinds", "memory", "supply", "providers", "security"]);
     expect(organizationTabOf("invites", UNKNOWN_MEMBER, PERSON_NODE)?.value).toBe("agents");
     expect(organizationTabOf("storage", UNKNOWN_MEMBER, PLATFORM_NODE)?.value).toBe("agents");
   });
@@ -238,17 +248,16 @@ describe("the organisation screen", () => {
     expect(organizationAddress("agents", { tab: "people", user: "7" }, { company: "1", unit: "2" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "agents", company: "1", unit: "2" } });
   });
 
-  test("stands among the administrator services as one entry and in the search with its tabs, as the administrator's own screen does", () => {
+  test("stands among the administrator services as the screen's one entry and in the search with its tabs, the platform's three among them", () => {
     const screen = SCREENS.find((one) => one.to === ORGANIZATION_PATH)!;
-    const admin = SCREENS.find((one) => one.to === ADMIN_PATH)!;
 
     expect(screen.to).toBe(ORGANIZATION_PATH);
     expect(screen.everyone).toBe(true);
-    expect(screen.tabs?.map((tab) => tabAddress(screen, tab))).toEqual(["/organization", "/organization?tab=people", "/organization?tab=catalogue", "/organization?tab=invites", "/organization?tab=agents", "/organization?tab=apps", "/organization?tab=storage", "/organization?tab=mail-servers", "/organization?tab=secrets", "/organization?tab=memory", "/organization?tab=permissions", "/organization?tab=supply", "/organization?tab=security"]);
-    expect(admin.to).toBe(ADMIN_PATH);
-    expect(admin.administrator).toBe(true);
-    expect(admin.tabs?.map((tab) => tabAddress(admin, tab))).toEqual(["/admin", "/admin?tab=secret-kinds", "/admin?tab=mail"]);
-    expect([screen.section, admin.section]).toEqual(["administration", "administration"]);
+    expect(screen.administratorKeeps).toBe(true);
+    expect(screen.feature).toBe("organizations");
+    expect(screen.tabs?.map((tab) => tabAddress(screen, tab))).toEqual(["/organization", "/organization?tab=people", "/organization?tab=catalogue", "/organization?tab=invites", "/organization?tab=agents", "/organization?tab=apps", "/organization?tab=storage", "/organization?tab=mail-servers", "/organization?tab=mail", "/organization?tab=secrets", "/organization?tab=secret-kinds", "/organization?tab=memory", "/organization?tab=permissions", "/organization?tab=supply", "/organization?tab=providers", "/organization?tab=security"]);
+    expect(screen.section).toBe("administration");
+    expect(SCREENS.some((entry) => entry.to === "/admin")).toBe(false);
   });
 });
 
@@ -430,7 +439,7 @@ describe("a move of several people", () => {
   });
 });
 
-// The link nodes of the tree (docs/web.md, 「Organisation」): the reader's own for every reader with a user and the
+// The link nodes of the tree (docs/web.md, 「System and organisation」): the reader's own for every reader with a user and the
 // platform for the administrator, above every company, chosen by `?company=me` and `?company=platform`, every tab
 // standing for them and saying for itself what it shows there.
 describe("the link nodes", () => {
@@ -465,20 +474,30 @@ describe("the link nodes", () => {
     expect(organizationLinkAddress(PERSON_NODE, { company: "1", tab: "people" }, "apps")).toEqual({ path: ORGANIZATION_PATH, query: { company: PERSON_NODE, tab: "apps" } });
   });
 
-  test("are shown by the tabs that declare a view of them, the agents, apps, secrets and supply tabs declaring both and the mail servers, org memory and security tabs the platform", () => {
+  test("are shown by the tabs that declare a view of them, the agents, apps, secrets and supply tabs declaring both, the mail servers, org memory, security tabs and the platform's own three the platform", () => {
     expect(ORGANIZATION_TABS.filter((tab) => tab.links !== undefined).map((tab) => [tab.value, Object.keys(tab.links!).toSorted()])).toEqual([
       ["agents", ["me", "platform"]],
       ["apps", ["me", "platform"]],
       ["mail-servers", ["platform"]],
+      ["mail", ["platform"]],
       ["secrets", ["me", "platform"]],
+      ["secret-kinds", ["platform"]],
       ["memory", ["platform"]],
       ["supply", ["me", "platform"]],
+      ["providers", ["platform"]],
       ["security", ["platform"]]
     ]);
-    expect(organizationTabsFor(ADMINISTRATOR)).toHaveLength(ORGANIZATION_TABS.length);
+    expect(organizationTabsFor(ADMINISTRATOR)).toHaveLength(ORGANIZATION_TABS.length - 3);
   });
 
-  test("hold where the administrator's old apps tab leads", () => {
-    expect(ADMIN_MOVED_TO_PLATFORM).toEqual({ apps: "apps", plans: "supply", credits: "supply" });
+  test("hold where the old administrator screen's addresses lead, each naming the platform node", () => {
+    expect(adminLanding({})).toEqual({ path: ORGANIZATION_PATH, query: { company: PLATFORM_NODE, tab: "providers" } });
+    expect(adminLanding({ tab: "providers" })).toEqual({ path: ORGANIZATION_PATH, query: { company: PLATFORM_NODE, tab: "providers" } });
+    expect(adminLanding({ tab: "secret-kinds" })).toEqual({ path: ORGANIZATION_PATH, query: { company: PLATFORM_NODE, tab: "secret-kinds" } });
+    expect(adminLanding({ tab: "mail" })).toEqual({ path: ORGANIZATION_PATH, query: { company: PLATFORM_NODE, tab: "mail" } });
+    expect(adminLanding({ tab: "apps" })).toEqual({ path: ORGANIZATION_PATH, query: { company: PLATFORM_NODE, tab: "apps" } });
+    expect(adminLanding({ tab: "plans" })).toEqual({ path: ORGANIZATION_PATH, query: { company: PLATFORM_NODE, tab: "supply" } });
+    expect(adminLanding({ tab: "credits" })).toEqual({ path: ORGANIZATION_PATH, query: { company: PLATFORM_NODE, tab: "supply" } });
+    expect(adminLanding({ tab: "stray", company: "5" })).toEqual({ path: ORGANIZATION_PATH, query: { company: PLATFORM_NODE, tab: "providers" } });
   });
 });

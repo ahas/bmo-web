@@ -1261,8 +1261,7 @@ screens:
     live: リアルタイム状態
     mail: メール
     monitor: モニター
-    admin: プラットフォーム設定
-    organization: 組織
+    organization: システムおよび組織
     remote: リモート
     research: リサーチ
     search: 検索
@@ -2001,7 +2000,7 @@ permissions:
     write_of: "{name}の編集"
 organization:
   aria:
-    tabs: 組織タブ
+    tabs: システムおよび組織タブ
   label:
     chart: 組織図
     none: 組織なし
@@ -4438,9 +4437,6 @@ picture:
   message:
     cleared: 提供元の写真に戻しました。
     saved: 写真を変更しました。
-admin:
-  aria:
-    tabs: プラットフォーム設定タブ
 bmo_profile:
   label:
     platform_default: "全体の既定BMO"
@@ -4737,7 +4733,7 @@ skills:
     name_held: 同じ名前のスキルがすでにあります。
     description_empty: 説明を入力してください。
 
-# What a reader's agent is given of their skills and MCP servers (docs/web.md, 「Organisation」, the agents tab at 나).
+# What a reader's agent is given of their skills and MCP servers (docs/web.md, 「System and organisation」, the agents tab at 나).
 attachments:
   title:
     dialog: スキル・MCP

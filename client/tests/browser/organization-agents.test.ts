@@ -6,7 +6,7 @@ import { wording } from "../../apps/web/shared/wording";
 
 import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 
-// An organisation's agents and its own supply (docs/web.md, 「Organisation」, the agents and supply tabs, and 「The join
+// An organisation's agents and its own supply (docs/web.md, 「System and organisation」, the agents and supply tabs, and 「The join
 // page」): the supply tab's group of the unit's own supply and its keys, the agents tab's sign-up composition with a road for each agent it gives, and what
 // its people may change of the agents it supplies. Each is worked as a hand works it at a phone's width and a desk's: what a
 // press lands on is the control it names, nothing runs off the side, and what a press does is read back off the screen

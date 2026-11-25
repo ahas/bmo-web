@@ -1,4 +1,4 @@
-// The words of the storage tab (docs/web.md, 「Organisation」, the storage tab): a kind of place bmo-artifact offers is
+// The words of the storage tab (docs/web.md, 「System and organisation」, the storage tab): a kind of place bmo-artifact offers is
 // shown by its word in the pack, and by its own name where the pack has none, so a kind bmo-artifact adds is offered
 // before its word is written; a setting of a place the same way. The pack's words are named here whole, so the
 // pack's check finds each one asked for.

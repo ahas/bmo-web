@@ -1,5 +1,5 @@
 <template>
-  <!-- A unit's memory written or edited (docs/web.md, 「Organisation」, the org memory tab, the memory form): its
+  <!-- A unit's memory written or edited (docs/web.md, 「System and organisation」, the org memory tab, the memory form): its
        text, its topic, the person it is about where it is one, and its two marks, written by its one save. -->
   <SettingsDialog v-model:open="open" :title="props.title" :dirty="changes">
     <UForm id="org-memory-form" :state="draft" class="flex flex-col gap-4" @submit="save">

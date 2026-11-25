@@ -6,7 +6,7 @@ import { answer, standIn } from "../../support/units";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-// A person marked left from the console (docs/web.md, 「Organisation」; docs/accounts.md, 「A person who leaves」): the
+// A person marked left from the console (docs/web.md, 「System and organisation」; docs/accounts.md, 「A person who leaves」): the
 // route hands the signed-in login to the account service, which lets the administrator and the person's heads alone,
 // and says its refusal in the pack's words. Who heads whom is the service's own rule, tested with it; the stand-in
 // answers as the service would for a head of the person's unit, a head of another unit and a plain member.

@@ -6,7 +6,7 @@ import { answer, standIn } from "../../support/units";
 import type { Accepted, Invite } from "../../../packages/server-client/src/index";
 
 // The person's name on the invitation road (docs/accounts.md, 「Invitations and a person's machine」; docs/web.md,
-// 「Organisation」, the invitations tab, and 「The join page」): the maker may give it with the invitation, and the join page hands
+// 「System and organisation」, the invitations tab, and 「The join page」): the maker may give it with the invitation, and the join page hands
 // it on with the login and the password, a call giving none leaving the invitation's.
 
 const UNIT = { id: 3, name: "team-a" };

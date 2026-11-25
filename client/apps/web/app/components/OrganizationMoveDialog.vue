@@ -1,5 +1,5 @@
 <template>
-  <!-- A move of people into a unit (docs/web.md, 「Organisation」, its chart): the unit they go to and the role each
+  <!-- A move of people into a unit (docs/web.md, 「System and organisation」, its chart): the unit they go to and the role each
        takes there, then who goes where, shown once before the one act writes the whole set. Closing it at either step
        writes nothing. The chart opens it for the people chosen, and the people tab for one person. -->
   <SettingsDialog v-model:open="open" :title="step === 'form' ? $t('organization.action.move') : $t('organization.action.preview')" :dirty="changes">

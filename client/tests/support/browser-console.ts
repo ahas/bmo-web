@@ -278,7 +278,7 @@ const MEMBERS: readonly { name: string; password: string; sections: readonly { s
     ]
   })),
   // The person who brings a local AI of their own, whose own supply is all that carries their runs and whose PC the
-  // agency reaches (docs/web.md, 「The start guide」 and 「Organisation」, the supply tab's local AIs at the
+  // agency reaches (docs/web.md, 「The start guide」 and 「System and organisation」, the supply tab's local AIs at the
   // reader's own node).
   {
     name: "local-ai-member",
@@ -516,14 +516,14 @@ const sharedRooms = Object.entries(FIXTURE_ROOMS).filter(([, id], at, all) => al
 if (sharedRooms.length > 0) {
   throw new Error(`fixture rooms share a number: ${sharedRooms.map(([name, id]) => `${name} on ${id}`).join(", ")}`);
 }
-// The person whose activity a person's tabs show (docs/web.md, 「Organisation」, the people tab): one room they read, the
+// The person whose activity a person's tabs show (docs/web.md, 「System and organisation」, the people tab): one room they read, the
 // last scout seat filed under their account, and one run and one session of that seat, written once their account
 // stands. No other account reads the room by membership, and the seat's other agents keep their rows as they were.
 const ACTIVITY_PERSON = "person-tabs-subject";
 const ACTIVITY_AGENT = "scout-12";
 const activity = { account: 0 };
 
-// The Claude accounts the agency holds, with what each has left (docs/web.md, 「Administration」, the providers tab):
+// The Claude accounts the agency holds, with what each has left (docs/web.md, 「System and organisation」, the providers tab):
 // two accounts on, one with a weekly window nearly spent and one with both windows, a third off, and a fourth whose CLI
 // was never signed in on the agency's machine; the provider list
 // beside them keeps a road with a balance and a request allowance. The second account belongs to the activity person,

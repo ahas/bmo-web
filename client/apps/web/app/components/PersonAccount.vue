@@ -1,5 +1,5 @@
 <template>
-  <!-- One person's account tab (docs/web.md, 「Organisation」, the people tab): their account as the one read of the person
+  <!-- One person's account tab (docs/web.md, 「System and organisation」, the people tab): their account as the one read of the person
        stands, its group with no heading of its own, and the account's security under it; a failure of a read stands in
        its place. -->
   <div class="flex flex-col gap-4">

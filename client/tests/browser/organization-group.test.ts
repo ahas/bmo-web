@@ -6,7 +6,7 @@ import { wording } from "../../apps/web/shared/wording";
 
 import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 
-// The sidebar's organisation entry and the agents tab (docs/web.md, 「Sidebar」 and 「Organisation」, the agents and
+// The sidebar's organisation entry and the agents tab (docs/web.md, 「Sidebar」 and 「System and organisation」, the agents and
 // supply tabs), and what a company decided read at a person's own node. The entry stands among the administrator
 // services by its name, under their heading beside the store for a member who opens no other of them, and opens the
 // organisation screen, which keeps its own tab row; the agents tab sets a company's instructions, persona and repositories, each with

@@ -13,7 +13,7 @@ import type { AgentSettingKey, OwnPersona, PersonaChoice, UnitAgentSettings, Uni
 import type { ChainDelegation } from "#shared/organisation-supply";
 import type { H3Event } from "h3";
 
-// An organisation's agent settings (docs/web.md, 「Organisation」, the agents tab; the agency's
+// An organisation's agent settings (docs/web.md, 「System and organisation」, the agents tab; the agency's
 // `docs/prompt-layers.md`, `docs/repositories.md` and `docs/role-agents.md`): the organisation's instructions, the
 // persona's choice, repository management and what its people may change of the agents it supplies are the agency's
 // kinds on the delegation chain, read and written on the chain's own routes as

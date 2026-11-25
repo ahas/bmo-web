@@ -4,7 +4,7 @@ import { unitRepositoryModels } from "../../../../../../../utils/unit-repositori
 
 import type { ProviderModelsView } from "#shared/axes";
 
-// The models a pinned model of a unit's repository may name on one provider (docs/web.md, 「Organisation」, the agents
+// The models a pinned model of a unit's repository may name on one provider (docs/web.md, 「System and organisation」, the agents
 // tab).
 export default defineEventHandler(async (event): Promise<ProviderModelsView> => {
   const unit = unitNumber(getRouterParam(event, "unit"));

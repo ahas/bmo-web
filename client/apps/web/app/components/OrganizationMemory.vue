@@ -1,5 +1,5 @@
 <template>
-  <!-- The organisation screen's org memory tab (docs/web.md, 「Organisation」, the org memory tab): one unit's
+  <!-- The organisation screen's org memory tab (docs/web.md, 「System and organisation」, the org memory tab): one unit's
        memory, which every agent serving its people and the people under it is given — its own memories, the
        proposals waiting on it, the memories of the units above it, for a head who may write it without heading it,
        and whether the base and the org brains are read for its people. -->

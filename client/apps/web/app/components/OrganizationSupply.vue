@@ -1,5 +1,5 @@
 <template>
-  <!-- The supply tab's policy and credits (docs/web.md, 「Organisation」, the supply tab): of the unit chosen in the
+  <!-- The supply tab's policy and credits (docs/web.md, 「System and organisation」, the supply tab): of the unit chosen in the
        tree, the company where none is — its policy or what it follows, the monthly cap on organisation credits, its
        credit wallet and this month's spend by member — and the way to grant it credits, for a reader holding its
        policy and credits. No credential stands here; credits are the platform's own, not a payment. -->
@@ -103,7 +103,7 @@ interface Props {
 
 const props = defineProps<Props>();
 
-// The tab stands for the organisation chosen alone (docs/web.md, 「Organisation」, the supply tab); the units the
+// The tab stands for the organisation chosen alone (docs/web.md, 「System and organisation」, the supply tab); the units the
 // reader manages supply for name the unit a followed policy comes from where the reader can see it.
 const { t } = useI18n();
 const confirm = useConfirm();

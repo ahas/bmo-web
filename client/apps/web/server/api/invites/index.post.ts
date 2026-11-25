@@ -5,7 +5,7 @@ import { callerOf, unitNumber } from "../../utils/organization";
 import type { Invite } from "@web/server-client";
 
 // An invitation made into a unit the reader heads, or any for the administrator, with the person's name where the
-// maker gives one (docs/web.md, 「Organisation」, the invitations tab).
+// maker gives one (docs/web.md, 「System and organisation」, the invitations tab).
 export default defineEventHandler(async (event): Promise<Invite> => {
   const signed = await signedInUser(event);
   const body = await readBody<{ unit?: unknown; head?: unknown; hours?: unknown; fullName?: unknown }>(event);

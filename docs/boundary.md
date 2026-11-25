@@ -617,7 +617,7 @@ Each goes to the unit's base address with that unit's token as a bearer, as the 
 | the agency | register the supply hook | `PUT /hooks/supply` (`url`, `token`) | once as the server starts, where the settings name the agency, so the agency asks who pays for a person's run; `DELETE /hooks/supply` takes it away |
 | the agency | read an agent's label | `GET /supervisors/{supervisorName}`, answered its row's `label` | the name an agent a fixed line names stands as (「Fixed lines」); a refusal, no answer within three seconds or no label names it by its key |
 | the agency | read a person's personal supply roads | `GET /personal-supply`, answered `people` | whose personal supply an administrator's read of `GET /supply/user/{user}` names, with that person in `Owner-Key` and `Owner-Role: administrator` |
-| bmo-mail, at `mail.base` with `mail.token` | list the outgoing servers it keeps for the platform | `GET /outgoing-servers`, answered `items`: each `id`, `name`, `host` | the choice of the system mail's server on 플랫폼 설정 (`docs/accounts.md`, 「The platform's own mail」) |
+| bmo-mail, at `mail.base` with `mail.token` | list the outgoing servers it keeps for the platform | `GET /outgoing-servers`, answered `items`: each `id`, `name`, `host` | the choice of the system mail's server on the 시스템 및 조직 screen's 메일 tab with the platform chosen (`docs/accounts.md`, 「The platform's own mail」) |
 | bmo-mail, the same way | send one system mail | `POST /system-mails` (`server`, the server's number as bmo-mail names it, which the service keeps and answers as a string; `from`, `fromName`, `secret` or null, `to`, `subject`, `text`, `html`, `kind`), answered `sent` true; a refusal in its common shape, `code` and `error` | a reset link, an email's verification, a test and a security notice; the secret named is read by bmo-mail off the data root's `env/`, and its value never travels |
 | the jake hub, at its loopback control address with its control token | read the attached agents | `GET /status` | whether a bound machine is attached, as a node read, a proof and a pairing answer it |
 | the jake hub, the same way | revoke a machine name | `POST /revoke?agent=<name>`, answered `ok`, `agent`, `left` | a machine taken away from the account bound to it, once no account holds its name |
@@ -845,8 +845,8 @@ for it, and no file or table of that unit is read meanwhile.
   empty with `(기본값)` as its placeholder (「The default among choices」 in `docs/web.md`).
 - **Whose flush minutes are in force.** The agency's `GET /settings` answers `deployFlushMinutes` as the minutes in
   force, the owner's where they are set and its policy's otherwise, and no route says which, nor what the policy's
-  are. So the administration screen's 일괄 배포 주기 shows the figure with no `(기본값)` mark, and an emptied box
-  hands the agency null to return to its own (`docs/web.md`, 「Administration」).
+  are. So the 시스템 및 조직 screen's 공급자 tab shows the 일괄 배포 주기 figure with no `(기본값)` mark, and an emptied box
+  hands the agency null to return to its own (`docs/web.md`, 「System and organisation」).
 - **The newest lines of one run.** The agency's `GET /log-lines` narrowed to a run answers from the run's start,
   oldest first, and pages forward by `after` alone, so no route answers a run's newest lines or the page before a
   line of it; the console server reads them out of the agent's log from `GET /log/agents/{agentName}/lines`, keeping
@@ -929,7 +929,7 @@ for it, and no file or table of that unit is read meanwhile.
   account the chat runs on reads its figures and every other account reads as having no reading, never a figure
   borrowed from another. No unit counts a login within the account that owns it — the number a screen calls it by is
   the console's own, counted over that same `GET /fallback` answer of every login the reader is told of, so an account
-  the panel leaves out of its groups is counted all the same (docs/web.md, 「Organisation」, 「공급」). `GET /usage` grouped by `agent` counts the jobs of each checkout and the tokens they spent, with
+  the panel leaves out of its groups is counted all the same (docs/web.md, 「System and organisation」, 「공급」). `GET /usage` grouped by `agent` counts the jobs of each checkout and the tokens they spent, with
   the four kinds summed over the jobs that reported them apart and how many jobs, and how many tokens, reported none;
   a checkout whose jobs carry no tokens holds no figure rather than a nought, and a group that names no kinds reads
   as wholly not split. No unit serves a tally by user or the context of a session a

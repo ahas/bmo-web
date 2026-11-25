@@ -7,7 +7,7 @@ import { unitNumber } from "../../../../../utils/organization";
 import type { BaseDecision } from "#shared/org-memory";
 
 // One of the base's candidates decided, `decision` `raise`, `keep` or `drop`, the administrator's alone (docs/web.md,
-// 「Organisation」, the org memory tab with the platform chosen).
+// 「System and organisation」, the org memory tab with the platform chosen).
 export default defineEventHandler(async (event): Promise<null> => {
   const signed = await requireAdministrator(event);
   const memory = unitNumber(getRouterParam(event, "memory"));

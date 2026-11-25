@@ -1,5 +1,5 @@
 <template>
-  <!-- The tree an invitation's unit is chosen from (docs/web.md, 「Organisation」, the invitations tab): the units at
+  <!-- The tree an invitation's unit is chosen from (docs/web.md, 「System and organisation」, the invitations tab): the units at
        its top, each unit under its parent to any depth. A press on a unit chooses it and leaves its branch as it is;
        the chevron at a branch's end, or an arrow key, opens or closes the branch in place. What stands open is the
        caller's. Every name stands whole: the tree is as wide as its widest row, and what holds it scrolls

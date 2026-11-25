@@ -1,5 +1,5 @@
 <template>
-  <!-- The BMO groups of the agents tab (docs/web.md, 「Organisation」, the agents tab): the default for the people's
+  <!-- The BMO groups of the agents tab (docs/web.md, 「System and organisation」, the agents tab): the default for the people's
        BMOs at the node chosen — a company's, for the administrator and the company's own heads, its text parts changed in
        a form and its picture set in place, or the platform's own, its name and call names alone — and, at a unit, who
        may personalise their BMO: the unit's own row and each person standing in it, each a choice saved as it is made. -->

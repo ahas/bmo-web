@@ -4,7 +4,7 @@ import { unitNumber } from "../../../../../utils/organization";
 import { removeUnitRepository } from "../../../../../utils/organisation-agents";
 import { orgAgentsFailure } from "../../../../../utils/organisation-supply";
 
-// A repository of a unit's removed, in the reader's name (docs/web.md, 「Organisation」, the agents tab).
+// A repository of a unit's removed, in the reader's name (docs/web.md, 「System and organisation」, the agents tab).
 export default defineEventHandler(async (event): Promise<{ ok: true }> => {
   const unit = unitNumber(getRouterParam(event, "unit"));
   const name = getRouterParam(event, "name");

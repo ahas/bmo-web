@@ -4,7 +4,7 @@ import { bmoFailure, idParam, peopleUnder } from "../../../../../utils/bmo-route
 import { callerOf } from "../../../../../utils/organization";
 
 // A company's default picture taken away, then every person of the company's BMO takes what stands now (docs/web.md,
-// 「Organisation」, the BMO tab).
+// 「System and organisation」, the BMO tab).
 export default defineEventHandler(async (event): Promise<null> => {
   const signed = await signedInUser(event);
   const company = idParam(event, "company");

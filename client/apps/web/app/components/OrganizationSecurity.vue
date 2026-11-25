@@ -1,5 +1,5 @@
 <template>
-  <!-- The organisation screen's security tab (docs/web.md, 「Organisation」, the security tab): whether the people under the node
+  <!-- The organisation screen's security tab (docs/web.md, 「System and organisation」, the security tab): whether the people under the node
        chosen must hold a second factor — the node's own word or following above, with what that comes to — and what
        the units below may do with it, each saved as it is changed. At the platform's node it stands for the platform's own link. -->
   <div class="flex flex-col gap-4" data-org-security>

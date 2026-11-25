@@ -1,4 +1,4 @@
-// The words and the defaults of the mail servers tab (docs/web.md, 「Organisation」, the mail servers tab; bmo-mail's
+// The words and the defaults of the mail servers tab (docs/web.md, 「System and organisation」, the mail servers tab; bmo-mail's
 // `docs/api.md`, 「Servers」): each protocol's and security's word, the securities a protocol takes, and the usual
 // port a protocol listens on for the security chosen, which the form shows as its port's placeholder and sends where
 // the port is left empty. The pack's words are named here whole, so the pack's check finds each one asked for.

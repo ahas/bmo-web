@@ -1,5 +1,5 @@
 <template>
-  <!-- An acting appointment (docs/web.md, 「Organisation」, its chart; docs/accounts.md, 「Acting」): the person who
+  <!-- An acting appointment (docs/web.md, 「System and organisation」, its chart; docs/accounts.md, 「Acting」): the person who
        acts for the unit's head and the last day it runs, to the end of that day in this browser's time zone. A person
        named while another acts takes their place, which the form says before it is saved. -->
   <SettingsDialog v-model:open="open" :title="$t('organization.action.appoint')" :dirty="changes">

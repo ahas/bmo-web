@@ -4,7 +4,7 @@ import { appTitle, choiceWord, flagChoices, ON_WORDS, ownAppLine, platformAppLin
 
 import type { OwnApp, PlatformApp, UnitApp } from "../../../apps/web/shared/apps";
 
-// The apps a reader turns on and off as their rows read (docs/web.md, 「Organisation」, the apps tab at a unit, at the
+// The apps a reader turns on and off as their rows read (docs/web.md, 「System and organisation」, the apps tab at a unit, at the
 // platform and at the reader's own node): the line saying how an app stands and the choice a word stands at.
 
 const t = (key: string, named?: Record<string, unknown>) => (named === undefined ? key : `${key} ${JSON.stringify(named)}`);

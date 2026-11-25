@@ -4,7 +4,7 @@ import { bmoFailure, idParam, peopleUnder, pictureForm } from "../../../../../ut
 import { callerOf } from "../../../../../utils/organization";
 
 // A company's default picture set from the form, then applied to the BMO of every person of the company (docs/web.md,
-// 「Organisation」, the BMO tab).
+// 「System and organisation」, the BMO tab).
 export default defineEventHandler(async (event): Promise<null> => {
   const signed = await signedInUser(event);
   const company = idParam(event, "company");

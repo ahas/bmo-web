@@ -9,7 +9,7 @@ import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 // One person on the organisation screen's people tab stands as a head over a row of tabs, one tab a part of what is
 // theirs, the address naming the tab open, and the activity tab standing for the administrator alone; a link to the
 // person's old permissions tab lands on the organisation's permissions tab with the person open, where their sections are
-// set (docs/web.md, 「Organisation」, the people and permissions tabs). Read at a desk's width and a phone's, by the
+// set (docs/web.md, 「System and organisation」, the people and permissions tabs). Read at a desk's width and a phone's, by the
 // administrator and by a company head.
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up.
@@ -369,7 +369,7 @@ describe.skipIf(!origin || !touchReady())("one person's tabs on the people tab",
         await opened(page, "settings.label.account");
 
         // The head marks the person left from the management menu, asked first; Back on the question leaves them as
-        // they stood (docs/web.md, 「Organisation」, the people tab).
+        // they stood (docs/web.md, 「System and organisation」, the people tab).
         await page.locator("[data-roster-manage]").click();
         await page.getByRole("menuitem", { name: wording("organization.action.mark_left_confirm") }).click();
         const question = page.getByRole("alertdialog").or(page.getByRole("dialog")).filter({ hasText: wording("organization.title.mark_left") });

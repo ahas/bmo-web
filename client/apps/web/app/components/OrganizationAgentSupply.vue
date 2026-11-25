@@ -1,5 +1,5 @@
 <template>
-  <!-- The supply tab's organisation supply (docs/web.md, 「Organisation」, the supply tab): the unit chosen in the tree,
+  <!-- The supply tab's organisation supply (docs/web.md, 「System and organisation」, the supply tab): the unit chosen in the tree,
        the company where none is — whether the platform offers it to the company, whether it and a person's own local
        AI stand open under the unit, closed here or following above with what the links below may do, and the unit's
        own keys. A key's value

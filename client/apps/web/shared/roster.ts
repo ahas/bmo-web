@@ -1,7 +1,7 @@
 import type { RoadView } from "./axes";
 import type { OwnBmoView, PermissionSetting } from "./bmo-profile";
 
-// The people roster as the organisation screen's people tab reads it (docs/web.md, 「Organisation」, the people tab;
+// The people roster as the organisation screen's people tab reads it (docs/web.md, 「System and organisation」, the people tab;
 // docs/accounts.md, 「The people roster」): the people of every company the reader looks through, a page at a time,
 // and one person opened with what is theirs. The account service decides who looks through what; the groups past a
 // person's BMO are the administrator's alone.

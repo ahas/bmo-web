@@ -7,7 +7,7 @@ import { wording } from "../../apps/web/shared/wording";
 
 import type { Browser, BrowserContext, BrowserType, Page } from "playwright-core";
 
-// The organisation's copy marks (docs/web.md, 「Organisation」, its chart and its invitations tab): a person's
+// The organisation's copy marks (docs/web.md, 「System and organisation」, its chart and its invitations tab): a person's
 // machine's install lines in the machine dialog, and an invitation's words in the invitations tab, both when a link is
 // made and when an open one is copied again. A copy that lands turns its mark to a check, one that lands nowhere says so and turns
 // nothing; a link made copies its words in the press that made it, though the service answers after the browser

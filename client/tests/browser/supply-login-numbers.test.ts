@@ -6,7 +6,7 @@ import { wording } from "../../apps/web/shared/wording";
 
 import type { Browser, Locator, Page, Route } from "playwright-core";
 
-// What a reader is told their Claude logins are called (docs/web.md, 「Organisation」, the supply tab). The agency numbers
+// What a reader is told their Claude logins are called (docs/web.md, 「System and organisation」, the supply tab). The agency numbers
 // every login it names one past every login the platform holds, so a person's first login can carry a third number;
 // the screen numbers the logins of one account against each other from 01 and names them in the console's own words.
 // A reader's own list is read at their node, the platform's at the platform node, and a new sign-in's box is titled by the

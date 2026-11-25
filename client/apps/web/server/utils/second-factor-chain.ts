@@ -9,7 +9,7 @@ import type { SignedIn } from "./accounts";
 import type { ChainDelegation } from "#shared/organisation-supply";
 import type { SecondFactorRequirement } from "#shared/account-security";
 
-// Whether an organisation asks a second factor of its people (docs/web.md, 「Organisation」, the security tab;
+// Whether an organisation asks a second factor of its people (docs/web.md, 「System and organisation」, the security tab;
 // docs/accounts.md, 「The second factor」): the account service's own kind on the delegation chain, read and written at
 // one link — a unit's or the platform's — as the signed-in login.
 

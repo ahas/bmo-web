@@ -1270,8 +1270,7 @@ screens:
     live: 실시간 상태
     mail: 메일
     monitor: 모니터
-    admin: 플랫폼 설정
-    organization: 조직
+    organization: 시스템 및 조직
     remote: 원격
     research: 리서치
     search: 검색
@@ -2020,7 +2019,7 @@ permissions:
     write_of: "{name} 쓰기"
 organization:
   aria:
-    tabs: 조직 탭
+    tabs: 시스템 및 조직 탭
   label:
     chart: 조직도
     none: 조직 없음
@@ -4427,9 +4426,6 @@ picture:
   message:
     cleared: 제공자 사진으로 되돌렸습니다.
     saved: 사진을 바꿨습니다.
-admin:
-  aria:
-    tabs: 플랫폼 설정 탭
 bmo_profile:
   label:
     platform_default: "전역 기본 BMO"
@@ -4726,7 +4722,7 @@ skills:
     name_held: 같은 이름의 스킬이 이미 있습니다.
     description_empty: 설명을 입력해 주세요.
 
-# What a reader's agent is given of their skills and MCP servers (docs/web.md, 「Organisation」, the agents tab at 나).
+# What a reader's agent is given of their skills and MCP servers (docs/web.md, 「System and organisation」, the agents tab at 나).
 attachments:
   title:
     dialog: 스킬·MCP

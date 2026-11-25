@@ -2,7 +2,7 @@ import { failureText } from "bmo-ui/app/domain/errors";
 
 import type { Ref } from "vue";
 
-// One group of a page read on its own (docs/web.md, 「Organisation」, the people tab): what it holds once read, and a
+// One group of a page read on its own (docs/web.md, 「System and organisation」, the people tab): what it holds once read, and a
 // failure said in its place until a read goes through, while the groups beside it stand.
 
 export interface GroupRead<T> {

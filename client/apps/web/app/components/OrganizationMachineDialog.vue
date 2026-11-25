@@ -1,5 +1,5 @@
 <template>
-  <!-- A person's machine (docs/web.md, 「Organisation」, its chart; docs/accounts.md, 「Invitations and a person's
+  <!-- A person's machine (docs/web.md, 「System and organisation」, its chart; docs/accounts.md, 「Invitations and a person's
        machine」): the one their account is bound to, bound to another — the one named, or a fresh name — with its
        installs until it attaches, declared shared where it stands so other accounts may be bound to it too, or taken
        away. The chart and the people tab open the same dialog. -->

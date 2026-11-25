@@ -1,6 +1,6 @@
 import type { DecidedBy } from "./organisation-agents";
 
-// Where a company's documents are kept, as its heads set it on the delegation chain (docs/web.md, 「Organisation」, the
+// Where a company's documents are kept, as its heads set it on the delegation chain (docs/web.md, 「System and organisation」, the
 // storage tab; bmo-artifact's `docs/artifact.md`, 「Places」): the kinds of place bmo-artifact offers, each with
 // the settings it takes, and a unit's own word on the setting beside what stands for it.
 

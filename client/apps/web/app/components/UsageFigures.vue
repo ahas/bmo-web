@@ -1,5 +1,5 @@
 <template>
-  <!-- What one group has left (docs/web.md, 「Usage in the title bar」 and 「Administration」): each window as the share
+  <!-- What one group has left (docs/web.md, 「Usage in the title bar」 and 「System and organisation」): each window as the share
        remaining with a bar and how long is left until it resets, the balance in its currency with how long ago it was
        read, and a request allowance as how many are left of the day's ceiling with a bar. The rows stand on shared
        columns, so the names read down one column, the bars start on one line and the figures end on one line; the

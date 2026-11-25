@@ -1,4 +1,4 @@
-// Account security on the console's screens (docs/web.md, 「Access」, 「Settings」 and 「Organisation」): whether the
+// Account security on the console's screens (docs/web.md, 「Access」, 「Settings」 and 「System and organisation」): whether the
 // sign-in asked the reader to enrol a second factor, what stands of one person's account for the administrator and
 // their heads, and the acts the head's menu offers on it.
 
@@ -15,7 +15,7 @@ export function useEnrolAsked(): Ref<boolean> {
 export type SecurityAct = "password" | "factor" | "disable" | "enable";
 
 /**
- * The account acts the reader may take on a person (docs/web.md, 「Organisation」, the people tab): a reset of the
+ * The account acts the reader may take on a person (docs/web.md, 「System and organisation」, the people tab): a reset of the
  * password and of a second factor the person holds for whoever reads their security — the administrator and their
  * heads — and disabling or enabling for the administrator alone; none on the reader themselves or on a person who left.
  */

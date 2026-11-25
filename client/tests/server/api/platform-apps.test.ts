@@ -8,7 +8,7 @@ import { wording } from "../../../apps/web/shared/wording";
 
 import type { RouteEvent } from "../../support/nitro";
 
-// The organisation screen's apps tab with the platform chosen (docs/web.md, 「Organisation」, the apps tab;
+// The organisation screen's apps tab with the platform chosen (docs/web.md, 「System and organisation」, the apps tab;
 // docs/accounts.md, 「An app's two settings」): every app read off the platform's own links with the defaults its
 // publisher declared; the platform's own word written; and the recall, which turns the app's on off under the
 // platform's lock and takes away every platform rule turning it on, lifted by taking the lock and the word away. Every

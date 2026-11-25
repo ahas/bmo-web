@@ -1,5 +1,5 @@
 <template>
-  <!-- One node's mail servers (docs/web.md, 「Organisation」, the mail servers tab): the platform's or a company's or a
+  <!-- One node's mail servers (docs/web.md, 「System and organisation」, the mail servers tab): the platform's or a company's or a
        unit's, bmo-mail's records in two groups, the incoming and the outgoing, each row changed in the server form or removed,
        asked first; what the units below may do with them, saved as it is chosen; and the tab row's add opening the
        form on a new server. Where bmo-mail is not installed, one muted line and nothing else. -->

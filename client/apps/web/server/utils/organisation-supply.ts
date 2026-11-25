@@ -13,7 +13,7 @@ import type { OwnModel, OwnRoad } from "#shared/own-agents";
 import type { ChainDelegation, CompositionChoice, CompositionView, SourceKind, UnitSourceView, UnitSupplyItem, UnitSupplyView } from "#shared/organisation-supply";
 import type { H3Event } from "h3";
 
-// An organisation's supply and agents (docs/web.md, 「Organisation」, the supply and agents tabs; docs/accounts.md,
+// An organisation's supply and agents (docs/web.md, 「System and organisation」, the supply and agents tabs; docs/accounts.md,
 // 「Organisation supply」; the agency's `docs/supply.md`, 「Organisation supply」, and `docs/role-agents.md`, 「The agents
 // an account is given」): whether organisation supply stands open is the account service's kind and the sign-up
 // composition the agency's, both on the

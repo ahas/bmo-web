@@ -2,7 +2,7 @@ import { resetFactor } from "../../../../utils/account-security";
 import { callerOf } from "../../../../utils/organization";
 import { securityFailure } from "../../../../utils/sign-in";
 
-// A person's second factor reset by the administrator or one of their heads (docs/web.md, 「Organisation」, the people
+// A person's second factor reset by the administrator or one of their heads (docs/web.md, 「System and organisation」, the people
 // tab).
 export default defineEventHandler(async (event): Promise<void> => {
   const signed = await signedInUser(event);

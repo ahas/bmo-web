@@ -9,7 +9,7 @@ import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 import KO from "../fixtures/browser/sidebar-sections.test.ko.json";
 
 // A screen that is an app stands nowhere for a reader it is turned off for (docs/web.md, 「Screens a unit brings」,
-// 「Organisation」's apps tab): a member whose company the platform does not offer the app finds it in no sidebar,
+// 「System and organisation」's apps tab): a member whose company the platform does not offer the app finds it in no sidebar,
 // its address leads them home and every call through the relay is refused `app-off`; and once it is offered again, a
 // head of the company turning it off on the organisation screen's apps tab takes it away from the member the same way.
 // Each is read at a phone's width and a desk's.

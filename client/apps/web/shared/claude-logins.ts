@@ -1,6 +1,6 @@
 import type { Translate } from "./wording";
 
-// What a Claude login is called on a screen (docs/web.md, 「Organisation」, the supply tab). The agency names every login it
+// What a Claude login is called on a screen (docs/web.md, 「System and organisation」, the supply tab). The agency names every login it
 // is asked to name one number past every login the platform holds, so the number standing in that name counts other
 // accounts' logins among them; a screen numbers the logins of one account against each other instead, from 01.
 //

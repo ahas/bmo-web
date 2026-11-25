@@ -2,7 +2,7 @@ import { fail } from "./fail";
 
 import { wording } from "#shared/wording";
 
-// A company's own lists as the console hands them on (docs/web.md, 「Organisation」, its roles and kinds tab): each
+// A company's own lists as the console hands them on (docs/web.md, 「System and organisation」, its roles and kinds tab): each
 // entry a key and a name, in the list's order. Their shape is the account service's to judge; a body that is no such
 // list is refused here.
 

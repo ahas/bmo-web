@@ -1,5 +1,5 @@
 <template>
-  <!-- The supply tab's platform policy and credits (docs/web.md, 「Organisation」, the supply tab with the platform
+  <!-- The supply tab's platform policy and credits (docs/web.md, 「System and organisation」, the supply tab with the platform
        chosen): the platform's own supply standing — the default policy, the conversion, the reservation and the switch
        that makes limits refuse; its ledger and audit stand last on the tab (OrganizationPlatformRecords). No balance of anyone's is shown, and no top-up stands:
        payments are off, and every credit here is the platform's own; a grant is made at the wallet it fills. -->
@@ -58,7 +58,7 @@ import { POLICY_SOURCES, policyDraft, sourceLabel } from "~/domain/supply";
 import type { PolicyDraft, PolicyWrite } from "~/domain/supply";
 import type { SupplyPlatformView, SupplyPolicy } from "#shared/supply";
 
-// The platform's supply standing, the administrator's (docs/web.md, 「Organisation」,
+// The platform's supply standing, the administrator's (docs/web.md, 「System and organisation」,
 // the supply tab with the platform chosen). Every switch and field here takes effect as it is changed; the service is the owner of each
 // refusal, which is said under the group.
 

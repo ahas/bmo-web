@@ -1,5 +1,5 @@
 // A person's BMO profile as the console's own routes answer it (docs/accounts.md, 「A person's BMO profile」; docs/web.md,
-// 「Organisation」, its BMO tab, and 「Settings」, its own-BMO section): what stands for each part and where it came
+// 「System and organisation」, its BMO tab, and 「Settings」, its own-BMO section): what stands for each part and where it came
 // from, the person's own parts as kept, a company's default, and the personalisation setting on a unit or a person
 // with what it resolves to.
 

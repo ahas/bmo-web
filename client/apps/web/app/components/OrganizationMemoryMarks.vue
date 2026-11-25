@@ -1,5 +1,5 @@
 <template>
-  <!-- What stands under an org memory's words (docs/web.md, 「Organisation」, the org memory tab): the person it is
+  <!-- What stands under an org memory's words (docs/web.md, 「System and organisation」, the org memory tab): the person it is
        about, its topic and its
        marks, the unit it comes from where it is another's, the unit whose memory stands for its topic in its place,
        and where a memory a service keeps comes from, each only where it holds. -->

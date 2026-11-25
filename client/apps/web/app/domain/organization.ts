@@ -6,15 +6,15 @@ import type { OrgMemoryUnitView } from "#shared/org-memory";
 import type { SideNode } from "bmo-ui/app/domain/side-parts";
 
 import { useAdministrator } from "./access";
-import { adminAddress, adminTabNamed, administratorOpens } from "./administration";
 import { inviteCompanies } from "./invites";
 import { PERSON_PANE_KEY } from "./person-panes";
 import { useRosterCompanies } from "./roster";
 import { useSupplyReader, useSupplyUnits } from "./supply";
 import { SETTINGS_QUERY } from "./settings-dialog";
 
-// The organisation screen (docs/web.md, 「Organisation」): one tree of the organisations at its left, the node chosen
-// at its right, and inside it a tab to a section. Each tab is a component of its own; this is only the order they
+// The system and organisation screen (docs/web.md, 「System and organisation」): one tree of the organisations at
+// its left, the node chosen at its right, and inside it a tab to a section, the platform's own settings among the
+// tabs the platform node holds. Each tab is a component of its own; this is only the order they
 // stand in, what each tab is called and who may open it, the tree, and which node the address chooses.
 
 export const ORGANIZATION_PATH = "/organization";
@@ -27,7 +27,7 @@ export const ORGANIZATION_KEY = "company";
 export const UNIT_KEY = "unit";
 
 /** The node of the administrator's tree standing for the platform itself, above every company, and the value of
- * `?company=` that chooses it (docs/web.md, 「Organisation」). */
+ * `?company=` that chooses it (docs/web.md, 「System and organisation」). */
 export const PLATFORM_NODE = "platform";
 
 /** The node of every tree of a reader with a user standing for the reader's own link, and the value of `?company=`
@@ -84,27 +84,40 @@ function everyReaderOpens(): boolean {
   return true;
 }
 
-// The administrator, and a member who heads a company (docs/web.md, 「Organisation」, the people tab).
+// The administrator's chart: the units of an organisation only they stand in whole.
+function administratorOpens(reader: OrganizationReader): boolean {
+  return reader.administrator;
+}
+
+// The administrator, and a member who heads a company (docs/web.md, 「System and organisation」, the people tab).
 function rosterReaderOpens(reader: OrganizationReader): boolean {
   return reader.administrator || reader.roster;
 }
 
 // The supply tab's readers: the administrator, and a member the account service's read says holds any part of the
-// organisation's supply — its policy and credits, or its plan alone (「Organisation」, the supply tab).
+// organisation's supply — its policy and credits, or its plan alone (「System and organisation」, the supply tab).
 function supplyReaderOpens(reader: OrganizationReader): boolean {
   return reader.administrator || reader.supply || reader.plans;
 }
 
 // The org memory tab's readers: the administrator, and a member the account service says writes the org memory of a
-// unit of the organisation chosen (「Organisation」, the org memory tab).
+// unit of the organisation chosen (「System and organisation」, the org memory tab).
 function memoryReaderOpens(reader: OrganizationReader): boolean {
   return reader.administrator || reader.memory;
 }
 
 // The agents, storage and mail servers tabs' readers: the administrator, and a member who heads a unit of the organisation chosen, a company's
-// head or a unit's below it (「Organisation」, the agents tab).
+// head or a unit's below it (「System and organisation」, the agents tab).
 function headReaderOpens(reader: OrganizationReader): boolean {
   return reader.administrator || reader.heads;
+}
+
+// The platform's own tabs (docs/web.md, 「System and organisation」): what is set for the platform itself — the
+// providers every run goes out on and the kinds every person's secret form asks in, with the system mail — stands at
+// the platform link alone, which no reader's tree but the administrator's holds. They open for no reader at a
+// company, a unit or the reader's own link, so the platform view is what brings them into a row at all.
+function platformNodeOnlyOpens(): boolean {
+  return false;
 }
 
 // The people tab's key, and the permissions tab's, where a person's sections moved from their pane on the people tab.
@@ -122,20 +135,27 @@ export const ORGANIZATION_TABS: readonly OrganizationTab[] = [
   { value: "apps", label: "apps.label.tab", icon: "i-material-symbols-apps", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationApps.vue"), links: { platform: () => import("~/components/OrganizationPlatformApps.vue"), me: () => import("~/components/OrganizationPersonApps.vue") } },
   { value: "storage", label: "org_storage.label.tab", icon: "i-material-symbols-hard-drive-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationArtifactStorage.vue") },
   { value: "mail-servers", label: "org_mail.label.tab", icon: "i-material-symbols-mail-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationMailServers.vue"), links: { platform: () => import("~/components/OrganizationPlatformMailServers.vue") } },
+  // The platform's system mail, beside the servers it sends through. Its own content and its platform view are the
+  // one component, since the tab stands nowhere else.
+  { value: "mail", label: "security.label.mail_tab", icon: "i-material-symbols-outgoing-mail", opens: platformNodeOnlyOpens, keys: [], wide: false, load: () => import("~/components/OrganizationSystemMail.vue"), links: { platform: () => import("~/components/OrganizationSystemMail.vue") } },
   { value: "secrets", label: "settings.label.secrets", icon: "i-material-symbols-key-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationSecrets.vue"), links: { platform: () => import("~/components/OrganizationPlatformSecrets.vue"), me: () => import("~/components/OrganizationPersonSecrets.vue") } },
+  // The secret kinds every person's secret form asks in, beside the secrets themselves.
+  { value: "secret-kinds", label: "secrets.label.kinds", icon: "i-material-symbols-key-vertical-outline", opens: platformNodeOnlyOpens, keys: [], wide: false, load: () => import("~/components/OrganizationSecretKinds.vue"), links: { platform: () => import("~/components/OrganizationSecretKinds.vue") } },
   { value: "memory", label: "org_memory.label.tab", icon: "i-material-symbols-psychology-outline", opens: memoryReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationMemory.vue"), links: { platform: () => import("~/components/OrganizationPlatformMemory.vue") } },
   { value: PERMISSIONS_TAB, label: "settings.label.permissions", icon: "i-material-symbols-admin-panel-settings-outline", opens: headReaderOpens, keys: ["user"], wide: false, load: () => import("~/components/OrganizationPermissions.vue") },
   // The supply tab stands for a reader who holds any part of the organisation's supply — its policy and credits, or
-  // its plan alone — the administrator everywhere (docs/web.md, 「Organisation」, the supply tab).
+  // its plan alone — the administrator everywhere (docs/web.md, 「System and organisation」, the supply tab).
   { value: "supply", label: "supply.label.tab", icon: "i-material-symbols-bolt-outline", opens: supplyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationSupplyTab.vue"), links: { platform: () => import("~/components/OrganizationPlatformSupply.vue"), me: () => import("~/components/OrganizationPersonSupply.vue") } },
+  // The providers every run goes out on, beside the supply they carry.
+  { value: "providers", label: "settings.label.providers", icon: "i-material-symbols-hub-outline", opens: platformNodeOnlyOpens, keys: [], wide: false, load: () => import("~/components/OrganizationProviders.vue"), links: { platform: () => import("~/components/OrganizationProviders.vue") } },
   // Whether the people under a node must hold a second factor: its heads and the administrator, and the platform's own
-  // link for the administrator (docs/web.md, 「Organisation」, the security tab).
+  // link for the administrator (docs/web.md, 「System and organisation」, the security tab).
   { value: "security", label: "security.label.security_tab", icon: "i-material-symbols-shield-lock-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationSecurity.vue"), links: { platform: () => import("~/components/OrganizationPlatformSecurity.vue") } }
 ];
 
 // Where a section that once stood here as a tab stands now, by the key its tab had, so a link made before it moved
-// still lands on it: the research supervisor with the research unit's settings, the voice briefing in the settings
-// dialog over this screen, and the providers and the secret kinds on the administrator's screen. `carries` names the
+// still lands on it: the research supervisor with the research unit's settings, and the voice briefing in the
+// settings dialog over this screen. `carries` names the
 // keys of the old address the new one keeps, such as the person it was open at.
 const MOVED_AWAY: Readonly<Record<string, { path: string; query: LocationQuery; carries?: readonly string[] }>> = {
   // A company's BMO default, and an address still naming the reader's own agents `agent` or `own-agents`, stand on the
@@ -160,13 +180,6 @@ export function organizationMovedAway(key: unknown, query: LocationQuery = {}): 
 
     return { path: ORGANIZATION_PATH, query: { ...carried, tab: MOVED_PANES[pane]! } };
   }
-
-  // A key this screen's own tab holds stands here, whatever tab of the administrator's carries the same key.
-  if (typeof key === "string" && organizationTabNamed(key) !== null) return null;
-
-  const admin = adminTabNamed(key);
-
-  if (admin !== null) return adminAddress(admin.value);
 
   if (typeof key !== "string" || !Object.hasOwn(MOVED_AWAY, key)) return null;
 
@@ -311,7 +324,7 @@ export interface TreeUnit extends UnitPlace {
 const COMPANY_ICON = "i-material-symbols-domain";
 
 /**
- * The organisation tree (docs/web.md, 「Organisation」): each company the reader may set at the top level, in its
+ * The organisation tree (docs/web.md, 「System and organisation」): each company the reader may set at the top level, in its
  * order, and under it the units given of that company, each under its parent where the parent is among them and
  * under the company otherwise, keyed by their numbers. A unit given that is a company itself stands as that company.
  */
@@ -385,7 +398,7 @@ export function chosenOrganization(query: LocationQuery, organizations: readonly
 }
 
 /** The companies a member may set something in, each once: those where they head a unit — the invitations' units —
- * and those the roster, the supply reach and the org memory read answer them (docs/web.md, 「Organisation」). They stand in the tree's order
+ * and those the roster, the supply reach and the org memory read answer them (docs/web.md, 「System and organisation」). They stand in the tree's order
  * whichever read named them, which for companies is the order of their numbers, as the account service lays its tree. */
 export function memberOrganizations(inviteUnits: readonly InviteUnit[], ...more: readonly (readonly Organization[])[]): Organization[] {
   const all = new Map<number, Organization>();
@@ -398,6 +411,29 @@ export function memberOrganizations(inviteUnits: readonly InviteUnit[], ...more:
 /** The tab of the organisation screen a key names, where it names one. */
 export function organizationTabNamed(key: string): OrganizationTab | null {
   return ORGANIZATION_TABS.find((tab) => tab.value === key) ?? null;
+}
+
+// A reader who holds every part of the screen, for asking which tabs stand by their own say at any node: a tab not
+// open to even this reader stands only where a link node's row takes it in.
+const EVERY_REACH: OrganizationReader = { administrator: true, roster: true, supply: true, plans: true, memory: true, heads: true, known: true };
+
+/** The tab that stands at the platform link node alone, where a key names one: an address may name it without naming
+ * a node, and the node then comes from here (docs/web.md, 「System and organisation」). */
+export function platformOnlyTab(asked: unknown): OrganizationTab | null {
+  return ORGANIZATION_TABS.find((tab) => tab.value === asked && !tab.opens(EVERY_REACH) && tab.links?.platform !== undefined) ?? null;
+}
+
+// The old administrator screen's address is this screen's platform node now, by the tab each key it held opens
+// there; a key naming none of them opens the providers tab, the first tab of that old screen (docs/web.md,
+// 「System and organisation」).
+const ADMIN_LANDINGS: Readonly<Record<string, string>> = { providers: "providers", "secret-kinds": "secret-kinds", mail: "mail", apps: "apps", plans: "supply", credits: "supply" };
+
+/** The address an old `/admin` address lands on: the platform node named, with the tab its `?tab=` key held. */
+export function adminLanding(query: LocationQuery): { path: string; query: LocationQuery } {
+  const asked = Array.isArray(query.tab) ? query.tab[0] : query.tab;
+  const tab = typeof asked === "string" && Object.hasOwn(ADMIN_LANDINGS, asked) ? ADMIN_LANDINGS[asked]! : "providers";
+
+  return organizationLinkAddress(PLATFORM_NODE, {}, tab);
 }
 
 /**
@@ -413,7 +449,7 @@ export function useHeadedUnits(): { units: ComputedRef<InviteUnit[]>; status: Re
 
 /**
  * The units whose org memory the reader writes, as the account service answers them, and whether that read has
- * answered, in either direction (docs/web.md, 「Organisation」, the org memory tab). One read shared by the shell, the
+ * answered, in either direction (docs/web.md, 「System and organisation」, the org memory tab). One read shared by the shell, the
  * screen and the tab; the units last answered stand while it is asked again, as the tab asks it when it opens, so the
  * tab is never taken away from the reader for the length of that read. A read that failed holds none.
  */
@@ -497,7 +533,7 @@ export interface Organizations {
 }
 
 /**
- * The organisations the screen lists (docs/web.md, 「Organisation」): every company for the administrator, read off
+ * The organisations the screen lists (docs/web.md, 「System and organisation」): every company for the administrator, read off
  * every unit; for a member the companies where they head a unit, manage the supply, write a unit's org memory or head
  * the company itself. Read once the page stands in the browser and kept while it stands.
  */
@@ -558,7 +594,7 @@ export function useOrganizations(failed: (error: unknown) => string): Organizati
   };
 }
 
-// The units tab's tree (docs/web.md, 「Organisation」, its chart): companies at its top, each unit under its
+// The units tab's tree (docs/web.md, 「System and organisation」, its chart): companies at its top, each unit under its
 // parent to any depth. A unit is read by its number, its name and its parent alone, so the tree stands on whatever
 // row the service answers.
 export interface UnitPlace {
@@ -616,7 +652,7 @@ export function branchesAbove(units: readonly UnitPlace[], id: number): number[]
     .map((unit) => unit.id);
 }
 
-// A move of several people into one unit (docs/web.md, 「Organisation」, its chart): what the act will write,
+// A move of several people into one unit (docs/web.md, 「System and organisation」, its chart): what the act will write,
 // read off the units as they were last read, so the dialog shows who goes where before anything is written and the
 // act names, for each person, the unit they stood in when it was shown.
 export interface UnitStanding extends UnitPlace {

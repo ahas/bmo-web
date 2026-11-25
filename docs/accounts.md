@@ -303,8 +303,8 @@ section states what each does.
 
 - **Agent management's screen opens on any one of its parts the reader may read,** and each tab on its own
   part alone. Its shared reads — the agent list, a provider's models, the provider switches and the fallback,
-  an agent's face and tool marks — open on any part read; the provider switches are changed on 플랫폼 설정's 공급자 tab
-  and the fallback on 조직's 공급 with the platform chosen, which only the administrator opens. An agent's own page stands under the three parts
+  an agent's face and tool marks — open on any part read; the provider switches are changed on the 공급자 tab of the 시스템 및 조직 screen with the platform
+  chosen, and the fallback on its 공급 tab with the platform chosen, which only the administrator opens. An agent's own page stands under the three parts
   whose rows open it: the supervisors, the roles and the repositories.
 
 - **A section's permission is two relations of the deployment's rules,** `read` and `write`, on a
@@ -393,7 +393,7 @@ section states what each does.
   every post, since a post stands in the home unit's company alone. Placing one person in a unit
   (`PUT /users/{user}/unit`) moves them as a move does, but for heads, which it leaves as they stand: the role
   they carried stood in the unit they left and goes with it, and their posts end as above.
-- **The console's organisation screen,** 조직's 조직도 tab, draws the units as a tree and does each of these for
+- **The console's 시스템 및 조직 screen,** its 조직도 tab, draws the units as a tree and does each of these for
   the administrator (`docs/web.md`, 「조직도」).
 
 ### Roles and unit kinds
@@ -1322,7 +1322,7 @@ Each is declared by the module that uses it, as the service stands, under the un
   (`docs/web.md`, 「Screens a unit brings」), the issuer of a session as it hands one its tools — and keeps no answer.
 - **An app is recalled by the platform's link alone:** its `on` holding false under a lock, with no platform rule
   turning it on for anyone, cuts every link below, so the app is off for everyone at every consumer's next ask, and
-  what the links below hold stands again once the lock is lifted (`docs/web.md`, 「Organisation」, 앱·도구·스킬).
+  what the links below hold stands again once the lock is lifted (`docs/web.md`, 「System and organisation」, 앱·도구·스킬).
 
 ## Supply
 
@@ -1461,7 +1461,7 @@ Each is declared by the module that uses it, as the service stands, under the un
   is resolved and answered, a `reserve` is accepted at the full size and opens no sumida hold, nothing is ever
   refused, and so a run is never stopped by supply. `capture` and `release` still answer taken, still move
   their reservation's state, and still write `supply_costs`; the wallets and quotas stand untouched. Turning
-  `enforce` on is the owner's call, made on the admin screen with `PUT /supply/platform`.
+  `enforce` on is the owner's call, made on the 시스템 및 조직's 공급 tab with the platform chosen, with `PUT /supply/platform`.
 - **Registration:** as the server starts, where its settings name the agency, it answers `PUT
   /hooks/supply` at the agency with its own address plus `/supply/hook` as the `url` and its own token as the
   `token`, the same tolerance the receiver declaration has — a start where the agency is unknown or refuses
@@ -1555,7 +1555,7 @@ under its token; the console is the one caller, and a browser reaches none of th
 
 - **The platform sends mail of its own** — reset links, an email's verification, security notices — through
   bmo-mail, which keeps the mail servers as records many accounts choose from. The administrator sets the system mail
-  on 플랫폼 설정 (`docs/web.md`, 「메일」): one of the outgoing server records bmo-mail keeps for the platform, the sender's address and name, and
+  on the 시스템 및 조직 screen's 메일 tab with the platform chosen (`docs/web.md`, 「메일」): one of the outgoing server records bmo-mail keeps for the platform, the sender's address and name, and
   the name of a secret in the platform's space of the secret store (「The secret store」) of the kind `account-login`,
   whose `USERNAME` and `PASSWORD` the server is signed in with. It is kept in the service's `settings` under
   `mail.system`.
@@ -1647,7 +1647,7 @@ under its token; the console is the one caller, and a browser reaches none of th
   leaves」).
 - **An organisation asks a second factor of its people** by the chain's kind `account.second-factor-required`, a
   flag, nearest link first, at the platform, a company and a unit (「The delegation chain」); the console sets it on
-  조직's 보안 tab. A person it holds for who holds none is answered `enrol` at each sign-in, which the console leads
+  the 시스템 및 조직's 보안 tab. A person it holds for who holds none is answered `enrol` at each sign-in, which the console leads
   to the enrolment.
 
 ### Sessions and devices

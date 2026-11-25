@@ -42,7 +42,7 @@ afterAll(async () => {
 
 const json = (route: Route, body: unknown, status = 200) => route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
 
-// The console's own name for the login an account counts as its own nth (docs/web.md, 「Organisation」, the supply tab).
+// The console's own name for the login an account counts as its own nth (docs/web.md, 「System and organisation」, the supply tab).
 const numbered = (n: string) => wording("supply.label.login_numbered", { number: n });
 
 // Pressed as the reader's hand presses it, once nothing stands over its centre.

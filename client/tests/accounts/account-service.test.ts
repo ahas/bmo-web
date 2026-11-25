@@ -8,7 +8,6 @@ import {
   AccountRefusal,
   addSecretKind,
   adoptPhone,
-  checkObject,
   deletePhoneKey,
   dropSecret,
   dropSecretKind,
@@ -37,8 +36,7 @@ const service = standInAccountService({
   users: [
     { id: 1, name: "owner-a", password: "the password", administrator: true, senders: [OWNER_ID] },
     { id: 2, name: "member-a", password: "a password", senders: [MEMBER] }
-  ],
-  grants: [{ kind: "bmo_worker", object: "worker", relation: "run", subject: "user:2" }]
+  ]
 });
 const options = { address: service.address, token: service.token };
 
@@ -118,18 +116,6 @@ describe("users", () => {
 
     expect(refusal).toBeInstanceOf(AccountRefusal);
     expect(refusal).toMatchObject({ status: 401, code: "unauthorized" });
-  });
-});
-
-describe("checks", () => {
-  test("an object check names its grant and its user, opens to a grant's holder and passes the administrator", async () => {
-    expect(await checkObject("bmo_worker", "worker", "run", 2, options)).toEqual({
-      allowed: true,
-      grant: "bmo_worker:worker#run",
-      user: "2"
-    });
-    expect(await checkObject("bmo_worker", "another", "run", 2, options)).toMatchObject({ allowed: false, user: "2" });
-    expect(await checkObject("bmo_worker", "another", "run", 1, options)).toMatchObject({ allowed: true, user: "1" });
   });
 });
 

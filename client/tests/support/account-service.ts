@@ -2,7 +2,7 @@
 // `docs/boundary.md` states, on a loopback port of a test's own and behind a token of its own, answering
 // out of what the test seeds rather than out of sumida, so a console test needs neither the server's binary
 // nor Valkey. What it decides follows the rules the server's own tests hold sumida to: the administrator
-// passes every check, and an expired grant is none.
+// passes every check.
 
 import type { SecretKind } from "../../apps/web/shared/secret-kinds";
 
@@ -18,19 +18,9 @@ export interface StandInUser {
   node?: { agent: string; shared?: boolean; attached: boolean; kind?: "desktop" | "installed"; provenAt?: number; boundAt?: number };
 }
 
-export interface StandInGrant {
-  kind: string;
-  object: string;
-  relation: string;
-  // `user:<id>`.
-  subject: string;
-  expiresAt?: number;
-}
-
 export interface StandInSeed {
   inForce?: boolean;
   users?: StandInUser[];
-  grants?: StandInGrant[];
   // A user's console sections; a user named in none is given the defaults.
   sections?: StandInSection[];
   // The machines the hub holds beside those the seeded users are bound to and attached.
@@ -130,7 +120,6 @@ export interface StandIn {
   pairings: Map<string, StandInPairing>;
   pairingAddresses: string[];
   users: StandInUser[];
-  grants: StandInGrant[];
   // Each user's sections, by the user's id and the section's name.
   sections: Map<number, Map<string, { read: boolean; write: boolean }>>;
   keys: Map<string, { user: number; key: string }>;
@@ -163,7 +152,6 @@ function hashOf(key: string): string {
 /** The stand-in, listening on a loopback port of its own until it is stopped. */
 export function standInAccountService(seed: StandInSeed = {}): StandIn {
   const users = [...(seed.users ?? [])];
-  const grants = [...(seed.grants ?? [])];
   const sections = new Map<number, Map<string, { read: boolean; write: boolean }>>();
 
   for (const one of seed.sections ?? []) {
@@ -208,15 +196,6 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
   const pairings = new Map<string, StandInPairing>();
   const pairingAddresses: string[] = [];
   const chain = new Map<string, Map<string, unknown>>();
-  const holds = (kind: string, object: string, relation: string, subjects: string[]): boolean =>
-    grants.some(
-      (one) =>
-        one.kind === kind &&
-        one.object === object &&
-        one.relation === relation &&
-        subjects.includes(one.subject) &&
-        (one.expiresAt === undefined || one.expiresAt > Date.now())
-    );
   const json = (body: object, status = 200, headers: Record<string, string> = {}): Response =>
     new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json", ...headers } });
   const refused = (status: number, code: string, error: string): Response => json({ code, error }, status);
@@ -543,19 +522,6 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
         return json({ fullName: user.fullName, ...profile });
       }
 
-      if (path === "/checks/object") {
-        const kind = body?.kind ?? "";
-        const object = body?.object ?? "";
-        const relation = body?.relation ?? "";
-        const user = userNamed(body?.user ?? "");
-        const held = user === undefined ? undefined : sectionsOf(user).get(object);
-        const bySection = relation === "read" ? held?.read === true || held?.write === true : held?.write === true;
-
-        return json({
-          allowed: user?.administrator === true || (kind === "bmo_section" ? bySection : holds(kind, object, relation, [`user:${body?.user ?? ""}`])),
-          grant: `${kind}:${object}#${relation}`
-        });
-      }
       if (path === "/phones" && request.method === "POST") {
         const key = crypto.randomUUID().replaceAll("-", "") + crypto.randomUUID().replaceAll("-", "");
         const hash = hashOf(key);
@@ -682,7 +648,6 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
     address: `http://127.0.0.1:${server.port}`,
     token: TOKEN,
     users,
-    grants,
     sections,
     keys,
     moves,

@@ -634,26 +634,6 @@ export interface CheckAnswer {
   user: UserId | null;
 }
 
-/** Whether a user holds a relation on a worker, a repository or a tool capability. */
-export async function checkObject(
-  kind: string,
-  object: string,
-  relation: string,
-  id: UserId | number,
-  options: ServiceOptions = {}
-): Promise<CheckAnswer> {
-  const client = clientOf(options);
-  const reply = await sent(
-    options,
-    client.POST("/checks/object", {
-      body: { kind, object, relation, user: userPath(id) }
-    })
-  );
-  const said = answered(reply);
-
-  return { allowed: said.allowed, grant: said.grant, user: userPath(id) };
-}
-
 /** Whether a user heads a unit or a unit above it (docs/boundary.md, 「Checks」); not where there is no such unit. */
 export async function checkUnit(unit: number, id: UserId | number, options: ServiceOptions = {}): Promise<boolean> {
   const reply = await sent(options, clientOf(options).POST("/checks/unit", { body: { unit, user: userPath(id) } }));

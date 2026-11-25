@@ -213,23 +213,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/checks/object": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Whether a user holds a relation on a worker, a repository or a tool capability. */
-        post: operations["checkObject"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/checks/org-memory": {
         parameters: {
             query?: never;
@@ -2960,13 +2943,6 @@ export interface components {
         NodeSharing: {
             shared: boolean;
         };
-        /** @description A relation asked of a user on an object of the rules. */
-        ObjectCheckAsk: {
-            kind: string;
-            object: string;
-            relation: string;
-            user: string;
-        };
         /**
          * @description One unit whose org memory a login writes: its parent, absent for a company, its company, itself for a company,
          *     and whether the login heads it.
@@ -4964,39 +4940,6 @@ export interface operations {
                 };
             };
             /** @description A refusal or failure: bad-request, unauthorized, not-found, upstream-failed, not-in-force, database, failed */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WireError"];
-                };
-            };
-        };
-    };
-    checkObject: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ObjectCheckAsk"];
-            };
-        };
-        responses: {
-            /** @description Answered. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CheckAnswer"];
-                };
-            };
-            /** @description A refusal or failure: bad-request, unauthorized, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;

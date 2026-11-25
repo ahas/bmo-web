@@ -2480,30 +2480,6 @@
         ],
         "type": "object"
       },
-      "ObjectCheckAsk": {
-        "description": "A relation asked of a user on an object of the rules.",
-        "properties": {
-          "kind": {
-            "type": "string"
-          },
-          "object": {
-            "type": "string"
-          },
-          "relation": {
-            "type": "string"
-          },
-          "user": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "kind",
-          "object",
-          "relation",
-          "user"
-        ],
-        "type": "object"
-      },
       "OrgMemoryUnit": {
         "description": "One unit whose org memory a login writes: its parent, absent for a company, its company, itself for a company,\nand whether the login heads it.",
         "properties": {
@@ -7849,59 +7825,6 @@
           "unauthorized",
           "not-found",
           "upstream-failed",
-          "not-in-force",
-          "database",
-          "failed"
-        ]
-      }
-    },
-    "/checks/object": {
-      "post": {
-        "operationId": "checkObject",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ObjectCheckAsk"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CheckAnswer"
-                }
-              }
-            },
-            "description": "Answered."
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WireError"
-                }
-              }
-            },
-            "description": "A refusal or failure: bad-request, unauthorized, not-in-force, database, failed"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "summary": "Whether a user holds a relation on a worker, a repository or a tool capability.",
-        "tags": [
-          "Checks"
-        ],
-        "x-codes": [
-          "bad-request",
-          "unauthorized",
           "not-in-force",
           "database",
           "failed"

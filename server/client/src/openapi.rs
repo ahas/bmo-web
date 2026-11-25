@@ -1141,19 +1141,6 @@ pub fn openapi() -> Value {
   );
   add!(
     "POST",
-    "/checks/object",
-    "checkObject",
-    "Checks",
-    "Whether a user holds a relation on a worker, a repository or a tool capability.",
-    params: vec![],
-    body: Some(json!(generator.subschema_for::<ObjectCheckAsk>())),
-    answers: vec![(200, json_answer::<CheckAnswer>(&mut generator))],
-    codes: vec!["bad-request", "unauthorized", "not-in-force", "database", "failed"],
-    refusal: Refusal::Wire,
-    security: bearer()
-  );
-  add!(
-    "POST",
     "/checks/unit",
     "checkUnit",
     "Checks",

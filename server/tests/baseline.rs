@@ -204,33 +204,33 @@ async fn the_room_relations_removal_takes_what_room_grants_held_and_its_way_down
   record_table(&baseline.db).await;
 
   // What a release keeping room grants left: the room kind's projection, a grant to a user and one to the room's
-  // members with the words beside them, and a worker's grant, which stays.
+  // members with the words beside them, and a section's grant, which stays.
   blank
     .db
     .execute_unprepared(
       r#"INSERT INTO "relation_definitions" ("resource_type", "relation", "kind", "subject_types") VALUES
            ('bmo_room', 'ask', 'stored', '{user,bmo_member}'), ('bmo_room', 'rule', 'stored', '{user}'),
-           ('bmo_worker', 'run', 'stored', '{user}');
+           ('bmo_section', 'read', 'stored', '{user}');
          INSERT INTO "permission_definitions" ("resource_type", "permission", "rewrite") VALUES
            ('bmo_room', 'may_ask', '{}');
          INSERT INTO "relation_tuples"
            ("resource_type", "resource_id", "relation", "subject_type", "subject_id", "subject_relation") VALUES
            ('bmo_room', '-100', 'ask', 'user', '1', ''), ('bmo_room', '-100', 'ask', 'bmo_member', '-100', ''),
-           ('bmo_room', '-100', 'rule', 'user', '2', ''), ('bmo_worker', 'worker-a', 'run', 'user', '1', '');
+           ('bmo_room', '-100', 'rule', 'user', '2', ''), ('bmo_section', 'notes', 'read', 'user', '1', '');
          INSERT INTO "grant_words" ("resource_type", "resource_id", "relation", "subject_key", "words", "written_at")
            VALUES ('bmo_room', '-100', 'rule', 'user:2', 'may have their own items approved', 1);"#,
     )
     .await
     .unwrap();
 
-  Migrator::up(&blank.db, None).await.unwrap();
+  Migrator::up(&blank.db, Some(1)).await.unwrap();
 
   let tuples = r#"SELECT COUNT(*) FROM "relation_tuples""#;
 
   assert_eq!(count(&blank.db, &format!(r#"{tuples} WHERE "resource_type" = 'bmo_room'"#)).await, "0");
   assert_eq!(count(&blank.db, &format!(r#"{tuples} WHERE "subject_type" = 'bmo_member'"#)).await, "0");
   assert_eq!(
-    count(&blank.db, &format!(r#"{tuples} WHERE "resource_type" = 'bmo_worker'"#)).await,
+    count(&blank.db, &format!(r#"{tuples} WHERE "resource_type" = 'bmo_section'"#)).await,
     "1"
   );
   for projection in ["relation_definitions", "permission_definitions"] {
@@ -270,4 +270,67 @@ async fn the_room_relations_removal_takes_what_room_grants_held_and_its_way_down
     .await
     .expect("the rules stand");
   assert_eq!(count(&blank.db, room_relations).await, "0");
+}
+
+#[tokio::test]
+async fn the_object_kinds_removal_takes_what_agent_objects_held_and_its_way_down_gives_their_relations_back()
+ {
+  ready();
+  let blank = Blank::new().await;
+
+  Migrator::up(&blank.db, Some(2)).await.unwrap();
+
+  // What a release declaring the agent object kinds left: their projection and a grant on each, and a section's
+  // grant, which stays.
+  blank
+    .db
+    .execute_unprepared(
+      r#"INSERT INTO "relation_definitions" ("resource_type", "relation", "kind", "subject_types") VALUES
+           ('bmo_worker', 'run', 'stored', '{user}'), ('bmo_repository', 'change', 'stored', '{user}'),
+           ('bmo_tools', 'use', 'stored', '{user}'), ('bmo_section', 'read', 'stored', '{user}');
+         INSERT INTO "permission_definitions" ("resource_type", "permission", "rewrite") VALUES
+           ('bmo_worker', 'may_run', '{}'), ('bmo_tools', 'may_use', '{}');
+         INSERT INTO "relation_tuples"
+           ("resource_type", "resource_id", "relation", "subject_type", "subject_id", "subject_relation") VALUES
+           ('bmo_worker', 'worker-a', 'run', 'user', '1', ''), ('bmo_repository', 'repo-a', 'change', 'user', '1', ''),
+           ('bmo_tools', 'room.tools', 'use', 'user', '1', ''), ('bmo_section', 'notes', 'read', 'user', '1', '');"#,
+    )
+    .await
+    .unwrap();
+
+  Migrator::up(&blank.db, None).await.unwrap();
+
+  let kinds = r#""resource_type" IN ('bmo_worker', 'bmo_repository', 'bmo_tools')"#;
+  let tuples = r#"SELECT COUNT(*) FROM "relation_tuples""#;
+
+  assert_eq!(count(&blank.db, &format!("{tuples} WHERE {kinds}")).await, "0");
+  assert_eq!(
+    count(&blank.db, &format!(r#"{tuples} WHERE "resource_type" = 'bmo_section'"#)).await,
+    "1"
+  );
+  for projection in ["relation_definitions", "permission_definitions"] {
+    assert_eq!(
+      count(&blank.db, &format!(r#"SELECT COUNT(*) FROM "{projection}" WHERE {kinds}"#)).await,
+      "0",
+      "{projection}"
+    );
+  }
+
+  // The service stands on it, the rules it runs declaring none of the kinds.
+  stand(blank.db.clone(), Arc::new(Leaders::default()), names())
+    .await
+    .expect("the rules stand");
+
+  // Taken down, the four relations stand again, holding no tuple; the service's start then drops them.
+  Migrator::down(&blank.db, Some(1)).await.unwrap();
+
+  let relations = format!(r#"SELECT COUNT(*) FROM "relation_definitions" WHERE {kinds}"#);
+
+  assert_eq!(count(&blank.db, &relations).await, "4");
+  assert_eq!(count(&blank.db, &format!("{tuples} WHERE {kinds}")).await, "0");
+
+  stand(blank.db.clone(), Arc::new(Leaders::default()), names())
+    .await
+    .expect("the rules stand");
+  assert_eq!(count(&blank.db, &relations).await, "0");
 }

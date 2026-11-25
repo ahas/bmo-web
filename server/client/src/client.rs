@@ -306,11 +306,6 @@ impl AccountClient {
     .await
   }
 
-  /// `POST /checks/object`.
-  pub async fn check_object(&self, ask: &ObjectCheckAsk) -> Answer<CheckAnswer> {
-    Self::answered(self.send(Method::POST, &["checks", "object"], ask)).await
-  }
-
   /// `POST /checks/unit`.
   pub async fn check_unit(&self, ask: &UnitCheckAsk) -> Answer<CheckAnswer> {
     Self::answered(self.send(Method::POST, &["checks", "unit"], ask)).await

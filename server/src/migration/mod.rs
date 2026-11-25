@@ -10,6 +10,7 @@ use sea_orm_migration::sea_orm::{
 
 pub mod m20261201_000001_baseline;
 pub mod m20261201_000002_no_room_grants;
+pub mod m20261201_000003_no_object_kinds;
 mod secret_kind_seeds;
 
 /// The table the migrator keeps its record in, which is no part of the service's shape.
@@ -19,8 +20,10 @@ pub const MIGRATIONS_TABLE: &str = "seaql_migrations";
 pub const BASELINE: &str = m20261201_000001_baseline::NAME;
 
 /// The migrations after the baseline, in the order they run, each with its way up as SQL.
-pub const LATER: [(&str, &str); 1] =
-  [(m20261201_000002_no_room_grants::NAME, m20261201_000002_no_room_grants::UP)];
+pub const LATER: [(&str, &str); 2] = [
+  (m20261201_000002_no_room_grants::NAME, m20261201_000002_no_room_grants::UP),
+  (m20261201_000003_no_object_kinds::NAME, m20261201_000003_no_object_kinds::UP),
+];
 
 /// The record an install from before 1.0.0 holds once every migration of its last release ran, sumida's among
 /// them, in the order that release ran them. Its schema is the baseline's.
@@ -66,6 +69,7 @@ impl MigratorTrait for Migrator {
     vec![
       Box::new(m20261201_000001_baseline::Migration),
       Box::new(m20261201_000002_no_room_grants::Migration),
+      Box::new(m20261201_000003_no_object_kinds::Migration),
     ]
   }
 }

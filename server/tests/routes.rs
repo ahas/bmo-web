@@ -102,7 +102,6 @@ async fn the_health_answers_without_a_token_and_every_other_route_refuses_withou
     (Method::GET, "/accounts/model"),
     (Method::POST, "/accounts/move"),
     (Method::GET, "/senders/42/user"),
-    (Method::POST, "/checks/object"),
     (Method::POST, "/checks/entry"),
     (Method::GET, "/users/1/secrets"),
     (Method::PUT, "/users/1/secrets/a-name"),
@@ -133,9 +132,7 @@ async fn the_model_stands_once_the_move_is_written_and_nothing_needing_it_answer
   assert_eq!(said["inForce"], false);
   assert!(said["why"].is_string(), "{said}");
 
-  let check =
-    |user: &str| json!({ "kind": "bmo_worker", "object": "worker", "relation": "run", "user": user });
-  let (status, said) = ask(&app, Method::POST, "/checks/object", Some(check("1"))).await;
+  let (status, said) = ask(&app, Method::GET, "/senders/42/user", None).await;
 
   assert_eq!(status, StatusCode::SERVICE_UNAVAILABLE);
   assert_eq!(said["code"], "not-in-force", "{said}");
@@ -153,9 +150,7 @@ async fn the_model_stands_once_the_move_is_written_and_nothing_needing_it_answer
 
   assert_eq!(again["written"], false);
 
-  let user = owner_user(&app).await;
-
-  assert_eq!(ask(&app, Method::POST, "/checks/object", Some(check(&user))).await.0, StatusCode::OK);
+  assert_eq!(ask(&app, Method::GET, "/senders/9999/user", None).await.0, StatusCode::NOT_FOUND);
 }
 
 #[tokio::test]
@@ -270,44 +265,13 @@ async fn a_password_changes_on_the_current_one_and_a_name_another_user_holds_is_
 }
 
 #[tokio::test]
-async fn the_object_check_answers_for_a_kind_of_the_rules_and_refuses_a_room() {
+async fn no_route_checks_a_room_an_agent_object_or_a_grant() {
   ready();
   let scratch = moved().await;
   let app = app(&scratch).await;
-  let user = owner_user(&app).await;
-  let (status, said) = ask(
-    &app,
-    Method::POST,
-    "/checks/object",
-    Some(json!({ "kind": "bmo_worker", "object": "worker", "relation": "run", "user": user })),
-  )
-  .await;
-
-  assert_eq!(status, StatusCode::OK, "{said}");
-  assert_eq!(said, json!({ "allowed": true, "grant": "bmo_worker:worker#run" }));
-
-  let (status, said) = ask(
-    &app,
-    Method::POST,
-    "/checks/object",
-    Some(json!({ "kind": "bmo_worker", "object": "worker", "relation": "fly", "user": user })),
-  )
-  .await;
-
-  assert_eq!(status, StatusCode::BAD_REQUEST, "a relation the rules do not declare: {said}");
-
-  // A room is no kind of the rules, so nothing is checked on it.
-  let (status, said) = ask(
-    &app,
-    Method::POST,
-    "/checks/object",
-    Some(json!({ "kind": "bmo_room", "object": ROOM.to_string(), "relation": "ask", "user": user })),
-  )
-  .await;
-
-  assert_eq!(status, StatusCode::BAD_REQUEST, "{said}");
 
   for (method, path) in [
+    (Method::POST, "/checks/object"),
     (Method::POST, "/checks/room"),
     (Method::POST, "/checks/message"),
     (Method::GET, "/grants?room=-100"),
@@ -357,7 +321,7 @@ async fn a_body_that_does_not_read_is_refused_naming_why() {
   ready();
   let scratch = moved().await;
   let app = app(&scratch).await;
-  let (status, said) = ask(&app, Method::POST, "/checks/object", Some(json!({ "kind": 7 }))).await;
+  let (status, said) = ask(&app, Method::POST, "/checks/unit", Some(json!({ "unit": "seven" }))).await;
 
   assert_eq!(status, StatusCode::BAD_REQUEST);
   assert_eq!(said["code"], "bad-request");

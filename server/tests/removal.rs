@@ -200,7 +200,7 @@ impl World {
     db.run(
       r#"INSERT INTO "relation_tuples"
            ("resource_type", "resource_id", "relation", "subject_type", "subject_id", "subject_relation")
-         VALUES ('bmo_worker', 'worker-a', 'run', 'user', $1, '')"#,
+         VALUES ('bmo_section', 'notes', 'read', 'user', $1, '')"#,
       vec![user.to_string().into()],
     )
     .await;

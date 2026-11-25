@@ -291,17 +291,14 @@ types; `server/client/` is the Rust crate the server answers with and that docum
 
 | Route | Request | Answer |
 |---|---|---|
-| `POST /checks/object` | `kind`, `object`, `relation`, `user` | `allowed`, `grant` |
 | `POST /checks/unit` | `unit`, `user` | `allowed`: whether the user heads the unit or a unit above it, `grant` (`organization:<unit>#manage`); 404 where there is no such unit |
 | `POST /checks/org-memory` | `unit`, `user` | `allowed`: whether the user writes the unit's org memory, heading the unit or a unit above it or holding the unit's org memory write, `grant` (`bmo_org_memory:<unit>#may_write`), `user`; 404 where there is no such unit or user |
 | `POST /checks/entry` | `room`, `actor` (the user acting), `user` (the user let in or taken out) | `allowed`: whether the actor may let the user into the room, `grant` (`bmo_room:<room>#entry`), `user`; 404 where there is no such user |
 
 - **`grant`** is what was asked for, `kind:object#relation`, as a caller names it when it says what a user lacks;
   the entry check's names the decision alone, since the rules declare no kind for a room.
-- **No check answers for a room's relation:** what a room's members may have the chat agent do is no grant of the
-  server's (`docs/accounts.md`, 「What it is」).
-- **An object's `kind`** is one the server's rules declare: `bmo_worker` (relation `run`), `bmo_repository`
-  (relation `change`) or `bmo_tools`. A kind or a relation the rules do not declare is refused 400.
+- **No check answers for a room's relation or for what an agent may do:** neither is a grant of the server's
+  (`docs/accounts.md`, 「What it is」).
 - **An entry check** reads the room's leaders from the receiver (「Calls the server makes」): the actor may where they
   are the administrator, a leader of the room or a head of a leader's unit, and the user stands in the room's
   company, its leaders' — or, for a room with no leader, the actor's, but for the administrator; a receiver that

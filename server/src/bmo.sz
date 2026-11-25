@@ -1,7 +1,8 @@
 // The deployment's rules, registered with sumida's at the account service's start (docs/accounts.md).
 // sumida's own file holds the platform, users, roles and organizations; this one holds what a grant of the
-// deployment's can name. Every object is named by a string, so none has a table. A room is no kind here: what a
-// room's members may have the chat agent do is the owner's room rules in the agent's brain.
+// deployment's can name: people's console permissions. Every object is named by a string, so none has a table. A
+// room, a worker, a repository and a tool are no kind here: what a room's members may have the chat agent do is
+// the owner's room rules in the agent's brain, and what an agent may do stands in its prompts and its brain.
 //
 // Every permission ends in `platform:root->superuser`: the platform administrator passes every check, and
 // only the administrator grants.
@@ -16,33 +17,6 @@ definition bmo_section {
   permission may_read  = read | write | platform:root->superuser
   permission may_write = write | platform:root->superuser
   permission grant     = platform:root->superuser
-}
-
-// A worker, by name: whether a user's jobs may run on it.
-definition bmo_worker {
-  relation run: user
-
-  permission may_run = run | platform:root->superuser
-  permission grant   = platform:root->superuser
-}
-
-// A code repository, by the name of the worker that keeps it: whether a user's jobs may change it, and
-// whether the user may have it put live.
-definition bmo_repository {
-  relation change: user
-  relation deploy: user
-
-  permission may_change = change | platform:root->superuser
-  permission may_deploy = deploy | platform:root->superuser
-  permission grant      = platform:root->superuser
-}
-
-// A tool capability, by the name tools declare it under: whether such tools may act for a user.
-definition bmo_tools {
-  relation use: user
-
-  permission may_use = use | platform:root->superuser
-  permission grant   = platform:root->superuser
 }
 
 // A unit's org memory, by the unit's id (docs/accounts.md, 「A unit's org memory」): whether a user writes the memory

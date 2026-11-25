@@ -13,10 +13,10 @@ use axum::response::{IntoResponse, Response};
 use axum::routing::{get, post};
 use axum::{Json, Router};
 use bmo_web_client::{
-  CheckAnswer as WireCheck, Health as WireHealth, ModelState as WireModel, Moved as WireMoved,
-  PhoneAdopted as WireAdopted, PhoneHolder as WireHolder, PhoneMade as WireMade, Rendered as WireRendered,
-  SenderLink as WireSenderLink, SenderLinks as WireSenderLinks, SenderUser as WireSenderUser,
-  Senders as WireSenders, SendersAsk, UserView as WireUser,
+  Health as WireHealth, ModelState as WireModel, Moved as WireMoved, PhoneAdopted as WireAdopted,
+  PhoneHolder as WireHolder, PhoneMade as WireMade, Rendered as WireRendered, SenderLink as WireSenderLink,
+  SenderLinks as WireSenderLinks, SenderUser as WireSenderUser, Senders as WireSenders, SendersAsk,
+  UserView as WireUser,
 };
 use sea_orm::DatabaseConnection;
 use serde::Deserialize;
@@ -25,7 +25,6 @@ use serde_json::{Map, Value};
 use sumida::api::Sumida;
 use sumida::api::authz::Authz;
 
-use crate::checks::check_object;
 use crate::data_move::{MoveAsk, moved, run_move};
 use crate::ids::{parsed, shown};
 use crate::receiver::Receiver;
@@ -228,7 +227,6 @@ fn own() -> Router<Service> {
     .route("/users/{user}/senders/{sender}", axum::routing::put(link_route))
     .route("/users/{user}/password", post(password_route))
     .route("/users/{user}/name", post(name_route))
-    .route("/checks/object", post(object_check))
     .route("/phones", post(phone_make))
     .route("/phones/adopt", post(phone_adopt))
     .route("/phones/who", post(phone_who))
@@ -439,25 +437,6 @@ async fn name_route(
   crate::users::rename(&service.db, user_in(&user)?, &ask.name).await?;
 
   Ok(StatusCode::NO_CONTENT)
-}
-
-#[derive(Deserialize)]
-struct ObjectAsk {
-  kind: String,
-  object: String,
-  relation: String,
-  #[serde(deserialize_with = "crate::ids::user")]
-  user: i32,
-}
-
-async fn object_check(State(service): State<Service>, Body(ask): Body<ObjectAsk>) -> Answer<WireCheck> {
-  let answer = check_object(&service.db, &ask.kind, &ask.object, &ask.relation, ask.user).await?;
-
-  Ok(Json(WireCheck {
-    allowed: answer.allowed,
-    grant: answer.grant,
-    user: None,
-  }))
 }
 
 #[derive(Deserialize)]

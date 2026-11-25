@@ -7,8 +7,10 @@
 - **It holds the decisions, never the policy of a screen or a room.** Who a session is, who a phone key
   belongs to, whether a user may let a person into a room: the service answers. What a screen shows and what
   a unit does with a refusal are the console's and that unit's.
-- **It keeps no permission on what a room's members may have the chat agent do.** A group room's delegated
-  permissions are the owner's room rules in the chat agent's brain, which this service neither holds nor reads.
+- **It keeps no permission on what a room's members may have the chat agent do, nor on what a BMO may do.** A
+  group room's delegated permissions are the owner's room rules in the chat agent's brain, and the rest of what an
+  agent may do stands in its prompts and its brain; this service neither holds nor reads either. Its grants are
+  people's console permissions: sections, org memory writes, units and the platform.
 - **It stands on its own PostgreSQL database** and on a Valkey for sumida's sessions. Its tables are its own:
   sumida's and the service's, all made by the service's migrations (「The tables」 below). No other unit's table is
   read or written.
@@ -93,8 +95,6 @@ section states what each does.
 
 ### Checks
 
-- **`POST /checks/object`** — a kind (`bmo_worker`, `bmo_repository`, `bmo_tools`), an object, a relation and a
-  user. Answers whether the user holds it, and the grant asked for.
 - **`POST /checks/entry`** — a room, the user acting and the user to let in or take out. Answers whether the one
   acting may let that person into the room (「A room's callers」), the decision asked for named as
   `bmo_room:<chat id>#entry`, and the person it was asked for. The name is a label alone: the deployment's rules
@@ -1704,6 +1704,11 @@ under its token; the console is the one caller, and a browser reaches none of th
   `grant_words`. Its way down makes `grant_words` again, empty, and the room kind's fifteen relations in
   `relation_definitions`, holding no tuple. The service's start writes the projection from the rules it runs, so a
   release declaring no room kind drops those rows again, and one declaring it writes its permissions back.
+- **`m20261201_000003_no_object_kinds` takes the agent object kinds away.** Its way up deletes every relation tuple
+  on a worker (`bmo_worker`), a repository (`bmo_repository`) or a tool capability (`bmo_tools`) and those kinds'
+  rows of the rules' projection, `relation_definitions` and `permission_definitions`. Its way down makes their
+  four relations again in `relation_definitions`, holding no tuple; the service's start treats them as it treats
+  the room kind's.
 
 Beside sumida's own, the schema holds:
 
@@ -1768,6 +1773,10 @@ Beside sumida's own, the schema holds:
   grant and a grant's words, run the migration after it, and find every room tuple, the room kind's projection and
   `grant_words` gone and every other tuple standing; its way down makes `grant_words` empty again with the room
   kind's fifteen relations; and the service stands on the database either way.
+- **The object kinds' removal tests** stand a database at the room relations' removal holding a worker grant, run
+  the migration after it, and find every worker, repository and tool tuple and those kinds' projection gone and
+  every other tuple standing; its way down makes their four relations again; and the service stands on the database
+  either way.
 - **The section tests** stand a user made, read the defaults they are given, have an administrator write one
   person's read and write, and ask the check for a permitted and a refused relation; a user other than the
   administrator is refused the write and the users list.

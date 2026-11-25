@@ -8,9 +8,11 @@ use axum::body::Body;
 use axum::http::{Method, Request, StatusCode, header};
 use bmo_web_server::data_move::{MoveAsk, run_move};
 use bmo_web_server::routes::in_force;
-use bmo_web_server::users::set_sign_in;
+use bmo_web_server::users::{set_sign_in, user_subject};
 use http_body_util::BodyExt;
+use sea_orm::DatabaseConnection;
 use serde_json::{Value, json};
+use sumida::api::authz::Authz;
 use tower::ServiceExt;
 
 const TOKEN: &str = "the server's token";
@@ -110,20 +112,14 @@ fn section<'a>(said: &'a Value, name: &str) -> &'a Value {
     .unwrap_or_else(|| panic!("{name} stands among {said}"))
 }
 
-async fn check(app: &Router, user: &str, relation: &str, section: &str) -> bool {
-  let (status, said) = asked(
-    app,
-    Method::POST,
-    "/checks/object",
-    Some(json!({ "kind": "bmo_section", "object": section, "relation": relation, "user": user })),
-    None,
-    None,
-  )
-  .await;
+// Whether the user holds the relation on the section, as sumida's point check answers it over the rules; a section
+// no longer listed, such as one moved to its parts, is checked as any other.
+async fn check(db: &DatabaseConnection, user: &str, relation: &str, section: &str) -> bool {
+  let subject = user_subject(db, user.parse().unwrap()).await.unwrap();
 
-  assert_eq!(status, StatusCode::OK, "{said}");
-
-  said["allowed"].as_bool().unwrap()
+  Authz::check("bmo_section", section, &format!("may_{relation}"), &subject, db)
+    .await
+    .unwrap()
 }
 
 #[tokio::test]
@@ -156,9 +152,9 @@ async fn a_user_made_is_given_the_defaults_in_force() {
     assert_eq!(section(&said, part)["write"], false, "{said}");
   }
 
-  assert!(check(&app, &user, "read", "rooms").await);
-  assert!(check(&app, &user, "write", "rooms").await);
-  assert!(!check(&app, &user, "read", "live").await);
+  assert!(check(scratch.db(), &user, "read", "rooms").await);
+  assert!(check(scratch.db(), &user, "write", "rooms").await);
+  assert!(!check(scratch.db(), &user, "read", "live").await);
 }
 
 #[tokio::test]
@@ -190,11 +186,11 @@ async fn an_administrator_sets_one_person_s_read_and_write_and_the_checks_follow
   assert_eq!(section(&said, "rooms")["write"], false, "{said}");
 
   // The permitted read and the permitted write.
-  assert!(check(&app, &user, "read", "live").await);
-  assert!(check(&app, &user, "write", "live").await);
-  assert!(check(&app, &user, "read", "rooms").await);
+  assert!(check(scratch.db(), &user, "read", "live").await);
+  assert!(check(scratch.db(), &user, "write", "live").await);
+  assert!(check(scratch.db(), &user, "read", "rooms").await);
   // The refused write.
-  assert!(!check(&app, &user, "write", "rooms").await);
+  assert!(!check(scratch.db(), &user, "write", "rooms").await);
 
   // A section written without a write is a read alone, and a section named no more is taken away.
   let (status, said) = asked(
@@ -209,7 +205,7 @@ async fn an_administrator_sets_one_person_s_read_and_write_and_the_checks_follow
 
   assert_eq!(status, StatusCode::OK, "{said}");
   assert_eq!(section(&said, "live")["read"], false, "{said}");
-  assert!(!check(&app, &user, "read", "live").await);
+  assert!(!check(scratch.db(), &user, "read", "live").await);
 
   // A write is also a read.
   let (status, said) = asked(
@@ -252,15 +248,15 @@ async fn agent_management_s_five_parts_are_set_and_checked_apart() {
   assert_eq!(status, StatusCode::OK, "{said}");
 
   // The permitted read on the supervisors, and the refused write on them.
-  assert!(check(&app, &user, "read", "supervisors").await);
-  assert!(!check(&app, &user, "write", "supervisors").await);
+  assert!(check(scratch.db(), &user, "read", "supervisors").await);
+  assert!(!check(scratch.db(), &user, "write", "supervisors").await);
   // The permitted write on the roles, which is a read as well.
-  assert!(check(&app, &user, "read", "roles").await);
-  assert!(check(&app, &user, "write", "roles").await);
+  assert!(check(scratch.db(), &user, "read", "roles").await);
+  assert!(check(scratch.db(), &user, "write", "roles").await);
   // The other parts stand closed.
   for part in ["repositories", "models", "model-files"] {
-    assert!(!check(&app, &user, "read", part).await, "{part}");
-    assert!(!check(&app, &user, "write", part).await, "{part}");
+    assert!(!check(scratch.db(), &user, "read", part).await, "{part}");
+    assert!(!check(scratch.db(), &user, "write", part).await, "{part}");
   }
 }
 
@@ -285,7 +281,7 @@ async fn an_old_agent_management_grant_is_moved_to_the_five_parts() {
   .await;
 
   assert_eq!(status, StatusCode::OK, "{said}");
-  assert!(check(&app, &user, "read", "agents").await);
+  assert!(check(scratch.db(), &user, "read", "agents").await);
 
   // The move runs once, as a deployment starts; it is run here against the grant written above.
   scratch
@@ -294,14 +290,14 @@ async fn an_old_agent_management_grant_is_moved_to_the_five_parts() {
   bmo_web_server::sections::split_agents(scratch.db()).await.unwrap();
 
   for part in ["supervisors", "roles", "repositories", "models", "model-files"] {
-    assert!(check(&app, &user, "read", part).await, "{part}");
-    assert!(!check(&app, &user, "write", part).await, "{part}");
+    assert!(check(scratch.db(), &user, "read", part).await, "{part}");
+    assert!(!check(scratch.db(), &user, "write", part).await, "{part}");
   }
 
   // The old section is gone, and the marker keeps the move from running again.
-  assert!(!check(&app, &user, "read", "agents").await);
+  assert!(!check(scratch.db(), &user, "read", "agents").await);
   bmo_web_server::sections::split_agents(scratch.db()).await.unwrap();
-  assert!(check(&app, &user, "read", "supervisors").await);
+  assert!(check(scratch.db(), &user, "read", "supervisors").await);
 }
 
 #[tokio::test]
@@ -341,7 +337,7 @@ async fn a_user_given_the_earlier_defaults_is_given_the_rooms_write_once() {
   .await;
 
   assert_eq!(status, StatusCode::OK, "{said}");
-  assert!(!check(&app, &earlier, "write", "rooms").await);
+  assert!(!check(scratch.db(), &earlier, "write", "rooms").await);
 
   scratch
     .run(
@@ -351,8 +347,11 @@ async fn a_user_given_the_earlier_defaults_is_given_the_rooms_write_once() {
     .await;
   bmo_web_server::sections::backfill_rooms_write(scratch.db()).await.unwrap();
 
-  assert!(check(&app, &earlier, "write", "rooms").await);
-  assert!(!check(&app, &set, "write", "rooms").await, "what an administrator set stays as set");
+  assert!(check(scratch.db(), &earlier, "write", "rooms").await);
+  assert!(
+    !check(scratch.db(), &set, "write", "rooms").await,
+    "what an administrator set stays as set"
+  );
 
   // The mark keeps it from running again: a write taken away afterwards stays away.
   scratch
@@ -363,7 +362,7 @@ async fn a_user_given_the_earlier_defaults_is_given_the_rooms_write_once() {
     )
     .await;
   bmo_web_server::sections::backfill_rooms_write(scratch.db()).await.unwrap();
-  assert!(!check(&app, &earlier, "write", "rooms").await);
+  assert!(!check(scratch.db(), &earlier, "write", "rooms").await);
 }
 
 #[tokio::test]
@@ -419,8 +418,8 @@ async fn the_administrator_passes_every_section() {
   let boss = owner(&app).await;
 
   for section in bmo_web_server::sections::SECTIONS {
-    assert!(check(&app, &boss, "read", section).await, "{section}");
-    assert!(check(&app, &boss, "write", section).await, "{section}");
+    assert!(check(scratch.db(), &boss, "read", section).await, "{section}");
+    assert!(check(scratch.db(), &boss, "write", section).await, "{section}");
   }
 }
 
@@ -589,7 +588,7 @@ async fn a_head_gives_their_people_only_the_sections_they_hold() {
     .await;
 
     assert_eq!(status, StatusCode::FORBIDDEN, "{asked_for} {said}");
-    assert!(!check(&app, &member, "read", "monitor").await);
+    assert!(!check(scratch.db(), &member, "read", "monitor").await);
   }
 
   // Nor does a head write a person outside the units they head, or their own set.

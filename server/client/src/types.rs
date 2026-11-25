@@ -612,15 +612,6 @@ pub struct NameAsk {
   pub name: String,
 }
 
-/// A relation asked of a user on an object of the rules.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
-pub struct ObjectCheckAsk {
-  pub kind: String,
-  pub object: String,
-  pub relation: String,
-  pub user: String,
-}
-
 /// Whether a user heads a unit, asked.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct UnitCheckAsk {

@@ -4,10 +4,14 @@ import type { Translate } from "./wording";
 // pack's own words for it. The receiver's label for a road is its own English and is never shown; a road the pack
 // holds no words for is called by the pack's word for a messenger, its key beside it so two such roads stay apart.
 
+// The key the receiver names the road it keeps itself by: the record the console reads a room off, which every room
+// stands on and no chat service is.
+export const RECORD_ROAD = "record";
+
 // The pack's words for each road the receiver declares, by the road's key: the receiver's own record and every chat
 // service its configuration may name a road for.
 export const ROAD_NAMES: Readonly<Record<string, string>> = {
-  record: "room.label.road_record",
+  [RECORD_ROAD]: "room.label.road_record",
   telegram: "room.label.road_telegram",
   kakao: "room.label.road_kakao",
   teams: "room.label.road_teams",

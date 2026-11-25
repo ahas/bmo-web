@@ -1,7 +1,7 @@
 <template>
-  <!-- The reader's own BMO beside a group room (docs/web.md, the room screen's overlay): the person's private
-       conversation with their own supervisor, opened over the group room without leaving it. What is said here
-       stands in that private room alone, so it never reaches the group room or its minutes. -->
+  <!-- The reader's own BMO beside the room (docs/web.md, the room screen's overlay): the person's private
+       conversation with their own supervisor, opened over the room without leaving it. What is said here
+       stands in that private room alone, so it never reaches the room or its minutes. -->
   <USlideover v-model:open="open" :title="overlay?.label ?? $t('overlay.title.panel')" :description="props.title">
     <template #body>
       <div class="flex h-full min-h-0 flex-col gap-3">

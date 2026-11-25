@@ -16,6 +16,8 @@ const COLLEAGUE = 4;
 const OUTSIDER = 6;
 const PRIVATE = -50;
 const GROUP = -51;
+// A room a chat service carries, which the receiver answers on that service's road beside its own record.
+const CHAT = -52;
 
 // The receiver's members by account, as the stand-in keeps them.
 const members = new Map<number, Set<string>>([[GROUP, new Set([String(INVITED)])]]);
@@ -30,7 +32,14 @@ const receiver = standIn("RECEIVER", (one) => {
   }
   if (account !== null && one.method === "PUT" && typeof one.body?.by !== "number") return answer({ code: "bad-request", error: "by is a number." }, 400);
   // The room list says whose private room each room is; the invited account's BMO answers both rooms.
-  if (path === "/rooms") return answer({ items: [GROUP, PRIVATE].map((id) => ({ id, title: null, privateOf: id === PRIVATE ? INVITED : null })), more: false });
+  if (path === "/rooms") return answer({ items: [GROUP, CHAT, PRIVATE].map((id) => ({ id, title: null, privateOf: id === PRIVATE ? INVITED : null })), more: false });
+  // Which chat roads carry a room: the console's own room stands on the record alone, the other on a messenger's
+  // beside it. (The receiver's `docs/api.md`, 「Rooms」.)
+  if (/^\/rooms\/(-?\d+)\/providers$/.test(path)) {
+    const room = Number(/^-?\d+$/.exec(path.split("/")[2] ?? "")?.[0]);
+
+    return answer({ providers: room === CHAT ? ["record", "telegram"] : ["record"], chosen: false, fileLimit: null });
+  }
   if (path === `/supervisors/u${INVITED}/rooms`) return answer({ items: [GROUP, PRIVATE].map((id) => ({ id, title: null, named: true, alone: true })), more: false });
   if (account !== null && one.method === "PUT") {
     members.get(Number(account[1]))?.add(account[2]!);
@@ -40,8 +49,8 @@ const receiver = standIn("RECEIVER", (one) => {
     members.get(Number(account[1]))?.delete(account[2]!);
     return new Response(null, { status: 204 });
   }
-  // The account's memberships, its own BMO's private room among them.
-  if (path === `/accounts/${INVITED}/rooms`) return answer({ rooms: [GROUP, PRIVATE] });
+  // The account's memberships, its own BMO's private room and the messenger's room among them.
+  if (path === `/accounts/${INVITED}/rooms`) return answer({ rooms: [GROUP, CHAT, PRIVATE] });
   // Whose private room each room is, as the receiver says it: the private room is the invited account's.
   if (/^\/rooms\/-?\d+$/.test(path)) {
     const room = Number(path.split("/")[2]);
@@ -59,7 +68,7 @@ const receiver = standIn("RECEIVER", (one) => {
 });
 
 // The invited account owns the BMO `u3`; the account `5` owns none.
-standIn("AGENCY", () => answer({ items: [{ name: `u${INVITED}`, label: "invited's BMO", ownerAccount: INVITED }] }));
+const agency = standIn("AGENCY", () => answer({ items: [{ name: `u${INVITED}`, label: "invited's BMO", ownerAccount: INVITED }] }));
 
 // The colleague stands in the invited account's company, the outsider in another.
 const accounts = standIn("WEB_SERVER", (one) => {
@@ -157,8 +166,20 @@ describe("an account with no chat service's identity", () => {
   test("has its own BMO beside the group room, over the room the receiver names its private room", async () => {
     signedAs(INVITED);
 
-    expect((await asked(overlay, { params: { chatId: String(GROUP) } })).answer).toEqual({ supervisor: `u${INVITED}`, label: "invited's BMO", room: PRIVATE });
-    // Its own private room has no overlay of itself.
-    expect((await asked(overlay, { params: { chatId: String(PRIVATE) } })).answer).toEqual({ supervisor: `u${INVITED}`, label: "invited's BMO", room: null });
+    // The room the console carries by itself carries the entry, and opens the conversation with its own BMO.
+    expect((await asked(overlay, { params: { chatId: String(GROUP) } })).answer).toEqual({ stands: true, supervisor: `u${INVITED}`, label: "invited's BMO", room: PRIVATE });
+  });
+
+  test("holds the entry away from a messenger's room and from every private room, answering nothing of either", async () => {
+    signedAs(INVITED);
+    agency.asked.length = 0;
+    const away = { stands: false, supervisor: null, label: null, room: null };
+
+    // A room a chat service carries: the reader's BMO answers none of its people there.
+    expect((await asked(overlay, { params: { chatId: String(CHAT) } })).answer).toEqual(away);
+    // The reader's own room with their BMO: the conversation would be the room they already stand in.
+    expect((await asked(overlay, { params: { chatId: String(PRIVATE) } })).answer).toEqual(away);
+    // Neither read asks the agency whose supervisors the account owns, since no room holds the entry to open.
+    expect(agency.asked.filter((one) => one.path === "/supervisors")).toEqual([]);
   });
 });

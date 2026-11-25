@@ -60,6 +60,9 @@ const ACCOUNTS: readonly [string, string][] = [
   ["room-members", "fixture-password-2995"],
   ["room-info", "fixture-password-3755"],
   ["agent-room", "fixture-password-3961"],
+  // The reader whose own BMO's private room the stand-in names, for the room screen's overlay entry
+  // (tests/browser/room-overlay.test.ts).
+  ["room-overlay", "fixture-password-5317"],
   ["agents-listed", "fixture-password-2255"],
   ["briefing-chip", "fixture-password-2256"],
   ["bundle-bar", "fixture-password-2258"],
@@ -486,6 +489,10 @@ const PAGED_LINE = Array.from({ length: 70 }, (_, at) => String(at + 1));
 // room, is refused 403 `private-room`, as the receiver refuses it.
 const PRIVATE_CHAT = -9_003_000_000_001;
 const PRIVATE_ACCOUNT = 9_003_001;
+// The private room of the fixture account `room-overlay` itself, with its own BMO: on the record alone, and the
+// reader's own (tests/browser/room-overlay.test.ts). Its account's number stands only once the users are made.
+const OVERLAY_CHAT = -9_003_000_000_002;
+let overlayAccount: number | null = null;
 // A room only the presence fixture's people stand in, whose presence the receiver's stand-in tells as its stream opens:
 // each of the three online, written once their accounts stand. No fixture account shares the room with them.
 const PRESENCE_CHAT = -9_004_000_000_001;
@@ -499,7 +506,7 @@ const PRESENCE_PEOPLE = ["presence-here", "presence-hidden", "presence-other"] a
 const presence = { frames: "" };
 // Every fixture room stands under a number of its own: the receiver's stand-in answers a room's reads by its number, so
 // two rooms on one number would hand one of them the other's line. The harness refuses to stand where two share one.
-const FIXTURE_ROOMS: Record<string, number> = { OWNER_CHAT, UNREAD_CHAT, RECORD_CHAT, MEDIA_CHAT, STICKER_CHAT, LONE_CHAT, NUMBERED_CHAT, PAST_CHAT, PAGED_CHAT, PRIVATE_CHAT, PRESENCE_CHAT, HIGH_ROOM, SYSTEM_ROOM, INVITE_ROOM, OWN_BMO_CHAT };
+const FIXTURE_ROOMS: Record<string, number> = { OWNER_CHAT, UNREAD_CHAT, RECORD_CHAT, MEDIA_CHAT, STICKER_CHAT, LONE_CHAT, NUMBERED_CHAT, PAST_CHAT, PAGED_CHAT, PRIVATE_CHAT, OVERLAY_CHAT, PRESENCE_CHAT, HIGH_ROOM, SYSTEM_ROOM, INVITE_ROOM, OWN_BMO_CHAT };
 const sharedRooms = Object.entries(FIXTURE_ROOMS).filter(([, id], at, all) => all.findIndex(([, other]) => other === id) !== at);
 
 if (sharedRooms.length > 0) {
@@ -575,8 +582,19 @@ function activitySession(): Record<string, unknown> {
 }
 
 function privacyOf(chat: number): { privateOf: number | null; sealed: boolean } {
+  if (chat === OVERLAY_CHAT) return { privateOf: overlayAccount, sealed: false };
+
   return { privateOf: chat === PRIVATE_CHAT ? PRIVATE_ACCOUNT : chat === OWN_BMO_CHAT ? ownBmoAccount : null, sealed: chat === OWNER_CHAT && SEALED_OWNER };
 }
+
+// The rooms each supervisor answers, in the receiver's order, each answered alone for the people of its own room:
+// the rooms that name no supervisor stand under the default answerer, and every private room under the BMO of the
+// account it is whose. One branch of the receiver's stand-in reads this for any supervisor asked.
+const ANSWERED_ROOMS: Record<string, { id: number; title: string | null }[]> = {
+  "agent-a": [{ id: OWNER_CHAT, title: null }, { id: UNREAD_CHAT, title: "unread-room" }],
+  "overlay-bmo": [{ id: OVERLAY_CHAT, title: null }],
+  "private-bmo": [{ id: PRIVATE_CHAT, title: null }]
+};
 
 // The rooms a write to the receiver changes, and the account it names in its query, its body or the relay's
 // `Owner-Key`; null where it changes no room.
@@ -1568,9 +1586,18 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     // The two axes and the places: two supervisors, a handful of roles with runs going and waiting, and the
     // repositories.
     // The deployment's own read, carrying no owner, holds as well the BMO a fixture person owns, so their own-BMO
-    // section stands; what a signed-in reader is answered holds the two supervisors alone.
+    // section stands; what a signed-in reader is answered holds the two supervisors alone. Each private room the
+    // receiver's stand-in names stands under the BMO of the account it is whose: the room-overlay fixture's own, and
+    // the other private room's account's, whose room the reader only reads (tests/browser/room-overlay.test.ts).
     if (path === "/supervisors") {
-      const owned = request.headers.get("owner-key") === null && ownedBmo !== null ? [supervisor("agent-own", "Agent Own", { ownerAccount: ownedBmo })] : [];
+      const owned =
+        request.headers.get("owner-key") === null
+          ? [
+              ...(ownedBmo === null ? [] : [supervisor("agent-own", "Agent Own", { ownerAccount: ownedBmo })]),
+              ...(overlayAccount === null ? [] : [supervisor("overlay-bmo", "Overlay BMO", { ownerAccount: overlayAccount })]),
+              supervisor("private-bmo", "Private BMO", { ownerAccount: PRIVATE_ACCOUNT })
+            ]
+          : [];
       const ownRoom = request.headers.get("owner-key") === null && ownBmoAccount !== null ? [supervisor(OWN_BMO, `${OWN_BMO_PERSON} Dear`, { ownerAccount: ownBmoAccount })] : [];
 
       return Response.json({ items: [heldSupervisor("agent-a"), heldSupervisor("agent-c"), ...owned, ...ownRoom], more: false });
@@ -1834,6 +1861,9 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       ...room, id: PRIVATE_CHAT, title: "private-room", ownerRoom: false, workRoom: PRIVATE_CHAT, supervisors: ["agent-c"], messageCount: 2,
       lastMessageAt: LINE_AT - 300
     };
+    // The reader's own room with their BMO, on the record alone and answered by their own BMO alone, for the room
+    // screen's separate conversation (tests/browser/room-overlay.test.ts).
+    const overlayRoom = { ...room, id: OVERLAY_CHAT, title: "own-bmo-room", ownerRoom: false, workRoom: OVERLAY_CHAT, supervisors: ["overlay-bmo"] };
     const privateLine = [
       { id: 1, room: PRIVATE_CHAT, senderId: 8, senderName: "person-c", sentAt: LINE_AT - 600, text: "a word of my own", imagePath: null, replyToMessageId: null, answerSeconds: null, round: null, album: null, via: "record", files: [] },
       { id: 2, room: PRIVATE_CHAT, senderId: null, senderName: "Agent C", agentName: "agent-c", sentAt: LINE_AT - 300, text: "an answer to it", imagePath: null, replyToMessageId: null, answerSeconds: 2, round: null, album: null, via: "record", files: [] }
@@ -2073,7 +2103,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     }
     // Every room the receiver reads carries whose private room it is.
     const ownBmoRoom = { ...room, id: OWN_BMO_CHAT, title: OWN_BMO_PERSON, ownerRoom: false, workRoom: OWN_BMO_CHAT, supervisors: [OWN_BMO], lastMessageAt: LINE_AT - 400 };
-    const every = [room, listed, behind, recorded, media, stickerRoom, loneRoom, { ...room, id: HIGH_ROOM, title: "high-room", ownerRoom: false, workRoom: HIGH_ROOM, lastMessageAt: LINE_AT - 200 }, privateRoom, inviteRoomListed(room), ownBmoRoom]
+    const every = [room, listed, behind, recorded, media, stickerRoom, loneRoom, { ...room, id: HIGH_ROOM, title: "high-room", ownerRoom: false, workRoom: HIGH_ROOM, lastMessageAt: LINE_AT - 200 }, privateRoom, overlayRoom, inviteRoomListed(room), ownBmoRoom]
       .map((one) => ({ ...one, ...privacyOf(one.id) }));
 
     if (path === "/rooms") return Response.json({ items: every, more: false });
@@ -2085,7 +2115,20 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     if (member !== null) {
       const account = Number(member[1]);
 
-      return Response.json({ rooms: [...(account === PRIVATE_ACCOUNT ? [PRIVATE_CHAT] : account === ownBmoAccount ? [OWN_BMO_CHAT] : account === activity.account ? [UNREAD_CHAT] : []), ...inviteRoomsOf(account)] });
+      return Response.json({
+        rooms: [
+          ...(account === PRIVATE_ACCOUNT
+            ? [PRIVATE_CHAT]
+            : account === ownBmoAccount
+              ? [OWN_BMO_CHAT]
+              : account === activity.account
+                ? [UNREAD_CHAT]
+                : account === overlayAccount
+                  ? [OVERLAY_CHAT]
+                  : []),
+          ...inviteRoomsOf(account)
+        ]
+      });
     }
     if (path === `/rooms/${PRIVATE_CHAT}/messages`) {
       const after = new URL(request.url).searchParams.get("after");
@@ -2097,8 +2140,9 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
       return Response.json({ items: after === null ? record : record.filter((one) => one.id > Number(after)), more: false });
     }
-    // The record room is on the record alone, which declares no limit on a file, so it takes a file of any size.
-    if (path === `/rooms/${RECORD_CHAT}/providers`) return Response.json({ providers: ["record"], chosen: true, fileLimit: null });
+    // The room the console made stands on its own record, with two messengers' roads beside it, and none of the roads
+    // it is on declares a limit on a file, so it takes a file of any size.
+    if (path === `/rooms/${RECORD_CHAT}/providers`) return Response.json({ providers: ["record", "chat-a", "chat-b"], chosen: true, fileLimit: null });
     // Files said there, kept as the receiver keeps them: each named for the bytes it should carry (`<n>.bin`), and
     // answered sent where that many came, or not sent with how many did, so the screen says a file cut on its way.
     if ((path === `/rooms/${RECORD_CHAT}/word-files` || path === "/owner/message-files") && request.method === "POST") {
@@ -2117,15 +2161,13 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     if (path === `/rooms/${RECORD_CHAT}/pins`) {
       return Response.json({ items: [{ id: -1, senderName: "owner", text: "record -1", pinnedAt: LINE_AT - 500 }], more: false });
     }
-    // The default answerer, answering the two rooms that name no supervisor; the other supervisor answers none.
+    // The default answerer, answering the two rooms that name no supervisor; each other supervisor answers the one
+    // private room of its own account, and nothing else.
     if (path === "/default-answerer") return Response.json({ supervisor: "agent-a" });
     if (/^\/supervisors\/[^/]+\/rooms$/.test(path)) {
-      return Response.json({
-        items: path === "/supervisors/agent-a/rooms"
-          ? [{ id: OWNER_CHAT, title: null, named: false, alone: true }, { id: UNREAD_CHAT, title: "unread-room", named: false, alone: true }]
-          : [],
-        more: false
-      });
+      const answered = ANSWERED_ROOMS[decodeURIComponent(path.slice("/supervisors/".length, -"/rooms".length))] ?? [];
+
+      return Response.json({ items: answered.map((one) => ({ ...one, named: false, alone: true })), more: false });
     }
     // A supervisor's one session handed over (the receiver's docs/api.md, 「Handovers」): answered only where the ask
     // carries a reason, the asking account and the room it was asked from as the console hands them on, so a notice
@@ -2312,6 +2354,10 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
         return Response.json({ messageId: null });
       case "/answerers":
         return Response.json({ default: "", items: [], more: false, voice: "" });
+      // A room the stand-in numbers no chat service of its own stands on the record alone, which declares no limit
+      // on a file; the chat service's rooms it answers elsewhere name their own roads beside it.
+      case "/providers":
+        return Response.json({ providers: ["record"], chosen: false, fileLimit: null });
       case "/own-number":
         return Response.json({ number: null });
       case "/window":
@@ -2641,6 +2687,12 @@ try {
 
   personalAccount = users.find((user) => user.name === "personal-screens")?.user ?? null;
   namesAccount = users.find((user) => user.name === "personal-names")?.user ?? null;
+
+  // The account whose own BMO's private room the receiver's stand-in names, for the room screen's overlay entry.
+  const overlayPerson = users.find((user) => user.name === "room-overlay");
+
+  if (overlayPerson === undefined) throw new Error("room-overlay stands in no users list");
+  overlayAccount = Number(overlayPerson.user);
 
   for (const member of MEMBERS) {
     const one = users.find((user) => user.name === member.name);

@@ -139,7 +139,7 @@
                 @remove="removalOpen = true"
                 @show="showInMessage"
               />
-              <RoomOverlay v-if="group" v-model:open="overlayOpen" :chat-id="chatId" :title="title" />
+              <RoomOverlay v-if="overlayStands" v-model:open="overlayOpen" :chat-id="chatId" :title="title" />
               <RoomRemovalDialog v-if="administrator" v-model:open="removalOpen" :chat-id="chatId" :title="title" />
               <AgentSessionDialog v-model:open="sessionOpen" :ask="sessionAsk" />
             </template>
@@ -621,7 +621,7 @@ import type { RunState } from "~/domain/events";
 import type { LandedPicture, OutboxItem, SendOutcome } from "~/domain/outbox";
 import type { ArchivedItem, DayGroup, FeedItem, SenderRun, Speaker, StoodTurn } from "~/domain/room";
 import type { MentionAgent } from "~/domain/mentions";
-import type { AttachLimits, PinnedMessage, RoomAnswerers, RoomEntry, RoomFileLimit, RoomPast } from "#shared/types";
+import type { AttachLimits, PinnedMessage, RoomAnswerers, RoomEntry, RoomFileLimit, RoomOverlay, RoomPast } from "#shared/types";
 import type { Point, Rect } from "~/domain/flight";
 
 // Another room is another screen; the rest of the address is not the room's, and a message it names is
@@ -1119,6 +1119,18 @@ function questionArea(): WindowFrame | null {
 // room screen's title bar).
 const roomMenuContent = { align: "start" as const, onCloseAutoFocus: keepDialogFocus };
 
+// Whether this room's menu carries the entry for the reader's own BMO beside it, and whose conversation it opens
+// (docs/web.md, the room screen's overlay): the console's server answers it, holding the entry away from
+// a chat service's room and from every private room. Read as the room opens, like the room's file limit; until the
+// answer comes the entry stands nowhere, and a room whose standing cannot be told holds none.
+const { data: roomOverlay } = useFetch<RoomOverlay>(() => `/api/rooms/${chatId}/overlay`, {
+  key: `room-overlay-${chatId}`,
+  lazy: true,
+  server: false,
+  default: () => ({ stands: false, supervisor: null, label: null, room: null })
+});
+const overlayStands = computed<boolean>(() => roomOverlay.value.stands);
+
 const narrow = useNarrow();
 const short = useTitleBarShort();
 // What waits for this room: whether its list stands open, and how many, for the menu's entry on a narrow screen.
@@ -1134,8 +1146,9 @@ const menuItems = computed<DropdownMenuItem[][]>(() => [
       ? [{ label: t("room.label.background_count", { n: countText(backgroundCount.value) }), icon: "i-material-symbols-pending-actions", onSelect: () => { backgroundOpen.value = true; } }]
       : []),
     { label: t("room.action.find"), icon: "i-material-symbols-search", onSelect: openFind },
-    // The reader's own BMO beside a group room, a private conversation over it (docs/web.md, the room screen's overlay).
-    ...(group.value ? [{ label: t("room.action.overlay"), icon: "i-material-symbols-chat-bubble-outline", onSelect: () => { overlayOpen.value = true; } }] : []),
+    // The reader's own BMO beside the room, a private conversation over it, where the console's server says this room
+    // carries it (docs/web.md, the room screen's overlay).
+    ...(overlayStands.value ? [{ label: t("room.action.overlay"), icon: "i-material-symbols-chat-bubble-outline", onSelect: () => { overlayOpen.value = true; } }] : []),
     // Letting people in, for a reader who may, over the room's people (docs/web.md, the room screen's section on opening
     // a room and letting people in).
     ...(writable.value && entry.value.letIn ? [{ label: t("members.action.let_in"), icon: "i-material-symbols-person-add-outline", onSelect: openLetIn }] : []),

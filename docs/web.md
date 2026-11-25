@@ -6345,16 +6345,25 @@ Four bounds keep it from growing forever.
 
 #### 내 BMO와 따로 말하기
 
-- **A group room's menu carries 내 BMO와 따로 말하기 for everyone signed in;** a one-to-one or the owner's
-  own chat carries none. It opens a panel at the side over the group room, which stays where it stood.
+- **The console's own rooms' menu carries 내 BMO와 따로 말하기 for everyone signed in:** a room the console
+  carries by itself, standing on its own record road and on no chat service's, and no one's private room nor a
+  sealed one. A room a chat service carries, the reader's own room with their BMO, another account's private
+  room, and the owner's own chat carry none. There the entry is simply away from the menu: nothing stands in its
+  place, no entry is dimmed, and no line says why.
+- **Which rooms carry it is the console's server's judgement,** made on the room's own read beside the private
+  conversation that read names: the room's privacy, which the receiver keeps as its `privateOf` and `sealed`, and
+  the chat roads the room stands on, which the receiver answers by key and the console's own record among them
+  (「A chat road's name」). The screen takes that word as it takes the room's file limit, and guesses at nothing:
+  a room whose privacy or roads cannot be read carries nothing, and the entry comes when the read lands.
+- **The panel opens at the side over the room,** which stays where it stood.
 - **The panel is the reader's private conversation with their own BMO:** the first supervisor whose owner account
   is the reader, and its private room (「Access」), read from the agency and the receiver each time the panel opens.
   The room is read and spoken in by the reader's account alone, so a person with no chat service's identity opens it
   as readily as anyone. Its newest lines stand in order, the BMO's on the left and the reader's on the right, and words
   typed into its box are said in that private room as the room screen says them. What arrives there while the
   panel stands open is read again as it comes.
-- **Nothing said in the panel reaches the group room or its minutes:** it stands in the private room alone, where
-  the BMO reads the reader's own thread of the group room as every turn there does. A reader with no BMO of their
+- **Nothing said in the panel reaches the room it was opened from or its minutes:** it stands in the private room
+  alone, where the BMO reads the reader's own thread of that room as every turn there does. A reader with no BMO of their
   own, or one that answers no room alone, is told so in the panel.
 
 #### 대화상대

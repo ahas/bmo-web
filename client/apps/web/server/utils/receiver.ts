@@ -282,6 +282,12 @@ export async function roomPastReaders(roomId: number): Promise<string[]> {
   });
 }
 
+/** The keys of the chat roads a room stands on, in the receiver's order (its `docs/api.md`, 「Rooms」): the record the
+ * console reads the room off stands among them, and every chat service that carries the room besides it. */
+export async function roomRoads(roomId: number): Promise<string[]> {
+  return (await receiverCall(receiver().GET("/rooms/{roomId}/providers", { params: { path: { roomId } } }))).providers;
+}
+
 /** The largest file a room takes and the chat service declaring it, by its name in the pack: the smallest
  * limit any chat service on the room's list declares, or none where none declares one (the receiver's `docs/api.md`,
  * 「Sends」). */
@@ -298,7 +304,6 @@ export async function roomFileLimit(roomId: number): Promise<FileLimit | null> {
   return { bytes: limit.bytes, by: chatRoadName(limit.provider) };
 }
 
-/** A room's chat providers as its dialog reads them: every provider the receiver names, and the ones the room is on. */
 /** A room's mode off its registration, read as the web unit knows the administrator: null where the room was never added,
  * which the receiver refuses 409 `room-not-added`. */
 export async function roomMode(roomId: number, by: string): Promise<RoomModeView> {
@@ -327,17 +332,20 @@ function codeOf(error: unknown): unknown {
   return typeof data === "object" && data !== null ? Reflect.get(data, "code") : null;
 }
 
+/** A room's chat providers as its dialog reads them: the ones the room is on, each by its name in the pack, and
+ * whether one of them offers the avatar mode. */
 export async function roomProviders(roomId: number): Promise<RoomProvidersView> {
   const asking = receiver();
   const [listed, room] = await Promise.all([
     receiverCall(asking.GET("/providers")),
     receiverCall(asking.GET("/rooms/{roomId}/providers", { params: { path: { roomId } } }))
   ]);
+  const roads = room.providers;
 
   const offersAvatar = new Set(listed.items.filter((provider) => provider.roomModes.includes("avatar")).map((provider) => provider.key));
 
   return {
-    on: room.providers.map((key) => ({ key, label: chatRoadName(key) })),
-    avatarOffered: room.providers.some((key) => offersAvatar.has(key))
+    on: roads.map((key) => ({ key, label: chatRoadName(key) })),
+    avatarOffered: roads.some((key) => offersAvatar.has(key))
   };
 }

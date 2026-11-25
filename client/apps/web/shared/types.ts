@@ -2164,9 +2164,11 @@ export interface GatePartView {
 // Which chat is the owner's own, as this app itself knows it. The bot's health answer carries
 // the same number, and this one is here for the screens that have to be drawn before any answer
 // of the bot's has come back.
-// The reader's own BMO beside a group room: the supervisor, its label, and the room it answers the reader alone in;
-// all null where the reader has none.
+// The reader's own BMO beside the room: whether the entry for it stands in this room's menu at all, and the
+// supervisor, its label, and the room it answers the reader alone in; those all null where the reader has none
+// (docs/web.md, the room screen's overlay).
 export interface RoomOverlay {
+  stands: boolean;
   supervisor: string | null;
   label: string | null;
   room: number | null;

@@ -12,6 +12,7 @@
         <ChoiceSelect
           v-model="picked"
           :items="listed"
+          :loading="opening === null"
           :find="findChoices"
           value-key="value"
           multiple
@@ -195,9 +196,9 @@ const chosen = computed<Offered[]>(() => picked.value.flatMap((value) => seen.ge
 // The people this reader may let into this room, the whole set as the account service's own rule for letting in
 // answers it, read as the dialog opens (docs/web.md, the room screen's section on opening a room and letting people
 // in). The room's members are left out of the rows; an empty list means the reader may let nobody in.
-const opening = ref<PersonView[]>([]);
+const opening = ref<PersonView[] | null>(null);
 const listed = computed<Offered[]>(() =>
-  chosen.value.length === 0 ? offeredPeople(opening.value) : chosen.value
+  chosen.value.length === 0 ? offeredPeople(opening.value ?? []) : chosen.value
 );
 
 // Each person the road answered, the room's members left out, as the select offers them.
@@ -234,7 +235,8 @@ watch(open, (standing) => {
   picked.value = [];
   seen.clear();
   failure.value = "";
-  opening.value = [];
+  // Null until the road answers, so the list waits under the select's own skeleton instead of saying nobody is there.
+  opening.value = null;
 
   const at = openings.value;
 
@@ -255,6 +257,7 @@ watch(open, (standing) => {
     } catch (error) {
       if (at !== openings.value || !open.value) return;
 
+      opening.value = [];
       failure.value = failureText(error, t("members.error.load_failed"));
     }
   })();

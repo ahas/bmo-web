@@ -31,8 +31,8 @@ globalsRestoredAfter(["createError"]);
 globals.createError = (options: { statusCode: number; message: string; data?: unknown }) => Object.assign(new Error(options.message), options);
 
 let supervisors: unknown[] = [ANSWERER];
-// How often agency has been asked to set u13, and the records agency holds.
-let asksOf13 = 0;
+// Whether the node service lists u13 yet, and the records agency holds.
+let listed13 = false;
 let records: { ownerAccount: string; node: string; shared: boolean; setAt: number }[] = [];
 
 const agency = standIn("AGENCY", (call) => {
@@ -58,8 +58,8 @@ const agency = standIn("AGENCY", (call) => {
     return answer({ ...ANSWERER, ...held, ...call.body });
   }
   if (call.method === "PUT" && call.path === "/person-nodes/11") return answer({ code: "node-taken", error: "another account holds u11" }, 409);
-  // u13 is listed by the node service only from its third ask on; u14 never is.
-  if (call.method === "PUT" && call.path === "/person-nodes/13" && ++asksOf13 < 3) return answer({ code: "not-a-hub-node", error: "no hub node is named u13" }, 422);
+  // u13 is listed by the node service only once the test lists it; u14 never is.
+  if (call.method === "PUT" && call.path === "/person-nodes/13" && !listed13) return answer({ code: "not-a-hub-node", error: "no hub node is named u13" }, 422);
   if (call.method === "PUT" && call.path === "/person-nodes/14") return answer({ code: "not-a-hub-node", error: "no hub node is named u14" }, 422);
   if (call.method === "GET" && call.path === "/person-nodes") return answer({ items: records, more: false });
   if (call.method === "PUT" && call.path.startsWith("/person-nodes/")) {
@@ -192,25 +192,44 @@ describe("an account made ready", () => {
     const warned = spyOn(console, "warn").mockImplementation(() => {});
     const told = spyOn(console, "info").mockImplementation(() => {});
 
-    Object.assign(nodeRetry, { everyMs: 5, forMs: 5_000 });
+    // The round asks again every few milliseconds for as long as the machine stays unlisted, so it still runs
+    // whatever a loaded machine makes the second making-ready take, and it ends only once the test lists the machine.
+    Object.assign(nodeRetry, { everyMs: 5, forMs: 60_000 });
+    const asksOf13 = () => agency.asked.filter((call) => call.method === "PUT" && call.path === "/person-nodes/13").length;
+
     try {
       agency.asked.length = 0;
-      asksOf13 = 0;
+      listed13 = false;
       await standAccount(13);
       // A second making-ready while the round runs starts none of its own.
       await standAccount(13);
       expect(nodeRetrying(13)).toBe(true);
       expect(await nodeSettled(13, "u13")).toBe(false);
 
-      for (let waited = 0; nodeRetrying(13) && waited < 2_000; waited += 5) await new Promise((resolve) => setTimeout(resolve, 5));
+      // The round goes on asking while the machine is unlisted.
+      const asked = asksOf13();
+
+      for (const until = Date.now() + 10_000; asksOf13() === asked && Date.now() < until; ) await new Promise((resolve) => setTimeout(resolve, 5));
+      expect(asksOf13()).toBeGreaterThan(asked);
+      expect(nodeRetrying(13)).toBe(true);
+
+      listed13 = true;
+
+      for (const until = Date.now() + 10_000; nodeRetrying(13) && Date.now() < until; ) await new Promise((resolve) => setTimeout(resolve, 5));
 
       expect(nodeRetrying(13)).toBe(false);
-      expect(agency.asked.filter((call) => call.method === "PUT" && call.path === "/person-nodes/13")).toHaveLength(3);
+      // One round ran: one ask landed, and none came after it.
+      const landed = asksOf13();
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      expect(told.mock.calls.filter((call) => String(call[0]).includes("its node was set"))).toHaveLength(1);
+      expect(asksOf13()).toBe(landed);
       records = [{ ownerAccount: "13", node: "u13", shared: false, setAt: 1 }];
       expect(await nodeSettled(13, "u13")).toBe(true);
       expect(await nodeSettled(13, "u99")).toBe(false);
     } finally {
       Object.assign(nodeRetry, { everyMs: 5_000, forMs: 120_000 });
+      listed13 = false;
       records = [];
       warned.mockRestore();
       told.mockRestore();

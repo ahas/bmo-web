@@ -15149,6 +15149,15 @@
         "operationId": "members",
         "parameters": [
           {
+            "description": "The number of a room: the people the reader may let into it answer on the entry check's own rule, instead of the reader's company, and none of them marked left; where the reader may let in nobody, nobody answers. A search asked with no words then answers that set whole, up to the limit.",
+            "in": "query",
+            "name": "room",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
             "description": "The user of the login the call is made for, its id written as a decimal number.",
             "in": "header",
             "name": "Owner-Key",
@@ -15198,7 +15207,7 @@
             "bearerAuth": []
           }
         ],
-        "summary": "Every member of the reader's company but those marked left, each by their account key and name alone, in the directory's order.",
+        "summary": "Every member of the reader's company but those marked left, each by their account key and name alone, in the directory's order; with `room`, the people the reader may let into that room.",
         "tags": [
           "Users and senders"
         ],
@@ -15226,6 +15235,15 @@
           {
             "in": "query",
             "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The number of a room: the people the reader may let into it answer on the entry check's own rule, instead of the reader's company, and none of them marked left; where the reader may let in nobody, nobody answers. A search asked with no words then answers that set whole, up to the limit.",
+            "in": "query",
+            "name": "room",
             "required": false,
             "schema": {
               "type": "integer"
@@ -15281,7 +15299,7 @@
             "bearerAuth": []
           }
         ],
-        "summary": "The people of the reader's organisation whose name, organisation, job title or permitted contact details hold the words.",
+        "summary": "The people of the reader's organisation whose name, organisation, job title or permitted contact details hold the words; with `room`, the people the reader may let into that room.",
         "tags": [
           "Users and senders"
         ],

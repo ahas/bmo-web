@@ -68,7 +68,7 @@ export function companyPeopleOf(signed: SignedIn): CompanyPeople {
 
     if (key === null) return null;
 
-    const members = await companyMembers({ key, role: ownerRoleOf(signed) });
+    const members = await companyMembers(null, { key, role: ownerRoleOf(signed) });
 
     return members.map((member) => Number(member.user)).filter((account) => Number.isSafeInteger(account));
   });

@@ -360,9 +360,11 @@ function personView(person: WirePerson): PersonView {
   };
 }
 
-/** The people of the reader's organisation whose name, organisation, job title or permitted contact holds the words. */
+/** The people whose name, organisation, job title or permitted contact holds the words: those of the reader's
+ * organisation, or, with a room named, those the reader may let into it (docs/accounts.md, 「A room's callers」). */
 export async function searchPeople(
   q: string,
+  room: number | null,
   caller: ProfileCaller,
   options: ServiceOptions = {}
 ): Promise<PersonView[]> {
@@ -370,19 +372,32 @@ export async function searchPeople(
   const reply = await sent(
     options,
     client.GET("/users/search", {
-      params: { query: { q }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } }
+      params: {
+        query: room === null ? { q } : { q, room },
+        header: { "Owner-Key": caller.key, "Owner-Role": caller.role }
+      }
     })
   );
 
   return answered<WirePeople>(reply).people.map(personView);
 }
 
-/** Every member of the reader's company, each by account key and name alone, in the directory's order. */
-export async function companyMembers(caller: ProfileCaller, options: ServiceOptions = {}): Promise<Member[]> {
+/** Every member of the reader's company, each by account key and name alone, in the directory's order; or, with
+ * a room named, the people the reader may let into it. */
+export async function companyMembers(
+  room: number | null,
+  caller: ProfileCaller,
+  options: ServiceOptions = {}
+): Promise<Member[]> {
   const client = clientOf(options);
   const reply = await sent(
     options,
-    client.GET("/users/members", { params: { header: { "Owner-Key": caller.key, "Owner-Role": caller.role } } })
+    client.GET("/users/members", {
+      params: {
+        query: room === null ? {} : { room },
+        header: { "Owner-Key": caller.key, "Owner-Role": caller.role }
+      }
+    })
   );
 
   return answered<Members>(reply).members;

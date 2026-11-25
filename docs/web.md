@@ -6428,8 +6428,11 @@ Four bounds keep it from growing forever.
   screen: the menu's entry opens 방 정보 on its 대화상대 tab with the dialog standing over it, the room's people
   behind it. Which of the two the reader may do, letting in and taking out, the console's server reads as the room's
   screen opens and as the tab reads its members. The dialog holds one select of several values, the console's one
-  select, whose search finds both the people of the reader's directory and the organisations of the reader's
-  company, and 추가.
+  select, and 추가. Its people road is the account service's own word for the people this reader may let into this
+  room (`docs/accounts.md`, 「A room's callers」), not the reader's directory at large: opened, the list stands those
+  people whole, the room's members left out, so an empty list means the reader may let nobody in and never that a
+  narrower set was searched; typing narrows those people by the words and finds beside them the organisations of
+  the reader's company.
   - What the search found stands in two groups under their headings, 사람 and then 조직, an organisation with the
     names of the organisations above it and 구성원 and its count. Each pressed joins the choice, which stands in the
     field as a chip each, an organisation's wearing its mark; pressing a chosen one again lets it go. A person

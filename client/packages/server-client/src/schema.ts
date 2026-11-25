@@ -1575,7 +1575,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Every member of the reader's company but those marked left, each by their account key and name alone, in the directory's order. */
+        /** Every member of the reader's company but those marked left, each by their account key and name alone, in the directory's order; with `room`, the people the reader may let into that room. */
         get: operations["members"];
         put?: never;
         post?: never;
@@ -1592,7 +1592,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The people of the reader's organisation whose name, organisation, job title or permitted contact details hold the words. */
+        /** The people of the reader's organisation whose name, organisation, job title or permitted contact details hold the words; with `room`, the people the reader may let into that room. */
         get: operations["searchPeople"];
         put?: never;
         post?: never;
@@ -8704,7 +8704,10 @@ export interface operations {
     };
     members: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description The number of a room: the people the reader may let into it answer on the entry check's own rule, instead of the reader's company, and none of them marked left; where the reader may let in nobody, nobody answers. A search asked with no words then answers that set whole, up to the limit. */
+                room?: number;
+            };
             header: {
                 /** @description The user of the login the call is made for, its id written as a decimal number. */
                 "Owner-Key": string;
@@ -8741,6 +8744,8 @@ export interface operations {
             query: {
                 q: string;
                 limit?: number;
+                /** @description The number of a room: the people the reader may let into it answer on the entry check's own rule, instead of the reader's company, and none of them marked left; where the reader may let in nobody, nobody answers. A search asked with no words then answers that set whole, up to the limit. */
+                room?: number;
             };
             header: {
                 /** @description The user of the login the call is made for, its id written as a decimal number. */

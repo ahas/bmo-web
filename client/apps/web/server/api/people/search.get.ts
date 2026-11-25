@@ -14,5 +14,5 @@ export default defineEventHandler(async (event): Promise<PersonView[]> => {
 
   if (key === null || typeof asked !== "string" || asked.trim() === "") return [];
 
-  return await searchPeople(asked, { key, role: ownerRoleOf(signed) });
+  return await searchPeople(asked, null, { key, role: ownerRoleOf(signed) });
 });

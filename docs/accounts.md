@@ -124,6 +124,9 @@ section states what each does.
 - **Only within the room's company.** The room stands in its leader's company, and a person of another company is
   never let in, by the administrator neither; a room with no leader is bounded by the company of the one letting in,
   but for the administrator. Leaving is every member's own and asks no check.
+- **The whole set is readable as a list.** The people a reader may let into a room answer the people directory's
+  search and members list when either names the room, this rule and no other (「The people directory」); the console's
+  대화상대 추가 opens on that list, so an empty one says the reader may let nobody in.
 
 ### The data move
 
@@ -973,6 +976,13 @@ section states what each does.
   them, and nothing of their unit, job title or contact.
   It is refused as a search is, for a call naming no user of the deployment or a reader whose unit stands in no
   company. The console hands it to the screens a unit brings (`docs/web.md`, 「Screens a unit brings」).
+- **A room names whom a reader may let in.** Asked with `room`, the search and the members list answer the
+  people that reader may let into that room, on the entry check's own rule (「A room's callers」), instead of the
+  reader's company: the room's company's people, or the reader's own company's where the room stands with no
+  leader, none where the reader may let in none, and none of them marked left. A room search asked with no words
+  answers that set whole, up to its limit: an empty answer says nobody may be let in, never that a narrower set
+  was searched. Which company the reader stands in is asked of these two roads only where no room is named; a
+  room's road asks none.
 - **A search matches only the fields its reader may see.** A member's words are matched against the name, the
   organisation, the job title kept, the rank, the role's name, the duty and their own contact details; the administrator's against every contact detail
   as well, so a refused field is never an answer to a search.

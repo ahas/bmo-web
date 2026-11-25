@@ -11,7 +11,7 @@
       <UFormField :label="$t('members.label.choice')" name="choice">
         <ChoiceSelect
           v-model="picked"
-          :items="chosen"
+          :items="listed"
           :find="findChoices"
           value-key="value"
           multiple
@@ -192,11 +192,26 @@ function offerUnit(unit: UnitChoice, words: string): Offered {
 const seen = new Map<string, Offered>();
 const chosen = computed<Offered[]>(() => picked.value.flatMap((value) => seen.get(value) ?? []));
 
-// The people the directory finds for the words typed, the room's members left out, and the organisations of the
-// reader's company, each group under its heading where it found anything.
+// The people this reader may let into this room, the whole set as the account service's own rule for letting in
+// answers it, read as the dialog opens (docs/web.md, the room screen's section on opening a room and letting people
+// in). The room's members are left out of the rows; an empty list means the reader may let nobody in.
+const opening = ref<PersonView[]>([]);
+const listed = computed<Offered[]>(() =>
+  chosen.value.length === 0 ? offeredPeople(opening.value) : chosen.value
+);
+
+// Each person the road answered, the room's members left out, as the select offers them.
+function offeredPeople(people: readonly PersonView[]): Offered[] {
+  const standing = new Set(props.members);
+
+  return people.filter((person) => !standing.has(person.user)).map((person) => offerPerson(person, ""));
+}
+
+// The people this reader may let in, narrowed by the words typed, and the organisations of the reader's company,
+// each group under its heading where it found anything.
 async function findChoices(words: string): Promise<(Offered | Heading)[]> {
   const [people, units] = await Promise.all([
-    $fetch<PersonView[]>("/api/people/search", { query: { q: words } }),
+    $fetch<PersonView[]>(`/api/rooms/${props.chatId}/let-in`, { query: { q: words } }),
     $fetch<UnitChoice[]>("/api/people/units", { query: { q: words } }).catch(() => [])
   ]);
   const standing = new Set(props.members);
@@ -210,12 +225,38 @@ async function findChoices(words: string): Promise<(Offered | Heading)[]> {
   return groups.flatMap((group) => [{ type: "label" as const, label: group.label }, ...group.items]);
 }
 
-// Each opening starts empty.
+// Each opening starts empty and stands the room's people: the whole set this reader may let in, read afresh
+// each time, so an empty list says the reader may let nobody in. The dialog mounted standing open, as the room's
+// menu opens it over the members tab the screen mounts with it, reads its people on that same mount.
 watch(open, (standing) => {
   if (!standing) return;
 
   picked.value = [];
   seen.clear();
   failure.value = "";
-});
+  opening.value = [];
+
+  const at = openings.value;
+
+  void (async () => {
+    try {
+      const found = await $fetch<PersonView[]>(`/api/rooms/${props.chatId}/let-in`, { query: { q: "" } });
+
+      // What the road answered stands only while this same opening still stands.
+      if (at !== openings.value || !open.value) return;
+
+      opening.value = found;
+
+      for (const person of found) {
+        const one = offerPerson(person, "");
+
+        seen.set(one.value, one);
+      }
+    } catch (error) {
+      if (at !== openings.value || !open.value) return;
+
+      failure.value = failureText(error, t("members.error.load_failed"));
+    }
+  })();
+}, { immediate: true });
 </script>

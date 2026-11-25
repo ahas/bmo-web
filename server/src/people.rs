@@ -1,6 +1,8 @@
 //! The people directory (docs/accounts.md, 「The people directory」; docs/boundary.md, 「Users and senders」):
 //! the users of the reader's own company, whatever unit of it they stand in, and of every company for the platform
-//! administrator, found by their name, their unit and the contact details the reader may see. The contact details
+//! administrator, found by their name, their unit and the contact details the reader may see. Asked with a room,
+//! the search and the members list answer instead the people the reader may let into that room, on the entry
+//! check's own rule (docs/accounts.md, 「A room's callers」), and none of them marked left. The contact details
 //! stand only for the platform administrator and for the person themselves, and a search matches only the fields
 //! its reader may see, so a refused field is not an answer either. The members list answers the reader's whole
 //! company, each person by key and name alone.
@@ -11,12 +13,14 @@ use axum::extract::{Path, Query, State};
 use axum::http::HeaderMap;
 use axum::routing::get;
 use bmo_web_client::{
-  Member, Members, OWNER_KEY, People as WirePeople, Person, PersonDetail, PersonPost, RoleRef,
+  EntryAct, Member, Members, OWNER_KEY, People as WirePeople, Person, PersonDetail, PersonPost, RoleRef,
 };
 use sea_orm::{ConnectionTrait, QueryResult};
 use serde::Deserialize;
 use sumida::api::authz::Authz;
 
+use crate::entry::{EntryBound, entry_set};
+use crate::receiver::Receiver;
 use crate::routes::{Answer, user_in};
 use crate::users::user_subject;
 use crate::{Refusal, Service, all, one};
@@ -25,17 +29,26 @@ use crate::{Refusal, Service, all, one};
 const DEFAULT_LIMIT: i64 = 20;
 const MAX_LIMIT: i64 = 50;
 
-/// What a search asks: the words and how many people it may answer.
+/// What a search asks: the words, how many people it may answer, and the room whose letting-in rule bounds it
+/// where one is named.
 #[derive(Debug, Deserialize)]
 pub struct SearchAsk {
   q: Option<String>,
   limit: Option<i64>,
+  room: Option<i64>,
 }
 
-/// Who reads the directory: the login's user, their company and whether they are the administrator.
+/// What a members list asks: the room whose letting-in rule bounds it where one is named.
+#[derive(Debug, Deserialize)]
+pub struct MembersAsk {
+  room: Option<i64>,
+}
+
+/// Who reads the directory: the login's user, the company their unit stands in where it stands in one, and
+/// whether they are the administrator.
 struct Caller {
   user: i32,
-  company: i32,
+  company: Option<i32>,
   administrator: bool,
 }
 
@@ -43,11 +56,18 @@ struct Caller {
 const IN_COMPANY: &str =
   r#"u."organization_id" IN (SELECT "descendant_id" FROM "org_closure" WHERE "ancestor_id" = $1)"#;
 
+/// Every person of the deployment stands in the reach; the company-bound reach binds its company as `$1`.
+const EVERYONE: &str = "TRUE";
+
 impl Caller {
-  /// The users the reader's search and person lookup reach: every company's for the administrator, the reader's
-  /// own company's, bound as `$1`, for anyone else.
+  /// The company the reader's road reaches, refused where their unit stands in none.
+  fn company(&self) -> Result<i32, Refusal> {
+    self.company.ok_or_else(|| Refusal::forbidden("the reader's unit stands in no company"))
+  }
+
+  /// The users the reader's own-company road reaches: every company's for the administrator.
   fn reach(&self) -> &'static str {
-    if self.administrator { "TRUE" } else { IN_COMPANY }
+    if self.administrator { EVERYONE } else { IN_COMPANY }
   }
 }
 
@@ -73,10 +93,14 @@ const FROM: &str = r#"
   LEFT JOIN "company_roles" r ON r."id" = ur."role_id"
 "#;
 
+/// The people who have not left: a room is never offered a person its letting-in road marks left.
+const NOT_LEFT: &str = r#"NOT EXISTS (SELECT 1 FROM "user_departures" d WHERE d."user_id" = u."id")"#;
+
 /// The order the directory answers people in: by name, then by user id.
 const ORDER: &str = r#"ORDER BY lower(COALESCE(NULLIF(u."full_name", ''), u."username")), u."id""#;
 
-/// The login reading the directory, refused where the call names no user of this deployment.
+/// The login reading the directory, refused where the call names no user of this deployment. A reader whose unit
+/// stands in no company is refused by the roads that read a company, not here: a room's road may not need one.
 async fn caller<C: ConnectionTrait>(db: &C, headers: &HeaderMap) -> Result<Caller, Refusal> {
   let user = headers
     .get(OWNER_KEY)
@@ -90,13 +114,10 @@ async fn caller<C: ConnectionTrait>(db: &C, headers: &HeaderMap) -> Result<Calle
     .ok_or_else(|| Refusal::forbidden("the call names no user of this deployment"))?;
 
   let unit: i32 = row.try_get("", "organization_id")?;
-  let company = crate::units::company_of(db, unit)
-    .await?
-    .ok_or_else(|| Refusal::forbidden("the reader's unit stands in no company"))?;
 
   Ok(Caller {
     user,
-    company,
+    company: crate::units::company_of(db, unit).await?,
     administrator: Authz::is_superuser(&user_subject(db, user).await?, db).await?,
   })
 }
@@ -136,20 +157,58 @@ fn person_of(row: &QueryResult, reader: &Caller) -> Result<Person, Refusal> {
   })
 }
 
+/// Whom one road reaches and what `$1` binds, from the reader's own company or from the room's letting-in rule.
+enum Reach {
+  Bounded { reach: &'static str, bind: i32 },
+  None,
+}
+
+/// The bound the room's road answers: nobody where the reader may let in nobody, else the people the act
+/// reaches, and people marked left are none of it.
+async fn room_reach<C: ConnectionTrait>(
+  db: &C,
+  receiver: &dyn Receiver,
+  reader: &Caller,
+  room: i64,
+) -> Result<Reach, Refusal> {
+  Ok(match entry_set(db, receiver, reader.user, room, EntryAct::LetIn).await? {
+    EntryBound::NoOne => Reach::None,
+    EntryBound::Company(company) => Reach::Bounded {
+      reach: IN_COMPANY,
+      bind: company,
+    },
+    EntryBound::Everyone => Reach::Bounded {
+      reach: EVERYONE,
+      bind: reader.user,
+    },
+  })
+}
+
 /// The users the reader reaches whose name, unit, job title or permitted contact details hold the words,
-/// in the directory's order. Words that are empty, and a search that finds none, answer no
-/// one.
+/// in the directory's order. Words that are empty answer nobody, unless a room is named, where they answer
+/// the whole set the reader may let into it. A search that finds none answers no one.
 async fn search<C: ConnectionTrait>(
   db: &C,
+  receiver: &dyn Receiver,
   reader: &Caller,
   words: &str,
   limit: Option<i64>,
+  room: Option<i64>,
 ) -> Result<Vec<Person>, Refusal> {
   let words = words.trim();
+  let (reach, bind, left) = match room {
+    None => {
+      if words.is_empty() {
+        return Ok(Vec::new());
+      }
 
-  if words.is_empty() {
-    return Ok(Vec::new());
-  }
+      (reader.reach(), reader.company()?, String::new())
+    }
+    Some(room) => match room_reach(db, receiver, reader, room).await? {
+      Reach::None => return Ok(Vec::new()),
+      Reach::Bounded { reach, bind } => (reach, bind, format!("AND {NOT_LEFT}")),
+    },
+  };
 
   let limit = limit.unwrap_or(DEFAULT_LIMIT).clamp(1, MAX_LIMIT);
   // A member matches their own contact details alone; the administrator matches everyone's.
@@ -166,9 +225,12 @@ async fn search<C: ConnectionTrait>(
          OR strpos(lower(COALESCE(u."email", '')), lower($2)) > 0
        ))"#
   };
-  let sql = format!(
-    r#"SELECT {COLUMNS} {FROM}
-       WHERE {reach} AND (
+  // A room's road asked with no words answers the whole set it reaches; words narrow it as every search does.
+  let matched = if words.is_empty() {
+    String::new()
+  } else {
+    format!(
+      r#"AND (
          strpos(lower(u."username"), lower($2)) > 0
          OR strpos(lower(COALESCE(u."full_name", '')), lower($2)) > 0
          OR strpos(lower(o."name"), lower($2)) > 0
@@ -177,31 +239,45 @@ async fn search<C: ConnectionTrait>(
          OR strpos(lower(COALESCE(p."duty", '')), lower($2)) > 0
          OR strpos(lower(COALESCE(r."name", '')), lower($2)) > 0
          {contact}
-       )
+       )"#
+    )
+  };
+  let sql = format!(
+    r#"SELECT {COLUMNS} {FROM}
+       WHERE {reach} {left} {matched}
        {ORDER}
        LIMIT $3"#,
-    reach = reader.reach(),
   );
-  let rows = all(
-    db,
-    &sql,
-    vec![reader.company.into(), words.to_owned().into(), limit.into(), reader.user.into()],
-  )
-  .await?;
+  let rows =
+    all(db, &sql, vec![bind.into(), words.to_owned().into(), limit.into(), reader.user.into()]).await?;
 
   rows.iter().map(|row| person_of(row, reader)).collect()
 }
 
-/// Every member of the reader's company who has not left, by account key and name alone, in the directory's order.
-async fn members<C: ConnectionTrait>(db: &C, reader: &Caller) -> Result<Vec<Member>, Refusal> {
+/// Every member of the reader's company who has not left, by account key and name alone, in the directory's
+/// order; or, with a room, the people the reader may let into it, none marked left, in the same order.
+async fn members<C: ConnectionTrait>(
+  db: &C,
+  receiver: &dyn Receiver,
+  reader: &Caller,
+  room: Option<i64>,
+) -> Result<Vec<Member>, Refusal> {
+  let (reach, bind) = match room {
+    None => (IN_COMPANY, reader.company()?),
+    Some(room) => match room_reach(db, receiver, reader, room).await? {
+      Reach::None => return Ok(Vec::new()),
+      Reach::Bounded { reach, bind } => (reach, bind),
+    },
+  };
+
   let sql = format!(
     r#"SELECT u."id", COALESCE(NULLIF(u."full_name", ''), u."username") AS "name"
        FROM "users" u
-       WHERE {IN_COMPANY}
-         AND NOT EXISTS (SELECT 1 FROM "user_departures" d WHERE d."user_id" = u."id")
+       WHERE {reach}
+         AND {NOT_LEFT}
        {ORDER}"#
   );
-  let rows = all(db, &sql, vec![reader.company.into()]).await?;
+  let rows = all(db, &sql, vec![bind.into()]).await?;
 
   rows
     .iter()
@@ -217,8 +293,10 @@ async fn members<C: ConnectionTrait>(db: &C, reader: &Caller) -> Result<Vec<Memb
 /// One person the reader reaches with their posts, or nothing found where the user does not stand or stands
 /// beyond the reader's reach.
 async fn of<C: ConnectionTrait>(db: &C, reader: &Caller, user: i32) -> Result<PersonDetail, Refusal> {
-  let sql = format!(r#"SELECT {COLUMNS} {FROM} WHERE {reach} AND u."id" = $2"#, reach = reader.reach());
-  let row = one(db, &sql, vec![reader.company.into(), user.into()])
+  let company = reader.company()?;
+  let reach = reader.reach();
+  let sql = format!(r#"SELECT {COLUMNS} {FROM} WHERE {reach} AND u."id" = $2"#);
+  let row = one(db, &sql, vec![company.into(), user.into()])
     .await?
     .ok_or_else(|| Refusal::absent(format!("no person {user} stands in the reader's directory")))?;
 
@@ -235,24 +313,38 @@ async fn of<C: ConnectionTrait>(db: &C, reader: &Caller, user: i32) -> Result<Pe
   })
 }
 
-/// `GET /users/search`: the people the words find.
+/// `GET /users/search`: the people the words find, bounded by the reader's company or by a named room's
+/// letting-in rule.
 async fn search_route(
   State(service): State<Service>,
   Query(ask): Query<SearchAsk>,
   headers: HeaderMap,
 ) -> Answer<WirePeople> {
   let reader = caller(&service.db, &headers).await?;
-  let people = search(&service.db, &reader, ask.q.as_deref().unwrap_or_default(), ask.limit).await?;
+  let people = search(
+    &service.db,
+    service.receiver.as_ref(),
+    &reader,
+    ask.q.as_deref().unwrap_or_default(),
+    ask.limit,
+    ask.room,
+  )
+  .await?;
 
   Ok(Json(WirePeople { people }))
 }
 
-/// `GET /users/members`: every member of the reader's company.
-async fn members_route(State(service): State<Service>, headers: HeaderMap) -> Answer<Members> {
+/// `GET /users/members`: every member of the reader's company, or the people a named room's letting-in rule
+/// reaches for the reader.
+async fn members_route(
+  State(service): State<Service>,
+  Query(ask): Query<MembersAsk>,
+  headers: HeaderMap,
+) -> Answer<Members> {
   let reader = caller(&service.db, &headers).await?;
 
   Ok(Json(Members {
-    members: members(&service.db, &reader).await?,
+    members: members(&service.db, service.receiver.as_ref(), &reader, ask.room).await?,
   }))
 }
 

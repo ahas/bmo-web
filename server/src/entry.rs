@@ -42,9 +42,50 @@ async fn company_of_room<C: ConnectionTrait>(
   Ok(None)
 }
 
-/// Whether a user may let another into a room or take them out, as `act` asks: never one of another company than the
-/// room's — or, for a room with no leader, than the actor's, but for the administrator — and then the administrator,
-/// a leader of the room, or a head of a leader's unit, and for letting in a member of the room as well.
+/// The people one reader may act on within a room, as one rule read for both the entry check and the list of
+/// the people a room search named for it answers.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum EntryBound {
+  /// The reader may act on nobody in the room.
+  NoOne,
+  /// The reader may act on the people standing in this company.
+  Company(i32),
+  /// The reader may act on every person of the deployment.
+  Everyone,
+}
+
+/// Which people `act` reaches for `actor` in `room`: whether it reaches anybody at all is the actor's standing
+/// in the room — the administrator, a leader of the room or a head of a leader's unit for either act, and every
+/// member of the room for letting in; and which company it is bounded to is the room's own company, or the
+/// actor's for a room standing with no leader, the administrator unbounded there.
+pub async fn entry_set<C: ConnectionTrait>(
+  db: &C,
+  receiver: &dyn Receiver,
+  actor: i32,
+  room: i64,
+  act: EntryAct,
+) -> Result<EntryBound, Refusal> {
+  let administrator = administrator(db, actor).await?;
+  let leads = leads(db, receiver, actor, room).await?;
+  let member = receiver.members_of(room).await?.contains(&actor);
+  let allowed = administrator || leads || (act == EntryAct::LetIn && member);
+
+  match company_of_room(db, receiver, room).await? {
+    Some(company) if allowed => Ok(EntryBound::Company(company)),
+    Some(_) => Ok(EntryBound::NoOne),
+    None if administrator => Ok(EntryBound::Everyone),
+    None if !allowed => Ok(EntryBound::NoOne),
+    None => Ok(match company_of_user(db, actor).await? {
+      Some(company) => EntryBound::Company(company),
+      None => EntryBound::NoOne,
+    }),
+  }
+}
+
+/// Whether a user may let another into a room or take them out, as `act` asks: the act must reach at all for
+/// the actor — its standing in the room, as `entry_set` reads it — and the person must stand within the bound
+/// it reaches, which is never a person of another company than the room's, or, for a room with no leader, than
+/// the actor's, but for the administrator.
 pub async fn may_enter<C: ConnectionTrait>(
   db: &C,
   receiver: &dyn Receiver,
@@ -57,22 +98,11 @@ pub async fn may_enter<C: ConnectionTrait>(
     .await?
     .ok_or_else(|| Refusal::absent(format!("no user {user}")))?;
 
-  let theirs = company_of_user(db, user).await?;
-  let administrator = administrator(db, actor).await?;
-
-  match company_of_room(db, receiver, room).await? {
-    Some(company) if theirs != Some(company) => return Ok(false),
-    None if !administrator && (theirs.is_none() || theirs != company_of_user(db, actor).await?) => {
-      return Ok(false);
-    }
-    _ => {}
-  }
-
-  if administrator || leads(db, receiver, actor, room).await? {
-    return Ok(true);
-  }
-
-  Ok(act == EntryAct::LetIn && receiver.members_of(room).await?.contains(&actor))
+  Ok(match entry_set(db, receiver, actor, room, act).await? {
+    EntryBound::NoOne => false,
+    EntryBound::Company(company) => company_of_user(db, user).await? == Some(company),
+    EntryBound::Everyone => true,
+  })
 }
 
 async fn entry_check(

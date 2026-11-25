@@ -146,7 +146,7 @@ interface AgencyCatalogue {
 // The names of the makers among the reader's company's members, and of the units the reader's controls name.
 async function namesOf(read: AgencyCatalogue, signed: SignedIn): Promise<{ people: Record<string, string>; units: Record<string, string> }> {
   const caller = callerOf(signed);
-  const members = await companyMembers(caller).catch(() => []);
+  const members = await companyMembers(null, caller).catch(() => []);
   const people = Object.fromEntries(members.map((member) => [String(member.user), member.name]));
   const linked = new Set(read.apps.flatMap((app) => [...app.may.turnOn, ...app.may.recall]).map(linkUnit).filter((unit): unit is number => unit !== null));
   const units = Object.fromEntries(

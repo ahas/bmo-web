@@ -54,11 +54,25 @@ struct Route {
   security: Option<Value>,
 }
 
+/// The `room` parameter's words: what naming a room does to the people directory's search and members list.
+const ROOM_PARAMETER: &str = "The number of a room: the people the reader may let into it answer on the entry check's own rule, instead of the reader's company, and none of them marked left; where the reader may let in nobody, nobody answers. A search asked with no words then answers that set whole, up to the limit.";
+
 fn parameter(name: &str, kind: &str, required: bool) -> Value {
   json!({
     "name": name,
     "in": "query",
     "required": required,
+    "schema": { "type": kind },
+  })
+}
+
+/// A query parameter that says what naming it does, where the name alone does not carry the rule.
+fn described_parameter(name: &str, kind: &str, required: bool, description: &str) -> Value {
+  json!({
+    "name": name,
+    "in": "query",
+    "required": required,
+    "description": description,
     "schema": { "type": kind },
   })
 }
@@ -420,8 +434,14 @@ pub fn openapi() -> Value {
     "/users/search",
     "searchPeople",
     "Users and senders",
-    "The people of the reader's organisation whose name, organisation, job title or permitted contact details hold the words.",
-    params: vec![parameter("q", "string", true), parameter("limit", "integer", false), owner_key(), owner_role()],
+    "The people of the reader's organisation whose name, organisation, job title or permitted contact details hold the words; with `room`, the people the reader may let into that room.",
+    params: vec![
+      parameter("q", "string", true),
+      parameter("limit", "integer", false),
+      described_parameter("room", "integer", false, ROOM_PARAMETER),
+      owner_key(),
+      owner_role()
+    ],
     body: None,
     answers: vec![(200, json_answer::<People>(&mut generator))],
     codes: vec!["bad-request", "unauthorized", "forbidden", "not-in-force", "database", "failed"],
@@ -433,8 +453,12 @@ pub fn openapi() -> Value {
     "/users/members",
     "members",
     "Users and senders",
-    "Every member of the reader's company but those marked left, each by their account key and name alone, in the directory's order.",
-    params: vec![owner_key(), owner_role()],
+    "Every member of the reader's company but those marked left, each by their account key and name alone, in the directory's order; with `room`, the people the reader may let into that room.",
+    params: vec![
+      described_parameter("room", "integer", false, ROOM_PARAMETER),
+      owner_key(),
+      owner_role()
+    ],
     body: None,
     answers: vec![(200, json_answer::<Members>(&mut generator))],
     codes: vec!["unauthorized", "forbidden", "not-in-force", "database", "failed"],

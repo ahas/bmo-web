@@ -18,5 +18,5 @@ export default defineEventHandler(async (event): Promise<{ members: { user: stri
 
   if (key === null) return { members: [] };
 
-  return { members: await companyMembers({ key, role: ownerRoleOf(signed) }) };
+  return { members: await companyMembers(null, { key, role: ownerRoleOf(signed) }) };
 });

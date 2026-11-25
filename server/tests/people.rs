@@ -3,7 +3,7 @@
 //! details the reader may see. A member's search matches no contact detail but their own, and a member neither
 //! finds nor reads a person of another company.
 
-use crate::support::{OWNER, Scratch, console_hash, ready};
+use crate::support::{OWNER, ROOM, Scratch, console_hash, ready};
 use axum::Router;
 use axum::body::Body;
 use axum::http::{Method, Request, StatusCode, header};
@@ -361,4 +361,165 @@ async fn the_members_list_is_the_whole_company_by_key_and_name_alone() {
 
     assert_eq!(status, StatusCode::FORBIDDEN, "{said}");
   }
+}
+
+/// A unit of the standing model, made for a room bound.
+async fn deep_unit(scratch: &Scratch, name: &str, parent: Option<i32>) -> i32 {
+  one(
+    scratch.db(),
+    r#"INSERT INTO "organizations" ("name", "parent_id") VALUES ($1, $2) RETURNING "id""#,
+    vec![name.into(), parent.into()],
+  )
+  .await
+  .unwrap()
+  .unwrap()
+  .try_get::<i32>("", "id")
+  .unwrap()
+}
+
+/// A user who may sign in, stood in `unit`.
+async fn stood(scratch: &Scratch, name: &str, unit: i32) -> i32 {
+  let user = set_sign_in(scratch.db(), name, "the password", false).await.unwrap().user;
+
+  scratch
+    .run(
+      r#"UPDATE "users" SET "organization_id" = $1 WHERE "id" = $2"#,
+      vec![unit.into(), user.into()],
+    )
+    .await;
+
+  user
+}
+
+#[tokio::test]
+async fn a_room_named_search_and_members_list_answer_the_people_the_reader_may_let_in() {
+  ready();
+  let scratch = Scratch::new().await;
+
+  scratch.console_account("boss", &console_hash("the password")).await;
+  run_move(
+    scratch.db(),
+    MoveAsk {
+      owner_senders: vec![OWNER],
+    },
+  )
+  .await
+  .unwrap();
+
+  let company = deep_unit(&scratch, "company-a", None).await;
+  let team = deep_unit(&scratch, "team-a", Some(company)).await;
+  let other = deep_unit(&scratch, "company-b", None).await;
+  let opener = stood(&scratch, "opener-a", team).await;
+  let member = stood(&scratch, "member-a", company).await;
+  stood(&scratch, "colleague-a", team).await;
+  let lefter = stood(&scratch, "lefter-a", company).await;
+  let outsider = stood(&scratch, "outsider-b", other).await;
+
+  scratch.rooms.leaders.lock().unwrap().insert(ROOM, vec![opener]);
+  scratch.rooms.members.lock().unwrap().insert(ROOM, vec![opener, member]);
+  scratch
+    .run(
+      r#"INSERT INTO "user_departures" ("user_id", "left_at", "left_by") VALUES ($1::bigint, 0, $1::bigint)"#,
+      vec![lefter.into()],
+    )
+    .await;
+
+  let app = app(&scratch).await;
+  let named = format!("/users/search?room={ROOM}");
+  let key = member.to_string();
+
+  // Opened on the room, with no words, the search answers the whole set this member may let in: the room's
+  // company's people, the one marked left and every other company's left out.
+  let (status, said) = asked(&app, &named, Some(&key), Some("member")).await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert_eq!(names(&said), vec!["colleague-a", "member-a", "opener-a"], "{said}");
+
+  // Words narrow that set; a word standing for the reader's own company answers nobody, for the room's
+  // bound stands over the search, not the reader's directory.
+  let (_, said) = asked(&app, &format!("{named}&q=col"), Some(&key), Some("member")).await;
+
+  assert_eq!(names(&said), vec!["colleague-a"], "{said}");
+
+  let (_, said) =
+    asked(&app, &format!("/users/search?room={ROOM}&q=outsider"), Some(&key), Some("member")).await;
+
+  assert!(people(&said).is_empty(), "{said}");
+
+  // The administrator, asked of a standing room, is bounded by its company like every other reader.
+  let boss = owner(&app).await;
+  let (status, said) = asked(&app, &named, Some(&boss), Some("administrator")).await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert_eq!(names(&said), vec!["colleague-a", "member-a", "opener-a"], "{said}");
+
+  // One who stands in no relation to the room may let nobody in and is answered nobody, words or none.
+  let (_, said) = asked(&app, &named, Some(&outsider.to_string()), Some("member")).await;
+
+  assert!(people(&said).is_empty(), "{said}");
+
+  let (_, said) = asked(
+    &app,
+    &format!("/users/search?room={ROOM}&q=outsider"),
+    Some(&outsider.to_string()),
+    Some("member"),
+  )
+  .await;
+
+  assert!(people(&said).is_empty(), "{said}");
+
+  // The members list named for the room answers the same set, each by key and name alone, with no limit.
+  let (status, said) =
+    asked(&app, &format!("/users/members?room={ROOM}"), Some(&key), Some("member")).await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+  let members = said["members"].as_array().expect("members is a list");
+  let listed: Vec<&str> = members.iter().map(|one| one["name"].as_str().unwrap()).collect();
+
+  assert_eq!(listed, vec!["colleague-a", "member-a", "opener-a"], "{said}");
+  for one in members {
+    let mut fields: Vec<&str> = one.as_object().unwrap().keys().map(String::as_str).collect();
+
+    fields.sort_unstable();
+    assert_eq!(fields, vec!["name", "user"], "{said}");
+  }
+
+  // A room with no leader bounds on the reader's own company, and only once the reader may let in at all;
+  // the administrator reads every company of the deployment for it, still no one marked left.
+  let leaderless = ROOM - 1;
+
+  let (_, said) =
+    asked(&app, &format!("/users/search?room={leaderless}"), Some(&key), Some("member")).await;
+
+  assert!(people(&said).is_empty(), "{said}");
+
+  scratch.rooms.members.lock().unwrap().insert(leaderless, vec![member]);
+
+  let (_, said) =
+    asked(&app, &format!("/users/search?room={leaderless}"), Some(&key), Some("member")).await;
+
+  assert_eq!(names(&said), vec!["colleague-a", "member-a", "opener-a"], "{said}");
+
+  let (_, said) =
+    asked(&app, &format!("/users/search?room={leaderless}"), Some(&boss), Some("administrator")).await;
+
+  assert!(names(&said).contains(&"outsider-b"), "{said}");
+  assert!(names(&said).contains(&"member-a"), "{said}");
+  assert!(!names(&said).contains(&"lefter-a"), "{said}");
+
+  // The roads without a room stand as they were: the reader's own company, the marked left kept out of the
+  // members list alone.
+  let (_, said) = asked(&app, "/users/members", Some(&key), Some("member")).await;
+  let listed: Vec<&str> = said["members"]
+    .as_array()
+    .expect("members is a list")
+    .iter()
+    .map(|one| one["name"].as_str().unwrap())
+    .collect();
+
+  assert_eq!(listed, vec!["colleague-a", "member-a", "opener-a"], "{said}");
+
+  let (_, said) = asked(&app, "/users/search?q=outsider", Some(&key), Some("member")).await;
+
+  assert!(people(&said).is_empty(), "{said}");
 }

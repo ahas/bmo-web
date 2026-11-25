@@ -98,6 +98,10 @@ describe.skipIf(!origin || !touchReady())("a person let into a room from its scr
         // A pointer's press puts the focus in the list's search field at once; a finger presses the field itself.
         await press(dialog.getByLabel(wording("members.label.choice")).first(), phone);
         if (phone) await press(page.locator("[data-reka-popper-content-wrapper] input").first(), phone);
+        // Opened, the list already stands the people this reader may let into the room, the room's members left
+        // out (docs/web.md, the room screen's section on opening a room and letting people in): the guest it may
+        // let in stands there before a word is typed.
+        await page.getByRole("option").filter({ hasText: guest.name }).first().waitFor({ timeout: 10_000 });
         await page.keyboard.type(guest.name);
         await press(page.getByRole("option").filter({ hasText: guest.name }).first(), phone);
         await page.keyboard.press("Escape");

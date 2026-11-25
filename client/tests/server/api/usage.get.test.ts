@@ -101,7 +101,7 @@ describe("the usage view", () => {
 
     try {
       expect((await asked(handler, {})).answer?.active).toEqual({
-        provider: "provider-y", label: "provider-y", account: null, accountName: null, logins: 0, session: null, week: null, balance: null
+        provider: "provider-y", label: "provider-y", account: null, accountName: null, loginNumber: null, logins: 0, session: null, week: null, balance: null
       });
     } finally {
       chatProvider = "provider-x";

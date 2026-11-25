@@ -4834,6 +4834,7 @@ supply:
     secret_note: 値はシークレット保管庫にあり、ここには名前だけを渡します。
     secrets_none: あなたのシークレット保管庫にはまだシークレットがありません。
     logins_none: 供給ログインなし
+    login_numbered: "Claude アカウント {number}"
     keys_none: 供給キーなし
     usable: 利用可能
     login_off: オフ

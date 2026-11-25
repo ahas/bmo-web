@@ -4834,6 +4834,7 @@ supply:
     secret_note: 值保存在密钥库中，这里只传递名称。
     secrets_none: 你的密钥库中还没有密钥。
     logins_none: 无供给登录
+    login_numbered: "Claude 账号 {number}"
     keys_none: 无供给密钥
     usable: 可用
     login_off: 已关闭

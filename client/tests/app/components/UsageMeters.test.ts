@@ -89,7 +89,7 @@ describe("what the wide bar carries", () => {
     // And the figures themselves are the slot the agency says the chat runs on, read off its answer
     // rather than taken as the first row of the order.
     expect(source).toContain("titleWindows(usage.value.active)");
-    expect(source).toContain("titleAccountLabel(usage.value.active)");
+    expect(source).toContain("slotLoginText(t, usage.value.active)");
     expect(wide).toContain("slotName(usage.active)");
   });
 

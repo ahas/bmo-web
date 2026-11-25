@@ -60,6 +60,7 @@ describe("the slot the chat runs on", () => {
       label: "Claude Code",
       account: "a",
       accountName: "Account A",
+      loginNumber: null,
       logins: 2,
       session: { name: "five_hour", utilization: 0.3, resetsAt: 1_800_000_000, durationMinutes: 300, limitName: null },
       week: { name: "seven_day", utilization: 0.6, resetsAt: 1_800_000_000, durationMinutes: 10_080, limitName: null },
@@ -146,6 +147,42 @@ describe("each account's windows", () => {
     expect(usageView(answer, [account("a"), account("b")], { groups: [], after: 0, before: 1 }, null, new Set()).accounts.map((one) => one.id)).toEqual(["a"]);
   });
 
+  // The number the screen gives a login is counted within the account that owns it, over every login the reader is
+  // told of — a login whose figures are left out is counted all the same, so the number never moves with the panel
+  // (docs/web.md, 「Organisation」, the supply tab).
+  test("each account carries the number its own account counts it as", () => {
+    const answer = {
+      routes: [],
+      active: { provider: "claude-code", account: "p3", accountName: "claude-07", accounts: 4 },
+      accounts: [
+        { id: "p1", name: "claude-01", enabled: true, userId: null },
+        { id: "p2", name: "claude-05", enabled: false, userId: null },
+        { id: "p3", name: "claude-07", enabled: true, userId: null },
+        { id: "o1", name: "claude-03", enabled: true, userId: 4 }
+      ]
+    };
+    const accounts = accountUsages(answer, [account("p1"), account("p2"), account("p3"), account("o1")], null);
+
+    expect(accounts.map((one) => [one.id, one.name, one.loginNumber])).toEqual([
+      ["p1", "claude-01", 1],
+      ["p3", "claude-07", 3],
+      ["o1", "claude-03", 1]
+    ]);
+    expect(activeUsage(answer)?.loginNumber).toBe(3);
+  });
+
+  test("a login whose owner the answer does not state, or whose name numbers nothing, is numbered as nothing", () => {
+    const answer = {
+      routes: [],
+      accounts: [
+        { id: "untold", name: "claude-02", enabled: true },
+        { id: "hand", name: "work-machine", enabled: true, userId: null }
+      ]
+    };
+
+    expect(accountUsages(answer, [account("untold"), account("hand")], null).map((one) => one.loginNumber)).toEqual([null, null]);
+  });
+
   test("an account the fallback does not name stands under its id", () => {
     expect(accountUsages({ routes: [] }, [account("c")], null)[0]).toMatchObject({ id: "c", name: "c", label: "claude-code" });
   });
@@ -204,7 +241,7 @@ describe("a provider's own road", () => {
   });
 
   test("is left out where it is switched off, keeps no balance, or is the slot the chat runs on", () => {
-    const active = { provider: "provider-y", label: "Provider Y", account: null, accountName: null, logins: 0, session: null, week: null, balance: null };
+    const active = { provider: "provider-y", label: "Provider Y", account: null, accountName: null, loginNumber: null, logins: 0, session: null, week: null, balance: null };
 
     expect(roadUsages([road({ enabled: false })], null)).toEqual([]);
     expect(roadUsages([road({ quota: { has: true, balance: null } })], null)).toEqual([]);

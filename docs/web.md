@@ -1243,7 +1243,8 @@ writing the words. A wording fix is an edit to the packs alone, once the guide b
 ### Usage in the title bar
 
 - **On any screen, what the slot the chat runs on has left stands at the right of the header.** The slot is
-  named — its provider, and the login where the provider holds more than one — and beside it stand two
+  named — its provider, and the login where the provider holds more than one, by its number within the account that
+  owns it (「Organisation」, 「공급」) — and beside it stand two
   windows, **session** (a 5-hour window) and **weekly** (a 7-day window), each as the share remaining, read
   yellow at 40% or under and red at 10% or under.
 - **The slot is the agency's answer, not the screen's pick.** The agency names the agent serving the chat now:
@@ -1270,7 +1271,9 @@ writing the words. A wording fix is an edit to the packs alone, once the guide b
   there is nowhere else on the bar to say it.
 - **The panel is each account's remaining usage, and nothing else.** Every Claude account that is switched
   on, on a provider that is switched on, stands as a group of its own, in the order the agency lists them and
-  under the name the owner gave it — an account or a provider the owner switched off answers nothing, so its
+  under its numbered name, counted within the account that owns it (「Organisation」, 「공급」) — a group whose login
+  the panel is not told the owner of stands under the name it holds — an account or a provider the owner switched
+  off answers nothing, so its
   figures are not shown, whichever of them the road last ran on —
   holding that account's own session and weekly windows as the share remaining, each with a bar of that share and
   how long is left until it resets. A group's rows stand on shared columns, so the names read down one column, the
@@ -3853,7 +3856,7 @@ alone (「Access」); another account's agents are reached from 조직's 사용�
 - **The title bar's limit follows the provider the chat agent runs on.** It shows the provider the default
   answerer's last turn went out on, the login it walks to where that provider holds more than one, and that
   provider's own session and weekly windows as the agency states them; the expanded panel holds a group for every
-  registered Claude account, in the order the agency lists them, each headed by the account's name and holding its
+  registered Claude account, in the order the agency lists them, each headed by its numbered name and holding its
   own session and weekly figures and reset times (「Usage in the title bar」). An account with no reading still has
   its group, saying so, and a provider that reports no window stands as its name with 「—」.
 - **A privileged Codex is YOLO and never-ask.** A room and job worker allowed all four tools in Claude
@@ -9407,6 +9410,15 @@ stands on it.
   below the company sets theirs at their own node. Each group stands for the reader who holds its part — the policy,
   the credits and the spend for one holding the unit's policy and credits, 조직 공급 for its heads, the plans for its
   subscription manager as well — and reads on its own.
+- **A Claude login is numbered within the account that owns it,** wherever the tab, the title bar's panel or the
+  providers list names one. The agency numbers every login it is asked for one past every login the platform holds,
+  so the number in the name it answers with counts other people's logins among them; the screen counts that account's
+  own from 01 instead, in the order those numbers run, and names one 「Claude 01번 계정」. The account a login belongs
+  to is the agency's word for it: the person's own number, or the platform where no person owns it. A login whose
+  name carries no such number, and one whose owning account the screen is not told, stands under the name it holds
+  rather than a number guessed for it. What the login is called inside the agency, how it is addressed, and where its
+  credential is reached are untouched: the stored name, its id and its path stand on the row's edit box and under the
+  platform's row, which only the administrator reads.
 - **공급 정책** stands under its heading: where the unit sets no policy of its own, the row says it follows the
   unit above, muted under the name, and the policy actually in force from above stands as the rows' values, the
   allowed sources in order; 정책 설정 at the heading's end opens the form (「Forms」). Where a policy stands, its
@@ -9530,11 +9542,13 @@ The providers themselves, switched on and off with what they have left, stand on
   body once it stands, which is where the title bar's usage panel leads (「Usage in the title bar」). Its rows are parted by hairlines with no box round them, one row each: a drag
   handle, the place in the order, a mark saying whether that login is standing, near its end, gone or never signed in on the agency's
   machine — a login near its end also carrying how long is left, one that has ended carrying 로그인 필요, and one
-  the agency holds no login for there (its `login` of `none`) carrying 로그인 안 됨 — the name the owner gave it,
-  where its credential is reached, a configuration directory or a token file shown as that path, the up and down
+  the agency holds no login for there (its `login` of `none`) carrying 로그인 안 됨 — the login's name in its own
+  account's numbering (「공급」 above), where its credential is reached, a configuration directory or a token file
+  shown as that path, the up and down
   arrows, the row's more-menu and the enable switch. Under the name stands its 소유, 공용 or 개인 with the owning
   person's name after a middle dot, read off the account's `userId` (the agency's `docs/supply.md`, 「Owned
-  supply」), and the account the owner chose carries 고른 계정. Under the
+  supply」) — which is what tells two rows whose own accounts each number from 01 apart — and the account the owner
+  chose carries 고른 계정. Under the
   row, as wide as the row past its handle, stands what that account has left: its own group of the title bar panel,
   its session and weekly windows with how long is left until each resets and its balance where it keeps one, a
   skeleton line while the figures are first read, and 「읽은 사용량 없음」 where the agency states none. An account that is
@@ -9545,11 +9559,13 @@ The providers themselves, switched on and off with what they have left, stand on
   holds 순서대로 in its place, which lets the choice go (the agency's `docs/cache-fallback.md`, 「Running on one account
   now」). Claude 계정
   추가 opens a box for a new account's name and how it is reached: 여기서 로그인, offered first, or
-  one of the two ways its credential is reached with the path it is reached by; a row's more-menu edits the name, the
-  way and the path, or removes the account.
+  one of the two ways its credential is reached with the path it is reached by; a row's more-menu edits the name the
+  login is stored under, the way and the path, or removes the account. An edit box is titled by its login's numbered
+  name and carries under the title the id the account is addressed by; its name field holds the stored name, which is
+  what the agency keeps and what a new name is refused against.
 - **여기서 로그인 signs an account in with no terminal.** The agency runs the Claude CLI's own sign-in for it (the
-  agency's `docs/cache-fallback.md`, 「Signing an account in from the console」), and a box titled with the account's
-  name says what to do: 로그인 페이지 열기 opens the sign-in's address in the administrator's own browser, where they
+  agency's `docs/cache-fallback.md`, 「Signing an account in from the console」), and a box titled with the login's
+  numbered name says what to do: 로그인 페이지 열기 opens the sign-in's address in the administrator's own browser, where they
   approve it signed in to that account, and the code the page then shows is pasted into 인증 코드 and handed back
   with 로그인 완료. A new account so signed in is added once its login is written, its configuration directory one
   the agency makes for it; an account whose directory is its credential carries 다시 로그인 in its more-menu, for a
@@ -9558,7 +9574,9 @@ The providers themselves, switched on and off with what they have left, stand on
   neither, and only the administrator reaches the routes. Accounts are numbered by name,
   `claude-01`, `claude-02` and on, as many as the owner adds: a new one signed in here leaves its name empty, the
   field saying the agency names it, and the agency names it one number past every account's `claude-NN`, the
-  people's own among them, which this list does not show, and the box's title carries the name it answered; the
+  people's own among them, which this list does not show, and the box's title carries the number that name gives the
+  new login among the logins of the account that will own it, or the name it answered where that name numbers
+  nothing; the
   owner may write a name instead, and one another account holds is refused in a sentence of its own. Every refusal
   of a sign-in is said so, as 「나」's 공급 로그인 says it. Dragging a handle saves the whole order
   at once, by mouse and finger alike, and the arrows move one row the same way; turning off the last one on is
@@ -9590,12 +9608,17 @@ them through the console's own relay of those routes (`GET`/`PUT /api/supply/me`
 `/api/supply/signin`, `/api/supply/personal`). No credential and no secret value reaches the screen from either unit: what
 a row shows of a key is the secret's name, and of a login the path it is reached by.
 
-- **공급 로그인** lists the reader's Claude logins in the order their runs walk them, one row each: the name, its
-  place in the order, its state in one word — 사용 가능, 창 가득 참, 로그인 필요, 로그인 안 됨 — and its switch. The arrows move
+- **공급 로그인** lists the reader's Claude logins in the order their runs walk them, one row each: the login named by
+  its number within the reader's own account (「공급」 above — the first of their own is 「Claude 01번 계정」, and the
+  number the agency put in its name is never what the reader is shown), its
+  place in the order, its state in one word — 사용 가능, 창 가득 참, 로그인 필요, 로그인 안 됨 — and its switch. Every
+  control of the row — its arrows, its menu, its switch and the question that asks before 삭제 — names it by that
+  label. The arrows move
   one row, the whole order written as it is dropped; a refusal leaves the order the agency holds. 로그인 추가 at
   the heading's end starts the sign-in the agency runs on the reader's own node, naming no name: account names are
   one namespace across every owner and the reader sees only their own, so the agency names the new login, one
-  number past every account's `claude-NN`, and the box's title carries the name it answered. The box opens the
+  number past every account's `claude-NN`, and the box's title carries the number that name gives it among the
+  reader's own logins, or the name it answered where that name numbers nothing. The box opens the
   sign-in's address in the reader's browser, the code that page shows is pasted into 인증 코드 and handed back with
   로그인 완료, and closing the box gives the sign-in up, each as the platform's Claude 계정 box does (「공급」);
   a reader whose node stands off is told so and nothing starts. Every refusal is said in the box in a sentence of
@@ -9786,7 +9809,7 @@ Claude accounts — on 공급. No member opens it.
   English as its tooltip, and the owner's switch. What it has left is the title bar panel's own figures, read under
   the same key so both stand the same numbers (「Usage in the title bar」), drawn as that panel draws a group: the
   slot the chat runs on where that slot is this provider with no login, its own road's balance with its request
-  allowance, and each of its accounts the Claude 계정 list on 조직's 공급 does not carry, under the account's name
+  allowance, and each of its accounts the Claude 계정 list on 조직's 공급 does not carry, under its numbered name
   (「공급」). A provider whose
   figures are its accounts' — Claude Code — stands none of its own, since each account carries its own on its row,
   and a provider that is off or reports nothing stands none. A failed read of the figures is said once in the error

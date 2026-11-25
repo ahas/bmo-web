@@ -1,4 +1,5 @@
 import { COUNT_LOCALE, countText } from "./numbers";
+import { loginText } from "#shared/claude-logins";
 import { agentProviderNames } from "#shared/types";
 
 import type { ActiveUsage, AgentMode, AgentTokenUsage, HeadlineWindow, TokenSplit, UsageBalance, UsageTally, UsageView } from "#shared/types";
@@ -123,15 +124,17 @@ export function knownMode(provider: string): AgentMode | null {
   return (agentProviderNames as readonly string[]).includes(provider) ? (provider as AgentMode) : null;
 }
 
-// One group of the panel: whose figures they are — the provider, and the account's id and name where the slot is one
-// account of several — and its own windows, session first. A group with no window stated holds none, and says so
-// rather than standing a figure.
+// One group of the panel: whose figures they are — the provider, and the account's id, name and own-account number
+// where the slot is one account of several — and its own windows, session first. A group with no window stated holds
+// none, and says so rather than standing a figure.
 export interface UsageGroup {
   id: string;
   provider: string;
   label: string;
   account: string | null;
   name: string | null;
+  // What the login is numbered within its own account as, where the console counted a number for it.
+  loginNumber: number | null;
   windows: HeadlineWindow[];
   balance: UsageBalance | null;
 }
@@ -148,7 +151,7 @@ export function usageGroups(view: UsageView): UsageGroup[] {
   const slot: UsageGroup[] =
     active === null || active.account !== null
       ? []
-      : [{ id: `slot:${active.provider}`, provider: active.provider, label: active.label, account: null, name: null, windows: windowsOf(active), balance: active.balance }];
+      : [{ id: `slot:${active.provider}`, provider: active.provider, label: active.label, account: null, name: null, loginNumber: null, windows: windowsOf(active), balance: active.balance }];
 
   return [
     ...slot,
@@ -158,10 +161,11 @@ export function usageGroups(view: UsageView): UsageGroup[] {
       label: account.label,
       account: account.id,
       name: account.name,
+      loginNumber: account.loginNumber,
       windows: windowsOf(account),
       balance: account.balance
     })),
-    ...view.roads.map((road) => ({ id: `road:${road.provider}`, provider: road.provider, label: road.label, account: null, name: null, windows: [], balance: road.balance }))
+    ...view.roads.map((road) => ({ id: `road:${road.provider}`, provider: road.provider, label: road.label, account: null, name: null, loginNumber: null, windows: [], balance: road.balance }))
   ];
 }
 
@@ -212,9 +216,17 @@ export function liveWindow<T extends HeadlineWindow>(window: T | null | undefine
 
 // What names the slot's login on the title bar, where the provider holds more than one to tell apart. With a single
 // login there is nothing to distinguish and the title says nothing about it, and a provider that holds none has no
-// login to name.
+// login to name. Where the console counted the login's own number it names it by that, and not by the number the
+// agency put in its name (docs/web.md, 「Organisation」, the supply tab).
 export function titleAccountLabel(active: ActiveUsage | null): string | null {
   return active === null || active.logins < 2 ? null : active.accountName;
+}
+
+/** What the bar calls the login the slot walks to, or null where it names none. */
+export function slotLoginText(t: Translate, active: ActiveUsage | null): string | null {
+  const name = titleAccountLabel(active);
+
+  return name === null || active === null ? null : loginText(t, name, active.loginNumber);
 }
 
 // The two figures the title bar shows: the slot's session and weekly windows, as the agency picked them out of the

@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-import { agentUsage, figureText, kindFigures, kindsKnown, usageOver, knownMode, limitless, liveWindow, loudestTone, resetClock, resetDay, resetText, shareText, shareTone, titleAccountLabel, titleWindows, tokenText, totalText, unsplitText, untilText, usageBar, usageGroups, windowLabel, moneyText, requestsLabel, requestsText, accountGroup, providerGroups, requestsPercent } from "../../../apps/web/app/domain/usage";
+import { agentUsage, figureText, kindFigures, kindsKnown, usageOver, knownMode, limitless, liveWindow, loudestTone, resetClock, resetDay, resetText, shareText, shareTone, slotLoginText, titleAccountLabel, titleWindows, tokenText, totalText, unsplitText, untilText, usageBar, usageGroups, windowLabel, moneyText, requestsLabel, requestsText, accountGroup, providerGroups, requestsPercent } from "../../../apps/web/app/domain/usage";
 
 import type { AccountUsage, ActiveUsage, AgentTokenUsage, HeadlineWindow, UsageView } from "../../../apps/web/shared/types";
 import type { UsageBar, UsageSegment } from "../../../apps/web/app/domain/usage";
@@ -334,11 +334,11 @@ describe("the panel's groups", () => {
   const week: HeadlineWindow = { ...session, name: "seven_day", utilization: 0.4 };
 
   function account(id: string, over: Partial<AccountUsage> = {}): AccountUsage {
-    return { id, name: `Account ${id}`, provider: "claude-code", label: "Claude Code", session: null, week: null, balance: null, ...over };
+    return { id, name: `Account ${id}`, loginNumber: null, provider: "claude-code", label: "Claude Code", session: null, week: null, balance: null, ...over };
   }
 
   function active(over: Partial<ActiveUsage> = {}): ActiveUsage {
-    return { provider: "claude-code", label: "Claude Code", account: "a", accountName: "Account a", logins: 2, session, week, balance: null, ...over };
+    return { provider: "claude-code", label: "Claude Code", account: "a", accountName: "Account a", loginNumber: null, logins: 2, session, week, balance: null, ...over };
   }
 
   function view(over: Partial<UsageView> = {}): UsageView {
@@ -442,7 +442,7 @@ describe("whose window the title bar shows", () => {
   const second = { name: "five_hour", utilization: 0.9, resetsAt: 1_788_570_000, durationMinutes: null, limitName: null };
 
   function active(over: Partial<ActiveUsage> = {}): ActiveUsage {
-    return { provider: "claude-code", label: "Claude Code", account: "default", accountName: "Account A", logins: 2, session, week: null, balance: null, ...over };
+    return { provider: "claude-code", label: "Claude Code", account: "default", accountName: "Account A", loginNumber: null, logins: 2, session, week: null, balance: null, ...over };
   }
 
   test("the figures are the slot's, not the first of the order", () => {
@@ -453,6 +453,15 @@ describe("whose window the title bar shows", () => {
   test("the login is named on the bar, and only where there is more than one", () => {
     expect(titleAccountLabel(active())).toBe("Account A");
     expect(titleAccountLabel(active({ logins: 1 }))).toBeNull();
+  });
+
+  // The bar never shows the number the agency put in a login's name: it shows the number the console counted within
+  // the account that owns the login (docs/web.md, 「Organisation」, the supply tab).
+  test("the login is named by its own account's number where the console counted one", () => {
+    expect(slotLoginText(wording, active({ accountName: "claude-07", loginNumber: 3 }))).toBe(wording("supply.label.login_numbered", { number: "03" }));
+    expect(slotLoginText(wording, active({ accountName: "hand-named", loginNumber: null }))).toBe("hand-named");
+    expect(slotLoginText(wording, active({ logins: 1, loginNumber: 1 }))).toBeNull();
+    expect(slotLoginText(wording, null)).toBeNull();
   });
 
   test("a provider holding no login names none, and with no window it has no limit to show", () => {
@@ -483,14 +492,14 @@ describe("a balance", () => {
 
   test("stands in the slot's group of the panel", () => {
     const balance = { amount: 1, currency: "USD", seenAt: 0, requests: null };
-    const groups = usageGroups({ active: { provider: "provider-x", label: "Provider X", account: null, accountName: null, logins: 0, session: null, week: null, balance }, roads: [], accounts: [], agents: [], contexts: [] });
+    const groups = usageGroups({ active: { provider: "provider-x", label: "Provider X", account: null, accountName: null, loginNumber: null, logins: 0, session: null, week: null, balance }, roads: [], accounts: [], agents: [], contexts: [] });
 
     expect(groups[0]?.balance).toEqual(balance);
   });
 
   test("of a provider's own road stands as a group of its own after the accounts, under the provider's label", () => {
     const balance = { amount: 9.55, currency: "USD", seenAt: 0, requests: { used: 12, limit: 1000, left: 988, scope: "free-models" } };
-    const account = { id: "a", name: "Account A", provider: "claude-code", label: "Claude Code", session: null, week: null, balance: null };
+    const account = { id: "a", name: "Account A", loginNumber: null, provider: "claude-code", label: "Claude Code", session: null, week: null, balance: null };
     const groups = usageGroups({ active: null, roads: [{ provider: "provider-y", label: "Provider Y", balance }], accounts: [account], agents: [], contexts: [] });
 
     expect(groups.map((group) => group.id)).toEqual(["a", "road:provider-y"]);

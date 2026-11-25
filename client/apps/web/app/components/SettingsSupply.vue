@@ -34,21 +34,21 @@
 
         <SettingsRow v-if="shownLogins.length === 0" :label="$t('supply.label.logins_none')" />
         <template v-else>
-          <SettingsRow v-for="(one, index) in shownLogins" :key="one.id" :label="one.name" :data-supply-login="one.name">
+          <SettingsRow v-for="(one, index) in shownLogins" :key="one.id" :label="labelOf(one)" :data-supply-login="one.id">
             <template #description>
               <span class="flex min-w-0 flex-wrap items-center gap-x-2 text-sm">
                 <span class="tabular-nums text-muted">{{ index + 1 }}</span>
                 <span :class="loginStatus(t, one, now).tone">{{ loginStatus(t, one, now).label }}</span>
               </span>
             </template>
-            <IconButton size="xs" icon="i-material-symbols-arrow-upward" :label="$t('common.aria.move_up_named', { name: one.name })" :disabled="index === 0 || busy !== ''" @click="moveLogin(index, index - 1)" />
-            <IconButton size="xs" icon="i-material-symbols-arrow-downward" :label="$t('common.aria.move_down_named', { name: one.name })" :disabled="index === shownLogins.length - 1 || busy !== ''" @click="moveLogin(index, index + 1)" />
+            <IconButton size="xs" icon="i-material-symbols-arrow-upward" :label="$t('common.aria.move_up_named', { name: labelOf(one) })" :disabled="index === 0 || busy !== ''" @click="moveLogin(index, index - 1)" />
+            <IconButton size="xs" icon="i-material-symbols-arrow-downward" :label="$t('common.aria.move_down_named', { name: labelOf(one) })" :disabled="index === shownLogins.length - 1 || busy !== ''" @click="moveLogin(index, index + 1)" />
             <UDropdownMenu :items="loginMenu(one)" :content="{ align: 'end' }">
-              <UTooltip :text="$t('common.aria.menu_of', { name: one.name })">
-                <UButton color="neutral" variant="ghost" size="xs" icon="i-material-symbols-more-vert" :aria-label="$t('common.aria.menu_of', { name: one.name })" />
+              <UTooltip :text="$t('common.aria.menu_of', { name: labelOf(one) })">
+                <UButton color="neutral" variant="ghost" size="xs" icon="i-material-symbols-more-vert" :aria-label="$t('common.aria.menu_of', { name: labelOf(one) })" />
               </UTooltip>
             </UDropdownMenu>
-            <USwitch :model-value="one.enabled" :loading="busy === `login:${one.id}`" :disabled="busy !== ''" :aria-label="$t('supply.aria.login_switch', { name: one.name })" @update:model-value="(on: boolean) => void setLogin(one, on)" />
+            <USwitch :model-value="one.enabled" :loading="busy === `login:${one.id}`" :disabled="busy !== ''" :aria-label="$t('supply.aria.login_switch', { name: labelOf(one) })" @update:model-value="(on: boolean) => void setLogin(one, on)" />
           </SettingsRow>
         </template>
       </SettingsGroup>
@@ -225,6 +225,7 @@ import { useConfirm } from "~/domain/confirm";
 import { costText, creditsText, keyStatus, loginStatus, meSetting, movedSourceOrder, orderIsOverridable, orderRows, roadLabel, sourceLabel, sourceReasonText, SUPPLY_ROADS } from "~/domain/supply";
 import { openSettings, useSettings } from "~/domain/settings-dialog";
 
+import { loginNumbers, loginText, nextLoginNumber } from "#shared/claude-logins";
 import { localAiNamed } from "#shared/local-ai";
 
 import type { PersonalSupplyKey, SupplyMe, SupplyMeSetting, SpentSource } from "#shared/supply";
@@ -254,6 +255,14 @@ const now = Math.floor(Date.now() / 1000);
 // Logins walk in their own order; keys stand grouped by provider, each in its provider's order.
 const shownLogins = computed(() => (logins.value ?? []).slice().sort((one, other) => one.place - other.place));
 const shownKeys = computed(() => (keys.value ?? []).slice().sort((one, other) => (one.road === other.road ? one.place - other.place : one.road.localeCompare(other.road))));
+
+// What the screen calls one of the reader's logins: its number counted among their own, never the number the agency
+// put in its name, which counts every other account's logins among them (docs/web.md, 「Organisation」, the supply tab).
+const ownNumbers = computed(() => loginNumbers(shownLogins.value));
+
+function labelOf(login: ClaudeAccountView): string {
+  return loginText(t, login.name, ownNumbers.value.get(login.id) ?? null);
+}
 
 async function load(): Promise<void> {
   reading.value = true;
@@ -407,7 +416,7 @@ function loginMenu(account: ClaudeAccountView): DropdownMenuItem[] {
 }
 
 async function removeLogin(account: ClaudeAccountView): Promise<void> {
-  const taken = await confirm({ title: t("supply.message.login_delete", { name: account.name }), effect: t("supply.message.login_delete_effect"), confirm: t("common.action.delete") });
+  const taken = await confirm({ title: t("supply.message.login_delete", { name: labelOf(account) }), effect: t("supply.message.login_delete_effect"), confirm: t("common.action.delete") });
 
   if (!taken) return;
   await askLogins({ action: "remove-account", account: account.id }, "login-remove");
@@ -423,11 +432,12 @@ const signInCode = ref("");
 const signInFailed = ref("");
 const signInChanges = useOpenedWith(() => signInCode.value, { open: signingIn });
 
-// A new login is named by the agency, which holds every account's name where the reader sees only their own; the
-// box's title carries the name it answered, and Claude's until it has.
+// A new login is named by the agency, which holds every account's name where the reader sees only their own; the box
+// is titled by the number that name gives the login among the reader's own, and by the name itself where it numbers
+// nothing — and by "Claude" until it has answered.
 async function openSignIn(account: ClaudeAccountView | null): Promise<void> {
   signInFailed.value = "";
-  const name = account?.name ?? "Claude";
+  const name = account === null ? "Claude" : labelOf(account);
 
   busy.value = "sign-in";
   try {
@@ -435,7 +445,7 @@ async function openSignIn(account: ClaudeAccountView | null): Promise<void> {
 
     signInId.value = started.login;
     signInUrl.value = started.url;
-    signInName.value = started.name || name;
+    signInName.value = started.name === "" ? name : loginText(t, started.name, account === null ? nextLoginNumber(shownLogins.value, started.name) : ownNumbers.value.get(account.id));
     signInCode.value = "";
     signingIn.value = true;
   } catch (error) {

@@ -1,4 +1,7 @@
+import { loginNumbers } from "#shared/claude-logins";
+
 import type { components } from "@agency/client/schema";
+import type { LoginRow } from "#shared/claude-logins";
 import type { AccountUsage, ActiveUsage, AgentContext, AgentTokenUsage, HeadlineWindow, RoadUsage, UsageBalance, UsageView } from "#shared/types";
 
 type Schemas = components["schemas"];
@@ -134,6 +137,32 @@ function accountNames(fallback: Held | null): Map<string, string> {
 }
 
 /**
+ * Every Claude login the fallback answer states, each with the account it belongs to. The answer is the whole list
+ * the reader is told of — the panel leaves an account the owner switched off out of its groups, and the number still
+ * counts it — so it is what a login's number is counted over, wherever the figures are read from.
+ */
+function loginRows(fallback: Held | null): LoginRow[] {
+  const rows: LoginRow[] = [];
+
+  for (const account of Array.isArray(fallback?.accounts) ? fallback.accounts : []) {
+    const one = held(account);
+    const id = text(one?.id);
+    const name = text(one?.name);
+
+    if (id === null || name === null) continue;
+
+    rows.push({
+      id,
+      name,
+      // Absent where the answer states no owner, which is not the same as the platform's own.
+      ...(one?.userId === undefined ? {} : { userId: one.userId === null ? null : String(one.userId) })
+    });
+  }
+
+  return rows;
+}
+
+/**
  * The slot the chat runs on: the provider the chat agent runs on, which is the default answerer's own `provider`
  * where it is named, with the login and windows the fallback answer states for that provider; none where neither
  * names a provider. A provider the fallback's slot is not on stands with no login and no window, never another
@@ -148,7 +177,7 @@ export function activeUsage(answer: unknown, chatProvider: string | null = null)
   if (provider === null) return null;
 
   if (active === null) {
-    return { provider, label: providerLabels(fallback).get(provider) ?? provider, account: null, accountName: null, logins: 0, session: null, week: null, balance: null };
+    return { provider, label: providerLabels(fallback).get(provider) ?? provider, account: null, accountName: null, loginNumber: null, logins: 0, session: null, week: null, balance: null };
   }
 
   const account = text(active.account);
@@ -158,6 +187,7 @@ export function activeUsage(answer: unknown, chatProvider: string | null = null)
     label: providerLabels(fallback).get(provider) ?? provider,
     account,
     accountName: account === null ? null : (text(active.accountName) ?? accountNames(fallback).get(account) ?? account),
+    loginNumber: account === null ? null : (loginNumbers(loginRows(fallback)).get(account) ?? null),
     logins: count(active.accounts) ?? 0,
     session: headlineOf(active.session),
     week: headlineOf(active.week),
@@ -192,6 +222,7 @@ export function accountUsages(
   const fallback = held(answer);
   const names = accountNames(fallback);
   const labels = providerLabels(fallback);
+  const numbers = loginNumbers(loginRows(fallback));
   const off = accountsOff(fallback);
 
   return accounts.filter((account) => !off.has(account.id) && !providersOff.has(account.provider)).map((account) => {
@@ -205,6 +236,7 @@ export function accountUsages(
     return {
       id: account.id,
       name: names.get(account.id) ?? account.id,
+      loginNumber: numbers.get(account.id) ?? null,
       provider: account.provider,
       label: labels.get(account.provider) ?? account.provider,
       session: session ?? (isSlotAccount ? active.session : null),

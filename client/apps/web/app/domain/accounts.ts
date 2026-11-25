@@ -1,3 +1,4 @@
+import { loginNumbers, loginText } from "#shared/claude-logins";
 import { ORGANIZATION_PATH, PLATFORM_NODE } from "./organization";
 import { AUTO_LABEL } from "./agent-settings";
 import { untilText } from "./usage";
@@ -68,26 +69,31 @@ export function accountLoginText(t: Translate, account: ClaudeAccountView, now: 
   return left <= 0 ? t("agents.label.login_needed") : t("agents.label.login_expires", { time: untilText(t, left) });
 }
 
-// The logins a work key may be put on: the automatic choice, which walks the account order, then
-// every account under the name the owner gave it. One they turned off stands disabled with that as its reason.
+// The logins a work key may be put on: the automatic choice, which walks the account order, then every account
+// under the name its screen gives it — its number within the account that owns it, where the console counts one
+// (docs/web.md, 「Organisation」, the supply tab). One they turned off stands disabled with that as its reason.
 export function accountChoices(t: Translate, accounts: readonly ClaudeAccountView[]): CellChoice[] {
+  const numbers = loginNumbers(accounts);
+
   return [
     { value: "auto", label: t(AUTO_LABEL) },
     ...accounts.map((one) => ({
       value: one.id,
-      label: one.name,
+      label: loginText(t, one.name, numbers.get(one.id)),
       disabled: !one.enabled,
       ...(one.enabled ? {} : { description: t("agents.label.account_off") })
     }))
   ];
 }
 
-// What a key's account cell reads: the account it is pinned to by the name the owner gave it, the
-// automatic choice where it walks the order, and nothing at all where the key's runs never reach an account.
+// What a key's account cell reads: the account it is pinned to under the name its screen gives it, the automatic
+// choice where it walks the order, and nothing at all where the key's runs never reach an account.
 export function accountCellText(t: Translate, accounts: readonly ClaudeAccountView[], account: string | null): string {
   if (account === null) {
     return t(AUTO_LABEL);
   }
 
-  return accounts.find((one) => one.id === account)?.name ?? account;
+  const pinned = accounts.find((one) => one.id === account);
+
+  return pinned === undefined ? account : loginText(t, pinned.name, loginNumbers(accounts).get(pinned.id));
 }

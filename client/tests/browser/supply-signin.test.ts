@@ -7,10 +7,12 @@ import { wording } from "../../apps/web/shared/wording";
 import type { Browser, Locator, Page, Route } from "playwright-core";
 
 // A reader's own Claude sign-in on the supply tab with their own node chosen (docs/web.md, 「Settings」, the supply
-// section): adding a login starts the sign-in naming no name, the box's title carries the name the agency answered,
-// and a refusal of the code is said in the box in its own sentence; a login of theirs is signed in again by its id,
+// section): adding a login starts the sign-in naming no name, the box's title carries the number the name the agency
+// answered gives the login within the reader's own account, and a refusal of the code is said in the box in its own
+// sentence; a login of theirs is signed in again by its id,
 // and a refusal of that start said in its own sentence. The platform's Claude accounts box on the supply tab opens
-// a new login's name empty and starts naming none, its box titled by the agency's name. Read at a desk's width and a phone's, each press
+// a new login's name empty and starts naming none, its box titled by its number among the platform's own logins.
+// Read at a desk's width and a phone's, each press
 // landing on the control it names and nothing running off the side. The relay's own sentences are its server test's;
 // here the page's calls are answered as the relay answers them.
 //
@@ -40,6 +42,9 @@ afterAll(async () => {
 
 const json = (route: Route, body: unknown, status = 200) => route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
 
+// The console's own name for the login an account counts as its own nth (docs/web.md, 「Organisation」, the supply tab).
+const numbered = (n: string) => wording("supply.label.login_numbered", { number: n });
+
 // Pressed as the reader's hand presses it, once nothing stands over its centre.
 async function press(page: Page, target: Locator, phone: boolean): Promise<void> {
   await target.scrollIntoViewIfNeeded();
@@ -66,6 +71,12 @@ describe.skipIf(!origin || !touchReady())("a reader's own Claude sign-in", () =>
         const started: unknown[] = [];
         const codes: unknown[] = [];
 
+        await page.route(/\/api\/supply\/logins$/, (route) =>
+          json(route, {
+            active: { provider: "claude-code", account: null, accountName: "", accounts: 1, session: null, week: null },
+            accounts: [{ id: "acct-2", name: "claude-02", place: 1, enabled: true, credentialKind: "directory", credentialPath: "/srv/node/data/env/claude-02", login: "standing", loginEndsAt: null, chosen: false, restUntil: null, userId: 7 }]
+          })
+        );
         await page.route(/\/api\/supply\/signin$/, (route) => {
           started.push(route.request().postDataJSON());
 
@@ -84,7 +95,8 @@ describe.skipIf(!origin || !touchReady())("a reader's own Claude sign-in", () =>
         await add.waitFor({ timeout: 30_000 });
         await press(page, add, phone);
 
-        const dialog = page.getByRole("dialog").filter({ hasText: wording("agents.title.sign_in", { name: "claude-03" }) });
+        // The platform's third number is the reader's own second: their first login stands below it.
+        const dialog = page.getByRole("dialog").filter({ hasText: wording("agents.title.sign_in", { name: numbered("02") }) });
 
         await dialog.waitFor({ timeout: 10_000 });
         expect(started).toEqual([{}]);
@@ -125,7 +137,7 @@ describe.skipIf(!origin || !touchReady())("a reader's own Claude sign-in", () =>
         });
         await page.goto(`${origin}/organization?company=me&tab=supply`, { waitUntil: "load" });
 
-        const menu = page.getByRole("button", { name: wording("common.aria.menu_of", { name: "claude-07" }), exact: true });
+        const menu = page.getByRole("button", { name: wording("common.aria.menu_of", { name: numbered("01") }), exact: true });
 
         await menu.waitFor({ timeout: 30_000 });
         await press(page, menu, phone);
@@ -135,7 +147,7 @@ describe.skipIf(!origin || !touchReady())("a reader's own Claude sign-in", () =>
         await again.waitFor({ timeout: 10_000 });
         await press(page, again, phone);
 
-        const dialog = page.getByRole("dialog").filter({ hasText: wording("agents.title.sign_in", { name: "claude-07" }) });
+        const dialog = page.getByRole("dialog").filter({ hasText: wording("agents.title.sign_in", { name: numbered("01") }) });
 
         await dialog.getByRole("alert").filter({ hasText: wording("agents.error.login_elsewhere") }).waitFor({ timeout: 10_000 });
         expect(started).toEqual([{ account: "acct-7" }]);
@@ -156,6 +168,15 @@ describe.skipIf(!origin || !touchReady())("a reader's own Claude sign-in", () =>
         const page = await context.newPage();
         const started: unknown[] = [];
 
+        await page.route(/\/api\/fallback$/, (route) =>
+          json(route, {
+            active: { provider: "claude-code", account: null, accountName: "", accounts: 2, session: null, week: null },
+            accounts: [
+              { id: "acct-a", name: "claude-01", place: 1, enabled: true, credentialKind: "directory", credentialPath: "/srv/node/data/env/claude-01", login: "standing", loginEndsAt: null, chosen: false, restUntil: null, userId: null },
+              { id: "acct-d", name: "claude-04", place: 2, enabled: true, credentialKind: "directory", credentialPath: "/srv/node/data/env/claude-04", login: "standing", loginEndsAt: null, chosen: false, restUntil: null, userId: null }
+            ]
+          })
+        );
         await page.route(/\/api\/claude-logins$/, (route) => {
           started.push(route.request().postDataJSON());
 
@@ -176,7 +197,8 @@ describe.skipIf(!origin || !touchReady())("a reader's own Claude sign-in", () =>
         expect(await name.getAttribute("placeholder")).toBe(wording("agents.placeholder.account_name_auto"));
         await press(page, page.getByRole("button", { name: wording("common.action.add"), exact: true }), phone);
 
-        const dialog = page.getByRole("dialog").filter({ hasText: wording("agents.title.sign_in", { name: "claude-09" }) });
+        // The platform's own third, counted against the platform's own logins alone.
+        const dialog = page.getByRole("dialog").filter({ hasText: wording("agents.title.sign_in", { name: numbered("03") }) });
 
         await dialog.waitFor({ timeout: 10_000 });
         expect(started).toEqual([{}]);

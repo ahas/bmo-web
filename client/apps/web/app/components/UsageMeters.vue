@@ -91,7 +91,7 @@
                no login stands ahead of them. -->
           <div v-for="group in groups" :key="group.id" class="flex flex-col gap-1">
             <!-- The group's name on a line of its own. -->
-            <p class="min-w-0 truncate text-sm font-medium text-muted">{{ slotName(group) }}<template v-if="group.name !== null"> · {{ group.name }}</template></p>
+            <p class="min-w-0 truncate text-sm font-medium text-muted">{{ slotName(group) }}<template v-if="group.name !== null"> · {{ loginText($t, group.name, group.loginNumber) }}</template></p>
 
             <UsageFigures :group="group" :now="now" />
           </div>
@@ -109,9 +109,10 @@ import { ACCOUNTS_ADDRESS } from "~/domain/accounts";
 import { useReadFailure } from "~/domain/events";
 import { useTitleBarShort } from "~/domain/title-bar";
 import { modeLabel } from "~/domain/status";
-import { knownMode, limitless, liveWindow, loudestTone, moneyText, shareText, shareTone, titleAccountLabel, titleWindows, toneClass, usageGroups } from "~/domain/usage";
+import { knownMode, limitless, liveWindow, loudestTone, moneyText, shareText, shareTone, slotLoginText, titleWindows, toneClass, usageGroups } from "~/domain/usage";
 import { useUsageRead } from "~/domain/usage-read";
 
+import { loginText } from "#shared/claude-logins";
 import type { FallbackView } from "#shared/types";
 import type { UsageTone } from "~/domain/usage";
 
@@ -147,7 +148,7 @@ const groups = computed(() => usageGroups(usage.value));
 
 // Whose figures the title's are is the agency's answer: the provider the road answers on and the login it walks to
 // now, not the head of the account order.
-const accountName = computed(() => titleAccountLabel(usage.value.active));
+const accountName = computed(() => slotLoginText(t, usage.value.active));
 const focusedWindows = computed(() => titleWindows(usage.value.active));
 const session = computed(() => focusedWindows.value[0]);
 const weekly = computed(() => focusedWindows.value[1]);

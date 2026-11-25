@@ -86,6 +86,17 @@ describe("the logins a work key is offered", () => {
 
     expect(items[1]).toMatchObject({ value: ACCOUNT_ID, disabled: true, description: wording("agents.label.account_off") });
   });
+
+  // A login the agency numbered is offered under the number of the account that owns it, never the number counting
+  // every other account's logins among them (docs/web.md, 「Organisation」, the supply tab).
+  test("one numbered by the agency is offered under its own account's number", () => {
+    const items = accountChoices(wording, [account({ id: "late", name: "claude-07", userId: 7 }), account({ id: "first", name: "claude-03", userId: 7 })]);
+
+    expect(items.slice(1).map((one) => [one.value, one.label])).toEqual([
+      ["late", wording("supply.label.login_numbered", { number: "02" })],
+      ["first", wording("supply.label.login_numbered", { number: "01" })]
+    ]);
+  });
 });
 
 describe("what a key's cell reads", () => {
@@ -96,6 +107,13 @@ describe("what a key's cell reads", () => {
 
   test("an account no longer registered reads as the id the row still holds", () => {
     expect(accountCellText(wording, [account()], "gone-account")).toBe("gone-account");
+  });
+
+  test("one numbered by the agency reads as its own account's number", () => {
+    const own = [account({ id: "late", name: "claude-07", userId: 7 }), account({ id: "first", name: "claude-03", userId: 7 })];
+
+    expect(accountCellText(wording, own, "first")).toBe(wording("supply.label.login_numbered", { number: "01" }));
+    expect(accountCellText(wording, own, "late")).toBe(wording("supply.label.login_numbered", { number: "02" }));
   });
 });
 

@@ -135,6 +135,9 @@ const ACCOUNTS: readonly [string, string][] = [
   ["room-head", "fixture-password-3051"],
   ["person-name", "fixture-password-3096"],
   ["supply-signin", "fixture-password-4411"],
+  // The administrator whose Claude logins the screen numbers within their own account, at each width
+  // (tests/browser/supply-login-numbers.test.ts).
+  ["supply-numbers", "fixture-password-4412"],
   ["console-load", "fixture-password-3127"],
   ["deploy-truth", "fixture-password-3187"],
   ["room-presence", "fixture-password-3124"],

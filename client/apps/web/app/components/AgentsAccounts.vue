@@ -34,14 +34,14 @@
           <span class="flex min-w-0 items-center gap-2">
             <span class="text-sm tabular-nums text-muted">{{ index + 1 }}</span>
             <UIcon :name="accountMark(one).icon" class="size-4 shrink-0" :class="accountMark(one).tone" />
-            <SearchText class="truncate text-sm font-medium" :class="one.enabled ? 'text-highlighted' : 'text-muted'" :text="one.name" :query="props.query" />
+            <SearchText class="truncate text-sm font-medium" :class="one.enabled ? 'text-highlighted' : 'text-muted'" :text="labelOf(one)" :query="props.query" />
             <UTooltip v-if="one.chosen" :text="$t('agents.label.account_chosen')">
               <UIcon name="i-material-symbols-keep" class="size-4 shrink-0 text-primary" role="img" :aria-label="$t('agents.label.account_chosen')" />
             </UTooltip>
           </span>
           <span class="text-sm text-muted" data-account-owner>{{ ownerText(t, one.userId, props.names) }}</span>
-          <span v-if="loginText(one) !== ''" class="flex flex-wrap items-center gap-2" data-account-marks>
-            <UBadge :color="one.login === 'gone' || one.login === 'none' ? 'error' : 'warning'" variant="subtle" size="sm" :label="loginText(one)" />
+          <span v-if="standingText(one) !== ''" class="flex flex-wrap items-center gap-2" data-account-marks>
+            <UBadge :color="one.login === 'gone' || one.login === 'none' ? 'error' : 'warning'" variant="subtle" size="sm" :label="standingText(one)" />
           </span>
           <!-- A path is allowed to run past its width and scrolls inside itself, as a worker's
                working directory does. -->
@@ -52,19 +52,19 @@
 
         <span class="flex shrink-0 items-center gap-1">
           <UTooltip :text="$t('common.action.move_up')">
-            <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-arrow-upward" :aria-label="$t('common.aria.move_up_named', { name: one.name })" :disabled="index === 0 || busy !== ''" @click="saveOrder(index, index - 1)" />
+            <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-arrow-upward" :aria-label="$t('common.aria.move_up_named', { name: labelOf(one) })" :disabled="index === 0 || busy !== ''" @click="saveOrder(index, index - 1)" />
           </UTooltip>
           <UTooltip :text="$t('common.action.move_down')">
-            <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-arrow-downward" :aria-label="$t('common.aria.move_down_named', { name: one.name })" :disabled="index === shown.length - 1 || busy !== ''" @click="saveOrder(index, index + 1)" />
+            <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-arrow-downward" :aria-label="$t('common.aria.move_down_named', { name: labelOf(one) })" :disabled="index === shown.length - 1 || busy !== ''" @click="saveOrder(index, index + 1)" />
           </UTooltip>
           <UDropdownMenu :items="menuOf(one)" :content="{ align: 'end' }">
-            <UTooltip :text="$t('common.aria.menu_of', { name: one.name })">
-              <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-more-vert" :aria-label="$t('common.aria.menu_of', { name: one.name })" />
+            <UTooltip :text="$t('common.aria.menu_of', { name: labelOf(one) })">
+              <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-more-vert" :aria-label="$t('common.aria.menu_of', { name: labelOf(one) })" />
             </UTooltip>
           </UDropdownMenu>
           <USwitch
             :model-value="one.enabled"
-            :aria-label="$t('agents.aria.switch_on', { name: one.name })"
+            :aria-label="$t('agents.aria.switch_on', { name: labelOf(one) })"
             :loading="busy === `account:${one.id}`"
             :disabled="busy !== ''"
             class="ps-1"
@@ -86,7 +86,7 @@
 
     <p v-if="failed !== ''" role="alert" class="break-words text-sm text-error">{{ failed }}</p>
 
-    <SettingsDialog v-model:open="editing" :title="adding ? $t('agents.title.account_add') : editName" :description="adding ? undefined : editId" :dirty="changes">
+    <SettingsDialog v-model:open="editing" :title="adding ? $t('agents.title.account_add') : editLabel" :description="adding ? undefined : editId" :dirty="changes">
       <form id="account-form" class="flex flex-col gap-4" @submit.prevent="save">
         <UFormField :label="$t('common.label.name')" name="name">
           <UInput v-model="editName" class="w-full" :placeholder="adding && editKind === 'sign-in' ? $t('agents.placeholder.account_name_auto') : $t('agents.placeholder.account_name')" :aria-label="$t('common.label.name')" />
@@ -141,6 +141,7 @@
 
 <script setup lang="ts">
 import { useOpenedWith } from "bmo-ui/app/domain/form-save";
+import { loginNumbers, loginText, loginsOfOwner, nextLoginNumber, PLATFORM_OWNER } from "#shared/claude-logins";
 import { ACCOUNT_KINDS, ACCOUNTS_GROUP, SIGN_IN_KIND, accountLoginText, accountMark } from "~/domain/accounts";
 import { movedOrder } from "~/domain/agents";
 import { failureText } from "bmo-ui/app/domain/errors";
@@ -191,6 +192,9 @@ const adding = ref(false);
 const removing = ref(false);
 const editId = ref("");
 const editName = ref("");
+// What the edit box is titled by: the login's own numbered name, while its name field holds the name stored at the
+// agency, which is what a new name is refused against.
+const editLabel = ref("");
 const editKind = ref<ClaudeAccountView["credentialKind"] | "sign-in">("directory");
 const editPath = ref("");
 const removeId = ref("");
@@ -216,8 +220,25 @@ const drag = useRowDrag({ list, ready: () => busy.value === "" && pending.value 
 const now = ref(Math.floor(Date.now() / 1000));
 usePolling(() => { now.value = Math.floor(Date.now() / 1000); }, 60_000);
 
-function loginText(account: ClaudeAccountView): string {
+function standingText(account: ClaudeAccountView): string {
   return accountLoginText(t, account, now.value);
+}
+
+// What the screen calls one of the accounts: its number counted among the logins of the account that owns it, the
+// platform's own apart from the administrator's, never the number the agency put in its name (docs/web.md,
+// 「Organisation」, the supply tab).
+const ownNumbers = computed(() => loginNumbers(shown.value));
+
+function labelOf(account: ClaudeAccountView): string {
+  return loginText(t, account.name, ownNumbers.value.get(account.id) ?? null);
+}
+
+// The number a sign-in's answered name gives the login: a re-sign-in keeps its own, and a login added here is the
+// platform's own, counted against the platform's own logins.
+function signInNumber(body: { account: string } | { name: string } | Record<string, never>, answered: string): number | null {
+  const pinned = "account" in body ? props.accounts.find((one) => one.id === body.account) ?? null : null;
+
+  return (pinned === null ? nextLoginNumber(loginsOfOwner(shown.value, PLATFORM_OWNER), answered) : ownNumbers.value.get(pinned.id)) ?? null;
 }
 
 // The chosen account offers the way back to the order; every other offers to be the one runs go out
@@ -244,7 +265,7 @@ function menuOf(account: ClaudeAccountView): DropdownMenuItem[] {
   return [
     choiceItem(account),
     ...(account.credentialKind === "directory"
-      ? [{ label: t("agents.action.sign_in_again"), icon: "i-material-symbols-login", disabled: busy.value !== "", onSelect: () => void startSignIn({ account: account.id }, account.name, failed) }]
+      ? [{ label: t("agents.action.sign_in_again"), icon: "i-material-symbols-login", disabled: busy.value !== "", onSelect: () => void startSignIn({ account: account.id }, labelOf(account), failed) }]
       : []),
     { label: t("common.action.edit"), icon: "i-material-symbols-edit-outline", onSelect: () => openEdit(account) },
     {
@@ -253,7 +274,7 @@ function menuOf(account: ClaudeAccountView): DropdownMenuItem[] {
       color: "error" as const,
       onSelect: () => {
         removeId.value = account.id;
-        removeName.value = account.name;
+        removeName.value = labelOf(account);
         removing.value = true;
       }
     }
@@ -280,6 +301,7 @@ function openEdit(account: ClaudeAccountView): void {
   adding.value = false;
   editId.value = account.id;
   editName.value = account.name;
+  editLabel.value = labelOf(account);
   editKind.value = account.credentialKind;
   editPath.value = account.credentialPath;
   formFailed.value = "";
@@ -342,7 +364,7 @@ async function startSignIn(body: { account: string } | { name: string } | Record
 
     signInId.value = started.login;
     signInUrl.value = started.url;
-    signInName.value = started.name || name;
+    signInName.value = started.name === "" ? name : loginText(t, started.name, signInNumber(body, started.name));
     signInCode.value = "";
     signInFailed.value = "";
     signingIn.value = true;

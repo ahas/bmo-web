@@ -916,7 +916,9 @@ for it, and no file or table of that unit is read meanwhile.
   share and reset its `PATCH /accounts/{accountId}` records, and answers none today; the provider the chat agent runs
   on is the `provider` of the supervisor the receiver's default answerer setting names, and each account's name stands in its `GET /fallback` answer (below). So the
   account the chat runs on reads its figures and every other account reads as having no reading, never a figure
-  borrowed from another. `GET /usage` grouped by `agent` counts the jobs of each checkout and the tokens they spent, with
+  borrowed from another. No unit counts a login within the account that owns it — the number a screen calls it by is
+  the console's own, counted over that same `GET /fallback` answer of every login the reader is told of, so an account
+  the panel leaves out of its groups is counted all the same (docs/web.md, 「Organisation」, 「공급」). `GET /usage` grouped by `agent` counts the jobs of each checkout and the tokens they spent, with
   the four kinds summed over the jobs that reported them apart and how many jobs, and how many tokens, reported none;
   a checkout whose jobs carry no tokens holds no figure rather than a nought, and a group that names no kinds reads
   as wholly not split. No unit serves a tally by user or the context of a session a

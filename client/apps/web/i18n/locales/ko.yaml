@@ -4826,6 +4826,7 @@ supply:
     secret_note: 값은 비밀 보관함에 있고, 여기에는 이름만 전합니다.
     secrets_none: 내 비밀 보관함에 아직 비밀이 없습니다.
     logins_none: 공급 로그인 없음
+    login_numbered: "Claude {number}번 계정"
     keys_none: 공급 키 없음
     usable: 사용 가능
     login_off: 꺼짐

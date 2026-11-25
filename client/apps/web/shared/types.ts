@@ -1726,6 +1726,9 @@ export interface ActiveUsage {
   label: string;
   account: string | null;
   accountName: string | null;
+  // The login's number within the account that owns it, counted from the accounts the console reads, or null where
+  // the screen has no number for it and its name stands (docs/web.md, 「Organisation」, the supply tab).
+  loginNumber: number | null;
   logins: number;
   session: HeadlineWindow | null;
   week: HeadlineWindow | null;
@@ -1750,6 +1753,9 @@ export interface UsageBalance {
 export interface AccountUsage {
   id: string;
   name: string;
+  // The login's number within the account that owns it, counted over every login the reader is told of, or null
+  // where none was counted and its name stands (docs/web.md, 「Organisation」, the supply tab).
+  loginNumber: number | null;
   provider: string;
   label: string;
   session: HeadlineWindow | null;

@@ -355,6 +355,12 @@
   provider writes it), one key of it 공급 키, one sign-in of it 공급 로그인; what a row says of their standing is
   사용 가능, 창 가득 참, 로그인 필요, 키 거부됨 or 꺼짐 alone. The key's secret is chosen as a 이름 and the value
   never shows, as the secret store words it.
+- one Claude login, numbered within the account that owns it → `Claude {number}번 계정`: the label of its row, the
+  name of its controls and its dialogs, and the head of its usage group, all alike, the count running over that
+  account's own logins from 01. A login whose name numbers nothing, and one whose owning account the screen is not
+  told, stands under the name it holds. Never the number the agency put in its name (`claude-03`), which counts other
+  accounts' logins among them; the stored name, its id and its credential path stand only where the account itself is
+  edited, which the administrator alone reads.
 - a unit without a policy of its own → 따름: 상위 조직을 따름 on the screen's rows and 조직을 따름 on a person's,
   the policy in force shown as the rows' values under it; the act of ending one policy is 정책 삭제, which puts the
   following back, and the act of writing one is 정책 설정. Never 상속, which is a name nobody here says, and never
@@ -786,6 +792,8 @@
 - 보류 → on hold / 保留 / 暂缓.
 - 드래프트 → draft / 下書き / 草稿.
 - 공급 → supply / 供給 / 供给; 공급자 → provider / プロバイダー / 提供商.
+- 로그인 (a sign-in of one's own at a provider) → login / ログイン / 登录; one of them numbered within its own account →
+  `Claude account {number}` / `Claude アカウント {number}` / `Claude 账号 {number}`.
 - 저장소 → repository / リポジトリ / 仓库.
 - 워커 → worker / ワーカー / 工作器.
 - 판정 → verdict / 判定 / 判定.

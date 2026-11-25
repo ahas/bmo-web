@@ -4804,6 +4804,7 @@ supply:
     secret_note: The value stays in the secret store; only its name is passed here.
     secrets_none: Your secret store has no secrets yet.
     logins_none: No supply logins
+    login_numbered: "Claude account {number}"
     keys_none: No supply keys
     usable: Available
     login_off: "Off"

@@ -387,9 +387,10 @@ async fn member_usage<C: ConnectionTrait>(db: &C, unit: i64) -> Result<Vec<Suppl
   .await?;
   let mut out = Vec::new();
 
+  // `supply_costs` keeps the user as a bigint; the id it holds is sumida's, which is an int4.
   for row in &rows {
     out.push(SupplyMemberUsageRow {
-      user: ids::shown(row.try_get("", "user_id")?),
+      user: ids::shown(row.try_get::<i64>("", "user_id")? as i32),
       source: row.try_get("", "source")?,
       credits: row.try_get("", "credits")?,
     });

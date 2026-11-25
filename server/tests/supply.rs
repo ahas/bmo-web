@@ -742,6 +742,49 @@ async fn a_member_cap_closed_out_by_the_month_s_spend_takes_the_source_it_caps()
 }
 
 #[tokio::test]
+async fn a_unit_s_usage_sums_each_member_s_month_by_source_and_leaves_other_units_out() {
+  ready();
+  let scratch = fresh().await;
+  let app = app(&scratch).await;
+  let boss = boss(&scratch).await;
+  let company = org(&scratch, "company-a", None).await;
+  let beside = org(&scratch, "company-b", None).await;
+  let first = person(&scratch, "tester-a", company).await;
+  let second = person(&scratch, "tester-b", company).await;
+  let month = bmo_web_server::supply::period(bmo_web_server::now_ms());
+
+  for (user, unit, source, credits) in [
+    (first, company, "org_credits", 100_i64),
+    (first, company, "org_credits", 50),
+    (first, company, "personal", 0),
+    (second, company, "org_credits", 30),
+    (second, beside, "org_credits", 70),
+  ] {
+    scratch
+      .run(
+        r#"INSERT INTO "supply_costs" ("run", "user_id", "org_id", "source", "credits", "cost_micros", "settled_at", "period")
+           VALUES ('job-1-1', $1, $2, $3, $4, 0, 1, $5)"#,
+        vec![user.into(), unit.into(), source.into(), credits.into(), month.clone().into()],
+      )
+      .await;
+  }
+
+  let (status, said) =
+    asked(&app, Method::GET, &format!("/supply/org/{company}"), None, Some(boss), "administrator").await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert_eq!(
+    said["usage"],
+    json!([
+      { "user": first.to_string(), "source": "org_credits", "credits": 150 },
+      { "user": first.to_string(), "source": "personal", "credits": 0 },
+      { "user": second.to_string(), "source": "org_credits", "credits": 30 },
+    ]),
+    "{said}"
+  );
+}
+
+#[tokio::test]
 async fn a_credit_allowance_on_the_chain_closes_organisation_credits_once_the_month_reaches_it() {
   ready();
   let scratch = fresh().await;

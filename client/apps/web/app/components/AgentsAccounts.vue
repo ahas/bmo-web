@@ -1,7 +1,8 @@
 <template>
   <!-- The Claude logins the agency holds, in the order the Claude Code provider walks them (docs/web.md,
-       「System and organisation」, the providers tab). A row is carried by its handle alone, by the mouse and the finger
-       the same way, and the order is saved the moment it is dropped. What a row says of a credential is the path it
+       「System and organisation」, the providers tab). A row is carried by its handle alone — by the mouse, the pen and
+       the finger, or by its arrow keys once the handle holds the focus — and the order is saved the moment it lands.
+       What a row says of a credential is the path it
        is reached by — no cell and no box here has a token to show, because none is ever sent to this screen. A new
        login is added from the add at the heading's right end, which opens the box this list keeps. The list stands as a group under its
        heading, its rows parted by hairlines with no box round them, as the providers above it do. An address naming
@@ -18,17 +19,10 @@
         :key="one.id"
         :data-order-index="index"
         :data-account="one.id"
-        class="grid grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-x-1 py-1"
+        class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-1 py-1"
         :class="[drag.mark(index), !one.enabled && 'bg-elevated/40']"
       >
-        <span
-          class="flex size-11 cursor-grab touch-none select-none items-center justify-center text-muted transition-colors hover:text-highlighted active:text-primary"
-          role="img"
-          :aria-label="$t('agents.aria.drag_reorder')"
-          @pointerdown="drag.onHandleDown(index, $event)"
-        >
-          <UIcon name="i-material-symbols-drag-indicator" class="size-5" />
-        </span>
+        <OrderHandle :place="index" :drag="drag" :name="labelOf(one)" />
 
         <span class="flex min-w-0 flex-col gap-1 py-1">
           <span class="flex min-w-0 items-center gap-2">
@@ -51,12 +45,6 @@
         </span>
 
         <span class="flex shrink-0 items-center gap-1">
-          <UTooltip :text="$t('common.action.move_up')">
-            <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-arrow-upward" :aria-label="$t('common.aria.move_up_named', { name: labelOf(one) })" :disabled="index === 0 || busy !== ''" @click="saveOrder(index, index - 1)" />
-          </UTooltip>
-          <UTooltip :text="$t('common.action.move_down')">
-            <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-arrow-downward" :aria-label="$t('common.aria.move_down_named', { name: labelOf(one) })" :disabled="index === shown.length - 1 || busy !== ''" @click="saveOrder(index, index + 1)" />
-          </UTooltip>
           <UDropdownMenu :items="menuOf(one)" :content="{ align: 'end' }">
             <UTooltip :text="$t('common.aria.menu_of', { name: labelOf(one) })">
               <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-more-vert" :aria-label="$t('common.aria.menu_of', { name: labelOf(one) })" />

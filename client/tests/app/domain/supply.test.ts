@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test";
 import {
   NO_PLAN,
   applyChoices,
+  draftRows,
   loginStatus,
   meSetting,
   movedSourceOrder,
@@ -92,6 +93,16 @@ describe("the reader's order", () => {
     expect(movedSourceOrder(rows, 1, 0)).toEqual(["personal", "org_credits", "global"]);
     expect(movedSourceOrder(rows, 2, 3)).toEqual(["org_credits", "personal", "global"]);
     expect(meSetting(rows, null, { order: movedSourceOrder(rows, 0, 1) }).order).toEqual(["personal", "org_credits", "global"]);
+  });
+});
+
+describe("the policy form's rows", () => {
+  test("stand each allowed source where the draft's own order puts it, the closed after them, and stop last", () => {
+    expect(draftRows({ allowed: ["org_credits", "personal"], order: ["org_credits", "personal", "global", "stop"] })).toEqual(["org_credits", "personal", "global", "personal_credits", "stop"]);
+  });
+
+  test("keep a source the draft names no place for among the closed, whatever order the draft holds, and hold stop last", () => {
+    expect(draftRows({ allowed: ["personal", "global"], order: ["stop", "personal"] })).toEqual(["personal", "global", "org_credits", "personal_credits", "stop"]);
   });
 });
 

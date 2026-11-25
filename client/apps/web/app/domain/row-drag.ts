@@ -5,9 +5,14 @@ import { onBeforeUnmount, ref, type Ref } from "vue";
 // from. A press is held until it has travelled far enough to be a drag, so a press that lets go
 // where it went down leaves the list as it was, and the list is saved whole on the drop.
 //
+// The same move has a keyboard way: once a handle holds the focus, its arrow keys carry the row one
+// place up or down. Both ways end in one `drop`, and `driven` holds where a key last landed a row, so
+// the row that came to rest there can hold the focus the keys answer from.
+//
 // A row is found by its `data-order-index`, which the list puts on each row, because a captured
 // pointer reports the handle it was caught on whatever it is over: which row it is level with is
-// worked out from where the rows stand rather than from what the event says.
+// worked out from where the rows stand rather than from what the event says. Only the rows a carry
+// may land on carry the attribute, so the same count bounds the keyboard's moves.
 
 // How far a press has to travel before it is carrying anything. A tap on a handle that never moves is a tap —
 // it saves nothing — and a finger resting on one wanders a pixel or two by itself, so the same slack serves the
@@ -46,6 +51,15 @@ export function rowAtPoint(boxes: RowBox[], y: number): number | null {
   return boxes.find((box) => y >= box.top && y < box.bottom)?.id ?? null;
 }
 
+// Where the arrow key a handle holds lands its row, or nothing where the key carries no row and where the row
+// stands at the end it would be carried past — the ends hold a keyboard's move as they hold a pointer's.
+export function movedRowPlace(index: number, key: string, places: number): number | null {
+  const by = key === "ArrowUp" ? -1 : key === "ArrowDown" ? 1 : 0;
+  const to = index + by;
+
+  return by === 0 || to < 0 || to >= places ? null : to;
+}
+
 export interface RowDragOptions {
   // The element the rows stand in.
   list: Ref<HTMLElement | null>;
@@ -58,7 +72,12 @@ export interface RowDragOptions {
 export interface RowDrag {
   held: Ref<number | null>;
   over: Ref<number | null>;
+  // Where the keyboard last landed a row. A list puts a moved row back into the element it stands in,
+  // and a row put back may stand blurred; the row that lands here takes the focus again.
+  driven: Ref<number | null>;
   onHandleDown: (index: number, event: PointerEvent) => void;
+  // The handle's arrow keys, which carry its row one place the way a drop does.
+  onHandleKey: (index: number, event: KeyboardEvent) => void;
   // What a row looks like while one is being carried: the one held, and the one it is over.
   mark: (index: number) => string;
   end: () => void;
@@ -67,6 +86,7 @@ export interface RowDrag {
 export function useRowDrag(options: RowDragOptions): RowDrag {
   const held = ref<number | null>(null);
   const over = ref<number | null>(null);
+  const driven = ref<number | null>(null);
   let press: { index: number; pointer: number; from: DragPoint; at: DragPoint; handle: HTMLElement } | null = null;
 
   function boxes(): RowBox[] {
@@ -83,12 +103,38 @@ export function useRowDrag(options: RowDragOptions): RowDrag {
     });
   }
 
+  // How many rows a carry may land on, in the order they stand.
+  function places(): number {
+    return options.list.value?.querySelectorAll("[data-order-index]").length ?? 0;
+  }
+
+  // The handle's arrow keys: the row goes one place, the way a drop sends it to the place it was
+  // carried over. The row keeps the focus where it lands, so the keys keep working from there.
+  function onHandleKey(index: number, event: KeyboardEvent): void {
+    if (event.key !== "ArrowUp" && event.key !== "ArrowDown") {
+      return;
+    }
+
+    // The box the list scrolls in would otherwise move under the row.
+    event.preventDefault();
+
+    const to = options.ready() ? movedRowPlace(index, event.key, places()) : null;
+
+    if (to === null) return;
+
+    driven.value = to;
+    options.drop(index, to);
+  }
+
   function onHandleDown(index: number, event: PointerEvent): void {
     if (!startsRowDrag(event) || !options.ready()) {
       return;
     }
 
     event.preventDefault();
+
+    // The pointer takes the row from the keyboard, and the pointer's own hand keeps the focus.
+    driven.value = null;
 
     const handle = event.currentTarget as HTMLElement;
     const from = { x: event.clientX, y: event.clientY };
@@ -162,5 +208,5 @@ export function useRowDrag(options: RowDragOptions): RowDrag {
 
   onBeforeUnmount(end);
 
-  return { held, over, onHandleDown, mark, end };
+  return { held, over, driven, onHandleDown, onHandleKey, mark, end };
 }

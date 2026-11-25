@@ -1,7 +1,8 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 
-import { BROWSER_HOOK_MS, touchReady } from "./touch";
+import { carryByMouse, centre } from "./row-carry";
+import { BROWSER_HOOK_MS, fingerOn, touchReady } from "./touch";
 import { wording } from "../../apps/web/shared/wording";
 
 import type { Browser, Locator, Page, Route } from "playwright-core";
@@ -189,6 +190,181 @@ describe.skipIf(!origin || !touchReady())("a reader's own Claude logins, numbere
           await row.waitFor({ timeout: 30_000 });
           expect(await row.innerText()).toContain(numbered(number));
         }
+
+        await fitsTheScreen(page);
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+  }
+});
+
+// --- The order the Claude Code provider walks the platform's accounts in ---
+
+// The handle at a row's left is what changes it, by the pointer or a finger, and its arrow keys once the handle
+// holds the focus (docs/web.md, 「Changing an order」). The whole new order is what the write carries, and the read
+// that follows answers it back.
+
+const PLATFORM_LOGINS = [login("acct-a", "claude-01", 1, { userId: null }), login("acct-b", "claude-02", 2, { userId: null }), login("acct-c", "claude-03", 3, { userId: null })];
+
+// The agency's list, kept in the order the console last wrote it, so the read that follows a carry answers the
+// order that carry left, and every order the console sends is held for the test to read.
+async function walking(page: Page): Promise<{ writes: string[][] }> {
+  let order = PLATFORM_LOGINS.map((one) => one.id);
+  const writes: string[][] = [];
+
+  await page.route(/\/api\/fallback$/, (route: Route) => {
+    if (route.request().method() === "POST") {
+      const body = route.request().postDataJSON() as { action?: string; order?: { id: string }[] };
+
+      if (body.action === "set-account-order" && Array.isArray(body.order)) {
+        const written = body.order.map((one) => one.id);
+
+        order = written;
+        writes.push(written);
+      }
+    }
+
+    const accounts = order.map((id) => PLATFORM_LOGINS.find((one) => one.id === id)!);
+
+    return json(route, { active: { provider: "claude-code", account: null, accountName: "", accounts: accounts.length, session: null, week: null }, accounts });
+  });
+
+  return { writes };
+}
+
+// Which accounts the list stands, in the order it stands them.
+async function walked(page: Page): Promise<string[]> {
+  return await page.locator("[data-account]").evaluateAll((rows) => rows.map((row) => row.getAttribute("data-account")!));
+}
+
+// The list once it has come to rest in this order: a carry and a key stand the rows in the new order at once.
+async function walkedTo(page: Page, want: readonly string[]): Promise<void> {
+  await page.waitForFunction((names: string) => [...document.querySelectorAll("[data-account]")].map((one) => one.getAttribute("data-account")).join(",") === names, want.join(","), { timeout: 20_000 });
+}
+
+// The order write at rest. While one is on its way every row's switch stands disabled, which is the very gate the
+// carry and the arrow keys read, so a key pressed before it opens again is answered by nothing.
+async function settled(page: Page): Promise<void> {
+  await page.waitForFunction(() => {
+    const held = [...document.querySelectorAll("[data-account] [role='switch']")];
+
+    return held.length > 0 && held.every((one) => one.getAttribute("aria-disabled") !== "true" && !one.hasAttribute("data-disabled"));
+  }, null, { timeout: 30_000 });
+}
+
+// The order write the screen sends, waited for by the response that answers it.
+function orderWrite(page: Page): Promise<unknown> {
+  return page.waitForResponse((one) => one.url().endsWith("/api/fallback") && one.request().method() === "POST", { timeout: 30_000 });
+}
+
+describe.skipIf(!origin || !touchReady())("the platform's Claude accounts carried by their handle", () => {
+  for (const [width, height, phone] of SIZES) {
+    test(`stands one handle to each account, carries a row to another's place and sends the whole order, at ${width}px`, async () => {
+      const context = await browser!.newContext({ viewport: { width, height }, isMobile: phone, hasTouch: phone, locale: "ko-KR", serviceWorkers: "block", reducedMotion: "reduce" });
+
+      try {
+        const page = await context.newPage();
+        const { writes } = await walking(page);
+
+        await open(page, "/organization?company=platform&tab=supply#accounts");
+        await page.locator('[data-account="acct-a"]').waitFor({ timeout: 30_000 });
+        expect(await walked(page)).toEqual(["acct-a", "acct-b", "acct-c"]);
+
+        // One handle at each row's left, named for the login it carries, one measure and one column down the list.
+        const handle = (number: string) => page.getByRole("button", { name: wording("common.aria.reorder_named", { name: numbered(number) }), exact: true });
+
+        for (const number of ["01", "02", "03"]) expect(await handle(number).count()).toBe(1);
+
+        const boxes = await Promise.all(["01", "02", "03"].map(async (number) => (await handle(number).boundingBox())!));
+        const at = Math.round(boxes[0]!.x);
+
+        expect(boxes.map((one) => Math.round(one.x))).toEqual([at, at, at]);
+        expect(boxes.map((one) => Math.round(one.width))).toEqual([36, 36, 36]);
+
+        await page.locator('[data-account="acct-c"]').scrollIntoViewIfNeeded();
+
+        const wrote = orderWrite(page);
+
+        if (phone) {
+          const finger = await fingerOn(page);
+
+          await finger.swipe(await centre(handle("03")), await centre(page.locator('[data-account="acct-a"]')), { steps: 12 });
+        } else {
+          await carryByMouse(page, await centre(handle("03")), await centre(page.locator('[data-account="acct-a"]')), async () => null);
+        }
+
+        await walkedTo(page, ["acct-c", "acct-a", "acct-b"]);
+        await wrote;
+        expect(writes).toEqual([["acct-c", "acct-a", "acct-b"]]);
+        await settled(page);
+
+        // A press on a handle that lets go where it went down moves nothing and sends nothing.
+        if (!phone) {
+          const still = await centre(handle("01"));
+
+          await carryByMouse(page, still, still, async () => null);
+          await page.waitForTimeout(1_000);
+          expect(await walked(page)).toEqual(["acct-c", "acct-a", "acct-b"]);
+          expect(writes.length).toBe(1);
+        }
+
+        await fitsTheScreen(page);
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+
+    test(`moves a login one place on the arrow keys its handle answers, at ${width}px`, async () => {
+      const context = await browser!.newContext({ viewport: { width, height }, isMobile: phone, hasTouch: phone, locale: "ko-KR", serviceWorkers: "block", reducedMotion: "reduce" });
+
+      try {
+        const page = await context.newPage();
+        const { writes } = await walking(page);
+        const handle = (number: string) => page.getByRole("button", { name: wording("common.aria.reorder_named", { name: numbered(number) }), exact: true });
+
+        await open(page, "/organization?company=platform&tab=supply#accounts");
+        await page.locator('[data-account="acct-a"]').waitFor({ timeout: 30_000 });
+
+        // Each key writes the order, and the next key waits until that write is at rest: while it is on its way the
+        // rows hold the gate the keys read, and a key pressed under it answers nothing.
+        const one = orderWrite(page);
+
+        await handle("01").press("ArrowDown");
+        await walkedTo(page, ["acct-b", "acct-a", "acct-c"]);
+        await one;
+        await settled(page);
+
+        // The row keeps the focus where it lands, so the keys go on answering from there.
+        expect(await page.evaluate(() => document.activeElement?.getAttribute("aria-label") ?? "")).toBe(wording("common.aria.reorder_named", { name: numbered("01") }));
+
+        const two = orderWrite(page);
+
+        await page.keyboard.press("ArrowDown");
+        await walkedTo(page, ["acct-b", "acct-c", "acct-a"]);
+        await two;
+        await settled(page);
+
+        // And back up it goes the same way, the focus riding with the row it landed on.
+        const three = orderWrite(page);
+
+        await page.keyboard.press("ArrowUp");
+        await walkedTo(page, ["acct-b", "acct-a", "acct-c"]);
+        await three;
+        await settled(page);
+
+        const four = orderWrite(page);
+
+        await page.keyboard.press("ArrowUp");
+        await walkedTo(page, ["acct-a", "acct-b", "acct-c"]);
+        await four;
+        await settled(page);
+
+        // The first place holds it: the row standing there has nowhere to go up to, and no order is written.
+        await page.keyboard.press("ArrowUp");
+        await page.waitForTimeout(1_000);
+        expect(await walked(page)).toEqual(["acct-a", "acct-b", "acct-c"]);
+        expect(writes).toEqual([["acct-b", "acct-a", "acct-c"], ["acct-b", "acct-c", "acct-a"], ["acct-b", "acct-a", "acct-c"], ["acct-a", "acct-b", "acct-c"]]);
 
         await fitsTheScreen(page);
       } finally {

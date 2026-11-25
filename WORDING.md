@@ -452,6 +452,9 @@
 - page → 페이지. Never 쪽.
 - table → 테이블; row → 행; cell → 셀; query → 쿼리, wherever the text is about a database: `행 {n}개를 클립보드에
   복사했습니다`, `셀 {n}개를 클립보드에 복사했습니다`. Never 표, 줄, 칸, 질의.
+- a row's place in an order, and the handle at its left that changes it → 순서 변경: `{name} 순서 변경` as the handle's
+  name, naming the row it carries; the keys that carry it stand marked in its tooltip, as every key-marked control
+  has them. Never 정렬, which is putting a whole list in order by one of its columns.
 - default → 기본값, standing only as the mark after the default value (above). Never 처음 값.
 - a value that is not set, standing alone in a table's cell or in a name and value list → `—`, the dash alone, as every
   table of the console writes it; a moment that was never recorded → 기록 없음. The dash never stands between words, at

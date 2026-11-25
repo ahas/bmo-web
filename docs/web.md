@@ -2119,6 +2119,22 @@ Four groups.
   across and down, in the quiet colour. A line that stands among other
   content — an empty list under figures that did land — stays where the list's first row would stand.
 
+### Changing an order
+
+- **A short settings list whose order the reader changes stands the handle at each row's left**, and it is one handle
+  (`OrderHandle`) wherever it stands: the reader's own **공급 순서**, the supply policy form and the platform's
+  **Claude 계정** stand on it. The reader's **공급 로그인** and **공급 키** still move a row by the arrows at its end,
+  each arrow naming the row it moves. What a row is stays at the row's end: its switch, its menu, its own controls.
+- **The handle carries its row by either hand.** The pointer catches it and sets it down on another row's place.
+  Once the handle holds the keyboard's focus, its arrow keys move the row one place up or down, and the row keeps
+  the focus as it lands, so the keys go on answering from there. Its name says which row it carries, and its
+  tooltip the keys that carry it.
+- **A row whose place is settled stands no handle, only the room one would take,** so the rows' names start on one
+  line down the list; where nothing in the group may be carried at all, the room goes with the handles.
+- **A carry and a key-move both send the whole order as it lands,** wherever that list keeps it: the account
+  service for a person's own supply, the agency for the platform's Claude accounts, the form's one save for a
+  supply policy. A write the service refuses leaves the order as it stood.
+
 ### The progress stepper
 
 - **Work that goes forward in stages reads as one vertical stepper wherever it stands,** Nuxt UI's `UStepper`
@@ -9516,8 +9532,9 @@ stands on it.
   allowed sources and its order stand as its rows, the per-person monthly cap on organisation credits among them
   or 상한 없음, and 편집 opens the form on it while 정책 삭제, asked first, takes it away so the unit follows the
   unit above again. The form is the unit's policy written whole: a switch on each source it may set as it allows —
-  개인 공급, 전역 공급, 조직 크레딧, 개인 크레딧 —, the order of those allowed moved by arrows with 중단 standing last
-  and unasked for, and 월 상한. A source the platform makes available to no layer below — off, and not left to a
+  개인 공급, 전역 공급, 조직 크레딧, 개인 크레딧 —, the order of those allowed carried by the handle at each source's
+  left, by the pointer or by its arrow keys, with 중단 standing last and unasked for, and 월 상한. A source the
+  platform makes available to no layer below — off, and not left to a
   person's own setting — stands with its switch off and disabled and 전역 설정으로 꺼짐 under it, as the person's own
   supply stands a source the platform locks; the unit read names what the platform makes available. The platform's
   per-source lock binds a person's own setting alone: a source the platform turns off but leaves to a person, and
@@ -9630,13 +9647,14 @@ The providers themselves, switched on and off with what they have left, stand on
 - **Claude 계정** — the Claude accounts in the order the Claude Code provider walks them, a group under its heading
   with 계정 추가 at the heading's right end, which opens the add form below. The address
   `/organization?company=platform&tab=supply#accounts` names the group: the tab opens with it brought to the top of the
-  body once it stands, which is where the title bar's usage panel leads (「Usage in the title bar」). Its rows are parted by hairlines with no box round them, one row each: a drag
-  handle, the place in the order, a mark saying whether that login is standing, near its end, gone or never signed in on the agency's
+  body once it stands, which is where the title bar's usage panel leads (「Usage in the title bar」). Its rows are
+  parted by hairlines with no box round them, one row each: the handle that carries it — by the pointer, or by its
+  arrow keys once the handle holds the focus — the place in the order, a mark saying whether that login is standing,
+  near its end, gone or never signed in on the agency's
   machine — a login near its end also carrying how long is left, one that has ended carrying 로그인 필요, and one
   the agency holds no login for there (its `login` of `none`) carrying 로그인 안 됨 — the login's name in its own
   account's numbering (「공급」 above), where its credential is reached, a configuration directory or a token file
-  shown as that path, the up and down
-  arrows, the row's more-menu and the enable switch. Under the name stands its 소유, 공용 or 개인 with the owning
+  shown as that path, the row's more-menu and the enable switch. Under the name stands its 소유, 공용 or 개인 with the owning
   person's name after a middle dot, read off the account's `userId` (the agency's `docs/supply.md`, 「Owned
   supply」) — which is what tells two rows whose own accounts each number from 01 apart — and the account the owner
   chose carries 고른 계정. Under the
@@ -9670,8 +9688,8 @@ The providers themselves, switched on and off with what they have left, stand on
   nothing; the
   owner may write a name instead, and one another account holds is refused in a sentence of its own. Every refusal
   of a sign-in is said so, as 「나」's 공급 로그인 says it. Dragging a handle saves the whole order
-  at once, by mouse and finger alike, and the arrows move one row the same way; turning off the last one on is
-  refused by the agency. **No row, box or answer carries a token, a cookie or anything out of a credential file** —
+  at once, by mouse, pen and finger alike, and once a handle holds the keyboard's focus its arrow keys move its own
+  row one place (「Changing an order」); turning off the last one on is refused by the agency. **No row, box or answer carries a token, a cookie or anything out of a credential file** —
   the path is the whole of what is shown.
 - **장부** lists every credit movement the service answers, newest first, the console's shared list read a page at
   a time the way 사용자's list is (「사용자」): one row each, the owner as the ledger keeps them — 사용자 or 조직 and
@@ -9742,14 +9760,15 @@ a row shows of a key is the secret's name, and of a login the path it is reached
 - **공급 순서** stands the sources a run may fall through, in the order resolved for the reader, while that order is
   the reader's to change: the platform leaves it open to them and at least two sources stand that they may place.
   Where the chain settles the order instead — the platform holds it, or one source is left standing — no order
-  stands: the same rows carry no arrows and no line says the order is fixed, the group is titled **공급원**, and
-  중단, the end of a fall nobody may order, stands with the order alone. Every source keeps its switch there, and
-  개인 크레딧 its 월 상한. 조직 공급 stands among the sources
-  where the platform offers it to the reader's company — in the order while it stands open, its switch disabled and
-  its arrows moving it not, since the account service places it before every platform source; among the closed rows,
-  with its reason, where a unit or the allowance closes it: each usable source a
-  row with its arrows and its switch, and a source the reader themselves closed stands among them with its switch
-  off, ready back in; a source a layer above closes stands greyed under them all, its reason in one line — 계획에
+  stands: no handle stands anywhere among the same rows and no line says the order is fixed, the group is titled
+  **공급원**, and 중단, the end of a fall nobody may order, stands with the order alone. Every source keeps its
+  switch there, and 개인 크레딧 its 월 상한. 조직 공급 stands among the sources where the platform offers it to the
+  reader's company — in the order while it stands open, its switch disabled and its handle carrying it nowhere,
+  since the account service places it before every platform source; among the closed rows, with its reason, where
+  a unit or the allowance closes it: each usable source a row behind the handle that carries it — by the pointer,
+  or by its arrow keys once the handle holds the focus — and its switch, and a source the reader themselves closed
+  stands among them with its switch off, ready back in; a source a layer above closes stands greyed under them
+  all, its reason in one line — 계획에
   없음, 조직에서 막힘 or 플랫폼 관리자가 막힘 — and it carries no control, a write that opened it back standing refused 403
   with that closer's reason. 중단 stands last in the order and moves as nothing. A source the platform locks stands
   with its switch disabled and 전역 설정으로 고정 under it, on or off as the platform holds it. Every other

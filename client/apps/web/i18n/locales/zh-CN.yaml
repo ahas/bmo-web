@@ -204,6 +204,7 @@ common:
     pinned_named: "{name}已置顶"
     play_named: "播放{name}"
     player_named: "{name}播放器"
+    reorder_named: "重新排序{name}"
     search_named: "搜索{name}"
     search_scope: 搜索范围
     share_address: 共享链接地址

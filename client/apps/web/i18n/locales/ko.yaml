@@ -205,6 +205,7 @@ common:
     pinned_named: "{name} 고정됨"
     play_named: "{name} 재생"
     player_named: "{name} 플레이어"
+    reorder_named: "{name} 순서 변경"
     search_named: "{name} 검색"
     search_scope: 찾을 범위
     share_address: 공유 링크 주소

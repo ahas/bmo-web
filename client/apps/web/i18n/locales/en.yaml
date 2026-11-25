@@ -204,6 +204,7 @@ common:
     pinned_named: "{name} pinned"
     play_named: "Play {name}"
     player_named: "{name} player"
+    reorder_named: "Reorder {name}"
     search_named: "Search {name}"
     search_scope: Search scope
     share_address: Share link address

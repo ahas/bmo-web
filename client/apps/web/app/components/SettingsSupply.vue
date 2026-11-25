@@ -107,27 +107,32 @@
         <p v-if="!localView.allowed" class="text-sm text-muted" data-supply-local-ai-withheld>{{ $t("supply.label.local_ai_withheld") }}</p>
       </div>
 
-      <!-- The order, or the sources where the chain has settled their order: each source the reader may shape with
-           its arrows and its switch, one the platform locks with its switch disabled and the words saying so, the end
-           of the fall last, and the sources a later layer closes greyed under them all with their reason. The personal
-           credits' monthly cap stands under their row. -->
+      <!-- The order, or the sources where the chain has settled their order: each source the reader may shape stands
+           behind the handle that carries it and its switch, one the platform locks with its switch disabled and the
+           words saying so, the end of the fall last, and the sources a later layer closes greyed under them all with
+           their reason — each keeping the room a handle would take. The personal credits' monthly cap stands under
+           their row. -->
       <SettingsGroup :title="$t(orderOverridable ? 'supply.title.order' : 'supply.title.sources')">
-        <template v-for="(row, index) in shownRows" :key="row.source">
-          <SettingsRow :label="sourceLabel(t, row.source)" :class="row.kind === 'closed' ? 'opacity-60' : ''" :data-supply-source="row.source" :data-supply-locked="row.locked ? '' : undefined">
-            <template #description>
-              <span v-if="row.reason !== null" class="text-sm text-muted">{{ sourceReasonText(t, row.reason) }}</span>
-              <span v-else-if="row.kind === 'live' && row.locked" class="text-sm text-muted">{{ $t("supply.label.locked") }}</span>
-            </template>
-            <template v-if="row.kind === 'live'">
-              <IconButton v-if="orderOverridable" size="xs" icon="i-material-symbols-arrow-upward" :label="$t('common.aria.move_up_named', { name: sourceLabel(t, row.source) })" :disabled="index === 0 || busy !== ''" @click="moveSource(index, index - 1)" />
-              <IconButton v-if="orderOverridable" size="xs" icon="i-material-symbols-arrow-downward" :label="$t('common.aria.move_down_named', { name: sourceLabel(t, row.source) })" :disabled="index === liveCount - 1 || busy !== ''" @click="moveSource(index, index + 1)" />
-              <USwitch :model-value="row.on" :loading="busy === `source:${row.source}`" :disabled="busy !== '' || row.locked" :aria-label="$t('supply.aria.source_switch', { name: sourceLabel(t, row.source) })" @update:model-value="(on: boolean) => void setSource(row.source, on)" />
-            </template>
-          </SettingsRow>
-          <SettingsRow v-if="row.source === 'personal_credits' && row.kind === 'live'" :label="$t('supply.label.monthly_cap')" :description="$t('supply.label.personal_credit_cap_note')" data-supply-cap>
-            <UInput v-model="capWords" class="w-32 text-end tabular-nums" inputmode="numeric" :placeholder="$t('supply.label.cap_none')" :aria-label="$t('supply.label.personal_credit_cap')" :disabled="busy !== ''" @keyup.enter="saveCap" @blur="saveCap" />
-          </SettingsRow>
-        </template>
+        <div ref="sourceList" class="flex flex-col divide-y divide-default">
+          <template v-for="(row, index) in shownRows" :key="row.source">
+            <div class="flex min-w-0 items-center gap-x-2" :class="sourceDrag.mark(index)" :data-order-index="carried(row) ? index : undefined">
+              <OrderHandle v-if="orderOverridable" :place="carried(row) ? index : null" :drag="sourceDrag" :name="sourceLabel(t, row.source)" />
+              <SettingsRow class="min-w-0 flex-1" :label="sourceLabel(t, row.source)" :class="row.kind === 'closed' ? 'opacity-60' : ''" :data-supply-source="row.source" :data-supply-locked="row.locked ? '' : undefined">
+                <template #description>
+                  <span v-if="row.reason !== null" class="text-sm text-muted">{{ sourceReasonText(t, row.reason) }}</span>
+                  <span v-else-if="row.kind === 'live' && row.locked" class="text-sm text-muted">{{ $t("supply.label.locked") }}</span>
+                </template>
+                <USwitch v-if="row.kind === 'live'" :model-value="row.on" :loading="busy === `source:${row.source}`" :disabled="busy !== '' || row.locked" :aria-label="$t('supply.aria.source_switch', { name: sourceLabel(t, row.source) })" @update:model-value="(on: boolean) => void setSource(row.source, on)" />
+              </SettingsRow>
+            </div>
+            <div v-if="row.source === 'personal_credits' && row.kind === 'live'" class="flex min-w-0 items-center gap-x-2">
+              <OrderHandle v-if="orderOverridable" :place="null" :drag="sourceDrag" :name="$t('supply.label.monthly_cap')" />
+              <SettingsRow class="min-w-0 flex-1" :label="$t('supply.label.monthly_cap')" :description="$t('supply.label.personal_credit_cap_note')" data-supply-cap>
+                <UInput v-model="capWords" class="w-32 text-end tabular-nums" inputmode="numeric" :placeholder="$t('supply.label.cap_none')" :aria-label="$t('supply.label.personal_credit_cap')" :disabled="busy !== ''" @keyup.enter="saveCap" @blur="saveCap" />
+              </SettingsRow>
+            </div>
+          </template>
+        </div>
       </SettingsGroup>
 
       <SettingsGroup :title="$t('supply.title.usage')">
@@ -223,11 +228,13 @@ import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 
 import { useConfirm } from "~/domain/confirm";
 import { PERSON_NODE, organizationLinkAddress } from "~/domain/organization";
+import { useRowDrag } from "~/domain/row-drag";
 import { costText, creditsText, keyStatus, loginStatus, meSetting, movedSourceOrder, orderIsOverridable, orderRows, roadLabel, sourceLabel, sourceReasonText, SUPPLY_ROADS } from "~/domain/supply";
 
 import { loginNumbers, loginText, nextLoginNumber } from "#shared/claude-logins";
 import { localAiNamed } from "#shared/local-ai";
 
+import type { OrderRow } from "~/domain/supply";
 import type { PersonalSupplyKey, SupplyMe, SupplyMeSetting, SpentSource } from "#shared/supply";
 import type { LocalAi, LocalAiView } from "#shared/local-ai";
 import type { ClaudeAccountView, ClaudeLoginStarted, FallbackView, KeptSecret, SecretList } from "#shared/types";
@@ -580,13 +587,22 @@ async function removeKey(one: PersonalSupplyKey): Promise<void> {
 // The order as its rows stand (docs/web.md, 「Settings」, the supply section): what the reader shapes, on and off, the
 // sources the platform locks among them, the end of the fall, and what a later layer closed.
 const rows = computed(() => (me.value === null ? [] : orderRows(me.value)));
-const liveCount = computed(() => rows.value.filter((one) => one.kind === "live").length);
 
 // Whether the order is the reader's to change: the chain leaves it to them and at least two sources stand open for
 // them to place. Where it isn't, the group stands as their sources and the end of the fall — which nothing moves —
 // stands with the order alone.
 const orderOverridable = computed(() => (me.value === null ? false : orderIsOverridable(me.value)));
 const shownRows = computed(() => (orderOverridable.value ? rows.value : rows.value.filter((one) => one.kind !== "stop")));
+
+// Which rows the reader carries: the sources they shape, which stand first and hold the places a carry moves among
+// them. Everything else under them — the end of the fall, what a later layer closed, the cap — keeps its place.
+function carried(row: OrderRow): boolean {
+  return orderOverridable.value && row.kind === "live";
+}
+
+// The order's rows are carried one at a time and the whole order is written where one lands.
+const sourceList = ref<HTMLElement | null>(null);
+const sourceDrag = useRowDrag({ list: sourceList, ready: () => busy.value === "", drop: (from, to) => void moveSource(from, to) });
 
 // Every write carries the section's whole setting, and the view the service answers with stands in its place; a
 // refusal says its own sentence under the groups and nothing moved.

@@ -156,7 +156,7 @@ export function policyDraft(policy: SupplyPolicy | null, overrides: { overridabl
  * order puts it, the closed after them in that order too, and `stop` last whatever the draft says. */
 export function draftRows(draft: Pick<PolicyDraft, "allowed" | "order">): SupplySource[] {
   const named = POLICY_SOURCES.map((one) => one.value);
-  const inDraft = (order: readonly SupplySource[]): SupplySource[] => named.filter((one) => order.includes(one));
+  const inDraft = (order: readonly SupplySource[]): SupplySource[] => order.filter((one) => named.includes(one));
   const rest = named.filter((one) => !draft.order.includes(one));
   const open = new Set(draft.allowed);
 

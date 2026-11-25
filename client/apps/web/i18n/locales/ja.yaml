@@ -204,6 +204,7 @@ common:
     pinned_named: "{name}を固定中"
     play_named: "{name}を再生"
     player_named: "{name}のプレーヤー"
+    reorder_named: "{name}の順序を変更"
     search_named: "{name}を検索"
     search_scope: 検索範囲
     share_address: 共有リンクのアドレス

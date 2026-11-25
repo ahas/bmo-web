@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 
+import { carryByMouse, centre, rowMarks } from "./row-carry";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 import { wording } from "../../apps/web/shared/wording";
 
@@ -521,6 +522,22 @@ async function supplyStandIn(page: Page, unit: number): Promise<{ writes: unknow
 }
 
 describe.skipIf(!origin || !touchReady())("the supply tab", () => {
+  // Where the allowed sources stand in the form's order, and the handle that carries one of them.
+  const allowedOrder = async (dialog: Locator): Promise<string[]> => (await dialog.locator("[data-supply-policy-row]").evaluateAll((held) => held.map((one) => one.getAttribute("data-supply-policy-row")!))).filter((one) => one === "personal" || one === "org_credits");
+  const carried = (dialog: Locator, word: string) => dialog.getByRole("button", { name: wording("common.aria.reorder_named", { name: wording(word) }), exact: true });
+
+  // The policy form the unit's own, opened from its heading.
+  async function openPolicy(page: Page): Promise<Locator> {
+    await page.locator('[data-supply-policy="inherits"]').waitFor({ timeout: 20_000 });
+    await page.getByRole("button", { name: wording("supply.action.policy_set"), exact: true }).click();
+
+    const dialog = page.getByRole("dialog").last();
+
+    await dialog.locator('[data-supply-policy-row="personal"]').waitFor({ timeout: 10_000 });
+
+    return dialog;
+  }
+
   for (const [width, height] of WIDTHS) {
     test(`stands a source the platform has off with its switch disabled and the words saying so, and saves the rest, at ${width}px`, async () => {
       const context = await contextFor(ADMINISTRATOR.name, width, height);
@@ -530,14 +547,10 @@ describe.skipIf(!origin || !touchReady())("the supply tab", () => {
         const { writes, refusals } = await supplyStandIn(page, beta);
 
         await open(page, `/organization?company=${beta}&tab=supply`);
-        await page.locator('[data-supply-policy="inherits"]').waitFor({ timeout: 20_000 });
-        await page.getByRole("button", { name: wording("supply.action.policy_set"), exact: true }).click();
 
-        const dialog = page.getByRole("dialog").last();
+        const dialog = await openPolicy(page);
         const row = (source: string) => dialog.locator(`[data-supply-policy-row="${source}"]`);
         const toggle = (source: string) => row(source).getByRole("switch", { name: wording("supply.aria.source_switch", { name: wording(`supply.label.source_${source}`) }), exact: true });
-
-        await row("personal").waitFor({ timeout: 10_000 });
 
         // The sources the platform keeps off: off, their switch disabled, and the words under their name.
         for (const source of ["global", "personal_credits"]) {
@@ -560,6 +573,68 @@ describe.skipIf(!origin || !touchReady())("the supply tab", () => {
         expect({ refusals, writes }).toMatchObject({ refusals: [], writes: [{ allowed: ["personal"], order: ["personal", "stop"] }] });
         await page.locator('[data-supply-policy="own"]').waitFor({ timeout: 10_000 });
         expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+
+    // The order a run falls through the allowed sources is a field of the form: the handle at each source's left
+    // carries it, and the form's one save sends it with everything else (docs/web.md, 「Changing an order」).
+    test(`carries an allowed source onto another's place by its handle and saves the order with the policy, at ${width}px`, async () => {
+      const context = await contextFor(ADMINISTRATOR.name, width, height);
+
+      try {
+        const page = await context.newPage();
+        const { writes, refusals } = await supplyStandIn(page, beta);
+
+        await open(page, `/organization?company=${beta}&tab=supply`);
+        const dialog = await openPolicy(page);
+
+        expect(await allowedOrder(dialog)).toEqual(["personal", "org_credits"]);
+        expect(await carried(dialog, "supply.label.source_personal").count()).toBe(1);
+        expect(await carried(dialog, "supply.label.source_global").count()).toBe(0);
+
+        // The handle stands at the row's left, ahead of the source's name, and one measure down the list.
+        const held = await carried(dialog, "supply.label.source_personal").boundingBox();
+        const named = await dialog.locator('[data-supply-policy-row="personal"] > span.grow').boundingBox();
+
+        expect(Math.round(held!.width)).toBe(36);
+        expect(held!.x).toBeLessThan(named!.x);
+
+        await dialog.locator('[data-supply-policy-row="personal"]').scrollIntoViewIfNeeded();
+        await carryByMouse(page, await centre(carried(dialog, "supply.label.source_personal")), await centre(dialog.locator('[data-supply-policy-row="org_credits"]')), async () => null);
+        expect(await allowedOrder(dialog)).toEqual(["org_credits", "personal"]);
+
+        expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
+
+        await dialog.getByRole("button", { name: wording("common.action.save"), exact: true }).click();
+        await dialog.waitFor({ state: "detached", timeout: 10_000 });
+        expect({ refusals, writes }).toMatchObject({ refusals: [], writes: [{ allowed: ["org_credits", "personal"], order: ["org_credits", "personal", "stop"] }] });
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+
+    test(`moves an allowed source one place on the arrow keys its handle answers, and saves it with the policy, at ${width}px`, async () => {
+      const context = await contextFor(ADMINISTRATOR.name, width, height);
+
+      try {
+        const page = await context.newPage();
+        const { writes, refusals } = await supplyStandIn(page, beta);
+
+        await open(page, `/organization?company=${beta}&tab=supply`);
+        const dialog = await openPolicy(page);
+
+        await carried(dialog, "supply.label.source_personal").press("ArrowDown");
+        expect(await allowedOrder(dialog)).toEqual(["org_credits", "personal"]);
+
+        // The end of the order holds: the source standing last has nowhere to go down to, and the form keeps the one change it has.
+        await carried(dialog, "supply.label.source_personal").press("ArrowDown");
+        expect(await allowedOrder(dialog)).toEqual(["org_credits", "personal"]);
+
+        await dialog.getByRole("button", { name: wording("common.action.save"), exact: true }).click();
+        await dialog.waitFor({ state: "detached", timeout: 10_000 });
+        expect({ refusals, writes }).toMatchObject({ refusals: [], writes: [{ allowed: ["org_credits", "personal"], order: ["org_credits", "personal", "stop"] }] });
       } finally {
         await context.close();
       }
@@ -835,7 +910,7 @@ function judgedWrite(sources: readonly MeSource[], orderLocked: boolean, body: {
 // The reader's own supply tab at their own node, on a stand-in of the account service's view: the order of the
 // sources stands only where the reader may change it — the platform leaves the order to them and at least two
 // sources stand open for them to place. Where the platform holds the order, or the chain above leaves one source
-// standing, the order stands nowhere: no arrows, no end of the fall, no line saying the order is fixed, and the
+// standing, the order stands nowhere: no handles, no end of the fall, no line saying the order is fixed, and the
 // group takes the sources' own name. The switches and the personal credits' cap keep their place throughout.
 describe.skipIf(!origin || !touchReady())("the reader's own supply order", () => {
   const ME_SOURCES: MeSource[] = [
@@ -889,12 +964,16 @@ describe.skipIf(!origin || !touchReady())("the reader's own supply order", () =>
   }
 
   const sourceRow = (page: Page, name: string) => page.locator(`[data-supply-source="${name}"]`);
+  // The handle that carries one source's row, named for the source it carries.
+  const carried = (page: Page, word: string) => page.getByRole("button", { name: wording("common.aria.reorder_named", { name: wording(word) }), exact: true });
+  // The box the order's rows stand in, which holds the places a carry reads.
+  const orderGroup = async (page: Page): Promise<Locator> => await page.locator("[data-order-index]").first().locator("xpath=..");
   // The group holding the source rows, named by its own heading.
   // The group's own heading: the section a source row stands in, which the section around the whole panel is not.
   const groupName = async (page: Page): Promise<string> => (await page.locator("[data-supply-source]").first().locator("xpath=ancestor::section[1]").locator("h3").innerText()).trim();
 
   for (const [width, height] of WIDTHS) {
-    test(`stands the order with its arrows and its end last where the reader may change it, and moves it, at ${width}px`, async () => {
+    test(`stands the order with a handle on each source it leaves to the reader and its end last, and carries one down, at ${width}px`, async () => {
       const context = await contextFor(MEMBER.name, width, height);
 
       try {
@@ -911,11 +990,50 @@ describe.skipIf(!origin || !touchReady())("the reader's own supply order", () =>
 
         expect(rows).toEqual(["personal", "org_credits", "personal_credits", "cap", "stop", "global"]);
 
-        const moved = page.waitForRequest((request) => request.url().endsWith("/api/supply/me") && request.method() === "PUT");
+        // One handle stands, on each source the reader places; the end of the fall, what a layer closed and the cap
+        // stand its room and no handle, so three rows carry a place.
+        expect(await page.locator("[data-order-index]").count()).toBe(3);
+        for (const word of ["supply.label.source_personal", "supply.label.source_org_credits", "supply.label.source_personal_credits"] as const) {
+          expect(await carried(page, word).count()).toBe(1);
+        }
 
-        await sourceRow(page, "personal").getByRole("button", { name: wording("common.aria.move_down_named", { name: wording("supply.label.source_personal") }), exact: true }).click();
+        // The handles stand at the rows' left on one column, ahead of the sources' names.
+        const places = await Promise.all(["supply.label.source_personal", "supply.label.source_org_credits", "supply.label.source_personal_credits"].map(async (word) => (await carried(page, word).boundingBox())!.x));
+        const firstRow = await sourceRow(page, "personal").boundingBox();
+
+        expect(places.map((x) => Math.round(x))).toEqual(places.map(() => Math.round(places[0]!)));
+        expect(places[0]).toBeLessThan(firstRow!.x);
+
+        // Carried down onto the next source: while it is held it stands marked as the one held and the row it would
+        // land on lit, and the whole order as it lands is what the write carries.
+        const moved = page.waitForResponse((response) => response.url().endsWith("/api/supply/me") && response.request().method() === "PUT");
+        const marks = await carryByMouse(page, await centre(carried(page, "supply.label.source_personal")), await centre(sourceRow(page, "org_credits")), async () => await rowMarks(await orderGroup(page)));
+
+        expect(marks).toEqual({ held: [0], over: [1] });
         await moved;
         expect({ refusals, write: writes.at(-1) }).toEqual({ refusals: [], write: { order: ["org_credits", "personal", "personal_credits"], off: ["personal_credits"], on: ["global"], personalCreditCredits: null } });
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+
+    test(`carries a source one place on the arrow keys its handle answers, at ${width}px`, async () => {
+      const context = await contextFor(MEMBER.name, width, height);
+
+      try {
+        const page = await context.newPage();
+        const me = { view: ownSupply(["personal", "org_credits", "stop"], ME_SOURCES, false) };
+        const { writes, refusals } = await standIn(page, me);
+
+        await open(page, "/organization?company=me&tab=supply");
+        await sourceRow(page, "personal").waitFor({ timeout: 20_000 });
+
+        const moved = page.waitForResponse((response) => response.url().endsWith("/api/supply/me") && response.request().method() === "PUT");
+
+        await carried(page, "supply.label.source_personal").press("ArrowDown");
+        await moved;
+        expect({ refusals, write: writes.at(-1) }).toEqual({ refusals: [], write: { order: ["org_credits", "personal", "personal_credits"], off: ["personal_credits"], on: ["global"], personalCreditCredits: null } });
+        expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
       } finally {
         await context.close();
       }

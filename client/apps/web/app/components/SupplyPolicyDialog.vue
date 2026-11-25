@@ -1,35 +1,45 @@
 <template>
   <!-- One supply policy written whole: the sources it allows, in the order a run falls through them, and the
-       monthly cap on personal credits where the policy kind carries one (docs/web.md, 「System and organisation」, the supply
-       tab; the settings' supply section). The platform's form carries beside each source a second switch, whether a
-       person's own setting may change it, and under the sources one more of it for the order (「System and organisation」, the
+       monthly cap on personal credits where the policy kind carries one (docs/web.md, 「System and organisation」, the
+       supply tab; the settings' supply section). The allowed sources are carried to another place by the handle at
+       each row's left, by the pointer or by its arrow keys, and the order waits for the form's one save like
+       everything else in it. The platform's form carries beside each source a second switch, whether a
+       person's own setting may change it, and under the sources one more of it for the order (「System and
+       organisation」, the
        credits tab). An organisation's form is handed what the platform makes available, and a source out of it
        stands with its switch off and disabled and the words saying the platform has it off. One save at the foot
        sends the whole form, open only while it differs from what opened; the writer answers every refusal, which
        stands in the dialog. -->
   <SettingsDialog v-model:open="open" :title="props.title" :dirty="changes">
-    <div class="flex flex-col divide-y divide-default">
-      <div v-for="source in rows" :key="source" class="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 py-3" :data-supply-policy-row="source">
+    <div ref="orderList" class="flex flex-col divide-y divide-default">
+      <div
+        v-for="one in placed"
+        :key="one.source"
+        class="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 py-3"
+        :class="one.place === null ? '' : orderDrag.mark(one.place)"
+        :data-supply-policy-row="one.source"
+        :data-order-index="one.place ?? undefined"
+      >
+        <OrderHandle :place="one.place" :drag="orderDrag" :name="sourceLabel(t, one.source)" />
         <span class="flex min-w-0 grow basis-40 flex-col">
-          <span class="text-sm" :class="isAllowed(source) ? 'text-highlighted' : 'text-muted'">{{ sourceLabel(t, source) }}</span>
-          <span v-if="!isAvailable(source)" class="text-sm text-muted" data-supply-policy-platform-off>{{ $t("supply.label.platform_off") }}</span>
+          <span class="text-sm" :class="isAllowed(one.source) ? 'text-highlighted' : 'text-muted'">{{ sourceLabel(t, one.source) }}</span>
+          <span v-if="!isAvailable(one.source)" class="text-sm text-muted" data-supply-policy-platform-off>{{ $t("supply.label.platform_off") }}</span>
         </span>
-        <span v-if="source !== 'stop'" class="flex shrink-0 items-center gap-2">
-          <IconButton size="xs" icon="i-material-symbols-arrow-upward" :label="$t('common.aria.move_up_named', { name: sourceLabel(t, source) })" :disabled="!canMove(source, -1)" @click="move(source, -1)" />
-          <IconButton size="xs" icon="i-material-symbols-arrow-downward" :label="$t('common.aria.move_down_named', { name: sourceLabel(t, source) })" :disabled="!canMove(source, 1)" @click="move(source, 1)" />
-          <USwitch :model-value="isAllowed(source)" :disabled="!isAvailable(source)" :aria-label="$t('supply.aria.source_switch', { name: sourceLabel(t, source) })" @update:model-value="(on: boolean) => void toggle(source, on)" />
+        <span v-if="one.source !== 'stop'" class="flex shrink-0 items-center gap-2">
+          <USwitch :model-value="isAllowed(one.source)" :disabled="!isAvailable(one.source)" :aria-label="$t('supply.aria.source_switch', { name: sourceLabel(t, one.source) })" @update:model-value="(on: boolean) => void toggle(one.source, on)" />
         </span>
         <USwitch
-          v-if="props.overrides && source !== 'stop'"
-          :model-value="overridable.includes(source)"
+          v-if="props.overrides && one.source !== 'stop'"
+          :model-value="overridable.includes(one.source)"
           :label="$t('supply.label.overridable')"
-          :aria-label="$t('supply.aria.source_overridable', { name: sourceLabel(t, source) })"
+          :aria-label="$t('supply.aria.source_overridable', { name: sourceLabel(t, one.source) })"
           class="shrink-0"
           data-supply-policy-overridable
-          @update:model-value="(on: boolean) => setOverridable(source, on)"
+          @update:model-value="(on: boolean) => setOverridable(one.source, on)"
         />
       </div>
       <div v-if="props.overrides" class="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 py-3" data-supply-policy-row="order">
+        <OrderHandle :place="null" :drag="orderDrag" :name="$t('supply.label.order')" />
         <span class="flex min-w-0 grow basis-40 flex-col">
           <span class="text-sm text-highlighted">{{ $t("supply.label.order") }}</span>
         </span>
@@ -54,6 +64,7 @@
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 
+import { useRowDrag } from "~/domain/row-drag";
 import { POLICY_SOURCES, draftRows, sourceLabel } from "~/domain/supply";
 
 import type { PolicyDraft, PolicyWrite } from "~/domain/supply";
@@ -108,6 +119,34 @@ const changes = useOpenedWith(
 
 const rows = computed<SupplySource[]>(() => draftRows({ allowed: allowed.value, order: order.value }));
 
+// Each row and the place it holds in the order the reader carries: the sources switched on stand in that order,
+// while one switched off, the end of the fall and a source the platform keeps off stand outside it and hold no
+// place a carry moves.
+const placed = computed<{ source: SupplySource; place: number | null }[]>(() => {
+  const carried = openRows();
+
+  return rows.value.map((source) => {
+    const at = carried.indexOf(source);
+
+    return { source, place: at < 0 ? null : at };
+  });
+});
+
+// The form holds the order until its one save sends it, so a carry is answered here and nowhere else.
+const orderList = ref<HTMLElement | null>(null);
+const orderDrag = useRowDrag({ list: orderList, ready: () => !busy.value, drop: (from, to) => movePlace(from, to) });
+
+// The order with one source set down on another's place; `stop` stays the end of the fall it is.
+function movePlace(from: number, to: number): void {
+  const next = openRows();
+  const [taken] = next.splice(from, 1);
+
+  if (taken === undefined) return;
+
+  next.splice(to, 0, taken);
+  order.value = [...next, "stop"];
+}
+
 function setOverridable(source: SupplySource, on: boolean): void {
   overridable.value = on ? [...overridable.value.filter((one) => one !== source), source] : overridable.value.filter((one) => one !== source);
 }
@@ -122,26 +161,6 @@ function isAllowed(source: SupplySource): boolean {
 
 function openRows(): SupplySource[] {
   return rows.value.filter((one) => one !== "stop" && isAllowed(one));
-}
-
-function canMove(source: SupplySource, by: number): boolean {
-  const index = openRows().indexOf(source);
-
-  return isAllowed(source) && index >= 0 && index + by >= 0 && index + by < openRows().length;
-}
-
-function move(source: SupplySource, by: number): void {
-  const list = openRows();
-  const from = list.indexOf(source);
-  const to = from + by;
-
-  if (from < 0 || to < 0 || to >= list.length) return;
-  const next = list.slice();
-  const [taken] = next.splice(from, 1);
-
-  if (taken === undefined) return;
-  next.splice(to, 0, taken);
-  order.value = [...next, "stop"];
 }
 
 // A source switched on takes the last place among the allowed ones; switched off, it drops out of the order and

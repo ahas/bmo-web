@@ -2121,10 +2121,12 @@ Four groups.
 
 ### Changing an order
 
-- **A short settings list whose order the reader changes stands the handle at each row's left**, and it is one handle
-  (`OrderHandle`) wherever it stands: the reader's own **공급 순서**, the supply policy form and the platform's
-  **Claude 계정** stand on it. The reader's **공급 로그인** and **공급 키** still move a row by the arrows at its end,
-  each arrow naming the row it moves. What a row is stays at the row's end: its switch, its menu, its own controls.
+- **Where a list stands an order the reader changes, the order is changed from the handle at each row's left** —
+  the one handle (`OrderHandle`) every such list of the console stands on: the reader's own **공급 순서**, the supply
+  policy form, the platform's **Claude 계정**, a reader's **공급 로그인** and **공급 키**, a repository's **프리픽스
+  문서**, a supervisor's **지시 단계**, and the queue lines of the TODO panel. What a row is stays at the row's end:
+  its switch, its menu, its own controls. The reader's gateway keys are ordered within their provider alone, and a
+  key is carried no other provider's place.
 - **The handle carries its row by either hand.** The pointer catches it and sets it down on another row's place.
   Once the handle holds the keyboard's focus, its arrow keys move the row one place up or down, and the row keeps
   the focus as it lands, so the keys go on answering from there. Its name says which row it carries, and its
@@ -2132,8 +2134,10 @@ Four groups.
 - **A row whose place is settled stands no handle, only the room one would take,** so the rows' names start on one
   line down the list; where nothing in the group may be carried at all, the room goes with the handles.
 - **A carry and a key-move both send the whole order as it lands,** wherever that list keeps it: the account
-  service for a person's own supply, the agency for the platform's Claude accounts, the form's one save for a
-  supply policy. A write the service refuses leaves the order as it stood.
+  service for a person's own supply order, the agency for the platform's Claude accounts and the logins and keys a
+  person brings, the form's one save for a supply policy, a repository's prefix documents and a supervisor's
+  stage chain, the bot for a queue line of the TODO panel. A write the service refuses leaves the order as it
+  stood.
 
 ### The progress stepper
 
@@ -3543,10 +3547,12 @@ alone (「Access」); another account's agents are reached from 시스템 및 �
   stands for another supervisor, and no screen sets a chain for all of them: a supervisor the console has set none
   for follows the receiver's policy, and the block's title then carries `(기본값)`.
   - **지시 단계** is the chain in order: each stage a row of its handle, its place, its name with `(기본값)` after one
-    whose text is the policy's, and its text on one line; then 위로, 아래로 and a press that takes it out of the chain,
-    each an icon with its tooltip. A stage carried by its handle lands on the place of the stage whose row stands lit
-    under the pointer; one let go where it went down, or over no stage, stays where it was. A chain with no stage
-    says 지시 단계 없음, and its message then goes out unchecked.
+    whose text is the policy's, and its text on one line; then a press that takes it out of the chain, an icon
+    with its tooltip. A stage is carried by its handle to another stage's place — by the pointer, the pen and the
+    finger, or by the handle's arrow keys once it holds the focus (「Changing an order」); one carried by the
+    pointer lands on the place of the stage whose row stands lit under it, and one let go where it went down, or
+    over no stage, stays where it was. A chain with no stage says 지시 단계 없음, and its message then goes out
+    unchecked.
   - **사용하지 않는 단계** follows where the catalogue holds stages the chain does not name, each the same line with a
     press that adds it at the chain's end.
   - **Pressing a stage's line opens its text** in a box under it, at most 4,000 characters and never empty. Under the
@@ -3813,8 +3819,8 @@ alone (「Access」); another account's agents are reached from 시스템 및 �
     for a repository already made, and only while its base stands on this machine; a removal the agency refuses
     while a job holds the checkout says the pack's sentence under the field.
   - **프리픽스 문서** lists the documents a run's prefix carries in this repository, in order, each a path relative to
-    the checkout or absolute under the umbrella, each carried by its handle to another place, moved up or down or
-    taken out; a path field and an add button
+    the checkout or absolute under the umbrella, each carried by its handle to another place — by the pointer or by
+    its arrow keys (「Changing an order」) — or taken out; a path field and an add button
     under them put one at the end. The list is sent whole; an empty list is none.
   - **머리말** is multi-line text standing before every job's prompt in this repository, up to 8,000 characters; **개발
     서버 명령** one shell line, up to 1,000 characters. Both empty are none.
@@ -7602,12 +7608,13 @@ Four bounds keep it from growing forever.
   carried, so the number, title, state and everything else of every line start on one left edge. On a phone the item number
   stands on a line of its own above the title, so the title has the width. A line's state tag wears the state's mark beside
   its word.
-- **Drag to reorder.** A line waiting in the queue carries a handle in that left column. Grabbing the handle and placing over another line goes to that
+- **Drag to reorder.** A line waiting in the queue carries the console's one handle in that left column (「Changing an
+  order」). Grabbing the handle and placing over another line goes to that
   place — dragging up stands before the placed line, down after it. Mouse, pen or finger grabs by one thing, so it drags by hand on phone and
-  tablet too. Only **대기** lines carry a handle. A running line is already launched work so its standing place decides nothing, a 완료 보고 중 line
+  tablet too, and once a handle holds the focus its arrow keys carry its line one place and the focus lands with it,
+  the same write reaching the bot. Only **대기** lines carry a handle. A running line is already launched work so its standing place decides nothing, a 완료 보고 중 line
   is finished work standing in the queue while the report goes out, and a complete line and an awaiting-approval line are not in the queue in the
-  first place — an unapproved request has no place in the order until approval. The arrow buttons in the modal stay. That is the same by keyboard,
-  and drag is not on a keyboard.
+  first place — an unapproved request has no place in the order until approval. The arrow buttons in the modal stay.
 - **The only place to drag is the one handle.** Pressing elsewhere on a line does not drag but opens that item's modal, and a finger sweeping
   outside the handle scrolls the panel like any list. Only a finger starting on the handle lifts a line without scrolling. Pressing and releasing
   in place is not a drag — a line lifts only on the slightest move, so tapping the handle saves nothing. While a line is lifted the dragged line
@@ -9720,10 +9727,10 @@ a row shows of a key is the secret's name, and of a login the path it is reached
 - **공급 로그인** lists the reader's Claude logins in the order their runs walk them, one row each: the login named by
   its number within the reader's own account (「공급」 above — the first of their own is 「Claude 01번 계정」, and the
   number the agency put in its name is never what the reader is shown), its
-  place in the order, its state in one word — 사용 가능, 창 가득 참, 로그인 필요, 로그인 안 됨 — and its switch. Every
-  control of the row — its arrows, its menu, its switch and the question that asks before 삭제 — names it by that
-  label. The arrows move
-  one row, the whole order written as it is dropped; a refusal leaves the order the agency holds. 로그인 추가 at
+  place in the order, its state in one word — 사용 가능, 창 가득 참, 로그인 필요, 로그인 안 됨 — and its switch. The
+  handle at the row's left carries it, by the pointer or by its arrow keys (「Changing an order」), and every
+  control of the row — its handle, its menu, its switch and the question that asks before 삭제 — names it by that
+  label. The whole order is written where one lands; a refusal leaves the order the agency holds. 로그인 추가 at
   the heading's end starts the sign-in the agency runs on the reader's own node, naming no name: account names are
   one namespace across every owner and the reader sees only their own, so the agency names the new login, one
   number past every account's `claude-NN`, and the box's title carries the number that name gives it among the
@@ -9740,8 +9747,8 @@ a row shows of a key is the secret's name, and of a login the path it is reached
   in again in its own directory on their node (its `docs/supply.md`, 「Signing a person's login in」). 삭제, asked
   first, takes one away.
 - **공급 키** lists the reader's gateway keys, one row each: the secret's name as the label, the provider's own name
-  and its state under it — 사용 가능, 키 거부됨 — and its switch, its arrows moving it within its provider and its
-  삭제 asking first. 키 추가 opens a form of provider (Codex, DeepSeek or OpenRouter) and secret, the secret chosen
+  and its state under it — 사용 가능, 키 거부됨 — and its switch; its handle moves it within its provider alone
+  (「Changing an order」) and its 삭제 asking first. 키 추가 opens a form of provider (Codex, DeepSeek or OpenRouter) and secret, the secret chosen
   from the names the reader's space holds and the choice standing empty with one line leading to 비밀 보관함 where
   it holds none; the form hands the name alone, and a provider the reader already carries a key for, or one the
   gateways serve none of, is refused in the dialog.

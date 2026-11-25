@@ -100,7 +100,12 @@ async function names(list: Locator): Promise<string[]> {
 }
 
 function handleOf(chain: Locator, name: string): Locator {
-  return chain.locator(`[data-stage="${name}"]`).getByRole("img", { name: wording("agents.aria.drag_reorder") });
+  return chain.locator(`[data-stage="${name}"]`).getByRole("button", { name: wording("common.aria.reorder_named", { name }), exact: true });
+}
+
+// Which element the keyboard answers now: the handle names itself by the row it carries.
+async function focused(page: Page): Promise<string> {
+  return await page.evaluate(() => document.activeElement?.getAttribute("aria-label") ?? "");
 }
 
 describe.skipIf(!origin || !touchReady())("a supervisor's draft block", () => {
@@ -234,7 +239,8 @@ describe.skipIf(!origin || !touchReady())("an instruction stage carried by its h
       const page = await context.newPage();
       let chain = (await openBlock(page)).locator("[data-stage-chain]");
 
-      expect(await chain.getByRole("img", { name: wording("agents.aria.drag_reorder") }).count()).toBe(3);
+      // One handle per stage, each named for the stage it carries.
+      for (const name of ["review", "sources", "tone"]) expect(await handleOf(chain, name).count()).toBe(1);
 
       // The chain stands low in the dialog's own scroll; a mouse presses only what is on the screen.
       await chain.scrollIntoViewIfNeeded();
@@ -251,6 +257,15 @@ describe.skipIf(!origin || !touchReady())("an instruction stage carried by its h
 
       await carryByMouse(page, still, still, async () => null);
       expect(await names(chain)).toEqual(["tone", "review", "sources"]);
+
+      // The handle's arrow keys carry its stage one place and the focus comes to rest on it there, so
+      // the keys go on answering: down from the first place and back up, the order landing as it stood.
+      await handleOf(chain, "tone").press("ArrowDown");
+      expect(await until(async () => await names(chain), (now) => now.join(",") === "review,tone,sources")).toEqual(["review", "tone", "sources"]);
+      expect(await until(async () => await focused(page), (label) => label === wording("common.aria.reorder_named", { name: "tone" }))).toBe(wording("common.aria.reorder_named", { name: "tone" }));
+
+      await page.keyboard.press("ArrowUp");
+      expect(await until(async () => await names(chain), (now) => now.join(",") === "tone,review,sources")).toEqual(["tone", "review", "sources"]);
 
       await page.getByRole("button", { name: wording("common.action.save"), exact: true }).click();
       expect(await until(async () => saves.length, (count) => count > 0)).toBe(1);

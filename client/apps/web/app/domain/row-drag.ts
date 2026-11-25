@@ -69,15 +69,22 @@ export interface RowDragOptions {
   drop: (from: number, to: number) => void;
 }
 
-export interface RowDrag {
-  held: Ref<number | null>;
-  over: Ref<number | null>;
+// What the handle itself reads of its list's carry: the two ways its row is moved, and where the
+// keyboard last landed a row. A list whose rows a carry moves answers it through `useRowDrag`; one
+// that keeps its rows by their own identity and carries them its own way — the TODO panel's queue
+// lines — answers the same three things over its own press machine, and shares only this.
+export interface RowHandle {
   // Where the keyboard last landed a row. A list puts a moved row back into the element it stands in,
   // and a row put back may stand blurred; the row that lands here takes the focus again.
   driven: Ref<number | null>;
   onHandleDown: (index: number, event: PointerEvent) => void;
   // The handle's arrow keys, which carry its row one place the way a drop does.
   onHandleKey: (index: number, event: KeyboardEvent) => void;
+}
+
+export interface RowDrag extends RowHandle {
+  held: Ref<number | null>;
+  over: Ref<number | null>;
   // What a row looks like while one is being carried: the one held, and the one it is over.
   mark: (index: number) => string;
   end: () => void;

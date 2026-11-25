@@ -39,19 +39,6 @@ export function withoutStage(chain: readonly string[], name: string): string[] {
   return chain.filter((one) => one !== name);
 }
 
-/** The chain with one stage moved up (-1) or down (+1). */
-export function movedStage(chain: readonly string[], name: string, by: -1 | 1): string[] {
-  const moved = [...chain];
-  const at = moved.indexOf(name);
-  const to = at + by;
-
-  if (at < 0 || to < 0 || to >= moved.length) return moved;
-
-  [moved[at], moved[to]] = [moved[to]!, moved[at]!];
-
-  return moved;
-}
-
 /** The chain with the stage at `from` carried to the place of the one at `to`. */
 export function placedStage(chain: readonly string[], from: number, to: number): string[] {
   const placed = [...chain];

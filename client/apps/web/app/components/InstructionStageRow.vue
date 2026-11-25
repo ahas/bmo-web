@@ -1,23 +1,15 @@
 <template>
   <!-- One stage of a supervisor's catalogue in its draft block (docs/web.md, 「Agent management screen」, the settings
        dialog's draft block): its name, the default's mark after one whose text is the policy's, and its text on one
-       line, pressed open into a box under it. A stage of the chain stands its place, a handle that carries it, a move
-       up or down and a press that takes it out of the chain; one outside the chain stands a press that adds it at the
-       chain's end. A stage the console added is deleted, and one whose text the console changed is put back to the
-       policy's text, from under its box. The form that holds the row saves it. -->
+       line, pressed open into a box under it. A stage of the chain stands its place and the handle that carries it —
+       by the pointer, the pen and the finger, or by its arrow keys once it holds the focus — and a press that takes it
+       out of the chain; one outside the chain stands a press that adds it at the chain's end. A stage the console
+       added is deleted, and one whose text the console changed is put back to the policy's text, from under its box.
+       The form that holds the row saves it. -->
   <li class="flex min-w-0 flex-col rounded-md" :data-stage="props.stage.name" :data-order-index="props.place ?? undefined">
     <div class="flex min-h-10 min-w-0 items-center gap-1">
       <template v-if="props.place !== null">
-        <span
-          v-if="!props.disabled"
-          class="flex size-6 shrink-0 cursor-grab touch-none select-none items-center justify-center text-muted transition-colors hover:text-highlighted active:text-primary"
-          role="img"
-          :aria-label="$t('agents.aria.drag_reorder')"
-          @pointerdown="emit('grab', $event)"
-        >
-          <UIcon name="i-material-symbols-drag-indicator" class="size-4" />
-        </span>
-        <span v-else class="size-6 shrink-0" aria-hidden="true" />
+        <OrderHandle :place="props.disabled ? null : props.place" :drag="props.drag" :name="props.stage.name" />
         <span class="w-5 shrink-0 text-end text-sm text-dimmed tabular-nums">{{ countText(props.place + 1) }}</span>
       </template>
 
@@ -34,12 +26,6 @@
       </button>
 
       <template v-if="props.place !== null">
-        <UTooltip :text="$t('agents.aria.stage_up', { name: props.stage.name })">
-          <UButton icon="i-material-symbols-arrow-upward" color="neutral" variant="ghost" size="xs" :disabled="props.disabled || props.first" :aria-label="$t('agents.aria.stage_up', { name: props.stage.name })" @click="emit('move', -1)" />
-        </UTooltip>
-        <UTooltip :text="$t('agents.aria.stage_down', { name: props.stage.name })">
-          <UButton icon="i-material-symbols-arrow-downward" color="neutral" variant="ghost" size="xs" :disabled="props.disabled || props.last" :aria-label="$t('agents.aria.stage_down', { name: props.stage.name })" @click="emit('move', 1)" />
-        </UTooltip>
         <UTooltip :text="$t('agents.aria.stage_out', { name: props.stage.name })">
           <UButton icon="i-material-symbols-close" color="neutral" variant="ghost" size="xs" :disabled="props.disabled" :aria-label="$t('agents.aria.stage_out', { name: props.stage.name })" @click="emit('out')" />
         </UTooltip>
@@ -76,19 +62,20 @@ import { STAGE_TEXT_MAX, stageTextFault, stageTextSet } from "~/domain/instructi
 import { countText } from "~/domain/numbers";
 
 import type { InstructionStageView } from "#shared/instruction-stages";
+import type { RowHandle } from "~/domain/row-drag";
 
 interface Props {
   stage: InstructionStageView;
   // Its place in the chain from 0, or null for a stage outside it.
   place?: number | null;
-  first?: boolean;
-  last?: boolean;
+  // The carry the chain's rows move by, read only where the row stands in the chain.
+  drag: RowHandle;
   opened: boolean;
   disabled?: boolean;
 }
 
-const props = withDefaults(defineProps<Props>(), { place: null, first: false, last: false, disabled: false });
-const emit = defineEmits<{ toggle: []; grab: [press: PointerEvent]; move: [by: -1 | 1]; out: []; in: []; default: []; delete: [] }>();
+const props = withDefaults(defineProps<Props>(), { place: null, disabled: false });
+const emit = defineEmits<{ toggle: []; out: []; in: []; default: []; delete: [] }>();
 
 // The stage's text as the form holds it.
 const text = defineModel<string>("text", { required: true });

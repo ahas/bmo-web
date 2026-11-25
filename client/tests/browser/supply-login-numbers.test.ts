@@ -258,6 +258,111 @@ function orderWrite(page: Page): Promise<unknown> {
   return page.waitForResponse((one) => one.url().endsWith("/api/fallback") && one.request().method() === "POST", { timeout: 30_000 });
 }
 
+// The reader's own logins and gateway keys are carried on the console's one handle too (docs/web.md,
+// 「Changing an order」): the handle's arrow keys move its row one place and write the whole order as it lands,
+// the focus coming to rest on the row it lands so the keys go on answering from there. A key stands among its
+// provider's keys alone, so a press that would land one on another provider's row moves nothing and writes
+// nothing. The rows are read back in the order the answer puts them, the logins by their walk order and the
+// keys grouped by provider.
+describe.skipIf(!origin || !touchReady())("the reader's own supply rows carried by their handle", () => {
+  const KEYS = [
+    { id: "key-codex-1", road: "codex", secret: "codex-a", place: 1, enabled: true, refusedAt: null, addedAt: 1_700_000_000 },
+    { id: "key-codex-2", road: "codex", secret: "codex-b", place: 2, enabled: true, refusedAt: null, addedAt: 1_700_000_001 },
+    { id: "key-deep-1", road: "deepseek", secret: "deepseek-a", place: 1, enabled: true, refusedAt: null, addedAt: 1_700_000_002 },
+  ];
+
+  test("moves a login and a key on the arrow keys their handles answer, and holds a key inside its provider", async () => {
+    const context = await browser!.newContext({ viewport: { width: 1280, height: 900 }, locale: "ko-KR", serviceWorkers: "block", reducedMotion: "reduce" });
+
+    try {
+      const page = await context.newPage();
+
+      let logins = OWN_LOGINS.map((one) => ({ ...one }));
+      const orderWrites: string[][] = [];
+
+      await page.route(/\/api\/supply\/logins$/, async (route) => {
+        if (route.request().method() === "POST") {
+          const body = route.request().postDataJSON() as { action?: string; order?: { id: string; enabled: boolean }[] };
+
+          if (body.action === "set-account-order" && Array.isArray(body.order)) {
+            orderWrites.push(body.order.map((one) => one.id));
+            logins = body.order.map((one, at) => ({ ...OWN_LOGINS.find((two) => two.id === one.id)!, place: at + 1 }));
+          }
+
+          await json(route, { ok: true });
+          return;
+        }
+
+        await json(route, { active: { provider: "claude-code", account: null, accountName: "", accounts: logins.length, session: null, week: null }, accounts: logins });
+      });
+
+      const keys = KEYS.map((one) => ({ ...one }));
+      const keyWrites: { id: string; place: number }[] = [];
+
+      await page.route(/\/api\/supply\/personal(\/.*)?$/, async (route) => {
+        if (route.request().method() === "PATCH") {
+          const body = route.request().postDataJSON() as { place?: number };
+          const id = decodeURIComponent(route.request().url().split("/").pop()!);
+          const moved = keys.find((one) => one.id === id)!;
+          const road = keys.filter((one) => one.road === moved.road);
+          const rest = road.filter((one) => one.id !== id);
+
+          rest.splice(Math.min((body.place ?? 1) - 1, rest.length), 0, moved);
+          rest.forEach((one, at) => (one.place = at + 1));
+          keyWrites.push({ id, place: body.place ?? 1 });
+          await json(route, moved);
+          return;
+        }
+
+        await json(route, keys);
+      });
+
+      await open(page, "/organization?company=me&tab=supply");
+      await page.locator("[data-supply-login]").first().waitFor({ timeout: 30_000 });
+      await page.locator("[data-supply-key]").first().waitFor({ timeout: 30_000 });
+
+      const handle = (name: string) => page.getByRole("button", { name: wording("common.aria.reorder_named", { name }), exact: true });
+      const rowsStood = (selector: string, attr: string, want: string) => page.waitForFunction(([selector, attr, want]: [string, string, string]) => [...document.querySelectorAll(selector)].map((one) => one.getAttribute(attr)).join(",") === want, [selector, attr, want] as [string, string, string], { timeout: 20_000 });
+
+      // Down one place: the whole walk order lands where the row was set down, and the focus rides with it, so
+      // the next key answers from there and carries it back up.
+      const loginRead = page.waitForResponse((one) => one.url().endsWith("/api/supply/logins") && one.request().method() === "GET");
+
+      await handle(numbered("01")).press("ArrowDown");
+      await loginRead;
+      await rowsStood("[data-supply-login]", "data-supply-login", "acct-7,acct-3,acct-5");
+      expect(orderWrites).toEqual([["acct-7", "acct-3", "acct-5"]]);
+      expect(await page.evaluate(() => document.activeElement?.getAttribute("aria-label") ?? "")).toBe(wording("common.aria.reorder_named", { name: numbered("01") }));
+
+      const backRead = page.waitForResponse((one) => one.url().endsWith("/api/supply/logins") && one.request().method() === "GET");
+
+      await page.keyboard.press("ArrowUp");
+      await backRead;
+      await rowsStood("[data-supply-login]", "data-supply-login", "acct-3,acct-7,acct-5");
+      expect(orderWrites.length).toBe(2);
+
+      // The deepseek key stands first among its own and last among the rows: pressed up it would land on a codex
+      // row, which is no move — nothing shifts and nothing is written.
+      await handle("deepseek-a").press("ArrowUp");
+      expect(await page.locator("[data-supply-key]").evaluateAll((rows) => rows.map((row) => row.getAttribute("data-supply-key")!))).toEqual(["codex-a", "codex-b", "deepseek-a"]);
+      expect(keyWrites).toEqual([]);
+
+      // Within its provider the same key moves like every other row: down onto its fellow's place, the provider's
+      // whole order rewritten by the answer.
+      const keyRead = page.waitForResponse((one) => one.url().endsWith("/api/supply/personal") && one.request().method() === "GET");
+
+      await handle("codex-a").press("ArrowDown");
+      await keyRead;
+      await rowsStood("[data-supply-key]", "data-supply-key", "codex-b,codex-a,deepseek-a");
+      expect(keyWrites).toEqual([{ id: "key-codex-1", place: 2 }]);
+
+      await fitsTheScreen(page);
+    } finally {
+      await context.close();
+    }
+  }, 120_000);
+});
+
 describe.skipIf(!origin || !touchReady())("the platform's Claude accounts carried by their handle", () => {
   for (const [width, height, phone] of SIZES) {
     test(`stands one handle to each account, carries a row to another's place and sends the whole order, at ${width}px`, async () => {

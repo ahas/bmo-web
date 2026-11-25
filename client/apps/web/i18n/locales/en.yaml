@@ -196,8 +196,6 @@ common:
     member_permission: "{name} permission"
     menu_of: "{name} menu"
     more_notices: "{n} more notifications"
-    move_down_named: "Move {name} down"
-    move_up_named: "Move {name} up"
     open_list: Open list
     opens_new_tab: (opens in a new tab)
     others_count: "and {n} others"
@@ -1462,7 +1460,6 @@ todo:
     job_log: Job log
     write_separately: Write separately
   aria:
-    drag_reorder: Drag to reorder
     filter: TODO filter
     filter_of: "{name} filter"
     filters_set: "{n} filters"
@@ -3039,21 +3036,16 @@ agents:
     warming_of: "Keep {name} {provider} cache warm"
     warming_cell_of: "Keep {name} cache warm"
     choose_model: Choose model
-    drag_reorder: Drag to reorder
-    prefix_document_down: "Move {path} down"
     prefix_document_path: Prefix document path
     prefix_document_remove: "Remove {path}"
-    prefix_document_up: "Move {path} up"
     provider_of: "{name} provider"
     search_depth: Search depth
     settings_sections: Settings sections
     switch_on: "Turn on {name}"
     vitals: Agent metrics
-    stage_down: "Move {name} down"
     stage_in: "Add {name} to instruction stages"
     stage_out: "Remove {name} from instruction stages"
     stage_text_of: "{name} text"
-    stage_up: "Move {name} up"
   error:
     sleep_read_failed: "The sleep setting could not be read."
     login_which: "Choose either an account to sign in again or a name for a new account, not both."

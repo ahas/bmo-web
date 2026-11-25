@@ -33,7 +33,8 @@
         </div>
       </form>
 
-      <!-- The chain: each stage carried by its handle to another stage's place, by the mouse, the pen and the finger. -->
+      <!-- The chain: each stage carried by its handle to another stage's place, by the mouse, the pen and the
+           finger, or by the handle's arrow keys once it holds the focus. -->
       <ol ref="rows" class="flex flex-col gap-1" :aria-labelledby="chainId" data-stage-chain>
         <InstructionStageRow
           v-for="(stage, index) in chained"
@@ -42,13 +43,10 @@
           :class="drag.mark(index)"
           :stage="stage"
           :place="index"
-          :first="index === 0"
-          :last="index === chained.length - 1"
+          :drag="drag"
           :opened="opened === stage.name"
           :disabled="busy"
           @toggle="toggle(stage.name)"
-          @grab="(press) => drag.onHandleDown(index, press)"
-          @move="(by) => (form = { ...form, stages: movedStage(form.stages, stage.name, by) })"
           @out="form = { ...form, stages: withoutStage(form.stages, stage.name) }"
           @default="form = stageToPolicy(form, stage.name)"
           @delete="remove(stage.name)"
@@ -65,6 +63,7 @@
           :key="stage.name"
           v-model:text="stage.text"
           :stage="stage"
+          :drag="drag"
           :opened="opened === stage.name"
           :disabled="busy"
           @toggle="toggle(stage.name)"
@@ -89,7 +88,6 @@ import {
   STAGE_TEXT_MAX,
   chainOwn,
   chainToPolicy,
-  movedStage,
   placedStage,
   stageNameFault,
   stageTextFault,

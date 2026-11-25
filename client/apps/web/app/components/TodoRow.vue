@@ -5,18 +5,9 @@
   <div class="row-span-6 flex justify-center">
     <!-- The handle is the only thing that starts a drag: a press anywhere else on the row opens it, and a touch
          anywhere else on the panel scrolls it. The handle alone takes the browser's own touch gestures off, so a
-         finger that starts here carries the row instead of scrolling. The arrows in the opened row do the same
-         thing by keyboard. -->
-    <span
-      v-if="draggable"
-      data-drag-handle
-      class="mt-0.5 shrink-0 cursor-grab touch-none select-none text-muted hover:text-highlighted active:text-primary"
-      role="img"
-      :aria-label="$t('todo.aria.drag_reorder')"
-      @pointerdown="emit('handle-down', item.id, $event)"
-    >
-      <UIcon name="i-material-symbols-drag-indicator" class="size-4" />
-    </span>
+         finger that starts here carries the row instead of scrolling; once it holds the focus, its arrow keys carry
+         the row one place too, as on every other ordered list. The arrows in the opened row do the same thing. -->
+    <OrderHandle :place="place" :drag="drag" :name="`#${item.id}`" :data-drag-handle="place === null ? undefined : ''" />
   </div>
 
   <!-- A press opens the row's detail over the list, so the mark is the one every row that opens a dialog in this
@@ -199,6 +190,7 @@ import {
 
 import type { ItemTestbedTurn, JobQuestion, RoomSummary, TodoItem } from "#shared/types";
 import type { ItemWayLive } from "~/domain/deploy";
+import type { RowHandle } from "~/domain/row-drag";
 import type { SearchMatch } from "bmo-ui/shared/search";
 
 defineProps<{
@@ -207,8 +199,10 @@ defineProps<{
   query: string;
   // Whether the row stands its number on a line of its own above the title.
   narrow: boolean;
-  // Whether its handle can carry it.
-  draggable: boolean;
+  // Where the row stands in the queue a carry moves its place among, or null where it carries nothing.
+  place: number | null;
+  // The carry the panel reads for its queue lines.
+  drag: RowHandle;
   // Where each commit the item waits on stands on its way live; none where it stands on none.
   waysLive: readonly ItemWayLive[];
   testbedTurn: ItemTestbedTurn | null;
@@ -220,11 +214,10 @@ defineProps<{
   rooms: RoomSummary[] | null | undefined;
 }>();
 
-// Every press is the panel's to act on, which knows the board, the menu and the drag.
+// Every press is the panel's to act on, which knows the board and the menu; the row's handle speaks to its carry.
 const emit = defineEmits<{
   open: [id: number];
   // The item opened at the card its question waiting on the owner is answered on.
   question: [id: number];
-  "handle-down": [id: number, event: PointerEvent];
 }>();
 </script>

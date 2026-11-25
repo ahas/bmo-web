@@ -277,14 +277,15 @@
               v-for="item in section.items"
               :key="item.id"
               :data-todo-id="item.id"
-              class="relative grid grid-cols-[1rem_minmax(0,1fr)] gap-x-1 rounded-lg border py-2 ps-1 pe-2 transition-colors hover:bg-elevated/50 [content-visibility:auto] [contain-intrinsic-size:auto_4.5rem] [overflow-clip-margin:0.5rem]"
+              class="relative grid grid-cols-[2.25rem_minmax(0,1fr)] gap-x-1 rounded-lg border py-2 ps-1 pe-2 transition-colors hover:bg-elevated/50 [content-visibility:auto] [contain-intrinsic-size:auto_4.5rem] [overflow-clip-margin:0.5rem]"
               :class="rowMark(item.id)"
             >
               <TodoRow
                 :item="item"
                 :query="searched"
                 :narrow="narrow"
-                :draggable="canDrag(item, view, searched !== '')"
+                :place="carriedPlaces.get(item.id) ?? null"
+                :drag="queueHandle"
                 :ways-live="itemWaysLive(deployView, item)"
                 :testbed-turn="testbedTurns.get(item.id) ?? null"
                 :questions="askedOf.get(item.id) ?? null"
@@ -292,7 +293,6 @@
                 :rooms="roomNames"
                 @open="toggle"
                 @question="openQuestion"
-                @handle-down="onHandleDown"
               />
             </li>
           </MovingList>
@@ -425,7 +425,7 @@ import {
   patchedBoard,
   sameItemsKept
 } from "~/domain/todos";
-import { movedEnoughToDrag, rowAtPoint, startsRowDrag } from "~/domain/row-drag";
+import { movedEnoughToDrag, movedRowPlace, rowAtPoint, startsRowDrag } from "~/domain/row-drag";
 
 import type {
   DeployView,
@@ -442,7 +442,7 @@ import type {
 } from "#shared/types";
 import type { SearchMatch } from "bmo-ui/shared/search";
 import type { RowVerb, TodoActFields, TodoConditions, TodoFilter } from "~/domain/todos";
-import type { DragPoint, RowBox } from "~/domain/row-drag";
+import type { DragPoint, RowBox, RowHandle } from "~/domain/row-drag";
 import type { LogPlace } from "~/domain/log";
 import type { ContextMenuItem } from "@nuxt/ui";
 
@@ -755,6 +755,44 @@ const searchTallyLine = computed(() =>
 );
 const queueRows = computed(() => sections.value.find((section) => section.key === "queue")?.items ?? []);
 const summary = computed(() => todoSummary(t, shownBoard.value));
+
+// The handles of the queue lines stand on the console's one handle. The panel carries its lines by id and keeps
+// its own press machine — a queue longer than the panel creeps at its edges — so what it hands the handles is
+// their part of it: a place is a line's standing among the carried lines, a press starts the carry below, and an
+// arrow key sends the line one place through the same `saveOrder` a drop lands on. A running line stands at the
+// head of the queue whoever is carried where, so it is not a place a handle holds or a key moves to.
+const carriedRows = computed(() => queueRows.value.filter((one) => canDrag(one, view.value, searched.value !== "")));
+const carriedPlaces = computed(() => new Map(carriedRows.value.map((one, place) => [one.id, place])));
+const driven = ref<number | null>(null);
+
+const queueHandle: RowHandle = {
+  driven,
+  onHandleDown: (place, event) => {
+    const one = carriedRows.value[place];
+
+    if (one === undefined) return;
+
+    // The pointer takes the line from the keyboard, and the pointer's own hand keeps the focus.
+    driven.value = null;
+    onHandleDown(one.id, event);
+  },
+  onHandleKey: (place, event) => {
+    if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+
+    // The panel's own scroll would otherwise move under the row.
+    event.preventDefault();
+
+    const rows = carriedRows.value;
+    const to = movedRowPlace(place, event.key, rows.length);
+    const one = rows[place];
+    const onto = to === null ? undefined : rows[to];
+
+    if (to === null || one === undefined || onto === undefined) return;
+
+    driven.value = to;
+    void saveOrder(one.id, onto.id);
+  }
+};
 
 // Dragging the edge: leftward widens, and the width is written down as it settles.
 function onDragStart(event: PointerEvent): void {

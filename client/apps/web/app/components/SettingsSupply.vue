@@ -33,24 +33,25 @@
         </template>
 
         <SettingsRow v-if="shownLogins.length === 0" :label="$t('supply.label.logins_none')" />
-        <template v-else>
-          <SettingsRow v-for="(one, index) in shownLogins" :key="one.id" :label="labelOf(one)" :data-supply-login="one.id">
-            <template #description>
-              <span class="flex min-w-0 flex-wrap items-center gap-x-2 text-sm">
-                <span class="tabular-nums text-muted">{{ index + 1 }}</span>
-                <span :class="loginStatus(t, one, now).tone">{{ loginStatus(t, one, now).label }}</span>
-              </span>
-            </template>
-            <IconButton size="xs" icon="i-material-symbols-arrow-upward" :label="$t('common.aria.move_up_named', { name: labelOf(one) })" :disabled="index === 0 || busy !== ''" @click="moveLogin(index, index - 1)" />
-            <IconButton size="xs" icon="i-material-symbols-arrow-downward" :label="$t('common.aria.move_down_named', { name: labelOf(one) })" :disabled="index === shownLogins.length - 1 || busy !== ''" @click="moveLogin(index, index + 1)" />
-            <UDropdownMenu :items="loginMenu(one)" :content="{ align: 'end' }">
-              <UTooltip :text="$t('common.aria.menu_of', { name: labelOf(one) })">
-                <UButton color="neutral" variant="ghost" size="xs" icon="i-material-symbols-more-vert" :aria-label="$t('common.aria.menu_of', { name: labelOf(one) })" />
-              </UTooltip>
-            </UDropdownMenu>
-            <USwitch :model-value="one.enabled" :loading="busy === `login:${one.id}`" :disabled="busy !== ''" :aria-label="$t('supply.aria.login_switch', { name: labelOf(one) })" @update:model-value="(on: boolean) => void setLogin(one, on)" />
-          </SettingsRow>
-        </template>
+        <div v-else ref="loginList" class="flex flex-col divide-y divide-default">
+          <div v-for="(one, index) in shownLogins" :key="one.id" class="flex min-w-0 items-center gap-x-2" :class="loginDrag.mark(index)" :data-order-index="index">
+            <OrderHandle :place="index" :drag="loginDrag" :name="labelOf(one)" />
+            <SettingsRow class="min-w-0 flex-1" :label="labelOf(one)" :data-supply-login="one.id">
+              <template #description>
+                <span class="flex min-w-0 flex-wrap items-center gap-x-2 text-sm">
+                  <span class="tabular-nums text-muted">{{ index + 1 }}</span>
+                  <span :class="loginStatus(t, one, now).tone">{{ loginStatus(t, one, now).label }}</span>
+                </span>
+              </template>
+              <UDropdownMenu :items="loginMenu(one)" :content="{ align: 'end' }">
+                <UTooltip :text="$t('common.aria.menu_of', { name: labelOf(one) })">
+                  <UButton color="neutral" variant="ghost" size="xs" icon="i-material-symbols-more-vert" :aria-label="$t('common.aria.menu_of', { name: labelOf(one) })" />
+                </UTooltip>
+              </UDropdownMenu>
+              <USwitch :model-value="one.enabled" :loading="busy === `login:${one.id}`" :disabled="busy !== ''" :aria-label="$t('supply.aria.login_switch', { name: labelOf(one) })" @update:model-value="(on: boolean) => void setLogin(one, on)" />
+            </SettingsRow>
+          </div>
+        </div>
       </SettingsGroup>
 
       <SettingsGroup :title="$t('supply.title.keys')">
@@ -61,20 +62,21 @@
         </template>
 
         <SettingsRow v-if="shownKeys.length === 0" :label="$t('supply.label.keys_none')" />
-        <template v-else>
-          <SettingsRow v-for="one in shownKeys" :key="one.id" :label="one.secret" :data-supply-key="one.secret">
-            <template #description>
-              <span class="flex min-w-0 flex-wrap items-center gap-x-2 text-sm">
-                <span class="text-muted">{{ roadLabel(t, one.road) }}</span>
-                <span :class="keyStatus(t, one).tone">{{ keyStatus(t, one).label }}</span>
-              </span>
-            </template>
-            <IconButton size="xs" icon="i-material-symbols-arrow-upward" :label="$t('common.aria.move_up_named', { name: one.secret })" :disabled="!canMove(one, -1) || busy !== ''" @click="moveKey(one, -1)" />
-            <IconButton size="xs" icon="i-material-symbols-arrow-downward" :label="$t('common.aria.move_down_named', { name: one.secret })" :disabled="!canMove(one, 1) || busy !== ''" @click="moveKey(one, 1)" />
-            <IconButton size="xs" color="error" icon="i-material-symbols-delete-outline" :label="$t('common.action.delete')" :disabled="busy !== ''" @click="removeKey(one)" />
-            <USwitch :model-value="one.enabled" :loading="busy === `key:${one.id}`" :disabled="busy !== ''" :aria-label="$t('supply.aria.key_switch', { name: one.secret })" @update:model-value="(on: boolean) => void setKey(one, on)" />
-          </SettingsRow>
-        </template>
+        <div v-else ref="keyList" class="flex flex-col divide-y divide-default">
+          <div v-for="(one, index) in shownKeys" :key="one.id" class="flex min-w-0 items-center gap-x-2" :class="keyDrag.mark(index)" :data-order-index="index">
+            <OrderHandle :place="index" :drag="keyDrag" :name="one.secret" />
+            <SettingsRow class="min-w-0 flex-1" :label="one.secret" :data-supply-key="one.secret">
+              <template #description>
+                <span class="flex min-w-0 flex-wrap items-center gap-x-2 text-sm">
+                  <span class="text-muted">{{ roadLabel(t, one.road) }}</span>
+                  <span :class="keyStatus(t, one).tone">{{ keyStatus(t, one).label }}</span>
+                </span>
+              </template>
+              <IconButton size="xs" color="error" icon="i-material-symbols-delete-outline" :label="$t('common.action.delete')" :disabled="busy !== ''" @click="removeKey(one)" />
+              <USwitch :model-value="one.enabled" :loading="busy === `key:${one.id}`" :disabled="busy !== ''" :aria-label="$t('supply.aria.key_switch', { name: one.secret })" @update:model-value="(on: boolean) => void setKey(one, on)" />
+            </SettingsRow>
+          </div>
+        </div>
       </SettingsGroup>
 
       <!-- The reader's own local AIs: servers their own PC reaches, each tried from that PC before it is kept. -->
@@ -227,6 +229,7 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 
 import { useConfirm } from "~/domain/confirm";
+import { movedOrder } from "~/domain/agents";
 import { PERSON_NODE, organizationLinkAddress } from "~/domain/organization";
 import { useRowDrag } from "~/domain/row-drag";
 import { costText, creditsText, keyStatus, loginStatus, meSetting, movedSourceOrder, orderIsOverridable, orderRows, roadLabel, sourceLabel, sourceReasonText, SUPPLY_ROADS } from "~/domain/supply";
@@ -381,6 +384,11 @@ async function removeLocal(one: LocalAi): Promise<void> {
 
 // --- The reader's own Claude logins, at the agency ---
 
+// The logins walk in their own order, carried one at a time by the handle at each row's left; the whole
+// order is written where one lands, and the rows stand again as the agency answers.
+const loginList = ref<HTMLElement | null>(null);
+const loginDrag = useRowDrag({ list: loginList, ready: () => busy.value === "", drop: (from, to) => void moveLogin(from, to) });
+
 async function askLogins(body: Record<string, unknown>, mark: string): Promise<void> {
   busy.value = mark;
 
@@ -533,19 +541,32 @@ async function addKey(): Promise<void> {
   }
 }
 
-function sameRoad(one: PersonalSupplyKey): PersonalSupplyKey[] {
-  return shownKeys.value.filter((other) => other.road === one.road);
-}
+// Keys stand grouped by provider and are ordered within their provider alone: a carry that would land a
+// key among another provider's keys is no move at all, and gives the keyboard's place back unread.
+const keyList = ref<HTMLElement | null>(null);
+const keyDrag = useRowDrag({ list: keyList, ready: () => busy.value === "", drop: (from, to) => moveKeyPlace(from, to) });
 
-function canMove(one: PersonalSupplyKey, by: number): boolean {
-  return one.place + by >= 1 && one.place + by <= sameRoad(one).length;
+function moveKeyPlace(from: number, to: number): void {
+  const rows = shownKeys.value;
+  const moved = rows[from];
+  const onto = rows[to];
+
+  if (moved === undefined || onto === undefined || moved.road !== onto.road) {
+    keyDrag.driven.value = null;
+    return;
+  }
+
+  const road = rows.filter((other) => other.road === moved.road);
+  const placed = movedOrder(road, road.findIndex((other) => other.id === moved.id), road.findIndex((other) => other.id === onto.id));
+
+  void moveKeyTo(moved, placed.findIndex((other) => other.id === moved.id) + 1);
 }
 
 // The agency rewrites a key's whole road-order on a place change, so the keys are read back after one.
-async function moveKey(one: PersonalSupplyKey, by: number): Promise<void> {
+async function moveKeyTo(one: PersonalSupplyKey, place: number): Promise<void> {
   busy.value = `key:${one.id}`;
   try {
-    await $fetch(`/api/supply/personal/${encodeURIComponent(one.id)}`, { method: "PATCH", body: { place: one.place + by } });
+    await $fetch(`/api/supply/personal/${encodeURIComponent(one.id)}`, { method: "PATCH", body: { place } });
     keys.value = await $fetch<PersonalSupplyKey[]>("/api/supply/personal");
   } catch (error) {
     failure.value = failureText(error, t("supply.error.key_failed"));

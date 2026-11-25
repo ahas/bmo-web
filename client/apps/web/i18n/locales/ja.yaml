@@ -196,8 +196,6 @@ common:
     member_permission: "{name}の権限"
     menu_of: "{name}のメニュー"
     more_notices: "ほかに通知が{n}件あります"
-    move_down_named: "{name}を下へ"
-    move_up_named: "{name}を上へ"
     open_list: リストを開く
     opens_new_tab: （新しいタブで開きます）
     others_count: "ほか{n}人"
@@ -1462,7 +1460,6 @@ todo:
     job_log: Job ログ
     write_separately: 別に作成
   aria:
-    drag_reorder: ドラッグして並べ替え
     filter: TODO フィルター
     filter_of: "{name} フィルター"
     filters_set: "フィルター {n} 個"
@@ -3061,21 +3058,16 @@ agents:
     warming_of: "{name} の {provider} キャッシュ維持"
     warming_cell_of: "{name} のキャッシュ維持"
     choose_model: モデルを選択
-    drag_reorder: ドラッグして並べ替え
-    prefix_document_down: "{path} を下へ"
     prefix_document_path: プレフィックス文書のパス
     prefix_document_remove: "{path} を外す"
-    prefix_document_up: "{path} を上へ"
     provider_of: "{name} のプロバイダー"
     search_depth: 検索の深さ
     settings_sections: 設定セクション
     switch_on: "{name} をオン"
     vitals: エージェントの指標
-    stage_down: "{name} を下へ"
     stage_in: "{name} を指示ステージに追加"
     stage_out: "{name} を指示ステージから削除"
     stage_text_of: "{name} の内容"
-    stage_up: "{name} を上へ"
   error:
     sleep_read_failed: "睡眠の設定を読み込めませんでした。"
     login_which: 再ログインするアカウントか、新しいアカウントの名前のどちらか一方だけを指定してください。

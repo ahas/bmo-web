@@ -3,8 +3,8 @@
      It is the row's shape rather than a likeness of it, so a row landing in its place moves
      nothing — on a phone the number takes a line of its own here as it does there. -->
 <template>
-  <div class="grid grid-cols-[1rem_minmax(0,1fr)] gap-x-1 rounded-md border border-default py-2 ps-1 pe-2">
-    <div class="row-span-2 flex justify-center"><SkeletonBar class="mt-0.5 size-4 rounded-sm" /></div>
+  <div class="grid grid-cols-[2.25rem_minmax(0,1fr)] gap-x-1 rounded-md border border-default py-2 ps-1 pe-2">
+    <div class="row-span-2 flex justify-center"><SkeletonBar class="size-9 rounded-sm" /></div>
 
     <div class="flex items-start gap-2">
       <div class="flex min-w-0 flex-1" :class="narrow ? 'flex-col' : 'items-start gap-2'">

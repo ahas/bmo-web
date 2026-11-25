@@ -196,8 +196,6 @@ common:
     member_permission: "{name}的权限"
     menu_of: "{name}菜单"
     more_notices: "还有{n}条通知"
-    move_down_named: "下移{name}"
-    move_up_named: "上移{name}"
     open_list: 打开列表
     opens_new_tab: （在新标签页中打开）
     others_count: "等{n}人"
@@ -1462,7 +1460,6 @@ todo:
     job_log: Job 日志
     write_separately: 另行编写
   aria:
-    drag_reorder: 拖动以调整顺序
     filter: TODO 筛选
     filter_of: "{name} 筛选"
     filters_set: "{n} 个筛选"
@@ -3061,21 +3058,16 @@ agents:
     warming_of: "保持 {name} 的 {provider} 缓存"
     warming_cell_of: "保持 {name} 缓存"
     choose_model: 选择模型
-    drag_reorder: 拖动以调整顺序
-    prefix_document_down: "下移 {path}"
     prefix_document_path: 前缀文档路径
     prefix_document_remove: "移除 {path}"
-    prefix_document_up: "上移 {path}"
     provider_of: "{name} 提供商"
     search_depth: 搜索深度
     settings_sections: 设置分区
     switch_on: "开启 {name}"
     vitals: 智能体指标
-    stage_down: "下移 {name}"
     stage_in: "将 {name} 添加到指令阶段"
     stage_out: "从指令阶段中移除 {name}"
     stage_text_of: "{name} 的内容"
-    stage_up: "上移 {name}"
   error:
     sleep_read_failed: "无法读取睡眠设置。"
     login_which: 请只指定要重新登录的账号或新账号的名称之一。

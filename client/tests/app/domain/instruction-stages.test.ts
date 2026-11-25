@@ -4,7 +4,6 @@ import { wording } from "../../../apps/web/shared/wording";
 import {
   chainOwn,
   chainToPolicy,
-  movedStage,
   placedStage,
   stageNameFault,
   stageTextFault,
@@ -46,13 +45,6 @@ describe("the chain", () => {
     expect(withoutStage(["review", "sources"], "review")).toEqual(["sources"]);
   });
 
-  test("moves a stage up or down, never past either end", () => {
-    expect(movedStage(["review", "sources", "tone"], "sources", -1)).toEqual(["sources", "review", "tone"]);
-    expect(movedStage(["review", "sources", "tone"], "sources", 1)).toEqual(["review", "tone", "sources"]);
-    expect(movedStage(["review", "sources"], "review", -1)).toEqual(["review", "sources"]);
-    expect(movedStage(["review", "sources"], "sources", 1)).toEqual(["review", "sources"]);
-  });
-
   test("carries a stage to another stage's place", () => {
     expect(placedStage(["review", "sources", "tone"], 2, 0)).toEqual(["tone", "review", "sources"]);
     expect(placedStage(["review", "sources", "tone"], 0, 2)).toEqual(["sources", "tone", "review"]);
@@ -88,7 +80,7 @@ describe("a supervisor's draft block", () => {
     expect(chainOwn(form, POLICY)).toBe(false);
     expect(stagesChange(view(), form)).toEqual({});
 
-    form.stages = movedStage(withStage(form.stages, "sources"), "sources", -1);
+    form.stages = placedStage(withStage(form.stages, "sources"), 1, 0);
 
     expect(chainOwn(form, POLICY)).toBe(true);
     expect(stagesChange(view(), form)).toEqual({ stages: ["sources", "review"] });
@@ -164,7 +156,7 @@ describe("a supervisor's draft block", () => {
 
     expect(stagesHeld(back, POLICY)).not.toEqual(opened);
 
-    const reordered = { ...back, stages: movedStage(withStage(back.stages, "sources"), "sources", -1) };
+    const reordered = { ...back, stages: placedStage(withStage(back.stages, "sources"), 1, 0) };
 
     expect(stagesHeld(reordered, POLICY)).toEqual(opened);
     expect(stagesChange(set, reordered)).toEqual({});

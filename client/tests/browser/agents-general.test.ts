@@ -870,8 +870,14 @@ async function prefixOrder(list: Locator): Promise<string[]> {
   return await list.locator("[data-prefix-document]").evaluateAll((rows) => rows.map((row) => row.querySelector(".font-mono")!.textContent!.trim()));
 }
 
-function prefixHandle(list: Locator, at: number): Locator {
-  return list.locator("[data-prefix-document]").nth(at).getByRole("img", { name: wording("agents.aria.drag_reorder") });
+// The handle of the row standing the document at `at`, named for the path it carries.
+function prefixHandle(list: Locator, path: string): Locator {
+  return list.getByRole("button", { name: wording("common.aria.reorder_named", { name: path }), exact: true });
+}
+
+// Which element the keyboard answers.
+async function focused(page: Page): Promise<string> {
+  return await page.evaluate(() => document.activeElement?.getAttribute("aria-label") ?? "");
 }
 
 // Saved with the dialog's one save, the dialog closes and the screen loaded afresh reads the list again.
@@ -902,11 +908,20 @@ describe.skipIf(!origin || !touchReady())("a repository's prefix document carrie
       expect(await prefixOrder(list)).toEqual(DOCUMENTS);
 
       // The last carried up onto the first: while held it stands marked and the first's row is lit where it lands.
-      const marks = await carryByMouse(page, await centre(prefixHandle(list, 2)), await centre(list.locator("[data-prefix-document]").first()), async () => await rowMarks(list));
+      const marks = await carryByMouse(page, await centre(prefixHandle(list, "docs/c.md")), await centre(list.locator("[data-prefix-document]").first()), async () => await rowMarks(list));
 
       expect(marks).toEqual({ held: [2], over: [0] });
       expect(await prefixOrder(list)).toEqual(["docs/c.md", "docs/a.md", "docs/b.md"]);
       expect(await rowMarks(list)).toEqual({ held: [], over: [] });
+
+      // The handle's arrow keys carry one place too, and the focus comes to rest on the row it lands, so the
+      // next key answers from there: `docs/b.md` up onto `docs/c.md`'s place and back down where it stood.
+      await prefixHandle(list, "docs/b.md").press("ArrowUp");
+      expect(await until(async () => await prefixOrder(list), (now) => now[1] === "docs/b.md")).toEqual(["docs/c.md", "docs/b.md", "docs/a.md"]);
+      expect(await until(async () => await focused(page), (label) => label === wording("common.aria.reorder_named", { name: "docs/b.md" }))).toBe(wording("common.aria.reorder_named", { name: "docs/b.md" }));
+
+      await page.keyboard.press("ArrowDown");
+      expect(await until(async () => await prefixOrder(list), (now) => now[2] === "docs/b.md")).toEqual(["docs/c.md", "docs/a.md", "docs/b.md"]);
 
       list = await savedAndReread(page, saves);
       expect(saves).toEqual([{ prefixDocuments: ["docs/c.md", "docs/a.md", "docs/b.md"] }]);
@@ -930,8 +945,8 @@ describe.skipIf(!origin || !touchReady())("a repository's prefix document carrie
       let list = await openPrefixDocuments(page);
 
       // A finger on the handle carries the row rather than scrolling the dialog.
-      await prefixHandle(list, 0).scrollIntoViewIfNeeded();
-      await finger.swipe(await centre(prefixHandle(list, 0)), await centre(list.locator("[data-prefix-document]").nth(2)), { steps: 12 });
+      await prefixHandle(list, "docs/a.md").scrollIntoViewIfNeeded();
+      await finger.swipe(await centre(prefixHandle(list, "docs/a.md")), await centre(list.locator("[data-prefix-document]").nth(2)), { steps: 12 });
       expect(await prefixOrder(list)).toEqual(["docs/b.md", "docs/c.md", "docs/a.md"]);
 
       list = await savedAndReread(page, saves);

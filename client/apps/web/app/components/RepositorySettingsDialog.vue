@@ -91,8 +91,8 @@
 
       <!-- The documents a run's prefix carries in this repository, in order, sent whole. -->
       <UFormField :label="$t('agents.label.prefix_documents')" name="prefixDocuments" :error="errorAt('prefixDocuments')">
-        <!-- A document is carried by its handle to another place in the order, by the mouse, the pen and the finger;
-             its buttons move it one place for a reader without a pointer. -->
+        <!-- A document is carried by its handle to another place in the order — by the mouse, the pen and the
+             finger, or by the handle's arrow keys once it holds the focus. -->
         <div ref="prefixList" class="flex flex-col gap-2">
           <div
             v-for="(path, at) in form.prefixDocuments"
@@ -102,21 +102,8 @@
             class="flex min-w-0 items-center gap-1 rounded-md"
             :class="prefixDrag.mark(at)"
           >
-            <span
-              class="flex size-8 shrink-0 cursor-grab touch-none select-none items-center justify-center text-muted transition-colors hover:text-highlighted active:text-primary"
-              role="img"
-              :aria-label="$t('agents.aria.drag_reorder')"
-              @pointerdown="prefixDrag.onHandleDown(at, $event)"
-            >
-              <UIcon name="i-material-symbols-drag-indicator" class="size-5" />
-            </span>
+            <OrderHandle :place="at" :drag="prefixDrag" :name="path" />
             <span class="min-w-0 flex-1 truncate font-mono text-sm">{{ path }}</span>
-            <UTooltip :text="$t('agents.aria.prefix_document_up', { path })">
-              <UButton icon="i-material-symbols-arrow-upward" color="neutral" variant="ghost" :disabled="at === 0 || busy" :aria-label="$t('agents.aria.prefix_document_up', { path })" @click="movePrefix(at, -1)" />
-            </UTooltip>
-            <UTooltip :text="$t('agents.aria.prefix_document_down', { path })">
-              <UButton icon="i-material-symbols-arrow-downward" color="neutral" variant="ghost" :disabled="at === form.prefixDocuments.length - 1 || busy" :aria-label="$t('agents.aria.prefix_document_down', { path })" @click="movePrefix(at, 1)" />
-            </UTooltip>
             <UTooltip :text="$t('agents.aria.prefix_document_remove', { path })">
               <UButton icon="i-material-symbols-close" color="neutral" variant="ghost" :disabled="busy" :aria-label="$t('agents.aria.prefix_document_remove', { path })" @click="dropPrefix(at)" />
             </UTooltip>
@@ -424,16 +411,6 @@ function addPrefix(): void {
 
   form.value.prefixDocuments = [...form.value.prefixDocuments, path];
   addingPrefix.value = "";
-}
-
-function movePrefix(at: number, by: -1 | 1): void {
-  const to = at + by;
-  const list = [...form.value.prefixDocuments];
-
-  if (to < 0 || to >= list.length) return;
-
-  [list[at], list[to]] = [list[to]!, list[at]!];
-  form.value.prefixDocuments = list;
 }
 
 const prefixList = ref<HTMLElement | null>(null);

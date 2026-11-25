@@ -18,13 +18,13 @@
 </template>
 
 <script setup lang="ts">
-import type { RowDrag } from "~/domain/row-drag";
+import type { RowHandle } from "~/domain/row-drag";
 
 interface Props {
   // Where the row stands in the order a carry moves among, or null where its place is settled.
   place: number | null;
   // The carry its list reads.
-  drag: RowDrag;
+  drag: RowHandle;
   // What the row is called: the handle carries that row by that name.
   name: string;
 }

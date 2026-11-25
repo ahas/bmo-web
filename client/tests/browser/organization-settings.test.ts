@@ -734,10 +734,8 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
           if (width >= 1024) {
             expect(await entry.count()).toBe(1);
 
-            // Chosen at their own link of the chain, the screen holds the tabs that set that link and no invitations
-            // tab, which stands at a company or a unit alone: the row it opens on is the row it shows, and it shows a
-            // tab's own content rather than the line saying the tab holds nothing here (docs/web.md, 「Organisation」,
-            // the invitations tab, and 「Settings」).
+            // Chosen at their own link of the chain, the screen holds exactly the tabs declaring a view of that link,
+            // arrives on the first of them and draws that view (docs/web.md, 「Organisation」, a link node's row).
             await page.goto(`${origin}/organization?company=me`, { waitUntil: "load" });
             await standing(page);
             const row = await tabNames(page);
@@ -745,9 +743,9 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
 
             await selected.first().waitFor({ timeout: 20_000 });
 
-            expect(row).not.toContain(wording("settings.label.invites"));
-            expect((await selected.allInnerTexts()).map((one) => one.trim())).toEqual([row[0]!]);
-            expect(await page.locator("[data-organization-link-none]").count()).toBe(0);
+            expect(row).toEqual([wording("org_agents.label.tab"), wording("apps.label.tab"), wording("settings.label.secrets"), wording("supply.label.tab")]);
+            expect((await selected.allInnerTexts()).map((one) => one.trim())).toEqual([wording("org_agents.label.tab")]);
+            expect(await page.locator("[data-org-person-agents]").count()).toBe(1);
             expect(await page.locator("[data-organization-body]").count()).toBe(1);
             expect(await overflow(page)).toBeLessThanOrEqual(0);
           }

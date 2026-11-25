@@ -63,9 +63,9 @@ export interface OrganizationTab {
   // Its name in the language pack.
   label: string;
   icon: string;
-  // Whether a reader opens it at the node chosen, `link` naming the link of the chain chosen or null for a company or
-  // a unit of one: each tab says so for itself.
-  opens: (reader: OrganizationReader, link: LinkNode | null) => boolean;
+  // Whether a reader opens it at a company or a unit of one: each tab says so for itself. A link of the chain instead
+  // offers the tab by its declared view alone, so no tab needs to speak of a link here.
+  opens: (reader: OrganizationReader) => boolean;
   // The keys of the address the tab owns besides `tab`, which go when the reader moves to another tab.
   keys: readonly string[];
   // Whether its content is laid across the whole body, unpadded and scrolling its own regions, rather than standing in
@@ -74,20 +74,14 @@ export interface OrganizationTab {
   // The tab's own component, loaded when it is first opened.
   load: () => Promise<{ default: Component }>;
   // The components it shows while a link node is chosen, each reading and writing that link of the tab's settings:
-  // the platform's own, and the reader's own. A tab declaring none for a node says it holds no setting there.
+  // the platform's own, and the reader's own. These are the whole of what a link node offers: a tab declaring none for
+  // a link holds nothing to set there and is not offered at it.
   links?: Partial<Record<LinkNode, () => Promise<{ default: Component }>>>;
 }
 
 // Every reader the screen stands for, wherever they stand in its tree.
 function everyReaderOpens(): boolean {
   return true;
-}
-
-// The invitations tab's readers: every reader, at a company or a unit of one alone. What it sets is a link made into a
-// unit of the organisation chosen and the asks to share a machine into that company, so it holds nothing of its own at
-// a link of the chain, where it could only say so (docs/web.md, 「Organisation」, the invitations tab).
-function organisationNodeOnly(_reader: OrganizationReader, link: LinkNode | null): boolean {
-  return link === null;
 }
 
 // The administrator, and a member who heads a company (docs/web.md, 「Organisation」, the people tab).
@@ -121,7 +115,9 @@ export const ORGANIZATION_TABS: readonly OrganizationTab[] = [
   { value: "organization", label: "organization.label.chart", icon: "i-material-symbols-account-tree-outline", opens: administratorOpens, keys: [], wide: false, load: () => import("~/components/OrganizationUnits.vue") },
   { value: PEOPLE_TAB, label: "roster.label.tab", icon: "i-material-symbols-group-outline", opens: rosterReaderOpens, keys: ["q", "kind", "role", "state", "user", PERSON_PANE_KEY], wide: true, load: () => import("~/components/OrganizationPeople.vue") },
   { value: "catalogue", label: "catalogue.label.tab", icon: "i-material-symbols-category-outline", opens: rosterReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationCatalogue.vue") },
-  { value: "invites", label: "settings.label.invites", icon: "i-material-symbols-person-add-outline", opens: organisationNodeOnly, keys: [], wide: false, load: () => import("~/components/OrganizationInvites.vue") },
+  // What it sets is a link made into a unit of the organisation chosen and the asks to share a machine into that
+  // company, so it declares no view of a link of the chain and stands at an organisation node alone.
+  { value: "invites", label: "settings.label.invites", icon: "i-material-symbols-person-add-outline", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationInvites.vue") },
   { value: "agents", label: "org_agents.label.tab", icon: "i-material-symbols-smart-toy-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationAgents.vue"), links: { platform: () => import("~/components/OrganizationPlatformAgents.vue"), me: () => import("~/components/OrganizationPersonAgents.vue") } },
   { value: "apps", label: "apps.label.tab", icon: "i-material-symbols-apps", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationApps.vue"), links: { platform: () => import("~/components/OrganizationPlatformApps.vue"), me: () => import("~/components/OrganizationPersonApps.vue") } },
   { value: "storage", label: "org_storage.label.tab", icon: "i-material-symbols-hard-drive-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationArtifactStorage.vue") },
@@ -180,34 +176,46 @@ export function organizationMovedAway(key: unknown, query: LocationQuery = {}): 
   return { path, query: { ...carried, ...lands } };
 }
 
-// Whether a reader opens a tab at the node chosen: by its own say, or, at a link node, because it declares a view of
-// that link, which stands for every reader the node does.
+// Whether a tab stands in the row of the node chosen: at a company or a unit of one, by the reader's own say; at a
+// link of the chain, only where the tab declares its view of that link, which is what the node can show at all. A tab
+// holding no view of a link is not offered there, so no node falls back to saying it has nothing to set.
 function opensAt(tab: OrganizationTab, reader: OrganizationReader, link: LinkNode | null): boolean {
-  return tab.opens(reader, link) || (link !== null && tab.links?.[link] !== undefined);
+  return link === null ? tab.opens(reader) : tab.links?.[link] !== undefined;
 }
 
-/** The tabs a reader opens at the node chosen, each by its own say; at a link node, every tab declaring that link as
- * well. */
+/** The tabs a reader opens at the node chosen: each reader's own say at a company or a unit of one, the views the tab
+ * declares of that link at a link of the chain. */
 export function organizationTabsFor(reader: OrganizationReader, link: LinkNode | null = null): OrganizationTab[] {
   return ORGANIZATION_TABS.filter((tab) => opensAt(tab, reader, link));
 }
 
 /**
  * The tabs the row holds: those the reader opens, and while who reads is still read, the one the address names as
- * well, so the tab asked for stands chosen from the server's picture on.
+ * well, so the tab asked for stands chosen from the server's picture on. A link node's row is its declared views
+ * alone, which no unread reader widens: a tab with no view there is never offered, nor chosen.
  */
 export function organizationRowTabs(reader: OrganizationReader, asked: unknown, link: LinkNode | null = null): OrganizationTab[] {
-  return ORGANIZATION_TABS.filter((tab) => opensAt(tab, reader, link) || (!reader.known && tab.value === asked));
+  return ORGANIZATION_TABS.filter((tab) => opensAt(tab, reader, link) || (link === null && !reader.known && tab.value === asked));
+}
+
+// Where a node arrives with no tab named: an organisation on the screen's own tab, the chart, and a link of the chain
+// on the first tab holding a view of it, since a link holds no chart of its own.
+function arrivalTab(tabs: readonly OrganizationTab[], link: LinkNode | null): string | undefined {
+  return link === null ? ORGANIZATION_TABS[0]?.value : tabs[0]?.value;
 }
 
 /**
- * The tab drawn for the tab an address asks for, the screen's own where it names none: that tab where the reader opens
- * it, else the first they open once who reads is known. None while who reads is still read and the tab is not yet
- * known to stand for them, so the server's picture never holds a tab the browser then takes away.
+ * The tab drawn for the tab an address asks for, the node's own arrival tab where it names none: that tab where the
+ * reader opens it, else the first they open once who reads is known. None while who reads is still read and the tab is
+ * not yet known to stand for them, so the server's picture never holds a tab the browser then takes away.
  */
 export function organizationTabOf(asked: unknown, reader: OrganizationReader, link: LinkNode | null = null): OrganizationTab | null {
   const tabs = organizationTabsFor(reader, link);
-  const named = tabs.find((tab) => tab.value === (asked ?? ORGANIZATION_TABS[0]!.value));
+  const named = tabs.find((tab) => tab.value === (asked ?? arrivalTab(tabs, link)));
+
+  // A link node's row stands whatever the reader rights turn out to be, so an address naming a tab it does not hold
+  // is answered on the spot rather than waiting for the reads to say who reads.
+  if (named === undefined && link !== null) return tabs[0] ?? null;
 
   return named ?? (reader.known ? (tabs[0] ?? null) : null);
 }
@@ -268,10 +276,10 @@ export function linkChosen(query: LocationQuery, reach: LinkReach): LinkNode | n
   return linkNodesFor(reach).find((node) => node === query[ORGANIZATION_KEY]) ?? null;
 }
 
-/** What each link node is called and marked by in the tree, and the pack's line a tab declaring nothing at it shows. */
-export const LINK_NODES: Readonly<Record<LinkNode, { icon: string; label: string; none: string }>> = {
-  me: { icon: "i-material-symbols-person-outline", label: "organization.label.person", none: "organization.label.person_none" },
-  platform: { icon: "i-material-symbols-public", label: "organization.label.platform", none: "organization.label.platform_none" }
+/** What each link node of the tree is called and marked by. */
+export const LINK_NODES: Readonly<Record<LinkNode, { icon: string; label: string }>> = {
+  me: { icon: "i-material-symbols-person-outline", label: "organization.label.person" },
+  platform: { icon: "i-material-symbols-public", label: "organization.label.platform" }
 };
 
 /** The unit a tab of the screen stands for: the one the tree chooses, `?unit=` beside its company, else the company

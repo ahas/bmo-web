@@ -142,10 +142,30 @@ describe("the organisation screen", () => {
     expect(organizationTabsFor(PLAN_KEEPER).map((tab) => tab.value)).toEqual(["invites", "apps", "supply"]);
   });
 
-  test("opens at a link node every tab declaring a view of it, for every reader the node stands for", () => {
+  test("stands at a link node every tab declaring a view of it, and the same row whatever the reader rights are", () => {
+    // The node's views are the whole of its row, so one reader's rights add nothing another's lack.
     expect(organizationTabsFor(MEMBER, PERSON_NODE).map((tab) => tab.value)).toEqual(["agents", "apps", "secrets", "supply"]);
-    expect(organizationTabsFor(UNIT_HEAD, PERSON_NODE).map((tab) => tab.value)).toEqual(["agents", "apps", "storage", "mail-servers", "secrets", "memory", "permissions", "supply", "security"]);
+    expect(organizationTabsFor(UNIT_HEAD, PERSON_NODE).map((tab) => tab.value)).toEqual(["agents", "apps", "secrets", "supply"]);
+    expect(organizationTabsFor(ADMINISTRATOR, PERSON_NODE).map((tab) => tab.value)).toEqual(["agents", "apps", "secrets", "supply"]);
+    expect(organizationTabsFor(ADMINISTRATOR, PLATFORM_NODE).map((tab) => tab.value)).toEqual(["agents", "apps", "mail-servers", "secrets", "memory", "supply", "security"]);
     expect(organizationTabsFor(MEMBER, null).map((tab) => tab.value)).toEqual(["invites", "apps"]);
+  });
+
+  test("leaves no link node with a tab that holds nothing to set there", () => {
+    for (const link of [PERSON_NODE, PLATFORM_NODE] as const) {
+      for (const reader of [MEMBER, UNIT_HEAD, COMPANY_HEAD, ADMINISTRATOR]) {
+        const row = organizationTabsFor(reader, link);
+
+        expect(row.every((tab) => tab.links?.[link] !== undefined)).toBe(true);
+        expect(ORGANIZATION_TABS.filter((tab) => tab.links?.[link] === undefined).every((tab) => !row.includes(tab))).toBe(true);
+      }
+    }
+
+    // A tab with no view of a link stands nowhere there, however the reader rights reach it at an organisation.
+    expect(organizationTabsFor(UNIT_HEAD, PERSON_NODE).map((tab) => tab.value)).not.toContain("storage");
+    expect(organizationTabsFor(UNIT_HEAD, PERSON_NODE).map((tab) => tab.value)).not.toContain("permissions");
+    expect(organizationTabsFor(ADMINISTRATOR, PLATFORM_NODE).map((tab) => tab.value)).not.toContain("organization");
+    expect(organizationTabsFor(ADMINISTRATOR, PLATFORM_NODE).map((tab) => tab.value)).not.toContain("people");
   });
 
   test("stands the invitations tab at a company or a unit alone, where its links and machine-share asks are set", () => {
@@ -162,9 +182,12 @@ describe("the organisation screen", () => {
     expect(organizationTabOf("people", MEMBER)?.value).toBe("invites");
     expect(organizationTabOf(undefined, ADMINISTRATOR)?.value).toBe("organization");
     expect(organizationTabOf(undefined, COMPANY_HEAD)?.value).toBe("people");
-    // The reader's own node opens on their agents, the first tab standing there, never on a tab holding nothing.
+    // A link node arrives on the first tab holding a view of it, never on a tab that could only say it has nothing.
     expect(organizationTabOf(undefined, MEMBER, PERSON_NODE)?.value).toBe("agents");
     expect(organizationTabOf("invites", MEMBER, PERSON_NODE)?.value).toBe("agents");
+    expect(organizationTabOf(undefined, ADMINISTRATOR, PLATFORM_NODE)?.value).toBe("agents");
+    expect(organizationTabOf("organization", ADMINISTRATOR, PLATFORM_NODE)?.value).toBe("agents");
+    expect(organizationTabOf("catalogue", ADMINISTRATOR, PLATFORM_NODE)?.value).toBe("agents");
   });
 
   test("draws no tab a member is not yet known to open, and the one they are, before the roster answers", () => {
@@ -177,6 +200,15 @@ describe("the organisation screen", () => {
     expect(organizationRowTabs(UNKNOWN_MEMBER, "catalogue").map((tab) => tab.value)).toEqual(["catalogue", "invites", "apps"]);
     expect(organizationRowTabs(UNKNOWN_MEMBER, undefined).map((tab) => tab.value)).toEqual(["invites", "apps"]);
     expect(organizationRowTabs(MEMBER, "catalogue").map((tab) => tab.value)).toEqual(["invites", "apps"]);
+  });
+
+  test("widens no link node's row for a tab the address names, and answers such an address on the spot", () => {
+    // The row of a link is its declared views before the reads answer as after them, and an address naming a tab the
+    // node does not hold is drawn on the node's arrival tab rather than left waiting over nothing.
+    expect(organizationRowTabs(UNKNOWN_MEMBER, "invites", PERSON_NODE).map((tab) => tab.value)).toEqual(["agents", "apps", "secrets", "supply"]);
+    expect(organizationRowTabs(UNKNOWN_MEMBER, "storage", PLATFORM_NODE).map((tab) => tab.value)).toEqual(["agents", "apps", "mail-servers", "secrets", "memory", "supply", "security"]);
+    expect(organizationTabOf("invites", UNKNOWN_MEMBER, PERSON_NODE)?.value).toBe("agents");
+    expect(organizationTabOf("storage", UNKNOWN_MEMBER, PLATFORM_NODE)?.value).toBe("agents");
   });
 
   test("keeps a tab in the address, the first being the organisation's own, and lets the keys of the tab left go with it while the node chosen stays", () => {

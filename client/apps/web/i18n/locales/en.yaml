@@ -2005,9 +2005,7 @@ organization:
     list_none: No organizations to set up
     list_no_match: No organizations found
     platform: Whole platform
-    platform_none: This tab has no platform settings.
     person: Me
-    person_none: This tab has no personal settings.
     name: Name
     parent: Parent organization
     heads: Heads

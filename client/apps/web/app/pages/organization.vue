@@ -72,11 +72,11 @@
 
             <div v-if="tab === null || (chosen === null && link === null)" class="flex min-h-0 min-w-0 flex-1 flex-col" aria-busy="true" data-organization-body data-organization-waiting />
             <!-- A link node chosen, the platform or the reader's own: the tab's own view of that link of its settings,
-                 which stands for no company, or the line saying the tab holds none there. -->
+                 which stands for no company. Only a tab holding such a view stands in the row, so one is always drawn
+                 here. -->
             <div v-else-if="link !== null" class="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto p-4" data-organization-body>
               <div class="mx-auto flex w-full min-w-0 max-w-3xl flex-col" data-organization-column>
                 <component :is="tabComponent" v-if="tabComponent !== null" :key="link" ref="section" />
-                <p v-else class="text-sm text-muted" data-organization-link-none>{{ $t(LINK_NODES[link].none) }}</p>
               </div>
             </div>
             <div v-else-if="tab.wide" class="flex min-h-0 min-w-0 flex-1 flex-col" data-organization-body>

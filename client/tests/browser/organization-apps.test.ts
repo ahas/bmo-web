@@ -283,10 +283,14 @@ describe.skipIf(!origin || !touchReady())("the organisation screen's one apps ta
         expect(await relayed()).toEqual({ status: 200, code: null });
         expect(await applications(memberPage, viewport.phone)).toContain(APP);
 
-        // A tab declaring nothing at the platform says so in one line, the platform still chosen.
-        await press(page, page.getByRole("tab", { name: wording("roster.label.tab") }), viewport.phone);
-        await page.waitForURL((url) => url.searchParams.get("tab") === "people" && url.searchParams.get("company") === "platform", { timeout: 15_000 });
-        expect(await page.locator("[data-organization-link-none]").innerText({ timeout: 10_000 })).toBe(wording("organization.label.platform_none"));
+        // The platform holds only the tabs declaring a view of it, so the people tab stands nowhere there and no line
+        // saying a tab has nothing to set is drawn for it.
+        const platformRow = (await page.locator(`[aria-label="${wording("organization.aria.tabs")}"] [role="tab"]`).allInnerTexts()).map((one) => one.trim());
+
+        expect(platformRow).not.toContain(wording("roster.label.tab"));
+        expect(platformRow).toEqual([wording("org_agents.label.tab"), wording("apps.label.tab"), wording("org_mail.label.tab"), wording("settings.label.secrets"), wording("org_memory.label.tab"), wording("supply.label.tab"), wording("security.label.security_tab")]);
+        // The tab drawn is the apps view they worked on, its rows standing rather than a line saying there is nothing.
+        expect(await page.locator("[data-app-row]").count()).toBeGreaterThan(0);
         expect(await overflow(page)).toBeLessThanOrEqual(0);
       } finally {
         await admin.close();

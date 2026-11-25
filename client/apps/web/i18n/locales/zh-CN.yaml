@@ -2009,9 +2009,7 @@ organization:
     list_none: 没有可设置的组织
     list_no_match: 未找到组织
     platform: 整个平台
-    platform_none: 此标签页没有平台设置。
     person: 我
-    person_none: 此标签页没有个人设置。
     name: 名称
     parent: 上级组织
     heads: 负责人

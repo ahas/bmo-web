@@ -309,9 +309,9 @@
 - the agents a person is given as their account is made ready → 가입 구성: each role 위를 따름, 막음, 에이전트 없음 or
   에이전트 `{n}`, a following role saying 플랫폼 규칙을 따름, 위를 따라 막음 or 위를 따라 에이전트 `{n}`. Never 초기 설정,
   온보딩.
-- the platform itself as a node of the organisation tree, above every company → 플랫폼 전체; a tab with nothing set
-  there → 이 탭에는 플랫폼 설정이 없습니다. Never 전체 플랫폼, 시스템 전체. The reader's own link as a node of the same
-  tree → 나; a tab with nothing set there → 이 탭에는 개인 설정이 없습니다. Never 내 설정, 본인.
+- the platform itself as a node of the organisation tree, above every company → 플랫폼 전체. Never 전체 플랫폼, 시스템
+  전체. The reader's own link as a node of the same tree → 나. Never 내 설정, 본인. A link node's tab row holds only the
+  tabs that set that link, so no sentence saying a tab has nothing to set there stands anywhere on the screen.
 - the sidebar's section of what the heads of the organisations set → 조직, its entries the organisation screen's tab
   names; the tab of every setting about the agents of a unit's people → 에이전트. Never 조직 관리, 조직 설정 for the
   section.

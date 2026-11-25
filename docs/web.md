@@ -8302,23 +8302,27 @@ settings on the research screen (「Research screen」).
   `supply` and `security`, 조직도
   being the organisation's own address; a shared link opens the same tab, moving between tabs is a step of the
   history and keeps the organisation chosen, and a key naming no tab the reader may open opens the first they may.
+  Where no tab is named the node arrives on its own: 조직도 at a company or a unit, and at a link of the chain the
+  first tab holding a view of it.
   Every tab reads and writes the company of the node chosen alone, and a tab that stands for one unit — 조직도,
   사용자, 초대, 에이전트, 앱·도구·스킬, 아티팩트 저장, 메일 서버, 비밀 보관함, 조직 기억, 권한 and 공급 — stands for the node chosen, the company itself where a company is chosen; none of
   them chooses an organisation or a unit of its own.
   The console search finds each tab as it finds every screen's; the sidebar lists the screen as one entry, 조직, among
   the 시스템 서비스, and the tabs stand in the screen's own row alone (「Sidebar」).
-- **With a link node chosen, every tab stands for that link of its settings.** The row keeps the tabs the reader
-  opens at that node — each tab says for itself whether it stands at a link of the chain — and every tab that declares
-  a view of that link, which stands for every reader the node does — and the tab open stays as a link node is chosen
-  and as a company or a unit is chosen from it, so one tab is read node by node down the tree. Each tab says for itself what it shows at each link node: a view
-  of its own that reads and writes that link of the kinds the tab sets — the platform's, the administrator's alone, or
-  the reader's own — in the centred reading column; a tab that declares none for the node shows one muted line there,
-  이 탭에는 플랫폼 설정이 없습니다 or 이 탭에는 개인 설정이 없습니다, and nothing else. A tab takes a link node on by declaring
-  its view, and nothing outside the tab changes. 에이전트 (「에이전트」), 앱·도구·스킬 (「앱·도구·스킬」), 비밀 보관함 (「비밀 보관함」) and
-  공급 (「공급」) declare both, and 조직 기억 (「조직 기억」), 메일 서버 (「메일 서버」) and 보안 (「보안」) declare 플랫폼 전체; 조직도, 사용자, 직책·종류, 아티팩트 저장
-  and 권한 declare neither. 초대 declares neither and stands at a company or a unit alone, what it sets being a link
-  made into a unit of the organisation chosen and the asks to share a machine into that company, so it has nothing to
-  say at a link of the chain (「초대」). An address naming a link node beside a unit loses the unit, replaced with no step.
+- **With a link node chosen, the row holds only the tabs declaring a view of that link.** A link of the chain offers
+  what its tabs can set there and nothing else: each tab declares the links it holds a view of — the platform's, the
+  reader's own — and a tab declaring none for a link stands nowhere at it, so no node is ever offered a tab whose only
+  content could be a line saying it has nothing to set. The node's row is the same for every reader it stands for, the
+  platform's link standing in the administrator's tree alone and the reader's own link holding that reader's own
+  settings. The tab open stays as a link node is chosen and as a company or a unit is chosen from it where both hold
+  that tab, so one tab is read node by node down the tree, and an address naming a tab the node does not hold opens the
+  node's arrival tab, the first holding a view of it — 에이전트 at both links today. Each view reads and writes that
+  link of the kinds the tab sets, in the centred reading column. 에이전트 (「에이전트」), 앱·도구·스킬 (「앱·도구·스킬」),
+  비밀 보관함 (「비밀 보관함」) and 공급 (「공급」) declare both, and 조직 기억 (「조직 기억」), 메일 서버 (「메일 서버」) and 보안
+  (「보안」) declare 플랫폼 전체 alone; 조직도, 사용자, 직책·종류, 초대, 아티팩트 저장 and 권한 declare neither and so stand at a
+  company or a unit alone — 초대 among them setting a link made into a unit of the organisation chosen and the asks to
+  share a machine into that company, which has nothing to say at a link of the chain (「초대」). An address naming a link
+  node beside a unit loses the unit, replaced with no step.
 - **A lock above the node is said by who holds it.** Wherever a setting stands locked by a link above the node — a
   row's line, a group's line — it reads 조직이 정함 · and the locking unit's name, which the console's server reads off
   the account service for the link the lock stands at; 조직이 정함 alone where the unit cannot be named, and 전역 설정으로
@@ -8366,7 +8370,10 @@ settings on the research screen (「Research screen」).
   its place empty, as the server draws it, and the tab's own lists bring up their skeletons once it stands. Where
   the address names no tab, it waits the same way, the first tab being one a member may not open. Once the reader
   is known, the tab asked for stands where they open it, the first they open where it names none, and the address
-  naming one they may not open is replaced. So the page never holds a tab the reader did not ask for.
+  naming one they may not open is replaced. A link node answers without waiting, its row and open tab belonging to
+  the node rather than to the reader: an address naming a tab it holds no view of is drawn on that node's arrival tab
+  at once, and its address is replaced once the reader is known. So the page never holds a tab the reader did not ask
+  for.
 - **The tab row** stands at the head of the node chosen, its line meeting the tree's head line, the tabs filling it
   and the open tab's own add at its right end where the tab has one, the row's grey icon on a phone too (「The title
   bar」): 조직 추가 on 조직도 and 초대 링크 만들기 on 초대. On a narrow screen the tree's button stands at the row's
@@ -9694,8 +9701,9 @@ a row shows of a key is the secret's name, and of a login the path it is reached
 - **2단계 인증 요구** — one row with its choice, 위를 따름, 요구함 or 요구 안 함 (the platform's own link has no 위를 따름):
   whether the people under the node chosen must hold a second factor,
   the chain's kind `account.second-factor-required` (`docs/accounts.md`, 「The second factor」). It stands at a
-  company or a unit for the administrator and its heads, and at 플랫폼 전체 for the administrator, the tab declaring
-  that link node's view; 나 holds none. The row's line says 위를 따름 with what the links above come to, or 직접 정함,
+  company or a unit for the administrator and its heads, and at 플랫폼 전체 for the administrator alone — the tab
+  declares that link's view and no view of 나, so it stands nowhere at 나. The row's line says 위를 따름 with what the
+  links above come to, or 직접 정함,
   and a lock above it as every tab says one, its choice disabled. A second row, 아래 조직, sets the link's delegation
   as 아티팩트 저장's does. A change is saved as it is made, through `GET`/`PUT /api/organization/security`, the node in
   `unit=` or `link=platform`.

@@ -474,7 +474,7 @@ const searchOpenings = useOpenings(() => searchOpen.value);
 // by its search and opening on it (docs/web.md, 「Sidebar」). The search asks once typing stops, and an answer to words
 // already typed past is dropped.
 const organizationReader = useOrganizationReader();
-const searchesRoster = computed(() => organizationTabNamed(ROSTER_TAB)?.opens(organizationReader.value, null) === true);
+const searchesRoster = computed(() => organizationTabNamed(ROSTER_TAB)?.opens(organizationReader.value) === true);
 const people = ref<PersonView[]>([]);
 const rosterPeople = ref<RosterPerson[]>([]);
 let peopleTimer: ReturnType<typeof setTimeout> | null = null;

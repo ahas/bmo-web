@@ -2009,9 +2009,7 @@ organization:
     list_none: 設定する組織なし
     list_no_match: 該当する組織なし
     platform: プラットフォーム全体
-    platform_none: このタブにはプラットフォーム設定がありません。
     person: 自分
-    person_none: このタブには個人設定がありません。
     name: 名前
     parent: 上位組織
     heads: 組織長

@@ -2028,9 +2028,7 @@ organization:
     list_none: 설정할 조직 없음
     list_no_match: 찾은 조직 없음
     platform: 플랫폼 전체
-    platform_none: 이 탭에는 플랫폼 설정이 없습니다.
     person: 나
-    person_none: 이 탭에는 개인 설정이 없습니다.
     name: 이름
     parent: 상위 조직
     heads: 조직장

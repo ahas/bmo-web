@@ -78,22 +78,26 @@ class PostgresWebSql implements WebSql {
 }
 
 /**
- * What Bun's client is handed for an address: the address itself, or, where it names a socket folder as libpq
- * does (`postgres:///<database>?host=/run/postgresql`), the socket in that folder, the database, and the user
- * the address names or the process signs in as.
+ * What Bun's client is handed for an address: the address itself where it names no `host` parameter, else the
+ * server the parameter names as libpq reads it — a socket folder (`postgres:///<database>?host=/run/postgresql`)
+ * as the socket in that folder, a host name or address (`?host=127.0.0.1&port=5433`) as that host and port —
+ * with the database, and the user the address names or the process signs in as. Bun's client would hand a
+ * `host` or `port` parameter on to the server as a setting of the session, which the server refuses.
  */
 export function connectionOf(url: string): string | SQL.Options {
   const address = new URL(url);
-  const folder = address.searchParams.get("host");
+  const named = address.searchParams.get("host");
 
-  if (folder === null || !folder.startsWith("/")) return url;
+  if (named === null) return url;
 
-  return {
-    path: `${folder}/.s.PGSQL.${address.port === "" ? "5432" : address.port}`,
-    database: decodeURIComponent(address.pathname.replace(/^\//, "")),
-    username: decodeURIComponent(address.username) || process.env.USER || process.env.LOGNAME,
-    password: address.password === "" ? undefined : decodeURIComponent(address.password)
-  };
+  const port = address.searchParams.get("port") ?? (address.port === "" ? "5432" : address.port);
+  const database = decodeURIComponent(address.pathname.replace(/^\//, ""));
+  const username = decodeURIComponent(address.username) || process.env.USER || process.env.LOGNAME;
+  const password = address.password === "" ? undefined : decodeURIComponent(address.password);
+
+  if (named.startsWith("/")) return { path: `${named}/.s.PGSQL.${port}`, database, username, password };
+
+  return { hostname: named, port: Number(port), database, username, password };
 }
 
 let sql: PostgresWebSql | null = null;

@@ -135,7 +135,7 @@ import { useIsland } from "bmo-ui/app/domain/island";
 import { useConfirm } from "~/domain/confirm";
 import { useReadFailure } from "~/domain/events";
 import { usePolling } from "~/domain/polling";
-import { useNextPages } from "~/domain/next-pages";
+import { useNextPages } from "bmo-ui/app/domain/next-pages";
 import { ITEM_CHANGES, ITEM_STATES, RESEARCH_TABS, followOfAddress, followOfItem, isResearchTab, itemStateLook, mergedPages, queueOrder } from "~/domain/research";
 import { useFootInView } from "bmo-ui/app/domain/foot";
 import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";

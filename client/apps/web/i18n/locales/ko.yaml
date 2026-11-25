@@ -4905,7 +4905,6 @@ supply:
     plan_add: 플랜 추가
     plan_change: 변경
     plan_apply: 적용
-    more: 더 불러오기
     local_ai_add: "로컬 AI 추가"
     local_ai_save: "시험 후 저장"
   aria:

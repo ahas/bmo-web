@@ -139,7 +139,7 @@
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useFootInView } from "bmo-ui/app/domain/foot";
-import { useNextPages } from "~/domain/next-pages";
+import { useNextPages } from "bmo-ui/app/domain/next-pages";
 
 import type { RoomAddCandidate, RoomAddContact, RoomAddContactPage, RoomAddMode, RoomAddPage, RoomAddService, RoomAdded } from "#shared/types";
 import type { SupervisorView } from "#shared/axes";

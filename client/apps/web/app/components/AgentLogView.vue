@@ -75,7 +75,7 @@
 import { AGENT_LOG_POLL_MS } from "#shared/config";
 import { useLiveRefresh } from "~/domain/events";
 import { useAgentLog } from "~/domain/log";
-import { useNextPages } from "~/domain/next-pages";
+import { useNextPages } from "bmo-ui/app/domain/next-pages";
 import { useFootInView } from "bmo-ui/app/domain/foot";
 import { SCROLL_BOTTOM_THRESHOLD_PX, usePolling } from "~/domain/polling";
 import { liveChip, runEnds, useRunChips } from "~/domain/turns";

@@ -53,9 +53,11 @@
             <SkeletonBar class="h-4 w-16 shrink-0 rounded-md" />
           </div>
         </ContentSkeleton>
-        <template v-else>
-          <SettingsRow v-if="ledger.entries.length === 0" :label="$t('supply.label.ledger_none')" />
-          <template v-else>
+        <SettingsRow v-else-if="ledger.entries.length === 0" :label="$t('supply.label.ledger_none')" />
+        <!-- The ledger scrolls in a box of its own, so its end comes into view and asks the next page while the audit
+             under it stays reachable. -->
+        <div v-else class="max-h-96 overflow-y-auto" tabindex="0" :aria-label="$t('supply.title.ledger')" data-credit-ledger>
+          <div class="flex flex-col divide-y divide-default">
             <SettingsRow v-for="one in ledger.entries" :key="one.id" :label="$t(one.ownerKind === 'organisation' ? 'supply.label.owner_organisation' : 'supply.label.owner_user') + ' ' + one.ownerId">
               <template #description>
                 <span class="flex min-w-0 flex-wrap items-center gap-x-2 text-sm text-muted">
@@ -66,11 +68,17 @@
               </template>
               <span class="text-sm tabular-nums" :class="one.amount < 0 ? 'text-toned' : 'text-highlighted'" data-credit-amount>{{ (one.amount < 0 ? '' : '+') + countText(one.amount) }}</span>
             </SettingsRow>
-          </template>
-          <div v-if="ledger.next !== null" class="flex justify-end py-3">
-            <UButton color="neutral" variant="outline" :label="$t('supply.action.more')" :loading="ledgerReading" :disabled="ledgerReading" @click="void moreLedger()" />
           </div>
-        </template>
+          <NextPageFoot inset="" :more="ledger.next !== null" :busy="ledgerReading" :next="moreLedger" :failed-words="$t('supply.error.ledger_failed')" :loading-label="$t('supply.status.ledger_loading')" list-class="flex flex-col">
+            <div class="flex items-center gap-4 border-t border-default py-3">
+              <div class="flex min-w-0 flex-1 flex-col gap-1">
+                <SkeletonLine width="w-1/3" />
+                <SkeletonLine width="w-1/2" />
+              </div>
+              <SkeletonBar class="h-4 w-16 shrink-0 rounded-md" />
+            </div>
+          </NextPageFoot>
+        </div>
       </SettingsGroup>
 
       <SettingsGroup :title="$t('supply.title.audit')">
@@ -83,9 +91,9 @@
             </div>
           </div>
         </ContentSkeleton>
-        <template v-else>
-          <SettingsRow v-if="audit.entries.length === 0" :label="$t('supply.label.audit_none')" />
-          <template v-else>
+        <SettingsRow v-else-if="audit.entries.length === 0" :label="$t('supply.label.audit_none')" />
+        <div v-else class="max-h-96 overflow-y-auto" tabindex="0" :aria-label="$t('supply.title.audit')" data-credit-audit>
+          <div class="flex flex-col divide-y divide-default">
             <SettingsRow v-for="one in audit.entries" :key="one.id" :label="one.subject === '' ? kindText(t, one.kind) : `${kindText(t, one.kind)} · ${one.subject}`">
               <template #description>
                 <span class="flex min-w-0 flex-wrap items-center gap-x-2 text-sm text-muted">
@@ -95,11 +103,16 @@
                 </span>
               </template>
             </SettingsRow>
-          </template>
-          <div v-if="audit.next !== null" class="flex justify-end py-3">
-            <UButton color="neutral" variant="outline" :label="$t('supply.action.more')" :loading="auditReading" :disabled="auditReading" @click="void moreAudit()" />
           </div>
-        </template>
+          <NextPageFoot inset="" :more="audit.next !== null" :busy="auditReading" :next="moreAudit" :failed-words="$t('supply.error.audit_failed')" :loading-label="$t('supply.status.audit_loading')" list-class="flex flex-col">
+            <div class="flex items-center gap-4 border-t border-default py-3">
+              <div class="flex min-w-0 flex-1 flex-col gap-1">
+                <SkeletonLine width="w-1/3" />
+                <SkeletonLine width="w-1/2" />
+              </div>
+            </div>
+          </NextPageFoot>
+        </div>
       </SettingsGroup>
 
       <p v-if="failure !== ''" role="alert" class="break-words text-sm text-error">{{ failure }}</p>
@@ -244,18 +257,18 @@ async function readLedger(): Promise<void> {
   }
 }
 
+// One page more of the ledger, read as its foot comes into view; a failure is thrown to the foot, which keeps the
+// rows already read and offers the retry in the failed page's place.
 async function moreLedger(): Promise<void> {
   const after = ledger.value?.next;
 
-  if (after === null || after === undefined || ledgerReading.value) return;
+  if (after === null || after === undefined) return;
 
   ledgerReading.value = true;
   try {
     const page = await $fetch<SupplyLedgerPage>("/api/supply/credits/ledger", { query: { after } });
 
     ledger.value = { entries: [...(ledger.value?.entries ?? []), ...page.entries], next: page.next };
-  } catch (error) {
-    ledgerFailure.value = failureText(error, t("supply.error.ledger_failed"));
   } finally {
     ledgerReading.value = false;
   }
@@ -273,18 +286,18 @@ async function readAudit(): Promise<void> {
   }
 }
 
+// One page more of the audit, read as its foot comes into view; a failure is thrown to the foot, which keeps the
+// rows already read and offers the retry in the failed page's place.
 async function moreAudit(): Promise<void> {
   const after = audit.value?.next;
 
-  if (after === null || after === undefined || auditReading.value) return;
+  if (after === null || after === undefined) return;
 
   auditReading.value = true;
   try {
     const page = await $fetch<SupplyAuditPage>("/api/supply/credits/audit", { query: { after } });
 
     audit.value = { entries: [...(audit.value?.entries ?? []), ...page.entries], next: page.next };
-  } catch (error) {
-    auditFailure.value = failureText(error, t("supply.error.audit_failed"));
   } finally {
     auditReading.value = false;
   }

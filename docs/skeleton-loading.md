@@ -43,7 +43,9 @@ bmo-ui layer's (bmo-ui's `docs/components.md`); this says how the console uses t
 - **A failure replaces it.** A fetch that failed shows its reason and a way to ask again, never a skeleton that
   does not end. A unit that cannot be reached is such a failure, for the regions that read it alone.
 - **A next page is a first fetch of its own items**, so a list already shown may carry a skeleton of the
-  incoming items at its own end.
+  incoming items at its own end. How a list reads its next pages — as its end comes into view, never from a
+  button, with a failed page's retry in its place — is bmo-ui's next-pages module and its `NextPageFoot`
+  (bmo-ui's `docs/design.md`, 「Lists」).
 
 ## What it is built from
 

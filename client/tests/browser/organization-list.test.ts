@@ -13,7 +13,9 @@ import type { Browser, BrowserContext, Locator, Page, Route } from "playwright-c
 // listed the companies where they head a unit or hold a part of the supply, with the units they head under them. Its plans tab applies one of the
 // plans shown and switches which are shown; its supply tab's policy form stands a source the platform has off with its
 // switch disabled; the platform's policy form says what a person's own setting may change; the providers tab says
-// whose a gateway road and a Claude account are; and the settings' supply section stands what the platform locks. Each
+// whose a gateway road and a Claude account are; the platform's ledger and audit each scroll in a box of their own and
+// read their next page as its end comes into view, a failed page read again from its retry; and the settings' supply
+// section stands what the platform locks. Each
 // is read at a desk's width and a phone's.
 //
 // The account service's plan, unit supply, supply reach, platform and personal supply routes are answered by a
@@ -677,6 +679,93 @@ describe.skipIf(!origin || !touchReady())("the platform's policy form", () => {
         await page.waitForFunction((words) => document.querySelector('[data-platform-source="global"]')?.textContent?.includes(words) === true, wording("supply.label.overridable"), { timeout: 10_000 });
         expect(await row("global").innerText()).toContain(wording("supply.label.overridable"));
         expect(await page.locator("[data-platform-order]").innerText()).toContain(wording("supply.label.fixed"));
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+  }
+});
+
+// --- The platform's ledger and audit, read a page at a time, on a stand-in of the platform's credits ---
+
+describe.skipIf(!origin || !touchReady())("the platform's ledger and audit", () => {
+  for (const [width, height] of WIDTHS) {
+    test(`each scrolls in its own box and reads its next page as its end comes into view, a failed page read again from its retry, at ${width}px`, async () => {
+      const context = await contextFor(ADMINISTRATOR.name, width, height);
+
+      try {
+        const page = await context.newPage();
+        const HELD = 45;
+        const PAGE = 20;
+        const asked: (string | null)[] = [];
+        let failNext = true;
+        const entry = (n: number) => ({ id: n, at: 1_795_000_000_000 - n, ownerKind: "organisation", ownerId: 7, kind: "grant", amount: 100 + n, debtChange: 0, balanceAfter: n, words: `paged entry ${n}` });
+
+        await page.route(/\/api\/supply\/platform$/, async (route) => {
+          await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ policy: { allowed: ["personal"], order: ["personal", "stop"], memberCreditCredits: null }, overridable: [], orderOverridable: false, creditsPerDollar: 1_500, reservationCredits: 200, enforce: false }) });
+        });
+        await page.route(/\/api\/supply\/credits\/ledger(\?.*)?$/, async (route) => {
+          const after = new URL(route.request().url()).searchParams.get("after");
+          const from = after === null ? 0 : Number(after);
+
+          asked.push(after);
+
+          // A status the fetcher does not retry on its own, so the one failure reaches the screen.
+          if (after !== null && failNext) {
+            failNext = false;
+
+            return await route.fulfill({ status: 400, contentType: "application/json", body: JSON.stringify({ message: "unavailable" }) });
+          }
+
+          const entries = Array.from({ length: HELD }, (_, at) => entry(at + 1)).slice(from, from + PAGE);
+
+          await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ entries, next: from + PAGE < HELD ? String(from + PAGE) : null }) });
+        });
+        await page.route(/\/api\/supply\/credits\/audit(\?.*)?$/, async (route) => {
+          await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ entries: [{ id: 1, at: 1_795_000_000_000, by: "qa-admin", byName: "qa-admin", kind: "settings", subject: "", detail: "" }], next: null }) });
+        });
+
+        await open(page, "/organization?company=platform&tab=supply");
+
+        const ledger = page.locator("[data-credit-ledger]");
+        const shown = () => ledger.getByText(/^paged entry \d+$/).count();
+        const retry = ledger.locator("[data-next-page-foot]").getByRole("button", { name: wording("common.action.retry"), exact: true });
+
+        await ledger.getByText("paged entry 1", { exact: true }).waitFor({ timeout: 20_000 });
+        expect(await shown()).toBe(PAGE);
+        // Nothing at the foot is pressed for more, and the audit stands under the ledger's own box.
+        expect(await ledger.locator("[data-next-page-foot] button").count()).toBe(0);
+        expect(await page.locator("[data-credit-audit]").count()).toBe(1);
+
+        // The wheel turned over the ledger's box, as a reader scrolling it does, until what is waited for holds; the box
+        // is brought into view and measured again on every turn, since the page moves under it.
+        const scrollUntil = async (holds: () => Promise<boolean>) => {
+          const end = Date.now() + 20_000;
+
+          while (!(await holds())) {
+            if (Date.now() > end) throw new Error("scrolling the ledger did not bring it");
+
+            await ledger.scrollIntoViewIfNeeded();
+
+            const box = (await ledger.boundingBox())!;
+
+            await page.mouse.move(box.x + box.width / 2, box.y + Math.min(box.height, 120) / 2);
+            await page.mouse.wheel(0, 600);
+            await page.waitForTimeout(50);
+          }
+        };
+
+        await scrollUntil(async () => (await retry.count()) > 0);
+        expect(await ledger.locator("[data-next-page-foot] [role=alert]").innerText()).toContain("unavailable");
+        expect(await shown()).toBe(PAGE);
+
+        await retry.click();
+        await scrollUntil(async () => (await shown()) === HELD);
+        expect(asked).toEqual([null, "20", "20", "40"]);
+        // The last page holds nothing under it, and the audit is still reached under the ledger.
+        await ledger.locator("[data-next-page-foot]").waitFor({ state: "detached", timeout: 10_000 });
+        await page.locator("[data-credit-audit]").scrollIntoViewIfNeeded();
+        expect(await page.locator("[data-credit-audit]").isVisible()).toBe(true);
       } finally {
         await context.close();
       }

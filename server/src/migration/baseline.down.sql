@@ -22,7 +22,6 @@ DROP TABLE IF EXISTS public.credit_transactions CASCADE;
 DROP TABLE IF EXISTS public.credit_wallets CASCADE;
 DROP TABLE IF EXISTS public.document_talk CASCADE;
 DROP TABLE IF EXISTS public.email_checks CASCADE;
-DROP TABLE IF EXISTS public.grant_words CASCADE;
 DROP TABLE IF EXISTS public.machine_share_asks CASCADE;
 DROP TABLE IF EXISTS public.mail_forms CASCADE;
 DROP TABLE IF EXISTS public.membership_plans CASCADE;

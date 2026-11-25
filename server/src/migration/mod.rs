@@ -1,7 +1,7 @@
 //! The service's migrations (docs/accounts.md, 「The tables」): the 1.0.0 baseline, which makes the whole schema,
-//! sumida's tables among it, and the migrations after it, run by sea-orm's migrator, which keeps the versions it
-//! ran in its own table. sumida runs no migrations of its own on this database; its boards and files stay unmade,
-//! and its rules over them read as absent. Every place that migrates goes through `up`.
+//! sumida's tables among it, run by sea-orm's migrator, which keeps the versions it ran in its own table. sumida
+//! runs no migrations of its own on this database; its boards and files stay unmade, and its rules over them read
+//! as absent. Every place that migrates goes through `up`.
 
 use sea_orm_migration::prelude::*;
 use sea_orm_migration::sea_orm::{
@@ -9,8 +9,6 @@ use sea_orm_migration::sea_orm::{
 };
 
 pub mod m20261201_000001_baseline;
-pub mod m20261201_000002_no_room_grants;
-pub mod m20261201_000003_no_object_kinds;
 mod secret_kind_seeds;
 
 /// The table the migrator keeps its record in, which is no part of the service's shape.
@@ -19,14 +17,15 @@ pub const MIGRATIONS_TABLE: &str = "seaql_migrations";
 /// The migration that makes the schema whole.
 pub const BASELINE: &str = m20261201_000001_baseline::NAME;
 
-/// The migrations after the baseline, in the order they run, each with its way up as SQL.
-pub const LATER: [(&str, &str); 2] = [
-  (m20261201_000002_no_room_grants::NAME, m20261201_000002_no_room_grants::UP),
-  (m20261201_000003_no_object_kinds::NAME, m20261201_000003_no_object_kinds::UP),
-];
+/// The migrations the baseline has taken in, which a record may name beside it.
+pub const FOLDED: [&str; 2] = ["m20261201_000002_no_room_grants", "m20261201_000003_no_object_kinds"];
+
+/// What the baseline no longer makes, taken from an install that still holds it.
+const FOLD: &str = include_str!("folded.sql");
 
 /// The record an install from before 1.0.0 holds once every migration of its last release ran, sumida's among
-/// them, in the order that release ran them. Its schema is the baseline's.
+/// them, in the order that release ran them. Its schema is the baseline's, with what the baseline no longer makes
+/// beside it.
 pub const BEFORE: [&str; 31] = [
   "m20261019_000000_extensions",
   "init",
@@ -66,11 +65,7 @@ pub struct Migrator;
 #[async_trait::async_trait]
 impl MigratorTrait for Migrator {
   fn migrations() -> Vec<Box<dyn MigrationTrait>> {
-    vec![
-      Box::new(m20261201_000001_baseline::Migration),
-      Box::new(m20261201_000002_no_room_grants::Migration),
-      Box::new(m20261201_000003_no_object_kinds::Migration),
-    ]
+    vec![Box::new(m20261201_000001_baseline::Migration)]
   }
 }
 
@@ -96,9 +91,11 @@ pub async fn up(db: &DatabaseConnection) -> Result<(), DbErr> {
   Migrator::up(db, None).await
 }
 
-/// A record naming every migration of the last release before 1.0.0, and nothing else, rewritten to name the
-/// baseline alone in one transaction, touching no table and no row; one naming only part of them refused with
-/// the last of them it holds. A database with no record, or an empty one, is left to the migrator.
+/// A record naming every migration of the last release before 1.0.0 and nothing else, or the baseline beside
+/// migrations it has taken in, rewritten to name the baseline alone in one transaction, with what the baseline no
+/// longer makes taken away and every other table and row left as it is; one naming only part of the last
+/// release's migrations refused with the last of them it holds. A database with no record, an empty one, or one
+/// naming the baseline alone is left to the migrator.
 async fn adopt(db: &DatabaseConnection) -> Result<(), DbErr> {
   let tx = db.begin().await?;
   let statement = |sql: String, values: Vec<sea_orm::Value>| {
@@ -128,11 +125,16 @@ async fn adopt(db: &DatabaseConnection) -> Result<(), DbErr> {
     .map(|row| row.try_get::<String>("", "version"))
     .collect::<Result<Vec<_>, _>>()?;
 
-  if held.is_empty() || !held.iter().all(|version| BEFORE.contains(&version.as_str())) {
+  let folded = held.iter().any(|version| version == BASELINE)
+    && held.len() > 1
+    && held.iter().all(|version| version == BASELINE || FOLDED.contains(&version.as_str()));
+  let before = !held.is_empty() && held.iter().all(|version| BEFORE.contains(&version.as_str()));
+
+  if !folded && !before {
     return Ok(());
   }
 
-  if held.len() != BEFORE.len() {
+  if before && held.len() != BEFORE.len() {
     let reached = BEFORE
       .iter()
       .rev()
@@ -145,13 +147,24 @@ async fn adopt(db: &DatabaseConnection) -> Result<(), DbErr> {
     )));
   }
 
-  tx.execute_unprepared(&format!(r#"DELETE FROM "{MIGRATIONS_TABLE}""#)).await?;
-  tx.execute(statement(
-    format!(
-      r#"INSERT INTO "{MIGRATIONS_TABLE}" ("version", "applied_at") VALUES ($1, EXTRACT(EPOCH FROM now())::bigint)"#
-    ),
-    vec![BASELINE.into()],
-  ))
-  .await?;
+  tx.execute_unprepared(FOLD).await?;
+
+  if folded {
+    tx.execute(statement(
+      format!(r#"DELETE FROM "{MIGRATIONS_TABLE}" WHERE "version" <> $1"#),
+      vec![BASELINE.into()],
+    ))
+    .await?;
+  } else {
+    tx.execute_unprepared(&format!(r#"DELETE FROM "{MIGRATIONS_TABLE}""#)).await?;
+    tx.execute(statement(
+      format!(
+        r#"INSERT INTO "{MIGRATIONS_TABLE}" ("version", "applied_at") VALUES ($1, EXTRACT(EPOCH FROM now())::bigint)"#
+      ),
+      vec![BASELINE.into()],
+    ))
+    .await?;
+  }
+
   tx.commit().await
 }

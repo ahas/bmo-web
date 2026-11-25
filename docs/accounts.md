@@ -1693,22 +1693,18 @@ under its token; the console is the one caller, and a browser reaches none of th
   its own table, `seaql_migrations`, through the one entry point the `migrate` command, the import and the tests
   all call.
 - **An install from the last release before 1.0.0 is taken as it stands.** A database whose record names every
-  migration of that release, sumida's among them, and nothing else, already holds the baseline's schema: the
-  record is rewritten to name the baseline alone, in one transaction, and no table and no row is touched. A
-  database whose record names only part of them is refused, with the migration it stopped at; it is brought to
-  the last release before 1.0.0 by that release first. The migrations after the baseline then run on it as on
-  any other database.
-- **`m20261201_000002_no_room_grants` takes the room relations away.** Its way up deletes every relation tuple on a
-  room (`bmo_room`) and every tuple whose subject is a room's members (`bmo_member`), the room kind's rows of the
-  rules' projection, `relation_definitions` and `permission_definitions`, and the table of a grant's words,
-  `grant_words`. Its way down makes `grant_words` again, empty, and the room kind's fifteen relations in
-  `relation_definitions`, holding no tuple. The service's start writes the projection from the rules it runs, so a
-  release declaring no room kind drops those rows again, and one declaring it writes its permissions back.
-- **`m20261201_000003_no_object_kinds` takes the agent object kinds away.** Its way up deletes every relation tuple
-  on a worker (`bmo_worker`), a repository (`bmo_repository`) or a tool capability (`bmo_tools`) and those kinds'
-  rows of the rules' projection, `relation_definitions` and `permission_definitions`. Its way down makes their
-  four relations again in `relation_definitions`, holding no tuple; the service's start treats them as it treats
-  the room kind's.
+  migration of that release, sumida's among them, and nothing else, holds the baseline's schema with what the
+  baseline no longer makes: the table of a grant's words, `grant_words`, and the relation tuples and the rules'
+  projection rows of the kinds the rules no longer declare — a room (`bmo_room`), a room's members (`bmo_member`),
+  a worker (`bmo_worker`), a repository (`bmo_repository`) and a tool capability (`bmo_tools`). In one
+  transaction those are taken away, every other table and row left as it is, and the record is rewritten to name
+  the baseline alone. A database whose record names only part of them is refused, with the migration it stopped
+  at; it is brought to the last release before 1.0.0 by that release first.
+- **An install whose record names the baseline beside the migrations the baseline has since taken in** —
+  `m20261201_000002_no_room_grants` and `m20261201_000003_no_object_kinds`, which took the room relations and the
+  agent object kinds away — is taken the same way: what of those kinds it still holds is taken away, and the
+  record is rewritten to name the baseline alone, in one transaction. One that ran both holds nothing of them, so
+  no table and no row is touched. A record naming the baseline alone is left as it is.
 
 Beside sumida's own, the schema holds:
 
@@ -1764,19 +1760,13 @@ Beside sumida's own, the schema holds:
 
 ## Tests
 
-- **The baseline's tests** migrate a blank database and find it shaped as the baseline and the migrations after it
-  laid on a blank database, its record naming each of them and its starting rows standing; take an install at the
-  last release before 1.0.0, holding a row, to a record naming the baseline and the migrations after it, shaped as a
-  blank database migrated and its row unchanged, a second run changing nothing; refuse an install holding only part
-  of that release's record and leave it as it was; and take every migration down to a blank database.
-- **The room relations' removal tests** stand a database at the baseline holding room grants, a room members'
-  grant and a grant's words, run the migration after it, and find every room tuple, the room kind's projection and
-  `grant_words` gone and every other tuple standing; its way down makes `grant_words` empty again with the room
-  kind's fifteen relations; and the service stands on the database either way.
-- **The object kinds' removal tests** stand a database at the room relations' removal holding a worker grant, run
-  the migration after it, and find every worker, repository and tool tuple and those kinds' projection gone and
-  every other tuple standing; its way down makes their four relations again; and the service stands on the database
-  either way.
+- **The baseline's tests** migrate a blank database and find it shaped as the baseline laid on a blank database,
+  its record naming the baseline alone and its starting rows standing; take an install at the last release before
+  1.0.0, holding a row of its own, room and agent object grants and a grant's words, to a record naming the
+  baseline alone, shaped as a blank database migrated, those grants and words gone and its own row unchanged, a
+  second run changing nothing; take an install recording the baseline with the migrations it has since taken in,
+  in full and in part, to the baseline alone, shaped as a blank database migrated; refuse an install holding only
+  part of the last release's record and leave it as it was; and take the baseline down to a blank database.
 - **The section tests** stand a user made, read the defaults they are given, have an administrator write one
   person's read and write, and ask the check for a permitted and a refused relation; a user other than the
   administrator is refused the write and the users list.

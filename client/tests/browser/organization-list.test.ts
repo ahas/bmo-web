@@ -751,6 +751,10 @@ describe.skipIf(!origin || !touchReady())("the platform's ledger and audit", () 
           while (!(await holds())) {
             if (Date.now() > end) throw new Error("scrolling the ledger did not bring it");
 
+            // The records stand last on the tab, under the plans and the accounts, so their top is brought into view
+            // before the wheel turns over them.
+            if ((await ledger.boundingBox())!.y >= height) await ledger.scrollIntoViewIfNeeded();
+
             const box = (await ledger.boundingBox())!;
             const top = Math.max(box.y, 0);
             const bottom = Math.min(box.y + box.height, height);

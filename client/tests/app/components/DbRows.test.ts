@@ -27,7 +27,8 @@ describe("the rows of a table on the DB screen", () => {
 
   test("draw no line twice: none under the head row beside the table's own separator, none under the last row", () => {
     expect(table).toContain('thead: "bg-elevated [&>tr]:border-b-0"');
-    expect(table.match(/border-b border-default(?:\/60)? last:border-b-0/g)).toHaveLength(2);
+    // The last row of data draws none, a list's foot after it included.
+    expect(table.match(/border-b border-default(?:\/60)? \[&:not\(:has\(~tr:not\(\[data-next-page-foot\]\)\)\)\]:border-b-0/g)).toHaveLength(2);
   });
 });
 

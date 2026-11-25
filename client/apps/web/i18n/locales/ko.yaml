@@ -514,6 +514,8 @@ room:
     records_loading: 기록 불러오는 중…
     providers_loading: 채팅 서비스를 불러오는 중…
     mode_saving: 방의 모드를 바꾸는 중
+    supervisors_loading: 감독관 목록을 불러오는 중…
+    supervisors_saving: 방의 감독관 목록을 바꾸는 중
     removal_loading: 삭제할 기록을 불러오는 중…
     room_loading: 방 불러오는 중…
     selected_count: "{n}개 선택됨"
@@ -615,6 +617,8 @@ room:
     mode_not_added: 추가된 적이 없는 방이라 모드를 바꿀 수 없습니다.
     mode_read_failed: 방의 모드를 불러오지 못했습니다.
     mode_save_failed: 방의 모드를 바꾸지 못했습니다.
+    supervisors_read_failed: 방의 감독관 목록을 불러오지 못했습니다.
+    supervisors_save_failed: 방의 감독관 목록을 바꾸지 못했습니다.
     mode_takes_no_avatar: 이 방은 채팅 서비스가 답을 받지 않는 방이라 아바타 모드를 켤 수 없습니다.
     removal_read_failed: 삭제할 기록을 불러오지 못했습니다.
     removal_seeded_room: 감독관 설정이 정해 둔 방이라 지울 수 없습니다.
@@ -755,6 +759,7 @@ room:
     background_subagent: 서브에이전트
     background_watch: 감시
     mode_avatar: 아바타 모드
+    supervisors: 부를 수 있는 감독관
     earlier_count: "이전 {n}개"
     edited: 수정됨
     edited_at: "{time}에 수정됨"
@@ -965,6 +970,7 @@ room:
     providers_rule: 채팅 서비스는 방을 추가할 때 정해지고, 그 뒤로는 바꿀 수 없습니다.
     mode_avatar_on: 이 방에서 BMO가 내 계정으로 대신 답합니다.
     mode_avatar_off: 기록만 하고 답하지 않습니다.
+    supervisors_rule: 고르지 않으면 기본 응답 감독관이 이 방에 답합니다.
     background_every_minutes: "{n}분마다 확인"
     background_every_seconds: "{n}초마다 확인"
     background_since: "{time}부터"

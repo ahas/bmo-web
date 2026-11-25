@@ -14,8 +14,8 @@ import type { ArchivedMessage, RoomHolding, RoomHoldingPage, RoomMembersView, Ro
 // room's menu no longer carries what it holds, each kind of what the messages carried stands newest first across its
 // pages with what it says when it holds none, a line's show-in-message closes it onto the message, it carries no
 // callers' tab and closes at once since nothing in it waits, while the room's picture asks first with a picture picked
-// and not saved, and its chat services tab stands read-only, the avatar mode's switch standing above it only where the
-// mode can apply. What opens over the view (a picture or a video of the media tab, the room's picture,
+// and not saved, and its chat services tab stands read-only, the avatar mode's switch standing above it with the
+// room's list of supervisors under the switch, both only where the mode can apply. What opens over the view (a picture or a video of the media tab, the room's picture,
 // its picture setting and the search the shortcut opens) stands over it, after a return to the room and across the
 // narrow width too, and back or Esc closes it alone. What each tab reads is served
 // through the page's own routes, since the harness's receiver keeps no such messages. It drives the console
@@ -29,6 +29,19 @@ const MEMBERS = { members: [{ person: 9_000_000_000_101, name: "member-a", statu
 
 // A one-pixel picture, for the media tab's square.
 const PIXEL = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==", "base64");
+
+// What `read` answers once it holds, read again until it does or the time is up.
+async function until<T>(read: () => Promise<T>, holds: (value: T) => boolean, ms = 10_000): Promise<T> {
+  const end = Date.now() + ms;
+  let value = await read();
+
+  while (!holds(value) && Date.now() < end) {
+    await new Promise((done) => setTimeout(done, 50));
+    value = await read();
+  }
+
+  return value;
+}
 
 function message(messageId: string, sentAt: number, over: Partial<ArchivedMessage>): ArchivedMessage {
   return { chatId: RECORD_CHAT, messageId, senderId: 11, senderName: "person-a", sentAt, text: "", imagePath: null, replyToMessageId: null, ...over };
@@ -92,8 +105,9 @@ interface RoomSetUp {
   pictured?: boolean;
   // What the media tab is answered in place of its usual page.
   media?: RoomHoldingPage[];
-  // What the chat services tab is answered: the providers and the mode, the mode written as asked.
-  services?: { providers: RoomProvidersView; mode: RoomMode | null };
+  // What the chat services tab is answered: the providers and the mode, each written as asked, the room's list of
+  // supervisors as it now stands, and the whole lists each write was asked with.
+  services?: { providers: RoomProvidersView; mode: RoomMode | null; supervisors?: string[]; writes?: string[][] };
 }
 
 // The room open at a width, every tab's read answered here, and the number of the room's newest message.
@@ -110,11 +124,25 @@ async function roomOpen(width: number, height: number, phone: boolean, setUp: Ro
   if (setUp.services) {
     const services = setUp.services;
 
+    services.supervisors ??= [];
+    services.writes ??= [];
+
     await page.route(`**/api/rooms/${RECORD_CHAT}/providers`, (route) => route.fulfill({ json: services.providers }));
     await page.route(`**/api/rooms/${RECORD_CHAT}/mode`, async (route) => {
       if (route.request().method() === "PUT") services.mode = (route.request().postDataJSON() as { mode: RoomMode }).mode;
       await route.fulfill({ json: { mode: services.mode } });
     });
+    await page.route(`**/api/rooms/${RECORD_CHAT}/supervisors`, async (route) => {
+      if (route.request().method() === "PUT") {
+        const names = (route.request().postDataJSON() as { supervisors: string[] }).supervisors;
+
+        services.writes!.push(names);
+        services.supervisors = [...names].sort();
+      }
+
+      await route.fulfill({ json: { supervisors: services.supervisors } });
+    });
+    await page.route("**/api/supervisors", (route) => route.fulfill({ json: SUPERVISOR_CHOICES }));
   }
   await page.route("**/api/images/**", (route) => route.fulfill({ contentType: "image/png", body: PIXEL }));
   await page.route(`**/api/rooms/${RECORD_CHAT}/pictures?*`, (route) => route.fulfill({ json: PICTURES }));
@@ -144,6 +172,13 @@ const TABS = ["members", "media", "files", "links", "music", "voice", "situation
 // A provider the pack holds no name for, called by the pack's word for a messenger with its key.
 const PROVIDER_A = { key: "provider-a", label: wording("room.label.road_other", { key: "provider-a" }) };
 const RECORD = { key: "record", label: wording("room.label.road_record") };
+
+// The supervisors the reader's list holds, offered under their labels; a name the room carries outside them,
+// `person-b`, stands among the choices by its own name alone.
+const SUPERVISOR_CHOICES = [
+  { name: "agent-a", label: "Agent A" },
+  { name: "agent-b", label: "Agent B" }
+];
 
 describe.skipIf(!origin || !touchReady())("the room information", () => {
   for (const [width, height, phone] of [[1280, 900, false], [360, 780, true]] as const) {
@@ -274,6 +309,44 @@ describe.skipIf(!origin || !touchReady())("the room information", () => {
         await sheet.getByText(wording("room.message.mode_avatar_on"), { exact: true }).waitFor({ timeout: 10_000 });
         expect(await avatar.getAttribute("aria-checked")).toBe("true");
         expect(services.mode).toBe("avatar");
+
+        // Under the switch stands the room's list of supervisors, the line under it saying what naming none does.
+        await sheet.locator("[data-room-supervisors]").waitFor({ timeout: 10_000 });
+        await sheet.getByText(wording("room.message.supervisors_rule"), { exact: true }).waitFor({ timeout: 10_000 });
+      } finally {
+        await close();
+      }
+    }, 90_000);
+
+    test(`writes the room's whole list of supervisors as it is chosen, keeping a name the candidates leave out, ${width}px wide`, async () => {
+      const services: NonNullable<RoomSetUp["services"]> = { providers: { on: [PROVIDER_A, RECORD], avatarOffered: true }, mode: "avatar", supervisors: ["agent-a", "person-b"] };
+      const { page, close } = await roomOpen(width, height, phone, { services });
+
+      try {
+        const sheet = await openRoomInfo(page, wording("room_info.label.providers"));
+        const row = sheet.locator("[data-room-supervisors]");
+
+        await row.waitFor({ timeout: 10_000 });
+
+        // The room's names show, each candidate by its label and the name the candidates leave out by that name.
+        await row.getByText("Agent A").first().waitFor({ timeout: 10_000 });
+        await row.getByText("person-b").first().waitFor({ timeout: 10_000 });
+
+        const control = row.getByRole("button", { name: wording("room.label.supervisors"), exact: true });
+
+        // A choice is the whole list written: what stood and what the candidates leave out all go with it.
+        await control.click();
+        await page.getByRole("option").filter({ hasText: "Agent B" }).click();
+        await page.keyboard.press("Escape");
+        await row.getByText("Agent B").first().waitFor({ timeout: 10_000 });
+        expect([...(services.writes![0] ?? [])].sort()).toEqual(["agent-a", "agent-b", "person-b"]);
+
+        // The kept name goes when untaken, and the names left stand as the receiver answers them.
+        await control.click();
+        await page.getByRole("option").filter({ hasText: "person-b" }).click();
+        await page.keyboard.press("Escape");
+        await until(async () => await row.innerText(), (text) => !text.includes("person-b"));
+        expect([...(services.writes!.at(-1) ?? [])].sort()).toEqual(["agent-a", "agent-b"]);
       } finally {
         await close();
       }
@@ -294,9 +367,11 @@ describe.skipIf(!origin || !touchReady())("the room information", () => {
 
           await sheet.locator("[data-room-providers]").waitFor({ timeout: 10_000 });
           expect(await sheet.locator("[data-room-mode]").count()).toBe(0);
+          expect(await sheet.locator("[data-room-supervisors]").count()).toBe(0);
           expect(await sheet.getByRole("switch").count()).toBe(0);
           expect(await sheet.getByText(wording("room.label.mode_avatar")).count()).toBe(0);
           expect(await sheet.getByText(wording("room.message.mode_avatar_off")).count()).toBe(0);
+          expect(await sheet.getByText(wording("room.message.supervisors_rule")).count()).toBe(0);
         } finally {
           await close();
         }

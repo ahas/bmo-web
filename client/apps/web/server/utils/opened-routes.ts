@@ -258,6 +258,8 @@ export const openedRoutes: readonly OpenedRoute[] = [
   { method: "PUT", path: /^\/api\/rooms\/-?\d+\/mode$/, scope: "user", administrator: true },
   { method: "GET", path: /^\/api\/rooms\/-?\d+\/tone$/, scope: "user", administrator: true },
   { method: "PUT", path: /^\/api\/rooms\/-?\d+\/tone$/, scope: "user", administrator: true },
+  { method: "GET", path: /^\/api\/rooms\/-?\d+\/supervisors$/, scope: "user", administrator: true },
+  { method: "PUT", path: /^\/api\/rooms\/-?\d+\/supervisors$/, scope: "user", administrator: true },
   { method: "GET", path: /^\/api\/rooms\/-?\d+\/background$/, scope: "user", administrator: true },
   { method: "POST", path: /^\/api\/rooms\/-?\d+\/pin$/, scope: "user", administrator: true },
   { method: "POST", path: /^\/api\/rooms\/-?\d+\/messages\/-?\d+\/forward$/, scope: "user", administrator: true },

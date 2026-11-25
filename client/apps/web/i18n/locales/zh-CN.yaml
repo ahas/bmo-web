@@ -507,6 +507,8 @@ room:
     records_loading: 正在加载记录…
     providers_loading: 正在加载聊天服务…
     mode_saving: 正在更改房间模式
+    supervisors_loading: 正在加载主管…
+    supervisors_saving: 正在更改房间主管
     removal_loading: 正在加载要删除的记录…
     room_loading: 正在加载房间…
     selected_count: "已选择{n}项"
@@ -608,6 +610,8 @@ room:
     mode_not_added: 此房间从未添加过，无法更改模式。
     mode_read_failed: 无法加载房间模式。
     mode_save_failed: 无法更改房间模式。
+    supervisors_read_failed: 无法加载房间主管。
+    supervisors_save_failed: 无法更改房间主管。
     mode_takes_no_avatar: 此房间的聊天服务不接收回复，无法开启代答模式。
     removal_read_failed: 无法加载要删除的记录。
     removal_seeded_room: 这是主管配置指定的房间，无法删除。
@@ -748,6 +752,7 @@ room:
     background_subagent: 子智能体
     background_watch: 监视
     mode_avatar: 代答模式
+    supervisors: 可呼叫的主管
     earlier_count: "更早{n}条"
     edited: 已编辑
     edited_at: "编辑于{time}"
@@ -958,6 +963,7 @@ room:
     providers_rule: 聊天服务在添加房间时确定，之后无法更改。
     mode_avatar_on: 在此房间中，BMO 以你的账号代你回复。
     mode_avatar_off: 只记录，不回复。
+    supervisors_rule: 不选择时，由默认回复主管回复此房间。
     background_every_minutes: "每{n}分钟检查一次"
     background_every_seconds: "每{n}秒检查一次"
     background_since: "自{time}起"

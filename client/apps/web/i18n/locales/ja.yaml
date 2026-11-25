@@ -507,6 +507,8 @@ room:
     records_loading: 記録を読み込み中…
     providers_loading: チャットサービスを読み込み中…
     mode_saving: ルームのモードを変更中
+    supervisors_loading: スーパーバイザーを読み込み中…
+    supervisors_saving: ルームのスーパーバイザーを変更中
     removal_loading: 削除する記録を読み込み中…
     room_loading: ルームを読み込み中…
     selected_count: "{n}件選択中"
@@ -608,6 +610,8 @@ room:
     mode_not_added: 追加されたことのないルームのため、モードを変更できません。
     mode_read_failed: ルームのモードを読み込めませんでした。
     mode_save_failed: ルームのモードを変更できませんでした。
+    supervisors_read_failed: ルームのスーパーバイザーを読み込めませんでした。
+    supervisors_save_failed: ルームのスーパーバイザーを変更できませんでした。
     mode_takes_no_avatar: このルームはチャットサービスが返信を受け付けないため、アバターモードをオンにできません。
     removal_read_failed: 削除する記録を読み込めませんでした。
     removal_seeded_room: スーパーバイザーの設定で決められたルームのため削除できません。
@@ -748,6 +752,7 @@ room:
     background_subagent: サブエージェント
     background_watch: 監視
     mode_avatar: アバターモード
+    supervisors: 呼び出せるスーパーバイザー
     earlier_count: "以前の{n}件"
     edited: 編集済み
     edited_at: "{time}に編集"
@@ -958,6 +963,7 @@ room:
     providers_rule: チャットサービスはルームを追加するときに決まり、その後は変更できません。
     mode_avatar_on: このルームでは、BMO があなたのアカウントで代わりに返信します。
     mode_avatar_off: 記録だけして、返信しません。
+    supervisors_rule: 選択しない場合は、デフォルト応答スーパーバイザーがこのルームに返信します。
     background_every_minutes: "{n}分ごとに確認"
     background_every_seconds: "{n}秒ごとに確認"
     background_since: "{time}から"

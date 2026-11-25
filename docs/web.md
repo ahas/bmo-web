@@ -489,15 +489,16 @@ console page. No answer says which framework drew it. Strict transport is the re
   picture is read by whoever reads the room alone.
 - **The room screen stands read-only for him there and in a sealed room,** as it does for a reader whose rooms section
   only reads, by the room list's word of which rooms the reader may change: no box
-  to write in and no act on a message, no pin or removal in the room's menu, no picture, avatar mode or tone layer in 방 정보
-  (its 영구 삭제 aside, 「방 정보」),
+  to write in and no act on a message, no pin or removal in the room's menu, no picture, avatar mode, list of
+  supervisors or tone layer in 방 정보 (its 영구 삭제 aside, 「방 정보」),
   nobody to let in, and no such room to forward a message into. Nothing on the screen says why,
   and nobody else is told he is reading.
 - **Every change the console makes in a room for a person names the account it is made as,** so the receiver refuses
   a change in another account's private room or a sealed one by its own rule and the console's refusal is a second
   line before it:
   the words, files and voice notes, the reactions, edits, pins, deletes, stickers, forwards, a line read aloud, the
-  room's pin, its picture, its mode, its tone layer, a group's own supervisor, its removal and its members. A read
+  room's pin, its picture, its mode, its tone layer, a group's own supervisor, the room's whole list of supervisors,
+  its removal and its members. A read
   mark is the console's own row and reaches the receiver as nothing. The account whose private room it is changes it as any member does a room, its
   members alone being the receiver's to keep as they stand. A console login standing before the account model writes
   on the owner's own road, which acts for the owner's account where his sender stands linked to one and for no account
@@ -6309,6 +6310,21 @@ Four bounds keep it from growing forever.
   room whose service is never answered in — is said in the tab by the pack's sentence for the receiver's code.
 - **The console names no provider apart from the others,** in its code or in what it sends: whether the switch
   stands turns on what the receiver says of the room and of each provider alone.
+- **Under the switch stands the room's list of supervisors,** wherever the switch does. The list is the room's own
+  answerers and, in a room added in the avatar mode, the whole of who its words may call there (the receiver's
+  `docs/api.md`, 「Supervisors」). It is a select of several, standing on the row under its
+  own label: the choices are the supervisors the reader's list holds, narrowed by ownership as the room add dialog's
+  are, and the administrator, for whom alone the tab opens, is shown all of that list; each choice stands by its
+  label with its name under it. A name the room already carries that the choices would leave out stays among them,
+  by that name alone, so an edit never drops it unseen. A line under the row says what naming none does: the room
+  goes to the default answerer. The read is asked once the row first stands, its place kept by a skeleton while it
+  runs.
+- **A choice is written whole at once,** as the administrator and as his account (the receiver's
+  `PUT /rooms/{roomId}/supervisors`, which declares `account` and reads no `by`): every name the select holds goes,
+  the row waiting while it is written and standing as the receiver answers the list now held, in its name order;
+  un-taking every name is that write too, an empty list leaving the setting unset. A refusal — a name the agency
+  does not register, another account's private room — is said in the tab by the pack's sentence for the receiver's
+  code, and the row stands as the receiver last answered it.
 
 #### A chat road's name
 

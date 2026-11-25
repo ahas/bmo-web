@@ -99,6 +99,8 @@
 - the supervisor that answers every room naming none → 기본 응답 감독관; the supervisor a search or browse run no
   supervisor delegated writes its brain for → 리서치 감독관; the supervisor a group room is added with, one of the
   person adding it owns or 감독관 없음 → 그룹 감독관.
+- the supervisors a room names, which answer it and, in an avatar room, are the whole of who its words may call
+  there → 부를 수 있는 감독관. Never 호출할 수 있는 감독관; 호출 stays the mention's never-word.
 - a person's own supervisor, as it is titled → `{name}의 BMO`, the person's name with BMO, or with the name its
   profile stands with where a company or the person set one (`{name}의 Dear`); its private room → the person's name
   alone, `{name}`. The person's name stands there, the login only where none stands; never the login with BMO beside

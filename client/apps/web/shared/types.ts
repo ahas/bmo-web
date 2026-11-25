@@ -2823,6 +2823,13 @@ export interface RoomToneView {
   tones: string[];
 }
 
+// The supervisors a room names, as the receiver holds them, in name order: who answers the room and, in an avatar
+// room, the whole of who its words may call. Empty is the setting left unset, which hands the room to the default
+// answerer.
+export interface RoomSupervisorsView {
+  supervisors: string[];
+}
+
 // The pinned order as it stands once a room was pinned or let go: the room numbers, first to last.
 export interface PinnedRooms {
   rooms: number[];

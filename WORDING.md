@@ -757,7 +757,8 @@
   없습니다; a record that belongs to none shows 없음. Never 소속
   없음, and never 담당 or 담당자 for it, which is who keeps or approves a thing.
 - the customers' voice box, where a person sends the platform's maker a word and the maker answers, its entry and its
-  screen → 고객의 소리. Never 피드백, VOC, 의견함.
+  screen → 고객의 소리, as the administrator who answers reads it among the 시스템 서비스; the same entry in a member's own
+  menu, where they send the maker a word → 문의. Never 피드백, VOC, 의견함, and never 고객의 소리 in a member's menu.
 - one word a person sends there → 의견: 의견 보내기, 새 의견 보내기, 의견을 보냈습니다, 의견을 보내지 못했습니다; its
   kinds → 버그, a fault the sender met, and 건의, something the sender wants changed or added. Never 버그 리포트 or
   제안 on this screen. 의견 on 일정 관리 stays a reader's remark on a work, each on its own screen.
@@ -797,6 +798,6 @@
 - 아티팩트 → artifact / アーティファクト / 制品.
 - 인물 (the person an org memory is about) → person / 人物 / 人员.
 - 전역 베이스 → global base / グローバルベース / 全局库.
-- 출처 → Source / 提供元 / 来源.
+- 고객의 소리 → Customer voice / お客様の声 / 客户之声; 문의 → Contact / お問い合わせ / 联系我们; 출처 → Source / 提供元 / 来源.
 - 스토어 → Store / ストア / 应用商店; 회수 → recall / 回収 / 收回; 복제 → clone / 複製 / 复制.
 - 스킬 → skill / スキル / 技能; 붙이다 → attach / 付ける / 附加.

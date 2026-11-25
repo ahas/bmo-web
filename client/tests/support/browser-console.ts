@@ -17,7 +17,7 @@ import sharp from "sharp";
 import { connectionOf } from "../../apps/web/server/utils/db";
 import { WatchedChildren } from "./children";
 import { manifestFields } from "./console-manifest";
-import { HARNESS_SCREEN_UNITS } from "./harness-screens";
+import { HARNESS_NAMED_UNIT, HARNESS_SCREEN_UNITS, harnessNamedTitle } from "./harness-screens";
 import { jobLogAnswer } from "./job-log";
 import { mailServersAnswer } from "./mail-servers";
 import { orgBrainAnswer } from "./org-brain";
@@ -961,12 +961,12 @@ const uses: Record<string, unknown>[] = [];
 // `?menu=on` it also draws an input menu from the console's own copy of Nuxt UI, imported by the path a unit's bundle
 // imports it by (docs/web.md, 「Wording and the language pack」). The services its manifest names under `calls` are the
 // ones its pages reach besides its own.
-function screenUnit(name: string, path: string, calls: readonly string[] = []): Response | null {
+function screenUnit(name: string, path: string, calls: readonly string[] = [], fields: Record<string, unknown> = {}, words: Record<string, string> = { title: name }): Response | null {
   if (path === "/console-manifest") {
-    return Response.json(manifestFields(name, { icon: "i-material-symbols-widgets", calls }));
+    return Response.json(manifestFields(name, { icon: "i-material-symbols-widgets", calls, ...fields }));
   }
 
-  if (path === "/console/words") return Response.json({ ko: { [name]: { title: name } }, en: { [name]: { title: name } } });
+  if (path === "/console/words") return Response.json({ ko: { [name]: words }, en: { [name]: words } });
 
   if (path === "/console/bundle.js") {
     const source = `import { defineComponent, h, inject, onBeforeUnmount, onMounted, ref } from "vue";
@@ -2353,6 +2353,16 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
   SCREEN_A: (path) => screenUnit(HARNESS_SCREEN_UNITS[0], path, ["people"]),
   SCREEN_B: (path) => screenUnit(HARNESS_SCREEN_UNITS[1], path),
   SCREEN_RELEASED: (path, request) => releasedUnit(HARNESS_SCREEN_UNITS[2], path, request),
+  // A screen standing in a member's own menu and among the administrator services for the administrator, named by
+  // another word for each.
+  SCREEN_NAMED: (path) =>
+    screenUnit(
+      HARNESS_NAMED_UNIT,
+      path,
+      [],
+      { sidebarSection: "account", sidebarSections: { administrator: "administration" }, sidebarTitles: { member: `${HARNESS_NAMED_UNIT}.member_title` } },
+      { title: harnessNamedTitle("administrator"), member_title: harnessNamedTitle("member") }
+    ),
   ARTIFACT: (path, request) => storageAnswer(decodeURIComponent(path), request),
   // bmo-mail, for the organisation screen's mail servers (tests/support/mail-servers.ts).
   MAIL: (path, request) => mailServersAnswer(path, request, `http://127.0.0.1:${accountServicePort}`, TOKEN),

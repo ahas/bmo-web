@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 
 import { wording } from "../../apps/web/shared/wording";
-import { HARNESS_SCREEN_UNITS } from "../support/harness-screens";
+import { HARNESS_SCREEN_UNITS, harnessNamedTitle } from "../support/harness-screens";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
@@ -28,9 +28,10 @@ const ADMINISTRATION = wording("screens.label.section_administration");
 const APPLICATION = wording("screens.label.section_application");
 const BROUGHT = [...HARNESS_SCREEN_UNITS];
 const STORE = wording("screens.label.catalogue");
-const ADMINISTRATOR_SCREENS = ["db", "research", "monitor", "documents", "catalogue", "agents", "organization", "siren", "admin"].map((key) =>
-  wording(`screens.label.${key}`)
-);
+const ADMINISTRATOR_SCREENS = [
+  ...["db", "research", "monitor", "documents", "catalogue", "agents", "organization", "siren", "admin"].map((key) => wording(`screens.label.${key}`)),
+  harnessNamedTitle("administrator")
+];
 
 const WIDTHS = [
   { width: 1280, height: 800, phone: false },

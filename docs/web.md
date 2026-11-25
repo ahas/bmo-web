@@ -10764,8 +10764,8 @@ title bar」), its people directory and the members of the reader's company.
   setting of its own. A build outside any checkout states it empty.
 - **A reader is handed the screens their role opens.** The console's `GET /api/console-bundles` answers the
   bundles the signed-in reader may open, as the contract's 「Roles and the owner key」 has the console offer them:
-  each with its name, title and icon, its screen path, the section it stands in for the reader's role
-  (「Sidebar」), the relay addresses of its module and its stylesheet, its words, and whether its manifest names a
+  each with its name, the title its manifest names for the reader's role (bmo-ui's 「A name by role」), its icon, its
+  screen path, the section it stands in for the reader's role (「Sidebar」), the relay addresses of its module and its stylesheet, its words, and whether its manifest names a
   `sidebarUnread`, whose count the console reads itself (「Sidebar」). A
   page drawn on the server reads the same list, so the sidebar names every screen on its first frame, and the words
   are merged into the console's pack under the bundle's namespace as the list is read. The list is read again as

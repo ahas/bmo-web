@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 
 import { wording } from "../../apps/web/shared/wording";
-import { HARNESS_SCREEN_UNITS } from "../support/harness-screens";
+import { HARNESS_SCREEN_UNITS, harnessNamedTitle } from "../support/harness-screens";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
@@ -32,7 +32,7 @@ const STORE = wording("screens.label.catalogue");
 // The sidebar as each reader reads it, section by section: the heading it shows and its screens' names.
 const EXPECTED = {
   [ADMINISTRATOR.name]: [
-    [ADMINISTRATION, ["db", "research", "monitor", "documents", "catalogue", "agents", "organization", "siren", "admin"].map((key) => wording(`screens.label.${key}`))],
+    [ADMINISTRATION, [wording("screens.label.db"), harnessNamedTitle("administrator"), ...["research", "monitor", "documents", "catalogue", "agents", "organization", "siren", "admin"].map((key) => wording(`screens.label.${key}`))]],
     [APPLICATION, BROUGHT]
   ],
   [SECTION_READER.name]: [

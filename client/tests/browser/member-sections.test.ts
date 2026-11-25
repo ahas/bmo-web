@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 
 import { wording } from "../../apps/web/shared/wording";
+import { harnessNamedTitle } from "../support/harness-screens";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, BrowserContext, Page } from "playwright-core";
@@ -9,7 +10,8 @@ import type { Browser, BrowserContext, Page } from "playwright-core";
 // A member opens each of the console's own screens whose section they read, in the member's shell, and an address
 // they may not open takes them to the first screen they may, never round again to itself (docs/web.md, 「Access」).
 // The research screen holds back its research supervisor, the administrator's alone. The store opens to them at its own
-// address, from its entry and from its other address (「App catalogue」). Its two members are the test
+// address, from its entry and from its other address (「App catalogue」), and a screen a unit brings into their own menu
+// is named there by the word its manifest names for a member (「Screens a unit brings」). Its two members are the test
 // console's own, each with the sections tests/support/browser-console.ts writes for them.
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up.
@@ -106,6 +108,21 @@ describe.skipIf(!origin || !touchReady())("a member's own console screens", () =
 
       expect((await opened(page, "/app-catalogue?from=link")).path).toBe("/store");
       expect(new URL(page.url()).searchParams.get("from")).toBe("link");
+    } finally {
+      await context.close();
+    }
+  }, 120_000);
+
+  test("a member's own menu names a unit's screen by the word its manifest names for a member", async () => {
+    const context = await contextFor(SECTION_READER.name, 1280, 800);
+
+    try {
+      const page = await context.newPage();
+
+      await opened(page, "/store");
+      await page.locator(MEMBER_SHELL).getByRole("button", { name: SECTION_READER.name }).last().click();
+      await page.getByRole("menuitem", { name: harnessNamedTitle("member") }).waitFor({ timeout: 20_000 });
+      expect(await page.getByRole("menuitem", { name: harnessNamedTitle("administrator") }).count()).toBe(0);
     } finally {
       await context.close();
     }

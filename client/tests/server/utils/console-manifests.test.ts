@@ -232,6 +232,13 @@ test("a bundle is handed to each reader in the section its manifest names for th
   expect([screen("administrator"), screen("member"), screen(null)]).toEqual(["administration", "account", "account"]);
 });
 
+test("a bundle is handed to each reader named by the key its manifest names for the role they hold, and with no reader by its title", () => {
+  const byRole = consoleManifest(manifestOf({ sidebarTitles: { member: "unit-a.title.member" } }));
+  const title = (role: "administrator" | "member" | null) => screenOf({ manifest: byRole, unit, words: {} }, "/base/", role).title;
+
+  expect([title("administrator"), title("member"), title(null)]).toEqual([byRole.title, "unit-a.title.member", byRole.title]);
+});
+
 test("the relay lets through a route the manifest relays by its method and path, beside what its prefix lets through", () => {
   const manifest = consoleManifest(manifestOf({ apiPrefix: "/screen", relays: [{ method: "POST", path: "/readings" }] }));
 

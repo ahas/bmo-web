@@ -1,4 +1,4 @@
-import { CONSOLE_MANIFEST_ROUTE, LAYER_BOUND, LAYER_VERSION, consoleManifest, movedScreenAddress, onThisLayer, relaysRoute, roleAllows, screensCall, sectionFor } from "bmo-ui/shared/console-manifest";
+import { CONSOLE_MANIFEST_ROUTE, LAYER_BOUND, LAYER_VERSION, consoleManifest, movedScreenAddress, onThisLayer, relaysRoute, roleAllows, screensCall, sectionFor, titleFor } from "bmo-ui/shared/console-manifest";
 
 import { ownerKeyOf, ownerRoleOf } from "./owner-key";
 import { personalName, personalPath } from "./personal-screens";
@@ -271,16 +271,16 @@ export function relayPath(baseURL: string, manifest: ConsoleManifest, path: stri
 }
 
 /**
- * A bundle as a browser is handed it, for a reader holding a role: its entry in the section the manifest names for
- * that role (bmo-ui's `docs/console-bundles.md`, 「A section by role」). With no reader, as a share page is handed it,
- * the manifest's own sidebar section.
+ * A bundle as a browser is handed it, for a reader holding a role: its entry named by the key and standing in the
+ * section the manifest names for that role (bmo-ui's `docs/console-bundles.md`, 「A name by role」 and 「A section by
+ * role」). With no reader, as a share page is handed it, the manifest's own title and sidebar section.
  */
 export function screenOf(bundle: AttachedBundle, baseURL: string, role: ConsoleRole | null): ConsoleScreen {
   const { manifest } = bundle;
 
   return {
     name: manifest.name,
-    title: manifest.title,
+    title: role === null ? manifest.title : titleFor(manifest, role),
     icon: manifest.icon,
     screenPath: manifest.screenPath,
     role: manifest.role,
